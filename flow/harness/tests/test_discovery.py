@@ -100,27 +100,6 @@ async def test_codex_queries_with_client_version_and_filters_unlisted(tmp_path, 
 	assert catalog.models == [ModelInfo(name="codex/gpt-5-codex", provider="codex", supports_images=True)]
 
 
-async def test_codex_reports_the_latest_codex_release(tmp_path, bare_env, monkeypatch):
-	monkeypatch.delenv("FLOW_CODEX_CLIENT_VERSION", raising=False)
-	monkeypatch.setattr("flow_harness.model.providers.codex._latest_client_version", None)
-	store = _store(tmp_path)
-	store.set_oauth(
-		"codex",
-		OAuthCredential(access="tok", refresh="r", expires=2**62, account_id="acc"),
-	)
-
-	def handler(request):
-		if request.url.host == "registry.npmjs.org":
-			assert "Authorization" not in request.headers
-			return httpx.Response(200, json={"version": "0.200.0"})
-		assert request.url.params["client_version"] == "0.200.0"
-		return httpx.Response(200, json={"models": [{"slug": "gpt-6-sol"}]})
-
-	catalog = await available_models(store, client=_client(handler))
-	assert catalog.models == [ModelInfo(name="codex/gpt-6-sol", provider="codex", supports_images=True)]
-	assert catalog.errors == []
-
-
 async def test_failed_provider_falls_back_to_static_catalog(tmp_path, bare_env, monkeypatch):
 	monkeypatch.setenv("OPENCODE_API_KEY", "sk-go")
 	monkeypatch.setenv("OPENAI_API_KEY", "sk-oai")

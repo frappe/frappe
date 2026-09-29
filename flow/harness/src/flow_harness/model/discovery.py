@@ -176,7 +176,7 @@ async def _codex_models(
 	response = await client.get(
 		f"{(api_base or '').rstrip('/')}/codex/models",
 		headers=headers,
-		params={"client_version": await codex_client_version(client)},
+		params={"client_version": codex_client_version()},
 	)
 	response.raise_for_status()
 	return _model_ids(response.json(), "codex")

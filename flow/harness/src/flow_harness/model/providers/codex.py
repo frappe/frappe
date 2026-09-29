@@ -12,7 +12,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import re
 import sys
 import time
 from collections.abc import AsyncIterator, Callable, Mapping
@@ -67,8 +66,8 @@ SCOPE = "openid profile email offline_access"
 ORIGINATOR = "flow"
 API_BASE = "https://chatgpt.com/backend-api"
 DEFAULT_EXPIRES_S = 3600
-DEFAULT_CODEX_CLIENT_VERSION = "0.159.0"
-CODEX_LATEST_VERSION_URL = "https://registry.npmjs.org/@openai/codex/latest"
+# The Codex catalog hides models newer than the version we report, so claim a far-future one.
+DEFAULT_CODEX_CLIENT_VERSION = "999.0.0"
 MODEL_CATALOG_TIMEOUT_SECONDS = 5.0
 DEFAULT_CODEX_MAX_OUTPUT_TOKENS = 128_000
 DEFAULT_AUTO_COMPACT_PERCENT = 90
@@ -258,11 +257,10 @@ class CodexModel(Model):
 		owns_client = self._client is None
 		client = self._client or httpx.AsyncClient()
 		try:
-			client_version = await await_with_cancellation(codex_client_version(client), cancellation)
 			response = await await_with_cancellation(
 				client.get(
 					f"{self._api_base.rstrip('/')}/codex/models",
-					params={"client_version": client_version},
+					params={"client_version": codex_client_version()},
 					headers=self._model_catalog_headers(),
 					timeout=MODEL_CATALOG_TIMEOUT_SECONDS,
 				),
@@ -395,29 +393,9 @@ class CodexModel(Model):
 		return headers
 
 
-_VERSION_PATTERN = re.compile(r"\d+\.\d+\.\d+")
-_latest_client_version: str | None = None  # looked up once per process
-
-
-async def codex_client_version(client: httpx.AsyncClient) -> str:
-	"""Version the Codex catalog filters models by: env override, else npm's latest, else the pin."""
-	configured = os.environ.get("FLOW_CODEX_CLIENT_VERSION")
-	if configured:
-		return configured
-	global _latest_client_version
-	if _latest_client_version is None:
-		_latest_client_version = await _npm_latest_version(client) or DEFAULT_CODEX_CLIENT_VERSION
-	return _latest_client_version
-
-
-async def _npm_latest_version(client: httpx.AsyncClient) -> str | None:
-	try:
-		response = await client.get(CODEX_LATEST_VERSION_URL, timeout=MODEL_CATALOG_TIMEOUT_SECONDS)
-		response.raise_for_status()
-		version = response.json().get("version")
-	except Exception:
-		return None
-	return version if isinstance(version, str) and _VERSION_PATTERN.fullmatch(version) else None
+def codex_client_version() -> str:
+	"""Version the Codex catalog filters models by: the env override, else the far-future default."""
+	return os.environ.get("FLOW_CODEX_CLIENT_VERSION") or DEFAULT_CODEX_CLIENT_VERSION
 
 
 def static_context_window(model: str) -> int | None:

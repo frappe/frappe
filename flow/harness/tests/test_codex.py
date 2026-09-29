@@ -196,42 +196,12 @@ async def test_loads_and_caches_account_model_limits(monkeypatch):
 	assert model.auto_compact_threshold_tokens == 900_000
 
 
-@pytest.fixture
-def uncached_client_version(monkeypatch):
-	monkeypatch.delenv("FLOW_CODEX_CLIENT_VERSION", raising=False)
-	monkeypatch.setattr("flow_harness.model.providers.codex._latest_client_version", None)
-
-
-async def test_client_version_override_skips_npm(monkeypatch):
+def test_client_version_prefers_env_then_default(monkeypatch):
 	monkeypatch.setenv("FLOW_CODEX_CLIENT_VERSION", "1.2.3")
+	assert codex_client_version() == "1.2.3"
 
-	def handler(request):
-		raise AssertionError("an override needs no lookup")
-
-	async with _mock_client(handler) as client:
-		assert await codex_client_version(client) == "1.2.3"
-
-
-async def test_client_version_is_the_latest_npm_release_looked_up_once(uncached_client_version):
-	urls = []
-
-	def handler(request):
-		urls.append(str(request.url))
-		return httpx.Response(200, json={"version": "0.200.0"})
-
-	async with _mock_client(handler) as client:
-		assert await codex_client_version(client) == "0.200.0"
-		assert await codex_client_version(client) == "0.200.0"
-
-	assert urls == ["https://registry.npmjs.org/@openai/codex/latest"]
-
-
-@pytest.mark.parametrize(
-	"reply", [httpx.Response(503), httpx.Response(200, json={"version": "latest"})], ids=["down", "junk"]
-)
-async def test_client_version_falls_back_to_the_pin(uncached_client_version, reply):
-	async with _mock_client(lambda request: reply) as client:
-		assert await codex_client_version(client) == DEFAULT_CODEX_CLIENT_VERSION
+	monkeypatch.delenv("FLOW_CODEX_CLIENT_VERSION")
+	assert codex_client_version() == DEFAULT_CODEX_CLIENT_VERSION
 
 
 # --- streaming wire --------------------------------------------------------

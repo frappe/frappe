@@ -64,7 +64,7 @@ the manual step above.
 | `FLOW_CALLBACK_HOSTS` | unset | Comma-separated `host[:port]` values a session `callback_url` may target. Enforced by the `deployed` profile; unset there means client callbacks are refused. A site's own `callback_hosts` in the tenants file replaces it for that site. |
 | `FLOW_POLICY` | unset | JSON object overriding individual policy fields of the chosen profile for `flow serve`, e.g. `{"skills_api": true, "tool_allowlist": ["read", "grep", "bash"]}`. Applied last, so it wins over the profile and `FLOW_CALLBACK_HOSTS`; unknown fields or wrong types refuse startup, as does switching off `require_auth` or `audit_log` where the profile guarantees them. |
 | `FLOW_CREDENTIALS_PATH` | `~/.flow/server/credentials.json` | Credential-store path. |
-| `FLOW_CODEX_CLIENT_VERSION` | unset | Codex version sent when listing the Codex catalog, which hides models newer than it. Unset, Flow uses the latest `@openai/codex` release on npm (looked up once each time Flow starts), else a built-in default. |
+| `FLOW_CODEX_CLIENT_VERSION` | unset | Codex version sent when listing the Codex catalog, which hides models newer than it. Unset, Flow sends `999.0.0` so none are hidden; set a real Codex version if the catalog ever rejects that. |
 | `FLOW_MODEL` | `mock` | Initial model for a new TUI session; a saved TUI choice is used when it is unset. |
 | `FLOW_ALLOWED_ROOTS` | unset | `os.pathsep`-separated roots for session directories and path-taking tools. It does not sandbox `bash`. |
 | `FLOW_CORS_ORIGINS` | unset | Comma-separated browser origins allowed to call the API. |
