@@ -248,6 +248,26 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.save()
 		frappe.db.rollback()
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_not_nullable_type_change_with_blanks(self):
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "time_taken", "fieldtype": "Data", "not_nullable": 1},
+				{"fieldname": "due_on", "fieldtype": "Data", "not_nullable": 1},
+			]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name).insert()
+
+		doctype.fields[0].fieldtype = "Duration"
+		doctype.save()
+		self.assertEqual(frappe.db.get_value(doctype.name, doc.name, "time_taken"), 0)
+
+		# '' is not a date, so there is no valid not-null default for the blank
+		doctype.fields[1].fieldtype = "Date"
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
+			doctype.save()
+		frappe.db.rollback()
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_blank_values_are_coerced_so_the_conversion_can_proceed(self):
 		"""An empty string only fails to cast because it is empty; migrate makes it the default"""
