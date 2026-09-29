@@ -1602,3 +1602,20 @@ class TestFileListUserPermissionRestriction(FrappeTestCase):
 			filters={"name": ["in", [self.permitted_file.name, self.out_of_scope_file.name]]},
 		)
 		self.assertEqual(len(files), 2)
+
+
+class TestFilePermissionQuery(FrappeTestCase):
+	def test_ignores_stale_custom_docperm_doctype(self):
+		"""A stale Custom DocPerm can reference a deleted DocType; must not crash the File list query."""
+		from frappe.core.doctype.file.file import get_permission_query_conditions
+		from frappe.permissions import SYSTEM_USER_ROLE
+
+		with (
+			patch(
+				"frappe.core.doctype.file.file.get_doctypes_with_read",
+				return_value=["Deleted Doctype XYZ"],
+			),
+			patch("frappe.get_roles", return_value=[SYSTEM_USER_ROLE]),
+		):
+			# should not raise frappe.exceptions.DoesNotExistError
+			get_permission_query_conditions(user="test1@example.com")
