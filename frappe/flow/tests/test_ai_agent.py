@@ -23,7 +23,7 @@ def count_todos(status: str = "Open", *, ctx: ToolContext) -> int:
 	return frappe.db.count("ToDo", {"status": status})
 
 
-@tool(requires_confirmation=True)
+@tool(requires_confirmation=True, background=True)
 def close_todo(name: str, *, ctx: ToolContext) -> str:
 	"""Close a ToDo."""
 	frappe.db.set_value("ToDo", name, "status", "Closed")
@@ -133,7 +133,7 @@ class TestAgent(IntegrationTestCase):
 			(doc.title, doc.type, doc.import_path, doc.description, doc.requires_confirmation),
 			("Close Todo", "Imported", f"{__name__}.close_todo", "Close a ToDo.", 1),
 		)
-		self.assertEqual(doc.is_system_generated, 1)
+		self.assertEqual((doc.background, doc.is_system_generated), (1, 1))
 		self.assertEqual(frappe.db.get_value("Flow Tool", "count_todos", "requires_confirmation"), 0)
 		self.assertTrue(frappe.db.get_value("Flow Tool", "read", "is_system_generated"))
 

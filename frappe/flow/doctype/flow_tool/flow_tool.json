@@ -12,6 +12,7 @@
   "type",
   "enabled",
   "requires_confirmation",
+  "background",
   "is_system_generated",
   "section_break_description",
   "description",
@@ -68,6 +69,14 @@
    "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
+   "depends_on": "eval:doc.type !== 'Server'",
+   "description": "Run each call in a background job, so a slow tool doesn't hold a web worker.",
+   "fieldname": "background",
+   "fieldtype": "Check",
+   "label": "Run in Background",
+   "read_only_depends_on": "eval:doc.is_system_generated"
+  },
+  {
    "description": "Defined in code and owned by it: the Desk can only enable or disable the tool.",
    "fieldname": "is_system_generated",
    "fieldtype": "Check",
@@ -120,7 +129,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-10 12:00:00",
+ "modified": "2026-09-29 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Tool",

@@ -585,6 +585,7 @@ def sync_builtin_tools() -> None:
 					"import_path": import_path,
 					"description": builtin.description,
 					"requires_confirmation": int(builtin.requires_confirmation),
+					"background": int(builtin.background),
 					"is_system_generated": 1,
 				},
 			)
@@ -599,5 +600,6 @@ def sync_builtin_tools() -> None:
 					"description": builtin.description,
 					"is_system_generated": 1,
 					"requires_confirmation": int(builtin.requires_confirmation),
+					"background": int(builtin.background),
 				}
 			).insert(ignore_permissions=True)

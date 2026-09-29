@@ -174,6 +174,11 @@ class TestResolveTool(IntegrationTestCase):
 		self.assertEqual(runtime.parameters["properties"]["days"], {"type": "integer"})
 		self.assertEqual(runtime.parameters["required"], ["city"])
 
+	def test_background_comes_from_the_row(self):
+		doc = frappe.get_doc(_module_doc(background=1)).insert()
+		with patch("frappe.get_attr", return_value=_plain_callable):
+			self.assertTrue(doc.to_tool().background)
+
 	def test_module_import_failure_throws(self):
 		doc = frappe.get_doc(_module_doc()).insert()
 		with patch("frappe.get_attr", side_effect=ImportError("nope")):

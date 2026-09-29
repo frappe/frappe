@@ -260,6 +260,14 @@ export const SPECS = {
 				locked: system,
 			},
 			{
+				name: "background",
+				label: "Run in background",
+				type: "check",
+				description: "Run it in a background job, for slow tools.",
+				when: (doc) => doc.type !== "Server",
+				locked: system,
+			},
+			{
 				name: "description",
 				label: "Description (for the model)",
 				type: "textarea",

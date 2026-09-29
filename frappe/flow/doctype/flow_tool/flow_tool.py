@@ -26,6 +26,7 @@ class FlowTool(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		background: DF.Check
 		code: DF.Code | None
 		description: DF.LongText
 		enabled: DF.Check
@@ -44,7 +45,9 @@ class FlowTool(Document):
 		self._validate_type_fields()
 		if self.type == "Script":
 			self._validate_code()
-		validate_immutable(self, ("type", "import_path", "description", "requires_confirmation"))
+		validate_immutable(
+			self, ("type", "import_path", "description", "requires_confirmation", "background")
+		)
 
 	def on_update(self):
 		"""`enabled` and `code` are the two edits the flow server would have to be told about."""
