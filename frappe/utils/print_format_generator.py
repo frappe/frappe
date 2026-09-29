@@ -65,12 +65,13 @@ def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 	generator = getattr(frappe.local, "print_format_generator", None)
 	if generator is None:
 		from frappe.model.document import Document
+		from frappe.utils.print_utils import _print_format_doc_or_none
 
 		fd = frappe.form_dict
-		if not print_format or not fd.get("doctype") or not fd.get("name"):
+		if not fd.get("doctype") or not fd.get("name"):
 			return
-		pf = frappe.get_doc("Print Format", print_format)
-		if not pf.get("print_format_builder_beta"):
+		pf = _print_format_doc_or_none(print_format, fd.doctype)
+		if not pf or not pf.get("print_format_builder_beta"):
 			return
 		doc = fd.get("doc")
 		if not isinstance(doc, Document):
