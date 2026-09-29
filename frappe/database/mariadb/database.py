@@ -434,8 +434,6 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		`using`/`where`/`include` are postgres-only (trigram/partial/covering) with no MariaDB
 		equivalent, so they are silently ignored: a `using` kind skips index creation, and
 		`where`/`include` fall back to a plain index over `fields`."""
-		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-
 		if using:
 			return
 		index_name = index_name or self.get_index_name(fields)
@@ -446,17 +444,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				"""ALTER TABLE `{}`
 				ADD INDEX IF NOT EXISTS `{}`({})""".format(table_name, index_name, ", ".join(fields))
 			)
-			# Ensure that DB migration doesn't clear this index, assuming this is manually added
-			# via code or console.
-			if len(fields) == 1 and not (frappe.flags.in_install or frappe.flags.in_migrate):
-				make_property_setter(
-					doctype,
-					fields[0],
-					property="search_index",
-					value="1",
-					property_type="Check",
-					for_doctype=False,  # Applied on docfield
-				)
+			self.persist_search_index(doctype, fields)
 
 	@contextmanager
 	def advisory_lock(self, key, *, timeout=10):

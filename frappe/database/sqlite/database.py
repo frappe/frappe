@@ -460,10 +460,6 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		has no SQLite equivalent so it is skipped, and a plain index covers all rows regardless of
 		`where`/`include`."""
 
-		from frappe.custom.doctype.property_setter.property_setter import (
-			make_property_setter,
-		)
-
 		if using:
 			return
 		original_fields = fields
@@ -477,22 +473,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		index_name = index_name or f"{table_name}_{self.get_index_name(fields)}"
 		columns = ", ".join(f"`{field}`" for field in fields)
 		self.sql(f"CREATE INDEX IF NOT EXISTS `{index_name}` ON `{table_name}` ({columns})")
-
-		# Ensure that DB migration doesn't clear this index, assuming this is manually added
-		# via code or console.
-		if (
-			len(fields) == 1
-			and original_fields == fields
-			and not (frappe.flags.in_install or frappe.flags.in_migrate)
-		):
-			make_property_setter(
-				doctype,
-				fields[0],
-				property="search_index",
-				value="1",
-				property_type="Check",
-				for_doctype=False,  # Applied on docfield
-			)
+		self.persist_search_index(doctype, original_fields)
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		"""Creates unique constraint on fields."""

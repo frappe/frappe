@@ -605,6 +605,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		index_name = index_name or get_qualified_index_name(
 			table_name, clean_fields, using, where=where, include=include
 		)
+		if self.has_index(table_name, index_name):
+			return
 
 		if using == "gin_trgm":
 			self.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
@@ -616,6 +618,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}"'
 			f"{method} ({self._index_target(clean_fields, using)}){include_clause}{condition}"
 		)
+		# `search_index` stands for a plain index, so a partial, covering or `using` one must not set it
+		if not (using or where or include):
+			self.persist_search_index(doctype, fields)
 
 	def _index_target(self, fields: list[str], using: str | None) -> str:
 		"""The column list (or functional expression) an index is built over, per `using` mode."""
