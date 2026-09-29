@@ -71,9 +71,6 @@ STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 # Matches a SQL function call and captures its name, e.g. `field(` -> "field".
 FUNCTION_CALL_PATTERN = re.compile(r"\b(\w+)\s*\(")
-# Matches an unqualified column name, e.g. `start` but not `tabX`.`start`, `ifnull(x, 0)` or `1`.
-BARE_COLUMN_PATTERN = re.compile(r"^[a-zA-Z_]\w*$")
-SORT_DIRECTIONS = frozenset(("asc", "desc"))
 ALLOWED_ORDER_BY_FUNCTIONS = frozenset(
 	(
 		"sum",
@@ -1497,9 +1494,7 @@ from {tables}
 		return " and ".join(conditions) if conditions else ""
 
 	def quote_order_by_and_group_by(self):
-		"""Backtick bare column names, so a column named after a SQL keyword (`start`, `commit`)
-		tokenizes as an identifier. Qualified names, expressions and ordinals are left alone.
-		"""
+		"""Backticks bare column names so a field named after a SQL keyword stays an identifier."""
 		for attr in ("order_by", "group_by"):
 			clause = getattr(self, attr)
 			if not clause or not isinstance(clause, str) or clause == DefaultOrderBy:
@@ -1507,16 +1502,8 @@ from {tables}
 
 			terms = []
 			for term in clause.split(","):
-				parts = term.split()
-				if (
-					parts
-					and len(parts) <= 2
-					and parts[0].lower() not in SORT_DIRECTIONS
-					and BARE_COLUMN_PATTERN.match(parts[0])
-					and (len(parts) == 1 or parts[1].lower() in SORT_DIRECTIONS)
-				):
-					parts[0] = f"`{parts[0]}`"
-					term = " ".join(parts)
+				column = ORDER_BY_PATTERN.sub("", term).strip()
+				term = term.replace(column, f"`{column}`")
 				terms.append(term.strip())
 
 			setattr(self, attr, ", ".join(terms))
