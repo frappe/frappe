@@ -308,6 +308,22 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			if self._conn.get_transaction_status() != TRANSACTION_STATUS_INERROR:
 				self.set_execution_timeout(previous_timeout)
 
+	@contextmanager
+	def read_only_snapshot(self):
+		"""Run the block in its own REPEATABLE READ READ ONLY transaction.
+
+		A transaction with writes keeps running as is, so the block still sees them and nothing is committed early."""
+		if self.transaction_writes or self._disable_transaction_control:
+			yield
+			return
+
+		self.commit()
+		self.sql("set transaction isolation level repeatable read read only")
+		try:
+			yield
+		finally:
+			self.rollback()
+
 	def set_session_time_zone(self, timezone: str):
 		self.sql("set time zone %s", timezone)
 

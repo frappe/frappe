@@ -1206,6 +1206,11 @@ class Database:
 		mode = "READ ONLY" if read_only else ""
 		self.sql(f"START TRANSACTION {mode}")
 
+	@contextmanager
+	def read_only_snapshot(self):
+		"""Run the block against one snapshot. The default isolation level already gives each transaction one."""
+		yield
+
 	def commit(self, *, chain=False):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		if self._disable_transaction_control:

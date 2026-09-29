@@ -120,45 +120,48 @@ def generate_report_result(
 	if filters and isinstance(filters, str):
 		filters = json.loads(filters)
 
-	res = get_report_result(report, filters) or []
+	with frappe.db.read_only_snapshot():
+		res = get_report_result(report, filters) or []
 
-	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
-	columns = [get_column_as_dict(col) for col in (columns or [])]
-	report_column_names = [col["fieldname"] for col in columns]
-	# convert to list of dicts
+		columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
+		columns = [get_column_as_dict(col) for col in (columns or [])]
+		report_column_names = [col["fieldname"] for col in columns]
+		# convert to list of dicts
 
-	result = normalize_result(result, columns)
+		result = normalize_result(result, columns)
 
-	if report.get("custom_columns"):
-		# keep saved columns still returned by this run, plus user-added
-		# custom columns (`link_field`); drops columns stale after a filter change
-		columns = [
-			column
-			for column in report.custom_columns
-			if column.get("link_field") or column["fieldname"] in report_column_names
+		if report.get("custom_columns"):
+			# keep saved columns still returned by this run, plus user-added
+			# custom columns (`link_field`); drops columns stale after a filter change
+			columns = [
+				column
+				for column in report.custom_columns
+				if column.get("link_field") or column["fieldname"] in report_column_names
+			]
+
+		# unsaved custom_columns
+		if custom_columns:
+			for custom_column in custom_columns:
+				columns.insert(custom_column["insert_after_index"] + 1, custom_column)
+
+		# all columns which are not in original report
+		report_custom_columns = [
+			column for column in columns if column["fieldname"] not in report_column_names
 		]
 
-	# unsaved custom_columns
-	if custom_columns:
-		for custom_column in custom_columns:
-			columns.insert(custom_column["insert_after_index"] + 1, custom_column)
+		if report_custom_columns:
+			result = add_custom_column_data(report_custom_columns, result)
 
-	# all columns which are not in original report
-	report_custom_columns = [column for column in columns if column["fieldname"] not in report_column_names]
+		if result:
+			result = get_filtered_data(report.ref_doctype, columns, result, user)
 
-	if report_custom_columns:
-		result = add_custom_column_data(report_custom_columns, result)
+		has_total_row = cint(report.add_total_row) and result and not skip_total_row
 
-	if result:
-		result = get_filtered_data(report.ref_doctype, columns, result, user)
+		if has_total_row:
+			result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
-	has_total_row = cint(report.add_total_row) and result and not skip_total_row
-
-	if has_total_row:
-		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
-
-	if isinstance(filters, dict) and filters.get("translate_data"):
-		result = translate_report_data(result, has_total_row)
+		if isinstance(filters, dict) and filters.get("translate_data"):
+			result = translate_report_data(result, has_total_row)
 
 	execution_time = frappe.cache.hget("report_execution_time", report.get("custom_report") or report.name)
 
