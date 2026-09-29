@@ -326,6 +326,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		finally:
 			self.sql("rollback")
 			self.begin()
+			self.value_cache.clear()
 
 	def set_session_time_zone(self, timezone: str):
 		self.sql("set time zone %s", timezone)
