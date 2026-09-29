@@ -5,6 +5,7 @@ from unittest import skipIf
 import frappe
 from frappe.contacts.doctype.contact.contact import contact_query, get_full_name
 from frappe.email import get_contact_list
+from frappe.permissions import add_permission, update_permission_property
 from frappe.tests import IntegrationTestCase, timeout
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Contact", "Salutation"]
@@ -70,6 +71,29 @@ class TestContact(IntegrationTestCase):
 
 		results = contact_query("Contact", contact.name, "name", 0, 10, {})
 		self.assertEqual(results, [])
+
+	def test_contact_query_with_only_select_permission(self):
+		contact = create_contact("Select Only Contact Query", "Mr", save=False)
+		contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		contact.insert()
+
+		role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		add_permission("Contact", role, 0, ptype="select")
+		update_permission_property("Contact", role, 0, "read", 0, validate=False)
+		# "All" grants owner-only read, which would lift the user above select
+		update_permission_property("Contact", "All", 0, "read", 0, validate=False)
+		user = frappe.get_doc(
+			doctype="User",
+			email=f"select-{frappe.generate_hash(length=8)}@example.com",
+			first_name="Select Only",
+			send_welcome_email=0,
+			roles=[{"role": role}],
+		).insert()
+
+		filters = {"link_doctype": "User", "link_name": "Administrator"}
+		with self.set_user(user.name):
+			results = contact_query("Contact", contact.name, "name", 0, 10, filters)
+		self.assertEqual(results[0][0], contact.name)
 
 	def test_contact_query_ranks_company_name_matches(self):
 		later_match = create_contact("A Company Contact", "Mr", save=False)
