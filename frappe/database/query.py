@@ -284,7 +284,6 @@ class Engine:
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
-		self.function_aliases = set()
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
 		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
@@ -1472,8 +1471,8 @@ class Engine:
 		if field_name.isdigit():
 			return int(field_name)
 
-		# Allow function aliases and field aliases - return as Field (no table prefix)
-		if field_name in self.function_aliases or field_name in self.field_aliases:
+		# Allow select-list aliases - return as Field (no table prefix)
+		if field_name in self.field_aliases:
 			return Field(field_name)
 
 		# Parse backtick table.field notation: `tabDocType`.`fieldname`
@@ -2593,7 +2592,6 @@ class SQLFunctionParser:
 			)
 
 		if alias:
-			self.engine.function_aliases.add(alias)
 			return function_call.as_(alias)
 		else:
 			return function_call
@@ -2634,7 +2632,6 @@ class SQLFunctionParser:
 		expression = ArithmeticExpression(operator=operator, left=left, right=right)
 
 		if alias:
-			self.engine.function_aliases.add(alias)
 			return expression.as_(alias)
 		else:
 			return expression
