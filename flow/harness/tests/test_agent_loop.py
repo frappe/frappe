@@ -5,6 +5,7 @@ import asyncio
 
 import pytest
 
+from flow_harness.agent.client_tools import deliver_result
 from flow_harness.agent.loop import HookDecision, TokenBudget
 from flow_harness.events import AssistantMessage, ToolCall, Usage
 from flow_harness.model import Model, ModelRequest, ProviderError, run_with_retries
@@ -768,6 +769,7 @@ async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envel
 	assert seen["headers"].get_list("x-harness-token") == ["shared-secret"]
 	assert seen["headers"]["X-Site"] == "alpha"
 	assert seen["timeout"] == 7
+	assert seen["payload"].pop("result_token")
 	assert seen["payload"] == {
 		"callback_type": "tool",
 		"session_id": session.id,
@@ -831,6 +833,84 @@ async def test_abort_cancels_client_callback_request(tmp_path, monkeypatch):
 
 	assert callback_cancelled.is_set()
 	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+_REPORT_TOOL = {
+	"type": "function",
+	"function": {
+		"name": "report",
+		"description": "build",
+		"parameters": {"type": "object", "properties": {}},
+	},
+}
+
+
+def _report_session(tmp_path):
+	return _session(
+		tmp_path,
+		tools=[],
+		client_tools=[_REPORT_TOOL],
+		callback_url="https://client.invalid/tools",
+		auto_approve=True,
+	)
+
+
+def _report_model():
+	return MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="report", arguments={})]),
+			AssistantMessage(content="done"),
+		]
+	)
+
+
+async def test_a_pending_client_tool_takes_a_result_posted_before_its_callback_answers(tmp_path, monkeypatch):
+	async def post(config, url, payload):
+		assert deliver_result(payload["session_id"], payload["result_token"], {"content": "report ready"})
+		return {"pending": True, "timeout": 5}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	session, events = _report_session(tmp_path)
+
+	await _run(session, "build the report", model=_report_model())
+
+	assert [r["content"] for r in _of(events, "tool_result")] == ["report ready"]
+
+
+async def test_a_pending_client_tool_errors_when_no_result_comes_in_time(tmp_path, monkeypatch):
+	async def post(config, url, payload):
+		return {"pending": True, "timeout": 0.01}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	session, events = _report_session(tmp_path)
+
+	await _run(session, "build the report", model=_report_model())
+
+	[result] = _of(events, "tool_result")
+	assert result["is_error"]
+	assert result["content"] == "[tool error: background tool 'report' sent no result in time]"
+
+
+async def test_abort_stops_waiting_for_a_pending_client_tool(tmp_path, monkeypatch):
+	called = asyncio.Event()
+	seen = {}
+
+	async def post(config, url, payload):
+		seen.update(payload)
+		called.set()
+		return {"pending": True, "timeout": 60}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	session, events = _report_session(tmp_path)
+
+	handle = await session.run("build the report", model=_report_model())
+	await called.wait()
+	session.abort()
+	assert handle.task is not None
+	await asyncio.wait_for(handle.task, timeout=1)
+
+	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+	assert not deliver_result(session.id, seen["result_token"], {"content": "late"})
 
 
 class _FailingModel(Model):

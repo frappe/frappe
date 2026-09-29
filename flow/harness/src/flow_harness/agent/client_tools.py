@@ -2,13 +2,16 @@
 
 A client (e.g. Flow) registers tool schemas plus a `callback_url`; the loop sends the
 call there instead of running a builtin. `mode="execute"` runs the tool client-side;
-`mode="confirm"` only asks the client for the human-facing approval prompt.
+`mode="confirm"` only asks the client for the human-facing approval prompt. An execute
+callback may answer `{"pending": true, "timeout": N}` and post the result within N
+seconds to `POST /sessions/{sid}/tool_result` with the call's `result_token`.
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import secrets
 
 import httpx
 
@@ -16,6 +19,7 @@ from flow_harness.events import RunEnded, ToolCall
 from flow_harness.session.config import SessionConfig
 
 _TERMINAL_RETRY_DELAYS = (0, 1, 5)
+_WAITING: dict[str, tuple[str, asyncio.Future[dict]]] = {}  # token -> (session id, result)
 
 
 async def call_client(config: SessionConfig, session_id: str, call: ToolCall, *, mode: str) -> dict:
@@ -30,7 +34,36 @@ async def call_client(config: SessionConfig, session_id: str, call: ToolCall, *,
 		"user_context": config.user_context,
 		"mode": mode,
 	}
-	return await _post(config, url, payload)
+	if mode == "confirm":  # only fetches the approval prompt
+		return await _post(config, url, payload)
+	# registered before the callback, so a quick job can't post too early
+	token = secrets.token_urlsafe(16)
+	result = asyncio.get_running_loop().create_future()
+	_WAITING[token] = (session_id, result)
+	try:
+		response = await _post(config, url, {**payload, "result_token": token})
+		if not response.get("pending"):
+			return response
+		try:
+			return await asyncio.wait_for(result, response.get("timeout"))
+		except TimeoutError:
+			raise RuntimeError(f"background tool {call.name!r} sent no result in time") from None
+	finally:
+		del _WAITING[token]
+
+
+def deliver_result(session_id: str, token: str, result: dict) -> bool:
+	"""Hand a background tool's result to the call waiting on `token`; False if none is."""
+	if not is_waiting(session_id, token):
+		return False
+	_WAITING[token][1].set_result(result)
+	return True
+
+
+def is_waiting(session_id: str, token: str) -> bool:
+	"""Whether a call still waits on `token`; false once it got a result, stopped or gave up."""
+	waiting = _WAITING.get(token)
+	return waiting is not None and waiting[0] == session_id and not waiting[1].done()
 
 
 async def notify_run_ended(config: SessionConfig, session_id: str, event: RunEnded) -> None:

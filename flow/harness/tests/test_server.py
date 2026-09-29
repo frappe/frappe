@@ -1106,6 +1106,63 @@ async def test_cancel_pending_while_running_is_rejected(tmp_path, monkeypatch):
 		assert (await first).json()["reason"] == "done"
 
 
+async def test_a_posted_tool_result_reaches_the_client_tool_waiting_on_it(tmp_path, monkeypatch):
+	tokens: asyncio.Queue[str] = asyncio.Queue()
+
+	async def post(config, url, payload):
+		tokens.put_nowait(payload["result_token"])
+		return {"pending": True, "timeout": 5}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	model = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="report", arguments={})]),
+			AssistantMessage(content="done"),
+		]
+	)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda *args, **kwargs: model)
+	store = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	transport = httpx.ASGITransport(app=create_app(store))
+	async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+		config = {
+			"cwd": str(tmp_path),
+			"client_tools": [
+				{
+					"type": "function",
+					"function": {
+						"name": "report",
+						"description": "build",
+						"parameters": {"type": "object", "properties": {}},
+					},
+				}
+			],
+			"callback_url": "https://client.invalid/tools",
+			"auto_approve": True,
+		}
+		sid = (await client.post("/sessions", json=config)).json()["session_id"]
+		run = asyncio.create_task(
+			client.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "report"})
+		)
+		token = await asyncio.wait_for(tokens.get(), timeout=5)
+		waiting = await client.post(f"/sessions/{sid}/tool_waiting", json={"token": token})
+		assert waiting.json() == {"waiting": True}
+
+		assert (await client.post("/sessions/nope/tool_result", json={"token": token})).status_code == 404
+		wrong = await client.post(f"/sessions/{sid}/tool_result", json={"token": "wrong"})
+		assert wrong.json() == {"delivered": False}
+		posted = await client.post(f"/sessions/{sid}/tool_result", json={"token": token, "content": "ready"})
+		assert posted.json() == {"delivered": True}
+		waiting = await client.post(f"/sessions/{sid}/tool_waiting", json={"token": token})
+		assert waiting.json() == {"waiting": False}
+
+		assert (await asyncio.wait_for(run, timeout=5)).json()["reason"] == "done"
+		entries = (await client.get(f"/sessions/{sid}/entries")).json()["entries"]
+		assert [row["content"] for row in entries if row["type"] == "tool_result"] == ["ready"]
+
+
 def test_rewind_branches_the_conversation_over_http(tmp_path):
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()["session_id"]
