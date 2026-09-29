@@ -9,6 +9,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:files": "node check-test-files.mjs",
+    "test:page-js": "node check-page-js.mjs",
     "lint": "cd .. && eslint --config frontend/eslint.config.js frontend/src ui/src",
     "base-lock": "./base-lock.sh"
   },
