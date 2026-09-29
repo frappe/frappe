@@ -21,6 +21,7 @@ import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
 import frameworkUICodeEditorShim from "../../vite/frameworkUICodeEditorShim.js"
+import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 // bench apps folder (scripts -> src -> frontend -> studio -> apps)
@@ -331,7 +332,7 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 		},
 		css: {
 			postcss: {
-				plugins: [tailwindcss(getAppTailwindConfig(icons)), autoprefixer()],
+				plugins: [tailwindcss(getAppTailwindConfig(appName, icons)), autoprefixer()],
 			},
 		},
 		build: {
@@ -355,15 +356,16 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 	console.log(`Vite build completed for ${appName}`)
 }
 
-function getAppTailwindConfig(appIconClasses) {
-	const editorConfig = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
+function getAppTailwindConfig(appName, appIconClasses) {
+	const baseConfig = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
+	const config = mergeStudioAppConfigs(baseConfig, APPS_DIR, appName)
 
 	// The editor needs every icon for its picker. App builds replace that rule
 	// with the app's icon classes to avoid shipping CSS for the entire icon set.
-	const sharedSafelist = editorConfig.safelist.filter((entry) => entry.pattern?.source !== "^lucide-")
+	const sharedSafelist = config.safelist.filter((entry) => entry.pattern?.source !== "^lucide-")
 
 	return {
-		...editorConfig,
+		...config,
 		safelist: [...sharedSafelist, ...appIconClasses],
 	}
 }
