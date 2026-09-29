@@ -71,8 +71,8 @@ class TestUser(IntegrationTestCase):
 		frappe.clear_cache(user=user.name)
 		self.assertEqual(get_desk_settings().show_my_space, 1)
 
-	def test_dock_is_pinned_until_set_floating(self):
-		"""The dock starts pinned beside the sidebar. Floating it off the left edge is a per-user
+	def test_dock_floats_until_pinned(self):
+		"""The dock starts floating off the left edge. Pinning it beside the sidebar is a per-user
 		desk toggle, so the desk reads it from the boot's desk settings like the others.
 		"""
 		from frappe.boot import get_desk_settings
@@ -86,11 +86,11 @@ class TestUser(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
 
 		frappe.set_user(user.name)
-		self.assertEqual(get_desk_settings().dock_mode, "Pinned")
-
-		user.db_set("dock_mode", "Floating")
-		frappe.clear_cache(user=user.name)
 		self.assertEqual(get_desk_settings().dock_mode, "Floating")
+
+		user.db_set("dock_mode", "Pinned")
+		frappe.clear_cache(user=user.name)
+		self.assertEqual(get_desk_settings().dock_mode, "Pinned")
 
 	def test_user_type(self):
 		user_id = frappe.generate_hash() + "@example.com"

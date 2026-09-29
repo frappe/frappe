@@ -143,7 +143,7 @@ function _bind_dock_mode(panel) {
 		const mode = ctrl.get_value();
 		_save_user("dock_mode", mode);
 		frappe.boot.desk_settings.dock_mode = mode;
-		frappe.app.sidebar?.dock?.set_pinned(mode !== "Floating");
+		frappe.app.sidebar?.dock?.set_pinned(mode === "Pinned");
 	});
 }
 
@@ -478,8 +478,8 @@ function _preferences_tab(user_data) {
 					"Pinned sits beside the sidebar. Floating slides in from the left edge."
 				),
 				options: [
-					{ label: __("Pinned"), value: "Pinned" },
 					{ label: __("Floating"), value: "Floating" },
+					{ label: __("Pinned"), value: "Pinned" },
 				],
 				default: user_data.dock_mode,
 			},

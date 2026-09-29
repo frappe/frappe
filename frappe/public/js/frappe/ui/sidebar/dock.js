@@ -29,7 +29,7 @@
 // apps screen does not). An app that resolves to no entries gets no dock rather than an empty
 // stripe, and its sidebar header carries a switcher menu instead.
 //
-// All of that is the floating dock, which a user has to ask for. By default it is pinned (the
+// All of that is the floating dock, which is the default. A user can pin it instead (the
 // `dock_mode` preference): the same tray taken out of the overlay and set down as a column of its
 // own, left of the sidebar, always open, in flow, and with nothing to summon, so the edge, the
 // click-away and Escape all leave it alone. That is also the only way a touch screen gets a dock
@@ -54,7 +54,7 @@ frappe.ui.Dock = class Dock {
 		this.sidebar = sidebar;
 		this.is_open = false;
 		this.enabled = false;
-		this.pinned = frappe.boot.desk_settings?.dock_mode !== "Floating";
+		this.pinned = frappe.boot.desk_settings?.dock_mode === "Pinned";
 		// Whatever held focus when the keyboard opened the dock, so closing it can hand focus back
 		// the way a menu does. Null when the pointer opened it, since the pointer never takes
 		// focus away from anything.
