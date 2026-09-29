@@ -119,7 +119,7 @@ deliberately rather than letting a bundler silently pick a winner.
 
 ### Contribution
 
-**Contribution**:
+**Contribution**: <a id="contribution"></a>
 Something an app adds to the desk. The list is **closed**: if it is not in
 `contributions/types.ts`, an app cannot do it. Not contributable, on purpose: a route
 table, a doctype opt-out, shell chrome, a vite config, a boot key from JS.
