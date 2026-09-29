@@ -23,12 +23,7 @@ from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
-<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase, change_settings
-=======
-from frappe.tests import IntegrationTestCase, UnitTestCase
-from frappe.tests.utils.test_capabilities import TestService, requires_test_service
->>>>>>> a3614b3 (fix(file): skip stale Custom DocPerm entries in File permission query)
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -1609,7 +1604,7 @@ class TestFileListUserPermissionRestriction(FrappeTestCase):
 		self.assertEqual(len(files), 2)
 
 
-class TestFilePermissionQuery(UnitTestCase):
+class TestFilePermissionQuery(FrappeTestCase):
 	def test_ignores_stale_custom_docperm_doctype(self):
 		"""A stale Custom DocPerm can reference a deleted DocType; must not crash the File list query."""
 		from frappe.core.doctype.file.file import get_permission_query_conditions
