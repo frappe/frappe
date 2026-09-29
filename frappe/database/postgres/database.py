@@ -8,9 +8,11 @@ from psycopg2 import sql
 from psycopg2.errorcodes import (
 	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
 	DATATYPE_MISMATCH,
+	DATETIME_FIELD_OVERFLOW,
 	DEADLOCK_DETECTED,
 	DUPLICATE_COLUMN,
 	INSUFFICIENT_PRIVILEGE,
+	INVALID_DATETIME_FORMAT,
 	INVALID_TEXT_REPRESENTATION,
 	NUMERIC_VALUE_OUT_OF_RANGE,
 	SERIALIZATION_FAILURE,
@@ -194,11 +196,13 @@ class PostgresExceptionUtil:
 		# a value cannot be cast to the column's new type -- e.g. changing a field holding
 		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres is stricter and
 		# aborts the ALTER: it refuses to auto-cast the column (datatype mismatch) or a value fails
-		# the cast (invalid representation / numeric out of range).
+		# the cast (invalid representation / numeric out of range / invalid date or time).
 		return getattr(e, "pgcode", None) in (
 			DATATYPE_MISMATCH,
 			INVALID_TEXT_REPRESENTATION,
 			NUMERIC_VALUE_OUT_OF_RANGE,
+			INVALID_DATETIME_FORMAT,
+			DATETIME_FIELD_OVERFLOW,
 		)
 
 	@staticmethod
