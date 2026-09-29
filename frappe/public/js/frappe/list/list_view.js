@@ -1235,6 +1235,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.get_count_str().then((count) => {
 			$count.html(`<span>${count}</span>`);
+			this.sync_right_width();
 			if (
 				this.count_upper_bound &&
 				(this.total_count == this.count_upper_bound || this.total_count == null)
@@ -1640,19 +1641,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.$result.find(".list-row-container .list-row .level-right").addClass("border-0");
 		}
 
-		// the header's right side holds the count, the rows' the timestamp and comment
-		// count; give both the wider of the two so the columns to their left line up
-		const result = this.$result[0];
+		this.sync_right_width();
+	}
+
+	// The header's right side holds the count, each row's the timestamp and comment
+	// count. Give them all the widest one, so the columns to their left line up.
+	// Runs again once the count arrives, as it can be the widest.
+	sync_right_width() {
+		const result = this.$result?.[0];
+		if (!result) return;
 		result.style.removeProperty("--list-right-width");
-		const head_right = result.querySelector(".list-row-head .level-right");
-		const row_right = list_row.find(".level-right")[0];
-		if (!frappe.is_mobile() && head_right && row_right) {
-			const width = Math.max(
-				head_right.getBoundingClientRect().width,
-				row_right.getBoundingClientRect().width
-			);
-			result.style.setProperty("--list-right-width", `${width}px`);
-		}
+		const sides = result.querySelectorAll(
+			".list-row-head .level-right, .list-row-container .list-row .level-right"
+		);
+		if (frappe.is_mobile() || sides.length < 2) return;
+		const width = Math.max(...Array.from(sides, (el) => el.getBoundingClientRect().width));
+		result.style.setProperty("--list-right-width", `${width}px`);
 	}
 
 	get_tags_html(user_tags, limit = null, colored = false) {
