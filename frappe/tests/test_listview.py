@@ -71,6 +71,21 @@ class TestListView(IntegrationTestCase):
 		}
 		self.assertEqual(data["Administrator"], 1)
 
+	def test_assigned_to_count_on_autoincrement_doctype(self):
+		job = frappe.get_doc(
+			doctype="MapReduce Job", job_name="Test assigned to count", map="m", reduce="r", data="[]"
+		).insert()
+		frappe.get_doc(
+			doctype="ToDo",
+			description="Test assigned to count",
+			allocated_to="Administrator",
+			reference_type="MapReduce Job",
+			reference_name=job.name,
+		).insert()
+
+		data = get_group_by_count("MapReduce Job", [["name", "=", job.name]], "assigned_to")
+		self.assertEqual(data, [{"name": "Administrator", "count": 1}])
+
 	def test_get_group_by_invalid_field(self):
 		self.assertRaises(
 			ValueError,
