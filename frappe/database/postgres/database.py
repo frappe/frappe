@@ -620,7 +620,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def _index_target(self, fields: list[str], using: str | None) -> str:
 		"""The column list (or functional expression) an index is built over, per `using` mode."""
 		if using == "gin_trgm":
-			return ", ".join(f'"{field}" gin_trgm_ops' for field in fields)
+			opclass = self.get_trigram_opclass()
+			return ", ".join(f'"{field}" {opclass}' for field in fields)
 		if using == "gin_fulltext":
 			# 'english' regconfig keeps to_tsvector immutable so it can be indexed; the search query
 			# must use the same config. ponytail: hardcoded -- add a `config` arg if multilingual
@@ -632,6 +633,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			)
 			return f"to_tsvector('english', {document})"
 		return '"' + '", "'.join(fields) + '"'
+
+	def get_trigram_opclass(self) -> str:
+		"""`gin_trgm_ops` qualified with pg_trgm's schema, which may be off the site's search_path."""
+		# regnamespace prints the schema name quoted where needed
+		schema = self.sql("SELECT extnamespace::regnamespace FROM pg_extension WHERE extname = 'pg_trgm'")
+		return f"{schema[0][0]}.gin_trgm_ops"
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		from frappe.database.postgres.schema import get_qualified_index_name
