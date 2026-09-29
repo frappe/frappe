@@ -89,7 +89,7 @@ def get_using_clause(column: DbColumn, column_type: str) -> str:
 		return ""
 
 	value = f"NULLIF(`{column.fieldname}`::text, '')"
-	if column.fieldtype in NOT_NULL_TYPES:
+	if column.fieldtype in NOT_NULL_TYPES or column.not_nullable:
 		not_null_default = frappe.db.escape(cstr(get_not_null_defaults(column.fieldtype)))
 		value = f"COALESCE({value}, {not_null_default})"
 	return f"USING {value}::{cast}"
