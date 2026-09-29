@@ -6,8 +6,8 @@ import { Sources } from "./sources.mjs";
 // These folders hold unrelated modules side by side, so each file in them is its own node.
 const FLAT_FOLDERS = ["frontend/src", "ui/src", "frappe/shell"];
 
-export function buildGraph(root) {
-  return new FolderGraph(new Sources(root)).build();
+export function buildGraph(root, sources = new Sources(root)) {
+  return new FolderGraph(sources).build();
 }
 
 class FolderGraph {

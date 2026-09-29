@@ -1,5 +1,5 @@
 {
-  "about": "Which layer each file belongs to, and which layers it may use. The longest matching path wins; a path ending in / is a folder. knownBreaks lists today's breaks, each with the ticket that removes it.",
+  "about": "Which layer each file belongs to, and which layers it may use. The longest matching path wins; a path ending in / is a folder. knownBreaks, knownLoops and knownUnlisted are today's gaps: each list may only shrink, and CI fails until a gap that is gone leaves its list. flowEntries names the file where each flow starts.",
   "architecture": "frontend/ARCHITECTURE.md",
   "notUse": {
     "hook": "hooks.py names a function that a lower layer calls back. The lower layer owns the contract.",
@@ -264,6 +264,909 @@
       "why": "A ui data composable imports a type from a ui component.",
       "ticket": 43481,
       "title": "@framework/ui: four data composables move to the ui data layer"
+    }
+  ],
+  "knownLoops": [
+    [
+      "ui/src/api",
+      "ui/src/cache"
+    ],
+    [
+      "ui/src/components/Fields",
+      "ui/src/components/FormLayout",
+      "ui/src/components/Grid",
+      "ui/src/components/Link",
+      "ui/src/components/TableMultiSelect",
+      "ui/src/composables"
+    ],
+    [
+      "frontend/src/contributions",
+      "frontend/src/navigation"
+    ],
+    [
+      "ui/src/components/Composer",
+      "ui/src/components/Composer/CommentComposer",
+      "ui/src/components/Composer/EmailComposer"
+    ],
+    [
+      "frontend/src/list",
+      "frontend/src/pages",
+      "frontend/src/pages/list",
+      "frontend/src/pages/record",
+      "frontend/src/pages/record/body",
+      "frontend/src/pages/record/composer",
+      "frontend/src/pages/record/dialogs",
+      "frontend/src/pages/record/feed",
+      "frontend/src/pages/record/panel",
+      "frontend/src/pages/record/skeletons",
+      "frontend/src/pages/record/tabs",
+      "frontend/src/router",
+      "frontend/src/shell"
+    ],
+    [
+      "ui/src/components/ConditionBuilder",
+      "ui/src/components/ConditionBuilder/internal"
+    ],
+    [
+      "frappe",
+      "frappe/shell/doctypes.py",
+      "frappe/shell/links.py",
+      "frappe/shell/manifest.py",
+      "frappe/utils"
+    ],
+    [
+      "frappe/shell/navigation.py",
+      "frappe/shell/navigation_filter.py"
+    ]
+  ],
+  "knownUnlisted": {
+    "frontend/plugin/contributions.js": [
+      "contributions"
+    ],
+    "frontend/src/addresses.ts": [
+      "Addresses"
+    ],
+    "frontend/src/arrangement.ts": [
+      "Address",
+      "ArrangedItem",
+      "dropOn"
+    ],
+    "frontend/src/contributions/registry.ts": [
+      "declaredReplacements"
+    ],
+    "frontend/src/contributions/types.ts": [
+      "ListHandlers",
+      "PageContribution"
+    ],
+    "frontend/src/icons/sprite.ts": [
+      "loadSprite",
+      "symbolGeometry"
+    ],
+    "frontend/src/list/useListPage.ts": [
+      "DeleteOutcome"
+    ],
+    "frontend/src/list/useListSettings.ts": [
+      "dropListSettings"
+    ],
+    "frontend/src/navigation/current.ts": [
+      "CurrentNavigation",
+      "NavigationContexts"
+    ],
+    "frontend/src/navigation/sectionMemory.ts": [
+      "SectionMemory",
+      "sectionMemory"
+    ],
+    "frontend/src/navigation/sidebarMemory.ts": [
+      "recallSidebar",
+      "rememberSidebar"
+    ],
+    "frontend/src/navigation/tree.ts": [
+      "ItemNode",
+      "containsKey"
+    ],
+    "frontend/src/navigation/types.ts": [
+      "ItemContext",
+      "ItemRenderer"
+    ],
+    "frontend/src/pages/record/body/BodyColumns.vue": [
+      "BodyColumns"
+    ],
+    "frontend/src/pages/record/builtinActions.ts": [
+      "headerMenuBuiltins",
+      "quickActionBuiltins"
+    ],
+    "frontend/src/pages/record/composer/commentDraft.ts": [
+      "COMMENT_WRITER"
+    ],
+    "frontend/src/pages/record/composer/CommentWriter.vue": [
+      "CommentWriter"
+    ],
+    "frontend/src/pages/record/composer/composerHost.ts": [
+      "composerBuiltins"
+    ],
+    "frontend/src/pages/record/composer/emailDraft.ts": [
+      "EMAIL_WRITER"
+    ],
+    "frontend/src/pages/record/composer/EmailWriter.vue": [
+      "EmailWriter"
+    ],
+    "frontend/src/pages/record/composer/RecordComposer.vue": [
+      "RecordComposer"
+    ],
+    "frontend/src/pages/record/composer/useDockHeight.ts": [
+      "useDockHeight"
+    ],
+    "frontend/src/pages/record/composer/writerContext.ts": [
+      "openWriterItems",
+      "useComposerRecord"
+    ],
+    "frontend/src/pages/record/dialogs/PageDialogs.vue": [
+      "PageDialogs"
+    ],
+    "frontend/src/pages/record/drawnProps.ts": [
+      "recordDrawnProps"
+    ],
+    "frontend/src/pages/record/favourites.ts": [
+      "favouritesOf",
+      "hasFavourited"
+    ],
+    "frontend/src/pages/record/feed/ActivityTab.vue": [
+      "ActivityTab"
+    ],
+    "frontend/src/pages/record/feed/files.ts": [
+      "attachTransport"
+    ],
+    "frontend/src/pages/record/feed/FilesTab.vue": [
+      "FilesTab"
+    ],
+    "frontend/src/pages/record/feed/recordFeeds.ts": [
+      "EMAIL_TYPES",
+      "RecordFeedsKey",
+      "activityPointer",
+      "addressesFeed",
+      "feedInMemory",
+      "withFeedRead"
+    ],
+    "frontend/src/pages/record/feed/RecordUploadDialog.vue": [
+      "RecordUploadDialog"
+    ],
+    "frontend/src/pages/record/feed/TimelineFeed.vue": [
+      "TimelineFeed"
+    ],
+    "frontend/src/pages/record/follow.ts": [
+      "canFollow",
+      "declinedMessage"
+    ],
+    "frontend/src/pages/record/formTabMemory.ts": [
+      "formTabMemory"
+    ],
+    "frontend/src/pages/record/FrameBands.vue": [
+      "FrameBands"
+    ],
+    "frontend/src/pages/record/liveClientScripts.ts": [
+      "useLiveClientScripts"
+    ],
+    "frontend/src/pages/record/liveDocinfo.ts": [
+      "useLiveDocinfo",
+      "warnDocinfoFailed"
+    ],
+    "frontend/src/pages/record/metaSource.ts": [
+      "fetchMeta",
+      "metaInMemory"
+    ],
+    "frontend/src/pages/record/panel/builtins.ts": [
+      "PANEL_BUILTINS"
+    ],
+    "frontend/src/pages/record/panel/context.ts": [
+      "personOf"
+    ],
+    "frontend/src/pages/record/panel/disclosure.ts": [
+      "useDisclosure"
+    ],
+    "frontend/src/pages/record/panel/panelEntries.ts": [
+      "layoutItems",
+      "layoutSections"
+    ],
+    "frontend/src/pages/record/panel/people.ts": [
+      "Person",
+      "tagsOf"
+    ],
+    "frontend/src/pages/record/panel/peopleActions.ts": [
+      "mergePart"
+    ],
+    "frontend/src/pages/record/panel/RecordPanel.vue": [
+      "RecordPanel"
+    ],
+    "frontend/src/pages/record/RecordHeader.vue": [
+      "RecordHeader"
+    ],
+    "frontend/src/pages/record/recordSource.ts": [
+      "LoadedRecord",
+      "loadParts",
+      "loadRecord",
+      "readCachedRecord",
+      "saveRecord"
+    ],
+    "frontend/src/pages/record/refetchMerge.ts": [
+      "mergeRefetch",
+      "same"
+    ],
+    "frontend/src/pages/record/saveResponse.ts": [
+      "SAVE_CONFLICT",
+      "changedFields",
+      "conflictError",
+      "stripTags"
+    ],
+    "frontend/src/pages/record/skeletons/BodySkeleton.vue": [
+      "BodySkeleton"
+    ],
+    "frontend/src/pages/record/skeletons/FormSkeleton.vue": [
+      "FormSkeleton"
+    ],
+    "frontend/src/pages/record/skeletons/HeaderSkeleton.vue": [
+      "HeaderSkeleton"
+    ],
+    "frontend/src/pages/record/skeletons/PanelSectionsSkeleton.vue": [
+      "PanelSectionsSkeleton"
+    ],
+    "frontend/src/pages/record/tabs/recordTabs.ts": [
+      "FILES_TAB",
+      "TAB_STRIP_CLASSES",
+      "recordTabBuiltins"
+    ],
+    "frontend/src/pages/record/tabs/RecordTabs.vue": [
+      "RecordTabs"
+    ],
+    "frontend/src/recordPage/body.ts": [
+      "BODY_BUILTINS",
+      "BodyColumn",
+      "ColumnBounds",
+      "EdgeSide",
+      "Remembered",
+      "STRIP_WIDTH",
+      "dragOutcome",
+      "isDrawn",
+      "projectBody"
+    ],
+    "frontend/src/recordPage/clientScripts.ts": [
+      "clientScriptChanges",
+      "loadClientScripts",
+      "watchClientScripts"
+    ],
+    "frontend/src/recordPage/composer.ts": [
+      "isComposerTab"
+    ],
+    "frontend/src/recordPage/context.ts": [
+      "withRegisteringSource"
+    ],
+    "frontend/src/recordPage/createRecordPage.ts": [
+      "RecordPageController",
+      "SAVE_VETO"
+    ],
+    "frontend/src/recordPage/dialog.ts": [
+      "PageDialogEntry"
+    ],
+    "frontend/src/recordPage/drawnProps.ts": [
+      "DrawnProps"
+    ],
+    "frontend/src/recordPage/errorMessage.ts": [
+      "errorMessage"
+    ],
+    "frontend/src/recordPage/formDialogLayout.ts": [
+      "applyRequired",
+      "formData",
+      "initialDoc",
+      "layoutFromFields",
+      "layoutFromTabs",
+      "layoutMode",
+      "missingRequired",
+      "pickMetaFields",
+      "warnAmbiguousLayout"
+    ],
+    "frontend/src/recordPage/formJoin.ts": [
+      "formItems",
+      "joinForm"
+    ],
+    "frontend/src/recordPage/formLayoutSource/fieldAccess.ts": [
+      "withAccess"
+    ],
+    "frontend/src/recordPage/formLayoutSource/fieldPatch.ts": [
+      "FieldPatch",
+      "applyFieldPatch"
+    ],
+    "frontend/src/recordPage/formLayoutSource/section.ts": [
+      "buildColumn",
+      "buildSection"
+    ],
+    "frontend/src/recordPage/formLayoutSource/sectionName.ts": [
+      "sectionName"
+    ],
+    "frontend/src/recordPage/formLayoutSource/types.ts": [
+      "FormLayoutType"
+    ],
+    "frontend/src/recordPage/formLayoutSource/useFormLayout.ts": [
+      "UseFormLayout",
+      "dropFormLayouts",
+      "resetFormLayouts"
+    ],
+    "frontend/src/recordPage/frame.ts": [
+      "projectFrame"
+    ],
+    "frontend/src/recordPage/headerRenderings.ts": [
+      "HeaderControl",
+      "HeaderNode",
+      "HeaderProjection",
+      "isEmptyHeader",
+      "projectHeader"
+    ],
+    "frontend/src/recordPage/registry.ts": [
+      "registerRecordPage"
+    ],
+    "frontend/src/recordPage/surface.ts": [
+      "BUILTIN",
+      "ResolvedItem"
+    ],
+    "frontend/src/recordPage/types.ts": [
+      "ActivityItem",
+      "ActivityRow",
+      "BodyItem",
+      "ComposerWindow",
+      "FeedItem",
+      "FileRow",
+      "FrameItem",
+      "HeaderItem",
+      "PageDialogAction",
+      "PanelSectionItem",
+      "QuickAction",
+      "RecordPageApi",
+      "TabCreateAction",
+      "TabItem",
+      "WriterItem"
+    ],
+    "frontend/src/router/failedPage.ts": [
+      "failedPage"
+    ],
+    "frontend/src/router/routeFor.ts": [
+      "RouteOptions",
+      "isModular",
+      "registerShell",
+      "routeFor",
+      "routeForModule",
+      "urlFor"
+    ],
+    "frontend/src/shell/BootError.vue": [
+      "BootError"
+    ],
+    "frontend/src/shell/composer.ts": [
+      "WriterContext",
+      "activeWriter",
+      "clearComposerDraft",
+      "composerDraft",
+      "composerKept",
+      "composerRecord",
+      "composerRecordFor",
+      "keepComposerRecord",
+      "preferredWindow",
+      "registerComposerDock",
+      "registerComposerRecord",
+      "replaceComposerDraft",
+      "saveComposerDraft",
+      "setComposerWindow"
+    ],
+    "frontend/src/shell/doctypeUpdates.ts": [
+      "watchDoctypeUpdates"
+    ],
+    "frontend/src/shell/LoadingStatus.vue": [
+      "LoadingStatus"
+    ],
+    "frontend/src/shell/PageFrame.vue": [
+      "pageGutter"
+    ],
+    "frontend/src/shell/Unauthorized.vue": [
+      "Unauthorized"
+    ],
+    "ui/src/api/index.ts": [
+      "Comment",
+      "DocumentRecord",
+      "ListEnvelope",
+      "ListQuery",
+      "Session",
+      "SessionUser",
+      "Users",
+      "removeAssignment",
+      "removeFavourite",
+      "removeFollow",
+      "removeShare",
+      "removeTag"
+    ],
+    "ui/src/api/upload.ts": [
+      "Attachment",
+      "AttachmentsPart",
+      "UploadFields"
+    ],
+    "ui/src/cache/entries.ts": [
+      "RECORD_PARTS"
+    ],
+    "ui/src/cache/index.ts": [
+      "feedDelete",
+      "feedDocsDocument",
+      "feedDocumentWrite",
+      "feedListRead",
+      "feedPartWrite",
+      "feedReadError",
+      "feedRecordRead",
+      "settleTicket",
+      "takeTicket"
+    ],
+    "ui/src/cache/listKey.ts": [
+      "isFeedableQuery"
+    ],
+    "ui/src/components/ActivityTimeline/AttachmentChip.vue": [
+      "AttachmentChip"
+    ],
+    "ui/src/components/ActivityTimeline/CommentItem.vue": [
+      "CommentItem"
+    ],
+    "ui/src/components/ActivityTimeline/EmailItem.vue": [
+      "EmailItem"
+    ],
+    "ui/src/components/ActivityTimeline/LogItem.vue": [
+      "LogItem"
+    ],
+    "ui/src/components/ActivityTimeline/TimeAgo.vue": [
+      "TimeAgo"
+    ],
+    "ui/src/components/ActivityTimeline/TimelineContainer.vue": [
+      "TimelineContainer"
+    ],
+    "ui/src/components/ActivityTimeline/TimelineSkeleton.vue": [
+      "TimelineSkeleton"
+    ],
+    "ui/src/components/ActivityTimeline/types.ts": [
+      "Activity",
+      "ActivityTimelineProps",
+      "AttachmentLogActivity",
+      "BaseActivity",
+      "CommentActivity",
+      "CommentItemProps",
+      "CommentItemSlots",
+      "CustomActivity",
+      "EmailActivity",
+      "EmailAttachment",
+      "EmailItemProps",
+      "EmailItemSlots",
+      "LogActivity",
+      "LogItemProps",
+      "Pagination",
+      "PendingActivity",
+      "UserInfo",
+      "VersionActivity",
+      "VersionChange",
+      "VersionItemProps",
+      "VisibleTypes"
+    ],
+    "ui/src/components/ActivityTimeline/useActivityTimeline.ts": [
+      "activityTimelineRows",
+      "endActivityPrefetch",
+      "hasActivityTimeline",
+      "prefetchActivityTimeline",
+      "stageActivityTimelineRead"
+    ],
+    "ui/src/components/ActivityTimeline/VersionItem.vue": [
+      "VersionItem"
+    ],
+    "ui/src/components/ColumnSettings/columns.ts": [
+      "applyColumnWidth",
+      "clearColumnWidth",
+      "fetchFields",
+      "getColumnAlign"
+    ],
+    "ui/src/components/ColumnSettings/getColumnOptions.ts": [
+      "getColumnOptions"
+    ],
+    "ui/src/components/ColumnSettings/getDefaultColumns.ts": [
+      "getDefaultColumns"
+    ],
+    "ui/src/components/ColumnSettings/useColumns.ts": [
+      "UseColumns",
+      "UseColumnsOptions",
+      "useColumns"
+    ],
+    "ui/src/components/Composer/ComposerEditor.vue": [
+      "ComposerEditor"
+    ],
+    "ui/src/components/Composer/types.ts": [
+      "CommentComposerEmits",
+      "CommentComposerProps",
+      "CommentComposerSlots",
+      "CommentPayload",
+      "CoreSubmitPayload",
+      "EmailComposerEmits",
+      "EmailComposerProps",
+      "EmailComposerSlots",
+      "EmailPayload",
+      "MentionOption",
+      "Recipient",
+      "RecipientSearch",
+      "UploadFunction",
+      "UploadedFile"
+    ],
+    "ui/src/components/ConditionBuilder/adapters.ts": [
+      "toConditionExpression"
+    ],
+    "ui/src/components/ConditionBuilder/internal/compile.ts": [
+      "compileEntries",
+      "foldEntries"
+    ],
+    "ui/src/components/ConditionBuilder/internal/context.ts": [
+      "DEFAULT_BORDERS",
+      "DEFAULT_MAX_DEPTH",
+      "DEFAULT_REORDERABLE",
+      "conditionBuilderKey",
+      "mergeColumns",
+      "mergeLabels",
+      "uncachedLabels",
+      "useConditionBuilderContext"
+    ],
+    "ui/src/components/ConditionBuilder/internal/dragBridge.ts": [
+      "useDragBridge"
+    ],
+    "ui/src/components/ConditionBuilder/internal/fields.ts": [
+      "useConditionFields"
+    ],
+    "ui/src/components/ConditionBuilder/internal/focus.ts": [
+      "focusAfterAdd",
+      "focusAfterAddGroup",
+      "focusAfterRemove",
+      "useConditionFocus"
+    ],
+    "ui/src/components/ConditionBuilder/internal/layout.ts": [
+      "useConditionLayout"
+    ],
+    "ui/src/components/ConditionBuilder/internal/operators.ts": [
+      "READ_OPERATOR",
+      "conditionOperators"
+    ],
+    "ui/src/components/ConditionBuilder/tree.ts": [
+      "getNode",
+      "isGroup",
+      "samePath"
+    ],
+    "ui/src/components/ConditionBuilder/types.ts": [
+      "ConditionBorders",
+      "ConditionBuilderLabels",
+      "ConditionColumns",
+      "ConditionExpressionOptions",
+      "ConditionField",
+      "ConditionGroup",
+      "ConditionOperator",
+      "ConditionOperatorOption",
+      "ConditionPath",
+      "Conjunction",
+      "FieldConditionValue"
+    ],
+    "ui/src/components/DataImport/types.ts": [
+      "DataImportProps",
+      "DataImportSocket",
+      "DataImportStatus",
+      "DataImports",
+      "DocField",
+      "DocType"
+    ],
+    "ui/src/components/Fields/DateField.vue": [
+      "DateField"
+    ],
+    "ui/src/components/Fields/DatetimeField.vue": [
+      "DatetimeField"
+    ],
+    "ui/src/components/Fields/DurationField.vue": [
+      "DurationField"
+    ],
+    "ui/src/components/Fields/fieldTypes.ts": [
+      "RegisterFieldTypeOptions"
+    ],
+    "ui/src/components/Fields/LinkField.vue": [
+      "LinkField"
+    ],
+    "ui/src/components/Fields/NumberField.vue": [
+      "NumberField"
+    ],
+    "ui/src/components/Fields/RatingField.vue": [
+      "RatingField"
+    ],
+    "ui/src/components/Fields/rowIdentity.ts": [
+      "ROW_ID",
+      "holdsChildRows",
+      "identify",
+      "rowKey"
+    ],
+    "ui/src/components/Fields/SelectField.vue": [
+      "SelectField"
+    ],
+    "ui/src/components/Fields/types.ts": [
+      "CommitChannel",
+      "CommitKey",
+      "FieldComponentEmits",
+      "FieldComponentProps",
+      "FieldMeta",
+      "NO_COMMIT",
+      "RowAddress",
+      "RowChange"
+    ],
+    "ui/src/components/FileUpload/sources/CameraSource.vue": [
+      "CameraSource"
+    ],
+    "ui/src/components/FileUpload/sources/index.ts": [
+      "UploadSource",
+      "getUploadSources"
+    ],
+    "ui/src/components/FileUpload/types.ts": [
+      "Restrictions",
+      "UploadArgs",
+      "UploadResult",
+      "UploadTransport"
+    ],
+    "ui/src/components/Filter/filters.ts": [
+      "WireFilters",
+      "parseFilters",
+      "serializeFilters"
+    ],
+    "ui/src/components/Filter/getFilterableFields.ts": [
+      "getFilterableFields"
+    ],
+    "ui/src/components/Filter/operators.ts": [
+      "OperatorOption",
+      "carryOver",
+      "defaultValueFor",
+      "getOperators"
+    ],
+    "ui/src/components/Filter/types.ts": [
+      "FilterCondition",
+      "FilterField",
+      "FilterOperator",
+      "FilterValue"
+    ],
+    "ui/src/components/Filter/useFilters.ts": [
+      "UseFilters",
+      "useFilters"
+    ],
+    "ui/src/components/Filter/valueControl.ts": [
+      "valueControl"
+    ],
+    "ui/src/components/Filter/valueControlComponents.ts": [
+      "VALUE_CONTROLS"
+    ],
+    "ui/src/components/FormLayout/buildLayoutFromMeta.ts": [
+      "mapField"
+    ],
+    "ui/src/components/FormLayout/formatNumber.ts": [
+      "FormatFieldOptions"
+    ],
+    "ui/src/components/FormLayout/newRowValues.ts": [
+      "layoutFields"
+    ],
+    "ui/src/components/FormLayout/pickSiblingValue.ts": [
+      "pickSiblingValue"
+    ],
+    "ui/src/components/FormLayout/resolveCurrency.ts": [
+      "resolveFieldCurrency"
+    ],
+    "ui/src/components/FormLayout/resolveLayout.ts": [
+      "applyTabOverride",
+      "resolveFieldConditionals",
+      "resolveTabConditionals"
+    ],
+    "ui/src/components/FormLayout/tabIdentity.ts": [
+      "identifyTabs",
+      "tabStripLabel"
+    ],
+    "ui/src/components/FormLayout/types.ts": [
+      "ColumnPart",
+      "FieldOverride",
+      "FieldUI",
+      "RawMetaField",
+      "ResolveFieldKey",
+      "TabOverride"
+    ],
+    "ui/src/components/FormLayout/warnMissingCommit.ts": [
+      "warnMissingCommit"
+    ],
+    "ui/src/components/Grid/types.ts": [
+      "GridCellSlotProps",
+      "GridColumn",
+      "GridEmits",
+      "GridError",
+      "GridProps",
+      "GridSlots"
+    ],
+    "ui/src/components/InviteUser/types.ts": [
+      "InviteEmailSlotProps",
+      "InviteResult",
+      "InviteRolesSlotProps",
+      "InviteStore",
+      "InviteSubmitSlotProps",
+      "InviteUserProps",
+      "PendingInvitation",
+      "RoleOption",
+      "UseInviteUserOptions",
+      "UserOption"
+    ],
+    "ui/src/components/InviteUser/useInviteUser.ts": [
+      "useInviteUser"
+    ],
+    "ui/src/components/Link/linkOption.ts": [
+      "toLinkOption"
+    ],
+    "ui/src/components/Link/types.ts": [
+      "LinkEmits",
+      "LinkExposed",
+      "LinkOption",
+      "LinkProps",
+      "LinkSlots"
+    ],
+    "ui/src/components/Notifications/NotificationItem.vue": [
+      "NotificationItem"
+    ],
+    "ui/src/components/Notifications/NotificationPanel.vue": [
+      "NotificationPanel"
+    ],
+    "ui/src/components/Notifications/types.ts": [
+      "NotificationBodySlotProps",
+      "NotificationHeaderSlotProps",
+      "NotificationItemProps",
+      "NotificationItemSlots",
+      "NotificationLog",
+      "NotificationPanelProps",
+      "NotificationPanelSlots",
+      "NotificationSocket",
+      "NotificationStore",
+      "NotificationTab",
+      "UseNotificationsOptions"
+    ],
+    "ui/src/components/Notifications/useNotifications.ts": [
+      "useNotifications"
+    ],
+    "ui/src/components/Onboarding/GettingStartedBanner.vue": [
+      "GettingStartedBanner"
+    ],
+    "ui/src/components/Onboarding/help.ts": [
+      "minimize",
+      "showHelpModal"
+    ],
+    "ui/src/components/Onboarding/HelpModal.vue": [
+      "HelpModal"
+    ],
+    "ui/src/components/Onboarding/IntermediateStepModal.vue": [
+      "IntermediateStepModal"
+    ],
+    "ui/src/components/Onboarding/onboarding.ts": [
+      "useOnboarding"
+    ],
+    "ui/src/components/Onboarding/types.ts": [
+      "GettingStartedBannerProps",
+      "HelpArticle",
+      "HelpModalProps",
+      "IntermediateStep",
+      "IntermediateStepModalProps",
+      "IntermediateStepModalSlots",
+      "OnboardingBulkCallback",
+      "OnboardingStep",
+      "OnboardingStepCallback",
+      "UseOnboarding"
+    ],
+    "ui/src/components/Phone/types.ts": [
+      "Country",
+      "PhoneInputVariant",
+      "PhoneProps",
+      "PhoneSlots"
+    ],
+    "ui/src/components/QuickFilter/useQuickFilter.ts": [
+      "UseQuickFilter",
+      "useQuickFilter"
+    ],
+    "ui/src/components/SignupBanner/types.ts": [
+      "SignupBannerProps"
+    ],
+    "ui/src/components/SortBy/getSortOptions.ts": [
+      "getSortOptions"
+    ],
+    "ui/src/components/SortBy/orderBy.ts": [
+      "parseOrderBy",
+      "serializeOrderBy"
+    ],
+    "ui/src/components/SortBy/types.ts": [
+      "Sort"
+    ],
+    "ui/src/components/SortBy/useSort.ts": [
+      "UseSort",
+      "useSort"
+    ],
+    "ui/src/components/TableMultiSelect/types.ts": [
+      "TableMultiSelectEmits",
+      "TableMultiSelectOption",
+      "TableMultiSelectProps"
+    ],
+    "ui/src/components/TrialBanner/types.ts": [
+      "SiteInfo",
+      "TrialBannerProps"
+    ],
+    "ui/src/components/types.ts": [
+      "InputLabelingProps",
+      "InputSize",
+      "InputVariant"
+    ],
+    "ui/src/composables/useDocPermissions.ts": [
+      "FieldAccess",
+      "useDocPermissions"
+    ],
+    "ui/src/composables/useDoctypeMeta.ts": [
+      "UseDoctypeMeta",
+      "dropDoctypeMeta"
+    ],
+    "ui/src/composables/useLinkSearch.ts": [
+      "LinkSearchOption",
+      "UseLinkSearch"
+    ],
+    "ui/src/composables/usePagedList.ts": [
+      "PageQuery",
+      "UsePagedList",
+      "UsePagedListOptions"
+    ],
+    "ui/src/composables/useSession.ts": [
+      "UseSession"
+    ],
+    "ui/src/composables/useUserRoles.ts": [
+      "useUserRoles"
+    ],
+    "ui/src/experimental/List/types.ts": [
+      "BulkAction",
+      "ListColumn"
+    ],
+    "ui/src/socket.ts": [
+      "RealtimeSocket",
+      "getSocketInstance",
+      "resubscribeHeldDocs",
+      "subscribeToDoc"
+    ],
+    "ui/src/telemetry/pulse.ts": [
+      "PulseAnonymousMode",
+      "PulseContext"
+    ],
+    "ui/src/telemetry/telemetry.ts": [
+      "TelemetryPluginOptions",
+      "telemetryPlugin",
+      "useTelemetry"
+    ],
+    "ui/src/utils/sanitize.ts": [
+      "sanitizeHtml"
+    ],
+    "ui/src/utils/session.ts": [
+      "sessionUser"
+    ],
+    "ui/src/utils/sharedState.ts": [
+      "memoizedState"
+    ]
+  },
+  "flowEntries": [
+    {
+      "flow": "Boot",
+      "entry": "frontend/src/main.ts"
+    },
+    {
+      "flow": "Open a list",
+      "entry": "frontend/src/pages/List.vue"
+    },
+    {
+      "flow": "Open a record",
+      "entry": "frontend/src/pages/Record.vue"
+    },
+    {
+      "flow": "Save",
+      "entry": "frontend/src/recordPage/createRecordPage.ts"
+    },
+    {
+      "flow": "Load a stored script",
+      "entry": "frontend/src/recordPage/clientScripts.ts"
     }
   ]
 }

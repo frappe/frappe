@@ -5,6 +5,9 @@ on:
     paths:
       - "frontend/**"
       - "ui/**"
+      # The structure check reads the desk server too; frappe/tests/test_desk_server_layer.py
+      # covers the rest of frappe/ in the server tests.
+      - "frappe/shell/**"
       - ".github/workflows/frontend-tests.yml"
   workflow_dispatch:
 
@@ -58,3 +61,17 @@ jobs:
 
       - name: Run unit tests
         run: yarn --cwd frontend test:run
+
+      # Layers, folder loops and concepts against the baselines in frontend/architecture/layers.json.
+      # It also prints the files each flow reaches, and never fails on those.
+      - name: Check the desk structure
+        if: ${{ !cancelled() }}
+        run: node frontend/architecture/diagram.mjs --flows --out desk-architecture.html
+
+      - name: Upload the architecture page
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: desk-architecture
+          path: desk-architecture.html
+          if-no-files-found: ignore
