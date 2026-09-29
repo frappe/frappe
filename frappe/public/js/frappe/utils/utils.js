@@ -1482,17 +1482,18 @@ Object.assign(frappe.utils, {
 								route = "/desk/private/" + frappe.router.slug(workspaces.title);
 							}
 						}
-
-						if (first_link.route) {
-							route = first_link.route;
-						}
 					} else if (first_link.link_type === "URL") {
 						route = first_link.url;
-					} else if (first_link.link_type == "Page" && first_link.route_options) {
+					} else if (first_link.link_type == "Page") {
 						route = frappe.utils.generate_route({
 							type: first_link.link_type,
 							name: first_link.link_to,
-							route_options: JSON.parse(first_link.route_options),
+							route: first_link.route
+								? `${first_link.link_to}/${first_link.route}`
+								: undefined,
+							route_options: first_link.route_options
+								? JSON.parse(first_link.route_options)
+								: undefined,
 						});
 					} else {
 						route = frappe.utils.generate_route({
@@ -1705,7 +1706,9 @@ Object.assign(frappe.utils, {
 				if (item.public) {
 					route = frappe.router.slug(item.name);
 				} else {
-					route = "private/" + frappe.router.slug(item.name);
+					// By title: a private page's name carries its owner's email, and the only
+					// person who can open the page is that owner. See `router.private_workspace`.
+					route = "private/" + frappe.router.slug(item.title || item.name);
 				}
 			}
 		} else {

@@ -4,7 +4,7 @@ import datetime
 import hashlib
 import hmac
 import re
-from urllib.parse import unquote_plus, urljoin, urlparse
+from urllib.parse import unquote_plus, urljoin
 
 from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
@@ -12,7 +12,7 @@ from oauthlib.openid import RequestValidator
 import frappe
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
-from frappe.utils.data import cstr, get_system_timezone, now_datetime
+from frappe.utils.data import cstr, get_system_timezone, get_url, now_datetime
 
 
 class OAuthWebRequestValidator(RequestValidator):
@@ -655,6 +655,4 @@ def generate_json_error_response(e):
 
 
 def get_server_url():
-	request_url = urlparse(frappe.request.url)
-	request_url = f"{request_url.scheme}://{request_url.netloc}"
-	return frappe.get_value("Social Login Key", "frappe", "base_url") or request_url
+	return frappe.get_value("Social Login Key", "frappe", "base_url") or get_url()

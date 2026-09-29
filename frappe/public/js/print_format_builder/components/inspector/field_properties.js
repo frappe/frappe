@@ -15,6 +15,7 @@ import BarcodeRows from "./BarcodeRows.vue";
 import LinkedFieldRows from "./LinkedFieldRows.vue";
 import { align_opts } from "./align_opts";
 import { has_align, is_breakable, is_text } from "../../fieldtypes";
+import { date_format_opts, is_date_field } from "../../utils";
 
 const ft = (type) => (df) => df.fieldtype === type;
 const SPECIAL = new Set([
@@ -141,6 +142,17 @@ export const FIELD_SECTIONS = [
 				get: (df) => df.show_label !== "hide",
 				set: (df, v) => (df.show_label = v ? "show" : "hide"),
 				mixed: false,
+			},
+			{
+				key: "date_format",
+				component: DropdownRow,
+				when: is_date_field,
+				props: (df, ctx) => ({
+					label: __("Date format"),
+					options: date_format_opts(ctx.preview_doc?.[df.fieldname]),
+				}),
+				get: (df) => df.date_format ?? "",
+				set: (df, v, ctx) => ctx.set(df, "date_format", v, ""),
 			},
 			bold(is_static_text),
 			font_size(is_static_text),

@@ -11,7 +11,7 @@ from werkzeug.test import TestResponse
 
 import frappe
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
-from frappe.integrations.oauth2 import encode_params
+from frappe.integrations.oauth2 import encode_params, get_openid_configuration, get_resource_url
 from frappe.oauth import OAuthWebRequestValidator
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
@@ -683,6 +683,18 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(payload["email"], "test@example.com")
 
 		self.assertTrue(payload.get("nonce") == nonce)
+
+	def test_issuer_follows_host_name(self):
+		from frappe.utils import set_request
+
+		with (
+			patch.object(frappe.local, "request", None, create=True),
+			patch.dict(frappe.local.conf, {"host_name": "https://example.com:8443"}),
+			patch.object(frappe, "get_value", return_value=None),
+		):
+			set_request(path="/.well-known/openid-configuration")
+			self.assertEqual(get_openid_configuration().json["issuer"], "https://example.com:8443")
+			self.assertEqual(get_resource_url(), "https://example.com:8443")
 
 	def test_build_oauth_url(self):
 		self.assertEqual(build_oauth_url("https://example.com", "/endpoint"), "https://example.com/endpoint")

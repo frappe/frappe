@@ -324,7 +324,8 @@ class BackupGenerator:
 			file_pattern = os.path.join(backup_path, file_pattern.format(self.site_slug))
 			file_list = glob(file_pattern)
 			if file_list:
-				return max(file_list, key=backup_time)
+				# names only carry seconds, so mtime breaks same-second ties
+				return max(file_list, key=lambda path: (backup_time(path), os.path.getmtime(path)))
 
 		def old_enough(file_path):
 			if file_path:

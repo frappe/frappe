@@ -173,18 +173,18 @@ def get_applicable_for_doctype_list(
 	linked_doctypes = []
 	for linked_doctype, linked_doctype_values in linked_doctypes_map.items():
 		linked_doctypes.append(linked_doctype)
-		child_doctype = linked_doctype_values.get("child_doctype")
-		if child_doctype:
-			linked_doctypes.append(child_doctype)
+		for child_link in linked_doctype_values.get("child_links") or [linked_doctype_values]:
+			if child_doctype := child_link.get("child_doctype"):
+				linked_doctypes.append(child_doctype)
 
 	linked_doctypes += [actual_doctype]
 
 	if txt:
 		linked_doctypes = [d for d in linked_doctypes if txt.lower() in d.lower()]
 
-	linked_doctypes.sort()
+	linked_doctypes = sorted(set(linked_doctypes))
 
-	return [[doctype] for doctype in linked_doctypes[start:page_len]]
+	return [[doctype] for doctype in linked_doctypes[start : start + page_len]]
 
 
 def get_permitted_documents(doctype):

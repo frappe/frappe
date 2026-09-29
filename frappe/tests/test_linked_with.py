@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.user_permission.user_permission import get_applicable_for_doctype_list
 from frappe.database import savepoint
 from frappe.desk.form import linked_with
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_linked_docs
@@ -967,6 +968,53 @@ class TestLinkedWith(IntegrationTestCase):
 			)
 		finally:
 			for doctype in ("Virtual Child Parent", "Virtual Linked Child", "Linked Target DocType"):
+				frappe.delete_doc("DocType", doctype)
+
+	def test_linked_fields_keep_direct_link_alongside_child_table_link(self):
+		target_link = {"fieldname": "target", "fieldtype": "Link", "options": "Linked Target DocType"}
+		new_doctype("Linked Target DocType").insert()
+		new_doctype("Linked Target Child", fields=[target_link], istable=1).insert()
+		new_doctype(
+			"Linked Target Parent",
+			fields=[
+				target_link,
+				{"fieldname": "items", "fieldtype": "Table", "options": "Linked Target Child"},
+			],
+		).insert()
+
+		try:
+			self.assertEqual(
+				linked_with.get_linked_fields("Linked Target DocType")["Linked Target Parent"],
+				{
+					"fieldname": ["target"],
+					"child_links": [{"child_doctype": "Linked Target Child", "fieldname": ["target"]}],
+				},
+			)
+
+			target = frappe.new_doc("Linked Target DocType").insert()
+			parents = [
+				frappe.new_doc(
+					"Linked Target Parent", target=target.name, items=[{"target": target.name}] * 2
+				),
+				frappe.new_doc("Linked Target Parent", items=[{"target": target.name}]),
+			]
+			for parent in parents:
+				parent.insert()
+
+			linked_docs = linked_with.get("Linked Target DocType", target.name)["Linked Target Parent"]
+			self.assertCountEqual(
+				[doc.name for doc in linked_docs["docs"]], [parent.name for parent in parents]
+			)
+			self.assertEqual(linked_docs["hidden_count"], 0)
+
+			self.assertIn(
+				["Linked Target Child"],
+				get_applicable_for_doctype_list(
+					"DocType", "", "name", 0, 20, {"doctype": "Linked Target DocType"}
+				),
+			)
+		finally:
+			for doctype in ("Linked Target Parent", "Linked Target Child", "Linked Target DocType"):
 				frappe.delete_doc("DocType", doctype)
 
 	def test_reserved_keywords(self):

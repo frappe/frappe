@@ -250,10 +250,9 @@ def get_open_count(doctype: str, name: str | int, items: str | list[str] | None 
 		return {"count": []}
 
 	# None of the count queries should take more than 1s individually
-	frappe.db.set_execution_timeout(1)
-
 	try:
-		return _get_linked_document_counts(doctype, name, items)
+		with frappe.db.execution_timeout(1):
+			return _get_linked_document_counts(doctype, name, items)
 	except Exception as e:
 		if frappe.db.is_statement_timeout(e):
 			return {"count": []}

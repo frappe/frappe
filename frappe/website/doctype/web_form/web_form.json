@@ -10,6 +10,7 @@
   "form_tab",
   "title",
   "route",
+  "banner_image",
   "published",
   "column_break_vdhm",
   "doc_type",
@@ -17,7 +18,8 @@
   "is_standard",
   "section_break_1",
   "introduction_text",
-  "web_form_fields",
+  "form_builder_tab",
+  "form_builder",
   "settings_tab",
   "access_control_section",
   "key_required",
@@ -52,9 +54,10 @@
   "section_break_4",
   "show_sidebar",
   "website_sidebar",
+  "web_form_fields_section",
+  "web_form_fields",
   "customization_tab",
   "button_label",
-  "banner_image",
   "column_break_3",
   "breadcrumbs",
   "section_break_5",
@@ -102,6 +105,7 @@
   },
   {
    "default": "0",
+   "description": "If enabled, Frappe exports the form to the module folder.",
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is standard",
@@ -181,13 +185,30 @@
    "fieldname": "introduction_text",
    "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
-   "label": "Introduction"
+   "label": "Description",
+   "placeholder": "Add a short description to tell users what this form is for..."
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "web_form_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
   },
   {
    "fieldname": "web_form_fields",
    "fieldtype": "Table",
    "label": "Web Form Fields",
    "options": "Web Form Field"
+  },
+  {
+   "fieldname": "form_builder_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "form_builder",
+   "fieldtype": "HTML",
+   "label": "Form Builder"
   },
   {
    "description": "Set size in MB",
@@ -234,6 +255,7 @@
    "max_height": "140px"
   },
   {
+   "description": "For help see <a href=\"https://docs.frappe.io/framework/user/en/web-form/customization#custom-css\" target=\"_blank\" rel=\"noopener noreferrer\">Web Form Custom CSS</a>",
    "fieldname": "custom_css",
    "fieldtype": "Code",
    "label": "Custom CSS",
@@ -294,7 +316,7 @@
   {
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
-   "label": "Form"
+   "label": "Details"
   },
   {
    "fieldname": "section_break_1",
@@ -387,11 +409,12 @@
    "fieldname": "condition_description",
    "fieldtype": "HTML",
    "label": "Condition description",
-   "options": "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n<p>If you create a separate webform every year to capture feedback from employees add a \n field named year in doctype and add a filter <b>year = 2023</b></p>\n"
+   "options": "<p>Filter the records this web form shows (e.g., <b>year = 2023</b> for a yearly feedback form).</p>"
   },
   {
    "fieldname": "condition_section",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Filters"
   },
   {
    "fieldname": "condition_json",
@@ -456,7 +479,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-06-18 15:58:18.453845",
+ "modified": "2026-09-26 12:10:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

@@ -392,6 +392,10 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.local.job.after_job.run()
 
 			if is_async:
+				if os.getenv("FRAPPE_SENTRY_DSN"):
+					import sentry_sdk
+
+					sentry_sdk.flush()
 				frappe.destroy()
 
 

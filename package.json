@@ -49,7 +49,7 @@
     "fast-deep-equal": "^2.0.1",
     "fast-glob": "^3.2.5",
     "frappe-charts": "2.0.0-rc27",
-    "frappe-datatable": "1.21.1",
+    "frappe-datatable": "1.21.2",
     "frappe-gantt": "^1.2.1",
     "frappe-quill-image-resize": "^3.0.9",
     "highlight.js": "^10.4.1",

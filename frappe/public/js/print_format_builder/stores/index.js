@@ -240,6 +240,8 @@ export function getStore(print_format_name) {
 		save_changes,
 		save_letterhead,
 		autosave,
+		resume_autosave,
+		flush,
 	} = useDraftSave({
 		name: print_format_name,
 		print_format,
@@ -331,6 +333,7 @@ export function getStore(print_format_name) {
 		layout,
 		() => {
 			dirty.value = true;
+			resume_autosave();
 		},
 		{ deep: true }
 	);
@@ -338,6 +341,7 @@ export function getStore(print_format_name) {
 		print_format,
 		() => {
 			dirty.value = true;
+			resume_autosave();
 		},
 		{ deep: true }
 	);
@@ -346,7 +350,9 @@ export function getStore(print_format_name) {
 	watch(
 		letterhead,
 		() => {
-			if (letterhead.value?._dirty) dirty.value = true;
+			if (!letterhead.value?._dirty) return;
+			dirty.value = true;
+			resume_autosave();
 		},
 		{ deep: true }
 	);
@@ -433,6 +439,7 @@ export function getStore(print_format_name) {
 			status: save_status,
 			save: save_changes,
 			discard: discard_draft,
+			flush,
 		},
 		versions: {
 			list: history_panel.versions,

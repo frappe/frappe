@@ -46,14 +46,14 @@
     position: relative;
     display: flex;
     gap: calc(var(--spacing) * 5);
-    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 5);
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 0.5);
     border-bottom: 1px solid var(--outline-gray-1);
     /* many tabs on a narrow screen: the bar scrolls, the page doesn't */
     overflow-x: auto;
     overflow-y: hidden;
 }
 
-.es-tabs[data-orientation="vertical"] > .es-tabs__list {
+.es-tabs[data-orientation="vertical"]>.es-tabs__list {
     flex-direction: column;
     padding: calc(var(--spacing) * 3) calc(var(--spacing) * 1);
     border-bottom: 0;
@@ -109,9 +109,9 @@
     border-radius: var(--radius-sm);
 }
 
-.es-tabs__tab > svg,
-.es-tabs__tab > img,
-.es-tabs__tab > .icon {
+.es-tabs__tab>svg,
+.es-tabs__tab>img,
+.es-tabs__tab>.icon {
     width: calc(var(--spacing) * 4);
     height: calc(var(--spacing) * 4);
     flex-shrink: 0;
@@ -130,10 +130,7 @@
     /* the 1px downward shift is frappe-ui's trick: the bar straddles the
        list's bottom border, and the list clips it, so it reads as a thin
        line sitting ON the rail instead of a 2px block above it */
-    transform: translateX(
-            var(--es-tabs-indicator-x, var(--reka-tabs-indicator-position, 0px))
-        )
-        translateY(1px);
+    transform: translateX(var(--es-tabs-indicator-x, var(--reka-tabs-indicator-position, 0px))) translateY(1px);
     transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1),
         width 300ms cubic-bezier(0.23, 1, 0.32, 1);
     pointer-events: none;
@@ -146,14 +143,13 @@
     inset-inline-end: 0;
     width: 2px;
     height: var(--es-tabs-indicator-w, var(--reka-tabs-indicator-size, 0px));
-    transform: translateY(
-        var(--es-tabs-indicator-x, var(--reka-tabs-indicator-position, 0px))
-    );
+    transform: translateY(var(--es-tabs-indicator-x, var(--reka-tabs-indicator-position, 0px)));
     transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1),
         height 300ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .es-tabs__tab,
     .es-tabs__indicator {
         transition: none;
@@ -167,7 +163,7 @@
     min-width: 0;
 }
 
-.es-tabs[data-orientation="vertical"] > .es-tabs__panel {
+.es-tabs[data-orientation="vertical"]>.es-tabs__panel {
     padding-top: 0;
     padding-inline-start: calc(var(--spacing) * 2);
     flex: 1 1 auto;

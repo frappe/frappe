@@ -8,7 +8,9 @@ A desk page is a `.js` file with `on_page_load`. An app that wanted a Vue screen
 
 `pageview.js` builds the page, mounts the island, hands it the route below the page, and sets the head from what the island reports ([0010](0010-a-page-island-reports-title-and-actions.md)). The page ships no script. `load_assets` does not read one, so none reaches the client, where an island's entry would be eval'd as a classic script and fail.
 
-The page registers its own island. `get_ui_islands` reads Page rows beside the `ui_islands` hook, so a page island needs no hook and no line of Python. The name is `<app>.page.<page name>`, derived the same way on both sides, and the `page` infix keeps it clear of the names an app declares by hand.
+The page registers its own island, so a page island needs no line of Python. The name is `<app>.page.<page name>`, derived the same way on both sides, and the `page` infix keeps it clear of the names an app's own build registers.
+
+Amended by [0014](0014-assets-json-is-the-island-registry.md). `get_ui_islands` read Page rows beside a `ui_islands` hook first. The build registers a page island like any other now, and a page may name an island the app built instead of having one built for it.
 
 The starter is two files beside the page's json, `<page>.island.js` and `<page>.vue`, written once by `on_update` in place of the page script every other type gets.
 

@@ -18,7 +18,7 @@ Example:
 import json
 import os
 import typing
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import frappe
 from frappe import N_, _
@@ -57,7 +57,6 @@ DEFAULT_FIELD_LABELS = {
 	"owner": N_("Created By"),
 	"_user_tags": N_("Tags"),
 	"_liked_by": N_("Liked By"),
-	"_comments": N_("Comments"),
 	"_assign": N_("Assigned To"),
 }
 
@@ -262,7 +261,8 @@ class Meta(Document):
 	def _valid_columns(self):
 		table_exists = frappe.db.table_exists(self.name)
 		if self.name in self.special_doctypes and table_exists:
-			valid_columns = get_table_columns(self.name)
+			# `_comments` is a cache column, never a readable field
+			valid_columns = [c for c in get_table_columns(self.name) if c != "_comments"]
 		else:
 			valid_columns = self.default_fields + [
 				df.fieldname
@@ -515,8 +515,8 @@ class Meta(Document):
 			recent_change = frappe.db.sql(
 				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
 			)  # nosemgrep
-			if recent_change and get_datetime(recent_change[0][0]) > add_to_date(
-				None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD
+			if recent_change and get_datetime(recent_change[0][0]) > (
+				datetime.now() + timedelta(days=(-1 * LARGE_TABLE_RECENCY_THRESHOLD))
 			):
 				self.is_large_table = True
 

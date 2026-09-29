@@ -97,6 +97,10 @@ class PrintFormat(Document):
 		)
 		self.set_onload("print_templates", templates)
 
+		from frappe.printing.doctype.print_format.classic_converter import renders_from_file
+
+		self.set_onload("renders_from_file", renders_from_file(self))
+
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
@@ -253,7 +257,9 @@ class PrintFormat(Document):
 				compile(condition, "<condition>", "eval")
 			except SyntaxError as e:
 				frappe.throw(
-					_("{0} is not a valid condition: {1}").format(frappe.bold(where), e.msg),
+					_("{0} is not a valid condition: {1}").format(
+						frappe.bold(frappe.utils.escape_html(where)), e.msg
+					),
 					title=_("Invalid Condition"),
 				)
 
@@ -346,20 +352,57 @@ def _condition(holder, label, key):
 		yield label, condition
 
 
+COPIED_PRINT_OPTIONS = (
+	"show_section_headings",
+	"line_breaks",
+	"align_labels_right",
+	"show_label_colon",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"font",
+	"font_size",
+	"label_color",
+	"value_color",
+	"page_number",
+	"absolute_value",
+	"css",
+	"default_print_language",
+)
+
+
 @frappe.whitelist()
 def create_custom_format(doctype: str, name: str | int, based_on: str = "Standard"):
 	doc = frappe.new_doc("Print Format")
 	doc.doc_type = doctype
 	doc.name = name
 	doc.print_format_builder_beta = 1
+	from frappe.printing.doctype.print_format.classic_converter import (
+		create_default_layout,
+		renders_from_file,
+	)
+
+	source = None
 	if based_on and based_on != "Standard":
 		source = frappe.get_doc("Print Format", based_on)
 		source.check_permission("read")
+		if renders_from_file(source):
+			# "Based On" is fixed to the selected format in the print view, so a
+			# refusal here would be a dead end
+			frappe.msgprint(
+				_("{0} is rendered from an HTML file, so this format starts from the standard layout").format(
+					source.name
+				),
+				alert=True,
+			)
+			source = None
+	if source:
 		doc.format_data = source.format_data
+		for fieldname in COPIED_PRINT_OPTIONS:
+			doc.set(fieldname, source.get(fieldname))
 	else:
 		# seed the layout so the format prints something before its first Save & Apply
-		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
-
 		doc.format_data = frappe.as_json(create_default_layout(frappe.get_meta(doctype)))
 	doc.insert()
 	return doc
