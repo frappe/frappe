@@ -15,6 +15,8 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.utils import get_fullname
 
+COUNT_SAVEPOINT = "linked_document_count"
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -379,21 +381,19 @@ def get_external_links(doctype, name, links):
 def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters):
 	"""A filter on a fieldname that several child tables share resolves to whichever of them
 	is scanned first, so match the link in any of them and let the client route by name."""
-	try:
-		names = frappe.get_list(
-			doctype,
-			filters=filters,
-			or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
-			limit=100,
-			distinct=True,
-			ignore_ifnull=True,
-			order_by=None,
-			pluck="name",
-		)
-	except Exception as e:
-		if frappe.db.is_statement_timeout(e):
-			return {"doctype": doctype, "count": "?", "open_count": 0}
-		raise
+	names = get_list_unless_timed_out(
+		frappe.get_list,
+		doctype,
+		filters=filters,
+		or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
+		limit=100,
+		distinct=True,
+		ignore_ifnull=True,
+		order_by=None,
+		pluck="name",
+	)
+	if names is None:
+		return {"doctype": doctype, "count": "?", "open_count": 0}
 
 	open_count = 0
 	if names and (open_count_filters := get_filters_for(doctype)):
@@ -403,15 +403,25 @@ def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes,
 
 
 def get_doc_count(doctype, filters) -> int | Literal["?"]:
+	docs = get_list_unless_timed_out(
+		frappe.get_all, doctype, filters=filters, limit=100, distinct=True, ignore_ifnull=True, order_by=None
+	)
+	return "?" if docs is None else len(docs)
+
+
+def get_list_unless_timed_out(get_list, doctype, **kwargs) -> list | None:
+	"""Return `get_list(doctype, **kwargs)`, or None if it hits the statement timeout."""
+	# a timed out statement aborts the transaction on Postgres, so undo it to keep counting
+	frappe.db.savepoint(COUNT_SAVEPOINT)
 	try:
-		docs = frappe.get_all(
-			doctype, filters=filters, limit=100, distinct=True, ignore_ifnull=True, order_by=None
-		)
-		return len(docs)
+		result = get_list(doctype, **kwargs)
 	except Exception as e:
-		if frappe.db.is_statement_timeout(e):  # Skip fetching correct count if it's too slow
-			return "?"
-		raise
+		if not frappe.db.is_statement_timeout(e):
+			raise
+		frappe.db.rollback(save_point=COUNT_SAVEPOINT)
+		return None
+	frappe.db.release_savepoint(COUNT_SAVEPOINT)
+	return result
 
 
 def get_dynamic_link_filters(doctype, links, fieldname):
