@@ -293,19 +293,19 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	render_progress_dots() {
 		if (!this.is_multi_step_form) return;
-		$(".center-area.paging").empty();
+		$(".web-form-stepper").empty();
 
 		if (this.in_view_mode) {
 			let paging_text = __("Page {0} of {1}", [
 				this.current_section + 1,
 				this.page_breaks.length + 1,
 			]);
-			$(".center-area.paging").append(`<div>${paging_text}</div>`);
+			$(".web-form-stepper").append(`<div>${paging_text}</div>`);
 			return;
 		}
 
 		this.$slide_progress = $(`<div class="slides-progress"></div>`).appendTo(
-			$(".center-area.paging")
+			$(".web-form-stepper")
 		);
 		this.$slide_progress.empty();
 
