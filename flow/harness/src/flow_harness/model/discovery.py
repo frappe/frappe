@@ -11,10 +11,6 @@ from __future__ import annotations
 
 import asyncio
 import functools
-import os
-import re
-import shutil
-import subprocess
 from dataclasses import dataclass
 
 import httpx
@@ -174,39 +170,16 @@ async def _http_models(
 async def _codex_models(
 	auth: ResolvedModelAuth, api_base: str | None, client: httpx.AsyncClient
 ) -> list[str]:
+	from flow_harness.model.providers.codex import codex_client_version
+
 	headers = {**auth.headers, "Authorization": f"Bearer {auth.api_key}"}
 	response = await client.get(
 		f"{(api_base or '').rstrip('/')}/codex/models",
 		headers=headers,
-		params={"client_version": _codex_client_version()},
+		params={"client_version": await codex_client_version(client)},
 	)
 	response.raise_for_status()
 	return _model_ids(response.json(), "codex")
-
-
-def _codex_client_version() -> str:
-	"""The backend gates its catalog by Codex protocol version, not this package version."""
-	from flow_harness.model.providers.codex import DEFAULT_CODEX_CLIENT_VERSION
-
-	configured = os.environ.get("FLOW_CODEX_CLIENT_VERSION")
-	if configured:
-		return configured
-	executable = shutil.which("codex")
-	if executable:
-		try:
-			result = subprocess.run(
-				[executable, "--version"],
-				capture_output=True,
-				check=True,
-				text=True,
-				timeout=5,
-			)
-			match = re.search(r"\b(\d+\.\d+\.\d+)\b", result.stdout)
-			if match:
-				return match.group(1)
-		except (OSError, subprocess.SubprocessError):
-			pass
-	return DEFAULT_CODEX_CLIENT_VERSION
 
 
 def _model_ids(data: object, provider_id: str | None = None) -> list[str]:

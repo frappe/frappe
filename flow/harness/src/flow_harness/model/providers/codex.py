@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
+import re
 import sys
 import time
 from collections.abc import AsyncIterator, Callable, Mapping
@@ -65,7 +67,8 @@ SCOPE = "openid profile email offline_access"
 ORIGINATOR = "flow"
 API_BASE = "https://chatgpt.com/backend-api"
 DEFAULT_EXPIRES_S = 3600
-DEFAULT_CODEX_CLIENT_VERSION = "0.153.4"
+DEFAULT_CODEX_CLIENT_VERSION = "0.159.0"
+CODEX_LATEST_VERSION_URL = "https://registry.npmjs.org/@openai/codex/latest"
 MODEL_CATALOG_TIMEOUT_SECONDS = 5.0
 DEFAULT_CODEX_MAX_OUTPUT_TOKENS = 128_000
 DEFAULT_AUTO_COMPACT_PERCENT = 90
@@ -74,6 +77,8 @@ DEFAULT_AUTO_COMPACT_PERCENT = 90
 # They deliberately describe the ChatGPT Codex serving surface, not the public API.
 _CODEX_FALLBACK_CONTEXT_WINDOWS = {
 	"gpt-6-astra": 272_000,
+	"gpt-6-sol": 272_000,
+	"gpt-6-luna": 272_000,
 	"gpt-5.6-sol": 272_000,
 	"gpt-5.6-terra": 272_000,
 	"gpt-5.6-luna": 272_000,
@@ -253,10 +258,11 @@ class CodexModel(Model):
 		owns_client = self._client is None
 		client = self._client or httpx.AsyncClient()
 		try:
+			client_version = await await_with_cancellation(codex_client_version(client), cancellation)
 			response = await await_with_cancellation(
 				client.get(
 					f"{self._api_base.rstrip('/')}/codex/models",
-					params={"client_version": DEFAULT_CODEX_CLIENT_VERSION},
+					params={"client_version": client_version},
 					headers=self._model_catalog_headers(),
 					timeout=MODEL_CATALOG_TIMEOUT_SECONDS,
 				),
@@ -387,6 +393,31 @@ class CodexModel(Model):
 		headers["accept"] = "application/json"
 		headers.pop("content-type", None)
 		return headers
+
+
+_VERSION_PATTERN = re.compile(r"\d+\.\d+\.\d+")
+_latest_client_version: str | None = None  # looked up once per process
+
+
+async def codex_client_version(client: httpx.AsyncClient) -> str:
+	"""Version the Codex catalog filters models by: env override, else npm's latest, else the pin."""
+	configured = os.environ.get("FLOW_CODEX_CLIENT_VERSION")
+	if configured:
+		return configured
+	global _latest_client_version
+	if _latest_client_version is None:
+		_latest_client_version = await _npm_latest_version(client) or DEFAULT_CODEX_CLIENT_VERSION
+	return _latest_client_version
+
+
+async def _npm_latest_version(client: httpx.AsyncClient) -> str | None:
+	try:
+		response = await client.get(CODEX_LATEST_VERSION_URL, timeout=MODEL_CATALOG_TIMEOUT_SECONDS)
+		response.raise_for_status()
+		version = response.json().get("version")
+	except Exception:
+		return None
+	return version if isinstance(version, str) and _VERSION_PATTERN.fullmatch(version) else None
 
 
 def static_context_window(model: str) -> int | None:
