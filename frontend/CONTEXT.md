@@ -89,7 +89,7 @@ as a declared one, so a person can arrange a derived rail too.
 _Avoid_: dock (that is desk v1's, and a live doctype of its own).
 
 **Sidebar**: <a id="sidebar"></a>
-The panel a linked rail item opens. Named for where it is, like the rail — which is what lets
+The panel a linked rail item opens, and the `Sidebar` doctype behind it. Named for where it is, like the rail — which is what lets
 one row type serve both honestly.
 _Avoid_: using it bare; see **Words that collide**.
 
@@ -119,7 +119,7 @@ deliberately rather than letting a bundler silently pick a winner.
 
 ### Contribution
 
-**Contribution**: <a id="contribution"></a>
+**Contribution**:
 Something an app adds to the desk. The list is **closed**: if it is not in
 `contributions/types.ts`, an app cannot do it. Not contributable, on purpose: a route
 table, a doctype opt-out, shell chrome, a vite config, a boot key from JS.

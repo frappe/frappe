@@ -108,8 +108,8 @@ cut or a `ui/` change reshapes them.
 | --- | --- |
 | [`Rail`](./CONTEXT.md#rail) | The DocType behind the rail: one record per app, with site and per-user copies |
 | [`Sidebar`](./CONTEXT.md#sidebar) (`navigation_items` table) | A sidebar per module or doctype. Desk v2 reads `navigation_items`; desk v1 reads `items` |
-| [`Navigation Item`](./CONTEXT.md#navigation-item) | Its fields: key, parent, type, target, label, icon, anchors |
-| [`Navigation Item Type`](./CONTEXT.md#navigation-item-type) | Also holds the rule for who can see a row of that type |
+| [`Navigation Item`](./CONTEXT.md#navigation-item) | A row's fields: key, parent, type, target, label, icon, anchors |
+| [`Navigation Item Type`](./CONTEXT.md#navigation-item-type) | Holds the rule for who can see a row of that type |
 | `Doctype View` | Saved list settings (columns, sort, quick filters), per person or per site |
 | `Form Layout` | A stored layout for a doctype's Details, Side Panel or Quick Entry, with an optional condition |
 | [`Client Script`](./CONTEXT.md#client-script) with `view = Record` | The table that holds the record page's stored scripts |
@@ -137,19 +137,19 @@ cut or a `ui/` change reshapes them.
 | `SHELL_ROOT` (`/apps`) | The address root that every desk v2 page lives under |
 | Shell page | Serves the one built `index.html` for `/apps` and each claimed prefix, after a permission check. The website router finds it through the `page_renderer` hook |
 | Built document cache | Keeps the built `index.html` in memory until its file changes |
-| [`app_prefix`](./CONTEXT.md#prefix) hook | The address prefix an app claims, for example `desk` |
+| [`app_prefix`](./CONTEXT.md#prefix) hook | Where an app declares its prefix, for example `desk` |
 | `app_modular` hook | Whether an app's record addresses include the module |
 | Prefix registry | Map of prefix to app, cached per site, cleared on app install |
 | Shell path helpers | Split an `/apps/...` path into prefix and rest, and find its app |
 | `app_permission` hook | Who may enter an app's prefix. Missing means "is a System User" |
 | `guard_prefix` | Sends a guest to login, or refuses a user without app permission |
-| [Boot](./CONTEXT.md#boot) payload | The keys every page gets at start, plus the app's own keys |
+| [Boot](./CONTEXT.md#boot) payload | Built by the server for each prefix |
 | `app_boot` hook | An app adds its own boot keys. A failing one is dropped and logged |
 | `add_to_apps_screen` hook | Title and logo of an app tile on `/apps` |
 | Boot key limit | Logs any boot key over 100 KB |
 | `metadata_version` | Boot key that changes when doctypes change |
 | Address table | Each doctype and module mapped to its slug and owning app. One server cache key |
-| [`slug`](./CONTEXT.md#slug) | `Sales Order` to `sales-order` |
+| [`slug`](./CONTEXT.md#slug) | The function that makes a doctype's slug |
 | Address clash guard | Refuses a DocType or Module name whose slug clashes with a page |
 | Reserved route guard | Refuses any website route that starts with `apps` |
 | Prefix check on install | Refuses an app whose prefix is taken or malformed |
@@ -223,7 +223,7 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| [Boot](./CONTEXT.md#boot) (`Boot`, `fetchBoot`, `BootUnauthorized`) | The small start-up payload for a prefix. Nothing draws before it |
+| [Boot](./CONTEXT.md#boot) (`Boot`, `fetchBoot`, `BootUnauthorized`) | Nothing draws before it |
 | Navigation shapes (`NavigationItem`, `Navigation`) | One rail or sidebar row, and the rail plus every sidebar |
 | Address table (`fetchAddresses`) | Each doctype's slug and module, keyed by `metadata_version` |
 | Route builders (`routeFor`, `routeForModule`, `urlFor`, `isModular`) | Build a link to a list, a record or a module. Honour page replacements |
@@ -305,7 +305,7 @@ component group, with its main names.
 | Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
 | Page dialogs | The engine behind `page.dialog` |
-| [Row handles](./CONTEXT.md#row-handle) | Also refuse once their row is gone |
+| [Row handles](./CONTEXT.md#row-handle) | Refuse once their row is gone |
 | Feed surfaces | The engine behind `page.activity` and `page.files` |
 | Composer surface (`ComposerHost`) | `page.composer`, over a host that owns the composer state |
 | Icon and prop hooks (`setIconSource`, `setDrawnProps`) | The record page hands the engine an icon lookup and frappe-ui's `Button` prop names when it registers. Both halves are one concept |
@@ -359,14 +359,14 @@ the reference for each `page` member.
 | --- | --- |
 | File script (`record.js`) | An app's `export default { ... }` handlers for a doctype |
 | Stored script | A [`Client Script`](./CONTEXT.md#client-script) row: the same module shape as a file script, run from the database |
-| [Tiers](./CONTEXT.md#tier) and [run order](./CONTEXT.md#run-order) | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
+| Tiers and [run order](./CONTEXT.md#run-order) | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
 | `*` doctype key | Handlers that run on every record, before the doctype's own |
-| [Handlers](./CONTEXT.md#handler) and `Handler` | Keys are event names or fieldnames; each value is `(page, row?)` |
+| [Handlers](./CONTEXT.md#handler) and `Handler` | `Handler` is the type of one handler |
 | Lifecycle events | `onRefresh`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost` |
 | Field change handler | A fieldname key runs when that field's value changes |
 | Child [table handlers block](./CONTEXT.md#table-handlers-block) | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
 | `SAVE_VETO` | Throwing in `beforeSave` cancels the save and keeps the draft |
-| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.doctype`, `page.docname`) | The draft, the last saved copy, and whether they differ |
+| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.doctype`, `page.docname`) | `page.isDirty` says whether the draft differs from the saved copy |
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
 | Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, navigate, show a toast |
@@ -407,8 +407,8 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | `build_shell` | `bench build` writes the manifest, installs packages if needed, builds once, and swaps the output in |
 | One vite config | One build for all apps, served at `/assets/frappe/frontend/` |
 | Aliases (`@/`, `@shell`) | `@/` is private to the framework; `@shell` gives app files the desk names |
-| [Manifest](./CONTEXT.md#manifest) | The apps that add to the desk, their folders and packages. The part the bundler needs moves here from `frappe/shell/` |
-| Shared packages ([singletons](./CONTEXT.md#singleton)) | Packages every app must share one copy of. A conflict stops the build |
+| [Manifest](./CONTEXT.md#manifest) | The part the bundler needs moves here from `frappe/shell/` |
+| Shared packages ([singletons](./CONTEXT.md#singleton)) | `enforce_singletons` checks them at build time |
 | `desk.package.json` | An app's declared frontend packages, merged into one `package.json` and lockfile |
 | [Contribution layout](./CONTEXT.md#kind) and discovery | The file paths that count as contributions, and the walk that finds them |
 | Replacement pages (`pages.json`) | A doctype's `pages.json` replaces its standard list or record page |
@@ -551,7 +551,7 @@ that copy in the same tab, and the page shows "no permission" once the server re
 
 ## Guardrails
 
-These rules keep the code inside this file. A rule that a tool can check has a CI check.
+These rules keep the code to what this file describes. A rule that a tool can check has a CI check.
 A rule that no tool checks well is a fixed question in every review. Each map close runs
 a review of the whole desk. The [guardrails ruling](https://github.com/frappe/frappe/issues/43433)
 made each choice here.
@@ -569,12 +569,12 @@ baseline in the same PR.
 | No new group of folders imports each other | A new group appears, or one of today's 7 groups grows | Frontend workflow. *Being built* | Today's 7 groups |
 | A new concept needs a ruling | A name exported across a folder boundary is not in its layer's concept table above | Frontend workflow. *Being built* | Today's exports that no row names |
 | Framework code outside `frappe/shell/` does not use the desk server | Code in `frappe/` outside `frappe/shell/` imports `frappe.shell` | Python tests. *Being built* | `frappe/utils/data.py` and `frappe/bundler.py` |
-| Every test file runs | A test file under `frontend/` or `ui/src` matches no vitest pattern | Frontend workflow, `yarn test:files` | None |
-| A page's JS stays in its budget | A page's JS is more than 5 KB gzip above its baseline | UI workflow, `yarn test:page-js` | `frontend/speed-budgets.json` |
-| A page sends only the calls it needs | A cold load of home, list or record, or a save, sends more API calls than its baseline. There is no tolerance | UI workflow, the Cypress spec `desk_v2_api_calls.js` | `frontend/speed-budgets.json` |
+| Every test file runs | A test file under `frontend/` or `ui/` matches no vitest pattern | Frontend workflow, `yarn test:files` | None |
+| A page's JS does not grow past its baseline | A page's JS is more than 5 KB gzip above its baseline | UI workflow, `yarn test:page-js` | `frontend/speed-budgets.json` |
+| A page does not send more API calls than its baseline | A cold load of home, list or record, or a save, sends more API calls than its baseline. There is no tolerance | UI workflow, the Cypress spec `desk_v2_api_calls.js` | `frontend/speed-budgets.json` |
 
-CI also prints the files that each flow's entry file reaches, but does not fail on the
-count. A fail on file count pushes code into fewer, larger files. CI does not check
+CI will also print the files that each flow's entry file reaches, but will not fail on the
+count. *Being built* with the structure checks. A fail on file count pushes code into fewer, larger files. CI does not check
 timings, because they change from one CI run to the next. There is no CI limit on the
 count of concepts in a layer, because the concept tables are closed lists.
 
@@ -614,7 +614,9 @@ fields. CI does not.
 subagent and gives it none of the session's reasoning. The subagent reads this file, the
 layer file, the output of the checks against the baselines, and the git diff for the life
 of the map. It runs the [return-visit walk](./walks/README.md) at a 4x slower CPU for
-timings, return visits, layout shift and save time. It counts files per flow and concepts
+timings, return visits, layout shift and save time. Today the walk counts skeletons and
+redraws on return visits only. The CPU setting, timings, layout shift and save time are
+not built yet. It counts files per flow and concepts
 per layer. It posts one comment on the root map, [Desk v2](https://github.com/frappe/frappe/issues/42061):
 the counts before and after, new concepts, new pairs that do one job, and each place where
 the code left this file. The user rules on each finding. Each accepted finding becomes a

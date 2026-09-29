@@ -105,7 +105,8 @@ The brief also asks four fixed questions, from the
 3. Does it add a DocType, a route, a store or a lifecycle event that is not in the concept tables?
 4. Can this be done with fewer concepts or less code?
 
-For a build PR, the reviewer also checks the six-field cost line in the PR description.
+For a build PR, the reviewer also checks the six-field
+[cost line](./frontend/ARCHITECTURE.md#guardrails) in the PR description.
 Answer every finding, and close one that contradicts a ruling with the ruling. Then read
 your diff against the comment rule above. For a change that is comments only, `.github/helper/comment_equivalence.py` proves it: it strips
 comments from both revisions and asserts the remaining code is identical.
