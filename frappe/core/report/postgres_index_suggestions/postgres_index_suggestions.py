@@ -4,8 +4,11 @@
 import re
 from collections import Counter, defaultdict
 
+from psycopg2.errors import ObjectNotInPrerequisiteState, UndefinedTable
+
 import frappe
 from frappe import _
+from frappe.database.database import savepoint
 from frappe.modules.utils import get_doctype_app_map
 from frappe.utils import cint
 
@@ -58,13 +61,14 @@ def execute(filters=None):
 			(seq_tup_read / nullif(seq_scan, 0))::bigint AS rows_per_seq_scan,
 			coalesce(idx_scan, 0) AS idx_scan
 		FROM pg_stat_user_tables
-		WHERE seq_scan > coalesce(idx_scan, 0)
+		WHERE schemaname = %(schema)s
+			AND seq_scan > coalesce(idx_scan, 0)
 			AND n_live_tup >= %(min_rows)s
 			AND seq_tup_read > 0
 		ORDER BY seq_tup_read DESC
 		LIMIT 50
 		""",
-		{"min_rows": min_rows},
+		{"min_rows": min_rows, "schema": frappe.db.db_schema},
 		as_dict=True,
 	)
 
@@ -83,18 +87,8 @@ def execute(filters=None):
 def _suggested_columns(tables: set) -> dict:
 	"""For each table, the columns its queries most often filter or sort on that aren't already an
 	index's leading key -- mined from pg_stat_statements. Empty if the extension isn't enabled."""
-	try:
-		statements = frappe.db.sql(
-			"""
-			SELECT query, calls
-			FROM pg_stat_statements s
-			JOIN pg_database d ON d.oid = s.dbid
-			WHERE d.datname = current_database()
-			"""
-		)
-	except Exception:
-		# pg_stat_statements not installed -- fall back to no column-level suggestions.
-		frappe.db.rollback()
+	statements = _recorded_statements()
+	if not statements:
 		return {}
 
 	indexed = _leading_indexed_columns(tables)
@@ -114,6 +108,20 @@ def _suggested_columns(tables: set) -> dict:
 	return {table: [column for column, _count in counter.most_common(3)] for table, counter in usage.items()}
 
 
+def _recorded_statements() -> list:
+	"""This database's pg_stat_statements rows, or none if the extension is missing or not loaded."""
+	with savepoint(catch=(UndefinedTable, ObjectNotInPrerequisiteState)):
+		return frappe.db.sql(
+			"""
+			SELECT query, calls
+			FROM pg_stat_statements s
+			JOIN pg_database d ON d.oid = s.dbid
+			WHERE d.datname = current_database()
+			"""
+		)
+	return []
+
+
 def _leading_indexed_columns(tables: set) -> dict:
 	"""The columns already usable as an index's leading key, per table -- so we don't re-suggest them."""
 	indexed = defaultdict(set)
@@ -124,10 +132,11 @@ def _leading_indexed_columns(tables: set) -> dict:
 		SELECT t.relname AS table_name, a.attname AS column_name
 		FROM pg_index ix
 		JOIN pg_class t ON t.oid = ix.indrelid
+		JOIN pg_namespace n ON n.oid = t.relnamespace
 		JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ix.indkey[0]
-		WHERE t.relname IN %(tables)s
+		WHERE t.relname IN %(tables)s AND n.nspname = %(schema)s
 		""",
-		{"tables": tuple(tables)},
+		{"tables": tuple(tables), "schema": frappe.db.db_schema},
 	)
 	for table_name, column_name in rows:
 		indexed[table_name].add(column_name)
