@@ -9,7 +9,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
-from frappe.query_builder.functions import Coalesce, Locate, NullIf
+from frappe.query_builder.functions import Coalesce, Locate, Lower, NullIf
 from frappe.utils import cstr
 
 
@@ -423,9 +423,10 @@ def contact_query(
 	)
 
 	if txt:
-		search_text = txt.replace("%", "")
-		full_name_position = NullIf(Locate(search_text, Contact.full_name), 0)
-		company_name_position = NullIf(Locate(search_text, Contact.company_name), 0)
+		# Locate is case-sensitive on Postgres, unlike the LIKE filter
+		search_text = Lower(txt.replace("%", ""))
+		full_name_position = NullIf(Locate(search_text, Lower(Contact.full_name)), 0)
+		company_name_position = NullIf(Locate(search_text, Lower(Contact.company_name)), 0)
 		relevance = (
 			frappe.qb.terms.Case()
 			.when(full_name_position.isnull(), Coalesce(company_name_position, 99999))
