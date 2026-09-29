@@ -1502,8 +1502,10 @@ from {tables}
 
 			terms = []
 			for term in clause.split(","):
+				# skip ordinals, expressions, quoted names
 				column = ORDER_BY_PATTERN.sub("", term).strip()
-				term = term.replace(column, f"`{column}`")
+				if column.isidentifier():
+					term = term.replace(column, f"`{column}`")
 				terms.append(term.strip())
 
 			setattr(self, attr, ", ".join(terms))

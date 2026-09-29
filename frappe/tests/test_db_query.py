@@ -74,6 +74,21 @@ class TestDBQuery(FrappeTestCase):
 		query = frappe.get_all("ToDo", fields=["name"], order_by="modified desc", run=False)
 		self.assertIn("order by `modified` desc", query)
 
+		# terms frappe itself passes must survive untouched
+		for order_by in (
+			"`start` desc",
+			"`tabToDo`.`start` desc",
+			"`tabToDo`.creation asc",
+			"modified desc, `tabToDo`.creation asc",
+			"ifnull(`start`, 0) desc",
+			"count(name) desc",
+			"1 desc",
+		):
+			with self.subTest(order_by=order_by):
+				frappe.get_all("ToDo", fields=["name"], order_by=order_by, limit=1)
+
+
+
 	def test_extract_tables(self):
 		db_query = DatabaseQuery("DocType")
 		add_custom_field("DocType", "test_tab_field", "Data")
