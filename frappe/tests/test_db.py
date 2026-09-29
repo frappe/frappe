@@ -563,6 +563,17 @@ class TestDB(IntegrationTestCase):
 			# recover transaction to continue other tests
 			raise Exception
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_unique_value_containing_pkey_is_not_a_primary_key_violation(self):
+		# the error message quotes the duplicate value, which must not decide the violated key
+		frappe.db.savepoint("unique_pkey_value")
+		self.addCleanup(frappe.db.rollback, save_point="unique_pkey_value")
+		frappe.db.set_value("User", "Guest", "username", "ops_pkey")
+		admin = frappe.get_doc("User", "Administrator")
+		admin.username = "ops_pkey"
+
+		self.assertRaises(frappe.UniqueValidationError, admin.db_update)
+
 	def test_read_only_errors(self):
 		frappe.db.rollback()
 		frappe.db.begin(read_only=True)
