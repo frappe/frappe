@@ -51,6 +51,19 @@ class TestDB(IntegrationTestCase):
 		with self.assertQueryCount(1):
 			frappe.db.get_tables(cached=False)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_rollback_after_ddl_clears_schema_cache(self):
+		# postgres DDL is transactional: what was cached after it must not outlive a rollback
+		doctype = f"Schema Cache Test {frappe.generate_hash(length=8)}"
+		frappe.db.sql(f'CREATE TABLE "tab{doctype}" ("name" varchar(140))')
+		self.assertTrue(frappe.db.table_exists(doctype))
+		self.assertEqual(frappe.db.get_db_table_columns(f"tab{doctype}"), ["name"])
+
+		frappe.db.rollback()
+
+		self.assertFalse(frappe.db.table_exists(doctype))
+		self.assertEqual(frappe.db.get_db_table_columns(f"tab{doctype}"), [])
+
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
