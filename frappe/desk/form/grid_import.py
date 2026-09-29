@@ -6,7 +6,13 @@ import html
 
 import frappe
 from frappe import _
-from frappe.core.doctype.data_import.importer import Row, get_df_for_column_header, get_item_at_index
+from frappe.core.doctype.data_import.importer import (
+	Row,
+	get_df_for_column_header,
+	get_item_at_index,
+	get_select_options,
+)
+from frappe.core.doctype.data_import.value_mapping import get_invalid_link_select_items
 from frappe.model import get_permitted_fields, no_value_fields, table_fields
 from frappe.utils import (
 	cstr,
@@ -15,8 +21,11 @@ from frappe.utils import (
 	strip_html,
 	validate_phone_number_with_country_code,
 )
-from frappe.utils.caching import request_cache
-from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
+from frappe.utils.csvutils import (
+	build_csv_response,
+	get_csv_content_from_google_sheets,
+	read_csv_content,
+)
 from frappe.utils.dateutils import dateformats
 from frappe.utils.xlsxutils import (
 	build_xlsx_response,
@@ -46,11 +55,14 @@ def download_template(doctype: str, title: str, data: str, file_type: str = "Exc
 			title=_("Download Failed"),
 		)
 
-	if file_type != "Excel":
+	if file_type not in ("Excel", "CSV"):
 		frappe.throw(_("{0} is not a supported file type").format(file_type), title=_("Download Failed"))
 
 	rows = [row if isinstance(row, list) else [row] for row in rows]
-	build_xlsx_response(rows, title)
+	if file_type == "CSV":
+		build_csv_response(rows, title)
+	else:
+		build_xlsx_response(rows, title)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -107,7 +119,7 @@ def get_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]
 		if not header:
 			continue
 		df = get_df_for_column_header(child_doctype, header)
-		if df and df.fieldname in writable:
+		if df and df.fieldname in writable and df.fieldname not in column_map.values():
 			column_map[i] = df.fieldname
 
 	return column_map
@@ -132,6 +144,7 @@ def validate_rows(doctype: str, fieldname: str, headers: str, rows: str, column_
 		if field in writable and meta.get_field(field)
 	]
 	header = frappe._dict(columns=frappe.parse_json(headers))
+	invalid_cells = get_invalid_link_select_cells(columns, rows, child_doctype)
 
 	warnings = []
 	for index, data in enumerate(rows):
@@ -139,6 +152,9 @@ def validate_rows(doctype: str, fieldname: str, headers: str, rows: str, column_
 		for col in columns:
 			value = cstr(get_item_at_index(data, col.index)).strip()
 			if not value:
+				continue
+			if message := invalid_cells.get((index, col.index)):
+				row.warnings.append({"col": col.index, "message": message})
 				continue
 			seen = len(row.warnings)
 			row.validate_value(value, col)
@@ -158,10 +174,32 @@ def validate_rows(doctype: str, fieldname: str, headers: str, rows: str, column_
 	return warnings
 
 
-class GridImportRow(Row):
-	def link_exists(self, value, df):
-		return not can_read(df.options, frappe.session.user) or super().link_exists(value, df)
+def get_invalid_link_select_cells(columns, rows, child_doctype) -> dict[tuple[int, int], str]:
+	invalid_cells = {}
+	for col in columns:
+		if col.df.fieldtype not in ("Link", "Select"):
+			continue
+		column = frappe._dict(
+			df=col.df,
+			doctype=child_doctype,
+			column_values=[cstr(get_item_at_index(data, col.index)).strip() for data in rows],
+			value_row_numbers=list(range(len(rows))),
+		)
+		for item in get_invalid_link_select_items(column):
+			message = get_invalid_value_message(item["source"], col.df)
+			for index in item["rows"]:
+				invalid_cells[(index, col.index)] = message
+	return invalid_cells
 
+
+def get_invalid_value_message(value: str, df) -> str:
+	value = html.escape(value)
+	if df.fieldtype == "Link":
+		return _('"{0}" is not a valid {1}').format(value, _(df.label))
+	return _('"{0}" is not valid. Allowed: {1}').format(value, ", ".join(get_select_options(df)))
+
+
+class GridImportRow(Row):
 	def validate_value(self, value, col):
 		if col.df.fieldtype == "Duration" and value.isdigit():
 			return value
@@ -190,11 +228,6 @@ class GridImportRow(Row):
 	def get_datetime(self, value, column):
 		time_format = get_user_time_format().replace("HH", "%H").replace("mm", "%M").replace("ss", "%S")
 		return parse_datetime(value, (f"{column.date_format} {time_format}", "%Y-%m-%d %H:%M:%S"))
-
-
-@request_cache
-def can_read(doctype: str, user: str) -> bool:
-	return frappe.has_permission(doctype, "read", user=user)
 
 
 def parse_datetime(value: str, formats) -> datetime.datetime | str:

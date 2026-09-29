@@ -612,11 +612,7 @@ export default class GridImport {
 		);
 	}
 
-	has_unmapped_columns() {
-		return this.state.warnings.some((w) => w.row === undefined && w.col !== undefined);
-	}
-
-	has_mapping_issues() {
+	has_table_issues() {
 		return this.state.warnings.some((w) => w.blocking && w.row === undefined);
 	}
 
@@ -630,7 +626,7 @@ export default class GridImport {
 	}
 
 	has_too_many_issues() {
-		return !this.has_mapping_issues() && this.get_issue_rows().size > MAX_FIX_ROWS;
+		return !this.has_table_issues() && this.get_issue_rows().size > MAX_FIX_ROWS;
 	}
 
 	rows_matching(predicate) {
@@ -644,7 +640,7 @@ export default class GridImport {
 	settle_fix_step() {
 		const blocked = this.has_issues();
 		if (this.tabs.get_active() !== TAB_FIX) {
-			this.set_step_disabled(TAB_FIX, !blocked && !this.has_unmapped_columns());
+			this.set_step_disabled(TAB_FIX, !blocked);
 		}
 		if (blocked && this.tabs.get_active() === TAB_PREVIEW) {
 			this.tabs.set_active(TAB_FIX);
@@ -681,7 +677,7 @@ export default class GridImport {
 		if (!$button.length) return;
 		const count = this.get_issue_rows().size;
 		frappe.ui.button.dress($button, { label: skip_all_label(count) });
-		$button.prop("disabled", this.has_mapping_issues() || !count);
+		$button.prop("disabled", this.has_table_issues() || !count);
 	}
 
 	preview_hint($table) {
@@ -689,9 +685,6 @@ export default class GridImport {
 			(w) => w.blocking && w.row === undefined && w.col === undefined
 		);
 		if (table_issue) return table_issue.message;
-		if (this.has_mapping_issues()) {
-			return __("Two columns map to the same field. Fix the mapping to continue.");
-		}
 		const shown = $table
 			.find("tr[data-row]")
 			.map((_, tr) => cint(tr.dataset.row))
@@ -775,7 +768,7 @@ export default class GridImport {
 		this.stale_rows.clear();
 		this.state.warnings = [...this.get_warnings(map), ...this.server_warnings];
 
-		const step = this.has_issues() || this.has_unmapped_columns() ? TAB_FIX : TAB_PREVIEW;
+		const step = this.has_issues() ? TAB_FIX : TAB_PREVIEW;
 		this._built_step = null;
 		this.set_step_disabled(TAB_FIX, step !== TAB_FIX);
 		this.set_step_disabled(TAB_PREVIEW, this.has_issues());
@@ -886,11 +879,6 @@ export default class GridImport {
 				title: __("Too Many Rows"),
 				indicator: "red",
 			});
-			return;
-		}
-
-		if (file_type === "CSV") {
-			frappe.tools.downloadify(data, null, title);
 			return;
 		}
 
@@ -1064,46 +1052,12 @@ export default class GridImport {
 		const fields = this.get_mapped_fields(column_map);
 
 		const warnings = [
-			...this.get_header_warnings(column_map),
 			...this.get_id_warnings(id_index, rows_by_id),
 			...this.get_mandatory_warnings(column_map, id_index, rows_by_id),
 		];
 		this.state.rows.forEach((row, r) => {
 			const row_number = this.state.row_numbers[r];
 			warnings.push(...this.get_row_warnings(row, row_number, fields, id_index, rows_by_id));
-		});
-		return warnings;
-	}
-
-	get_header_warnings(column_map) {
-		const warnings = [];
-		this.state.headers.forEach((header, i) => {
-			if (header && column_map[i] === undefined) {
-				warnings.push({
-					col: i,
-					message: __('"{0}" does not match a field and will be ignored.', [header]),
-				});
-			}
-		});
-		warnings.push(...this.get_duplicate_mapping_warnings(column_map));
-		return warnings;
-	}
-
-	get_duplicate_mapping_warnings(column_map) {
-		const columns_by_field = {};
-		Object.entries(column_map).forEach(([index, fieldname]) => {
-			(columns_by_field[fieldname] ??= []).push(cint(index));
-		});
-		const duplicated = Object.entries(columns_by_field).filter(
-			([, columns]) => columns.length > 1
-		);
-		const warnings = [];
-		duplicated.forEach(([fieldname, columns]) => {
-			const message = __("Columns {0} map to {1}. Only one column can fill a field.", [
-				columns.map((i) => i + 1).join(", "),
-				this.get_field_label(fieldname),
-			]);
-			columns.forEach((i) => warnings.push({ blocking: true, col: i, message }));
 		});
 		return warnings;
 	}

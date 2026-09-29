@@ -37,9 +37,15 @@ class TestGridImport(IntegrationTestCase):
 		self.assertEqual(frappe.response["filename"], "Roles.xlsx")
 		self.assertTrue(frappe.response["filecontent"].startswith(b"PK"))
 
-	def test_download_rejects_csv(self):
+	def test_download_csv_keeps_phone_numbers_as_text(self):
+		download_template("Contact", "Numbers", json.dumps([["Number"], ["+91-9876543210"]]), "CSV")
+
+		self.assertEqual(frappe.response["type"], "csv")
+		self.assertIn("'+91-9876543210", frappe.response["result"])
+
+	def test_download_rejects_unsupported_file_type(self):
 		with self.assertRaises(frappe.ValidationError):
-			download_template("User", "Roles", json.dumps([HEADER]), file_type="CSV")
+			download_template("User", "Roles", json.dumps([HEADER]), file_type="PDF")
 
 	def test_download_allows_the_full_row_limit(self):
 		rows = [["Role"], *([["System Manager"]] * MAX_TEMPLATE_ROWS)]
@@ -102,6 +108,11 @@ class TestGridImport(IntegrationTestCase):
 			{0: "phone", 1: "is_primary_phone", 2: "is_primary_mobile_no", 3: "name"},
 		)
 
+	def test_column_map_keeps_the_first_column_for_a_field(self):
+		column_map = get_column_map("Contact", "phone_nos", json.dumps(["Number (phone)", "Number"]))
+
+		self.assertEqual(column_map, {0: "phone"})
+
 	def test_column_map_includes_read_only_fields(self):
 		headers = ["Link Document Type (link_doctype)", "Link Title (link_title)"]
 		column_map = get_column_map("Contact", "links", json.dumps(headers))
@@ -140,15 +151,14 @@ class TestGridImport(IntegrationTestCase):
 		self.assertEqual([(w["row"], w["col"]) for w in warnings], [(1, 0)])
 		self.assertTrue(warnings[0]["message"].startswith('"Someday" is not valid. Allowed: Monday'))
 
-	def test_validate_rows_checks_link_permission_once_per_doctype(self):
-		frappe.local.request_cache.clear()
+	def test_validate_rows_checks_link_values_with_one_query_per_column(self):
 		rows = [["User"], ["No Such DocType"]] * 25
 
-		with patch("frappe.has_permission", wraps=frappe.has_permission) as has_permission:
+		with patch("frappe.get_all", wraps=frappe.get_all) as get_all:
 			warnings = self.validate("Contact", "links", ["Link Document Type"], rows, {0: "link_doctype"})
 
-		doctype_checks = [c for c in has_permission.call_args_list if c.args[:1] == ("DocType",)]
-		self.assertEqual(len(doctype_checks), 1)
+		doctype_queries = [c for c in get_all.call_args_list if c.args[:1] == ("DocType",)]
+		self.assertEqual(len(doctype_queries), 1)
 		self.assertEqual(len(warnings), 25)
 
 	def test_validate_rows_rejects_more_rows_than_an_import_allows(self):

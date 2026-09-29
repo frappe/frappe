@@ -282,12 +282,19 @@ context("Child Table Data Import", () => {
 		dialog().find(".grid-import-preview-row .indicator").should("have.length", 1);
 	});
 
-	it("does not let two columns fill the same field", () => {
+	it("imports only the first column when two columns match the same field", () => {
 		open_import();
 		upload(["9876500050,9876500051"], "Number (phone),Number");
 
-		hint().should("contain", "Two columns map to the same field");
-		dialog().find(".btn-modal-primary").should("be.disabled");
+		active_step().should("contain", "Preview");
+		dialog().find('th[data-col="1"]').should("not.exist");
+		primary("Apply");
+
+		phone_rows().then((rows) => {
+			const numbers = rows.map((row) => row.phone);
+			expect(numbers).to.include("9876500050");
+			expect(numbers).to.not.include("9876500051");
+		});
 	});
 
 	it("reads the Google Sheet when that tab is active, even with a file attached", () => {
@@ -369,12 +376,8 @@ context("Child Table Data Import", () => {
 		open_import();
 		upload(["9876500070,1"]);
 
-		dialog()
-			.find('th[data-col="1"]')
-			.should("not.have.class", "has-error")
-			.and("have.attr", "data-mapped", "0");
-
-		go_to_step("Preview");
+		active_step().should("contain", "Preview");
+		dialog().find('th[data-col="1"]').should("not.exist");
 		primary("Apply");
 		phone_rows().then((rows) => {
 			const added = rows.find((d) => d.phone === "9876500070");
