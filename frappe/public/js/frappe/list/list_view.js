@@ -1096,12 +1096,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					return;
 				}
 
-				const width = Math.round($el.outerWidth());
+				// exact, not rounded: pinning 94.5px as 95px shifts every column after it
+				const width = $el[0].getBoundingClientRect().width;
 				if (!width) {
 					return;
 				}
 
-				const existing = cint(this.column_max_widths[fieldname]) || 0;
+				const existing = flt(this.column_max_widths[fieldname]) || 0;
 				this.column_max_widths[fieldname] = Math.max(existing, width);
 			});
 	}
@@ -1213,6 +1214,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.get_count_str().then((count) => {
 			$count.html(`<span>${count}</span>`);
+			this.sync_right_width();
 			if (
 				this.count_upper_bound &&
 				(this.total_count == this.count_upper_bound || this.total_count == null)
@@ -1555,7 +1557,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (!frappe.is_mobile() && cint(col.df?.width)) {
 			const width = cint(col.df.width);
-			const existing = cint(this.column_max_widths[fieldname]) || 0;
+			const existing = flt(this.column_max_widths[fieldname]) || 0;
 			this.column_max_widths[fieldname] = Math.max(existing, width);
 		}
 
@@ -1617,6 +1619,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (left_width < frappe_list_width - right_width) {
 			this.$result.find(".list-row-container .list-row .level-right").addClass("border-0");
 		}
+
+		this.sync_right_width();
+	}
+
+	// The header's right side holds the count, each row's the timestamp and comment
+	// count. Give them all the widest one, so the columns to their left line up.
+	// Runs again once the count arrives, as it can be the widest.
+	sync_right_width() {
+		const result = this.$result?.[0];
+		if (!result) return;
+		result.style.removeProperty("--list-right-width");
+		const sides = result.querySelectorAll(
+			".list-row-head .level-right, .list-row-container .list-row .level-right"
+		);
+		if (frappe.is_mobile() || sides.length < 2) return;
+		const width = Math.max(...Array.from(sides, (el) => el.getBoundingClientRect().width));
+		result.style.setProperty("--list-right-width", `${width}px`);
 	}
 
 	get_tags_html(user_tags, limit = null, colored = false) {
