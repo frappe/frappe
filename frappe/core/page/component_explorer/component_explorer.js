@@ -970,6 +970,136 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Stat Card": {
+			helper: "frappe.ui.stat_card",
+			groups: [
+				{
+					title: __("Value + caption"),
+					items: [
+						{ label: "Open orders", value: "24", caption: "₹3,40,000 to deliver" },
+						{ label: "Customers", value: "1,208", icon: "users" },
+					],
+				},
+				{
+					title: __("Trend delta"),
+					items: [
+						{
+							label: "Net sales",
+							value: "₹12,40,000",
+							delta: { value: 12.4, suffix: "since last year" },
+						},
+						{
+							label: "Overdue",
+							value: "₹1,80,000",
+							delta: {
+								value: 8,
+								positive_is_good: false,
+								suffix: "since last month",
+							},
+						},
+						{ label: "Returns", value: "3", delta: { value: 0 } },
+					],
+				},
+				{
+					title: __("Series dot + clickable"),
+					items: [
+						{
+							label: "Paid",
+							value: "₹8,20,000",
+							dot: "#2590d6",
+							onclick: () => frappe.ui.toast({ message: "Paid" }),
+						},
+					],
+				},
+			],
+		},
+		"Bar List": {
+			helper: "frappe.ui.bar_list",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							items: [
+								{ label: "Not due", value: 42000 },
+								{ label: "1–30 days", value: 18000 },
+								{ label: "31–60 days", value: 9500 },
+								{ label: "60+ days", value: 3000 },
+							],
+						},
+					],
+				},
+				{
+					title: __("Formatted, coloured, values on hover"),
+					items: [
+						{
+							items: [
+								{ label: "Laptops", value: 120 },
+								{ label: "Monitors", value: 84 },
+								{ label: "Keyboards", value: 51 },
+							],
+							format: (value) => value + " units",
+							color: "#2590d6",
+							values_on_hover: true,
+						},
+					],
+				},
+				{
+					title: __("Wide labels + clickable rows"),
+					items: [
+						{
+							items: [
+								{ label: "Kaveri Industrial Supplies", value: 540000 },
+								{ label: "Northwind Traders", value: 320000 },
+							],
+							label_width: 180,
+							on_click: (item) => frappe.ui.toast({ message: item.label }),
+						},
+					],
+				},
+			],
+		},
+		Donut: {
+			helper: "frappe.ui.donut",
+			groups: [
+				{
+					title: __("Centre value + legend"),
+					items: [
+						{
+							segments: [
+								{ label: "Paid", value: 70 },
+								{ label: "Unpaid", value: 20 },
+								{ label: "Overdue", value: 10 },
+							],
+							center: { value: "70%", label: "paid" },
+						},
+					],
+				},
+				{
+					title: __("Custom colours + format"),
+					items: [
+						{
+							segments: [
+								{ label: "Used", value: 55000, color: "#095895" },
+								{
+									label: "Available",
+									value: 45000,
+									color: "var(--surface-gray-4)",
+								},
+							],
+							center: { value: "55%", label: "used" },
+							format: (value) => format_currency(value),
+							size: 180,
+						},
+					],
+				},
+				{
+					title: __("Empty"),
+					items: [{ segments: [], center: { value: "0", label: "no data" }, size: 180 }],
+				},
+			],
+		},
 		"Empty State": {
 			helper: "frappe.ui.empty_state",
 			stacked: true,

@@ -382,4 +382,93 @@ context("Espresso components", () => {
 				.should("have.length", 3);
 		});
 	});
+
+	describe("Stat Card", () => {
+		beforeEach(() => show("Stat Card"));
+
+		it("tones the delta by positive_is_good, so a rise in a bad metric reads red", () => {
+			cy.contains(".explorer-group", "Trend delta").within(() => {
+				cy.contains(".es-stat-card", "Net sales")
+					.find(".es-stat-card__delta")
+					.should("have.attr", "data-tone", "positive")
+					.and("contain.text", "12.4%");
+				cy.contains(".es-stat-card", "Overdue")
+					.find(".es-stat-card__delta")
+					.should("have.attr", "data-tone", "negative");
+				cy.contains(".es-stat-card", "Returns")
+					.find(".es-stat-card__delta")
+					.should("have.attr", "data-tone", "neutral");
+			});
+		});
+
+		it("makes a clickable card a keyboard button", () => {
+			cy.contains(".explorer-group", "Series dot")
+				.find(".es-stat-card--clickable")
+				.should("have.attr", "role", "button")
+				.and("have.attr", "tabindex", "0")
+				.trigger("keydown", { key: "Enter" });
+			cy.get(".es-toast").should("contain.text", "Paid");
+		});
+	});
+
+	describe("Bar List", () => {
+		beforeEach(() => show("Bar List"));
+
+		it("sizes bars against a rounded axis and labels every row", () => {
+			// max 42000 -> axis rounds up to 50000, so the top bar is 84% wide
+			cy.contains(".explorer-group", "Basic").within(() => {
+				cy.get(".es-bar-list__row").should("have.length", 4);
+				cy.get(".es-bar-list__bar")
+					.first()
+					.should("have.attr", "style")
+					.and("contain", "width: 84%");
+				cy.get(".es-bar-list__tick").last().should("have.text", "50000");
+			});
+		});
+
+		it("widens the label gutter and passes the clicked item back", () => {
+			cy.contains(".explorer-group", "Wide labels").within(() => {
+				cy.get(".es-bar-list").should("have.attr", "style").and("contain", "180px");
+				cy.get(".es-bar-list__row--clickable").first().click();
+			});
+			cy.get(".es-toast").should("contain.text", "Kaveri Industrial Supplies");
+		});
+	});
+
+	describe("Donut", () => {
+		beforeEach(() => show("Donut"));
+
+		it("draws one segment per value and labels the chart for screen readers", () => {
+			cy.contains(".explorer-group", "Centre value").within(() => {
+				cy.get(".es-donut__seg").should("have.length", 3);
+				cy.get(".es-donut__svg").should(
+					"have.attr",
+					"aria-label",
+					"Paid 70%, Unpaid 20%, Overdue 10%"
+				);
+				cy.get(".es-donut__value").should("have.text", "70%");
+			});
+		});
+
+		it("swaps the centre to a hovered legend row and restores it on leave", () => {
+			cy.contains(".explorer-group", "Centre value").within(() => {
+				cy.contains(".es-donut__legend-row", "Unpaid")
+					.trigger("mouseenter")
+					.should("have.class", "is-active");
+				cy.get(".es-donut__label").should("have.text", "Unpaid · 20%");
+				cy.get(".es-donut__seg.is-dim").should("have.length", 2);
+
+				cy.get(".es-donut__legend").trigger("mouseleave");
+				cy.get(".es-donut__value").should("have.text", "70%");
+				cy.get(".es-donut__seg.is-dim").should("have.length", 0);
+			});
+		});
+
+		it("draws an empty track when there is nothing to chart", () => {
+			cy.contains(".explorer-group", "Empty").within(() => {
+				cy.get(".es-donut__seg").should("have.length", 0);
+				cy.get(".es-donut__track").should("have.length", 1);
+			});
+		});
+	});
 });
