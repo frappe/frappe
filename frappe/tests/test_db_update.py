@@ -12,7 +12,7 @@ from frappe.custom.doctype.property_setter.property_setter import (
 from frappe.database import savepoint
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.test_query_builder import run_only_if, unimplemented_for
 from frappe.utils import cstr
 
 
@@ -211,6 +211,16 @@ class TestDBUpdate(IntegrationTestCase):
 
 		doctype.fields[0].fieldtype = "Int"  # no length -> standard int4 column
 		with self.assertRaises(frappe.ValidationError):
+			doctype.save()
+		frappe.db.rollback()
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_truncating_type_change_errors_cleanly(self):
+		doctype = new_doctype(fields=[{"fieldname": "notes", "fieldtype": "Text"}]).insert()
+		frappe.get_doc(doctype=doctype.name, notes="x" * 200).insert()
+
+		doctype.fields[0].fieldtype = "Data"
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
 			doctype.save()
 		frappe.db.rollback()
 
