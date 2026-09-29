@@ -137,6 +137,25 @@ class TestContact(IntegrationTestCase):
 		)
 		self.assertEqual(results[0][0], company_name_match.name)
 
+	def test_contact_query_ranks_matches_regardless_of_case(self):
+		later_match = create_contact("A Mixedcase Rank", "Mr", save=False)
+		later_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		later_match.insert()
+
+		prefix_match = create_contact("Mixedcase Rank", "Mr", save=False)
+		prefix_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		prefix_match.insert()
+
+		results = contact_query(
+			"Contact",
+			"mixedcase rank",
+			"full_name",
+			0,
+			1,
+			{"link_doctype": "User", "link_name": "Administrator"},
+		)
+		self.assertEqual(results[0][0], prefix_match.name)
+
 	def test_get_contact_list(self):
 		# First time from database
 		results = get_contact_list("_Test Supplier")
