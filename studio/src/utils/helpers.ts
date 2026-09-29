@@ -273,7 +273,7 @@ async function fetchApp(appName: string) {
 	return appResource.doc
 }
 
-function openInDesk(app: StudioApp) {
+function openAppInDesk(app: StudioApp) {
 	window.open(`/app/studio-app/${app.name}`, "_blank")
 }
 
@@ -597,7 +597,7 @@ export {
 	isHTML,
 	// app
 	fetchApp,
-	openInDesk,
+	openAppInDesk,
 	openPageInDesk,
 	// page
 	fetchPage,

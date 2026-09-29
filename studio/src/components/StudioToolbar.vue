@@ -23,7 +23,7 @@
 							{
 								label: 'View App in Desk',
 								icon: 'lucide-arrow-up-right',
-								onClick: () => openInDesk(store.activeApp!),
+								onClick: () => openAppInDesk(store.activeApp!),
 							},
 							{
 								label: 'View Page in Desk',
@@ -197,7 +197,7 @@ import AppDialog from "@/components/AppDialog.vue"
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
-import { isObjectEmpty, openInDesk, openPageInDesk } from "@/utils/helpers"
+import { isObjectEmpty, openAppInDesk, openPageInDesk } from "@/utils/helpers"
 import { StudioApp } from "@/types/Studio/StudioApp"
 
 const store = useStudioStore()

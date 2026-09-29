@@ -1,7 +1,7 @@
 import router from "@/router/studio_router"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { openInDesk, openPageInDesk } from "@/utils/helpers"
+import { openAppInDesk, openPageInDesk } from "@/utils/helpers"
 import { createRegistry, type RegistryItem } from "@/utils/createRegistry"
 import { nextTick } from "vue"
 
@@ -69,7 +69,7 @@ commands.register({
 	icon: "lucide-arrow-up-right",
 	group: "Navigate",
 	condition: () => Boolean(store.activeApp),
-	action: () => openInDesk(store.activeApp!),
+	action: () => openAppInDesk(store.activeApp!),
 })
 
 commands.register({
