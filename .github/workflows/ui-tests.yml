@@ -104,6 +104,11 @@ jobs:
           SPLIT: 4
           SPLIT_INDEX: ${{ strategy.job-index }}
 
+      # Needs frontend/manifest.json, which only `bench build` writes.
+      - name: Check the JS each desk page loads
+        if: ${{ !cancelled() && matrix.index == 1 }}
+        run: yarn --cwd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/frontend test:page-js
+
       - name: Compress Cypress Videos
         if: always() && steps.ui-tests.outcome == 'failure'
         run: |
