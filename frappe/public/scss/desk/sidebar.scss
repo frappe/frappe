@@ -89,6 +89,11 @@
 	// prepends the header straight into the panel.
 	.sidebar-header {
 		margin: 4px;
+
+		// Centres the chevron on the rows' count digit.
+		.body-sidebar-container.expanded & {
+			padding-right: 15px;
+		}
 	}
 
 	.body-sidebar-top {
@@ -147,6 +152,8 @@
 			.drop-icon {
 				width: 28px;
 				height: 28px;
+				// Centres the chevron on the rows' count digit.
+				margin-right: 5px;
 				text-align: center;
 			}
 		}

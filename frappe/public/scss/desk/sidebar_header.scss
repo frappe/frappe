@@ -77,6 +77,18 @@
 			justify-content: center;
 		}
 
+		// A module's own icon is a drawn mark rather than a stray glyph, so it fills the slot and
+		// needs no chip behind it.
+		&:has(> svg.icon) {
+			background-color: transparent;
+			overflow: visible;
+
+			svg.icon {
+				width: 100%;
+				height: 100%;
+			}
+		}
+
 		svg {
 			width: 16px;
 			height: 16px;
