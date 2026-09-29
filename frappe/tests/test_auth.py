@@ -6,7 +6,7 @@ import time
 import requests
 
 import frappe
-from frappe.auth import LoginAttemptTracker, validate_auth
+from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
@@ -135,8 +135,6 @@ class TestAuth(FrappeTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
-<<<<<<< HEAD
-=======
 	def test_forced_password_reset_does_not_leak_reset_key(self):
 		from frappe.auth import LoginManager
 		from frappe.utils import add_days, set_request, today
@@ -194,8 +192,6 @@ class TestAuth(FrappeTestCase):
 		self.assertNotEqual(frappe.local.response.get("message"), "Password Reset")
 		self.assertNotIn("redirect_to", frappe.local.response)
 
-	@requires_test_service(TestService.WEB_SERVER)
->>>>>>> 85ebfc8 (test(auth): add regression tests for new changes)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
 
