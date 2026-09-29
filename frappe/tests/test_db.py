@@ -2397,6 +2397,16 @@ class TestConcurrency(IntegrationTestCase):
 			self.assertTrue(frappe.db.exists("ToDo", todo.name))
 			self.assertEqual(frappe.db.sql("show transaction_read_only")[0][0], "off")
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_read_only_snapshot_keeps_transaction_with_callbacks(self):
+		calls = []
+		with self.secondary_connection():
+			frappe.db.after_commit.add(lambda: calls.append(1))
+			with frappe.db.read_only_snapshot():
+				self.assertEqual(frappe.db.sql("show transaction_read_only")[0][0], "off")
+
+		self.assertFalse(calls)
+
 	@timeout(5, "Deletion stuck on lock timeout")
 	def test_delete_race_condition(self):
 		note = frappe.new_doc("Note")
