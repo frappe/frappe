@@ -44,6 +44,20 @@
     color: var(--ink-gray-4);
 }
 
+/* markup appended by hand carries no __item class of its own; the old desk API let callers
+   append plain `<li><a>` and it has to keep looking like a crumb */
+.es-breadcrumbs li > a:not(.es-breadcrumbs__item),
+.es-breadcrumbs li > span:not(.es-breadcrumbs__item) {
+    display: flex;
+    align-items: center;
+    padding-inline: calc(var(--spacing) * 0.5);
+    padding-block: var(--spacing);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-5);
+    text-decoration: none;
+}
+
 .es-breadcrumbs__item {
     display: flex;
     align-items: center;

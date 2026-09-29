@@ -6,6 +6,14 @@ frappe.provide("frappe.pages");
 frappe.provide("frappe.views");
 
 window.cur_page = null;
+
+/**
+ * The `frappe.ui.Page` on screen, or null before one has rendered. Reaching it by hand means
+ * `frappe.container.page.page`, three hops through a container, its element and its page.
+ *
+ * @returns {frappe.ui.Page|null}
+ */
+frappe.get_current_page = () => frappe.container?.page?.page || null;
 frappe.views.Container = class Container {
 	// Container contains pages inside `#container` and manages page creation, switching
 	constructor() {

@@ -1000,19 +1000,35 @@ frappe.ui.Page = class Page {
 	 */
 	set_breadcrumbs(items) {
 		this.breadcrumbs = items || [];
+		// explicit items win over anything `frappe.breadcrumbs.add()` left here
+		this.legacy_breadcrumbs = null;
 		this.render_breadcrumbs();
+	}
+
+	/** @returns {Array<Object>} the trail this page holds, whichever API set it */
+	get_breadcrumbs() {
+		// a legacy `add()` payload is resolved on every read, not at call time, because the old
+		// API let a caller name a document before it had finished loading
+		if (this.legacy_breadcrumbs) return frappe.breadcrumbs.resolve(this.legacy_breadcrumbs);
+		return this.breadcrumbs || [];
 	}
 
 	render_breadcrumbs() {
 		const $nav = this.$title_area?.find(".navbar-breadcrumbs");
 		if (!$nav?.length) return;
 
+		$nav.toggleClass("mobile-no-divider", !!frappe.is_mobile());
+		// the list is refilled rather than replaced, so a reference held by
+		// `frappe.breadcrumbs.$breadcrumbs` stays good across paints
+		this.$breadcrumbs = $nav.children("ol").first();
+		if (!this.$breadcrumbs.length) {
+			this.$breadcrumbs = $("<ol>").appendTo($nav);
+		}
 		// a page inside a dialog has a head of its own but no business drawing a trail in it
-		const items = this.show_breadcrumbs === false ? [] : this.breadcrumbs || [];
-		const css_class = ["navbar-breadcrumbs", frappe.is_mobile() ? "mobile-no-divider" : ""]
-			.filter(Boolean)
-			.join(" ");
-		$nav.replaceWith(frappe.ui.breadcrumbs({ items, css_class }));
+		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs();
+		this.$breadcrumbs
+			.empty()
+			.append(frappe.ui.breadcrumbs({ items }).children("ol").children());
 	}
 
 	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {

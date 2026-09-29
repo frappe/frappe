@@ -81,41 +81,90 @@ context("Breadcrumbs", () => {
 		cy.get(CRUMBS).should("have.length", 1).find("a").should("not.exist");
 	});
 
-	// the old module's members are kept so an app written against them keeps running
-	it("warns and does nothing for the members it retired", () => {
+	// the old module still works, rather than merely not throwing: each member forwards to the
+	// page on screen
+	it("still draws through the retired API", () => {
 		cy.visit("/desk/todo");
 		cy.desk_ready();
-		// `trail_of` reads once with no retry, so wait for the bar to be painted first
 		trail().should("deep.equal", ["To Do"]);
 
 		cy.window().then((win) => {
 			cy.stub(win.console, "warn").as("warn");
-
-			const before = trail_of(win);
 			const b = win.frappe.breadcrumbs;
 
-			// none of these may throw, and none may change what is on screen
+			expect(win.frappe.get_current_page()).to.equal(win.frappe.container.page.page);
+
 			b.clear();
-			b.rename("ToDo", "old", "new");
-			b.toggle(true);
-			b.append_breadcrumb_element("/desk/nowhere", "Nowhere");
-			b.set_custom_breadcrumbs({ label: "Nowhere", route: "/desk/nowhere" });
-			b.set_tree_breadcrumb({ doctype: "ToDo" });
+			expect(trail_of(win)).to.deep.equal([]);
+
+			// the shape workflow_builder used: empty the bar, then append markup by hand
+			b.$breadcrumbs.append('<li><a href="/desk/workflow">Workflow</a></li>');
+			expect(trail_of(win)).to.deep.equal(["Workflow"]);
+
+			b.clear();
+			b.append_breadcrumb_element("/desk/todo", "To Do");
+			b.set_custom_breadcrumbs({ label: "Custom", route: "/desk/x" });
+			expect(trail_of(win)).to.deep.equal(["To Do", "Custom"]);
+
+			b.clear();
 			b.set_list_breadcrumb({ doctype: "ToDo" });
-			b.set_form_breadcrumb({ doctype: "ToDo" }, "form");
-			b.set_dashboard_breadcrumb({ doctype: "Dashboard" });
-			b.current_page();
+			expect(trail_of(win)).to.deep.equal(["ToDo"]);
 
-			// `all` was read and written by route, and `$breadcrumbs` was appended to
-			b.all["List/ToDo/List"] = { doctype: "ToDo" };
-			expect(b.all["List/ToDo/List"]).to.deep.equal({ doctype: "ToDo" });
-			b.$breadcrumbs.append("<li><a>Nowhere</a></li>");
+			// appending after add() keeps what add() drew: that trail is held as an
+			// unresolved payload, so reading the items directly would drop it
+			b.clear();
+			b.add({ type: "Custom", label: "Print Format", route: "/desk/print-format" });
+			expect(trail_of(win)).to.deep.equal(["Print Format"]);
+			b.append_breadcrumb_element("", "Standard");
+			expect(trail_of(win)).to.deep.equal(["Print Format", "Standard"]);
+			b.append_breadcrumb_element("", "Third");
+			expect(trail_of(win)).to.deep.equal(["Print Format", "Standard", "Third"]);
 
-			expect(trail_of(win)).to.deep.equal(before);
+			b.clear();
+			b.set_list_breadcrumb({ doctype: "ToDo" });
+
+			// toggle hides and shows, where it used to set a class no stylesheet read
+			b.toggle(false);
+			expect(trail_of(win)).to.deep.equal([]);
+			b.toggle(true);
+			expect(trail_of(win)).to.deep.equal(["ToDo"]);
+
+			// the registry shape: write the source, then repaint
+			b.clear();
+			b.all[win.frappe.get_route_str()] = { module: "Desk", doctype: "ToDo" };
+			b.update();
+			expect(trail_of(win)).to.deep.equal(["ToDo"]);
+
+			expect(b.current_page()).to.equal("List/ToDo/List");
 		});
 
 		cy.get("@warn").should("have.been.called");
+	});
+
+	// the compat layer resolves to a page, never to a selector, so it cannot reach a page it is
+	// not on
+	it("cannot reach a page that is not on screen through the retired API", () => {
+		cy.visit("/desk/todo");
+		cy.desk_ready();
 		trail().should("deep.equal", ["To Do"]);
+
+		cy.window().then((win) => {
+			const detached = win.$("<div>");
+			const off_screen = win.frappe.ui.make_app_page({
+				parent: detached,
+				single_column: true,
+			});
+			off_screen.set_breadcrumbs([{ label: "Off screen" }]);
+
+			win.frappe.breadcrumbs.clear();
+			win.frappe.breadcrumbs.append_breadcrumb_element("/desk/x", "Landed here");
+
+			// the visible page took the write; the off-screen one kept its own
+			expect(trail_of(win)).to.deep.equal(["Landed here"]);
+			expect(
+				Cypress._.map(detached.find(".navbar-breadcrumbs li"), (l) => l.textContent.trim())
+			).to.deep.equal(["Off screen"]);
+		});
 	});
 
 	// a form embedded in a dialog has a page head of its own. It must not draw a trail there,
