@@ -748,7 +748,7 @@ class Document(BaseDocument):
 
 		# parent
 		if getattr(self.meta, "issingle", 0):
-			self.update_single(self.get_valid_dict())
+			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
@@ -859,7 +859,7 @@ class Document(BaseDocument):
 
 		# parent
 		if self.meta.issingle:
-			self.update_single(self.get_valid_dict())
+			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_update()
 
