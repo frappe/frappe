@@ -1,4 +1,4 @@
-import { make_activatable } from "./utils.js";
+import { chart_color, make_activatable } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -15,7 +15,7 @@ frappe.provide("frappe.ui");
  * @property {string|number|Element|JQuery} [value] The headline number, already formatted. Leave it null when there is no reading: the card shows "—" and "No data" (0 is a reading).
  * @property {StatCardDelta} [delta] Trend line under the value. Takes the place of `caption`.
  * @property {string|Element|JQuery} [caption] Muted line under the value.
- * @property {string} [dot] CSS colour for a dot before the label — ties the card to a chart series.
+ * @property {string} [dot] Colour of a dot before the label, tying the card to a chart series: a frappe-charts colour name or any CSS colour.
  * @property {string} [icon] Lucide icon before the label (ignored when `dot` is set).
  * @property {boolean} [loading=false] Keep the label and hold the card's shape with skeletons while the value loads.
  * @property {function} [onclick] Makes the whole card a button (click, Enter, Space).
@@ -49,7 +49,8 @@ frappe.ui.stat_card = function ({
 	const $card = $('<div class="es-stat-card">').addClass(css_class || "");
 
 	const $head = $('<div class="es-stat-card__head">').appendTo($card);
-	if (dot) $('<span class="es-stat-card__dot">').css("background", dot).appendTo($head);
+	if (dot)
+		$('<span class="es-stat-card__dot">').css("background", chart_color(dot)).appendTo($head);
 	else if (icon) $head.append(frappe.utils.icon(icon, "sm"));
 	$('<span class="es-stat-card__label">')
 		.text(label || "")

@@ -116,15 +116,15 @@
 }
 
 .es-stat-card__delta[data-tone="positive"] {
-    color: var(--ink-green-6);
+    color: var(--ink-green-7);
 }
 
 .es-stat-card__delta[data-tone="negative"] {
-    color: var(--ink-red-6);
+    color: var(--ink-red-7);
 }
 
 .es-stat-card__delta[data-tone="neutral"] {
-    color: var(--ink-gray-5);
+    color: var(--ink-gray-6);
 }
 
 .es-stat-card__delta-suffix {

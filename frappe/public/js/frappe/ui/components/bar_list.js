@@ -1,4 +1,4 @@
-import { make_activatable } from "./utils.js";
+import { chart_color, make_activatable } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -14,7 +14,7 @@ frappe.provide("frappe.ui");
  * @property {BarListItem[]} items One row per item, drawn in the given order. With none, the chart shows "No data to show" (zero values still draw).
  * @property {number} [max] Axis maximum; defaults to the largest value.
  * @property {function} [format] (value) -> string, for the end labels and axis ticks.
- * @property {string} [color] Bar colour (any CSS colour or token); defaults to a dark grey.
+ * @property {string} [color="blue"] Bar colour: a frappe-charts colour name or any CSS colour.
  * @property {number} [label_width=96] Width of the label gutter, in px.
  * @property {boolean} [values_on_hover=false] Hide each end label until its row is hovered or focused.
  * @property {function} [on_click] (item) -> void. Makes each row a button.
@@ -86,7 +86,7 @@ function build_row(item, { at, format, color, on_click }) {
 		.attr("title", item.label)
 		.appendTo($row);
 	const $bar = $('<div class="es-bar-list__bar">').css("width", at(item.value)).appendTo($row);
-	if (color) $bar.css("background-color", color);
+	$bar.css("background-color", chart_color(color || "blue"));
 	$('<div class="es-bar-list__value">')
 		.css("left", at(item.value))
 		.text(item.formatted != null ? item.formatted : format(item.value))

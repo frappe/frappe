@@ -1,3 +1,6 @@
+import { getColor } from "frappe-charts/src/js/utils/colors";
+import { DEFAULT_COLORS } from "frappe-charts/src/js/utils/constants";
+
 // Small helpers shared by the frappe.ui.* component helpers.
 
 /**
@@ -108,3 +111,15 @@ export function make_activatable($el, handler) {
 			}
 		});
 }
+
+/**
+ * A frappe-charts colour name ("blue", "light-blue", "green"…) as the colour
+ * Desk charts draw it, so a component matches the frappe.Chart beside it.
+ * Any other CSS colour passes through unchanged.
+ */
+export function chart_color(color) {
+	return getColor(color);
+}
+
+/** frappe-charts' default series colours, by name, in order. */
+export const CHART_PALETTE = DEFAULT_COLORS.donut;
