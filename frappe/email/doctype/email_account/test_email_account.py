@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import frappe
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
-from frappe.email.doctype.email_account.email_account import notify_unreplied
+from frappe.email.doctype.email_account.email_account import EmailAccount, notify_unreplied
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
 from frappe.tests import IntegrationTestCase
@@ -190,6 +190,21 @@ class TestEmailAccount(IntegrationTestCase):
 
 		sent_mail = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
+
+	@patch.object(EmailAccount, "get_access_token")
+	def test_no_smtp_authentication_skips_smtp_login(self, get_access_token):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.password = "smtp-password"
+		email_account.no_smtp_authentication = 1
+
+		for auth_method in ("Basic", "OAuth"):
+			email_account.auth_method = auth_method
+			config = email_account.sendmail_config()
+			self.assertIsNone(config["password"])
+			self.assertFalse(config["use_oauth"])
+			self.assertIsNone(config["access_token"])
+
+		get_access_token.assert_not_called()
 
 	def test_print_format(self):
 		comm_name = make(
