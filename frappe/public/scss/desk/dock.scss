@@ -343,9 +343,9 @@ body.dock-pinned .dock .dock-user-button {
 		}
 	}
 
-	// Collapsed beside a pinned dock, the sidebar goes away instead of folding to an icon rail,
-	// which would repeat the dock. The edge and arrow move onto the dock's border to bring it back.
-	body.dock-pinned.dock-active .body-sidebar-container:is(:not(.expanded), .sliding-shut) {
+	// Collapsed beside a pinned dock (Sidebar.hides_when_collapsed), the sidebar keeps its layout
+	// and slides shut. The edge and arrow move onto the dock's border to bring it back.
+	.body-sidebar-container.sidebar-hidden {
 		.body-sidebar {
 			width: 0;
 			border-right-width: 0;
@@ -359,10 +359,29 @@ body.dock-pinned .dock .dock-user-button {
 
 		.sidebar-edge {
 			left: -4px;
+			cursor: e-resize;
 		}
 
 		.sidebar-collapse-arrow {
 			left: -12px;
+
+			svg {
+				transform: rotate(180deg);
+			}
+		}
+
+		.sidebar-panel {
+			left: 0;
+		}
+	}
+
+	// Set by Sidebar.refit_collapsed_sidebar, whose changes do not animate.
+	.body-sidebar-container.no-transition {
+		.body-sidebar,
+		.body-sidebar > *,
+		.sidebar-edge,
+		.sidebar-collapse-arrow {
+			transition: none !important;
 		}
 	}
 

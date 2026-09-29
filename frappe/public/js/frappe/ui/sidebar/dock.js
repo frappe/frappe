@@ -71,12 +71,14 @@ frappe.ui.Dock = class Dock {
 
 	apply_pin() {
 		const pinned = this.should_pin();
-		if (pinned === this.is_pinned) return;
-		// Set first: `close` refuses while pinned.
-		this.is_pinned = pinned;
-		$("body").toggleClass("dock-pinned", pinned);
-		pinned ? this.open() : this.close();
-		this.sidebar.sync_panel_inert();
+		if (pinned !== this.is_pinned) {
+			// Set first: `close` refuses while pinned.
+			this.is_pinned = pinned;
+			$("body").toggleClass("dock-pinned", pinned);
+			pinned ? this.open() : this.close();
+		}
+		// A collapsed sidebar hides beside a pinned dock and folds to its rail otherwise.
+		this.sidebar.refit_collapsed_sidebar();
 	}
 
 	setup_user_menu() {
@@ -204,6 +206,7 @@ frappe.ui.Dock = class Dock {
 	refresh() {
 		this.app = this.sidebar.get_sidebar_app();
 		this.enabled = this.sidebar.dock_enabled() && this.sidebar.page_allows_dock();
+		this.resolved = !!this.sidebar.current_page() && !!this.sidebar.current_module;
 		$("body").toggleClass("dock-active", this.enabled);
 		this.apply_pin();
 
@@ -220,7 +223,7 @@ frappe.ui.Dock = class Dock {
 			this.app ? this.app.app_name : null,
 			this.sidebar.current_module,
 			entries.map((entry) => [
-				this.sidebar.dock_key(entry),
+				this.sidebar.dock_entry_key(entry),
 				entry.label,
 				entry.icon,
 				this.sidebar.is_active_entry(entry),

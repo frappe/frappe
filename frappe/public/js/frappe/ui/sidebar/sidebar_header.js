@@ -169,7 +169,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		}
 
 		const items = [];
-		const modules = sidebar.app_modules(sidebar.get_sidebar_app());
+		const modules = sidebar.navigable_app_modules(sidebar.get_sidebar_app());
 
 		// Absent when the app has one module, following the rail's own refusal to draw a rail of
 		// one: an item permanently active with no alternatives is a switcher that cannot switch.

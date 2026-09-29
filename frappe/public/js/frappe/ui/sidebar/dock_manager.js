@@ -163,14 +163,16 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 				.filter((row) => row.link_type === "Sidebar")
 				.map((row) => row.link_to)
 		);
-		return frappe.app.sidebar.app_modules(this.app).filter((shell) => !named.has(shell));
+		return frappe.app.sidebar
+			.navigable_app_modules(this.app)
+			.filter((shell) => !named.has(shell));
 	}
 
 	// What identifies an entry here, on the server and on the rail: the whole destination. The
 	// kind is half of it, because a `Sidebar` and a `Workspace` with the same name are two
 	// entries.
 	key(row) {
-		return frappe.app.sidebar.dock_key(row);
+		return frappe.app.sidebar.dock_entry_key(row);
 	}
 
 	// This layer's picks, in their order. The layer belongs to this app, so every row in it is
@@ -390,7 +392,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					// The app's navigable modules, which is what `get_app_modules` returns, rather
 					// than a link query, which would show only the few modules that have a
 					// `Sidebar` document.
-					options: sidebar.app_modules(this.app).map((shell) => ({
+					options: sidebar.navigable_app_modules(this.app).map((shell) => ({
 						value: shell,
 						label: frappe.boot.module_sidebars[shell]?.label || shell,
 					})),
