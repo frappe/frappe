@@ -286,6 +286,7 @@ class TestDBUpdate(IntegrationTestCase):
 		self.addCleanup(frappe.db.commit)
 		self.addCleanup(frappe.db.sql_ddl, f'DROP TABLE IF EXISTS "{table}" CASCADE')
 		self.addCleanup(doctype.delete)
+		self.addCleanup(delete_property_setter, doctype.name, "search_index")
 
 		for index_name, kwargs in (
 			("zz_partial_idx", {"where": "status <> 'done'"}),
@@ -296,9 +297,24 @@ class TestDBUpdate(IntegrationTestCase):
 			column = get_table_column(doctype.name, "status")
 			frappe.db.sql_ddl(f'DROP INDEX IF EXISTS "{index_name}"')
 			self.assertFalse(column.index, msg=f"{index_name} was taken for the search index")
+		self.assertFalse(frappe.get_meta(doctype.name).get_field("status").search_index)
 
 		# but a plain btree index on the column is exactly that
 		frappe.db.add_index(doctype.name, ["status"])
+		self.assertTrue(get_table_column(doctype.name, "status").index)
+
+	def test_manual_index_on_one_field_survives_alter(self):
+		"""A plain index added by hand on one field is kept by the next alter"""
+
+		doctype = new_doctype(fields=[{"fieldname": "status", "fieldtype": "Data"}]).insert()
+		# add_index is DDL and commits itself, so undo what it leaves behind
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f"DROP TABLE IF EXISTS `tab{doctype.name}`")
+		self.addCleanup(doctype.delete)
+		self.addCleanup(delete_property_setter, doctype.name, "search_index")
+
+		frappe.db.add_index(doctype.name, ["status"])
+		frappe.db.updatedb(doctype.name)
 		self.assertTrue(get_table_column(doctype.name, "status").index)
 
 	def test_unique_index_name_is_scoped_to_its_table(self):
