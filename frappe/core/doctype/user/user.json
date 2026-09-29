@@ -55,6 +55,7 @@
   "search_bar",
   "notifications",
   "show_my_space",
+  "dock_mode",
   "list_settings_section",
   "list_sidebar",
   "bulk_actions",
@@ -798,6 +799,14 @@
    "fieldname": "show_my_space",
    "fieldtype": "Check",
    "label": "Show My Space"
+  },
+  {
+   "default": "Floating",
+   "description": "Pinned sits beside the sidebar. Floating slides in from the left edge.",
+   "fieldname": "dock_mode",
+   "fieldtype": "Select",
+   "label": "Dock",
+   "options": "Floating\nPinned"
   },
   {
    "collapsible": 1,

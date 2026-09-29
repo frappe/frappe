@@ -10,6 +10,7 @@ from werkzeug.http import parse_cookie
 
 import frappe
 import frappe.exceptions
+from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
 	handle_password_test_fail,
@@ -66,6 +67,27 @@ class TestUser(IntegrationTestCase):
 		user.db_set("show_my_space", 1)
 		frappe.clear_cache(user=user.name)
 		self.assertEqual(get_desk_settings().show_my_space, 1)
+
+	def test_dock_floats_until_pinned(self):
+		"""The dock starts floating off the left edge. Pinning it beside the sidebar is a per-user
+		desk toggle, so the desk reads it from the boot's desk settings like the others.
+		"""
+		from frappe.boot import get_desk_settings
+
+		user = frappe.get_doc(
+			doctype="User",
+			email=frappe.generate_hash() + "@example.com",
+			first_name="Dock",
+			roles=[{"role": "_Test Role 2"}],
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
+
+		frappe.set_user(user.name)
+		self.assertEqual(get_desk_settings().dock_mode, "Floating")
+
+		set_value("User", user.name, "dock_mode", "Pinned")
+		frappe.clear_cache(user=user.name)
+		self.assertEqual(get_desk_settings().dock_mode, "Pinned")
 
 	def test_user_type(self):
 		user_id = frappe.generate_hash() + "@example.com"
