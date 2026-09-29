@@ -89,17 +89,10 @@ frappe.views.Page = class Page {
 			if (this.pagedoc.content) this.wrapper.innerHTML = this.pagedoc.content;
 			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script);
 			frappe.dom.set_style(this.pagedoc.style || "");
-
-			// set breadcrumbs
-			frappe.breadcrumbs.add(this.pagedoc.module || null);
 		}
 
 		this.trigger_page_event("on_page_load");
-		frappe.breadcrumbs.add({
-			type: "Custom",
-			label: __(this.pagedoc.title),
-			route: frappe.get_route_str(),
-		});
+		this.wrapper.page?.set_breadcrumbs([{ label: __(this.pagedoc.title) }]);
 
 		// set events
 		$(this.wrapper).on("show", function () {

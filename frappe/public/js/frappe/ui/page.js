@@ -992,6 +992,48 @@ frappe.ui.Page = class Page {
 		return this.$title_area;
 	}
 
+	/**
+	 * The trail in this page's head. The last item is the page itself, so it carries no `href`.
+	 *
+	 * Each page owns its own items and its own markup. A view can only change the trail of the
+	 * page it was handed, which is why an off-screen form cannot touch the one on screen.
+	 *
+	 * @param {Array<Object>} items espresso breadcrumb items: `label`, `href`, `onclick`,
+	 *   `prefix`, `suffix`, `title`
+	 */
+	set_breadcrumbs(items) {
+		this.breadcrumbs = items || [];
+		// explicit items win over anything `frappe.breadcrumbs.add()` left here
+		this.legacy_breadcrumbs = null;
+		this.render_breadcrumbs();
+	}
+
+	/** @returns {Array<Object>} the trail this page holds, whichever API set it */
+	get_breadcrumbs() {
+		// a legacy `add()` payload is resolved on every read, not at call time, because the old
+		// API let a caller name a document before it had finished loading
+		if (this.legacy_breadcrumbs) return frappe.breadcrumbs.resolve(this.legacy_breadcrumbs);
+		return this.breadcrumbs || [];
+	}
+
+	render_breadcrumbs() {
+		const $nav = this.$title_area?.find(".navbar-breadcrumbs");
+		if (!$nav?.length) return;
+
+		$nav.toggleClass("mobile-no-divider", !!frappe.is_mobile());
+		// the list is refilled rather than replaced, so a reference held by
+		// `frappe.breadcrumbs.$breadcrumbs` stays good across paints
+		this.$breadcrumbs = $nav.children("ol").first();
+		if (!this.$breadcrumbs.length) {
+			this.$breadcrumbs = $("<ol>").appendTo($nav);
+		}
+		// a page inside a dialog has a head of its own but no business drawing a trail in it
+		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs();
+		this.$breadcrumbs
+			.empty()
+			.append(frappe.ui.breadcrumbs({ items }).children("ol").children());
+	}
+
 	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {
 		if (!title) title = "";
 		if (strip) {
@@ -1001,17 +1043,19 @@ frappe.ui.Page = class Page {
 		if (this.set_document_title) {
 			frappe.utils.set_title(tab_title || title);
 		}
-		if (icon) {
-			title = `${frappe.utils.icon(icon)} ${title}`;
-		}
 
-		let title_wrapper = this.$title_area.find(".title-text");
-		title_wrapper.html(title);
-		title_wrapper.attr("title", __(tooltip_label) || this.title);
+		// the title is the last crumb, so there is only ever one node naming the page
+		const items = (this.breadcrumbs || []).slice();
+		const last = { ...(items.pop() || {}) };
+		last.label = title;
+		last.title = __(tooltip_label) || title;
+		// the page is where the reader already is; a link back to it is noise
+		delete last.href;
+		delete last.onclick;
+		if (icon) last.prefix = icon;
+		items.push(last);
 
-		if (tooltip_label) {
-			title_wrapper.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
-		}
+		this.set_breadcrumbs(items);
 	}
 
 	set_title_sub(txt) {

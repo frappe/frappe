@@ -1,6 +1,5 @@
 frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 	wrapper.builder = new frappe.PrintFormatBuilder(wrapper);
-	frappe.breadcrumbs.add("Setup", "Print Format");
 };
 
 frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
@@ -50,6 +49,10 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			frappe.set_route("List", "Print Format");
 			return;
 		}
+		this.page.set_breadcrumbs([
+			{ label: __("Print Format"), href: "/desk/print-format" },
+			{ label: this.print_format.name },
+		]);
 		this.page.set_title(this.print_format.name);
 		this.page.sidebar.toggle(true);
 		this.setup_print_format();
