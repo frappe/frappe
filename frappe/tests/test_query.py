@@ -2662,6 +2662,16 @@ class TestQuery(IntegrationTestCase):
 					ignore_permissions=False,
 				)
 
+	def test_alias_named_after_restricted_column_in_group_by(self):
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			with self.assertRaises(frappe.PermissionError):
+				frappe.qb.get_query(
+					"Test Blog Post",
+					fields=[{"COUNT": "*", "as": "published"}],
+					group_by="published",
+					ignore_permissions=False,
+				)
+
 	def test_between_datetime_expansion(self):
 		"""Test that date strings are expanded to datetime ranges for Datetime fields with 'between' operator"""
 		# Test with creation field (standard datetime field)
