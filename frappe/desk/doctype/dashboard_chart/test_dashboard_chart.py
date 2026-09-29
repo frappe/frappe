@@ -302,6 +302,7 @@ class TestDashboardChart(IntegrationTestCase):
 
 	def test_heatmap_dashboard_chart(self):
 		insert_test_records(self.doctype_name)
+		create_new_record(self.doctype_name, "Title 7", datetime(2019, 1, 1), 25)
 		frappe.delete_doc_if_exists("Dashboard Chart", "Test Heatmap Dashboard Chart")
 
 		frappe.get_doc(
@@ -318,8 +319,8 @@ class TestDashboardChart(IntegrationTestCase):
 		result = get(chart_name="Test Heatmap Dashboard Chart", heatmap_year=2019, no_cache=1)
 		days_apart = [(b - a) // 86400 for a, b in pairwise(result["dataPoints"])]
 
-		self.assertEqual(list(result["dataPoints"].values()), [100, 200, 400, 300, 100])
-		self.assertEqual(days_apart, [2, 1, 1, 2])
+		self.assertEqual(list(result["dataPoints"].values()), [25, 100, 200, 400, 300, 100])
+		self.assertEqual(days_apart, [3, 2, 1, 1, 2])
 
 	def test_heatmap_dashboard_chart_checks_permission(self):
 		chart = {
