@@ -748,14 +748,16 @@ class Meta(Document):
 		return permitted_fieldnames
 
 	def get_select_fieldnames(self, with_virtual_fields=True):
-		"""Search fields, plus the link title when it is not restricted to a higher permlevel."""
+		"""Search fields, plus the link title when its field is permitted."""
 		fieldnames = self.get_search_fields()
 		title = (
 			self.get_field(self.title_field) if self.show_title_field_in_link and self.title_field else None
 		)
-		if not title or title.permlevel or title.fieldname in fieldnames:
+		if not title:
 			return fieldnames
-		if with_virtual_fields or not title.is_virtual:
+		if title.permlevel or (title.is_virtual and not with_virtual_fields):
+			return [fieldname for fieldname in fieldnames if fieldname != title.fieldname]
+		if title.fieldname not in fieldnames:
 			fieldnames.append(title.fieldname)
 		return fieldnames
 
