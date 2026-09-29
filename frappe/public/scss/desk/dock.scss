@@ -122,6 +122,12 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
+
+			// An app's logo image brings its own shape. The chip the sidebar header puts behind a
+			// mark showed around its rounded corners as a grey rim.
+			&:has(img) {
+				background: transparent;
+			}
 		}
 
 		svg,
@@ -191,10 +197,16 @@
 	cursor: pointer;
 	transition: background-color 0.15s ease, color 0.15s ease;
 
-	// A step larger than the pinned column's (below): the floating tray is a separate object over the
-	// page, and nothing beside it sets a scale for its glyphs to match.
+	// 20px, the size a Lucide line icon is drawn for. Larger, its stroke thickens and it goes wonky.
 	svg,
 	img {
+		width: 20px;
+		height: 20px;
+	}
+
+	// A crafted `-duotone` icon is filled shapes rather than a line, and reads small at the line
+	// icons' size. See Dock.make_dock_item.
+	&.dock-item--duotone svg {
 		width: 26px;
 		height: 26px;
 	}
@@ -259,6 +271,10 @@ body.dock-open .dock {
 // only a floating object needs: the slide, the rounded ends and the shadow. It takes the sidebar's
 // edge too, so the two read as one shell split by a rule.
 body.dock-pinned .dock {
+	// One pixel over the tray's width for the border on its right, so the tiles keep their full
+	// 40px between 8px each side. Left at 56px, the border took a pixel from the tiles, and the
+	// scrolling list clipped half a pixel off each side of them.
+	width: calc(var(--dock-width) + 1px);
 	position: relative;
 	top: auto;
 	left: auto;
@@ -304,13 +320,6 @@ body.dock-pinned .dock {
 			width: 32px;
 			height: 32px;
 		}
-	}
-
-	// Beside the sidebar, the glyphs come down a step toward its rows' icons.
-	.dock-item svg,
-	.dock-item img {
-		width: 24px;
-		height: 24px;
 	}
 }
 

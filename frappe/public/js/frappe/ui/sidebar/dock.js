@@ -485,8 +485,11 @@ frappe.ui.Dock = class Dock {
 		let icon = this.entry_icon(entry.icon, label);
 
 		let is_active = this.sidebar.is_active_entry(entry);
+		// A crafted `-duotone` icon is drawn larger than a Lucide one. Told apart by name, since the
+		// sprites are fetched after the page loads and the symbol may not be there yet to look at.
+		let is_duotone = !!entry.icon && entry.icon.endsWith("-duotone");
 		let $item = $(`<button
-			class="dock-item ${is_active ? "active" : ""}"
+			class="dock-item ${is_active ? "active" : ""} ${is_duotone ? "dock-item--duotone" : ""}"
 			aria-label="${frappe.utils.escape_html(label)}"
 			${is_active ? 'aria-current="page"' : ""}
 		>
