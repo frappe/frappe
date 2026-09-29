@@ -6,8 +6,8 @@ import { Sources } from "./sources.mjs";
 // These folders hold unrelated modules side by side, so each file in them is its own node.
 const FLAT_FOLDERS = ["frontend/src", "ui/src", "frappe/shell"];
 
-export function buildGraph(root) {
-  return new FolderGraph(new Sources(root)).build();
+export function buildGraph(root, sources = new Sources(root)) {
+  return new FolderGraph(sources).build();
 }
 
 class FolderGraph {
@@ -27,7 +27,13 @@ class FolderGraph {
     this.addShellCallerEdges();
 
     const edges = [...this.edges.values()].sort((a, b) => b.count - a.count);
-    return { nodes: this.nodeList(), edges, folderCycles: folderCycles(edges) };
+    // Each shell caller is a layer break that the Python test tracks, so it makes no loop here.
+    const loopEdges = edges.filter((e) => !e.shellCaller);
+    return {
+      nodes: this.nodeList(),
+      edges,
+      folderCycles: folderCycles(loopEdges),
+    };
   }
 
   addJsEdges(file, info) {
@@ -66,11 +72,12 @@ class FolderGraph {
   addShellCallerEdges() {
     for (const ref of this.sources.shellCallers()) {
       this.ensureServerFile(ref.from);
-      this.addEdge(nodeOf(ref.from), nodeOf(ref.to), ref.kind, [
+      const edge = this.addEdge(nodeOf(ref.from), nodeOf(ref.to), ref.kind, [
         ref.from,
         ref.to,
         ref.line,
       ]);
+      edge.shellCaller = true;
     }
   }
 
@@ -115,6 +122,7 @@ class FolderGraph {
     if (dynamic) edge.dynamic += 1;
     if (!edge.pairs.some(([a, b]) => a === pair[0] && b === pair[1]))
       edge.pairs.push(pair);
+    return edge;
   }
 
   nodeList() {

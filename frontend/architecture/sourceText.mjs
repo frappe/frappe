@@ -33,6 +33,48 @@ export function parseApiCalls(code) {
   );
 }
 
+// The names an `import ... from` or `export ... from` statement takes from its module, each
+// as { from, as }. A default import is named "default"; `* from` sets star; `* as x` namespace.
+export function importedNames(statement) {
+  const clause = statement
+    .replace(/^(import|export)\s+(type\s+)?/, "")
+    .replace(/\bfrom\s*['"][^'"]*['"]$/, "")
+    .trim();
+  const braces = clause.match(/\{([^}]*)\}/);
+  const names = braces ? braces[1].split(",").flatMap(namePair) : [];
+  const outside = clause.replace(/\{[^}]*\}/, "").split(",");
+  for (const part of outside.map((p) => p.trim()).filter(Boolean)) {
+    if (!part.startsWith("*")) names.push({ from: "default", as: "default" });
+  }
+  return {
+    names,
+    star: clause === "*",
+    namespace: /(^|,)\s*\*\s+as\s/.test(clause),
+  };
+}
+
+// The names a file defines and exports itself, without `from`.
+export function localExports(code) {
+  const names = new Set();
+  const declared =
+    /\bexport\s+(?:declare\s+)?(?:default\s+)?(?:async\s+)?(?:abstract\s+)?(?:function\*?|class|const|let|var|type|interface|enum)\s+([\w$]+)/g;
+  for (const m of code.matchAll(declared)) names.add(m[1]);
+  for (const m of code.matchAll(
+    /\bexport\s+(?:type\s+)?\{([^}]*)\}(?!\s*from)/g
+  ))
+    for (const { as } of m[1].split(",").flatMap(namePair)) names.add(as);
+  if (/\bexport\s+default\b/.test(code)) names.add("default");
+  return names;
+}
+
+function namePair(part) {
+  const [from, as] = part
+    .trim()
+    .replace(/^type\s+/, "")
+    .split(/\s+as\s+/);
+  return from ? [{ from, as: as || from }] : [];
+}
+
 export function packageName(spec) {
   if (/\s/.test(spec) || spec.startsWith("/")) return null;
   if (spec.startsWith("~icons/")) return "~icons";

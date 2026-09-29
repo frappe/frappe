@@ -1,13 +1,13 @@
 // Builds the desk architecture page from the code, layers.json and ARCHITECTURE.md.
-// Usage: node frontend/architecture/diagram.mjs [--stdout | --out <file>]. Exits 1 when the check fails.
+// Usage: node frontend/architecture/diagram.mjs [--stdout | --out <file>] [--flows].
+// Exits 1 when a structure check fails. --flows also prints the files each flow reaches.
 
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { buildGraph } from "./graph.mjs";
-import { LayerCheck } from "./check.mjs";
+import { StructureCheck } from "./structure.mjs";
 import { conceptsOf, extensionsOf, flowsOf } from "./architectureDoc.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -17,9 +17,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) main();
 
 export function buildDiagram(root = ROOT) {
   const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
-  const layerFile = JSON.parse(read("frontend/architecture/layers.json"));
-  const doc = read(layerFile.architecture);
-  const check = new LayerCheck(buildGraph(root), layerFile);
+  const structure = new StructureCheck(root);
+  const { layerFile, doc, layers: check } = structure;
   const data = {
     commit: git(root, "rev-parse --short HEAD"),
     branch: git(root, "rev-parse --abbrev-ref HEAD"),
@@ -46,11 +45,12 @@ export function buildDiagram(root = ROOT) {
   const html = read("frontend/architecture/diagram.html")
     .replace("/*DATA*/null", () => json)
     .replace("/*SCRIPTS*/", () => scripts);
-  return { html, check };
+  return { html, structure };
 }
 
 function main() {
-  const { html, check } = buildDiagram();
+  const { html, structure } = buildDiagram();
+  const { boxes, edges } = structure.layers;
   const outAt = process.argv.indexOf("--out");
   if (process.argv.includes("--stdout")) {
     process.stdout.write(html);
@@ -60,12 +60,12 @@ function main() {
         ? path.resolve(process.argv[outAt + 1])
         : path.join(os.tmpdir(), "desk-architecture.html");
     fs.writeFileSync(out, html);
-    console.error(
-      `${check.boxes.length} folders, ${check.edges.length} edges -> ${out}`
-    );
+    console.error(`${boxes.length} folders, ${edges.length} edges -> ${out}`);
   }
-  for (const line of check.report()) console.error(line);
-  if (!check.passes) process.exitCode = 1;
+  if (process.argv.includes("--flows"))
+    for (const line of structure.flows.report()) console.error(line);
+  for (const line of structure.report()) console.error(line);
+  if (!structure.passes) process.exitCode = 1;
 }
 
 // Links go to the commit the page was built from, on the remote the branch tracks, else origin.

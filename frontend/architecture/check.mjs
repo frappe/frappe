@@ -1,5 +1,7 @@
 // Places every file of the import graph in a layer from layers.json and checks each import.
 
+const SHELL = "frappe/shell/";
+
 export class LayerCheck {
   constructor(graph, layerFile) {
     this.layerFile = layerFile;
@@ -13,11 +15,12 @@ export class LayerCheck {
   get newBreaks() {
     return this.edges
       .filter(isBreak)
-      .flatMap((e) => e.pairs.filter((p) => p.known === null));
+      .flatMap((e) => e.pairs.filter((p) => p.known === null))
+      .filter((p) => !serverTestOwns(p));
   }
 
   get fixedBreaks() {
-    return this.knownBreaks.filter((k) => !k.stillThere);
+    return this.knownBreaks.filter((k) => !k.stillThere && !serverTestOwns(k));
   }
 
   get passes() {
@@ -138,6 +141,16 @@ export class LayerCheck {
 
 export function isBreak(edge) {
   return edge.status === "break" || edge.status === "known";
+}
+
+// frappe/tests/test_desk_server_layer.py judges uses of frappe/shell/ from the rest of frappe/.
+// It parses the Python; the graph only greps it, so here those pairs are drawn, never failed.
+export function serverTestOwns({ from, to }) {
+  return (
+    from.startsWith("frappe/") &&
+    !from.startsWith(SHELL) &&
+    to.startsWith(SHELL)
+  );
 }
 
 // A path ending in "/" covers its folder; any other path covers only that file.

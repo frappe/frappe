@@ -8,6 +8,8 @@ import {
   lineAt,
   isCountedJs,
   isCountedPy,
+  importedNames,
+  localExports,
   parseApiCalls,
   packageName,
   stripComments,
@@ -27,12 +29,19 @@ export class Sources {
     this.uiExports = this.readUiExports();
   }
 
-  // frontend/src and frontend/plugin, plus the ui/src files they reach through imports.
+  // frontend/src, frontend/plugin and all of ui/, including the ui/ files the desk never imports.
   jsFiles() {
+    this.js ??= this.readJsFiles();
+    return this.js;
+  }
+
+  readJsFiles() {
     const files = new Map();
     const queue = [
       ...this.walk("frontend/src"),
       ...this.walk("frontend/plugin"),
+      ...this.walk("ui/src"),
+      ...this.walk("ui/island"),
     ].filter(isCountedJs);
     while (queue.length) {
       const file = queue.pop();
@@ -100,6 +109,7 @@ export class Sources {
     return {
       lines: countLines(text),
       imports: this.parseJsImports(file, code),
+      exports: localExports(code),
       apiCalls: parseApiCalls(code),
     };
   }
@@ -113,6 +123,8 @@ export class Sources {
           spec,
           typeOnly: index === 0 && Boolean(m[2]),
           dynamic: index === 2,
+          reexport: m[1] === "export",
+          ...(index === 0 ? importedNames(m[0]) : { names: [], star: false }),
           line: lineAt(code, m.index),
         });
       }
