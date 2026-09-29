@@ -190,6 +190,8 @@ class PostgresTable(DBTable):
 					self.set_default.append(col)
 
 			query.append(f"ALTER COLUMN `{col.fieldname}` TYPE {column_type} {using_clause}")
+			if col.fieldtype in NOT_NULL_TYPES:
+				query.append(f"ALTER COLUMN `{col.fieldname}` SET NOT NULL")
 
 		if alter_pk := self.alter_primary_key():
 			query.append(alter_pk)
