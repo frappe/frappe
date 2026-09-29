@@ -6,6 +6,15 @@ function trail() {
 	return cy.get(CRUMBS).then(($li) => Cypress._.map($li, (li) => li.textContent.trim()));
 }
 
+// the same read, from inside a cy.window(); the container's page is the visible one, so this
+// needs no `:visible` and stays a plain CSS selector
+function trail_of(win) {
+	return Cypress._.map(
+		win.frappe.container.page.querySelectorAll(".navbar-breadcrumbs li"),
+		(li) => li.textContent.trim()
+	);
+}
+
 context("Breadcrumbs", () => {
 	before(() => {
 		cy.login();
@@ -70,6 +79,43 @@ context("Breadcrumbs", () => {
 		cy.visit("/desk/build");
 		cy.desk_ready();
 		cy.get(CRUMBS).should("have.length", 1).find("a").should("not.exist");
+	});
+
+	// the old module's members are kept so an app written against them keeps running
+	it("warns and does nothing for the members it retired", () => {
+		cy.visit("/desk/todo");
+		cy.desk_ready();
+		// `trail_of` reads once with no retry, so wait for the bar to be painted first
+		trail().should("deep.equal", ["To Do"]);
+
+		cy.window().then((win) => {
+			cy.stub(win.console, "warn").as("warn");
+
+			const before = trail_of(win);
+			const b = win.frappe.breadcrumbs;
+
+			// none of these may throw, and none may change what is on screen
+			b.clear();
+			b.rename("ToDo", "old", "new");
+			b.toggle(true);
+			b.append_breadcrumb_element("/desk/nowhere", "Nowhere");
+			b.set_custom_breadcrumbs({ label: "Nowhere", route: "/desk/nowhere" });
+			b.set_tree_breadcrumb({ doctype: "ToDo" });
+			b.set_list_breadcrumb({ doctype: "ToDo" });
+			b.set_form_breadcrumb({ doctype: "ToDo" }, "form");
+			b.set_dashboard_breadcrumb({ doctype: "Dashboard" });
+			b.current_page();
+
+			// `all` was read and written by route, and `$breadcrumbs` was appended to
+			b.all["List/ToDo/List"] = { doctype: "ToDo" };
+			expect(b.all["List/ToDo/List"]).to.deep.equal({ doctype: "ToDo" });
+			b.$breadcrumbs.append("<li><a>Nowhere</a></li>");
+
+			expect(trail_of(win)).to.deep.equal(before);
+		});
+
+		cy.get("@warn").should("have.been.called");
+		trail().should("deep.equal", ["To Do"]);
 	});
 
 	// ERPNext's POS builds an off-screen form to price its items, on a parent it hands in
