@@ -558,6 +558,8 @@ def get_context(context):
 		web_form_request_key = web_form_request.key if web_form_request else None
 		docname = frappe.form_dict.name
 
+		meta = frappe.get_meta(self.doc_type)
+
 		# For Table fields, server-side processing for meta
 		for field in context.web_form_doc.web_form_fields:
 			if field.fieldtype == "Table":
@@ -566,7 +568,13 @@ def get_context(context):
 				)
 
 			if field.fieldtype == "Link":
-				process_link_field(field, self.name, web_form_request_key, docname)
+				process_link_field(
+					field,
+					self.name,
+					web_form_request_key,
+					docname,
+					link_filters=(meta.get_field(field.fieldname) or {}).get("link_filters"),
+				)
 
 		context.reference_doc = {}
 		if web_form_request and frappe.form_dict.is_new:
@@ -799,7 +807,9 @@ def get_context(context):
 		return permitted_attachments
 
 
-def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
+def process_link_field(
+	field, web_form_name, web_form_request_key=None, docname=None, link_filters: str | None = None
+):
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
 		web_form_name,
@@ -807,6 +817,7 @@ def process_link_field(field, web_form_name, web_form_request_key=None, docname=
 		getattr(field, "allow_read_on_all_link_options", False),
 		web_form_request_key=web_form_request_key,
 		docname=docname,
+		link_filters=link_filters,
 	)
 	return field
 
@@ -1133,6 +1144,8 @@ def get_form_data(
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
+	meta = frappe.get_meta(web_form.doc_type)
+
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
@@ -1142,7 +1155,13 @@ def get_form_data(
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":
-			process_link_field(field, web_form_name, web_form_request_key, docname)
+			process_link_field(
+				field,
+				web_form_name,
+				web_form_request_key,
+				docname,
+				link_filters=(meta.get_field(field.fieldname) or {}).get("link_filters"),
+			)
 
 	return out
 
@@ -1182,7 +1201,9 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
-			process_link_field(df, web_form_name, web_form_request_key, docname)
+			process_link_field(
+				df, web_form_name, web_form_request_key, docname, link_filters=df.get("link_filters")
+			)
 		return df
 
 	return [get_field_df(f) for f in fields]
@@ -1227,6 +1248,7 @@ def get_link_options(
 	allow_read_on_all_link_options=False,
 	web_form_request_key=None,
 	docname=None,
+	link_filters: str | None = None,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
@@ -1248,9 +1270,13 @@ def get_link_options(
 			frappe.PermissionError,
 		)
 
-	link_options, filters = [], {}
+	filters = [
+		link_filter
+		for link_filter in json.loads(link_filters or "[]")
+		if not frappe.cstr(link_filter[3]).startswith("eval:")
+	]
 	if web_form.login_required and not allow_read_on_all_link_options:
-		filters = {"owner": frappe.session.user}
+		filters.append(["owner", "=", frappe.session.user])
 
 	fields = ["name as value"]
 
@@ -1260,7 +1286,7 @@ def get_link_options(
 	if show_title_field:
 		fields.append(f"{meta.title_field} as label")
 
-	link_options = frappe.get_all(doctype, filters, fields)
+	link_options = frappe.get_all(doctype, filters=filters, fields=fields)
 
 	if show_title_field:
 		if meta.translated_doctype:
