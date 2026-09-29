@@ -27,6 +27,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
 from frappe.model.sync import remove_orphan_doctypes
+from frappe.modules.import_file import import_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_table_name
@@ -54,6 +55,12 @@ class TestDocType(IntegrationTestCase):
 	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
 	def test_validate_name_fits_postgres_identifier(self):
 		self.assertRaises(frappe.NameError, new_doctype("Test " + "x" * 56).insert)
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_import_rejects_name_longer_than_postgres_identifier(self):
+		doctype = new_doctype("Test " + "x" * 56).as_dict()
+		with patch.dict(frappe.local.flags):
+			self.assertRaises(frappe.NameError, import_doc, doctype)
 
 	@skipIf(
 		frappe.conf and frappe.conf.db_type == "sqlite",
