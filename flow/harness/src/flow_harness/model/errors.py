@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import math
+import re
+import time
 from collections.abc import Mapping
 from typing import Any
 
@@ -44,6 +46,8 @@ _OVERLOADED_MARKERS = (
 	"internal error",
 	"server error",
 )
+# OpenRouter's reset time, in epoch milliseconds, inside its error body
+_RATE_LIMIT_RESET = re.compile(r'"x-ratelimit-reset"\s*:\s*"?(\d{13})\b', re.IGNORECASE)
 
 
 class ProviderError(Exception):
@@ -270,13 +274,16 @@ def _provider_error(
 	detail: str,
 	headers: Mapping[str, str] | None,
 ) -> ProviderError:
+	retry_after_seconds = _retry_after_seconds(headers)
+	if retry_after_seconds is None and kind == "rate_limit":
+		retry_after_seconds = _rate_limit_reset_seconds(detail)
 	return ProviderError(
 		kind=kind,
 		retryable=retryable,
 		status_code=status_code,
 		provider=provider,
 		detail=detail,
-		retry_after_seconds=_retry_after_seconds(headers),
+		retry_after_seconds=retry_after_seconds,
 	)
 
 
@@ -340,6 +347,15 @@ def _retry_after_seconds(headers: Mapping[str, str] | None) -> float | None:
 	except ValueError:
 		return None
 	return max(0.0, delay) if math.isfinite(delay) else None
+
+
+def _rate_limit_reset_seconds(detail: str) -> float | None:
+	"""Seconds until the reset time OpenRouter gives in its rate limit error."""
+	match = _RATE_LIMIT_RESET.search(detail)
+	if match is None:
+		return None
+	# a second late, should our clock run ahead
+	return max(0.0, int(match[1]) / 1000 - time.time()) + 1.0
 
 
 def _truncate(value: str) -> str:

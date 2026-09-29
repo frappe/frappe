@@ -1,3 +1,6 @@
+import json
+import time
+
 import httpx
 
 from flow_harness.model.errors import (
@@ -233,3 +236,33 @@ def test_litellm_structured_rate_limit_fields_override_message_guessing():
 	)
 	assert (budget.kind, budget.retryable) == ("rate_limit", False)
 	assert (explicit_budget.kind, explicit_budget.retryable) == ("rate_limit", False)
+
+
+def test_openrouter_rate_limit_waits_until_its_reset(monkeypatch):
+	"""OpenRouter gives its reset time only in the error body, in epoch milliseconds."""
+	from litellm import exceptions as litellm_exceptions
+
+	body = {
+		"error": {
+			"message": "Rate limit exceeded: new-account-rpm/openai/gpt-6-luna-pro-20260922.",
+			"code": 429,
+			"metadata": {
+				"headers": {
+					"X-RateLimit-Limit": "20",
+					"X-RateLimit-Remaining": "0",
+					"X-RateLimit-Reset": "1790586900000",
+				}
+			},
+		}
+	}
+	native = litellm_exceptions.RateLimitError(
+		message=f"OpenrouterException - {json.dumps(body, separators=(',', ':'))}",
+		model="openai/gpt-6-luna-pro",
+		llm_provider="openrouter",
+	)
+	monkeypatch.setattr(time, "time", lambda: 1790586895.5)  # 4.5 s before the reset
+
+	error = normalize_litellm_error(native, provider="openrouter")
+
+	assert (error.kind, error.retryable) == ("rate_limit", True)
+	assert error.retry_after_seconds == 5.5  # and a second more
