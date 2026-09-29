@@ -25,6 +25,7 @@ from frappe.query_builder.functions import (
 	JSONExtract,
 	JSONValue,
 	Match,
+	Max,
 	Month,
 	MonthName,
 	Now,
@@ -1106,6 +1107,13 @@ class TestMisc(IntegrationTestCase):
 		x = ParameterizedFunction("rand", "45")
 		x.schema = frappe.qb.DocType("DocType")
 		self.assertEqual("tabDocType.rand('45')", x.get_sql())
+
+	def test_curdate_inside_aggregate_expression(self):
+		todo = frappe.qb.DocType("ToDo")
+		days_since_last = DateDiff(CurDate(), Max(todo.date)).as_("days")
+		self.assertTrue(days_since_last.is_aggregate)
+		# the default ORDER BY must be aggregated too, or postgres raises GroupingError
+		frappe.get_all("ToDo", fields=[days_since_last])
 
 	def test_util_table(self):
 		from frappe.query_builder.utils import Table
