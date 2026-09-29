@@ -222,6 +222,22 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(doctype.name, ticked.name, "flag"), 1)
 		self.assertEqual(frappe.db.get_value(doctype.name, unticked.name, "flag"), 0)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_type_change_to_numeric_sets_not_null(self):
+		fieldtypes = {"quantity": "Int", "is_done": "Check", "amount": "Currency"}
+		doctype = new_doctype(
+			fields=[{"fieldname": fieldname, "fieldtype": "Data"} for fieldname in fieldtypes]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name).insert()
+
+		for field in doctype.fields:
+			field.fieldtype = fieldtypes[field.fieldname]
+		doctype.save()
+
+		for fieldname in fieldtypes:
+			self.assertTrue(get_table_column(doctype.name, fieldname).not_nullable, fieldname)
+		self.assertEqual(frappe.db.get_value(doctype.name, doc.name, list(fieldtypes)), (0, 0, 0))
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_blank_values_are_coerced_so_the_conversion_can_proceed(self):
 		"""An empty string only fails to cast because it is empty; migrate makes it the default"""
