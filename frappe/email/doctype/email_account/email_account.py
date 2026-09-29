@@ -608,6 +608,11 @@ class EmailAccount(Document):
 		return oauth_token.get_password("access_token") if oauth_token else None
 
 	def sendmail_config(self):
+		validate_ssl_certificate = (
+			frappe.db.get_value("Email Domain", self.domain, "validate_ssl_certificate_for_outgoing")
+			if self.get("domain")
+			else None
+		)
 		config = {
 			"email_account": self.name,
 			"server": self.smtp_server,
@@ -616,6 +621,9 @@ class EmailAccount(Document):
 			"password": self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
+			"validate_ssl_certificate": (
+				True if validate_ssl_certificate is None else bool(cint(validate_ssl_certificate))
+			),
 			"use_oauth": self.auth_method == "OAuth",
 			"access_token": self.get_access_token(),
 		}

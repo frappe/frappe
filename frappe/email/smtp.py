@@ -2,7 +2,9 @@
 # License: MIT. See LICENSE
 
 import smtplib
+import ssl
 from contextlib import suppress
+from functools import partial
 
 import frappe
 from frappe import _
@@ -27,6 +29,7 @@ class SMTPServer:
 		use_oauth=0,
 		access_token=None,
 		timeout=2 * 60,
+		validate_ssl_certificate=True,
 	):
 		self.login = login
 		self.email_account = email_account
@@ -39,6 +42,7 @@ class SMTPServer:
 		self.access_token = access_token
 		self._session = None
 		self.timeout = timeout
+		self.validate_ssl_certificate = validate_ssl_certificate
 
 		if not self.server:
 			frappe.msgprint(
@@ -55,11 +59,18 @@ class SMTPServer:
 	def server(self):
 		return cstr(self._server or "")
 
+	def _ssl_context(self):
+		context = ssl.create_default_context()
+		if self.validate_ssl_certificate is not None and not cint(self.validate_ssl_certificate):
+			context.check_hostname = False
+			context.verify_mode = ssl.CERT_NONE
+		return context
+
 	def secure_session(self, conn):
 		"""Secure the connection incase of TLS."""
 		if self.use_tls:
 			conn.ehlo()
-			conn.starttls()
+			conn.starttls(context=self._ssl_context())
 			conn.ehlo()
 
 	@property
@@ -71,7 +82,8 @@ class SMTPServer:
 		if self.is_session_active():
 			return self._session
 
-		SMTP = smtplib.SMTP_SSL if self.use_ssl else smtplib.SMTP
+		# `context` is only accepted by SMTP_SSL; plain SMTP has no such argument.
+		SMTP = partial(smtplib.SMTP_SSL, context=self._ssl_context()) if self.use_ssl else smtplib.SMTP
 
 		try:
 			_session = SMTP(self.server, self.port, timeout=self.timeout)
@@ -102,6 +114,15 @@ class SMTPServer:
 
 		except smtplib.SMTPAuthenticationError:
 			self.throw_invalid_credentials_exception(email_account=self.email_account)
+
+		except ssl.SSLCertVerificationError as e:
+			frappe.throw(
+				_(
+					"Could not verify the TLS certificate for SMTP server {0} on port {1}: {2}. "
+					"Ensure the server name matches the certificate and the certificate is valid and trusted."
+				).format(self.server, self.port, str(e)),
+				title=_("SMTP Certificate Verification Failed"),
+			)
 
 		except OSError as e:
 			# Invalid mail server -- due to refusing connection
