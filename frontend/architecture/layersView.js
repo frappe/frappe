@@ -51,6 +51,7 @@ function drawLayers() {
 			y = TOP + r * (ROW + GAP);
 		const bs = DATA.boxes.filter((b) => b.layer === id);
 		const lines = bs.reduce((n, b) => n + b.lines, 0);
+		const folders = bs.length === 1 ? __("1 folder") : __("{0} folders", [bs.length]);
 		svg += `<g class="layerlabel" data-select="layer" data-id="${esc(
 			id
 		)}"><rect x="0" y="${y}" width="${
@@ -60,20 +61,24 @@ function drawLayers() {
 			<text x="12" y="${y + 20}" style="font-weight:600;font-size:12px">${esc(layerName(id))}</text>
 			<text x="12" y="${y + 38}" fill="#57606a">${
 			bs.length
-				? `${bs.length} ${
-						bs.length === 1 ? "folder" : "folders"
-				  }, ${lines.toLocaleString()} lines, ${l.concepts.length} concepts`
-				: `${l.concepts.length} concepts, not in the graph`
+				? __("{0}, {1} lines, {2} concepts", [
+						folders,
+						lines.toLocaleString(),
+						l.concepts.length,
+				  ])
+				: __("{0} concepts, not in the graph", [l.concepts.length])
 		}</text></g>`;
 		if (!bs.length)
 			svg += `<rect x="${LABEL}" y="${y}" width="${avail}" height="${ROW}" rx="4" fill="none" stroke="#c9ced4" stroke-dasharray="4 3"/>
-			<text x="${LABEL + 10}" y="${
-				y + 31
-			}" fill="#8c959f">App folders and Client Script rows. They reach the desk only through the import list and the page object.</text>`;
+			<text x="${LABEL + 10}" y="${y + 31}" fill="#8c959f">${__(
+				"App folders and Client Script rows. They reach the desk only through the import list and the page object."
+			)}</text>`;
 	});
 	svg += `<text x="${bx}" y="${
 		bTop - 8
-	}" style="font-weight:600;font-size:12px" class="layerlabel">The build (beside)</text>`;
+	}" style="font-weight:600;font-size:12px" class="layerlabel">${__(
+		"The build (beside)"
+	)}</text>`;
 
 	const edgeSvg = shown
 		.map((e) => {
@@ -103,9 +108,10 @@ function drawLayers() {
 			const dash = e.status === "known" ? `stroke-dasharray="6 3"` : "";
 			const op = isBreak(e) || sel ? 0.9 : 0.25;
 			return `<path class="edge" d="${d}" stroke="${stroke}" stroke-width="${width}" ${dash} opacity="${op}"/>
-			<path class="edge hit" d="${d}" data-select="edge" data-id="${esc(e.id)}"><title>${esc(
-				short(box(e.from).folder)
-			)} to ${esc(short(box(e.to).folder))}: ${e.count} (${e.status})</title></path>`;
+			<path class="edge hit" d="${d}" data-select="edge" data-id="${esc(e.id)}"><title>${__(
+				"{0} to {1}: {2} ({3})",
+				[esc(short(box(e.from).folder)), esc(short(box(e.to).folder)), e.count, e.status]
+			)}</title></path>`;
 		})
 		.join("");
 
@@ -123,9 +129,10 @@ function drawLayers() {
 				? b.files[0].path.split("/").pop()
 				: short(b.folder).split("/").pop();
 		const fits = p.w > 52;
-		svg += `<g class="${cls}" data-select="box" data-id="${esc(b.id)}"><title>${esc(
-			b.folder
-		)}: ${b.files.length} files, ${b.lines} lines</title>
+		svg += `<g class="${cls}" data-select="box" data-id="${esc(b.id)}"><title>${__(
+			"{0}: {1} files, {2} lines",
+			[esc(b.folder), b.files.length, b.lines]
+		)}</title>
 			<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="4" fill="${
 			COLOR[b.layer]
 		}" opacity="${0.55 + Math.min(0.45, b.lines / 6000)}"/>
@@ -146,23 +153,29 @@ function drawLayers() {
 
 	view.innerHTML =
 		`<div class="legend">
-		<span><i style="border-color:#c62828"></i>new break (CI fails)</span>
-		<span><i style="border-color:#c62828;border-top-style:dashed"></i>known break (has a ticket)</span>
-		<span><i style="border-color:#0b5cad"></i>callback</span>
+		<span><i style="border-color:#c62828"></i>${__("new break (CI fails)")}</span>
+		<span><i style="border-color:#c62828;border-top-style:dashed"></i>${__(
+			"known break (has a ticket)"
+		)}</span>
+		<span><i style="border-color:#0b5cad"></i>${__("callback")}</span>
 		<label><input type="checkbox" ${
 			state.showAll ? "checked" : ""
-		} onchange="state.showAll=this.checked;drawLayers()"> show all ${
-			DATA.edges.length
-		} edges</label>
+		} onchange="state.showAll=this.checked;drawLayers()"> ${__("show all {0} edges", [
+			DATA.edges.length,
+		])}</label>
 		<label><input type="checkbox" ${
 			state.showLoops ? "checked" : ""
-		} onchange="state.showLoops=this.checked;drawLayers()"> mark folders in loops</label>
+		} onchange="state.showLoops=this.checked;drawLayers()"> ${__(
+			"mark folders in loops"
+		)}</label>
 		${
 			sel
-				? `<a href="#" onclick="state.selected=null;document.getElementById('panel').innerHTML=idleDetail();drawLayers();return false">clear selection</a>`
+				? `<a href="#" onclick="state.selected=null;document.getElementById('panel').innerHTML=idleDetail();drawLayers();return false">${__(
+						"clear selection"
+				  )}</a>`
 				: ""
 		}
-		<span>Box width: share of its layer's lines.</span></div>` + svg;
+		<span>${__("Box width: share of its layer's lines.")}</span></div>` + svg;
 }
 
 function drawMatrix() {
@@ -174,15 +187,17 @@ function drawMatrix() {
 		sum[k].n += e.count;
 		if (isBreak(e)) sum[k].bad += e.count;
 	}
-	let html = `<p class="muted">Rows use columns. A green cell is a use the layer file allows; a grey cell is one it does not. A number is the count of file pairs; red means the code does what the layer file forbids. Customization is left out: it is not in the import graph.</p>
-		<table class="matrix"><tr><th class="row">uses →</th>${ids
-			.map(
-				(c) =>
-					`<th title="${esc(layerName(c))}">${
-						c === "main" ? "main" : c === "build" ? "build" : c
-					}</th>`
-			)
-			.join("")}</tr>`;
+	let html = `<p class="muted">${__(
+		"Rows use columns. A green cell is a use the layer file allows; a grey cell is one it does not. A number is the count of file pairs; red means the code does what the layer file forbids. Customization is left out: it is not in the import graph."
+	)}</p>
+		<table class="matrix"><tr><th class="row">${__("uses →")}</th>${ids
+		.map(
+			(c) =>
+				`<th title="${esc(layerName(c))}">${
+					c === "main" ? "main" : c === "build" ? "build" : c
+				}</th>`
+		)
+		.join("")}</tr>`;
 	for (const r of ids) {
 		html += `<tr><th class="row"><a href="#" data-select="layer" data-id="${esc(r)}">${esc(
 			layerName(r)
@@ -198,14 +213,16 @@ function drawMatrix() {
 		html += `</tr>`;
 	}
 	html += `</table>
-		<h3 style="margin-top:22px">Folder loops</h3>
-		<p class="muted">Groups of folders that import each other. The layer file cannot show these; the loop check does.</p>
+		<h3 style="margin-top:22px">${__("Folder loops")}</h3>
+		<p class="muted">${__(
+			"Groups of folders that import each other. The layer file cannot show these; the loop check does."
+		)}</p>
 		<table class="matrix">${DATA.loops
 			.map(
 				(c) =>
-					`<tr><td style="text-align:left">${
-						c.length
-					} folders</td><td style="text-align:left">${c
+					`<tr><td style="text-align:left">${__("{0} folders", [
+						c.length,
+					])}</td><td style="text-align:left">${c
 						.map((f) => `<code>${esc(short(f))}</code>`)
 						.join(" ")}</td></tr>`
 			)

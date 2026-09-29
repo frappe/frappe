@@ -1,6 +1,8 @@
 # /desk-architecture: the desk's layers, flows and layer breaks, built from the working tree.
 
+import json
 import os
+import re
 import subprocess
 
 import frappe
@@ -20,7 +22,7 @@ class DeskArchitecturePage(BaseRenderer):
 			frappe.local.flags.redirect_location = f"/login?redirect-to=/{ROUTE}"
 			raise frappe.Redirect
 		frappe.only_for("System Manager")
-		return self.build_response(build_diagram(), 200)
+		return self.build_response(with_translations(build_diagram()), 200)
 
 
 def build_diagram() -> str:
@@ -44,3 +46,15 @@ def build_diagram() -> str:
 
 def not_built(reason: str):
 	frappe.throw(f"<pre>{frappe.utils.escape_html(reason)}</pre>", title=frappe._("Diagram Not Built"))
+
+
+def with_translations(page: str) -> str:
+	"""The page with the translations of its own `__()` strings in the user's language."""
+	if frappe.local.lang == "en":
+		return page
+	translations = frappe.translate.get_all_translations(frappe.local.lang)
+	# Prettier may break the line after "__(", and quotes a label that holds " with '.
+	literals = re.findall(r"""__\(\s*(["'])((?:(?!\1)[^\\]|\\.)*)\1""", page)
+	texts = {re.sub(r"\\(.)", r"\1", text) for _quote, text in literals}
+	messages = {text: translations[text] for text in texts if text in translations}
+	return page.replace("/*MESSAGES*/{}", json.dumps(messages).replace("<", "\\u003c"), 1)

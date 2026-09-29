@@ -8,7 +8,8 @@ function drawFlow() {
 	const stack = ["index.html", ...ORDER]
 		.map((id) => {
 			const on = lit.has(id);
-			const name = id === "index.html" ? "index.html (inline script)" : layerName(id);
+			const name =
+				id === "index.html" ? __("{0} (inline script)", ["index.html"]) : layerName(id);
 			return `<div class="${on ? "lit" : ""}" style="${
 				on ? `background:${COLOR[id] || "#57606a"}` : ""
 			}">${esc(name)}</div>`;
@@ -26,7 +27,7 @@ function drawFlow() {
 			)
 			.join("")}</div>
 		<h2 style="font-size:15px;margin:0 0 4px">${md(flow.title)}</h2>
-		<p class="muted">Budget: ${md(flow.budget)} Up and down arrows move between steps.</p>
+		<p class="muted">${__("Budget: {0} Up and down arrows move between steps.", [md(flow.budget)])}</p>
 		<div class="flow"><div>${flow.steps
 			.map(
 				(s, i) => `<div class="step ${
@@ -36,44 +37,52 @@ function drawFlow() {
 			${
 				i === state.step
 					? `<div style="margin-top:6px">
-				<div><span class="pill">layers ${esc(s.layerText)}</span>${
-							server ? `<span class="pill server">goes to the server</span>` : ""
+				<div><span class="pill">${__("layers {0}", [esc(s.layerText)])}</span>${
+							server
+								? `<span class="pill server">${__("goes to the server")}</span>`
+								: ""
 					  }</div>
-				<div style="margin-top:4px"><b>Permission check:</b> ${md(s.check)}</div>
-				<div><b>Cache and key:</b> ${md(s.cache)}</div></div>`
+				<div style="margin-top:4px"><b>${__("Permission check:")}</b> ${md(s.check)}</div>
+				<div><b>${__("Cache and key:")}</b> ${md(s.cache)}</div></div>`
 					: ""
 			}</div>`
 			)
 			.join("")}</div>
 		<div class="stack">${stack}</div></div>`;
-	document.getElementById("panel").innerHTML = `<h2>Step ${esc(step.n)}</h2><p>${md(
+	document.getElementById("panel").innerHTML = `<h2>${__("Step {0}", [esc(step.n)])}</h2><p>${md(
 		step.step
 	)}</p>
-		<h3>Layers</h3><div>${[...lit]
-			.map(
-				(l) =>
-					`<span class="pill" style="background:${
-						COLOR[l] || "#57606a"
-					};color:#fff">${esc(l === "index.html" ? l : layerName(l))}</span>`
-			)
-			.join("")}</div>
-		<h3>Permission check</h3><p>${md(step.check)}</p><h3>Cache and key</h3><p>${md(step.cache)}</p>
-		<h3>Not shown</h3><p class="muted">The files each step passes through, and its request. <code>ARCHITECTURE.md</code> names layers per step, not files or requests.</p>
-		<h3>Source</h3><p><a href="${GH}${
-		DATA.architecture
-	}#the-five-flows" target="_blank">ARCHITECTURE.md, the five flows</a></p>`;
+		<h3>${__("Layers")}</h3><div>${[...lit]
+		.map(
+			(l) =>
+				`<span class="pill" style="background:${COLOR[l] || "#57606a"};color:#fff">${esc(
+					l === "index.html" ? l : layerName(l)
+				)}</span>`
+		)
+		.join("")}</div>
+		<h3>${__("Permission check")}</h3><p>${md(step.check)}</p>
+		<h3>${__("Cache and key")}</h3><p>${md(step.cache)}</p>
+		<h3>${__("Not shown")}</h3><p class="muted">${__(
+		"The files each step passes through, and its request. {0} names layers per step, not files or requests.",
+		["<code>ARCHITECTURE.md</code>"]
+	)}</p>
+		<h3>${__("Source")}</h3><p><a href="${GH}${DATA.architecture}#the-five-flows" target="_blank">${__(
+		"{0}, the five flows",
+		["ARCHITECTURE.md"]
+	)}</a></p>`;
 }
 
 function drawExtensions() {
 	const tiers = [
-		["app", "An app"],
-		["site", "A site admin"],
-		["user", "A user"],
+		["app", __("An app")],
+		["site", __("A site admin")],
+		["user", __("A user")],
 	];
 	const pairs = DATA.extensions.filter((x) => x.pair).length;
-	document.getElementById("view").innerHTML = `<p class="muted">${
-		DATA.extensions.length
-	} ways to change the desk, by who uses them. ${pairs} rows name another row that does the same job. Hover a card to see its pair. The list comes from ARCHITECTURE.md.</p>
+	document.getElementById("view").innerHTML = `<p class="muted">${__(
+		"{0} ways to change the desk, by who uses them. {1} rows name another row that does the same job. Hover a card to see its pair. The list comes from {2}.",
+		[DATA.extensions.length, pairs, "ARCHITECTURE.md"]
+	)}</p>
 		<div class="ext">${tiers
 			.map(
 				([t, title]) =>
@@ -89,9 +98,9 @@ function drawExtensions() {
 				<b>${esc(x.name)}</b><div class="muted">${esc(x.changes)}</div>
 				<div><span class="pill">${esc(layerName(x.layer))}</span>${
 										x.pair
-											? `<span class="pair">same job as ${esc(
-													x.pair
-											  )}</span>`
+											? `<span class="pair">${__("same job as {0}", [
+													esc(x.pair),
+											  ])}</span>`
 											: ""
 								  }</div></div>`
 						)
@@ -145,5 +154,8 @@ addEventListener("keydown", (e) => {
 	}
 });
 addEventListener("resize", () => current().key === "A" && drawLayers());
+document.title = document.getElementById("title").textContent = __("Desk v2 architecture");
+document.getElementById("prev").title = __("Previous view (Left arrow)");
+document.getElementById("next").title = __("Next view (Right arrow)");
 stats();
 render();

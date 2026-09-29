@@ -1,10 +1,10 @@
 // Constants and helpers shared by every part of the architecture page.
-/* global DATA, drawLayers, drawMatrix, drawFlow, drawExtensions */
+/* global MESSAGES, DATA, drawLayers, drawMatrix, drawFlow, drawExtensions */
 const VIEWS = [
-	{ key: "A", name: "Layers", draw: drawLayers },
-	{ key: "B", name: "Layer matrix", draw: drawMatrix },
-	{ key: "C", name: "Flows, step by step", draw: drawFlow },
-	{ key: "D", name: "Ways to change the desk", draw: drawExtensions },
+	{ key: "A", name: __("Layers"), draw: drawLayers },
+	{ key: "B", name: __("Layer matrix"), draw: drawMatrix },
+	{ key: "C", name: __("Flows, step by step"), draw: drawFlow },
+	{ key: "D", name: __("Ways to change the desk"), draw: drawExtensions },
 ];
 const ORDER = ["main", "9", "8", "7", "6", "5", "4", "3", "2", "1", "build"];
 const COLOR = {
@@ -27,6 +27,13 @@ const isBreak = (e) => e.status === "break" || e.status === "known";
 const inLoop = new Set(DATA.loops.flat());
 const state = { selected: null, showAll: false, showLoops: false, flow: 2, step: 0 };
 
+// The desk's shape: `{0}` fills by position. The route passes MESSAGES for the user's language.
+function __(text, replacements) {
+	const translated = MESSAGES[text] || text;
+	return replacements
+		? translated.replace(/\{(\d+)\}/g, (m, i) => replacements[Number(i)] ?? m)
+		: translated;
+}
 function esc(s) {
 	return String(s).replace(
 		/[&<>"]/g,
@@ -62,11 +69,11 @@ function fileLink(p, line) {
 }
 function statusPill(s) {
 	const text = {
-		break: "new break",
-		known: "known break",
-		allowed: "allowed",
-		inside: "same layer",
-		callback: "callback, not a use",
+		break: __("new break"),
+		known: __("known break"),
+		allowed: __("allowed"),
+		inside: __("same layer"),
+		callback: __("callback, not a use"),
 	}[s];
 	return `<span class="pill ${s}">${text}</span>`;
 }
@@ -84,14 +91,17 @@ function stats() {
 	const fresh = breaks.filter((p) => p.known === null).length;
 	const files = DATA.boxes.reduce((n, b) => n + b.files.length, 0);
 	const lines = DATA.boxes.reduce((n, b) => n + b.lines, 0);
+	const bold = (n) => `<b>${n}</b>`;
 	document.getElementById("stats").innerHTML = [
-		`Built from <b>${DATA.branch}</b> at <b>${DATA.commit}</b>, ${DATA.builtAt}`,
-		`<span><b>${files}</b> files, <b>${lines.toLocaleString()}</b> lines</span>`,
-		`<span class="red"><b>${fresh}</b> new breaks</span>`,
-		`<span class="red"><b>${breaks.length - fresh}</b> known breaks</span>`,
-		`<span><b>${DATA.loops.length}</b> folder loops</span>`,
+		__("Built from {0} at {1}, {2}", [bold(DATA.branch), bold(DATA.commit), DATA.builtAt]),
+		`<span>${__("{0} files, {1} lines", [bold(files), bold(lines.toLocaleString())])}</span>`,
+		`<span class="red">${__("{0} new breaks", [bold(fresh)])}</span>`,
+		`<span class="red">${__("{0} known breaks", [bold(breaks.length - fresh)])}</span>`,
+		`<span>${__("{0} folder loops", [bold(DATA.loops.length)])}</span>`,
 		DATA.unplaced.length
-			? `<span class="red"><b>${DATA.unplaced.length}</b> files in no layer</span>`
+			? `<span class="red">${__("{0} files in no layer", [
+					bold(DATA.unplaced.length),
+			  ])}</span>`
 			: "",
 	].join("");
 }
