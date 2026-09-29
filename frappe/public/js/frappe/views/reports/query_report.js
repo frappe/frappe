@@ -107,7 +107,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	setup_events() {
-		frappe.realtime.on("report_generated", (data) => {
+		frappe.realtime.on("report_processed", (data) => {
 			this.toggle_primary_button_disabled(false);
 			if (data.report_name) {
 				// If generated report and currently active Prepared Report has same fiters
@@ -890,6 +890,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (data.prepared_report) {
 					this.prepared_report = true;
 					this.prepared_report_document = data.doc;
+					this.prepared_report_error = data.error;
 					if (data.attachments.length) {
 						data.doc.attachments = data.attachments;
 					}
@@ -907,7 +908,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						});
 					}
 					this.add_prepared_report_buttons(data.doc);
-					check_if_report_is_stale();
+					// the error message already shows when it failed
+					if (data.doc?.status !== "Error") check_if_report_is_stale();
 				}
 
 				if (data.report_summary) {
@@ -972,7 +974,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if (doc && frappe.model.can_read("Prepared Report")) {
+		if (doc && doc.status !== "Error" && frappe.model.can_read("Prepared Report")) {
 			let is_csv =
 				doc.attachments &&
 				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
@@ -2442,12 +2444,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	toggle_nothing_to_show(flag) {
-		let message =
-			this.prepared_report && !this.prepared_report_document
-				? __(
-						"This is a background report. Please set the appropriate filters and then generate a new one."
-				  )
-				: this.get_no_result_message();
+		let message;
+		if (this.prepared_report_document?.status === "Error") {
+			message = this.get_prepared_report_error_message(this.prepared_report_document);
+		} else if (this.prepared_report && !this.prepared_report_document) {
+			message = this.get_background_report_message();
+		} else {
+			message = this.get_no_result_message();
+		}
 
 		this.toggle_message(flag, message);
 
@@ -2456,6 +2460,37 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.add_prepared_report_buttons();
 			}
 		}
+	}
+
+	get_background_report_message() {
+		return frappe.ui.empty_state({
+			icon: "clock",
+			title: __("This is a background report"),
+			description: __("Set the appropriate filters and then generate a new one."),
+		})[0].outerHTML;
+	}
+
+	get_prepared_report_error_message(doc) {
+		const actions = frappe.model.can_read("Prepared Report")
+			? [
+					{
+						label: __("View Details"),
+						href: frappe.utils.get_form_link(doc.doctype, doc.name),
+					},
+			  ]
+			: [];
+
+		// say when, so a failure from yesterday does not read as one from just now
+		const title = doc.report_end_time
+			? __("Report generation failed {0}", [frappe.datetime.prettyDate(doc.report_end_time)])
+			: __("Report generation failed");
+
+		return frappe.ui.empty_state({
+			icon: "triangle-alert",
+			title,
+			description: this.prepared_report_error,
+			actions,
+		})[0].outerHTML;
 	}
 
 	toggle_message(flag, message) {
