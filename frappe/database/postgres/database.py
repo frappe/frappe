@@ -312,9 +312,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def read_only_snapshot(self):
 		"""Run the block in its own REPEATABLE READ READ ONLY transaction.
 
-		Commit callbacks stay queued for the caller's own commit. A transaction with writes keeps running as is,
-		so nothing is committed early."""
-		if self.transaction_writes or self._disable_transaction_control:
+		Commit callbacks stay queued for the caller's own commit. A transaction holding writes or locks keeps
+		running as is, so nothing is committed or released early."""
+		if self._disable_transaction_control or self.has_writes_or_locks:
 			yield
 			return
 
@@ -327,6 +327,14 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self.sql("rollback")
 			self.begin()
 			self.value_cache.clear()
+
+	@property
+	def has_writes_or_locks(self) -> bool:
+		"""Whether the current transaction holds writes, row locks or advisory locks that ending it would release."""
+		return self.sql(
+			"""select pg_current_xact_id_if_assigned() is not null
+			or exists (select 1 from pg_locks where pid = pg_backend_pid() and locktype = 'advisory')"""
+		)[0][0]
 
 	def set_session_time_zone(self, timezone: str):
 		self.sql("set time zone %s", timezone)
