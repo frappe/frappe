@@ -13,6 +13,7 @@ import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
 	User,
+	_is_outgoing_mail_failure,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -70,6 +71,52 @@ class TestUser(IntegrationTestCase):
 		user.db_set("show_my_space", 1)
 		frappe.clear_cache(user=user.name)
 		self.assertEqual(get_desk_settings().show_my_space, 1)
+
+	def test_welcome_email_failure_does_not_abort_user_insert(self):
+		"""A broken outgoing account must not turn User insert into an uncaught 500.
+
+		SMTP failures raise ValidationError, which send_password_notification used
+		to let through. The user is already saved; the caller should get a message
+		instead of Internal Server Error.
+		"""
+		user = frappe.get_doc(
+			doctype="User",
+			email=frappe.generate_hash() + "@example.com",
+			first_name="Mail",
+			send_welcome_email=1,
+		)
+		user.flags.in_insert = True
+
+		with patch.object(
+			User,
+			"send_welcome_mail_to_user",
+			side_effect=frappe.ValidationError("SMTP authentication failed"),
+		):
+			user.send_password_notification(None)
+
+		self.assertFalse(user.flags.get("email_sent"))
+
+	def test_unrelated_validation_error_still_raises(self):
+		user = frappe.get_doc(
+			doctype="User",
+			email=frappe.generate_hash() + "@example.com",
+			first_name="Mail",
+			send_welcome_email=1,
+		)
+		user.flags.in_insert = True
+
+		with patch.object(
+			User,
+			"send_welcome_mail_to_user",
+			side_effect=frappe.ValidationError("First Name is mandatory"),
+		):
+			self.assertRaises(frappe.ValidationError, user.send_password_notification, None)
+
+	def test_outgoing_mail_failure_detector(self):
+		self.assertTrue(
+			_is_outgoing_mail_failure(frappe.ValidationError("Please setup default outgoing Email Account"))
+		)
+		self.assertFalse(_is_outgoing_mail_failure(frappe.ValidationError("First Name is mandatory")))
 
 	def test_user_type(self):
 		user_id = frappe.generate_hash() + "@example.com"

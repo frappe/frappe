@@ -480,12 +480,21 @@ class User(Document):
 			else:
 				self.set_new_password(new_password)
 
-		except frappe.OutgoingEmailError:
+		except (frappe.OutgoingEmailError, frappe.ValidationError) as exc:
+			# SMTP auth and a missing outgoing account raise ValidationError, not
+			# OutgoingEmailError. frappe.client.insert then 500s as Internal Server
+			# Error and the caller never learns the mail did not go out.
+			if not isinstance(exc, frappe.OutgoingEmailError) and not _is_outgoing_mail_failure(exc):
+				raise
 			frappe.clear_last_message()
 			frappe.msgprint(
-				_("Please setup default outgoing Email Account from Settings > Email Account"), alert=True
+				_(
+					"The user was created, but the welcome email could not be sent. Set up the outgoing Email Account under Settings > Email Account, then ask them to use Forgot Password."
+				),
+				title=_("Welcome email failed"),
+				indicator="orange",
+				alert=True,
 			)
-			# email server not set, don't send email
 			self.log_error("Unable to send new password notification")
 
 	@Document.hook
@@ -1559,6 +1568,20 @@ def generate_keys(user: str):
 def switch_theme(theme: str):
 	if theme in ["Dark", "Light", "Automatic"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
+
+
+def _is_outgoing_mail_failure(exc: BaseException) -> bool:
+	text = f"{exc.__class__.__name__} {exc}".lower()
+	return any(
+		needle in text
+		for needle in (
+			"outgoing",
+			"email account",
+			"smtp",
+			"invalid credentials",
+			"mail server",
+		)
+	)
 
 
 def get_enabled_users():
