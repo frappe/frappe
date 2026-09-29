@@ -2065,7 +2065,7 @@ class Engine:
 			docfield = next((df for df in meta.fields if df.fieldname == fieldname), None)
 		return bool(docfield) and docfield.fieldtype == "JSON"
 
-def _build_typed_is_criterion(
+	def _build_typed_is_criterion(
 		self, _field: Field, field: str | Field, value: Any, doctype: str
 	) -> "Criterion | None":
 		"""Build `is set` / `is not set` for numeric and date/time fields.
