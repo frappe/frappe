@@ -707,7 +707,23 @@ class Engine:
 
 				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
 
+<<<<<<< HEAD
 			return operator_fn(_field, _value)
+=======
+			if (
+				self.is_postgres
+				and not is_json_column
+				and _operator.casefold() in ("like", "not like", "ilike")
+				and is_non_text_field(target_doctype, filter_field_name)
+			):
+				comparison_field = functions.Cast(comparison_field, "varchar")
+
+			if _operator.casefold() == "not in" and isinstance(_value, list | tuple | set) and None in _value:
+				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
+				_value = tuple(fallback_value if v is None else v for v in _value)
+
+			return operator_fn(comparison_field, _value)
+>>>>>>> 460605e (fix: treat None inside in/not in filter values as empty)
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
 		"""Parses a nested filter list like [cond1, 'and', cond2, 'or', cond3, ...] into a pypika Criterion."""

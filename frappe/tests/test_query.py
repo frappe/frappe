@@ -2229,6 +2229,39 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` IS NULL AND `tabDocType`.`parent`<>''",
 		)
 
+	def test_none_inside_in_list(self):
+		self.assertQueryEqual(
+			frappe.qb.get_query(
+				"ToDo", filters=[["status", "not in", ["Cancelled", None]]], db_query_compat=True
+			).get_sql(),
+			"SELECT `name` FROM `tabToDo` WHERE IFNULL(`status`,'') NOT IN ('Cancelled','')",
+		)
+
+		self.assertIn("IS NULL", frappe.qb.get_query("ToDo", filters=[["date", "in", [None]]]).get_sql())
+
+		with self.set_user("test2@example.com"):
+			todo = frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"description": "None in list",
+					"status": "Open",
+					"date": frappe.utils.today(),
+				}
+			).insert()
+			self.addCleanup(todo.delete)
+
+			for fieldname, operator, value, matches in (
+				("status", "not in", ["Cancelled", None], True),
+				("status", "in", ["Open", None], True),
+				("status", "in", [None], False),
+				("date", "not in", [None], True),
+			):
+				with self.subTest(fieldname=fieldname, operator=operator, value=value):
+					names = frappe.get_list(
+						"ToDo", filters=[["name", "=", todo.name], [fieldname, operator, value]], pluck="name"
+					)
+					self.assertEqual(bool(names), matches)
+
 	def test_field_alias_in_group_by(self):
 		query = frappe.qb.get_query(
 			"User",
