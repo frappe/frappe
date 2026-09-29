@@ -250,7 +250,7 @@ def _download_multi_pdf(
 			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
 			from frappe.www.printview import set_link_titles, validate_print
 
-			pf_doc = _print_format_doc_or_none(format)
+			pf_doc = _print_format_doc_or_none(format, print_doctype)
 			if not (
 				(pf_doc is None or uses_beta_renderer(pf_doc))
 				and resolve_pdf_generator(pf_doc) in ("chrome", "Typst")
