@@ -29,7 +29,15 @@ TEST_WEIGHT_OVERRIDES = {
 
 class ParallelTestRunner:
 	def __init__(
-		self, app, site, build_number=1, total_builds=1, dry_run=False, lightmode=False, failfast=False
+		self,
+		app,
+		site,
+		build_number=1,
+		total_builds=1,
+		dry_run=False,
+		lightmode=False,
+		failfast=False,
+		selected_tests=None,
 	):
 		self.app = app
 		self.site = site
@@ -38,6 +46,8 @@ class ParallelTestRunner:
 		self.dry_run = dry_run
 		self.lightmode = lightmode
 		self.failfast = failfast
+		# App-relative test file paths, e.g. `frappe/tests/test_api.py`. None runs all of them.
+		self.selected_tests = selected_tests
 		self.test_file_list = []
 		self.total_test_weight = 0
 		self.test_result = None
@@ -148,6 +158,13 @@ class ParallelTestRunner:
 	def get_test_file_list(self):
 		# Load balance based on total # of tests ~ each runner should get roughly same # of tests.
 		test_list = get_all_tests(self.app)
+		if self.selected_tests is not None:
+			app_root = os.path.dirname(frappe.get_app_path(self.app))
+			test_list = [
+				test
+				for test in test_list
+				if os.path.relpath(os.path.join(*test), app_root) in self.selected_tests
+			]
 
 		test_counts = [self.get_test_weight(test) for test in test_list]
 		test_chunks = split_by_weight(test_list, test_counts, chunk_count=self.total_builds)
