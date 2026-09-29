@@ -111,7 +111,7 @@
 						<ComponentLayers
 							:blocks="element.children"
 							:is-parent-hidden="isParentHidden || !element.isVisible()"
-							:ref="childLayer"
+							:ref="(el) => trackLayer(childLayers, element.componentId, el)"
 							:indent="childIndent"
 						/>
 					</div>
@@ -146,7 +146,11 @@
 							</div>
 
 							<div v-if="isSlotExpanded(slot)">
-								<ComponentLayers :blocks="slot.slotContent" :ref="slotLayer" :indent="slotIndent" />
+								<ComponentLayers
+									:blocks="slot.slotContent"
+									:ref="(el) => trackLayer(slotLayers, slot.slotId, el)"
+									:indent="slotIndent"
+								/>
 							</div>
 						</div>
 					</div>
@@ -197,17 +201,15 @@ const props = withDefaults(
 
 const canvasStore = useCanvasStore()
 const rootContainer = ref<HTMLElement | null>(null)
-const childLayers = ref<LayerInstance[]>([])
-const slotLayers = ref<LayerInstance[]>([])
-// function refs run on every re-render, so skip layers that are already tracked
-const trackLayer = (layers: LayerInstance[], el: unknown) => {
-	const layer = el as LayerInstance | null
-	if (layer && !layers.includes(layer)) {
-		layers.push(layer)
+const childLayers = new Map<string, LayerInstance>()
+const slotLayers = new Map<string, LayerInstance>()
+const trackLayer = (layers: Map<string, LayerInstance>, id: string, el: unknown) => {
+	if (el) {
+		layers.set(id, el as LayerInstance)
+	} else {
+		layers.delete(id)
 	}
 }
-const childLayer = (el: unknown) => trackLayer(childLayers.value, el)
-const slotLayer = (el: unknown) => trackLayer(slotLayers.value, el)
 
 interface LayerBlock extends Block {
 	editable: boolean
@@ -232,7 +234,7 @@ const toggleExpanded = (block: Block) => {
 		return
 	}
 	if (!blockExists(block)) {
-		const child = childLayers.value.find((layer) => layer.blockExistsInTree(block)) as LayerInstance
+		const child = [...childLayers.values()].find((layer) => layer.blockExistsInTree(block))
 		if (child) {
 			child.toggleExpanded(block)
 		}
@@ -252,7 +254,7 @@ const blockExistsInTree = (block: Block): boolean => {
 	if (blockExists(block)) {
 		return true
 	}
-	for (const layer of childLayers.value) {
+	for (const layer of childLayers.values()) {
 		if (layer.blockExistsInTree(block)) {
 			return true
 		}
@@ -549,11 +551,11 @@ const expandAll = async () => {
 	}
 	// slot layers render only once their slot is expanded
 	await nextTick()
-	await Promise.all([...childLayers.value, ...slotLayers.value].map((layer) => layer.expandAll()))
+	await Promise.all([...childLayers.values(), ...slotLayers.values()].map((layer) => layer.expandAll()))
 }
 
 const collapseAll = () => {
-	;[...childLayers.value, ...slotLayers.value].forEach((layer) => layer.collapseAll())
+	;[...childLayers.values(), ...slotLayers.values()].forEach((layer) => layer.collapseAll())
 	expandedLayers.value = new Set(["root"])
 	expandedSlots.value = new Set()
 }
