@@ -158,21 +158,22 @@
 .frappe-list {
 	margin: 0 var(--margin-md);
 
+	// --list-right-width (set by list_view.js) keeps the header's and the rows' right side equal
 	.result.has-assign-to {
 		.list-row .level-right {
 			flex: 0 0 auto;
-			min-width: 180px;
+			min-width: var(--list-right-width, 180px);
 		}
 
 		&.assign-to-length-1 {
 			.list-row .level-right {
-				min-width: 165px;
+				min-width: var(--list-right-width, 165px);
 			}
 		}
 
 		&.assign-to-length-3 {
 			.list-row .level-right {
-				min-width: 200px;
+				min-width: var(--list-right-width, 200px);
 			}
 		}
 	}
@@ -180,7 +181,7 @@
 	.result.no-assign-to {
 		.list-row .level-right {
 			flex: 0 0 auto;
-			min-width: 130px;
+			min-width: var(--list-right-width, 130px);
 		}
 	}
 
