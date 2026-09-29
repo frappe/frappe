@@ -82,11 +82,11 @@
 		box-shadow: var(--focus-default);
 	}
 
-	// the mixin's hover can't be wrapped: on touch, a tapped button goes back to rest
+	// the mixin's hover can't be wrapped: on touch, a tapped button goes back to rest.
+	// Light theme only: the dark theme's own background below already beats the hover.
 	@media (hover: none) {
-		&:hover:not(:active) {
-			background-color: $gray-300;
-			border-color: $gray-800;
+		:root:not([data-theme="dark"]) &:hover:not(:active) {
+			background-color: var(--surface-gray-4);
 		}
 	}
 }
