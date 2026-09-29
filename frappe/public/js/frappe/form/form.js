@@ -153,6 +153,7 @@ frappe.ui.form.Form = class FrappeForm {
 		// A form in a dialog must not change the underlying page's title or breadcrumbs.
 		if (this.in_dialog) {
 			this.page.set_document_title = false;
+			this.page.show_breadcrumbs = false;
 		}
 
 		this.$wrapper.on("hide", () => {

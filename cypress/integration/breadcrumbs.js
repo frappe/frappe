@@ -118,6 +118,37 @@ context("Breadcrumbs", () => {
 		trail().should("deep.equal", ["To Do"]);
 	});
 
+	// a form embedded in a dialog has a page head of its own. It must not draw a trail there,
+	// and it must not touch the trail of the page the dialog opened over.
+	it("draws no trail for a form inside a dialog", () => {
+		cy.visit("/desk/todo");
+		cy.desk_ready();
+		trail().should("deep.equal", ["To Do"]);
+
+		cy.window().then((win) => {
+			return new Promise((resolve) => {
+				win.frappe.model.with_doctype("ToDo", () => {
+					const dialog = new win.frappe.ui.Dialog({ title: "probe" });
+					const $host = win.$("<div>").appendTo(dialog.$body);
+					dialog.show();
+
+					const frm = new win.frappe.ui.form.Form("ToDo", $host.get(0), false);
+					frm.in_dialog = true;
+					frm.refresh(win.frappe.model.make_new_doc_and_get_name("ToDo"));
+
+					setTimeout(() => {
+						expect($host.find(".navbar-breadcrumbs li")).to.have.length(0);
+						dialog.hide();
+						resolve();
+					}, 800);
+				});
+			});
+		});
+
+		// the page underneath is untouched
+		trail().should("deep.equal", ["To Do"]);
+	});
+
 	// ERPNext's POS builds an off-screen form to price its items, on a parent it hands in
 	// itself. `make_app_page` gives that parent a page like any other, but it is never the
 	// container's, so nothing written to it can reach the bar the reader is looking at.

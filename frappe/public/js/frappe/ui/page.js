@@ -1007,10 +1007,12 @@ frappe.ui.Page = class Page {
 		const $nav = this.$title_area?.find(".navbar-breadcrumbs");
 		if (!$nav?.length) return;
 
+		// a page inside a dialog has a head of its own but no business drawing a trail in it
+		const items = this.show_breadcrumbs === false ? [] : this.breadcrumbs || [];
 		const css_class = ["navbar-breadcrumbs", frappe.is_mobile() ? "mobile-no-divider" : ""]
 			.filter(Boolean)
 			.join(" ");
-		$nav.replaceWith(frappe.ui.breadcrumbs({ items: this.breadcrumbs || [], css_class }));
+		$nav.replaceWith(frappe.ui.breadcrumbs({ items, css_class }));
 	}
 
 	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {
