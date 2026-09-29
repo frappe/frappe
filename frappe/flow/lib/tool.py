@@ -41,17 +41,27 @@ class Tool:
 	requires_confirmation: bool = False
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
 	background: bool = False
+	display_template: str | None = None
 
 	def __post_init__(self) -> None:
 		if "ctx" not in inspect.signature(self.func).parameters:
 			raise TypeError(f"Tool {self.name} must take `*, ctx: ToolContext`.")
+		if self.display_template:
+			from flow_harness.tools.tool import display_template_variables  # loads every harness tool
+
+			unknown = set(display_template_variables(self.display_template)) - set(
+				self.parameters.get("properties", {})
+			)
+			if unknown:
+				names = ", ".join(sorted(unknown))
+				raise ValueError(f"Tool {self.name}'s display template names unknown argument(s): {names}.")
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
 
 	def __call__(self, **kwargs: Any) -> Any:
 		return self._validated(**kwargs)
 
 	def to_dict(self) -> dict[str, Any]:
-		return {
+		schema: dict[str, Any] = {
 			"type": "function",
 			"function": {
 				"name": self.name,
@@ -59,6 +69,9 @@ class Tool:
 				"parameters": self.parameters,
 			},
 		}
+		if self.display_template:
+			schema["display_template"] = self.display_template
+		return schema
 
 
 def tool(
@@ -69,6 +82,7 @@ def tool(
 	requires_confirmation: bool = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	background: bool = False,
+	display_template: str | None = None,
 ) -> Tool | Callable[[Callable[..., Any]], Tool]:
 	def wrap(f: Callable[..., Any]) -> Tool:
 		if not callable(f):
@@ -81,6 +95,7 @@ def tool(
 			requires_confirmation=requires_confirmation,
 			confirm_prompt=confirm_prompt,
 			background=background,
+			display_template=display_template,
 		)
 
 	return wrap(func) if func is not None else wrap

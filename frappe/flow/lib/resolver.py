@@ -54,7 +54,12 @@ def _resolve_module(doc: FlowTool) -> Tool:
 
 	if isinstance(obj, Tool):
 		return _build_tool(
-			doc, obj.parameters, obj.func, confirm_prompt=obj.confirm_prompt, background=obj.background
+			doc,
+			obj.parameters,
+			obj.func,
+			confirm_prompt=obj.confirm_prompt,
+			background=obj.background,
+			display_template=obj.display_template,
 		)
 	if callable(obj):
 		return _build_tool(doc, build_schema(obj), obj)
@@ -76,6 +81,7 @@ def _build_tool(
 	*,
 	confirm_prompt: Any = None,
 	background: bool = False,
+	display_template: str | None = None,
 ) -> Tool:
 	return Tool(
 		name=doc.slug,
@@ -85,6 +91,7 @@ def _build_tool(
 		requires_confirmation=bool(doc.requires_confirmation),
 		confirm_prompt=confirm_prompt,
 		background=background,
+		display_template=display_template,
 	)
 
 
