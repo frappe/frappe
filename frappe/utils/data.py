@@ -745,13 +745,12 @@ def format_date(string_date=None, format_string: str | None = None, parse_day_fi
 			date, format_string, locale=(frappe.local.lang or "").replace("-", "_")
 		)
 	except (UnknownLocaleError, ValueError):
+		if "MMMM" in format_string:
+			format_string = format_string.replace("MMMM", babel.dates.format_date(date, "MMMM", locale="en"))
+		if "MMM" in format_string:
+			format_string = format_string.replace("MMM", babel.dates.format_date(date, "MMM", locale="en"))
 		format_string = (
-			format_string.replace("MMMM", "%B")
-			.replace("MMM", "%b")
-			.replace("MM", "%m")
-			.replace("dd", "%d")
-			.replace("yyyy", "%Y")
-			.replace("yy", "%y")
+			format_string.replace("MM", "%m").replace("dd", "%d").replace("yyyy", "%Y").replace("yy", "%y")
 		)
 		formatted_date = date.strftime(format_string)
 	return formatted_date
