@@ -278,6 +278,12 @@ body.dock-pinned .dock {
 	// a short window: the avatar is the only way to Settings and Logout while the dock is pinned.
 	overflow: hidden;
 
+	// Brings the rule under the mark up to y=48, level with the page header's bottom border. Taken
+	// off the mark rather than the rule, which sits inside the scrolling tiles and would be clipped.
+	.dock-logo {
+		margin-bottom: -4px;
+	}
+
 	.dock-items {
 		min-height: 0;
 		overflow-y: auto;
