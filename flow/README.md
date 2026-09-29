@@ -40,7 +40,7 @@ Flow also ships as a Python framework for building agents in code.
 import frappe
 from flow import ToolContext, tool
 
-@tool
+@tool(display_template="Listing open ToDos for {{ allocated_to }}")  # shown while it runs
 def get_open_todos(allocated_to: str, *, ctx: ToolContext) -> list[dict]:
 	"""List open ToDo items for a user."""
 	return frappe.get_list(

@@ -84,6 +84,67 @@ async def test_custom_tool_display_template_reaches_the_model_request(tmp_path):
 	assert model.requests[0].tool_display_templates["web_search"] == ("Searching the web for {{ query }}")
 
 
+async def test_a_client_tools_display_template_reaches_the_ui_but_not_the_model(tmp_path):
+	class RecordingMock(MockModel):
+		def __init__(self):
+			super().__init__(replies=[AssistantMessage(content="done")])
+			self.requests: list[ModelRequest] = []
+
+		async def run(self, request):
+			self.requests.append(request)
+			async for event in super().run(request):
+				yield event
+
+	schema = {
+		"type": "function",
+		"function": {
+			"name": "report",
+			"description": "build",
+			"parameters": {"type": "object", "properties": {"year": {"type": "integer"}}},
+		},
+	}
+	session, _ = _session(tmp_path, client_tools=[{**schema, "display_template": "Building {{ year }}"}])
+	model = RecordingMock()
+
+	await _run(session, "report", model=model)
+
+	assert model.requests[0].tool_display_templates["report"] == "Building {{ year }}"
+	assert schema in model.requests[0].tools
+
+
+async def test_a_malformed_client_display_template_is_skipped_not_fatal(tmp_path, monkeypatch):
+	async def post(config, url, payload):
+		return {"content": "built"}
+
+	monkeypatch.setattr("flow_harness.agent.client_tools._post", post)
+	schema = {
+		"type": "function",
+		"function": {
+			"name": "report",
+			"description": "build",
+			"parameters": {"type": "object", "properties": {"year": {"type": "integer"}}},
+		},
+	}
+	session, events = _session(
+		tmp_path,
+		tools=[],
+		client_tools=[{**schema, "display_template": "Building {{ year | upper }}"}],
+		callback_url="https://client.invalid/tools",
+		auto_approve=True,
+	)
+	model = MockModel(
+		replies=[
+			AssistantMessage(content=[ToolCall(id="c1", name="report", arguments={"year": 2026})]),
+			AssistantMessage(content="done"),
+		]
+	)
+
+	await _run(session, "build the report", model=model)
+
+	assert [r["content"] for r in _of(events, "tool_result")] == ["built"]
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
 async def test_tool_call_runs_and_completes(tmp_path):
 	(tmp_path / "a.txt").write_text("FILE-A")
 	session, events = _session(tmp_path)

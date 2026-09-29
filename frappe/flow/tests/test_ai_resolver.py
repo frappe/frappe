@@ -98,6 +98,12 @@ def _sample_weather(city: str, *, ctx: ToolContext) -> str:
 	return f"sunny in {city}"
 
 
+@tool(display_template="Checking the weather in {{ city }}")
+def _templated_weather(city: str, *, ctx: ToolContext) -> str:
+	"""Sample weather tool with a display template."""
+	return city
+
+
 def _plain_callable(city: str, days: int = 1, *, ctx: ToolContext) -> str:
 	return city
 
@@ -151,6 +157,13 @@ class TestResolveTool(IntegrationTestCase):
 		self.assertEqual(runtime.description, "Look up the weather.")
 		self.assertEqual(runtime.parameters, _sample_weather.parameters)
 		self.assertEqual(runtime(city="Paris", ctx=CTX), "sunny in Paris")
+
+	def test_a_module_tools_display_template_is_kept(self):
+		doc = frappe.get_doc(_module_doc()).insert()
+		with patch("frappe.get_attr", return_value=_templated_weather):
+			runtime = doc.to_tool()
+
+		self.assertEqual(runtime.to_dict()["display_template"], "Checking the weather in {{ city }}")
 
 	def test_module_plain_callable_schema_from_hints(self):
 		doc = frappe.get_doc(_module_doc()).insert()

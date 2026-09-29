@@ -77,6 +77,21 @@ class TestToolDecorator(UnitTestCase):
 		self.assertEqual(identify.parameters["properties"], {"value": {"type": "string"}})
 		self.assertEqual(identify(value="ok", ctx=CTX), ("ok", "test"))
 
+	def test_a_display_template_rides_beside_the_schema(self):
+		@tool(display_template="Reading {{ doctype }}")
+		def read(doctype: str, *, ctx: ToolContext) -> str:
+			return doctype
+
+		self.assertEqual(read.to_dict()["display_template"], "Reading {{ doctype }}")
+		self.assertNotIn("display_template", tool(read.func).to_dict())
+
+	def test_a_display_template_naming_an_unknown_argument_is_refused(self):
+		with self.assertRaisesRegex(ValueError, r"unknown argument\(s\): name"):
+
+			@tool(display_template="Reading {{ name }}")
+			def read(doctype: str, *, ctx: ToolContext) -> str:
+				return doctype
+
 	def test_a_tool_without_context_is_refused_when_defined(self):
 		with self.assertRaisesRegex(TypeError, r"Tool ping must take `\*, ctx: ToolContext`"):
 
