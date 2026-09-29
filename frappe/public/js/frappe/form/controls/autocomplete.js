@@ -137,6 +137,9 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		if (this.df.ignore_validation) {
 			return value || "";
 		}
+		if (!this.awesomplete) {
+			return value;
+		}
 		let valid_values = this.awesomplete._list.map((d) => d.value);
 		if (!valid_values.length) {
 			return value;
