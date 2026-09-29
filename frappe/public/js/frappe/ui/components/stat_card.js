@@ -17,6 +17,7 @@ frappe.provide("frappe.ui");
  * @property {string|Element|JQuery} [caption] Muted line under the value.
  * @property {string} [dot] CSS colour for a dot before the label — ties the card to a chart series.
  * @property {string} [icon] Lucide icon before the label (ignored when `dot` is set).
+ * @property {boolean} [loading=false] Keep the label and hold the card's shape with skeletons while the value loads.
  * @property {function} [onclick] Makes the whole card a button (click, Enter, Space).
  * @property {string} [css_class] Extra classes on the root.
  */
@@ -41,6 +42,7 @@ frappe.ui.stat_card = function ({
 	caption,
 	dot,
 	icon,
+	loading,
 	onclick,
 	css_class,
 } = {}) {
@@ -54,6 +56,14 @@ frappe.ui.stat_card = function ({
 		.appendTo($head);
 
 	const $value = $('<div class="es-stat-card__value">').appendTo($card);
+	if (loading) {
+		$card.attr({ "data-state": "loading", "aria-busy": "true" });
+		$value.append(frappe.ui.skeleton({ width: "96px", height: "20px" }));
+		$('<div class="es-stat-card__caption">')
+			.append(frappe.ui.skeleton({ width: "128px", height: "12px" }))
+			.appendTo($card);
+		return $card;
+	}
 	if (value == null) {
 		$card.attr("data-state", "empty");
 		$value.text("—");

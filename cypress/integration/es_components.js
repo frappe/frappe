@@ -414,6 +414,16 @@ context("Espresso components", () => {
 			});
 		});
 
+		it("holds the card's shape with skeletons while loading", () => {
+			cy.contains(".explorer-group", "Loading")
+				.find(".es-stat-card[data-state='loading']")
+				.should("have.attr", "aria-busy", "true")
+				.within(() => {
+					cy.get(".es-stat-card__label").should("have.text", "Net sales");
+					cy.get(".es-skeleton").should("have.length", 2);
+				});
+		});
+
 		it("makes a clickable card a keyboard button", () => {
 			cy.contains(".explorer-group", "Series dot")
 				.find(".es-stat-card--clickable")

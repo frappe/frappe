@@ -16,6 +16,7 @@
  * Modifiers:
  *   .es-stat-card--clickable        whole card acts as a button
  *   .es-stat-card[data-state=empty] no reading: value is "—", caption "No data"
+ *   .es-stat-card[data-state=loading] skeletons in place of the value and caption
  *   .es-stat-card__delta[data-tone]  positive (green) | negative (red) | neutral */
 
 .es-stat-card {
@@ -84,6 +85,12 @@
     line-height: 1.35;
     letter-spacing: 0.01em;
     color: var(--ink-gray-8);
+}
+
+.es-stat-card[data-state="loading"] .es-stat-card__value,
+.es-stat-card[data-state="loading"] .es-stat-card__caption {
+    display: flex;
+    align-items: center;
 }
 
 .es-stat-card[data-state="empty"] .es-stat-card__value {

@@ -1008,6 +1008,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Loading"),
+					items: [{ label: "Net sales", loading: true }],
+				},
+				{
 					title: __("Series dot + clickable"),
 					items: [
 						{
