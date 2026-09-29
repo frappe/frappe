@@ -11,6 +11,7 @@ from werkzeug.http import parse_cookie
 
 import frappe
 import frappe.exceptions
+from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
 	handle_password_test_fail,
@@ -81,14 +82,14 @@ class TestUser(IntegrationTestCase):
 			doctype="User",
 			email=frappe.generate_hash() + "@example.com",
 			first_name="Dock",
-			roles=[{"role": "System Manager"}],
+			roles=[{"role": "_Test Role 2"}],
 		).insert()
 		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
 
 		frappe.set_user(user.name)
 		self.assertEqual(get_desk_settings().dock_mode, "Floating")
 
-		user.db_set("dock_mode", "Pinned")
+		set_value("User", user.name, "dock_mode", "Pinned")
 		frappe.clear_cache(user=user.name)
 		self.assertEqual(get_desk_settings().dock_mode, "Pinned")
 
