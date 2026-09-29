@@ -406,6 +406,18 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_unique_index_on_duplicate_blank_values(self):
+		# blanks pass the DocType's duplicate check, so the index creation itself fails
+		doctype = new_doctype().insert()
+		for _ in range(2):
+			frappe.get_doc(doctype=doctype.name, some_fieldname="").insert()
+
+		doctype.fields[0].unique = 1
+		with self.assertRaisesRegex(frappe.ValidationError, "some_fieldname field cannot be set as unique"):
+			doctype.save()
+		frappe.db.rollback()
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_drop_index_for_accent_colliding_fields(self):
 		# removing two fields whose names collide under the collation must not fail schema sync
