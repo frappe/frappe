@@ -1745,7 +1745,13 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		</div>
 	`).appendTo(page.main);
 
-	function render_component(name) {
+	let selected_component;
+	async function render_component(name) {
+		selected_component = name;
+		if (["Stat Card", "Bar List", "Donut"].includes(name)) {
+			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
+			if (selected_component !== name) return;
+		}
 		const component = COMPONENTS[name];
 		const $groups = $body.find(".explorer-groups").empty();
 		if (!component) return;

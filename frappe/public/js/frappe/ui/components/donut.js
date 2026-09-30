@@ -107,7 +107,8 @@ frappe.ui.Donut = class Donut {
 					this.$tip.addClass("is-visible");
 					this.place_tip(e);
 				})
-				.on("mousemove", (e) => this.place_tip(e));
+				.on("mousemove", (e) => this.place_tip(e))
+				.on("mouseleave", () => this.clear());
 			svg.appendChild(shape);
 			return shape;
 		});

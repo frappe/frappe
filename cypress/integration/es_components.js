@@ -401,6 +401,23 @@ context("Espresso components", () => {
 			});
 		});
 
+		it("preserves the direction of changes below display precision", () => {
+			cy.window().then((win) => {
+				for (const [value, sign, tone] of [
+					[0.01, "+", "positive"],
+					[-0.01, "−", "negative"],
+				]) {
+					const card = win.frappe.ui.stat_card({
+						label: "Small change",
+						value: 1,
+						delta: { value },
+					});
+					expect(card.find(".es-stat-card__delta").text()).to.contain(`${sign}<0.1%`);
+					expect(card.find(".es-stat-card__delta").attr("data-tone")).to.equal(tone);
+				}
+			});
+		});
+
 		it("shows a dash and No data for a missing reading, but prints a zero", () => {
 			cy.contains(".explorer-group", "No reading").within(() => {
 				cy.contains(".es-stat-card", "Conversion rate")
@@ -449,6 +466,27 @@ context("Espresso components", () => {
 			});
 		});
 
+		it("keeps static values visible and expands an undersized axis", () => {
+			cy.window().then((win) => {
+				const chart = win.frappe.ui
+					.bar_list({
+						items: [{ label: "Total", value: 200 }],
+						max: 100,
+						values_on_hover: true,
+					})
+					.appendTo(win.document.body);
+				expect(
+					win.getComputedStyle(chart.find(".es-bar-list__value")[0]).opacity
+				).to.equal("1");
+				expect(chart.find(".es-bar-list__row").attr("role")).to.be.undefined;
+				expect(parseFloat(chart.find(".es-bar-list__bar")[0].style.width)).to.be.at.most(
+					100
+				);
+				expect(Number(chart.find(".es-bar-list__tick").last().text())).to.be.at.least(200);
+				chart.remove();
+			});
+		});
+
 		it("says there is no data instead of drawing an empty axis", () => {
 			cy.contains(".explorer-group", "Empty")
 				.find(".es-bar-list[data-state='empty']")
@@ -493,6 +531,19 @@ context("Espresso components", () => {
 				cy.get(".es-donut__legend").trigger("mouseleave");
 				cy.get(".es-donut__value").should("have.text", "70%");
 				cy.get(".es-donut__seg.is-dim").should("have.length", 0);
+			});
+		});
+
+		it("clears the tooltip and highlight when leaving a segment for the centre", () => {
+			cy.contains(".explorer-group", "Centre value").within(() => {
+				cy.get(".es-donut__seg")
+					.first()
+					.trigger("mouseenter", { clientX: 100, clientY: 100 });
+				cy.get(".es-donut__tip").should("have.class", "is-visible");
+				cy.get(".es-donut__seg").first().trigger("mouseleave");
+				cy.get(".es-donut__tip").should("not.have.class", "is-visible");
+				cy.get(".es-donut__seg.is-dim").should("not.exist");
+				cy.get(".es-donut__value").should("have.text", "70%");
 			});
 		});
 
