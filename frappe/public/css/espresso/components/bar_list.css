@@ -39,7 +39,8 @@
 .es-bar-list__plot {
     position: relative;
     /* left gutter holds the labels; right gutter lets the end value overflow the last bar */
-    margin: 4px 48px 0 calc(var(--es-bl-label-w, 96px) + 14px);
+    margin-block: 4px 0;
+    margin-inline: calc(var(--es-bl-label-w, 96px) + 14px) 48px;
     --es-bl-axis-h: 22px;
 }
 
@@ -48,7 +49,7 @@
     top: 0;
     bottom: var(--es-bl-axis-h);
     width: 0;
-    border-left: 1px dashed var(--outline-gray-2);
+    border-inline-start: 1px dashed var(--outline-gray-2);
 }
 
 .es-bar-list__rows {
@@ -66,11 +67,11 @@
 
 .es-bar-list__label {
     position: absolute;
-    right: calc(100% + 10px);
+    inset-inline-end: calc(100% + 10px);
     top: 0;
     width: var(--es-bl-label-w, 96px);
     line-height: 30px;
-    text-align: right;
+    text-align: end;
     font-size: var(--text-sm);
     color: var(--ink-gray-5);
     white-space: nowrap;
@@ -80,7 +81,7 @@
 
 .es-bar-list__bar {
     position: absolute;
-    left: 0;
+    inset-inline-start: 0;
     top: 8px;
     height: 14px;
     border-radius: 2px;
@@ -89,7 +90,7 @@
 .es-bar-list__value {
     position: absolute;
     top: 0;
-    margin-left: 8px;
+    margin-inline-start: 8px;
     line-height: 30px;
     font-size: var(--text-sm);
     color: var(--ink-gray-5);
@@ -116,9 +117,26 @@
 .es-bar-list__tick {
     position: absolute;
     top: 4px;
+    /*!rtl:ignore*/
     transform: translateX(-50%);
     font-size: var(--text-xs);
     color: var(--ink-gray-5);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+}
+
+.es-bar-list__row--clickable:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
+
+.es-bar-list__tick:dir(rtl) {
+    /*!rtl:ignore*/
+    transform: translateX(50%);
+}
+
+@media (hover: none) {
+    .es-bar-list--hover-values .es-bar-list__value {
+        opacity: 1;
+    }
 }

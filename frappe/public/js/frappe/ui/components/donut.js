@@ -94,7 +94,9 @@ frappe.ui.Donut = class Donut {
 			viewBox: `0 0 ${this.size} ${this.size}`,
 			class: "es-donut__svg",
 			role: "img",
-			"aria-label": this.segments.map((s) => `${s.label} ${s.pct}%`).join(", "),
+			"aria-label": this.segments
+				.map((s) => `${s.label}: ${this.format(s.value)} (${s.pct}%)`)
+				.join(", "),
 		});
 		this.shapes = this.segments.map((seg, i) => {
 			const shape = svg_el("path", { class: "es-donut__seg", d: this.path(seg, ro) });
@@ -126,14 +128,19 @@ frappe.ui.Donut = class Donut {
 	render_legend() {
 		this.$legend = $('<div class="es-donut__legend">').appendTo(this.$el);
 		this.segments.forEach((seg, i) => {
-			$('<div class="es-donut__legend-row">')
+			$('<div class="es-donut__legend-row" tabindex="0">')
 				.append(dot(seg.color))
 				.append($('<span class="es-donut__legend-label">').text(seg.label))
-				.append($('<span class="es-donut__legend-pct">').text(seg.pct + "%"))
-				.on("mouseenter", () => {
+				.append(
+					$('<span class="es-donut__legend-pct">').text(
+						`${this.format(seg.value)} · ${seg.pct}%`
+					)
+				)
+				.on("mouseenter focus", () => {
 					this.highlight(i);
 					this.$tip.removeClass("is-visible");
 				})
+				.on("blur", () => this.clear())
 				.appendTo(this.$legend);
 		});
 	}

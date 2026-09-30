@@ -160,3 +160,8 @@
     color: var(--ink-gray-5);
     font-variant-numeric: tabular-nums;
 }
+
+.es-donut__legend-row:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}

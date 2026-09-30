@@ -113,7 +113,7 @@ function build_delta({ value, positive_is_good = true, suffix } = {}) {
 		$delta
 			.attr("data-tone", up === positive_is_good ? "positive" : "negative")
 			.append(frappe.utils.icon(up ? "arrow-up-right" : "arrow-down-right", "sm"))
-			.append(document.createTextNode(" " + Math.abs(change) + "%"));
+			.append(document.createTextNode(" " + (up ? "+" : "−") + Math.abs(change) + "%"));
 	}
 	if (suffix)
 		$('<span class="es-stat-card__delta-suffix">')

@@ -391,7 +391,7 @@ context("Espresso components", () => {
 				cy.contains(".es-stat-card", "Net sales")
 					.find(".es-stat-card__delta")
 					.should("have.attr", "data-tone", "positive")
-					.and("contain.text", "12.4%");
+					.and("contain.text", "+12.4%");
 				cy.contains(".es-stat-card", "Overdue")
 					.find(".es-stat-card__delta")
 					.should("have.attr", "data-tone", "negative");
@@ -476,7 +476,7 @@ context("Espresso components", () => {
 				cy.get(".es-donut__svg").should(
 					"have.attr",
 					"aria-label",
-					"Paid 70%, Unpaid 20%, Overdue 10%"
+					"Paid: 70 (70%), Unpaid: 20 (20%), Overdue: 10 (10%)"
 				);
 				cy.get(".es-donut__value").should("have.text", "70%");
 			});
@@ -493,6 +493,18 @@ context("Espresso components", () => {
 				cy.get(".es-donut__legend").trigger("mouseleave");
 				cy.get(".es-donut__value").should("have.text", "70%");
 				cy.get(".es-donut__seg.is-dim").should("have.length", 0);
+			});
+		});
+
+		it("exposes amounts without hover and highlights a keyboard-focused legend", () => {
+			cy.contains(".explorer-group", "Centre value").within(() => {
+				cy.contains(".es-donut__legend-row", "Unpaid")
+					.should("contain.text", "20 · 20%")
+					.focus()
+					.should("have.class", "is-active");
+				cy.get(".es-donut__value").should("have.text", "20");
+				cy.get(".es-donut__legend-row:focus").blur();
+				cy.get(".es-donut__value").should("have.text", "70%");
 			});
 		});
 

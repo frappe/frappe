@@ -17,7 +17,7 @@ frappe.provide("frappe.ui");
  * @property {string} [color] Bar colour: any CSS colour or token, e.g. var(--green-600). Defaults to the first chart colour.
  * @property {number} [label_width=96] Width of the label gutter, in px.
  * @property {boolean} [values_on_hover=false] Hide each end label until its row is hovered or focused.
- * @property {function} [on_click] (item) -> void. Makes each row a button.
+ * @property {function} [onclick] (item) -> void. Makes each row a button.
  * @property {string} [css_class] Extra classes on the root.
  */
 
@@ -41,7 +41,7 @@ frappe.ui.bar_list = function ({
 	color,
 	label_width,
 	values_on_hover,
-	on_click,
+	onclick,
 	css_class,
 } = {}) {
 	const $root = $('<div class="es-bar-list">').addClass(css_class || "");
@@ -62,24 +62,27 @@ frappe.ui.bar_list = function ({
 	const $plot = $('<div class="es-bar-list__plot">').appendTo($root);
 
 	ticks.forEach((t) => {
-		$('<div class="es-bar-list__gridline">').css("left", at(t)).appendTo($plot);
+		$('<div class="es-bar-list__gridline">').css("inset-inline-start", at(t)).appendTo($plot);
 	});
 
 	const $rows = $('<div class="es-bar-list__rows">').appendTo($plot);
-	items.forEach((it) => $rows.append(build_row(it, { at, format, color, on_click })));
+	items.forEach((it) => $rows.append(build_row(it, { at, format, color, onclick })));
 
 	const $axis = $('<div class="es-bar-list__axis">').appendTo($plot);
 	ticks.forEach((t) => {
-		$('<div class="es-bar-list__tick">').css("left", at(t)).text(format(t)).appendTo($axis);
+		$('<div class="es-bar-list__tick">')
+			.css("inset-inline-start", at(t))
+			.text(format(t))
+			.appendTo($axis);
 	});
 
 	return $root;
 };
 
-function build_row(item, { at, format, color, on_click }) {
+function build_row(item, { at, format, color, onclick }) {
 	const $row = $('<div class="es-bar-list__row">');
-	if (on_click) {
-		make_activatable($row.addClass("es-bar-list__row--clickable"), () => on_click(item));
+	if (onclick) {
+		make_activatable($row.addClass("es-bar-list__row--clickable"), () => onclick(item));
 	}
 	$('<div class="es-bar-list__label">')
 		.text(item.label)
@@ -88,7 +91,7 @@ function build_row(item, { at, format, color, on_click }) {
 	const $bar = $('<div class="es-bar-list__bar">').css("width", at(item.value)).appendTo($row);
 	$bar.css("background-color", color || CHART_PALETTE[0]);
 	$('<div class="es-bar-list__value">')
-		.css("left", at(item.value))
+		.css("inset-inline-start", at(item.value))
 		.text(item.formatted != null ? item.formatted : format(item.value))
 		.appendTo($row);
 	return $row;

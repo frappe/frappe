@@ -1065,7 +1065,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								{ label: "Northwind Traders", value: 320000 },
 							],
 							label_width: 180,
-							on_click: (item) => frappe.ui.toast({ message: item.label }),
+							onclick: (item) => frappe.ui.toast({ message: item.label }),
 						},
 					],
 				},
