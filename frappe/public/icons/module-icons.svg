@@ -57,6 +57,30 @@
 				transition-delay: 0.14s;
 			}
 		}
+		/* Users: the two people behind step out from behind the one in front while the dock tile is
+		   hovered, and step back when the pointer leaves. A person behind is drawn twice: the part
+		   that shows at rest, and the fuller body that shows once they have stepped out. The fuller
+		   one stays hidden until they move, or it would fill the gap beside the person in front. */
+		.users-side-whole {
+			opacity: 0;
+		}
+		@media (prefers-reduced-motion: no-preference) {
+			.users-side {
+				transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+			}
+			.users-side-left {
+				transform: translateX(calc(var(--icon-motion-opacity, 0) * -2.8px));
+			}
+			.users-side-right {
+				transform: translateX(calc(var(--icon-motion-opacity, 0) * 2.8px));
+				transition-delay: 0.06s;
+			}
+			.users-side-whole {
+				opacity: var(--icon-motion-opacity, 0);
+				transition: opacity 0.15s;
+				transition-delay: calc(var(--icon-motion-opacity, 0) * 0.1s);
+			}
+		}
 	</style>
 	<!-- The window rests on y 19.75, not the bottom of the grid, which sits it on a 14px label's
 	     descender line in the 28px sidebar mark and lifts the dark wall toward the centre of a dock tile. -->
@@ -66,5 +90,20 @@
 		<rect class="code-app-line code-app-line-1" x="4" y="9.75" width="7" height="1.9" rx="0.95" style="fill: var(--duotone-light, var(--ink-gray-3))" />
 		<rect class="code-app-line code-app-line-2" x="7" y="12.85" width="10.5" height="1.9" rx="0.95" style="fill: var(--duotone-light, var(--ink-gray-3))" />
 		<rect class="code-app-line code-app-line-3" x="7" y="15.95" width="6" height="1.9" rx="0.95" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+	</symbol>
+	<!-- One person in front and two behind, standing on the same y 19.75 as the Build window. The seam
+	     between the tones is a real gap, 0.7 wide, cut out of the two behind: the active dock tile is
+	     translucent, so a seam painted in the page colour would show as an outline. Each users-side-whole
+	     path is the same body cut for where it stands after stepping out 2.8. -->
+	<symbol viewBox="0 0 24 24" id="icon-users-duotone" stroke="none" style="overflow: visible">
+		<g class="users-side users-side-left">
+			<path class="users-side-whole" d="M.95 18.85V15.85A3.4 3.4 0 0 1 4.35 12.45H5.55A3.4 3.4 0 0 1 8.21 13.73A5.5 5.5 0 0 0 7.8 15.8V18.85A1.6 1.6 0 0 0 8.08 19.75H1.85A.9.9 0 0 1 .95 18.85Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+			<path d="M2.3 8.95a2.65 2.65 0 1 0 5.3 0a2.65 2.65 0 1 0-5.3 0Z M.95 18.85V15.85A3.4 3.4 0 0 1 4.35 12.45H5.55A3.4 3.4 0 0 1 6.1 12.5A5.5 5.5 0 0 0 5 15.8V18.85A1.6 1.6 0 0 0 5.28 19.75H1.85A.9.9 0 0 1 .95 18.85Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		</g>
+		<g class="users-side users-side-right">
+			<path class="users-side-whole" d="M23.05 18.85V15.85A3.4 3.4 0 0 0 19.65 12.45H18.45A3.4 3.4 0 0 0 15.79 13.73A5.5 5.5 0 0 1 16.2 15.8V18.85A1.6 1.6 0 0 1 15.92 19.75H22.15A.9.9 0 0 0 23.05 18.85Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+			<path d="M16.4 8.95a2.65 2.65 0 1 0 5.3 0a2.65 2.65 0 1 0-5.3 0Z M23.05 18.85V15.85A3.4 3.4 0 0 0 19.65 12.45H18.45A3.4 3.4 0 0 0 17.9 12.5A5.5 5.5 0 0 1 19 15.8V18.85A1.6 1.6 0 0 1 18.72 19.75H22.15A.9.9 0 0 0 23.05 18.85Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		</g>
+		<path d="M8.45 6.5a3.55 3.55 0 1 0 7.1 0a3.55 3.55 0 1 0-7.1 0Z M5.7 18.85V15.8A4.8 4.8 0 0 1 10.5 11H13.5A4.8 4.8 0 0 1 18.3 15.8V18.85A.9.9 0 0 1 17.4 19.75H6.6A.9.9 0 0 1 5.7 18.85Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
 	</symbol>
 </svg>
