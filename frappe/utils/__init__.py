@@ -373,6 +373,7 @@ def _get_traceback_sanitizer():
 	# Reused under MIT license: https://github.com/andy-landy/traceback_with_variables/blob/master/LICENSE
 
 	return Format(
+		objects_details=0,
 		custom_var_printers=[
 			# redact variables
 			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
