@@ -165,16 +165,20 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype.save()
 
 		for column in ("starts_on", "starts_day"):
-			expression = frappe.db.sql(
-				"""SELECT pg_get_expr(d.adbin, d.adrelid)
-				FROM pg_attrdef d
-				JOIN pg_class c ON c.oid = d.adrelid
-				JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = d.adnum
-				WHERE c.relname = %s AND a.attname = %s""",
-				(table, column),
-				pluck=True,
-			)
+			expression = get_column_default_expression(table, column)
 			self.assertFalse(expression, msg=f"{column} kept a frozen literal default: {expression}")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_nullability_change_keeps_dynamic_defaults_dynamic(self):
+		doctype = new_doctype(
+			fields=[{"fieldname": "starts_day", "fieldtype": "Date", "default": "Today"}]
+		).insert()
+
+		doctype.fields[0].not_nullable = 1
+		doctype.save()
+
+		expression = get_column_default_expression(f"tab{doctype.name}", "starts_day")
+		self.assertFalse(expression, msg=f"starts_day kept a frozen literal default: {expression}")
 
 	def test_bigint_conversion(self):
 		doctype = new_doctype(fields=[{"fieldname": "int_field", "fieldtype": "Int"}]).insert()
@@ -207,6 +211,74 @@ class TestDBUpdate(IntegrationTestCase):
 
 		doctype.fields[0].fieldtype = "Int"  # no length -> standard int4 column
 		with self.assertRaises(frappe.ValidationError):
+			doctype.save()
+		frappe.db.rollback()
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_truncating_type_change_errors_cleanly(self):
+		doctype = new_doctype(fields=[{"fieldname": "notes", "fieldtype": "Text"}]).insert()
+		frappe.get_doc(doctype=doctype.name, notes="x" * 200).insert()
+
+		doctype.fields[0].fieldtype = "Data"
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
+			doctype.save()
+		frappe.db.rollback()
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_float_to_check_conversion(self):
+		doctype = new_doctype(fields=[{"fieldname": "flag", "fieldtype": "Float"}]).insert()
+		ticked = frappe.get_doc(doctype=doctype.name, flag=1).insert()
+		unticked = frappe.get_doc(doctype=doctype.name, flag=0).insert()
+
+		doctype.fields[0].fieldtype = "Check"
+		doctype.save()
+
+		self.assertEqual(frappe.db.get_value(doctype.name, ticked.name, "flag"), 1)
+		self.assertEqual(frappe.db.get_value(doctype.name, unticked.name, "flag"), 0)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_type_change_to_numeric_sets_not_null(self):
+		fieldtypes = {"quantity": "Int", "is_done": "Check", "amount": "Currency"}
+		doctype = new_doctype(
+			fields=[{"fieldname": fieldname, "fieldtype": "Data"} for fieldname in fieldtypes]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name).insert()
+
+		for field in doctype.fields:
+			field.fieldtype = fieldtypes[field.fieldname]
+		doctype.save()
+
+		for fieldname in fieldtypes:
+			self.assertTrue(get_table_column(doctype.name, fieldname).not_nullable, fieldname)
+		self.assertEqual(frappe.db.get_value(doctype.name, doc.name, list(fieldtypes)), (0, 0, 0))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_invalid_date_conversion_errors_cleanly(self):
+		doctype = new_doctype(fields=[{"fieldname": "due_on", "fieldtype": "Data"}]).insert()
+		frappe.get_doc(doctype=doctype.name, due_on="next week").insert()
+
+		doctype.fields[0].fieldtype = "Date"
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
+			doctype.save()
+		frappe.db.rollback()
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_not_nullable_type_change_with_blanks(self):
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "time_taken", "fieldtype": "Data", "not_nullable": 1},
+				{"fieldname": "due_on", "fieldtype": "Data", "not_nullable": 1},
+			]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name).insert()
+
+		doctype.fields[0].fieldtype = "Duration"
+		doctype.save()
+		self.assertEqual(frappe.db.get_value(doctype.name, doc.name, "time_taken"), 0)
+
+		# '' is not a date, so there is no valid not-null default for the blank
+		doctype.fields[1].fieldtype = "Date"
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
 			doctype.save()
 		frappe.db.rollback()
 
@@ -369,6 +441,18 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_unique_index_on_duplicate_blank_values(self):
+		# blanks pass the DocType's duplicate check, so the index creation itself fails
+		doctype = new_doctype().insert()
+		for _ in range(2):
+			frappe.get_doc(doctype=doctype.name, some_fieldname="").insert()
+
+		doctype.fields[0].unique = 1
+		with self.assertRaisesRegex(frappe.ValidationError, "some_fieldname field cannot be set as unique"):
+			doctype.save()
+		frappe.db.rollback()
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_drop_index_for_accent_colliding_fields(self):
 		# removing two fields whose names collide under the collation must not fail schema sync
@@ -470,6 +554,22 @@ class TestDBUpdate(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_uuid_link_field_on_alter(self):
+		uuid_doctype = new_doctype().update({"autoname": "UUID"}).insert()
+		target = frappe.new_doc(uuid_doctype.name).insert()
+		doctype = new_doctype(fields=[{"fieldname": "link_field", "fieldtype": "Data"}]).insert()
+		linked = frappe.get_doc(doctype=doctype.name, link_field=target.name).insert()
+		blank = frappe.get_doc(doctype=doctype.name, link_field="").insert()
+
+		doctype.fields[0].fieldtype = "Link"
+		doctype.fields[0].options = uuid_doctype.name
+		doctype.save()
+
+		self.assertEqual(frappe.db.get_column_type(doctype.name, "link_field"), "uuid")
+		self.assertEqual(frappe.db.get_value(doctype.name, linked.name, "link_field"), target.name)
+		self.assertIsNone(frappe.db.get_value(doctype.name, blank.name, "link_field"))
+
 	def test_varchar_length(self):
 		from frappe.database.schema import add_column
 
@@ -553,3 +653,15 @@ def get_other_fields_meta(meta):
 def get_table_column(doctype, fieldname):
 	table_columns = frappe.db.get_table_columns_description(f"tab{doctype}")
 	return find(table_columns, lambda d: d.get("name") == fieldname)
+
+
+def get_column_default_expression(table, column):
+	return frappe.db.sql(
+		"""SELECT pg_get_expr(d.adbin, d.adrelid)
+		FROM pg_attrdef d
+		JOIN pg_class c ON c.oid = d.adrelid
+		JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = d.adnum
+		WHERE c.relname = %s AND a.attname = %s""",
+		(table, column),
+		pluck=True,
+	)
