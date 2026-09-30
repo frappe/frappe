@@ -41,6 +41,7 @@ import "./multiselect";
 import "./multicheck";
 import "./table_multiselect";
 import "./multiselect_pills";
+import "./multiselect_combobox";
 import "./multiselect_list";
 import "./rating";
 import "./duration";
@@ -49,7 +50,14 @@ import "./phone";
 import "./json";
 
 // fieldtypes with a combobox variant behind the System Settings toggle
-const COMBOBOX_FIELDTYPES = new Set(["Link", "Dynamic Link", "Autocomplete"]);
+const COMBOBOX_FIELDTYPES = new Set([
+	"Link",
+	"Dynamic Link",
+	"Autocomplete",
+	"Table MultiSelect",
+	"MultiSelectPills",
+	"MultiSelect",
+]);
 
 frappe.ui.form.make_control = function (opts) {
 	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");

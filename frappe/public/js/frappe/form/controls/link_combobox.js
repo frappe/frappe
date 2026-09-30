@@ -572,17 +572,23 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			rows.push({
 				type: "custom",
 				label,
+				// a value row: the multiselect keeps the panel open to pick more
+				keep_open: !item.action,
 				// an entry without action is a value, like the classic field
-				onclick: () => {
-					if (item.action) return item.action.apply(this);
-					this.combobox.set_value(item.value, { label });
-					this.on_pick(item.value, { label, value: item.value });
-				},
+				onclick: () =>
+					item.action
+						? item.action.apply(this)
+						: this.pick_link_option(item.value, label),
 			});
 		}
 
 		// no Advanced Search: the panel loads more on scroll
 		return rows;
+	}
+
+	pick_link_option(value, label) {
+		this.combobox.set_value(value, { label });
+		this.on_pick(value, { label, value });
 	}
 
 	// ---- picking ----

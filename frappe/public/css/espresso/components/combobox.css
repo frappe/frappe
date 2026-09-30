@@ -204,3 +204,96 @@ input.es-combobox__value:disabled {
 .es-combobox__match {
     font-weight: var(--font-weight-medium);
 }
+
+/* ---- several values (MultiCombobox) ---- */
+.es-combobox--multi {
+    height: auto;
+    min-height: var(--input-height);
+    padding-block: calc(var(--spacing) * 1);
+}
+
+.es-combobox--multi[data-has-values] {
+    padding-inline-start: calc(var(--spacing) * 1);
+}
+
+.es-combobox__pills {
+    flex-wrap: wrap;
+    row-gap: calc(var(--spacing) * 1);
+}
+
+.es-combobox--multi[data-one-line] .es-combobox__pills {
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+/* badges set their own display, which would beat the hidden attribute */
+.es-combobox__pills [hidden] {
+    display: none !important;
+}
+
+.es-combobox--multi input.es-combobox__value {
+    height: calc(var(--spacing) * 5);
+    min-width: calc(var(--spacing) * 6);
+}
+
+.es-combobox--multi[data-has-values] input.es-combobox__value::placeholder {
+    color: transparent;
+}
+
+.es-combobox__pill {
+    min-width: 0;
+    max-width: 100%;
+    gap: calc(var(--spacing) * 0.5);
+    padding-inline-end: calc(var(--spacing) * 0.5);
+    background: var(--surface-elevation-2);
+    cursor: default;
+}
+
+.es-combobox__pill a {
+    color: inherit;
+}
+
+.es-combobox__pill a:hover {
+    text-decoration: underline;
+}
+
+.es-combobox__pill-remove {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 0.75);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink-gray-5);
+    cursor: pointer;
+}
+
+.es-combobox__pill-remove:hover {
+    background: var(--surface-gray-3);
+    color: var(--ink-gray-8);
+}
+
+.es-combobox__check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: calc(var(--spacing) * 3.5);
+    height: calc(var(--spacing) * 3.5);
+    border: 1.5px solid var(--outline-gray-3);
+    border-radius: var(--radius-sm);
+    background: var(--surface-base);
+    color: transparent;
+}
+
+.es-combobox__check svg {
+    width: calc(var(--spacing) * 2.5);
+    height: calc(var(--spacing) * 2.5);
+    stroke-width: 3;
+}
+
+.es-menu__item[aria-selected="true"] > .es-combobox__check {
+    border-color: var(--ink-gray-9);
+    background: var(--ink-gray-9);
+    color: var(--surface-base);
+}

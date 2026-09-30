@@ -255,6 +255,60 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Multi Combobox": {
+			helper: "frappe.ui.multi_combobox",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							placeholder: "Select roles",
+							options: [
+								"Accounts Manager",
+								"Accounts User",
+								"Sales User",
+								"Stock User",
+								"System Manager",
+							],
+							on_change: (values) =>
+								frappe.ui.toast({ message: `${values.length} selected` }),
+						},
+						{
+							placeholder: "Select roles",
+							value: ["Sales User", "System Manager"],
+							options: [
+								"Accounts User",
+								"Sales User",
+								"Stock User",
+								"System Manager",
+							],
+						},
+						{
+							placeholder: "Disabled",
+							value: ["Sales User"],
+							disabled: true,
+							options: ["Sales User"],
+						},
+					],
+				},
+				{
+					title: __("One line: extra values show as +N"),
+					items: [
+						{
+							one_line: true,
+							value: ["Accounts User", "Sales User", "Stock User", "System Manager"],
+							options: [
+								"Accounts User",
+								"Sales User",
+								"Stock User",
+								"System Manager",
+							],
+						},
+					],
+				},
+			],
+		},
 		Dropdown: {
 			helper: "frappe.ui.dropdown",
 			groups: [

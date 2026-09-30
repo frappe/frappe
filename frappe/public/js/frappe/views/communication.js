@@ -340,9 +340,12 @@ frappe.views.CommunicationComposer = class {
 
 	setup_multiselect_queries() {
 		["recipients", "cc", "bcc"].forEach((field) => {
-			this.dialog.fields_dict[field].get_data = () => {
-				const data = this.dialog.fields_dict[field].get_value();
-				const txt = data.match(/[^,\s*]*$/)[0] || "";
+			// the combobox field passes the typed text; the classic one leaves it in the value
+			this.dialog.fields_dict[field].get_data = (txt) => {
+				if (txt == null) {
+					const data = this.dialog.fields_dict[field].get_value();
+					txt = data.match(/[^,\s*]*$/)[0] || "";
+				}
 				const args = { txt };
 
 				if (this.frm?.events.get_email_recipient_filters) {

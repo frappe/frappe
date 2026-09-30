@@ -72,6 +72,12 @@ const POINTER_FOCUS_MS = 200;
 // a click within this time after a press is a mouse click, not a keyboard one
 const CLICK_AFTER_PRESS_MS = 300;
 let last_pointerdown_at = 0;
+// a finger opened it: focusing a text box would raise the phone's keyboard
+let last_press_touch = false;
+document.addEventListener("pointerdown", (e) => (last_press_touch = e.pointerType === "touch"), {
+	capture: true,
+	passive: true,
+});
 // record both press and click so a long press still counts
 for (const type of ["pointerdown", "click"]) {
 	document.addEventListener(
@@ -85,10 +91,14 @@ for (const type of ["pointerdown", "click"]) {
 	);
 }
 // after a key press, the next focus is from the keyboard
-document.addEventListener("keydown", () => (last_pointerdown_at = 0), {
-	capture: true,
-	passive: true,
-});
+document.addEventListener(
+	"keydown",
+	() => {
+		last_pointerdown_at = 0;
+		last_press_touch = false;
+	},
+	{ capture: true, passive: true }
+);
 const COMPONENT = "Combobox";
 
 let id_counter = 0;
@@ -245,6 +255,8 @@ frappe.ui.Combobox = class Combobox {
 			this.value_el = document.createElement("input");
 			this.value_el.type = "text";
 			this.value_el.setAttribute("autocomplete", "off");
+			// typing goes to the search, so a tap needn't raise the phone's keyboard
+			this.value_el.setAttribute("inputmode", "none");
 			this.value_el.setAttribute("aria-readonly", "true");
 			this.value_el.addEventListener("beforeinput", (e) => this.on_value_input(e));
 			this.value_el.addEventListener("input", (e) => {
@@ -724,7 +736,7 @@ frappe.ui.Combobox = class Combobox {
 		if (this.panel !== panel) return;
 		panel.setAttribute("data-state", "open");
 
-		if (this.input) {
+		if (this.input && !last_press_touch) {
 			this.input.focus({ preventScroll: true });
 			// cursor at the end so the typed character stays
 			this.input.setSelectionRange(this.input.value.length, this.input.value.length);
@@ -1132,7 +1144,7 @@ frappe.ui.Combobox = class Combobox {
 		this.group_els = [];
 		this.more_el = null;
 		this.list_el.replaceChildren();
-		for (const group of groups) {
+		for (const group of this.view_groups(groups)) {
 			const options = group.options.filter(filter);
 			if (!options.length) continue;
 			const group_el = this.make_group_el({ ...group, options });
@@ -1211,7 +1223,7 @@ frappe.ui.Combobox = class Combobox {
 			el.setAttribute("aria-disabled", "true");
 			el.disabled = true;
 		}
-		const selected = !!row.option && option.value === this.value;
+		const selected = !!row.option && this.is_picked(option);
 		el.setAttribute("aria-selected", selected ? "true" : "false");
 
 		const prefix = prefix_html(option, "sm");
@@ -1246,12 +1258,7 @@ frappe.ui.Combobox = class Combobox {
 			label.appendChild(description);
 		}
 		el.appendChild(label);
-		if (selected) {
-			el.insertAdjacentHTML(
-				"beforeend",
-				icon_html("check", "ms-auto shrink-0 text-ink-gray-6", COMPONENT)
-			);
-		}
+		if (row.option) this.mark_row(el, selected);
 
 		// keep focus in the search box on mousedown
 		el.addEventListener("pointerdown", (e) => e.preventDefault());
@@ -1264,6 +1271,24 @@ frappe.ui.Combobox = class Combobox {
 		row.el = el;
 		(row.option ? this.rows : this.footer_rows).push(row);
 		return el;
+	}
+
+	is_picked(option) {
+		return option.value === this.value;
+	}
+
+	// a tick after the label of the picked row
+	mark_row(el, picked) {
+		if (!picked) return;
+		el.insertAdjacentHTML(
+			"beforeend",
+			icon_html("check", "ms-auto shrink-0 text-ink-gray-6", COMPONENT)
+		);
+	}
+
+	// the groups to draw; a subclass can add or reorder them
+	view_groups(groups) {
+		return groups;
 	}
 
 	highlight(row, { scroll = true } = {}) {
