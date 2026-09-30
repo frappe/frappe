@@ -654,6 +654,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		index_name = index_name or get_qualified_index_name(
 			table_name, clean_fields, using, where=where, include=include
 		)
+		if self.has_index(table_name, index_name):
+			return
 
 		if using == "gin_trgm":
 			self.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
@@ -665,11 +667,33 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}"'
 			f"{method} ({self._index_target(clean_fields, using)}){include_clause}{condition}"
 		)
+		# `search_index` stands for a plain index, so a partial, covering or `using` one must not set it
+		if not (using or where or include):
+			self.persist_search_index(doctype, fields)
+
+	def persist_search_index(self, doctype: str, fields: list[str]) -> None:
+		"""Set `search_index` on a single field indexed outside install or migrate, so alter keeps the index."""
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		if len(fields) != 1 or frappe.flags.in_install or frappe.flags.in_migrate:
+			return
+		# a raw table, a standard column or a prefix length like `field(10)` has no docfield to mark
+		if not self.exists("DocType", doctype) or not frappe.get_meta(doctype).has_field(fields[0]):
+			return
+		make_property_setter(
+			doctype,
+			fields[0],
+			property="search_index",
+			value="1",
+			property_type="Check",
+			for_doctype=False,  # Applied on docfield
+		)
 
 	def _index_target(self, fields: list[str], using: str | None) -> str:
 		"""The column list (or functional expression) an index is built over, per `using` mode."""
 		if using == "gin_trgm":
-			return ", ".join(f'"{field}" gin_trgm_ops' for field in fields)
+			opclass = self.get_trigram_opclass()
+			return ", ".join(f'"{field}" {opclass}' for field in fields)
 		if using == "gin_fulltext":
 			# 'english' regconfig keeps to_tsvector immutable so it can be indexed; the search query
 			# must use the same config. ponytail: hardcoded -- add a `config` arg if multilingual
@@ -681,6 +705,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			)
 			return f"to_tsvector('english', {document})"
 		return '"' + '", "'.join(fields) + '"'
+
+	def get_trigram_opclass(self) -> str:
+		"""`gin_trgm_ops` qualified with pg_trgm's schema, which may be off the site's search_path."""
+		# regnamespace prints the schema name quoted where needed
+		schema = self.sql("SELECT extnamespace::regnamespace FROM pg_extension WHERE extname = 'pg_trgm'")
+		return f"{schema[0][0]}.gin_trgm_ops"
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		from frappe.database.postgres.schema import get_qualified_index_name
