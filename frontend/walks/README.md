@@ -7,7 +7,8 @@ many times each field and each list row is drawn, on a normal and a throttled ne
 
 Before it starts, the walk stores a Client Script on the doctype, named `Return Visit Walk`.
 Its `onRefresh` draws a header item with the doctype's row count, read with
-`page.cached`. The walk deletes the script when it ends. The `script` column counts how
+`page.cached`. The walk deletes the script when it ends. It deletes only a script it made,
+so if the site already has another script of that name, the walk stops. The `script` column counts how
 many times that item is drawn on a record step.
 
 A return step fails when it shows a skeleton, draws any field or row more than once, or

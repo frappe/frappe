@@ -7,8 +7,11 @@ export const PENDING = "page.cached pending";
 
 const NAME = "Return Visit Walk";
 const DOCUMENTS = `${BASE_URL}/api/v2/document/Client%20Script`;
+const SCRIPT_URL = `${DOCUMENTS}/${encodeURIComponent(NAME)}/`;
+const MARKER = "// Stored by the return-visit walk, which deletes it.";
 
-const SOURCE = `import { h } from "vue";
+const SOURCE = `${MARKER}
+import { h } from "vue";
 
 const Count = {
 	props: ["label", "page"],
@@ -51,8 +54,15 @@ async function withRequest(work) {
 	}
 }
 
+/** Deletes only the walk's own script; a script of that name without the marker stops the walk. */
 async function remove(request) {
-	const response = await request.delete(`${DOCUMENTS}/${encodeURIComponent(NAME)}/`);
+	const found = await request.get(SCRIPT_URL);
+	if (found.status() === 404) return;
+	if (!found.ok()) throw new Error(`Client Script read failed with ${found.status()}`);
+	const { data } = await found.json();
+	if (!String(data.script ?? "").startsWith(MARKER))
+		throw new Error(`A Client Script named "${NAME}" exists and the walk did not make it.`);
+	const response = await request.delete(SCRIPT_URL);
 	if (!response.ok() && response.status() !== 404)
 		throw new Error(`Client Script delete failed with ${response.status()}`);
 }

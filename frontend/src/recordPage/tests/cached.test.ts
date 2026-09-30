@@ -354,6 +354,23 @@ describe("page.cached", () => {
     expect(drawn(controller)).toEqual(["credit -"]);
   });
 
+  it("keeps nothing a fetch brings after the record's entry left and came back", async () => {
+    const limit = deferred<number>();
+    await creditLimitScript(() => limit.promise);
+    const first = await visit();
+    await first.controller.refresh();
+    feedDelete(takeTicket(), DOCTYPE, DOCNAME);
+    cacheRecord();
+
+    limit.settle(5000);
+    await vi.advanceTimersByTimeAsync(0);
+    first.controller.leave();
+    const { controller } = await visit();
+    controller.paintNow();
+
+    expect(drawn(controller)).toEqual(["credit -"]);
+  });
+
   it("keeps nothing for a record the shared cache holds no complete entry of", async () => {
     clearDataCache();
     await creditLimitScript(async () => 5000);

@@ -1,5 +1,5 @@
 // `page.cached` for one visit: a kept value at once, and one fetch per key per visit.
-import { keepValue, keptValue } from "./keptValues";
+import { keeperFor, keptValue } from "./keptValues";
 import type { LateRefresh } from "./paintGate";
 
 interface CachedRead {
@@ -48,10 +48,11 @@ export class CachedReads {
 
   /** A failed fetch keeps the value the page already has. */
   private fetch(read: CachedRead): Promise<void> {
+    const keep = keeperFor(this.doctype, this.docname);
     return new Promise((resolve) => resolve(read.fetch())).then(
       (value) => {
         read.value = value;
-        keepValue(this.doctype, this.docname, storeKey(read.source, read.key), value);
+        keep(storeKey(read.source, read.key), value);
       },
       (error) => {
         console.warn(

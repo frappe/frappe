@@ -11,13 +11,15 @@ export function keptValue(doctype: string, name: string, key: string): { value: 
   return values?.has(key) ? { value: values.get(key) } : undefined;
 }
 
-/** Keeps nothing for a record the shared cache holds no complete entry of, so nothing outlives its entry. */
-export function keepValue(doctype: string, name: string, key: string, value: unknown) {
-  if (!readCachedDocument(doctype, name)?.complete) return;
+/** Taken when a fetch starts: it drops the write once the record's complete entry has left since, or when there was none. */
+export function keeperFor(doctype: string, name: string): (key: string, value: unknown) => void {
+  if (!readCachedDocument(doctype, name)?.complete) return () => {};
   const record = recordKey(doctype, name);
   const values = kept.get(record) ?? new Map<string, unknown>();
-  values.set(key, value);
   kept.set(record, values);
+  return (key, value) => {
+    if (kept.get(record) === values) values.set(key, value);
+  };
 }
 
 export function resetKeptValues() {
