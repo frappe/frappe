@@ -866,6 +866,21 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Label below icon"),
+					items: [
+						{
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Fix issues" },
+								{ label: "Import" },
+							],
+							current: 1,
+							label_below: true,
+						},
+					],
+				},
+				{
 					title: __("Compact (narrow layouts)"),
 					items: [
 						{

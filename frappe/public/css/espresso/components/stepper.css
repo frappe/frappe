@@ -30,6 +30,9 @@
  * Compact mode (JS option `compact`) renders the frappe.ui.progress interval
  * form with a "Step x of y" hint for narrow layouts; mount a compact and a
  * full instance and toggle visibility at your breakpoint.
+ *
+ * Label-below mode (JS option `label_below`) adds es-stepper--label-below,
+ * which stacks each label under its marker.
  */
 
 .es-stepper {
@@ -133,4 +136,27 @@
 
 .es-stepper__connector[data-completed="true"] {
     background: var(--outline-gray-3);
+}
+
+/* Steps may shrink so long labels ellipsize instead of overflowing the row. */
+.es-stepper--label-below {
+    align-items: flex-start;
+}
+
+.es-stepper--label-below .es-stepper__step {
+    flex-direction: column;
+    flex-shrink: 1;
+    gap: calc(var(--spacing) * 1);
+    max-width: calc(var(--spacing) * 32);
+    padding-inline: calc(var(--spacing) * 0.5);
+}
+
+.es-stepper--label-below .es-stepper__label {
+    max-width: 100%;
+    text-align: center;
+}
+
+/* Step padding-top plus half the marker keeps connectors on the marker row. */
+.es-stepper--label-below .es-stepper__connector {
+    margin-top: calc(var(--spacing) * 3);
 }
