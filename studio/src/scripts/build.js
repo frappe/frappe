@@ -223,15 +223,15 @@ ${pageScripts
 })`
 		: ""
 
-	// A standard app's studio/<app>/router.ts is compiled in.
+	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
 	const routerImport = appRouter ? `import routerConfig from ${JSON.stringify(appRouter)}` : ""
-	const routerConfig = appRouter ? "routerConfig" : "{}"
+	const routerConfig = appRouter ? "routerConfig" : "await loadRouterConfig()"
 
 	const rendererContent = `import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import { createAppRouter } from "@/router/app_router"
+import { createAppRouter, loadRouterConfig } from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 ${routerImport}

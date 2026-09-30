@@ -130,7 +130,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function updateActiveApp(key: string, value: string) {
-		studioApps.setValue.submit(
+		return studioApps.setValue.submit(
 			{ name: activeApp.value?.name, [key]: value },
 			{
 				onSuccess() {

@@ -13,6 +13,7 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
 
 from studio.build import StudioAppBuilder, get_app_router_file, get_published_custom_apps
+from studio.studio.doctype.studio_app.studio_app import StudioApp
 
 
 class TestStudioApp(FrappeTestCase):
@@ -33,9 +34,14 @@ class TestStudioApp(FrappeTestCase):
 		self.assertEqual(context.boot, {})
 
 	def test_context_exposes_the_router_file_only_in_developer_mode(self):
-		app = make_studio_app(
-			app_title="Routed App", app_name="routed-app", is_standard=1, frappe_app="studio", route="routed"
-		)
+		with exports_in_tempdir():
+			app = make_studio_app(
+				app_title="Routed App",
+				app_name="routed-app",
+				is_standard=1,
+				frappe_app="studio",
+				route="routed",
+			)
 		with mock_studio_app_files(app.name, router="{ setup(router) {} }") as studio_folder, patch(
 			"studio.build.get_studio_folder", return_value=studio_folder
 		), patch.object(frappe.db, "commit"):
@@ -50,6 +56,33 @@ class TestStudioApp(FrappeTestCase):
 				context = frappe._dict()
 				app.get_context(context)
 				self.assertIsNone(context.app_router_file)
+
+	def test_context_carries_the_router_script_for_custom_apps_only(self):
+		app = unsaved_studio_app("router-script-app")
+		app.router_script = ROUTER_SCRIPT
+		self.assertEqual(app.get_router_script(), ROUTER_SCRIPT)
+		app.is_standard = 1
+		self.assertIsNone(app.get_router_script())
+
+	def test_export_moves_the_router_script_into_router_ts_and_back(self):
+		with exports_in_tempdir():
+			app = make_studio_app(app_title="Routed Custom App", app_name="routed-custom-app")
+			app.router_script = ROUTER_SCRIPT
+			app.save()
+
+			app.enable_app_export("studio")
+			app.reload()
+			self.assertFalse(app.router_script)
+			self.assertEqual(
+				frappe.read_file(app.get_router_file_path()), f"export default {ROUTER_SCRIPT}\n"
+			)
+			exported = json.loads(
+				frappe.read_file(os.path.join(app.get_folder_path(), "routed_custom_app.json"))
+			)
+			self.assertNotIn("router_script", exported)
+
+			app.disable_app_export()
+			self.assertEqual(app.reload().router_script, ROUTER_SCRIPT)
 
 	def test_boot_comes_from_studio_app_boot_hook(self):
 		app = unsaved_studio_app("boot-app")
@@ -339,6 +372,24 @@ class TestStudioAppBuilder(FrappeTestCase):
 		expected_files_path = os.path.abspath(get_files_path("app_builds", app_name))
 		self.assertEqual(builder.out_dir, expected_files_path)
 		self.assertEqual(builder.base, f"/files/app_builds/{app_name}/")
+
+
+ROUTER_SCRIPT = """{
+	extendRoute(route) {
+		if (route.name === "Board") route.alias = "/tasks"
+	},
+}"""
+
+
+@contextmanager
+def exports_in_tempdir():
+	with (
+		tempfile.TemporaryDirectory() as tmpdir,
+		patch("frappe.get_app_source_path", side_effect=lambda app, *path: os.path.join(tmpdir, app, *path)),
+		patch.dict(frappe.conf, {"developer_mode": 1}),
+		patch.object(StudioApp, "add_to_studio_apps_txt"),
+	):
+		yield
 
 
 def unsaved_studio_app(name):

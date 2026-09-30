@@ -10,7 +10,11 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
-from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
+from studio.studio.doctype.studio_app.test_studio_app import (
+	exports_in_tempdir,
+	make_studio_app,
+	make_studio_page,
+)
 from studio.studio.doctype.studio_page.copy_paste_handler import (
 	create_missing_dependencies,
 	duplicate_page,
@@ -49,17 +53,6 @@ def make_page_with_data(app_name: str):
 	page.script = PAGE_SCRIPT
 	page.save()
 	return page
-
-
-@contextmanager
-def exports_in_tempdir():
-	with (
-		tempfile.TemporaryDirectory() as tmpdir,
-		patch("frappe.get_app_source_path", side_effect=lambda app, *path: os.path.join(tmpdir, app, *path)),
-		patch.dict(frappe.conf, {"developer_mode": 1}),
-		patch.object(StudioApp, "add_to_studio_apps_txt"),
-	):
-		yield
 
 
 class TestStudioPage(IntegrationTestCase):

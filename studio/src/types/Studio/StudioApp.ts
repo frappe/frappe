@@ -18,6 +18,8 @@ export interface StudioApp {
 	is_standard: 0 | 1
 	/**	Frappe App : Target Frappe App for export */
 	frappe_app?: string
+	/**	Router Script : router.ts's object for a custom app, kept in the DB */
+	router_script?: string
 }
 
 export type NewStudioApp = Pick<StudioApp, "app_title" | "route" | "app_name"> & {

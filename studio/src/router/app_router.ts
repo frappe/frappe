@@ -7,6 +7,8 @@ import {
 } from "vue-router"
 import AppContainer from "@/pages/AppContainer.vue"
 import NotFound from "@/pages/NotFound.vue"
+import { vueReactivityApis } from "@/stores/codeStore"
+import * as globalUtils from "@/utils/globalUtils"
 
 interface Page {
 	name: string
@@ -14,7 +16,7 @@ interface Page {
 	page_title: string
 }
 
-// An app's studio/<app>/router.ts default export
+// An app's studio/<app>/router.ts default export, or a custom app's router script
 export type RouterConfig = {
 	// forwarded to createRouter; `routes` and `history` are withheld, Studio owns both
 	options?: Omit<RouterOptions, "history" | "routes">
@@ -31,6 +33,7 @@ declare global {
 		app_pages: Page[]
 		app_home?: string
 		app_router_file?: string | null
+		router_script?: string | null
 		boot?: Record<string, unknown>
 		is_guest?: boolean
 	}
@@ -56,11 +59,26 @@ export async function createAppRouter(config: RouterConfig = {}): Promise<Router
 	return router
 }
 
-// the dev preview imports router.ts from the vite dev server; the production build compiles it in
+// a custom app's router script comes with the page; a standard app's router.ts is imported from the
+// vite dev server in the preview and compiled in by the production build
 export async function loadRouterConfig(): Promise<RouterConfig> {
+	if (window.router_script) return compileRouterScript(window.router_script)
 	if (!window.app_router_file) return {}
 	const mod = await import(/* @vite-ignore */ window.app_router_file)
 	return mod.default || {}
+}
+
+// the router.ts object without import/export, run like a custom page script: no module scope, so
+// call/toast and the Vue reactivity APIs are put in scope (boot is a global already)
+function compileRouterScript(source: string): RouterConfig {
+	if (!source.trim()) return {}
+	try {
+		const factory = new Function("context", `with (context) { return (\n${source}\n) }`)
+		return factory({ ...vueReactivityApis, ...globalUtils }) || {}
+	} catch (error) {
+		console.error("Error running the app's router script", error)
+		return {}
+	}
 }
 
 function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
