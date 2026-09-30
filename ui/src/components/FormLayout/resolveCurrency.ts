@@ -1,10 +1,7 @@
-/**
- * Currency-code resolution for `FormLayout`'s `Currency` fields, mirroring Frappe
- * desk's `frappe.meta.get_field_currency`. The cross-record read goes through an
- * overridable `getDocValue` seam (built-in reader below, over the v2 list route).
- */
-import { ref, shallowRef, type Ref } from "vue";
-import { listDocuments } from "../../api";
+// A Currency field's currency code, as desk's `frappe.meta.get_field_currency` finds it.
+import { getCurrentScope, onScopeDispose, shallowRef } from "vue";
+import { getDocumentFields } from "../../api";
+import { holdDocument, readCachedDocument } from "../../cache";
 import { pickSiblingValue } from "./pickSiblingValue";
 import type { RecordContext } from "./pickSiblingValue";
 
@@ -26,50 +23,56 @@ export interface CurrencyResolveContext extends RecordContext {
 
 // --- Built-in runtime reader -------------------------------------------------
 
-/** One field of one record, keyed by doctype, name and field; the oldest goes past the cap. */
-const values = new Map<string, Ref<string | null | undefined>>();
-const MAX_VALUES = 500;
+/** Each doctype, name and field that readers on screen use: how many, and the cache hold. */
+const readers = new Map<string, { count: number; release: () => void }>();
 
-/** Built-in reader over the v2 list route; `undefined` until the read lands, never with no `window`. */
-function builtinGetDocValue(
+/** The reader for one component; the first reader on screen reads the value into the cache. */
+export function useDocValueReader(): DocValueReader {
+  // With no scope nothing would release the value, so the reader reads the cache alone.
+  if (!getCurrentScope()) return (...args) => getDocValueReader()(...args);
+  const used = new Map<string, string>();
+  onScopeDispose(() => used.forEach(release));
+  return (doctype, name, field) => {
+    if (override.value) return override.value(doctype, name, field);
+    const slot = [doctype, field].join("\u0000");
+    const key = [doctype, name, field].join("\u0000");
+    const previous = used.get(slot);
+    if (previous !== key) {
+      if (previous) release(previous);
+      used.set(slot, key);
+      use(key, doctype, name, field);
+    }
+    return readCachedValue(doctype, name, field);
+  };
+}
+
+/** The linked record's value in the shared data cache; `undefined` when its entry lacks it. */
+function readCachedValue(
   doctype: string,
   name: string,
   field: string
 ): string | null | undefined {
-  if (typeof window === "undefined") return undefined;
-
-  const key = [doctype, name, field].join("\u0000");
-  let value = values.get(key);
-  // One ref per key: the calling computed re-runs when it lands, and a fresh read each
-  // re-run would be a fetch storm.
-  if (!value) {
-    value = ref<string | null | undefined>(undefined);
-    values.set(key, value);
-    if (values.size > MAX_VALUES)
-      values.delete(values.keys().next().value as string);
-    // A failed read answers `null` and stays: forgetting it would retry on every re-run.
-    readDocValue(doctype, name, field).then(
-      (result) => (value.value = result),
-      () => (value.value = null)
-    );
-  }
-  return value.value;
+  const doc = readCachedDocument(doctype, name)?.doc;
+  if (!doc || !(field in doc)) return undefined;
+  const value = doc[field];
+  return value == null ? null : String(value);
 }
 
-/** `GET /document/<doctype>?fields=[field]&filters={name}`: one field, permission-checked. */
-function readDocValue(
-  doctype: string,
-  name: string,
-  field: string
-): Promise<string | null> {
-  return listDocuments(doctype, {
-    fields: [field],
-    filters: { name },
-    limit: 1,
-  }).then(({ data }) => {
-    const value = data[0]?.[field];
-    return value == null ? null : String(value);
-  });
+function use(key: string, doctype: string, name: string, field: string): void {
+  const reader = readers.get(key);
+  if (reader) {
+    reader.count++;
+    return;
+  }
+  readers.set(key, { count: 1, release: holdDocument(doctype, name) });
+  if (typeof window !== "undefined") getDocumentFields(doctype, name, [field]).catch(() => {});
+}
+
+function release(key: string): void {
+  const reader = readers.get(key);
+  if (!reader || --reader.count > 0) return;
+  readers.delete(key);
+  reader.release();
 }
 
 /** App/test override for the cross-record reader; mirrors `setFormatDefaults`. */
@@ -80,15 +83,16 @@ export function setDocValueReader(reader: DocValueReader | null): void {
   override.value = reader;
 }
 
-/** Restore the built-in reader and forget its reads (test isolation). */
+/** Restore the built-in reader and forget which values are in use (test isolation). */
 export function resetDocValueReader(): void {
   override.value = null;
-  values.clear();
+  readers.forEach((reader) => reader.release());
+  readers.clear();
 }
 
-/** The active cross-record reader: the override if set, else the built-in. */
+/** The active cross-record reader: the override if set, else a read of the cache alone. */
 export function getDocValueReader(): DocValueReader {
-  return override.value ?? builtinGetDocValue;
+  return override.value ?? readCachedValue;
 }
 
 // --- Resolution --------------------------------------------------------------

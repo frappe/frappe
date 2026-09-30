@@ -5,6 +5,7 @@
 import {
   feedDelete,
   feedDocumentWrite,
+  feedFieldRead,
   feedListRead,
   feedReadError,
   feedRecordRead,
@@ -129,6 +130,22 @@ export function listDocuments<T = DocumentRecord>(
   return fed<T[]>("GET", `/document/${segment(doctype)}`, options, (ticket, envelope) =>
     feedListRead(ticket, doctype, query, envelope as ListEnvelope<DocumentRecord>)
   ) as Promise<ListEnvelope<T>>;
+}
+
+/** Some fields of one record, over the list route; feeds its document entry and no list entry. */
+export async function getDocumentFields<T = DocumentRecord>(
+  doctype: string,
+  name: string,
+  fields: readonly string[],
+  { signal }: CallOptions = {}
+): Promise<Envelope<T | null>> {
+  const asked = [...new Set([...fields, "name", "modified"])];
+  const query = { fields: asked, filters: { name }, limit: 1 };
+  const path = `/document/${segment(doctype)}`;
+  const envelope = await fed<T[]>("GET", path, { query, signal }, (ticket, reply) =>
+    feedFieldRead(ticket, doctype, reply.data[0])
+  );
+  return { ...envelope, data: envelope.data[0] ?? null };
 }
 
 export function countDocuments(
