@@ -12,7 +12,7 @@ from frappe.custom.doctype.property_setter.property_setter import (
 from frappe.database import savepoint
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.test_query_builder import run_only_if, unimplemented_for
 from frappe.utils import cstr
 
 
@@ -570,7 +570,7 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(doctype.name, linked.name, "link_field"), target.name)
 		self.assertIsNone(frappe.db.get_value(doctype.name, blank.name, "link_field"))
 
-	@run_only_if(db_type_is.MARIADB)
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_trim_table_keeps_generated_column(self):
 		doctype = new_doctype().insert()
 		column = f"key_{frappe.generate_hash(length=6)}"
@@ -595,7 +595,7 @@ class TestDBUpdate(IntegrationTestCase):
 			)[0][0]
 		self.assertEqual(length, 64)
 
-	@run_only_if(db_type_is.POSTGRES)
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_generated_column_keeps_unique_index(self):
 		"""A generated column is never a deleted field, so sync must keep its unique index"""
 		doctype = new_doctype().insert()
