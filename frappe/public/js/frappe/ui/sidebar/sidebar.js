@@ -759,7 +759,7 @@ frappe.ui.Sidebar = class Sidebar {
 		// first.
 		return this.dock?.resolved
 			? this.dock.is_pinned
-			: frappe.boot.desk_settings?.dock_mode === "Pinned";
+			: frappe.boot.desk_settings?.dock_mode !== "Floating";
 	}
 
 	// Redraws a collapsed sidebar whose form no longer fits. Nobody collapsed anything, so it does

@@ -415,10 +415,10 @@ function _layout_preview_window(type) {
 }
 
 function _render_dock_cards(panel, user_data) {
-	const current = user_data.dock_mode === "Pinned" ? "Pinned" : "Floating";
+	const current = user_data.dock_mode === "Floating" ? "Floating" : "Pinned";
 	const options = [
-		{ value: "Floating", label: __("Floating") },
 		{ value: "Pinned", label: __("Pinned") },
+		{ value: "Floating", label: __("Floating") },
 	];
 
 	const $grid = $(`<div class="flex gap-3 mb-4 max-w-lg"></div>`);
