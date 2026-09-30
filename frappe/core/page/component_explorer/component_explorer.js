@@ -40,7 +40,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
-					title: __("Groups, shortcuts and disabled rows"),
+					title: __("Groups, shortcuts, links and disabled rows"),
 					items: [
 						{
 							button: { label: "File" },
@@ -59,6 +59,12 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 											shortcut: "ctrl+p",
 											onclick: () =>
 												frappe.ui.toast({ message: "Print clicked" }),
+										},
+										{
+											label: "Documentation",
+											href: "https://docs.frappe.io/framework",
+											target: "_blank",
+											icon_right: "external-link",
 										},
 									],
 								},
