@@ -24,10 +24,11 @@ export const NETWORKS = {
 	},
 };
 
-export async function setUp() {
+/** `choose` picks the doctype from the navigation's when `DOCTYPE` is not set. */
+export async function setUp(choose = firstWithRows) {
 	const jsonPath = jsonPathArgument();
 	const networks = networkNames();
-	const target = await resolveTarget();
+	const target = await resolveTarget(choose);
 	return { jsonPath, networks, target };
 }
 
@@ -46,12 +47,12 @@ function networkNames() {
 	return [NETWORK];
 }
 
-async function resolveTarget() {
+async function resolveTarget(choose) {
 	const request = await requestApi.newContext();
 	try {
 		await logIn(request);
 		const desk = await deskBoot(request);
-		const doctype = DOCTYPE || (await firstWithRows(request, navigationDoctypes(desk)));
+		const doctype = DOCTYPE || (await choose(request, navigationDoctypes(desk)));
 		return { doctype, listPath: listPathOf(desk, doctype) };
 	} finally {
 		await request.dispose();
@@ -76,7 +77,7 @@ async function deskBoot(request) {
 	return { route: desk.route, modular, navigation: boot.navigation, addresses };
 }
 
-async function getMethod(request, method, params) {
+export async function getMethod(request, method, params) {
 	const response = await request.get(`${BASE_URL}/api/v2/method/${method}`, { params });
 	if (!response.ok()) throw new Error(`${method} failed with ${response.status()}`);
 	return (await response.json()).data;

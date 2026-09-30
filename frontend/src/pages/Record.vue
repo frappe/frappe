@@ -739,7 +739,8 @@ function keep() {
 	keepView({
 		tab: shownTab.value,
 		formTab: activeFormTab.value || formTab.value,
-		sections: formSections.value,
+		// A copy: `history.replaceState` cannot clone a reactive proxy.
+		sections: { ...formSections.value },
 		panel: disclosure.shown(),
 		offsets: readOffsets(root, shownTab.value),
 	});

@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "walk": "node returnVisit.js"
+    "walk": "node returnVisit.js",
+    "walk:view": "node viewRestore.js"
   },
   "devDependencies": {
     "playwright": "1.62.1"

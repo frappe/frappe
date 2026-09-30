@@ -172,7 +172,13 @@ let visits = 0;
 let name = "";
 let other = "";
 
+// happy-dom keeps the state as given; a browser clones it, and throws on a reactive proxy.
+const replaceState = history.replaceState.bind(history);
+
 beforeEach(() => {
+  vi.spyOn(history, "replaceState").mockImplementation((state, unused, url) =>
+    replaceState(structuredClone(state), unused, url),
+  );
   name = `N-${++visits}`;
   other = `N-${++visits}`;
   server.doc = { doctype: "Note", name, title: "First", status: "Open", modified: OLD };

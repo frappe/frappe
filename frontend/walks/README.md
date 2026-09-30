@@ -28,6 +28,60 @@ also fails when the page did not read the doctype's meta again.
 
 The walk is run by hand, not in CI.
 
+## View-restore walk
+
+`viewRestore.js` checks that a return visit to a record shows the view the reader left.
+
+Before it starts, it stores two Form Layouts on the doctype and deletes them at the end:
+
+- a Details layout, copied from the doctype's own, with the first labelled section of a later
+  form tab closed by default;
+- a Side Panel layout with enough fields that the panel column scrolls.
+
+The walk picks the later tab with the most fields. Both rows carry the condition
+`doc.name != 'view-restore-walk'`, which every record matches; the walk deletes only rows
+with that condition.
+
+On the first visit, the walk picks that form tab, opens the closed section, and scrolls
+the Details tab and the panel column halfway down. It then goes Back to the list, Forward
+to the record, to the list through the rail, sidebar or breadcrumb, Back to the record, to
+the list again, and to the record through navigation or its list row. On each return to
+the record it checks:
+
+- each scroll offset is within 1 px of the first visit's;
+- the form tab and the state of every section match the first visit's;
+- no frame, from the first one that shows the record, showed a different offset.
+
+Last, it opens a record from the list that it has not visited. That step fails unless both
+offsets are 0 and every section is as the layout starts it.
+
+A frame's offsets are read after that frame's animation-frame callbacks and layout, before
+it paints. A step also fails when it does not settle in time. The walk stops with a
+message when the doctype has no later form tab with a labelled section, or when a scroller
+moves less than 40 px.
+
+```sh
+yarn --cwd frontend/walks walk:view
+DOCTYPE=User yarn --cwd frontend/walks walk:view --json /tmp/view.json
+```
+
+Without `DOCTYPE`, it takes the navigation doctype with at least three rows whose later
+form tab has the most fields. `User` works on a stock site: its Settings tab scrolls.
+
+### Against a checkout's frontend
+
+The bench answers `/apps` with its built document. To walk a checkout's source without
+building, serve it with vite and point the walk at it:
+
+```sh
+cd frontend && ./node_modules/.bin/vite --config walks/vite.walk.config.js
+BASE_URL=http://<site>:8098 yarn --cwd frontend/walks walk:view
+```
+
+The config serves `/apps` from the checkout and sends every other bench path to the
+bench. It needs `frontend/manifest.json`; copy the one from a built checkout and point the
+`frappe` app's source directory at this checkout. `WALK_PORT` changes the port.
+
 ## Run
 
 ```sh
