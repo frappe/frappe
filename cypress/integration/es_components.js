@@ -97,6 +97,25 @@ context("Espresso components", () => {
 			cy.contains(".es-menu__item", "Archive").should("match", "button").and("be.disabled");
 		});
 
+		it("separates shortcut keys on Linux and Windows while keeping Mac symbols compact", () => {
+			cy.window().then((win) => cy.stub(win.frappe.utils, "is_mac").returns(false));
+			cy.contains(".explorer-group", "Groups, shortcuts and disabled rows")
+				.find('[aria-haspopup="menu"]')
+				.first()
+				.as("trigger")
+				.click();
+			cy.contains(".es-menu__item", "Rename")
+				.find(".es-menu__shortcut")
+				.should("have.text", "Ctrl+R");
+
+			cy.get("@trigger").click();
+			cy.window().then((win) => win.frappe.utils.is_mac.returns(true));
+			cy.get("@trigger").click();
+			cy.contains(".es-menu__item", "Rename")
+				.find(".es-menu__shortcut")
+				.should("have.text", "⌘R");
+		});
+
 		it("async options open in a loading state, then fill in when the promise settles", () => {
 			cy.contains(".explorer-group", "Async items")
 				.find('[aria-haspopup="menu"]')
