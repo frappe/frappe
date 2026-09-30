@@ -1251,6 +1251,11 @@ class TestListPartsV2(FrappeAPITestCase):
 		response = self.get(self.doctype_path("ToDo", "search"), {"sid": "Guest", "txt": self.prefix})
 		self.assertEqual(response.status_code, 403)
 
+	def test_search_refuses_a_guest_the_doctype_names(self):
+		# a DocType search skips the permission check, so the route is the only refusal
+		response = self.get(self.doctype_path("DocType", "search"), {"sid": "Guest", "txt": "User"})
+		self.assertEqual(response.status_code, 403, response.json)
+
 
 class TestCollaborationWritesV2(FrappeAPITestCase):
 	"""`POST`, `DELETE` and `PATCH` on the collaboration parts of a document route."""
@@ -1744,15 +1749,54 @@ class TestSessionAPIV2(FrappeAPITestCase):
 		self.assertIn("Guest", data["roles"])
 
 	def test_session_withholds_site_defaults_from_a_guest_v2(self):
-		frappe.db.set_default("api_v2_guest_defaults_probe", "leaked")
+		self.assertEqual(self.session_defaults("Guest"), {})
+
+	def test_session_withholds_site_defaults_from_a_website_user_v2(self):
+		email = "api-session-website-user@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": "Website", "send_welcome_email": 0}
+			).insert(ignore_permissions=True)
+		try:
+			self.assertEqual(frappe.db.get_value("User", email, "user_type"), "Website User")
+			self.assertEqual(self.session_defaults(sid_of(email)), {})
+		finally:
+			frappe.delete_doc_if_exists("User", email, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_session_gives_site_defaults_to_a_system_user_v2(self):
+		self.assertEqual(self.session_defaults(self.sid).get(self.DEFAULTS_PROBE), "leaked")
+
+	DEFAULTS_PROBE = "api_v2_defaults_probe"
+
+	def session_defaults(self, sid: str) -> dict:
+		frappe.db.set_default(self.DEFAULTS_PROBE, "leaked")
 		frappe.db.commit()  # nosemgrep
 		try:
-			response = self.get(self.session_path(), {"sid": "Guest"})
+			response = self.get(self.session_path(), {"sid": sid})
 			self.assertEqual(response.status_code, 200, response.json)
-			self.assertEqual(response.json["data"]["defaults"], {})
+			return response.json["data"]["defaults"]
 		finally:
-			frappe.defaults.clear_default("api_v2_guest_defaults_probe")
+			frappe.defaults.clear_default(self.DEFAULTS_PROBE)
 			frappe.db.commit()  # nosemgrep
+
+
+def sid_of(user: str) -> str:
+	from frappe.auth import CookieManager, LoginManager
+	from frappe.utils import set_request
+
+	original_request = getattr(frappe.local, "request", None)
+	original_user = frappe.session.user
+	set_request(path="/")
+	try:
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.login_manager.login_as(user)
+		return frappe.session.sid
+	finally:
+		frappe.local.request = original_request
+		# logging in leaves this thread as that user, and the cleanup here runs as Administrator
+		frappe.set_user(original_user)
 
 
 class TestFileRoutesV2(FrappeAPITestCase):
@@ -1813,26 +1857,9 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
-	def sid_of(self, user: str) -> str:
-		from frappe.auth import CookieManager, LoginManager
-		from frappe.utils import set_request
-
-		original_request = getattr(frappe.local, "request", None)
-		original_user = frappe.session.user
-		set_request(path="/")
-		try:
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as(user)
-			return frappe.session.sid
-		finally:
-			frappe.local.request = original_request
-			# logging in leaves this thread as that user, and the cleanup here runs as Administrator
-			frappe.set_user(original_user)
-
 	@cached_property
 	def user_sid(self) -> str:
-		return self.sid_of(self.TEST_USER)
+		return sid_of(self.TEST_USER)
 
 	def upload(self, path: str, content: bytes, file_name: str, **fields):
 		"""A multipart POST, the way the browser's chunk loop sends one."""
@@ -1949,13 +1976,36 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		frappe.delete_doc_if_exists("File", file_name, force=True)
 
 	def test_attach_needs_write_on_the_document(self):
-		data = {"file": (BytesIO(b"hello"), "denied.txt"), "sid": self.sid_of(self.READER)}
+		data = {"file": (BytesIO(b"hello"), "denied.txt"), "sid": sid_of(self.READER)}
 		response = make_request(
 			target=self.TEST_CLIENT.post,
 			args=(self.attachments_path(self.todo.name),),
 			kwargs={"data": data},
 		)
 		self.assertEqual(response.status_code, 403, response.json)
+
+	def test_attach_refuses_a_guest_who_cannot_read_the_document(self):
+		# a Guest upload skips the write check, and the answer lists the document's attachments
+		settings = {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "ToDo"}
+		previous = {key: frappe.db.get_single_value("System Settings", key) for key in settings}
+		frappe.db.set_single_value("System Settings", settings)
+		frappe.db.commit()  # nosemgrep
+		try:
+			data = {"file": (BytesIO(b"hello"), "guest.txt"), "sid": "Guest"}
+			response = make_request(
+				target=self.TEST_CLIENT.post,
+				args=(self.attachments_path(self.other.name),),
+				kwargs={"data": data},
+			)
+			self.assertEqual(response.status_code, 403, response.json)
+			self.assertNotIn("attachments", response.json.get("data") or {})
+			frappe.db.rollback()
+			self.assertFalse(
+				frappe.db.exists("File", {"attached_to_name": self.other.name, "file_name": "guest.txt"})
+			)
+		finally:
+			frappe.db.set_single_value("System Settings", previous)
+			frappe.db.commit()  # nosemgrep
 
 	def test_attach_without_bytes_is_an_error(self):
 		response = self.post(self.attachments_path(self.todo.name), {"sid": self.user_sid})
