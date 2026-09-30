@@ -40,7 +40,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
-					title: __("Groups, shortcuts, links and disabled rows"),
+					title: __("Groups, shortcuts and disabled rows"),
 					items: [
 						{
 							button: { label: "File" },
