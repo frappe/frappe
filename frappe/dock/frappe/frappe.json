@@ -24,7 +24,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "mail",
+   "icon": "email-envelope-duotone",
    "link_to": "Email",
    "link_type": "Sidebar",
    "title": "Email"
@@ -32,7 +32,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "globe",
+   "icon": "website-browser-duotone",
    "link_to": "Website",
    "link_type": "Sidebar",
    "title": "Website"
@@ -102,7 +102,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-09-30 23:52:00.000000",
+ "modified": "2026-10-01 01:05:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
