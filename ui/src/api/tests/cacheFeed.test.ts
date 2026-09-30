@@ -223,6 +223,14 @@ describe("failures", () => {
     expect(cached("T-1")).toBeUndefined();
   });
 
+  it.each([403, 404])("a %i on listDocuments drops the list and still throws", async (status) => {
+    await readList(["T-1"]);
+    respond({ errors: [{ type: "PermissionError" }] }, status);
+    await expect(listDocuments("ToDo", LIST)).rejects.toMatchObject({ status });
+    expect(readCachedList("ToDo", LIST)).toBeUndefined();
+    expect(cached("T-1")).toBeUndefined();
+  });
+
   it("a 404 answered after a newer read landed leaves the entry", async () => {
     const answerFirst = respondLater();
     const first = getDocument("ToDo", "T-1");

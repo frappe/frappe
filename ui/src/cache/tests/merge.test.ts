@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearDataCache, readCachedDocument, readCachedList } from "../index";
+import {
+  clearDataCache,
+  feedFieldRead,
+  readCachedDocument,
+  readCachedList,
+  readCachedRows,
+  takeTicket,
+} from "../index";
 import {
   ALL_PARTS,
   DOCTYPE,
@@ -20,17 +27,46 @@ function withoutTags(parts: Record<string, unknown>) {
 
 beforeEach(() => clearDataCache());
 
+describe("a newer row that carries fewer fields than a cached list shows", () => {
+  const wide = { fields: ["name", "title", "status"] };
+
+  beforeEach(() => readList(wide, [doc("A", MIDDLE, { title: "saved", status: "Open" })]));
+
+  it("from a narrower list keeps the wider list's other cells", () => {
+    readList(query, [doc("A", NEW, { title: "newer" })]);
+    expect(readCachedRows(DOCTYPE, wide)![0]).toEqual(
+      doc("A", NEW, { title: "newer", status: "Open" })
+    );
+  });
+
+  it("from a field read keeps the wider list's other cells", () => {
+    feedFieldRead(takeTicket(), DOCTYPE, doc("A", NEW, { title: "newer" }));
+    expect(readCachedRows(DOCTYPE, wide)![0]).toEqual(
+      doc("A", NEW, { title: "newer", status: "Open" })
+    );
+  });
+});
+
 describe("a list row against the document entry", () => {
   beforeEach(() => {
     readRecord(doc("A", MIDDLE, { title: "saved", status: "Open" }), { tags: ["x"] });
   });
 
-  it("replaces the doc when newer, and makes the entry partial", () => {
+  it("merges its fields over the doc when newer, and makes the entry partial", () => {
     readList(query, [doc("A", NEW, { title: "newer" })]);
     const entry = readCachedDocument(DOCTYPE, "A")!;
-    expect(entry.doc).toEqual({ name: "A", modified: NEW, title: "newer" });
+    expect(entry.doc).toEqual({ name: "A", modified: NEW, title: "newer", status: "Open" });
     expect(entry.complete).toBe(false);
     expect(entry.parts).toEqual({});
+  });
+
+  it("from a narrower list leaves no blank cell in a wider list", () => {
+    const wide = { fields: ["name", "title", "status"] };
+    readList(wide, [doc("A", MIDDLE, { title: "saved", status: "Open" })]);
+    readList(query, [doc("A", NEW, { title: "newer" })]);
+    expect(readCachedRows(DOCTYPE, wide)![0]).toMatchObject({ title: "newer", status: "Open" });
+    readList(wide, [doc("A", NEW, { title: "newer", status: "Closed" })]);
+    expect(readCachedRows(DOCTYPE, wide)![0]).toMatchObject({ status: "Closed" });
   });
 
   it("merges its fields when equal, and keeps complete and parts", () => {
