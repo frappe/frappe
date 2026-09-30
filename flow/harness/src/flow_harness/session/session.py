@@ -81,9 +81,12 @@ from flow_harness.session.transcript import PendingApproval, Transcript
 from flow_harness.tools import Tool
 
 if TYPE_CHECKING:
+	from pathlib import Path
+
 	from flow_harness.extensions import ExtensionRuntime
 
 _SUBSCRIBER_QUEUE_SIZE = 256
+INTERRUPTED = "The flow server stopped before this run ended."
 
 
 class SessionState(StrEnum):
@@ -207,10 +210,13 @@ class Session:
 		persist_skill_catalog: Callable[[Session], None] | None = None,
 		on_settled: Callable[[Session], None] | None = None,
 		compose_tools: Callable[[SessionConfig], dict[str, Tool]],
+		run_end_marker: Path,
 	):
 		self.id = sid
 		self.config = config
 		self.log = log
+		self.run_end_marker = run_end_marker  # present while a run end is unconfirmed
+		self._seq_before_last_run = 0  # the log's latest seq when the last run started
 		self.event_sink = event_sink
 		self.credential_store = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.allowed_roots = allowed_roots
@@ -242,6 +248,9 @@ class Session:
 		# now, before anything newer can be admitted
 		for repair in self.transcript.missing_results():
 			self._commit(repair)
+		if self.transcript.run_open:  # the run itself never ended either
+			self._commit(RunError(message=INTERRUPTED))
+			self._commit(RunEnded(reason="error"))
 
 	# --- state ------------------------------------------------------------
 
@@ -437,6 +446,19 @@ class Session:
 				)
 			return True
 
+	def report_run_end(self) -> None:
+		"""Tell the client the latest run ended, retrying until it confirms."""
+		if self.config.notify_run_ended:
+			task = asyncio.create_task(self._deliver_run_end(self.log.latest_seq))
+			task.add_done_callback(_mark_retrieved)
+
+	async def _deliver_run_end(self, terminal_seq: int) -> None:
+		confirmed = await notify_run_ended(
+			self.config, self.id, terminal_seq, still_needed=self.run_end_marker.exists
+		)
+		if confirmed and self._seq_before_last_run < terminal_seq:  # a run started since keeps the marker
+			self.run_end_marker.unlink(missing_ok=True)
+
 	# --- live subscription ------------------------------------------------
 
 	def subscribe(self) -> asyncio.Queue[AnyEvent | None]:
@@ -493,6 +515,9 @@ class Session:
 	def _commit(self, event: AnyEvent) -> None:
 		"""Persist (if durable), fold into the transcript, fan out, forward to the sink."""
 		if event.durable:
+			if isinstance(event, RunStarted) and event.subagent_id is None and self.config.notify_run_ended:
+				self.run_end_marker.touch()  # before the row, so a crash from here on is still reported
+				self._seq_before_last_run = self.log.latest_seq
 			event.parent_seq = self.transcript.leaf_seq  # after a rewind, not the last row
 			self.log.append(event)
 			if event.subagent_id is None and isinstance(event, (RunStarted, AssistantMessage, RunEnded)):
@@ -521,9 +546,6 @@ class Session:
 				)
 			except Exception:  # streaming is best-effort; the log heals gaps
 				pass
-		if isinstance(event, RunEnded) and event.subagent_id is None and self.config.notify_run_ended:
-			task = asyncio.create_task(notify_run_ended(self.config, self.id, event))
-			task.add_done_callback(_mark_retrieved)
 
 	def _retain_preview(self, event: AnyEvent) -> None:
 		"""Keep the live preview a late subscriber needs to rebuild the run so far."""
@@ -675,6 +697,8 @@ class Session:
 				raise
 		except Exception as error:
 			self._settle(reason="error", error=error)
+		finally:
+			self.report_run_end()
 
 	def _settle(
 		self,

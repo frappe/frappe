@@ -13,7 +13,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from flow.lib.session import call_on_complete, new_session, sync_with_retry
+from flow.lib.session import new_session, sync_with_retry
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_session.flow_session import FlowSession
@@ -93,11 +93,11 @@ def create_session(
 @frappe.whitelist()
 def session(session: str) -> dict[str, Any]:
 	"""A session with its runs. One that still has an open run is synced first, which
-	repairs a terminal event the client missed; a settled one needs no server call."""
+	repairs a terminal event the client missed; a settled one needs no server call.
+	Opening never calls on_complete; the flow server's run-end report does."""
 	doc = _load_session(session, "read")
 	if frappe.db.exists("Flow Run", {"session": doc.name, "status": ("in", ("Running", "Paused"))}):
 		sync_with_retry(doc)
-		call_on_complete(doc)
 	return _session_payload(doc)
 
 

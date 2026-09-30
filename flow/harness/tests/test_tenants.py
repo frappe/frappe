@@ -3,6 +3,7 @@
 import importlib
 import json
 from argparse import Namespace
+from contextlib import asynccontextmanager
 
 import pytest
 from fastapi.testclient import TestClient
@@ -140,6 +141,30 @@ def test_for_site_rejects_unsafe_names(tmp_path):
 	for name in ("..", ".", "a/b", "../escape", ".hidden", ""):
 		with pytest.raises(ValueError, match="invalid site name"):
 			store.for_site(name)
+
+
+def test_startup_reports_unconfirmed_run_ends_in_every_partition(tmp_path, monkeypatch):
+	events = []
+	monkeypatch.setattr(
+		SessionStore, "report_unconfirmed_run_ends", lambda store: events.append(store.data_dir)
+	)
+
+	@asynccontextmanager
+	async def sink_lifespan(app):  # the Redis sink's, in a daemon that has one
+		events.append("sink up")
+		yield
+		events.append("sink down")
+
+	store = _store(tmp_path)
+	with TestClient(create_app(store, tenants=TENANTS, lifespan=sink_lifespan)):
+		pass
+	assert events == [
+		"sink up",
+		store.data_dir,
+		str(tmp_path / "data" / "tenants" / "site1.localhost"),
+		str(tmp_path / "data" / "tenants" / "site2.localhost"),
+		"sink down",
+	]
 
 
 def test_sites_only_see_their_own_sessions(tmp_path):

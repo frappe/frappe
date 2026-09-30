@@ -12,13 +12,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import secrets
+from collections.abc import Callable
 
 import httpx
 
-from flow_harness.events import RunEnded, ToolCall
+from flow_harness.events import ToolCall
 from flow_harness.session.config import SessionConfig
 
-_TERMINAL_RETRY_DELAYS = (0, 1, 5)
+_TERMINAL_RETRY_DELAYS = (1, 5, 15, 30, 60)  # seconds between tries; the last one repeats
 _WAITING: dict[str, tuple[str, asyncio.Future[dict]]] = {}  # token -> (session id, result)
 
 
@@ -66,31 +67,35 @@ def is_waiting(session_id: str, token: str) -> bool:
 	return waiting is not None and waiting[0] == session_id and not waiting[1].done()
 
 
-async def notify_run_ended(config: SessionConfig, session_id: str, event: RunEnded) -> None:
-	"""Best-effort delivery with short retries. The durable log remains the source of
-	truth, so the client can safely recover or receive the same terminal twice."""
+async def notify_run_ended(
+	config: SessionConfig, session_id: str, terminal_seq: int, *, still_needed: Callable[[], bool]
+) -> bool:
+	"""Report a run's end until the client confirms it or `still_needed()` turns false; repeats are safe."""
 	url = config.callback_url
 	if not url or not config.notify_run_ended:
-		return
+		return False
 	payload = {
 		"callback_type": "run_ended",
 		"session_id": session_id,
-		"terminal_seq": event.seq,
+		"terminal_seq": terminal_seq,
 	}
-	for attempt, delay in enumerate(_TERMINAL_RETRY_DELAYS, start=1):
-		if delay:
-			await asyncio.sleep(delay)
+	attempt = 0
+	while still_needed():
 		try:
 			await _post(config, url, payload)
-			return
+			return True
 		except httpx.HTTPError as error:
-			if attempt == len(_TERMINAL_RETRY_DELAYS):
+			if attempt == len(_TERMINAL_RETRY_DELAYS) - 1:  # the quick retries are spent
 				logging.getLogger("flow").warning(
-					"terminal callback failed for session %s at seq %s: %s",
+					"terminal callback for session %s at seq %s keeps failing, retrying every %s s: %s",
 					session_id,
-					event.seq,
+					terminal_seq,
+					_TERMINAL_RETRY_DELAYS[-1],
 					error,
 				)
+		await asyncio.sleep(_TERMINAL_RETRY_DELAYS[min(attempt, len(_TERMINAL_RETRY_DELAYS) - 1)])
+		attempt += 1
+	return False
 
 
 async def _post(config: SessionConfig, url: str, payload: dict) -> dict:

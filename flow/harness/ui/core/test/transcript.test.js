@@ -1043,6 +1043,15 @@ test("a sub-agent's events fold into a thread of their own that its step carries
 	assert.equal(stepStat({ result: { details: { agent: "researcher", end_reason: "done" } } }), "researcher")
 })
 
+test("a sub-agent a crash cut off stops working when its session's run ends", () => {
+	const conversation = initialConversation()
+	subagentTurn(conversation)
+	applyEvent(conversation, { type: "run_error", seq: 6, message: "The flow server stopped before this run ended." })
+	applyEvent(conversation, { type: "run_ended", seq: 7, reason: "error" })
+	const child = conversation.subagents.c1
+	assert.deepEqual([child.running, child.liveLabel, child.partial], [false, null, []])
+})
+
 test("a sub-agent's question is the batch to answer while the session runs", () => {
 	const conversation = initialConversation()
 	subagentTurn(conversation)
