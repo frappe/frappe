@@ -425,7 +425,7 @@ context("Espresso components", () => {
 					.and("contain.text", "—")
 					.and("contain.text", "No data");
 				cy.contains(".es-stat-card", "Refunds")
-					.should("not.have.attr", "data-state")
+					.should(($card) => expect($card).not.to.have.attr("data-state"))
 					.find(".es-stat-card__value")
 					.should("have.text", "0");
 			});
@@ -523,12 +523,12 @@ context("Espresso components", () => {
 		it("swaps the centre to a hovered legend row and restores it on leave", () => {
 			cy.contains(".explorer-group", "Centre value").within(() => {
 				cy.contains(".es-donut__legend-row", "Unpaid")
-					.trigger("mouseenter")
+					.trigger("mouseover")
 					.should("have.class", "is-active");
 				cy.get(".es-donut__label").should("have.text", "Unpaid · 20%");
 				cy.get(".es-donut__seg.is-dim").should("have.length", 2);
 
-				cy.get(".es-donut__legend").trigger("mouseleave");
+				cy.get(".es-donut__legend").trigger("mouseout");
 				cy.get(".es-donut__value").should("have.text", "70%");
 				cy.get(".es-donut__seg.is-dim").should("have.length", 0);
 			});
@@ -538,9 +538,9 @@ context("Espresso components", () => {
 			cy.contains(".explorer-group", "Centre value").within(() => {
 				cy.get(".es-donut__seg")
 					.first()
-					.trigger("mouseenter", { clientX: 100, clientY: 100 });
+					.trigger("mouseover", { force: true, clientX: 100, clientY: 100 });
 				cy.get(".es-donut__tip").should("have.class", "is-visible");
-				cy.get(".es-donut__seg").first().trigger("mouseleave");
+				cy.get(".es-donut__seg").first().trigger("mouseout", { force: true });
 				cy.get(".es-donut__tip").should("not.have.class", "is-visible");
 				cy.get(".es-donut__seg.is-dim").should("not.exist");
 				cy.get(".es-donut__value").should("have.text", "70%");
