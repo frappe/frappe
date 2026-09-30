@@ -254,23 +254,7 @@ class PostgresTable(DBTable):
 				and col not in frappe.db.DEFAULT_COLUMNS
 				and col not in frappe.db.OPTIONAL_COLUMNS
 			):
-				has_unique_index = frappe.db.sql(
-					"""
-					SELECT 1
-					FROM pg_indexes
-					WHERE tablename = %s
-					AND indexname IN (%s, %s, %s)
-					LIMIT 1
-					""",
-					(
-						self.table_name,
-						f"{self.table_name}_{col}_key",
-						f"unique_{col}",
-						get_unique_index_name(self.table_name, col),
-					),
-				)
-
-				if not has_unique_index:
+				if not frappe.db.get_column_index(self.table_name, col, unique=True):
 					continue
 
 				current_col = self.current_columns.get(col)
@@ -300,37 +284,18 @@ class PostgresTable(DBTable):
 
 		for col in self.drop_unique:
 			# primary key
-			if col.fieldname != "name":
-				# drop unique constraint first if exists which automatically drops the underlying index also
-				unique_constraint_exists = frappe.db.sql(
-					"""
-					SELECT 1
-					FROM pg_constraint
-					WHERE conname = %s
-					""",
-					(f"{self.table_name}_{col.fieldname}_key",),
-				)
+			if col.fieldname == "name":
+				continue
 
-				if unique_constraint_exists:
-					drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{self.table_name}_{col.fieldname}_key" ;'
+			# look up by column: postgres truncates long constraint names
+			unique_index = frappe.db.get_column_index(self.table_name, col.fieldname, unique=True)
+			if not unique_index:
+				continue
 
-				# drop the unique index backed by no constraint directly
-				for unique_index in (
-					get_unique_index_name(self.table_name, col.fieldname),
-					f"unique_{col.fieldname}",
-				):
-					unique_index_exists = frappe.db.sql(
-						"""
-						SELECT 1
-						FROM pg_indexes
-						WHERE tablename = %s
-						AND indexname = %s
-						""",
-						(self.table_name, unique_index),
-					)
-
-					if unique_index_exists:
-						drop_contraint_query += f'DROP INDEX IF EXISTS "{unique_index}" ;'
+			if unique_index.Constraint_name:
+				drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{unique_index.Constraint_name}" ;'
+			else:
+				drop_contraint_query += f'DROP INDEX IF EXISTS "{unique_index.Key_name}" ;'
 
 		change_nullability = []
 		for col in self.change_nullability:
