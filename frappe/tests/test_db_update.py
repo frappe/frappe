@@ -314,6 +314,14 @@ class TestDBUpdate(IntegrationTestCase):
 		self.addCleanup(delete_property_setter, doctype.name, "search_index")
 
 		frappe.db.add_index(doctype.name, ["status"])
+		self.assertEqual(
+			frappe.db.get_value(
+				"Property Setter",
+				{"doc_type": doctype.name, "field_name": "status", "property": "search_index"},
+				"value",
+			),
+			"1",
+		)
 		frappe.db.updatedb(doctype.name)
 		self.assertTrue(get_table_column(doctype.name, "status").index)
 
