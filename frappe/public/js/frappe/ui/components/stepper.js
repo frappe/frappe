@@ -103,6 +103,9 @@ frappe.ui.Stepper = class Stepper {
 			return;
 		}
 
+		// Label-below mode caps each label at its share of the row.
+		this.nav.style.setProperty("--es-stepper-steps", this.steps.length);
+
 		this.steps.forEach((step, index) => {
 			if (index > 0) {
 				const connector = document.createElement("span");

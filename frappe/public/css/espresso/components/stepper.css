@@ -138,25 +138,41 @@
     background: var(--outline-gray-3);
 }
 
-/* Steps may shrink so long labels ellipsize instead of overflowing the row. */
+/* Query container, so labels can size against the row with cqi. */
 .es-stepper--label-below {
     align-items: flex-start;
+    container-type: inline-size;
 }
 
 .es-stepper--label-below .es-stepper__step {
-    flex-direction: column;
-    flex-shrink: 1;
-    gap: calc(var(--spacing) * 1);
-    max-width: calc(var(--spacing) * 32);
-    padding-inline: calc(var(--spacing) * 0.5);
+    position: relative;
 }
 
+/* Out of flow, so steps stay marker-wide and gaps match the default mode.
+ * Capped at a share of the row so neighbours can't overlap. */
 .es-stepper--label-below .es-stepper__label {
-    max-width: 100%;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: max-content;
+    max-width: min(calc(var(--spacing) * 32), calc(100cqi / var(--es-stepper-steps, 1)));
+    transform: translateX(-50%);
     text-align: center;
 }
 
-/* Step padding-top plus half the marker keeps connectors on the marker row. */
+/* End labels stay in flow so they can't overflow the nav. */
+.es-stepper--label-below .es-stepper__step:is(:first-child, :last-child) {
+    flex-direction: column;
+    gap: calc(var(--spacing) * 1);
+}
+
+.es-stepper--label-below .es-stepper__step:is(:first-child, :last-child) .es-stepper__label {
+    position: static;
+    width: auto;
+    transform: none;
+}
+
+/* Step padding plus half the marker puts connectors on the marker row. */
 .es-stepper--label-below .es-stepper__connector {
     margin-top: calc(var(--spacing) * 3);
 }
