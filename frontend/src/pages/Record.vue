@@ -133,6 +133,7 @@ import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types"
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
+import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { holdFresh } from "@framework/ui/utils/sharedState";
 import {
 	createRecordPage,
@@ -151,6 +152,7 @@ import {
 	type RecordPageController,
 } from "@/recordPage";
 import type { UseFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
+import { LATE_LIMIT_MS } from "@/recordPage/paintGate";
 import { routeFor } from "@/router/routeFor";
 import { __ } from "@/i18n";
 import BodyColumns from "./record/body/BodyColumns.vue";
@@ -587,9 +589,15 @@ function backgroundReads(opening: Opening, created: RecordPageController): Backg
 
 /** A stale meta, layout or script tier: resolves once the fresh ones are in, to the step that shows the meta. */
 function freshVersion({ target, details, panel }: Opening): BackgroundRead {
-	const tier = loadClientScripts(target.doctype).catch(() => {});
+	// The entry the layouts joined against, so a later DocType change cannot hand the page another.
+	const held = useDoctypeMeta(target.doctype);
+	// A script whose module hangs must not hold back the record's re-read; the replay still waits for it.
+	const tier = Promise.race([
+		loadClientScripts(target.doctype).catch(() => {}),
+		new Promise((resolve) => setTimeout(resolve, LATE_LIMIT_MS)),
+	]);
 	return Promise.all([details.refreshed(), panel.refreshed(), tier]).then(() => () => {
-		const fresh = metaInMemory(target.doctype);
+		const fresh = held.meta.value;
 		if (fresh && fresh !== meta.value) meta.value = fresh;
 	});
 }

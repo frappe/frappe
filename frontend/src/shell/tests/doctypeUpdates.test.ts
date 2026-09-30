@@ -216,6 +216,18 @@ describe("a form layout after the DocType changes", () => {
 		expect(after.error.value).toBeNull();
 		expect(fieldnames(after.layout.value)).toEqual(["title"]);
 	});
+
+	it("reads again for the next caller after a failed fresh read", async () => {
+		await markedAfter(["title"]);
+		rows.reject(new Error("Network down"));
+		await useFormLayout(DETAILS).refreshed();
+
+		fake.runMethod.mockResolvedValueOnce(layoutOf(["title", "amount"]));
+		const next = useFormLayout(DETAILS);
+		expect(fieldnames(next.layout.value)).toEqual(["title"]);
+		await next.settled();
+		expect(fieldnames(next.layout.value)).toEqual(["title", "amount"]);
+	});
 });
 
 function deferred<Value>() {

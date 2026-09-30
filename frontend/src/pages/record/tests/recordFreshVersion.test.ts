@@ -301,9 +301,12 @@ describe("a return visit after a Client Script change", () => {
     socket.emit("client_script_changed", { dt: "Note", view: "Record" });
     name = `${name}-other`;
     server.doc = { ...server.doc, name, title: "Other" };
+    server.holdScripts = gate();
     scripts.runs = [];
 
     await router.push(routeFor("Note", name));
+    await settle();
+    server.holdScripts.open();
     await settle();
 
     expect(version(root)).toBe("v2|Other");
@@ -355,6 +358,28 @@ describe("a return visit after a DocType change", () => {
     expect(seen.every((one) => one === "old title:Title" || one === "new title:Title,status:Stage")).toBe(true);
     expect(skeletons.seen).toEqual([]);
     skeletons.stop();
+  });
+
+  it("holds a fresh layout that lands first until the record's re-read lands", async () => {
+    const { root, router } = await visitAndLeave();
+    server.details = ["title", "status"];
+    server.meta = metaWith("Stage");
+    server.doc = { ...server.doc, title: "Second", modified: NEW };
+    socket.emit("doctype_update", { doctype: "Note" });
+    server.holdRecord = gate();
+
+    await comeBack(router);
+    await settle();
+    expect(crumbs(root)).toContain("First");
+    expect(fields(root)).toEqual(["title:Title"]);
+
+    server.holdRecord.open();
+    const seen = await everyTask(
+      () => `${crumbs(root).includes("Second") ? "new" : "old"} ${fields(root).join(",")}`,
+    );
+
+    expect(seen.at(-1)).toBe("new title:Title,status:Stage");
+    expect(seen.every((one) => one === "old title:Title" || one === "new title:Title,status:Stage")).toBe(true);
   });
 
   it("paints a cold load with the new meta and layout only", async () => {

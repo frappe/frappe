@@ -18,12 +18,15 @@ about each change. Each time, the walk then opens the record again. Each run sta
 version `v1` of the script.
 
 A return step fails when it shows a skeleton, draws any field or row more than once, or
-does not settle in time. A return to the record after a change also fails when the script's
-item does not end on its `v2` label, is drawn more than twice, or is drawn without the count.
-After the Form Layout save, it also fails when the page did not read the doctype's meta again. A return step on the record also fails when the script's item is
-drawn more than once, is ever drawn without the count, or is missing at the end. The walk is
-run by hand, not in CI. It is expected to fail until the desk caches what a return visit
-needs.
+does not settle in time. A return step on the record also fails when the script's item is
+drawn more than once, is ever drawn without the count, or is missing at the end.
+
+A return to the record after a change has its own rule for the script's item. The old
+version may draw first, so the item may be drawn twice. It fails when it is ever drawn
+without the count, or does not end on its `v2` label. After the Form Layout save, the step
+also fails when the page did not read the doctype's meta again.
+
+The walk is run by hand, not in CI.
 
 ## Run
 

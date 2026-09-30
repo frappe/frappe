@@ -247,6 +247,11 @@ describe("marking stale", () => {
 		await next.refreshed();
 		expect(next.refreshing.value).toBe(false);
 		expect(next.stored.value).toEqual({ sort: [{ fieldname: "title", direction: "asc" }] });
+
+		fake.runMethod.mockResolvedValueOnce({ data: { site: { sort: [] }, user: null } });
+		const again = useListSettings("Lead");
+		await again.refreshed();
+		expect(again.stored.value).toEqual({ sort: [] });
 		warn.mockRestore();
 	});
 

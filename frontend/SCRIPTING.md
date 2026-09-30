@@ -59,7 +59,9 @@ reload or a new tab starts with none. Each script has its own keys, so two scrip
 one key name. Put what the value depends on in the key. Read it in `onRefresh`, before any
 `await`: after an `await` the page cannot tell which script asks. A key read in another
 handler, or first read in the replay that draws a fetched value, is fetched with the next
-replay. The page waits at most 5 seconds for a fetch.
+replay. The page waits at most 5 seconds for a fetch. A script saved while the reader was
+away can read a key its old version did not. On that return, the new version first draws
+with `undefined` for the key, then again when its fetch lands.
 
 ```js
 export default {

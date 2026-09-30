@@ -21,8 +21,7 @@ export interface PaintGateHost {
   permissionsReady: () => Promise<unknown>;
   /** True when the sources and the permissions are already in, so a replay needs no wait. */
   loaded: () => boolean;
-  /** Runs `onRefresh` for each source `ran` does not hold yet, adding it; answers the ones still running.
-   *  Before the sources are in, it skips a registered source a loading one will replace. */
+  /** Runs `onRefresh` for each source not in `ran`, adding it, minus any a loading tier replaces; answers the late ones. */
   runRefresh: (ran: Set<Registration>, beforeSources?: boolean) => LateRefresh[];
   /** Starts the `page.cached` fetches this visit has not made; answers, per source, when they land. */
   fetchCached: () => LateRefresh[];

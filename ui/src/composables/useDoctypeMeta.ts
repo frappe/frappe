@@ -93,6 +93,10 @@ function buildEntry(doctype: string, stale?: DoctypeMetaEntry): DoctypeMetaEntry
   const error = ref<unknown>(null);
   const loading = ref(false);
   const refreshing = ref(Object.keys(metas.value).length > 0);
+  let arrive = () => {};
+  const refreshed = refreshing.value
+    ? new Promise<void>((resolve) => (arrive = resolve))
+    : Promise.resolve();
   // The slower of two reloads must not overwrite the newer answer.
   let turn = 0;
 
@@ -108,14 +112,19 @@ function buildEntry(doctype: string, stale?: DoctypeMetaEntry): DoctypeMetaEntry
       });
     } catch (caught) {
       if (mine !== turn) return;
-      // A failed refresh keeps the stale meta on show.
-      if (refreshing.value) refreshing.value = false;
-      else {
+      // A failed refresh keeps the stale meta on show, and the next caller reads again.
+      if (refreshing.value) {
+        refreshing.value = false;
+        entries.stale((_key, one) => one === entry);
+      } else {
         metas.value = {};
         error.value = caught;
       }
     } finally {
-      if (mine === turn) loading.value = false;
+      if (mine === turn) {
+        loading.value = false;
+        arrive();
+      }
     }
   }
 
@@ -127,16 +136,16 @@ function buildEntry(doctype: string, stale?: DoctypeMetaEntry): DoctypeMetaEntry
     });
   }
 
-  const read = reload();
-
-  return {
+  const entry: DoctypeMetaEntry = {
     metas,
     error,
     loading: computed(() => loading.value),
     refreshing: computed(() => refreshing.value),
     reload,
-    refreshed: refreshing.value ? read : Promise.resolve(),
+    refreshed,
   };
+  reload();
+  return entry;
 }
 
 function keyByName(

@@ -17,6 +17,20 @@ describe("awaitMeta", () => {
 		await expect(settled).resolves.toEqual({ name: "CRM Deal" });
 	});
 
+	it("waits out a stale meta and answers the fresh one", async () => {
+		const source = { meta: ref<any>({ name: "CRM Deal", version: 1 }), error: ref(null), refreshing: ref(true) };
+		let answered: any = null;
+		void awaitMeta(source).then((meta) => (answered = meta));
+		await nextTick();
+		expect(answered).toBeNull();
+
+		source.meta.value = { name: "CRM Deal", version: 2 };
+		source.refreshing.value = false;
+		await nextTick();
+		await Promise.resolve();
+		expect(answered).toEqual({ name: "CRM Deal", version: 2 });
+	});
+
 	it("rejects with the source's error, now or later", async () => {
 		await expect(awaitMeta({ meta: ref(null), error: ref(new Error("gone")) })).rejects.toThrow("gone");
 		const source = { meta: ref<any>(null), error: ref<unknown>(null) };

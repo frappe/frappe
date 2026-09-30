@@ -166,6 +166,41 @@ describe("useDoctypeMeta", () => {
     expect(after.refreshing.value).toBe(false);
   });
 
+  it("reads again for the next caller after a failed fresh read", async () => {
+    getMeta.mockResolvedValueOnce({ data: { name: "Note", fields: [{ fieldname: "old" }] } });
+    useDoctypeMeta("Note");
+    await settled();
+    markDoctypeMetaStale("Note");
+    getMeta.mockRejectedValueOnce(new Error("Network down"));
+    await useDoctypeMeta("Note").refreshed();
+
+    getMeta.mockResolvedValueOnce({ data: { name: "Note", fields: [{ fieldname: "new" }] } });
+    const next = useDoctypeMeta("Note");
+    expect(next.meta.value?.fields).toEqual([{ fieldname: "old" }]);
+    await next.refreshed();
+
+    expect(getMeta).toHaveBeenCalledTimes(3);
+    expect(next.meta.value?.fields).toEqual([{ fieldname: "new" }]);
+  });
+
+  it("resolves refreshed with the answer of a reload made during the refresh", async () => {
+    getMeta.mockResolvedValueOnce({ data: { name: "Note", fields: [{ fieldname: "old" }] } });
+    useDoctypeMeta("Note");
+    await settled();
+    markDoctypeMetaStale("Note");
+    let answerFirst!: () => void;
+    getMeta.mockImplementationOnce(
+      () => new Promise((resolve) => (answerFirst = () => resolve({ data: { name: "Note", fields: [] } })))
+    );
+    getMeta.mockResolvedValueOnce({ data: { name: "Note", fields: [{ fieldname: "new" }] } });
+    const after = useDoctypeMeta("Note");
+    after.reload();
+    await after.refreshed();
+
+    expect(after.meta.value?.fields).toEqual([{ fieldname: "new" }]);
+    answerFirst();
+  });
+
   it("marks a parent's meta stale with its child table's, and leaves the rest", async () => {
     useDoctypeMeta("Note");
     useDoctypeMeta("Task");

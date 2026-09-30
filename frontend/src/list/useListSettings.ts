@@ -163,6 +163,8 @@ async function load(entry: Entry, doctype: string) {
 			});
 	} catch (failure) {
 		console.warn(`[list] settings for ${doctype} did not load`, failure);
+		// A failed refresh keeps the stale rows on show, and the next caller reads again.
+		if (entry.refreshing.value) entry.stale = true;
 		entry.refreshing.value = false;
 	}
 	entry.loaded.value = true;

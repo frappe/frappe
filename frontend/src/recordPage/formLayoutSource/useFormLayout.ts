@@ -143,13 +143,14 @@ interface LayoutEntry {
 
 function buildEntry(input: { doctype: string; type: FormLayoutType }, stale?: LayoutEntry) {
 	const data = stale?.data ?? null;
+	let arrive = () => {};
 	const entry: LayoutEntry = shallowReactive({
 		data,
 		loading: false,
 		refreshing: data !== null,
 		error: null as unknown,
 		reload,
-		refreshed: Promise.resolve(),
+		refreshed: data === null ? Promise.resolve() : new Promise<void>((resolve) => (arrive = resolve)),
 	});
 	// The slower of two reloads must not overwrite the newer answer.
 	let turn = 0;
@@ -170,11 +171,16 @@ function buildEntry(input: { doctype: string; type: FormLayoutType }, stale?: La
 			});
 		} catch (caught) {
 			if (mine !== turn) return;
-			// A failed refresh keeps the stale rows on show.
-			if (entry.refreshing) entry.refreshing = false;
-			else entry.error = caught;
+			// A failed refresh keeps the stale rows on show, and the next caller reads again.
+			if (entry.refreshing) {
+				entry.refreshing = false;
+				entries.stale((_key, one) => one === entry);
+			} else entry.error = caught;
 		} finally {
-			if (mine === turn) entry.loading = false;
+			if (mine === turn) {
+				entry.loading = false;
+				arrive();
+			}
 		}
 	}
 
@@ -186,7 +192,6 @@ function buildEntry(input: { doctype: string; type: FormLayoutType }, stale?: La
 		});
 	}
 
-	const read = reload();
-	if (entry.refreshing) entry.refreshed = read;
+	reload();
 	return entry;
 }
