@@ -243,7 +243,6 @@ class TestKanbanBoard(IntegrationTestCase):
 	def test_private_board_blocks_other_users(self):
 		from frappe.desk.doctype.kanban_board.kanban_board import (
 			add_card,
-			get_card_config,
 			get_kanban_board_context,
 			update_order,
 			update_order_for_single_card,
@@ -264,7 +263,6 @@ class TestKanbanBoard(IntegrationTestCase):
 
 		# Board is private and owned by the test session user, not `other`.
 		frappe.set_user(other)
-		self.assertRaises(frappe.PermissionError, lambda: get_card_config(self.board_name))
 		self.assertRaises(frappe.PermissionError, lambda: get_kanban_board_context(self.board_name))
 		self.assertRaises(
 			frappe.PermissionError,

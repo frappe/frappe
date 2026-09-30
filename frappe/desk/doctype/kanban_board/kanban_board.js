@@ -86,7 +86,7 @@ function autofill_field_label(frm, cdt, cdn) {
 	var row = locals[cdt][cdn];
 	if (!row.fieldname || !frm.doc.reference_doctype) return;
 	var df = frappe.meta.get_docfield(frm.doc.reference_doctype, row.fieldname);
-	frappe.model.set_value(cdt, cdn, "label", df ? __(df.label) : row.fieldname);
+	frappe.model.set_value(cdt, cdn, "label", df ? df.label : row.fieldname);
 }
 
 frappe.ui.form.on("Kanban Board Field", { fieldname: autofill_field_label });

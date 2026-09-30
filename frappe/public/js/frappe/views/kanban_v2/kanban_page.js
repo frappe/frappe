@@ -184,11 +184,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 * remounts from scratch (used when navigating away from the page). */
 	teardown_board(clear_route = false) {
 		if (this.board) {
-			try {
-				this.board.destroy();
-			} catch (e) {
-				// ignore
-			}
+			this.board.destroy();
 			this.board = null;
 		}
 		if (clear_route) this.current_board = null;
@@ -236,7 +232,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** Lazily create and reuse the BulkOperations helper for this doctype. */
 	bulk() {
-		if (!this._bulk || this._bulk.doctype !== this.doctype) {
+		if (!this._bulk) {
 			this._bulk = new frappe.kanban_v2.BulkOperations({ doctype: this.doctype });
 		}
 		return this._bulk;
@@ -345,15 +341,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			});
 			return;
 		}
-		if (this.current_board === board_name && this.board) {
-			// Already mounted — only rebuild if the board's config changed
-			// (e.g. Card Fields / Preview Fields edited on the form meanwhile).
-			this.remount_if_board_changed(board_name);
-			return;
-		}
+		if (this.current_board === board_name && this.board) return;
 		this.current_board = board_name;
 
-		this.page.set_title(__(board_name), null, true);
+		this.page.set_title(board_name, null, true);
 		// Keep navbar left side consistent with classic views.
 		frappe.breadcrumbs.add(this.doctype, board_name);
 		frappe.breadcrumbs.update();
@@ -374,17 +365,14 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.board_locked = board.is_standard === "Yes" && !frappe.boot.developer_mode;
 		this.doctype = board.reference_doctype;
 		this.field_name = board.field_name;
-		this.filters = [];
-		try {
-			this.filters = JSON.parse(board.filters || "[]");
-		} catch (e) {
-			// ignore malformed filters
-		}
+		this.filters = JSON.parse(board.filters || "[]");
 		// The board's saved filters — used to show the "Not Saved" indicator.
 		this.saved_filters = JSON.parse(JSON.stringify(this.filters));
-		const page_title = __(board.kanban_board_name || board_name);
-		this.page.set_title(page_title, null, true);
-		frappe.breadcrumbs.add(this.doctype, board.kanban_board_name || board_name);
+		// only boards shipped by an app have translations
+		const title =
+			board.is_standard === "Yes" ? __(board.kanban_board_name) : board.kanban_board_name;
+		this.page.set_title(title, null, true);
+		frappe.breadcrumbs.add(this.doctype, board.kanban_board_name);
 		frappe.breadcrumbs.update();
 
 		await frappe.model.with_doctype(this.doctype);
@@ -402,43 +390,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.sync_filter_group_to_board();
 		this.setup_group_button();
 		this.setup_quick_filters();
-	}
-
-	/** Remount only if the card config changed, so form edits show without a reload (a card drag also saves, but must not remount). */
-	async remount_if_board_changed(board_name) {
-		try {
-			const config = await frappe.xcall(
-				"frappe.desk.doctype.kanban_board.kanban_board.get_card_config",
-				{ board_name }
-			);
-			if (!config || this.card_config_signature(config) === this.card_config_sig) return;
-
-			this.current_board = null;
-			this.load_from_route();
-		} catch (e) {
-			// Keep the existing board mounted — a failed config check must not
-			// wipe the UI. Surface a soft alert so the miss isn't silent.
-			console.error(e);
-			frappe.ui.toast({
-				message: __("Could not refresh Kanban board settings."),
-				type: "warning",
-			});
-		}
-	}
-
-	/** Comparable form of the config that decides how a card / hover peek is rendered. */
-	card_config_signature(doc) {
-		const field_sig = (rows) =>
-			(rows || []).map((f) => [f.fieldname, f.label || "", f.icon || ""]);
-		return JSON.stringify([
-			doc.title_field || "",
-			doc.image_field || "",
-			cint(doc.show_assigned_to, 1),
-			cint(doc.show_tags_on_card, 0),
-			doc.footer_date_field || "Modified",
-			field_sig(doc.card_fields),
-			field_sig(doc.preview_fields),
-		]);
 	}
 
 	/** Resolve title/image/fields and doctype kanban settings for this board. */
@@ -496,14 +447,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			}
 		);
 
-		let configured = [];
-		try {
-			configured = JSON.parse(this.board_doc.fields || "[]")
-				.map((f) => (typeof f === "string" ? f : f && f.fieldname))
-				.filter(Boolean);
-		} catch (e) {
-			// ignore
-		}
+		const configured = JSON.parse(this.board_doc.fields || "[]")
+			.map((f) => (typeof f === "string" ? f : f && f.fieldname))
+			.filter(Boolean);
 		// in_list_view fields power the "More Info" preview's field list when the
 		// doctype has no preview popup configured — fetch them with the cards so
 		// the popover needs no extra round-trip.
@@ -550,7 +496,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			frappe.meta.has_field(this.doctype, f)
 		);
 		if (this.desc_field) this.fields = [...new Set([...this.fields, this.desc_field])];
-		this.card_config_sig = this.card_config_signature(this.board_doc);
 
 		// Group-by (swimlane) options: "Assigned To" first when the board shows
 		// assignees, then the board's configured Group By Fields. No fallback — an
@@ -722,7 +667,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 * Reuse the exact shared list-view switcher path (same as old Kanban).
 	 */
 	setup_view_menu() {
-		this.show_saved_layout_menu = false;
 		frappe.views.BaseList.prototype.setup_view_menu.call(this);
 	}
 
@@ -1036,47 +980,43 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 * Uses the same FilterGroup component as List View.
 	 */
 	setup_filter_button($parent) {
-		try {
-			// Same markup as the list view's FilterArea: Filter + clear button handed to FilterGroup.
-			const $selector = $(`
-				<div class="filter-selector">
-					<div class="btn-group">
-						<button class="btn btn-default btn-sm filter-button">
-							<span class="filter-icon button-icon">${frappe.utils.icon("funnel")}</span>
-							<span class="button-label hidden-xs">${__("Filter")}</span>
-						</button>
-						<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
-							<span class="filter-icon button-icon">${frappe.utils.icon("x")}</span>
-						</button>
-					</div>
-				</div>`);
+		// Same markup as the list view's FilterArea: Filter + clear button handed to FilterGroup.
+		const $selector = $(`
+			<div class="filter-selector">
+				<div class="btn-group">
+					<button class="btn btn-default btn-sm filter-button">
+						<span class="filter-icon button-icon">${frappe.utils.icon("funnel")}</span>
+						<span class="button-label hidden-xs">${__("Filter")}</span>
+					</button>
+					<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
+						<span class="filter-icon button-icon">${frappe.utils.icon("x")}</span>
+					</button>
+				</div>
+			</div>`);
 
-			if ($parent) {
-				$parent.append($selector);
-			} else {
-				this.$filter_section.append($selector);
-			}
-
-			this.filter_group = new frappe.ui.FilterGroup({
-				parent: $selector,
-				doctype: this.doctype,
-				filter_button: $selector.find(".filter-button"),
-				filter_x_button: $selector.find(".filter-x-button"),
-				default_filters: [],
-				on_change: () => this.apply_filters(),
-			});
-			// FilterGroup's ✕ clears its filters but (outside a list view) doesn't
-			// fire on_change — reload after it clears.
-			$selector
-				.find(".filter-x-button")
-				.on("click", () => setTimeout(() => this.apply_filters(), 0));
-			if (this.filters && this.filters.length) {
-				this.filter_group.add_filters_to_filter_group(this.filters);
-			}
-			this.sync_filter_ui();
-		} catch (e) {
-			console.warn("[kanban-v2] filter setup skipped", e);
+		if ($parent) {
+			$parent.append($selector);
+		} else {
+			this.$filter_section.append($selector);
 		}
+
+		this.filter_group = new frappe.ui.FilterGroup({
+			parent: $selector,
+			doctype: this.doctype,
+			filter_button: $selector.find(".filter-button"),
+			filter_x_button: $selector.find(".filter-x-button"),
+			default_filters: [],
+			on_change: () => this.apply_filters(),
+		});
+		// FilterGroup's ✕ clears its filters but (outside a list view) doesn't
+		// fire on_change — reload after it clears.
+		$selector
+			.find(".filter-x-button")
+			.on("click", () => setTimeout(() => this.apply_filters(), 0));
+		if (this.filters && this.filters.length) {
+			this.filter_group.add_filters_to_filter_group(this.filters);
+		}
+		this.sync_filter_ui();
 	}
 
 	/** Load this board's filters into the shared (per-doctype) filter group so a board switch doesn't keep the old filters. */
@@ -1103,13 +1043,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** Sync the Filter button label ("Filters N") + the "Not Saved" indicator. */
 	sync_filter_ui() {
-		try {
-			// Also updates the button label/highlight. The ✕ button stays visible
-			// as part of the group at all times, like the classic list view.
-			this.filter_group.update_filter_button();
-		} catch (e) {
-			// ignore
-		}
+		// Also updates the button label/highlight. The ✕ button stays visible
+		// as part of the group at all times, like the classic list view.
+		this.filter_group.update_filter_button();
 		this.update_saved_indicator();
 	}
 
@@ -1150,7 +1086,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				fieldtype: "Data",
 				label: __("Kanban Board Name"),
 				reqd: 1,
-				default: __("{0} (Copy)", [__(this.board_doc.kanban_board_name)]),
+				default: __("{0} (Copy)", [this.board_doc.kanban_board_name]),
 			},
 			async ({ board_name }) => {
 				const { name, owner, creation, modified, modified_by, ...fields } = this.board_doc;
@@ -1225,12 +1161,15 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const base_callbacks = {
 			onCardOpen: (card) => frappe.set_route("Form", this.doctype, card.name),
 			onSelectionChange: opts.onSelectionChange || ((ids) => this.update_selection_bar(ids)),
-			onMoveError: (mv, err) => {
+			onMoveError: (mv) => {
+				const count = (mv.cardIds || []).length;
 				frappe.ui.toast({
-					message: __("Could not move {0}", [mv.cardId]),
+					message:
+						count > 1
+							? __("Could not move {0} cards", [count])
+							: __("Could not move {0}", [mv.cardId]),
 					type: "error",
 				});
-				console.error("[kanban-v2] move failed", err);
 			},
 			// "+ Add {Doctype}" opens the new-document form, pre-filled with the
 			// column's group-by value + active "=" filters.
@@ -1463,7 +1402,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	/** Hash a string into a stable espresso theme colour (badge / avatar). */
-	hash_theme(str, themes = ["blue", "green", "amber", "red", "violet"]) {
+	hash_theme(str) {
+		const themes = ["blue", "green", "amber", "red", "violet"];
 		let hash = 0;
 		const s = String(str || "");
 		for (let i = 0; i < s.length; i++) {
@@ -1763,7 +1703,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 */
 	select_style(value) {
 		const style = this.select_styles[String(value).trim().toLowerCase()];
-		if (typeof style === "string") return { theme: style };
 		return style || { theme: frappe.utils.guess_colour(value) };
 	}
 
@@ -2290,13 +2229,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	parse_json_list(v) {
-		if (!v) return [];
-		try {
-			const list = JSON.parse(v);
-			return Array.isArray(list) ? list : [];
-		} catch (e) {
-			return [];
-		}
+		return (v && JSON.parse(v)) || [];
 	}
 };
 
@@ -2479,14 +2412,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 		// Reload each mounted lane in place. Unmounted lanes load fresh on
 		// next visibility / expand. Lane set itself only changes with filters
 		// (page remount), so this stays light.
-		this.boards.forEach((b) => {
-			if (!b.board) return;
-			try {
-				b.board.refresh();
-			} catch (e) {
-				// ignore
-			}
-		});
+		this.boards.forEach((b) => b.board && b.board.refresh());
 	}
 
 	destroy() {
@@ -2496,14 +2422,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 			this._observer.disconnect();
 			this._observer = null;
 		}
-		this.boards.forEach((b) => {
-			if (!b.board) return;
-			try {
-				b.board.destroy();
-			} catch (e) {
-				// ignore
-			}
-		});
+		this.boards.forEach((b) => b.board && b.board.destroy());
 		this.boards = [];
 		this.$root && this.$root.remove();
 		this.$root = null;
@@ -2530,10 +2449,6 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 };
 
 frappe.views.KanbanV2View = class KanbanV2View {
-	static load_last_view() {
-		return frappe.views.KanbanView.load_last_view();
-	}
-
 	constructor(opts) {
 		this.doctype = opts.doctype;
 		this.parent = opts.parent;
@@ -2542,26 +2457,8 @@ frappe.views.KanbanV2View = class KanbanV2View {
 		this.show();
 	}
 
-	/** Route to the last-used board, else the first; open the create dialog when none exist. */
 	show() {
-		return frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) => {
-			frappe.route_options = {};
-			if (!kanbans.length) {
-				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
-			}
-			if (frappe.get_route().length !== 4) {
-				const last_board = frappe.get_user_settings(this.doctype)["Kanban"]
-					?.last_kanban_board;
-				const names = (kanbans || []).map((k) => k.name || k);
-				if (last_board && names.includes(last_board)) {
-					frappe.set_route("List", this.doctype, "Kanban", last_board);
-					return;
-				}
-				const first = kanbans[0];
-				frappe.set_route("List", this.doctype, "Kanban", first.name || first);
-				return;
-			}
-			return this._kanban.load_from_route();
-		});
+		frappe.route_options = {};
+		return this._kanban.load_from_route();
 	}
 };

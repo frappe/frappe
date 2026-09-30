@@ -111,8 +111,9 @@ export class FrappeDataProvider {
 		return { total: message.total || 0, cards };
 	}
 
+	/** Returns the column value the server saved, which it may have changed. */
 	async moveCard(input) {
-		await frappe.call({
+		const r = await frappe.call({
 			method: "frappe.client.set_value",
 			args: {
 				doctype: this.config.doctype,
@@ -121,9 +122,10 @@ export class FrappeDataProvider {
 				value: input.toColumn,
 			},
 		});
+		return r.message && r.message[this.config.field_name];
 	}
 
-	/** Returns the names that could not be moved. */
+	/** Returns the names that could not be moved, and the column value saved for each card. */
 	async moveCards(cardIds, toColumn) {
 		const r = await frappe.call({
 			method: "frappe.client.bulk_update",
@@ -135,7 +137,14 @@ export class FrappeDataProvider {
 				})),
 			},
 		});
-		return ((r.message && r.message.failed_docs) || []).map((f) => f.doc.docname);
+		const failed = ((r.message && r.message.failed_docs) || []).map((f) => f.doc.docname);
+		const rows = await frappe.db.get_list(this.config.doctype, {
+			filters: { name: ["in", cardIds] },
+			fields: ["name", this.config.field_name],
+			limit: cardIds.length,
+		});
+		const saved = Object.fromEntries(rows.map((d) => [d.name, d[this.config.field_name]]));
+		return { failed, saved };
 	}
 
 	/** Persist the horizontal order of board columns. */

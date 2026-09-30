@@ -318,34 +318,6 @@ def ensure_kanban_board_permission(board: Document, ptype: str = "read") -> None
 	frappe.has_permission("Kanban Board", ptype, doc=board, throw=True)
 
 
-@frappe.whitelist()
-@frappe.read_only()
-def get_card_config(board_name: str) -> dict:
-	"""Bits that decide how a card and its hover peek look: title/image fields,
-	card fields, and preview fields (with optional icons and labels).
-
-	The new Kanban polls this when returning to an already-open board, so it can
-	pick up config edits without re-fetching the whole board document (whose
-	column orders hold every card name and can be large).
-	"""
-	board = frappe.get_doc("Kanban Board", board_name)
-	ensure_kanban_board_permission(board, "read")
-	frappe.has_permission(board.reference_doctype, "read", throw=True)
-
-	def _field_rows(rows):
-		return [{"fieldname": f.fieldname, "label": f.label, "icon": f.icon} for f in rows]
-
-	return {
-		"title_field": board.title_field,
-		"image_field": board.image_field,
-		"show_assigned_to": board.show_assigned_to,
-		"show_tags_on_card": board.show_tags_on_card,
-		"footer_date_field": board.footer_date_field,
-		"card_fields": _field_rows(board.card_fields),
-		"preview_fields": _field_rows(board.preview_fields),
-	}
-
-
 # Paginated Kanban APIs: load cards per column in pages instead of all at once.
 def get_kanban_reportview_args():
 	"""Read list-view style args from the request, plus Kanban paging fields."""

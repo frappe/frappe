@@ -49,8 +49,6 @@ export function bindCardDropTarget(el, getData, hooks) {
 				0;
 			hooks.onEdge(closestEdge(el.getBoundingClientRect(), y));
 		},
-		onDragLeave: () => hooks && hooks.onLeave && hooks.onLeave(),
-		onDrop: () => hooks && hooks.onLeave && hooks.onLeave(),
 	});
 }
 

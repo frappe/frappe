@@ -654,11 +654,11 @@ export class KanbanCore {
 		this.bus.emit("column:scroll-end", column.id);
 		const cb = this.options.callbacks;
 		cb && cb.onColumnScrollEnd && cb.onColumnScrollEnd(column.id);
-		this.loadMore(column.id, loaded);
+		this.loadMore(column.id);
 	}
 
 	/** Load the next page for a column (queued via loadColumnPageOnce). */
-	async loadMore(columnId, start) {
+	async loadMore(columnId) {
 		const view = this.columnViews.get(columnId);
 		if (!view || view.loading) return;
 		try {
@@ -904,8 +904,13 @@ export class KanbanCore {
 		this.expectOwnUpdates([cardId]);
 		this.movesInFlight++;
 		try {
-			await this.options.provider.moveCard(move);
-			cb.onAfterCardMove && cb.onAfterCardMove(move);
+			const saved = await this.options.provider.moveCard(move);
+			if (this.settleCards({ [cardId]: saved }, toColumn).length) {
+				cb.onMoveError &&
+					cb.onMoveError(move, new Error(__("The card was saved in another column")));
+			} else {
+				cb.onAfterCardMove && cb.onAfterCardMove(move);
+			}
 		} catch (error) {
 			this.moveCardsBack([{ cardId, fromColumn, oldIndex }], toColumn);
 			cb.onMoveError && cb.onMoveError(move, error);
@@ -977,16 +982,18 @@ export class KanbanCore {
 		this.setSelection([]);
 
 		const moveErrorArgs = {
-			cardId: moves.length === 1 ? moves[0].cardId : __("{0} cards", [moves.length]),
+			cardId: movedIds[0],
 			cardIds: movedIds,
 			toColumn,
 		};
 
 		this.expectOwnUpdates(movedIds);
 		this.movesInFlight++;
-		let failed;
+		let failed, saved;
 		try {
-			failed = new Set(await this.options.provider.moveCards(movedIds, toColumn));
+			const result = await this.options.provider.moveCards(movedIds, toColumn);
+			failed = new Set(result.failed);
+			saved = result.saved || {};
 		} catch (error) {
 			this.moveCardsBack(moves, toColumn);
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
@@ -1004,12 +1011,73 @@ export class KanbanCore {
 			const error = new Error(
 				__("{0} of {1} cards could not be moved", [failed.size, moves.length])
 			);
-			cb.onMoveError && cb.onMoveError({ ...moveErrorArgs, cardIds: [...failed] }, error);
+			const failedIds = [...failed];
+			cb.onMoveError &&
+				cb.onMoveError(
+					{ ...moveErrorArgs, cardId: failedIds[0], cardIds: failedIds },
+					error
+				);
 			this.bus.emit("error", error);
 		}
-		for (const m of moves) {
-			if (!failed.has(m.cardId)) cb.onAfterCardMove && cb.onAfterCardMove(m);
+		const settled = new Set(
+			this.settleCards(
+				Object.fromEntries(Object.entries(saved).filter(([id]) => !failed.has(id))),
+				toColumn
+			)
+		);
+		if (settled.size) {
+			const settledIds = [...settled];
+			cb.onMoveError &&
+				cb.onMoveError(
+					{ ...moveErrorArgs, cardId: settledIds[0], cardIds: settledIds },
+					new Error(__("Some cards were saved in another column"))
+				);
 		}
+		for (const m of moves) {
+			if (!failed.has(m.cardId) && !settled.has(m.cardId)) {
+				cb.onAfterCardMove && cb.onAfterCardMove(m);
+			}
+		}
+	}
+
+	/**
+	 * Move cards to the column the server saved them in, when it isn't the one they
+	 * were dropped in (a doctype can set the value itself, e.g. a computed status).
+	 * Returns the names of the cards that moved.
+	 */
+	settleCards(saved, toColumn) {
+		const onBoard = new Set(this.state.columns.map((c) => c.id));
+		const dropped = new Set(this.orderedNames(toColumn));
+		const misplaced = Object.entries(saved).filter(
+			([id, column]) => column != null && column !== toColumn && dropped.has(id)
+		);
+		if (!misplaced.length) return [];
+
+		const affected = [...new Set([toColumn, ...misplaced.map(([, c]) => c)])].filter((c) =>
+			onBoard.has(c)
+		);
+		this.animateMove(affected, () => {
+			for (const [id, column] of misplaced) {
+				if (onBoard.has(column)) this.moveCardBetweenColumns(id, toColumn, column, 0);
+				else this.removeCard(id, toColumn);
+			}
+			this.renderColumns(affected);
+		});
+		return misplaced.map(([id]) => id);
+	}
+
+	/** Drop a card whose column isn't on this board. */
+	removeCard(cardId, columnId) {
+		this.state = {
+			...this.state,
+			columns: this.state.columns.map((c) =>
+				c.id === columnId ? { ...c, total: Math.max(0, c.total - 1) } : c
+			),
+			cards: {
+				...this.state.cards,
+				[columnId]: (this.state.cards[columnId] || []).filter((c) => c.name !== cardId),
+			},
+		};
 	}
 
 	/** Undo optimistic moves that the server rejected. */
