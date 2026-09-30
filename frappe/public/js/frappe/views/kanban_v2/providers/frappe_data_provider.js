@@ -63,16 +63,6 @@ export class FrappeDataProvider {
 		frappe.update_user_info(info);
 	}
 
-	parseOrder(order) {
-		if (!order) return [];
-		try {
-			const parsed = JSON.parse(order);
-			return Array.isArray(parsed) ? parsed : [];
-		} catch (e) {
-			return [];
-		}
-	}
-
 	async getBoardColumns() {
 		const board = await frappe.db.get_doc("Kanban Board", this.config.board_name);
 		return (board && board.columns) || [];
@@ -98,7 +88,6 @@ export class FrappeDataProvider {
 				title: id,
 				color: col.indicator || "gray",
 				status: col.status || "Active",
-				order: this.parseOrder(col.order),
 				total: bucket.total || 0,
 			});
 			cards[id] = this.expandCards(bucket.cards);
@@ -123,22 +112,30 @@ export class FrappeDataProvider {
 	}
 
 	async moveCard(input) {
-		await this.call("update_order_for_single_card", {
-			docname: input.cardId,
-			from_colname: input.fromColumn,
-			to_colname: input.toColumn,
-			from_order: JSON.stringify(input.fromOrder),
-			to_order: JSON.stringify(input.toOrder),
+		await frappe.call({
+			method: "frappe.client.set_value",
+			args: {
+				doctype: this.config.doctype,
+				name: input.cardId,
+				fieldname: this.config.field_name,
+				value: input.toColumn,
+			},
 		});
 	}
 
-	/** Persist final orders for one or more columns in a single request (bulk moves). */
-	async updateOrder(orderByColumn) {
-		await this.call("update_order", {
-			order: JSON.stringify(orderByColumn || {}),
-			// Error on a missing write permission instead of silently skipping.
-			throw_on_no_write: 1,
+	/** Returns the names that could not be moved. */
+	async moveCards(cardIds, toColumn) {
+		const r = await frappe.call({
+			method: "frappe.client.bulk_update",
+			args: {
+				docs: cardIds.map((name) => ({
+					doctype: this.config.doctype,
+					docname: name,
+					[this.config.field_name]: toColumn,
+				})),
+			},
 		});
+		return ((r.message && r.message.failed_docs) || []).map((f) => f.doc.docname);
 	}
 
 	/** Persist the horizontal order of board columns. */

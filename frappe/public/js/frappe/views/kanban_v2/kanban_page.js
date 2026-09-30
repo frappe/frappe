@@ -369,6 +369,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 
 		this.board_doc = board;
+		// a standard board ships with an app, so its setup changes only in developer mode
+		this.board_locked = board.is_standard === "Yes" && !frappe.boot.developer_mode;
 		this.doctype = board.reference_doctype;
 		this.field_name = board.field_name;
 		this.filters = [];
@@ -483,7 +485,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this.title_field,
 			this.field_name,
 			"_assign",
-			"_comments",
 			"_liked_by",
 			"_user_tags",
 		];
@@ -710,7 +711,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			__("Reload")
 		);
 
-		page.add_menu_item(__("Save Filters"), () => this.save_filters());
+		if (!this.board_locked) {
+			page.add_menu_item(__("Save Filters"), () => this.save_filters());
+		}
 
 		this.setup_filter_bar();
 	}
@@ -928,6 +931,18 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** Settings button — opens Board Settings (kanban_settings.bundle.js). */
 	setup_settings_button($parent) {
+		if (this.board_locked) {
+			this.$settings_btn = frappe.ui.button({
+				label: __("Duplicate"),
+				icon: "copy",
+				size: "sm",
+				css_class: "mr-0",
+				tooltip: __("Copy this board to change its setup"),
+				onclick: () => this.duplicate_board(),
+			});
+			$parent.append(this.$settings_btn);
+			return;
+		}
 		// Espresso button (Filter stays Bootstrap for FilterGroup chrome).
 		this.$settings_btn = frappe.ui.button({
 			label: __("Settings"),
@@ -1100,6 +1115,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** Show "Not Saved" next to the title when filters differ from the saved set. */
 	update_saved_indicator() {
+		if (this.board_locked) return;
 		const changed =
 			JSON.stringify(this.saved_filters || []) !== JSON.stringify(this.filters || []);
 		if (changed) this.page.set_indicator(__("Not Saved"), "orange");
@@ -1125,6 +1141,32 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (!this.provider) return;
 		this.provider.setFilters(this.get_effective_filters());
 		this.board.refresh();
+	}
+
+	duplicate_board() {
+		frappe.prompt(
+			{
+				fieldname: "board_name",
+				fieldtype: "Data",
+				label: __("Kanban Board Name"),
+				reqd: 1,
+				default: __("{0} (Copy)", [__(this.board_doc.kanban_board_name)]),
+			},
+			async ({ board_name }) => {
+				const { name, owner, creation, modified, modified_by, ...fields } = this.board_doc;
+				const board = await frappe.xcall("frappe.client.insert", {
+					doc: {
+						...fields,
+						kanban_board_name: board_name,
+						is_standard: "No",
+						module: null,
+					},
+				});
+				frappe.set_route("List", this.doctype, "Kanban", board.name);
+			},
+			__("Duplicate Kanban Board"),
+			__("Duplicate")
+		);
 	}
 
 	/** Persist current filters onto the Kanban Board doc. */
@@ -1163,11 +1205,13 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return new frappe.kanban_v2.FrappeDataProvider({
 			doctype: this.doctype,
 			board_name: this.current_board,
+			field_name: this.field_name,
 			reportview_args: {
 				doctype: this.doctype,
 				fields: JSON.stringify(this.fields),
 				order_by: "modified desc",
 				filters: JSON.stringify(filters),
+				with_comment_count: 1,
 			},
 		});
 	}
@@ -1195,6 +1239,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return {
 			provider,
 			groupBy: this.field_name,
+			columnReorder: !this.board_locked,
 			pageLength: opts.pageLength || 20,
 			// Swimlane boards are sized to their content (no inner scroll), so a
 			// virtualized window would under-render — the caller turns it off.
@@ -2054,7 +2099,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			.split(",")
 			.map((t) => t.trim())
 			.filter(Boolean);
-		const comments = this.parse_json_list(card._comments).length;
+		const comments = cint(card._comment_count);
 		const likes = this.parse_json_list(card._liked_by).length;
 		// Nothing on either side → skip the footer so the card ends on content.
 		if (!assignees && !tags.length && !comments && !likes) return null;

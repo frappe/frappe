@@ -12,7 +12,8 @@
   "reference_doctype",
   "field_name",
   "column_break_4",
-    "is_standard",
+  "is_standard",
+  "module",
   "private",
   "show_labels",
   "use_kanban_v2",
@@ -97,7 +98,17 @@
    "fieldname": "is_standard",
    "fieldtype": "Select",
    "label": "Is Standard",
-   "options": "No\nYes"
+   "no_copy": 1,
+   "options": "No\nYes",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval: doc.is_standard == \"Yes\"",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval: doc.is_standard == \"Yes\"",
+   "options": "Module Def"
   },
   {
    "default": "0",
@@ -184,7 +195,7 @@
  ],
  "icon": "square-kanban",
  "links": [],
- "modified": "2026-08-04 14:19:45.191676",
+ "modified": "2026-09-30 23:13:54.840908",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",

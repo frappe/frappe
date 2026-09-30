@@ -1,6 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+import os
+import shutil
+import tempfile
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.doctype.kanban_board import kanban_board as kb
@@ -315,57 +320,6 @@ class TestKanbanBoard(IntegrationTestCase):
 		board.save(ignore_permissions=True)
 		self.assertEqual(cint(frappe.db.get_value("Kanban Board", self.board_name, "private")), 1)
 
-	def test_standard_board_blocks_non_admin_edits(self):
-		other = "kanban_perm_test@example.com"
-		if not frappe.db.exists("User", other):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": other,
-					"first_name": "Kanban",
-					"last_name": "Perm",
-					"send_welcome_email": 0,
-					"roles": [{"role": "System Manager"}],
-				}
-			).insert(ignore_permissions=True)
-
-		frappe.db.set_value("Kanban Board", self.board_name, "is_standard", "Yes")
-		try:
-			frappe.set_user(other)
-			board = frappe.get_doc("Kanban Board", self.board_name)
-			board.use_kanban_v2 = 1 if not cint(board.use_kanban_v2) else 0
-			self.assertRaises(frappe.ValidationError, board.save, ignore_permissions=True)
-		finally:
-			frappe.set_user("Administrator")
-			frappe.db.set_value("Kanban Board", self.board_name, "is_standard", "No")
-
-	def test_standard_board_requires_developer_mode(self):
-		frappe.set_user("Administrator")
-		board = frappe.get_doc("Kanban Board", self.board_name)
-		old_dev_mode = getattr(frappe.local.conf, "developer_mode", 0)
-		try:
-			frappe.local.conf.developer_mode = 0
-			board.is_standard = "Yes"
-			self.assertRaises(frappe.ValidationError, board.save, ignore_permissions=True)
-		finally:
-			frappe.local.conf.developer_mode = old_dev_mode
-
-	def test_standard_board_delete_blocked_outside_developer_mode(self):
-		frappe.set_user("Administrator")
-		frappe.db.set_value("Kanban Board", self.board_name, "is_standard", "Yes")
-		old_dev_mode = getattr(frappe.local.conf, "developer_mode", 0)
-		try:
-			frappe.local.conf.developer_mode = 0
-			self.assertRaises(
-				frappe.ValidationError,
-				frappe.delete_doc,
-				"Kanban Board",
-				self.board_name,
-			)
-		finally:
-			frappe.local.conf.developer_mode = old_dev_mode
-			frappe.db.set_value("Kanban Board", self.board_name, "is_standard", "No")
-
 	def test_group_by_fields_seeded_with_select_fields(self):
 		name = frappe.generate_hash(length=10)
 		board = frappe.get_doc(
@@ -475,3 +429,78 @@ class TestKanbanBoardNativePayloads(IntegrationTestCase):
 		# update_order with a native dict
 		_board, updated_cards = kb.update_order(self.board.name, {})
 		self.assertEqual(updated_cards, [])
+
+
+class TestStandardKanbanBoard(IntegrationTestCase):
+	def setUp(self):
+		self.addCleanup(frappe.db.rollback)
+		self.module_path = tempfile.mkdtemp()
+		self.addCleanup(shutil.rmtree, self.module_path)
+		patcher = patch(
+			"frappe.desk.doctype.kanban_board.kanban_board.get_module_path", return_value=self.module_path
+		)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def make_standard_board(self, **kwargs):
+		with patch.dict(frappe.conf, developer_mode=1):
+			return frappe.get_doc(
+				{
+					"doctype": "Kanban Board",
+					"kanban_board_name": "_Test Standard Board",
+					"reference_doctype": "ToDo",
+					"field_name": "status",
+					"use_kanban_v2": 1,
+					"is_standard": "Yes",
+					"module": "Desk",
+					"columns": [{"column_name": "Open"}, {"column_name": "Closed"}],
+					**kwargs,
+				}
+			).insert()
+
+	def test_export_and_sync(self):
+		from frappe.model.sync import get_doc_files
+		from frappe.modules.import_file import import_file_by_path
+
+		board = self.make_standard_board()
+
+		path = board.get_export_path()
+		self.assertEqual(
+			path,
+			os.path.join(self.module_path, "doctype", "todo", "kanban_board", "_test_standard_board.json"),
+		)
+		with open(path) as f:
+			exported = frappe.parse_json(f.read())
+		self.assertEqual([c["column_name"] for c in exported["columns"]], ["Open", "Closed"])
+
+		# migrate brings it back
+		self.assertIn(path, get_doc_files([], self.module_path))
+		with patch.dict(frappe.flags, in_migrate=True):
+			frappe.delete_doc("Kanban Board", board.name)
+		import_file_by_path(path)
+		self.assertEqual(frappe.db.get_value("Kanban Board", board.name, "is_standard"), "Yes")
+
+	def test_locked_outside_developer_mode(self):
+		board = self.make_standard_board()
+
+		with patch.dict(frappe.conf, developer_mode=0):
+			board.show_assigned_to = 0
+			self.assertRaises(frappe.PermissionError, board.save)
+			self.assertRaises(frappe.PermissionError, frappe.delete_doc, "Kanban Board", board.name)
+
+		self.assertRaises(frappe.ValidationError, frappe.rename_doc, "Kanban Board", board.name, "Renamed")
+
+	def test_delete_in_developer_mode_removes_file(self):
+		board = self.make_standard_board()
+		path = board.get_export_path()
+		self.assertTrue(os.path.exists(path))
+
+		with patch.dict(frappe.conf, developer_mode=1):
+			frappe.delete_doc("Kanban Board", board.name)
+
+		self.assertFalse(os.path.exists(path))
+
+	def test_standard_board_rules(self):
+		self.assertRaises(frappe.ValidationError, self.make_standard_board, use_kanban_v2=0)
+		self.assertRaises(frappe.ValidationError, self.make_standard_board, private=1)
+		self.assertRaises(frappe.MandatoryError, self.make_standard_board, module=None)

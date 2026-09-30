@@ -294,9 +294,7 @@ export class KanbanCore {
 					...this.state,
 					cards: { ...this.state.cards, [columnId]: [created, ...existing] },
 					columns: this.state.columns.map((c) =>
-						c.id === columnId
-							? { ...c, order: [created.name, ...c.order], total: c.total + 1 }
-							: c
+						c.id === columnId ? { ...c, total: c.total + 1 } : c
 					),
 				};
 				this.renderColumns([columnId]);
@@ -471,6 +469,7 @@ export class KanbanCore {
 	 */
 	setupColumnSortable() {
 		if (!this.root || this.columnSortable || typeof Sortable === "undefined") return;
+		if (this.options.columnReorder === false) return;
 		this.columnSortable = new Sortable(this.root, {
 			animation: 150,
 			draggable: ".kn-column",
@@ -688,33 +687,6 @@ export class KanbanCore {
 		}
 	}
 
-	// Load remaining pages when a column's full order is unknown, so a move can't drop unloaded cards. Resolves true when the order is usable.
-	async ensureOrderKnown(columnId) {
-		const reloadSeq = this.reloadSeq;
-		if (this.persistedOrder(columnId)) return true;
-		while (!this.persistedOrder(columnId)) {
-			if (reloadSeq !== this.reloadSeq) return false;
-			const column = this.getColumn(columnId);
-			if (!column) return false;
-			const loaded = (this.state.cards[columnId] || []).length;
-			if (loaded >= (column.total || 0)) break;
-			// Same serialized loader as the scroll prefetch, so a drag and a scroll
-			// can't fetch the same offset and double-append the remaining pages.
-			const { fetched } = await this.loadColumnPageOnce(columnId, reloadSeq);
-			if (reloadSeq !== this.reloadSeq) return false;
-			if (!fetched) break; // no progress — avoid an infinite loop
-		}
-		return !!this.persistedOrder(columnId);
-	}
-
-	// Report a move whose column order couldn't resolve; the card rolls back with feedback.
-	reportMoveBlocked(cardId, fromColumn, toColumn) {
-		const cb = this.options.callbacks || {};
-		const error = new Error("kanban: could not resolve column order for the move");
-		cb.onMoveError && cb.onMoveError({ cardId, fromColumn, toColumn }, error);
-		this.bus.emit("error", error);
-	}
-
 	/** Track pointer + kick auto-scroll while a native drag is active. */
 	onDragOver = (e) => {
 		this.pointer.x = e.clientX;
@@ -845,67 +817,15 @@ export class KanbanCore {
 		}
 	}
 
-	/** Optimistic single-card move + persist; animates rollback on error. */
+	/** Optimistic single-card move + persist; moves the card back on error. */
 	async applyMove(cardId, fromColumn, toColumn, toIndex) {
-		const sameColumn = fromColumn === toColumn;
-		// A partially-loaded column with no saved order has an unknown full order;
-		// load the rest first so the move works instead of silently aborting. If it
-		// can't be resolved (backend stopped returning rows), tell the user rather
-		// than snapping the card back with no explanation.
-		if (!(await this.ensureOrderKnown(fromColumn))) {
-			this.clearDropIndicator({ animate: true });
-			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
-		}
-		if (!sameColumn && !(await this.ensureOrderKnown(toColumn))) {
-			this.clearDropIndicator({ animate: true });
-			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
-		}
-		// Use full persisted order (includes not-yet-loaded names), not only
-		// the loaded window — otherwise the server would drop unloaded cards.
-		const loadedFrom = this.orderedNames(fromColumn);
-		const fromNames = this.persistedOrder(fromColumn);
-		// null means partial load with no saved order — sending it would truncate unloaded names.
-		if (!fromNames) {
-			this.clearDropIndicator({ animate: true });
-			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
-		}
-		const oldIndex = fromNames.indexOf(cardId);
-		if (oldIndex < 0) {
-			this.clearDropIndicator({ animate: true });
-			return;
-		}
-
-		const loadedTo = sameColumn ? loadedFrom : this.orderedNames(toColumn);
-		const toNames = sameColumn ? fromNames : this.persistedOrder(toColumn);
-		if (!toNames) {
-			this.clearDropIndicator({ animate: true });
-			return this.reportMoveBlocked(cardId, fromColumn, toColumn);
-		}
-		let insertIndex = this.persistedInsertIndex(toNames, loadedTo, toIndex);
-		fromNames.splice(oldIndex, 1);
-		if (sameColumn && oldIndex < insertIndex) insertIndex -= 1;
-		insertIndex = clamp(insertIndex, 0, toNames.length);
-		if (sameColumn && insertIndex === oldIndex) {
-			this.clearDropIndicator({ animate: true });
-			return;
-		}
-		toNames.splice(insertIndex, 0, cardId);
-
 		const card = this.findCard(cardId);
-		if (!card) {
+		if (fromColumn === toColumn || !card) {
 			this.clearDropIndicator({ animate: true });
 			return;
 		}
-
-		const move = {
-			cardId,
-			fromColumn,
-			toColumn,
-			oldIndex,
-			newIndex: insertIndex,
-			fromOrder: [...fromNames],
-			toOrder: [...toNames],
-		};
+		const oldIndex = this.orderedNames(fromColumn).indexOf(cardId);
+		const move = { cardId, fromColumn, toColumn, oldIndex, newIndex: toIndex };
 
 		const cb = this.options.callbacks || {};
 		const guard = cb.canMoveCard && cb.canMoveCard(card, fromColumn, toColumn);
@@ -919,24 +839,15 @@ export class KanbanCore {
 			return;
 		}
 
-		const affected = sameColumn ? [fromColumn] : [fromColumn, toColumn];
-		const snapshot = this.state;
-		const reloadSeqAtSnapshot = this.reloadSeq;
-		// Measure with the slot open, then collapse it and apply the new order in one FLIP; the moved card is anchored to its release point.
+		const affected = [fromColumn, toColumn];
+		// Measure with the slot open, then collapse it and move the card in one FLIP; the moved card is anchored to its release point.
 		const releaseAnchor = this.dragReleaseRect ? { cardId, rect: this.dragReleaseRect } : null;
 		this.dragReleaseRect = null;
 		this.animateMove(
 			affected,
 			() => {
 				this.clearDropIndicator();
-				this.setColumnOrder(fromColumn, fromNames, sameColumn ? 0 : -1);
-				if (sameColumn) {
-					// Keep the loaded list in visual order (display uses it while paginated).
-					this.reorderLoaded(fromColumn, cardId, toIndex);
-				} else {
-					this.setColumnOrder(toColumn, toNames, 1);
-					this.moveCardBetweenColumns(cardId, fromColumn, toColumn, toIndex);
-				}
+				this.moveCardBetweenColumns(cardId, fromColumn, toColumn, toIndex);
 				this.renderColumns(affected);
 			},
 			releaseAnchor
@@ -950,199 +861,109 @@ export class KanbanCore {
 			this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 			cb.onAfterCardMove && cb.onAfterCardMove(move);
 		} catch (error) {
-			// No reload since this move started — the pre-move snapshot is server truth.
-			if (this.reloadSeq === reloadSeqAtSnapshot) {
-				this.animateMove(affected, () => {
-					this.state = snapshot;
-					this.renderColumns(affected);
-				});
-			} else if (!this._reloadInFlight) {
-				// A reload already replaced this state; refetch only when none is in flight
-				// — canceling an in-flight reload would discard its fresh response.
-				this.reload();
-			}
+			this.moveCardsBack([{ cardId, fromColumn, oldIndex }], toColumn);
 			cb.onMoveError && cb.onMoveError(move, error);
 			this.bus.emit("error", error);
 		}
 	}
 
-	/** Optimistic multi-select move in one request; reloads on failure. */
+	/** Optimistic multi-select move in one request; failed cards move back. */
 	async applyMoveMultiple(cardIds, toColumn, anchorName, edge) {
 		const selected = new Set(cardIds);
-		// Load the target and any column holding a selected card that has no saved
-		// order yet, so no selected card is silently dropped from the move below.
-		const involved = new Set([toColumn]);
+		const moves = [];
 		for (const col of this.state.columns) {
-			const names = (this.state.cards[col.id] || []).map((c) => c.name);
-			if (names.some((n) => selected.has(n))) involved.add(col.id);
+			if (col.id === toColumn) continue;
+			this.orderedNames(col.id).forEach((name, oldIndex) => {
+				if (selected.has(name)) moves.push({ cardId: name, fromColumn: col.id, oldIndex });
+			});
 		}
-		for (const colId of involved) {
-			if (!(await this.ensureOrderKnown(colId))) {
-				this.clearDropIndicator({ animate: true });
-				return this.reportMoveBlocked(cardIds[0], colId, toColumn);
-			}
-		}
-
-		const selectedOrdered = [];
-		const sourceOf = new Map();
-		// Walk full persisted order so multi-select keeps unloaded cards intact.
-		for (const col of this.state.columns) {
-			const colOrder = this.persistedOrder(col.id);
-			if (!colOrder) continue; // partial load, no saved order — skip column
-			for (const name of colOrder) {
-				if (selected.has(name)) {
-					selectedOrdered.push(name);
-					sourceOf.set(name, col.id);
-				}
-			}
-		}
-		if (!selectedOrdered.length) {
+		if (!moves.length) {
 			this.clearDropIndicator({ animate: true });
 			return;
 		}
 
 		const cb = this.options.callbacks || {};
-		for (const name of selectedOrdered) {
-			const from = sourceOf.get(name);
-			const card = this.findCard(name);
-			if (!from || !card) continue;
-			const guard = cb.canMoveCard && cb.canMoveCard(card, from, toColumn);
+		for (const { cardId, fromColumn } of moves) {
+			const guard =
+				cb.canMoveCard && cb.canMoveCard(this.findCard(cardId), fromColumn, toColumn);
 			if (guard === false || typeof guard === "string") {
 				this.clearDropIndicator({ animate: true });
 				return;
 			}
 		}
 
-		const affected = [...new Set([...sourceOf.values(), toColumn])];
-		const snapshot = this.state;
-		const reloadSeqAtSnapshot = this.reloadSeq;
-
-		const toPersistedOrder = this.persistedOrder(toColumn);
-		// null means partial load with no saved order — abort to avoid truncating unloaded names.
-		if (!toPersistedOrder) {
-			this.clearDropIndicator({ animate: true });
-			return this.reportMoveBlocked(cardIds[0], sourceOf.get(cardIds[0]), toColumn);
-		}
-		const targetClean = toPersistedOrder.filter((n) => !selected.has(n));
-		let insertAt = targetClean.length;
+		const affected = [...new Set([...moves.map((m) => m.fromColumn), toColumn])];
+		const target = this.orderedNames(toColumn);
+		let insertAt = target.length;
 		if (anchorName) {
-			const idx = targetClean.indexOf(anchorName);
+			const idx = target.indexOf(anchorName);
 			if (idx >= 0) insertAt = edge === "bottom" ? idx + 1 : idx;
 		}
-		const finalTargetOrder = [
-			...targetClean.slice(0, insertAt),
-			...selectedOrdered,
-			...targetClean.slice(insertAt),
-		];
-		const finalSourceOrders = new Map();
-		for (const colId of new Set(sourceOf.values())) {
-			if (colId === toColumn) continue;
-			const srcOrder = this.persistedOrder(colId);
-			if (!srcOrder) continue; // shouldn't happen: sourceOf was built from non-null orders
-			finalSourceOrders.set(
-				colId,
-				srcOrder.filter((n) => !selected.has(n))
-			);
-		}
-
-		const addedToTarget = selectedOrdered.filter((n) => sourceOf.get(n) !== toColumn).length;
 
 		this.animateMove(affected, () => {
 			// Same as single-card: keep hover gap until this FLIP mutate.
 			this.clearDropIndicator();
-			const columns = this.state.columns.map((col) => {
-				if (col.id === toColumn) {
-					return { ...col, order: finalTargetOrder, total: col.total + addedToTarget };
-				}
-				if (finalSourceOrders.has(col.id)) {
-					const removed = selectedOrdered.filter(
-						(n) => sourceOf.get(n) === col.id
-					).length;
-					return {
-						...col,
-						order: finalSourceOrders.get(col.id),
-						total: Math.max(0, col.total - removed),
-					};
-				}
-				return col;
-			});
-
-			const moved = [];
-			for (const name of selectedOrdered) {
-				const obj = this.findCard(name);
-				if (obj) moved.push({ ...obj, [this.options.groupBy]: toColumn });
-			}
-			const cards = {};
-			for (const [colId, list] of Object.entries(this.state.cards)) {
-				cards[colId] = list.filter((cd) => !selected.has(cd.name));
-			}
-			cards[toColumn] = [...moved, ...(cards[toColumn] || [])];
-
-			this.state = { ...this.state, columns, cards };
+			moves.forEach((m, i) =>
+				this.moveCardBetweenColumns(m.cardId, m.fromColumn, toColumn, insertAt + i)
+			);
 			this.renderColumns(affected);
 		});
 
 		this.setSelection([]);
 
-		// Multi-move must be one request: a per-card loop could commit some then fail, making rollback lie about server state.
-		const orderPayload = { [toColumn]: finalTargetOrder };
-		for (const [colId, order] of finalSourceOrders) {
-			orderPayload[colId] = order;
-		}
-
 		const moveErrorArgs = {
-			cardId:
-				selectedOrdered.length === 1
-					? selectedOrdered[0]
-					: __("{0} cards", [selectedOrdered.length]),
-			cardIds: [...selectedOrdered],
+			cardId: moves.length === 1 ? moves[0].cardId : __("{0} cards", [moves.length]),
+			cardIds: moves.map((m) => m.cardId),
 			toColumn,
 		};
 
-		if (!this.options.provider.updateOrder) {
-			// Skip rollback if a reload has since replaced this state.
-			if (this.reloadSeq === reloadSeqAtSnapshot) {
-				this.state = snapshot;
-				this.renderColumns(affected);
-			}
-			const error = new Error(__("Bulk move is not supported"));
+		this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
+		let failed;
+		try {
+			failed = new Set(
+				await this.options.provider.moveCards(
+					moves.map((m) => m.cardId),
+					toColumn
+				)
+			);
+		} catch (error) {
+			this.moveCardsBack(moves, toColumn);
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);
 			return;
 		}
-
 		this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
-		try {
-			await this.options.provider.updateOrder(orderPayload);
-			this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
-			for (const name of selectedOrdered) {
-				const from = sourceOf.get(name);
-				cb.onAfterCardMove &&
-					cb.onAfterCardMove({
-						cardId: name,
-						fromColumn: from,
-						toColumn,
-						oldIndex: 0,
-						newIndex: finalTargetOrder.indexOf(name),
-						fromOrder:
-							from === toColumn
-								? finalTargetOrder
-								: finalSourceOrders.get(from) || [],
-						toOrder: finalTargetOrder,
-					});
-			}
-		} catch (error) {
-			if (this.reloadSeq === reloadSeqAtSnapshot) {
-				this.state = snapshot;
-				this.renderColumns(affected);
-			} else if (!this._reloadInFlight) {
-				// A reload already replaced this state; refetch only when none is in
-				// flight — canceling an in-flight reload would discard its fresh data.
-				this.reload();
-			}
-			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
+
+		if (failed.size) {
+			this.moveCardsBack(
+				moves.filter((m) => failed.has(m.cardId)),
+				toColumn
+			);
+			const error = new Error(
+				__("{0} of {1} cards could not be moved", [failed.size, moves.length])
+			);
+			cb.onMoveError && cb.onMoveError({ ...moveErrorArgs, cardIds: [...failed] }, error);
 			this.bus.emit("error", error);
 		}
+		for (const m of moves) {
+			if (failed.has(m.cardId)) continue;
+			cb.onAfterCardMove &&
+				cb.onAfterCardMove({ ...m, toColumn, newIndex: insertAt + moves.indexOf(m) });
+		}
+	}
+
+	/** Undo optimistic moves that the server rejected. */
+	moveCardsBack(moves, toColumn) {
+		// A reload since the move already shows server state.
+		const pending = moves.filter((m) => this.orderedNames(toColumn).includes(m.cardId));
+		if (!pending.length) return;
+		const affected = [...new Set([...pending.map((m) => m.fromColumn), toColumn])];
+		this.animateMove(affected, () => {
+			for (const m of pending) {
+				this.moveCardBetweenColumns(m.cardId, toColumn, m.fromColumn, m.oldIndex);
+			}
+			this.renderColumns(affected);
+		});
 	}
 
 	/** Re-render only the given columns (counts + card windows). */
@@ -1357,7 +1178,7 @@ export class KanbanCore {
 	 * Insert index for a drop over a column, from the pointer Y against the
 	 * column's rendered cards. Deterministic at drop time — no reliance on hover
 	 * state surviving until release. Returned index is in the loaded (visible)
-	 * order, which moveCardBetweenColumns/reorderLoaded consume.
+	 * order, which moveCardBetweenColumns consumes.
 	 */
 	dropIndexFromPointer(columnId, clientY) {
 		const view = this.columnViews.get(columnId);
@@ -1371,17 +1192,7 @@ export class KanbanCore {
 		return start + cards.length;
 	}
 
-	/** Write a column's persisted name order (and optional total delta). */
-	setColumnOrder(columnId, order, totalDelta) {
-		this.state = {
-			...this.state,
-			columns: this.state.columns.map((c) =>
-				c.id === columnId ? { ...c, order: [...order], total: c.total + totalDelta } : c
-			),
-		};
-	}
-
-	/** Move a card between loaded column arrays in local state. */
+	/** Move a card between loaded column arrays and totals in local state. */
 	moveCardBetweenColumns(cardId, fromColumn, toColumn, atIndex = null) {
 		const card = this.findCard(cardId);
 		if (!card) return;
@@ -1389,68 +1200,20 @@ export class KanbanCore {
 		const toArr = [...(this.state.cards[toColumn] || [])];
 		const idx = atIndex == null ? toArr.length : clamp(atIndex, 0, toArr.length);
 		toArr.splice(idx, 0, { ...card, [this.options.groupBy]: toColumn });
+		const delta = { [fromColumn]: -1, [toColumn]: 1 };
 		this.state = {
 			...this.state,
+			columns: this.state.columns.map((c) =>
+				c.id in delta ? { ...c, total: Math.max(0, c.total + delta[c.id]) } : c
+			),
 			cards: { ...this.state.cards, [fromColumn]: fromArr, [toColumn]: toArr },
 		};
-	}
-
-	/** Reorder a card within a column's loaded (visible) list — keeps the display
-	 * correct while a column shows its fetch order (partial/paginated). */
-	reorderLoaded(columnId, cardId, toIndex) {
-		const arr = [...(this.state.cards[columnId] || [])];
-		const from = arr.findIndex((c) => c.name === cardId);
-		if (from < 0) return;
-		const [card] = arr.splice(from, 1);
-		let idx = toIndex;
-		if (from < idx) idx -= 1;
-		idx = clamp(idx, 0, arr.length);
-		arr.splice(idx, 0, card);
-		this.state = { ...this.state, cards: { ...this.state.cards, [columnId]: arr } };
 	}
 
 	/** Visible card names for a column (what the UI currently shows). */
 	orderedNames(columnId) {
 		const column = this.getColumn(columnId);
 		return column ? this.orderedCards(column).map((c) => c.name) : [];
-	}
-
-	// Full name order for saving (loaded + unloaded). Returns null when the order is unknown (partial load, no saved order) — the caller must abort.
-	persistedOrder(columnId) {
-		const column = this.getColumn(columnId);
-		if (!column) return [];
-		if (column.order && column.order.length) {
-			const seen = new Set(column.order);
-			const extras = (this.state.cards[columnId] || [])
-				.map((c) => c.name)
-				.filter((name) => !seen.has(name));
-			return [...column.order, ...extras];
-		}
-		// No saved order: safe only when all cards are loaded. With a partial load
-		// we don't know the unloaded names, so returning only loaded names would
-		// silently truncate the server's order on the first move.
-		const loaded = this.state.cards[columnId] || [];
-		if (loaded.length < (column.total || 0)) return null;
-		return this.orderedNames(columnId);
-	}
-
-	/**
-	 * Map a drop index from the loaded (visible) list into the full persisted order.
-	 * Unloaded cards usually sit after the loaded prefix, so visual indices align
-	 * with that prefix; append-after-last-loaded inserts after the last visible card.
-	 */
-	persistedInsertIndex(persisted, loaded, toIndex) {
-		if (!loaded.length) return clamp(toIndex, 0, persisted.length);
-		if (toIndex <= 0) {
-			const first = persisted.indexOf(loaded[0]);
-			return first >= 0 ? first : 0;
-		}
-		if (toIndex >= loaded.length) {
-			const last = persisted.indexOf(loaded[loaded.length - 1]);
-			return last >= 0 ? last + 1 : persisted.length;
-		}
-		const at = persisted.indexOf(loaded[toIndex]);
-		return at >= 0 ? at : clamp(toIndex, 0, persisted.length);
 	}
 
 	findCard(cardId) {
@@ -1461,23 +1224,9 @@ export class KanbanCore {
 		return undefined;
 	}
 
-	/** Loaded cards in display order (fetch order while paginated). */
+	/** Loaded cards in display order. */
 	orderedCards(column) {
-		const loaded = this.state.cards[column.id] || [];
-		// While paginated keep the server's fetch order; apply the saved order only when the column is fully loaded.
-		if (!column.order.length || loaded.length < (column.total || 0)) return loaded;
-
-		const byName = new Map(loaded.map((c) => [c.name, c]));
-		const ordered = [];
-		for (const name of column.order) {
-			const card = byName.get(name);
-			if (card) {
-				ordered.push(card);
-				byName.delete(name);
-			}
-		}
-		for (const card of byName.values()) ordered.push(card);
-		return ordered;
+		return this.state.cards[column.id] || [];
 	}
 
 	trackCleanup(cleanup) {

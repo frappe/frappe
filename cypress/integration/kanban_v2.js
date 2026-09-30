@@ -90,11 +90,8 @@ context("Kanban v2 Board", () => {
 		cy.hide_dialog();
 	});
 
-	it("moves a card to another column and persists the new order", () => {
-		cy.intercept(
-			"POST",
-			"**/api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order_for_single_card"
-		).as("single-card-order");
+	it("moves a card to another column and saves it", () => {
+		cy.intercept("POST", "**/api/method/frappe.client.set_value").as("set-value");
 
 		visit_kanban_v2();
 		cy.get('.kn-column[data-col="Open"] .kn-card').should("have.length.at.least", 1);
@@ -108,8 +105,9 @@ context("Kanban v2 Board", () => {
 				cy.window().then((win) =>
 					win.cur_list._kanban.board.engine.applyMove(name, "Open", "Closed", 0)
 				);
+				cy.wait("@set-value").its("response.statusCode").should("eq", 200);
 
-				cy.wait("@single-card-order");
+				visit_kanban_v2();
 				cy.get(`.kn-column[data-col="Closed"] .kn-card[data-name="${name}"]`).should(
 					"exist"
 				);

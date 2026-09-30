@@ -2,11 +2,13 @@
 # License: MIT. See LICENSE
 
 import json
+import os
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import clear_user_settings_cache
+from frappe.modules.utils import get_module_path
 from frappe.utils import cint
 
 
@@ -36,6 +38,7 @@ class KanbanBoard(Document):
 		image_field: DF.Autocomplete | None
 		is_standard: DF.Literal["No", "Yes"]
 		kanban_board_name: DF.Data
+		module: DF.Link | None
 		preview_fields: DF.Table[KanbanBoardField]
 		private: DF.Check
 		reference_doctype: DF.Link
@@ -47,31 +50,36 @@ class KanbanBoard(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		self.validate_standard_board_rules()
+		if self.is_standard == "Yes" or self._was_standard():
+			self.validate_standard()
 		self.validate_private_toggle_permission()
 		self.validate_column_name()
 
-	def validate_standard_board_rules(self):
-		"""Standard boards are fixture-backed: only Administrator in developer
-		mode can create/edit them, and standard boards cannot be converted by
-		non-standard edits."""
-		self.is_standard = self.is_standard or "No"
+	def validate_standard(self):
+		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
+			frappe.throw(
+				_("Standard Kanban Boards can only be changed in developer mode"), frappe.PermissionError
+			)
 
-		if (
-			self.is_standard == "No"
-			and frappe.db.get_value("Kanban Board", self.name, "is_standard") == "Yes"
-		):
-			frappe.throw(_("Cannot edit a standard Kanban Board. Please duplicate and create a new board"))
+		if self.is_standard != "Yes":
+			return
 
-		if self.is_standard == "Yes":
-			self.validate_standard_board()
+		if not self.is_new() and not self._was_standard():
+			frappe.throw(_("Only a new Kanban Board can be made standard"))
 
-	def validate_standard_board(self):
-		if frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator can save a standard Kanban Board. Please rename and save."))
+		if not self.module:
+			frappe.throw(_("Module is required for a standard Kanban Board"), frappe.MandatoryError)
 
-		if not cint(getattr(frappe.local.conf, "developer_mode", 0)):
-			frappe.throw(_("Standard Kanban Boards can only be created in developer mode."))
+		if self.private:
+			frappe.throw(_("A standard Kanban Board cannot be private"))
+
+		# the classic board saves card order to the board, which a standard board can't take
+		if not self.use_kanban_v2:
+			frappe.throw(_("A standard Kanban Board must use Kanban v2"))
+
+	def _was_standard(self) -> bool:
+		before = self.get_doc_before_save()
+		return bool(before and before.is_standard == "Yes")
 
 	def validate_private_toggle_permission(self):
 		"""Only the owner or Administrator can toggle private on existing boards."""
@@ -91,18 +99,49 @@ class KanbanBoard(Document):
 		frappe.clear_cache(doctype=self.reference_doctype)
 		clear_user_settings_cache(self.reference_doctype)
 
+	def on_update(self):
+		if self.is_standard == "Yes" and frappe.conf.developer_mode and not frappe.flags.in_import:
+			self.export_board()
+
 	def on_trash(self):
+		if frappe.flags.in_migrate or self.is_standard != "Yes":
+			return
+
+		if not frappe.conf.developer_mode:
+			frappe.throw(
+				_("Standard Kanban Boards can only be deleted in developer mode"), frappe.PermissionError
+			)
+
+		# Otherwise the next migrate brings the board back.
+		path = self.get_export_path()
+		if os.path.exists(path):
+			os.remove(path)
+
+	def before_rename(self, old: str, new: str, merge: bool = False):
 		if self.is_standard == "Yes":
-			if (
-				not cint(getattr(frappe.local.conf, "developer_mode", 0))
-				and not frappe.flags.in_migrate
-				and not frappe.flags.in_patch
-			):
-				frappe.throw(_("You are not allowed to delete Standard Kanban Board"))
+			frappe.throw(_("A standard Kanban Board cannot be renamed"))
+
+	def get_export_path(self) -> str:
+		"""Kept with the DocType it belongs to: doctype/{reference_doctype}/kanban_board/{name}.json"""
+		return os.path.join(
+			get_module_path(self.module),
+			"doctype",
+			frappe.scrub(self.reference_doctype),
+			"kanban_board",
+			f"{frappe.scrub(self.name)}.json",
+		)
+
+	def export_board(self):
+		path = self.get_export_path()
+		frappe.create_folder(os.path.dirname(path))
+		with open(path, "w+") as f:  # nosemgrep
+			f.write(frappe.as_json(self.as_dict(no_nulls=True, no_private_properties=True)) + "\n")
 
 	def before_insert(self):
-		for column in self.columns:
-			column.order = get_order_for_column(self, column.column_name)
+		# only the classic board keeps a card order
+		if not self.use_kanban_v2:
+			for column in self.columns:
+				column.order = get_order_for_column(self, column.column_name)
 		self.seed_title_and_image_fields()
 		self.seed_card_fields()
 		self.seed_preview_fields()
@@ -569,7 +608,7 @@ def archive_restore_column(board_name: str, column_title: str, status: str):
 
 
 @frappe.whitelist()
-def update_order(board_name: str, order: str | dict, throw_on_no_write: bool = False):
+def update_order(board_name: str, order: str | dict):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	# Card ordering only requires read access to the board plus write access to the
@@ -580,10 +619,7 @@ def update_order(board_name: str, order: str | dict, throw_on_no_write: bool = F
 	updated_cards = []
 
 	if not frappe.has_permission(doctype, "write"):
-		# Classic board syncs order on load for read-only users, so it no-ops here.
-		# The new Kanban passes throw_on_no_write, so a failed save errors instead.
-		if frappe.parse_json(throw_on_no_write):
-			frappe.has_permission(doctype, "write", throw=True)
+		# Return board data from db
 		return board, updated_cards
 
 	fieldname = board.field_name
