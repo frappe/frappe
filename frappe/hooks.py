@@ -41,6 +41,7 @@ app_include_icons = [
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
 	"/assets/frappe/icons/desktop_icons/alphabets.svg",
+	"/assets/frappe/icons/module-icons.svg",
 ]
 
 doctype_js = {
