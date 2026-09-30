@@ -793,7 +793,6 @@ frappe.views.CommunicationComposer = class {
 
 	setup_recipient_pills() {
 		const me = this;
-		this._recipient_avatars = this._recipient_avatars || {};
 
 		["recipients", "cc", "bcc"].forEach((fieldname) => {
 			const control = this.dialog.fields_dict[fieldname];
@@ -823,7 +822,7 @@ frappe.views.CommunicationComposer = class {
 					css_class: "email-composer-recipient-tag tb-selected-value",
 					attrs: { "data-value": encodeURIComponent(value), draggable: "true" },
 				});
-				const photo = me._recipient_avatars?.[String(value).toLowerCase()] || null;
+				const photo = me.get_recipient_avatar(value);
 				$tag.prepend(
 					frappe.ui.avatar.html({
 						image: photo,
@@ -924,23 +923,33 @@ frappe.views.CommunicationComposer = class {
 		});
 	}
 
+	get_recipient_avatar(email) {
+		const key = String(email).toLowerCase();
+		return frappe.boot.user_info?.[key]?.image || this.contact_images?.[key] || null;
+	}
+
 	fetch_recipient_avatars(control) {
-		const cache = (this._recipient_avatars = this._recipient_avatars || {});
+		// users already in frappe.boot.user_info (e.g. from this document's comments) need no request
+		this.looked_up_avatars = this.looked_up_avatars || new Set();
 		const pending = (control.rows || [])
 			.map((row) => String(row).toLowerCase())
-			.filter((email) => email && !(email in cache));
+			.filter(
+				(email) =>
+					email && !frappe.boot.user_info?.[email] && !this.looked_up_avatars.has(email)
+			);
 		if (!pending.length) return;
-
-		pending.forEach((email) => (cache[email] = null));
+		pending.forEach((email) => this.looked_up_avatars.add(email));
 
 		frappe.call({
 			method: "frappe.email.get_recipient_avatars",
 			args: { emails: pending },
 			callback: (r) => {
-				const found = r.message || {};
-				if (!Object.keys(found).length) return;
-				Object.assign(cache, found);
-				control.set_pill_html(control.rows || []);
+				const { user_info = {}, contact_images = {} } = r.message || {};
+				frappe.update_user_info(user_info);
+				this.contact_images = { ...this.contact_images, ...contact_images };
+				if (Object.keys(user_info).length || Object.keys(contact_images).length) {
+					control.set_pill_html(control.rows || []);
+				}
 			},
 		});
 	}
@@ -1042,7 +1051,7 @@ frappe.views.CommunicationComposer = class {
 					$(`<div class="flex items-center gap-2 min-w-0"></div>`)
 						.append(
 							frappe.ui.avatar.html({
-								image: this._recipient_avatars?.[email.toLowerCase()] || null,
+								image: this.get_recipient_avatar(email),
 								label: email,
 								size: "xs",
 								css_class: "shrink-0",
