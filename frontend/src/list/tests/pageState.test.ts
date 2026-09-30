@@ -34,21 +34,21 @@ describe("the list memory", () => {
 
 describe("the rows memory", () => {
 	it("answers for the same doctype and query only, with the last write", () => {
-		rememberRows("Lead", { query: "a", pageSize: 20, shown: 40 });
-		rememberRows("Lead", { query: "a", pageSize: 100, shown: 200 });
-		expect(recallRows("Lead", "a")).toEqual({ query: "a", pageSize: 100, shown: 200 });
+		rememberRows("Lead", { query: "a", pageSize: 20 });
+		rememberRows("Lead", { query: "a", pageSize: 100 });
+		expect(recallRows("Lead", "a")).toEqual({ query: "a", pageSize: 100 });
 		expect(recallRows("Lead", "b")).toBeUndefined();
 		expect(recallRows("Deal", "a")).toBeUndefined();
 	});
 
 	it("keeps the scroll offset for the same query through a rows write, and drops it for a new one", () => {
-		rememberRows("Lead", { query: "a", pageSize: 20, shown: 20 });
+		rememberRows("Lead", { query: "a", pageSize: 20 });
 		rememberScroll("Lead", "a", 240);
-		rememberRows("Lead", { query: "a", pageSize: 20, shown: 40 });
-		expect(recallRows("Lead", "a")).toMatchObject({ shown: 40, scrollTop: 240 });
+		rememberRows("Lead", { query: "a", pageSize: 100 });
+		expect(recallRows("Lead", "a")).toMatchObject({ pageSize: 100, scrollTop: 240 });
 		rememberScroll("Lead", "b", 999);
 		expect(recallRows("Lead", "a")?.scrollTop).toBe(240);
-		rememberRows("Lead", { query: "b", pageSize: 20, shown: 20 });
+		rememberRows("Lead", { query: "b", pageSize: 20 });
 		expect(recallRows("Lead", "b")?.scrollTop).toBeUndefined();
 	});
 });

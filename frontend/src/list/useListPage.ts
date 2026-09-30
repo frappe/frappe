@@ -82,8 +82,6 @@ export function useListPage(doctype: string): ListPage {
 	const seeded = ref(false);
 	// What the page last set itself, per key: a change that matches it is not the person's act.
 	const applied: Partial<Record<ListSettingsKey, string>> = {};
-	// Set once meta lands: the rows an earlier visit to this query showed, by Back or a breadcrumb.
-	let remembered: ReturnType<typeof recallRows>;
 
 	const ready = computed(
 		() => Boolean(listMeta.value) && settings.loaded.value && !permissions.loading.value
@@ -143,7 +141,8 @@ export function useListPage(doctype: string): ListPage {
 			if (!value || seeded.value) return;
 			applyStored();
 			readQuery(listMeta.value!);
-			remembered = recallRows(doctype, stateKey());
+			// A breadcrumb has no history entry; an earlier visit gives the page size.
+			const remembered = recallRows(doctype, stateKey());
 			if (remembered && readListMemory().pageSize == null) pageSize.value = remembered.pageSize;
 			seeded.value = true;
 		},
@@ -205,7 +204,6 @@ export function useListPage(doctype: string): ListPage {
 			filters: filtersDict(filters.value),
 			orderBy: serializeOrderBy(sort.value.length ? sort.value : resolvedSort()),
 			limit: pageSize.value,
-			restore: remembered?.shown,
 		};
 	});
 
@@ -218,9 +216,14 @@ export function useListPage(doctype: string): ListPage {
 	// Keyed by the rows' own query: while a typed filter waits out its debounce, the state is
 	// already the new query and the rows are still the old one.
 	const rowsKey = () => rows.loadedKey.value ?? stateKey();
-	watch([pageSize, rows.shown, rows.loadedKey], ([size, shown]) => {
-		if (shown) rememberRows(doctype, { query: rowsKey(), pageSize: size, shown });
-	});
+	// Immediate: with meta in memory the first read, and so its key, starts before this watch.
+	watch(
+		[pageSize, rows.loadedKey],
+		([size, key]) => {
+			if (key) rememberRows(doctype, { query: key, pageSize: size });
+		},
+		{ immediate: true }
+	);
 
 	// A row that left the page leaves the selection; the rest stay selected across a load-more.
 	watch(rows.rows, (current) => {

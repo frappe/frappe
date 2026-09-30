@@ -1,7 +1,14 @@
-// The rows and the total for one query: one list read per fetched page, the first carrying the
-// count. A changed query is a new list. The pages are a buffer; the page size and Load More
-// decide how much of it shows, and only rows past its end are fetched.
-import { countDocuments, deleteDocument, listDocuments } from "@framework/ui/api";
+// The rows and the total for one query, painted from the shared cache when it holds the query.
+// The pages are a buffer: the page size and Load More decide how much shows.
+import {
+	countDocuments,
+	deleteDocument,
+	isApiError,
+	listDocuments,
+	type ListEnvelope,
+	type ListQuery,
+} from "@framework/ui/api";
+import { readCachedList, readCachedRows } from "@framework/ui/cache";
 import {
 	computed,
 	onScopeDispose,
@@ -23,8 +30,6 @@ export interface RowsQuery {
 	filters: Record<string, unknown>;
 	orderBy: string;
 	limit: number;
-	/** Rows to show on the first load, when an earlier visit showed more than one page. */
-	restore?: number;
 }
 
 export interface ListRows {
@@ -59,6 +64,8 @@ interface Page {
 	data: ListRow[] | null;
 	error: Error | null;
 	hasNextPage: boolean;
+	/** The list positions the page covers, when some of its rows are missing from `data`. */
+	span?: number;
 }
 
 interface Total {
@@ -73,9 +80,15 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	const loadedKey = ref<string | null>(null);
 	const total = ref<Total>({ count: null, capped: false, answered: false });
 	let generation = 0;
+	// The generation whose background read is out; a Load More meanwhile only raises `shown`.
+	let refreshing = -1;
 	let timer = 0;
 
 	const loaded = computed(() => pages.value.flatMap((page) => page.data ?? []));
+	// The next page's offset: a cached page may lack a row whose record entry went.
+	const covered = computed(() =>
+		pages.value.reduce((sum, page) => sum + (page.span ?? page.data?.length ?? 0), 0)
+	);
 	const rows = computed(() => loaded.value.slice(0, shown.value));
 	const rowCount = computed(() => rows.value.length);
 	const firstPage = computed(() => pages.value[0] ?? null);
@@ -92,7 +105,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		(key, previous) => {
 			clearTimeout(timer);
 			if (!key) return;
-			if (previous === undefined) return reload(query()!.restore);
+			if (previous === undefined) return reload();
 			timer = window.setTimeout(() => reload(query()!.limit), QUERY_DEBOUNCE_MS);
 		},
 		{ immediate: true }
@@ -123,22 +136,60 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	function reload(target = shown.value) {
 		const current = query();
 		generation++;
+		loadedKey.value = current?.key ?? null;
+		if (current && paintCached(current, target)) return void refresh(current);
 		pages.value = [];
 		shown.value = 0;
 		total.value = { count: null, capped: false, answered: false };
-		loadedKey.value = current?.key ?? null;
-		if (!current) return;
-		show(Math.max(target ?? 0, current.limit));
+		if (current) show(Math.max(target, current.limit));
+	}
+
+	/** False when the cache holds no list for the query; otherwise shows every name it lists. */
+	function paintCached(current: RowsQuery, target: number): boolean {
+		const entry = readCachedList(doctype, listQuery(current));
+		const cached = entry && readCachedRows(doctype, listQuery(current));
+		if (!entry || !cached) return false;
+		pages.value = [landedPage(cached as ListRow[], entry.hasNextPage, entry.names.length)];
+		const { count, countCapped } = entry;
+		total.value = { count: count ?? null, capped: countCapped, answered: count !== undefined };
+		shown.value = Math.max(target, entry.names.length, current.limit);
+		return true;
+	}
+
+	/** Reads every shown row again and swaps rows and count in one step; a failure keeps them. */
+	async function refresh(current: RowsQuery) {
+		const mine = (refreshing = generation);
+		const limit = shown.value;
+		const outcome = await listDocuments<ListRow>(
+			doctype,
+			{ ...listQuery(current), start: 0, limit },
+			{ include: ["count"] }
+		).catch((failure: Error) => failure);
+		if (mine !== generation) return;
+		refreshing = -1;
+		if (isLostAccess(outcome)) return showError(outcome);
+		if (!(outcome instanceof Error)) {
+			pages.value = [landedPage(outcome.data, outcome.has_next_page)];
+			total.value = totalOf(outcome);
+		}
+		if (shown.value > limit) show(shown.value);
+	}
+
+	/** As on a cold load: the error, and no count. */
+	function showError(failure: Error) {
+		pages.value = [{ data: null, error: failure, hasNextPage: false }];
+		total.value = { count: null, capped: false, answered: false };
 	}
 
 	/** Shows `target` rows: from the buffer where it reaches, fetched past its end. */
 	function show(target: number) {
 		shown.value = target;
-		const missing = target - loaded.value.length;
+		if (refreshing === generation) return;
+		const missing = target - covered.value;
 		if (missing <= 0 || lastPage.value?.hasNextPage === false) return;
 		const page = reactive<Page>({ data: null, error: null, hasNextPage: false });
 		pages.value = [...pages.value, page];
-		void fetchPage(page, query()!, loaded.value.length, missing);
+		void fetchPage(page, query()!, covered.value, missing);
 	}
 
 	// A page still in flight has no data yet; a second Load More then would start at a stale offset.
@@ -155,22 +206,13 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		try {
 			const answer = await listDocuments<ListRow>(
 				doctype,
-				{
-					fields: current.fields,
-					filters: current.filters,
-					order_by: current.orderBy,
-					start,
-					limit,
-				},
+				{ ...listQuery(current), start, limit },
 				{ include: first ? ["count"] : undefined }
 			);
 			if (mine !== generation) return;
 			page.hasNextPage = answer.has_next_page;
 			page.data = answer.data;
-			if (first) {
-				const capped = Boolean(answer.count_capped);
-				total.value = { count: answer.count ?? null, capped, answered: true };
-			}
+			if (first) total.value = totalOf(answer);
 		} catch (failure) {
 			if (mine !== generation) return;
 			page.error = failure as Error;
@@ -217,4 +259,21 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		countExact,
 		remove: (name) => deleteDocument(doctype, name),
 	};
+}
+
+/** The read's filters, sort and fields: the shared cache keys the list by them. */
+function listQuery(current: RowsQuery): ListQuery {
+	return { fields: current.fields, filters: current.filters, order_by: current.orderBy };
+}
+
+function landedPage(data: ListRow[], hasNextPage: boolean, span?: number): Page {
+	return reactive<Page>({ data, error: null, hasNextPage, span });
+}
+
+function totalOf(answer: ListEnvelope<ListRow>): Total {
+	return { count: answer.count ?? null, capped: Boolean(answer.count_capped), answered: true };
+}
+
+function isLostAccess(failure: unknown): failure is Error {
+	return isApiError(failure) && (failure.status === 403 || failure.status === 404);
 }
