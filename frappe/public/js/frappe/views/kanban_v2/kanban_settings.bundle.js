@@ -157,7 +157,7 @@ class KanbanBoardSettings {
 					label: __("Title Field"),
 					options: this.opts.title,
 					default: this.doc.title_field,
-					description: __("Only Name (ID) or Data fields."),
+					description: __("ID or a text field."),
 				},
 				{ fieldtype: "Column Break" },
 				{
@@ -369,19 +369,25 @@ class KanbanBoardSettings {
 		});
 	}
 
-	// Seed columns from the field's Select options, only when the column list is empty.
+	// Rebuild the columns from the new field's Select options, as the form does.
 	bind_field_name(panel) {
 		const field = panel.get_field("field_name");
 		if (!field || !field.$input) return;
 		field.$input.on("change", () => {
-			if (this.doc.columns.length) return;
 			const df = frappe.meta.get_field(this.doctype, panel.get_value("field_name"));
 			if (!df) return;
-			(df.options || "")
+			const columns = (df.options || "")
 				.split("\n")
 				.map((o) => o.trim())
 				.filter(Boolean)
-				.forEach((name) => this.doc.columns.push({ column_name: name, status: "Active" }));
+				.map((name, i) => ({
+					idx: i + 1,
+					__islocal: true,
+					column_name: name,
+					status: "Active",
+				}));
+			// the grid holds this array, so replace its contents rather than the array
+			this.doc.columns.splice(0, this.doc.columns.length, ...columns);
 			const grid = panel.get_field("columns") && panel.get_field("columns").grid;
 			grid && grid.refresh();
 		});
