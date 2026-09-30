@@ -293,7 +293,7 @@ component group, with its main names.
 | [Source](./CONTEXT.md#source) context | Which source is registering or running now |
 | [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
 | Staging | Acts wait during a replay and appear at one commit |
-| Paint gate | When the page first paints, how a late `onRefresh` lands, and the one repaint for background reads on a return visit |
+| Paint gate | When the page first paints, how a late `onRefresh` lands, when `onOpen` runs, and the one repaint for background reads on a return visit |
 | Held acts | *Changed.* One queue for the acts a script asks for during a replay (open, close, tab, focus, scroll). They run after the commit |
 | [Commit](./CONTEXT.md#commit) channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
 | [Field](./CONTEXT.md#field-overlay) and form tab overlays | Changes keyed by fieldname or tab identity |
@@ -363,7 +363,7 @@ the reference for each `page` member.
 | Tiers and [run order](./CONTEXT.md#run-order) | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
 | `*` doctype key | Handlers that run on every record, before the doctype's own |
 | [Handlers](./CONTEXT.md#handler) and `Handler` | `Handler` is the type of one handler |
-| Lifecycle events | `onRefresh`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost` |
+| Lifecycle events | `onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost` |
 | Field change handler | A fieldname key runs when that field's value changes |
 | Child [table handlers block](./CONTEXT.md#table-handlers-block) | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
 | `SAVE_VETO` | Throwing in `beforeSave` cancels the save and keeps the draft |
@@ -699,5 +699,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | `reka-ui` is used but not declared | It is declared |
 | About ten comments use record page words | They do not |
 
-Kept for now, and decided again when `onOpen` is built: the late part of an async
-`onRefresh`, and acts from `onRefresh`.
+Kept now that `onOpen` is built: the late part of an async `onRefresh` lands as a later
+paint, and an act from `onRefresh` lands in the first replay and is dropped in the replay
+after the background reads. `onOpen` is where a one-time act belongs.

@@ -23,6 +23,8 @@ export interface PaintGateHost {
   loaded: () => boolean;
   /** Runs `onRefresh` for each source `ran` does not hold yet, adding it; answers the ones still running. */
   runRefresh: (ran: Set<Registration>) => LateRefresh[];
+  /** Runs `onOpen` for these sources, while their acts are held for the commit that follows. */
+  runOpen: (registrations: Registration[]) => void;
   /** Called once every source is in, before the replay's second pass. */
   warnUnknownHandlers: () => void;
   /** Delivers the acts held so far; `drawnOnly` drops one whose target is not drawn. */
@@ -79,6 +81,10 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     early: false,
     // Counted: a background replay's late `onRefresh` parts drop every act until they settle.
     background: 0,
+    // Set by the first non-background replay to finish, so `onOpen` runs once per page.
+    opened: false,
+    // True while `onOpen` waits for late parts, so the skeletons lift only with its acts.
+    awaitingOpen: false,
   };
   let markLeft!: () => void;
   const left = new Promise<void>((resolve) => (markLeft = resolve));
@@ -105,18 +111,22 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     openReplay();
     // Filled by `runSources`, so the first pass's late parts are still held when the second pass throws.
     const late: LateRefresh[] = [];
+    const ran = new Set<Registration>();
     try {
-      await runSources(everything, late);
+      await runSources(everything, late, ran);
     } finally {
       // In `finally` so a throwing handler cannot leave the page staged for good.
       closeReplay();
-      holdLate(late, false);
+      runOnOpen(ran, holdLate(late, false));
     }
   }
 
   /** The sources already registered run while the Client Script tier loads; it runs last anyway. */
-  async function runSources(everything: Promise<unknown>, late: LateRefresh[]) {
-    const ran = new Set<Registration>();
+  async function runSources(
+    everything: Promise<unknown>,
+    late: LateRefresh[],
+    ran: Set<Registration>,
+  ) {
     late.push(...host.runRefresh(ran));
     await waitFor("sources", everything);
     host.warnUnknownHandlers();
@@ -136,23 +146,52 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     openReplay();
     if (background) state.background += 1;
     let late: LateRefresh[] = [];
+    const ran = new Set<Registration>();
     try {
       host.warnUnknownHandlers();
-      late = host.runRefresh(new Set());
+      late = host.runRefresh(ran);
     } finally {
       if (background) state.background -= 1;
       closeReplay();
     }
-    holdLate(late, background);
+    const landed = holdLate(late, background);
+    if (!background) runOnOpen(ran, landed);
   }
 
-  /** Opened once the replay has committed, so its synchronous part draws without waiting for these. */
+  /** Opened once the replay has committed, so its synchronous part draws without waiting for these; answers when each lands. */
   function holdLate(late: LateRefresh[], background: boolean) {
+    const landed: Promise<void>[] = [];
     for (const { source, settled } of late) {
       if (background) state.background += 1;
-      void asSource(source, () => hold(() => bounded(source, settled))).finally(() => {
+      const held = asSource(source, () => hold(() => bounded(source, settled))).finally(() => {
         if (background) state.background -= 1;
       });
+      landed.push(held);
+    }
+    return landed;
+  }
+
+  /** The first replay's sources run `onOpen` in run order, once it and its late parts commit. */
+  function runOnOpen(ran: Set<Registration>, landed: Promise<void>[]) {
+    if (state.opened || state.left) return;
+    state.opened = true;
+    const registrations = [...ran];
+    if (!landed.length) return runOnOpenNow(registrations);
+    state.awaitingOpen = true;
+    void Promise.all(landed).then(() => {
+      state.awaitingOpen = false;
+      runOnOpenNow(registrations);
+    });
+  }
+
+  /** A synchronous hold: the acts land in this step, with the paint before them. */
+  function runOnOpenNow(registrations: Registration[]) {
+    if (state.left) return;
+    openHold();
+    try {
+      host.runOpen(registrations);
+    } finally {
+      closeHold();
     }
   }
 
@@ -201,7 +240,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   /** The skeletons lift once a replay has ended and nothing stages; a hold may close last. */
   function settleReady() {
-    if (!state.replayed || isStaging()) return;
+    if (!state.replayed || state.awaitingOpen || isStaging()) return;
     clearTimeout(state.firstPaintLimit);
     ready.value = true;
   }
@@ -235,16 +274,24 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   }
 
   async function hold<T>(work: () => Promise<T> | T): Promise<T> {
-    state.holding += 1;
-    for (const surface of host.surfaces) surface.beginHold();
+    openHold();
     try {
       return await work();
     } finally {
-      for (const surface of host.surfaces) surface.commit();
-      state.holding -= 1;
-      releaseActs();
-      settleReady();
+      closeHold();
     }
+  }
+
+  function openHold() {
+    state.holding += 1;
+    for (const surface of host.surfaces) surface.beginHold();
+  }
+
+  function closeHold() {
+    for (const surface of host.surfaces) surface.commit();
+    state.holding -= 1;
+    releaseActs();
+    settleReady();
   }
 
   async function asSource(source: string, work: () => Promise<void>) {
