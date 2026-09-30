@@ -44,14 +44,7 @@
 				@click.stop="discard"
 				v-html="frappe.utils.icon('rotate-ccw', 'sm')"
 			></button>
-			<span
-				v-html="
-					frappe.avatar(
-						print_format.published_by || print_format.modified_by,
-						'avatar-xs'
-					)
-				"
-			></span>
+			<span v-if="published_by" v-html="frappe.avatar(published_by, 'avatar-xs')"></span>
 		</div>
 		<div v-if="versions.length" class="pfb-history-label">{{ __("Saved versions") }}</div>
 		<div
@@ -104,11 +97,13 @@ const { print_format } = store;
 const { has_draft } = store.draft;
 const { list: versions, viewing: viewing_version } = store.versions;
 
-const published_when = computed(() => {
-	const { published_on, modified } = print_format.value;
-	if (published_on) return when(published_on);
-	return has_draft.value ? "" : when(modified);
+const published = computed(() => {
+	const { published_on, published_by, modified, modified_by } = print_format.value;
+	if (published_on) return { on: published_on, by: published_by };
+	return has_draft.value ? {} : { on: modified, by: modified_by };
 });
+const published_when = computed(() => (published.value.on ? when(published.value.on) : ""));
+const published_by = computed(() => published.value.by);
 
 function when(value) {
 	return frappe.datetime.prettyDate(value);
