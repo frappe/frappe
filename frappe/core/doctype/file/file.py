@@ -200,6 +200,13 @@ class File(Document):
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
+		if self.flags.ignore_permissions or frappe.flags.in_install:
+			return
+
+		from frappe.handler import check_write_permission
+
+		check_write_permission(self.attached_to_doctype, self.attached_to_name)
+
 	def enforce_public_file_restrictions(self):
 		if not self.is_private and frappe.get_system_settings(
 			"only_allow_system_managers_to_upload_public_files"
