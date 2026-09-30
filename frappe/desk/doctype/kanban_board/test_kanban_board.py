@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.doctype.kanban_board import kanban_board as kb
 from frappe.desk.doctype.kanban_board.kanban_board import (
 	get_kanban_board_data,
@@ -404,6 +405,27 @@ class TestKanbanBoard(IntegrationTestCase):
 		res_assign = get_kanban_group_values(self.board_name, "_assign")
 		self.assertEqual(res_assign["lanes"], [])
 		self.assertEqual(res_assign["unset"], 4)
+
+	def test_get_kanban_group_values_respects_permissions(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		for name, priority in zip(self.todos, ["High", "High", "High", "Medium"], strict=True):
+			frappe.db.set_value("ToDo", name, "priority", priority)
+		frappe.db.set_value("Kanban Board", self.board_name, "private", 0)
+		self.addCleanup(frappe.db.set_value, "Kanban Board", self.board_name, "private", 1)
+
+		# A user without a ToDo role only sees the ToDos allocated to them.
+		user = create_user("kanban_lane_reader@example.com", "Blogger")
+		frappe.db.set_value("ToDo", self.todos[0], "allocated_to", user.name)
+		self.addCleanup(frappe.db.set_value, "ToDo", self.todos[0], "allocated_to", None)
+
+		with self.set_user(user.name):
+			res = get_kanban_group_values(self.board_name, "priority")
+			res_assign = get_kanban_group_values(self.board_name, "_assign")
+
+		self.assertEqual(res["lanes"], [{"value": "High", "label": "High", "count": 1}])
+		self.assertEqual(res["unset"], 0)
+		self.assertEqual(res_assign["unset"], 1)
 
 	def test_get_kanban_group_values_rejects_unconfigured_field(self):
 		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values

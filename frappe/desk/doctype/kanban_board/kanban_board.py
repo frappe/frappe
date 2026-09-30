@@ -483,7 +483,7 @@ def get_kanban_group_values(board_name: str, group_by: str, filters: str | list 
 		# Bound the scan so large doctypes can't OOM workers. Counts past this
 		# window are approximate; lane list is still the top assignees within it.
 		assign_scan_limit = 5000
-		for raw in frappe.get_all(doctype, filters=merged, pluck="_assign", limit=assign_scan_limit):
+		for raw in frappe.get_list(doctype, filters=merged, pluck="_assign", limit=assign_scan_limit):
 			users = frappe.parse_json(raw) if raw else []
 			if users:
 				for user in users:
@@ -492,7 +492,7 @@ def get_kanban_group_values(board_name: str, group_by: str, filters: str | list 
 				unset += 1
 		lanes = [{"value": user, "label": user, "count": count} for user, count in counter.most_common(limit)]
 	else:
-		rows = frappe.get_all(
+		rows = frappe.get_list(
 			doctype,
 			filters=merged,
 			fields=[f"{group_by} as value", {"COUNT": "*", "as": "_count"}],
