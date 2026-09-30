@@ -850,17 +850,29 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self.connect()
 		cursor = self._conn.cursor()
 		copy_sql = copy_statement.as_string(cursor)
+		integer_positions = self._get_integer_positions(table_name, fields)
 		buffer = io.StringIO()
 		try:
 			row_count = 0
 			for value in values:
-				buffer.write("\t".join(_copy_encode(column) for column in value) + "\n")
+				encoded = (_copy_encode(column, i in integer_positions) for i, column in enumerate(value))
+				buffer.write("\t".join(encoded) + "\n")
 				row_count += 1
 				if row_count % chunk_size == 0:
 					self._copy_flush(cursor, copy_sql, buffer)
 			self._copy_flush(cursor, copy_sql, buffer)
 		finally:
 			cursor.close()
+
+	def _get_integer_positions(self, table_name: str, fields: list[str]) -> set[int]:
+		"""Positions of `fields` that are integer columns, where COPY needs 1.0 sent as 1."""
+		integer_columns = self.sql(
+			"""SELECT column_name FROM information_schema.columns
+			WHERE table_schema = %s AND table_name = %s AND data_type IN ('smallint', 'integer', 'bigint')""",
+			(self.db_schema, table_name),
+			pluck=True,
+		)
+		return {position for position, field in enumerate(fields) if field in integer_columns}
 
 	def _copy_flush(self, cursor, copy_sql, buffer):
 		"""Send the buffered rows. COPY bypasses `sql`, so count the chunk as one write, like an INSERT."""
@@ -873,7 +885,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		self.transaction_writes += 1
 
 
-def _copy_encode(value):
+def _copy_encode(value, integer_column: bool = False):
 	"""Encode one value for postgres COPY text format (tab-delimited, ``\\N`` = NULL)."""
 	if value is None:
 		return r"\N"
@@ -883,7 +895,7 @@ def _copy_encode(value):
 		return "1"
 	if value is False:
 		return "0"
-	if isinstance(value, float) and value.is_integer():
+	if integer_column and isinstance(value, float) and value.is_integer():
 		# INSERT sends 1.0 as a numeric literal that an Int or Check column casts; COPY rejects "1.0".
 		return str(int(value))
 	if isinstance(value, bytes | bytearray | memoryview):
