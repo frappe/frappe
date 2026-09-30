@@ -18,6 +18,10 @@ export interface Disclosure {
 	disclose(name: string, open: boolean): void;
 	/** Drops every act, for the next record. */
 	reset(): void;
+	/** Each section open or shut as the reader sees it now. */
+	shown(): Record<string, boolean>;
+	/** Puts back a view `shown` gave, over the acts; the reader's own toggle still wins. */
+	restore(view: Record<string, boolean>): void;
 }
 
 /**
@@ -65,5 +69,10 @@ export function useDisclosure(
 		toggle: (name) => set(name, !isOpen(name)),
 		disclose: (name, open) => void acts.set(name, open),
 		reset: () => acts.clear(),
+		shown: () =>
+			Object.fromEntries(toValue(sections).map(({ name }) => [name, isOpen(name)])),
+		restore: (view) => {
+			for (const [name, open] of Object.entries(view)) acts.set(name, open);
+		},
 	};
 }

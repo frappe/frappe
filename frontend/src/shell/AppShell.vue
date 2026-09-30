@@ -58,6 +58,7 @@
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
+import { keepInHistory } from "@framework/ui/utils/historyState";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
 import { itemContext } from "@/navigation/context";
@@ -145,7 +146,7 @@ function resolve() {
 	if (sidebar) {
 		// Onto the entry, so back and forward return to the sidebar a page was read in. The
 		// compare leaves a pop's own state alone, which its forward entries hang off.
-		if (stamped() !== sidebar) history.replaceState({ ...history.state, sidebar }, "");
+		if (stamped() !== sidebar) keepInHistory("sidebar", sidebar);
 		if (!popped) rememberSidebar(path, sidebar);
 	}
 	popped = false;

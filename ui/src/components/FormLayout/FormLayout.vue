@@ -17,9 +17,13 @@
 				<div :ref="untabPanel" class="sections" :class="{ 'my-4 sm:my-5': hasTabs }">
 					<template
 						v-for="(section, index) in tab.sections"
-						:key="section.name ?? index"
+						:key="sectionKey(tab, section, index)"
 					>
-						<FormLayoutSection :section="section" />
+						<FormLayoutSection
+							:section="section"
+							:open="sections[sectionKey(tab, section, index)]"
+							@update:open="openSection(sectionKey(tab, section, index), $event)"
+						/>
 					</template>
 				</div>
 			</template>
@@ -37,7 +41,7 @@ import { applyTabOverride, resolveLayout } from "./resolveLayout";
 import { identifyTabs, tabStripLabel } from "./tabIdentity";
 import { CommitKey, DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
 import { warnMissingCommit } from "./warnMissingCommit";
-import type { FormLayoutProps } from "./types";
+import type { FormLayoutProps, Section } from "./types";
 
 const props = defineProps<FormLayoutProps>();
 
@@ -60,6 +64,10 @@ const emit = defineEmits<{ "update:activeTab": [identity: string] }>();
 // wants the reader's place to outlive this component being rebuilt — as the
 // Record page does on every save — holds the ref itself.
 const desired = defineModel<string>("tab", { default: "" });
+
+// The sections the reader opened or shut, keyed by tab identity and section name or index;
+// held by a host on the terms of `tab`, so the reader's sections outlive a rebuild.
+const sections = defineModel<Record<string, boolean>>("sections", { default: () => ({}) });
 
 // Enclosing doc when this form is a child-row dialog, so `eval:parent.x` resolves
 // against the parent. Absent at top level → `parent` falls back to `doc`.
@@ -115,6 +123,15 @@ function select(value: string | number) {
 	// blanking it would snap them to the first tab and forget a returning tab.
 	const chosen = visibleTabs.value.find((tab) => tab.identity === String(value));
 	if (chosen) desired.value = chosen.identity;
+}
+
+// JSON, so a section named "2" and the unnamed section at index 2 keep two keys.
+function sectionKey(tab: { identity: string }, section: Section, index: number) {
+	return JSON.stringify([tab.identity, section.name || index]);
+}
+
+function openSection(key: string, open: boolean) {
+	sections.value = { ...sections.value, [key]: open };
 }
 
 const hasTabs = computed(

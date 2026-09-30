@@ -120,6 +120,16 @@ export class RecordTabsHost {
     this.wanted.value = queryTab(this.route.query.tab);
   }
 
+  /** A restored view's tab, wanted before the first paint; the address follows once it is shown. */
+  restore(name: string) {
+    this.wanted.value = name;
+  }
+
+  /** Writes the restored tab to the address once the strip shows it, as a reader's pick is. */
+  settleRestored(name: string) {
+    if (this.shown() === name && queryTab(this.route.query.tab) !== name) void this.activate(name);
+  }
+
   /** `""` off Details: the reader is not in the form. */
   formTab(identity: string) {
     return this.active() === DETAILS_TAB ? identity : "";

@@ -17,6 +17,7 @@
 	>
 		<div
 			class="min-h-0 flex-1 overflow-y-auto"
+			data-body-scroll
 			:class="strip || column.item.gutter === false ? '' : pageGutter"
 			:style="column.bounds && !strip ? { width: `${column.width}px` } : undefined"
 		>

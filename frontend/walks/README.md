@@ -13,7 +13,8 @@ many times that item is drawn on a record step.
 
 After those steps the walk goes to the list twice more. The first time, it saves version `v2`
 of its Client Script. The second time, it saves a Quick Entry Form Layout on the doctype,
-which the record page does not show, and deletes it at the end. The server tells the desk
+which the record page does not show. At the end it deletes the rows it saved, and any
+Quick Entry row on the doctype with its condition, `false /* Return Visit Walk */`. The server tells the desk
 about each change. Each time, the walk then opens the record again. Each run starts with
 version `v1` of the script.
 
@@ -27,6 +28,72 @@ without the count, or does not end on its `v2` label. After the Form Layout save
 also fails when the page did not read the doctype's meta again.
 
 The walk is run by hand, not in CI.
+
+## View-restore walk
+
+`viewRestore.js` checks that a return visit to a record shows the view the reader left.
+
+Before it starts, it stores two Form Layouts on the doctype and deletes them at the end:
+
+- a Details layout, copied from the doctype's own, with the first labelled section of a later
+  form tab closed by default;
+- a Side Panel layout with enough fields that the panel column scrolls.
+
+The walk picks the later tab with the most fields. Both rows carry the condition
+`true /* View Restore Walk */`, which every record matches. At the end the walk deletes
+exactly the rows it inserted. Before it starts, it deletes rows a crashed run left: only on
+the same doctype, of those two types, and with that exact condition.
+
+It also adds a Record item for the list's first row to the login user's rail, keyed
+`view-restore-walk`, and removes it at the end. It deletes only rows with that key, and the
+user's rail layer only when the walk created it and nothing else is left in it.
+
+On the first visit, the walk picks that form tab, opens the closed section, and scrolls
+the Details tab and the panel column halfway down. It then goes Back to the list, Forward
+to the record, to the list through the rail, sidebar or breadcrumb, Back to the record, to
+the list again, and to the record through that rail item. That step stops the walk when
+the rail does not show the item. On a site with no Record item kind it clicks the list row,
+still runs the checks, prints that the return from the rail is unproven, and exits with 1.
+On each return to the record it checks:
+
+- each scroll offset is within 1 px of the first visit's;
+- the form tab and the state of every section match the first visit's;
+- no frame, from the first one that shows the record, showed a different offset.
+
+Last, it opens a record from the list that it has not visited. That step fails unless both
+offsets are 0 and every section is as the layout starts it.
+
+A frame's offsets are read after that frame's animation-frame callbacks and layout, before
+it paints. A step also fails when it does not settle in time. The walk stops with a
+message when the doctype has no later form tab with a labelled section, or when a scroller
+moves less than 40 px.
+
+```sh
+yarn --cwd frontend/walks walk:view
+DOCTYPE=User yarn --cwd frontend/walks walk:view --json /tmp/view.json
+```
+
+Without `DOCTYPE`, it takes the navigation doctype with at least three rows whose later
+form tab has the most fields. `User` works on a stock site: its Settings tab scrolls.
+
+### Against a checkout's frontend
+
+The bench answers `/apps` with its built document. To walk a checkout's source without
+building, serve it with vite and point the walk at it:
+
+```sh
+cd frontend && ./node_modules/.bin/vite --config walks/vite.walk.config.js
+BASE_URL=http://<site>:8098 yarn --cwd frontend/walks walk:view
+```
+
+The config serves `/apps` from the checkout and sends every other bench path to the
+bench. It needs `frontend/manifest.json`; copy the one from a built checkout and point the
+`frappe` app's source directory at this checkout. `WALK_PORT` changes the port.
+
+The source is served unbundled, about 1800 requests and 65 MB for the first list, so the
+`slow` network does not load within the walk's limit. For `NETWORK=slow`, build the
+checkout to a folder outside the bench with the same config and serve it with
+`vite preview`; do not run `bench build` for it.
 
 ## Run
 

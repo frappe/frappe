@@ -55,7 +55,7 @@ async function main() {
 		}
 	} finally {
 		await removeCachedScript();
-		await removeDoctypeChange();
+		await removeDoctypeChange(target.doctype);
 	}
 	if (jsonPath) writeFileSync(jsonPath, JSON.stringify({ target, runs }, null, 2));
 	process.exit(runs.every((run) => run.passed) ? 0 : 1);

@@ -180,11 +180,13 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Comment calls (`addComment`, `updateComment`, `removeComment`) | Post, edit and delete a comment |
 | File calls (`uploadFile`, `attachFile`, `removeAttachment`, `downloadFile`) | Upload in chunks and attach to a record |
 | Session calls (`getSession`, `logout`, `getTranslations`) | The signed-in user, sign-out, and translations |
-| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `feedListError`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. `feedListError` drops a list the server refused with a 403 or 404. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 50. `holdDocument` keeps an entry past every limit while a field on screen shows it. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
+| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `documentKey`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `feedListError`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. `feedListError` drops a list the server refused with a 403 or 404. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 50. `holdDocument` keeps an entry past every limit while a field on screen shows it. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one |
 | Fresh-value hold (`holdFresh`, `landFresh`) | A stale memo's fresh value shows as soon as it arrives. While a page holds fresh values, they show together when it lets go, in the same step as the page's own reads |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
+| Scroll landing (`landScroll`, `onScrollSettled`) | *New.* Puts a kept scroll offset back once the content is tall enough, and reports a scroll once it has stopped for 150 ms. The list and the record page keep their offsets with it |
+| History state (`keepInHistory`) | *New.* Writes one key of the history entry's state, and survives a browser that refuses the write. The list, the record view and the shell's sidebar write through it |
 | Socket input | *Changed.* The app hands `ui/` its socket, and `ui/` joins record rooms on it. `ui/` warns when there is none |
 | Translate function | *New.* `ui/`'s own `__`, which works without the desk's boot version |
 
@@ -199,7 +201,7 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `FormLayout` (`@framework/ui/FormLayout`: `FormLayout`, `FormLayoutSchema`, `Tab`, `Section`, `Column`, `FieldNode`) | Draws a form from a tabs, sections, columns and fields tree. Works out field access itself |
+| `FormLayout` (`@framework/ui/FormLayout`: `FormLayout`, `FormLayoutSchema`, `Tab`, `Section`, `Column`, `FieldNode`) | *Changed.* Draws a form from a tabs, sections, columns and fields tree. Works out field access itself. A host may hold the chosen tab and the open sections |
 | Layout building (`buildLayoutFromMeta`, `compose`, `Decorator`, `fieldsToLayout`, `resolveLayout`, `evaluateDependsOn`) | Turns meta fields into a layout tree, and applies depends-on, hidden and overrides for one document |
 | Child rows (`useChildRowModel`, `newRowValues`) | The rows of a child table field, and a new row's default values |
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
@@ -289,7 +291,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | `createRecordPage` | Builds `page` and every surface for one record, fires events, runs the replay |
-| `RecordPageHost` | The contract a page fills: document, save, tabs, feeds, composer. The engine draws nothing |
+| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, and whether it restored the reader's view. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
 | [Source](./CONTEXT.md#source) context | Which source is registering or running now |
 | [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
@@ -340,15 +342,16 @@ component group, with its main names.
 | Save conflict (`SaveConflict`) | The error when someone else saved first, and the fields the reader would lose |
 | Live scripts | Re-runs the page's scripts when a stored script of its doctype changes |
 | Record feeds (`RecordFeeds`) | The data behind `page.activity` and `page.files`, with the feed's first-paint functions |
-| Record tabs (`RecordTabsHost`, `useRecordTabs`) | The four built-in tabs, and the tab named in the address |
+| Record tabs (`RecordTabsHost`, `useRecordTabs`) | *Changed.* The four built-in tabs, and the tab named in the address or put back by the record view |
 | Panel context (`PanelContextKey`, `DocInfo`) | What the built-in panel sections read |
 | [Panel](./CONTEXT.md#panel) entries | Joins panel items with the Side Panel layout |
-| Panel [disclosure](./CONTEXT.md#disclosure) | Which panel sections are open |
+| Panel [disclosure](./CONTEXT.md#disclosure) | *Changed.* Which panel sections are open. It reports them as shown and takes them back for the record view |
 | [Built-in](./CONTEXT.md#built-in) actions | Framework quick actions and menu rows, offered by right |
 | Composer host (`composerHost`, `openWriterContext`) | Joins `page.composer` to the shell's composer, and gives a writer its record |
 | Writers | *Changed.* One pipeline for the comment and email writers and their drafts |
 | Body columns | Column widths and collapse, per user |
 | Form tab memory | The last form tab per doctype, per user |
+| Record view (`RecordView`, `recallView`, `viewKeeper`, `readOffsets`, `landOffsets`) | *New.* The reader's tab, form tab, sections, panel sections and scroll on a record, put back on a return visit. Kept in the history entry, and per record while its complete cache entry stays |
 | Dock height | The docked composer's height, per user |
 | Docinfo readers | Assignees, shares, tags, favourites and follow, and their actions |
 | Remote search | Server search for the user and tag pickers; the last answer wins |
@@ -365,7 +368,7 @@ the reference for each `page` member.
 | Tiers and [run order](./CONTEXT.md#run-order) | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
 | `*` doctype key | Handlers that run on every record, before the doctype's own |
 | [Handlers](./CONTEXT.md#handler) and `Handler` | `Handler` is the type of one handler |
-| Lifecycle events | `onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost` |
+| Lifecycle events | *Changed.* `onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost`. On a return that restores the view, `onOpen`'s view acts do nothing |
 | Field change handler | A fieldname key runs when that field's value changes |
 | Child [table handlers block](./CONTEXT.md#table-handlers-block) | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
 | `SAVE_VETO` | Throwing in `beforeSave` cancels the save and keeps the draft |
@@ -516,7 +519,7 @@ skeleton frames, time until usable, re-reads.
 | 6 | The engine builds `page` with its rights, roles and field access | 7 | **Browser**: field access by permission level. The server checks it again on save and on every read | Handlers by doctype |
 | 7 | Built-in actions are offered by right: email, print, tags, attach, delete, share, assign | 8 | **Browser**, by right. The server checks each action | None |
 | 8 | First paint: the page waits for layouts, feed and scripts, runs one replay, paints, then runs held acts | 8, 7 | None | None |
-| 9 | Header, body, tabs, form, panel and feed draw. Saved comments show as cleaned HTML; the editor loads only to write | 8, 4 | None beyond steps 6 and 7 | Per-user browser memory: open sections, body columns, dock height |
+| 9 | Header, body, tabs, form, panel and feed draw. Saved comments show as cleaned HTML; the editor loads only to write. On a return, the reader's view comes back before the first frame | 8, 4 | None beyond steps 6 and 7 | Per-user browser memory: open sections, body columns, dock height. The record view: in the history entry, and by doctype and name while the record's complete cache entry stays |
 
 **Budget:** on a cold load, time until usable, request count, JS size, paints. On a return
 visit, skeleton frames, time until usable, re-reads, paints.

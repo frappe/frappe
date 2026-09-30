@@ -6,7 +6,7 @@ import type { DocumentEntry, ListEntry } from "./entries";
 import { listCacheKey } from "./listKey";
 
 export type { DocumentEntry, ListEntry } from "./entries";
-export { RECORD_PARTS } from "./entries";
+export { documentKey, RECORD_PARTS } from "./entries";
 export { listCacheKey } from "./listKey";
 
 const cache = new DataCache();

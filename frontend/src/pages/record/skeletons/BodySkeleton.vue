@@ -3,7 +3,7 @@
 <template>
 	<BodyColumns :items="columns" :user="user" data-record-body-skeleton>
 		<template #form>
-			<TabsSkeleton />
+			<TabsSkeleton :feed="feed" />
 		</template>
 		<template #panel="{ collapsed }">
 			<PanelSkeleton :collapsed="collapsed" />
@@ -17,7 +17,8 @@ import BodyColumns from "../body/BodyColumns.vue";
 import PanelSkeleton from "./PanelSkeleton.vue";
 import TabsSkeleton from "./TabsSkeleton.vue";
 
-defineProps<{ user: string }>();
+/** `feed`: the page opens on a feed tab, so its placeholder is the feed's. */
+defineProps<{ user: string; feed: boolean }>();
 
 const columns = BODY_BUILTINS.map((item) => ({ ...item }));
 </script>
