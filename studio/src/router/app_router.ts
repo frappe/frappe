@@ -14,12 +14,13 @@ interface Page {
 	page_title: string
 }
 
-// An app's studio/<app>/router.ts default export: a createRouter call with the two Studio-specific
-// pieces pulled out. `history` is withheld, Studio fixes the base.
-export type RouterConfig = Omit<RouterOptions, "history" | "routes"> & {
+// An app's studio/<app>/router.ts default export
+export type RouterConfig = {
+	// forwarded to createRouter; `routes` and `history` are withheld, Studio owns both
+	options?: Omit<RouterOptions, "history" | "routes">
 	// once per Studio page, with the plain vue-router record; mutate it
 	extendRoute?: (route: RouteRecordRaw) => void
-	// the live router, before app.use(router)
+	// called once, awaited before app.use(router) and the first navigation
 	setup?: (router: Router) => void | Promise<void>
 }
 
@@ -36,7 +37,10 @@ declare global {
 }
 
 export async function createAppRouter(config: RouterConfig = {}): Promise<Router> {
-	const { extendRoute, setup, ...options } = config
+	const { options = {}, extendRoute, setup } = config
+	for (const key of ["routes", "history"]) {
+		if (key in options) console.warn(`router.ts: options.${key} is ignored, Studio owns it`)
+	}
 	const routes = getPageRoutes(window.app_pages)
 	if (extendRoute) routes.forEach((route) => extendRoute(route))
 
