@@ -347,7 +347,7 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.addCleanup(frappe.db.set_value, "Kanban Board", self.board_name, "private", 1)
 
 		# A user without a ToDo role only sees the ToDos allocated to them.
-		user = create_user("kanban_lane_reader@example.com", "Blogger")
+		user = create_user("kanban_lane_reader@example.com", "Desk User")
 		frappe.db.set_value("ToDo", self.todos[0], "allocated_to", user.name)
 		self.addCleanup(frappe.db.set_value, "ToDo", self.todos[0], "allocated_to", None)
 
