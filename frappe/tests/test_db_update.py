@@ -570,6 +570,16 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(doctype.name, linked.name, "link_field"), target.name)
 		self.assertIsNone(frappe.db.get_value(doctype.name, blank.name, "link_field"))
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_trim_table_keeps_generated_column(self):
+		doctype = new_doctype().insert()
+		column = f"key_{frappe.generate_hash(length=6)}"
+		frappe.db.sql_ddl(
+			f"ALTER TABLE `tab{doctype.name}` ADD COLUMN `{column}` VARCHAR(140)"
+			" GENERATED ALWAYS AS (UPPER(`some_fieldname`)) STORED"
+		)
+		self.assertNotIn(column, frappe.model.meta.trim_table(doctype.name))
+
 	def test_varchar_length(self):
 		from frappe.database.schema import add_column
 
