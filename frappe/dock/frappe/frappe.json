@@ -16,7 +16,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "users",
+   "icon": "users-duotone",
    "link_to": "Users",
    "link_type": "Sidebar",
    "title": "Users"
@@ -102,7 +102,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-09-30 21:16:00.000000",
+ "modified": "2026-09-30 21:38:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
