@@ -171,10 +171,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     return landed;
   }
 
-  /**
-   * The first replay's sources run `onOpen` once it has committed, in run order; while an
-   * `onRefresh` part after an await is held, every act waits for it, so all of them wait.
-   */
+  /** The first replay's sources run `onOpen` in run order, once it and its late parts commit. */
   function runOnOpen(ran: Set<Registration>, landed: Promise<void>[]) {
     if (state.opened || state.left) return;
     state.opened = true;
