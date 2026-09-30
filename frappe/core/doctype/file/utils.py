@@ -5,7 +5,7 @@ import re
 from binascii import Error as BinasciiError
 from io import BytesIO
 from typing import TYPE_CHECKING, Optional
-from urllib.parse import unquote, urljoin
+from urllib.parse import unquote
 
 import filetype
 
@@ -115,45 +115,20 @@ def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
 	return image, filename, extn
 
 
-MAX_WEB_IMAGE_REDIRECTS = 5
-
-
 def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
-	import requests
 	import requests.exceptions
 	from PIL import Image
 
-	from frappe.utils.data import validate_egress_url
+	from frappe.utils.safe_exec import BlockedRequest, get_safe_request_session
 
-	# allow_header_override=False on both: a request-controlled Host header must not be
-	# able to make an internal address match site_url and skip the egress check below,
-	# and both URLs need to be built from the same host so legitimate same-site
-	# (relative) file_urls still match it.
-	file_url = frappe.utils.get_url(file_url, allow_header_override=False)
-	site_url = frappe.utils.get_url(allow_header_override=False).rstrip("/")
+	file_url = frappe.utils.get_url(file_url)
 
-	def validate_external_url(url: str) -> None:
-		if url == site_url or url.startswith(site_url + "/"):
-			return
-		try:
-			validate_egress_url(url)
-		except ValueError:
-			frappe.throw(
-				_("Cannot fetch image from {0}: the URL resolves to a restricted address").format(url)
-			)
-
-	validate_external_url(file_url)
-
-	# Redirects are followed manually so each hop's destination gets the same
-	# validation as the original URL.
-	for _attempt in range(MAX_WEB_IMAGE_REDIRECTS + 1):
-		r = requests.get(file_url, stream=True, allow_redirects=False)
-		if not r.is_redirect:
-			break
-		file_url = urljoin(file_url, r.headers["Location"])
-		validate_external_url(file_url)
-	else:
-		frappe.throw(_("Too many redirects while fetching {0}").format(file_url))
+	try:
+		# The session validates the connected peer address on every hop, including
+		# redirects, so no manual redirect loop or upfront URL check is needed here.
+		r = get_safe_request_session().get(file_url, stream=True)
+	except BlockedRequest as e:
+		frappe.throw(_("Cannot fetch image from {0}: {1}").format(file_url, str(e)))
 
 	try:
 		r.raise_for_status()
@@ -163,6 +138,9 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 		else:
 			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
+
+	# Reflect the final URL after any redirects for filename/extension extraction below.
+	file_url = r.url
 
 	try:
 		image = Image.open(BytesIO(r.content))
