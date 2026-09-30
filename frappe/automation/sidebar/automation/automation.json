@@ -88,11 +88,7 @@
   }
  ],
  "merged_from": "[\"Automation\"]",
-<<<<<<< HEAD
- "modified": "2026-08-12 16:08:08.737602",
-=======
  "modified": "2026-09-30 23:52:00.000000",
->>>>>>> 02d7365 (chore: workflow and automation icons)
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation",

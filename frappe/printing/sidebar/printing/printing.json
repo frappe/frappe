@@ -88,11 +88,7 @@
   }
  ],
  "merged_from": "[\"Printing\"]",
-<<<<<<< HEAD
- "modified": "2026-09-24 12:00:00.000000",
-=======
  "modified": "2026-10-01 02:17:00.000000",
->>>>>>> acd5a58 (chore: printing icon)
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Printing",
