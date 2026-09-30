@@ -184,7 +184,11 @@ function set_title_image_field_options(frm) {
 	].concat(
 		meta.fields
 			.filter(function (df) {
-				return df.fieldname && df.fieldtype === "Data" && !df.hidden;
+				return (
+					df.fieldname &&
+					["Data", "Text", "Small Text", "Text Editor"].includes(df.fieldtype) &&
+					!df.hidden
+				);
 			})
 			.map(to_option)
 	);
@@ -216,11 +220,20 @@ function seed_title_and_image_fields(frm) {
 			var tdf = meta.fields.find(function (df) {
 				return df.fieldname === meta.title_field;
 			});
-			if (tdf && tdf.fieldtype === "Data" && !tdf.hidden) title = meta.title_field;
+			if (
+				tdf &&
+				["Data", "Text", "Small Text", "Text Editor"].includes(tdf.fieldtype) &&
+				!tdf.hidden
+			)
+				title = meta.title_field;
 		}
 		if (!title) {
 			var data = meta.fields.find(function (df) {
-				return df.fieldtype === "Data" && df.fieldname && !df.hidden;
+				return (
+					["Data", "Text", "Small Text", "Text Editor"].includes(df.fieldtype) &&
+					df.fieldname &&
+					!df.hidden
+				);
 			});
 			title = data ? data.fieldname : "name";
 		}

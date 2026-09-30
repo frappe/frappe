@@ -524,23 +524,19 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		var title_field = null;
 		var quick_entry = false;
 
-		// Prefer the board's configured title (name or Data); fall back for old boards.
-		const board_title = this.board && this.board.title_field;
-		if (board_title === "name") {
-			title_field = frappe.meta.get_field(this.doctype, "name");
-		} else if (board_title) {
-			const df = frappe.meta.get_field(this.doctype, board_title);
-			if (df && df.fieldtype === "Data" && !df.hidden) title_field = df;
+		if (this.meta.title_field) {
+			title_field = frappe.meta.get_field(this.doctype, this.meta.title_field);
 		}
 
-		if (!title_field && this.meta.title_field) {
-			const df = frappe.meta.get_field(this.doctype, this.meta.title_field);
-			if (df && df.fieldtype === "Data" && !df.hidden) title_field = df;
-		}
+		this.meta.fields.forEach((df) => {
+			const is_valid_field =
+				["Data", "Text", "Small Text", "Text Editor"].includes(df.fieldtype) && !df.hidden;
 
-		if (!title_field) {
-			title_field = this.meta.fields.find((df) => df.fieldtype === "Data" && !df.hidden);
-		}
+			if (is_valid_field && !title_field) {
+				// can be mapped to textarea
+				title_field = df;
+			}
+		});
 
 		// quick entry
 		var mandatory = meta.fields.filter((df) => df.reqd && !doc[df.fieldname]);
@@ -556,7 +552,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			title_field = frappe.meta.get_field(this.doctype, "name");
 		}
 
-		return { quick_entry, title_field };
+		return {
+			quick_entry: quick_entry,
+			title_field: title_field,
+		};
 	}
 
 	/**

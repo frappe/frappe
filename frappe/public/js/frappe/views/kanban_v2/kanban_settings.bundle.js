@@ -73,7 +73,12 @@ class KanbanBoardSettings {
 				.map((d) => d.fieldname),
 			title: [{ value: "name", label: __("ID"), description: "name" }].concat(
 				meta.fields
-					.filter((d) => d.fieldname && d.fieldtype === "Data" && !d.hidden)
+					.filter(
+						(d) =>
+							d.fieldname &&
+							["Data", "Text", "Small Text", "Text Editor"].includes(d.fieldtype) &&
+							!d.hidden
+					)
 					.map(to_opt)
 			),
 			// Include image_field even when hidden.

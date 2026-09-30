@@ -604,23 +604,22 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	/**
-	 * Board title_field when it is name or Data; otherwise doctype title_field
-	 * (Data only), first Data field, or name. Matches the server seed + old-board
-	 * fallback.
+	 * Board title_field when it is name or a text field; otherwise the doctype's
+	 * title_field, the first text field, or name. Matches the server seed.
 	 */
 	resolve_title_field(meta) {
+		const is_text = (df) =>
+			df &&
+			["Data", "Text", "Small Text", "Text Editor"].includes(df.fieldtype) &&
+			!df.hidden;
 		const configured = this.board_doc.title_field;
 		if (configured === "name") return "name";
-		if (configured) {
-			const df = frappe.meta.get_docfield(this.doctype, configured);
-			if (df && df.fieldtype === "Data" && !df.hidden) return configured;
+		if (is_text(frappe.meta.get_docfield(this.doctype, configured))) return configured;
+		if (is_text(frappe.meta.get_docfield(this.doctype, meta.title_field))) {
+			return meta.title_field;
 		}
-		if (meta.title_field) {
-			const df = frappe.meta.get_docfield(this.doctype, meta.title_field);
-			if (df && df.fieldtype === "Data" && !df.hidden) return meta.title_field;
-		}
-		const data = meta.fields.find((df) => df.fieldtype === "Data" && !df.hidden);
-		return data ? data.fieldname : "name";
+		const text = meta.fields.find(is_text);
+		return text ? text.fieldname : "name";
 	}
 
 	/**

@@ -342,6 +342,10 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.assertNotIn("status", seeded)
 		self.assertIn("priority", seeded)
 
+	def test_title_field_can_be_a_text_field(self):
+		# ToDo's title field is description, a Text Editor
+		self.assertEqual(frappe.db.get_value("Kanban Board", self.board_name, "title_field"), "description")
+
 	def test_get_kanban_group_values(self):
 		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
 

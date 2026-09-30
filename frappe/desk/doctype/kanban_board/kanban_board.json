@@ -149,7 +149,7 @@
    "label": "New Kanban"
   },
   {
-   "description": "Field shown as the card title. Only Name (ID) or Data fields.",
+   "description": "Field shown as the card title: ID or a text field.",
    "fieldname": "title_field",
    "fieldtype": "Autocomplete",
    "label": "Title Field"
@@ -195,7 +195,7 @@
  ],
  "icon": "square-kanban",
  "links": [],
- "modified": "2026-09-30 23:13:54.840908",
+ "modified": "2026-09-30 23:40:31.093233",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",

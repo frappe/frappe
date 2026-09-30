@@ -1485,8 +1485,31 @@ if (frappe.views.KanbanView) {
 			return fields.join("");
 		}
 
+		function get_tags_html(card) {
+			if (!card.tags) return "";
+			const tags_array = card.tags.split(",");
+			const limit = 3; // cap. at 3 tags
+			const visible_tags = tags_array.slice(0, limit).join(",");
+			const hidden_tags = tags_array.slice(limit).join(",");
+			const hidden_tags_html = cur_list.get_tags_html(hidden_tags, null, true);
+			const hidden_count = tags_array.length - limit;
+			let html = `<div class="kanban-tags">
+				${cur_list.get_tags_html(visible_tags, null, true)}`;
+
+			if (hidden_count > 0) {
+				html += `
+					<span class="tag-pill more-tags">
+						+${hidden_count}
+						<span class="hidden-tags">${hidden_tags_html}</span>
+					</span>`;
+			}
+
+			html += `</div>`;
+			return html;
+		}
+
 		function render_card_meta() {
-			let html = "";
+			let html = get_tags_html(card);
 
 			if (card.comment_count > 0)
 				html += `<span class="list-comment-count small text-muted ">

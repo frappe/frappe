@@ -198,17 +198,20 @@ class KanbanBoard(Document):
 				frappe.msgprint(_("Column Name cannot be empty"), raise_exception=True)
 
 
+TITLE_FIELDTYPES = ("Data", "Text", "Small Text", "Text Editor")
+
+
 def default_title_field(doctype: str) -> str:
-	"""Card title field for a new board: doctype title_field when it is Data,
-	else the first Data field, else name (ID). Only name and Data are allowed."""
+	"""Card title field for a new board: doctype title_field when it is a text field,
+	else the first text field, else name (ID)."""
 	meta = frappe.get_meta(doctype)
 	title = meta.get("title_field")
 	if title:
 		df = meta.get_field(title)
-		if df and df.fieldtype == "Data" and not df.hidden:
+		if df and df.fieldtype in TITLE_FIELDTYPES and not df.hidden:
 			return title
 	for df in meta.fields:
-		if df.fieldtype == "Data" and df.fieldname and not df.hidden:
+		if df.fieldtype in TITLE_FIELDTYPES and df.fieldname and not df.hidden:
 			return df.fieldname
 	return "name"
 
