@@ -16,8 +16,11 @@ from frappe.utils.business_modules import (
 
 @contextmanager
 def registered_modules(hooks_by_app: dict[str, list]):
-	"""Fake the installed apps and their business_modules hooks for one test."""
+	"""Fake the business_modules hooks for one test. Apps in the dict are added to the installed apps."""
 	real_get_hooks = frappe.get_hooks
+	# keep the real apps in the list, their other hooks still run during a test
+	apps = frappe.get_installed_apps()
+	apps += [app for app in hooks_by_app if app not in apps]
 
 	def fake_get_hooks(hook=None, *args, **kwargs):
 		if hook == HOOK_NAME:
@@ -27,7 +30,7 @@ def registered_modules(hooks_by_app: dict[str, list]):
 	frappe.local.request_cache.clear()
 	try:
 		with (
-			patch.object(frappe, "get_installed_apps", return_value=list(hooks_by_app)),
+			patch.object(frappe, "get_installed_apps", return_value=apps),
 			patch.object(frappe, "get_hooks", side_effect=fake_get_hooks),
 		):
 			yield
@@ -99,16 +102,24 @@ class TestBusinessModules(IntegrationTestCase):
 		self.assertEqual([m["module"] for m in bootinfo.business_modules], ["Stock"])
 
 
-class TestBusinessModuleProperty(IntegrationTestCase):
+class CustomizationTestCase(IntegrationTestCase):
+	"""Tests that make Custom Fields and Property Setters on Event."""
+
+	def setUp(self):
+		# Skip the table change, so a rollback can undo everything a test made.
+		self.enterContext(patch.object(frappe.db, "updatedb"))
+
+	def tearDown(self):
+		frappe.db.rollback()
+		frappe.clear_cache(doctype="Event")
+		frappe.flags.in_migrate = False
+
+
+class TestBusinessModuleProperty(CustomizationTestCase):
 	"""The "Business Module" property on DocField, Customize Form and Custom Field."""
 
 	MODULES: ClassVar[dict] = {"frappe": [{"module": "Stock", "fieldname": "stock"}]}
 	FIELD = "description"  # a plain, optional field on Event
-
-	def tearDown(self):
-		frappe.db.delete("Property Setter", {"doc_type": "Event", "field_name": self.FIELD})
-		frappe.db.delete("Custom Field", {"dt": "Event", "fieldname": "test_bm_custom"})
-		frappe.clear_cache(doctype="Event")
 
 	def test_customize_form_allows_the_property(self):
 		from frappe.custom.doctype.customize_form.customize_form import docfield_properties
@@ -147,22 +158,16 @@ class TestBusinessModuleProperty(IntegrationTestCase):
 		self.assertEqual(frappe.get_meta("Event").get_field("test_bm_custom").show_for_module, "Stock")
 
 
-class TestShowForModuleSaveRules(IntegrationTestCase):
+class TestShowForModuleSaveRules(CustomizationTestCase):
 	"""Saving a field checks its Show for Module value."""
 
 	MODULES: ClassVar[dict] = {"frappe": [{"module": "Stock", "fieldname": "stock"}]}
 
-	def tearDown(self):
-		frappe.db.delete("Property Setter", {"doc_type": "Event", "field_name": "description"})
-		frappe.db.delete("Custom Field", {"dt": "Event", "fieldname": "test_bm_rules"})
-		frappe.clear_cache(doctype="Event")
-		frappe.flags.in_migrate = False
-
-	def customize_event(self, **values):
+	def customize_event(self, fieldname="description", **values):
 		d = frappe.get_doc("Customize Form")
 		d.doc_type = "Event"
 		d.run_method("fetch_to_customize")
-		d.get("fields", {"fieldname": "description"})[0].update(values)
+		d.get("fields", {"fieldname": fieldname})[0].update(values)
 		d.run_method("save_customization")
 		return d
 
@@ -239,6 +244,15 @@ class TestShowForModuleSaveRules(IntegrationTestCase):
 			self.customize_event(show_for_module="Stock", reqd=1)
 		self.assertFalse(frappe.get_meta("Event").get_field("description").show_for_module)
 		self.assertTrue(self.cleared_message_shown())
+
+	def test_mandatory_clears_module_of_custom_field_in_customize_form(self):
+		with registered_modules(self.MODULES):
+			self.custom_field()
+			self.customize_event("test_bm_rules", show_for_module="Stock", reqd=1)
+		saved = frappe.db.get_value(
+			"Custom Field", {"dt": "Event", "fieldname": "test_bm_rules"}, "show_for_module"
+		)
+		self.assertFalse(saved)
 
 	def test_unsetting_mandatory_does_not_bring_module_back(self):
 		with registered_modules(self.MODULES):

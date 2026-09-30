@@ -237,6 +237,8 @@ class CustomizeForm(Document):
 		validate_autoincrement_autoname(self)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
+		for df in self.get("fields"):
+			validate_show_for_module(df, self.doc_type)
 		self.update_custom_fields()
 		self.set_property_setters()
 		self.set_name_translation()
@@ -279,7 +281,6 @@ class CustomizeForm(Document):
 
 		# docfield
 		for df in self.get("fields"):
-			validate_show_for_module(df, self.doc_type)
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
 			if not meta_df or not is_standard_or_system_generated_field(meta_df[0]):
 				continue
