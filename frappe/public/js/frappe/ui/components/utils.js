@@ -1,6 +1,3 @@
-import { getColor } from "frappe-charts/src/js/utils/colors";
-import { DEFAULT_COLORS } from "frappe-charts/src/js/utils/constants";
-
 // Small helpers shared by the frappe.ui.* component helpers.
 
 /**
@@ -112,14 +109,16 @@ export function make_activatable($el, handler) {
 		});
 }
 
-/**
- * A frappe-charts colour name ("blue", "light-blue", "green"…) as the colour
- * Desk charts draw it, so a component matches the frappe.Chart beside it.
- * Any other CSS colour passes through unchanged.
- */
-export function chart_color(color) {
-	return getColor(color);
-}
-
-/** frappe-charts' default series colours, by name, in order. */
-export const CHART_PALETTE = DEFAULT_COLORS.donut;
+/** frappe-ui's categorical chart colours, as their nearest Espresso tokens, in order. */
+export const CHART_PALETTE = [
+	"blue-600",
+	"blue-400",
+	"green-600",
+	"green-400",
+	"violet-600",
+	"violet-400",
+	"amber-600",
+	"amber-400",
+	"red-500",
+	"red-400",
+].map((token) => `var(--${token})`);

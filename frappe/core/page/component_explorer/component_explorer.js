@@ -1017,7 +1017,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{
 							label: "Paid",
 							value: "₹8,20,000",
-							dot: "blue",
+							dot: "var(--blue-600)",
 							onclick: () => frappe.ui.toast({ message: "Paid" }),
 						},
 					],
@@ -1051,7 +1051,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								{ label: "Keyboards", value: 51 },
 							],
 							format: (value) => value + " units",
-							color: "green",
+							color: "var(--green-600)",
 							values_on_hover: true,
 						},
 					],
@@ -1096,11 +1096,11 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					items: [
 						{
 							segments: [
-								{ label: "Used", value: 55000, color: "blue" },
+								{ label: "Used", value: 55000, color: "var(--blue-600)" },
 								{
 									label: "Available",
 									value: 45000,
-									color: "light-blue",
+									color: "var(--blue-400)",
 								},
 							],
 							center: { value: "55%", label: "used" },

@@ -1,4 +1,4 @@
-import { chart_color, CHART_PALETTE } from "./utils.js";
+import { CHART_PALETTE } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -6,7 +6,7 @@ frappe.provide("frappe.ui");
  * @typedef {Object} DonutSegment
  * @property {string} label Legend and tooltip text. Rendered as text.
  * @property {number} value Segment size. Zero and negative segments are dropped.
- * @property {string} [color] A frappe-charts colour name ("blue", "light-blue", "green"…) or any CSS colour. Defaults to the next colour of frappe-charts' palette.
+ * @property {string} [color] Any CSS colour or token, e.g. var(--blue-600). Defaults to the next chart colour.
  */
 
 /**
@@ -72,7 +72,7 @@ frappe.ui.Donut = class Donut {
 			const seg = {
 				label: s.label,
 				value: flt(s.value),
-				color: chart_color(s.color || CHART_PALETTE[i % CHART_PALETTE.length]),
+				color: s.color || CHART_PALETTE[i % CHART_PALETTE.length],
 				pct: pcts[i],
 				a0: angle + g / 2,
 				a1: angle + sweep - g / 2,
