@@ -339,6 +339,19 @@ const useCodeStore = defineStore("codeStore", () => {
 		disposePageScriptScope()
 	}
 
+	// App page switch: the outgoing blocks stay mounted until the next page is ready, so they keep
+	// rendering against a copy of their context instead of the emptied one (ListRows: rows.map on undefined)
+	const pageSwitchContexts = shallowRef<{ eval: Record<string, any>; script: Record<string, any> } | null>(null)
+
+	function beginPageSwitch() {
+		pageSwitchContexts.value = { eval: { ...evalContext.value }, script: { ...scriptContext.value } }
+		teardownPage()
+	}
+
+	function endPageSwitch() {
+		pageSwitchContexts.value = null
+	}
+
 	// VARIABLES
 	async function setPageVariables(page: StudioPage, preloadedVariables?: Variable[]) {
 		let variableRows = preloadedVariables
@@ -493,6 +506,7 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	// SCRIPT CONTEXTS
 	const evalContext = computed(() => {
+		if (pageSwitchContexts.value) return pageSwitchContexts.value.eval
 		return {
 			...variables.value,
 			...resources.value,
@@ -506,6 +520,7 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	// Base context for every script scope — event/success/error handlers, function-value props, and page-script setup
 	const scriptContext = computed(() => {
+		if (pageSwitchContexts.value) return pageSwitchContexts.value.script
 		const variablesRefs = toRefs(variables.value)
 		// Resources and currentRoute are proxies so scripts can destructure them once and still see the current values
 		return {
@@ -770,6 +785,8 @@ const useCodeStore = defineStore("codeStore", () => {
 		resources,
 		setPageResources,
 		teardownPage,
+		beginPageSwitch,
+		endPageSwitch,
 		// variables
 		variables,
 		setPageVariables,
