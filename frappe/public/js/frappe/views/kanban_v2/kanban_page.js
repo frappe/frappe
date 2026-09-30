@@ -69,6 +69,7 @@ const SELECT_STYLES = {
  */
 frappe.views.KanbanV2Page = class KanbanV2Page {
 	constructor(wrapper) {
+		this.wrapper = wrapper;
 		this.page = wrapper.page;
 
 		this.page.page_form.removeClass("hide row").addClass("flex").show();
@@ -130,7 +131,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return null;
 	}
 
-	/** Floating bulk-action bar + Escape / route-change teardown. */
+	/** Floating bulk-action bar, Escape to clear it, teardown when the page hides. */
 	make_selection_bar() {
 		this.selected_ids = [];
 		this.$selection_bar = $(`
@@ -142,7 +143,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				<span class="kn-sel-custom flex items-center gap-2"></span>
 				${frappe.ui.button.html({ label: __("Delete"), theme: "red", css_class: "kn-sel-delete" })}
 				${frappe.ui.button.html({ label: __("Clear"), variant: "ghost", css_class: "kn-sel-clear" })}
-			</div>`).appendTo(document.body);
+			</div>`).appendTo(this.wrapper);
 
 		const done = () => {
 			if (this.board) {
@@ -164,18 +165,17 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			.find(".kn-sel-delete")
 			.on("click", () => this.confirm_delete(this.selected_ids, done));
 
-		// Escape clears the selection, via Frappe's key handler so it fires reliably.
-		frappe.ui.keys.on("escape", () => {
-			if (this.selected_ids.length) this.clear_selection();
+		frappe.ui.keys.add_shortcut({
+			shortcut: "escape",
+			action: () => this.clear_selection(),
+			condition: () => this.selected_ids.length > 0,
+			description: __("Clear selection"),
+			page: this.page,
 		});
-		// The bar lives on <body>, so hide it when navigating away from this
-		// board — otherwise it lingers over the next page (e.g. the form).
-		frappe.router.on("change", () => {
-			const board_on_route = this.get_board_name_from_route();
-			if (board_on_route !== this.current_board) {
-				this.update_selection_bar([]);
-				this.teardown_board(true);
-			}
+		// each board route has its own page, so leaving it means leaving the board
+		$(this.wrapper).on("hide", () => {
+			this.update_selection_bar([]);
+			this.teardown_board(true);
 		});
 	}
 
