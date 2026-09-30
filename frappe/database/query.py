@@ -11,7 +11,7 @@ from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, Va
 import frappe
 from frappe import _
 from frappe.boot import get_additional_filters_from_hooks
-from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
+from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP, func_is
 from frappe.database.utils import (
 	DefaultOrderBy,
 	FilterValue,
@@ -23,7 +23,7 @@ from frappe.database.utils import (
 	is_order_by_in_select,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -44,6 +44,17 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 
 
 TABLES_WITHOUT_DOCTYPE = frozenset(("Singles", "Sessions", "Series"))
+
+# What MariaDB coerces `''` to in `is set`; postgres rejects `''` for these columns.
+# No real date equals MariaDB's zero date, so only NULL is empty for dates.
+IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
+	**dict.fromkeys((*numeric_fieldtypes, "Rating", "Duration"), 0),
+	"Time": "00:00:00",
+	"Date": None,
+	"Datetime": None,
+}
+# A NULL column's stand-in in db_query-style IFNULL filters; no real date is 0001-01-01.
+IFNULL_FALLBACK_VALUES = {**IS_SET_EMPTY_VALUES, "Date": "0001-01-01", "Datetime": "0001-01-01"}
 
 
 class JSONColumnCast(functions.Cast):
@@ -275,7 +286,6 @@ class Engine:
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
-		self.function_aliases = set()
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
 		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
@@ -390,13 +400,13 @@ class Engine:
 	def apply_fields(self, fields, cast_json_columns: bool = False):
 		self.fields = self.parse_fields(fields)
 
-		# Track field aliases for use in group_by/order_by
-		for field in self.fields:
-			if isinstance(field, Field | DynamicTableField | AggregateFunction) and field.alias:
-				self.field_aliases.add(field.alias)
-
 		if self.apply_permissions:
 			self.fields = self.apply_field_permissions()
+
+		# Track field aliases for use in group_by/order_by
+		for field in self.fields:
+			if alias := getattr(field, "alias", None):
+				self.field_aliases.add(alias)
 
 		if not self.fields:
 			self.fields = [self.table.name]
@@ -404,7 +414,7 @@ class Engine:
 		if cast_json_columns:
 			# DISTINCT and GROUP BY need the selected expression to match the clause's. Runs
 			# after the permission pass, which only checks Field terms.
-			self.fields = [self._cast_json_select_field(field) for field in self.fields]
+			self.fields = self._cast_json_select_fields(self.fields)
 
 		self.query._child_queries = []
 		self.query._name_field_injected = False
@@ -414,7 +424,7 @@ class Engine:
 
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
-				self.query = field.apply_select(self.query, engine=self)
+				self.query = field.apply_select(self.query, engine=self, cast_json=cast_json_columns)
 				has_select_field = True
 			elif isinstance(field, ChildQuery):
 				self.query._child_queries.append(field)
@@ -734,29 +744,10 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
-		# The `is` ("set"/"not set") operator compares against an empty string (`= ''`).
-		# MariaDB silently coerces `''` to the column's type (e.g. `0` for an int), but
-		# postgres rejects `date/numeric = ''` outright. Compare against the
-		# type-appropriate fallback instead so the same filter behaves identically on both
-		# backends (for a column that coerces `''` to its zero-value on MariaDB, the typed
-		# fallback yields the exact same match set). MariaDB keeps its existing path.
-		if self.is_postgres and _operator.casefold() == "is" and isinstance(_field, Field):
-			value_token = str(_value).strip().lower()
-			if value_token in ("set", "not set"):
-				fallback_sql = self._get_ifnull_fallback(filter_doctype, filter_field_name)
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
-				if value_token == "set":
-					return comparison_field != fallback_value
-				return _field.isnull() | (comparison_field == fallback_value)
+		if _operator.casefold() == "is" and isinstance(_field, Field):
+			return func_is(
+				comparison_field, _value, self._get_is_set_empty_value(filter_doctype, filter_field_name)
+			)
 
 		if (
 			self.is_postgres and _operator.casefold() == "like"
@@ -766,19 +757,7 @@ class Engine:
 			operator_fn = OPERATOR_MAP[_operator.casefold()]
 		if _value is None and isinstance(_field, Field):
 			if operator_fn == builtin_operator.ne:
-				target_doctype = filter_doctype
-				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
-
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
+				fallback_value = self._get_ifnull_fallback(filter_doctype, filter_field_name)
 				return operator_fn(comparison_field, ValueWrapper(fallback_value))
 			else:
 				return _field.isnull()
@@ -789,17 +768,7 @@ class Engine:
 			if not isinstance(_field, functions.IfNull | functions.Coalesce) and self._should_apply_ifnull(
 				target_doctype, filter_field_name, _operator, _value
 			):
-				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
+				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
 				if fallback_value == _value:
 					if _operator == "=":
 						return _field.isnull() | comparison_field.eq(_value)
@@ -1482,8 +1451,15 @@ class Engine:
 		if field_name.isdigit():
 			return int(field_name)
 
-		# Allow function aliases and field aliases - return as Field (no table prefix)
-		if field_name in self.function_aliases or field_name in self.field_aliases:
+		# Allow select-list aliases - return as Field (no table prefix)
+		if field_name in self.field_aliases:
+			# GROUP BY binds a name to the table column before the select-list alias; ORDER BY does not
+			if (
+				clause_name == "Group By"
+				and self.apply_permissions
+				and field_name in frappe.get_meta(self.doctype).get_valid_columns()
+			):
+				self.check_filter_field_permission(self.doctype, field_name)
 			return Field(field_name)
 
 		# Parse backtick table.field notation: `tabDocType`.`fieldname`
@@ -1936,7 +1912,7 @@ class Engine:
 			condition = self.get_permission_conditions(self.doctype, self.table)
 			if condition:
 				quote_char = "`" if self.is_mariadb else '"'
-				return condition.get_sql(with_namespace=True, quote_char=quote_char)
+				return condition.get_sql(with_namespace=True, quote_char=quote_char, subquery=True)
 			return ""
 
 		if not self.ignore_user_permissions:
@@ -2030,15 +2006,39 @@ class Engine:
 		cast = self._cast_json_column(field)
 		return cast if cast is field else cast.as_(field.alias or field.name)
 
+	def _cast_json_select_fields(self, fields: list) -> list:
+		"""`*` cannot be cast, so list its columns out when one of them is JSON."""
+		cast_fields = []
+		for field in fields:
+			if not isinstance(field, Star):
+				cast_fields.append(self._cast_json_select_field(field))
+				continue
+			columns = [self._cast_json_select_field(column) for column in self._get_star_fields(field)]
+			has_json_column = any(isinstance(column, JSONColumnCast) for column in columns)
+			cast_fields.extend(columns if has_json_column else [field])
+		return cast_fields
+
 	def _is_json_field(self, doctype: str, fieldname: str) -> bool:
-		"""Core doctypes read the stored DocType: loading their meta queries Custom Field and
-		Property Setter through this engine, so `get_meta` would recurse."""
-		from frappe.model.meta import Meta, get_default_df
+		from frappe.model.meta import get_default_df
 
 		if get_default_df(fieldname) or fieldname in OPTIONAL_FIELDS:
 			return False
+		docfield = self._get_docfield(doctype, fieldname)
+		return bool(docfield) and docfield.fieldtype == "JSON"
+
+	def _get_is_set_empty_value(self, doctype: str, fieldname: str) -> int | str | None:
+		from frappe.model.meta import get_default_df
+
+		docfield = get_default_df(fieldname) or self._get_docfield(doctype, fieldname)
+		return IS_SET_EMPTY_VALUES.get(docfield.fieldtype, "") if docfield else ""
+
+	def _get_docfield(self, doctype: str, fieldname: str):
+		"""Core doctypes read the stored DocType: loading their meta queries Custom Field and
+		Property Setter through this engine, so `get_meta` would recurse."""
+		from frappe.model.meta import Meta
+
 		if doctype.startswith("__") or doctype in TABLES_WITHOUT_DOCTYPE:
-			return False
+			return None
 
 		meta = frappe.client_cache.get_value(f"doctype_meta::{doctype}")
 		if meta is None:
@@ -2048,13 +2048,11 @@ class Engine:
 				else:
 					meta = frappe.get_meta(doctype)
 			except frappe.DoesNotExistError:
-				return False
+				return None
 
 		if isinstance(meta, Meta):
-			docfield = meta.get_field(fieldname)
-		else:
-			docfield = next((df for df in meta.fields if df.fieldname == fieldname), None)
-		return bool(docfield) and docfield.fieldtype == "JSON"
+			return meta.get_field(fieldname)
+		return next((df for df in meta.fields if df.fieldname == fieldname), None)
 
 	def _is_field_nullable(self, doctype: str, fieldname: str) -> bool:
 		"""Check if a field can contain NULL values."""
@@ -2081,7 +2079,7 @@ class Engine:
 
 		return True
 
-	def _get_ifnull_fallback(self, doctype: str, fieldname: str) -> str:
+	def _get_ifnull_fallback(self, doctype: str, fieldname: str) -> int | str:
 		"""Get type-appropriate fallback value for NULL comparisons."""
 		try:
 			meta = frappe.get_meta(doctype)
@@ -2103,42 +2101,17 @@ class Engine:
 					)
 				).run(pluck=True)
 				data_type = res[0] if res else None
-				if data_type in ("smallint", "bigint", "int", "numeric"):  # can add as needed
-					return "0"
-			return "''"
+				if data_type in ("smallint", "bigint", "integer", "numeric"):  # can add as needed
+					return 0
+			return ""
 
 		if df is None:
 			# Try to get standard field definition
 			from frappe.model.meta import get_default_df
 
 			df = get_default_df(fieldname)
-			if df is None:
-				return "''"
 
-		fieldtype = df.fieldtype
-
-		if fieldtype in ("Link", "Data", "Dynamic Link"):
-			return "''"
-
-		if fieldtype in ("Date", "Datetime"):
-			return "'0001-01-01'"
-
-		if fieldtype == "Time":
-			return "'00:00:00'"
-
-		if fieldtype in ("Float", "Int", "Currency", "Percent", "Check"):
-			return "0"
-
-		try:
-			db_type_info = frappe.db.type_map.get(fieldtype, ("varchar",))
-			if db_type_info:
-				db_type = db_type_info[0] if isinstance(db_type_info, tuple | list) else db_type_info
-				if db_type in ("varchar", "text", "longtext", "smalltext", "json"):
-					return "''"
-		except Exception:
-			pass
-
-		return "''"
+		return IFNULL_FALLBACK_VALUES.get(df.fieldtype, "") if df else ""
 
 	def _should_apply_ifnull(self, doctype: str, fieldname: str, operator: str, value: Any) -> bool:
 		"""Determine if IFNULL wrapping is needed for a filter condition."""
@@ -2299,8 +2272,12 @@ class DynamicTableField:
 
 		return None
 
-	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		raise NotImplementedError
+	def apply_select(
+		self, query: QueryBuilder, engine: "Engine" = None, cast_json: bool = False
+	) -> QueryBuilder:
+		query = self.apply_join(query, engine=engine)
+		field = self.field.as_(self.alias or None)
+		return query.select(engine._cast_json_select_field(field) if cast_json else field)
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		raise NotImplementedError
@@ -2322,11 +2299,6 @@ class ChildTableField(DynamicTableField):
 		self.parent_fieldname = parent_fieldname
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
-
-	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
-		query = self.apply_join(query, engine=engine)
-		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		main_table = frappe.qb.DocType(self.parent_doctype)
@@ -2354,10 +2326,6 @@ class LinkTableField(DynamicTableField):
 		self.link_fieldname = link_fieldname
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
-
-	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		query = self.apply_join(query, engine=engine)
-		return query.select(self.field.as_(self.alias or None))
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		if engine is not None:
@@ -2593,7 +2561,6 @@ class SQLFunctionParser:
 			)
 
 		if alias:
-			self.engine.function_aliases.add(alias)
 			return function_call.as_(alias)
 		else:
 			return function_call
@@ -2634,7 +2601,6 @@ class SQLFunctionParser:
 		expression = ArithmeticExpression(operator=operator, left=left, right=right)
 
 		if alias:
-			self.engine.function_aliases.add(alias)
 			return expression.as_(alias)
 		else:
 			return expression

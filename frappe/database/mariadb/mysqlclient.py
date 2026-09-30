@@ -496,7 +496,8 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		from frappe.exceptions import QueryTimeoutError
 
-		name = hashlib.sha256(str(key).encode()).hexdigest()
+		# GET_LOCK names are server-wide, so scope the lock to this site's database
+		name = hashlib.sha256(f"{self.cur_db_name}:{key}".encode()).hexdigest()
 		deadline = time.monotonic() + timeout
 		while True:
 			remaining = deadline - time.monotonic()

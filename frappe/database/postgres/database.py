@@ -1,16 +1,18 @@
 import datetime
 import re
 from contextlib import contextmanager
+from decimal import Decimal
 
 import psycopg2
 import psycopg2.extensions
 from psycopg2 import sql
 from psycopg2.errorcodes import (
 	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
-	DATATYPE_MISMATCH,
+	DATETIME_FIELD_OVERFLOW,
 	DEADLOCK_DETECTED,
 	DUPLICATE_COLUMN,
 	INSUFFICIENT_PRIVILEGE,
+	INVALID_DATETIME_FORMAT,
 	INVALID_TEXT_REPRESENTATION,
 	NUMERIC_VALUE_OUT_OF_RANGE,
 	SERIALIZATION_FAILURE,
@@ -29,7 +31,7 @@ from psycopg2.errors import (
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ, TRANSACTION_STATUS_INERROR
 
 import frappe
-from frappe.database.database import CREATE_OR_DROP, Database
+from frappe.database.database import CREATE_OR_DROP, DDL_QUERY_TYPES, Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode, convert_backtick_identifiers
 from frappe.utils import cstr, get_table_name
@@ -165,7 +167,9 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_primary_key_violation(e):
-		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_pkey" in cstr(e.args[0])
+		if not PostgresExceptionUtil.is_duplicate_entry(e):
+			return False
+		return cstr(e.diag.constraint_name).endswith("_pkey")
 
 	@staticmethod
 	def is_unique_key_violation(e):
@@ -192,13 +196,14 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_data_truncated(e):
 		# a value cannot be cast to the column's new type -- e.g. changing a field holding
-		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres is stricter and
-		# aborts the ALTER: it refuses to auto-cast the column (datatype mismatch) or a value fails
-		# the cast (invalid representation / numeric out of range).
+		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres aborts the ALTER
+		# when a value fails the cast (invalid representation / numeric out of range / invalid date
+		# or time). A datatype mismatch means a missing USING cast, not bad data, so it stays raw.
 		return getattr(e, "pgcode", None) in (
-			DATATYPE_MISMATCH,
 			INVALID_TEXT_REPRESENTATION,
 			NUMERIC_VALUE_OUT_OF_RANGE,
+			INVALID_DATETIME_FORMAT,
+			DATETIME_FIELD_OVERFLOW,
 		)
 
 	@staticmethod
@@ -213,6 +218,7 @@ class PostgresExceptionUtil:
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
 	default_port = "5432"
+	_transaction_has_schema_changes = False
 
 	def setup_type_map(self):
 		self.db_type = "postgres"
@@ -374,10 +380,18 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 		return tables
 
-	@staticmethod
-	def clear_db_table_cache(query_type: str):
+	def clear_db_table_cache(self, query_type: str):
+		"""Postgres DDL is transactional, so drop the schema caches on a rollback that follows DDL."""
 		if query_type in CREATE_OR_DROP:
 			frappe.client_cache.delete_keys("db_tables::*")
+		if query_type in DDL_QUERY_TYPES:
+			self._transaction_has_schema_changes = True
+		elif query_type == "commit":
+			self._transaction_has_schema_changes = False
+		elif query_type == "rollback" and self._transaction_has_schema_changes:
+			# stays set: a rollback to a savepoint keeps the DDL that ran before it
+			frappe.client_cache.delete_keys("db_tables::*")
+			frappe.client_cache.delete_keys("table_columns::*")
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
@@ -422,7 +436,41 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
 		new_name = get_table_name(new_name)
-		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
+		result = self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
+		self.rename_table_indexes(old_name, new_name)
+		return result
+
+	def rename_table_indexes(self, old_table: str, new_table: str):
+		"""Give indexes named after `old_table` the names they would get on `new_table`."""
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		for index_name, columns in self.get_index_columns(new_table).items():
+			for suffix in (None, "unique", *INDEX_METHODS):
+				if index_name == get_qualified_index_name(old_table, columns, suffix):
+					new_index_name = get_qualified_index_name(new_table, columns, suffix)
+					self.sql(f'ALTER INDEX "{self.db_schema}"."{index_name}" RENAME TO "{new_index_name}"')
+					break
+
+	def get_index_columns(self, table_name: str) -> dict[str, list[str]]:
+		"""Map each index on the table to its key columns, in order."""
+		return dict(
+			self.sql(
+				"""
+				SELECT ic.relname, ARRAY(
+					SELECT a.attname
+					FROM unnest(i.indkey[:i.indnkeyatts - 1]) WITH ORDINALITY AS k(attnum, position)
+					JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = k.attnum
+					ORDER BY k.position
+				)
+				FROM pg_index i
+				JOIN pg_class tc ON tc.oid = i.indrelid
+				JOIN pg_class ic ON ic.oid = i.indexrelid
+				JOIN pg_namespace n ON n.oid = tc.relnamespace
+				WHERE tc.relname = %s AND n.nspname = %s
+				""",
+				(table_name, self.db_schema),
+			)
+		)
 
 	def describe(self, doctype: str) -> list | tuple:
 		return self.sql(
@@ -538,16 +586,19 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		catalogs so callers stay db-agnostic. Only full (non-partial) btree indexes count,
 		like the indexes SHOW INDEX reports on InnoDB -- a hash or partial index cannot
 		serve the ordering and unrestricted lookups callers are checking for.
+		``Constraint_name`` is set when a primary key or unique constraint owns the index.
 		"""
 		result = self.sql(
 			f"""
-			SELECT ic.relname AS "Key_name"
+			SELECT ic.relname AS "Key_name", c.conname AS "Constraint_name"
 			FROM pg_index i
 			JOIN pg_class tc ON tc.oid = i.indrelid
 			JOIN pg_class ic ON ic.oid = i.indexrelid
 			JOIN pg_am am ON am.oid = ic.relam
 			JOIN pg_namespace n ON n.oid = tc.relnamespace
 			JOIN pg_attribute a ON a.attrelid = tc.oid AND a.attnum = i.indkey[0]
+			LEFT JOIN pg_constraint c
+				ON c.conindid = i.indexrelid AND c.conrelid = i.indrelid AND c.contype IN ('p', 'u')
 			WHERE tc.relname = %(table_name)s
 				AND n.nspname = %(schema)s
 				AND a.attname = %(fieldname)s
@@ -605,6 +656,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		index_name = index_name or get_qualified_index_name(
 			table_name, clean_fields, using, where=where, include=include
 		)
+		if self.has_index(table_name, index_name):
+			return
 
 		if using == "gin_trgm":
 			self.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
@@ -616,11 +669,33 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}"'
 			f"{method} ({self._index_target(clean_fields, using)}){include_clause}{condition}"
 		)
+		# `search_index` stands for a plain index, so a partial, covering or `using` one must not set it
+		if not (using or where or include):
+			self.persist_search_index(doctype, fields)
+
+	def persist_search_index(self, doctype: str, fields: list[str]) -> None:
+		"""Set `search_index` on a single field indexed outside install or migrate, so alter keeps the index."""
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		if len(fields) != 1 or frappe.flags.in_install or frappe.flags.in_migrate:
+			return
+		# a raw table, a standard column or a prefix length like `field(10)` has no docfield to mark
+		if not self.exists("DocType", doctype) or not frappe.get_meta(doctype).has_field(fields[0]):
+			return
+		make_property_setter(
+			doctype,
+			fields[0],
+			property="search_index",
+			value="1",
+			property_type="Check",
+			for_doctype=False,  # Applied on docfield
+		)
 
 	def _index_target(self, fields: list[str], using: str | None) -> str:
 		"""The column list (or functional expression) an index is built over, per `using` mode."""
 		if using == "gin_trgm":
-			return ", ".join(f'"{field}" gin_trgm_ops' for field in fields)
+			opclass = self.get_trigram_opclass()
+			return ", ".join(f'"{field}" {opclass}' for field in fields)
 		if using == "gin_fulltext":
 			# 'english' regconfig keeps to_tsvector immutable so it can be indexed; the search query
 			# must use the same config. ponytail: hardcoded -- add a `config` arg if multilingual
@@ -632,6 +707,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			)
 			return f"to_tsvector('english', {document})"
 		return '"' + '", "'.join(fields) + '"'
+
+	def get_trigram_opclass(self) -> str:
+		"""`gin_trgm_ops` qualified with pg_trgm's schema, which may be off the site's search_path."""
+		# regnamespace prints the schema name quoted where needed
+		schema = self.sql("SELECT extnamespace::regnamespace FROM pg_extension WHERE extname = 'pg_trgm'")
+		return f"{schema[0][0]}.gin_trgm_ops"
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		from frappe.database.postgres.schema import get_qualified_index_name
@@ -802,7 +883,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		lock would release at the first commit. Polls pg_try_advisory_lock up to `timeout` seconds,
 		then raises QueryTimeoutError. `key` is hashed to the bigint the lock functions expect."""
 		lock_key = self._poll_advisory_lock("pg_try_advisory_lock", key, timeout)
+		save_point = f"advisory_lock_{frappe.generate_hash(length=10)}"
 		try:
+			self.savepoint(save_point)
 			yield
 		finally:
 			try:
@@ -813,10 +896,18 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				# the aborted state and release. Guarded so a failed cleanup never masks the original
 				# error -- a dropped session releases the lock anyway.
 				try:
-					self.rollback()
+					self._undo_advisory_lock_block(save_point)
 					self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
 				except Exception:
 					pass
+
+	def _undo_advisory_lock_block(self, save_point):
+		"""Roll back the aborted lock block, keeping the caller's work and savepoints."""
+		try:
+			self.rollback(save_point=save_point)
+		except Exception:
+			# the block committed or rolled back, so nothing before it is left to keep
+			self.rollback()
 
 	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
 		"""Stream rows into the table with COPY -- far faster than multi-row INSERT. Falls back to
@@ -838,25 +929,42 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self.connect()
 		cursor = self._conn.cursor()
 		copy_sql = copy_statement.as_string(cursor)
+		integer_positions = self._get_integer_positions(table_name, fields)
 		buffer = io.StringIO()
 		try:
-			row_count = flushed = 0
+			row_count = 0
 			for value in values:
-				buffer.write("\t".join(_copy_encode(column) for column in value) + "\n")
+				encoded = (_copy_encode(column, i in integer_positions) for i, column in enumerate(value))
+				buffer.write("\t".join(encoded) + "\n")
 				row_count += 1
 				if row_count % chunk_size == 0:
-					_copy_flush(cursor, copy_sql, buffer)
-					# COPY bypasses Database.execute, so keep transaction_writes in step with the
-					# rows sent -- else auto_commit_on_many_writes never sees a large load.
-					self.transaction_writes += row_count - flushed
-					flushed = row_count
-			_copy_flush(cursor, copy_sql, buffer)
-			self.transaction_writes += row_count - flushed
+					self._copy_flush(cursor, copy_sql, buffer)
+			self._copy_flush(cursor, copy_sql, buffer)
 		finally:
 			cursor.close()
 
+	def _get_integer_positions(self, table_name: str, fields: list[str]) -> set[int]:
+		"""Positions of `fields` that are integer columns, where COPY needs 1.0 sent as 1."""
+		integer_columns = self.sql(
+			"""SELECT column_name FROM information_schema.columns
+			WHERE table_schema = %s AND table_name = %s AND data_type IN ('smallint', 'integer', 'bigint')""",
+			(self.db_schema, table_name),
+			pluck=True,
+		)
+		return {position for position, field in enumerate(fields) if field in integer_columns}
 
-def _copy_encode(value):
+	def _copy_flush(self, cursor, copy_sql, buffer):
+		"""Send the buffered rows. COPY bypasses `sql`, so count the chunk as one write, like an INSERT."""
+		if not buffer.tell():
+			return
+		buffer.seek(0)
+		cursor.copy_expert(copy_sql, buffer)
+		buffer.seek(0)
+		buffer.truncate(0)
+		self.transaction_writes += 1
+
+
+def _copy_encode(value, integer_column: bool = False):
 	"""Encode one value for postgres COPY text format (tab-delimited, ``\\N`` = NULL)."""
 	if value is None:
 		return r"\N"
@@ -866,6 +974,12 @@ def _copy_encode(value):
 		return "1"
 	if value is False:
 		return "0"
+	if integer_column and isinstance(value, float) and value.is_integer():
+		# INSERT sends 1.0 as a numeric literal that an Int or Check column casts; COPY rejects "1.0".
+		return str(int(value))
+	if isinstance(value, bytes | bytearray | memoryview):
+		# bytea hex input, as INSERT sends it, with the backslash escaped for COPY
+		return "\\\\x" + value.hex()
 	if isinstance(value, datetime.timedelta):
 		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
 		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
@@ -881,16 +995,9 @@ def _copy_encode(value):
 		minutes, seconds = divmod(remainder, 60)
 		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 		return f"{encoded}.{microseconds:06d}" if microseconds else encoded
+	if not isinstance(value, str | int | float | Decimal | datetime.date | datetime.time):
+		raise TypeError(f"bulk_insert cannot COPY a {type(value).__name__} value")
 	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
-
-
-def _copy_flush(cursor, copy_sql, buffer):
-	if not buffer.tell():
-		return
-	buffer.seek(0)
-	cursor.copy_expert(copy_sql, buffer)
-	buffer.seek(0)
-	buffer.truncate(0)
 
 
 def modify_query(query):

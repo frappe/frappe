@@ -206,6 +206,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.set_actions_menu_items();
 	}
 
+	open_import_dialog() {
+		frappe.require("data_import_tools.bundle.js", () => {
+			frappe.data_import.open_data_import_dialog({
+				reference_doctype: this.doctype,
+				import_type: "Insert New Records",
+			});
+		});
+	}
+
 	set_actions_menu_items() {
 		this.actions_menu_items = this.get_actions_menu_items();
 		this.workflow_action_menu_items = this.get_workflow_action_menu_items();
@@ -724,6 +733,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+		if (!has_filters_set && frappe.model.can_import(this.doctype, null, this.meta)) {
+			actions.push({
+				label: __("Import"),
+				icon: "import",
+				css_class: "btn-import-doc",
+			});
+		}
+
 		if (this.meta.documentation) {
 			actions.push({
 				label: __("Documentation"),
@@ -806,13 +823,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 	}
 
+	get_breadcrumbs() {
+		if (!this.breadcrumb_layout) return super.get_breadcrumbs();
+
+		const layout = (frappe.boot.doctype_layouts || []).find(
+			(l) => l.name === this.breadcrumb_layout
+		);
+		return [
+			{
+				label: __(this.doctype),
+				// the layout filters this list, so going back up has to drop those filters
+				href: `/desk/${frappe.router.slug(this.doctype)}?reset_filters=1`,
+			},
+			{ label: __(layout?.title || this.breadcrumb_layout) },
+		];
+	}
+
 	_set_breadcrumb_layout(layout_name) {
-		const route_key = frappe.breadcrumbs.current_page();
-		const crumb = frappe.breadcrumbs.all[route_key];
-		if (crumb && (crumb.layout_name || null) !== layout_name) {
-			crumb.layout_name = layout_name;
-			frappe.breadcrumbs.update();
-		}
+		if ((this.breadcrumb_layout || null) === layout_name) return;
+		this.breadcrumb_layout = layout_name;
+		this.set_breadcrumbs();
 	}
 
 	parse_filters_from_settings() {
@@ -1100,12 +1130,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					return;
 				}
 
-				const width = Math.round($el.outerWidth());
+				// exact, not rounded: pinning 94.5px as 95px shifts every column after it
+				const width = $el[0].getBoundingClientRect().width;
 				if (!width) {
 					return;
 				}
 
-				const existing = cint(this.column_max_widths[fieldname]) || 0;
+				const existing = flt(this.column_max_widths[fieldname]) || 0;
 				this.column_max_widths[fieldname] = Math.max(existing, width);
 			});
 	}
@@ -1217,6 +1248,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.get_count_str().then((count) => {
 			$count.html(`<span>${count}</span>`);
+			this.sync_right_width();
 			if (
 				this.count_upper_bound &&
 				(this.total_count == this.count_upper_bound || this.total_count == null)
@@ -1559,7 +1591,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (!frappe.is_mobile() && cint(col.df?.width)) {
 			const width = cint(col.df.width);
-			const existing = cint(this.column_max_widths[fieldname]) || 0;
+			const existing = flt(this.column_max_widths[fieldname]) || 0;
 			this.column_max_widths[fieldname] = Math.max(existing, width);
 		}
 
@@ -1621,6 +1653,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (left_width < frappe_list_width - right_width) {
 			this.$result.find(".list-row-container .list-row .level-right").addClass("border-0");
 		}
+
+		this.sync_right_width();
+	}
+
+	// The header's right side holds the count, each row's the timestamp and comment
+	// count. Give them all the widest one, so the columns to their left line up.
+	// Runs again once the count arrives, as it can be the widest.
+	sync_right_width() {
+		const result = this.$result?.[0];
+		if (!result) return;
+		result.style.removeProperty("--list-right-width");
+		const sides = result.querySelectorAll(
+			".list-row-head .level-right, .list-row-container .list-row .level-right"
+		);
+		if (frappe.is_mobile() || sides.length < 2) return;
+		const width = Math.max(...Array.from(sides, (el) => el.getBoundingClientRect().width));
+		result.style.setProperty("--list-right-width", `${width}px`);
 	}
 
 	get_tags_html(user_tags, limit = null, colored = false) {
@@ -2265,6 +2314,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.make_new_doc();
 			}
 		});
+		this.$no_result.find(".btn-import-doc").click(() => this.open_import_dialog());
 	}
 
 	setup_tag_visibility() {
@@ -2290,6 +2340,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			if (this.avoid_realtime_update()) {
+				return;
+			}
+
+			// Bulk imports publish no doc name.
+			if (!data.name) {
+				this.refresh();
 				return;
 			}
 
@@ -2509,10 +2565,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.model.can_import(doctype, null, this.meta)) {
 			items.push({
 				label: __("Import", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("list", "data-import", {
-						reference_doctype: doctype,
-					}),
+				action: () => this.open_import_dialog(),
 				standard: true,
 			});
 		}

@@ -3,7 +3,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.database.schema import DbColumn, DBTable, get_definition
+from frappe.database.schema import NOT_NULL_TYPES, DbColumn, DBTable, get_definition
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
@@ -54,7 +54,7 @@ def get_qualified_index_name(
 	name = f"{base}_index"
 	if len(name.encode()) > 63:
 		digest = hashlib.md5(base.encode()).hexdigest()[:10]
-		name = f"{name[:52]}_{digest}"
+		name = f"{name.encode()[:52].decode(errors='ignore')}_{digest}"
 	return name
 
 
@@ -64,6 +64,40 @@ def get_single_column_index_name(table_name: str, fieldname: str) -> str:
 
 def get_unique_index_name(table_name: str, fieldname: str) -> str:
 	return get_qualified_index_name(table_name, [fieldname], "unique")
+
+
+# Postgres won't implicitly cast text to these column types, so a type change casts through text.
+# Integer types go through numeric so that decimal text converts.
+USING_CASTS = {
+	"date": "date",
+	"timestamp": "timestamp",
+	"time": "time",
+	"json": "json",
+	"uuid": "uuid",
+	"decimal": "numeric",
+	"smallint": "numeric::smallint",
+	"int": "numeric::int",
+	"bigint": "numeric::bigint",
+}
+
+
+def get_using_clause(column: DbColumn, column_type: str) -> str:
+	"""Return the USING clause that converts the column's values to `column_type`, or "" if none is needed.
+
+	Blanks become NULL, or the not-null default in a NOT NULL column."""
+	cast = USING_CASTS.get(column_type.split("(")[0])
+	if not cast:
+		return ""
+
+	value = f"NULLIF(`{column.fieldname}`::text, '')"
+	if column.fieldtype in NOT_NULL_TYPES or column.not_nullable:
+		not_null_default = frappe.db.escape(cstr(get_not_null_defaults(column.fieldtype)))
+		value = f"COALESCE({value}, {not_null_default})"
+	return f"USING {value}::{cast}"
+
+
+# the column in a unique violation's DETAIL, e.g. `Key (bill_no)=(INV-1) is duplicated.`
+DUPLICATE_KEY_PATTERN = re.compile(r"Key \((.+?)\)=")
 
 
 class PostgresTable(DBTable):
@@ -152,48 +186,19 @@ class PostgresTable(DBTable):
 		new_column_names = {col.fieldname for col in self.add_column}
 
 		for col in self.change_type:
-			# Postgres won't implicitly cast text/varchar to these types, so SET DATA TYPE
-			# needs an explicit USING expression. NOT NULL numerics coalesce blanks to 0;
-			# nullable types map blanks to NULL.
-			using_clause = ""
-			if col.fieldtype == "Datetime":
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::timestamp without time zone"
-			elif col.fieldtype == "Date":
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::date"
-			elif col.fieldtype == "Time":
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::time without time zone"
-			elif col.fieldtype == "Check":
-				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::smallint"
-			elif col.fieldtype in ("Currency", "Float", "Percent"):
-				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric"
-			elif col.fieldtype in ("Duration", "Rating"):
-				# Duration/Rating are nullable (not in NOT_NULL_TYPES), so keep blanks NULL.
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::numeric"
-			elif col.fieldtype == "Int":
-				# cast to the actual target type: Int with length > 11 is a bigint column
-				# (Long Int), so a plain ::int would overflow its legitimate values; a standard
-				# Int stays int and still errors on out-of-range values (use Long Int for those).
-				int_type = get_definition(col.fieldtype, length=col.length)
-				using_clause = (
-					f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric::{int_type}"
-				)
-			elif col.fieldtype == "JSON":
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::json"
-
-			if using_clause:
+			column_type = get_definition(
+				col.fieldtype, precision=col.precision, length=col.length, options=col.options
+			)
+			if using_clause := get_using_clause(col, column_type):
 				# the column's existing (string) DEFAULT can't be cast to the new type, so
 				# drop it and re-apply the proper default via the set_default pass below.
 				query.append(f"ALTER COLUMN `{col.fieldname}` DROP DEFAULT")
 				if col not in self.set_default:
 					self.set_default.append(col)
 
-			query.append(
-				"ALTER COLUMN `{}` TYPE {} {}".format(
-					col.fieldname,
-					get_definition(col.fieldtype, precision=col.precision, length=col.length),
-					using_clause,
-				)
-			)
+			query.append(f"ALTER COLUMN `{col.fieldname}` TYPE {column_type} {using_clause}")
+			if col.fieldtype in NOT_NULL_TYPES:
+				query.append(f"ALTER COLUMN `{col.fieldname}` SET NOT NULL")
 
 		if alter_pk := self.alter_primary_key():
 			query.append(alter_pk)
@@ -212,9 +217,8 @@ class PostgresTable(DBTable):
 				# nullable types (e.g. Duration, Rating) keep their NULL default
 				col_default = "NULL"
 
-			elif col.default in frappe.db.DEFAULT_SHORTCUTS or cstr(col.default).startswith(":"):
-				# frappe resolves these per document (Today, Now, __user, :fieldname, ...). Emitting
-				# them as literals would make postgres freeze one value at migration time.
+			elif col.has_dynamic_default:
+				# a literal would make postgres freeze one value at migration time
 				col_default = "NULL"
 
 			else:
@@ -254,23 +258,7 @@ class PostgresTable(DBTable):
 				and col not in frappe.db.DEFAULT_COLUMNS
 				and col not in frappe.db.OPTIONAL_COLUMNS
 			):
-				has_unique_index = frappe.db.sql(
-					"""
-					SELECT 1
-					FROM pg_indexes
-					WHERE tablename = %s
-					AND indexname IN (%s, %s, %s)
-					LIMIT 1
-					""",
-					(
-						self.table_name,
-						f"{self.table_name}_{col}_key",
-						f"unique_{col}",
-						get_unique_index_name(self.table_name, col),
-					),
-				)
-
-				if not has_unique_index:
+				if not frappe.db.get_column_index(self.table_name, col, unique=True):
 					continue
 
 				current_col = self.current_columns.get(col)
@@ -300,42 +288,26 @@ class PostgresTable(DBTable):
 
 		for col in self.drop_unique:
 			# primary key
-			if col.fieldname != "name":
-				# drop unique constraint first if exists which automatically drops the underlying index also
-				unique_constraint_exists = frappe.db.sql(
-					"""
-					SELECT 1
-					FROM pg_constraint
-					WHERE conname = %s
-					""",
-					(f"{self.table_name}_{col.fieldname}_key",),
-				)
+			if col.fieldname == "name":
+				continue
 
-				if unique_constraint_exists:
-					drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{self.table_name}_{col.fieldname}_key" ;'
+			# look up by column: postgres truncates long constraint names
+			unique_index = frappe.db.get_column_index(self.table_name, col.fieldname, unique=True)
+			if not unique_index:
+				continue
 
-				# drop the unique index backed by no constraint directly
-				for unique_index in (
-					get_unique_index_name(self.table_name, col.fieldname),
-					f"unique_{col.fieldname}",
-				):
-					unique_index_exists = frappe.db.sql(
-						"""
-						SELECT 1
-						FROM pg_indexes
-						WHERE tablename = %s
-						AND indexname = %s
-						""",
-						(self.table_name, unique_index),
-					)
-
-					if unique_index_exists:
-						drop_contraint_query += f'DROP INDEX IF EXISTS "{unique_index}" ;'
+			if unique_index.Constraint_name:
+				drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{unique_index.Constraint_name}" ;'
+			else:
+				drop_contraint_query += f'DROP INDEX IF EXISTS "{unique_index.Key_name}" ;'
 
 		change_nullability = []
 		for col in self.change_nullability:
 			default = col.default or get_not_null_defaults(col.fieldtype)
-			if isinstance(default, str):
+			if col.has_dynamic_default:
+				# a literal would make postgres freeze one value at migration time
+				default = "NULL"
+			elif isinstance(default, str):
 				default = frappe.db.escape(default)
 			change_nullability.append(
 				f'ALTER COLUMN "{col.fieldname}" {"SET" if col.not_nullable else "DROP"} NOT NULL'
@@ -370,13 +342,14 @@ class PostgresTable(DBTable):
 			if frappe.db.is_duplicate_fieldname(e):
 				frappe.throw(str(e))
 			elif frappe.db.is_duplicate_entry(e):
-				fieldname = str(e).split("'")[-2]
+				duplicate_key = DUPLICATE_KEY_PATTERN.search(e.diag.message_detail or "")
+				fieldname = duplicate_key.group(1) if duplicate_key else e.diag.constraint_name
 				frappe.throw(
 					_(
 						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 					).format(fieldname, self.table_name)
 				)
-			elif frappe.db.is_data_truncated(e):
+			elif frappe.db.is_data_truncated(e) or frappe.db.is_data_too_long(e):
 				frappe.throw(
 					_(
 						"Cannot change field type in {0}: some existing values cannot be converted to the new type"

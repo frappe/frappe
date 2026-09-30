@@ -3,6 +3,7 @@
 
 import json
 from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
@@ -819,16 +820,20 @@ def shell_payload(spec: dict) -> dict:
 	"""A `bootinfo.module_sidebars` payload from a compact spelling, for the ladder's tests.
 
 	Each shell is given as `{"module": ..., "workspaces": [...], "lists": [(kind, entity), ...]}`,
-	and everything the ladder does not read is left out. Building the payload by hand rather than
-	from documents is what lets one test say one thing: the ladder's order is the subject, and
-	real sidebars would drag permissions, customizations and computed bases into it.
+	where a Page entry may add the item's `route` as a third element. Everything the ladder does not
+	read is left out. Building the payload by hand rather than from documents is what lets one test
+	say one thing: the ladder's order is the subject, and real sidebars would drag permissions,
+	customizations and computed bases into it.
 	"""
 	return {
 		shell: {
 			"module": shell_spec.get("module", shell),
 			"workspaces": shell_spec.get("workspaces", []),
 			"computed": shell_spec.get("computed", 0),
-			"items": [{"link_type": kind, "link_to": entity} for kind, entity in shell_spec.get("lists", [])],
+			"items": [
+				{"link_type": kind, "link_to": entity, "route": route}
+				for kind, entity, route in ((*listed, None)[:3] for listed in shell_spec.get("lists", []))
+			],
 		}
 		for shell, shell_spec in spec.items()
 	}
@@ -956,6 +961,56 @@ class TestCanonicalShell(IntegrationTestCase):
 		index = ShellIndex(shell_payload({"Stock": {"workspaces": ["Stock", "Warehousing"]}}))
 
 		self.assertEqual(dict(index.workspace_owners()), {"Stock": "Stock", "Warehousing": "Stock"})
+
+
+class TestCanonicalShellOfAPageRoute(IntegrationTestCase):
+	"""Several apps link one container page with a route of their own: Selling links
+	`insights-dashboard` at `selling`, Pulse at `pulse-health`. The page belongs to Insights, so
+	keyed by the page alone every such route opened in Insights.
+	"""
+
+	PAGE = "insights-dashboard"
+	SIDEBARS = shell_payload(
+		{
+			"Insights": {"lists": [("Page", PAGE)]},
+			"Selling": {"lists": [("Page", PAGE, "selling")]},
+			"Pulse": {"lists": [("Page", PAGE, "pulse-health")]},
+		}
+	)
+
+	def build(self, entity_module=None):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={self.PAGE: {"module": "Insights"}},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, entity_module or {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_page_route_opens_in_the_shell_that_lists_it(self):
+		pages = self.build()
+
+		self.assertEqual(pages[f"{self.PAGE}/selling"], "Selling")
+		self.assertEqual(pages[f"{self.PAGE}/pulse-health"], "Pulse")
+
+	def test_the_page_itself_still_opens_in_its_module(self):
+		self.assertEqual(self.build()[self.PAGE], "Insights")
+
+	def test_an_item_with_a_route_still_lists_its_page(self):
+		self.assertEqual(
+			ShellIndex(self.SIDEBARS).listed_in("Page", self.PAGE), ["Insights", "Selling", "Pulse"]
+		)
+
+	def test_a_page_route_can_be_claimed(self):
+		from frappe.boot import build_entity_module_map
+
+		sidebars = shell_payload({"Insights": {}, "Pulse": {}})
+		sidebars["Pulse"]["items"] = [
+			{"link_type": "Page", "link_to": self.PAGE, "route": "pulse-health", "is_default_module": 1}
+		]
+
+		self.assertEqual(build_entity_module_map(sidebars)[f"{self.PAGE}/pulse-health"], "Pulse")
 
 
 class TestCanonicalShellPayload(IntegrationTestCase):

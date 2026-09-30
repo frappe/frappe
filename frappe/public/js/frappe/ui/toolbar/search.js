@@ -437,12 +437,12 @@ frappe.search.SearchDialog = class {
 		const prepend_all = global_nonempty.length >= 1 || nav_nonempty.length > 1;
 
 		if (prepend_all) {
-			$sidebar.prepend($(__(sidebar_item_html, ["All Results", __("All Results")])));
+			$sidebar.prepend($($.format(sidebar_item_html, ["All Results", __("All Results")])));
 		}
 
 		const register_sidebar_section = (set, with_sidebar_entry) => {
 			if (with_sidebar_entry) {
-				$sidebar.append($(__(sidebar_item_html, [set.title, __(set.title)])));
+				$sidebar.append($($.format(sidebar_item_html, [set.title, __(set.title)])));
 			}
 			this.add_section_to_summary(set.title, set.results, set.fetch_type);
 			this.full_lists[set.title] = this.render_full_list(

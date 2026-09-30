@@ -421,7 +421,8 @@ class TestSessionIdHashing(FrappeAPITestCase):
 	"""
 
 	def sessions_row(self, stored_sid):
-		return frappe.db.sql("select user from tabSessions where sid=%s", stored_sid)
+		sessions = frappe.qb.DocType("Sessions")
+		return frappe.qb.from_(sessions).select(sessions.user).where(sessions.sid == stored_sid).run()
 
 	def test_raw_sid_is_never_stored(self):
 		sid = self.sid

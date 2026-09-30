@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 09:34+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hindi\n"
 "MIME-Version: 1.0\n"
@@ -7272,7 +7272,7 @@ msgstr ""
 
 #: frappe/public/js/desktop_icons.bundle.js:1012
 msgid "Create Folder"
-msgstr ""
+msgstr "फ़ोल्डर बनाएं"
 
 #: frappe/public/js/frappe/list/list_filter/list_filter_menu.js:56
 msgid "Create Layout"
@@ -7534,7 +7534,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:11
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:41
 msgid "Current version"
-msgstr ""
+msgstr "मौजूदा वर्ज़न"
 
 #: frappe/public/js/frappe/form/form_viewers.js:5
 msgid "Currently Viewing"
@@ -25971,7 +25971,7 @@ msgstr "प्रकाशित वेब पेज"
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:31
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:39
 msgid "Published version"
-msgstr ""
+msgstr "पब्लिश्ड वर्ज़न"
 
 #. Label of the publishing_dates_section (Section Break) field in DocType 'Web
 #. Page'
@@ -27975,7 +27975,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:81
 msgid "Restore this version as your draft"
-msgstr ""
+msgstr "इस वर्ज़न को अपने ड्राफ़्ट के रूप में रीस्टोर करें"
 
 #: frappe/website/doctype/portal_settings/portal_settings.js:20
 msgid "Restore to default settings?"
@@ -37269,7 +37269,7 @@ msgstr "संस्करण"
 
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:31
 msgid "Version History"
-msgstr ""
+msgstr "वर्ज़न हिस्ट्री"
 
 #: frappe/public/js/frappe/desk.js:185
 msgid "Version Updated"
@@ -37289,11 +37289,11 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/stores/useVersions.js:64
 msgid "Version restored"
-msgstr ""
+msgstr "वर्ज़न रीस्टोर हो गया"
 
 #: frappe/public/js/print_format_builder/stores/useVersions.js:48
 msgid "Version saved"
-msgstr ""
+msgstr "वर्ज़न सेव हो गया"
 
 #: frappe/core/page/component_explorer/component_explorer.js:582
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:404
