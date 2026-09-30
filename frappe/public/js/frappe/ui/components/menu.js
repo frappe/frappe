@@ -231,6 +231,9 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 		shortcut.className = "es-menu__shortcut";
 		shortcut.setAttribute("aria-hidden", "true");
 		for (const key of shortcut_keys(item.shortcut)) {
+			if (shortcut.childNodes.length && !frappe.utils.is_mac()) {
+				shortcut.append("+");
+			}
 			const kbd = document.createElement("kbd");
 			kbd.textContent = key;
 			shortcut.appendChild(kbd);
