@@ -3,7 +3,7 @@
  "creation": "2026-08-03 19:24:16.735123",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "printer",
+ "header_icon": "printing-printer-duotone",
  "idx": 0,
  "items": [
   {
@@ -88,7 +88,11 @@
   }
  ],
  "merged_from": "[\"Printing\"]",
+<<<<<<< HEAD
  "modified": "2026-09-24 12:00:00.000000",
+=======
+ "modified": "2026-10-01 02:17:00.000000",
+>>>>>>> acd5a58 (chore: printing icon)
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Printing",
