@@ -115,12 +115,16 @@ const server = {
   others: {} as Record<string, Record<string, any>>,
   meta: META as Record<string, any>,
   holdRecord: null as Gate | null,
+  activityReads: 0,
 };
 
 async function answer(url: URL, method: string): Promise<[unknown, number]> {
   const path = decodeURIComponent(url.pathname);
   if (path === "/api/v2/doctype/Note/meta") return [{ data: server.meta }, 200];
-  if (path.endsWith("/activity")) return [{ data: { activities: [], next: null } }, 200];
+  if (path.endsWith("/activity")) {
+    server.activityReads++;
+    return [{ data: { activities: [], next: null } }, 200];
+  }
   if (path.startsWith("/api/v2/document/Note/") && method === "GET") {
     await server.holdRecord?.opened;
     return [recordEnvelope(server.others[path.split("/")[5]] ?? server.doc), 200];
@@ -568,6 +572,29 @@ describe("when the view is set", () => {
     await settle();
 
     expectTheView(root);
+  });
+
+  it("reads a restored feed tab beside the record on a cold load, under the feed's placeholder", async () => {
+    // Activity is first with Details hidden, so the address never names it.
+    await register({ onRefresh: (page) => page.tabs.hide("details") });
+    const { root, router } = await mount(`/note/${name}`);
+    expect(shownTab(root)).toBe("activity");
+    await leave(router);
+    clearDataCache();
+    server.holdRecord = gate();
+    const before = server.activityReads;
+
+    await travel(router, -1);
+    await settle();
+
+    expect(server.activityReads - before).toBe(1);
+    expect(root.querySelector("[data-feed-skeleton]")).not.toBeNull();
+
+    server.holdRecord.open();
+    await settle();
+
+    expect(shownTab(root)).toBe("activity");
+    expect(server.activityReads - before).toBe(1);
   });
 
   it("is not moved by the background re-read or a DocType change", async () => {

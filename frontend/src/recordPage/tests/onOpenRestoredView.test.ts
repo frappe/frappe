@@ -190,6 +190,41 @@ describe("onOpen on a visit whose view the host restores", () => {
   });
 
   it.each([
+    [
+      "tab",
+      (page: RecordPageApi) => page.tabs.activate("filez"),
+      `[record-page] page.tabs.activate("filez") — no such tab; the reader was not moved.`,
+    ],
+    [
+      "form tab",
+      (page: RecordPageApi) => page.form.tabs.activate("prodcts"),
+      `[record-page] page.form.tabs.activate("prodcts") — no such tab; the reader was not moved.`,
+    ],
+    [
+      "section",
+      (page: RecordPageApi) => page.panelSections.open("organisation_section"),
+      `[record-page] page.panelSections.open("organisation_section") — no such section; nothing was opened.`,
+    ],
+    [
+      "field",
+      (page: RecordPageApi) => page.fields.focus("qtyy"),
+      `[record-page] page.fields.focus("qtyy") — no such field; the reader was not moved.`,
+    ],
+    [
+      "writer",
+      (page: RecordPageApi) => page.composer.open("coment"),
+      `[record-page] page.composer.open("coment") — no such writer; nothing was opened.`,
+    ],
+  ])("says a misspelled %s is missing, not that the view was restored", async (_, onOpen, said) => {
+    await register({ onOpen });
+
+    const { acts } = await openPage({ restoresView: () => true });
+
+    expect(acts).toEqual([]);
+    expect(warnings).toEqual([said]);
+  });
+
+  it.each([
     ["false", () => false],
     ["absent", undefined],
   ])("lands the view acts as today when restoresView is %s", async (_, restoresView) => {

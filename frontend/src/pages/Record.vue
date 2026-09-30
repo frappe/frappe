@@ -42,7 +42,7 @@
 			<BodyColumns
 				v-else-if="painted"
 				ref="body"
-				:key="recordKey(painted.page)"
+				:key="documentKey(painted.page.doctype, painted.page.docname)"
 				:items="bodyItems"
 				:page="painted.page"
 				:user="boot.session.user.name"
@@ -100,7 +100,11 @@
 				</template>
 			</BodyColumns>
 
-			<BodySkeleton v-else :user="boot.session.user.name" />
+			<BodySkeleton
+				v-else
+				:user="boot.session.user.name"
+				:feed="addressesFeed(openedQuery)"
+			/>
 		</template>
 
 		<FrameBands v-if="painted" :bands="frame.after" :page="painted.page" />
@@ -122,7 +126,13 @@ import {
 	shallowRef,
 	watch,
 } from "vue";
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
+import {
+	onBeforeRouteLeave,
+	onBeforeRouteUpdate,
+	useRoute,
+	useRouter,
+	type LocationQuery,
+} from "vue-router";
 import { toast } from "frappe-ui";
 import {
 	addFavourite,
@@ -132,12 +142,14 @@ import {
 	removeFollow,
 	type Envelope,
 } from "@framework/ui/api";
+import { documentKey } from "@framework/ui/cache";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { onScrollFrames } from "@framework/ui/utils/scrollLanding";
 import { holdFresh } from "@framework/ui/utils/sharedState";
 import {
 	createRecordPage,
@@ -170,6 +182,7 @@ import { FILES_TAB, TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/r
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
+	addressesFeed,
 	feedInMemory,
 	RecordFeeds,
 	RecordFeedsKey,
@@ -201,8 +214,8 @@ import {
 	type LoadedRecord,
 } from "./record/recordSource";
 import { mergeRefetch, same } from "./record/refetchMerge";
-import { recallView, viewKeeper, type RecordView } from "./record/viewMemory";
-import { landOffsets, onScrollFrames, readOffsets } from "./record/viewScroll";
+import { recallView, viewKeeper, type RecordView, type ViewKeeper } from "./record/viewMemory";
+import { landOffsets, readOffsets } from "./record/viewScroll";
 import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "./record/saveResponse";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
@@ -233,8 +246,10 @@ const activeFormTab = ref("");
 const formSections = ref<Record<string, boolean>>({});
 const body = ref<InstanceType<typeof BodyColumns> | null>(null);
 const bodyRoot = computed(() => (body.value?.$el as HTMLElement | undefined) ?? null);
+// The address this load opened with, a restored tab applied: the feed read and its placeholder follow it.
+const openedQuery = shallowRef<LocationQuery>(route.query);
 // Where this load's view is kept, and false until its restored view has landed, so a clamped scroll is not kept.
-let keepView: (view: RecordView) => void = () => {};
+let keeper: ViewKeeper | null = null;
 let keeping = false;
 
 // The form fills the column with no border of its own, and its strip stays put while the sections scroll.
@@ -499,7 +514,8 @@ async function load({ fromMemory = false } = {}) {
 	// Read before this load writes a view of its own.
 	const view = fromMemory ? recallView(target.doctype, target.name, isNewNavigation()) : null;
 	const pointer = view ? "" : pointed;
-	keepView = viewKeeper(target.doctype, target.name);
+	openedQuery.value = view ? { ...route.query, tab: view.tab } : route.query;
+	keeper = viewKeeper(target.doctype, target.name);
 	keeping = false;
 	error.value = "";
 	live.follow(target.doctype, target.name);
@@ -532,7 +548,7 @@ async function load({ fromMemory = false } = {}) {
 	const opening = { mine, target, pointer, details, panel, view };
 	const fromCache = fromMemory ? openFromMemory(opening) : null;
 	if (fromCache) return fromCache;
-	await withFeedRead(target.doctype, target.name, route.query, (feedRead) =>
+	await withFeedRead(target.doctype, target.name, openedQuery.value, (feedRead) =>
 		openRecord({ ...opening, feedRead })
 	);
 }
@@ -573,7 +589,7 @@ function openFromMemory(opening: Opening): Promise<void> | null {
 	if (!record) return null;
 	const metadata = metaInMemory(target.doctype);
 	const layouts = !details.loading.value && !panel.loading.value;
-	if (!metadata || !layouts || !feedInMemory(target.doctype, target.name, route.query))
+	if (!metadata || !layouts || !feedInMemory(target.doctype, target.name, openedQuery.value))
 		return null;
 	show(record, metadata);
 	const created = buildController(opening);
@@ -600,7 +616,7 @@ function backgroundReads(opening: Opening, created: RecordPageController): Backg
 		),
 		freshVersion(opening),
 	];
-	const rows = feeds.rereadKept(route.query);
+	const rows = feeds.rereadKept(openedQuery.value);
 	if (rows) reads.push(rows);
 	// Called after `paintNow`, which reads the keys to fetch. Only a replay reads the values,
 	// so they need no applier.
@@ -727,16 +743,17 @@ async function settleView(mine: number, view: RecordView | null) {
 		if (mine !== generation) return;
 	}
 	keeping = true;
-	keep();
+	keep({ mark: true });
 }
 
-function keep() {
+/** A scroll frame keeps the record's own copy; `mark`, for a change the reader made or a leave, the history entry too. */
+function keep({ mark = false } = {}) {
 	const root = bodyRoot.value;
-	if (!keeping || !root || !painted.value) return;
+	if (!keeper || !keeping || !root || !painted.value) return;
 	// A route that moved on to the next record resets the tab before its load starts.
 	const { page } = painted.value;
 	if (page.doctype !== doctype.value || page.docname !== docname.value) return;
-	keepView({
+	(mark ? keeper.mark : keeper.keep)({
 		tab: shownTab.value,
 		formTab: activeFormTab.value || formTab.value,
 		// A copy: `history.replaceState` cannot clone a reactive proxy.
@@ -749,10 +766,6 @@ function keep() {
 /** A link that names a tab or an activity row opens the record as asked, not as it was left. */
 function isNewNavigation() {
 	return route.query.tab !== undefined || activityPointer(route.query) !== "";
-}
-
-function recordKey(page: RecordPageApi) {
-	return JSON.stringify([page.doctype, page.docname]);
 }
 
 /** The page's controller with its built-ins, made current. */
@@ -943,12 +956,17 @@ async function confirmLeave() {
 	return !!discard;
 }
 
-onBeforeRouteLeave(confirmLeave);
-onBeforeRouteUpdate((to, from) =>
-	to.params.doctype === from.params.doctype && to.params.name === from.params.name
-		? true
-		: confirmLeave()
-);
+// A push still holds the entry being left, so its history entry takes the view as it is now.
+onBeforeRouteLeave(() => {
+	keep({ mark: true });
+	return confirmLeave();
+});
+onBeforeRouteUpdate((to, from) => {
+	if (to.params.doctype === from.params.doctype && to.params.name === from.params.name)
+		return true;
+	keep({ mark: true });
+	return confirmLeave();
+});
 
 function onBeforeUnload(event: BeforeUnloadEvent) {
 	if (!dirty.value) return;
@@ -977,9 +995,12 @@ onUnmounted(() => {
 	window.removeEventListener("beforeunload", onBeforeUnload);
 });
 
-watch(() => [shownTab.value, activeFormTab.value, formSections.value, disclosure.shown()], keep);
+watch(
+	() => [shownTab.value, activeFormTab.value, formSections.value, disclosure.shown()],
+	() => keep({ mark: true })
+);
 watch(bodyRoot, (root, _previous, onCleanup) => {
-	if (root) onCleanup(onScrollFrames(root, keep));
+	if (root) onCleanup(onScrollFrames(root, () => keep()));
 });
 watch([doctype, docname], () => load({ fromMemory: true }), { immediate: true });
 // The page's own `?tab=` replace keeps the key, so only a new pointer on the same record moves the reader.

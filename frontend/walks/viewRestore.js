@@ -6,6 +6,7 @@ import { chromium } from "playwright";
 import { printRun } from "./viewReport.js";
 import { VIEW, installViewProbe } from "./viewProbe.js";
 import { chooseDoctype, removeViewLayouts, storeViewLayouts } from "./viewLayouts.js";
+import { RAIL_KEY, removeRailRecord, storeRailRecord } from "./railRecord.js";
 import { BASE_URL, NETWORKS, logIn, setUp } from "./setup.js";
 
 const QUIET_MS = 500;
@@ -19,21 +20,54 @@ async function main() {
 	const runs = [];
 	try {
 		const layout = await storeViewLayouts(target.doctype);
+		const records = await pickRecords(target);
+		records.railItem = await storeRailRecord(target.doctype, records.recordName);
 		for (const network of networks) {
-			const run = await new ViewRestoreWalk(target, layout, network).run();
+			const run = await new ViewRestoreWalk(target, layout, records, network).run();
 			printRun(target, layout, run);
 			runs.push(run);
 		}
 	} finally {
-		await removeViewLayouts();
+		await cleanUp();
 	}
 	if (jsonPath) writeFileSync(jsonPath, JSON.stringify({ target, runs }, null, 2));
 	process.exit(runs.every((run) => run.passed) ? 0 : 1);
 }
 
+/** The list's first row, the walk's record, and a later row the walk first opens in its last step. */
+async function pickRecords(target) {
+	const browser = await chromium.launch();
+	try {
+		const context = await browser.newContext();
+		await logIn(context.request);
+		const page = await context.newPage();
+		await page.goto(new URL(target.listPath, BASE_URL).href, { waitUntil: "commit" });
+		await page.waitForSelector(ROW, { timeout: NETWORKS.normal.capMs });
+		const hrefs = await page
+			.locator(ROW)
+			.evaluateAll((rows) => rows.map((row) => row.getAttribute("href")));
+		const [recordPath] = hrefs;
+		const freshPath = hrefs.slice(1).at(Math.min(1, hrefs.length - 2));
+		if (!freshPath) throw new Error(`The ${target.doctype} list shows fewer than two rows`);
+		const recordName = decodeURIComponent(recordPath.split("/").at(-1));
+		return { recordPath, freshPath, recordName };
+	} finally {
+		await browser.close();
+	}
+}
+
+async function cleanUp() {
+	const failures = [];
+	for (const remove of [removeViewLayouts, removeRailRecord])
+		await remove().catch((error) => failures.push(error));
+	if (failures.length) throw failures[0];
+}
+
 class ViewRestoreWalk {
-	constructor(target, layout, network) {
-		Object.assign(this, { target, layout, network, steps: [], inFlight: 0, lastRequestAt: 0 });
+	constructor(target, layout, records, network) {
+		const { recordPath, freshPath, railItem } = records;
+		Object.assign(this, { target, layout, recordPath, freshPath, railItem, network });
+		Object.assign(this, { steps: [], inFlight: 0, lastRequestAt: 0 });
 		this.capMs = NETWORKS[network].capMs;
 	}
 
@@ -61,7 +95,6 @@ class ViewRestoreWalk {
 	async walk() {
 		const listUrl = new URL(this.target.listPath, BASE_URL).href;
 		await this.step("list-first", () => this.page.goto(listUrl, { waitUntil: "commit" }));
-		await this.pickRecords();
 		await this.step("record-first", () => this.rowLink(this.recordPath).click());
 		this.expected = await this.arrange();
 		await this.step("back-to-list", () => this.page.goBack({ waitUntil: "commit" }));
@@ -77,16 +110,6 @@ class ViewRestoreWalk {
 		await this.step("list-before-new", () => listLink.click());
 		const fresh = () => this.rowLink(this.freshPath).click();
 		await this.step("new-record", fresh, { check: "fresh", path: this.freshPath });
-	}
-
-	async pickRecords() {
-		const hrefs = await this.page
-			.locator(ROW)
-			.evaluateAll((rows) => rows.map((row) => row.getAttribute("href")));
-		[this.recordPath] = hrefs;
-		this.freshPath = hrefs.slice(1).at(Math.min(1, hrefs.length - 2));
-		if (!this.freshPath)
-			throw new Error(`The ${this.target.doctype} list shows fewer than two rows`);
 	}
 
 	/** The first visit's view: a later form tab, its closed section opened, both scrollers mid-way. */
@@ -248,9 +271,19 @@ class ViewRestoreWalk {
 	}
 
 	async returnLink() {
-		const found = await this.firstVisible(this.navigationLinks(this.recordPath));
-		this.recordVia = found?.via ?? "row";
-		return found?.locator ?? this.rowLink(this.recordPath);
+		if (!this.railItem) {
+			this.recordVia = "row, as the site has no Record navigation item kind";
+			return this.rowLink(this.recordPath);
+		}
+		const key = JSON.stringify(RAIL_KEY);
+		const item = this.page.locator(`[data-slot="sidebar-rail"] [data-key=${key}] a`).first();
+		if (!(await item.isVisible()))
+			throw new Error(`The walk's Record item ${key} is not on the rail`);
+		const href = await item.getAttribute("href");
+		if (href !== this.recordPath)
+			throw new Error(`The rail's Record item opens ${href}, not ${this.recordPath}`);
+		this.recordVia = "rail's Record item";
+		return item;
 	}
 
 	rowLink(path) {

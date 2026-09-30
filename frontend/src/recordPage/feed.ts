@@ -140,8 +140,7 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
 
   /** Called in a replay or a hold, the move waits for `releaseScroll`, once the page on screen is its own. */
   scrollTo(key: string) {
-    if (this.host.inBackground())
-      this.warn("scrollTo", key, `${IN_BACKGROUND}; the reader was not moved`);
+    if (this.host.inBackground()) this.refuseScroll(key, IN_BACKGROUND);
     else if (this.host.isStaging()) this.heldScroll = key;
     else void this.deliverScroll(key);
   }
@@ -167,9 +166,13 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     const key = this.heldScroll;
     this.heldScroll = null;
     if (!key) return;
-    if (drawnOnly && this.isUndrawn(key))
-      this.warn("scrollTo", key, `${NOT_DRAWN}; the reader was not moved`);
+    if (drawnOnly && this.isUndrawn(key)) this.refuseScroll(key, NOT_DRAWN);
     else void this.deliverScroll(key);
+  }
+
+  /** Says a `scrollTo` was dropped, and why. */
+  refuseScroll(key: string, because: string) {
+    this.warn("scrollTo", key, `${because}; the reader was not moved`);
   }
 
   beginReplay() {

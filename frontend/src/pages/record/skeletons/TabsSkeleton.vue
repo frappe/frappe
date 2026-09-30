@@ -26,15 +26,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { useRoute } from "vue-router";
 import { Skeleton } from "frappe-ui";
 import { TimelineSkeleton } from "@framework/ui/ActivityTimeline";
 import { __ } from "@/i18n";
-import { addressesFeed } from "../feed/recordFeeds";
 import FormSkeleton from "./FormSkeleton.vue";
 
-const route = useRoute();
 // Scripts may still put Activity first on a plain address; that order is known only after the replay.
-const feed = computed(() => addressesFeed(route.query));
+defineProps<{ feed: boolean }>();
 </script>

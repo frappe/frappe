@@ -717,25 +717,37 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   function restoredView(): RecordPageApi {
     const skipped: Record<string, unknown> = {
       tabs: overriding(page.tabs, {
-        activate: (name: string) => warnActivate("tabs", name, RESTORED_VIEW),
+        activate: (name: string) => {
+          if (canReach("tabs", name)) warnActivate("tabs", name, RESTORED_VIEW);
+        },
       }),
       form: overriding(page.form, {
         tabs: overriding(page.form.tabs, {
-          activate: (identity: string) => warnActivate("form.tabs", identity, RESTORED_VIEW),
+          activate: (identity: string) => {
+            if (canReach("form.tabs", identity)) warnActivate("form.tabs", identity, RESTORED_VIEW);
+          },
         }),
       }),
       panelSections: overriding(page.panelSections, {
-        open: (name: string) => warnDisclose(name, true, RESTORED_VIEW),
-        close: (name: string) => warnDisclose(name, false, RESTORED_VIEW),
+        open: (name: string) => {
+          if (canDisclose(name, true)) warnDisclose(name, true, RESTORED_VIEW);
+        },
+        close: (name: string) => {
+          if (canDisclose(name, false)) warnDisclose(name, false, RESTORED_VIEW);
+        },
       }),
       fields: overriding(page.fields, {
-        focus: (fieldname: string) => warnFocus(fieldname, RESTORED_VIEW),
+        focus: (fieldname: string) => {
+          if (canFocus(fieldname)) warnFocus(fieldname, RESTORED_VIEW);
+        },
       }),
       activity: overriding(page.activity, {
-        scrollTo: (key: string) => warnScroll(key, RESTORED_VIEW),
+        scrollTo: (key: string) => activity.refuseScroll(key, RESTORED_VIEW),
       }),
       composer: overriding(page.composer, {
-        open: (name: string) => warnOpen(name, RESTORED_VIEW),
+        // A writer the reader cannot open goes to the real act, which says why and opens nothing.
+        open: (name: string, options?: ComposerOpenOptions) =>
+          composer.isVisible(name) ? warnOpen(name, RESTORED_VIEW) : composer.open(name, options),
       }),
     };
     return new Proxy(refreshView.page, {
@@ -744,13 +756,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         return member !== INERT && Object.hasOwn(skipped, key) ? skipped[key as string] : member;
       },
     });
-  }
-
-  function warnScroll(key: string, because: string) {
-    if (!import.meta.env.DEV) return;
-    console.warn(
-      `[record-page] page.activity.scrollTo("${key}") — ${because}; the reader was not moved.`,
-    );
   }
 
   // Filed in production too, so an admin sees which scripts to move to a cached read.

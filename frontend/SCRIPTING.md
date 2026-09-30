@@ -104,7 +104,10 @@ When a return visit puts back the reader's tab, form tab, sections and scroll, t
 view wins: `onOpen`'s view acts (`page.tabs.activate`, `page.form.tabs.activate`,
 `page.panelSections.open` and `close`, `page.fields.focus`, `page.activity.scrollTo` and
 `page.composer.open`) do nothing, before or after an `await`, and say so in developer mode.
-Its other acts still run, and on a new navigation every act runs as before.
+Its other acts still run, and on a new navigation every act runs as before. A `page` that
+`onOpen` keeps, in a listener, a timer or a component it builds, keeps dropping view acts
+for the rest of that visit, though the same act works on a new visit. For a move made
+later, use the `page` a quick action or an event handler receives.
 
 ```js
 export default {

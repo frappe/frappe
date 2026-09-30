@@ -2,9 +2,8 @@
 // query, and put back once the rows are there. Back reads the entry; a breadcrumb has none and
 // reads the session.
 import { watch } from "vue";
+import { landScroll, onScrollFrames } from "@framework/ui/utils/scrollLanding";
 import { readListMemory, recallRows, rememberScroll, writeListMemory } from "./pageState";
-
-const LANDING_FRAMES = 60;
 
 export interface ScrollSession {
 	doctype: string;
@@ -19,44 +18,25 @@ export function useScrollMemory(
 ): void {
 	let restored = false;
 	let landing = false;
-	let frame = 0;
 
 	watch(viewport, (element, _previous, onCleanup) => {
 		if (!element) return;
 		const remember = () => {
 			if (landing) return;
-			cancelAnimationFrame(frame);
-			frame = requestAnimationFrame(() => {
-				writeListMemory({ scrollTop: element.scrollTop });
-				rememberScroll(session.doctype, session.query(), element.scrollTop);
-			});
+			writeListMemory({ scrollTop: element.scrollTop });
+			rememberScroll(session.doctype, session.query(), element.scrollTop);
 		};
-		element.addEventListener("scroll", remember, { passive: true });
-		onCleanup(() => {
-			cancelAnimationFrame(frame);
-			element.removeEventListener("scroll", remember);
-		});
+		onCleanup(onScrollFrames(element, remember));
 	});
 
+	// Virtual rows grow the scroll height over a few frames; the clamped scrolls on the way are not remembered.
 	watch([viewport, ready], ([element, rowsLanded]) => {
 		if (restored || !element || !rowsLanded) return;
 		restored = true;
 		const top =
 			readListMemory().scrollTop ?? recallRows(session.doctype, session.query())?.scrollTop;
-		if (top) land(element, top);
-	});
-
-	// Virtual rows grow the scroll height over a few frames; the offset lands once it fits, and
-	// the clamped scrolls on the way are not remembered.
-	function land(element: HTMLElement, top: number) {
+		if (!top) return;
 		landing = true;
-		let frames = LANDING_FRAMES;
-		const attempt = () => {
-			const fits = element.scrollHeight - element.clientHeight >= top;
-			if (!fits && frames-- > 0) return requestAnimationFrame(attempt);
-			element.scrollTop = top;
-			landing = false;
-		};
-		attempt();
-	}
+		void landScroll(element, top).then(() => (landing = false));
+	});
 }

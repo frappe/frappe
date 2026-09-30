@@ -4,7 +4,7 @@
 import { request as requestApi } from "playwright";
 
 export const BASE_URL = process.env.BASE_URL || "http://localhost:8000";
-const USR = process.env.USR || "Administrator";
+export const USR = process.env.USR || "Administrator";
 const PWD_FRAPPE = process.env.PWD_FRAPPE || "admin";
 const DOCTYPE = process.env.DOCTYPE;
 const NETWORK = process.env.NETWORK;

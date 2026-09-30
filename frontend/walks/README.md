@@ -42,11 +42,16 @@ The walk picks the later tab with the most fields. Both rows carry the condition
 `doc.name != 'view-restore-walk'`, which every record matches; the walk deletes only rows
 with that condition.
 
+It also adds a Record item for the list's first row to the login user's rail, keyed
+`view-restore-walk`, and removes it at the end. It deletes only rows with that key, and the
+user's rail layer when nothing else is left in it.
+
 On the first visit, the walk picks that form tab, opens the closed section, and scrolls
 the Details tab and the panel column halfway down. It then goes Back to the list, Forward
 to the record, to the list through the rail, sidebar or breadcrumb, Back to the record, to
-the list again, and to the record through navigation or its list row. On each return to
-the record it checks:
+the list again, and to the record through that rail item. That step stops the walk when
+the rail does not show the item; on a site with no Record item kind it clicks the list row
+and says so. On each return to the record it checks:
 
 - each scroll offset is within 1 px of the first visit's;
 - the form tab and the state of every section match the first visit's;
