@@ -6,7 +6,7 @@ import { docKey, withPendingRows } from "./pendingRows";
 import { StoreCache } from "./storeCache";
 import { TimelineStore } from "./timelineStore";
 
-// one store per cache key, kept past unmount so loaded pages survive a remount
+// one store per cache key, kept past unmount while the shared cache holds the record
 const stores = new StoreCache();
 
 export function useActivityTimeline(
@@ -15,7 +15,7 @@ export function useActivityTimeline(
   visibleTypes?: VisibleTypes
 ) {
   const store = getTimelineStore(doctype, docname, visibleTypes);
-  subscribeWhileMounted(store);
+  subscribeWhileMounted(store, storeKey(doctype, docname, visibleTypes));
 
   return {
     activities: shownActivities(store, typeNames(visibleTypes)),
@@ -39,6 +39,15 @@ export function prefetchActivityTimeline(
   docname: string,
   visibleTypes?: VisibleTypes
 ): Promise<void> {
+  stores.hold(storeKey(doctype, docname, visibleTypes));
+  return readBeforeMount(doctype, docname, visibleTypes);
+}
+
+function readBeforeMount(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Promise<void> {
   const store = getTimelineStore(doctype, docname, visibleTypes);
   // A mounted store's socket kept its rows current; an idle one's may have missed changes, so it re-reads.
   const live = store.fetched.value && store.mounted > 0;
@@ -56,11 +65,14 @@ export function endActivityPrefetch(
   docname: string,
   visibleTypes?: VisibleTypes
 ) {
-  const store = stores.get(storeKey(doctype, docname, visibleTypes));
-  if (!store) return;
-  store.prefetched.value = false;
-  // A staged first read whose page never ran: the store reads when a body next asks for it.
-  if (!store.fetched.value && !store.reading) store.loading.value = false;
+  const key = storeKey(doctype, docname, visibleTypes);
+  const store = stores.get(key);
+  if (store) {
+    store.prefetched.value = false;
+    // A staged first read whose page never ran: the store reads when a body next asks for it.
+    if (!store.fetched.value && !store.reading) store.loading.value = false;
+  }
+  stores.letGo(key);
 }
 
 /** The rows a store holds, pending ones included, with no component mounted; none if no read began. */
@@ -89,10 +101,10 @@ export function stageActivityTimelineRead(
   docname: string,
   visibleTypes?: VisibleTypes
 ): Promise<() => void> | null {
-  const store =
-    stores.get(storeKey(doctype, docname, visibleTypes)) ??
-    addTimelineStore(doctype, docname, visibleTypes);
+  const key = storeKey(doctype, docname, visibleTypes);
+  const store = stores.get(key) ?? addTimelineStore(doctype, docname, visibleTypes);
   if (store.mounted > 0) return null;
+  stores.hold(key);
   // Marked as a prefetch, so a mount before `endActivityPrefetch` reads nothing more.
   store.prefetched.value = true;
   const first = !store.fetched.value;
@@ -124,9 +136,7 @@ export function reloadActivityTimeline(
   visibleTypes?: VisibleTypes
 ): Promise<void> {
   const store = stores.get(storeKey(doctype, docname, visibleTypes));
-  return store
-    ? store.refresh()
-    : prefetchActivityTimeline(doctype, docname, visibleTypes);
+  return store ? store.refresh() : readBeforeMount(doctype, docname, visibleTypes);
 }
 
 function getTimelineStore(
@@ -160,7 +170,7 @@ function storeKey(doctype: string, docname: string, visibleTypes?: VisibleTypes)
 }
 
 // the store is shared, so one socket serves every consumer of it
-function subscribeWhileMounted(store: TimelineStore) {
+function subscribeWhileMounted(store: TimelineStore, key: string) {
   let unsubscribe: Unsubscribe | undefined;
   onMounted(() => {
     unsubscribe = store.mount();
@@ -168,7 +178,7 @@ function subscribeWhileMounted(store: TimelineStore) {
   onUnmounted(() => {
     unsubscribe?.();
     unsubscribe = undefined;
-    stores.evictIdle();
+    stores.release(key);
   });
 }
 

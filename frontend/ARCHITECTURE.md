@@ -179,7 +179,7 @@ The list is what `ui/` exports from its root index and from `@framework/ui/api`.
 | Comment calls (`addComment`, `updateComment`, `removeComment`) | Post, edit and delete a comment |
 | File calls (`uploadFile`, `attachFile`, `removeAttachment`, `downloadFile`) | Upload in chunks and attach to a record |
 | Session calls (`getSession`, `logout`, `getTranslations`) | The signed-in user, sign-out, and translations |
-| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `listCacheKey`, `DocumentEntry`, `ListEntry`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read |
+| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `listCacheKey`, `DocumentEntry`, `ListEntry`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`) | Fetches and holds each doctype's meta. Clears itself on `doctype_update` |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |

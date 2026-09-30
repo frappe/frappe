@@ -44,8 +44,8 @@ export class TimelineStore implements LiveFeed {
   private newestTaken = 0;
 
   constructor(
-    private readonly doctype: string,
-    private readonly docname: string,
+    readonly doctype: string,
+    readonly docname: string,
     private readonly visibleTypes: VisibleTypes | undefined,
     types: string[] | undefined
   ) {

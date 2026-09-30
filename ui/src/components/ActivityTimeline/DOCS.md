@@ -300,8 +300,9 @@ Returns:
 `prefetchActivityTimeline(doctype, docname, visibleTypes?)` starts the newest-page read
 before any component mounts and resolves once that page is in; a later `useActivityTimeline`
 with the same arguments uses it, and its first mount reads nothing more. A store outlives
-its components: the twenty most recently used stores with no component mounted are kept,
-and an older one is freed. Mounting beside a consumer already mounted on it reads nothing; the first mount
+its components as long as the shared data cache holds the record's complete entry (the 50
+most recently read records). When that entry goes, the store is freed once no component is
+mounted on it and no prefetch holds it. Mounting beside a consumer already mounted on it reads nothing; the first mount
 after every consumer left re-reads the newest page, since the socket was closed in between.
 `endActivityPrefetch(doctype, docname, visibleTypes?)` says the first paint is over: a first
 mount after it re-reads too, since nothing listened between the prefetch and that mount.

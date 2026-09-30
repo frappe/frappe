@@ -1,30 +1,56 @@
+import { onRecordLeft, readCachedDocument } from "../../cache";
+import { docKey } from "./pendingRows";
 import type { TimelineStore } from "./timelineStore";
 
-// idle stores kept so reopening a doc is instant; past this, the least recently used goes
-const IDLE_STORES = 20;
-
-/** Stores by cache key, most recently used last. */
+/** Stores by cache key; an idle one lives as long as its record's complete entry in the shared cache. */
 export class StoreCache {
   private readonly stores = new Map<string, TimelineStore>();
+  // keys a page's first paint reads from, whatever the cache holds
+  private readonly held = new Set<string>();
+
+  constructor() {
+    onRecordLeft((doctype, name) => this.dropIdle(docKey(doctype, name)));
+  }
 
   get(key: string): TimelineStore | undefined {
-    const store = this.stores.get(key);
-    if (!store) return undefined;
-    this.stores.delete(key);
-    this.stores.set(key, store);
-    return store;
+    return this.stores.get(key);
   }
 
   add(key: string, store: TimelineStore) {
     this.stores.set(key, store);
-    this.evictIdle();
   }
 
-  evictIdle() {
-    const idle = [...this.stores].filter(([, store]) => !store.mounted);
-    for (const [key, store] of idle.slice(0, -IDLE_STORES)) {
-      this.stores.delete(key);
-      store.dispose();
+  hold(key: string) {
+    this.held.add(key);
+  }
+
+  letGo(key: string) {
+    this.held.delete(key);
+    this.release(key);
+  }
+
+  /** Frees the store once nothing uses it, unless the cache holds its record's complete entry. */
+  release(key: string) {
+    const store = this.stores.get(key);
+    if (store && !this.inUse(key, store) && !isCached(store)) this.drop(key, store);
+  }
+
+  private dropIdle(doc: string) {
+    for (const [key, store] of this.stores) {
+      if (store.doc === doc && !this.inUse(key, store)) this.drop(key, store);
     }
   }
+
+  private inUse(key: string, store: TimelineStore): boolean {
+    return store.mounted > 0 || this.held.has(key);
+  }
+
+  private drop(key: string, store: TimelineStore) {
+    this.stores.delete(key);
+    store.dispose();
+  }
+}
+
+function isCached(store: TimelineStore): boolean {
+  return readCachedDocument(store.doctype, store.docname)?.complete === true;
 }
