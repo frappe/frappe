@@ -109,6 +109,30 @@ context("Web Form Builder", () => {
 		cy.get(`${CANVAS} .tab-content.active [data-fieldname='public']`).should("exist");
 	});
 
+	it("Saves page names, page 1's on the Web Form and the rest on their Page Break", () => {
+		seed_web_form(SPLITTABLE_FIELDS);
+		open_builder();
+		// a stale pointer over a tab shows its delete button, which takes the dblclick
+		cy.get("body").realHover({ position: "bottomLeft" });
+
+		cy.get(`${CANVAS} .tab-header .tabs .tab:first > div`).dblclick();
+		cy.get(`${CANVAS} .tab-header .tabs .tab:first input`).type("About You{enter}");
+		cy.get(`${CANVAS} .tab-header .tabs .tab:eq(1) > div`).dblclick();
+		cy.get(`${CANVAS} .tab-header .tabs .tab:eq(1) input`).type("Contact Details{enter}");
+		cy.click_doc_primary_button("Save");
+
+		cy.window().its("cur_frm.doc.first_page_label").should("eq", "About You");
+		web_form_fields().then((fields) => {
+			const page_break = fields.find((f) => f.fieldtype === "Page Break");
+			expect(page_break.label).to.eq("Contact Details");
+		});
+
+		// an unnamed page still shows its position
+		cy.get(`${CANVAS} .tab-header .tabs .tab:first`).click();
+		move_second_section_to_new_page();
+		page_labels_should_be(["About You", "Page 2", "Contact Details"]);
+	});
+
 	it("Stops Move sections to new page at the page limit", () => {
 		seed_web_form(SPLITTABLE_FIELDS);
 		open_builder();

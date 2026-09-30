@@ -15,8 +15,22 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	prepare(web_form_doc, doc) {
 		Object.assign(this, web_form_doc);
-		this.fields = web_form_doc.web_form_fields;
+		this.fields = this.with_first_page_label(web_form_doc.web_form_fields);
 		this.doc = doc;
+	}
+
+	// page 1's name heads its first section, like a Page Break label
+	with_first_page_label(fields) {
+		if (!this.first_page_label) return fields;
+
+		let heading = { fieldtype: "Section Break", label: this.first_page_label };
+		let [first, ...rest] = fields;
+
+		// an empty section is hidden, so label the opening break instead
+		if (first?.fieldtype === "Section Break") {
+			return [{ ...first, label: first.label || heading.label }, ...rest];
+		}
+		return [heading, ...fields];
 	}
 
 	make() {

@@ -5,7 +5,7 @@ import {
 	load_doctype_model,
 	section_boilerplate,
 } from "./utils";
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { useDebouncedRefHistory, onKeyDown, useActiveElement } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
@@ -26,6 +26,8 @@ export const useStore = defineStore("form-builder-store", () => {
 	let is_customize_form = ref(false);
 	let is_layout_form = ref(false);
 	let is_web_form = ref(false);
+	// frm.doc is not reactive, so the tab strip reads this copy
+	let first_page_label = ref("");
 	// tab hosting the builder, null for callers that do not set one
 	let tab_fieldname = ref(null);
 	let source_doctype_fields = ref([]);
@@ -217,6 +219,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		doc.value = { fields: merged_fields, custom: 1, istable: 0 };
 		form.value.layout = get_layout();
 		setup_web_form_pages();
+		first_page_label.value = frm.value.doc.first_page_label || "";
 
 		restore_active_tab(previous_active_tab_index);
 		form.value.selected_field = null;
@@ -276,26 +279,16 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	function setup_web_form_pages() {
-		renumber_web_form_pages();
-
 		// create_layout() prunes empty sections, leaving a page with no drop target
 		form.value.layout.tabs.forEach((tab) => {
 			if (!tab.sections.length) tab.sections.push(section_boilerplate());
 		});
 	}
 
-	function renumber_web_form_pages() {
-		// a Page Break row carries no label, so number the pages by position
-		form.value.layout.tabs.forEach((tab, i) => {
-			tab.df.label = __("Page {0}", [i + 1]);
-		});
+	function set_first_page_label(label) {
+		first_page_label.value = label;
+		frm.value.set_value("first_page_label", label);
 	}
-
-	// adding, moving, deleting or dragging a page shifts every later position
-	watch(
-		() => is_web_form.value && form.value.layout.tabs?.map((tab) => tab.df.name).join(),
-		(page_order) => page_order && renumber_web_form_pages()
-	);
 
 	// page 1 has no Page Break, so a new page brings the count to tabs.length
 	function validate_web_form_page_limit() {
@@ -599,11 +592,6 @@ export const useStore = defineStore("form-builder-store", () => {
 				row.options = "";
 			}
 
-			// pages are named by position on read, so the label is never stored
-			if (row.fieldtype === "Page Break") {
-				row.label = "";
-			}
-
 			return row;
 		});
 
@@ -730,7 +718,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	function add_new_tab(sections = [section_boilerplate()]) {
 		validate_web_form_page_limit();
 
-		// a Web Form page is named by the renumbering watcher
+		// Tabs.vue shows an unnamed page as "Page N"
 		let label = is_web_form.value ? "" : "Tab " + (form.value.layout.tabs.length + 1);
 
 		let tab = {
@@ -821,6 +809,8 @@ export const useStore = defineStore("form-builder-store", () => {
 		is_layout_form,
 		can_edit_layout,
 		is_web_form,
+		first_page_label,
+		set_first_page_label,
 		tab_fieldname,
 		source_doctype_fields,
 		get_source_field_values,
