@@ -26,6 +26,9 @@
 // The anchor the Add form opens against, which is the "+ Add" row rather than an entry.
 const ADD_ANCHOR = "__add";
 
+// The parts of a row that are controls of their own, rather than the row to drag or open.
+const ROW_CONTROLS = ".ws-row-controls, .ws-fold";
+
 frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// Open a surface's editor, unless one is already open. Two editors cannot share the column, so
 	// opening the other one leaves the first, asking about its unsaved changes as leaving does.
@@ -441,13 +444,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			.toggleClass("is-hidden", this.hidden.has(key))
 			.toggleClass("is-open", this.panel?.key === key);
 
-		$row.append(
-			`<span class="ws-row-handle" title="${__("Drag to move")}">${frappe.utils.icon(
-				"grip-vertical",
-				"sm"
-			)}</span>`,
-			$(`<div class="ws-row-body"></div>`).append(this.row_content(key))
-		);
+		$row.append($(`<div class="ws-row-body"></div>`).append(this.row_content(key)));
 
 		const $controls = $(`<span class="ws-row-controls"></span>`);
 		if (!this.is_pinned(key)) {
@@ -460,7 +457,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		$row.append($controls);
 
 		$row.on("click", (e) => {
-			if ($(e.target).closest(".ws-row-controls, .ws-row-handle, .ws-fold").length) return;
+			if (this.dragged || $(e.target).closest(ROW_CONTROLS).length) return;
 			if (this.panel?.key === key) this.close_panel();
 			else this.edit_entry(key);
 		});
@@ -520,12 +517,15 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		// A layer switch re-renders, so the list it was bound to is gone.
 		if (this.sortable) this.sortable.destroy();
 
+		// The whole row is what is dragged, except its own controls, which stay clickable.
 		this.sortable = new Sortable(this.$list[0], {
-			handle: ".ws-row-handle",
 			draggable: ".ws-row",
+			filter: ROW_CONTROLS,
+			preventOnFilter: false,
 			animation: 150,
 			ghostClass: "ws-row-ghost",
 			onStart: (evt) => {
+				this.dragged = true;
 				const key = $(evt.item).attr("data-key");
 				this.carried_keys = this.carried(key);
 				this.row_nodes(this.carried_keys).addClass("ws-row-carried");
@@ -538,6 +538,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 				}
 				this.carried_keys = [];
 				this.render_list();
+				// The release that ends a drag is also a click, which is not a request to open
+				// the row it landed on.
+				setTimeout(() => (this.dragged = false));
 			},
 		});
 	}

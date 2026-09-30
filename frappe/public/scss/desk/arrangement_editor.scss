@@ -86,7 +86,7 @@
 	}
 }
 
-// One entry: a drag handle, the entry drawn as the sidebar draws it, and its eye or cross.
+// One entry, dragged by any part of it: the entry drawn as the sidebar draws it, and its eye or cross.
 .ws-row {
 	position: relative;
 	display: flex;
@@ -127,24 +127,6 @@
 		cursor: inherit;
 	}
 
-	.item-anchor {
-		padding-left: var(--spacing);
-	}
-
-	.ws-row-handle {
-		display: inline-flex;
-		flex: none;
-		justify-content: center;
-		width: 16px;
-		color: var(--ink-gray-4);
-		cursor: grab;
-		opacity: 0;
-
-		&:active {
-			cursor: grabbing;
-		}
-	}
-
 	.ws-row-controls {
 		display: flex;
 		flex: none;
@@ -158,7 +140,6 @@
 
 	&:hover,
 	&:focus-within {
-		.ws-row-handle,
 		.ws-row-controls .es-button {
 			opacity: 1;
 		}
@@ -219,7 +200,7 @@
 	width: 100%;
 	height: 28px;
 	margin-top: calc(var(--spacing) * 0.5);
-	padding: 0 0 0 calc(var(--spacing) * 5);
+	padding: 0 0 0 calc(var(--spacing) * 2);
 	border: none;
 	border-radius: var(--radius);
 	background: none;
