@@ -4,7 +4,9 @@
  */
 frappe.provide("frappe.views");
 
-frappe.views.open_kanban_settings = function (page) {
+frappe.views.open_kanban_settings = async function (page) {
+	// the page's copy is stale once the board is saved elsewhere, e.g. by a column reorder
+	page.board_doc = await frappe.db.get_doc("Kanban Board", page.board_doc.name);
 	new KanbanBoardSettings(page).show();
 };
 
