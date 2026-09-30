@@ -81,6 +81,43 @@ Object.assign(frappe.automation_flow, {
 });
 
 frappe.ui.form.on("Automation Flow", {
+	refresh: (frm) => frappe.automation_flow.load_capabilities(frm),
+	document_type: (frm) => frappe.automation_flow.load_capabilities(frm),
+	trigger_type: (frm) => frappe.automation_flow.load_capabilities(frm),
+});
+
+const DATE_FIELDTYPES = ["Date", "Datetime"];
+
+Object.assign(frappe.automation_flow, {
+	load_capabilities(frm) {
+		frappe.call({
+			method: "frappe.automation_engine.api.get_automation_capabilities",
+			args: { doctype: frm.doc.document_type, trigger_type: frm.doc.trigger_type },
+			callback: ({ message }) => this.set_select_options(frm, message),
+		});
+	},
+
+	set_select_options(frm, { fields, actions }) {
+		const dates = fields.filter((df) => DATE_FIELDTYPES.includes(df.fieldtype));
+		frm.set_df_property("trigger_field", "options", this.field_options(fields));
+		frm.set_df_property("date_field", "options", this.field_options(dates));
+		const action_options = actions.map((a) => ({ label: __(a.label), value: a.action_type }));
+		frm.fields_dict.actions.grid.update_docfield_property("action_type", "options", [
+			"",
+			...action_options,
+		]);
+	},
+
+	field_options(fields) {
+		const options = fields.map((df) => ({
+			label: `${__(df.label || df.fieldname)} (${df.fieldname})`,
+			value: df.fieldname,
+		}));
+		return ["", ...options];
+	},
+});
+
+frappe.ui.form.on("Automation Flow", {
 	refresh(frm) {
 		if (frm.is_new()) return;
 		frm.add_custom_button(__("Test Run"), () => frappe.automation_flow.trial_run(frm));
