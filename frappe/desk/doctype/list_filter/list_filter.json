@@ -9,6 +9,7 @@
   "reference_doctype",
   "is_standard",
   "module",
+  "layout_order",
   "column_break_mfss",
   "sort_field",
   "sort_order",
@@ -92,12 +93,19 @@
    "label": "Module",
    "mandatory_depends_on": "eval: doc.is_standard",
    "options": "Module Def"
+  },
+  {
+   "description": "Set this to decide which position a layout appears in the dropdown",
+   "fieldname": "layout_order",
+   "fieldtype": "Int",
+   "label": "Layout Order",
+   "no_copy": 1
   }
  ],
  "icon": "funnel",
  "in_create": 1,
  "links": [],
- "modified": "2026-09-30 20:33:13.870982",
+ "modified": "2026-09-30 21:06:57.496094",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List Filter",

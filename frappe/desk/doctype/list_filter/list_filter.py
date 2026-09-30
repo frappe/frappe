@@ -26,6 +26,7 @@ class ListFilter(Document):
 		filters: DF.LongText | None
 		for_user: DF.Link | None
 		is_standard: DF.Check
+		layout_order: DF.Int
 		module: DF.Link | None
 		reference_doctype: DF.Link | None
 		route_signature: DF.SmallText | None
@@ -37,6 +38,18 @@ class ListFilter(Document):
 		# Standard layouts sync by name, so it must be the same on every site.
 		if self.is_standard:
 			self.name = f"{self.reference_doctype}-{_clean_filter_name(self.filter_name)}"
+
+	def before_insert(self):
+		# orders standard layouts in the menu; a new one goes last
+		if self.is_standard and not self.layout_order:
+			last = frappe.get_all(
+				"List Filter",
+				filters={"reference_doctype": self.reference_doctype, "is_standard": 1},
+				pluck="layout_order",
+				order_by="layout_order desc",
+				limit=1,
+			)
+			self.layout_order = (last[0] if last else 0) + 1
 
 	def validate(self):
 		if self.is_standard or self._was_standard():
