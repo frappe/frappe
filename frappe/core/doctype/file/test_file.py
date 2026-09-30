@@ -2065,6 +2065,7 @@ class TestFileOptimization(IntegrationTestCase):
 		# both the original and the copy must pass, regardless of DB row ordering
 		frappe.get_doc("File", source.name).validate_file_url_matches_record()
 		frappe.get_doc("File", copy.name).validate_file_url_matches_record()
+
 	def test_optimize_pdf(self):
 		with make_test_pdf_file() as test_file:
 			original_size = test_file.file_size
