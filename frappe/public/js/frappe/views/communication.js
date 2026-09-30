@@ -60,8 +60,7 @@ frappe.views.CommunicationComposer = class {
 			.removeClass("btn-modal-minimize")
 			.off("click")
 			.on("click", () => {
-				// The expanded styles are guarded with :not(.modal-minimize), so
-				// restore first — otherwise this click only flips a dead class.
+				// expanded styles skip minimized composers, so restore first
 				if (this.dialog.is_minimized) {
 					this.dialog.toggle_minimize();
 					$wrapper.addClass("expanded");
@@ -447,24 +446,24 @@ frappe.views.CommunicationComposer = class {
 
 	setup_toolbar() {
 		const $slot = this.$composer.find(".email-composer-toolbar-slot");
-		if ($slot.children(".ql-toolbar").length) return; // already relocated + wired
+		if ($slot.children(".ql-toolbar").length) return;
 
 		const $toolbar = this.$composer.find(
 			'.frappe-control[data-fieldname="content"] .ql-toolbar'
 		);
-		if (!$toolbar.length) return; // Quill hasn't built the toolbar yet
+		if (!$toolbar.length) return;
 
 		$slot.append($toolbar);
 
 		const group = (marker) => $toolbar.find(marker).first().closest(".ql-formats");
 		const visible = [
-			".ql-header", // text style
+			".ql-header",
 			".ql-size",
-			".ql-bold", // bold / italic / underline / strike / clean
-			".ql-color", // text + background colour
+			".ql-bold",
+			".ql-color",
 			".ql-list",
 			".ql-align",
-			".ql-link", // link + image
+			".ql-link",
 		];
 		const overflow = [".ql-blockquote", ".ql-direction", ".ql-indent", ".ql-table"];
 
@@ -802,7 +801,6 @@ frappe.views.CommunicationComposer = class {
 					method: "frappe.email.get_contact_list",
 					args: args,
 					callback: (r) => {
-						// leave out addresses already in To, CC or BCC
 						const added = new Set(
 							["recipients", "cc", "bcc"].flatMap((name) =>
 								(this.dialog.fields_dict[name].rows || []).map((row) =>
@@ -882,14 +880,12 @@ frappe.views.CommunicationComposer = class {
 				this.remove_recipient(control, $(e.currentTarget).closest(".tb-selected-value"));
 			});
 
-			// drag a pill to move the address between To, CC and BCC
 			control.$multiselect_wrapper.on("dragstart", ".tb-selected-value", (e) => {
 				const value = decodeURIComponent(e.currentTarget.dataset.value || "");
 				this.dragged_recipient = { control, value };
 				e.originalEvent.dataTransfer.setData("text/plain", value);
 				e.originalEvent.dataTransfer.effectAllowed = "move";
-				// the drop re-renders the pills, taking this one out of the page, so a
-				// delegated dragend never arrives and jQuery's remove() drops its own handlers
+				// the drop removes this pill via jQuery, which also drops jQuery handlers
 				e.currentTarget.addEventListener("dragend", () => this.end_recipient_drag(), {
 					once: true,
 				});
@@ -944,9 +940,9 @@ frappe.views.CommunicationComposer = class {
 			});
 			control.$multiselect_wrapper?.on("click", (e) => {
 				if (!control.$multiselect_wrapper.hasClass("is-collapsed")) return;
-				if ($(e.target).closest(".tb-selected-value").length) return; // chip/× → leave it
+				if ($(e.target).closest(".tb-selected-value").length) return;
 				this.expand_recipient_row(control);
-				control.$input?.focus(); // caret at end
+				control.$input?.focus();
 			});
 		});
 	}
@@ -957,7 +953,7 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	fetch_recipient_avatars(control) {
-		// users already in frappe.boot.user_info (e.g. from this document's comments) need no request
+		// users already in frappe.boot.user_info need no request
 		this.looked_up_avatars = this.looked_up_avatars || new Set();
 		const pending = (control.rows || [])
 			.map((row) => String(row).toLowerCase())
@@ -1096,7 +1092,7 @@ frappe.views.CommunicationComposer = class {
 
 	remove_more_count($wrapper) {
 		const $more = $wrapper.find(".email-composer-more-count");
-		// close its hover card first, or an open card stays on screen after the badge is gone
+		// destroy first, or an open card outlives the badge
 		$more.data("es-hover-card")?.destroy();
 		$more.remove();
 	}
@@ -1248,7 +1244,6 @@ frappe.views.CommunicationComposer = class {
 		await this.set_values_from_last_edited_communication();
 		await this.set_content();
 
-		// offer the default template on new emails, unless one is already applied
 		const default_template = this.email_template || this.frm?.meta.default_email_template;
 		if (
 			this.frm &&

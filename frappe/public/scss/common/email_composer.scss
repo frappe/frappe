@@ -30,8 +30,7 @@
 		}
 	}
 
-	// Fixed height: extra rows take space from the message instead of growing the
-	// window upward, so nothing moves under the pointer while dragging a recipient.
+	// Fixed height, so rows shown while dragging a recipient don't shift the window.
 	.modal-content {
 		display: flex;
 		flex-direction: column;
@@ -157,7 +156,7 @@
 
 				.control-label {
 					@include get_textstyle("base", "regular");
-					// As tall as the first line of pills, so it lines up with them and stays put when they wrap.
+					// Match the first line of pills, even when they wrap.
 					line-height: var(--btn-height);
 					min-width: 35px;
 					margin-bottom: 0;
@@ -234,15 +233,14 @@
 			@include get_textstyle("base", "regular");
 		}
 
-		// Nested under .table-multiselect so it beats the multiselect's own pill style, which loads later.
+		// Beats the multiselect's own pill style, which loads later.
 		.table-multiselect .email-composer-recipient-tag {
 			display: inline-flex;
 			flex-shrink: 0;
 			width: fit-content;
 			background: var(--surface-gray-2);
 			height: 22px;
-			// With the row gap at 0, this makes each wrapped line as tall as a single one,
-			// so the first line stays level with the label.
+			// With no row gap, every wrapped line is as tall as a single one.
 			margin-block: 3px;
 			max-width: 100%;
 			border: none;

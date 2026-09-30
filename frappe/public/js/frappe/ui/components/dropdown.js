@@ -47,7 +47,7 @@ frappe.ui.Dropdown = class Dropdown {
 		this.menu = null;
 
 		const button_opts = { ...opts.button };
-		// an icon without a label is an icon-only button, so only fall back when there's neither
+		// icon-only buttons need no fallback label
 		if (
 			!button_opts.label &&
 			!button_opts.icon &&
