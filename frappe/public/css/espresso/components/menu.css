@@ -213,6 +213,8 @@
     align-items: center;
     gap: 1px;
     margin-inline-start: auto;
+    color: var(--ink-gray-6);
+    font-size: var(--text-xs);
 }
 
 .es-menu__shortcut kbd {
