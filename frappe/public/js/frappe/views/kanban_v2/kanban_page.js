@@ -343,8 +343,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.doctype = board.reference_doctype;
 		this.field_name = board.field_name;
 		this.filters = JSON.parse(board.filters || "[]");
-		// for the "Not Saved" indicator
-		this.saved_filters = JSON.parse(JSON.stringify(this.filters));
 		// only boards shipped by an app have translations
 		const title =
 			board.is_standard === "Yes" ? __(board.kanban_board_name) : board.kanban_board_name;
@@ -580,7 +578,15 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		);
 
 		if (!this.board_locked) {
-			page.add_menu_item(__("Save Filters"), () => this.save_filters());
+			const $save = page.add_menu_item(__("Save Filters"), () => this.save_filters());
+			$save.toggle(false);
+			// anyone can open a public board, but only its owner can change it
+			frappe
+				.xcall("frappe.client.get_doc_permissions", {
+					doctype: "Kanban Board",
+					docname: this.current_board,
+				})
+				.then(({ permissions }) => $save.toggle(!!permissions.write));
 		}
 
 		this.setup_filter_bar();
@@ -933,15 +939,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	sync_filter_ui() {
 		this.filter_group.update_filter_button();
-		this.update_saved_indicator();
-	}
-
-	update_saved_indicator() {
-		if (this.board_locked) return;
-		const changed =
-			JSON.stringify(this.saved_filters || []) !== JSON.stringify(this.filters || []);
-		if (changed) this.page.set_indicator(__("Not Saved"), "orange");
-		else this.page.clear_indicator();
 	}
 
 	apply_filters() {
@@ -998,8 +995,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				JSON.stringify(this.filters || [])
 			)
 			.then(() => {
-				this.saved_filters = JSON.parse(JSON.stringify(this.filters || []));
-				this.update_saved_indicator();
 				frappe.ui.toast({ message: __("Filters saved"), type: "success" });
 			});
 	}
