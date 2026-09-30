@@ -16,6 +16,15 @@ vi.mock("@/shell/PageFrame.vue", async () => {
   };
 });
 
+// A scroll settles at once here; `scrollLanding.test.ts` proves the 150 ms wait.
+vi.mock("@framework/ui/utils/scrollLanding", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  onScrollSettled: (element: HTMLElement, settled: () => void) => {
+    element.addEventListener("scroll", settled, { capture: true });
+    return () => element.removeEventListener("scroll", settled, { capture: true });
+  },
+}));
+
 // reka-ui's tabs paint nothing under happy-dom; this one draws a button per tab and the shown panel.
 vi.mock("frappe-ui", async (importOriginal) => {
   const { defineComponent, h } = await import("vue");
@@ -337,11 +346,10 @@ function tabBody(root: HTMLElement, tab: string) {
   return root.querySelector<HTMLElement>(`[data-record-tab="${tab}"] [data-slot="scroll-area-viewport"]`);
 }
 
-/** The reader scrolls a box; the page keeps the view once the scroll has settled, 150 ms on. */
+/** The reader scrolls a box, and the scroll settles. */
 async function scroll(element: HTMLElement | null, top: number) {
   element!.scrollTop = top;
   element!.dispatchEvent(new Event("scroll"));
-  await new Promise((resolve) => setTimeout(resolve, 150));
   await settle();
 }
 

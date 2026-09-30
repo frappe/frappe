@@ -58,6 +58,7 @@
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
+import { keepInHistory } from "@framework/ui/utils/historyState";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
 import { itemContext } from "@/navigation/context";
@@ -76,7 +77,6 @@ import PageLoadError from "./PageLoadError.vue";
 import RailColumn from "./RailColumn.vue";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
-import { keepInHistory } from "@framework/ui/utils/historyState";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
