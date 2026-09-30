@@ -1,5 +1,6 @@
 import os
 import re
+from contextlib import contextmanager
 
 from psycopg2 import sql
 
@@ -12,7 +13,8 @@ def setup_database():
 	root_conn = get_root_connection()
 	root_conn.commit()
 	root_conn.sql("end")
-	root_conn.sql(f'DROP DATABASE IF EXISTS "{frappe.conf.db_name}"')
+	postgres_version = _get_server_version(root_conn)
+	_drop_database(root_conn, frappe.conf.db_name, postgres_version)
 
 	# If user exists, just update password
 	if root_conn.sql(f"SELECT 1 FROM pg_roles WHERE rolname='{frappe.conf.db_user}'"):
@@ -21,15 +23,8 @@ def setup_database():
 		root_conn.sql(f"CREATE USER \"{frappe.conf.db_user}\" WITH PASSWORD '{frappe.conf.db_password}'")
 	root_conn.sql(f'CREATE DATABASE "{frappe.conf.db_name}"')
 	root_conn.sql(f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_user}"')
-	if psql_version := root_conn.sql("SHOW server_version_num", as_dict=True):
-		semver_version_num = psql_version[0].get("server_version_num") or "140000"
-		if cint(semver_version_num) > 150000:
-			_set_database_owner(
-				root_conn,
-				frappe.conf.db_name,
-				frappe.conf.db_user,
-				cint(semver_version_num),
-			)
+	if postgres_version > 150000:
+		_set_database_owner(root_conn, frappe.conf.db_name, frappe.conf.db_user, postgres_version)
 	root_conn.close()
 
 	# On Azure Managed PostgreSQL the public schema is owned by the azure_pg_admin role.
@@ -59,40 +54,65 @@ def setup_database():
 		db_conn.close()
 
 
+def _get_server_version(root_conn) -> int:
+	return cint(root_conn.sql("SHOW server_version_num", pluck=True)[0])
+
+
+def _drop_database(root_conn, db_name: str, postgres_version: int) -> None:
+	owner = root_conn.sql(
+		"SELECT pg_get_userbyid(datdba) FROM pg_database WHERE datname = %s", (db_name,), pluck=True
+	)
+	if not owner:
+		return
+
+	# Only the owner can drop a database; a managed root may have handed ownership to the site role.
+	with _temporary_role_access(root_conn, owner[0], "USAGE", postgres_version):
+		root_conn.execute_query(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(db_name)))
+
+
 def _set_database_owner(root_conn, db_name: str, db_user: str, postgres_version: int) -> None:
 	role_privilege = "SET" if postgres_version >= 160000 else "MEMBER"
-	can_set_role = root_conn.sql(
-		"SELECT pg_has_role(current_user, %s, %s)",
-		(db_user, role_privilege),
-		pluck=True,
-	)
-	needs_role_access = not can_set_role or not can_set_role[0]
-
-	if needs_role_access:
-		grant, restore = _get_temporary_role_statements(root_conn, db_user, postgres_version)
-		root_conn.execute_query(grant)
-
-	try:
+	with _temporary_role_access(root_conn, db_user, role_privilege, postgres_version):
 		root_conn.execute_query(
 			sql.SQL("ALTER DATABASE {} OWNER TO {}").format(
 				sql.Identifier(db_name),
 				sql.Identifier(db_user),
 			)
 		)
+
+
+@contextmanager
+def _temporary_role_access(root_conn, role: str, privilege: str, postgres_version: int):
+	"""Grant `role` to the current user for the block if it lacks `privilege` on it."""
+	has_privilege = root_conn.sql(
+		"SELECT pg_has_role(current_user, %s, %s)",
+		(role, privilege),
+		pluck=True,
+	)
+	needs_role_access = not has_privilege or not has_privilege[0]
+
+	if needs_role_access:
+		grant, restore = _get_temporary_role_statements(root_conn, role, privilege, postgres_version)
+		root_conn.execute_query(grant)
+
+	try:
+		yield
 	finally:
 		if needs_role_access:
 			root_conn.execute_query(restore)
 
 
 def _get_temporary_role_statements(
-	root_conn, db_user: str, postgres_version: int
+	root_conn, role: str, privilege: str, postgres_version: int
 ) -> tuple[sql.Composed, sql.Composed]:
-	grant = sql.SQL("GRANT {} TO current_user").format(sql.Identifier(db_user))
-	restore = sql.SQL("REVOKE {} FROM current_user").format(sql.Identifier(db_user))
+	grant = sql.SQL("GRANT {} TO current_user").format(sql.Identifier(role))
+	restore = sql.SQL("REVOKE {} FROM current_user").format(sql.Identifier(role))
 	if postgres_version < 160000:
 		return grant, restore
 
-	# A role can already hold a self-grant with INHERIT TRUE and SET FALSE.
+	# SET allows SET ROLE; INHERIT passes on the role's privileges, such as database ownership.
+	option = "INHERIT" if privilege == "USAGE" else "SET"
+	# A role can already hold a self-grant without this option.
 	# Only restore grants made by this user; grants from other users remain untouched.
 	existing_self_grant = root_conn.sql(
 		"""SELECT 1 FROM pg_auth_members membership
@@ -100,12 +120,12 @@ def _get_temporary_role_statements(
 		JOIN pg_roles target_role ON target_role.oid = membership.roleid
 		WHERE target_role.rolname = %s AND member_role.rolname = current_user
 			AND membership.grantor = membership.member""",
-		(db_user,),
+		(role,),
 		pluck=True,
 	)
 	if existing_self_grant:
-		restore = grant + sql.SQL(" WITH SET FALSE")
-	return grant + sql.SQL(" WITH SET TRUE"), restore
+		restore = grant + sql.SQL(f" WITH {option} FALSE")
+	return grant + sql.SQL(f" WITH {option} TRUE"), restore
 
 
 def bootstrap_database(verbose, source_sql=None):
@@ -180,5 +200,5 @@ def drop_user_and_database(db_name, db_user):
 		(db_name,),
 	)
 	root_conn.sql("end")
-	root_conn.sql(f"DROP DATABASE IF EXISTS {db_name}")
-	root_conn.sql(f"DROP USER IF EXISTS {db_user}")
+	_drop_database(root_conn, db_name, _get_server_version(root_conn))
+	root_conn.execute_query(sql.SQL("DROP USER IF EXISTS {}").format(sql.Identifier(db_user)))
