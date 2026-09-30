@@ -190,7 +190,8 @@ def default_title_field(doctype: str) -> str:
 	title = meta.get("title_field")
 	if title:
 		df = meta.get_field(title)
-		if df and df.fieldtype in TITLE_FIELDTYPES and not df.hidden:
+		# a DocType's own title is often a hidden, computed field
+		if df and df.fieldtype in TITLE_FIELDTYPES:
 			return title
 	for df in meta.fields:
 		if df.fieldtype in TITLE_FIELDTYPES and df.fieldname and not df.hidden:
@@ -360,14 +361,16 @@ def fetch_kanban_column_cards(
 	page_length: int,
 ):
 	"""Load one page of cards for a column from the database."""
-	from frappe.desk.reportview import compress, execute
+	from frappe.desk.reportview import compress, execute, send_compressed_link_titles
 
 	query_args = frappe._dict(reportview_args.copy())
 	query_args.start = cint(start)
 	query_args.page_length = cint(page_length)
 	query_args.filters = column_filter(doctype, field_name, column_name, query_args.filters)
-	data = execute(**query_args)
-	return compress(data, args=query_args)
+	data = compress(execute(**query_args), args=query_args)
+	# so Link fields show titles, as in the list view
+	send_compressed_link_titles(query_args, data)
+	return data
 
 
 def get_kanban_column_counts(
@@ -483,8 +486,24 @@ def get_kanban_group_values(board_name: str, group_by: str, filters: str | list 
 			else:
 				lanes.append({"value": value, "label": value, "count": count})
 		lanes = lanes[:limit]
+		set_link_lane_labels(doctype, group_by, lanes)
 
 	return {"lanes": lanes, "unset": unset}
+
+
+def set_link_lane_labels(doctype: str, group_by: str, lanes: list[dict]):
+	"""Label Link lanes with their titles, as the list view shows them."""
+	from frappe.desk.link_title import get_link_title_field, get_link_titles
+
+	df = frappe.get_meta(doctype).get_field(group_by)
+	if not lanes or df.fieldtype != "Link":
+		return
+	title_field = get_link_title_field(df.options)
+	if not title_field:
+		return
+	titles = get_link_titles(df.options, title_field, {lane["value"] for lane in lanes})
+	for lane in lanes:
+		lane["label"] = titles.get(lane["value"]) or lane["value"]
 
 
 @frappe.whitelist()
