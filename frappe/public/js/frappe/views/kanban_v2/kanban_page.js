@@ -1101,7 +1101,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		} catch (e) {
 			if (seq === this._mount_seq) {
 				this.show_empty({
-					icon: "alert-circle",
+					icon: "circle-alert",
 					title: __("Could not load groups."),
 				});
 			}
@@ -2194,5 +2194,18 @@ frappe.views.KanbanV2View = class KanbanV2View {
 	show() {
 		frappe.route_options = {};
 		return this._kanban.load_from_route();
+	}
+
+	/** The view switcher carries these filters to the next view, as from a list view. */
+	get_search_params() {
+		const search_params = new URLSearchParams();
+		for (const [doctype, field, operator, value] of this._kanban.get_effective_filters()) {
+			const key = doctype === this.doctype ? field : `${doctype}.${field}`;
+			search_params.append(
+				key,
+				operator === "=" ? value : JSON.stringify([operator, value])
+			);
+		}
+		return search_params;
 	}
 };
