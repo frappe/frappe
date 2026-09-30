@@ -91,6 +91,8 @@ const props = withDefaults(
 			handler: () => void
 		}
 		isFormInput?: boolean
+		// keep the value as text: for files and scripts, where an object literal is code, not a prop value
+		plainText?: boolean
 	}>(),
 	{
 		language: "javascript",
@@ -112,7 +114,7 @@ const editorView = ref<EditorView | null>(null)
 const syncToEditor = () => {
 	let value = props.modelValue ?? ""
 	try {
-		if (props.language === "json" || typeof value === "object") {
+		if (!props.plainText && (props.language === "json" || typeof value === "object")) {
 			value = JSON5.stringify(value, { replacer: jsonReplacer, space: 2, quote: '"' })
 			value = normalizeCode(value)
 		}
@@ -128,7 +130,7 @@ const syncToParent = () => {
 	try {
 		errorMessage.value = ""
 		let value = code.value || ""
-		if (value && !value.startsWith("{{")) {
+		if (value && !props.plainText && !value.startsWith("{{")) {
 			if (props.language === "json") {
 				value = JSON.parse(value)
 			} else if (props.language === "javascript" && isValidObjectString(value)) {

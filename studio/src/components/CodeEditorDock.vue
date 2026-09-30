@@ -34,6 +34,7 @@
 					height="100%"
 					maxHeight="100%"
 					:emitOnChange="true"
+					:plainText="true"
 					:borderless="true"
 					:readonly="readonly"
 					:completions="completions"
