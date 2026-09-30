@@ -276,8 +276,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const field_mappings = {};
 		frappe.meta.get_docfields(this.doctype).forEach((df) => {
 			if (this.is_field_editable(df)) {
-				field_mappings[`${__(df.label)} (${this.doctype})`] = Object.assign({}, df, {
+				field_mappings[`${df.label} (${this.doctype})`] = Object.assign({}, df, {
 					is_child_field: false,
+					translated_label: `${__(df.label, null, this.doctype)} (${__(this.doctype)})`,
 				});
 			}
 		});
