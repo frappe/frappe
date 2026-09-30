@@ -70,7 +70,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// other alternatives that made the app layer look different: the switch below already says
 	// which layer this is, and repeating it reads as a warning.
 	title() {
-		return this.app ? __("Editing {0} dock", [__(this.app.app_title)]) : __("Editing dock");
+		return this.app ? __("the {0} dock", [__(this.app.app_title)]) : __("the dock");
 	}
 
 	copy() {

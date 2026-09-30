@@ -65,9 +65,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// Whatever a surface needs resolved before the editor is drawn: its subject and its gates.
 	prepare() {}
 
-	// The line above the layer switch, saying what is being edited.
+	// What is being edited, as the prompt on leaving names it.
 	title() {
-		return __("Arrange");
+		return __("this arrangement");
 	}
 
 	// Read the layer named by `this.layer`, populating `this.entries` (key to entry) and setting
@@ -222,10 +222,6 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	render_frame() {
 		this.$frame.html(`
 			<div class="ws-head">
-				<div class="ws-caption">
-					${frappe.utils.icon("pencil", "xs")}
-					<span class="ws-caption-text"></span>
-				</div>
 				<div class="ws-layer"></div>
 			</div>
 			<div class="ws-note hidden"></div>
@@ -235,7 +231,6 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			</div>
 			<div class="ws-foot"></div>
 		`);
-		this.$frame.find(".ws-caption-text").text(this.title());
 		this.$list = this.$frame.find(".ws-list");
 		this.$scroll = this.$frame.find(".ws-scroll");
 

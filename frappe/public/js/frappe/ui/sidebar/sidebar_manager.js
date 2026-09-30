@@ -123,7 +123,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	title() {
-		return __("Editing {0} sidebar", [this.title_of_module()]);
+		return __("the {0} sidebar", [this.title_of_module()]);
 	}
 
 	// Any page this shell shows keeps the editor open. A page that swaps in another sidebar

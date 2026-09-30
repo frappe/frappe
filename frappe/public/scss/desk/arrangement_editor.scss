@@ -18,35 +18,14 @@
 	flex-direction: column;
 	min-height: 0;
 
-	// Under the header: what is being edited, over the layer switch.
+	// Under the header: the layer switch.
 	.ws-head {
 		border-top: 1px solid var(--outline-gray-1);
 		padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2) calc(var(--spacing) * 1.5);
 		border-bottom: 1px solid var(--outline-gray-1);
 	}
 
-	.ws-caption {
-		display: flex;
-		align-items: center;
-		gap: calc(var(--spacing) * 1.5);
-		padding: 0 calc(var(--spacing) * 2);
-		font-size: var(--text-xs);
-		color: var(--ink-gray-5);
-
-		// A global icon rule centres glyphs with auto margins, which here would push the text away.
-		svg {
-			flex: none;
-			margin: 0;
-		}
-
-		.ws-caption-text {
-			@include truncate();
-		}
-	}
-
 	.ws-layer {
-		margin-top: calc(var(--spacing) * 0.5);
-
 		.ws-layer-switch {
 			width: 100%;
 			justify-content: space-between;
