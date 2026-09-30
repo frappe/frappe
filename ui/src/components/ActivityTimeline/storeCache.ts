@@ -2,10 +2,10 @@ import { onRecordLeft, readCachedDocument } from "../../cache";
 import { docKey } from "./pendingRows";
 import type { TimelineStore } from "./timelineStore";
 
-// idle stores kept for records the shared cache does not hold; past this, the least recently used goes
+// idle stores kept for records the shared cache does not hold
 const UNCACHED_STORES = 20;
 
-/** Stores by cache key, most recently used last; an idle one lives as long as its record's cache entry. */
+/** Stores by cache key, most recently used last; the shared cache or a limit keeps idle ones. */
 export class StoreCache {
   private readonly stores = new Map<string, TimelineStore>();
   // open holds per key: a page's prefetch or staged read, or a reload's read
@@ -40,23 +40,35 @@ export class StoreCache {
     this.trim();
   }
 
-  /** Keeps at most 20 idle stores whose record is not cached, dropping the least recently used. */
+  /** The store's last component left: it counts as just used. */
+  release(key: string) {
+    this.get(key);
+    this.trim();
+  }
+
+  /** Drops the least recently used idle stores the cache does not hold, past `UNCACHED_STORES`. */
   trim() {
-    const uncached = [...this.stores].filter(([, store]) => store.mounted === 0 && !isCached(store));
-    for (const [key, store] of uncached.slice(0, -UNCACHED_STORES)) this.drop(key, store);
+    const idle = [...this.stores].filter(
+      ([key, store]) => !inUse(store) && !this.held.has(key) && !isCached(store)
+    );
+    for (const [key, store] of idle.slice(0, -UNCACHED_STORES)) this.drop(key, store);
   }
 
   private dropIdle(doc: string) {
     for (const [key, store] of this.stores) {
       if (store.doc === doc && store.mounted === 0 && !this.held.has(key)) this.drop(key, store);
     }
+    this.trim();
   }
 
   private drop(key: string, store: TimelineStore) {
     this.stores.delete(key);
-    this.held.delete(key);
     store.dispose();
   }
+}
+
+function inUse(store: TimelineStore): boolean {
+  return store.mounted > 0 || store.awaitingPage;
 }
 
 function isCached(store: TimelineStore): boolean {
