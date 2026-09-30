@@ -5,7 +5,7 @@
 		:open="true"
 		railLeft
 		:modelValue="script"
-		:completions="isRouter ? null : getCompletions"
+		:completions="current.completions"
 		@update:modelValue="onChange"
 		@save="saveScript"
 	>
@@ -14,7 +14,7 @@
 				size="xs"
 				v-model="target"
 				:options="[
-					{ label: activePage?.page_title || 'Page', value: 'page' },
+					{ label: 'Page', value: 'page' },
 					{ label: 'Router', value: 'router' },
 				]"
 			/>
@@ -27,12 +27,11 @@
 						size="xs"
 						variant="ghost"
 						icon="lucide-circle-help"
-						:title="`How to write ${scriptLabel}s`"
+						:title="`How to write the ${current.label}`"
 					/>
 				</template>
 				<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
-					<RouterScriptHelp v-if="isRouter" />
-					<PageScriptHelp v-else />
+					<component :is="current.help" />
 				</div>
 			</Popover>
 			<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="saveScript">Save</Button>
@@ -68,25 +67,46 @@ import useStudioStore from "@/stores/studioStore"
 
 const store = useStudioStore()
 const codeStore = useCodeStore()
-const getCompletions = useStudioCompletions(true, true)
+const pageCompletions = useStudioCompletions(true, true)
 
-const activePage = computed(() => store.activePage)
-const target = ref<"page" | "router">("page")
-const isRouter = computed(() => target.value === "router")
-const scriptLabel = computed(() => (isRouter.value ? "router script" : "page script"))
-const savedSource = computed(() =>
-	isRouter.value ? store.activeApp?.router_script || "" : activePage.value?.script || "",
-)
+// What differs per script: where it is stored, how it parses, and what the editor offers
+const targets = {
+	page: {
+		label: "page script",
+		help: PageScriptHelp,
+		completions: pageCompletions,
+		saved: () => store.activePage?.script || "",
+		// statements, like a <script setup>
+		parse: (source: string) => source,
+		async save(source: string) {
+			await store.updateActivePage("script", source)
+			// keep the runtime bindings in sync with the saved script
+			codeStore.setPageScript(store.activePage!)
+		},
+	},
+	router: {
+		label: "router script",
+		help: RouterScriptHelp,
+		completions: null,
+		saved: () => store.activeApp?.router_script || "",
+		// one object literal, so it only parses as an expression
+		parse: (source: string) => `(${source})`,
+		save: (source: string) => store.updateActiveApp("router_script", source),
+	},
+}
 
-const script = ref(savedSource.value)
+const target = ref<keyof typeof targets>("page")
+const current = computed(() => targets[target.value])
+const savedScript = computed(() => current.value.saved())
+
+const script = ref(savedScript.value)
 const saving = ref(false)
 const scriptError = ref<string | null>(null)
-
-const dirty = computed(() => script.value !== savedSource.value)
+const dirty = computed(() => script.value !== savedScript.value)
 
 // Reset when switching pages or targets.
-watch([() => activePage.value?.name, savedSource], () => {
-	script.value = savedSource.value
+watch([() => store.activePage?.name, savedScript], () => {
+	script.value = savedScript.value
 	scriptError.value = null
 })
 
@@ -96,32 +116,22 @@ function onChange(value: string) {
 	script.value = value
 }
 
-function getSyntaxError() {
-	// the router script is one object literal, so it only parses as an expression
-	const syntaxError = getScriptError(isRouter.value ? `(${script.value})` : script.value)
-	if (!syntaxError) return null
-	const hint = script.value.includes("{{")
-		? " Scripts are plain JavaScript — use expressions directly, not {{ }} interpolation."
-		: ""
-	return `${syntaxError.message}.${hint}`
-}
-
 async function saveScript() {
 	// A broken script fails to compile and takes down every binding on the page, so block it.
-	scriptError.value = getSyntaxError()
-	if (scriptError.value) return
+	const syntaxError = getScriptError(current.value.parse(script.value))
+	if (syntaxError) {
+		const hint = script.value.includes("{{")
+			? " Scripts are plain JavaScript — use expressions directly, not {{ }} interpolation."
+			: ""
+		scriptError.value = `${syntaxError.message}.${hint}`
+		return
+	}
 	saving.value = true
 	try {
-		if (isRouter.value) {
-			await store.updateActiveApp("router_script", script.value)
-		} else if (activePage.value) {
-			await store.updateActivePage("script", script.value)
-			// keep the runtime bindings in sync with the saved script
-			codeStore.setPageScript(activePage.value)
-		}
-		toast.success(`${isRouter.value ? "Router" : "Page"} script saved`)
+		await current.value.save(script.value)
+		toast.success(`Saved the ${current.value.label}`)
 	} catch (error: any) {
-		toast.error(`Failed to save the ${scriptLabel.value}`, { description: error?.messages?.join(", ") })
+		toast.error(`Failed to save the ${current.value.label}`, { description: error?.messages?.join(", ") })
 	} finally {
 		saving.value = false
 	}
