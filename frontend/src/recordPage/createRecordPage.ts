@@ -66,7 +66,7 @@ const INERT: any = new Proxy(() => {}, {
   set: () => true,
 });
 
-/** The `page` `onRefresh` gets; once closed, every member read off it is inert. */
+/** The `page` `onRefresh` and `onOpen` get; once closed, every member read off it is inert. */
 function pageView(page: RecordPageApi) {
   let open = true;
   const view = new Proxy(page, { get: (target, key) => (open ? Reflect.get(target, key) : INERT) });
@@ -76,6 +76,7 @@ function pageView(page: RecordPageApi) {
 /** The closed event vocabulary; every other key is a fieldname. */
 export const RECORD_PAGE_EVENTS = [
   "onRefresh",
+  "onOpen",
   "beforeSave",
   "afterSave",
   "onTabChange",
@@ -202,7 +203,7 @@ export interface RecordPageController {
   isReplaying: ComputedRef<boolean>;
   /** The `open`/`form` dialogs on screen, for the host's `<PageDialogs>`. */
   dialogs: Ref<PageDialogEntry[]>;
-  /** The reader left the page: closes its dialogs newest-first, each resolving `null`, and closes the `page` `onRefresh` got. */
+  /** The reader left the page: closes its dialogs newest-first, each resolving `null`, and closes the `page` `onRefresh` and `onOpen` got. */
   leave: () => void;
 }
 
@@ -320,6 +321,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     loaded: () =>
       permissions.loaded() && (!host.sourcesReady || clientScriptsLoaded(host.doctype)),
     runRefresh: (ran) => runRefresh(ran),
+    runOpen: (registrations) => runOpen(registrations),
     warnUnknownHandlers: () => warnUnknownHandlers(),
     deliverHeldActs: (drawnOnly) => deliverHeldActs(drawnOnly),
     closeDialogs: () => dialogs.closeAll(),
@@ -669,6 +671,21 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       );
     } catch (error) {
       reportHandlerError(source, "onRefresh", error);
+    }
+  }
+
+  /** Its part after an await is not held: the page is drawn, so each act lands as it is made. */
+  function runOpen(registrations: Registration[]) {
+    for (const { source, handlers } of registrations) {
+      const handler = handlers.onOpen;
+      if (!handler) continue;
+      try {
+        const result = withRunningSource(source, () => handler(refreshView.page));
+        if (result instanceof Promise)
+          void result.catch((error) => reportHandlerError(source, "onOpen", error));
+      } catch (error) {
+        reportHandlerError(source, "onOpen", error);
+      }
     }
   }
 

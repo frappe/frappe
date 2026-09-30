@@ -23,6 +23,8 @@ export interface PaintGateHost {
   loaded: () => boolean;
   /** Runs `onRefresh` for each source `ran` does not hold yet, adding it; answers the ones still running. */
   runRefresh: (ran: Set<Registration>) => LateRefresh[];
+  /** Runs `onOpen` for these sources, while their acts are held for the commit that follows. */
+  runOpen: (registrations: Registration[]) => void;
   /** Called once every source is in, before the replay's second pass. */
   warnUnknownHandlers: () => void;
   /** Delivers the acts held so far; `drawnOnly` drops one whose target is not drawn. */
@@ -79,6 +81,8 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     early: false,
     // Counted: a background replay's late `onRefresh` parts drop every act until they settle.
     background: 0,
+    // Set by the first replay that is not a background one to end, so `onOpen` runs once per page.
+    opened: false,
   };
   let markLeft!: () => void;
   const left = new Promise<void>((resolve) => (markLeft = resolve));
@@ -105,18 +109,22 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     openReplay();
     // Filled by `runSources`, so the first pass's late parts are still held when the second pass throws.
     const late: LateRefresh[] = [];
+    const ran = new Set<Registration>();
     try {
-      await runSources(everything, late);
+      await runSources(everything, late, ran);
     } finally {
       // In `finally` so a throwing handler cannot leave the page staged for good.
       closeReplay();
-      holdLate(late, false);
+      open(ran, holdLate(late, false));
     }
   }
 
   /** The sources already registered run while the Client Script tier loads; it runs last anyway. */
-  async function runSources(everything: Promise<unknown>, late: LateRefresh[]) {
-    const ran = new Set<Registration>();
+  async function runSources(
+    everything: Promise<unknown>,
+    late: LateRefresh[],
+    ran: Set<Registration>,
+  ) {
     late.push(...host.runRefresh(ran));
     await waitFor("sources", everything);
     host.warnUnknownHandlers();
@@ -136,23 +144,56 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     openReplay();
     if (background) state.background += 1;
     let late: LateRefresh[] = [];
+    const ran = new Set<Registration>();
     try {
       host.warnUnknownHandlers();
-      late = host.runRefresh(new Set());
+      late = host.runRefresh(ran);
     } finally {
       if (background) state.background -= 1;
       closeReplay();
     }
-    holdLate(late, background);
+    const landed = holdLate(late, background);
+    if (!background) open(ran, landed);
   }
 
-  /** Opened once the replay has committed, so its synchronous part draws without waiting for these. */
+  /** Opened once the replay has committed, so its synchronous part draws without waiting for these; answers when each lands. */
   function holdLate(late: LateRefresh[], background: boolean) {
+    const landed = new Map<string, Promise<void>>();
     for (const { source, settled } of late) {
       if (background) state.background += 1;
-      void asSource(source, () => hold(() => bounded(source, settled))).finally(() => {
+      const held = asSource(source, () => hold(() => bounded(source, settled))).finally(() => {
         if (background) state.background -= 1;
       });
+      landed.set(source, held);
+    }
+    return landed;
+  }
+
+  /**
+   * The first replay's sources run `onOpen` once it has committed; a source whose
+   * `onRefresh` awaited waits for that part to land first.
+   */
+  function open(ran: Set<Registration>, landed: Map<string, Promise<void>>) {
+    if (state.opened || state.left) return;
+    state.opened = true;
+    const sources = [...ran];
+    openNow(sources.filter(({ source }) => !landed.has(source)));
+    for (const [source, held] of landed)
+      void held.then(() => openNow(sources.filter((one) => one.source === source)));
+  }
+
+  /** Staged like a hold, but synchronous: the acts land in this step, with the paint before them. */
+  function openNow(registrations: Registration[]) {
+    if (state.left || !registrations.length) return;
+    state.holding += 1;
+    for (const surface of host.surfaces) surface.beginHold();
+    try {
+      host.runOpen(registrations);
+    } finally {
+      for (const surface of host.surfaces) surface.commit();
+      state.holding -= 1;
+      releaseActs();
+      settleReady();
     }
   }
 

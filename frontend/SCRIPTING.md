@@ -13,8 +13,8 @@ region not listed here is not yet addressable.
 
 A record-page script is a `Client Script` row with `view = Record` and `dt` set to the
 doctype. Its body is an ES module whose default export is an object of handlers, keyed by
-event (`onRefresh`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost`)
-or by a fieldname. Every handler receives `page`. An app ships the same module as a **file
+event (`onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`,
+`onPost`) or by a fieldname. Every handler receives `page`. An app ships the same module as a **file
 script** in its own tree; it is built into the bundle and runs before the site's Client
 Scripts. The record tabs' section below shows one.
 
@@ -46,7 +46,32 @@ shown tabs; the handler reads `page.tabs.active` or `page.form.tabs.active`. A s
 `activate` during the first load opens the page on that tab and fires no `onTabChange`,
 because no tab was shown before it.
 
-Every handler other than `onRefresh` runs in a **hold** and paints once, when it finishes:
+`onOpen` runs once per visit, after the first replay has drawn, and never on a replay. It is
+the place for a one-time move: `page.tabs.activate`, `page.panelSections.open`,
+`page.fields.focus`, `page.activity.scrollTo` and `page.composer.open`. Its acts land in the
+same step as the first paint, so the page opens on the tab it chose and fires no
+`onTabChange`. It sees what every `onRefresh` drew. When a source's `onRefresh` awaits, that
+source's `onOpen` runs after the part after the `await` lands, and on a first visit whose
+scripts arrive after the 500 ms limit, it runs after their ops land. What `onOpen` does after
+its own `await` is not held: each act lands when it is made. Draw in `onRefresh`, not in
+`onOpen`: the next replay rebuilds every surface, so an item `onOpen` adds does not last. A
+script saved while the page is open runs its `onOpen` on the next visit.
+
+```js
+export default {
+  onOpen(page) {
+    if (!new URLSearchParams(location.search).has('tab')) page.tabs.activate('files')
+  },
+}
+```
+
+A script's module runs once per tab, not once per visit. Its top-level variables live for
+the whole tab, until the script is saved again, and every record of the doctype shares
+them. A flag set at the top level on one record is still set on the next record, and on a
+return visit. Keep a one-time move in `onOpen`, and read what belongs to a record from
+`page`.
+
+Every handler other than `onRefresh` and `onOpen` runs in a **hold** and paints once, when it finishes:
 a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, a header or quick
 action's `run` and a dialog's callbacks show all their changes together at the end. A
 handler that must show progress while it runs uses `page.toast.success` or
@@ -61,8 +86,8 @@ return, the record with its parts and, if they were kept, the Activity rows. If 
 changed, the second replay draws nothing. Build new values in each replay: an object
 changed in place and handed over again reads as unchanged, so it is not drawn again. Acts
 in the first replay land as on a first visit; the second replay drops its acts with a
-development warning, so a one-time move such as `activate` or `scrollTo` must not rely on
-being made in every replay. While an `async onRefresh` started by the second replay is still
+development warning, so a one-time move such as `activate` or `scrollTo` belongs in
+`onOpen`, which runs once, after the first replay. While an `async onRefresh` started by the second replay is still
 running, the page drops every act, a quick action's among them. Values the background reads
 change fire no field handlers. If the reader is editing when they return, only the fields
 the reader has not touched take the server's values. A first visit, or a record not held
