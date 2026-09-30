@@ -135,8 +135,10 @@ export function reloadActivityTimeline(
   docname: string,
   visibleTypes?: VisibleTypes
 ): Promise<void> {
-  const store = stores.get(storeKey(doctype, docname, visibleTypes));
-  return store ? store.refresh() : readBeforeMount(doctype, docname, visibleTypes);
+  const key = storeKey(doctype, docname, visibleTypes);
+  const store = stores.get(key);
+  if (store) return store.refresh();
+  return readBeforeMount(doctype, docname, visibleTypes).finally(() => stores.release(key));
 }
 
 function getTimelineStore(

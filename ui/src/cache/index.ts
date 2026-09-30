@@ -33,7 +33,7 @@ export function readCachedRows(doctype: string, query: ListQuery): DocumentRecor
   return cache.rows(listCacheKey(doctype, query));
 }
 
-/** Runs when a complete record entry stops being complete or goes: past the limit, deleted, refused or cleared. */
+/** Calls the listener when a record's entry stops being complete or goes; returns the unsubscribe. */
 export function onRecordLeft(listener: RecordLeft): () => void {
   leaveListeners.add(listener);
   return () => leaveListeners.delete(listener);

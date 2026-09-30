@@ -450,6 +450,7 @@ describe("the prefetched read", () => {
   it("answers rows and a reload before any component mounts", async () => {
     const name = freshDoc();
     expect(activityTimelineRows("ToDo", name)).toEqual([]);
+    readRecord(doc(name, OLD));
     serve(newest("comment:1"));
     await reloadActivityTimeline("ToDo", name);
     expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:1"]);
@@ -810,8 +811,9 @@ describe("idle stores", () => {
 
     mounted.splice(0).forEach((app) => app.unmount());
     expect(hasActivityTimeline("ToDo", shown)).toBe(false);
-    await reloadActivityTimeline("ToDo", idle);
+    await prefetchActivityTimeline("ToDo", idle);
     expect(activityTimelineRows("ToDo", idle)[0]).not.toHaveProperty("renderKey");
+    endActivityPrefetch("ToDo", idle);
   });
 
   it("frees a store at unmount when the cache does not hold its record", async () => {
@@ -819,6 +821,12 @@ describe("idle stores", () => {
     const { timeline } = mountTimeline(name);
     await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
     mounted.splice(0).forEach((app) => app.unmount());
+    expect(hasActivityTimeline("ToDo", name)).toBe(false);
+  });
+
+  it("frees a store a reload made when the cache does not hold its record", async () => {
+    const name = freshDoc();
+    await reloadActivityTimeline("ToDo", name);
     expect(hasActivityTimeline("ToDo", name)).toBe(false);
   });
 
