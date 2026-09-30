@@ -368,13 +368,15 @@ class TestSync(IntegrationTestCase):
 		)
 		self.assertIsNone(frappe.db.get_value("Flow Run", run.name, "on_complete"))
 
-	def test_opening_a_session_the_server_lost_calls_on_complete(self):
+	def test_opening_a_session_records_the_end_but_never_calls_on_complete(self):
 		run = self.placeholder()
 		run.db_set("on_complete", ON_COMPLETE)
-		daemon = FakeDaemon(missing=True)
+		daemon = FakeDaemon(turn(1, "r1"))
 		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_COMPLETE) as on_complete:
 			api.session(self.session.name)
-		self.assertEqual(on_complete.call_args.args[0].status, "Failed")
+		on_complete.assert_not_called()
+		run.reload()
+		self.assertEqual((run.status, run.on_complete), ("Completed", ON_COMPLETE))
 
 	def test_a_failing_on_complete_is_logged_and_its_writes_undone(self):
 		run = self.placeholder()
