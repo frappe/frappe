@@ -54,7 +54,7 @@ export default class ManageLayoutsDialog {
 				data-name="${esc(layout.name)}">
 				<div class="layout-manage-row-label min-width-0 pr-2">
 					<div class="ellipsis font-weight-bold text-sm" title="${esc(layout.filter_name)}">
-						${esc(__(layout.filter_name))}
+						${esc(this.list_filter.get_layout_label(layout))}
 					</div>
 					<div class="text-muted" style="font-size: var(--text-xs)">${esc(scope_label)}</div>
 				</div>

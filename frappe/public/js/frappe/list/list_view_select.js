@@ -61,7 +61,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				const filter = this.list_view.list_filter;
 				const label = filter?.active_layout_label;
 				return label && label !== filter?.default_layout_label
-					? __(label)
+					? label
 					: this.label_map["List"];
 			}
 			case "Kanban":

@@ -71,6 +71,11 @@ export const ListFilterAPI = {
 		}
 	},
 
+	/** Standard layouts ship with an app, so their names are translated; users' own are shown as written. */
+	get_layout_label(layout) {
+		return layout.is_standard ? __(layout.filter_name) : layout.filter_name;
+	},
+
 	/** Whether current user can update this layout record. */
 	can_edit_layout(layout) {
 		if (!layout) return false;

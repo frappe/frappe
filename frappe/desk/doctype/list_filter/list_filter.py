@@ -86,6 +86,24 @@ class ListFilter(Document):
 				frappe.MandatoryError,
 			)
 
+		# names differing only by spaces, hyphens or underscores export to the same file
+		for name in frappe.get_all(
+			"List Filter",
+			filters={
+				"reference_doctype": self.reference_doctype,
+				"is_standard": 1,
+				"name": ("!=", self.name),
+			},
+			pluck="name",
+		):
+			if frappe.scrub(name) == frappe.scrub(self.name):
+				frappe.throw(
+					_("Standard list layout {0} already exists with a similar name").format(
+						frappe.bold(name)
+					),
+					frappe.DuplicateEntryError,
+				)
+
 	def _was_standard(self) -> bool:
 		before = self.get_doc_before_save()
 		return bool(before and before.is_standard)
@@ -113,7 +131,14 @@ class ListFilter(Document):
 			self.export_layout()
 
 	def on_trash(self):
-		if not self.is_standard or frappe.flags.in_migrate:
+		if frappe.flags.in_migrate:
+			return
+
+		# Desk Users can delete List Filters, so ownership is checked here for every delete path
+		if not _can_update_list_filter(self):
+			frappe.throw(_("You are not allowed to delete this layout"), frappe.PermissionError)
+
+		if not self.is_standard:
 			return
 
 		if not frappe.conf.developer_mode:
