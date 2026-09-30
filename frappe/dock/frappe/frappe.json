@@ -72,7 +72,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "book-user",
+   "icon": "contacts-cards-duotone",
    "link_to": "Contacts",
    "link_type": "Sidebar",
    "title": "Contacts"
@@ -102,7 +102,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-10-01 02:17:00.000000",
+ "modified": "2026-10-01 02:38:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",

@@ -208,6 +208,21 @@
 				transition-delay: calc(var(--icon-motion-opacity, 0) * 0.25s);
 			}
 		}
+		/* Contacts: the two cards behind the contact card fan out while the dock tile is hovered, more
+		   contacts, and hold; they slide back behind it when the pointer leaves. */
+		@media (prefers-reduced-motion: no-preference) {
+			.contacts-fan {
+				transform-origin: 12px 17.6px;
+				transition: transform 0.45s cubic-bezier(0.34, 1.25, 0.64, 1);
+			}
+			.contacts-fan-left {
+				transform: rotate(calc(var(--icon-motion-opacity, 0) * -9deg)) translateY(calc(var(--icon-motion-opacity, 0) * -1.6px));
+			}
+			.contacts-fan-right {
+				transform: rotate(calc(var(--icon-motion-opacity, 0) * 9deg)) translateY(calc(var(--icon-motion-opacity, 0) * -1.6px));
+				transition-delay: 0.05s;
+			}
+		}
 	</style>
 	<!-- The window rests on y 19.75, not the bottom of the grid, which sits it on a 14px label's
 	     descender line in the 28px sidebar mark and lifts the dark wall toward the centre of a dock tile. -->
@@ -306,5 +321,16 @@
 		<g class="printing-feed"><path d="M17.7 2.96L6.4 2.95L6.19 2.98L6.09 3.01L5.91 3.12L5.77 3.26L5.66 3.44L5.61 3.65L5.6 3.75L5.6 11.2L5.61 11.3L5.66 11.51L5.77 11.69L5.91 11.83L6.09 11.94L6.19 11.97L6.4 12L17.6 12L17.81 11.97L17.91 11.94L18.09 11.83L18.17 11.77L18.29 11.6L18.37 11.41L18.4 11.2L18.4 3.75L18.37 3.54L18.34 3.44L18.29 3.35L18.17 3.18L18.09 3.12L17.91 3.01Z" style="fill: var(--duotone-light, var(--ink-gray-3))" /></g>
 		<g class="printing-out"><path d="M18.3 9.01L5.8 9L5.59 9.03L5.4 9.11L5.31 9.17L5.17 9.31L5.06 9.49L5.01 9.7L5 9.8L5 18.95L5.01 19.05L5.06 19.26L5.17 19.44L5.31 19.58L5.49 19.69L5.59 19.72L5.8 19.75L18.2 19.75L18.3 19.74L18.51 19.69L18.69 19.58L18.83 19.44L18.94 19.26L18.99 19.05L19 18.95L19 9.8L18.97 9.59L18.94 9.49L18.89 9.4L18.77 9.23L18.6 9.11L18.51 9.06Z" style="fill: var(--duotone-light, var(--ink-gray-3))" /><rect x="7.2" y="13.2" width="8.4" height="1.2" rx="0.6" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect x="7.2" y="15.2" width="5.8" height="1.2" rx="0.6" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect x="7.2" y="17.2" width="9.6" height="1.2" rx="0.6" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /></g>
 		<path fill-rule="evenodd" d="M3.8 8.6L3.57 8.62L3.33 8.66L3.11 8.74L2.9 8.84L2.7 8.97L2.53 9.13L2.37 9.3L2.24 9.5L2.14 9.71L2.06 9.93L2.02 10.17L2 10.4L2 14.6L2.02 14.83L2.06 15.07L2.14 15.29L2.24 15.5L2.37 15.7L2.53 15.87L2.7 16.03L2.9 16.16L3.11 16.26L3.33 16.34L3.57 16.38L3.8 16.4L20.2 16.4L20.43 16.38L20.67 16.34L20.89 16.26L21.1 16.16L21.3 16.03L21.47 15.87L21.63 15.7L21.76 15.5L21.86 15.29L21.94 15.07L21.98 14.83L22 14.6L22 10.4L21.98 10.17L21.94 9.93L21.86 9.71L21.76 9.5L21.63 9.3L21.47 9.13L21.3 8.97L21.1 8.84L20.89 8.74L20.67 8.66L20.43 8.62L20.2 8.6ZM19.49 12.62L19.43 12.84L19.38 12.95L19.31 13.05L19.15 13.21L19.05 13.28L18.83 13.37L18.6 13.4L18.48 13.39L18.37 13.37L18.15 13.28L18.05 13.21L17.89 13.05L17.77 12.84L17.73 12.73L17.71 12.62L17.71 12.38L17.77 12.16L17.82 12.05L17.89 11.95L18.05 11.79L18.26 11.67L18.37 11.63L18.6 11.6L18.72 11.61L18.83 11.63L19.05 11.72L19.15 11.79L19.31 11.95L19.43 12.16L19.47 12.27L19.49 12.38Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+	</symbol>
+	<!-- Contacts: a contact card. A light card with a dark person and their details, and two dark cards
+	     exactly behind it, hidden at rest, which fan out while the tile is hovered. -->
+	<symbol viewBox="0 0 24 24" id="icon-contacts-cards-duotone" stroke="none" style="overflow: visible">
+		<g class="contacts-fan contacts-fan-left"><path d="M19.9 6.4L4.1 6.4L3.89 6.41L3.69 6.45L3.49 6.52L3.3 6.61L3.13 6.73L2.97 6.87L2.83 7.03L2.71 7.2L2.62 7.39L2.55 7.59L2.51 7.79L2.5 8L2.5 16L2.51 16.21L2.55 16.41L2.62 16.61L2.71 16.8L2.83 16.97L2.97 17.13L3.13 17.27L3.3 17.39L3.49 17.48L3.69 17.55L3.89 17.59L4.1 17.6L19.9 17.6L20.11 17.59L20.31 17.55L20.51 17.48L20.7 17.39L20.87 17.27L21.03 17.13L21.17 16.97L21.29 16.8L21.38 16.61L21.45 16.41L21.49 16.21L21.5 16L21.5 8L21.49 7.79L21.45 7.59L21.38 7.39L21.29 7.2L21.17 7.03L21.03 6.87L20.87 6.73L20.7 6.61L20.51 6.52L20.31 6.45L20.11 6.41Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /></g>
+		<g class="contacts-fan contacts-fan-right"><path d="M19.9 6.4L4.1 6.4L3.89 6.41L3.69 6.45L3.49 6.52L3.3 6.61L3.13 6.73L2.97 6.87L2.83 7.03L2.71 7.2L2.62 7.39L2.55 7.59L2.51 7.79L2.5 8L2.5 16L2.51 16.21L2.55 16.41L2.62 16.61L2.71 16.8L2.83 16.97L2.97 17.13L3.13 17.27L3.3 17.39L3.49 17.48L3.69 17.55L3.89 17.59L4.1 17.6L19.9 17.6L20.11 17.59L20.31 17.55L20.51 17.48L20.7 17.39L20.87 17.27L21.03 17.13L21.17 16.97L21.29 16.8L21.38 16.61L21.45 16.41L21.49 16.21L21.5 16L21.5 8L21.49 7.79L21.45 7.59L21.38 7.39L21.29 7.2L21.17 7.03L21.03 6.87L20.87 6.73L20.7 6.61L20.51 6.52L20.31 6.45L20.11 6.41Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /></g>
+		<path d="M19.9 6.4L4.1 6.4L3.89 6.41L3.69 6.45L3.49 6.52L3.3 6.61L3.13 6.73L2.97 6.87L2.83 7.03L2.71 7.2L2.62 7.39L2.55 7.59L2.51 7.79L2.5 8L2.5 16L2.51 16.21L2.55 16.41L2.62 16.61L2.71 16.8L2.83 16.97L2.97 17.13L3.13 17.27L3.3 17.39L3.49 17.48L3.69 17.55L3.89 17.59L4.1 17.6L19.9 17.6L20.11 17.59L20.31 17.55L20.51 17.48L20.7 17.39L20.87 17.27L21.03 17.13L21.17 16.97L21.29 16.8L21.38 16.61L21.45 16.41L21.49 16.21L21.5 16L21.5 8L21.49 7.79L21.45 7.59L21.38 7.39L21.29 7.2L21.17 7.03L21.03 6.87L20.87 6.73L20.7 6.61L20.51 6.52L20.31 6.45L20.11 6.41Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M9.6 10.5L9.58 10.25L9.54 10.01L9.46 9.77L9.35 9.55L9.21 9.34L9.04 9.16L8.86 8.99L8.65 8.85L8.43 8.74L8.19 8.66L7.95 8.62L7.7 8.6L7.45 8.62L7.21 8.66L6.97 8.74L6.75 8.85L6.54 8.99L6.36 9.16L6.19 9.34L6.05 9.55L5.94 9.77L5.86 10.01L5.82 10.25L5.8 10.5L5.82 10.75L5.86 10.99L5.94 11.23L6.05 11.45L6.19 11.66L6.36 11.84L6.54 12.01L6.75 12.15L6.97 12.26L7.21 12.34L7.45 12.38L7.7 12.4L7.95 12.38L8.19 12.34L8.43 12.26L8.65 12.15L8.86 12.01L9.04 11.84L9.21 11.66L9.35 11.45L9.46 11.23L9.54 10.99L9.58 10.75ZM6.6 13.2L6.34 13.22L6.08 13.27L5.83 13.35L5.6 13.47L5.38 13.61L5.19 13.79L5.01 13.98L4.87 14.2L4.75 14.43L4.67 14.68L4.62 14.94L4.6 15.7L10.8 15.7L10.78 14.94L10.73 14.68L10.65 14.43L10.53 14.2L10.39 13.98L10.21 13.79L10.02 13.61L9.8 13.47L9.57 13.35L9.32 13.27L9.06 13.22L8.8 13.2Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+		<rect x="12.4" y="9" width="6.9" height="1.3" rx="0.65" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+		<rect x="12.4" y="11.6" width="4.8" height="1.3" rx="0.65" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+		<rect x="12.4" y="14.2" width="6.2" height="1.3" rx="0.65" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
 	</symbol>
 </svg>
