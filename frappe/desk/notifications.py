@@ -419,6 +419,7 @@ def get_list_unless_timed_out(get_list, doctype, **kwargs) -> list | None:
 		if not frappe.db.is_statement_timeout(e):
 			raise
 		frappe.db.rollback(save_point=COUNT_SAVEPOINT)
+		frappe.db.release_savepoint(COUNT_SAVEPOINT)
 		return None
 	frappe.db.release_savepoint(COUNT_SAVEPOINT)
 	return result
