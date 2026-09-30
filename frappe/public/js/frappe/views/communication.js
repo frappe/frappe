@@ -885,13 +885,12 @@ frappe.views.CommunicationComposer = class {
 				this.dragged_recipient = { control, value };
 				e.originalEvent.dataTransfer.setData("text/plain", value);
 				e.originalEvent.dataTransfer.effectAllowed = "move";
-				// the drop removes this pill via jQuery, which also drops jQuery handlers
-				e.currentTarget.addEventListener("dragend", () => this.end_recipient_drag(), {
-					once: true,
-				});
 				// Chrome can cancel the drag if the layout changes inside dragstart
 				setTimeout(() => this.show_cc_bcc_for_drag());
 			});
+			control.$multiselect_wrapper.on("dragend", ".tb-selected-value", () =>
+				this.end_recipient_drag()
+			);
 			const $row = () => control.$wrapper.closest(".email-composer-row");
 			control.$wrapper.on("dragover", (e) => {
 				if (!this.dragged_recipient) return;
@@ -905,8 +904,9 @@ frappe.views.CommunicationComposer = class {
 			control.$wrapper.on("drop", (e) => {
 				if (!this.dragged_recipient) return;
 				e.preventDefault();
-				$row().removeClass("bg-surface-gray-1");
 				this.move_recipient(this.dragged_recipient, control);
+				// the move re-renders the pills, so dragend may never reach the dragged one
+				this.end_recipient_drag();
 			});
 
 			const clear_committed_text = () => {
