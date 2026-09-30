@@ -2,11 +2,13 @@
 # License: MIT. See LICENSE
 
 import json
+import os
 
 import frappe
 from frappe import _
 from frappe.model import std_fields
 from frappe.model.document import Document
+from frappe.modules.utils import get_module_path
 from frappe.utils import cstr, strip_html
 
 
@@ -23,13 +25,36 @@ class ListFilter(Document):
 		filter_name: DF.Data | None
 		filters: DF.LongText | None
 		for_user: DF.Link | None
+		is_standard: DF.Check
+		layout_order: DF.Int
+		module: DF.Link | None
 		reference_doctype: DF.Link | None
 		route_signature: DF.SmallText | None
 		sort_field: DF.Data | None
 		sort_order: DF.Data | None
 	# end: auto-generated types
 
+	def autoname(self):
+		# Standard layouts sync by name, so it must be the same on every site.
+		if self.is_standard:
+			self.name = f"{self.reference_doctype}-{_clean_filter_name(self.filter_name)}"
+
+	def before_insert(self):
+		# orders standard layouts in the menu; a new one goes last
+		if self.is_standard and not self.layout_order:
+			last = frappe.get_all(
+				"List Filter",
+				filters={"reference_doctype": self.reference_doctype, "is_standard": 1},
+				pluck="layout_order",
+				order_by="layout_order desc",
+				limit=1,
+			)
+			self.layout_order = (last[0] if last else 0) + 1
+
 	def validate(self):
+		if self.is_standard or self._was_standard():
+			self.validate_standard()
+
 		if not self.for_user:
 			if not _can_edit_global_filter():
 				frappe.throw(
@@ -40,9 +65,52 @@ class ListFilter(Document):
 		if self.for_user != frappe.session.user and not _can_edit_global_filter():
 			frappe.throw(_("You are not allowed to assign layouts to other users"), frappe.PermissionError)
 
+	def validate_standard(self):
+		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
+			frappe.throw(
+				_("Standard list layouts can only be changed in developer mode"), frappe.PermissionError
+			)
+
+		if not self.is_standard:
+			return
+
+		if not self.is_new() and not self._was_standard():
+			frappe.throw(_("Only a new list layout can be made standard"))
+
+		if self.for_user:
+			frappe.throw(_("A standard list layout cannot belong to a user"))
+
+		if not (self.filter_name and self.reference_doctype and self.module):
+			frappe.throw(
+				_("Filter Name, Reference Document Type and Module are required for a standard list layout"),
+				frappe.MandatoryError,
+			)
+
+		# names differing only by spaces, hyphens or underscores export to the same file
+		for name in frappe.get_all(
+			"List Filter",
+			filters={
+				"reference_doctype": self.reference_doctype,
+				"is_standard": 1,
+				"name": ("!=", self.name),
+			},
+			pluck="name",
+		):
+			if frappe.scrub(name) == frappe.scrub(self.name):
+				frappe.throw(
+					_("Standard list layout {0} already exists with a similar name").format(
+						frappe.bold(name)
+					),
+					frappe.DuplicateEntryError,
+				)
+
+	def _was_standard(self) -> bool:
+		before = self.get_doc_before_save()
+		return bool(before and before.is_standard)
+
 	def before_save(self):
 		if self.filter_name:
-			self.filter_name = strip_html(cstr(self.filter_name)).strip()
+			self.filter_name = _clean_filter_name(self.filter_name)
 
 		if self.reference_doctype:
 			valid_fields = _get_valid_filter_fields(self.reference_doctype)
@@ -57,6 +125,51 @@ class ListFilter(Document):
 			)
 
 		self.route_signature = compute_route_signature(self.reference_doctype, self.filters)
+
+	def on_update(self):
+		if self.is_standard and frappe.conf.developer_mode and not frappe.flags.in_import:
+			self.export_layout()
+
+	def on_trash(self):
+		if frappe.flags.in_migrate:
+			return
+
+		# Desk Users can delete List Filters, so ownership is checked here for every delete path
+		if not _can_update_list_filter(self):
+			frappe.throw(_("You are not allowed to delete this layout"), frappe.PermissionError)
+
+		if not self.is_standard:
+			return
+
+		if not frappe.conf.developer_mode:
+			frappe.throw(
+				_("Standard list layouts can only be deleted in developer mode"), frappe.PermissionError
+			)
+
+		# Otherwise the next migrate brings the layout back.
+		path = self.get_export_path()
+		if os.path.exists(path):
+			os.remove(path)
+
+	def get_export_path(self) -> str:
+		"""Kept with the DocType it belongs to: doctype/{reference_doctype}/list_filter/{name}.json"""
+		return os.path.join(
+			get_module_path(self.module),
+			"doctype",
+			frappe.scrub(self.reference_doctype),
+			"list_filter",
+			f"{frappe.scrub(self.name)}.json",
+		)
+
+	def export_layout(self):
+		path = self.get_export_path()
+		frappe.create_folder(os.path.dirname(path))
+		with open(path, "w+") as f:  # nosemgrep
+			f.write(frappe.as_json(self.as_dict(no_nulls=True, no_private_properties=True)) + "\n")
+
+
+def _clean_filter_name(filter_name: str | None) -> str:
+	return strip_html(cstr(filter_name)).strip()
 
 
 def compute_route_signature(reference_doctype: str | None, filters) -> str:

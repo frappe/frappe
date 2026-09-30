@@ -22,9 +22,7 @@ export default class ManageLayoutsDialog {
 	}
 
 	get_layouts() {
-		return [...(this.list_filter.filters || [])].sort((a, b) =>
-			(a.filter_name || "").localeCompare(b.filter_name || "")
-		);
+		return this.list_filter.filters || [];
 	}
 
 	render_list() {
@@ -45,7 +43,8 @@ export default class ManageLayoutsDialog {
 	get_row_html(layout) {
 		const can_edit = this.list_filter.can_edit_layout(layout);
 		const is_global = !layout.for_user;
-		const scope_label = is_global ? __("Global") : __("Personal");
+		let scope_label = is_global ? __("Global") : __("Personal");
+		if (layout.is_standard) scope_label = __("Standard");
 		const edit_disabled = can_edit ? "" : "disabled";
 		const delete_disabled = can_edit ? "" : "disabled";
 		const esc = frappe.utils.escape_html;
@@ -55,7 +54,7 @@ export default class ManageLayoutsDialog {
 				data-name="${esc(layout.name)}">
 				<div class="layout-manage-row-label min-width-0 pr-2">
 					<div class="ellipsis font-weight-bold text-sm" title="${esc(layout.filter_name)}">
-						${esc(__(layout.filter_name))}
+						${esc(this.list_filter.get_layout_label(layout))}
 					</div>
 					<div class="text-muted" style="font-size: var(--text-xs)">${esc(scope_label)}</div>
 				</div>
