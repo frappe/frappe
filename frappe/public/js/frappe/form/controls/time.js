@@ -47,14 +47,18 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		if (!this.datepicker) {
 			return;
 		}
-		if (
-			value &&
-			((this.last_value && this.last_value !== this.value) ||
-				!this.datepicker.selectedDates.length)
-		) {
-			let time_format = frappe.sys_defaults.time_format || "HH:mm:ss";
-			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, time_format));
-			this.datepicker.selectDate(date_obj);
+		if (!value) {
+			this.datepicker.clear();
+			return;
+		}
+
+		// sync the picker, else it writes its stale time back into the input when shown
+		const selected_date = this.datepicker.selectedDates[0];
+		const selected_time =
+			selected_date && moment(selected_date).format(frappe.defaultTimeFormat);
+		const time = moment(value, frappe.defaultTimeFormat);
+		if (selected_time !== time.format(frappe.defaultTimeFormat)) {
+			this.datepicker.selectDate(frappe.datetime.moment_to_date_obj(time));
 		}
 	}
 	set_datepicker() {

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -20730,7 +20730,7 @@ msgstr "Tipo de formato de impresión"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1556
 msgid "Print Format not found"
-msgstr "Formato de impresión no encontrado"
+msgstr "Formato de impresión no encontrado "
 
 #: frappe/www/printview.py:426
 msgid "Print Format {0} is disabled"

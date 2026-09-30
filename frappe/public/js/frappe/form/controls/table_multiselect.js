@@ -21,16 +21,29 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 				this.$input.focus();
 			}
 		});
+		this.$input_area.on("mousedown", ".btn-remove", (e) => e.preventDefault());
 
 		this.$input_area.on("click", ".btn-remove", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+
 			const $target = $(e.currentTarget);
 			const $value = $target.closest(".tb-selected-value");
 
-			const value = decodeURIComponent($value.data().value);
-			const link_field = this.get_link_field();
-			this.rows = this.rows.filter((row) => row[link_field.fieldname] !== value);
+			const index = this.$input_area.find(".tb-selected-value").index($value);
+			const current_rows = this.rows || [];
+			const removed_row = current_rows[index];
+			const rows = current_rows.filter((_, row_index) => row_index !== index);
+			this._update_rows(rows);
 
-			this.parse_validate_and_set_in_model("");
+			if (this.frm && removed_row) {
+				frappe.model.clear_doc(this.df.options, removed_row.name);
+			}
+			this.set_model_value(rows).then(() => {
+				this.frm?.dirty();
+				this.refresh();
+				if (this.$input.is(":focus")) this.awesomplete.evaluate();
+			});
 		});
 		this.$input_area.on("click", ".btn-link-to-form", (e) => {
 			const $target = $(e.currentTarget);
@@ -43,10 +56,17 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		this.$input.on("keydown", (e) => {
 			// if backspace key pressed on empty input, delete last value
 			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === "") {
-				this.rows = this.rows.slice(0, this.rows.length - 1);
-				this.parse_validate_and_set_in_model("");
+				const rows = this.rows.slice(0, -1);
+				this._update_rows(rows);
+				this.set_model_value(rows).then(() => this.awesomplete.evaluate());
 			}
 		});
+	}
+	_update_rows(rows) {
+		this.rows = rows;
+
+		const link_fieldname = this.get_link_field().fieldname;
+		this._rows_list = rows.map((row) => row[link_fieldname]);
 	}
 	setup_buttons() {
 		this.$input_area.find(".link-btn").remove();
@@ -57,8 +77,17 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		}
 
 		const link_field = this.get_link_field();
+		value = cstr(value).trim();
 
 		if (value) {
+			// clear input to prevent multiple additions
+			this.set_input_value("");
+			const rows = this.frm ? this.frm.doc[this.df.fieldname] || [] : this.rows;
+			if (rows.some((row) => cstr(row[link_field.fieldname]) === value)) {
+				this.set_formatted_input(rows);
+				return rows;
+			}
+
 			if (this.frm) {
 				const new_row = frappe.model.add_child(
 					this.frm.doc,
@@ -73,8 +102,8 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 				});
 			}
 			frappe.utils.add_link_title(link_field.options, value, label);
+			this.set_formatted_input(this.rows);
 		}
-		this._rows_list = this.rows.map((row) => row[link_field.fieldname]);
 		return this.rows;
 	}
 	get_model_value() {
@@ -100,18 +129,18 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		// validate the last value entered
 		const link_value = last_row[link_field.fieldname];
 
-		// falsy value
-		if (!link_value) {
-			return all_rows_except_last;
-		}
-
-		// duplicate value
-		if (all_rows_except_last.map((row) => row[link_field.fieldname]).includes(link_value)) {
+		// falsy / duplicate value
+		if (
+			frappe.utils.is_empty(link_value) ||
+			all_rows_except_last.some(
+				(row) => cstr(row[link_field.fieldname]) === cstr(link_value)
+			)
+		) {
 			return all_rows_except_last;
 		}
 
 		return this.validate_link_and_fetch(link_value).then((validated_value) => {
-			if (validated_value === link_value) {
+			if (cstr(validated_value) === cstr(link_value)) {
 				return rows;
 			} else {
 				rows.pop();
@@ -120,7 +149,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		});
 	}
 	set_formatted_input(value) {
-		this.rows = value || [];
+		this._update_rows(value || []);
 		const link_field = this.get_link_field();
 		const values = this.rows.map((row) => row[link_field.fieldname]);
 		this.set_pill_html(values);
@@ -159,7 +188,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		let me = this;
 
 		awesomplete.filter = function (item) {
-			if (me._rows_list.includes(item.value)) {
+			if (me._rows_list.some((value) => cstr(value) === cstr(item.value))) {
 				return false;
 			}
 
