@@ -96,13 +96,13 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "monitor-check",
+   "icon": "system-monitor-duotone",
    "link_to": "System",
    "link_type": "Sidebar",
    "title": "System"
   }
  ],
- "modified": "2026-09-30 21:38:00.000000",
+ "modified": "2026-09-30 22:32:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
