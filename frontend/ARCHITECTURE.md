@@ -179,7 +179,7 @@ The list is what `ui/` exports from its root index and from `@framework/ui/api`.
 | Comment calls (`addComment`, `updateComment`, `removeComment`) | Post, edit and delete a comment |
 | File calls (`uploadFile`, `attachFile`, `removeAttachment`, `downloadFile`) | Upload in chunks and attach to a record |
 | Session calls (`getSession`, `logout`, `getTranslations`) | The signed-in user, sign-out, and translations |
-| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `listCacheKey`, `DocumentEntry`, `ListEntry`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read |
+| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 50 |
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`) | Fetches and holds each doctype's meta. Clears itself on `doctype_update` |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
@@ -200,7 +200,7 @@ component group, with its main names.
 | `FormLayout` (`@framework/ui/FormLayout`: `FormLayout`, `FormLayoutSchema`, `Tab`, `Section`, `Column`, `FieldNode`) | Draws a form from a tabs, sections, columns and fields tree. Works out field access itself |
 | Layout building (`buildLayoutFromMeta`, `compose`, `Decorator`, `fieldsToLayout`, `resolveLayout`, `evaluateDependsOn`) | Turns meta fields into a layout tree, and applies depends-on, hidden and overrides for one document |
 | Child rows (`useChildRowModel`, `newRowValues`) | The rows of a child table field, and a new row's default values |
-| Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`) | Formats numbers, currency and dates for display |
+| Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
 | Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`) | How a field reads the document, writes a value, and shows link titles |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |

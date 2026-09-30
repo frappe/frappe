@@ -241,6 +241,12 @@ describe("the built-in reader", () => {
 
   afterEach(() => scopes.splice(0).forEach((scope) => scope.stop()));
 
+  it("reads the cache alone outside a component", () => {
+    const read = useDocValueReader();
+    expect(read("Company", "Acme", "default_currency")).toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("lets the override answer for a component's reader", () => {
     const { read } = visit();
     setDocValueReader(() => "CHF");

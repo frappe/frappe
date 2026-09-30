@@ -30,13 +30,12 @@ export interface CurrencyResolveContext extends RecordContext {
 /** How many readers on screen use each doctype, name and field; the first one reads the server. */
 const readers = new Map<string, number>();
 
-/**
- * The reader for one component. A value is read from the server once while any reader
- * on screen uses it, so each visit reads it again; the reply feeds the cache.
- */
+/** The reader for one component; the first reader on screen reads the value into the cache. */
 export function useDocValueReader(): DocValueReader {
+  // With no scope nothing would release the value, so the reader reads the cache alone.
+  if (!getCurrentScope()) return (...args) => getDocValueReader()(...args);
   const used = new Set<string>();
-  if (getCurrentScope()) onScopeDispose(() => used.forEach(release));
+  onScopeDispose(() => used.forEach(release));
   return (doctype, name, field) => {
     if (override.value) return override.value(doctype, name, field);
     const key = [doctype, name, field].join("\u0000");
@@ -49,7 +48,11 @@ export function useDocValueReader(): DocValueReader {
 }
 
 /** The linked record's value in the shared data cache; `undefined` when its entry lacks it. */
-function readCachedValue(doctype: string, name: string, field: string): string | null | undefined {
+function readCachedValue(
+  doctype: string,
+  name: string,
+  field: string
+): string | null | undefined {
   const doc = readCachedDocument(doctype, name)?.doc;
   if (!doc || !(field in doc)) return undefined;
   const value = doc[field];
