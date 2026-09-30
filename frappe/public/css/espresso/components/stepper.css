@@ -27,12 +27,12 @@
  * Locked steps use aria-disabled, not disabled, so they stay in the tab
  * order; the click guard blocks them and calls on_locked_click.
  *
+ * Label-below mode (JS option `label_below`) adds es-stepper--label-below,
+ * which stacks each label under its marker.
+ *
  * Compact mode (JS option `compact`) renders the frappe.ui.progress interval
  * form with a "Step x of y" hint for narrow layouts; mount a compact and a
  * full instance and toggle visibility at your breakpoint.
- *
- * Label-below mode (JS option `label_below`) adds es-stepper--label-below,
- * which stacks each label under its marker.
  */
 
 .es-stepper {
