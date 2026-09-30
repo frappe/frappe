@@ -794,8 +794,8 @@ describe("idle stores", () => {
       readRecord(doc(name, OLD));
       await reloadActivityTimeline("ToDo", name);
     }
-    await reloadUncached(20);
-    for (const name of cached) expect(hasActivityTimeline("ToDo", name)).toBe(true);
+    const uncached = await reloadUncached(20);
+    for (const name of [...cached, ...uncached]) expect(hasActivityTimeline("ToDo", name)).toBe(true);
   });
 
   it("keeps the twenty most recently used idle stores the cache does not hold, never a mounted one", async () => {
@@ -817,6 +817,15 @@ describe("idle stores", () => {
 
     await reloadActivityTimeline("ToDo", oldest);
     expect(activityTimelineRows("ToDo", oldest)[0]).not.toHaveProperty("renderKey");
+  });
+
+  it("counts a store as used when its last component leaves", async () => {
+    const shown = freshDoc();
+    const { timeline } = mountTimeline(shown);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+    await reloadUncached(20);
+    mounted.splice(0).forEach((app) => app.unmount());
+    expect(hasActivityTimeline("ToDo", shown)).toBe(true);
   });
 
   it("frees a held store that is never let go once twenty newer idle stores pass it", async () => {
@@ -842,7 +851,7 @@ describe("idle stores", () => {
     expect(hasActivityTimeline("ToDo", shown)).toBe(true);
   });
 
-  it("keeps a store whose record leaves the cache until every hold on it ends", async () => {
+  it("keeps a held store when its record leaves the cache, then counts it among the twenty", async () => {
     const name = freshDoc();
     readRecord(doc(name, OLD));
     await prefetchActivityTimeline("ToDo", name);
@@ -851,7 +860,11 @@ describe("idle stores", () => {
     feedDelete(takeTicket(), "ToDo", name);
     take!();
     expect(hasActivityTimeline("ToDo", name)).toBe(true);
+
     endActivityPrefetch("ToDo", name);
+    expect(hasActivityTimeline("ToDo", name)).toBe(true);
+    await reloadUncached(20);
+    expect(hasActivityTimeline("ToDo", name)).toBe(false);
   });
 
   it("holds a reload's new store until its read ends, whatever leaves the cache meanwhile", async () => {

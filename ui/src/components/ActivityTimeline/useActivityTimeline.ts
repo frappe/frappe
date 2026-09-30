@@ -15,7 +15,7 @@ export function useActivityTimeline(
   visibleTypes?: VisibleTypes
 ) {
   const store = getTimelineStore(doctype, docname, visibleTypes);
-  subscribeWhileMounted(store);
+  subscribeWhileMounted(store, storeKey(doctype, docname, visibleTypes));
 
   return {
     activities: shownActivities(store, typeNames(visibleTypes)),
@@ -173,7 +173,7 @@ function storeKey(doctype: string, docname: string, visibleTypes?: VisibleTypes)
 }
 
 // the store is shared, so one socket serves every consumer of it
-function subscribeWhileMounted(store: TimelineStore) {
+function subscribeWhileMounted(store: TimelineStore, key: string) {
   let unsubscribe: Unsubscribe | undefined;
   onMounted(() => {
     unsubscribe = store.mount();
@@ -181,7 +181,7 @@ function subscribeWhileMounted(store: TimelineStore) {
   onUnmounted(() => {
     unsubscribe?.();
     unsubscribe = undefined;
-    stores.trim();
+    stores.release(key);
   });
 }
 
