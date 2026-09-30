@@ -802,7 +802,7 @@
    "label": "Show My Space"
   },
   {
-   "default": "Floating",
+   "default": "Pinned",
    "description": "Pinned sits beside the sidebar. Floating slides in from the left edge.",
    "fieldname": "dock_mode",
    "fieldtype": "Select",
@@ -948,7 +948,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-09-29 12:45:51.305388",
+ "modified": "2026-10-01 00:45:05.600707",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
