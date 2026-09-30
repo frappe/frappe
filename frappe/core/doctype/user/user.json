@@ -54,6 +54,7 @@
   "navigation_settings_section",
   "search_bar",
   "notifications",
+  "show_my_space",
   "list_settings_section",
   "list_sidebar",
   "bulk_actions",
@@ -792,6 +793,13 @@
    "label": "Notifications"
   },
   {
+   "default": "0",
+   "description": "Add a link to your own private workspaces in the user menu.",
+   "fieldname": "show_my_space",
+   "fieldtype": "Check",
+   "label": "Show My Space"
+  },
+  {
    "collapsible": 1,
    "fieldname": "list_settings_section",
    "fieldtype": "Section Break",
@@ -929,7 +937,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-09-23 16:29:39.053759",
+ "modified": "2026-09-30 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
