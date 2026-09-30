@@ -125,7 +125,9 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 	from frappe.utils.data import validate_egress_url
 
 	file_url = frappe.utils.get_url(file_url)
-	site_url = frappe.utils.get_url().rstrip("/")
+	# allow_header_override=False: a request-controlled Host header must not be able to
+	# make an internal address match site_url and skip the egress check below.
+	site_url = frappe.utils.get_url(allow_header_override=False).rstrip("/")
 
 	def validate_external_url(url: str) -> None:
 		if url == site_url or url.startswith(site_url + "/"):
