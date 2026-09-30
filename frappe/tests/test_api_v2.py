@@ -1710,6 +1710,7 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 
 class TestSessionAPIV2(FrappeAPITestCase):
 	version = "v2"
+	DEFAULTS_PROBE = "api_v2_defaults_probe"
 
 	def session_path(self):
 		return self.get_path("session")
@@ -1765,12 +1766,10 @@ class TestSessionAPIV2(FrappeAPITestCase):
 			frappe.db.commit()  # nosemgrep
 
 	def test_session_gives_site_defaults_to_a_system_user_v2(self):
-		self.assertEqual(self.session_defaults(self.sid).get(self.DEFAULTS_PROBE), "leaked")
-
-	DEFAULTS_PROBE = "api_v2_defaults_probe"
+		self.assertEqual(self.session_defaults(self.sid).get(self.DEFAULTS_PROBE), "probe")
 
 	def session_defaults(self, sid: str) -> dict:
-		frappe.db.set_default(self.DEFAULTS_PROBE, "leaked")
+		frappe.db.set_default(self.DEFAULTS_PROBE, "probe")
 		frappe.db.commit()  # nosemgrep
 		try:
 			response = self.get(self.session_path(), {"sid": sid})
@@ -1988,6 +1987,7 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		# a Guest upload skips the write check, and the answer lists the document's attachments
 		settings = {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "ToDo"}
 		previous = {key: frappe.db.get_single_value("System Settings", key) for key in settings}
+		guest_file = {"attached_to_name": self.other.name, "file_name": "guest.txt"}
 		frappe.db.set_single_value("System Settings", settings)
 		frappe.db.commit()  # nosemgrep
 		try:
@@ -2000,10 +2000,10 @@ class TestFileRoutesV2(FrappeAPITestCase):
 			self.assertEqual(response.status_code, 403, response.json)
 			self.assertNotIn("attachments", response.json.get("data") or {})
 			frappe.db.rollback()
-			self.assertFalse(
-				frappe.db.exists("File", {"attached_to_name": self.other.name, "file_name": "guest.txt"})
-			)
+			self.assertFalse(frappe.db.exists("File", guest_file))
 		finally:
+			for name in frappe.get_all("File", filters=guest_file, pluck="name"):
+				frappe.delete_doc("File", name, force=True)
 			frappe.db.set_single_value("System Settings", previous)
 			frappe.db.commit()  # nosemgrep
 

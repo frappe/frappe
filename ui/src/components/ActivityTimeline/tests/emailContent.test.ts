@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { createApp, h, nextTick, type App } from "vue";
 // Through the frontend's link: from inside ui/, frappe-ui resolves nowhere.
 import EmailContent from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/EmailContent.vue";
 
@@ -33,15 +33,20 @@ async function liveParses(run: () => Promise<void>): Promise<string[]> {
   return parsed;
 }
 
+const mounted: App[] = [];
+
 async function mountEmail(content: string): Promise<HTMLIFrameElement> {
   const root = document.createElement("div");
   document.body.appendChild(root);
-  createApp({ render: () => h(EmailContent, { content }) }).mount(root);
+  const app = createApp({ render: () => h(EmailContent, { content }) });
+  app.mount(root);
+  mounted.push(app);
   await nextTick();
   return root.querySelector("iframe")!;
 }
 
 afterEach(() => {
+  for (const app of mounted.splice(0)) app.unmount();
   document.body.replaceChildren();
 });
 
