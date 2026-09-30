@@ -25,8 +25,14 @@ const dataTheme = useDataTheme(); // needed for the iframe to inherit the host's
 // Later changes go through the watch at the bottom, which sets the attribute in place.
 const initialTheme = dataTheme.value;
 
-// reactive to content: strip inline colors + fold reply quotes into a CSS-only collapse
-const processedContent = computed(() => collapseReplyQuotes(stripEmailColors(props.content)));
+// one inert parse for every step: an element of the live page would run the email's handlers
+const processedContent = computed(() => {
+	const doc = new DOMParser().parseFromString(props.content, "text/html");
+	stripActiveContent(doc);
+	stripEmailColors(doc);
+	collapseReplyQuotes(doc);
+	return doc.body.innerHTML;
+});
 
 // gmail → outlook → generic; only the first kind present is collapsed.
 const REPLY_QUOTE_SELECTORS = [
@@ -35,15 +41,12 @@ const REPLY_QUOTE_SELECTORS = [
 	{ selector: "p.reply-to-content", forGmail: false },
 ];
 
-function collapseReplyQuotes(html: string): string {
-	const doc = new DOMParser().parseFromString(html, "text/html");
-	stripActiveContent(doc);
+function collapseReplyQuotes(doc: Document) {
 	for (const { selector, forGmail } of REPLY_QUOTE_SELECTORS) {
 		if (!doc.querySelector(selector)) continue;
 		doc.querySelectorAll(selector).forEach((el) => collapseQuote(doc, el, forGmail));
 		break;
 	}
-	return doc.body.innerHTML;
 }
 
 // drop scripts + on* handlers at parse time; the sandbox/CSP stay as the runtime backstop
