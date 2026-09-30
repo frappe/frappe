@@ -259,19 +259,6 @@ body.modal-open[style^="padding-right"] {
 	}
 }
 
-.modal .frappe-control[data-fieldname="option_toggle_button"] {
-	margin-top: 10px;
-
-	.form-group {
-		margin-bottom: 0;
-
-		button {
-			width: 28px;
-			height: 28px;
-		}
-	}
-}
-
 // modal is xs (for grids)
 .modal .hidden-xs {
 	display: none !important;

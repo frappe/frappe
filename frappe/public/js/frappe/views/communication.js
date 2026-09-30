@@ -132,6 +132,9 @@ frappe.views.CommunicationComposer = class {
 					<div class="email-composer-row email-composer-subject-row flex items-center gap-3 px-4 py-2 border-t">
 						<div class="email-composer-subject flex-1 min-w-0" data-slot="subject"></div>
 					</div>
+					<div class="email-composer-template-banner hidden flex items-center gap-2 px-4 py-2 bg-surface-gray-1 text-sm text-ink-gray-7">
+						<span class="email-composer-template-banner__text flex-1 truncate"></span>
+					</div>
 					${frappe.ui.divider.html()}
 				</div>
 				<div class="email-composer-message-area flex flex-col grow min-h-0 px-4 pt-4 pb-5">
@@ -718,8 +721,33 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.set_value("print_language", lang);
 	}
 
+	show_template_banner(template_name) {
+		const $banner = this.$composer.find(".email-composer-template-banner");
+		$banner
+			.find(".email-composer-template-banner__text")
+			.text(__("Default template: {0}", [template_name]));
+		$banner.find(".es-button").remove();
+		$banner
+			.append(
+				frappe.ui.button({
+					label: __("Apply"),
+					onclick: () => this.apply_email_template(template_name),
+				}),
+				frappe.ui.button({
+					icon: "x",
+					variant: "ghost",
+					size: "xs",
+					tooltip: __("Dismiss"),
+					css_class: "shrink-0",
+					onclick: () => $banner.addClass("hidden"),
+				})
+			)
+			.removeClass("hidden");
+	}
+
 	apply_email_template(template_name) {
 		if (!template_name) return;
+		this.$composer.find(".email-composer-template-banner").addClass("hidden");
 		frappe.call({
 			method: "frappe.email.doctype.email_template.email_template.get_email_template",
 			args: {
@@ -1220,10 +1248,15 @@ frappe.views.CommunicationComposer = class {
 		await this.set_values_from_last_edited_communication();
 		await this.set_content();
 
-		// set default email template for the first email in a document
-		if (this.frm && !this.is_a_reply && !this.content_set) {
-			const email_template = this.frm.meta.default_email_template || "";
-			await this.dialog.set_value("email_template", email_template);
+		// offer the default template on new emails, unless one is already applied
+		const default_template = this.email_template || this.frm?.meta.default_email_template;
+		if (
+			this.frm &&
+			!this.is_a_reply &&
+			default_template &&
+			!this.dialog.get_value("email_template")
+		) {
+			this.show_template_banner(default_template);
 		}
 
 		if (this.dialog.get_value("use_html")) {
