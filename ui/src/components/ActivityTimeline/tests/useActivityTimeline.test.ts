@@ -29,6 +29,8 @@ import {
   useActivityTimeline,
 } from "../useActivityTimeline";
 import { addPendingActivity } from "../pendingRows";
+import { clearDataCache, feedDelete, takeTicket } from "../../../cache";
+import { OLD, doc, readRecord } from "../../../cache/tests/helpers";
 import ActivityTimeline from "../ActivityTimeline.vue";
 import TimelineSkeleton from "../TimelineSkeleton.vue";
 
@@ -89,6 +91,13 @@ function socketEmail(docname: string, name: string, text: string, sender = "A <a
 
 const keys = (timeline: ReturnType<typeof useActivityTimeline>) =>
   timeline.activities.value.map((a) => a.key);
+
+/** Reads `count` fresh records the cache does not hold, each leaving an idle store; oldest first. */
+async function reloadUncached(count: number) {
+  const names = Array.from({ length: count }, freshDoc);
+  for (const name of names) await reloadActivityTimeline("ToDo", name);
+  return names;
+}
 
 const mounted: App[] = [];
 /** Mounts a host so the store subscribes to the socket, as a tab body would. */
@@ -383,6 +392,7 @@ describe("the prefetched read", () => {
     const visit = mountTimeline(name);
     await vi.waitFor(() => expect(visit.timeline.paginate.hasNextPage).toBe(true));
     await visit.timeline.paginate.fetchNextPage();
+    readRecord(doc(name, OLD));
     mounted.splice(0).forEach((app) => app.unmount());
 
     let answer!: (page: Page) => void;
@@ -447,6 +457,7 @@ describe("the prefetched read", () => {
   it("answers rows and a reload before any component mounts", async () => {
     const name = freshDoc();
     expect(activityTimelineRows("ToDo", name)).toEqual([]);
+    readRecord(doc(name, OLD));
     serve(newest("comment:1"));
     await reloadActivityTimeline("ToDo", name);
     expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:1"]);
@@ -776,25 +787,124 @@ describe("live rows", () => {
 });
 
 describe("idle stores", () => {
-  it("frees the least recently used idle store past twenty, never a mounted one", async () => {
-    const kept = freshDoc();
+  it("keeps every idle store whose record the cache holds, past twenty", async () => {
+    const cached = Array.from({ length: 25 }, freshDoc);
     serve({ newest: { activities: [c(1)], next: null } });
-    const { timeline } = mountTimeline(kept);
+    for (const name of cached) {
+      readRecord(doc(name, OLD));
+      await reloadActivityTimeline("ToDo", name);
+    }
+    const uncached = await reloadUncached(20);
+    for (const name of [...cached, ...uncached]) expect(hasActivityTimeline("ToDo", name)).toBe(true);
+  });
+
+  it("keeps the twenty most recently used idle stores the cache does not hold, never a mounted one", async () => {
+    const shown = freshDoc();
+    const { timeline } = mountTimeline(shown);
     await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
 
-    const evicted = freshDoc();
+    const oldest = freshDoc();
     serve({ newest: { activities: [row("comment", "comment:C1", "2026-01-05", { content: "<p>hi</p>" })], next: null } });
-    await reloadActivityTimeline("ToDo", evicted);
+    await reloadActivityTimeline("ToDo", oldest);
     const draft = { type: "comment" as const, timestamp: "2026-01-05", data: { name: "", content: "<p>hi</p>" } };
-    addPendingActivity("ToDo", evicted, draft).resolve("comment:C1");
-    expect(activityTimelineRows("ToDo", evicted)[0]).toHaveProperty("renderKey");
+    addPendingActivity("ToDo", oldest, draft).resolve("comment:C1");
+    expect(activityTimelineRows("ToDo", oldest)[0]).toHaveProperty("renderKey");
 
-    for (let i = 0; i < 20; i++) await reloadActivityTimeline("ToDo", freshDoc());
-    expect(activityTimelineRows("ToDo", kept).map((a) => a.key)).toEqual(["comment:1"]);
-    expect(activityTimelineRows("ToDo", evicted)).toEqual([]);
+    const newer = await reloadUncached(20);
+    expect(activityTimelineRows("ToDo", oldest)).toEqual([]);
+    for (const name of newer) expect(hasActivityTimeline("ToDo", name)).toBe(true);
+    expect(hasActivityTimeline("ToDo", shown)).toBe(true);
 
-    await reloadActivityTimeline("ToDo", evicted);
-    expect(activityTimelineRows("ToDo", evicted)[0]).not.toHaveProperty("renderKey");
+    await reloadActivityTimeline("ToDo", oldest);
+    expect(activityTimelineRows("ToDo", oldest)[0]).not.toHaveProperty("renderKey");
+  });
+
+  it("counts a store as used when its last component leaves", async () => {
+    const shown = freshDoc();
+    const { timeline } = mountTimeline(shown);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+    await reloadUncached(20);
+    mounted.splice(0).forEach((app) => app.unmount());
+    expect(hasActivityTimeline("ToDo", shown)).toBe(true);
+  });
+
+  it("frees no store whose read is still out", async () => {
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((done) => (answer = done)) });
+    const names = Array.from({ length: 21 }, freshDoc);
+    const reads = names.map((name) => prefetchActivityTimeline("ToDo", name));
+    answer({ activities: [c(1)], next: null });
+    await Promise.all(reads);
+    for (const name of names) expect(hasActivityTimeline("ToDo", name)).toBe(true);
+    for (const name of names) endActivityPrefetch("ToDo", name);
+  });
+
+  it("keeps a held store past the limit until its hold ends", async () => {
+    const held = freshDoc();
+    await prefetchActivityTimeline("ToDo", held);
+    await reloadUncached(20);
+    expect(hasActivityTimeline("ToDo", held)).toBe(true);
+    endActivityPrefetch("ToDo", held);
+    await reloadUncached(20);
+    expect(hasActivityTimeline("ToDo", held)).toBe(false);
+  });
+
+  it("keeps a staged read's store until the page takes its rows, whatever the cache and the limit do", async () => {
+    const name = freshDoc();
+    readRecord(doc(name, OLD));
+    await reloadActivityTimeline("ToDo", name);
+    serve({ newest: { activities: [c(2)], next: null } });
+    const take = await stageActivityTimelineRead("ToDo", name);
+    feedDelete(takeTicket(), "ToDo", name);
+    await reloadUncached(20);
+    take!();
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:2"]);
+    endActivityPrefetch("ToDo", name);
+  });
+
+  it("frees an idle store when its record leaves the cache, never a mounted one", async () => {
+    const idle = freshDoc();
+    readRecord(doc(idle, OLD));
+    await reloadActivityTimeline("ToDo", idle);
+
+    const shown = freshDoc();
+    readRecord(doc(shown, OLD));
+    const { timeline } = mountTimeline(shown);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+    feedDelete(takeTicket(), "ToDo", idle);
+    feedDelete(takeTicket(), "ToDo", shown);
+    expect(hasActivityTimeline("ToDo", idle)).toBe(false);
+    expect(hasActivityTimeline("ToDo", shown)).toBe(true);
+  });
+
+  it("keeps a held store when its record leaves the cache, then counts it among the twenty", async () => {
+    const name = freshDoc();
+    readRecord(doc(name, OLD));
+    await prefetchActivityTimeline("ToDo", name);
+    const take = await stageActivityTimelineRead("ToDo", name);
+    endActivityPrefetch("ToDo", name);
+    feedDelete(takeTicket(), "ToDo", name);
+    take!();
+    expect(hasActivityTimeline("ToDo", name)).toBe(true);
+
+    endActivityPrefetch("ToDo", name);
+    expect(hasActivityTimeline("ToDo", name)).toBe(true);
+    await reloadUncached(20);
+    expect(hasActivityTimeline("ToDo", name)).toBe(false);
+  });
+
+  it("holds a reload's new store until its read ends, whatever leaves the cache meanwhile", async () => {
+    const name = freshDoc();
+    readRecord(doc(name, OLD));
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((done) => (answer = done)) });
+    const reload = reloadActivityTimeline("ToDo", name);
+    clearDataCache();
+    readRecord(doc(name, OLD));
+    answer({ activities: [c(1)], next: null });
+    await reload;
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:1"]);
   });
 
   it("goes live on a later mount when realtime was not ready at the first", async () => {

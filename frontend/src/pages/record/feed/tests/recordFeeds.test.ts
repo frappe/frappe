@@ -201,8 +201,10 @@ describe("the eager read", () => {
 		expect(read.searchParams.get("types")).toBeNull();
 	});
 
-	it("ends both reads' first-paint pass together", () => {
-		endPrefetchFeed("CRM Deal", "EAGER-5");
+	it("ends only the read the address started", () => {
+		endPrefetchFeed("CRM Deal", "EAGER-5", { tab: "activity" });
+		endPrefetchFeed("CRM Deal", "EAGER-5", { tab: "emails" });
+		endPrefetchFeed("CRM Deal", "EAGER-5", { tab: "files" });
 		expect(vi.mocked(endActivityPrefetch).mock.calls).toEqual([
 			["CRM Deal", "EAGER-5"],
 			["CRM Deal", "EAGER-5", ["email"]],
@@ -225,14 +227,14 @@ describe("the eager read", () => {
 	it("ends it for an open a newer load cut short, or one that threw", async () => {
 		vi.mocked(endActivityPrefetch).mockClear();
 
-		await withFeedRead("CRM Deal", "EAGER-7", {}, async () => {});
-		const failed = withFeedRead("CRM Deal", "EAGER-8", {}, async () => {
+		await withFeedRead("CRM Deal", "EAGER-7", { tab: "activity" }, async () => {});
+		const failed = withFeedRead("CRM Deal", "EAGER-8", { tab: "activity" }, async () => {
 			throw new Error("record gone");
 		});
 
 		await expect(failed).rejects.toThrow("record gone");
 		const ended = vi.mocked(endActivityPrefetch).mock.calls.map(([, docname]) => docname);
-		expect(ended).toEqual(["EAGER-7", "EAGER-7", "EAGER-8", "EAGER-8"]);
+		expect(ended).toEqual(["EAGER-7", "EAGER-8"]);
 	});
 
 	it("starts the email read for the Emails tab", () => {

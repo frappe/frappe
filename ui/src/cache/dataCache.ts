@@ -201,6 +201,10 @@ export class DataCache {
     this.memo.clear();
   }
 
+  completeEntries(): DocumentEntry[] {
+    return [...this.readRecords].flatMap((key) => this.documents.get(key) ?? []);
+  }
+
   /** For tests: how many keys the entries, the gate and the rows memo hold. */
   sizes() {
     const entries = { documents: this.documents.size, lists: this.lists.size };

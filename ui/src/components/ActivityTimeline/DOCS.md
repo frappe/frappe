@@ -300,10 +300,15 @@ Returns:
 `prefetchActivityTimeline(doctype, docname, visibleTypes?)` starts the newest-page read
 before any component mounts and resolves once that page is in; a later `useActivityTimeline`
 with the same arguments uses it, and its first mount reads nothing more. A store outlives
-its components: the twenty most recently used stores with no component mounted are kept,
+its components. While the shared data cache holds the record's complete entry (the 50 most
+recently read records), the store stays; when that entry goes, the store is freed unless a
+component is mounted on it or a prefetch, staged read or reload holds it. An app that reads
+its records some other way keeps the 20 most recently used idle stores that nothing holds,
 and an older one is freed. Mounting beside a consumer already mounted on it reads nothing; the first mount
 after every consumer left re-reads the newest page, since the socket was closed in between.
-`endActivityPrefetch(doctype, docname, visibleTypes?)` says the first paint is over: a first
+`endActivityPrefetch(doctype, docname, visibleTypes?)` says the first paint is over. Call it
+once for each prefetch or staged read: each one holds the store until its end, and a held
+store is never freed, so a prefetch that is never ended keeps its store until the tab closes. A first
 mount after it re-reads too, since nothing listened between the prefetch and that mount.
 
 With no component mounted, `activityTimelineRows(doctype, docname, visibleTypes?)` returns

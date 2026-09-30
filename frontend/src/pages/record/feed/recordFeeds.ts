@@ -199,7 +199,7 @@ export async function withFeedRead(
 	try {
 		await open(feedRead);
 	} finally {
-		endPrefetchFeed(doctype, docname);
+		endPrefetchFeed(doctype, docname, query);
 	}
 }
 
@@ -215,10 +215,11 @@ export function feedInMemory(doctype: string, docname: string, query: LocationQu
 	return addressedTab(query) !== ACTIVITY_TAB || hasActivityTimeline(doctype, docname);
 }
 
-/** After the first paint: a feed body that mounts later catches up on what the eager read missed. */
-export function endPrefetchFeed(doctype: string, docname: string) {
-	endActivityPrefetch(doctype, docname);
-	endActivityPrefetch(doctype, docname, EMAIL_TYPES);
+/** After the first paint: ends the read `prefetchFeed` started for the same address, once. */
+export function endPrefetchFeed(doctype: string, docname: string, query: LocationQuery) {
+	const tab = addressedTab(query);
+	if (tab === EMAILS_TAB) endActivityPrefetch(doctype, docname, EMAIL_TYPES);
+	if (tab === ACTIVITY_TAB) endActivityPrefetch(doctype, docname);
 }
 
 /** `?activity=<key>`, or `""`. */

@@ -165,7 +165,8 @@ cut or a `ui/` change reshapes them.
 
 ### 3. `ui` data
 
-The list is what `ui/` exports from its root index and from `@framework/ui/api`.
+The list is what `ui/` exports from its root index and from `@framework/ui/api`, plus what the
+shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 
 | Concept | What it is |
 | --- | --- |
@@ -179,7 +180,7 @@ The list is what `ui/` exports from its root index and from `@framework/ui/api`.
 | Comment calls (`addComment`, `updateComment`, `removeComment`) | Post, edit and delete a comment |
 | File calls (`uploadFile`, `attachFile`, `removeAttachment`, `downloadFile`) | Upload in chunks and attach to a record |
 | Session calls (`getSession`, `logout`, `getTranslations`) | The signed-in user, sign-out, and translations |
-| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 50. `holdDocument` keeps an entry past every limit while a field on screen shows it |
+| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 50. `holdDocument` keeps an entry past every limit while a field on screen shows it. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`) | Fetches and holds each doctype's meta. Clears itself on `doctype_update` |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |

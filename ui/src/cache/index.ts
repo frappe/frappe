@@ -12,6 +12,9 @@ export { listCacheKey } from "./listKey";
 const cache = new DataCache();
 // The maps are plain and this counter moves once per feed, so a sync watcher sees a whole reply.
 const version = shallowRef(0);
+const leaveListeners = new Set<RecordLeft>();
+
+type RecordLeft = (doctype: string, name: string) => void;
 
 /** Reactive: a `computed` over it re-runs when the entry changes. */
 export function readCachedDocument(doctype: string, name: string): DocumentEntry | undefined {
@@ -28,6 +31,12 @@ export function readCachedList(doctype: string, query: ListQuery): ListEntry | u
 export function readCachedRows(doctype: string, query: ListQuery): DocumentRecord[] | undefined {
   track();
   return cache.rows(listCacheKey(doctype, query));
+}
+
+/** Calls the listener when a record's entry stops being complete or goes; returns the unsubscribe. */
+export function onRecordLeft(listener: RecordLeft): () => void {
+  leaveListeners.add(listener);
+  return () => leaveListeners.delete(listener);
 }
 
 export function clearDataCache(): void {
@@ -113,9 +122,20 @@ function track(): number {
 
 function feed(apply: () => void): void {
   const before = cache.changes;
+  const complete = leaveListeners.size ? cache.completeEntries() : [];
   try {
     apply();
   } finally {
-    if (cache.changes !== before) version.value++;
+    if (cache.changes !== before) {
+      version.value++;
+      announceLeft(complete);
+    }
+  }
+}
+
+function announceLeft(complete: DocumentEntry[]): void {
+  const left = complete.filter((entry) => !cache.document(entry.doctype, entry.name)?.complete);
+  for (const entry of left) {
+    for (const listener of leaveListeners) listener(entry.doctype, entry.name);
   }
 }
