@@ -5,6 +5,11 @@ frappe.provide("frappe.views");
 /*
  * Kanban list view — loads card data from the server.
  *
+ * @deprecated Classic Kanban engine, superseded by frappe.views.KanbanV2View.
+ * Used for boards with "Use Kanban v2" (Kanban Board.use_kanban_v2) off, which
+ * are boards made before v2; see list_factory.js. Do not add features here;
+ * port them to kanban_v2.
+ *
  * This file fetches cards in pages and keeps them in memory (this.data).
  * The board UI (kanban_board.bundle.js) only draws the cards you can see on screen.
  *
@@ -579,11 +584,15 @@ frappe.views.KanbanView.get_kanbans = function (doctype) {
 
 	return get_kanban_boards().then((kanban_boards) => {
 		if (kanban_boards) {
+			frappe.views._kanban_engine_cache = frappe.views._kanban_engine_cache || {};
 			kanban_boards.forEach((board) => {
 				let route = `/desk/${frappe.router.slug(board.reference_doctype)}/view/kanban/${
 					board.name
 				}`;
 				kanbans.push({ name: board.name, route: route });
+				// Prime the engine cache so switching to this board picks the right
+				// UI without another round-trip (see ListFactory.get_kanban_engine).
+				frappe.views._kanban_engine_cache[board.name] = !!cint(board.use_kanban_v2);
 			});
 		}
 

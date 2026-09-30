@@ -70,6 +70,9 @@
 	}
 	.selected-icon {
 		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		width: 22px;
 		height: 22px;
 		border-radius: 5px;
@@ -90,7 +93,7 @@
 
 .data-row.row {
 	.selected-icon {
-		top: calc(50% - 11px);
+		top: 50%;
 		z-index: 2;
 	}
 }

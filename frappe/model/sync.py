@@ -198,10 +198,11 @@ def get_doc_files(files, start_path, doctypes=None):
 	if not general_walk:
 		return files
 
-	# List Filters: doctype/{document_type}/list_filter/{name}.json
-	for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", "list_filter", "*.json")):
-		if doc_path not in files:
-			files.append(doc_path)
+	# List Filters and Kanban Boards: doctype/{document_type}/{list_filter,kanban_board}/{name}.json
+	for folder in ("list_filter", "kanban_board"):
+		for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", folder, "*.json")):
+			if doc_path not in files:
+				files.append(doc_path)
 
 	# DocType Settings Maps: doctype_settings_map/{name}.json
 	for doc_path in glob.glob(os.path.join(start_path, "doctype_settings_map", "*.json")):
@@ -261,6 +262,7 @@ ORPHANABLE_ENTITIES = [
 	"Sidebar",
 	"Dock",
 	"List Filter",
+	"Kanban Board",
 ]
 # Retiring with the icon-grid batch, together with the fixture import it mirrors; see
 # `frappe/desk/RETIRING.md`.
@@ -288,6 +290,7 @@ def remove_orphan_entities(entity_types=None):
 		"Dock": {"standard": 1},
 		# a user's own or a site-wide layout is never backed by a file
 		"List Filter": {"is_standard": 1},
+		"Kanban Board": {"is_standard": "Yes"},
 	}
 	if entity_types:
 		entities = entity_types if isinstance(entity_types, list) else [entity_types]
