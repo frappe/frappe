@@ -935,11 +935,9 @@ frappe.ui.Sidebar = class Sidebar {
 		this.load_expanded_state();
 		this.apply_expanded_state();
 		this.wrapper.addClass("sidebar-editing");
-		// The editor is laid over the column's own bands, which are made inert so the keyboard
-		// cannot reach them underneath it.
-		const $column = this.wrapper.find(".body-sidebar");
-		$column.children().prop("inert", true);
-		return $(`<div class="sidebar-editor"></div>`).appendTo($column);
+		return $(`<div class="sidebar-editor"></div>`).appendTo(
+			this.wrapper.find(".body-sidebar")
+		);
 	}
 
 	end_editing(editor) {
@@ -947,7 +945,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.editor = null;
 		this.wrapper.removeClass("sidebar-editing");
 		this.wrapper.find(".sidebar-editor").remove();
-		this.wrapper.find(".body-sidebar").children().prop("inert", false);
 		this.load_expanded_state();
 		this.apply_expanded_state();
 	}

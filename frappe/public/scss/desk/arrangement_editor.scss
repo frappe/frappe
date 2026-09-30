@@ -2,9 +2,10 @@
 // It is drawn in the sidebar's own column, so its rows are sidebar rows: the sidebar's styles draw
 // them, and this file adds only what editing needs on top.
 
-// The editor is laid over the column's own bands, which stay in place underneath it (and are made
-// inert by `begin_editing`). The edge that would fold the column to its rail steps aside.
+// The header stays as it is, and the editor takes the place of the bands under it. The edge that
+// would fold the column to its rail steps aside.
 .body-sidebar-container.sidebar-editing {
+	.body-sidebar > :not(.sidebar-header):not(.sidebar-editor),
 	.sidebar-edge,
 	.sidebar-collapse-arrow {
 		display: none;
@@ -12,15 +13,14 @@
 }
 
 .sidebar-editor {
-	position: absolute;
-	inset: 0;
-	z-index: 1;
 	display: flex;
+	flex: 1;
 	flex-direction: column;
-	background: var(--desk-sidebar-bg);
+	min-height: 0;
 
-	// The header's band: what is being edited, over the layer switch.
+	// Under the header: what is being edited, over the layer switch.
 	.ws-head {
+		border-top: 1px solid var(--outline-gray-1);
 		padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2) calc(var(--spacing) * 1.5);
 		border-bottom: 1px solid var(--outline-gray-1);
 	}
@@ -32,6 +32,12 @@
 		padding: 0 calc(var(--spacing) * 2);
 		font-size: var(--text-xs);
 		color: var(--ink-gray-5);
+
+		// A global icon rule centres glyphs with auto margins, which here would push the text away.
+		svg {
+			flex: none;
+			margin: 0;
+		}
 
 		.ws-caption-text {
 			@include truncate();
