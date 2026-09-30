@@ -24,22 +24,14 @@
 				'pfb-history-row--current':
 					viewing_version?.published || (!has_draft && !viewing_version),
 			}"
-			@click="
-				has_draft
-					? view({
-							published: true,
-							label: __('Published version'),
-							when: when(print_format.modified),
-					  })
-					: store.versions.exit()
-			"
+			@click="has_draft ? view_published() : store.versions.exit()"
 		>
 			<span class="pfb-history-dot" data-kind="published"></span>
 			<div class="pfb-history-text">
 				<div class="pfb-history-name">{{ __("Published version") }}</div>
 				<div class="pfb-history-meta">
-					{{ has_draft ? __("What prints now") : __("Current version") }} ·
-					{{ when(print_format.modified) }}
+					{{ has_draft ? __("What prints now") : __("Current version") }}
+					<template v-if="published_when"> · {{ published_when }}</template>
 				</div>
 			</div>
 			<button
@@ -52,7 +44,9 @@
 				@click.stop="discard"
 				v-html="frappe.utils.icon('rotate-ccw', 'sm')"
 			></button>
-			<span v-html="frappe.avatar(print_format.modified_by, 'avatar-xs')"></span>
+			<span
+				v-html="frappe.avatar(applied?.owner || print_format.modified_by, 'avatar-xs')"
+			></span>
 		</div>
 		<div v-if="versions.length" class="pfb-history-label">{{ __("Saved versions") }}</div>
 		<div
@@ -98,12 +92,18 @@
 </template>
 
 <script setup>
-import { inject, onMounted } from "vue";
+import { computed, inject, onMounted } from "vue";
 
 const store = inject("$store");
 const { print_format } = store;
 const { has_draft } = store.draft;
 const { list: versions, viewing: viewing_version } = store.versions;
+
+const applied = computed(() => versions.value.find((v) => v.type !== "Manual"));
+const published_when = computed(() => {
+	if (applied.value) return when(applied.value.creation);
+	return has_draft.value ? "" : when(print_format.value.modified);
+});
 
 function when(value) {
 	return frappe.datetime.prettyDate(value);
@@ -111,6 +111,10 @@ function when(value) {
 
 function view(version) {
 	store.versions.view(version);
+}
+
+function view_published() {
+	view({ published: true, label: __("Published version"), when: published_when.value });
 }
 
 function restore(v) {
