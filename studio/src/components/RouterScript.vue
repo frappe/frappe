@@ -100,9 +100,9 @@ const fileSource = {
 const fieldSource = {
 	title: "Router Script",
 	async load() {
-		const saved = store.activeApp?.router_script || ""
-		setLoaded(saved)
-		if (!saved) script.value = BOILERPLATE
+		const saved = store.activeApp?.router_script
+		if (!saved) await store.updateActiveApp("router_script", BOILERPLATE)
+		setLoaded(saved || BOILERPLATE)
 	},
 	async save(source: string) {
 		// an object literal only parses as an expression
