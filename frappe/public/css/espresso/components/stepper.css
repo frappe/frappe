@@ -7,12 +7,12 @@
  * Markup contract (framework-neutral, like every es component):
  *
  *   <nav class="es-stepper" aria-label="...">
- *     <button class="es-stepper__step" data-state="completed" data-completed="true">
+ *     <button type="button" class="es-stepper__step" data-state="completed" data-completed="true">
  *       <span class="es-stepper__marker">(check)</span>
  *       <span class="es-stepper__label">Config</span>
  *     </button>
- *     <span class="es-stepper__connector" data-completed="true"></span>
- *     <button class="es-stepper__step" data-state="active" aria-current="step">…</button>
+ *     <span class="es-stepper__connector" aria-hidden="true" data-completed="true"></span>
+ *     <button type="button" class="es-stepper__step" data-state="active" aria-current="step">…</button>
  *     …
  *   </nav>
  *
@@ -28,7 +28,8 @@
  * order; the click guard blocks them and calls on_locked_click.
  *
  * Label-below mode (JS option `label_below`) adds es-stepper--label-below,
- * which stacks each label under its marker.
+ * which stacks each label under its marker. Set --es-stepper-steps on the
+ * nav to the step count; it caps each step's width.
  *
  * Compact mode (JS option `compact`) renders the frappe.ui.progress interval
  * form with a "Step x of y" hint for narrow layouts; mount a compact and a
