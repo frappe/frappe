@@ -3,10 +3,14 @@ import importlib
 import multiprocessing
 import os
 import subprocess
+import tempfile
+import time
+import unittest
 from pathlib import Path
 
 import frappe
 from frappe.commands.testing import main as run_tests
+from frappe.tests.utils.generators import _clear_test_log
 
 
 def restore_site(snapshot: Path, site_path: Path) -> None:
@@ -29,15 +33,42 @@ def preload_modules(site: str, modules: list[str]) -> None:
 		frappe.destroy()
 		if invalidator_thread := getattr(frappe.client_cache, "invalidator_thread", None):
 			invalidator_thread.stop()
+			invalidator_thread.pubsub.close()
 			invalidator_thread.join()
 		frappe.cache = None
 		frappe.client_cache = None
 
 
+def prepare_site(site: str, app: str) -> None:
+	from frappe.testing import TestConfig
+	from frappe.testing.environment import (
+		IntegrationTestPreparation,
+		_cleanup_after_tests,
+		_initialize_test_environment,
+	)
+
+	config = TestConfig()
+	_initialize_test_environment(site, config)
+	try:
+		_clear_test_log()
+		IntegrationTestPreparation(config)(unittest.TestSuite(), app, "integration")
+	finally:
+		try:
+			_cleanup_after_tests()
+		finally:
+			frappe.destroy()
+
+
 def run_module(site: str, app: str, module: str) -> None:
 	try:
 		frappe.init(site)
-		run_tests(site=site, app=app, module=module)
+		run_tests(
+			site=site,
+			app=app,
+			module=module,
+			skip_before_tests=True,
+			preserve_test_records=True,
+		)
 	finally:
 		frappe.destroy()
 
@@ -75,9 +106,19 @@ def main() -> None:
 	site_path = sites_path / args.site
 
 	os.chdir(sites_path)
-	restore_site(snapshot, site_path)
-	preload_modules(args.site, modules)
-	failed_modules = run_modules(args.site, args.app, modules, snapshot, site_path)
+	with tempfile.TemporaryDirectory(prefix="sqlite-test-site-", dir=snapshot.parent) as temp_dir:
+		prepared_snapshot = Path(temp_dir) / args.site
+		started = time.monotonic()
+		restore_site(snapshot, site_path)
+		prepare_site(args.site, args.app)
+		restore_site(site_path, prepared_snapshot)
+		print(f"Prepared SQLite test site in {time.monotonic() - started:.3f}s", flush=True)
+		started = time.monotonic()
+		preload_modules(args.site, modules)
+		print(f"Preloaded {len(modules)} test modules in {time.monotonic() - started:.3f}s", flush=True)
+		started = time.monotonic()
+		failed_modules = run_modules(args.site, args.app, modules, prepared_snapshot, site_path)
+		print(f"Ran {len(modules)} test modules in {time.monotonic() - started:.3f}s", flush=True)
 	if failed_modules:
 		print("Failed modules:", flush=True)
 		for module in failed_modules:
