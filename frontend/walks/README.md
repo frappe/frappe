@@ -82,6 +82,11 @@ The config serves `/apps` from the checkout and sends every other bench path to 
 bench. It needs `frontend/manifest.json`; copy the one from a built checkout and point the
 `frappe` app's source directory at this checkout. `WALK_PORT` changes the port.
 
+The source is served unbundled, about 1800 requests and 65 MB for the first list, so the
+`slow` network does not load within the walk's limit. For `NETWORK=slow`, build the
+checkout to a folder outside the bench with the same config and serve it with
+`vite preview`; do not run `bench build` for it.
+
 ## Run
 
 ```sh
