@@ -303,6 +303,7 @@ class TestDBUpdate(IntegrationTestCase):
 		frappe.db.add_index(doctype.name, ["status"])
 		self.assertTrue(get_table_column(doctype.name, "status").index)
 
+	@run_only_if(db_type_is.POSTGRES)
 	def test_manual_index_on_one_field_survives_alter(self):
 		"""A plain index added by hand on one field is kept by the next alter"""
 

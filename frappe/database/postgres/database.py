@@ -622,6 +622,24 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		if not (using or where or include):
 			self.persist_search_index(doctype, fields)
 
+	def persist_search_index(self, doctype: str, fields: list[str]) -> None:
+		"""Set `search_index` on a single field indexed outside install or migrate, so alter keeps the index."""
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		if len(fields) != 1 or frappe.flags.in_install or frappe.flags.in_migrate:
+			return
+		# a raw table, a standard column or a prefix length like `field(10)` has no docfield to mark
+		if not self.exists("DocType", doctype) or not frappe.get_meta(doctype).has_field(fields[0]):
+			return
+		make_property_setter(
+			doctype,
+			fields[0],
+			property="search_index",
+			value="1",
+			property_type="Check",
+			for_doctype=False,  # Applied on docfield
+		)
+
 	def _index_target(self, fields: list[str], using: str | None) -> str:
 		"""The column list (or functional expression) an index is built over, per `using` mode."""
 		if using == "gin_trgm":
