@@ -595,6 +595,21 @@ class TestDBUpdate(IntegrationTestCase):
 			)[0][0]
 		self.assertEqual(length, 64)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_generated_column_keeps_unique_index(self):
+		"""A generated column is never a deleted field, so sync must keep its unique index"""
+		doctype = new_doctype().insert()
+		table = f"tab{doctype.name}"
+		column = f"key_{frappe.generate_hash(length=6)}"
+		frappe.db.sql_ddl(
+			f"ALTER TABLE `{table}` ADD COLUMN `{column}` VARCHAR(140)"
+			" GENERATED ALWAYS AS (UPPER(`some_fieldname`)) STORED"
+		)
+		frappe.db.sql_ddl(f"CREATE UNIQUE INDEX `unique_{column}` ON `{table}` (`{column}`)")
+
+		frappe.db.updatedb(doctype.name)
+		self.assertTrue(frappe.db.has_index(table, f"unique_{column}"))
+
 
 class TestDBUpdateSanityChecks(IntegrationTestCase):
 	@skipIf(

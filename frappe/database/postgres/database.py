@@ -778,7 +778,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			COALESCE(BOOL_OR(NOT b.is_unique), false) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			COALESCE(BOOL_OR(b.is_unique AND NOT b.is_primary), false) AS unique,
-			COALESCE(a.is_nullable = 'NO', false) AS not_nullable
+			COALESCE(a.is_nullable = 'NO', false) AS not_nullable,
+			COALESCE(a.is_generated = 'ALWAYS', false) AS is_generated
 			FROM information_schema.columns a
 			LEFT JOIN (
 				SELECT att.attname AS column_name,
@@ -797,7 +798,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			) b ON b.column_name = a.column_name
 			WHERE a.table_name = %(table_name)s
 				AND a.table_schema = %(schema)s
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale, a.datetime_precision;
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale, a.datetime_precision, a.is_generated;
 		""",
 			{"table_name": table_name, "schema": self.db_schema},
 			as_dict=1,

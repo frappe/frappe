@@ -42,14 +42,7 @@ def setup_database():
 		db_conn.commit()
 		db_conn.sql("end")
 		db_conn.sql(f'GRANT ALL ON SCHEMA {db_conn.db_schema} TO "{frappe.conf.db_user}"')
-		db_conn.sql("end")  # persist the schema grant before the best-effort setup below
-		# Best-effort setup for the Postgres Query Stats report: skip silently if the extension
-		# is unavailable or the root role cannot create it.
-		try:
-			db_conn.sql("CREATE EXTENSION IF NOT EXISTS pg_stat_statements")
-			db_conn.sql("end")
-		except Exception:
-			db_conn.rollback()
+		db_conn.sql("end")  # persist the schema grant
 	finally:
 		db_conn.close()
 
