@@ -1,8 +1,9 @@
-// Return-visit walk: counts skeletons and field and row paints on each step of a return visit.
-// How to run it: see README.md.
+// Return-visit walk: counts skeletons, field and row paints, and the paints of a Client Script's
+// `page.cached` item on each step of a return visit. How to run it: see README.md.
 
 import { writeFileSync } from "node:fs";
 import { chromium } from "playwright";
+import { PENDING, installCachedScript, removeCachedScript } from "./cachedScript.js";
 import { MARKERS, installCounters } from "./paintCounters.js";
 import { BASE_URL, NETWORKS, logIn, setUp } from "./setup.js";
 
@@ -15,15 +16,31 @@ const RETURN_STEPS = [
 	"record-via-sidebar",
 ];
 
-const COLUMNS = ["step", "skel", "maxField", "maxRow", "rows", "fields", "ms", "pass", "over one"];
+const COLUMNS = [
+	"step",
+	"skel",
+	"maxField",
+	"maxRow",
+	"rows",
+	"fields",
+	"script",
+	"ms",
+	"pass",
+	"over one",
+];
 
 async function main() {
 	const { jsonPath, networks, target } = await setUp();
+	await installCachedScript(target.doctype);
 	const runs = [];
-	for (const name of networks) {
-		const run = await new ReturnVisitWalk(target, name).run();
-		printRun(run);
-		runs.push(run);
+	try {
+		for (const name of networks) {
+			const run = await new ReturnVisitWalk(target, name).run();
+			printRun(run);
+			runs.push(run);
+		}
+	} finally {
+		await removeCachedScript();
 	}
 	if (jsonPath) writeFileSync(jsonPath, JSON.stringify({ target, runs }, null, 2));
 	process.exit(runs.every((run) => run.passed) ? 0 : 1);
@@ -106,7 +123,7 @@ class ReturnVisitWalk {
 	}
 
 	ready(name) {
-		const selector = name.includes("list") ? MARKERS.row : MARKERS.field;
+		const selector = onList(name) ? MARKERS.row : MARKERS.field;
 		return this.page.waitForSelector(selector, { timeout: this.capMs }).then(
 			() => true,
 			() => false
@@ -158,6 +175,7 @@ class ReturnVisitWalk {
 function summarize(name, counts, ms, settled) {
 	const fields = paintSummary(counts.fields);
 	const rows = paintSummary(counts.rows);
+	const script = onList(name) ? null : scriptSummary(counts);
 	const step = {
 		step: name,
 		skeletons: counts.skeletons,
@@ -170,12 +188,34 @@ function summarize(name, counts, ms, settled) {
 		fieldsPainted: fields.painted,
 		fieldPaints: counts.fields,
 		rowPaints: counts.rows,
+		script,
 		ms,
 		settled,
 	};
 	if (RETURN_STEPS.includes(name))
-		step.pass = settled && !step.skeletons && fields.max <= 1 && rows.max <= 1;
+		step.pass =
+			settled &&
+			!step.skeletons &&
+			fields.max <= 1 &&
+			rows.max <= 1 &&
+			(!script || script.drawnOnce);
 	return step;
+}
+
+// A record kept on screen may draw nothing new; what it shows must still carry the value.
+function scriptSummary({ script, scriptShown }) {
+	const drawn = Object.values(script).flat();
+	const withValue = (text) => text !== PENDING;
+	const drawnOnce =
+		drawn.length <= 1 &&
+		drawn.every(withValue) &&
+		scriptShown.length === 1 &&
+		scriptShown.every(withValue);
+	return { drawn, shown: scriptShown, drawnOnce };
+}
+
+function onList(name) {
+	return name.includes("list");
 }
 
 function paintSummary(paints) {
@@ -194,7 +234,13 @@ function printRun(run) {
 	for (const step of run.steps) {
 		printLine(tableCells(step));
 		if (step.skeletons) write(`${"".padEnd(20)}skeletons: ${markerList(step)}`);
+		if (step.script && !step.script.drawnOnce) write(`${"".padEnd(20)}${scriptNote(step)}`);
 	}
+}
+
+function scriptNote({ script }) {
+	const texts = (list) => list.map((text) => JSON.stringify(text)).join(" > ") || "nothing";
+	return `script drew ${texts(script.drawn)}, shows ${texts(script.shown)}`;
 }
 
 function write(text) {
@@ -213,6 +259,7 @@ function tableCells(step) {
 		step.maxRowPaints,
 		step.rowsPainted,
 		step.fieldsPainted,
+		step.script ? step.script.drawn.length : "-",
 		step.settled ? step.ms : `>${step.ms}`,
 		step.pass === undefined ? "-" : step.pass ? "yes" : "NO",
 		[...step.fieldsOverOne, ...step.rowsOverOne].join(" "),

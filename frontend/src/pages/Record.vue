@@ -555,13 +555,16 @@ function openFromMemory(opening: Opening): Promise<void> | null {
 		blank();
 		return null;
 	}
-	const reads = backgroundReads(target);
+	const reads = backgroundReads(target, created);
 	landPaint(created, pointer);
 	return applyInBackground(mine, created, reads);
 }
 
 // Each read resolves to its applier, which may return a re-read to wait for; they all apply in one step.
-function backgroundReads(target: Opening["target"]): BackgroundRead[] {
+function backgroundReads(
+	target: Opening["target"],
+	created: RecordPageController
+): BackgroundRead[] {
 	const before = docinfo.value;
 	const reads: BackgroundRead[] = [
 		loadRecord(target.doctype, target.name).then(
@@ -571,6 +574,9 @@ function backgroundReads(target: Opening["target"]): BackgroundRead[] {
 	];
 	const rows = feeds.rereadKept(route.query);
 	if (rows) reads.push(rows);
+	// Called after `paintNow`, which reads the keys to fetch. Only a replay reads the values,
+	// so they need no applier.
+	reads.push(created.fetchCached().then(() => () => {}));
 	return reads;
 }
 

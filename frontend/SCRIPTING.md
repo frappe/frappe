@@ -24,19 +24,55 @@ with no `else` to undo it. Scripts run in `run_order`, and on one name the last 
 wins.
 
 `onRefresh` should be synchronous. A replay reads what the page already holds:
-`page.doc`, `page.saved`, `page.meta` and the rows. An `async onRefresh`, or one that
+`page.doc`, `page.saved`, `page.meta`, the rows, and server data read with `page.cached`,
+described below. An `async onRefresh`, or one that
 returns a promise, still works, but what it does after its first `await` lands later, in
 one paint when it settles: the first paint waits up to 500 ms for it; after that it lands
 as a later paint. The page stops waiting for it after 5 seconds. A member kept from
 `page` before the first `await` (`const { tabs } = page`) is not blocked once the reader
 has left, except `save`, `reload` and `refresh`, which then do nothing; do not keep one.
-It also gives a
-development warning and files an Error Log entry. A helper for cached server reads is coming; move server reads to it when it lands.
+It also gives a development warning and files an Error Log entry, both naming
+`page.cached`. Move the server read to `page.cached`, and the page paints once.
 
 ```js
 export default {
   onRefresh(page) {
     if (page.doc.status === 'Won') page.header.hide('save')
+  },
+}
+```
+
+`page.cached(key, fetcher)` is how `onRefresh` reads server data. It returns at once the
+value it holds for `key`, or `undefined` when it holds none yet. The page runs `fetcher`
+once per visit for each key:
+
+- On a first visit, the first paint waits for the fetch, within the 500 ms limit. The page
+  then replays once with the value. That replay drops its acts, as the second replay of a
+  return visit does.
+- On a return visit, the value from the earlier visit paints at once. The fetch runs with
+  the background reads, and the replay after them draws the new value if it changed.
+- A failed fetch keeps the value the page has, and the console names the script and the
+  key.
+
+The value is kept while the record is held in memory, and it goes with the record. A
+reload or a new tab starts with none. Each script has its own keys, so two scripts can use
+one key name. Put what the value depends on in the key. Read it in `onRefresh`, before any
+`await`: after an `await` the page cannot tell which script asks. A key read in another
+handler, or first read in the replay that draws a fetched value, is fetched with the next
+replay. The page waits at most 5 seconds for a fetch.
+
+```js
+export default {
+  onRefresh(page) {
+    const { customer, grand_total } = page.doc
+    const limit = page.cached(`credit-limit:${customer}`, () =>
+      page.call('myapp.api.credit_limit', { customer }),
+    )
+    if (limit !== undefined && grand_total > limit)
+      page.frame.add(
+        { name: 'over_limit', component: OverLimitBanner, props: { limit } },
+        { after: 'header' },
+      )
   },
 }
 ```
@@ -84,7 +120,8 @@ the console names what it waits for, and the rest lands when it arrives.
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`
 runs twice: once over the remembered record, then once more when the background reads
-return, the record with its parts and, if they were kept, the Activity rows. If nothing
+return: the record with its parts, the Activity rows if they were kept, and every
+`page.cached` key the first replay read. If nothing
 changed, the second replay draws nothing. Build new values in each replay: an object
 changed in place and handed over again reads as unchanged, so it is not drawn again. Acts
 in the first replay land as on a first visit; the second replay drops its acts with a

@@ -293,7 +293,8 @@ component group, with its main names.
 | [Source](./CONTEXT.md#source) context | Which source is registering or running now |
 | [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
 | Staging | Acts wait during a replay and appear at one commit |
-| Paint gate | When the page first paints, how a late `onRefresh` lands, when `onOpen` runs, and the one repaint for background reads on a return visit |
+| Paint gate | When the page first paints, how a late `onRefresh` or a first visit's `page.cached` fetch lands, when `onOpen` runs, and the one repaint for background reads on a return visit |
+| Cached reads | *New.* The engine behind `page.cached`: one fetch per key per visit, and a value kept while the record's complete entry stays in the data cache |
 | Held acts | *Changed.* One queue for the acts a script asks for during a replay (open, close, tab, focus, scroll). They run after the commit |
 | [Commit](./CONTEXT.md#commit) channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
 | [Field](./CONTEXT.md#field-overlay) and form tab overlays | Changes keyed by fieldname or tab identity |
@@ -371,6 +372,7 @@ the reference for each `page` member.
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
 | Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, navigate, show a toast |
+| `page.cached()` | *New.* Server data for `onRefresh`: the kept value at once, fetched once per visit |
 | [Surface](./CONTEXT.md#surface) verbs (`add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`, `Position`) | The same verbs on every list surface |
 | [Built-in](./CONTEXT.md#built-in) item names | The names a script hides or moves: frame, body, tabs, panel sections, actions, writers |
 | `page.quickActions`, `page.header`, `page.frame`, `page.body`, `page.tabs`, `page.panelSections` | The regions of the page around the form |

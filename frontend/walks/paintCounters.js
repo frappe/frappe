@@ -1,4 +1,5 @@
-// The in-page counters for the return-visit walk: skeletons added, and field and row paints.
+// The in-page counters for the return-visit walk: skeletons added, field and row paints, and
+// what the walk's Client Script drew.
 
 export const MARKERS = {
 	skeletons: [
@@ -24,12 +25,13 @@ export const MARKERS = {
 	row: 'a[data-slot="list-row"][href]',
 	field: "[data-record-body] [data-fieldname]",
 	title: "[data-crumbs] button > span[title]",
+	script: "[data-walk-script]",
 };
 
 // Runs in the page before any app code; serialized, so it may not close over anything.
 export function installCounters(markers) {
 	const skeletonSelector = markers.skeletons.join(", ");
-	const paintable = [markers.row, markers.field, markers.title].join(", ");
+	const paintable = [markers.row, markers.field, markers.title, markers.script].join(", ");
 	const painted = new WeakMap();
 	const pending = new Set();
 	let countedSkeletons = new WeakSet();
@@ -57,6 +59,7 @@ export function installCounters(markers) {
 					skeletonMarkers: {},
 					fields: {},
 					rows: {},
+					script: {},
 				});
 				state.stepStart = state.lastChange = performance.now();
 			},
@@ -75,6 +78,8 @@ export function installCounters(markers) {
 			skeletonMarkers: state.skeletonMarkers,
 			fields: state.fields,
 			rows: state.rows,
+			script: state.script,
+			scriptShown: [...document.querySelectorAll(markers.script)].map(visibleText),
 			quietMs: state.quietMs(),
 			changedAtMs: state.lastChange - state.stepStart,
 		};
@@ -146,12 +151,14 @@ export function installCounters(markers) {
 			if (!key || !element.isConnected || painted.get(element) === text) continue;
 			painted.set(element, text);
 			const [bucket, name] = key;
-			walk[bucket][name] = (walk[bucket][name] ?? 0) + 1;
+			if (bucket === "script") walk.script[name] = [...(walk.script[name] ?? []), text];
+			else walk[bucket][name] = (walk[bucket][name] ?? 0) + 1;
 		}
 		pending.clear();
 	}
 
 	function keyOf(element) {
+		if (element.matches(markers.script)) return ["script", element.dataset.walkScript];
 		if (element.matches(markers.row))
 			return ["rows", decodeURIComponent(element.getAttribute("href").split("/").pop())];
 		if (element.matches(markers.field)) {

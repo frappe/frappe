@@ -344,7 +344,7 @@ describe("ready", () => {
     await controller.refresh();
     expect(controller.ready.value).toBe(false);
     expect(warnings).toEqual([
-      "[record-page] slow.onRefresh on CRM Deal returned a promise; onRefresh should be synchronous. The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.",
+      "[record-page] slow.onRefresh on CRM Deal returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.",
     ]);
     const before = writes;
 
