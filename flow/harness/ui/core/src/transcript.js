@@ -142,6 +142,9 @@ function foldEvent(s, e) {
 			// abnormal endings leave a durable marker in the transcript flow
 			if (["aborted", "max_turns", "budget", "length", "denied"].includes(e.reason))
 				s.entries.push(e)
+			// a sub-agent never outlives its session's run, not even one a crash cut off
+			for (const child of Object.values(s.subagents ?? {}))
+				Object.assign(child, { running: false, liveLabel: null, partial: [] })
 			break
 		case "model_changed":
 			if (s.model !== e.model) s.contextWindow = null
