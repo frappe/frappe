@@ -52,9 +52,16 @@ import { confirm } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 
 const ROUTER_FILE = "router.ts"
-const STARTER_OBJECT = `{
+const BOILERPLATE = `{
+	// runs once before the first navigation
 	setup(router) {
-		router.beforeEach((to, from) => {})
+		router.beforeEach((to, from) => {
+			// return false to cancel, or a location to redirect
+		})
+
+		router.afterEach((to, from) => {
+			// e.g. track page views
+		})
 	},
 }`
 
@@ -95,7 +102,7 @@ const fieldSource = {
 	async load() {
 		const saved = store.activeApp?.router_script || ""
 		setLoaded(saved)
-		if (!saved) script.value = STARTER_OBJECT
+		if (!saved) script.value = BOILERPLATE
 	},
 	async save(source: string) {
 		// an object literal only parses as an expression
@@ -123,7 +130,7 @@ watch(
 )
 
 async function createFile() {
-	const starter = `export default ${STARTER_OBJECT}\n`
+	const starter = `export default ${BOILERPLATE}\n`
 	const created = await createStudioFile(location.value, ROUTER_FILE)
 	const written = await writeStudioFile(location.value, ROUTER_FILE, starter, created.hash)
 	store.hasRouterFile = true
