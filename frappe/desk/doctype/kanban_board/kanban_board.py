@@ -143,8 +143,7 @@ class KanbanBoard(Document):
 		self.seed_group_by_fields()
 
 	def seed_title_and_image_fields(self):
-		"""Pre-fill title and image fields for a new board. Old boards leave these
-		empty and the client falls back to the doctype's title/image field."""
+		"""Old boards leave these empty; the page then uses the doctype's fields."""
 		if not self.reference_doctype:
 			return
 		if not self.title_field:
@@ -153,30 +152,20 @@ class KanbanBoard(Document):
 			self.image_field = default_image_field(self.reference_doctype)
 
 	def seed_card_fields(self):
-		"""Pre-fill the card fields for a new board with sensible defaults (the
-		doctype's in-list-view / mandatory fields). Only runs when the board is
-		created and no card fields were configured; the new Kanban board falls
-		back to the same auto-picking when this table is left empty."""
 		self._seed_field_table("card_fields", default_card_fieldnames(self.reference_doctype))
 
 	def seed_preview_fields(self):
-		"""Pre-fill the hover-preview fields for a new board from the doctype's
-		preview-api fields (`in_preview`, else mandatory). Empty on old boards;
-		runtime then falls back: preview fields → preview api → card fields."""
 		self._seed_field_table("preview_fields", default_preview_fieldnames(self.reference_doctype))
 
 	def seed_group_by_fields(self):
-		"""Pre-fill the group-by options for a new board with the doctype's Select
-		fields (minus the column field, which already forms the board's columns).
-		No runtime fallback — an empty table simply hides the Group button, so the
-		user curates the list (add Link fields like Supplier, remove noise)."""
+		# no fallback: an empty table hides the Group button
 		self._seed_field_table("group_by_fields", default_group_by_fieldnames(self.reference_doctype))
 
 	def _seed_field_table(self, tablefield: str, fieldnames: list[str]):
 		if self.get(tablefield) or not self.reference_doctype:
 			return
 		meta = frappe.get_meta(self.reference_doctype)
-		# Don't repeat the column field, title, or image — those live elsewhere on the card.
+		# these already have their own place on the card
 		skip = {self.field_name, self.title_field, self.image_field}
 		for fieldname in fieldnames:
 			if fieldname in skip:
@@ -197,8 +186,6 @@ TITLE_FIELDTYPES = ("Data", "Text", "Small Text", "Text Editor")
 
 
 def default_title_field(doctype: str) -> str:
-	"""Card title field for a new board: doctype title_field when it is a text field,
-	else the first text field, else name (ID)."""
 	meta = frappe.get_meta(doctype)
 	title = meta.get("title_field")
 	if title:
@@ -212,8 +199,6 @@ def default_title_field(doctype: str) -> str:
 
 
 def default_image_field(doctype: str) -> str | None:
-	"""Card image field for a new board: doctype image_field, else the first
-	Attach Image field. None when the doctype has no image fields."""
 	meta = frappe.get_meta(doctype)
 	if meta.image_field:
 		return meta.image_field
@@ -222,9 +207,7 @@ def default_image_field(doctype: str) -> str | None:
 
 
 def default_card_fieldnames(doctype: str) -> list[str]:
-	"""Default fields to show on a card: the doctype's in-list-view fields,
-	falling back to its mandatory fields. Skips layout/table/no-value fields.
-	Mirrors the new Kanban board's client-side fallback."""
+	"""In-list-view fields, else mandatory ones; the page picks the same when the table is empty."""
 	from frappe.model import no_value_fields, table_fields
 
 	meta = frappe.get_meta(doctype)
@@ -244,11 +227,7 @@ def default_card_fieldnames(doctype: str) -> list[str]:
 
 
 def default_preview_fieldnames(doctype: str) -> list[str]:
-	"""Default fields for the hover preview — same source as
-	`frappe.desk.link_preview.get_preview_data`: `in_preview`, else mandatory.
-	Skips title/image (they head the preview) and layout/table/no-value fields.
-	Runtime fallback when the board table is empty: preview fields → these →
-	card fields (see the kanban_v2 compute_preview_fields logic)."""
+	"""Same source as link previews: in-preview fields, else mandatory ones."""
 	from frappe.model import no_value_fields, table_fields
 
 	meta = frappe.get_meta(doctype)
@@ -270,9 +249,6 @@ def default_preview_fieldnames(doctype: str) -> list[str]:
 
 
 def default_group_by_fieldnames(doctype: str) -> list[str]:
-	"""Group-by options to seed a new board: the doctype's Select fields. The
-	column field is dropped by `_seed_field_table` (it already splits the board
-	into columns)."""
 	meta = frappe.get_meta(doctype)
 	return [df.fieldname for df in meta.fields if df.fieldtype == "Select" and not df.hidden]
 
@@ -308,7 +284,6 @@ def get_kanban_boards(doctype: str):
 
 
 def ensure_kanban_board_permission(board: Document, ptype: str = "read") -> None:
-	"""Enforce Kanban Board access (private boards are owner-only)."""
 	frappe.has_permission("Kanban Board", ptype, doc=board, throw=True)
 
 
@@ -452,13 +427,9 @@ def get_kanban_board_data():
 
 
 def validate_kanban_group_by(board, group_by: str):
-	"""Reject group fields the board does not offer in the Group menu.
-
-	`_assign` is allowed only when Show Assigned To is on; everything else must
-	be listed in the board's Group By Fields (and still exist on the DocType).
-	"""
+	"""Only fields the board offers in its Group menu."""
 	if group_by == "_assign":
-		# Match client: missing/null defaults to on (cint(..., 1)).
+		# unset means on, as on the page
 		if not cint(board.show_assigned_to, 1):
 			frappe.throw(_("Invalid group field"), title=_("Kanban Board"))
 		return
@@ -471,11 +442,7 @@ def validate_kanban_group_by(board, group_by: str):
 @frappe.whitelist()
 @frappe.read_only()
 def get_kanban_group_values(board_name: str, group_by: str, filters: str | list | None = None):
-	"""Swimlane values for a board: the distinct values of `group_by` across the
-	board's cards (respecting board + runtime filters), most-populated first, with
-	counts and a trailing "not set" bucket. Capped so a high-cardinality Link
-	(Supplier, Customer) can't explode the board.
-	"""
+	"""Lane values with counts, most cards first, capped so a Link like Customer can't explode the board."""
 	from collections import Counter
 
 	board, _ = get_kanban_board_context(board_name)
@@ -489,8 +456,7 @@ def get_kanban_group_values(board_name: str, group_by: str, filters: str | list 
 
 	if group_by == "_assign":
 		counter = Counter()
-		# Bound the scan so large doctypes can't OOM workers. Counts past this
-		# window are approximate; lane list is still the top assignees within it.
+		# bounded so a large doctype can't exhaust the worker; counts past it are approximate
 		assign_scan_limit = 5000
 		for raw in frappe.get_list(doctype, filters=merged, pluck="_assign", limit=assign_scan_limit):
 			users = frappe.parse_json(raw) if raw else []
@@ -596,8 +562,7 @@ def update_order(board_name: str, order: str | dict):
 	order_dict = frappe.parse_json(order)
 
 	for col_name, cards in order_dict.items():
-		# Saved column.order can still list deleted docs (classic board syncs full
-		# order on load). Skip missing names and prune them from the stored order.
+		# the classic board's saved order can still list deleted documents
 		valid_cards = []
 		for card in cards:
 			column = frappe.db.get_value(doctype, card, fieldname)

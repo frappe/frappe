@@ -1,4 +1,3 @@
-// Drag-and-drop bindings over pragmatic-drag-and-drop; the move logic is in KanbanCore.
 import {
 	draggable,
 	dropTargetForElements,
@@ -6,10 +5,8 @@ import {
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { disableNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/disable-native-drag-preview";
 
-// NOTE: auto-scroll-while-dragging is hand-rolled in KanbanCore (the separate
-// pragmatic auto-scroll package isn't installed).
+// auto-scroll while dragging is done in KanbanCore; the pragmatic auto-scroll package isn't installed
 
-/** Which half of a card the pointer is over — decides insert-before/after. */
 export function closestEdge(rect, clientY) {
 	return clientY < rect.top + rect.height / 2 ? "top" : "bottom";
 }
@@ -22,7 +19,7 @@ export function bindCardDrag(el, data, hooks) {
 	return draggable({
 		element: el,
 		getInitialData: () => ({ ...data }),
-		// Hide the native drag image; KanbanCore draws its own.
+		// KanbanCore draws its own drag preview
 		onGenerateDragPreview: ({ nativeSetDragImage }) =>
 			disableNativeDragPreview({ nativeSetDragImage }),
 		onDragStart: ({ location }) =>
@@ -32,7 +29,6 @@ export function bindCardDrag(el, data, hooks) {
 	});
 }
 
-// Optional gate to reject drags from other boards/swimlanes.
 export function bindCardDropTarget(el, getData, hooks) {
 	return dropTargetForElements({
 		element: el,
@@ -52,10 +48,7 @@ export function bindCardDropTarget(el, getData, hooks) {
 	});
 }
 
-/**
- * @param {(args: { source: object }) => boolean} [canDrop]
- *        Same-board gate used by swimlanes so a card cannot land in another group.
- */
+// swimlanes pass canDrop so a card cannot land in another lane
 export function bindColumnDropTarget(el, data, canDrop) {
 	return dropTargetForElements({
 		element: el,

@@ -1,13 +1,13 @@
 /**
  * Per-doctype Kanban customization registry.
  *
- * Owning app (doctype folder `{doctype}_kanban.js`) usually assigns once:
+ * The owning app assigns it in `{doctype}_kanban.js`:
  *   frappe.kanban_v2.settings["Task"] = {
  *     card_context_menu() { ... },
  *     bulk_actions() { ... },
  *   };
  *
- * Another app (hooks `doctype_kanban_js`) should extend so the base stays:
+ * Other apps (hook `doctype_kanban_js`) extend it so the base stays:
  *   frappe.kanban_v2.extend_settings("Task", (super_) => ({
  *     card_context_menu(card, page) {
  *       return [
@@ -24,8 +24,7 @@
  *     select_styles: { ...super_.select_styles, blocked: "red" },
  *   }));
  *
- * Plain-object form auto-merges common keys (menu / bulk items append; styles /
- * callbacks / options / boards shallow-merge):
+ * An object patch merges instead: menu and bulk items append, other maps merge.
  *   frappe.kanban_v2.extend_settings("Task", {
  *     card_context_menu(card, page) {
  *       return [{ label: __("My Action"), onclick: () => {} }];
@@ -36,13 +35,11 @@
  *   });
  *
  * Move callbacks (canMoveCard, onBeforeCardMove, onCardMove, onAfterCardMove)
- * run once per card, for single and multi-card drags alike. `move.cardIds` lists
- * every card in the drag, so a hook can ask once for all of them.
+ * run once per card, also on multi-card drags; `move.cardIds` lists every card.
  * onBeforeCardMove may be async; returning false cancels the whole drag.
  */
 frappe.provide("frappe.kanban_v2.settings");
 
-// Function form gets the previous settings as super_; object form auto-merges.
 frappe.kanban_v2.extend_settings = function (doctype, patch) {
 	const parent = copy_kanban_settings(frappe.kanban_v2.settings[doctype] || {});
 	const next =
@@ -53,7 +50,6 @@ frappe.kanban_v2.extend_settings = function (doctype, patch) {
 	return next;
 };
 
-/** Shallow copy of settings plus nested maps we merge later. */
 function copy_kanban_settings(src) {
 	return {
 		...src,
@@ -64,7 +60,6 @@ function copy_kanban_settings(src) {
 	};
 }
 
-// Merge patch over parent: menu/bulk lists concat, other maps shallow-merge, boards merge recursively.
 function merge_kanban_settings(parent, patch) {
 	const out = { ...parent, ...patch };
 
@@ -91,7 +86,6 @@ function merge_kanban_settings(parent, patch) {
 	return out;
 }
 
-/** Compose parent+child list-returning hooks (context menu, bulk actions). */
 function compose_item_list(out, parent, patch, key) {
 	if (patch[key] && parent[key]) {
 		const base = parent[key];

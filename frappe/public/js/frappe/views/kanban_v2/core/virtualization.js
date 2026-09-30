@@ -1,4 +1,3 @@
-// Column virtualizer: caches measured card heights + prefix sums to render only the visible range.
 export class ColumnVirtualizer {
 	constructor(count, estimate = 84, overscan = 5) {
 		this.estimate = estimate;
@@ -8,7 +7,6 @@ export class ColumnVirtualizer {
 		this.setCount(count);
 	}
 
-	/** Resize the model, preserving already-measured heights. */
 	setCount(count) {
 		const old = this.heights;
 		this.heights = new Array(count);
@@ -24,7 +22,7 @@ export class ColumnVirtualizer {
 		return this.prefix[this.prefix.length - 1] ?? 0;
 	}
 
-	/** Record a measured height. Returns true if it changed the layout. */
+	// returns true if the height changed; call rebuild() after
 	measure(index, height) {
 		if (index < 0 || index >= this.heights.length) return false;
 		if (this.heights[index] === height) return false;
@@ -43,7 +41,6 @@ export class ColumnVirtualizer {
 		return this.prefix[Math.max(0, Math.min(index, this.heights.length))] ?? 0;
 	}
 
-	/** Visible window for a given scroll position + viewport height. */
 	range(scrollTop, viewport) {
 		const n = this.heights.length;
 		if (n === 0) return { start: 0, end: 0, padTop: 0, padBottom: 0 };
@@ -61,7 +58,6 @@ export class ColumnVirtualizer {
 		};
 	}
 
-	/** Largest index i where prefix[i] <= offset. */
 	indexAt(offset) {
 		let lo = 0;
 		let hi = this.heights.length;

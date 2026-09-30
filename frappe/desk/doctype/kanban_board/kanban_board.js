@@ -7,14 +7,13 @@ frappe.ui.form.on("Kanban Board", {
 		frm.trigger("reference_doctype");
 	},
 	after_save: function (frm) {
-		// The engine (classic vs v2) is chosen from use_kanban_v2; drop the cached
-		// value so reopening the board reflects a just-changed toggle (no reload).
+		// the board opens with the engine cached for it, so forget it after a change
 		if (frappe.views._kanban_engine_cache) {
 			delete frappe.views._kanban_engine_cache[frm.doc.name];
 		}
 	},
 	refresh: function (frm) {
-		// The grid may not have had its docfields ready during onload.
+		// the grid's docfields may not have been ready in onload
 		if (frm.doc.reference_doctype) {
 			frappe.model.with_doctype(frm.doc.reference_doctype, () => {
 				set_card_field_options(frm);
@@ -24,7 +23,6 @@ frappe.ui.form.on("Kanban Board", {
 		}
 		if (frm.is_new()) return;
 		frm.add_custom_button(__("Show Board"), function () {
-			// Same route for both UIs; this board's "Use Kanban v2" flag picks the engine.
 			frappe.set_route("List", frm.doc.reference_doctype, "Kanban", frm.doc.name);
 		});
 	},
@@ -68,8 +66,7 @@ frappe.ui.form.on("Kanban Board", {
 	},
 });
 
-// Autofill the label from the selected field; the user can still edit it. Shared
-// by the Card/Preview field rows and the Group By field rows.
+// autofill the row label from its field; it stays editable
 function autofill_field_label(frm, cdt, cdn) {
 	var row = locals[cdt][cdn];
 	if (!row.fieldname || !frm.doc.reference_doctype) return;
@@ -80,12 +77,7 @@ function autofill_field_label(frm, cdt, cdn) {
 frappe.ui.form.on("Kanban Board Field", { fieldname: autofill_field_label });
 frappe.ui.form.on("Kanban Board Group Field", { fieldname: autofill_field_label });
 
-/**
- * Fill the Card Fields and Preview Fields grids' autocomplete with the reference
- * doctype's fields. Value = fieldname (what is stored), label = field label,
- * description = fieldname, so the dropdown reads like the field picker elsewhere
- * in desk.
- */
+/** Card and Preview field pickers: store the fieldname, show the label. */
 function set_card_field_options(frm) {
 	if (!frm.doc.reference_doctype) return;
 
@@ -110,18 +102,13 @@ function set_card_field_options(frm) {
 	["card_fields", "preview_fields"].forEach(function (tablefield) {
 		var grid = frm.fields_dict[tablefield] && frm.fields_dict[tablefield].grid;
 		if (!grid || !grid.docfields) return;
-		// update_docfield_property also patches already-rendered rows, so the
-		// options land on existing rows and on rows added afterwards.
+		// update_docfield_property also reaches rows already rendered
 		grid.update_docfield_property("fieldname", "options", options);
 		grid.refresh();
 	});
 }
 
-/**
- * Fill the Group By Fields grid's autocomplete. Only Select and Link fields
- * make sense as swimlane groupings — bounded, categorical values — so the
- * picker is narrower than the Card/Preview field pickers.
- */
+/** Swimlane picker: only Select and Link fields, whose values make sensible groups. */
 function set_group_by_field_options(frm) {
 	if (!frm.doc.reference_doctype) return;
 
@@ -144,15 +131,11 @@ function set_group_by_field_options(frm) {
 
 	var grid = frm.fields_dict.group_by_fields && frm.fields_dict.group_by_fields.grid;
 	if (!grid || !grid.docfields) return;
-	// update_docfield_property patches both existing and later-added rows.
 	grid.update_docfield_property("fieldname", "options", options);
 	grid.refresh();
 }
 
-/**
- * Title Field: name (ID) + Data fields only.
- * Image Field: Attach Image fields only.
- */
+/** Title Field takes ID or a text field; Image Field takes Attach Image fields. */
 function set_title_image_field_options(frm) {
 	if (!frm.doc.reference_doctype) return;
 
@@ -182,7 +165,7 @@ function set_title_image_field_options(frm) {
 			.map(to_option)
 	);
 
-	// Image fields are often hidden on the form but meant for display.
+	// image fields are often hidden on the form but meant for display
 	var image_options = meta.fields
 		.filter(function (df) {
 			return df.fieldname && df.fieldtype === "Attach Image";
@@ -195,7 +178,7 @@ function set_title_image_field_options(frm) {
 	frm.get_field("image_field") && frm.get_field("image_field").set_data(image_options);
 }
 
-/** Mirror server before_insert defaults so a new form shows title/image already picked. */
+/** Same defaults as the server's before_insert, so a new form shows them. */
 function seed_title_and_image_fields(frm) {
 	var meta = frappe.get_meta(frm.doc.reference_doctype);
 	if (!frm.doc.title_field) {

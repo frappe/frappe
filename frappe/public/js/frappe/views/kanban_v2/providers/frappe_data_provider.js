@@ -1,4 +1,5 @@
-// Data access for the Kanban board; wraps kanban_board.py whitelisted methods.
+// Board data provider. Custom providers implement the same methods:
+// loadBoard, loadColumnPage, moveCard, moveCards, moveColumnOrder, onRemoteUpdate.
 const KANBAN_METHOD = "frappe.desk.doctype.kanban_board.kanban_board";
 
 export class FrappeDataProvider {
@@ -6,7 +7,6 @@ export class FrappeDataProvider {
 		this.config = config;
 	}
 
-	/** Update the active filters without recreating the provider. */
 	setFilters(filters) {
 		if (!this.config.reportview_args) this.config.reportview_args = {};
 		this.config.reportview_args.filters = JSON.stringify(filters || []);
@@ -23,17 +23,14 @@ export class FrappeDataProvider {
 		});
 	}
 
-	/** Expand a compressed {keys, values, user_info} payload into card objects. */
 	expandCards(compressed) {
 		if (!compressed || !compressed.keys) return [];
-		// Cache user_info from the payload so cards show full names and images.
 		if (compressed.user_info) {
 			frappe.update_user_info(compressed.user_info);
 		}
 		return frappe.utils.dict(compressed.keys, compressed.values);
 	}
 
-	// Fetch and cache user_info for User-link fields not already cached.
 	async fetchMissingUserInfo(cards) {
 		const meta = frappe.get_meta(this.config.doctype);
 		if (!meta || !cards || !cards.length) return;
@@ -56,7 +53,7 @@ export class FrappeDataProvider {
 			(await frappe.xcall("frappe.desk.form.load.get_user_info_for_viewers", {
 				users: [...missing],
 			})) || {};
-		// Cache unknown ids as themselves so we stop re-fetching them.
+		// cache unknown ids as themselves so they are not fetched again
 		missing.forEach((user) => {
 			if (!info[user]) info[user] = { fullname: user, name: user, email: user };
 		});
@@ -93,7 +90,6 @@ export class FrappeDataProvider {
 			cards[id] = this.expandCards(bucket.cards);
 		}
 
-		// One lookup for the whole board, not one per column.
 		await this.fetchMissingUserInfo(Object.values(cards).flat());
 
 		return { columns, cards };
@@ -111,7 +107,7 @@ export class FrappeDataProvider {
 		return { total: message.total || 0, cards };
 	}
 
-	/** Returns the column value the server saved, which it may have changed. */
+	// Returns the column the server saved, which may differ from toColumn.
 	async moveCard(input) {
 		const r = await frappe.call({
 			method: "frappe.client.set_value",
@@ -125,7 +121,7 @@ export class FrappeDataProvider {
 		return r.message && r.message[this.config.field_name];
 	}
 
-	/** Returns the names that could not be moved, and the column value saved for each card. */
+	// Returns {failed: names not moved, saved: {name: saved column}}.
 	async moveCards(cardIds, toColumn) {
 		const r = await frappe.call({
 			method: "frappe.client.bulk_update",
@@ -147,14 +143,14 @@ export class FrappeDataProvider {
 		return { failed, saved };
 	}
 
-	/** Persist the horizontal order of board columns. */
+	// Saves the column order.
 	async moveColumnOrder(columnIds) {
 		await this.call("update_column_order", {
 			order: JSON.stringify(columnIds || []),
 		});
 	}
 
-	/** Calls `cb(name)` when a document of this doctype changes anywhere. */
+	// Calls cb(name) when a document of this doctype changes; returns an unsubscribe function.
 	onRemoteUpdate(cb) {
 		const doctype = this.config.doctype;
 		frappe.realtime.doctype_subscribe(doctype);

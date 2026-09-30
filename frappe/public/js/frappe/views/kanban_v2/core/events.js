@@ -1,4 +1,3 @@
-// Minimal event bus. No dependencies — the core stays framework-agnostic.
 export class EventBus {
 	constructor() {
 		this.handlers = new Map();

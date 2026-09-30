@@ -1,8 +1,4 @@
-/**
- * Vanilla adapter — the `frappe.kanban_v2.KanbanVanilla` entry point.
- * A thin wrapper: constructs a KanbanCore, mounts it, and exposes a small
- * imperative surface (refresh / destroy / engine). All logic lives in the core.
- */
+// frappe.kanban_v2.KanbanVanilla: mounts a KanbanCore into wrapper; all logic lives in the core.
 import { KanbanCore } from "../core/kanban_core";
 
 export class KanbanVanilla {
@@ -19,7 +15,7 @@ export class KanbanVanilla {
 		this.core.destroy();
 	}
 
-	/** Escape hatch for advanced callers (events, state, selection). */
+	// the KanbanCore, for events, state and selection
 	get engine() {
 		return this.core;
 	}

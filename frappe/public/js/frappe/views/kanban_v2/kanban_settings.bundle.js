@@ -1,7 +1,4 @@
-/**
- * Board Settings dialog — lazy-loaded via `frappe.require("kanban_settings.bundle.js")`
- * so FieldGroup/grid weight stays out of the main kanban bundle.
- */
+// separate bundle so the dialog's grid controls stay out of kanban.bundle.js
 frappe.provide("frappe.views");
 
 frappe.views.open_kanban_settings = async function (page) {
@@ -14,18 +11,16 @@ class KanbanBoardSettings {
 	constructor(page) {
 		this.page = page;
 		this.doctype = page.doctype;
-		// Deep clone so Cancel discards edits; grids mutate the child-table arrays in place.
+		// deep clone so Cancel discards edits; grids mutate child rows in place
 		this.doc = $.extend(true, {}, page.board_doc);
 		["columns", "card_fields", "preview_fields", "group_by_fields"].forEach((t) => {
-			// Strip row metadata so grid controls don't run permission checks in the dialog.
+			// strip row metadata so grid controls skip permission checks
 			this.doc[t] = (this.doc[t] || []).map((row, i) => this._sanitize_row(row, i + 1));
 		});
 	}
 
-	// Return a clean new-row copy holding only field values.
 	_sanitize_row(row, idx) {
 		const clean = { idx, __islocal: true };
-		// Copy only the actual field values, skip framework metadata
 		const skip = new Set([
 			"doctype",
 			"name",
@@ -61,7 +56,7 @@ class KanbanBoardSettings {
 		});
 	}
 
-	/** Field option lists derived from the reference doctype meta (mirrors kanban_board.js). */
+	// mirrors the option lists in kanban_board.js
 	build_options() {
 		const meta = frappe.get_meta(this.doctype);
 		const to_opt = (df) => ({
@@ -83,7 +78,7 @@ class KanbanBoardSettings {
 					)
 					.map(to_opt)
 			),
-			// Image fields are often hidden on the form but meant for display.
+			// image fields are often hidden on the form, so hidden ones are allowed
 			image: meta.fields
 				.filter((d) => d.fieldname && d.fieldtype === "Attach Image")
 				.map(to_opt),
@@ -134,7 +129,6 @@ class KanbanBoardSettings {
 			description: __("How cards look in the new Kanban experience."),
 			actions: [this.save_action()],
 			fields: [
-				// Row 1: Board Name | Footer Date
 				{
 					fieldname: "kanban_board_name",
 					fieldtype: "Data",
@@ -151,7 +145,6 @@ class KanbanBoardSettings {
 					default: this.doc.footer_date_field || "Modified",
 					description: __("Which timestamp to show in the card footer."),
 				},
-				// Row 2: Title Field | Image Field
 				{ fieldtype: "Section Break" },
 				{
 					fieldname: "title_field",
@@ -170,7 +163,6 @@ class KanbanBoardSettings {
 					default: this.doc.image_field,
 					description: __("Attach Image field for card thumbnail."),
 				},
-				// Row 3: Checkboxes
 				{ fieldtype: "Section Break" },
 				{
 					fieldname: "show_assigned_to",
@@ -342,7 +334,6 @@ class KanbanBoardSettings {
 		return f;
 	}
 
-	/** Fill a grid autocomplete column with the field option list (like the form's grids). */
 	set_grid_options(panel, tablefield, options) {
 		const grid = panel.get_field(tablefield) && panel.get_field(tablefield).grid;
 		if (!grid || !grid.docfields) return;
@@ -350,17 +341,14 @@ class KanbanBoardSettings {
 		grid.refresh();
 	}
 
-	/** Auto-fill the label column when a field is selected in a grid row. */
 	bind_field_label_autofill(panel, tablefield) {
 		const grid = panel.get_field(tablefield)?.grid;
 		if (!grid) return;
-		// Listen for field changes in grid rows
 		grid.wrapper.on("change", ".frappe-control[data-fieldname='fieldname'] input", (e) => {
 			const fieldname = e.target.value;
 			if (!fieldname) return;
 			const df = frappe.meta.get_field(this.doctype, fieldname);
 			if (!df) return;
-			// Find the row and always update the label to match the field
 			const $row = $(e.target).closest(".grid-row");
 			const rowIdx = $row.data("idx");
 			const row = grid.grid_rows.find((r) => r.doc.idx === rowIdx);
@@ -371,7 +359,7 @@ class KanbanBoardSettings {
 		});
 	}
 
-	// Rebuild the columns from the new field's Select options, as the form does.
+	// rebuild the columns from the new field's options, as the form does
 	bind_field_name(panel) {
 		const field = panel.get_field("field_name");
 		if (!field || !field.$input) return;
@@ -398,11 +386,10 @@ class KanbanBoardSettings {
 	save() {
 		for (const panel of Object.values(this.dialog._panels || {})) {
 			const values = panel.get_values();
-			if (values === null) return; // a mandatory field is empty — control shows the error
+			if (values === null) return; // a mandatory field is empty; the control shows the error
 			Object.assign(this.doc, values);
 		}
 
-		// Read table rows from each open panel's grid (df.data).
 		const tableFields = ["columns", "card_fields", "preview_fields", "group_by_fields"];
 		for (const panel of Object.values(this.dialog._panels || {})) {
 			for (const fieldname of tableFields) {
@@ -413,7 +400,7 @@ class KanbanBoardSettings {
 			}
 		}
 
-		// Drop half-filled rows so the save isn't rejected for an empty mandatory cell.
+		// drop half-filled rows so the save isn't rejected for an empty mandatory cell
 		this.doc.columns = (this.doc.columns || []).filter((r) => (r.column_name || "").trim());
 		["card_fields", "preview_fields", "group_by_fields"].forEach((t) => {
 			this.doc[t] = (this.doc[t] || []).filter((r) => (r.fieldname || "").trim());
@@ -427,7 +414,7 @@ class KanbanBoardSettings {
 				this.page.board_doc = r.message;
 				frappe.ui.toast({ message: __("Board settings saved"), type: "success" });
 				this.dialog.hide();
-				// Force a full reload so new columns / fields / toggles take effect.
+				// clear current_board to force a full reload
 				this.page.current_board = null;
 				this.page.load_from_route();
 			})

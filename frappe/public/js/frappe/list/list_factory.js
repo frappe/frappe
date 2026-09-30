@@ -17,11 +17,9 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			view_name = "File";
 		}
 
-		// Kanban engine is chosen per board (Kanban Board → "Use Kanban v2").
-		// The v2 bundle loads on demand so the default bundle stays lean.
+		// each board picks its engine; the v2 bundle loads on demand
 		if (view_name === "Kanban") {
-			// Resolve the board into the route first (may redirect to the last/first
-			// board). Once route[3] is known we pick the engine for that board.
+			// may redirect to the last or first board, so route[3] is set before we pick the engine
 			if (frappe.views.KanbanView.load_last_view()) return;
 			frappe.views.get_kanban_engine(route[3]).then((use_v2) => {
 				frappe.provide("frappe.views.list_view." + doctype);
@@ -106,15 +104,10 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	}
 };
 
-// board name -> boolean (uses Kanban v2). Primed by KanbanView.get_kanbans so
-// board-to-board switches never re-fetch; a board's form clears its entry on save.
+// board name -> uses Kanban v2. Primed by KanbanView.get_kanbans; the board form clears its entry on save.
 frappe.views._kanban_engine_cache = frappe.views._kanban_engine_cache || {};
 
-/**
- * Resolve which Kanban engine a board uses: true = Kanban v2, false = classic.
- * Reads the board's `use_kanban_v2` flag with a small per-session
- * cache. Unset/unknown boards fall back to the classic engine.
- */
+// true if the board uses Kanban v2; unknown boards get the classic engine
 frappe.views.get_kanban_engine = function (board) {
 	if (!board) return Promise.resolve(false);
 	if (board in frappe.views._kanban_engine_cache) {
