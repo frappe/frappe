@@ -112,12 +112,13 @@ jobs:
           echo "$ALL_TESTS" | jq -r --argjson shard "$SHARD_INDEX" --argjson total "$SHARD_COUNT" \
             '[to_entries[] | select(.key % $total == ($shard - 1)) | .value] | .[]' > shard_tests.txt
 
-          ./env/bin/python -m frappe.tests.utils.sqlite_test_shard \
+          cd sites
+          ../env/bin/python -m frappe.tests.utils.sqlite_test_shard \
             --site test_site \
             --app frappe \
-            --modules-file shard_tests.txt \
+            --modules-file "$GITHUB_WORKSPACE/shard_tests.txt" \
             --snapshot "$RUNNER_TEMP/pristine-site" \
-            --sites-path sites
+            --sites-path .
 
   http-integration:
     needs: checkrun
