@@ -6,7 +6,7 @@ import {
 	type RouterOptions,
 } from "vue-router"
 import AppContainer from "@/pages/AppContainer.vue"
-import { toast } from "frappe-ui"
+import NotFound from "@/pages/NotFound.vue"
 
 interface Page {
 	name: string
@@ -47,7 +47,8 @@ export async function createAppRouter(config: RouterConfig = {}): Promise<Router
 	})
 	await setup?.(router)
 	addHomeRouteFallback(router)
-	router.beforeEach(unmatchedRouteGuard)
+	addNotFoundRouteFallback(router)
+	router.beforeEach(sendGuestToLogin)
 	return router
 }
 
@@ -78,17 +79,21 @@ function addHomeRouteFallback(router: Router) {
 	router.addRoute({ path: "/", component: AppContainer, beforeEnter: () => home.path })
 }
 
-function unmatchedRouteGuard(to: { matched: unknown[]; fullPath: string }) {
-	if (to.matched.length) return true
-
-	if (window.is_guest) {
-		// Private routes are absent for guests; retry after login.
-		const redirectTo = encodeURIComponent(`/${window.app_route}${to.fullPath}`)
-		window.location.href = `/login?redirect-to=${redirectTo}`
-		return false
-	}
-	toast.error(`Failed to navigate to ${to.fullPath}`, {
-		description: "Page does not exist or is not published",
+function addNotFoundRouteFallback(router: Router) {
+	if (router.getRoutes().some((route) => route.path.includes("(.*)"))) return
+	router.addRoute({
+		path: "/:pathMatch(.*)*",
+		name: "Not Found",
+		component: NotFound,
+		props: { home: `/${window.app_route}/` },
+		meta: { notFound: true },
 	})
+}
+
+// private routes are absent from a guest's page list, so an unknown path may exist after login
+function sendGuestToLogin(to: { meta: { notFound?: boolean }; fullPath: string }) {
+	if (!window.is_guest || !to.meta.notFound) return true
+	const redirectTo = encodeURIComponent(`/${window.app_route}${to.fullPath}`)
+	window.location.href = `/login?redirect-to=${redirectTo}`
 	return false
 }
