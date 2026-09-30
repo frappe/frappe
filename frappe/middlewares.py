@@ -3,7 +3,6 @@
 
 from pathlib import Path
 
-from werkzeug.exceptions import NotFound
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 import frappe
@@ -37,7 +36,7 @@ class StaticDataMiddleware(SharedDataMiddleware):
 			requested_path = Path(cstr(path))
 			path = (files_path / requested_path).resolve()
 			if not path.is_relative_to(files_path) or not path.is_file():
-				raise NotFound
+				return None, None
 
 			return path.name, self._opener(path)
 

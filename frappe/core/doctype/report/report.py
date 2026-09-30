@@ -562,10 +562,7 @@ def enable_prepared_report(report: str, site: str):
 
 
 def get_permission_query_conditions(user=None):
-	"""Hide Postgres-only diagnostic reports (named with a "Postgres " prefix) from the report
-	list on other database backends, where they raise instead of running.
-
-	Also hide reports whose Has Role table is set but does not include any role held by the
+	"""Hide reports whose Has Role table is set but does not include any role held by the
 	current user — mirroring the gate applied on the run path by get_report_doc()."""
 	user = user or frappe.session.user
 	user_roles = frappe.get_roles(user)
@@ -599,8 +596,6 @@ def get_permission_query_conditions(user=None):
 		)"""
 		return role_condition
 
-	# substr comparison, not LIKE 'Postgres %': a literal % in a permission condition is read as a
-	# printf placeholder when the list query is parameterized, raising "not enough arguments".
 	role_condition = f"""(
 		EXISTS (
 			SELECT 1 FROM `tabCustom Role` cr
@@ -626,15 +621,10 @@ def get_permission_query_conditions(user=None):
 			)
 		)
 	)"""
-	return f"substr(`tabReport`.`name`, 1, 9) != 'Postgres ' AND {role_condition}"
+	return role_condition
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
-	"""Deny document-level access to a Postgres-only report on other backends. Running the report
-	is separately guarded by its execute() raising on non-Postgres. Case-insensitive to match the
-	report list's SQL filter under MariaDB's case-insensitive collation."""
-	if frappe.db.db_type != "postgres" and doc.name and doc.name.lower().startswith("postgres "):
-		return False
 	if ptype in ("read", "report") and not doc.is_permitted(user):
 		return False
 	return True

@@ -50,11 +50,11 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		const route = frappe.get_route().slice(0, -1);
 		const at_home_folder = route[route.length - 1] === "File";
 
-		frappe.breadcrumbs.add({
-			type: "Custom",
-			label: at_home_folder ? this.page_title : __("Home"),
-			route: "/desk/file",
-		});
+		this.page.set_breadcrumbs(
+			at_home_folder
+				? [{ label: this.page_title }]
+				: [{ label: __("Home"), href: "/desk/file" }]
+		);
 	}
 
 	setup_defaults() {

@@ -1,3 +1,6 @@
+// the page title is the last breadcrumb
+const TITLE = ".navbar-breadcrumbs:visible li:last-child";
+
 context("View", () => {
 	before(() => {
 		cy.login();
@@ -228,6 +231,7 @@ context("View", () => {
 
 	it("Route to Website Workspace", () => {
 		cy.visit("/desk/website");
-		cy.get(".navbar-breadcrumbs:visible").get("li > a").should("contain", "Website");
+		// the workspace names itself in the last crumb, and it is not a link
+		cy.get(TITLE).should("contain", "Website");
 	});
 });

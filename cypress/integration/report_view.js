@@ -1,3 +1,6 @@
+// the page title is the last breadcrumb
+const TITLE = ".navbar-breadcrumbs:visible li:last-child";
+
 import custom_submittable_doctype from "../fixtures/custom_submittable_doctype";
 import doctype_without_report_permission from "../fixtures/doctype_without_report_permission";
 const doctype_name = custom_submittable_doctype.name;
@@ -82,6 +85,6 @@ context("Report View without report permission", () => {
 	it("opens the list view when the doctype defaults to the report view", () => {
 		cy.visit(list_route);
 		cy.window().its("cur_list.view_name").should("equal", "List");
-		cy.get(".title-text").should("contain", "DocType Without Report Permission");
+		cy.get(TITLE).should("contain", "DocType Without Report Permission");
 	});
 });

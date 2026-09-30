@@ -7,6 +7,7 @@ const BOOT_USER_FIELDS = [
 	"language",
 	"mute_sounds",
 	"send_me_a_copy",
+	"send_read_receipt",
 	"show_absolute_datetime_in_timeline",
 ];
 
@@ -36,6 +37,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			"form_navigation_buttons",
 			"report_split_view",
 			"show_my_space",
+			"dock_mode",
 		]);
 		user_data = {
 			first_name: boot_user.first_name,
@@ -44,6 +46,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			language: boot_user.language,
 			mute_sounds: boot_user.mute_sounds,
 			send_me_a_copy: boot_user.send_me_a_copy,
+			send_read_receipt: boot_user.send_read_receipt,
 			show_absolute_datetime_in_timeline: boot_user.show_absolute_datetime_in_timeline,
 			...response.message,
 		};
@@ -68,7 +71,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 				items: [
 					_profile_tab(user_data || {}),
 					_email_tab(user_data || {}),
-					_appearance_tab(),
+					_appearance_tab(user_data || {}),
 					_preferences_tab(user_data || {}),
 					_lists_tab(user_data || {}),
 					_forms_tab(user_data || {}),
@@ -298,6 +301,13 @@ function _email_tab(user_data) {
 				description: __("Receive a copy of every email you send in your inbox."),
 				default: user_data.send_me_a_copy,
 			},
+			{
+				fieldtype: "Switch",
+				fieldname: "send_read_receipt",
+				label: __("Request read receipts for outgoing emails"),
+				description: __("Get notified when a recipient opens an email you send."),
+				default: user_data.send_read_receipt,
+			},
 			{ fieldtype: "Section Break", label: __("Email Signature") },
 			{
 				fieldtype: "Text Editor",
@@ -315,14 +325,14 @@ function _email_tab(user_data) {
 			},
 		],
 		render(panel) {
-			_bind_switch_autosave(panel, ["thread_notify", "send_me_a_copy"]);
+			_bind_switch_autosave(panel, ["thread_notify", "send_me_a_copy", "send_read_receipt"]);
 		},
 	};
 }
 
 // ─── Appearance ───────────────────────────────────────────────────────────────
 
-function _appearance_tab() {
+function _appearance_tab(user_data) {
 	return {
 		id: "appearance",
 		label: __("Appearance"),
@@ -348,6 +358,16 @@ function _appearance_tab() {
 				)
 			);
 			_render_layout_cards(panel);
+
+			panel.body.append(
+				_section_heading(
+					__("Dock"),
+					__(
+						"Keep the app dock beside the sidebar, or let it slide in from the left edge."
+					)
+				)
+			);
+			_render_dock_cards(panel, user_data);
 		},
 	};
 }
@@ -390,6 +410,59 @@ function _render_layout_cards(panel) {
 }
 
 function _layout_preview_window(type) {
+	// The compact variant insets its body (px-8) so the fields look narrower than full width.
+	return _preview_window({ body_class: type === "compact" ? "px-8" : "" });
+}
+
+function _render_dock_cards(panel, user_data) {
+	const current = user_data.dock_mode === "Pinned" ? "Pinned" : "Floating";
+	const options = [
+		{ value: "Floating", label: __("Floating") },
+		{ value: "Pinned", label: __("Pinned") },
+	];
+
+	const $grid = $(`<div class="flex gap-3 mb-4 max-w-lg"></div>`);
+
+	options.forEach((opt) => {
+		const $card = $(`
+			<div class="theme-card-wrapper${opt.value === current ? " selected" : ""}">
+				<button type="button" class="theme-card">
+					<div class="theme-card-preview">${_dock_preview_window(opt.value)}</div>
+					<div class="theme-card-footer">
+						<span class="theme-card-label">${opt.label}</span>
+						<span class="theme-card-radio"></span>
+					</div>
+				</button>
+			</div>
+		`);
+
+		$card.on("click", () => {
+			if ($card.hasClass("selected")) return;
+			$grid.find(".theme-card-wrapper").removeClass("selected");
+			$card.addClass("selected");
+			user_data.dock_mode = opt.value;
+			_save_user("dock_mode", opt.value);
+			// The dock is on screen behind the dialog, so it moves as soon as a card is picked.
+			frappe.boot.desk_settings.dock_mode = opt.value;
+			frappe.app.sidebar?.dock?.set_pinned(opt.value === "Pinned");
+		});
+
+		$grid.append($card);
+	});
+
+	panel.body.append($grid);
+}
+
+function _dock_preview_window(mode) {
+	const tiles = '<span class="dock-preview-tile"></span>'.repeat(4);
+	// Pinned: a rail of tiles as its own column, left of the sidebar. Floating: a tray of the
+	// same tiles hovering over the sidebar's left edge.
+	return mode === "Pinned"
+		? _preview_window({ before_sidebar: `<div class="dock-preview-rail">${tiles}</div>` })
+		: _preview_window({ overlay: `<div class="dock-preview-tray">${tiles}</div>` });
+}
+
+function _preview_window({ body_class = "", before_sidebar = "", overlay = "" } = {}) {
 	const field = `<div class="theme-preview-field">
 		<div class="theme-preview-label"></div>
 		<div class="theme-preview-input"></div>
@@ -397,10 +470,7 @@ function _layout_preview_window(type) {
 
 	// The mock browser window: a "frame" tucked into the surface with the window
 	// inset from its top + start edges (ps-5/pt-4), and the window drawing only
-	// its top + start borders so the rest bleeds off. The compact variant insets
-	// its body (px-8) so the fields look narrower than full width.
-	const body_class = type === "compact" ? "px-8" : "";
-
+	// its top + start borders so the rest bleeds off.
 	return `<div class="flex flex-1 bg-surface-base ps-5 pt-4 rounded-ss-sm">
 		<div class="w-full flex flex-col overflow-hidden bg-surface-base border-t border-s rounded-ss-sm">
 			<div class="theme-preview-titlebar">
@@ -408,7 +478,8 @@ function _layout_preview_window(type) {
 				<span class="theme-preview-dot theme-preview-dot--yellow"></span>
 				<span class="theme-preview-dot theme-preview-dot--green"></span>
 			</div>
-			<div class="theme-preview-content">
+			<div class="theme-preview-content${overlay ? " dock-preview-floating" : ""}">
+				${before_sidebar}
 				<div class="theme-preview-sidebar"></div>
 				<div class="theme-preview-main">
 					<div class="theme-preview-header">
@@ -419,6 +490,7 @@ function _layout_preview_window(type) {
 						${field}${field}${field}${field}
 					</div>
 				</div>
+				${overlay}
 			</div>
 		</div>
 	</div>`;

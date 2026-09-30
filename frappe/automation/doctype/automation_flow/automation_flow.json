@@ -2,6 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "format:AUTO-{#####}",
+ "beta": 1,
  "creation": "2026-07-11 21:05:04.231189",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -238,7 +239,7 @@
   }
  ],
  "links": [],
- "modified": "2026-08-17 01:35:11.457428",
+ "modified": "2026-09-29 10:36:36.707327",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Flow",

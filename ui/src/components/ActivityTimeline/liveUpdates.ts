@@ -1,5 +1,6 @@
 import type { createResource } from "frappe-ui";
 import { getSocketInstance, subscribeToDoc } from "../../socket";
+import { hasUnresolvedRowOfType } from "./pendingRows";
 import type { Activity, UserInfo } from "./types";
 import { getAssignee, stripHtml } from "./utils";
 
@@ -29,6 +30,9 @@ export function createLiveUpdates(
     return known ?? fallback;
   };
 
+  // live rows skipped while a pending row of their type waits for its key
+  const heldBack = new Map<string, Activity>();
+
   const onUpdate = (payload: unknown) => {
     const { doc, key, action } = payload as {
       doc: Record<string, unknown>;
@@ -43,21 +47,47 @@ export function createLiveUpdates(
     // mirror the server-side visibleTypes filter
     if (visibleTypes && !visibleTypes.includes(activity.type)) return;
 
+    // A row of a type still in flight cannot be told apart from the one being waited for, and
+    // drawing both is a visible duplicate. The refetch below brings it in a moment later.
+    if (
+      action === "add" &&
+      hasUnresolvedRowOfType(doctype, docname, activity.type)
+    ) {
+      heldBack.set(activity.key, activity);
+      refresh().then(restoreHeldBack);
+      return;
+    }
+    if (heldBack.has(activity.key)) {
+      if (action === "delete") heldBack.delete(activity.key);
+      else heldBack.set(activity.key, activity);
+    }
+
     const current = (resource.data as Activity[] | undefined) ?? [];
     if (action === "add") {
       resource.data = [...current, activity];
     } else if (action === "delete") {
       resource.data = current.filter((a) => a.key !== activity.key);
     } else {
+      // an edit keeps its author, and the payload's may not resolve to an avatar
       resource.data = current.map((a) =>
-        a.key === activity.key ? activity : a
+        a.key === activity.key ? { ...activity, author: a.author } : a
       );
     }
   };
 
+  // The refetch can leave a held row out without it being deleted: the fetch failed, or it is
+  // an email dated older than the first page. Deleted ones were dropped from here on the way.
+  const restoreHeldBack = () => {
+    const current = (resource.data as Activity[] | undefined) ?? [];
+    const keys = new Set(current.map((a) => a.key));
+    const missing = [...heldBack.values()].filter((a) => !keys.has(a.key));
+    heldBack.clear();
+    if (missing.length) resource.data = [...current, ...missing];
+  };
+
   const onDocUpdate = (payload: unknown) => {
-    const { doctype: dt, name } = payload as { doctype: string; name: string };
-    if (dt !== doctype || name !== docname) return;
+    const updated = payload as { doctype: string; name: string };
+    if (updated.doctype !== doctype || updated.name !== docname) return;
     refresh();
   };
 
