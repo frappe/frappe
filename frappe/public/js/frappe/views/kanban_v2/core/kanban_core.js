@@ -964,6 +964,8 @@ export class KanbanCore {
 			saved = result.saved || {};
 		} catch (error) {
 			this.moveCardsBack(moves, toColumn);
+			// some cards may have saved before the error, so show what the server has
+			this.refreshFromServer();
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);
 			return;
