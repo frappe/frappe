@@ -733,6 +733,9 @@ async function settleView(mine: number, view: RecordView | null) {
 function keep() {
 	const root = bodyRoot.value;
 	if (!keeping || !root || !painted.value) return;
+	// A route that moved on to the next record resets the tab before its load starts.
+	const { page } = painted.value;
+	if (page.doctype !== doctype.value || page.docname !== docname.value) return;
 	keepView({
 		tab: shownTab.value,
 		formTab: activeFormTab.value || formTab.value,
