@@ -190,7 +190,8 @@ def default_title_field(doctype: str) -> str:
 	title = meta.get("title_field")
 	if title:
 		df = meta.get_field(title)
-		if df and df.fieldtype in TITLE_FIELDTYPES and not df.hidden:
+		# a DocType's own title is often a hidden, computed field
+		if df and df.fieldtype in TITLE_FIELDTYPES:
 			return title
 	for df in meta.fields:
 		if df.fieldtype in TITLE_FIELDTYPES and df.fieldname and not df.hidden:

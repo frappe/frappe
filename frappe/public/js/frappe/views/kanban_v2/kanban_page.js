@@ -497,10 +497,11 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** Same fallback order as the server seed. */
 	resolve_title_field(meta) {
+		// a DocType's own title is often a hidden, computed field
 		const is_text = (df) =>
 			df &&
 			["Data", "Text", "Small Text", "Text Editor"].includes(df.fieldtype) &&
-			!df.hidden;
+			(!df.hidden || df.fieldname === meta.title_field);
 		const configured = this.board_doc.title_field;
 		if (configured === "name") return "name";
 		if (is_text(frappe.meta.get_docfield(this.doctype, configured))) return configured;
