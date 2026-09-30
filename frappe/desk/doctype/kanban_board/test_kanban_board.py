@@ -201,6 +201,48 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.assertEqual(len(_decompress_kanban_cards(open_data["cards"])), 3)
 		self.assertEqual(len(_decompress_kanban_cards(closed_data["cards"])), 1)
 
+	def make_user_theme_board(self):
+		# Language shows its title in links, as Project does in ERPNext
+		self.assertTrue(frappe.get_meta("Language").show_title_field_in_link)
+		board = frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": "_Test User Theme Board",
+				"reference_doctype": "User",
+				"field_name": "desk_theme",
+				"columns": [{"column_name": "Light"}, {"column_name": "Dark"}, {"column_name": "Automatic"}],
+				"group_by_fields": [{"fieldname": "language"}],
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Kanban Board", board.name, force=1)
+		frappe.db.set_value("User", "Administrator", "language", "en")
+		return board
+
+	def test_get_kanban_group_values_labels_links_with_titles(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		board = self.make_user_theme_board()
+		res = get_kanban_group_values(board.name, "language", [["User", "name", "=", "Administrator"]])
+
+		self.assertEqual(res["lanes"], [{"value": "en", "label": "English", "count": 1}])
+
+	def test_get_kanban_board_data_sends_link_titles(self):
+		board = self.make_user_theme_board()
+		frappe.local.response.pop("_link_titles", None)
+		frappe.local.form_dict = frappe._dict(
+			{
+				"board_name": board.name,
+				"doctype": "User",
+				"fields": '["name", "desk_theme", "language"]',
+				"filters": '[["User", "name", "=", "Administrator"]]',
+				"kanban_page_length": 50,
+			}
+		)
+
+		get_kanban_board_data()
+
+		self.assertEqual(frappe.local.response["_link_titles"].get("Language::en"), "English")
+
 	def test_on_change_clears_only_reference_doctype_user_settings(self):
 		from frappe.model.utils import user_settings
 
