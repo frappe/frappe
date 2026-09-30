@@ -27,7 +27,7 @@ dependencies = [
     "mysqlclient==2.2.8",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
-    "RestrictedPython~=8.1",
+    "RestrictedPython~=8.5",
     "Werkzeug==3.1.6",
     "beautifulsoup4~=4.15.0",
     "bleach-allowlist~=1.0.3",
