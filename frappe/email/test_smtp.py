@@ -47,63 +47,6 @@ class TestSMTP(IntegrationTestCase):
 		for port in [None, 0, 587, "587"]:
 			make_server(port, 0, 1)
 
-	def test_starttls_uses_default_ssl_context(self):
-		server = SMTPServer(server="smtp.example.com", use_tls=1)
-		connection = Mock()
-
-		server.secure_session(connection)
-
-		context = connection.starttls.call_args.kwargs["context"]
-		self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
-		self.assertTrue(context.check_hostname)
-		connection.starttls.assert_called_once_with(context=context)
-
-	def test_starttls_skips_certificate_validation_when_disabled(self):
-		server = SMTPServer(server="smtp.example.com", use_tls=1, validate_ssl_certificate=0)
-		connection = Mock()
-
-		server.secure_session(connection)
-
-		context = connection.starttls.call_args.kwargs["context"]
-		self.assertIsNone(context)
-
-	@patch("frappe.email.smtp.smtplib.SMTP_SSL")
-	def test_smtp_ssl_uses_default_ssl_context(self, smtp_ssl):
-		server = SMTPServer(server="smtp.example.com", port=465, use_ssl=1)
-
-		server.session
-
-		context = smtp_ssl.call_args.kwargs["context"]
-		self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
-		self.assertTrue(context.check_hostname)
-
-	@patch("frappe.email.smtp.smtplib.SMTP_SSL")
-	def test_smtp_ssl_skips_certificate_validation_when_disabled(self, smtp_ssl):
-		server = SMTPServer(server="smtp.example.com", port=465, use_ssl=1, validate_ssl_certificate=0)
-
-		server.session
-
-		context = smtp_ssl.call_args.kwargs["context"]
-		self.assertIsNone(context)
-
-	@patch("frappe.email.smtp.smtplib.SMTP_SSL", side_effect=ssl.SSLCertVerificationError(1, "untrusted"))
-	def test_smtp_ssl_certificate_error_is_descriptive(self, smtp_ssl):
-		server = SMTPServer(server="smtp.example.com", port=465, use_ssl=1)
-
-		with self.assertRaisesRegex(frappe.ValidationError, "Could not verify the TLS certificate"):
-			server.session
-
-	@patch("frappe.email.smtp.smtplib.SMTP")
-	def test_starttls_certificate_error_closes_connection(self, smtp):
-		server = SMTPServer(server="smtp.example.com", port=587, use_tls=1)
-		smtp.return_value.starttls.side_effect = ssl.SSLCertVerificationError(1, "untrusted")
-
-		with self.assertRaisesRegex(frappe.ValidationError, "Could not verify the TLS certificate"):
-			server.session
-
-		smtp.return_value.close.assert_called_once()
-		self.assertIsNone(server._session)
-
 	def test_get_email_account(self):
 		existing_email_accounts = frappe.get_all(
 			"Email Account",
@@ -166,6 +109,104 @@ class TestSMTP(IntegrationTestCase):
 		)
 		self.assertEqual(EmailAccount.find_outgoing(match_by_doctype="ToDo").email_id, "support@example.com")
 		self.assertEqual(EmailAccount.find_outgoing("support@example.com").email_id, "support@example.com")
+
+
+class TestSMTPCertificateSettings(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		identifier = frappe.generate_hash(length=8)
+		cls.user = f"smtp-certificate-{identifier}@example.com"
+		cls.domain_name = f"smtp-certificate-{identifier}.example.com"
+		cls.account_name = f"SMTP Certificate {identifier}"
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.user, "first_name": "SMTP Certificate", "send_welcome_email": 0}
+		).insert().add_roles("System Manager")
+
+		with cls.set_user(cls.user):
+			frappe.get_doc(
+				{
+					"doctype": "Email Domain",
+					"domain_name": cls.domain_name,
+					"email_server": "imap.example.com",
+					"smtp_server": "smtp.example.com",
+					"use_tls": 1,
+					"validate_ssl_certificate_for_outgoing": 1,
+				}
+			).insert()
+			frappe.get_doc(
+				{
+					"doctype": "Email Account",
+					"email_account_name": cls.account_name,
+					"email_id": f"smtp@{cls.domain_name}",
+					"domain": cls.domain_name,
+					"smtp_server": "smtp.example.com",
+					"use_tls": 1,
+				}
+			).insert()
+
+	def test_outgoing_certificate_setting_reaches_email_account(self):
+		with self.set_user(self.user):
+			domain = frappe.get_doc("Email Domain", self.domain_name)
+			account = frappe.get_doc("Email Account", self.account_name)
+			account.validate_ssl_certificate_for_outgoing = 0
+
+			for validate in (0, 1):
+				domain.validate_ssl_certificate_for_outgoing = validate
+				domain.save()
+				self.assertEqual(account.sendmail_config()["validate_ssl_certificate"], bool(validate))
+
+			account.reload()
+			account.domain = None
+			for validate in (0, 1):
+				account.validate_ssl_certificate_for_outgoing = validate
+				account.save()
+				self.assertEqual(account.sendmail_config()["validate_ssl_certificate"], bool(validate))
+
+	def test_tls_modes_apply_certificate_setting(self):
+		with self.set_user(self.user):
+			for use_ssl in (0, 1):
+				for validate in (None, 0, 1):
+					with self.subTest(use_ssl=use_ssl, validate=validate):
+						server = SMTPServer(
+							server="smtp.example.com",
+							use_ssl=use_ssl,
+							use_tls=1 - use_ssl,
+							validate_ssl_certificate=validate,
+						)
+						with (
+							patch("frappe.email.smtp.smtplib.SMTP") as smtp,
+							patch("frappe.email.smtp.smtplib.SMTP_SSL") as smtp_ssl,
+						):
+							server.session
+						if use_ssl:
+							context = smtp_ssl.call_args.kwargs["context"]
+							smtp.assert_not_called()
+						else:
+							context = smtp.return_value.starttls.call_args.kwargs["context"]
+							smtp_ssl.assert_not_called()
+						if validate == 0:
+							self.assertIsNone(context)
+						else:
+							self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
+							self.assertTrue(context.check_hostname)
+
+	def test_certificate_failure_is_reported_and_closes_starttls_socket(self):
+		with self.set_user(self.user):
+			with patch(
+				"frappe.email.smtp.smtplib.SMTP_SSL",
+				side_effect=ssl.SSLCertVerificationError(1, "untrusted"),
+			):
+				with self.assertRaisesRegex(frappe.ValidationError, "Could not verify the TLS certificate"):
+					SMTPServer(server="smtp.example.com", use_ssl=1).session
+
+			server = SMTPServer(server="smtp.example.com", use_tls=1)
+			with patch("frappe.email.smtp.smtplib.SMTP") as smtp:
+				smtp.return_value.starttls.side_effect = ssl.SSLCertVerificationError(1, "untrusted")
+				with self.assertRaisesRegex(frappe.ValidationError, "Could not verify the TLS certificate"):
+					server.session
+				smtp.return_value.close.assert_called_once()
+				self.assertIsNone(server._session)
 
 
 def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
