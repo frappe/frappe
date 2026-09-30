@@ -29,7 +29,7 @@ import {
   useActivityTimeline,
 } from "../useActivityTimeline";
 import { addPendingActivity } from "../pendingRows";
-import { feedDelete, takeTicket } from "../../../cache";
+import { clearDataCache, feedDelete, takeTicket } from "../../../cache";
 import { OLD, doc, readRecord } from "../../../cache/tests/helpers";
 import ActivityTimeline from "../ActivityTimeline.vue";
 import TimelineSkeleton from "../TimelineSkeleton.vue";
@@ -828,6 +828,31 @@ describe("idle stores", () => {
     const name = freshDoc();
     await reloadActivityTimeline("ToDo", name);
     expect(hasActivityTimeline("ToDo", name)).toBe(false);
+  });
+
+  it("keeps a store until every hold on it ends", async () => {
+    const name = freshDoc();
+    await prefetchActivityTimeline("ToDo", name);
+    const take = await stageActivityTimelineRead("ToDo", name);
+    endActivityPrefetch("ToDo", name);
+    take!();
+    expect(hasActivityTimeline("ToDo", name)).toBe(true);
+
+    endActivityPrefetch("ToDo", name);
+    expect(hasActivityTimeline("ToDo", name)).toBe(false);
+  });
+
+  it("holds a reload's new store until its read ends, whatever leaves the cache meanwhile", async () => {
+    const name = freshDoc();
+    readRecord(doc(name, OLD));
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((done) => (answer = done)) });
+    const reload = reloadActivityTimeline("ToDo", name);
+    clearDataCache();
+    readRecord(doc(name, OLD));
+    answer({ activities: [c(1)], next: null });
+    await reload;
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:1"]);
   });
 
   it("holds a prefetched store until the first paint ends, then frees it if the cache lacks the record", async () => {

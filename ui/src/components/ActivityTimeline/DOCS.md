@@ -304,7 +304,8 @@ its components as long as the shared data cache holds the record's complete entr
 most recently read records). When that entry goes, the store is freed once no component is
 mounted on it and no prefetch holds it. Mounting beside a consumer already mounted on it reads nothing; the first mount
 after every consumer left re-reads the newest page, since the socket was closed in between.
-`endActivityPrefetch(doctype, docname, visibleTypes?)` says the first paint is over: a first
+`endActivityPrefetch(doctype, docname, visibleTypes?)` says the first paint is over. Call it
+once for each prefetch or staged read, since each one holds the store until its end. A first
 mount after it re-reads too, since nothing listened between the prefetch and that mount.
 
 With no component mounted, `activityTimelineRows(doctype, docname, visibleTypes?)` returns

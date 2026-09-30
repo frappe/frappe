@@ -5,8 +5,8 @@ import type { TimelineStore } from "./timelineStore";
 /** Stores by cache key; an idle one lives as long as its record's complete entry in the shared cache. */
 export class StoreCache {
   private readonly stores = new Map<string, TimelineStore>();
-  // keys a page's first paint reads from, whatever the cache holds
-  private readonly held = new Set<string>();
+  // open holds per key: a page's prefetch or staged read, or a reload's read
+  private readonly held = new Map<string, number>();
 
   constructor() {
     onRecordLeft((doctype, name) => this.dropIdle(docKey(doctype, name)));
@@ -21,11 +21,14 @@ export class StoreCache {
   }
 
   hold(key: string) {
-    this.held.add(key);
+    this.held.set(key, (this.held.get(key) ?? 0) + 1);
   }
 
+  /** Ends one hold; an end with no hold open ends nothing. */
   letGo(key: string) {
-    this.held.delete(key);
+    const count = this.held.get(key) ?? 0;
+    if (count > 1) this.held.set(key, count - 1);
+    else this.held.delete(key);
     this.release(key);
   }
 

@@ -165,7 +165,8 @@ cut or a `ui/` change reshapes them.
 
 ### 3. `ui` data
 
-The list is what `ui/` exports from its root index and from `@framework/ui/api`.
+The list is what `ui/` exports from its root index and from `@framework/ui/api`, plus what the
+shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 
 | Concept | What it is |
 | --- | --- |

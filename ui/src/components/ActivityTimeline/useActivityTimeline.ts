@@ -138,7 +138,8 @@ export function reloadActivityTimeline(
   const key = storeKey(doctype, docname, visibleTypes);
   const store = stores.get(key);
   if (store) return store.refresh();
-  return readBeforeMount(doctype, docname, visibleTypes).finally(() => stores.release(key));
+  stores.hold(key);
+  return readBeforeMount(doctype, docname, visibleTypes).finally(() => stores.letGo(key));
 }
 
 function getTimelineStore(
