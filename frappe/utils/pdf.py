@@ -570,8 +570,9 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 		writer = PdfWriter(clone_from=reader)
 
 		for page in writer.pages:
-			for img_file in page.images:
+			for image_id in page.images.keys():
 				try:
+					img_file = page.images[image_id]
 					image = img_file.image
 					if image.width > max_dim or image.height > max_dim:
 						image.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
