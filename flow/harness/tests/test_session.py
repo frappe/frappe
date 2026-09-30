@@ -200,7 +200,9 @@ def test_reload_repairs_a_crashed_runs_open_calls(tmp_path):
 		"tool_result",
 	]
 	assert [m.tool_call_id for m in reloaded.transcript.messages[2:]] == ["c1", "c2"]
-	assert reloaded.transcript.messages[2].content == "Tool call interrupted before completion."
+	assert reloaded.transcript.messages[2].content == (
+		"Tool call interrupted before its result came back; it may have taken effect. Check before retrying."
+	)
 	assert reloaded.transcript.messages[3].content == "second result"
 
 	second_reload = SessionStore(str(tmp_path)).get(session.id)

@@ -20,7 +20,9 @@ from flow_harness.events import (
 from flow_harness.session.log import SessionLog
 from flow_harness.session.transcript import COMPACTION_SUMMARY_PREFIX, Transcript, active_path
 
-INTERRUPTED = "Tool call interrupted before completion."
+INTERRUPTED = (
+	"Tool call interrupted before its result came back; it may have taken effect. Check before retrying."
+)
 
 
 def make_log(tmp_path, *events) -> SessionLog:
