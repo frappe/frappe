@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -1136,7 +1136,7 @@ msgstr "Istek akcije (sekunde)"
 #. Label of a Select field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
 msgid "Action Type"
-msgstr "Tip akcije"
+msgstr "Tip radnje"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:120
 msgid "Action {0} completed successfully on {1} {2}. View it {3}"
@@ -4845,7 +4845,7 @@ msgstr "Provjeri neispravne veze"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:1
 msgid "Check columns to select, drag to set order."
-msgstr "Označite kolone za odabir, povucite da postavi redoslijed."
+msgstr "Odaberi kolone za odabir, povucite da postavi redoslijed."
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:457
 msgid "Check the Error Log for more information: {0}"
@@ -4853,18 +4853,18 @@ msgstr "Provjeri dnevnik grešaka za više informacija: {0}"
 
 #: frappe/website/doctype/website_settings/website_settings.js:147
 msgid "Check this if you don't want users to sign up for an account on your site. Users won't get desk access unless you explicitly provide it."
-msgstr "Označite ovo ako ne želite da se korisnici registriraju za račun na vašoj web lokaciji. Korisnici neće dobiti pristup stolu osim ako izričito ne navedete."
+msgstr "Odaberi ovo ako ne želite da se korisnici registriraju za račun na vašoj web lokaciji. Korisnici neće dobiti pristup stolu osim ako izričito ne navedete."
 
 #. Description of the 'User must always select' (Check) field in DocType
 #. 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Check this if you want to force the user to select a series before saving. There will be no default if you check this."
-msgstr "Označite ovo ako želite prisiliti korisnika da odabere seriju prije spremanja. Ako odaberete ovo, neće biti standard postavke."
+msgstr "Odaberi ovo ako želite prisiliti korisnika da odabere seriju prije spremanja. Ako odaberete ovo, neće biti standard postavke."
 
 #. Description of the 'Show Full Number' (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Check to display the full numeric value (e.g., 1,234,567 instead of 1.2M)."
-msgstr "Označite za prikaz pune numeričke vrijednosti (npr. 1.234.567 umjesto 1,2 miliona)."
+msgstr "Odaberi za prikaz pune numeričke vrijednosti (npr. 1.234.567 umjesto 1,2 miliona)."
 
 #: frappe/email/doctype/newsletter/newsletter.js:20
 msgid "Checking broken links..."
@@ -16118,22 +16118,22 @@ msgstr "MariaDB Varijable"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:45
 msgid "Mark all as read"
-msgstr "Označi sve kao pročitano"
+msgstr "Odaberi sve kao pročitano"
 
 #: frappe/core/doctype/communication/communication.js:78
 #: frappe/core/doctype/communication/communication_list.js:19
 #: frappe/public/js/frappe/ui/notifications/notifications.js:276
 msgid "Mark as Read"
-msgstr "Označi kao pročitano"
+msgstr "Odaberi kao pročitano"
 
 #: frappe/core/doctype/communication/communication.js:95
 msgid "Mark as Spam"
-msgstr "Označi kao neželjenu poštu"
+msgstr "Odaberi kao neželjenu poštu"
 
 #: frappe/core/doctype/communication/communication.js:78
 #: frappe/core/doctype/communication/communication_list.js:22
 msgid "Mark as Unread"
-msgstr "Označi kao nepročitano"
+msgstr "Odaberi kao nepročitano"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Newsletter'
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
@@ -21436,7 +21436,7 @@ msgstr "Postavke sirovog ispisa"
 
 #: frappe/desk/doctype/console_log/console_log.js:6
 msgid "Re-Run in Console"
-msgstr "Ponovo pokrenite u konzoli"
+msgstr "Ponovo izvrši u konzoli"
 
 #: frappe/email/doctype/email_account/email_account.py:680
 msgid "Re:"
@@ -23194,13 +23194,13 @@ msgstr "Pravila sa većim brojem prioriteta će se prvo primijeniti."
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run Jobs only Daily if Inactive For (Days)"
-msgstr "Pokreni poslove samo dnevno ako su neaktivni (dana)"
+msgstr "Izvrši poslove samo dnevno ako su neaktivni (dana)"
 
 #. Description of the 'Enable Scheduled Jobs' (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run scheduled jobs only if checked"
-msgstr "Pokreni planirane poslove samo ako je odabrano"
+msgstr "Izvrši planirane poslove samo ako je odabrano"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:57
 msgid "Runtime in Minutes"
@@ -23928,7 +23928,7 @@ msgstr "Odaberi"
 #: frappe/public/js/frappe/list/list_view.js:750
 #: frappe/public/js/frappe/views/file/file_view.js:322
 msgid "Select All"
-msgstr "Označi sve"
+msgstr "Odaberi sve"
 
 #: frappe/public/js/frappe/views/communication.js:181
 #: frappe/public/js/frappe/views/communication.js:607
@@ -25844,7 +25844,7 @@ msgstr "Poredak"
 
 #: frappe/core/doctype/server_script/server_script_list.js:20
 msgid "Star us on GitHub"
-msgstr "Označite nas zvjezdicom na GitHubu"
+msgstr "Odaberi nas zvjezdicom na GitHubu"
 
 #: frappe/core/doctype/recorder/recorder_list.js:87
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:45
@@ -25869,7 +25869,7 @@ msgstr "Polje datuma početka"
 
 #: frappe/core/doctype/data_import/data_import.js:110
 msgid "Start Import"
-msgstr "Pokreni Uvoz"
+msgstr "Izvrši Uvoz"
 
 #: frappe/core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
@@ -27561,7 +27561,7 @@ msgstr "Ovaj tip dokumenta nema polja siroče za skraćivanje"
 
 #: frappe/core/doctype/doctype/doctype.py:1048
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
-msgstr "Ovaj tip dokumenta ima migracije na čekanju, pokrenite 'bench migrate' prije izmjene tipa dokumenta kako biste izbjegli gubitak promjena."
+msgstr "Ovaj tip dokumenta ima migracije na čekanju, izvrši 'bench migrate' prije izmjene tipa dokumenta kako biste izbjegli gubitak promjena."
 
 #: frappe/desk/doctype/workspace/workspace.js:23
 msgid "This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
@@ -27631,7 +27631,7 @@ msgstr "Ova je datoteka priložena zaštićenom dokumentu i ne može se izbrisat
 
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:76
 msgid "This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access."
-msgstr "Ova datoteka je javna i može joj pristupiti bilo ko, čak i bez prijave. Označi ga privatnim da ograničite pristup."
+msgstr "Ova datoteka je javna i može joj pristupiti bilo ko, čak i bez prijave. Odaberi ga privatnim da ograničite pristup."
 
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
@@ -33253,7 +33253,7 @@ msgstr "{0} je dodano {1} redova u {2}"
 
 #: frappe/public/js/frappe/form/controls/data.js:215
 msgid "{0} already exists. Select another name"
-msgstr "{0} već postoji. Odaberite drugo ime"
+msgstr "{0} već postoji. Odaberi drugo ime"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:36
 msgid "{0} already unsubscribed"
