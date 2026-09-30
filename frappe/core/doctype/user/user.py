@@ -14,6 +14,7 @@ from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.apps import get_default_path
 from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
+from frappe.database import savepoint
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	create_notification_settings,
 	toggle_notifications,
@@ -1471,7 +1472,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
-		try:
+		with savepoint(catch=frappe.DuplicateEntryError):
 			contact = frappe.get_doc(
 				{
 					"doctype": "Contact",
@@ -1494,8 +1495,6 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.insert(
 				ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
 			)
-		except frappe.DuplicateEntryError:
-			pass
 	else:
 		try:
 			contact = frappe.get_doc("Contact", contact_name)

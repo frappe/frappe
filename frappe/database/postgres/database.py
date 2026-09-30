@@ -883,7 +883,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		lock would release at the first commit. Polls pg_try_advisory_lock up to `timeout` seconds,
 		then raises QueryTimeoutError. `key` is hashed to the bigint the lock functions expect."""
 		lock_key = self._poll_advisory_lock("pg_try_advisory_lock", key, timeout)
+		save_point = f"advisory_lock_{frappe.generate_hash(length=10)}"
 		try:
+			self.savepoint(save_point)
 			yield
 		finally:
 			try:
@@ -894,10 +896,18 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				# the aborted state and release. Guarded so a failed cleanup never masks the original
 				# error -- a dropped session releases the lock anyway.
 				try:
-					self.rollback()
+					self._undo_advisory_lock_block(save_point)
 					self.sql("SELECT pg_advisory_unlock(%s)", (lock_key,))
 				except Exception:
 					pass
+
+	def _undo_advisory_lock_block(self, save_point):
+		"""Roll back the aborted lock block, keeping the caller's work and savepoints."""
+		try:
+			self.rollback(save_point=save_point)
+		except Exception:
+			# the block committed or rolled back, so nothing before it is left to keep
+			self.rollback()
 
 	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
 		"""Stream rows into the table with COPY -- far faster than multi-row INSERT. Falls back to
