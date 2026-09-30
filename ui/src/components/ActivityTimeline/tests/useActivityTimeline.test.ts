@@ -839,11 +839,27 @@ describe("idle stores", () => {
     for (const name of names) endActivityPrefetch("ToDo", name);
   });
 
-  it("frees a held store that is never let go once twenty newer idle stores pass it", async () => {
+  it("keeps a held store past the limit until its hold ends", async () => {
     const held = freshDoc();
     await prefetchActivityTimeline("ToDo", held);
     await reloadUncached(20);
+    expect(hasActivityTimeline("ToDo", held)).toBe(true);
+    endActivityPrefetch("ToDo", held);
+    await reloadUncached(20);
     expect(hasActivityTimeline("ToDo", held)).toBe(false);
+  });
+
+  it("keeps a staged read's store until the page takes its rows, whatever the cache and the limit do", async () => {
+    const name = freshDoc();
+    readRecord(doc(name, OLD));
+    await reloadActivityTimeline("ToDo", name);
+    serve({ newest: { activities: [c(2)], next: null } });
+    const take = await stageActivityTimelineRead("ToDo", name);
+    feedDelete(takeTicket(), "ToDo", name);
+    await reloadUncached(20);
+    take!();
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:2"]);
+    endActivityPrefetch("ToDo", name);
   });
 
   it("frees an idle store when its record leaves the cache, never a mounted one", async () => {

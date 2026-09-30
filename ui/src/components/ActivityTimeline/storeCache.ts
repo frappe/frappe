@@ -48,8 +48,9 @@ export class StoreCache {
 
   /** Drops the least recently used idle stores the cache does not hold, past `UNCACHED_STORES`. */
   trim() {
-    // a held store counts, so a hold never let go is bounded too
-    const idle = [...this.stores].filter(([, store]) => !inUse(store) && !isCached(store));
+    const idle = [...this.stores].filter(
+      ([key, store]) => !inUse(store) && !this.held.has(key) && !isCached(store)
+    );
     for (const [key, store] of idle.slice(0, -UNCACHED_STORES)) this.drop(key, store);
   }
 
