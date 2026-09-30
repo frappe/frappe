@@ -6,7 +6,16 @@ import { applyColumnWidth, clearColumnWidth } from "@framework/ui/ColumnSettings
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { serializeFilters, type FilterCondition, type FilterField } from "@framework/ui/Filter";
 import { serializeOrderBy, type Sort } from "@framework/ui/SortBy";
-import { computed, ref, watch, type ComputedRef, type Ref } from "vue";
+import { holdFresh } from "@framework/ui/utils/sharedState";
+import {
+	computed,
+	getCurrentScope,
+	onScopeDispose,
+	ref,
+	watch,
+	type ComputedRef,
+	type Ref,
+} from "vue";
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { listHandlersFor } from "@/contributions/registry";
 import { routeFor } from "@/router/routeFor";
@@ -65,7 +74,7 @@ export interface ListPage extends ListRows {
 export function useListPage(doctype: string): ListPage {
 	const route = useRoute();
 	const router = useRouter();
-	const { meta, error } = useDoctypeMeta(doctype);
+	const { meta, error, refreshing, refreshed } = useDoctypeMeta(doctype);
 	const permissions = useDocPermissions(doctype);
 	const settings = useListSettings(doctype);
 	const listMeta = computed(() => meta.value as ListMeta | null);
@@ -82,6 +91,7 @@ export function useListPage(doctype: string): ListPage {
 	const seeded = ref(false);
 	// What the page last set itself, per key: a change that matches it is not the person's act.
 	const applied: Partial<Record<ListSettingsKey, string>> = {};
+	const acted = new Set<ListSettingsKey>();
 
 	const ready = computed(
 		() => Boolean(listMeta.value) && settings.loaded.value && !permissions.loading.value
@@ -114,8 +124,16 @@ export function useListPage(doctype: string): ListPage {
 	}
 
 	function applyStored() {
+		applyColumns();
+		applyQuickFilterFields();
+	}
+
+	function applyColumns() {
 		columns.value = resolvedColumns();
 		applied.columns = JSON.stringify(toStoredColumns(columns.value));
+	}
+
+	function applyQuickFilterFields() {
 		quickFilterFields.value = resolvedQuickFilterFields();
 		applied.quick_filter_fields = JSON.stringify(
 			quickFilterFields.value && toStoredQuickFilterFields(quickFilterFields.value)
@@ -148,6 +166,24 @@ export function useListPage(doctype: string): ListPage {
 		},
 		{ immediate: true }
 	);
+
+	// After a DocType change the page shows the stale meta and settings, then both fresh ones in one step.
+	if (refreshing.value || settings.refreshing.value) {
+		const release = holdFresh();
+		if (getCurrentScope()) onScopeDispose(release);
+		void Promise.all([refreshed(), settings.refreshed()]).then(() => {
+			release();
+			applyFresh();
+		});
+	}
+
+	/** Each setting the page set from stale settings follows the fresh ones, unless the person changed it. */
+	function applyFresh() {
+		if (!seeded.value) return;
+		if (!acted.has("columns")) applyColumns();
+		if (!acted.has("quick_filter_fields")) applyQuickFilterFields();
+		if (!acted.has("sort")) readSort();
+	}
 
 	// Only a query the page did not write itself is read back: Back, Forward, a pasted link.
 	watch(
@@ -193,6 +229,7 @@ export function useListPage(doctype: string): ListPage {
 		const json = JSON.stringify(value);
 		if (!seeded.value || applied[key] === json) return;
 		applied[key] = json;
+		acted.add(key);
 		settings.save({ [key]: value });
 	}
 

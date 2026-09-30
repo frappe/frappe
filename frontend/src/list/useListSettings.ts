@@ -1,6 +1,7 @@
 // One doctype's stored list settings: the site row and the person's own, fetched beside meta once
 // and again after a DocType change, written back silently. A write's response replaces both rows.
 import { runMethod } from "@framework/ui/api";
+import { landFresh } from "@framework/ui/utils/sharedState";
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
 import type { ListSettings, ListSettingsKey } from "./storedSettings";
 
@@ -23,6 +24,10 @@ export interface ListSettingsHandle {
 	resetForSite: (key: ListSettingsKey) => Promise<void>;
 	/** Sends a waiting write now. */
 	flush: () => Promise<void>;
+	/** True while stale settings show and fresh ones are read. */
+	refreshing: ComputedRef<boolean>;
+	/** Resolves once the fresh read of stale settings has arrived, shown or held. */
+	refreshed: () => Promise<void>;
 }
 
 interface Tiers {
@@ -39,8 +44,10 @@ interface Entry {
 	timer: ReturnType<typeof setTimeout> | null;
 	/** Writes go out one after another, so a late response cannot overwrite a later one. */
 	queue: Promise<void>;
-	/** The DocType changed; a holder keeps this entry, the next caller gets a new one. */
-	dropped: boolean;
+	/** The DocType changed; a holder keeps this entry, the next caller gets a new one seeded from it. */
+	stale: boolean;
+	refreshing: Ref<boolean>;
+	refreshed: Promise<void>;
 }
 
 const entries = new Map<string, Entry>();
@@ -87,14 +94,16 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 		saveForSite,
 		resetForSite,
 		flush,
+		refreshing: computed(() => entry.refreshing.value),
+		refreshed: () => entry.refreshed,
 	};
 }
 
-/** Forgets the doctype's settings; a waiting write goes out first, and the next caller reads after it. */
-export function dropListSettings(doctype: string): void {
+/** Marks the doctype's settings stale; a waiting write goes out first, and the next caller reads after it. */
+export function markListSettingsStale(doctype: string): void {
 	const entry = entries.get(doctype);
 	if (!entry) return;
-	entry.dropped = true;
+	entry.stale = true;
 	void flushEntry(entry, doctype);
 }
 
@@ -106,15 +115,18 @@ export function resetListSettings(): void {
 
 function entryFor(doctype: string): Entry {
 	const existing = entries.get(doctype);
-	if (existing && !existing.dropped) return existing;
+	if (existing && !existing.stale) return existing;
+	const seeded = existing?.loaded.value ?? false;
 	const entry: Entry = {
-		tiers: ref({ site: null, user: null }),
-		loaded: ref(false),
+		tiers: ref(seeded ? existing!.tiers.value : { site: null, user: null }),
+		loaded: ref(seeded),
 		pending: null,
 		resets: {},
 		timer: null,
 		queue: Promise.resolve(),
-		dropped: false,
+		stale: false,
+		refreshing: ref(seeded),
+		refreshed: Promise.resolve(),
 	};
 	entries.set(doctype, entry);
 	if (existing) {
@@ -123,6 +135,7 @@ function entryFor(doctype: string): Entry {
 			return load(entry, doctype);
 		});
 	} else load(entry, doctype);
+	if (seeded) entry.refreshed = entry.queue;
 	return entry;
 }
 
@@ -139,9 +152,20 @@ function flushEntry(entry: Entry, doctype: string): Promise<void> {
 
 async function load(entry: Entry, doctype: string) {
 	try {
-		entry.tiers.value = tiersOf(await send(`${API}.get`, { doctype, type: VIEW_TYPE }));
+		const tiers = tiersOf(await send(`${API}.get`, { doctype, type: VIEW_TYPE }));
+		if (!entry.refreshing.value) entry.tiers.value = tiers;
+		else
+			landFresh(() => {
+				// A write that landed while this read was held carries newer rows.
+				if (!entry.refreshing.value) return;
+				entry.tiers.value = tiers;
+				entry.refreshing.value = false;
+			});
 	} catch (failure) {
 		console.warn(`[list] settings for ${doctype} did not load`, failure);
+		// A failed refresh keeps the stale rows on show, and the next caller reads again.
+		if (entry.refreshing.value) entry.stale = true;
+		entry.refreshing.value = false;
 	}
 	entry.loaded.value = true;
 }
@@ -150,6 +174,7 @@ function write(entry: Entry, send: () => Promise<unknown>, onFailure?: () => voi
 	entry.queue = entry.queue.then(async () => {
 		try {
 			entry.tiers.value = tiersOf(await send());
+			entry.refreshing.value = false;
 		} catch (failure) {
 			onFailure?.();
 			console.warn("[list] settings were not saved", failure);
@@ -167,7 +192,7 @@ function restore(entry: Entry, patch: ListSettings, marks: Entry["resets"]) {
 	entry.pending = { ...kept, ...entry.pending };
 }
 
-/** A failed write lands in the dropped entry, which may have no holder left to flush it. */
+/** A failed write lands in the stale entry, which may have no holder left to flush it. */
 function carryPending(from: Entry, to: Entry) {
 	if (!from.pending) return;
 	restore(to, from.pending, {});

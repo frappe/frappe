@@ -7,7 +7,8 @@ const fake = vi.hoisted(() => ({ runMethod: vi.fn() }));
 
 vi.mock("@framework/ui/api", () => ({ runMethod: fake.runMethod }));
 
-import { dropListSettings, resetListSettings, useListSettings, WRITE_DEBOUNCE_MS } from "../useListSettings";
+import { holdFresh } from "@framework/ui/utils/sharedState";
+import { markListSettingsStale, resetListSettings, useListSettings, WRITE_DEBOUNCE_MS } from "../useListSettings";
 
 const API = "frappe.desk.doctype.doctype_view.api";
 const ADDRESS = { doctype: "Lead", type: "List" };
@@ -158,8 +159,31 @@ describe("writing", () => {
 	});
 });
 
-describe("dropping", () => {
+describe("marking stale", () => {
 	const methods = () => fake.runMethod.mock.calls.map(([method]) => method.split(".").pop());
+
+	it("shows the next caller the old rows at once, loaded, then the fresh rows", async () => {
+		useListSettings("Lead");
+		await settle();
+		markListSettingsStale("Lead");
+		tiers = { site: { sort: [] }, user: { columns: [{ fieldname: "title" }] } };
+		const next = useListSettings("Lead");
+		expect(next.loaded.value).toBe(true);
+		expect(next.refreshing.value).toBe(true);
+		expect(next.stored.value).toEqual({ sort: [{ fieldname: "title", direction: "asc" }] });
+		await next.refreshed();
+		expect(methods()).toEqual(["get", "get"]);
+		expect(next.refreshing.value).toBe(false);
+		expect(next.stored.value).toEqual({ sort: [], columns: [{ fieldname: "title" }] });
+	});
+
+	it("starts the next caller unloaded when the old entry had not loaded", () => {
+		useListSettings("Lead");
+		markListSettingsStale("Lead");
+		const next = useListSettings("Lead");
+		expect(next.loaded.value).toBe(false);
+		expect(next.refreshing.value).toBe(false);
+	});
 
 	it("sends a waiting write at once, and the next caller reads only after it lands", async () => {
 		const open = useListSettings("Lead");
@@ -169,13 +193,13 @@ describe("dropping", () => {
 			(method, args) => new Promise((resolve) => (land = () => resolve(respond(method, args))))
 		);
 		open.save({ columns: [{ fieldname: "title" }] });
-		dropListSettings("Lead");
+		markListSettingsStale("Lead");
 		const next = useListSettings("Lead");
 		await settle();
 		expect(methods()).toEqual(["get", "save"]);
+		expect(next.loaded.value).toBe(true);
 		land();
-		await settle();
-		await settle();
+		await next.refreshed();
 		expect(methods()).toEqual(["get", "save", "get"]);
 		expect(next.stored.value).toEqual({
 			sort: [{ fieldname: "title", direction: "asc" }],
@@ -186,7 +210,7 @@ describe("dropping", () => {
 	it("leaves the open handle on its own rows, still writing", async () => {
 		const open = useListSettings("Lead");
 		await settle();
-		dropListSettings("Lead");
+		markListSettingsStale("Lead");
 		open.save({ sort: [] });
 		vi.advanceTimersByTime(WRITE_DEBOUNCE_MS);
 		await settle();
@@ -194,13 +218,13 @@ describe("dropping", () => {
 		expect(open.stored.value).toEqual({ sort: [] });
 	});
 
-	it("hands a write that failed after the drop to the next caller", async () => {
+	it("hands a write that failed after the mark to the next caller", async () => {
 		const open = useListSettings("Lead");
 		await settle();
 		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 		fake.runMethod.mockRejectedValueOnce(new Error("down"));
 		open.save({ columns: [{ fieldname: "title" }] });
-		dropListSettings("Lead");
+		markListSettingsStale("Lead");
 		const next = useListSettings("Lead");
 		await settle();
 		expect(next.has("user", "columns")).toBe(true);
@@ -213,11 +237,47 @@ describe("dropping", () => {
 		warn.mockRestore();
 	});
 
+	it("keeps the old rows and ends the refresh when the fresh read fails", async () => {
+		useListSettings("Lead");
+		await settle();
+		markListSettingsStale("Lead");
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		fake.runMethod.mockRejectedValueOnce(new Error("down"));
+		const next = useListSettings("Lead");
+		await next.refreshed();
+		expect(next.refreshing.value).toBe(false);
+		expect(next.stored.value).toEqual({ sort: [{ fieldname: "title", direction: "asc" }] });
+
+		fake.runMethod.mockResolvedValueOnce({ data: { site: { sort: [] }, user: null } });
+		const again = useListSettings("Lead");
+		await again.refreshed();
+		expect(again.stored.value).toEqual({ sort: [] });
+		warn.mockRestore();
+	});
+
+	it("lets a write that lands while the fresh read is held win over that read", async () => {
+		useListSettings("Lead");
+		await settle();
+		markListSettingsStale("Lead");
+		const release = holdFresh();
+		fake.runMethod.mockResolvedValueOnce({ data: { site: { sort: [] }, user: null } });
+		const next = useListSettings("Lead");
+		await next.refreshed();
+		expect(next.stored.value).toEqual({ sort: [{ fieldname: "title", direction: "asc" }] });
+		await next.saveForSite({ columns: [{ fieldname: "amount" }] });
+		expect(next.refreshing.value).toBe(false);
+		release();
+		expect(next.stored.value).toEqual({
+			sort: [{ fieldname: "title", direction: "asc" }],
+			columns: [{ fieldname: "amount" }],
+		});
+	});
+
 	it("keeps every other doctype's rows", async () => {
 		useListSettings("Lead");
 		useListSettings("Deal");
 		await settle();
-		dropListSettings("Deal");
+		markListSettingsStale("Deal");
 		useListSettings("Lead");
 		await settle();
 		expect(methods()).toEqual(["get", "get"]);

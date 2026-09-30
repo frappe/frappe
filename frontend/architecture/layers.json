@@ -219,14 +219,14 @@
     {
       "from": "frontend/src/shell/doctypeUpdates.ts",
       "to": "frontend/src/recordPage/formLayoutSource/",
-      "why": "The shell clears the form layout cache on doctype_update.",
+      "why": "The shell marks the form layout cache stale on doctype_update.",
       "ticket": 43453,
       "title": "The shell stops importing pages, and the record page sets up its own icon and drawn props"
     },
     {
       "from": "frontend/src/shell/doctypeUpdates.ts",
       "to": "frontend/src/list/",
-      "why": "The shell clears the list settings cache on doctype_update.",
+      "why": "The shell marks the list settings cache stale on doctype_update.",
       "ticket": 43453,
       "title": "The shell stops importing pages, and the record page sets up its own icon and drawn props"
     },
@@ -337,9 +337,6 @@
     ],
     "frontend/src/list/useListPage.ts": [
       "DeleteOutcome"
-    ],
-    "frontend/src/list/useListSettings.ts": [
-      "dropListSettings"
     ],
     "frontend/src/navigation/current.ts": [
       "CurrentNavigation",
@@ -579,7 +576,6 @@
     ],
     "frontend/src/recordPage/formLayoutSource/useFormLayout.ts": [
       "UseFormLayout",
-      "dropFormLayouts",
       "resetFormLayouts"
     ],
     "frontend/src/recordPage/frame.ts": [
@@ -1093,8 +1089,7 @@
       "useDocPermissions"
     ],
     "ui/src/composables/useDoctypeMeta.ts": [
-      "UseDoctypeMeta",
-      "dropDoctypeMeta"
+      "UseDoctypeMeta"
     ],
     "ui/src/composables/useLinkSearch.ts": [
       "LinkSearchOption",

@@ -133,6 +133,8 @@ import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types"
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
+import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { holdFresh } from "@framework/ui/utils/sharedState";
 import {
 	createRecordPage,
 	errorMessage,
@@ -150,6 +152,7 @@ import {
 	type RecordPageController,
 } from "@/recordPage";
 import type { UseFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
+import { LATE_LIMIT_MS } from "@/recordPage/paintGate";
 import { routeFor } from "@/router/routeFor";
 import { __ } from "@/i18n";
 import BodyColumns from "./record/body/BodyColumns.vue";
@@ -242,6 +245,8 @@ let generation = 0;
 // Likewise for two sidecar re-reads: several picks in one gesture each fire one.
 let docinfoRead = 0;
 let docinfoLanding: Promise<void> = Promise.resolve();
+// A return visit's hold on fresh meta and layouts, let go with its background reads.
+let releaseFresh = () => {};
 
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const docname = computed(() => String(route.params.name));
@@ -470,6 +475,7 @@ async function readDocinfo(): Promise<void> {
 // Only the route's load may paint from memory: a reload, a conflict or a failed action reads the server.
 async function load({ fromMemory = false } = {}) {
 	feeds.endKeptRead();
+	releaseFresh();
 	if (!doctype.value) {
 		live.release();
 		return;
@@ -555,22 +561,23 @@ function openFromMemory(opening: Opening): Promise<void> | null {
 		blank();
 		return null;
 	}
-	const reads = backgroundReads(target, created);
+	const release = holdFresh();
+	releaseFresh = release;
+	const reads = backgroundReads(opening, created);
 	landPaint(created, pointer);
-	return applyInBackground(mine, created, reads);
+	return applyInBackground(mine, created, reads, release);
 }
 
 // Each read resolves to its applier, which may return a re-read to wait for; they all apply in one step.
-function backgroundReads(
-	target: Opening["target"],
-	created: RecordPageController
-): BackgroundRead[] {
+function backgroundReads(opening: Opening, created: RecordPageController): BackgroundRead[] {
+	const { target } = opening;
 	const before = docinfo.value;
 	const reads: BackgroundRead[] = [
 		loadRecord(target.doctype, target.name).then(
 			(fresh) => () => takeRefetch(fresh, before),
 			(failure) => () => takeReadFailure(failure)
 		),
+		freshVersion(opening),
 	];
 	const rows = feeds.rereadKept(route.query);
 	if (rows) reads.push(rows);
@@ -580,21 +587,40 @@ function backgroundReads(
 	return reads;
 }
 
+/** A stale meta, layout or script tier: resolves once the fresh ones are in, to the step that shows the meta. */
+function freshVersion({ target, details, panel }: Opening): BackgroundRead {
+	// The entry the layouts joined against, so a later DocType change cannot hand the page another.
+	const held = useDoctypeMeta(target.doctype);
+	// A script whose module hangs must not hold back the record's re-read; the replay still waits for it.
+	const tier = Promise.race([
+		loadClientScripts(target.doctype).catch(() => {}),
+		new Promise((resolve) => setTimeout(resolve, LATE_LIMIT_MS)),
+	]);
+	return Promise.all([details.refreshed(), panel.refreshed(), tier]).then(() => () => {
+		const fresh = held.meta.value;
+		if (fresh && fresh !== meta.value) meta.value = fresh;
+	});
+}
+
 /** Every read applied together and any docinfo re-read landed, then one replay whose acts are dropped. */
 async function applyInBackground(
 	mine: number,
 	created: RecordPageController,
-	reads: BackgroundRead[]
+	reads: BackgroundRead[],
+	release: () => void
 ) {
 	try {
 		const settled = await Promise.allSettled(reads);
 		if (mine !== generation) return;
+		// Fresh meta and layouts land with the appliers, so the page changes in one step.
+		release();
 		const rereads = settled.map((read) =>
 			read.status === "fulfilled" ? read.value() : undefined
 		);
 		await Promise.all(rereads);
 		if (mine !== generation || error.value) return;
 	} finally {
+		release();
 		if (mine === generation) feeds.endKeptRead();
 	}
 	await created.refresh({ background: true });
@@ -878,6 +904,7 @@ onUnmounted(() => {
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();
+	releaseFresh();
 	window.removeEventListener("keydown", onKeydown);
 	window.removeEventListener("beforeunload", onBeforeUnload);
 });

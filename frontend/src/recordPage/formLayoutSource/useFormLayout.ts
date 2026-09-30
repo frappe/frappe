@@ -10,7 +10,7 @@ import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutF
 import type { FieldPatch } from "./fieldPatch";
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
-import { memoizedState } from "@framework/ui/utils/sharedState";
+import { landFresh, memoizedState } from "@framework/ui/utils/sharedState";
 import { chooseLayout } from "./chooseLayout";
 import { joinLayout } from "./joinLayout";
 import type { FormLayoutsResponse, FormLayoutType } from "./types";
@@ -35,12 +35,15 @@ export interface UseFormLayoutOptions {
 export interface UseFormLayout {
 	/** Render-ready schema; empty until the rows and the meta both load. */
 	layout: ComputedRef<FormLayoutSchema>;
+	/** True while nothing is there to show; stale rows or meta show while fresh ones are read. */
 	loading: ComputedRef<boolean>;
 	error: ComputedRef<unknown>;
 	/** Re-fetch the layout rows (the meta reloads through `useDoctypeMeta`). */
 	reload: () => void;
-	/** Resolves once the rows and the meta have both landed or failed, so a first replay sees the layout. */
+	/** Resolves once the fresh rows and meta have both landed or failed, so a first replay sees the layout. */
 	settled: () => Promise<void>;
+	/** Resolves once the fresh reads of stale rows and meta have arrived, shown or held. */
+	refreshed: () => Promise<void>;
 }
 
 /** One fetch per `(doctype, type)`, shared by every caller. */
@@ -55,9 +58,9 @@ const entries = memoizedState(
  * matches the doc, joined against the meta with permlevel baked in.
  */
 export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
-	const { meta, metas, loading, error } = useDoctypeMeta(options.doctype);
+	const { meta, metas, loading, refreshing, error, refreshed } = useDoctypeMeta(options.doctype);
 	const { fieldAccess } = useDocPermissions(options.doctype);
-	// Built at call time and held until the input moves, so a later drop cannot swap it.
+	// Built at call time and held until the input moves, so a later stale mark cannot swap it.
 	const inputNow = () => ({ doctype: toValue(options.doctype), type: options.type });
 	const first = inputNow();
 	let held = { input: first, entry: entries.get(first) };
@@ -93,13 +96,15 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 	});
 
 	const busy = computed(() => loading.value || entry.value.loading);
+	const stale = computed(() => busy.value || refreshing.value || entry.value.refreshing);
 
 	return {
 		layout,
 		loading: busy,
 		error: computed(() => error.value ?? entry.value.error),
 		reload: () => entry.value.reload(),
-		settled: () => whenSettled(busy),
+		settled: () => whenSettled(stale),
+		refreshed: () => Promise.all([refreshed(), entry.value.refreshed]).then(() => {}),
 	};
 }
 
@@ -115,9 +120,9 @@ export function whenSettled(loading: { value: boolean }): Promise<void> {
 	});
 }
 
-/** Forgets the doctype's rows of every type; the next caller fetches. */
-export function dropFormLayouts(doctype: string): void {
-	entries.drop((key) => key.startsWith(`${doctype}:`));
+/** Marks the doctype's rows of every type stale; the next caller shows them and fetches fresh ones. */
+export function markFormLayoutsStale(doctype: string): void {
+	entries.stale((key) => key.startsWith(`${doctype}:`));
 }
 
 /** Drops every memoised fetch, so one test's rows cannot reach the next. */
@@ -127,19 +132,32 @@ export function resetFormLayouts(): void {
 
 const GET_FORM_LAYOUTS = "frappe.desk.doctype.form_layout.form_layout.get_form_layouts";
 
-function buildEntry(input: { doctype: string; type: FormLayoutType }) {
-	const entry = shallowReactive({
-		data: null as FormLayoutsResponse | null,
+interface LayoutEntry {
+	data: FormLayoutsResponse | null;
+	loading: boolean;
+	refreshing: boolean;
+	error: unknown;
+	reload: () => Promise<void>;
+	refreshed: Promise<void>;
+}
+
+function buildEntry(input: { doctype: string; type: FormLayoutType }, stale?: LayoutEntry) {
+	const data = stale?.data ?? null;
+	let arrive = () => {};
+	const entry: LayoutEntry = shallowReactive({
+		data,
 		loading: false,
+		refreshing: data !== null,
 		error: null as unknown,
 		reload,
+		refreshed: data === null ? Promise.resolve() : new Promise<void>((resolve) => (arrive = resolve)),
 	});
 	// The slower of two reloads must not overwrite the newer answer.
 	let turn = 0;
 
 	async function reload() {
 		const mine = ++turn;
-		entry.loading = true;
+		entry.loading = !entry.refreshing;
 		try {
 			const { data } = await runMethod<FormLayoutsResponse>(
 				GET_FORM_LAYOUTS,
@@ -147,14 +165,31 @@ function buildEntry(input: { doctype: string; type: FormLayoutType }) {
 				{ http: "GET" }
 			);
 			if (mine !== turn) return;
-			entry.data = data;
-			entry.error = null;
+			show(() => {
+				entry.data = data;
+				entry.error = null;
+			});
 		} catch (caught) {
 			if (mine !== turn) return;
-			entry.error = caught;
+			// A failed refresh keeps the stale rows on show, and the next caller reads again.
+			if (entry.refreshing) {
+				entry.refreshing = false;
+				entries.stale((_key, one) => one === entry);
+			} else entry.error = caught;
 		} finally {
-			if (mine === turn) entry.loading = false;
+			if (mine === turn) {
+				entry.loading = false;
+				arrive();
+			}
 		}
+	}
+
+	function show(commit: () => void) {
+		if (!entry.refreshing) return commit();
+		landFresh(() => {
+			commit();
+			entry.refreshing = false;
+		});
 	}
 
 	reload();

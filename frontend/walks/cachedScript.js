@@ -10,7 +10,9 @@ const DOCUMENTS = `${BASE_URL}/api/v2/document/Client%20Script`;
 const SCRIPT_URL = `${DOCUMENTS}/${encodeURIComponent(NAME)}/`;
 const MARKER = "// Stored by the return-visit walk, which deletes it.";
 
-const SOURCE = `${MARKER}
+// The item's label ends with the version, so a step can tell which script drew it.
+function source(version) {
+	return `${MARKER}
 import { h } from "vue";
 
 const Count = {
@@ -25,19 +27,35 @@ export default {
 		const count = page.cached("walk-count", () =>
 			page.call("frappe.client.get_count", { doctype: page.doctype })
 		);
-		const label = count === undefined ? ${JSON.stringify(PENDING)} : "Rows: " + count;
+		const label = count === undefined ? ${JSON.stringify(PENDING)} : "Rows: " + count + " ${version}";
 		page.header.add({ name: "walk-cached", label, component: Count, props: { label } });
 	},
 };
 `;
+}
 
-export function installCachedScript(doctype) {
+export function installCachedScript(doctype, version) {
 	return withRequest(async (request) => {
 		await remove(request);
-		const script = { name: NAME, dt: doctype, view: "Record", enabled: 1, script: SOURCE };
+		const script = {
+			name: NAME,
+			dt: doctype,
+			view: "Record",
+			enabled: 1,
+			script: source(version),
+		};
 		const response = await request.post(DOCUMENTS, { data: script });
 		if (!response.ok())
 			throw new Error(`Client Script insert failed with ${response.status()}`);
+	});
+}
+
+/** Saves a new version of the walk's script; the server tells open desks that it changed. */
+export function changeCachedScript(version) {
+	return withRequest(async (request) => {
+		const response = await request.patch(SCRIPT_URL, { data: { script: source(version) } });
+		if (!response.ok())
+			throw new Error(`Client Script update failed with ${response.status()}`);
 	});
 }
 
@@ -45,7 +63,7 @@ export function removeCachedScript() {
 	return withRequest(remove);
 }
 
-async function withRequest(work) {
+export async function withRequest(work) {
 	const request = await requestApi.newContext();
 	try {
 		await logIn(request);

@@ -35,6 +35,7 @@ vi.mock("@/recordPage", async (importOriginal) => {
         error: computed(() => null),
         reload: () => {},
         settled: async () => {},
+        refreshed: async () => {},
       };
     },
   };

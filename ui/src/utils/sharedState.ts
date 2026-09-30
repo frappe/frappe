@@ -4,8 +4,8 @@ import type { ComputedRef, Ref } from "vue";
 export interface MemoizedState<Input, State> {
   /** The state for this input, built once and shared by every later caller. */
   get: (input: Input) => State;
-  /** Forgets every matching state; a holder keeps reading it, and the next `get` builds anew. */
-  drop: (match: (key: string, state: State) => boolean) => void;
+  /** Sets every matching state aside; a holder keeps reading it, and the next `get` builds anew from it. */
+  stale: (match: (key: string, state: State) => boolean) => void;
   /** Drops every state, so one test cannot reach the next. */
   reset: () => void;
 }
@@ -16,9 +16,10 @@ export interface MemoizedState<Input, State> {
  */
 export function memoizedState<Input, State>(
   keyOf: (input: Input) => string,
-  build: (input: Input) => State
+  build: (input: Input, stale?: State) => State
 ): MemoizedState<Input, State> {
   const states = new Map<string, State>();
+  const staleStates = new Map<string, State>();
 
   return {
     get(input) {
@@ -26,16 +27,44 @@ export function memoizedState<Input, State>(
       const existing = states.get(key);
       if (existing) return existing;
 
-      const state = effectScope(true).run(() => build(input)) as State;
+      const stale = staleStates.get(key);
+      staleStates.delete(key);
+      const state = effectScope(true).run(() => build(input, stale)) as State;
       states.set(key, state);
       return state;
     },
-    drop(match) {
-      for (const [key, state] of states) if (match(key, state)) states.delete(key);
+    stale(match) {
+      for (const [key, state] of states) {
+        if (!match(key, state)) continue;
+        states.delete(key);
+        staleStates.set(key, state);
+      }
     },
     reset() {
       states.clear();
+      staleStates.clear();
     },
+  };
+}
+
+const holds = new Set<symbol>();
+let held: (() => void)[] = [];
+
+/** Shows a stale state's fresh value now, or, while a hold is open, with the rest when the last one ends. */
+export function landFresh(commit: () => void): void {
+  if (holds.size) held.push(commit);
+  else commit();
+}
+
+/** Holds every fresh value back until the returned release, so a page shows them with its own reads. */
+export function holdFresh(): () => void {
+  const hold = Symbol("fresh");
+  holds.add(hold);
+  return () => {
+    if (!holds.delete(hold) || holds.size) return;
+    const commits = held;
+    held = [];
+    for (const commit of commits) commit();
   };
 }
 

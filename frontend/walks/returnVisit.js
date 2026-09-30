@@ -3,7 +3,13 @@
 
 import { writeFileSync } from "node:fs";
 import { chromium } from "playwright";
-import { PENDING, installCachedScript, removeCachedScript } from "./cachedScript.js";
+import {
+	PENDING,
+	changeCachedScript,
+	installCachedScript,
+	removeCachedScript,
+} from "./cachedScript.js";
+import { changeDoctype, removeDoctypeChange } from "./doctypeChange.js";
 import { MARKERS, installCounters } from "./paintCounters.js";
 import { BASE_URL, NETWORKS, logIn, setUp } from "./setup.js";
 
@@ -14,7 +20,15 @@ const RETURN_STEPS = [
 	"forward-to-record",
 	"list-via-sidebar",
 	"record-via-sidebar",
+	"list-before-script-change",
+	"list-before-doctype-change",
 ];
+
+// A return after a change while away: the script shows its new version, the page read the meta again.
+const CHANGE_STEPS = {
+	"record-after-script-change": { version: "v2" },
+	"record-after-doctype-change": { version: "v2", read: "/meta" },
+};
 
 const COLUMNS = [
 	"step",
@@ -31,16 +45,17 @@ const COLUMNS = [
 
 async function main() {
 	const { jsonPath, networks, target } = await setUp();
-	await installCachedScript(target.doctype);
 	const runs = [];
 	try {
 		for (const name of networks) {
+			await installCachedScript(target.doctype, "v1");
 			const run = await new ReturnVisitWalk(target, name).run();
 			printRun(run);
 			runs.push(run);
 		}
 	} finally {
 		await removeCachedScript();
+		await removeDoctypeChange();
 	}
 	if (jsonPath) writeFileSync(jsonPath, JSON.stringify({ target, runs }, null, 2));
 	process.exit(runs.every((run) => run.passed) ? 0 : 1);
@@ -54,6 +69,7 @@ class ReturnVisitWalk {
 		this.steps = [];
 		this.inFlight = 0;
 		this.lastRequestAt = 0;
+		this.stepRequests = [];
 	}
 
 	async run() {
@@ -82,7 +98,9 @@ class ReturnVisitWalk {
 			this.lastRequestAt = Date.now();
 		};
 		this.page.on("request", (request) => {
-			if (counted(request)) this.inFlight += 1;
+			if (!counted(request)) return;
+			this.inFlight += 1;
+			this.stepRequests.push(new URL(request.url()).pathname);
 		});
 		this.page.on("requestfinished", finish);
 		this.page.on("requestfailed", finish);
@@ -109,17 +127,26 @@ class ReturnVisitWalk {
 		await this.step("list-via-sidebar", () => listLink.click());
 		const link = await this.returnLink();
 		await this.step("record-via-sidebar", () => link.click());
+		await this.step("list-before-script-change", () => listLink.click());
+		await changeCachedScript("v2");
+		await this.page.waitForTimeout(QUIET_MS);
+		await this.step("record-after-script-change", () => link.click());
+		await this.step("list-before-doctype-change", () => listLink.click());
+		await changeDoctype(this.target.doctype);
+		await this.page.waitForTimeout(QUIET_MS);
+		await this.step("record-after-doctype-change", () => link.click());
 	}
 
 	async step(name, action) {
 		const started = Date.now();
 		if (this.recordPath)
 			await this.page.evaluate((path) => window.__walk.reset(path), this.recordPath);
+		this.stepRequests = [];
 		await action();
 		const settled = (await this.ready(name)) && (await this.settle(started));
 		const counts = await this.page.evaluate(() => window.__walk.read());
 		const ms = Math.round(Math.max(counts.changedAtMs, this.lastRequestAt - started));
-		this.steps.push(summarize(name, counts, ms, settled));
+		this.steps.push(summarize(name, counts, ms, settled, this.stepRequests));
 	}
 
 	ready(name) {
@@ -172,10 +199,11 @@ class ReturnVisitWalk {
 	}
 }
 
-function summarize(name, counts, ms, settled) {
+function summarize(name, counts, ms, settled, requests) {
 	const fields = paintSummary(counts.fields);
 	const rows = paintSummary(counts.rows);
-	const script = onList(name) ? null : scriptSummary(counts);
+	const change = CHANGE_STEPS[name];
+	const script = onList(name) ? null : scriptSummary(counts, change?.version);
 	const step = {
 		step: name,
 		skeletons: counts.skeletons,
@@ -192,26 +220,28 @@ function summarize(name, counts, ms, settled) {
 		ms,
 		settled,
 	};
-	if (RETURN_STEPS.includes(name))
-		step.pass =
-			settled &&
-			!step.skeletons &&
-			fields.max <= 1 &&
-			rows.max <= 1 &&
-			(!script || script.drawnOnce);
+	const quiet = settled && !step.skeletons && fields.max <= 1 && rows.max <= 1;
+	if (RETURN_STEPS.includes(name)) step.pass = quiet && (!script || script.drawnOnce);
+	if (change) {
+		step.reread = !change.read || requests.some((path) => path.endsWith(change.read));
+		step.pass = quiet && script.showsVersion && step.reread;
+	}
 	return step;
 }
 
 // A record kept on screen may draw nothing new; what it shows must still carry the value.
-function scriptSummary({ script, scriptShown }) {
+// After a script change the old version may draw first, and the new one must end on screen.
+function scriptSummary({ script, scriptShown }, version) {
 	const drawn = Object.values(script).flat();
 	const withValue = (text) => text !== PENDING;
-	const drawnOnce =
-		drawn.length <= 1 &&
+	const shownOnce = scriptShown.length === 1 && scriptShown.every(withValue);
+	const drawnOnce = drawn.length <= 1 && drawn.every(withValue) && shownOnce;
+	const showsVersion =
+		drawn.length <= 2 &&
 		drawn.every(withValue) &&
-		scriptShown.length === 1 &&
-		scriptShown.every(withValue);
-	return { drawn, shown: scriptShown, drawnOnce };
+		shownOnce &&
+		scriptShown[0].endsWith(` ${version}`);
+	return { drawn, shown: scriptShown, drawnOnce, showsVersion };
 }
 
 function onList(name) {

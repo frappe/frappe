@@ -16,12 +16,16 @@ vi.mock("../evaluateClientScript", () => ({ evaluateClientScript }));
 import {
   canWriteClientScripts,
   clientScriptChanges,
+  clientScriptsLoaded,
+  clientScriptWait,
   invalidateClientScripts,
   loadClientScripts,
   reloadClientScripts,
+  replacedClientScripts,
   resetClientScripts,
   watchClientScripts,
 } from "../clientScripts";
+import { GET_CLIENT_SCRIPTS } from "../clientScriptTypes";
 import { registrationsFor, resetRegistry } from "../registry";
 
 function respond(scripts: string[], canWrite = true) {
@@ -35,6 +39,24 @@ function respond(scripts: string[], canWrite = true) {
 
 function sources(doctype = "CRM Deal") {
   return registrationsFor(doctype).map((registration) => registration.source);
+}
+
+/** Holds the named script's evaluation until `release`; the rest evaluate at once. */
+function holdEvaluation(name: string) {
+  let release = () => {};
+  evaluateClientScript.mockImplementation(async (row: { name: string }) => {
+    if (row.name === name) await new Promise<void>((resolve) => (release = resolve));
+    return { onRefresh: () => {} };
+  });
+  return {
+    reached: () =>
+      vi.waitFor(() =>
+        expect(evaluateClientScript).toHaveBeenLastCalledWith(
+          expect.objectContaining({ name }),
+        ),
+      ),
+    release: () => release(),
+  };
 }
 
 describe("the Client Script tier", () => {
@@ -118,6 +140,95 @@ describe("the Client Script tier", () => {
     expect(sources()).toEqual(["client-script:fresh"]);
   });
 
+  it("keeps a slower older reload's scripts out while it compiles behind a newer one", async () => {
+    respond(["old"]);
+    await loadClientScripts("CRM Deal");
+
+    respond(["older"]);
+    const held = holdEvaluation("older");
+    const slow = reloadClientScripts("CRM Deal");
+    await held.reached();
+
+    respond(["newer"]);
+    await reloadClientScripts("CRM Deal");
+    held.release();
+    await slow;
+
+    expect(sources()).toEqual(["client-script:newer"]);
+  });
+
+  it("keeps the old tier registered until every new script has compiled, then swaps in one step", async () => {
+    respond(["old-a", "old-b"]);
+    await loadClientScripts("CRM Deal");
+
+    respond(["new-a", "new-b"]);
+    const held = holdEvaluation("new-b");
+    invalidateClientScripts("CRM Deal");
+    const loading = loadClientScripts("CRM Deal");
+    await held.reached();
+
+    expect(sources()).toEqual(["client-script:old-a", "client-script:old-b"]);
+    expect(clientScriptsLoaded("CRM Deal")).toBe(true);
+
+    held.release();
+    await loading;
+
+    expect(sources()).toEqual(["client-script:new-a", "client-script:new-b"]);
+  });
+
+  it("names the registered tier's sources as replaced while a build is in flight, and none after", async () => {
+    respond(["old"]);
+    expect([...replacedClientScripts("CRM Deal")]).toEqual([]);
+    await loadClientScripts("CRM Deal");
+    expect([...replacedClientScripts("CRM Deal")]).toEqual([]);
+
+    respond(["new"]);
+    const held = holdEvaluation("new");
+    const loading = reloadClientScripts("CRM Deal");
+    await held.reached();
+
+    expect([...replacedClientScripts("CRM Deal")]).toEqual(["client-script:old"]);
+
+    held.release();
+    await loading;
+
+    expect([...replacedClientScripts("CRM Deal")]).toEqual([]);
+  });
+
+  it("names nothing as replaced while the first build is in flight", async () => {
+    respond(["first"]);
+    const held = holdEvaluation("first");
+    const loading = loadClientScripts("CRM Deal");
+    await held.reached();
+
+    expect(clientScriptsLoaded("CRM Deal")).toBe(false);
+    expect([...replacedClientScripts("CRM Deal")]).toEqual([]);
+
+    held.release();
+    await loading;
+
+    expect(clientScriptsLoaded("CRM Deal")).toBe(true);
+  });
+
+  it("keeps the old tier when a re-read fails, and the next load fetches again", async () => {
+    respond(["kept"]);
+    await loadClientScripts("CRM Deal");
+
+    call.mockRejectedValueOnce(new Error("offline"));
+    await reloadClientScripts("CRM Deal");
+
+    expect(sources()).toEqual(["client-script:kept"]);
+    expect(clientScriptWait("CRM Deal")).toBeNull();
+    expect([...replacedClientScripts("CRM Deal")]).toEqual([]);
+
+    respond(["kept", "added"]);
+    await loadClientScripts("CRM Deal");
+
+    const reads = call.mock.calls.filter(([method]) => method === GET_CLIENT_SCRIPTS);
+    expect(reads).toHaveLength(3);
+    expect(sources()).toEqual(["client-script:kept", "client-script:added"]);
+  });
+
   // The editor's entry affordance is gated on this, and the tier's fetch is the
   // only thing that asks the server the question.
   it("publishes whether the session may write Client Scripts", async () => {
@@ -136,6 +247,7 @@ describe("the Client Script tier", () => {
     call.mockRejectedValue(new Error("offline"));
     await loadClientScripts("CRM Deal");
     expect(sources()).toEqual([]);
+    expect(clientScriptsLoaded("CRM Deal")).toBe(true);
   });
 });
 
@@ -163,7 +275,7 @@ describe("the client_script_changed listener", () => {
     evaluateClientScript.mockImplementation(async () => ({ onRefresh: () => {} }));
   });
 
-  it("drops the doctype's cached tier so the next load re-reads", async () => {
+  it("marks the doctype's tier stale so the next load re-reads", async () => {
     respond(["first"]);
     watchClientScripts(socket);
     await loadClientScripts("CRM Deal");
@@ -172,6 +284,15 @@ describe("the client_script_changed listener", () => {
     await loadClientScripts("CRM Deal");
     expect(call).toHaveBeenCalledTimes(2);
     expect(sources()).toEqual(["client-script:first", "client-script:second"]);
+  });
+
+  it("keeps the stale tier registered until the next load replaces it", async () => {
+    respond(["first"]);
+    watchClientScripts(socket);
+    await loadClientScripts("CRM Deal");
+    socket.fire("client_script_changed", { dt: "CRM Deal", view: "Record" });
+    expect(sources()).toEqual(["client-script:first"]);
+    expect(clientScriptsLoaded("CRM Deal")).toBe(true);
   });
 
   it("leaves every other doctype's tier cached", async () => {

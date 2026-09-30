@@ -30,7 +30,7 @@ import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { registrationsFor, type Registration } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
-import { clientScriptsLoaded } from "./clientScripts";
+import { clientScriptsLoaded, replacedClientScripts } from "./clientScripts";
 import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
 import { IN_BACKGROUND, NOT_DRAWN, type Staging } from "./staging";
 import { Surface } from "./surface";
@@ -325,7 +325,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     permissionsReady: () => permissions.ready(),
     loaded: () =>
       permissions.loaded() && (!host.sourcesReady || clientScriptsLoaded(host.doctype)),
-    runRefresh: (ran) => runRefresh(ran),
+    runRefresh: (ran, beforeSources) =>
+      runRefresh(ran, beforeSources ? replacedClientScripts(host.doctype) : undefined),
     fetchCached: () => cachedReads.fetchUnfetched(),
     runOpen: (registrations) => runOpen(registrations),
     warnUnknownHandlers: () => warnUnknownHandlers(),
@@ -651,10 +652,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   /** A replay's pass, synchronous; `ran` carries its first pass into its second, so no source runs twice. */
-  function runRefresh(ran: Set<Registration>) {
+  function runRefresh(ran: Set<Registration>, skipping?: ReadonlySet<string>) {
     const late: LateRefresh[] = [];
     for (const registration of registrationsFor(host.doctype)) {
-      if (ran.has(registration)) continue;
+      if (ran.has(registration) || skipping?.has(registration.source)) continue;
       ran.add(registration);
       const { source, handlers } = registration;
       const handler = handlers.onRefresh;
