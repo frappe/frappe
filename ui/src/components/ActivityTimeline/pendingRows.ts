@@ -1,5 +1,5 @@
 // Rows shown before the server confirms them, per document, and the keys they drew under.
-import { effectScope, ref, watch, type EffectScope, type Ref } from "vue";
+import { effect, effectScope, ref, type EffectScope, type Ref } from "vue";
 import type { Activity, CustomActivity, PendingActivity } from "./types";
 import { compareActivities } from "./grouping";
 import { stripHtml } from "./utils";
@@ -53,12 +53,14 @@ export function addPendingActivity(
 export function trackPendingRows(doc: string, data: Ref<Activity[]>): () => void {
   const feed = { doc, data };
   trackedFeeds.add(feed);
-  // Detached: the store outlives the component that built it. Sync: the feed and the
-  // rows drawn from it must not disagree for a render.
+  // Detached: the store outlives its component. An effect, not a watch: a watch keeps the
+  // component it was made in. It runs on each write, so feed and drawn rows never disagree.
   const scope = effectScope(true);
-  scope.run(() =>
-    watch(data, (rows) => retirePendingRows(doc, rows), { flush: "sync" })
-  );
+  scope.run(() => {
+    const read = effect(() => data.value, {
+      scheduler: () => retirePendingRows(doc, read()),
+    });
+  });
   return () => untrackFeed(feed, scope);
 }
 

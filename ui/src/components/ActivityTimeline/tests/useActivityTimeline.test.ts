@@ -1,6 +1,11 @@
+import { setFlagsFromString } from "node:v8";
+import { runInNewContext } from "node:vm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
+import { createApp, defineComponent, getCurrentInstance, h, nextTick, ref, type App } from "vue";
 import type { Activity } from "../types";
+
+setFlagsFromString("--expose-gc");
+const collectGarbage = runInNewContext("gc") as () => void;
 
 const api = vi.hoisted(() => ({ getDocumentPart: vi.fn() }));
 const socket = vi.hoisted(() => {
@@ -904,6 +909,31 @@ describe("idle stores", () => {
     readRecord(doc(name, OLD));
     answer({ activities: [c(1)], next: null });
     await reload;
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:1"]);
+  });
+
+  it("keeps only itself: the component that built it is freed once it unmounts", async () => {
+    const name = freshDoc();
+    readRecord(doc(name, OLD));
+    serve({ newest: { activities: [c(1)], next: null } });
+    let builder!: WeakRef<object>;
+    const Host = defineComponent({
+      setup() {
+        builder = new WeakRef(getCurrentInstance()!);
+        const timeline = useActivityTimeline("ToDo", name);
+        return () => h("div", timeline.activities.value.length);
+      },
+    });
+    // Let go of the app too: in dev its `reload` holds the root component.
+    let app: App | undefined = createApp(Host);
+    app.mount(document.createElement("div"));
+    await vi.waitFor(() => expect(hasActivityTimeline("ToDo", name)).toBe(true));
+    app.unmount();
+    app = undefined;
+
+    await new Promise((done) => setTimeout(done));
+    collectGarbage();
+    expect(builder.deref()).toBeUndefined();
     expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:1"]);
   });
 
