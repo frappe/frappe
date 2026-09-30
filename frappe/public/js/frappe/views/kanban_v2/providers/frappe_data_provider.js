@@ -145,12 +145,14 @@ export class FrappeDataProvider {
 		});
 	}
 
+	/** Calls `cb(name)` when a document of this doctype changes anywhere. */
 	onRemoteUpdate(cb) {
-		const event = "kanban_board_update";
+		const doctype = this.config.doctype;
+		frappe.realtime.doctype_subscribe(doctype);
 		const handler = (data) => {
-			if (!data || data.board_name === this.config.board_name) cb();
+			if (data && data.doctype === doctype) cb(data.name);
 		};
-		frappe.realtime.on(event, handler);
-		return () => frappe.realtime.off(event, handler);
+		frappe.realtime.on("list_update", handler);
+		return () => frappe.realtime.off("list_update", handler);
 	}
 }

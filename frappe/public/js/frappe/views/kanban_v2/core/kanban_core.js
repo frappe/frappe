@@ -60,7 +60,9 @@ export class KanbanCore {
 		this.lastSelected = null;
 		this.pointer = { x: 0, y: 0 };
 		this.autoScrollRAF = null;
-		this.ignoreRemoteUpdatesUntil = 0;
+		// cards this board just moved, so their realtime echo is skipped
+		this.ownMoves = new Map();
+		this.movesInFlight = 0;
 		this.columnSortable = null;
 		// Incremented on every reload so a late response from an earlier reload
 		// can be discarded instead of overwriting fresher data.
@@ -76,12 +78,9 @@ export class KanbanCore {
 		this.setupColumnSortable();
 
 		if (this.options.provider.onRemoteUpdate) {
-			this.providerUnsub = this.options.provider.onRemoteUpdate(() => {
-				// Ignore the realtime echo of our own move (already applied optimistically).
-				if (Date.now() < this.ignoreRemoteUpdatesUntil) return;
-				this.bus.emit("remote:update");
-				this.reload();
-			});
+			this.providerUnsub = this.options.provider.onRemoteUpdate((name) =>
+				this.queueRemoteUpdate(name)
+			);
 		}
 
 		this.monitorCleanup = startDragMonitor((args) => this.handleDrop(args));
@@ -121,6 +120,45 @@ export class KanbanCore {
 		}
 	}
 
+	queueRemoteUpdate(name) {
+		const expires = name && this.ownMoves.get(name);
+		if (expires) {
+			this.ownMoves.delete(name);
+			if (expires > Date.now()) return;
+		}
+		this.bus.emit("remote:update");
+		clearTimeout(this.remoteTimer);
+		this.remoteTimer = setTimeout(() => this.refreshFromServer(), 500);
+	}
+
+	/** Pick up changes made elsewhere: fresh counts and first pages, same column shells. */
+	async refreshFromServer() {
+		// a refresh mid-drag or before a save lands would put cards back where they were
+		if (this.dragSourceColumn || this.dropCommitPending || this.movesInFlight) {
+			this.remoteTimer = setTimeout(() => this.refreshFromServer(), 500);
+			return;
+		}
+		const reloadSeq = ++this.reloadSeq;
+		try {
+			const { columns, cards } = await this.options.provider.loadBoard();
+			if (reloadSeq !== this.reloadSeq) return;
+			const ids = (list) => list.map((c) => c.id).join("\n");
+			const sameColumns = ids(columns) === ids(this.state.columns);
+			this.state = { ...this.state, columns, cards };
+			if (sameColumns) this.renderColumns(columns.map((c) => c.id));
+			else this.render();
+			this.bus.emit("state:change", this.getState());
+		} catch (error) {
+			if (reloadSeq === this.reloadSeq) this.bus.emit("error", error);
+		}
+	}
+
+	/** Skip the realtime echo of these cards' saves. */
+	expectOwnUpdates(cardIds) {
+		const expires = Date.now() + 10000;
+		for (const id of cardIds) this.ownMoves.set(id, expires);
+	}
+
 	getState() {
 		return this.state;
 	}
@@ -148,6 +186,7 @@ export class KanbanCore {
 		this.monitorCleanup = null;
 		this.providerUnsub && this.providerUnsub();
 		this.providerUnsub = null;
+		clearTimeout(this.remoteTimer);
 		if (this.root) {
 			this.root.removeEventListener("dragover", this.onDragOver);
 			this.root.removeEventListener("drop", this.onDragEnd);
@@ -862,15 +901,17 @@ export class KanbanCore {
 		this.bus.emit("card:move", move);
 		cb.onCardMove && cb.onCardMove(move);
 
-		this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
+		this.expectOwnUpdates([cardId]);
+		this.movesInFlight++;
 		try {
 			await this.options.provider.moveCard(move);
-			this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 			cb.onAfterCardMove && cb.onAfterCardMove(move);
 		} catch (error) {
 			this.moveCardsBack([{ cardId, fromColumn, oldIndex }], toColumn);
 			cb.onMoveError && cb.onMoveError(move, error);
 			this.bus.emit("error", error);
+		} finally {
+			this.movesInFlight--;
 		}
 	}
 
@@ -941,7 +982,8 @@ export class KanbanCore {
 			toColumn,
 		};
 
-		this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
+		this.expectOwnUpdates(movedIds);
+		this.movesInFlight++;
 		let failed;
 		try {
 			failed = new Set(await this.options.provider.moveCards(movedIds, toColumn));
@@ -950,8 +992,9 @@ export class KanbanCore {
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
 			this.bus.emit("error", error);
 			return;
+		} finally {
+			this.movesInFlight--;
 		}
-		this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 
 		if (failed.size) {
 			this.moveCardsBack(
