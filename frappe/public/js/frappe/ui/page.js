@@ -538,6 +538,7 @@ frappe.ui.Page = class Page {
 		shortcut,
 		show_parent = true,
 		icon = null,
+		icon_right = null,
 	}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide hidden-xl");
@@ -584,6 +585,7 @@ frappe.ui.Page = class Page {
 		// the snapshot (build_dropdown_options) reads these back
 		$li.data("menu_click", click);
 		if (icon) $li.data("menu_icon", icon);
+		if (icon_right) $li.data("menu_icon_right", icon_right);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -684,6 +686,7 @@ frappe.ui.Page = class Page {
 			segments[segments.length - 1].push({
 				label,
 				icon: $li.data("menu_icon") || undefined,
+				icon_right: $li.data("menu_icon_right") || undefined,
 				shortcut: $li.data("menu_shortcut") || undefined,
 				disabled: a.classList.contains("disabled"),
 				css_class: css_class || undefined,

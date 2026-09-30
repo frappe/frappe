@@ -1,3 +1,5 @@
+import { safe_href } from "../../ui/components/utils.js";
+
 frappe.provide("frappe.views");
 
 // badge style per Select value (lowercase keys); unknown values get a guessed color
@@ -580,6 +582,18 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 		if (!this.board_locked) {
 			page.add_menu_item(__("Save Filters"), () => this.save_filters());
+		}
+
+		// as on the list view's menu
+		const docs = safe_href(this.meta.documentation, "kanban");
+		if (docs) {
+			page.add_dropdown_item({
+				label: __("Documentation"),
+				click: () => window.open(docs, "_blank"),
+				standard: true,
+				parent: page.menu,
+				icon_right: "external-link",
+			});
 		}
 
 		this.setup_filter_bar();
