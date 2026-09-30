@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearDataCache, readCachedDocument, readCachedList, readCachedRows } from "../index";
+import {
+  clearDataCache,
+  feedFieldRead,
+  readCachedDocument,
+  readCachedList,
+  readCachedRows,
+  takeTicket,
+} from "../index";
 import {
   ALL_PARTS,
   DOCTYPE,
@@ -19,6 +26,26 @@ function withoutTags(parts: Record<string, unknown>) {
 }
 
 beforeEach(() => clearDataCache());
+
+describe("a newer row that carries fewer fields than a cached list shows", () => {
+  const wide = { fields: ["name", "title", "status"] };
+
+  beforeEach(() => readList(wide, [doc("A", MIDDLE, { title: "saved", status: "Open" })]));
+
+  it("from a narrower list keeps the wider list's other cells", () => {
+    readList(query, [doc("A", NEW, { title: "newer" })]);
+    expect(readCachedRows(DOCTYPE, wide)![0]).toEqual(
+      doc("A", NEW, { title: "newer", status: "Open" })
+    );
+  });
+
+  it("from a field read keeps the wider list's other cells", () => {
+    feedFieldRead(takeTicket(), DOCTYPE, doc("A", NEW, { title: "newer" }));
+    expect(readCachedRows(DOCTYPE, wide)![0]).toEqual(
+      doc("A", NEW, { title: "newer", status: "Open" })
+    );
+  });
+});
 
 describe("a list row against the document entry", () => {
   beforeEach(() => {

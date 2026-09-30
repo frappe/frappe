@@ -229,10 +229,10 @@ export class DataCache {
     const entry = this.documents.get(key);
     const order = entry ? compareModified(row, entry.doc) : 1;
     if (order < 0) return true;
-    // A newer row keeps the fields it does not carry, so a wider list paints no blank cell.
+    // The entry keeps the fields a newer row leaves out, so a wider list paints no blank cell.
     const doc = Object.freeze({ ...entry?.doc, ...frozenCopy(row) });
-    if (order === 0) {
-      this.setDocument(key, documentEntry(doctype, doc, entry!.complete, entry!.parts), ticket);
+    if (entry && order === 0) {
+      this.setDocument(key, documentEntry(doctype, doc, entry.complete, entry.parts), ticket);
     } else {
       this.setDocument(key, documentEntry(doctype, doc, false), ticket);
       this.readRecords.delete(key);

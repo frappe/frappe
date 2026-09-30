@@ -17,6 +17,7 @@ export const RECORD_PARTS = [
 export interface DocumentEntry {
   readonly doctype: string;
   readonly name: string;
+  /** A partial entry can hold fields older than its `modified`, so never save from it. */
   readonly doc: Readonly<DocumentRecord>;
   /** True after a record read; a list row or a save alone leaves an entry partial. */
   readonly complete: boolean;

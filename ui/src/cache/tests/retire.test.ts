@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { DocumentRecord, ListEnvelope } from "../../api";
+import { ApiError } from "../../api/envelope";
 import { DataCache } from "../dataCache";
 import { listCacheKey } from "../listKey";
 import { ALL_PARTS, DOCTYPE, MIDDLE, NEW, OLD, doc } from "./helpers";
@@ -93,5 +94,32 @@ describe("state kept for entries that left", () => {
     expect(cache.list(listCacheKey(DOCTYPE, listQuery(0)))).toBeUndefined();
     cache.settleTicket(older);
     expect(cache.sizes().listed).toBe(20);
+  });
+
+  describe("after a refused list read", () => {
+    const refused = new ApiError({ type: "PermissionError" }, 403);
+    const refuse = (ticket: number) => cache.listError(ticket, DOCTYPE, listQuery(0), refused);
+
+    function expectNothingKept() {
+      const { lists, documents, listed, landed, memo } = cache.sizes();
+      expect({ lists, documents, listed, landed, memo }).toEqual({
+        lists: 0,
+        documents: 0,
+        listed: 0,
+        landed: 0,
+        memo: 0,
+      });
+    }
+
+    it.each([true, false])("is gone once no request is in flight (cached: %s)", (cached) => {
+      if (cached) answered((ticket) => readList(0, ["A"], ticket));
+      const older = cache.takeTicket();
+      answered(refuse);
+      expect(cache.sizes().listed).toBe(1);
+      readList(0, ["stale"], older);
+      expect(cache.list(listCacheKey(DOCTYPE, listQuery(0)))).toBeUndefined();
+      cache.settleTicket(older);
+      expectNothingKept();
+    });
   });
 });
