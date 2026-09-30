@@ -83,12 +83,20 @@ const server = {
   holdRecord: null as Gate | null,
   holdScripts: null as Gate | null,
   holdLayouts: null as Gate | null,
+  metaFails: false,
   requests: [] as string[],
 };
 
-async function answer(url: URL): Promise<unknown> {
+async function answer(url: URL): Promise<[unknown, number]> {
   const path = decodeURIComponent(url.pathname);
-  if (path === "/api/v2/doctype/Note/meta") return { data: server.meta };
+  if (path === "/api/v2/doctype/Note/meta") {
+    if (server.metaFails) return [{ errors: [{ type: "Error", message: "Meta down" }] }, 500];
+    return [{ data: server.meta }, 200];
+  }
+  return [await answerData(url, path), 200];
+}
+
+async function answerData(url: URL, path: string): Promise<unknown> {
   if (path === `/api/v2/method/${GET_CLIENT_SCRIPTS}`) {
     await server.holdScripts?.opened;
     return { data: { scripts: [{ name: "Note Script", script: server.script }], can_write: false } };
@@ -154,6 +162,7 @@ beforeEach(() => {
   server.holdRecord = null;
   server.holdScripts = null;
   server.holdLayouts = null;
+  server.metaFails = false;
   server.requests = [];
   scripts.runs = [];
   socket.handlers = {};
@@ -168,7 +177,8 @@ beforeEach(() => {
     vi.fn(async (input: string, init?: RequestInit) => {
       const url = new URL(String(input), "http://x");
       server.requests.push(`${init?.method ?? "GET"} ${decodeURIComponent(url.pathname)}`);
-      return new Response(JSON.stringify(await answer(url)), { status: 200 });
+      const [body, status] = await answer(url);
+      return new Response(JSON.stringify(body), { status });
     }),
   );
 });
@@ -398,5 +408,20 @@ describe("a return visit after a DocType change", () => {
     server.holdLayouts.open();
     await settle();
     expect(fields(root)).toEqual(["title:Title", "status:Stage"]);
+  });
+
+  it("shows the load error on a cold load whose fresh meta cannot be read, not the old fields", async () => {
+    const { root, router } = await visitAndLeave();
+    socket.emit("doctype_update", { doctype: "Note" });
+    server.metaFails = true;
+    name = `${name}-other`;
+    server.doc = { ...server.doc, name, title: "Other" };
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await router.push(routeFor("Note", name));
+    await settle();
+
+    expect(fields(root)).toEqual([]);
+    expect(root.querySelector("[data-record-form]")).toBeNull();
   });
 });

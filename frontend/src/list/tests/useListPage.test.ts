@@ -661,7 +661,7 @@ describe("after a DocType change", () => {
 		expect(writes()).toEqual([]);
 	});
 
-	it("keeps a column the person changed before the fresh settings arrived", async () => {
+	it("keeps a column the person changed before the fresh settings arrived, and takes the fresh sort", async () => {
 		const answerSettings = await changeWhileAway();
 		page.columns.value = page.columns.value.filter((c) => c.fieldname === "title");
 		await settle();
@@ -670,5 +670,6 @@ describe("after a DocType change", () => {
 		await settle();
 
 		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["title"]);
+		expect(page.sort.value).toEqual([{ fieldname: "title", direction: "desc" }]);
 	});
 });

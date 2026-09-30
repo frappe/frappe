@@ -162,6 +162,7 @@ describe("useDoctypeMeta", () => {
 
     expect(after.meta.value?.fields).toEqual([{ fieldname: "old" }]);
     expect(after.error.value).toBeNull();
+    expect(after.refreshError.value).toEqual(new Error("Network down"));
     expect(after.loading.value).toBe(false);
     expect(after.refreshing.value).toBe(false);
   });

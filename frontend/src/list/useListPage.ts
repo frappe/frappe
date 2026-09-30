@@ -91,7 +91,7 @@ export function useListPage(doctype: string): ListPage {
 	const seeded = ref(false);
 	// What the page last set itself, per key: a change that matches it is not the person's act.
 	const applied: Partial<Record<ListSettingsKey, string>> = {};
-	let acted = false;
+	const acted = new Set<ListSettingsKey>();
 
 	const ready = computed(
 		() => Boolean(listMeta.value) && settings.loaded.value && !permissions.loading.value
@@ -124,8 +124,16 @@ export function useListPage(doctype: string): ListPage {
 	}
 
 	function applyStored() {
+		applyColumns();
+		applyQuickFilterFields();
+	}
+
+	function applyColumns() {
 		columns.value = resolvedColumns();
 		applied.columns = JSON.stringify(toStoredColumns(columns.value));
+	}
+
+	function applyQuickFilterFields() {
 		quickFilterFields.value = resolvedQuickFilterFields();
 		applied.quick_filter_fields = JSON.stringify(
 			quickFilterFields.value && toStoredQuickFilterFields(quickFilterFields.value)
@@ -169,11 +177,12 @@ export function useListPage(doctype: string): ListPage {
 		});
 	}
 
-	/** What the page set from stale settings follows the fresh ones, unless the person acted since. */
+	/** Each setting the page set from stale settings follows the fresh ones, unless the person changed it. */
 	function applyFresh() {
-		if (!seeded.value || acted) return;
-		applyStored();
-		readSort();
+		if (!seeded.value) return;
+		if (!acted.has("columns")) applyColumns();
+		if (!acted.has("quick_filter_fields")) applyQuickFilterFields();
+		if (!acted.has("sort")) readSort();
 	}
 
 	// Only a query the page did not write itself is read back: Back, Forward, a pasted link.
@@ -220,7 +229,7 @@ export function useListPage(doctype: string): ListPage {
 		const json = JSON.stringify(value);
 		if (!seeded.value || applied[key] === json) return;
 		applied[key] = json;
-		acted = true;
+		acted.add(key);
 		settings.save({ [key]: value });
 	}
 

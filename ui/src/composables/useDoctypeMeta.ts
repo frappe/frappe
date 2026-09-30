@@ -30,6 +30,8 @@ export interface UseDoctypeMeta {
   /** True while a stale meta shows and its fresh one is read. */
   refreshing: ComputedRef<boolean>;
   error: ComputedRef<unknown>;
+  /** The error of a failed fresh read; the stale meta stays on show. */
+  refreshError: ComputedRef<unknown>;
   /** Re-fetch the meta. */
   reload: () => void;
   /** Resolves once a stale meta's fresh read has arrived, shown or held; at once when none is out. */
@@ -39,6 +41,7 @@ export interface UseDoctypeMeta {
 interface DoctypeMetaEntry {
   metas: Ref<Record<string, DoctypeMeta>>;
   error: Ref<unknown>;
+  refreshError: Ref<unknown>;
   loading: ComputedRef<boolean>;
   refreshing: ComputedRef<boolean>;
   reload: () => void;
@@ -66,6 +69,7 @@ export function useDoctypeMeta(
     loading: computed(() => entry.value.loading.value),
     refreshing: computed(() => entry.value.refreshing.value),
     error: computed(() => entry.value.error.value),
+    refreshError: computed(() => entry.value.refreshError.value),
     reload: () => entry.value.reload(),
     refreshed: () => entry.value.refreshed,
   };
@@ -91,6 +95,7 @@ export function resetDoctypeMeta(): void {
 function buildEntry(doctype: string, stale?: DoctypeMetaEntry): DoctypeMetaEntry {
   const metas = ref<Record<string, DoctypeMeta>>(stale?.metas.value ?? {});
   const error = ref<unknown>(null);
+  const refreshError = ref<unknown>(null);
   const loading = ref(false);
   const refreshing = ref(Object.keys(metas.value).length > 0);
   let arrive = () => {};
@@ -114,6 +119,7 @@ function buildEntry(doctype: string, stale?: DoctypeMetaEntry): DoctypeMetaEntry
       if (mine !== turn) return;
       // A failed refresh keeps the stale meta on show, and the next caller reads again.
       if (refreshing.value) {
+        refreshError.value = caught;
         refreshing.value = false;
         entries.stale((_key, one) => one === entry);
       } else {
@@ -139,6 +145,7 @@ function buildEntry(doctype: string, stale?: DoctypeMetaEntry): DoctypeMetaEntry
   const entry: DoctypeMetaEntry = {
     metas,
     error,
+    refreshError,
     loading: computed(() => loading.value),
     refreshing: computed(() => refreshing.value),
     reload,
