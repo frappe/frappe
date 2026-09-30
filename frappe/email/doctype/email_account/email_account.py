@@ -133,6 +133,7 @@ class EmailAccount(Document):
 		use_starttls: DF.Check
 		use_tls: DF.Check
 		validate_ssl_certificate: DF.Check
+		validate_ssl_certificate_for_outgoing: DF.Check
 	# end: auto-generated types
 
 	DOCTYPE = "Email Account"
@@ -611,7 +612,7 @@ class EmailAccount(Document):
 		validate_ssl_certificate = (
 			frappe.db.get_value("Email Domain", self.domain, "validate_ssl_certificate_for_outgoing")
 			if self.get("domain")
-			else None
+			else self.get("validate_ssl_certificate_for_outgoing")
 		)
 		config = {
 			"email_account": self.name,

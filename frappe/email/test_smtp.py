@@ -170,6 +170,103 @@ class TestSMTP(IntegrationTestCase):
 		self.assertEqual(EmailAccount.find_outgoing("support@example.com").email_id, "support@example.com")
 
 
+class TestSMTPCertificateSettings(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		identifier = frappe.generate_hash(length=8)
+		cls.user = f"smtp-certificate-{identifier}@example.com"
+		cls.domain_name = f"smtp-certificate-{identifier}.example.com"
+		cls.account_name = f"SMTP Certificate {identifier}"
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.user, "first_name": "SMTP Certificate", "send_welcome_email": 0}
+		).insert().add_roles("System Manager")
+
+		with cls.set_user(cls.user):
+			frappe.get_doc(
+				{
+					"doctype": "Email Domain",
+					"domain_name": cls.domain_name,
+					"email_server": "imap.example.com",
+					"smtp_server": "smtp.example.com",
+					"use_tls": 1,
+					"validate_ssl_certificate_for_outgoing": 1,
+				}
+			).insert()
+			frappe.get_doc(
+				{
+					"doctype": "Email Account",
+					"email_account_name": cls.account_name,
+					"email_id": f"smtp@{cls.domain_name}",
+					"domain": cls.domain_name,
+					"smtp_server": "smtp.example.com",
+					"use_tls": 1,
+				}
+			).insert()
+
+	def test_outgoing_certificate_setting_reaches_email_account(self):
+		with self.set_user(self.user):
+			self.assertIsNotNone(
+				frappe.get_meta("Email Account").get_field("validate_ssl_certificate_for_outgoing")
+			)
+			domain = frappe.get_doc("Email Domain", self.domain_name)
+			account = frappe.get_doc("Email Account", self.account_name)
+			account.validate_ssl_certificate_for_outgoing = 0
+
+			for validate in (0, 1):
+				domain.validate_ssl_certificate_for_outgoing = validate
+				domain.save()
+				self.assertEqual(account.sendmail_config()["validate_ssl_certificate"], bool(validate))
+
+			account.reload()
+			account.domain = None
+			for validate in (0, 1):
+				account.validate_ssl_certificate_for_outgoing = validate
+				account.save()
+				self.assertEqual(account.sendmail_config()["validate_ssl_certificate"], bool(validate))
+
+	def test_outgoing_connection_validates_certificate_for_ssl_and_starttls(self):
+		with self.set_user(self.user):
+			domain = frappe.get_doc("Email Domain", self.domain_name)
+			for use_ssl in (0, 1):
+				for validate in (0, 1):
+					with self.subTest(use_ssl=use_ssl, validate=validate):
+						domain.use_ssl_for_outgoing = use_ssl
+						domain.use_tls = 1 - use_ssl
+						domain.smtp_port = None
+						domain.validate_ssl_certificate_for_outgoing = validate
+						with (
+							patch("frappe.email.doctype.email_domain.email_domain.smtplib.SMTP") as smtp,
+							patch(
+								"frappe.email.doctype.email_domain.email_domain.smtplib.SMTP_SSL"
+							) as smtp_ssl,
+						):
+							domain.validate_outgoing_server_conn()
+
+						if use_ssl:
+							context = smtp_ssl.call_args.kwargs["context"]
+							smtp.assert_not_called()
+						else:
+							context = smtp.return_value.starttls.call_args.kwargs["context"]
+							smtp_ssl.assert_not_called()
+
+						self.assertEqual(
+							context.verify_mode, ssl.CERT_REQUIRED if validate else ssl.CERT_NONE
+						)
+						self.assertEqual(context.check_hostname, bool(validate))
+
+	def test_outgoing_plain_connection_does_not_start_tls(self):
+		with self.set_user(self.user):
+			domain = frappe.get_doc("Email Domain", self.domain_name)
+			domain.use_ssl_for_outgoing = 0
+			domain.use_tls = 0
+
+			with patch("frappe.email.doctype.email_domain.email_domain.smtplib.SMTP") as smtp:
+				domain.validate_outgoing_server_conn()
+
+			smtp.return_value.starttls.assert_not_called()
+
+
 def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
 	email_dict = {
 		"email_id": email_id,
