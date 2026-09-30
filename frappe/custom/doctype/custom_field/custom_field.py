@@ -126,6 +126,7 @@ class CustomField(Document):
 		search_index: DF.Check
 		set_only_once: DF.Check
 		show_dashboard: DF.Check
+		show_for_module: DF.Literal[None]
 		sort_options: DF.Check
 		translatable: DF.Check
 		unique: DF.Check

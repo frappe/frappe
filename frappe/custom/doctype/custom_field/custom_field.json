@@ -48,6 +48,7 @@
   "mask",
   "ignore_user_permissions",
   "hidden",
+  "show_for_module",
   "print_hide",
   "print_hide_if_no_value",
   "print_width",
@@ -288,6 +289,13 @@
    "fieldname": "hidden",
    "fieldtype": "Check",
    "label": "Hidden"
+  },
+  {
+   "depends_on": "eval:!doc.reqd && !doc.mandatory_depends_on && frappe.boot.business_modules && frappe.boot.business_modules.length",
+   "description": "Show this field only when this module is on. Leave empty to always show it.",
+   "fieldname": "show_for_module",
+   "fieldtype": "Select",
+   "label": "Show for Module"
   },
   {
    "default": "0",

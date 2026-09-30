@@ -14,6 +14,11 @@ frappe.ui.form.on("Customize Form", {
 	},
 
 	onload: function (frm) {
+		frm.fields_dict.fields.grid.update_docfield_property(
+			"show_for_module",
+			"options",
+			frappe.business_modules.get_select_options()
+		);
 		frm.set_query("doc_type", function () {
 			return {
 				filters: [

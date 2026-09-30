@@ -43,6 +43,7 @@
   "depends_on",
   "permlevel",
   "hidden",
+  "show_for_module",
   "read_only",
   "collapsible",
   "allow_bulk_edit",
@@ -247,6 +248,13 @@
    "oldfieldtype": "Check",
    "print_width": "50px",
    "width": "50px"
+  },
+  {
+   "depends_on": "eval:!doc.reqd && !doc.mandatory_depends_on && frappe.boot.business_modules && frappe.boot.business_modules.length",
+   "description": "Show this field only when this module is on. Leave empty to always show it.",
+   "fieldname": "show_for_module",
+   "fieldtype": "Select",
+   "label": "Show for Module"
   },
   {
    "default": "0",

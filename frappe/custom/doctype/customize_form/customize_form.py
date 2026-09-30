@@ -795,6 +795,7 @@ docfield_properties = {
 	"ignore_versioning": "Check",
 	"ignore_xss_filter": "Check",
 	"hidden": "Check",
+	"show_for_module": "Data",
 	"collapsible": "Check",
 	"collapsible_depends_on": "Data",
 	"print_hide": "Check",
