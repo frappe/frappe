@@ -17,17 +17,17 @@
 			<Button class="mt-2" icon-left="lucide-plus" @click="showAddEventDialog = true">Add Event</Button>
 			<Dialog
 				v-model:open="showAddEventDialog"
-				:title="(newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription()"
+				:title="(isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription()"
 				size="3xl"
 				:actions="[
 					{
-						label: newEvent.isEditing ? 'Update' : 'Add',
+						label: isEditing ? 'Update' : 'Add',
 						variant: 'solid',
 						onClick: () => saveEvent(newEvent),
 					},
 				]"
 				:dismissible="false"
-				@after-leave="newEvent = { ...emptyEvent, fields: [], isEditing: false }"
+				@after-leave="resetEvent"
 			>
 				<template #default>
 					<div class="flex flex-col gap-3">
@@ -70,9 +70,7 @@
 									v-model="newEvent.success_message"
 									autocomplete="off"
 									:description="
-										newEvent.action === 'Insert a Document'
-											? `Default: ${newEvent.doctype} created successfully`
-											: ''
+										newEvent.action === 'Insert a Document' ? `Default: ${newEvent.doctype} created` : ''
 									"
 								/>
 								<Code
@@ -192,6 +190,12 @@ const emptyEvent: ComponentEvent = {
 	script: "",
 }
 const newEvent = ref<ComponentEvent>({ ...emptyEvent })
+// oldEvent is the name the event is saved under on the block
+const isEditing = computed(() => Boolean(newEvent.value.oldEvent))
+
+const resetEvent = () => {
+	newEvent.value = { ...emptyEvent, fields: [] }
+}
 
 const eventOptions = computed(() => {
 	if (!props.block || props.block.isRoot()) return []
@@ -229,39 +233,49 @@ const componentEvents = computed(() => {
 })
 
 const doctypeFields = ref<{ label: string; value: string }[]>([])
-watch(
-	() => newEvent.value.doctype,
-	async (value, oldValue) => {
-		if (value === oldValue || !value) return
 
-		const fields = createResource({
-			url: "studio.api.get_doctype_fields",
-			params: { doctype: value },
-			transform: (data: DocTypeField[]) => {
-				return data.map((field) => {
-					return {
-						label: field.fieldname,
-						value: field.fieldname,
-					}
-				})
-			},
-		})
-		await fields.reload()
-		doctypeFields.value = fields.data
+// defaults are applied here, on user change, so opening a saved event keeps its field mappings
+const selectDoctype = async (doctype: string) => {
+	newEvent.value.doctype = doctype
+	if (!doctype) return
+	if (await loadDoctypeFields(doctype)) {
+		newEvent.value.fields = getDefaultFieldRows()
+	}
+}
 
-		if (!newEvent.value.isEditing) {
-			newEvent.value.fields = []
-			const codeStore = useCodeStore()
-			doctypeFields.value.forEach((field) => {
-				newEvent.value.fields?.push({
-					field: field.value,
-					value: Object.keys(codeStore.variables).includes(field.value) ? field.value : "",
-					name: field.value,
-				})
+const loadDoctypeFields = async (doctype: string) => {
+	const fields = createResource({
+		url: "studio.api.get_doctype_fields",
+		params: { doctype },
+		transform: (data: DocTypeField[]) => {
+			return data.map((field) => {
+				return {
+					label: field.fieldname,
+					value: field.fieldname,
+				}
 			})
-		}
-	},
-)
+		},
+	})
+	try {
+		await fields.reload()
+	} catch {
+		toast.error(`Failed to load fields for ${doctype}`)
+		return false
+	}
+	// a slower response for a previously selected doctype must not overwrite the current one
+	if (newEvent.value.doctype !== doctype) return false
+	doctypeFields.value = fields.data
+	return true
+}
+
+const getDefaultFieldRows = () => {
+	const variables = Object.keys(useCodeStore().variables)
+	return doctypeFields.value.map((field) => ({
+		field: field.value,
+		value: variables.includes(field.value) ? field.value : "",
+		name: field.value,
+	}))
+}
 
 const actions: ActionConfigurations = {
 	"Run Script": [
@@ -301,9 +315,7 @@ const actions: ActionConfigurations = {
 				}
 			},
 			events: {
-				"update:modelValue": (val: string) => {
-					newEvent.value.doctype = val
-				},
+				"update:modelValue": selectDoctype,
 			},
 		},
 		{
@@ -409,7 +421,7 @@ const deleteEvent = async (event: ComponentEvent) => {
 	if (confirmed) {
 		try {
 			props.block?.removeEvent(event.event)
-			toast.success(`Event ${event.event} deleted successfully`)
+			toast.success(`Event ${event.event} deleted`)
 		} catch (error) {
 			toast.error(`Failed to delete the event ${event.event}: ${error}`)
 		}
@@ -417,24 +429,24 @@ const deleteEvent = async (event: ComponentEvent) => {
 }
 
 const openEvent = (event: ComponentEvent) => {
-	newEvent.value = {
-		...event,
-		isEditing: true,
-		oldEvent: event.event,
-	}
+	newEvent.value = { ...event, oldEvent: event.event }
+	if (event.doctype) loadDoctypeFields(event.doctype)
 	showAddEventDialog.value = true
 }
 
 const saveEvent = (event: ComponentEvent) => {
-	const { isEditing } = event
 	event = getEvent(event)
-	if (isEditing) {
+	if (isEditing.value) {
 		props.block?.updateEvent(event)
-		toast.success("Event updated successfully")
+		toast.success("Event updated")
 	} else {
 		props.block?.addEvent(event)
+		toast.success("Event added")
 	}
-	if (event.action !== "Run Script") {
+	if (event.action === "Run Script") {
+		// the dialog stays open for scripts, so later saves should update this event
+		newEvent.value.oldEvent = event.event
+	} else {
 		showAddEventDialog.value = false
 	}
 }

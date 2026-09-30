@@ -14,21 +14,50 @@
 								icon: 'lucide-arrow-left',
 								onClick: () => $router.push({ name: 'Home' }),
 							},
+						],
+					},
+					{
+						group: 'Desk',
+						hideLabel: true,
+						options: [
 							{
-								label: 'View in Desk',
-								onClick: () => openInDesk(store.activeApp!),
+								label: 'View App in Desk',
 								icon: 'lucide-arrow-up-right',
+								onClick: () => openAppInDesk(store.activeApp!),
 							},
+							{
+								label: 'View Page in Desk',
+								icon: 'lucide-arrow-up-right',
+								onClick: () => openPageInDesk(store.activePage!),
+								condition: () => Boolean(store.activePage),
+							},
+						],
+					},
+					{
+						group: 'Settings',
+						hideLabel: true,
+						options: [
 							{
 								label: 'App Settings',
 								icon: 'lucide-settings',
-								onClick: () => (showAppDialog = true),
+								onClick: () => (store.showAppDialog = true),
 							},
 							{
 								label: 'Studio Settings',
 								icon: 'lucide-sliders-vertical',
 								onClick: () => (store.showStudioSettingsDialog = true),
 							},
+							{
+								label: 'Keyboard Shortcuts',
+								icon: 'lucide-command',
+								onClick: () => (store.showShortcutsDialog = true),
+							},
+						],
+					},
+					{
+						group: 'Danger',
+						hideLabel: true,
+						options: [
 							{
 								label: 'Delete App',
 								icon: 'lucide-trash-2',
@@ -144,7 +173,7 @@
 			<PublishButton :disabled="canvasStore.showFragmentCanvas" />
 		</div>
 		<AppDialog
-			v-model:showDialog="showAppDialog"
+			v-model:showDialog="store.showAppDialog"
 			:app="store.activeApp"
 			@update="(app: StudioApp) => store.setApp(app.name)"
 		/>
@@ -168,7 +197,7 @@ import AppDialog from "@/components/AppDialog.vue"
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
-import { isObjectEmpty, openInDesk } from "@/utils/helpers"
+import { isObjectEmpty, openAppInDesk, openPageInDesk } from "@/utils/helpers"
 import { StudioApp } from "@/types/Studio/StudioApp"
 
 const store = useStudioStore()
@@ -177,6 +206,4 @@ const canvasStore = useCanvasStore()
 const routeString = computed(() => store.activePage?.route || "/")
 const showExportAppDialog = ref(false)
 const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
-
-const showAppDialog = ref(false)
 </script>

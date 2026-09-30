@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import shutil
 import tempfile
 from contextlib import contextmanager
@@ -373,6 +374,27 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertEqual(builder.out_dir, expected_files_path)
 		self.assertEqual(builder.base, f"/files/app_builds/{app_name}/")
 
+	def test_build_resolves_framework_ui(self):
+		"""A bench never installs frappe/ui/node_modules, so @framework/ui's own dependencies
+		(marked, leaflet, …) must resolve from Studio's node_modules in app builds."""
+		framework_ui_package = os.path.join(frappe.get_app_source_path("frappe"), "ui", "package.json")
+		if not os.path.exists(framework_ui_package):
+			self.skipTest("@framework/ui is not available on this frappe version")
+
+		app = make_studio_app(app_title="Framework UI App", app_name="framework-ui-app")
+		blocks = json.dumps([{"componentName": "FormLayout", "children": []}])
+		make_studio_page(app.name, page_title="Form Page", blocks=blocks, published=1)
+
+		builder = StudioAppBuilder(app.name, is_standard=False)
+		builder.out_dir = tempfile.mkdtemp()
+		self.addCleanup(shutil.rmtree, builder.out_dir)
+		builder.build()
+
+		with open(framework_ui_package) as f:
+			dependencies = json.load(f)["dependencies"]
+		bundled = get_bundled_packages(builder.out_dir)
+		self.assertTrue(bundled & dependencies.keys(), f"no @framework/ui dependency in {bundled}")
+
 
 ROUTER_SCRIPT = """{
 	extendRoute(route) {
@@ -450,6 +472,20 @@ def make_studio_page(studio_app, **kwargs):
 	)
 	page.insert()
 	return page
+
+
+def get_bundled_packages(out_dir: str) -> set[str]:
+	"""Names of node_modules packages listed as sources in the build's sourcemaps."""
+	packages = set()
+	assets_dir = os.path.join(out_dir, "assets")
+	for file_name in os.listdir(assets_dir):
+		if not file_name.endswith(".js.map"):
+			continue
+		with open(os.path.join(assets_dir, file_name)) as f:
+			sources = json.load(f)["sources"]
+		for source in sources:
+			packages.update(re.findall(r"node_modules/((?:@[^/]+/)?[^/]+)/", source))
+	return packages
 
 
 @contextmanager

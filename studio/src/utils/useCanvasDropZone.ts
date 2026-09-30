@@ -6,9 +6,10 @@ import { useDropZone } from "@vueuse/core"
 import { toast } from "frappe-ui"
 import { Ref } from "vue"
 import { FrappeUIComponent } from "@/types"
+import { getLayoutDirection, type LayoutDirection } from "@/utils/dropGeometry"
+import { familyPlacementMessage } from "@/utils/reorderDropZone"
 
 const canvasStore = useCanvasStore()
-type LayoutDirection = "row" | "column"
 
 export function useCanvasDropZone(
 	canvasContainer: Ref<HTMLElement>,
@@ -132,17 +133,6 @@ export function useCanvasDropZone(
 		return mousePos <= childPositions[closestIndex].midPoint ? closestIndex : closestIndex + 1
 	}
 
-	const getLayoutDirection = (element: HTMLElement): LayoutDirection => {
-		const style = window.getComputedStyle(element)
-		const display = style.display
-		if (display === "flex" || display === "inline-flex") {
-			return style.flexDirection.includes("row") ? "row" : "column"
-		} else if (display === "grid" || display == "inline-grid") {
-			return style.gridAutoFlow.includes("row") ? "row" : "column"
-		}
-		return "column"
-	}
-
 	const updateDropTarget = (
 		ev: DragEvent,
 		parentComponent: Block | null,
@@ -188,8 +178,7 @@ export function useCanvasDropZone(
 
 	const canDrop = (componentDef: FrappeUIComponent, parentComponent: Block) => {
 		if (parentComponent.canAddChild(componentDef)) return true
-		const familyRoot = Block.getComponents()?.[componentDef.group as string]
-		toast.warning(`${componentDef.title} can only be placed inside a ${familyRoot?.title || componentDef.group}`)
+		toast.warning(familyPlacementMessage(componentDef))
 		return false
 	}
 

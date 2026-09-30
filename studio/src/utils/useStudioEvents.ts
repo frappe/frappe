@@ -2,12 +2,13 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
-import { isCtrlOrCmd, isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
+import { isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
 import { getComponentBlock } from "@/utils/serializer"
 import { copyBlocks, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@/utils/blockCopyPaste"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
-import { toast } from "frappe-ui"
+import { toast, useKeyboardShortcut } from "frappe-ui"
+import { commandShortcuts } from "@/components/Commands"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
@@ -72,84 +73,78 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 		}
 	})
 
-	useEventListener(document, "keydown", (e) => {
-		// save
-		if (e.key === "s" && isCtrlOrCmd(e) && store.selectedPage) {
-			// the page autosaves - just swallow the browser's save dialog in page mode
-			e.preventDefault()
-			if (canvasStore.editingMode !== "page") {
-				saveFragmentMode()
-			}
-			return
-		}
-
-		if (isTargetEditable(e)) return
-
-		// delete
-		if (e.key === "Backspace" || e.key === "Delete") {
-			// a selected slot takes precedence over its (also-selected) parent block
-			const selectedSlot = canvasStore.activeCanvas?.selectedSlot
-			if (selectedSlot) {
-				const parent = canvasStore.activeCanvas?.findBlock(selectedSlot.parentBlockId)
-				parent?.removeSlot(selectedSlot.slotName)
-				e.stopPropagation()
-				return
-			}
-
-			if (blockController.isAnyBlockSelected()) {
-				for (const block of blockController.getSelectedBlocks()) {
-					canvasStore.activeCanvas?.removeBlock(block, e.shiftKey)
+	// Commands register their own shortcuts. The shortcuts below are not commands:
+	// they need the key event or this page, or they are tools, as in Builder.
+	const shortcuts = [
+		...commandShortcuts(),
+		{
+			combo: "Mod+S",
+			description: "Save Component",
+			group: "General",
+			allowInInput: true,
+			// the page autosaves - in page mode this just swallows the browser's save dialog
+			enabled: () => Boolean(store.selectedPage),
+			handler: () => {
+				if (canvasStore.editingMode !== "page") {
+					saveFragmentMode()
 				}
-				clearSelection()
-				e.stopPropagation()
-				return
-			}
-		}
+			},
+		},
+		{
+			combo: "Escape",
+			description: "Exit Component Editing",
+			group: "General",
+			preventDefault: false,
+			// During a drag, Escape cancels the drag. It must not also exit the fragment.
+			enabled: () => canvasStore.editingMode !== "page" && !canvasStore.isDragging,
+			handler: (e: KeyboardEvent) => {
+				// In the context menu, Escape only closes the menu.
+				if ((e.target as Element | null)?.closest?.('[role="menu"]')) return
+				// Exit after this keypress ends. If the discard dialog opens now, the same
+				// Escape closes it before the user can answer.
+				setTimeout(() => canvasStore.exitFragmentMode())
+			},
+		},
+		...(["Backspace", "Delete"] as const).map((combo) => ({
+			combo,
+			description: "Delete Selected Blocks",
+			group: "Edit",
+			handler: deleteSelection,
+		})),
+		{
+			combo: "C",
+			description: "Container Mode",
+			group: "Tools",
+			handler: () => (store.mode = "container"),
+		},
+		{
+			combo: "V",
+			description: "Select Mode",
+			group: "Tools",
+			handler: () => (store.mode = "select"),
+		},
+	]
+	// combos are plain strings here: Studio's frappe-ui import is untyped (src/lib.d.ts)
+	useKeyboardShortcut(shortcuts as Parameters<typeof useKeyboardShortcut>[0])
+}
 
-		// duplicate
-		if (e.key === "d" && isCtrlOrCmd(e)) {
-			if (blockController.isAnyBlockSelected() && !blockController.multipleBlocksSelected()) {
-				e.preventDefault()
-				const block = blockController.getSelectedBlocks()[0]
-				block.duplicateBlock()
-			}
-			return
-		}
+const deleteSelection = (e: KeyboardEvent) => {
+	// a selected slot takes precedence over its (also-selected) parent block
+	const selectedSlot = canvasStore.activeCanvas?.selectedSlot
+	if (selectedSlot) {
+		const parent = canvasStore.activeCanvas?.findBlock(selectedSlot.parentBlockId)
+		parent?.removeSlot(selectedSlot.slotName)
+		e.stopPropagation()
+		return
+	}
 
-		// undo
-		if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && canvasStore.activeCanvas?.history?.canUndo()) {
-			canvasStore.activeCanvas?.history.undo()
-			e.preventDefault()
-			return
+	if (blockController.isAnyBlockSelected()) {
+		for (const block of blockController.getSelectedBlocks()) {
+			canvasStore.activeCanvas?.removeBlock(block)
 		}
-
-		// redo
-		if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && canvasStore.activeCanvas?.history?.canRedo) {
-			canvasStore.activeCanvas?.history.redo()
-			e.preventDefault()
-			return
-		}
-
-		// search block
-		if (e.key === "f" && isCtrlOrCmd(e) && e.shiftKey) {
-			e.preventDefault();
-			store.showSearchBlock = true;
-		}
-
-		if (isCtrlOrCmd(e) || e.shiftKey) {
-			return
-		}
-
-		if (e.key === "c") {
-			store.mode = "container"
-			return
-		}
-
-		if (e.key === "v") {
-			store.mode = "select"
-			return
-		}
-	})
+		clearSelection()
+		e.stopPropagation()
+	}
 }
 
 const clearSelection = () => {

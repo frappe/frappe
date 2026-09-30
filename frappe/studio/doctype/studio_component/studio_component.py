@@ -7,7 +7,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
-from studio.export import delete_file, parse_json
+from studio.export import delete_file, parse_json, remove_empty_values
 from studio.realtime import publish_doc_change
 from studio.utils import walk_blocks
 
@@ -38,6 +38,8 @@ class StudioComponent(Document):
 
 	def before_export(self, doc):
 		doc.block = parse_json(doc.block)
+		if doc.block:
+			remove_empty_values(doc.block)
 
 	def before_validate(self):
 		if isinstance(self.block, dict):

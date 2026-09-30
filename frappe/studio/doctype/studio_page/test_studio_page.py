@@ -9,6 +9,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from studio.export import remove_empty_values
 from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
 from studio.studio.doctype.studio_app.test_studio_app import (
 	exports_in_tempdir,
@@ -56,6 +57,57 @@ def make_page_with_data(app_name: str):
 
 
 class TestStudioPage(IntegrationTestCase):
+	def test_remove_empty_values(self):
+		test_dict = {
+			"keep_this": "value",
+			"keep_false": False,
+			"keep_zero": 0,
+			"remove_this_null": None,
+			"remove_this_empty_list": [],
+			"remove_this_empty_dict": {},
+			"nested_config": {"empty_value": "", "empty_dict": {}},
+			"blocks": [
+				{
+					"componentName": "Button",
+					"remove_empty_string": "",
+					"remove_empty_list": [],
+					"remove_empty_dict": {},
+					"componentProps": {"empty_value": "", "false_value": False},
+					"componentSlots": {
+						"default": {
+							"slotName": "default",
+							"slotContent": [{"componentName": "TextBlock", "remove_empty_string": ""}],
+						},
+						"label": {"slotName": "label", "slotContent": ""},
+					},
+					"children": [
+						{"componentName": "TextBlock", "remove_empty_string": ""},
+					],
+				}
+			],
+		}
+		remove_empty_values(test_dict)
+		self.assertEqual(
+			test_dict,
+			{
+				"keep_this": "value",
+				"keep_false": False,
+				"keep_zero": 0,
+				"nested_config": {"empty_value": "", "empty_dict": {}},
+				"blocks": [
+					{
+						"componentName": "Button",
+						"componentProps": {"empty_value": "", "false_value": False},
+						"componentSlots": {
+							"default": {"slotName": "default", "slotContent": [{"componentName": "TextBlock"}]},
+							"label": {"slotName": "label", "slotContent": ""},
+						},
+						"children": [{"componentName": "TextBlock"}],
+					}
+				],
+			},
+		)
+
 	def test_icon_bindings_are_rewritten_and_script_calls_are_reported(self):
 		from studio.studio.doctype.studio_page.patches import migrate_get_icon_calls
 

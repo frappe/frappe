@@ -3,17 +3,12 @@
 		<Button
 			size="sm"
 			variant="solid"
-			:disabled="disabled || publishingPage"
-			:loading="publishingPage || publishingApp"
+			:disabled="disabled || store.publishingPage"
+			:loading="store.publishingPage || store.publishingApp"
 			class="rounded-br-none rounded-tr-none border-0"
-			@click="
-				() => {
-					publishingPage = true
-					store.publishPage().finally(() => (publishingPage = false))
-				}
-			"
+			@click="store.publishPage()"
 		>
-			{{ publishingApp ? "Publishing App..." : publishingPage ? "Publishing Page..." : "Publish Page" }}
+			{{ store.publishingApp ? "Publishing App..." : store.publishingPage ? "Publishing Page..." : "Publish Page" }}
 		</Button>
 		<Dropdown
 			:options="[
@@ -37,10 +32,7 @@
 						{
 							label: 'Publish App',
 							icon: LucideGlobe,
-							onClick: () => {
-								publishingApp = true
-								store.publishApp().finally(() => (publishingApp = false))
-							},
+							onClick: () => store.publishApp(),
 						},
 					],
 				},
@@ -69,7 +61,7 @@
 				<Button
 					size="sm"
 					variant="solid"
-					:disabled="disabled || publishingPage || publishingApp"
+					:disabled="disabled || store.publishingPage || store.publishingApp"
 					icon="lucide-chevron-down"
 					class="!w-6 justify-start rounded-bl-none rounded-tl-none border-0 pr-0 text-xs"
 				/>
@@ -79,7 +71,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
 import { Dropdown, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import LucideCircleDashed from "~icons/lucide/circle-dashed"
@@ -92,6 +83,4 @@ defineProps<{
 }>()
 
 const store = useStudioStore()
-const publishingPage = ref(false)
-const publishingApp = ref(false)
 </script>

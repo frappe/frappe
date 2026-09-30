@@ -103,6 +103,7 @@
 			</StudioCanvas>
 
 			<StudioRightPanel
+				v-show="store.studioLayout.showRightPanel"
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l border-outline-gray-2 bg-surface-base dark:border-outline-gray-7"
 			/>
 
@@ -169,6 +170,8 @@
 			</template>
 		</Dialog>
 		<PasteConflictDialog />
+		<StudioCommandPalette />
+		<KeyboardShortcutsDialog v-model:open="store.showShortcutsDialog" :search-threshold="0" />
 	</div>
 </template>
 
@@ -176,7 +179,7 @@
 import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
-import { usePageMeta, Dialog, Button } from "frappe-ui"
+import { usePageMeta, Dialog, Button, KeyboardShortcutsDialog } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
@@ -187,6 +190,7 @@ import StudioCanvas from "@/components/StudioCanvas.vue"
 import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
 import PasteConflictDialog from "@/components/PasteConflictDialog.vue"
+import StudioCommandPalette from "@/components/CommandPalette/StudioCommandPalette.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -251,7 +255,7 @@ async function saveFragmentMode() {
 	}
 
 	if (canvasStore.editingMode === "fragment") {
-		toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
+		toast.success(`${canvasStore.fragmentData.fragmentName} saved`)
 	}
 	// saving a nested fragment returns to its parent fragment canvas
 	if (canvasStore.fragmentStack.length > 1) {

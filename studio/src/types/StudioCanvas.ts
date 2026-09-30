@@ -22,3 +22,4 @@ export interface CanvasProps {
 }
 
 export type CanvasHistory = Ref<ReturnType<typeof useCanvasHistory>>
+

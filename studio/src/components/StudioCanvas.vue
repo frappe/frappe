@@ -2,6 +2,8 @@
 	<div ref="canvasContainer" @click="handleClick">
 		<slot name="header"></slot>
 		<div class="overlay absolute" :class="{ 'pointer-events-none': isOverDropZone }" ref="overlay" />
+		<DropIndicator />
+		<BlockSnapGuides />
 		<Transition name="fade">
 			<div
 				class="absolute bottom-0 left-0 right-0 top-0 z-[19] grid w-full place-items-center bg-surface-gray-1"
@@ -107,6 +109,8 @@ import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 import DraggablePopup from "@/components/DraggablePopup.vue"
 import SearchBlock from "@/components/SearchBlock.vue"
+import DropIndicator from "@/components/DropIndicator.vue"
+import BlockSnapGuides from "@/components/BlockSnapGuides.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -289,6 +293,7 @@ function selectBlockRange(block: Block) {
 }
 
 const handleClick = (ev: MouseEvent) => {
+	if (canvasStore.preventClick) return
 	const target = document.elementFromPoint(ev.clientX, ev.clientY)
 	// hack to ensure if click is on canvas-container
 	// TODO: Still clears selection if space handlers are dragged over canvas-container

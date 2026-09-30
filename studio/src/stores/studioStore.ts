@@ -28,6 +28,7 @@ import type {
 	StudioMode,
 } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
+import type ComponentLayers from "@/components/ComponentLayers.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
@@ -49,17 +50,20 @@ const useStudioStore = defineStore("store", () => {
 	)
 	const mode = ref<StudioMode>("select")
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
+	const activeLayers = ref<InstanceType<typeof ComponentLayers> | null>(null)
 
 	// dialogs
 	const showSearchBlock = ref(false)
 	const showStudioSettingsDialog = ref(false)
 	const showPageOptions = ref(false)
+	const showAppDialog = ref(false)
+	const showShortcutsDialog = ref(false)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
 	const appPages = computed<Record<string, StudioPage>>(() => {
 		const pages: Record<string, StudioPage> = {}
-		studioPages.data.map((page: StudioPage) => {
+		studioPages.data?.forEach((page: StudioPage) => {
 			pages[page.name] = page
 		})
 		return pages
@@ -112,7 +116,7 @@ const useStudioStore = defineStore("store", () => {
 					if (activeApp.value?.name === appName) {
 						router.replace({ name: "Home" })
 					}
-					toast.success(`App "${appTitle}" deleted successfully`)
+					toast.success(`App "${appTitle}" deleted`)
 				},
 				onError() {
 					toast.error("An unexpected error occurred while deleting the app.")
@@ -152,7 +156,7 @@ const useStudioStore = defineStore("store", () => {
 			try {
 				await studioPages.delete.submit(page.name)
 				await setApp(appName)
-				toast.success(`Page "${page.page_title}" deleted successfully`)
+				toast.success(`Page "${page.page_title}" deleted`)
 			} catch (error) {
 				toast.error("An unexpected error occurred while deleting the page.")
 			}
@@ -177,7 +181,7 @@ const useStudioStore = defineStore("store", () => {
 						name: "StudioPage",
 						params: { appID: appName, pageID: page.name },
 					})
-					return `Page "${page.page_title}" duplicated successfully`
+					return `Page "${page.page_title}" duplicated`
 				},
 			},
 		)
@@ -213,6 +217,8 @@ const useStudioStore = defineStore("store", () => {
 	const pageBlocks = ref<Block[]>([])
 	const selectedPage = ref<string | null>(null)
 	const savingPage = ref(false)
+	const publishingPage = ref(false)
+	const publishingApp = ref(false)
 	const settingPage = ref(false)
 	// set when a save is rejected because the page moved on in the DB (a disk sync or an AI edit)
 	// after the editor loaded it. Autosave pauses until the user refreshes to the latest version.
@@ -350,7 +356,9 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function publishPage() {
-		if (!selectedPage.value) return
+		// the publish button and the command palette both publish; one at a time
+		if (!selectedPage.value || publishingPage.value) return
+		publishingPage.value = true
 
 		return studioPages.runDocMethod
 			.submit(
@@ -391,6 +399,7 @@ const useStudioStore = defineStore("store", () => {
 					openPageInBrowser(activeApp.value, activePage.value)
 				}
 			})
+			.finally(() => (publishingPage.value = false))
 	}
 
 	async function unpublishPage() {
@@ -456,7 +465,9 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function publishApp() {
-		if (!activeApp.value) return
+		// the publish button and the command palette both publish; one at a time
+		if (!activeApp.value || publishingApp.value) return
+		publishingApp.value = true
 		return studioApps.runDocMethod.submit(
 			{
 				name: activeApp.value.name,
@@ -474,7 +485,7 @@ const useStudioStore = defineStore("store", () => {
 						)
 					} else {
 						openPageInBrowser(activeApp.value!, activePage.value!)
-						toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
+						toast.success(`App published (${data?.message?.published_pages} pages)`)
 					}
 				},
 				onError(error: any) {
@@ -484,6 +495,7 @@ const useStudioStore = defineStore("store", () => {
 				},
 			},
 		)
+		.finally(() => (publishingApp.value = false))
 	}
 
 	async function unpublishApp() {
@@ -728,9 +740,12 @@ const useStudioStore = defineStore("store", () => {
 		studioLayout,
 		mode,
 		componentContextMenu,
+		activeLayers,
 		// dialogs
 		showSearchBlock,
 		showStudioSettingsDialog,
+		showAppDialog,
+		showShortcutsDialog,
 		showPageOptions,
 		// studio app
 		activeApp,
@@ -757,6 +772,8 @@ const useStudioStore = defineStore("store", () => {
 		selectedPage,
 		settingPage,
 		savingPage,
+		publishingPage,
+		publishingApp,
 		pageConflict,
 		activePage,
 		setPage,

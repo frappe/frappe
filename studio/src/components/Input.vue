@@ -39,7 +39,7 @@
 <script lang="ts" setup>
 import { FormControl, Select } from "frappe-ui"
 import CrossIcon from "@/components/Icons/Cross.vue"
-import { useDebounceFn, useVModel } from "@vueuse/core"
+import { useVModel } from "@vueuse/core"
 import { useAttrs } from "vue"
 
 const props = withDefaults(
@@ -67,11 +67,11 @@ const clearValue = () => {
 	data.value = ""
 }
 
-const triggerUpdate = useDebounceFn(($event: Event) => {
+const triggerUpdate = ($event: Event) => {
 	if (props.type === "checkbox") {
 		emit("update:modelValue", ($event.target as HTMLInputElement).checked)
 	} else {
 		emit("update:modelValue", ($event.target as HTMLInputElement).value)
 	}
-}, 100)
+}
 </script>

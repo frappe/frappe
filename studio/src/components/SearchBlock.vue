@@ -289,6 +289,8 @@ const handleKeydown = (event: KeyboardEvent) => {
 	// Cmd+F or Ctrl+F for quick search
 	if ((event.metaKey || event.ctrlKey) && event.key === "f") {
 		event.preventDefault()
+		// keep the global Mod+F from pulling focus into the property search
+		event.stopPropagation()
 		searchInput.value?.focus()
 	}
 	// Escape to clear search
