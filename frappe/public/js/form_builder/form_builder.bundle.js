@@ -31,7 +31,7 @@ class FormBuilder {
 		this.get_source_field_values = get_source_field_values;
 		// web forms: (df) => true when a source doctype field can go on the form
 		this.is_source_field = is_source_field;
-		// web forms: (page_break_count) => throws when the form has too many pages
+		// web forms: (page_count) => throws when the form has too many pages
 		this.validate_page_limit = validate_page_limit;
 		// host's standing read-only answer, unlike `read_only` below, which tracks the preview toggle
 		this.force_read_only = force_read_only || false;

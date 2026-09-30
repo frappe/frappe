@@ -32,6 +32,10 @@ function roles_input(page) {
 	return page.locator('.web-form .frappe-control[data-fieldname="roles"] input');
 }
 
+function visible_heading(page, text) {
+	return page.locator(".web-form .section-head:visible", { hasText: text });
+}
+
 async function submit(page) {
 	await page.locator(".web-form-actions button", { hasText: "Save" }).first().click();
 }
@@ -108,6 +112,49 @@ test.describe("Web Form Table MultiSelect", () => {
 		await expect(msgprint).toContainText("Mandatory fields required");
 		await expect(msgprint).toContainText("Roles");
 		await expect(page.locator(".btn-next")).toBeVisible();
+	});
+});
+
+test.describe("Web Form Pages", () => {
+	const PAGES_ROUTE = "named-pages-note";
+
+	test.use({ storageState: GUEST });
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc("DocType", web_form_source_doctype, true);
+	});
+
+	test("Opens on the page that a Page Break in row 1 names", async ({ page, admin }) => {
+		await seed_web_form(
+			admin,
+			[
+				{ fieldtype: "Page Break", label: "About You" },
+				{ fieldname: "title", fieldtype: "Data", label: "Title" },
+				{ fieldtype: "Page Break", label: "More" },
+				{ fieldname: "kind", fieldtype: "Select", label: "Kind" },
+			],
+			{
+				title: PAGES_ROUTE,
+				route: PAGES_ROUTE,
+				doc_type: web_form_source_doctype.name,
+				published: 1,
+				login_required: 0,
+			}
+		);
+
+		await page.goto(`/${PAGES_ROUTE}/new`);
+		// the row names page 1, so the form does not open on a blank page
+		await expect(
+			page.locator('.web-form .frappe-control[data-fieldname="title"]')
+		).toBeVisible();
+		await expect(visible_heading(page, "About You")).toBeVisible();
+		await expect(page.locator(".slides-progress .slide-step")).toHaveCount(2);
+
+		await page.locator(".btn-next").click();
+		await expect(
+			page.locator('.web-form .frappe-control[data-fieldname="kind"]')
+		).toBeVisible();
+		await expect(visible_heading(page, "More")).toBeVisible();
 	});
 });
 

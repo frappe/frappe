@@ -15,7 +15,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	prepare(web_form_doc, doc) {
 		Object.assign(this, web_form_doc);
-		this.fields = web_form_doc.web_form_fields;
+		this.fields = this.with_first_page_heading(web_form_doc.web_form_fields);
 		this.doc = doc;
 	}
 
@@ -84,6 +84,18 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		this.page_breaks = $(".page-break");
 		this.is_multi_step_form = !!this.page_breaks.length;
+	}
+
+	// a Page Break in row 1 names page 1 and opens no new page
+	with_first_page_heading(fields) {
+		let [first, next, ...rest] = fields;
+		if (first?.fieldtype !== "Page Break") return fields;
+
+		// an empty section is hidden, so label the opening break instead
+		if (next?.fieldtype === "Section Break") {
+			return [{ ...next, label: next.label || first.label }, ...rest];
+		}
+		return [{ ...first, fieldtype: "Section Break" }, ...fields.slice(1)];
 	}
 
 	setup_previous_next_button() {

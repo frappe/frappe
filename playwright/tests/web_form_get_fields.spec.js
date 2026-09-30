@@ -320,18 +320,18 @@ test.describe("Web Form Get Fields", () => {
 		});
 	});
 
-	test("Opens on page 1 instead of leaving it blank", async ({ page, desk }) => {
+	test("Names page 1 after the DocType's opening tab", async ({ page, desk }) => {
 		await open_picker_on(desk);
 
 		await picker(desk).locator('[data-action="select_all"]').click();
 		await desk.click_modal_primary_button("Update");
 
 		await expect_web_form_fields(page, (fields) => {
-			expect(fields[0].fieldtype, "the form does not open on a page break").not.toBe(
-				"Page Break"
-			);
+			// a Page Break in row 1 names page 1, so the opening tab opens no blank page
+			expect(fields[0].fieldtype, "the opening tab is row 1").toBe("Page Break");
+			expect(fields[0].label).toBe("Details");
 			const pages = fields.filter((d) => d.fieldtype === "Page Break");
-			expect(pages.map((d) => d.fieldname)).toEqual(["more_tab"]);
+			expect(pages.map((d) => d.fieldname)).toEqual(["details_tab", "more_tab"]);
 		});
 	});
 
