@@ -349,6 +349,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.page.set_title(title, null, true);
 
 		await frappe.model.with_doctype(this.doctype);
+		// v16 has no per-page breadcrumbs, so add the DocType's as list views do
+		frappe.breadcrumbs.add(frappe.get_meta(this.doctype).module, this.doctype);
 		this.setup_meta();
 		this.setup_toolbar();
 		this.mount_board();
@@ -402,6 +404,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			"_assign",
 			"_liked_by",
 			"_user_tags",
+			// v16 counts comments only when `_comments` is fetched
+			"_comments",
 		];
 		["priority", "color", this.image_field, "exp_end_date", "end_date", "due_date"].forEach(
 			(f) => {
