@@ -17,6 +17,7 @@ from flow_harness.events import (
 	AssistantMessage,
 	PendingCall,
 	RunEnded,
+	RunStarted,
 	TextDelta,
 	ThinkingDelta,
 	ToolCall,
@@ -26,7 +27,7 @@ from flow_harness.events import (
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.mock import MockModel
 from flow_harness.session.config import SessionConfig
-from flow_harness.session.session import SessionState
+from flow_harness.session.session import INTERRUPTED, SessionState
 from flow_harness.session.store import SessionStore
 
 
@@ -207,6 +208,25 @@ def test_reload_repairs_a_crashed_runs_open_calls(tmp_path):
 	assert second_reload.log.latest_seq == reloaded.log.latest_seq
 
 
+def test_reload_ends_a_run_the_crash_cut_off(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	session.log.append(RunStarted(run_id="r1"))
+	session.log.append(UserMessage(content="go"))
+	session.log.append(
+		AssistantMessage(content=[ToolCall(id="c1", name="subagent", arguments={"task": "look"})])
+	)
+	session.log.append(RunStarted(run_id="r2", subagent_id="c1"))
+	session.log.append(RunEnded(reason="done", subagent_id="c1"))  # only the sub-agent's run ended
+
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+
+	rows = reloaded.log.read_since(5)
+	assert [row["type"] for row in rows] == ["tool_result", "run_error", "run_ended"]
+	assert (rows[1]["message"], rows[2]["reason"]) == (INTERRUPTED, "error")
+	assert SessionStore(str(tmp_path)).get(session.id).log.latest_seq == rows[-1]["seq"]  # only once
+
+
 def test_reload_does_not_repair_calls_waiting_for_approval(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
@@ -260,32 +280,115 @@ async def test_commit_failure_fails_the_task_and_frees_the_session(tmp_path, mon
 	assert session.is_running is False
 
 
+def _reporting_config() -> SessionConfig:
+	return SessionConfig(
+		model="mock",
+		callback_url="https://client.invalid/callback",
+		notify_run_ended=True,
+	)
+
+
+async def _until(predicate, timeout=5.0):
+	async with asyncio.timeout(timeout):
+		while not predicate():
+			await asyncio.sleep(0.01)
+
+
 async def test_run_ended_schedules_the_configured_client_notification(tmp_path, monkeypatch):
 	seen = []
 	delivered = asyncio.Event()
 
-	async def notify(config, session_id, event):
-		seen.append((config.callback_url, session_id, event.type, event.seq))
+	async def notify(config, session_id, terminal_seq, *, still_needed):
+		seen.append((config.callback_url, session_id, terminal_seq, still_needed()))
 		delivered.set()
+		return True
 
 	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
-	session = SessionStore(str(tmp_path)).create(
-		SessionConfig(
-			model="mock",
-			callback_url="https://client.invalid/callback",
-			notify_run_ended=True,
-		)
-	)
+	session = SessionStore(str(tmp_path)).create(_reporting_config())
 	handle = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="ok")]))
 	assert handle.task is not None
 	await handle.task
 	await asyncio.wait_for(delivered.wait(), timeout=1)
 
-	assert seen == [("https://client.invalid/callback", session.id, "run_ended", session.log.latest_seq)]
+	assert seen == [("https://client.invalid/callback", session.id, session.log.latest_seq, True)]
 
 
-async def test_terminal_notification_retries_short_http_failures(monkeypatch):
-	attempts = []
+async def test_a_run_stays_marked_until_the_client_confirms_the_latest_end(tmp_path, monkeypatch):
+	answers = []
+
+	async def notify(config, session_id, terminal_seq, *, still_needed):
+		answers.append(asyncio.get_running_loop().create_future())
+		return await answers[-1]
+
+	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
+	session = SessionStore(str(tmp_path)).create(_reporting_config())
+	for text in ("one", "two"):
+		handle = await session.run(text, model=MockModel(replies=[AssistantMessage(content="ok")]))
+		assert handle.task is not None
+		await handle.task
+	await _until(lambda: len(answers) == 2)
+	assert session.run_end_marker.exists()
+
+	answers[0].set_result(True)  # the first run's end, confirmed after the second run ended
+	await asyncio.sleep(0.05)
+	assert session.run_end_marker.exists()
+	answers[1].set_result(True)
+	await _until(lambda: not session.run_end_marker.exists())
+
+
+async def test_startup_reports_a_run_end_the_client_never_confirmed(tmp_path, monkeypatch):
+	seen = []
+
+	async def notify(config, session_id, terminal_seq, *, still_needed):
+		seen.append((session_id, terminal_seq))
+		return True
+
+	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
+	session = SessionStore(str(tmp_path)).create(_reporting_config())
+	session.log.append(RunStarted(run_id="r1"))
+	session.log.append(UserMessage(content="go"))
+	session.log.append(AssistantMessage(content="done"))
+	session.log.append(RunEnded(reason="done"))
+	session.run_end_marker.touch()  # the daemon stopped before the client confirmed
+
+	SessionStore(str(tmp_path)).report_unconfirmed_run_ends()  # the restarted daemon
+
+	await _until(lambda: not session.run_end_marker.exists())
+	assert seen == [(session.id, 4)]
+
+
+async def test_startup_reports_the_end_of_a_run_the_crash_cut_off(tmp_path, monkeypatch):
+	seen = []
+
+	async def notify(config, session_id, terminal_seq, *, still_needed):
+		seen.append((session_id, terminal_seq))
+		return True
+
+	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
+	session = SessionStore(str(tmp_path)).create(_reporting_config())
+	session.log.append(RunStarted(run_id="r1"))
+	session.log.append(UserMessage(content="go"))
+	session.run_end_marker.touch()
+
+	restarted = SessionStore(str(tmp_path))
+	restarted.report_unconfirmed_run_ends()
+
+	ended = restarted.get(session.id).log.read_since(0)[-1]
+	assert (ended["type"], ended["reason"]) == ("run_ended", "error")
+	await _until(lambda: seen)
+	assert seen == [(session.id, ended["seq"])]
+
+
+def test_deleting_a_session_drops_its_run_end_marker(tmp_path):
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock"))
+	session.run_end_marker.touch()
+	store.delete(session.id)
+	assert not session.run_end_marker.exists()
+
+
+def _callback_client(attempts: list, *, succeed_at: int | None):
+	"""An httpx.AsyncClient stand-in that refuses posts before attempt `succeed_at` (None: always)."""
 
 	class Client:
 		def __init__(self, *args, **kwargs):
@@ -299,7 +402,7 @@ async def test_terminal_notification_retries_short_http_failures(monkeypatch):
 
 		async def post(self, url, *, json, headers):
 			attempts.append((url, json, headers))
-			if len(attempts) < 3:
+			if succeed_at is None or len(attempts) < succeed_at:
 				raise httpx.ConnectError("not yet", request=httpx.Request("POST", url))
 			return httpx.Response(
 				200,
@@ -307,16 +410,23 @@ async def test_terminal_notification_retries_short_http_failures(monkeypatch):
 				request=httpx.Request("POST", url),
 			)
 
-	monkeypatch.setattr("flow_harness.agent.client_tools.httpx.AsyncClient", Client)
+	return Client
+
+
+async def test_terminal_notification_retries_until_the_client_confirms(monkeypatch):
+	attempts = []
+	monkeypatch.setattr(
+		"flow_harness.agent.client_tools.httpx.AsyncClient", _callback_client(attempts, succeed_at=8)
+	)
 	monkeypatch.setattr("flow_harness.agent.client_tools._TERMINAL_RETRY_DELAYS", (0, 0, 0))
 	config = SessionConfig(
 		callback_url="https://client.invalid/callback",
 		callback_token="secret",
 		notify_run_ended=True,
 	)
-	await notify_run_ended(config, "session-1", RunEnded(reason="done", seq=7))
+	assert await notify_run_ended(config, "session-1", 7, still_needed=lambda: True) is True
 
-	assert len(attempts) == 3
+	assert len(attempts) == 8  # past the quick retries, at the steady pace
 	assert attempts[-1] == (
 		"https://client.invalid/callback",
 		{
@@ -326,6 +436,19 @@ async def test_terminal_notification_retries_short_http_failures(monkeypatch):
 		},
 		{"X-Harness-Token": "secret"},
 	)
+
+
+async def test_terminal_notification_stops_once_no_longer_needed(monkeypatch):
+	attempts = []
+	monkeypatch.setattr(
+		"flow_harness.agent.client_tools.httpx.AsyncClient", _callback_client(attempts, succeed_at=None)
+	)
+	monkeypatch.setattr("flow_harness.agent.client_tools._TERMINAL_RETRY_DELAYS", (0, 0, 0))
+	still_needed = iter([True, True, False])
+	config = SessionConfig(callback_url="https://client.invalid/callback", notify_run_ended=True)
+
+	assert await notify_run_ended(config, "session-1", 7, still_needed=lambda: next(still_needed)) is False
+	assert len(attempts) == 2
 
 
 async def test_events_replays_then_stays_live_without_duplicates(tmp_path):

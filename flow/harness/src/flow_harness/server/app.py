@@ -9,8 +9,10 @@ from __future__ import annotations
 import logging
 import os
 import secrets
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
+from contextlib import asynccontextmanager, nullcontext
 from dataclasses import replace
+from typing import Any
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
@@ -61,6 +63,15 @@ def create_app(
 	policy = policy or ServerPolicy()
 	if policy.require_auth and not auth_token and not tenants:
 		raise ValueError("this server policy requires auth; pass auth_token or tenants")
+
+	@asynccontextmanager
+	async def serve_lifespan(app: FastAPI) -> AsyncIterator[Any]:
+		async with lifespan(app) if lifespan else nullcontext() as state:
+			# the last daemon may have stopped before a client confirmed a run's end
+			for partition in (store, *session_store_by_tenant.values()):
+				partition.report_unconfirmed_run_ends()
+			yield state
+
 	# docs off: those routes would be reachable without a bearer beside the web UI
 	app = FastAPI(
 		title="flow server",
@@ -68,7 +79,7 @@ def create_app(
 		docs_url=None,
 		redoc_url=None,
 		openapi_url=None,
-		lifespan=lifespan,
+		lifespan=serve_lifespan,
 	)
 	oauth = OAuthCoordinator(store.credential_store)
 

@@ -152,6 +152,7 @@ class Transcript:
 		self.reasoning_effort: ReasoningEffort | None = None
 		self.context_tokens: int | None = None
 		self.context_message_count: int = 0
+		self.run_open = False  # the last run in the log never ended
 		self._open_calls: _OpenToolCalls | None = None
 		self._open_approval: _OpenApproval | None = None
 
@@ -165,8 +166,10 @@ class Transcript:
 		`subagent_id` to rebuild a sub-agent's conversation instead of the session's.
 		"""
 		transcript = cls(subagent_id)
-		for row in active_path(log.read_since(0), leaf_seq):
+		rows = log.read_since(0)
+		for row in active_path(rows, leaf_seq):
 			transcript.record(parse_event(row))
+		transcript.run_open = _last_run_open(rows, subagent_id)
 		return transcript
 
 	@property
@@ -299,3 +302,10 @@ class Transcript:
 			for call in self._open_calls.calls.values()
 			if call.id not in self._open_calls.answered and call.id not in undecided
 		)
+
+
+def _last_run_open(rows: list[dict], subagent_id: str | None) -> bool:
+	for row in reversed(rows):
+		if row.get("subagent_id") == subagent_id and row["type"] in ("run_started", "run_ended"):
+			return row["type"] == "run_started"
+	return False

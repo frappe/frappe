@@ -36,7 +36,7 @@ The `Transcript` reducer rebuilds state from the active log branch and updates i
 
 Every durable entry points to its parent. `rewind` moves the active leaf; later entries form a new branch without deleting the old one. The active-path view is what the model and normal clients see. The all-path view is for history and recovery.
 
-If a process stops after an assistant tool call but before its result, Flow commits error results before accepting newer work. This keeps the provider transcript valid after restart.
+If a process stops after an assistant tool call but before its result, Flow commits error results before accepting newer work. This keeps the provider transcript valid after restart. A run the process stopped in is then ended with a `run_error` and a `run_ended` of reason `error`, so clients stop showing it as running.
 
 Compaction creates a durable summary entry. The original entries remain in the log, but the transcript replaces the compacted portion with a synthetic summary message. Compaction can be requested explicitly or run automatically near the model context limit and after one context-overflow recovery attempt.
 

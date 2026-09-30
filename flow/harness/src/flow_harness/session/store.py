@@ -8,6 +8,7 @@ import builtins
 import copy
 import hashlib
 import json
+import logging
 import os
 import re
 import uuid
@@ -68,6 +69,7 @@ class _SessionPaths:
 	meta: str
 	skills: str
 	attachments: str
+	run_end_marker: str
 
 
 @dataclass(frozen=True)
@@ -305,6 +307,19 @@ class SessionStore:
 		self._cache.put(session)
 		return session
 
+	def report_unconfirmed_run_ends(self) -> None:
+		"""At startup: resend each run end a client never confirmed."""
+		for paths in self._iter_session_paths():
+			if not os.path.exists(paths.run_end_marker):
+				continue
+			sid = os.path.basename(paths.meta)[: -len(_META_SUFFIX)]
+			try:
+				session = self.get(sid)  # loading closes a run the last daemon stopped in
+			except Exception as error:  # one unloadable session must not stop the rest
+				logging.getLogger("flow").warning("cannot report the run end of session %s: %s", sid, error)
+				continue
+			session.report_run_end()
+
 	def get(self, sid: str) -> Session:
 		cached = self._cache.get(sid)
 		if cached is not None:
@@ -370,7 +385,7 @@ class SessionStore:
 			attachment_store.remove_all()
 		elif os.path.exists(paths.attachments):
 			AttachmentStore(paths.attachments).remove_all()
-		for path in (paths.log, paths.meta, paths.skills):
+		for path in (paths.log, paths.meta, paths.skills, paths.run_end_marker):
 			try:
 				os.unlink(path)
 			except FileNotFoundError:
@@ -479,6 +494,7 @@ class SessionStore:
 			persist_skill_catalog=self.save_skill_catalog,
 			on_settled=self._session_settled,
 			compose_tools=self._compose_tools,
+			run_end_marker=Path(paths.run_end_marker),
 		)
 
 	def _session_settled(self, session: Session) -> None:
@@ -582,6 +598,7 @@ def _session_paths(directory: str, sid: str) -> _SessionPaths:
 		meta=os.path.join(directory, f"{sid}.meta.json"),
 		skills=os.path.join(directory, f"{sid}{_SKILLS_SUFFIX}"),
 		attachments=os.path.join(directory, f"{sid}.attachments"),
+		run_end_marker=os.path.join(directory, f"{sid}.run_end_pending"),
 	)
 
 
