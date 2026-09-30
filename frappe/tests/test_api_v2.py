@@ -1754,7 +1754,8 @@ class TestSessionAPIV2(FrappeAPITestCase):
 
 	def test_session_withholds_site_defaults_from_a_website_user_v2(self):
 		email = "api-session-website-user@example.com"
-		if not frappe.db.exists("User", email):
+		created = not frappe.db.exists("User", email)
+		if created:
 			frappe.get_doc(
 				{"doctype": "User", "email": email, "first_name": "Website", "send_welcome_email": 0}
 			).insert(ignore_permissions=True)
@@ -1762,8 +1763,9 @@ class TestSessionAPIV2(FrappeAPITestCase):
 			self.assertEqual(frappe.db.get_value("User", email, "user_type"), "Website User")
 			self.assertEqual(self.session_defaults(sid_of(email)), {})
 		finally:
-			frappe.delete_doc_if_exists("User", email, force=True)
-			frappe.db.commit()  # nosemgrep
+			if created:
+				frappe.delete_doc("User", email, force=True)
+				frappe.db.commit()  # nosemgrep
 
 	def test_session_gives_site_defaults_to_a_system_user_v2(self):
 		self.assertEqual(self.session_defaults(self.sid).get(self.DEFAULTS_PROBE), "probe")
