@@ -350,14 +350,14 @@ frappe.ui.MultiCombobox = class MultiCombobox extends frappe.ui.Combobox {
 		const pending_enter = this.pending_activate;
 		this.pending_activate = false;
 		super.render(empty_text);
+		let target = this.highlighted;
 		if (!this.query && this.pinned.length && !this.navigated) {
 			const pinned = new Set(this.pinned);
-			const row = this.rows.find((r) => !pinned.has(r.option.value) && !r.option.disabled);
-			if (row) this.highlight(row, { scroll: false });
+			target = this.rows.find((r) => !pinned.has(r.option.value) && !r.option.disabled);
+			if (target) this.highlight(target, { scroll: false });
 		}
-		if (pending_enter && this.highlighted && this.highlighted.option) {
-			this.activate(this.highlighted);
-		}
+		// every row already picked: a queued Enter is dropped rather than removing one
+		if (pending_enter && target && target.option) this.activate(target);
 	}
 
 	// a page loaded on scroll goes under All, without the values already under Selected
