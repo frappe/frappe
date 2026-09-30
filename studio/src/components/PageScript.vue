@@ -1,37 +1,25 @@
 <template>
-	<!-- Non-exported apps keep their code in the DB: one script per page and one router script for
-	     the app. The editor replaces the panel content and opens directly against the icon rail. -->
+	<!-- Non-exported apps keep their page scripts in the DB. The editor replaces the panel content
+	     and opens directly against the icon rail. -->
 	<CodeEditorDock
 		:open="true"
 		railLeft
 		:modelValue="script"
-		:completions="current.completions"
+		:completions="completions"
 		@update:modelValue="onChange"
 		@save="saveScript"
 	>
 		<template #title>
-			<TabButtons
-				size="xs"
-				v-model="target"
-				:options="[
-					{ label: 'Page', value: 'page' },
-					{ label: 'Router', value: 'router' },
-				]"
-			/>
+			<span class="truncate text-sm text-ink-gray-8">Page Script</span>
 			<span v-if="dirty" class="text-ink-amber-5">•</span>
 		</template>
 		<template #actions>
 			<Popover side="bottom" align="end" :offset="6" bare>
 				<template #trigger>
-					<Button
-						size="xs"
-						variant="ghost"
-						icon="lucide-circle-help"
-						:title="`How to write the ${current.label}`"
-					/>
+					<Button size="xs" variant="ghost" icon="lucide-circle-help" title="How to write the page script" />
 				</template>
 				<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
-					<component :is="current.help" />
+					<PageScriptHelp />
 				</div>
 			</Popover>
 			<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="saveScript">Save</Button>
@@ -56,10 +44,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { toast, Button, Popover, ErrorMessage, TabButtons } from "frappe-ui"
+import { toast, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import PageScriptHelp from "@/components/PageScriptHelp.vue"
-import RouterScriptHelp from "@/components/RouterScriptHelp.vue"
 import { getScriptError } from "@/utils/parseCode"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import useCodeStore from "@/stores/codeStore"
@@ -67,44 +54,16 @@ import useStudioStore from "@/stores/studioStore"
 
 const store = useStudioStore()
 const codeStore = useCodeStore()
-const pageCompletions = useStudioCompletions(true, true)
+const completions = useStudioCompletions(true, true)
 
-// What differs per script: where it is stored, how it parses, and what the editor offers
-const targets = {
-	page: {
-		label: "page script",
-		help: PageScriptHelp,
-		completions: pageCompletions,
-		saved: () => store.activePage?.script || "",
-		// statements, like a <script setup>
-		parse: (source: string) => source,
-		async save(source: string) {
-			await store.updateActivePage("script", source)
-			// keep the runtime bindings in sync with the saved script
-			codeStore.setPageScript(store.activePage!)
-		},
-	},
-	router: {
-		label: "router script",
-		help: RouterScriptHelp,
-		completions: null,
-		saved: () => store.activeApp?.router_script || "",
-		// one object literal, so it only parses as an expression
-		parse: (source: string) => `(${source})`,
-		save: (source: string) => store.updateActiveApp("router_script", source),
-	},
-}
-
-const target = ref<keyof typeof targets>("page")
-const current = computed(() => targets[target.value])
-const savedScript = computed(() => current.value.saved())
+const savedScript = computed(() => store.activePage?.script || "")
 
 const script = ref(savedScript.value)
 const saving = ref(false)
 const scriptError = ref<string | null>(null)
 const dirty = computed(() => script.value !== savedScript.value)
 
-// Reset when switching pages or targets.
+// Reset when switching pages.
 watch([() => store.activePage?.name, savedScript], () => {
 	script.value = savedScript.value
 	scriptError.value = null
@@ -118,7 +77,7 @@ function onChange(value: string) {
 
 async function saveScript() {
 	// A broken script fails to compile and takes down every binding on the page, so block it.
-	const syntaxError = getScriptError(current.value.parse(script.value))
+	const syntaxError = getScriptError(script.value)
 	if (syntaxError) {
 		const hint = script.value.includes("{{")
 			? " Scripts are plain JavaScript — use expressions directly, not {{ }} interpolation."
@@ -128,10 +87,12 @@ async function saveScript() {
 	}
 	saving.value = true
 	try {
-		await current.value.save(script.value)
-		toast.success(`Saved the ${current.value.label}`)
+		await store.updateActivePage("script", script.value)
+		// keep the runtime bindings in sync with the saved script
+		codeStore.setPageScript(store.activePage!)
+		toast.success("Saved the page script")
 	} catch (error: any) {
-		toast.error(`Failed to save the ${current.value.label}`, { description: error?.messages?.join(", ") })
+		toast.error("Failed to save the page script", { description: error?.messages?.join(", ") })
 	} finally {
 		saving.value = false
 	}

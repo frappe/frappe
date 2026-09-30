@@ -16,7 +16,7 @@
 				@dblclick="toggleFullWidth"
 			/>
 			<div
-				class="flex select-none items-center justify-between gap-2 border-b border-outline-gray-2 px-3 py-2"
+				class="flex h-11 shrink-0 select-none items-center justify-between gap-2 border-b border-outline-gray-2 px-3"
 				@dblclick="toggleFullWidth"
 			>
 				<div class="flex min-w-0 items-center gap-1.5">
@@ -52,6 +52,7 @@ import { useWindowSize } from "@vueuse/core"
 import Code from "@/components/Code.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
 import useStudioStore from "@/stores/studioStore"
+import type { LeftPanelOptions } from "@/types"
 
 const props = withDefaults(
 	defineProps<{
@@ -63,12 +64,14 @@ const props = withDefaults(
 		// Dock against the primary icon rail instead of beside the secondary panel — for editors
 		// (e.g. the page script) that replace the panel content rather than sit next to it.
 		railLeft?: boolean
+		tab?: LeftPanelOptions
 	}>(),
 	{
 		language: "javascript",
 		completions: null,
 		readonly: false,
 		railLeft: false,
+		tab: "Code",
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
@@ -76,7 +79,7 @@ const emit = defineEmits(["update:modelValue", "save"])
 const store = useStudioStore()
 
 const visible = computed(
-	() => props.open && store.studioLayout.showLeftPanel && store.studioLayout.leftPanelActiveTab === "Code",
+	() => props.open && store.studioLayout.showLeftPanel && store.studioLayout.leftPanelActiveTab === props.tab,
 )
 
 const RAIL_WIDTH = 48

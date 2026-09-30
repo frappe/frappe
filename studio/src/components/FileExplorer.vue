@@ -159,8 +159,8 @@
 		</template>
 		<template #actions>
 			<template v-if="!openFileReadOnly">
-				<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
 				<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
+				<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
 			</template>
 			<Button size="xs" variant="ghost" icon="lucide-x" @click="closeFile" title="Close editor" />
 		</template>
@@ -221,6 +221,7 @@ async function loadTree() {
 	loading.value = true
 	try {
 		tree.value = await listStudioFiles(location.value)
+		store.hasRouterFile = Boolean(findNode("router.ts"))
 	} catch (error: any) {
 		toast.error("Failed to load files", { description: error?.messages?.join(", ") })
 	} finally {
@@ -265,14 +266,17 @@ const activePageHasScript = computed(() => Boolean(findNode(activePagePaths.valu
 
 function openActivePageScript() {
 	const scriptPath = activePagePaths.value?.script
-	if (!scriptPath) return
-	const scriptNode = findNode(scriptPath)
-	if (scriptNode) {
-		selectedNode.value = scriptNode
-		openNode(scriptNode)
+	if (scriptPath) openOrCreateFile(scriptPath)
+}
+
+function openOrCreateFile(path: string) {
+	const node = findNode(path)
+	if (node) {
+		selectedNode.value = node
+		openNode(node)
 	} else {
 		newEntryType.value = "file"
-		newEntryPath.value = scriptPath
+		newEntryPath.value = path
 		showNewEntryDialog.value = true
 		focusFormInput(pathInput)
 	}
@@ -501,18 +505,10 @@ watch(
 			const stop = watch(loading, async (isLoading) => {
 				if (isLoading) return
 				stop()
-				const node = findNode(path)
-				if (node) {
-					selectedNode.value = node
-					await openNode(node)
-				}
+				openOrCreateFile(path)
 			})
 		} else {
-			const node = findNode(path)
-			if (node) {
-				selectedNode.value = node
-				await openNode(node)
-			}
+			openOrCreateFile(path)
 		}
 	},
 )

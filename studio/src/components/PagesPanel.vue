@@ -51,11 +51,13 @@
 				<Button icon-left="lucide-plus" class="w-full">New Page</Button>
 			</router-link>
 		</div>
+		<RouterScript v-if="store.activeApp" />
 	</div>
 </template>
 
 <script setup lang="ts">
 import useStudioStore from "@/stores/studioStore"
+import RouterScript from "@/components/RouterScript.vue"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { copyEntirePage } from "@/utils/blockCopyPaste"
