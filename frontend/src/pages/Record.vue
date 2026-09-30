@@ -574,7 +574,8 @@ function backgroundReads(
 	];
 	const rows = feeds.rereadKept(route.query);
 	if (rows) reads.push(rows);
-	// A script's cached value is only read by a replay, so it needs no applier.
+	// Called after `paintNow`, which reads the keys to fetch. Only a replay reads the values,
+	// so they need no applier.
 	reads.push(created.fetchCached().then(() => () => {}));
 	return reads;
 }

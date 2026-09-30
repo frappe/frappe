@@ -56,8 +56,10 @@ once per visit for each key:
 
 The value is kept while the record is held in memory, and it goes with the record. A
 reload or a new tab starts with none. Each script has its own keys, so two scripts can use
-one key name. Put what the value depends on in the key. Read it in `onRefresh`: a key read
-in another handler is fetched with the next replay.
+one key name. Put what the value depends on in the key. Read it in `onRefresh`, before any
+`await`: after an `await` the page cannot tell which script asks. A key read in another
+handler, or first read in the replay that draws a fetched value, is fetched with the next
+replay. The page waits at most 5 seconds for a fetch.
 
 ```js
 export default {

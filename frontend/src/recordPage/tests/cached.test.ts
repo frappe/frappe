@@ -34,7 +34,7 @@ import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { createRecordPage } from "../createRecordPage";
 import { withRegisteringSource } from "../context";
 import { resetKeptValues } from "../keptValues";
-import { FIRST_PAINT_LIMIT_MS } from "../paintGate";
+import { FIRST_PAINT_LIMIT_MS, LATE_LIMIT_MS } from "../paintGate";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, RecordPageApi } from "../types";
 
@@ -183,6 +183,22 @@ describe("page.cached on a return visit", () => {
     expect(paints.count).toBe(1);
   });
 
+  it("stops waiting for a fetch at the late limit, so the other background reads still apply", async () => {
+    const fetches = [async () => 5000, () => new Promise<number>(() => {})];
+    await creditLimitScript(() => fetches.shift()!());
+    await coldVisit();
+    const { controller } = await visit();
+    controller.paintNow();
+    let replayed = false;
+
+    void backgroundReads(controller).then(() => (replayed = true));
+    await vi.advanceTimersByTimeAsync(LATE_LIMIT_MS);
+
+    expect(replayed).toBe(true);
+    expect(drawn(controller)).toEqual(["credit 5000"]);
+    expect(warnings.at(-1)).toContain("credit page.cached on CRM Deal did not settle within 5 s");
+  });
+
   it("drops an act made in the replay that draws the fetched value", async () => {
     await register("credit", {
       onRefresh: (page: RecordPageApi) => {
@@ -277,6 +293,21 @@ describe("page.cached", () => {
     await controller.refresh({ background: true });
 
     expect(fetchLimit).toHaveBeenCalledTimes(1);
+  });
+
+  it("fetches once per replay a key that changes on every replay", async () => {
+    let replays = 0;
+    const fetchLimit = vi.fn(async () => 5000);
+    await register("credit", {
+      onRefresh: (page: RecordPageApi) => void page.cached(`limit:${(replays += 1)}`, fetchLimit),
+    });
+    const { controller } = await visit();
+
+    await controller.refresh();
+    await vi.advanceTimersByTimeAsync(LATE_LIMIT_MS);
+
+    expect(fetchLimit).toHaveBeenCalledTimes(1);
+    expect(controller.ready.value).toBe(true);
   });
 
   it("keeps the last value and names the script when a fetch fails", async () => {

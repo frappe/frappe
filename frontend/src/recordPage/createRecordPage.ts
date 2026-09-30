@@ -196,7 +196,7 @@ export interface RecordPageController {
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
   /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
   firePost: (key: string) => Promise<void>;
-  /** Fetches the `page.cached` keys the first replay read, for the host's background reads; answers when they land. */
+  /** Fetches the `page.cached` keys `paintNow` read, for the host's background reads; answers when they land or at the late limit. */
   fetchCached: () => Promise<void>;
   /** Runs script code the host calls outside an event, so its ops paint once, when it finishes. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
@@ -799,9 +799,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     paintNow: gate.paintNow,
     fireEvent,
     firePost,
-    fetchCached: async () => {
-      await Promise.all(cachedReads.fetchUnfetched().map(({ settled }) => settled));
-    },
+    fetchCached: gate.fetchCached,
     hold,
     ready: gate.ready,
     isReplaying: gate.isReplaying,

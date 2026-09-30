@@ -42,6 +42,8 @@ export interface PaintGate {
   refresh: (options?: RefreshOptions) => Promise<void>;
   /** Replays and commits before it returns true; false, having run nothing, while scripts or permissions load. */
   paintNow: () => boolean;
+  /** The `page.cached` fetches `paintNow` left to the host's background reads; answers when they land, or at the late limit. */
+  fetchCached: () => Promise<void>;
   /** One paint for the work's ops, and its acts delivered after it. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
   /** Runs a handler under its source's name; the early paint leaves out every running source. */
@@ -109,7 +111,11 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     await waitFor("permissions", Promise.race([host.permissionsReady(), everything]));
     if (background) await everything;
     if (state.left) return;
-    if (background) return replayNow(true);
+    if (background) {
+      replayNow(true);
+      holdCached(true);
+      return;
+    }
     openReplay();
     // Filled by `runSources`, so the first pass's late parts are still held when the second pass throws.
     const late: LateRefresh[] = [];
@@ -137,15 +143,14 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   function paintNow() {
     if (state.left || !host.loaded()) return false;
-    // The host's background reads fetch the cached keys, and their replay draws them.
-    replayNow(false, false);
+    replayNow(false);
     state.replayed = true;
     ready.value = true;
     return true;
   }
 
   /** The whole replay in one step, once nothing is left to wait for. */
-  function replayNow(background: boolean, fetchCached = true) {
+  function replayNow(background: boolean) {
     openReplay();
     if (background) state.background += 1;
     let late: LateRefresh[] = [];
@@ -158,7 +163,6 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
       closeReplay();
     }
     const landed = holdLate(late, background);
-    if (fetchCached) landed.push(...holdCached(background));
     if (!background) runOnOpen(ran, landed);
   }
 
@@ -177,21 +181,31 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     return landed;
   }
 
-  /** Holds the paints until the fetches a pass started land, then replays once; that replay drops its acts. */
+  /** Holds the paints until the fetches a replay needs land, then replays once; that replay starts none. */
   function holdCached(background: boolean) {
-    const fetches = host.fetchCached();
+    const fetches = startCachedFetches();
     if (!fetches.length) return [];
     if (background) state.background += 1;
     const landed = hold(async () => {
-      const waits = fetches.map(({ source, settled }) =>
-        asSource(source, () => bounded(`${source} page.cached`, settled)),
-      );
-      await Promise.all(waits);
+      await Promise.all(fetches);
       if (!state.left) replayNow(true);
     }).finally(() => {
       if (background) state.background -= 1;
     });
     return [landed];
+  }
+
+  /** Each source's `page.cached` fetches not yet made; answers when they land, or at the late limit. */
+  function startCachedFetches() {
+    return host
+      .fetchCached()
+      .map(({ source, settled }) =>
+        asSource(source, () => bounded(`${source} page.cached`, settled)),
+      );
+  }
+
+  async function fetchCached() {
+    await Promise.all(startCachedFetches());
   }
 
   /** The first replay's sources run `onOpen` in run order, once it and its late parts commit. */
@@ -351,6 +365,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     isReplaying,
     refresh,
     paintNow,
+    fetchCached,
     hold,
     asSource,
     isStaging,
