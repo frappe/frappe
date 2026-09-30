@@ -23,7 +23,15 @@
 		<div class="flex h-full flex-col items-center px-20 py-10">
 			<div class="flex w-full flex-row justify-between">
 				<div class="text-lg-semibold text-ink-gray-7">All Apps</div>
-				<div class="relative flex">
+				<div class="relative flex items-center gap-2">
+					<TabButtons
+						v-model="appType"
+						:options="[
+							{ label: 'All', value: 'all' },
+							{ label: 'Standard', value: 'standard' },
+							{ label: 'Custom', value: 'custom' },
+						]"
+					/>
 					<Input
 						class="w-48"
 						type="text"
@@ -45,7 +53,7 @@
 			</div>
 
 			<section class="mt-5 w-full">
-				<div v-if="!studioApps.data?.length && !searchFilter" class="col-span-full">
+				<div v-if="!studioApps.data?.length && !searchFilter && appType === 'all'" class="col-span-full">
 					<p class="mt-4 text-base text-ink-gray-4">
 						You don't have any apps yet. Click on the "+ New App" button to create a new app
 					</p>
@@ -105,7 +113,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { Dropdown, Button } from "frappe-ui"
+import { Dropdown, Button, TabButtons } from "frappe-ui"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@/components/Input.vue"
@@ -119,11 +127,15 @@ import { openAppInDesk } from "@/utils/helpers"
 const store = useStudioStore()
 
 const searchFilter = ref("")
+const appType = ref<"all" | "custom" | "standard">("all")
 
 const fetchApps = () => {
 	const filters = {} as any
 	if (searchFilter.value) {
 		filters["app_title"] = ["like", `%${searchFilter.value}%`]
+	}
+	if (appType.value !== "all") {
+		filters["is_standard"] = appType.value === "standard" ? 1 : 0
 	}
 	studioApps.update({
 		filters,
@@ -131,7 +143,7 @@ const fetchApps = () => {
 	studioApps.fetch()
 }
 
-watchDebounced(searchFilter, fetchApps, { debounce: 300, immediate: true })
+watchDebounced([searchFilter, appType], fetchApps, { debounce: 300, immediate: true })
 
 const showAppDialog = ref(false)
 const activeApp = ref()
