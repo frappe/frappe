@@ -8,7 +8,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "hammer",
+   "icon": "code-app-duotone",
    "link_to": "Build",
    "link_type": "Sidebar",
    "title": "Build"
@@ -102,7 +102,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-08-27 12:00:00.000000",
+ "modified": "2026-09-30 21:16:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
