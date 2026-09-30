@@ -1,5 +1,5 @@
-// The app switcher: the modules of the app that owns the sidebar on screen. Floating (the default)
-// it slides in over the sidebar when the pointer hits the window's left edge; pinned it is a column.
+// The app switcher: the modules of the app that owns the sidebar on screen. Pinned (the default)
+// it is a column; floating it slides in over the sidebar when the pointer hits the window's left edge.
 frappe.ui.Dock = class Dock {
 	// Pixels from the left edge: reveal at the edge, hide once the pointer is past the tray.
 	static REVEAL_EDGE = 1;
@@ -10,7 +10,7 @@ frappe.ui.Dock = class Dock {
 		this.is_open = false;
 		this.enabled = false;
 		// The user's preference; `is_pinned` is whether it applies on the page on screen.
-		this.pinned = frappe.boot.desk_settings?.dock_mode === "Pinned";
+		this.pinned = frappe.boot.desk_settings?.dock_mode !== "Floating";
 		this.is_pinned = false;
 		this.opener = null;
 		this.tooltips = [];
