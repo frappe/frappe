@@ -3,13 +3,16 @@
 
 import { withRequest } from "./cachedScript.js";
 import { BASE_URL, getMethod } from "./setup.js";
+import { WalkLayouts } from "./walkLayouts.js";
 
-const DOCUMENTS = `${BASE_URL}/api/v2/document/Form%20Layout`;
 const LAYOUTS = "frappe.desk.doctype.form_layout.form_layout.get_form_layouts";
-// Matches every record, so the walk's rows win over a default row; marks them for deletion.
-const MARKER = "doc.name != 'view-restore-walk'";
+// Matches every record, so the walk's rows win over a default row; the comment names their owner.
+const MARKER = "true /* View Restore Walk */";
+const TYPES = ["Details", "Side Panel"];
 const PANEL_FIELDS = 24;
 const MIN_ROWS = 3;
+
+const walkLayouts = new WalkLayouts(MARKER);
 
 /** The navigation doctype with at least three rows whose later form tab has the most fields. */
 export async function chooseDoctype(request, doctypes) {
@@ -29,16 +32,16 @@ export async function chooseDoctype(request, doctypes) {
 /** Stores the walk's layouts and returns the form tab and the section the walk works with. */
 export function storeViewLayouts(doctype) {
 	return withRequest(async (request) => {
-		await remove(request);
+		await walkLayouts.removeLeftovers(request, doctype, TYPES);
 		const plan = await planLayouts(request, doctype);
-		await insert(request, { dt: doctype, type: "Details", layout: plan.details });
-		await insert(request, { dt: doctype, type: "Side Panel", layout: plan.panel });
+		await walkLayouts.insert(request, { dt: doctype, type: "Details", layout: plan.details });
+		await walkLayouts.insert(request, { dt: doctype, type: "Side Panel", layout: plan.panel });
 		return { tab: plan.tab, section: plan.section };
 	});
 }
 
 export function removeViewLayouts() {
-	return withRequest(remove);
+	return withRequest((request) => walkLayouts.removeInserted(request));
 }
 
 async function planLayouts(request, doctype) {
@@ -76,23 +79,6 @@ async function hasRows(request, doctype) {
 	const url = `${BASE_URL}/api/v2/document/${encodeURIComponent(doctype)}`;
 	const response = await request.get(url, { params: { limit: MIN_ROWS } });
 	return response.ok() && (await response.json()).data.length >= MIN_ROWS;
-}
-
-async function insert(request, row) {
-	const response = await request.post(DOCUMENTS, { data: { ...row, condition: MARKER } });
-	if (!response.ok())
-		throw new Error(`${row.type} Form Layout insert failed with ${response.status()}`);
-}
-
-async function remove(request) {
-	const params = { filters: JSON.stringify([["condition", "=", MARKER]]), fields: '["name"]' };
-	const found = await request.get(DOCUMENTS, { params });
-	if (!found.ok()) throw new Error(`Form Layout read failed with ${found.status()}`);
-	for (const { name } of (await found.json()).data ?? []) {
-		const response = await request.delete(`${DOCUMENTS}/${name}`);
-		if (!response.ok() && response.status() !== 404)
-			throw new Error(`Form Layout delete failed with ${response.status()}`);
-	}
 }
 
 function fieldsOf(tab) {

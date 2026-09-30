@@ -9,6 +9,8 @@ const RAILS = `${BASE_URL}/api/v2/document/Rail`;
 const RECORD_KIND = `${BASE_URL}/api/v2/document/Navigation%20Item%20Type/Record`;
 const LAYER = { app: "frappe", extends: "", user: USR, standard: 0 };
 
+let createdLayer = null;
+
 /** Adds the item to the user's rail layer; false when the site has no `Record` item kind. */
 export function storeRailRecord(doctype, name) {
 	return withRequest(async (request) => {
@@ -23,6 +25,7 @@ export function storeRailRecord(doctype, name) {
 			? await request.patch(`${RAILS}/${layer.name}`, { data: { items } })
 			: await request.post(RAILS, { data: { ...LAYER, items } });
 		if (!response.ok()) throw new Error(`Rail save failed with ${response.status()}`);
+		if (!layer) createdLayer = (await response.json()).data.name;
 		return true;
 	});
 }
@@ -31,15 +34,16 @@ export function removeRailRecord() {
 	return withRequest(remove);
 }
 
-/** Deletes only rows keyed `RAIL_KEY`, and the layer when nothing else is left in it. */
+/** Deletes only rows keyed `RAIL_KEY`, and the layer when this run made it and nothing else is left. */
 async function remove(request) {
 	const layer = await userLayer(request);
 	const items = layer?.items.filter((item) => item.key !== RAIL_KEY);
 	if (!layer || items.length === layer.items.length) return;
 	const url = `${RAILS}/${layer.name}`;
-	const response = items.length
-		? await request.patch(url, { data: { items } })
-		: await request.delete(url);
+	const response =
+		items.length || layer.name !== createdLayer
+			? await request.patch(url, { data: { items } })
+			: await request.delete(url);
 	if (!response.ok()) throw new Error(`Rail cleanup failed with ${response.status()}`);
 }
 

@@ -13,7 +13,8 @@ many times that item is drawn on a record step.
 
 After those steps the walk goes to the list twice more. The first time, it saves version `v2`
 of its Client Script. The second time, it saves a Quick Entry Form Layout on the doctype,
-which the record page does not show, and deletes it at the end. The server tells the desk
+which the record page does not show. At the end it deletes the rows it saved, and any
+Quick Entry row on the doctype with its condition, `false /* Return Visit Walk */`. The server tells the desk
 about each change. Each time, the walk then opens the record again. Each run starts with
 version `v1` of the script.
 
@@ -39,12 +40,13 @@ Before it starts, it stores two Form Layouts on the doctype and deletes them at 
 - a Side Panel layout with enough fields that the panel column scrolls.
 
 The walk picks the later tab with the most fields. Both rows carry the condition
-`doc.name != 'view-restore-walk'`, which every record matches; the walk deletes only rows
-with that condition.
+`true /* View Restore Walk */`, which every record matches. At the end the walk deletes
+exactly the rows it inserted. Before it starts, it deletes rows a crashed run left: only on
+the same doctype, of those two types, and with that exact condition.
 
 It also adds a Record item for the list's first row to the login user's rail, keyed
 `view-restore-walk`, and removes it at the end. It deletes only rows with that key, and the
-user's rail layer when nothing else is left in it.
+user's rail layer only when the walk created it and nothing else is left in it.
 
 On the first visit, the walk picks that form tab, opens the closed section, and scrolls
 the Details tab and the panel column halfway down. It then goes Back to the list, Forward
