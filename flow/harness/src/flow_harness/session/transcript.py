@@ -48,7 +48,9 @@ from flow_harness.events import (
 )
 from flow_harness.session.log import SessionLog
 
-_INTERRUPTED_TOOL_CONTENT = "Tool call interrupted before completion."
+_INTERRUPTED_TOOL_CONTENT = (
+	"Tool call interrupted before its result came back; it may have taken effect. Check before retrying."
+)
 COMPACTION_SUMMARY_PREFIX = "Previous conversation summary:\n"
 _logger = logging.getLogger(__name__)
 
