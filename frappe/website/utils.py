@@ -127,7 +127,7 @@ def get_home_page():
 			home_page = get_home_page_via_hooks()
 
 		# from default-app
-		user_default_app = frappe.get_cache_value("User", frappe.session.user, "default_app")
+		user_default_app = frappe.get_cached_value("User", frappe.session.user, "default_app")
 		if user_default_app:
 			home_page = get_route(user_default_app)
 
