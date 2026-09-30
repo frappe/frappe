@@ -23,8 +23,10 @@ export function useScrollMemory(
 		if (!element) return;
 		const remember = () => {
 			if (landing) return;
-			writeListMemory({ scrollTop: element.scrollTop });
 			rememberScroll(session.doctype, session.query(), element.scrollTop);
+			// A box inside the list settles too, and leaves the offset as it was.
+			if (element.scrollTop !== readListMemory().scrollTop)
+				writeListMemory({ scrollTop: element.scrollTop });
 		};
 		onCleanup(onScrollSettled(element, remember));
 	});

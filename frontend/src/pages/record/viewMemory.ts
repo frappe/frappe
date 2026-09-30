@@ -1,7 +1,7 @@
 // The reader's view of a record: kept in the history entry for Back and Forward, and per
 // record while its complete entry stays in the shared cache. The history entry wins.
 import { documentKey, onRecordLeft, readCachedDocument } from "@framework/ui/cache";
-import { keepInHistory } from "@framework/ui/utils/scrollLanding";
+import { keepInHistory } from "@framework/ui/utils/historyState";
 
 export interface RecordView {
   /** The record strip's tab. */

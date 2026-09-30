@@ -185,7 +185,8 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one |
 | Fresh-value hold (`holdFresh`, `landFresh`) | A stale memo's fresh value shows as soon as it arrives. While a page holds fresh values, they show together when it lets go, in the same step as the page's own reads |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
-| Scroll landing (`landScroll`, `onScrollSettled`, `keepInHistory`) | *New.* Puts a kept scroll offset back once the content is tall enough, reports a scroll once per gesture, and writes one key of the history entry. The list and the record page keep their offsets with it |
+| Scroll landing (`landScroll`, `onScrollSettled`) | *New.* Puts a kept scroll offset back once the content is tall enough, and reports a scroll once it has stopped for 150 ms. The list and the record page keep their offsets with it |
+| History state (`keepInHistory`) | *New.* Writes one key of the history entry's state, and survives a browser that refuses the write. The list, the record view and the shell's sidebar write through it |
 | Socket input | *Changed.* The app hands `ui/` its socket, and `ui/` joins record rooms on it. `ui/` warns when there is none |
 | Translate function | *New.* `ui/`'s own `__`, which works without the desk's boot version |
 

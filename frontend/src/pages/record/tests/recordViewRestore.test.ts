@@ -186,7 +186,9 @@ beforeEach(() => {
   );
   // happy-dom's replaceState drops the entries ahead, which no browser does, and Forward then goes nowhere.
   vi.spyOn(HistoryItemList.prototype, "replace").mockImplementation(function (this: HistoryItemList, item) {
-    this.items[this.items.indexOf(this.currentItem)] = item;
+    const index = this.items.indexOf(this.currentItem);
+    if (index === -1) throw new Error("Current history item not found");
+    this.items[index] = item;
     this.currentItem = item;
   });
   name = `N-${++visits}`;
@@ -335,11 +337,11 @@ function tabBody(root: HTMLElement, tab: string) {
   return root.querySelector<HTMLElement>(`[data-record-tab="${tab}"] [data-slot="scroll-area-viewport"]`);
 }
 
-/** The reader scrolls a box; the page keeps the view once the gesture ends. */
+/** The reader scrolls a box; the page keeps the view once the scroll has settled, 150 ms on. */
 async function scroll(element: HTMLElement | null, top: number) {
   element!.scrollTop = top;
   element!.dispatchEvent(new Event("scroll"));
-  element!.dispatchEvent(new Event("scrollend"));
+  await new Promise((resolve) => setTimeout(resolve, 150));
   await settle();
 }
 
@@ -503,6 +505,7 @@ describe("where the view is kept", () => {
 
     expectTheView(root);
   });
+
   it("keeps each history entry's own offsets for a record open at two, on Back and Forward", async () => {
     await register({ onRefresh: notesPanel });
     const { root, router } = await mount(`/note/${name}`);

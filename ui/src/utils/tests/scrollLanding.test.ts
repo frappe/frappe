@@ -1,12 +1,16 @@
-// A scroll reported once it settles, and one key written into the history entry.
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { keepInHistory, onScrollSettled } from "../scrollLanding";
+// A scroll reported once it settles.
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { onScrollSettled } from "../scrollLanding";
 
 const stops: (() => void)[] = [];
 
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+
 afterEach(() => {
   for (const stop of stops.splice(0)) stop();
-  vi.restoreAllMocks();
+  vi.useRealTimers();
   document.body.innerHTML = "";
 });
 
@@ -26,80 +30,40 @@ function watch(element: HTMLElement) {
   return { settled, stop };
 }
 
-/** Takes `onscrollend` off the window, as a browser without the event has it. */
-function withoutScrollEnd() {
-  let owner: object | null = window;
-  while (owner && !Object.prototype.hasOwnProperty.call(owner, "onscrollend")) owner = Object.getPrototypeOf(owner);
-  if (!owner) return;
-  const found = owner;
-  const descriptor = Object.getOwnPropertyDescriptor(found, "onscrollend")!;
-  delete (found as Record<string, unknown>).onscrollend;
-  stops.push(() => Object.defineProperty(found, "onscrollend", descriptor));
-}
-
 describe("onScrollSettled", () => {
-  it("calls once per scroll gesture, at its scrollend", () => {
+  it("calls once, 150 ms after the last of several scrolls, and not before", () => {
     const { outer } = boxes();
     const { settled } = watch(outer);
 
-    for (let frame = 0; frame < 5; frame++) outer.dispatchEvent(new Event("scroll"));
+    for (let event = 0; event < 3; event++) {
+      outer.dispatchEvent(new Event("scroll"));
+      vi.advanceTimersByTime(100);
+    }
+    vi.advanceTimersByTime(49);
     expect(settled).not.toHaveBeenCalled();
 
-    outer.dispatchEvent(new Event("scrollend"));
-    outer.dispatchEvent(new Event("scrollend"));
-
-    expect(settled).toHaveBeenCalledTimes(2);
+    vi.advanceTimersByTime(1);
+    expect(settled).toHaveBeenCalledOnce();
   });
 
-  it("hears a box inside the element settle, though scrollend does not bubble", () => {
+  it("hears a box inside the element scroll, though scroll does not bubble", () => {
     const { outer, inner } = boxes();
     const { settled } = watch(outer);
 
-    inner.dispatchEvent(new Event("scrollend"));
+    inner.dispatchEvent(new Event("scroll"));
+    vi.advanceTimersByTime(150);
 
     expect(settled).toHaveBeenCalledOnce();
   });
 
-  it("calls nothing once stopped", () => {
+  it("drops a pending call once stopped", () => {
     const { outer } = boxes();
     const { settled, stop } = watch(outer);
 
+    outer.dispatchEvent(new Event("scroll"));
     stop();
-    outer.dispatchEvent(new Event("scrollend"));
+    vi.advanceTimersByTime(150);
 
     expect(settled).not.toHaveBeenCalled();
-  });
-
-  it("calls once per frame on scroll where the browser has no scrollend", async () => {
-    withoutScrollEnd();
-    expect("onscrollend" in window).toBe(false);
-    const { outer, inner } = boxes();
-    const { settled } = watch(outer);
-
-    outer.dispatchEvent(new Event("scroll"));
-    inner.dispatchEvent(new Event("scroll"));
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-
-    expect(settled).toHaveBeenCalledOnce();
-  });
-});
-
-describe("keepInHistory", () => {
-  it("writes its key over the entry's other keys", () => {
-    history.replaceState({ position: 7, list: { scrollTop: 40 } }, "");
-
-    expect(keepInHistory("recordView", { tab: "files" })).toBe(true);
-
-    expect(history.state).toEqual({ position: 7, list: { scrollTop: 40 }, recordView: { tab: "files" } });
-  });
-
-  it("returns false, with a warning, when the browser refuses the write", () => {
-    vi.spyOn(history, "replaceState").mockImplementation(() => {
-      throw new DOMException("too many calls", "SecurityError");
-    });
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    expect(keepInHistory("list", { scrollTop: 40 })).toBe(false);
-    expect(warn).toHaveBeenCalledOnce();
   });
 });

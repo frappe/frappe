@@ -76,6 +76,7 @@ import PageLoadError from "./PageLoadError.vue";
 import RailColumn from "./RailColumn.vue";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
+import { keepInHistory } from "@framework/ui/utils/historyState";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
@@ -145,7 +146,7 @@ function resolve() {
 	if (sidebar) {
 		// Onto the entry, so back and forward return to the sidebar a page was read in. The
 		// compare leaves a pop's own state alone, which its forward entries hang off.
-		if (stamped() !== sidebar) history.replaceState({ ...history.state, sidebar }, "");
+		if (stamped() !== sidebar) keepInHistory("sidebar", sidebar);
 		if (!popped) rememberSidebar(path, sidebar);
 	}
 	popped = false;
