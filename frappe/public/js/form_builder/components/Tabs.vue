@@ -309,7 +309,8 @@ function delete_tab_message(tab) {
 
 		.remove-tab-btn {
 			position: absolute;
-			right: -2px;
+			// inside the tab, or hovering the last tab overflows the strip and shows a scrollbar
+			right: 0;
 			display: none;
 			padding: 2px;
 		}
