@@ -36,7 +36,8 @@ export function installCachedScript(doctype) {
 		await remove(request);
 		const script = { name: NAME, dt: doctype, view: "Record", enabled: 1, script: SOURCE };
 		const response = await request.post(DOCUMENTS, { data: script });
-		if (!response.ok()) throw new Error(`Client Script insert failed with ${response.status()}`);
+		if (!response.ok())
+			throw new Error(`Client Script insert failed with ${response.status()}`);
 	});
 }
 

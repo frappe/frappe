@@ -116,6 +116,16 @@ export function feedReadError(ticket: number, doctype: string, name: string, err
   feed(() => cache.readError(ticket, doctype, name, error));
 }
 
+/** A 403 or 404 on a list read. */
+export function feedListError(
+  ticket: number,
+  doctype: string,
+  query: ListQuery,
+  error: unknown
+): void {
+  feed(() => cache.listError(ticket, doctype, query, error));
+}
+
 function track(): number {
   return version.value;
 }

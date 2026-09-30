@@ -3,6 +3,7 @@ import { ApiError } from "../../api/envelope";
 import {
   clearDataCache,
   feedDelete,
+  feedListError,
   feedReadError,
   readCachedDocument,
   readCachedList,
@@ -152,5 +153,41 @@ describe("a read error", () => {
     feedReadError(takeTicket(), DOCTYPE, "A", new ApiError({ type: "HTTPError" }, 500));
     feedReadError(takeTicket(), DOCTYPE, "A", new TypeError("offline"));
     expect(readCachedDocument(DOCTYPE, "A")).toBeDefined();
+  });
+});
+
+describe("a list read error", () => {
+  const refused = (status = 403) => new ApiError({ type: "PermissionError" }, status);
+
+  it.each([403, 404])("%i removes the list and the documents only it names", (status) => {
+    const other = { fields: ["name"] };
+    readList(query, rows("A", "B"));
+    readList(other, rows("B"));
+    feedListError(takeTicket(), DOCTYPE, query, refused(status));
+    expect(readCachedList(DOCTYPE, query)).toBeUndefined();
+    expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
+    expect(readCachedList(DOCTYPE, other)!.names).toEqual(["B"]);
+  });
+
+  it("sent before a reply the list holds leaves the list", () => {
+    const refusedTicket = takeTicket();
+    readList(query, rows("A"));
+    feedListError(refusedTicket, DOCTYPE, query, refused());
+    expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A"]);
+  });
+
+  it("refuses a reply sent before it that lands after it", () => {
+    readList(query, rows("A"));
+    const earlier = takeTicket();
+    feedListError(takeTicket(), DOCTYPE, query, refused(404));
+    readList(query, rows("A", "B"), {}, earlier);
+    expect(readCachedList(DOCTYPE, query)).toBeUndefined();
+  });
+
+  it("of another kind keeps the list", () => {
+    readList(query, rows("A"));
+    feedListError(takeTicket(), DOCTYPE, query, new ApiError({ type: "HTTPError" }, 500));
+    feedListError(takeTicket(), DOCTYPE, query, new TypeError("offline"));
+    expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A"]);
   });
 });
