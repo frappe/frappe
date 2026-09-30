@@ -2988,6 +2988,7 @@ class TestAdvisoryLockMariaDB(IntegrationTestCase):
 	def test_advisory_lock_is_scoped_to_the_database(self):
 		# GET_LOCK names are server-wide: the same key must block this site but not another one.
 		with frappe.db.advisory_lock("frappe-test-lock"), self.secondary_connection():
+			frappe.db.sql("SELECT 1")  # connect to this site's database before faking another name
 			with patch.object(frappe.db, "cur_db_name", "another_site"):
 				with frappe.db.advisory_lock("frappe-test-lock", timeout=0):
 					pass
