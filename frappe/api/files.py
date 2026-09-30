@@ -36,6 +36,8 @@ def attach(doctype: str, name: str):
 	"""Upload a file and hang it on the document; answers with the refreshed part and the new File."""
 	if not has_upload_part():
 		raise NotAnUploadError(_("Attaching a file needs a multipart request with a 'file' part"))
+	# the answer lists every attachment, and a Guest upload skips upload_file's write check
+	frappe.has_permission(doctype, "read", name, throw=True)
 
 	# `upload_file` reads the document it attaches to from the form, and checks `write` on it
 	frappe.form_dict["doctype"] = doctype

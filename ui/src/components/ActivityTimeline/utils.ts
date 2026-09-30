@@ -107,12 +107,8 @@ const COLOR_PROPS = new Set([
 ]);
 
 /** Strip color-related inline styles + bgcolor/color attrs so iframe CSS controls colors. */
-export function stripEmailColors(html: string): string {
-  if (!html) return html;
-  const div = document.createElement("div");
-  div.innerHTML = html;
-
-  div.querySelectorAll("[style]").forEach((el) => {
+export function stripEmailColors(doc: Document): void {
+  doc.querySelectorAll("[style]").forEach((el) => {
     const filtered = (el.getAttribute("style") || "")
       .split(";")
       .map((s) => s.trim())
@@ -124,14 +120,12 @@ export function stripEmailColors(html: string): string {
     else el.removeAttribute("style");
   });
 
-  div
+  doc
     .querySelectorAll("[bgcolor]")
     .forEach((el) => el.removeAttribute("bgcolor"));
-  div
+  doc
     .querySelectorAll("font[color]")
     .forEach((el) => el.removeAttribute("color"));
-
-  return div.innerHTML;
 }
 
 // Reactive mirror of <html data-theme>; lazy singleton MutationObserver, shared.

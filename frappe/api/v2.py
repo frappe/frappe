@@ -102,7 +102,8 @@ def get_session() -> dict[str, Any]:
 
 	Response:
 		frappe.response["data"]: dict with the keys `user` (name, full_name, email, user_image),
-			`roles`, `lang`, `timezone` and `defaults`. A Guest gets a Guest body, never a 403.
+			`roles`, `lang`, `timezone` and `defaults`, which is empty for anyone but a System User.
+			A Guest gets a Guest body, never a 403.
 	"""
 	from frappe.sessions import get_session_info
 
@@ -252,6 +253,10 @@ def search(doctype: str):
 		start: Row offset (default: 0)
 	"""
 	from frappe.desk.search import build_for_autosuggest, search_widget
+
+	# search_widget skips the permission check for DocType, so a Guest would get every name
+	if frappe.session.user == "Guest":
+		raise frappe.PermissionError(_("Sign in to search"))
 
 	args = frappe.form_dict
 	# a zero limit would mean no limit at all in get_list

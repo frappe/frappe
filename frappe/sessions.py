@@ -230,9 +230,9 @@ def get_session_info() -> dict:
 	from frappe.defaults import get_defaults
 
 	user = frappe.get_cached_doc("User", frappe.session.user)
-	# this route is open to a Guest, and the site's merged defaults (company, currency,
-	# fiscal year, anything an app set) are not anonymous surface
-	is_guest = user.name == "Guest"
+	# the site's merged defaults (company, currency, fiscal year, anything an app set) are
+	# desk data, and this route also answers a Guest and a Website User
+	is_desk_user = user.user_type == "System User"
 	return {
 		"user": {
 			"name": user.name,
@@ -244,7 +244,7 @@ def get_session_info() -> dict:
 		"roles": frappe.get_roles(),
 		"lang": frappe.local.lang or "en",
 		"timezone": get_system_timezone(),
-		"defaults": {} if is_guest else get_defaults(),
+		"defaults": get_defaults() if is_desk_user else {},
 	}
 
 
