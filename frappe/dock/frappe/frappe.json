@@ -88,7 +88,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "map",
+   "icon": "geo-globe-duotone",
    "link_to": "Geo",
    "link_type": "Sidebar",
    "title": "Geo"
@@ -102,7 +102,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-09-30 22:32:00.000000",
+ "modified": "2026-09-30 22:58:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
