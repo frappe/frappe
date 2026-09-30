@@ -32,7 +32,7 @@ import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
 import { clientScriptsLoaded, replacedClientScripts } from "./clientScripts";
 import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
-import { IN_BACKGROUND, NOT_DRAWN, type Staging } from "./staging";
+import { IN_BACKGROUND, NOT_DRAWN, RESTORED_VIEW, type Staging } from "./staging";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
@@ -72,6 +72,15 @@ function pageView(page: RecordPageApi) {
   let open = true;
   const view = new Proxy(page, { get: (target, key) => (open ? Reflect.get(target, key) : INERT) });
   return { page: view, close: () => void (open = false) };
+}
+
+/** `target` with the named members answered from `members`; every other read and write goes through. */
+function overriding<T extends object>(target: T, members: Record<string, unknown>): T {
+  // Over a child of `target`: a Proxy may not answer a frozen own member of its target differently.
+  return new Proxy(Object.create(target), {
+    get: (_, key) => (Object.hasOwn(members, key) ? members[key as string] : Reflect.get(target, key)),
+    set: (_, key, value) => Reflect.set(target, key, value),
+  });
 }
 
 /** The closed event vocabulary; every other key is a fieldname. */
@@ -166,6 +175,8 @@ export interface RecordPageHost {
   activeWriter?: ComposerHost["activeWriter"];
   windowState?: ComposerHost["windowState"];
   setWindow?: ComposerHost["setWindow"];
+  /** True when the host puts back the reader's view on this visit; `onOpen`'s view acts then do nothing. */
+  restoresView?: () => boolean;
 }
 
 export interface RecordPageController {
@@ -685,13 +696,14 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   /** Its part after an await is not held and names no source, as `onRefresh`'s: handlers here overlap. */
   function runOpen(registrations: Registration[]) {
+    const view = host.restoresView?.() ? restoredView() : refreshView.page;
     for (const { source, handlers } of registrations) {
       const handler = handlers.onOpen;
       if (!handler) continue;
       try {
         let result: unknown;
         withRunningSource(source, () => {
-          result = handler(refreshView.page);
+          result = handler(view);
         });
         if (result instanceof Promise)
           void result.catch((error) => reportHandlerError(source, "onOpen", error));
@@ -699,6 +711,46 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         reportHandlerError(source, "onOpen", error);
       }
     }
+  }
+
+  /** The `page` `onOpen` gets when the host puts back the reader's view: its view acts warn and do nothing. */
+  function restoredView(): RecordPageApi {
+    const skipped: Record<string, unknown> = {
+      tabs: overriding(page.tabs, {
+        activate: (name: string) => warnActivate("tabs", name, RESTORED_VIEW),
+      }),
+      form: overriding(page.form, {
+        tabs: overriding(page.form.tabs, {
+          activate: (identity: string) => warnActivate("form.tabs", identity, RESTORED_VIEW),
+        }),
+      }),
+      panelSections: overriding(page.panelSections, {
+        open: (name: string) => warnDisclose(name, true, RESTORED_VIEW),
+        close: (name: string) => warnDisclose(name, false, RESTORED_VIEW),
+      }),
+      fields: overriding(page.fields, {
+        focus: (fieldname: string) => warnFocus(fieldname, RESTORED_VIEW),
+      }),
+      activity: overriding(page.activity, {
+        scrollTo: (key: string) => warnScroll(key, RESTORED_VIEW),
+      }),
+      composer: overriding(page.composer, {
+        open: (name: string) => warnOpen(name, RESTORED_VIEW),
+      }),
+    };
+    return new Proxy(refreshView.page, {
+      get: (view, key) => {
+        const member = Reflect.get(view, key);
+        return member !== INERT && Object.hasOwn(skipped, key) ? skipped[key as string] : member;
+      },
+    });
+  }
+
+  function warnScroll(key: string, because: string) {
+    if (!import.meta.env.DEV) return;
+    console.warn(
+      `[record-page] page.activity.scrollTo("${key}") — ${because}; the reader was not moved.`,
+    );
   }
 
   // Filed in production too, so an admin sees which scripts to move to a cached read.

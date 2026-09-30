@@ -58,6 +58,7 @@ import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import type { AuthoredHandlers, RecordPageApi, VisibleTypes } from "@/recordPage/types";
 import { createShellRouter } from "@/router";
 import { registerShell, routeFor } from "@/router/routeFor";
+import { resetViewMemory } from "../viewMemory";
 
 const EARLIER = "2026-09-25 09:00:00.000000";
 const OLD = "2026-09-25 10:00:00.000000";
@@ -219,6 +220,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   resetRegistry();
   clearDataCache();
+  resetViewMemory();
 });
 
 async function settle() {
@@ -888,7 +890,7 @@ describe("a return visit on the Activity tab", () => {
     });
     const { root, router } = await visitAndLeave("?tab=activity");
     const before = activityReads();
-    await comeBack(router);
+    await comeBack(router, "?tab=details");
     await settle();
 
     expect(activeTab(root)).not.toBe("activity");

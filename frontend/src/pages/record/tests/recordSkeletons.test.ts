@@ -90,6 +90,7 @@ import type { QuickAction, RecordPageApi } from "@/recordPage/types";
 import { createShellRouter } from "@/router";
 import { RecordFeeds } from "../feed/recordFeeds";
 import { loadRecord } from "../recordSource";
+import { resetViewMemory } from "../viewMemory";
 import { registerShell } from "@/router/routeFor";
 
 const boot = {
@@ -117,6 +118,7 @@ afterEach(() => {
   for (const app of apps.splice(0)) app.unmount();
   document.body.innerHTML = "";
   vi.unstubAllGlobals();
+  resetViewMemory();
 });
 
 async function settle() {

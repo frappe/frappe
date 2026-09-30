@@ -59,7 +59,12 @@ import FormLayoutPart from "./FormLayoutPart.vue";
 import { HasTabsKey } from "./types";
 import type { Section } from "./types";
 
-const props = defineProps<{ section: Section }>();
+// `undefined`, not Vue's `false` for a missing boolean: absent means the layout decides.
+const props = withDefaults(defineProps<{ section: Section; open?: boolean }>(), {
+	open: undefined,
+});
+
+const emit = defineEmits<{ "update:open": [open: boolean] }>();
 
 const hasTabs = inject(HasTabsKey);
 
@@ -68,7 +73,15 @@ const showHeader = computed(() => !props.section.hideLabel && !!props.section.la
 // A section can only collapse when it has a header to toggle from.
 const collapsible = computed(() => showHeader.value && (props.section.collapsible ?? true));
 
-const opened = ref(props.section.opened ?? true);
+// The host's state when it holds one, else the section's own, starting where the layout says.
+const own = ref(props.section.opened ?? true);
+const opened = computed({
+	get: () => props.open ?? own.value,
+	set: (open) => {
+		own.value = open;
+		emit("update:open", open);
+	},
+});
 
 // Gate animation until first toggle, so a section rendered collapsed rests at
 // height 0 without playing a collapse animation on first paint.

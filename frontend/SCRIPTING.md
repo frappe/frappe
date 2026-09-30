@@ -100,6 +100,12 @@ just after a save paints with the old version and runs its `onOpen`. The new ver
 `onRefresh` then draws in the same step as the record's re-read, and its `onOpen` runs on
 the visit after that.
 
+When a return visit puts back the reader's tab, form tab, sections and scroll, the restored
+view wins: `onOpen`'s view acts (`page.tabs.activate`, `page.form.tabs.activate`,
+`page.panelSections.open` and `close`, `page.fields.focus`, `page.activity.scrollTo` and
+`page.composer.open`) do nothing, before or after an `await`, and say so in developer mode.
+Its other acts still run, and on a new navigation every act runs as before.
+
 ```js
 export default {
   onOpen(page) {

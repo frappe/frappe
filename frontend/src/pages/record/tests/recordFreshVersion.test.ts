@@ -42,6 +42,7 @@ import { resetRegistry } from "@/recordPage/registry";
 import { createShellRouter } from "@/router";
 import { registerShell, routeFor } from "@/router/routeFor";
 import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
+import { resetViewMemory } from "../viewMemory";
 
 const OLD = "2026-09-25 10:00:00.000000";
 const NEW = "2026-09-25 11:00:00.000000";
@@ -191,6 +192,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   resetRegistry();
   clearDataCache();
+  resetViewMemory();
 });
 
 async function settle() {

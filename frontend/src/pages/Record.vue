@@ -38,8 +38,11 @@
 				{{ error }}
 			</p>
 
+			<!-- Keyed per record: a paint from memory patches in place, and would keep the last record's scroll. -->
 			<BodyColumns
 				v-else-if="painted"
+				ref="body"
+				:key="recordKey(painted.page)"
 				:items="bodyItems"
 				:page="painted.page"
 				:user="boot.session.user.name"
@@ -57,6 +60,7 @@
 								<FormLayout
 									v-if="form.length"
 									v-model:doc="doc"
+									v-model:sections="formSections"
 									:layout="form"
 									:tab="formTab"
 									:class="formClasses"
@@ -197,6 +201,8 @@ import {
 	type LoadedRecord,
 } from "./record/recordSource";
 import { mergeRefetch, same } from "./record/refetchMerge";
+import { recallView, viewKeeper, type RecordView } from "./record/viewMemory";
+import { landOffsets, onScrollFrames, readOffsets } from "./record/viewScroll";
 import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "./record/saveResponse";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
@@ -224,6 +230,12 @@ const formRoot = ref<HTMLElement | null>(null);
 // The reader's intent and the strip's resolution, as `FormLayout` splits them.
 const formTab = ref("");
 const activeFormTab = ref("");
+const formSections = ref<Record<string, boolean>>({});
+const body = ref<InstanceType<typeof BodyColumns> | null>(null);
+const bodyRoot = computed(() => (body.value?.$el as HTMLElement | undefined) ?? null);
+// Where this load's view is kept, and false until its restored view has landed, so a clamped scroll is not kept.
+let keepView: (view: RecordView) => void = () => {};
+let keeping = false;
 
 // The form fills the column with no border of its own, and its strip stays put while the sections scroll.
 // The strip and the sections share the header row's gutter, so the fields line up with the crumbs.
@@ -483,14 +495,20 @@ async function load({ fromMemory = false } = {}) {
 	const mine = ++generation;
 	docinfoRead++;
 	const target = { doctype: doctype.value, name: docname.value };
-	const pointer = feeds.pointerOnOpen(target.doctype, target.name, route.query);
+	const pointed = feeds.pointerOnOpen(target.doctype, target.name, route.query);
+	// Read before this load writes a view of its own.
+	const view = fromMemory ? recallView(target.doctype, target.name, isNewNavigation()) : null;
+	const pointer = view ? "" : pointed;
+	keepView = viewKeeper(target.doctype, target.name);
+	keeping = false;
 	error.value = "";
 	live.follow(target.doctype, target.name);
 
 	// Blanked before the fetch: the heading changes synchronously, and the old controller's quick
 	// actions close over the previous page. `saved` goes with `doc` so `isDirty` stays false.
 	blank();
-	formTab.value = tabMemory.value.recall();
+	formTab.value = view?.formTab ?? tabMemory.value.recall();
+	formSections.value = view?.sections ?? {};
 	activeFormTab.value = "";
 
 	// Scripts and layouts need only the doctype, so they ride beside the record read and meta.
@@ -511,7 +529,7 @@ async function load({ fromMemory = false } = {}) {
 		fallback: "none",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
-	const opening = { mine, target, pointer, details, panel };
+	const opening = { mine, target, pointer, details, panel, view };
 	const fromCache = fromMemory ? openFromMemory(opening) : null;
 	if (fromCache) return fromCache;
 	await withFeedRead(target.doctype, target.name, route.query, (feedRead) =>
@@ -538,6 +556,8 @@ interface Opening {
 	pointer: string;
 	details: UseFormLayout;
 	panel: UseFormLayout;
+	/** The reader's view to put back on a return, or null on a new visit. */
+	view: RecordView | null;
 }
 
 interface OpenRecord extends Opening {
@@ -565,6 +585,7 @@ function openFromMemory(opening: Opening): Promise<void> | null {
 	releaseFresh = release;
 	const reads = backgroundReads(opening, created);
 	landPaint(created, pointer);
+	void settleView(mine, opening.view);
 	return applyInBackground(mine, created, reads, release);
 }
 
@@ -664,7 +685,7 @@ function landPaint(created: RecordPageController, pointer: string) {
 }
 
 /** The record read, then the page's first paint; a newer load cuts it short at any wait. */
-async function openRecord({ mine, target, pointer, details, panel, feedRead }: OpenRecord) {
+async function openRecord({ mine, target, pointer, details, panel, view, feedRead }: OpenRecord) {
 	try {
 		const [loaded, metadata] = await Promise.all([
 			loadRecord(target.doctype, target.name),
@@ -678,7 +699,7 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 		return;
 	}
 
-	const created = buildController({ mine, target, pointer, details, panel });
+	const created = buildController({ mine, target, pointer, details, panel, view });
 	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown,
 	// and the Activity rows when their read began beside the record's.
 	await Promise.all([details.settled(), panel.settled(), feedRead]);
@@ -686,12 +707,52 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 	await created.refresh();
 	if (mine !== generation) return;
 	landPaint(created, pointer);
-	// The shown tab's body has mounted by now; a feed body that mounts later reads what it missed.
+	// The shown tab's body has mounted once this lands; a feed body that mounts later reads what it missed.
+	await settleView(mine, view);
+}
+
+/** Puts the view back over the first paint's acts, before the frame when the body is drawn; the page keeps its view from then on. */
+async function settleView(mine: number, view: RecordView | null) {
+	if (view) {
+		disclosure.restore(view.panel);
+		tabsHost.settleRestored(view.tab);
+	}
 	await nextTick();
+	const root = bodyRoot.value;
+	if (mine !== generation) return;
+	if (view && root) {
+		// A tab that is gone takes the new visit's tab, which starts at the top.
+		const offsets = shownTab.value === view.tab ? view.offsets : { columns: view.offsets.columns };
+		await landOffsets(root, shownTab.value, offsets);
+		if (mine !== generation) return;
+	}
+	keeping = true;
+	keep();
+}
+
+function keep() {
+	const root = bodyRoot.value;
+	if (!keeping || !root || !painted.value) return;
+	keepView({
+		tab: shownTab.value,
+		formTab: activeFormTab.value || formTab.value,
+		sections: formSections.value,
+		panel: disclosure.shown(),
+		offsets: readOffsets(root, shownTab.value),
+	});
+}
+
+/** A link that names a tab or an activity row opens the record as asked, not as it was left. */
+function isNewNavigation() {
+	return route.query.tab !== undefined || activityPointer(route.query) !== "";
+}
+
+function recordKey(page: RecordPageApi) {
+	return JSON.stringify([page.doctype, page.docname]);
 }
 
 /** The page's controller with its built-ins, made current. */
-function buildController({ target, pointer, details, panel }: Opening) {
+function buildController({ target, pointer, details, panel, view }: Opening) {
 	const created = createRecordPage({
 		doctype: target.doctype,
 		docname: target.name,
@@ -714,6 +775,7 @@ function buildController({ target, pointer, details, panel }: Opening) {
 		reload: load,
 		router,
 		sourcesReady: () => loadClientScripts(target.doctype),
+		restoresView: () => view !== null,
 	});
 	created.header.provideBuiltins(headerBuiltins);
 	created.quickActions.provideBuiltins(() =>
@@ -738,6 +800,8 @@ function buildController({ target, pointer, details, panel }: Opening) {
 	detailsLayout.value = details;
 	controller.value = created;
 	feeds.showPointedTab(pointer);
+	// After `controller` is set, whose change resets the strip to the address's tab.
+	if (view) tabsHost.restore(view.tab);
 	return created;
 }
 
@@ -909,6 +973,10 @@ onUnmounted(() => {
 	window.removeEventListener("beforeunload", onBeforeUnload);
 });
 
+watch(() => [shownTab.value, activeFormTab.value, formSections.value, disclosure.shown()], keep);
+watch(bodyRoot, (root, _previous, onCleanup) => {
+	if (root) onCleanup(onScrollFrames(root, keep));
+});
 watch([doctype, docname], () => load({ fromMemory: true }), { immediate: true });
 // The page's own `?tab=` replace keeps the key, so only a new pointer on the same record moves the reader.
 watch(
