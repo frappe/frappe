@@ -6,7 +6,7 @@ import json
 import mimetypes
 import types
 from contextlib import contextmanager
-from functools import lru_cache
+from functools import cache, lru_cache
 from itertools import chain
 from types import FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any
@@ -395,6 +395,122 @@ def make_safe_get_request(url: str, **kwargs):
 			frappe.throw("Requests to internal network addresses are not permitted")
 
 	return frappe.integrations.utils.make_get_request(url, **kwargs)
+
+
+# (connect, read) — read is the gap between bytes, not the total duration, so a slow
+# but steady download is not cut off.
+SAFE_REQUEST_TIMEOUT = (10, 300)
+
+
+class BlockedRequest(frappe.ValidationError):
+	pass
+
+
+def validate_request_address(ip: str):
+	import ipaddress
+
+	try:
+		addr = ipaddress.ip_address(ip)
+	except ValueError:
+		raise BlockedRequest(f"Could not parse address: {ip}")
+
+	if not addr.is_global:
+		raise BlockedRequest("Requests to internal network addresses are not permitted")
+
+
+def validate_request_url(url: str):
+	"""Reject anything that isn't a plain http(s) request to a globally routable host."""
+	import socket
+	from urllib.parse import urlparse
+
+	parsed = urlparse(url)
+
+	if parsed.scheme not in ALLOWED_SCHEMES:
+		raise BlockedRequest(f"URL scheme '{parsed.scheme}' is not permitted")
+
+	hostname = parsed.hostname
+	if not hostname:
+		raise BlockedRequest("Invalid URL: no hostname")
+
+	try:
+		port = parsed.port or (443 if parsed.scheme == "https" else 80)
+	except ValueError:
+		raise BlockedRequest("Invalid URL: bad port")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, port, proto=socket.IPPROTO_TCP)
+	except socket.gaierror:
+		raise BlockedRequest(f"Could not resolve host: {hostname}")
+
+	if not addr_info:
+		raise BlockedRequest(f"Could not resolve host: {hostname}")
+
+	for record in addr_info:
+		validate_request_address(record[4][0])
+
+
+@cache
+def _get_ssrf_guarded_adapter_class():
+	"""Validate at two layers, because checking the URL string once covers neither
+	redirects (the guard never sees hop 1..n) nor DNS rebinding (the name is resolved
+	again, independently, when the socket is opened)."""
+	from requests.adapters import HTTPAdapter
+	from urllib3.connection import HTTPConnection, HTTPSConnection
+	from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
+
+	def guarded_connection(base):
+		class GuardedConnection(base):
+			# TODO: pin the already-resolved IP here, keeping server_hostname for TLS.
+			def _new_conn(self):
+				sock = super()._new_conn()
+				try:
+					validate_request_address(sock.getpeername()[0])
+				except Exception:
+					sock.close()
+					raise
+				return sock
+
+		return GuardedConnection
+
+	class GuardedHTTPConnectionPool(HTTPConnectionPool):
+		ConnectionCls = guarded_connection(HTTPConnection)
+
+	class GuardedHTTPSConnectionPool(HTTPSConnectionPool):
+		ConnectionCls = guarded_connection(HTTPSConnection)
+
+	class SSRFGuardedAdapter(HTTPAdapter):
+		def init_poolmanager(self, *args, **kwargs):
+			super().init_poolmanager(*args, **kwargs)
+			self.poolmanager.pool_classes_by_scheme = {
+				"http": GuardedHTTPConnectionPool,
+				"https": GuardedHTTPSConnectionPool,
+			}
+
+		def send(self, request, **kwargs):
+			# Called once per hop, so redirect targets are validated too.
+			if kwargs.get("proxies"):
+				raise BlockedRequest("Proxied requests are not permitted")
+			validate_request_url(request.url)
+			return super().send(request, **kwargs)
+
+	return SSRFGuardedAdapter
+
+
+def get_safe_request_session():
+	"""Return a `requests.Session` that validates every connected peer address,
+	including on redirects, closing the DNS-rebinding gap a one-time URL check leaves
+	open (the name can resolve differently between the check and the actual connect).
+	"""
+	import requests
+	from requests.adapters import Retry
+
+	adapter = _get_ssrf_guarded_adapter_class()(max_retries=Retry(total=5, status_forcelist=[500]))
+	session = requests.Session()
+	session.mount("http://", adapter)
+	session.mount("https://", adapter)
+	# Env-configured proxies would send the request somewhere the guard can't see.
+	session.trust_env = False
+	return session
 
 
 def render_safe_globals():
