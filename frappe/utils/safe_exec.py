@@ -508,8 +508,8 @@ def get_safe_request_session():
 	session = requests.Session()
 	session.mount("http://", adapter)
 	session.mount("https://", adapter)
-	# Env-configured proxies would send the request somewhere the guard can't see.
-	session.trust_env = False
+	# Proxies are rejected in SSRFGuardedAdapter.send() instead of via trust_env=False,
+	# so REQUESTS_CA_BUNDLE/CURL_CA_BUNDLE (also gated by trust_env) keep working.
 	return session
 
 

@@ -115,17 +115,29 @@ def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
 
 
 def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
+	import requests
 	import requests.exceptions
 	from PIL import Image
 
-	from frappe.utils.safe_exec import BlockedRequest, get_safe_request_session
+	from frappe.utils.safe_exec import SAFE_REQUEST_TIMEOUT, BlockedRequest, get_safe_request_session
 
-	file_url = frappe.utils.get_url(file_url)
+	# allow_header_override=False: a request-controlled Host header must not be able to
+	# make an internal address match site_url and skip the guarded session below.
+	file_url = frappe.utils.get_url(file_url, allow_header_override=False)
+	site_url = frappe.utils.get_url(allow_header_override=False).rstrip("/")
+	is_same_site = file_url == site_url or file_url.startswith(site_url + "/")
 
 	try:
-		# The session validates the connected peer address on every hop, including
-		# redirects, so no manual redirect loop or upfront URL check is needed here.
-		r = get_safe_request_session().get(file_url, stream=True)
+		if is_same_site:
+			# site_url is derived from the site's configured host, not the request, so
+			# this destination is trusted even if it resolves to a private address (a
+			# common setup for on-prem/intranet-only instances) and the guard below
+			# would otherwise reject it.
+			r = requests.get(file_url, stream=True, timeout=SAFE_REQUEST_TIMEOUT)
+		else:
+			# The session validates the connected peer address on every hop, including
+			# redirects, so no manual redirect loop or upfront URL check is needed here.
+			r = get_safe_request_session().get(file_url, stream=True, timeout=SAFE_REQUEST_TIMEOUT)
 	except BlockedRequest as e:
 		frappe.throw(_("Cannot fetch image from {0}: {1}").format(file_url, str(e)))
 
