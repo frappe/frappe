@@ -83,6 +83,26 @@ context("Control Date, Time and DateTime", () => {
 				cy.get_field("time").should("have.value", d.match_value);
 			});
 		});
+
+		it("keeps a typed time when the field is focused again", () => {
+			cy.set_value("System Settings", "System Settings", { time_format: "HH:mm:ss" });
+			cy.window()
+				.its("frappe")
+				.then((frappe) => {
+					frappe.sys_defaults.time_format = "HH:mm:ss";
+				});
+			cy.new_form(doctype_name);
+			cy.fill_field("time", "10:00:00", "Time").blur();
+
+			// overwrite without emptying the input, so the picker is not cleared in between
+			cy.get_field("time").type("{selectall}11:00:00", { delay: 100 }).blur();
+			cy.window().its("cur_frm.doc.time").should("eq", "11:00:00");
+
+			// showing the picker must not restore the previous time
+			cy.get_field("time").click().wait(200);
+			cy.get_field("time").should("have.value", "11:00:00").blur();
+			cy.window().its("cur_frm.doc.time").should("eq", "11:00:00");
+		});
 	});
 
 	describe("DateTime formats", () => {
@@ -167,5 +187,19 @@ context("Control Date, Time and DateTime", () => {
 				dialog.hide();
 			});
 		});
+	});
+
+	it("accepts the datetime and time values the server sends", () => {
+		cy.visit("/desk/website");
+		cy.window()
+			.its("frappe.datetime")
+			.then((datetime) => {
+				expect(datetime.validate("2026-09-10 06:04:32.450382")).to.be.true;
+				expect(datetime.validate("2026-09-10 06:04:32")).to.be.true;
+				expect(datetime.validate("6:07:52")).to.be.true;
+				expect(datetime.validate("6:07:2.5")).to.be.true;
+				expect(datetime.validate("2026-09-10 06:04:32.")).to.be.false;
+				expect(datetime.validate("10-09-2026")).to.be.false;
+			});
 	});
 });

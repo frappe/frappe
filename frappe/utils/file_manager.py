@@ -231,6 +231,11 @@ def write_file(content, fname, is_private=0):
 
 	# create directory (if not exists)
 	frappe.create_folder(file_path)
+
+	# the target must resolve to a direct child of the files directory
+	if os.path.realpath(os.path.dirname(os.path.join(file_path, fname))) != os.path.realpath(file_path):
+		frappe.throw(_("Invalid file name"), title=_("Invalid Upload"))
+
 	# write the file
 	if isinstance(content, str):
 		content = content.encode()

@@ -6,13 +6,13 @@
 			:options="options"
 			:loading="loading"
 			:placeholder="placeholder"
-			class="!gap-1 !bg-transparent !p-0"
+			class="min-h-6 !gap-1 !bg-transparent !p-0"
 			@update:query="onQuery"
 		>
 			<!-- Always show the avatar; the default hides it when imageless. -->
 			<template #tag="{ value, option, removeTag }">
 				<Avatar size="xs" :image="option?.image" :label="option?.label || value" />
-				<span class="truncate">{{ option?.label || value }}</span>
+				<span class="mb-0.5 leading-4 truncate">{{ option?.label || value }}</span>
 				<button
 					class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-4"
 					@click.stop="removeTag"
@@ -60,13 +60,19 @@ const emails = computed<string[]>({
 	},
 });
 
-const options = computed<MultiEmailOption[]>(() =>
-	searchResults.value.map((recipient) => ({
+// Model recipients go in too: MultiEmailInput learns a chip's details from
+// options, so one seeded with a label is known before any search runs.
+const options = computed<MultiEmailOption[]>(() => {
+	const byEmail = new Map<string, Recipient>();
+	for (const recipient of [...searchResults.value, ...model.value]) {
+		if (!byEmail.has(recipient.email)) byEmail.set(recipient.email, recipient);
+	}
+	return [...byEmail.values()].map((recipient) => ({
 		label: recipient.label || recipient.email,
 		value: recipient.email,
 		image: recipient.image,
-	}))
-);
+	}));
+});
 
 // null until the user searches, so the composer doesn't fetch on mount.
 const query = ref<string | null>(null);
@@ -97,5 +103,12 @@ const searchResults = computedAsync<Recipient[]>(
 /* Clear outline on chips against the transparent container. */
 :deep([data-slot="tag"]) {
 	@apply border-outline-gray-2;
+}
+
+/* Backspace selects the last chip (aria-current). Its own ring utilities are
+   often missing (consumers rarely scan frappe-ui/experimental for Tailwind
+   content), so compile the ring here. */
+:deep([data-slot="tag"][aria-current="true"]) {
+	@apply ring-2 ring-outline-gray-3;
 }
 </style>

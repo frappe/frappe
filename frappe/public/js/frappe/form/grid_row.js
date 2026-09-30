@@ -1016,40 +1016,6 @@ export default class GridRow {
 			add_style += `left: ${this.grid.sticky_rows[df.fieldname] || 71}px;`;
 		}
 
-		let grid;
-		let grid_container;
-		let input_in_focus = false;
-
-		// prevent random layout shifts caused by widgets and on click position elements inside view (UX).
-		function on_input_focus(el) {
-			input_in_focus = true;
-
-			let container_width = grid_container.getBoundingClientRect().width;
-			let container_left = grid_container.getBoundingClientRect().left;
-			let grid_left = parseFloat(grid.style.left);
-			let element_left = el.offset().left;
-			let fieldtype = el.data("fieldtype");
-
-			let offset_right = container_width - (element_left + el.width());
-			let offset_left = 0;
-			let element_screen_x = element_left - container_left;
-			let element_position_x = container_width - (element_left - container_left);
-
-			if (["Date", "Time", "Datetime"].includes(fieldtype)) {
-				offset_left = element_position_x - 220;
-			}
-			if (["Link", "Dynamic Link"].includes(fieldtype)) {
-				offset_left = element_position_x - 250;
-			}
-			if (element_screen_x < 0) {
-				grid.style.left = `${grid_left - element_screen_x}px`;
-			} else if (offset_left < 0) {
-				grid.style.left = `${grid_left + offset_left}px`;
-			} else if (offset_right < 0) {
-				grid.style.left = `${grid_left + offset_right}px`;
-			}
-		}
-
 		// Delay date_picker widget to prevent temporary layout shift (UX).
 		function handle_date_picker() {
 			let date_time_picker = document.querySelectorAll(".datepicker.active")[0];
@@ -1093,9 +1059,12 @@ export default class GridRow {
 						$wrapper.append($dropdown);
 
 						let element_position = event.target.getBoundingClientRect();
+						// both rects are viewport relative; jQuery's offset() is document
+						// relative, and mixing the two shifts the dropdown by the page scroll
+						let grid_field_position = $grid_field[0].getBoundingClientRect();
 
-						let left_difference = element_position.left - $grid_field.offset().left;
-						let top_difference = element_position.top - $grid_field.offset().top + 30;
+						let left_difference = element_position.left - grid_field_position.left;
+						let top_difference = element_position.top - grid_field_position.top + 30;
 						$wrapper.css({
 							position: "absolute",
 							top: `${top_difference + 10}px`,
@@ -1125,10 +1094,6 @@ export default class GridRow {
 				!input_in_focus && trigger_focus(first_input_field, $(col).data("df"));
 
 				if (event.pointerType == "touch") {
-					first_input_field.length && on_input_focus(first_input_field);
-
-					first_input_field.one("blur", () => (input_in_focus = false));
-
 					first_input_field.data("fieldtype") == "Date" && handle_date_picker();
 				}
 

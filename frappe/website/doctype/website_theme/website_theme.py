@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+import os
 from os.path import abspath, splitext
 from os.path import exists as path_exists
 from os.path import join as join_path
@@ -103,7 +104,22 @@ class WebsiteTheme(Document):
 		# add a random suffix
 		suffix = frappe.generate_hash(length=8) if self.custom else "style"
 		file_name = frappe.scrub(self.name) + "_" + suffix + ".css"
+
+		if os.sep in file_name or (os.altsep and os.altsep in file_name):
+			frappe.throw(
+				_("Theme name cannot contain '/' or path separators"),
+				title=_("Invalid Website Theme Name"),
+			)
+
 		output_path = join_path(folder_path, file_name)
+
+		base_path = os.path.realpath(folder_path)
+		real_output_path = os.path.realpath(output_path)
+		if os.path.commonpath((base_path, real_output_path)) != base_path:
+			frappe.throw(
+				_("Theme name cannot contain '/' or path separators"),
+				title=_("Invalid Website Theme Name"),
+			)
 
 		self.theme_scss = content = get_scss(self)
 		content = content.replace("\n", "\\n")

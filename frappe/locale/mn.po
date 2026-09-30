@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-09-01 12:53+0000\n"
-"PO-Revision-Date: 2026-09-07 04:19\n"
+"POT-Creation-Date: 2026-09-20 09:34+0000\n"
+"PO-Revision-Date: 2026-09-28 04:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Mongolian\n"
 "MIME-Version: 1.0\n"
@@ -44,7 +44,7 @@ msgstr "\"Эцэг эх\" гэдэг нь энэ мөрийг нэмэх ёст�
 msgid "\"Team Members\" or \"Management\""
 msgstr "\"Багийн гишүүд\" эсвэл \"Удирдлага\""
 
-#: frappe/public/js/frappe/form/form.js:1131
+#: frappe/public/js/frappe/form/form.js:1132
 msgid "\"amended_from\" field must be present to do an amendment."
 msgstr "Нэмэлт өөрчлөлт хийхийн тулд \"amended_from\" талбарыг оруулах шаардлагатай."
 
@@ -70,7 +70,7 @@ msgstr "&copy; Frappe Technologies ХХК болон хувь нэмэр ору�
 msgid "&lt;head&gt; HTML"
 msgstr "&lt;head&gt; HTML"
 
-#: frappe/database/query.py:2379
+#: frappe/database/query.py:2390
 msgid "'*' is only allowed in {0} SQL function(s)"
 msgstr "'*' тэмдэгтийг зөвхөн {0} SQL функц(үүд)-д зөвшөөрнө"
 
@@ -90,7 +90,7 @@ msgstr "'Жагсаалтын Харагдацад' гэж {1} төрлийн {0
 msgid "'In List View' not allowed for type {0} in row {1}"
 msgstr "{1} мөр дэх {0} төрөлд 'Жагсаалтын Харагдацад' гэж оруулахыг зөвшөөрөхгүй"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:164
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:175
 msgid "'Recipients' not specified"
 msgstr "'Хүлээн авагчид' тодорхойлогдоогүй байна"
 
@@ -795,9 +795,13 @@ msgstr "Frappe Framework инстанс нь OAuth Client, Resource эсвэл A
 msgid "A field with the name {0} already exists in {1}"
 msgstr "{0} нэртэй талбар {1} дотор аль хэдийн байна"
 
-#: frappe/core/doctype/file/file.py:348
+#: frappe/core/doctype/file/file.py:354
 msgid "A file with same name {} already exists"
 msgstr "Ижил нэртэй {} файл аль хэдийн байна"
+
+#: frappe/core/doctype/file/file.py:124 frappe/core/doctype/file/file.py:176
+msgid "A folder cannot have a File URL"
+msgstr ""
 
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -808,7 +812,7 @@ msgstr "Хэрэглэгч зөвшөөрсний дараа Клиент Апп
 msgid "A new account has been created for you at {0}."
 msgstr "Танд {0} хаягаар шинэ бүртгэл үүсгэлээ."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:431
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:449
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
 msgstr "Автомат давталт {2} ашиглан танд зориулж давтагдах {0} {1} үүсгэсэн."
 
@@ -1096,6 +1100,7 @@ msgstr "Нарийвчилсан тоог гаргаж авах боломжгү
 #. Label of the action (Link) field in DocType 'Workflow Transition'
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 #: frappe/core/doctype/navbar_item/navbar_item.json
+#: frappe/core/doctype/role/role.js:44
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
 #: frappe/email/doctype/email_group/email_group.js:34
@@ -1286,6 +1291,7 @@ msgstr "CSS нэмэх"
 msgid "Add Card to Dashboard"
 msgstr "Хяналтын самбарт карт нэмэх"
 
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:34
 #: frappe/public/js/frappe/views/reports/query_report.js:211
 msgid "Add Chart to Dashboard"
 msgstr "Хяналтын самбарт график нэмэх"
@@ -1295,8 +1301,8 @@ msgid "Add Child"
 msgstr "Хүүхэд нэмэх"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:4
-#: frappe/public/js/frappe/views/reports/query_report.js:1989
-#: frappe/public/js/frappe/views/reports/query_report.js:1992
+#: frappe/public/js/frappe/views/reports/query_report.js:2001
+#: frappe/public/js/frappe/views/reports/query_report.js:2004
 #: frappe/public/js/frappe/views/reports/report_view.js:368
 #: frappe/public/js/frappe/views/reports/report_view.js:393
 #: frappe/public/js/print_format_builder/Field.vue:112
@@ -1455,19 +1461,19 @@ msgstr "Сэтгэгдэл нэмэх"
 msgid "Add a new section"
 msgstr "Шинэ хэсэг нэмэх"
 
-#: frappe/public/js/frappe/form/form.js:194
+#: frappe/public/js/frappe/form/form.js:195
 msgid "Add a row above the current row"
 msgstr "Одоогийн мөрний дээр мөр нэмэх"
 
-#: frappe/public/js/frappe/form/form.js:206
+#: frappe/public/js/frappe/form/form.js:207
 msgid "Add a row at the bottom"
 msgstr "Доод талд нь мөр нэмэх"
 
-#: frappe/public/js/frappe/form/form.js:202
+#: frappe/public/js/frappe/form/form.js:203
 msgid "Add a row at the top"
 msgstr "Дээд талд нь мөр нэмэх"
 
-#: frappe/public/js/frappe/form/form.js:198
+#: frappe/public/js/frappe/form/form.js:199
 msgid "Add a row below the current row"
 msgstr "Одоогийн мөрийн доор мөр нэмэх"
 
@@ -1804,7 +1810,7 @@ msgstr "Дээр үндэслэсэн нэгтгэсэн функц"
 msgid "Aggregate Function field is required to create a dashboard chart"
 msgstr "Хяналтын самбарын диаграм үүсгэхийн тулд нэгтгэх функцийн талбар шаардлагатай"
 
-#: frappe/database/query.py:2428
+#: frappe/database/query.py:2439
 msgid "Alias must be a string"
 msgstr "Алиас нь тэмдэгт мөр байх ёстой"
 
@@ -1882,7 +1888,7 @@ msgstr "Вэбсайтын слайд шоунд хавсаргасан бүх �
 msgid "All Records"
 msgstr "Бүх бичлэгүүд"
 
-#: frappe/public/js/frappe/form/form.js:2329
+#: frappe/public/js/frappe/form/form.js:2336
 msgid "All Submissions"
 msgstr "Бүх ирүүлсэн материалууд"
 
@@ -2017,7 +2023,7 @@ msgid "Allow Print for Cancelled"
 msgstr "Хэвлэхийг цуцлах үед зөвшөөрөх"
 
 #. Label of the allow_print_for_draft (Check) field in DocType 'Print Settings'
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Allow Print for Draft"
 msgstr "Ноорогт хэвлэхийг зөвшөөрөх"
@@ -2218,7 +2224,7 @@ msgstr "Зөвшөөрөгдсөн домэйнуудыг оруулах"
 msgid "Allowed special characters are '/' and '-'"
 msgstr "Зөвшөөрөгдсөн тусгай тэмдэгтүүд нь '/' болон '-' байна."
 
-#: frappe/public/js/frappe/form/form.js:1319
+#: frappe/public/js/frappe/form/form.js:1320
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "DocType-г зөвшөөрч байна, DocType. Болгоомжтой байгаарай!"
 
@@ -3077,7 +3083,7 @@ msgstr "Талбарт хавсаргасан"
 msgid "Attached To Name"
 msgstr "Нэрэнд хавсаргасан"
 
-#: frappe/core/doctype/file/file.py:192
+#: frappe/core/doctype/file/file.py:198
 msgid "Attached To Name must be a string or an integer"
 msgstr "Нэрэнд хавсаргасан нь мөр эсвэл бүхэл тоо байх ёстой"
 
@@ -3109,7 +3115,7 @@ msgstr "Хавсралтын галерейн шүүлтүүрүүд нь Фай
 msgid "Attachment Limit (MB)"
 msgstr "Хавсралтын хязгаар (MB)"
 
-#: frappe/core/doctype/file/file.py:417
+#: frappe/core/doctype/file/file.py:423
 #: frappe/public/js/frappe/form/sidebar/attachments.js:36
 msgid "Attachment Limit Reached"
 msgstr "Хавсралтын хязгаарт хүрсэн"
@@ -3140,11 +3146,11 @@ msgstr "Хавсралтын тохиргоо"
 msgid "Attachments"
 msgstr "Хавсралтууд"
 
-#: frappe/public/js/frappe/form/print_utils.js:140
+#: frappe/public/js/frappe/form/print_utils.js:160
 msgid "Attempting Connection to QZ Tray..."
 msgstr "QZ Tray руу холбогдохыг оролдож байна..."
 
-#: frappe/public/js/frappe/form/print_utils.js:156
+#: frappe/public/js/frappe/form/print_utils.js:176
 msgid "Attempting to launch QZ Tray..."
 msgstr "QZ Tray-г ажиллуулахыг оролдож байна..."
 
@@ -3324,11 +3330,11 @@ msgstr "Автомат давталт"
 msgid "Auto Repeat Day"
 msgstr "Автомат давталтын өдөр"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:173
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:184
 msgid "Auto Repeat Day{0} {1} has been repeated."
 msgstr "Автоматаар давтагдах өдөр{0} {1} давтагдсан."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:479
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:497
 msgid "Auto Repeat Document Creation Failed"
 msgstr "Автоматаар давтагдах баримт бичиг үүсгэх амжилтгүй боллоо"
 
@@ -3345,7 +3351,7 @@ msgstr "Автоматаар давтагдсан хэрэглэгч"
 msgid "Auto Repeat created for this document"
 msgstr "Энэ баримт бичигт зориулж Автомат давталт үүсгэсэн"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:482
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:500
 msgid "Auto Repeat failed for {0}"
 msgstr "{0}-д автоматаар давтах амжилтгүй боллоо"
 
@@ -3389,9 +3395,13 @@ msgstr "Таны сэтгэгдэл бичсэн баримт бичгүүдий
 msgid "Auto follow documents that you create"
 msgstr "Таны үүсгэсэн баримт бичгүүдийг автоматаар дагах"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:242
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:259
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
 msgstr "Автомат давталт амжилтгүй боллоо. Асуудлыг зассаны дараа автомат давталтыг идэвхжүүлнэ үү."
+
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:244
+msgid "Auto repeat skipped. The owner cannot access the reference document."
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -4274,7 +4284,7 @@ msgid "Callback Title"
 msgstr "Буцаан дуудлагын гарчиг"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:150
-#: frappe/public/js/frappe/ui/capture.js:335
+#: frappe/public/js/frappe/ui/capture.js:340
 msgid "Camera"
 msgstr "Камер"
 
@@ -4338,11 +4348,11 @@ msgctxt "Secondary button in warning dialog"
 msgid "Cancel"
 msgstr "Цуцлах"
 
-#: frappe/public/js/frappe/form/form.js:1020
+#: frappe/public/js/frappe/form/form.js:1021
 msgid "Cancel All"
 msgstr "Бүгдийг цуцлах"
 
-#: frappe/public/js/frappe/form/form.js:1007
+#: frappe/public/js/frappe/form/form.js:1008
 msgid "Cancel All Documents"
 msgstr "Бүх баримт бичгийг цуцлах"
 
@@ -4407,11 +4417,11 @@ msgstr "Арилгаж чадахгүй"
 msgid "Cannot Update After Submit"
 msgstr "Илгээсний дараа шинэчлэх боломжгүй"
 
-#: frappe/core/doctype/file/file.py:757
+#: frappe/core/doctype/file/file.py:764 frappe/utils/file_manager.py:385
 msgid "Cannot access file path {0}"
 msgstr "Файлын замд хандах боломжгүй байна {0}"
 
-#: frappe/core/doctype/file/file.py:155
+#: frappe/core/doctype/file/file.py:159
 msgid "Cannot attach a folder to a document"
 msgstr "Файлд хавтас хавсаргаж чадахгүй байна"
 
@@ -4419,7 +4429,7 @@ msgstr "Файлд хавтас хавсаргаж чадахгүй байна"
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
 msgstr "<b>{0} төлөв</b>-өөс <b>{1} төлөв</b> рүү шилжих үед илгээхээс өмнө цуцлах боломжгүй"
 
-#: frappe/workflow/doctype/workflow/workflow.py:111
+#: frappe/workflow/doctype/workflow/workflow.py:114
 msgid "Cannot cancel before submitting. See Transition {0}"
 msgstr "Илгээхээс өмнө цуцлах боломжгүй. Шилжилтийг үзнэ үү {0}"
 
@@ -4443,7 +4453,7 @@ msgstr "{0}доторх талбарын төрлийг өөрчлөх боло�
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
 msgstr "Цуцлагдсан баримт бичгийн төлөвийг өөрчлөх боломжгүй <b>({0} Төлөв)</b>"
 
-#: frappe/workflow/doctype/workflow/workflow.py:100
+#: frappe/workflow/doctype/workflow/workflow.py:103
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
 msgstr "Цуцлагдсан баримт бичгийн төлөвийг өөрчлөх боломжгүй. Шилжилтийн мөр {0}"
 
@@ -4467,7 +4477,7 @@ msgstr "Бусад хэрэглэгчдийн хувийн ажлын талба
 msgid "Cannot delete Desktop Icon '{0}' as it is restricted"
 msgstr "Хязгаарлагдмал тул '{0}' ширээний дүрсийг устгах боломжгүй"
 
-#: frappe/core/doctype/file/file.py:244
+#: frappe/core/doctype/file/file.py:250
 msgid "Cannot delete Home and Attachments folders"
 msgstr "Нүүр хуудас болон Хавсралтуудын фолдерыг устгах боломжгүй"
 
@@ -4506,7 +4516,7 @@ msgstr "Системийн үүсгэсэн <strong>{0}</strong>талбарыг
 msgid "Cannot delete {0}"
 msgstr "{0}-г устгах боломжгүй"
 
-#: frappe/utils/nestedset.py:316
+#: frappe/utils/nestedset.py:318
 msgid "Cannot delete {0} as it has child nodes"
 msgstr "Хүүхэд зангилаатай тул {0} -г устгах боломжгүй"
 
@@ -4543,15 +4553,15 @@ msgstr "Стандарт дугаартай картуудын шүүлтүүр�
 msgid "Cannot edit standard fields"
 msgstr "Стандарт талбаруудыг засварлах боломжгүй"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:131
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:142
 msgid "Cannot enable {0} for a non-submittable doctype"
 msgstr "Илгээх боломжгүй баримт бичгийн төрөлд {0} -г идэвхжүүлэх боломжгүй"
 
-#: frappe/core/doctype/file/file.py:343
+#: frappe/core/doctype/file/file.py:349
 msgid "Cannot find file {} on disk"
 msgstr "Дискнээс {} файлыг олж чадсангүй"
 
-#: frappe/core/doctype/file/file.py:695
+#: frappe/core/doctype/file/file.py:702
 msgid "Cannot get file contents of a Folder"
 msgstr "Фолдерын файлын агуулгыг авах боломжгүй байна"
 
@@ -4624,7 +4634,7 @@ msgstr "{0} {1} боломжгүй."
 msgid "Capitalization doesn't help very much."
 msgstr "Том үсгээр бичих нь тийм ч их тус болохгүй."
 
-#: frappe/public/js/frappe/ui/capture.js:295
+#: frappe/public/js/frappe/ui/capture.js:300
 msgid "Capture"
 msgstr "Баримт авах"
 
@@ -4834,7 +4844,11 @@ msgstr "Хүсэлтийн URL-г шалгах"
 msgid "Check columns to select, drag to set order."
 msgstr "Сонгохын тулд багануудыг тэмдэглээд, дарааллыг тохируулахын тулд чирнэ үү."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:485
+#: frappe/public/js/frappe/microtemplate.js:256
+msgid "Check the Error Log for details."
+msgstr ""
+
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:503
 msgid "Check the Error Log for more information: {0}"
 msgstr "Дэлгэрэнгүй мэдээллийг Алдааны бүртгэлээс шалгана уу: {0}"
 
@@ -4905,7 +4919,7 @@ msgstr "{1} талбарын хувьд {0} хүүхдийн хүснэгт ви
 msgid "Child Tables are shown as a Grid in other DocTypes"
 msgstr "Хүүхдийн хүснэгтүүдийг бусад DocType-д тор хэлбэрээр харуулдаг"
 
-#: frappe/database/query.py:1180
+#: frappe/database/query.py:1191
 msgid "Child query fields for '{0}' must be a list or tuple."
 msgstr "'{0}'-н хүүхэд асуулгын талбарууд нь жагсаалт эсвэл кортеж байх ёстой."
 
@@ -5003,7 +5017,7 @@ msgstr "Кэшийг цэвэрлээд дахин ачаална уу"
 msgid "Clear the email message and add the template"
 msgstr "Имэйл мессежийг арилгаад загвар нэмнэ үү"
 
-#: frappe/website/doctype/web_page/web_page.py:215
+#: frappe/website/doctype/web_page/web_page.py:217
 msgid "Clearing end date, as it cannot be in the past for published pages."
 msgstr "Нийтлэгдсэн хуудсуудын хувьд өнгөрсөн цаг байж болохгүй тул дуусах огноог цэвэрлэж байна."
 
@@ -5256,7 +5270,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "Хураах"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2292
+#: frappe/public/js/frappe/views/reports/query_report.js:2306
 #: frappe/public/js/frappe/views/treeview.js:133
 msgid "Collapse All"
 msgstr "Бүгдийг нь хураах"
@@ -5313,7 +5327,7 @@ msgstr "Эвхэгддэг байдал нь (JS)-с хамаарна"
 #: frappe/desk/doctype/number_card/number_card.json
 #: frappe/desk/doctype/todo/todo.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1305
+#: frappe/public/js/frappe/views/reports/query_report.js:1310
 #: frappe/public/js/frappe/widgets/widget_dialog.js:546
 #: frappe/public/js/frappe/widgets/widget_dialog.js:694
 #: frappe/website/doctype/color/color.json
@@ -5791,8 +5805,8 @@ msgstr "Холбогдсон апп"
 msgid "Connected User"
 msgstr "Холбогдсон хэрэглэгч"
 
-#: frappe/public/js/frappe/form/print_utils.js:146
-#: frappe/public/js/frappe/form/print_utils.js:170
+#: frappe/public/js/frappe/form/print_utils.js:166
+#: frappe/public/js/frappe/form/print_utils.js:190
 msgid "Connected to QZ Tray!"
 msgstr "QZ Tray-д холбогдсон!"
 
@@ -6048,11 +6062,15 @@ msgstr "Гарах имэйл серверт холбогдож чадсангү
 msgid "Could not find {0}"
 msgstr "{0}-г олж чадсангүй"
 
+#: frappe/public/js/frappe/microtemplate.js:223
+msgid "Could not generate PDF"
+msgstr ""
+
 #: frappe/core/doctype/data_import/importer.py:952
 msgid "Could not map column {0} to field {1}"
 msgstr "{0} баганыг {1} талбарт буулгаж чадсангүй"
 
-#: frappe/database/query.py:1083
+#: frappe/database/query.py:1094
 msgid "Could not parse field: {0}"
 msgstr "Талбарыг задлан шинжилж чадсангүй: {0}"
 
@@ -6160,7 +6178,7 @@ msgstr "Кр"
 #: frappe/public/js/frappe/list/list_filter.js:121
 #: frappe/public/js/frappe/views/file/file_view.js:106
 #: frappe/public/js/frappe/views/interaction.js:18
-#: frappe/public/js/frappe/views/reports/query_report.js:1337
+#: frappe/public/js/frappe/views/reports/query_report.js:1342
 #: frappe/public/js/frappe/views/workspace/workspace.js:502
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
@@ -6184,7 +6202,7 @@ msgid "Create Card"
 msgstr "Карт үүсгэх"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:286
-#: frappe/public/js/frappe/views/reports/query_report.js:1264
+#: frappe/public/js/frappe/views/reports/query_report.js:1269
 msgid "Create Chart"
 msgstr "Диаграм үүсгэх"
 
@@ -6302,7 +6320,7 @@ msgstr "Таны бүтээсэн"
 msgid "Created By {0}"
 msgstr "{0}-ийн үүсгэсэн"
 
-#: frappe/workflow/doctype/workflow/workflow.py:65
+#: frappe/workflow/doctype/workflow/workflow.py:68
 msgid "Created Custom Field {0} in {1}"
 msgstr "{1} дотор {0} өөрчлөн тохируулсан талбар үүсгэсэн"
 
@@ -7791,7 +7809,7 @@ msgstr "Ширээний тохиргоо"
 #: frappe/public/js/form_builder/components/Tabs.vue:92
 #: frappe/public/js/form_builder/store.js:259
 #: frappe/public/js/form_builder/utils.js:38
-#: frappe/public/js/frappe/form/layout.js:155
+#: frappe/public/js/frappe/form/layout.js:157
 #: frappe/public/js/frappe/views/treeview.js:310
 msgid "Details"
 msgstr "Дэлгэрэнгүй мэдээлэл"
@@ -7827,7 +7845,7 @@ msgstr "Энэ баримт бичиг нь өөр өөр \"Төлөвүүд\"-�
 msgid "Digits"
 msgstr "Цифрүүд"
 
-#: frappe/utils/data.py:1567
+#: frappe/utils/data.py:1577
 msgctxt "Currency"
 msgid "Dinars"
 msgstr "Динарууд"
@@ -7986,7 +8004,7 @@ msgctxt "Discard Email"
 msgid "Discard"
 msgstr "Хаях"
 
-#: frappe/public/js/frappe/form/form.js:889
+#: frappe/public/js/frappe/form/form.js:890
 msgid "Discard {0}"
 msgstr "{0}-г хаях"
 
@@ -8073,7 +8091,7 @@ msgstr "{0} талаар надад дахин анхааруулах хэрэг
 msgid "Do you still want to proceed?"
 msgstr "Та үргэлжлүүлэхийг хүсэж байна уу?"
 
-#: frappe/public/js/frappe/form/form.js:999
+#: frappe/public/js/frappe/form/form.js:1000
 msgid "Do you want to cancel all linked documents?"
 msgstr "Та бүх холбогдсон баримт бичгийг цуцлахыг хүсэж байна уу?"
 
@@ -8536,11 +8554,11 @@ msgstr "Баримт бичгийн төрөл"
 msgid "Document Type and Function are required to create a number card"
 msgstr "Тоон карт үүсгэхийн тулд баримт бичгийн төрөл болон функц шаардлагатай"
 
-#: frappe/permissions.py:158
+#: frappe/permissions.py:160
 msgid "Document Type is not importable"
 msgstr "Баримт бичгийн төрлийг импортлох боломжгүй"
 
-#: frappe/permissions.py:154
+#: frappe/permissions.py:156
 msgid "Document Type is not submittable"
 msgstr "Баримт бичгийн төрлийг илгээх боломжгүй"
 
@@ -8876,7 +8894,7 @@ msgstr "Давхардсан шүүлтүүрийн нэр"
 msgid "Duplicate Name"
 msgstr "Давхардсан нэр"
 
-#: frappe/public/js/frappe/form/form.js:210
+#: frappe/public/js/frappe/form/form.js:211
 msgid "Duplicate current row"
 msgstr "Одоогийн мөрийг хуулбарлах"
 
@@ -8992,7 +9010,7 @@ msgstr "ESC"
 #: frappe/public/js/frappe/form/toolbar.js:211
 #: frappe/public/js/frappe/form/toolbar.js:800
 #: frappe/public/js/frappe/views/reports/query_report.js:926
-#: frappe/public/js/frappe/views/reports/query_report.js:1935
+#: frappe/public/js/frappe/views/reports/query_report.js:1946
 #: frappe/public/js/frappe/widgets/base_widget.js:65
 #: frappe/public/js/frappe/widgets/chart_widget.js:304
 #: frappe/public/js/frappe/widgets/number_card_widget.js:365
@@ -9064,7 +9082,7 @@ msgstr "Шүүлтүүрийг засах"
 msgid "Edit Footer"
 msgstr "Доод хэсгийг засах"
 
-#: frappe/printing/doctype/print_format/print_format.js:29
+#: frappe/printing/doctype/print_format/print_format.js:28
 msgid "Edit Format"
 msgstr "Форматыг засах"
 
@@ -9566,7 +9584,7 @@ msgstr "Дараагийн боломжит ажлын урсгалын үйлд
 msgid "Embed code copied"
 msgstr "Оруулсан кодыг хуулсан"
 
-#: frappe/database/query.py:2432
+#: frappe/database/query.py:2443
 msgid "Empty alias is not allowed"
 msgstr "Хоосон хуурамч нэрийг зөвшөөрөхгүй"
 
@@ -9574,7 +9592,7 @@ msgstr "Хоосон хуурамч нэрийг зөвшөөрөхгүй"
 msgid "Empty column"
 msgstr "Хоосон багана"
 
-#: frappe/database/query.py:2373
+#: frappe/database/query.py:2384
 msgid "Empty string arguments are not allowed"
 msgstr "Хоосон мөрийн аргументуудыг зөвшөөрөхгүй"
 
@@ -9598,7 +9616,7 @@ msgstr "Үйлдлийн баталгаажуулалтыг идэвхжүүлэ
 msgid "Enable Address Autocompletion"
 msgstr "Хаягийн автомат гүйцээлтийг идэвхжүүлэх"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:123
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:124
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
 msgstr "Тохиргооны маягт дахь {0} баримт бичгийн төрөлд автоматаар давтахыг зөвшөөрөхийг идэвхжүүлэх"
 
@@ -9810,7 +9828,7 @@ msgstr "Идэвхжүүлсэн"
 msgid "Enabled Scheduler"
 msgstr "Идэвхжүүлсэн хуваарьлагч"
 
-#: frappe/email/doctype/email_account/email_account.py:1116
+#: frappe/email/doctype/email_account/email_account.py:1117
 msgid "Enabled email inbox for user {0}"
 msgstr "{0} хэрэглэгчийн имэйл хайрцаг идэвхжсэн"
 
@@ -9868,7 +9886,7 @@ msgstr "Төгсгөл"
 #. Label of the end_date (Date) field in DocType 'Audit Trail'
 #. Label of the end_date (Datetime) field in DocType 'Web Page'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:150
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:161
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/public/js/frappe/utils/common.js:371
 #: frappe/website/doctype/web_page/web_page.json
@@ -9880,11 +9898,11 @@ msgstr "Дуусах огноо"
 msgid "End Date Field"
 msgstr "Дуусах огнооны талбар"
 
-#: frappe/website/doctype/web_page/web_page.py:208
+#: frappe/website/doctype/web_page/web_page.py:210
 msgid "End Date cannot be before Start Date!"
 msgstr "Дуусах огноо эхлэх огнооноос өмнө байж болохгүй!"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:146
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:157
 msgid "End Date cannot be today."
 msgstr "Дуусах огноо өнөөдөр байж болохгүй."
 
@@ -10054,7 +10072,7 @@ msgstr "Алдааны бүртгэлүүд"
 msgid "Error Message"
 msgstr "Алдааны мессеж"
 
-#: frappe/public/js/frappe/form/print_utils.js:177
+#: frappe/public/js/frappe/form/print_utils.js:197
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "QZ Tray програмд холбогдоход алдаа гарлаа...<br><br> Та Raw Print функцийг ашиглахын тулд QZ Tray програмыг суулгаж, ажиллуулж байх шаардлагатай.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">QZ Tray-г татаж аваад суулгахын тулд энд дарна уу</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Raw Printing-ийн талаар дэлгэрэнгүй мэдээлэл авахыг хүсвэл энд дарна уу</a>."
 
@@ -10100,7 +10118,7 @@ msgstr "{0}.get_list: {1} алдаа гарлаа"
 msgid "Error parsing nested filters: {0}. {1}"
 msgstr "Шүүлтүүрүүдийг задлан шинжлэхэд алдаа гарлаа: {0}. {1}"
 
-#: frappe/desk/search.py:290
+#: frappe/desk/search.py:302
 msgid "Error validating \"Ignore User Permissions\""
 msgstr "\"Хэрэглэгчийн зөвшөөрлийг үл тоомсорлох\"-ыг баталгаажуулахад алдаа гарлаа"
 
@@ -10289,7 +10307,7 @@ msgstr "Кодыг гүйцэтгэх"
 msgid "Executing..."
 msgstr "Гүйцэтгэж байна..."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2308
+#: frappe/public/js/frappe/views/reports/query_report.js:2322
 msgid "Execution Time: {0} sec"
 msgstr "Гүйцэтгэлийн хугацаа: {0} сек"
 
@@ -10306,11 +10324,6 @@ msgstr "Одоо байгаа Gravatar URL-ууд нь Хэрэглэгч бол
 msgid "Existing Gravatar URLs may still be stored on User, Contact, and Lead records. Do you want to delete these URLs now?"
 msgstr "Одоо байгаа Gravatar URL-ууд нь Хэрэглэгч, Холбоо барих болон Харилцагчийн бүртгэлд хадгалагдсан хэвээр байж магадгүй. Та эдгээр URL-уудыг одоо устгахыг хүсэж байна уу?"
 
-#. Label of the existing_role (Link) field in DocType 'Role Replication'
-#: frappe/core/doctype/role_replication/role_replication.json
-msgid "Existing Role"
-msgstr "Одоо байгаа үүрэг"
-
 #: frappe/public/js/frappe/views/treeview.js:125
 #: frappe/public/js/frappe/views/treeview.js:137
 #: frappe/public/js/frappe/views/treeview.js:147
@@ -10323,7 +10336,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "Өргөжүүлэх"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2290
+#: frappe/public/js/frappe/views/reports/query_report.js:2304
 #: frappe/public/js/frappe/views/treeview.js:143
 msgid "Expand All"
 msgstr "Бүгдийг дэлгэх"
@@ -10400,7 +10413,7 @@ msgstr "QR кодын зургийн хуудасны хугацаа дууса�
 #: frappe/core/page/permission_manager/permission_manager_help.html:66
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
-#: frappe/public/js/frappe/views/reports/query_report.js:1977
+#: frappe/public/js/frappe/views/reports/query_report.js:1989
 #: frappe/public/js/frappe/views/reports/report_view.js:1733
 #: frappe/public/js/frappe/widgets/chart_widget.js:320
 msgid "Export"
@@ -10790,7 +10803,7 @@ msgstr "{0}-с талбаруудыг авч байна ..."
 #: frappe/public/js/frappe/list/bulk_operations.js:346
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:3
 #: frappe/public/js/frappe/views/reports/query_report.js:237
-#: frappe/public/js/frappe/views/reports/query_report.js:2036
+#: frappe/public/js/frappe/views/reports/query_report.js:2049
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10808,7 +10821,7 @@ msgstr "Хэрэв \"Вэбсайтын хайлтын талбар\" тохир
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
 msgstr "\"Утга\" талбарыг заавал бөглөнө үү. Шинэчлэх утгыг заана уу"
 
-#: frappe/desk/search.py:328
+#: frappe/desk/search.py:340
 msgid "Field <code>{0}</code> not found in {1}"
 msgstr "<code>{0}</code> талбар {1} дотор олдсонгүй"
 
@@ -10877,7 +10890,7 @@ msgstr "{0} талбар нь байхгүй doctype {1}-г зааж байна.
 msgid "Field {0} must be a virtual field to support virtual doctype."
 msgstr "Виртуал doctype-г дэмжихийн тулд {0} талбар нь виртуал талбар байх ёстой."
 
-#: frappe/public/js/frappe/form/form.js:1852
+#: frappe/public/js/frappe/form/form.js:1859
 msgid "Field {0} not found."
 msgstr "{0} талбар олдсонгүй."
 
@@ -10972,7 +10985,7 @@ msgstr "Талбарууд"
 msgid "Fields Multicheck"
 msgstr "Талбаруудын олон шалгалт"
 
-#: frappe/core/doctype/file/file.py:510
+#: frappe/core/doctype/file/file.py:517
 msgid "Fields `file_name` or `file_url` must be set for File"
 msgstr "Файлд `file_name` эсвэл `file_url` талбаруудыг тохируулах шаардлагатай"
 
@@ -10980,7 +10993,7 @@ msgstr "Файлд `file_name` эсвэл `file_url` талбаруудыг то
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr "as_list идэвхжсэн үед талбарууд нь жагсаалт эсвэл багц байх ёстой"
 
-#: frappe/database/query.py:1129
+#: frappe/database/query.py:1140
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
 msgstr "Талбарууд нь мөр, жагсаалт, tuple, pypika Field эсвэл pypika Function байх ёстой."
 
@@ -11068,7 +11081,7 @@ msgstr "Файлын төрөл"
 msgid "File URL"
 msgstr "Файлын URL"
 
-#: frappe/core/doctype/file/file.py:128
+#: frappe/core/doctype/file/file.py:132
 msgid "File URL is required when copying an existing attachment."
 msgstr "Одоо байгаа хавсралтыг хуулах үед файлын URL шаардлагатай."
 
@@ -11076,7 +11089,7 @@ msgstr "Одоо байгаа хавсралтыг хуулах үед файл�
 msgid "File backup is ready"
 msgstr "Файлын нөөцлөлт бэлэн боллоо"
 
-#: frappe/core/doctype/file/file.py:760
+#: frappe/core/doctype/file/file.py:767
 msgid "File name cannot have {0}"
 msgstr "Файлын нэр {0} байж болохгүй"
 
@@ -11084,7 +11097,7 @@ msgstr "Файлын нэр {0} байж болохгүй"
 msgid "File not attached"
 msgstr "Файл хавсаргаагүй байна"
 
-#: frappe/core/doctype/file/file.py:870 frappe/public/js/frappe/request.js:198
+#: frappe/core/doctype/file/file.py:877 frappe/public/js/frappe/request.js:198
 #: frappe/utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr "Файлын хэмжээ зөвшөөрөгдсөн дээд хэмжээ болох {0} МБ-аас хэтэрсэн байна"
@@ -11093,7 +11106,7 @@ msgstr "Файлын хэмжээ зөвшөөрөгдсөн дээд хэмжэ
 msgid "File too big"
 msgstr "Файл хэт том байна"
 
-#: frappe/core/doctype/file/file.py:469
+#: frappe/core/doctype/file/file.py:476
 msgid "File type of {0} is not allowed"
 msgstr "{0} файлын төрлийг зөвшөөрөхгүй"
 
@@ -11101,7 +11114,7 @@ msgstr "{0} файлын төрлийг зөвшөөрөхгүй"
 msgid "File upload failed."
 msgstr "Файл байршуулалт амжилтгүй боллоо."
 
-#: frappe/core/doctype/file/file.py:456 frappe/core/doctype/file/file.py:527
+#: frappe/core/doctype/file/file.py:462 frappe/core/doctype/file/file.py:534
 msgid "File {0} does not exist"
 msgstr "{0} файл байхгүй байна"
 
@@ -11422,7 +11435,7 @@ msgstr "Фолдерын нэр"
 msgid "Folder name should not include '/' (slash)"
 msgstr "Фолдерын нэрэнд '/' (тасархай) тэмдэгт байж болохгүй"
 
-#: frappe/core/doctype/file/file.py:573
+#: frappe/core/doctype/file/file.py:580
 msgid "Folder {0} is not empty"
 msgstr "{0} хавтас хоосон биш байна"
 
@@ -11456,7 +11469,7 @@ msgstr "Дараах баримт бичгүүд нь {0}-тэй холбогд�
 msgid "Following fields are missing:"
 msgstr "Дараах талбарууд дутуу байна:"
 
-#: frappe/public/js/frappe/ui/field_group.js:184
+#: frappe/public/js/frappe/ui/field_group.js:186
 msgid "Following fields have invalid values:"
 msgstr "Дараах талбарууд буруу утгатай байна:"
 
@@ -11464,7 +11477,7 @@ msgstr "Дараах талбарууд буруу утгатай байна:"
 msgid "Following fields have missing values"
 msgstr "Дараах талбаруудын утга дутуу байна"
 
-#: frappe/public/js/frappe/ui/field_group.js:171
+#: frappe/public/js/frappe/ui/field_group.js:173
 msgid "Following fields have missing values:"
 msgstr "Дараах талбаруудын утга дутуу байна:"
 
@@ -11632,7 +11645,7 @@ msgid "For comparison, use >5, <10 or =324.\n"
 msgstr "Харьцуулахын тулд >5, <10 эсвэл =324 гэж ашиглаарай.\n"
 "Мужуудын хувьд 5:10 гэж ашиглаарай (5 ба 10 хоорондох утгуудын хувьд)."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2305
+#: frappe/public/js/frappe/views/reports/query_report.js:2319
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "Харьцуулахын тулд >5, <10 эсвэл =324 гэж ашиглаарай. Хүрээний хувьд 5:10 гэж ашиглаарай (5 ба 10 хоорондох утгуудын хувьд)."
 
@@ -11929,7 +11942,7 @@ msgstr "Эхлэх огноо"
 msgid "From Date Field"
 msgstr "Эхлэх огнооны талбар"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1997
+#: frappe/public/js/frappe/views/reports/query_report.js:2009
 msgid "From Document Type"
 msgstr "Баримт бичгийн төрлөөс"
 
@@ -12000,7 +12013,7 @@ msgstr "Функц дээр суурилсан"
 msgid "Function {0} is not whitelisted."
 msgstr "{0} функц цагаан жагсаалтад ороогүй байна."
 
-#: frappe/database/query.py:2277
+#: frappe/database/query.py:2288
 msgid "Function {0} requires arguments but none were provided"
 msgstr "{0} функц нь аргумент шаарддаг боловч аргумент өгөгдөөгүй байна"
 
@@ -12083,6 +12096,10 @@ msgstr "Даалгавар өгөгч бүрт тусдаа баримт бич�
 #: frappe/public/js/frappe/utils/utils.js:2091
 msgid "Generate Tracking URL"
 msgstr "Хяналтын URL үүсгэх"
+
+#: frappe/public/js/frappe/microtemplate.js:247
+msgid "Generating PDF..."
+msgstr ""
 
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
@@ -12227,11 +12244,11 @@ msgstr "Ажлын урсгал руу очих"
 msgid "Go to Workspace"
 msgstr "Ажлын талбар руу очих"
 
-#: frappe/public/js/frappe/form/form.js:145
+#: frappe/public/js/frappe/form/form.js:146
 msgid "Go to next record"
 msgstr "Дараагийн бичлэг рүү очих"
 
-#: frappe/public/js/frappe/form/form.js:155
+#: frappe/public/js/frappe/form/form.js:156
 msgid "Go to previous record"
 msgstr "Өмнөх бичлэг рүү очих"
 
@@ -12514,7 +12531,7 @@ msgstr "Төрлөөр нь бүлэглэх"
 msgid "Group By field is required to create a dashboard chart"
 msgstr "Хяналтын самбарын диаграм үүсгэхийн тулд \"Групплэх\" талбар шаардлагатай"
 
-#: frappe/database/query.py:1317
+#: frappe/database/query.py:1328
 msgid "Group By must be a string"
 msgstr "Бүлэглэх нь мөр байх ёстой"
 
@@ -12907,7 +12924,7 @@ msgstr "Нуугдсан"
 msgid "Hidden Fields"
 msgstr "Нууцлагдсан талбарууд"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1785
+#: frappe/public/js/frappe/views/reports/query_report.js:1788
 msgid "Hidden columns include: <br> {0}"
 msgstr "Нууцлагдсан баганууд нь: <br> {0}"
 
@@ -13025,7 +13042,7 @@ msgstr "Амралтын өдрүүдийг нуух"
 msgid "Hide descendant records of <b>For Value</b>."
 msgstr "<b>-н удам угсааны бичлэгийг нуух For Value</b>."
 
-#: frappe/public/js/frappe/form/layout.js:296
+#: frappe/public/js/frappe/form/layout.js:298
 msgid "Hide details"
 msgstr "Дэлгэрэнгүй мэдээллийг нуух"
 
@@ -13094,17 +13111,17 @@ msgstr "Нүүр хуудас"
 msgid "Home Settings"
 msgstr "Гэрийн тохиргоо"
 
-#: frappe/core/doctype/file/test_file.py:406
-#: frappe/core/doctype/file/test_file.py:408
-#: frappe/core/doctype/file/test_file.py:472
+#: frappe/core/doctype/file/test_file.py:450
+#: frappe/core/doctype/file/test_file.py:452
+#: frappe/core/doctype/file/test_file.py:536
 msgid "Home/Test Folder 1"
 msgstr "Нүүр хуудас/Туршилтын хавтас 1"
 
-#: frappe/core/doctype/file/test_file.py:461
+#: frappe/core/doctype/file/test_file.py:505
 msgid "Home/Test Folder 1/Test Folder 3"
 msgstr "Нүүр хуудас/Туршилтын хавтас 1/Туршилтын хавтас 3"
 
-#: frappe/core/doctype/file/test_file.py:417
+#: frappe/core/doctype/file/test_file.py:461
 msgid "Home/Test Folder 2"
 msgstr "Нүүр хуудас/Туршилтын хавтас 2"
 
@@ -13425,6 +13442,10 @@ msgstr "Хэрэв идэвхжүүлсэн бол хэрэглэгчдэд нэ
 #: frappe/core/doctype/user/user.json
 msgid "If left empty, the default workspace will be the last visited workspace"
 msgstr "Хэрэв хоосон орхивол анхдагч ажлын талбар нь хамгийн сүүлд зочилсон ажлын талбар байх болно"
+
+#: frappe/public/js/frappe/form/print_utils.js:53
+msgid "If no Print Format is selected, the default template for this report will be used."
+msgstr "Хэрэв Хэвлэх Формат сонгоогүй бол энэ тайлангийн анхдагч загварыг ашиглана."
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -13953,16 +13974,16 @@ msgstr "Аппуудаас сэдэв оруулах"
 msgid "Include Web View Link in Email"
 msgstr "Имэйлд Вэб Харах Холбоосыг оруулах"
 
-#: frappe/public/js/frappe/form/print_utils.js:60
-#: frappe/public/js/frappe/views/reports/query_report.js:1759
+#: frappe/public/js/frappe/form/print_utils.js:74
+#: frappe/public/js/frappe/views/reports/query_report.js:1762
 msgid "Include filters"
 msgstr "Шүүлтүүрүүдийг оруулах"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1781
+#: frappe/public/js/frappe/views/reports/query_report.js:1784
 msgid "Include hidden columns"
 msgstr "Нуугдсан багануудыг оруулах"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1751
+#: frappe/public/js/frappe/views/reports/query_report.js:1754
 msgid "Include indentation"
 msgstr "Догол мөр оруулах"
 
@@ -14121,11 +14142,6 @@ msgstr "Анхны синхрончлолын тоо"
 msgid "InnoDB"
 msgstr "InnoDB"
 
-#. Description of the 'New Role' (Data) field in DocType 'Role Replication'
-#: frappe/core/doctype/role_replication/role_replication.json
-msgid "Input existing role name if you would like to extend it with access of another role."
-msgstr "Хэрэв та өөр дүрд хандах эрхээр өргөтгөхийг хүсвэл одоо байгаа дүрийн нэрийг оруулна уу."
-
 #: frappe/core/doctype/data_import/data_import_list.js:35
 msgid "Insert"
 msgstr "Оруулах"
@@ -14136,7 +14152,7 @@ msgstr "Дээр оруулах"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2042
+#: frappe/public/js/frappe/views/reports/query_report.js:2056
 msgid "Insert After"
 msgstr "Дараа нь оруулах"
 
@@ -14218,11 +14234,11 @@ msgstr "Суулгасан аппликейшнууд"
 msgid "Instructions"
 msgstr "Зааварчилгаа"
 
-#: frappe/permissions.py:880
+#: frappe/permissions.py:882
 msgid "Insufficient Permission Level for {0}"
 msgstr "{0}-д зөвшөөрлийн түвшин хангалтгүй байна"
 
-#: frappe/database/query.py:1377
+#: frappe/database/query.py:1388
 msgid "Insufficient Permission for {0}"
 msgstr "{0}-д зөвшөөрөл хангалтгүй байна"
 
@@ -14347,7 +14363,7 @@ msgstr "Хүчингүй"
 
 #: frappe/public/js/form_builder/utils.js:218
 #: frappe/public/js/frappe/form/grid_row.js:883
-#: frappe/public/js/frappe/form/layout.js:806
+#: frappe/public/js/frappe/form/layout.js:808
 #: frappe/public/js/frappe/views/reports/report_view.js:818
 msgid "Invalid \"depends_on\" expression"
 msgstr "Буруу \"depend_on\" илэрхийлэл"
@@ -14360,7 +14376,7 @@ msgstr "{0} шүүлтүүрт буруу \"depend_on\" илэрхийлэл т�
 msgid "Invalid \"mandatory_depends_on\" expression"
 msgstr "\"mandatory_depend_on\" илэрхийлэл буруу байна"
 
-#: frappe/utils/nestedset.py:178
+#: frappe/utils/nestedset.py:180
 msgid "Invalid Action"
 msgstr "Буруу үйлдэл"
 
@@ -14384,7 +14400,7 @@ msgstr "Хүчингүй итгэмжлэлүүд"
 msgid "Invalid Credentials for Email Account: {0}"
 msgstr "Имэйл хаягийн буруу итгэмжлэл: {0}"
 
-#: frappe/utils/data.py:146 frappe/utils/data.py:309
+#: frappe/utils/data.py:147 frappe/utils/data.py:310
 msgid "Invalid Date"
 msgstr "Буруу огноо"
 
@@ -14410,7 +14426,7 @@ msgstr "Буруу имэйл хаяг."
 msgid "Invalid Fieldname"
 msgstr "Хүчингүй талбарын нэр"
 
-#: frappe/core/doctype/file/file.py:300
+#: frappe/core/doctype/file/file.py:306
 msgid "Invalid File URL"
 msgstr "Файлын URL буруу байна"
 
@@ -14423,7 +14439,7 @@ msgstr "Буруу шүүлтүүр"
 msgid "Invalid Filter Format for field {0} of type {1}. Try using filter icon on the field to set it correctly"
 msgstr "{1}төрлийн {0} талбарын шүүлтүүрийн формат буруу байна. Талбар дээрх шүүлтүүрийн дүрсийг ашиглан зөв тохируулна уу."
 
-#: frappe/utils/dashboard.py:61
+#: frappe/utils/dashboard.py:62
 msgid "Invalid Filter Value"
 msgstr "Шүүлтүүрийн утга буруу байна"
 
@@ -14487,7 +14503,7 @@ msgstr "Буруу дарж бичих"
 msgid "Invalid Package Name"
 msgstr "Буруу багцын нэр"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:212
+#: frappe/integrations/doctype/connected_app/connected_app.py:213
 msgid "Invalid Parameters."
 msgstr "Буруу параметрүүд."
 
@@ -14516,18 +14532,22 @@ msgstr "Хүснэгтийн талбарын нэр буруу байна"
 msgid "Invalid Transition"
 msgstr "Буруу шилжилт"
 
-#: frappe/core/doctype/file/file.py:311
+#: frappe/core/doctype/file/file.py:317
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:551
 #: frappe/public/js/frappe/widgets/widget_dialog.js:602
 #: frappe/utils/csvutils.py:258 frappe/utils/csvutils.py:279
 msgid "Invalid URL"
 msgstr "Буруу URL"
 
+#: frappe/utils/file_manager.py:237
+msgid "Invalid Upload"
+msgstr "Буруу байршуулалт"
+
 #: frappe/email/receive.py:160
 msgid "Invalid User Name or Support Password. Please rectify and try again."
 msgstr "Хэрэглэгчийн нэр эсвэл дэмжлэгийн нууц үг буруу байна. Засаад дахин оролдоно уу."
 
-#: frappe/public/js/frappe/ui/field_group.js:182
+#: frappe/public/js/frappe/ui/field_group.js:184
 msgid "Invalid Values"
 msgstr "Буруу утга"
 
@@ -14554,7 +14574,7 @@ msgstr "Буруу нэгтгэх функц"
 msgid "Invalid aggregate function: {0}"
 msgstr ""
 
-#: frappe/database/query.py:2438
+#: frappe/database/query.py:2449
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr "Буруу зохиомол нэрийн формат: {0}. Зохиомол нэр нь энгийн танигч байх ёстой."
 
@@ -14562,11 +14582,11 @@ msgstr "Буруу зохиомол нэрийн формат: {0}. Зохиом
 msgid "Invalid app"
 msgstr "Буруу апп"
 
-#: frappe/database/query.py:2398 frappe/database/query.py:2414
+#: frappe/database/query.py:2409 frappe/database/query.py:2425
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr "Аргументын формат буруу байна: {0}. Зөвхөн иш татсан тэмдэгт мөрийн үг эсвэл энгийн талбарын нэрийг зөвшөөрнө."
 
-#: frappe/database/query.py:2362
+#: frappe/database/query.py:2373
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "Буруу аргументын төрөл: {0}. Зөвхөн тэмдэгт мөр, тоо, диктант болон Байхгүй гэж зөвшөөрөгдөнө."
 
@@ -14590,7 +14610,7 @@ msgstr "Шүүлтүүрт хүчингүй нөхцөлт төрөл: {0}"
 msgid "Invalid credentials, try again."
 msgstr "Буруу мэдээлэл байна, дахин оролдоно уу."
 
-#: frappe/database/query.py:1361
+#: frappe/database/query.py:1372
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "Дараах дарааллын дагуух чиглэл буруу байна: {0}. 'ASC' эсвэл 'DESC' байх ёстой."
 
@@ -14610,25 +14630,29 @@ msgstr "{0} шүүлтүүрт буруу илэрхийлэл тохируул�
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "{0} ({1} ) шүүлтүүрт буруу илэрхийлэл тохируулагдсан байна."
 
-#: frappe/database/query.py:2165
+#: frappe/database/query.py:2176
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr "SELECT талбарын формат буруу байна: {0}. Талбарын нэрс нь энгийн, арын тэмдэгтэй, хүснэгтэд тохирсон, хуурамч эсвэл '*' байх ёстой."
 
-#: frappe/database/query.py:1302
+#: frappe/database/query.py:1313
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr "{0}доторх талбарын формат буруу байна: {1}. 'field', 'link_field.field', эсвэл 'child_table.field' гэж ашиглана уу."
 
-#: frappe/utils/data.py:2351
+#: frappe/utils/data.py:2361
 msgid "Invalid field name {0}"
 msgstr "Буруу талбарын нэр {0}"
 
-#: frappe/database/query.py:1188
+#: frappe/database/query.py:1199
 msgid "Invalid field type: {0}"
 msgstr "Буруу талбарын төрөл: {0}"
 
 #: frappe/core/doctype/doctype/doctype.py:1129
 msgid "Invalid fieldname '{0}' in autoname"
 msgstr "Автомат нэрэнд '{0}' талбарын нэр буруу байна"
+
+#: frappe/utils/file_manager.py:237
+msgid "Invalid file name"
+msgstr ""
 
 #: frappe/deprecation_dumpster.py:283
 msgid "Invalid file path: {0}"
@@ -14650,7 +14674,7 @@ msgstr "Буруу шүүлтүүр: {0}"
 msgid "Invalid format. Supported formats are {0}"
 msgstr "Буруу формат. Дэмжигдсэн форматууд нь {0}"
 
-#: frappe/database/query.py:2282
+#: frappe/database/query.py:2293
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr "Функцийн аргументын төрөл буруу байна: {0}. Зөвхөн тэмдэгт мөр, тоо, жагсаалт болон Байхгүй гэж зөвшөөрөгдөнө."
 
@@ -14675,7 +14699,7 @@ msgstr "Буруу нэршлийн цуврал {}: цэг (.) дутуу ба�
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr "Буруу нэрлэлтийн цуврал {}: тоон орлуулагчийн өмнө цэг (.) дутуу байна. <b>ABCD.#####</b> гэх мэт форматыг ашиглана уу."
 
-#: frappe/database/query.py:2354
+#: frappe/database/query.py:2365
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr "Буруу үүрлэсэн илэрхийлэл: толь бичиг нь функц эсвэл операторыг илэрхийлэх ёстой"
 
@@ -14691,11 +14715,11 @@ msgstr "Хүчингүй эсвэл хугацаа нь дууссан түлх�
 msgid "Invalid redirect regex in row #{}: {}"
 msgstr "#{} мөрөнд буруу дахин чиглүүлэх тогтмол: {}"
 
-#: frappe/app.py:345
+#: frappe/app.py:382
 msgid "Invalid request arguments"
 msgstr "Хүсэлтийн аргументууд буруу байна"
 
-#: frappe/app.py:332
+#: frappe/app.py:369
 msgid "Invalid request body"
 msgstr "Хүсэлтийн үндсэн хэсэг буруу"
 
@@ -14715,7 +14739,7 @@ msgstr "Шүүлтүүрийн нөхцөлийн эхлэл буруу байн
 msgid "Invalid template file for import"
 msgstr "Импортлох загварын файл буруу байна"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:218
+#: frappe/integrations/doctype/connected_app/connected_app.py:219
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
 msgstr "Токен буруу байна! Токеныг OAuth хэрэглэгч үүсгэсэн эсэхийг шалгана уу."
 
@@ -14741,7 +14765,7 @@ msgstr "wkhtmltopdf хувилбар буруу байна"
 msgid "Invalid {0} condition"
 msgstr "Буруу {0} нөхцөл"
 
-#: frappe/database/query.py:2243
+#: frappe/database/query.py:2254
 msgid "Invalid {0} dictionary format"
 msgstr "{0} толь бичгийн формат буруу байна"
 
@@ -15064,7 +15088,7 @@ msgstr "Виртуал уу"
 msgid "Is standard"
 msgstr "Стандарт юм"
 
-#: frappe/core/doctype/file/utils.py:157 frappe/utils/file_manager.py:311
+#: frappe/core/doctype/file/utils.py:157 frappe/utils/file_manager.py:316
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
 msgstr "Энэ файлыг устгах нь эрсдэлтэй: {0}. Системийн менежертэйгээ холбогдоно уу."
 
@@ -15082,7 +15106,7 @@ msgstr "Зүйлийн шошго"
 msgid "Item Type"
 msgstr "Зүйлийн төрөл"
 
-#: frappe/utils/nestedset.py:233
+#: frappe/utils/nestedset.py:235
 msgid "Item cannot be added to its own descendants"
 msgstr "Зүйлийг өөрийн үр удамд нэмэх боломжгүй"
 
@@ -15560,7 +15584,7 @@ msgstr "Шошго заавал байх ёстой"
 msgid "Landing Page"
 msgstr "Буух хуудас"
 
-#: frappe/public/js/frappe/form/print_utils.js:24
+#: frappe/public/js/frappe/form/print_utils.js:25
 msgid "Landscape"
 msgstr "Ландшафт"
 
@@ -15903,7 +15927,7 @@ msgstr "Захидал"
 #: frappe/core/doctype/report/report.json
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/printing/page/print/print.js:148
-#: frappe/public/js/frappe/form/print_utils.js:51
+#: frappe/public/js/frappe/form/print_utils.js:38
 #: frappe/public/js/frappe/form/templates/print_layout.html:16
 #: frappe/public/js/frappe/list/bulk_operations.js:52
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -16322,7 +16346,7 @@ msgstr "Илүү ихийг ачаалах"
 #: frappe/public/js/frappe/list/base_list.js:525
 #: frappe/public/js/frappe/list/list_view.js:405
 #: frappe/public/js/frappe/ui/listing.html:16
-#: frappe/public/js/frappe/views/reports/query_report.js:1165
+#: frappe/public/js/frappe/views/reports/query_report.js:1170
 msgid "Loading"
 msgstr "Ачааллаж байна"
 
@@ -16953,7 +16977,7 @@ msgstr "Валютын төрлийн хамгийн их өргөн нь {0} м
 msgid "Maximum"
 msgstr "Хамгийн их"
 
-#: frappe/core/doctype/file/file.py:411
+#: frappe/core/doctype/file/file.py:417
 msgid "Maximum Attachment Limit of {0} has been reached for {1} {2}."
 msgstr "{1} {2}-н хувьд {0} хавсралтын дээд хязгаарт хүрсэн байна."
 
@@ -17040,7 +17064,7 @@ msgstr "Цэс"
 msgid "Merge with existing"
 msgstr "Одоо байгаатай нэгтгэх"
 
-#: frappe/utils/nestedset.py:324
+#: frappe/utils/nestedset.py:326
 msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
 msgstr "Нэгтгэх нь зөвхөн Бүлгээс Бүлэг рүү эсвэл Навчны Зангилаанаас Навчны Зангилааны хооронд боломжтой"
 
@@ -17316,7 +17340,7 @@ msgstr "Зөвшөөрөл дутуу байна"
 msgid "Missing Value"
 msgstr "Утга дутуу байна"
 
-#: frappe/public/js/frappe/ui/field_group.js:169
+#: frappe/public/js/frappe/ui/field_group.js:171
 #: frappe/public/js/frappe/widgets/widget_dialog.js:374
 #: frappe/public/js/workflow_builder/store.js:97
 #: frappe/workflow/doctype/workflow/workflow.js:71
@@ -17599,19 +17623,19 @@ msgstr "Хогийн сав руу зөөх"
 msgid "Move current and all subsequent sections to a new tab"
 msgstr "Одоогийн болон дараагийн бүх хэсгүүдийг шинэ таб руу зөөх"
 
-#: frappe/public/js/frappe/form/form.js:178
+#: frappe/public/js/frappe/form/form.js:179
 msgid "Move cursor to above row"
 msgstr "Курсорыг дээрх мөр рүү зөөх"
 
-#: frappe/public/js/frappe/form/form.js:182
+#: frappe/public/js/frappe/form/form.js:183
 msgid "Move cursor to below row"
 msgstr "Курсорыг доод мөр рүү зөөх"
 
-#: frappe/public/js/frappe/form/form.js:186
+#: frappe/public/js/frappe/form/form.js:187
 msgid "Move cursor to next column"
 msgstr "Курсорыг дараагийн багана руу зөөх"
 
-#: frappe/public/js/frappe/form/form.js:190
+#: frappe/public/js/frappe/form/form.js:191
 msgid "Move cursor to previous column"
 msgstr "Курсорыг өмнөх багана руу зөөх"
 
@@ -17646,7 +17670,7 @@ msgstr "Хатагтай"
 msgid "Ms"
 msgstr "Хатагтай"
 
-#: frappe/utils/nestedset.py:348
+#: frappe/utils/nestedset.py:350
 msgid "Multiple root nodes not allowed."
 msgstr "Олон үндсэн зангилааг зөвшөөрөхгүй."
 
@@ -18033,10 +18057,9 @@ msgstr "Шинэ хурдан жагсаалт"
 msgid "New Report name"
 msgstr "Шинэ тайлангийн нэр"
 
-#. Label of the new_role (Data) field in DocType 'Role Replication'
-#: frappe/core/doctype/role_replication/role_replication.json
-msgid "New Role"
-msgstr "Шинэ үүрэг"
+#: frappe/core/doctype/role/role.js:55
+msgid "New Role Name"
+msgstr "Шинэ дүрийн нэр"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -18085,6 +18108,10 @@ msgstr "Энэ үйлчлүүлэгчийн үүрэгтэй хүмүүстэй 
 msgid "New password cannot be same as old password"
 msgstr "Шинэ нууц үг хуучин нууц үгтэй адил байж болохгүй"
 
+#: frappe/core/doctype/role/role.js:78
+msgid "New role created successfully."
+msgstr "Шинэ дүрийг амжилттай бүтээв."
+
 #: frappe/utils/change_log.py:405
 msgid "New updates are available"
 msgstr "Шинэ шинэчлэлтүүд боломжтой байна"
@@ -18130,7 +18157,7 @@ msgstr "Шинэ {0} {1} Хяналтын самбарт нэмэгдлээ {2}"
 msgid "New {0} {1} created"
 msgstr "Шинэ {0} {1} үүсгэсэн"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:416
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:434
 msgid "New {0}: {1}"
 msgstr "Шинэ {0}: {1}"
 
@@ -18353,7 +18380,7 @@ msgstr "Синк хийх Google Календарийн арга хэмжээ а
 msgid "No IMAP folders were found on the server. Please verify the email account settings and ensure the mailbox contains folders."
 msgstr "Сервер дээр IMAP фолдер олдсонгүй. Имэйл бүртгэлийн тохиргоог шалгаж, шуудангийн хайрцагт фолдерууд байгаа эсэхийг шалгана уу."
 
-#: frappe/public/js/frappe/ui/capture.js:263
+#: frappe/public/js/frappe/ui/capture.js:268
 msgid "No Images"
 msgstr "Зураг алга"
 
@@ -18488,7 +18515,7 @@ msgstr "Одоогоор сэтгэгдэл алга."
 msgid "No contacts added yet."
 msgstr "Харилцагч хараахан нэмэгдээгүй байна."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:469
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:487
 msgid "No contacts linked to document"
 msgstr "Документэд холбогдсон харилцагчид байхгүй"
 
@@ -18500,7 +18527,7 @@ msgstr "{0} дотор валютын талбар байхгүй"
 msgid "No data to export"
 msgstr "Экспортлох өгөгдөл алга"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1568
+#: frappe/public/js/frappe/views/reports/query_report.js:1573
 msgid "No data to perform this action"
 msgstr "Энэ үйлдлийг гүйцэтгэх өгөгдөл алга"
 
@@ -18600,7 +18627,7 @@ msgstr "Өөр төрлийн баримт бичиг байхгүй."
 msgid "No permission for {0}"
 msgstr "{0}-д зөвшөөрөл байхгүй"
 
-#: frappe/public/js/frappe/form/form.js:1183
+#: frappe/public/js/frappe/form/form.js:1184
 msgctxt "{0} = verb, {1} = object"
 msgid "No permission to '{0}' {1}"
 msgstr "'{0}' {1}-д зөвшөөрөл байхгүй"
@@ -18749,7 +18776,7 @@ msgstr "Үр удам биш"
 msgid "Not Equals"
 msgstr "Тэнцүү биш"
 
-#: frappe/app.py:395 frappe/www/404.html:3
+#: frappe/app.py:432 frappe/www/404.html:3
 msgid "Not Found"
 msgstr "Олдсонгүй"
 
@@ -18775,7 +18802,7 @@ msgstr "Ямар ч бичлэгтэй холбогдоогүй"
 msgid "Not Nullable"
 msgstr "Null боломжгүй"
 
-#: frappe/__init__.py:570 frappe/app.py:388 frappe/desk/calendar.py:30
+#: frappe/__init__.py:570 frappe/app.py:425 frappe/desk/calendar.py:30
 #: frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:1033
 #: frappe/website/page_renderers/not_permitted_page.py:22
@@ -18784,7 +18811,7 @@ msgstr "Null боломжгүй"
 msgid "Not Permitted"
 msgstr "Зөвшөөрөгдөөгүй"
 
-#: frappe/desk/query_report.py:842
+#: frappe/desk/query_report.py:849
 msgid "Not Permitted to read {0}"
 msgstr "{0} уншихыг зөвшөөрөөгүй"
 
@@ -18844,7 +18871,7 @@ msgstr "Ажлын урсгалын хүчин төгөлдөр үйлдэл б�
 msgid "Not active"
 msgstr "Идэвхгүй байна"
 
-#: frappe/permissions.py:408
+#: frappe/permissions.py:410
 msgid "Not allowed for {0}: {1}"
 msgstr "{0}: {1}-д зөвшөөрөгдөөгүй"
 
@@ -18864,7 +18891,7 @@ msgstr "Цуцлагдсан баримт бичгийг хэвлэхийг зө
 msgid "Not allowed to print draft documents"
 msgstr "Ноорог баримт бичгийг хэвлэхийг зөвшөөрөөгүй"
 
-#: frappe/permissions.py:238
+#: frappe/permissions.py:240
 msgid "Not allowed via controller permission check"
 msgstr "Хянагчийн зөвшөөрлийн шалгалтаар зөвшөөрөгдөөгүй"
 
@@ -18905,7 +18932,7 @@ msgid "Not permitted. {0}."
 msgstr "Зөвшөөрөгдөөгүй. {0}."
 
 #. Name of a DocType
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 #: frappe/desk/doctype/note/note.json
 msgid "Note"
 msgstr "Тэмдэглэл"
@@ -19520,7 +19547,7 @@ msgstr "Зөвхөн Администратор л Бичлэгийн хэрэг
 msgid "Only Allow Edit For"
 msgstr "Зөвхөн засварлахыг зөвшөөрөх"
 
-#: frappe/desk/query_report.py:523
+#: frappe/desk/query_report.py:524
 msgid "Only CSV and Excel formats are supported for export"
 msgstr "Зөвхөн CSV болон Excel форматуудыг экспортлоход дэмждэг"
 
@@ -19537,7 +19564,7 @@ msgstr "Өгөгдлийн талбарт зөвшөөрөгдсөн зөвхө�
 msgid "Only Send Records Updated in Last X Hours"
 msgstr "Зөвхөн сүүлийн X цагт шинэчлэгдсэн бичлэгүүдийг илгээх"
 
-#: frappe/core/doctype/file/file.py:206
+#: frappe/core/doctype/file/file.py:212
 msgid "Only System Managers can make this file public."
 msgstr "Зөвхөн Системийн Менежерүүд л энэ файлыг олон нийтэд нээлттэй болгож чадна."
 
@@ -19751,11 +19778,11 @@ msgstr "Нээсэн"
 msgid "Operation"
 msgstr "Үйл ажиллагаа"
 
-#: frappe/utils/data.py:2282
+#: frappe/utils/data.py:2292
 msgid "Operator must be one of {0}"
 msgstr "Оператор нь {0}-н нэг байх ёстой"
 
-#: frappe/database/query.py:2310
+#: frappe/database/query.py:2321
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr "{0} оператор нь яг 2 аргумент (зүүн ба баруун операнд) шаарддаг."
 
@@ -19870,7 +19897,7 @@ msgstr "Улбар шар"
 msgid "Order"
 msgstr "Захиалга"
 
-#: frappe/database/query.py:1333
+#: frappe/database/query.py:1344
 msgid "Order By must be a string"
 msgstr "Дараах дараалал нь мөр байх ёстой"
 
@@ -19891,7 +19918,7 @@ msgstr "Байгууллагын түүх"
 msgid "Org History Heading"
 msgstr "Байгууллагын түүхийн гарчиг"
 
-#: frappe/public/js/frappe/form/print_utils.js:22
+#: frappe/public/js/frappe/form/print_utils.js:23
 msgid "Orientation"
 msgstr "Чиглэл"
 
@@ -19978,7 +20005,7 @@ msgstr "НӨӨРӨХ"
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/printing/page/print/print.js:90
 #: frappe/public/js/frappe/form/templates/print_layout.html:44
-#: frappe/public/js/frappe/views/reports/query_report.js:1959
+#: frappe/public/js/frappe/views/reports/query_report.js:1970
 msgid "PDF"
 msgstr "PDF"
 
@@ -20297,7 +20324,7 @@ msgstr "Эцэг эх нь өгөгдөл нэмэгдэх баримт бичг
 msgid "Parent-to-child or child-to-different-child grouping is not allowed."
 msgstr "Эцэг эхээс хүүхдэд эсвэл хүүхдээс өөр хүүхдэд бүлэглэхийг зөвшөөрөхгүй."
 
-#: frappe/permissions.py:856
+#: frappe/permissions.py:858
 msgid "Parentfield not specified in {0}: {1}"
 msgstr "Эцэг талбар нь {0}дотор тодорхойлогдоогүй байна: {1}"
 
@@ -20437,7 +20464,7 @@ msgstr "Нүхэн засвар"
 msgid "Patch Log"
 msgstr "Нөхөөсний бүртгэл"
 
-#: frappe/modules/patch_handler.py:136
+#: frappe/modules/patch_handler.py:153
 msgid "Patch type {} not found in patches.txt"
 msgstr "patchs.txt файлд {} төрлийн нөхөөс олдсонгүй"
 
@@ -20556,15 +20583,15 @@ msgstr "Пермийн түвшин"
 msgid "Permanent"
 msgstr "Байнгын"
 
-#: frappe/public/js/frappe/form/form.js:1069
+#: frappe/public/js/frappe/form/form.js:1070
 msgid "Permanently Cancel {0}?"
 msgstr "{0}-г бүрмөсөн цуцлах уу?"
 
-#: frappe/public/js/frappe/form/form.js:1115
+#: frappe/public/js/frappe/form/form.js:1116
 msgid "Permanently Discard {0}?"
 msgstr "{0}-г бүрмөсөн устгах уу?"
 
-#: frappe/public/js/frappe/form/form.js:902
+#: frappe/public/js/frappe/form/form.js:903
 msgid "Permanently Submit {0}?"
 msgstr "{0}-г бүрмөсөн илгээх үү?"
 
@@ -20576,7 +20603,7 @@ msgstr "{0}-г бүрмөсөн устгах уу?"
 msgid "Permission"
 msgstr "Зөвшөөрөл"
 
-#: frappe/database/query.py:1001 frappe/database/query.py:1376
+#: frappe/database/query.py:1001 frappe/database/query.py:1387
 #: frappe/desk/doctype/workspace/workspace.py:109
 msgid "Permission Error"
 msgstr "Зөвшөөрлийн алдаа"
@@ -20749,7 +20776,7 @@ msgstr "Утасны дугаар"
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "{1} талбарт тохируулсан {0} утасны дугаар хүчингүй байна."
 
-#: frappe/public/js/frappe/form/print_utils.js:70
+#: frappe/public/js/frappe/form/print_utils.js:84
 #: frappe/public/js/frappe/views/reports/report_view.js:1670
 #: frappe/public/js/frappe/views/reports/report_view.js:1673
 msgid "Pick Columns"
@@ -20826,7 +20853,7 @@ msgstr "Диаграмыг тохируулна уу"
 msgid "Please Update SMS Settings"
 msgstr "SMS тохиргоог шинэчилнэ үү"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:623
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:641
 msgid "Please add a subject to your email"
 msgstr "Имэйлдээ гарчиг нэмнэ үү"
 
@@ -20838,7 +20865,7 @@ msgstr "Зөв сэтгэгдэл нэмнэ үү."
 msgid "Please add at least one naming series."
 msgstr "Дор хаяж нэг нэршлийн цуврал нэмнэ үү."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1569
+#: frappe/public/js/frappe/views/reports/query_report.js:1574
 msgid "Please adjust filters to include some data"
 msgstr "Зарим өгөгдөл оруулахын тулд шүүлтүүрийг тохируулна уу"
 
@@ -20862,7 +20889,7 @@ msgstr "Letter Head-д HTML тохируулахын тулд зургийн ф�
 msgid "Please attach the package"
 msgstr "Багцыг хавсаргана уу"
 
-#: frappe/utils/dashboard.py:58
+#: frappe/utils/dashboard.py:59
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "Хяналтын самбарын графикт тохируулсан шүүлтүүрийн утгыг шалгана уу: {}"
 
@@ -20922,7 +20949,7 @@ msgstr "{0} талбараас талбарыг устгана уу эсвэл �
 msgid "Please do not change the template headings."
 msgstr "Загварын гарчгийг өөрчлөхгүй байхыг хүсье."
 
-#: frappe/printing/doctype/print_format/print_format.js:19
+#: frappe/printing/doctype/print_format/print_format.js:18
 msgid "Please duplicate this to make changes"
 msgstr "Өөрчлөлт хийхийн тулд үүнийг хувилна уу"
 
@@ -20972,7 +20999,7 @@ msgstr "Сошиал сүлжээнд нэвтрэхийг идэвхжүүлэ�
 msgid "Please enter Client Secret before social login is enabled"
 msgstr "Сошиал сүлжээнд нэвтрэхийг идэвхжүүлэхийн өмнө Клиентийн нууц үгийг оруулна уу"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:56
+#: frappe/integrations/doctype/connected_app/connected_app.py:57
 msgid "Please enter OpenID Configuration URL"
 msgstr "OpenID тохиргооны URL хаягийг оруулна уу"
 
@@ -21021,7 +21048,7 @@ msgstr "Хуучин нууц үгээ оруулна уу."
 msgid "Please fill the following mandatory fields before saving:"
 msgstr "Хадгалахаасаа өмнө дараах заавал бөглөх талбаруудыг бөглөнө үү:"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:444
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:462
 msgid "Please find attached {0}: {1}"
 msgstr "Хавсралтыг үзнэ үү {0}: {1}"
 
@@ -21041,7 +21068,7 @@ msgstr "Хамгийн сүүлийн үеийн баримт бичгийг а�
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "Хэвлэгчийн тохиргооноос хэвлэгчийн харагдацыг устгаад дахин оролдоно уу."
 
-#: frappe/public/js/frappe/form/form.js:359
+#: frappe/public/js/frappe/form/form.js:360
 msgid "Please save before attaching."
 msgstr "Хавсаргахаасаа өмнө хадгална уу."
 
@@ -21065,7 +21092,7 @@ msgstr "Эхлээд тайланг хадгална уу"
 msgid "Please save to edit the template."
 msgstr "Загварыг засахын тулд хадгална уу."
 
-#: frappe/printing/doctype/print_format/print_format.js:31
+#: frappe/printing/doctype/print_format/print_format.js:30
 msgid "Please select DocType first"
 msgstr "Эхлээд DocType-г сонгоно уу"
 
@@ -21081,7 +21108,7 @@ msgstr "Эхлээд Аж ахуйн нэгжийн төрлийг сонгон�
 msgid "Please select Minimum Password Score"
 msgstr "Нууц үгийн хамгийн бага оноог сонгоно уу"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1258
+#: frappe/public/js/frappe/views/reports/query_report.js:1263
 msgid "Please select X and Y fields"
 msgstr "X болон Y талбаруудыг сонгоно уу"
 
@@ -21109,7 +21136,7 @@ msgstr "Гүйлгээ сонгоно уу."
 msgid "Please select a valid csv file with data"
 msgstr "Өгөгдөл бүхий хүчинтэй csv файлыг сонгоно уу"
 
-#: frappe/utils/data.py:309
+#: frappe/utils/data.py:310
 msgid "Please select a valid date filter"
 msgstr "Хүчинтэй огнооны шүүлтүүр сонгоно уу"
 
@@ -21147,7 +21174,7 @@ msgstr "Имэйл хаягийг тохируулна уу"
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Хэвлэгчийн тохиргоо хэсэгт энэ хэвлэх форматын хэвлэгчийн зураглалыг тохируулна уу"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1480
+#: frappe/public/js/frappe/views/reports/query_report.js:1485
 msgid "Please set filters"
 msgstr "Шүүлтүүрийг тохируулна уу"
 
@@ -21187,7 +21214,7 @@ msgstr "Хэрэгслүүд > Имэйл бүртгэл хэсгээс үндс
 msgid "Please specify"
 msgstr "Тодорхой зааж өгнө үү"
 
-#: frappe/permissions.py:830
+#: frappe/permissions.py:832
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "{0}-д хүчинтэй эцэг эхийн DocType-г оруулна уу"
 
@@ -21303,7 +21330,7 @@ msgstr "Портал цэсний зүйл"
 msgid "Portal Settings"
 msgstr "Порталын тохиргоо"
 
-#: frappe/public/js/frappe/form/print_utils.js:25
+#: frappe/public/js/frappe/form/print_utils.js:26
 msgid "Portrait"
 msgstr "Хөрөг зураг"
 
@@ -21445,7 +21472,7 @@ msgstr "Хадгалахын тулд Enter товчийг дарна уу"
 #: frappe/printing/doctype/print_style/print_style.json
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:17
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:31
-#: frappe/public/js/frappe/ui/capture.js:237
+#: frappe/public/js/frappe/ui/capture.js:242
 #: frappe/public/js/frappe/ui/naming_series.js:48
 msgid "Preview"
 msgstr "Урьдчилан харах"
@@ -21499,7 +21526,7 @@ msgstr "Өмнөх"
 msgid "Previous Document"
 msgstr "Өмнөх баримт бичиг"
 
-#: frappe/public/js/frappe/form/form.js:2316
+#: frappe/public/js/frappe/form/form.js:2323
 msgid "Previous Submission"
 msgstr "Өмнөх ирүүлсэн материал"
 
@@ -21559,7 +21586,7 @@ msgstr "doctype {0} -н үндсэн түлхүүрийг өөрчлөх бол�
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
 #: frappe/public/js/frappe/form/toolbar.js:465
 #: frappe/public/js/frappe/list/bulk_operations.js:95
-#: frappe/public/js/frappe/views/reports/query_report.js:1941
+#: frappe/public/js/frappe/views/reports/query_report.js:1952
 #: frappe/public/js/frappe/views/reports/report_view.js:1632
 #: frappe/public/js/frappe/views/treeview.js:510 frappe/www/printview.html:19
 msgid "Print"
@@ -21586,7 +21613,7 @@ msgstr "Баримт бичгийг хэвлэх"
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/page/print/print.js:115
 #: frappe/printing/page/print/print.js:903
-#: frappe/public/js/frappe/form/print_utils.js:32
+#: frappe/public/js/frappe/form/print_utils.js:50
 #: frappe/public/js/frappe/list/bulk_operations.js:59
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/workspace_sidebar/printing.json
@@ -21633,7 +21660,7 @@ msgstr "Хэвлэх форматын тусламж"
 msgid "Print Format Type"
 msgstr "Хэвлэх форматын төрөл"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1687
+#: frappe/public/js/frappe/views/reports/query_report.js:1692
 msgid "Print Format not found"
 msgstr "Хэвлэх формат олдсонгүй"
 
@@ -21672,7 +21699,7 @@ msgstr "Хэвлэх Хэрэв утга байхгүй бол нуух"
 msgid "Print Language"
 msgstr "Хэвлэх хэл"
 
-#: frappe/public/js/frappe/form/print_utils.js:246
+#: frappe/public/js/frappe/form/print_utils.js:266
 msgid "Print Sent to the printer!"
 msgstr "Хэвлэхийг хэвлэгч рүү илгээв!"
 
@@ -21687,7 +21714,7 @@ msgstr "Хэвлэх сервер"
 #: frappe/printing/doctype/print_settings/print_settings.json
 #: frappe/printing/doctype/print_style/print_style.js:6
 #: frappe/printing/page/print/print.js:181
-#: frappe/public/js/frappe/form/print_utils.js:120
+#: frappe/public/js/frappe/form/print_utils.js:138
 #: frappe/public/js/frappe/form/templates/print_layout.html:35
 #: frappe/workspace_sidebar/printing.json
 msgid "Print Settings"
@@ -21727,7 +21754,7 @@ msgstr "Хэвлэх өргөн"
 msgid "Print Width of the field, if the field is a column in a table"
 msgstr "Хэрэв талбар нь хүснэгтийн багана бол талбарын өргөнийг хэвлэнэ үү"
 
-#: frappe/public/js/frappe/form/form.js:171
+#: frappe/public/js/frappe/form/form.js:172
 msgid "Print document"
 msgstr "Баримт бичгийг хэвлэх"
 
@@ -21894,7 +21921,7 @@ msgstr "Үл хөдлөх хөрөнгийн төрөл"
 msgid "Protect Attached Files"
 msgstr "Хавсаргасан файлуудыг хамгаалах"
 
-#: frappe/core/doctype/file/file.py:602
+#: frappe/core/doctype/file/file.py:609
 msgid "Protected File"
 msgstr "Хамгаалагдсан файл"
 
@@ -22092,7 +22119,7 @@ msgstr "QR код"
 msgid "QR Code for Login Verification"
 msgstr "Нэвтрэх баталгаажуулалтын QR код"
 
-#: frappe/public/js/frappe/form/print_utils.js:255
+#: frappe/public/js/frappe/form/print_utils.js:275
 msgid "QZ Tray Failed:"
 msgstr "QZ тавиур амжилтгүй боллоо:"
 
@@ -22429,7 +22456,7 @@ msgstr "Унших горим"
 msgid "Read the documentation to know more"
 msgstr "Илүү ихийг мэдэхийн тулд баримт бичгийг уншина уу"
 
-#: frappe/utils/safe_exec.py:747 frappe/utils/safe_exec.py:760
+#: frappe/utils/safe_exec.py:749 frappe/utils/safe_exec.py:762
 msgid "Read-Only queries are allowed"
 msgstr "Зөвхөн унших боломжтой лавлагааг зөвшөөрнө"
 
@@ -22457,7 +22484,7 @@ msgstr "Дахин барих"
 msgid "Rebuild Tree"
 msgstr "Модыг дахин барих"
 
-#: frappe/utils/nestedset.py:177
+#: frappe/utils/nestedset.py:179
 msgid "Rebuilding of tree is not supported for {}"
 msgstr "Модыг дахин бүтээх нь {}-д дэмжигдээгүй байна"
 
@@ -22633,7 +22660,7 @@ msgstr "Redis кэш сервер ажиллахгүй байна. Админи�
 msgid "Redo"
 msgstr "Дахин хийх"
 
-#: frappe/public/js/frappe/form/form.js:165
+#: frappe/public/js/frappe/form/form.js:166
 #: frappe/public/js/frappe/form/toolbar.js:582
 msgid "Redo last action"
 msgstr "Сүүлийн үйлдлийг дахин хийх"
@@ -22860,10 +22887,10 @@ msgstr "Лавлагаа өгөгч"
 
 #: frappe/printing/page/print/print.js:92 frappe/public/js/frappe/desk.js:177
 #: frappe/public/js/frappe/desk.js:564
-#: frappe/public/js/frappe/form/form.js:1251
+#: frappe/public/js/frappe/form/form.js:1252
 #: frappe/public/js/frappe/form/templates/print_layout.html:6
 #: frappe/public/js/frappe/list/base_list.js:68
-#: frappe/public/js/frappe/views/reports/query_report.js:1930
+#: frappe/public/js/frappe/views/reports/query_report.js:1941
 #: frappe/public/js/frappe/views/treeview.js:516
 #: frappe/public/js/frappe/widgets/chart_widget.js:296
 #: frappe/public/js/frappe/widgets/number_card_widget.js:358
@@ -23016,6 +23043,7 @@ msgid "Reminder set at {0}"
 msgstr "Сануулагчийг {0}-д тохируулсан"
 
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:70
+#: frappe/public/js/frappe/ui/capture.js:200
 #: frappe/public/js/frappe/ui/filters/edit_filter.html:4
 #: frappe/public/js/frappe/ui/group_by/group_by.html:4
 msgid "Remove"
@@ -23169,18 +23197,17 @@ msgstr "Давтах {0}"
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
 msgstr "Имэйл илгээгдсэний дараа мессежийн биеийг орлуулагчаар солино уу, ингэснээр нууц үг шинэчлэх холбоос гэх мэт мэдрэмтгий контент дараалалд үлдэхгүй."
 
-#: frappe/core/doctype/role_replication/role_replication.js:7
-#: frappe/core/doctype/role_replication/role_replication.js:14
+#: frappe/core/doctype/role/role.js:64
 msgid "Replicate"
 msgstr "Хуулбарлах"
 
-#: frappe/core/doctype/role_replication/role_replication.js:8
-msgid "Replicating..."
-msgstr "Хуулбарлаж байна..."
+#: frappe/core/doctype/role/role.js:40 frappe/core/doctype/role/role.js:52
+msgid "Replicate Role"
+msgstr "Хуулбарлах үүрэг"
 
-#: frappe/core/doctype/role_replication/role_replication.js:13
-msgid "Replication completed."
-msgstr "Хуулбарлалт дууссан."
+#: frappe/core/doctype/role/role.js:63
+msgid "Replicating Role..."
+msgstr "Дүрийг хуулбарлаж байна..."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -23287,6 +23314,10 @@ msgstr "Тайлангийн тайлбар"
 msgid "Report Document Error"
 msgstr "Баримт бичгийн алдааг мэдээлэх"
 
+#: frappe/core/doctype/data_import/data_import.js:210
+msgid "Report Error"
+msgstr "Алдаа мэдээлэх"
+
 #. Name of a DocType
 #: frappe/core/doctype/report_filter/report_filter.json
 msgid "Report Filter"
@@ -23331,7 +23362,7 @@ msgstr "Тайлангийн менежер"
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:39
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2129
+#: frappe/public/js/frappe/views/reports/query_report.js:2143
 msgid "Report Name"
 msgstr "Тайлангийн нэр"
 
@@ -23365,7 +23396,7 @@ msgstr "Тайлангийн төрөл"
 msgid "Report View"
 msgstr "Тайлан харах"
 
-#: frappe/public/js/frappe/form/form.js:1290
+#: frappe/public/js/frappe/form/form.js:1291
 msgid "Report bug"
 msgstr "Алдааг мэдээлэх"
 
@@ -23395,7 +23426,7 @@ msgstr "Тайлангийн хязгаарт хүрсэн"
 msgid "Report timed out."
 msgstr "Тайлангийн хугацаа дууссан."
 
-#: frappe/desk/query_report.py:900
+#: frappe/desk/query_report.py:907
 msgid "Report updated successfully"
 msgstr "Тайланг амжилттай шинэчиллээ"
 
@@ -23403,7 +23434,7 @@ msgstr "Тайланг амжилттай шинэчиллээ"
 msgid "Report was not saved (there were errors)"
 msgstr "Тайлан хадгалагдаагүй (алдаа гарсан)"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2167
+#: frappe/public/js/frappe/views/reports/query_report.js:2181
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "10-аас дээш баганатай тайлан нь Хэвтээ горимд илүү сайн харагддаг."
 
@@ -23769,6 +23800,7 @@ msgstr "Анкет илгээх"
 msgid "Retry"
 msgstr "Дахин оролдох"
 
+#: frappe/email/doctype/email_queue/email_queue.js:28
 #: frappe/email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
 msgstr "Дахин илгээхийг оролдох"
@@ -23898,6 +23930,7 @@ msgid "Role Permissions"
 msgstr "Дүрийн зөвшөөрөл"
 
 #. Label of a Link in the Users Workspace
+#: frappe/core/doctype/role/role.js:21
 #: frappe/core/page/permission_manager/permission_manager.js:4
 #: frappe/core/workspace/users/users.json
 msgid "Role Permissions Manager"
@@ -23921,11 +23954,6 @@ msgstr "Үүргийн профайл"
 #: frappe/core/doctype/user/user.json
 msgid "Role Profiles"
 msgstr "Үүргийн профайлууд"
-
-#. Name of a DocType
-#: frappe/core/doctype/role_replication/role_replication.json
-msgid "Role Replication"
-msgstr "Дүрийн хуулбарлалт"
 
 #. Label of the role_and_level (Section Break) field in DocType 'Custom
 #. DocPerm'
@@ -23994,7 +24022,7 @@ msgstr "Html-ийн үүрэг"
 msgid "Roles can be set for users from their User page."
 msgstr "Хэрэглэгчийн хуудаснаас хэрэглэгчдэд зориулсан үүргийг тохируулж болно."
 
-#: frappe/utils/nestedset.py:297
+#: frappe/utils/nestedset.py:299
 msgid "Root {0} cannot be deleted"
 msgstr "{0} root-г устгах боломжгүй"
 
@@ -24145,7 +24173,7 @@ msgstr "Дүрэм"
 msgid "Rule Conditions"
 msgstr "Дүрмийн нөхцөлүүд"
 
-#: frappe/permissions.py:702
+#: frappe/permissions.py:704
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
 msgstr "Энэ doctype, role, permlevel болон if-owner хослолын дүрэм аль хэдийн байна."
 
@@ -24263,7 +24291,7 @@ msgstr "SQL гаралт"
 msgid "SQL Queries"
 msgstr "SQL Асуултууд"
 
-#: frappe/database/query.py:2155
+#: frappe/database/query.py:2166
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 msgstr "SQL функцуудыг SELECT: {0}дотор тэмдэгт мөр хэлбэрээр ашиглахыг зөвшөөрдөггүй. Үүний оронд {{'COUNT': '*'}} гэх мэт dict синтакс ашиглана уу."
 
@@ -24373,7 +24401,7 @@ msgstr "Бямба гараг"
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
-#: frappe/public/js/frappe/views/reports/query_report.js:2121
+#: frappe/public/js/frappe/views/reports/query_report.js:2135
 #: frappe/public/js/frappe/views/reports/report_view.js:1839
 #: frappe/public/js/frappe/views/workspace/workspace.js:367
 #: frappe/public/js/frappe/widgets/base_widget.js:143
@@ -24396,7 +24424,7 @@ msgstr "Хадгалах"
 msgid "Save Customizations"
 msgstr "Тохируулгыг хадгалах"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2124
+#: frappe/public/js/frappe/views/reports/query_report.js:2138
 msgid "Save Report"
 msgstr "Тайланг хадгалах"
 
@@ -24851,7 +24879,7 @@ msgstr "Security.txt файлын хугацаа удахгүй дуусна!"
 msgid "See all Activity"
 msgstr "Бүх үйл ажиллагааг харах"
 
-#: frappe/public/js/frappe/form/form.js:1298
+#: frappe/public/js/frappe/form/form.js:1299
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.js:4
 msgid "See on Website"
 msgstr "Вэбсайт дээрээс үзнэ үү"
@@ -24938,7 +24966,7 @@ msgid "Select Column"
 msgstr "Баганыг сонгох"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:42
-#: frappe/public/js/frappe/form/print_utils.js:76
+#: frappe/public/js/frappe/form/print_utils.js:90
 msgid "Select Columns"
 msgstr "Багануудыг сонгох"
 
@@ -25279,6 +25307,7 @@ msgid "Send Notifications For Email Threads"
 msgstr "Имэйл сэдвүүдийн талаар мэдэгдэл илгээх"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:21
+#: frappe/email/doctype/email_queue/email_queue.js:7
 msgid "Send Now"
 msgstr "Одоо илгээх"
 
@@ -25511,7 +25540,7 @@ msgstr "{0} цувралыг {1}-д аль хэдийн ашигласан"
 msgid "Server Action"
 msgstr "Серверийн үйлдэл"
 
-#: frappe/app.py:404 frappe/public/js/frappe/request.js:609
+#: frappe/app.py:441 frappe/public/js/frappe/request.js:609
 #: frappe/www/error.html:36 frappe/www/error.py:15
 msgid "Server Error"
 msgstr "Серверийн алдаа"
@@ -25547,7 +25576,7 @@ msgstr "Байршуулах явцад серверийн алдаа гарла
 msgid "Server failed to process this request because of a concurrent conflicting request. Please try again."
 msgstr "Сервер нь нэгэн зэрэг зөрчилтэй хүсэлтийн улмаас энэ хүсэлтийг боловсруулж чадсангүй. Дахин оролдоно уу."
 
-#: frappe/concurrency_limiter.py:103
+#: frappe/concurrency_limiter.py:115
 msgid "Server is busy. Please try again in a few seconds."
 msgstr "Сервер завгүй байна. Хэдэн секундын дараа дахин оролдоно уу."
 
@@ -25590,7 +25619,7 @@ msgstr "Сессийн анхдагч тохиргоонууд"
 msgid "Session Defaults Saved"
 msgstr "Сессийн анхдагч тохиргоог хадгалсан"
 
-#: frappe/app.py:381
+#: frappe/app.py:418
 msgid "Session Expired"
 msgstr "Хурал дууссан"
 
@@ -25653,7 +25682,7 @@ msgstr "Шүүлтүүр тохируулах"
 msgid "Set Filters for {0}"
 msgstr "{0}-д шүүлтүүр тохируулах"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2288
+#: frappe/public/js/frappe/views/reports/query_report.js:2302
 msgid "Set Level"
 msgstr "Түвшинг тохируулах"
 
@@ -25722,7 +25751,7 @@ msgstr "Бүгдийг хувийн болгох"
 msgid "Set all public"
 msgstr "Бүгдийг нийтийн болгох"
 
-#: frappe/printing/doctype/print_format/print_format.js:48
+#: frappe/printing/doctype/print_format/print_format.js:47
 msgid "Set as Default"
 msgstr "Анхдагчаар тохируулах"
 
@@ -25895,7 +25924,7 @@ msgstr "Тохиргоо > Хэрэглэгч"
 msgid "Setup > User Permissions"
 msgstr "Тохиргоо > Хэрэглэгчийн зөвшөөрөл"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1983
+#: frappe/public/js/frappe/views/reports/query_report.js:1995
 #: frappe/public/js/frappe/views/reports/report_view.js:1817
 msgid "Setup Auto Email"
 msgstr "Автомат имэйл тохируулах"
@@ -26010,6 +26039,10 @@ msgstr "Сумыг харуулах"
 msgid "Show Auth Server Metadata"
 msgstr "Баталгаажуулах серверийн мета өгөгдлийг харуулах"
 
+#: frappe/desk/doctype/kanban_board/kanban_board.js:10
+msgid "Show Board"
+msgstr ""
+
 #: frappe/desk/doctype/calendar_view/calendar_view.js:10
 msgid "Show Calendar"
 msgstr "Хуанли харуулах"
@@ -26049,7 +26082,7 @@ msgstr "Алдаа харуулах"
 msgid "Show External Link Warning"
 msgstr "Гадаад холбоосыг харуулах анхааруулга"
 
-#: frappe/public/js/frappe/form/layout.js:597
+#: frappe/public/js/frappe/form/layout.js:599
 msgid "Show Fieldname (click to copy on clipboard)"
 msgstr "Талбарын нэрийг харуулах (clipboard дээр хуулахын тулд дарна уу)"
 
@@ -26197,6 +26230,10 @@ msgstr "Шоуны аялал"
 msgid "Show Traceback"
 msgstr "Мөрийг харуулах"
 
+#: frappe/core/doctype/role/role.js:30
+msgid "Show Users"
+msgstr ""
+
 #. Label of the show_values_over_chart (Check) field in DocType 'Dashboard
 #. Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -26281,8 +26318,8 @@ msgstr "Жагсаалтыг харуулах"
 msgid "Show more"
 msgstr "Дэлгэрэнгүйг харуулах"
 
-#: frappe/public/js/frappe/form/layout.js:286
-#: frappe/public/js/frappe/form/layout.js:301
+#: frappe/public/js/frappe/form/layout.js:288
+#: frappe/public/js/frappe/form/layout.js:303
 msgid "Show more details"
 msgstr "Дэлгэрэнгүй мэдээллийг харуулах"
 
@@ -26906,11 +26943,11 @@ msgstr "Стандарт тайланг зөвхөн хөгжүүлэгчийн 
 msgid "Standard rich text editor with controls"
 msgstr "Хяналттай стандарт баялаг текст засварлагч"
 
-#: frappe/core/doctype/role/role.py:46
+#: frappe/core/doctype/role/role.py:47
 msgid "Standard roles cannot be disabled"
 msgstr "Стандарт үүргүүдийг идэвхгүй болгох боломжгүй"
 
-#: frappe/core/doctype/role/role.py:32
+#: frappe/core/doctype/role/role.py:33
 msgid "Standard roles cannot be renamed"
 msgstr "Стандарт үүргүүдийн нэрийг өөрчлөх боломжгүй"
 
@@ -26929,7 +26966,7 @@ msgstr "Эхлэх"
 #. Label of the start_date (Date) field in DocType 'Audit Trail'
 #. Label of the start_date (Datetime) field in DocType 'Web Page'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:150
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:161
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/public/js/frappe/utils/common.js:364
 #: frappe/website/doctype/web_page/web_page.json
@@ -27279,7 +27316,7 @@ msgstr "Илгээх дараалал"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/public/js/frappe/form/quick_entry.js:255
 #: frappe/public/js/frappe/form/templates/set_sharing.html:4
-#: frappe/public/js/frappe/ui/capture.js:308
+#: frappe/public/js/frappe/ui/capture.js:313
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "Submit"
 msgstr "Илгээх"
@@ -27330,7 +27367,7 @@ msgstr "Товчлуурын шошгыг илгээх"
 
 #. Label of the submit_on_creation (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:132
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:143
 msgid "Submit on Creation"
 msgstr "Бүтээл дээр илгээх"
 
@@ -27338,7 +27375,7 @@ msgstr "Бүтээл дээр илгээх"
 msgid "Submit this document to complete this step."
 msgstr "Энэ алхамыг гүйцээхийн тулд энэ баримт бичгийг илгээнэ үү."
 
-#: frappe/public/js/frappe/form/form.js:1271
+#: frappe/public/js/frappe/form/form.js:1272
 msgid "Submit this document to confirm"
 msgstr "Баталгаажуулахын тулд энэ баримт бичгийг илгээнэ үү"
 
@@ -27355,7 +27392,7 @@ msgstr "{0} баримт бичгийг илгээх үү?"
 msgid "Submitted"
 msgstr "Илгээсэн"
 
-#: frappe/workflow/doctype/workflow/workflow.py:105
+#: frappe/workflow/doctype/workflow/workflow.py:108
 msgid "Submitted Document cannot be converted back to draft. Transition row {0}"
 msgstr "Илгээсэн баримт бичгийг ноорог руу буцаах боломжгүй. Шилжилтийн мөр {0}"
 
@@ -27539,7 +27576,7 @@ msgstr "Дэмжигдсэн хувьсагчууд:"
 msgid "Suspend Sending"
 msgstr "Илгээхийг түр зогсоох"
 
-#: frappe/public/js/frappe/ui/capture.js:277
+#: frappe/public/js/frappe/ui/capture.js:282
 msgid "Switch Camera"
 msgstr "Камерыг солих"
 
@@ -27568,7 +27605,7 @@ msgstr "Frappe CRM руу шилжих"
 msgid "Switch to Helpdesk"
 msgstr "Тусламжийн ширээ рүү шилжих"
 
-#: frappe/public/js/frappe/ui/capture.js:282
+#: frappe/public/js/frappe/ui/capture.js:287
 msgid "Switching Camera"
 msgstr "Камер солих"
 
@@ -27651,7 +27688,7 @@ msgstr "Синк хийж байна"
 msgid "Syncing {0} of {1}"
 msgstr "{1}-с {0} синк хийж байна"
 
-#: frappe/utils/data.py:2692
+#: frappe/utils/data.py:2702
 msgid "Syntax Error"
 msgstr "Синтаксийн алдаа"
 
@@ -27765,7 +27802,6 @@ msgstr "Системийн бүртгэлүүд"
 #: frappe/core/doctype/report/report.json frappe/core/doctype/role/role.json
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 #: frappe/core/doctype/role_profile/role_profile.json
-#: frappe/core/doctype/role_replication/role_replication.json
 #: frappe/core/doctype/rq_job/rq_job.json
 #: frappe/core/doctype/rq_worker/rq_worker.json
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
@@ -27983,7 +28019,7 @@ msgstr "Хүснэгтийн HTML"
 msgid "Table MultiSelect"
 msgstr "Хүснэгтийн олон сонголт"
 
-#: frappe/desk/search.py:341
+#: frappe/desk/search.py:353
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
 msgstr "Table MultiSelect нь дор хаяж нэг Холбоос талбартай хүснэгтийг шаарддаг боловч {0} дотор нэг ч холбоос талбар олдсонгүй"
 
@@ -28024,7 +28060,7 @@ msgstr "Шошгын холбоос"
 msgid "Tags"
 msgstr "Шошго"
 
-#: frappe/public/js/frappe/ui/capture.js:221
+#: frappe/public/js/frappe/ui/capture.js:226
 msgid "Take Photo"
 msgstr "Зураг авах"
 
@@ -28131,7 +28167,7 @@ msgstr "Тестийн ажлын ID"
 msgid "Test Spanish"
 msgstr "Испани хэлний тест"
 
-#: frappe/core/doctype/file/test_file.py:464
+#: frappe/core/doctype/file/test_file.py:508
 msgid "Test_Folder"
 msgstr "Тест_Хавтас"
 
@@ -28227,11 +28263,11 @@ msgstr "Google Cloud Console-оос <a href=\"https://console.cloud.google.com/a
 msgid "The Condition '{0}' is invalid"
 msgstr "'{0}' нөхцөл хүчингүй байна"
 
-#: frappe/core/doctype/file/file.py:299
+#: frappe/core/doctype/file/file.py:305
 msgid "The File URL you've entered is incorrect"
 msgstr "Таны оруулсан файлын URL буруу байна"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:112
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:113
 msgid "The Next Scheduled Date cannot be later than the End Date."
 msgstr "Дараагийн төлөвлөсөн огноо нь Дуусах огнооноос хоцорч болохгүй."
 
@@ -28320,15 +28356,15 @@ msgstr "Сонгосон баримт бичгийн төрөл нь хүүхд�
 msgid "The email button is enabled for the user in the document."
 msgstr "Имэйл товчийг баримт бичигт байгаа хэрэглэгч идэвхжүүлсэн байна."
 
-#: frappe/desk/search.py:354
+#: frappe/desk/search.py:366
 msgid "The field {0} in {1} does not allow ignoring user permissions"
 msgstr "{1} доторх {0} талбар нь хэрэглэгчийн зөвшөөрлийг үл тоомсорлохыг зөвшөөрөхгүй"
 
-#: frappe/desk/search.py:369
+#: frappe/desk/search.py:381
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr "{1} доторх {0} талбар нь {2} руу холбогддог бөгөөд {3} руу холбогддоггүй"
 
-#: frappe/core/doctype/file/file.py:197
+#: frappe/core/doctype/file/file.py:203
 msgid "The fieldname you've specified in Attached To Field is invalid"
 msgstr "Хавсаргасан талбарт таны заасан талбарын нэр хүчингүй байна"
 
@@ -28396,9 +28432,17 @@ msgstr "Google Cloud Console-оос <a href=\"https://console.cloud.google.com/i
 "\"IAM &amp; Админ\" &gt; \"Тохиргоо\"\n"
 "</a> дор авсан төслийн дугаар"
 
-#: frappe/desk/utils.py:110
+#: frappe/public/js/frappe/microtemplate.js:209
+msgid "The report may be too large to render in a single request. Narrow the filters and try again, or use Print and save as PDF from your browser."
+msgstr ""
+
+#: frappe/desk/utils.py:112
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "Таны хүссэн тайланг үүсгэсэн.<br><br>Татаж авахын тулд энд дарна уу:<br><a href='{0}'>{0}</a><br><br>Энэ холбоос {1} цагийн дараа хүчингүй болно."
+
+#: frappe/public/js/frappe/microtemplate.js:286
+msgid "The request could not be completed. Check your connection and try again."
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:1068
 msgid "The reset password link has been expired"
@@ -28408,7 +28452,7 @@ msgstr "Нууц үгийг дахин тохируулах холбоос ху�
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Нууц үгийг дахин тохируулах холбоос өмнө нь ашиглагдаж байсан эсвэл хүчингүй байна"
 
-#: frappe/app.py:396 frappe/public/js/frappe/request.js:147
+#: frappe/app.py:433 frappe/public/js/frappe/request.js:147
 msgid "The resource you are looking for is not available"
 msgstr "Таны хайж буй нөөц байхгүй байна"
 
@@ -28469,7 +28513,7 @@ msgstr "Таны буулгасан утга нь {0} тэмдэгтийн ур�
 msgid "The webhook will be triggered if this expression is true"
 msgstr "Хэрэв энэ илэрхийлэл үнэн бол вэбхук идэвхжинэ"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:183
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:194
 msgid "The {0} is already on auto repeat {1}"
 msgstr "{0} аль хэдийн автоматаар давтагдаж байна {1}"
 
@@ -28538,7 +28582,7 @@ msgstr "\"{}\" гэж нэрлэгдсэн даалгавар байхгүй б�
 msgid "There is nothing new to show you right now."
 msgstr "Одоогоор танд үзүүлэх шинэ зүйл алга."
 
-#: frappe/core/doctype/file/file.py:754 frappe/utils/file_manager.py:372
+#: frappe/core/doctype/file/file.py:761 frappe/utils/file_manager.py:381
 msgid "There is some problem with the file url: {0}"
 msgstr "Файлын url хаягт зарим нэг асуудал байна: {0}"
 
@@ -28607,7 +28651,7 @@ msgstr "Гуравдагч талын аппликейшнууд"
 msgid "Third Party Authentication"
 msgstr "Гуравдагч талын баталгаажуулалт"
 
-#: frappe/geo/doctype/currency/currency.js:8
+#: frappe/geo/doctype/currency/currency.js:7
 msgid "This Currency is disabled. Enable to use in transactions"
 msgstr "Энэ валют идэвхгүй болсон. Гүйлгээнд ашиглахыг идэвхжүүлнэ үү"
 
@@ -28619,7 +28663,7 @@ msgstr "Энэхүү Канбан самбар нь хувийн байх бол
 msgid "This Month"
 msgstr "Энэ сард"
 
-#: frappe/core/doctype/file/file.py:475
+#: frappe/core/doctype/file/file.py:482
 msgid "This PDF cannot be uploaded as it contains unsafe content."
 msgstr "Энэ PDF нь аюултай контент агуулсан тул байршуулах боломжгүй."
 
@@ -28691,11 +28735,11 @@ msgstr "Энэ баримт бичгийг ирүүлэхээр аль хэди�
 msgid "This document has been modified after the email was sent."
 msgstr "Энэ баримт бичигт имэйл илгээсний дараа өөрчлөлт оруулсан."
 
-#: frappe/public/js/frappe/form/form.js:1372
+#: frappe/public/js/frappe/form/form.js:1373
 msgid "This document has unsaved changes which might not appear in final PDF. <br> Consider saving the document before printing."
 msgstr "Энэ баримт бичигт хадгалагдаагүй өөрчлөлтүүд байгаа бөгөөд эдгээр нь эцсийн PDF файлд харагдахгүй байж магадгүй. <br> Хэвлэхээсээ өмнө баримт бичгийг хадгалах талаар бодож үзнэ үү."
 
-#: frappe/public/js/frappe/form/form.js:1143
+#: frappe/public/js/frappe/form/form.js:1144
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "Энэ баримт бичигт аль хэдийн нэмэлт өөрчлөлт орсон тул та дахин нэмэлт өөрчлөлт оруулах боломжгүй."
 
@@ -28729,7 +28773,7 @@ msgstr "Энэ талбар нь зөвхөн энд тодорхойлсон т
 "eval:doc.myfield=='Миний үнэ цэнэ'\n"
 "eval:doc.age&gt;18"
 
-#: frappe/core/doctype/file/file.py:601
+#: frappe/core/doctype/file/file.py:608
 msgid "This file is attached to a protected document and cannot be deleted."
 msgstr "Энэ файл хамгаалагдсан баримт бичигт хавсаргасан бөгөөд устгах боломжгүй."
 
@@ -28741,11 +28785,11 @@ msgstr "Энэ файл нь олон нийтэд нээлттэй бөгөөд
 msgid "This file is public. It can be accessed without authentication."
 msgstr "Энэ файл нь олон нийтэд нээлттэй. Үүнд баталгаажуулалтгүйгээр хандах боломжтой."
 
-#: frappe/public/js/frappe/form/form.js:1249
+#: frappe/public/js/frappe/form/form.js:1250
 msgid "This form has been modified after you have loaded it"
 msgstr "Энэ маягтыг ачаалсны дараа өөрчилсөн байна"
 
-#: frappe/public/js/frappe/form/form.js:2359
+#: frappe/public/js/frappe/form/form.js:2366
 msgid "This form is not editable due to a Workflow."
 msgstr "Ажлын урсгалын улмаас энэ маягтыг засах боломжгүй."
 
@@ -28764,7 +28808,7 @@ msgstr "Энэ газарзүйн байршлын үйлчилгээ үзүүл
 msgid "This goes above the slideshow."
 msgstr "Энэ нь слайд шоунаас дээгүүр байна."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2365
+#: frappe/public/js/frappe/views/reports/query_report.js:2379
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "Энэ бол суурь тайлан юм. Тохирох шүүлтүүрийг тохируулаад дараа нь шинийг үүсгэнэ үү."
 
@@ -29433,9 +29477,9 @@ msgstr "Баруун дээд"
 msgid "Topic"
 msgstr "Сэдэв"
 
-#: frappe/desk/query_report.py:833
+#: frappe/desk/query_report.py:840
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
-#: frappe/public/js/frappe/views/reports/query_report.js:1396
+#: frappe/public/js/frappe/views/reports/query_report.js:1401
 #: frappe/public/js/frappe/views/reports/report_view.js:1647
 msgid "Total"
 msgstr "Нийт"
@@ -29451,7 +29495,7 @@ msgstr "Нийт суурь ажилчид"
 msgid "Total Errors (last 1 day)"
 msgstr "Нийт алдаа (сүүлийн 1 өдөр)"
 
-#: frappe/public/js/frappe/ui/capture.js:260
+#: frappe/public/js/frappe/ui/capture.js:265
 msgid "Total Images"
 msgstr "Нийт зураг"
 
@@ -29593,7 +29637,7 @@ msgstr "Шилжилтүүд"
 msgid "Translatable"
 msgstr "Орчуулж болох"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2427
+#: frappe/public/js/frappe/views/reports/query_report.js:2441
 msgid "Translate Data"
 msgstr "Өгөгдлийг орчуулах"
 
@@ -29870,7 +29914,7 @@ msgstr "Холбоо барих хаяг https:// гэж эхлэх ёстой"
 msgid "URL for documentation or help"
 msgstr "Баримт бичиг эсвэл тусламжийн URL"
 
-#: frappe/core/doctype/file/file.py:310
+#: frappe/core/doctype/file/file.py:316
 msgid "URL must start with http:// or https://"
 msgstr "URL нь http:// эсвэл https:// гэж эхлэх ёстой"
 
@@ -29953,7 +29997,7 @@ msgstr "DocType {0}-г олж чадсангүй"
 msgid "Unable to load attachments."
 msgstr "Хавсралтуудыг ачаалах боломжгүй байна."
 
-#: frappe/public/js/frappe/ui/capture.js:339
+#: frappe/public/js/frappe/ui/capture.js:344
 msgid "Unable to load camera."
 msgstr "Камерыг ачаалах боломжгүй байна."
 
@@ -29977,7 +30021,7 @@ msgstr "Имэйл хаяг байхгүй тул имэйл илгээх бол
 msgid "Unable to update event"
 msgstr "Үйл явдлыг шинэчлэх боломжгүй байна"
 
-#: frappe/core/doctype/file/file.py:565
+#: frappe/core/doctype/file/file.py:572
 msgid "Unable to write file format for {0}"
 msgstr "{0}-н файлын форматыг бичих боломжгүй байна"
 
@@ -29986,7 +30030,7 @@ msgstr "{0}-н файлын форматыг бичих боломжгүй ба�
 msgid "Unassign Condition"
 msgstr "Оноохоо болих нөхцөл"
 
-#: frappe/app.py:404
+#: frappe/app.py:441
 msgid "Uncaught Exception"
 msgstr "Баригдаагүй онцгой тохиолдол"
 
@@ -30038,7 +30082,7 @@ msgstr "Үйлчлүүлэгчийн хөгжүүлэгчийн оноосон �
 "<br>\n"
 "<b>Програм хангамжийн олон хувилбар эсвэл шинэчлэлтүүдэд</b> хэвээр байх ёстой."
 
-#: frappe/website/report/website_analytics/website_analytics.js:60
+#: frappe/website/report/website_analytics/website_analytics.js:55
 msgid "Unknown"
 msgstr "Үл мэдэгдэх"
 
@@ -30046,7 +30090,7 @@ msgstr "Үл мэдэгдэх"
 msgid "Unknown Column: {0}"
 msgstr "Үл мэдэгдэх багана: {0}"
 
-#: frappe/utils/data.py:1255
+#: frappe/utils/data.py:1256
 msgid "Unknown Rounding Method: {}"
 msgstr "Тодорхойгүй бөөрөнхийлөх арга: {}"
 
@@ -30083,7 +30127,7 @@ msgstr "Уншаагүй"
 msgid "Unread Notification Sent"
 msgstr "Уншаагүй мэдэгдэл илгээгдсэн"
 
-#: frappe/utils/safe_exec.py:748 frappe/utils/safe_exec.py:761
+#: frappe/utils/safe_exec.py:750 frappe/utils/safe_exec.py:763
 msgid "Unsafe SQL query"
 msgstr "Аюултай SQL асуулга"
 
@@ -30122,15 +30166,15 @@ msgstr "Параметрүүдийг цуцлах"
 msgid "Unsubscribed"
 msgstr "Бүртгэлээс хасагдсан"
 
-#: frappe/desk/query_report.py:522
+#: frappe/desk/query_report.py:523
 msgid "Unsupported file format: {0}"
 msgstr "Дэмжигдээгүй файлын формат: {0}"
 
-#: frappe/database/query.py:1173
+#: frappe/database/query.py:1184
 msgid "Unsupported function or operator: {0}"
 msgstr "Дэмжигдээгүй функц эсвэл оператор: {0}"
 
-#: frappe/database/query.py:2246
+#: frappe/database/query.py:2257
 msgid "Unsupported {0}: {1}"
 msgstr "Дэмжигдээгүй {0}: {1}"
 
@@ -30490,7 +30534,6 @@ msgstr "OAuth ашигласан"
 #. Label of the user (Link) field in DocType 'Dashboard Settings'
 #. Label of the user (Link) field in DocType 'Desktop Layout'
 #. Label of the user (Link) field in DocType 'Note Seen By'
-#. Label of the user (Link) field in DocType 'Notification Settings'
 #. Label of the user (Link) field in DocType 'Route History'
 #. Label of the user (Link) field in DocType 'Document Follow'
 #. Label of the user (Link) field in DocType 'Google Calendar'
@@ -30522,7 +30565,6 @@ msgstr "OAuth ашигласан"
 #: frappe/desk/doctype/dashboard_settings/dashboard_settings.json
 #: frappe/desk/doctype/desktop_layout/desktop_layout.json
 #: frappe/desk/doctype/note_seen_by/note_seen_by.json
-#: frappe/desk/doctype/notification_settings/notification_settings.json
 #: frappe/desk/doctype/route_history/route_history.json
 #: frappe/email/doctype/document_follow/document_follow.json
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
@@ -30673,7 +30715,7 @@ msgstr "Хэрэглэгчийн зөвшөөрөл"
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2108
+#: frappe/public/js/frappe/views/reports/query_report.js:2122
 #: frappe/public/js/frappe/views/reports/report_view.js:1865
 msgid "User Permissions"
 msgstr "Хэрэглэгчийн зөвшөөрөл"
@@ -30787,11 +30829,11 @@ msgstr "Хэрэглэгч {0} -г идэвхгүй болгох боломжг�
 msgid "User {0} cannot be renamed"
 msgstr "Хэрэглэгчийн {0} нэрийг өөрчлөх боломжгүй"
 
-#: frappe/permissions.py:146
+#: frappe/permissions.py:148
 msgid "User {0} does not have access to this document"
 msgstr "Хэрэглэгч {0} энэ баримт бичигт хандах эрхгүй байна"
 
-#: frappe/permissions.py:171
+#: frappe/permissions.py:173
 msgid "User {0} does not have doctype access via role permission for document {1}"
 msgstr "Хэрэглэгч {0} нь {1} баримт бичгийн үүргийн зөвшөөрлөөр дамжуулан doctype хандалтгүй байна"
 
@@ -31034,7 +31076,7 @@ msgstr "Утга хэтэрхий том байна"
 msgid "Value {0} missing for {1}"
 msgstr "{1}-н хувьд {0} утга дутуу байна"
 
-#: frappe/core/doctype/data_import/importer.py:791 frappe/utils/data.py:868
+#: frappe/core/doctype/data_import/importer.py:791 frappe/utils/data.py:869
 msgid "Value {0} must be in the valid duration format: d h m s"
 msgstr "{0} утга нь хүчинтэй үргэлжлэх хугацааны форматтай байх ёстой: dhms"
 
@@ -31109,6 +31151,7 @@ msgid "Video URL"
 msgstr "Видеоны URL"
 
 #. Label of the view_name (Select) field in DocType 'Form Tour'
+#: frappe/core/doctype/role/role.js:26 frappe/core/doctype/role/role.js:35
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "View"
 msgstr "Харах"
@@ -31858,7 +31901,7 @@ msgstr "Зөвхөн хэсгийн гарчгийг идэвхжүүлсэн т
 msgid "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler."
 msgstr "Идэвхгүй сайтуудын хувьд хуваарьт ажлуудыг өдөрт зөвхөн нэг удаа ажиллуулна. Хуваарь гаргагчийг автоматаар идэвхгүй болгохоос зайлсхийхийн тулд үүнийг 0 болгож тохируулна уу."
 
-#: frappe/public/js/frappe/form/print_utils.js:46
+#: frappe/public/js/frappe/form/print_utils.js:33
 msgid "With Letter head"
 msgstr "Үсгийн толгойтой"
 
@@ -32155,7 +32198,7 @@ msgstr "Y тэнхлэгийн талбарууд"
 
 #. Label of the y_field (Select) field in DocType 'Dashboard Chart Field'
 #: frappe/desk/doctype/dashboard_chart_field/dashboard_chart_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1297
+#: frappe/public/js/frappe/views/reports/query_report.js:1302
 msgid "Y Field"
 msgstr "Y талбар"
 
@@ -32278,11 +32321,11 @@ msgstr "Та интернетэд холбогдсон байна."
 msgid "You are not allowed to access this resource"
 msgstr "Та энэ нөөцөд хандах эрхгүй байна"
 
-#: frappe/permissions.py:456
+#: frappe/permissions.py:458
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
 msgstr "Та энэ {0} бичлэгт хандах эрхгүй, учир нь энэ нь {3} талбарт {1} '{2}' гэсэн тэмдэглэгээтэй холбогдсон байна."
 
-#: frappe/permissions.py:445
+#: frappe/permissions.py:447
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
 msgstr "Та энэ {0} бичлэгт хандах эрхгүй, учир нь энэ нь {3}мөр, {4} талбарт байгаа {1} '{2}'-тэй холбогдсон байна."
 
@@ -32309,7 +32352,7 @@ msgstr "Та тайланг засах эрхгүй."
 #: frappe/core/doctype/data_import/exporter.py:132
 #: frappe/core/doctype/data_import/exporter.py:136
 #: frappe/desk/reportview.py:500 frappe/desk/reportview.py:503
-#: frappe/permissions.py:653
+#: frappe/permissions.py:655
 msgid "You are not allowed to export {} doctype"
 msgstr "Та {} doctype-г экспортлох эрхгүй"
 
@@ -32406,7 +32449,7 @@ msgstr "Энэ хуудсыг судалсны дараа та бүртгэлэ�
 msgid "You can disable this {0} instead of deleting it."
 msgstr "Та үүнийг устгахын оронд {0} -г идэвхгүй болгож болно."
 
-#: frappe/core/doctype/file/file.py:872
+#: frappe/core/doctype/file/file.py:879
 msgid "You can increase the limit from System Settings."
 msgstr "Та Системийн Тохиргооноос хязгаарыг нэмэгдүүлэх боломжтой."
 
@@ -32524,7 +32567,7 @@ msgstr "Та энэ сайтын Үүлэн Тохиргоонд хандах э
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
 msgstr "Танд энэ нөөцөд хандах хангалттай зөвшөөрөл байхгүй байна. Хандалт авахын тулд менежертэйгээ холбогдоно уу."
 
-#: frappe/app.py:389
+#: frappe/app.py:426
 msgid "You do not have enough permissions to complete the action"
 msgstr "Танд үйлдлийг гүйцэтгэх хангалттай зөвшөөрөл байхгүй байна"
 
@@ -32540,11 +32583,11 @@ msgstr "Та хүүхдийн хүснэгтийн талбарт хандах �
 msgid "You do not have permission to access field: {0}"
 msgstr "Та дараах талбарт хандах эрхгүй байна: {0}"
 
-#: frappe/core/doctype/file/file.py:234
+#: frappe/core/doctype/file/file.py:240
 msgid "You do not have permission to access this file"
 msgstr "Та энэ файлд хандах эрхгүй байна"
 
-#: frappe/desk/query_report.py:1183
+#: frappe/desk/query_report.py:1190
 msgid "You do not have permission to access {0}: {1}."
 msgstr "Танд {0}: {1} хаягт хандах зөвшөөрөл байхгүй."
 
@@ -32556,7 +32599,7 @@ msgstr "Танд {0} төрлийн баримт бичиг үүсгэх эсв�
 msgid "You do not have permission to restore this document."
 msgstr "Танд энэ баримт бичгийг сэргээх зөвшөөрөл байхгүй байна."
 
-#: frappe/public/js/frappe/form/form.js:1001
+#: frappe/public/js/frappe/form/form.js:1002
 msgid "You do not have permissions to cancel all linked documents."
 msgstr "Танд бүх холбогдсон баримт бичгийг цуцлах зөвшөөрөл байхгүй."
 
@@ -32589,7 +32632,7 @@ msgstr "Танд {0}-н талаар мэдээлэл авах зөвшөөрө�
 msgid "You don't have permission to print: {0}"
 msgstr ""
 
-#: frappe/utils/file_manager.py:411
+#: frappe/utils/file_manager.py:424
 msgid "You don't have permission to read/attach the file {0}."
 msgstr "Танд {0} файлыг унших/хавсаргах зөвшөөрөл байхгүй байна."
 
@@ -32732,7 +32775,7 @@ msgstr "Та нэгтгэхийн тулд {0} {1} дээр бичих зөвш�
 msgid "You need write permission on {0} {1} to rename"
 msgstr "Нэрийг нь өөрчлөхийн тулд {0} {1} дээр бичих зөвшөөрөл авах шаардлагатай"
 
-#: frappe/utils/file_manager.py:402
+#: frappe/utils/file_manager.py:415
 msgid "You need write permissions to add attachments to this record."
 msgstr "Энэ бичлэгт хавсралт нэмэхийн тулд танд бичих зөвшөөрөл хэрэгтэй."
 
@@ -32860,7 +32903,7 @@ msgstr "Таны Google Хуанли руу холбогдох хүсэлтий�
 msgid "Your email address"
 msgstr "Таны имэйл хаяг"
 
-#: frappe/desk/utils.py:109
+#: frappe/desk/utils.py:111
 msgid "Your exported report: {0}"
 msgstr "Таны экспортолсон тайлан: {0}"
 
@@ -32914,11 +32957,11 @@ msgstr "Таны асуулга хүлээн авагдсан. Бид удахг
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
 msgstr "Таны тайланг ард үүсгэж байна. Бэлэн болмогц та {0} хаягаар татаж авах холбоос бүхий имэйл хүлээн авах болно."
 
-#: frappe/app.py:382
+#: frappe/app.py:419
 msgid "Your session has expired, please login again to continue."
 msgstr "Таны хуралдаан дууссан тул үргэлжлүүлэхийн тулд дахин нэвтэрнэ үү."
 
-#: frappe/utils/data.py:1561
+#: frappe/utils/data.py:1571
 msgid "Zero"
 msgstr "Тэг"
 
@@ -32928,7 +32971,7 @@ msgstr "Тэг"
 msgid "Zero means send records updated at anytime"
 msgstr "Тэг гэдэг нь хүссэн үедээ шинэчлэгдсэн бичлэгүүдийг илгээх гэсэн үг юм"
 
-#: frappe/core/doctype/file/file.py:650 frappe/core/doctype/file/file.py:668
+#: frappe/core/doctype/file/file.py:657 frappe/core/doctype/file/file.py:675
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
 msgstr "Zip файл нь зөвшөөрөгдсөн дээд хэмжээнээс {0} МБ хүртэл татаж авдаг"
 
@@ -32963,7 +33006,7 @@ msgstr "оруулгын дараа"
 msgid "amend"
 msgstr "нэмэлт өөрчлөлт оруулах"
 
-#: frappe/public/js/frappe/utils/utils.js:402 frappe/utils/data.py:1574
+#: frappe/public/js/frappe/utils/utils.js:402 frappe/utils/data.py:1584
 msgid "and"
 msgstr "мөн"
 
@@ -33161,7 +33204,7 @@ msgstr "имэйл"
 msgid "email inbox"
 msgstr "имэйл ирсэн имэйл"
 
-#: frappe/permissions.py:450 frappe/permissions.py:461
+#: frappe/permissions.py:452 frappe/permissions.py:463
 msgid "empty"
 msgstr "хоосон"
 
@@ -33645,7 +33688,7 @@ msgstr "хувилбарын_хүснэгт"
 msgid "via Assignment Rule"
 msgstr "Даалгаврын дүрмээр дамжуулан"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:264
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:282
 msgid "via Auto Repeat"
 msgstr "Автомат давталтаар дамжуулан"
 
@@ -33879,7 +33922,7 @@ msgstr "{0} аль хэдийн захиалгаа цуцалсан"
 msgid "{0} already unsubscribed for {1} {2}"
 msgstr "{0} {1} {2}-н захиалгаа цуцалсан байна"
 
-#: frappe/utils/data.py:1782
+#: frappe/utils/data.py:1792
 msgid "{0} and {1}"
 msgstr "{0} болон {1}"
 
@@ -34028,7 +34071,7 @@ msgstr "{0} ц"
 msgid "{0} has already assigned default value for {1}."
 msgstr "{0} нь {1}-д анхдагч утгыг аль хэдийн өгсөн байна."
 
-#: frappe/database/query.py:1277
+#: frappe/database/query.py:1288
 msgid "{0} has invalid backtick notation: {1}"
 msgstr "{0} нь буруу арын тэмдэглэгээтэй байна: {1}"
 
@@ -34065,7 +34108,7 @@ msgstr "{0} нь {1}-ийн удам юм"
 msgid "{0} is a mandatory field"
 msgstr "{0} нь заавал бөглөх талбар юм"
 
-#: frappe/core/doctype/file/file.py:663
+#: frappe/core/doctype/file/file.py:670
 msgid "{0} is a not a valid zip file"
 msgstr "{0} нь хүчингүй zip файл байна"
 
@@ -34081,7 +34124,7 @@ msgstr "{0} нь {1}-н өвөг дээдэс юм"
 msgid "{0} is an invalid Data field."
 msgstr "{0} нь хүчингүй Өгөгдлийн талбар юм."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:162
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:173
 msgid "{0} is an invalid email address in 'Recipients'"
 msgstr "{0} нь 'Хүлээн авагчид' доторх хүчингүй имэйл хаяг байна"
 
@@ -34194,11 +34237,11 @@ msgstr "{0} нь хүчинтэй Ажлын Урсгалын Төлөв биш 
 msgid "{0} is not a valid field of {1}"
 msgstr "{0} нь {1}-н хүчинтэй талбар биш байна"
 
-#: frappe/permissions.py:845
+#: frappe/permissions.py:847
 msgid "{0} is not a valid parent DocType for {1}"
 msgstr "{0} нь {1}-д хүчинтэй эцэг эхийн DocType биш байна"
 
-#: frappe/permissions.py:865
+#: frappe/permissions.py:867
 msgid "{0} is not a valid parentfield for {1}"
 msgstr "{0} нь {1}-н хүчинтэй эцэг талбар биш байна"
 
@@ -34206,7 +34249,7 @@ msgstr "{0} нь {1}-н хүчинтэй эцэг талбар биш байна
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr "{0} нь хүчин төгөлдөр тайлангийн формат биш байна. Тайлангийн формат нь дараах {1}-ийн аль нэгийг агуулсан байх ёстой."
 
-#: frappe/core/doctype/file/file.py:627
+#: frappe/core/doctype/file/file.py:634
 msgid "{0} is not a zip file"
 msgstr "{0} нь зип файл биш байна"
 
@@ -34368,7 +34411,7 @@ msgstr "{0} үсэгээр эхэлж, төгсөх ёстой бөгөөд зө
 msgid "{0} never sends email, so it cannot be enabled for users."
 msgstr "{0} хэзээ ч имэйл илгээдэггүй тул хэрэглэгчдэд идэвхжүүлэх боломжгүй."
 
-#: frappe/workflow/doctype/workflow/workflow.py:92
+#: frappe/workflow/doctype/workflow/workflow.py:95
 msgid "{0} not a valid State"
 msgstr "{0} хүчинтэй муж биш байна"
 
@@ -34389,12 +34432,12 @@ msgstr "{0} / {1} ({2} хүүхэдтэй мөрүүд)"
 msgid "{0} of {1} records match (filtered on visible rows only)"
 msgstr "{1} бичлэгийн {0} нь таарч байна (зөвхөн харагдах мөрүүд дээр шүүгдсэн)"
 
-#: frappe/utils/data.py:1583
+#: frappe/utils/data.py:1593
 msgctxt "Money in words"
 msgid "{0} only."
 msgstr "зөвхөн {0}."
 
-#: frappe/utils/data.py:1764
+#: frappe/utils/data.py:1774
 msgid "{0} or {1}"
 msgstr "{0} эсвэл {1}"
 
@@ -34465,7 +34508,7 @@ msgctxt "User added rows to child table"
 msgid "{0} rows to {1}"
 msgstr "{0} мөрүүдийг {1} хүртэл"
 
-#: frappe/desk/query_report.py:915
+#: frappe/desk/query_report.py:922
 msgid "{0} saved successfully"
 msgstr "{0} амжилттай хадгалагдлаа"
 
@@ -34489,7 +34532,7 @@ msgstr "{0} энэ баримт бичгийг {1}-тай хуваалцсан"
 msgid "{0} should be indexed because it's referred in dashboard connections"
 msgstr "{0} нь хяналтын самбарын холболтуудад дурдсан тул индексжүүлсэн байх ёстой"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:149
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:160
 msgid "{0} should not be same as {1}"
 msgstr "{0} нь {1}-тай ижил байж болохгүй"
 
@@ -34574,7 +34617,7 @@ msgstr "{0} {1} аль хэдийн байна"
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr "{0} {1} нь \"{2}\" байж болохгүй. Энэ нь \"{3} \"-н нэг байх ёстой."
 
-#: frappe/utils/nestedset.py:357
+#: frappe/utils/nestedset.py:359
 msgid "{0} {1} cannot be a leaf node as it has children"
 msgstr "{0} {1} нь хүүхэдтэй тул навчны зангилаа байж болохгүй"
 
@@ -34582,11 +34625,11 @@ msgstr "{0} {1} нь хүүхэдтэй тул навчны зангилаа б�
 msgid "{0} {1} does not exist, select a new target to merge"
 msgstr "{0} {1} байхгүй байна, нэгтгэх шинэ зорилтот хэсгийг сонгоно уу"
 
-#: frappe/public/js/frappe/form/form.js:992
+#: frappe/public/js/frappe/form/form.js:993
 msgid "{0} {1} is linked with the following submitted documents: {2}"
 msgstr "{0} {1} нь дараах ирүүлсэн баримт бичигтэй холбоотой байна: {2}"
 
-#: frappe/model/document.py:296 frappe/permissions.py:605
+#: frappe/model/document.py:296 frappe/permissions.py:607
 msgid "{0} {1} not found"
 msgstr "{0} {1} олдсонгүй"
 
@@ -34602,7 +34645,7 @@ msgstr "{0}, Мөр {1}"
 msgid "{0}, list item {1} of {2}"
 msgstr "{0}, {2} жагсаалтын {1} зүйл"
 
-#: frappe/utils/data.py:1582
+#: frappe/utils/data.py:1592
 msgctxt "Money in words"
 msgid "{0}."
 msgstr "{0}."
@@ -34643,7 +34686,7 @@ msgstr "{0}: Бичихгүйгээр Илгээх, Цуцлах, Өөрчлөх
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr "{0}: {1} импортлох боломжгүй тул импортыг тохируулж чадахгүй"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:436
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:454
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "{0}: Шинэ давтагдах баримт бичгийг хавсаргаж чадсангүй. Автомат давтагдах мэдэгдлийн имэйлд баримт бичгийг хавсаргахыг идэвхжүүлэхийн тулд Хэвлэх тохиргоо хэсэгт {1} -г идэвхжүүлнэ үү."
 
@@ -34721,7 +34764,7 @@ msgstr "{0}: {1}"
 msgid "{0}: {1} is set to state {2}"
 msgstr "{0}: {1} нь {2} төлөвт тохируулагдсан"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1355
+#: frappe/public/js/frappe/views/reports/query_report.js:1360
 msgid "{0}: {1} vs {2}"
 msgstr "{0}: {1} vs {2}"
 
@@ -34753,15 +34796,15 @@ msgstr "{count} мөрүүд сонгогдсон"
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
 msgstr "{{{0}}} нь хүчинтэй талбарын нэрийн загвар биш байна. Энэ нь {{field_name}} байх ёстой."
 
-#: frappe/public/js/frappe/form/form.js:524
+#: frappe/public/js/frappe/form/form.js:525
 msgid "{} Complete"
 msgstr "{} Дууссан"
 
-#: frappe/utils/data.py:2686
+#: frappe/utils/data.py:2696
 msgid "{} Invalid python code on line {}"
 msgstr "{} мөрөнд Python код буруу байна {}"
 
-#: frappe/utils/data.py:2695
+#: frappe/utils/data.py:2705
 msgid "{} Possibly invalid python code. <br>{}"
 msgstr "{} Python код буруу байж магадгүй. <br>{}"
 
@@ -34778,7 +34821,7 @@ msgstr "{} талбар хоосон байж болохгүй."
 msgid "{} has been disabled. It can only be enabled if {} is checked."
 msgstr "{} идэвхгүй болсон. Үүнийг зөвхөн {}-г сонгосон тохиолдолд л идэвхжүүлэх боломжтой."
 
-#: frappe/utils/data.py:145
+#: frappe/utils/data.py:146
 msgid "{} is not a valid date string."
 msgstr "{} нь хүчинтэй огнооны мөр биш байна."
 

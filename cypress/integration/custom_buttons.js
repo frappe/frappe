@@ -34,6 +34,17 @@ const check_button_count = (label, group = "TestGroup") => {
 	cy.viewport(Cypress.config("viewportWidth"), Cypress.config("viewportHeight"));
 };
 
+const click_frappe_call_button = (label, call_opts) => {
+	const button = `button[data-label="${encodeURIComponent(label)}"]`;
+	cy.intercept(`**/api/method/${call_opts.method}`).as("call");
+	cy.window().then((win) => {
+		win.cur_frm.add_custom_button(label, () => win.frappe.call(call_opts));
+	});
+	cy.get(button).click();
+	cy.wait("@call");
+	cy.get(button).should("not.be.disabled");
+};
+
 describe(
 	"Custom group button behaviour on desk",
 	{ scrollBehavior: false }, // speeds up the test
@@ -56,6 +67,18 @@ describe(
 				add_button(button_name);
 				check_button_count(button_name);
 			});
+		});
+
+		it("Clears the busy state when the callback returns a frappe.call", () => {
+			click_frappe_call_button("Deferred Button", { method: "frappe.auth.get_logged_user" });
+		});
+
+		it("Clears the busy state when the frappe.call fails", () => {
+			click_frappe_call_button("Failing Deferred Button", {
+				method: "frappe.client.get",
+				args: { doctype: "Note", name: "does-not-exist" },
+			});
+			cy.get("@call").its("response.statusCode").should("eq", 404);
 		});
 	}
 );
