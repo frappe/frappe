@@ -1,7 +1,16 @@
 // The rows and the total for one query: one list read per fetched page, the first carrying the
 // count. A changed query is a new list. The pages are a buffer; the page size and Load More
-// decide how much of it shows, and only rows past its end are fetched.
-import { countDocuments, deleteDocument, listDocuments } from "@framework/ui/api";
+// decide how much of it shows, and only rows past its end are fetched. A query the shared cache
+// holds paints its rows and count at once, then reads them again quietly.
+import {
+	countDocuments,
+	deleteDocument,
+	isApiError,
+	listDocuments,
+	type ListEnvelope,
+	type ListQuery,
+} from "@framework/ui/api";
+import { readCachedList, readCachedRows } from "@framework/ui/cache";
 import {
 	computed,
 	onScopeDispose,
@@ -23,8 +32,6 @@ export interface RowsQuery {
 	filters: Record<string, unknown>;
 	orderBy: string;
 	limit: number;
-	/** Rows to show on the first load, when an earlier visit showed more than one page. */
-	restore?: number;
 }
 
 export interface ListRows {
@@ -92,7 +99,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		(key, previous) => {
 			clearTimeout(timer);
 			if (!key) return;
-			if (previous === undefined) return reload(query()!.restore);
+			if (previous === undefined) return reload();
 			timer = window.setTimeout(() => reload(query()!.limit), QUERY_DEBOUNCE_MS);
 		},
 		{ immediate: true }
@@ -123,12 +130,45 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	function reload(target = shown.value) {
 		const current = query();
 		generation++;
+		loadedKey.value = current?.key ?? null;
+		if (current && paintCached(current, target)) return void refresh(current);
 		pages.value = [];
 		shown.value = 0;
 		total.value = { count: null, capped: false, answered: false };
-		loadedKey.value = current?.key ?? null;
-		if (!current) return;
-		show(Math.max(target ?? 0, current.limit));
+		if (current) show(Math.max(target, current.limit));
+	}
+
+	/** False when the cache holds no list for the query; the cached list shows every row it holds. */
+	function paintCached(current: RowsQuery, target: number): boolean {
+		const entry = readCachedList(doctype, listQuery(current));
+		const cached = entry && readCachedRows(doctype, listQuery(current));
+		if (!entry || !cached) return false;
+		pages.value = [landedPage(cached as ListRow[], entry.hasNextPage)];
+		const { count, countCapped } = entry;
+		total.value = { count: count ?? null, capped: countCapped, answered: count !== undefined };
+		shown.value = Math.max(target, cached.length, current.limit);
+		return true;
+	}
+
+	// One read for every row shown, swapped in whole, so the rows and the count change in one step.
+	// A failure keeps the painted rows, unless the list is no longer readable.
+	async function refresh(current: RowsQuery) {
+		const mine = generation;
+		const limit = shown.value;
+		try {
+			const answer = await listDocuments<ListRow>(
+				doctype,
+				{ ...listQuery(current), start: 0, limit },
+				{ include: ["count"] }
+			);
+			if (mine !== generation) return;
+			pages.value = [landedPage(answer.data, answer.has_next_page)];
+			total.value = totalOf(answer);
+			if (shown.value > limit) show(shown.value);
+		} catch (failure) {
+			if (mine !== generation || !isLostAccess(failure)) return;
+			pages.value = [{ data: null, error: failure as Error, hasNextPage: false }];
+		}
 	}
 
 	/** Shows `target` rows: from the buffer where it reaches, fetched past its end. */
@@ -155,22 +195,13 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		try {
 			const answer = await listDocuments<ListRow>(
 				doctype,
-				{
-					fields: current.fields,
-					filters: current.filters,
-					order_by: current.orderBy,
-					start,
-					limit,
-				},
+				{ ...listQuery(current), start, limit },
 				{ include: first ? ["count"] : undefined }
 			);
 			if (mine !== generation) return;
 			page.hasNextPage = answer.has_next_page;
 			page.data = answer.data;
-			if (first) {
-				const capped = Boolean(answer.count_capped);
-				total.value = { count: answer.count ?? null, capped, answered: true };
-			}
+			if (first) total.value = totalOf(answer);
 		} catch (failure) {
 			if (mine !== generation) return;
 			page.error = failure as Error;
@@ -217,4 +248,21 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		countExact,
 		remove: (name) => deleteDocument(doctype, name),
 	};
+}
+
+/** The read's filters, sort and fields: the shared cache keys the list by them. */
+function listQuery(current: RowsQuery): ListQuery {
+	return { fields: current.fields, filters: current.filters, order_by: current.orderBy };
+}
+
+function landedPage(data: ListRow[], hasNextPage: boolean): Page {
+	return reactive<Page>({ data, error: null, hasNextPage });
+}
+
+function totalOf(answer: ListEnvelope<ListRow>): Total {
+	return { count: answer.count ?? null, capped: Boolean(answer.count_capped), answered: true };
+}
+
+function isLostAccess(failure: unknown): boolean {
+	return isApiError(failure) && (failure.status === 403 || failure.status === 404);
 }
