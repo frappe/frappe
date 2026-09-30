@@ -41,6 +41,10 @@ frappe.ui.Stepper = class Stepper {
 		this.nav = document.createElement("nav");
 		this.nav.className = ["es-stepper", opts.css_class].filter(Boolean).join(" ");
 		this.nav.classList.toggle("es-stepper--label-below", Boolean(opts.label_below));
+		if (opts.label_below) {
+			// Caps each label at its share of the row.
+			this.nav.style.setProperty("--es-stepper-steps", this.steps.length);
+		}
 		this.nav.setAttribute("aria-label", opts.label || __("Steps"));
 
 		this.$el = $(this.nav);
@@ -102,9 +106,6 @@ frappe.ui.Stepper = class Stepper {
 			this.render_compact();
 			return;
 		}
-
-		// Label-below mode caps each label at its share of the row.
-		this.nav.style.setProperty("--es-stepper-steps", this.steps.length);
 
 		this.steps.forEach((step, index) => {
 			if (index > 0) {
