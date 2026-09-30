@@ -21,8 +21,9 @@ export interface PaintGateHost {
   permissionsReady: () => Promise<unknown>;
   /** True when the sources and the permissions are already in, so a replay needs no wait. */
   loaded: () => boolean;
-  /** Runs `onRefresh` for each source `ran` does not hold yet, adding it; answers the ones still running. */
-  runRefresh: (ran: Set<Registration>) => LateRefresh[];
+  /** Runs `onRefresh` for each source `ran` does not hold yet, adding it; answers the ones still running.
+   *  Before the sources are in, it skips a registered source a loading one will replace. */
+  runRefresh: (ran: Set<Registration>, beforeSources?: boolean) => LateRefresh[];
   /** Starts the `page.cached` fetches this visit has not made; answers, per source, when they land. */
   fetchCached: () => LateRefresh[];
   /** Runs `onOpen` for these sources, while their acts are held for the commit that follows. */
@@ -135,7 +136,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     late: LateRefresh[],
     ran: Set<Registration>,
   ) {
-    late.push(...host.runRefresh(ran));
+    late.push(...host.runRefresh(ran, true));
     await waitFor("sources", everything);
     host.warnUnknownHandlers();
     late.push(...host.runRefresh(ran));

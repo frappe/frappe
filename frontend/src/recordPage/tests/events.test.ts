@@ -20,8 +20,8 @@ vi.mock("@framework/ui/api", () => ({
 }));
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
-import { registerRecordPage, resetRegistry } from "../registry";
-import { withRegisteringSource } from "../context";
+import { registerRecordPage, registrationsFor, resetRegistry } from "../registry";
+import { HOST_SOURCE, registeringSource, withRegisteringSource } from "../context";
 import { resetCustomizationErrorReports } from "../reportError";
 import { resetRowWarnings } from "../rows";
 import { runMethod as mockedCall } from "@framework/ui/api";
@@ -112,6 +112,41 @@ describe("fireEvent", () => {
     expect(ran).toEqual(["second"]);
     expect(errors).toHaveBeenCalled();
     errors.mockRestore();
+  });
+});
+
+describe("withRegisteringSource", () => {
+  beforeEach(() => resetRegistry());
+
+  it("registers synchronous work under the source, returns its result, and gives the name back", () => {
+    const seen = withRegisteringSource("client-script:S", () => {
+      registerRecordPage("CRM Deal", { onRefresh: () => {} });
+      return registeringSource();
+    });
+    expect(seen).toBe("client-script:S");
+    expect(registrationsFor("CRM Deal").map((one) => one.source)).toEqual(["client-script:S"]);
+    expect(registeringSource()).toBe(HOST_SOURCE);
+  });
+
+  it("gives the name back when synchronous work throws", () => {
+    expect(() =>
+      withRegisteringSource("client-script:S", () => {
+        throw new Error("boom");
+      }),
+    ).toThrow("boom");
+    expect(registeringSource()).toBe(HOST_SOURCE);
+  });
+
+  it("keeps the name until asynchronous work settles", async () => {
+    let finish = () => {};
+    const work = withRegisteringSource(
+      "crm",
+      () => new Promise<void>((resolve) => (finish = resolve)),
+    );
+    expect(registeringSource()).toBe("crm");
+    finish();
+    await work;
+    expect(registeringSource()).toBe(HOST_SOURCE);
   });
 });
 

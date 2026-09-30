@@ -9,6 +9,7 @@ import { evaluateClientScript } from "./evaluateClientScript";
 import { CLIENT_SCRIPT_CHANGED, GET_CLIENT_SCRIPTS } from "./clientScriptTypes";
 import type { ClientScriptRow, ClientScriptsResponse } from "./clientScriptTypes";
 import { registerRecordPage, unregisterSource } from "./registry";
+import type { AuthoredHandlers } from "./types";
 import {
   reportCustomizationError,
   resetCustomizationErrorReports,
@@ -18,8 +19,10 @@ import {
 const TIER_SOURCE = "client-scripts";
 
 const tiers = new Map<string, Promise<void>>();
-const loadedTiers = new WeakSet<Promise<void>>();
+// The sources each doctype's registered tier holds; a doctype is absent until its first tier lands.
 const sources = new Map<string, string[]>();
+// Changed on the server: the registered tier stays until a fresh one replaces it.
+const stale = new Set<string>();
 const toasted = new Set<string>();
 // The shared toast channel; the compatibility layer reports a removal hit through it.
 const notified = new Set<string>();
@@ -40,9 +43,9 @@ export function clientScriptChanges(doctype: string): number {
   return changes.get(doctype) ?? 0;
 }
 
-/** Drops the cached tier so the next load re-reads, and moves the doctype's change count. */
+/** Marks the tier stale so the next load re-reads, and moves the doctype's change count. */
 export function invalidateClientScripts(doctype: string) {
-  tiers.delete(doctype);
+  stale.add(doctype);
   changes.set(doctype, clientScriptChanges(doctype) + 1);
 }
 
@@ -68,32 +71,36 @@ export function clientScriptWait(doctype: string): string | null {
   return waits.get(doctype) ?? null;
 }
 
-/** Resolves when the doctype's tier has registered; one fetch per doctype. */
+/** Resolves when the doctype's fresh tier has registered; one fetch per doctype until it goes stale. */
 export function loadClientScripts(doctype: string): Promise<void> {
-  const loading = tiers.get(doctype) ?? trackTier(buildTier(doctype));
+  const current = tiers.get(doctype);
+  if (current && !stale.has(doctype)) return current;
+  stale.delete(doctype);
+  const loading = buildTier(doctype);
   tiers.set(doctype, loading);
   return loading;
 }
 
-/** True once the doctype's tier has registered and nothing has dropped it since. */
+/** True once a tier of the doctype has registered, stale or fresh. */
 export function clientScriptsLoaded(doctype: string): boolean {
-  const loading = tiers.get(doctype);
-  return Boolean(loading && loadedTiers.has(loading));
+  return sources.has(doctype);
 }
 
-function trackTier(loading: Promise<void>) {
-  loading.then(() => loadedTiers.add(loading), () => {});
-  return loading;
+/** The sources of a registered tier that a build in flight will replace; a replay waiting for it skips them. */
+export function replacedClientScripts(doctype: string): ReadonlySet<string> {
+  return waits.has(doctype) ? new Set(sources.get(doctype)) : new Set();
 }
 
-/** Drops the cached tier and builds it again — a saved or deleted script. */
+/** Builds the tier again, keeping the registered one until it lands: a saved or deleted script. */
 export function reloadClientScripts(doctype: string): Promise<void> {
-  tiers.delete(doctype);
+  stale.add(doctype);
   return loadClientScripts(doctype);
 }
 
 export function resetClientScripts() {
   for (const doctype of sources.keys()) clearTier(doctype);
+  sources.clear();
+  stale.clear();
   tiers.clear();
   changes.clear();
   builds.clear();
@@ -104,23 +111,39 @@ export function resetClientScripts() {
   writable.value = false;
 }
 
+interface CompiledScript {
+  row: ClientScriptRow;
+  handlers: AuthoredHandlers;
+}
+
+// Every script compiles before any registers, so a replay meets the old tier or the new one, never a mix.
 async function buildTier(doctype: string) {
   const build = (builds.get(doctype) ?? 0) + 1;
   builds.set(doctype, build);
-  clearTier(doctype);
+  const current = () => builds.get(doctype) === build;
 
   waits.set(doctype, `the Client Script list for ${doctype}`);
   const response = await fetchScripts(doctype);
-  if (builds.get(doctype) !== build) return;
+  if (!current()) return;
+  if (!response && sources.has(doctype)) {
+    // A failed re-read keeps the registered tier, and the next load tries again.
+    stale.add(doctype);
+    waits.delete(doctype);
+    return;
+  }
   // Only an answer the server actually gave: a failed fetch must not read as
   // "no permission" and retract the editor's entry point.
   if (response) writable.value = response.can_write;
+  const compiled: CompiledScript[] = [];
   for (const row of response?.scripts ?? []) {
-    if (builds.get(doctype) !== build) return;
+    if (!current()) return;
     waits.set(doctype, `${sourceName(row.name)} to load`);
-    await addScript(doctype, row, response!.can_write);
+    const handlers = await compileScript(doctype, row, response!.can_write);
+    if (handlers) compiled.push({ row, handlers });
   }
-  if (builds.get(doctype) === build) waits.delete(doctype);
+  if (!current()) return;
+  swapTier(doctype, compiled, response?.can_write ?? false);
+  waits.delete(doctype);
 }
 
 /** Null when the tier could not be fetched — distinct from an empty tier. */
@@ -147,21 +170,34 @@ async function fetchScripts(
 }
 
 // A script that fails to load is skipped whole; the rest of the tier still runs.
-async function addScript(
+async function compileScript(
   doctype: string,
   row: ClientScriptRow,
   canWrite: boolean,
-) {
-  const source = sourceName(row.name);
+): Promise<AuthoredHandlers | null> {
   try {
-    const handlers = await evaluateClientScript(row);
-    await withRegisteringSource(source, async () =>
-      registerRecordPage(doctype, handlers),
-    );
-    sources.get(doctype)?.push(source);
+    return await evaluateClientScript(row);
   } catch (error) {
     reportFailure(doctype, row.name, error, canWrite);
+    return null;
   }
+}
+
+/** The old tier's sources go and the new tier's register, in one synchronous step. */
+function swapTier(doctype: string, compiled: CompiledScript[], canWrite: boolean) {
+  clearTier(doctype);
+  const registered: string[] = [];
+  for (const { row, handlers } of compiled) {
+    const source = sourceName(row.name);
+    try {
+      withRegisteringSource(source, () => registerRecordPage(doctype, handlers));
+      registered.push(source);
+    } catch (error) {
+      unregisterSource(source);
+      reportFailure(doctype, row.name, error, canWrite);
+    }
+  }
+  sources.set(doctype, registered);
 }
 
 function reportFailure(
@@ -183,7 +219,6 @@ function reportFailure(
 
 function clearTier(doctype: string) {
   for (const source of sources.get(doctype) ?? []) unregisterSource(source);
-  sources.set(doctype, []);
 }
 
 function sourceName(name: string) {

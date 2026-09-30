@@ -11,8 +11,16 @@ Its `onRefresh` draws a header item with the doctype's row count, read with
 so if the site already has another script of that name, the walk stops. The `script` column counts how
 many times that item is drawn on a record step.
 
+After those steps the walk goes to the list twice more. The first time, it saves version `v2`
+of its Client Script. The second time, it saves a Quick Entry Form Layout on the doctype,
+which the record page does not show, and deletes it at the end. The server tells the desk
+about each change. Each time, the walk then opens the record again. Each run starts with
+version `v1` of the script.
+
 A return step fails when it shows a skeleton, draws any field or row more than once, or
-does not settle in time. A return step on the record also fails when the script's item is
+does not settle in time. A return to the record after a change also fails when the script's
+item does not end on its `v2` label, is drawn more than twice, or is drawn without the count.
+After the Form Layout save, it also fails when the page did not read the doctype's meta again. A return step on the record also fails when the script's item is
 drawn more than once, is ever drawn without the count, or is missing at the end. The walk is
 run by hand, not in CI. It is expected to fail until the desk caches what a return visit
 needs.

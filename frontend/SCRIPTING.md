@@ -93,7 +93,10 @@ visit paints first, so the move shows after the paint. On a first visit whose sc
 after the 500 ms limit, `onOpen` runs after their ops land. What `onOpen` does after
 its own `await` is not held: each act lands when it is made. Draw in `onRefresh`, not in
 `onOpen`: the next replay rebuilds every surface, so an item `onOpen` adds does not last. A
-script saved while the page is open runs its `onOpen` on the next visit.
+script saved while the page is open runs its `onOpen` on the next visit. A return visit
+just after a save paints with the old version and runs its `onOpen`. The new version's
+`onRefresh` then draws in the same step as the record's re-read, and its `onOpen` runs on
+the visit after that.
 
 ```js
 export default {

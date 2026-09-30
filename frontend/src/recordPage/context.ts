@@ -14,12 +14,18 @@ export function runningSource() {
 	return running.at(-1) ?? HOST_SOURCE;
 }
 
-export async function withRegisteringSource(source: string, work: () => Promise<any>) {
+/** Registers as `source`; a promise `work` returns keeps the name until it settles. */
+export function withRegisteringSource<T>(source: string, work: () => T): T {
 	registering = source;
+	const done = () => void (registering = HOST_SOURCE);
 	try {
-		await work();
-	} finally {
-		registering = HOST_SOURCE;
+		const result = work();
+		if (result instanceof Promise) return result.finally(done) as T;
+		done();
+		return result;
+	} catch (error) {
+		done();
+		throw error;
 	}
 }
 

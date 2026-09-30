@@ -32,14 +32,18 @@ vi.mock("@/contributions/registry", () => ({
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import {
+	markDoctypeMetaStale,
+	resetDoctypeMeta,
+	useDoctypeMeta,
+} from "@framework/ui/composables/useDoctypeMeta";
 import { setSession } from "@framework/ui/composables/useSession";
 import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
 import { forgetRows, readListMemory, recallRows, writeListMemory } from "../pageState";
 import { useListPage, type ListPage } from "../useListPage";
-import { resetListSettings, useListSettings } from "../useListSettings";
+import { markListSettingsStale, resetListSettings, useListSettings } from "../useListSettings";
 
 const SETTINGS_API = "frappe.desk.doctype.doctype_view.api";
 
@@ -616,5 +620,55 @@ describe("deleteSelection", () => {
 		expect(outcome).toEqual({ deleted: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] });
 		expect(page.selection.value).toEqual([]);
 		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
+	});
+});
+
+describe("after a DocType change", () => {
+	/** The first visit, then the change: the next mount shows the stale meta and settings. */
+	async function changeWhileAway() {
+		fake.tiers = { site: null, user: { columns: [{ fieldname: "status" }, { fieldname: "title" }] } };
+		await mount("/lead");
+		app?.unmount();
+		markDoctypeMetaStale("Lead");
+		markListSettingsStale("Lead");
+		fake.meta = { ...fake.meta!, fields: FIELDS.map((f) => (f.fieldname === "status" ? { ...f, label: "Stage" } : f)) };
+		fake.tiers = { site: { sort: [{ fieldname: "title", direction: "desc" }] }, user: { columns: [{ fieldname: "amount" }] } };
+		let answerSettings!: () => void;
+		fake.runMethod.mockImplementationOnce(
+			(method: string, args: Record<string, any>) =>
+				new Promise((done) => (answerSettings = () => done(answer(method, args))))
+		);
+		await mount("/lead");
+		return () => answerSettings();
+	}
+
+	it("shows the stale columns at once, then the fresh meta, columns and sort in one step", async () => {
+		const answerSettings = await changeWhileAway();
+		expect(page.seeded.value).toBe(true);
+		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["status", "title"]);
+		expect(useDoctypeMeta("Lead").meta.value!.fields![1].label).toBe("Status");
+
+		const seen: string[] = [];
+		watch(
+			[page.columns, page.sort, () => useDoctypeMeta("Lead").meta.value?.fields?.[1].label],
+			([columns, sort, label]) =>
+				seen.push(`${columns.map((c) => c.fieldname)}|${sort.map((s) => s.fieldname)}|${label}`)
+		);
+		answerSettings();
+		await settle();
+
+		expect(seen).toEqual(["amount|title|Stage"]);
+		expect(writes()).toEqual([]);
+	});
+
+	it("keeps a column the person changed before the fresh settings arrived", async () => {
+		const answerSettings = await changeWhileAway();
+		page.columns.value = page.columns.value.filter((c) => c.fieldname === "title");
+		await settle();
+
+		answerSettings();
+		await settle();
+
+		expect(page.columns.value.map((c) => c.fieldname)).toEqual(["title"]);
 	});
 });

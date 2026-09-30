@@ -182,7 +182,8 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Session calls (`getSession`, `logout`, `getTranslations`) | The signed-in user, sign-out, and translations |
 | Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 50. `holdDocument` keeps an entry past every limit while a field on screen shows it. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
-| Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`) | Fetches and holds each doctype's meta. Clears itself on `doctype_update` |
+| Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one |
+| Fresh-value hold (`holdFresh`, `landFresh`) | A stale memo's fresh value shows as soon as it arrives. While a page holds fresh values, they show together when it lets go, in the same step as the page's own reads |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
 | Socket input | *Changed.* The app hands `ui/` its socket, and `ui/` joins record rooms on it. `ui/` warns when there is none |
 | Translate function | *New.* `ui/`'s own `__`, which works without the desk's boot version |
@@ -275,7 +276,7 @@ component group, with its main names.
 | --- | --- |
 | `useListPage` | Everything a list page needs: meta, columns, filters, sort, rows, settings, delete |
 | `useListRows` | Rows and a total for one query, a page at a time |
-| List settings (`useListSettings`) | Saved columns, sort and quick filters, per user or site. Clears itself on `doctype_update` |
+| List settings (`useListSettings`, `markListSettingsStale`) | Saved columns, sort and quick filters, per user or site. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Stored settings | Converts saved settings to live columns, sort and quick filters, and drops fields the user cannot read |
 | List address (`queryFromAddress`, `addressFromQuery`) | How filters and sort are written into the address |
 | List defaults | Default columns and sort for a doctype, with app columns |
@@ -301,8 +302,8 @@ component group, with its main names.
 | Header projection | Turns the header list into two zones, nesting and overflow |
 | Frame and body projection | Orders frame bands and works out body column widths |
 | Form join | Joins the Details layout with the parts a script adds |
-| Form layout source (`useFormLayout`) | One fetch per doctype and layout type; picks the matching row. Clears itself on `doctype_update` |
-| Script loader | One loader per doctype for file scripts and stored scripts. Reloads when a stored script changes |
+| Form layout source (`useFormLayout`, `markFormLayoutsStale`) | One fetch per doctype and layout type; picks the matching row. On `doctype_update` it keeps the old rows on show and reads fresh ones |
+| Script loader | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
 | Page permissions | Rights, roles and field access, ready before handlers run |
 | Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
@@ -494,8 +495,8 @@ size; on a return visit, skeleton frames and time until usable.
 | 1 | A sidebar row's link, built with `routeFor`, is clicked | 6, 5 | None | None |
 | 2 | The router checks the slug against the address table | 6 | None: an address check, not a permission check | Browser memory |
 | 3 | The address and the frame change at once. The page shows its skeleton while the registered page's code loads. The shell picks the sidebar for the new address | 6 | None | Loaded pages in browser memory. Sidebar memory per tab, by address and user |
-| 4 | The list page asks for the doctype's meta. Roles come from the session | 7, 3 | Any signed-in user | Browser memory, by doctype; cleared on `doctype_update` |
-| 5 | The list loads its saved settings (the site row and the user's row) and works out columns, sort and quick filters | 7, 3 | Read on the doctype; System Manager for the site row. **Browser**: columns on fields the user cannot read are dropped | Browser memory, by doctype; cleared on `doctype_update` |
+| 4 | The list page asks for the doctype's meta. Roles come from the session | 7, 3 | Any signed-in user | Browser memory, by doctype; marked stale on `doctype_update` |
+| 5 | The list loads its saved settings (the site row and the user's row) and works out columns, sort and quick filters | 7, 3 | Read on the doctype; System Manager for the site row. **Browser**: columns on fields the user cannot read are dropped | Browser memory, by doctype; marked stale on `doctype_update` |
 | 6 | The rows are read, with the count on the first page | 7, 3, 1 | Doctype read, row rules and field permissions in the query | Data cache, by doctype and query. Rows memory, by doctype. Page size and scroll in the history entry |
 | 7 | The rows paint and the scroll is restored. The column and sort panels load only when opened. An empty or failed read shows a page state | 4, 7, 8 | None | As step 6 |
 
@@ -508,7 +509,7 @@ skeleton frames, time until usable, re-reads.
 | --- | --- | --- | --- | --- |
 | 1 | The row link goes through the same router steps as the list. The frame changes at once | 6 | None | Loaded pages in browser memory |
 | 2 | The record page starts a visit: skeletons, the last form tab, and the record's room | 8, 3 | Realtime server: read permission on the room | Per-user browser memory: form tab by doctype |
-| 3 | In parallel, the script loader starts (see the last flow) and the two form layouts load | 7, 3 | Layouts: read on the doctype | Scripts by doctype, dropped on `client_script_changed`; layouts by doctype and type, cleared on `doctype_update` |
+| 3 | In parallel, the script loader starts (see the last flow) and the two form layouts load | 7, 3 | Layouts: read on the doctype | Scripts by doctype, marked stale on `client_script_changed`; layouts by doctype and type, marked stale on `doctype_update` |
 | 4a | Return visit: if memory holds every part the visit needs, the page paints from memory at once, then re-reads. Background reads land in one repaint | 8, 3 | None before the paint. The re-read carries the server check. A refusal shows the "no permission" page state | Data cache, by doctype and name |
 | 4b | First visit: the activity read starts beside the record read | 8, 3 | Read permission on the record | Activity store, by record |
 | 5 | The record is read with its parts and meta, and goes into the data cache | 8, 3, 1 | Read permission and field-level read rules | Data cache, by doctype and name; meta by doctype |
@@ -548,7 +549,7 @@ that copy in the same tab, and the page shows "no permission" once the server re
 | 4 | The loader keeps the write answer. Only a script writer sees failure toasts and the editor entry | 7 | **Browser**. The server checks `Client Script` write on save | Browser memory |
 | 5 | Each script loads as a module; its bare imports resolve through the import list. Its handlers register under its name, beside the app's file scripts. A failing script is skipped and reported | 7, 9 | None | Browser module map |
 | 6 | The engine holds the first paint until the scripts are in or 500 ms pass, then replays | 7 | A script's own checks on `page.roles` or `page.perms` only change what is shown | None |
-| 7 | A saved, reordered or deleted script sends `client_script_changed` to the site room. The loader drops its entry, and an open record page with no unsaved edits re-runs its scripts | 1, 7, 8 | The site room admits System Users only | The doctype's entry is dropped |
+| 7 | A saved, reordered or deleted script sends `client_script_changed` to the site room. The loader marks its entry stale, and an open record page with no unsaved edits re-runs its scripts. The next load keeps the old scripts until the new ones have compiled | 1, 7, 8 | The site room admits System Users only | The doctype's entry is marked stale |
 
 **Budget:** the first paint waits at most 500 ms for stored scripts.
 
@@ -651,7 +652,7 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | `routeFor` is in `router/` and the item contract is in `navigation/types.ts` | Both move to layer 5 | New map |
 | `contributions/registry.ts` imports `@/recordPage` to hand over record handlers | The registry no longer imports the engine | Build and publishing |
 | `shell/ComposerWindow.vue` imports the writers from `pages/record/composer/`; `shell/composer.ts` imports types from `@/recordPage` | The record page registers its writers | Activity column |
-| `shell/doctypeUpdates.ts` imports the layout and list settings caches | Each cache clears itself on `doctype_update` | Build and publishing |
+| `shell/doctypeUpdates.ts` imports the layout and list settings caches | Each cache marks itself stale on `doctype_update` | Build and publishing |
 | `router/generated.ts` and `router/standardPages.ts` import the pages | The router reads page registrations | New map |
 | `main.ts` sets the record page's icon and prop hooks | The record page sets them when it registers | Build and publishing |
 | `useSession`, `useDoctypeMeta`, `useDocPermissions` and `useUserRoles` sit in the component layer | They move to `ui` data | @framework/ui |
