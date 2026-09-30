@@ -48,11 +48,12 @@ because no tab was shown before it.
 
 `onOpen` runs once per visit, after the first replay has drawn, and never on a replay. It is
 the place for a one-time move: `page.tabs.activate`, `page.panelSections.open`,
-`page.fields.focus`, `page.activity.scrollTo` and `page.composer.open`. Its acts land in the
-same step as the first paint, so the page opens on the tab it chose and fires no
-`onTabChange`. It sees what every `onRefresh` drew. When a source's `onRefresh` awaits, that
-source's `onOpen` runs after the part after the `await` lands, and on a first visit whose
-scripts arrive after the 500 ms limit, it runs after their ops land. What `onOpen` does after
+`page.fields.focus`, `page.activity.scrollTo` and `page.composer.open`. Scripts run it in
+`run_order`, so on one move the last script wins. Its acts land in the same step as the first
+paint, so the page opens on the tab it chose and fires no `onTabChange`. It sees what every
+`onRefresh` drew. When an `onRefresh` awaits, every `onOpen` runs after the part after that
+`await` lands, and on a first visit whose scripts arrive after the 500 ms limit, it runs after
+their ops land. What `onOpen` does after
 its own `await` is not held: each act lands when it is made. Draw in `onRefresh`, not in
 `onOpen`: the next replay rebuilds every surface, so an item `onOpen` adds does not last. A
 script saved while the page is open runs its `onOpen` on the next visit.

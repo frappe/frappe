@@ -242,8 +242,9 @@ _Avoid_: re-render, refresh (`page.refresh()`, the `onRefresh` event and the rep
 three names for one operation — prefer "replay" for the mechanism).
 
 **Hold**:
-One paint for a handler's ops, published when it finishes. Every event but `onRefresh` and
-`onOpen` runs inside a hold (`onOpen` stages with the first replay's commit instead), and so does each host call into script code (`controller.hold`). A hold starts
+One paint for a handler's ops, published when it finishes. Every event but `onRefresh` runs
+inside a hold, and so does each host call into script code (`controller.hold`). `onOpen`'s
+synchronous part runs in a hold opened after the first replay commits. A hold starts
 from what is drawn, where a replay starts from built-ins; its acts wait for its commit.
 _Avoid_: batch, transaction.
 

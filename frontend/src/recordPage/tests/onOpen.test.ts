@@ -173,6 +173,56 @@ describe("onOpen on a return visit", () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(seen).toEqual([true]);
   });
+
+  it("runs every source's onOpen in run order once the awaiting part lands, so the later tier wins", async () => {
+    const pause = gate();
+    const seen: string[] = [];
+    await register("app", {
+      onRefresh: async () => {
+        await pause.opened;
+      },
+      onOpen: (page: RecordPageApi) => {
+        seen.push("app");
+        page.tabs.activate("details");
+      },
+    });
+    await register("client-script:site", {
+      onOpen: (page: RecordPageApi) => {
+        seen.push("site");
+        page.tabs.activate("files");
+      },
+    });
+    const { controller, moved } = await loadedPage();
+
+    controller.paintNow();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual([]);
+
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual(["app", "site"]);
+    expect(moved).toEqual(["files"]);
+  });
+
+  it("runs nothing when the reader leaves while an onRefresh part is still awaiting", async () => {
+    const pause = gate();
+    const { calls, handlers } = counting();
+    await register("slow", {
+      onRefresh: async () => {
+        await pause.opened;
+      },
+    });
+    await register("deal", handlers);
+    const { controller, moved } = await loadedPage();
+
+    controller.paintNow();
+    controller.leave();
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(calls.onOpen).toBe(0);
+    expect(moved).toEqual([]);
+  });
 });
 
 describe("onOpen on a first visit", () => {
@@ -190,6 +240,27 @@ describe("onOpen on a first visit", () => {
 
     await controller.refresh();
     expect(calls).toEqual({ onRefresh: 2, onOpen: 1 });
+  });
+
+  it("runs once when an onRefresh calls page.refresh() during the first load", async () => {
+    const { calls, handlers } = counting();
+    let nested = false;
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        handlers.onRefresh(page);
+        if (nested) return;
+        nested = true;
+        void page.refresh();
+      },
+      onOpen: handlers.onOpen,
+    });
+    const { controller, moved } = makePage();
+
+    await controller.refresh();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(calls).toEqual({ onRefresh: 2, onOpen: 1 });
+    expect(moved).toEqual(["files"]);
   });
 
   it("runs a late script's onOpen after that script's ops land, not at the early paint", async () => {
@@ -251,7 +322,7 @@ describe("onOpen's errors and awaits", () => {
     );
   });
 
-  it("lands an act made after an await at once, and nothing once the reader has left", async () => {
+  it("lands an act made after an await at once", async () => {
     const pause = gate();
     await register("deal", {
       onOpen: async (page: RecordPageApi) => {
@@ -259,26 +330,28 @@ describe("onOpen's errors and awaits", () => {
         page.tabs.activate("files");
       },
     });
-    const first = await loadedPage();
-    first.controller.paintNow();
+    const { controller, moved } = await loadedPage();
+    controller.paintNow();
 
     pause.open();
     await vi.advanceTimersByTimeAsync(0);
-    expect(first.moved).toEqual(["files"]);
+    expect(moved).toEqual(["files"]);
+  });
 
-    const later = gate();
-    resetRegistry();
+  it("lands no act made after an await once the reader has left", async () => {
+    const pause = gate();
     await register("deal", {
       onOpen: async (page: RecordPageApi) => {
-        await later.opened;
+        await pause.opened;
         page.tabs.activate("files");
       },
     });
-    const second = await loadedPage();
-    second.controller.paintNow();
-    second.controller.leave();
-    later.open();
+    const { controller, moved } = await loadedPage();
+    controller.paintNow();
+
+    controller.leave();
+    pause.open();
     await vi.advanceTimersByTimeAsync(0);
-    expect(second.moved).toEqual([]);
+    expect(moved).toEqual([]);
   });
 });
