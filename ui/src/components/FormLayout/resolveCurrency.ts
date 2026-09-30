@@ -1,8 +1,4 @@
-/**
- * Currency-code resolution for `FormLayout`'s `Currency` fields, mirroring Frappe
- * desk's `frappe.meta.get_field_currency`. The cross-record read goes through an
- * overridable `getDocValue` seam (built-in reader below, over the shared data cache).
- */
+// A Currency field's currency code, as desk's `frappe.meta.get_field_currency` finds it.
 import { getCurrentScope, onScopeDispose, shallowRef } from "vue";
 import { getDocumentFields } from "../../api";
 import { holdDocument, readCachedDocument } from "../../cache";
@@ -34,7 +30,6 @@ const readers = new Map<string, { count: number; release: () => void }>();
 export function useDocValueReader(): DocValueReader {
   // With no scope nothing would release the value, so the reader reads the cache alone.
   if (!getCurrentScope()) return (...args) => getDocValueReader()(...args);
-  // One linked record per doctype and field: a changed link lets go of the old one.
   const used = new Map<string, string>();
   onScopeDispose(() => used.forEach(release));
   return (doctype, name, field) => {
@@ -70,7 +65,6 @@ function use(key: string, doctype: string, name: string, field: string): void {
     return;
   }
   readers.set(key, { count: 1, release: holdDocument(doctype, name) });
-  // A failed read leaves the entry as it was; the next visit reads again.
   if (typeof window !== "undefined") getDocumentFields(doctype, name, [field]).catch(() => {});
 }
 

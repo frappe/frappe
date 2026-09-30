@@ -121,7 +121,7 @@ export class DataCache {
     this.evictFieldReads();
   }
 
-  /** A field on screen shows the entry, so no limit drops it until the field lets go. */
+  /** Keeps the entry past every limit while a field on screen shows it. */
   hold(doctype: string, name: string): void {
     this.shown.add(doctype, [name]);
   }
