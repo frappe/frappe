@@ -74,15 +74,12 @@ const CLICK_AFTER_PRESS_MS = 300;
 let last_pointerdown_at = 0;
 // a finger opened it: focusing a text box would raise the phone's keyboard
 let last_press_touch = false;
-document.addEventListener("pointerdown", (e) => (last_press_touch = e.pointerType === "touch"), {
-	capture: true,
-	passive: true,
-});
-// record both press and click so a long press still counts
+// one listener per page for every combobox; record both press and click so a long press still counts
 for (const type of ["pointerdown", "click"]) {
 	document.addEventListener(
 		type,
 		(e) => {
+			if (type === "pointerdown") last_press_touch = e.pointerType === "touch";
 			// ignore presses inside the panel
 			if (e.target.closest && e.target.closest(".es-combobox__panel")) return;
 			last_pointerdown_at = Date.now();

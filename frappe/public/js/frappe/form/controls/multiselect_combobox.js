@@ -359,4 +359,13 @@ frappe.ui.form.ControlMultiSelectCombobox = class ControlMultiSelectCombobox ext
 	allows_free_text() {
 		return !!this.df.ignore_validation || !this.loaded_rows().length;
 	}
+
+	// as the classic control: with a fixed option list, every value must be in it
+	validate(value) {
+		const searched = this.get_query || this.df.get_query;
+		if (this.df.ignore_validation || !this.df.options || searched) return value;
+		const valid = this.loaded_rows().map((d) => d.value);
+		if (!valid.length) return value;
+		return this.to_values(value).every((v) => valid.includes(v)) ? value : "";
+	}
 };

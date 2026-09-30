@@ -99,9 +99,20 @@ frappe.ui.MultiCombobox = class MultiCombobox extends frappe.ui.Combobox {
 		);
 
 		if (this.opts.one_line) {
-			this.fit_observer = new ResizeObserver(() => this.fit_pills());
-			this.fit_observer.observe(t);
+			// a removed field stops being watched, so it can be freed
+			this.fit_observer = new ResizeObserver(() => {
+				if (t.isConnected) return this.fit_pills();
+				this.fit_observer.disconnect();
+				this.fit_watching = false;
+			});
+			this.watch_width();
 		}
+	}
+
+	watch_width() {
+		if (this.fit_watching) return;
+		this.fit_observer.observe(this.trigger_el);
+		this.fit_watching = true;
 	}
 
 	on_value_input(e) {
@@ -163,6 +174,8 @@ frappe.ui.MultiCombobox = class MultiCombobox extends frappe.ui.Combobox {
 	// one line: hide the pills that don't fit and count them on +N
 	fit_pills() {
 		if (!this.opts.one_line || !this.pills_el) return;
+		// drawn again after being removed: watch it again
+		if (this.trigger_el.isConnected) this.watch_width();
 		const pills = [...this.pills_el.querySelectorAll(".es-combobox__pill")];
 		pills.forEach((pill) => (pill.hidden = false));
 		this.more_el_pill.hidden = true;
@@ -333,11 +346,18 @@ frappe.ui.MultiCombobox = class MultiCombobox extends frappe.ui.Combobox {
 
 	// highlight the first row to add: Enter on a Selected row would remove it
 	render(empty_text) {
+		// an Enter pressed while loading waits until the highlight has moved
+		const pending_enter = this.pending_activate;
+		this.pending_activate = false;
 		super.render(empty_text);
-		if (this.query || !this.pinned.length || this.navigated) return;
-		const pinned = new Set(this.pinned);
-		const row = this.rows.find((r) => !pinned.has(r.option.value) && !r.option.disabled);
-		if (row) this.highlight(row, { scroll: false });
+		if (!this.query && this.pinned.length && !this.navigated) {
+			const pinned = new Set(this.pinned);
+			const row = this.rows.find((r) => !pinned.has(r.option.value) && !r.option.disabled);
+			if (row) this.highlight(row, { scroll: false });
+		}
+		if (pending_enter && this.highlighted && this.highlighted.option) {
+			this.activate(this.highlighted);
+		}
 	}
 
 	// a page loaded on scroll goes under All, without the values already under Selected

@@ -340,6 +340,7 @@ frappe.views.CommunicationComposer = class {
 
 	setup_multiselect_queries() {
 		["recipients", "cc", "bcc"].forEach((field) => {
+			let latest = 0;
 			// the combobox field passes the typed text; the classic one leaves it in the value
 			this.dialog.fields_dict[field].get_data = (txt) => {
 				if (txt == null) {
@@ -355,10 +356,13 @@ frappe.views.CommunicationComposer = class {
 					);
 				}
 
+				// replies can arrive out of order: keep only the newest search's rows
+				const request = ++latest;
 				frappe.call({
 					method: "frappe.email.get_contact_list",
 					args: args,
 					callback: (r) => {
+						if (request !== latest) return;
 						this.dialog.fields_dict[field].set_data(r.message);
 					},
 				});

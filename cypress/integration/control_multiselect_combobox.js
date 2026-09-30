@@ -153,6 +153,9 @@ context("Control MultiSelect (combobox)", () => {
 		option("Red").click();
 		cy.get("@dialog").should((d) => expect(d.get_value("colors")).to.equal("Green, Red"));
 		search().type("{esc}");
+		// as the classic control, a value outside the fixed list is refused
+		cy.get("@dialog").then((d) => d.fields_dict.colors.set_value("Green, Purple"));
+		cy.get("@dialog").should((d) => expect(d.get_value("colors")).to.equal(""));
 
 		// free text: "Use …" adds the typed text and clears the search
 		trigger("emails").click();
