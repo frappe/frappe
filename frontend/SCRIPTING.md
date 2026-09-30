@@ -52,8 +52,9 @@ the place for a one-time move: `page.tabs.activate`, `page.panelSections.open`,
 `run_order`, so on one move the last script wins. Its acts land in the same step as the first
 paint, so the page opens on the tab it chose and fires no `onTabChange`. It sees what every
 `onRefresh` drew. When an `onRefresh` awaits, every `onOpen` runs after the part after that
-`await` lands, and on a first visit whose scripts arrive after the 500 ms limit, it runs after
-their ops land. What `onOpen` does after
+`await` lands. A first visit keeps its skeletons until then, within the 500 ms limit. A return
+visit paints first, so the move shows after the paint. On a first visit whose scripts arrive
+after the 500 ms limit, `onOpen` runs after their ops land. What `onOpen` does after
 its own `await` is not held: each act lands when it is made. Draw in `onRefresh`, not in
 `onOpen`: the next replay rebuilds every surface, so an item `onOpen` adds does not last. A
 script saved while the page is open runs its `onOpen` on the next visit.

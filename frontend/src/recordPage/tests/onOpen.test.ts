@@ -28,7 +28,7 @@ vi.mock("@framework/ui/api", async () => {
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { FIRST_PAINT_LIMIT_MS } from "../paintGate";
-import { withRegisteringSource } from "../context";
+import { HOST_SOURCE, runningSource, withRegisteringSource } from "../context";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, RecordPageApi } from "../types";
 
@@ -263,6 +263,27 @@ describe("onOpen on a first visit", () => {
     expect(moved).toEqual(["files"]);
   });
 
+  it("keeps the skeletons up until onOpen's acts land after an awaiting onRefresh", async () => {
+    const pause = gate();
+    await register("slow", {
+      onRefresh: async () => {
+        await pause.opened;
+      },
+      onOpen: (page: RecordPageApi) => page.tabs.activate("files"),
+    });
+    const { controller, moved } = makePage();
+    const movedAtReady: string[][] = [];
+    watch(controller.ready, () => void movedAtReady.push([...moved]), { flush: "sync" });
+
+    const refreshing = controller.refresh();
+    await vi.advanceTimersByTimeAsync(0);
+    pause.open();
+    await refreshing;
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(movedAtReady).toEqual([["files"]]);
+  });
+
   it("runs a late script's onOpen after that script's ops land, not at the early paint", async () => {
     const list = gate();
     const seen: string[] = [];
@@ -336,6 +357,32 @@ describe("onOpen's errors and awaits", () => {
     pause.open();
     await vi.advanceTimersByTimeAsync(0);
     expect(moved).toEqual(["files"]);
+  });
+
+  it("names no source after an await, so two awaiting handlers cannot take each other's name", async () => {
+    const first = gate();
+    const second = gate();
+    const named: string[] = [];
+    await register("one", {
+      onOpen: async () => {
+        await first.opened;
+        named.push(runningSource());
+      },
+    });
+    await register("two", {
+      onOpen: async () => {
+        named.push(runningSource());
+        await second.opened;
+      },
+    });
+    const { controller } = await loadedPage();
+    controller.paintNow();
+
+    first.open();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(named).toEqual(["two", HOST_SOURCE]);
+    expect(runningSource()).toBe(HOST_SOURCE);
   });
 
   it("lands no act made after an await once the reader has left", async () => {

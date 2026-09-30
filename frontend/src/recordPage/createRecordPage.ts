@@ -674,13 +674,16 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     }
   }
 
-  /** Its part after an await is not held: the page is drawn, so each act lands as it is made. */
+  /** Its part after an await is not held and names no source, as `onRefresh`'s: handlers here overlap. */
   function runOpen(registrations: Registration[]) {
     for (const { source, handlers } of registrations) {
       const handler = handlers.onOpen;
       if (!handler) continue;
       try {
-        const result = withRunningSource(source, () => handler(refreshView.page));
+        let result: unknown;
+        withRunningSource(source, () => {
+          result = handler(refreshView.page);
+        });
         if (result instanceof Promise)
           void result.catch((error) => reportHandlerError(source, "onOpen", error));
       } catch (error) {

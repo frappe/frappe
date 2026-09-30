@@ -83,6 +83,8 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     background: 0,
     // Set by the first non-background replay to finish, so `onOpen` runs once per page.
     opened: false,
+    // True while `onOpen` waits for late parts, so the skeletons lift only with its acts.
+    awaitingOpen: false,
   };
   let markLeft!: () => void;
   const left = new Promise<void>((resolve) => (markLeft = resolve));
@@ -177,8 +179,12 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     if (state.opened || state.left) return;
     state.opened = true;
     const registrations = [...ran];
-    if (!landed.length) runOnOpenNow(registrations);
-    else void Promise.all(landed).then(() => runOnOpenNow(registrations));
+    if (!landed.length) return runOnOpenNow(registrations);
+    state.awaitingOpen = true;
+    void Promise.all(landed).then(() => {
+      state.awaitingOpen = false;
+      runOnOpenNow(registrations);
+    });
   }
 
   /** A synchronous hold: the acts land in this step, with the paint before them. */
@@ -237,7 +243,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   /** The skeletons lift once a replay has ended and nothing stages; a hold may close last. */
   function settleReady() {
-    if (!state.replayed || isStaging()) return;
+    if (!state.replayed || state.awaitingOpen || isStaging()) return;
     clearTimeout(state.firstPaintLimit);
     ready.value = true;
   }
