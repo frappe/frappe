@@ -215,4 +215,20 @@ describe("a query the shared cache holds", () => {
 		expect(rows.rows.value).toHaveLength(19);
 		expect(fetches()).toEqual([[0, 20]]);
 	});
+
+	it("loads more from the list's own position when a row is missing and the read failed", async () => {
+		cacheList(20, true);
+		const ticket = takeTicket();
+		const gone = new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404);
+		feedReadError(ticket, "ToDo", "T-3", gone);
+		settleTicket(ticket);
+		fake.listDocuments.mockRejectedValueOnce(new Error("Network down"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		rows.next();
+		expect(fetches()).toEqual([
+			[0, 20],
+			[20, 19],
+		]);
+	});
 });

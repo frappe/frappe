@@ -64,6 +64,8 @@ interface Page {
 	data: ListRow[] | null;
 	error: Error | null;
 	hasNextPage: boolean;
+	/** The list positions the page covers, when some of its rows are missing from `data`. */
+	span?: number;
 }
 
 interface Total {
@@ -83,6 +85,10 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	let timer = 0;
 
 	const loaded = computed(() => pages.value.flatMap((page) => page.data ?? []));
+	// The next page's offset: a cached page may lack a row whose record entry went.
+	const covered = computed(() =>
+		pages.value.reduce((sum, page) => sum + (page.span ?? page.data?.length ?? 0), 0)
+	);
 	const rows = computed(() => loaded.value.slice(0, shown.value));
 	const rowCount = computed(() => rows.value.length);
 	const firstPage = computed(() => pages.value[0] ?? null);
@@ -143,7 +149,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		const entry = readCachedList(doctype, listQuery(current));
 		const cached = entry && readCachedRows(doctype, listQuery(current));
 		if (!entry || !cached) return false;
-		pages.value = [landedPage(cached as ListRow[], entry.hasNextPage)];
+		pages.value = [landedPage(cached as ListRow[], entry.hasNextPage, entry.names.length)];
 		const { count, countCapped } = entry;
 		total.value = { count: count ?? null, capped: countCapped, answered: count !== undefined };
 		shown.value = Math.max(target, entry.names.length, current.limit);
@@ -179,11 +185,11 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	function show(target: number) {
 		shown.value = target;
 		if (refreshing === generation) return;
-		const missing = target - loaded.value.length;
+		const missing = target - covered.value;
 		if (missing <= 0 || lastPage.value?.hasNextPage === false) return;
 		const page = reactive<Page>({ data: null, error: null, hasNextPage: false });
 		pages.value = [...pages.value, page];
-		void fetchPage(page, query()!, loaded.value.length, missing);
+		void fetchPage(page, query()!, covered.value, missing);
 	}
 
 	// A page still in flight has no data yet; a second Load More then would start at a stale offset.
@@ -260,8 +266,8 @@ function listQuery(current: RowsQuery): ListQuery {
 	return { fields: current.fields, filters: current.filters, order_by: current.orderBy };
 }
 
-function landedPage(data: ListRow[], hasNextPage: boolean): Page {
-	return reactive<Page>({ data, error: null, hasNextPage });
+function landedPage(data: ListRow[], hasNextPage: boolean, span?: number): Page {
+	return reactive<Page>({ data, error: null, hasNextPage, span });
 }
 
 function totalOf(answer: ListEnvelope<ListRow>): Total {
