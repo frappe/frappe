@@ -828,6 +828,17 @@ describe("idle stores", () => {
     expect(hasActivityTimeline("ToDo", shown)).toBe(true);
   });
 
+  it("frees no store whose read is still out", async () => {
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((done) => (answer = done)) });
+    const names = Array.from({ length: 21 }, freshDoc);
+    const reads = names.map((name) => prefetchActivityTimeline("ToDo", name));
+    answer({ activities: [c(1)], next: null });
+    await Promise.all(reads);
+    for (const name of names) expect(hasActivityTimeline("ToDo", name)).toBe(true);
+    for (const name of names) endActivityPrefetch("ToDo", name);
+  });
+
   it("frees a held store that is never let go once twenty newer idle stores pass it", async () => {
     const held = freshDoc();
     await prefetchActivityTimeline("ToDo", held);

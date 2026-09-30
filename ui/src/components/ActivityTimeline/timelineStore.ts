@@ -42,6 +42,7 @@ export class TimelineStore implements LiveFeed {
   /** newest-page reads begun so far, and the latest of them whose page was taken in */
   private newestBegun = 0;
   private newestTaken = 0;
+  private pagesOut = 0;
 
   constructor(
     readonly doctype: string,
@@ -81,6 +82,11 @@ export class TimelineStore implements LiveFeed {
   /** whether a read started by `load` is out */
   get reading(): boolean {
     return this.newestRead !== undefined;
+  }
+
+  /** whether any page read, staged or not, is still out */
+  get awaitingPage(): boolean {
+    return this.pagesOut > 0;
   }
 
   load(): Promise<void> {
@@ -161,13 +167,18 @@ export class TimelineStore implements LiveFeed {
   // filtered server-side so the cursor walks only the rows this view shows
   private async readPage(before?: string): Promise<ActivityPage> {
     const params = { types: this.visibleTypes, before };
-    const response = await getDocumentPart<ActivityPage>(
-      this.doctype,
-      this.docname,
-      "activity",
-      params
-    );
-    return response.data;
+    this.pagesOut++;
+    try {
+      const response = await getDocumentPart<ActivityPage>(
+        this.doctype,
+        this.docname,
+        "activity",
+        params
+      );
+      return response.data;
+    } finally {
+      this.pagesOut--;
+    }
   }
 }
 

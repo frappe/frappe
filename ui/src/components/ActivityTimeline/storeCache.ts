@@ -48,8 +48,9 @@ export class StoreCache {
 
   /** Drops the least recently used idle stores the cache does not hold, past `UNCACHED_STORES`. */
   trim() {
-    const uncached = [...this.stores].filter(([, store]) => store.mounted === 0 && !isCached(store));
-    for (const [key, store] of uncached.slice(0, -UNCACHED_STORES)) this.drop(key, store);
+    // a held store counts, so a hold never let go is bounded too
+    const idle = [...this.stores].filter(([, store]) => !inUse(store) && !isCached(store));
+    for (const [key, store] of idle.slice(0, -UNCACHED_STORES)) this.drop(key, store);
   }
 
   private dropIdle(doc: string) {
@@ -63,6 +64,10 @@ export class StoreCache {
     this.stores.delete(key);
     store.dispose();
   }
+}
+
+function inUse(store: TimelineStore): boolean {
+  return store.mounted > 0 || store.awaitingPage;
 }
 
 function isCached(store: TimelineStore): boolean {
