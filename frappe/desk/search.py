@@ -459,7 +459,7 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 					title_value = doc.get_virtual_field_value(docfield)
 				item = [item[0], title_value or item[0]]
 			label = _(item[1]) if meta.translated_doctype else item[1]
-			item[1] = item[0]
+			item[1] = None if meta.autoname == "hash" else item[0]
 
 			if len(item) >= 3 and item[2] == label:
 				# remove redundant title ("label") value
