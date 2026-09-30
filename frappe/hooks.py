@@ -353,7 +353,6 @@ after_migrate = [
 	"frappe.search.sqlite_search.build_index_in_background",
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
-	"frappe.automation_engine.scheduler.ensure_run_lookup_index",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -564,6 +563,7 @@ default_log_clearing_doctypes = {
 	"Scheduled Job Log": 7,
 	"Submission Queue": 7,
 	"Background Task": 7,
+	"Automation Run": 30,
 	"MapReduce Job": 30,
 	"Prepared Report": 14,
 	"Webhook Request Log": 30,
@@ -602,7 +602,7 @@ user_invitation = {
 expose_discovery_source = True
 
 # An island draws a desk Dashboard or Dashboard Chart whose `__onload.island` is
-# {"name": <a name in ui_islands>, "props": {...}}. Desk draws the document
+# {"name": <an island name>, "props": {...}}. Desk draws the document
 # itself while the key is absent. An app sets the key from its own onload
 # handler, so it decides how it recognizes its documents:
 #
@@ -612,9 +612,9 @@ expose_discovery_source = True
 # 	if doc.someapp_dashboard:
 # 		doc.set_onload("island", {"name": "someapp.dashboard", "props": {...}})
 
-# A `Page` of type "Frappe UI" is drawn by an island too, and registers itself:
-# no hook, and no entry in `ui_islands`. Framework builds those islands for
-# every app on the bench, in one build, after any app's assets are built.
+# A `Page` of type "Frappe UI" is drawn by an island too, and needs no line of
+# Python. Framework builds those islands for every app on the bench, in one
+# build, after any app's assets are built.
 after_app_build = "frappe.bundler.build_page_islands"
 
 

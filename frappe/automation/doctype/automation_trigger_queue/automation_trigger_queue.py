@@ -15,7 +15,7 @@ class AutomationTriggerQueue(Document):
 
 	`ref_name` is plain Data rather than a Dynamic Link so a queued row
 	survives the referenced document being deleted. `resume_run` points at the
-	Background Task a row is resuming after a wait.
+	Automation Run a row is resuming after a wait.
 	"""
 
 	# begin: auto-generated types

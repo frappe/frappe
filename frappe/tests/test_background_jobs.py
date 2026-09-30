@@ -1,3 +1,4 @@
+import os
 import time
 from contextlib import contextmanager
 from contextvars import copy_context
@@ -113,6 +114,25 @@ class TestBackgroundJobs(IntegrationTestCase):
 			)
 			self.assertEqual(r, "pong")
 			self.assertLess(_test_JOB_HOOK.get("before_job"), _test_JOB_HOOK.get("after_job"))
+
+	def test_async_job_flushes_sentry_events(self):
+		with (
+			freeze_local() as locals,
+			frappe.init_site(locals.site),
+			patch.dict(os.environ, {"FRAPPE_SENTRY_DSN": "https://publickey@sentry.example.com/1"}),
+			patch("sentry_sdk.flush") as flush_sentry,
+		):
+			frappe.connect()
+			execute_job(
+				site=frappe.local.site,
+				method="frappe.handler.ping",
+				event=None,
+				job_name="frappe.handler.ping",
+				is_async=True,
+				kwargs={},
+			)
+
+		flush_sentry.assert_called_once_with()
 
 	def test_job_retries_framework_deadlock_errors(self):
 		attempts = 0

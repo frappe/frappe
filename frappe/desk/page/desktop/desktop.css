@@ -17,7 +17,8 @@
     --folder-icon-background-color: var(--surface-gray-1);
     --desktop-modal-radius: 30px;
     --desktop-icon-line-height: 115%;
-    --desktop-navbar-height: 52px;
+    /* The page header's 48px and its rule, so the logo sits where a pinned dock's does. */
+    --desktop-navbar-height: 49px;
 }
 [data-theme="dark"]{
     --folder-icon-background-color: #2b2b2b;
@@ -56,7 +57,7 @@ body.apps-page .navbar-container {
   gap: 10px;
   justify-content: space-between;
   width: 100%;
-  padding: 10px;
+  padding: 8px 12px;
   box-sizing: border-box;
   height: var(--desktop-navbar-height);
   position: sticky;
@@ -600,7 +601,7 @@ body.desktop-icons-page .navbar-container {
   gap: 10px;
   justify-content: space-between;
   width: 100%;
-  padding: 10px 20px 10px 20px;
+  padding: 8px 20px 8px 12px;
   box-sizing: border-box;
   height: var(--desktop-navbar-height);
   position: sticky;

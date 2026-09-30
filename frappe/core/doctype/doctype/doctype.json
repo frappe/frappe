@@ -97,10 +97,8 @@
   "web_view",
   "has_web_view",
   "allow_guest_to_view",
-  "index_web_pages_for_search",
   "route",
   "is_published_field",
-  "website_search_field",
   "advanced",
   "engine",
   "migration_hash",
@@ -549,12 +547,6 @@
    "label": "Email Settings"
   },
   {
-   "default": "1",
-   "fieldname": "index_web_pages_for_search",
-   "fieldtype": "Check",
-   "label": "Index Web Pages for Search"
-  },
-  {
    "default": "0",
    "fieldname": "is_virtual",
    "fieldtype": "Check",
@@ -569,12 +561,6 @@
   {
    "fieldname": "column_break_51",
    "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "has_web_view",
-   "fieldname": "website_search_field",
-   "fieldtype": "Data",
-   "label": "Website Search Field"
   },
   {
    "fieldname": "naming_rule",
@@ -759,7 +745,6 @@
  "grid_page_length": 50,
  "icon": "database",
  "idx": 6,
- "index_web_pages_for_search": 1,
  "links": [
   {
    "group": "Views",
@@ -832,7 +817,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-09-24 19:57:33.487846",
+ "modified": "2026-09-30 11:32:26.253233",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

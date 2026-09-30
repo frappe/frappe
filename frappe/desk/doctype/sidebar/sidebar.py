@@ -84,7 +84,10 @@ SIDEBAR_ITEM_FIELDS = (
 # identity would break the very delta that set it -- `narrow_reference` stores label and icon as
 # overrides for exactly that reason, and stores no filters, which is what makes filters stable
 # enough to identify by.
-LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url", "filters")
+#
+# `route` tells apart two items linking one page, as `filters` does for one doctype. It is last
+# because `item_key` appends it only when set, which keeps every older key unchanged.
+LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url", "filters", "route")
 
 # Flags that mean the system is installing app content, not that a user is editing.
 #
@@ -194,6 +197,7 @@ class Sidebar(Document, DeskViews):
 		self.validate_title_is_routable()
 		self.validate_title_has_its_own_url()
 		self.validate_standard()
+		self.validate_item_routes()
 		self.clear_stored_keys()
 
 	def before_save(self):
@@ -328,6 +332,10 @@ class Sidebar(Document, DeskViews):
 		from frappe.desk.doctype.dock.dock import rename_sidebar_rows
 
 		rename_sidebar_rows(old_name, new_name)
+
+	def validate_item_routes(self):
+		for item in self.items:
+			validate_item_route(item)
 
 	def clear_stored_keys(self):
 		"""Blank the `key` column on every item.
@@ -799,6 +807,7 @@ ARRANGED_ITEM_FIELDS = (
 	"url",
 	"show_arrow",
 	"filters",
+	"route",
 	"route_options",
 	"open_in_new_tab",
 	"is_default_module",
@@ -945,6 +954,47 @@ def is_linked(item) -> bool:
 	return bool(item.get("link_to") or item.get("url"))
 
 
+def linked_entities(item) -> list[str]:
+	"""Return the entities this row links, as the desk names them when picking a shell.
+
+	A Page row with a `route` links the page and the page route it opens, `<page>/<route>`.
+	Several apps link one container page at routes of their own, so the page alone cannot say
+	which shell a route belongs to. Mirrors `linked_entities` in the desk's sidebar.js.
+	"""
+	link_to = item.get("link_to")
+	if not link_to:
+		return []
+	if item.get("link_type") == "Page" and item.get("route"):
+		return [link_to, f"{link_to}/{item['route']}"]
+	return [link_to]
+
+
+def validate_item_route(item) -> None:
+	"""Refuse a `route` that is not a relative path inside a Page. A query belongs in
+	`route_options`."""
+	item.route = (item.get("route") or "").strip() or None
+	route = item.route
+	if not route:
+		return
+
+	if item.get("link_type") != "Page":
+		frappe.throw(
+			_("Only a Page item has a route inside it. {0} links a {1}.").format(
+				frappe.bold(item.get("label") or item.get("link_to")), item.get("link_type")
+			),
+			title=_("Route Not Allowed"),
+		)
+
+	segments = route.split("/")
+	if route.startswith("/") or ":" in segments[0] or ".." in segments or "?" in route or "#" in route:
+		frappe.throw(
+			_("{0} is not a path inside a page. Give a relative path, with no query or fragment.").format(
+				frappe.bold(route)
+			),
+			title=_("Invalid Route"),
+		)
+
+
 def item_key(item) -> str:
 	"""Return the identity of one sidebar item. A customization row uses this to name the item
 	it refers to.
@@ -968,7 +1018,9 @@ def item_key(item) -> str:
 	import, which is why a customization can never point at a row's `name`.
 	"""
 	if is_linked(item):
-		return "|".join(item.get(field) or "" for field in LINKED_IDENTITY_FIELDS)
+		*columns, route = (item.get(field) or "" for field in LINKED_IDENTITY_FIELDS)
+		key = "|".join(columns)
+		return f"{key}|{route}" if route else key
 
 	return item.get("key") or unlinked_key(item)
 
@@ -1920,6 +1972,7 @@ def get_sidebar_items(sidebar_names):
 			"url",
 			"show_arrow",
 			"filters",
+			"route",
 			"route_options",
 			"navigate_to_tab",
 			"open_in_new_tab",
@@ -2060,6 +2113,7 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 			"url": item.url,
 			"show_arrow": item.show_arrow,
 			"filters": item.filters,
+			"route": item.route,
 			"route_options": item.route_options,
 			"tab": item.navigate_to_tab,
 			"open_in_new_tab": item.open_in_new_tab,
@@ -2305,7 +2359,10 @@ def build_canonical_shells(
 	canonical = {kind: {} for kind in ROUTABLE_ENTITY_KINDS}
 	homeless = []
 
-	for kind, entities in routable_entities(perm_ctx).items():
+	entities_by_kind = routable_entities(perm_ctx)
+	entities_by_kind["Page"] |= shells.page_routes(entities_by_kind["Page"])
+
+	for kind, entities in entities_by_kind.items():
 		for name, module in entities.items():
 			# `entity_module` is the flat `is_default_module` map the desk already reads, so the
 			# owned step answers exactly what the client's does. It is flat rather than keyed by
@@ -2388,8 +2445,8 @@ class ShellIndex:
 
 		for shell, sidebar in module_sidebars.items():
 			for item in sidebar["items"]:
-				kind, entity = item.get("link_type"), item.get("link_to")
-				if kind and entity:
+				kind = item.get("link_type")
+				for entity in linked_entities(item) if kind else ():
 					self.listing.setdefault((kind, entity), []).append(shell)
 			# A shell keyed by its module answers for that module; the naming rule makes that the
 			# usual case. A renamed shell is found through the column it stores its module in,
@@ -2429,6 +2486,17 @@ class ShellIndex:
 
 	def listed_in(self, kind: str, entity: str) -> list[str]:
 		return self.listing.get((kind, entity), [])
+
+	def page_routes(self, pages: dict[str, str]) -> dict[str, str]:
+		"""Every page route a shell lists, of a page in `pages`, mapped to that page's module."""
+		routes = {}
+		for kind, entity in self.listing:
+			if kind != "Page":
+				continue
+			page, _, route = entity.partition("/")
+			if route and page in pages:
+				routes[entity] = pages[page]
+		return routes
 
 	def resolve(self, kind: str, entity: str, module: str | None) -> str | None:
 		"""The ladder itself, from `module+listed` down. The `owned` step is above this."""

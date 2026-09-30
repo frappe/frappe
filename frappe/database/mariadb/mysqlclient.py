@@ -122,8 +122,11 @@ class MariaDBConnectionUtil:
 	def create_connection(self):
 		return MySQLdb.connect(**self.get_connection_settings())
 
-	def set_execution_timeout(self, seconds: int):
-		self.sql("set session max_statement_time = %s", int(seconds))
+	def set_execution_timeout(self, seconds: float):
+		self.sql("set session max_statement_time = %s", float(seconds))
+
+	def get_execution_timeout(self) -> float:
+		return self.sql("select @@session.max_statement_time")[0][0]
 
 	def set_session_time_zone(self, timezone: str):
 		try:
@@ -493,7 +496,8 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		from frappe.exceptions import QueryTimeoutError
 
-		name = hashlib.sha256(str(key).encode()).hexdigest()
+		# GET_LOCK names are server-wide, so scope the lock to this site's database
+		name = hashlib.sha256(f"{self.cur_db_name}:{key}".encode()).hexdigest()
 		deadline = time.monotonic() + timeout
 		while True:
 			remaining = deadline - time.monotonic()

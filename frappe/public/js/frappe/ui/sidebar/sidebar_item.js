@@ -3,7 +3,7 @@ frappe.provide("frappe.ui.sidebar_item");
 // Put the shell in front of a desk path, so a link in a sidebar names the shell it sits in.
 //
 // Without this the rendered href says `/desk/todo` while the URL it leads to says
-// `/desk/build/todo`, and `is_route_in_sidebar` compares the two by string, so nothing is ever
+// `/desk/build/todo`, and `find_active_item` compares the two by string, so nothing is ever
 // highlighted. It also means clicking the link arrives already correct, instead of arriving bare
 // and being rewritten a moment later.
 //
@@ -75,17 +75,14 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 			const title = workspace ? workspace.title : item.link_to;
 			path = "/desk/private/" + frappe.router.slug(title);
 		}
-
-		if (item.route) {
-			path = item.route;
-		}
 	} else if (item.link_type === "URL") {
 		path = item.url;
-	} else if (item.link_type == "Page" && item.route_options) {
+	} else if (item.link_type == "Page") {
 		path = frappe.utils.generate_route({
 			type: item.link_type,
 			name: item.link_to,
-			route_options: JSON.parse(item.route_options),
+			route: item.route ? `${item.link_to}/${item.route}` : undefined,
+			route_options: item.route_options ? JSON.parse(item.route_options) : undefined,
 		});
 	} else {
 		let args = {
@@ -158,7 +155,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			return;
 		}
 		this.set_suffix();
-		// `parent` is only set on items find_nested_items() actually nested; a row can carry
+		// `parent` is only set on items nest_section_items() actually nested; a row can carry
 		// `child` without one (a Section Break, or a child with no section above it).
 		// Items nested under an indented section draw no icon, even one they set themselves.
 		// The item's own icon is left alone so the sidebar editor still sees and saves it.

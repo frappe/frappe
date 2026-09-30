@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 09:34+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4688,7 +4688,7 @@ msgstr "Rebotados"
 #. Label of the branch (Select) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Branch"
-msgstr "Sucursal"
+msgstr ""
 
 #: frappe/automation_engine/api.py:275
 msgid "Branch for step {0} must be If or Else"
@@ -7066,7 +7066,7 @@ msgstr "Contexto"
 #. Label of the context_script (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Context Script"
-msgstr "Guión de contexto"
+msgstr "Script de contexto"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:204
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:232
@@ -15337,7 +15337,7 @@ msgstr "Útil"
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Helvetica"
-msgstr "Helvética"
+msgstr "Helvetica"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -17655,7 +17655,7 @@ msgstr "Está oculto"
 #. Label of the is_home_folder (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Home Folder"
-msgstr "Es la carpeta de inicio"
+msgstr "Es la Carpeta de inicio"
 
 #. Label of the reqd (Check) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -20353,7 +20353,7 @@ msgstr "Mensaje que se mostrará al finalizar con éxito"
 #. Label of the message_id (Code) field in DocType 'Unhandled Email'
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
 msgid "Message-id"
-msgstr ""
+msgstr "ID del mensaje"
 
 #. Label of the messages (Code) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
@@ -23414,12 +23414,12 @@ msgstr "¡Ups! Algo salió mal."
 #: frappe/public/js/frappe/ui/tree.js:343
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Open"
-msgstr "Abrir"
+msgstr "Abierto"
 
 #: frappe/desk/doctype/todo/todo_list.js:14
 msgctxt "Access"
 msgid "Open"
-msgstr "Abrir"
+msgstr "Abierto"
 
 #: frappe/public/js/desktop_icons.bundle.js:541
 #: frappe/public/js/frappe/ui/keyboard.js:221
@@ -25695,12 +25695,12 @@ msgstr "La clave primaria del doctype {0} no puede modificarse, ya que existen v
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:100
 #: frappe/templates/print_formats/print_action_banner.html:3
 msgid "Print"
-msgstr "Imprimir"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:2845
 msgctxt "Button in list view actions menu"
 msgid "Print"
-msgstr "Imprimir"
+msgstr ""
 
 #: frappe/public/js/frappe/list/bulk_operations.js:48
 msgid "Print Documents"
@@ -25774,7 +25774,7 @@ msgstr "Tipo de formato de impresión"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1770
 msgid "Print Format not found"
-msgstr "Formato de impresión no encontrado"
+msgstr "Formato de impresión no encontrado "
 
 #: frappe/www/printview.py:503
 msgid "Print Format {0} is disabled"
@@ -25790,7 +25790,7 @@ msgstr ""
 #: frappe/printing/doctype/print_heading/print_heading.json
 #: frappe/printing/sidebar/printing/printing.json
 msgid "Print Heading"
-msgstr "Imprimir Encabezado"
+msgstr "Encabezado de impresión"
 
 #. Label of the print_hide (Check) field in DocType 'DocField'
 #. Label of the print_hide (Check) field in DocType 'Custom Field'
@@ -25859,7 +25859,7 @@ msgstr "Nombre del Estilo de Impresión"
 #. Label of the print_style_preview (HTML) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Print Style Preview"
-msgstr "Vista previa de estilo"
+msgstr "Vista previa del estilo de impresión"
 
 #. Label of the print_width (Data) field in DocType 'DocField'
 #. Label of the print_width (Data) field in DocType 'Custom Field'
@@ -26745,7 +26745,7 @@ msgstr "Receptor por campo de documento"
 #. Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
 msgid "Receiver By Role"
-msgstr "Receptor por Rol"
+msgstr "Receptor por rol"
 
 #. Label of the receiver_parameter (Data) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
@@ -27846,7 +27846,7 @@ msgstr ""
 #: frappe/system/sidebar/system/system.json
 #: frappe/users/sidebar/users/users.json
 msgid "Reports"
-msgstr "Informes"
+msgstr "Reportes"
 
 #: frappe/patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
@@ -29511,7 +29511,7 @@ msgstr "Buscar"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Search Fields"
-msgstr "Buscar campos"
+msgstr "Campos de búsqueda"
 
 #. Label of the allowed_in_global_search (Table) field in DocType 'Global
 #. Search Settings'
@@ -29641,7 +29641,7 @@ msgstr "Sección"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Section Break"
-msgstr "Salto de sección."
+msgstr "Salto de sección"
 
 #. Label of the section_id (Data) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -29843,7 +29843,7 @@ msgstr "Seleccione un 'DocType'"
 #. Label of the reference_doctype (Link) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
 msgid "Select Doctype"
-msgstr "Seleccione Doctype"
+msgstr "Seleccione un DocType"
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:50
 msgid "Select Document Type"
@@ -31200,7 +31200,7 @@ msgstr "Mostrar Vista Previa"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Show Preview Popup"
-msgstr "Mostrar ventana emergente de vista previa"
+msgstr "Mostrar vista previa emergente"
 
 #. Label of the show_processlist (Check) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -32327,7 +32327,7 @@ msgstr "Campo de Fecha de Inicio"
 
 #: frappe/core/doctype/data_import/data_import.js:292
 msgid "Start Import"
-msgstr "Comience a Importar"
+msgstr "Iniciar importación"
 
 #: frappe/core/doctype/recorder/recorder_list.js:214
 msgid "Start Recording"
@@ -33124,7 +33124,7 @@ msgstr "Cambiando cámara"
 #. Label of the symbol (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "Symbol"
-msgstr "Símbolo."
+msgstr "Símbolo"
 
 #. Label of the sb_01 (Section Break) field in DocType 'Google Calendar'
 #. Label of the sync (Section Break) field in DocType 'Google Contacts'
@@ -36725,7 +36725,7 @@ msgstr "Usar POST"
 #. Label of the use_report_chart (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Use Report Chart"
-msgstr "Usar gráfico de informe"
+msgstr "Usar Gráfico de Reportes"
 
 #. Label of the use_ssl (Check) field in DocType 'Email Account'
 #. Label of the use_ssl_for_outgoing (Check) field in DocType 'Email Account'
@@ -37097,7 +37097,7 @@ msgstr ""
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "User can login using Email id or Mobile number"
-msgstr "El usuario puede iniciar sesión con el ID de correo electrónico o el número de móvil"
+msgstr "El usuario puede iniciar sesión con el ID del Email o número de móvil"
 
 #. Description of the 'Allow Login using User Name' (Check) field in DocType
 #. 'System Settings'
@@ -40470,7 +40470,7 @@ msgstr "compartir"
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "short"
-msgstr "corta"
+msgstr "corto"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:98
 msgid "shortcut"

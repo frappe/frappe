@@ -129,25 +129,21 @@ await buildIslands({
   app: "insights",
   root: import.meta.dirname,
   entries: {
-    insights_chart: "src/islands/chart.ts",
-    insights_dashboard: "src/islands/dashboard.ts",
+    "insights.chart": "src/islands/chart.ts",
+    "insights.dashboard": "src/islands/dashboard.ts",
   },
   production: process.argv.includes("--production"),
   watch: process.argv.includes("--watch"),
 });
 ```
 
-One build takes all of an app's entries, so Rollup shares chunks between them. Output lands in `sites/assets/<app>/dist/island/`. Each entry registers `<name>.island.js` and `<name>.island.css` in `assets.json`. These are the keys the desk loader resolves. Entry names share one namespace with every other app, so prefix them with the app.
+One build takes all of an app's entries, so Rollup shares chunks between them. Output lands in `sites/assets/<app>/dist/island/`. Each entry registers `<name>.island.js` and `<name>.island.css` in `assets.json`, and that is what registers the island: the entry name is the island's name. Names share one namespace with every other app on the bench, so prefix them with the app. Two builds writing one key is an error the build reports. See [decision 0014](island/decisions/0014-assets-json-is-the-island-registry.md).
 
 The build runs on the app's own Vite, `@vitejs/plugin-vue`, Tailwind, autoprefixer, TypeScript and frappe-ui. All six are peer dependencies of this package. See [decision 0005](island/decisions/0005-the-preset-resolves-its-tooling-from-the-app.md).
 
-### 3. Declare it — `hooks.py`
+### 3. Mount it — `frappe.ui.mount_island`
 
-```python
-ui_islands = {"insights.dashboard": "insights_dashboard"}
-```
-
-The value is the bundle name, which is the key the build registers. Desk then mounts the island by name:
+Desk mounts the island by name:
 
 ```js
 const island = frappe.ui.mount_island("insights.dashboard", el, {
@@ -180,7 +176,7 @@ import Island from "@framework/ui/island/Island.vue";
 </template>
 ```
 
-`name` is the name `hooks.py` declares. The component resolves it through `frappe.utils.island.get_island_assets`. Every attribute but `name` and `context` is the island's props object. A change to it updates the island in place. `class` and `style` stay on the host element. `context` is what `useHost()` returns inside the island. The mount contract adds `theme` to it. `@error` fires with the `Error` when a load fails, and the component then renders nothing.
+`name` is the island's name. The component resolves it through `frappe.utils.island.get_island_assets`. Every attribute but `name` and `context` is the island's props object. A change to it updates the island in place. `class` and `style` stay on the host element. `context` is what `useHost()` returns inside the island. The mount contract adds `theme` to it. `@error` fires with the `Error` when a load fails, and the component then renders nothing.
 
 The component imports Vue and nothing else, so an app on an older frappe-ui can still host an island.
 
@@ -197,7 +193,7 @@ Both are plain events. A Vue host binds `@title` and `@actions`. A desk caller p
 
 ### A desk page drawn by an island
 
-The steps above are what an app does to put an island on a page it wrote itself. A desk **route** drawn by an island needs none of them. Set a `Page` to type **Frappe UI** and desk does the rest: it builds the page, mounts the island, and sets the head from what the island reports. There is no `hooks.py` line, no entry list and no frontend to set up. See [decision 0012](island/decisions/0012-a-desk-page-can-be-an-island.md).
+The steps above are what an app does to put an island on a page it wrote itself. A desk **route** drawn by an island needs none of them. Set a `Page` to type **Frappe UI** and desk does the rest: it builds the page, mounts the island, and sets the head from what the island reports. There is no entry list and no frontend to set up. See [decision 0012](island/decisions/0012-a-desk-page-can-be-an-island.md).
 
 Saving the Page writes the starter beside its json, in place of the page script every other type gets:
 
@@ -223,7 +219,15 @@ const emit = defineEmits(["title", "actions"]);
 
 The island is named `<app>.page.<page name>`, derived from the Page on both sides, so `<Island name="insights.page.sales-dashboard">` hosts the same page inside a frappe-ui app.
 
-**What a page island may import.** Framework builds these, one build for every page on the bench, rooted at `vite/island/toolchain/`. So a page island compiles against `frappe-ui`, `@framework/ui`, `vue` and what those bring, and nothing of the app's own. A page that needs the app's components has outgrown the starter: move the entry and the component into the app's frontend and build it as an ordinary island, with the two steps above. See [decision 0013](island/decisions/0013-framework-builds-page-islands.md).
+**What a page island may import.** Framework builds these, one build for every page on the bench, rooted at `vite/island/toolchain/`. So a page island compiles against `frappe-ui`, `@framework/ui`, `vue` and what those bring, and nothing of the app's own. See [decision 0013](island/decisions/0013-framework-builds-page-islands.md).
+
+**A page the app draws itself.** A page that needs the app's own components names one of the app's islands instead, in the Page's `island` field:
+
+```json
+{ "doctype": "Page", "name": "insights-dashboard", "type": "Frappe UI", "island": "insights.dashboard" }
+```
+
+Framework then builds nothing for the page and scaffolds nothing beside its json, so the page needs no folder and need not be Standard. Desk mounts the named island and the page keeps everything the type gives it: the mount, the unmount, the route race, `route` and `query` as props, and the head. The island is the app's own, so it takes its content from props and not from the desk route.
 
 **One setup step, once per bench.** The toolchain's dependencies are not in any lockfile a bench installs:
 

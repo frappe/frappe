@@ -762,6 +762,8 @@ def build_entity_module_map(module_sidebars):
 	   ordered by module name, not that it was quiet. A rule an author can predict from their own
 	   install order needs no warning, so please do not add one.
 	"""
+	from frappe.desk.doctype.sidebar.sidebar import linked_entities
+
 	# A module placed by `get_module_placement` rather than by a shipped document can name an app
 	# that is not installed here, so an unknown app ranks below every installed one instead of
 	# raising. Ownership is not worth a broken boot.
@@ -771,8 +773,9 @@ def build_entity_module_map(module_sidebars):
 	for shell, sidebar in module_sidebars.items():
 		claim = (install_index.get(sidebar.get("app"), -1), shell)
 		for item in sidebar["items"]:
-			if item.get("link_to") and item.get("is_default_module"):
-				claims.setdefault(item["link_to"], []).append(claim)
+			if item.get("is_default_module"):
+				for entity in linked_entities(item):
+					claims.setdefault(entity, []).append(claim)
 
 	# The comparator, in one place: highest install index, then lowest shell name.
 	return {

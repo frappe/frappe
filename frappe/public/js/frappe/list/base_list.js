@@ -184,7 +184,10 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_title() {
-		this.page.set_title(this.page_title, null, true, "", this.meta?.description);
+		// the title is the last crumb, which set_breadcrumbs() has already written; this only
+		// names the browser tab, so the two cannot disagree about what the page is called
+		this.page.title = this.page_title;
+		frappe.utils.set_title(this.page_title);
 		this.set_deprecated_badge();
 	}
 
@@ -261,7 +264,12 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_breadcrumbs() {
-		frappe.breadcrumbs.add(this.meta.module, this.doctype);
+		this.page.set_breadcrumbs(this.get_breadcrumbs());
+	}
+
+	/** The list is the page, so its one crumb is the title and carries no link. */
+	get_breadcrumbs() {
+		return [{ label: this.page_title, title: this.meta?.description }];
 	}
 
 	hide_sidebar() {

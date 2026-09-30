@@ -7,7 +7,7 @@
 		<slot>
 			<div v-html="frappe.utils.icon('ellipsis', 'sm')" />
 		</slot>
-		<Teleport to="#autocomplete-area">
+		<Teleport :to="autocomplete_area">
 			<div class="dropdown" ref="dropdown_ref">
 				<div v-show="show" class="dropdown-options">
 					<div v-for="group in groups" :key="group.key" class="groups">
@@ -33,8 +33,10 @@
 
 <script setup>
 import { createPopper } from "@popperjs/core";
-import { nextTick, ref, computed } from "vue";
+import { inject, nextTick, ref, computed } from "vue";
 import { onClickOutside } from "@vueuse/core";
+
+const autocomplete_area = inject("autocomplete_area");
 
 const props = defineProps({
 	options: {

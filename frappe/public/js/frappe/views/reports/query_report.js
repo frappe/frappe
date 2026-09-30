@@ -1524,6 +1524,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				width: parseInt(column.width) || null,
 				editable: column.editable ?? false,
 				compareValue: compareFn,
+				sortValue: frappe.report_utils.get_link_sort_value(column),
 				format: (value, row, column, data, filter) => {
 					if (this.report_settings.formatter) {
 						return this.report_settings.formatter(
@@ -1635,12 +1636,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				filter.set_value(value);
 			}
 		});
-	}
-
-	set_breadcrumbs() {
-		if (!this.report_doc || !this.report_doc.ref_doctype) return;
-		const ref_doctype = frappe.get_meta(this.report_doc.ref_doctype);
-		frappe.breadcrumbs.add(ref_doctype.module);
 	}
 
 	make_access_log(method, file_format) {

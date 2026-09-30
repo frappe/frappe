@@ -18,7 +18,7 @@ Example:
 import json
 import os
 import typing
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import frappe
 from frappe import N_, _
@@ -57,7 +57,6 @@ DEFAULT_FIELD_LABELS = {
 	"owner": N_("Created By"),
 	"_user_tags": N_("Tags"),
 	"_liked_by": N_("Liked By"),
-	"_comments": N_("Comments"),
 	"_assign": N_("Assigned To"),
 }
 
@@ -262,7 +261,8 @@ class Meta(Document):
 	def _valid_columns(self):
 		table_exists = frappe.db.table_exists(self.name)
 		if self.name in self.special_doctypes and table_exists:
-			valid_columns = get_table_columns(self.name)
+			# `_comments` is a cache column, never a readable field
+			valid_columns = [c for c in get_table_columns(self.name) if c != "_comments"]
 		else:
 			valid_columns = self.default_fields + [
 				df.fieldname
@@ -515,8 +515,8 @@ class Meta(Document):
 			recent_change = frappe.db.sql(
 				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
 			)  # nosemgrep
-			if recent_change and get_datetime(recent_change[0][0]) > add_to_date(
-				None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD
+			if recent_change and get_datetime(recent_change[0][0]) > (
+				datetime.now() + timedelta(days=(-1 * LARGE_TABLE_RECENCY_THRESHOLD))
 			):
 				self.is_large_table = True
 
@@ -724,7 +724,7 @@ class Meta(Document):
 			permission_type = "select" if frappe.only_has_select_perm(self.name, user=user) else "read"
 
 		if permission_type == "select":
-			return self.get_search_fields()
+			return self.get_select_fieldnames(with_virtual_fields)
 
 		if not self.get_permissions(parenttype=parenttype):
 			return self.get_fieldnames_with_value()
@@ -746,6 +746,20 @@ class Meta(Document):
 			if df.permlevel in permlevel_access
 		)
 		return permitted_fieldnames
+
+	def get_select_fieldnames(self, with_virtual_fields=True):
+		"""Search fields, plus the link title when its field is permitted."""
+		fieldnames = self.get_search_fields()
+		title = (
+			self.get_field(self.title_field) if self.show_title_field_in_link and self.title_field else None
+		)
+		if not title:
+			return fieldnames
+		if title.permlevel or (title.is_virtual and not with_virtual_fields):
+			return [fieldname for fieldname in fieldnames if fieldname != title.fieldname]
+		if title.fieldname not in fieldnames:
+			fieldnames.append(title.fieldname)
+		return fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = set()

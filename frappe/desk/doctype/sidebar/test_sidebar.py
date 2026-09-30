@@ -3,6 +3,7 @@
 
 import json
 from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
@@ -819,16 +820,20 @@ def shell_payload(spec: dict) -> dict:
 	"""A `bootinfo.module_sidebars` payload from a compact spelling, for the ladder's tests.
 
 	Each shell is given as `{"module": ..., "workspaces": [...], "lists": [(kind, entity), ...]}`,
-	and everything the ladder does not read is left out. Building the payload by hand rather than
-	from documents is what lets one test say one thing: the ladder's order is the subject, and
-	real sidebars would drag permissions, customizations and computed bases into it.
+	where a Page entry may add the item's `route` as a third element. Everything the ladder does not
+	read is left out. Building the payload by hand rather than from documents is what lets one test
+	say one thing: the ladder's order is the subject, and real sidebars would drag permissions,
+	customizations and computed bases into it.
 	"""
 	return {
 		shell: {
 			"module": shell_spec.get("module", shell),
 			"workspaces": shell_spec.get("workspaces", []),
 			"computed": shell_spec.get("computed", 0),
-			"items": [{"link_type": kind, "link_to": entity} for kind, entity in shell_spec.get("lists", [])],
+			"items": [
+				{"link_type": kind, "link_to": entity, "route": route}
+				for kind, entity, route in ((*listed, None)[:3] for listed in shell_spec.get("lists", []))
+			],
 		}
 		for shell, shell_spec in spec.items()
 	}
@@ -956,6 +961,56 @@ class TestCanonicalShell(IntegrationTestCase):
 		index = ShellIndex(shell_payload({"Stock": {"workspaces": ["Stock", "Warehousing"]}}))
 
 		self.assertEqual(dict(index.workspace_owners()), {"Stock": "Stock", "Warehousing": "Stock"})
+
+
+class TestCanonicalShellOfAPageRoute(IntegrationTestCase):
+	"""Several apps link one container page with a route of their own: Selling links
+	`insights-dashboard` at `selling`, Pulse at `pulse-health`. The page belongs to Insights, so
+	keyed by the page alone every such route opened in Insights.
+	"""
+
+	PAGE = "insights-dashboard"
+	SIDEBARS = shell_payload(
+		{
+			"Insights": {"lists": [("Page", PAGE)]},
+			"Selling": {"lists": [("Page", PAGE, "selling")]},
+			"Pulse": {"lists": [("Page", PAGE, "pulse-health")]},
+		}
+	)
+
+	def build(self, entity_module=None):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={self.PAGE: {"module": "Insights"}},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, entity_module or {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_page_route_opens_in_the_shell_that_lists_it(self):
+		pages = self.build()
+
+		self.assertEqual(pages[f"{self.PAGE}/selling"], "Selling")
+		self.assertEqual(pages[f"{self.PAGE}/pulse-health"], "Pulse")
+
+	def test_the_page_itself_still_opens_in_its_module(self):
+		self.assertEqual(self.build()[self.PAGE], "Insights")
+
+	def test_an_item_with_a_route_still_lists_its_page(self):
+		self.assertEqual(
+			ShellIndex(self.SIDEBARS).listed_in("Page", self.PAGE), ["Insights", "Selling", "Pulse"]
+		)
+
+	def test_a_page_route_can_be_claimed(self):
+		from frappe.boot import build_entity_module_map
+
+		sidebars = shell_payload({"Insights": {}, "Pulse": {}})
+		sidebars["Pulse"]["items"] = [
+			{"link_type": "Page", "link_to": self.PAGE, "route": "pulse-health", "is_default_module": 1}
+		]
+
+		self.assertEqual(build_entity_module_map(sidebars)[f"{self.PAGE}/pulse-health"], "Pulse")
 
 
 class TestCanonicalShellPayload(IntegrationTestCase):
@@ -2480,6 +2535,83 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			):
 				with self.assertRaises(frappe.ValidationError):
 					call()
+
+
+class TestPageItemRoute(IntegrationTestCase):
+	"""`Sidebar Item.route` is the path inside the page an item opens."""
+
+	PAGE = "permission-manager"
+
+	def setUp(self):
+		if not frappe.db.exists("Module Def", MODULE):
+			with no_developer_mode():
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
+				).insert()
+
+	def tearDown(self):
+		for name in frappe.get_all("Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
+
+	def sidebar_with(self, *items, **item):
+		doc = frappe.new_doc("Sidebar")
+		doc.module = MODULE
+		for row in items or (item,):
+			doc.append("items", {"type": "Link", "label": "Dashboard", **row})
+		with developer_mode():
+			return doc.insert(ignore_permissions=True)
+
+	def test_the_boot_payload_carries_the_route(self):
+		"""The desk picks the sidebar for a route from this payload."""
+		self.sidebar_with(link_type="Page", link_to=self.PAGE, route="payroll")
+
+		items = filter_sidebar_items(frappe.get_doc("Sidebar", MODULE).items, None, check_permission=False)
+
+		self.assertEqual(items[0]["route"], "payroll")
+
+	def test_a_route_is_stored_without_surrounding_whitespace(self):
+		"""A stray space would break the link and split one destination into two identities."""
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE, route=" payroll ")
+
+		self.assertEqual(frappe.get_doc("Sidebar", doc.name).items[0].route, "payroll")
+
+	def test_a_route_that_leaves_the_page_is_refused(self):
+		for route in ("/payroll", "../payroll", "payroll/../../todo", "https://example.com"):
+			with self.subTest(route=route), self.assertRaises(frappe.ValidationError):
+				self.sidebar_with(link_type="Page", link_to=self.PAGE, route=route)
+
+	def test_a_query_or_a_fragment_is_not_a_route(self):
+		for route in ("payroll?dashboard=1", "payroll#top"):
+			with self.subTest(route=route), self.assertRaises(frappe.ValidationError):
+				self.sidebar_with(link_type="Page", link_to=self.PAGE, route=route)
+
+	def test_only_a_page_item_has_a_route_inside_it(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.sidebar_with(link_type="DocType", link_to="User", route="payroll")
+
+	def test_a_page_item_needs_no_route(self):
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE)
+
+		self.assertFalse(frappe.get_doc("Sidebar", doc.name).items[0].route)
+
+	def test_an_item_with_no_route_keeps_the_key_it_always_had(self):
+		"""`Custom Sidebar` rows on customer sites name items by this string."""
+		self.assertEqual(
+			item_key({"type": "Link", "link_type": "Page", "link_to": self.PAGE}),
+			"Link|Page|permission-manager||",
+		)
+
+	def test_both_routes_survive_the_filter_that_drops_duplicates(self):
+		self.sidebar_with(
+			{"link_type": "Page", "link_to": self.PAGE, "route": "accounts"},
+			{"link_type": "Page", "link_to": self.PAGE, "route": "payments"},
+		)
+
+		items = filter_sidebar_items(frappe.get_doc("Sidebar", MODULE).items, None, check_permission=False)
+
+		self.assertEqual([item["route"] for item in items], ["accounts", "payments"])
 
 
 class TestPrivateShell(IntegrationTestCase):
