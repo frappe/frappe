@@ -41,14 +41,21 @@ def get():
 	else:
 		data = compress(execute(**args), args=args)
 
-	# `compress` returns the rows untouched when there are none, and reduces a child table
-	# field to its bare fieldname, so pair the requested fields back up with its key order.
-	if with_link_titles and isinstance(data, dict):
-		field_info = {info.get("fieldname"): info for info in get_field_info(args.fields, args.doctype)}
-		columns = [field_info.get(key) for key in data["keys"]]
-		send_link_titles(get_report_link_titles(columns, data["values"]))
+	if with_link_titles:
+		send_compressed_link_titles(args, data)
 
 	return data
+
+
+def send_compressed_link_titles(args, data):
+	"""Send the titles of the Link values in a `compress`ed result with the response."""
+	# `compress` returns the rows untouched when there are none, and reduces a child table
+	# field to its bare fieldname, so pair the requested fields back up with its key order.
+	if not isinstance(data, dict):
+		return
+	field_info = {info.get("fieldname"): info for info in get_field_info(args.fields, args.doctype)}
+	columns = [field_info.get(key) for key in data["keys"]]
+	send_link_titles(get_report_link_titles(columns, data["values"]))
 
 
 @frappe.whitelist()

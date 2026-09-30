@@ -201,6 +201,48 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.assertEqual(len(_decompress_kanban_cards(open_data["cards"])), 3)
 		self.assertEqual(len(_decompress_kanban_cards(closed_data["cards"])), 1)
 
+	def make_user_theme_board(self):
+		# Language shows its title in links, as Project does in ERPNext
+		self.assertTrue(frappe.get_meta("Language").show_title_field_in_link)
+		board = frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": "_Test User Theme Board",
+				"reference_doctype": "User",
+				"field_name": "desk_theme",
+				"columns": [{"column_name": "Light"}, {"column_name": "Dark"}, {"column_name": "Automatic"}],
+				"group_by_fields": [{"fieldname": "language"}],
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Kanban Board", board.name, force=1)
+		frappe.db.set_value("User", "Administrator", "language", "en")
+		return board
+
+	def test_get_kanban_group_values_labels_links_with_titles(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		board = self.make_user_theme_board()
+		res = get_kanban_group_values(board.name, "language", [["User", "name", "=", "Administrator"]])
+
+		self.assertEqual(res["lanes"], [{"value": "en", "label": "English", "count": 1}])
+
+	def test_get_kanban_board_data_sends_link_titles(self):
+		board = self.make_user_theme_board()
+		frappe.local.response.pop("_link_titles", None)
+		frappe.local.form_dict = frappe._dict(
+			{
+				"board_name": board.name,
+				"doctype": "User",
+				"fields": '["name", "desk_theme", "language"]',
+				"filters": '[["User", "name", "=", "Administrator"]]',
+				"kanban_page_length": 50,
+			}
+		)
+
+		get_kanban_board_data()
+
+		self.assertEqual(frappe.local.response["_link_titles"].get("Language::en"), "English")
+
 	def test_on_change_clears_only_reference_doctype_user_settings(self):
 		from frappe.model.utils import user_settings
 
@@ -313,6 +355,13 @@ class TestKanbanBoard(IntegrationTestCase):
 		# ToDo's title field is description, a Text Editor
 		self.assertEqual(frappe.db.get_value("Kanban Board", self.board_name, "title_field"), "description")
 
+	def test_title_field_can_be_the_doctypes_hidden_title(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import default_title_field
+
+		# Contact's title field, full_name, is hidden and computed
+		self.assertTrue(frappe.get_meta("Contact").get_field("full_name").hidden)
+		self.assertEqual(default_title_field("Contact"), "full_name")
+
 	def test_get_kanban_group_values(self):
 		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
 
@@ -340,7 +389,7 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.addCleanup(frappe.db.set_value, "Kanban Board", self.board_name, "private", 1)
 
 		# A user without a ToDo role only sees the ToDos allocated to them.
-		user = create_user("kanban_lane_reader@example.com", "Blogger")
+		user = create_user("kanban_lane_reader@example.com", "Desk User")
 		frappe.db.set_value("ToDo", self.todos[0], "allocated_to", user.name)
 		self.addCleanup(frappe.db.set_value, "ToDo", self.todos[0], "allocated_to", None)
 
@@ -457,6 +506,34 @@ class TestStandardKanbanBoard(IntegrationTestCase):
 		synced = frappe.get_doc("Kanban Board", board.name)
 		self.assertEqual(synced.is_standard, "Yes")
 		self.assertEqual(synced.card_fields, [])
+
+	def test_sync_keeps_a_site_board_with_the_same_name(self):
+		from frappe.modules.import_file import import_file_by_path
+
+		board = self.make_standard_board()
+		path = board.get_export_path()
+		with open(path) as f:
+			shipped = f.read()
+		with patch.dict(frappe.flags, in_migrate=True):
+			frappe.delete_doc("Kanban Board", board.name)
+
+		# a site made its own board with the name before the app shipped one
+		frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": board.name,
+				"reference_doctype": "ToDo",
+				"field_name": "priority",
+			}
+		).insert()
+		frappe.db.set_value("Kanban Board", board.name, "modified", "2020-01-01", update_modified=False)
+		with open(path, "w") as f:
+			f.write(shipped)
+
+		import_file_by_path(path)
+		kept = frappe.get_doc("Kanban Board", board.name)
+		self.assertEqual(kept.is_standard, "No")
+		self.assertEqual(kept.field_name, "priority")
 
 	def test_locked_outside_developer_mode(self):
 		board = self.make_standard_board()

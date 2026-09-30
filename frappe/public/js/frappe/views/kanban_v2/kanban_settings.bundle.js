@@ -74,7 +74,7 @@ class KanbanBoardSettings {
 						(d) =>
 							d.fieldname &&
 							["Data", "Text", "Small Text", "Text Editor"].includes(d.fieldtype) &&
-							!d.hidden
+							(!d.hidden || d.fieldname === meta.title_field)
 					)
 					.map(to_opt)
 			),
