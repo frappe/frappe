@@ -207,7 +207,7 @@ describe("paintNow", () => {
     await controller.refresh();
 
     const said =
-      "[record-page] awaiting.onRefresh on CRM Deal returned a promise; onRefresh should be synchronous. The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.";
+      "[record-page] awaiting.onRefresh on CRM Deal returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.";
     expect(warnings).toEqual([said, said]);
     const reports = vi
       .mocked(runMethod)

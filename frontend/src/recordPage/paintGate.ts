@@ -23,6 +23,8 @@ export interface PaintGateHost {
   loaded: () => boolean;
   /** Runs `onRefresh` for each source `ran` does not hold yet, adding it; answers the ones still running. */
   runRefresh: (ran: Set<Registration>) => LateRefresh[];
+  /** Starts the `page.cached` fetches this visit has not made; answers, per source, when they land. */
+  fetchCached: () => LateRefresh[];
   /** Runs `onOpen` for these sources, while their acts are held for the commit that follows. */
   runOpen: (registrations: Registration[]) => void;
   /** Called once every source is in, before the replay's second pass. */
@@ -117,7 +119,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     } finally {
       // In `finally` so a throwing handler cannot leave the page staged for good.
       closeReplay();
-      runOnOpen(ran, holdLate(late, false));
+      runOnOpen(ran, [...holdLate(late, false), ...holdCached(false)]);
     }
   }
 
@@ -135,14 +137,15 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   function paintNow() {
     if (state.left || !host.loaded()) return false;
-    replayNow(false);
+    // The host's background reads fetch the cached keys, and their replay draws them.
+    replayNow(false, false);
     state.replayed = true;
     ready.value = true;
     return true;
   }
 
   /** The whole replay in one step, once nothing is left to wait for. */
-  function replayNow(background: boolean) {
+  function replayNow(background: boolean, fetchCached = true) {
     openReplay();
     if (background) state.background += 1;
     let late: LateRefresh[] = [];
@@ -155,6 +158,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
       closeReplay();
     }
     const landed = holdLate(late, background);
+    if (fetchCached) landed.push(...holdCached(background));
     if (!background) runOnOpen(ran, landed);
   }
 
@@ -163,12 +167,31 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     const landed: Promise<void>[] = [];
     for (const { source, settled } of late) {
       if (background) state.background += 1;
-      const held = asSource(source, () => hold(() => bounded(source, settled))).finally(() => {
+      const held = asSource(source, () =>
+        hold(() => bounded(`${source}.onRefresh`, settled)),
+      ).finally(() => {
         if (background) state.background -= 1;
       });
       landed.push(held);
     }
     return landed;
+  }
+
+  /** Holds the paints until the fetches a pass started land, then replays once; that replay drops its acts. */
+  function holdCached(background: boolean) {
+    const fetches = host.fetchCached();
+    if (!fetches.length) return [];
+    if (background) state.background += 1;
+    const landed = hold(async () => {
+      const waits = fetches.map(({ source, settled }) =>
+        asSource(source, () => bounded(`${source} page.cached`, settled)),
+      );
+      await Promise.all(waits);
+      if (!state.left) replayNow(true);
+    }).finally(() => {
+      if (background) state.background -= 1;
+    });
+    return [landed];
   }
 
   /** The first replay's sources run `onOpen` in run order, once it and its late parts commit. */
@@ -196,13 +219,13 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   }
 
   /** Answers when the part settles or the reader leaves, or after the limit with a warning. */
-  function bounded(source: string, settled: Promise<void>) {
+  function bounded(label: string, settled: Promise<void>) {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const limit = new Promise<void>((resolve) => {
       timer = setTimeout(() => {
         if (import.meta.env.DEV)
           console.warn(
-            `[record-page] ${source}.onRefresh on ${host.doctype} did not settle within ${LATE_LIMIT_MS / 1000} s; the page stopped waiting for it.`,
+            `[record-page] ${label} on ${host.doctype} did not settle within ${LATE_LIMIT_MS / 1000} s; the page stopped waiting for it.`,
           );
         resolve();
       }, LATE_LIMIT_MS);

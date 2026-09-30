@@ -582,6 +582,8 @@ export interface RecordPageApi {
   toast: PageToast;
   dialog: PageDialog;
   call(method: string, params?: Record<string, any>): Promise<any>;
+  /** Server data for `onRefresh`: the value kept for `key`, fetched once per visit; undefined until a fetch lands. */
+  cached<T>(key: string, fetch: () => Promise<T> | T): T | undefined;
   router: Router;
 }
 

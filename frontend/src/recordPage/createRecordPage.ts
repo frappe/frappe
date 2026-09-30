@@ -4,9 +4,10 @@ import type { ComputedRef, Ref } from "vue";
 import type { Router } from "vue-router";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
+import { CachedReads } from "./cachedReads";
 import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
 import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
-import { withRunningSource } from "./context";
+import { runningSource, withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import type {
@@ -195,6 +196,8 @@ export interface RecordPageController {
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
   /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
   firePost: (key: string) => Promise<void>;
+  /** Fetches the `page.cached` keys the first replay read, for the host's background reads; answers when they land. */
+  fetchCached: () => Promise<void>;
   /** Runs script code the host calls outside an event, so its ops paint once, when it finishes. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
   /** True once the first replay has painted, or the first paint went ahead without a late script. */
@@ -308,6 +311,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     value: (fieldname: string) => focusField(fieldname),
   });
 
+  const cachedReads = new CachedReads(host.doctype, host.docname);
+
   const commits = createCommitChannel({
     dispatch: (event, row) => fireEvent(event, row),
   });
@@ -321,6 +326,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     loaded: () =>
       permissions.loaded() && (!host.sourcesReady || clientScriptsLoaded(host.doctype)),
     runRefresh: (ran) => runRefresh(ran),
+    fetchCached: () => cachedReads.fetchUnfetched(),
     runOpen: (registrations) => runOpen(registrations),
     warnUnknownHandlers: () => warnUnknownHandlers(),
     deliverHeldActs: (drawnOnly) => deliverHeldActs(drawnOnly),
@@ -376,6 +382,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     },
     dialog: dialogs.api,
     call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
+    cached: <T>(key: string, fetch: () => Promise<T> | T) =>
+      cachedReads.read(runningSource(), key, fetch) as T | undefined,
     // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
     router: host.router,
   };
@@ -694,7 +702,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   // Filed in production too, so an admin sees which scripts to move to a cached read.
   function warnAsyncRefresh(source: string) {
-    const message = `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise; onRefresh should be synchronous. The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.`;
+    const message = `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.`;
     if (import.meta.env.DEV) console.warn(message);
     reportCustomizationError(new Error(message), {
       source,
@@ -791,6 +799,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     paintNow: gate.paintNow,
     fireEvent,
     firePost,
+    fetchCached: async () => {
+      await Promise.all(cachedReads.fetchUnfetched().map(({ settled }) => settled));
+    },
     hold,
     ready: gate.ready,
     isReplaying: gate.isReplaying,
