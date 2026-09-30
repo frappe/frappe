@@ -141,7 +141,7 @@ export function useListPage(doctype: string): ListPage {
 			if (!value || seeded.value) return;
 			applyStored();
 			readQuery(listMeta.value!);
-			// A breadcrumb has no history entry; the page size of an earlier visit to this query stands in.
+			// A breadcrumb has no history entry; an earlier visit gives the page size.
 			const remembered = recallRows(doctype, stateKey());
 			if (remembered && readListMemory().pageSize == null) pageSize.value = remembered.pageSize;
 			seeded.value = true;

@@ -2,7 +2,13 @@
 // and how the count beside the first page reads in the footer.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@framework/ui/api/envelope";
-import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
+import {
+	clearDataCache,
+	feedListRead,
+	feedReadError,
+	settleTicket,
+	takeTicket,
+} from "@framework/ui/cache";
 import { nextTick, ref } from "vue";
 import { useListRows, type RowsQuery } from "../useListRows";
 
@@ -176,7 +182,6 @@ describe("a query the shared cache holds", () => {
 		expect(fetches()).toEqual([
 			[0, 20],
 			[20, 20],
-			[20, 20],
 		]);
 	});
 
@@ -197,5 +202,17 @@ describe("a query the shared cache holds", () => {
 		await settle();
 		expect(rows.error.value?.message).toBe("Not permitted");
 		expect(rows.rows.value).toEqual([]);
+		expect(rows.hasCounts.value).toBe(false);
+	});
+
+	it("shows every name the list entry holds, and reads again the rows it lacks", async () => {
+		cacheList(20, true);
+		const ticket = takeTicket();
+		const denied = new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404);
+		feedReadError(ticket, "ToDo", "T-3", denied);
+		settleTicket(ticket);
+		const rows = useListRows("ToDo", () => queryOf(10));
+		expect(rows.rows.value).toHaveLength(19);
+		expect(fetches()).toEqual([[0, 20]]);
 	});
 });

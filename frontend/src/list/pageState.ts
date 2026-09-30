@@ -1,7 +1,5 @@
-// What a visit keeps in its history entry: the page size and the scroll offset, so Back lands
-// where the reader left. What the session keeps per doctype: the page size and the scroll offset
-// of the last query, so a return by any route, a breadcrumb too, lands there again. The rows and
-// how many showed are the shared cache's list entry.
+// The page size and scroll offset, kept in the history entry for Back and per doctype for a
+// return by any other route. The rows, and how many showed, are the shared cache's list entry.
 
 export interface ListMemory {
 	pageSize?: number;

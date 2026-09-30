@@ -16,7 +16,8 @@ const fake = vi.hoisted(() => ({
 	runMethod: vi.fn(),
 }));
 
-vi.mock("@framework/ui/api", () => ({
+vi.mock("@framework/ui/api", async (original) => ({
+	isApiError: (await original<typeof import("@framework/ui/api")>()).isApiError,
 	getMeta: vi.fn(async () => ({ data: fake.meta, children: [] })),
 	listDocuments: fake.listDocuments,
 	countDocuments: fake.countDocuments,
