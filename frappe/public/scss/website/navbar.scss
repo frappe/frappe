@@ -68,6 +68,10 @@
 
 	.navbar-toggler {
 		border-color: rgba(255, 255, 255, 0.1);
+
+		.icon {
+			stroke: white;
+		}
 	}
 
 	svg use {
