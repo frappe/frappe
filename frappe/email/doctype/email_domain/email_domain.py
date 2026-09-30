@@ -8,6 +8,7 @@ from functools import wraps
 
 import frappe
 from frappe import _
+from frappe.email.smtp import get_ssl_context
 from frappe.email.utils import get_port
 from frappe.model.document import Document
 from frappe.utils import cint
@@ -118,12 +119,24 @@ class EmailDomain(Document):
 
 	@handle_error("outgoing")
 	def validate_outgoing_server_conn(self):
-		conn_method = smtplib.SMTP
-
 		if self.use_ssl_for_outgoing:
 			self.smtp_port = self.smtp_port or 465
-			conn_method = smtplib.SMTP_SSL
 		elif self.use_tls:
 			self.smtp_port = self.smtp_port or 587
 
-		conn_method((self.smtp_server or ""), cint(self.smtp_port), timeout=15).quit()
+		if self.use_ssl_for_outgoing:
+			conn = smtplib.SMTP_SSL(
+				self.smtp_server or "",
+				cint(self.smtp_port),
+				timeout=15,
+				context=get_ssl_context(self.validate_ssl_certificate_for_outgoing),
+			)
+		else:
+			conn = smtplib.SMTP(self.smtp_server or "", cint(self.smtp_port), timeout=15)
+
+		try:
+			if self.use_tls and not self.use_ssl_for_outgoing:
+				conn.starttls(context=get_ssl_context(self.validate_ssl_certificate_for_outgoing))
+			conn.quit()
+		finally:
+			conn.close()

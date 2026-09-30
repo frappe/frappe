@@ -4,7 +4,6 @@
 import smtplib
 import ssl
 from contextlib import suppress
-from functools import partial
 
 import frappe
 from frappe import _
@@ -14,6 +13,14 @@ from frappe.utils import cint, cstr, get_traceback
 
 class InvalidEmailCredentials(frappe.ValidationError):
 	pass
+
+
+def get_ssl_context(validate_ssl_certificate=True):
+	context = ssl.create_default_context()
+	if validate_ssl_certificate is not None and not cint(validate_ssl_certificate):
+		context.check_hostname = False
+		context.verify_mode = ssl.CERT_NONE
+	return context
 
 
 class SMTPServer:
@@ -59,18 +66,11 @@ class SMTPServer:
 	def server(self):
 		return cstr(self._server or "")
 
-	def _ssl_context(self):
-		context = ssl.create_default_context()
-		if self.validate_ssl_certificate is not None and not cint(self.validate_ssl_certificate):
-			context.check_hostname = False
-			context.verify_mode = ssl.CERT_NONE
-		return context
-
 	def secure_session(self, conn):
 		"""Secure the connection incase of TLS."""
 		if self.use_tls:
 			conn.ehlo()
-			conn.starttls(context=self._ssl_context())
+			conn.starttls(context=get_ssl_context(self.validate_ssl_certificate))
 			conn.ehlo()
 
 	@property
@@ -82,17 +82,27 @@ class SMTPServer:
 		if self.is_session_active():
 			return self._session
 
-		# `context` is only accepted by SMTP_SSL; plain SMTP has no such argument.
-		SMTP = partial(smtplib.SMTP_SSL, context=self._ssl_context()) if self.use_ssl else smtplib.SMTP
-
 		try:
-			_session = SMTP(self.server, self.port, timeout=self.timeout)
+			if self.use_ssl:
+				_session = smtplib.SMTP_SSL(
+					self.server,
+					self.port,
+					timeout=self.timeout,
+					context=get_ssl_context(self.validate_ssl_certificate),
+				)
+			else:
+				_session = smtplib.SMTP(self.server, self.port, timeout=self.timeout)
 			if not _session:
 				frappe.msgprint(
 					_("Could not connect to outgoing email server"), raise_exception=frappe.OutgoingEmailError
 				)
 
-			self.secure_session(_session)
+			try:
+				self.secure_session(_session)
+			except Exception:
+				with suppress(Exception):
+					_session.close()
+				raise
 
 			if self.use_oauth:
 				Oauth(_session, self.email_account, self.login, self.access_token).connect()

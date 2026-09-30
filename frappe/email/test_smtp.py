@@ -95,6 +95,17 @@ class TestSMTP(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Could not verify the TLS certificate"):
 			server.session
 
+	@patch("frappe.email.smtp.smtplib.SMTP")
+	def test_starttls_certificate_error_closes_connection(self, smtp):
+		server = SMTPServer(server="smtp.example.com", port=587, use_tls=1)
+		smtp.return_value.starttls.side_effect = ssl.SSLCertVerificationError(1, "untrusted")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Could not verify the TLS certificate"):
+			server.session
+
+		smtp.return_value.close.assert_called_once()
+		self.assertIsNone(server._session)
+
 	def test_get_email_account(self):
 		existing_email_accounts = frappe.get_all(
 			"Email Account",
