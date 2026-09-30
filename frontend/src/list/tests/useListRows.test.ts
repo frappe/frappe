@@ -1,6 +1,14 @@
 // The rows composable on its own: when the first query runs, what a page-size change fetches,
 // and how the count beside the first page reads in the footer.
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@framework/ui/api/envelope";
+import {
+	clearDataCache,
+	feedListRead,
+	feedReadError,
+	settleTicket,
+	takeTicket,
+} from "@framework/ui/cache";
 import { nextTick, ref } from "vue";
 import { useListRows, type RowsQuery } from "../useListRows";
 
@@ -10,7 +18,8 @@ const fake = vi.hoisted(() => ({
 	deleteDocument: vi.fn(),
 }));
 
-vi.mock("@framework/ui/api", () => ({
+vi.mock("@framework/ui/api", async (original) => ({
+	isApiError: (await original<typeof import("@framework/ui/api")>()).isApiError,
 	listDocuments: fake.listDocuments,
 	countDocuments: fake.countDocuments,
 	deleteDocument: fake.deleteDocument,
@@ -42,7 +51,17 @@ async function settle() {
 	await nextTick();
 }
 
+/** What an earlier visit's reads left in the shared cache for `queryOf`. */
+function cacheList(count: number, hasNextPage: boolean) {
+	const ticket = takeTicket();
+	const query = { fields: ["name"], filters: { status: "Open" }, order_by: "modified desc" };
+	const data = Array.from({ length: count }, (_, i) => ({ name: `T-${i}` }));
+	feedListRead(ticket, "ToDo", query, { data, has_next_page: hasNextPage, count: 50 } as never);
+	settleTicket(ticket);
+}
+
 beforeEach(() => {
+	clearDataCache();
 	answers.length = 0;
 	fake.listDocuments.mockReset().mockImplementation(fakeList);
 	fake.countDocuments.mockReset().mockResolvedValue({ data: 1234 });
@@ -127,5 +146,89 @@ describe("useListRows", () => {
 		const rows = useListRows("ToDo", () => queryOf(20));
 		await rows.remove("T-1");
 		expect(fake.deleteDocument).toHaveBeenCalledWith("ToDo", "T-1");
+	});
+});
+
+describe("a query the shared cache holds", () => {
+	it("paints the cached rows and count at once, and reads every shown row again", async () => {
+		cacheList(40, true);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		expect(rows.loading.value).toBe(false);
+		expect(rows.rows.value).toHaveLength(40);
+		expect(rows.totalCount.value).toBe(50);
+		expect(fetches()).toEqual([[0, 40]]);
+		expect(fake.listDocuments.mock.calls[0][2]).toEqual({ include: ["count"] });
+	});
+
+	it("paints the part of a page the cache holds, and the background read brings the rest", async () => {
+		cacheList(5, true);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		expect(rows.rows.value).toHaveLength(5);
+		const data = Array.from({ length: 20 }, (_, i) => ({ name: `T-${i}` }));
+		answers[0]({ data, has_next_page: true, count: 50 });
+		await settle();
+		expect(fetches()).toEqual([[0, 20]]);
+		expect(rows.rows.value).toHaveLength(20);
+	});
+
+	it("fetches the rows a Load More asked for while the background read was out", async () => {
+		cacheList(20, true);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		rows.next();
+		const data = Array.from({ length: 20 }, (_, i) => ({ name: `T-${i}` }));
+		answers[0]({ data, has_next_page: true, count: 50 });
+		await settle();
+		expect(rows.shown.value).toBe(40);
+		expect(fetches()).toEqual([
+			[0, 20],
+			[20, 20],
+		]);
+	});
+
+	it("keeps the painted rows when the background read fails", async () => {
+		cacheList(20, true);
+		fake.listDocuments.mockRejectedValue(new Error("Network down"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		expect(rows.error.value).toBeNull();
+		expect(rows.rows.value).toHaveLength(20);
+	});
+
+	it("shows the error when the list is no longer readable", async () => {
+		cacheList(20, true);
+		const denied = new ApiError({ type: "PermissionError", message: "Not permitted" }, 403);
+		fake.listDocuments.mockRejectedValue(denied);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		expect(rows.error.value?.message).toBe("Not permitted");
+		expect(rows.rows.value).toEqual([]);
+		expect(rows.hasCounts.value).toBe(false);
+	});
+
+	it("shows every name the list entry holds, and reads again the rows it lacks", async () => {
+		cacheList(20, true);
+		const ticket = takeTicket();
+		const denied = new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404);
+		feedReadError(ticket, "ToDo", "T-3", denied);
+		settleTicket(ticket);
+		const rows = useListRows("ToDo", () => queryOf(10));
+		expect(rows.rows.value).toHaveLength(19);
+		expect(fetches()).toEqual([[0, 20]]);
+	});
+
+	it("loads more from the list's own position when a row is missing and the read failed", async () => {
+		cacheList(20, true);
+		const ticket = takeTicket();
+		const gone = new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404);
+		feedReadError(ticket, "ToDo", "T-3", gone);
+		settleTicket(ticket);
+		fake.listDocuments.mockRejectedValueOnce(new Error("Network down"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		rows.next();
+		expect(fetches()).toEqual([
+			[0, 20],
+			[20, 19],
+		]);
 	});
 });

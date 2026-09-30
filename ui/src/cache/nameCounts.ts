@@ -1,4 +1,4 @@
-// How many list entries name each document, so a lookup does not walk every list.
+// How many list entries, or fields on screen, name each document, so a lookup walks none of them.
 import { documentKey } from "./entries";
 
 export class NameCounts {

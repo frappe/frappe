@@ -1,7 +1,8 @@
 // The composable as claims: what seeds it, what it writes to the URL, when it rebuilds the list,
-// and what a delete does. The api wrapper is faked; the router and history are real.
+// and what a delete does. The api wrapper is faked and feeds the real cache; the router and
+// history are real.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, nextTick, type App } from "vue";
+import { createApp, defineComponent, nextTick, watch, type App } from "vue";
 import { createRouter, createWebHistory, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({
@@ -15,7 +16,8 @@ const fake = vi.hoisted(() => ({
 	runMethod: vi.fn(),
 }));
 
-vi.mock("@framework/ui/api", () => ({
+vi.mock("@framework/ui/api", async (original) => ({
+	isApiError: (await original<typeof import("@framework/ui/api")>()).isApiError,
 	getMeta: vi.fn(async () => ({ data: fake.meta, children: [] })),
 	listDocuments: fake.listDocuments,
 	countDocuments: fake.countDocuments,
@@ -34,6 +36,7 @@ import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { setSession } from "@framework/ui/composables/useSession";
 import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
 import type { Session } from "@framework/ui/api";
+import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
 import { forgetRows, readListMemory, recallRows, writeListMemory } from "../pageState";
 import { useListPage, type ListPage } from "../useListPage";
 import { resetListSettings, useListSettings } from "../useListSettings";
@@ -54,9 +57,10 @@ let app: App | null = null;
 let page: ListPage;
 
 /** One list read, answered when a test assigns `data`; `count` is 42 unless a test says otherwise. */
-function fakeList(_doctype: string, query: Record<string, unknown>, options?: { include?: string[] }) {
+function fakeList(doctype: string, query: Record<string, unknown>, options?: { include?: string[] }) {
 	let resolve!: (answer: unknown) => void;
 	const promise = new Promise((done) => (resolve = done));
+	const ticket = takeTicket();
 	const list = {
 		query,
 		include: options?.include,
@@ -64,7 +68,10 @@ function fakeList(_doctype: string, query: Record<string, unknown>, options?: { 
 		count: 42 as number | null,
 		capped: false,
 		set data(rows: Record<string, unknown>[]) {
-			resolve({ data: rows, has_next_page: list.hasNextPage, count: list.count, count_capped: list.capped });
+			const answer = { data: rows, has_next_page: list.hasNextPage, count: list.count, count_capped: list.capped };
+			feedListRead(ticket, doctype, query, answer as never);
+			settleTicket(ticket);
+			resolve(answer);
 		},
 	};
 	fake.lists.push(list);
@@ -145,6 +152,7 @@ beforeEach(() => {
 	setSession(SESSION);
 	resetListSettings();
 	forgetRows("Lead");
+	clearDataCache();
 	history.replaceState(null, "");
 	fake.meta = { name: "Lead", title_field: "title", sort_field: "amount", sort_order: "ASC", fields: FIELDS };
 	fake.contributed = [];
@@ -358,7 +366,7 @@ describe("the URL", () => {
 });
 
 describe("the rows", () => {
-	it("keeps the selection across a load-more, and drops it with the rows on a reload", async () => {
+	it("keeps the selection across a load-more and a reload, and drops the rows that left", async () => {
 		await mount("/lead");
 		await settle();
 		fake.lists[0].data = rowsNamed(20);
@@ -370,7 +378,10 @@ describe("the rows", () => {
 		expect(page.selection.value).toEqual(["LEAD-1", "LEAD-2"]);
 		page.reload();
 		await settle();
-		expect(page.selection.value).toEqual([]);
+		expect(page.selection.value).toEqual(["LEAD-1", "LEAD-2"]);
+		fake.lists[2].data = rowsNamed(40, 2);
+		await settle();
+		expect(page.selection.value).toEqual(["LEAD-2"]);
 	});
 
 	it("rebuilds the list for a changed filter after the typing debounce, with no selection", async () => {
@@ -453,7 +464,7 @@ describe("the rows", () => {
 		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
 	});
 
-	it("a return to the same query shows as many rows as before, by one request", async () => {
+	it("a return to the same query paints the cached rows and count, then reads them again at once", async () => {
 		await mount("/lead");
 		await settle();
 		fake.lists[0].data = rowsNamed(20);
@@ -461,23 +472,50 @@ describe("the rows", () => {
 		page.next();
 		await nextTick();
 		expect(fake.lists[1].query).toMatchObject({ start: 20, limit: 20 });
+		fake.lists[1].data = rowsNamed(20, 20);
+		await settle();
 
 		app!.unmount();
 		app = null;
 		fake.listDocuments.mockClear();
 		fake.lists = [];
 		await mount("/lead");
-		await settle();
+		expect(page.loading.value).toBe(false);
+		expect(page.rows.value).toHaveLength(40);
+		expect(page.hasCounts.value).toBe(true);
+		expect(page.totalCount.value).toBe(42);
 		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
 		expect(fake.lists[0].query).toMatchObject({ start: 0, limit: 40 });
+		expect(fake.lists[0].include).toEqual(["count"]);
 
 		app!.unmount();
 		app = null;
 		fake.listDocuments.mockClear();
 		fake.lists = [];
 		await mount("/lead?status=Open");
-		await settle();
+		expect(page.loading.value).toBe(true);
 		expect(fake.lists[0].query).toMatchObject({ start: 0, limit: 20 });
+	});
+
+	it("the background read swaps rows, count and selection in one step", async () => {
+		await mount("/lead");
+		await settle();
+		fake.lists[0].data = rowsNamed(20);
+		await settle();
+		app!.unmount();
+		app = null;
+		fake.lists = [];
+		await mount("/lead");
+		page.selection.value = ["LEAD-0", "LEAD-5"];
+		const seen: [string, number][] = [];
+		watch(page.rows, (rows) => seen.push([rows[0].name, page.totalCount.value]));
+		fake.lists[0].count = 41;
+		fake.lists[0].data = rowsNamed(20, 1);
+		await settle();
+		expect(page.rows.value[0].name).toBe("LEAD-1");
+		expect(page.totalCount.value).toBe(41);
+		expect(page.selection.value).toEqual(["LEAD-5"]);
+		expect(seen).toEqual([["LEAD-1", 41]]);
 	});
 
 	it("a page size changed while a filter waits is remembered under the rows' own query", async () => {
@@ -491,10 +529,10 @@ describe("the rows", () => {
 		page.pageSize.value = 100;
 		await settle();
 		expect(page.rowsKey()).toBe(before);
-		expect(recallRows("Lead", before)).toMatchObject({ pageSize: 100, shown: 100 });
+		expect(recallRows("Lead", before)).toMatchObject({ pageSize: 100 });
 		await settleQuery();
 		expect(page.rowsKey()).not.toBe(before);
-		expect(recallRows("Lead", page.rowsKey())).toMatchObject({ shown: 100 });
+		expect(recallRows("Lead", page.rowsKey())).toMatchObject({ pageSize: 100 });
 	});
 
 	it("a new query on the same entry drops the entry's scroll offset", async () => {

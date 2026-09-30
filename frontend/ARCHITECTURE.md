@@ -171,7 +171,7 @@ The list is what `ui/` exports from its root index and from `@framework/ui/api`.
 | --- | --- |
 | Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`) | Every `/api/v2` reply is `{ data }`; every failure is one error class |
 | Request transport (`request`, `apiUrl`, `requestHeaders`) | The one fetch wrapper for `/api/v2`. Takes the CSRF token as a documented input or finds it itself |
-| Document calls (`getDocument`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | Read and write one record or a list |
+| Document calls (`getDocument`, `getDocumentFields`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | Read and write one record or a list. `getDocumentFields` reads some fields of one record and makes no list entry |
 | Method calls (`runMethod`, `runDocumentMethod`) | Call a whitelisted method, or a method on one document |
 | `getMeta` | Fetch a doctype's meta |
 | Record parts (`getDocumentPart`, `addPart`, `removePart`, `updatePart`) | Read or change one named part of a record |
@@ -179,7 +179,7 @@ The list is what `ui/` exports from its root index and from `@framework/ui/api`.
 | Comment calls (`addComment`, `updateComment`, `removeComment`) | Post, edit and delete a comment |
 | File calls (`uploadFile`, `attachFile`, `removeAttachment`, `downloadFile`) | Upload in chunks and attach to a record |
 | Session calls (`getSession`, `logout`, `getTranslations`) | The signed-in user, sign-out, and translations |
-| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `listCacheKey`, `DocumentEntry`, `ListEntry`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
+| Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 50. `holdDocument` keeps an entry past every limit while a field on screen shows it. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`) | Fetches and holds each doctype's meta. Clears itself on `doctype_update` |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
@@ -200,7 +200,7 @@ component group, with its main names.
 | `FormLayout` (`@framework/ui/FormLayout`: `FormLayout`, `FormLayoutSchema`, `Tab`, `Section`, `Column`, `FieldNode`) | Draws a form from a tabs, sections, columns and fields tree. Works out field access itself |
 | Layout building (`buildLayoutFromMeta`, `compose`, `Decorator`, `fieldsToLayout`, `resolveLayout`, `evaluateDependsOn`) | Turns meta fields into a layout tree, and applies depends-on, hidden and overrides for one document |
 | Child rows (`useChildRowModel`, `newRowValues`) | The rows of a child table field, and a new row's default values |
-| Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`) | Formats numbers, currency and dates for display |
+| Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
 | Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`) | How a field reads the document, writes a value, and shows link titles |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
@@ -677,7 +677,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | The list's column and sort panels load with the list | They load when opened | New map |
 | The tombstone code in `recordPage/pageCompatibility.ts` for an empty list | Gone; the rule stays in `COMPATIBILITY.md` | One page model |
 | Dead code: `resolveDoctype`, `currentNavigation`, `forgetRows`, `clear_address_table`, `clear_doctype_owners`, `setDocValueReader`, `reloadClientScripts`, the unused `scope` in `arrangement.ts`, a second loader in `useFormLayout.ts` | Gone | New map |
-| The currency lookup keeps its own map that never refreshes | It reads the data cache | Return visits |
 
 **Where `ui/` does not stand on its own yet.** The @framework/ui map owns each row.
 

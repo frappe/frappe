@@ -1,6 +1,5 @@
-// What a visit keeps in its history entry: the page size and the scroll offset, so Back lands
-// where the reader left. What the session keeps per doctype: how many rows were showing and the
-// scroll offset, so a return from a record by any route, a breadcrumb too, lands there again.
+// The page size and scroll offset, kept in the history entry for Back and per doctype for a
+// return by any other route. The rows, and how many showed, are the shared cache's list entry.
 
 export interface ListMemory {
 	pageSize?: number;
@@ -19,16 +18,15 @@ export function writeListMemory(patch: ListMemory): void {
 }
 
 export interface RowsMemory {
-	/** The filters and sort the rows belonged to; a different query starts fresh. */
+	/** The filters and sort the offset belongs to; a different query starts at the top. */
 	query: string;
 	pageSize: number;
-	shown: number;
 	scrollTop?: number;
 }
 
 const rowsByDoctype = new Map<string, RowsMemory>();
 
-/** Patches the memory for the same query, so a Load More keeps the offset; a new query replaces it. */
+/** Patches the memory for the same query, keeping its offset; a new query replaces it. */
 export function rememberRows(doctype: string, memory: Omit<RowsMemory, "scrollTop">): void {
 	rowsByDoctype.set(doctype, { ...recallRows(doctype, memory.query), ...memory });
 }

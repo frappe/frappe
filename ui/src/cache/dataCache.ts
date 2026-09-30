@@ -21,6 +21,7 @@ import { WriteGate } from "./writeGate";
 
 const COMPLETE_LIMIT = 50;
 const LIST_LIMIT = 20;
+const FIELD_READ_LIMIT = 50;
 
 export class DataCache {
   private documents = new Map<string, DocumentEntry>();
@@ -29,6 +30,8 @@ export class DataCache {
   // Least recently read first.
   private readRecords = new Set<string>();
   private readLists = new Set<string>();
+  private fieldReads = new Set<string>();
+  private shown = new NameCounts();
   private gate = new WriteGate({
     hasDocument: (key) => this.documents.has(key),
     hasList: (key) => this.lists.has(key),
@@ -81,7 +84,7 @@ export class DataCache {
     const carried = recordParts(envelope, include);
     const parts = entry && order === 0 ? { ...entry.parts, ...carried } : carried;
     const complete = holdsEveryPart(parts);
-    if (!complete && !this.named.has(key)) return this.dropDocument(key);
+    if (!complete && !this.held(key)) return this.dropDocument(key);
     this.setDocument(key, documentEntry(doctype, frozenCopy(doc), complete, parts), ticket);
     if (!complete) this.readRecords.delete(key);
     else if (!entry?.complete || holdsEveryPart(carried)) this.visitRecord(key);
@@ -107,6 +110,25 @@ export class DataCache {
     if (previous) this.dropUnnamed(doctype, previous.names);
     touch(this.readLists, key);
     this.evictLists();
+  }
+
+  /** Some fields of one record: the entry stays without a list, up to its own limit. */
+  fieldRead(ticket: number, doctype: string, row: unknown): void {
+    if (!this.gate.current(ticket) || !hasName(row)) return;
+    const key = documentKey(doctype, String(row.name));
+    if (!this.applyRow(ticket, doctype, row) || !this.documents.has(key)) return;
+    touch(this.fieldReads, key);
+    this.evictFieldReads();
+  }
+
+  /** Keeps the entry past every limit while a field on screen shows it. */
+  hold(doctype: string, name: string): void {
+    this.shown.add(doctype, [name]);
+  }
+
+  release(doctype: string, name: string): void {
+    this.shown.remove(doctype, [name]);
+    this.dropIfUnheld(documentKey(doctype, name));
   }
 
   /** A save or a create. */
@@ -173,6 +195,8 @@ export class DataCache {
     this.named.clear();
     this.readRecords.clear();
     this.readLists.clear();
+    this.fieldReads.clear();
+    this.shown.clear();
     this.gate.clear();
     this.memo.clear();
   }
@@ -230,6 +254,12 @@ export class DataCache {
       this.gate.documentLeft(key);
     }
     this.readRecords.delete(key);
+    this.fieldReads.delete(key);
+  }
+
+  /** A list names the entry, a field read keeps it, or a field on screen shows it. */
+  private held(key: string): boolean {
+    return this.named.has(key) || this.fieldReads.has(key) || this.shown.has(key);
   }
 
   private setList(list: ListEntry) {
@@ -257,7 +287,7 @@ export class DataCache {
       this.readRecords.delete(key);
       const entry = this.documents.get(key);
       if (!entry) continue;
-      if (this.named.has(key)) {
+      if (this.held(key)) {
         this.setDocument(key, documentEntry(entry.doctype, entry.doc, false));
       } else {
         this.dropDocument(key);
@@ -274,13 +304,22 @@ export class DataCache {
     }
   }
 
-  /** Removes each partial entry among `names` that no list names any more. */
-  private dropUnnamed(doctype: string, names: readonly string[]) {
-    for (const name of names) {
-      const key = documentKey(doctype, name);
-      const entry = this.documents.get(key);
-      if (entry && !entry.complete && !this.named.has(key)) this.dropDocument(key);
+  private evictFieldReads(): void {
+    for (const key of this.fieldReads) {
+      if (this.fieldReads.size <= FIELD_READ_LIMIT) return;
+      this.fieldReads.delete(key);
+      this.dropIfUnheld(key);
     }
+  }
+
+  /** Removes each partial entry among `names` that nothing holds any more. */
+  private dropUnnamed(doctype: string, names: readonly string[]): void {
+    for (const name of names) this.dropIfUnheld(documentKey(doctype, name));
+  }
+
+  private dropIfUnheld(key: string): void {
+    const entry = this.documents.get(key);
+    if (entry && !entry.complete && !this.held(key)) this.dropDocument(key);
   }
 }
 
