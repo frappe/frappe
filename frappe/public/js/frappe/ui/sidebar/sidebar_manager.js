@@ -123,41 +123,19 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	title() {
-		return __("Manage {0} Sidebar", [this.title_of_module()]);
+		return __("Editing {0} sidebar", [this.title_of_module()]);
+	}
+
+	// Any page this shell shows keeps the editor open. A page that swaps in another sidebar
+	// takes away the one being edited.
+	survives_shell(shell) {
+		return shell === this.shell;
 	}
 
 	// What the sidebar on screen is called: its `Sidebar`'s title, which an app or a layer may
 	// have relabelled, falling back to the shell's own name.
 	title_of_module() {
 		return (frappe.boot.module_sidebars[this.shell] || {}).label || this.shell;
-	}
-
-	// Offered only to users who may curate for everyone, because it discards the site's
-	// arrangement and every user's own. It sits on the dialog rather than beside the pane's
-	// Reset, because the two do different things: one drops the layer you are editing, this one
-	// removes every layer on the module.
-	extra_actions() {
-		return this.can_curate_site
-			? {
-					secondary_action_label: __("Reset to Standard"),
-					secondary_action: () => this.reset_to_standard(),
-			  }
-			: {};
-	}
-
-	// The dialog's secondary action is fixed when the dialog is built, and this one applies to
-	// two layers of the three: on the app's layer you *are* what the app ships, so "Reset to
-	// Standard" has nothing left to say and the pane offers Clear Customizations instead.
-	//
-	// Only when there is a button to toggle. Without the right to curate for everyone
-	// `extra_actions` gave the dialog no secondary action at all, and un-hiding that button
-	// would show an empty one.
-	render() {
-		super.render();
-
-		if (this.can_curate_site) {
-			this.dialog.get_secondary_btn().toggleClass("hide", this.layer === "app");
-		}
 	}
 
 	// The app's layer is the bottom one, so a site or user arrangement sits on top of what is
@@ -172,20 +150,35 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		);
 	}
 
-	// The way out of what `pane_note` reports. It is `reset_to_standard` under another name: the
-	// same action the two layers above run from the dialog's secondary button, which this layer
-	// hides. Offered only to someone who may drop an arrangement made for everyone, because that
-	// is what it does and what its endpoint checks.
-	extra_pane_actions() {
-		if (this.layer !== "app" || !this.is_customized() || !this.can_curate_site) return [];
+	// Reset to Standard discards the site's arrangement and every user's own, so it is offered only
+	// to users who may curate for everyone. On the app's layer you *are* what the app ships, so it
+	// has nothing left to say there, and the way out of what `pane_note` reports is offered instead
+	// under another name: Clear Customizations, the same action.
+	extra_menu_items() {
+		if (!this.can_curate_site) return [];
+
+		if (this.layer !== "app") {
+			return [
+				{
+					label: __("Reset to Standard"),
+					icon: "history",
+					theme: "red",
+					description: __("Remove the site's arrangement and every person's own."),
+					onclick: () => this.reset_to_standard(),
+				},
+			];
+		}
+		if (!this.is_customized()) return [];
 
 		return [
 			{
 				label: __("Clear Customizations"),
-				title: __(
+				icon: "eraser",
+				theme: "red",
+				description: __(
 					"Drop the site's arrangement of this sidebar and every person's own, so what you save here is what shows."
 				),
-				onClick: () => this.reset_to_standard(),
+				onclick: () => this.reset_to_standard(),
 			},
 		];
 	}
@@ -205,7 +198,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 				// and stays open. From either layer above, the layer being edited is one of the
 				// things just dropped and there is nothing left to look at.
 				if (this.layer === "app") this.load();
-				else this.dialog.hide();
+				else this.close();
 
 				frappe.show_alert({
 					message: __("{0} is back to standard", [
@@ -245,23 +238,11 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		};
 
 		return {
-			list_head: __("Entries"),
-			add_label: __("Add"),
-			list_sub:
-				this.layer === "app"
-					? __(
-							"Drag to reorder, and under a section to put an entry in it. The eye takes an entry off the sidebar; the pencil renames one and says how a section draws."
-					  )
-					: __(
-							"Drag to reorder, and under a section to put an entry in it. The eye takes an entry off the sidebar; the pencil renames it."
-					  ),
+			add_label: __("Add link or section"),
 			reset_title: __("Drop this arrangement and go back to {0}.", [below]),
 			reset_confirm: reset_confirm[this.layer],
 			reset_done: reset_done[this.layer],
 			list_empty: __("This module has nothing to arrange"),
-			preview_head: __("Preview"),
-			preview_sub: __("The sidebar as this arrangement leaves it."),
-			preview_empty: __("Nothing on the sidebar"),
 			load_error: __("Could not load the sidebar. Please try again."),
 		};
 	}
@@ -286,6 +267,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 
 	async read() {
 		const items = await frappe.xcall(this.layer_config.read, this.layer_args());
+		this.folded = null;
 
 		this.entries = new Map(items.map((item) => [item.key, item]));
 		// The layer's own order, with hidden entries kept in place. This read returns every
@@ -328,7 +310,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	add() {
 		if (!this.loaded) return;
 
-		const dialog = new frappe.ui.Dialog({
+		const panel = this.open_add_panel({
 			title: __("Add to the Sidebar"),
 			fields: [
 				// A section is the other kind of row a sidebar holds: it leads nowhere and names
@@ -366,15 +348,15 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					// list, put there by the page itself, and one belonging to somebody else is
 					// a page this user cannot open (`drop_private_workspaces`).
 					get_query: () =>
-						dialog.get_value("link_type") === "Workspace"
+						panel.field_group.get_value("link_type") === "Workspace"
 							? { filters: { public: 1 } }
 							: {},
 					// The label is what the entry is called rather than what it points at, but
 					// the two usually match, so it is prefilled and left editable.
 					change: () => {
-						if (!dialog.get_value("label")) {
-							dialog.set_value("label", dialog.get_value("link_to"));
-						}
+						const form = panel.field_group;
+						if (!form.get_value("label"))
+							form.set_value("label", form.get_value("link_to"));
 					},
 				},
 				{
@@ -385,8 +367,8 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					mandatory_depends_on: 'eval:doc.kind == "Link" && doc.link_type == "URL"',
 				},
 				{ fieldtype: "Data", fieldname: "label", label: __("Label"), reqd: 1 },
-				// A section header draws no icon on the sidebar, so it is not offered one. The
-				// rename dialog follows the same rule.
+				// A section header draws no icon on the sidebar, so it is not offered one. A
+				// section's own fields follow the same rule.
 				{
 					fieldtype: "Icon",
 					fieldname: "icon",
@@ -394,17 +376,14 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					depends_on: 'eval:doc.kind == "Link"',
 				},
 			],
-			primary_action_label: __("Add"),
-			primary_action: (values) => {
-				if (this.place(values)) dialog.hide();
+			primary: (values) => {
+				if (values && this.place(values)) this.close_panel();
 			},
 		});
-
-		dialog.show();
 	}
 
 	// Put the entry on the sidebar, or report that it is already there. Returns whether the
-	// dialog can close.
+	// Add form can close.
 	//
 	// An entry the arrangement already holds is not added twice: two rows sharing an identity are
 	// one item, and the merge would keep the first and drop the second. If it is currently
@@ -414,7 +393,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 			values.kind === "Section"
 				? // `collapsible` is the column's own default, and a section that arrives without
 				  // it is one that cannot be folded away -- which is not what the desk draws for
-				  // every section an app ships. The pencil can change it either way afterwards.
+				  // every section an app ships. Its own fields can change it either way afterwards.
 				  { added: 1, type: "Section Break", label: values.label, collapsible: 1 }
 				: {
 						added: 1,
@@ -431,7 +410,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 			const shown = !this.hidden.has(entry.key);
 			if (!shown) {
 				this.hidden.delete(entry.key);
-				this.render_panes();
+				this.render_list();
 			}
 			frappe.show_alert({
 				message: shown
@@ -452,7 +431,8 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		// is what makes "add a section, then add what goes in it" work with no extra step: the
 		// section is appended last, and the next entry added lands directly under it.
 		this.on_move(entry.key);
-		this.render_panes();
+		this.unfold_around(entry.key);
+		this.render_list();
 		return true;
 	}
 
@@ -486,17 +466,6 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		return this.is_private_shell() && this.entries.get(key)?.link_type === "Workspace";
 	}
 
-	// After the eye, so the destructive control is not the first one under the cursor.
-	list_item(key) {
-		const $el = super.list_item(key);
-		if (this.can_remove(key)) $el.append(this.remove_button(key));
-		// A pinned row keeps the handle and loses both controls: it is arranged here and taken off
-		// nowhere.
-		if (this.is_pinned(key)) $el.find(".ws-item-remove, .ws-item-eye").remove();
-
-		return $el;
-	}
-
 	// Removing a section takes the heading away and leaves the entries that were under it.
 	// Membership is stored per row, so they would go on claiming a section that is no longer
 	// there. The rule is `on_move`'s -- the row above decides -- re-applied from where the
@@ -518,7 +487,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 			orphaned = true;
 		}
 
-		if (orphaned) this.render_panes();
+		if (orphaned) this.render_list();
 	}
 
 	// A section header is an entry like any other, arranged, hidden and relabelled the same way,
@@ -528,13 +497,102 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		return this.entries.get(key).type === "Section Break";
 	}
 
-	item_extras(key) {
-		return this.is_section(key) ? `<span class="ws-item-chip">${__("Section")}</span>` : "";
+	// The section a row sits under, if any: the nearest section above it, reached through an
+	// unbroken run of members. See `on_move`, which is the same rule.
+	section_of(key) {
+		if (!this.entries.get(key)?.child) return null;
+		for (let i = this.order.indexOf(key) - 1; i >= 0; i--) {
+			const above = this.order[i];
+			if (this.is_section(above)) return above;
+			if (!this.entries.get(above).child) return null;
+		}
+		return null;
 	}
 
-	// Members of a section sit under it on the sidebar, so they sit under it here.
-	item_classes(key) {
-		return this.entries.get(key).child ? "ws-item-child" : "";
+	// Whether a section can be folded, which is whether the sidebar draws it a chevron. Links carry
+	// `collapsible` too, and the sidebar ignores it on them, so this does as well.
+	foldable(entry) {
+		if (entry.type !== "Section Break") return false;
+		return !!(entry.collapsible || (entry.indent && entry.show_arrow));
+	}
+
+	// Folding is for getting around a long list while editing, and is not saved. Each section
+	// starts the way the sidebar starts it. `read` clears it, so a layer starts its own way.
+	folded_sections() {
+		this.folded ??= new Set(
+			this.order.filter((k) => this.is_section(k) && this.entries.get(k).keep_closed)
+		);
+		return this.folded;
+	}
+
+	is_folded(key) {
+		return this.folded_sections().has(key) && this.foldable(this.entries.get(key));
+	}
+
+	toggle_fold(key) {
+		const folded = this.folded_sections();
+		if (folded.has(key)) folded.delete(key);
+		else folded.add(key);
+		this.render_list();
+	}
+
+	// An entry that lands in a folded section would vanish as it landed, so the section opens.
+	unfold_around(key) {
+		const section = this.section_of(key);
+		if (section) this.folded_sections().delete(section);
+	}
+
+	// A section carries the entries under it, so it moves as the group the sidebar draws.
+	carried(key) {
+		if (!this.is_section(key)) return [];
+		const carried = [];
+		for (const following of this.order.slice(this.order.indexOf(key) + 1)) {
+			if (!this.entries.get(following).child) break;
+			carried.push(following);
+		}
+		return carried;
+	}
+
+	row_classes(key) {
+		const entry = this.entries.get(key);
+		const section = this.section_of(key);
+		return [
+			this.is_section(key) && !entry.indent ? "ws-row-heading" : "",
+			section && this.entries.get(section).indent ? "ws-row-nested" : "",
+			section && this.is_folded(section) ? "ws-row-folded" : "",
+		].join(" ");
+	}
+
+	// An entry draws the way the sidebar draws it, from the sidebar's own template, so the list is
+	// what the sidebar will look like. It is given no route, so nothing in it navigates.
+	//
+	// The chevrons are the exception. The sidebar adds those in `enable_collapsible` rather than in
+	// the template, so the same two shapes are added here, and here they fold the list.
+	row_content(key) {
+		const entry = this.entries.get(key);
+		const section = this.section_of(key);
+		// Mirrors `TypeLink.make`: an entry nested under an indented section draws no icon, and an
+		// entry without one of its own draws the default.
+		const hide_icon = !!(section && this.entries.get(section).indent);
+		const item = { ...entry, icon: entry.icon || (hide_icon ? null : "list") };
+
+		const $content = $(
+			frappe.render_template("sidebar_item", { item, path: null, hide_icon })
+		);
+		$content.find(".nested-container").remove();
+
+		if (this.foldable(entry)) {
+			const folded = this.is_folded(key);
+			const $fold = $(`<button type="button" class="btn-reset drop-icon ws-fold"></button>`)
+				.attr("aria-label", folded ? __("Expand") : __("Collapse"))
+				.html(frappe.utils.icon(folded ? "chevron-right" : "chevron-down", "sm"))
+				.on("click", () => this.toggle_fold(key));
+
+			if (entry.collapsible) $content.find(".sidebar-item-control").first().append($fold);
+			else $content.find(".item-anchor").first().prepend($fold);
+		}
+
+		return $content;
 	}
 
 	// Where an entry lands decides which section it is in: the row above it is either the section
@@ -554,38 +612,6 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 
 		const above = this.order[this.order.indexOf(key) - 1];
 		entry.child = above && (this.is_section(above) || this.entries.get(above).child) ? 1 : 0;
-	}
-
-	decorate_item($el, key) {
-		let $edit = $(
-			`<button class="ws-item-edit" title="${__("Rename")}">${frappe.utils.icon(
-				"pencil",
-				"sm"
-			)}</button>`
-		);
-		$edit.on("click", () => this.edit_entry(key));
-		$el.append($edit);
-	}
-
-	// The sidebar draws a label and nothing beside it, since `sidebar_item.html` renders no
-	// leading icon, so the editor does the same. Drawing one here would show a mark on every row
-	// that never appears on the sidebar itself, making the preview wrong.
-	entry_icon() {
-		return "";
-	}
-
-	// A section draws as a header in the preview, the way the sidebar draws it. Its indented
-	// shape does not: that one is a row of its own with its entries nested under it, so it
-	// previews as a row. Which shape a section is in is the thing `section_shape_fields` sets,
-	// and a preview that drew both the same way would answer none of the questions it is asked.
-	preview_item(key) {
-		if (!this.is_section(key) || this.entries.get(key).indent) return super.preview_item(key);
-
-		return $(
-			`<div class="ws-preview-section">${frappe.utils.escape_html(
-				this.entries.get(key).label
-			)}</div>`
-		);
 	}
 
 	// Whether the layer being edited holds this entry itself rather than a reference to one,
@@ -651,7 +677,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		];
 	}
 
-	// Those four as the dialog leaves them, with the ones it was hiding cleared rather than left
+	// Those four as the panel leaves them, with the ones it was hiding cleared rather than left
 	// as they were. `get_values` reads every field whatever `depends_on` is doing, so a
 	// `show_arrow` set before `indent` was turned off would come back and still draw its chevron.
 	section_shape_values(values) {
@@ -667,7 +693,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		};
 	}
 
-	// The icon field, for the entries that draw one. A dialog that is also deciding the shape
+	// The icon field, for the entries that draw one. A panel that is also deciding the shape
 	// follows it as it changes; one that is not reads the shape the entry is already in, since
 	// neither flag can move from there.
 	icon_field(entry, shape) {
@@ -690,11 +716,21 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// The per-entry fields, which are what this editor has and the dock's does not. A label and
 	// an icon on every layer, because those are what a reference row may carry; on a layer that
 	// holds the item, a section also says how it draws. See `owns_the_item`.
+	//
+	// They apply as they are edited, so the row redraws while the panel is open and there is no
+	// Done to press. Save still writes nothing until the whole arrangement is saved.
 	edit_entry(key) {
 		const entry = this.entries.get(key);
-		const shape = this.is_section(key) && this.owns_the_item(entry);
-		const dialog = new frappe.ui.Dialog({
-			title: shape ? __("Edit Section") : __("Rename Entry"),
+		const section = this.is_section(key);
+		const shape = section && this.owns_the_item(entry);
+		const hint = (text) => ({
+			fieldtype: "HTML",
+			options: `<div class="ws-panel-hint">${frappe.utils.escape_html(text)}</div>`,
+		});
+
+		const panel = this.open_panel({
+			key,
+			title: section ? __("Edit Section") : __("Edit Link"),
 			fields: [
 				{
 					fieldtype: "Data",
@@ -703,35 +739,65 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					default: entry.label,
 					reqd: 1,
 				},
+				...(section ? [] : [hint(this.describe_link(entry))]),
 				...(shape ? this.section_shape_fields(entry) : []),
 				...this.icon_field(entry, shape),
+				...(section && !shape
+					? [hint(__("How this section draws is set by the layer that holds it."))]
+					: []),
 			],
-			primary_action_label: __("Done"),
-			primary_action: (values) => {
-				if (!this.rename(key, values.label)) {
-					frappe.show_alert({
-						message: __("There is already a section called {0}.", [
-							frappe.utils.escape_html(values.label),
-						]),
-						indicator: "orange",
-					});
-					return;
-				}
-
-				// Written to the entry rather than looked up by `key`, which a rename may have
-				// just changed.
-				if (shape) Object.assign(entry, this.section_shape_values(values));
-
-				// Against the shape as it now stands, so an entry that has just stopped drawing
-				// an icon keeps the one it had rather than being cleared: turn the arrow back
-				// off and the icon is there again.
-				if (this.draws_an_icon(entry)) entry.icon = values.icon || null;
-
-				dialog.hide();
-				this.render_panes();
-			},
+			on_change: (values, form) => this.apply_entry(entry, values, form),
 		});
-		dialog.show();
+
+		// The label follows every keystroke rather than the field's own pause, so the row being
+		// renamed changes as it is typed.
+		panel.field_group
+			.get_field("label")
+			.$input.on("input", () => panel.ready && panel.changed());
+	}
+
+	// Where a link goes, in one line under its label, since the panel does not let it change.
+	describe_link(entry) {
+		const target = entry.link_type === "URL" ? entry.url : entry.link_to;
+		return __("Opens {0}: {1}", [__(entry.link_type), target || ""]);
+	}
+
+	// What the panel says, written to the entry. It is written to the entry rather than looked up
+	// by key, because a rename may have just changed the key.
+	apply_entry(entry, values, form) {
+		const key = [...this.entries].find(([, e]) => e === entry)?.[0];
+		if (!key) return;
+
+		const label = (values.label || "").trim();
+		let error = "";
+		if (!label) {
+			error = __("A label is required.");
+		} else {
+			const fresh = this.rename(key, label);
+			if (fresh === null) {
+				error = __("There is already a section called {0}.", [
+					frappe.utils.escape_html(label),
+				]);
+			} else if (this.panel?.key === key) {
+				this.panel.key = fresh;
+			}
+		}
+
+		const field = form.get_field("label");
+		field.$wrapper.toggleClass("has-error", !!error);
+		if (error) field.set_new_description(error);
+		else field.set_empty_description();
+
+		if (this.is_section(key) && this.owns_the_item(entry)) {
+			Object.assign(entry, this.section_shape_values(values));
+		}
+
+		// Against the shape as it now stands, so an entry that has just stopped drawing an icon
+		// keeps the one it had rather than being cleared: turn the arrow back off and the icon is
+		// there again.
+		if (this.draws_an_icon(entry)) entry.icon = values.icon || null;
+
+		this.render_list();
 	}
 
 	// Relabel an entry, re-keying it if the label is what names it.
@@ -743,25 +809,36 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// would disappear on save.
 	//
 	// Everything else is named by where it points, so a relabel there is only a relabel.
+	//
+	// Returns the key the entry ends up under, or null when the label was refused.
 	rename(key, label) {
 		const entry = this.entries.get(key);
 		const was = entry.label;
 		entry.label = label;
 
-		const fresh = this.item_key(entry);
-		if (!entry.added || this.is_linked(entry) || fresh === key) return true;
-
-		if (this.entries.has(fresh)) {
+		// Compared by label rather than by key. A section read back is keyed by the server's hash
+		// of its type and label, which the key computed here never equals, so a key comparison
+		// would miss every section the server named.
+		const clash =
+			this.is_section(key) &&
+			[...this.entries].some(
+				([other, e]) => other !== key && e.type === "Section Break" && e.label === label
+			);
+		if (clash) {
 			entry.label = was;
-			return false;
+			return null;
 		}
+
+		const fresh = this.item_key(entry);
+		if (!entry.added || this.is_linked(entry) || fresh === key) return key;
 
 		entry.key = fresh;
 		this.entries.delete(key);
 		this.entries.set(fresh, entry);
 		this.order = this.order.map((k) => (k === key ? fresh : k));
 		if (this.hidden.delete(key)) this.hidden.add(fresh);
-		return true;
+		if (this.folded?.delete(key)) this.folded.add(fresh);
+		return fresh;
 	}
 
 	// The whole ordered arrangement on screen, which is what this layer's save takes, not a
@@ -796,8 +873,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// nothing is worse than a refusal, and Reset is next to it and is probably what the user
 	// wanted.
 	async save() {
-		if (!this.loaded) return;
-		this.sync_order();
+		if (!this.loaded) return false;
 
 		if (!this.selection.some((key) => !this.is_section(key))) {
 			frappe.msgprint({
@@ -807,22 +883,23 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 				),
 				indicator: "orange",
 			});
-			return;
+			return false;
 		}
 
-		await super.save();
+		return super.save();
 	}
 
 	// Reset drops this layer outright: a user goes back to the site's arrangement, and the site
-	// goes back to what the apps ship. It is its own write rather than a state of the panes, and
+	// goes back to what the apps ship. It is its own write rather than a state of the list, and
 	// it is confirmed because it discards work rather than replacing it.
 	reset() {
 		if (!this.loaded) return;
 		const copy = this.copy();
 
 		frappe.confirm(copy.reset_confirm, async () => {
-			this.apply(await frappe.xcall(this.layer_config.reset, this.layer_args()));
-			this.dialog.hide();
+			const payload = await frappe.xcall(this.layer_config.reset, this.layer_args());
+			this.close();
+			this.apply(payload);
 			frappe.show_alert({ message: copy.reset_done, indicator: "green" });
 		});
 	}

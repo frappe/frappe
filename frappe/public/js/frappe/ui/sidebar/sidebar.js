@@ -417,13 +417,16 @@ frappe.ui.Sidebar = class Sidebar {
 						name: "workspace-selector",
 						label: __("Manage Dock"),
 						icon: "monitor",
-						// A module in no app has no dock to arrange.
-						condition: () => !!me.get_sidebar_app(),
+						// A module in no app has no dock to arrange, and a phone has no room
+						// beside the drawer to arrange one in.
+						condition: () => !!me.get_sidebar_app() && !frappe.is_mobile(),
 						onclick: function () {
 							// Not in the desk bundle, so it is loaded on click.
 							frappe
 								.require("arrangement_editor.bundle.js")
-								.then(() => new frappe.ui.DockManager())
+								.then(() =>
+									frappe.ui.ArrangementEditor.start(frappe.ui.DockManager)
+								)
 								.catch((e) => {
 									console.error(
 										"Sidebar: failed to load arrangement_editor.bundle.js",
@@ -537,10 +540,12 @@ frappe.ui.Sidebar = class Sidebar {
 		this.apply_expanded_state();
 	}
 
-	// A drawer starts shut; on a desktop the viewer's last choice is kept in this browser.
+	// A drawer starts shut; on a desktop the viewer's last choice is kept in this browser. While
+	// the sidebar is being edited it stays open, since the editor is drawn in it.
 	load_expanded_state() {
 		this.sidebar_expanded =
-			!this.panel_can_close() && !this.saved_collapsed_state() && !this.folded_for_page;
+			!!this.editor ||
+			(!this.panel_can_close() && !this.saved_collapsed_state() && !this.folded_for_page);
 	}
 
 	// Storage can be missing or refuse, and then the panel opens whole.
@@ -760,6 +765,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	close() {
+		if (this.editor) return;
 		this.sidebar_expanded = false;
 		this.save_collapsed_state(true);
 
@@ -910,10 +916,40 @@ frappe.ui.Sidebar = class Sidebar {
 		return frappe.boot.canonical_shell?.[this.link_type_from_route(route)]?.[entity] || null;
 	}
 
+	// An open editor may not survive the move. Then it is asked to leave first, and the sidebar is
+	// worked out again from wherever the desk has got to once it has.
 	select_shell(module) {
-		if (module && module !== this.current_module) {
-			frappe.app.sidebar.setup(module);
+		if (!module || module === this.current_module) return;
+
+		if (this.editor && !this.editor.survives_shell(module)) {
+			this.editor.leave(() => this.set_workspace_sidebar());
+			return;
 		}
+		frappe.app.sidebar.setup(module);
+	}
+
+	// Hand the column to an arrangement editor: the sidebar's own bands step aside and the editor
+	// draws in their place until `end_editing`. Returns the node it draws in.
+	begin_editing(editor) {
+		this.editor = editor;
+		this.load_expanded_state();
+		this.apply_expanded_state();
+		this.wrapper.addClass("sidebar-editing");
+		// The editor is laid over the column's own bands, which are made inert so the keyboard
+		// cannot reach them underneath it.
+		const $column = this.wrapper.find(".body-sidebar");
+		$column.children().prop("inert", true);
+		return $(`<div class="sidebar-editor"></div>`).appendTo($column);
+	}
+
+	end_editing(editor) {
+		if (this.editor !== editor) return;
+		this.editor = null;
+		this.wrapper.removeClass("sidebar-editing");
+		this.wrapper.find(".sidebar-editor").remove();
+		this.wrapper.find(".body-sidebar").children().prop("inert", false);
+		this.load_expanded_state();
+		this.apply_expanded_state();
 	}
 
 	// Switch to a shell and open its landing page.

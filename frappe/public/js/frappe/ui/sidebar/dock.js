@@ -65,11 +65,31 @@ frappe.ui.Dock = class Dock {
 		this.apply_pin();
 	}
 
+	// Held open while it is being arranged, so a floating dock stays beside the list changing it.
+	hold_open(held) {
+		this.held = held;
+		this.apply_pin();
+	}
+
+	// Draw these entries instead of the saved rail, until called with null. The dock editor keeps
+	// the rail in step with the arrangement on screen this way.
+	show_preview(entries) {
+		this.preview_entries = entries;
+		this.refresh();
+	}
+
+	// Mark the tile for one entry key, or none.
+	highlight(key) {
+		this.$items.find(".dock-item").each((_, el) => {
+			el.classList.toggle("is-highlighted", !!key && el.dataset.key === key);
+		});
+	}
+
 	// A touch screen cannot summon a floating dock, and a page without the sidebar has no other
 	// switcher, so the dock is pinned there whatever the preference.
 	should_pin() {
 		if (!this.enabled) return false;
-		if (this.pinned) return true;
+		if (this.pinned || this.held) return true;
 		return !!this.sidebar.current_page()?.hide_sidebar && !frappe.ui.Dock.pointer_can_reveal();
 	}
 
@@ -291,7 +311,9 @@ frappe.ui.Dock = class Dock {
 		this.$dock.removeClass("hidden");
 
 		// One navigation calls this up to three times, so skip the rebuild when nothing drawn changed.
-		const entries = this.sidebar.collect_dock_entries(this.app);
+		const entries = (
+			this.preview_entries || this.sidebar.collect_dock_entries(this.app)
+		).filter(Boolean);
 		const signature = JSON.stringify([
 			this.app ? this.app.app_name : null,
 			this.sidebar.current_module,
@@ -377,6 +399,7 @@ frappe.ui.Dock = class Dock {
 			: frappe.utils.desktop_icon(label, "gray", "rail");
 		let $item = $(`<button
 			class="dock-item ${is_active ? "active" : ""} ${is_duotone ? "dock-item--duotone" : ""}"
+			data-key="${frappe.utils.escape_html(this.sidebar.dock_entry_key(entry))}"
 			aria-label="${frappe.utils.escape_html(label)}"
 			${is_active ? 'aria-current="page"' : ""}
 		>

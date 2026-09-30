@@ -1,237 +1,315 @@
 // The editor every navigation surface's arrangement is edited in -- see `arrangement_editor.js`.
-// Two panes: the list you drag, and a preview of what it leaves behind. Nothing here is the dock's
-// or the sidebar's; the kinds differ in what they read and save, not in how a pane is drawn.
-// The layer switch, which hangs in the dialog's header beside the close button rather than in the
-// body -- so it is styled here but scoped outside `.arrangement-editor`, which is only the picker.
-.modal-actions .ws-layer-switch {
-	width: auto;
-	align-self: center;
-	margin-right: var(--margin-sm);
-	color: var(--text-muted);
+// It is drawn in the sidebar's own column, so its rows are sidebar rows: the sidebar's styles draw
+// them, and this file adds only what editing needs on top.
+
+// The editor is laid over the column's own bands, which stay in place underneath it (and are made
+// inert by `begin_editing`). The edge that would fold the column to its rail steps aside.
+.body-sidebar-container.sidebar-editing {
+	.sidebar-edge,
+	.sidebar-collapse-arrow {
+		display: none;
+	}
 }
 
-.arrangement-editor {
+.sidebar-editor {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
 	display: flex;
-	gap: var(--margin-lg);
+	flex-direction: column;
+	background: var(--desk-sidebar-bg);
 
-	.ws-pane {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: var(--margin-sm);
-		min-width: 0;
+	// The header's band: what is being edited, over the layer switch.
+	.ws-head {
+		padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2) calc(var(--spacing) * 1.5);
+		border-bottom: 1px solid var(--outline-gray-1);
 	}
 
-	.ws-pane-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		min-height: 28px;
-		font-size: var(--text-md);
-		font-weight: 600;
-	}
-
-	// Add and Reset sit together at the right of the arrangement pane's head.
-	.ws-pane-actions {
+	.ws-caption {
 		display: flex;
 		align-items: center;
-		gap: var(--margin-sm);
-	}
+		gap: calc(var(--spacing) * 1.5);
+		padding: 0 calc(var(--spacing) * 2);
+		font-size: var(--text-xs);
+		color: var(--ink-gray-5);
 
-	.ws-add,
-	.ws-reset {
-		padding: 0;
-		font-size: var(--text-sm);
-		font-weight: normal;
-		color: var(--text-muted);
-
-		&:hover {
-			color: var(--text-color);
+		.ws-caption-text {
+			@include truncate();
 		}
 	}
 
-	.ws-pane-sub {
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-		margin-top: calc(-1 * var(--margin-xs));
+	.ws-layer {
+		margin-top: calc(var(--spacing) * 0.5);
+
+		.ws-layer-switch {
+			width: 100%;
+			justify-content: space-between;
+			font-size: var(--text-base);
+			color: var(--ink-gray-8);
+		}
+
+		.ws-layer-name {
+			padding: var(--spacing) calc(var(--spacing) * 2);
+			font-size: var(--text-base);
+			color: var(--ink-gray-8);
+		}
 	}
 
-	// A reading rather than an affordance, so it is quieter than the subtitle above it and
-	// carries no control of its own -- the detail is in its tooltip.
-	.ws-pane-note {
+	// A reading rather than an affordance: quieter than the rows, with no control of its own.
+	.ws-note {
+		margin: calc(var(--spacing) * 2) calc(var(--spacing) * 2) 0;
+		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
+		border-radius: var(--radius);
+		background: var(--surface-gray-2);
+		color: var(--ink-gray-6);
 		font-size: var(--text-xs);
-		color: var(--text-light);
+		line-height: 1.4;
 		cursor: default;
 	}
 
-	.ws-list {
+	// The rows' scroll box, with the same gutter as the sidebar's own.
+	.ws-scroll {
 		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: var(--margin-xs);
-		min-height: 220px;
-		max-height: 360px;
+		min-height: 0;
 		overflow-y: auto;
-		padding: var(--padding-sm);
-		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius-md);
-		background-color: var(--subtle-fg);
+		padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2) calc(var(--spacing) * 10);
 	}
 
-	// the list being arranged reads like the sidebar selector preview
-	.ws-arrangement {
-		background-color: var(--card-bg);
+	.ws-list {
+		display: flex;
+		flex-direction: column;
+		gap: calc(var(--spacing) * 0.5);
 	}
 
 	.ws-empty {
-		margin: auto;
+		padding: calc(var(--spacing) * 6) calc(var(--spacing) * 2);
+		text-align: center;
 		font-size: var(--text-sm);
+		color: var(--ink-gray-5);
 	}
 
-	.ws-item {
+	.ws-foot {
 		display: flex;
 		align-items: center;
-		gap: var(--margin-sm);
-		padding: var(--padding-xs) var(--padding-sm);
-		background-color: var(--card-bg);
-		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius-md);
+		gap: calc(var(--spacing) * 2);
+		padding: calc(var(--spacing) * 2);
+		border-top: 1px solid var(--outline-gray-1);
 
-		.ws-item-handle {
-			display: inline-flex;
-			color: var(--text-muted);
-			cursor: grab;
-
-			&:active {
-				cursor: grabbing;
-			}
-		}
-
-		.ws-item-icon {
-			display: inline-flex;
-			align-items: center;
-
-			svg,
-			img {
-				width: 18px;
-				height: 18px;
-				border-radius: var(--border-radius-sm);
-			}
-		}
-
-		.ws-item-label {
+		.ws-foot-spacer {
 			flex: 1;
-			font-size: var(--text-md);
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
 		}
+	}
+}
 
-		// Says who hid a row: the app itself, rather than this site or this person. The eye is
-		// otherwise silent about it, and one click is still all it takes to bring the row back.
-		.ws-item-chip {
-			flex-shrink: 0;
-			padding: 0 var(--padding-xs);
-			font-size: var(--text-xs);
-			line-height: 1.6;
-			color: var(--text-muted);
-			background-color: var(--bg-color);
-			border: 1px solid var(--border-color);
-			border-radius: var(--border-radius-sm);
-			white-space: nowrap;
+// One entry: a drag handle, the entry drawn as the sidebar draws it, and its eye or cross.
+.ws-row {
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-height: 28px;
+	border-radius: var(--radius);
+	cursor: pointer;
+
+	&:hover {
+		background: var(--surface-gray-2);
+	}
+
+	// The entry whose fields are open beside the column.
+	&.is-open {
+		background: var(--surface-elevation-3);
+		box-shadow: var(--shadow-sm);
+	}
+
+	.ws-row-body {
+		flex: 1;
+		min-width: 0;
+	}
+
+	// The row is the hover surface here, so the sidebar row inside it does not draw a second one,
+	// and nothing in it reads as a link.
+	.sidebar-item-container,
+	.standard-sidebar-item {
+		margin: 0;
+	}
+
+	// One class more specific than the sidebar's own hover rule, which it has to win over.
+	.body-sidebar .sidebar-editor & .standard-sidebar-item:not(.active-sidebar):has(a):hover {
+		background: none;
+	}
+
+	.item-anchor,
+	.sidebar-item-label {
+		cursor: inherit;
+	}
+
+	.item-anchor {
+		padding-left: var(--spacing);
+	}
+
+	.ws-row-handle {
+		display: inline-flex;
+		flex: none;
+		justify-content: center;
+		width: 16px;
+		color: var(--ink-gray-4);
+		cursor: grab;
+		opacity: 0;
+
+		&:active {
+			cursor: grabbing;
 		}
+	}
 
-		.ws-item-edit,
-		.ws-item-remove,
-		.ws-item-eye {
-			display: inline-flex;
-			align-items: center;
-			padding: 0;
-			border: none;
-			background: none;
-			color: var(--text-muted);
-			cursor: pointer;
+	.ws-row-controls {
+		display: flex;
+		flex: none;
+		gap: calc(var(--spacing) * 0.5);
+		padding-right: calc(var(--spacing) * 0.5);
 
-			&:hover {
-				color: var(--text-color);
-			}
+		.es-button {
+			opacity: 0;
 		}
+	}
 
-		// The one control here that cannot be undone. On the app's layer it sits beside the eye,
-		// where the two mean a row switched off and a row deleted, so hover has to tell them
-		// apart before the click rather than after it.
-		.ws-item-remove:hover {
-			color: var(--red-500);
+	&:hover,
+	&:focus-within {
+		.ws-row-handle,
+		.ws-row-controls .es-button {
+			opacity: 1;
 		}
 	}
 
 	// An entry the eye has taken off: still here, still where it was left, plainly not on the
-	// surface. Its own eye stays at full strength -- it is the way back.
-	.ws-item-hidden {
-		background-color: var(--subtle-fg);
-
-		.ws-item-icon,
-		.ws-item-label,
-		.ws-item-chip {
+	// surface. Its eye stays showing, since it is the way back.
+	&.is-hidden {
+		.ws-row-body {
 			opacity: 0.45;
 		}
 
-		.ws-item-eye {
-			color: var(--text-color);
+		.ws-eye {
+			opacity: 1;
 		}
 	}
 
-	// A member of a section sits under it, as it does on the sidebar itself.
-	.ws-item-child {
-		margin-left: var(--margin-lg);
+	// The one control here that cannot be undone. On the app's layer it sits beside the eye, so
+	// hover tells the two apart before the click rather than after it.
+	.ws-remove:hover {
+		color: var(--ink-red-5);
+	}
+}
+
+// A heading has the gap above it the sidebar gives one, except at the top.
+.ws-row-heading:not(:first-child) {
+	margin-top: calc(var(--spacing) * 4);
+}
+
+// Under an indented section, behind the rule the sidebar draws down a nested group.
+.ws-row-nested .ws-row-body {
+	margin-left: calc(var(--spacing) * 2 + 1px);
+	padding-left: var(--spacing);
+	border-left: 1px solid var(--outline-gray-1);
+}
+
+.ws-row-folded,
+.ws-row-carried {
+	display: none;
+}
+
+.ws-row-ghost {
+	opacity: 0.4;
+}
+
+// The row that opens the Add form, drawn as a row so it reads as the next one.
+.ws-add-row {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	width: 100%;
+	height: 28px;
+	margin-top: calc(var(--spacing) * 0.5);
+	padding: 0 0 0 calc(var(--spacing) * 5);
+	border: none;
+	border-radius: var(--radius);
+	background: none;
+	font-size: var(--text-sm);
+	color: var(--ink-gray-5);
+
+	&:hover {
+		background: var(--surface-gray-2);
+		color: var(--ink-gray-7);
 	}
 
-	.ws-item-ghost {
-		opacity: 0.4;
+	&.is-open {
+		background: var(--surface-elevation-3);
+		box-shadow: var(--shadow-sm);
+		color: var(--ink-gray-8);
 	}
+}
 
-	// -------------------------------------------------------------------------------------------
-	// The preview: the arrangement drawn as the surface draws it, so it carries the surface's
-	// chrome rather than the editor's -- no borders around a row, no handle, nothing to click.
-	// -------------------------------------------------------------------------------------------
-	.ws-preview {
-		gap: 2px;
-		cursor: default;
-	}
+// The panel beside the column, level with the row it belongs to. It is placed by script, so it
+// only says how it looks.
+.ws-panel {
+	position: fixed;
+	z-index: 1030;
+	width: 288px;
+	max-height: calc(100vh - 16px);
+	overflow-y: auto;
+	padding: calc(var(--spacing) * 3);
+	border: 1px solid var(--outline-gray-2);
+	border-radius: var(--radius-xl);
+	background: var(--surface-base);
+	box-shadow: var(--shadow-xl);
 
-	.ws-preview-item {
+	.ws-panel-head {
 		display: flex;
 		align-items: center;
-		gap: var(--margin-sm);
-		padding: var(--padding-xs) var(--padding-sm);
-		border-radius: var(--border-radius-md);
+		gap: calc(var(--spacing) * 2);
+		margin: calc(var(--spacing) * -1) calc(var(--spacing) * -1) calc(var(--spacing) * 2) 0;
+	}
 
-		.ws-item-icon {
-			display: inline-flex;
-			align-items: center;
+	.ws-panel-title {
+		flex: 1;
+		min-width: 0;
+		@include truncate();
+		font-size: var(--text-base);
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
+	}
 
-			svg,
-			img {
-				width: 18px;
-				height: 18px;
-				border-radius: var(--border-radius-sm);
-			}
-		}
+	.ws-panel-foot {
+		display: flex;
+		justify-content: flex-end;
+		gap: calc(var(--spacing) * 2);
 
-		.ws-item-label {
-			flex: 1;
-			font-size: var(--text-md);
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
+		&:empty {
+			display: none;
 		}
 	}
 
-	// A section header leads nowhere on the sidebar and leads nowhere here.
-	.ws-preview-section {
-		padding: var(--padding-sm) var(--padding-sm) var(--padding-xs);
+	.ws-panel-hint {
+		margin-top: calc(var(--spacing) * -1);
+		font-size: var(--text-xs);
+		color: var(--ink-gray-5);
+	}
+
+	// A field group lays itself out for a form page. Here it is a short stack of fields.
+	.form-section,
+	.form-column,
+	.section-body {
+		padding: 0;
+		border: none;
+	}
+
+	.section-head {
+		padding: 0;
+		margin: var(--spacing) 0 calc(var(--spacing) * 2);
 		font-size: var(--text-sm);
-		font-weight: 600;
-		color: var(--text-muted);
+		color: var(--ink-gray-6);
 	}
+}
+
+// The rail's tile for the row under the pointer in the dock editor.
+.dock-item.is-highlighted {
+	outline: 2px solid var(--outline-gray-4);
+	outline-offset: 2px;
 }
