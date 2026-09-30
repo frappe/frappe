@@ -227,6 +227,8 @@ def ensure_todo_kanban_board():
 		}
 	)
 	doc.insert(ignore_permissions=True)
+	# new boards are v2; this one covers the classic board
+	doc.db_set("use_kanban_v2", 0)
 	return doc.name
 
 
