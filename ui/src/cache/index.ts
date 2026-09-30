@@ -62,6 +62,16 @@ export function feedListRead(
   feed(() => cache.listRead(ticket, doctype, query, envelope));
 }
 
+/** Keeps the entry past every limit until the returned function lets go of it. */
+export function holdDocument(doctype: string, name: string): () => void {
+  cache.hold(doctype, name);
+  let held = true;
+  return () => {
+    if (held) feed(() => cache.release(doctype, name));
+    held = false;
+  };
+}
+
 /** Some fields of one record, read with no list entry. */
 export function feedFieldRead(ticket: number, doctype: string, row: unknown): void {
   feed(() => cache.fieldRead(ticket, doctype, row));

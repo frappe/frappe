@@ -3,6 +3,7 @@ import {
   clearDataCache,
   feedDelete,
   feedFieldRead,
+  holdDocument,
   readCachedDocument,
   readCachedList,
   takeTicket,
@@ -143,6 +144,17 @@ describe("the 50 field reads", () => {
     readRecord(doc("F1", OLD));
     readRecords(1, 50);
     expect(readCachedDocument(DOCTYPE, "F1")).toMatchObject({ complete: false, parts: {} });
+  });
+
+  it("keep an entry past the limit while a field on screen holds it", () => {
+    const first = holdDocument(DOCTYPE, "F1");
+    const second = holdDocument(DOCTYPE, "F1");
+    readFields(1, 51);
+    first();
+    first();
+    expect(readCachedDocument(DOCTYPE, "F1")).toBeDefined();
+    second();
+    expect(readCachedDocument(DOCTYPE, "F1")).toBeUndefined();
   });
 
   it("do not keep an entry past a delete", () => {

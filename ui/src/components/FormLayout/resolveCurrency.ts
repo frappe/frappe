@@ -5,7 +5,7 @@
  */
 import { getCurrentScope, onScopeDispose, shallowRef } from "vue";
 import { getDocumentFields } from "../../api";
-import { readCachedDocument } from "../../cache";
+import { holdDocument, readCachedDocument } from "../../cache";
 import { pickSiblingValue } from "./pickSiblingValue";
 import type { RecordContext } from "./pickSiblingValue";
 
@@ -27,8 +27,8 @@ export interface CurrencyResolveContext extends RecordContext {
 
 // --- Built-in runtime reader -------------------------------------------------
 
-/** How many readers on screen use each doctype, name and field; the first one reads the server. */
-const readers = new Map<string, number>();
+/** Each doctype, name and field that readers on screen use: how many, and the cache hold. */
+const readers = new Map<string, { count: number; release: () => void }>();
 
 /** The reader for one component; the first reader on screen reads the value into the cache. */
 export function useDocValueReader(): DocValueReader {
@@ -60,17 +60,21 @@ function readCachedValue(
 }
 
 function use(key: string, doctype: string, name: string, field: string): void {
-  const count = readers.get(key) ?? 0;
-  readers.set(key, count + 1);
+  const reader = readers.get(key);
+  if (reader) {
+    reader.count++;
+    return;
+  }
+  readers.set(key, { count: 1, release: holdDocument(doctype, name) });
   // A failed read leaves the entry as it was; the next visit reads again.
-  if (!count && typeof window !== "undefined")
-    getDocumentFields(doctype, name, [field]).catch(() => {});
+  if (typeof window !== "undefined") getDocumentFields(doctype, name, [field]).catch(() => {});
 }
 
 function release(key: string): void {
-  const count = readers.get(key) ?? 0;
-  if (count > 1) readers.set(key, count - 1);
-  else readers.delete(key);
+  const reader = readers.get(key);
+  if (!reader || --reader.count > 0) return;
+  readers.delete(key);
+  reader.release();
 }
 
 /** App/test override for the cross-record reader; mirrors `setFormatDefaults`. */
@@ -84,6 +88,7 @@ export function setDocValueReader(reader: DocValueReader | null): void {
 /** Restore the built-in reader and forget which values are in use (test isolation). */
 export function resetDocValueReader(): void {
   override.value = null;
+  readers.forEach((reader) => reader.release());
   readers.clear();
 }
 

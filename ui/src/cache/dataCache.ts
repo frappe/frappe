@@ -31,6 +31,7 @@ export class DataCache {
   private readRecords = new Set<string>();
   private readLists = new Set<string>();
   private fieldReads = new Set<string>();
+  private shown = new NameCounts();
   private gate = new WriteGate({
     hasDocument: (key) => this.documents.has(key),
     hasList: (key) => this.lists.has(key),
@@ -120,6 +121,16 @@ export class DataCache {
     this.evictFieldReads();
   }
 
+  /** A field on screen shows the entry, so no limit drops it until the field lets go. */
+  hold(doctype: string, name: string) {
+    this.shown.add(doctype, [name]);
+  }
+
+  release(doctype: string, name: string) {
+    this.shown.remove(doctype, [name]);
+    this.dropIfUnheld(documentKey(doctype, name));
+  }
+
   /** A save or a create. */
   documentWrite(ticket: number, doctype: string, doc: DocumentRecord) {
     if (!hasName(doc)) return;
@@ -185,6 +196,7 @@ export class DataCache {
     this.readRecords.clear();
     this.readLists.clear();
     this.fieldReads.clear();
+    this.shown.clear();
     this.gate.clear();
     this.memo.clear();
   }
@@ -241,9 +253,9 @@ export class DataCache {
     this.fieldReads.delete(key);
   }
 
-  /** A list names the entry, or a field read keeps it. */
+  /** A list names the entry, a field read keeps it, or a field on screen shows it. */
   private held(key: string): boolean {
-    return this.named.has(key) || this.fieldReads.has(key);
+    return this.named.has(key) || this.fieldReads.has(key) || this.shown.has(key);
   }
 
   private setList(list: ListEntry) {

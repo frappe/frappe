@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, effectScope, type EffectScope } from "vue";
 import { updateDocument } from "../../../api";
-import { clearDataCache, readCachedDocument, readCachedList } from "../../../cache";
+import {
+  clearDataCache,
+  feedFieldRead,
+  readCachedDocument,
+  readCachedList,
+  takeTicket,
+} from "../../../cache";
 import {
   resolveFieldCurrency,
   setDocValueReader,
@@ -305,6 +311,17 @@ describe("the built-in reader", () => {
     answer({ data: [acme("GBP", NEW)], has_next_page: false });
     await flush();
     expect(second.shown.value).toBe("GBP");
+  });
+
+  it("keeps a value on screen past the cache's limit of field reads", async () => {
+    respond({ data: [acme("EUR")], has_next_page: false });
+    const { shown } = visit();
+    shown.value;
+    await flush();
+    for (let index = 0; index < 60; index++) {
+      feedFieldRead(takeTicket(), "Company", { name: `C${index}`, modified: OLD });
+    }
+    expect(shown.value).toBe("EUR");
   });
 
   it("shows a save of the linked record with no read of its own", async () => {
