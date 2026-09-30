@@ -775,6 +775,24 @@ class TestSearch(IntegrationTestCase):
 			).insert()
 			return doctype.name, name, user.name
 
+	def test_link_result_description_skips_hash_names(self):
+		doctype = new_doctype(
+			autoname="hash",
+			fields=[
+				{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "code", "fieldtype": "Data", "label": "Code"},
+			],
+			title_field="title",
+			show_title_field_in_link=1,
+			search_fields="code",
+		).insert()
+		name = frappe.get_doc(doctype=doctype.name, title="Hashed Title", code="CODE-1").insert().name
+
+		(result,) = search_link(doctype.name, "")
+
+		self.assertEqual((result["value"], result["label"]), (name, "Hashed Title"))
+		self.assertEqual(result["description"], "CODE-1")
+
 	def test_awesomebar_search_hook(self):
 		real_get_hooks = frappe.get_hooks
 
