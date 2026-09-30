@@ -342,6 +342,9 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.assertNotIn("status", seeded)
 		self.assertIn("priority", seeded)
 
+	def test_new_board_uses_kanban_v2(self):
+		self.assertEqual(frappe.db.get_value("Kanban Board", self.board_name, "use_kanban_v2"), 1)
+
 	def test_title_field_can_be_a_text_field(self):
 		# ToDo's title field is description, a Text Editor
 		self.assertEqual(frappe.db.get_value("Kanban Board", self.board_name, "title_field"), "description")
@@ -477,12 +480,19 @@ class TestStandardKanbanBoard(IntegrationTestCase):
 			exported = frappe.parse_json(f.read())
 		self.assertEqual([c["column_name"] for c in exported["columns"]], ["Open", "Closed"])
 
-		# migrate brings it back
+		# an app can ship a board with a table left empty on purpose
+		exported["card_fields"] = []
+		with open(path, "w") as f:
+			f.write(frappe.as_json(exported))
+
+		# migrate brings it back as shipped
 		self.assertIn(path, get_doc_files([], self.module_path))
 		with patch.dict(frappe.flags, in_migrate=True):
 			frappe.delete_doc("Kanban Board", board.name)
 		import_file_by_path(path)
-		self.assertEqual(frappe.db.get_value("Kanban Board", board.name, "is_standard"), "Yes")
+		synced = frappe.get_doc("Kanban Board", board.name)
+		self.assertEqual(synced.is_standard, "Yes")
+		self.assertEqual(synced.card_fields, [])
 
 	def test_locked_outside_developer_mode(self):
 		board = self.make_standard_board()
@@ -505,6 +515,10 @@ class TestStandardKanbanBoard(IntegrationTestCase):
 		self.assertFalse(os.path.exists(path))
 
 	def test_standard_board_rules(self):
-		self.assertRaises(frappe.ValidationError, self.make_standard_board, use_kanban_v2=0)
 		self.assertRaises(frappe.ValidationError, self.make_standard_board, private=1)
 		self.assertRaises(frappe.MandatoryError, self.make_standard_board, module=None)
+
+		board = self.make_standard_board()
+		board.use_kanban_v2 = 0
+		with patch.dict(frappe.conf, developer_mode=1):
+			self.assertRaises(frappe.ValidationError, board.save)

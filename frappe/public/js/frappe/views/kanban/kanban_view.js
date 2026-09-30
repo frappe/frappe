@@ -5,11 +5,10 @@ frappe.provide("frappe.views");
 /*
  * Kanban list view — loads card data from the server.
  *
- * @deprecated Classic Kanban engine. Superseded by the vanilla-JS Kanban v2
- * engine in views/kanban_v2/ (frappe.views.KanbanV2View). A board renders with
- * this engine when its "Use Kanban v2" flag (Kanban Board.use_kanban_v2) is OFF
- * — the default; see list_factory.js. Kept for backward compatibility — do not
- * add features here, port them to kanban_v2 instead.
+ * @deprecated Classic Kanban engine, superseded by frappe.views.KanbanV2View.
+ * Used for boards with "Use Kanban v2" (Kanban Board.use_kanban_v2) off, which
+ * are boards made before v2; see list_factory.js. Do not add features here;
+ * port them to kanban_v2.
  *
  * This file fetches cards in pages and keeps them in memory (this.data).
  * The board UI (kanban_board.bundle.js) only draws the cards you can see on screen.
@@ -185,9 +184,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.board.filters_array = JSON.parse(this.board.filters || "[]");
 			this.board.fields = JSON.parse(this.board.fields || "[]");
 			this.filters = this.board.filters_array;
-			// Re-resolve after the board loads so title_field / image_field apply.
-			this.card_meta = this.get_card_meta();
-			this.image_field = this.resolve_image_field();
 		});
 	}
 
@@ -437,8 +433,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				if (fieldname) this._add_field(fieldname);
 			});
 		}
-		// Optional: image and color if the board / doctype has them
-		if (this.image_field) this._add_field(this.image_field);
+		// Optional: image and color if doctype has them
+		if (this.meta.image_field) this._add_field(this.meta.image_field);
 		if (frappe.meta.has_field(this.doctype, "color")) this._add_field("color");
 	}
 
@@ -558,28 +554,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		};
 	}
 
-	/**
-	 * Board image_field when Attach Image; else doctype image_field.
-	 * Used by card rendering and field fetching.
-	 */
-	resolve_image_field() {
-		const is_image = (fn) => {
-			if (!fn) return null;
-			const df = frappe.meta.get_field(this.doctype, fn);
-			return df && df.fieldtype === "Attach Image" && !df.hidden ? fn : null;
-		};
-		return (
-			is_image(this.board && this.board.image_field) ||
-			is_image(this.meta.image_field) ||
-			null
-		);
-	}
-
-	get_image_url(doc) {
-		const field = this.image_field || this.meta.image_field;
-		return (field && doc && doc[field]) || null;
-	}
-
 	get_view_settings() {
 		return {
 			label: __("Kanban Settings", null, "Button in kanban view menu"),
@@ -635,7 +609,7 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 	let dialog = new_kanban_dialog();
 	dialog.show();
 
-	function make_kanban_board(board_name, field_name, project, use_kanban_v2) {
+	function make_kanban_board(board_name, field_name, project) {
 		return frappe.call({
 			method: "frappe.desk.doctype.kanban_board.kanban_board.quick_kanban_board",
 			args: {
@@ -643,7 +617,6 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 				board_name,
 				field_name,
 				project,
-				use_kanban_v2,
 			},
 			callback: function (r) {
 				var kb = r.message;
@@ -671,12 +644,7 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 		let primary_action = () => {
 			if (to_save) {
 				const values = dialog.get_values();
-				make_kanban_board(
-					values.board_name,
-					values.field_name,
-					values.project,
-					cint(values.use_kanban_v2) // Ensure it's 0 or 1, not undefined
-				).then(
+				make_kanban_board(values.board_name, values.field_name, values.project).then(
 					() => dialog.hide(),
 					(err) => frappe.msgprint(err)
 				);
@@ -728,13 +696,6 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
 				options: select_fields.map((df) => ({ label: df.label, value: df.fieldname })),
 				default: select_fields[0],
 				reqd: 1,
-			},
-			// Hidden field — always use Kanban V2 for new boards
-			{
-				fieldtype: "Int",
-				fieldname: "use_kanban_v2",
-				hidden: 1,
-				default: 1,
 			},
 		];
 

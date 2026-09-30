@@ -138,10 +138,11 @@ class KanbanBoard(Document):
 			f.write(frappe.as_json(self.as_dict(no_nulls=True, no_private_properties=True)) + "\n")
 
 	def before_insert(self):
-		# only the classic board keeps a card order
-		if not self.use_kanban_v2:
-			for column in self.columns:
-				column.order = get_order_for_column(self, column.column_name)
+		# a board synced from an app file is taken as is
+		if frappe.flags.in_import:
+			return
+
+		self.use_kanban_v2 = 1
 		self.seed_title_and_image_fields()
 		self.seed_card_fields()
 		self.seed_preview_fields()
@@ -747,7 +748,6 @@ def quick_kanban_board(
 	board_name: str,
 	field_name: str,
 	project: str | None = None,
-	use_kanban_v2: bool | None = None,
 ):
 	"""Create new KanbanBoard quickly with default options"""
 
@@ -777,10 +777,6 @@ def quick_kanban_board(
 
 	if doctype in ["Note", "ToDo"]:
 		doc.private = 1
-
-	# Explicitly convert to int to handle string/bool/int variants from JS
-	if use_kanban_v2 is not None:
-		doc.use_kanban_v2 = cint(use_kanban_v2)
 
 	doc.save()
 	return doc

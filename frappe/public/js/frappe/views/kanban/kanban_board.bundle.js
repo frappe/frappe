@@ -1,7 +1,6 @@
-// @deprecated Classic Kanban board renderer. Superseded by the vanilla-JS
-// Kanban v2 engine in views/kanban_v2/. Used for a board when its "Use Kanban
-// v2" flag (Kanban Board.use_kanban_v2) is OFF — the default. Do not add
-// features here — port them to kanban_v2 instead.
+// @deprecated Classic Kanban board renderer, superseded by views/kanban_v2/.
+// Used for boards with "Use Kanban v2" (Kanban Board.use_kanban_v2) off, which
+// are boards made before v2. Do not add features here; port them to kanban_v2.
 //
 // Kanban runs in two steps for speed:
 //
@@ -1583,7 +1582,7 @@ if (frappe.views.KanbanView) {
 			title: card[state.card_meta.title_field.fieldname],
 			creation: moment(card.creation).format("MMM DD, YYYY"),
 			_liked_by: card._liked_by,
-			image: card[cur_list.image_field || cur_list.meta.image_field],
+			image: card[cur_list.meta.image_field],
 			tags: card._user_tags,
 			column: card[state.board.field_name],
 			assigned_list: card.assigned_list || assigned_list,

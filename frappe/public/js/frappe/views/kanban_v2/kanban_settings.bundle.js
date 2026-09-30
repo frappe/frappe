@@ -81,14 +81,9 @@ class KanbanBoardSettings {
 					)
 					.map(to_opt)
 			),
-			// Include image_field even when hidden.
+			// Image fields are often hidden on the form but meant for display.
 			image: meta.fields
-				.filter(
-					(d) =>
-						d.fieldname &&
-						d.fieldtype === "Attach Image" &&
-						(!d.hidden || d.fieldname === meta.image_field)
-				)
+				.filter((d) => d.fieldname && d.fieldtype === "Attach Image")
 				.map(to_opt),
 			card: meta.fields
 				.filter(

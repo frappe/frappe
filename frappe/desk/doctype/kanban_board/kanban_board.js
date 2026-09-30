@@ -3,6 +3,7 @@
 
 frappe.ui.form.on("Kanban Board", {
 	onload: function (frm) {
+		if (frm.is_new()) frm.set_value("use_kanban_v2", 1);
 		frm.trigger("reference_doctype");
 	},
 	after_save: function (frm) {
@@ -193,15 +194,10 @@ function set_title_image_field_options(frm) {
 			.map(to_option)
 	);
 
-	// Include the doctype's configured image_field even if hidden, since
-	// image fields are often hidden in forms but used in sidebars/cards.
+	// Image fields are often hidden on the form but meant for display.
 	var image_options = meta.fields
 		.filter(function (df) {
-			return (
-				df.fieldname &&
-				df.fieldtype === "Attach Image" &&
-				(!df.hidden || df.fieldname === meta.image_field)
-			);
+			return df.fieldname && df.fieldtype === "Attach Image";
 		})
 		.map(to_option);
 
@@ -244,7 +240,7 @@ function seed_title_and_image_fields(frm) {
 			meta.image_field ||
 			(
 				meta.fields.find(function (df) {
-					return df.fieldtype === "Attach Image" && df.fieldname && !df.hidden;
+					return df.fieldtype === "Attach Image" && df.fieldname;
 				}) || {}
 			).fieldname ||
 			"";

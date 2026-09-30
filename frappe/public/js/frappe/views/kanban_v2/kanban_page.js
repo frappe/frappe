@@ -636,8 +636,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (is_attach_image(this.board_doc.image_field)) return this.board_doc.image_field;
 		// Doctype image_field: always allow (it's meant for display elsewhere)
 		if (is_attach_image(meta.image_field)) return meta.image_field;
-		// Fallback: first non-hidden Attach Image
-		const first = meta.fields.find((df) => df.fieldtype === "Attach Image" && !df.hidden);
+		// Fallback: first Attach Image, hidden or not
+		const first = meta.fields.find((df) => df.fieldtype === "Attach Image");
 		return first ? first.fieldname : null;
 	}
 
@@ -935,7 +935,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				label: __("Duplicate"),
 				icon: "copy",
 				size: "sm",
-				css_class: "mr-0",
+				css_class: "settings-button mr-0",
 				tooltip: __("Copy this board to change its setup"),
 				onclick: () => this.duplicate_board(),
 			});

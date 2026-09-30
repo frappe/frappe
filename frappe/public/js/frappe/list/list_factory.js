@@ -112,7 +112,7 @@ frappe.views._kanban_engine_cache = frappe.views._kanban_engine_cache || {};
 
 /**
  * Resolve which Kanban engine a board uses: true = Kanban v2, false = classic.
- * Reads the board's `use_kanban_v2` flag (default off) with a small per-session
+ * Reads the board's `use_kanban_v2` flag with a small per-session
  * cache. Unset/unknown boards fall back to the classic engine.
  */
 frappe.views.get_kanban_engine = function (board) {
