@@ -34,7 +34,7 @@ context("Kanban v2 Board", () => {
 		cy.get(".kanban-column").should("not.exist");
 		cy.get('.kn-column[data-col="Open"]').should("exist");
 		cy.get('.kn-column[data-col="Closed"]').should("exist");
-		cy.get(".title-text").should("contain", "ToDo Kanban");
+		cy.get(".navbar-breadcrumbs:visible li:last-child").should("contain", "ToDo Kanban");
 	});
 
 	it("shows cards with titles in the Open column", () => {

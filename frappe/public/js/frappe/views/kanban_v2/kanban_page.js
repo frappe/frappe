@@ -325,8 +325,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.current_board = board_name;
 
 		this.page.set_title(board_name, null, true);
-		frappe.breadcrumbs.add(this.doctype, board_name);
-		frappe.breadcrumbs.update();
 
 		let board;
 		try {
@@ -351,8 +349,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const title =
 			board.is_standard === "Yes" ? __(board.kanban_board_name) : board.kanban_board_name;
 		this.page.set_title(title, null, true);
-		frappe.breadcrumbs.add(this.doctype, board.kanban_board_name);
-		frappe.breadcrumbs.update();
 
 		await frappe.model.with_doctype(this.doctype);
 		this.setup_meta();
@@ -2188,6 +2184,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 frappe.views.KanbanV2View = class KanbanV2View {
 	constructor(opts) {
 		this.doctype = opts.doctype;
+		this.view_name = "Kanban";
 		this.parent = opts.parent;
 		this.page = this.parent.page;
 		this._kanban = new frappe.views.KanbanV2Page(this.parent);
