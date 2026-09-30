@@ -65,7 +65,7 @@ const emit = defineEmits<{ "update:activeTab": [identity: string] }>();
 // Record page does on every save — holds the ref itself.
 const desired = defineModel<string>("tab", { default: "" });
 
-// The sections the reader opened or shut, keyed `<tab identity>:<section name or index>`;
+// The sections the reader opened or shut, keyed by tab identity and section name or index;
 // held by a host on the terms of `tab`, so the reader's sections outlive a rebuild.
 const sections = defineModel<Record<string, boolean>>("sections", { default: () => ({}) });
 
@@ -125,8 +125,9 @@ function select(value: string | number) {
 	if (chosen) desired.value = chosen.identity;
 }
 
+// JSON, so a section named "2" and the unnamed section at index 2 keep two keys.
 function sectionKey(tab: { identity: string }, section: Section, index: number) {
-	return `${tab.identity}:${section.name ?? index}`;
+	return JSON.stringify([tab.identity, section.name || index]);
 }
 
 function openSection(key: string, open: boolean) {

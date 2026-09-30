@@ -42,7 +42,13 @@ afterEach(() => {
 
 const section = (fields: Partial<Section>): Section => ({ columns: [], ...fields });
 
-/** Two tabs that both carry a `notes` section; the first also has a closed and an unnamed one. */
+const NOTES = JSON.stringify(["details", "notes"]);
+const ADDRESS = JSON.stringify(["details", "address"]);
+const UNNAMED = JSON.stringify(["details", 2]);
+const NAMED_TWO = JSON.stringify(["details", "2"]);
+const MORE_NOTES = JSON.stringify(["more", "notes"]);
+
+/** Two tabs that both carry a `notes` section; the first also has a closed one, an unnamed one at index 2, and one named "2". */
 const LAYOUT: FormLayoutSchema = [
   {
     name: "details",
@@ -51,6 +57,7 @@ const LAYOUT: FormLayoutSchema = [
       section({ name: "notes", label: "Notes" }),
       section({ name: "address", label: "Address", opened: false }),
       section({ label: "Unnamed" }),
+      section({ name: "2", label: "Two" }),
     ],
   },
   {
@@ -142,18 +149,25 @@ describe("sections bound to a host", () => {
   it("emit the new map keyed by tab and section name", async () => {
     const form = mount(ref({}));
     await form.toggle("Notes");
-    expect(form.emitted.at(-1)).toEqual({ "details:notes": false });
+    expect(form.emitted.at(-1)).toEqual({ [NOTES]: false });
     expect(form.state("Notes")).toBe("closed");
   });
 
   it("key an unnamed section by its index", async () => {
-    const form = mount(ref({ "details:notes": false }));
+    const form = mount(ref({ [NOTES]: false }));
     await form.toggle("Unnamed");
-    expect(form.emitted.at(-1)).toEqual({ "details:notes": false, "details:2": false });
+    expect(form.emitted.at(-1)).toEqual({ [NOTES]: false, [UNNAMED]: false });
+  });
+
+  it("keep a section named \"2\" apart from the unnamed section at index 2", async () => {
+    const form = mount(ref({}));
+    await form.toggle("Two");
+    expect(form.emitted.at(-1)).toEqual({ [NAMED_TWO]: false });
+    expect(form.state("Unnamed")).toBe("open");
   });
 
   it("take the host's value over `section.opened`", () => {
-    const form = mount(ref({ "details:notes": false, "details:address": true }));
+    const form = mount(ref({ [NOTES]: false, [ADDRESS]: true }));
     expect(form.state("Notes")).toBe("closed");
     expect(form.state("Address")).toBe("open");
   });
@@ -179,11 +193,11 @@ describe("sections bound to a host", () => {
 
     await form.openTab("more");
     expect(form.state("Notes")).toBe("open");
-    expect(sections.value).toEqual({ "details:notes": false });
+    expect(sections.value).toEqual({ [NOTES]: false });
 
     await form.toggle("Notes");
     await form.toggle("Notes");
-    expect(sections.value).toEqual({ "details:notes": false, "more:notes": true });
+    expect(sections.value).toEqual({ [NOTES]: false, [MORE_NOTES]: true });
 
     await form.openTab("details");
     expect(form.state("Notes")).toBe("closed");
