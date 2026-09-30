@@ -12,7 +12,7 @@ from frappe.custom.doctype.property_setter.property_setter import (
 from frappe.database import savepoint
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if, unimplemented_for
+from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import cstr
 
 
@@ -214,7 +214,7 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.save()
 		frappe.db.rollback()
 
-	@unimplemented_for(db_type_is.SQLITE)
+	@run_only_if(db_type_is.POSTGRES)
 	def test_truncating_type_change_errors_cleanly(self):
 		doctype = new_doctype(fields=[{"fieldname": "notes", "fieldtype": "Text"}]).insert()
 		frappe.get_doc(doctype=doctype.name, notes="x" * 200).insert()
