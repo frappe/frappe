@@ -50,8 +50,9 @@ On the first visit, the walk picks that form tab, opens the closed section, and 
 the Details tab and the panel column halfway down. It then goes Back to the list, Forward
 to the record, to the list through the rail, sidebar or breadcrumb, Back to the record, to
 the list again, and to the record through that rail item. That step stops the walk when
-the rail does not show the item; on a site with no Record item kind it clicks the list row
-and says so. On each return to the record it checks:
+the rail does not show the item. On a site with no Record item kind it clicks the list row,
+still runs the checks, prints that the return from the rail is unproven, and exits with 1.
+On each return to the record it checks:
 
 - each scroll offset is within 1 px of the first visit's;
 - the form tab and the state of every section match the first visit's;

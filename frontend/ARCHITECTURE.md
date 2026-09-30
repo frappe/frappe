@@ -185,7 +185,7 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one |
 | Fresh-value hold (`holdFresh`, `landFresh`) | A stale memo's fresh value shows as soon as it arrives. While a page holds fresh values, they show together when it lets go, in the same step as the page's own reads |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
-| Scroll landing (`landScroll`, `onScrollFrames`) | *New.* Puts a kept scroll offset back once the content is tall enough, and reports a scroll once per frame. The list and the record page keep their offsets with it |
+| Scroll landing (`landScroll`, `onScrollSettled`, `keepInHistory`) | *New.* Puts a kept scroll offset back once the content is tall enough, reports a scroll once per gesture, and writes one key of the history entry. The list and the record page keep their offsets with it |
 | Socket input | *Changed.* The app hands `ui/` its socket, and `ui/` joins record rooms on it. `ui/` warns when there is none |
 | Translate function | *New.* `ui/`'s own `__`, which works without the desk's boot version |
 
@@ -290,7 +290,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | `createRecordPage` | Builds `page` and every surface for one record, fires events, runs the replay |
-| `RecordPageHost` | The contract a page fills: document, save, tabs, feeds, composer. The engine draws nothing |
+| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, and whether it restored the reader's view. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
 | [Source](./CONTEXT.md#source) context | Which source is registering or running now |
 | [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
@@ -341,7 +341,7 @@ component group, with its main names.
 | Save conflict (`SaveConflict`) | The error when someone else saved first, and the fields the reader would lose |
 | Live scripts | Re-runs the page's scripts when a stored script of its doctype changes |
 | Record feeds (`RecordFeeds`) | The data behind `page.activity` and `page.files`, with the feed's first-paint functions |
-| Record tabs (`RecordTabsHost`, `useRecordTabs`) | The four built-in tabs, and the tab named in the address |
+| Record tabs (`RecordTabsHost`, `useRecordTabs`) | *Changed.* The four built-in tabs, and the tab named in the address or put back by the record view |
 | Panel context (`PanelContextKey`, `DocInfo`) | What the built-in panel sections read |
 | [Panel](./CONTEXT.md#panel) entries | Joins panel items with the Side Panel layout |
 | Panel [disclosure](./CONTEXT.md#disclosure) | *Changed.* Which panel sections are open. It reports them as shown and takes them back for the record view |
@@ -350,7 +350,7 @@ component group, with its main names.
 | Writers | *Changed.* One pipeline for the comment and email writers and their drafts |
 | Body columns | Column widths and collapse, per user |
 | Form tab memory | The last form tab per doctype, per user |
-| Record view (`RecordView`, `ViewKeeper`, `recallView`, `viewKeeper`, `readOffsets`, `landOffsets`) | *New.* The reader's tab, form tab, sections, panel sections and scroll on a record, put back on a return visit. Kept in the history entry, and per record while its complete cache entry stays |
+| Record view (`RecordView`, `recallView`, `viewKeeper`, `readOffsets`, `landOffsets`) | *New.* The reader's tab, form tab, sections, panel sections and scroll on a record, put back on a return visit. Kept in the history entry, and per record while its complete cache entry stays |
 | Dock height | The docked composer's height, per user |
 | Docinfo readers | Assignees, shares, tags, favourites and follow, and their actions |
 | Remote search | Server search for the user and tag pickers; the last answer wins |
@@ -367,7 +367,7 @@ the reference for each `page` member.
 | Tiers and [run order](./CONTEXT.md#run-order) | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
 | `*` doctype key | Handlers that run on every record, before the doctype's own |
 | [Handlers](./CONTEXT.md#handler) and `Handler` | `Handler` is the type of one handler |
-| Lifecycle events | `onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost` |
+| Lifecycle events | *Changed.* `onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost`. On a return that restores the view, `onOpen`'s view acts do nothing |
 | Field change handler | A fieldname key runs when that field's value changes |
 | Child [table handlers block](./CONTEXT.md#table-handlers-block) | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
 | `SAVE_VETO` | Throwing in `beforeSave` cancels the save and keeps the draft |

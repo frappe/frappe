@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView, type Router } from "vue-router";
+import HistoryItemList from "happy-dom/lib/history/HistoryItemList.js";
 
 const load = vi.hoisted(() => ({ details: [] as unknown[] }));
 
@@ -183,6 +184,11 @@ beforeEach(() => {
   vi.spyOn(history, "replaceState").mockImplementation((state, unused, url) =>
     replaceState(structuredClone(state), unused, url),
   );
+  // happy-dom's replaceState drops the entries ahead, which no browser does, and Forward then goes nowhere.
+  vi.spyOn(HistoryItemList.prototype, "replace").mockImplementation(function (this: HistoryItemList, item) {
+    this.items[this.items.indexOf(this.currentItem)] = item;
+    this.currentItem = item;
+  });
   name = `N-${++visits}`;
   other = `N-${++visits}`;
   server.doc = { doctype: "Note", name, title: "First", status: "Open", modified: OLD };
@@ -329,11 +335,11 @@ function tabBody(root: HTMLElement, tab: string) {
   return root.querySelector<HTMLElement>(`[data-record-tab="${tab}"] [data-slot="scroll-area-viewport"]`);
 }
 
-/** The reader scrolls a box; the page keeps the view on the next frame. */
+/** The reader scrolls a box; the page keeps the view once the gesture ends. */
 async function scroll(element: HTMLElement | null, top: number) {
   element!.scrollTop = top;
   element!.dispatchEvent(new Event("scroll"));
-  await new Promise((resolve) => requestAnimationFrame(resolve));
+  element!.dispatchEvent(new Event("scrollend"));
   await settle();
 }
 
@@ -493,6 +499,44 @@ describe("where the view is kept", () => {
 
     await leave(router);
     await travel(router, -3);
+    await settle();
+
+    expectTheView(root);
+  });
+  it("keeps each history entry's own offsets for a record open at two, on Back and Forward", async () => {
+    await register({ onRefresh: notesPanel });
+    const { root, router } = await mount(`/note/${name}`);
+    await scroll(column(root, "form"), 100);
+    await comeBack(router, "", other);
+    await settle();
+    await comeBack(router);
+    await settle();
+    await scroll(column(root, "form"), 300);
+
+    await travel(router, -1);
+    await settle();
+    await travel(router, -1);
+    await settle();
+    expect(column(root, "form")!.scrollTop).toBe(100);
+
+    await travel(router, 1);
+    await settle();
+    await travel(router, 1);
+    await settle();
+    expect(column(root, "form")!.scrollTop).toBe(300);
+  });
+
+  it("comes back on Forward from the history entry once the record's own copy is dropped", async () => {
+    await register({ onRefresh: notesPanel });
+    const { root, router } = await mount("/note");
+    await comeBack(router);
+    await settle();
+    await leaveAView(root);
+    await travel(router, -1);
+    await settle();
+    clearDataCache();
+
+    await travel(router, 1);
     await settle();
 
     expectTheView(root);

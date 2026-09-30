@@ -1,5 +1,6 @@
 // The page size and scroll offset, kept in the history entry for Back and per doctype for a
 // return by any other route. The rows, and how many showed, are the shared cache's list entry.
+import { keepInHistory } from "@framework/ui/utils/scrollLanding";
 
 export interface ListMemory {
 	pageSize?: number;
@@ -11,10 +12,8 @@ export function readListMemory(): ListMemory {
 	return typeof list === "object" && list ? (list as ListMemory) : {};
 }
 
-/** Spread over the current state: vue-router keeps its own keys there. */
 export function writeListMemory(patch: ListMemory): void {
-	const list = { ...readListMemory(), ...patch };
-	history.replaceState({ ...history.state, list }, "");
+	keepInHistory("list", { ...readListMemory(), ...patch });
 }
 
 export interface RowsMemory {

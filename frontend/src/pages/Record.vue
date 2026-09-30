@@ -149,7 +149,7 @@ import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { onScrollFrames } from "@framework/ui/utils/scrollLanding";
+import { onScrollSettled } from "@framework/ui/utils/scrollLanding";
 import { holdFresh } from "@framework/ui/utils/sharedState";
 import {
 	createRecordPage,
@@ -214,7 +214,7 @@ import {
 	type LoadedRecord,
 } from "./record/recordSource";
 import { mergeRefetch, same } from "./record/refetchMerge";
-import { recallView, viewKeeper, type RecordView, type ViewKeeper } from "./record/viewMemory";
+import { recallView, viewKeeper, type RecordView } from "./record/viewMemory";
 import { landOffsets, readOffsets } from "./record/viewScroll";
 import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "./record/saveResponse";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
@@ -249,7 +249,7 @@ const bodyRoot = computed(() => (body.value?.$el as HTMLElement | undefined) ?? 
 // The address this load opened with, a restored tab applied: the feed read and its placeholder follow it.
 const openedQuery = shallowRef<LocationQuery>(route.query);
 // Where this load's view is kept, and false until its restored view has landed, so a clamped scroll is not kept.
-let keeper: ViewKeeper | null = null;
+let keeper: ((view: RecordView) => void) | null = null;
 let keeping = false;
 
 // The form fills the column with no border of its own, and its strip stays put while the sections scroll.
@@ -743,17 +743,16 @@ async function settleView(mine: number, view: RecordView | null) {
 		if (mine !== generation) return;
 	}
 	keeping = true;
-	keep({ mark: true });
+	keep();
 }
 
-/** A scroll frame keeps the record's own copy; `mark`, for a change the reader made or a leave, the history entry too. */
-function keep({ mark = false } = {}) {
+function keep() {
 	const root = bodyRoot.value;
 	if (!keeper || !keeping || !root || !painted.value) return;
 	// A route that moved on to the next record resets the tab before its load starts.
 	const { page } = painted.value;
 	if (page.doctype !== doctype.value || page.docname !== docname.value) return;
-	(mark ? keeper.mark : keeper.keep)({
+	keeper({
 		tab: shownTab.value,
 		formTab: activeFormTab.value || formTab.value,
 		// A copy: `history.replaceState` cannot clone a reactive proxy.
@@ -958,13 +957,13 @@ async function confirmLeave() {
 
 // A push still holds the entry being left, so its history entry takes the view as it is now.
 onBeforeRouteLeave(() => {
-	keep({ mark: true });
+	keep();
 	return confirmLeave();
 });
 onBeforeRouteUpdate((to, from) => {
 	if (to.params.doctype === from.params.doctype && to.params.name === from.params.name)
 		return true;
-	keep({ mark: true });
+	keep();
 	return confirmLeave();
 });
 
@@ -997,10 +996,10 @@ onUnmounted(() => {
 
 watch(
 	() => [shownTab.value, activeFormTab.value, formSections.value, disclosure.shown()],
-	() => keep({ mark: true })
+	() => keep()
 );
 watch(bodyRoot, (root, _previous, onCleanup) => {
-	if (root) onCleanup(onScrollFrames(root, () => keep()));
+	if (root) onCleanup(onScrollSettled(root, keep));
 });
 watch([doctype, docname], () => load({ fromMemory: true }), { immediate: true });
 // The page's own `?tab=` replace keeps the key, so only a new pointer on the same record moves the reader.

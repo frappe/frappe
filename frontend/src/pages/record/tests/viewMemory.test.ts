@@ -38,37 +38,37 @@ afterEach(() => {
 describe("recallView", () => {
   it("takes the history entry's view over the record's own", () => {
     const keeper = viewKeeper("Note", "N-1");
-    keeper.mark(view("activity"));
+    keeper(view("activity"));
     pushEntry();
-    viewKeeper("Note", "N-1").mark(view("files"));
+    viewKeeper("Note", "N-1")(view("files"));
     history.back();
 
     expect(recallView("Note", "N-1", false)?.tab).toBe("activity");
   });
 
   it("takes the record's own view on a return with no view in the history entry", () => {
-    viewKeeper("Note", "N-1").mark(view("activity"));
+    viewKeeper("Note", "N-1")(view("activity"));
     pushEntry();
 
     expect(recallView("Note", "N-1", false)?.tab).toBe("activity");
   });
 
   it("gives nothing on a new navigation with no view in the history entry", () => {
-    viewKeeper("Note", "N-1").mark(view("activity"));
+    viewKeeper("Note", "N-1")(view("activity"));
     pushEntry();
 
     expect(recallView("Note", "N-1", true)).toBeNull();
   });
 
   it("still takes the history entry's view on a new navigation, as Back to a `?tab=` address is", () => {
-    viewKeeper("Note", "N-1").mark(view("activity"));
+    viewKeeper("Note", "N-1")(view("activity"));
 
     expect(recallView("Note", "N-1", true)?.tab).toBe("activity");
   });
 
   it("ignores a history entry that holds another record's view", () => {
     readRecord("N-2");
-    viewKeeper("Note", "N-2").mark(view("files"));
+    viewKeeper("Note", "N-2")(view("files"));
 
     expect(recallView("Note", "N-1", false)).toBeNull();
   });
@@ -76,7 +76,7 @@ describe("recallView", () => {
 
 describe("the per-record store", () => {
   it("is dropped when the record's complete entry leaves the cache", () => {
-    viewKeeper("Note", "N-1").mark(view("activity"));
+    viewKeeper("Note", "N-1")(view("activity"));
     pushEntry();
 
     clearDataCache();
@@ -85,7 +85,7 @@ describe("the per-record store", () => {
   });
 
   it("takes no view while the record's entry is not complete", () => {
-    viewKeeper("Note", "N-3").mark(view("activity"));
+    viewKeeper("Note", "N-3")(view("activity"));
     pushEntry();
 
     expect(recallView("Note", "N-3", false)).toBeNull();
@@ -97,7 +97,7 @@ describe("viewKeeper", () => {
     const keeper = viewKeeper("Note", "N-1");
     pushEntry();
 
-    keeper.mark(view("activity"));
+    keeper(view("activity"));
 
     expect((history.state as { recordView?: unknown }).recordView).toBeUndefined();
     history.back();
@@ -108,55 +108,36 @@ describe("viewKeeper", () => {
     const keeper = viewKeeper("Note", "N-1");
     pushEntry();
 
-    keeper.mark(view("activity"));
+    keeper(view("activity"));
 
     expect(recallView("Note", "N-1", false)?.tab).toBe("activity");
-  });
-
-  it("keeps a scroll frame in the record's own copy only, which wins for the entry it came from", () => {
-    const keeper = viewKeeper("Note", "N-1");
-    keeper.mark(view("details"));
-    const writes = vi.spyOn(history, "replaceState");
-
-    keeper.keep(view("activity"));
-
-    expect(writes).not.toHaveBeenCalled();
-    expect((history.state as { recordView: { view: RecordView } }).recordView.view.tab).toBe("details");
-    expect(recallView("Note", "N-1", false)?.tab).toBe("activity");
-  });
-
-  it("takes the entry's own view once the record's copy came from another entry", () => {
-    const keeper = viewKeeper("Note", "N-1");
-    keeper.mark(view("details"));
-    pushEntry();
-    viewKeeper("Note", "N-1").keep(view("activity"));
-    history.back();
-
-    expect(recallView("Note", "N-1", false)?.tab).toBe("details");
   });
 
   it("writes the history entry again only when the view changed", () => {
     const keeper = viewKeeper("Note", "N-1");
     const writes = vi.spyOn(history, "replaceState");
 
-    keeper.mark(view("details"));
-    keeper.mark(view("details"));
-    keeper.mark(view("files"));
+    keeper(view("details"));
+    keeper(view("details"));
+    keeper(view("files"));
 
     expect(writes).toHaveBeenCalledTimes(2);
   });
 
-  it("keeps the record's own copy when the browser refuses the history write", () => {
+  it("keeps the record's own copy when the browser refuses the history write, and tries again", () => {
+    const keeper = viewKeeper("Note", "N-1");
     vi.spyOn(history, "replaceState").mockImplementation(() => {
       throw new DOMException("too many calls", "SecurityError");
     });
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    expect(() => viewKeeper("Note", "N-1").mark(view("activity"))).not.toThrow();
-    vi.mocked(history.replaceState).mockRestore();
-    pushEntry();
-
-    expect(recallView("Note", "N-1", false)?.tab).toBe("activity");
+    expect(() => keeper(view("activity"))).not.toThrow();
     expect(warn).toHaveBeenCalledOnce();
+    expect(recallView("Note", "N-1", false)?.tab).toBe("activity");
+
+    vi.mocked(history.replaceState).mockRestore();
+    keeper(view("activity"));
+
+    expect((history.state as { recordView: { view: RecordView } }).recordView.view.tab).toBe("activity");
   });
 });

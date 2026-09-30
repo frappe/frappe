@@ -15,6 +15,11 @@ export function printRun(target, layout, run) {
 		printLine(cells(step));
 		for (const note of notes(step)) write(`${"".padEnd(20)}${note}`);
 	}
+	if (run.steps.some((step) => step.unproven))
+		write(
+			"rule 7 unproven: the site has no Record navigation item kind, so record-via-nav " +
+				"clicked the list row, not the same record on the rail; the run fails"
+		);
 	if (run.error) write(`stopped: ${run.error}`);
 	if (run.pageError) write(`first page error: ${run.pageError}`);
 }

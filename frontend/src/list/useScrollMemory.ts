@@ -2,7 +2,7 @@
 // query, and put back once the rows are there. Back reads the entry; a breadcrumb has none and
 // reads the session.
 import { watch } from "vue";
-import { landScroll, onScrollFrames } from "@framework/ui/utils/scrollLanding";
+import { landScroll, onScrollSettled } from "@framework/ui/utils/scrollLanding";
 import { readListMemory, recallRows, rememberScroll, writeListMemory } from "./pageState";
 
 export interface ScrollSession {
@@ -26,7 +26,7 @@ export function useScrollMemory(
 			writeListMemory({ scrollTop: element.scrollTop });
 			rememberScroll(session.doctype, session.query(), element.scrollTop);
 		};
-		onCleanup(onScrollFrames(element, remember));
+		onCleanup(onScrollSettled(element, remember));
 	});
 
 	// Virtual rows grow the scroll height over a few frames; the clamped scrolls on the way are not remembered.

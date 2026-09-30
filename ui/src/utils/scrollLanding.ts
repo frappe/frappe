@@ -1,4 +1,5 @@
-// A kept scroll offset put back once the content is tall enough, and a scroll watched once per frame.
+// A kept scroll offset put back once the content is tall enough, a scroll reported once it
+// settles, and a view kept in the history entry.
 
 const LANDING_FRAMES = 60;
 
@@ -16,17 +17,36 @@ export function landScroll(element: HTMLElement, top: number): Promise<void> {
 	});
 }
 
-/** Calls `saw` once per frame while the element, or a box inside it, scrolls; returns the stop. */
-export function onScrollFrames(element: HTMLElement, saw: () => void): () => void {
+/** Writes one key of the history entry's state, over vue-router's keys; false when the browser refuses. */
+export function keepInHistory(key: string, value: unknown): boolean {
+	try {
+		history.replaceState({ ...history.state, [key]: value }, "");
+		return true;
+	} catch (error) {
+		console.warn(`[history] ${key} was not kept in the history entry`, error);
+		return false;
+	}
+}
+
+/**
+ * Calls `settled` once per scroll gesture on the element or a box inside it; returns the stop.
+ * A browser limits history writes, and a gesture ends far below that rate.
+ */
+export function onScrollSettled(element: HTMLElement, settled: () => void): () => void {
+	// Capture: scroll events do not bubble.
+	const options = { capture: true, passive: true };
+	if ("onscrollend" in window) {
+		element.addEventListener("scrollend", settled, options);
+		return () => element.removeEventListener("scrollend", settled, options);
+	}
 	let frame = 0;
 	const scrolled = () => {
 		cancelAnimationFrame(frame);
-		frame = requestAnimationFrame(saw);
+		frame = requestAnimationFrame(settled);
 	};
-	// Capture: a scroll event does not bubble.
-	element.addEventListener("scroll", scrolled, { capture: true, passive: true });
+	element.addEventListener("scroll", scrolled, options);
 	return () => {
 		cancelAnimationFrame(frame);
-		element.removeEventListener("scroll", scrolled, { capture: true });
+		element.removeEventListener("scroll", scrolled, options);
 	};
 }

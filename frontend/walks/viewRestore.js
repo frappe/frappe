@@ -87,7 +87,8 @@ class ViewRestoreWalk {
 		} finally {
 			await browser.close();
 		}
-		const passed = !this.error && this.steps.every((step) => step.pass !== false);
+		const passed =
+			!this.error && this.steps.every((step) => step.pass !== false && !step.unproven);
 		const { network, listVia, recordVia, steps, error, pageError } = this;
 		return { network, listVia, recordVia, steps, error, pageError, passed };
 	}
@@ -106,7 +107,8 @@ class ViewRestoreWalk {
 		await this.step("back-to-record", back, { check: "return" });
 		await this.step("list-via-nav-again", () => listLink.click());
 		const recordLink = await this.returnLink();
-		await this.step("record-via-nav", () => recordLink.click(), { check: "return" });
+		const viaNav = { check: "return", unproven: !this.railItem };
+		await this.step("record-via-nav", () => recordLink.click(), viaNav);
 		await this.step("list-before-new", () => listLink.click());
 		const fresh = () => this.rowLink(this.freshPath).click();
 		await this.step("new-record", fresh, { check: "fresh", path: this.freshPath });
@@ -154,13 +156,14 @@ class ViewRestoreWalk {
 			);
 	}
 
-	async step(name, action, { check, path = this.recordPath } = {}) {
+	async step(name, action, { check, path = this.recordPath, unproven } = {}) {
 		const started = Date.now();
 		await this.page.evaluate((recordPath) => window.__view?.reset(recordPath), path ?? "");
 		await action();
 		const settled = (await this.ready(name)) && (await this.settle(started));
 		const ms = Date.now() - started;
 		const step = { step: name, ms, settled };
+		if (unproven) step.unproven = true;
 		if (check) {
 			const [view, frames] = await this.page.evaluate(() => [
 				window.__view.read(),
@@ -272,7 +275,7 @@ class ViewRestoreWalk {
 
 	async returnLink() {
 		if (!this.railItem) {
-			this.recordVia = "row, as the site has no Record navigation item kind";
+			this.recordVia = "list row";
 			return this.rowLink(this.recordPath);
 		}
 		const key = JSON.stringify(RAIL_KEY);
