@@ -34,13 +34,17 @@ const readers = new Map<string, { count: number; release: () => void }>();
 export function useDocValueReader(): DocValueReader {
   // With no scope nothing would release the value, so the reader reads the cache alone.
   if (!getCurrentScope()) return (...args) => getDocValueReader()(...args);
-  const used = new Set<string>();
+  // One linked record per doctype and field: a changed link lets go of the old one.
+  const used = new Map<string, string>();
   onScopeDispose(() => used.forEach(release));
   return (doctype, name, field) => {
     if (override.value) return override.value(doctype, name, field);
+    const slot = [doctype, field].join("\u0000");
     const key = [doctype, name, field].join("\u0000");
-    if (!used.has(key)) {
-      used.add(key);
+    const previous = used.get(slot);
+    if (previous !== key) {
+      if (previous) release(previous);
+      used.set(slot, key);
       use(key, doctype, name, field);
     }
     return readCachedValue(doctype, name, field);

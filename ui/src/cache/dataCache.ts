@@ -113,7 +113,7 @@ export class DataCache {
   }
 
   /** Some fields of one record: the entry stays without a list, up to its own limit. */
-  fieldRead(ticket: number, doctype: string, row: unknown) {
+  fieldRead(ticket: number, doctype: string, row: unknown): void {
     if (!this.gate.current(ticket) || !hasName(row)) return;
     const key = documentKey(doctype, String(row.name));
     if (!this.applyRow(ticket, doctype, row) || !this.documents.has(key)) return;
@@ -122,11 +122,11 @@ export class DataCache {
   }
 
   /** A field on screen shows the entry, so no limit drops it until the field lets go. */
-  hold(doctype: string, name: string) {
+  hold(doctype: string, name: string): void {
     this.shown.add(doctype, [name]);
   }
 
-  release(doctype: string, name: string) {
+  release(doctype: string, name: string): void {
     this.shown.remove(doctype, [name]);
     this.dropIfUnheld(documentKey(doctype, name));
   }
@@ -300,7 +300,7 @@ export class DataCache {
     }
   }
 
-  private evictFieldReads() {
+  private evictFieldReads(): void {
     for (const key of this.fieldReads) {
       if (this.fieldReads.size <= FIELD_READ_LIMIT) return;
       this.fieldReads.delete(key);
@@ -309,11 +309,11 @@ export class DataCache {
   }
 
   /** Removes each partial entry among `names` that nothing holds any more. */
-  private dropUnnamed(doctype: string, names: readonly string[]) {
+  private dropUnnamed(doctype: string, names: readonly string[]): void {
     for (const name of names) this.dropIfUnheld(documentKey(doctype, name));
   }
 
-  private dropIfUnheld(key: string) {
+  private dropIfUnheld(key: string): void {
     const entry = this.documents.get(key);
     if (entry && !entry.complete && !this.held(key)) this.dropDocument(key);
   }

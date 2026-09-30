@@ -100,7 +100,7 @@ describe("the 20 list entries", () => {
 });
 
 describe("the 50 field reads", () => {
-  function readFields(from: number, to: number) {
+  function readFields(from: number, to: number): void {
     for (let index = from; index <= to; index++) {
       feedFieldRead(takeTicket(), DOCTYPE, doc(`F${index}`, OLD, { status: "Open" }));
     }

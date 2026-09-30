@@ -21,7 +21,7 @@ const NEW = "2026-09-03 10:00:00.000000";
 
 const fetchMock = vi.fn<typeof fetch>();
 
-function respond(body: unknown, status = 200) {
+function respond(body: unknown, status = 200): void {
   fetchMock.mockImplementationOnce(async () => new Response(JSON.stringify(body), { status }));
 }
 
@@ -32,7 +32,7 @@ function respondLater(): (body: unknown, status?: number) => void {
   return (body, status = 200) => answer(new Response(JSON.stringify(body), { status }));
 }
 
-function acme(currency: string, modified = OLD) {
+function acme(currency: string, modified = OLD): Record<string, string> {
   return { name: "Acme", modified, default_currency: currency };
 }
 
@@ -322,6 +322,21 @@ describe("the built-in reader", () => {
       feedFieldRead(takeTicket(), "Company", { name: `C${index}`, modified: OLD });
     }
     expect(shown.value).toBe("EUR");
+  });
+
+  it("lets go of the old linked record when the link changes", async () => {
+    respond({ data: [acme("EUR")], has_next_page: false });
+    respond({ data: [{ name: "Beta", modified: OLD, default_currency: "INR" }] });
+    const { read } = visit();
+    read("Company", "Acme", "default_currency");
+    await flush();
+    expect(read("Company", "Beta", "default_currency")).toBeUndefined();
+    await flush();
+    for (let index = 0; index < 60; index++) {
+      feedFieldRead(takeTicket(), "Company", { name: `C${index}`, modified: OLD });
+    }
+    expect(readCachedDocument("Company", "Acme")).toBeUndefined();
+    expect(read("Company", "Beta", "default_currency")).toBe("INR");
   });
 
   it("shows a save of the linked record with no read of its own", async () => {
