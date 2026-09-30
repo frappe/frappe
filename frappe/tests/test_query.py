@@ -1302,6 +1302,29 @@ class TestQuery(IntegrationTestCase):
 		self.assertFalse(frappe.qb.get_query(doctype.name, filters={"docstatus": ["is", "set"]}).run())
 		self.assertFalse(frappe.qb.get_query(doctype.name, filters={"modified": ["is", "not set"]}).run())
 
+	def test_ifnull_filters_on_numeric_fields(self):
+		fieldtypes = ("Rating", "Duration")
+		fieldnames = {fieldtype: f"{frappe.scrub(fieldtype)}_field" for fieldtype in fieldtypes}
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": fieldname, "fieldtype": fieldtype}
+				for fieldtype, fieldname in fieldnames.items()
+			]
+		).insert()
+		filled = frappe.get_doc({"doctype": doctype.name, **dict.fromkeys(fieldnames.values(), 1)}).insert()
+		empty = frappe.get_doc({"doctype": doctype.name}).insert()
+
+		for fieldname in fieldnames.values():
+			for operator, value, expected in (
+				("<", 1, empty.name),
+				("=", 0, empty.name),
+				("!=", 0, filled.name),
+				("!=", None, filled.name),
+			):
+				with self.subTest(fieldname=fieldname, operator=operator, value=value):
+					filters = {fieldname: [operator, value]}
+					self.assertEqual(frappe.get_all(doctype.name, filters=filters, pluck="name"), [expected])
+
 	def test_permission_query_condition(self):
 		"""Test permission query condition being applied from hooks and server script"""
 		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
@@ -3163,8 +3186,8 @@ class TestQuery(IntegrationTestCase):
 		from frappe.database.query import Engine
 
 		engine = Engine()
-		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), "0")
-		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "''")
+		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), 0)
+		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "")
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_drop_unique_constraint_for_deleted_fields_mariadb(self):
@@ -3494,6 +3517,17 @@ class TestJSONFieldQueries(IntegrationTestCase):
 		else:
 			self.assertNotIn("CAST(", distinct)
 			self.assertNotIn("CAST(", ordered)
+
+	def test_json_star_and_joined_fields_with_distinct(self):
+		own_docs = {"name": ["in", list(self.names.values())]}
+		rows = frappe.qb.get_query(self.doctype, fields=["*"], filters=own_docs, distinct=True).run(
+			as_dict=True
+		)
+		self.assertEqual({row.payload for row in rows}, {None, "[]", '["x"]'})
+
+		for doctype, field in (("Automation Flow", "actions.params"), ("MapReduce Task", "master.data")):
+			with self.subTest(field=field):
+				frappe.qb.get_query(doctype, fields=["name", field], distinct=True).run()
 
 	def test_permlevel_json_field_with_distinct(self):
 		"""The select cast runs after the permission pass, which only checks Field terms."""
