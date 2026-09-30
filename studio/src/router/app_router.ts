@@ -39,8 +39,6 @@ export async function createAppRouter(config: RouterConfig = {}): Promise<Router
 	const { extendRoute, setup, ...options } = config
 	const routes = getPageRoutes(window.app_pages)
 	if (extendRoute) routes.forEach((route) => extendRoute(route))
-	const homeRedirect = getHomeRedirect(routes)
-	if (homeRedirect) routes.push(homeRedirect)
 
 	const router = createRouter({
 		...options,
@@ -48,7 +46,7 @@ export async function createAppRouter(config: RouterConfig = {}): Promise<Router
 		routes,
 	})
 	await setup?.(router)
-	// after the app's guards, so a catch-all the app added wins over this
+	addHomeRouteFallback(router)
 	router.beforeEach(unmatchedRouteGuard)
 	return router
 }
@@ -73,12 +71,11 @@ function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
 	}))
 }
 
-function getHomeRedirect(routes: RouteRecordRaw[]): RouteRecordRaw | undefined {
-	if (routes.some((route) => route.path === "/")) return
-	// absent from the list when unpublished or private for a guest, then "/" stays unmatched
-	const home = routes.find((route) => route.meta?.pageName === window.app_home)
+function addHomeRouteFallback(router: Router) {
+	if (router.getRoutes().some((route) => route.path === "/")) return
+	const home = router.getRoutes().find((route) => !route.aliasOf && route.meta.pageName === window.app_home)
 	if (!home || home.path.includes(":")) return
-	return { path: "/", redirect: home.path }
+	router.addRoute({ path: "/", component: AppContainer, beforeEnter: () => home.path })
 }
 
 function unmatchedRouteGuard(to: { matched: unknown[]; fullPath: string }) {
