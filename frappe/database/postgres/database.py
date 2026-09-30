@@ -1,6 +1,7 @@
 import datetime
 import re
 from contextlib import contextmanager
+from decimal import Decimal
 
 import psycopg2
 import psycopg2.extensions
@@ -29,7 +30,7 @@ from psycopg2.errors import (
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ, TRANSACTION_STATUS_INERROR
 
 import frappe
-from frappe.database.database import CREATE_OR_DROP, Database
+from frappe.database.database import CREATE_OR_DROP, DDL_QUERY_TYPES, Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode, convert_backtick_identifiers
 from frappe.utils import cstr, get_table_name
@@ -165,7 +166,9 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_primary_key_violation(e):
-		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_pkey" in cstr(e.args[0])
+		if not PostgresExceptionUtil.is_duplicate_entry(e):
+			return False
+		return cstr(e.diag.constraint_name).endswith("_pkey")
 
 	@staticmethod
 	def is_unique_key_violation(e):
@@ -213,6 +216,7 @@ class PostgresExceptionUtil:
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
 	default_port = "5432"
+	_transaction_has_schema_changes = False
 
 	def setup_type_map(self):
 		self.db_type = "postgres"
@@ -374,10 +378,18 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 		return tables
 
-	@staticmethod
-	def clear_db_table_cache(query_type: str):
+	def clear_db_table_cache(self, query_type: str):
+		"""Postgres DDL is transactional, so drop the schema caches on a rollback that follows DDL."""
 		if query_type in CREATE_OR_DROP:
 			frappe.client_cache.delete_keys("db_tables::*")
+		if query_type in DDL_QUERY_TYPES:
+			self._transaction_has_schema_changes = True
+		elif query_type == "commit":
+			self._transaction_has_schema_changes = False
+		elif query_type == "rollback" and self._transaction_has_schema_changes:
+			# stays set: a rollback to a savepoint keeps the DDL that ran before it
+			frappe.client_cache.delete_keys("db_tables::*")
+			frappe.client_cache.delete_keys("table_columns::*")
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
@@ -838,25 +850,42 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self.connect()
 		cursor = self._conn.cursor()
 		copy_sql = copy_statement.as_string(cursor)
+		integer_positions = self._get_integer_positions(table_name, fields)
 		buffer = io.StringIO()
 		try:
-			row_count = flushed = 0
+			row_count = 0
 			for value in values:
-				buffer.write("\t".join(_copy_encode(column) for column in value) + "\n")
+				encoded = (_copy_encode(column, i in integer_positions) for i, column in enumerate(value))
+				buffer.write("\t".join(encoded) + "\n")
 				row_count += 1
 				if row_count % chunk_size == 0:
-					_copy_flush(cursor, copy_sql, buffer)
-					# COPY bypasses Database.execute, so keep transaction_writes in step with the
-					# rows sent -- else auto_commit_on_many_writes never sees a large load.
-					self.transaction_writes += row_count - flushed
-					flushed = row_count
-			_copy_flush(cursor, copy_sql, buffer)
-			self.transaction_writes += row_count - flushed
+					self._copy_flush(cursor, copy_sql, buffer)
+			self._copy_flush(cursor, copy_sql, buffer)
 		finally:
 			cursor.close()
 
+	def _get_integer_positions(self, table_name: str, fields: list[str]) -> set[int]:
+		"""Positions of `fields` that are integer columns, where COPY needs 1.0 sent as 1."""
+		integer_columns = self.sql(
+			"""SELECT column_name FROM information_schema.columns
+			WHERE table_schema = %s AND table_name = %s AND data_type IN ('smallint', 'integer', 'bigint')""",
+			(self.db_schema, table_name),
+			pluck=True,
+		)
+		return {position for position, field in enumerate(fields) if field in integer_columns}
 
-def _copy_encode(value):
+	def _copy_flush(self, cursor, copy_sql, buffer):
+		"""Send the buffered rows. COPY bypasses `sql`, so count the chunk as one write, like an INSERT."""
+		if not buffer.tell():
+			return
+		buffer.seek(0)
+		cursor.copy_expert(copy_sql, buffer)
+		buffer.seek(0)
+		buffer.truncate(0)
+		self.transaction_writes += 1
+
+
+def _copy_encode(value, integer_column: bool = False):
 	"""Encode one value for postgres COPY text format (tab-delimited, ``\\N`` = NULL)."""
 	if value is None:
 		return r"\N"
@@ -866,6 +895,12 @@ def _copy_encode(value):
 		return "1"
 	if value is False:
 		return "0"
+	if integer_column and isinstance(value, float) and value.is_integer():
+		# INSERT sends 1.0 as a numeric literal that an Int or Check column casts; COPY rejects "1.0".
+		return str(int(value))
+	if isinstance(value, bytes | bytearray | memoryview):
+		# bytea hex input, as INSERT sends it, with the backslash escaped for COPY
+		return "\\\\x" + value.hex()
 	if isinstance(value, datetime.timedelta):
 		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
 		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
@@ -881,16 +916,9 @@ def _copy_encode(value):
 		minutes, seconds = divmod(remainder, 60)
 		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 		return f"{encoded}.{microseconds:06d}" if microseconds else encoded
+	if not isinstance(value, str | int | float | Decimal | datetime.date | datetime.time):
+		raise TypeError(f"bulk_insert cannot COPY a {type(value).__name__} value")
 	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
-
-
-def _copy_flush(cursor, copy_sql, buffer):
-	if not buffer.tell():
-		return
-	buffer.seek(0)
-	cursor.copy_expert(copy_sql, buffer)
-	buffer.seek(0)
-	buffer.truncate(0)
 
 
 def modify_query(query):
