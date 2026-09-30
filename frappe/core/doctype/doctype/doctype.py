@@ -34,6 +34,7 @@ from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
 from frappe.utils import cint, cstr, flt, get_datetime, is_a_property, random_string
+from frappe.utils.business_modules import validate_show_for_module
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -1850,6 +1851,7 @@ def validate_fields(meta: Meta):
 		validate_data_field_type(d)
 		check_decimal_config(d)
 		validate_link_filters(d)
+		validate_show_for_module(d, meta.get("name"))
 
 		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)

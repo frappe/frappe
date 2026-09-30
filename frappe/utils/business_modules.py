@@ -30,6 +30,7 @@ If two apps register the same name, the first installed app wins.
 import re
 
 import frappe
+from frappe import _
 from frappe.utils.caching import request_cache
 
 HOOK_NAME = "business_modules"
@@ -41,8 +42,9 @@ _FIELDNAME_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 def get_business_modules() -> list[dict]:
 	"""Return all modules registered by installed apps, in install order.
 
-	Each item has: module, fieldname, app.
-	Bad entries are skipped and logged. They never raise, so one bad hook cannot break login.
+	Each item has: module, fieldname, app. Bad entries are skipped and logged.
+
+	Example: get_business_modules() -> [{"module": "Stock", "fieldname": "stock", "app": "erpnext"}]
 	"""
 	modules: list[dict] = []
 	seen: set[str] = set()
@@ -59,7 +61,7 @@ def get_business_modules() -> list[dict]:
 
 
 def get_business_module_names() -> list[str]:
-	"""Return only the module names."""
+	"""Return only the module names. Example: ["Stock", "POS"]"""
 	return [m["module"] for m in get_business_modules()]
 
 
@@ -90,3 +92,37 @@ def _log_invalid(app: str, entry, reason: str) -> None:
 	frappe.logger("business_modules").warning(
 		f"Ignoring invalid {HOOK_NAME} entry in app '{app}': {reason}. Entry: {entry!r}"
 	)
+
+
+def validate_show_for_module(field, doctype: str | None = None) -> None:
+	"""Check the Show for Module value of one field. Call it on save.
+
+	Rule 1: a mandatory field cannot have a module. The value is cleared, with a message.
+	Rule 2: the module must be registered. Skipped during install and migrate.
+
+	"""
+	module = field.get("show_for_module")
+	if not module:
+		return
+
+	label = field.get("label") or field.get("fieldname")
+	where = f"{doctype}: {label}" if doctype else label
+
+	if field.get("reqd") or field.get("mandatory_depends_on"):
+		field.set("show_for_module", None)
+		if not (frappe.flags.in_install or frappe.flags.in_migrate):
+			frappe.msgprint(
+				_("Show for Module was cleared on {0} because the field is mandatory.").format(
+					frappe.bold(where)
+				),
+				alert=True,
+			)
+		return
+
+	if frappe.flags.in_install or frappe.flags.in_migrate:
+		return
+
+	if module not in get_business_module_names():
+		frappe.throw(
+			_("{0} is not a registered business module (field {1}).").format(frappe.bold(module), where)
+		)

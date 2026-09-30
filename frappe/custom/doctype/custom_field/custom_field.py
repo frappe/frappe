@@ -12,6 +12,7 @@ from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.query_builder import Field, functions
 from frappe.utils import cstr, random_string
+from frappe.utils.business_modules import validate_show_for_module
 
 
 class CustomField(Document):
@@ -177,6 +178,8 @@ class CustomField(Document):
 		# these imports have been added to avoid cyclical import, should fix in future
 		from frappe.core.doctype.doctype.doctype import check_fieldname_conflicts
 		from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
+
+		validate_show_for_module(self, self.dt)
 
 		# don't always get meta to improve performance
 		# setting idx is just an improvement, not a requirement

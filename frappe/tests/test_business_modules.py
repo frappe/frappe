@@ -10,6 +10,7 @@ from frappe.utils.business_modules import (
 	HOOK_NAME,
 	get_business_module_names,
 	get_business_modules,
+	validate_show_for_module,
 )
 
 
@@ -107,8 +108,6 @@ class TestBusinessModuleProperty(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.delete("Property Setter", {"doc_type": "Event", "field_name": self.FIELD})
 		frappe.db.delete("Custom Field", {"dt": "Event", "fieldname": "test_bm_custom"})
-		if frappe.db.exists("DocType", "Test BM DocType"):
-			frappe.delete_doc("DocType", "Test BM DocType", force=True)
 		frappe.clear_cache(doctype="Event")
 
 	def test_customize_form_allows_the_property(self):
@@ -147,26 +146,103 @@ class TestBusinessModuleProperty(IntegrationTestCase):
 
 		self.assertEqual(frappe.get_meta("Event").get_field("test_bm_custom").show_for_module, "Stock")
 
-	def test_doctype_field_carries_it(self):
-		with registered_modules(self.MODULES):
-			frappe.get_doc(
-				{
-					"doctype": "DocType",
-					"name": "Test BM DocType",
-					"module": "Custom",
-					"custom": 1,
-					"fields": [
-						{"fieldname": "plain", "label": "Plain", "fieldtype": "Data"},
-						{
-							"fieldname": "tagged",
-							"label": "Tagged",
-							"fieldtype": "Data",
-							"show_for_module": "Stock",
-						},
-					],
-				}
-			).insert()
 
-		meta = frappe.get_meta("Test BM DocType")
-		self.assertEqual(meta.get_field("tagged").show_for_module, "Stock")
-		self.assertFalse(meta.get_field("plain").show_for_module)
+class TestShowForModuleSaveRules(IntegrationTestCase):
+	"""Saving a field checks its Show for Module value."""
+
+	MODULES: ClassVar[dict] = {"frappe": [{"module": "Stock", "fieldname": "stock"}]}
+
+	def tearDown(self):
+		frappe.db.delete("Property Setter", {"doc_type": "Event", "field_name": "description"})
+		frappe.db.delete("Custom Field", {"dt": "Event", "fieldname": "test_bm_rules"})
+		frappe.clear_cache(doctype="Event")
+		frappe.flags.in_migrate = False
+
+	def customize_event(self, **values):
+		d = frappe.get_doc("Customize Form")
+		d.doc_type = "Event"
+		d.run_method("fetch_to_customize")
+		d.get("fields", {"fieldname": "description"})[0].update(values)
+		d.run_method("save_customization")
+		return d
+
+	def custom_field(self, **values):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "Event",
+				"fieldname": "test_bm_rules",
+				"label": "Test BM Rules",
+				"fieldtype": "Data",
+				**values,
+			}
+		)
+		doc.insert()
+		return doc
+
+	def cleared_message_shown(self):
+		return any("cleared" in (m.get("message") or "") for m in frappe.local.message_log)
+
+	# rule 1: the module must be registered
+
+	def test_unknown_module_rejected_in_customize_form(self):
+		with registered_modules(self.MODULES), self.assertRaises(frappe.ValidationError):
+			self.customize_event(show_for_module="Stok")
+
+	def test_unknown_module_rejected_in_custom_field(self):
+		with registered_modules(self.MODULES), self.assertRaises(frappe.ValidationError):
+			self.custom_field(show_for_module="Stok")
+
+	def test_unknown_module_rejected_on_doctype_save(self):
+		# DocType save calls validate_show_for_module on every field. Check it directly,
+		# so the test does not have to create a real DocType (which cannot be rolled back).
+		field = frappe.new_doc("DocField")
+		field.update({"fieldname": "f", "label": "F", "fieldtype": "Data", "show_for_module": "Stok"})
+		with registered_modules(self.MODULES), self.assertRaises(frappe.ValidationError):
+			validate_show_for_module(field, "Some DocType")
+
+	def test_known_module_is_accepted(self):
+		with registered_modules(self.MODULES):
+			doc = self.custom_field(show_for_module="Stock")
+		self.assertEqual(doc.show_for_module, "Stock")
+
+	def test_unknown_module_allowed_during_migrate(self):
+		# An app's own modules are not "installed" yet while its doctypes sync.
+		frappe.flags.in_migrate = True
+		with registered_modules(self.MODULES):
+			doc = self.custom_field(show_for_module="Not Yet Registered")
+		self.assertEqual(doc.show_for_module, "Not Yet Registered")
+
+	# rule 2: mandatory fields cannot have a module
+
+	def test_mandatory_clears_module_in_custom_field(self):
+		with registered_modules(self.MODULES):
+			doc = self.custom_field(show_for_module="Stock", reqd=1)
+		self.assertFalse(doc.show_for_module)
+		self.assertTrue(self.cleared_message_shown())
+
+	def test_mandatory_depends_on_clears_module_in_custom_field(self):
+		with registered_modules(self.MODULES):
+			doc = self.custom_field(show_for_module="Stock", mandatory_depends_on="eval:doc.subject")
+		self.assertFalse(doc.show_for_module)
+
+	def test_making_field_mandatory_later_clears_module(self):
+		with registered_modules(self.MODULES):
+			doc = self.custom_field(show_for_module="Stock")
+			self.assertEqual(doc.show_for_module, "Stock")
+			doc.reqd = 1
+			doc.save()
+		self.assertFalse(doc.show_for_module)
+
+	def test_mandatory_clears_module_in_customize_form(self):
+		with registered_modules(self.MODULES):
+			self.customize_event(show_for_module="Stock", reqd=1)
+		self.assertFalse(frappe.get_meta("Event").get_field("description").show_for_module)
+		self.assertTrue(self.cleared_message_shown())
+
+	def test_unsetting_mandatory_does_not_bring_module_back(self):
+		with registered_modules(self.MODULES):
+			doc = self.custom_field(show_for_module="Stock", reqd=1)
+			doc.reqd = 0
+			doc.save()
+		self.assertFalse(doc.show_for_module)

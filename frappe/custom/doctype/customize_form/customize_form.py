@@ -25,6 +25,7 @@ from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.model.meta import trim_table
 from frappe.utils import cint
+from frappe.utils.business_modules import validate_show_for_module
 
 
 class CustomizeForm(Document):
@@ -278,6 +279,7 @@ class CustomizeForm(Document):
 
 		# docfield
 		for df in self.get("fields"):
+			validate_show_for_module(df, self.doc_type)
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
 			if not meta_df or not is_standard_or_system_generated_field(meta_df[0]):
 				continue
