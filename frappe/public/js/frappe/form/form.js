@@ -2143,17 +2143,20 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 
-		// child table columns: the row form and the grid columns are separate
+		// child table fields
 		for (const table_df of frappe.meta.get_table_fields(this.doctype)) {
 			const grid = this.fields_dict[table_df.fieldname]?.grid;
 			if (!grid) continue;
+			let changed = false;
 			for (const df of grid.docfields || []) {
 				if (!df.show_for_module) continue;
 				if (this.set_hidden_by_module(df, is_off(df))) {
 					grid.update_docfield_property(df.fieldname, "hidden", df.hidden);
-					grid.set_column_disp_in_list_view(df.fieldname, !df.hidden);
+					changed = true;
 				}
 			}
+			// the grid caches its visible columns, so build them again
+			if (changed) grid.reset_grid();
 		}
 	}
 
