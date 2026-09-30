@@ -63,6 +63,7 @@ export class KanbanCore {
 		// cards this board just moved, so their realtime echo is skipped
 		this.ownMoves = new Map();
 		this.movesInFlight = 0;
+		this.moveSeq = 0;
 		this.columnSortable = null;
 		// Incremented on every reload so a late response from an earlier reload
 		// can be discarded instead of overwriting fresher data.
@@ -134,14 +135,16 @@ export class KanbanCore {
 	/** Pick up changes made elsewhere: fresh counts and first pages, same column shells. */
 	async refreshFromServer() {
 		// a refresh mid-drag or before a save lands would put cards back where they were
-		if (this.dragSourceColumn || this.dropCommitPending || this.movesInFlight) {
-			this.remoteTimer = setTimeout(() => this.refreshFromServer(), 500);
-			return;
-		}
+		const busy = () => this.dragSourceColumn || this.dropCommitPending || this.movesInFlight;
+		const retry = () => (this.remoteTimer = setTimeout(() => this.refreshFromServer(), 500));
+		if (busy()) return retry();
 		const reloadSeq = ++this.reloadSeq;
+		const moveSeq = this.moveSeq;
 		try {
 			const { columns, cards } = await this.options.provider.loadBoard();
 			if (reloadSeq !== this.reloadSeq) return;
+			// fetched before a move made meanwhile, so it would undo it on screen
+			if (moveSeq !== this.moveSeq || busy()) return retry();
 			const ids = (list) => list.map((c) => c.id).join("\n");
 			const sameColumns = ids(columns) === ids(this.state.columns);
 			this.state = { ...this.state, columns, cards };
@@ -902,6 +905,7 @@ export class KanbanCore {
 		cb.onCardMove && cb.onCardMove(move);
 
 		this.expectOwnUpdates([cardId]);
+		this.moveSeq++;
 		this.movesInFlight++;
 		try {
 			const saved = await this.options.provider.moveCard(move);
@@ -988,6 +992,7 @@ export class KanbanCore {
 		};
 
 		this.expectOwnUpdates(movedIds);
+		this.moveSeq++;
 		this.movesInFlight++;
 		let failed, saved;
 		try {
