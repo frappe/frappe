@@ -349,6 +349,7 @@ component group, with its main names.
 | Writers | *Changed.* One pipeline for the comment and email writers and their drafts |
 | Body columns | Column widths and collapse, per user |
 | Form tab memory | The last form tab per doctype, per user |
+| Record view (`RecordView`, `recallView`, `viewKeeper`, `readOffsets`, `landOffsets`, `onScrollFrames`) | *New.* The reader's tab, form tab, sections, panel sections and scroll on a record, put back on a return visit. Kept in the history entry, and per record while its complete cache entry stays |
 | Dock height | The docked composer's height, per user |
 | Docinfo readers | Assignees, shares, tags, favourites and follow, and their actions |
 | Remote search | Server search for the user and tag pickers; the last answer wins |
