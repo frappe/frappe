@@ -40,7 +40,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "table",
+   "icon": "data-table-duotone",
    "link_to": "Data",
    "link_type": "Sidebar",
    "title": "Data"
@@ -102,7 +102,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-10-01 01:05:00.000000",
+ "modified": "2026-10-01 01:58:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
