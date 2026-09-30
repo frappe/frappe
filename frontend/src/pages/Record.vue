@@ -738,7 +738,8 @@ async function settleView(mine: number, view: RecordView | null) {
 	if (mine !== generation) return;
 	if (view && root) {
 		// A tab that is gone takes the new visit's tab, which starts at the top.
-		const offsets = shownTab.value === view.tab ? view.offsets : { columns: view.offsets.columns };
+		const offsets =
+			shownTab.value === view.tab ? view.offsets : { columns: view.offsets.columns };
 		await landOffsets(root, shownTab.value, offsets);
 		if (mine !== generation) return;
 	}
