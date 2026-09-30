@@ -6,7 +6,7 @@ import { docKey, withPendingRows } from "./pendingRows";
 import { StoreCache } from "./storeCache";
 import { TimelineStore } from "./timelineStore";
 
-// one store per cache key, kept past unmount while the shared cache holds the record
+// one store per cache key, kept past unmount as `StoreCache` allows
 const stores = new StoreCache();
 
 export function useActivityTimeline(
@@ -15,7 +15,7 @@ export function useActivityTimeline(
   visibleTypes?: VisibleTypes
 ) {
   const store = getTimelineStore(doctype, docname, visibleTypes);
-  subscribeWhileMounted(store, storeKey(doctype, docname, visibleTypes));
+  subscribeWhileMounted(store);
 
   return {
     activities: shownActivities(store, typeNames(visibleTypes)),
@@ -173,7 +173,7 @@ function storeKey(doctype: string, docname: string, visibleTypes?: VisibleTypes)
 }
 
 // the store is shared, so one socket serves every consumer of it
-function subscribeWhileMounted(store: TimelineStore, key: string) {
+function subscribeWhileMounted(store: TimelineStore) {
   let unsubscribe: Unsubscribe | undefined;
   onMounted(() => {
     unsubscribe = store.mount();
@@ -181,7 +181,7 @@ function subscribeWhileMounted(store: TimelineStore, key: string) {
   onUnmounted(() => {
     unsubscribe?.();
     unsubscribe = undefined;
-    stores.release(key);
+    stores.trim();
   });
 }
 
