@@ -177,7 +177,7 @@ export class DataCache {
 
   /** The server may hold the name in another case, so every entry matching it goes. */
   readError(ticket: number, doctype: string, name: string, error: unknown) {
-    if (!isApiError(error) || (error.status !== 403 && error.status !== 404)) return;
+    if (!isRefusal(error)) return;
     const lowered = String(name).toLowerCase();
     const matching = [...this.documents.values()].filter(
       (entry) => entry.doctype === doctype && entry.name.toLowerCase() === lowered
@@ -186,6 +186,17 @@ export class DataCache {
       const key = documentKey(doctype, entry.name);
       if (this.gate.newerThanEntry(key, ticket)) this.dropDocument(key);
     }
+  }
+
+  /** A list reply sent before the refusal is refused too while it is in flight. */
+  listError(ticket: number, doctype: string, query: ListQuery, error: unknown) {
+    if (!isRefusal(error) || !this.gate.current(ticket) || !isFeedableQuery(query)) return;
+    const key = listCacheKey(doctype, query);
+    if (!this.gate.admitList(key, ticket)) return;
+    this.readLists.delete(key);
+    const list = this.removeList(key);
+    if (list) this.dropUnnamed(doctype, list.names);
+    else this.gate.listLeft(key);
   }
 
   clear() {
@@ -216,12 +227,15 @@ export class DataCache {
     const key = documentKey(doctype, String(row.name));
     if (!this.gate.admitRead(key, ticket)) return !this.gate.isSealed(key);
     const entry = this.documents.get(key);
-    if (!entry || compareModified(row, entry.doc) > 0) {
-      this.setDocument(key, documentEntry(doctype, frozenCopy(row), false), ticket);
+    const order = entry ? compareModified(row, entry.doc) : 1;
+    if (order < 0) return true;
+    // A newer row keeps the fields it does not carry, so a wider list paints no blank cell.
+    const doc = Object.freeze({ ...entry?.doc, ...frozenCopy(row) });
+    if (order === 0) {
+      this.setDocument(key, documentEntry(doctype, doc, entry!.complete, entry!.parts), ticket);
+    } else {
+      this.setDocument(key, documentEntry(doctype, doc, false), ticket);
       this.readRecords.delete(key);
-    } else if (compareModified(row, entry.doc) === 0) {
-      const doc = Object.freeze({ ...entry.doc, ...frozenCopy(row) });
-      this.setDocument(key, documentEntry(doctype, doc, entry.complete, entry.parts), ticket);
     }
     return true;
   }
@@ -325,6 +339,10 @@ export class DataCache {
 
 function isFeedable(query: ListQuery, rows: unknown): rows is DocumentRecord[] {
   return isFeedableQuery(query) && Array.isArray(rows) && rows.every(hasName);
+}
+
+function isRefusal(error: unknown): boolean {
+  return isApiError(error) && (error.status === 403 || error.status === 404);
 }
 
 function recordParts(envelope: Envelope<DocumentRecord>, include: readonly string[]) {

@@ -6,6 +6,7 @@ import {
   feedDelete,
   feedDocumentWrite,
   feedFieldRead,
+  feedListError,
   feedListRead,
   feedReadError,
   feedRecordRead,
@@ -126,9 +127,16 @@ export function listDocuments<T = DocumentRecord>(
   query: ListQuery = {},
   { include, signal }: IncludeOptions = {}
 ): Promise<ListEnvelope<T>> {
-  const options = { query: { ...withModified(query), include: joinInclude(include) }, signal };
-  return fed<T[]>("GET", `/document/${segment(doctype)}`, options, (ticket, envelope) =>
-    feedListRead(ticket, doctype, query, envelope as ListEnvelope<DocumentRecord>)
+  const ticket = takeTicket();
+  const sent = { ...withModified(query), include: joinInclude(include) };
+  const options = { query: sent, signal, ticket };
+  const sending = request<T[]>("GET", `/document/${segment(doctype)}`, options);
+  return fedAfter(
+    ticket,
+    sending,
+    (_, envelope) =>
+      feedListRead(ticket, doctype, query, envelope as ListEnvelope<DocumentRecord>),
+    (error) => feedListError(ticket, doctype, query, error)
   ) as Promise<ListEnvelope<T>>;
 }
 
