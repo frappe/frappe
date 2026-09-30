@@ -64,7 +64,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "cable",
+   "icon": "integrations-puzzle-duotone",
    "link_to": "Integrations",
    "link_type": "Sidebar",
    "title": "Integrations"
@@ -102,7 +102,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-10-01 02:38:00.000000",
+ "modified": "2026-10-01 03:09:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
