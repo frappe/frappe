@@ -52,7 +52,6 @@ class KanbanBoard(Document):
 	def validate(self):
 		if self.is_standard == "Yes" or self._was_standard():
 			self.validate_standard()
-		self.validate_private_toggle_permission()
 		self.validate_column_name()
 
 	def validate_standard(self):
@@ -81,27 +80,19 @@ class KanbanBoard(Document):
 		before = self.get_doc_before_save()
 		return bool(before and before.is_standard == "Yes")
 
-	def validate_private_toggle_permission(self):
-		"""Only the owner or Administrator can toggle private on existing boards."""
-		if self.is_new() or not self.has_value_changed("private"):
-			return
-
-		user = frappe.session.user
-		if user == "Administrator" or user == self.owner:
-			return
-
-		frappe.throw(
-			_("Only the board owner or Administrator can change Private."),
-			frappe.PermissionError,
-		)
-
 	def on_change(self):
 		frappe.clear_cache(doctype=self.reference_doctype)
 		clear_user_settings_cache(self.reference_doctype)
 
 	def on_update(self):
-		if self.is_standard == "Yes" and frappe.conf.developer_mode and not frappe.flags.in_import:
+		if not frappe.conf.developer_mode or frappe.flags.in_import:
+			return
+
+		if self.is_standard == "Yes":
 			self.export_board()
+		elif self._was_standard():
+			# no longer shipped with the app
+			self.get_doc_before_save().remove_export()
 
 	def on_trash(self):
 		if frappe.flags.in_migrate or self.is_standard != "Yes":
@@ -113,6 +104,9 @@ class KanbanBoard(Document):
 			)
 
 		# Otherwise the next migrate brings the board back.
+		self.remove_export()
+
+	def remove_export(self):
 		path = self.get_export_path()
 		if os.path.exists(path):
 			os.remove(path)

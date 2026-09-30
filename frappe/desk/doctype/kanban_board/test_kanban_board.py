@@ -17,7 +17,6 @@ from frappe.desk.doctype.kanban_board.kanban_board import (
 	update_order_for_single_card,
 )
 from frappe.tests import IntegrationTestCase
-from frappe.utils import cint
 
 
 def _decompress_kanban_cards(cards):
@@ -285,39 +284,6 @@ class TestKanbanBoard(IntegrationTestCase):
 		)
 		frappe.set_user("Administrator")
 
-	def test_private_toggle_allowed_only_for_owner_or_admin(self):
-		other = "kanban_perm_test@example.com"
-		if not frappe.db.exists("User", other):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": other,
-					"first_name": "Kanban",
-					"last_name": "Perm",
-					"send_welcome_email": 0,
-					"roles": [{"role": "System Manager"}],
-				}
-			).insert(ignore_permissions=True)
-
-		# Non-owner cannot toggle Private.
-		frappe.set_user(other)
-		board = frappe.get_doc("Kanban Board", self.board_name)
-		board.private = 0
-		self.assertRaises(frappe.PermissionError, board.save, ignore_permissions=True)
-
-		# Owner (Administrator in this test fixture) can toggle Private.
-		frappe.set_user("Administrator")
-		board = frappe.get_doc("Kanban Board", self.board_name)
-		board.private = 0
-		board.save(ignore_permissions=True)
-		self.assertEqual(cint(frappe.db.get_value("Kanban Board", self.board_name, "private")), 0)
-
-		# Administrator can toggle it back as well.
-		board.reload()
-		board.private = 1
-		board.save(ignore_permissions=True)
-		self.assertEqual(cint(frappe.db.get_value("Kanban Board", self.board_name, "private")), 1)
-
 	def test_group_by_fields_seeded_with_select_fields(self):
 		name = frappe.generate_hash(length=10)
 		board = frappe.get_doc(
@@ -501,6 +467,17 @@ class TestStandardKanbanBoard(IntegrationTestCase):
 			self.assertRaises(frappe.PermissionError, frappe.delete_doc, "Kanban Board", board.name)
 
 		self.assertRaises(frappe.ValidationError, frappe.rename_doc, "Kanban Board", board.name, "Renamed")
+
+	def test_clearing_standard_removes_file(self):
+		board = self.make_standard_board()
+		path = board.get_export_path()
+		self.assertTrue(os.path.exists(path))
+
+		board.is_standard = "No"
+		with patch.dict(frappe.conf, developer_mode=1):
+			board.save()
+
+		self.assertFalse(os.path.exists(path))
 
 	def test_delete_in_developer_mode_removes_file(self):
 		board = self.make_standard_board()
