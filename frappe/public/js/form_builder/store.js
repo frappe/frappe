@@ -230,7 +230,13 @@ export const useStore = defineStore("form-builder-store", () => {
 		if (!frappe.get_meta("Web Form Field")) {
 			await load_doctype_model("Web Form Field");
 		}
-		docfields.value = frappe.get_meta("Web Form Field").fields;
+		// a copy, so the web_form_fields grid keeps the meta order
+		const first = ["label", "fieldtype", "fieldname"];
+		const rank = (df) =>
+			first.includes(df.fieldname) ? first.indexOf(df.fieldname) : first.length;
+		docfields.value = [...frappe.get_meta("Web Form Field").fields].sort(
+			(a, b) => rank(a) - rank(b)
+		);
 
 		// not for the properties panel: get_df() builds layout nodes from DocField meta
 		if (!frappe.get_meta("DocField")) {
