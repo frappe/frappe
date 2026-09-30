@@ -59,7 +59,10 @@ import {
 } from "@framework/ui/components/FormLayout/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { getFormatDefaults } from "@framework/ui/components/FormLayout/formatDefaults";
-import { resolveFieldCurrency } from "@framework/ui/components/FormLayout/resolveCurrency";
+import {
+	resolveFieldCurrency,
+	useDocValueReader,
+} from "@framework/ui/components/FormLayout/resolveCurrency";
 import { displayValue, isSummaryField } from "./displayValue";
 
 const props = defineProps<{ field: FieldNode }>();
@@ -69,6 +72,7 @@ const doc = inject(DocKey)!;
 const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
+const getDocValue = useDocValueReader();
 
 function edit(fieldname: string, value: any) {
 	update(fieldname, value);
@@ -111,6 +115,7 @@ const display = computed(() => {
 				? resolveFieldCurrency(props.field.options, {
 						doc: doc.value,
 						defaultCurrency: defaults.currency,
+						getDocValue,
 				  })
 				: undefined,
 		numberFormat: defaults.number_format,

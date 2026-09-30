@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   clearDataCache,
   feedDelete,
+  feedFieldRead,
   readCachedDocument,
   readCachedList,
   takeTicket,
@@ -94,6 +95,60 @@ describe("the 20 list entries", () => {
     expect(readCachedDocument(DOCTYPE, "Only")).toBeUndefined();
     expect(readCachedDocument(DOCTYPE, "Shared")!.complete).toBe(false);
     expect(readCachedDocument(DOCTYPE, "Read")!.complete).toBe(true);
+  });
+});
+
+describe("the 50 field reads", () => {
+  function readFields(from: number, to: number) {
+    for (let index = from; index <= to; index++) {
+      feedFieldRead(takeTicket(), DOCTYPE, doc(`F${index}`, OLD, { status: "Open" }));
+    }
+  }
+
+  it("keep a partial entry that no list names, and make no list entry", () => {
+    readFields(1, 1);
+    expect(readCachedDocument(DOCTYPE, "F1")).toMatchObject({ complete: false });
+    expect(readCachedDocument(DOCTYPE, "F1")!.doc.status).toBe("Open");
+    expect(readCachedList(DOCTYPE, { filters: { name: "F1" } })).toBeUndefined();
+  });
+
+  it("drop the least recently read at the 51st field read", () => {
+    readFields(1, 51);
+    expect(readCachedDocument(DOCTYPE, "F1")).toBeUndefined();
+    expect(readCachedDocument(DOCTYPE, "F2")).toBeDefined();
+  });
+
+  it("count a second field read as a use", () => {
+    readFields(1, 50);
+    readFields(1, 1);
+    readFields(51, 51);
+    expect(readCachedDocument(DOCTYPE, "F1")).toBeDefined();
+    expect(readCachedDocument(DOCTYPE, "F2")).toBeUndefined();
+  });
+
+  it("keep an entry past its list's eviction, and a list's entry past theirs", () => {
+    readList(listQuery(0), [doc("F1", OLD), doc("Listed", OLD)]);
+    readFields(1, 1);
+    for (let index = 1; index <= 20; index++) readList(listQuery(index), []);
+    expect(readCachedDocument(DOCTYPE, "F1")).toBeDefined();
+    expect(readCachedDocument(DOCTYPE, "Listed")).toBeUndefined();
+
+    readList(listQuery(21), [doc("F2", OLD)]);
+    readFields(2, 52);
+    expect(readCachedDocument(DOCTYPE, "F2")).toBeDefined();
+  });
+
+  it("keep a dropped complete entry as partial while a field read holds it", () => {
+    readFields(1, 1);
+    readRecord(doc("F1", OLD));
+    readRecords(1, 50);
+    expect(readCachedDocument(DOCTYPE, "F1")).toMatchObject({ complete: false, parts: {} });
+  });
+
+  it("do not keep an entry past a delete", () => {
+    readFields(1, 1);
+    feedDelete(takeTicket(), DOCTYPE, "F1");
+    expect(readCachedDocument(DOCTYPE, "F1")).toBeUndefined();
   });
 });
 

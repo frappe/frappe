@@ -21,7 +21,7 @@ import { TextInput } from "frappe-ui";
 import { DocKey, ParentDocKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { flt, formatField } from "../FormLayout/formatNumber";
-import { resolveFieldCurrency } from "../FormLayout/resolveCurrency";
+import { resolveFieldCurrency, useDocValueReader } from "../FormLayout/resolveCurrency";
 import { getFormatDefaults } from "../FormLayout/formatDefaults";
 
 const props = defineProps<FieldComponentProps>();
@@ -40,6 +40,7 @@ const doc = inject(DocKey, null);
 // Parent doc, present only for a child-table row, so a row's Currency `options` can
 // resolve a parent field (keeps dialog in sync with the grid). Null at the top level.
 const parentDoc = inject(ParentDocKey, null);
+const getDocValue = useDocValueReader();
 
 // A numeric field has no empty state — Frappe shows `0`. Coerce here, not in the pure
 // `formatField` util whose `'' for empty` contract other callers rely on.
@@ -59,6 +60,7 @@ function resolveCurrency(): string | undefined {
 		row: props.row,
 		parentDoc: parentDoc?.value,
 		defaultCurrency: getFormatDefaults().currency,
+		getDocValue,
 	});
 }
 

@@ -62,6 +62,11 @@ export function feedListRead(
   feed(() => cache.listRead(ticket, doctype, query, envelope));
 }
 
+/** Some fields of one record, read with no list entry. */
+export function feedFieldRead(ticket: number, doctype: string, row: unknown): void {
+  feed(() => cache.fieldRead(ticket, doctype, row));
+}
+
 /** A save or a create. */
 export function feedDocumentWrite(ticket: number, doctype: string, doc: DocumentRecord): void {
   feed(() => cache.documentWrite(ticket, doctype, doc));
