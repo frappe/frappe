@@ -188,7 +188,7 @@ What `page` is _for_ is a small, closed vocabulary:
   with no anchor appends after it; `add(item, { before: 'save' })` is how a button sits
   to its left. It is ordered and demoted by the fitting rule with no exception, and the
   host alone decides that it is disabled while nothing has changed.
-- **A closed event list** — `onRefresh`, `beforeSave`, `afterSave`, `onTabChange`,
+- **A closed event list** — `onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `onTabChange`,
   `onFormTabChange`, `onPost`, `<fieldname>`, and a child table's own family, written **nested under
   the table's fieldname**: a handler per child field, plus `onAdd` and `onRemove`.
 

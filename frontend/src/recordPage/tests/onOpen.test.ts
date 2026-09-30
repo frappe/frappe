@@ -1,0 +1,404 @@
+// `onOpen`: once per page, after the first replay has committed, never on a replay.
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ref, watch } from "vue";
+
+const scripts = vi.hoisted(() => ({ list: null as Promise<unknown> | null }));
+
+vi.mock("frappe-ui", () => ({
+  call: vi.fn(),
+  toast: { success: vi.fn(), error: vi.fn() },
+  createResource: () => ({
+    data: null,
+    loading: false,
+    fetch() {},
+    reload() {},
+  }),
+  frappeRequest: vi.fn(),
+}));
+vi.mock("@framework/ui/api", async () => {
+  const { GET_CLIENT_SCRIPTS } = await import("../clientScriptTypes");
+  return {
+    runMethod: vi.fn(async (method: string) =>
+      method === GET_CLIENT_SCRIPTS ? scripts.list : { data: null },
+    ),
+    getMeta: vi.fn(async () => ({ data: null })),
+  };
+});
+
+import { loadClientScripts, resetClientScripts } from "../clientScripts";
+import { createRecordPage, type RecordPageHost } from "../createRecordPage";
+import { FIRST_PAINT_LIMIT_MS } from "../paintGate";
+import { HOST_SOURCE, runningSource, withRegisteringSource } from "../context";
+import { registerRecordPage, resetRegistry } from "../registry";
+import type { AuthoredHandlers, RecordPageApi } from "../types";
+
+const RECORD_TABS = [
+  { name: "details", label: "Details" },
+  { name: "files", label: "Files" },
+];
+
+function makePage(overrides: Partial<RecordPageHost> = {}) {
+  const moved: string[] = [];
+  const host: RecordPageHost = {
+    doctype: "CRM Deal",
+    docname: "CRM-DEAL-1",
+    doc: ref({}),
+    saved: ref({}),
+    meta: ref(null),
+    perms: () => ({}),
+    isDirty: () => false,
+    activeTab: () => "details",
+    activateTab: (tab) => void moved.push(tab),
+    save: async () => {},
+    reload: async () => {},
+    router: {} as any,
+    sourcesReady: () => loadClientScripts("CRM Deal"),
+    activityRows: () => [],
+    scrollToActivity: async () => true,
+    reloadActivity: async () => {},
+    fileRows: () => [],
+    reloadFiles: async () => {},
+    ...overrides,
+  };
+  const controller = createRecordPage(host);
+  controller.tabs.provideBuiltins(() => RECORD_TABS as any[]);
+  return { controller, moved };
+}
+
+/** A page whose scripts and permissions are in, as on a return visit. */
+async function loadedPage() {
+  await loadClientScripts("CRM Deal");
+  const made = makePage();
+  await vi.advanceTimersByTimeAsync(0);
+  return made;
+}
+
+function register(source: string, handlers: AuthoredHandlers) {
+  return withRegisteringSource(source, async () => registerRecordPage("CRM Deal", handlers));
+}
+
+function action(name: string) {
+  return { name, label: name, run: () => {} };
+}
+
+function gate() {
+  let open!: () => void;
+  const opened = new Promise<void>((resolve) => (open = resolve));
+  return { opened, open };
+}
+
+/** Counts each handler's calls, and what `onOpen` saw drawn when it ran. */
+function counting() {
+  const calls = { onRefresh: 0, onOpen: 0 };
+  const seen: boolean[] = [];
+  const handlers = {
+    onRefresh: (page: RecordPageApi) => {
+      calls.onRefresh += 1;
+      page.quickActions.add(action("mine"));
+    },
+    onOpen: (page: RecordPageApi) => {
+      calls.onOpen += 1;
+      seen.push(page.quickActions.has("mine"));
+      page.tabs.activate("files");
+    },
+  };
+  return { calls, seen, handlers };
+}
+
+beforeEach(() => {
+  resetRegistry();
+  resetClientScripts();
+  scripts.list = Promise.resolve({ data: { scripts: [], can_write: false } });
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+describe("onOpen on a return visit", () => {
+  it("runs once, after the paint from memory, and never on a replay", async () => {
+    const { calls, seen, handlers } = counting();
+    await register("deal", handlers);
+    const { controller, moved } = await loadedPage();
+
+    controller.paintNow();
+
+    expect(calls).toEqual({ onRefresh: 1, onOpen: 1 });
+    expect(seen).toEqual([true]);
+    expect(moved).toEqual(["files"]);
+
+    await controller.refresh({ background: true });
+    await controller.refresh();
+    await controller.page.refresh();
+
+    expect(calls).toEqual({ onRefresh: 4, onOpen: 1 });
+    expect(moved).toEqual(["files"]);
+  });
+
+  it("runs again on the next visit, which builds a new page", async () => {
+    const { calls, handlers } = counting();
+    await register("deal", handlers);
+
+    const first = await loadedPage();
+    first.controller.paintNow();
+    first.controller.leave();
+    const second = await loadedPage();
+    second.controller.paintNow();
+
+    expect(calls.onOpen).toBe(2);
+    expect(second.moved).toEqual(["files"]);
+  });
+
+  it("waits for an onRefresh's part after its await, and then sees what it drew", async () => {
+    const pause = gate();
+    const seen: boolean[] = [];
+    await register("slow", {
+      onRefresh: async (page: RecordPageApi) => {
+        const { quickActions } = page;
+        await pause.opened;
+        quickActions.add(action("late"));
+      },
+      onOpen: (page: RecordPageApi) => void seen.push(page.quickActions.has("late")),
+    });
+    const { controller } = await loadedPage();
+
+    controller.paintNow();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual([]);
+
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual([true]);
+  });
+
+  it("runs every source's onOpen in run order once the awaiting part lands, so the later tier wins", async () => {
+    const pause = gate();
+    const seen: string[] = [];
+    await register("app", {
+      onRefresh: async () => {
+        await pause.opened;
+      },
+      onOpen: (page: RecordPageApi) => {
+        seen.push("app");
+        page.tabs.activate("details");
+      },
+    });
+    await register("client-script:site", {
+      onOpen: (page: RecordPageApi) => {
+        seen.push("site");
+        page.tabs.activate("files");
+      },
+    });
+    const { controller, moved } = await loadedPage();
+
+    controller.paintNow();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual([]);
+
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual(["app", "site"]);
+    expect(moved).toEqual(["files"]);
+  });
+
+  it("runs nothing when the reader leaves while an onRefresh part is still awaiting", async () => {
+    const pause = gate();
+    const { calls, handlers } = counting();
+    await register("slow", {
+      onRefresh: async () => {
+        await pause.opened;
+      },
+    });
+    await register("deal", handlers);
+    const { controller, moved } = await loadedPage();
+
+    controller.paintNow();
+    controller.leave();
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(calls.onOpen).toBe(0);
+    expect(moved).toEqual([]);
+  });
+});
+
+describe("onOpen on a first visit", () => {
+  it("lands its acts before the skeletons lift, so the first tab shown is the one it chose", async () => {
+    const { calls, handlers } = counting();
+    await register("deal", handlers);
+    const { controller, moved } = makePage();
+    const movedAtReady: string[][] = [];
+    watch(controller.ready, () => void movedAtReady.push([...moved]), { flush: "sync" });
+
+    await controller.refresh();
+
+    expect(calls).toEqual({ onRefresh: 1, onOpen: 1 });
+    expect(movedAtReady).toEqual([["files"]]);
+
+    await controller.refresh();
+    expect(calls).toEqual({ onRefresh: 2, onOpen: 1 });
+  });
+
+  it("runs once when an onRefresh calls page.refresh() during the first load", async () => {
+    const { calls, handlers } = counting();
+    let nested = false;
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        handlers.onRefresh(page);
+        if (nested) return;
+        nested = true;
+        void page.refresh();
+      },
+      onOpen: handlers.onOpen,
+    });
+    const { controller, moved } = makePage();
+
+    await controller.refresh();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(calls).toEqual({ onRefresh: 2, onOpen: 1 });
+    expect(moved).toEqual(["files"]);
+  });
+
+  it("keeps the skeletons up until onOpen's acts land after an awaiting onRefresh", async () => {
+    const pause = gate();
+    await register("slow", {
+      onRefresh: async () => {
+        await pause.opened;
+      },
+      onOpen: (page: RecordPageApi) => page.tabs.activate("files"),
+    });
+    const { controller, moved } = makePage();
+    const movedAtReady: string[][] = [];
+    watch(controller.ready, () => void movedAtReady.push([...moved]), { flush: "sync" });
+
+    const refreshing = controller.refresh();
+    await vi.advanceTimersByTimeAsync(0);
+    pause.open();
+    await refreshing;
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(movedAtReady).toEqual([["files"]]);
+  });
+
+  it("runs a late script's onOpen after that script's ops land, not at the early paint", async () => {
+    const list = gate();
+    const seen: string[] = [];
+    await register("early", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
+      onOpen: () => void seen.push("early"),
+    });
+    const { controller } = makePage({ sourcesReady: () => list.opened });
+
+    const refreshing = controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+    expect(controller.ready.value).toBe(true);
+    expect(seen).toEqual([]);
+
+    await register("client-script:late", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("two")),
+      onOpen: (page: RecordPageApi) => void seen.push(`late sees two: ${page.quickActions.has("two")}`),
+    });
+    list.open();
+    await refreshing;
+
+    expect(seen).toEqual(["early", "late sees two: true"]);
+  });
+
+  it("runs nothing when the reader left before the first replay ended", async () => {
+    const list = gate();
+    const { calls, handlers } = counting();
+    await register("deal", handlers);
+    const { controller } = makePage({ sourcesReady: () => list.opened });
+
+    const refreshing = controller.refresh();
+    controller.leave();
+    list.open();
+    await refreshing;
+
+    expect(calls.onOpen).toBe(0);
+  });
+});
+
+describe("onOpen's errors and awaits", () => {
+  it("reports a throw, and the next source's onOpen still runs", async () => {
+    const seen: string[] = [];
+    await register("broken", {
+      onOpen: () => {
+        throw new Error("boom");
+      },
+    });
+    await register("fine", { onOpen: () => void seen.push("fine") });
+    const { controller } = await loadedPage();
+
+    controller.paintNow();
+
+    expect(seen).toEqual(["fine"]);
+    expect(console.error).toHaveBeenCalledWith(
+      "[record-page] broken.onOpen on CRM Deal threw",
+      expect.any(Error),
+    );
+  });
+
+  it("lands an act made after an await at once", async () => {
+    const pause = gate();
+    await register("deal", {
+      onOpen: async (page: RecordPageApi) => {
+        await pause.opened;
+        page.tabs.activate("files");
+      },
+    });
+    const { controller, moved } = await loadedPage();
+    controller.paintNow();
+
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(moved).toEqual(["files"]);
+  });
+
+  it("names no source after an await, so two awaiting handlers cannot take each other's name", async () => {
+    const first = gate();
+    const second = gate();
+    const named: string[] = [];
+    await register("one", {
+      onOpen: async () => {
+        await first.opened;
+        named.push(runningSource());
+      },
+    });
+    await register("two", {
+      onOpen: async () => {
+        named.push(runningSource());
+        await second.opened;
+      },
+    });
+    const { controller } = await loadedPage();
+    controller.paintNow();
+
+    first.open();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(named).toEqual(["two", HOST_SOURCE]);
+    expect(runningSource()).toBe(HOST_SOURCE);
+  });
+
+  it("lands no act made after an await once the reader has left", async () => {
+    const pause = gate();
+    await register("deal", {
+      onOpen: async (page: RecordPageApi) => {
+        await pause.opened;
+        page.tabs.activate("files");
+      },
+    });
+    const { controller, moved } = await loadedPage();
+    controller.paintNow();
+
+    controller.leave();
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(moved).toEqual([]);
+  });
+});

@@ -243,13 +243,14 @@ three names for one operation — prefer "replay" for the mechanism).
 
 **Hold**:
 One paint for a handler's ops, published when it finishes. Every event but `onRefresh` runs
-inside a hold, and so does each host call into script code (`controller.hold`). A hold starts
+inside a hold, and so does each host call into script code (`controller.hold`). `onOpen`'s
+synchronous part runs in a hold opened after the first replay commits. A hold starts
 from what is drawn, where a replay starts from built-ins; its acts wait for its commit.
 _Avoid_: batch, transaction.
 
 **Handler**: <a id="handler"></a>
-One named function in the object a script exports — an event (`onRefresh`, `beforeSave`,
-`afterSave`, `onTabChange`, `onFormTabChange`) or a **fieldname**. The event vocabulary is
+One named function in the object a script exports — an event (`onRefresh`, `onOpen`,
+`beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`) or a **fieldname**. The event vocabulary is
 closed; every other key is a fieldname, in one flat keyspace. A handler's arguments are
 determined by its key: a top-level key gets `(page)`, one nested under a child table gets
 `(page, row)`.
