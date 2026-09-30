@@ -216,6 +216,7 @@ class Session:
 		self.config = config
 		self.log = log
 		self.run_end_marker = run_end_marker  # present while a run end is unconfirmed
+		self._seq_before_last_run = 0  # the log's latest seq when the last run started
 		self.event_sink = event_sink
 		self.credential_store = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.allowed_roots = allowed_roots
@@ -455,7 +456,7 @@ class Session:
 		confirmed = await notify_run_ended(
 			self.config, self.id, terminal_seq, still_needed=self.run_end_marker.exists
 		)
-		if confirmed and terminal_seq == self.log.latest_seq:  # a run started since keeps the marker
+		if confirmed and self._seq_before_last_run < terminal_seq:  # a run started since keeps the marker
 			self.run_end_marker.unlink(missing_ok=True)
 
 	# --- live subscription ------------------------------------------------
@@ -516,6 +517,7 @@ class Session:
 		if event.durable:
 			if isinstance(event, RunStarted) and event.subagent_id is None and self.config.notify_run_ended:
 				self.run_end_marker.touch()  # before the row, so a crash from here on is still reported
+				self._seq_before_last_run = self.log.latest_seq
 			event.parent_seq = self.transcript.leaf_seq  # after a rewind, not the last row
 			self.log.append(event)
 			if event.subagent_id is None and isinstance(event, (RunStarted, AssistantMessage, RunEnded)):

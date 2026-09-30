@@ -336,6 +336,23 @@ async def test_a_run_stays_marked_until_the_client_confirms_the_latest_end(tmp_p
 	await _until(lambda: not session.run_end_marker.exists())
 
 
+async def test_a_confirmed_end_drops_the_marker_even_after_a_model_change(tmp_path, monkeypatch):
+	answer = asyncio.get_running_loop().create_future()
+
+	async def notify(config, session_id, terminal_seq, *, still_needed):
+		return await answer
+
+	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
+	session = SessionStore(str(tmp_path)).create(_reporting_config())
+	handle = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="ok")]))
+	assert handle.task is not None
+	await handle.task
+	await session.set_model("mock/v2")  # a row after the end, but no new run
+
+	answer.set_result(True)
+	await _until(lambda: not session.run_end_marker.exists())
+
+
 async def test_startup_reports_a_run_end_the_client_never_confirmed(tmp_path, monkeypatch):
 	seen = []
 
