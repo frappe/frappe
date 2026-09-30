@@ -127,7 +127,8 @@ def import_file_by_path(
 
 			# board names are global, so an app's board never replaces a site's own
 			if (
-				doc["doctype"] == "Kanban Board"
+				not force
+				and doc["doctype"] == "Kanban Board"
 				and db_modified_timestamp
 				and frappe.db.get_value("Kanban Board", doc["name"], "is_standard") != "Yes"
 			):
