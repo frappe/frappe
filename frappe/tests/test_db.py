@@ -54,8 +54,8 @@ class TestDB(IntegrationTestCase):
 	@run_only_if(db_type_is.POSTGRES)
 	def test_rollback_after_ddl_clears_schema_cache(self):
 		# postgres DDL is transactional: what was cached after it must not outlive a rollback
-		doctype = f"Schema Cache Test {frappe.generate_hash(length=8)}"
-		frappe.db.sql(f'CREATE TABLE "tab{doctype}" ("name" varchar(140))')
+		doctype = "Schema Cache Test"
+		frappe.db.sql('CREATE TABLE "tabSchema Cache Test" ("name" varchar(140))')
 		self.assertTrue(frappe.db.table_exists(doctype))
 		self.assertEqual(frappe.db.get_db_table_columns(f"tab{doctype}"), ["name"])
 
@@ -581,11 +581,12 @@ class TestDB(IntegrationTestCase):
 		# the error message quotes the duplicate value, which must not decide the violated key
 		frappe.db.savepoint("unique_pkey_value")
 		self.addCleanup(frappe.db.rollback, save_point="unique_pkey_value")
-		frappe.db.set_value("User", "Guest", "username", "ops_pkey")
-		admin = frappe.get_doc("User", "Administrator")
-		admin.username = "ops_pkey"
+		frappe.db.set_value("User", "test1@example.com", "username", "ops_pkey")
+		user = frappe.get_doc("User", "test@example.com")
+		user.username = "ops_pkey"
 
-		self.assertRaises(frappe.UniqueValidationError, admin.db_update)
+		with self.set_user("test@example.com"):
+			self.assertRaises(frappe.UniqueValidationError, user.db_update)
 
 	def test_read_only_errors(self):
 		frappe.db.rollback()
