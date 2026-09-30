@@ -48,7 +48,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "network",
+   "icon": "workflow-builder-duotone",
    "link_to": "Workflow",
    "link_type": "Sidebar",
    "title": "Workflow"
@@ -80,7 +80,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "repeat",
+   "icon": "automation-cycle-duotone",
    "link_to": "Automation",
    "link_type": "Sidebar",
    "title": "Automation"
@@ -102,7 +102,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-09-30 22:58:00.000000",
+ "modified": "2026-09-30 23:52:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",
