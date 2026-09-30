@@ -825,7 +825,14 @@ export class KanbanCore {
 			return;
 		}
 		const oldIndex = this.orderedNames(fromColumn).indexOf(cardId);
-		const move = { cardId, fromColumn, toColumn, oldIndex, newIndex: toIndex };
+		const move = {
+			cardId,
+			fromColumn,
+			toColumn,
+			oldIndex,
+			newIndex: toIndex,
+			cardIds: [cardId],
+		};
 
 		const cb = this.options.callbacks || {};
 		const guard = cb.canMoveCard && cb.canMoveCard(card, fromColumn, toColumn);
@@ -900,6 +907,19 @@ export class KanbanCore {
 			if (idx >= 0) insertAt = edge === "bottom" ? idx + 1 : idx;
 		}
 
+		// each card gets the move a single drag would, plus every card in this drag
+		const movedIds = moves.map((m) => m.cardId);
+		moves.forEach((m, i) =>
+			Object.assign(m, { toColumn, newIndex: insertAt + i, cardIds: movedIds })
+		);
+		// one drag is one decision: a veto on any card cancels the whole drag
+		for (const m of moves) {
+			if (cb.onBeforeCardMove && (await cb.onBeforeCardMove(m)) === false) {
+				this.clearDropIndicator({ animate: true });
+				return;
+			}
+		}
+
 		this.animateMove(affected, () => {
 			// Same as single-card: keep hover gap until this FLIP mutate.
 			this.clearDropIndicator();
@@ -909,23 +929,22 @@ export class KanbanCore {
 			this.renderColumns(affected);
 		});
 
+		for (const m of moves) {
+			this.bus.emit("card:move", m);
+			cb.onCardMove && cb.onCardMove(m);
+		}
 		this.setSelection([]);
 
 		const moveErrorArgs = {
 			cardId: moves.length === 1 ? moves[0].cardId : __("{0} cards", [moves.length]),
-			cardIds: moves.map((m) => m.cardId),
+			cardIds: movedIds,
 			toColumn,
 		};
 
 		this.ignoreRemoteUpdatesUntil = Date.now() + 3000;
 		let failed;
 		try {
-			failed = new Set(
-				await this.options.provider.moveCards(
-					moves.map((m) => m.cardId),
-					toColumn
-				)
-			);
+			failed = new Set(await this.options.provider.moveCards(movedIds, toColumn));
 		} catch (error) {
 			this.moveCardsBack(moves, toColumn);
 			cb.onMoveError && cb.onMoveError(moveErrorArgs, error);
@@ -946,9 +965,7 @@ export class KanbanCore {
 			this.bus.emit("error", error);
 		}
 		for (const m of moves) {
-			if (failed.has(m.cardId)) continue;
-			cb.onAfterCardMove &&
-				cb.onAfterCardMove({ ...m, toColumn, newIndex: insertAt + moves.indexOf(m) });
+			if (!failed.has(m.cardId)) cb.onAfterCardMove && cb.onAfterCardMove(m);
 		}
 	}
 

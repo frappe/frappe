@@ -34,6 +34,11 @@
  *       return [{ label: __("My Bulk"), onclick(ids, page, done) {} }];
  *     },
  *   });
+ *
+ * Move callbacks (canMoveCard, onBeforeCardMove, onCardMove, onAfterCardMove)
+ * run once per card, for single and multi-card drags alike. `move.cardIds` lists
+ * every card in the drag, so a hook can ask once for all of them.
+ * onBeforeCardMove may be async; returning false cancels the whole drag.
  */
 frappe.provide("frappe.kanban_v2.settings");
 
