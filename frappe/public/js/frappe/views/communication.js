@@ -134,7 +134,7 @@ frappe.views.CommunicationComposer = class {
 					</div>
 					${frappe.ui.divider.html()}
 				</div>
-				<div class="email-composer-message-area flex flex-col grow px-4 pt-4 pb-5">
+				<div class="email-composer-message-area flex flex-col grow min-h-0 px-4 pt-4 pb-5">
 					<div class="flex flex-col flex-1 min-h-0" data-slot="content"></div>
 					<div data-slot="html_content"></div>
 				</div>
@@ -207,6 +207,8 @@ frappe.views.CommunicationComposer = class {
 			const $row = this.$composer.find(`.email-composer-${target}-row`);
 			$row.toggleClass("hidden");
 			$btn.attr("aria-pressed", String(!$row.hasClass("hidden")));
+			// a closed row must not still send to the addresses hidden in it
+			if ($row.hasClass("hidden")) this.dialog.set_value(target, []);
 		});
 
 		const fields = this.dialog.fields_dict;
@@ -819,7 +821,7 @@ frappe.views.CommunicationComposer = class {
 					icon_right: "x",
 					title: value,
 					css_class: "email-composer-recipient-tag tb-selected-value",
-					attrs: { "data-value": encodeURIComponent(value) },
+					attrs: { "data-value": encodeURIComponent(value), draggable: "true" },
 				});
 				const photo = me._recipient_avatars?.[String(value).toLowerCase()] || null;
 				$tag.prepend(
@@ -851,6 +853,37 @@ frappe.views.CommunicationComposer = class {
 				if (e.key !== "Enter" && e.key !== " ") return;
 				e.preventDefault();
 				this.remove_recipient(control, $(e.currentTarget).closest(".tb-selected-value"));
+			});
+
+			// drag a pill to move the address between To, CC and BCC
+			control.$multiselect_wrapper.on("dragstart", ".tb-selected-value", (e) => {
+				const value = decodeURIComponent(e.currentTarget.dataset.value || "");
+				this.dragged_recipient = { control, value };
+				e.originalEvent.dataTransfer.setData("text/plain", value);
+				e.originalEvent.dataTransfer.effectAllowed = "move";
+				// the drop re-renders the pills, taking this one out of the page, so a
+				// delegated dragend never arrives and jQuery's remove() drops its own handlers
+				e.currentTarget.addEventListener("dragend", () => this.end_recipient_drag(), {
+					once: true,
+				});
+				// Chrome can cancel the drag if the layout changes inside dragstart
+				setTimeout(() => this.show_cc_bcc_for_drag());
+			});
+			const $row = () => control.$wrapper.closest(".email-composer-row");
+			control.$wrapper.on("dragover", (e) => {
+				if (!this.dragged_recipient) return;
+				e.preventDefault();
+				$row().addClass("bg-surface-gray-1");
+			});
+			control.$wrapper.on("dragleave", (e) => {
+				if (control.$wrapper[0].contains(e.originalEvent.relatedTarget)) return;
+				$row().removeClass("bg-surface-gray-1");
+			});
+			control.$wrapper.on("drop", (e) => {
+				if (!this.dragged_recipient) return;
+				e.preventDefault();
+				$row().removeClass("bg-surface-gray-1");
+				this.move_recipient(this.dragged_recipient, control);
 			});
 
 			const clear_committed_text = () => {
@@ -910,6 +943,43 @@ frappe.views.CommunicationComposer = class {
 				control.set_pill_html(control.rows || []);
 			},
 		});
+	}
+
+	show_cc_bcc_for_drag() {
+		this.rows_shown_for_drag = ["cc", "bcc"].filter((type) => {
+			const $row = this.$composer.find(`.email-composer-${type}-row`);
+			if (!$row.hasClass("hidden")) return false;
+			$row.removeClass("hidden");
+			return true;
+		});
+	}
+
+	end_recipient_drag() {
+		this.dragged_recipient = null;
+		this.$composer.find(".email-composer-row").removeClass("bg-surface-gray-1");
+		for (const type of this.rows_shown_for_drag || []) {
+			const filled = !!this.dialog.get_value(type)?.length;
+			this.$composer.find(`.email-composer-${type}-row`).toggleClass("hidden", !filled);
+			this.$composer
+				.find(`.email-composer-toggle[data-target="${type}"]`)
+				.attr("aria-pressed", String(filled));
+		}
+		this.rows_shown_for_drag = null;
+	}
+
+	move_recipient({ control: from, value }, to) {
+		if (from === to) return;
+		from.rows = (from.rows || []).filter((row) => row !== value);
+		const exists = (to.rows || []).some((row) => row.toLowerCase() === value.toLowerCase());
+		if (!exists) to.rows = [...(to.rows || []), value];
+
+		for (const control of [from, to]) {
+			control.set_pill_html(control.rows);
+			control.parse_validate_and_set_in_model("");
+		}
+		this.remove_more_count(from.$multiselect_wrapper);
+		this.collapse_recipient_row(from);
+		this.expand_recipient_row(to);
 	}
 
 	remove_recipient(control, $tag) {

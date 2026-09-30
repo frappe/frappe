@@ -30,11 +30,13 @@
 		}
 	}
 
+	// Fixed height: extra rows take space from the message instead of growing the
+	// window upward, so nothing moves under the pointer while dragging a recipient.
 	.modal-content {
 		display: flex;
 		flex-direction: column;
+		height: 634px;
 		max-height: calc(100vh - 40px);
-		min-height: 534px;
 		border-radius: var(--radius-xl);
 		border: 1px solid var(--border-color);
 		box-shadow: var(--elevation-xl);
@@ -89,7 +91,7 @@
 		}
 
 		.modal-content {
-			min-height: 0;
+			height: auto;
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;
 		}
@@ -251,6 +253,7 @@
 			padding-inline: 6px;
 			border-radius: var(--radius-2);
 			color: var(--ink-gray-7);
+			cursor: grab;
 			@include get_textstyle("xs", "regular");
 			line-height: 1.15;
 
@@ -333,8 +336,6 @@
 	}
 
 	.email-composer-message-area {
-		min-height: 328px;
-
 		.frappe-control {
 			display: flex;
 			flex-direction: column;
