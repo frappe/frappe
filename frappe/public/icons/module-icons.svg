@@ -175,6 +175,26 @@
 				transition-delay: calc(var(--icon-motion-opacity, 0) * 0.2s);
 			}
 		}
+		/* Data: the table's cells are empty at rest. While the dock tile is hovered, data is written into
+		   them one by one and held, and it clears when the pointer leaves. The active tile keeps the table
+		   written, through the data-active property set here on the active tile, the way the tones are. */
+		.dock-item--duotone.active {
+			--data-active: 1;
+		}
+		.data-marks {
+			--data-fill: max(var(--icon-motion-opacity, 0), var(--data-active, 0));
+		}
+		.data-mark {
+			transform-box: fill-box;
+			transform-origin: left center;
+			transform: scaleX(var(--data-fill, 0));
+		}
+		@media (prefers-reduced-motion: no-preference) {
+			.data-mark {
+				transition: transform 0.2s cubic-bezier(0.3, 0, 0.3, 1);
+				transition-delay: calc(var(--data-fill, 0) * var(--at, 0s));
+			}
+		}
 	</style>
 	<!-- The window rests on y 19.75, not the bottom of the grid, which sits it on a 14px label's
 	     descender line in the 28px sidebar mark and lifts the dark wall toward the centre of a dock tile. -->
@@ -249,5 +269,21 @@
 		<g class="email-flap"><path d="M3.8 6L3.57 6.02L3.33 6.06L3.11 6.14L2.9 6.24L2.7 6.37L2.53 6.53L2.37 6.7L2.24 6.9L2.14 7.11L2.06 7.33L2.02 7.57L2 7.8L2 8.4L12 14.6L22 8.4L21.98 7.57L21.94 7.33L21.86 7.11L21.76 6.9L21.63 6.7L21.47 6.53L21.3 6.37L21.1 6.24L20.89 6.14L20.67 6.06L20.43 6.02L20.2 6Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /></g>
 		<g class="email-letter"><path d="M20.2 7.2L3.8 7.2L3.57 7.22L3.33 7.26L3.11 7.34L2.9 7.44L2.7 7.57L2.53 7.73L2.37 7.9L2.24 8.1L2.14 8.31L2.06 8.53L2.02 8.77L2 9L2 20.4L2.02 20.63L2.06 20.87L2.14 21.09L2.24 21.3L2.37 21.5L2.53 21.67L2.7 21.83L2.9 21.96L3.11 22.06L3.33 22.14L3.57 22.18L3.8 22.2L20.2 22.2L20.43 22.18L20.67 22.14L20.89 22.06L21.1 21.96L21.3 21.83L21.47 21.67L21.63 21.5L21.76 21.3L21.86 21.09L21.94 20.87L21.98 20.63L22 20.4L22 9L21.98 8.77L21.94 8.53L21.86 8.31L21.76 8.1L21.63 7.9L21.47 7.73L21.3 7.57L21.1 7.44L20.89 7.34L20.67 7.26L20.43 7.22Z" style="fill: var(--duotone-light, var(--ink-gray-3))" /><path d="M14.12 9.88L14.27 9.81L14.47 9.65L14.58 9.42L14.6 9.25L14.55 9L14.41 8.79L14.28 8.69L14.03 8.61L5.85 8.6L5.68 8.62L5.45 8.73L5.29 8.92L5.21 9.17L5.22 9.42L5.33 9.65L5.53 9.81L5.77 9.89L13.95 9.9ZM10.6 12.15L10.81 12.01L10.91 11.88L10.98 11.72L10.99 11.47L10.91 11.22L10.81 11.09L10.6 10.95L10.43 10.91L5.77 10.91L5.6 10.95L5.39 11.09L5.29 11.22L5.21 11.47L5.22 11.72L5.33 11.95L5.53 12.11L5.77 12.19L10.35 12.2ZM16 14.45L16.21 14.31L16.31 14.18L16.39 13.93L16.39 13.77L16.35 13.6L16.21 13.39L16 13.25L15.75 13.2L5.85 13.2L5.6 13.25L5.39 13.39L5.25 13.6L5.2 13.85L5.25 14.1L5.39 14.31L5.6 14.45L5.85 14.5L15.75 14.5ZM12.32 16.78L12.55 16.67L12.67 16.55L12.78 16.32L12.8 16.15L12.78 15.98L12.67 15.75L12.48 15.59L12.23 15.51L5.77 15.51L5.53 15.59L5.39 15.69L5.25 15.9L5.21 16.07L5.22 16.32L5.33 16.55L5.53 16.71L5.77 16.79L12.15 16.8ZM17.2 19.05L17.41 18.91L17.55 18.7L17.59 18.53L17.58 18.28L17.47 18.05L17.35 17.93L17.12 17.82L16.95 17.8L5.85 17.8L5.6 17.85L5.39 17.99L5.25 18.2L5.2 18.45L5.25 18.7L5.39 18.91L5.6 19.05L5.85 19.1L16.95 19.1ZM9.8 21.35L10.01 21.21L10.11 21.07L10.19 20.83L10.19 20.67L10.11 20.43L10.01 20.29L9.88 20.19L9.63 20.11L5.77 20.11L5.53 20.19L5.39 20.29L5.25 20.5L5.21 20.67L5.22 20.92L5.33 21.15L5.53 21.31L5.77 21.39L9.55 21.4Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /></g>
 		<path d="M2 17.95L2.02 18.18L2.06 18.42L2.14 18.64L2.24 18.85L2.37 19.05L2.53 19.22L2.7 19.38L2.9 19.51L3.11 19.61L3.33 19.69L3.57 19.73L3.8 19.75L20.2 19.75L20.43 19.73L20.67 19.69L20.89 19.61L21.1 19.51L21.3 19.38L21.47 19.22L21.63 19.05L21.76 18.85L21.86 18.64L21.94 18.42L21.98 18.18L22 17.95L22 9.22L12.37 15.19L12.19 15.27L12 15.3L11.81 15.27L11.63 15.19L2 9.22Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+	</symbol>
+	<!-- Data: a table, a dark header over nine light cells. The dark marks inside the cells are the data;
+	     they are scaled to nothing at rest and written in one by one while the tile is hovered, and the
+	     active tile keeps them written (see the data-active rule). -->
+	<symbol viewBox="0 0 24 24" id="icon-data-table-duotone" stroke="none" style="overflow: visible">
+		<path d="M3.8 2.95L3.57 2.97L3.33 3.01L3.11 3.09L2.9 3.19L2.7 3.32L2.53 3.48L2.37 3.65L2.24 3.85L2.14 4.06L2.06 4.28L2.02 4.52L2 4.75L2 6.9L22 6.9L22 4.75L21.98 4.52L21.94 4.28L21.86 4.06L21.76 3.85L21.63 3.65L21.47 3.48L21.3 3.32L21.1 3.19L20.89 3.09L20.67 3.01L20.43 2.97L20.2 2.95Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+		<path d="M7.6 7.6L2.6 7.6L2.44 7.62L2.3 7.68L2.18 7.78L2.08 7.9L2.02 8.04L2 8.2L2 10.8L2.02 10.96L2.08 11.1L2.18 11.22L2.3 11.32L2.44 11.38L2.6 11.4L7.6 11.4L7.76 11.38L7.9 11.32L8.02 11.22L8.12 11.1L8.19 10.88L8.19 8.12L8.12 7.9L7.97 7.72L7.76 7.62Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M14.5 7.6L9.5 7.6L9.34 7.62L9.2 7.68L9.08 7.78L8.98 7.9L8.92 8.04L8.9 8.2L8.9 10.8L8.92 10.96L8.98 11.1L9.08 11.22L9.2 11.32L9.34 11.38L9.5 11.4L14.5 11.4L14.66 11.38L14.8 11.32L14.92 11.22L15.02 11.1L15.09 10.88L15.09 8.12L15.02 7.9L14.87 7.72L14.66 7.62Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M21.4 7.6L16.4 7.6L16.24 7.62L16.1 7.68L15.98 7.78L15.88 7.9L15.82 8.04L15.8 8.2L15.8 10.8L15.82 10.96L15.88 11.1L15.98 11.22L16.1 11.32L16.24 11.38L16.4 11.4L21.4 11.4L21.56 11.38L21.7 11.32L21.82 11.22L21.92 11.1L21.99 10.88L21.99 8.12L21.92 7.9L21.77 7.72L21.63 7.65Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M7.6 12.1L2.6 12.1L2.44 12.12L2.3 12.18L2.18 12.28L2.08 12.4L2.02 12.54L2 12.7L2 15.3L2.02 15.46L2.08 15.6L2.18 15.72L2.3 15.82L2.44 15.88L2.6 15.9L7.6 15.9L7.76 15.88L7.9 15.82L8.02 15.72L8.12 15.6L8.19 15.38L8.19 12.62L8.12 12.4L7.97 12.22L7.76 12.12Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M14.5 12.1L9.5 12.1L9.34 12.12L9.2 12.18L9.08 12.28L8.98 12.4L8.92 12.54L8.9 12.7L8.9 15.3L8.92 15.46L8.98 15.6L9.08 15.72L9.2 15.82L9.34 15.88L9.5 15.9L14.5 15.9L14.66 15.88L14.8 15.82L14.92 15.72L15.02 15.6L15.09 15.38L15.09 12.62L15.02 12.4L14.87 12.22L14.66 12.12Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M21.4 12.1L16.4 12.1L16.24 12.12L16.1 12.18L15.98 12.28L15.88 12.4L15.82 12.54L15.8 12.7L15.8 15.3L15.82 15.46L15.88 15.6L15.98 15.72L16.1 15.82L16.24 15.88L16.4 15.9L21.4 15.9L21.56 15.88L21.7 15.82L21.82 15.72L21.92 15.6L21.99 15.38L21.99 12.62L21.92 12.4L21.77 12.22L21.56 12.12Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M2.52 16.61L2.37 16.65L2.23 16.72L2.08 16.9L2.02 17.04L2 17.2L2 18.6L2.02 18.83L2.06 19.07L2.14 19.29L2.24 19.5L2.37 19.7L2.53 19.87L2.7 20.03L2.9 20.16L3.11 20.26L3.33 20.34L3.57 20.38L3.8 20.4L7.6 20.4L7.76 20.38L7.9 20.32L8.02 20.22L8.12 20.1L8.18 19.96L8.2 19.8L8.2 17.2L8.18 17.04L8.12 16.9L8.02 16.78L7.9 16.68L7.76 16.62L7.6 16.6Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M14.5 16.6L9.5 16.6L9.34 16.62L9.2 16.68L9.08 16.78L8.98 16.9L8.92 17.04L8.9 17.2L8.9 19.8L8.92 19.96L8.98 20.1L9.08 20.22L9.2 20.32L9.34 20.38L9.5 20.4L14.5 20.4L14.66 20.38L14.8 20.32L14.92 20.22L15.02 20.1L15.09 19.88L15.09 17.12L15.02 16.9L14.87 16.72L14.73 16.65Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M16.32 16.61L16.1 16.68L15.92 16.83L15.82 17.04L15.8 17.2L15.81 19.88L15.88 20.1L15.98 20.22L16.1 20.32L16.24 20.38L16.4 20.4L20.2 20.4L20.43 20.38L20.67 20.34L20.89 20.26L21.1 20.16L21.3 20.03L21.47 19.87L21.63 19.7L21.76 19.5L21.86 19.29L21.94 19.07L21.98 18.83L22 18.6L22 17.2L21.98 17.04L21.92 16.9L21.82 16.78L21.7 16.68L21.56 16.62L21.4 16.6Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<g class="data-marks"><rect class="data-mark" x="3" y="8.7" width="4.4" height="1.6" rx="0.8" style="--at: 0s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect class="data-mark" x="9.9" y="8.7" width="3" height="1.6" rx="0.8" style="--at: 0.06s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect class="data-mark" x="16.8" y="8.7" width="3.8" height="1.6" rx="0.8" style="--at: 0.12s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect class="data-mark" x="3" y="13.2" width="2.6" height="1.6" rx="0.8" style="--at: 0.18s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect class="data-mark" x="9.9" y="13.2" width="4.2" height="1.6" rx="0.8" style="--at: 0.24s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect class="data-mark" x="16.8" y="13.2" width="3.4" height="1.6" rx="0.8" style="--at: 0.3s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect class="data-mark" x="3" y="17.7" width="3.6" height="1.6" rx="0.8" style="--at: 0.36s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect class="data-mark" x="9.9" y="17.7" width="4.4" height="1.6" rx="0.8" style="--at: 0.42s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /><rect class="data-mark" x="16.8" y="17.7" width="2.8" height="1.6" rx="0.8" style="--at: 0.48s; fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" /></g>
 	</symbol>
 </svg>
