@@ -68,32 +68,38 @@ frappe.views.CommunicationComposer = class {
 				} else {
 					$wrapper.toggleClass("expanded");
 				}
-				this.sync_fullscreen_btn();
+				this.sync_header_buttons();
 			});
 
-		const $minimize = $(
+		this.$minimize_btn = $(
 			frappe.ui.button.html({
 				icon: "minus",
 				variant: "ghost",
 				title: __("Minimize"),
 				css_class: "btn-modal-collapse icon-btn",
 			})
-		).on("click", () => {
-			this.dialog.toggle_minimize();
-			this.sync_fullscreen_btn();
-		});
-		$wrapper.find(".modal-header .modal-actions").prepend($minimize);
+		).on("click", () => this.dialog.toggle_minimize());
+		$wrapper.find(".modal-header .modal-actions").prepend(this.$minimize_btn);
 		$wrapper.find(".modal-header .modal-actions .es-button").attr("data-size", "xs");
-		this.sync_fullscreen_btn();
+		// also runs when a click on the title bar restores the composer
+		this.dialog.on_minimize_toggle = () => this.sync_header_buttons();
+		this.sync_header_buttons();
 	}
 
-	sync_fullscreen_btn() {
-		const full = this.dialog.$wrapper.hasClass("expanded") && !this.dialog.is_minimized;
+	sync_header_buttons() {
+		const minimized = this.dialog.is_minimized;
+		const full = this.dialog.$wrapper.hasClass("expanded") && !minimized;
 		const label = full ? __("Exit full screen") : __("Full screen");
 		this.$fullscreen_btn
 			.attr({ title: label, "aria-label": label })
 			.find("use")
 			.attr("href", `#icon-${full ? "minimize-2" : "maximize-2"}`);
+
+		const minimize_label = minimized ? __("Restore") : __("Minimize");
+		this.$minimize_btn
+			.attr({ title: minimize_label, "aria-label": minimize_label })
+			.find("use")
+			.attr("href", `#icon-${minimized ? "chevron-up" : "minus"}`);
 	}
 
 	render_composer_layout() {
