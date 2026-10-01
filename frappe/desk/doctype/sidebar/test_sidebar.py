@@ -896,6 +896,20 @@ class TestCanonicalShell(IntegrationTestCase):
 
 		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Selling")
 
+	def test_a_row_in_the_private_shell_claims_nothing(self):
+		"""A user who keeps a shortcut to `Job Offer` in their own shell has not moved it there.
+		`Private` sorts ahead of `Recruitment`, so counted as a claim it would win.
+		"""
+		index = shell_payload(
+			{
+				"HR": {},
+				"Private": {"lists": [("DocType", "Job Offer")]},
+				"Recruitment": {"lists": [("DocType", "Job Offer")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Job Offer", "HR"), "Recruitment")
+
 	def test_the_module_answers_last_when_no_shell_lists_the_entity(self):
 		index = shell_payload({"Stock": {}, "Selling": {"lists": [("DocType", "Customer")]}})
 

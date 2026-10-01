@@ -1,3 +1,5 @@
+import { safe_href } from "../ui/components/utils.js";
+
 frappe.provide("frappe.views");
 
 frappe.views.BaseList = class BaseList {
@@ -261,6 +263,18 @@ frappe.views.BaseList = class BaseList {
 					$item && $item.addClass(item.class);
 				}
 			});
+
+		// the DocType's docs, also linked from the list's empty state
+		const docs = safe_href(this.meta?.documentation, "list");
+		if (docs) {
+			this.page.add_dropdown_item({
+				label: __("Documentation"),
+				click: () => window.open(docs, "_blank"),
+				standard: true,
+				parent: this.page.menu,
+				icon_right: "external-link",
+			});
+		}
 	}
 
 	set_breadcrumbs() {

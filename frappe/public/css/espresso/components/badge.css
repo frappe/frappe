@@ -110,6 +110,13 @@
   color: var(--c-fg);
 }
 
+/* shrinks with an ellipsis when the badge is narrower than its label */
+.es-badge__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---- icons ----
  * One rule covers both framework idioms: React passes icons as direct <svg>
  * children; Vue wraps prefix/suffix slots in

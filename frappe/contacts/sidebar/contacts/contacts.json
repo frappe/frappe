@@ -3,7 +3,7 @@
  "creation": "2026-08-03 19:24:17.272639",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "hammer",
+ "header_icon": "contacts-cards-duotone",
  "idx": 0,
  "items": [
   {
@@ -112,7 +112,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-29 15:19:04.718974",
+ "modified": "2026-10-01 02:38:00.000000",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contacts",

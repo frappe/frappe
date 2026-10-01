@@ -731,14 +731,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				icon: "plus",
 				css_class: "btn-new-doc",
 			});
-		}
 
-		if (!has_filters_set && frappe.model.can_import(this.doctype, null, this.meta)) {
-			actions.push({
-				label: __("Import"),
-				icon: "import",
-				css_class: "btn-import-doc",
-			});
+			if (!has_filters_set && frappe.model.can_import(this.doctype, null, this.meta)) {
+				actions.push({
+					label: __("Import"),
+					icon: "import",
+					css_class: "btn-import-doc",
+				});
+			}
 		}
 
 		if (this.meta.documentation) {

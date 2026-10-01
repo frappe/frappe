@@ -16,14 +16,14 @@ dependencies = [
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
     "Pillow~=12.3.0",
-    "PyJWT~=2.13.0",
+    "PyJWT~=2.15.0",
     "duckdb~=1.4.3",
     "pyarrow~=25.0.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
     "pypdf==6.16.1",
-    "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
+    "PyPika @ git+https://github.com/frappe/pypika@f80cf8a1cad17f7c78d13db89f0b2b5b9b2852e4",
     "mysqlclient==2.2.8",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
@@ -46,7 +46,7 @@ dependencies = [
     "MarkupSafe~=3.0.3",
     "nh3~=0.3.2",
     "num2words~=0.5.14",
-    "oauthlib~=3.3.1",
+    "oauthlib~=4.0.0",
     "openpyxl~=3.1.5",
     "xlsxwriter~=3.2.9",
     "orjson~=3.11.5",
@@ -226,7 +226,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { sqlparse = false } # drop sqlparse after 2026-08-20
+exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06
 
 [tool.mypy]
 strict = false

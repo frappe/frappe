@@ -114,27 +114,17 @@
 		--icon-stroke: currentColor;
 
 		.header-logo {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-
 			// The header's chip showed around a logo image's corners.
-			&:has(img) {
+			img {
 				background: transparent;
 			}
-		}
 
-		svg,
-		img {
-			width: 22px;
-			height: 22px;
-		}
-
-		// An app whose mark is a letter tile rather than a logo. Round it to the tile's own radius
-		// so it fills the slot instead of sitting in it as a swatch.
-		.icon-container {
-			border-radius: 12px;
-			overflow: hidden;
+			// An app whose mark is a letter tile rather than a logo. Round it to the tile's own
+			// radius so it fills the slot instead of sitting in it as a swatch.
+			.icon-container {
+				border-radius: 12px;
+				overflow: hidden;
+			}
 		}
 	}
 
@@ -294,12 +284,6 @@ body.dock-pinned .dock {
 	.dock-logo .header-logo {
 		width: 32px;
 		height: 32px;
-
-		img,
-		svg {
-			width: 32px;
-			height: 32px;
-		}
 	}
 }
 
