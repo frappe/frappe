@@ -14,12 +14,17 @@ vi.mock("@/shell/PageFrame.vue", async () => {
   };
 });
 
+const hooks = vi.hoisted(() => ({ afterSave: Promise.resolve() }));
+
 // Node cannot import a blob-URL module; every handler draws a quick action named for itself.
 vi.mock("@/recordPage/evaluateClientScript", () => ({
   evaluateClientScript: async () => ({
     onRefresh: (page: any) => page.quickActions.add({ name: "title", label: `title|${page.doc.title}` }),
     beforeSave: (page: any) => page.quickActions.add({ name: "before", label: "before|" }),
-    afterSave: (page: any) => page.quickActions.add({ name: "after", label: "after|" }),
+    afterSave: async (page: any) => {
+      await hooks.afterSave;
+      page.quickActions.add({ name: "after", label: "after|" });
+    },
   }),
 }));
 
@@ -57,7 +62,7 @@ function gate() {
   return { opened, open };
 }
 
-const server = { doc: {} as Record<string, any>, write: gate() };
+const server = { doc: {} as Record<string, any>, write: gate(), afterSave: gate() };
 
 async function answer(url: URL, init?: RequestInit): Promise<unknown> {
   const path = decodeURIComponent(url.pathname);
@@ -104,6 +109,8 @@ const apps: ReturnType<typeof createApp>[] = [];
 beforeEach(() => {
   server.doc = { doctype: "Note", name: "N-1", title: "First", modified: OLD };
   server.write = gate();
+  server.afterSave = gate();
+  hooks.afterSave = server.afterSave.opened;
   resetClientScripts();
   resetDoctypeMeta();
   resetFormLayouts();
@@ -174,6 +181,10 @@ function saveButton(root: HTMLElement) {
   return [...root.querySelectorAll("button")].find((one) => one.textContent!.trim() === "Save")!;
 }
 
+function spins(root: HTMLElement) {
+  return saveButton(root).querySelector('[aria-label="Loading"]') !== null;
+}
+
 async function editTitle(root: HTMLElement, value: string) {
   const input = root.querySelector<HTMLInputElement>('.field[data-fieldname="title"] input')!;
   input.value = value;
@@ -187,19 +198,25 @@ describe.each([
   ["Ctrl+S", () => window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true }))],
   ["the Save button", (root: HTMLElement) => saveButton(root).click()],
 ])("a save from %s", (_, press: (root: HTMLElement) => void) => {
-  it("paints once, after afterSave, and the Save button shows the save in flight", async () => {
+  it("paints once, after afterSave, and the Save button spins until afterSave settles", async () => {
     const root = await mount();
     await editTitle(root, "Second");
     expect(drawn(root)).toBe("title|First");
+    expect(spins(root)).toBe(false);
     const paints = watchPaints(root);
 
     press(root);
     await settle();
-    expect(saveButton(root).disabled).toBe(true);
+    expect(spins(root)).toBe(true);
     expect(drawn(root)).toBe("title|First");
     server.write.open();
     await settle();
+    expect(spins(root)).toBe(true);
+    expect(drawn(root)).toBe("title|First");
+    server.afterSave.open();
+    await settle();
 
+    expect(spins(root)).toBe(false);
     expect(paints.seen).toEqual(["title|First", "title|Second after|"]);
     paints.stop();
   });
