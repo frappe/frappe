@@ -857,11 +857,7 @@ frappe.views.CommunicationComposer = class {
 						css_class: "email-composer-tag-avatar",
 					})
 				);
-				$tag.contents()
-					.filter(
-						(_, node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()
-					)
-					.wrap('<span class="pill-label ellipsis"></span>');
+				$tag.find(".es-badge__label").addClass("pill-label ellipsis");
 				$tag.find(".es-badge__affix").attr({
 					role: "button",
 					tabindex: 0,
@@ -1589,10 +1585,7 @@ frappe.views.CommunicationComposer = class {
 			title: attachment.file_name,
 			css_class: "max-w-xs",
 		});
-		$badge
-			.contents()
-			.filter((_, node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
-			.wrap('<span class="pill-label ellipsis"></span>');
+		$badge.find(".es-badge__label").addClass("pill-label ellipsis");
 
 		const remove = () => {
 			this.selected_attachments?.delete(attachment.name);

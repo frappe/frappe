@@ -60,6 +60,12 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 											onclick: () =>
 												frappe.ui.toast({ message: "Print clicked" }),
 										},
+										{
+											label: "Documentation",
+											href: "https://docs.frappe.io/framework",
+											target: "_blank",
+											icon_right: "external-link",
+										},
 									],
 								},
 								{

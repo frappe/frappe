@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 import "./linked_with";
 import "./form_viewers";
+import { safe_href } from "../ui/components/utils.js";
 import { ReminderManager } from "./reminders";
 
 frappe.ui.form.Toolbar = class Toolbar {
@@ -684,6 +685,18 @@ frappe.ui.form.Toolbar = class Toolbar {
 					true
 				);
 			}
+		}
+
+		// as on the list view's menu
+		const docs = safe_href(this.frm.meta.documentation, "form");
+		if (docs) {
+			this.page.add_dropdown_item({
+				label: __("Documentation"),
+				click: () => window.open(docs, "_blank"),
+				standard: true,
+				parent: this.page.menu,
+				icon_right: "external-link",
+			});
 		}
 	}
 
