@@ -268,7 +268,7 @@ const HEADER_BUDGET = 3;
 // Save keeps its slot whatever a script adds; it is the only pinned control.
 const PINNED_CONTROLS = ["save"];
 
-let visit = new Visit();
+let currentVisit = new Visit();
 // A return visit's hold on fresh meta and layouts, let go with its background reads.
 let releaseFresh = () => {};
 
@@ -424,13 +424,13 @@ function toggleOnSidecar(
 	write: () => Promise<Envelope<Partial<DocInfo>>>,
 	after?: (answer: Envelope<Partial<DocInfo>>) => void
 ) {
-	const clicked = visit;
-	return clicked.inTurn(async () => {
+	return currentVisit.inTurn(async () => {
 		// A turn that outlived its record would read the next record's state; it does nothing.
 		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
+		const visit = currentVisit;
 		try {
 			const answer = await write();
-			if (!clicked.current()) return;
+			if (!visit.current()) return;
 			docinfo.value = mergePart(docinfo.value, answer.data);
 			after?.(answer);
 		} catch (e) {
@@ -462,7 +462,7 @@ function toggleFollow(page: RecordPageApi) {
 }
 
 function visitCheck() {
-	return visit.current;
+	return currentVisit.current;
 }
 
 // Three built-ins first, then the Side Panel layout's sections, as they resolve now.
@@ -479,7 +479,7 @@ function chooseFormTab(identity: string) {
 function reloadDocinfo(): Promise<void> {
 	const shown = doctype.value;
 	if (!shown) return Promise.resolve();
-	return visit.readNewest(
+	return currentVisit.readNewest(
 		() => loadParts(shown, docname.value),
 		(fresh) => void (docinfo.value = fresh)
 	);
@@ -493,7 +493,7 @@ async function load({ fromMemory = false } = {}) {
 		live.release();
 		return;
 	}
-	visit = visit.next();
+	currentVisit = currentVisit.next();
 	const target = { doctype: doctype.value, name: docname.value };
 	const pointed = feeds.pointerOnOpen(target.doctype, target.name, route.query);
 	// Read before this load writes a view of its own.
@@ -530,7 +530,7 @@ async function load({ fromMemory = false } = {}) {
 		fallback: "none",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
-	const opening = { visit, target, pointer, details, panel, view };
+	const opening = { visit: currentVisit, target, pointer, details, panel, view };
 	const fromCache = fromMemory ? openFromMemory(opening) : null;
 	if (fromCache) return fromCache;
 	await withFeedRead(target.doctype, target.name, openedQuery.value, (feedRead) =>
@@ -813,20 +813,20 @@ async function write() {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
 	// A request the previous record left in flight is not joined.
-	const writing = visit;
-	await writing.save(() => send(writing));
+	const visit = currentVisit;
+	await visit.save(() => send(visit));
 }
 
-async function send(writing: Visit) {
+async function send(visit: Visit) {
 	saving.value = true;
 	try {
 		const document = await saveRecord(doctype.value!, doc.value).catch(rethrowSaveError);
-		if (!writing.current()) return;
+		if (!visit.current()) return;
 		saved.value = { ...document };
 		doc.value = JSON.parse(JSON.stringify(document));
 	} finally {
 		// A request the previous record left behind must not clear this record's flag.
-		if (writing.current()) saving.value = false;
+		if (visit.current()) saving.value = false;
 	}
 	// A save writes a version row and its hooks may assign.
 	live.reloadQuietly();

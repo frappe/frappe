@@ -1,4 +1,4 @@
-// One visit to a record: stale reads, toggles and saves from an ended visit do nothing.
+// An ended visit's reads and saves land nothing; toggles queue across visits.
 import { describe, expect, it, vi } from "vitest";
 import { Visit } from "../visit";
 
@@ -111,16 +111,30 @@ describe("Visit.inTurn", () => {
     expect(log).toEqual(["first start", "first end", "second start"]);
   });
 
-  it("skips a turn whose visit ended before its turn came", async () => {
+  it("queues the next visit's turns behind the turns the visit before it left", async () => {
     const visit = new Visit();
     const first = deferred();
-    const turn = vi.fn(async () => {});
+    const queued = vi.fn(async () => {});
+    const later = vi.fn(async () => {});
     visit.inTurn(() => first.promise);
-    const skipped = visit.inTurn(turn);
-    visit.next();
+    visit.inTurn(queued);
+    const next = visit.next();
+    const last = next.inTurn(later);
+    await flush();
+    expect(queued).not.toHaveBeenCalled();
+    expect(later).not.toHaveBeenCalled();
     first.resolve();
-    await skipped;
-    expect(turn).not.toHaveBeenCalled();
+    await last;
+    expect(queued).toHaveBeenCalledTimes(1);
+    expect(later).toHaveBeenCalledTimes(1);
+  });
+
+  it("runs a turn after the one before it rejects", async () => {
+    const visit = new Visit();
+    const turn = vi.fn(async () => {});
+    visit.inTurn(() => Promise.reject(new Error("failed"))).catch(() => {});
+    await visit.inTurn(turn);
+    expect(turn).toHaveBeenCalledTimes(1);
   });
 });
 

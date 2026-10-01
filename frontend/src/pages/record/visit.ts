@@ -2,34 +2,31 @@
 // visit does nothing, so the slower of two loads cannot write over the newer one.
 export class Visit {
   private ended = false;
-  private docinfoReads = 0;
-  private docinfoLanding: Promise<void> = Promise.resolve();
+  private reads = 0;
+  private newestLanding: Promise<void> = Promise.resolve();
   private toggles: Promise<void> = Promise.resolve();
   private saveRequest: Promise<void> | null = null;
 
   /** False once the next visit started; a child part keeps it across its own awaits. */
   readonly current = (): boolean => !this.ended;
 
-  /** Ends this visit and starts the next one. */
+  /** Ends this visit and starts the next one, which queues its toggles behind this one's. */
   next(): Visit {
     this.ended = true;
-    return new Visit();
+    const next = new Visit();
+    next.toggles = this.toggles;
+    return next;
   }
 
   /** Lands only the newest of overlapping reads; a replaced read resolves once the newest has landed. */
   readNewest<T>(read: () => Promise<T>, land: (value: T) => void): Promise<void> {
-    const mine = ++this.docinfoReads;
-    this.docinfoLanding = read().then((value) => {
-      if (this.ended) return;
-      if (mine !== this.docinfoReads) return this.docinfoLanding;
-      land(value);
-    });
-    return this.docinfoLanding;
+    this.newestLanding = this.landIfNewest(++this.reads, read, land);
+    return this.newestLanding;
   }
 
-  /** Runs a toggle after the ones queued before it; a turn that outlived its visit does nothing. */
+  /** Runs a toggle once the toggles queued before it, on this visit or an earlier one, are done. */
   inTurn(turn: () => Promise<void>): Promise<void> {
-    this.toggles = this.toggles.then(() => (this.ended ? undefined : turn()));
+    this.toggles = this.toggles.then(turn, turn);
     return this.toggles;
   }
 
@@ -39,5 +36,16 @@ export class Visit {
       this.saveRequest = null;
     });
     return this.saveRequest;
+  }
+
+  private async landIfNewest<T>(
+    mine: number,
+    read: () => Promise<T>,
+    land: (value: T) => void
+  ): Promise<void> {
+    const value = await read();
+    if (this.ended) return;
+    if (mine !== this.reads) return this.newestLanding;
+    land(value);
   }
 }
