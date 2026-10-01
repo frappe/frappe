@@ -348,7 +348,7 @@ component group, with its main names.
 | Meta source | The doctype meta as one promise or its current value |
 | Refetch merge | Merges a background re-read into the draft the reader is editing |
 | Save conflict (`SaveConflict`) | The error when someone else saved first, and the fields the reader would lose |
-| Save code errors (`SaveCodeErrors`, `codeErrorFrames`) | *New.* A save the server refused because a Code field's text does not compile. One dialog lists each error with the lines around it, and the Code field marks them until the next save |
+| Save code errors (`SaveCodeErrors`, `codeErrorsError`, `shownInDialog`, `codeErrorFrames`, `CodeErrorFrame`, `CodeErrorsDialog`) | *New.* A save the server refused because a Code field's text does not compile. One dialog lists each error with the lines around it, and the Code field marks them until the next save |
 | Live scripts | Re-runs the page's scripts when a stored script of its doctype changes |
 | Record feeds (`RecordFeeds`) | The data behind `page.activity` and `page.files`, with the feed's first-paint functions |
 | Record tabs (`RecordTabsHost`, `useRecordTabs`) | *Changed.* The four built-in tabs, and the tab named in the address or put back by the record view |
