@@ -1,4 +1,4 @@
-import { reactive } from "vue"
+import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
 import { onSidebarLayoutChange, sidebarIsDrawer } from "./layout.js"
@@ -20,9 +20,9 @@ function sameArray(left, right) {
 	return left.length === right.length && left.every((value, index) => value === right[index])
 }
 
-function readJSON(key, fallback) {
+function readJSON(key, fallback, storage = globalThis.localStorage) {
 	try {
-		return JSON.parse(localStorage.getItem(key)) ?? fallback
+		return JSON.parse(storage.getItem(key)) ?? fallback
 	} catch {
 		return fallback
 	}
@@ -62,6 +62,7 @@ export function createFlowStore(client, options = {}) {
 		sessionPresets: `${options.storageKey}.sessionPresets`,
 		workspace: `${options.storageKey}.workspace`,
 		presets: `${options.storageKey}.presets`,
+		queue: `${options.storageKey}.queue`,
 	}
 	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here
 	const prefs = {
@@ -91,7 +92,7 @@ export function createFlowStore(client, options = {}) {
 		sessionId: null,
 		session: null, // GET /sessions/{sid} payload
 		conversation: initialConversation(),
-		queued: [], // steered messages not yet durable
+		queued: [], // the composer's queue: messages waiting for the run to end
 		models: [],
 		modelErrors: [],
 		tools: [], // what the daemon lets a session enable: { name, description, extension }
@@ -123,6 +124,25 @@ export function createFlowStore(client, options = {}) {
 	let streamTask = null
 	let creating = null // in-flight lazy session creation; a double-send shares it
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
+	let queueCount = 0 // keys the queue's rows
+	// waiting messages, as { message, attachments }, of the sessions not open right now
+	const heldBySession = reactive(new Map(Object.entries(readJSON(keys.queue, {}, globalThis.sessionStorage))))
+	// This tab keeps every session's waiting messages across a reload; sessionStorage, so
+	// other tabs don't send them too (a duplicated tab starts with a copy, though).
+	watch(
+		() => {
+			const all = Object.fromEntries(heldBySession)
+			if (state.sessionId && state.queued.length) all[state.sessionId] = state.queued.map(waitingRecord)
+			return JSON.stringify(all)
+		},
+		(json) => {
+			try {
+				sessionStorage.setItem(keys.queue, json)
+			} catch {
+				// storage blocked: the queue still lasts until the page goes
+			}
+		},
+	)
 	let loadingSkills = null // { key, promise }
 	let loadedSkillsFor = null // key of the list in state.skills
 	let toolsLoading = null // the /tools fetch in flight; a first send waits for it
@@ -308,6 +328,7 @@ export function createFlowStore(client, options = {}) {
 		// a same-session reload (rewind) keeps the open file tabs as they are
 		const switching = state.sessionId !== sid
 		if (switching) resetWorkspace()
+		swapQueue(sid)
 		state.sessionId = sid
 		if (switching) restoreWorkspace(sid)
 		// seed cwd/title from the session list so the header doesn't flash empty
@@ -318,7 +339,6 @@ export function createFlowStore(client, options = {}) {
 		state.session = known
 			? { title: known.title ?? state.titles[sid] ?? null, config: { cwd: known.cwd } }
 			: null
-		state.queued = []
 		state.skills = []
 		loadedSkillsFor = null
 		state.conversation = initialConversation()
@@ -417,15 +437,24 @@ export function createFlowStore(client, options = {}) {
 			const attachmentIds = blocks
 				.filter((block) => block.type === "attachment")
 				.map((block) => block.id)
-			const queued = state.queued.findIndex(
+			const steered = state.conversation.steering.findIndex(
 				(item) => item.text === text && sameArray(item.attachmentIds, attachmentIds),
 			)
-			if (queued !== -1) state.queued.splice(queued, 1)
+			if (steered !== -1) state.conversation.steering.splice(steered, 1)
 			rememberTitle(sid)
 		}
-		// the server discards steering it never consumed, and no echo will clear it
+		// the server discards steering it never consumed, and no echo will clear it; the
+		// messages still waiting stay for the user to send or take back
 		if (event.type === "run_ended" && ["aborted", "error"].includes(event.reason))
-			state.queued = []
+			state.conversation.steering = []
+		// a run that ran its course hands the next waiting message a turn of its own
+		if (
+			event.type === "run_ended" &&
+			!["paused", "aborted", "error"].includes(event.reason) &&
+			event.seq > (state.session?.latest_seq ?? 0)
+		) {
+			if (state.queued.length) void sendWaiting(state.queued[0])
+		}
 		// only a live run boundary is picker activity, not replayed history
 		if (
 			(event.type === "run_started" || event.type === "run_ended") &&
@@ -458,9 +487,9 @@ export function createFlowStore(client, options = {}) {
 		const nextCwd = cwd ?? state.session?.config?.cwd ?? listedSession?.cwd
 		closeStream()
 		resetWorkspace()
+		swapQueue(null)
 		state.sessionId = null
 		state.session = null
-		state.queued = []
 		state.skills = []
 		state.conversation = initialConversation()
 		loadedSkillsFor = null
@@ -560,35 +589,117 @@ export function createFlowStore(client, options = {}) {
 			notify("Answer the approval before sending another message.", "error")
 			return false
 		}
-		// Steering waits for the turn it joins, so the composer shows it queued. Anything
-		// else opens the next turn, and its bubble is up before the first round trip:
-		// creating the session, searching memory and reaching the daemon happen behind it.
-		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments) }
-		const queued = state.conversation.running ? queueMessage(message, attachments) : null
-		if (!queued) state.conversation.sending.push(pending)
-		const sent = await deliver(message, attachments, pending, queued)
-		if (!sent) {
-			// nothing was sent, so nothing will echo it back: take it down again
-			unsend(pending)
-			unqueue(queued)
+		// A run going, or about to start with a message still on its way, holds the next
+		// message in the queue until it ends, or until the user steers it in. Its files go
+		// up first, so the queue holds only ids and outlives a reload.
+		const busy = () => state.conversation.running || state.conversation.sending.length > 0
+		if (!state.sessionId || !busy()) return sendNow(message, attachments)
+		const sid = state.sessionId
+		const staged = await stageAttachments(sid, attachments)
+		if (!staged) return false
+		if (state.sessionId !== sid) {
+			// the user moved on while the files went up: it waits with its own session
+			heldBySession.set(sid, [...(heldBySession.get(sid) ?? []), { message, attachments: staged.attachments }])
+			return true
 		}
+		// the run may have ended while the files went up
+		if (!busy()) return sendNow(message, staged.attachments)
+		state.queued.push(queueItem(message, staged.attachments))
+		return true
+	}
+
+	// Opens the next turn, its bubble up before the first round trip: creating the
+	// session, searching memory and reaching the daemon happen behind it.
+	async function sendNow(message, attachments) {
+		const pending = { key: `sending:${++sendCount}`, entry: userEntry(message, attachments) }
+		state.conversation.sending.push(pending)
+		const sent = await deliver(message, attachments, pending, null)
+		// nothing was sent, so nothing will echo it back: take it down again
+		if (!sent) unsend(pending)
 		return sent
 	}
 
-	// the composer's queue strip; `attachmentIds` is what the server's echo is matched on
-	function queueMessage(message, attachments, attachmentIds = []) {
-		const item = {
-			text: normalizeSkillCommand(message) ?? message,
-			attachmentIds,
+	// the queue's button: steer a waiting message into the running turn, or send it now
+	// when no run is going (a stopped or failed run leaves its queue waiting)
+	async function sendQueued(item) {
+		if (!state.queued.includes(item)) return
+		if (state.conversation.pendingApproval) {
+			notify("Answer the approval before sending another message.", "error")
+			return
+		}
+		if (!state.conversation.running) return sendWaiting(item)
+		// its bubble goes below the turn at once; one that fails to send waits again
+		const sid = state.sessionId
+		const at = state.queued.indexOf(item)
+		unqueue(item)
+		const steered = steeringBubble(item.message, item.attachments)
+		state.conversation.steering.push(steered)
+		const pending = { key: `sending:${++sendCount}`, entry: steered.entry }
+		if (await deliver(item.message, item.attachments, pending, steered)) return
+		unsteer(steered)
+		if (state.sessionId === sid) state.queued.splice(at, 0, item)
+	}
+
+	// a waiting message opens a turn of its own; one that fails to send waits again
+	async function sendWaiting(item) {
+		const sid = state.sessionId
+		const at = state.queued.indexOf(item)
+		unqueue(item)
+		if (!(await sendNow(item.message, item.attachments)) && state.sessionId === sid)
+			state.queued.splice(at, 0, item)
+	}
+
+	// A waiting message taken back drops what was staged for it; the server keeps any file
+	// an earlier message holds.
+	function removeQueued(item) {
+		if (!state.queued.includes(item)) return
+		unqueue(item)
+		const ids = item.attachments.map((attachment) => attachment.id)
+		if (ids.length) void client.cleanupAttachments(state.sessionId, ids).catch(() => {})
+	}
+
+	// a row of the composer's queue: a message waiting for the run to end
+	function queueItem(message, attachments) {
+		return {
+			key: `queued:${++queueCount}`,
+			message,
+			attachments,
 			label: message || `${attachments.length} attachment(s)`,
 		}
-		state.queued.push(item)
-		return item
+	}
+
+	// A steered message's bubble, until the server's echo, matched on `text` and
+	// `attachmentIds`, shows the turn took it.
+	function steeringBubble(message, attachments, attachmentIds = []) {
+		return {
+			key: `steering:${++sendCount}`,
+			entry: userEntry(message, attachments),
+			text: normalizeSkillCommand(message) ?? message,
+			attachmentIds,
+		}
+	}
+
+	// what a waiting message keeps while its session is closed, or across a reload
+	function waitingRecord({ message, attachments }) {
+		return { message, attachments }
+	}
+
+	// a session's waiting messages wait with it while another is open; steering is the
+	// server's, and the transcript shows it once the turn takes it
+	function swapQueue(sid) {
+		if (state.sessionId && state.queued.length) heldBySession.set(state.sessionId, state.queued.map(waitingRecord))
+		state.queued = (heldBySession.get(sid) ?? []).map((held) => queueItem(held.message, held.attachments))
+		heldBySession.delete(sid)
 	}
 
 	function unqueue(item) {
 		const at = item ? state.queued.indexOf(item) : -1
 		if (at >= 0) state.queued.splice(at, 1)
+	}
+
+	function unsteer(steered) {
+		const at = state.conversation.steering.indexOf(steered)
+		if (at >= 0) state.conversation.steering.splice(at, 1)
 	}
 
 	function unsend(pending) {
@@ -608,7 +719,7 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	// the round trips the bubble hides: the session, the attachments, the run
-	async function deliver(message, attachments, pending, queued) {
+	async function deliver(message, attachments, pending, steered) {
 		if (!state.sessionId) {
 			if (options.requireCwd && !state.prefs.cwd) {
 				notify("Choose a project folder before sending a message.", "error")
@@ -622,27 +733,14 @@ export function createFlowStore(client, options = {}) {
 			}
 		}
 		const sid = state.sessionId
-		const attachmentIds = attachments.filter((item) => item.id).map((item) => item.id)
-		const createdIds = []
+		const staged = await stageAttachments(sid, attachments)
+		if (!staged) return false
+		const attachmentIds = staged.attachments.map((item) => item.id)
 		let admitted = false
 		try {
-			const uploads = attachments.filter((item) => item.file && !item.id).map((item) => item.file)
-			const mentionPaths = attachments.filter((item) => item.mentionPath).map((item) => item.mentionPath)
-			// independent sources — resolve concurrently rather than paying two round trips
-			const [uploaded, attached] = await Promise.all([
-				uploads.length ? guard(() => client.uploadAttachments(sid, uploads)) : null,
-				mentionPaths.length ? guard(() => client.attachFiles(sid, mentionPaths)) : null,
-			])
-			for (const resolved of [uploaded, attached]) {
-				if (!resolved) continue
-				const ids = resolved.attachments.map((item) => item.id)
-				attachmentIds.push(...ids)
-				createdIds.push(...ids)
-			}
-			if ((uploads.length && !uploaded) || (mentionPaths.length && !attached)) return false
-			// the echo that clears a queued message is matched on the attachments that rode
+			// the echo that clears a steered message is matched on the attachments that rode
 			// with it, and the turn can consume it before this call answers
-			if (queued) queued.attachmentIds = attachmentIds
+			if (steered) steered.attachmentIds = attachmentIds
 			const seen = state.conversation.entries.length
 			const result = await guard(() => client.run(sid, message, attachmentIds))
 			if (!result) return false
@@ -650,12 +748,15 @@ export function createFlowStore(client, options = {}) {
 			if (state.sessionId !== sid) return true
 			// the server decides which it was; a client that guessed wrong moves it now
 			if (result.status === "steered") {
+				// it waits below the turn, unless the turn took it while this call answered
+				const unechoed = state.conversation.sending.includes(pending)
 				unsend(pending)
-				if (!queued) queueMessage(message, attachments, attachmentIds)
-			} else if (queued) {
+				if (!steered && unechoed)
+					state.conversation.steering.push(steeringBubble(message, staged.attachments, attachmentIds))
+			} else if (steered) {
 				// it opened a turn of its own, so it needs its bubble — unless the echo
 				// arrived while this call was answering and drew one already
-				unqueue(queued)
+				unsteer(steered)
 				const echoed = state.conversation.entries
 					.slice(seen)
 					.some((entry) => entry.type === "user_message")
@@ -663,11 +764,33 @@ export function createFlowStore(client, options = {}) {
 			}
 			return true
 		} finally {
-			if (!admitted && createdIds.length) {
+			if (!admitted && staged.created.length) {
 				// A claimed attachment is retained if the run reached the daemon but its
 				// response was lost; only genuinely unclaimed staging data is removed.
-				await client.cleanupAttachments(sid, createdIds).catch(() => {})
+				await client.cleanupAttachments(sid, staged.created).catch(() => {})
 			}
+		}
+	}
+
+	// Uploads and @-mentions staged on the server, so a message names every attachment by
+	// id: { attachments: [{ id, name, kind }], created: ids staged by this call }, or null
+	// when one failed (the guard has said why, and nothing staged here is left behind).
+	async function stageAttachments(sid, attachments) {
+		const uploads = attachments.filter((item) => item.file && !item.id).map((item) => item.file)
+		const mentionPaths = attachments.filter((item) => item.mentionPath).map((item) => item.mentionPath)
+		// independent sources — resolve concurrently rather than paying two round trips
+		const [uploaded, attached] = await Promise.all([
+			uploads.length ? guard(() => client.uploadAttachments(sid, uploads)) : null,
+			mentionPaths.length ? guard(() => client.attachFiles(sid, mentionPaths)) : null,
+		])
+		const created = [uploaded, attached].flatMap((resolved) => resolved?.attachments ?? [])
+		if ((uploads.length && !uploaded) || (mentionPaths.length && !attached)) {
+			if (created.length) await client.cleanupAttachments(sid, created.map((item) => item.id)).catch(() => {})
+			return null
+		}
+		return {
+			attachments: [...attachments.filter((item) => item.id), ...created].map(({ id, name, kind }) => ({ id, name, kind })),
+			created: created.map((item) => item.id),
 		}
 	}
 
@@ -694,7 +817,8 @@ export function createFlowStore(client, options = {}) {
 
 	async function abort() {
 		if (!state.sessionId) return
-		state.queued = []
+		// steering dies with the run; waiting messages stay for the user
+		state.conversation.steering = []
 		await guard(() => client.abort(state.sessionId))
 	}
 
@@ -1201,6 +1325,7 @@ export function createFlowStore(client, options = {}) {
 			localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
 		}
 		if (state.sessionId === sid) startNewChat()
+		heldBySession.delete(sid)
 		notify("Chat deleted")
 	}
 
@@ -1250,6 +1375,8 @@ export function createFlowStore(client, options = {}) {
 		newSession,
 		loadSkills,
 		send,
+		sendQueued,
+		removeQueued,
 		answerApproval,
 		abort,
 		cancelPending,

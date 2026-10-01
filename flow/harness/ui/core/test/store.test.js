@@ -189,7 +189,7 @@ test("new chats inherit the active session cwd and accept a project override", (
 	assert.equal(flow.state.prefs.cwd, "/projects/selected")
 })
 
-test("multiline skill steering uses the expanded event's canonical queue key", async () => {
+test("multiline skill steering uses the expanded event's canonical match key", async () => {
 	const client = {
 		async run() {
 			return { status: "steered" }
@@ -199,7 +199,7 @@ test("multiline skill steering uses the expanded event's canonical queue key", a
 	flow.state.sessionId = "session-1"
 
 	assert.equal(await flow.send("/skill:review\n\ncheck auth"), true)
-	assert.equal(flow.state.queued[0].text, "/skill:review check auth")
+	assert.equal(flow.state.conversation.steering[0].text, "/skill:review check auth")
 })
 
 test("send() resolves @-mention paths into attachments before running", async () => {
@@ -1011,45 +1011,170 @@ function step(event) {
 	return { gate, event, delivered, open, done }
 }
 
-test("steering queues in the composer instead of joining the thread", async () => {
-	const ended = step({ type: "run_ended", seq: 2, reason: "aborted" })
-	const client = hostClient([])
-	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
-	client.run = async () => ({ status: "steered" })
+const settle = () => new Promise((resolve) => setImmediate(resolve))
+const running = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+
+test("a message sent during a run waits for it to end, then opens the next turn", async () => {
+	const calls = []
+	const ended = step({ type: "run_ended", seq: 2, reason: "done" })
+	const client = hostClient(calls)
+	client.entries = running
 	client.stream = () => pacedStream([ended])
 	const flow = createFlowStore(client)
 	await flow.openSession("s1")
 
 	assert.equal(await flow.send("Also check this"), true)
+	assert.equal(await flow.send("And this"), true)
+	assert.deepEqual(calls, []) // nothing reaches the server mid-run
 	assert.equal(flow.state.conversation.sending.length, 0)
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Also check this", "And this"],
+	)
+
+	// one message per finished run: the next waits for the turn this one opens
+	ended.open()
+	await ended.done
+	await settle()
+	assert.deepEqual(calls, [["run", "Also check this"]])
+	assert.equal(flow.state.conversation.sending.length, 1)
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["And this"],
+	)
+	flow.detach()
+})
+
+test("a message sent while the last one is on its way waits for that run", async () => {
+	const calls = []
+	const client = hostClient(calls)
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	// only the first run hangs, so a second one reaching the server fails the test
+	let answer
+	client.run = (sid, message) => {
+		calls.push(["run", message])
+		if (answer) return Promise.resolve({ status: "steered" })
+		return new Promise((resolve) => (answer = resolve))
+	}
+
+	const first = flow.send("Do this")
+	await settle()
+	assert.equal(await flow.send("And then this"), true)
+	answer({ status: "started" })
+	await first
+	assert.deepEqual(calls, [["run", "Do this"]])
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["And then this"],
+	)
+	flow.detach()
+})
+
+test("a run paused for approval keeps its queue until the run finishes", async () => {
+	const calls = []
+	const paused = step({ type: "run_ended", seq: 2, reason: "paused" })
+	const resumed = step({ type: "run_started", seq: 3 })
+	const done = step({ type: "run_ended", seq: 4, reason: "done" })
+	const client = hostClient(calls)
+	client.entries = running
+	client.stream = () => pacedStream([paused, resumed, done])
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	await flow.send("Also check this")
+	paused.open()
+	await paused.done
+	await settle()
+	assert.deepEqual(calls, [])
+
+	resumed.open()
+	done.open()
+	await done.done
+	await settle()
+	assert.deepEqual(calls, [["run", "Also check this"]])
+	flow.detach()
+})
+
+test("a stopped run leaves its queue waiting, to send by hand", async () => {
+	const calls = []
+	const ended = step({ type: "run_ended", seq: 2, reason: "aborted" })
+	const client = hostClient(calls)
+	client.entries = running
+	client.abort = async () => calls.push(["abort"])
+	client.stream = () => pacedStream([ended])
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	await flow.send("Also check this")
+	await flow.abort()
+	ended.open()
+	await ended.done
+	await settle()
+	assert.deepEqual(calls, [["abort"]])
 	assert.deepEqual(
 		flow.state.queued.map((item) => item.label),
 		["Also check this"],
 	)
 
-	// the run is aborted before it ever asks for the steering it was handed
-	ended.open()
-	await ended.done
+	await flow.sendQueued(flow.state.queued[0])
+	assert.deepEqual(calls, [["abort"], ["run", "Also check this"]])
 	assert.deepEqual(flow.state.queued, [])
+	assert.equal(flow.state.conversation.sending.length, 1)
+	flow.detach()
+})
+
+test("a steered message leaves the queue for a bubble below the turn until the turn takes it", async () => {
+	const calls = []
+	const echo = step({ type: "user_message", seq: 2, content: "Also check this" })
+	const client = hostClient(calls)
+	client.entries = running
+	let answer
+	client.run = (sid, message) => {
+		calls.push(["run", message])
+		return new Promise((resolve) => (answer = resolve))
+	}
+	client.stream = () => pacedStream([echo])
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	const steering = () => flow.state.conversation.steering.map((item) => item.text)
+
+	await flow.send("Also check this")
+	const steered = flow.sendQueued(flow.state.queued[0])
+	// the bubble is up before the server answers
+	assert.deepEqual(flow.state.queued, [])
+	assert.deepEqual(steering(), ["Also check this"])
+	await settle()
+	answer({ status: "steered" })
+	await steered
+	assert.deepEqual(calls, [["run", "Also check this"]])
+	assert.deepEqual(steering(), ["Also check this"])
+	assert.equal(flow.state.conversation.sending.length, 0)
+
+	echo.open()
+	await echo.done
+	assert.deepEqual(steering(), [])
 	flow.detach()
 })
 
 test("a steer the server turned into a turn of its own gets its bubble", async () => {
 	const client = hostClient([])
-	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.entries = running
 	client.run = async () => ({ status: "started" }) // the run had ended; the client had not heard
 	const flow = createFlowStore(client)
 	await flow.openSession("s1")
 
 	assert.equal(await flow.send("Next question"), true)
+	await flow.sendQueued(flow.state.queued[0])
 	assert.deepEqual(flow.state.queued, [])
+	assert.deepEqual(flow.state.conversation.steering, [])
 	assert.equal(flow.state.conversation.sending.length, 1)
 	flow.detach()
 })
 
 test("no second bubble when the echo lands before the run answers", async () => {
 	const client = hostClient([])
-	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.entries = running
 	client.run = async () => {
 		applyEvent(flow.state.conversation, { type: "user_message", seq: 2, content: "Next question" })
 		return { status: "started" }
@@ -1058,16 +1183,33 @@ test("no second bubble when the echo lands before the run answers", async () => 
 	await flow.openSession("s1")
 
 	assert.equal(await flow.send("Next question"), true)
+	await flow.sendQueued(flow.state.queued[0])
+	assert.deepEqual(flow.state.conversation.steering, [])
 	assert.equal(flow.state.conversation.sending.length, 0)
+	flow.detach()
+})
+
+test("no steered bubble when a run this tab had not heard of takes the message before the server answers", async () => {
+	const client = hostClient([])
+	client.run = async () => {
+		applyEvent(flow.state.conversation, { type: "user_message", seq: 1, content: "Next question" })
+		return { status: "steered" }
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	assert.equal(await flow.send("Next question"), true)
+	assert.equal(flow.state.conversation.entries.length, 1)
+	assert.deepEqual(flow.state.conversation.steering, [])
 	flow.detach()
 })
 
 test("a queued steer carries its attachments before the run answers", async () => {
 	const client = hostClient([])
-	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.entries = running
 	let idsWhenAsked = null
 	client.run = async (sid, message, ids) => {
-		idsWhenAsked = [...(flow.state.queued[0]?.attachmentIds ?? [])]
+		idsWhenAsked = [...(flow.state.conversation.steering[0]?.attachmentIds ?? [])]
 		assert.deepEqual(ids, ["F1"])
 		return { status: "steered" }
 	}
@@ -1075,8 +1217,175 @@ test("a queued steer carries its attachments before the run answers", async () =
 	await flow.openSession("s1")
 
 	assert.equal(await flow.send("Use this one", [{ id: "F1", name: "notes.pdf" }]), true)
+	await flow.sendQueued(flow.state.queued[0])
 	// the turn can consume the steering before run() answers; the echo matches on these
 	assert.deepEqual(idsWhenAsked, ["F1"])
+	flow.detach()
+})
+
+test("a steer that fails to reach the server waits in the queue again", async () => {
+	const client = hostClient([])
+	client.entries = running
+	client.run = async () => {
+		throw new Error("offline")
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	await flow.send("Also check this")
+	await flow.sendQueued(flow.state.queued[0])
+	assert.equal(flow.state.toast.kind, "error")
+	assert.deepEqual(flow.state.conversation.steering, [])
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Also check this"],
+	)
+	flow.detach()
+})
+
+test("a waiting message is not steered past an unanswered approval", async () => {
+	const calls = []
+	const client = hostClient(calls)
+	client.entries = running
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	await flow.send("Also check this")
+	flow.state.conversation.pendingApproval = { seq: 2, calls: [{ id: "c1" }], answers: {} }
+	await flow.sendQueued(flow.state.queued[0])
+	assert.deepEqual(calls, [])
+	assert.equal(flow.state.toast.kind, "error")
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Also check this"],
+	)
+	flow.detach()
+})
+
+test("a waiting message taken back is never sent, and its staged files go with it", async () => {
+	const calls = []
+	const ended = step({ type: "run_ended", seq: 2, reason: "done" })
+	const client = hostClient(calls)
+	client.entries = running
+	client.cleanupAttachments = async (sid, ids) => calls.push(["cleanup", sid, ids])
+	client.stream = () => pacedStream([ended])
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	// the server keeps any file an earlier message holds, so every id goes
+	await flow.send("Use these", [{ id: "F1", file: { name: "a.png" } }, { id: "F2", name: "b.pdf" }])
+	flow.removeQueued(flow.state.queued[0])
+	ended.open()
+	await ended.done
+	await settle()
+	assert.deepEqual(calls, [["cleanup", "s1", ["F1", "F2"]]])
+	assert.deepEqual(flow.state.queued, [])
+	flow.detach()
+})
+
+test("this tab's waiting messages outlive a reload, their files already uploaded", async (t) => {
+	const saved = new Map()
+	globalThis.sessionStorage = { getItem: (key) => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value) }
+	t.after(() => delete globalThis.sessionStorage)
+	const calls = []
+	const client = hostClient(calls)
+	client.entries = running
+	client.uploadAttachments = async (sid, files) => {
+		calls.push(["upload", files.map((file) => file.name)])
+		return { attachments: [{ id: "A1", name: "shot.png", kind: "image" }] }
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	await flow.send("Look at this", [{ key: "k1", name: "shot.png", kind: "image", file: { name: "shot.png" } }])
+	await settle()
+	flow.detach()
+
+	// the reload: a new store in the same tab, the run still going
+	const ended = step({ type: "run_ended", seq: 2, reason: "done" })
+	const reloaded = hostClient(calls)
+	reloaded.entries = running
+	reloaded.stream = () => pacedStream([ended])
+	reloaded.run = async (sid, message, ids) => {
+		calls.push(["run", message, ids])
+		return { status: "ok" }
+	}
+	const again = createFlowStore(reloaded)
+	await again.openSession("s1")
+	assert.deepEqual(
+		again.state.queued.map((item) => item.label),
+		["Look at this"],
+	)
+
+	ended.open()
+	await ended.done
+	await settle()
+	assert.deepEqual(calls, [
+		["upload", ["shot.png"]],
+		["run", "Look at this", ["A1"]],
+	])
+	again.detach()
+})
+
+test("a message whose files finish going up after its run ended goes out at once", async () => {
+	const calls = []
+	const ended = step({ type: "run_ended", seq: 2, reason: "done" })
+	const client = hostClient(calls)
+	client.entries = running
+	client.stream = () => pacedStream([ended])
+	let uploaded
+	client.uploadAttachments = () => new Promise((resolve) => (uploaded = resolve))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	const sent = flow.send("Look at this", [{ key: "k1", name: "shot.png", kind: "image", file: { name: "shot.png" } }])
+	await settle()
+	ended.open()
+	await ended.done
+	uploaded({ attachments: [{ id: "A1", name: "shot.png", kind: "image" }] })
+	assert.equal(await sent, true)
+	assert.deepEqual(calls, [["run", "Look at this"]])
+	assert.deepEqual(flow.state.queued, [])
+	flow.detach()
+})
+
+test("a message whose files go up while another session opens waits with its own", async () => {
+	const client = hostClient([])
+	client.entries = running
+	let uploaded
+	client.uploadAttachments = () => new Promise((resolve) => (uploaded = resolve))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	const sent = flow.send("Look at this", [{ key: "k1", name: "shot.png", kind: "image", file: { name: "shot.png" } }])
+	await settle()
+	await flow.openSession("s2")
+	uploaded({ attachments: [{ id: "A1", name: "shot.png", kind: "image" }] })
+	assert.equal(await sent, true)
+	assert.deepEqual(flow.state.queued, [])
+	await flow.openSession("s1")
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Look at this"],
+	)
+	flow.detach()
+})
+
+test("waiting messages stay with their session while another is open", async () => {
+	const client = hostClient([])
+	client.entries = running
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	await flow.send("Also check this")
+
+	await flow.openSession("s2")
+	assert.deepEqual(flow.state.queued, [])
+	flow.startNewChat()
+	assert.deepEqual(flow.state.queued, [])
+	await flow.openSession("s1")
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Also check this"],
+	)
 	flow.detach()
 })
 
@@ -1100,12 +1409,13 @@ test("a message waits in the box while an approval is unanswered", async () => {
 
 test("a message the server did not steer keeps its bubble", async () => {
 	const client = hostClient([])
-	client.entries = async () => ({ entries: [{ type: "run_started", seq: 1 }], latest_seq: 1 })
+	client.entries = running
 	client.run = async () => ({ status: "ok" }) // the run had ended; this opens a turn
 	const flow = createFlowStore(client)
 	await flow.openSession("s1")
 
 	assert.equal(await flow.send("Next question"), true)
+	await flow.sendQueued(flow.state.queued[0])
 	assert.deepEqual(flow.state.queued, [])
 	flow.detach()
 })

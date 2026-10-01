@@ -600,6 +600,38 @@ test("a message in flight folds the turn before it, run_started or not", () => {
 	assert.deepEqual(buildItems(conversation).map((item) => item.kind), [...settled, "user"])
 })
 
+test("a steered message waits below the running turn without settling it", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "First" })
+	applyEvent(conversation, { type: "text_delta", text: "Looking into it" })
+	const live = buildItems(conversation)
+
+	conversation.steering.push({ key: "steering:1", entry: { type: "user_message", content: "Also this", ts: 11 } })
+	const items = buildItems(conversation)
+	assert.deepEqual(items.slice(0, -1), live)
+	assert.deepEqual([items.at(-1).kind, items.at(-1).key], ["user", "steering:1"])
+})
+
+test("a steered message waits below the message still on its way, whose run it joins", () => {
+	const conversation = initialConversation()
+	conversation.sending.push({ key: "sending:1", entry: { type: "user_message", content: "Next", ts: 10 } })
+	conversation.steering.push({ key: "steering:2", entry: { type: "user_message", content: "And this", ts: 11 } })
+	assert.deepEqual(
+		buildItems(conversation).map((item) => item.key),
+		["sending:1", "steering:2"],
+	)
+})
+
+test("a run that ends mid-compaction leaves no compaction behind", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "compaction_started", reason: "manual" })
+	// the stream dropped compaction_ended, or the run was cut off before it
+	applyEvent(conversation, { type: "run_ended", seq: 2, ts: 11, reason: "error" })
+	assert.equal(conversation.compacting, false)
+})
+
 test("a paused approval turn stays fully visible until the user resolves it", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })

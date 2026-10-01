@@ -302,6 +302,48 @@ test("the composer shows a pending batch one call at a time, above the box", asy
 	assert.ok(!el.textContent.includes("Write a.txt?"))
 })
 
+test("the queue steers or takes back a waiting message", async (t) => {
+	const calls = []
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [],
+			queued: [{ key: "q1", label: "Also check this" }],
+			skills: [], conversation: { running: true }, draft: null,
+		}),
+		sendQueued: (item) => calls.push(["send", item.key]),
+		removeQueued: (item) => calls.push(["remove", item.key]),
+	}
+	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
+	const button = (text) => [...el.querySelectorAll("button")].find((b) => b.textContent.trim() === text)
+	assert.match(el.textContent, /Queued\s*Also check this/)
+	assert.ok(button("Steer").querySelector("[data-stub=FeatherIcon][name=corner-down-left]"))
+
+	const box = el.querySelector("fieldset textarea")
+	button("Steer").click()
+	assert.equal(document.activeElement, box) // back to typing
+	button("Steer").focus()
+	el.querySelector("button[title='Remove from queue']").click()
+	assert.equal(document.activeElement, box)
+	assert.deepEqual(calls, [
+		["send", "q1"],
+		["remove", "q1"],
+	])
+
+	// a compaction takes no steering: the message can only be taken back
+	flow.state.conversation.compacting = true
+	await nextTick()
+	assert.equal(button("Steer"), undefined)
+	assert.ok(el.querySelector("button[title='Remove from queue']"))
+	flow.state.conversation.compacting = false
+
+	// no run to steer into: the same button sends it as the next turn
+	flow.state.conversation.running = false
+	await nextTick()
+	assert.equal(button("Steer"), undefined)
+	assert.ok(button("Send"))
+})
+
 test("the composer takes a host's placeholder and approval-mode copy", async (t) => {
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
@@ -651,6 +693,28 @@ test("a skill the user started keeps its blue command prefix in the bubble", asy
 function rowButton(el, text) {
 	return [...el.querySelectorAll("button")].find((button) => button.textContent.includes(text))
 }
+
+test("a steered message waits below the running turn, Working under it, the turn still live above", async (t) => {
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "list files" })
+	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-1", name: "bash", arguments: { command: "ls" } })
+	conversation.steering.push({ key: "steering:1", entry: { type: "user_message", content: "only src", ts: 11 } })
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+
+	const bubble = el.querySelector("[data-prompt-key='steering:1']")
+	const liveTool = el.querySelector(".flow-tool-live")
+	assert.ok(liveTool)
+	assert.ok(bubble.compareDocumentPosition(liveTool) & bubble.DOCUMENT_POSITION_PRECEDING)
+	assert.equal(bubble.nextElementSibling.textContent.trim(), "Working")
+
+	// the turn's own status stays with the turn
+	conversation.liveLabel = "Thinking"
+	await nextTick()
+	assert.equal(bubble.nextElementSibling.textContent.trim(), "Working")
+})
 
 test("a tool row left open stays open and unfolded when the run ends", async (t) => {
 	const conversation = reactive(initialConversation())

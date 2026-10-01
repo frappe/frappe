@@ -237,7 +237,7 @@ test("shared provider IDs preserve the session's model when its thinking level c
 	);
 });
 
-test("a steered image leaves the queue when its daemon attachment arrives", async (t) => {
+test("a steered image's bubble goes when its daemon attachment arrives", async (t) => {
 	const { createFlowStore } = await import("@flow/ui-core/store.js");
 	const { fakeSocket } = await import("./helpers/socket.js");
 	globalThis.localStorage = { getItem: () => null, setItem() {} };
@@ -253,7 +253,7 @@ test("a steered image leaves the queue when its daemon attachment arrives", asyn
 	t.after(() => store.detach());
 	await store.openSession("S1");
 	await store.send("Look", [{ file: { name: "shot.png" } }]);
-	assert.equal(store.state.queued.length, 1);
+	assert.equal(store.state.conversation.steering.length, 1);
 	socket.fire("flow:event", {
 		type: "user_message",
 		session_id: "S1",
@@ -264,7 +264,7 @@ test("a steered image leaves the queue when its daemon attachment arrives", asyn
 		],
 	});
 	await new Promise((resolve) => setImmediate(resolve));
-	assert.equal(store.state.queued.length, 0);
+	assert.equal(store.state.conversation.steering.length, 0);
 });
 
 test("skills come from the session's agent, or the page's agent before a chat starts", async () => {

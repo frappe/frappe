@@ -75,15 +75,34 @@
 				class="mb-2"
 			/>
 
-			<!-- queued steering -->
+			<!-- the queue: messages waiting for the run to end -->
 			<div
 				v-if="flow.state.queued.length"
-				class="mx-3.5 -mb-1.5 flex items-baseline gap-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-3.5 pt-2"
+				class="mx-3.5 -mb-1.5 flex flex-col divide-y divide-outline-gray-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-2.5 pt-1"
 			>
-				<span class="flex-none text-2xs font-medium text-ink-gray-6">Queued</span>
-				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-7">{{
-					flow.state.queued.map((item) => item.label).join(" · ")
-				}}</span>
+				<div v-for="item in flow.state.queued" :key="item.key" class="flex min-h-5 items-center gap-2 py-1">
+					<span class="flex-none text-2xs font-medium text-ink-gray-6">Queued</span>
+					<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-7">{{ item.label }}</span>
+					<!-- a compaction takes no steering: the queue waits for it to end -->
+					<button
+						v-if="!compacting"
+						class="flex flex-none items-center gap-1 rounded-4 px-1.5 py-0.5 text-2xs font-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+						:title="running ? 'Add it to the running turn' : 'Send it now'"
+						:disabled="disabled"
+						@click="steerQueued(item)"
+					>
+						<FeatherIcon name="corner-down-left" class="h-3 w-3" />
+						{{ running ? "Steer" : "Send" }}
+					</button>
+					<button
+						class="grid h-5 w-5 flex-none place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+						title="Remove from queue"
+						:disabled="disabled"
+						@click="dropQueued(item)"
+					>
+						<FeatherIcon name="x" class="h-3 w-3" />
+					</button>
+				</div>
 			</div>
 
 			<!-- a fieldset: disabling it disables every control inside, a host's pickers included -->
@@ -615,6 +634,7 @@ const skillPrompt = computed(() => {
 	return { prefix: match[0], rest: text.value.slice(match[0].length) }
 })
 const running = computed(() => flow.state.conversation.running)
+const compacting = computed(() => flow.state.conversation.compacting)
 const approval = computed(() => {
 	const conversation = flow.state.conversation
 	const pending = approvalToAnswer(conversation)
@@ -822,6 +842,17 @@ async function cwdCommand(arg) {
 	const cwd = arg || (await flow.pickFolder()) // no arg: the daemon's native folder dialog
 	if (!cwd) return
 	flow.startNewChat({ cwd }) // the session itself is created on the first message
+}
+
+// the queue's buttons hand the cursor back to the box
+function steerQueued(item) {
+	flow.sendQueued(item)
+	box.value?.focus()
+}
+
+function dropQueued(item) {
+	flow.removeQueued(item)
+	box.value?.focus()
 }
 
 function chooseMode(mode) {
