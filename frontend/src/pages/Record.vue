@@ -94,7 +94,7 @@
 						:collapsed="collapsed"
 						:run="runAction"
 						:reloadDocinfo="reloadDocinfo"
-						:whileOnRecord="whileOnRecord"
+						:whileOnRecord="visitCheck"
 						@expand="expand"
 					/>
 				</template>
@@ -215,6 +215,7 @@ import {
 } from "./record/recordSource";
 import { mergeRefetch, same } from "./record/refetchMerge";
 import { recallView, viewKeeper, type RecordView } from "./record/viewMemory";
+import { Visit } from "./record/visit";
 import { landOffsets, readOffsets } from "./record/viewScroll";
 import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "./record/saveResponse";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
@@ -267,13 +268,7 @@ const HEADER_BUDGET = 3;
 // Save keeps its slot whatever a script adds; it is the only pinned control.
 const PINNED_CONTROLS = ["save"];
 
-// The slower of two in-flight loads must not win: `save()` would then POST the wrong record.
-let generation = 0;
-// A load left behind must not feed the cache: it would count as the last record read.
-let reading = new AbortController();
-// Likewise for two sidecar re-reads: several picks in one gesture each fire one.
-let docinfoRead = 0;
-let docinfoLanding: Promise<void> = Promise.resolve();
+let currentVisit = new Visit();
 // A return visit's hold on fresh meta and layouts, let go with its background reads.
 let releaseFresh = () => {};
 
@@ -362,7 +357,7 @@ const feeds = new RecordFeeds({
 	controller: () => controller.value,
 	showTab: (name, what) => tabsHost.show(name, what),
 	reloadParts: reloadDocinfo,
-	whileOnRecord,
+	whileOnRecord: visitCheck,
 });
 provide(RecordFeedsKey, feeds);
 // Held for the page's life, so a script hiding the band leaves the writers their record.
@@ -424,27 +419,24 @@ function headerBuiltins(): HeaderItem[] {
 
 // A failure toasts here: `runAction` would otherwise reload over the draft. Clicks queue, so
 // each one reads the state the one before it left and two quick clicks toggle twice.
-let toggleTurn: Promise<void> = Promise.resolve();
-
 function toggleOnSidecar(
 	page: RecordPageApi,
 	write: () => Promise<Envelope<Partial<DocInfo>>>,
 	after?: (answer: Envelope<Partial<DocInfo>>) => void
 ) {
-	toggleTurn = toggleTurn.then(async () => {
+	return currentVisit.inTurn(async () => {
 		// A turn that outlived its record would read the next record's state; it does nothing.
 		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
-		const current = whileOnRecord();
+		const visit = currentVisit;
 		try {
 			const answer = await write();
-			if (!current()) return;
+			if (!visit.current()) return;
 			docinfo.value = mergePart(docinfo.value, answer.data);
 			after?.(answer);
 		} catch (e) {
 			toast.error(errorMessage(e));
 		}
 	});
-	return toggleTurn;
 }
 
 function toggleFavourite(page: RecordPageApi) {
@@ -469,10 +461,8 @@ function toggleFollow(page: RecordPageApi) {
 	);
 }
 
-// Marks the record on show; the check is false once another load or a navigation replaced it.
-function whileOnRecord() {
-	const mine = generation;
-	return () => mine === generation;
+function visitCheck() {
+	return currentVisit.current;
 }
 
 // Three built-ins first, then the Side Panel layout's sections, as they resolve now.
@@ -485,23 +475,14 @@ function chooseFormTab(identity: string) {
 	tabMemory.value.remember(identity);
 }
 
-function reloadDocinfo() {
-	docinfoLanding = readDocinfo();
-	return docinfoLanding;
-}
-
-// A read that a newer one replaced resolves once the newest has landed.
-async function readDocinfo(): Promise<void> {
-	if (!doctype.value) return;
-	const mine = generation;
-	const { signal } = reading;
-	const read = ++docinfoRead;
-	const fresh = await loadParts(doctype.value, docname.value, signal).catch((error) => {
-		if (!signal.aborted) throw error;
-	});
-	if (mine !== generation || !fresh) return;
-	if (read !== docinfoRead) return docinfoLanding;
-	docinfo.value = fresh;
+// Several picks in one gesture each fire one re-read.
+function reloadDocinfo(): Promise<void> {
+	const shown = doctype.value;
+	if (!shown) return Promise.resolve();
+	return currentVisit.readNewest(
+		(signal) => loadParts(shown, docname.value, signal),
+		(fresh) => void (docinfo.value = fresh)
+	);
 }
 
 // Only the route's load may paint from memory: a reload, a conflict or a failed action reads the server.
@@ -512,10 +493,7 @@ async function load({ fromMemory = false } = {}) {
 		live.release();
 		return;
 	}
-	const mine = ++generation;
-	reading.abort();
-	reading = new AbortController();
-	docinfoRead++;
+	currentVisit = currentVisit.next();
 	const target = { doctype: doctype.value, name: docname.value };
 	const pointed = feeds.pointerOnOpen(target.doctype, target.name, route.query);
 	// Read before this load writes a view of its own.
@@ -552,7 +530,7 @@ async function load({ fromMemory = false } = {}) {
 		fallback: "none",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
-	const opening = { mine, target, pointer, details, panel, view, signal: reading.signal };
+	const opening = { visit: currentVisit, target, pointer, details, panel, view };
 	const fromCache = fromMemory ? openFromMemory(opening) : null;
 	if (fromCache) return fromCache;
 	await withFeedRead(target.doctype, target.name, openedQuery.value, (feedRead) =>
@@ -574,14 +552,13 @@ function blank() {
 }
 
 interface Opening {
-	mine: number;
+	visit: Visit;
 	target: { doctype: string; name: string };
 	pointer: string;
 	details: UseFormLayout;
 	panel: UseFormLayout;
 	/** The reader's view to put back on a return, or null on a new visit. */
 	view: RecordView | null;
-	signal: AbortSignal;
 }
 
 interface OpenRecord extends Opening {
@@ -592,7 +569,7 @@ type BackgroundRead = Promise<() => Promise<void> | void>;
 
 /** A return visit: paints before the first await, then re-reads quietly and replays once; null when memory lacks anything. */
 function openFromMemory(opening: Opening): Promise<void> | null {
-	const { mine, target, pointer, details, panel } = opening;
+	const { visit, target, pointer, details, panel } = opening;
 	const record = readCachedRecord(target.doctype, target.name);
 	if (!record) return null;
 	const metadata = metaInMemory(target.doctype);
@@ -609,16 +586,16 @@ function openFromMemory(opening: Opening): Promise<void> | null {
 	releaseFresh = release;
 	const reads = backgroundReads(opening, created);
 	landPaint(created, pointer);
-	void settleView(mine, opening.view);
-	return applyInBackground(mine, created, reads, release);
+	void settleView(visit, opening.view);
+	return applyInBackground(visit, created, reads, release);
 }
 
 // Each read resolves to its applier, which may return a re-read to wait for; they all apply in one step.
 function backgroundReads(opening: Opening, created: RecordPageController): BackgroundRead[] {
-	const { target, signal } = opening;
+	const { target, visit } = opening;
 	const before = docinfo.value;
 	const reads: BackgroundRead[] = [
-		loadRecord(target.doctype, target.name, signal).then(
+		loadRecord(target.doctype, target.name, visit.signal).then(
 			(fresh) => () => takeRefetch(fresh, before),
 			(failure) => () => takeReadFailure(failure)
 		),
@@ -649,24 +626,24 @@ function freshVersion({ target, details, panel }: Opening): BackgroundRead {
 
 /** Every read applied together and any docinfo re-read landed, then one replay whose acts are dropped. */
 async function applyInBackground(
-	mine: number,
+	visit: Visit,
 	created: RecordPageController,
 	reads: BackgroundRead[],
 	release: () => void
 ) {
 	try {
 		const settled = await Promise.allSettled(reads);
-		if (mine !== generation) return;
+		if (!visit.current()) return;
 		// Fresh meta and layouts land with the appliers, so the page changes in one step.
 		release();
 		const rereads = settled.map((read) =>
 			read.status === "fulfilled" ? read.value() : undefined
 		);
 		await Promise.all(rereads);
-		if (mine !== generation || error.value) return;
+		if (!visit.current() || error.value) return;
 	} finally {
 		release();
-		if (mine === generation) feeds.endKeptRead();
+		if (visit.current()) feeds.endKeptRead();
 	}
 	await created.refresh({ background: true });
 }
@@ -709,56 +686,47 @@ function landPaint(created: RecordPageController, pointer: string) {
 }
 
 /** The record read, then the page's first paint; a newer load cuts it short at any wait. */
-async function openRecord({
-	mine,
-	target,
-	pointer,
-	details,
-	panel,
-	view,
-	signal,
-	feedRead,
-}: OpenRecord) {
+async function openRecord({ visit, target, pointer, details, panel, view, feedRead }: OpenRecord) {
 	try {
 		const [loaded, metadata] = await Promise.all([
-			loadRecord(target.doctype, target.name, signal),
+			loadRecord(target.doctype, target.name, visit.signal),
 			fetchMeta(target.doctype),
 		]);
-		if (mine !== generation) return;
+		if (!visit.current()) return;
 		show(loaded, metadata);
 	} catch (e) {
-		if (mine !== generation || signal.aborted) return;
+		if (!visit.current()) return;
 		error.value = readFailure(e);
 		return;
 	}
 
-	const created = buildController({ mine, target, pointer, details, panel, view, signal });
+	const created = buildController({ visit, target, pointer, details, panel, view });
 	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown,
 	// and the Activity rows when their read began beside the record's.
 	await Promise.all([details.settled(), panel.settled(), feedRead]);
-	if (mine !== generation) return;
+	if (!visit.current()) return;
 	await created.refresh();
-	if (mine !== generation) return;
+	if (!visit.current()) return;
 	landPaint(created, pointer);
 	// The shown tab's body has mounted once this lands; a feed body that mounts later reads what it missed.
-	await settleView(mine, view);
+	await settleView(visit, view);
 }
 
 /** Puts the view back over the first paint's acts, before the frame when the body is drawn; the page keeps its view from then on. */
-async function settleView(mine: number, view: RecordView | null) {
+async function settleView(visit: Visit, view: RecordView | null) {
 	if (view) {
 		disclosure.restore(view.panel);
 		tabsHost.settleRestored(view.tab);
 	}
 	await nextTick();
 	const root = bodyRoot.value;
-	if (mine !== generation) return;
+	if (!visit.current()) return;
 	if (view && root) {
 		// A tab that is gone takes the new visit's tab, which starts at the top.
 		const offsets =
 			shownTab.value === view.tab ? view.offsets : { columns: view.offsets.columns };
 		await landOffsets(root, shownTab.value, offsets);
-		if (mine !== generation) return;
+		if (!visit.current()) return;
 	}
 	keeping = true;
 	keep();
@@ -839,35 +807,26 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 	return created;
 }
 
-// One request per record at a time; a request the previous record left in flight is not joined.
-let inFlight: { generation: number; request: Promise<void> } | null = null;
-
 async function write() {
 	// Refuse to write the wrong record if the route moved while an action ran.
 	if (doc.value.name !== docname.value || doctype.value === null) {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
-	if (inFlight?.generation !== generation) {
-		const mine = generation;
-		const request = send().finally(() => {
-			if (inFlight?.request === request) inFlight = null;
-		});
-		inFlight = { generation: mine, request };
-	}
-	await inFlight.request;
+	// A request the previous record left in flight is not joined.
+	const visit = currentVisit;
+	await visit.save(() => send(visit));
 }
 
-async function send() {
-	const mine = generation;
+async function send(visit: Visit) {
 	saving.value = true;
 	try {
 		const document = await saveRecord(doctype.value!, doc.value).catch(rethrowSaveError);
-		if (mine !== generation) return;
+		if (!visit.current()) return;
 		saved.value = { ...document };
 		doc.value = JSON.parse(JSON.stringify(document));
 	} finally {
 		// A request the previous record left behind must not clear this record's flag.
-		if (mine === generation) saving.value = false;
+		if (visit.current()) saving.value = false;
 	}
 	// A save writes a version row and its hooks may assign.
 	live.reloadQuietly();
@@ -887,9 +846,9 @@ async function rethrowSaveError(e: unknown): Promise<never> {
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
 async function resolveConflict() {
-	const { signal } = reading;
-	const latest = await loadRecord(doctype.value!, docname.value, signal).catch(() => null);
-	if (signal.aborted) return;
+	const visit = currentVisit;
+	const latest = await loadRecord(doctype.value!, docname.value, visit.signal).catch(() => null);
+	if (!visit.current()) return;
 	const editor = latest
 		? personOf(latest.docinfo, latest.document.modified_by).name
 		: "Someone else";
@@ -1006,7 +965,7 @@ onMounted(() => {
 	window.addEventListener("beforeunload", onBeforeUnload);
 });
 onUnmounted(() => {
-	reading.abort();
+	currentVisit.end();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();
