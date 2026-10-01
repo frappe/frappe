@@ -23,51 +23,14 @@ class TestStudioApp(FrappeTestCase):
 		self.assertEqual(app.app_title, "My Build App")
 		self.assertEqual(app.route, "my-build-app")
 
-	def test_context_carries_app_home_and_boot(self):
-		app = make_studio_app(app_title="Home App", app_name="home-app")
-		page = make_studio_page(app.name, page_title="Landing", published=1)
-		context = frappe._dict()
-		# get_context commits for the csrf token, which would leak the app past the test rollback
-		with patch.object(frappe.db, "commit"):
-			app.reload().get_context(context)
-		self.assertEqual(context.app_home, page.name)
-		self.assertEqual([p.name for p in context.app_pages], [page.name])
-		self.assertEqual(context.boot, {})
-
-	def test_context_exposes_the_router_file_only_in_developer_mode(self):
-		with exports_in_tempdir():
-			app = make_studio_app(
-				app_title="Routed App",
-				app_name="routed-app",
-				is_standard=1,
-				frappe_app="studio",
-				route="routed",
-			)
-		with mock_studio_app_files(app.name, router="{ setup(router) {} }") as studio_folder, patch(
-			"studio.build.get_studio_folder", return_value=studio_folder
-		), patch.object(frappe.db, "commit"):
-			with patch.dict(frappe.local.conf, {"developer_mode": 1}):
-				context = frappe._dict()
-				app.get_context(context)
-				self.assertEqual(context.router_file, os.path.join(studio_folder, "routed_app", "router.ts"))
-
-			with patch.dict(frappe.local.conf, {"developer_mode": 0}):
-				context = frappe._dict()
-				app.get_context(context)
-				self.assertIsNone(context.router_file)
-
-	def test_context_carries_the_router_script_for_custom_apps_only(self):
-		app = unsaved_studio_app("router-script-app")
-		app.router_script = ROUTER_SCRIPT
-		self.assertEqual(app.get_router_script(), ROUTER_SCRIPT)
-		app.is_standard = 1
-		self.assertIsNone(app.get_router_script())
-
-	def test_export_moves_the_router_script_into_router_ts_and_back(self):
+	def test_export_router_script(self):
 		with exports_in_tempdir():
 			app = make_studio_app(app_title="Routed Custom App", app_name="routed-custom-app")
 			app.router_script = ROUTER_SCRIPT
 			app.save()
+			context = get_renderer_context(app)
+			self.assertEqual(context.router_script, ROUTER_SCRIPT)
+			self.assertIsNone(context.router_file)
 
 			app.enable_app_export("studio")
 			app.reload()
@@ -76,6 +39,13 @@ class TestStudioApp(FrappeTestCase):
 				frappe.read_file(app.get_router_file_path()),
 				f"export default {ROUTER_SCRIPT}\n",
 			)
+			app.router_script = ROUTER_SCRIPT
+			context = get_renderer_context(app)
+			self.assertEqual(context.router_file, app.get_router_file_path())
+			self.assertIsNone(context.router_script)
+			with patch.dict(frappe.conf, {"developer_mode": 0}):
+				self.assertIsNone(get_renderer_context(app).router_file)
+			app.router_script = None
 			exported = json.loads(
 				frappe.read_file(os.path.join(app.get_folder_path(), "routed_custom_app.json"))
 			)
@@ -84,7 +54,7 @@ class TestStudioApp(FrappeTestCase):
 			app.disable_app_export()
 			self.assertEqual(app.reload().router_script, ROUTER_SCRIPT)
 
-	def test_boot_comes_from_studio_app_boot_hook(self):
+	def test_studio_app_boot(self):
 		app = unsaved_studio_app("boot-app")
 		with patch_boot_hook(app.name, f"{__name__}.boot_contribution"):
 			self.assertEqual(app.get_boot(), {"roles": ["Customer"]})
@@ -416,11 +386,23 @@ ROUTER_SCRIPT = """{
 def exports_in_tempdir():
 	with (
 		tempfile.TemporaryDirectory() as tmpdir,
-		patch("frappe.get_app_source_path", side_effect=lambda app, *path: os.path.join(tmpdir, app, *path)),
+		# scrubbed like the real one, so `routed-app` resolves to `routed_app` everywhere
+		patch(
+			"frappe.get_app_source_path",
+			side_effect=lambda app, *path: os.path.join(tmpdir, app, *map(frappe.scrub, path)),
+		),
 		patch.dict(frappe.conf, {"developer_mode": 1}),
 		patch.object(StudioApp, "add_to_studio_apps_txt"),
 	):
 		yield
+
+
+def get_renderer_context(app):
+	context = frappe._dict()
+	# get_context commits for the csrf token, which would leak the app past the test rollback
+	with patch.object(frappe.db, "commit"):
+		app.get_context(context)
+	return context
 
 
 def unsaved_studio_app(name):

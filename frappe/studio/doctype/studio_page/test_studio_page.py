@@ -2,15 +2,13 @@
 # See license.txt
 
 import os
-import tempfile
-from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
 
 from studio.export import remove_empty_values
-from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
+from studio.studio.doctype.studio_app.studio_app import StudioAppRenderer
 from studio.studio.doctype.studio_app.test_studio_app import (
 	exports_in_tempdir,
 	make_studio_app,
@@ -99,7 +97,10 @@ class TestStudioPage(IntegrationTestCase):
 						"componentName": "Button",
 						"componentProps": {"empty_value": "", "false_value": False},
 						"componentSlots": {
-							"default": {"slotName": "default", "slotContent": [{"componentName": "TextBlock"}]},
+							"default": {
+								"slotName": "default",
+								"slotContent": [{"componentName": "TextBlock"}],
+							},
 							"label": {"slotName": "label", "slotContent": ""},
 						},
 						"children": [{"componentName": "TextBlock"}],
