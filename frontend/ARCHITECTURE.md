@@ -120,6 +120,7 @@ cut or a `ui/` change reshapes them.
 | `Form Layout` | A stored layout for a doctype's Details, Side Panel or Quick Entry, with an optional condition |
 | [`Client Script`](./CONTEXT.md#client-script) with `view = Record` | The table that holds the record page's stored scripts |
 | Client Script class check | On save, warns about CSS classes the build does not define. Reads the build's `classes.json` |
+| Client Script template compile | On save, compiles a script that holds `template:` and blocks the save on an error. On fetch, sends the compiled copy from the Redis cache. On a cache miss, it compiles with one `node` call per doctype. The record keeps the source only |
 | `code_only_modules` hook | Modules that hold only code. Their navigation goes to named heir modules |
 | Layer resolution (`frappe.desk.layers`) | Merges base, site and user copies of a list and places items by anchors |
 | Record address | The one address of a record under `/apps/<prefix>/`. `get_url_to_form`, emails and the desk all use it. *New: moves here from `frappe/shell/`* |
@@ -561,13 +562,13 @@ that copy in the same tab, and the page shows "no permission" once the server re
 | --- | --- | --- | --- | --- |
 | 1 | A record visit asks the script loader for its doctype's scripts, beside the record read. The first visit to a doctype registers its file scripts, before any stored script | 8, 7 | None | One entry per doctype; the latest load wins |
 | 2 | The loader fetches the enabled stored scripts for the Record view | 7, 3 | None | Not HTTP-cached |
-| 3 | The server checks read on the doctype, reads enabled rows in run order, drops rows of disabled modules, and says whether the user may write scripts | 1 | Read permission on the doctype; write permission on `Client Script` for the answer | Disabled modules, per request |
+| 3 | The server checks read on the doctype, reads enabled rows in run order, drops rows of disabled modules, and says whether the user may write scripts. For a script that holds `template:`, it sends the compiled copy. A cache miss compiles all such scripts of the doctype in one `node` call. A script that fails to compile goes out with its error and no code | 1 | Read permission on the doctype; write permission on `Client Script` for the answer | Disabled modules, per request. Compiled copies in Redis, keyed by source hash, compiler version, build, options, compile script version and names file |
 | 4 | The loader keeps the write answer. Only a script writer sees failure toasts and the editor entry | 7 | **Browser**. The server checks `Client Script` write on save | Browser memory |
-| 5 | Each script loads as a module; its bare imports resolve through the import list. Its handlers register under its name, beside the app's file scripts. A failing script is skipped and reported | 7, 9 | None | Browser module map |
+| 5 | Each script loads as a module; its bare imports resolve through the import list. Its handlers register under its name, beside the app's file scripts. A failing script, or one sent with a compile error, is skipped and reported | 7, 9 | None | Browser module map |
 | 6 | The engine holds the first paint until the scripts are in or 500 ms pass, then replays | 7 | A script's own checks on `page.roles` or `page.perms` only change what is shown | None |
 | 7 | A saved, reordered or deleted script sends `client_script_changed` to the site room. The loader marks its entry stale, and an open record page with no unsaved edits re-runs its scripts. The next load keeps the old scripts until the new ones have compiled | 1, 7, 8 | The site room admits System Users only | The doctype's entry is marked stale |
 
-**Budget:** the first paint waits at most 500 ms for stored scripts.
+**Budget:** the first paint waits at most 500 ms for stored scripts. A cache miss on compiled scripts adds one `node` call, about 40 to 60 ms.
 
 ## Guardrails
 

@@ -93,6 +93,26 @@ describe("the Client Script tier", () => {
     expect(sources()).toEqual(["client-script:fine"]);
   });
 
+  it("skips and reports a script the server sent with a compile error, keeping the rest", async () => {
+    call.mockResolvedValue({
+      data: {
+        scripts: [
+          { name: "broken", script: "", error: "Line 3, column 15: <Nope> is not a known component." },
+          { name: "fine", script: "export default {}" },
+        ],
+        can_write: true,
+      },
+    });
+    await loadClientScripts("CRM Deal");
+    expect(sources()).toEqual(["client-script:fine"]);
+    expect(evaluateClientScript).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith("Client Script 'broken' failed to load");
+    expect(console.error).toHaveBeenCalledWith(
+      "[client-script] broken failed to load, skipped",
+      new Error("Line 3, column 15: <Nope> is not a known component."),
+    );
+  });
+
   it("toasts a failure once per script, only for script editors", async () => {
     respond(["broken"], false);
     evaluateClientScript.mockRejectedValue(new SyntaxError("Unexpected token"));
