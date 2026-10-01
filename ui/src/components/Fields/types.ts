@@ -113,8 +113,8 @@ export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
 export const TemplateNamesKey: InjectionKey<readonly string[]> =
   Symbol("TemplateNames");
 
-/** Compile errors a host marks in its top-level Code fields; each names its field. */
-export const CodeErrorsKey: InjectionKey<Ref<readonly CodeError[]>> =
+/** Compile errors a host marks in its top-level Code fields, by fieldname; null cuts them off. */
+export const CodeErrorsKey: InjectionKey<Ref<readonly CodeError[]> | null> =
   Symbol("CodeErrors");
 
 /** Where a child row sits: its table's fieldname plus `name ?? __row_id`. */
