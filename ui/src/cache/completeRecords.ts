@@ -21,10 +21,8 @@ export class CompleteRecords {
   }
 
   delete(key: string): void {
-    const size = this.sizes.get(key);
-    if (size === undefined) return;
+    this.total -= this.sizes.get(key) ?? 0;
     this.sizes.delete(key);
-    this.total -= size;
   }
 
   clear(): void {
