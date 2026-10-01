@@ -59,3 +59,10 @@ class TestCountry(IntegrationTestCase):
 
 		for code in "BHD IQD JOD KWD LYD OMR TND".split():
 			self.assertEqual(fraction_units[code], 1000, code)
+
+	def test_angola_ships_its_iso_currency_code(self):
+		_, currencies = get_countries_and_currencies()
+		names = {currency.name for currency in currencies}
+
+		self.assertIn("AOA", names)
+		self.assertNotIn("KZ", names)
