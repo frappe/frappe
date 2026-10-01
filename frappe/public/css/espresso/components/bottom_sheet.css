@@ -7,6 +7,7 @@
  *          data-height="auto|half|full" [data-dragging]>
  *       <div class="es-bottom-sheet__grip"><div class="es-bottom-sheet__handle"></div></div>
  *       <div class="es-bottom-sheet__header">…title, subtitle, back / close</div>
+ *       <div class="es-bottom-sheet__search">…a step's search box</div>
  *       <div class="es-bottom-sheet__body">…content, option rows</div>
  *       <div class="es-bottom-sheet__footer">…action buttons</div>
  *     </div>
@@ -135,6 +136,17 @@ html.es-bottom-sheet-open.es-bottom-sheet-gutter {
     color: var(--ink-gray-5);
 }
 
+/* ---- search: fixed above the body, not sticky inside it (iOS lets rows show past a sticky bar) ---- */
+.es-bottom-sheet__search {
+    flex-shrink: 0;
+    padding: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 2);
+}
+
+.es-bottom-sheet__search .form-control {
+    height: calc(var(--spacing) * 10);
+    font-size: var(--text-lg);
+}
+
 /* ---- body ---- */
 .es-bottom-sheet__body {
     flex: 1 1 auto;
@@ -191,7 +203,8 @@ html.es-bottom-sheet-open.es-bottom-sheet-gutter {
     margin-inline: calc(var(--spacing) * -4);
 }
 
-.es-bottom-sheet__group + .es-bottom-sheet__group {
+/* a group the search hides doesn't count, so the first shown one gets no divider */
+.es-bottom-sheet__group:not([hidden]) ~ .es-bottom-sheet__group:not([hidden]) {
     border-top: 1px solid var(--outline-gray-1);
     margin-top: calc(var(--spacing) * 1);
     padding-top: calc(var(--spacing) * 1);
@@ -215,10 +228,18 @@ html.es-bottom-sheet-open.es-bottom-sheet-gutter {
     -webkit-tap-highlight-color: transparent;
 }
 
-.es-bottom-sheet__option.es-menu__item:hover,
 .es-bottom-sheet__option.es-menu__item:active {
     background: var(--surface-gray-2);
     color: var(--ink-gray-8);
+}
+
+/* touch screens keep :hover on the last row tapped, which a new step puts
+   another row under; only a real pointer gets the hover */
+@media (hover: hover) {
+    .es-bottom-sheet__option.es-menu__item:hover {
+        background: var(--surface-gray-2);
+        color: var(--ink-gray-8);
+    }
 }
 
 .es-bottom-sheet__option.es-menu__item:focus-visible {
@@ -276,6 +297,12 @@ html.es-bottom-sheet-open.es-bottom-sheet-gutter {
     padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4)
         calc(var(--spacing) * 4 + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--outline-gray-1);
+}
+
+/* footer buttons stretch, and the desk's global .icon { margin: 0 auto } would
+   then push the icon away from its label */
+.es-bottom-sheet__footer .es-button > .icon {
+    margin: 0;
 }
 
 /* ---- motion ---- */

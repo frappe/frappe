@@ -10,6 +10,9 @@ frappe.provide("frappe.ui");
  * @property {Element|JQuery|function|string} [content] The body. An element, or a function called with the sheet the first time the step shows; a plain string renders as text, never HTML.
  * @property {Array} [options] Tappable rows, after any content: MenuItem-like { label, icon, description, theme, selected, disabled, onclick(e, sheet) } and { group, options } sections. A tap runs onclick and closes the sheet unless it returns false.
  * @property {Object[]} [actions] Sticky footer buttons (frappe.ui.button options). onclick(sheet) runs, then the sheet closes unless it returns false; a returned promise keeps the button busy and closes when it settles.
+ * @property {Object} [header_action] One trailing header button (frappe.ui.button options); onclick(sheet) runs and the sheet stays open.
+ * @property {boolean|string} [search] A search box above the body that narrows the option rows; a string is its placeholder.
+ * @property {function} [on_show] Called with the sheet each time the step becomes the one on screen: when it opens, is pushed, or is returned to with Back.
  */
 
 /**
@@ -82,6 +85,19 @@ function field_popup_open(target) {
  *     options: [{ label: __("Created On"), selected: true, onclick: () => sort("creation") }],
  * }).open();
  */
+function filter_options(root, query) {
+	query = query.trim().toLowerCase();
+	root.querySelectorAll(".es-bottom-sheet__group").forEach((group) => {
+		let visible = 0;
+		group.querySelectorAll(".es-bottom-sheet__option").forEach((row) => {
+			const match = row.textContent.toLowerCase().includes(query);
+			row.hidden = !match;
+			visible += match;
+		});
+		group.hidden = !visible;
+	});
+}
+
 frappe.ui.BottomSheet = class BottomSheet {
 	/** @param {BottomSheetOpts} opts */
 	constructor(opts = {}) {
@@ -130,6 +146,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 			<div class="es-bottom-sheet flex flex-col" role="dialog" aria-modal="true" tabindex="-1">
 				<div class="es-bottom-sheet__grip flex justify-center"><div class="es-bottom-sheet__handle"></div></div>
 				<div class="es-bottom-sheet__header flex items-center gap-1"></div>
+				<div class="es-bottom-sheet__search" hidden></div>
 				<div class="es-bottom-sheet__body"></div>
 				<div class="es-bottom-sheet__footer flex gap-2"></div>
 			</div>`;
@@ -137,6 +154,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 		this.scrim = root.querySelector(".es-bottom-sheet__scrim");
 		this.panel = root.querySelector(".es-bottom-sheet");
 		this.header = root.querySelector(".es-bottom-sheet__header");
+		this.search_bar = root.querySelector(".es-bottom-sheet__search");
 		this.body = root.querySelector(".es-bottom-sheet__body");
 		this.footer = root.querySelector(".es-bottom-sheet__footer");
 
@@ -252,8 +270,10 @@ frappe.ui.BottomSheet = class BottomSheet {
 		this.keeping_focus(() => {
 			this.render_header(step);
 			this.render_body(step);
+			this.render_search(step);
 			this.render_footer(step);
 		});
+		step.on_show && step.on_show(this);
 		if (motion) {
 			// cleared and reflowed first, so a second push or pop replays the slide
 			this.body.removeAttribute("data-motion");
@@ -301,6 +321,18 @@ frappe.ui.BottomSheet = class BottomSheet {
 		}
 		this.header.append(titles);
 
+		if (step.header_action) {
+			const { onclick, ...button } = step.header_action;
+			this.header.append(
+				frappe.ui.button({
+					variant: "ghost",
+					size: "lg",
+					...button,
+					onclick: () => onclick && onclick(this),
+				})[0]
+			);
+		}
+
 		if (this.opts.show_close) {
 			this.header.append(
 				frappe.ui.button({
@@ -313,7 +345,12 @@ frappe.ui.BottomSheet = class BottomSheet {
 			);
 		}
 
-		this.header.hidden = !step.title && !step.subtitle && !has_back && !this.opts.show_close;
+		this.header.hidden =
+			!step.title &&
+			!step.subtitle &&
+			!has_back &&
+			!this.opts.show_close &&
+			!step.header_action;
 		if (step.title) this.panel.setAttribute("aria-labelledby", this.title_id);
 		else this.panel.removeAttribute("aria-labelledby");
 	}
@@ -324,6 +361,23 @@ frappe.ui.BottomSheet = class BottomSheet {
 		if (!step._el) step._el = this.build_step_body(step);
 		this.body.append(step._el);
 		this.body.scrollTop = step.scroll_top || 0;
+	}
+
+	// outside the scrolling body, so it stays put while the rows scroll under it
+	render_search(step) {
+		this.search_bar.replaceChildren();
+		this.search_bar.hidden = !step.search;
+		if (!step.search) return;
+		if (!step._search) {
+			const input = document.createElement("input");
+			input.type = "search";
+			input.className = "form-control";
+			input.placeholder = typeof step.search === "string" ? step.search : __("Search");
+			input.setAttribute("aria-label", input.placeholder);
+			input.addEventListener("input", () => filter_options(step._el, input.value));
+			step._search = input;
+		}
+		this.search_bar.append(step._search);
 	}
 
 	build_step_body(step) {

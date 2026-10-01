@@ -1407,7 +1407,7 @@ class FilterArea {
 
 	make_filter_list() {
 		const $selector = $(
-			`<div class="filter-selector"><div class="flex items-center"></div></div>`
+			`<div class="filter-selector flex items-center gap-1"><div class="flex items-center"></div></div>`
 		).appendTo(this.$filter_list_wrapper);
 
 		this.filter_button = frappe.ui.button({

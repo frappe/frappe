@@ -171,7 +171,8 @@ frappe.ui.Filter = class {
 			select: (doctype, fieldname) => {
 				if (this.set_field(doctype, fieldname) === false) return;
 				this.on_change();
-				this.focus_value();
+				// on phones focus would pop the keyboard up over the sheet
+				if (!frappe.is_mobile()) this.focus_value();
 			},
 		});
 
@@ -274,9 +275,17 @@ frappe.ui.Filter = class {
 		this.filter_edit_area.find(".filter-prefix").text(text);
 	}
 
-	// a row without a field yet shows only the picker
+	// a row without a field yet keeps its shape: condition and value wait, greyed, for one
 	toggle_controls(show) {
 		this.filter_edit_area.toggleClass("is-empty", !show);
+		this.$condition.prop("disabled", !show);
+		if (!show) {
+			const $value = $('<input class="form-control" disabled>').attr({
+				placeholder: __("Value"),
+				"aria-label": __("Value"),
+			});
+			this.filter_edit_area.find(".filter-field").empty().append($value);
+		}
 	}
 
 	is_empty() {
@@ -373,6 +382,14 @@ frappe.ui.Filter = class {
 			df.parent == cur.parent &&
 			df.options == cur.options
 		) {
+			// same box, but its hint follows the condition (Like → Equals → In)
+			if (!this.field.df.dynamic_link_hint) {
+				this.field.df.placeholder = this.get_placeholder(
+					this.field.df,
+					this.get_condition()
+				);
+				this.field.$input?.attr("placeholder", this.field.df.placeholder);
+			}
 			return;
 		}
 
@@ -464,10 +481,17 @@ frappe.ui.Filter = class {
 		if (["like", "not like"].includes(condition)) {
 			return __("Text to match, % as wildcard");
 		}
-		if (["Select", "MultiSelect", "MultiSelectList"].includes(df.fieldtype)) {
-			return __("Select");
-		}
-		if (df.fieldtype === "Data") return __("Value");
+		if (condition === "is") return __("Select");
+		if (condition === "Timespan") return __("Select period");
+		if (df.fieldtype === "DateRange") return __("Select date range");
+		if (["Date", "Datetime"].includes(df.fieldtype)) return __("Select date");
+		if (df.fieldtype === "Time") return __("Select time");
+		// named after the field, so an empty box says what goes in it
+		const label = df.label ? __(df.label, null, df.parent) : "";
+		const pick = ["Link", "Dynamic Link", "Select", "MultiSelect", "MultiSelectList"];
+		if (pick.includes(df.fieldtype)) return label ? __("Select {0}", [label]) : __("Select");
+		if (numeric || df.fieldtype === "Data")
+			return label ? __("Enter {0}", [label]) : __("Value");
 		return "";
 	}
 

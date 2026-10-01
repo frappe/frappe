@@ -1156,9 +1156,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Steps inside one sheet (push shows Back; Escape goes back first)"),
 					items: [
 						{
-							__code: 'frappe.ui.bottom_sheet({\n  button: { label: "Filter by date", icon: "calendar-range" },\n  title: "Choose field",\n  options: date_fields.map((label) => ({\n    label,\n    // push a step instead of opening a second sheet; false keeps it open\n    onclick: (e, sheet) => {\n      sheet.push({ title: "Condition", subtitle: label, options: conditions });\n      return false;\n    },\n  })),\n})',
+							__code: 'frappe.ui.bottom_sheet({\n  button: { label: "Filter by date", icon: "calendar-range" },\n  title: "Choose field",\n  // a search box above the rows that narrows them\n  search: "Search fields",\n  options: date_fields.map((label) => ({\n    label,\n    // push a step instead of opening a second sheet; false keeps it open\n    onclick: (e, sheet) => {\n      sheet.push({ title: "Condition", subtitle: label, options: conditions });\n      return false;\n    },\n  })),\n})',
 							button: { label: "Filter by date", icon: "calendar-range" },
 							title: "Choose field",
+							search: "Search fields",
 							options: ["Date", "Delivery Date", "Created On"].map((label) => ({
 								label,
 								onclick: (e, sheet) => {

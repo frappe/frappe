@@ -716,7 +716,7 @@ input.list-header-checkbox {
 		justify-content: space-between;
 
 		.filter-selector {
-			margin: 0 0 0 auto;
+			margin: var(--margin-xs) 0 var(--margin-xs) auto;
 		}
 	}
 }

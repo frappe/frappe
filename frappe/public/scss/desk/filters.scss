@@ -28,13 +28,6 @@
 		grid-column: 1 / -1;
 		align-items: center;
 
-		&.is-empty {
-			.filter-condition,
-			.filter-field-area {
-				visibility: hidden;
-			}
-		}
-
 		.filter-prefix {
 			padding-inline-start: var(--padding-xs);
 			text-align: end;
@@ -78,45 +71,208 @@
 	}
 }
 
-@include media-breakpoint-down(xs) {
-	.filter-area {
-		.filter-edit-area {
-			grid-template-columns: 1fr auto;
+// stacked: prefix and remove on one line, the three controls below
+@mixin stacked-filter-rows {
+	.filter-edit-area {
+		grid-template-columns: 1fr auto;
+	}
+
+	.filter-box {
+		grid-template-columns: 1fr auto;
+		row-gap: calc(var(--spacing) * 1.5);
+
+		.filter-prefix {
+			min-width: 0;
+			padding: 0;
+			text-align: start;
 		}
 
-		// stacked: prefix and remove on one line, the three controls below
-		.filter-box {
-			grid-template-columns: 1fr auto;
-			row-gap: calc(var(--spacing) * 1.5);
+		.filter-remove {
+			grid-column: 2;
+			grid-row: 1;
+		}
 
-			.filter-prefix {
-				min-width: 0;
-				padding: 0;
-				text-align: start;
-			}
+		.fieldname-select-area,
+		.filter-condition,
+		.filter-field-area {
+			grid-column: 1 / -1;
+		}
 
-			.filter-remove {
-				grid-column: 2;
-				grid-row: 1;
-			}
-
-			.fieldname-select-area,
+		&.is-empty {
 			.filter-condition,
 			.filter-field-area {
-				grid-column: 1 / -1;
-			}
-
-			&.is-empty {
-				.filter-condition,
-				.filter-field-area {
-					display: none;
-				}
+				display: none;
 			}
 		}
+	}
 
-		.empty-filters {
-			padding-inline: 0;
+	.empty-filters {
+		padding-inline: 0;
+	}
+}
+
+@include media-breakpoint-down(xs) {
+	.filter-area {
+		@include stacked-filter-rows;
+	}
+}
+
+// the phone sheet's edit step: a row's controls stacked at touch size
+.es-bottom-sheet .filter-area {
+	@include stacked-filter-rows;
+
+	.filter-edit-area {
+		row-gap: calc(var(--spacing) * 5);
+	}
+
+	.filter-box {
+		.es-combobox,
+		.filter-field .form-control {
+			height: calc(var(--spacing) * 10);
+			font-size: var(--text-lg);
 		}
+
+		.condition {
+			--es-bt-h: calc(var(--spacing) * 10);
+			font-size: var(--text-lg);
+		}
+
+		// stacked, the three chevrons line up with the condition button's
+		.es-combobox {
+			padding-inline-end: calc(var(--spacing) * 2);
+		}
+
+		// the Select icon is placed for a 28px box; centre it in the taller one
+		.select-icon {
+			top: 0;
+			bottom: 0;
+			right: calc(var(--spacing) * 2);
+			display: flex;
+			align-items: center;
+		}
+
+		// so is its placeholder
+		.placeholder {
+			top: 0;
+			bottom: 0;
+			left: calc(var(--spacing) * 2);
+			padding: 0;
+			display: flex;
+			align-items: center;
+			font-size: var(--text-lg);
+		}
+	}
+
+	// Add filter and Clear all live in the sheet's footer and header
+	.filter-action-buttons {
+		display: none;
+	}
+}
+
+.es-bottom-sheet {
+	// a filled button, so it lines up with the rows; the header's inset is for ghost icons
+	.filter-sheet-clear {
+		margin-inline-end: calc(var(--spacing) * 2);
+	}
+
+	// nothing to clear while every row is still empty
+	&:not(:has(.filter-area .filter-box:not(.is-empty))) .filter-sheet-clear {
+		display: none;
+	}
+}
+
+// the phone sheet lists each filter as one line; the rows' own controls stay out of
+// sight until one is edited
+.es-bottom-sheet .filter-sheet > .filter-area {
+	display: none;
+}
+
+.filter-sheet-row {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	min-height: calc(var(--spacing) * 15);
+
+	& + & {
+		border-top: 1px solid var(--outline-gray-1);
+	}
+
+	&__edit {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: calc(var(--spacing) * 0.5);
+		padding-block: calc(var(--spacing) * 2.5);
+		border: 0;
+		background: transparent;
+		text-align: start;
+		color: var(--ink-gray-8);
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	&__field {
+		font-size: var(--text-lg);
+		font-weight: var(--font-weight-medium);
+	}
+
+	&__rule {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		font-size: var(--text-base);
+	}
+
+	&__condition,
+	&__value--empty {
+		color: var(--ink-gray-5);
+	}
+}
+
+.filter-sheet-empty {
+	margin: 0;
+	padding-block: calc(var(--spacing) * 6);
+	text-align: center;
+	color: var(--ink-gray-5);
+}
+
+// the edit step: each control under its label; Remove is in the footer. A new filter
+// shows all three, the condition and value waiting for a field
+.es-bottom-sheet .filter-area.filter-sheet-edit .filter-box.is-empty {
+	.filter-condition,
+	.filter-field-area {
+		display: block;
+	}
+}
+
+.filter-sheet-edit {
+	.filter-prefix,
+	.filter-remove {
+		display: none;
+	}
+
+	.fieldname-select-area,
+	.filter-condition,
+	.filter-field-area {
+		&::before {
+			content: attr(data-label);
+			display: block;
+			margin-bottom: calc(var(--spacing) * 1.5);
+			font-size: var(--text-sm);
+			color: var(--ink-gray-5);
+		}
+	}
+}
+
+// the calendar step: full width with touch-size days; the sheet is its surface
+.es-bottom-sheet .filter-calendar .datepicker {
+	width: 100%;
+	border: 0;
+	box-shadow: none;
+
+	.datepicker--cell {
+		height: calc(var(--spacing) * 11);
+		font-size: var(--text-lg);
 	}
 }
 

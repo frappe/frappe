@@ -1,5 +1,7 @@
-// A list of filter rows, in a popover on `filter_button` or in place in
-// `parent` (dialogs, form fields). A row applies as soon as it is complete.
+// A list of filter rows, in a popover on `filter_button` (a bottom sheet on
+// phones) or in place in `parent` (dialogs, form fields). A row applies as soon
+// as it is complete; in the sheet, on Apply.
+
 frappe.ui.FilterGroup = class {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -33,24 +35,361 @@ frappe.ui.FilterGroup = class {
 		});
 		this.set_clear_all_filters_event();
 
+		// the button picks the panel or, on phones, the bottom sheet on every click
+		this.popover.trigger_el.removeEventListener("click", this.popover.ontriggerclick);
+		this.filter_button[0].addEventListener("click", (e) => {
+			e.preventDefault();
+			frappe.is_mobile() ? this.open_sheet() : this.popover.toggle();
+		});
+		this.intercept_row_pickers();
+
 		frappe.router.on("change", () => this.hide_popover());
+	}
+
+	open_sheet() {
+		if (!this.sheet)
+			this.sheet = new frappe.ui.BottomSheet({
+				title: __("Filters"),
+				content: () => this.get_sheet_content(),
+				on_show: () => this.render_sheet_rows(),
+				header_action: {
+					label: __("Clear all"),
+					variant: "subtle",
+					size: "md",
+					css_class: "filter-sheet-clear",
+					onclick: () => {
+						this.sheet.close("action");
+						this.clear_all();
+					},
+				},
+				// in the footer, so Add filter stays in reach however long the list gets
+				actions: [
+					{
+						label: __("Add filter"),
+						icon: "plus",
+						onclick: () => {
+							this.add_sheet_filter();
+							return false;
+						},
+					},
+					{ label: __("Apply"), variant: "solid", onclick: () => this.apply_sheet() },
+				],
+				on_open: () => this.on_sheet_open(),
+				on_close: (reason) => this.on_sheet_close(reason),
+			});
+		this.sheet.open();
+	}
+
+	// the list behind is hidden by the sheet, so edits wait for Apply
+	on_sheet_open() {
+		this.applied_filters = JSON.stringify(this.get_filters());
+		this.staged = true;
+	}
+
+	apply_sheet() {
+		this.staged = false;
+		// toolbar rows write back to their boxes; the rest is one change
+		this.filters.filter((f) => f.standard_field).forEach((f) => this.sync_to_toolbar(f));
+		this.update_filters();
+		this.apply_changes();
+	}
+
+	on_sheet_close(reason) {
+		this.staged = false;
+		if (reason === "action") {
+			this.drop_standard_rows();
+			this.update_filters();
+			return;
+		}
+		// closed without Apply: the rows go back to what's applied
+		const applied = JSON.parse(this.applied_filters || "[]");
+		this.filters.forEach((f) => f.remove());
+		this.filters = [];
+		this.add_filters(applied);
+	}
+
+	// in the sheet, a row's field and condition pickers open as steps, not dropdowns
+	intercept_row_pickers(root = this.wrapper[0]) {
+		const pick = (e) => {
+			if (!this.sheet?.is_open) return;
+			if (e.type === "keydown" && !["Enter", " ", "ArrowDown", "ArrowUp"].includes(e.key)) {
+				return;
+			}
+			const on_field = e.target.closest(".fieldname-select-area .es-combobox");
+			const on_condition = !on_field && e.target.closest(".filter-condition .condition");
+			const filter =
+				(on_field || on_condition) &&
+				this.filters.find((f) => f.filter_edit_area[0].contains(e.target));
+			if (!filter) return;
+			e.preventDefault();
+			e.stopPropagation();
+			on_field ? this.pick_field_step(filter) : this.pick_condition_step(filter);
+		};
+		root.addEventListener("click", pick, true);
+		root.addEventListener("keydown", pick, true);
+
+		// a date value opens a calendar step: the popup calendar would hang off the
+		// screen and the text box would raise the keyboard over it
+		const date_filter = (e) => {
+			const input = this.sheet?.is_open && e.target.closest(".filter-field input");
+			const filter =
+				input && this.filters.find((f) => f.filter_edit_area[0].contains(input));
+			return ["Date", "DateRange"].includes(filter?.field?.df.fieldtype) && filter;
+		};
+		root.addEventListener(
+			"pointerdown",
+			(e) => {
+				if (!date_filter(e)) return;
+				e.target.setAttribute("inputmode", "none");
+				e.preventDefault();
+			},
+			true
+		);
+		root.addEventListener(
+			"click",
+			(e) => {
+				const filter = date_filter(e);
+				if (!filter) return;
+				e.preventDefault();
+				e.stopPropagation();
+				e.target.blur();
+				filter.field.datepicker.hide();
+				this.pick_date_step(filter);
+			},
+			true
+		);
+	}
+
+	pick_field_step(filter) {
+		const combobox = filter.fieldselect.combobox;
+		const current = combobox.get_value();
+		const to_row = (option) => ({
+			label: option.label,
+			selected: option.value === current,
+			onclick: () => {
+				this.sheet.pop();
+				if (option.value !== current) combobox.set_value(option.value, { silent: false });
+				return false;
+			},
+		});
+		const options = filter.fieldselect
+			.get_combobox_options()
+			.map((entry) =>
+				entry.group
+					? { group: entry.group, options: entry.options.map(to_row) }
+					: to_row(entry)
+			);
+		this.sheet.push({
+			title: __("Choose field"),
+			search: __("Search fields"),
+			options,
+		});
+	}
+
+	pick_date_step(filter) {
+		const field = filter.field;
+		const range = field.df.fieldtype === "DateRange";
+		const calendar = document.createElement("div");
+		calendar.className = "filter-calendar";
+		let ready = false;
+		const picker = $(calendar)
+			.datepicker({
+				...field.datepicker_options,
+				inline: true,
+				onShow: null,
+				onSelect: (formatted, dates) => {
+					if (!ready || (range && dates.length < 2)) return;
+					this.sheet.pop();
+					// through the field's own picker, so the value is set as a popup pick sets it
+					field.datepicker.selectDate(dates);
+				},
+			})
+			.data("datepicker");
+		// the value, not the popup's selection: a value restored on load never went through it
+		const current = [].concat(field.get_value() || []).filter(Boolean);
+		picker.selectDate(current.map((date) => frappe.datetime.str_to_obj(date)));
+		ready = true;
+		this.sheet.push({
+			title: range ? __("Choose dates") : __("Choose date"),
+			subtitle: __(field.df.label),
+			content: calendar,
+		});
+	}
+
+	// The sheet shows each filter as one line; the controls of the one being edited
+	// are borrowed into an Edit filter step and put back when the list shows again.
+	get_sheet_content() {
+		this.get_popover_content();
+		this.$sheet_rows = $('<div class="filter-sheet-rows"></div>');
+		return $('<div class="filter-sheet"></div>').append(this.$sheet_rows, this.wrapper)[0];
+	}
+
+	render_sheet_rows() {
+		this.return_edited_row();
+		if (!this.$sheet_rows) return;
+		const filters = this.filters.filter((f) => f.field);
+		this.$sheet_rows.empty();
+		if (!filters.length) {
+			this.$sheet_rows.append(
+				$('<p class="filter-sheet-empty"></p>').text(__("No filters applied"))
+			);
+			return;
+		}
+		filters.forEach((filter) => this.$sheet_rows.append(this.make_sheet_row(filter)));
+		// a Link value (a toolbar filter just restored) sets asynchronously; redraw once it lands
+		this.awaited_values = this.awaited_values || new WeakSet();
+		const pending = filters
+			.map((f) => f._filter_value_set)
+			.filter((p) => p && !this.awaited_values.has(p));
+		pending.forEach((p) => this.awaited_values.add(p));
+		if (pending.length) {
+			Promise.allSettled(pending).then(() => {
+				if (this.sheet?.is_open && !this.editing) this.render_sheet_rows();
+			});
+		}
+	}
+
+	make_sheet_row(filter) {
+		const $row = $(`<div class="filter-sheet-row">
+			<button type="button" class="filter-sheet-row__edit">
+				<span class="filter-sheet-row__field"></span>
+				<span class="filter-sheet-row__rule"><span class="filter-sheet-row__condition"></span> <span class="filter-sheet-row__value"></span></span>
+			</button>
+		</div>`);
+		const value = this.get_sheet_value(filter);
+		$row.find(".filter-sheet-row__field").text(
+			__(filter.field.df.label, null, filter.field.df.parent)
+		);
+		$row.find(".filter-sheet-row__condition").text(
+			filter.get_condition_label(filter.get_condition())
+		);
+		$row.find(".filter-sheet-row__value")
+			.text(value || __("No value"))
+			.toggleClass("filter-sheet-row__value--empty", !value);
+		$row.find(".filter-sheet-row__edit").on("click", () => this.edit_sheet_filter(filter));
+		$row.append(
+			frappe.ui.button({
+				icon: "x",
+				variant: "ghost",
+				title: __("Remove filter"),
+				onclick: () => {
+					filter.remove();
+					filter.on_change();
+					this.render_sheet_rows();
+				},
+			})
+		);
+		return $row;
+	}
+
+	// the value as text: "Paid", "Acme, Globex", "01-01-2026 to 31-01-2026"
+	get_sheet_value(filter) {
+		let value = filter.get_selected_value();
+		if (typeof value === "string") value = value.replace(/^%+|%+$/g, "");
+		const values = [].concat(value ?? []).filter((v) => v !== "" && v != null);
+		const label = values.length === 1 && filter.get_selected_label();
+		if (label) return label;
+		// a range's field is a DateRange, which the formatter leaves as stored
+		const is_range = filter.field.df.fieldtype === "DateRange";
+		const texts = values.map((v) =>
+			is_range
+				? frappe.datetime.str_to_user(v)
+				: strip_html(frappe.ui.filter_utils.get_formatted_value(filter.field, v))
+		);
+		if (filter.get_condition() === "Between" && texts.length === 2) {
+			return __("{0} to {1}", texts);
+		}
+		return texts.join(", ");
+	}
+
+	add_sheet_filter() {
+		const filter = this.add_new_filter({ open_picker: false });
+		this.edit_sheet_filter(filter, { is_new: true });
+	}
+
+	edit_sheet_filter(filter, { is_new = false } = {}) {
+		if (!this.$sheet_edit) {
+			this.$sheet_edit = $(
+				'<div class="filter-area filter-sheet-edit"><div class="filter-edit-area"></div></div>'
+			);
+			this.intercept_row_pickers(this.$sheet_edit[0]);
+		}
+		this.return_edited_row();
+		const $area = filter.filter_edit_area;
+		const placeholder = document.createComment("");
+		$area.before(placeholder);
+		this.editing = { filter, placeholder };
+		$area.find(".fieldname-select-area").attr("data-label", __("Field"));
+		$area.find(".filter-condition").attr("data-label", __("Condition"));
+		$area.find(".filter-field-area").attr("data-label", __("Value"));
+		this.$sheet_edit.find(".filter-edit-area").append($area);
+		this.sheet.push({
+			title: is_new ? __("New filter") : __("Edit filter"),
+			content: this.$sheet_edit[0],
+			actions: [
+				{
+					label: __("Remove"),
+					theme: "red",
+					onclick: () => {
+						filter.remove();
+						filter.on_change();
+						this.sheet.pop();
+						return false;
+					},
+				},
+				{
+					label: __("Done"),
+					variant: "solid",
+					onclick: () => {
+						this.sheet.pop();
+						return false;
+					},
+				},
+			],
+		});
+	}
+
+	// puts the borrowed controls back in their place among the rows; a removed filter stays out
+	return_edited_row() {
+		if (!this.editing) return;
+		const { filter, placeholder } = this.editing;
+		this.editing = null;
+		if (filter.field && placeholder.parentNode) {
+			placeholder.replaceWith(filter.filter_edit_area[0]);
+		}
+		placeholder.remove();
+	}
+
+	pick_condition_step(filter) {
+		const options = filter.get_condition_options().map((option) => ({
+			...option,
+			onclick: () => {
+				this.sheet.pop();
+				option.onclick();
+				return false;
+			},
+		}));
+		const subtitle = filter.field ? __(filter.field.df.label) : "";
+		this.sheet.push({ title: __("Condition"), subtitle, options });
 	}
 
 	set_clear_all_filters_event() {
 		if (!this.filter_x_button) return;
 
-		this.filter_x_button.on("click", () => {
-			this.toggle_empty_filters(true);
-			if (typeof this.base_list !== "undefined") {
-				// It's a list view. Clear all the filters, also the ones in the
-				// FilterArea outside this FilterGroup
-				this.base_list.filter_area.clear();
-			} else {
-				// Not a list view, just clear the filters in this FilterGroup
-				this.clear_filters();
-			}
-			this.update_filter_button();
-		});
+		this.filter_x_button.on("click", () => this.clear_all());
+	}
+
+	clear_all() {
+		this.toggle_empty_filters(true);
+		if (typeof this.base_list !== "undefined") {
+			// It's a list view. Clear all the filters, also the ones in the
+			// FilterArea outside this FilterGroup
+			this.base_list.filter_area.clear();
+		} else {
+			// Not a list view, just clear the filters in this FilterGroup
+			this.clear_filters();
+		}
+		this.update_filter_button();
 	}
 
 	// rows go in before the panel is measured, so it opens at its final size
@@ -202,12 +541,15 @@ frappe.ui.FilterGroup = class {
 	// a row with no field yet; its picker opens so the first click lands on a field
 	add_new_filter({ open_picker = true } = {}) {
 		this.toggle_empty_filters(false);
-		let filter = this.filters.find((f) => f.is_empty());
+		// a removed row has no field either, but it's no longer in the panel
+		let filter = this.filters.find((f) => f.is_empty() && f.filter_edit_area.parent().length);
 		if (!filter) {
 			filter = this._push_new_filter(this.doctype, null);
 			this.refresh_prefixes();
 		}
-		open_picker && filter.fieldselect.open();
+		if (open_picker) {
+			this.sheet?.is_open ? this.pick_field_step(filter) : filter.fieldselect.open();
+		}
 		return filter;
 	}
 
@@ -281,6 +623,7 @@ frappe.ui.FilterGroup = class {
 				if (update) this.update_filters();
 				this.refresh_dynamic_link_filters();
 				this.refresh_prefixes();
+				if (this.staged) return;
 				if (filter?.standard_field) return this.sync_to_toolbar(filter);
 				this.apply_changes();
 			},
@@ -340,6 +683,8 @@ frappe.ui.FilterGroup = class {
 
 	// toolbar rows are left out: the list reads those from the toolbar boxes
 	get_filters() {
+		// while the sheet holds edits, the list (refreshed for any reason) reads what's applied
+		if (this.staged) return JSON.parse(this.applied_filters || "[]");
 		return this.filters
 			.filter((f) => !f.standard_field && this.is_complete(f))
 			.map((f) => f.get_value());
