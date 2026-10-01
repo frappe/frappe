@@ -105,7 +105,7 @@ export default class GridImport {
 
 	show() {
 		this.state = {
-			import_type: UPSERT,
+			import_type: INSERT,
 			headers: [],
 			rows: [],
 			row_numbers: [],
