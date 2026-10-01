@@ -233,20 +233,19 @@ const codeErrors = computed(() =>
 	inRow ? [] : (hostErrors?.value ?? []).filter((e) => e.field === props.field.fieldname)
 );
 const markGutter = shallowRef<Extension[]>([]);
-let marked = false;
 
 async function showCodeErrors(errors: typeof codeErrors.value) {
-	if (!errors.length && !marked) return;
+	if (!errors.length && !markGutter.value.length) return;
 	try {
 		const lint = await import("@codemirror/lint");
-		if (errors.length && !markGutter.value.length) {
-			markGutter.value = [lint.lintGutter()];
+		// `linter(null)` keeps the marks in the config; the editor's reconfigure drops them otherwise.
+		if (!markGutter.value.length) {
+			markGutter.value = [lint.lintGutter(), lint.linter(null)];
 			await nextTick();
 		}
 		const view = editor.value?.editor;
-		if (!view) return;
+		if (!view || errors !== codeErrors.value) return;
 		markCodeErrors(view, errors, lint);
-		marked = errors.length > 0;
 	} catch (error) {
 		console.error(error);
 	}

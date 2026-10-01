@@ -3,7 +3,7 @@ import { forEachDiagnostic } from "@codemirror/lint";
 import { Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, ref, type App } from "vue";
+import { createApp, h, nextTick, reactive, ref, type App } from "vue";
 import type { CodeError } from "../../../api/envelope";
 import CodeEditorField from "../CodeEditorField.vue";
 import { diagnosticsFor } from "../codeErrorMarks";
@@ -30,7 +30,7 @@ afterEach(() => {
 
 async function mountField(errors: CodeError[], inRow = false) {
   const codeErrors = ref<CodeError[]>(errors);
-  const field = { fieldname: "script", fieldtype: "Code", label: "Script" };
+  const field = reactive({ fieldname: "script", fieldtype: "Code", label: "Script", placeholder: "" });
   host = document.body.appendChild(document.createElement("div"));
   app = createApp({ render: () => h(CodeEditorField, { field, modelValue: SCRIPT }) });
   app.provide(CodeErrorsKey, codeErrors);
@@ -38,7 +38,7 @@ async function mountField(errors: CodeError[], inRow = false) {
   app.mount(host);
   await nextTick();
   const view = EditorView.findFromDOM(host.querySelector(".cm-editor") as HTMLElement)!;
-  return { codeErrors, view };
+  return { codeErrors, field, view };
 }
 
 function marks(view: EditorView) {
@@ -68,6 +68,22 @@ describe("Code field compile errors", () => {
 
     codeErrors.value = [];
     await vi.waitFor(() => expect(marks(view)).toEqual([]));
+  });
+
+  it("keeps the marks when the editor's extensions change", async () => {
+    const { field, view } = await mountField([ERROR]);
+    await vi.waitFor(() => expect(marks(view)).toHaveLength(1));
+
+    field.placeholder = "Write a script";
+    await nextTick();
+    expect(marks(view)).toEqual([{ from: AT, message: ERROR.message }]);
+  });
+
+  it("does not bring back marks a quick second save cleared", async () => {
+    const { codeErrors, view } = await mountField([ERROR]);
+    codeErrors.value = [];
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(marks(view)).toEqual([]);
   });
 
   it("marks only the field the error names", async () => {

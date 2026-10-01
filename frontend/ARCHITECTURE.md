@@ -177,7 +177,7 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 
 | Concept | What it is |
 | --- | --- |
-| Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`, `CodeError`) | Every `/api/v2` reply is `{ data }`; every failure is one error class. A compile error carries `codeErrors`: the field, line, column and message of each error in a Code field's text |
+| Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`, `CodeError`) | *Changed.* Every `/api/v2` reply is `{ data }`; every failure is one error class. A compile error carries `codeErrors`: the field, line, column and message of each error in a Code field's text |
 | Request transport (`request`, `apiUrl`, `requestHeaders`) | The one fetch wrapper for `/api/v2`. Takes the CSRF token as a documented input or finds it itself |
 | Document calls (`getDocument`, `getDocumentFields`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | Read and write one record or a list. `getDocumentFields` reads some fields of one record and makes no list entry |
 | Method calls (`runMethod`, `runDocumentMethod`) | Call a whitelisted method, or a method on one document |
@@ -213,7 +213,7 @@ component group, with its main names.
 | Child rows (`useChildRowModel`, `newRowValues`) | The rows of a child table field, and a new row's default values |
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
-| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`) | How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks |
+| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks |
 | `TemplateNamesKey` | The component names a `template:` string can use with no `components:` entry. The Code field completes them. With no value, it completes Vue's built-in components only |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
 | `Link`, `Grid`, `Phone`, `TableMultiSelect` | Field controls with their own pickers and tables |

@@ -823,8 +823,11 @@ async function write() {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
 	const visit = currentVisit;
+	const sent = { ...doc.value };
 	codeErrors.value = [];
-	const document = await saveRecord(doctype.value!, doc.value).catch(rethrowSaveError);
+	const document = await saveRecord(doctype.value!, doc.value).catch((e) =>
+		rethrowSaveError(e, visit, sent)
+	);
 	if (!visit.current()) return;
 	saved.value = { ...document };
 	doc.value = JSON.parse(JSON.stringify(document));
@@ -836,21 +839,30 @@ async function write() {
 
 // A conflict is resolved with the reader, and compile errors are listed and marked; any other
 // refusal reads as text, since a msgprint is often HTML.
-async function rethrowSaveError(e: unknown): Promise<never> {
+async function rethrowSaveError(
+	e: unknown,
+	visit: Visit,
+	sent: Record<string, any>
+): Promise<never> {
 	if (isApiError(e) && e.isTimestampMismatch) {
 		await resolveConflict();
 		throw conflictError();
 	}
 	if (isApiError(e) && e.codeErrors?.length) {
-		codeErrors.value = e.codeErrors;
-		void controller.value?.page.dialog.open(
-			CodeErrorsDialog,
-			{ frames: codeErrorFrames(e.codeErrors, doc.value, meta.value?.fields) },
-			{ title: e.title || __("This code does not compile"), size: "2xl" }
-		);
+		if (visit.current()) showCodeErrors(e.codeErrors, sent, e.title);
 		throw codeErrorsError(e.message);
 	}
 	throw isApiError(e) ? new Error(stripTags(e.message)) : e;
+}
+
+// The frames read the draft the server compiled, which the reader may have edited since.
+function showCodeErrors(errors: CodeError[], sent: Record<string, any>, title?: string) {
+	codeErrors.value = errors;
+	void controller.value?.page.dialog.open(
+		CodeErrorsDialog,
+		{ frames: codeErrorFrames(errors, sent, meta.value?.fields) },
+		{ title: title || __("This code does not compile"), size: "2xl" }
+	);
 }
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
