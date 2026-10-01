@@ -122,6 +122,7 @@ class BaseDocument:
 			"_doc_before_save",
 			"_table_fieldnames",
 			"_reserved_keywords",
+			"_action",
 			"permitted_fieldnames",
 			"dont_update_if_missing",
 		)
@@ -1345,30 +1346,3 @@ def _filter(data, filters, limit=None):
 				break
 
 	return out
-<<<<<<< HEAD
-=======
-
-
-CACHED_PROPERTIES = tuple(
-	prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property)
-)
-
-UNPICKLABLE_KEYS = frozenset(
-	(
-		"_parent_doc",
-		*CACHED_PROPERTIES,
-	)
-)
-
-RESERVED_KEYWORDS = frozenset(
-	(
-		"doctype",
-		"flags",
-		"_parent_doc",
-		"_doc_before_save",
-		"_action",
-		"dont_update_if_missing",
-		*CACHED_PROPERTIES,
-	)
-)
->>>>>>> 77b59f8 (fix(base_document): add _action into RESERVED_KEYWORDS)
