@@ -140,11 +140,12 @@ import {
 	isApiError,
 	removeFavourite,
 	removeFollow,
+	type CodeError,
 	type Envelope,
 } from "@framework/ui/api";
 import { documentKey } from "@framework/ui/cache";
 import { FormLayout } from "@framework/ui/components/FormLayout";
-import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
+import { CodeErrorsKey, CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
@@ -188,6 +189,7 @@ import {
 	RecordFeedsKey,
 	withFeedRead,
 } from "./record/feed/recordFeeds";
+import CodeErrorsDialog from "./record/dialogs/CodeErrorsDialog.vue";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import RecordUploadDialog from "./record/feed/RecordUploadDialog.vue";
 import { formTabMemory } from "./record/formTabMemory";
@@ -217,7 +219,14 @@ import { mergeRefetch, same } from "./record/refetchMerge";
 import { recallView, viewKeeper, type RecordView } from "./record/viewMemory";
 import { Visit } from "./record/visit";
 import { landOffsets, readOffsets } from "./record/viewScroll";
-import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "./record/saveResponse";
+import { codeErrorFrames } from "./record/codeErrorFrames";
+import {
+	changedFields,
+	codeErrorsError,
+	conflictError,
+	shownInDialog,
+	stripTags,
+} from "./record/saveResponse";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
@@ -232,6 +241,7 @@ const saved = ref<Record<string, any>>({});
 const meta = ref<any>(null);
 const docinfo = ref<DocInfo | null>(null);
 const linkTitles = ref<Record<string, string>>({});
+const codeErrors = ref<CodeError[]>([]);
 const error = ref("");
 const controller = shallowRef<RecordPageController | null>(null);
 const painted = computed(() => (controller.value?.ready.value ? controller.value : null));
@@ -373,6 +383,7 @@ useLiveClientScripts({
 });
 
 provide(LinkTitlesKey, linkTitles);
+provide(CodeErrorsKey, codeErrors);
 
 // One channel for the form and the panel, forwarded so it follows the controller across loads.
 provide(CommitKey, {
@@ -502,6 +513,7 @@ async function load({ fromMemory = false } = {}) {
 	keeper = viewKeeper(target.doctype, target.name);
 	keeping = false;
 	error.value = "";
+	codeErrors.value = [];
 	live.follow(target.doctype, target.name);
 
 	// Blanked before the fetch: the heading changes synchronously, and the old controller's quick
@@ -811,7 +823,11 @@ async function write() {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
 	const visit = currentVisit;
-	const document = await saveRecord(doctype.value!, doc.value).catch(rethrowSaveError);
+	const sent = { ...doc.value };
+	codeErrors.value = [];
+	const document = await saveRecord(doctype.value!, doc.value).catch((e) =>
+		rethrowSaveError(e, visit, sent)
+	);
 	if (!visit.current()) return;
 	saved.value = { ...document };
 	doc.value = JSON.parse(JSON.stringify(document));
@@ -821,13 +837,32 @@ async function write() {
 	actionsVersion.value++;
 }
 
-// A conflict is resolved with the reader; any other refusal reads as text, since a msgprint is often HTML.
-async function rethrowSaveError(e: unknown): Promise<never> {
+// A conflict is resolved with the reader, and compile errors are listed and marked; any other
+// refusal reads as text, since a msgprint is often HTML.
+async function rethrowSaveError(
+	e: unknown,
+	visit: Visit,
+	sent: Record<string, any>
+): Promise<never> {
 	if (isApiError(e) && e.isTimestampMismatch) {
 		await resolveConflict();
 		throw conflictError();
 	}
+	if (isApiError(e) && e.codeErrors?.length) {
+		if (visit.current()) showCodeErrors(e.codeErrors, sent, e.title);
+		throw codeErrorsError(e.message);
+	}
 	throw isApiError(e) ? new Error(stripTags(e.message)) : e;
+}
+
+// The frames read the draft the server compiled, which the reader may have edited since.
+function showCodeErrors(errors: CodeError[], sent: Record<string, any>, title?: string) {
+	codeErrors.value = errors;
+	void controller.value?.page.dialog.open(
+		CodeErrorsDialog,
+		{ frames: codeErrorFrames(errors, sent, meta.value?.fields) },
+		{ title: title || __("This code does not compile"), size: "2xl" }
+	);
 }
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
@@ -854,7 +889,7 @@ async function runSave() {
 	try {
 		await controller.value?.page.save();
 	} catch (e) {
-		if ((e as Error)?.name !== SAVE_CONFLICT) toast.error(errorMessage(e));
+		if (!shownInDialog(e)) toast.error(errorMessage(e));
 	}
 }
 
@@ -866,7 +901,7 @@ async function runAction(action: QuickAction | HeaderItem) {
 		await current.hold(() => action.run?.(current.page));
 	} catch (e) {
 		const name = (e as Error)?.name;
-		if (name === SAVE_CONFLICT) return;
+		if (shownInDialog(e)) return;
 		toast.error(errorMessage(e));
 		if (name !== SAVE_VETO) await load();
 	}

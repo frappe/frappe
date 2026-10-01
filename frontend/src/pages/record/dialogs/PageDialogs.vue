@@ -10,9 +10,14 @@
 </template>
 
 <script setup lang="ts">
+import { provide } from "vue";
+import { CodeErrorsKey } from "@framework/ui/components/Fields/types";
 import type { RecordPageController } from "@/recordPage";
 import PageFormDialog from "./PageFormDialog.vue";
 import PageOpenDialog from "./PageOpenDialog.vue";
 
 defineProps<{ controller: RecordPageController }>();
+
+// A dialog's form is not the record's, so the record's compile errors stop here.
+provide(CodeErrorsKey, null);
 </script>

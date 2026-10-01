@@ -1,6 +1,13 @@
 // What the page makes of a failed save: the message it shows and the fields the reader would lose.
 import { describe, expect, it } from "vitest";
-import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "../saveResponse";
+import {
+  changedFields,
+  codeErrorsError,
+  conflictError,
+  SAVE_CONFLICT,
+  shownInDialog,
+  stripTags,
+} from "../saveResponse";
 
 const FIELDS = [
   { fieldname: "status", fieldtype: "Select", label: "Status" },
@@ -41,5 +48,14 @@ describe("changedFields", () => {
 describe("conflictError", () => {
   it("carries the name the save path suppresses its message under", () => {
     expect(conflictError().name).toBe(SAVE_CONFLICT);
+  });
+});
+
+describe("shownInDialog", () => {
+  it("is true for a conflict and for code errors, which a dialog has told the reader", () => {
+    expect(shownInDialog(conflictError())).toBe(true);
+    expect(shownInDialog(codeErrorsError("Line 3"))).toBe(true);
+    expect(shownInDialog(new Error("Amount is required"))).toBe(false);
+    expect(shownInDialog(null)).toBe(false);
   });
 });

@@ -5,6 +5,15 @@ import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
 /** The name a save rejected for a conflict throws under; the dialog has already told the reader. */
 export const SAVE_CONFLICT = "SaveConflict";
 
+/** The name a save rejected for compile errors throws under; the dialog has listed them. */
+export const SAVE_CODE_ERRORS = "SaveCodeErrors";
+
+/** Whether a dialog has already told the reader why the save failed. */
+export function shownInDialog(error: unknown): boolean {
+  const name = (error as Error | null)?.name;
+  return name === SAVE_CONFLICT || name === SAVE_CODE_ERRORS;
+}
+
 // A msgprint is often HTML; the page renders it as text, so the tags go and a break becomes a space.
 export function stripTags(html: string): string {
   return html
@@ -36,5 +45,11 @@ export function changedFields(
 export function conflictError(): Error {
   const error = new Error("Saved elsewhere; reload to save your changes.");
   error.name = SAVE_CONFLICT;
+  return error;
+}
+
+export function codeErrorsError(message: string): Error {
+  const error = new Error(message);
+  error.name = SAVE_CODE_ERRORS;
   return error;
 }
