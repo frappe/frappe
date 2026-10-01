@@ -21,10 +21,10 @@ export class CachedReads {
 
   /** The value this visit fetched, else the one an earlier visit kept; undefined before either. */
   read(source: string, key: string, fetch: () => unknown) {
-    const id = storeKey(source, key);
+    const id = `${source}\u0000${key}`;
     let read = this.reads.get(id);
     if (!read) {
-      const kept = keptValue(this.doctype, this.docname, id);
+      const kept = keptValue(this.doctype, this.docname, source, key);
       read = { source, key, fetch, value: kept?.value };
       this.reads.set(id, read);
     }
@@ -52,7 +52,7 @@ export class CachedReads {
     return new Promise((resolve) => resolve(read.fetch())).then(
       (value) => {
         read.value = value;
-        keep(storeKey(read.source, read.key), value);
+        keep(read.source, read.key, value);
       },
       (error) => {
         console.warn(
@@ -62,8 +62,4 @@ export class CachedReads {
       },
     );
   }
-}
-
-function storeKey(source: string, key: string) {
-  return `${source}\u0000${key}`;
 }

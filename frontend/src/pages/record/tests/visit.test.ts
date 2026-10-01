@@ -37,6 +37,19 @@ describe("Visit.current", () => {
   });
 });
 
+describe("Visit.signal", () => {
+  it("aborts when the visit ends or the next one starts", () => {
+    const ended = new Visit();
+    ended.end();
+    expect(ended.signal.aborted).toBe(true);
+    expect(ended.current()).toBe(false);
+    const old = new Visit();
+    const next = old.next();
+    expect(old.signal.aborted).toBe(true);
+    expect(next.signal.aborted).toBe(false);
+  });
+});
+
 describe("Visit.readNewest", () => {
   it("lands only the newer of two overlapping reads", async () => {
     const visit = new Visit();
@@ -86,6 +99,19 @@ describe("Visit.readNewest", () => {
     await expect(visit.readNewest(() => Promise.reject(new Error("offline")), land)).rejects.toThrow(
       "offline",
     );
+    expect(land).not.toHaveBeenCalled();
+  });
+
+  it("resolves without landing when ending the visit aborts its read", async () => {
+    const visit = new Visit();
+    const land = vi.fn();
+    const read = (signal: AbortSignal) =>
+      new Promise<string>((_, reject) => {
+        signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    const landing = visit.readNewest(read, land);
+    visit.end();
+    await expect(landing).resolves.toBeUndefined();
     expect(land).not.toHaveBeenCalled();
   });
 

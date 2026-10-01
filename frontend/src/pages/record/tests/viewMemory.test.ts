@@ -13,7 +13,7 @@ function readRecord(name: string) {
   const parts = Object.fromEntries(RECORD_PARTS.map((part) => [part, part === "follows" ? false : []]));
   feedRecordRead(ticket, "Note", { data: { doctype: "Note", name, modified: "2026-09-25" }, ...parts } as never, [
     ...RECORD_PARTS,
-  ]);
+  ], 1000);
   settleTicket(ticket);
 }
 

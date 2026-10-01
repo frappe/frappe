@@ -1,25 +1,34 @@
-// One visit to a record: each load starts one. A reply or a save that outlives its visit lands
-// nothing, so a slower load cannot write over a newer one. Toggles queue across visits.
+// One visit to a record: each load starts one. Ending it aborts its reads, and a reply or a save
+// that outlives it lands nothing, so a slower load cannot write over a newer one.
 export class Visit {
-  private ended = false;
+  private readonly reading = new AbortController();
   private reads = 0;
   private newestLanding: Promise<void> = Promise.resolve();
   private toggles: Promise<void> = Promise.resolve();
   private saveRequest: Promise<void> | null = null;
 
-  /** False once the next visit started; a child part keeps it across its own awaits. */
-  readonly current = (): boolean => !this.ended;
+  /** False once the visit ended; a child part keeps it across its own awaits. */
+  readonly current = (): boolean => !this.reading.signal.aborted;
+
+  /** Aborts the visit's reads when it ends, so a read left behind does not feed the cache. */
+  get signal(): AbortSignal {
+    return this.reading.signal;
+  }
 
   /** Ends this visit and starts the next one, which queues its toggles behind this one's. */
   next(): Visit {
-    this.ended = true;
+    this.end();
     const next = new Visit();
     next.toggles = this.toggles;
     return next;
   }
 
+  end(): void {
+    this.reading.abort();
+  }
+
   /** Lands only the newest of overlapping reads; a replaced read resolves once the newest has landed. */
-  readNewest<T>(read: () => Promise<T>, land: (value: T) => void): Promise<void> {
+  readNewest<T>(read: (signal: AbortSignal) => Promise<T>, land: (value: T) => void): Promise<void> {
     this.newestLanding = this.landIfNewest(++this.reads, read, land);
     return this.newestLanding;
   }
@@ -40,11 +49,17 @@ export class Visit {
 
   private async landIfNewest<T>(
     mine: number,
-    read: () => Promise<T>,
+    read: (signal: AbortSignal) => Promise<T>,
     land: (value: T) => void
   ): Promise<void> {
-    const value = await read();
-    if (this.ended) return;
+    let value: T;
+    try {
+      value = await read(this.signal);
+    } catch (error) {
+      if (!this.current()) return;
+      throw error;
+    }
+    if (!this.current()) return;
     if (mine !== this.reads) return this.newestLanding;
     land(value);
   }

@@ -480,7 +480,7 @@ function reloadDocinfo(): Promise<void> {
 	const shown = doctype.value;
 	if (!shown) return Promise.resolve();
 	return currentVisit.readNewest(
-		() => loadParts(shown, docname.value),
+		(signal) => loadParts(shown, docname.value, signal),
 		(fresh) => void (docinfo.value = fresh)
 	);
 }
@@ -592,10 +592,10 @@ function openFromMemory(opening: Opening): Promise<void> | null {
 
 // Each read resolves to its applier, which may return a re-read to wait for; they all apply in one step.
 function backgroundReads(opening: Opening, created: RecordPageController): BackgroundRead[] {
-	const { target } = opening;
+	const { target, visit } = opening;
 	const before = docinfo.value;
 	const reads: BackgroundRead[] = [
-		loadRecord(target.doctype, target.name).then(
+		loadRecord(target.doctype, target.name, visit.signal).then(
 			(fresh) => () => takeRefetch(fresh, before),
 			(failure) => () => takeReadFailure(failure)
 		),
@@ -689,7 +689,7 @@ function landPaint(created: RecordPageController, pointer: string) {
 async function openRecord({ visit, target, pointer, details, panel, view, feedRead }: OpenRecord) {
 	try {
 		const [loaded, metadata] = await Promise.all([
-			loadRecord(target.doctype, target.name),
+			loadRecord(target.doctype, target.name, visit.signal),
 			fetchMeta(target.doctype),
 		]);
 		if (!visit.current()) return;
@@ -846,7 +846,9 @@ async function rethrowSaveError(e: unknown): Promise<never> {
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
 async function resolveConflict() {
-	const latest = await loadRecord(doctype.value!, docname.value).catch(() => null);
+	const visit = currentVisit;
+	const latest = await loadRecord(doctype.value!, docname.value, visit.signal).catch(() => null);
+	if (!visit.current()) return;
 	const editor = latest
 		? personOf(latest.docinfo, latest.document.modified_by).name
 		: "Someone else";
@@ -963,6 +965,7 @@ onMounted(() => {
 	window.addEventListener("beforeunload", onBeforeUnload);
 });
 onUnmounted(() => {
+	currentVisit.end();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();

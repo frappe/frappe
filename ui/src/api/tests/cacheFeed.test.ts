@@ -91,6 +91,14 @@ describe("reads", () => {
     expect(cached("T-1")!.parts).not.toHaveProperty("seen");
   });
 
+  it("getDocument gives the cache the length of the reply text", async () => {
+    const body = { data: { name: "T-1", modified: OLD, description: "é".repeat(10) }, ...ALL_PARTS };
+    respond(body);
+    await getDocument("ToDo", "T-1", { include: RECORD_PARTS });
+    const replySize = (cache.feedRecordRead as Mock).mock.calls[0][4];
+    expect(replySize).toBe(JSON.stringify(body).length);
+  });
+
   it("listDocuments sends modified and feeds the list under the caller's query", async () => {
     const body = { data: [{ name: "T-1", status: "Open", modified: OLD }], has_next_page: true };
     respond(body);

@@ -53,13 +53,15 @@ export function settleTicket(ticket: number): void {
   cache.settleTicket(ticket);
 }
 
+/** `replySize` is the reply text's length; without it, the read meets only the count limit. */
 export function feedRecordRead(
   ticket: number,
   doctype: string,
   envelope: Envelope<DocumentRecord>,
-  include: readonly string[]
+  include: readonly string[],
+  replySize = 0
 ): void {
-  feed(() => cache.recordRead(ticket, doctype, envelope, include));
+  feed(() => cache.recordRead(ticket, doctype, envelope, include, replySize));
 }
 
 export function feedListRead(

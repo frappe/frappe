@@ -318,7 +318,7 @@ describe("the built-in reader", () => {
     const { shown } = visit();
     shown.value;
     await flush();
-    for (let index = 0; index < 60; index++) {
+    for (let index = 0; index < 210; index++) {
       feedFieldRead(takeTicket(), "Company", { name: `C${index}`, modified: OLD });
     }
     expect(shown.value).toBe("EUR");
@@ -332,7 +332,7 @@ describe("the built-in reader", () => {
     await flush();
     expect(read("Company", "Beta", "default_currency")).toBeUndefined();
     await flush();
-    for (let index = 0; index < 60; index++) {
+    for (let index = 0; index < 210; index++) {
       feedFieldRead(takeTicket(), "Company", { name: `C${index}`, modified: OLD });
     }
     expect(readCachedDocument("Company", "Acme")).toBeUndefined();
