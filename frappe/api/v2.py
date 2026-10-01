@@ -258,7 +258,17 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
+<<<<<<< HEAD
 	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
+=======
+	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST/QUERY"
+	doc = frappe.get_doc(document)
+	ptype = PERMISSION_MAP[frappe.request.method]
+	# unsaved docs need create, not write; `__islocal` comes from the client, so check the DB too
+	if ptype == "write" and doc.is_new() and not frappe.db.exists(doc.doctype, doc.name):
+		ptype = "create"
+	doc.check_permission(ptype)
+>>>>>>> 58e582b (fix(api): check create, not write, to run a method on an unsaved doc)
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
 
