@@ -152,6 +152,7 @@ def generate_report(prepared_report):
 		instance.status = "Completed"
 
 	except Exception:
+		frappe.db.rollback()
 		# we need to ensure that error gets stored
 		_save_error(instance, error=frappe.get_traceback(with_context=True))
 		notify_report_status(instance)
