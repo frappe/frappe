@@ -54,7 +54,7 @@ The HTML page, the JS files and the icon sprite are static files.
 The four data composables are `useSession`, `useDoctypeMeta`, `useDocPermissions` and
 `useUserRoles`.
 
-Two things sit outside the nine layers:
+Three things sit outside the nine layers:
 
 - **`frontend/src/main.ts` sits above all of them.** It wires every layer at start-up,
   and nothing imports it. It is the only file that may use every layer.
@@ -63,6 +63,12 @@ Two things sit outside the nine layers:
   `frontend/vite.config.js`, `frappe/bundler.py`, and the manifest code the bundler needs.
   The architecture page in `frontend/architecture/` sits beside it too: it reads the code
   and this file, and the running desk never loads it.
+- **The template compiler sits beside them.** It turns each `template:` string in a script
+  into a render function. It is `frontend/templateCompiler/`: the compile module and the
+  names file. The build imports it for app files. The framework server runs it with `node`
+  for stored scripts, from `client_script.py` only. `main.ts` imports only its names file.
+  It uses its own files and the npm packages in `frontend/node_modules`, and nothing from
+  a layer or the build.
 
 ### `ui/` stands on its own
 
@@ -426,6 +432,13 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | Tailwind presets and content | Each app's theme preset, and the folders Tailwind reads |
 | Layer file (`frontend/architecture/layers.json`) | Each layer's paths and the layers it may use, and each of today's breaks with the ticket that removes it |
 | `/desk-architecture` | In developer mode, a System Manager's page of the layers, the flows and every import that breaks the layer file, built from the working tree on each request |
+
+**The template compiler**
+
+| Concept | What it is |
+| --- | --- |
+| Compile module (`compileScript`, `cacheKeyParts`) | Finds each unquoted `template:` key and checks its names. Then it compiles the template with `@vue/compiler-dom` from `frontend/node_modules` and keeps every line number. Both tiers call it, so they give the same output and errors |
+| Names file | The names a template can use with no `components:` entry: `RouterLink`, `RouterView`, Vue's built-in components, `__` and `__n`. Part of the cache key |
 
 ## Ways to change the desk
 
