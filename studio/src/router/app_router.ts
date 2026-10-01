@@ -5,7 +5,9 @@ import {
 	type Router,
 	type RouterOptions,
 } from "vue-router"
+import { createApp } from "vue"
 import AppContainer from "@/pages/AppContainer.vue"
+import RouterError from "@/pages/RouterError.vue"
 import NotFound from "@/pages/NotFound.vue"
 import { vueReactivityApis } from "@/stores/codeStore"
 import * as globalUtils from "@/utils/globalUtils"
@@ -27,6 +29,14 @@ export type RouterConfig = {
 	setup?: (router: Router) => void | Promise<void>
 }
 
+const CONFIG_KEYS = ["routerOptions", "setup"]
+
+export class RouterScriptError extends Error {
+	constructor(where: string, cause: unknown) {
+		super(`${where}: ${cause instanceof Error ? cause.message : String(cause)}`, { cause })
+	}
+}
+
 declare global {
 	interface Window {
 		app_name: string
@@ -41,20 +51,23 @@ declare global {
 }
 
 export async function createAppRouter(config: RouterConfig = {}): Promise<Router> {
-	const { routerOptions = {}, setup } = config
-	const { extendRoute, ...options } = routerOptions
+	const unknownKeys = Object.keys(config).filter((key) => !CONFIG_KEYS.includes(key))
+	if (unknownKeys.length) {
+		throw new RouterScriptError("router config", `unknown keys ${unknownKeys.join(", ")}`)
+	}
+	const { extendRoute, ...options } = config.routerOptions || {}
 	for (const key of ["routes", "history"]) {
 		if (key in options) console.warn(`routerOptions.${key} is ignored, Studio owns it`)
 	}
 	const routes = getPageRoutes(window.app_pages)
-	if (extendRoute) routes.forEach((route) => extendRoute(route))
+	if (extendRoute) await runHook("extendRoute", () => routes.forEach((route) => extendRoute(route)))
 
 	const router = createRouter({
 		...options,
 		history: createWebHistory(`/${window.app_route}`),
 		routes,
 	})
-	await setup?.(router)
+	await runHook("setup", () => config.setup?.(router))
 	addHomeRouteFallback(router)
 	addNotFoundRouteFallback(router)
 	router.beforeEach(sendGuestToLogin)
@@ -64,23 +77,32 @@ export async function createAppRouter(config: RouterConfig = {}): Promise<Router
 // a custom app's router script comes with the page; a standard app's router.ts is imported from the
 // vite dev server in the preview and compiled in by the production build
 export async function loadRouterConfig(): Promise<RouterConfig> {
-	if (window.router_script) return compileRouterScript(window.router_script)
+	if (window.router_script) return runHook("router script", () => compileRouterScript(window.router_script!))
 	if (!window.app_router_file) return {}
-	const mod = await import(/* @vite-ignore */ window.app_router_file)
+	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.app_router_file!))
 	return mod.default || {}
+}
+
+// a broken router can drop a guard, so the app stops instead of booting with default routing
+export function showRouterError(error: unknown) {
+	console.error(error)
+	createApp(RouterError, { message: error instanceof Error ? error.message : String(error) }).mount("#app")
+}
+
+async function runHook<T>(where: string, run: () => T | Promise<T>): Promise<T> {
+	try {
+		return await run()
+	} catch (error) {
+		throw error instanceof RouterScriptError ? error : new RouterScriptError(where, error)
+	}
 }
 
 // the router.ts object without import/export, run like a custom page script: no module scope, so
 // call/toast and the Vue reactivity APIs are put in scope (boot is a global already)
 function compileRouterScript(source: string): RouterConfig {
 	if (!source.trim()) return {}
-	try {
-		const factory = new Function("context", `with (context) { return (\n${source}\n) }`)
-		return factory({ ...vueReactivityApis, ...globalUtils }) || {}
-	} catch (error) {
-		console.error("Error running the app's router script", error)
-		return {}
-	}
+	const factory = new Function("context", `with (context) { return (\n${source}\n) }`)
+	return factory({ ...vueReactivityApis, ...globalUtils }) || {}
 }
 
 function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
