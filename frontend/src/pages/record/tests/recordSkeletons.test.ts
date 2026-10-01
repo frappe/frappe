@@ -50,7 +50,7 @@ vi.mock("@/recordPage", async (importOriginal) => {
   const { computed, ref, watch } = await import("vue");
   return {
     ...original,
-    loadClientScripts: vi.fn(() => load.scripts),
+    loadRecordScripts: vi.fn(() => load.scripts),
     // One fake per layout type, flipped by the test: `loading` until it is told otherwise.
     useFormLayout: ({ type }: { type: string }) => {
       const state = { loading: ref(true), layout: ref<unknown[]>([]) };
@@ -82,7 +82,7 @@ vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 import { ApiError } from "@framework/ui/api";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
-import { loadClientScripts } from "@/recordPage";
+import { loadRecordScripts } from "@/recordPage";
 import { FIRST_PAINT_LIMIT_MS } from "@/recordPage/paintGate";
 import { withRegisteringSource } from "@/recordPage/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
@@ -168,11 +168,11 @@ function skeletons(root: HTMLElement, hook: string) {
 }
 
 describe("before the first replay commits", () => {
-  it("asks for the Client Scripts before the record read answers", async () => {
+  it("asks for the scripts before the record read answers", async () => {
     await open();
 
     expect(loadRecord).toHaveBeenCalledOnce();
-    expect(loadClientScripts).toHaveBeenCalledWith("Note");
+    expect(loadRecordScripts).toHaveBeenCalledWith("Note");
   });
 
   it("draws the header row's skeleton in place of the crumbs, star, menu and Save", async () => {

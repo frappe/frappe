@@ -157,7 +157,7 @@ import {
 	formItems,
 	isEmptyHeader,
 	joinForm,
-	loadClientScripts,
+	loadRecordScripts,
 	projectFrame,
 	projectHeader,
 	SAVE_VETO,
@@ -512,7 +512,7 @@ async function load({ fromMemory = false } = {}) {
 	activeFormTab.value = "";
 
 	// Scripts and layouts need only the doctype, so they ride beside the record read and meta.
-	void loadClientScripts(target.doctype);
+	void loadRecordScripts(target.doctype);
 	// Against the saved document, so a keystroke cannot switch a layout under the reader.
 	const details = useFormLayout({
 		doctype: target.doctype,
@@ -613,7 +613,7 @@ function freshVersion({ target, details, panel }: Opening): BackgroundRead {
 	const held = useDoctypeMeta(target.doctype);
 	// A script whose module hangs must not hold back the record's re-read; the replay still waits for it.
 	const tier = Promise.race([
-		loadClientScripts(target.doctype).catch(() => {}),
+		loadRecordScripts(target.doctype).catch(() => {}),
 		new Promise((resolve) => setTimeout(resolve, LATE_LIMIT_MS)),
 	]);
 	return Promise.all([details.refreshed(), panel.refreshed(), tier]).then(() => () => {
@@ -774,7 +774,7 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		save: write,
 		reload: load,
 		router,
-		sourcesReady: () => loadClientScripts(target.doctype),
+		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 	});
 	created.header.provideBuiltins(headerBuiltins);
