@@ -303,7 +303,7 @@ export class DataCache {
   }
 
   private evictRecords() {
-    for (let key = this.readRecords.overLimit(); key; key = this.readRecords.overLimit()) {
+    for (let key = this.readRecords.nextToDrop(); key; key = this.readRecords.nextToDrop()) {
       this.readRecords.delete(key);
       const entry = this.documents.get(key);
       if (!entry) continue;

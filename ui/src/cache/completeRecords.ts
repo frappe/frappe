@@ -1,5 +1,5 @@
 // The complete records, least recently read first, each with the size of the reply that made it complete.
-export interface RecordLimits {
+interface RecordLimits {
   count: number;
   replySize: number;
 }
@@ -33,7 +33,7 @@ export class CompleteRecords {
   }
 
   /** The least recently read record while either limit is passed; never the last one read, the open record. */
-  overLimit(): string | undefined {
+  nextToDrop(): string | undefined {
     const within = this.sizes.size <= this.limits.count && this.total <= this.limits.replySize;
     if (within || this.sizes.size <= 1) return undefined;
     return this.sizes.keys().next().value;
