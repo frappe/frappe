@@ -5,15 +5,24 @@ context("Child Table Data Import", () => {
 	before(() => {
 		cy.login();
 		cy.visit("/desk/website");
-		return cy
-			.window()
-			.its("frappe")
-			.then((frappe) =>
-				frappe.xcall("frappe.tests.ui_test_helpers.create_grid_import_contact", {
-					user: USER,
-				})
-			)
-			.then((name) => (contact = name));
+		cy.insert_doc(
+			"User",
+			{
+				email: USER,
+				first_name: "Grid Import",
+				new_password: Cypress.env("adminPassword") || "apple",
+				send_welcome_email: 0,
+				roles: [{ role: "Blogger" }],
+			},
+			true
+		);
+
+		cy.login(USER);
+		cy.visit("/desk/website");
+		cy.insert_doc("Contact", {
+			first_name: "Grid Import",
+			phone_nos: Array.from({ length: 5 }, (_, i) => ({ phone: `+91-90000000${i}` })),
+		}).then((doc) => (contact = doc.name));
 	});
 
 	beforeEach(() => {
