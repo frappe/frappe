@@ -113,11 +113,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.$next_btn.addClass("action");
 		this.$complete_btn.addClass("action");
 		this.setup_keyboard_nav();
+		this.track_leaving();
 		this.make_intro();
 	}
 
 	make_intro() {
 		this.container.hide();
+		this.step_shown_at = Date.now();
 
 		const apps = frappe.setup.intro_apps;
 		// one app speaks for itself; several share the generic line
@@ -148,6 +150,10 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			.appendTo(this.$intro);
 
 		this.cycle_hello();
+		this.capture("viewed_setup_intro", {
+			apps: apps.map((app) => app.name),
+			browser_language: navigator.language,
+		});
 	}
 
 	cycle_hello() {
@@ -177,6 +183,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	close_intro() {
+		this.capture("started_setup", { duration_seconds: this.seconds_on_step() });
+		this.step_shown_at = Date.now();
 		clearTimeout(this.hello_timer);
 		this.$intro.remove();
 		this.$intro = null;
@@ -223,8 +231,51 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		if (id === this.slides.length) {
 			return;
 		}
+		const from = this.current_id;
 		super.show_slide(id);
 		frappe.set_route(this.page_name, cstr(id));
+
+		if (this.current_id === from) return;
+		if (this.current_id === from + 1) {
+			this.capture_step_completed(from);
+		} else if (this.current_id < from && this.slides[from]) {
+			this.capture("went_back_in_setup", {
+				from_step: this.slides[from].name,
+				to_step: this.slides[this.current_id].name,
+			});
+		}
+		this.step_shown_at = Date.now();
+	}
+
+	// Setup events are sent even when the user opts out of telemetry on the first
+	// slide: the opt-out applies once setup completes (see sync_telemetry_preference).
+	capture(event, properties) {
+		frappe.telemetry?.capture(event, "setup", properties);
+	}
+
+	capture_step_completed(index) {
+		this.capture("completed_setup_step", {
+			step: this.slides[index].name,
+			step_number: index + 1,
+			total_steps: this.slides.length,
+			duration_seconds: this.seconds_on_step(),
+		});
+	}
+
+	// time on the current slide, or on the intro while it is open
+	seconds_on_step() {
+		return this.step_shown_at ? Math.round((Date.now() - this.step_shown_at) / 1000) : null;
+	}
+
+	// Best effort: the event is lost if the page unloads before it is sent.
+	track_leaving() {
+		window.addEventListener("pagehide", () => {
+			if (this.setup_submitted) return;
+			this.capture("left_setup", {
+				step: this.$intro ? "intro" : this.current_slide?.name,
+				duration_seconds: this.seconds_on_step(),
+			});
+		});
 	}
 
 	sync_telemetry_preference() {
@@ -290,6 +341,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	action_on_complete() {
 		if (!this.current_slide.set_values()) return;
+		this.setup_submitted = true;
+		this.capture_step_completed(this.current_id);
 		this.update_values();
 		this.sync_telemetry_preference();
 		this.show_working_state();
@@ -407,6 +460,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.$working_state.find(".content").append(this.$abort_btn);
 
 		this.$abort_btn.on("click", () => {
+			this.setup_submitted = false;
 			$(this.parent).find(".setup-in-progress").remove();
 			this.container.show();
 			frappe.set_route(this.page_name, this.slides.length - 1);
