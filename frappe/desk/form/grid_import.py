@@ -119,7 +119,7 @@ def get_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]
 		if not header:
 			continue
 		df = get_df_for_column_header(child_doctype, header)
-		if df and df.fieldname in writable and df.fieldname not in column_map.values():
+		if df and df.fieldname in writable:
 			column_map[i] = df.fieldname
 
 	return column_map

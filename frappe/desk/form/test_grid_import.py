@@ -108,11 +108,6 @@ class TestGridImport(IntegrationTestCase):
 			{0: "phone", 1: "is_primary_phone", 2: "is_primary_mobile_no", 3: "name"},
 		)
 
-	def test_column_map_keeps_the_first_column_for_a_field(self):
-		column_map = get_column_map("Contact", "phone_nos", json.dumps(["Number (phone)", "Number"]))
-
-		self.assertEqual(column_map, {0: "phone"})
-
 	def test_column_map_includes_read_only_fields(self):
 		headers = ["Link Document Type (link_doctype)", "Link Title (link_title)"]
 		column_map = get_column_map("Contact", "links", json.dumps(headers))
