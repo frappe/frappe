@@ -804,6 +804,9 @@ def get_linked_docs(
 	# additional fields are added in linkinfo
 	linkinfo = frappe.parse_json(linkinfo)
 	filters = frappe.parse_json(filters) or []
+	# a child-row sort field would list a document once per child row
+	if order_by and any("." in field for field in get_order_by_fields(order_by)):
+		frappe.throw(_("Linked documents can only be ordered by their own fields"))
 
 	results = {}
 
