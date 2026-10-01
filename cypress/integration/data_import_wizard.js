@@ -215,7 +215,11 @@ context("Data Import Wizard", () => {
 			"POST",
 			"**/api/method/frappe.core.doctype.data_import.data_import.get_preview_from_template",
 			(req) => {
-				const data_import = req.body?.data_import;
+				// v16 sends form-encoded bodies, which Cypress leaves as a string
+				const data_import =
+					typeof req.body === "string"
+						? new URLSearchParams(req.body).get("data_import")
+						: req.body?.data_import;
 				if (data_import === import_with_file) {
 					req.alias = "previewA";
 					req.reply((res) => {
