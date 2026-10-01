@@ -1,5 +1,4 @@
-// Ctrl+S and the Save button take one save path: each paints the page once, and the header's
-// Save shows the save in flight.
+// Ctrl+S and the Save button each paint the page once, and Save spins until `afterSave` ends.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView } from "vue-router";
@@ -16,7 +15,7 @@ vi.mock("@/shell/PageFrame.vue", async () => {
 
 const hooks = vi.hoisted(() => ({ afterSave: Promise.resolve() }));
 
-// Node cannot import a blob-URL module; every handler draws a quick action named for itself.
+// Node cannot import a blob-URL module.
 vi.mock("@/recordPage/evaluateClientScript", () => ({
   evaluateClientScript: async () => ({
     onRefresh: (page: any) => page.quickActions.add({ name: "title", label: `title|${page.doc.title}` }),
