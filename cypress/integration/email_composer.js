@@ -24,7 +24,7 @@ context("Email Composer", () => {
 			new win.frappe.views.CommunicationComposer({ frm: win.cur_frm, doc: win.cur_frm.doc });
 		});
 
-		cy.get_open_dialog().should("be.visible");
+		cy.get(".email-composer-modal .modal-dialog").should("be.visible");
 		cy.window().its("cur_dialog").invoke("get_value", "print_language").should("eq", "de");
 	});
 });

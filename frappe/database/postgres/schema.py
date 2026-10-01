@@ -257,6 +257,8 @@ class PostgresTable(DBTable):
 				col not in meta_columns
 				and col not in frappe.db.DEFAULT_COLUMNS
 				and col not in frappe.db.OPTIONAL_COLUMNS
+				# docfields never get generated columns, so the controller owns these
+				and not self.current_columns[col].is_generated
 			):
 				if not frappe.db.get_column_index(self.table_name, col, unique=True):
 					continue

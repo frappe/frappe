@@ -60,10 +60,14 @@
 				<span v-html="frappe.utils.icon('rotate-ccw-clock', 'sm')"></span>
 				<span>
 					{{
-						__("Viewing {0} ({1}). Editing is off.", [
-							$store.versions.viewing.value.label,
-							$store.versions.viewing.value.when,
-						])
+						$store.versions.viewing.value.when
+							? __("Viewing {0} ({1}). Editing is off.", [
+									$store.versions.viewing.value.label,
+									$store.versions.viewing.value.when,
+							  ])
+							: __("Viewing {0}. Editing is off.", [
+									$store.versions.viewing.value.label,
+							  ])
 					}}
 				</span>
 				<button
