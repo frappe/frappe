@@ -44,6 +44,11 @@ describe("which keys are templates", () => {
 		expect(compileScript(source)).toEqual({ code: source, errors: [] });
 	});
 
+	it("reaches the parse for a key with a comment before its colon", () => {
+		const errors = errorsOf(component('template /* c */ : "<p>{{ nope }}</p>",'));
+		expect(errors).toMatchObject([{ line: 2, column: 27 }]);
+	});
+
 	it("leaves a destructured template alone", () => {
 		const source = "const { template: text } = options\n";
 		expect(compileScript(source)).toEqual({ code: source, errors: [] });
@@ -117,6 +122,15 @@ const Card = {
 		]);
 	});
 
+	it.each([
+		["a bare handler", '<p @click="sav">a</p>', 12],
+		["a handler with modifiers", '<p @keyup.enter.stop="sav">a</p>', 23],
+		["a dynamic argument, at its bracket", '<p :[sav]="1">a</p>', 5],
+	])("reports an unknown name in %s", (_, template, column) => {
+		const source = component(`methods: { save() {} },\ntemplate: '${template}',`);
+		expect(errorsOf(source)).toMatchObject([{ line: 3, column: 11 + column }]);
+	});
+
 	it("lets a setup() return named __ stand beside the global", () => {
 		const source = component("setup() { return { __: (text) => text } },\ntemplate: \"<p>{{ __('a') }}</p>\",");
 		expect(compileScript(source).errors).toEqual([]);
@@ -167,11 +181,40 @@ describe("line numbers", () => {
 		expect(html).toBe("<!--[--><ul><!--[--><li>1</li><li>2</li><li>3</li><!--]--></ul><p>many</p><!--]-->");
 	});
 
+	it("joins a line continuation inside an expression's string", async () => {
+		const continued = "'a" + "\\\\" + "\n" + "b'";
+		const source = component(`template: \`<p>{{ ${continued} }}</p>\`,`);
+		expect(await render(source)).toBe("<p>ab</p>");
+	});
+
 	it("keeps a line break inside an expression's string on one line", async () => {
 		const source = component('template: "<p>{{ `a\\nb`.length }}</p>",\nmarker: 1,');
 		const { code } = compileScript(source);
 		expect(code.split("\n")).toHaveLength(source.split("\n").length);
 		expect(await render(source)).toBe("<p>3</p>");
+	});
+});
+
+describe("the Vue import", () => {
+	it("is left out when a template needs no helper", () => {
+		const source = component('template: "hi",');
+		expect(compileScript(source).code).not.toContain("import");
+	});
+
+	it("refuses a top-level name that a helper import also takes", () => {
+		const source = `import { toDisplayString as _toDisplayString } from "vue"\n${component('template: "<p>{{ 1 }}</p>",')}`;
+		expect(errorsOf(source)).toEqual([
+			{
+				line: 1,
+				column: 29,
+				message: '"_toDisplayString" is a name the compiled template needs. Rename it.',
+			},
+		]);
+	});
+
+	it("allows the same name inside a function", () => {
+		const source = `function f(_toDisplayString) {}\n${component('template: "<p>{{ 1 }}</p>",')}`;
+		expect(compileScript(source).errors).toEqual([]);
 	});
 });
 

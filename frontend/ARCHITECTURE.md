@@ -437,7 +437,7 @@ A script reaches the rest of the desk only through the `page` object it is hande
 
 | Concept | What it is |
 | --- | --- |
-| Compile module (`compileScript`) | Finds each unquoted `template:` key and checks its names. Then it compiles the template with `@vue/compiler-dom` from `frontend/node_modules` and keeps every line number. Both tiers call it, so they give the same output and errors |
+| Compile module (`compileScript`, `cacheKeyParts`) | Finds each unquoted `template:` key and checks its names. Then it compiles the template with `@vue/compiler-dom` from `frontend/node_modules` and keeps every line number. Both tiers call it, so they give the same output and errors |
 | Names file | The names a template can use with no `components:` entry: `RouterLink`, `RouterView`, Vue's built-in components, `__` and `__n`. Part of the cache key |
 
 ## Ways to change the desk

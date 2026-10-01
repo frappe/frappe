@@ -22,12 +22,12 @@ const COMPILE_OPTIONS = {
   transformAssetUrls: false,
   compilerOptions: { hoistStatic: false, sourceMap: false },
 };
-// Also matches the shorthand `{ template }`, which is an error.
-const TEMPLATE_KEY = /\btemplate\s*[:,}]/;
+// The word alone, so the shorthand `{ template }` and a commented key still reach the parse.
+const TEMPLATE_KEY = /\btemplate\b/;
 const LINE_BREAK = /\r\n?|[\n\u2028\u2029]/g;
 
 /**
- * Compiles every template in `source`. Lines and columns in `errors` count from 1.
+ * Compiles every template in `source`, with error lines and columns counted from 1.
  * @returns {{ code: string | null, errors: { line: number, column: number, message: string }[] }}
  */
 export function compileScript(source) {
@@ -53,12 +53,14 @@ export function compileScript(source) {
     if (render)
       output.overwrite(template.property.start, template.property.end, render);
   }
+  if (!errors.length) errors.push(...helperClashes(source, program, helpers));
   if (errors.length) {
     errors.sort((a, b) => a.line - b.line || a.column - b.column);
     return { code: null, errors };
   }
   const imports = [...helpers].map(([name, local]) => `${name} as ${local}`);
-  output.prepend(`import { ${imports.join(", ")} } from "vue"; `);
+  if (imports.length)
+    output.prepend(`import { ${imports.join(", ")} } from "vue"; `);
   return { code: output.toString(), errors: [] };
 }
 
@@ -130,6 +132,55 @@ function compileOne(source, template, helpers, errors) {
   return renderMethod(result.code, template.property, helpers);
 }
 
+/** An error at each top-level name of the script that a compiled template also imports. */
+function helperClashes(source, program, helpers) {
+  const locals = new Set(helpers.values());
+  const message = (name) =>
+    `"${name}" is a name the compiled template needs. Rename it.`;
+  return topLevelNames(program)
+    .filter((identifier) => locals.has(identifier.name))
+    .map((identifier) => ({
+      ...lineAndColumn(source, identifier.start),
+      message: message(identifier.name),
+    }));
+}
+
+function topLevelNames(program) {
+  const names = [];
+  for (let statement of program.body) {
+    if (statement.type.startsWith("Export") && statement.declaration) {
+      statement = statement.declaration;
+    }
+    if (statement.type === "ImportDeclaration") {
+      names.push(...statement.specifiers.map((specifier) => specifier.local));
+    } else if (statement.type === "VariableDeclaration") {
+      for (const declarator of statement.declarations) {
+        walk(
+          declarator.id,
+          (node, parent) => {
+            if (
+              node.type === "Identifier" &&
+              bindsName(parent, node, declarator)
+            )
+              names.push(node);
+          },
+          declarator
+        );
+      }
+    } else if (statement.id) {
+      names.push(statement.id);
+    }
+  }
+  return names;
+}
+
+function bindsName(parent, identifier, declarator) {
+  if (parent === declarator) return true;
+  if (parent.type === "ObjectProperty") return parent.value === identifier;
+  if (parent.type === "AssignmentPattern") return parent.left === identifier;
+  return parent.type === "ArrayPattern" || parent.type === "RestElement";
+}
+
 function renderMethod(code, property, helpers) {
   const file = babelParse(code, { sourceType: "module", tokens: true });
   let render;
@@ -170,6 +221,7 @@ function oneLine(code, body, tokens) {
     // A raw line break left in a string token would move every later line.
     text += code
       .slice(token.start, token.end)
+      .replace(/(?<!\\)((?:\\\\)*)\\(\r\n?|[\n\u2028\u2029])/g, "$1")
       .replace(/\r\n?|\n/g, "\\n")
       .replace(/\u2028/g, "\\u2028")
       .replace(/\u2029/g, "\\u2029");

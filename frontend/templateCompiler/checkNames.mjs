@@ -6,7 +6,7 @@ const SIMPLE_EXPRESSION = 4;
 const COMPONENT_TAG = 1;
 const DYNAMIC_COMPONENT = new Set(["component", "Component"]);
 // With prefixIdentifiers, the compiler rewrites each free name in an expression to `_ctx.<name>`.
-const CONTEXT_NAME = /^_ctx\.([\w$]+)$/;
+const CONTEXT_NAME = /^_ctx\.([\w$]+)(?![\w$])/;
 
 const READERS = {
   name: stringValue,
