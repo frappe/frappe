@@ -163,10 +163,11 @@ def generate_report(prepared_report):
 		).insert(ignore_permissions=True)
 
 	except Exception:
+		frappe.db.rollback()
 		# we need to ensure that error gets stored
 		_save_error(instance, error=frappe.get_traceback(with_context=True))
-		# reraise so 'Background Task' can capture
 		frappe.db.commit()
+		# reraise so 'Background Task' can capture
 		raise
 
 	instance.reload()
