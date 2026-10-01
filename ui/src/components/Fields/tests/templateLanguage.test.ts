@@ -28,6 +28,7 @@ describe("template language", () => {
   it("leaves every other string as JavaScript", () => {
     expect(nodeAt('x = { "template": "<div/>" };', "div")).toBe("String");
     expect(nodeAt('x = { other: "<div/>" };', "div")).toBe("String");
+    expect(nodeAt('x = { ["template"]: "<div/>" };', "div")).toBe("String");
     expect(nodeAt("x = { template: `<div>${a}</div>` };", "div")).toBe("TemplateString");
     expect(nodeAt('const { template = "<div/>" } = x;', "div")).toBe("String");
   });

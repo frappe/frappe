@@ -61,7 +61,7 @@ function completeTemplate(
   if (!template) return null;
   const tagFrom = tagStart(node, pos);
   if (tagFrom !== null) {
-    return offer(tagFrom, [...scriptComponents(template, read), ...names], "type");
+    return offer(tagFrom, [...new Set([...scriptComponents(template, read), ...names])], "type");
   }
   const attributeFrom = attributeStart(node, pos);
   return attributeFrom === null ? null : offer(attributeFrom, DIRECTIVES, "keyword");

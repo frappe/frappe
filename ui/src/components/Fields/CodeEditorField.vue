@@ -193,7 +193,7 @@ watch(
 		try {
 			loaded = await loadGrammar(key);
 		} catch (error) {
-			// The message names the package to install.
+			// A grammar that fails to load leaves the field as plain text.
 			console.error(error);
 		}
 		if (language.value === wanted) languageExtension.value = loaded;

@@ -111,7 +111,7 @@
     "@codemirror/autocomplete": "^6.0.0",
     "@codemirror/lang-css": "^6.0.0",
     "@codemirror/lang-html": "^6.0.0",
-    "@codemirror/lang-javascript": "^6.0.0",
+    "@codemirror/lang-javascript": "^6.1.2",
     "@codemirror/lang-json": "^6.0.0",
     "@codemirror/lang-markdown": "^6.0.0",
     "@codemirror/lang-python": "^6.0.0",
