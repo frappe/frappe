@@ -14,6 +14,7 @@ from frappe.desk.search import (
 	awesomebar_search,
 	get_link_title,
 	get_names_for_mentions,
+	like_contains,
 	search_link,
 	search_widget,
 )
@@ -188,6 +189,15 @@ class TestSearch(IntegrationTestCase):
 		results = search_widget(doctype=doctype, txt="c%s%h")
 		self.assertEqual(sorted(result[0] for result in results), ["Cast Hinge", "Copper Mesh"])
 
+		# `_` matches any one character, as in LIKE
+		results = search_widget(doctype=doctype, txt="c_st h")
+		self.assertEqual([result[0] for result in results], ["Cast Hinge"])
+
+	def test_like_contains_does_not_backtrack(self):
+		# a regex built from many `%`s backtracks for seconds on a value like this one
+		self.assertFalse(like_contains("a" * 200, "a%" * 40 + "b"))
+		self.assertTrue(like_contains("Cast Hinge", "C%H"))
+
 	def test_translated_doctype_search_matches_only_search_fields(self):
 		doctype = self.make_translated_search_doctype(
 			[
@@ -243,7 +253,8 @@ class TestSearch(IntegrationTestCase):
 		self.addCleanup(partial(frappe.delete_doc, "DocType", doctype, force=True, ignore_missing=True))
 
 		# creating the doctype implicitly commits, so rows can outlive a previous run
-		frappe.db.delete(doctype)
+		for name in frappe.get_all(doctype, pluck="name"):
+			frappe.delete_doc(doctype, name, force=True)
 		for sequence, record in enumerate(records, start=1):
 			frappe.get_doc({"doctype": doctype, "sequence": sequence, **record}).insert()
 		return doctype
