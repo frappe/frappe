@@ -418,4 +418,221 @@ test.describe("Espresso components", () => {
 			).toHaveCount(3);
 		});
 	});
+
+	test.describe("Stat Card", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Stat Card");
+		});
+
+		const stat_card = (group, label) =>
+			group.locator(".es-stat-card", { hasText: containing(label) }).first();
+
+		test("tones the delta by positive_is_good, so a rise in a bad metric reads red", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Trend delta");
+			const net_sales = stat_card(group, "Net sales").locator(".es-stat-card__delta");
+
+			await expect(net_sales).toHaveAttribute("data-tone", "positive");
+			await expect(net_sales).toContainText("+12.4%");
+			await expect(
+				stat_card(group, "Overdue").locator(".es-stat-card__delta")
+			).toHaveAttribute("data-tone", "negative");
+			await expect(
+				stat_card(group, "Returns").locator(".es-stat-card__delta")
+			).toHaveAttribute("data-tone", "neutral");
+		});
+
+		test("preserves the direction of changes below display precision", async ({ page }) => {
+			const cases = [
+				[0.01, "+", "positive"],
+				[-0.01, "−", "negative"],
+			];
+			const deltas = await page.evaluate(
+				(values) =>
+					values.map((value) => {
+						const delta = frappe.ui
+							.stat_card({ label: "Small change", value: 1, delta: { value } })
+							.find(".es-stat-card__delta");
+						return { text: delta.text(), tone: delta.attr("data-tone") };
+					}),
+				cases.map(([value]) => value)
+			);
+
+			cases.forEach(([, sign, tone], i) => {
+				expect(deltas[i].text).toContain(`${sign}<0.1%`);
+				expect(deltas[i].tone).toBe(tone);
+			});
+		});
+
+		test("shows a dash and No data for a missing reading, but prints a zero", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "No reading");
+			const conversion_rate = stat_card(group, "Conversion rate");
+			const refunds = stat_card(group, "Refunds");
+
+			await expect(conversion_rate).toHaveAttribute("data-state", "empty");
+			await expect(conversion_rate).toContainText("—");
+			await expect(conversion_rate).toContainText("No data");
+			await expect(refunds).not.toHaveAttribute("data-state");
+			await expect(refunds.locator(".es-stat-card__value")).toHaveText("0");
+		});
+
+		test("holds the card's shape with skeletons while loading", async ({ page }) => {
+			const card = explorer_group(page, "Loading").locator(
+				".es-stat-card[data-state='loading']"
+			);
+
+			await expect(card).toHaveAttribute("aria-busy", "true");
+			await expect(card.locator(".es-stat-card__label")).toHaveText("Net sales");
+			await expect(card.locator(".es-skeleton")).toHaveCount(2);
+		});
+
+		test("makes a clickable card a keyboard button", async ({ page }) => {
+			const card = explorer_group(page, "Series dot").locator(".es-stat-card--clickable");
+
+			await expect(card).toHaveAttribute("role", "button");
+			await expect(card).toHaveAttribute("tabindex", "0");
+			await card.dispatchEvent("keydown", { key: "Enter" });
+			await expect(page.locator(".es-toast")).toContainText("Paid");
+		});
+	});
+
+	test.describe("Bar List", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Bar List");
+		});
+
+		test("sizes bars against a rounded axis and labels every row", async ({ page }) => {
+			const group = explorer_group(page, "Basic");
+
+			await expect(group.locator(".es-bar-list__row")).toHaveCount(4);
+			await expect(group.locator(".es-bar-list__bar").first()).toHaveAttribute(
+				"style",
+				/width: 84%/
+			);
+			await expect(group.locator(".es-bar-list__tick").last()).toHaveText("50000");
+		});
+
+		test("keeps static values visible and expands an undersized axis", async ({ page }) => {
+			const chart = await page.evaluate(() => {
+				const chart = frappe.ui
+					.bar_list({
+						items: [{ label: "Total", value: 200 }],
+						max: 100,
+						values_on_hover: true,
+					})
+					.appendTo(document.body);
+				const result = {
+					value_opacity: getComputedStyle(chart.find(".es-bar-list__value")[0]).opacity,
+					row_role: chart.find(".es-bar-list__row").attr("role") ?? null,
+					bar_width: parseFloat(chart.find(".es-bar-list__bar")[0].style.width),
+					last_tick: Number(chart.find(".es-bar-list__tick").last().text()),
+				};
+				chart.remove();
+				return result;
+			});
+
+			expect(chart.value_opacity).toBe("1");
+			expect(chart.row_role).toBeNull();
+			expect(chart.bar_width).toBeLessThanOrEqual(100);
+			expect(chart.last_tick).toBeGreaterThanOrEqual(200);
+		});
+
+		test("says there is no data instead of drawing an empty axis", async ({ page }) => {
+			const chart = explorer_group(page, "Empty").locator(
+				".es-bar-list[data-state='empty']"
+			);
+
+			await expect(chart.locator(".es-bar-list__empty")).toHaveText("No data to show");
+			await expect(chart.locator(".es-bar-list__axis")).toHaveCount(0);
+		});
+
+		test("widens the label gutter and passes the clicked item back", async ({ page }) => {
+			const group = explorer_group(page, "Wide labels");
+
+			await expect(group.locator(".es-bar-list").first()).toHaveAttribute("style", /180px/);
+			await group.locator(".es-bar-list__row--clickable").first().click();
+			await expect(page.locator(".es-toast")).toContainText("Kaveri Industrial Supplies");
+		});
+	});
+
+	test.describe("Donut", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Donut");
+		});
+
+		const legend_row = (group, label) =>
+			group.locator(".es-donut__legend-row", { hasText: containing(label) }).first();
+
+		test("draws one segment per value and labels the chart for screen readers", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Centre value");
+
+			await expect(group.locator(".es-donut__seg")).toHaveCount(3);
+			await expect(group.locator(".es-donut__svg")).toHaveAttribute(
+				"aria-label",
+				"Paid: 70 (70%), Unpaid: 20 (20%), Overdue: 10 (10%)"
+			);
+			await expect(group.locator(".es-donut__value")).toHaveText("70%");
+		});
+
+		test("swaps the centre to a hovered legend row and restores it on leave", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Centre value");
+			const unpaid = legend_row(group, "Unpaid");
+
+			await unpaid.hover();
+			await expect(unpaid).toHaveClass(with_class("is-active"));
+			await expect(group.locator(".es-donut__label")).toHaveText("Unpaid · 20%");
+			await expect(group.locator(".es-donut__seg.is-dim")).toHaveCount(2);
+
+			await group.locator(".es-donut__legend").dispatchEvent("mouseout");
+			await expect(group.locator(".es-donut__value")).toHaveText("70%");
+			await expect(group.locator(".es-donut__seg.is-dim")).toHaveCount(0);
+		});
+
+		test("clears the tooltip and highlight when leaving a segment for the centre", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Centre value");
+			const segment = group.locator(".es-donut__seg").first();
+
+			await segment.dispatchEvent("mouseover", { clientX: 100, clientY: 100 });
+			await expect(group.locator(".es-donut__tip")).toHaveClass(with_class("is-visible"));
+			await segment.dispatchEvent("mouseout");
+			await expect(group.locator(".es-donut__tip")).not.toHaveClass(
+				with_class("is-visible")
+			);
+			await expect(group.locator(".es-donut__seg.is-dim")).toHaveCount(0);
+			await expect(group.locator(".es-donut__value")).toHaveText("70%");
+		});
+
+		test("exposes amounts without hover and highlights a keyboard-focused legend", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Centre value");
+			const unpaid = legend_row(group, "Unpaid");
+
+			await expect(unpaid).toContainText("20 · 20%");
+			await unpaid.focus();
+			await expect(unpaid).toHaveClass(with_class("is-active"));
+			await expect(group.locator(".es-donut__value")).toHaveText("20");
+			await group.locator(".es-donut__legend-row:focus").blur();
+			await expect(group.locator(".es-donut__value")).toHaveText("70%");
+		});
+
+		test("says there is no data in the ring's place when there is nothing to chart", async ({
+			page,
+		}) => {
+			const chart = explorer_group(page, "Empty").locator(".es-donut[data-state='empty']");
+
+			await expect(chart.locator(".es-donut__empty")).toHaveText("No data to show");
+			await expect(chart.locator(".es-donut__svg")).toHaveCount(0);
+			await expect(chart.locator(".es-donut__legend")).toHaveCount(0);
+		});
+	});
 });

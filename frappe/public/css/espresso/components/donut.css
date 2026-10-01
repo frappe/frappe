@@ -1,0 +1,167 @@
+/* Espresso Donut — a ring of gently rounded, gapped segments with a value in the
+ * middle and a dotted legend below (frappe.ui.donut). Hovering a segment pops it
+ * out, fades the rest, swaps the centre and shows a tooltip. Self-contained; the
+ * host needs no chart library.
+ *
+ *   <div class="es-donut">
+ *     <div class="es-donut__chart">
+ *       <svg class="es-donut__svg" role="img" aria-label="Overdue 35%, …">
+ *         <path class="es-donut__seg"/>…
+ *       </svg>
+ *       <div class="es-donut__center">
+ *         <div class="es-donut__value">55%</div>
+ *         <div class="es-donut__label">used</div>
+ *       </div>
+ *       <div class="es-donut__tip">…</div>
+ *     </div>
+ *     <div class="es-donut__legend">
+ *       <div class="es-donut__legend-row">
+ *         <span class="es-donut__dot"></span>
+ *         <span class="es-donut__legend-label">Overdue</span>
+ *         <span class="es-donut__legend-pct">35%</span>
+ *       </div>
+ *     </div>
+ *   </div>
+ *
+ * With no segments the root carries data-state="empty" and the chart box holds
+ * only <div class="es-donut__empty">No data to show</div>. */
+
+.es-donut {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--spacing) * 4);
+}
+
+.es-donut__chart {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.es-donut__svg {
+    width: 100%;
+    height: 100%;
+}
+
+.es-donut__seg {
+    fill-rule: evenodd;
+    transition: opacity 150ms ease;
+}
+
+.es-donut__empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+}
+
+.es-donut__seg.is-dim {
+    opacity: 0.75;
+}
+
+.es-donut__tip {
+    position: absolute;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    background: var(--surface-elevation-2);
+    border: 1px solid var(--outline-elevation-2);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elevation-xl);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+}
+
+.es-donut__tip.is-visible {
+    opacity: 1;
+}
+
+.es-donut__tip-label {
+    margin-right: calc(var(--spacing) * 3);
+    color: var(--ink-gray-7);
+}
+
+.es-donut__tip b {
+    font-weight: var(--font-weight-semibold);
+    color: var(--ink-gray-8);
+}
+
+.es-donut__center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--spacing) * 1.5);
+    /* Push the block down by the label's height so the value, not the
+     * value+label pair, sits on the ring's centre — it carries the weight. */
+    padding-top: calc(var(--text-sm) + var(--spacing) * 1.5);
+    pointer-events: none;
+    text-align: center;
+}
+
+.es-donut__value {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--ink-gray-8);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.es-donut__label {
+    font-size: var(--text-sm);
+    line-height: 1;
+    color: var(--ink-gray-5);
+}
+
+.es-donut__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: calc(var(--spacing) * 1);
+}
+
+.es-donut__legend-row {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+    border-radius: var(--radius-md);
+    transition: background-color 150ms ease;
+}
+
+.es-donut__legend-row.is-active {
+    background: var(--surface-gray-2);
+}
+
+.es-donut__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+}
+
+.es-donut__legend-label {
+    font-size: var(--text-sm);
+    color: var(--ink-gray-7);
+}
+
+.es-donut__legend-pct {
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+    font-variant-numeric: tabular-nums;
+}
+
+.es-donut__legend-row:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
