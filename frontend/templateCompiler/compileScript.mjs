@@ -27,7 +27,7 @@ export const TEMPLATE_KEY = /\btemplate\b/;
 const LINE_BREAK = /\r\n?|[\n\u2028\u2029]/g;
 
 /**
- * Compiles every template in `source`, with a source map when given the file's name.
+ * Compiles every template in `source`, errors counted from 1; maps the output given a filename.
  * @returns {{ code: string | null, map?: object, errors: { line: number, column: number, message: string }[] }}
  */
 export function compileScript(source, { filename } = {}) {
