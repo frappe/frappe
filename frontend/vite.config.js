@@ -8,6 +8,7 @@ import contributions from "./plugin/contributions.js";
 import oneTree from "./plugin/oneTree.js";
 import importMap from "./plugin/importMap.js";
 import classList from "./plugin/classList.js";
+import templateStrings from "./plugin/templateStrings.js";
 import { readManifest, readAllSourceDirs } from "./plugin/manifest.js";
 import { loadPresets } from "./plugin/presets.js";
 
@@ -31,6 +32,7 @@ export default defineConfig(({ command }) => ({
 			buildConfig: false,
 		}),
 		vue(),
+		templateStrings(),
 		contributions(manifest, allSourceDirs),
 		oneTree(manifest),
 		// Publishes the names each app's `import_map` hook declares; see the plugin.
