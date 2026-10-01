@@ -159,7 +159,48 @@
     text-align: center;
 }
 
-/* Step padding plus half the marker puts connectors on the marker row. */
+/* Step padding plus half the marker puts connectors on the marker row.
+ * No margin, so the step half-lines below join it. */
 .es-stepper--label-below .es-stepper__connector {
-    margin-top: calc(var(--spacing) * 3);
+    margin: calc(var(--spacing) * 3) 0 0;
+}
+
+/* Half-lines from the step edge to the marker, so the marker gap stays
+ * fixed however wide the label makes the step. */
+.es-stepper--label-below .es-stepper__step {
+    position: relative;
+}
+
+.es-stepper--label-below .es-stepper__step:not(:first-child)::before,
+.es-stepper--label-below .es-stepper__step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--spacing) * 3);
+    height: 1px;
+    background: var(--outline-gray-2);
+}
+
+.es-stepper--label-below .es-stepper__step::before {
+    left: 0;
+    right: calc(50% + var(--spacing) * 5);
+}
+
+.es-stepper--label-below .es-stepper__step::after {
+    left: calc(50% + var(--spacing) * 5);
+    right: 0;
+}
+
+/* Each half-line takes the colour of the connector it continues. */
+.es-stepper--label-below .es-stepper__step[data-completed="true"]::after,
+.es-stepper--label-below .es-stepper__connector[data-completed="true"] + .es-stepper__step::before {
+    background: var(--outline-gray-3);
+}
+
+/* Fade the content, not the step, so a locked step's half-lines match the connector. */
+.es-stepper--label-below .es-stepper__step[data-state="locked"] {
+    opacity: 1;
+}
+
+.es-stepper--label-below .es-stepper__step[data-state="locked"] > * {
+    opacity: 0.55;
 }
