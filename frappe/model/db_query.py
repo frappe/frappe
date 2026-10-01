@@ -1329,7 +1329,7 @@ from {tables}
 		return sql
 
 	def set_order_by(self, args):
-		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
+		if self.order_by and self.order_by != DefaultOrderBy:
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""
