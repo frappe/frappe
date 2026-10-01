@@ -142,7 +142,7 @@ import { InputDescription, InputLabel } from "frappe-ui/experimental";
 import CodePreview from "./CodePreview.vue";
 import { markCodeErrors } from "./codeErrorMarks";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
-import { CodeErrorsKey, ParentDocKey } from "./types";
+import { CodeErrorsKey, ParentDocKey, TemplateNamesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = withDefaults(
@@ -170,7 +170,7 @@ const value = computed<string>(() => props.modelValue ?? "");
 const language = computed(() => fieldtypeToLanguage(props.field));
 
 // Configured outside `extensions`, so the array's members stay stable between renders.
-// Completion stays off: the field supplies no sources.
+// Completion stays off here: only the JavaScript grammar brings it, for templates.
 const kit = computed(() =>
 	CodeKit.configure({
 		// The kit ships line numbers off; the field drew them before rc.1.
@@ -179,6 +179,8 @@ const kit = computed(() =>
 		placeholder: props.field.placeholder || false,
 	})
 );
+
+const templateNames = inject(TemplateNamesKey, null);
 
 // The grammar loads after mount and lands through the reactive `extensions`; an answer for
 // a language the field has since left is dropped.
@@ -189,7 +191,7 @@ watch(
 		const wanted = key;
 		let loaded: Extension | null = null;
 		try {
-			loaded = await loadLanguage(key);
+			loaded = await loadGrammar(key);
 		} catch (error) {
 			// The message names the package to install.
 			console.error(error);
@@ -198,6 +200,12 @@ watch(
 	},
 	{ immediate: true }
 );
+
+async function loadGrammar(key: string): Promise<Extension | null> {
+	if (key !== "javascript") return loadLanguage(key);
+	const { templateLanguage } = await import("./templateLanguage");
+	return templateLanguage(templateNames);
+}
 
 // JSON fields lint as before: a parse error marks the line. The lint packages load only
 // for a JSON field; frappe-ui's vite plugin stubs an absent one with a throw.
