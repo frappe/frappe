@@ -12,8 +12,10 @@
 				<template #empty>
 					<SetupState v-if="needsSetup" />
 					<template v-else>
-						<BrandMark :size="48" />
-						<h2 class="max-w-xs text-5xl font-normal text-ink-gray-9 sm:max-w-none">
+						<BrandMark :size="52" />
+						<h2
+							class="max-w-xs text-6xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:max-w-none"
+						>
 							What can I help you with?
 						</h2>
 					</template>
