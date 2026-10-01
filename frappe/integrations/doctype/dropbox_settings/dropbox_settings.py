@@ -57,6 +57,8 @@ class DropboxSettings(Document):
 @frappe.whitelist()
 def take_backup():
 	"""Enqueue longjob for taking backup to dropbox"""
+	frappe.only_for("System Manager")
+
 	enqueue(
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
 		queue="long",
