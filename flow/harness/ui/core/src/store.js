@@ -20,6 +20,12 @@ function sameArray(left, right) {
 	return left.length === right.length && left.every((value, index) => value === right[index])
 }
 
+// A run that ended on its own hands the queue its next turn; a pause, a stop, a failure
+// or a denied tool call leaves the queue waiting for the user.
+function ranItsCourse(reason) {
+	return !!reason && !["paused", "aborted", "error", "denied"].includes(reason)
+}
+
 function readJSON(key, fallback, storage = globalThis.localStorage) {
 	try {
 		return JSON.parse(storage.getItem(key)) ?? fallback
@@ -125,6 +131,7 @@ export function createFlowStore(client, options = {}) {
 	let creating = null // in-flight lazy session creation; a double-send shares it
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
 	let queueCount = 0 // keys the queue's rows
+	let lastRunEnd = null // the open session's latest run_ended reason
 	// waiting messages, as { message, attachments }, of the sessions not open right now
 	const heldBySession = reactive(new Map(Object.entries(readJSON(keys.queue, {}, globalThis.sessionStorage))))
 	// This tab keeps every session's waiting messages across a reload; sessionStorage, so
@@ -342,6 +349,7 @@ export function createFlowStore(client, options = {}) {
 		state.skills = []
 		loadedSkillsFor = null
 		state.conversation = initialConversation()
+		lastRunEnd = null
 		// a message sent before this session existed is still in flight: its bubble
 		// stays up instead of blinking out while the transcript loads
 		state.conversation.sending = sending
@@ -379,6 +387,7 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.reasoningEffort = info.reasoning_effort ?? null
 		state.conversation.contextTokens = info.context_tokens ?? 0
 		for (const entry of seed.entries) applyEvent(state.conversation, entry)
+		lastRunEnd = seed.entries.findLast((entry) => entry.type === "run_ended" && !entry.subagent_id)?.reason ?? null
 		syncSubagentTabs()
 		// A trailing model_changed has no usage yet, so fall back to the selected
 		// model's static limit from the session detail response.
@@ -387,6 +396,10 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 		state.loading = false
 		startStream(sid, seed.latest_seq)
+		// a run that ran its course while this chat was closed, or the page reloaded, still
+		// hands its next waiting message a turn
+		if (state.queued.length && !state.conversation.running && ranItsCourse(lastRunEnd))
+			void sendWaiting(state.queued[0])
 	}
 
 	function startStream(sid, since) {
@@ -447,10 +460,11 @@ export function createFlowStore(client, options = {}) {
 		// messages still waiting stay for the user to send or take back
 		if (event.type === "run_ended" && ["aborted", "error"].includes(event.reason))
 			state.conversation.steering = []
+		if (event.type === "run_ended") lastRunEnd = event.reason
 		// a run that ran its course hands the next waiting message a turn of its own
 		if (
 			event.type === "run_ended" &&
-			!["paused", "aborted", "error"].includes(event.reason) &&
+			ranItsCourse(event.reason) &&
 			event.seq > (state.session?.latest_seq ?? 0)
 		) {
 			if (state.queued.length) void sendWaiting(state.queued[0])
@@ -602,8 +616,10 @@ export function createFlowStore(client, options = {}) {
 			heldBySession.set(sid, [...(heldBySession.get(sid) ?? []), { message, attachments: staged.attachments }])
 			return true
 		}
-		// the run may have ended while the files went up
-		if (!busy()) return sendNow(message, staged.attachments)
+		// the run may have ended while the files went up: if on its own, the message goes now,
+		// unless others wait ahead of it; after a stop, it waits with them
+		if (!busy() && !state.queued.length && ranItsCourse(lastRunEnd))
+			return sendNow(message, staged.attachments)
 		state.queued.push(queueItem(message, staged.attachments))
 		return true
 	}

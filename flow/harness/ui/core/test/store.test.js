@@ -1124,6 +1124,27 @@ test("a stopped run leaves its queue waiting, to send by hand", async () => {
 	flow.detach()
 })
 
+test("a denied tool call leaves the queue waiting, like a stop", async () => {
+	const calls = []
+	const ended = step({ type: "run_ended", seq: 2, reason: "denied" })
+	const client = hostClient(calls)
+	client.entries = running
+	client.stream = () => pacedStream([ended])
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	await flow.send("Also check this")
+	ended.open()
+	await ended.done
+	await settle()
+	assert.deepEqual(calls, [])
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Also check this"],
+	)
+	flow.detach()
+})
+
 test("a steered message leaves the queue for a bubble below the turn until the turn takes it", async () => {
 	const calls = []
 	const echo = step({ type: "user_message", seq: 2, content: "Also check this" })
@@ -1348,6 +1369,31 @@ test("a message whose files finish going up after its run ended goes out at once
 	flow.detach()
 })
 
+test("a message whose files finish going up after a stop waits for the user", async () => {
+	const calls = []
+	const ended = step({ type: "run_ended", seq: 2, reason: "aborted" })
+	const client = hostClient(calls)
+	client.entries = running
+	client.stream = () => pacedStream([ended])
+	let uploaded
+	client.uploadAttachments = () => new Promise((resolve) => (uploaded = resolve))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	const sent = flow.send("Look at this", [{ key: "k1", name: "shot.png", kind: "image", file: { name: "shot.png" } }])
+	await settle()
+	ended.open()
+	await ended.done
+	uploaded({ attachments: [{ id: "A1", name: "shot.png", kind: "image" }] })
+	assert.equal(await sent, true)
+	assert.deepEqual(calls, [])
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Look at this"],
+	)
+	flow.detach()
+})
+
 test("a message whose files go up while another session opens waits with its own", async () => {
 	const client = hostClient([])
 	client.entries = running
@@ -1387,6 +1433,30 @@ test("waiting messages stay with their session while another is open", async () 
 		["Also check this"],
 	)
 	flow.detach()
+})
+
+test("a chat reopened after its run ran its course sends the next waiting message; after a stop it waits", async () => {
+	for (const [reason, sent] of [
+		["done", [["run", "Also check this"]]],
+		["aborted", []],
+	]) {
+		const calls = []
+		const client = hostClient(calls)
+		let end = null
+		client.entries = async () => ({
+			entries: [{ type: "run_started", seq: 1 }, ...(end ? [{ type: "run_ended", seq: 2, reason: end }] : [])],
+			latest_seq: end ? 2 : 1,
+		})
+		const flow = createFlowStore(client)
+		await flow.openSession("s1")
+		await flow.send("Also check this")
+		await flow.openSession("s2")
+		end = reason // the run ends while another chat is open
+		await flow.openSession("s1")
+		await settle()
+		assert.deepEqual(calls, sent, reason)
+		flow.detach()
+	}
 })
 
 test("a message waits in the box while an approval is unanswered", async () => {
