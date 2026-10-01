@@ -159,7 +159,6 @@ async function mount() {
   return root;
 }
 
-/** The quick actions the script drew, in order. */
 function drawn(root: HTMLElement) {
   return [...root.querySelectorAll("button")]
     .map((button) => button.textContent!.trim())
@@ -167,7 +166,6 @@ function drawn(root: HTMLElement) {
     .join(" ");
 }
 
-/** Every distinct set of quick actions the page shows from now on, the current one first. */
 function watchPaints(root: HTMLElement) {
   const seen = [drawn(root)];
   const observer = new MutationObserver(() => {
