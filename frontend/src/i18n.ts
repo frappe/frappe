@@ -1,7 +1,7 @@
 // Translations: fetched apart from boot, never awaited, keyed on `translations_version`.
 // `__` and `__n` reach stored scripts as `frappe/i18n`; `loadTranslations` stays the shell's.
 
-import { shallowRef } from "vue";
+import { shallowRef, type App } from "vue";
 import { getTranslations } from "@framework/ui/api";
 
 type Replacements = (string | number)[];
@@ -38,6 +38,12 @@ export function __n(
   context?: string | null,
 ): string {
   return __(count === 1 ? singular : plural, replacements, context);
+}
+
+/** Puts both in every component template with no import; a `setup()` return of the same name wins. */
+export function installTranslate(app: App) {
+  app.config.globalProperties.__ = __;
+  app.config.globalProperties.__n = __n;
 }
 
 function lookup(text: string, context?: string | null) {

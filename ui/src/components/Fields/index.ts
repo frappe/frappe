@@ -15,3 +15,5 @@ export type {
   FieldComponentEmits,
 } from "./types";
 export { DocKey, LinkTitlesKey, ParentDocKey, UpdateKey } from "./types";
+// What the Code field completes inside a `template:` string; the desk provides it.
+export { TemplateNamesKey } from "./types";
