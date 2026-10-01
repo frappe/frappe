@@ -157,6 +157,8 @@ frappe.ui.Stepper = class Stepper {
 			label.className = "es-stepper__label";
 			label.textContent = step.label;
 			button.appendChild(label);
+			// Full label on hover, since long ones get cut off.
+			button.title = step.label;
 
 			button.addEventListener("click", () => {
 				if (button.getAttribute("aria-disabled") === "true") {
