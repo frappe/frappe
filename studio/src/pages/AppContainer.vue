@@ -45,15 +45,10 @@ async function loadPage() {
 		rootBlock.value = null
 		return
 	}
-	codeStore.beginPageSwitch()
+	codeStore.teardownPage()
 
 	page.value = await findPageWithRoute(window.app_name, currentPath, Boolean(window.is_preview))
-	if (token !== loadToken) return
-	if (!page.value) {
-		rootBlock.value = null
-		codeStore.endPageSwitch()
-		return
-	}
+	if (token !== loadToken || !page.value) return
 	componentStore.setComponents(page.value.components || [])
 	await store.setPageData(page.value)
 	await codeStore.setPageScript(page.value, Boolean(page.value.is_standard))
@@ -63,8 +58,6 @@ async function loadPage() {
 	if (blocks) {
 		rootBlock.value = getBlockInstance(blocks[0])
 	}
-	// same tick as the swap, so the new tree's first render sees its own context
-	codeStore.endPageSwitch()
 	loadedPath = currentPath
 }
 
