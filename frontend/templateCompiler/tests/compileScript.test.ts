@@ -74,9 +74,16 @@ describe("the literal-string rule", () => {
 			{
 				line: 3,
 				column,
-				message: "template: must be a string, or a backtick string with no ${} parts.",
+				message: "template: must be a string, or a backtick string with no ${} parts. For data, quote the key: \"template\":.",
 			},
 		]);
+	});
+});
+
+describe("data under a template key", () => {
+	it("tells the author to quote the key", () => {
+		const [error] = errorsOf('frappe.call({ args: { template: page.doc.name } })\n');
+		expect(error.message).toContain('quote the key: "template":');
 	});
 });
 

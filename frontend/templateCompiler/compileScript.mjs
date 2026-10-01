@@ -101,7 +101,7 @@ function readTemplate(source, property, component) {
       (property.shorthand ? property : value).start
     );
     const message =
-      "template: must be a string, or a backtick string with no ${} parts.";
+      'template: must be a string, or a backtick string with no ${} parts. For data, quote the key: "template":.';
     return { property, error: { ...at, message } };
   }
   const contentStart = value.start + 1;
