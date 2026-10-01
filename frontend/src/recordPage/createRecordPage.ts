@@ -9,6 +9,7 @@ import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
 import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
 import { runningSource, withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
+import { createHeldActs, type HeldAct } from "./heldActs";
 import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import type {
   FormLayoutSchema,
@@ -32,7 +33,7 @@ import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
 import { clientScriptsLoaded, replacedClientScripts } from "./clientScripts";
 import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
-import { IN_BACKGROUND, NOT_DRAWN, RESTORED_VIEW, type Staging } from "./staging";
+import { RESTORED_VIEW, type Staging } from "./staging";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
@@ -244,12 +245,17 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     doc: () => host.doc.value,
   });
   const form = new FormSurface({ fields: () => host.meta.value?.fields }, formTabs);
+  // Held until commit: until then the host still renders the last replay's strip, and a
+  // move onto a tab not yet on it shows the fallback for a tick.
+  const heldActs = createHeldActs({
+    isStaging: () => gate.isStaging(),
+    inBackground: () => gate.inBackground(),
+  });
   const activity = new ActivitySurface({
     rows: () => host.activityRows(),
     scrollTo: (key) => host.scrollToActivity(key),
     reload: () => host.reloadActivity(),
-    isStaging: () => gate.isStaging(),
-    inBackground: () => gate.inBackground(),
+    take: heldActs.take,
   });
   const files = new FilesSurface({
     rows: () => host.fileRows(),
@@ -263,8 +269,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       windowState: () => host.windowState?.() ?? "docked",
       setWindow: (window) => host.setWindow?.(window),
     },
-    () => gate.isStaging(),
-    () => gate.inBackground(),
+    heldActs.take,
   );
   const rows = createRows({
     doc: () => host.doc.value,
@@ -294,10 +299,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   let vocabularyChecked = false;
 
-  // Resolved at the call, delivered on commit: until then the host still renders the
-  // last replay's strip, and a move onto a tab not yet on it shows the fallback for a tick.
-  const heldActivations = new Map<TabStrip, string>();
-
   Object.defineProperty(tabs, "activate", {
     value: (name: string) => activate("tabs", name),
   });
@@ -305,18 +306,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     value: (identity: string) => activate("form.tabs", identity),
   });
 
-  // Same terms as an activation: resolved now, delivered when the panel on screen is this replay's.
-  const heldDisclosures = new Map<string, boolean>();
-
   Object.defineProperty(panelSections, "open", {
     value: (name: string) => disclose(name, true),
   });
   Object.defineProperty(panelSections, "close", {
     value: (name: string) => disclose(name, false),
   });
-
-  // Held on the same terms as an activation: the form on screen is the last replay's until commit.
-  let heldFocus: string | null = null;
 
   Object.defineProperty(fields, "focus", {
     value: (fieldname: string) => focusField(fieldname),
@@ -341,10 +336,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     fetchCached: () => cachedReads.fetchUnfetched(),
     runOpen: (registrations) => runOpen(registrations),
     warnUnknownHandlers: () => warnUnknownHandlers(),
-    deliverHeldActs: (drawnOnly) => deliverHeldActs(drawnOnly),
+    deliverHeldActs: heldActs.release,
     closeDialogs: () => dialogs.closeAll(),
   });
-  const { hold, isStaging } = gate;
+  const { hold } = gate;
 
   const dialogs = createPageDialogs({ isReplaying: () => gate.isReplaying.value, hold });
 
@@ -404,14 +399,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const page = withRemovals(capabilities);
   const refreshView = pageView(page);
 
-  function deliverHeldActs(drawnOnly: boolean) {
-    releaseActivations(drawnOnly);
-    releaseDisclosures(drawnOnly);
-    releaseFocus(drawnOnly);
-    activity.releaseScroll(drawnOnly);
-    composer.releaseOpen(drawnOnly);
-  }
-
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
   let saving: Promise<void> | null = null;
 
@@ -435,17 +422,17 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   function focusField(fieldname: string) {
     if (!canFocus(fieldname)) return;
-    if (gate.inBackground()) warnFocus(fieldname, IN_BACKGROUND);
-    else if (isStaging()) heldFocus = fieldname;
-    else deliverFocus(fieldname);
-  }
-
-  function releaseFocus(drawnOnly: boolean) {
-    const held = heldFocus;
-    heldFocus = null;
-    if (!held) return;
-    if (drawnOnly && !fields.isDrawn(held)) warnFocus(held, NOT_DRAWN);
-    else if (canFocus(held, "it left the form before the replay settled")) deliverFocus(held);
+    const act: HeldAct = {
+      kind: "focus",
+      target: "",
+      isDrawn: () => fields.isDrawn(fieldname),
+      land: () => {
+        if (canFocus(fieldname, "it left the form before the replay settled"))
+          deliverFocus(fieldname);
+      },
+      refuse: (because) => warnFocus(fieldname, because),
+    };
+    if (!heldActs.take(act)) deliverFocus(fieldname);
   }
 
   function canFocus(fieldname: string, gone = "no such field") {
@@ -482,23 +469,21 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  function releaseDisclosures(drawnOnly: boolean) {
-    const held = [...heldDisclosures];
-    heldDisclosures.clear();
-    for (const [name, open] of held) {
-      if (drawnOnly && !panelSections.isDrawn(name)) warnDisclose(name, open, NOT_DRAWN);
-      // Re-read, as a held activation is: a later source can hide or relabel the section.
-      else if (canDisclose(name, open, "it left the panel before the replay settled"))
-        deliverDisclosure(name, open);
-    }
-  }
-
   /** Both acts: a miss is said the way `activate` says one, and a hidden section is a miss. */
   function disclose(name: string, open: boolean) {
     if (!canDisclose(name, open)) return;
-    if (gate.inBackground()) warnDisclose(name, open, IN_BACKGROUND);
-    else if (isStaging()) heldDisclosures.set(name, open);
-    else deliverDisclosure(name, open);
+    const act: HeldAct = {
+      kind: "disclose",
+      target: name,
+      isDrawn: () => panelSections.isDrawn(name),
+      // Re-read, as a held activation is: a later source can hide or relabel the section.
+      land: () => {
+        if (canDisclose(name, open, "it left the panel before the replay settled"))
+          deliverDisclosure(name, open);
+      },
+      refuse: (because) => warnDisclose(name, open, because),
+    };
+    if (!heldActs.take(act)) deliverDisclosure(name, open);
   }
 
   function canDisclose(name: string, open: boolean, gone = "no such section") {
@@ -543,19 +528,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  function releaseActivations(drawnOnly: boolean) {
-    const held = [...heldActivations];
-    heldActivations.clear();
-    for (const [strip, name] of held) {
-      if (drawnOnly && !surfaceFor(strip).isDrawn(name)) warnActivate(strip, name, NOT_DRAWN);
-      // Re-read, not replayed: a later source can hide the tab an earlier one
-      // activated, and delivering that move would land the reader on the fallback.
-      else if (!surfaceFor(strip).isVisible(name))
-        warnActivate(strip, name, "it left the strip before the replay settled");
-      else move(strip, name);
-    }
-  }
-
   function surfaceFor(strip: TabStrip) {
     return strip === "tabs" ? tabs : formTabs;
   }
@@ -563,9 +535,21 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   /** Both strips' `activate`: the interesting miss names the other strip, and only a caller holding both can say so. */
   function activate(strip: TabStrip, name: string) {
     if (!canReach(strip, name)) return;
-    if (gate.inBackground()) warnActivate(strip, name, IN_BACKGROUND);
-    else if (isStaging()) heldActivations.set(strip, name);
-    else move(strip, name);
+    const act: HeldAct = {
+      kind: "activate",
+      target: strip,
+      isDrawn: () => surfaceFor(strip).isDrawn(name),
+      land: () => landActivation(strip, name),
+      refuse: (because) => warnActivate(strip, name, because),
+    };
+    if (!heldActs.take(act)) move(strip, name);
+  }
+
+  // Re-read, not replayed: a later source can hide the tab an earlier one
+  // activated, and delivering that move would land the reader on the fallback.
+  function landActivation(strip: TabStrip, name: string) {
+    if (surfaceFor(strip).isVisible(name)) move(strip, name);
+    else warnActivate(strip, name, "it left the strip before the replay settled");
   }
 
   function canReach(strip: TabStrip, name: string) {

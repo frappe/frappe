@@ -225,6 +225,19 @@ describe("open", () => {
     expect(seen).toEqual([]);
     expect(opened).toEqual([["comment", {}]]);
   });
+
+  it("drops a held open when close() follows it in the same replay", async () => {
+    const { controller, opened } = makePage();
+    registerRecordPage("CRM Deal", {
+      onRefresh: (page) => {
+        page.composer.open("comment");
+        page.composer.close();
+      },
+    });
+    await controller.refresh();
+
+    expect(opened).toEqual([]);
+  });
 });
 
 describe("active and close", () => {

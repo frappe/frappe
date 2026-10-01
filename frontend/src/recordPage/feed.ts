@@ -6,7 +6,7 @@ import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { currentSession } from "@framework/ui/composables/useSession";
 import { runningSource } from "./context";
 import { readOnly } from "./readOnly";
-import { IN_BACKGROUND, NOT_DRAWN } from "./staging";
+import type { HeldAct } from "./heldActs";
 import { BUILTIN, Surface } from "./surface";
 import { FEED_ITEM_KEYS } from "./types";
 import type {
@@ -23,10 +23,8 @@ export interface ActivityHost {
   rows: () => ActivityRow[];
   scrollTo: (key: string) => Promise<boolean | null>;
   reload: () => Promise<void>;
-  /** The page's rule for whether an act waits for a commit. */
-  isStaging: () => boolean;
-  /** True in the replay after a background read, which drops its acts. */
-  inBackground: () => boolean;
+  /** Holds or drops an act and answers true; false means deliver it now. */
+  take: (act: HeldAct) => boolean;
 }
 
 export interface FilesHost {
@@ -132,17 +130,21 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
   // `types` stages with its source, as an op does; the first entry is what the buffer starts from.
   private stagedTypes: { source: string; list: VisibleTypes | null }[] = [];
   private shown = ref<VisibleTypes | null>(null);
-  private heldScroll: string | null = null;
 
   constructor(private readonly host: ActivityHost) {
     super("activity");
   }
 
-  /** Called in a replay or a hold, the move waits for `releaseScroll`, once the page on screen is its own. */
+  /** Called in a replay or a hold, the move waits for the commit, once the page on screen is its own. */
   scrollTo(key: string) {
-    if (this.host.inBackground()) this.refuseScroll(key, IN_BACKGROUND);
-    else if (this.host.isStaging()) this.heldScroll = key;
-    else void this.deliverScroll(key);
+    const act: HeldAct = {
+      kind: "scrollTo",
+      target: "",
+      isDrawn: () => !this.isUndrawn(key),
+      land: () => void this.deliverScroll(key),
+      refuse: (because) => this.refuseScroll(key, because),
+    };
+    if (!this.host.take(act)) void this.deliverScroll(key);
   }
 
   reload() {
@@ -159,15 +161,6 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
   /** The types the Activity tab reads; `null` shows every type. */
   shownTypes(): VisibleTypes | null {
     return this.shown.value;
-  }
-
-  /** `drawnOnly` at the first paint that went ahead: a row of a script's not drawn yet is dropped. */
-  releaseScroll(drawnOnly = false) {
-    const key = this.heldScroll;
-    this.heldScroll = null;
-    if (!key) return;
-    if (drawnOnly && this.isUndrawn(key)) this.refuseScroll(key, NOT_DRAWN);
-    else void this.deliverScroll(key);
   }
 
   /** Says a `scrollTo` was dropped, and why. */
