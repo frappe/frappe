@@ -14,7 +14,6 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
 
 from studio.build import StudioAppBuilder, get_app_router_file, get_published_custom_apps
-from studio.studio.doctype.studio_app.pages_types import get_params_types
 from studio.studio.doctype.studio_app.studio_app import StudioApp
 
 
@@ -77,7 +76,7 @@ class TestStudioApp(FrappeTestCase):
 			self.assertFalse(app.router_script)
 			self.assertEqual(
 				frappe.read_file(app.get_router_file_path()),
-				f"export default {ROUTER_SCRIPT} satisfies RouterConfig\n",
+				f"export default {ROUTER_SCRIPT}\n",
 			)
 			exported = json.loads(
 				frappe.read_file(os.path.join(app.get_folder_path(), "routed_custom_app.json"))
@@ -86,34 +85,6 @@ class TestStudioApp(FrappeTestCase):
 
 			app.disable_app_export()
 			self.assertEqual(app.reload().router_script, ROUTER_SCRIPT)
-
-	def test_export_types_the_app_pages_as_route_names(self):
-		with exports_in_tempdir():
-			app = make_studio_app(
-				app_title="Typed App", app_name="typed-app", is_standard=1, frappe_app="studio"
-			)
-			page = make_studio_page(app.name, page_title="Ticket", route="/tickets/:ticketId")
-			page.is_standard = 1
-			page.save()
-			types_path = os.path.join(app.get_folder_path(), "pages.d.ts")
-			self.assertIn(
-				'"Ticket": RouteRecordInfo<"Ticket", "/tickets/:ticketId", '
-				"{ ticketId: ParamValue<true> }, { ticketId: ParamValue<false> }>",
-				frappe.read_file(types_path),
-			)
-
-			frappe.delete_doc("Studio Page", page.name, force=True)
-			self.assertNotIn('"Ticket"', frappe.read_file(types_path))
-
-	def test_pages_types_follow_path_param_modifiers(self):
-		raw, parsed = get_params_types("/files/:folder?/:path*/:tags+/:id(\\d+)")
-		self.assertEqual(
-			raw,
-			"{ folder?: ParamValueZeroOrOne<true>; path?: ParamValueZeroOrMore<true>; "
-			"tags: ParamValueOneOrMore<true>; id: ParamValue<true> }",
-		)
-		self.assertIn("folder?: ParamValueZeroOrOne<false>", parsed)
-		self.assertEqual(get_params_types("/")[0], "Record<never, never>")
 
 	def test_boot_comes_from_studio_app_boot_hook(self):
 		app = unsaved_studio_app("boot-app")

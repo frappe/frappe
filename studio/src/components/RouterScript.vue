@@ -153,8 +153,7 @@ watch(
 )
 
 async function createFile() {
-	// RouterConfig is declared by the generated pages.d.ts next to this file
-	const starter = `export default ${BOILERPLATE} satisfies RouterConfig\n`
+	const starter = `export default ${BOILERPLATE}\n`
 	const created = await createStudioFile(location.value, ROUTER_FILE)
 	const written = await writeStudioFile(location.value, ROUTER_FILE, starter, created.hash)
 	store.hasRouterFile = true
