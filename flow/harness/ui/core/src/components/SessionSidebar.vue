@@ -16,6 +16,7 @@
 			open ? '' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 		]"
 		:style="{ '--sidebar-w': width + 'px' }"
+		:inert="!open"
 	>
 		<div class="flex h-12 items-center gap-2.5 px-3.5">
 			<BrandMark :size="22" />

@@ -21,6 +21,7 @@
 				: 'translate-x-full md:mr-[calc(-1*var(--workspace-w))] md:translate-x-0',
 		]"
 		:style="workspace.maximized ? {} : { '--workspace-w': width + 'px' }"
+		:inert="!workspace.open && !workspace.maximized"
 	>
 		<div
 			v-if="!workspace.maximized"
