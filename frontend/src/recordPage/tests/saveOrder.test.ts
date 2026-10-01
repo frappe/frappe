@@ -151,6 +151,47 @@ describe("page.save()", () => {
     expect(order).toEqual(["beforeSave", "write", "afterSave"]);
   });
 
+  it("is saving from the call until afterSave settles, and a save after a failed one sends again", async () => {
+    let fail = true;
+    const { host, order } = makeHost({
+      save: async () => {
+        order.push("write");
+        if (fail) throw new Error("Save failed with 417");
+      },
+    });
+    registerRecordPage("CRM Deal", {
+      afterSave: () => void order.push(`afterSave saving=${controller.isSaving.value}`),
+    });
+    const controller = createRecordPage(host);
+
+    const failed = controller.page.save();
+    expect(controller.isSaving.value).toBe(true);
+    await expect(failed).rejects.toThrow("417");
+    expect(controller.isSaving.value).toBe(false);
+    fail = false;
+    await controller.page.save();
+
+    expect(order).toEqual(["write", "write", "afterSave saving=true"]);
+    expect(controller.isSaving.value).toBe(false);
+  });
+
+  it("a page left while beforeSave runs writes nothing", async () => {
+    let release!: () => void;
+    const { host, order } = makeHost();
+    registerRecordPage("CRM Deal", {
+      beforeSave: () => new Promise<void>((resolve) => (release = resolve)),
+    });
+    const controller = createRecordPage(host);
+
+    const saving = controller.page.save();
+    while (!release) await Promise.resolve();
+    controller.leave();
+    release();
+    await saving;
+
+    expect(order).toEqual([]);
+  });
+
   it("the flushed handler's own write lands before beforeSave reads the doc", async () => {
     const { host, doc } = makeHost();
     let seen: number | undefined;

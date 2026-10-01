@@ -203,6 +203,33 @@ describe("one paint per handler", () => {
     expect(drawn(controller)).toEqual(["a", "b"]);
     expect(paints.count).toBe(1);
   });
+
+  it("draws a save once: `beforeSave`, the refresh after the write and `afterSave`", async () => {
+    const write = gate();
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("refreshed")),
+      beforeSave: (page: RecordPageApi) => page.quickActions.add(action("before")),
+      afterSave: (page: RecordPageApi) => page.quickActions.add(action("after")),
+    });
+    const made = makePage({
+      save: async () => {
+        await write.opened;
+        await made.controller.refresh();
+      },
+    });
+    const { controller, page } = made;
+    await controller.refresh();
+    const paints = countPaints(controller);
+
+    const saving = page.save();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(drawn(controller)).toEqual(["refreshed"]);
+    write.open();
+    await saving;
+
+    expect(drawn(controller)).toEqual(["refreshed", "after"]);
+    expect(paints.count).toBe(1);
+  });
 });
 
 describe("a hold and a replay that overlap", () => {

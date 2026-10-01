@@ -1,6 +1,6 @@
 // Builds the curated `page` and the controller that fires events into it. Handlers
 // run serially, each in its own try/catch; only a `beforeSave` throw aborts anything.
-import type { ComputedRef, Ref } from "vue";
+import { computed, shallowRef, type ComputedRef, type Ref } from "vue";
 import type { Router } from "vue-router";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
@@ -212,6 +212,8 @@ export interface RecordPageController {
   fetchCached: () => Promise<void>;
   /** Runs script code the host calls outside an event, so its ops paint once, when it finishes. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
+  /** True from a `page.save()` until its `afterSave` settles. */
+  isSaving: ComputedRef<boolean>;
   /** True once the first replay has painted, or the first paint went ahead without a late script. */
   ready: Ref<boolean>;
   /** True while a replay is staging; a host announcing a settled strip waits for it to go false. */
@@ -399,13 +401,13 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const refreshView = pageView(page);
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
-  let saving: Promise<void> | null = null;
+  const saving = shallowRef<Promise<void> | null>(null);
 
-  /** The one save path: a clean doc resolves at once, and a `beforeSave` throw sends nothing. */
+  /** The one save path: a clean doc resolves at once, a `beforeSave` throw sends nothing, and it paints once. */
   function save() {
     if (gate.hasLeft() || !host.isDirty()) return Promise.resolve();
-    if (!saving) saving = runSave().finally(() => (saving = null));
-    return saving;
+    saving.value ??= hold(runSave).finally(() => (saving.value = null));
+    return saving.value;
   }
 
   async function runSave() {
@@ -415,6 +417,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     } catch (error) {
       throw asVeto(error);
     }
+    if (gate.hasLeft()) return;
     await host.save();
     await fireEvent("afterSave");
   }
@@ -844,6 +847,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     firePost,
     fetchCached: gate.fetchCached,
     hold,
+    isSaving: computed(() => saving.value !== null),
     ready: gate.ready,
     isReplaying: gate.isReplaying,
     dialogs: dialogs.entries,

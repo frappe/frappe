@@ -5,7 +5,6 @@ export class Visit {
   private reads = 0;
   private newestLanding: Promise<void> = Promise.resolve();
   private toggles: Promise<void> = Promise.resolve();
-  private saveRequest: Promise<void> | null = null;
 
   /** False once the visit ended; a child part keeps it across its own awaits. */
   readonly current = (): boolean => !this.reading.signal.aborted;
@@ -37,14 +36,6 @@ export class Visit {
   inTurn(turn: () => Promise<void>): Promise<void> {
     this.toggles = this.toggles.then(turn, turn);
     return this.toggles;
-  }
-
-  /** One save request at a time; a save asked while one is in flight joins it. */
-  save(send: () => Promise<void>): Promise<void> {
-    this.saveRequest ??= send().finally(() => {
-      this.saveRequest = null;
-    });
-    return this.saveRequest;
   }
 
   private async landIfNewest<T>(
