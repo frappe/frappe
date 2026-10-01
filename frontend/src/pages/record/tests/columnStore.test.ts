@@ -1,7 +1,10 @@
 // One store for every body column: keyed by user, then column name; a patch keeps the
 // other key, and a broken or foreign value reads as nothing remembered.
 import { beforeEach, describe, expect, it } from "vitest";
-import { STORE_KEY, useColumnStore } from "../body/columnStore";
+import { useColumnStore } from "../body/columnStore";
+
+// The key a reader's widths are already stored under; they must keep reading back.
+const STORE_KEY = "frappe:desk:record-body-columns";
 
 beforeEach(() => localStorage.clear());
 
