@@ -213,6 +213,7 @@ component group, with its main names.
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
 | Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`) | How a field reads the document, writes a value, and shows link titles |
+| `TemplateNamesKey` | The component names a `template:` string can use with no `components:` entry. The Code field completes them. With no value, it completes Vue's built-in components only |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
 | `Link`, `Grid`, `Phone`, `TableMultiSelect` | Field controls with their own pickers and tables |
 | `ActivityTimeline` (`@framework/ui/ActivityTimeline`: `ActivityTimeline`, `useActivityTimeline`, `reloadActivityTimeline`, `addPendingActivity`, `compareActivities`) | A record's activity feed, its row types, and one listener per record room for feed rows and docinfo |
@@ -240,7 +241,7 @@ component group, with its main names.
 | Shell slot (`registerShell`) | Holds boot, addresses and the router, so `routeFor` works without arguments |
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
-| Translations (`loadTranslations`, `__`, `__n`) | Fetch the messages at start, and translate a string or a plural |
+| Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
 | Latest reply wins | *New.* One helper for the desk's "only the newest answer counts" guards. `ui/` keeps its own, because it may not use this layer |
 | Per-user browser memory (`browserMemory`, `BrowserMemory`) | One helper for every value kept in browser storage for one user. The record page uses it; the shell's copies have not moved yet |
@@ -398,7 +399,7 @@ the reference for each `page` member.
 | --- | --- |
 | `vue`, `vue-router`, `frappe-ui` | The framework's shared packages |
 | `@framework/ui` | All of `ui/` while the `"./*"` entry stays |
-| `frappe/i18n` | `__` and `__n` |
+| `frappe/i18n` | `__` and `__n`. A script imports them. A `template:` string, and every other component template, gets both with no import |
 | Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry`. App files import them from `@shell` today; stored scripts cannot. The one module name is for Build and publishing to choose |
 | App names | Names an app publishes through its `import_map` hook |
 
@@ -411,7 +412,7 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | Concept | What it is |
 | --- | --- |
 | Start sequence (`start`) | Boot, then translations and icons without waiting, then addresses, contributions, standard pages, router, socket, and mount |
-| What the desk hands `ui/` | The session, the CSRF token, the socket, upload limits, and the invite address |
+| What the desk hands `ui/` | The session, the CSRF token, the socket, upload limits, the invite address, the component names a template can use with no `components:` entry, and `__` and `__n` as globals in every component template |
 
 **The build**
 
