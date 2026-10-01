@@ -10,6 +10,7 @@ This is being retired. It goes with the icon-grid batch, on one of the two trigg
 import json
 import os
 import random
+import re
 
 import frappe
 from frappe import _
@@ -312,6 +313,15 @@ def clear_desktop_icons_cache(user=None):
 	frappe.cache.hdel("bootinfo", user or frappe.session.user)
 
 
+# `/app` is the old name for `/desk`, and App icons are still shipped with either.
+DESK_LINK_PATTERN = re.compile(r"^/(desk|app)(/.*)?$")
+
+
+def is_desk_link(link: str | None) -> bool:
+	"""Whether `link` opens the desk, rather than an app's own portal."""
+	return bool(link and DESK_LINK_PATTERN.match(link))
+
+
 def create_desktop_icons_from_workspace():
 	workspaces = frappe.get_all(
 		"Workspace",
@@ -336,15 +346,9 @@ def create_desktop_icons_from_workspace():
 				# save, so every generated row landed with no app and was invisible to anything
 				# asking an icon which app it came from.
 				icon.app = app_name
-				# App icons are labelled by `app_title`; an app that declares no such hook has
-				# none to parent this workspace icon to, and looking one up by a null label
-				# would match whatever unlabelled row happens to exist.
 				app_title = (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
-				app_icon = (
-					frappe.db.exists("Desktop Icon", {"label": app_title, "icon_type": "App"})
-					if app_title
-					else None
-				)
+				# found by `app`: apps ship App icons under labels of their own
+				app_icon = frappe.db.exists("Desktop Icon", {"icon_type": "App", "app": app_name})
 				if app_icon:
 					icon.parent_icon = app_icon
 
@@ -354,12 +358,12 @@ def create_desktop_icons_from_workspace():
 				app_link = frappe.db.get_value("Desktop Icon", app_icon, "link") if app_icon else None
 
 				# Portal App With Desk Workspace
-				if app_link and not app_link.startswith("/app"):
+				if app_link and not is_desk_link(app_link):
 					icon.hidden = 1
 					icon.parent_icon = None
 
 				# If Desk App has one workspace with the same name
-				if icon.label == app_title and app_link and app_link.startswith("/app"):
+				if icon.label == app_title and is_desk_link(app_link):
 					icon.hidden = 1
 					icon.parent_icon = None
 
@@ -403,7 +407,8 @@ def create_desktop_icons_from_installed_apps():
 				icon.app = a
 				icon.link = app_details[0]["route"]
 				icon.logo_url = app_details[0]["logo"]
-				if not frappe.db.exists("Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]):
+				# the label is the docname, so an icon of any type holding it blocks this one
+				if not frappe.db.exists("Desktop Icon", icon.label):
 					icon.save()
 				index += 1
 
