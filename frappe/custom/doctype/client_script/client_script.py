@@ -25,7 +25,7 @@ CLASS_CONTEXTS = (
 	re.compile(r"\bclassList\.(?:add|remove|toggle|replace)\((?P<text>[^)]*)\)"),
 )
 CLASS_WORD = re.compile(r"[!-]?[A-Za-z](?:[\w:./%-]|\[[^\]\s]*\])*")
-# The same search the compile module runs first: a script without the word never needs `node`.
+# Must match the compile module's own first search.
 TEMPLATE_WORD = re.compile(r"\btemplate\b")
 # Only this file may run the compile module; frappe/tests/test_template_compiler_users.py checks it.
 COMPILER = "frontend/templateCompiler"
@@ -94,20 +94,22 @@ class ClientScript(Document):
 			)
 
 	def check_templates(self):
-		"""Block a save whose `template:` strings do not compile; an import logs the errors and keeps the record."""
+		"""Block a save whose `template:` strings do not compile; a fixture or a package keeps the record."""
 		if self.view not in RECORD_PAGE_VIEWS or not holds_template(self.script):
 			return
 		if not (self.is_new() or self.has_value_changed("script") or self.has_value_changed("view")):
 			return
 		try:
 			errors = compile_templates({self.name: self.script})[self.name]["errors"]
-			failure = errors and TemplateCompileError(errors_text(errors), code_errors(errors))
 		except CompilerUnavailable as error:
-			failure = error
-		if not failure:
+			self.report_compile_failure(error)
 			return
-		# Fixtures and Package Import keep the record; the first fetch skips it and reports it on the page.
-		if frappe.flags.in_import or self.flags.ignore_validate:
+		if errors:
+			self.report_compile_failure(TemplateCompileError(errors_text(errors), code_errors(errors)))
+
+	def report_compile_failure(self, failure: frappe.ValidationError):
+		# Data Import also sets `in_import`, and it must block like the form does.
+		if self.flags.ignore_validate or frappe.flags.in_migrate or frappe.flags.in_install:
 			frappe.log_error(
 				title=_("Client Script {0} does not compile").format(self.name),
 				message=str(failure),
@@ -234,13 +236,17 @@ def compile_templates(scripts: dict[str, str]) -> dict[str, dict]:
 	compiler = compiler_key()
 	keys = {name: compiled_copy_key(compiler, script) for name, script in scripts.items()}
 	results = {name: frappe.cache.get_value(key) for name, key in keys.items()}
-	missing = [{"name": name, "script": scripts[name]} for name, result in results.items() if result is None]
+	missing = [name for name, result in results.items() if result is None]
 	if not missing:
 		return results
-	for row in run_compiler(stdin=json.dumps(missing)):
-		result = results[row["name"]] = {"code": row["code"], "errors": row["errors"]}
+	payload = [{"name": name, "script": scripts[name]} for name in missing]
+	compiled = {row["name"]: row for row in run_compiler(stdin=json.dumps(payload))}
+	if not compiled.keys() >= set(missing):
+		raise compiler_failed(f"No result for {sorted(set(missing) - compiled.keys())}")
+	for name in missing:
+		results[name] = {"code": compiled[name]["code"], "errors": compiled[name]["errors"]}
 		# A failed compile is cached too, so a broken script costs one `node` call, not one per page load.
-		frappe.cache.set_value(keys[row["name"]], result, expires_in_sec=COMPILED_COPY_TTL)
+		frappe.cache.set_value(keys[name], results[name], expires_in_sec=COMPILED_COPY_TTL)
 	return results
 
 
@@ -252,11 +258,13 @@ def compiled_copy_key(compiler: str, script: str) -> str:
 def compiler_key() -> str:
 	"""A hash of the compile module's key parts: the compiler, Vue's version, the build, options and names."""
 	stamp = compiler_stamp()
-	if stamp not in compiler_keys:
+	key = compiler_keys.get(stamp)
+	if key is None:
 		parts = json.dumps(run_compiler("--key-parts"), sort_keys=True)
+		key = hashlib.sha256(parts.encode()).hexdigest()[:16]
 		compiler_keys.clear()
-		compiler_keys[stamp] = hashlib.sha256(parts.encode()).hexdigest()[:16]
-	return compiler_keys[stamp]
+		compiler_keys[stamp] = key
+	return key
 
 
 def compiler_stamp() -> tuple:
@@ -265,8 +273,10 @@ def compiler_stamp() -> tuple:
 		paths = sorted(entry.path for entry in os.scandir(compiler_path(COMPILER)) if entry.is_file())
 		paths.append(compiler_path(VUE_PACKAGE))
 		return tuple((path, os.stat(path).st_mtime_ns, os.stat(path).st_size) for path in paths)
-	except FileNotFoundError:
-		raise CompilerUnavailable(_("The template compiler is not installed. Run bench build to install it."))
+	except OSError:
+		raise CompilerUnavailable(
+			_("The template compiler is not installed. Run bench build to install it.")
+		) from None
 
 
 def run_compiler(*args: str, stdin: str = ""):
@@ -286,19 +296,24 @@ def run_compiler(*args: str, stdin: str = ""):
 		raise CompilerUnavailable(
 			_("The template compiler did not finish in {0} seconds.").format(COMPILE_TIMEOUT)
 		) from None
+	except OSError as error:
+		raise compiler_failed(str(error)) from None
 	if process.returncode:
-		raise CompilerUnavailable(_("The template compiler failed: {0}").format(error_line(process.stderr)))
-	return json.loads(process.stdout)
+		raise compiler_failed(process.stderr)
+	try:
+		return json.loads(process.stdout)
+	except ValueError:
+		raise compiler_failed(process.stdout) from None
+
+
+def compiler_failed(detail: str) -> CompilerUnavailable:
+	"""`detail` can hold server paths, so it goes to the Error Log and not to every reader of the doctype."""
+	frappe.log_error(title=_("The template compiler failed"), message=detail, defer_insert=True)
+	return CompilerUnavailable(_("The template compiler failed. The Error Log has the details."))
 
 
 def compiler_path(path: str) -> str:
 	return os.path.join(frappe.get_app_source_path("frappe"), path)
-
-
-def error_line(stderr: str) -> str:
-	"""Node's own error line, not the stack or the version line that follow it."""
-	lines = [line.strip() for line in stderr.splitlines() if line.strip()]
-	return next((line for line in lines if re.match(r"\w*Error\b", line)), lines[-1] if lines else "")
 
 
 def code_errors(errors: list[dict]) -> list[dict]:

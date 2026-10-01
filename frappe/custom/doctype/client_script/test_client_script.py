@@ -261,10 +261,14 @@ class TestUnknownClassWarning(IntegrationTestCase):
 		super().tearDownClass()
 
 
-def import_script(name, script, data_import=True):
-	"""A fixture import with `data_import=True`, or a Package Import without it."""
+def import_script(name, script, data_import=True, in_migrate=True):
+	"""A fixture sync in `bench migrate`; `data_import=False` is a Package Import, `in_migrate=False` a Data Import."""
 	docdict = {"doctype": "Client Script", "name": name, "dt": "Note", "view": "Record", "enabled": 1}
-	return import_doc({**docdict, "script": script}, data_import=data_import)
+	frappe.flags.in_migrate = in_migrate
+	try:
+		return import_doc({**docdict, "script": script}, data_import=data_import)
+	finally:
+		frappe.flags.in_migrate = False
 
 
 def fetched(name, dt="Note"):
@@ -319,10 +323,62 @@ class TestTemplateCompile(IntegrationTestCase):
 		self.assertTrue(logged("fixture-template"))
 
 	def test_a_package_import_keeps_the_record_and_logs(self):
-		import_script("package-template", BAD_TEMPLATE, data_import=False)
+		import_script("package-template", BAD_TEMPLATE, data_import=False, in_migrate=False)
 
 		self.assertTrue(frappe.db.exists("Client Script", "package-template"))
 		self.assertTrue(logged("package-template"))
+
+	def test_a_data_import_blocks_like_the_form(self):
+		with self.assertRaises(TemplateCompileError):
+			import_script("uploaded-template", BAD_TEMPLATE, in_migrate=False)
+
+	def test_an_unchanged_resave_runs_no_node(self):
+		script = make_script("good-template", script=GOOD_TEMPLATE).insert()
+		frappe.cache.delete_keys(client_script.COMPILED_COPY)
+
+		with self.counting_node() as run:
+			script.enabled = 0
+			script.save()
+		self.assertEqual(run.call_count, 0)
+
+	def test_moving_a_script_to_the_record_view_compiles_it(self):
+		script = make_script("form-template", view="Form", script=BAD_TEMPLATE).insert()
+
+		script.view = "Record"
+		with self.assertRaises(TemplateCompileError):
+			script.save()
+
+	def test_a_changed_compiler_file_asks_node_for_the_key_parts_again(self):
+		make_script("good-template", script=GOOD_TEMPLATE).insert()
+		stamp = client_script.compiler_stamp()
+
+		with self.counting_node() as run:
+			with patch.object(client_script, "compiler_stamp", return_value=(*stamp, ("moved", 1, 1))):
+				fetched("good-template")
+		self.assertEqual(len(run.call_args_list) - len(compile_calls(run)), 1)
+
+	def test_a_compiler_that_fails_sends_an_error_row_without_its_output(self):
+		import_script("fixture-template", GOOD_TEMPLATE)
+		frappe.cache.delete_keys(client_script.COMPILED_COPY)
+		failed = subprocess.CompletedProcess([], 1, "", "Error: Cannot find module '/srv/bench/x.mjs'")
+
+		with patch.object(client_script.subprocess, "run", return_value=failed):
+			with patch.object(client_script.frappe, "log_error") as log_error:
+				row = fetched("fixture-template")
+		self.assertEqual(row["script"], "")
+		self.assertIn("The Error Log has the details", row["error"])
+		self.assertNotIn("/srv/bench", row["error"])
+		self.assertIn("/srv/bench", log_error.call_args.kwargs["message"])
+
+	def test_a_compiler_that_hangs_sends_an_error_row(self):
+		import_script("fixture-template", GOOD_TEMPLATE)
+		frappe.cache.delete_keys(client_script.COMPILED_COPY)
+		timeout = subprocess.TimeoutExpired("node", client_script.COMPILE_TIMEOUT)
+
+		with patch.object(client_script.subprocess, "run", side_effect=timeout):
+			row = fetched("fixture-template")
+		self.assertEqual(row["script"], "")
+		self.assertIn("did not finish", row["error"])
 
 	def test_a_fetch_sends_a_failed_script_as_an_error_row_and_the_others_whole(self):
 		import_script("fixture-template", BAD_TEMPLATE)
@@ -391,9 +447,11 @@ class TestTemplateCompile(IntegrationTestCase):
 					f"new Function(`writeFileSync({json.dumps(marker)}, '')`)();\n"
 				)
 			with patch.object(client_script, "COMPILER_ENTRY", entry):
-				with self.assertRaisesRegex(CompilerUnavailable, "Code generation from strings disallowed"):
-					client_script.run_compiler("--key-parts")
+				with patch.object(client_script.frappe, "log_error") as log_error:
+					with self.assertRaises(CompilerUnavailable):
+						client_script.run_compiler("--key-parts")
 			self.assertFalse(os.path.exists(marker))
+		self.assertIn("Code generation from strings disallowed", log_error.call_args.kwargs["message"])
 
 
 class TestTemplateCompileErrorEntry(FrappeAPITestCase):
