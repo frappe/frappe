@@ -51,7 +51,7 @@ class TestCountry(IntegrationTestCase):
 		self.assertEqual(currencies_before, currencies_after)
 
 	def test_currency_number_format_is_stored_as_is(self):
-		frappe.db.delete("Currency")
+		frappe.db.delete("Currency", {"name": "CHF"})
 		import_country_and_currency()
 
 		self.assertEqual(frappe.db.get_value("Currency", "CHF", "number_format"), "#'###.##")
