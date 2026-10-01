@@ -12,8 +12,12 @@ export interface LoadedRecord {
 }
 
 /** The document, its parts and the link titles in one round trip; the read marks the record seen. */
-export function loadRecord(doctype: string, name: string): Promise<LoadedRecord> {
-	return read(doctype, name, [...RECORD_PARTS, "seen"]);
+export function loadRecord(
+	doctype: string,
+	name: string,
+	signal?: AbortSignal
+): Promise<LoadedRecord> {
+	return read(doctype, name, [...RECORD_PARTS, "seen"], signal);
 }
 
 /** A copy of the last full read the shared cache holds; null when it holds none. */
@@ -38,8 +42,13 @@ export async function saveRecord(
 	return data;
 }
 
-async function read(doctype: string, name: string, include: readonly string[]): Promise<LoadedRecord> {
-	const envelope = await getDocument(doctype, name, { include });
+async function read(
+	doctype: string,
+	name: string,
+	include: readonly string[],
+	signal?: AbortSignal
+): Promise<LoadedRecord> {
+	const envelope = await getDocument(doctype, name, { include, signal });
 	return loaded(envelope.data, envelope);
 }
 

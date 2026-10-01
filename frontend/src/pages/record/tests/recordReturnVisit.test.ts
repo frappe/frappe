@@ -208,6 +208,7 @@ beforeEach(() => {
       server.requests.push(`${method} ${decodeURIComponent(url.pathname)}`);
       const sent = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
       const [body, status] = await answer(url, method, sent);
+      if (init?.signal?.aborted) throw new DOMException("The request was aborted", "AbortError");
       return new Response(JSON.stringify(body), { status });
     }),
   );
@@ -564,6 +565,25 @@ describe("a return visit", () => {
     await settle();
 
     expect(state(root)).toBe(`Open|Mine|${SAVED}|${SAVED}|0`);
+  });
+});
+
+describe("a record read the reader left behind", () => {
+  it("is aborted, so it never lands in the cache as the last record read", async () => {
+    const late = (server.holdRecord = gate());
+    const { router } = await mount(`/note/${name}`);
+    await settle();
+    server.holdRecord = null;
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(routeFor("Note", other));
+    await settle();
+
+    late.open();
+    await settle();
+
+    expect(readCachedDocument("Note", name)).toBeUndefined();
+    expect(readCachedDocument("Note", other)?.complete).toBe(true);
   });
 });
 
