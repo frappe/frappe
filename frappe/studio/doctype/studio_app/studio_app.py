@@ -13,6 +13,7 @@ from frappe.website.website_generator import WebsiteGenerator
 
 from studio.export import can_export, delete_folder, write_document_file
 from studio.realtime import publish_doc_change
+from studio.studio.doctype.studio_app.pages_types import write_pages_types
 from studio.utils import walk_blocks
 
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
@@ -365,6 +366,7 @@ class StudioApp(WebsiteGenerator):
 		# the router config lives in router.ts, so keep it out of the JSON
 		write_document_file(self, folder=app_path, exclude_fields=["router_script"])
 		self.write_tsconfig(app_path)
+		write_pages_types(self.name, app_path)
 		return app_path
 
 	def write_tsconfig(self, app_path: str) -> None:
@@ -373,7 +375,8 @@ class StudioApp(WebsiteGenerator):
 		tsconfig = {
 			"compilerOptions": {
 				"baseUrl": ".",
-				"paths": {"@app/*": ["./*"]},
+				# pages.d.ts types routes with Studio's vue-router; the app folder has no node_modules
+				"paths": {"@app/*": ["./*"], "vue-router": [get_studio_vue_router_path(app_path)]},
 				# studio modules are .js/.ts — allowJs lets editors resolve both
 				"allowJs": True,
 				"module": "esnext",
@@ -511,16 +514,24 @@ class StudioApp(WebsiteGenerator):
 
 
 ROUTER_EXPORT_RE = re.compile(r"^\s*export\s+default\s+")
+ROUTER_SATISFIES_RE = re.compile(r"\s+satisfies\s+RouterConfig\s*;?\s*$")
 
 
 def wrap_router_script(script: str) -> str:
-	return f"export default {script.strip()}\n"
+	return f"export default {script.strip()} satisfies RouterConfig\n"
 
 
 def unwrap_router_script(source: str) -> str:
-	"""router.ts without the `export default` a custom app's script has no use for. A file with
-	imports is kept as is; the renderer reports the error the same way it does for page scripts."""
-	return ROUTER_EXPORT_RE.sub("", source, count=1).strip()
+	"""router.ts without the `export default` and type check a custom app's script has no use for.
+	A file with imports is kept as is; the renderer reports the error the same way it does for page scripts."""
+	source = ROUTER_EXPORT_RE.sub("", source, count=1)
+	return ROUTER_SATISFIES_RE.sub("", source, count=1).strip()
+
+
+def get_studio_vue_router_path(app_path: str) -> str:
+	# get_app_source_path scrubs its parts, which would turn vue-router into vue_router
+	vue_router = os.path.join(frappe.get_app_source_path("studio", "frontend"), "node_modules", "vue-router")
+	return os.path.relpath(vue_router, app_path)
 
 
 def custom_vue_component_names(blocks) -> set[str]:

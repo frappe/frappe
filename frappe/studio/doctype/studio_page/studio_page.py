@@ -19,6 +19,7 @@ from studio.export import (
 	write_document_file,
 )
 from studio.realtime import publish_doc_change
+from studio.studio.doctype.studio_app.pages_types import write_pages_types
 from studio.studio.doctype.studio_component.studio_component import get_components_for_blocks
 from studio.studio.doctype.studio_page.copy_paste_handler import (
 	PAGE_RESOURCE_FIELDS,
@@ -112,6 +113,7 @@ class StudioPage(Document):
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
 			self.relocate_on_retitle()
 			self.export_components()
+			self.write_pages_types()
 
 	def export_script_to_file(self):
 		"""Move the page script into its companion <page>.ts and clear the DB `script` field. Called on enabling exports"""
@@ -265,6 +267,13 @@ class StudioPage(Document):
 		self.delete_ai_sessions()
 		if can_export(self):
 			delete_folder(self.get_folder_path())
+
+	def after_delete(self):
+		if can_export(self):
+			self.write_pages_types()
+
+	def write_pages_types(self):
+		write_pages_types(self.studio_app, self.get_app().get_folder_path())
 
 	def delete_ai_sessions(self):
 		for session in frappe.get_all("Studio AI Session", filters={"page": self.name}, pluck="name"):
