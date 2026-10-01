@@ -15,8 +15,8 @@
 			:style="{ paddingBottom: composerHeight + 'px' }"
 		>
 			<slot name="empty">
-				<BrandMark :size="48" />
-				<h2 class="max-w-xs text-5xl font-normal text-ink-gray-9 sm:max-w-none">What would you like to build?</h2>
+				<BrandMark :size="52" />
+				<h2 class="max-w-xs text-6xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:max-w-none">What would you like to build?</h2>
 			</slot>
 		</div>
 		<div
