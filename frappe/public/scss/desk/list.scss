@@ -438,7 +438,7 @@ $level-margin-right: 8px;
 		padding: var(--padding-sm) 0;
 	}
 
-	// opened from the home screen the page reaches the home indicator; 0 in a browser
+	// clear the home indicator where the page runs under it; 0 everywhere else
 	.list-paging-area {
 		padding-bottom: calc(var(--padding-sm) + env(safe-area-inset-bottom, 0px));
 	}

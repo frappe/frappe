@@ -128,7 +128,7 @@
 	.body-sidebar-bottom {
 		// The user chip is the header's row drawn again -- a 40px trigger around a 28px mark --
 		// so it takes the header's 4px gutter rather than the rows' 8px.
-		padding: 0 4px 4px;
+		padding: 0 4px calc(4px + env(safe-area-inset-bottom, 0px));
 		width: 100%;
 	}
 
