@@ -343,6 +343,24 @@ describe("Desk URL shell segment", () => {
 		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
 	});
 
+	it("chooses the shell again when the awesomebar opens what is already on screen", () => {
+		// ToDo held in Users, then picked in the awesomebar. The route does not change, so nothing
+		// re-routes, and the shell still has to move to the one ToDo belongs in.
+		cy.visit("/desk/users/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+
+		cy.get(".body-sidebar .navbar-modal-search-mobile").click();
+		cy.get("#navbar-search").type("todo");
+		cy.get("#navbar-search")
+			.closest(".awesomplete")
+			.findByRole("listbox")
+			.should("be.visible");
+		cy.get("#navbar-search").type("{enter}");
+
+		cy.location("pathname").should("eq", "/desk/build/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+	});
+
 	it("does not rewrite history when you go back", () => {
 		// A URL outranks the sidebar on screen, or the back button would rewrite the entry it
 		// just returned to: going back to a ToDo opened in Build, while standing in Users, would

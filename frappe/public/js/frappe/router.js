@@ -706,7 +706,23 @@ frappe.router = {
 
 			// now process the route
 			this.route();
+		} else if (frappe.route_flags.jump) {
+			this.choose_shell_again(path + query_params);
 		}
+	},
+
+	// A jump to the route already on screen. There is nothing to render, but the shell was chosen
+	// by whatever brought the user here, and a jump chooses it afresh: ToDo opened from Users and
+	// then picked in the awesomebar belongs in Build.
+	//
+	// The shell is taken out of the URL first, the same as a jump from anywhere else arrives
+	// without one, so the shell that was there cannot answer for itself.
+	choose_shell_again(url) {
+		history.replaceState(history.state, "", url + window.location.hash);
+		this.current_shell = null;
+		this.is_jump = true;
+		this.write_shell_into_url();
+		this.trigger("change", this);
 	},
 
 	// The path on screen, spelled the way `make_url` would have spelled it: without the shell.
