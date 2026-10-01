@@ -109,7 +109,8 @@ export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutUpdate");
 
 /** The component names a `template:` string can use with no `components:` entry, from the host app. */
-export const TemplateNamesKey: InjectionKey<string[]> = Symbol("TemplateNames");
+export const TemplateNamesKey: InjectionKey<readonly string[]> =
+  Symbol("TemplateNames");
 
 /** Where a child row sits: its table's fieldname plus `name ?? __row_id`. */
 export interface RowAddress {

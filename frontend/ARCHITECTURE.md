@@ -241,7 +241,7 @@ component group, with its main names.
 | Shell slot (`registerShell`) | Holds boot, addresses and the router, so `routeFor` works without arguments |
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
-| Translations (`loadTranslations`, `__`, `__n`) | Fetch the messages at start, and translate a string or a plural |
+| Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
 | Latest reply wins | *New.* One helper for the desk's "only the newest answer counts" guards. `ui/` keeps its own, because it may not use this layer |
 | Per-user browser memory (`browserMemory`, `BrowserMemory`) | One helper for every value kept in browser storage for one user. The record page uses it; the shell's copies have not moved yet |

@@ -19,7 +19,7 @@ const scratch = path.join(folder, "../../../node_modules/.template-translate-tes
 
 afterAll(() => fs.rmSync(scratch, { recursive: true, force: true }));
 
-async function render(body: string) {
+async function render(body: string, install = true) {
   const { code, errors } = compileScript(`export default {\n${body}\n}\n`);
   expect(errors).toEqual([]);
   fs.mkdirSync(scratch, { recursive: true });
@@ -27,7 +27,7 @@ async function render(body: string) {
   fs.writeFileSync(file, code as string);
   const module = await import(/* @vite-ignore */ pathToFileURL(file).href);
   const app = createSSRApp(module.default);
-  installTranslate(app);
+  if (install) installTranslate(app);
   return renderToString(app);
 }
 
@@ -38,6 +38,10 @@ describe("installTranslate", () => {
     expect(await render(`template: "<p>{{ __('Save {0}', ['Deal']) }}</p>",`)).toBe(
       "<p>Enregistrer Deal</p>",
     );
+  });
+
+  it("is what gives the template __", async () => {
+    await expect(render(`template: "<p>{{ __('Save') }}</p>",`, false)).rejects.toThrow();
   });
 
   it("gives a template: string __n with no import", async () => {

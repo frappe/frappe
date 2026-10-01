@@ -40,6 +40,13 @@ export function __n(
   return __(count === 1 ? singular : plural, replacements, context);
 }
 
+declare module "vue" {
+  interface ComponentCustomProperties {
+    __: typeof __;
+    __n: typeof __n;
+  }
+}
+
 /** Puts both in every component template with no import; a `setup()` return of the same name wins. */
 export function installTranslate(app: App) {
   app.config.globalProperties.__ = __;
