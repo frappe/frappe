@@ -9,6 +9,15 @@ for (const name of ["window", "document", "Document", "Element", "SVGElement", "
 	globalThis[name] = dom.window[name]
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {}
+// jsdom lacks the inert property that browsers reflect onto the attribute
+Object.defineProperty(dom.window.HTMLElement.prototype, "inert", {
+	get() {
+		return this.hasAttribute("inert")
+	},
+	set(value) {
+		this.toggleAttribute("inert", !!value)
+	},
+})
 globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0)
 const { createApp, h, nextTick, reactive } = await import("vue")
 const { loadComponent } = await import("./helpers/components.js")
@@ -949,6 +958,19 @@ test("the workspace panel draws a sub-agent's tab itself and takes the host's me
 	assert.equal(el.querySelector("[role='tab']"), null)
 	assert.equal(el.querySelector("[data-host='add']"), null)
 	assert.ok(el.querySelector("[data-host='empty']"))
+})
+
+test("a closed workspace panel is inert, so its hidden buttons can't take focus", async (t) => {
+	const workspace = reactive({ open: false, maximized: false, view: null, active: null, tabs: [] })
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, workspace, prefs: {} }) }
+	const { el } = mount(t, WorkspacePanel, {}, flow)
+	await nextTick()
+	const aside = el.querySelector("aside")
+	assert.ok(aside.hasAttribute("inert"))
+
+	workspace.open = true
+	await nextTick()
+	assert.ok(!aside.hasAttribute("inert"))
 })
 
 const settle = () => new Promise((resolve) => setImmediate(resolve))
