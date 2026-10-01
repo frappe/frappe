@@ -501,16 +501,23 @@ def pdf_contains_js(file_content: bytes):
 	return False
 
 
+def _reader_has_signature(reader: "PdfReader") -> bool:
+	"""Check an already-open PdfReader for a signed digital-signature field.
+	
+	Optimizing a signed PDF would silently break its signature, 
+	so callers should skip optimization when this returns True.
+
+	Returns True (fail-safe) if the fields can't be inspected.
+	"""
+	try:
+		fields = reader.get_fields() or {}
+		return any(field.get("/FT") == "/Sig" and field.get("/V") for field in fields.values())
+	except Exception:
+		return True
+
+
 def pdf_has_signature(content: bytes) -> bool:
-	"""Check if a PDF has a signed digital-signature field.
-
-	PDF signatures hash a specific byte range of the exact original file bytes;
-	re-serializing the file (as any pypdf write does) shifts object offsets and
-	invalidates that hash. Optimizing a signed PDF would silently break its
-	signature, so callers should skip optimization when this returns True.
-
-	Returns True (fail-safe) if the check itself can't be completed, since the
-	cost of skipping optimization is far lower than corrupting a signature.
+	"""Check if raw PDF bytes contain a signed digital-signature field.
 	"""
 	from io import BytesIO
 
@@ -518,10 +525,10 @@ def pdf_has_signature(content: bytes) -> bool:
 
 	try:
 		reader = PdfReader(BytesIO(content))
-		fields = reader.get_fields() or {}
-		return any(field.get("/FT") == "/Sig" and field.get("/V") for field in fields.values())
 	except Exception:
-		return True
+		return False
+
+	return _reader_has_signature(reader)
 
 
 def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
@@ -559,16 +566,18 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 	from pypdf import PdfReader, PdfWriter
 	from pypdf.errors import PyPdfError
 
-	if pdf_has_signature(content):
-		return content
-
 	try:
 		reader = PdfReader(BytesIO(content))
+
+		if _reader_has_signature(reader):
+			return content
+
 		if _pdf_has_oversized_image(reader, Image.MAX_IMAGE_PIXELS):
 			return content
 
 		writer = PdfWriter(clone_from=reader)
 
+		unexpected_image_error_logged = False
 		for page in writer.pages:
 			for image_id in page.images.keys():
 				try:
@@ -589,7 +598,12 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 					# skip this image rather than abandoning the whole document
 					continue
 				except Exception:
-					frappe.log_error(title=_("Unexpected error while optimizing one image in PDF"))
+					if not unexpected_image_error_logged:
+						frappe.log_error(
+							title=_("Unexpected error while optimizing one image in PDF"),
+							defer_insert=True,
+						)
+						unexpected_image_error_logged = True
 					continue
 			page.compress_content_streams()  # This is CPU intensive!
 

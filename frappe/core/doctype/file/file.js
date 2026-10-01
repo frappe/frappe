@@ -29,8 +29,8 @@ frappe.ui.form.on("File", {
 		// preview different file types
 		frm.trigger("preview_file");
 
-		let is_raster_image = /\.(gif|jpg|jpeg|tiff|png)$/i.test(frm.doc.file_url);
-		let is_optimizable = !frm.doc.is_folder && is_raster_image && frm.doc.file_size > 0;
+		let is_optimizable_file_type = /\.(gif|jpg|jpeg|tiff|png|pdf)$/i.test(frm.doc.file_url);
+		let is_optimizable = !frm.doc.is_folder && is_optimizable_file_type && frm.doc.file_size > 0;
 
 		// add optimize button
 		is_optimizable && frm.add_custom_button(__("Optimize"), () => frm.trigger("optimize"));
@@ -124,9 +124,9 @@ frappe.ui.form.on("File", {
 	},
 
 	optimize: function (frm) {
-		frappe.show_alert(__("Optimizing image..."));
+		frappe.show_alert(__("Optimizing file..."));
 		frm.call("optimize_file").then(() => {
-			frappe.show_alert(__("Image optimized"));
+			frappe.show_alert(__("File optimized"));
 		});
 	},
 

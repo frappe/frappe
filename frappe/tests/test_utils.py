@@ -1007,7 +1007,13 @@ class TestImage(IntegrationTestCase):
 		from frappe.utils.pdf import optimize_pdf
 
 		garbage_content = b"not a real pdf"
-		self.assertEqual(optimize_pdf(garbage_content), garbage_content)
+
+		with patch("frappe.msgprint") as mock_msgprint:
+			result = optimize_pdf(garbage_content)
+
+		self.assertEqual(result, garbage_content)
+		mock_msgprint.assert_called_once()
+		self.assertIn("Failed to optimize PDF", mock_msgprint.call_args[0][0])
 
 	def test_optimize_pdf_does_not_log_expected_failures(self):
 		from frappe.utils.pdf import optimize_pdf
@@ -1097,6 +1103,27 @@ class TestImage(IntegrationTestCase):
 		unsigned_buf = io.BytesIO()
 		Image.open(image_file_path).save(unsigned_buf, format="PDF")
 		self.assertFalse(pdf_has_signature(unsigned_buf.getvalue()))
+
+	def test_pdf_has_signature_false_for_unparseable_content(self):
+		from frappe.utils.pdf import pdf_has_signature
+		self.assertFalse(pdf_has_signature(b"not a real pdf"))
+
+	def test_pdf_has_signature_fails_safe_for_encrypted_pdf(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import pdf_has_signature
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		buf = io.BytesIO()
+		Image.open(image_file_path).save(buf, format="PDF")
+
+		reader = PdfReader(io.BytesIO(buf.getvalue()))
+		writer = PdfWriter(clone_from=reader)
+		writer.encrypt("secret123")
+		out = io.BytesIO()
+		writer.write(out)
+		encrypted_content = out.getvalue()
+
+		self.assertTrue(pdf_has_signature(encrypted_content))
 
 	def test_optimize_pdf_skips_signed_pdf(self):
 		from frappe.utils.pdf import optimize_pdf
