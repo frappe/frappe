@@ -538,7 +538,7 @@
   },
   {
    "default": "0",
-   "description": "Only Administrator can change this. To log in without a password run <code>bench --site &lt;site&gt; browse --user Administrator.</code>",
+   "description": "Only Administrator can change this. To log in without a password run <code>bench --site site-name browse --user Administrator.</code>",
    "fieldname": "disable_administrator_password_login",
    "fieldtype": "Check",
    "label": "Disable Administrator Password Login"
