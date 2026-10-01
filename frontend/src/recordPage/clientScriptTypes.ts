@@ -2,6 +2,8 @@
 export interface ClientScriptRow {
   name: string;
   script: string;
+  /** Why the server could not compile the script's `template:` strings; `script` is then empty. */
+  error?: string;
 }
 
 export interface ClientScriptsResponse {

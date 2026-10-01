@@ -263,8 +263,10 @@ a child fieldname or one of the two lifecycle events. Flattened at registration 
 **Client Script**: <a id="client-script"></a>
 A browser-authored customization stored as a `Client Script` row with `view = Record`,
 evaluated as a real ES module through a blob URL — so `export default {…}` is the same
-text as in a file script, and bare imports resolve through the page's import map. Desk v1
-reads only the `Form` and `List` rows of the same table, so neither side sees the other's.
+text as in a file script, and bare imports resolve through the page's import map.
+A script with a `template:` string runs as the server's compiled copy. The stored text
+stays the author's text. Desk v1 reads only the `Form` and `List` rows of the same table,
+so neither side sees the other's.
 _Avoid_: Page Script (the tier's old name), Form Script (CRM v1's).
 
 **Tier**: <a id="tier"></a>

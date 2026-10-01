@@ -59,6 +59,9 @@ def report_error(status_code):
 				print(traceback)
 				error_log["exception"] = traceback
 			_link_error_with_message_log(error_log, exc_value, frappe.message_log)
+			# Each entry is `{ field, line, column, message }`.
+			if isinstance(exc_value, frappe.ValidationError) and getattr(exc_value, "code_errors", None):
+				error_log["code_errors"] = exc_value.code_errors
 			frappe.local.response.errors = [error_log]
 
 	response = build_response("json")

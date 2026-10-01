@@ -168,6 +168,10 @@ async function compileScript(
   row: ClientScriptRow,
   canWrite: boolean,
 ): Promise<AuthoredHandlers | null> {
+  if (row.error) {
+    reportFailure(doctype, row.name, new Error(row.error), canWrite);
+    return null;
+  }
   try {
     return await evaluateClientScript(row);
   } catch (error) {
