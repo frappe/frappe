@@ -18,6 +18,7 @@ import {
 // The tier's own fetch has no script to blame, so it reports under its own name.
 const TIER_SOURCE = "client-scripts";
 
+// The doctype's latest build; when two saves overlap, only the build still held here registers.
 const tiers = new Map<string, Promise<void>>();
 // The sources each doctype's registered tier holds; a doctype is absent until its first tier lands.
 const sources = new Map<string, string[]>();
@@ -26,9 +27,6 @@ const stale = new Set<string>();
 const toasted = new Set<string>();
 // The shared toast channel: one toast per key per session.
 const notified = new Set<string>();
-// Two saves in quick succession overlap: the later build must win, and the
-// earlier one must not register its now-stale scripts behind it.
-const builds = new Map<string, number>();
 // Whether this session may write Client Scripts; the permission is on the doctype,
 // so it is one answer for every doctype. Gates the failure toast and the editor.
 const writable = ref(false);
@@ -76,7 +74,7 @@ export function loadClientScripts(doctype: string): Promise<void> {
   const current = tiers.get(doctype);
   if (current && !stale.has(doctype)) return current;
   stale.delete(doctype);
-  const loading = buildTier(doctype);
+  const loading: Promise<void> = buildTier(doctype, () => tiers.get(doctype) === loading);
   tiers.set(doctype, loading);
   return loading;
 }
@@ -103,7 +101,6 @@ export function resetClientScripts() {
   stale.clear();
   tiers.clear();
   changes.clear();
-  builds.clear();
   waits.clear();
   toasted.clear();
   notified.clear();
@@ -117,11 +114,7 @@ interface CompiledScript {
 }
 
 // Every script compiles before any registers, so a replay meets the old tier or the new one, never a mix.
-async function buildTier(doctype: string) {
-  const build = (builds.get(doctype) ?? 0) + 1;
-  builds.set(doctype, build);
-  const current = () => builds.get(doctype) === build;
-
+async function buildTier(doctype: string, current: () => boolean) {
   waits.set(doctype, `the Client Script list for ${doctype}`);
   const response = await fetchScripts(doctype);
   if (!current()) return;

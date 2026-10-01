@@ -52,7 +52,7 @@ async function start() {
 	}
 
 	// Contributions register before the router's first resolution.
-	await registerContributions(boot.app_order);
+	registerContributions(boot.app_order);
 
 	// Only now is the base known, and the shape: a modular app's route table is one segment deeper.
 	const router = createShellRouter(boot, addresses);

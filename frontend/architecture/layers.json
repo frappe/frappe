@@ -520,14 +520,10 @@
     ],
     "frontend/src/recordPage/clientScripts.ts": [
       "clientScriptChanges",
-      "loadClientScripts",
       "watchClientScripts"
     ],
     "frontend/src/recordPage/composer.ts": [
       "isComposerTab"
-    ],
-    "frontend/src/recordPage/context.ts": [
-      "withRegisteringSource"
     ],
     "frontend/src/recordPage/createRecordPage.ts": [
       "RecordPageController",
@@ -587,9 +583,6 @@
       "HeaderProjection",
       "isEmptyHeader",
       "projectHeader"
-    ],
-    "frontend/src/recordPage/registry.ts": [
-      "registerRecordPage"
     ],
     "frontend/src/recordPage/surface.ts": [
       "BUILTIN",

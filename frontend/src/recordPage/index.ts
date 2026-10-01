@@ -25,10 +25,10 @@ export type { IconSource } from "./iconClasses";
 export {
   clientScriptChanges,
   invalidateClientScripts,
-  loadClientScripts,
   reloadClientScripts,
   watchClientScripts,
 } from "./clientScripts";
+export { addFileScript, loadRecordScripts } from "./scriptLoader";
 export type { RecordPageController } from "./createRecordPage";
 
 export type { AuthoredHandlers, Handler, PostedRow, RecordPageHandlers } from "./types";

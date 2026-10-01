@@ -243,7 +243,7 @@ component group, with its main names.
 | List handlers (`listHandlersFor`) | Per-doctype list changes, such as extra columns |
 | Page registrations (`pages`, `replacementFor`) | The page for each address. Standard pages are the default registration; an app's page replaces one. The last app wins |
 | Item kinds and the item contract (`itemRenderers`, `ItemRenderer`, `Rendering`, `ItemContext`) | What an app's `item.js` implements to draw a navigation item. The last app wins |
-| `registerContributions(appOrder)` | Runs once before the first route, in app order |
+| `registerContributions(appOrder)` | Runs once before the first route, in app order. Hands each file script to the script loader |
 
 ### 6. Shell
 
@@ -305,7 +305,7 @@ component group, with its main names.
 | Frame and body projection | Orders frame bands and works out body column widths |
 | Form join | Joins the Details layout with the parts a script adds |
 | Form layout source (`useFormLayout`, `markFormLayoutsStale`) | One fetch per doctype and layout type; picks the matching row. On `doctype_update` it keeps the old rows on show and reads fresh ones |
-| Script loader | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
+| Script loader (`loadRecordScripts`, `addFileScript`) | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
 | Page permissions | Rights, roles and field access, ready before handlers run |
 | Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
@@ -546,7 +546,7 @@ that copy in the same tab, and the page shows "no permission" once the server re
 
 | # | Step | Layer | Permission check | Cache and key |
 | --- | --- | --- | --- | --- |
-| 1 | A record visit asks the script loader for its doctype's scripts, beside the record read | 8, 7 | None | One entry per doctype; the latest load wins |
+| 1 | A record visit asks the script loader for its doctype's scripts, beside the record read. The first visit to a doctype registers its file scripts, before any stored script | 8, 7 | None | One entry per doctype; the latest load wins |
 | 2 | The loader fetches the enabled stored scripts for the Record view | 7, 3 | None | Not HTTP-cached |
 | 3 | The server checks read on the doctype, reads enabled rows in run order, drops rows of disabled modules, and says whether the user may write scripts | 1 | Read permission on the doctype; write permission on `Client Script` for the answer | Disabled modules, per request |
 | 4 | The loader keeps the write answer. Only a script writer sees failure toasts and the editor entry | 7 | **Browser**. The server checks `Client Script` write on save | Browser memory |
@@ -675,7 +675,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | Three copies of per-user browser memory code in the shell | They use `browserMemory` | New map |
 | Two server cache keys for doctype owners and the address table | One | New map |
 | First app wins for item kinds; last app wins for replacements | Last app wins everywhere | Build and publishing |
-| File scripts and stored scripts load in two ways | One loader | One page model |
 | The session fetched twice | The desk passes it | @framework/ui |
 | Record page words in four `ui/` files, and the commit channel in `ui/` | Both in `frontend/` | @framework/ui |
 | The editor loads to show saved comments | Cleaned HTML; the editor loads to write | Activity column |

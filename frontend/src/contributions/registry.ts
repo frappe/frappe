@@ -1,7 +1,7 @@
 // The contribution seam: an index over the module `plugin/contributions.js` generates at build time.
 
 import contributions from 'virtual:frappe/contributions'
-import { registerRecordPage, withRegisteringSource } from '@/recordPage'
+import { addFileScript } from '@/recordPage'
 import type { ItemRenderer } from '@/navigation/types'
 import type {
   DoctypeContribution,
@@ -60,7 +60,7 @@ function ordered<T extends { app: string }>(
  * Runs before the router's first resolution. App identity comes from the generated
  * module, never from a path inspected at runtime.
  */
-export async function registerContributions(appOrder: string[]) {
+export function registerContributions(appOrder: string[]) {
   registerItemTypes(appOrder)
   registerReplacements(appOrder)
 
@@ -81,10 +81,7 @@ export async function registerContributions(appOrder: string[]) {
         continue
       }
 
-      // Tagged with the app, so `unregisterSource` can drop exactly one app's handlers.
-      await withRegisteringSource(contribution.app, async () =>
-        registerRecordPage(doctype, contribution.handlers),
-      )
+      addFileScript(doctype, { app: contribution.app, handlers: contribution.handlers })
     }
   }
 }
