@@ -337,7 +337,7 @@ class Session:
 
 		r = self.get_session_data()
 
-		if not r:
+		if not (r and r.get("user")):
 			frappe.response["session_expired"] = 1
 			clear_cookies()
 			self.sid = "Guest"
@@ -350,7 +350,7 @@ class Session:
 			return frappe._dict({"user": "Guest"})
 
 		data = self.get_session_data_from_cache()
-		if not data:
+		if not (data and data.get("user")):
 			self._update_in_cache = True
 			data = self.get_session_data_from_db()
 		return data
