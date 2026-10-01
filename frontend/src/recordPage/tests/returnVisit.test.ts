@@ -550,6 +550,27 @@ describe("refresh({ background: true })", () => {
     expect(opened).toEqual([]);
   });
 
+  it("gives one warning for an open with a bad window that the replay drops", async () => {
+    let opening = false;
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        if (opening) page.composer.open("comment", { window: "bad" as any });
+      },
+    });
+    await loadClientScripts("CRM Deal");
+    const { controller } = makePage({ openWriter: () => {} });
+    controller.composer.provideBuiltins(() => [{ name: "comment", label: "Comment", icon: "" }]);
+    await vi.advanceTimersByTimeAsync(0);
+    controller.paintNow();
+
+    opening = true;
+    await controller.refresh({ background: true });
+
+    expect(warnings).toEqual([
+      '[record-page] page.composer.open("comment") — it ran in the replay after a background read; nothing was opened.',
+    ]);
+  });
+
   it("draws nothing when an unchanged replay hands one new object to two ops", async () => {
     await register("deal", {
       onRefresh: (page: RecordPageApi) => {

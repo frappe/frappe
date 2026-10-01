@@ -77,6 +77,7 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
       refuse: (because) => this.refuse(name, because),
     });
     if (taken === "dropped") return;
+    // Checked after `take`, so a dropped open gives one warning.
     checked = this.checkWindow(name, options);
     if (!taken) this.deliver(name, checked);
   }
