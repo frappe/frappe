@@ -1,5 +1,6 @@
 <template>
-	<div class="flex h-full min-h-0 overflow-hidden bg-surface-base text-base text-ink-gray-8">
+	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel -->
+	<div class="flex h-full min-h-0 overflow-clip bg-surface-base text-base text-ink-gray-8">
 		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
 		<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
 			<ChatHeader :sidebar-open="sidebarOpen" @open-sidebar="store.setSidebarOpen(true)" />
