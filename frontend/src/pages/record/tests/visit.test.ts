@@ -1,4 +1,4 @@
-// An ended visit's reads and saves land nothing; toggles queue across visits.
+// An ended visit's reads land nothing; toggles queue across visits.
 import { describe, expect, it, vi } from "vitest";
 import { Visit } from "../visit";
 
@@ -171,38 +171,5 @@ describe("Visit.inTurn", () => {
     visit.inTurn(() => Promise.reject(new Error("failed"))).catch(() => {});
     await visit.inTurn(turn);
     expect(turn).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("Visit.save", () => {
-  it("joins a save asked while one is in flight", async () => {
-    const visit = new Visit();
-    const request = deferred();
-    const send = vi.fn(() => request.promise);
-    const log: string[] = [];
-    visit.save(send).then(() => log.push("first"));
-    visit.save(send).then(() => log.push("second"));
-    expect(send).toHaveBeenCalledTimes(1);
-    await flush();
-    expect(log).toEqual([]);
-    request.resolve();
-    await flush();
-    expect(log).toEqual(["first", "second"]);
-  });
-
-  it("sends again once the earlier save has settled", async () => {
-    const visit = new Visit();
-    const send = vi.fn(async () => {});
-    await visit.save(send);
-    await visit.save(send);
-    expect(send).toHaveBeenCalledTimes(2);
-  });
-
-  it("frees the slot after a save rejects", async () => {
-    const visit = new Visit();
-    const send = vi.fn().mockRejectedValueOnce(new Error("conflict")).mockResolvedValueOnce(undefined);
-    await expect(visit.save(send)).rejects.toThrow("conflict");
-    await visit.save(send);
-    expect(send).toHaveBeenCalledTimes(2);
   });
 });

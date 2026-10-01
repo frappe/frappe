@@ -15,7 +15,7 @@
 				:projection="header"
 				:page="painted.page"
 				:dirty="dirty"
-				:saving="saving"
+				:saving="painted.isSaving.value"
 				:favourites="favourites"
 				:favourited="favourited"
 				@run="runAction"
@@ -239,7 +239,6 @@ const painted = computed(() => (controller.value?.ready.value ? controller.value
 const panelLayout = shallowRef<UseFormLayout | null>(null);
 const detailsLayout = shallowRef<UseFormLayout | null>(null);
 const actionsVersion = ref(0);
-const saving = ref(false);
 const formRoot = ref<HTMLElement | null>(null);
 // The reader's intent and the strip's resolution, as `FormLayout` splits them.
 const formTab = ref("");
@@ -543,7 +542,6 @@ function blank() {
 	saved.value = {};
 	docinfo.value = null;
 	linkTitles.value = {};
-	saving.value = false;
 	controller.value?.leave();
 	controller.value = null;
 	panelLayout.value = null;
@@ -812,22 +810,11 @@ async function write() {
 	if (doc.value.name !== docname.value || doctype.value === null) {
 		throw new Error("The record changed while saving; nothing was written.");
 	}
-	// A request the previous record left in flight is not joined.
 	const visit = currentVisit;
-	await visit.save(() => send(visit));
-}
-
-async function send(visit: Visit) {
-	saving.value = true;
-	try {
-		const document = await saveRecord(doctype.value!, doc.value).catch(rethrowSaveError);
-		if (!visit.current()) return;
-		saved.value = { ...document };
-		doc.value = JSON.parse(JSON.stringify(document));
-	} finally {
-		// A request the previous record left behind must not clear this record's flag.
-		if (visit.current()) saving.value = false;
-	}
+	const document = await saveRecord(doctype.value!, doc.value).catch(rethrowSaveError);
+	if (!visit.current()) return;
+	saved.value = { ...document };
+	doc.value = JSON.parse(JSON.stringify(document));
 	// A save writes a version row and its hooks may assign.
 	live.reloadQuietly();
 	await controller.value?.refresh();
@@ -837,7 +824,6 @@ async function send(visit: Visit) {
 // A conflict is resolved with the reader; any other refusal reads as text, since a msgprint is often HTML.
 async function rethrowSaveError(e: unknown): Promise<never> {
 	if (isApiError(e) && e.isTimestampMismatch) {
-		saving.value = false;
 		await resolveConflict();
 		throw conflictError();
 	}

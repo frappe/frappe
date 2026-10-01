@@ -669,7 +669,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | --- | --- | --- |
 | 11 hand-written "latest reply" counters | One "latest reply wins" helper | New map |
 | Two listeners on each record room | One | Activity column |
-| Two save paths; Ctrl+S skips the paint hold | One save path | One page model |
 | Separate comment and email writer pipelines | One | Activity column |
 | Three sets of loading and error states | One set of page states | New map |
 | The router waits for the next page's code | The frame changes at once | New map |
