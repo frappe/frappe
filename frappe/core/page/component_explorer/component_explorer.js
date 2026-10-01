@@ -970,6 +970,151 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Stat Card": {
+			helper: "frappe.ui.stat_card",
+			groups: [
+				{
+					title: __("Value + caption"),
+					items: [
+						{ label: "Open orders", value: "24", caption: "₹3,40,000 to deliver" },
+						{ label: "Customers", value: "1,208", icon: "users" },
+					],
+				},
+				{
+					title: __("Trend delta"),
+					items: [
+						{
+							label: "Net sales",
+							value: "₹12,40,000",
+							delta: { value: 12.4, suffix: "since last year" },
+						},
+						{
+							label: "Overdue",
+							value: "₹1,80,000",
+							delta: {
+								value: 8,
+								positive_is_good: false,
+								suffix: "since last month",
+							},
+						},
+						{ label: "Returns", value: "3", delta: { value: 0 } },
+					],
+				},
+				{
+					title: __("No reading vs zero"),
+					items: [
+						{ label: "Conversion rate", value: null },
+						{ label: "Refunds", value: "0" },
+					],
+				},
+				{
+					title: __("Loading"),
+					items: [{ label: "Net sales", loading: true }],
+				},
+				{
+					title: __("Series dot + clickable"),
+					items: [
+						{
+							label: "Paid",
+							value: "₹8,20,000",
+							dot: "var(--blue-600)",
+							onclick: () => frappe.ui.toast({ message: "Paid" }),
+						},
+					],
+				},
+			],
+		},
+		"Bar List": {
+			helper: "frappe.ui.bar_list",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							items: [
+								{ label: "Not due", value: 42000 },
+								{ label: "1–30 days", value: 18000 },
+								{ label: "31–60 days", value: 9500 },
+								{ label: "60+ days", value: 3000 },
+							],
+						},
+					],
+				},
+				{
+					title: __("Formatted, coloured, values on hover"),
+					items: [
+						{
+							items: [
+								{ label: "Laptops", value: 120 },
+								{ label: "Monitors", value: 84 },
+								{ label: "Keyboards", value: 51 },
+							],
+							format: (value) => value + " units",
+							color: "var(--green-600)",
+							values_on_hover: true,
+						},
+					],
+				},
+				{
+					title: __("Wide labels + clickable rows"),
+					items: [
+						{
+							items: [
+								{ label: "Kaveri Industrial Supplies", value: 540000 },
+								{ label: "Northwind Traders", value: 320000 },
+							],
+							label_width: 180,
+							onclick: (item) => frappe.ui.toast({ message: item.label }),
+						},
+					],
+				},
+				{
+					title: __("Empty"),
+					items: [{ items: [] }],
+				},
+			],
+		},
+		Donut: {
+			helper: "frappe.ui.donut",
+			groups: [
+				{
+					title: __("Centre value + legend"),
+					items: [
+						{
+							segments: [
+								{ label: "Paid", value: 70 },
+								{ label: "Unpaid", value: 20 },
+								{ label: "Overdue", value: 10 },
+							],
+							center: { value: "70%", label: "paid" },
+						},
+					],
+				},
+				{
+					title: __("Custom colours + format"),
+					items: [
+						{
+							segments: [
+								{ label: "Used", value: 55000, color: "var(--blue-600)" },
+								{
+									label: "Available",
+									value: 45000,
+									color: "var(--blue-400)",
+								},
+							],
+							center: { value: "55%", label: "used" },
+							format: (value) => format_currency(value),
+							size: 180,
+						},
+					],
+				},
+				{
+					title: __("Empty"),
+					items: [{ segments: [], size: 180 }],
+				},
+			],
+		},
 		"Empty State": {
 			helper: "frappe.ui.empty_state",
 			stacked: true,
@@ -1600,7 +1745,13 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		</div>
 	`).appendTo(page.main);
 
-	function render_component(name) {
+	let selected_component;
+	async function render_component(name) {
+		selected_component = name;
+		if (["Stat Card", "Bar List", "Donut"].includes(name)) {
+			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
+			if (selected_component !== name) return;
+		}
 		const component = COMPONENTS[name];
 		const $groups = $body.find(".explorer-groups").empty();
 		if (!component) return;

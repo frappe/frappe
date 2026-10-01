@@ -382,4 +382,191 @@ context("Espresso components", () => {
 				.should("have.length", 3);
 		});
 	});
+
+	describe("Stat Card", () => {
+		beforeEach(() => show("Stat Card"));
+
+		it("tones the delta by positive_is_good, so a rise in a bad metric reads red", () => {
+			cy.contains(".explorer-group", "Trend delta").within(() => {
+				cy.contains(".es-stat-card", "Net sales")
+					.find(".es-stat-card__delta")
+					.should("have.attr", "data-tone", "positive")
+					.and("contain.text", "+12.4%");
+				cy.contains(".es-stat-card", "Overdue")
+					.find(".es-stat-card__delta")
+					.should("have.attr", "data-tone", "negative");
+				cy.contains(".es-stat-card", "Returns")
+					.find(".es-stat-card__delta")
+					.should("have.attr", "data-tone", "neutral");
+			});
+		});
+
+		it("preserves the direction of changes below display precision", () => {
+			cy.window().then((win) => {
+				for (const [value, sign, tone] of [
+					[0.01, "+", "positive"],
+					[-0.01, "−", "negative"],
+				]) {
+					const card = win.frappe.ui.stat_card({
+						label: "Small change",
+						value: 1,
+						delta: { value },
+					});
+					expect(card.find(".es-stat-card__delta").text()).to.contain(`${sign}<0.1%`);
+					expect(card.find(".es-stat-card__delta").attr("data-tone")).to.equal(tone);
+				}
+			});
+		});
+
+		it("shows a dash and No data for a missing reading, but prints a zero", () => {
+			cy.contains(".explorer-group", "No reading").within(() => {
+				cy.contains(".es-stat-card", "Conversion rate")
+					.should("have.attr", "data-state", "empty")
+					.and("contain.text", "—")
+					.and("contain.text", "No data");
+				cy.contains(".es-stat-card", "Refunds")
+					.should(($card) => expect($card).not.to.have.attr("data-state"))
+					.find(".es-stat-card__value")
+					.should("have.text", "0");
+			});
+		});
+
+		it("holds the card's shape with skeletons while loading", () => {
+			cy.contains(".explorer-group", "Loading")
+				.find(".es-stat-card[data-state='loading']")
+				.should("have.attr", "aria-busy", "true")
+				.within(() => {
+					cy.get(".es-stat-card__label").should("have.text", "Net sales");
+					cy.get(".es-skeleton").should("have.length", 2);
+				});
+		});
+
+		it("makes a clickable card a keyboard button", () => {
+			cy.contains(".explorer-group", "Series dot")
+				.find(".es-stat-card--clickable")
+				.should("have.attr", "role", "button")
+				.and("have.attr", "tabindex", "0")
+				.trigger("keydown", { key: "Enter" });
+			cy.get(".es-toast").should("contain.text", "Paid");
+		});
+	});
+
+	describe("Bar List", () => {
+		beforeEach(() => show("Bar List"));
+
+		it("sizes bars against a rounded axis and labels every row", () => {
+			// max 42000 -> axis rounds up to 50000, so the top bar is 84% wide
+			cy.contains(".explorer-group", "Basic").within(() => {
+				cy.get(".es-bar-list__row").should("have.length", 4);
+				cy.get(".es-bar-list__bar")
+					.first()
+					.should("have.attr", "style")
+					.and("contain", "width: 84%");
+				cy.get(".es-bar-list__tick").last().should("have.text", "50000");
+			});
+		});
+
+		it("keeps static values visible and expands an undersized axis", () => {
+			cy.window().then((win) => {
+				const chart = win.frappe.ui
+					.bar_list({
+						items: [{ label: "Total", value: 200 }],
+						max: 100,
+						values_on_hover: true,
+					})
+					.appendTo(win.document.body);
+				expect(
+					win.getComputedStyle(chart.find(".es-bar-list__value")[0]).opacity
+				).to.equal("1");
+				expect(chart.find(".es-bar-list__row").attr("role")).to.be.undefined;
+				expect(parseFloat(chart.find(".es-bar-list__bar")[0].style.width)).to.be.at.most(
+					100
+				);
+				expect(Number(chart.find(".es-bar-list__tick").last().text())).to.be.at.least(200);
+				chart.remove();
+			});
+		});
+
+		it("says there is no data instead of drawing an empty axis", () => {
+			cy.contains(".explorer-group", "Empty")
+				.find(".es-bar-list[data-state='empty']")
+				.within(() => {
+					cy.get(".es-bar-list__empty").should("have.text", "No data to show");
+					cy.get(".es-bar-list__axis").should("not.exist");
+				});
+		});
+
+		it("widens the label gutter and passes the clicked item back", () => {
+			cy.contains(".explorer-group", "Wide labels").within(() => {
+				cy.get(".es-bar-list").should("have.attr", "style").and("contain", "180px");
+				cy.get(".es-bar-list__row--clickable").first().click();
+			});
+			cy.get(".es-toast").should("contain.text", "Kaveri Industrial Supplies");
+		});
+	});
+
+	describe("Donut", () => {
+		beforeEach(() => show("Donut"));
+
+		it("draws one segment per value and labels the chart for screen readers", () => {
+			cy.contains(".explorer-group", "Centre value").within(() => {
+				cy.get(".es-donut__seg").should("have.length", 3);
+				cy.get(".es-donut__svg").should(
+					"have.attr",
+					"aria-label",
+					"Paid: 70 (70%), Unpaid: 20 (20%), Overdue: 10 (10%)"
+				);
+				cy.get(".es-donut__value").should("have.text", "70%");
+			});
+		});
+
+		it("swaps the centre to a hovered legend row and restores it on leave", () => {
+			cy.contains(".explorer-group", "Centre value").within(() => {
+				cy.contains(".es-donut__legend-row", "Unpaid")
+					.trigger("mouseover")
+					.should("have.class", "is-active");
+				cy.get(".es-donut__label").should("have.text", "Unpaid · 20%");
+				cy.get(".es-donut__seg.is-dim").should("have.length", 2);
+
+				cy.get(".es-donut__legend").trigger("mouseout");
+				cy.get(".es-donut__value").should("have.text", "70%");
+				cy.get(".es-donut__seg.is-dim").should("have.length", 0);
+			});
+		});
+
+		it("clears the tooltip and highlight when leaving a segment for the centre", () => {
+			cy.contains(".explorer-group", "Centre value").within(() => {
+				cy.get(".es-donut__seg")
+					.first()
+					.trigger("mouseover", { force: true, clientX: 100, clientY: 100 });
+				cy.get(".es-donut__tip").should("have.class", "is-visible");
+				cy.get(".es-donut__seg").first().trigger("mouseout", { force: true });
+				cy.get(".es-donut__tip").should("not.have.class", "is-visible");
+				cy.get(".es-donut__seg.is-dim").should("not.exist");
+				cy.get(".es-donut__value").should("have.text", "70%");
+			});
+		});
+
+		it("exposes amounts without hover and highlights a keyboard-focused legend", () => {
+			cy.contains(".explorer-group", "Centre value").within(() => {
+				cy.contains(".es-donut__legend-row", "Unpaid")
+					.should("contain.text", "20 · 20%")
+					.focus()
+					.should("have.class", "is-active");
+				cy.get(".es-donut__value").should("have.text", "20");
+				cy.get(".es-donut__legend-row:focus").blur();
+				cy.get(".es-donut__value").should("have.text", "70%");
+			});
+		});
+
+		it("says there is no data in the ring's place when there is nothing to chart", () => {
+			cy.contains(".explorer-group", "Empty")
+				.find(".es-donut[data-state='empty']")
+				.within(() => {
+					cy.get(".es-donut__empty").should("have.text", "No data to show");
+					cy.get(".es-donut__svg").should("not.exist");
+					cy.get(".es-donut__legend").should("not.exist");
+				});
+		});
+	});
 });
