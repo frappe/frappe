@@ -56,11 +56,11 @@ import useStudioStore from "@/stores/studioStore"
 
 const ROUTER_FILE = "router.ts"
 const BOILERPLATE = `{
-	// passed to createRouter
-	routerOptions: {
-		// once per page route, e.g. route.alias, route.meta, route.beforeEnter
-		extendRoute(route) {},
-	},
+	// passed to createRouter, e.g. scrollBehavior
+	routerOptions: {},
+
+	// once per page route, e.g. route.alias, route.meta, route.beforeEnter
+	extendRoute(route) {},
 
 	// the created router, before the first navigation
 	setup(router) {

@@ -2,7 +2,7 @@
 	<div class="text-sm leading-relaxed text-ink-gray-5">
 		<p>
 			Control navigation between your app's pages with Vue Router. Studio creates the page routes for you.
-			Write a JavaScript object with either of these optional fields:
+			Write a JavaScript object with any of these optional fields:
 		</p>
 		<ul class="my-2 list-disc space-y-0.5 pl-4">
 			<li>
@@ -11,9 +11,11 @@
 				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">createRouter</code>
 				, e.g.
 				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">scrollBehavior</code>
-				. Its
+				.
+			</li>
+			<li>
 				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">extendRoute(route)</code>
-				runs once per page route: add an
+				- runs once per page route, before the router is created: add an
 				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">alias</code>
 				, set
 				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">meta</code>
@@ -41,9 +43,9 @@
 {
   routerOptions: {
     scrollBehavior: () => ({ top: 0 }),
-    extendRoute(route) {
-      if (route.name === "Tasks") route.alias = "/todo"
-    },
+  },
+  extendRoute(route) {
+    if (route.name === "Tasks") route.alias = "/todo"
   },
   setup(router) {
     router.addRoute({ path: "/old-tasks", redirect: { name: "Tasks" } })

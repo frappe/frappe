@@ -7,10 +7,10 @@ import { getPageNameCompletions } from "./routerScriptPageNames"
 
 const CONFIG_KEYS = [
 	{ label: "routerOptions", detail: "passed to createRouter" },
+	{ label: "extendRoute", detail: "(route) once per page route" },
 	{ label: "setup", detail: "(router) once, before the first navigation" },
 ]
 const ROUTER_OPTION_KEYS = [
-	{ label: "extendRoute", detail: "(route) once per page route" },
 	{ label: "scrollBehavior", detail: "(to, from, savedPosition)" },
 	{ label: "linkActiveClass", detail: "string" },
 	{ label: "linkExactActiveClass", detail: "string" },
