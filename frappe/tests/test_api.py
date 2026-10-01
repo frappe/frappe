@@ -133,7 +133,11 @@ class FrappeAPITestCase(IntegrationTestCase):
 			frappe.local.cookie_manager = CookieManager()
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as("Administrator")
-			return frappe.session.sid
+			sid = frappe.session.sid
+
+		# Seed the shared client's cookie jar so callers passing `sid` as a param still auth.
+		self.TEST_CLIENT.set_cookie("sid", sid)
+		return sid
 
 	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"json": params, **kwargs})
@@ -198,6 +202,16 @@ class TestResourceAPI(FrappeAPITestCase):
 	def test_unauthorized_call_v1(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource("User"))
+		self.assertEqual(response.status_code, 403)
+
+	def test_sid_param_alone_does_not_authenticate(self):
+		# Cookie-less client: proves a valid sid sent only as a param can't authenticate.
+		cookieless_client = get_test_client()
+		response = make_request(
+			target=cookieless_client.get,
+			args=(self.resource(self.DOCTYPE),),
+			kwargs={"json": {"sid": self.sid}},
+		)
 		self.assertEqual(response.status_code, 403)
 
 	def test_get_list_v1(self):

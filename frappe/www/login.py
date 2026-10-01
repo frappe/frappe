@@ -120,7 +120,7 @@ def login_via_token(login_token: str):
 		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Login Token"), http_status_code=417)
 		return
 
-	frappe.local.form_dict.sid = sid
+	frappe.local.trusted_sid = sid
 	frappe.local.login_manager = LoginManager()
 
 	redirect_post_login(

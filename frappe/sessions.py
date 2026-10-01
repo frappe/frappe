@@ -256,8 +256,10 @@ class Session:
 		audit_user: str | None = None,
 	):
 		request = getattr(frappe.local, "request", None)
+		# Drop unused here so it doesn't leak into **frappe.form_dict kwargs downstream.
+		frappe.form_dict.pop("sid", None)
 		self.sid = cstr(
-			frappe.form_dict.pop("sid", None)
+			getattr(frappe.local, "trusted_sid", None)
 			or unquote(request.cookies.get("sid", "Guest") if request is not None else "Guest")
 		)
 		assert isinstance(self.sid, str), "sid must be a string after cstr normalization"
