@@ -1459,6 +1459,35 @@ test("a chat reopened after its run ran its course sends the next waiting messag
 	}
 })
 
+test("a chat reopened before the run of a message on its way shows up keeps the next one waiting", async () => {
+	const calls = []
+	const client = hostClient(calls)
+	// the last run ended on its own before either message was sent
+	client.entries = async () => ({
+		entries: [{ type: "run_started", seq: 1 }, { type: "run_ended", seq: 2, reason: "done" }],
+		latest_seq: 2,
+	})
+	client.run = (sid, message) => {
+		calls.push(["run", message])
+		return new Promise(() => {}) // still on its way
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	void flow.send("First")
+	await settle()
+	assert.equal(await flow.send("Second"), true) // waits for the first's run
+	await flow.openSession("s2")
+	await flow.openSession("s1") // the first's run is not in the transcript yet
+	await settle()
+	assert.deepEqual(calls, [["run", "First"]])
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Second"],
+	)
+	flow.detach()
+})
+
 test("a message waits in the box while an approval is unanswered", async () => {
 	const client = hostClient([])
 	client.entries = async () => ({

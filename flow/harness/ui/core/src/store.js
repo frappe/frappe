@@ -132,7 +132,7 @@ export function createFlowStore(client, options = {}) {
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
 	let queueCount = 0 // keys the queue's rows
 	let lastRunEnd = null // the open session's latest run_ended reason
-	// waiting messages, as { message, attachments }, of the sessions not open right now
+	// waiting messages, as { message, attachments, afterSeq }, of the sessions not open right now
 	const heldBySession = reactive(new Map(Object.entries(readJSON(keys.queue, {}, globalThis.sessionStorage))))
 	// This tab keeps every session's waiting messages across a reload; sessionStorage, so
 	// other tabs don't send them too (a duplicated tab starts with a copy, though).
@@ -387,7 +387,8 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.reasoningEffort = info.reasoning_effort ?? null
 		state.conversation.contextTokens = info.context_tokens ?? 0
 		for (const entry of seed.entries) applyEvent(state.conversation, entry)
-		lastRunEnd = seed.entries.findLast((entry) => entry.type === "run_ended" && !entry.subagent_id)?.reason ?? null
+		const lastEnded = seed.entries.findLast((entry) => entry.type === "run_ended" && !entry.subagent_id)
+		lastRunEnd = lastEnded?.reason ?? null
 		syncSubagentTabs()
 		// A trailing model_changed has no usage yet, so fall back to the selected
 		// model's static limit from the session detail response.
@@ -396,10 +397,11 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 		state.loading = false
 		startStream(sid, seed.latest_seq)
-		// a run that ran its course while this chat was closed, or the page reloaded, still
-		// hands its next waiting message a turn
-		if (state.queued.length && !state.conversation.running && ranItsCourse(lastRunEnd))
-			void sendWaiting(state.queued[0])
+		// a run that ran its course after the next waiting message was queued, while this chat
+		// was closed or the page reloaded, still hands it a turn
+		const next = state.queued[0]
+		if (next && !state.conversation.running && ranItsCourse(lastRunEnd) && lastEnded.seq > next.afterSeq)
+			void sendWaiting(next)
 	}
 
 	function startStream(sid, since) {
@@ -609,18 +611,20 @@ export function createFlowStore(client, options = {}) {
 		const busy = () => state.conversation.running || state.conversation.sending.length > 0
 		if (!state.sessionId || !busy()) return sendNow(message, attachments)
 		const sid = state.sessionId
+		const afterSeq = state.conversation.latestSeq
 		const staged = await stageAttachments(sid, attachments)
 		if (!staged) return false
 		if (state.sessionId !== sid) {
 			// the user moved on while the files went up: it waits with its own session
-			heldBySession.set(sid, [...(heldBySession.get(sid) ?? []), { message, attachments: staged.attachments }])
+			const held = { message, attachments: staged.attachments, afterSeq }
+			heldBySession.set(sid, [...(heldBySession.get(sid) ?? []), held])
 			return true
 		}
 		// the run may have ended while the files went up: if on its own, the message goes now,
 		// unless others wait ahead of it; after a stop, it waits with them
 		if (!busy() && !state.queued.length && ranItsCourse(lastRunEnd))
 			return sendNow(message, staged.attachments)
-		state.queued.push(queueItem(message, staged.attachments))
+		state.queued.push(queueItem(message, staged.attachments, afterSeq))
 		return true
 	}
 
@@ -674,12 +678,14 @@ export function createFlowStore(client, options = {}) {
 		if (ids.length) void client.cleanupAttachments(state.sessionId, ids).catch(() => {})
 	}
 
-	// a row of the composer's queue: a message waiting for the run to end
-	function queueItem(message, attachments) {
+	// A row of the composer's queue: a message waiting for the run to end. `afterSeq` is how
+	// far the chat had got when it was queued; only a run that ends past it hands it a turn.
+	function queueItem(message, attachments, afterSeq) {
 		return {
 			key: `queued:${++queueCount}`,
 			message,
 			attachments,
+			afterSeq,
 			label: message || `${attachments.length} attachment(s)`,
 		}
 	}
@@ -696,15 +702,15 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	// what a waiting message keeps while its session is closed, or across a reload
-	function waitingRecord({ message, attachments }) {
-		return { message, attachments }
+	function waitingRecord({ message, attachments, afterSeq }) {
+		return { message, attachments, afterSeq }
 	}
 
 	// a session's waiting messages wait with it while another is open; steering is the
 	// server's, and the transcript shows it once the turn takes it
 	function swapQueue(sid) {
 		if (state.sessionId && state.queued.length) heldBySession.set(state.sessionId, state.queued.map(waitingRecord))
-		state.queued = (heldBySession.get(sid) ?? []).map((held) => queueItem(held.message, held.attachments))
+		state.queued = (heldBySession.get(sid) ?? []).map((held) => queueItem(held.message, held.attachments, held.afterSeq))
 		heldBySession.delete(sid)
 	}
 
