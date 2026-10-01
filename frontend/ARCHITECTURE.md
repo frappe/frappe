@@ -305,7 +305,7 @@ component group, with its main names.
 | Frame and body projection | Orders frame bands and works out body column widths |
 | Form join | Joins the Details layout with the parts a script adds |
 | Form layout source (`useFormLayout`, `markFormLayoutsStale`) | One fetch per doctype and layout type; picks the matching row. On `doctype_update` it keeps the old rows on show and reads fresh ones |
-| Script loader | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
+| Script loader (`loadRecordScripts`, `addFileScript`) | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
 | Page permissions | Rights, roles and field access, ready before handlers run |
 | Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
