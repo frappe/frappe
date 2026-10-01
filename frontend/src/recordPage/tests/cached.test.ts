@@ -108,7 +108,7 @@ const run = () => {};
 function cacheRecord() {
   const parts = Object.fromEntries(RECORD_PARTS.map((part) => [part, []]));
   const envelope = { data: { name: DOCNAME, modified: "2026-09-30 10:00:00" }, ...parts };
-  feedRecordRead(takeTicket(), DOCTYPE, envelope as any, RECORD_PARTS);
+  feedRecordRead(takeTicket(), DOCTYPE, envelope as any, RECORD_PARTS, 1000);
 }
 
 const drawn = (controller: Controller) =>

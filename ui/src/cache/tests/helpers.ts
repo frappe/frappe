@@ -11,6 +11,10 @@ export function doc(name: string, modified?: string, fields: Record<string, unkn
   return { name, ...(modified ? { modified } : {}), ...fields } as DocumentRecord;
 }
 
+/** A small reply, so only the count limits the complete records. */
+export const REPLY_SIZE = 1000;
+export const MB = 1024 * 1024;
+
 export const PERMISSIONS = { permissions: { read: 1 } };
 
 /** A value for every record part. */
@@ -23,17 +27,19 @@ export const ALL_PARTS: Record<string, unknown> = {
 export function readRecord(
   record: DocumentRecord,
   parts: Record<string, unknown> = {},
-  ticket = takeTicket()
+  ticket = takeTicket(),
+  replySize = REPLY_SIZE
 ) {
-  readSomeParts(record, { ...ALL_PARTS, ...parts }, ticket);
+  readSomeParts(record, { ...ALL_PARTS, ...parts }, ticket, replySize);
 }
 
 export function readSomeParts(
   record: DocumentRecord,
   parts: Record<string, unknown>,
-  ticket = takeTicket()
+  ticket = takeTicket(),
+  replySize = REPLY_SIZE
 ) {
-  feedRecordRead(ticket, DOCTYPE, { data: record, ...parts }, Object.keys(parts));
+  feedRecordRead(ticket, DOCTYPE, { data: record, ...parts }, Object.keys(parts), replySize);
 }
 
 export function readList(

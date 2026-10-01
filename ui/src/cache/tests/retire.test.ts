@@ -3,7 +3,7 @@ import type { DocumentRecord, ListEnvelope } from "../../api";
 import { ApiError } from "../../api/envelope";
 import { DataCache } from "../dataCache";
 import { listCacheKey } from "../listKey";
-import { ALL_PARTS, DOCTYPE, MIDDLE, NEW, OLD, doc } from "./helpers";
+import { ALL_PARTS, DOCTYPE, MIDDLE, NEW, OLD, REPLY_SIZE, doc } from "./helpers";
 
 let cache: DataCache;
 
@@ -17,7 +17,8 @@ function answered(feed: (ticket: number) => void) {
 }
 
 function readRecord(record: DocumentRecord, ticket: number) {
-  cache.recordRead(ticket, DOCTYPE, { data: record, ...ALL_PARTS }, Object.keys(ALL_PARTS));
+  const envelope = { data: record, ...ALL_PARTS };
+  cache.recordRead(ticket, DOCTYPE, envelope, Object.keys(ALL_PARTS), REPLY_SIZE);
 }
 
 function readList(index: number, names: string[], ticket: number) {

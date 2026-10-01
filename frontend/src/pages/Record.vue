@@ -269,6 +269,8 @@ const PINNED_CONTROLS = ["save"];
 
 // The slower of two in-flight loads must not win: `save()` would then POST the wrong record.
 let generation = 0;
+// A load left behind must not feed the cache: it would count as the last record read.
+let reading = new AbortController();
 // Likewise for two sidecar re-reads: several picks in one gesture each fire one.
 let docinfoRead = 0;
 let docinfoLanding: Promise<void> = Promise.resolve();
@@ -492,9 +494,12 @@ function reloadDocinfo() {
 async function readDocinfo(): Promise<void> {
 	if (!doctype.value) return;
 	const mine = generation;
+	const { signal } = reading;
 	const read = ++docinfoRead;
-	const fresh = await loadParts(doctype.value, docname.value);
-	if (mine !== generation) return;
+	const fresh = await loadParts(doctype.value, docname.value, signal).catch((error) => {
+		if (!signal.aborted) throw error;
+	});
+	if (mine !== generation || !fresh) return;
 	if (read !== docinfoRead) return docinfoLanding;
 	docinfo.value = fresh;
 }
@@ -508,6 +513,8 @@ async function load({ fromMemory = false } = {}) {
 		return;
 	}
 	const mine = ++generation;
+	reading.abort();
+	reading = new AbortController();
 	docinfoRead++;
 	const target = { doctype: doctype.value, name: docname.value };
 	const pointed = feeds.pointerOnOpen(target.doctype, target.name, route.query);
@@ -545,7 +552,7 @@ async function load({ fromMemory = false } = {}) {
 		fallback: "none",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
-	const opening = { mine, target, pointer, details, panel, view };
+	const opening = { mine, target, pointer, details, panel, view, signal: reading.signal };
 	const fromCache = fromMemory ? openFromMemory(opening) : null;
 	if (fromCache) return fromCache;
 	await withFeedRead(target.doctype, target.name, openedQuery.value, (feedRead) =>
@@ -574,6 +581,7 @@ interface Opening {
 	panel: UseFormLayout;
 	/** The reader's view to put back on a return, or null on a new visit. */
 	view: RecordView | null;
+	signal: AbortSignal;
 }
 
 interface OpenRecord extends Opening {
@@ -607,10 +615,10 @@ function openFromMemory(opening: Opening): Promise<void> | null {
 
 // Each read resolves to its applier, which may return a re-read to wait for; they all apply in one step.
 function backgroundReads(opening: Opening, created: RecordPageController): BackgroundRead[] {
-	const { target } = opening;
+	const { target, signal } = opening;
 	const before = docinfo.value;
 	const reads: BackgroundRead[] = [
-		loadRecord(target.doctype, target.name).then(
+		loadRecord(target.doctype, target.name, signal).then(
 			(fresh) => () => takeRefetch(fresh, before),
 			(failure) => () => takeReadFailure(failure)
 		),
@@ -701,21 +709,30 @@ function landPaint(created: RecordPageController, pointer: string) {
 }
 
 /** The record read, then the page's first paint; a newer load cuts it short at any wait. */
-async function openRecord({ mine, target, pointer, details, panel, view, feedRead }: OpenRecord) {
+async function openRecord({
+	mine,
+	target,
+	pointer,
+	details,
+	panel,
+	view,
+	signal,
+	feedRead,
+}: OpenRecord) {
 	try {
 		const [loaded, metadata] = await Promise.all([
-			loadRecord(target.doctype, target.name),
+			loadRecord(target.doctype, target.name, signal),
 			fetchMeta(target.doctype),
 		]);
 		if (mine !== generation) return;
 		show(loaded, metadata);
 	} catch (e) {
-		if (mine !== generation) return;
+		if (mine !== generation || signal.aborted) return;
 		error.value = readFailure(e);
 		return;
 	}
 
-	const created = buildController({ mine, target, pointer, details, panel, view });
+	const created = buildController({ mine, target, pointer, details, panel, view, signal });
 	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown,
 	// and the Activity rows when their read began beside the record's.
 	await Promise.all([details.settled(), panel.settled(), feedRead]);
@@ -870,7 +887,9 @@ async function rethrowSaveError(e: unknown): Promise<never> {
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
 async function resolveConflict() {
-	const latest = await loadRecord(doctype.value!, docname.value).catch(() => null);
+	const { signal } = reading;
+	const latest = await loadRecord(doctype.value!, docname.value, signal).catch(() => null);
+	if (signal.aborted) return;
 	const editor = latest
 		? personOf(latest.docinfo, latest.document.modified_by).name
 		: "Someone else";
@@ -987,6 +1006,7 @@ onMounted(() => {
 	window.addEventListener("beforeunload", onBeforeUnload);
 });
 onUnmounted(() => {
+	reading.abort();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();

@@ -3,6 +3,7 @@ import type { DocumentRecord } from "./index";
 import { ApiError, readEnvelope, type Envelope, type ReadOptions } from "./envelope";
 
 const BASE = "/api/v2";
+const replySizes = new WeakMap<object, number>();
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export type Query = Record<string, unknown>;
@@ -80,12 +81,19 @@ async function send<T>(
     if ((error as { name?: string })?.name === "AbortError") throw error;
     throw new ApiError({ type: "NetworkError", message: String(error) }, 0);
   }
-  const envelope = readEnvelope<T>(await parseBody(response), response.status, {
+  const text = await response.text();
+  const envelope = readEnvelope<T>(parseBody(text), response.status, {
     source: `${method} ${path}`,
     nullable,
   });
+  replySizes.set(envelope, text.length);
   feedSafely(() => feedDocs(ticket, envelope));
   return envelope;
+}
+
+/** The length of the reply text the envelope was read from; 0 for an envelope `request` did not read. */
+export function replySize(envelope: object): number {
+  return replySizes.get(envelope) ?? 0;
 }
 
 /** A document method returns its documents under `docs` whether or not it saved them. */
@@ -102,8 +110,7 @@ function encodeQueryValue(value: unknown): string {
   return typeof value === "object" ? JSON.stringify(value) : String(value);
 }
 
-async function parseBody(response: Response): Promise<unknown> {
-  const text = await response.text();
+function parseBody(text: string): unknown {
   if (!text) return null;
   try {
     return JSON.parse(text);

@@ -13,7 +13,7 @@ import {
   takeTicket,
 } from "../cache";
 import { fed, fedAfter, feedPartReply, includeNames, withModified } from "./feed";
-import { request, type Query } from "./request";
+import { replySize, request, type Query } from "./request";
 import { ApiError, type Envelope } from "./envelope";
 
 export {
@@ -117,7 +117,8 @@ export function getDocument<T extends DocumentRecord = DocumentRecord>(
   return fedAfter(
     ticket,
     sending,
-    (_, envelope) => feedRecordRead(ticket, doctype, envelope, includeNames(include)),
+    (_, envelope) =>
+      feedRecordRead(ticket, doctype, envelope, includeNames(include), replySize(envelope)),
     (error) => feedReadError(ticket, doctype, name, error)
   );
 }

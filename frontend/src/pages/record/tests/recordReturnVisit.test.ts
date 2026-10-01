@@ -208,6 +208,7 @@ beforeEach(() => {
       server.requests.push(`${method} ${decodeURIComponent(url.pathname)}`);
       const sent = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
       const [body, status] = await answer(url, method, sent);
+      if (init?.signal?.aborted) throw new DOMException("The request was aborted", "AbortError");
       return new Response(JSON.stringify(body), { status });
     }),
   );
@@ -564,6 +565,81 @@ describe("a return visit", () => {
     await settle();
 
     expect(state(root)).toBe(`Open|Mine|${SAVED}|${SAVED}|0`);
+  });
+});
+
+describe("a record read the reader left behind", () => {
+  it("is aborted, so it never lands in the cache as the last record read", async () => {
+    const late = (server.holdRecord = gate());
+    const { router } = await mount(`/note/${name}`);
+    await settle();
+    expect(recordReads()).toBe(1);
+    server.holdRecord = null;
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(routeFor("Note", other));
+    await settle();
+
+    late.open();
+    await settle();
+
+    expect(readCachedDocument("Note", name)).toBeUndefined();
+    expect(readCachedDocument("Note", other)?.complete).toBe(true);
+  });
+
+  it("is aborted for a parts re-read that a live update started", async () => {
+    const { router } = await mount(`/note/${name}`);
+    await settle();
+    const late = gate();
+    server.holdParts = [late];
+    const doc = { reference_doctype: "Note", reference_name: name };
+    socket.emit("docinfo_update", { key: "favourites", action: "add", doc });
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    await settle();
+    expect(recordReads()).toBe(2);
+    server.favourites = [{ user: "other@example.com" }];
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(routeFor("Note", other));
+    await settle();
+
+    late.open();
+    await settle();
+
+    expect(readCachedDocument("Note", name)?.parts.favourites).toEqual([]);
+    expect(warnings).toEqual([]);
+  });
+
+  it("is aborted for a return visit's background re-read", async () => {
+    const { router } = await visitAndLeave();
+    const late = (server.holdRecord = gate());
+    await comeBack(router);
+    await settle();
+    expect(recordReads()).toBe(2);
+    server.holdRecord = null;
+    server.favourites = [{ user: "other@example.com" }];
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(routeFor("Note", other));
+    await settle();
+
+    late.open();
+    await settle();
+
+    expect(readCachedDocument("Note", name)?.parts.favourites).toEqual([]);
+  });
+
+  it("is aborted when the reader leaves the page, with no error", async () => {
+    const late = (server.holdRecord = gate());
+    await mount(`/note/${name}`);
+    await settle();
+    apps.pop()!.unmount();
+
+    late.open();
+    await settle();
+
+    expect(readCachedDocument("Note", name)).toBeUndefined();
+    expect(warnings).toEqual([]);
   });
 });
 

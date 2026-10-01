@@ -12,8 +12,12 @@ export interface LoadedRecord {
 }
 
 /** The document, its parts and the link titles in one round trip; the read marks the record seen. */
-export function loadRecord(doctype: string, name: string): Promise<LoadedRecord> {
-	return read(doctype, name, [...RECORD_PARTS, "seen"]);
+export function loadRecord(
+	doctype: string,
+	name: string,
+	signal?: AbortSignal
+): Promise<LoadedRecord> {
+	return read(doctype, name, [...RECORD_PARTS, "seen"], signal);
 }
 
 /** A copy of the last full read the shared cache holds; null when it holds none. */
@@ -24,8 +28,12 @@ export function readCachedRecord(doctype: string, name: string): LoadedRecord | 
 }
 
 /** The parts alone, on a realtime delta; the draft is untouched and nothing is marked seen. */
-export async function loadParts(doctype: string, name: string): Promise<DocInfo> {
-	const { docinfo } = await read(doctype, name, RECORD_PARTS);
+export async function loadParts(
+	doctype: string,
+	name: string,
+	signal?: AbortSignal
+): Promise<DocInfo> {
+	const { docinfo } = await read(doctype, name, RECORD_PARTS, signal);
 	return docinfo;
 }
 
@@ -38,8 +46,13 @@ export async function saveRecord(
 	return data;
 }
 
-async function read(doctype: string, name: string, include: readonly string[]): Promise<LoadedRecord> {
-	const envelope = await getDocument(doctype, name, { include });
+async function read(
+	doctype: string,
+	name: string,
+	include: readonly string[],
+	signal?: AbortSignal
+): Promise<LoadedRecord> {
+	const envelope = await getDocument(doctype, name, { include, signal });
 	return loaded(envelope.data, envelope);
 }
 
