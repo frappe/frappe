@@ -245,8 +245,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     doc: () => host.doc.value,
   });
   const form = new FormSurface({ fields: () => host.meta.value?.fields }, formTabs);
-  // Held until commit: until then the host still renders the last replay's strip, and a
-  // move onto a tab not yet on it shows the fallback for a tick.
   const heldActs = createHeldActs({
     isStaging: () => gate.isStaging(),
     inBackground: () => gate.inBackground(),
@@ -543,6 +541,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       land: () => landActivation(strip, name),
       refuse: (because) => warnActivate(strip, name, because),
     };
+    // Held until commit: until then the host still renders the last replay's strip, and a
+    // move onto a tab not yet on it shows the fallback for a tick.
     if (!heldActs.take(act)) move(strip, name);
   }
 

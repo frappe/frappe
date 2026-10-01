@@ -298,7 +298,7 @@ component group, with its main names.
 | Staging | Acts wait during a replay and appear at one commit |
 | Paint gate (`LATE_LIMIT_MS`) | When the page first paints, how a late `onRefresh` or a first visit's `page.cached` fetch lands, when `onOpen` runs, and the one repaint for background reads on a return visit. `LATE_LIMIT_MS` (5 s) is the longest it waits for a late part |
 | Cached reads | *New.* The engine behind `page.cached`: one fetch per key per visit, and a value kept while the record's complete entry stays in the data cache, up to 20 keys for each record and script |
-| Held acts | *Changed.* One queue for the acts a script asks for during a replay (open, close, tab, focus, scroll). They run after the commit |
+| Held acts (`createHeldActs` in `heldActs.ts`) | One queue for the acts a script asks for during a replay (open, close, tab, focus, scroll). They run after the commit |
 | [Commit](./CONTEXT.md#commit) channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
 | [Field](./CONTEXT.md#field-overlay) and form tab overlays | Changes keyed by fieldname or tab identity |
 | Header projection | Turns the header list into two zones, nesting and overflow |
@@ -668,7 +668,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | Today | Target | Owner |
 | --- | --- | --- |
 | 11 hand-written "latest reply" counters | One "latest reply wins" helper | New map |
-| Five stores of held script acts | One queue | One page model |
 | Two listeners on each record room | One | Activity column |
 | Two save paths; Ctrl+S skips the paint hold | One save path | One page model |
 | Separate comment and email writer pipelines | One | Activity column |

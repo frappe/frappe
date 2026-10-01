@@ -1,6 +1,6 @@
 // `page.composer`: the writers the band at the foot of a composer tab offers, and the
 // acts that open and close one. The host draws the band and keeps the drafts.
-import type { HeldAct } from "./heldActs";
+import type { HeldAct, TakeResult } from "./heldActs";
 import { Surface } from "./surface";
 import { WRITER_ITEM_KEYS } from "./types";
 import type {
@@ -43,8 +43,8 @@ export interface ComposerHost {
 export class ComposerSurface extends Surface<WriterItem> implements PageComposer {
   constructor(
     private readonly host: ComposerHost,
-    /** Holds or drops an act and answers true; false means deliver it now. */
-    private readonly take: (act: HeldAct) => boolean = () => false,
+    /** Holds or drops an act; false means deliver it now. */
+    private readonly take: (act: HeldAct) => TakeResult = () => false,
     /** Removes a held act of that kind and target. */
     private readonly drop: (kind: HeldAct["kind"], target: string) => void = () => {},
   ) {
@@ -69,19 +69,14 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
   open(name: string, options: ComposerOpenOptions = {}) {
     if (!this.canOpen(name)) return;
     let checked = options;
-    let dropped = false;
     const taken = this.take({
       kind: "open",
       target: "",
       isDrawn: () => this.isDrawn(name),
       land: () => this.landOpen(name, checked),
-      refuse: (because) => {
-        dropped = true;
-        this.refuse(name, because);
-      },
+      refuse: (because) => this.refuse(name, because),
     });
-    // The window is checked only once the background check has passed.
-    if (dropped) return;
+    if (taken === "dropped") return;
     checked = this.checkWindow(name, options);
     if (!taken) this.deliver(name, checked);
   }

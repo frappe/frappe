@@ -6,7 +6,7 @@ import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { currentSession } from "@framework/ui/composables/useSession";
 import { runningSource } from "./context";
 import { readOnly } from "./readOnly";
-import type { HeldAct } from "./heldActs";
+import type { HeldAct, TakeResult } from "./heldActs";
 import { BUILTIN, Surface } from "./surface";
 import { FEED_ITEM_KEYS } from "./types";
 import type {
@@ -23,8 +23,8 @@ export interface ActivityHost {
   rows: () => ActivityRow[];
   scrollTo: (key: string) => Promise<boolean | null>;
   reload: () => Promise<void>;
-  /** Holds or drops an act and answers true; false means deliver it now. */
-  take: (act: HeldAct) => boolean;
+  /** Holds or drops an act; false means deliver it now. */
+  take: (act: HeldAct) => TakeResult;
 }
 
 export interface FilesHost {

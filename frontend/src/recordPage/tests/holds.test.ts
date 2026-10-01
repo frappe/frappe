@@ -285,6 +285,35 @@ describe("acts inside a handler", () => {
   });
 });
 
+describe("acts held through a replay", () => {
+  it("land the tab move, then the focus, then the composer open, whatever the call order", async () => {
+    const landed: string[] = [];
+    let current = "details";
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        page.composer.open("comment");
+        page.fields.focus("status");
+        page.tabs.activate("activity");
+      },
+    });
+    const { controller } = makePage({
+      meta: ref({ fields: [{ fieldname: "status", fieldtype: "Data" }] }) as any,
+      activeTab: () => current,
+      activateTab: (tab) => {
+        landed.push(`tab:${tab}`);
+        current = tab;
+      },
+      focusField: (fieldname) => void landed.push(`focus:${fieldname}`),
+      openWriter: (name) => void landed.push(`open:${name}`),
+    });
+    controller.composer.provideBuiltins(() => [{ name: "comment", label: "Comment" }] as any[]);
+
+    await controller.refresh();
+
+    expect(landed).toEqual(["tab:activity", "focus:status", "open:comment"]);
+  });
+});
+
 describe("the running source", () => {
   it("names each of two overlapping handlers until it settles, then the host", async () => {
     const first = gate();
