@@ -28,8 +28,12 @@ export function readCachedRecord(doctype: string, name: string): LoadedRecord | 
 }
 
 /** The parts alone, on a realtime delta; the draft is untouched and nothing is marked seen. */
-export async function loadParts(doctype: string, name: string): Promise<DocInfo> {
-	const { docinfo } = await read(doctype, name, RECORD_PARTS);
+export async function loadParts(
+	doctype: string,
+	name: string,
+	signal?: AbortSignal
+): Promise<DocInfo> {
+	const { docinfo } = await read(doctype, name, RECORD_PARTS, signal);
 	return docinfo;
 }
 

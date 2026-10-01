@@ -494,9 +494,12 @@ function reloadDocinfo() {
 async function readDocinfo(): Promise<void> {
 	if (!doctype.value) return;
 	const mine = generation;
+	const { signal } = reading;
 	const read = ++docinfoRead;
-	const fresh = await loadParts(doctype.value, docname.value);
-	if (mine !== generation) return;
+	const fresh = await loadParts(doctype.value, docname.value, signal).catch((error) => {
+		if (!signal.aborted) throw error;
+	});
+	if (mine !== generation || !fresh) return;
 	if (read !== docinfoRead) return docinfoLanding;
 	docinfo.value = fresh;
 }
@@ -724,7 +727,7 @@ async function openRecord({
 		if (mine !== generation) return;
 		show(loaded, metadata);
 	} catch (e) {
-		if (mine !== generation) return;
+		if (mine !== generation || signal.aborted) return;
 		error.value = readFailure(e);
 		return;
 	}
@@ -884,7 +887,9 @@ async function rethrowSaveError(e: unknown): Promise<never> {
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
 async function resolveConflict() {
-	const latest = await loadRecord(doctype.value!, docname.value).catch(() => null);
+	const latest = await loadRecord(doctype.value!, docname.value, reading.signal).catch(
+		() => null
+	);
 	const editor = latest
 		? personOf(latest.docinfo, latest.document.modified_by).name
 		: "Someone else";

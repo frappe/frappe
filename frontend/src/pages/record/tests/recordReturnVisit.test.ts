@@ -585,6 +585,41 @@ describe("a record read the reader left behind", () => {
     expect(readCachedDocument("Note", name)).toBeUndefined();
     expect(readCachedDocument("Note", other)?.complete).toBe(true);
   });
+
+  it("is aborted for a parts re-read that a live update started", async () => {
+    const { router } = await mount(`/note/${name}`);
+    await settle();
+    const late = gate();
+    server.holdParts = [late];
+    const doc = { reference_doctype: "Note", reference_name: name };
+    socket.emit("docinfo_update", { key: "favourites", action: "add", doc });
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    await settle();
+    server.favourites = [{ user: "other@example.com" }];
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(routeFor("Note", other));
+    await settle();
+
+    late.open();
+    await settle();
+
+    expect(readCachedDocument("Note", name)?.parts.favourites).toEqual([]);
+    expect(warnings).toEqual([]);
+  });
+
+  it("is aborted when the reader leaves the page, with no error", async () => {
+    const late = (server.holdRecord = gate());
+    await mount(`/note/${name}`);
+    await settle();
+    apps.pop()!.unmount();
+
+    late.open();
+    await settle();
+
+    expect(readCachedDocument("Note", name)).toBeUndefined();
+    expect(warnings).toEqual([]);
+  });
 });
 
 describe("a record the reader leaves while its onRefresh awaits", () => {
