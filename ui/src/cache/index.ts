@@ -53,13 +53,15 @@ export function settleTicket(ticket: number): void {
   cache.settleTicket(ticket);
 }
 
+/** `replySize` is the length of the reply text, which counts toward the complete records' budget. */
 export function feedRecordRead(
   ticket: number,
   doctype: string,
   envelope: Envelope<DocumentRecord>,
-  include: readonly string[]
+  include: readonly string[],
+  replySize: number
 ): void {
-  feed(() => cache.recordRead(ticket, doctype, envelope, include));
+  feed(() => cache.recordRead(ticket, doctype, envelope, include, replySize));
 }
 
 export function feedListRead(

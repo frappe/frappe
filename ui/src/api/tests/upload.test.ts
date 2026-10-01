@@ -156,7 +156,7 @@ describe("an attachment write", () => {
     clearDataCache();
     const parts = Object.fromEntries(RECORD_PARTS.map((part) => [part, []]));
     const record = { data: { name: "TODO-1", modified: "2026-09-01 10:00:00" }, ...parts };
-    feedRecordRead(takeTicket(), "ToDo", record, RECORD_PARTS);
+    feedRecordRead(takeTicket(), "ToDo", record, RECORD_PARTS, 1000);
   });
 
   it("feeds the refreshed part to the cache on attach and on remove", async () => {

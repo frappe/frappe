@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ApiError } from "../../api/envelope";
 import { clearDataCache, feedDelete, feedReadError, onRecordLeft, takeTicket } from "../index";
-import { DOCTYPE, NEW, OLD, doc, readList, readRecord, readSomeParts } from "./helpers";
+import { DOCTYPE, MB, NEW, OLD, doc, readList, readRecord, readSomeParts } from "./helpers";
 
 let left: string[];
 let stop: () => void;
@@ -18,6 +18,12 @@ describe("onRecordLeft", () => {
   it("names the record the 51st record read pushes out", () => {
     for (let index = 1; index <= 51; index++) readRecord(doc(`R${index}`, OLD));
     expect(left).toEqual([`${DOCTYPE}:R1`]);
+  });
+
+  it("names the record the byte budget pushes out", () => {
+    readRecord(doc("A", OLD), {}, takeTicket(), 30 * MB);
+    readRecord(doc("B", OLD), {}, takeTicket(), 3 * MB);
+    expect(left).toEqual([`${DOCTYPE}:A`]);
   });
 
   it("names a record a list still holds as a row once it is no longer complete", () => {

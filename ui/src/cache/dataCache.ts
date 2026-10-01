@@ -1,6 +1,7 @@
 // One entry per document and per list query; every feed applies its whole reply in one call.
 import type { DocumentRecord, Envelope, ListEnvelope, ListQuery } from "../api";
 import { isApiError } from "../api/envelope";
+import { CompleteRecords } from "./completeRecords";
 import {
   compareModified,
   documentEntry,
@@ -20,15 +21,20 @@ import { RowsMemo } from "./rowsMemo";
 import { WriteGate } from "./writeGate";
 
 const COMPLETE_LIMIT = 50;
+// In reply characters, about 45 MB of heap.
+const COMPLETE_REPLY_SIZE = 32 * 1024 * 1024;
 const LIST_LIMIT = 20;
-const FIELD_READ_LIMIT = 50;
+const FIELD_READ_LIMIT = 200;
 
 export class DataCache {
   private documents = new Map<string, DocumentEntry>();
   private lists = new Map<string, ListEntry>();
   private named = new NameCounts();
+  private readRecords = new CompleteRecords({
+    count: COMPLETE_LIMIT,
+    replySize: COMPLETE_REPLY_SIZE,
+  });
   // Least recently read first.
-  private readRecords = new Set<string>();
   private readLists = new Set<string>();
   private fieldReads = new Set<string>();
   private shown = new NameCounts();
@@ -72,7 +78,8 @@ export class DataCache {
     ticket: number,
     doctype: string,
     envelope: Envelope<DocumentRecord>,
-    include: readonly string[]
+    include: readonly string[],
+    replySize: number
   ) {
     const doc = envelope.data;
     if (!hasName(doc)) return;
@@ -87,7 +94,7 @@ export class DataCache {
     if (!complete && !this.held(key)) return this.dropDocument(key);
     this.setDocument(key, documentEntry(doctype, frozenCopy(doc), complete, parts), ticket);
     if (!complete) this.readRecords.delete(key);
-    else if (!entry?.complete || holdsEveryPart(carried)) this.visitRecord(key);
+    else if (!entry?.complete || holdsEveryPart(carried)) this.visitRecord(key, replySize);
   }
 
   listRead(
@@ -213,7 +220,7 @@ export class DataCache {
   }
 
   completeEntries(): DocumentEntry[] {
-    return [...this.readRecords].flatMap((key) => this.documents.get(key) ?? []);
+    return [...this.readRecords.keys()].flatMap((key) => this.documents.get(key) ?? []);
   }
 
   /** For tests: how many keys the entries, the gate and the rows memo hold. */
@@ -251,8 +258,8 @@ export class DataCache {
     this.setDocument(key, replaced, ticket);
   }
 
-  private visitRecord(key: string) {
-    touch(this.readRecords, key);
+  private visitRecord(key: string, replySize: number) {
+    this.readRecords.visit(key, replySize);
     this.evictRecords();
   }
 
@@ -296,8 +303,7 @@ export class DataCache {
   }
 
   private evictRecords() {
-    for (const key of this.readRecords) {
-      if (this.readRecords.size <= COMPLETE_LIMIT) return;
+    for (let key = this.readRecords.overLimit(); key; key = this.readRecords.overLimit()) {
       this.readRecords.delete(key);
       const entry = this.documents.get(key);
       if (!entry) continue;
