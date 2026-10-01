@@ -25,7 +25,6 @@ import { FrameSurface } from "./frame";
 import { BodySurface } from "./body";
 import { HeaderSurface } from "./headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
-import { withRemovals } from "./pageCompatibility";
 import { createPagePermissions } from "./pagePermissions";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { registrationsFor, type Registration } from "./registry";
@@ -344,7 +343,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   const dialogs = createPageDialogs({ isReplaying: () => gate.isReplaying.value, hold });
 
-  const capabilities: RecordPageApi = {
+  const page: RecordPageApi = {
     doctype: host.doctype,
     docname: host.docname,
     // Exempt from the read-only rule: mutating the document *is* the API.
@@ -396,8 +395,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     router: host.router,
   };
 
-  // With an empty removals list this hands the same object straight back.
-  const page = withRemovals(capabilities);
   const refreshView = pageView(page);
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.

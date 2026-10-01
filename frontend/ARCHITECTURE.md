@@ -680,7 +680,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | Record page words in four `ui/` files, and the commit channel in `ui/` | Both in `frontend/` | @framework/ui |
 | The editor loads to show saved comments | Cleaned HTML; the editor loads to write | Activity column |
 | The list's column and sort panels load with the list | They load when opened | New map |
-| The tombstone code in `recordPage/pageCompatibility.ts` for an empty list | Gone; the rule stays in `COMPATIBILITY.md` | One page model |
 | Dead code: `resolveDoctype`, `currentNavigation`, `forgetRows`, `clear_address_table`, `clear_doctype_owners`, `setDocValueReader`, `reloadClientScripts`, the unused `scope` in `arrangement.ts`, a second loader in `useFormLayout.ts` | Gone | New map |
 
 **Where `ui/` does not stand on its own yet.** The @framework/ui map owns each row.

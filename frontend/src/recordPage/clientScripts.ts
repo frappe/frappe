@@ -24,7 +24,7 @@ const sources = new Map<string, string[]>();
 // Changed on the server: the registered tier stays until a fresh one replaces it.
 const stale = new Set<string>();
 const toasted = new Set<string>();
-// The shared toast channel; the compatibility layer reports a removal hit through it.
+// The shared toast channel: one toast per key per session.
 const notified = new Set<string>();
 // Two saves in quick succession overlap: the later build must win, and the
 // earlier one must not register its now-stale scripts behind it.

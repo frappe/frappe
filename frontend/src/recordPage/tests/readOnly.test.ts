@@ -299,7 +299,7 @@ describe("page.saved", () => {
   });
 });
 
-describe("the refusal reports on the tombstone channel", () => {
+describe("the refusal reports on the customization error channel", () => {
   beforeEach(reset);
 
   it("files an Error Log row and toasts an author who can edit scripts", async () => {
