@@ -3,12 +3,23 @@ import {
   clearDataCache,
   feedDelete,
   feedFieldRead,
+  feedRecordRead,
   holdDocument,
   readCachedDocument,
   readCachedList,
   takeTicket,
 } from "../index";
-import { DOCTYPE, MB, NEW, OLD, doc, readList, readRecord, readSomeParts } from "./helpers";
+import {
+  ALL_PARTS,
+  DOCTYPE,
+  MB,
+  NEW,
+  OLD,
+  doc,
+  readList,
+  readRecord,
+  readSomeParts,
+} from "./helpers";
 
 const listQuery = (index: number) => ({ filters: { owner: `user${index}` } });
 
@@ -108,6 +119,13 @@ describe("the 32 MB budget of complete records", () => {
     readSized("A", 1, NEW);
     readSized("B", 20);
     expect(complete("A")).toBe(true);
+  });
+
+  it("counts a read with no reply size toward the count limit only", () => {
+    const parts = Object.keys(ALL_PARTS);
+    feedRecordRead(takeTicket(), DOCTYPE, { data: doc("A", OLD), ...ALL_PARTS }, parts);
+    readSized("B", 32);
+    expect([complete("A"), complete("B")]).toEqual([true, true]);
   });
 
   it("keeps a record it drops as partial, without parts, while a list names it", () => {
