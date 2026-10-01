@@ -1106,12 +1106,14 @@ class TestImage(IntegrationTestCase):
 
 	def test_pdf_has_signature_false_for_unparseable_content(self):
 		from frappe.utils.pdf import pdf_has_signature
+
 		self.assertFalse(pdf_has_signature(b"not a real pdf"))
 
 	def test_pdf_has_signature_fails_safe_for_encrypted_pdf(self):
 		from pypdf import PdfReader, PdfWriter
 
 		from frappe.utils.pdf import pdf_has_signature
+
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		buf = io.BytesIO()
 		Image.open(image_file_path).save(buf, format="PDF")

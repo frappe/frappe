@@ -503,8 +503,8 @@ def pdf_contains_js(file_content: bytes):
 
 def _reader_has_signature(reader: "PdfReader") -> bool:
 	"""Check an already-open PdfReader for a signed digital-signature field.
-	
-	Optimizing a signed PDF would silently break its signature, 
+
+	Optimizing a signed PDF would silently break its signature,
 	so callers should skip optimization when this returns True.
 
 	Returns True (fail-safe) if the fields can't be inspected.
@@ -517,8 +517,7 @@ def _reader_has_signature(reader: "PdfReader") -> bool:
 
 
 def pdf_has_signature(content: bytes) -> bool:
-	"""Check if raw PDF bytes contain a signed digital-signature field.
-	"""
+	"""Check if raw PDF bytes contain a signed digital-signature field."""
 	from io import BytesIO
 
 	from pypdf import PdfReader
