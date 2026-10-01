@@ -53,7 +53,13 @@ import useStudioStore from "@/stores/studioStore"
 
 const ROUTER_FILE = "router.ts"
 const BOILERPLATE = `{
-	// runs once before the first navigation
+	// passed to createRouter
+	routerOptions: {
+		// once per page route, e.g. route.alias, route.meta, route.beforeEnter
+		extendRoute(route) {},
+	},
+
+	// the created router, before the first navigation
 	setup(router) {
 		router.beforeEach((to, from) => {
 			// return false to cancel, or a location to redirect

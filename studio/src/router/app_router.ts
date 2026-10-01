@@ -19,9 +19,10 @@ interface Page {
 // An app's studio/<app>/router.ts default export, or a custom app's router script
 export type RouterConfig = {
 	// forwarded to createRouter; `routes` and `history` are withheld, Studio owns both
-	options?: Omit<RouterOptions, "history" | "routes">
-	// once per Studio page, with the plain vue-router record; mutate it
-	extendRoute?: (route: RouteRecordRaw) => void
+	routerOptions?: Omit<RouterOptions, "history" | "routes"> & {
+		// once per Studio page, with the plain vue-router record; mutate it
+		extendRoute?: (route: RouteRecordRaw) => void
+	}
 	// called once, awaited before app.use(router) and the first navigation
 	setup?: (router: Router) => void | Promise<void>
 }
@@ -40,9 +41,10 @@ declare global {
 }
 
 export async function createAppRouter(config: RouterConfig = {}): Promise<Router> {
-	const { options = {}, extendRoute, setup } = config
+	const { routerOptions = {}, setup } = config
+	const { extendRoute, ...options } = routerOptions
 	for (const key of ["routes", "history"]) {
-		if (key in options) console.warn(`router.ts: options.${key} is ignored, Studio owns it`)
+		if (key in options) console.warn(`routerOptions.${key} is ignored, Studio owns it`)
 	}
 	const routes = getPageRoutes(window.app_pages)
 	if (extendRoute) routes.forEach((route) => extendRoute(route))

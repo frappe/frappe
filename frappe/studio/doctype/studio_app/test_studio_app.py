@@ -407,8 +407,10 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 
 ROUTER_SCRIPT = """{
-	extendRoute(route) {
-		if (route.name === "Board") route.alias = "/tasks"
+	routerOptions: {
+		extendRoute(route) {
+			if (route.name === "Board") route.alias = "/tasks"
+		},
 	},
 }"""
 
