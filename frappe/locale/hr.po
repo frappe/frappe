@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 09:34+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -951,7 +951,7 @@ msgstr "Pregled poveznice od strane korisnika (zadržite pokazivač iznad nje)"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:553
 msgid "A value from a linked document"
-msgstr ""
+msgstr "Vrijednost iz povezanog dokumenta"
 
 #. Description of the 'Software Version' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -1155,7 +1155,7 @@ msgstr "Prihvati Pozivnicu"
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Accept emit() calls for events no app registered through the automation_events hook."
-msgstr ""
+msgstr "Prihvatite pozive emit() za događaje koje aplikacija nije registrirala putem kuke automation_events."
 
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -1295,11 +1295,11 @@ msgstr "Tip Radnje"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:163
 msgid "Action Type is required for action steps"
-msgstr ""
+msgstr "Tip akcije je obavezan za korake akcije."
 
 #: frappe/automation_engine/runner.py:495
 msgid "Action completed"
-msgstr ""
+msgstr "Radnja dovršena"
 
 #: frappe/public/js/frappe/ui/embedded_list.js:373
 msgid "Action failed."
@@ -1734,7 +1734,7 @@ msgstr "Dodaj polje"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:23
 msgid "Add field rules below, every rule must match before the flow can run"
-msgstr ""
+msgstr "Dodaj pravila polja u nastavku, svako pravilo mora se podudarati prije nego što se tijek može pokrenuti"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:201
 msgid "Add field..."
@@ -2015,7 +2015,7 @@ msgstr "Napredno"
 #. 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Advanced Condition"
-msgstr ""
+msgstr "Napredni Uvjet"
 
 #. Label of the advanced_control_section (Section Break) field in DocType 'User
 #. Permission'
@@ -2026,7 +2026,7 @@ msgstr "Napredna Kontrola"
 #. Label of the condition (Code) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Advanced Expression using Python"
-msgstr ""
+msgstr "Napredno Izražavanje pomoću Pythona"
 
 #: frappe/public/js/frappe/form/controls/link.js:530
 #: frappe/public/js/frappe/form/controls/link.js:532
@@ -2385,7 +2385,7 @@ msgstr "Dozvoli Slanje Podataka o Upotrebi za Poboljšanje Aplikacija"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Allow Unregistered Events"
-msgstr ""
+msgstr "Dopusti Neregistrirane Događaje"
 
 #. Label of the allow_user_cancellation (Check) field in DocType 'Background
 #. Task'
@@ -3450,7 +3450,7 @@ msgstr "Dodijeljeno/Odgovorni"
 
 #: frappe/automation_engine/actions/core.py:331
 msgid "Assigned to {0}"
-msgstr ""
+msgstr "Dodijeljeno {0}"
 
 #. Label of the assignee (Table MultiSelect) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -3536,7 +3536,7 @@ msgstr "Asinkrono"
 
 #: frappe/automation_engine/actions/core.py:316
 msgid "At least one assignee is required"
-msgstr ""
+msgstr "Potreban je barem jedan dodijeljeni korisnik"
 
 #: frappe/public/js/frappe/form/grid_row.js:690
 msgid "At least one column is required to show in the grid."
@@ -3552,7 +3552,7 @@ msgstr "Barem jedno polje vrste nadređenog dokumenta je obavezno"
 
 #: frappe/automation_engine/actions/core.py:247
 msgid "At least one recipient is required"
-msgstr ""
+msgstr "Potreban je barem jedan primatelj"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3957,7 +3957,7 @@ msgstr "Automatsko ponavljanje preskočeno. Vlasnik ne može pristupiti referent
 
 #: frappe/automation_engine/runner.py:618
 msgid "Auto-disabled after {0} consecutive failures"
-msgstr ""
+msgstr "Automatsko onemogućavanje nakon {0} uzastopnih neuspjeha"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -4028,12 +4028,12 @@ msgstr "Automatizacija"
 #. Name of a DocType
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Automation Action"
-msgstr ""
+msgstr "Radnja Automatizacije"
 
 #. Name of a DocType
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Automation Event Subscription"
-msgstr ""
+msgstr "Pretplata Događaja Automatizacije"
 
 #. Name of a DocType
 #. Label of the automation (Link) field in DocType 'Automation Trigger Queue'
@@ -4042,45 +4042,45 @@ msgstr ""
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/automation/sidebar/automation/automation.json
 msgid "Automation Flow"
-msgstr ""
+msgstr "Tijek Automatizacije"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:185
 msgid "Automation Flow cannot target a child table: {0}"
-msgstr ""
+msgstr "Tijek Automatizacije ne može ciljati podređenu tablicu: {0}"
 
 #: frappe/automation_engine/runner.py:644
 msgid "Automation Flow {0} was auto-disabled"
-msgstr ""
+msgstr "Tijek Automatizacije {0} je automatski onemogućen"
 
 #. Name of a DocType
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Automation Settings"
-msgstr ""
+msgstr "Postavke Automatizacije"
 
 #. Name of a DocType
 #. Label of a Sidebar Item
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/automation/sidebar/automation/automation.json
 msgid "Automation Trigger Queue"
-msgstr ""
+msgstr "Red Čekanja Okidače Automatizacije"
 
 #. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
 #. Label of the automation_user (Link) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Automation User"
-msgstr ""
+msgstr "Korisnik Automatizacije"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:134
 msgid "Automation User {0} is disabled or missing"
-msgstr ""
+msgstr "Korisnik Automatizacije {0} je onemogućen ili nedostaje"
 
 #: frappe/automation_engine/events.py:251
 msgid "Automation event payload is too large"
-msgstr ""
+msgstr "Korisni sadržaj događaja automatizacije je prevelik"
 
 #: frappe/automation_engine/runner.py:388
 msgid "Automation paused"
-msgstr ""
+msgstr "Automatizacija Pauzirana"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:328
 msgid "Autoname: {0}"
@@ -4401,11 +4401,11 @@ msgstr "Barkod ili QR kod iz polja ili statičke vrijednosti"
 #: frappe/public/js/print_format_builder/utils.js:133
 #: frappe/utils/typst_emitter.py:186 frappe/utils/typst_emitter.py:195
 msgid "Barcode that is not a QR code"
-msgstr ""
+msgstr "Barkod koji nije QR kod"
 
 #: frappe/utils/print_format_generator.py:103
 msgid "Barcode value must be text under 2000 characters"
-msgstr ""
+msgstr "Vrijednost barkoda mora biti tekst kraći od 2000 znakova"
 
 #. Label of the base_dn (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -4605,7 +4605,7 @@ msgstr "Blok Moduli"
 #. Description of the 'Document Type' (Link) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Blocked for child tables (istable). Required for document and date-based triggers."
-msgstr ""
+msgstr "Blokirano za podređene tablice (istable). Obavezno za okidače temeljene na dokumentima i datumima."
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:315
 msgid "Blockquote"
@@ -4645,7 +4645,7 @@ msgstr "Granica"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:93
 msgid "Border color"
-msgstr ""
+msgstr "Boja obruba"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:71
 msgid "Borders"
@@ -4706,7 +4706,7 @@ msgstr "Podružnica"
 
 #: frappe/automation_engine/api.py:275
 msgid "Branch for step {0} must be If or Else"
-msgstr ""
+msgstr "Grana za korak {0} mora biti Ako ili Inače"
 
 #. Label of the brand (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -4932,13 +4932,13 @@ msgstr "Zaobiđi provjere ograničene IP adrese ako je omogućena potvrda s dva 
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Bytes an emitted event payload may carry."
-msgstr ""
+msgstr "Bajtovi koje može nositi emitirani sadržaj događaja."
 
 #. Description of the 'Step Output Limit' (Int) field in DocType 'Automation
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Bytes of output a step may publish to later steps. Larger output is dropped, not failed."
-msgstr ""
+msgstr "Bajtovi izlaza koje korak može objaviti kasnijim koracima. Veći izlaz se odbacuje, a ne prekida."
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -5122,7 +5122,7 @@ msgstr "Možete prekinuti vezu samo s Adresom ili Kontaktom"
 
 #: frappe/public/js/print_format_builder/components/inspector/VisibilitySection.vue:19
 msgid "Can't check this condition"
-msgstr ""
+msgstr "Ne mogu provjeriti ovaj uvjet"
 
 #: frappe/desk/form/document_follow.py:61
 msgid "Can't follow since changes are not tracked."
@@ -5617,7 +5617,7 @@ msgstr "Promjenjeno od"
 
 #: frappe/automation_engine/actions/core.py:173
 msgid "Changed {0} by {1}"
-msgstr ""
+msgstr "Promijenjeno {0} od {1}"
 
 #. Label of the changed_values (HTML) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -5819,7 +5819,7 @@ msgstr "Podređena polja tabele trebaju 'naziv' u `poljima` kada se koriste razl
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:531
 msgid "Child table rows laid out with your own template"
-msgstr ""
+msgstr "Redovi podređene tablice raspoređeni prema vašem vlastitom predlošku"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:744
 msgid "Choose Existing Card or create New Card"
@@ -5836,7 +5836,7 @@ msgstr "Odaberi boju"
 
 #: frappe/automation_engine/actions/core.py:159
 msgid "Choose a numeric field"
-msgstr ""
+msgstr "Odaberi numeričko polje"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSetup.vue:6
 msgid "Choose a starting point for your print format."
@@ -6145,7 +6145,7 @@ msgstr "Klijent Skripta"
 
 #: frappe/automation_engine/api.py:180
 msgid "Client-supplied resolver methods are not allowed"
-msgstr ""
+msgstr "Metode rješavanja koje je naveo klijent nisu dopuštene"
 
 #: frappe/core/doctype/communication/communication.js:39
 #: frappe/desk/doctype/todo/todo.js:23 frappe/public/js/frappe/dom.js:360
@@ -6282,7 +6282,7 @@ msgstr "Sklopivo Zavisi Od (JS)"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:68
 msgid "Colon after labels"
-msgstr ""
+msgstr "Dvotočka nakon oznaka"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the color (Data) field in DocType 'DocType'
@@ -6327,7 +6327,7 @@ msgstr "Boja"
 #: frappe/public/js/print_format_builder/utils.js:142
 #: frappe/utils/typst_emitter.py:170
 msgid "Colours that are not hex codes: {0}"
-msgstr ""
+msgstr "Boje koje nisu heksadecimalni kodovi: {0}"
 
 #. Label of the column_label (Data) field in DocType 'Data Import Value
 #. Mapping'
@@ -6388,7 +6388,7 @@ msgstr "Naziv stupca je obavezan"
 
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:45
 msgid "Column settings"
-msgstr ""
+msgstr "Postavke stupaca"
 
 #: frappe/core/doctype/data_import/data_import.js:870
 #: frappe/core/doctype/data_import/value_mapping.py:291
@@ -6498,7 +6498,7 @@ msgstr "Potvrdi"
 #. Label of the commit_every (Int) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Commit Every"
-msgstr ""
+msgstr "Izvrši Svakih"
 
 #. Label of the committed (Check) field in DocType 'Console Log'
 #: frappe/desk/doctype/console_log/console_log.json
@@ -6709,7 +6709,7 @@ msgstr "Opis Stanja"
 
 #: frappe/automation_engine/runner.py:278
 msgid "Condition took the {0} branch"
-msgstr ""
+msgstr "Uvjet je preuzeo {0} granu"
 
 #. Label of the conditions_section (Section Break) field in DocType 'Automation
 #. Flow'
@@ -6915,7 +6915,7 @@ msgstr "Veze"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Consecutive failures after which a flow is auto-disabled and its owner notified."
-msgstr ""
+msgstr "Uzastopni neuspjesi nakon kojih se protok automatski onemogućuje i vlasnik se obavještava."
 
 #: frappe/core/report/postgres_index_suggestions/postgres_index_suggestions.py:76
 msgid "Consider indexing: {0}"
@@ -7201,7 +7201,7 @@ msgstr "Ispravna verzija:"
 #. Subscription'
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Correlation Key"
-msgstr ""
+msgstr "Korelacijski Ključ"
 
 #: frappe/desk/form/linked_with.py:647
 msgid "Could not cancel {0} linked documents: {1}"
@@ -7233,7 +7233,7 @@ msgstr "Nije moguće učitati dock. Pokušaj ponovno."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:52
 msgid "Could not load the saved field rules"
-msgstr ""
+msgstr "Nije moguće učitati spremljena pravila polja"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:249
 msgid "Could not load the sidebar. Please try again."
@@ -7282,7 +7282,7 @@ msgstr "Nije moguće prikazati pregled"
 
 #: frappe/automation_engine/actions/core.py:519
 msgid "Could not resolve host: {0}"
-msgstr ""
+msgstr "Nije moguće razriješiti host: {0}"
 
 #: frappe/utils/chromium/process.py:196
 msgid "Could not start Chromium. Check logs for details."
@@ -7602,7 +7602,7 @@ msgstr "Izrađeno"
 
 #: frappe/automation_engine/actions/core.py:131
 msgid "Created {0} {1}"
-msgstr ""
+msgstr "Izrađeno {0} {1}"
 
 #: frappe/public/js/frappe/desk.js:603
 #: frappe/public/js/frappe/views/treeview.js:745
@@ -7628,7 +7628,7 @@ msgstr "Cron"
 #. Label of the cron_expression (Data) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Cron Expression"
-msgstr ""
+msgstr "Cron izraz"
 
 #. Label of the cron_format (Data) field in DocType 'Scheduled Job Type'
 #. Label of the cron_format (Data) field in DocType 'Server Script'
@@ -7810,12 +7810,12 @@ msgstr "Prilagođeni CSS"
 #: frappe/public/js/print_format_builder/utils.js:92
 #: frappe/utils/typst_emitter.py:135
 msgid "Custom CSS in the Style box"
-msgstr ""
+msgstr "Prilagođeni CSS u Stil okviru"
 
 #: frappe/public/js/print_format_builder/utils.js:143
 #: frappe/utils/typst_emitter.py:172
 msgid "Custom CSS on fields: {0}"
-msgstr ""
+msgstr "Prilagođeni CSS na poljima: {0}"
 
 #. Label of the custom_configuration_section (Section Break) field in DocType
 #. 'Number Card'
@@ -7846,11 +7846,11 @@ msgstr "Prilagođeni Dokumenti"
 #. Label of the custom_event (Data) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Custom Event"
-msgstr ""
+msgstr "Prilagođeni Događaj"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:196
 msgid "Custom Event trigger requires an event name"
-msgstr ""
+msgstr "Prilagođeni okidač događaja zahtijeva naziv događaja."
 
 #. Label of a Sidebar Item
 #. Label of a Link in the Build Workspace
@@ -7982,7 +7982,7 @@ msgstr "Prilagođeni Meni Bočne Trake"
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:158
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:3
 msgid "Custom Table"
-msgstr ""
+msgstr "Prilagođena Tablica"
 
 #. Label of a Sidebar Item
 #. Label of a Link in the Build Workspace
@@ -8454,21 +8454,21 @@ msgstr "Datum"
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Date Based"
-msgstr ""
+msgstr "Na Osnovu Datuma"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:194
 msgid "Date Based trigger requires a Date Field and a Date Direction"
-msgstr ""
+msgstr "Okidač temeljen na datumu zahtijeva polje datuma i smjer datuma."
 
 #. Label of the date_direction (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Date Direction"
-msgstr ""
+msgstr "Smjer Datuma"
 
 #. Label of the date_field (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Date Field"
-msgstr ""
+msgstr "Polje Datuma"
 
 #. Label of the date_format (Select) field in DocType 'Language'
 #. Label of the date_format (Select) field in DocType 'System Settings'
@@ -8482,7 +8482,7 @@ msgstr "Format Datuma"
 #. Label of the date_offset (Int) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Date Offset (Days)"
-msgstr ""
+msgstr "Pomak Datuma (Dani)"
 
 #. Label of the section_break_dfrx (Section Break) field in DocType 'Audit
 #. Trail'
@@ -8571,7 +8571,7 @@ msgstr "Preostalih dana"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Days a Failed or Skipped queue row is kept before the nightly sweep removes it."
-msgstr ""
+msgstr "Neuspjeli ili preskočeni redak čekanja se čuva prije nego što ga noćno čišćenje ukloni."
 
 #: frappe/public/js/frappe/request.js:261
 msgid "Deadlock Occurred"
@@ -8601,7 +8601,7 @@ msgstr "Decimalni Razdjelnik mora biti jedan znak"
 
 #: frappe/public/js/print_format_builder/components/inspector/Stepper.vue:9
 msgid "Decrease"
-msgstr ""
+msgstr "Smanji"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:324
 msgid "Decrease indent"
@@ -9056,7 +9056,7 @@ msgstr "Izbrišite ovaj zapis da omogućite slanje na ovu adresu e-pošte"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:91
 msgid "Delete this version"
-msgstr ""
+msgstr "Izbriši ovu verziju"
 
 #: frappe/public/js/frappe/form/template_manager.js:400
 msgid "Delete {0}"
@@ -9495,7 +9495,7 @@ msgstr "Onemogući Nedavne Automatske Filtere"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Disable Automations"
-msgstr ""
+msgstr "Onemogući Automatizacije"
 
 #. Label of the disable_change_log_notification (Check) field in DocType
 #. 'System Settings'
@@ -9632,7 +9632,7 @@ msgstr "Automatski Odgovor Onemogućen"
 #. Label of the disabled_reason (Small Text) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Disabled Reason"
-msgstr ""
+msgstr "Razlog Onemogućavanja"
 
 #: frappe/core/page/component_explorer/component_explorer.js:699
 msgid "Disabled options (a page-size picker)"
@@ -9659,7 +9659,7 @@ msgstr "Odbaci"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:51
 msgid "Discard the draft and go back to this"
-msgstr ""
+msgstr "Odbaci nacrt i vrati se na ovo"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:137
 msgid "Discard your unapplied changes and go back to what this format prints?"
@@ -9795,17 +9795,17 @@ msgstr "Želite li izbrisati {0} zajedno sa svim povezanim dokumentima?"
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Cancelled"
-msgstr ""
+msgstr "Dokument otkazan"
 
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Created"
-msgstr ""
+msgstr "Dokument izrađen"
 
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Deleted"
-msgstr ""
+msgstr "Dokument izbrisan"
 
 #. Label of the webhook_docevent (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -9830,12 +9830,12 @@ msgstr "Resetiranje Statusa Dokumenta"
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Submitted"
-msgstr ""
+msgstr "Dokument Podnešen"
 
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Updated"
-msgstr ""
+msgstr "Dokument Ažuriran"
 
 #. Label of the doc_values (Code) field in DocType 'Web Form Request'
 #: frappe/website/doctype/web_form_request/web_form_request.json
@@ -10248,7 +10248,7 @@ msgstr "Postavke Imenovanja Dokumenata"
 #. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Document Owner"
-msgstr ""
+msgstr "Vlasnik Dokumenta"
 
 #. Label of the document_permissions_html (HTML) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -10463,7 +10463,7 @@ msgstr "Dokument nije ponovo povezan"
 
 #: frappe/automation_engine/actions/core.py:191
 msgid "Document owner"
-msgstr ""
+msgstr "Vlasnik dokumenta"
 
 #: frappe/model/rename_doc.py:219 frappe/public/js/frappe/form/toolbar.js:177
 msgid "Document renamed from {0} to {1}"
@@ -10487,7 +10487,7 @@ msgstr "Dokument {0} je postavljen na stanje {1} od {2}"
 
 #: frappe/automation_engine/api.py:99 frappe/automation_engine/api.py:288
 msgid "Document-less automations do not accept a document name"
-msgstr ""
+msgstr "Automatizacija bez dokumenata ne prihvata naziv dokumenta"
 
 #: frappe/public/js/frappe/list/list_view.js:729
 #: frappe/public/js/frappe/views/reports/query_report.js:2030
@@ -10753,7 +10753,7 @@ msgstr "Povuci da promijenite redoslijed. Oko uklanja unos s dock."
 #. Label of the drain_seconds (Float) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Drain Seconds"
-msgstr ""
+msgstr "Sekunde Prežnjenja"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:592
 msgid "Draw it as a row with its entries nested under it, rather than as a heading over them."
@@ -10835,11 +10835,11 @@ msgstr "Duplicirano Ime"
 
 #: frappe/automation_engine/actions/base.py:130
 msgid "Duplicate automation action_type: {0}"
-msgstr ""
+msgstr "Duplikat automatizacije action_type: {0}"
 
 #: frappe/automation_engine/relationships.py:119
 msgid "Duplicate automation relationship name on {0}"
-msgstr ""
+msgstr "Duplicirani naziv automatizacijskog odnosa na {0}"
 
 #: frappe/public/js/frappe/form/form.js:219
 msgid "Duplicate current row"
@@ -10851,7 +10851,7 @@ msgstr "Dupliciraj polje"
 
 #: frappe/automation_engine/relationships.py:206
 msgid "Duplicate record alias: {0}"
-msgstr ""
+msgstr "Dupliciraj zapis nadimka: {0}"
 
 #: frappe/public/js/frappe/form/grid.js:311
 msgid "Duplicate row"
@@ -10972,7 +10972,7 @@ msgstr "Svaki element podataka bit će proslijeđen ovoj funkciji"
 
 #: frappe/automation_engine/relationships.py:204
 msgid "Each relationship needs an alias and relationship name"
-msgstr ""
+msgstr "Svaki odnos treba nadimak i naziv odnosa."
 
 #. Description of the 'Mappings' (Table) field in DocType 'DocType Settings
 #. Map'
@@ -11226,7 +11226,7 @@ msgstr "Birač Elementa"
 #. Option for the 'Branch' (Select) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Else"
-msgstr ""
+msgstr "Inače"
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #. Label of the email (Check) field in DocType 'Custom DocPerm'
@@ -11570,7 +11570,7 @@ msgstr "Prozor za poništavanje e-pošte je završen. Ne možete poništiti e-po
 
 #: frappe/automation_engine/actions/core.py:265
 msgid "Emailed {0}"
-msgstr ""
+msgstr "Poslano e-poštom {0}"
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -11603,7 +11603,7 @@ msgstr "Kod Ugradnje kopiran"
 #. Description of the 'To Value' (Data) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Empty = any value."
-msgstr ""
+msgstr "Prazno = bilo koja vrijednost."
 
 #: frappe/email/doctype/notification/notification.js:178
 msgid "Empty Email Template"
@@ -11631,7 +11631,7 @@ msgstr "Prazni argumenti niza nisu dopušteni"
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreview.vue:56
 msgid "Empty text"
-msgstr ""
+msgstr "Prazan tekst"
 
 #. Label of the enable (Check) field in DocType 'Google Calendar'
 #. Label of the enable (Check) field in DocType 'Google Contacts'
@@ -11812,7 +11812,7 @@ msgstr "Omogući Dvofaktorsku Autentifikaciju"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:77
 msgid "Enable an Automation Flow only after adding at least one action"
-msgstr ""
+msgstr "Omogući Tijek Automatizacije tek nakon dodavanja barem jedne radnje"
 
 #. Description of the 'Allow Bulk Edit' (Check) field in DocType 'Customize
 #. Form'
@@ -11935,7 +11935,7 @@ msgstr "Omogućavanje e-pošte za {0} za sve korisnike u pozadini."
 #. Description of the 'Enabled' (Check) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Enabling requires at least one action and a valid trigger."
-msgstr ""
+msgstr "Omogućavanje zahtijeva barem jednu radnju i valjani okidač."
 
 #. Description of a DocType
 #. Description of the 'Relay Settings' (Section Break) field in DocType 'Push
@@ -12317,13 +12317,13 @@ msgstr "Učesnici Događaja"
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Event Payload"
-msgstr ""
+msgstr "Korisni Teret Događaja"
 
 #. Label of the event_payload_limit (Int) field in DocType 'Automation
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Event Payload Limit"
-msgstr ""
+msgstr "Ograničenje Korisnog Tereta Događaja"
 
 #. Label of the enable_email_event_reminders (Check) field in DocType
 #. 'Notification Settings'
@@ -12561,7 +12561,7 @@ msgstr "Istječe"
 #. Subscription'
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Expires At"
-msgstr ""
+msgstr "Ističe"
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
@@ -12978,7 +12978,7 @@ msgstr "Stopa neuspjeha"
 #. Label of the failure_threshold (Int) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Failure Threshold"
-msgstr ""
+msgstr "Prag Neuspjeha"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1205
 msgid "Fallback themes"
@@ -13128,7 +13128,7 @@ msgstr "Prodložak Polja"
 
 #: frappe/public/js/print_format_builder/utils.js:126
 msgid "Field Template block"
-msgstr ""
+msgstr "Blok Predloška Polja"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:189
 msgid "Field Templates"
@@ -13143,11 +13143,11 @@ msgstr "Tip Polja"
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Field Value Changed"
-msgstr ""
+msgstr "Vrijednost Polja Promijenjena"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:192
 msgid "Field Value Changed trigger requires a Trigger Field"
-msgstr ""
+msgstr "Okidač Promjena Vrijednosti polja zahtijeva polje okidača."
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:384
 msgid "Field \\u201c{0}\\u201d no longer exists on {1}"
@@ -13155,11 +13155,11 @@ msgstr "Polje \\u201c{0}\\u201d više ne postoji na {1}"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:73
 msgid "Field borders"
-msgstr ""
+msgstr "Granice polja"
 
 #: frappe/automation_engine/actions/core.py:154
 msgid "Field is required"
-msgstr ""
+msgstr "Polje je obavezno"
 
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:127
 msgid "Field label"
@@ -13531,7 +13531,7 @@ msgstr "Filtrirano po: {0}."
 
 #: frappe/automation_engine/relationships.py:238
 msgid "Filtered relationship queries require one target DocType"
-msgstr ""
+msgstr "Filtrirani upiti za odnose zahtijevaju jedan ciljni DocType"
 
 #. Label of the filters (Code) field in DocType 'Automation Flow'
 #. Label of the filters (Code) field in DocType 'Access Log'
@@ -13720,7 +13720,7 @@ msgstr "Upaši"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:544
 msgid "Fixed text like a title or a note"
-msgstr ""
+msgstr "Fiksni tekst poput naslova ili napomene"
 
 #. Label of the flag (Data) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
@@ -13854,7 +13854,7 @@ msgstr "Veličina Fonta"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:48
 msgid "Font Size (px)"
-msgstr ""
+msgstr "Veličina fonta (px)"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:329
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:49
@@ -14098,7 +14098,7 @@ msgstr "Prisilno otvori novu stranicu"
 
 #: frappe/automation_engine/runner.py:277
 msgid "Forced the {0} branch"
-msgstr ""
+msgstr "Prisiljena {0} grana"
 
 #: frappe/www/login.html:155
 msgid "Forgot Password?"
@@ -14622,7 +14622,7 @@ msgstr "Github aromatizirana markdown sintaksa"
 
 #: frappe/printing/doctype/print_format/print_format.py:457
 msgid "Give the version a name"
-msgstr ""
+msgstr "Dajte verziji naziv"
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:48
 msgid "Global"
@@ -14967,7 +14967,7 @@ msgstr "Prečica Mreže"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:79
 msgid "Grid lines"
-msgstr ""
+msgstr "Mrežne linije"
 
 #. Label of the group (Data) field in DocType 'DocType Action'
 #. Label of the group (Data) field in DocType 'DocType Link'
@@ -15111,7 +15111,7 @@ msgstr "HTML Stranica"
 
 #: frappe/public/js/print_format_builder/utils.js:125
 msgid "HTML block"
-msgstr ""
+msgstr "HTML blok"
 
 #. Description of the 'Header' (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -15518,7 +15518,7 @@ msgstr "Sakrij Vikende"
 
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:219
 msgid "Hide colon"
-msgstr ""
+msgstr "Sakrij dvotočku"
 
 #. Description of the 'Hide Descendants' (Check) field in DocType 'User
 #. Permission'
@@ -15685,19 +15685,19 @@ msgstr "Kako se čita na tračnici."
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "How long a claimed row may stay Running before it is assumed crashed and requeued."
-msgstr ""
+msgstr "Koliko dugo zatraženi red može ostati u Izvršavanju prije nego što se pretpostavi da je srušen i ponovo stavljen u red čekanja."
 
 #. Description of the 'Maximum Attempts' (Int) field in DocType 'Automation
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "How many times a claimed row is retried when its run fails outside the flow's own steps, before the row is marked Failed."
-msgstr ""
+msgstr "Koliko se puta ponovno pokuša izvršiti zatraženi redak kada njegovo izvršavanje ne uspije izvan vlastitih koraka toka, prije nego što se redak označi kao Neuspješno."
 
 #. Description of the 'Maximum Recursion Depth' (Int) field in DocType
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "How many times an automation may trigger another before the chain is refused."
-msgstr ""
+msgstr "Koliko puta se automatizacija može pokrenuti prije nego što se lanac odbije."
 
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -15891,7 +15891,7 @@ msgstr "Indeks"
 #. Option for the 'Branch' (Select) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "If"
-msgstr ""
+msgstr "Ako"
 
 #. Description of the 'Apply Strict User Permissions' (Check) field in DocType
 #. 'System Settings'
@@ -16297,7 +16297,7 @@ msgstr "Veza slike '{0}' nije važeća"
 #: frappe/public/js/print_format_builder/utils.js:137
 #: frappe/utils/typst_emitter.py:223
 msgid "Image loaded from a web address"
-msgstr ""
+msgstr "Slika učitana s web adrese"
 
 #: frappe/core/doctype/file/file.js:129
 msgid "Image optimized"
@@ -16705,7 +16705,7 @@ msgstr "Netačna vrijednost:"
 
 #: frappe/public/js/print_format_builder/components/inspector/Stepper.vue:33
 msgid "Increase"
-msgstr ""
+msgstr "Povećaj"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:323
 msgid "Increase indent"
@@ -17298,11 +17298,11 @@ msgstr "Nevažeća vrsta argumenta: {0}. Dopušteni su samo strings, numbers, di
 
 #: frappe/utils/print_format_generator.py:286
 msgid "Invalid arguments"
-msgstr ""
+msgstr "Nevažeći argumenti"
 
 #: frappe/automation_engine/relationships.py:134
 msgid "Invalid automation relationship definition"
-msgstr ""
+msgstr "Nevažeća definicija odnosa automatizacije"
 
 #: frappe/utils/response.py:291
 msgid "Invalid backup path"
@@ -17327,7 +17327,7 @@ msgstr "Nevažeći podaci za prijavu, pokušajte ponovno."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:215
 msgid "Invalid cron expression: {0}"
-msgstr ""
+msgstr "Nevažeći cron izraz: {0}"
 
 #: frappe/database/query.py:1582
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
@@ -17375,7 +17375,7 @@ msgstr "Nevažeći naziv polja '{0}' u automatskom nazivu"
 
 #: frappe/utils/file_manager.py:236
 msgid "Invalid file name"
-msgstr ""
+msgstr "Nevažeći naziv datoteke"
 
 #: frappe/deprecation_dumpster.py:283
 msgid "Invalid file path: {0}"
@@ -18927,7 +18927,7 @@ msgstr "Podnožje zaglavlja sa HTML sadržajem"
 
 #: frappe/utils/typst_emitter.py:213
 msgid "Letterhead image loaded from a web address"
-msgstr ""
+msgstr "Slika zaglavlja učitana sa web adrese"
 
 #: frappe/public/js/print_format_builder/utils.js:102
 #: frappe/utils/typst_emitter.py:207
@@ -19218,7 +19218,7 @@ msgstr "Povezano"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:548
 msgid "Linked Field"
-msgstr ""
+msgstr "Povezano Polje"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:112
 msgid "Linked with {0}"
@@ -19975,7 +19975,7 @@ msgstr "Gornja Margina"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:77
 msgid "Margins (mm)"
-msgstr ""
+msgstr "Margine (mm)"
 
 #. Label of the mariadb_variables_section (Section Break) field in DocType
 #. 'System Health Report'
@@ -20067,7 +20067,7 @@ msgstr "Postavke"
 #: frappe/automation/doctype/automation_flow/automation_flow.js:26
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Match Fields"
-msgstr ""
+msgstr "Polja Podudaranja"
 
 #. Option for the 'Status' (Select) field in DocType 'Automation Event
 #. Subscription'
@@ -20078,7 +20078,7 @@ msgstr "Usklađeno"
 #. Description of the 'Custom Event' (Data) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Matches the event name passed to emit()."
-msgstr ""
+msgstr "Odgovara nazivu događaja proslijeđenom emit()."
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -20177,7 +20177,7 @@ msgstr "Maksimalnih Pokušaja"
 #. Label of the max_depth (Int) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Maximum Recursion Depth"
-msgstr ""
+msgstr "Maksimalna Dubina Rekurzije"
 
 #: frappe/public/js/frappe/form/sidebar/attachments.js:42
 msgid "Maximum attachment limit of {0} has been reached."
@@ -20506,7 +20506,7 @@ msgstr "Minimalna vrijednost"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:49
 msgid "Min height"
-msgstr ""
+msgstr "Minimalna visina"
 
 #: frappe/public/js/frappe/dom.js:354
 msgid "Minimize"
@@ -20597,7 +20597,7 @@ msgstr "Nedostajuće vrijednosti su obavezne"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:89
 msgid "Mixed"
-msgstr ""
+msgstr "Mješovito"
 
 #: frappe/www/login.py:104
 msgid "Mobile"
@@ -21143,7 +21143,7 @@ msgstr "Naziv {0} ne može biti {1}"
 #. Description of the 'Target' (Data) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Named record alias this action operates on."
-msgstr ""
+msgstr "Imenovani nadimak zapisa na kojem se ova radnja izvršava."
 
 #: frappe/utils/password_strength.py:174
 msgid "Names and surnames by themselves are easy to guess."
@@ -21642,7 +21642,7 @@ msgstr "Sljedeći Pokušaj"
 #. Label of the next_run (Datetime) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Next Run"
-msgstr ""
+msgstr "Sljedeće Izvršavanje"
 
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -22100,7 +22100,7 @@ msgstr "Nema zaglavlja"
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreviewLinked.vue:24
 msgid "No linked field set"
-msgstr ""
+msgstr "Nema povezanog skupa polja"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:303
 msgid "No matching entries in the current results"
@@ -22108,7 +22108,7 @@ msgstr "Nema odgovarajućih unosa u trenutnim rezultatima"
 
 #: frappe/public/js/print_format_builder/components/inspector/TemplateInput.vue:40
 msgid "No matching field"
-msgstr ""
+msgstr "Nema odgovarajućeg polja"
 
 #: frappe/public/js/frappe/views/treeview.js:467
 msgid "No matching records"
@@ -22196,7 +22196,7 @@ msgstr "Nema zakvačenih tipova dokumenata."
 
 #: frappe/automation_engine/actions/core.py:255
 msgid "No recipients to notify"
-msgstr ""
+msgstr "Nema primalaca za obavještavanje"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:175
 msgid "No records deleted"
@@ -22216,7 +22216,7 @@ msgstr "Nema označenih zapisa."
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:23
 msgid "No records to preview yet"
-msgstr ""
+msgstr "Još nema zapisa za pregled"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:246
 msgid "No records will be exported"
@@ -22786,7 +22786,7 @@ msgstr "Obavještenja i masovne poruke će se slati sa ovog odlaznog servera."
 
 #: frappe/automation_engine/actions/core.py:295
 msgid "Notified {0}"
-msgstr ""
+msgstr "Obavješteno {0}"
 
 #. Label of the notify_on_every_login (Check) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
@@ -22827,7 +22827,7 @@ msgstr "Sad"
 #. Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Null = run as soon as possible. Used by waits and date/cron triggers."
-msgstr ""
+msgstr "Null = izvrši što je prije moguće. Koriste ga čekanja i datum/cron okidači."
 
 #. Label of the phone (Data) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
@@ -23299,7 +23299,7 @@ msgstr "Samo Upravitelj Radnog Prostorar može uređivati javne radne prostore"
 
 #: frappe/automation_engine/actions/core.py:467
 msgid "Only a System Manager can write a script step"
-msgstr ""
+msgstr "Samo Upravitelj Sustava može napisati korak skripte"
 
 #. Label of the only_allow_system_managers_to_upload_public_files (Check) field
 #. in DocType 'System Settings'
@@ -23313,7 +23313,7 @@ msgstr "Dozvoljeno je izvoziti prilagođavanja samo u načinu rada za programere
 
 #: frappe/automation_engine/actions/core.py:452
 msgid "Only an {0} Server Script can be run from a flow"
-msgstr ""
+msgstr "Samo poslužiteljska skripta {0} može se pokrenuti iz toka"
 
 #: frappe/model/document.py:1816
 msgid "Only draft documents can be discarded"
@@ -23632,7 +23632,7 @@ msgstr "Opcija {0} za polje {1} nije podređena tablica"
 #. Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Optional alias for the destination reference returned by this action."
-msgstr ""
+msgstr "Neobavezni nadimak za referencu odredišta koju vraća ova radnja."
 
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:15
 msgid "Optional heading"
@@ -23642,19 +23642,19 @@ msgstr "Neobavezni naslov"
 #. 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Optional. Checked against a related record."
-msgstr ""
+msgstr "Neobavezno. Provjereno u odnosu na povezani zapis."
 
 #. Description of the 'Advanced Expression using Python' (Code) field in
 #. DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Optional. For logic the match fields cannot express, such as OR groups. The document is available as <code>doc</code>; the match fields and this expression must all be true."
-msgstr ""
+msgstr "Neobavezno. Polja za podudaranje ne mogu izraziti logiku, kao što su ILI grupe. Dokument je dostupan kao <code>doc</code>; polja za podudaranje i ovaj izraz moraju biti istiniti."
 
 #. Description of the 'Step Condition' (Code) field in DocType 'Automation
 #. Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Optional. The step runs only if this expression is true."
-msgstr ""
+msgstr "Neobavezno. Korak se izvršava samo ako je ovaj izraz istinit."
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -23839,7 +23839,7 @@ msgstr "Izlaz"
 #. Label of the output_alias (Data) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Output Alias"
-msgstr ""
+msgstr "Izlazni Nadimak"
 
 #. Label of the override_sequence (Check) field in DocType 'Custom Workspace'
 #: frappe/desk/doctype/custom_workspace/custom_workspace.json
@@ -24249,7 +24249,7 @@ msgstr "Nadređena Stranica"
 #. Label of the parent_step (Int) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Parent Step"
-msgstr ""
+msgstr "Nadređeni Korak"
 
 #: frappe/core/doctype/data_export/exporter.py:25
 msgid "Parent Table"
@@ -24484,7 +24484,7 @@ msgstr "Broj Nosivosti"
 #. Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Payload for custom emit() events."
-msgstr ""
+msgstr "Korisni teret za prilagođene emit() događaje."
 
 #. Label of the peak_memory_usage (Int) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -24794,11 +24794,11 @@ msgstr "Odaberi Kolone"
 
 #: frappe/automation_engine/actions/core.py:429
 msgid "Pick a Server Script or write one here, not both"
-msgstr ""
+msgstr "Odaberi Skriptu Poslužitelja ili napiši ovdje, ne oboje."
 
 #: frappe/automation_engine/actions/core.py:461
 msgid "Pick a Server Script, or write one here"
-msgstr ""
+msgstr "Odaberi Skriptu Poslužitelja ili je napiši ovdje"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:6
 msgid "Pick a record in the toolbar above to preview it."
@@ -25895,7 +25895,7 @@ msgstr "Ispiši Dokument"
 
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:244
 msgid "Print if empty"
-msgstr ""
+msgstr "Ispiši ako je prazno"
 
 #. Label of the with_letterhead (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -26379,7 +26379,7 @@ msgstr "Red Čekanja Preopterećen"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Queue Retention Days"
-msgstr ""
+msgstr "Dani Zadržavanja u Redu Čekanja"
 
 #. Label of the queue_status (Table) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -26514,7 +26514,7 @@ msgstr "Radius"
 
 #: frappe/automation_engine/actions/core.py:487
 msgid "Ran script"
-msgstr ""
+msgstr "Izvršena skripta"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -26607,7 +26607,7 @@ msgstr "Ponovo Pokreni u Konzoli"
 #. Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Re-check filters and condition in the worker before executing."
-msgstr ""
+msgstr "Ponovo provjeri filtre i uvjete u procesu prije izvršenja."
 
 #: frappe/email/doctype/email_account/email_account.py:829
 msgid "Re:"
@@ -26805,7 +26805,7 @@ msgstr "Primatelji"
 
 #: frappe/automation_engine/relationships.py:83
 msgid "Record alias could not be resolved"
-msgstr ""
+msgstr "Nadimak zapisa nije mogao biti razriješen"
 
 #. Name of a DocType
 #: frappe/core/doctype/recorder/recorder.json
@@ -26838,7 +26838,7 @@ msgstr "Zapisi koje dodate prikazat će se ovdje."
 #. Label of the depth (Int) field in DocType 'Automation Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Recursion Depth"
-msgstr ""
+msgstr "Dubina Rekurzije"
 
 #: frappe/core/doctype/doctype/doctype.py:1736
 msgid "Recursive Fetch From"
@@ -27236,7 +27236,7 @@ msgstr "Odbijeno neispravno kodirano zaglavlje adrese sa sintetiziranim '@': {0}
 #. Label of the related_condition (JSON) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Related Record Condition"
-msgstr ""
+msgstr "Povezani Zapis Uvjet"
 
 #: frappe/public/js/frappe/list/list_view_select.js:310
 #: frappe/public/js/frappe/views/reports/query_report.js:245
@@ -27245,48 +27245,48 @@ msgstr "Povezana izvješća"
 
 #: frappe/automation_engine/conditions.py:112
 msgid "Related record condition must be a JSON object"
-msgstr ""
+msgstr "Povezani uvjet zapisa mora biti JSON objekt"
 
 #: frappe/automation_engine/conditions.py:117
 msgid "Related record condition needs a relationship"
-msgstr ""
+msgstr "Povezani uvjet zapisa zahtijeva odnos"
 
 #: frappe/automation_engine/relationships.py:227
 msgid "Related record does not exist: {0} {1}"
-msgstr ""
+msgstr "Povezani zapis ne postoji: {0} {1}"
 
 #: frappe/automation_engine/relationships.py:225
 msgid "Relationship provider returned an invalid record reference"
-msgstr ""
+msgstr "Pružatelj odnosa vratio je nevažeću referencu zapisa"
 
 #: frappe/automation_engine/relationships.py:136
 msgid "Relationship source DocType does not match"
-msgstr ""
+msgstr "Izvor odnosa DocType ne odgovara"
 
 #: frappe/automation_engine/relationships.py:189
 msgid "Relationship target DocType is not allowed"
-msgstr ""
+msgstr "DocType cilja odnosa nije dozvoljen"
 
 #: frappe/automation_engine/relationships.py:47
 msgid "Relationship {0} cannot be used as a single record alias"
-msgstr ""
+msgstr "Odnos {0} ne može se koristiti kao pseudonim za jedan zapis"
 
 #: frappe/automation_engine/relationships.py:69
 msgid "Relationship {0} did not resolve to one record"
-msgstr ""
+msgstr "Odnos {0} nije razriješen u jedan zapis"
 
 #: frappe/automation_engine/relationships.py:65
 msgid "Relationship {0} returns multiple records"
-msgstr ""
+msgstr "Odnos {0} vraća više zapisa"
 
 #. Label of the relationships (JSON) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Relationships"
-msgstr ""
+msgstr "Odnosi"
 
 #: frappe/automation_engine/relationships.py:198
 msgid "Relationships must be a JSON list"
-msgstr ""
+msgstr "Odnosi moraju biti JSON lista"
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:32
 msgid "Relay Server URL missing"
@@ -27313,7 +27313,7 @@ msgstr "Napomena Izdanja"
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Reliability"
-msgstr ""
+msgstr "Pouzdanost"
 
 #: frappe/core/doctype/communication/communication.js:48
 #: frappe/core/doctype/communication/communication.js:159
@@ -27585,7 +27585,7 @@ msgstr "Zamijeni trenutnim vrijednostima obrasca"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:118
 msgid "Replace your current draft with {0}? Nothing prints differently until you Save & Apply."
-msgstr ""
+msgstr "Zamijeni trenutni nacrt s {0}? Ništa se neće drugačije ispisati dok ne kliknete na Spremi i Primijeni."
 
 #: frappe/core/doctype/role/role.js:806
 msgid "Replicate"
@@ -27964,7 +27964,7 @@ msgstr "Traženi Brojevi"
 
 #: frappe/automation_engine/actions/core.py:528
 msgid "Requests to internal network addresses are not permitted"
-msgstr ""
+msgstr "Zahtjevi prema internim mrežnim adresama nisu dopušteni"
 
 #. Label of the require_trusted_certificate (Select) field in DocType 'LDAP
 #. Settings'
@@ -28179,7 +28179,7 @@ msgstr "Vrati Originalne Dozvole"
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:96
 msgid "Restore this version"
-msgstr ""
+msgstr "Vrati ovu verziju"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:81
 msgid "Restore this version as your draft"
@@ -28204,7 +28204,7 @@ msgstr "Vraćanje Izbrisanog Dokumenta u toku"
 
 #: frappe/public/js/print_format_builder/stores/useVersions.js:61
 msgid "Restoring…"
-msgstr ""
+msgstr "Vraćanje…"
 
 #. Label of the restrict_ip (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -28272,18 +28272,18 @@ msgstr "Rezultati"
 #. Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Resume From Step"
-msgstr ""
+msgstr "Nastavi Od Koraka"
 
 #. Label of the resume_queue (Link) field in DocType 'Automation Event
 #. Subscription'
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Resume Queue"
-msgstr ""
+msgstr "Nastavi Red Čekanja"
 
 #. Label of the resume_run (Data) field in DocType 'Automation Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Resume Run"
-msgstr ""
+msgstr "Nastavi Izvršavanje"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Resume Sending"
@@ -28293,7 +28293,7 @@ msgstr "Nastavi Slanje"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Retention"
-msgstr ""
+msgstr "Zadržavanje"
 
 #. Label of the retry (Int) field in DocType 'Email Queue'
 #: frappe/core/doctype/data_import/data_import.js:292
@@ -28329,7 +28329,7 @@ msgstr "Ponovno koristite predloške e-pošte prilikom slanja e-pošte {0}."
 #. Label of the revalidate_on_run (Check) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Revalidate on Run"
-msgstr ""
+msgstr "Ponovo potvrdi prilikom Izvršavanja"
 
 #: frappe/database/schema.py:165
 msgid "Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data."
@@ -28734,7 +28734,7 @@ msgstr "Red {0}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:140
 msgid "Row {0}: Branch is only meaningful inside an If step"
-msgstr ""
+msgstr "Red {0}: Grananje je značajno samo unutar Ako koraka"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:363
 msgid "Row {0}: Not allowed to disable Mandatory for standard fields"
@@ -28746,39 +28746,39 @@ msgstr "Red {0}: Nije dozvoljeno omogućiti Dozvoli pri podnošenju za standardn
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:143
 msgid "Row {0}: Parent Step must be an earlier row"
-msgstr ""
+msgstr "Red {0}: Nadređeni korak mora biti raniji red"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:145
 msgid "Row {0}: Parent Step {1} is not an If step"
-msgstr ""
+msgstr "Red {0}: Nadređeni korak {1} nije Ako korak"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:125
 msgid "Row {0}: Step Key must be unique"
-msgstr ""
+msgstr "Red {0}: Ključ koraka mora biti jedinstven"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:176
 msgid "Row {0}: Wait unit must be one of {1}"
-msgstr ""
+msgstr "Red {0}: Jedinica čekanja mora biti jedna od {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:165
 msgid "Row {0}: an If step needs a Step Condition"
-msgstr ""
+msgstr "Red {0}: korak Ako zahtijeva Uvjet Koraka"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:147
 msgid "Row {0}: choose the If or Else branch"
-msgstr ""
+msgstr "Red {0}: odaberi \"Ako\" ili \"Inače\" granu"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:120
 msgid "Row {0}: duplicate output alias {1}"
-msgstr ""
+msgstr "Red {0}: duplicirani izlazni nadimak {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:117
 msgid "Row {0}: unknown target alias {1}"
-msgstr ""
+msgstr "Red {0}: nepoznati ciljni nadimak {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:161
 msgid "Row {0}: unsupported Step Type {1}"
-msgstr ""
+msgstr "Red {0}: nepodržani Tip Koraka {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:104
 msgid "Row {0}: {1}"
@@ -28821,7 +28821,7 @@ msgstr "Prag redova za Mreže Pretraživanje"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Rows a drain runs between commits."
-msgstr ""
+msgstr "Redovi koje pražnjenje prolazi između izvršenja."
 
 #. Label of the rule (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -28879,12 +28879,12 @@ msgstr "Pokreni napredak u 3 koraka"
 #. Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Run After"
-msgstr ""
+msgstr "Izvrši Poslije"
 
 #. Label of the run_as (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Run As"
-msgstr ""
+msgstr "Izvrši Kao"
 
 #. Label of the dormant_days (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -28893,7 +28893,7 @@ msgstr "Pokreni poslove samo dnevno ako su neaktivni (dana)"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:98
 msgid "Run against"
-msgstr ""
+msgstr "Izvrši protiv"
 
 #. Description of the 'Enable Scheduled Jobs' (Check) field in DocType 'System
 #. Settings'
@@ -28916,7 +28916,7 @@ msgstr "Zadaci u tijeku ponovno su stavljeni na red za obradu"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:121
 msgid "Running…"
-msgstr ""
+msgstr "Izvršava se…"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:57
 msgid "Runtime in Minutes"
@@ -29076,7 +29076,7 @@ msgstr "Isto polje se unosi više puta"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:16
 msgid "Same as what prints"
-msgstr ""
+msgstr "Isto kao ono što se ispisuje"
 
 #: frappe/core/page/component_explorer/component_explorer.js:966
 msgid "Same id updates in place"
@@ -29186,7 +29186,7 @@ msgstr "Spremi Odjeljak kao Isječak"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:14
 msgid "Save a named version"
-msgstr ""
+msgstr "Spremi imenovanu verziju"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:147
 msgid "Save a section or field as a snippet to reuse it here."
@@ -29229,7 +29229,7 @@ msgstr "Prvo spremite ulogu da biste vidjeli ove informacije."
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:118
 msgid "Save version"
-msgstr ""
+msgstr "Spremi verziju"
 
 #: frappe/model/rename_doc.py:95 frappe/public/js/frappe/form/toolbar.js:327
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:91
@@ -29251,7 +29251,7 @@ msgstr "Spremljeni isječci"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:57
 msgid "Saved versions"
-msgstr ""
+msgstr "Spremljene verzije"
 
 #: frappe/public/js/frappe/list/list_settings.js:55
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:47
@@ -29364,7 +29364,7 @@ msgstr "Zakazano izvršenje za skriptu {0} je ažurirano"
 
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue_list.js:14
 msgid "Scheduled for {0}"
-msgstr ""
+msgstr "Zakazano za {0}"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:26
 msgid "Scheduled to send"
@@ -29372,7 +29372,7 @@ msgstr "Zakazano za slanje"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:213
 msgid "Scheduled trigger requires a Cron Expression"
-msgstr ""
+msgstr "Zakazani okidač zahtijeva Cron Izraz"
 
 #. Label of the scheduler_section (Section Break) field in DocType 'System
 #. Health Report'
@@ -29622,7 +29622,7 @@ msgstr "Sekundi"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Seconds a drain may keep claiming batches. 0 derives it from the queue's own timeout."
-msgstr ""
+msgstr "Sekunde koliko pražnjenje može nastaviti zahtijevati grupe. 0 to izvodi iz vlastitog vremenskog ograničenja reda."
 
 #. Option for the 'Snippet Type' (Select) field in DocType 'Print Format
 #. Snippet'
@@ -29986,11 +29986,11 @@ msgstr "Prvo odaberi sliku Marke."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:24
 msgid "Select a Document Type to add field rules."
-msgstr ""
+msgstr "Odaberi Tip Dokumenta za dodavanje pravila polja."
 
 #: frappe/public/js/print_format_builder/components/inspector/LinkedFieldRows.vue:14
 msgid "Select a field"
-msgstr ""
+msgstr "Odaberi polje"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:58
 msgid "Select a field to edit its properties."
@@ -30002,7 +30002,7 @@ msgstr "Odaberi grupu {0}."
 
 #: frappe/public/js/print_format_builder/components/inspector/LinkedFieldRows.vue:6
 msgid "Select a link field"
-msgstr ""
+msgstr "Odaberi polje za vezu"
 
 #: frappe/core/doctype/doctype/doctype.py:2196
 msgid "Select a valid Sender Field for creating documents from Email"
@@ -30490,7 +30490,7 @@ msgstr "Server Skripta"
 
 #: frappe/automation_engine/actions/core.py:433
 msgid "Server Scripts are disabled. Enable them from the bench configuration."
-msgstr ""
+msgstr "Skripte Poslužitelja su onemogućene. Omogući ih u konfiguraciji poslužitelja."
 
 #: frappe/utils/safe_exec.py:104
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
@@ -30700,7 +30700,7 @@ msgstr "Postavi kao Standard"
 
 #: frappe/automation_engine/actions/core.py:63
 msgid "Set at least one field"
-msgstr ""
+msgstr "Postavi barem jedno polje"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -30831,7 +30831,7 @@ msgstr "Postavi dok je vlasnička aplikacija onemogućena."
 
 #: frappe/automation_engine/actions/core.py:79
 msgid "Set {0}"
-msgstr ""
+msgstr "Postavi {0}"
 
 #: frappe/public/js/frappe/views/workspace/blocks/block.js:201
 msgid "Setting"
@@ -31698,7 +31698,7 @@ msgstr "Pojedinačni DocTypes se ne mogu prilagoditi."
 
 #: frappe/model/rename_doc.py:348
 msgid "Single DocTypes cannot be renamed"
-msgstr ""
+msgstr "Pojedinačni DocTypes se ne mogu preimenovati"
 
 #. Description of the 'Is Single' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -32182,7 +32182,7 @@ msgstr "Faza"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Stale Running Minutes"
-msgstr ""
+msgstr "Zastarjeli Minuti Izvršenja"
 
 #. Label of the standard (Select) field in DocType 'Page'
 #. Label of the standard (Check) field in DocType 'Desktop Icon'
@@ -32217,7 +32217,7 @@ msgstr "Standard"
 #. Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Standard 5-field cron, for example <code>0 9 * * 1</code>."
-msgstr ""
+msgstr "Standardni cron sa 5 polja, na primjer <code>0 9 * * 1</code>."
 
 #: frappe/core/doctype/doctype_layout/doctype_layout.py:77
 msgid "Standard DocType Layouts can only be modified in developer mode."
@@ -32558,7 +32558,7 @@ msgstr "Korak"
 #. Label of the step_condition (Code) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Step Condition"
-msgstr ""
+msgstr "Uvjet Koraka"
 
 #. Label of the step_key (Data) field in DocType 'Automation Action'
 #. Label of the step_key (Data) field in DocType 'Automation Event
@@ -32566,25 +32566,25 @@ msgstr ""
 #: frappe/automation/doctype/automation_action/automation_action.json
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Step Key"
-msgstr ""
+msgstr "Ključ Koraka"
 
 #. Label of the step_output_limit (Int) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Step Output Limit"
-msgstr ""
+msgstr "Ograničenje izlaznog Koraka"
 
 #. Label of the step_type (Data) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Step Type"
-msgstr ""
+msgstr "Tip Koraka"
 
 #: frappe/automation_engine/runner.py:403
 msgid "Step condition did not match"
-msgstr ""
+msgstr "Uvjet koraka nije zadovoljen"
 
 #: frappe/automation_engine/api.py:277
 msgid "Step {0} is not an If step"
-msgstr ""
+msgstr "Korak {0} nije Ako korak"
 
 #. Label of the steps (Table) field in DocType 'Form Tour'
 #. Label of the steps (Table) field in DocType 'Module Onboarding'
@@ -32612,12 +32612,12 @@ msgstr "Zaustavi"
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Stop dispatching automations site-wide. Queued rows are left untouched."
-msgstr ""
+msgstr "Zaustavite slanje automatizacija na cijelu lokaciju. Redovi u redu čekanja ostaju netaknuti."
 
 #. Label of the stop_on_error (Check) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Stop on Error"
-msgstr ""
+msgstr "Zaustavi zbog Pogreške"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:222
 msgid "Stop shipping this sidebar with {0}? Its document and its exported file are both removed, and the module goes back to the sidebar generated from its contents."
@@ -33628,7 +33628,7 @@ msgstr "Cilj"
 
 #: frappe/automation_engine/actions/core.py:115
 msgid "Target Document Type is required"
-msgstr ""
+msgstr "Tip Ciljanog Dokumenta je obavezan"
 
 #. Label of the task (Select) field in DocType 'Workflow Transition Task'
 #: frappe/desk/doctype/todo/todo_calendar.js:18
@@ -33797,11 +33797,11 @@ msgstr "ID Test Posla"
 #: frappe/automation/doctype/automation_flow/automation_flow.js:86
 #: frappe/automation/doctype/automation_flow/automation_flow.js:94
 msgid "Test Run"
-msgstr ""
+msgstr "Probno Izvršavanje"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:129
 msgid "Test Run: {0}"
-msgstr ""
+msgstr "Probno Izvršavanje: {0}"
 
 #: frappe/core/doctype/translation/test_translation.py:74
 #: frappe/core/doctype/translation/test_translation.py:82
@@ -33888,7 +33888,7 @@ msgstr "Hvala vam na poruci"
 
 #: frappe/automation_engine/actions/core.py:456
 msgid "That Server Script is disabled"
-msgstr ""
+msgstr "Ta Poslužiteljska Skripta je onemogućena."
 
 #: frappe/workflow/doctype/workflow/workflow.js:142
 msgid "The <strong>Doc Status</strong> for all states has been reset to <strong>0</strong> because <strong>{0}</strong> is not submittable"
@@ -34080,7 +34080,7 @@ msgstr "Naziv polja koje ste naveli u Priloženo polju je nevažeći"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:102
 msgid "The flow runs for real against this document, then everything it did is rolled back."
-msgstr ""
+msgstr "Tok se zaista pokreće protiv ovog dokumenta, a zatim se sve što je učinio poništava."
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:64
 msgid "The following Assignment Days have been repeated: {0}"
@@ -34497,7 +34497,7 @@ msgstr "Ove Godine"
 
 #: frappe/automation_engine/api.py:174
 msgid "This action does not support the selected trigger"
-msgstr ""
+msgstr "Ova radnja ne podržava odabrani okidač"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:234
 msgid "This action is irreversible. Do you wish to continue?"
@@ -34509,7 +34509,7 @@ msgstr "Ova radnja je dozvoljena samo za {}"
 
 #: frappe/automation_engine/api.py:172
 msgid "This action requires a Document Type"
-msgstr ""
+msgstr "Ova radnja zahtijeva Tip Dokumenta"
 
 #: frappe/public/js/frappe/ui/sidebar/dock_manager.js:91
 msgid "This app has nothing to arrange"
@@ -34647,7 +34647,7 @@ msgstr "Ova datoteka je javna. Može joj se pristupiti bez autentifikacije."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:131
 msgid "This flow has no steps to run."
-msgstr ""
+msgstr "Ovaj tijek nema koraka za izvršavanje."
 
 #: frappe/public/js/frappe/form/form.js:1545
 msgid "This form has been modified after you have loaded it"
@@ -34866,7 +34866,7 @@ msgstr "Ova vrijednost određuje maksimalan broj redova koji se mogu prikazati u
 
 #: frappe/printing/doctype/print_format/print_format.py:519
 msgid "This version does not belong to {0}"
-msgstr ""
+msgstr "Ova verzija ne pripada {0}"
 
 #: frappe/templates/includes/oauth_confirmation.html:140
 msgid "This will allow {0} to:"
@@ -35102,7 +35102,7 @@ msgstr "Vrijeme Isteklo (u Sekundama)"
 
 #: frappe/automation_engine/actions/core.py:365
 msgid "Timeout must be between 1 and {0} seconds"
-msgstr ""
+msgstr "Vremensko ograničenje mora biti između 1 i {0} sekundi"
 
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
@@ -35443,7 +35443,7 @@ msgstr "Previše pozadinskih poslova u čekanju ({0}). Pokušaj ponovno nakon ne
 
 #: frappe/automation_engine/actions/core.py:550
 msgid "Too many redirects"
-msgstr ""
+msgstr "Previše preusmjeravanja"
 
 #: frappe/core/doctype/file/utils.py:152
 msgid "Too many redirects while fetching {0}"
@@ -35761,12 +35761,12 @@ msgstr "Prikaz Stabla nije dostupan za {0}"
 #. Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Trigger"
-msgstr ""
+msgstr "Okidač"
 
 #. Label of the trigger_field (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Trigger Field"
-msgstr ""
+msgstr "Polje Okidača"
 
 #. Label of the method (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -35776,7 +35776,7 @@ msgstr "Metoda Okidača"
 #. Label of the trigger_type (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Trigger Type"
-msgstr ""
+msgstr "Tip Okidača"
 
 #: frappe/tests/test_translate.py:72
 msgid "Trigger caching"
@@ -35795,17 +35795,17 @@ msgstr "Pokreni Primarnu Radnju"
 #. Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Triggered At"
-msgstr ""
+msgstr "Pokrenuto"
 
 #. Label of the triggered_by (Link) field in DocType 'Automation Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Triggered By"
-msgstr ""
+msgstr "Pokrenuto od"
 
 #. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Triggering User"
-msgstr ""
+msgstr "Pokretački Korisnik"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:154
 msgid "Trim Table"
@@ -35871,7 +35871,7 @@ msgstr "Utorak"
 #. Description of a DocType
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Tuning for the automation engine: dispatch limits, drain behaviour, retention and payload limits."
-msgstr ""
+msgstr "Podešavanje za automatizacijski mehanizam: ograničenja raspodjele, ponašanje pražnjenja, ograničenja zadržavanja i ograničenja korisnog tereta."
 
 #. Label of the two_factor_auth (Check) field in DocType 'Role'
 #. Label of the two_factor_authentication (Section Break) field in DocType
@@ -35946,7 +35946,7 @@ msgstr "Upišite nešto..."
 
 #: frappe/public/js/print_format_builder/components/inspector/TemplateInput.vue:20
 msgid "Type text, / for a field"
-msgstr ""
+msgstr "Upiši tekst, / za polje"
 
 #: frappe/templates/discussions/comment_box.html:8
 #: frappe/templates/discussions/reply_section.html:53
@@ -35998,7 +35998,7 @@ msgstr "Typst blok— sadržaj se pojavljuje u PDF-u"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:179
 msgid "Typst needs these fixed:"
-msgstr ""
+msgstr "Typst treba ove izmjene:"
 
 #: frappe/printing/doctype/print_format/print_format.py:181
 #: frappe/utils/print_format_generator.py:521 frappe/utils/typst_emitter.py:953
@@ -36086,15 +36086,15 @@ msgstr "URL za dokumentaciju ili pomoć"
 
 #: frappe/automation_engine/actions/core.py:505
 msgid "URL has no host"
-msgstr ""
+msgstr "URL nema hosta"
 
 #: frappe/automation_engine/actions/core.py:357
 msgid "URL is required"
-msgstr ""
+msgstr "URL je obavezan"
 
 #: frappe/automation_engine/actions/core.py:503
 msgid "URL must be http or https"
-msgstr ""
+msgstr "URL mora biti http ili https"
 
 #: frappe/core/doctype/file/file.py:315
 msgid "URL must start with http:// or https://"
@@ -36282,11 +36282,11 @@ msgstr "Nepoznata Kolona: {0}"
 
 #: frappe/automation_engine/actions/core.py:117
 msgid "Unknown DocType"
-msgstr ""
+msgstr "Nepoznati DocType"
 
 #: frappe/automation_engine/actions/core.py:249
 msgid "Unknown Email Template"
-msgstr ""
+msgstr "Nepoznati Predložak E-pošte"
 
 #: frappe/utils/data.py:1269
 msgid "Unknown Rounding Method: {}"
@@ -36294,7 +36294,7 @@ msgstr "Nepoznata Metoda Zaokruživanja: {}"
 
 #: frappe/automation_engine/actions/core.py:445
 msgid "Unknown Server Script"
-msgstr ""
+msgstr "Nepoznata Skripta Poslužitelja"
 
 #: frappe/auth.py:337
 msgid "Unknown User"
@@ -36302,19 +36302,19 @@ msgstr "Nepoznati Korisnik"
 
 #: frappe/automation_engine/actions/base.py:140
 msgid "Unknown automation action: {0}"
-msgstr ""
+msgstr "Nepoznata radnja automatizacije: {0}"
 
 #: frappe/automation_engine/relationships.py:128
 msgid "Unknown automation relationship: {0}"
-msgstr ""
+msgstr "Nepoznati odnos automatizacije: {0}"
 
 #: frappe/automation_engine/schema_relationships.py:258
 msgid "Unknown derived relationship: {0}"
-msgstr ""
+msgstr "Nepoznata izvedeni odnos: {0}"
 
 #: frappe/automation_engine/relationships.py:162
 msgid "Unknown derived relationship: {0} on {1}"
-msgstr ""
+msgstr "Nepoznati izvedeni odnos: {0} na {1}"
 
 #: frappe/utils/csvutils.py:83
 msgid "Unknown file encoding. Tried to use: {0}"
@@ -36322,15 +36322,15 @@ msgstr "Nepoznato kodiranje datoteke. Pokušano koristiti: {0}"
 
 #: frappe/automation_engine/api.py:84
 msgid "Unknown parameter: {0}"
-msgstr ""
+msgstr "Nepoznati parametar: {0}"
 
 #: frappe/automation_engine/conditions.py:91
 msgid "Unknown related-condition source alias: {0}"
-msgstr ""
+msgstr "Nepoznati nadimak izvora povezanog stanja: {0}"
 
 #: frappe/automation_engine/relationships.py:208
 msgid "Unknown relationship source alias: {0}"
-msgstr ""
+msgstr "Nepoznati nadimak izvora odnosa: {0}"
 
 #: frappe/public/js/frappe/utils/address_and_contact.js:190
 msgid "Unlink {0}"
@@ -36371,7 +36371,7 @@ msgstr "Nepročitana Obavijest Poslana"
 
 #: frappe/automation_engine/events.py:135
 msgid "Unregistered automation event: {0}"
-msgstr ""
+msgstr "Neregistrirani događaj automatizacije: {0}"
 
 #: frappe/utils/safe_exec.py:870 frappe/utils/safe_exec.py:881
 msgid "Unsafe SQL query"
@@ -36422,11 +36422,11 @@ msgstr "Otkazano"
 
 #: frappe/automation_engine/actions/core.py:362
 msgid "Unsupported HTTP method"
-msgstr ""
+msgstr "Nepodržana HTTP metoda"
 
 #: frappe/automation_engine/conditions.py:135
 msgid "Unsupported count comparison: {0}"
-msgstr ""
+msgstr "Nepodržana usporedba broja: {0}"
 
 #: frappe/desk/query_report.py:538
 msgid "Unsupported file format: {0}"
@@ -36438,7 +36438,7 @@ msgstr "Nepodržana funkcija ili operator: {0}"
 
 #: frappe/automation_engine/conditions.py:115
 msgid "Unsupported related condition: {0}"
-msgstr ""
+msgstr "Nepodržani povezani uvjet: {0}"
 
 #: frappe/database/query.py:2522
 msgid "Unsupported {0}: {1}"
@@ -37529,15 +37529,15 @@ msgstr "Verzija Ažurirana"
 
 #: frappe/public/js/print_format_builder/stores/useVersions.js:56
 msgid "Version deleted"
-msgstr ""
+msgstr "Verzija izbrisana"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:6
 msgid "Version history"
-msgstr ""
+msgstr "Historija verzija"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:116
 msgid "Version name"
-msgstr ""
+msgstr "Naziv verzije"
 
 #: frappe/public/js/print_format_builder/stores/useVersions.js:64
 msgid "Version restored"
@@ -37769,23 +37769,23 @@ msgstr "Posjetitelj"
 #. 'Automation Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Wait Resume"
-msgstr ""
+msgstr "Čekaj Nastavak"
 
 #: frappe/automation_engine/events.py:37
 msgid "Wait for Event correlation key rendered empty"
-msgstr ""
+msgstr "Čekanje da se ključ korelacije događaja prikaže praznim"
 
 #: frappe/automation_engine/events.py:141
 msgid "Wait for Event requires a correlation key"
-msgstr ""
+msgstr "Čekanje na Događaj zahtijeva ključ korelacije"
 
 #: frappe/automation_engine/events.py:143
 msgid "Wait for Event requires a timeout"
-msgstr ""
+msgstr "Čekanje na Događaj zahtijeva vremensko ograničenje"
 
 #: frappe/automation_engine/events.py:145
 msgid "Wait for Event timeout unit must be one of {0}"
-msgstr ""
+msgstr "Jedinica vremenskog ograničenja čekanja događaja mora biti jedna od {0}"
 
 #: frappe/utils/synchronization.py:48
 msgid "Wait for it to finish. Deleting the lock file {} will not release the lock."
@@ -37793,21 +37793,21 @@ msgstr "Pričekaj da se završi. Brisanje datoteke zaključavanja {} neće oslob
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:174
 msgid "Wait steps require a duration value and unit"
-msgstr ""
+msgstr "Koraci čekanja zahtijevaju vrijednost trajanja i jedinicu"
 
 #: frappe/automation_engine/runner.py:320
 msgid "Waited for {0} (simulated)"
-msgstr ""
+msgstr "Čekano na {0} (simulirano)"
 
 #: frappe/automation_engine/runner.py:305
 msgid "Waited {0} {1} (simulated)"
-msgstr ""
+msgstr "Čekano {0} {1} (simulirano)"
 
 #. Option for the 'Status' (Select) field in DocType 'Automation Event
 #. Subscription'
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Waiting"
-msgstr ""
+msgstr "Čekanje"
 
 #: frappe/core/doctype/background_task/background_task.js:33
 msgid "Waiting for a worker to pick up this task..."
@@ -37815,11 +37815,11 @@ msgstr "Čeka se pozadinski servis da preuzme ovaj zadatak..."
 
 #: frappe/automation_engine/runner.py:316
 msgid "Waiting for {0}"
-msgstr ""
+msgstr "Čekajući {0}"
 
 #: frappe/automation_engine/runner.py:301
 msgid "Waiting {0} seconds"
-msgstr ""
+msgstr "Čekanje {0} sekundi"
 
 #: frappe/templates/discussions/reply_section.html:39
 msgid "Want to discuss?"
@@ -38301,7 +38301,7 @@ msgstr "Dobrodošli u Frappe!"
 
 #: frappe/www/portal.html:15
 msgid "Welcome to the Portal"
-msgstr ""
+msgstr "Dobrodošli na Portal"
 
 #: frappe/desk/doctype/workspace/workspace.py:471
 #: frappe/public/js/frappe/views/workspace/workspace.js:1158
@@ -38329,7 +38329,7 @@ msgstr "Kakvu stvar otvara ovaj unos. Napisano onako kako se piše `Sidebar Item
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:41
 msgid "What prints now"
-msgstr ""
+msgstr "Što se sada ispisuje"
 
 #. Description of the 'Icon' (Icon) field in DocType 'Dock Item'
 #: frappe/desk/doctype/dock_item/dock_item.json
@@ -38654,7 +38654,7 @@ msgstr "Tijek  Rada je uspješno ažuriran"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:15
 msgid "Working draft · not applied yet"
-msgstr ""
+msgstr "Radni nacrt · još nije primijenjeno"
 
 #: frappe/public/js/frappe/ui/components/toast.js:153
 msgid "Working..."
@@ -38789,7 +38789,7 @@ msgstr "Želite li poništiti objavu ovog komentara? To znači da više neće bi
 
 #: frappe/automation_engine/actions/core.py:381
 msgid "Would {0} {1} (not sent)"
-msgstr ""
+msgstr "Bi li {0} {1} (nije poslano)"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:68
 msgid "Wrapping up"
@@ -38819,7 +38819,7 @@ msgstr "Napiši format ručno u HTML-u i Jinja-i."
 
 #: frappe/public/js/print_format_builder/components/inspector/StaticTextRow.vue:4
 msgid "Write the text to print"
-msgstr ""
+msgstr "Napiši tekst za ispis"
 
 #: frappe/desk/doctype/sidebar/sidebar.js:37
 msgid "Write {0} into {1} so the app ships it?"
@@ -39798,7 +39798,7 @@ msgstr "aplikacija ovo isporučuje isključeno"
 
 #: frappe/printing/doctype/print_format/print_format.py:433
 msgid "applied the builder draft"
-msgstr ""
+msgstr "primijenjen je nacrt Graditelja"
 
 #: frappe/public/js/frappe/ui/sort_selector.html:5
 #: frappe/public/js/frappe/ui/sort_selector.js:56
@@ -40447,7 +40447,7 @@ msgstr "s256"
 
 #: frappe/printing/doctype/print_format/print_format.py:433
 msgid "saved version {0}"
-msgstr ""
+msgstr "spremljena verzija {0}"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -40753,7 +40753,7 @@ msgstr "{0} ${type}"
 
 #: frappe/automation_engine/schema_relationships.py:219
 msgid "{0} (by {1})"
-msgstr ""
+msgstr "{0} (od {1})"
 
 #: frappe/automation_engine/schema_relationships.py:185
 #: frappe/public/js/frappe/data_import/data_exporter.js:96
@@ -40900,7 +40900,7 @@ msgstr "{0} i {1}"
 #: frappe/public/js/print_format_builder/utils.js:84
 #: frappe/utils/typst_emitter.py:178
 msgid "{0} and {1} more"
-msgstr ""
+msgstr "{0} i {1} i više"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar_users.js:72
 msgid "{0} are currently {1}"
@@ -41037,7 +41037,7 @@ msgstr "{0} ne postoji u redu {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:156
 msgid "{0} does not support {1} triggers"
-msgstr ""
+msgstr "{0} ne podržava {1} okidače"
 
 #: frappe/public/js/frappe/form/controls/link.js:675
 msgid "{0} equals {1}"
@@ -41485,7 +41485,7 @@ msgstr "{0} premješteno pod {1}"
 
 #: frappe/automation_engine/actions/core.py:561
 msgid "{0} must be a JSON object"
-msgstr ""
+msgstr "{0} mora biti JSON objekt"
 
 #: frappe/custom/__init__.py:60
 msgid "{0} must be a doctype name in a {1} filter."
@@ -41521,7 +41521,7 @@ msgstr "{0} se mora prvo postaviti"
 
 #: frappe/printing/doctype/print_format/print_format.py:464
 msgid "{0} must be text"
-msgstr ""
+msgstr "{0} mora biti tekst"
 
 #: frappe/model/base_document.py:935
 msgid "{0} must be unique"
@@ -41624,11 +41624,11 @@ msgstr "{0} uklonilo je {1} redova iz {2}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:154
 msgid "{0} requires a Document Type"
-msgstr ""
+msgstr "{0} zahtijeva DocType"
 
 #: frappe/automation_engine/actions/core.py:32
 msgid "{0} requires a target document"
-msgstr ""
+msgstr "{0} zahtijeva ciljni dokument"
 
 #: frappe/public/js/frappe/form/linked_with.js:94
 msgid "{0} restricted document"
@@ -41730,7 +41730,7 @@ msgstr "{0} upozorenja pronađena u strukturi stabla."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:190
 msgid "{0} trigger requires a Document Type"
-msgstr ""
+msgstr "{0} okidač zahtijeva Tip Dokumenta."
 
 #: frappe/core/doctype/docshare/docshare.py:91
 msgid "{0} un-shared this document with {1}"
@@ -41853,11 +41853,11 @@ msgstr "{0} {1} nije pronađeno"
 
 #: frappe/automation_engine/actions/core.py:389
 msgid "{0} {1} returned {2}"
-msgstr ""
+msgstr "{0} {1} vratio {2}"
 
 #: frappe/automation_engine/actions/core.py:386
 msgid "{0} {1} returned {2}: {3}"
-msgstr ""
+msgstr "{0} {1} vratio {2}: {3}"
 
 #: frappe/model/delete_doc.py:317
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."

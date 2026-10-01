@@ -14,6 +14,7 @@ from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.apps import get_default_path
 from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
+from frappe.database import savepoint
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	create_notification_settings,
 	toggle_notifications,
@@ -55,6 +56,7 @@ desk_properties = (
 	"dashboard",
 	"report_split_view",
 	"show_my_space",
+	"dock_mode",
 )
 
 
@@ -92,6 +94,7 @@ class User(Document):
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
+		dock_mode: DF.Literal["Floating", "Pinned"]
 		document_follow_notify: DF.Check
 		email: DF.Data
 		email_signature: DF.TextEditor | None
@@ -138,6 +141,7 @@ class User(Document):
 		roles: DF.Table[HasRole]
 		search_bar: DF.Check
 		send_me_a_copy: DF.Check
+		send_read_receipt: DF.Check
 		send_welcome_email: DF.Check
 		show_absolute_datetime_in_timeline: DF.Check
 		show_my_space: DF.Check
@@ -1469,7 +1473,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
-		try:
+		with savepoint(catch=frappe.DuplicateEntryError):
 			contact = frappe.get_doc(
 				{
 					"doctype": "Contact",
@@ -1492,8 +1496,6 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.insert(
 				ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
 			)
-		except frappe.DuplicateEntryError:
-			pass
 	else:
 		try:
 			contact = frappe.get_doc("Contact", contact_name)

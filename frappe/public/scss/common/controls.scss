@@ -52,8 +52,11 @@ select.form-control {
 	padding-block: 0px;
 }
 
-/* table multiselect */
-.table-multiselect {
+// table multiselect
+// common/form loads later in the website bundle and would win on source order;
+// the doubled selector outranks its .form-control height and padding
+.table-multiselect,
+.form-control.table-multiselect {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;

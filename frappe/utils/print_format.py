@@ -250,7 +250,7 @@ def _download_multi_pdf(
 			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
 			from frappe.www.printview import set_link_titles, validate_print
 
-			pf_doc = _print_format_doc_or_none(format)
+			pf_doc = _print_format_doc_or_none(format, print_doctype)
 			if not (
 				(pf_doc is None or uses_beta_renderer(pf_doc))
 				and resolve_pdf_generator(pf_doc) in ("chrome", "Typst")
@@ -487,11 +487,15 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		or {}
 	)
 
+	from bs4 import BeautifulSoup
+
 	context_doc = frappe._dict(doc or {})
 	rendered = {}
 
+	# Jinja branches can leave a tag open; unbalanced, the PDF parser folds the report body into the header.
 	if letter_head.content:
 		header = render_template(letter_head.content, {"doc": context_doc})
+		header = str(BeautifulSoup(header, "html.parser"))
 		if letter_head.custom_css:
 			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
 		rendered["header"] = header
@@ -500,6 +504,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 
 	if letter_head.footer:
 		footer = render_template(letter_head.footer, {"doc": context_doc})
+		footer = str(BeautifulSoup(footer, "html.parser"))
 		if letter_head.footer_script:
 			footer += f"\n<script>\n{letter_head.footer_script}\n</script>\n"
 		rendered["footer"] = footer

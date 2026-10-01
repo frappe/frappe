@@ -158,21 +158,22 @@
 .frappe-list {
 	margin: 0 var(--margin-md);
 
+	// --list-right-width (set by list_view.js) keeps the header's and the rows' right side equal
 	.result.has-assign-to {
 		.list-row .level-right {
 			flex: 0 0 auto;
-			min-width: 180px;
+			min-width: var(--list-right-width, 180px);
 		}
 
 		&.assign-to-length-1 {
 			.list-row .level-right {
-				min-width: 165px;
+				min-width: var(--list-right-width, 165px);
 			}
 		}
 
 		&.assign-to-length-3 {
 			.list-row .level-right {
-				min-width: 200px;
+				min-width: var(--list-right-width, 200px);
 			}
 		}
 	}
@@ -180,7 +181,7 @@
 	.result.no-assign-to {
 		.list-row .level-right {
 			flex: 0 0 auto;
-			min-width: 130px;
+			min-width: var(--list-right-width, 130px);
 		}
 	}
 
@@ -684,6 +685,16 @@ input.list-header-checkbox {
 			&.standard-filters-visible .standard-filter-section {
 				display: flex;
 			}
+
+			// stacked, so the desktop gap between side-by-side fields only cuts them short
+			.standard-filter-section .form-group {
+				padding-right: 0;
+			}
+
+			// the ID box and the buttons carry different margins; centre them on one line
+			.filter-section {
+				align-items: center;
+			}
 		}
 	}
 }
@@ -891,9 +902,7 @@ input.list-header-checkbox {
 }
 
 @media screen and (max-width: 375px) {
-	.navbar-breadcrumbs li:last-child > a {
+	.navbar-breadcrumbs li:last-child .es-breadcrumbs__label {
 		max-width: 105px;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 }

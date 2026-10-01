@@ -1694,6 +1694,7 @@ RESERVED_KEYWORDS = frozenset(
 		"flags",
 		"_parent_doc",
 		"_doc_before_save",
+		"_action",
 		"dont_update_if_missing",
 		*CACHED_PROPERTIES,
 	)

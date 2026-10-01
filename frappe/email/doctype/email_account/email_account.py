@@ -613,11 +613,11 @@ class EmailAccount(Document):
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
 			"login": getattr(self, "login_id", None) or self.email_id,
-			"password": self._password,
+			"password": None if self.no_smtp_authentication else self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
-			"use_oauth": self.auth_method == "OAuth",
-			"access_token": self.get_access_token(),
+			"use_oauth": self.auth_method == "OAuth" and not self.no_smtp_authentication,
+			"access_token": None if self.no_smtp_authentication else self.get_access_token(),
 		}
 
 		if self.flags.validate_smtp_connection:

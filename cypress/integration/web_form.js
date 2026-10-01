@@ -19,10 +19,14 @@ context("Web Form", () => {
 		cy.fill_field("doc_type", "Note", "Link");
 		cy.fill_field("module", "Website", "Link");
 		cy.click_custom_action_button("Get Fields");
+		cy.get_open_dialog().find('[data-action="select_all"]').click();
+		cy.click_modal_primary_button("Update");
 		// wait until Get Fields finishes populating the grid
 		cy.get('[data-fieldname="web_form_fields"] .grid-row').should(($rows) => {
 			expect($rows.length, "web form fields").to.be.greaterThan(0);
 		});
+		// Update lands on the Form tab, and route lives on Details
+		cy.findByRole("tab", { name: "Details" }).click();
 		cy.click_custom_action_button("Publish");
 
 		cy.wait("@save_form");

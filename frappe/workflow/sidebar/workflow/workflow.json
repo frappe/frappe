@@ -3,7 +3,7 @@
  "creation": "2026-08-03 19:24:17.336371",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "network",
+ "header_icon": "workflow-builder-duotone",
  "idx": 0,
  "items": [
   {
@@ -98,7 +98,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-12 16:08:08.681521",
+ "modified": "2026-09-30 23:52:00.000000",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",

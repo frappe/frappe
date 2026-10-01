@@ -65,12 +65,13 @@ def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 	generator = getattr(frappe.local, "print_format_generator", None)
 	if generator is None:
 		from frappe.model.document import Document
+		from frappe.utils.print_utils import _print_format_doc_or_none
 
 		fd = frappe.form_dict
-		if not print_format or not fd.get("doctype") or not fd.get("name"):
+		if not fd.get("doctype") or not fd.get("name"):
 			return
-		pf = frappe.get_doc("Print Format", print_format)
-		if not pf.get("print_format_builder_beta"):
+		pf = _print_format_doc_or_none(print_format, fd.doctype)
+		if not pf or not pf.get("print_format_builder_beta"):
 			return
 		doc = fd.get("doc")
 		if not isinstance(doc, Document):
@@ -728,7 +729,11 @@ class PrintFormatGenerator:
 		if is_header and page_no_html:
 			body_parts = [self._reserve_top_margin("\n".join(body_parts))]
 		parts.extend(body_parts)
-		return "\n".join(parts) or None
+
+		from bs4 import BeautifulSoup
+
+		# Jinja branches can leave a tag open; unbalanced, the PDF parser folds the body into the overlay.
+		return str(BeautifulSoup("\n".join(parts), "html.parser")) or None
 
 	_ZONE_SECTION_TEMPLATE = (
 		'{%- import "templates/print_format/macros.html" as macros -%}'

@@ -227,7 +227,17 @@ def ensure_todo_kanban_board():
 		}
 	)
 	doc.insert(ignore_permissions=True)
+	# new boards are v2; this one covers the classic board
+	doc.db_set("use_kanban_v2", 0)
 	return doc.name
+
+
+@whitelist_for_tests()
+def db_set_values(doctype: str, name: str, values: str | dict):
+	"""Set fields without running validation, for UI test setup; callers reset what they change."""
+	values = frappe.parse_json(values)
+	frappe.db.set_value(doctype, name, values, update_modified=False)
+	return frappe.get_doc(doctype, name).as_dict()
 
 
 def insert_contact(first_name, phone_number):

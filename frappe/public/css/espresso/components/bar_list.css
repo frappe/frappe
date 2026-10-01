@@ -1,0 +1,142 @@
+/* Espresso Bar List — a horizontal labeled bar chart (frappe.ui.bar_list): one
+ * row per item (label · proportional bar · end value) over a shared value axis
+ * with dashed gridlines and ticks. Fills the gap left by frappe-charts, which has
+ * no horizontal bar type. Self-contained; the host needs no chart CSS.
+ *
+ *   <div class="es-bar-list">
+ *     <div class="es-bar-list__plot">
+ *       <div class="es-bar-list__gridline" style="left:50%"></div>
+ *       <div class="es-bar-list__rows">
+ *         <div class="es-bar-list__row">
+ *           <div class="es-bar-list__label">1–30 days</div>
+ *           <div class="es-bar-list__bar" style="width:40%"></div>
+ *           <div class="es-bar-list__value" style="left:40%">₹160K</div>
+ *         </div>
+ *       </div>
+ *       <div class="es-bar-list__axis"><div class="es-bar-list__tick" style="left:50%">₹300K</div></div>
+ *     </div>
+ *   </div>
+ *
+ * Custom properties:
+ *   --es-bl-label-w               label gutter width (label_width option), 96px by default
+ *
+ * With no items the root carries data-state="empty" and holds only
+ *   <div class="es-bar-list__empty">No data to show</div>
+ *
+ * Modifiers:
+ *   .es-bar-list__row--clickable  the row acts as a button
+ *   .es-bar-list--hover-values    end labels appear only on row hover */
+
+.es-bar-list__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+}
+
+.es-bar-list__plot {
+    position: relative;
+    /* left gutter holds the labels; right gutter lets the end value overflow the last bar */
+    margin-block: 4px 0;
+    margin-inline: calc(var(--es-bl-label-w, 96px) + 14px) 48px;
+    --es-bl-axis-h: 22px;
+}
+
+.es-bar-list__gridline {
+    position: absolute;
+    top: 0;
+    bottom: var(--es-bl-axis-h);
+    width: 0;
+    border-inline-start: 1px dashed var(--outline-gray-2);
+}
+
+.es-bar-list__rows {
+    position: relative;
+}
+
+.es-bar-list__row {
+    position: relative;
+    height: 30px;
+}
+
+.es-bar-list__row--clickable {
+    cursor: pointer;
+}
+
+.es-bar-list__label {
+    position: absolute;
+    inset-inline-end: calc(100% + 10px);
+    top: 0;
+    width: var(--es-bl-label-w, 96px);
+    line-height: 30px;
+    text-align: end;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.es-bar-list__bar {
+    position: absolute;
+    inset-inline-start: 0;
+    top: 8px;
+    height: 14px;
+    border-radius: 2px;
+}
+
+.es-bar-list__value {
+    position: absolute;
+    top: 0;
+    margin-inline-start: 8px;
+    line-height: 30px;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    transition: opacity 120ms ease;
+}
+
+.es-bar-list--hover-values .es-bar-list__value {
+    opacity: 0;
+}
+
+.es-bar-list--hover-values .es-bar-list__row:hover .es-bar-list__value,
+.es-bar-list--hover-values .es-bar-list__row:focus-visible .es-bar-list__value {
+    opacity: 1;
+}
+
+.es-bar-list__axis {
+    position: relative;
+    height: var(--es-bl-axis-h);
+    margin-top: 6px;
+}
+
+.es-bar-list__tick {
+    position: absolute;
+    top: 4px;
+    /*!rtl:ignore*/
+    transform: translateX(-50%);
+    font-size: var(--text-xs);
+    color: var(--ink-gray-5);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.es-bar-list__row--clickable:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
+
+.es-bar-list__tick:dir(rtl) {
+    /*!rtl:ignore*/
+    transform: translateX(50%);
+}
+
+@media (hover: none) {
+    .es-bar-list--hover-values .es-bar-list__value {
+        opacity: 1;
+    }
+}
