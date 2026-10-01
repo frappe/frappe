@@ -148,6 +148,8 @@ def run(session: str, message: str, attachments: list[str] | str | None = None) 
 	if not isinstance(message, str) or not message.strip():
 		frappe.throw(_("Message is required."), title=_("Invalid Message"))
 	doc = _load_session(session, "write")
+	# a queued message goes out the moment a run ends, racing that run's own syncs
+	sync_with_retry(doc)
 	active = frappe.db.get_value(
 		"Flow Run", {"session": doc.name, "status": "Running"}, "name", order_by="creation desc"
 	)
