@@ -164,6 +164,17 @@
       "mayUse": [
         "1"
       ]
+    },
+    {
+      "id": "templateCompiler",
+      "name": "The template compiler",
+      "place": "beside",
+      "section": "outside-the-layers",
+      "table": "**The template compiler**",
+      "paths": [
+        "frontend/templateCompiler/"
+      ],
+      "mayUse": []
     }
   ],
   "knownBreaks": [
