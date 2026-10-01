@@ -956,7 +956,7 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	if_owner = role_permissions.get("if_owner", {}).get("report")
 
 	if ref_doctype_meta.get_masked_fields():
-		from frappe.model.db_query import mask_field_value
+		from frappe.model.utils.mask import mask_field_value
 
 		# Apply masking to the fields
 		for field in ref_doctype_meta.get_masked_fields():
