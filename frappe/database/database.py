@@ -156,7 +156,7 @@ class Database:
 
 		return get_query_builder(self.db_type)
 
-	def run_query(self, query, *args, **kwargs):
+	def _run_query(self, query, *args, **kwargs):
 		"""Execute a Query Builder object on this connection.
 
 		Equivalent to `QueryBuilder.run`, which is hardwired to `frappe.local.db`. Going
@@ -168,7 +168,7 @@ class Database:
 
 		return execute_query(query, *args, _db=self, **kwargs)
 
-	def get_query(self, *args, **kwargs) -> Query:
+	def _get_query(self, *args, **kwargs) -> Query:
 		"""Build a query against this connection. Mirrors `frappe.qb.get_query`."""
 		from frappe.database.query import Engine
 
@@ -714,8 +714,8 @@ class Database:
 
 		if isinstance(filters, list):
 			if filters := list(f for f in filters if f is not None):
-				out = self.run_query(
-					self.get_query(
+				out = self._run_query(
+					self._get_query(
 						table=doctype,
 						fields=fieldname,
 						filters=filters,
@@ -738,7 +738,7 @@ class Database:
 				try:
 					if order_by:
 						order_by = "creation" if order_by == DefaultOrderBy else order_by
-					query = self.get_query(
+					query = self._get_query(
 						table=doctype,
 						filters=filters,
 						order_by=order_by,
@@ -751,7 +751,7 @@ class Database:
 					)
 					if isinstance(fieldname, str) and fieldname == "*":
 						as_dict = True
-					out = self.run_query(
+					out = self._run_query(
 						query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck
 					)
 
@@ -830,7 +830,7 @@ class Database:
 				return [list(map(values.get, fields))]
 
 		else:
-			r = self.get_query(
+			r = self._get_query(
 				"Singles",
 				filters={"field": ("in", tuple(fields)), "doctype": doctype},
 				fields=["field", "value"],
@@ -868,7 +868,7 @@ class Database:
 		        # Get coulmn and value of the single doctype Accounts Settings
 		        account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		queried_result = self.get_query(
+		queried_result = self._get_query(
 			"Singles",
 			filters={"doctype": doctype},
 			fields=["field", "value"],
@@ -977,7 +977,7 @@ class Database:
 		if cache and not for_update and run and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = self.get_query(
+		val = self._get_query(
 			table="Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
@@ -1060,7 +1060,7 @@ class Database:
 			field, val, modified=modified, modified_by=modified_by, update_modified=update_modified
 		)
 
-		query = self.get_query(
+		query = self._get_query(
 			table=dt,
 			filters=dn,
 			update=True,
@@ -1075,7 +1075,7 @@ class Database:
 		for column, value in to_update.items():
 			query = query.set(column, value)
 
-		self.run_query(query, debug=debug)
+		self._run_query(query, debug=debug)
 
 	def bulk_update(
 		self,
@@ -1212,7 +1212,7 @@ class Database:
 			for column, value in modified_dict.items():
 				update_query = update_query.set(dt[column], value)
 
-		self.run_query(update_query.where(dt.name.isin(docnames)), debug=debug)
+		self._run_query(update_query.where(dt.name.isin(docnames)), debug=debug)
 
 	def set_global(self, key, val, user="__global"):
 		"""Save a global key value. Global values will be automatically set if they match fieldname."""
@@ -1383,8 +1383,8 @@ class Database:
 		if cache and not filters and cache_key in self.value_cache[dt]:
 			return self.value_cache[dt][cache_key]
 
-		count = self.run_query(
-			self.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct),
+		count = self._run_query(
+			self._get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct),
 			debug=debug,
 		)[0][0]
 
@@ -1533,12 +1533,12 @@ class Database:
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
 		filters = filters or kwargs.get("conditions")
-		query = self.get_query(table=doctype, filters=filters, delete=True)
+		query = self._get_query(table=doctype, filters=filters, delete=True)
 
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 
-		return self.run_query(query, **kwargs)
+		return self._run_query(query, **kwargs)
 
 	def truncate(self, doctype: str):
 		"""Truncate a table in the database. This runs a DDL command `TRUNCATE TABLE`.
@@ -1622,7 +1622,7 @@ class Database:
 
 		value_iterator = iter(values)
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
-			self.run_query(query.insert(*value_chunk))
+			self._run_query(query.insert(*value_chunk))
 
 	def advisory_lock(self, key, *, timeout=10):
 		"""Hold a session-level advisory lock for the duration of the `with` block. Postgres uses

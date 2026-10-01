@@ -5,7 +5,8 @@ import frappe
 from frappe.query_builder.functions import Count, Date, Max, Min
 from frappe.utils import add_days, cint, now
 from frappe.utils.caching import http_cache
-from frappe.utils.logging import SQLiteLogDocument, get_log_db, log_table
+from frappe.utils.logging import get_log_db, log_table
+from frappe.utils.sqlite_document import SQLiteLogDocument
 
 
 def _cutoff(days: int) -> str:
