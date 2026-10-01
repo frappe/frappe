@@ -38,6 +38,12 @@
 		</template>
 		<template #banner>
 			<ErrorMessage v-if="error" class="border-b border-outline-gray-2 px-3 py-2" :message="error" />
+			<div
+				v-else-if="unknownPageNames.length"
+				class="border-b border-outline-gray-2 px-3 py-2 text-sm text-ink-amber-7"
+			>
+				Warning: No page named {{ unknownPageNames.join(", ") }}
+			</div>
 		</template>
 	</CodeEditorDock>
 </template>
@@ -125,6 +131,8 @@ const fieldSource = {
 
 const source = computed(() => (store.activeApp?.is_standard ? fileSource : fieldSource))
 const pageTitles = computed(() => Object.values(store.appPages).flatMap((page) => page.page_title || []))
+// checked against the saved script, so the banner names what is live, including names a page rename broke
+const unknownPageNames = computed(() => findUnknownPageNames(savedScript.value, pageTitles.value))
 
 function complete(context: CompletionContext) {
 	return routerScriptCompletions(context, Object.values(store.appPages))
@@ -172,19 +180,12 @@ async function save() {
 	try {
 		await source.value.save(script.value)
 		savedScript.value = script.value
-		warnAboutUnknownPageNames()
+		if (!unknownPageNames.value.length) toast.success("Saved the router script")
 	} catch (saveError: any) {
 		error.value = saveError?.messages?.join(", ") || saveError?.message || "Failed to save the router script"
 	} finally {
 		saving.value = false
 	}
-}
-
-// a renamed page silently stops matching, so name it right after the save that would break it
-function warnAboutUnknownPageNames() {
-	const unknown = findUnknownPageNames(script.value, pageTitles.value)
-	if (!unknown.length) return toast.success("Saved the router script")
-	toast.warning("Saved, but no page has these names", { description: unknown.join(", ") })
 }
 
 async function remove() {
