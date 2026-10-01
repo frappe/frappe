@@ -7,12 +7,22 @@ import requests
 
 import frappe
 from frappe.api import discovery
+<<<<<<< HEAD
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
 from frappe.utils import get_test_client
+=======
+from frappe.api.v2 import run_doc_method
+from frappe.installer import update_site_config
+from frappe.permissions import add_permission, update_permission_property
+from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+from frappe.utils import set_request
+>>>>>>> 9437f2a (test(api): run a method on an unsaved doc with only create permission)
 
 authorization_token = None
 
@@ -410,6 +420,34 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			},
 		)
 		self.assertEqual(response.status_code, 200)
+
+	def test_run_doc_method_on_unsaved_doc_needs_create_v2(self):
+		self.addCleanup(frappe.clear_cache, doctype="Email Group")
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Email Group Creator"}).insert()
+		add_permission("Email Group", role.name, ptype="create")
+		update_permission_property("Email Group", role.name, 0, "read", 1)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "email-group-creator@example.com",
+				"first_name": "Creator",
+				"send_welcome_email": 0,
+			}
+		)
+		user.append_roles(role.name)
+		user.insert()
+
+		group = {"doctype": "Email Group", "welcome_url": "https://example.com"}
+		saved = frappe.get_doc({**group, "title": "Saved Group"}).insert()
+
+		with self.set_user(user.name), patch.object(frappe.local, "request", None, create=True):
+			set_request(method="POST")
+			unsaved = {**group, "title": "Unsaved Group", "__islocal": 1}
+			self.assertEqual(run_doc_method("preview_welcome_url", unsaved), "https://example.com")
+
+			# a saved doc still needs write, even when the client marks it as local
+			with self.assertRaises(frappe.PermissionError):
+				run_doc_method("preview_welcome_url", {**saved.as_dict(), "__islocal": 1})
 
 	def test_logs_v2(self):
 		method = "frappe.tests.test_api.test"
