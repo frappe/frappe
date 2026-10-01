@@ -8,7 +8,7 @@
 	>
 		<template #title>
 			<span class="truncate text-sm text-ink-gray-8">{{ source.title }}</span>
-			<span v-if="dirty" class="text-ink-amber-5">•</span>
+			<Badge v-if="dirty" theme="amber" variant="subtle" label="Unsaved" />
 		</template>
 		<template #actions>
 			<Popover side="bottom" align="end" :offset="6" bare>
@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { toast, Button, Popover, ErrorMessage } from "frappe-ui"
+import { toast, Badge, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import RouterScriptHelp from "@/components/RouterScriptHelp.vue"
 import { createStudioFile, deleteStudioFile, readStudioFile, writeStudioFile } from "@/data/studioFiles"
@@ -100,9 +100,9 @@ const fileSource = {
 const fieldSource = {
 	title: "Router Script",
 	async load() {
-		const saved = store.activeApp?.router_script
-		if (!saved) await store.updateActiveApp("router_script", BOILERPLATE)
-		setLoaded(saved || BOILERPLATE)
+		const saved = store.activeApp?.router_script || ""
+		setLoaded(saved)
+		if (!saved) script.value = BOILERPLATE
 	},
 	async save(source: string) {
 		// an object literal only parses as an expression
