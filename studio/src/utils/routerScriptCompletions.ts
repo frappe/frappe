@@ -3,7 +3,6 @@ import { createMemoryHistory, createRouter, type RouteRecordRaw } from "vue-rout
 import type { CompletionSource } from "@/types"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { getCompletions } from "./autocompletions"
-import { getPageNameCompletions } from "./routerScriptPageNames"
 
 const CONFIG_KEYS = [
 	{ label: "routerOptions", detail: "passed to createRouter" },
@@ -21,11 +20,25 @@ const ROUTER_OPTION_KEYS = [
 	{ label: "end", detail: "boolean" },
 ]
 
+// `route.name === "…"`, `name !== "…"`, `{ name: "…" }`: where router code names a page
+const OPEN_NAME_STRING = /\bname\s*(?:===?|!==?|:)\s*(["'])([^"']*)$/
+
 // Members come from real objects, like page script completions: a vue-router instance built from
 // the app's pages, one of its page records, and a resolved location for guard params.
 export function routerScriptCompletions(context: CompletionContext, pages: StudioPage[]): CompletionResult | null {
 	const titles = pages.flatMap((page) => page.page_title || [])
-	return getPageNameCompletions(context, titles) ?? memberCompletions(context, pages) ?? keyCompletions(context)
+	return pageNameCompletions(context, titles) ?? memberCompletions(context, pages) ?? keyCompletions(context)
+}
+
+function pageNameCompletions(context: CompletionContext, pageTitles: string[]): CompletionResult | null {
+	const line = context.state.doc.lineAt(context.pos)
+	const match = OPEN_NAME_STRING.exec(line.text.slice(0, context.pos - line.from))
+	if (!match) return null
+	return {
+		from: context.pos - match[2].length,
+		options: pageTitles.map((title) => ({ label: title, type: "constant", detail: "page" })),
+		validFor: /^[^"']*$/,
+	}
 }
 
 function memberCompletions(context: CompletionContext, pages: StudioPage[]): CompletionResult | null {
