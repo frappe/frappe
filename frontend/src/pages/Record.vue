@@ -887,9 +887,9 @@ async function rethrowSaveError(e: unknown): Promise<never> {
 
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
 async function resolveConflict() {
-	const latest = await loadRecord(doctype.value!, docname.value, reading.signal).catch(
-		() => null
-	);
+	const { signal } = reading;
+	const latest = await loadRecord(doctype.value!, docname.value, signal).catch(() => null);
+	if (signal.aborted) return;
 	const editor = latest
 		? personOf(latest.docinfo, latest.document.modified_by).name
 		: "Someone else";

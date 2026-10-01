@@ -573,6 +573,7 @@ describe("a record read the reader left behind", () => {
     const late = (server.holdRecord = gate());
     const { router } = await mount(`/note/${name}`);
     await settle();
+    expect(recordReads()).toBe(1);
     server.holdRecord = null;
     const other = `${name}-other`;
     server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
@@ -593,8 +594,9 @@ describe("a record read the reader left behind", () => {
     server.holdParts = [late];
     const doc = { reference_doctype: "Note", reference_name: name };
     socket.emit("docinfo_update", { key: "favourites", action: "add", doc });
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 400));
     await settle();
+    expect(recordReads()).toBe(2);
     server.favourites = [{ user: "other@example.com" }];
     const other = `${name}-other`;
     server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
@@ -606,6 +608,25 @@ describe("a record read the reader left behind", () => {
 
     expect(readCachedDocument("Note", name)?.parts.favourites).toEqual([]);
     expect(warnings).toEqual([]);
+  });
+
+  it("is aborted for a return visit's background re-read", async () => {
+    const { router } = await visitAndLeave();
+    const late = (server.holdRecord = gate());
+    await comeBack(router);
+    await settle();
+    expect(recordReads()).toBe(2);
+    server.holdRecord = null;
+    server.favourites = [{ user: "other@example.com" }];
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(routeFor("Note", other));
+    await settle();
+
+    late.open();
+    await settle();
+
+    expect(readCachedDocument("Note", name)?.parts.favourites).toEqual([]);
   });
 
   it("is aborted when the reader leaves the page, with no error", async () => {
