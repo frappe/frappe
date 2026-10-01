@@ -82,23 +82,38 @@ Object.assign(frappe.automation_flow, {
 
 frappe.ui.form.on("Automation Flow", {
 	refresh: (frm) => frappe.automation_flow.load_capabilities(frm),
-	document_type: (frm) => frappe.automation_flow.load_capabilities(frm),
+	document_type(frm) {
+		frm.set_value({ trigger_field: "", date_field: "" });
+		frappe.automation_flow.load_capabilities(frm);
+	},
 	trigger_type: (frm) => frappe.automation_flow.load_capabilities(frm),
 });
 
 const DATE_FIELDTYPES = ["Date", "Datetime"];
+const STANDARD_DATE_FIELDS = [
+	{ fieldname: "creation", label: "Created On", fieldtype: "Datetime" },
+	{ fieldname: "modified", label: "Last Updated On", fieldtype: "Datetime" },
+];
 
 Object.assign(frappe.automation_flow, {
 	load_capabilities(frm) {
+		const args = { doctype: frm.doc.document_type, trigger_type: frm.doc.trigger_type };
 		frappe.call({
 			method: "frappe.automation_engine.api.get_automation_capabilities",
-			args: { doctype: frm.doc.document_type, trigger_type: frm.doc.trigger_type },
-			callback: ({ message }) => this.set_select_options(frm, message),
+			args,
+			callback: ({ message }) => {
+				// A slower response for an earlier selection must not replace the current options.
+				const current = frm.doc.document_type === args.doctype;
+				if (current && frm.doc.trigger_type === args.trigger_type) {
+					this.set_select_options(frm, message);
+				}
+			},
 		});
 	},
 
 	set_select_options(frm, { fields, actions }) {
 		const dates = fields.filter((df) => DATE_FIELDTYPES.includes(df.fieldtype));
+		if (fields.length) dates.push(...STANDARD_DATE_FIELDS);
 		frm.set_df_property("trigger_field", "options", this.field_options(fields));
 		frm.set_df_property("date_field", "options", this.field_options(dates));
 		const action_options = actions.map((a) => ({ label: __(a.label), value: a.action_type }));
