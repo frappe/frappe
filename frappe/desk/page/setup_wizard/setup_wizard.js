@@ -272,7 +272,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		window.addEventListener("pagehide", () => {
 			if (this.setup_submitted) return;
 			this.capture("left_setup", {
-				step: this.$intro ? "intro" : this.current_slide?.name,
+				step: this.$intro ? "intro" : this.current_slide?.name || "setup_failed",
 				duration_seconds: this.seconds_on_step(),
 			});
 		});
@@ -394,6 +394,10 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.$working_state.find(".setup-message").html(fail_msg);
 
 		this.$abort_btn.show();
+
+		// leaving from here counts as a drop-off, timed from the failure
+		this.setup_submitted = false;
+		this.step_shown_at = Date.now();
 	}
 
 	listen_for_setup_stages() {
@@ -460,7 +464,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.$working_state.find(".content").append(this.$abort_btn);
 
 		this.$abort_btn.on("click", () => {
-			this.setup_submitted = false;
 			$(this.parent).find(".setup-in-progress").remove();
 			this.container.show();
 			frappe.set_route(this.page_name, this.slides.length - 1);
