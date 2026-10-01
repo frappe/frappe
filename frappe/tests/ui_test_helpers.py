@@ -149,6 +149,30 @@ def create_contact_phone_nos_records():
 
 
 @whitelist_for_tests()
+def create_grid_import_contact(user: str) -> str:
+	if not frappe.db.exists("User", user):
+		new_user = frappe.new_doc("User")
+		new_user.email = user
+		new_user.first_name = "Grid Import"
+		new_user.new_password = frappe.local.conf.admin_password
+		new_user.send_welcome_email = 0
+		new_user.append("roles", {"role": "Blogger"})
+		new_user.flags.ignore_password_policy = True
+		new_user.insert()
+
+	if name := frappe.db.get_value("Contact", {"first_name": "Grid Import", "owner": user}):
+		return name
+
+	doc = frappe.new_doc("Contact")
+	doc.first_name = "Grid Import"
+	for index in range(5):
+		doc.append("phone_nos", {"phone": f"+91-90000000{index}"})
+	doc.insert()
+	doc.db_set("owner", user)
+	return doc.name
+
+
+@whitelist_for_tests()
 def create_doctype(name: str | int, fields: str | list | dict):
 	fields = frappe.parse_json(fields)
 	if frappe.db.exists("DocType", name):

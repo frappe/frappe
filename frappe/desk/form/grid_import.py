@@ -41,9 +41,10 @@ MAX_IMPORT_ROWS = 5000
 
 
 @frappe.whitelist(methods=["POST"])
-def download_template(doctype: str, title: str, data: str, file_type: str = "Excel"):
-	if not frappe.has_permission(doctype, "read"):
-		raise frappe.PermissionError
+def download_template(
+	doctype: str, title: str, data: str, file_type: str = "Excel", docname: str | None = None
+):
+	check_permission(doctype, "read", docname)
 
 	rows = frappe.parse_json(data)
 	if not isinstance(rows, list):
@@ -67,10 +68,13 @@ def download_template(doctype: str, title: str, data: str, file_type: str = "Exc
 
 @frappe.whitelist(methods=["POST"])
 def parse_file(
-	doctype: str, filename: str | None = None, dataurl: str | None = None, file_url: str | None = None
+	doctype: str,
+	filename: str | None = None,
+	dataurl: str | None = None,
+	file_url: str | None = None,
+	docname: str | None = None,
 ) -> list[list[str]]:
-	if not frappe.has_permission(doctype, "write"):
-		raise frappe.PermissionError
+	check_permission(doctype, "write", docname)
 
 	file_doc = None
 	if file_url:
@@ -98,9 +102,8 @@ def parse_file(
 
 
 @frappe.whitelist(methods=["POST"])
-def parse_google_sheet(doctype: str, url: str) -> list[list[str]]:
-	if not frappe.has_permission(doctype, "write"):
-		raise frappe.PermissionError
+def parse_google_sheet(doctype: str, url: str, docname: str | None = None) -> list[list[str]]:
+	check_permission(doctype, "write", docname)
 
 	content = get_csv_content_from_google_sheets(url)
 	rows = read_csv_content(content)
@@ -109,8 +112,8 @@ def parse_google_sheet(doctype: str, url: str) -> list[list[str]]:
 
 
 @frappe.whitelist(methods=["POST"])
-def get_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]:
-	child_doctype = get_child_doctype(doctype, fieldname)
+def get_column_map(doctype: str, fieldname: str, headers: str, docname: str | None = None) -> dict[int, str]:
+	child_doctype = get_child_doctype(doctype, fieldname, docname)
 	writable = get_writable_fields(doctype, child_doctype)
 
 	column_map = {}
@@ -126,8 +129,10 @@ def get_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]
 
 
 @frappe.whitelist(methods=["POST"])
-def validate_rows(doctype: str, fieldname: str, headers: str, rows: str, column_map: str) -> list[dict]:
-	child_doctype = get_child_doctype(doctype, fieldname)
+def validate_rows(
+	doctype: str, fieldname: str, headers: str, rows: str, column_map: str, docname: str | None = None
+) -> list[dict]:
+	child_doctype = get_child_doctype(doctype, fieldname, docname)
 	rows = frappe.parse_json(rows)
 	if len(rows) > MAX_IMPORT_ROWS:
 		frappe.throw(_("Cannot import table with more than {0} rows.").format(MAX_IMPORT_ROWS))
@@ -239,9 +244,14 @@ def parse_datetime(value: str, formats) -> datetime.datetime | str:
 	return value
 
 
-def get_child_doctype(doctype: str, fieldname: str) -> str:
-	if not frappe.has_permission(doctype, "write"):
+def check_permission(doctype: str, ptype: str, docname: str | None = None):
+	doc = docname if docname and frappe.db.exists(doctype, docname) else None
+	if not frappe.has_permission(doctype, ptype, doc=doc):
 		raise frappe.PermissionError
+
+
+def get_child_doctype(doctype: str, fieldname: str, docname: str | None = None) -> str:
+	check_permission(doctype, "write", docname)
 
 	table_df = frappe.get_meta(doctype).get_field(fieldname)
 	if not table_df or table_df.fieldtype not in table_fields:

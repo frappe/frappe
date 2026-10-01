@@ -1,20 +1,24 @@
 context("Child Table Data Import", () => {
+	const USER = "grid.import@example.com";
+	let contact;
+
 	before(() => {
 		cy.login();
 		cy.visit("/desk/website");
 		return cy
 			.window()
 			.its("frappe")
-			.then((frappe) => {
-				return frappe.call(
-					"frappe.tests.ui_test_helpers.create_contact_phone_nos_records"
-				);
-			});
+			.then((frappe) =>
+				frappe.xcall("frappe.tests.ui_test_helpers.create_grid_import_contact", {
+					user: USER,
+				})
+			)
+			.then((name) => (contact = name));
 	});
 
 	beforeEach(() => {
-		cy.login();
-		cy.visit("/desk/contact/Test Contact");
+		cy.login(USER);
+		cy.visit(`/desk/contact/${contact}`);
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
@@ -278,6 +282,17 @@ context("Child Table Data Import", () => {
 
 		hint().should("contain", "1 row has a note");
 		dialog().find(".grid-import-preview-row .indicator").should("have.length", 1);
+	});
+
+	it("warns about a column with data but no header", () => {
+		open_import();
+		upload(["9876500080,extra"], "Number (phone),");
+
+		active_step().should("contain", "Fix Issues");
+		dialog().find('.grid-import-mapping-row td[data-col="1"] input').focus();
+		dialog()
+			.find(".grid-import-footer-message")
+			.should("contain", "Column 2 has no header and will be ignored.");
 	});
 
 	it("counts only the notes on rows the step shows", () => {

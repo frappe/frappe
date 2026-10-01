@@ -889,6 +889,7 @@ export default class GridImport {
 		];
 		open_url_post("/api/method/frappe.desk.form.grid_import.download_template", {
 			doctype: this.grid.frm.doctype,
+			docname: this.grid.frm.docname,
 			title: this.get_title(),
 			file_type,
 			data: JSON.stringify(data),
@@ -904,6 +905,7 @@ export default class GridImport {
 			method: "frappe.desk.form.grid_import.parse_file",
 			args: {
 				doctype: this.grid.frm.doctype,
+				docname: this.grid.frm.docname,
 				filename,
 				dataurl: file.dataurl,
 				file_url: file.file_url,
@@ -924,7 +926,7 @@ export default class GridImport {
 	read_google_sheet(url, is_refresh = false) {
 		frappe.call({
 			method: "frappe.desk.form.grid_import.parse_google_sheet",
-			args: { doctype: this.grid.frm.doctype, url },
+			args: { doctype: this.grid.frm.doctype, docname: this.grid.frm.docname, url },
 			freeze: true,
 			freeze_message: __("Reading Google Sheet"),
 			callback: (r) => {
@@ -1051,10 +1053,16 @@ export default class GridImport {
 	get_header_warnings(column_map) {
 		const warnings = [];
 		this.state.headers.forEach((header, i) => {
-			if (header && column_map[i] === undefined) {
+			if (column_map[i] !== undefined) return;
+			if (header) {
 				warnings.push({
 					col: i,
 					message: __('"{0}" does not match a field and will be ignored.', [header]),
+				});
+			} else if (this.state.rows.some((row) => cstr(row[i]).trim())) {
+				warnings.push({
+					col: i,
+					message: __("Column {0} has no header and will be ignored.", [i + 1]),
 				});
 			}
 		});
@@ -1207,6 +1215,7 @@ export default class GridImport {
 		const { headers, rows, row_numbers } = this.state;
 		const warnings = await frappe.xcall("frappe.desk.form.grid_import.validate_rows", {
 			doctype: this.grid.frm.doctype,
+			docname: this.grid.frm.docname,
 			fieldname: this.grid.df.fieldname,
 			headers: JSON.stringify(headers),
 			rows: JSON.stringify(indexes.map((r) => rows[r])),
@@ -1229,6 +1238,7 @@ export default class GridImport {
 	async get_column_map(headers) {
 		const map = await frappe.xcall("frappe.desk.form.grid_import.get_column_map", {
 			doctype: this.grid.frm.doctype,
+			docname: this.grid.frm.docname,
 			fieldname: this.grid.df.fieldname,
 			headers: JSON.stringify(headers),
 		});
