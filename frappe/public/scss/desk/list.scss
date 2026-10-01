@@ -437,6 +437,11 @@ $level-margin-right: 8px;
 	.footnote-area {
 		padding: var(--padding-sm) 0;
 	}
+
+	// opened from the home screen the page reaches the home indicator; 0 in a browser
+	.list-paging-area {
+		padding-bottom: calc(var(--padding-sm) + env(safe-area-inset-bottom, 0px));
+	}
 }
 
 .progress {
