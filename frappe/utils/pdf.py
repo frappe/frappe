@@ -509,10 +509,12 @@ def _reader_has_signature(reader: "PdfReader") -> bool:
 
 	Returns True (fail-safe) if the fields can't be inspected.
 	"""
+	from pypdf.errors import PyPdfError
+
 	try:
 		fields = reader.get_fields() or {}
 		return any(field.get("/FT") == "/Sig" and field.get("/V") for field in fields.values())
-	except Exception:
+	except (PyPdfError, KeyError, ValueError):
 		return True
 
 
