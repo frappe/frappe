@@ -79,7 +79,6 @@ Check these first. Ask for the missing piece before reading the code.
 - No `commit()` in document events. Side effects that must survive run `after_commit`.
 - Convert inputs into query builder objects; never regex-check or rewrite generated SQL. MariaDB is the reference; DB-specific code lives in `frappe/database/<db>/`. Sorts that feed pagination are deterministic.
 - Pick the right cache and prove invalidation. `site_cache` is per process and never invalidated.
-- DocType JSON is changed through the UI, never by hand. Patches only when data actually needs to move.
 
 ### UI
 
