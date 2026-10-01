@@ -77,6 +77,12 @@ frappe.router = {
 	// writes the shell into a URL yet, so `current_shell` is only ever set by a hand-typed one.
 	shell_routes: {},
 	current_shell: null,
+
+	// Whether the route being resolved was asked for from outside the sidebar, by setting
+	// `frappe.route_flags.jump` before `set_route`. The awesomebar does: what it opens was picked
+	// from the whole desk, not from the shell on screen, so that shell is only kept when it lists
+	// what was picked (see `sidebar.shell_for_route`).
+	is_jump: false,
 	factory_views: ["form", "list", "report", "tree", "print", "dashboard"],
 	list_views: [
 		"list",
@@ -169,6 +175,10 @@ frappe.router = {
 			frappe.set_route(["setup-wizard"]);
 		}
 		if (this.re_route(sub_path)) return;
+
+		// Read before the parse, which may wait on a doctype, by which time `set_route` has
+		// already cleared the flags.
+		this.is_jump = !!frappe.route_flags.jump;
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();

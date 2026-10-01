@@ -2500,7 +2500,9 @@ class ShellIndex:
 
 	def resolve(self, kind: str, entity: str, module: str | None) -> str | None:
 		"""The ladder itself, from `module+listed` down. The `owned` step is above this."""
-		listed = self.listed_in(kind, entity)
+		# A row in the Private shell is a shortcut one person kept, not a claim on where the entity
+		# belongs. Counted as one, pinning `Job Offer` there moved it out of `Recruitment`.
+		listed = [shell for shell in self.listed_in(kind, entity) if shell != PRIVATE_MODULE]
 		own = self.shell_of(module)
 
 		if own and own in listed:
