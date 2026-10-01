@@ -133,12 +133,12 @@ describe("the customization error reporter", () => {
   });
 
   it("files one error once, at whichever site knew most about it", () => {
-    // A tombstone hit reports itself, then throws into the handler catch, which
+    // A read-only refusal reports itself, then throws into the handler catch, which
     // would otherwise file the same failure again under a duller name.
-    const error = new Error("page.dialog.prompt was removed in 0.3.0");
+    const error = new Error("page.meta.title is read-only");
     reportCustomizationError(error, {
       source: "client-script:A",
-      event: "removed:dialog.prompt",
+      event: "readonly:page.meta",
     });
     reportCustomizationError(error, {
       source: "client-script:A",
