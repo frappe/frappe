@@ -7,7 +7,7 @@ import {
 	isInsideDynamicValue,
 	isInsideFunctionExpression,
 	useDynamicValueCompletions,
-} from "@/utils/useStudioCompletions"
+} from "@/utils/completions/useStudioCompletions"
 import { pinia } from "../support/component"
 
 // "|" marks the cursor position

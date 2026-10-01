@@ -159,7 +159,7 @@ import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEven
 import Link from "@framework/ui/components/Link/Link.vue"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
-import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
 import type { DocTypeField } from "@/types"
 import { toast } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"

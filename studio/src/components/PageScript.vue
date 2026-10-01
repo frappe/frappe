@@ -48,7 +48,7 @@ import { toast, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import PageScriptHelp from "@/components/PageScriptHelp.vue"
 import { getScriptError } from "@/utils/parseCode"
-import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
 import useCodeStore from "@/stores/codeStore"
 import useStudioStore from "@/stores/studioStore"
 

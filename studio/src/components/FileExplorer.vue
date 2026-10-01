@@ -196,7 +196,7 @@ import {
 	type StudioFileNode,
 } from "@/data/studioFiles"
 import { confirm } from "@/utils/helpers"
-import { pageScriptCompletions } from "@/utils/pageScriptCompletions"
+import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions"
 import type { ContextMenuOption } from "@/types"
 
 const store = useStudioStore()

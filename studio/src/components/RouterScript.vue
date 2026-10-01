@@ -50,7 +50,7 @@ import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import RouterScriptHelp from "@/components/RouterScriptHelp.vue"
 import { createStudioFile, deleteStudioFile, readStudioFile, writeStudioFile } from "@/data/studioFiles"
 import { getScriptError } from "@/utils/parseCode"
-import { routerScriptCompletions } from "@/utils/routerScriptCompletions"
+import { routerScriptCompletions } from "@/utils/completions/routerScriptCompletions"
 import { confirm } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 
