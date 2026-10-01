@@ -354,6 +354,16 @@ class TestStudioAppBuilder(FrappeTestCase):
 				builder._run_vite_build()
 			self.assertIn(f" --app-router {builder.app_router}", run.call_args.args[0])
 
+		# a bench path with spaces must reach vite as one argument
+		builder.app_router = "/Users/me/my bench/apps/studio/studio/routed_app/router.ts"
+		with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
+			run.return_value.returncode = 0
+			builder._run_vite_build()
+		self.assertIn(
+			" --app-router '/Users/me/my bench/apps/studio/studio/routed_app/router.ts'",
+			run.call_args.args[0],
+		)
+
 		with mock_studio_app_files("routed-app") as studio_folder, patch(
 			"studio.build.get_studio_folder", return_value=studio_folder
 		):

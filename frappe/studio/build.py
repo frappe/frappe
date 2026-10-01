@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shlex
 import subprocess
 import traceback
 
@@ -106,7 +107,7 @@ class StudioAppBuilder:
 			f"yarn build-studio-app"
 			f" --app {self.app_name}"
 			f" --components {components_str}"
-			f" --out-dir {self.out_dir}"
+			f" --out-dir {shlex.quote(self.out_dir)}"
 			f" --base {self.base}"
 		)
 
@@ -119,7 +120,7 @@ class StudioAppBuilder:
 			command += f" --page-scripts '{page_scripts_json}'"
 
 		if self.app_router:
-			command += f" --app-router {self.app_router}"
+			command += f" --app-router {shlex.quote(self.app_router)}"
 
 		if self.icons:
 			command += f" --icons {','.join(sorted(self.icons))}"
