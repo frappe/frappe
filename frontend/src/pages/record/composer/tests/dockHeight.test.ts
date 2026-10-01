@@ -49,6 +49,14 @@ describe("the docked height", () => {
 		expect(dock("ann@example.com").height.value).toBe(DEFAULT_DOCK_HEIGHT);
 	});
 
+	it("keeps the height when the card closes mid-drag", () => {
+		const ann = dock("ann@example.com");
+		ann.begin(pointer(500), DEFAULT_DOCK_HEIGHT);
+		ann.move(pointer(450));
+		scopes.pop()!.stop();
+		expect(dock("ann@example.com").height.value).toBe(DEFAULT_DOCK_HEIGHT + 50);
+	});
+
 	it("keeps a height stored under the user's former key", () => {
 		localStorage.setItem("desk:composer-height:ann@example.com", "400");
 		expect(dock("ann@example.com").height.value).toBe(400);

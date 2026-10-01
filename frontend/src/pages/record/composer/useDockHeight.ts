@@ -1,5 +1,5 @@
 // The docked card's height: dragged from its top edge, clamped to the window, kept per user.
-import { ref } from "vue";
+import { onScopeDispose, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import { browserMemory } from "@/browserMemory";
 
@@ -30,6 +30,8 @@ export function useDockHeight(user: string) {
 	}
 
 	useEventListener(window, "resize", () => (height.value = clampDockHeight(height.value)));
+	// A card closed mid-drag gets no pointerup.
+	onScopeDispose(end);
 	return { height, dragging, begin, move, end };
 }
 
