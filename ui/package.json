@@ -108,19 +108,23 @@
     "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
+    "@codemirror/autocomplete": "^6.0.0",
     "@codemirror/lang-css": "^6.0.0",
     "@codemirror/lang-html": "^6.0.0",
-    "@codemirror/lang-javascript": "^6.0.0",
+    "@codemirror/lang-javascript": "^6.1.2",
     "@codemirror/lang-json": "^6.0.0",
     "@codemirror/lang-markdown": "^6.0.0",
     "@codemirror/lang-python": "^6.0.0",
     "@codemirror/lang-sass": "^6.0.0",
     "@codemirror/lang-sql": "^6.0.0",
+    "@codemirror/lang-vue": "^0.1.3",
     "@codemirror/lang-xml": "^6.0.0",
     "@codemirror/lang-yaml": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
     "@codemirror/lint": "^6.0.0",
     "@codemirror/state": "^6.0.0",
     "@codemirror/view": "^6.0.0",
+    "@lezer/common": "^1.0.0",
     "@tiptap/core": "^3.26.0",
     "@vitejs/plugin-vue": ">=4",
     "@vueuse/core": ">=10.4.1",
@@ -138,9 +142,6 @@
       "optional": true
     },
     "@codemirror/lang-html": {
-      "optional": true
-    },
-    "@codemirror/lang-javascript": {
       "optional": true
     },
     "@codemirror/lang-json": {
