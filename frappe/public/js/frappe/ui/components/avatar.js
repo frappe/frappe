@@ -4,7 +4,7 @@ frappe.provide("frappe.ui");
 
 /**
  * @typedef {Object} AvatarOpts
- * @property {string} [image] Image URL. Falls back to the label's first letter if missing (element form also falls back when the image fails to load).
+ * @property {string} [image] Image URL. Falls back to the label's first letter if missing or if it fails to load.
  * @property {string} [label] Name used for the fallback letter and the image alt text.
  * @property {"xs"|"sm"|"md"|"lg"|"xl"|"2xl"|"3xl"} [size="md"]
  * @property {"circle"|"square"} [shape="circle"]
@@ -71,12 +71,26 @@ function avatar_html(opts = {}) {
 frappe.ui.avatar = function (opts = {}) {
 	const $el = $(avatar_html(opts));
 	if (opts.image) {
+		// the image starts loading before the element is in the page, where the listener below can't see it
 		$el.find("img").on("error", function () {
 			$(this).replaceWith(fallback_html(opts.label));
 		});
 	}
 	return $el;
 };
+
+// The markup form can't carry a listener, so broken avatar images in the page are caught here.
+// Load errors don't bubble, hence the capture phase; the alt text is the label.
+document.addEventListener(
+	"error",
+	(e) => {
+		const img = e.target;
+		if (img.tagName === "IMG" && img.parentElement?.classList.contains("es-avatar")) {
+			img.outerHTML = fallback_html(img.alt);
+		}
+	},
+	true
+);
 
 frappe.ui.avatar.html = avatar_html;
 
