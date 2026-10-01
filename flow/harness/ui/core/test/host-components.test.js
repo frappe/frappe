@@ -23,6 +23,7 @@ const SettingsPage = await loadComponent("SettingsPage")
 const SubagentView = await loadComponent("SubagentView")
 const TranscriptDialog = await loadComponent("TranscriptDialog")
 const WorkspacePanel = await loadComponent("WorkspacePanel")
+const FilesBar = await loadComponent("FilesBar")
 
 function mount(t, component, props, flow) {
 	const el = document.createElement("div")
@@ -948,6 +949,98 @@ test("the workspace panel draws a sub-agent's tab itself and takes the host's me
 	assert.equal(el.querySelector("[role='tab']"), null)
 	assert.equal(el.querySelector("[data-host='add']"), null)
 	assert.ok(el.querySelector("[data-host='empty']"))
+})
+
+const settle = () => new Promise((resolve) => setImmediate(resolve))
+
+// types into the files bar's search box, short of the debounce
+async function typeQuery(el, query) {
+	const input = el.querySelector("input")
+	input.value = query
+	input.dispatchEvent(new window.Event("input"))
+	await nextTick()
+}
+
+// types a query and lets its debounced search land
+async function typeSearch(t, el, query) {
+	await typeQuery(el, query)
+	t.mock.timers.tick(200) // the query's debounce
+	await settle()
+}
+
+const press = (el, key) => el.dispatchEvent(new window.KeyboardEvent("keydown", { key }))
+
+test("a folder in the file search results folds and unfolds, and stays folded until the search is cleared", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const results = { o: ["src/a/one.js", "src/two.js", "top.js"], on: ["src/a/one.js", "src/one.md"] }
+	const flow = {
+		state: reactive({ workspace: { tabs: [], active: null }, prefs: {} }),
+		explorerCwd: () => "/w",
+		listFiles: async () => ({ path: "/w", entries: [] }),
+		searchFiles: async (query) => ({ path: "/w", matches: results[query], truncated: false }),
+	}
+	const { el } = mount(t, FilesBar, { open: true, mode: "files" }, flow)
+	const search = (query) => typeSearch(t, el, query)
+	const row = (path) => el.querySelector(`[title='/w/${path}']`)
+	const rows = () => [...el.querySelectorAll("[title^='/w/']")].map((r) => r.textContent.trim())
+	const toggle = async (path) => {
+		row(path).click()
+		await nextTick()
+	}
+
+	await search("o")
+	assert.deepEqual(rows(), ["src", "a", "one.js", "two.js", "top.js"])
+	await toggle("src/a")
+	assert.deepEqual(rows(), ["src", "a", "two.js", "top.js"])
+	assert.equal(row("src/a").querySelector("[data-stub=FeatherIcon]").getAttribute("name"), "chevron-right")
+	// a screen reader hears whether a folder is open; a file has nothing to say
+	assert.equal(row("src/a").getAttribute("aria-expanded"), "false")
+	assert.equal(row("src").getAttribute("aria-expanded"), "true")
+	assert.equal(row("top.js").hasAttribute("aria-expanded"), false)
+	press(row("src"), "Enter")
+	await nextTick()
+	assert.deepEqual(rows(), ["src", "top.js"])
+	press(row("src"), " ")
+	await nextTick()
+	assert.deepEqual(rows(), ["src", "a", "two.js", "top.js"]) // the inner fold outlives its parent's
+
+	await search("on")
+	assert.deepEqual(rows(), ["src", "a", "one.md"]) // refining the query keeps folds
+	await search("")
+	await search("on")
+	assert.deepEqual(rows(), ["src", "a", "one.js", "one.md"]) // a new search starts open
+
+	// emptied and retyped inside the debounce: the search never sees the empty box
+	await toggle("src/a")
+	await typeQuery(el, "")
+	await search("o")
+	assert.deepEqual(rows(), ["src", "a", "one.js", "two.js", "top.js"])
+})
+
+test("a folder in the file tree opens with Space, says it's open, and stays open through a search", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const dirs = { "": [{ name: "src", type: "dir" }], "/w/src": [{ name: "a.js", type: "file" }] }
+	const flow = {
+		state: reactive({ workspace: { tabs: [], active: null }, prefs: {} }),
+		explorerCwd: () => "/w",
+		listFiles: async (path = "") => ({ path: path || "/w", entries: dirs[path] }),
+		searchFiles: async () => ({ path: "/w", matches: ["src/a.js"], truncated: false }),
+	}
+	const { el } = mount(t, FilesBar, { open: true, mode: "files" }, flow)
+	const shown = (path) =>
+		[...el.querySelectorAll(`[title='${path}']`)].filter((r) => !r.closest("[style*='display: none']"))
+	await settle()
+	const folder = el.querySelector("[title='/w/src']")
+	assert.equal(folder.getAttribute("aria-expanded"), "false")
+	press(folder, " ")
+	await settle()
+	assert.equal(folder.getAttribute("aria-expanded"), "true")
+	assert.equal(shown("/w/src/a.js").length, 1)
+
+	await typeSearch(t, el, "a")
+	assert.equal(shown("/w/src").length, 1) // the results only; the tree is out of sight
+	await typeSearch(t, el, "")
+	assert.equal(shown("/w/src/a.js").length, 1)
 })
 
 test("a sub-agent's question shows in the composer, named after the sub-agent", async (t) => {
