@@ -1,14 +1,15 @@
 // The docked card's height: dragged from its top edge, clamped to the window, kept per user.
 import { ref } from "vue";
-import { useEventListener, useLocalStorage } from "@vueuse/core";
+import { useEventListener } from "@vueuse/core";
+import { browserMemory } from "@/browserMemory";
 
 export const DEFAULT_DOCK_HEIGHT = 320;
 export const MIN_DOCK_HEIGHT = 180;
 const MAX_WINDOW_SHARE = 0.72;
 
 export function useDockHeight(user: string) {
-	const height = useLocalStorage(`desk:composer-height:${user}`, DEFAULT_DOCK_HEIGHT);
-	height.value = clampDockHeight(height.value);
+	const memory = browserMemory<number>("composer-height", user, `desk:composer-height:${user}`);
+	const height = ref(clampDockHeight(memory.recall() ?? DEFAULT_DOCK_HEIGHT));
 	const dragging = ref(false);
 	let start = { height: 0, y: 0 };
 
@@ -23,7 +24,9 @@ export function useDockHeight(user: string) {
 	}
 
 	function end() {
+		if (!dragging.value) return;
 		dragging.value = false;
+		memory.remember(height.value);
 	}
 
 	useEventListener(window, "resize", () => (height.value = clampDockHeight(height.value)));

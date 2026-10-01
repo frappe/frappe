@@ -237,7 +237,7 @@ component group, with its main names.
 | Translations (`loadTranslations`, `__`, `__n`) | Fetch the messages at start, and translate a string or a plural |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
 | Latest reply wins | *New.* One helper for the desk's "only the newest answer counts" guards. `ui/` keeps its own, because it may not use this layer |
-| Per-user browser memory | *New.* One helper for every value kept in browser storage for one user |
+| Per-user browser memory (`browserMemory`, `BrowserMemory`) | One helper for every value kept in browser storage for one user. The record page uses it; the shell's copies have not moved yet |
 | `virtual:frappe/contributions` | The build's index of every app's contributed files |
 | [Contributions](./CONTEXT.md#contribution) (`Contributions`, `DoctypeContribution`, `RecordHandlers`) | Everything an app may add: doctype handlers, pages, item kinds, replacements |
 | List handlers (`listHandlersFor`) | Per-doctype list changes, such as extra columns |

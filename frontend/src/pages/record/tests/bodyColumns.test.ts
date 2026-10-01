@@ -3,8 +3,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import BodyColumns from "../body/BodyColumns.vue";
-import { STORE_KEY } from "../body/columnStore";
 import type { BodyItem } from "@/recordPage";
+
+const STORE_KEY = "frappe:desk:record-body-columns";
 
 const Column = defineComponent({
 	props: { page: Object, tone: String, collapsed: Boolean },

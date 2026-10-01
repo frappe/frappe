@@ -34,9 +34,7 @@ describe("the docked height", () => {
 		ann.move(pointer(0));
 		await nextTick();
 		expect(ann.height.value).toBe(DEFAULT_DOCK_HEIGHT + 100);
-		expect(localStorage.getItem("desk:composer-height:ann@example.com")).toBe(
-			String(DEFAULT_DOCK_HEIGHT + 100)
-		);
+		expect(dock("ann@example.com").height.value).toBe(DEFAULT_DOCK_HEIGHT + 100);
 		expect(dock("bob@example.com").height.value).toBe(DEFAULT_DOCK_HEIGHT);
 	});
 
@@ -47,7 +45,14 @@ describe("the docked height", () => {
 	});
 
 	it("falls back to the default height for a stored value that is not a number", () => {
-		localStorage.setItem("desk:composer-height:ann@example.com", "tall");
+		localStorage.setItem("frappe:desk:composer-height", '{"ann@example.com":"tall"}');
 		expect(dock("ann@example.com").height.value).toBe(DEFAULT_DOCK_HEIGHT);
+	});
+
+	it("keeps a height stored under the user's former key", () => {
+		localStorage.setItem("desk:composer-height:ann@example.com", "400");
+		expect(dock("ann@example.com").height.value).toBe(400);
+		expect(localStorage.getItem("desk:composer-height:ann@example.com")).toBeNull();
+		expect(dock("ann@example.com").height.value).toBe(400);
 	});
 });
