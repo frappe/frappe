@@ -11,6 +11,7 @@ from frappe.tests import IntegrationTestCase
 from flow import api
 from flow.api import attach_file, cleanup_attachments, submit_feedback
 from flow.daemon.client import DaemonClient
+from flow.flow.doctype.flow_session.flow_session import FlowSession
 from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.memory import store as memory_store
 from flow.permissions import FLOW_USER_ROLE
@@ -451,6 +452,22 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(again, data)
 		self.assertEqual(frappe.db.count("Flow Run", {"session": name}), 1)
 		self.assertEqual(frappe.db.count("Flow Session Message", {"parent": name}), 4)
+
+	def test_run_syncs_again_when_a_run_ends_own_sync_commits_first(self):
+		# a queued message goes out the moment a run ends, beside that run's own syncs
+		name = self.create()
+		real_sync = FlowSession.sync
+		syncs = []
+
+		def sync(doc):
+			syncs.append(doc.name)
+			if len(syncs) == 1:
+				raise frappe.TimestampMismatchError
+			return real_sync(doc)
+
+		with patch.object(FlowSession, "sync", sync), patch.object(frappe.db, "rollback"):
+			self.assertEqual(api.run(name, "hi")["status"], "started")
+		self.assertEqual(self.daemon.calls[-1], ("run", name, "hi"))
 
 	def test_run_takes_attachments_as_a_json_list(self):
 		file_doc = frappe.get_doc(

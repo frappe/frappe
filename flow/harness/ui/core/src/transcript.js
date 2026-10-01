@@ -29,6 +29,9 @@ export function initialConversation() {
 		// show as bubbles from the moment of sending, and the server's own copy
 		// takes over when it lands in entries
 		sending: [],
+		// messages steered into the running turn that it has yet to take: bubbles below
+		// it, as { key, entry, text, attachmentIds }, until the server's copy lands
+		steering: [],
 		// Ordered, presentation-only assistant blocks accumulated from streaming
 		// deltas. The terminal assistant_message atomically replaces this preview.
 		partial: [],
@@ -138,6 +141,7 @@ function foldEvent(s, e) {
 			s.running = false
 			s.liveLabel = null
 			s.partial = []
+			s.compacting = false // a compaction never outlives its run, even one whose end went unseen
 			if (e.reason !== "paused") s.pendingApproval = null // a pause outlives its run
 			// abnormal endings leave a durable marker in the transcript flow
 			if (["aborted", "max_turns", "budget", "length", "denied"].includes(e.reason))
@@ -652,7 +656,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	appendAssistantBlocks(conversation.partial ?? [], { provisional: true })
 	flushThoughts()
 	const filtered = items.filter((i) => i.kind !== "group" || i.steps.some((s) => s.call))
-	// A message in flight opens a new turn (steering queues in the composer instead), and
+	// A message in flight opens a new turn (a steered one joins the running turn instead), and
 	// settles the one before it right away: its run_started lands before the server's copy
 	// of the message, and reading that as the old turn resuming unfolds a finished turn.
 	const opensNewTurn = (conversation.sending ?? []).length > 0
@@ -740,7 +744,9 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		if (foldableKeys.has(item.key) && !expandedTurns.has(item.turnKey)) continue
 		result.push(item)
 	}
-	for (const message of conversation.sending ?? []) {
+	// a steered message waits last: below the turn it joined, which goes on above it, or
+	// below the message still on its way whose run it joins
+	for (const message of [...(conversation.sending ?? []), ...(conversation.steering ?? [])]) {
 		result.push({ kind: "user", key: message.key, turnKey: null, entry: message.entry })
 	}
 	return result

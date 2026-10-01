@@ -55,7 +55,7 @@
 					v-else-if="item.kind === 'group'"
 					:class="tightGap(i)"
 					:steps="item.steps"
-					:sealed="i < items.length - 1 || !conversation.running"
+					:sealed="i < turnEnd - 1 || !conversation.running"
 					:live-label="conversation.liveLabel"
 				/>
 				<!-- the latest turn's copy button stays visible; older ones hover-reveal -->
@@ -173,6 +173,8 @@ const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),
 )
 const lastItem = computed(() => items.value[items.value.length - 1])
+// the running turn ends above the steered bubbles waiting below it
+const turnEnd = computed(() => items.value.length - (conversation.value.steering?.length ?? 0))
 
 // Tool and thought rows carry their own py-2.5, so the thread gap over-spaces
 // them: standalone thoughts stack like they do inside a group, and a row
@@ -194,9 +196,12 @@ const lastIsOpenGroup = computed(
 const lastIsLiveThinking = computed(
 	() => lastItem.value?.kind === "thinking" && lastItem.value.live,
 )
-// a message in flight has no server status yet, but the work has started
-const liveLabel = computed(
-	() => conversation.value.liveLabel || (conversation.value.sending?.length ? "Working" : ""),
+// a message in flight has no server status yet, but the work has started; below a
+// steered one, the turn above keeps its own status
+const liveLabel = computed(() =>
+	conversation.value.running && conversation.value.steering?.length
+		? "Working"
+		: conversation.value.liveLabel || (conversation.value.sending?.length ? "Working" : ""),
 )
 const showStandaloneStatus = computed(
 	() => !!liveLabel.value && !lastIsOpenGroup.value && !lastIsLiveThinking.value,
@@ -323,8 +328,10 @@ function toggleTurn(item) {
 }
 
 // your own message belongs at the live end of the thread, wherever the view was
-// when you sent it
-const sendingCount = computed(() => conversation.value.sending?.length ?? 0)
+// when you sent or steered it
+const sendingCount = computed(
+	() => (conversation.value.sending?.length ?? 0) + (conversation.value.steering?.length ?? 0),
+)
 watch(sendingCount, (count, before) => {
 	if (count > before) stick.value = true
 })
