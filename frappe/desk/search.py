@@ -4,7 +4,6 @@
 import functools
 import json
 import math
-import re
 from typing import NotRequired, TypedDict
 
 import frappe
@@ -499,20 +498,42 @@ def relevance_sorter(key, query, as_dict):
 
 
 def filter_translated(values, txt: str, as_dict: bool, fields: list[str] | None = None) -> list:
-	"""Return rows where a translated value matches txt like `LIKE %txt%` would.
+	"""Return rows where a translated value contains txt as `LIKE %txt%` would match it.
 
 	Match only `fields` of dict rows when given, else every value."""
 	if not txt:
 		return values
-
-	pattern = re.compile(".*".join(re.escape(part) for part in txt.split("%")), re.IGNORECASE)
 
 	def get_values(row):
 		if fields:
 			return [row.get(field) for field in fields]
 		return row.values() if as_dict else row
 
-	return [row for row in values if any(pattern.search(_(cstr(value)) or "") for value in get_values(row))]
+	return [
+		row for row in values if any(like_contains(_(cstr(value)) or "", txt) for value in get_values(row))
+	]
+
+
+def like_contains(value: str, txt: str) -> bool:
+	"""Whether value contains txt as SQL `LIKE '%txt%'` matches it, ignoring case.
+
+	`%` matches any run of characters and `_` any one character. Each part between `%`s is
+	matched at its first position, which is enough for this pattern, so there is no backtracking."""
+	value, position = value.casefold(), 0
+	for part in txt.casefold().split("%"):
+		position = find_like_part(value, part, position)
+		if position < 0:
+			return False
+		position += len(part)
+	return True
+
+
+def find_like_part(value: str, part: str, start: int) -> int:
+	"""Index of part's first match in value from start, `_` matching any character; -1 if none."""
+	for index in range(start, len(value) - len(part) + 1):
+		if all(char in ("_", value[index + offset]) for offset, char in enumerate(part)):
+			return index
+	return -1
 
 
 def get_translated_relevance(name: str, txt: str) -> float:
