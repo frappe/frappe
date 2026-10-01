@@ -3,6 +3,7 @@
 		tab="Pages"
 		:open="store.showRouterEditor"
 		:modelValue="script"
+		:completions="complete"
 		@update:modelValue="onChange"
 		@save="save"
 	>
@@ -43,11 +44,14 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
+import type { CompletionContext } from "@codemirror/autocomplete"
 import { toast, Badge, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import RouterScriptHelp from "@/components/RouterScriptHelp.vue"
 import { createStudioFile, deleteStudioFile, readStudioFile, writeStudioFile } from "@/data/studioFiles"
 import { getScriptError } from "@/utils/parseCode"
+import { findUnknownPageNames } from "@/utils/routerScriptPageNames"
+import { routerScriptCompletions } from "@/utils/routerScriptCompletions"
 import { confirm } from "@/utils/helpers"
 import useStudioStore from "@/stores/studioStore"
 
@@ -120,6 +124,11 @@ const fieldSource = {
 }
 
 const source = computed(() => (store.activeApp?.is_standard ? fileSource : fieldSource))
+const pageTitles = computed(() => Object.values(store.appPages).flatMap((page) => page.page_title || []))
+
+function complete(context: CompletionContext) {
+	return routerScriptCompletions(context, Object.values(store.appPages))
+}
 
 watch(
 	() => store.showRouterEditor && store.activeApp?.name,
@@ -163,12 +172,19 @@ async function save() {
 	try {
 		await source.value.save(script.value)
 		savedScript.value = script.value
-		toast.success("Saved the router script")
+		warnAboutUnknownPageNames()
 	} catch (saveError: any) {
 		error.value = saveError?.messages?.join(", ") || saveError?.message || "Failed to save the router script"
 	} finally {
 		saving.value = false
 	}
+}
+
+// a renamed page silently stops matching, so name it right after the save that would break it
+function warnAboutUnknownPageNames() {
+	const unknown = findUnknownPageNames(script.value, pageTitles.value)
+	if (!unknown.length) return toast.success("Saved the router script")
+	toast.warning("Saved, but no page has these names", { description: unknown.join(", ") })
 }
 
 async function remove() {

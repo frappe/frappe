@@ -324,6 +324,7 @@ function getFileBadge(path: string): { label: string; colorClass: string } {
 }
 
 async function openNode(node: StudioFileNode) {
+	if (node.path === "router.ts") return openRouterEditor()
 	if (dirty.value) {
 		const discard = await confirm("Discard unsaved changes?")
 		if (!discard) return
@@ -336,6 +337,12 @@ async function openNode(node: StudioFileNode) {
 	} catch (error: any) {
 		toast.error("Failed to open file", { description: error?.messages?.join(", ") })
 	}
+}
+
+// the router editor owns router.ts: its completions, page-name warning and help live there
+function openRouterEditor() {
+	store.studioLayout.leftPanelActiveTab = "Pages"
+	store.showRouterEditor = true
 }
 
 function onEditorChange(value: string) {
