@@ -28,6 +28,7 @@ const DIRECTIVES = [
   "v-cloak",
 ];
 const NAME = /^[\w-]*$/;
+const SELF_ESCAPE = /^\\["'\\`\r\n\u2028\u2029]$/;
 
 type Read = (from: number, to: number) => string;
 
@@ -45,9 +46,8 @@ export function templateLanguage(names: readonly string[] | null): LanguageSuppo
 
 function nestVue(ref: SyntaxNodeRef, read: Read) {
   if (!isTemplateValue(ref.node, read)) return null;
-  const from = ref.from + 1;
-  const to = ref.to - 1;
-  return from < to ? { parser: vueLanguage.parser, overlay: [{ from, to }] } : null;
+  const overlay = decodedRanges(ref.node, read);
+  return overlay.length ? { parser: vueLanguage.parser, overlay } : null;
 }
 
 function completeTemplate(
@@ -107,6 +107,19 @@ function isTemplateValue(node: SyntaxNode, read: Read) {
   }
   const key = node.parent?.name === "Property" ? node.parent.firstChild : null;
   return key?.name === "PropertyDefinition" && read(key.from, key.to) === "template";
+}
+
+/** The string's inside, less the backslash of each escape that decodes to the next character. */
+function decodedRanges(string: SyntaxNode, read: Read) {
+  const ranges: { from: number; to: number }[] = [];
+  let from = string.from + 1;
+  for (const escape of string.getChildren("Escape")) {
+    if (!SELF_ESCAPE.test(read(escape.from, escape.to))) continue;
+    if (from < escape.from) ranges.push({ from, to: escape.from });
+    from = escape.from + 1;
+  }
+  if (from < string.to - 1) ranges.push({ from, to: string.to - 1 });
+  return ranges;
 }
 
 function keyOf(property: SyntaxNode, read: Read) {

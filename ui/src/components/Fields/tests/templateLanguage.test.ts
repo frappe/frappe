@@ -32,6 +32,15 @@ describe("template language", () => {
     expect(nodeAt("x = { template: `<div>${a}</div>` };", "div")).toBe("TemplateString");
     expect(nodeAt('const { template = "<div/>" } = x;', "div")).toBe("String");
   });
+
+  it("parses a quoted template as the compiler decodes its escapes", () => {
+    const double = 'x = { template: "<div v-if=\\"ready\\">x</div>" };';
+    expect(nodeAt(double, "v-if")).toBe("VueAttributeName");
+    expect(nodeAt(double, "ready")).toBe("VariableName");
+    const single = "x = { template: '<div v-if=\\'ready\\'>x</div>' };";
+    expect(nodeAt(single, "v-if")).toBe("VueAttributeName");
+    expect(nodeAt(single, "ready")).toBe("VariableName");
+  });
 });
 
 const BUILT_INS = ["KeepAlive", "Suspense", "Teleport", "Transition", "TransitionGroup"];
@@ -86,6 +95,11 @@ describe("template completion", () => {
   it("offers only the built-ins with no host names", async () => {
     const labels = await complete('export default { template: "<|" };');
     expect(labels.sort()).toEqual(BUILT_INS);
+  });
+
+  it("offers names at a tag after an escape", async () => {
+    const labels = await complete('x = { template: "<div class=\\"a\\"><Fe|" };', ["FeatherIcon"]);
+    expect(labels).toEqual(["FeatherIcon"]);
   });
 
   it("offers v- words at an attribute", async () => {
