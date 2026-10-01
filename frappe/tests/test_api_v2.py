@@ -287,6 +287,29 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			with self.assertRaises(frappe.PermissionError):
 				run_doc_method("preview_welcome_url", {**saved.as_dict(), "__islocal": 1})
 
+	def test_run_doc_method_on_single_needs_write_v2(self):
+		self.addCleanup(frappe.clear_cache, doctype="Document Naming Settings")
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Naming Settings Creator"}).insert()
+		add_permission("Document Naming Settings", role.name, ptype="create")
+		update_permission_property("Document Naming Settings", role.name, 0, "read", 1)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "naming-settings-creator@example.com",
+				"first_name": "Creator",
+				"send_welcome_email": 0,
+			}
+		)
+		user.append_roles(role.name)
+		user.insert()
+
+		with self.set_user(user.name), patch.object(frappe.local, "request", None, create=True):
+			set_request(method="POST")
+			# a Single exists whatever name the client sends
+			settings = {"doctype": "Document Naming Settings", "name": "not-the-single", "__islocal": 1}
+			with self.assertRaises(frappe.PermissionError):
+				run_doc_method("update_series", settings)
+
 	def test_logs_v2(self):
 		method = "frappe.tests.test_api.test"
 
