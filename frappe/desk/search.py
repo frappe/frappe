@@ -3,6 +3,7 @@
 
 import functools
 import json
+import math
 import re
 from typing import NotRequired, TypedDict
 
@@ -221,9 +222,8 @@ def search_widget(
 	if for_link_validation:
 		filters.append([doctype, "name", "=", txt])
 
-	or_filters = []
-
-	# build from doctype
+	# fields that txt is matched against
+	match_fields = []
 	if txt:
 		field_types = {
 			"Autocomplete",
@@ -247,8 +247,11 @@ def search_widget(
 
 		for f in search_fields:
 			fmeta = meta.get_field(f.strip())
-			if not meta.translated_doctype and (f == "name" or (fmeta and fmeta.fieldtype in field_types)):
-				or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
+			if f == "name" or (fmeta and fmeta.fieldtype in field_types):
+				match_fields.append(f.strip())
+
+	# translated doctypes are matched against translated values below
+	or_filters = [] if meta.translated_doctype else [[doctype, f, "like", f"%{txt}%"] for f in match_fields]
 
 	if not include_disabled:
 		if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
@@ -304,21 +307,25 @@ def search_widget(
 		ignore_permissions=doctype == "DocType",
 		ignore_user_permissions=ignore_user_permissions,
 		reference_doctype=reference_doctype,
-		as_list=not as_dict,
+		# as dicts, so translated doctypes can match only `match_fields`
+		as_list=not (as_dict or meta.translated_doctype),
 		strict=False,
 	)
 
-	if not for_link_validation:
-		if meta.translated_doctype:
-			values = filter_translated(values, txt, as_dict)
+	# match, order and page like the SQL above does for other doctypes
+	if meta.translated_doctype and not for_link_validation:
+		values = filter_translated(values, txt, as_dict=True, fields=match_fields)
+		values = sorted(values, key=lambda row: get_translated_relevance(row.name, txt))
+		values = values[start : start + page_length]
 
+	if meta.translated_doctype and not as_dict:
+		values = [tuple(row.values()) for row in values]
+
+	if not for_link_validation:
 		# Sorting the values array so that relevant results always come first
 		# This will first bring elements on top in which query is a prefix of element
 		# Then it will bring the rest of the elements and sort them in lexicographical order
 		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-
-		if meta.translated_doctype:
-			values = values[start : start + page_length]
 
 		# remove _relevance from results
 		if add_relevance:
@@ -491,16 +498,27 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
-def filter_translated(values, txt: str, as_dict: bool) -> list:
-	"""Return only those results where txt matches any translated field value."""
-	return [
-		result
-		for result in values
-		if any(
-			re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
-			for value in (result.values() if as_dict else result)
-		)
-	]
+def filter_translated(values, txt: str, as_dict: bool, fields: list[str] | None = None) -> list:
+	"""Return rows where a translated value matches txt like `LIKE %txt%` would.
+
+	Match only `fields` of dict rows when given, else every value."""
+	if not txt:
+		return values
+
+	pattern = re.compile(".*".join(re.escape(part) for part in txt.split("%")), re.IGNORECASE)
+
+	def get_values(row):
+		if fields:
+			return [row.get(field) for field in fields]
+		return row.values() if as_dict else row
+
+	return [row for row in values if any(pattern.search(_(cstr(value)) or "") for value in get_values(row))]
+
+
+def get_translated_relevance(name: str, txt: str) -> float:
+	"""Position of txt in the translated name, like the SQL `_relevance` (no match ranks last)."""
+	position = _(cstr(name)).casefold().find(txt.replace("%", "").casefold())
+	return math.inf if position < 0 else position
 
 
 MAX_MENTIONS_PAGE_LENGTH = 20
