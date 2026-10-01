@@ -125,16 +125,16 @@ class StudioApp(WebsiteGenerator):
 		context.boot = self.get_boot()
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
 		# the dev preview imports router.ts straight from the vite dev server; the build compiles it in
-		context.app_router_file = self.get_router_file() if context.is_developer_mode else None
+		context.router_file = self.get_router_file() if context.is_developer_mode else None
 		context.router_script = self.get_router_script()
 		context.vite_dev_server_host = get_vite_dev_server_host()
 
 	def get_router_file(self) -> str | None:
 		if not (self.is_standard and self.frappe_app):
 			return None
-		from studio.build import get_app_router_file
+		from studio.build import get_router_file
 
-		return get_app_router_file(self.frappe_app, self.name)
+		return get_router_file(self.frappe_app, self.name)
 
 	def get_router_script(self) -> str | None:
 		"""A custom app's router config, kept in the DB; a standard app has it in router.ts"""

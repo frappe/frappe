@@ -40,7 +40,7 @@ declare global {
 		app_route: string
 		app_pages: Page[]
 		app_home?: string
-		app_router_file?: string | null
+		router_file?: string | null
 		router_script?: string | null
 		boot?: Record<string, unknown>
 		is_guest?: boolean
@@ -75,8 +75,8 @@ export async function createAppRouter(config: RouterConfig = {}): Promise<Router
 // vite dev server in the preview and compiled in by the production build
 export async function loadRouterConfig(): Promise<RouterConfig> {
 	if (window.router_script) return runHook("router script", () => compileRouterScript(window.router_script!))
-	if (!window.app_router_file) return {}
-	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.app_router_file!))
+	if (!window.router_file) return {}
+	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.router_file!))
 	return mod.default || {}
 }
 

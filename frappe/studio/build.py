@@ -36,7 +36,7 @@ class StudioAppBuilder:
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
-		self.app_router: str | None = None
+		self.router_file: str | None = None
 		self.icons: set[str] = set()
 
 		if self.is_standard:
@@ -58,7 +58,7 @@ class StudioAppBuilder:
 		if self.is_standard:
 			self.get_app_components_from_files()
 			self.get_page_scripts_from_files()
-			self.app_router = get_app_router_file(self.frappe_app, self.app_name)
+			self.router_file = get_router_file(self.frappe_app, self.app_name)
 		else:
 			self.get_app_components()
 		self._run_vite_build()
@@ -119,8 +119,8 @@ class StudioAppBuilder:
 			page_scripts_json = json.dumps(self.page_scripts)
 			command += f" --page-scripts '{page_scripts_json}'"
 
-		if self.app_router:
-			command += f" --app-router {shlex.quote(self.app_router)}"
+		if self.router_file:
+			command += f" --router-file {shlex.quote(self.router_file)}"
 
 		if self.icons:
 			command += f" --icons {','.join(sorted(self.icons))}"
@@ -352,7 +352,7 @@ def get_studio_folder(frappe_app: str) -> str | None:
 	return frappe.get_app_source_path(frappe_app, "studio")
 
 
-def get_app_router_file(frappe_app: str, studio_app: str) -> str | None:
+def get_router_file(frappe_app: str, studio_app: str) -> str | None:
 	"""Path of the app's studio/<app>/router.ts, if it ships one."""
 	path = os.path.join(get_studio_folder(frappe_app), frappe.scrub(studio_app), "router.ts")
 	return path if os.path.exists(path) else None

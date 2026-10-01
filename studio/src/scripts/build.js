@@ -79,7 +79,7 @@ const { values: argv } = parseArgs({
 		base: { type: "string" },
 		"custom-components": { type: "string" },
 		"page-scripts": { type: "string" },
-		"app-router": { type: "string" },
+		"router-file": { type: "string" },
 		icons: { type: "string" },
 	},
 	strict: false,
@@ -98,7 +98,7 @@ await generateAppBuild(
 	argv["custom-components"],
 	argv["page-scripts"],
 	argv.icons,
-	argv["app-router"],
+	argv["router-file"],
 )
 
 export async function generateAppBuild(
@@ -109,7 +109,7 @@ export async function generateAppBuild(
 	customComponentsJson,
 	pageScriptsJson,
 	icons,
-	appRouter,
+	routerFile,
 ) {
 	if (!appName) return
 
@@ -118,7 +118,7 @@ export async function generateAppBuild(
 	// pageScripts: [{ page_name, file_path }]
 	const pageScripts = pageScriptsJson ? JSON.parse(pageScriptsJson) : []
 	const componentSources = findComponentSources(componentList, customComponents)
-	const rendererContent = getRendererContent(componentSources, pageScripts, appRouter)
+	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	const iconList = icons ? icons.split(",") : []
 	await buildWithVite(appName, tempRendererPath, outDir, base, iconList)
@@ -170,7 +170,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 	}
 }
 
-function getRendererContent(componentSources, pageScripts = [], appRouter = null) {
+function getRendererContent(componentSources, pageScripts = [], routerFile = null) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
@@ -225,8 +225,8 @@ ${pageScripts
 		: ""
 
 	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
-	const routerImport = appRouter ? `import routerConfig from ${JSON.stringify(appRouter)}` : ""
-	const routerConfig = appRouter ? "routerConfig" : "await loadRouterConfig()"
+	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
+	const routerConfig = routerFile ? "routerConfig" : "await loadRouterConfig()"
 
 	const rendererContent = `import "@/index.css"
 import { createApp } from "vue"

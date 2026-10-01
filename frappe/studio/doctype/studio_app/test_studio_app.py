@@ -13,7 +13,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
 
-from studio.build import StudioAppBuilder, get_app_router_file, get_published_custom_apps
+from studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
 from studio.studio.doctype.studio_app.studio_app import StudioApp
 
 
@@ -49,14 +49,12 @@ class TestStudioApp(FrappeTestCase):
 			with patch.dict(frappe.local.conf, {"developer_mode": 1}):
 				context = frappe._dict()
 				app.get_context(context)
-				self.assertEqual(
-					context.app_router_file, os.path.join(studio_folder, "routed_app", "router.ts")
-				)
+				self.assertEqual(context.router_file, os.path.join(studio_folder, "routed_app", "router.ts"))
 
 			with patch.dict(frappe.local.conf, {"developer_mode": 0}):
 				context = frappe._dict()
 				app.get_context(context)
-				self.assertIsNone(context.app_router_file)
+				self.assertIsNone(context.router_file)
 
 	def test_context_carries_the_router_script_for_custom_apps_only(self):
 		app = unsaved_studio_app("router-script-app")
@@ -346,29 +344,29 @@ class TestStudioAppBuilder(FrappeTestCase):
 			"studio.build.get_studio_folder", return_value=studio_folder
 		):
 			self.assertEqual(
-				get_app_router_file("studio", "routed-app"),
+				get_router_file("studio", "routed-app"),
 				os.path.join(studio_folder, "routed_app", "router.ts"),
 			)
-			builder.app_router = get_app_router_file("studio", "routed-app")
+			builder.router_file = get_router_file("studio", "routed-app")
 			with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
 				run.return_value.returncode = 0
 				builder._run_vite_build()
-			self.assertIn(f" --app-router {builder.app_router}", run.call_args.args[0])
+			self.assertIn(f" --router-file {builder.router_file}", run.call_args.args[0])
 
 		# a bench path with spaces must reach vite as one argument
-		builder.app_router = "/Users/me/my bench/apps/studio/studio/routed_app/router.ts"
+		builder.router_file = "/Users/me/my bench/apps/studio/studio/routed_app/router.ts"
 		with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
 			run.return_value.returncode = 0
 			builder._run_vite_build()
 		self.assertIn(
-			" --app-router '/Users/me/my bench/apps/studio/studio/routed_app/router.ts'",
+			" --router-file '/Users/me/my bench/apps/studio/studio/routed_app/router.ts'",
 			run.call_args.args[0],
 		)
 
 		with mock_studio_app_files("routed-app") as studio_folder, patch(
 			"studio.build.get_studio_folder", return_value=studio_folder
 		):
-			self.assertIsNone(get_app_router_file("studio", "routed-app"))
+			self.assertIsNone(get_router_file("studio", "routed-app"))
 
 	def test_build_paths_for_standard_app(self):
 		app_name = "standard-app"
