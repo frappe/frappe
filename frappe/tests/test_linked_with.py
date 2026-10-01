@@ -1102,6 +1102,10 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(bounded["Linked Entry"]["hidden_count"], 0)
 		self.assertEqual(unbounded["Linked Entry"]["hidden_count"], 0)
 
+	def test_get_rejects_ordering_by_another_tables_field(self):
+		with linked_entry_target() as (target, _user), self.assertRaises(frappe.ValidationError):
+			linked_with.get(target.doctype, target.name, order_by="`tabLinked Entry Row`.`target` asc")
+
 	def test_get_filters_linked_docs_without_changing_hidden_count(self):
 		with linked_entry_target() as (target, user):
 			# owned by Administrator, so hidden from the user
