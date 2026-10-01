@@ -6,30 +6,36 @@ const PREFIX = "frappe:desk:";
 type Stored = Record<string, unknown>;
 
 export interface BrowserMemory<T> {
-	/** What this user last kept under the name, or `undefined`. Callers check its shape. */
+	/** What this user last kept under the name, or `undefined` if it fails `is`. */
 	recall(): T | undefined;
 	remember(value: T): void;
 }
 
 /** `formerKey` held this user's value alone before the name did; it is moved over once. */
-export function browserMemory<T>(name: string, user: string, formerKey?: string): BrowserMemory<T> {
+export function browserMemory<T>(
+	name: string,
+	user: string,
+	is: (value: unknown) => value is T,
+	formerKey?: string
+): BrowserMemory<T> {
 	const key = PREFIX + name;
 
-	function remember(value: T) {
-		write(key, JSON.stringify({ ...readAll(key), [user]: value }));
+	function keep(value: unknown): boolean {
+		return write(key, JSON.stringify({ ...readAll(key), [user]: value }));
 	}
 
 	function recall(): T | undefined {
-		const kept = readAll(key)[user];
-		if (kept !== undefined || !formerKey) return kept as T | undefined;
-		const former = parse(read(formerKey));
-		if (former === undefined) return undefined;
-		remember(former as T);
-		remove(formerKey);
-		return former as T;
+		let kept = readAll(key)[user];
+		const former = formerKey ? read(formerKey) : null;
+		if (kept === undefined && former !== null) {
+			kept = parse(former);
+			// A value that does not parse is dropped; one that cannot be written stays put.
+			if (kept === undefined || keep(kept)) remove(formerKey!);
+		}
+		return is(kept) ? kept : undefined;
 	}
 
-	return { recall, remember };
+	return { recall, remember: keep };
 }
 
 function readAll(key: string): Stored {
@@ -54,10 +60,13 @@ function read(key: string): string | null {
 	}
 }
 
-function write(key: string, raw: string) {
+function write(key: string, raw: string): boolean {
 	try {
 		localStorage.setItem(key, raw);
-	} catch {}
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 function remove(key: string) {

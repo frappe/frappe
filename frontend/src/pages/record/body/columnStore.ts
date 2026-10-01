@@ -7,9 +7,8 @@ import type { Remembered } from "@/recordPage";
 type Columns = Record<string, Remembered>;
 
 export function useColumnStore(user: string) {
-	const memory = browserMemory<Columns>("record-body-columns", user);
-	const kept = memory.recall();
-	const columns = ref<Columns>(kept && typeof kept === "object" ? kept : {});
+	const memory = browserMemory("record-body-columns", user, isColumns);
+	const columns = ref<Columns>(memory.recall() ?? {});
 
 	function remembered(name: string): Remembered | undefined {
 		return columns.value[name];
@@ -21,4 +20,8 @@ export function useColumnStore(user: string) {
 	}
 
 	return { columns, remembered, remember };
+}
+
+function isColumns(value: unknown): value is Columns {
+	return !!value && typeof value === "object" && !Array.isArray(value);
 }

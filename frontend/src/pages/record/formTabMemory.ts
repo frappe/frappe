@@ -8,7 +8,7 @@ export interface FormTabMemory {
 }
 
 export function formTabMemory(user: string, doctype: string): FormTabMemory {
-  const memory = browserMemory<Record<string, string>>("formTab", user);
+  const memory = browserMemory("formTab", user, isTabs);
   return {
     recall() {
       const identity = memory.recall()?.[doctype];
@@ -18,4 +18,8 @@ export function formTabMemory(user: string, doctype: string): FormTabMemory {
       memory.remember({ ...memory.recall(), [doctype]: identity });
     },
   };
+}
+
+function isTabs(value: unknown): value is Record<string, string> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
 }
