@@ -953,15 +953,22 @@ test("the workspace panel draws a sub-agent's tab itself and takes the host's me
 
 const settle = () => new Promise((resolve) => setImmediate(resolve))
 
-// types into the files bar's search box and lets the debounced search land
-async function typeSearch(t, el, query) {
+// types into the files bar's search box, short of the debounce
+async function typeQuery(el, query) {
 	const input = el.querySelector("input")
 	input.value = query
 	input.dispatchEvent(new window.Event("input"))
 	await nextTick()
+}
+
+// types a query and lets its debounced search land
+async function typeSearch(t, el, query) {
+	await typeQuery(el, query)
 	t.mock.timers.tick(200) // the query's debounce
 	await settle()
 }
+
+const press = (el, key) => el.dispatchEvent(new window.KeyboardEvent("keydown", { key }))
 
 test("a folder in the file search results folds and unfolds, and stays folded until the search is cleared", async (t) => {
 	t.mock.timers.enable({ apis: ["setTimeout"] })
@@ -986,10 +993,15 @@ test("a folder in the file search results folds and unfolds, and stays folded un
 	await toggle("src/a")
 	assert.deepEqual(rows(), ["src", "a", "two.js", "top.js"])
 	assert.equal(row("src/a").querySelector("[data-stub=FeatherIcon]").getAttribute("name"), "chevron-right")
-	row("src").dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter" }))
+	// a screen reader hears whether a folder is open; a file has nothing to say
+	assert.equal(row("src/a").getAttribute("aria-expanded"), "false")
+	assert.equal(row("src").getAttribute("aria-expanded"), "true")
+	assert.equal(row("top.js").hasAttribute("aria-expanded"), false)
+	press(row("src"), "Enter")
 	await nextTick()
 	assert.deepEqual(rows(), ["src", "top.js"])
-	await toggle("src")
+	press(row("src"), " ")
+	await nextTick()
 	assert.deepEqual(rows(), ["src", "a", "two.js", "top.js"]) // the inner fold outlives its parent's
 
 	await search("on")
@@ -997,9 +1009,15 @@ test("a folder in the file search results folds and unfolds, and stays folded un
 	await search("")
 	await search("on")
 	assert.deepEqual(rows(), ["src", "a", "one.js", "one.md"]) // a new search starts open
+
+	// emptied and retyped inside the debounce: the search never sees the empty box
+	await toggle("src/a")
+	await typeQuery(el, "")
+	await search("o")
+	assert.deepEqual(rows(), ["src", "a", "one.js", "two.js", "top.js"])
 })
 
-test("folders opened in the file tree stay open through a search", async (t) => {
+test("a folder in the file tree opens with Space, says it's open, and stays open through a search", async (t) => {
 	t.mock.timers.enable({ apis: ["setTimeout"] })
 	const dirs = { "": [{ name: "src", type: "dir" }], "/w/src": [{ name: "a.js", type: "file" }] }
 	const flow = {
@@ -1012,8 +1030,11 @@ test("folders opened in the file tree stay open through a search", async (t) => 
 	const shown = (path) =>
 		[...el.querySelectorAll(`[title='${path}']`)].filter((r) => !r.closest("[style*='display: none']"))
 	await settle()
-	el.querySelector("[title='/w/src']").click()
+	const folder = el.querySelector("[title='/w/src']")
+	assert.equal(folder.getAttribute("aria-expanded"), "false")
+	press(folder, " ")
 	await settle()
+	assert.equal(folder.getAttribute("aria-expanded"), "true")
 	assert.equal(shown("/w/src/a.js").length, 1)
 
 	await typeSearch(t, el, "a")

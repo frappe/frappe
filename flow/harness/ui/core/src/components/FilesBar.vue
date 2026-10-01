@@ -81,11 +81,13 @@
 							:key="row.path"
 							role="button"
 							tabindex="0"
+							:aria-expanded="row.type === 'dir' ? row.open : undefined"
 							class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2"
 							:style="{ paddingLeft: row.depth * 16 + 8 + 'px' }"
 							:title="row.path"
 							@click="activateRow(row)"
 							@keydown.enter.prevent="activateRow(row)"
+							@keydown.space.prevent="activateRow(row)"
 						>
 							<span
 								v-for="level in row.depth"
@@ -210,14 +212,18 @@ const searchActive = computed(() => debouncedFileQuery.value.trim() !== "")
 const searchRoot = ref(null)
 const searchMatches = ref(null) // null while a search is in flight
 const searchTruncated = ref(false)
-// folders folded in the results: kept while the query is refined, dropped when it's cleared
+// folders folded in the results: kept while the query is refined, dropped once the box is emptied
 const collapsedDirs = reactive(new Set())
+// the raw box, not the debounced query, which a quick retype skips past; applied with the next results
+let dropFolds = false
+watch(fileQuery, (raw) => {
+	if (!raw.trim()) dropFolds = true
+})
 
 watch(debouncedFileQuery, async (raw) => {
 	const query = raw.trim()
 	if (!query) {
 		searchMatches.value = null // reset, so the next search shows its own state
-		collapsedDirs.clear()
 		return
 	}
 	// Previous results stay rendered while the new search is in flight —
@@ -227,6 +233,8 @@ watch(debouncedFileQuery, async (raw) => {
 	const data = await flow.searchFiles(query)
 	// stale response: the query or the browsed cwd moved on
 	if (debouncedFileQuery.value.trim() !== query || flow.explorerCwd() !== cwd) return
+	if (dropFolds) collapsedDirs.clear()
+	dropFolds = false
 	searchRoot.value = data?.path ?? null
 	searchMatches.value = data?.matches ?? []
 	searchTruncated.value = data?.truncated ?? false
