@@ -324,6 +324,43 @@ describe("Desk URL shell segment", () => {
 		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
 	});
 
+	it("leaves the shell you are standing in when the awesomebar opens something it does not list", () => {
+		// The same move as above, made from the awesomebar. What it opens was picked from the
+		// whole desk, so sharing an app with the shell on screen is not a reason to stay in it.
+		cy.visit("/desk/users/user");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+
+		cy.get(".body-sidebar .navbar-modal-search-mobile").click();
+		cy.get("#navbar-search").type("todo");
+		// Through the input, since the list view under the dialog has dropdowns of its own.
+		cy.get("#navbar-search")
+			.closest(".awesomplete")
+			.findByRole("listbox")
+			.should("be.visible");
+		cy.get("#navbar-search").type("{enter}");
+
+		cy.location("pathname").should("eq", "/desk/build/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+	});
+
+	it("chooses the shell again when the awesomebar opens what is already on screen", () => {
+		// ToDo held in Users, then picked in the awesomebar. The route does not change, so nothing
+		// re-routes, and the shell still has to move to the one ToDo belongs in.
+		cy.visit("/desk/users/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+
+		cy.get(".body-sidebar .navbar-modal-search-mobile").click();
+		cy.get("#navbar-search").type("todo");
+		cy.get("#navbar-search")
+			.closest(".awesomplete")
+			.findByRole("listbox")
+			.should("be.visible");
+		cy.get("#navbar-search").type("{enter}");
+
+		cy.location("pathname").should("eq", "/desk/build/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+	});
+
 	it("does not rewrite history when you go back", () => {
 		// A URL outranks the sidebar on screen, or the back button would rewrite the entry it
 		// just returned to: going back to a ToDo opened in Build, while standing in Users, would
