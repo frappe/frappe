@@ -334,7 +334,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | Record page host (`Record.vue`) | Fills `RecordPageHost`: loads, saves, and wires layouts, feeds, tabs and the composer |
-| Visit | *New.* One object per visit to a record. A reply that belongs to an old visit is dropped |
+| Visit (`Visit`) | One object per visit to a record. A reply that belongs to an old visit is dropped |
 | Return-visit parts | *New.* Which record parts a return visit needs before it paints from memory |
 | Record source | The load, the parts re-read, the save, and a cached read |
 | Meta source | The doctype meta as one promise or its current value |
@@ -667,7 +667,7 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 
 | Today | Target | Owner |
 | --- | --- | --- |
-| Nine visit guards in `Record.vue`, and 11 hand-written "latest reply" counters | One visit; one "latest reply wins" helper | One page model; new map |
+| 11 hand-written "latest reply" counters | One "latest reply wins" helper | New map |
 | Five stores of held script acts | One queue | One page model |
 | Two listeners on each record room | One | Activity column |
 | Two save paths; Ctrl+S skips the paint hold | One save path | One page model |
