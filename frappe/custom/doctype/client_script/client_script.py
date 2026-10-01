@@ -99,12 +99,10 @@ class ClientScript(Document):
 			return
 		if not (self.is_new() or self.has_value_changed("script") or self.has_value_changed("view")):
 			return
-		try:
-			errors = compile_templates({self.name: self.script})[self.name]["errors"]
-		except CompilerUnavailable as error:
-			self.report_compile_failure(error)
-			return
-		if errors:
+		result = compile_templates({self.name: self.script})[self.name]
+		if isinstance(result, CompilerUnavailable):
+			self.report_compile_failure(result)
+		elif errors := result["errors"]:
 			self.report_compile_failure(TemplateCompileError(errors_text(errors), code_errors(errors)))
 
 	def report_compile_failure(self, failure: frappe.ValidationError):
@@ -152,14 +150,13 @@ def get_client_scripts(dt: str, view: str = "Record"):
 def served_scripts(rows) -> list[dict]:
 	"""Each row as the page runs it: a script with a `template:` string goes compiled, or with its error and no code."""
 	sources = {row.name: row.script for row in rows if holds_template(row.script)}
-	try:
-		copies = {name: served_copy(result) for name, result in compile_templates(sources).items()}
-	except CompilerUnavailable as error:
-		copies = {name: {"script": "", "error": str(error)} for name in sources}
+	copies = {name: served_copy(result) for name, result in compile_templates(sources).items()}
 	return [{"name": row.name, **copies.get(row.name, {"script": row.script or ""})} for row in rows]
 
 
-def served_copy(result: dict) -> dict:
+def served_copy(result: dict | CompilerUnavailable) -> dict:
+	if isinstance(result, CompilerUnavailable):
+		return {"script": "", "error": str(result)}
 	if result["errors"]:
 		return {"script": "", "error": error_text(result["errors"][0])}
 	return {"script": result["code"]}
@@ -229,25 +226,36 @@ def holds_template(script: str | None) -> bool:
 	return bool(script and TEMPLATE_WORD.search(script))
 
 
-def compile_templates(scripts: dict[str, str]) -> dict[str, dict]:
-	"""Each script's `{code, errors}` by name: from Redis, or from one `node` call for all the misses."""
+def compile_templates(scripts: dict[str, str]) -> dict[str, dict | CompilerUnavailable]:
+	"""Each script's `{code, errors}` by name, or the `CompilerUnavailable` that kept it from compiling."""
 	if not scripts:
 		return {}
-	compiler = compiler_key()
+	try:
+		compiler = compiler_key()
+	except CompilerUnavailable as failure:
+		return dict.fromkeys(scripts, failure)
 	keys = {name: compiled_copy_key(compiler, script) for name, script in scripts.items()}
 	results = {name: frappe.cache.get_value(key) for name, key in keys.items()}
 	missing = [name for name, result in results.items() if result is None]
-	if not missing:
-		return results
-	payload = [{"name": name, "script": scripts[name]} for name in missing]
-	compiled = {row["name"]: row for row in run_compiler(stdin=json.dumps(payload))}
-	if not compiled.keys() >= set(missing):
-		raise compiler_failed(f"No result for {sorted(set(missing) - compiled.keys())}")
-	for name in missing:
-		results[name] = {"code": compiled[name]["code"], "errors": compiled[name]["errors"]}
-		# A failed compile is cached too, so a broken script costs one `node` call, not one per page load.
-		frappe.cache.set_value(keys[name], results[name], expires_in_sec=COMPILED_COPY_TTL)
+	if missing:
+		# A cached copy still goes out when the compiler fails for the others.
+		try:
+			results.update(compile_and_cache({name: scripts[name] for name in missing}, keys))
+		except CompilerUnavailable as failure:
+			results.update(dict.fromkeys(missing, failure))
 	return results
+
+
+def compile_and_cache(scripts: dict[str, str], keys: dict[str, str]) -> dict[str, dict]:
+	payload = [{"name": name, "script": script} for name, script in scripts.items()]
+	compiled = {row["name"]: row for row in run_compiler(stdin=json.dumps(payload))}
+	if not compiled.keys() >= scripts.keys():
+		raise compiler_failed(f"No result for {sorted(scripts.keys() - compiled.keys())}")
+	copies = {name: {"code": compiled[name]["code"], "errors": compiled[name]["errors"]} for name in scripts}
+	for name, copy in copies.items():
+		# A failed compile is cached too, so a broken script costs one `node` call, not one per page load.
+		frappe.cache.set_value(keys[name], copy, expires_in_sec=COMPILED_COPY_TTL)
+	return copies
 
 
 def compiled_copy_key(compiler: str, script: str) -> str:

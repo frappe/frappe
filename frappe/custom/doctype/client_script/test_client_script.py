@@ -370,6 +370,22 @@ class TestTemplateCompile(IntegrationTestCase):
 		self.assertNotIn("/srv/bench", row["error"])
 		self.assertIn("/srv/bench", log_error.call_args.kwargs["message"])
 
+	def test_a_failing_compiler_still_sends_the_cached_copies(self):
+		make_script("good-template", script=GOOD_TEMPLATE).insert()
+		import_script("fixture-template", GOOD_TEMPLATE.replace("Hello", "Bye"))
+		frappe.cache.delete_value(
+			client_script.compiled_copy_key(
+				client_script.compiler_key(), GOOD_TEMPLATE.replace("Hello", "Bye")
+			)
+		)
+		timeout = subprocess.TimeoutExpired("node", client_script.COMPILE_TIMEOUT)
+
+		with patch.object(client_script.subprocess, "run", side_effect=timeout):
+			cached, failed = fetched("good-template"), fetched("fixture-template")
+		self.assertNotIn("error", cached)
+		self.assertTrue(cached["script"].startswith("import { "))
+		self.assertIn("did not finish", failed["error"])
+
 	def test_a_compiler_that_hangs_sends_an_error_row(self):
 		import_script("fixture-template", GOOD_TEMPLATE)
 		frappe.cache.delete_keys(client_script.COMPILED_COPY)
