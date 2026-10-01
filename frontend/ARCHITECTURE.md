@@ -177,7 +177,7 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 
 | Concept | What it is |
 | --- | --- |
-| Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`) | Every `/api/v2` reply is `{ data }`; every failure is one error class |
+| Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`, `CodeError`) | Every `/api/v2` reply is `{ data }`; every failure is one error class. A compile error carries `codeErrors`: the field, line, column and message of each error in a Code field's text |
 | Request transport (`request`, `apiUrl`, `requestHeaders`) | The one fetch wrapper for `/api/v2`. Takes the CSRF token as a documented input or finds it itself |
 | Document calls (`getDocument`, `getDocumentFields`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | Read and write one record or a list. `getDocumentFields` reads some fields of one record and makes no list entry |
 | Method calls (`runMethod`, `runDocumentMethod`) | Call a whitelisted method, or a method on one document |
@@ -213,7 +213,7 @@ component group, with its main names.
 | Child rows (`useChildRowModel`, `newRowValues`) | The rows of a child table field, and a new row's default values |
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
-| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`) | How a field reads the document, writes a value, and shows link titles |
+| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`) | How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks |
 | `TemplateNamesKey` | The component names a `template:` string can use with no `components:` entry. The Code field completes them. With no value, it completes Vue's built-in components only |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
 | `Link`, `Grid`, `Phone`, `TableMultiSelect` | Field controls with their own pickers and tables |
@@ -348,6 +348,7 @@ component group, with its main names.
 | Meta source | The doctype meta as one promise or its current value |
 | Refetch merge | Merges a background re-read into the draft the reader is editing |
 | Save conflict (`SaveConflict`) | The error when someone else saved first, and the fields the reader would lose |
+| Save code errors (`SaveCodeErrors`, `codeErrorFrames`) | *New.* A save the server refused because a Code field's text does not compile. One dialog lists each error with the lines around it, and the Code field marks them until the next save |
 | Live scripts | Re-runs the page's scripts when a stored script of its doctype changes |
 | Record feeds (`RecordFeeds`) | The data behind `page.activity` and `page.files`, with the feed's first-paint functions |
 | Record tabs (`RecordTabsHost`, `useRecordTabs`) | *Changed.* The four built-in tabs, and the tab named in the address or put back by the record view |
@@ -552,7 +553,7 @@ that copy in the same tab, and the page shows "no permission" once the server re
 | 3 | Save, from the button or from Ctrl+S, takes one path: one saving state, and the same paint hold. The engine runs owed changes, `beforeSave`, the page's save, then `afterSave` | 8, 7, 9 | None. Save is offered to every reader; the server decides | None |
 | 4 | The page sends the draft with `modified`, one request at a time. It refuses if the visit has changed | 8, 3 | None | None |
 | 5 | The server saves: write check, timestamp check, higher permission levels reset, a version row, and `doc_update` after the commit. The reply has field-level read rules applied | 1 | Write permission; field permission levels; field-level read on the reply | None |
-| 6 | The reply goes into the data cache. On a timestamp conflict, the page re-reads the record and asks the reader what to do | 3, 8 | The re-read checks read permission | Data cache, by doctype and name, in request order |
+| 6 | The reply goes into the data cache. On a timestamp conflict, the page re-reads the record and asks the reader what to do. On compile errors, the page lists them in a dialog and marks them in the Code field | 3, 8 | The re-read checks read permission | Data cache, by doctype and name, in request order |
 | 7 | The page shows the saved state with a visible confirmation, re-reads the side parts, and replays surfaces and handlers | 8, 7, 3 | Read permission on the re-read | Data cache |
 | 8 | The record room's listener hears `doc_update`, and the feed re-reads its newest page | 4, 3 | Room and feed read permission | Activity store |
 

@@ -22,6 +22,7 @@
 			/>
 			<div class="relative" :class="{ 'mt-1': field.label }">
 				<CodeEditor
+					ref="editor"
 					:modelValue="value"
 					:extensions="extensions"
 					:editable="!field.readOnly"
@@ -123,12 +124,25 @@
 // `doc` (Frappe JSON/Code fields store strings) — the contract is unchanged.
 import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from "vue";
+import {
+	computed,
+	inject,
+	nextTick,
+	onBeforeUnmount,
+	onMounted,
+	ref,
+	shallowRef,
+	useId,
+	watch,
+} from "vue";
 import { Button } from "frappe-ui";
 import { CodeEditor, CodeEditorContent, CodeKit, loadLanguage } from "frappe-ui/code-editor";
+import type { CodeEditorExposed } from "frappe-ui/code-editor";
 import { InputDescription, InputLabel } from "frappe-ui/experimental";
 import CodePreview from "./CodePreview.vue";
+import { markCodeErrors } from "./codeErrorMarks";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
+import { CodeErrorsKey, ParentDocKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = withDefaults(
@@ -210,6 +224,37 @@ watch(
 	{ immediate: true }
 );
 
+// A host's compile errors for this field, as lint marks. They name top-level fields only, so
+// a field inside a child row takes none.
+const editor = ref<CodeEditorExposed | null>(null);
+const hostErrors = inject(CodeErrorsKey, null);
+const inRow = inject(ParentDocKey, null) !== null;
+const codeErrors = computed(() =>
+	inRow ? [] : (hostErrors?.value ?? []).filter((e) => e.field === props.field.fieldname)
+);
+const markGutter = shallowRef<Extension[]>([]);
+let marked = false;
+
+async function showCodeErrors(errors: typeof codeErrors.value) {
+	if (!errors.length && !marked) return;
+	try {
+		const lint = await import("@codemirror/lint");
+		if (errors.length && !markGutter.value.length) {
+			markGutter.value = [lint.lintGutter()];
+			await nextTick();
+		}
+		const view = editor.value?.editor;
+		if (!view) return;
+		markCodeErrors(view, errors, lint);
+		marked = errors.length > 0;
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+// The view exists only once the editor has mounted.
+onMounted(() => watch(codeErrors, showCodeErrors, { immediate: true }));
+
 // The label and description are linked to CodeMirror's content element, as the old
 // labelled editor did through the same facet.
 const contentAttributes = computed(() =>
@@ -223,7 +268,7 @@ const contentAttributes = computed(() =>
 const extensions = computed<Extension[]>(() => {
 	const list: Extension[] = [kit.value, contentAttributes.value];
 	if (languageExtension.value) list.push(languageExtension.value);
-	list.push(...lintExtensions.value);
+	list.push(...lintExtensions.value, ...markGutter.value);
 	return list;
 });
 

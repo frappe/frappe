@@ -29,6 +29,16 @@ describe("readEnvelope", () => {
     expect(error.status).toBe(409);
   });
 
+  it("carries the entry's code_errors as codeErrors", () => {
+    const codeErrors = [{ field: "script", line: 3, column: 12, message: "Missing end tag." }];
+    const entry = { type: "TemplateCompileError", message: "Line 3", code_errors: codeErrors };
+    const body = { errors: [entry] };
+    expect(() => readEnvelope(body, 417)).toThrow(expect.objectContaining({ codeErrors }));
+    expect(() => readEnvelope({ errors: [{ type: "ValidationError" }] }, 417)).toThrow(
+      expect.objectContaining({ codeErrors: undefined })
+    );
+  });
+
   it("names the error by its type when the server sent no message", () => {
     expect(() => readEnvelope({ errors: [{ type: "PermissionError" }] }, 403)).toThrow(
       "PermissionError"

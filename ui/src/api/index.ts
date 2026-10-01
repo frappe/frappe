@@ -21,6 +21,7 @@ export {
   isApiError,
   readEnvelope,
   TIMESTAMP_MISMATCH,
+  type CodeError,
   type Envelope,
   type ErrorEntry,
 } from "./envelope";

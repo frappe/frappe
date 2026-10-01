@@ -5,6 +5,15 @@ export interface ErrorEntry {
   title?: string;
   exception?: string;
   indicator?: string;
+  code_errors?: CodeError[];
+}
+
+/** A compile error in a Code field's text; line and column count from 1. */
+export interface CodeError {
+  field: string;
+  line: number;
+  column: number;
+  message: string;
 }
 
 /** A v2 response body: `data`, plus what the route adds beside it (`has_next_page`, `include` parts). */
@@ -18,6 +27,7 @@ export class ApiError extends Error {
   readonly title?: string;
   readonly exception?: string;
   readonly indicator?: string;
+  readonly codeErrors?: CodeError[];
   readonly status: number;
 
   constructor(entry: ErrorEntry, status: number) {
@@ -27,6 +37,7 @@ export class ApiError extends Error {
     this.title = entry.title;
     this.exception = entry.exception;
     this.indicator = entry.indicator;
+    this.codeErrors = entry.code_errors;
     this.status = status;
   }
 

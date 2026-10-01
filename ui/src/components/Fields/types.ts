@@ -3,6 +3,7 @@ import type { InjectionKey, Ref } from "vue";
 // richer node/schema, while `FieldNode extends FieldMeta`. The cycle is purely
 // at the type level, so it disappears in the compiled output.
 import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
+import type { CodeError } from "../../api/envelope";
 
 /**
  * The portable meta a value-input reads. A subset of a Frappe DocField, shared by
@@ -111,6 +112,10 @@ export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
 /** The component names a `template:` string can use with no `components:` entry, from the host app. */
 export const TemplateNamesKey: InjectionKey<readonly string[]> =
   Symbol("TemplateNames");
+
+/** Compile errors a host marks in its top-level Code fields; each names its field. */
+export const CodeErrorsKey: InjectionKey<Ref<readonly CodeError[]>> =
+  Symbol("CodeErrors");
 
 /** Where a child row sits: its table's fieldname plus `name ?? __row_id`. */
 export interface RowAddress {
