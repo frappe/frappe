@@ -154,6 +154,56 @@ and the form are each a list that accepts the same item shape, `name`, `componen
 `props`, and speaks the seven verbs and `clear`. A script author learns one item and one position
 spelling; the sections below only refer to it.
 
+## Writing a component
+
+Every list takes a Vue component. Write its markup as a `template:` string. The module
+below is valid without change in both places a script lives: a `Client Script` row with
+`view = Record` and `dt = CRM Deal`, or an app file,
+`<app>/<module>/doctype/crm_deal/frontend/record.js`.
+
+```js
+import { Badge } from 'frappe-ui'
+
+const DealStage = {
+  components: { Badge },
+  props: { page: Object },
+  template: `
+    <div class="flex items-center gap-2">
+      <Badge :label="page.doc.status" :theme="page.doc.status === 'Won' ? 'green' : 'gray'" />
+      <span v-if="page.doc.probability" class="text-sm text-ink-gray-5">
+        {{ __('{0}% likely', [page.doc.probability]) }}
+      </span>
+    </div>
+  `,
+}
+
+export default {
+  onRefresh(page) {
+    page.header.add({ name: 'deal_stage', zone: 'left', component: DealStage }, { after: 'record' })
+  },
+}
+```
+
+- **Components.** A template can use a component only if `components:` lists it. Import
+  each frappe-ui component and list it. `RouterLink`, `RouterView` and Vue's built-in
+  components, such as `Transition`, need no entry.
+- **Values.** A template reads its props, what `setup()` returns, and the global
+  functions `__` and `__n`. The full list of names is in
+  [`COMPATIBILITY.md`](./COMPATIBILITY.md#writing-a-component-with-a-template-string).
+- **The string.** `template:` takes a quoted or backtick string written in place, with no
+  `${}` parts. Standard Vue template rules apply.
+- **Styles.** A stored script can rely on frappe-ui components, `style` attributes and
+  the classes in [the palette](./COMPATIBILITY.md#the-palette-the-classes-a-stored-script-can-rely-on).
+  The build scans an app file, so any class works there.
+- **Errors.** A bad template or an unknown name stops the save. A dialog gives the line,
+  column and message, and the editor marks each error at its line. In an app file, the
+  same error stops `bench build`.
+- **`h()`.** `h()` stays valid. Use a render function when code builds the markup, for
+  example tags that differ by row.
+
+In the sections below, a name such as `PipelineChart` stands for any component written
+this way.
+
 ## The frame: `page.frame`
 
 The page's column is **one list**. Its two built-in regions are `header`, the pinned row
@@ -282,12 +332,12 @@ observe the drop.
 ### The script this design was judged by
 
 ```js
-// Client Script, view = Record, doctype = Lead
-import Summary from '@myapp/Summary.vue'
-import Assistant from '@myapp/Assistant.vue'
+// App file: myapp/myapp/custom/lead/record.js
+import Summary from './Summary.vue'
+import Assistant from './Assistant.vue'
 
 export default {
-  setup(page) {
+  onRefresh(page) {
     page.body.add({ name: 'summary', component: Summary, width: 280, minWidth: 200 }, { after: 'form' })
     page.body.add({ name: 'assistant', component: Assistant, collapsible: true }, { after: 'panel' })
     page.body.move('panel', { before: 'form' })
@@ -464,7 +514,7 @@ page.header.add({
 // A component in each zone. Each receives { ...item.props, page }.
 const StageBadge = {
   props: { page: Object, size: String },
-  setup: (props) => () => `Stage: ${props.page.doc.status}`,
+  template: `<span :class="size === 'sm' ? 'text-sm' : 'text-base'">Stage: {{ page.doc.status }}</span>`,
 }
 page.header.add({ name: 'stage_badge', zone: 'left', component: StageBadge, props: { size: 'sm' } }, { after: 'record' })
 page.header.add({ name: 'owner_avatar', component: OwnerAvatar }, { before: 'save' })
@@ -473,12 +523,11 @@ page.header.add({ name: 'owner_avatar', component: OwnerAvatar }, { before: 'sav
 page.header.clear()
 ```
 
-A stored script has an import map for `vue`, `vue-router`, `frappe-ui` and
-`@framework/ui`, so it may `import { h } from 'vue'` for a render function, or write an
-import-free one that returns a string, as `StageBadge` does. An app adds names of its
-own, `<app>/<alias>`, with the `import_map` hook; see
+A stored script imports by bare name from the import map: `vue`, `vue-router`,
+`frappe-ui`, `@framework/ui` and `frappe/i18n`. An app adds names of its own,
+`<app>/<alias>`, with the `import_map` hook; see
 [`COMPATIBILITY.md`](./COMPATIBILITY.md#what-an-app-publishes-the-import_map-hook). An
-app extension imports a `.vue` file. The item is the same.
+app file can also import a `.vue` file. The item is the same.
 
 ## The panel: `page.panelSections`
 
@@ -593,7 +642,7 @@ And a fuller one:
 ```js
 const Note = {
   props: { page: Object, text: String },
-  setup: (props) => () => `${props.text}: ${props.page.doc.status}`,
+  template: `<p class="p-3 text-sm">{{ text }}: {{ page.doc.status }}</p>`,
 }
 
 export default {

@@ -479,8 +479,54 @@ What the promise does **not** cover:
 - **The first paint can be English.** Messages are fetched apart from boot and never
   awaited. A template that calls `__` re-renders when they land; a string a script copied
   into a variable in `onLoad` does not.
-- **There is no global.** No `window.__`; the import is the only door, for a published
-  file and a stored script alike.
+- **There is no `window.__`.** A script imports `__` from `frappe/i18n`, in a published
+  file and a stored script alike. Inside a `template:` string, `__` and `__n` are global
+  and need no import.
+
+## Writing a component with a `template:` string
+
+A component in a contributed file can carry its markup as a `template:` string, the same
+way a stored script does. The build compiles it; the page never compiles a template.
+
+```js
+const Tag = {
+	props: ["label"],
+	template: `<span class="badge">{{ label }}</span>`,
+};
+```
+
+- **Where.** Every `.js` and `.ts` file the build reads outside `node_modules`, not only
+  the contributed file itself. A `.vue` file keeps its own `<template>` block.
+- **Which keys.** Every object key written `template:` with no quotes is a template. Its
+  value is a string or a backtick string with no `${}` parts. Anything else fails the build.
+  To keep a `template` key as plain data, quote it: `{ "template": name }`.
+- **Rules.** Standard Vue template rules.
+- **Names.** A template can use only these names:
+  - components in its own `components:`, its own `name`, `RouterLink`, `RouterView`
+    and Vue's built-in components such as `Transition`;
+  - values from props, from the object `setup()` returns, and from `data()`,
+    `computed:`, `methods:` and `inject:`;
+  - the `$` names Vue gives every component, and the global functions `__` and `__n`.
+
+  No frappe-ui component is global. Import each one and list it in `components:`:
+
+  ```js
+  import { Badge, Button } from "frappe-ui";
+  const Status = {
+  	components: { Badge, Button },
+  	template: `<Badge :label="__('Open')" />`,
+  };
+  ```
+
+- **Unknown names.** A name that is in none of these places stops `bench build` with
+  the file, line and column. If one of these lists is not an object written in place,
+  for example a variable or a spread, the build cannot read it. Then it does not check
+  that component. It also does not check a component that uses `mixins:` or `extends:`.
+- **Errors.** A bad template stops `bench build` and names the file, line, column and the
+  compiler's message. `yarn dev` shows the same error.
+- **Same text, same result.** The build and a stored script use one compiler, so a
+  component written here runs unchanged in a stored script.
+- `h()` stays valid.
 
 ## What an app declares: `desk.package.json`
 
