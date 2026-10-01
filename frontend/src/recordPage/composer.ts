@@ -45,6 +45,8 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
     private readonly host: ComposerHost,
     /** Holds or drops an act and answers true; false means deliver it now. */
     private readonly take: (act: HeldAct) => boolean = () => false,
+    /** Removes a held act of that kind and target. */
+    private readonly drop: (kind: HeldAct["kind"], target: string) => void = () => {},
   ) {
     super({ surface: "composer", keys: WRITER_ITEM_KEYS });
   }
@@ -85,8 +87,7 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
   }
 
   close() {
-    // A held open is cancelled by a later one that does nothing: the last act wins.
-    this.take({ kind: "open", target: "", isDrawn: () => true, land: () => {}, refuse: () => {} });
+    this.drop("open", "");
     this.host.closeWriter();
   }
 

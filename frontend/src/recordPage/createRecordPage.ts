@@ -270,6 +270,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       setWindow: (window) => host.setWindow?.(window),
     },
     heldActs.take,
+    heldActs.drop,
   );
   const rows = createRows({
     doc: () => host.doc.value,

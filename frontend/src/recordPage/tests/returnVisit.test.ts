@@ -518,6 +518,38 @@ describe("refresh({ background: true })", () => {
     expect(warnings).toEqual([]);
   });
 
+  it("cancels an open a hold keeps back when its replay closes the composer", async () => {
+    let closing = false;
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        if (closing) page.composer.close();
+      },
+    });
+    await loadClientScripts("CRM Deal");
+    const opened: string[] = [];
+    const { controller } = makePage({
+      openWriter: (name) => void opened.push(name),
+      closeWriter: () => {},
+      activeWriter: () => "",
+    });
+    controller.tabs.provideBuiltins(() => [{ name: "activity", label: "Activity" }]);
+    controller.composer.provideBuiltins(() => [{ name: "comment", label: "Comment", icon: "" }]);
+    await vi.advanceTimersByTimeAsync(0);
+    controller.paintNow();
+    const pause = gate();
+    const held = controller.hold(async () => {
+      controller.page.composer.open("comment");
+      await pause.opened;
+    });
+
+    closing = true;
+    await controller.refresh({ background: true });
+    pause.open();
+    await held;
+
+    expect(opened).toEqual([]);
+  });
+
   it("draws nothing when an unchanged replay hands one new object to two ops", async () => {
     await register("deal", {
       onRefresh: (page: RecordPageApi) => {

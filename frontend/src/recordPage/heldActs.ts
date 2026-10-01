@@ -31,9 +31,14 @@ export function createHeldActs(host: HeldActsHost) {
   /** Holds or drops the act and answers true; false means the caller delivers it now. */
   function take(act: HeldAct) {
     if (host.inBackground()) act.refuse(IN_BACKGROUND);
-    else if (host.isStaging()) held.set(`${act.kind}:${act.target}`, act);
+    else if (host.isStaging()) held.set(keyOf(act.kind, act.target), act);
     else return false;
     return true;
+  }
+
+  /** Removes a held act at once, in a background replay as in a hold. */
+  function drop(kind: HeldAct["kind"], target: string) {
+    held.delete(keyOf(kind, target));
   }
 
   /** Lands every held act; `drawnOnly` drops one whose target is not drawn. */
@@ -46,9 +51,13 @@ export function createHeldActs(host: HeldActsHost) {
     }
   }
 
-  return { take, release };
+  return { take, drop, release };
 }
 
 function byLandingOrder(a: HeldAct, b: HeldAct) {
   return LANDING_ORDER.indexOf(a.kind) - LANDING_ORDER.indexOf(b.kind);
+}
+
+function keyOf(kind: HeldAct["kind"], target: string) {
+  return `${kind}:${target}`;
 }
