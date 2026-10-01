@@ -5,9 +5,7 @@ import {
 	type Router,
 	type RouterOptions,
 } from "vue-router"
-import { createApp } from "vue"
 import AppContainer from "@/pages/AppContainer.vue"
-import RouterError from "@/pages/RouterError.vue"
 import NotFound from "@/pages/NotFound.vue"
 import { vueReactivityApis } from "@/stores/codeStore"
 import * as globalUtils from "@/utils/globalUtils"
@@ -80,12 +78,6 @@ export async function loadRouterConfig(): Promise<RouterConfig> {
 	if (!window.app_router_file) return {}
 	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.app_router_file!))
 	return mod.default || {}
-}
-
-// a broken router can drop a guard, so the app stops instead of booting with default routing
-export function showRouterError(error: unknown) {
-	console.error(error)
-	createApp(RouterError, { message: error instanceof Error ? error.message : String(error) }).mount("#app")
 }
 
 async function runHook<T>(where: string, run: () => T | Promise<T>): Promise<T> {

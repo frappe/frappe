@@ -3,7 +3,7 @@ import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import { createAppRouter, loadRouterConfig, showRouterError } from "@/router/app_router"
+import { createAppRouter, loadRouterConfig } from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents, registerCustomVueComponents } from "@/globals"
@@ -39,11 +39,7 @@ async function bootstrap() {
 		await Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
 	}
 	// installing the router runs the first navigation, so the app's guards must already be in place
-	try {
-		app.use(await createAppRouter(await loadRouterConfig()))
-	} catch (error) {
-		return showRouterError(error)
-	}
+	app.use(await createAppRouter(await loadRouterConfig()))
 	app.mount("#app")
 }
 
