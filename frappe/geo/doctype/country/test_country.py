@@ -49,3 +49,13 @@ class TestCountry(IntegrationTestCase):
 
 		self.assertEqual(countries_before, countries_after)
 		self.assertEqual(currencies_before, currencies_after)
+
+	def test_currency_minor_units_match_iso_4217(self):
+		_, currencies = get_countries_and_currencies()
+		fraction_units = {currency.name: currency.fraction_units for currency in currencies}
+
+		for code in "BIF CLP DJF GNF ISK JPY KMF KRW PYG RWF UGX VND VUV XAF XOF".split():
+			self.assertEqual(fraction_units[code], 0, code)
+
+		for code in "BHD IQD JOD KWD LYD OMR TND".split():
+			self.assertEqual(fraction_units[code], 1000, code)
