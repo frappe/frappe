@@ -672,7 +672,7 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | Separate comment and email writer pipelines | One | Activity column |
 | Three sets of loading and error states | One set of page states | New map |
 | The router waits for the next page's code | The frame changes at once | New map |
-| Six copies of per-user browser memory code | One helper | One page model; new map |
+| Three copies of per-user browser memory code in the shell | They use `browserMemory` | New map |
 | Two server cache keys for doctype owners and the address table | One | New map |
 | First app wins for item kinds; last app wins for replacements | Last app wins everywhere | Build and publishing |
 | File scripts and stored scripts load in two ways | One loader | One page model |
