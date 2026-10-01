@@ -1,5 +1,5 @@
-// One visit to a record: each load starts one. A reply, a toggle or a save that outlives its
-// visit does nothing, so the slower of two loads cannot write over the newer one.
+// One visit to a record: each load starts one. A reply or a save that outlives its visit lands
+// nothing, so a slower load cannot write over a newer one. Toggles queue across visits.
 export class Visit {
   private ended = false;
   private reads = 0;

@@ -88,6 +88,16 @@ describe("Visit.readNewest", () => {
     );
     expect(land).not.toHaveBeenCalled();
   });
+
+  it("rejects when the read throws before it returns a promise", async () => {
+    const visit = new Visit();
+    const land = vi.fn();
+    const read = () => {
+      throw new Error("bad address");
+    };
+    await expect(visit.readNewest(read, land)).rejects.toThrow("bad address");
+    expect(land).not.toHaveBeenCalled();
+  });
 });
 
 describe("Visit.inTurn", () => {
