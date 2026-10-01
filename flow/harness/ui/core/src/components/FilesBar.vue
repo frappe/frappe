@@ -70,7 +70,7 @@
 						No uncommitted changes
 					</div>
 				</template>
-				<!-- searching: a pruned tree of matches only, all branches open -->
+				<!-- searching: a pruned tree of matches only, branches open until folded -->
 				<template v-else-if="searchActive">
 					<div v-if="searchMatches === null" class="px-1.5 py-2 text-2xs text-ink-gray-4">
 						Searching…
@@ -79,18 +79,13 @@
 						<div
 							v-for="row in searchRows"
 							:key="row.path"
-							:role="row.type === 'file' ? 'button' : undefined"
-							:tabindex="row.type === 'file' ? 0 : undefined"
-							class="relative flex items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm"
-							:class="
-								row.type === 'file'
-									? 'cursor-pointer text-ink-gray-8 hover:bg-surface-gray-2'
-									: 'text-ink-gray-8'
-							"
+							role="button"
+							tabindex="0"
+							class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2"
 							:style="{ paddingLeft: row.depth * 16 + 8 + 'px' }"
 							:title="row.path"
-							@click="row.type === 'file' && flow.openFile(row.path)"
-							@keydown.enter.prevent="row.type === 'file' && flow.openFile(row.path)"
+							@click="activateRow(row)"
+							@keydown.enter.prevent="activateRow(row)"
 						>
 							<span
 								v-for="level in row.depth"
@@ -100,7 +95,7 @@
 							/>
 							<span class="grid h-4 w-4 flex-none place-items-center">
 								<FeatherIcon
-									:name="row.type === 'dir' ? 'chevron-down' : 'file'"
+									:name="row.type === 'dir' ? (row.open ? 'chevron-down' : 'chevron-right') : 'file'"
 									class="h-3.5 w-3.5 text-ink-gray-5"
 								/>
 							</span>
@@ -114,12 +109,13 @@
 						</div>
 					</template>
 				</template>
-				<template v-else-if="rootDir">
+				<!-- hidden, not unmounted, while searching: opened folders survive a search -->
+				<div v-if="mode === 'files' && rootDir" v-show="!searchActive">
 					<FileTree v-for="entry in rootEntries" :key="entry.name" :entry="entry" :dir="rootDir" />
 					<div v-if="!rootEntries.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
 						Empty folder
 					</div>
-				</template>
+				</div>
 			</div>
 		</div>
 		<div
@@ -131,7 +127,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, ref, watch } from "vue"
+import { computed, inject, onBeforeUnmount, reactive, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
@@ -214,11 +210,14 @@ const searchActive = computed(() => debouncedFileQuery.value.trim() !== "")
 const searchRoot = ref(null)
 const searchMatches = ref(null) // null while a search is in flight
 const searchTruncated = ref(false)
+// folders folded in the results: kept while the query is refined, dropped when it's cleared
+const collapsedDirs = reactive(new Set())
 
 watch(debouncedFileQuery, async (raw) => {
 	const query = raw.trim()
 	if (!query) {
 		searchMatches.value = null // reset, so the next search shows its own state
+		collapsedDirs.clear()
 		return
 	}
 	// Previous results stay rendered while the new search is in flight —
@@ -248,14 +247,22 @@ const searchRows = computed(() => {
 	const rows = []
 	const walk = (node, dir, depth) => {
 		for (const [name, child] of node.dirs) {
-			rows.push({ type: "dir", name, path: `${dir}/${name}`, depth })
-			walk(child, `${dir}/${name}`, depth + 1)
+			const path = `${dir}/${name}`
+			const open = !collapsedDirs.has(path)
+			rows.push({ type: "dir", name, path, depth, open })
+			if (open) walk(child, path, depth + 1)
 		}
 		for (const name of node.files) rows.push({ type: "file", name, path: `${dir}/${name}`, depth })
 	}
 	walk(tree, searchRoot.value.replace(/\/+$/, ""), 0)
 	return rows
 })
+
+function activateRow(row) {
+	if (row.type === "file") return flow.openFile(row.path)
+	if (collapsedDirs.has(row.path)) collapsedDirs.delete(row.path)
+	else collapsedDirs.add(row.path)
+}
 
 const clampWidth = (w) => Math.min(400, Math.max(160, w))
 const width = ref(clampWidth(flow.state.prefs.explorerWidth ?? 220))
