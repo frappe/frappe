@@ -430,6 +430,7 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | Import map | Points each name on the import list at a built file |
 | `classes.json` | Every CSS class the build defines |
 | Tailwind presets and content | Each app's theme preset, and the folders Tailwind reads |
+| Template plugin | Calls the template compiler for each `.js` and `.ts` app file that holds the word `template`. Stops `bench build` on a template error, and returns a source map |
 | Layer file (`frontend/architecture/layers.json`) | Each layer's paths and the layers it may use, and each of today's breaks with the ticket that removes it |
 | `/desk-architecture` | In developer mode, a System Manager's page of the layers, the flows and every import that breaks the layer file, built from the working tree on each request |
 
@@ -437,7 +438,7 @@ A script reaches the rest of the desk only through the `page` object it is hande
 
 | Concept | What it is |
 | --- | --- |
-| Compile module (`compileScript`, `cacheKeyParts`) | Finds each unquoted `template:` key and checks its names. Then it compiles the template with `@vue/compiler-dom` from `frontend/node_modules` and keeps every line number. Both tiers call it, so they give the same output and errors |
+| Compile module (`compileScript`, `cacheKeyParts`, `TEMPLATE_KEY`) | Finds each unquoted `template:` key and checks its names. Then it compiles the template with `@vue/compiler-dom` from `frontend/node_modules` and keeps every line number. Both tiers call it, so they give the same output and errors |
 | Names file | The names a template can use with no `components:` entry: `RouterLink`, `RouterView`, Vue's built-in components, `__` and `__n`. Part of the cache key |
 
 ## Ways to change the desk

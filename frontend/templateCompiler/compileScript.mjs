@@ -23,18 +23,19 @@ const COMPILE_OPTIONS = {
   compilerOptions: { hoistStatic: false, sourceMap: false },
 };
 // The word alone, so the shorthand `{ template }` and a commented key still reach the parse.
-const TEMPLATE_KEY = /\btemplate\b/;
+export const TEMPLATE_KEY = /\btemplate\b/;
 const LINE_BREAK = /\r\n?|[\n\u2028\u2029]/g;
 
 /**
- * Compiles every template in `source`, with error lines and columns counted from 1.
- * @returns {{ code: string | null, errors: { line: number, column: number, message: string }[] }}
+ * Compiles every template in `source`, with a source map when given the file's name.
+ * @returns {{ code: string | null, map?: object, errors: { line: number, column: number, message: string }[] }}
  */
-export function compileScript(source) {
+export function compileScript(source, { filename } = {}) {
   if (!TEMPLATE_KEY.test(source)) return { code: source, errors: [] };
+  const plugins = filename?.endsWith(".ts") ? ["typescript"] : [];
   let program;
   try {
-    program = babelParse(source, { sourceType: "module" }).program;
+    program = babelParse(source, { sourceType: "module", plugins }).program;
   } catch (error) {
     return { code: null, errors: [parseError(error)] };
   }
@@ -61,7 +62,10 @@ export function compileScript(source) {
   const imports = [...helpers].map(([name, local]) => `${name} as ${local}`);
   if (imports.length)
     output.prepend(`import { ${imports.join(", ")} } from "vue"; `);
-  return { code: output.toString(), errors: [] };
+  const code = output.toString();
+  if (!filename) return { code, errors: [] };
+  const map = output.generateMap({ source: filename, hires: true });
+  return { code, map, errors: [] };
 }
 
 /** What the server's cache key holds besides the source hash. */

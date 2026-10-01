@@ -162,7 +162,8 @@
         "frappe/bundler.py"
       ],
       "mayUse": [
-        "1"
+        "1",
+        "templateCompiler"
       ]
     },
     {
