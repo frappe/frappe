@@ -285,6 +285,51 @@ describe("acts inside a handler", () => {
   });
 });
 
+describe("acts held through a replay", () => {
+  it("land in kind order, tab move to composer open, whatever the call order", async () => {
+    const landed: string[] = [];
+    let current = "details";
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        page.composer.open("comment");
+        page.activity.scrollTo("comment:c1");
+        page.fields.focus("status");
+        page.panelSections.open("organization_section");
+        page.tabs.activate("activity");
+      },
+    });
+    const { controller } = makePage({
+      meta: ref({ fields: [{ fieldname: "status", fieldtype: "Data" }] }) as any,
+      activeTab: () => current,
+      activateTab: (tab) => {
+        landed.push(`tab:${tab}`);
+        current = tab;
+      },
+      discloseSection: (name, open) => void landed.push(`disclose:${name}:${open}`),
+      focusField: (fieldname) => void landed.push(`focus:${fieldname}`),
+      scrollToActivity: async (key) => {
+        landed.push(`scroll:${key}`);
+        return true;
+      },
+      openWriter: (name) => void landed.push(`open:${name}`),
+    });
+    controller.composer.provideBuiltins(() => [{ name: "comment", label: "Comment" }] as any[]);
+    controller.panelSections.provideBuiltins(() => [
+      { name: "organization_section", label: "Organization" },
+    ]);
+
+    await controller.refresh();
+
+    expect(landed).toEqual([
+      "tab:activity",
+      "disclose:organization_section:true",
+      "focus:status",
+      "scroll:comment:c1",
+      "open:comment",
+    ]);
+  });
+});
+
 describe("the running source", () => {
   it("names each of two overlapping handlers until it settles, then the host", async () => {
     const first = gate();

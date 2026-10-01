@@ -2,12 +2,6 @@
 // the last of them commits.
 import { toRaw } from "vue";
 
-/** Why a held act is dropped when the first paint goes ahead without its target. */
-export const NOT_DRAWN = "the first paint went ahead without it";
-
-/** Why an act is dropped when it runs in the replay after a background read. */
-export const IN_BACKGROUND = "it ran in the replay after a background read";
-
 /** Why an `onOpen` view act is dropped on a visit whose view the host puts back. */
 export const RESTORED_VIEW = "onOpen ran on a view the page restored";
 

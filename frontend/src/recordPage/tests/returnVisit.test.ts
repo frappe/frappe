@@ -518,6 +518,59 @@ describe("refresh({ background: true })", () => {
     expect(warnings).toEqual([]);
   });
 
+  it("cancels an open a hold keeps back when its replay closes the composer", async () => {
+    let closing = false;
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        if (closing) page.composer.close();
+      },
+    });
+    await loadClientScripts("CRM Deal");
+    const opened: string[] = [];
+    const { controller } = makePage({
+      openWriter: (name) => void opened.push(name),
+      closeWriter: () => {},
+      activeWriter: () => "",
+    });
+    controller.tabs.provideBuiltins(() => [{ name: "activity", label: "Activity" }]);
+    controller.composer.provideBuiltins(() => [{ name: "comment", label: "Comment", icon: "" }]);
+    await vi.advanceTimersByTimeAsync(0);
+    controller.paintNow();
+    const pause = gate();
+    const held = controller.hold(async () => {
+      controller.page.composer.open("comment");
+      await pause.opened;
+    });
+
+    closing = true;
+    await controller.refresh({ background: true });
+    pause.open();
+    await held;
+
+    expect(opened).toEqual([]);
+  });
+
+  it("gives one warning for an open with a bad window that the replay drops", async () => {
+    let opening = false;
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        if (opening) page.composer.open("comment", { window: "bad" as any });
+      },
+    });
+    await loadClientScripts("CRM Deal");
+    const { controller } = makePage({ openWriter: () => {} });
+    controller.composer.provideBuiltins(() => [{ name: "comment", label: "Comment", icon: "" }]);
+    await vi.advanceTimersByTimeAsync(0);
+    controller.paintNow();
+
+    opening = true;
+    await controller.refresh({ background: true });
+
+    expect(warnings).toEqual([
+      '[record-page] page.composer.open("comment") — it ran in the replay after a background read; nothing was opened.',
+    ]);
+  });
+
   it("draws nothing when an unchanged replay hands one new object to two ops", async () => {
     await register("deal", {
       onRefresh: (page: RecordPageApi) => {

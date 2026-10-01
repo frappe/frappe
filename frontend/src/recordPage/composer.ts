@@ -1,6 +1,6 @@
 // `page.composer`: the writers the band at the foot of a composer tab offers, and the
 // acts that open and close one. The host draws the band and keeps the drafts.
-import { IN_BACKGROUND, NOT_DRAWN } from "./staging";
+import type { HeldAct, TakeResult } from "./heldActs";
 import { Surface } from "./surface";
 import { WRITER_ITEM_KEYS } from "./types";
 import type {
@@ -41,13 +41,12 @@ export interface ComposerHost {
 }
 
 export class ComposerSurface extends Surface<WriterItem> implements PageComposer {
-  private heldOpen: { name: string; options: ComposerOpenOptions } | null = null;
-
   constructor(
     private readonly host: ComposerHost,
-    /** The page's rule for whether an act waits for a commit. */
-    private readonly isStaging: () => boolean,
-    private readonly inBackground: () => boolean = () => false,
+    /** Holds or drops an act; false means deliver it now. */
+    private readonly take: (act: HeldAct) => TakeResult = () => false,
+    /** Removes a held act of that kind and target. */
+    private readonly drop: (kind: HeldAct["kind"], target: string) => void = () => {},
   ) {
     super({ surface: "composer", keys: WRITER_ITEM_KEYS });
   }
@@ -66,30 +65,30 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
     else this.host.setWindow(value);
   }
 
-  /** Called in a replay or a hold, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
+  /** Called in a replay or a hold, the open waits for the commit, as `activity.scrollTo` waits. */
   open(name: string, options: ComposerOpenOptions = {}) {
     if (!this.canOpen(name)) return;
-    if (this.inBackground()) return void this.refuse(name, IN_BACKGROUND);
-    const checked = this.checkWindow(name, options);
-    if (this.isStaging()) this.heldOpen = { name, options: checked };
-    else this.deliver(name, checked);
+    let checked = options;
+    const taken = this.take({
+      kind: "open",
+      target: "",
+      isDrawn: () => this.isDrawn(name),
+      land: () => this.landOpen(name, checked),
+      refuse: (because) => this.refuse(name, because),
+    });
+    if (taken === "dropped") return;
+    // Checked after `take`, so a dropped open gives one warning.
+    checked = this.checkWindow(name, options);
+    if (!taken) this.deliver(name, checked);
   }
 
   close() {
-    this.heldOpen = null;
+    this.drop("open", "");
     this.host.closeWriter();
   }
 
-  // Host side, below: not part of what a script may call.
-
-  /** `drawnOnly` at the first paint that went ahead: a writer not drawn yet is dropped. */
-  releaseOpen(drawnOnly = false) {
-    const held = this.heldOpen;
-    this.heldOpen = null;
-    if (!held) return;
-    if (drawnOnly && !this.isDrawn(held.name)) this.refuse(held.name, NOT_DRAWN);
-    else if (this.canOpen(held.name, "it left the composer before the replay settled"))
-      this.deliver(held.name, held.options);
+  private landOpen(name: string, options: ComposerOpenOptions) {
+    if (this.canOpen(name, "it left the composer before the replay settled")) this.deliver(name, options);
   }
 
   private canOpen(name: string, gone = "no such writer") {
