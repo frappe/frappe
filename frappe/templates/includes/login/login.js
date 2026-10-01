@@ -308,6 +308,8 @@ login.login_handlers = (function () {
 						return v;
 					}
 				}) || []).join('<br>') || default_message;
+			} else if (data.exc_type === "AdministratorPasswordLoginDisabledError") {
+				message = {{ _("Administrator password login is disabled") | tojson }};
 			}
 
 			login.set_invalid(message);

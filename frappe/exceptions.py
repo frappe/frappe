@@ -34,6 +34,10 @@ class AuthenticationError(Exception):
 	skip_error_log = True
 
 
+class AdministratorPasswordLoginDisabledError(AuthenticationError):
+	pass
+
+
 class SessionExpired(Exception):
 	http_status_code = 401
 

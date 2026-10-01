@@ -391,6 +391,19 @@ class User(Document):
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
 		self.disable_email_fields_if_user_disabled()
 
+	def validate_administrator_password_change(self):
+		"""Refuse a new Administrator password while disable administrator password login is on."""
+		if self.name == "Administrator" and frappe.get_system_settings(
+			"disable_administrator_password_login"
+		):
+			frappe.throw(
+				_(
+					"Turn off Disable Administrator Password Login in System Settings before setting a password."
+				),
+				exc=frappe.AdministratorPasswordLoginDisabledError,
+				title=_("Administrator Password Login Disabled"),
+			)
+
 	def set_new_password(self, new_password=None):
 		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
@@ -1281,6 +1294,7 @@ def reset_password(user: str) -> None:
 def change_password(user: str, new_password: str, logout_all_sessions: int = 1) -> None:
 	user_doc: User = frappe.get_doc("User", user)
 	user_doc.check_permission("write")
+	user_doc.validate_administrator_password_change()
 	user_doc.new_password = new_password
 	user_doc.logout_all_sessions = logout_all_sessions
 	user_doc.save()

@@ -44,6 +44,7 @@ class SystemSettings(Document):
 		default_app: DF.Literal[None]
 		delete_background_exported_reports_after: DF.Int
 		deny_multiple_sessions: DF.Check
+		disable_administrator_password_login: DF.Check
 		disable_change_log_notification: DF.Check
 		disable_document_sharing: DF.Check
 		disable_product_suggestion: DF.Check
@@ -154,6 +155,7 @@ class SystemSettings(Document):
 			frappe.flags.update_last_reset_password_date = True
 
 		self.validate_user_pass_login()
+		self.validate_administrator_password_login_setting()
 		self.validate_backup_limit()
 		self.validate_file_extensions()
 		self.validate_otp_sms_template()
@@ -192,6 +194,15 @@ class SystemSettings(Document):
 				_(
 					"Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 				)
+			)
+
+	def validate_administrator_password_login_setting(self):
+		if not self.has_value_changed("disable_administrator_password_login"):
+			return
+		if frappe.session.user != "Administrator":
+			frappe.throw(
+				_("Only Administrator can change Disable Administrator Password Login"),
+				frappe.PermissionError,
 			)
 
 	def validate_backup_limit(self):
@@ -277,6 +288,16 @@ def clear_system_settings_cache():
 	frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
 	frappe.cache.delete_value("system_settings")
 	frappe.cache.delete_value("time_zone")
+
+
+def warn_admin_password_login_enabled():
+	import click
+
+	click.secho(
+		"Warning: Administrator password login is enabled, so the account is open to password attacks.\n"
+		"Disable it from System Settings and use `bench --site <site> browse --user Administrator` instead to secure the account.",
+		fg="yellow",
+	)
 
 
 def sync_system_settings():

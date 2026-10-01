@@ -38,6 +38,7 @@
   "column_break_txqh",
   "deny_multiple_sessions",
   "disable_user_pass_login",
+  "disable_administrator_password_login",
   "max_signups_allowed_per_hour",
   "login_methods_section",
   "allow_login_using_mobile_number",
@@ -536,6 +537,13 @@
    "label": "Disable Username/Password Login"
   },
   {
+   "default": "0",
+   "description": "Only Administrator can change this. To log in without a password run <code>bench --site &lt;site&gt; browse --user Administrator.</code>",
+   "fieldname": "disable_administrator_password_login",
+   "fieldtype": "Check",
+   "label": "Disable Administrator Password Login"
+  },
+  {
    "default": "1",
    "description": "Allow users to log in without a password, using a login link sent to their email",
    "fieldname": "login_with_email_link",
@@ -856,7 +864,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-06 17:22:18.039321",
+ "modified": "2026-10-01 13:07:06.205531",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

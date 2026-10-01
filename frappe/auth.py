@@ -285,6 +285,16 @@ class LoginManager:
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("Invalid login credentials", user=_raw_user_name)
 
+		if user.name == "Administrator" and frappe.get_system_settings(
+			"disable_administrator_password_login"
+		):
+			ip_tracker and ip_tracker.add_failure_attempt()
+			self.fail(
+				"Administrator password login is disabled",
+				user=user.name,
+				exc=frappe.AdministratorPasswordLoginDisabledError,
+			)
+
 		# Current login flow uses cached credentials for authentication while checking OTP.
 		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
 		# Tracker is activated for 2FA incase of OTP.
@@ -332,13 +342,13 @@ class LoginManager:
 		except frappe.AuthenticationError:
 			self.fail("Incorrect password", user=user)
 
-	def fail(self, message, user=None):
+	def fail(self, message, user=None, exc=frappe.AuthenticationError):
 		if not user:
 			user = _("Unknown User")
 		frappe.local.response["message"] = message
 		add_authentication_log(message, user, status="Failed")
 		frappe.db.commit()
-		raise frappe.AuthenticationError
+		raise exc
 
 	def run_trigger(self, event="on_login"):
 		for method in frappe.get_hooks().get(event, []):

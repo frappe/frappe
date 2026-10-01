@@ -168,6 +168,29 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
+	def test_disable_administrator_password_login(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import set_request
+
+		self.set_system_settings("disable_administrator_password_login", 1)
+		self.addCleanup(self.set_system_settings, "disable_administrator_password_login", 0)
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = "Administrator"
+		frappe.form_dict.pwd = "wrong-on-purpose"
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.68"
+		frappe.local.cookie_manager = CookieManager()
+		self.addCleanup(frappe.form_dict.clear)
+
+		logs_before = frappe.db.count("Activity Log", {"user": "Administrator"})
+		with self.assertRaises(frappe.AdministratorPasswordLoginDisabledError):
+			LoginManager()
+		# same answer for a wrong password, so nothing leaks about the real one
+		self.assertEqual(frappe.local.response.message, "Administrator password login is disabled")
+		# the attempt still lands in the audit log
+		self.assertEqual(frappe.db.count("Activity Log", {"user": "Administrator"}), logs_before + 1)
+
 	def test_forced_password_reset_does_not_leak_reset_key(self):
 		from frappe.auth import LoginManager
 		from frappe.utils import add_days, set_request, today

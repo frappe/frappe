@@ -1,8 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import getpass
-
 import frappe
+from frappe.core.doctype.system_settings.system_settings import warn_admin_password_login_enabled
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
@@ -40,8 +39,7 @@ def after_install():
 	# all roles to admin
 	frappe.get_doc("User", "Administrator").add_roles(*frappe.get_all("Role", pluck="name"))
 
-	# update admin password
-	update_password("Administrator", get_admin_password())
+	setup_admin_password()
 
 	if not frappe.conf.skip_setup_wizard:
 		# only set home_page if the value doesn't exist in the db
@@ -128,8 +126,18 @@ def install_basic_docs():
 			pass
 
 
-def get_admin_password():
-	return frappe.conf.get("admin_password") or getpass.getpass("Set Administrator password: ")
+def setup_admin_password():
+	"""Set the Administrator password on a new site, only if given via --admin-password or common_site_config.
+
+	Password given: it is set and `disable_administrator_password_login` stays 0 (default).
+	No password: no record is inserted in __Auth and the setting is turned on (1), so Administrator cannot log in with a password.
+	"""
+	password = frappe.conf.get("admin_password")
+	if not password:
+		frappe.db.set_single_value("System Settings", "disable_administrator_password_login", 1)
+		return
+	update_password("Administrator", password)
+	warn_admin_password_login_enabled()
 
 
 def before_tests():

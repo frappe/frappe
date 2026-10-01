@@ -1,5 +1,10 @@
 frappe.ui.form.on("System Settings", {
 	refresh: function (frm) {
+		frm.set_df_property(
+			"disable_administrator_password_login",
+			"read_only",
+			frappe.session.user !== "Administrator"
+		);
 		frappe.call({
 			method: "frappe.core.doctype.system_settings.system_settings.load",
 			callback: function (data) {
