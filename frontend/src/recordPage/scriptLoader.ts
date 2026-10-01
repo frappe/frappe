@@ -19,8 +19,9 @@ export function addFileScript(doctype: string, script: FileScript) {
 
 /** Resolves when the doctype's file scripts and its fresh Client Script tier have registered. */
 export function loadRecordScripts(doctype: string): Promise<void> {
-  for (const { app, handlers } of fileScripts.get(doctype) ?? [])
-    withRegisteringSource(app, () => registerRecordPage(doctype, handlers));
+  const pending = fileScripts.get(doctype) ?? [];
   fileScripts.delete(doctype);
+  for (const { app, handlers } of pending)
+    withRegisteringSource(app, () => registerRecordPage(doctype, handlers));
   return loadClientScripts(doctype);
 }
