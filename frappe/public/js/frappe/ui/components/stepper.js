@@ -13,7 +13,7 @@ frappe.provide("frappe.ui");
  * @property {(index:number)=>void} [on_step_click] Called for an unlocked step; call set_current to move.
  * @property {(index:number)=>void} [on_locked_click] Called for a locked step; ignored if not given.
  * @property {boolean} [compact] Show a progress bar with "Step x of y" instead of the steps, for narrow layouts.
- * @property {boolean} [label_below] Put each label under its marker instead of beside it.
+ * @property {"right"|"left"|"top"|"bottom"} [label_position="right"] Where each label sits relative to its marker.
  * @property {string} [css_class] Extra classes on the nav.
  */
 
@@ -40,8 +40,13 @@ frappe.ui.Stepper = class Stepper {
 
 		this.nav = document.createElement("nav");
 		this.nav.className = ["es-stepper", opts.css_class].filter(Boolean).join(" ");
-		this.nav.classList.toggle("es-stepper--label-below", Boolean(opts.label_below));
-		if (opts.label_below) {
+		const label_position = ["bottom", "top", "left"].includes(opts.label_position)
+			? opts.label_position
+			: "right";
+		if (label_position !== "right") {
+			this.nav.classList.add(`es-stepper--label-${label_position}`);
+		}
+		if (label_position === "bottom" || label_position === "top") {
 			// Caps each label at its share of the row.
 			this.nav.style.setProperty("--es-stepper-steps", this.steps.length);
 		}

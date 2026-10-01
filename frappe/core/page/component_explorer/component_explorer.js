@@ -866,9 +866,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
-					title: __("Label below icon"),
+					title: __("Label position"),
 					items: [
 						{
+							__code: 'frappe.ui.stepper({\n  steps: [{ label: "Config" }, { label: "Preview" }, { label: "Fix issues" }, { label: "Import" }],\n  current: 1,\n  label_position: "bottom",  // or "right" (default), "left", "top"\n})',
 							steps: [
 								{ label: "Config" },
 								{ label: "Preview" },
@@ -876,7 +877,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								{ label: "Import" },
 							],
 							current: 1,
-							label_below: true,
+							label_position: "bottom",
 						},
 					],
 				},
