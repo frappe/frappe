@@ -28,9 +28,10 @@ unrelated actions.
 ## Findings
 
 - Blocking, not a nit: a new crash or uncaught exception, leftover no-op code,
-  the same bug in a sibling file, a missing `modified` bump on a changed
-  DocType, a missing permission check, a breaking change without `!` and a
-  migration path.
+  the same bug in a sibling file, a missing permission check, a breaking
+  change without `!` and a migration path.
+- Do not ask for a `modified` bump on a changed DocType JSON. Migrate
+  re-imports a DocType when the file's hash changes.
 - New behaviour and bug fixes need a test that fails without the fix, run as a
   normal user with `example.com` data. Do not ask for one on a presentation-only
   change; ask for a before and after screenshot. Text or markup a caller or a
