@@ -220,6 +220,28 @@ class TestCustomField(IntegrationTestCase):
 
 		field.delete()
 
+	def test_administrator_field_deletes_only_with_ignore_permissions(self):
+		field = create_custom_field(
+			"ToDo", {"fieldname": f"test_admin_{frappe.generate_hash(length=5)}", "fieldtype": "Data"}
+		)
+		user = "custom-field-manager@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": user,
+					"first_name": "Custom Field Manager",
+					"send_welcome_email": 0,
+					"roles": [{"role": "System Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+		with self.set_user(user):
+			self.assertRaises(frappe.ValidationError, frappe.client.delete, "Custom Field", field.name)
+			frappe.delete_doc("Custom Field", field.name, ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("Custom Field", field.name))
+
 	def test_delete_custom_fields(self):
 		doctype = "ToDo"
 		fields = [

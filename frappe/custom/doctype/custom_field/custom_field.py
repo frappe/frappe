@@ -229,8 +229,12 @@ class CustomField(Document):
 			frappe.db.updatedb(self.dt)
 
 	def on_trash(self):
-		# check if Admin owned field
-		if self.owner == "Administrator" and frappe.session.user != "Administrator":
+		# check if Admin owned field, unless the caller has already checked permissions
+		if (
+			self.owner == "Administrator"
+			and frappe.session.user != "Administrator"
+			and not self.flags.ignore_permissions
+		):
 			frappe.throw(
 				_(
 					"Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account."
