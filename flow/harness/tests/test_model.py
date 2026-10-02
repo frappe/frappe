@@ -784,3 +784,16 @@ def test_usage_event_maps_cache_write_tokens_detail():
 	)
 
 	assert (usage.cache_read_tokens, usage.cache_write_tokens) == (40, 6)
+
+
+async def test_litellm_stream_takes_its_cost_from_the_final_usage(monkeypatch):
+	_stream(
+		monkeypatch,
+		[
+			_chunk({"content": "hi"}, finish_reason="stop"),
+			{"choices": [], "usage": {"prompt_tokens": 1000, "completion_tokens": 50, "cost": 0.002}},
+		],
+	)
+	events = await _collect(LiteLLMModel("openai/gpt-4o").run(ModelRequest(messages=[])))
+
+	assert events[-1].cost == 0.002

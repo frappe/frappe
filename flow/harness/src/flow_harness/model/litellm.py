@@ -227,7 +227,6 @@ class _ResponseAssembler:
 	placed_calls: set[int] = field(default_factory=set)
 	thinking_open: bool = False
 	raw_usage: Any = None
-	cost: float = 0.0
 	finish_reason: str | None = None
 	response_id: str | None = None
 	response_model: str | None = None
@@ -250,9 +249,6 @@ class _ResponseAssembler:
 		chunk_usage = _attr(chunk, "usage")
 		if chunk_usage is not None:
 			self.raw_usage = chunk_usage
-		chunk_cost = (getattr(chunk, "_hidden_params", None) or {}).get("response_cost")
-		if chunk_cost is not None:
-			self.cost = chunk_cost
 		return events
 
 	def _add_reasoning(self, delta: Any) -> list[AnyEvent]:
@@ -353,7 +349,7 @@ class _ResponseAssembler:
 		return with_tool_call_displays(message, self.tool_display_templates)
 
 	def usage(self) -> Usage:
-		return _usage_event(self.raw_usage, self.cost)
+		return _usage_event(self.raw_usage)
 
 
 # --- litellm response helpers ---------------------------------------------
@@ -722,9 +718,11 @@ def _stop_reason(value: str | None, *, has_tools: bool = False) -> StopReason:
 	return "tool_use" if has_tools else "stop"
 
 
-def _usage_event(usage_obj: Any, cost: float) -> Usage:
+def _usage_event(usage_obj: Any, cost: float = 0.0) -> Usage:
 	# LiteLLM includes cached tokens in prompt_tokens.
 	details = _attr(usage_obj, "prompt_tokens_details")
+	# streamed calls carry their cost on the usage
+	stated = _attr(usage_obj, "cost")
 	return Usage(
 		input_tokens=_attr(usage_obj, "prompt_tokens", 0) or 0,
 		output_tokens=_attr(usage_obj, "completion_tokens", 0) or 0,
@@ -735,7 +733,7 @@ def _usage_event(usage_obj: Any, cost: float) -> Usage:
 		or _attr(details, "cache_write_tokens", 0)
 		or _attr(details, "cache_creation_tokens", 0)
 		or 0,
-		cost=cost or 0.0,
+		cost=cost or (stated if isinstance(stated, (int, float)) else 0.0),
 	)
 
 
