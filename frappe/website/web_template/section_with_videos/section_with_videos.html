@@ -10,7 +10,7 @@
 		{%- for video in videos -%}
 		<div class="section-feature">
             <div class="section-video-wrapper" data-youtube-id="{{ video.youtube_id }}">
-                <img class="video-thumbnail" src="https://i.ytimg.com/vi/{{ video.youtube_id }}/sddefault.jpg">
+                <img class="video-thumbnail" src="https://i.ytimg.com/vi/{{ video.youtube_id }}/sddefault.jpg" alt="{{ (video.title or _('Video')) | e }}">
             </div>
             {%- if video.title -%}
             <h4 class="feature-title mt-0">{{ video.title }}</h4>
