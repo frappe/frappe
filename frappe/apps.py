@@ -62,6 +62,10 @@ def get_apps():
 						"logo": app_detail.get("logo"),
 						"title": _(app_detail.get("title")),
 						"route": app_detail.get("route"),
+						# opts the app into the setup wizard's intro
+						"setup_wizard_text": _(app_detail["setup_wizard_text"])
+						if app_detail.get("setup_wizard_text")
+						else None,
 					}
 				)
 			except Exception:
