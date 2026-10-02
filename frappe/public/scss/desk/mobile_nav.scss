@@ -13,7 +13,8 @@ frappe-mobile-nav.desk-mobile-nav {
 }
 
 @include media-breakpoint-down(sm) {
-	frappe-mobile-nav.desk-mobile-nav {
+	// see MobileNav.apply_page_visibility for when <body> has the class
+	body.has-mobile-nav frappe-mobile-nav.desk-mobile-nav {
 		display: block;
 		position: fixed;
 		left: 0;
