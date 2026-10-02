@@ -11,7 +11,7 @@ dynamic = ["version"]
 dependencies = [
     "frappe-flow==0.1.10",
     "lancedb<1,>=0.33",
-    "litellm>=1.100,<2",
+    "litellm>=1.103.2,<2",
     "onnxruntime<2,>=1.27",
     "pdfplumber<1,>=0.11",
     "python-docx<2,>=1.1",
