@@ -1,6 +1,11 @@
 import time
 from contextlib import contextmanager
+<<<<<<< HEAD
 from unittest.mock import patch
+=======
+from contextvars import copy_context
+from unittest.mock import PropertyMock, patch
+>>>>>>> 2bc8d1c (fix(permissions): don't load virtual single doc for doctype permission check)
 
 from rq import Queue
 from rq.job import Job
@@ -12,6 +17,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,
 	RQ_RESULTS_TTL,
+	_check_queue_size,
 	create_job_id,
 	execute_job,
 	generate_qname,
@@ -40,6 +46,39 @@ class TestBackgroundJobs(IntegrationTestCase):
 				fail_registry = queue.failed_job_registry
 				self.assertEqual(fail_registry.count, 0)
 
+<<<<<<< HEAD
+=======
+	def test_full_queue_raises_queue_overloaded_once(self):
+		frappe.get_doc("User", "test1@example.com").add_roles("System Manager")
+
+		with (
+			self.set_user("test1@example.com"),
+			patch.object(Queue, "count", new_callable=PropertyMock, return_value=10**9),
+			patch(
+				"frappe.utils.background_jobs._check_queue_size", wraps=_check_queue_size
+			) as check_queue_size,
+		):
+			self.assertRaises(frappe.QueueOverloaded, frappe.enqueue, "frappe.ping")
+
+		check_queue_size.assert_called_once()
+
+	def test_get_queues_timeout_tolerates_invalid_workers_config(self):
+		builtin = {"short", "default", "long"}
+		self.addCleanup(get_queues_timeout.cache_clear)
+
+		with patch("frappe.get_conf", return_value={"workers": 8}):
+			get_queues_timeout.cache_clear()
+			timeouts = get_queues_timeout()
+		self.assertEqual(set(timeouts), builtin)
+
+		with patch("frappe.get_conf", return_value={"workers": {"long": 999, "custom": {"timeout": 5000}}}):
+			get_queues_timeout.cache_clear()
+			timeouts = get_queues_timeout()
+		self.assertEqual(timeouts["custom"], 5000)
+		self.assertEqual(timeouts["long"], 1500)
+		self.assertLessEqual(builtin, set(timeouts))
+
+>>>>>>> 2bc8d1c (fix(permissions): don't load virtual single doc for doctype permission check)
 	def test_enqueue_at_front(self):
 		kwargs = {
 			"method": "frappe.handler.ping",
