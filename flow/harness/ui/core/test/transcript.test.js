@@ -1267,3 +1267,24 @@ test("failed compaction usage does not attach to an assistant response", () => {
 	assert.equal(buildTranscriptRows(conversation).find((row) => row.kind === "assistant").usage, undefined)
 	assert.equal(conversation.usage.output, 120)
 })
+
+test("a sub-agent call shows what its own run spent", () => {
+	const conversation = initialConversation()
+	const delegate = (seq, id, args) =>
+		applyEvent(conversation, {
+			type: "assistant_message",
+			seq,
+			content: [{ type: "tool_call", id, name: "subagent", arguments: args }],
+		})
+	delegate(2, "s1", { description: "review the diff" })
+	applyEvent(conversation, { ...usageEvent(3, 4000, 200), subagent_id: "s1", cost: 0.01 })
+	applyEvent(conversation, { type: "tool_result", seq: 4, tool_call_id: "s1", name: "subagent", content: "done" })
+	delegate(5, "s2", { subagent_id: "s1", description: "now the tests" }) // continues the same child
+	applyEvent(conversation, { ...usageEvent(6, 5000, 300), subagent_id: "s1" })
+
+	const rows = buildTranscriptRows(conversation)
+	const [first, second] = rows.filter((row) => row.kind === "tool")
+	assert.deepEqual(first.usage, { input_tokens: 4000, output_tokens: 200, cache_read_tokens: 0, cache_write_tokens: 0, cost: 0.01 })
+	assert.equal(second.usage.input_tokens, 5000) // still running: what it has spent so far
+	assert.ok(rows.every((row) => row.kind === "tool" || !row.usage)) // never the session's own rows
+})

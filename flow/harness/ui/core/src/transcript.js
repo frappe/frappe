@@ -747,12 +747,13 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 // One row per operation, in transcript order, holding the objects the server sent
 // minus Flow's own fields. Usage belongs to model requests, so attach each provider
 // report to the row that made the call — a response, or a compaction — never to
-// messages or tool results.
+// messages or tool results. A sub-agent call's row sums what its child spent.
 //   {key, kind: "system"|"user"|"assistant"|"tool"|"compaction"|"error",
 //    body?, entry?, input?, output?, usage?}
 export function buildTranscriptRows(conversation) {
 	const rows = []
 	const steps = new Map() // tool call id -> its row, filled when the result lands
+	const runs = new Map() // sub-agent call id -> its child and the log span it ran in
 	const entries = conversation.entries ?? []
 	const requests = conversation.requests ?? []
 	let cursor = 0
@@ -774,10 +775,14 @@ export function buildTranscriptRows(conversation) {
 				const step = { key: `c:${call.id}`, kind: "tool", input: withoutFlowFields(call) }
 				steps.set(call.id, step)
 				rows.push(step)
+				const child = call.name === "subagent" ? conversation.subagents?.[subagentId(call)] : null
+				if (child) runs.set(call.id, { step, child, from: entry.seq, to: Infinity })
 			}
 		} else if (entry.type === "tool_result") {
 			const step = steps.get(entry.tool_call_id)
 			if (step) step.output = withoutFlowFields(entry)
+			const run = runs.get(entry.tool_call_id)
+			if (run) run.to = entry.seq
 		} else if (entry.type === "compaction") {
 			caller = { key: `k:${entry.seq}`, kind: "compaction", entry: withoutFlowFields(entry) }
 			rows.push(caller)
@@ -793,7 +798,18 @@ export function buildTranscriptRows(conversation) {
 				caller.usage = withoutFlowFields(usage)
 		}
 	}
+	// a continued sub-agent runs once per call: each row counts only its own run
+	for (const { step, child, from, to } of runs.values()) {
+		const reports = child.requests.filter((usage) => usage.seq > from && usage.seq < to)
+		if (reports.length) step.usage = summedUsage(reports)
+	}
 	return rows
+}
+
+// usage reports added up, in the fields one report has
+function summedUsage(reports) {
+	const fields = ["input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "cost"]
+	return Object.fromEntries(fields.map((field) => [field, reports.reduce((sum, usage) => sum + (usage[field] ?? 0), 0)]))
 }
 
 // Flow's bookkeeping: the log's envelope, render hints, adapter state, accounting flags
