@@ -931,11 +931,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// A jump was not made from the shell on screen, so sharing an app is not enough to stay.
 		// Nor is a row in the Private shell, which is a shortcut and not where the entity belongs.
+		// A shared page belongs in every shell, Private included, so it stays there too.
 		const listed_only = frappe.router.is_jump;
-		const on_screen =
-			listed_only && this.current_module === frappe.ui.PRIVATE_SHELL
-				? null
-				: this.current_module;
+		const leaves_private =
+			listed_only &&
+			this.current_module === frappe.ui.PRIVATE_SHELL &&
+			!frappe.router.page_info_for(route)?.shared_page;
+		const on_screen = leaves_private ? null : this.current_module;
 		if (on_screen && this.shell_can_show(on_screen, route, { listed_only })) return on_screen;
 
 		return this.canonical_shell_for(route);

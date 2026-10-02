@@ -449,6 +449,20 @@ describe("Desk URL shell segment", () => {
 		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
 	});
 
+	it("keeps a shared page in the Private shell on a jump", () => {
+		// A jump leaves Private for anything else, since a row there is a shortcut and not where
+		// the entity belongs. A shared page belongs in every shell, so there is nowhere to leave to.
+		cy.visit("/desk/private/todo");
+		cy.window().its("frappe.app.sidebar.current_module").should("eq", "Private");
+
+		cy.window().then((win) => {
+			win.frappe.route_flags.jump = true;
+			win.frappe.set_route("print", "User", "Administrator");
+		});
+		cy.location("pathname").should("eq", "/desk/private/print/User/Administrator");
+		cy.window().its("frappe.app.sidebar.current_module").should("eq", "Private");
+	});
+
 	it("opens a shared page in its own module's shell when nothing names one", () => {
 		cy.visit("/desk/print/User/Administrator");
 		on_route(["print", "User", "Administrator"]);
