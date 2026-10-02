@@ -122,6 +122,7 @@ class BaseDocument:
 			"_doc_before_save",
 			"_table_fieldnames",
 			"_reserved_keywords",
+			"_action",
 			"permitted_fieldnames",
 			"dont_update_if_missing",
 		)
