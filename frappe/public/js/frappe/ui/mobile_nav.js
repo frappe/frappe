@@ -4,8 +4,8 @@ frappe.provide("frappe.ui");
  * The bottom tab bar on phones. The bar itself is frappe-ui's <frappe-mobile-nav>
  * custom element (prebuilt into /assets/frappe/js/lib/frappe-mobile-nav.js and loaded
  * after this bundle, sharing Desk's Vue through frappe.Vue). This class only picks
- * the tabs and wires each one to something Desk already has: the router, the search
- * modal and the notifications panel.
+ * the tabs and wires each one to something Desk already has. Search and Notifications are
+ * pages of their own (desk/page/search, desk/page/notifications), for phones only.
  *
  * The tabs are the same everywhere. Where you are lives in the page header instead: tapping
  * the page title opens a sheet with the dock across the top and the sidebar under it
@@ -63,15 +63,13 @@ frappe.ui.MobileNav = class MobileNav {
 				icon: "plus",
 				on_click: () => this.open_new(),
 			},
+			// the notifications page (desk/page/notifications)
 			notifications &&
 				frappe.session.user !== "Guest" && {
 					name: "notifications",
 					label: __("Notifications"),
 					icon: "bell",
-					// The panel treats clicks inside its trigger class as its own, so a
-					// second tap closes it instead of closing-then-reopening it.
-					css_class: "sidebar-notification",
-					on_click: () => frappe.ui.sidebar_panels.toggle("notifications"),
+					to: "/desk/notifications",
 				},
 			{
 				name: "profile",
@@ -87,7 +85,6 @@ frappe.ui.MobileNav = class MobileNav {
 		item.setAttribute("label", tab.label);
 		// with `to` the item is a link Desk's router picks up; without, a button
 		if (tab.to) item.setAttribute("to", tab.to);
-		if (tab.css_class) item.className = tab.css_class;
 		item.innerHTML = frappe.utils.icon(tab.icon, "md");
 		if (tab.on_click) {
 			item.addEventListener("click", (e) => {
@@ -106,7 +103,7 @@ frappe.ui.MobileNav = class MobileNav {
 		document.body.classList.toggle("has-mobile-nav", !!this.defined && !page?.hide_mobile_nav);
 	}
 
-	// Home and Search are places; the other tabs open something over the page.
+	// Home, Search and Notifications are places; New and Profile open sheets over the page.
 	set_active() {
 		const route = frappe.get_route() || [];
 		// /desk (the app launcher) routes as [""]
