@@ -86,7 +86,10 @@ function slot_parts(content, sheet) {
  * doesn't scroll, focus stays inside until it closes. Drag the handle down
  * to close, or between snap points. A follow-up choice is a step pushed
  * into the same sheet (Back appears), never a second sheet.
+ *
+ * Not part of the desk bundle: load it before the first use.
  * @example
+ * await frappe.require("bottom_sheet.bundle.js");
  * new frappe.ui.BottomSheet({
  *     title: __("Sort by"),
  *     options: [{ label: __("Created On"), selected: true, onclick: () => sort("creation") }],
