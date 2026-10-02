@@ -9,7 +9,7 @@ frappe.provide("frappe.ui");
  *
  * The tabs are the same everywhere. Where you are lives in the page header instead: tapping
  * the page title opens a sheet with the dock across the top and the sidebar under it
- * (see open_navigation). New and You open sheets too, all one <frappe-bottom-sheet>.
+ * (see open_navigation). New and Profile open sheets too, all one <frappe-bottom-sheet>.
  *
  * It is always in the DOM; mobile_nav.scss shows it below the md breakpoint only, so
  * rotating or resizing past 768px needs no JS.
@@ -74,10 +74,10 @@ frappe.ui.MobileNav = class MobileNav {
 					on_click: () => frappe.ui.sidebar_panels.toggle("notifications"),
 				},
 			{
-				name: "you",
-				label: __("You"),
+				name: "profile",
+				label: __("Profile"),
 				icon: "user",
-				on_click: () => this.open_you(),
+				on_click: () => this.open_profile(),
 			},
 		].filter(Boolean);
 	}
@@ -262,7 +262,7 @@ frappe.ui.MobileNav = class MobileNav {
 	}
 
 	// The user menu, as rows. Same options as the sidebar's user button.
-	open_you() {
+	open_profile() {
 		this.open_sheet(frappe.session.user_fullname, ($body) => {
 			for (const [i, group] of frappe.app.sidebar.user_menu_options().entries()) {
 				if (i) $body.append(`<div class="desk-mobile-sheet-divider"></div>`);
