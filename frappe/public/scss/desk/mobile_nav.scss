@@ -33,6 +33,31 @@ frappe-mobile-nav.desk-mobile-nav {
 	body.has-mobile-nav .main-section {
 		padding-bottom: var(--desk-mobile-nav-height);
 	}
+
+	// The desktop page's header (both its templates): search and notifications are tabs on
+	// a phone, so the header names the page instead.
+	body.has-mobile-nav .desktop-navbar {
+		.search-widget-wrapper,
+		.desktop-search-wrapper,
+		.desktop-notifications {
+			display: none;
+		}
+
+		.desktop-navbar-title {
+			display: block;
+			position: absolute;
+			left: 50%;
+			transform: translateX(-50%);
+		}
+	}
+}
+
+.desktop-navbar-title {
+	display: none;
+	margin: 0;
+	font-size: var(--text-lg);
+	font-weight: var(--font-weight-semibold);
+	color: var(--ink-gray-9);
 }
 
 // What the tab bar puts in its <frappe-bottom-sheet>. The sheet's own look ships with the
