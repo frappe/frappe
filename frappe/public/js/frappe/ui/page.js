@@ -69,7 +69,6 @@ frappe.ui.Page = class Page {
 	make() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_main_sidebar_toggle();
 		this.setup_awesomebar();
 	}
 
@@ -282,19 +281,6 @@ frappe.ui.Page = class Page {
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		return button;
-	}
-
-	setup_main_sidebar_toggle() {
-		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
-			// On a phone the tab bar's navigation sheet stands in for the drawer.
-			if (frappe.is_mobile() && frappe.ui.mobile_nav) {
-				frappe.ui.mobile_nav.open_navigation();
-				return;
-			}
-			frappe.app.sidebar.set_height();
-			frappe.app.sidebar.toggle_width();
-			frappe.app.sidebar.prevent_scroll();
-		});
 	}
 
 	clear_indicator() {
