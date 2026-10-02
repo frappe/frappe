@@ -1188,6 +1188,13 @@ def reset_user_data(user):
 
 @frappe.whitelist(methods=["POST"])
 def verify_password(password: str):
+	from frappe.deprecation_dumpster import deprecation_warning
+
+	deprecation_warning(
+		"2026-09-30",
+		"v17",
+		"`verify_password` is deprecated: the frontend no longer calls it, and it only gated the UI while the method in its callback could be called directly, bypassing the check.",
+	)
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 
