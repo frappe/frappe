@@ -887,6 +887,9 @@ frappe.ui.Sidebar = class Sidebar {
 	shell_can_show(shell, route, { listed_only = false } = {}) {
 		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
 
+		// A shared page counts as listed in every shell.
+		if (frappe.router.page_info_for(route)?.shared_page) return true;
+
 		const entity = this.entity_from_route(route);
 		if (!entity) return false;
 
@@ -901,6 +904,9 @@ frappe.ui.Sidebar = class Sidebar {
 	// The shell a URL for this route should name: the URL's own if it can show the route, then the
 	// one on screen, then the server's map.
 	shell_for_route(route) {
+		// A system page opens in no shell, so the sidebar on screen is left as it is.
+		if (frappe.router.page_info_for(route)?.system_page) return null;
+
 		// A private page's shell is its owner's, whatever module it is filed under.
 		if (route[0] === "Workspaces" && route[1] === "private") {
 			const name = route[2];
@@ -1132,7 +1138,9 @@ frappe.ui.Sidebar = class Sidebar {
 			canonical: this.canonical_shell_for(route),
 			resolved: this.shell_for_route(route),
 		};
-		info.reason = !info.resolved
+		info.reason = frappe.router.page_info_for(route)?.system_page
+			? "a system page opens in no shell"
+			: !info.resolved
 			? "the route names no entity, so nothing decides a shell"
 			: info.resolved === info.shell_in_url
 			? `the URL names "${info.shell_in_url}" and it can show this route`

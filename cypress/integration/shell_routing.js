@@ -373,6 +373,95 @@ describe("Desk URL shell segment", () => {
 		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
 	});
 
+	// A system page is part of the desk rather than of a module, so it opens in no shell. `desktop`
+	// is filed under a module like any page, and that used to be enough to put a shell in front.
+	it("opens a system page in no shell", () => {
+		cy.visit("/desk/desktop");
+		on_route(["desktop"]);
+		cy.location("pathname").should("eq", "/desk/desktop");
+	});
+
+	it("takes a shell off the front of a system page, and nothing else", () => {
+		cy.visit("/desk/build/desktop?x=1#y");
+		cy.location("pathname").should("eq", "/desk/desktop");
+		cy.location("search").should("eq", "?x=1");
+		cy.location("hash").should("eq", "#y");
+		cy.window().its("frappe.router.current_shell").should("eq", null);
+	});
+
+	it("leaves the sidebar where it was across a system page", () => {
+		cy.visit("/desk/users/user");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+
+		cy.window().then((win) => win.frappe.set_route("desktop"));
+		cy.location("pathname").should("eq", "/desk/desktop");
+		cy.window().its("frappe.app.sidebar.current_module").should("eq", "Users");
+
+		// What opens next is still opened from Users.
+		cy.window().then((win) => win.frappe.set_route("List", "ToDo"));
+		cy.location("pathname").should("eq", "/desk/users/todo");
+
+		// One entry each, and none of them rewritten on the way back.
+		cy.go("back");
+		cy.location("pathname").should("eq", "/desk/desktop");
+		cy.go("back");
+		cy.location("pathname").should("eq", "/desk/users/user");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+	});
+
+	it("moves between system pages without ever naming a shell", () => {
+		cy.visit("/desk/users/user");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+
+		cy.window().then((win) => {
+			// frappe ships one system page a test can stand on, so a second is flagged here. The
+			// rule under test reads this payload and nothing else.
+			win.frappe.boot.page_info["backups"].system_page = 1;
+			win.frappe.set_route("desktop");
+		});
+		cy.location("pathname").should("eq", "/desk/desktop");
+
+		cy.window().then((win) => win.frappe.set_route("backups"));
+		cy.location("pathname").should("eq", "/desk/backups");
+		cy.window().its("frappe.router.current_shell").should("eq", null);
+		cy.window().its("frappe.app.sidebar.current_module").should("eq", "Users");
+	});
+
+	// A shared page acts on a document from anywhere, so it counts as listed in every shell.
+	// `print` is the one frappe ships.
+	it("opens a shared page in the shell the URL names", () => {
+		cy.visit("/desk/users/print/User/Administrator");
+		on_route(["print", "User", "Administrator"]);
+		cy.location("pathname").should("eq", "/desk/users/print/User/Administrator");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+	});
+
+	it("keeps a shared page in the shell on screen, even on a jump", () => {
+		// A jump keeps a shell only when it lists what is opened, which no shell does for `print`.
+		cy.visit("/desk/users/user");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+
+		cy.window().then((win) => {
+			win.frappe.route_flags.jump = true;
+			win.frappe.set_route("print", "User", "Administrator");
+		});
+		cy.location("pathname").should("eq", "/desk/users/print/User/Administrator");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+	});
+
+	it("opens a shared page in its own module's shell when nothing names one", () => {
+		cy.visit("/desk/print/User/Administrator");
+		on_route(["print", "User", "Administrator"]);
+		cy.window().then((win) => {
+			const shell = win.frappe.boot.canonical_shell.Page.print;
+			expect(shell, "print has a shell of its own").to.be.a("string");
+
+			const slug = win.frappe.router.shell_slug(shell);
+			cy.location("pathname").should("eq", `/desk/${slug}/print/User/Administrator`);
+			cy.get(".body-sidebar").should("have.attr", "data-title", shell);
+		});
+	});
+
 	it("opens a report through a shell", () => {
 		// The whole failure this was found by: `/desk/maintenance/query-report/<name>` rendered
 		// nothing, because `query-report` is not a `Page` record and so read as naming nothing,
@@ -494,6 +583,11 @@ describe("Desk URL shell segment", () => {
 				"Build"
 			);
 			expect(external).to.eq("https://frappe.io");
+
+			// A system page opens in no shell, so a link to one names none either. Naming one
+			// would never match the URL it leads to, and the row would not light up.
+			const system = frappe_route(win, { link_type: "Page", link_to: "desktop" }, "Build");
+			expect(system).to.eq("/desk/desktop");
 		});
 	});
 
@@ -601,6 +695,12 @@ describe("Desk URL shell segment", () => {
 		});
 	});
 });
+
+// Wait for the desk to have routed, so a URL that was never going to change is not read as one
+// that was left alone.
+function on_route(route) {
+	cy.window().should((win) => expect(win.frappe?.get_route?.()).to.deep.eq(route));
+}
 
 function frappe_route(win, item, shell) {
 	return win.frappe.ui.sidebar_item.get_route({ type: "Link", ...item }, false, shell);

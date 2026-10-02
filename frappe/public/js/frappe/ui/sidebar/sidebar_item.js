@@ -125,6 +125,12 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 		}
 	}
 
+	// A system page opens in no shell, and the router takes one off its URL, so a link that named
+	// one would never match the URL it leads to.
+	if (item.link_type === "Page" && frappe.router.page_info_for([item.link_to])?.system_page) {
+		return path;
+	}
+
 	return in_shell(path, shell);
 };
 
