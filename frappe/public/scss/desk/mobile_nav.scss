@@ -1,0 +1,160 @@
+// Placement of the phone tab bar (frappe.ui.MobileNav). The bar's own look ships with
+// the <frappe-mobile-nav> element; this file only pins it to the bottom of the screen.
+
+:root {
+	// 56px row + 1px top border, plus the home-indicator inset on notched phones
+	--desk-mobile-nav-height: calc(57px + env(safe-area-inset-bottom));
+}
+
+// Tag-qualified: the element copies its class onto the <nav> it renders, and these
+// rules are for the host only.
+frappe-mobile-nav.desk-mobile-nav {
+	display: none;
+}
+
+@include media-breakpoint-down(sm) {
+	frappe-mobile-nav.desk-mobile-nav {
+		display: block;
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		// over sidebar panels (1000), so its Notifications tab can close the one it
+		// opened; under sticky headers (1020), the drawer's scrim (1021) and modals (1050)
+		z-index: 1010;
+
+		[data-slot="mobile-nav"] {
+			padding-bottom: env(safe-area-inset-bottom);
+		}
+	}
+
+	// .main-section is Desk's scroll container; the end of the page has to scroll
+	// clear of the bar
+	body.has-mobile-nav .main-section {
+		padding-bottom: var(--desk-mobile-nav-height);
+	}
+}
+
+// What the tab bar puts in its <frappe-bottom-sheet>. The sheet's own look ships with the
+// element.
+.desk-mobile-sheet {
+	padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+// The dock, as a row of tiles across the top of the navigation sheet.
+.desk-mobile-sheet-dock {
+	display: flex;
+	gap: 2px;
+	overflow-x: auto;
+	padding: 0 8px 12px;
+	border-bottom: 1px solid var(--outline-gray-1);
+}
+
+.desk-mobile-sheet-dock-item {
+	flex: 0 0 64px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 0;
+	border: none;
+	background: none;
+	color: var(--ink-gray-6);
+
+	.dock-item-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		border-radius: 12px;
+		background: var(--surface-gray-2);
+		// see .dock-item in dock.scss
+		--icon-stroke: currentColor;
+
+		svg,
+		img {
+			width: 20px;
+			height: 20px;
+		}
+	}
+
+	.dock-item-label {
+		max-width: 100%;
+		@include truncate();
+		font-size: var(--text-xs);
+	}
+
+	&.active {
+		color: var(--ink-gray-9);
+
+		.dock-item-icon {
+			background: var(--surface-gray-4);
+		}
+	}
+}
+
+// The desk sidebar's own items list, borrowed while the sheet is open. It keeps the
+// .body-sidebar class for its row styles, so the drawer's layout is undone here.
+.desk-mobile-sheet .desk-mobile-sheet-sidebar {
+	position: static;
+	width: auto;
+	height: auto;
+	padding: 8px 8px 0;
+	border: none;
+	background: none;
+	z-index: auto;
+
+	// rows a thumb can hit, a step taller than the desktop's 28px
+	.standard-sidebar-item .item-anchor {
+		height: 40px;
+	}
+
+	.standard-sidebar-item .sidebar-item-label {
+		font-size: var(--text-base);
+	}
+}
+
+.desk-mobile-sheet-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: calc(100% - 16px);
+	height: 44px;
+	margin: 0 8px;
+	padding: 0 12px;
+	border: none;
+	border-radius: var(--radius);
+	background: none;
+	color: var(--ink-gray-8);
+	font-size: var(--text-base);
+	text-align: left;
+	text-decoration: none;
+
+	svg {
+		flex: none;
+		// a desk rule centres a lone button glyph with auto margins
+		margin: 0;
+		color: var(--ink-gray-6);
+	}
+
+	&:active {
+		background: var(--surface-gray-2);
+	}
+
+	&:hover {
+		color: var(--ink-gray-8);
+		text-decoration: none;
+	}
+}
+
+.desk-mobile-sheet-divider {
+	margin: 4px 16px;
+	border-top: 1px solid var(--outline-gray-1);
+}
+
+.desk-mobile-sheet-empty {
+	padding: 32px 16px;
+	text-align: center;
+	color: var(--ink-gray-5);
+}
