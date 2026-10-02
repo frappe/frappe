@@ -53,11 +53,9 @@ context("Form Builder", () => {
 		// add filter
 		cy.get(".modal-body .clear-filters").click();
 		cy.get(".modal-body .filter-action-buttons .add-filter").click();
-		cy.wait(100);
+		cy.pick_filter_field("ID");
 
-		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input")
-			.focus()
-			.as("input");
+		cy.get(".modal-body .filter-box .filter-field .link-field input").focus().as("input");
 		// Wait for dropdown to appear (request might be cached)
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
 		cy.wait(200);

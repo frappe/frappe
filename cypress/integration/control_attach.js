@@ -236,32 +236,22 @@ context("Attach Control with Failed Document Save", () => {
 	it("Check if file was uploaded correctly", () => {
 		cy.go_to_list("File");
 		cy.open_list_filter();
-		cy.get(".fieldname-select-area .form-control")
-			.click()
-			.type("Attached To Name{enter}")
-			.blur()
-			.wait(500);
+		cy.get(".filter-popover .add-filter").click();
+		cy.pick_filter_field("Attached To Name");
 		cy.get('input[data-fieldname="attached_to_name"]').click().type(docname).blur();
-		cy.findByRole("button", { name: "+ Add a Filter" }).click();
-		cy.get(".fieldname-select-area .form-control")
-			.last()
-			.click()
-			.type("Attached To Doctype{enter}")
-			.blur()
-			.wait(500);
+		cy.get(".filter-popover .add-filter").click();
+		cy.pick_filter_field("Attached To DocType");
 		cy.get('input[data-fieldname="attached_to_doctype"]')
 			.last()
 			.click()
 			.type("Test Mandatory Attach Control")
 			.blur();
-		cy.get(".filter-popover .apply-filters").click({ force: true });
 		cy.get("header .level-right .list-count").should("contain.text", "1 of 1");
 	});
 
 	it("Check if file exists with temporary name", () => {
 		cy.open_list_filter();
 		cy.get('input[data-fieldname="attached_to_name"]').click().clear().type(temp_name).blur();
-		cy.get(".filter-popover .apply-filters").click({ force: true });
 		cy.get(".frappe-list > .no-result").should("be.visible");
 	});
 });

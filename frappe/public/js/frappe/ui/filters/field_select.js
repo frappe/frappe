@@ -18,7 +18,9 @@ frappe.ui.FieldSelect = class FieldSelect {
 			search_placeholder: __("Search fields..."),
 			clear_button: false,
 			hide_search: this.options.length <= 8,
-			options: this.get_combobox_options(),
+			// narrowed here, by label and fieldname: every value starts with the
+			// doctype, so the doctype's own name would match all of them
+			options: (query) => this.get_combobox_options(query),
 			on_change: (value) => this.on_pick(value),
 		});
 		// the trigger keeps the old `$input` name: callers focus it
@@ -36,14 +38,20 @@ frappe.ui.FieldSelect = class FieldSelect {
 	}
 
 	// loose rows first (the doctype's own fields), then one group per child table
-	get_combobox_options() {
-		const main = this.options.filter((o) => !o.group);
-		const groups = [...new Set(this.options.filter((o) => o.group).map((o) => o.group))];
+	get_combobox_options(query = "") {
+		const q = query.trim().toLowerCase();
+		// a table's name finds its fields too
+		const shown = this.options.filter(
+			(o) =>
+				!q || `${o.label} ${o.fieldname || ""} ${o.group || ""}`.toLowerCase().includes(q)
+		);
+		const main = shown.filter((o) => !o.group);
+		const groups = [...new Set(shown.filter((o) => o.group).map((o) => o.group))];
 		return [
 			...main,
 			...groups.map((group) => ({
 				group,
-				options: this.options.filter((o) => o.group === group),
+				options: shown.filter((o) => o.group === group),
 			})),
 		];
 	}
@@ -83,7 +91,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 		if (!item) return;
 		this.selected_doctype = doctype;
 		this.selected_fieldname = fieldname;
-		this.combobox.set_value(item.value);
+		this.combobox.set_value(item.value, { label: item.label });
 	}
 
 	focus() {

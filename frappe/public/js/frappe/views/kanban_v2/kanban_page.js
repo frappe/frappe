@@ -353,6 +353,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		await frappe.model.with_doctype(this.doctype);
 		this.setup_meta();
 		this.setup_toolbar();
+		// before the board loads: it reads its filters from the boxes and the panel
+		await this.setup_quick_filters();
+		this.sync_filter_group_to_board();
 		this.mount_board();
 		// so opening Kanban without a board name comes back here
 		frappe.model.user_settings.save(this.doctype, "last_view", "Kanban").then(() =>
@@ -360,9 +363,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				last_kanban_board: board_name,
 			})
 		);
-		this.sync_filter_group_to_board();
 		this.setup_group_button();
-		this.setup_quick_filters();
 	}
 
 	setup_meta() {
@@ -637,7 +638,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.sync_board_height();
 	}
 
-	setup_quick_filters() {
+	async setup_quick_filters() {
 		const page = this.page;
 		if (!this.$quick_filters) {
 			this.$quick_filters = $(
@@ -675,14 +676,13 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this._quick_filter_fields.push(df.fieldname);
 		});
 
-		this.seed_quick_filters();
+		await this.seed_quick_filters();
 
 		this._seeding_quick = true;
 		try {
-			Object.keys(preserved).forEach((fn) => {
-				const field = page.fields_dict[fn];
-				if (field) field.set_value(preserved[fn]);
-			});
+			await Promise.all(
+				Object.keys(preserved).map((fn) => page.fields_dict[fn]?.set_value(preserved[fn]))
+			);
 		} finally {
 			this._seeding_quick = false;
 		}
@@ -723,23 +723,24 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			condition,
 			is_filter: 1,
 			ignore_link_validation: fieldtype === "Dynamic Link",
-			onchange: () => this.on_quick_filter_change(),
+			onchange: () => this.on_filter_change(),
 		};
 	}
 
-	seed_quick_filters() {
-		const set = new Set(this._quick_filter_fields || []);
+	/** A filter a quick filter box can hold lives in that box, as on the list view. */
+	async seed_quick_filters() {
+		const seeds = new Map();
+		this.filters = (this.filters || []).filter(([doctype, fn, cond, val]) => {
+			const box = doctype === this.doctype && this.page.fields_dict[fn];
+			if (!box || seeds.has(box)) return true;
+			if (!frappe.ui.FilterGroup.fits_box(box, cond, val)) return true;
+			box.df.match_type = cond;
+			seeds.set(box, typeof val === "string" ? val.replace(/^%+|%+$/g, "") : val);
+			return false;
+		});
 		this._seeding_quick = true;
 		try {
-			(this.filters || []).forEach(([, fn, cond, val]) => {
-				if (!set.has(fn)) return;
-				const field = this.page.fields_dict[fn];
-				if (!field) return;
-				let v = val;
-				if (cond === "like" && typeof v === "string") v = v.replace(/^%+|%+$/g, "");
-				field.df.match_type = cond === "like" ? "like" : "=";
-				field.set_value(v);
-			});
+			await Promise.all([...seeds].map(([box, value]) => box.set_value(value)));
 		} finally {
 			this._seeding_quick = false;
 		}
@@ -768,32 +769,31 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return out;
 	}
 
-	/** A quick filter replaces a popover filter on the same field only when it has a value. */
+	/** The panel's filters and the quick filter boxes together. */
 	get_effective_filters(extra) {
-		const quick = this.get_quick_filters();
-		const active = new Set(quick.map((f) => f[1]));
-		const base = (this.filters || []).filter((f) => !active.has(f[1]));
-		const eff = base.concat(quick);
-		return extra && extra.length ? eff.concat(extra) : eff;
+		return (this.filters || []).concat(this.get_quick_filters(), extra || []);
 	}
 
-	on_quick_filter_change() {
+	/** A panel edit can change a box too, so both wait and reload once. */
+	on_filter_change() {
 		if (this._seeding_quick) return;
-		this._quick_reload =
-			this._quick_reload || frappe.utils.debounce(() => this.reload_board_filters(), 300);
-		this._quick_reload();
+		this._apply_filters =
+			this._apply_filters || frappe.utils.debounce(() => this.apply_filters(), 300);
+		this._apply_filters();
 	}
 
-	reload_board_filters() {
-		// quick filters aren't in this.filters, so reset the key or a later popover edit is skipped
-		this._loaded_key = null;
-		if (this.group_by_field) {
-			this.mount_board(); // swimlanes depend on the filtered set
-			return;
+	/** The quick filter boxes and the panel's rows, in one reload. */
+	async clear_filters() {
+		this._seeding_quick = true;
+		try {
+			await Promise.all(
+				this._quick_filter_fields.map((fn) => this.page.fields_dict[fn].set_value(""))
+			);
+		} finally {
+			this._seeding_quick = false;
 		}
-		if (!this.provider) return;
-		this.provider.setFilters(this.get_effective_filters());
-		this.board.refresh();
+		this.filter_group.clear_filters();
+		this.apply_filters();
 	}
 
 	setup_settings_button($parent) {
@@ -881,30 +881,20 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return items;
 	}
 
-	set_group_by(fieldname) {
+	async set_group_by(fieldname) {
 		const next = fieldname || null;
 		if (next === (this.group_by_field || null)) return;
 		this.group_by_field = next;
 		this.setup_group_button();
-		this.setup_quick_filters(); // drop the now-active swimlane field from quick filters
+		await this.setup_quick_filters(); // drop the now-active swimlane field from quick filters
+		this.sync_filter_group_to_board();
 		this.sync_board_height();
 		this.mount_board();
 	}
 
 	setup_filter_button($parent) {
-		// same markup as the list view's FilterArea
-		const $selector = $(`
-			<div class="filter-selector">
-				<div class="btn-group">
-					<button class="btn btn-default btn-sm filter-button">
-						<span class="filter-icon button-icon">${frappe.utils.icon("funnel")}</span>
-						<span class="button-label hidden-xs">${__("Filter")}</span>
-					</button>
-					<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
-						<span class="filter-icon button-icon">${frappe.utils.icon("x")}</span>
-					</button>
-				</div>
-			</div>`);
+		// the list view's own filter button
+		const { $selector, filter_button, filter_x_button } = frappe.ui.FilterGroup.make_buttons();
 
 		if ($parent) {
 			$parent.append($selector);
@@ -915,38 +905,33 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: $selector,
 			doctype: this.doctype,
-			filter_button: $selector.find(".filter-button"),
-			filter_x_button: $selector.find(".filter-x-button"),
+			filter_button,
+			filter_x_button,
 			default_filters: [],
-			on_change: () => this.apply_filters(),
+			// the quick filter boxes show as rows in the panel, as on the list view
+			toolbar: {
+				get_standard_field: (fieldname) => this.page.fields_dict[fieldname],
+				get_standard_filters: () => this.get_quick_filters(),
+				clear: () => this.clear_filters(),
+			},
+			on_change: () => this.on_filter_change(),
 		});
-		// outside a list view, FilterGroup's clear button doesn't fire on_change
-		$selector
-			.find(".filter-x-button")
-			.on("click", () => setTimeout(() => this.apply_filters(), 0));
-		if (this.filters && this.filters.length) {
-			this.filter_group.add_filters_to_filter_group(this.filters);
-		}
-		this.sync_filter_ui();
 	}
 
 	/** The filter group outlives a board reload, so reset it to the board's filters. */
-	sync_filter_group_to_board() {
+	async sync_filter_group_to_board() {
 		if (!this.filter_group) return;
 		const desired = JSON.stringify(this.filters || []);
-		if (JSON.stringify(this.filter_group.get_filters() || []) === desired) {
-			this.sync_filter_ui();
-			return;
-		}
-		// skip the on_change reload; mount_board already loads these filters
-		this._syncing_filters = true;
-		try {
-			this.filter_group.clear_filters();
-			if (this.filters && this.filters.length) {
-				this.filter_group.add_filters_to_filter_group(this.filters);
+		if (JSON.stringify(this.filter_group.get_filters() || []) !== desired) {
+			// skip the on_change reload; mount_board already loads these filters
+			this._syncing_filters = true;
+			try {
+				this.filter_group.clear_filters();
+				// a row counts once its value is set, which takes a moment
+				await this.filter_group.add_filters(this.filters || []);
+			} finally {
+				this._syncing_filters = false;
 			}
-		} finally {
-			this._syncing_filters = false;
 		}
 		this.sync_filter_ui();
 	}
@@ -961,7 +946,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.filters = this.filter_group.get_filters();
 		this.sync_filter_ui();
 		// popover open/close fires on_change without a change, so skip the reload
-		const key = JSON.stringify(this.filters || []);
+		const key = JSON.stringify(this.get_effective_filters());
 		if (key === this._loaded_key) return;
 		this._loaded_key = key;
 		if (this.group_by_field) {
@@ -1006,7 +991,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				"Kanban Board",
 				this.current_board,
 				"filters",
-				JSON.stringify(this.filters || [])
+				JSON.stringify(this.get_effective_filters())
 			)
 			.then(() => {
 				frappe.ui.toast({ message: __("Filters saved"), type: "success" });
@@ -1018,7 +1003,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this._mount_seq = (this._mount_seq || 0) + 1;
 		this.teardown_board();
 		this.$container.empty();
-		this._loaded_key = JSON.stringify(this.filters || []); // filters the board reflects
+		this._loaded_key = JSON.stringify(this.get_effective_filters()); // filters the board reflects
 		if (this.group_by_field) {
 			this.mount_grouped_board(this._mount_seq);
 		} else {
@@ -1105,7 +1090,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				{
 					board_name: this.current_board,
 					group_by: field,
-					filters: JSON.stringify(this.filters || []),
+					filters: JSON.stringify(this.get_effective_filters()),
 				}
 			);
 		} catch (e) {
@@ -1172,7 +1157,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	add_document(columnId) {
 		const values = { [this.field_name]: columnId };
-		(this.filters || []).forEach((f) => {
+		this.get_effective_filters().forEach((f) => {
 			if (f[2] === "=") values[f[1]] = f[3];
 		});
 

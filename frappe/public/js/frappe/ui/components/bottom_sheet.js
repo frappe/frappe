@@ -5,13 +5,12 @@ frappe.provide("frappe.ui");
 
 /**
  * @typedef {Object} BottomSheetStep
- * @property {string} [title]
+ * @property {string} [title] Plain text; it also names the sheet for screen readers.
  * @property {string} [subtitle] Muted second line under the title.
- * @property {Element|JQuery|function|string} [content] The body. An element, or a function called with the sheet the first time the step shows; a plain string renders as text, never HTML.
+ * @property {Element|JQuery|Array|function|string} [header] Your own content, fixed at the top: a search box, tabs, a title with a button beside it. It takes the title's place; with a `title` it sits under it. An element, several in an array (side by side), or a function called with the sheet.
+ * @property {Element|JQuery|function|string} [content] The body, which scrolls. An element, or a function called with the sheet the first time the step shows; a plain string renders as text, never HTML.
  * @property {Array} [options] Tappable rows, after any content: MenuItem-like { label, icon, description, theme, selected, disabled, onclick(e, sheet) } and { group, options } sections. A tap runs onclick and closes the sheet unless it returns false.
- * @property {Object[]} [actions] Sticky footer buttons (frappe.ui.button options). onclick(sheet) runs, then the sheet closes unless it returns false; a returned promise keeps the button busy and closes when it settles.
- * @property {Object} [header_action] One trailing header button (frappe.ui.button options); onclick(sheet) runs and the sheet stays open.
- * @property {boolean|string} [search] A search box above the body that narrows the option rows; a string is its placeholder.
+ * @property {Element|JQuery|Array|function|string} [footer] Your own content, fixed at the bottom: buttons (frappe.ui.button), a tab bar, a total. Same forms as `header`. Nothing closes the sheet for you: call `sheet.close()`.
  * @property {function} [on_show] Called with the sheet each time the step becomes the one on screen: when it opens, is pushed, or is returned to with Back.
  */
 
@@ -24,7 +23,7 @@ frappe.provide("frappe.ui");
  * @property {boolean} [show_close=false] A close button in the header.
  * @property {boolean} [dismissible=true] A tap on the scrim, a swipe down and Escape close it.
  * @property {function} [on_open] Called with the sheet once it is shown.
- * @property {function} [on_close] Called with the reason: "scrim" | "swipe" | "escape" | "close" | "action" | "option" | "route" | "owner".
+ * @property {function} [on_close] Called with the reason: "scrim" | "swipe" | "escape" | "close" | "option" | "route" | "owner", or what your own `sheet.close(reason)` passed.
  */
 
 const HEIGHTS = ["auto", "half", "full"];
@@ -73,6 +72,14 @@ function field_popup_open(target) {
 	return !!document.querySelector(".datepicker.active");
 }
 
+// a header or footer: one piece of the caller's content, or several side by side
+function slot_parts(content, sheet) {
+	if (typeof content === "function") content = content(sheet);
+	return []
+		.concat(content || [])
+		.flatMap((part) => (typeof part === "string" ? [resolve_content(part)] : $(part).get()));
+}
+
 /**
  * A panel that slides up from the bottom of the screen, for choices, short
  * forms and confirmations on phones. Modal: the page behind is dimmed and
@@ -85,23 +92,10 @@ function field_popup_open(target) {
  *     options: [{ label: __("Created On"), selected: true, onclick: () => sort("creation") }],
  * }).open();
  */
-function filter_options(root, query) {
-	query = query.trim().toLowerCase();
-	root.querySelectorAll(".es-bottom-sheet__group").forEach((group) => {
-		let visible = 0;
-		group.querySelectorAll(".es-bottom-sheet__option").forEach((row) => {
-			const match = row.textContent.toLowerCase().includes(query);
-			row.hidden = !match;
-			visible += match;
-		});
-		group.hidden = !visible;
-	});
-}
-
 frappe.ui.BottomSheet = class BottomSheet {
 	/** @param {BottomSheetOpts} opts */
 	constructor(opts = {}) {
-		// a copy, so set_title / set_actions never change the caller's object
+		// a copy, so set_title / set_options never change the caller's object
 		this.opts = { ...opts };
 		this.height = validated(opts.height, HEIGHTS, "height", "BottomSheet") || "auto";
 		this.snap_points = (opts.snap_points || []).filter((snap) =>
@@ -146,7 +140,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 			<div class="es-bottom-sheet flex flex-col" role="dialog" aria-modal="true" tabindex="-1">
 				<div class="es-bottom-sheet__grip flex justify-center"><div class="es-bottom-sheet__handle"></div></div>
 				<div class="es-bottom-sheet__header flex items-center gap-1"></div>
-				<div class="es-bottom-sheet__search" hidden></div>
+				<div class="es-bottom-sheet__subheader flex items-center gap-2" hidden></div>
 				<div class="es-bottom-sheet__body"></div>
 				<div class="es-bottom-sheet__footer flex gap-2"></div>
 			</div>`;
@@ -154,7 +148,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 		this.scrim = root.querySelector(".es-bottom-sheet__scrim");
 		this.panel = root.querySelector(".es-bottom-sheet");
 		this.header = root.querySelector(".es-bottom-sheet__header");
-		this.search_bar = root.querySelector(".es-bottom-sheet__search");
+		this.subheader = root.querySelector(".es-bottom-sheet__subheader");
 		this.body = root.querySelector(".es-bottom-sheet__body");
 		this.footer = root.querySelector(".es-bottom-sheet__footer");
 
@@ -193,7 +187,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 			);
 		}
 		this.drop_layers();
-		// so set_title / set_actions while closed change what the next open starts from
+		// so set_title / set_options while closed change what the next open starts from
 		this.steps = [];
 
 		// a swipe keeps its drag offset, so the exit slides on from there
@@ -238,10 +232,17 @@ frappe.ui.BottomSheet = class BottomSheet {
 		this.root && this.keeping_focus(() => this.render_header(step));
 	}
 
-	set_actions(actions) {
+	/** Replace the option rows of the step on screen: after a search, a toggle, a reload. */
+	set_options(options) {
 		const step = this.current_step();
-		step.actions = actions;
-		this.root && this.keeping_focus(() => this.render_footer(step));
+		step.options = options;
+		if (!this.root || !step._el) return;
+		this.keeping_focus(() => {
+			const list = this.build_options(options || []);
+			step._options ? step._options.replaceWith(list) : step._el.append(list);
+			step._options = list;
+		});
+		this.body.scrollTop = 0;
 	}
 
 	set_height(height) {
@@ -270,7 +271,6 @@ frappe.ui.BottomSheet = class BottomSheet {
 		this.keeping_focus(() => {
 			this.render_header(step);
 			this.render_body(step);
-			this.render_search(step);
 			this.render_footer(step);
 		});
 		step.on_show && step.on_show(this);
@@ -289,6 +289,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 
 	render_header(step) {
 		this.header.replaceChildren();
+		this.subheader.replaceChildren();
 		const has_back = this.steps.length > 1;
 		this.header.toggleAttribute("data-back", has_back);
 		if (has_back) {
@@ -296,7 +297,6 @@ frappe.ui.BottomSheet = class BottomSheet {
 				frappe.ui.button({
 					icon: "chevron-left",
 					variant: "ghost",
-					size: "lg",
 					title: __("Back"),
 					css_class: "es-bottom-sheet__back",
 					onclick: () => this.pop(),
@@ -304,55 +304,55 @@ frappe.ui.BottomSheet = class BottomSheet {
 			);
 		}
 
-		const titles = document.createElement("div");
-		titles.className = "flex flex-col flex-1 min-w-0";
-		if (step.title) {
-			const title = document.createElement("div");
-			title.className = "es-bottom-sheet__title";
-			title.id = this.title_id;
-			title.textContent = step.title;
-			titles.append(title);
+		// built once per step of this open, so going Back finds it as it was left
+		if (step.header && !step._header) step._header = slot_parts(step.header, this);
+		const custom = step._header || [];
+		const has_text = !!(step.title || step.subtitle);
+		const main = document.createElement("div");
+		if (has_text) {
+			main.className = "es-bottom-sheet__titles flex flex-col flex-1 min-w-0";
+			if (step.title) {
+				const title = document.createElement("div");
+				title.className = "es-bottom-sheet__title";
+				title.textContent = step.title;
+				main.append(title);
+			}
+			if (step.subtitle) {
+				const subtitle = document.createElement("div");
+				subtitle.className = "es-bottom-sheet__subtitle";
+				subtitle.textContent = step.subtitle;
+				main.append(subtitle);
+			}
+			this.subheader.append(...custom);
+		} else {
+			// the caller's header takes the title's place, between Back and Close
+			main.className = "es-bottom-sheet__header-slot flex items-center gap-2 flex-1 min-w-0";
+			main.append(...custom);
 		}
-		if (step.subtitle) {
-			const subtitle = document.createElement("div");
-			subtitle.className = "es-bottom-sheet__subtitle";
-			subtitle.textContent = step.subtitle;
-			titles.append(subtitle);
-		}
-		this.header.append(titles);
-
-		if (step.header_action) {
-			const { onclick, ...button } = step.header_action;
-			this.header.append(
-				frappe.ui.button({
-					variant: "ghost",
-					size: "lg",
-					...button,
-					onclick: () => onclick && onclick(this),
-				})[0]
-			);
-		}
+		this.header.append(main);
 
 		if (this.opts.show_close) {
 			this.header.append(
 				frappe.ui.button({
 					icon: "x",
 					variant: "ghost",
-					size: "lg",
 					title: __("Close"),
+					css_class: "es-bottom-sheet__close",
 					onclick: () => this.close("close"),
 				})[0]
 			);
 		}
 
-		this.header.hidden =
-			!step.title &&
-			!step.subtitle &&
-			!has_back &&
-			!this.opts.show_close &&
-			!step.header_action;
-		if (step.title) this.panel.setAttribute("aria-labelledby", this.title_id);
-		else this.panel.removeAttribute("aria-labelledby");
+		this.header.hidden = !has_text && !custom.length && !has_back && !this.opts.show_close;
+		this.subheader.hidden = !has_text || !custom.length;
+		// named by its title: the sheet's own, or the one in the caller's header
+		const title = this.header.querySelector(".es-bottom-sheet__title");
+		if (title) {
+			title.id = this.title_id;
+			this.panel.setAttribute("aria-labelledby", this.title_id);
+		} else {
+			this.panel.removeAttribute("aria-labelledby");
+		}
 	}
 
 	render_body(step) {
@@ -363,23 +363,6 @@ frappe.ui.BottomSheet = class BottomSheet {
 		this.body.scrollTop = step.scroll_top || 0;
 	}
 
-	// outside the scrolling body, so it stays put while the rows scroll under it
-	render_search(step) {
-		this.search_bar.replaceChildren();
-		this.search_bar.hidden = !step.search;
-		if (!step.search) return;
-		if (!step._search) {
-			const input = document.createElement("input");
-			input.type = "search";
-			input.className = "form-control";
-			input.placeholder = typeof step.search === "string" ? step.search : __("Search");
-			input.setAttribute("aria-label", input.placeholder);
-			input.addEventListener("input", () => filter_options(step._el, input.value));
-			step._search = input;
-		}
-		this.search_bar.append(step._search);
-	}
-
 	build_step_body(step) {
 		const wrap = document.createElement("div");
 		wrap.className = "flex flex-col gap-3";
@@ -388,7 +371,10 @@ frappe.ui.BottomSheet = class BottomSheet {
 			if (typeof step.content === "string") content.className = "es-bottom-sheet__text";
 			wrap.append(content);
 		}
-		if (step.options) wrap.append(this.build_options(step.options));
+		if (step.options) {
+			step._options = this.build_options(step.options);
+			wrap.append(step._options);
+		}
 		return wrap;
 	}
 
@@ -455,7 +441,7 @@ frappe.ui.BottomSheet = class BottomSheet {
 				if (result !== false) this.close("option");
 				return;
 			}
-			// like a footer action: an async handler (load, then push a step) is waited for
+			// an async handler (load, then push a step) is waited for
 			this.wait_for(el, result).then(
 				(value) => value !== false && this.root === root && this.close("option")
 			);
@@ -500,28 +486,10 @@ frappe.ui.BottomSheet = class BottomSheet {
 
 	render_footer(step) {
 		this.footer.replaceChildren();
-		const actions = step.actions || [];
-		this.footer.hidden = !actions.length;
-		for (const action of actions) {
-			const { onclick, css_class, ...button } = action;
-			const $button = frappe.ui.button({
-				size: "lg",
-				...button,
-				css_class: ["flex-1", css_class].filter(Boolean).join(" "),
-				onclick: () => {
-					const root = this.root;
-					const result = onclick ? onclick(this) : undefined;
-					if (is_thenable(result)) {
-						return result.then(
-							(value) =>
-								value !== false && this.root === root && this.close("action")
-						);
-					}
-					if (result !== false) this.close("action");
-				},
-			});
-			this.footer.append($button[0]);
-		}
+		if (step.footer && !step._footer) step._footer = slot_parts(step.footer, this);
+		const parts = step._footer || [];
+		this.footer.hidden = !parts.length;
+		this.footer.append(...parts);
 	}
 
 	// ---- behaviour ----

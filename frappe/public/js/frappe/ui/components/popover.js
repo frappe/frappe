@@ -26,6 +26,12 @@ const EXIT_MS = 100; // keep in sync with es-popover-out in popover.css
 // panels other components open from inside this one (a combobox or dropdown
 // menu, a datepicker) mount in <body>, so a press or focus in them is inside
 const LAYERS = ".es-menu, .es-popover, .datepicker";
+// what opened a layer: the trigger that points at it (its own search box does too)
+const opener_of = (layer) =>
+	layer.id &&
+	[...document.querySelectorAll(`[aria-controls="${CSS.escape(layer.id)}"]`)].find(
+		(el) => !layer.contains(el)
+	);
 
 let id_counter = 0;
 
@@ -169,11 +175,13 @@ frappe.ui.Popover = class Popover {
 
 	is_inside(target) {
 		if (!target || !this.panel) return false;
-		return (
-			this.panel.contains(target) ||
-			this.trigger_el.contains(target) ||
-			!!(target.closest && target.closest(LAYERS))
-		);
+		if (this.panel.contains(target) || this.trigger_el.contains(target)) return true;
+		const layer = target.closest && target.closest(LAYERS);
+		if (!layer) return false;
+		// a layer with a known opener is inside only if that opener is; another
+		// component's panel (a hover card on the page) is not
+		const opener = opener_of(layer);
+		return opener ? this.is_inside(opener) : !layer.matches(".es-popover");
 	}
 
 	// Tab is not trapped (this is not a modal): tabbing past the panel's

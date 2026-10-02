@@ -1,8 +1,45 @@
 // A list of filter rows, in a popover on `filter_button` (a bottom sheet on
 // phones) or in place in `parent` (dialogs, form fields). A row applies as soon
 // as it is complete; in the sheet, on Apply.
+//
+// `toolbar` links the host's quick filter boxes: they show as rows here while
+// the box stays their home. It has get_standard_field(fieldname),
+// get_standard_filters() and clear().
 
 frappe.ui.FilterGroup = class {
+	// the Filter button with its count, and the clear button that joins it
+	static make_buttons() {
+		const $selector = $(
+			`<div class="filter-selector flex items-center gap-1"><div class="flex items-center"></div></div>`
+		);
+		const filter_button = frappe.ui.button({
+			label: __("Filter"),
+			icon: "list-filter",
+			css_class: "filter-button",
+		});
+		filter_button.find(".es-button__label").addClass("button-label max-sm:hidden");
+		filter_button.append('<span class="filter-label hidden"></span>');
+		const filter_x_button = frappe.ui.button({
+			icon: "x",
+			tooltip: __("Clear all filters"),
+			css_class: "filter-x-button rounded-ss-none rounded-es-none hidden",
+		});
+		$selector.children().append(filter_button, filter_x_button);
+		return { $selector, filter_button, filter_x_button };
+	}
+
+	// whether a toolbar box can hold this filter; the rest are regular filters
+	static fits_box(box, condition, value) {
+		const df = box?.df;
+		if (!df) return false;
+		// a Check box is a checkbox that can't hold "= 0"
+		if (df.fieldtype === "Check" && !cint(value)) return false;
+		// don't set like filter on link fields (gets reset)
+		if (condition === "like") return df.fieldtype != "Link";
+		if (condition === "descendants of (inclusive)") return df.fieldtype == "Link";
+		return condition === "=";
+	}
+
 	constructor(opts) {
 		$.extend(this, opts);
 		this.filters = this.filters || [];
@@ -28,6 +65,8 @@ frappe.ui.FilterGroup = class {
 			css_class: "filter-popover",
 			on_open: (popover) => this.on_popover_open(popover),
 			on_close: () => {
+				// a toolbar row typed into but not yet blurred still counts
+				this.sync_rows_to_toolbar();
 				this.drop_standard_rows();
 				this.update_filters();
 				this.apply_changes();
@@ -49,30 +88,36 @@ frappe.ui.FilterGroup = class {
 	open_sheet() {
 		if (!this.sheet)
 			this.sheet = new frappe.ui.BottomSheet({
-				title: __("Filters"),
+				header: () => [
+					$('<div class="es-bottom-sheet__title"></div>').text(__("Filters")),
+					frappe.ui.button({
+						label: __("Clear all"),
+						css_class: "filter-sheet-clear",
+						onclick: () => {
+							this.sheet.close("action");
+							this.clear_all();
+						},
+					}),
+				],
 				content: () => this.get_sheet_content(),
 				on_show: () => this.render_sheet_rows(),
-				header_action: {
-					label: __("Clear all"),
-					variant: "subtle",
-					size: "md",
-					css_class: "filter-sheet-clear",
-					onclick: () => {
-						this.sheet.close("action");
-						this.clear_all();
-					},
-				},
 				// in the footer, so Add filter stays in reach however long the list gets
-				actions: [
-					{
+				footer: () => [
+					frappe.ui.button({
 						label: __("Add filter"),
 						icon: "plus",
+						size: "md",
+						onclick: () => this.add_sheet_filter(),
+					}),
+					frappe.ui.button({
+						label: __("Apply"),
+						variant: "solid",
+						size: "md",
 						onclick: () => {
-							this.add_sheet_filter();
-							return false;
+							this.apply_sheet();
+							this.sheet.close("action");
 						},
-					},
-					{ label: __("Apply"), variant: "solid", onclick: () => this.apply_sheet() },
+					}),
 				],
 				on_open: () => this.on_sheet_open(),
 				on_close: (reason) => this.on_sheet_close(reason),
@@ -89,7 +134,7 @@ frappe.ui.FilterGroup = class {
 	apply_sheet() {
 		this.staged = false;
 		// toolbar rows write back to their boxes; the rest is one change
-		this.filters.filter((f) => f.standard_field).forEach((f) => this.sync_to_toolbar(f));
+		this.sync_rows_to_toolbar();
 		this.update_filters();
 		this.apply_changes();
 	}
@@ -134,7 +179,10 @@ frappe.ui.FilterGroup = class {
 			const input = this.sheet?.is_open && e.target.closest(".filter-field input");
 			const filter =
 				input && this.filters.find((f) => f.filter_edit_area[0].contains(input));
-			return ["Date", "DateRange"].includes(filter?.field?.df.fieldtype) && filter;
+			return (
+				["Date", "DateRange", "Datetime", "Time"].includes(filter?.field?.df.fieldtype) &&
+				filter
+			);
 		};
 		root.addEventListener(
 			"pointerdown",
@@ -168,51 +216,97 @@ frappe.ui.FilterGroup = class {
 			selected: option.value === current,
 			onclick: () => {
 				this.sheet.pop();
-				if (option.value !== current) combobox.set_value(option.value, { silent: false });
+				if (option.value !== current) {
+					combobox.set_value(option.value, { label: option.label, silent: false });
+				}
 				return false;
 			},
 		});
-		const options = filter.fieldselect
-			.get_combobox_options()
-			.map((entry) =>
-				entry.group
-					? { group: entry.group, options: entry.options.map(to_row) }
-					: to_row(entry)
-			);
+		// the picker's own search, so the sheet and the dropdown find the same fields
+		const rows = (query) =>
+			filter.fieldselect
+				.get_combobox_options(query)
+				.map((entry) =>
+					entry.group
+						? { group: entry.group, options: entry.options.map(to_row) }
+						: to_row(entry)
+				);
+		const $search = $('<input type="search" class="form-control">')
+			.attr({ placeholder: __("Search fields"), "aria-label": __("Search fields") })
+			.on("input", () => this.sheet.set_options(rows($search.val())));
 		this.sheet.push({
 			title: __("Choose field"),
-			search: __("Search fields"),
-			options,
+			header: $search,
+			options: rows(),
 		});
 	}
 
 	pick_date_step(filter) {
 		const field = filter.field;
 		const range = field.df.fieldtype === "DateRange";
+		const time_only = field.df.fieldtype === "Time";
+		// a time is set on sliders: Done applies, not the first tap
+		const with_time = time_only || field.df.fieldtype === "Datetime";
 		const calendar = document.createElement("div");
 		calendar.className = "filter-calendar";
 		let ready = false;
+		// through the field's own picker, so the value is set as a popup pick sets it
+		const apply = (dates) => {
+			this.sheet.pop();
+			field.datepicker.selectDate(dates);
+		};
 		const picker = $(calendar)
 			.datepicker({
 				...field.datepicker_options,
 				inline: true,
 				onShow: null,
 				onSelect: (formatted, dates) => {
-					if (!ready || (range && dates.length < 2)) return;
-					this.sheet.pop();
-					// through the field's own picker, so the value is set as a popup pick sets it
-					field.datepicker.selectDate(dates);
+					if (!ready || with_time || (range && dates.length < 2)) return;
+					apply(dates);
 				},
 			})
 			.data("datepicker");
+		// as on the field's own picker, Today (Now) picks; it doesn't only show the month
+		const now = () => (time_only ? frappe.datetime.now_time(true) : field.get_now_date());
+		$(calendar)
+			.find('[data-action="today"]')
+			.text(time_only ? __("Now") : field.today_text)
+			.on("click", () => picker.selectDate(now()));
+		// the sliders don't say which is which
+		const units = { hours: __("Hours"), minutes: __("Minutes"), seconds: __("Seconds") };
+		$(calendar)
+			.find(".datepicker--time-row input")
+			.each((i, input) => input.parentElement.setAttribute("data-label", units[input.name]));
 		// the value, not the popup's selection: a value restored on load never went through it
+		const to_date = (value) => {
+			if (time_only) {
+				return frappe.datetime.moment_to_date_obj(moment(value, frappe.defaultTimeFormat));
+			}
+			return frappe.datetime.str_to_obj(
+				with_time ? frappe.datetime.convert_to_user_tz(value) : value
+			);
+		};
 		const current = [].concat(field.get_value() || []).filter(Boolean);
-		picker.selectDate(current.map((date) => frappe.datetime.str_to_obj(date)));
+		picker.selectDate(current.map(to_date));
 		ready = true;
+		const done = () =>
+			frappe.ui.button({
+				label: __("Done"),
+				variant: "solid",
+				size: "md",
+				onclick: () => {
+					const [date] = picker.selectedDates;
+					date ? apply(date) : this.sheet.pop();
+				},
+			});
+		let title = __("Choose date");
+		if (range) title = __("Choose dates");
+		if (with_time) title = time_only ? __("Choose time") : __("Choose date and time");
 		this.sheet.push({
-			title: range ? __("Choose dates") : __("Choose date"),
+			title,
 			subtitle: __(field.df.label),
 			content: calendar,
+			footer: with_time && done,
 		});
 	}
 
@@ -289,6 +383,15 @@ frappe.ui.FilterGroup = class {
 		const values = [].concat(value ?? []).filter((v) => v !== "" && v != null);
 		const label = values.length === 1 && filter.get_selected_label();
 		if (label) return label;
+		// a Select reads as its option's label ("Last 7 Days"), not the stored value
+		if (filter.field.df.fieldtype === "Select") {
+			const option = filter.field.$input?.find("option:selected").text();
+			if (option) return option;
+		}
+		// an "In" on a Select field holds the same options, translated the same way
+		if (filter.field.df.original_type === "Select") {
+			return values.map((v) => __(v)).join(", ");
+		}
 		// a range's field is a DateRange, which the formatter leaves as stored
 		const is_range = filter.field.df.fieldtype === "DateRange";
 		const texts = values.map((v) =>
@@ -326,25 +429,26 @@ frappe.ui.FilterGroup = class {
 		this.sheet.push({
 			title: is_new ? __("New filter") : __("Edit filter"),
 			content: this.$sheet_edit[0],
-			actions: [
-				{
-					label: __("Remove"),
-					theme: "red",
-					onclick: () => {
-						filter.remove();
-						filter.on_change();
-						this.sheet.pop();
-						return false;
-					},
-				},
-				{
+			footer: () => [
+				// a new filter has nothing to remove yet: Back leaves it
+				!is_new &&
+					frappe.ui.button({
+						label: __("Remove"),
+						variant: "ghost",
+						theme: "red",
+						size: "md",
+						onclick: () => {
+							filter.remove();
+							filter.on_change();
+							this.sheet.pop();
+						},
+					}),
+				frappe.ui.button({
 					label: __("Done"),
 					variant: "solid",
-					onclick: () => {
-						this.sheet.pop();
-						return false;
-					},
-				},
+					size: "md",
+					onclick: () => this.sheet.pop(),
+				}),
 			],
 		});
 	}
@@ -354,7 +458,7 @@ frappe.ui.FilterGroup = class {
 		if (!this.editing) return;
 		const { filter, placeholder } = this.editing;
 		this.editing = null;
-		if (filter.field && placeholder.parentNode) {
+		if (filter.filter_edit_area.parent().length && placeholder.parentNode) {
 			placeholder.replaceWith(filter.filter_edit_area[0]);
 		}
 		placeholder.remove();
@@ -381,13 +485,13 @@ frappe.ui.FilterGroup = class {
 
 	clear_all() {
 		this.toggle_empty_filters(true);
-		if (typeof this.base_list !== "undefined") {
-			// It's a list view. Clear all the filters, also the ones in the
-			// FilterArea outside this FilterGroup
-			this.base_list.filter_area.clear();
+		if (this.toolbar) {
+			// the host clears its boxes and this FilterGroup together
+			this.toolbar.clear();
 		} else {
-			// Not a list view, just clear the filters in this FilterGroup
+			// no boxes: clear this FilterGroup and tell its host
 			this.clear_filters();
+			this.on_change();
 		}
 		this.update_filter_button();
 	}
@@ -399,13 +503,12 @@ frappe.ui.FilterGroup = class {
 		return this.wrapper[0];
 	}
 
-	// the list's toolbar filters show as rows too, while the toolbar box stays their home
+	// the toolbar's filters show as rows too, while the toolbar box stays their home
 	sync_standard_rows() {
-		const filter_area = this.base_list?.filter_area;
-		if (!filter_area) return;
+		if (!this.toolbar) return;
 		this.drop_standard_rows();
 		const own = this.filters.slice();
-		const rows = filter_area
+		const rows = this.toolbar
 			.get_standard_filters()
 			.map(([doctype, fieldname, condition, value]) => {
 				if (condition === "like" && typeof value === "string") {
@@ -428,33 +531,55 @@ frappe.ui.FilterGroup = class {
 		this.filters = this.filters.filter((f) => !f.standard_field);
 	}
 
+	sync_rows_to_toolbar() {
+		this.filters.forEach((f) => this.adopt_toolbar_row(f));
+		this.filters.filter((f) => f.standard_field).forEach((f) => this.sync_to_toolbar(f));
+	}
+
+	// a row can live in the toolbar box of its own field, by the rule the list loads filters with
+	fits_toolbar_box(filter, fieldname) {
+		if (!this.toolbar || !this.is_complete(filter)) return false;
+		if (filter.field.df.fieldname !== fieldname) return false;
+		if (filter.fieldselect.selected_doctype !== this.doctype) return false;
+		return frappe.ui.FilterGroup.fits_box(
+			this.toolbar.get_standard_field(fieldname),
+			filter.get_condition(),
+			filter.get_selected_value()
+		);
+	}
+
+	// a new row on a field whose toolbar box is empty is that box's filter, as it is after a reload
+	adopt_toolbar_row(filter) {
+		const fieldname = filter.field?.df.fieldname;
+		if (filter.standard_field || !fieldname) return;
+		if (this.filters.some((f) => f.standard_field === fieldname)) return;
+		if (!this.fits_toolbar_box(filter, fieldname)) return;
+		if (this.toolbar.get_standard_field(fieldname).get_value()) return;
+		filter.standard_field = fieldname;
+	}
+
 	// write a toolbar row back to its box; once the box can't hold it, it becomes a panel filter
 	sync_to_toolbar(filter) {
-		const box = this.base_list.page.fields_dict[filter.standard_field];
-		const condition = filter.get_condition();
-		const value = this.is_complete(filter) ? filter.get_selected_value() : null;
-		const box_condition = box.df.match_type || box.df.condition || "=";
-		// text boxes switch between equals and like
-		const text_box = !!box.df.match_type;
-		const fits =
-			value != null &&
-			filter.field.df.fieldname === filter.standard_field &&
-			(condition === box_condition || (text_box && ["=", "like"].includes(condition))) &&
-			!(box.df.fieldtype === "Check" && !cint(value));
+		const box = this.toolbar.get_standard_field(filter.standard_field);
 
-		if (fits) {
-			if (text_box) {
-				box.df.match_type = condition;
-				box.$wrapper
-					.find(".match-type-dropdown-btn")
-					.html(frappe.utils.icon(condition === "=" ? "equal" : "equal-approximately"));
-			}
-			box.set_value(condition === "like" ? value.replace(/^%+|%+$/g, "") : value);
+		if (this.fits_toolbar_box(filter, filter.standard_field)) {
+			const condition = filter.get_condition();
+			const value = filter.get_selected_value();
+			const box_value = condition === "like" ? value.replace(/^%+|%+$/g, "") : value;
+			// the box refreshes the list on every set, changed or not
+			const box_condition = box.df.match_type || box.df.condition || "=";
+			if (box_condition === condition && box.get_value() == box_value) return;
+			box.df.match_type = condition;
+			// text boxes show which of equals and like they match by
+			box.$wrapper
+				.find(".match-type-dropdown-btn")
+				.html(frappe.utils.icon(condition === "=" ? "equal" : "equal-approximately"));
+			box.set_value(box_value);
 			return;
 		}
 
 		filter.standard_field = null;
-		box.set_value("");
+		if (box.get_value()) box.set_value("");
 		this.apply_changes();
 	}
 
@@ -508,7 +633,7 @@ frappe.ui.FilterGroup = class {
 	update_filter_button() {
 		if (!this.filter_button) return;
 
-		const standard = this.base_list?.filter_area?.get_standard_filters().length || 0;
+		const standard = this.toolbar?.get_standard_filters().length || 0;
 		const count = this.get_filters().length + standard;
 		this.filter_button.find(".filter-label").text(count).toggleClass("hidden", !count);
 		// the clear button only shows, and joins the filter button, when there is something to clear
@@ -525,10 +650,10 @@ frappe.ui.FilterGroup = class {
 
 		this.wrapper.find(".clear-filters").on("click", () => {
 			this.toggle_empty_filters(true);
-			if (this.base_list) {
+			if (this.toolbar) {
 				// the toolbar boxes are cleared too
 				const had_filters = this.get_filters().length;
-				this.base_list.filter_area.clear().then(() => had_filters && this.on_change());
+				this.toolbar.clear().then(() => had_filters && this.on_change());
 			} else {
 				this.filters.forEach((f) => f.remove());
 				this.filters = [];
@@ -624,13 +749,11 @@ frappe.ui.FilterGroup = class {
 				this.refresh_dynamic_link_filters();
 				this.refresh_prefixes();
 				if (this.staged) return;
+				filter && this.adopt_toolbar_row(filter);
 				if (filter?.standard_field) return this.sync_to_toolbar(filter);
 				this.apply_changes();
 			},
 			on_enter: () => this.hide_popover(),
-			filter_items: (doctype, fieldname) => {
-				return !this.filter_exists([doctype, fieldname]);
-			},
 			filter_list: this.base_list || this,
 		};
 

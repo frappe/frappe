@@ -25,7 +25,7 @@ context("List View", () => {
 			win.frappe.route_options = { published: ["=", 0] };
 			win.frappe.set_route("List", "Web Page");
 		});
-		cy.get(".filter-selector .filter-button .button-label").should("contain", "Filters");
+		cy.get(".filter-selector .filter-button .filter-label").should("have.text", "1");
 		cy.window()
 			.its("cur_list.filter_area")
 			.then((filter_area) => {

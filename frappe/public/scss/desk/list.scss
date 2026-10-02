@@ -652,27 +652,6 @@ input.list-header-checkbox {
 
 	.filter-selector {
 		margin: var(--margin-xs);
-
-		// applied-filter count inside the Filter button
-		.filter-label {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			min-width: calc(var(--spacing) * 5);
-			height: calc(var(--spacing) * 5);
-			padding-inline: var(--spacing);
-			border-radius: 5px;
-			background-color: var(--surface-base);
-			box-shadow: var(--elevation-sm);
-			font-size: var(--text-xs);
-			font-weight: var(--font-weight-medium);
-			color: var(--ink-gray-8);
-		}
-
-		// the × button shares the filter button's edge
-		.filter-x-button {
-			border-inline-start: 1px solid var(--outline-gray-2);
-		}
 	}
 
 	.sort-selector {

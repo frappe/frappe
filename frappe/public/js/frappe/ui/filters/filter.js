@@ -309,7 +309,13 @@ frappe.ui.Filter = class {
 		this.condition_dropdown?.destroy();
 		this.fieldselect?.combobox?.close("owner");
 		this.filter_edit_area.remove();
+		this.destroy_calendar();
 		this.field = null;
+	}
+
+	// a date control's calendar is mounted in <body>, so it outlives the row unless removed
+	destroy_calendar() {
+		this.field?.datepicker?.destroy();
 	}
 
 	set_values(doctype, fieldname, condition, value) {
@@ -437,6 +443,7 @@ frappe.ui.Filter = class {
 		// relabel: Date relabels the comparisons once the fieldtype is known
 		this.set_condition(this.get_condition());
 
+		this.destroy_calendar();
 		let field_area = this.filter_edit_area.find(".filter-field").empty().get(0);
 		df.placeholder = df.dynamic_link_hint || this.get_placeholder(df, this.get_condition());
 		// starts blank, so picking a Select field doesn't filter by its first option
@@ -640,7 +647,8 @@ frappe.ui.filter_utils = {
 			val = field.df.options[0].value;
 		}
 
-		if (field.df.original_type == "Check") {
+		// blank stays blank: nothing picked yet is not "No"
+		if (field.df.original_type == "Check" && val) {
 			val = val == "Yes" ? 1 : 0;
 		}
 

@@ -795,6 +795,10 @@ class FilterArea {
 		return exists;
 	}
 
+	get_standard_field(fieldname) {
+		return this.list_view.page.fields_dict[fieldname];
+	}
+
 	set_standard_filter(filters) {
 		if (filters.length === 0) {
 			return {
@@ -811,18 +815,7 @@ class FilterArea {
 			out.non_standard_filters = out.non_standard_filters || [];
 
 			// set in list view area if filters are present
-			// don't set like filter on link fields (gets reset)
-			// a Check standard filter is a checkbox that can't hold "= 0", so keep it as a regular filter
-			const is_unchecked_check =
-				fields_dict[fieldname]?.df?.fieldtype === "Check" && !cint(value);
-			if (
-				fields_dict[fieldname] &&
-				!is_unchecked_check &&
-				(condition === "=" ||
-					(condition === "like" && fields_dict[fieldname]?.df?.fieldtype != "Link") ||
-					(condition === "descendants of (inclusive)" &&
-						fields_dict[fieldname]?.df?.fieldtype == "Link"))
-			) {
+			if (frappe.ui.FilterGroup.fits_box(fields_dict[fieldname], condition, value)) {
 				// standard filter
 				out.promise = out.promise.then(() => {
 					// Set match type for fields that support it
@@ -1406,25 +1399,13 @@ class FilterArea {
 	}
 
 	make_filter_list() {
-		const $selector = $(
-			`<div class="filter-selector flex items-center gap-1"><div class="flex items-center"></div></div>`
-		).appendTo(this.$filter_list_wrapper);
-
-		this.filter_button = frappe.ui.button({
-			label: __("Filter"),
-			icon: "list-filter",
-			css_class: "filter-button",
-		});
-		this.filter_button.find(".es-button__label").addClass("button-label max-sm:hidden");
-		this.filter_button.append('<span class="filter-label hidden"></span>');
-		this.filter_x_button = frappe.ui.button({
-			icon: "x",
-			tooltip: __("Clear all filters"),
-			css_class: "filter-x-button rounded-ss-none rounded-es-none hidden",
-		});
-		$selector.children().append(this.filter_button, this.filter_x_button);
+		const { $selector, filter_button, filter_x_button } = frappe.ui.FilterGroup.make_buttons();
+		$selector.appendTo(this.$filter_list_wrapper);
+		this.filter_button = filter_button;
+		this.filter_x_button = filter_x_button;
 		this.filter_list = new frappe.ui.FilterGroup({
 			base_list: this.list_view,
+			toolbar: this,
 			parent: this.$filter_list_wrapper,
 			doctype: this.list_view.doctype,
 			filter_button: this.filter_button,

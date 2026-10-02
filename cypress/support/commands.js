@@ -511,6 +511,11 @@ Cypress.Commands.add("open_list_filter", () => {
 	cy.get(".filter-popover").should("exist");
 });
 
+// a filter row's field picker is a combobox; a new row opens its own
+Cypress.Commands.add("pick_filter_field", (label) => {
+	cy.get(".es-combobox__panel[data-state='open'] .es-combobox__input").type(`${label}{enter}`);
+});
+
 Cypress.Commands.add("click_custom_action_button", (name) => {
 	cy.get(`.custom-actions [data-label="${encodeURIComponent(name)}"]`).click();
 });

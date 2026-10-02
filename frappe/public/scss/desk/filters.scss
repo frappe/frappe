@@ -1,3 +1,28 @@
+// the Filter button, wherever a view puts it: a list's page form, a board's page head
+.filter-selector {
+	// applied-filter count inside the Filter button
+	.filter-label {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: calc(var(--spacing) * 5);
+		height: calc(var(--spacing) * 5);
+		padding-inline: var(--spacing);
+		border-radius: 5px;
+		background-color: var(--surface-base);
+		box-shadow: var(--elevation-sm);
+		font-size: var(--text-xs);
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
+	}
+
+	// the × button shares the filter button's edge; a page head spaces its buttons apart
+	.filter-x-button {
+		margin-left: 0;
+		border-inline-start: 1px solid var(--outline-gray-2);
+	}
+}
+
 .filter-popover {
 	// sized by its rows, not a fixed width
 	width: max-content;
@@ -121,25 +146,38 @@
 .es-bottom-sheet .filter-area {
 	@include stacked-filter-rows;
 
-	.filter-edit-area {
-		row-gap: calc(var(--spacing) * 5);
+	// a label sits closer to its own box than to the box above
+	.filter-edit-area,
+	.filter-box {
+		row-gap: calc(var(--spacing) * 4);
 	}
 
 	.filter-box {
 		.es-combobox,
 		.filter-field .form-control {
 			height: calc(var(--spacing) * 10);
-			font-size: var(--text-lg);
+		}
+
+		// a typed value reads like the other two boxes (.bold is an !important utility)
+		.filter-field .form-control.bold {
+			font-weight: var(--font-weight-regular) !important;
 		}
 
 		.condition {
 			--es-bt-h: calc(var(--spacing) * 10);
-			font-size: var(--text-lg);
+			// less its border, so its text lines up with the other two
+			padding-inline: calc(var(--spacing) * 2 - 1px);
 		}
 
 		// stacked, the three chevrons line up with the condition button's
 		.es-combobox {
 			padding-inline-end: calc(var(--spacing) * 2);
+		}
+
+		.es-combobox__chevron,
+		.condition > .icon,
+		.select-icon .icon {
+			color: var(--ink-gray-5);
 		}
 
 		// the Select icon is placed for a 28px box; centre it in the taller one
@@ -159,7 +197,6 @@
 			padding: 0;
 			display: flex;
 			align-items: center;
-			font-size: var(--text-lg);
 		}
 	}
 
@@ -191,7 +228,7 @@
 	display: flex;
 	align-items: center;
 	gap: calc(var(--spacing) * 2);
-	min-height: calc(var(--spacing) * 15);
+	min-height: calc(var(--spacing) * 14);
 
 	& + & {
 		border-top: 1px solid var(--outline-gray-1);
@@ -204,15 +241,21 @@
 		flex-direction: column;
 		gap: calc(var(--spacing) * 0.5);
 		padding-block: calc(var(--spacing) * 2.5);
+		// its text 8px in, like the text of every other box in the sheet
+		padding-inline: calc(var(--spacing) * 2) 0;
 		border: 0;
+		border-radius: var(--radius-md);
 		background: transparent;
 		text-align: start;
 		color: var(--ink-gray-8);
 		-webkit-tap-highlight-color: transparent;
+
+		&:active {
+			background: var(--surface-gray-2);
+		}
 	}
 
 	&__field {
-		font-size: var(--text-lg);
 		font-weight: var(--font-weight-medium);
 	}
 
@@ -220,12 +263,12 @@
 		overflow: hidden;
 		white-space: nowrap;
 		text-overflow: ellipsis;
-		font-size: var(--text-base);
+		font-size: var(--text-sm);
 	}
 
 	&__condition,
 	&__value--empty {
-		color: var(--ink-gray-5);
+		color: var(--ink-gray-6);
 	}
 }
 
@@ -233,7 +276,7 @@
 	margin: 0;
 	padding-block: calc(var(--spacing) * 6);
 	text-align: center;
-	color: var(--ink-gray-5);
+	color: var(--ink-gray-6);
 }
 
 // the edit step: each control under its label; Remove is in the footer. A new filter
@@ -259,7 +302,7 @@
 			display: block;
 			margin-bottom: calc(var(--spacing) * 1.5);
 			font-size: var(--text-sm);
-			color: var(--ink-gray-5);
+			color: var(--ink-gray-6);
 		}
 	}
 }
@@ -270,9 +313,116 @@
 	border: 0;
 	box-shadow: none;
 
+	// the month row and the days sit on the same line as the sheet's other boxes
+	.datepicker--nav,
+	.datepicker--content {
+		padding-inline: 0;
+	}
+
+	.datepicker--nav-title {
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
+
+		i {
+			color: var(--ink-gray-5);
+		}
+	}
+
+	.datepicker--day-name {
+		font-size: var(--text-xs);
+		color: var(--ink-gray-6);
+	}
+
 	.datepicker--cell {
-		height: calc(var(--spacing) * 11);
-		font-size: var(--text-lg);
+		height: calc(var(--spacing) * 10);
+		border-radius: var(--radius-md);
+
+		&.-other-month- {
+			color: var(--ink-gray-4);
+		}
+
+		// a range reads as one band between its two ends
+		&.-in-range- {
+			border-radius: 0;
+		}
+
+		&.-range-from- {
+			border-radius: var(--radius-md) 0 0 var(--radius-md);
+		}
+
+		&.-range-to- {
+			border-radius: 0 var(--radius-md) var(--radius-md) 0;
+		}
+	}
+
+	// Today and Now look like something to tap
+	.datepicker--buttons {
+		justify-content: center;
+		padding-block: calc(var(--spacing) * 2);
+	}
+
+	.datepicker--button {
+		flex: none;
+		height: calc(var(--spacing) * 7);
+		padding-inline: calc(var(--spacing) * 2);
+		border-radius: var(--radius);
+		background: var(--surface-gray-2);
+	}
+
+	// the time over full-width sliders, with thumbs a finger can drag
+	.datepicker--time {
+		flex-direction: column;
+		gap: calc(var(--spacing) * 2);
+		padding: calc(var(--spacing) * 3) 0;
+	}
+
+	.datepicker--time-current {
+		flex: none;
+		margin: 0;
+
+		span {
+			font-size: var(--text-4xl);
+		}
+	}
+
+	.datepicker--time-sliders {
+		flex: none;
+		width: 100%;
+		max-width: none;
+		margin: 0;
+	}
+
+	.datepicker--time-row {
+		height: calc(var(--spacing) * 10);
+		gap: calc(var(--spacing) * 3);
+		// the track is drawn on the slider, clear of the label
+		background-image: none;
+
+		&::before {
+			content: attr(data-label);
+			flex: none;
+			width: calc(var(--spacing) * 16);
+			font-size: var(--text-sm);
+			color: var(--ink-gray-6);
+		}
+
+		input[type="range"] {
+			background: linear-gradient(var(--outline-gray-2), var(--outline-gray-2)) left 50% /
+				100% 2px no-repeat;
+		}
+
+		input[type="range"]::-webkit-slider-thumb {
+			width: calc(var(--spacing) * 6);
+			height: calc(var(--spacing) * 6);
+			margin-top: calc(var(--spacing) * -3);
+			border-radius: var(--radius-full);
+		}
+
+		input[type="range"]::-moz-range-thumb {
+			width: calc(var(--spacing) * 6);
+			height: calc(var(--spacing) * 6);
+			border-radius: var(--radius-full);
+		}
 	}
 }
 

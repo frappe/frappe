@@ -78,10 +78,7 @@ context("Workspace Blocks", () => {
 		cy.get_open_dialog().find(".filter-edit-area").should("contain", "No filters selected");
 		cy.get_open_dialog().find(".filter-area .add-filter").click();
 
-		cy.get_open_dialog()
-			.find(".fieldname-select-area input")
-			.type("Workflow State{enter}")
-			.blur();
+		cy.pick_filter_field("Workflow State");
 		cy.get_open_dialog().find(".filter-field .input-with-feedback").type("Pending");
 
 		cy.get_open_dialog().find(".modal-header").click();
