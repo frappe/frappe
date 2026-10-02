@@ -27,6 +27,7 @@
 				:label="hideLabel ? undefined : 'Sort'"
 				:icon="hideLabel ? 'lucide-arrow-up-down' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-arrow-up-down' : undefined"
+				aria-label="Sort"
 			/>
 		</template>
 	</Combobox>
@@ -52,6 +53,7 @@
 				<Button
 					class="relative rounded-r-none border-r focus-visible:z-10"
 					:icon="directionIcon(model[0].direction)"
+					:aria-label="model[0].direction === 'asc' ? 'Ascending' : 'Descending'"
 					@click.stop="toggleDirection(0)"
 				/>
 				<Button
@@ -85,6 +87,9 @@
 									size="md"
 									class="relative rounded-r-none border-r focus-visible:z-10"
 									:icon="directionIcon(sort.direction)"
+									:aria-label="
+										sort.direction === 'asc' ? 'Ascending' : 'Descending'
+									"
 									@click="toggleDirection(i)"
 								/>
 								<Combobox
@@ -98,7 +103,12 @@
 									@update:selectedOption="(o) => updateSort(o, i)"
 								/>
 							</div>
-							<Button variant="ghost" icon="lucide-x" @click="removeSort(i)" />
+							<Button
+								variant="ghost"
+								icon="lucide-x"
+								aria-label="Remove sort"
+								@click="removeSort(i)"
+							/>
 						</div>
 					</template>
 				</Draggable>
