@@ -376,7 +376,7 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 	}
 
-	// Also drawn as rows by the phone tab bar's You sheet (mobile_nav.js).
+	// Also drawn as rows by the phone tab bar's Profile sheet (mobile_nav.js).
 	user_menu_options() {
 		const me = this;
 		return [
