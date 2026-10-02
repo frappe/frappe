@@ -2,13 +2,13 @@
 // from the app's own repo never reaches. Only what the app declared resolves; nothing is aliased.
 
 import { existsSync } from "node:fs";
-import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isFileValue } from "./importMap.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const requireFromFrameworkTree = createRequire(join(here, "..", "package.json"));
+// A declared package resolves as if the shell imported it, so both get the same file.
+const SHELL_ENTRY = join(here, "..", "src", "main.ts");
 
 // `preserveSymlinks` keeps the linked `@framework/ui` under node_modules, so a relative
 // import that climbs out of the package lands in node_modules; resolve it from the real tree.
@@ -28,7 +28,7 @@ export default function oneTree(manifest) {
 
 	return {
 		name: "frappe-one-tree",
-		resolveId(source, importer) {
+		async resolveId(source, importer) {
 			if (!importer) return;
 			if (source.startsWith("../")) return outOfLinkedPackage(source, importer);
 			// Relative, absolute and virtual specifiers are already somebody else's.
@@ -51,12 +51,9 @@ export default function oneTree(manifest) {
 				: segments[0];
 			if (!owner.declared.has(source) && !owner.declared.has(packageName)) return;
 
-			try {
-				return requireFromFrameworkTree.resolve(source);
-			} catch {
-				// Fall through so vite reports the ordinary "failed to resolve".
-				return;
-			}
+			// frappe-ui exports only `import`, and vue's CommonJS build is not the shell's;
+			// resolve as vite would from the shell. A miss gives vite's "failed to resolve".
+			return this.resolve(source, SHELL_ENTRY, { skipSelf: true });
 		},
 	};
 }

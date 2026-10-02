@@ -1,4 +1,10 @@
-import { describe, expect, it } from "vitest";
+// @vitest-environment node
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { build, createServer, type ViteDevServer } from "vite";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import oneTree, {
   LINKED_UI,
   REAL_UI,
@@ -52,33 +58,117 @@ describe("a framework name published from a file", () => {
     });
   });
 
-  it("resolves from an app's source without a declaration", () => {
+  it("resolves from an app's source without a declaration", async () => {
     expect(
-      plugin.resolveId(
+      await plugin.resolveId(
         "frappe/i18n",
         "/bench/apps/crm/crm/frontend/lib/index.js",
       ),
     ).toBe("/bench/apps/frappe/frappe/frontend/i18n.js");
   });
 
-  it("resolves from the framework's own contributed source", () => {
+  it("resolves from the framework's own contributed source", async () => {
     expect(
-      plugin.resolveId(
+      await plugin.resolveId(
         "frappe/i18n",
         "/bench/apps/frappe/frappe/core/doctype/user/frontend/record.js",
       ),
     ).toBe("/bench/apps/frappe/frappe/frontend/i18n.js");
   });
 
-  it("does not reach an importer outside every app's source, such as ui/", () => {
+  it("does not reach an importer outside every app's source, such as ui/", async () => {
     expect(
-      plugin.resolveId("frappe/i18n", `${REAL_UI}/src/components/x.ts`),
+      await plugin.resolveId("frappe/i18n", `${REAL_UI}/src/components/x.ts`),
     ).toBeUndefined();
   });
 
-  it("still leaves an undeclared bare name to vite", () => {
+  it("still leaves an undeclared bare name to vite", async () => {
     expect(
-      plugin.resolveId("vue", "/bench/apps/crm/crm/frontend/lib/index.js"),
+      await plugin.resolveId("vue", "/bench/apps/crm/crm/frontend/lib/index.js"),
     ).toBeUndefined();
+  });
+});
+
+describe("a package an app declares", () => {
+  const frontend = fileURLToPath(new URL("../..", import.meta.url));
+  const shellFile = `${frontend}src/main.ts`;
+  // Vite resolves from its root when the importer is not on disk, so the app file must exist.
+  const appSource = mkdtempSync(join(tmpdir(), "one-tree-crm-"));
+  const appFile = join(appSource, "record.js");
+  writeFileSync(appFile, "");
+  const manifest = [
+    { app: "frappe", source_dir: frontend, runtime_deps: {} },
+    {
+      app: "crm",
+      source_dir: appSource,
+      runtime_deps: { vue: "*", "frappe-ui": "*" },
+    },
+  ];
+  let server: ViteDevServer;
+
+  const resolveFrom = async (source: string, importer: string) =>
+    (await server.environments.client.pluginContainer.resolveId(source, importer))?.id;
+
+  beforeAll(async () => {
+    server = await createServer({
+      configFile: false,
+      root: frontend,
+      logLevel: "silent",
+      plugins: [oneTree(manifest)],
+      resolve: { preserveSymlinks: true },
+      server: { middlewareMode: true, hmr: false, watch: null },
+      optimizeDeps: { noDiscovery: true, include: [] },
+    });
+  });
+
+  afterAll(async () => {
+    await server?.close();
+    rmSync(appSource, { recursive: true });
+  });
+
+  it("resolves a package that exports only an import entry, such as frappe-ui", async () => {
+    const shell = await resolveFrom("frappe-ui", shellFile);
+    expect(shell).toBeTruthy();
+    expect(await resolveFrom("frappe-ui", appFile)).toBe(shell);
+  });
+
+  it("gives the app the vue the shell gets, not the CommonJS entry", async () => {
+    const shell = await resolveFrom("vue", shellFile);
+    expect(shell).toMatch(/vue\.runtime\.esm-bundler\.js/);
+    expect(await resolveFrom("vue", appFile)).toBe(shell);
+  });
+
+  it("does not resolve a package the app did not declare", async () => {
+    expect(await resolveFrom("dompurify", appFile)).toBeUndefined();
+  });
+
+  it("resolves the same way in a build", async () => {
+    const found: Record<string, string | undefined> = {};
+    const probe = {
+      name: "probe",
+      resolveId: (id: string) => (id === "probe" ? "\0probe" : undefined),
+      load: (id: string) => (id === "\0probe" ? "export {}" : undefined),
+      async buildStart(this: any) {
+        for (const source of ["frappe-ui", "vue"]) {
+          found[`shell ${source}`] = (await this.resolve(source, shellFile))?.id;
+          found[`app ${source}`] = (await this.resolve(source, appFile))?.id;
+        }
+        found["app dompurify"] = (await this.resolve("dompurify", appFile))?.id;
+      },
+    };
+    await build({
+      configFile: false,
+      root: frontend,
+      logLevel: "silent",
+      plugins: [oneTree(manifest), probe],
+      resolve: { preserveSymlinks: true },
+      build: { write: false, rolldownOptions: { input: "probe" } },
+    });
+
+    expect(found["shell frappe-ui"]).toBeTruthy();
+    expect(found["app frappe-ui"]).toBe(found["shell frappe-ui"]);
+    expect(found["shell vue"]).toMatch(/vue\.runtime\.esm-bundler\.js/);
+    expect(found["app vue"]).toBe(found["shell vue"]);
+    expect(found["app dompurify"]).toBeUndefined();
   });
 });
