@@ -257,6 +257,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		this.old_state;
 		$(document).on("sidebar-expand", function (event, expand) {
+			// A phone has no rail, so a closed drawer is not a reason to change any group.
+			if (frappe.app.sidebar.panel_can_close()) return;
 			// A heading keeps its row in the rail and loses only its text (see sidebar.scss), so
 			// groups stay apart by the gap they had rather than by a rule drawn for the occasion.
 			if (expand.sidebar_expand) {
@@ -327,7 +329,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			}
 			// Docking the sidebar is how a collapsed one shows the group that was just
 			// expanded, since the group itself is off screen while collapsed.
-			if (!frappe.app.sidebar.sidebar_expanded) {
+			if (!frappe.app.sidebar.sidebar_expanded && !frappe.app.sidebar.panel_can_close()) {
 				frappe.app.sidebar.open();
 				this.open();
 			}
