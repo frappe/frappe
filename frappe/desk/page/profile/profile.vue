@@ -126,10 +126,15 @@ const THEME_ICONS = {
 	automatic: "lucide-monitor-smartphone",
 };
 
+// Each tap shows its theme at once; only where the taps stop is saved. A save per tap could
+// reach the server out of order and keep a theme that is no longer on screen.
+let theme_save;
 function cycle_theme() {
 	const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme_mode.value) + 1) % THEME_CYCLE.length];
-	switcher.toggle_theme(next);
 	theme_mode.value = next;
+	document.documentElement.setAttribute("data-theme-mode", next);
+	clearTimeout(theme_save);
+	theme_save = setTimeout(() => switcher.toggle_theme(next), 600);
 }
 
 // ─── session defaults ────────────────────────────────────────────────────────
