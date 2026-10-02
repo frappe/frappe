@@ -1,4 +1,5 @@
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -554,7 +555,7 @@ def run_ui_tests(
 
 	click.secho("Running Playwright...", fg="yellow")
 	try:
-		frappe.commands.popen(" ".join(command), cwd=app_base_path, env=env, raise_err=True)
+		frappe.commands.popen(shlex.join(command), cwd=app_base_path, env=env, raise_err=True)
 	except subprocess.CalledProcessError as e:
 		click.secho("Playwright tests failed", fg="red")
 		raise click.exceptions.Exit(1) from e
