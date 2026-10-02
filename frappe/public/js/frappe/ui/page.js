@@ -63,6 +63,8 @@ frappe.ui.Page = class Page {
 		// the two are independent, and `hide_sidebar` takes the panel away on a desktop and merely
 		// closes the drawer on a narrow screen (see Sidebar.page_allows_sidebar)
 		if (!Object.keys(opts).includes("hide_dock")) this.hide_dock = false;
+		// and the phone tab bar, the same way (see MobileNav.apply_page_visibility)
+		if (!Object.keys(opts).includes("hide_mobile_nav")) this.hide_mobile_nav = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 

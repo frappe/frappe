@@ -24,9 +24,11 @@ frappe.ui.MobileNav = class MobileNav {
 
 		// .main-section makes room for the bar only once the element can draw it, so a
 		// missing frappe-mobile-nav.js costs no blank strip at the bottom of the page.
-		customElements
-			.whenDefined("frappe-mobile-nav")
-			.then(() => document.body.classList.add("has-mobile-nav"));
+		customElements.whenDefined("frappe-mobile-nav").then(() => {
+			this.defined = true;
+			this.apply_page_visibility();
+		});
+		$(document).on("page-change", () => this.apply_page_visibility());
 
 		frappe.router.on("change", () => {
 			this.set_active();
@@ -38,7 +40,9 @@ frappe.ui.MobileNav = class MobileNav {
 		// The title is the trail's last crumb (Page.set_title), redrawn on every paint, so
 		// the tap is delegated. Pages inside dialogs draw no trail and are left out.
 		$(document).on("click", ".page-head .navbar-breadcrumbs li:last-child", () => {
-			if (frappe.is_mobile()) this.open_navigation();
+			if (frappe.is_mobile() && document.body.classList.contains("has-mobile-nav")) {
+				this.open_navigation();
+			}
 		});
 	}
 
@@ -95,6 +99,13 @@ frappe.ui.MobileNav = class MobileNav {
 		}
 		this.nav.appendChild(item);
 		return { ...tab, el: item };
+	}
+
+	// A page keeps the bar off with `hide_mobile_nav`, as it does the dock with `hide_dock`.
+	// `has-mobile-nav` on <body> is what shows the bar and makes room for it.
+	apply_page_visibility() {
+		const page = frappe.container?.page?.page;
+		document.body.classList.toggle("has-mobile-nav", !!this.defined && !page?.hide_mobile_nav);
 	}
 
 	// Only Home is a place; the other tabs open something over the page.
