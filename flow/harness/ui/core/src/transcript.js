@@ -247,15 +247,7 @@ function addUsage(s, e) {
 function recordRequest(s, e) {
 	// a cancelled turn reports an empty Usage(): no numbers to show, no call to count
 	if (!(e.input_tokens ?? 0) && !(e.output_tokens ?? 0)) return
-	s.requests.push({
-		seq: e.seq ?? 0,
-		input: e.input_tokens ?? 0,
-		output: e.output_tokens ?? 0,
-		cacheRead: e.cache_read_tokens ?? 0,
-		cacheWrite: e.cache_write_tokens ?? 0,
-		cost: e.cost ?? 0,
-		standalone: e.standalone ?? false,
-	})
+	s.requests.push(e) // whole: the transcript shows the report itself
 }
 
 const END_NOTICES = {
@@ -752,94 +744,96 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	return result
 }
 
-// One row per operation, in transcript order. Usage belongs to model requests,
-// so attach each provider report to the row that made the call — a response, or
-// a compaction — rather than attributing its input to messages or tool results.
+// One row per operation, in transcript order, holding the objects the server sent
+// minus Flow's own fields. Usage belongs to model requests, so attach each provider
+// report to the row that made the call — a response, or a compaction — never to
+// messages or tool results. A sub-agent call's row sums what its child spent.
 //   {key, kind: "system"|"user"|"assistant"|"tool"|"compaction"|"error",
-//    body, subject?, thinking?, name?, input?, output?, failed?, request?, spent?}
+//    body?, entry?, input?, output?, usage?}
 export function buildTranscriptRows(conversation) {
 	const rows = []
 	const steps = new Map() // tool call id -> its row, filled when the result lands
+	const runs = new Map() // sub-agent call id -> its child and the log span it ran in
 	const entries = conversation.entries ?? []
 	const requests = conversation.requests ?? []
 	let cursor = 0
 
 	// the system prompt opens every request; its text stays out of the log
 	if (entries.length) {
-		rows.push({ key: "system", kind: "system", subject: "", body: "System prompt." })
+		rows.push({ key: "system", kind: "system", body: "System prompt." })
 	}
 
 	for (const [index, entry] of entries.entries()) {
 		let caller = null // the row whose model call a usage report in this gap belongs to
 		if (entry.type === "user_message") {
-			// an image-only message has no text at all: its attachments name the row
-			const names = userAttachments(entry).map((item) => item.name).join(", ")
-			rows.push({ key: `u:${entry.seq}`, kind: "user", subject: names, body: userText(entry) })
-		} else if (entry.type === "assistant_message" && entry.content?.length) {
-			// an aborted turn can leave a message with no blocks at all: nothing to show
-			caller = assistantRow(entry)
+			rows.push({ key: `u:${entry.seq}`, kind: "user", entry: withoutFlowFields(entry) })
+		} else if (entry.type === "assistant_message") {
+			caller = { key: `a:${entry.seq}`, kind: "assistant", entry: withoutFlowFields(entry) }
 			rows.push(caller)
+			// each call is its tool's input; the result lands as its output
 			for (const call of entry.content.filter((block) => block.type === "tool_call")) {
-				const step = toolRow(call, conversation)
+				const step = { key: `c:${call.id}`, kind: "tool", input: withoutFlowFields(call) }
 				steps.set(call.id, step)
 				rows.push(step)
+				const child = call.name === "subagent" ? conversation.subagents?.[subagentId(call)] : null
+				if (child) runs.set(call.id, { step, child, from: entry.seq, to: Infinity })
 			}
 		} else if (entry.type === "tool_result") {
 			const step = steps.get(entry.tool_call_id)
-			if (step) {
-				step.output = entry.content ?? ""
-				step.failed = entry.is_error === true
-			}
+			if (step) step.output = withoutFlowFields(entry)
+			const run = runs.get(entry.tool_call_id)
+			if (run) run.to = entry.seq
 		} else if (entry.type === "compaction") {
-			caller = {
-				key: `k:${entry.seq}`,
-				kind: "compaction",
-				subject: "everything before this is now a summary",
-				body: entry.summary ?? "",
-			}
+			caller = { key: `k:${entry.seq}`, kind: "compaction", entry: withoutFlowFields(entry) }
 			rows.push(caller)
 		} else if (entry.type === "run_error") {
-			rows.push({ key: `e:${entry.seq}`, kind: "error", subject: entry.message ?? "", body: entry.detail ?? "" })
+			rows.push({ key: `e:${entry.seq}`, kind: "error", entry: withoutFlowFields(entry) })
 		}
 
 		// Usage normally follows its assistant message or compaction immediately.
 		const until = entries[index + 1]?.seq ?? Infinity
 		while (cursor < requests.length && requests[cursor].seq < until) {
-			const request = requests[cursor++]
-			if (caller && !caller.request && (caller.kind === "compaction") === request.standalone)
-				caller.request = request
+			const usage = requests[cursor++]
+			if (caller && !caller.usage && (caller.kind === "compaction") === !!usage.standalone)
+				caller.usage = withoutFlowFields(usage)
 		}
+	}
+	// a continued sub-agent runs once per call: each row counts only its own run
+	for (const { step, child, from, to } of runs.values()) {
+		const reports = child.requests.filter((usage) => usage.seq > from && usage.seq < to)
+		if (reports.length) step.usage = summedUsage(reports)
 	}
 	return rows
 }
 
-function assistantRow(entry) {
-	const blocks = entry.content ?? []
-	const join = (type, field) => blocks.filter((b) => b.type === type).map((b) => b[field]).join("\n\n")
-	return {
-		key: `a:${entry.seq}`,
-		kind: "assistant",
-		subject: "",
-		thinking: join("thinking", "thinking"),
-		body: join("text", "text"),
-	}
+// usage reports added up, in the fields one report has
+function summedUsage(reports) {
+	const fields = ["input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "cost"]
+	return Object.fromEntries(fields.map((field) => [field, reports.reduce((sum, usage) => sum + (usage[field] ?? 0), 0)]))
 }
 
-function toolRow(call, conversation) {
-	// a sub-agent's own spend never enters this context: report it beside the row
-	const child = call.name === "subagent" ? conversation.subagents?.[subagentId(call)] : null
-	// every tool reads the same way, built-in or not: what it was called with,
-	// then what it returned — no per-tool summary of a chosen argument
-	const args = call.arguments ?? call.args ?? {}
-	return {
-		key: `c:${call.id}`,
-		kind: "tool",
-		name: call.name,
-		input: Object.keys(args).length ? JSON.stringify(args, null, 2) : "",
-		output: "",
-		failed: false,
-		spent: child ? child.usage.input + child.usage.output : 0,
-	}
+// Flow's bookkeeping: the log's envelope, render hints, adapter state, accounting flags
+const FLOW_FIELDS = new Set([
+	"seq",
+	"parent_seq",
+	"ts",
+	"subagent_id",
+	"api",
+	"display",
+	"details",
+	"provider_state",
+	"standalone",
+	"context_window",
+	"compact_up_to_seq",
+])
+
+// an entry or content block without Flow's fields; tool arguments stay as the model wrote them
+function withoutFlowFields(object) {
+	return Object.fromEntries(
+		Object.entries(object)
+			.filter(([key]) => !FLOW_FIELDS.has(key))
+			.map(([key, value]) => [key, key === "content" && Array.isArray(value) ? value.map(withoutFlowFields) : value]),
+	)
 }
 
 // ids of the rows an item can expand: its tool calls and thoughts
