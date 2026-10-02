@@ -64,10 +64,15 @@ frappe-mobile-nav.desk-mobile-nav {
 		}
 	}
 
-	// The desktop page's header (both its templates): search and notifications are tabs on
-	// a phone, so the header names the page instead.
-	body.has-mobile-nav .desktop-navbar {
-		.search-widget-wrapper,
+	// The desktop page's header. Its search, notifications and user menu are tabs on a phone,
+	// so the Apps screen (desktop.html) is just its apps; both classes outrank desktop.css's
+	// `body.apps-page .navbar-container`, which loads after this. The Desktop Icons grid
+	// (desktop_icons.html) keeps its header and names the page in it instead.
+	body.has-mobile-nav.apps-page .desktop-navbar.navbar-container {
+		display: none;
+	}
+
+	body.has-mobile-nav.desktop-icons-page .desktop-navbar {
 		.desktop-search-wrapper,
 		.desktop-notifications {
 			display: none;
