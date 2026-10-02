@@ -491,6 +491,11 @@ PLAYWRIGHT_VERSION = "1.63.0"
 @click.option("--headless", is_flag=True, help="Run UI Test in headless mode")
 @click.option("--browser", help="Browser to run tests in: chromium, firefox or webkit")
 @click.option(
+	"--parallel-site",
+	multiple=True,
+	help="Additional site to run tests on in parallel. Each site gets its own worker",
+)
+@click.option(
 	"--spec",
 	type=click.Path(dir_okay=False, file_okay=True),
 	help="Spec file to run",
@@ -501,6 +506,7 @@ def run_ui_tests(
 	app,
 	headless=False,
 	browser=None,
+	parallel_site=(),
 	playwrightargs=None,
 	spec=None,
 ):
@@ -550,6 +556,8 @@ def run_ui_tests(
 		# lets specs of other apps resolve @playwright/test from frappe's node_modules
 		"NODE_PATH": node_modules_path,
 	}
+	if parallel_site:
+		env["PARALLEL_BASE_URLS"] = ",".join(frappe.utils.get_site_url(s) for s in parallel_site)
 	if admin_password := frappe.get_conf().admin_password:
 		env["ADMIN_PASSWORD"] = admin_password
 
