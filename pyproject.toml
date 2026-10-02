@@ -27,9 +27,13 @@ dependencies = [
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
+<<<<<<< HEAD
     "RestrictedPython~=8.1",
     "WeasyPrint==68.0",
     "pydyf==0.12.1",
+=======
+    "RestrictedPython~=8.5",
+>>>>>>> ad6bd29 (chore(deps): bump RestrictedPython to 8.5)
     "Werkzeug==3.1.6",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
