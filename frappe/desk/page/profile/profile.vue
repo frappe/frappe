@@ -1,16 +1,14 @@
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { Button, Switch, TextInput } from "frappe-ui";
+import Group from "./components/Group.vue";
+import Row from "./components/Row.vue";
 
-// Raven's mobile profile (apps/mobile/app/[site_id]/(tabs)/profile), in its own Tailwind with
-// its colour tokens swapped for frappe-ui's:
-//   screen        (card)                       -> bg-surface-gray-1
-//   row           (bg-background dark:bg-card) -> bg-surface-elevation-2
-//   muted text    (text-muted-foreground/80)   -> text-ink-gray-5
-//   destructive   (text-destructive)           -> text-ink-red-5
-//   border        (border-border)              -> border-outline-gray-2
-// and its radii as values: frappe-ui's preset replaces Tailwind's rounded-xl and -2xl.
+// Gameplan's phone "You" page (frontend/src/components/MobileMoreMenu.vue) and its settings
+// pages: the avatar and name, then grouped rows, with the settings tabs listed directly.
+// Gameplan's "Profile" settings tab is "Personal Info" here, since the page is Profile.
 
-defineProps({
+const props = defineProps({
 	route: { type: Array, default: () => [] },
 	query: { type: Object, default: () => ({}) },
 });
@@ -19,55 +17,157 @@ const emit = defineEmits(["title", "actions"]);
 
 const frappe = window.frappe;
 const __ = window.__;
+const me = frappe.session.user;
 
-const user = frappe.user_info(frappe.session.user);
-const initials = (user.fullname || frappe.session.user)
-	.split(" ")
-	.slice(0, 2)
-	.map((word) => word[0])
-	.join("")
-	.toUpperCase();
+// Each settings section is a screen below the profile: /desk/profile/preferences. The
+// fields, the values and the saving all come from the settings dialog's own module
+// (frappe.ui.user_settings), so a section reads and saves the same on either.
+const SCREENS = {
+	personal: __("Personal Info"),
+	email: __("Email"),
+	preferences: __("Preferences"),
+	lists: __("Lists"),
+	forms: __("Forms"),
+	reports: __("Reports"),
+	"session-defaults": __("Session Defaults"),
+};
+const screen = computed(() => (SCREENS[props.route[0]] ? props.route[0] : null));
+const go = (...route) => frappe.set_route("profile", ...route);
 
-const THEMES = { light: __("Light"), dark: __("Dark"), automatic: __("Automatic") };
-const theme = THEMES[document.documentElement.getAttribute("data-theme-mode")] || THEMES.light;
+const settings = ref(null);
+const user_data = reactive({});
+const language = ref("");
 
-function open_settings(id) {
-	// Not in the desk bundle, so it is loaded on tap, as the sidebar's Settings row does.
-	frappe.require("user_settings_dialog.bundle.js").then(() => frappe.ui.show_user_settings(id));
+// the user_info desk keeps, which a save of the name or the photo updates
+const user = ref(frappe.user_info(me));
+const refresh_user = () => (user.value = { ...frappe.user_info(me) });
+const initials = computed(() =>
+	(user.value.fullname || me)
+		.split(/\s+/)
+		.filter(Boolean)
+		.slice(0, 2)
+		.map((word) => word[0])
+		.join("")
+		.toUpperCase()
+);
+
+async function load() {
+	// Not in the desk bundle, so it is loaded the first time the page shows.
+	await frappe.require("user_settings_dialog.bundle.js");
+	settings.value = frappe.ui.user_settings;
+	Object.assign(user_data, await settings.value.load());
+	language.value = await settings.value.language_name(user_data.language);
+	Object.assign(name_form, pick_name(user_data));
 }
 
-// Rows with a value show it; the rest lead somewhere and show a chevron. Each one opens a
-// section of the settings dialog (frappe.ui.show_user_settings). Keyboard Shortcuts is left
-// out: a phone has no keyboard to set them for.
-const PERSONAL = [
-	{ id: "profile", label: __("Name"), icon: "user", value: user.fullname },
-	{ id: "email", label: __("Email"), icon: "mail", value: frappe.session.user_email },
-];
-const PREFERENCES = [
-	{ id: "appearance", label: __("Appearance"), icon: "palette", value: theme },
-	{ id: "preferences", label: __("Preferences"), icon: "settings" },
-	{ id: "lists", label: __("Lists"), icon: "list" },
-	{ id: "forms", label: __("Forms"), icon: "file" },
-	{ id: "reports", label: __("Reports"), icon: "table" },
-	{ id: "session-defaults", label: __("Session Defaults"), icon: "sliders-horizontal" },
+// ─── switches ────────────────────────────────────────────────────────────────
+
+const switches = (section) => settings.value?.switches(section) || [];
+
+function toggle(fieldname, on) {
+	const before = user_data[fieldname];
+	user_data[fieldname] = on ? 1 : 0;
+	settings.value.save(fieldname, user_data[fieldname]).catch(() => {
+		user_data[fieldname] = before;
+	});
+}
+
+// ─── profile ─────────────────────────────────────────────────────────────────
+
+const pick_name = (data) => ({
+	first_name: data.first_name || "",
+	middle_name: data.middle_name || "",
+	last_name: data.last_name || "",
+	username: data.username || "",
+});
+const name_form = reactive(pick_name({}));
+const saving = ref(false);
+const name_changed = computed(() =>
+	Object.keys(name_form).some((key) => name_form[key] !== (user_data[key] || ""))
+);
+
+function save_name() {
+	saving.value = true;
+	// a native promise: frappe.call's jQuery one has no finally
+	Promise.resolve(settings.value.save_profile(user_data, name_form))
+		.then(refresh_user)
+		.finally(() => (saving.value = false));
+}
+
+function change(fieldname, after) {
+	settings.value.change(fieldname, user_data, (value) => {
+		user_data[fieldname] = value;
+		after?.(value);
+	});
+}
+
+function change_language() {
+	change("language", (code) =>
+		settings.value.language_name(code).then((name) => (language.value = name))
+	);
+}
+
+// ─── theme ───────────────────────────────────────────────────────────────────
+
+// Desk's ThemeSwitcher lists the themes and applies a pick, here as in the settings dialog.
+// It builds a dialog this page never shows; drop it, as the settings dialog does.
+const switcher = new frappe.ui.ThemeSwitcher();
+switcher.dialog.$wrapper.remove();
+const themes = ref([]);
+switcher.fetch_themes().then((list) => (themes.value = list));
+const theme_mode = ref(switcher.current_theme);
+const theme = computed(() => themes.value.find((t) => t.name === theme_mode.value)?.label);
+
+// Gameplan's Theme row: a tap moves to the next theme.
+const THEME_CYCLE = ["light", "dark", "automatic"];
+const THEME_ICONS = {
+	light: "lucide-sun",
+	dark: "lucide-moon",
+	automatic: "lucide-monitor-smartphone",
+};
+
+function cycle_theme() {
+	const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme_mode.value) + 1) % THEME_CYCLE.length];
+	switcher.toggle_theme(next);
+	theme_mode.value = next;
+}
+
+// ─── session defaults ────────────────────────────────────────────────────────
+
+const session_defaults = frappe.boot.session_defaults || [];
+const can_configure_defaults =
+	frappe.user_roles.includes("System Manager") ||
+	!!frappe.perm.get_perm("Session Default Settings")?.[0]?.read;
+
+// ─── the page itself ─────────────────────────────────────────────────────────
+
+// The settings tabs, listed directly as Gameplan lists its own.
+const SETTINGS_ROWS = [
+	{ screen: "personal", icon: "lucide-user" },
+	{ screen: "email", icon: "lucide-mail" },
+	{ screen: "preferences", icon: "lucide-sliders-horizontal" },
+	{ screen: "lists", icon: "lucide-list" },
+	{ screen: "forms", icon: "lucide-file-text" },
+	{ screen: "reports", icon: "lucide-table" },
+	{ screen: "session-defaults", icon: "lucide-settings-2" },
 ];
 
-// The rest of the sidebar's user menu. Settings is the rows above, the dock is not on a
-// phone to manage, and Logout gets the card at the end.
+// The rest of the sidebar's user menu, in the first group. Settings is the rows above, the
+// dock is not on a phone to manage, Reload is not a thing a phone user reaches for, and
+// Logout closes the Settings group.
 const menu = (frappe.app.sidebar?.user_menu_options() || []).flatMap((group) => group.options);
 const logout = menu.find((option) => option.name === "logout");
 const MORE = menu.filter(
 	(option) =>
-		!["settings", "workspace-selector", "logout"].includes(option.name) &&
+		!["settings", "workspace-selector", "reload", "logout"].includes(option.name) &&
 		(!option.condition || option.condition())
 );
+const MENU_ICONS = { "my-space": "lucide-lock" };
 
 function open(option) {
 	if (option.href) frappe.set_route(option.href);
 	else option.onclick?.();
 }
-
-const version = frappe.boot.versions?.frappe;
 
 onMounted(() => {
 	// A phone's page. A wider screen has the sidebar's user menu, and the User form for
@@ -75,122 +175,232 @@ onMounted(() => {
 	// land here again.
 	if (!frappe.is_mobile()) {
 		frappe.route_flags.replace_route = true;
-		frappe.set_route("Form", "User", frappe.session.user);
+		frappe.set_route("Form", "User", me);
 		return;
 	}
 
-	emit("title", __("Profile"));
+	// No header on a phone, as Gameplan's page has none: the screens bring their own bar.
+	// The same call the desktop page makes for its own header; it hides this page's only.
+	frappe.pages["profile"]?.page?.page_head.hide();
+
 	emit("actions", []);
+	load();
 });
 
-// Desk names its icons by their lucide names. Written out whole, so Tailwind's scan finds
-// every class.
-const ICONS = {
-	user: "lucide-user",
-	mail: "lucide-mail",
-	palette: "lucide-palette",
-	settings: "lucide-settings",
-	list: "lucide-list",
-	file: "lucide-file",
-	table: "lucide-table",
-	"sliders-horizontal": "lucide-sliders-horizontal",
-	"rotate-ccw": "lucide-rotate-ccw",
-};
+watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immediate: true });
 </script>
 
 <template>
-	<div class="h-full overflow-y-auto bg-surface-gray-1 px-4 pb-10">
-		<div class="mt-1.5 flex flex-col gap-4">
-			<div class="items-center py-3">
-				<img
-					v-if="user.image"
-					:src="user.image"
-					:alt="user.fullname"
-					class="mx-auto h-40 w-40 rounded-[16px] object-cover"
+	<div class="h-full overflow-y-auto bg-surface-gray-1">
+		<!-- a settings screen -->
+		<div v-if="screen" class="space-y-6 px-4 pt-3 pb-10">
+			<!-- the page head is hidden (see onMounted), so a screen names itself -->
+			<div class="flex items-center gap-1">
+				<Button
+					variant="ghost"
+					size="lg"
+					icon="lucide-chevron-left"
+					:aria-label="__('Back to Profile')"
+					@click="go()"
 				/>
-				<div
-					v-else
-					class="mx-auto flex h-40 w-40 items-center justify-center rounded-[16px] border border-outline-gray-2 bg-surface-elevation-2 text-5xl text-ink-gray-7"
-				>
-					{{ initials }}
-				</div>
+				<h1 class="truncate text-xl-semibold text-ink-gray-9">{{ SCREENS[screen] }}</h1>
 			</div>
 
-			<div class="flex flex-col gap-0.5">
-				<p class="pl-2 pb-1 text-xs text-ink-gray-5">{{ __("Personal Info") }}</p>
-				<button
-					v-for="row in PERSONAL"
-					:key="row.id"
-					type="button"
-					class="flex flex-row items-center justify-between gap-3 rounded-[12px] bg-surface-elevation-2 py-2.5 px-4 active:bg-surface-gray-2"
-					@click="open_settings(row.id)"
-				>
-					<span class="flex shrink-0 flex-row items-center gap-2">
-						<span :class="ICONS[row.icon]" class="size-[18px] text-ink-gray-6" />
-						<span class="text-base text-ink-gray-9">{{ row.label }}</span>
-					</span>
-					<span class="truncate text-base text-ink-gray-9">{{ row.value }}</span>
-				</button>
-			</div>
-
-			<div class="flex flex-col gap-0.5">
-				<p class="pl-2 pb-1 text-xs text-ink-gray-5">{{ __("Preferences") }}</p>
-				<button
-					v-for="row in PREFERENCES"
-					:key="row.id"
-					type="button"
-					class="flex flex-row items-center justify-between rounded-[12px] bg-surface-elevation-2 py-0 pl-4 pr-2 active:bg-surface-gray-2"
-					@click="open_settings(row.id)"
-				>
-					<span class="flex flex-row items-center gap-2 py-2.5">
-						<span :class="ICONS[row.icon]" class="size-[18px] text-ink-gray-6" />
-						<span class="text-base text-ink-gray-9">{{ row.label }}</span>
-					</span>
-					<span v-if="row.value" class="pr-2 text-base text-ink-gray-5">{{
-						row.value
-					}}</span>
-					<span v-else class="flex h-10 flex-row items-center">
-						<span class="lucide-chevron-right size-[22px] text-ink-gray-4" />
-					</span>
-				</button>
-			</div>
-
-			<div v-if="MORE.length" class="flex flex-col gap-0.5">
-				<button
-					v-for="option in MORE"
-					:key="option.name"
-					type="button"
-					class="flex flex-row items-center justify-between rounded-[12px] bg-surface-elevation-2 py-0 pl-4 pr-2 active:bg-surface-gray-2"
-					@click="open(option)"
-				>
-					<span class="flex flex-row items-center gap-2 py-2.5">
-						<span
-							:class="ICONS[option.icon] || 'lucide-circle-dot'"
-							class="size-[18px] text-ink-gray-6"
-						/>
-						<span class="text-base text-ink-gray-9">{{ option.label }}</span>
-					</span>
-					<span class="flex h-10 flex-row items-center">
-						<span class="lucide-chevron-right size-[22px] text-ink-gray-4" />
-					</span>
-				</button>
-			</div>
-
-			<button
-				v-if="logout"
-				type="button"
-				class="flex flex-row items-center justify-between rounded-[12px] bg-surface-elevation-2 py-3 px-4 active:bg-surface-red-1"
-				@click="open(logout)"
-			>
-				<span class="font-medium text-ink-red-5">{{ __("Log Out") }}</span>
-				<span class="lucide-log-out size-4 text-ink-gray-4" />
-			</button>
-
-			<div class="flex flex-col items-center justify-center gap-1 pt-2">
-				<p class="text-lg text-ink-gray-5">frappe</p>
-				<p v-if="version" class="text-xs text-ink-gray-5">
-					{{ __("Version {0}", [version]) }}
+			<template v-if="screen === 'session-defaults'">
+				<Group v-if="session_defaults.length" :label="__('Current values')">
+					<Row
+						v-for="(field, index) in session_defaults"
+						:key="field.fieldname"
+						icon="lucide-bookmark"
+						:label="field.label"
+						:value="field.default || __('Not set')"
+						:divider="index > 0"
+						@click="frappe.ui.toolbar.setup_session_defaults()"
+					/>
+				</Group>
+				<p v-else class="pl-[18px] text-lg text-ink-gray-5">
+					{{ __("No session defaults configured.") }}
 				</p>
+				<Group>
+					<Row
+						v-if="session_defaults.length"
+						icon="lucide-pencil"
+						:label="__('Edit')"
+						@click="frappe.ui.toolbar.setup_session_defaults()"
+					/>
+					<Row
+						v-if="can_configure_defaults"
+						icon="lucide-settings"
+						:label="__('Configure')"
+						:divider="!!session_defaults.length"
+						@click="frappe.set_route('Form', 'Session Default Settings')"
+					/>
+				</Group>
+			</template>
+
+			<p v-else-if="!settings" class="pl-[18px] text-lg text-ink-gray-5">
+				{{ __("Loading...") }}
+			</p>
+
+			<template v-else-if="screen === 'personal'">
+				<div class="flex flex-col items-center">
+					<div
+						class="flex size-[120px] items-center justify-center overflow-hidden rounded-full bg-surface-gray-3 text-5xl-semibold text-ink-gray-7 shadow-sm"
+					>
+						<img
+							v-if="user.image"
+							:src="user.image"
+							:alt="user.fullname"
+							class="size-full object-cover"
+						/>
+						<span v-else>{{ initials }}</span>
+					</div>
+					<Button
+						variant="ghost"
+						size="lg"
+						class="mt-2"
+						:label="__('Change photo')"
+						@click="settings.upload_image(refresh_user)"
+					/>
+				</div>
+
+				<section class="space-y-4 rounded-7 bg-surface-base p-4">
+					<TextInput v-model="name_form.first_name" :label="__('First Name')" required />
+					<TextInput v-model="name_form.middle_name" :label="__('Middle Name')" />
+					<TextInput v-model="name_form.last_name" :label="__('Last Name')" />
+					<TextInput v-model="name_form.username" :label="__('Username')" />
+					<Button
+						variant="solid"
+						theme="gray"
+						size="lg"
+						class="w-full"
+						:label="__('Save')"
+						:loading="saving"
+						:disabled="!name_changed || !name_form.first_name.trim()"
+						@click="save_name"
+					/>
+				</section>
+
+				<Group>
+					<Row
+						icon="lucide-key-round"
+						:label="__('Change Password')"
+						@click="frappe.ui.show_change_password_dialog(me)"
+					/>
+				</Group>
+			</template>
+
+			<!-- email, preferences, lists, forms and reports: switches, then their extra rows -->
+			<template v-else>
+				<Group>
+					<div
+						v-for="(field, index) in switches(screen)"
+						:key="field.fieldname"
+						class="relative px-4 py-3"
+					>
+						<span
+							v-if="index > 0"
+							class="pointer-events-none absolute left-4 right-4 top-0 border-t"
+							aria-hidden="true"
+						/>
+						<Switch
+							:label="field.label"
+							:description="field.description"
+							:model-value="!!user_data[field.fieldname]"
+							@update:model-value="(on) => toggle(field.fieldname, on)"
+						/>
+					</div>
+				</Group>
+
+				<Group v-if="screen === 'email'" :label="__('Signature')">
+					<Row
+						icon="lucide-signature"
+						:label="__('Email Signature')"
+						:value="user_data.email_signature ? __('Set') : __('Not set')"
+						@click="change('email_signature')"
+					/>
+				</Group>
+
+				<Group v-if="screen === 'preferences'" :label="__('Locale')">
+					<Row
+						icon="lucide-languages"
+						:label="__('Language')"
+						:value="language"
+						@click="change_language"
+					/>
+					<Row
+						icon="lucide-globe"
+						:label="__('Time Zone')"
+						:value="user_data.time_zone || ''"
+						divider
+						@click="change('time_zone')"
+					/>
+				</Group>
+			</template>
+		</div>
+
+		<!-- the page -->
+		<div v-else class="px-4 pt-8 pb-10">
+			<div class="flex flex-col items-center text-center">
+				<div
+					class="flex size-[120px] items-center justify-center overflow-hidden rounded-full bg-surface-gray-3 text-5xl-semibold text-ink-gray-7 shadow-sm"
+				>
+					<img
+						v-if="user.image"
+						:src="user.image"
+						:alt="user.fullname"
+						class="size-full object-cover"
+					/>
+					<span v-else>{{ initials }}</span>
+				</div>
+				<div class="mt-5 max-w-full truncate text-5xl-semibold text-ink-gray-9">
+					{{ user.fullname }}
+				</div>
+				<Button
+					variant="ghost"
+					size="lg"
+					class="mt-2"
+					:label="__('View profile')"
+					@click="frappe.set_route('Form', 'User', me)"
+				/>
+			</div>
+
+			<div class="mt-8 space-y-6">
+				<Group v-if="MORE.length">
+					<Row
+						v-for="(option, index) in MORE"
+						:key="option.name"
+						:icon="MENU_ICONS[option.name] || 'lucide-circle-dot'"
+						:label="option.label"
+						:divider="index > 0"
+						@click="open(option)"
+					/>
+				</Group>
+
+				<Group :label="__('Settings')">
+					<Row
+						v-for="(row, index) in SETTINGS_ROWS"
+						:key="row.screen"
+						:icon="row.icon"
+						:label="SCREENS[row.screen]"
+						:divider="index > 0"
+						@click="go(row.screen)"
+					/>
+					<Row
+						:icon="THEME_ICONS[theme_mode] || THEME_ICONS.light"
+						:label="__('Theme')"
+						:value="theme"
+						divider
+						@click="cycle_theme"
+					/>
+					<Row
+						v-if="logout"
+						icon="lucide-log-out"
+						:label="__('Log out')"
+						divider
+						@click="open(logout)"
+					/>
+				</Group>
 			</div>
 		</div>
 	</div>
