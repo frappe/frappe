@@ -21,7 +21,12 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
+from frappe.database.utils import (
+	ORDER_GROUP_BY_DIRECTION_PATTERN,
+	DefaultOrderBy,
+	FallBackDateTimeStr,
+	NestedSetHierarchy,
+)
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
@@ -61,6 +66,7 @@ LOCATE_CAST_PATTERN = re.compile(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", 
 FUNC_IFNULL_PATTERN = re.compile(r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", flags=re.IGNORECASE)
 CAST_VARCHAR_PATTERN = re.compile(r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", flags=re.IGNORECASE)
 ORDER_BY_PATTERN = re.compile(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", flags=re.IGNORECASE)
+TOP_LEVEL_COMMA_PATTERN = re.compile(r",(?![^()]*\))")
 SUB_QUERY_PATTERN = re.compile("^.*[,();@].*", flags=re.DOTALL)
 IS_QUERY_PATTERN = re.compile(r"^(select|delete|update|drop|create)\s")
 IS_QUERY_PREDICATE_PATTERN = re.compile(r"\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )")
@@ -1501,12 +1507,18 @@ from {tables}
 				continue
 
 			terms = []
-			for term in clause.split(","):
-				# skip ordinals, expressions, quoted names
-				column = ORDER_BY_PATTERN.sub("", term).strip()
-				if column.isidentifier():
-					term = term.replace(column, f"`{column}`")
-				terms.append(term.strip())
+			# split on commas outside parentheses so function arguments stay together
+			for term in TOP_LEVEL_COMMA_PATTERN.split(clause):
+				term = term.strip()
+				column = ORDER_GROUP_BY_DIRECTION_PATTERN.sub("", term)
+
+				# same rule as fields: quoted names and expressions are left as is
+				if not term or term[0] in {"`", '"', "'"} or "(" in term:
+					terms.append(term)
+				elif column.isidentifier():
+					terms.append(f"`{column}`{term[len(column) :]}")
+				else:
+					terms.append(term)
 
 			setattr(self, attr, ", ".join(terms))
 

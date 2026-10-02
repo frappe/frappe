@@ -71,8 +71,39 @@ class TestDBQuery(FrappeTestCase):
 		self.assertIn("order by `start` desc", query)
 
 		# every bare name is quoted, not just keywords, so permlevel checks can still read it
-		query = frappe.get_all("ToDo", fields=["name"], order_by="modified desc", run=False)
-		self.assertIn("order by `modified` desc", query)
+		for order_by, expected in (
+			("modified desc", "`modified` desc"),
+			("modified desc, description asc", "`modified` desc, `description` asc"),
+			("modified desc, ascii_code asc", "`modified` desc, `ascii_code` asc"),
+			("ascii_code ASC", "`ascii_code` ASC"),
+			("c desc", "`c` desc"),
+			("desc desc", "`desc` desc"),
+			("start  DESC", "`start`  DESC"),
+			("coalesce(description, modified) desc", "coalesce(description, modified) desc"),
+			("coalesce(status, NULL, name), modified desc", "coalesce(status, NULL, name), `modified` desc"),
+			("coalesce(status, ' , ', name) desc", "coalesce(status, ' , ', name) desc"),
+			("ifnull(`start`, 0) desc", "ifnull(`start`, 0) desc"),
+			("ifnull(`tabToDo`.start, 0) desc", "ifnull(`tabToDo`.start, 0) desc"),
+			("count(name) desc", "count(name) desc"),
+			("ifnull(total, 0) desc", "ifnull(total, 0) desc"),
+			("`start` desc", "`start` desc"),
+			("1 desc", "1 desc"),
+		):
+			with self.subTest(order_by=order_by):
+				query = frappe.get_all("ToDo", fields=["name as c"], order_by=order_by, run=False)
+				self.assertIn(f"order by {expected}", query)
+
+		for group_by, expected in (
+			("status, description", "`status`, `description`"),
+			("description, status", "`description`, `status`"),
+			("start desc", "`start` desc"),
+			("start asc, description desc", "`start` asc, `description` desc"),
+			("ifnull(description, '')", "ifnull(description, '')"),
+			("coalesce(description, status), status", "coalesce(description, status), `status`"),
+		):
+			with self.subTest(group_by=group_by):
+				query = frappe.get_all("ToDo", fields=["description", "status"], group_by=group_by, run=False)
+				self.assertIn(f"group by {expected}", query)
 
 		# terms frappe itself passes must survive untouched
 		for order_by in (
@@ -80,12 +111,24 @@ class TestDBQuery(FrappeTestCase):
 			"`tabToDo`.`start` desc",
 			"`tabToDo`.creation asc",
 			"modified desc, `tabToDo`.creation asc",
+			"modified desc, description asc",
 			"ifnull(`start`, 0) desc",
 			"count(name) desc",
 			"1 desc",
 		):
 			with self.subTest(order_by=order_by):
 				frappe.get_all("ToDo", fields=["name"], order_by=order_by, limit=1)
+
+		frappe.get_all("ToDo", fields=["name as c"], order_by="c desc", limit=1)
+		frappe.get_all(
+			"ToDo",
+			fields=["description", "status"],
+			order_by="status, description desc",
+			group_by="status, description",
+		)
+		frappe.get_all(
+			"ToDo", fields=["count(name) as total"], group_by="ifnull(description, '')", order_by="total desc"
+		)
 
 	def test_extract_tables(self):
 		db_query = DatabaseQuery("DocType")
