@@ -172,8 +172,9 @@ class TestAuth(IntegrationTestCase):
 		from frappe.auth import LoginManager
 		from frappe.utils import set_request
 
+		before = frappe.get_system_settings("disable_administrator_password_login")
 		self.set_system_settings("disable_administrator_password_login", 1)
-		self.addCleanup(self.set_system_settings, "disable_administrator_password_login", 0)
+		self.addCleanup(self.set_system_settings, "disable_administrator_password_login", before)
 
 		set_request(method="POST", path="/api/method/login")
 		frappe.form_dict.usr = "Administrator"
@@ -184,7 +185,7 @@ class TestAuth(IntegrationTestCase):
 		self.addCleanup(frappe.form_dict.clear)
 
 		logs_before = frappe.db.count("Activity Log", {"user": "Administrator"})
-		with self.assertRaises(frappe.AdministratorPasswordLoginDisabledError):
+		with self.assertRaises(frappe.AdminPasswordDisabled):
 			LoginManager()
 		# same answer for a wrong password, so nothing leaks about the real one
 		self.assertEqual(frappe.local.response.message, "Administrator password login is disabled")

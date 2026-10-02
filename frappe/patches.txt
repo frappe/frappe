@@ -282,6 +282,7 @@ frappe.patches.v16_0.seed_naming_rule_series
 frappe.patches.v16_0.backfill_print_settings_bulk_export_limits
 frappe.patches.v16_0.hash_session_ids
 frappe.patches.v16_0.set_print_format_for_doctype
+frappe.patches.v16_0.keep_administrator_password_login_on_existing_sites
 
 
 [post_fixture_sync]

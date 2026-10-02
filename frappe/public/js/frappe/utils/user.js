@@ -58,9 +58,7 @@ frappe.ui.show_change_password_dialog = function (user, on_success) {
 					on_success?.();
 				})
 				.catch((error) => {
-					if (
-						error?.responseJSON?.exc_type === "AdministratorPasswordLoginDisabledError"
-					) {
+					if (error?.responseJSON?.exc_type === "AdminPasswordDisabled") {
 						dialog.hide();
 					}
 				});

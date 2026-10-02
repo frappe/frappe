@@ -1240,7 +1240,7 @@ def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessi
 
 
 def set_user_password(site, user, password, logout_all_sessions=False, force=False):
-	from frappe.core.doctype.system_settings.system_settings import warn_admin_password_login_enabled
+	from frappe.utils.install import warn_admin_password_login_enabled
 	from frappe.utils.password import update_password
 
 	try:
@@ -1380,7 +1380,7 @@ def browse(
 			sid = frappe.session.sid
 			login_path = f"/app?sid={sid}"
 		else:
-			click.echo("Please enable developer mode to login as a user")
+			click.echo("You cannot login as a non-administrator user when developer mode is disabled")
 
 	if print_sid:
 		if not sid:

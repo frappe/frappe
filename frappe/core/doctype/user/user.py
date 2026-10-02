@@ -400,7 +400,7 @@ class User(Document):
 				_(
 					"Turn off Disable Administrator Password Login in System Settings before setting a password."
 				),
-				exc=frappe.AdministratorPasswordLoginDisabledError,
+				exc=frappe.AdminPasswordDisabled,
 				title=_("Administrator Password Login Disabled"),
 			)
 
@@ -1035,7 +1035,7 @@ def update_password(
 	if user == "Administrator" and frappe.get_system_settings("disable_administrator_password_login"):
 		frappe.throw(
 			_("Turn off Disable Administrator Password Login in System Settings before setting a password."),
-			exc=frappe.AdministratorPasswordLoginDisabledError,
+			exc=frappe.AdminPasswordDisabled,
 		)
 
 	if is_password_reused(user, new_password):

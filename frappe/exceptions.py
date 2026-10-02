@@ -34,7 +34,7 @@ class AuthenticationError(Exception):
 	skip_error_log = True
 
 
-class AdministratorPasswordLoginDisabledError(AuthenticationError):
+class AdminPasswordDisabled(AuthenticationError):
 	pass
 
 

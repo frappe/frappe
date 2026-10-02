@@ -537,11 +537,12 @@
    "label": "Disable Username/Password Login"
   },
   {
-   "default": "0",
-   "description": "Only Administrator can change this. To log in without a password run <code>bench --site site-name browse --user Administrator.</code>",
+   "default": "1",
+   "description": "Administrator is a known username on every site, so password login invites brute force attacks. Disable it and open a session from your site management tool instead.",
    "fieldname": "disable_administrator_password_login",
    "fieldtype": "Check",
-   "label": "Disable Administrator Password Login"
+   "label": "Disable Administrator Password Login",
+   "permlevel": 1
   },
   {
    "default": "1",
@@ -875,6 +876,17 @@
    "read": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Administrator",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Administrator",
    "write": 1
   }
  ],
