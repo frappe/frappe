@@ -449,7 +449,6 @@ def get_group_by_field(args, doctype):
 	return group_by_field
 
 
-<<<<<<< HEAD
 def get_group_by_column_label(args, meta):
 	if args["aggregate_function"] == "count":
 		label = "Count"
@@ -458,15 +457,6 @@ def get_group_by_column_label(args, meta):
 		aggregate_on_label = meta.get_label(args.aggregate_on)
 		label = _("{0} of {1}").format(_(sql_fn_map[args.aggregate_function]), _(aggregate_on_label))
 	return label
-=======
-def get_group_by_column_field(group_by_args: dict, parent_doctype: str) -> dict:
-	"""
-	Build full field info (fieldname, label, fieldtype, options) for the aggregate column.
-	"""
-	field = get_group_by_field(group_by_args)
-
-	return get_aggregate_field_info(field, parent_doctype, group_by_args.get("group_by"))
->>>>>>> 81cecb5 (fix(report-view): excel export of group by sums shows foreign amounts in company currency)
 
 
 def enable_prepared_report(report: str, site: str):

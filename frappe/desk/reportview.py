@@ -472,7 +472,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	fields_info = get_field_info(db_query.fields, doctype, form_params.get("group_by"))
+	fields_info = get_field_info(db_query.fields, doctype)
 
 	labels = [info["label"] for info in fields_info]
 	data = [[_("Sr"), *labels]]
@@ -528,24 +528,8 @@ def append_totals_row(data):
 	return data
 
 
-<<<<<<< HEAD
 def get_field_info(fields, doctype):
 	"""Get column names, labels, field types, and translatable properties based on column names."""
-=======
-def get_field_info(fields, parent_doctype, group_by: str | None = None):
-	"""
-	Get field's
-		- fieldname
-		- label
-		- fieldtype
-		- translatable
-		- options (if any)
-
-	:param fields: List of field names (can include child table fields and aggregate functions).
-	:param parent_doctype: The main doctype from which the report is generated.
-	"""
-	from frappe.model.meta import get_default_df
->>>>>>> 81cecb5 (fix(report-view): excel export of group by sums shows foreign amounts in company currency)
 
 	field_info = []
 	for key in fields:
@@ -553,16 +537,10 @@ def get_field_info(fields, parent_doctype, group_by: str | None = None):
 		try:
 			parenttype, fieldname = parse_field(key)
 		except ValueError:
-<<<<<<< HEAD
 			# handles aggregate functions
 			parenttype = doctype
 			fieldname = key.split("(", 1)[0]
 			fieldname = fieldname[0].upper() + fieldname[1:]
-=======
-			# handles aggregate functions like COUNT, SUM, AVG etc.
-			field_info.append(get_aggregate_field_info(field, parent_doctype, group_by))
-			continue
->>>>>>> 81cecb5 (fix(report-view): excel export of group by sums shows foreign amounts in company currency)
 
 		parenttype = parenttype or doctype
 
@@ -635,143 +613,6 @@ def parse_field(field: str) -> tuple[str | None, str]:
 	return None, key.strip("`")
 
 
-<<<<<<< HEAD
-=======
-def parse_aggregate_field(field: str | dict) -> tuple[str, str]:
-	"""
-	Extract an aggregate function name (uppercase) and target SQL expression from an aggregate field.
-
-	Example inputs and outputs:
-	```
-	_parse_aggregate_field("count(`tabSales Invoice`.`amount`) as _aggregate_column")
-	>>> ("COUNT", "`tabSales Invoice`.`amount`")
-
-	_parse_aggregate_field({"SUM": "`tabSales Invoice`.`amount`", "as": "_aggregate_column"})
-	>>> ("SUM", "`tabSales Invoice`.`amount`")
-	```
-	"""
-	if isinstance(field, dict):
-		function = next(f for f in field if f != "as")
-		return function.upper(), field[function]
-
-	key = field.split(" as ", 1)[0]
-	function, sep, rest = key.partition("(")
-	return function.upper(), rest.rstrip(")") if sep else ""
-
-
-def _aggregate_field_df(doctype: str, fieldname: str):
-	if not doctype or not fieldname:
-		return
-
-	return frappe.get_meta(doctype).get_field(fieldname)
-
-
-# NOTE: Parameter kept for handler signature consistency.
-def _aggregate_count_column_info(doctype: str, fieldname: str) -> dict:
-	return frappe._dict(
-		{
-			"label": _("Count"),
-			"fieldtype": "Int",
-			"translatable": False,
-			"options": None,
-		}
-	)
-
-
-def _aggregate_sum_column_info(doctype: str, fieldname: str) -> dict:
-	df = _aggregate_field_df(doctype, fieldname)
-	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
-
-	return frappe._dict(
-		{
-			"label": _("{0} of {1}").format(_("Sum"), label),
-			"fieldtype": df.fieldtype if df else "Float",
-			"translatable": False,
-			"options": df.options if df else None,
-		}
-	)
-
-
-def _aggregate_avg_column_info(doctype: str, fieldname: str) -> dict:
-	df = _aggregate_field_df(doctype, fieldname)
-	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
-	# average of Int can be a Float
-	fieldtype = "Float" if not df or df.fieldtype == "Int" else df.fieldtype
-
-	return frappe._dict(
-		{
-			"label": _("{0} of {1}").format(_("Average"), label),
-			"fieldtype": fieldtype,
-			"translatable": False,
-			"options": df.options if df else None,
-		}
-	)
-
-
-# Register new aggregate function handlers here.
-AGGREGATE_FIELD_INFO_HANDLERS = {
-	"COUNT": _aggregate_count_column_info,
-	"SUM": _aggregate_sum_column_info,
-	"AVG": _aggregate_avg_column_info,
-}
-
-assert set(AGGREGATE_FIELD_INFO_HANDLERS) == {fn.upper() for fn in SUPPORTED_AGGREGATE_FUNCTIONS}, (
-	"aggregate field info handlers must stay in sync with SUPPORTED_AGGREGATE_FUNCTIONS"
-)
-
-
-def get_aggregate_field_info(field: str | dict, parent_doctype: str, group_by: str | None = None) -> dict:
-	"""
-	Build field info for an aggregate column (e.g. COUNT/SUM/AVG).
-
-	Example:
-
-	```
-	get_aggregate_field_info("count(`tabSales Invoice`.`amount`) as total", "Sales Invoice")
-
-	# Returns:
-	{
-	    "fieldname": "_aggregate_column",
-	    "label": "Count",
-	    "fieldtype": "Int",
-	    "translatable": False,
-	    "options": None,
-	}
-	```
-	"""
-	function, aggregate_on = parse_aggregate_field(field)
-	doctype, fieldname = parse_field(aggregate_on)
-
-	doctype = doctype or parent_doctype
-
-	field_info = frappe._dict(
-		{
-			"label": _(function.capitalize()),
-			"fieldtype": "Data",
-			"translatable": False,
-			"options": None,
-		}
-	)
-
-	if handler := AGGREGATE_FIELD_INFO_HANDLERS.get(function):
-		field_info = handler(doctype, fieldname)
-
-	if (
-		field_info.fieldtype == "Currency"
-		and field_info.options
-		and ":" not in field_info.options
-		and not (group_by and parse_field(group_by)[1] == field_info.options)
-	):
-		field_info.fieldtype = "Float"
-		field_info.options = None
-
-	# using a default fieldname for aggregate column
-	field_info["fieldname"] = DEFAULT_AGGREGATE_FIELDNAME
-
-	return field_info
-
-
->>>>>>> 81cecb5 (fix(report-view): excel export of group by sums shows foreign amounts in company currency)
 @frappe.whitelist(methods=["POST", "DELETE"])
 def delete_items():
 	"""delete selected items"""
