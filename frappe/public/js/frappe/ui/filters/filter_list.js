@@ -85,7 +85,9 @@ frappe.ui.FilterGroup = class {
 		frappe.router.on("change", () => this.hide_popover());
 	}
 
-	open_sheet() {
+	async open_sheet() {
+		// the sheet isn't in the desk bundle
+		await frappe.require("bottom_sheet.bundle.js");
 		if (!this.sheet)
 			this.sheet = new frappe.ui.BottomSheet({
 				header: () => [
