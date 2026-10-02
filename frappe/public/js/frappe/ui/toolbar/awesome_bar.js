@@ -505,15 +505,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	setup_correct_button(wrapper) {
-		let small_button = $(wrapper).find("#small-search-button");
-		let full_button = $(wrapper).find("#full-search-button");
-		if (frappe.is_mobile()) {
-			small_button.removeClass("hidden");
-			full_button.addClass("hidden");
-			return;
-		}
-		small_button.addClass("hidden");
-		full_button.removeClass("hidden");
+		$(wrapper).find("#full-search-button").toggleClass("hidden", frappe.is_mobile());
 	}
 	setup_page_change_event() {
 		const me = this;
