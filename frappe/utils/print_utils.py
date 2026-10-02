@@ -150,7 +150,7 @@ def attach_print(
 		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
 		is_weasyprint_print_format = print_format_doc.get("print_format_builder_beta")
 
-	with print_language(lang or frappe.local.lang):
+	with print_language(lang):
 		content = ""
 		if cint(print_settings.send_print_as_pdf):
 			ext = ".pdf"
