@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { TextInput } from "frappe-ui";
 import { List, ListCell, ListRow, ListRows } from "frappe-ui/list";
 
@@ -18,7 +18,10 @@ const __ = window.__;
 const awesome_bar = window.frappe.app.awesome_bar;
 
 const text = ref("");
-const options = ref([]);
+const results = ref([]);
+// as many as the modal lists (its Awesomplete's maxItems); a two-letter query matches
+// over a thousand, and a phone scrolling that many rows stutters
+const options = computed(() => results.value.slice(0, 99));
 const input = ref(null);
 
 // A later search wins over the hook results of an earlier one still in flight.
@@ -31,15 +34,15 @@ function search() {
 	const at = ++seq;
 
 	// recent pages include this one
-	options.value = awesome_bar
+	results.value = awesome_bar
 		.get_options(txt)
 		.filter((option) => !Array.isArray(option.route) || option.route[0] !== "search");
 
 	if (txt.length > 1 && window.frappe.boot.has_awesomebar_search) {
-		awesome_bar.get_hook_results(txt).then((results) => {
-			if (at !== seq || !results.length) return;
-			options.value = awesome_bar
-				.deduplicate(options.value.concat(results))
+		awesome_bar.get_hook_results(txt).then((hook_results) => {
+			if (at !== seq || !hook_results.length) return;
+			results.value = awesome_bar
+				.deduplicate(results.value.concat(hook_results))
 				.sort((a, b) => b.index - a.index);
 		});
 	}

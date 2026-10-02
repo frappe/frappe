@@ -35,6 +35,13 @@ frappe-mobile-nav.desk-mobile-nav {
 		padding-bottom: var(--desk-mobile-nav-height);
 	}
 
+	// A bounded page (island_page.scss) zeroes that padding, so its box, and the island
+	// scrolling inside it, would run on under the bar.
+	body.has-mobile-nav.island-page .main-section,
+	body.has-mobile-nav.full-height-page .main-section {
+		padding-bottom: var(--desk-mobile-nav-height) !important;
+	}
+
 	// The page title opens the navigation sheet (MobileNav.open_navigation); the chevron
 	// says so. Drawn in CSS because the crumb is redrawn on every paint.
 	body.has-mobile-nav .page-head .navbar-breadcrumbs li:last-child {
@@ -194,11 +201,6 @@ frappe-mobile-nav.desk-mobile-nav {
 		color: var(--ink-gray-8);
 		text-decoration: none;
 	}
-}
-
-.desk-mobile-sheet-divider {
-	margin: 4px 16px;
-	border-top: 1px solid var(--outline-gray-1);
 }
 
 .desk-mobile-sheet-empty {
