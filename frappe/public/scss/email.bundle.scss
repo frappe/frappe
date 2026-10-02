@@ -1,6 +1,7 @@
 $white: #fff;
 
 $blue-500: #2d95f0;
+$link-blue: #0070cc;
 
 $gray-50: #f8f8f8;
 $gray-100: #f3f3f3;
@@ -251,34 +252,6 @@ hr {
 	}
 }
 
-.verification-code {
-	display: inline-block;
-	font-family: "SF Mono", "Menlo", "Consolas", monospace;
-	font-size: 32px;
-	font-weight: 700;
-	letter-spacing: 0.18em;
-	color: $gray-900;
-	background-color: $canvas-bg;
-	border: 1px solid #e5e4e1;
-	border-radius: 10px;
-	padding: 18px 26px 18px 32px;
-	margin: 4px 0 20px;
-}
-
-.callout {
-	border-radius: $border-radius-lg;
-	padding: 14px 16px;
-	font-size: 12px;
-	line-height: 1.6;
-	margin: 20px 0 16px;
-}
-
-.callout-warning {
-	background-color: #fff8f0;
-	border: 1px solid #fde8c7;
-	color: #8a5a00;
-}
-
 .email-unsubscribe a {
 	color: $text-muted;
 	text-decoration: underline;
@@ -300,6 +273,25 @@ hr {
 
 	&.btn-primary {
 		color: #fff;
+		background-color: $gray-900;
+	}
+}
+
+.email-btn {
+	display: inline-block;
+	padding: 7px 10px;
+	font-size: 14px;
+	font-weight: 500 !important;
+	line-height: 1.15;
+	letter-spacing: 0.21px;
+	text-decoration: none !important;
+	border: 1px solid transparent;
+	border-radius: $border-radius-lg;
+	color: $gray-800 !important;
+	background-color: $gray-100;
+
+	&.email-btn-primary {
+		color: $white !important;
 		background-color: $gray-900;
 	}
 }
@@ -581,4 +573,153 @@ blockquote {
 
 .indicator-gray {
 	background-color: #6b7280;
+}
+
+.body-table.auth-email {
+	background-color: $gray-100;
+
+	.body-content {
+		padding: 40px 24px;
+	}
+
+	.email-card {
+		display: inline-block;
+		width: 600px;
+		max-width: 100%;
+		box-sizing: border-box;
+		padding: 30px 24px 24px;
+		border-radius: 24px;
+		background-color: $white;
+		font-family: $font-stack;
+		color: $body-text;
+		text-align: left;
+	}
+
+	.email-title {
+		margin: 0 0 20px !important;
+		font-size: 20px;
+		font-weight: 600;
+		line-height: 1.48;
+		letter-spacing: 0.2px;
+		color: $gray-900;
+	}
+
+	.email-body {
+		font-size: 14px;
+		color: $body-text;
+
+		> p,
+		> .email-action,
+		> .email-copy,
+		> .email-ignore {
+			margin: 0 0 20px !important;
+		}
+		> :last-child {
+			margin-bottom: 0 !important;
+		}
+
+		p {
+			line-height: 1.5;
+			letter-spacing: 0.28px;
+			color: $body-text;
+		}
+
+		b {
+			font-weight: 600;
+			letter-spacing: 0.21px;
+		}
+
+		.email-subhead {
+			font-weight: 500;
+			letter-spacing: 0.21px;
+		}
+
+		.email-inline-link {
+			color: $body-text;
+			font-weight: normal;
+			text-decoration: underline;
+		}
+
+		.email-code {
+			font-family: "SF Mono", "Menlo", "Consolas", monospace;
+			font-size: 32px;
+			font-weight: 700;
+			letter-spacing: 0.18em;
+			color: $gray-900;
+			margin: 4px 0 20px;
+		}
+	}
+
+	.email-action {
+		padding: 4px 0;
+	}
+
+	.email-copy {
+		color: $body-text;
+		> p {
+			margin: 0 0 2px !important;
+		}
+		a {
+			color: $link-blue !important;
+			font-weight: normal !important;
+			text-decoration: none !important;
+			word-break: break-all;
+		}
+	}
+
+	.email-divider {
+		border-top: 1px solid $gray-200;
+		margin: 32px 0;
+		font-size: 0;
+		line-height: 0;
+	}
+
+	.email-footer a {
+		text-decoration: none !important;
+	}
+
+	.email-brand-logo {
+		height: 20px;
+		max-height: 20px;
+		width: auto;
+		vertical-align: middle;
+		border: 0;
+		outline: none;
+		display: inline-block;
+	}
+
+	.email-brand-name {
+		display: inline-block;
+		vertical-align: middle;
+		font-size: 15px;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: $gray-900 !important;
+	}
+
+	.email-footer-meta {
+		width: 600px;
+		max-width: 100%;
+		margin: 20px auto 0;
+		text-align: center;
+		font-size: 13px;
+		line-height: 1.6;
+		color: $gray-600;
+
+		a {
+			color: $gray-600 !important;
+			font-weight: normal !important;
+			text-decoration: underline;
+		}
+
+		.email-footer-container {
+			font-size: 13px;
+
+			&.with-divider {
+				margin-top: 0;
+				padding-top: 0;
+				border-top: none;
+			}
+		}
+	}
 }

@@ -49,3 +49,25 @@ class TestUser(IntegrationTestCase):
 
 		for user in sys_managers:
 			self.assertIn(role, frappe.get_roles(user))
+
+	def test_has_role_query_needs_parent_doctype(self):
+		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
+		frappe.set_user("test@example.com")
+		try:
+			self.assertRaises(
+				frappe.PermissionError,
+				frappe.get_list,
+				"Has Role",
+				filters={"role": "_Test Role 2", "parenttype": "User"},
+				fields=["parent"],
+			)
+
+			parents = frappe.get_list(
+				"Has Role",
+				filters={"role": "_Test Role 2", "parenttype": "User"},
+				fields=["parent"],
+				parent_doctype="User",
+			)
+			self.assertIn("test@example.com", [p.parent for p in parents])
+		finally:
+			frappe.set_user("Administrator")

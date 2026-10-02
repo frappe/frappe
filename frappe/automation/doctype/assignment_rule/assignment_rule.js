@@ -37,7 +37,7 @@ frappe.ui.form.on("Assignment Rule", {
 
 		let set_days = (e) => {
 			frm.clear_table("assignment_days");
-			const label = $(e.currentTarget).text();
+			const label = $(e.currentTarget).text().trim();
 			get_days(label).forEach((day) => frm.add_child("assignment_days", { day: day }));
 			frm.refresh_field("assignment_days");
 		};

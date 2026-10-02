@@ -3,6 +3,7 @@
  "autoname": "field:calendar_name",
  "creation": "2019-07-06 17:54:09.450100",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/guides/integration/google_calendar",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

@@ -4,6 +4,7 @@
  "creation": "2013-03-09 15:45:57",
  "doctype": "DocType",
  "document_type": "System",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/reports/script-report",
  "engine": "InnoDB",
  "field_order": [
   "report_name",
@@ -11,6 +12,7 @@
   "reference_report",
   "is_standard",
   "module",
+  "documentation_url",
   "column_break_4",
   "report_type",
   "letter_head",
@@ -74,6 +76,12 @@
    "fieldtype": "Link",
    "label": "Module",
    "options": "Module Def"
+  },
+  {
+   "fieldname": "documentation_url",
+   "fieldtype": "Data",
+   "label": "Documentation URL",
+   "options": "URL"
   },
   {
    "default": "0",
@@ -233,10 +241,11 @@
    "label": "Snapshot Report"
   }
  ],
+ "icon": "sheet",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-01 13:35:14.237724",
+ "modified": "2026-09-22 00:05:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

@@ -1,0 +1,351 @@
+/* Espresso Tab Buttons — a segmented single-select where exactly one
+ * button is pressed (frappe-ui's TabButtons), built from Pills. For
+ * choices, not navigation: page-size selectors, calendar day/week/month,
+ * view toggles. No panels — that's what Tabs (es-tabs) are for.
+ *
+ * Two classes, mirroring frappe-ui's split:
+ *   .es-pill         the unitary piece (frappe-ui's Pill) — styled entirely
+ *                    by its own data-attributes, so it also works standalone
+ *   .es-tab-buttons  the group: the rail behind the pills, the gaps, the
+ *                    orientation
+ *
+ *   <div class="es-tab-buttons" role="radiogroup" data-type="subtle">
+ *     <button class="es-pill" role="radio" aria-checked="true"
+ *             data-state="active">Day</button>
+ *     <button class="es-pill" role="radio" aria-checked="false"
+ *             data-state="inactive">Week</button>
+ *   </div>
+ *
+ * Group attributes:
+ *   data-type="subtle|ghost|underline|browser-tab"   subtle is the default
+ *   data-size="sm|md"                                sm is the default
+ *   data-orientation="vertical"
+ *   data-direction="right"      which edge vertical browser-tabs attach to
+ *
+ * Pill attributes (data-state="active|inactive" is what frappe-ui's Pill
+ * emits, so Vue apps get this styling from their component as-is):
+ *   data-state="active|inactive"
+ *   data-variant="outline|underline|browser-tab"     none = default look
+ *   data-size="md"                                   none = sm
+ *   data-active-style="subtle"                       none = raised
+ *   data-icon-only                                   square, label is aria-only
+ *   data-tab-base="default|left|right"               browser-tab edge shape
+ *
+ * Sizing comes from padding + line-height only, never a fixed height. */
+
+/* ================= the pill ================= */
+
+.es-pill {
+    display: inline-flex;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--spacing) * 2);
+    padding: 5px calc(var(--spacing) * 2);
+    border: 0;
+    background: transparent;
+    border-radius: 7px;
+    font-size: var(--text-sm);
+    line-height: calc(var(--spacing) * 4);
+    color: var(--ink-gray-5);
+    white-space: nowrap;
+    user-select: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 150ms ease-out, color 150ms ease-out,
+        box-shadow 150ms ease-out, border-color 150ms ease-out;
+}
+
+.es-pill[data-size="md"] {
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
+    border-radius: 9px;
+}
+
+.es-pill[data-state="active"] {
+    color: var(--ink-gray-8);
+}
+
+.es-pill:disabled,
+.es-pill[data-disabled] {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.es-pill:focus-visible {
+    outline: var(--focus-outline-default, 2px solid var(--outline-gray-3));
+    outline-offset: 0;
+}
+
+/* icons: 16px at sm, 18px at md (Pill.vue size-4 / size-[18px]) */
+.es-pill > svg,
+.es-pill > img,
+.es-pill > .icon {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.es-pill[data-size="md"] > svg,
+.es-pill[data-size="md"] > img,
+.es-pill[data-size="md"] > .icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* icon-only pills are square (Pill.vue: p-[5px]), label goes aria-only */
+.es-pill[data-icon-only] {
+    gap: calc(var(--spacing) * 1.5);
+    padding: 5px;
+}
+
+.es-pill[data-size="md"][data-icon-only] {
+    padding: calc(var(--spacing) * 1.5);
+}
+
+/* ---- default look: quiet, raised when pressed ---- */
+.es-pill:not([data-variant]):hover {
+    /* Pill.vue: hover:bg-surface-gray-3/80 — the token at 80% opacity */
+    background: color-mix(in srgb, var(--surface-gray-3) 80%, transparent);
+    color: var(--ink-gray-7);
+}
+
+.es-pill:not([data-variant])[data-state="active"] {
+    background: var(--surface-elevation-3);
+    box-shadow: var(--elevation-base);
+    color: var(--ink-gray-8);
+}
+
+/* on a ghost group there is no rail to rise out of — the pressed pill
+   just tints (Pill's activeStyle="subtle") */
+.es-pill[data-active-style="subtle"][data-state="active"] {
+    background: var(--surface-gray-2);
+    box-shadow: none;
+}
+
+/* ---- outline look ---- */
+.es-pill[data-variant="outline"] {
+    border: 1px solid var(--outline-gray-1);
+}
+
+.es-pill[data-variant="outline"]:hover {
+    background: var(--surface-gray-2);
+    color: var(--ink-gray-7);
+}
+
+.es-pill[data-variant="outline"][data-state="active"] {
+    border-color: transparent;
+    background: var(--surface-base);
+    box-shadow: var(--elevation-sm);
+}
+
+/* ---- underline look: reads like a tab, works like a radio ---- */
+.es-pill[data-variant="underline"] {
+    position: relative;
+    border-radius: 0;
+    padding: 6px 0;
+    /* an invisible slot on the rail edge, so activating doesn't shift text */
+    border-bottom: 1px solid transparent;
+}
+
+.es-pill[data-variant="underline"][data-size="md"] {
+    padding: 7px 0;
+}
+
+.es-pill[data-variant="underline"]:hover {
+    color: var(--ink-gray-7);
+}
+
+.es-pill[data-variant="underline"][data-state="active"] {
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-8);
+}
+
+/* the indicator overlays the group's rail segment so it reads as a darker
+   stretch of the same line, not a separate bar floating beside the label */
+.es-pill[data-variant="underline"][data-state="active"]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--ink-gray-8);
+}
+
+/* vertical underline pills: the rail (and indicator) sit on the end edge */
+[data-orientation="vertical"] .es-pill[data-variant="underline"] {
+    padding: 6px calc(var(--spacing) * 2) 6px 0;
+    border-bottom: 0;
+    border-inline-end: 1px solid transparent;
+}
+
+[data-orientation="vertical"] .es-pill[data-variant="underline"][data-size="md"] {
+    padding: 7px calc(var(--spacing) * 2) 7px 0;
+}
+
+[data-orientation="vertical"]
+    .es-pill[data-variant="underline"][data-state="active"]::after {
+    left: auto;
+    right: -2px;
+    bottom: calc(var(--spacing) * 1.5);
+    top: calc(var(--spacing) * 1.5);
+    width: 1px;
+    height: auto;
+}
+
+/* ---- browser-tab look ---- */
+.es-pill[data-variant="browser-tab"] {
+    border: 1px solid transparent;
+}
+
+.es-pill[data-variant="browser-tab"]:hover {
+    background: var(--surface-gray-2);
+    color: var(--ink-gray-7);
+}
+
+/* the active tab "punches through" the rail: a background-colored strip
+   extends a few pixels past the rail line so the tab visibly continues
+   into the area below instead of terminating at the rail (which the eye
+   reads as a closed corner). Border one step darker than the rail so the
+   tab reads as a distinct raised shape; no drop shadow — it would paint
+   below the rail and re-close the edge this opens. */
+.es-pill[data-variant="browser-tab"][data-state="active"] {
+    position: relative;
+    background: var(--surface-base);
+    border-color: var(--outline-gray-2);
+}
+
+.es-pill[data-variant="browser-tab"][data-state="active"]::after {
+    content: "";
+    position: absolute;
+    background: var(--surface-base);
+}
+
+/* top-attached (horizontal groups) */
+.es-pill[data-variant="browser-tab"][data-tab-base="default"] {
+    border-radius: 7px 7px 0 0;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="default"][data-size="md"] {
+    border-radius: 9px 9px 0 0;
+}
+
+/* the rail-side edge stays 1px wide but transparent — zeroing its WIDTH
+   (border-bottom: 0) resets the color to currentColor, and on deselect
+   the border-color transition would animate that near-black back to
+   transparent: a dark line flashing under the tab you just left */
+.es-pill[data-variant="browser-tab"][data-tab-base="default"][data-state="active"] {
+    border-bottom-color: transparent;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="default"][data-state="active"]::after {
+    left: -1px;
+    right: -1px;
+    bottom: -3px;
+    height: 3px;
+}
+
+/* side-attached (vertical groups; base = the edge touching the rail) */
+.es-pill[data-variant="browser-tab"][data-tab-base="left"] {
+    border-radius: 0 7px 7px 0;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="left"][data-state="active"] {
+    border-left-color: transparent;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="left"][data-state="active"]::after {
+    left: -3px;
+    top: -1px;
+    bottom: -1px;
+    width: 3px;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="right"] {
+    border-radius: 7px 0 0 7px;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="right"][data-state="active"] {
+    border-right-color: transparent;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="right"][data-state="active"]::after {
+    right: -3px;
+    top: -1px;
+    bottom: -1px;
+    width: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-pill {
+        transition: none;
+    }
+}
+
+/* ================= the group ================= */
+
+.es-tab-buttons {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1);
+    /* the 1px frame that shows the rail around the raised pill */
+    padding: 1px;
+    background: var(--surface-gray-2);
+    /* rail radius = pill radius + the 1px frame */
+    border-radius: 8px;
+}
+
+.es-tab-buttons[data-size="md"] {
+    gap: calc(var(--spacing) * 1.5);
+    border-radius: 10px;
+}
+
+.es-tab-buttons[data-type="ghost"] {
+    background: transparent;
+}
+
+.es-tab-buttons[data-type="underline"] {
+    padding: 0;
+    gap: calc(var(--spacing) * 6);
+    background: transparent;
+    border-radius: 0;
+    border-bottom: 1px solid var(--outline-gray-1);
+}
+
+.es-tab-buttons[data-type="browser-tab"] {
+    padding: 0;
+    gap: calc(var(--spacing) * 1);
+    background: transparent;
+    border-radius: 0;
+    border-bottom: 1px solid var(--outline-gray-1);
+}
+
+/* ---- vertical groups ---- */
+.es-tab-buttons[data-orientation="vertical"] {
+    flex-direction: column;
+}
+
+/* every pill hugs the start edge and spans the column, like vertical tabs */
+.es-tab-buttons[data-orientation="vertical"] .es-pill {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: start;
+}
+
+.es-tab-buttons[data-orientation="vertical"][data-type="underline"] {
+    border-bottom: 0;
+    border-inline-end: 1px solid var(--outline-gray-1);
+    gap: calc(var(--spacing) * 1.5);
+}
+
+.es-tab-buttons[data-orientation="vertical"][data-type="browser-tab"] {
+    border-bottom: 0;
+    border-inline-start: 1px solid var(--outline-gray-1);
+}
+
+.es-tab-buttons[data-orientation="vertical"][data-type="browser-tab"][data-direction="right"] {
+    border-inline-start: 0;
+    border-inline-end: 1px solid var(--outline-gray-1);
+}

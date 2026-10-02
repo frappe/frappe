@@ -95,7 +95,7 @@ frappe.search.SearchDialog = class {
 			global_search: {
 				input_placeholder: __("Search"),
 				empty_state_text: __("Search for anything"),
-				no_results_status: () => __("No Results found"),
+				no_results_status: () => __("No results found"),
 				get_results: (keywords, callback) => {
 					frappe.search.utils
 						.get_global_results(keywords, 0, null, this.global_doctype_filter || "")
@@ -106,7 +106,7 @@ frappe.search.SearchDialog = class {
 				input_placeholder: __("Search"),
 				empty_state_text: __("Search for anything"),
 				no_results_status: (keyword) =>
-					"<div>" + __("No documents found tagged with {0}", [keyword]) + "</div>",
+					__("No documents found tagged with {0}", [keyword]),
 				get_results: (keywords, callback) => {
 					frappe.tags.utils
 						.get_tag_results(keywords)
@@ -130,33 +130,31 @@ frappe.search.SearchDialog = class {
 
 	put_placeholder(status_text) {
 		let $shell = $(frappe.render_template("search")).addClass("hide");
-		const tipLine =
-			__("Use ampersand to match multiple terms") + " (" + __("e.g.") + " Marie&John)";
-		const awesomebarShortcut = frappe.utils.is_mac() ? "⌘K" : "Ctrl+K";
-		const awesomebarTipLine = `<span class="global-search-shortcut-key">${frappe.utils.escape_html(
-			awesomebarShortcut
-		)}</span> ${frappe.utils.escape_html(__("to open Awesome Bar"))}`;
-		const show_ampersand_empty_tip =
+		const show_tips =
 			status_text === __("Search for anything") &&
 			this.search === this.searches["global_search"];
-		const ampersandBlock = show_ampersand_empty_tip
-			? `<div class="global-search-empty-state-tip text-muted">${frappe.utils.escape_html(
-					tipLine
-			  )}</div>
-			  <div class="global-search-empty-state-tip text-muted">${awesomebarTipLine}</div>`
-			: "";
-		$shell.find(".results-area").html(
-			`<div class="empty-state">
-				<div class="text-center">
-					<img src="/assets/frappe/images/ui-states/search-empty-state.svg"
-						alt="Generic Empty State"
-						class="null-state"
-					>
-					<div class="empty-state-text">${frappe.utils.escape_html(status_text)}</div>
-					${ampersandBlock}
-				</div>
-			</div>`
-		);
+		const $empty = frappe.ui.empty_state({
+			icon: "search",
+			title: status_text,
+			// get_results looks for this to tell the placeholder from results
+			css_class: "search-empty-state",
+		});
+		if (show_tips) {
+			const esc = frappe.utils.escape_html;
+			const example = (text) => " (" + __("e.g.") + " " + text + ")";
+			const shortcut = frappe.utils.is_mac() ? "⌘K" : "Ctrl+K";
+			$empty.append(
+				`<div class="flex flex-col items-center gap-1 text-p-sm text-ink-gray-5">
+					<p class="mb-0">${esc(__("Use ampersand to match multiple terms") + example("Marie&John"))}</p>
+					<p class="mb-0">${esc(__("Start with # to search by tag") + example("#urgent"))}</p>
+					<p class="mb-0">
+						<span class="px-1 rounded bg-surface-gray-2 text-ink-gray-7">${shortcut}</span>
+						${esc(__("to open Awesome Bar"))}
+					</p>
+				</div>`
+			);
+		}
+		$shell.find(".results-area").html($empty);
 		this.update($shell);
 		this.sync_global_search_filter_bar();
 	}
@@ -373,9 +371,17 @@ frappe.search.SearchDialog = class {
 		}
 	}
 
+	toggle_global_search_dialog(keywords) {
+		if (this.search_dialog.display) {
+			this.search_dialog.hide();
+		} else {
+			this.open_global_search_dialog(keywords);
+		}
+	}
+
 	get_results(keywords) {
 		this.current_keyword = keywords;
-		if (this.$body.find(".empty-state").length > 0) {
+		if (this.$body.find(".search-empty-state").length > 0) {
 			this.put_placeholder(__("Searching ..."));
 		} else {
 			this.$wrapper.find(".loading-state").removeClass("hide");

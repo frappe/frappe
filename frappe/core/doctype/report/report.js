@@ -12,26 +12,22 @@ frappe.ui.form.on("Report", {
 
 		let doc = frm.doc;
 		if (!doc.__islocal) {
-			frm.add_custom_button(
-				__("Show Report"),
-				function () {
-					switch (doc.report_type) {
-						case "Report Builder":
-							frappe.set_route("List", doc.ref_doctype, "Report", doc.name);
-							break;
-						case "Query Report":
-							frappe.set_route("query-report", doc.name);
-							break;
-						case "Script Report":
-							frappe.set_route("query-report", doc.name);
-							break;
-						case "Custom Report":
-							frappe.set_route("query-report", doc.name);
-							break;
-					}
-				},
-				"fa fa-table"
-			);
+			frm.add_custom_button(__("Show Report"), function () {
+				switch (doc.report_type) {
+					case "Report Builder":
+						frappe.set_route("List", doc.ref_doctype, "Report", doc.name);
+						break;
+					case "Query Report":
+						frappe.set_route("query-report", doc.name);
+						break;
+					case "Script Report":
+						frappe.set_route("query-report", doc.name);
+						break;
+					case "Custom Report":
+						frappe.set_route("query-report", doc.name);
+						break;
+				}
+			});
 		}
 
 		if (doc.is_standard === "Yes" && frm.perm[0].write) {
@@ -43,8 +39,7 @@ frappe.ui.form.on("Report", {
 					}).then(() => {
 						frm.reload_doc();
 					});
-				},
-				doc.disabled ? "fa fa-check" : "fa fa-off"
+				}
 			);
 		}
 

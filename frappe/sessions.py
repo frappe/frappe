@@ -132,6 +132,7 @@ def get():
 	from frappe.utils.legacy_gravatar_cleanup import (
 		should_show_gravatar_deletion_prompt,
 	)
+	from frappe.utils.new_navigation_nudge import should_show_new_navigation_prompt
 
 	bootinfo = None
 	if not getattr(frappe.conf, "disable_session_cache", None):
@@ -185,6 +186,7 @@ def get():
 	bootinfo.has_app_updates = has_app_update_notifications()
 	bootinfo.show_external_link_warning = frappe.get_system_settings("show_external_link_warning")
 	bootinfo.show_gravatar_deletion_prompt = should_show_gravatar_deletion_prompt()
+	bootinfo.show_new_navigation_prompt = should_show_new_navigation_prompt()
 
 	return bootinfo
 

@@ -13,5 +13,6 @@ import "./frappe/form/templates/users_in_sidebar.html";
 import "./frappe/views/formview.js";
 import "./frappe/views/render_preview.js";
 import "./frappe/form/form.js";
+import "./frappe/utils/address_and_contact.js";
 import "./frappe/meta_tag.js";
 import "./frappe/doctype/";

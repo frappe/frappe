@@ -1,3 +1,6 @@
+{%- if standalone -%}
+{{ body }}
+{%- else -%}
 <!DOCTYPE html>
 <html lang="{{ lang }}" dir="{{ layout_direction }}">
 <head>
@@ -14,6 +17,7 @@
 	{% endif %}
 </head>
 <body>
+	{%- if not no_action_banner %}
 	<div class="action-banner print-hide">
 		<a class="p-2" onclick="window.print();">
 			{{ _("Print") }}
@@ -23,6 +27,7 @@
 			{{ _('Get PDF') }}
 		</a>
 	</div>
+	{%- endif %}
 	<div class="print-format-gutter">
 		<div class="print-format">
 			{{ body }}
@@ -52,3 +57,4 @@
 <!-- {{ comment }} -->
 {%- endif -%}
 </html>
+{%- endif -%}

@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2025-07-28 13:12:03.573433",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/permission-types",
  "engine": "InnoDB",
  "field_order": [
   "perm_type",

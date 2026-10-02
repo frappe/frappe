@@ -31,6 +31,8 @@ context("Navigation", () => {
 		cy.location("pathname").should("eq", "/login");
 		cy.login();
 		cy.visit("/desk/todo");
-		cy.location("pathname").should("eq", "/desk/todo");
+		// Matched on the end, since the URL settles to the shell ToDo opened in. Asserting the
+		// bare path passed only because it is briefly true, before the shell is written in.
+		cy.location("pathname").should("match", /\/todo$/);
 	});
 });

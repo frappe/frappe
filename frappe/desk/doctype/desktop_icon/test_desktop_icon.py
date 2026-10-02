@@ -44,8 +44,6 @@ class IntegrationTestDesktopIcon(IntegrationTestCase):
 		).insert()
 
 	def make_public_workspace(self, title: str):
-		# a workspace icon links to the workspace's sidebar, which the install creates first
-		frappe.get_doc({"doctype": "Workspace Sidebar", "title": title}).insert(ignore_permissions=True)
 		return frappe.get_doc(
 			{
 				"doctype": "Workspace",

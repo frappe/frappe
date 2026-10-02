@@ -3,9 +3,9 @@ frappe.listview_settings["Email Queue"] = {
 		var colour = {
 			Sent: "green",
 			Sending: "blue",
-			"Not Sent": "grey",
+			"Not Sent": "gray",
 			Error: "red",
-			Expired: "orange",
+			Expired: "amber",
 		};
 		return [__(doc.status), colour[doc.status], "status,=," + doc.status];
 	},
