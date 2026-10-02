@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2026-10-02 15:41:56.084511",
+ "modified": "2026-10-02 18:19:48.368751",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "profile",
@@ -14,7 +14,7 @@
  "script": null,
  "standard": "Yes",
  "style": null,
- "system_page": 0,
+ "system_page": 1,
  "title": "Profile",
  "type": "Frappe UI"
 }
