@@ -1,5 +1,5 @@
-<!-- The conversation log: every step as role · what ran · what it returned, with
-     the provider's usage beside the request that reported it. -->
+<!-- The conversation log: every step's JSON beside its role, with the
+     provider's usage under the request that reported it. -->
 <template>
 	<Teleport to="body">
 		<div
@@ -46,38 +46,14 @@
 						class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 border-b border-outline-gray-1 py-3.5 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)]"
 					>
 						<span class="font-mono text-2xs font-medium leading-5 text-ink-gray-5">{{ ROLES[row.kind] }}</span>
-						<div class="min-w-0 text-xs leading-5">
-							<!-- the row's own line, level with the role: what ran, and its usage -->
-							<div v-if="leads(row)" class="flex flex-wrap items-center gap-2">
-								<span v-if="row.name" class="font-mono text-2xs text-ink-gray-7">{{ row.name }}</span>
-								<span v-if="row.subject" class="min-w-0 break-words text-ink-gray-6">{{ row.subject }}</span>
-								<Badge
-									v-for="pill in row.pills"
-									:key="pill.label"
-									:theme="pill.theme ?? 'gray'"
-									variant="subtle"
-									class="font-mono tabular-nums"
-								>{{ pill.label }}</Badge>
-							</div>
-
-							<p
-								v-if="row.thinking"
-								class="max-h-[180px] overflow-auto whitespace-pre-wrap break-words border-l-2 border-outline-gray-2 pl-3 text-ink-gray-5"
-								:class="leads(row) && 'mt-2'"
-							>{{ row.thinking }}</p>
-							<p
-								v-if="row.body"
-								class="max-h-[280px] overflow-auto whitespace-pre-wrap break-words text-ink-gray-8"
-								:class="(leads(row) || row.thinking) && 'mt-2'"
-							>{{ row.body }}</p>
-
-							<div v-for="part in ['input', 'output']" :key="part">
-								<template v-if="row[part]">
-									<div class="mt-2 font-mono text-2xs text-ink-gray-4">{{ part }}</div>
-									<pre
-										class="m-0 mt-1 max-h-[200px] overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-1 px-3 py-2 font-mono text-2xs leading-5 text-ink-gray-6"
-									>{{ row[part] }}</pre>
-								</template>
+						<div class="min-w-0 space-y-2 text-xs leading-5">
+							<p v-if="row.body" class="max-h-[280px] overflow-auto whitespace-pre-wrap break-words text-ink-gray-8">{{ row.body }}</p>
+							<!-- a tool's call and result, and a request's usage, are labelled -->
+							<div v-for="part in PARTS.filter((name) => row[name])" :key="part">
+								<div v-if="part !== 'entry'" class="mb-1 font-mono text-2xs text-ink-gray-4">{{ part }}</div>
+								<pre
+									class="m-0 max-h-[280px] overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-1 px-3 py-2 font-mono text-2xs leading-5 text-ink-gray-6"
+								>{{ JSON.stringify(row[part], null, 2) }}</pre>
 							</div>
 						</div>
 					</div>
@@ -90,7 +66,6 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from "vue"
-import { Badge } from "frappe-ui/src/components/Badge"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildTranscriptRows, formatTokens } from "../transcript.js"
@@ -103,33 +78,15 @@ const ROLES = {
 	compaction: "compact",
 	error: "error",
 }
+// the row's raw objects, in the order they show
+const PARTS = ["entry", "input", "output", "usage"]
 
 const flow = inject("flow")
 const closeEl = ref(null)
 
 const conversation = computed(() => flow.state.conversation)
 const title = computed(() => flow.state.session?.title ?? "")
-const rows = computed(() =>
-	buildTranscriptRows(conversation.value).map((row) => ({ ...row, pills: pills(row) })),
-)
-// whether the row opens with a line of its own; the content below it indents from there
-const leads = (row) => !!(row.name || row.subject || row.pills.length)
-
-// how the row went, and the numbers the provider actually reported for it
-function pills(row) {
-	const list = []
-	if (row.failed) list.push({ label: "error", theme: "red" })
-	if (row.spent) list.push({ label: `sub-agent ${formatTokens(row.spent)}` })
-	if (row.request) {
-		const { input, output, cacheRead, cost } = row.request
-		// cached tokens are part of the input, never on top of it: a share, not a second number
-		const share = input && cacheRead ? Math.round((cacheRead / input) * 100) : 0
-		list.push({ label: `in ${formatTokens(input)}${share ? ` (${share}% cached)` : ""}` })
-		list.push({ label: `out ${formatTokens(output)}` })
-		if (cost) list.push({ label: `$${cost.toFixed(4)}` })
-	}
-	return list
-}
+const rows = computed(() => buildTranscriptRows(conversation.value))
 
 const stats = computed(() => {
 	const { usage, requests, subagents, contextTokens, contextWindow } = conversation.value

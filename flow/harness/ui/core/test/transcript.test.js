@@ -1147,9 +1147,9 @@ test("the first request's input and output stay with its assistant response", ()
 
 	const rows = buildTranscriptRows(conversation)
 	assert.deepEqual(rows.map((row) => row.kind), ["system", "user", "assistant"])
-	assert.equal(rows[1].request, undefined)
-	assert.equal(rows[2].request.input, 1000)
-	assert.equal(rows[2].request.output, 10)
+	assert.equal(rows[1].usage, undefined)
+	assert.equal(rows[2].usage.input_tokens, 1000)
+	assert.equal(rows[2].usage.output_tokens, 10)
 })
 
 test("a tool result has no fabricated token count", () => {
@@ -1162,8 +1162,8 @@ test("a tool result has no fabricated token count", () => {
 	applyEvent(conversation, usageEvent(7, 1200, 20))
 
 	const rows = buildTranscriptRows(conversation)
-	assert.equal(rows.find((row) => row.kind === "tool").request, undefined)
-	assert.deepEqual(rows.filter((row) => row.kind === "assistant").map((row) => row.request.input), [1000, 1200])
+	assert.equal(rows.find((row) => row.kind === "tool").usage, undefined)
+	assert.deepEqual(rows.filter((row) => row.kind === "assistant").map((row) => row.usage.input_tokens), [1000, 1200])
 })
 
 test("parallel tool results stay separate from the next request's usage", () => {
@@ -1177,8 +1177,8 @@ test("parallel tool results stay separate from the next request's usage", () => 
 	applyEvent(conversation, usageEvent(8, 1410, 20))
 
 	const rows = buildTranscriptRows(conversation)
-	assert.deepEqual(rows.filter((row) => row.kind === "tool").map((row) => row.request), [undefined, undefined])
-	assert.equal(rows.filter((row) => row.kind === "assistant")[1].request.input, 1410)
+	assert.deepEqual(rows.filter((row) => row.kind === "tool").map((row) => row.usage), [undefined, undefined])
+	assert.equal(rows.filter((row) => row.kind === "assistant")[1].usage.input_tokens, 1410)
 })
 
 test("an aborted response without usage stays uncounted", () => {
@@ -1194,24 +1194,9 @@ test("an aborted response without usage stays uncounted", () => {
 
 	const rows = buildTranscriptRows(conversation)
 	const aborted = rows.find((row) => row.key === "a:5")
-	assert.equal(aborted.request, undefined)
-	assert.equal(rows.find((row) => row.key === "u:7").request, undefined)
-	assert.equal(rows.find((row) => row.key === "a:8").request.input, 1200)
-})
-
-test("a sub-agent call reports the child's own spend, which never enters this context", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		content: [{ type: "tool_call", id: "s1", name: "subagent", arguments: { description: "review the diff" } }],
-	})
-	applyEvent(conversation, { ...usageEvent(4, 1000, 10), subagent_id: "s1", input_tokens: 4000, output_tokens: 200 })
-
-	const tool = buildTranscriptRows(conversation).find((row) => row.kind === "tool")
-	assert.match(tool.input, /"description": "review the diff"/)
-	assert.equal(tool.spent, 4200)
+	assert.equal(aborted.usage, undefined)
+	assert.equal(rows.find((row) => row.key === "u:7").usage, undefined)
+	assert.equal(rows.find((row) => row.key === "a:8").usage.input_tokens, 1200)
 })
 
 test("an aborted turn's empty usage report is not a model call", () => {
@@ -1221,34 +1206,40 @@ test("an aborted turn's empty usage report is not a model call", () => {
 	applyEvent(conversation, { type: "usage", seq: 4 }) // what the adapters yield on cancel
 
 	assert.deepEqual(conversation.requests, [])
-	assert.equal(buildTranscriptRows(conversation).find((row) => row.kind === "assistant").request, undefined)
+	assert.equal(buildTranscriptRows(conversation).find((row) => row.kind === "assistant").usage, undefined)
 })
 
-test("a message carrying only an attachment is named by what it carried", () => {
+test("rows show each entry as sent, minus Flow's own fields", () => {
 	const conversation = initialConversation()
+	const logged = (seq) => ({ seq, parent_seq: seq - 1, ts: 1700000000 + seq })
+	applyEvent(conversation, { ...logged(2), type: "user_message", content: [{ type: "text", text: "hi", provider_state: {} }] })
+	const call = { type: "tool_call", id: "a", name: "read", arguments: { path: "gone.py", details: "the model's own" } }
 	applyEvent(conversation, {
-		type: "user_message",
-		seq: 2,
-		content: [{ type: "attachment", id: "i1", name: "screen.png", kind: "image" }],
-	})
-
-	const row = buildTranscriptRows(conversation).find((row) => row.kind === "user")
-	assert.equal(row.subject, "screen.png")
-	assert.equal(row.body, "")
-})
-
-test("a tool result that failed says so", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, {
+		...logged(3),
 		type: "assistant_message",
-		seq: 2,
-		content: [{ type: "tool_call", id: "a", name: "read", arguments: { path: "gone.py" } }],
+		content: [{ ...call, display: [{ text: "Read gone.py" }], provider_state: { item: "x" } }],
+		api: "litellm",
+		model: "m",
+		stop_reason: "tool_use",
 	})
-	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "a", name: "read", content: "ENOENT", is_error: true })
+	applyEvent(conversation, { ...logged(4), type: "usage", input_tokens: 10, output_tokens: 2, context_window: 1000, standalone: false })
+	applyEvent(conversation, { ...logged(5), type: "tool_result", tool_call_id: "a", name: "read", content: "ENOENT", is_error: true, details: { lines: 0 } })
 
-	const tool = buildTranscriptRows(conversation).find((row) => row.kind === "tool")
-	assert.equal(tool.failed, true)
-	assert.equal(tool.output, "ENOENT")
+	const [, user, assistant, tool] = buildTranscriptRows(conversation)
+	assert.deepEqual(user.entry, { type: "user_message", content: [{ type: "text", text: "hi" }] })
+	assert.deepEqual(assistant.entry, { type: "assistant_message", content: [call], model: "m", stop_reason: "tool_use" })
+	assert.deepEqual(assistant.usage, { type: "usage", input_tokens: 10, output_tokens: 2 })
+	assert.deepEqual(tool.input, call)
+	assert.deepEqual(tool.output, { type: "tool_result", tool_call_id: "a", name: "read", content: "ENOENT", is_error: true })
+})
+
+test("a reply cut off before its first block still shows", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "go" })
+	applyEvent(conversation, { type: "assistant_message", seq: 3, content: [], stop_reason: "aborted" })
+
+	const assistant = buildTranscriptRows(conversation).find((row) => row.kind === "assistant")
+	assert.deepEqual(assistant.entry, { type: "assistant_message", content: [], stop_reason: "aborted" })
 })
 
 test("a compaction owns the summarizer's call without moving the context reading", () => {
@@ -1262,7 +1253,7 @@ test("a compaction owns the summarizer's call without moving the context reading
 	// the summarizer prompted with the transcript, not with the new context
 	assert.equal(conversation.contextTokens, 0)
 	const compaction = buildTranscriptRows(conversation).find((row) => row.kind === "compaction")
-	assert.equal(compaction.request.input, 880)
+	assert.equal(compaction.usage.input_tokens, 880)
 	assert.equal(conversation.usage.output, 130) // its spend still counts
 })
 
@@ -1273,6 +1264,6 @@ test("failed compaction usage does not attach to an assistant response", () => {
 	applyEvent(conversation, { ...usageEvent(4, 880, 120), standalone: true })
 	applyEvent(conversation, { type: "run_error", seq: 5, message: "summary failed" })
 
-	assert.equal(buildTranscriptRows(conversation).find((row) => row.kind === "assistant").request, undefined)
+	assert.equal(buildTranscriptRows(conversation).find((row) => row.kind === "assistant").usage, undefined)
 	assert.equal(conversation.usage.output, 120)
 })

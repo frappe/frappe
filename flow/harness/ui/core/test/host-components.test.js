@@ -1155,7 +1155,7 @@ test("a sub-agent's question shows in the composer, named after the sub-agent", 
 	assert.ok(!el.textContent.includes("Run this command?"))
 })
 
-test("the transcript shows request usage beside assistant responses", async (t) => {
+test("the transcript shows each step as raw JSON, with usage under its request", async (t) => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 2, content: "find the leak" })
 	applyEvent(conversation, {
@@ -1184,40 +1184,12 @@ test("the transcript shows request usage beside assistant responses", async (t) 
 
 	const panel = document.querySelector("[role=dialog]")
 	assert.match(panel.textContent, /Tokens1k.*Input1k.*Output40.*Model calls1.*Context1kof 200k/s)
-	assert.match(panel.textContent, /user\s*find the leak/)
-	// cached is a share of the input, not a number to add to it
-	assert.match(panel.textContent, /assistant\s*in 1k \(90% cached\)\s*out 40/)
+	assert.match(panel.textContent, /user\s*\{\s*"type": "user_message",\s*"content": "find the leak"\s*\}/)
+	assert.match(panel.textContent, /assistant\s*\{\s*"type": "assistant_message".*\}\s*usage\s*\{\s*"type": "usage",.*"input_tokens": 1000/s)
 	// every tool reads the same way: the call, then what it returned
-	assert.match(panel.textContent, /tool\s*read\s*input.*"path": "server\.py".*output\s*leaky line/s)
+	assert.match(panel.textContent, /tool\s*input\s*\{\s*"type": "tool_call".*"path": "server\.py".*output\s*\{\s*"type": "tool_result".*"content": "leaky line"/s)
+	assert.doesNotMatch(panel.textContent, /"seq"|"context_window"/) // Flow's own fields stay out
 	assert.doesNotMatch(panel.textContent, /estimated|reported|~4|prompt & tool definitions/)
 	assert.equal(panel.querySelectorAll("button").length, 1) // only the close button
-	assert.equal(panel.querySelectorAll("[data-stub=Badge]").length, 2)
 })
 
-test("the transcript names an attachment-only message and flags a failed call", async (t) => {
-	const conversation = initialConversation()
-	applyEvent(conversation, {
-		type: "user_message",
-		seq: 2,
-		content: [{ type: "attachment", id: "i1", name: "screen.png", kind: "image" }],
-	})
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		content: [{ type: "tool_call", id: "a", name: "read", arguments: { path: "gone.py" } }],
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 4, tool_call_id: "a", name: "read", content: "ENOENT", is_error: true })
-
-	const flow = {
-		state: reactive({ transcriptOpen: true, conversation, session: null }),
-		setTranscriptOpen(open) {
-			flow.state.transcriptOpen = open
-		},
-	}
-	mount(t, TranscriptDialog, {}, flow)
-	await nextTick()
-
-	const panel = document.querySelector("[role=dialog]")
-	assert.match(panel.textContent, /user\s*screen\.png/) // the row is not blank
-	assert.deepEqual([...panel.querySelectorAll("[data-stub=Badge]")].map((b) => b.textContent), ["error"])
-})
