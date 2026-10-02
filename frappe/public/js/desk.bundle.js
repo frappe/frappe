@@ -1,4 +1,5 @@
 import "./frappe/provide.js";
+import "./frappe/vue_global.js";
 import "./frappe/translate.js";
 import "./frappe/class.js";
 import "./frappe/polyfill.js";
