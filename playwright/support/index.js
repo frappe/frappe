@@ -1,6 +1,6 @@
 import { test as base, expect } from "@playwright/test";
 import { Api } from "./api";
-import { ADMIN_PASSWORD, TEST_USER } from "./config";
+import { ADMIN_PASSWORD, TEST_USER, site_url } from "./config";
 import { Desk } from "./desk";
 
 async function login(request, email, password) {
@@ -9,6 +9,12 @@ async function login(request, email, password) {
 }
 
 export const test = base.extend({
+	// playwright only accepts a destructuring pattern as the first argument
+	// eslint-disable-next-line no-empty-pattern
+	baseURL: async ({}, use, testInfo) => {
+		await use(site_url(testInfo.parallelIndex));
+	},
+
 	storageState: async ({ playwright, baseURL }, use) => {
 		const request = await playwright.request.newContext({ baseURL });
 		await login(request, TEST_USER, ADMIN_PASSWORD);
@@ -28,7 +34,7 @@ export const test = base.extend({
 	admin: [
 		async ({ playwright }, use, workerInfo) => {
 			const request = await playwright.request.newContext({
-				baseURL: workerInfo.project.use.baseURL,
+				baseURL: site_url(workerInfo.parallelIndex),
 			});
 			await login(request, "Administrator", ADMIN_PASSWORD);
 			await use(new Api(request));
@@ -44,8 +50,11 @@ export function use_shared_page({ user = TEST_USER, teardown } = {}) {
 	test.describe.configure({ mode: "serial" });
 
 	test.beforeAll(async ({ browser }, workerInfo) => {
-		const { baseURL, viewport } = workerInfo.project.use;
-		shared.context = await browser.newContext({ baseURL, viewport, storageState: undefined });
+		shared.context = await browser.newContext({
+			baseURL: site_url(workerInfo.parallelIndex),
+			viewport: workerInfo.project.use.viewport,
+			storageState: undefined,
+		});
 		shared.page = await shared.context.newPage();
 		shared.api = new Api(shared.page.request, shared.page);
 		shared.desk = new Desk(shared.page, shared.api);
