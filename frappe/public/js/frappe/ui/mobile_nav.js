@@ -4,12 +4,12 @@ frappe.provide("frappe.ui");
  * The bottom tab bar on phones. The bar itself is frappe-ui's <frappe-mobile-nav>
  * custom element (prebuilt into /assets/frappe/js/lib/frappe-mobile-nav.js and loaded
  * after this bundle, sharing Desk's Vue through frappe.Vue). This class only picks
- * the tabs and wires each one to something Desk already has. Search and Notifications are
- * pages of their own (desk/page/search, desk/page/notifications), for phones only.
+ * the tabs and wires each one to something Desk already has. Search, Notifications and
+ * Profile are pages of their own (desk/page/search, notifications, profile), for phones only.
  *
  * The tabs are the same everywhere. Where you are lives in the page header instead: tapping
  * the page title opens a sheet with the dock across the top and the sidebar under it
- * (see open_navigation). New and Profile open sheets too, all one <frappe-bottom-sheet>.
+ * (see open_navigation). New opens a sheet too; both are one <frappe-bottom-sheet>.
  *
  * It is always in the DOM; mobile_nav.scss shows it below the md breakpoint only, so
  * rotating or resizing past 768px needs no JS.
@@ -75,7 +75,7 @@ frappe.ui.MobileNav = class MobileNav {
 				name: "profile",
 				label: __("Profile"),
 				icon: "user",
-				on_click: () => this.open_profile(),
+				to: "/desk/profile",
 			},
 		].filter(Boolean);
 	}
@@ -103,7 +103,7 @@ frappe.ui.MobileNav = class MobileNav {
 		document.body.classList.toggle("has-mobile-nav", !!this.defined && !page?.hide_mobile_nav);
 	}
 
-	// Home, Search and Notifications are places; New and Profile open sheets over the page.
+	// Every tab but New is a place; New opens a sheet over the page.
 	set_active() {
 		const route = frappe.get_route() || [];
 		// /desk (the app launcher) routes as [""]
@@ -258,37 +258,12 @@ frappe.ui.MobileNav = class MobileNav {
 		});
 	}
 
-	// The user menu, as rows. Same options as the sidebar's user button.
-	open_profile() {
-		this.open_sheet(frappe.session.user_fullname, ($body) => {
-			for (const [i, group] of frappe.app.sidebar.user_menu_options().entries()) {
-				if (i) $body.append(`<div class="desk-mobile-sheet-divider"></div>`);
-				for (const option of group.options) {
-					if (option.condition && !option.condition()) continue;
-					this.make_row($body, {
-						label: option.label,
-						icon: option.icon,
-						href: option.href,
-						onclick: () => {
-							this.close_sheet();
-							option.onclick?.();
-						},
-					});
-				}
-			}
-		});
-	}
-
-	make_row($body, { label, icon, href, onclick }) {
-		const $row = $(
-			href
-				? `<a class="desk-mobile-sheet-row" href="${href}"></a>`
-				: `<button type="button" class="desk-mobile-sheet-row"></button>`
-		)
+	make_row($body, { label, icon, onclick }) {
+		$(`<button type="button" class="desk-mobile-sheet-row"></button>`)
 			.append(frappe.utils.icon(icon, "md"))
 			.append($(`<span></span>`).text(label))
+			.on("click", onclick)
 			.appendTo($body);
-		if (!href) $row.on("click", onclick);
 	}
 };
 
