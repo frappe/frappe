@@ -40,15 +40,20 @@ frappe-mobile-nav.desk-mobile-nav {
 	body.has-mobile-nav .page-head .navbar-breadcrumbs li:last-child {
 		cursor: pointer;
 
+		// lucide's chevron-down as a mask, so it stays inside its own box: the title area
+		// clips overflow for its ellipsis
 		&::after {
 			content: "";
+			display: inline-block;
 			flex: none;
-			width: 6px;
-			height: 6px;
-			margin: -3px 0 0 8px;
-			border-right: 1.5px solid var(--ink-gray-5);
-			border-bottom: 1.5px solid var(--ink-gray-5);
-			transform: rotate(45deg);
+			width: 16px;
+			height: 16px;
+			margin-left: 4px;
+			vertical-align: middle;
+			background-color: var(--ink-gray-5);
+			$chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+			-webkit-mask: $chevron center / contain no-repeat;
+			mask: $chevron center / contain no-repeat;
 		}
 	}
 
