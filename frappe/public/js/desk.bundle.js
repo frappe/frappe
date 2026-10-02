@@ -21,6 +21,7 @@ import "./frappe/ui/components/context_menu.js";
 import "./frappe/ui/components/tooltip.js";
 import "./frappe/ui/components/popover.js";
 import "./frappe/ui/components/hover_card.js";
+import "./frappe/ui/components/bottom_sheet.js";
 import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";
 import "./frappe/ui/components/progress.js";

@@ -1,0 +1,408 @@
+/* Espresso Bottom Sheet — a modal panel that slides up from the bottom of
+ * the screen, for choices, short forms and confirmations on phones.
+ *
+ *   <div class="es-bottom-sheet-root" data-state="open|closed">
+ *     <div class="es-bottom-sheet__scrim"></div>
+ *     <div class="es-bottom-sheet" role="dialog" aria-modal="true"
+ *          data-height="auto|half|full" [data-dragging]>
+ *       <div class="es-bottom-sheet__grip"><div class="es-bottom-sheet__handle"></div></div>
+ *       <div class="es-bottom-sheet__header">…back, title or the caller's header, close</div>
+ *       <div class="es-bottom-sheet__subheader">…the caller's header, when there is a title</div>
+ *       <div class="es-bottom-sheet__body">…content, option rows</div>
+ *       <div class="es-bottom-sheet__footer">…the caller's footer</div>
+ *     </div>
+ *   </div>
+ *
+ * frappe.ui.BottomSheet sets --es-sheet-keyboard on the root to the height
+ * an on-screen keyboard covers, so the sheet rides above it. */
+
+.es-bottom-sheet-root {
+    position: fixed;
+    inset: 0;
+    /* below bootstrap modals (1050), so dialogs opened from a sheet stack above
+       it; above their backdrop (1040). A sheet opened from a dialog lifts itself. */
+    z-index: 1045;
+}
+
+/* the page behind stays put while a sheet is open */
+html.es-bottom-sheet-open {
+    overflow: hidden;
+}
+
+/* hiding a scrollbar that was there would shift the page sideways */
+html.es-bottom-sheet-open.es-bottom-sheet-gutter {
+    scrollbar-gutter: stable;
+}
+
+.es-bottom-sheet__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 15, 15, 0.4);
+    /* a drag on the dimmed area mustn't scroll the page behind */
+    touch-action: none;
+    overscroll-behavior: contain;
+    animation: es-sheet-scrim-in 250ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.es-bottom-sheet {
+    /* the space kept clear at the left and right of every part */
+    --es-sheet-gutter: calc(var(--spacing) * 4);
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--es-sheet-keyboard, 0px);
+    margin-inline: auto;
+    width: 100%;
+    /* wider screens keep a phone-like width, centred */
+    max-width: 560px;
+    max-height: calc(90vh - var(--es-sheet-keyboard, 0px));
+    max-height: calc(90dvh - var(--es-sheet-keyboard, 0px));
+    box-sizing: border-box;
+    background: var(--surface-elevation-2);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    box-shadow: var(--elevation-2xl);
+    outline: none;
+    overflow: hidden;
+    animation: es-sheet-in 250ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.es-bottom-sheet[data-height="half"] {
+    height: 50vh;
+    height: 50dvh;
+}
+
+.es-bottom-sheet[data-height="full"] {
+    height: calc(90vh - var(--es-sheet-keyboard, 0px));
+    height: calc(90dvh - var(--es-sheet-keyboard, 0px));
+}
+
+/* snapping back after a drag, or to another height, eases; the drag itself follows the finger */
+.es-bottom-sheet:not([data-dragging]) {
+    transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1),
+        height 250ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.es-bottom-sheet-root[data-state="closed"] {
+    pointer-events: none;
+}
+
+.es-bottom-sheet-root[data-state="closed"] .es-bottom-sheet {
+    animation: es-sheet-out 200ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.es-bottom-sheet-root[data-state="closed"] .es-bottom-sheet__scrim {
+    animation: es-sheet-scrim-out 200ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* ---- grip + header (both drag the sheet) ---- */
+.es-bottom-sheet__grip {
+    flex-shrink: 0;
+    padding-block: calc(var(--spacing) * 2) calc(var(--spacing) * 1);
+    cursor: grab;
+    touch-action: none;
+}
+
+.es-bottom-sheet__handle {
+    width: calc(var(--spacing) * 9);
+    height: calc(var(--spacing) * 1);
+    border-radius: var(--radius-full);
+    background: var(--surface-gray-4);
+}
+
+.es-bottom-sheet__header {
+    flex-shrink: 0;
+    min-height: calc(var(--spacing) * 10);
+    padding-block: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+    /* the end side is 8px less: a ghost button there has that much room around its icon */
+    padding-inline: var(--es-sheet-gutter) calc(var(--es-sheet-gutter) - var(--spacing) * 2);
+    touch-action: none;
+}
+
+/* Back is a small button; its icon, not its box, sits on the gutter line */
+.es-bottom-sheet__header[data-back] {
+    padding-inline-start: calc(var(--es-sheet-gutter) - var(--spacing) * 1.5);
+}
+
+/* small icons, with a finger-size area around them */
+.es-bottom-sheet__back,
+.es-bottom-sheet__close {
+    position: relative;
+}
+
+.es-bottom-sheet__back::after,
+.es-bottom-sheet__close::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--spacing) * -2);
+}
+
+/* its icon, not its box, ends on the gutter line */
+.es-bottom-sheet__close {
+    margin-inline-end: calc(var(--spacing) * 0.5);
+}
+
+/* with Back, the subtitle sits beside the title: one line for the arrow to line up with */
+.es-bottom-sheet__header[data-back] .es-bottom-sheet__titles {
+    flex-direction: row;
+    align-items: baseline;
+    gap: calc(var(--spacing) * 2);
+}
+
+.es-bottom-sheet__header[data-back] .es-bottom-sheet__title {
+    flex: none;
+}
+
+.es-bottom-sheet__header[data-back] .es-bottom-sheet__subtitle {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+[dir="rtl"] .es-bottom-sheet__back svg {
+    transform: scaleX(-1);
+}
+
+.es-bottom-sheet__title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.3;
+    color: var(--ink-gray-8);
+}
+
+.es-bottom-sheet__subtitle {
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    color: var(--ink-gray-6);
+}
+
+/* ---- the caller's header under a title: fixed above the body, not sticky inside it
+   (iOS lets rows show past a sticky bar) ---- */
+.es-bottom-sheet__subheader {
+    flex-shrink: 0;
+    padding: 0 var(--es-sheet-gutter) calc(var(--spacing) * 2);
+}
+
+/* the caller's header: the first piece takes the room, the rest keep their size */
+.es-bottom-sheet__header-slot > :first-child,
+.es-bottom-sheet__subheader > :first-child {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* a text box in the header is touch-size */
+.es-bottom-sheet__header .form-control,
+.es-bottom-sheet__subheader .form-control {
+    height: calc(var(--spacing) * 10);
+    font-size: var(--text-base);
+}
+
+/* ---- body ---- */
+.es-bottom-sheet__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 var(--es-sheet-gutter) calc(var(--spacing) * 4);
+}
+
+/* no footer: the body clears the phone's home bar itself */
+.es-bottom-sheet:has(> .es-bottom-sheet__footer[hidden]) .es-bottom-sheet__body {
+    padding-bottom: calc(var(--spacing) * 4 + env(safe-area-inset-bottom, 0px));
+}
+
+/* a FieldGroup inside lines its fields up with the title; the body pads already */
+.es-bottom-sheet__body .form-section,
+.es-bottom-sheet__body .form-column {
+    padding-inline: 0;
+}
+
+/* a classic Link field's suggestions flow inline: an absolute list would be
+   clipped by the scrolling body */
+.es-bottom-sheet__body .awesomplete > ul,
+.es-bottom-sheet__body .awesomplete > [role="listbox"] {
+    position: relative;
+}
+
+.es-bottom-sheet__text {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: 1.5;
+    color: var(--ink-gray-6);
+}
+
+.es-bottom-sheet__body[data-motion="forward"] {
+    animation: es-sheet-step-forward 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.es-bottom-sheet__body[data-motion="back"] {
+    animation: es-sheet-step-back 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* right to left: forward comes in from the left, the way Back points */
+[dir="rtl"] .es-bottom-sheet__body[data-motion="forward"] {
+    animation-name: es-sheet-step-back;
+}
+
+[dir="rtl"] .es-bottom-sheet__body[data-motion="back"] {
+    animation-name: es-sheet-step-forward;
+}
+
+/* ---- option rows: boxes on the gutter line with their text 8px in, the same
+   as a form control, so a search box above them lines up ---- */
+/* a group the search hides doesn't count, so the first shown one gets no divider */
+.es-bottom-sheet__group:not([hidden]) ~ .es-bottom-sheet__group:not([hidden]) {
+    border-top: 1px solid var(--outline-gray-1);
+    margin-top: calc(var(--spacing) * 1);
+    padding-top: calc(var(--spacing) * 1);
+}
+
+.es-bottom-sheet__group-label {
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 2) calc(var(--spacing) * 1);
+    font-size: var(--text-sm);
+    color: var(--ink-gray-6);
+}
+
+/* rows are menu.js rows (.es-menu__item) at touch size */
+.es-bottom-sheet__option.es-menu__item {
+    min-height: calc(var(--spacing) * 11);
+    gap: calc(var(--spacing) * 3);
+    padding: calc(var(--spacing) * 2);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-regular);
+    line-height: 1.4;
+    color: var(--ink-gray-8);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.es-bottom-sheet__option.es-menu__item:active {
+    background: var(--surface-gray-2);
+    color: var(--ink-gray-8);
+}
+
+/* touch screens keep :hover on the last row tapped, which a new step puts
+   another row under; only a real pointer gets the hover */
+@media (hover: hover) {
+    .es-bottom-sheet__option.es-menu__item:hover {
+        background: var(--surface-gray-2);
+        color: var(--ink-gray-8);
+    }
+}
+
+.es-bottom-sheet__option.es-menu__item:focus-visible {
+    box-shadow: inset var(--focus-default);
+}
+
+/* the current choice: a check, and a filled row */
+.es-bottom-sheet__option.es-menu__item[data-state="checked"] {
+    background: var(--surface-gray-2);
+    font-weight: var(--font-weight-medium);
+}
+
+.es-bottom-sheet__option.es-menu__item[data-theme="red"],
+.es-bottom-sheet__option.es-menu__item[data-theme="red"]:hover {
+    color: var(--ink-red-6);
+}
+
+.es-bottom-sheet__option.es-menu__item:disabled,
+.es-bottom-sheet__option.es-menu__item[data-disabled] {
+    color: var(--ink-gray-4);
+    background: transparent;
+}
+
+/* a sheet has the height for the whole label and description; no ellipsis */
+.es-bottom-sheet__option .es-menu__label,
+.es-bottom-sheet__option .es-menu__description {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.es-bottom-sheet__option.es-menu__item[aria-busy="true"] {
+    opacity: 0.6;
+}
+
+.es-bottom-sheet__option.es-menu__item > svg,
+.es-bottom-sheet__option .es-menu__image,
+.es-bottom-sheet__option .es-menu__icon-space {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    margin: 0;
+}
+
+.es-bottom-sheet__option .es-menu__description {
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-regular);
+}
+
+.es-bottom-sheet__option .es-bottom-sheet__check {
+    color: var(--ink-gray-8);
+}
+
+/* ---- footer ---- */
+.es-bottom-sheet__footer {
+    flex-shrink: 0;
+    padding: calc(var(--spacing) * 3) var(--es-sheet-gutter)
+        calc(var(--spacing) * 4 + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--outline-gray-1);
+}
+
+/* the caller's footer: its pieces share the width */
+.es-bottom-sheet__footer > * {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* footer buttons stretch, and the desk's global .icon { margin: 0 auto } would
+   then push the icon away from its label */
+.es-bottom-sheet__footer .es-button > .icon {
+    margin: 0;
+}
+
+/* ---- motion ---- */
+@keyframes es-sheet-in {
+    from {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes es-sheet-out {
+    to {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes es-sheet-scrim-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes es-sheet-scrim-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes es-sheet-step-forward {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+}
+
+@keyframes es-sheet-step-back {
+    from {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-bottom-sheet,
+    .es-bottom-sheet__scrim,
+    .es-bottom-sheet__body {
+        animation-duration: 0ms !important;
+        transition-duration: 0ms !important;
+    }
+}
