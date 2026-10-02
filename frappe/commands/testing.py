@@ -480,6 +480,12 @@ def run_parallel_tests(
 PLAYWRIGHT_VERSION = "1.63.0"
 
 
+def _get_site_url(site: str) -> str:
+	# frappe.utils.get_site_url reads the config of the site frappe was initialised with
+	conf = frappe.get_site_config(site_path=os.path.join(frappe.local.sites_path, site))
+	return conf.host_name or f"http://{site}:{conf.webserver_port}"
+
+
 @click.command(
 	"run-ui-tests",
 	context_settings=dict(
@@ -557,7 +563,7 @@ def run_ui_tests(
 		"NODE_PATH": node_modules_path,
 	}
 	if parallel_site:
-		env["PARALLEL_BASE_URLS"] = ",".join(frappe.utils.get_site_url(s) for s in parallel_site)
+		env["PARALLEL_BASE_URLS"] = ",".join(_get_site_url(s) for s in parallel_site)
 	if admin_password := frappe.get_conf().admin_password:
 		env["ADMIN_PASSWORD"] = admin_password
 
