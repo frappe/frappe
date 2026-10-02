@@ -7,8 +7,8 @@ frappe.provide("frappe.ui");
  * the tabs and wires each one to something Desk already has: the router, the search
  * modal and the notifications panel.
  *
- * The tabs are the same everywhere. Where you are lives in the page header instead: its
- * sidebar button opens a sheet with the dock across the top and the sidebar under it
+ * The tabs are the same everywhere. Where you are lives in the page header instead: tapping
+ * the page title opens a sheet with the dock across the top and the sidebar under it
  * (see open_navigation). New and You open sheets too, all one <frappe-bottom-sheet>.
  *
  * It is always in the DOM; mobile_nav.scss shows it below the md breakpoint only, so
@@ -34,6 +34,12 @@ frappe.ui.MobileNav = class MobileNav {
 			this.close_sheet();
 		});
 		this.set_active();
+
+		// The title is the trail's last crumb (Page.set_title), redrawn on every paint, so
+		// the tap is delegated. Pages inside dialogs draw no trail and are left out.
+		$(document).on("click", ".page-head .navbar-breadcrumbs li:last-child", () => {
+			if (frappe.is_mobile()) this.open_navigation();
+		});
 	}
 
 	get_tabs() {
@@ -137,7 +143,7 @@ frappe.ui.MobileNav = class MobileNav {
 		this.return_sidebar();
 	}
 
-	// The page header's sidebar button on a phone. The dock is a row of its entries; tapping
+	// The page title, tapped on a phone. The dock is a row of its entries; tapping
 	// one shows that module's sidebar in place, and nothing navigates until a row is picked.
 	//
 	// The sidebar is Desk's own: its items list is moved into the sheet while it is open, so

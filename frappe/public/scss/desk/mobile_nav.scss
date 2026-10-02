@@ -34,6 +34,23 @@ frappe-mobile-nav.desk-mobile-nav {
 		padding-bottom: var(--desk-mobile-nav-height);
 	}
 
+	// The page title opens the navigation sheet (MobileNav.open_navigation); the chevron
+	// says so. Drawn in CSS because the crumb is redrawn on every paint.
+	body.has-mobile-nav .page-head .navbar-breadcrumbs li:last-child {
+		cursor: pointer;
+
+		&::after {
+			content: "";
+			flex: none;
+			width: 6px;
+			height: 6px;
+			margin: -3px 0 0 8px;
+			border-right: 1.5px solid var(--ink-gray-5);
+			border-bottom: 1.5px solid var(--ink-gray-5);
+			transform: rotate(45deg);
+		}
+	}
+
 	// The desktop page's header (both its templates): search and notifications are tabs on
 	// a phone, so the header names the page instead.
 	body.has-mobile-nav .desktop-navbar {

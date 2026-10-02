@@ -728,7 +728,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	remove_item(item, index) {}
 
-	// Close the drawer on a click anywhere but the sidebar, the dock or the page's own toggle.
+	// Close the drawer on a click anywhere but the sidebar or the dock.
 	setup_click_away() {
 		$(document)
 			// Rebuilt on some navigations, so drop the old handler instead of stacking another.
@@ -738,7 +738,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// Panels mount beside the sidebar but still belong to it.
 				if (
 					$(e.target).closest(
-						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel, .sidebar-collapse-arrow"
+						".body-sidebar, .dock, .sidebar-panel, .sidebar-collapse-arrow"
 					).length
 				)
 					return;
