@@ -141,7 +141,7 @@ def delete_doc(
 				)
 				frappe.db.delete("__global_search", {"doctype": name})
 
-			delete_from_table(doctype, name, ignore_doctypes, None)
+			delete_from_table(doctype, name, ignore_doctypes, None, force=force, for_reload=for_reload)
 
 			if (
 				frappe.conf.developer_mode
@@ -202,7 +202,15 @@ def delete_doc(
 							raise e
 
 			update_naming_series(doc)
-			delete_from_table(doctype, name, ignore_doctypes, doc)
+			delete_from_table(
+				doctype,
+				name,
+				ignore_doctypes,
+				doc,
+				force=force,
+				for_reload=for_reload,
+				ignore_on_trash=ignore_on_trash,
+			)
 			doc.run_method("after_delete")
 
 			# delete attachments
@@ -270,11 +278,15 @@ def update_naming_series(doc):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 
-def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
-	if doctype != "DocType" and doctype == name:
-		frappe.db.delete("Singles", {"doctype": name})
-	else:
-		frappe.db.delete(doctype, {"name": name})
+def delete_from_table(
+	doctype: str,
+	name: str,
+	ignore_doctypes: list[str],
+	doc,
+	force=False,
+	for_reload=False,
+	ignore_on_trash=False,
+):
 	if doc:
 		child_doctypes = [
 			d.options for d in doc.meta.get_table_fields() if frappe.get_meta(d.options).is_virtual == 0
@@ -290,24 +302,29 @@ def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
 
 	child_doctypes_to_delete = set(child_doctypes) - set(ignore_doctypes)
 	for child_doctype in child_doctypes_to_delete:
-		child_meta = frappe.get_meta(child_doctype)
-		if nested_fields := [df for df in child_meta.get_table_fields() if not df.is_virtual]:
+		if frappe.get_meta(doctype).istable or any(
+			not df.is_virtual for df in frappe.get_meta(child_doctype).get_table_fields()
+		):
 			child_names = frappe.get_all(
-				child_doctype,
-				filters={"parenttype": doctype, "parent": name},
-				pluck="name",
+				child_doctype, filters={"parenttype": doctype, "parent": name}, pluck="name"
 			)
-			if child_names:
-				for df in nested_fields:
-					frappe.db.delete(
-						df.options,
-						{
-							"parenttype": child_doctype,
-							"parentfield": df.fieldname,
-							"parent": ["in", child_names],
-						},
-					)
-		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
+			for child_name in child_names:
+				delete_doc(
+					child_doctype,
+					child_name,
+					force=force,
+					ignore_doctypes=ignore_doctypes,
+					ignore_permissions=True,
+					for_reload=for_reload,
+					ignore_on_trash=ignore_on_trash,
+					delete_permanently=True,
+				)
+		else:
+			frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
+	if doctype != "DocType" and doctype == name:
+		frappe.db.delete("Singles", {"doctype": name})
+	else:
+		frappe.db.delete(doctype, {"name": name})
 
 
 def update_flags(doc, flags=None, ignore_permissions=False):

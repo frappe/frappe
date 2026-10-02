@@ -211,6 +211,14 @@ Object.assign(frappe.model, {
 						// if incoming row is not registered, register it
 						if (!locals[updated_child_doc.doctype][updated_child_doc.name]) {
 							const old_name = local_child_doc_in_parent.name;
+							for (const child_df of frappe.meta.get_table_fields(
+								updated_child_doc.doctype
+							)) {
+								frappe.model.clear_table(
+									local_child_doc_in_parent,
+									child_df.fieldname
+								);
+							}
 
 							// detach old key
 							delete locals[updated_child_doc.doctype][old_name];

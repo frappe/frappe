@@ -116,6 +116,7 @@ def mask_fields(
 	"""
 	from frappe.database.query import CORE_DOCTYPES
 	from frappe.model.utils.mask import (
+		as_aliased_field,
 		mask_dict_results,
 		mask_field_value,
 		mask_list_results,
@@ -128,7 +129,7 @@ def mask_fields(
 
 	masked_fields = frappe.get_meta(doctype).get_masked_fields(
 		parenttype=parent_doctype
-	) + get_masked_joined_fields(doctype, fields)
+	) + get_masked_joined_fields(doctype, fields, parent_doctype)
 
 	if not masked_fields:
 		return result
@@ -138,10 +139,14 @@ def mask_fields(
 
 	if not as_dict:
 		field_index_map = {}
+		masked_by_name = {field.fieldname: field for field in masked_fields}
 		for idx, field in enumerate(fields):
 			# Handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
 			if alias := getattr(field, "alias", None):
 				field_index_map[alias] = idx
+				if name := getattr(field, "name", None):
+					if name in masked_by_name and alias != name:
+						masked_fields.append(as_aliased_field(masked_by_name[name], alias))
 			elif name := getattr(field, "name", None) or getattr(field, "fieldname", None):
 				field_index_map[name] = idx
 
@@ -162,7 +167,7 @@ def mask_fields(
 	return result
 
 
-def get_masked_joined_fields(doctype: str, fields: list[Any]) -> list[Any]:
+def get_masked_joined_fields(doctype: str, fields: list[Any], parent_doctype: str | None = None) -> list[Any]:
 	"""Get masked fields of the doctypes joined in through dot notation (`items.rate`)."""
 	from frappe.database.query import CORE_DOCTYPES, DynamicTableField
 	from frappe.model.utils.mask import as_aliased_field
@@ -176,7 +181,7 @@ def get_masked_joined_fields(doctype: str, fields: list[Any]) -> list[Any]:
 
 		if field.doctype not in lookups:
 			meta = frappe.get_meta(field.doctype)
-			parenttype = doctype if meta.istable else None
+			parenttype = (parent_doctype or doctype) if meta.istable else None
 			lookups[field.doctype] = {
 				df.fieldname: df for df in meta.get_masked_fields(parenttype=parenttype)
 			}

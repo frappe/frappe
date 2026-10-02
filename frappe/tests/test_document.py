@@ -35,6 +35,170 @@ class CustomNoteWithoutProperty(Note):
 
 
 class TestDocument(IntegrationTestCase):
+	def test_flat_child_rows_keep_bulk_deletion(self):
+		child_dt = new_doctype(istable=1).insert().name
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}]
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc({"doctype": root_dt, "rows": [{}, {}]}).insert()
+		child_names = [row.name for row in root.rows]
+		hooks = []
+		original_run_method = Document.run_method
+
+		def record_delete_hooks(doc, method, *args, **kwargs):
+			if doc.doctype == child_dt and method in ("on_trash", "after_delete"):
+				hooks.append(method)
+			return original_run_method(doc, method, *args, **kwargs)
+
+		with patch.object(Document, "run_method", record_delete_hooks):
+			root.rows.pop()
+			root.save()
+			frappe.delete_doc(root_dt, root.name)
+
+		self.assertEqual(hooks, [])
+		self.assertFalse(any(frappe.db.exists(child_dt, name) for name in child_names))
+
+	def test_nested_link_validation_uses_prefetched_values(self):
+		grandchild_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Linked User",
+						"fieldname": "linked_user",
+						"fieldtype": "Link",
+						"options": "User",
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}]
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc(
+			{
+				"doctype": root_dt,
+				"rows": [{"details": [{"linked_user": "Administrator"}, {"linked_user": "Administrator"}]}],
+			}
+		)
+
+		with patch("frappe.model.base_document._fetch_link_values", side_effect=AssertionError):
+			root.insert()
+
+	def make_nested_table_document(self, rows):
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}]
+			)
+			.insert()
+			.name
+		)
+		return frappe.get_doc({"doctype": root_dt, "rows": rows}).insert(), child_dt, grandchild_dt
+
+	def test_root_deletion_runs_nested_child_hooks(self):
+		root, child_dt, grandchild_dt = self.make_nested_table_document(
+			[{"details": [{"some_fieldname": "detail"}]}]
+		)
+		child_name = root.rows[0].name
+		grandchild_name = root.rows[0].details[0].name
+		hooks = []
+		original_run_method = Document.run_method
+
+		def record_delete_hooks(doc, method, *args, **kwargs):
+			if doc.doctype in (child_dt, grandchild_dt) and method in ("on_trash", "after_delete"):
+				hooks.append((doc.doctype, doc.name, method))
+			return original_run_method(doc, method, *args, **kwargs)
+
+		with patch.object(Document, "run_method", record_delete_hooks):
+			frappe.delete_doc(root.doctype, root.name)
+
+		self.assertEqual(
+			hooks,
+			[
+				(child_dt, child_name, "on_trash"),
+				(grandchild_dt, grandchild_name, "on_trash"),
+				(grandchild_dt, grandchild_name, "after_delete"),
+				(child_dt, child_name, "after_delete"),
+			],
+		)
+		self.assertFalse(frappe.db.exists(child_dt, child_name))
+		self.assertFalse(frappe.db.exists(grandchild_dt, grandchild_name))
+
+	def test_removed_child_row_runs_nested_child_hooks(self):
+		root, child_dt, grandchild_dt = self.make_nested_table_document(
+			[
+				{"details": [{"some_fieldname": "removed"}]},
+				{"details": [{"some_fieldname": "kept"}]},
+			]
+		)
+		removed_row = root.rows.pop(0)
+		grandchild_name = removed_row.details[0].name
+		kept_name = root.rows[0].details[0].name
+		hooks = []
+		original_run_method = Document.run_method
+
+		def record_delete_hooks(doc, method, *args, **kwargs):
+			if doc.doctype in (child_dt, grandchild_dt) and method in ("on_trash", "after_delete"):
+				hooks.append((doc.doctype, doc.name, method))
+			return original_run_method(doc, method, *args, **kwargs)
+
+		with patch.object(Document, "run_method", record_delete_hooks):
+			root.save()
+
+		self.assertEqual(
+			hooks,
+			[
+				(child_dt, removed_row.name, "on_trash"),
+				(grandchild_dt, grandchild_name, "on_trash"),
+				(grandchild_dt, grandchild_name, "after_delete"),
+				(child_dt, removed_row.name, "after_delete"),
+			],
+		)
+		self.assertFalse(frappe.db.exists(child_dt, removed_row.name))
+		self.assertFalse(frappe.db.exists(grandchild_dt, grandchild_name))
+		self.assertTrue(frappe.db.exists(grandchild_dt, kept_name))
+
 	def test_nested_custom_table_field(self):
 		grandchild_dt = new_doctype(istable=1).insert().name
 		child_dt = new_doctype(istable=1).insert().name

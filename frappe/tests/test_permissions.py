@@ -40,6 +40,45 @@ def nested_root_scope_condition(user, doctype):
 
 
 class TestPermissions(IntegrationTestCase):
+	def test_nested_joined_field_respects_root_mask_permission(self):
+		frappe.set_user("Administrator")
+		grandchild_dt = (
+			new_doctype(
+				istable=1,
+				fields=[{"label": "Secret", "fieldname": "secret", "fieldtype": "Data", "mask": 1}],
+			)
+			.insert()
+			.name
+		)
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1, "mask": 1}],
+			)
+			.insert()
+			.name
+		)
+		frappe.get_doc({"doctype": root_dt, "rows": [{"details": [{"secret": "visible"}]}]}).insert()
+
+		frappe.set_user("test1@example.com")
+		rows = frappe.get_list(child_dt, fields=["details.secret"], parent_doctype=root_dt)
+		self.assertEqual([row.secret for row in rows], ["visible"])
+
 	def test_nested_child_query_respects_root_user_permission(self):
 		frappe.set_user("Administrator")
 		grandchild_dt = new_doctype(istable=1).insert().name
@@ -387,6 +426,12 @@ class TestPermissions(IntegrationTestCase):
 		)
 		self.assertEqual(rows[0].details[0].some_fieldname, "visible")
 		self.assertEqual(rows[0].details[0].secret, "XXXXXXXX")
+		joined_rows = frappe.get_list(
+			child_dt,
+			fields=["details.some_fieldname"],
+			parent_doctype=root_dt,
+		)
+		self.assertEqual(joined_rows[0].some_fieldname, "visible")
 		with self.assertRaises(frappe.PermissionError):
 			frappe.get_list(
 				child_dt,

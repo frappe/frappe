@@ -1633,20 +1633,23 @@ class Engine:
 					# Skip child table fields if parent permission is only 'select'
 					continue
 
+				parent_meta = frappe.get_meta(self.doctype)
+				permission_parent = self.root_doctype if parent_meta.istable else field.parent_doctype
 				if field.parent_fieldname:
-					parent_meta = frappe.get_meta(self.doctype)
 					if parent_meta.get_field(
 						field.parent_fieldname
 					).permlevel not in parent_meta.get_permlevel_access(
-						parent_permission_type, user=self.user
+						parent_permission_type,
+						parenttype=self.root_doctype if parent_meta.istable else None,
+						user=self.user,
 					):
 						continue
 
 				# Cache permitted fields for child doctypes if accessed multiple times
 				permitted_child_fields_set = self._get_cached_permitted_fields(
 					field.doctype,
-					field.parent_doctype,
-					self.get_permission_type(field.doctype, field.parent_doctype),
+					permission_parent,
+					self.get_permission_type(field.doctype, permission_parent),
 				)
 				# Check permission for the specific field in the child table
 				if field.fieldname in permitted_child_fields_set:

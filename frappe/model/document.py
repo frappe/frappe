@@ -952,7 +952,9 @@ class Document(BaseDocument):
 			or frappe.get_meta(df.options).is_virtual == 1
 		):
 			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
-			if frappe.get_meta(df.options).get_table_fields():
+			if self.meta.istable or any(
+				not nested_df.is_virtual for nested_df in frappe.get_meta(df.options).get_table_fields()
+			):
 				removed_names = frappe.get_all(
 					df.options,
 					filters={
@@ -963,30 +965,20 @@ class Document(BaseDocument):
 					},
 					pluck="name",
 				)
-				for nested_df in frappe.get_meta(df.options).get_table_fields():
-					if removed_names and not nested_df.is_virtual:
-						frappe.db.delete(
-							nested_df.options,
-							{
-								"parent": ["in", removed_names],
-								"parenttype": df.options,
-								"parentfield": nested_df.fieldname,
-							},
-						)
-
-			tbl = frappe.qb.DocType(df.options)
-			qry = (
-				frappe.qb.from_(tbl)
-				.where(tbl.parent == str(self.name))
-				.where(tbl.parenttype == self.doctype)
-				.where(tbl.parentfield == fieldname)
-				.delete()
-			)
-
-			if existing_row_names:
-				qry = qry.where(tbl.name.notin(existing_row_names))
-
-			qry.run()
+				for row_name in removed_names:
+					frappe.delete_doc(df.options, row_name, ignore_permissions=True, delete_permanently=True)
+			else:
+				tbl = frappe.qb.DocType(df.options)
+				qry = (
+					frappe.qb.from_(tbl)
+					.where(tbl.parent == str(self.name))
+					.where(tbl.parenttype == self.doctype)
+					.where(tbl.parentfield == fieldname)
+					.delete()
+				)
+				if existing_row_names:
+					qry = qry.where(tbl.name.notin(existing_row_names))
+				qry.run()
 
 		# update / insert
 		for d in all_rows:
@@ -1593,7 +1585,7 @@ class Document(BaseDocument):
 				yield lst[i : i + size]
 
 		self._link_value_cache = {}
-		docs_to_validate = [self, *self.get_all_children()]
+		docs_to_validate = [self, *self.get_all_descendants()]
 
 		# Collect: {doctype: {'names': set(), 'fields': set()}}
 		prefetch_map = defaultdict(lambda: {"names": set(), "fields": {"name"}})
