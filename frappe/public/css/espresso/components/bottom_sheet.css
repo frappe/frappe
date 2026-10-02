@@ -37,7 +37,7 @@ html.es-bottom-sheet-open.es-bottom-sheet-gutter {
 .es-bottom-sheet__scrim {
     position: absolute;
     inset: 0;
-    background: rgba(15, 15, 15, 0.4);
+    background: color-mix(in srgb, var(--gray-900) 40%, transparent);
     /* a drag on the dimmed area mustn't scroll the page behind */
     touch-action: none;
     overscroll-behavior: contain;
