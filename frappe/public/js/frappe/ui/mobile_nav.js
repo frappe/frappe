@@ -50,14 +50,12 @@ frappe.ui.MobileNav = class MobileNav {
 		const { search_bar, notifications } = frappe.boot.desk_settings || {};
 		return [
 			{ name: "home", label: __("Home"), icon: "house", to: "/desk" },
+			// the search page (desk/page/search), the awesomebar as a page of its own
 			search_bar && {
 				name: "search",
 				label: __("Search"),
 				icon: "search",
-				// Not via the .navbar-modal-search-mobile class: the element copies a host's
-				// class onto what it renders, so that delegated toggle would match twice and
-				// open the modal only to close it again.
-				on_click: () => frappe.app.awesome_bar?.open(),
+				to: "/desk/search",
 			},
 			{
 				name: "new",
@@ -108,13 +106,13 @@ frappe.ui.MobileNav = class MobileNav {
 		document.body.classList.toggle("has-mobile-nav", !!this.defined && !page?.hide_mobile_nav);
 	}
 
-	// Only Home is a place; the other tabs open something over the page.
+	// Home and Search are places; the other tabs open something over the page.
 	set_active() {
 		const route = frappe.get_route() || [];
 		// /desk (the app launcher) routes as [""]
-		const on_home = !route[0] || route[0] === "Workspaces";
+		const place = !route[0] || route[0] === "Workspaces" ? "home" : route[0];
 		for (const tab of this.tabs) {
-			tab.el.toggleAttribute("active", tab.name === "home" && on_home);
+			tab.el.toggleAttribute("active", tab.name === place);
 		}
 	}
 
