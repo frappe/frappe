@@ -2150,6 +2150,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
 			if (selected_component !== name) return;
 		}
+		if (name === "BottomSheet") {
+			await frappe.require("bottom_sheet.bundle.js");
+			if (selected_component !== name) return;
+		}
 		const component = COMPONENTS[name];
 		const $groups = $body.find(".explorer-groups").empty();
 		if (!component) return;
