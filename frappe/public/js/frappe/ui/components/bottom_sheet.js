@@ -426,25 +426,28 @@ frappe.ui.BottomSheet = class BottomSheet {
 		}
 
 		el.addEventListener("click", (e) => {
-			// an answer that arrives after this open ended mustn't act on the next one
-			const root = this.root;
+			// an answer that arrives after Back or a close mustn't act on what's shown now
+			const step = this.current_step();
+			const settle = (promise, done) =>
+				this.wait_for(el, promise).then(
+					(value) => this.current_step() === step && done(value),
+					(error) => {
+						console.warn("frappe.ui.BottomSheet: option failed", error);
+						if (!item.submenu || this.current_step() !== step) return;
+						frappe.ui.toast({ message: __("Couldn't load options"), type: "error" });
+					}
+				);
 			if (item.submenu) {
 				const rows =
 					typeof item.submenu === "function" ? item.submenu(e, this) : item.submenu;
-				const show = (options) =>
-					this.root === root && this.push({ title: item.label, options });
-				is_thenable(rows) ? this.wait_for(el, rows).then(show) : show(rows);
+				const show = (options) => this.push({ title: item.label, options });
+				is_thenable(rows) ? settle(rows, show) : show(rows);
 				return;
 			}
 			const result = item.onclick ? item.onclick(e, this) : undefined;
-			if (!is_thenable(result)) {
-				if (result !== false) this.close("option");
-				return;
-			}
+			const finish = (value) => value !== false && this.close("option");
 			// an async handler (load, then push a step) is waited for
-			this.wait_for(el, result).then(
-				(value) => value !== false && this.root === root && this.close("option")
-			);
+			is_thenable(result) ? settle(result, finish) : finish(result);
 		});
 		return el;
 	}
