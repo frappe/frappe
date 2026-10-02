@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createServer, type ViteDevServer } from "vite";
+import { build, createServer, type ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import oneTree, {
   LINKED_UI,
@@ -140,5 +140,35 @@ describe("a package an app declares", () => {
 
   it("does not resolve a package the app did not declare", async () => {
     expect(await resolveFrom("dompurify", appFile)).toBeUndefined();
+  });
+
+  it("resolves the same way in a build", async () => {
+    const found: Record<string, string | undefined> = {};
+    const probe = {
+      name: "probe",
+      resolveId: (id: string) => (id === "probe" ? "\0probe" : undefined),
+      load: (id: string) => (id === "\0probe" ? "export {}" : undefined),
+      async buildStart(this: any) {
+        for (const source of ["frappe-ui", "vue"]) {
+          found[`shell ${source}`] = (await this.resolve(source, shellFile))?.id;
+          found[`app ${source}`] = (await this.resolve(source, appFile))?.id;
+        }
+        found["app dompurify"] = (await this.resolve("dompurify", appFile))?.id;
+      },
+    };
+    await build({
+      configFile: false,
+      root: frontend,
+      logLevel: "silent",
+      plugins: [oneTree(manifest), probe],
+      resolve: { preserveSymlinks: true },
+      build: { write: false, rolldownOptions: { input: "probe" } },
+    });
+
+    expect(found["shell frappe-ui"]).toBeTruthy();
+    expect(found["app frappe-ui"]).toBe(found["shell frappe-ui"]);
+    expect(found["shell vue"]).toMatch(/vue\.runtime\.esm-bundler\.js/);
+    expect(found["app vue"]).toBe(found["shell vue"]);
+    expect(found["app dompurify"]).toBeUndefined();
   });
 });
