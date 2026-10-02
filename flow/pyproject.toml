@@ -9,7 +9,7 @@ readme = "README.md"
 license = "AGPL-3.0-or-later"
 dynamic = ["version"]
 dependencies = [
-    "frappe-flow==0.1.10",
+    "frappe-flow==0.1.11",
     "lancedb<1,>=0.33",
     "litellm>=1.103.2,<2",
     "onnxruntime<2,>=1.27",
