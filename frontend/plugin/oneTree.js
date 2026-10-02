@@ -51,11 +51,9 @@ export default function oneTree(manifest) {
 				: segments[0];
 			if (!owner.declared.has(source) && !owner.declared.has(packageName)) return;
 
-			// Vite's resolver, not `require.resolve`: that one misses a package with only an
-			// `import` export, such as frappe-ui, and hands back vue's CommonJS build.
-			const resolved = await this.resolve(source, SHELL_ENTRY, { skipSelf: true });
-			// Nothing found falls through, so vite reports the ordinary "failed to resolve".
-			return resolved ?? undefined;
+			// frappe-ui exports only `import`, and vue's CommonJS build is not the shell's;
+			// resolve as vite would from the shell. A miss gives vite's "failed to resolve".
+			return this.resolve(source, SHELL_ENTRY, { skipSelf: true });
 		},
 	};
 }
