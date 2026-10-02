@@ -83,8 +83,21 @@ jobs:
 
       - name: Site Setup
         run: |
-          bench --site test_site execute frappe.utils.install.complete_setup_wizard
-          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
+          # a second site, so the shard can run two workers without sharing data
+          echo "127.0.0.1 test_site_2" | sudo tee -a /etc/hosts
+          bench new-site test_site_2 \
+            --db-type ${{ matrix.db }} \
+            --db-host 127.0.0.1 \
+            --db-name test_frappe_2 \
+            --db-password test_frappe
+          jq -s '.[1] + .[0] + {host_name: "http://test_site_2:8000"}' \
+            sites/test_site_2/site_config.json sites/test_site/site_config.json > site_config.json
+          mv site_config.json sites/test_site_2/site_config.json
+
+          for site in test_site test_site_2; do
+            bench --site $site execute frappe.utils.install.complete_setup_wizard
+            bench --site $site execute frappe.tests.ui_test_helpers.create_test_user
+          done
 
       - name: Run Tests
         id: ui-tests
@@ -92,6 +105,7 @@ jobs:
           bench --site test_site \
             run-ui-tests ${{ github.event.repository.name }} \
               --headless \
+              --parallel-site test_site_2 \
               --shard=${{ matrix.index }}/4
 
       - name: Upload Playwright Report
