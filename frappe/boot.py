@@ -29,6 +29,7 @@ from frappe.integrations.frappe_providers.cloud_settings import (
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
+from frappe.utils.business_modules import get_business_modules
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -64,6 +65,7 @@ def get_bootinfo():
 	desk_views.add_to_boot(bootinfo)
 	load_desktop_data(bootinfo, desk_views)
 	bootinfo.letter_heads = get_letter_heads()
+	bootinfo.business_modules = get_business_modules()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
 	add_layouts(bootinfo)

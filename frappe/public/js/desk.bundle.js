@@ -79,6 +79,7 @@ import "./frappe/model/model.js";
 import "./frappe/views/kanban_v2/settings.js";
 import "./frappe/db.js";
 import "./frappe/model/meta.js";
+import "./frappe/model/business_modules.js";
 import "./frappe/model/sync.js";
 import "./frappe/model/create_new.js";
 import "./frappe/model/perm.js";
