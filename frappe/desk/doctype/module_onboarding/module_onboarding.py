@@ -50,9 +50,7 @@ class ModuleOnboarding(Document):
 		if self.is_complete:
 			return True
 
-		steps = self.get_steps()
-		is_complete = [bool(step.is_complete or step.is_skipped) for step in steps]
-		if all(is_complete):
+		if all(step.is_done() for step in self.get_steps()):
 			self.is_complete = True
 			frappe.enqueue(self.mark_as_completed, enqueue_after_commit=True)
 			return True
@@ -93,6 +91,22 @@ class ModuleOnboarding(Document):
 # the two are the same rule read from opposite ends, one document at a time and the whole site at
 # once, and must stay in step.
 IMPLICIT_ROLE = "System Manager"
+
+
+def update_completion(step: str):
+	"""Mark each onboarding that uses `step` complete or not, by whether all of its steps are done.
+
+	Run whenever a step changes, so an onboarding is finished the moment its last step is, rather
+	than the next time someone loads a page that shows it. `db_set` skips `on_update`, which in
+	developer mode would export the site's progress into the app.
+	"""
+	for name in frappe.get_all(
+		"Onboarding Step Map", filters={"parenttype": "Module Onboarding", "step": step}, pluck="parent"
+	):
+		onboarding = frappe.get_doc("Module Onboarding", name)
+		done = all(s.is_done() for s in onboarding.get_steps())
+		if bool(onboarding.is_complete) != done:
+			onboarding.db_set("is_complete", int(done))
 
 
 def can_update_step(step: str) -> bool:

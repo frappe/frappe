@@ -718,7 +718,10 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 	        value: Value to be updated
 
 	"""
-	from frappe.desk.doctype.module_onboarding.module_onboarding import can_update_step
+	from frappe.desk.doctype.module_onboarding.module_onboarding import (
+		can_update_step,
+		update_completion,
+	)
 	from frappe.utils.telemetry import capture
 
 	allowed_fields = ["is_skipped", "is_complete"]
@@ -728,7 +731,11 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 	if not can_update_step(name):
 		frappe.throw(_("You are not allowed to update this onboarding step"), frappe.PermissionError)
 
+	if field == "is_complete" and cint(value):
+		frappe.get_doc("Onboarding Step", name).throw_if_unfinished()
+
 	frappe.db.set_value("Onboarding Step", name, field, cint(value))
+	update_completion(name)
 
 	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
 

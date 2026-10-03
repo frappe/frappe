@@ -3,6 +3,7 @@
 import json
 
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.module_def.test_module_def import custom_module
 from frappe.desk.desktop import get_desktop_page, update_onboarding_step
 from frappe.desk.doctype.sidebar.test_sidebar import no_developer_mode
@@ -13,10 +14,8 @@ ROLE = "Test Onboarding Role"
 MODULE = "Test Onboarding Module"
 
 
-class TestWorkspaceOnboarding(IntegrationTestCase):
-	"""An onboarding block on a workspace shows its steps to the people the onboarding is for, and
-	only they can tick those steps off, since progress is shared by the whole site.
-	"""
+class OnboardingTestCase(IntegrationTestCase):
+	"""A role, a one-step onboarding gated to it, and a workspace showing it."""
 
 	def setUp(self):
 		# in developer mode each fixture would export itself into the app on disk
@@ -51,7 +50,7 @@ class TestWorkspaceOnboarding(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "User", USER, force=True, ignore_missing=True)
 		return USER
 
-	def make_step(self, title: str) -> str:
+	def make_step(self, title: str, **fields) -> str:
 		self.addCleanup(frappe.delete_doc, "Onboarding Step", title, force=True, ignore_missing=True)
 		return (
 			frappe.get_doc(
@@ -61,6 +60,7 @@ class TestWorkspaceOnboarding(IntegrationTestCase):
 					"title": title,
 					"action": "Go to Page",
 					"path": "/desk/todo",
+					**fields,
 				}
 			)
 			.insert(ignore_permissions=True)
@@ -105,6 +105,12 @@ class TestWorkspaceOnboarding(IntegrationTestCase):
 	def onboardings_on_workspace(self) -> list[dict]:
 		page = get_desktop_page(json.dumps({"name": self.workspace.name, "title": self.workspace.title}))
 		return page["onboardings"]["items"]
+
+
+class TestWorkspaceOnboarding(OnboardingTestCase):
+	"""An onboarding block on a workspace shows its steps to the people the onboarding is for, and
+	only they can tick those steps off, since progress is shared by the whole site.
+	"""
 
 	def test_a_user_holding_its_role_sees_its_steps(self):
 		frappe.set_user(self.make_user(roles=[self.role]))
@@ -166,3 +172,149 @@ class TestWorkspaceOnboarding(IntegrationTestCase):
 
 		update_onboarding_step(self.step, "title", "Renamed")
 		self.assertEqual(frappe.db.get_value("Onboarding Step", self.step, "title"), "Test Onboarding Step")
+
+
+class TestStepCompletion(OnboardingTestCase):
+	"""A step that asks for something the site can show, a record or a setting, is done when that
+	thing is, and an onboarding is done the moment its last step is.
+	"""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.record_doctype = new_doctype(custom=1).insert(ignore_permissions=True).name
+		cls.submittable_doctype = new_doctype(custom=1, is_submittable=1).insert(ignore_permissions=True).name
+
+	@classmethod
+	def tearDownClass(cls):
+		for doctype in (cls.record_doctype, cls.submittable_doctype):
+			frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True)
+		super().tearDownClass()
+
+	def make_record(self, doctype: str, submit: bool = False):
+		doc = frappe.get_doc({"doctype": doctype, "some_fieldname": "example"})
+		doc.flags.ignore_permissions = True
+		doc.insert()
+		self.addCleanup(frappe.delete_doc, doctype, doc.name, force=True, ignore_missing=True)
+		if submit:
+			doc.submit()
+			# a submitted record has to be cancelled before it can be deleted
+			self.addCleanup(doc.cancel)
+		return doc
+
+	def onboarding_with(self, *steps: str) -> str:
+		frappe.delete_doc("Module Onboarding", "Test Completion Onboarding", force=True, ignore_missing=True)
+		return self.make_onboarding("Test Completion Onboarding", list(steps), roles=[self.role])
+
+	def is_complete(self, doctype: str, name: str) -> int:
+		return frappe.db.get_value(doctype, name, "is_complete")
+
+	def test_a_create_step_is_not_done_until_a_record_exists(self):
+		step = self.make_step(
+			"Test Create Step", action="Create Entry", reference_document=self.record_doctype
+		)
+		self.onboarding_with(step)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		with self.assertRaises(frappe.ValidationError):
+			update_onboarding_step(step, "is_complete", 1)
+
+		frappe.set_user("Administrator")
+		self.make_record(self.record_doctype)
+		frappe.set_user(USER)
+
+		update_onboarding_step(step, "is_complete", 1)
+		self.assertEqual(self.is_complete("Onboarding Step", step), 1)
+
+	def test_a_step_for_a_submittable_record_needs_a_submitted_one(self):
+		step = self.make_step(
+			"Test Submit Step", action="Create Entry", reference_document=self.submittable_doctype
+		)
+		self.onboarding_with(step)
+		self.make_record(self.submittable_doctype)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		with self.assertRaises(frappe.ValidationError):
+			update_onboarding_step(step, "is_complete", 1)
+
+		frappe.set_user("Administrator")
+		self.make_record(self.submittable_doctype, submit=True)
+		frappe.set_user(USER)
+
+		update_onboarding_step(step, "is_complete", 1)
+		self.assertEqual(self.is_complete("Onboarding Step", step), 1)
+
+	def test_a_record_made_elsewhere_shows_its_step_done(self):
+		"""The setup wizard makes a Company and an import makes Customers; nobody should be asked to
+		create what is already there."""
+		step = self.make_step(
+			"Test Existing Step", action="Create Entry", reference_document=self.record_doctype
+		)
+		self.make_record(self.record_doctype)
+		# a second, open step, since an onboarding with every step done is not shown at all
+		onboarding = self.onboarding_with(step, self.make_step("Test Open Step"))
+		self.workspace.db_set(
+			"content", json.dumps([{"type": "onboarding", "data": {"onboarding_name": onboarding}}])
+		)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		(shown,) = self.onboardings_on_workspace()
+		self.assertEqual([s.is_complete for s in shown["items"]], [1, 0])
+
+	def test_a_settings_step_checks_the_saved_value(self):
+		self.enterContext(self.change_settings("System Settings", {"hide_footer_in_auto_email_reports": 0}))
+		step = self.make_step(
+			"Test Settings Step",
+			action="Update Settings",
+			reference_document="System Settings",
+			field="hide_footer_in_auto_email_reports",
+			value_to_validate="1",
+			validate_action=1,
+		)
+		self.onboarding_with(step)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		with self.assertRaises(frappe.ValidationError):
+			update_onboarding_step(step, "is_complete", 1)
+
+		frappe.set_user("Administrator")
+		self.enterContext(self.change_settings("System Settings", {"hide_footer_in_auto_email_reports": 1}))
+		frappe.set_user(USER)
+
+		update_onboarding_step(step, "is_complete", 1)
+		self.assertEqual(self.is_complete("Onboarding Step", step), 1)
+
+	def test_the_onboarding_is_done_with_its_last_step(self):
+		first = self.make_step("Test First Step")
+		second = self.make_step("Test Second Step")
+		onboarding = self.onboarding_with(first, second)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		update_onboarding_step(first, "is_complete", 1)
+		self.assertEqual(self.is_complete("Module Onboarding", onboarding), 0)
+
+		update_onboarding_step(second, "is_skipped", 1)
+		self.assertEqual(self.is_complete("Module Onboarding", onboarding), 1)
+
+	def test_bringing_back_a_skipped_step_reopens_the_onboarding(self):
+		step = self.make_step("Test Skipped Step")
+		onboarding = self.onboarding_with(step)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		update_onboarding_step(step, "is_skipped", 1)
+		self.assertEqual(self.is_complete("Module Onboarding", onboarding), 1)
+
+		update_onboarding_step(step, "is_skipped", 0)
+		self.assertEqual(self.is_complete("Module Onboarding", onboarding), 0)
+
+	def test_users_the_system_made_do_not_finish_an_invite_step(self):
+		"""Administrator and Guest exist on every site, so they cannot count as an invited team."""
+		step = self.make_step("Test Invite Step", action="Create Entry", reference_document="User")
+		onboarding = self.onboarding_with(step, self.make_step("Test Open Step"))
+		self.workspace.db_set(
+			"content", json.dumps([{"type": "onboarding", "data": {"onboarding_name": onboarding}}])
+		)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		(shown,) = self.onboardings_on_workspace()
+		self.assertEqual([s.is_complete for s in shown["items"]], [0, 0])

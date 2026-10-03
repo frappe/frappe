@@ -189,11 +189,16 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	run_action(step) {
+		if (step.route_options && step.action !== "View Docs") {
+			frappe.route_options = JSON.parse(step.route_options);
+		}
+
 		const actions = {
 			"Create Entry": (step) => {
 				if (step.is_complete) {
-					frappe.set_route(`/desk/List/${step.reference_document}`);
-				} else if (step.show_full_form) {
+					frappe.set_route("List", step.reference_document);
+				} else if (step.show_full_form || step.is_submittable) {
+					// a draft from the quick entry would not finish a step that needs a submit
 					this.create_entry(step);
 				} else {
 					this.show_quick_entry(step);
@@ -213,268 +218,100 @@ export default class OnboardingWidget extends Widget {
 		this.mark_complete(step);
 	}
 
+	// Opening the page is the step.
 	go_to_page(step) {
-		this.mark_complete(step);
-		frappe.set_route(step.path).then(() => {
-			let message =
-				step.callback_message ||
-				__("You can continue with the onboarding after exploring this page");
-			let title = step.callback_title || __("Awesome Work");
-
-			let msg_dialog = frappe.msgprint({
-				message: message,
-				title: title,
-				primary_action: {
-					action: () => {
-						msg_dialog.hide();
-					},
-					label: () => __("Continue"),
-				},
-				wide: true,
-			});
-		});
+		this.mark_complete(step).then(() => frappe.set_route(step.path));
 	}
 
 	open_report(step) {
-		let route = frappe.utils.generate_route({
+		const route = frappe.utils.generate_route({
 			name: step.reference_report,
 			type: "report",
 			is_query_report: step.report_type !== "Report Builder",
 			doctype: step.report_reference_doctype,
 		});
-
-		let current_route = frappe.get_route();
-
-		frappe.set_route(route).then(() => {
-			let msg_dialog = frappe.msgprint({
-				message: __(step.report_description),
-				title: __(step.reference_report),
-				primary_action: {
-					action: () => {
-						frappe.set_route(current_route).then(() => {
-							this.mark_complete(step);
-						});
-						msg_dialog.hide();
-					},
-					label: () => __("Continue"),
-				},
-				secondary_action: {
-					action: () => {
-						msg_dialog.hide();
-						frappe.set_route(current_route).then(() => {
-							this.mark_complete(step);
-						});
-					},
-					label: __("Go Back"),
-				},
-			});
-
-			frappe.msg_dialog.custom_onhide = () => this.mark_complete(step);
-		});
+		this.mark_complete(step, step.report_description).then(() => frappe.set_route(route));
 	}
 
 	show_form_tour(step) {
-		let route;
-		if (step.is_single) {
-			route = frappe.router.slug(step.reference_document);
-		} else {
-			route = `${frappe.router.slug(step.reference_document)}/new`;
-		}
-
-		let current_route = frappe.get_route();
+		const route = step.is_single
+			? frappe.router.slug(step.reference_document)
+			: `${frappe.router.slug(step.reference_document)}/new`;
+		const return_to = frappe.get_route();
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
-			const on_finish = () => {
-				let msg_dialog = frappe.msgprint({
-					message: __("Let's take you back to onboarding"),
-					title: __("Onboarding complete"),
-					primary_action: {
-						action: () => {
-							frappe.set_route(current_route).then(() => {
-								this.mark_complete(step);
-							});
-							msg_dialog.hide();
-						},
-						label: () => __("Continue"),
-					},
-				});
-			};
-			const tour_name = step.form_tour;
-			frm.tour.init({ tour_name, on_finish }).then(() => frm.tour.start());
+			const on_finish = () => this.complete_and_return(step, return_to);
+			frm.tour.init({ tour_name: step.form_tour, on_finish }).then(() => frm.tour.start());
 		};
-
 		frappe.set_route(route);
 	}
 
 	update_settings(step) {
-		let current_route = frappe.get_route();
+		const return_to = frappe.get_route();
 
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
 			frm.scroll_to_field(step.field);
 			frm.doc.__unsaved = true;
 		};
-
-		frappe.route_hooks.after_save = (frm) => {
-			let success = false;
-			let args = {};
-
-			let value = frm.doc[step.field];
-			let custom_onhide = null;
-
-			if (value && step.value_to_validate == "%") success = true;
-			if (value == step.value_to_validate) success = true;
-			if (cstr(value) == cstr(step.value_to_validate)) success = true;
-
-			if (success) {
-				args.message = __("Let's take you back to onboarding");
-				args.title = __("Action Complete");
-				args.primary_action = {
-					action: () => {
-						frappe.set_route(current_route).then(() => {
-							this.mark_complete(step);
-						});
-					},
-					label: __("Continue"),
-				};
-
-				custom_onhide = () => args.primary_action.action();
-			} else {
-				args.message = __("Looks like you didn't change the value");
-				args.title = __("Try Again");
-				args.secondary_action = {
-					action: () => frappe.set_route(current_route),
-					label: __("Go Back"),
-				};
-
-				args.primary_action = {
-					action: () => {
-						frappe.set_route(current_route).then(() => {
-							setTimeout(() => {
-								this.skip_step(step);
-							}, 300);
-						});
-					},
-					label: __("Skip Step"),
-				};
-
-				custom_onhide = () => args.secondary_action.action();
-			}
-
-			frappe.msgprint(args);
-			frappe.msg_dialog.custom_onhide = () => custom_onhide();
-		};
-
+		// the server checks the saved value; if it is not the expected one the user stays on the
+		// form with the reason
+		frappe.route_hooks.after_save = () => this.complete_and_return(step, return_to);
 		frappe.set_route("Form", step.reference_document);
 	}
 
 	async create_entry(step) {
-		let current_route = frappe.get_route();
-		let docname = await this.get_first_document(step.reference_document);
+		const return_to = frappe.get_route();
+		const docname = await this.get_first_document(step.reference_document);
 
 		frappe.route_hooks = {};
-		frappe.route_hooks.after_load = (frm) => {
-			const on_finish = () => {
-				frappe.msgprint({
-					message: __("Awesome, now try making an entry yourself"),
-					title: __("Document Saved"),
-					primary_action: {
-						action: () => {
-							frappe.set_route(current_route).then(() => {
-								this.mark_complete(step);
-							});
-						},
-						label: __("Continue"),
-					},
-				});
-
-				frappe.msg_dialog.custom_onhide = () => {
-					this.mark_complete(step);
-				};
+		if (step.form_tour) {
+			frappe.route_hooks.after_load = (frm) => {
+				frm.tour.init({ tour_name: step.form_tour }).then(() => frm.tour.start());
 			};
-			const tour_name = step.form_tour;
-			frm.tour.init({ tour_name, on_finish }).then(() => frm.tour.start());
-		};
-
-		let callback = () => {
-			frappe.msgprint({
-				message: __("Let's take you back to onboarding"),
-				title: __("Action Complete"),
-				primary_action: {
-					action: () => {
-						frappe.set_route(current_route).then(() => {
-							this.mark_complete(step);
-						});
-					},
-					label: __("Continue"),
-				},
-			});
-
-			frappe.msg_dialog.custom_onhide = () => {
-				this.mark_complete(step);
-			};
-		};
+		}
 
 		if (step.is_submittable) {
 			frappe.route_hooks.after_save = () => {
-				frappe.msgprint({
-					message: __("Submit this document to complete this step."),
-					title: __("Document Saved"),
-				});
+				frappe.ui.toast({ message: __("Submit it to finish this step."), type: "info" });
 			};
-			frappe.route_hooks.after_submit = callback;
+			frappe.route_hooks.after_submit = () => this.complete_and_return(step, return_to);
 		} else {
-			frappe.route_hooks.after_save = callback;
+			frappe.route_hooks.after_save = () => this.complete_and_return(step, return_to);
 		}
 
 		frappe.set_route("Form", step.reference_document, docname);
 	}
 
 	show_quick_entry(step) {
-		let current_route = frappe.get_route_str();
 		frappe.ui.form.make_quick_entry(
 			step.reference_document,
-			() => {
-				if (frappe.get_route_str() != current_route) {
-					let success_dialog = frappe.msgprint({
-						message: __("Let's take you back to onboarding"),
-						title: __("Document Saved"),
-						primary_action: {
-							action: () => {
-								success_dialog.hide();
-								frappe.set_route(current_route).then(() => {
-									this.mark_complete(step);
-								});
-							},
-							label: __("Continue"),
-						},
-					});
-
-					frappe.msg_dialog.custom_onhide = () => {
-						frappe.set_route(current_route).then(() => {
-							this.mark_complete(step);
-						});
-					};
-				} else {
-					frappe.show_alert(
-						__("Document Saved") + "<br>" + __("Let us continue with the onboarding")
-					);
-					this.mark_complete(step);
-				}
-			},
+			() => this.mark_complete(step),
 			null,
 			null,
 			true
 		);
 	}
 
-	mark_complete(step) {
-		this.update_step_status(step, "is_complete");
+	// Tick the step off, then go back to the onboarding. If the server says the work isn't done,
+	// the error shows and the user stays where they are to finish it.
+	complete_and_return(step, return_to) {
+		return this.mark_complete(step).then(() => frappe.set_route(return_to));
+	}
+
+	mark_complete(step, description) {
+		return this.update_step_status(step, "is_complete").then(() => {
+			frappe.ui.toast({
+				message: __("Done: {0}", [step.title]),
+				description: description && description !== step.title ? description : "",
+				type: "success",
+			});
+		});
 	}
 
 	skip_step(step) {
-		this.update_step_status(step, "is_skipped");
+		return this.update_step_status(step, "is_skipped");
 	}
 
 	update_step_status(step, field) {
@@ -482,7 +319,7 @@ export default class OnboardingWidget extends Widget {
 		frappe.route_hooks = {};
 
 		return frappe
-			.call("frappe.desk.desktop.update_onboarding_step", {
+			.xcall("frappe.desk.desktop.update_onboarding_step", {
 				name: step.name,
 				field: field,
 				value: 1,
@@ -494,8 +331,6 @@ export default class OnboardingWidget extends Widget {
 			});
 	}
 
-	// The first unfinished step after `after`, wrapping round; the first unfinished one overall
-	// when nothing is given.
 	get_next_step(after) {
 		const start = after ? this.steps.indexOf(after) + 1 : 0;
 		const ordered = [...this.steps.slice(start), ...this.steps.slice(0, start)];
