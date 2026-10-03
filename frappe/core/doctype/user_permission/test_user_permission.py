@@ -4,6 +4,11 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
+<<<<<<< HEAD
+=======
+	get_applicable_for_doctype_list,
+	get_user_permission_list,
+>>>>>>> d0bfc96 (test(nestedset): user permissions follow inserted and moved nodes)
 	get_user_permissions,
 	remove_applicable,
 )
@@ -145,17 +150,8 @@ class TestUserPermission(FrappeTestCase):
 
 	def test_user_perm_for_nested_doctype(self):
 		"""Test if descendants' visibility is controlled for a nested DocType."""
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
-
 		user = create_user("nested_doc_user@example.com", "Blogger")
-		if not frappe.db.exists("DocType", "Person"):
-			doc = new_doctype(
-				"Person",
-				fields=[{"label": "Person Name", "fieldname": "person_name", "fieldtype": "Data"}],
-				unique=0,
-			)
-			doc.is_tree = 1
-			doc.insert()
+		create_person_tree_doctype()
 
 		parent_record = frappe.get_doc({"doctype": "Person", "person_name": "Parent", "is_group": 1}).insert()
 
@@ -200,6 +196,26 @@ class TestUserPermission(FrappeTestCase):
 		self.assertEqual(visible_names, ["Child", "Parent"])
 		self.assertEqual(visible_names_after_hide_descendants, ["Parent"])
 		frappe.set_user("Administrator")
+
+	def test_tree_change_refreshes_descendant_permissions(self):
+		user = create_user("nested_doc_user@example.com", "Blogger")
+		create_person_tree_doctype()
+		parent = frappe.get_doc({"doctype": "Person", "person_name": "Parent", "is_group": 1}).insert()
+		other = frappe.get_doc({"doctype": "Person", "person_name": "Other"}).insert()
+		add_user_permissions(get_params(user, "Person", parent.name))
+
+		def permitted():
+			return {d.doc for d in get_user_permissions(user.name)["Person"]}
+
+		self.assertEqual(permitted(), {parent.name})
+
+		child = frappe.get_doc(
+			{"doctype": "Person", "person_name": "Child", "parent_person": parent.name}
+		).insert()
+		other.parent_person = parent.name
+		other.save()
+
+		self.assertEqual(permitted(), {parent.name, child.name, other.name})
 
 	def test_user_perm_on_new_doc_with_field_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
@@ -294,6 +310,17 @@ class TestUserPermission(FrappeTestCase):
 
 		with self.set_user(user.name):
 			self.assertIn(doctype, get_user_permissions())
+
+
+def create_person_tree_doctype():
+	if not frappe.db.exists("DocType", "Person"):
+		doc = new_doctype(
+			"Person",
+			fields=[{"label": "Person Name", "fieldname": "person_name", "fieldtype": "Data"}],
+			unique=0,
+		)
+		doc.is_tree = 1
+		doc.insert()
 
 
 def create_user(email, *roles):
