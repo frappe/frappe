@@ -15,6 +15,8 @@ export default class ManageLayoutsDialog {
 
 		// Add some min-width which actually works
 		this.dialog.$wrapper.find(".modal-content").css({ "min-height": "32vh" });
+		// the form's first-section padding adds a gap above the list; it outranks a utility class
+		this.dialog.$wrapper.find(".form-section > .section-body").css({ "padding-top": 0 });
 
 		this.render_list();
 		this.bind_events();
@@ -31,7 +33,11 @@ export default class ManageLayoutsDialog {
 
 		if (!layouts.length) {
 			$wrapper.html(
-				`<p class="text-muted text-center mb-0">${__("No saved layouts yet.")}</p>`
+				frappe.ui.empty_state.html({
+					icon: "layout-list",
+					title: __("No saved layouts yet"),
+					description: __("Layouts you create will show up here."),
+				})
 			);
 			return;
 		}
@@ -45,32 +51,23 @@ export default class ManageLayoutsDialog {
 		const is_global = !layout.for_user;
 		let scope_label = is_global ? __("Global") : __("Personal");
 		if (layout.is_standard) scope_label = __("Standard");
-		const edit_disabled = can_edit ? "" : "disabled";
-		const delete_disabled = can_edit ? "" : "disabled";
 		const esc = frappe.utils.escape_html;
+		const action = (icon, title, css_class, disabled = false) =>
+			frappe.ui.button.html({ icon, title, css_class, disabled, variant: "ghost" });
 
 		return `
-			<div class="layout-manage-row d-flex justify-content-between align-items-center py-2 border-bottom"
+			<div class="layout-manage-row flex items-center justify-between py-2 border-b"
 				data-name="${esc(layout.name)}">
-				<div class="layout-manage-row-label min-width-0 pr-2">
-					<div class="ellipsis font-weight-bold text-sm" title="${esc(layout.filter_name)}">
+				<div class="min-w-0 flex gap-1 items-center pe-2">
+					<div class="truncate text-base-semibold text-ink-gray-8" title="${esc(layout.filter_name)}">
 						${esc(this.list_filter.get_layout_label(layout))}
 					</div>
-					<div class="text-muted" style="font-size: var(--text-xs)">${esc(scope_label)}</div>
+					${frappe.ui.badge.html({ label: scope_label })}
 				</div>
-				<div class="layout-manage-row-actions d-flex flex-shrink-0" style="gap: 4px;">
-					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-edit"
-						${edit_disabled} title="${esc(__("Edit"))}" aria-label="${esc(__("Edit"))}">
-						${frappe.utils.icon("pencil", "xs")}
-					</button>
-					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-duplicate"
-						title="${esc(__("Duplicate"))}" aria-label="${esc(__("Duplicate"))}">
-						${frappe.utils.icon("copy", "xs")}
-					</button>
-					<button type="button" class="btn btn-default btn-xs btn-icon layout-action-delete"
-						${delete_disabled} title="${esc(__("Delete"))}" aria-label="${esc(__("Delete"))}">
-						${frappe.utils.icon("trash", "xs")}
-					</button>
+				<div class="flex shrink-0 gap-1">
+					${action("pencil", __("Edit"), "layout-action-edit", !can_edit)}
+					${action("copy", __("Duplicate"), "layout-action-duplicate")}
+					${action("trash", __("Delete"), "layout-action-delete", !can_edit)}
 				</div>
 			</div>
 		`;

@@ -77,6 +77,12 @@ frappe.router = {
 	// writes the shell into a URL yet, so `current_shell` is only ever set by a hand-typed one.
 	shell_routes: {},
 	current_shell: null,
+
+	// Whether the route being resolved was asked for from outside the sidebar, by setting
+	// `frappe.route_flags.jump` before `set_route`. The awesomebar does: what it opens was picked
+	// from the whole desk, not from the shell on screen, so that shell is only kept when it lists
+	// what was picked (see `sidebar.shell_for_route`).
+	is_jump: false,
 	factory_views: ["form", "list", "report", "tree", "print", "dashboard"],
 	list_views: [
 		"list",
@@ -169,6 +175,10 @@ frappe.router = {
 			frappe.set_route(["setup-wizard"]);
 		}
 		if (this.re_route(sub_path)) return;
+
+		// Read before the parse, which may wait on a doctype, by which time `set_route` has
+		// already cleared the flags.
+		this.is_jump = !!frappe.route_flags.jump;
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
@@ -696,7 +706,23 @@ frappe.router = {
 
 			// now process the route
 			this.route();
+		} else if (frappe.route_flags.jump) {
+			this.choose_shell_again(path + query_params);
 		}
+	},
+
+	// A jump to the route already on screen. There is nothing to render, but the shell was chosen
+	// by whatever brought the user here, and a jump chooses it afresh: ToDo opened from Users and
+	// then picked in the awesomebar belongs in Build.
+	//
+	// The shell is taken out of the URL first, the same as a jump from anywhere else arrives
+	// without one, so the shell that was there cannot answer for itself.
+	choose_shell_again(url) {
+		history.replaceState(history.state, "", url + window.location.hash);
+		this.current_shell = null;
+		this.is_jump = true;
+		this.write_shell_into_url();
+		this.trigger("change", this);
 	},
 
 	// The path on screen, spelled the way `make_url` would have spelled it: without the shell.
