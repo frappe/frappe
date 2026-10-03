@@ -4,7 +4,9 @@
 import datetime
 import json
 import os
+import re
 from datetime import timedelta
+from html import unescape
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -385,8 +387,16 @@ def add_custom_column_data(custom_columns, result):
 	return result
 
 
+def get_user_facing_error(traceback: str | None) -> str:
+	"""Return the error message from a traceback, without the exception class."""
+	message = (traceback or "").strip().rsplit("\n", 1)[-1]
+	message = re.sub(r"<[^>]*>", " ", message.partition(": ")[2])
+
+	return unescape(" ".join(message.split()))
+
+
 def get_prepared_report_result(report, filters, dn="", user=None):
-	from frappe.core.doctype.prepared_report.prepared_report import get_completed_prepared_report
+	from frappe.core.doctype.prepared_report.prepared_report import get_last_processed_prepared_report
 
 	def get_report_data(doc, data):
 		# backwards compatibility - prepared report used to have a columns field,
@@ -405,11 +415,17 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 	report_data = {}
 	if not dn:
-		dn = get_completed_prepared_report(
+		dn = get_last_processed_prepared_report(
 			filters, user, report.get("custom_report") or report.get("report_name")
 		)
 
 	doc = frappe.get_doc("Prepared Report", dn) if dn else None
+	if doc and doc.status == "Error":
+		error = get_user_facing_error(doc.error_message)
+		# the client not requires the full traceback
+		doc.error_message = None
+		return {"prepared_report": True, "doc": doc, "error": error}
+
 	if doc:
 		try:
 			if data := json.loads(doc.get_prepared_data().decode("utf-8")):
