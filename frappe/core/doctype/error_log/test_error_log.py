@@ -18,6 +18,44 @@ class TestErrorLog(FrappeTestCase):
 		error = doc.log_error("This is an error")
 		self.assertEqual(error.doctype, "Error Log")
 
+<<<<<<< HEAD
+=======
+	def test_traceback_locals_only_captured_in_developer_mode(self):
+		def boom():
+			random_value = "super-secret-value"  # noqa: F841
+			raise ValueError("request failed")
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			try:
+				boom()
+			except ValueError:
+				error = frappe.log_error()
+		self.assertNotIn("super-secret-value", error.error)
+
+	def test_error_fingerprint(self):
+		def boom(msg):
+			raise ValueError(msg)
+
+		fingerprints = []
+		for msg in ("first", "second"):
+			try:
+				boom(msg)
+			except ValueError:
+				fingerprints.append(frappe.log_error().fingerprint)
+
+		# Same call path + exception type => same fingerprint, regardless of message
+		self.assertEqual(fingerprints[0], fingerprints[1])
+
+		# Different exception type => different fingerprint
+		try:
+			raise KeyError("first")
+		except KeyError:
+			self.assertNotEqual(frappe.log_error().fingerprint, fingerprints[0])
+
+		# No exception in context => None
+		self.assertIsNone(frappe.log_error().fingerprint)
+
+>>>>>>> 762e492 (fix(log): Hide sensitive info from getting logged)
 	def test_ldap_exceptions(self):
 		exc = [LDAPException, LDAPInappropriateAuthenticationResult]
 
