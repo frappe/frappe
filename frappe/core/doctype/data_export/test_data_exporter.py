@@ -109,5 +109,36 @@ class TestDataExporter(IntegrationTestCase):
 					)  # 'Test DocType for Export Tool.xlsx')
 					self.assertTrue(frappe.response["filecontent"])
 
+	def test_export_with_only_if_creator_permission(self):
+		role = frappe.get_doc(doctype="Role", role_name="Test Owner Export", desk_access=1).insert()
+		user = frappe.get_doc(
+			doctype="User",
+			email="test-owner-export@example.com",
+			first_name="Test Owner Export",
+			send_welcome_email=0,
+			roles=[{"role": role.name}],
+		).insert()
+		frappe.get_doc(
+			doctype="Custom DocPerm",
+			parent=self.doctype_name,
+			role=role.name,
+			read=1,
+			export=1,
+			if_owner=1,
+		).insert()
+
+		owned_doc = frappe.get_doc(
+			doctype=self.doctype_name,
+			title="Test Owner Export Data",
+		).insert()
+		frappe.db.set_value(self.doctype_name, owned_doc.name, "owner", user.name)
+		frappe.clear_cache(doctype=self.doctype_name)
+
+		with self.set_user(user.name):
+			exporter = DataExporter(doctype=self.doctype_name, file_type="CSV")
+			exporter.build_response()
+
+		self.assertEqual([doc.name for doc in exporter.data], [owned_doc.name])
+
 	def tearDown(self):
 		pass
