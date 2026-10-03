@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import hashlib
 import mimetypes
+import os
 import tempfile
 from typing import IO, TYPE_CHECKING
 
@@ -32,8 +33,42 @@ ACTIVE_CONTENT_MIME_TYPES = frozenset(
 	}
 )
 
+# Served as a download, never inline, so a browser does not run them as a
+# page. The URL filename is caller-chosen, so the decision keys on the served
+# Content-Type as well as on the extension.
+FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
+FORCE_DOWNLOAD_MIME_TYPES = frozenset(
+	{
+		"text/html",
+		"application/xhtml+xml",
+		"image/svg+xml",
+		"application/javascript",
+		"text/javascript",
+		"text/xml",
+		"application/xml",
+	}
+)
+
 # Leading markers browsers treat as HTML (per the WHATWG MIME sniffing spec).
 _HTML_MARKERS = (b"<!doctype html", b"<html", b"<head", b"<body", b"<script", b"<iframe")
+
+
+def served_type(filename: str, mime_type: str | None, *, as_attachment: bool = False) -> tuple[str, bool]:
+	"""Return the Content-Type to serve a blob with, and whether it must download.
+
+	Every byte path asks this: the ``/f/`` stream, nginx, and a driver's
+	native signed URL. So a file shows inline or downloads the same way on
+	every driver. A blob stored as ``application/octet-stream`` takes the type
+	its filename suggests, because magic-number sniffing cannot recognise text
+	formats. Active content always downloads, whatever the caller asked."""
+	mime_type = mime_type or "application/octet-stream"
+	if mime_type == "application/octet-stream":
+		mime_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+	extension = os.path.splitext(filename)[1].lower()
+	must_download = (
+		as_attachment or extension in FORCE_DOWNLOAD_EXTENSIONS or mime_type in FORCE_DOWNLOAD_MIME_TYPES
+	)
+	return mime_type, must_download
 
 
 def make_key(checksum: str) -> str:

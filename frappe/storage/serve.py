@@ -9,12 +9,14 @@ Access is granted by any one of:
 - a non-Guest session where some File row linked to the blob is downloadable
   (mirrors ``find_file_by_url``'s any-row rule).
 
+A file shows inline unless it is active content (see
+``frappe.storage.blob.served_type``) or the URL asks for ``?download=1``.
+
 Response modes, in order: driver-native signed URL (302 redirect),
 X-Accel-Redirect (nginx sends the bytes), streamed ``send_file`` with
 Range support. Mirrors ``frappe.utils.response.send_private_file``.
 """
 
-import mimetypes
 import os
 from typing import TYPE_CHECKING
 from urllib.parse import quote
@@ -28,26 +30,14 @@ from werkzeug.wsgi import wrap_file
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.storage.blob import served_type
 from frappe.storage.driver import get_driver
 from frappe.storage.url import verify_signature
+from frappe.utils import cint
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
 
-FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
-# MIME types never served inline: the URL filename is caller-chosen, so the
-# decision must key on the effective Content-Type, not on the extension alone.
-FORCE_DOWNLOAD_MIME_TYPES = frozenset(
-	{
-		"text/html",
-		"application/xhtml+xml",
-		"image/svg+xml",
-		"application/javascript",
-		"text/javascript",
-		"text/xml",
-		"application/xml",
-	}
-)
 NATIVE_URL_TTL = 60
 
 
@@ -66,10 +56,13 @@ def serve_file(path: str) -> Response:
 			file_type=os.path.splitext(filename)[1].lstrip("."),
 		)
 
-	if response := _native_url_response(blob, filename):
+	# a download is only ever more restrictive than inline, so ?download=1
+	# needs no signature of its own
+	as_attachment = bool(cint(frappe.form_dict.get("download")))
+	if response := _native_url_response(blob, filename, as_attachment=as_attachment):
 		return response
 
-	return stream_blob(blob, filename)
+	return stream_blob(blob, filename, as_attachment=as_attachment)
 
 
 def parse_path(path: str) -> tuple[str, str]:
@@ -139,21 +132,13 @@ def stream_blob(
 	# stream redirects only when the deployment explicitly opts in. /f/ keeps
 	# its established native redirect in serve_file above.
 	if frappe.conf.get("drive_webdav_s3_redirect"):
-		if response := _native_url_response(blob, filename):
+		if response := _native_url_response(blob, filename, as_attachment=as_attachment):
 			return response
 
-	mime_type = blob.mime_type or "application/octet-stream"
-	if mime_type == "application/octet-stream":
-		# filetype cannot sniff text formats; fall back to the filename
-		mime_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-
-	# key the inline-vs-download decision on the effective Content-Type, not
-	# only on the caller-supplied filename: /f/<blob>/x.txt naming an HTML
-	# blob must not render inline on the site origin
-	extension = os.path.splitext(filename)[1].lower()
-	as_attachment = (
-		as_attachment or extension in FORCE_DOWNLOAD_EXTENSIONS or mime_type in FORCE_DOWNLOAD_MIME_TYPES
-	)
+	# keyed on the effective Content-Type, not only on the caller-supplied
+	# filename: /f/<blob>/x.txt naming an HTML blob must not render inline on
+	# the site origin
+	mime_type, as_attachment = served_type(filename, blob.mime_type, as_attachment=as_attachment)
 
 	etag = blob.checksum
 	if etag and request.if_none_match.contains_weak(etag):
@@ -192,9 +177,16 @@ def build_response(blob: "FileBlob", filename: str) -> Response:
 	return stream_blob(blob, filename)
 
 
-def _native_url_response(blob: "FileBlob", filename: str) -> Response | None:
+def _native_url_response(blob: "FileBlob", filename: str, *, as_attachment: bool = False) -> Response | None:
 	driver = get_driver(blob.driver)
-	native = driver.download_url(blob.key, filename, NATIVE_URL_TTL, is_private=bool(blob.is_private))
+	native = driver.download_url(
+		blob.key,
+		filename,
+		NATIVE_URL_TTL,
+		is_private=bool(blob.is_private),
+		mime_type=blob.mime_type,
+		as_attachment=as_attachment,
+	)
 	return werkzeug.utils.redirect(native, 302) if native else None
 
 

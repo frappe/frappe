@@ -91,7 +91,9 @@ def use_driver(driver):
 class NativeUrlDriver(MemoryDriver):
 	"""Driver that hands out its own download URLs, like S3 presigned GET."""
 
-	def download_url(self, key, filename, expires_in, *, is_private=False):
+	def download_url(
+		self, key, filename, expires_in, *, is_private=False, mime_type=None, as_attachment=False
+	):
 		return f"https://cdn.example/{key}?name={filename}&ttl={expires_in}"
 
 
@@ -393,9 +395,7 @@ class TestServeUpload(IntegrationTestCase):
 
 		frappe.db.savepoint("file_upload_hook_failure")
 		try:
-			with flag_on(), frappe.storage.fake(), patch.object(
-				frappe, "get_hooks", side_effect=get_hooks
-			):
+			with flag_on(), frappe.storage.fake(), patch.object(frappe, "get_hooks", side_effect=get_hooks):
 				upload_id = self.open_session(file_name, len(content))
 				self.send_chunk(upload_id, 0, content)
 				with self.assertRaisesRegex(RuntimeError, "file adoption failed"):
@@ -448,8 +448,10 @@ class TestServeUpload(IntegrationTestCase):
 				return [adopt]
 			return original_get_hooks(hook, *args, **kwargs)
 
-		with flag_on(), frappe.storage.fake() as store, patch.object(
-			frappe, "get_hooks", side_effect=get_hooks
+		with (
+			flag_on(),
+			frappe.storage.fake() as store,
+			patch.object(frappe, "get_hooks", side_effect=get_hooks),
 		):
 			content = b"trusted blob upload " + frappe.generate_hash(length=16).encode()
 			upload_id = self.open_blob_session("trusted.bin", len(content))

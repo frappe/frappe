@@ -46,8 +46,13 @@ def verify_signature(blob_name: str, filename: str, expires: str | int, signatur
 	return hmac.compare_digest(expected, signature or "")
 
 
-def signed_url_for_blob(blob: "str | FileBlob", filename: str, expires_in: int = 3600) -> str:
-	"""Return an expiring download URL for a blob and caller-chosen filename.
+def signed_url_for_blob(
+	blob: "str | FileBlob", filename: str, expires_in: int = 3600, *, as_attachment: bool = False
+) -> str:
+	"""Return an expiring URL for a blob and caller-chosen filename.
+
+	The file shows inline where a browser can show it safely. Pass
+	``as_attachment`` to make it download instead.
 
 	Prefers the driver's native signed URL (e.g. S3 presigned GET) when the
 	driver returns one."""
@@ -55,13 +60,21 @@ def signed_url_for_blob(blob: "str | FileBlob", filename: str, expires_in: int =
 		blob = frappe.get_doc("File Blob", blob)
 
 	driver = get_driver(blob.driver)
-	native = driver.download_url(blob.key, filename, expires_in, is_private=bool(blob.is_private))
+	native = driver.download_url(
+		blob.key,
+		filename,
+		expires_in,
+		is_private=bool(blob.is_private),
+		mime_type=blob.mime_type,
+		as_attachment=as_attachment,
+	)
 	if native:
 		return native
 
 	expires = int(time.time()) + expires_in
 	sig = make_signature(blob.name, filename, expires)
-	return f"/f/{blob.name}/{quote(filename)}?e={expires}&s={sig}"
+	download = "&download=1" if as_attachment else ""
+	return f"/f/{blob.name}/{quote(filename)}?e={expires}&s={sig}{download}"
 
 
 def signed_url(file: "File", expires_in: int = 3600) -> str:

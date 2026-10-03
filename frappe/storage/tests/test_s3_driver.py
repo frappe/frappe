@@ -8,9 +8,14 @@ from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 import frappe
+from frappe.storage.blob import put_blob
 from frappe.storage.driver import get_driver_classes
+from frappe.storage.memory_driver import MemoryDriver
 from frappe.storage.s3_driver import UPLOAD_TARGET_TTL, S3Driver
+from frappe.storage.serve import serve_file
+from frappe.storage.url import signed_url_for_blob
 from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
 
 HAS_BOTO3 = importlib.util.find_spec("boto3") is not None
 
@@ -182,6 +187,9 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		self.driver.delete(self.key, is_private=True)
 		self.client.delete_object.assert_called_once_with(Bucket="test-bucket", Key=f"private/{self.key}")
 
+	def presigned_params(self) -> dict:
+		return self.client.generate_presigned_url.call_args.kwargs["Params"]
+
 	def test_download_url_presigned_get(self):
 		self.client.generate_presigned_url.return_value = "https://signed.example.com/x"
 		url = self.driver.download_url(self.key, "report.pdf", 300, is_private=True)
@@ -193,23 +201,64 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		params = call.kwargs["Params"]
 		self.assertEqual(params["Bucket"], "test-bucket")
 		self.assertEqual(params["Key"], f"private/{self.key}")
-		self.assertIn("report.pdf", params["ResponseContentDisposition"])
-		self.assertIn("attachment", params["ResponseContentDisposition"])
 
 	def test_download_url_public_namespace(self):
 		# is_private defaults to False: public namespace
 		self.driver.download_url(self.key, "logo.png", 60)
-		params = self.client.generate_presigned_url.call_args.kwargs["Params"]
-		self.assertEqual(params["Key"], f"public/{self.key}")
+		self.assertEqual(self.presigned_params()["Key"], f"public/{self.key}")
+
+	def test_download_url_shows_a_pdf_inline(self):
+		self.driver.download_url(self.key, "report.pdf", 60, mime_type="application/pdf")
+		params = self.presigned_params()
+		self.assertEqual(params["ResponseContentType"], "application/pdf")
+		self.assertEqual(
+			params["ResponseContentDisposition"],
+			"inline; filename=\"report.pdf\"; filename*=UTF-8''report.pdf",
+		)
+
+	def test_download_url_downloads_when_asked(self):
+		self.driver.download_url(self.key, "report.pdf", 60, mime_type="application/pdf", as_attachment=True)
+		params = self.presigned_params()
+		self.assertEqual(params["ResponseContentType"], "application/pdf")
+		self.assertTrue(params["ResponseContentDisposition"].startswith("attachment; "))
+
+	def test_download_url_always_downloads_active_content(self):
+		cases = [
+			("page.html", "text/html"),
+			("logo.svg", "image/svg+xml"),
+			("feed.xml", "application/octet-stream"),
+			("app.js", "application/octet-stream"),
+			# the filename is caller-chosen: an HTML blob named .txt still downloads
+			("notes.txt", "text/html"),
+		]
+		for filename, mime_type in cases:
+			with self.subTest(filename=filename, mime_type=mime_type):
+				self.driver.download_url(self.key, filename, 60, mime_type=mime_type)
+				self.assertTrue(
+					self.presigned_params()["ResponseContentDisposition"].startswith("attachment; ")
+				)
+
+	def test_download_url_types_an_unsniffed_blob_by_its_filename(self):
+		cases = [
+			("notes.txt", "application/octet-stream", "text/plain"),
+			("report.pdf", None, "application/pdf"),
+			("data.unknownext", "application/octet-stream", "application/octet-stream"),
+			# a sniffed type wins over the filename
+			("photo.txt", "image/png", "image/png"),
+		]
+		for filename, mime_type, served in cases:
+			with self.subTest(filename=filename, mime_type=mime_type):
+				self.driver.download_url(self.key, filename, 60, mime_type=mime_type)
+				self.assertEqual(self.presigned_params()["ResponseContentType"], served)
 
 	def test_download_url_quotes_filename(self):
-		self.driver.download_url(self.key, 'we"ird nämé.pdf', 60)
-		disposition = self.client.generate_presigned_url.call_args.kwargs["Params"][
-			"ResponseContentDisposition"
-		]
-		# no raw quote character may survive inside the quoted-string
-		self.assertNotIn('we"ird', disposition)
-		self.assertIn("filename*=UTF-8''we%22ird%20n%C3%A4m%C3%A9.pdf", disposition)
+		self.driver.download_url(self.key, 'we"ird nämé/\r\n.pdf', 60)
+		disposition = self.presigned_params()["ResponseContentDisposition"]
+		# no quote, backslash or line break may survive in the quoted-string
+		self.assertIn('filename="weird nm/.pdf"', disposition)
+		self.assertNotIn("\r", disposition)
+		self.assertNotIn("\n", disposition)
+		self.assertIn("filename*=UTF-8''we%22ird%20n%C3%A4m%C3%A9%2F%0D%0A.pdf", disposition)
 
 	def test_upload_target_presigned_post(self):
 		self.client.generate_presigned_post.return_value = {
@@ -253,6 +302,15 @@ class TestS3DriverWithRealBoto3(IntegrationTestCase):
 		self.assertIn("report.pdf", query["response-content-disposition"][0])
 		self.assertIn("X-Amz-Signature", query)
 
+	def test_presigned_get_carries_type_and_inline_disposition(self):
+		from urllib.parse import parse_qs, urlparse
+
+		driver = self.make_real_driver()
+		url = driver.download_url("ab/cd/deadbeef", "report.pdf", 300, mime_type="application/pdf")
+		query = parse_qs(urlparse(url).query)
+		self.assertEqual(query["response-content-type"], ["application/pdf"])
+		self.assertTrue(query["response-content-disposition"][0].startswith("inline; "))
+
 	def test_presigned_post_shape(self):
 		import base64
 		import json
@@ -263,3 +321,96 @@ class TestS3DriverWithRealBoto3(IntegrationTestCase):
 		self.assertEqual(target["fields"]["key"], "private/uploads/abc123")
 		policy = json.loads(base64.b64decode(target["fields"]["policy"]))
 		self.assertIn(["content-length-range", 2048, 2048], policy["conditions"])
+
+
+class TestS3ServesLikeLocal(IntegrationTestCase):
+	"""A file shows inline or downloads the same way from S3 as from ``/f/``.
+
+	Blobs are stored through the stubbed S3 driver, so the presigned URL the
+	serve route redirects to can be inspected. The ``/f/`` side streams the
+	same bytes from memory."""
+
+	PDF = b"%PDF-1.4\n1 0 obj << >> endobj\ntrailer << >>\n%%EOF\n"
+	CASES = (
+		# (content, filename, served type, downloads without being asked)
+		(PDF, "report.pdf", "application/pdf", False),
+		(b"plain notes", "notes.txt", "text/plain", False),
+		(b"<!doctype html><p>hi</p>", "page.html", "text/html", True),
+		(b'<svg xmlns="http://www.w3.org/2000/svg"></svg>', "logo.svg", "image/svg+xml", True),
+	)
+
+	def setUp(self):
+		super().setUp()
+		self.driver = make_driver(**TEST_CONFIG)
+		self.driver.test_client.generate_presigned_url.return_value = "https://signed.example.com/x"
+		self.memory = MemoryDriver()
+		frappe.local.storage_driver_override = self.driver
+
+	def tearDown(self):
+		frappe.local.storage_driver_override = None
+		frappe.local.form_dict = frappe._dict()
+		if hasattr(frappe.local, "request"):
+			del frappe.local.request
+		frappe.db.rollback()
+		super().tearDown()
+
+	def s3_served(self, blob, filename: str, **query) -> tuple[str, str]:
+		"""Serve through ``/f/`` and read what the S3 redirect target will send."""
+		path = f"/f/{blob.name}/{filename}"
+		set_request(method="GET", path=path)
+		frappe.local.form_dict = frappe._dict(query)
+		response = serve_file(path)
+		self.assertEqual(response.status_code, 302)
+		self.assertEqual(response.headers["Location"], "https://signed.example.com/x")
+		params = self.driver.test_client.generate_presigned_url.call_args.kwargs["Params"]
+		return params["ResponseContentType"], params["ResponseContentDisposition"].split(";")[0]
+
+	@contextmanager
+	def in_memory(self):
+		"""Make the in-memory driver, which has no native URL, the active one."""
+		frappe.local.storage_driver_override = self.memory
+		try:
+			yield
+		finally:
+			frappe.local.storage_driver_override = self.driver
+
+	def local_served(self, content: bytes, filename: str, **query) -> tuple[str, str]:
+		"""Serve the same bytes through ``/f/`` from a driver with no native URL."""
+		with self.in_memory():
+			blob = put_blob(io.BytesIO(content))
+			path = f"/f/{blob.name}/{filename}"
+			set_request(method="GET", path=path)
+			frappe.local.form_dict = frappe._dict(query)
+			response = serve_file(path)
+		self.assertEqual(response.status_code, 200)
+		return response.mimetype, response.headers["Content-Disposition"].split(";")[0]
+
+	def test_s3_and_local_agree_on_type_and_disposition(self):
+		for content, filename, served, downloads in self.CASES:
+			blob = put_blob(io.BytesIO(content))
+			for query, expected in (
+				({}, "attachment" if downloads else "inline"),
+				({"download": "1"}, "attachment"),
+			):
+				with self.subTest(filename=filename, query=query):
+					self.assertEqual(self.s3_served(blob, filename, **query), (served, expected))
+					self.assertEqual(self.local_served(content, filename, **query), (served, expected))
+
+	def test_signed_url_for_blob_can_ask_for_a_download(self):
+		blob = put_blob(io.BytesIO(self.PDF), is_private=True)
+
+		def params():
+			return self.driver.test_client.generate_presigned_url.call_args.kwargs["Params"]
+
+		self.assertEqual(signed_url_for_blob(blob, "report.pdf"), "https://signed.example.com/x")
+		self.assertEqual(params()["ResponseContentType"], "application/pdf")
+		self.assertTrue(params()["ResponseContentDisposition"].startswith("inline; "))
+
+		signed_url_for_blob(blob, "report.pdf", as_attachment=True)
+		self.assertTrue(params()["ResponseContentDisposition"].startswith("attachment; "))
+
+		# without a native URL the same request falls back to a /f/ URL that downloads
+		with self.in_memory():
+			local = put_blob(io.BytesIO(self.PDF), is_private=True)
+			self.assertIn("&download=1", signed_url_for_blob(local, "report.pdf", as_attachment=True))
+			self.assertNotIn("download=", signed_url_for_blob(local, "report.pdf"))
