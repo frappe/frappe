@@ -357,30 +357,34 @@ frappe.update_msgprint = function (html) {
 	}
 };
 
-frappe.verify_password = function (callback) {
+// user must type "confirm" so a destructive action is never one accidental click away
+frappe.confirm_action = function (callback, message) {
 	frappe.prompt(
 		{
-			fieldname: "password",
-			label: __("Enter your password"),
-			fieldtype: "Password",
+			fieldname: "confirm",
+			label: __('Type "{0}" to continue', [frappe.utils.bold("confirm")]),
+			fieldtype: "Data",
 			reqd: 1,
+			description: message,
 		},
 		function (data) {
-			frappe.call({
-				method: "frappe.core.doctype.user.user.verify_password",
-				args: {
-					password: data.password,
-				},
-				callback: function (r) {
-					if (!r.exc) {
-						callback();
-					}
-				},
-			});
+			if (data.confirm.trim().toLowerCase() !== "confirm") {
+				frappe.msgprint(
+					__('Please type "{0}" to continue', [frappe.utils.bold("confirm")])
+				);
+				return;
+			}
+			callback();
 		},
-		__("Verify Password"),
-		__("Verify")
+		__("Confirm Action"),
+		__("Continue")
 	);
+};
+
+// deprecated: a client-side password check guards nothing, use frappe.confirm_action instead
+frappe.verify_password = function (callback) {
+	console.warn("frappe.verify_password is deprecated, use frappe.confirm_action");
+	frappe.confirm_action(callback);
 };
 
 frappe.show_progress = (title, count, total = 100, description, hide_on_completion = false) => {
