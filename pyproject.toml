@@ -22,9 +22,15 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
+<<<<<<< HEAD
     "pypdf==6.15.0",
     "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
     "mysqlclient==2.2.7",
+=======
+    "pypdf==6.19.0",
+    "PyPika @ git+https://github.com/frappe/pypika@054ffb18a0a60f3c3f472dcce86116fd86db1188",
+    "mysqlclient==2.2.8",
+>>>>>>> 879d009 (chore(deps): bump pypdf from 6.16.1 to 6.19.0)
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
