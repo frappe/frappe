@@ -335,8 +335,7 @@ body {
 	&.onboarding-widget-box {
 		// lets the steps lay out by the card's width, which a half-width column narrows too
 		container-type: inline-size;
-		// text sits 20px from every edge: the steps add their own 8px inside these 12px
-		padding: calc(var(--spacing) * 5) calc(var(--spacing) * 3) calc(var(--spacing) * 3);
+		padding: calc(var(--spacing) * 4) calc(var(--spacing) * 3);
 		background-color: var(--surface-gray-1);
 
 		// the header and the bar line up with the step labels; only the steps' boxes reach the

@@ -67,7 +67,7 @@ class OnboardingTestCase(IntegrationTestCase):
 			.name
 		)
 
-	def make_onboarding(self, title: str, steps: list[str], roles: list[str]) -> str:
+	def make_onboarding(self, title: str, steps: list[str], roles: list[str], optional=()) -> str:
 		self.addCleanup(frappe.delete_doc, "Module Onboarding", title, force=True, ignore_missing=True)
 		return (
 			frappe.get_doc(
@@ -76,7 +76,7 @@ class OnboardingTestCase(IntegrationTestCase):
 					"__newname": title,
 					"title": title,
 					"module": self.module,
-					"steps": [{"step": step} for step in steps],
+					"steps": [{"step": step, "is_optional": int(step in optional)} for step in steps],
 					"allow_roles": [{"role": role} for role in roles],
 				}
 			)
@@ -187,8 +187,10 @@ class TestStepCompletion(OnboardingTestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		# Committed fixtures cannot be removed by the test framework's rollback.
 		for doctype in (cls.record_doctype, cls.submittable_doctype):
 			frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True)
+		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
 	def make_record(self, doctype: str, submit: bool = False):
@@ -202,9 +204,11 @@ class TestStepCompletion(OnboardingTestCase):
 			self.addCleanup(doc.cancel)
 		return doc
 
-	def onboarding_with(self, *steps: str) -> str:
+	def onboarding_with(self, *steps: str, optional=()) -> str:
 		frappe.delete_doc("Module Onboarding", "Test Completion Onboarding", force=True, ignore_missing=True)
-		return self.make_onboarding("Test Completion Onboarding", list(steps), roles=[self.role])
+		return self.make_onboarding(
+			"Test Completion Onboarding", list(steps), roles=[self.role], optional=optional
+		)
 
 	def is_complete(self, doctype: str, name: str) -> int:
 		return frappe.db.get_value(doctype, name, "is_complete")
@@ -318,3 +322,64 @@ class TestStepCompletion(OnboardingTestCase):
 
 		(shown,) = self.onboardings_on_workspace()
 		self.assertEqual([s.is_complete for s in shown["items"]], [0, 0])
+
+	def test_a_step_counts_only_records_matching_its_defaults(self):
+		"""Steps that create the same doctype differ only in the defaults they open the record with,
+		so one record must not finish them all."""
+		self.make_record(self.record_doctype)  # some_fieldname = "example"
+		matching = self.make_step(
+			"Test Matching Step",
+			action="Create Entry",
+			reference_document=self.record_doctype,
+			route_options='{"some_fieldname": "example", "not_a_field": "ignored"}',
+		)
+		other = self.make_step(
+			"Test Other Step",
+			action="Create Entry",
+			reference_document=self.record_doctype,
+			route_options='{"some_fieldname": "something else"}',
+		)
+
+		self.assertTrue(frappe.get_doc("Onboarding Step", matching).is_work_done())
+		self.assertFalse(frappe.get_doc("Onboarding Step", other).is_work_done())
+
+	def test_import_is_offered_for_records_the_user_may_import(self):
+		"""Masters arrive as lists; a transaction is made one at a time; and only someone allowed to
+		import the doctype is offered to. Email Group allows import, for Newsletter Managers."""
+		from frappe.desk.doctype.onboarding_step.onboarding_step import get_step_details
+
+		master = self.make_step("Test Import Step", action="Create Entry", reference_document="Email Group")
+		transaction = self.make_step(
+			"Test Transaction Step", action="Create Entry", reference_document=self.submittable_doctype
+		)
+
+		frappe.set_user(self.make_user(roles=["Newsletter Manager"]))
+		self.assertTrue(get_step_details(master).can_import)
+		self.assertFalse(get_step_details(transaction).can_import)
+
+		frappe.set_user("Administrator")
+		frappe.set_user(self.make_user(roles=[self.role]))
+		self.assertFalse(get_step_details(master).can_import)
+
+	def test_optional_steps_do_not_hold_up_the_onboarding(self):
+		"""They show what else the module can do; finishing the required ones finishes it."""
+		required = self.make_step("Test Required Step")
+		optional = self.make_step("Test Optional Step")
+		onboarding = self.onboarding_with(required, optional, optional=[optional])
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		update_onboarding_step(required, "is_complete", 1)
+		self.assertEqual(self.is_complete("Module Onboarding", onboarding), 1)
+
+	def test_a_step_is_optional_in_one_onboarding_and_required_in_another(self):
+		"""Optional belongs to the onboarding's row, so a shared step keeps both answers."""
+		shared = self.make_step("Test Shared Step")
+		open_step = self.make_step("Test Open Step")
+		onboarding = self.onboarding_with(shared, open_step, optional=[shared])
+		self.workspace.db_set(
+			"content", json.dumps([{"type": "onboarding", "data": {"onboarding_name": onboarding}}])
+		)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		(shown,) = self.onboardings_on_workspace()
+		self.assertEqual([s.is_optional for s in shown["items"]], [1, 0])

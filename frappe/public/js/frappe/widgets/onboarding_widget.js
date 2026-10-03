@@ -22,7 +22,7 @@ export default class OnboardingWidget extends Widget {
 		this.$done = null;
 		this.progress = new frappe.ui.Progress({
 			intervals: true,
-			interval_count: this.steps.length,
+			interval_count: this.get_required_steps().length,
 			size: "md",
 		});
 		this.steps_wrapper = $(`<div class="flex flex-col gap-0.5"></div>`);
@@ -40,10 +40,17 @@ export default class OnboardingWidget extends Widget {
 		this.set_open_step(this.get_next_step());
 	}
 
+	// Optional steps show what else the module can do; progress and completion count the rest.
+	get_required_steps() {
+		const required = this.steps.filter((step) => !step.is_optional);
+		return required.length ? required : this.steps;
+	}
+
 	update_progress() {
-		const total = this.steps.length;
-		const completed = this.steps.filter((step) => step.is_complete).length;
-		const skipped = this.steps.filter((step) => !step.is_complete && step.is_skipped).length;
+		const required = this.get_required_steps();
+		const total = required.length;
+		const completed = required.filter((step) => step.is_complete).length;
+		const skipped = required.filter((step) => !step.is_complete && step.is_skipped).length;
 
 		// a skipped step needs no more doing, so it fills the bar, but it isn't counted as done
 		this.progress.set_value(((completed + skipped) / total) * 100);
@@ -60,6 +67,7 @@ export default class OnboardingWidget extends Widget {
 			<button type="button" class="onboarding-step-head flex items-center gap-2 w-full">
 				<span class="step-icon shrink-0 flex"></span>
 				<span class="step-title truncate"></span>
+				${step.is_optional ? frappe.ui.badge.html({ label: __("Optional"), size: "sm" }) : ""}
 				<span class="step-skipped hidden text-p-sm text-ink-gray-4 ms-auto">${__("Skipped")}</span>
 			</button>
 			<div class="onboarding-step-collapse">
@@ -68,7 +76,9 @@ export default class OnboardingWidget extends Widget {
 			<div class="onboarding-step-media"></div>
 		</div>`);
 		$step.find(".step-title").text(step.title);
-		$step.find(".onboarding-step-head").on("click", () => this.set_open_step(step));
+		// the whole row takes the click, not only the title button inside its padding; the button
+		// keeps it reachable from the keyboard, and its click bubbles up to here
+		$step.on("click", () => step !== this.open_step && this.set_open_step(step));
 		return $step;
 	}
 
@@ -146,6 +156,16 @@ export default class OnboardingWidget extends Widget {
 				onclick: () => this.run_action(step),
 			})
 		);
+		if (step.can_import) {
+			$actions.append(
+				frappe.ui.button({
+					label: __("Import"),
+					variant: "subtle",
+					icon: "import",
+					onclick: () => this.import_records(step),
+				})
+			);
+		}
 		if (!step.is_complete && !step.is_skipped) {
 			$actions.append(
 				frappe.ui.button({
@@ -220,7 +240,14 @@ export default class OnboardingWidget extends Widget {
 
 	// Opening the page is the step.
 	go_to_page(step) {
-		this.mark_complete(step).then(() => frappe.set_route(step.path));
+		this.mark_complete(step).then(() => {
+			// a path outside the desk, like another app's `/banking`, is a page load, not a route
+			if (step.path.startsWith("/") && !step.path.startsWith("/desk")) {
+				window.location.href = step.path;
+			} else {
+				frappe.set_route(step.path);
+			}
+		});
 	}
 
 	open_report(step) {
@@ -292,6 +319,28 @@ export default class OnboardingWidget extends Widget {
 			null,
 			true
 		);
+	}
+
+	// The import dialog the empty list view offers, opened here so the user stays in the onboarding.
+	import_records(step) {
+		frappe.require("data_import_tools.bundle.js", () => {
+			frappe.data_import.open_data_import_dialog({
+				reference_doctype: step.reference_document,
+				import_type: "Insert New Records",
+				on_close: () => this.refresh_step(step),
+			});
+		});
+	}
+
+	// Ask the server whether the step's work is done now, and tick it off if so. Closing an import
+	// that brought nothing in leaves the step as it was, without an error.
+	refresh_step(step) {
+		if (step.is_complete) return;
+		frappe
+			.xcall("frappe.desk.doctype.onboarding_step.onboarding_step.get_onboarding_steps", {
+				ob_steps: [{ step: step.name }],
+			})
+			.then(([fresh]) => fresh?.is_complete && this.mark_complete(step));
 	}
 
 	// Tick the step off, then go back to the onboarding. If the server says the work isn't done,

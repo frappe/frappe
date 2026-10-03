@@ -158,7 +158,7 @@ class Workspace(DeskViews):
 					{
 						"label": name,
 						"title": _(doc.title),
-						"items": [get_step_details(step.step) for step in doc.steps],
+						"items": [get_step_details(row.step, row.is_optional) for row in doc.steps],
 					}
 				)
 		return onboardings

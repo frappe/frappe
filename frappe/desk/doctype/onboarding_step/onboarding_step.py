@@ -72,7 +72,9 @@ class OnboardingStep(Document):
 
 		meta = frappe.get_meta(doctype)
 		if self.action == "Create Entry" and not meta.issingle:
-			filters = {"docstatus": 1} if meta.is_submittable else None
+			filters = self.get_record_filters(meta)
+			if meta.is_submittable:
+				filters["docstatus"] = 1
 			return bool(frappe.get_all(doctype, filters=filters, limit=1, pluck="name"))
 
 		if self.action == "Update Settings" and self.validate_action and self.field and meta.issingle:
@@ -82,6 +84,23 @@ class OnboardingStep(Document):
 			return cstr(value) == cstr(self.value_to_validate)
 
 		return None
+
+	def get_record_filters(self, meta) -> dict:
+		"""The step's `route_options`, the defaults its new record opens with, as filters.
+
+		Two steps that create the same doctype differ only in these: "Add a raw material" and "Add
+		the product you make" both make an Item, in different item groups. Keys that are not fields
+		of the doctype are ignored, as are values that are not plain ones.
+		"""
+		options = frappe.parse_json(self.route_options) if self.route_options else None
+		if not isinstance(options, dict):
+			return {}
+
+		return {
+			key: value
+			for key, value in options.items()
+			if meta.has_field(key) and isinstance(value, str | int | float)
+		}
 
 	def throw_if_unfinished(self):
 		if self.is_work_done() is not False:
@@ -99,13 +118,17 @@ class OnboardingStep(Document):
 
 @frappe.whitelist()
 def get_onboarding_steps(ob_steps: str | list):
-	return [get_step_details(s.get("step")) for s in frappe.parse_json(ob_steps)]
+	return [get_step_details(s.get("step"), s.get("is_optional")) for s in frappe.parse_json(ob_steps)]
 
 
-def get_step_details(name: str) -> dict:
-	"""A step as the onboarding widget renders it, with its text translated."""
+def get_step_details(name: str, is_optional: bool | int = 0) -> dict:
+	"""A step as the onboarding widget renders it, with its text translated.
+
+	`is_optional` belongs to the onboarding's row, not the step, since a shared step can be
+	optional in one onboarding and required in another."""
 	doc = frappe.get_doc("Onboarding Step", name)
 	step = doc.as_dict().copy()
+	step.is_optional = int(bool(is_optional))
 	step.label = _(doc.title)
 	step.title = _(doc.title)
 	step.description = _(doc.description) if doc.description else None
@@ -114,5 +137,11 @@ def get_step_details(name: str) -> dict:
 	if step.action == "Create Entry":
 		step.is_submittable = frappe.db.get_value(
 			"DocType", step.reference_document, "is_submittable", cache=True
+		)
+		# masters like Customers or Items often arrive as a list; a transaction is made one at a time
+		step.can_import = bool(
+			not step.is_submittable
+			and frappe.get_meta(step.reference_document).allow_import
+			and frappe.has_permission(step.reference_document, "import")
 		)
 	return step

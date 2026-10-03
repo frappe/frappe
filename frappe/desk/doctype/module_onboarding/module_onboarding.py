@@ -39,6 +39,12 @@ class ModuleOnboarding(Document):
 	def get_steps(self):
 		return [frappe.get_doc("Onboarding Step", step.step) for step in self.steps]
 
+	def required_steps_done(self) -> bool:
+		"""An onboarding is finished when its required steps are; optional ones never hold it up."""
+		return all(
+			frappe.get_doc("Onboarding Step", row.step).is_done() for row in self.steps if not row.is_optional
+		)
+
 	def get_allowed_roles(self):
 		all_roles = [role.role for role in self.allow_roles]
 		if "System Manager" not in all_roles:
@@ -50,7 +56,7 @@ class ModuleOnboarding(Document):
 		if self.is_complete:
 			return True
 
-		if all(step.is_done() for step in self.get_steps()):
+		if self.required_steps_done():
 			self.is_complete = True
 			frappe.enqueue(self.mark_as_completed, enqueue_after_commit=True)
 			return True
@@ -104,7 +110,7 @@ def update_completion(step: str):
 		"Onboarding Step Map", filters={"parenttype": "Module Onboarding", "step": step}, pluck="parent"
 	):
 		onboarding = frappe.get_doc("Module Onboarding", name)
-		done = all(s.is_done() for s in onboarding.get_steps())
+		done = onboarding.required_steps_done()
 		if bool(onboarding.is_complete) != done:
 			onboarding.db_set("is_complete", int(done))
 
