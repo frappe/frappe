@@ -1425,7 +1425,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_list_row_html_skeleton(left = "", right = "", { virtual = false } = {}) {
 		const virtual_attr = virtual ? ' data-virtual-row="1"' : "";
 		return `
-			<div class="list-row-container" tabindex="1"${virtual_attr}>
+			<div class="list-row-container" tabindex="0"${virtual_attr}>
 				<div class="level list-row">
 					<div class="level-left ellipsis">
 						${left}
@@ -1884,7 +1884,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			ellipsisSpan.classList.add("level-item", seen, "ellipsis");
 		}
 
-		div.appendChild(checkboxspan).appendChild(ef.get_checkbox_element(doc.name));
+		div.appendChild(checkboxspan).appendChild(ef.get_checkbox_element(doc.name, title));
 		div.appendChild(ellipsisSpan).appendChild(
 			ef.get_link_element(
 				doc.name,
@@ -3358,9 +3358,10 @@ class ElementFactory {
 		return like;
 	}
 
-	get_checkbox_element(name) {
+	get_checkbox_element(name, label) {
 		const checkbox = this.templates.checkbox.cloneNode(true);
 		checkbox.dataset.name = name;
+		checkbox.setAttribute("aria-label", __("Select {0}", [strip_html(String(label || name))]));
 		return checkbox;
 	}
 

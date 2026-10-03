@@ -242,12 +242,14 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		if (this.collapsed) {
 			this.$drop_icon
 				.attr("data-state", "closed")
+				.attr("aria-expanded", "false")
 				.find("use")
 				.attr("href", "#icon-chevron-right");
 			$(this.$nested_items).addClass("hidden");
 		} else {
 			this.$drop_icon
 				.attr("data-state", "opened")
+				.attr("aria-expanded", "true")
 				.find("use")
 				.attr("href", "#icon-chevron-down");
 			$(this.$nested_items).removeClass("hidden");
@@ -281,6 +283,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		if (item.collapsible) {
 			this.$drop_icon = $(`<button class="btn-reset drop-icon hidden">`)
 				.html(frappe.utils.icon("chevron-down", "sm", "", "", "", "", stroke_color))
+				.attr("aria-label", __("Toggle {0}", [item.label]))
+				.attr("aria-expanded", "true")
 				.appendTo(sidebar_control);
 
 			this.$drop_icon.removeClass("hidden");
@@ -289,6 +293,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			// toggle indicator here instead of selecting the now-absent [item-icon] span.
 			this.$drop_icon = $(`<button class="btn-reset drop-icon">`)
 				.html(frappe.utils.icon("chevron-right", "sm", "", "", "", "", stroke_color))
+				.attr("aria-label", __("Toggle {0}", [item.label]))
 				.prependTo(this.wrapper.find(".item-anchor").first());
 		}
 

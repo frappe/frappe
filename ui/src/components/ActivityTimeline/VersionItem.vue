@@ -43,6 +43,8 @@
 									v-if="hasHistory(change)"
 									type="button"
 									class="text-ink-gray-5 hover:text-ink-gray-7"
+									aria-label="Show field history"
+									:aria-expanded="isOpen(change.name)"
 									@click="toggle(change.name)"
 								>
 									<LucideChevronUp v-if="isOpen(change.name)" class="size-3.5" />
