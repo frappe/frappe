@@ -52,7 +52,8 @@ context("Control Autocomplete", () => {
 	});
 
 	// Link search results for doctypes without `show_title_field_in_link` carry no label,
-	// so they end up with label "" and used to match an empty input on blur.
+	// so they end up with label "". The dropdown only fills the label of the items it
+	// renders (max 99), so the rest kept label "" and matched an empty input on blur.
 	it("should not add an unlabelled item when an empty field loses focus", () => {
 		const fieldname = "multiselect_1";
 		cy.dialog({
@@ -62,10 +63,11 @@ context("Control Autocomplete", () => {
 					label: "Assign To",
 					fieldname: fieldname,
 					fieldtype: "MultiSelectPills",
-					get_data: () => [
-						{ value: "a@example.com", description: "A User" },
-						{ value: "b@example.com", description: "B User" },
-					],
+					get_data: () =>
+						Array.from({ length: 120 }, (_, i) => ({
+							value: `user${String(i).padStart(3, "0")}@example.com`,
+							description: `User ${i}`,
+						})),
 				},
 			],
 		}).as("dialog");
@@ -73,18 +75,18 @@ context("Control Autocomplete", () => {
 		cy.get(`input[data-fieldname=${fieldname}]`).as("input");
 		cy.wait(500);
 		cy.get("@input").focus();
-		cy.get(".awesomplete ul li").should("have.length", 2);
+		cy.get(".modal:visible .awesomplete ul li").should("have.length", 99);
 		cy.get(".modal-title:visible").click();
 		cy.get("@dialog").then((dialog) => {
 			expect(dialog.get_value(fieldname)).to.have.length(0);
 		});
-		cy.get(".tb-selected-value").should("not.exist");
+		cy.get(".modal:visible .tb-selected-value").should("not.exist");
 
 		// selecting from the dropdown still works
 		cy.get("@input").focus();
-		cy.get(".awesomplete ul li").first().click();
+		cy.get(".modal:visible .awesomplete ul li").first().click();
 		cy.get("@dialog").then((dialog) => {
-			expect(dialog.get_value(fieldname)).to.deep.eq(["a@example.com"]);
+			expect(dialog.get_value(fieldname)).to.deep.eq(["user000@example.com"]);
 			dialog.clear();
 			dialog.hide();
 		});
