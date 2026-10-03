@@ -50,4 +50,43 @@ context("Control Autocomplete", () => {
 			dialog.hide();
 		});
 	});
+
+	// Link search results for doctypes without `show_title_field_in_link` carry no label,
+	// so they end up with label "" and used to match an empty input on blur.
+	it("should not add an unlabelled item when an empty field loses focus", () => {
+		const fieldname = "multiselect_1";
+		cy.dialog({
+			title: "Multiselect",
+			fields: [
+				{
+					label: "Assign To",
+					fieldname: fieldname,
+					fieldtype: "MultiSelectPills",
+					get_data: () => [
+						{ value: "a@example.com", description: "A User" },
+						{ value: "b@example.com", description: "B User" },
+					],
+				},
+			],
+		}).as("dialog");
+
+		cy.get(`input[data-fieldname=${fieldname}]`).as("input");
+		cy.wait(500);
+		cy.get("@input").focus();
+		cy.get(".awesomplete ul li").should("have.length", 2);
+		cy.get(".modal-title:visible").click();
+		cy.get("@dialog").then((dialog) => {
+			expect(dialog.get_value(fieldname)).to.have.length(0);
+		});
+		cy.get(".tb-selected-value").should("not.exist");
+
+		// selecting from the dropdown still works
+		cy.get("@input").focus();
+		cy.get(".awesomplete ul li").first().click();
+		cy.get("@dialog").then((dialog) => {
+			expect(dialog.get_value(fieldname)).to.deep.eq(["a@example.com"]);
+			dialog.clear();
+			dialog.hide();
+		});
+	});
 });
