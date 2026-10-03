@@ -29,16 +29,9 @@
 				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">router.beforeEach</code>
 				,
 				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">router.afterEach</code>
-				and add redirects with
-				<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">router.addRoute</code>
 				.
 			</li>
 		</ul>
-		<p class="mb-2">
-			Pages are matched by title. For your own 404, add a page with the route
-			<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">/:pathMatch(.*)*</code>
-			.
-		</p>
 		<pre class="overflow-x-auto rounded-4 bg-surface-gray-2 p-2 text-xs leading-snug text-ink-gray-7">
 {
   routerOptions: {
@@ -48,9 +41,13 @@
     if (route.name === "Tasks") route.alias = "/todo"
   },
   setup(router) {
-    router.addRoute({ path: "/old-tasks", redirect: { name: "Tasks" } })
-    router.afterEach((to) => {
-      document.title = String(to.name)
+    router.beforeEach((to) => {
+      if (
+       boot.onboarding_complete === false
+       && to.name !== 'Onboarding'
+      ) {
+        return { name: 'Onboarding' }
+      }
     })
   },
 }</pre

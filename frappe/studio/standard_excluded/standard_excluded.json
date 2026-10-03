@@ -1,0 +1,16 @@
+{
+ "__unsaved": 1,
+ "app_name": "standard-excluded",
+ "app_title": "Standard Excluded",
+ "creation": "2026-10-02 02:08:56.448714",
+ "docstatus": 0,
+ "doctype": "Studio App",
+ "frappe_app": "studio",
+ "idx": 0,
+ "is_standard": 1,
+ "modified": "2026-10-02 02:08:56.448714",
+ "modified_by": "Administrator",
+ "name": "standard-excluded",
+ "owner": "Administrator",
+ "route": "standard-excluded"
+}

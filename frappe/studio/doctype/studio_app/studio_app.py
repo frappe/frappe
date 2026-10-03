@@ -94,7 +94,6 @@ class StudioApp(WebsiteGenerator):
 		app_title: DF.Data
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
-		published: DF.Check
 		route: DF.Data | None
 		router_script: DF.Code | None
 	# end: auto-generated types

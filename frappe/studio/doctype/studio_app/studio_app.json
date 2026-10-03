@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:app_name",
- "creation": "2024-09-25 20:56:56.296301",
+ "creation": "2026-09-30 18:07:15.467992",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -73,7 +73,7 @@
   },
   {
    "depends_on": "eval:!doc.is_standard",
-   "description": "Same object as a standard app's router.ts, without import/export: { options, extendRoute(route), setup(router) }. Runs once at startup with boot, call, toast and the Vue reactivity APIs in scope.",
+   "description": "Control navigation with guards, redirects, aliases and route metadata",
    "fieldname": "router_script",
    "fieldtype": "Code",
    "label": "Router Script",
@@ -87,7 +87,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-09-30 12:00:00.000000",
+ "modified": "2026-10-03 18:37:56.359868",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

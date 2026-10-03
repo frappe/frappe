@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@app/*": [
+				"./*"
+			]
+		},
+		"allowJs": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true
+	}
+}
