@@ -1056,11 +1056,17 @@ def trim_table(doctype, dry_run=True):
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
+	# docfields never get generated columns, so the controller owns these
+	generated_columns = {
+		column.name
+		for column in frappe.db.get_table_columns_description(f"tab{doctype}")
+		if column.is_generated
+	}
 
 	def is_internal(field):
 		return field not in ignore_fields and not field.startswith("_")
 
-	columns_to_remove = [f for f in list(set(columns) - set(fields)) if is_internal(f)]
+	columns_to_remove = [f for f in list(set(columns) - set(fields) - generated_columns) if is_internal(f)]
 	DROPPED_COLUMNS = columns_to_remove[:]
 
 	if columns_to_remove and not dry_run:
