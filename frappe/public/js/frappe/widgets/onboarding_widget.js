@@ -4,7 +4,6 @@ frappe.provide("frappe.utils");
 
 export default class OnboardingWidget extends Widget {
 	async refresh() {
-		frappe.utils.load_video_player();
 		this.new && (await this.get_onboarding_data());
 		this.set_title();
 		this.set_actions();
@@ -20,170 +19,198 @@ export default class OnboardingWidget extends Widget {
 
 	make_body() {
 		this.body.empty();
-		this.steps_wrapper = $(`<div class="onboarding-steps-wrapper"></div>`).appendTo(this.body);
-		this.step_preview = $(`<div class="onboarding-step-preview">
-			<div class="onboarding-step-body"></div>
-			<div class="onboarding-step-footer"></div>
-		</div>`).appendTo(this.body);
+		this.$done = null;
+		this.progress = new frappe.ui.Progress({
+			intervals: true,
+			interval_count: this.steps.length,
+			size: "md",
+		});
+		this.steps_wrapper = $(`<div class="flex flex-col gap-0.5"></div>`);
+		this.body.append(this.progress.$el, this.steps_wrapper);
 
-		this.step_body = this.step_preview.find(".onboarding-step-body");
-		this.step_footer = this.step_preview.find(".onboarding-step-footer");
-
-		this.steps.forEach((step, index) => {
-			this.add_step(step, index);
+		// each step is built once and updated in place, so opening one can animate
+		this.step_elements = new Map();
+		this.steps.forEach((step) => {
+			const $step = this.make_step(step);
+			this.step_elements.set(step, $step);
+			this.steps_wrapper.append($step);
 		});
 
-		let first_incomplete_step = this.steps.findIndex((s) => !s.is_skipped && !s.is_complete);
-
-		if (first_incomplete_step == -1) {
-			first_incomplete_step = 0;
-		}
-
-		this.show_step(this.steps[first_incomplete_step]);
+		this.update_progress();
+		this.set_open_step(this.get_next_step());
 	}
 
-	add_step(step, index) {
-		let status = "pending";
+	update_progress() {
+		const total = this.steps.length;
+		const completed = this.steps.filter((step) => step.is_complete).length;
+		const skipped = this.steps.filter((step) => !step.is_complete && step.is_skipped).length;
 
-		if (step.is_skipped) status = "skipped";
-		if (step.is_complete) status = "complete";
+		// a skipped step needs no more doing, so it fills the bar, but it isn't counted as done
+		this.progress.set_value(((completed + skipped) / total) * 100);
+		this.subtitle_field.text(
+			skipped
+				? __("{0} of {1} done · {2} skipped", [completed, total, skipped])
+				: __("{0} of {1} steps done", [completed, total])
+		);
+		if (completed + skipped === total) this.show_success();
+	}
 
-		let $step = $(`<a class="onboarding-step ${status}">
-				<div class="step-title">
-					<div class="step-index step-pending">${frappe.utils.icon(
-						"circle-check",
-						"md",
-						"",
-						"",
-						"step-icon"
-					)}</div>
-					<div class="step-index step-skipped">${frappe.utils.icon(
-						"circle-x",
-						"md",
-						"",
-						"--icon-stroke: var(--gray-600);",
-						"step-icon"
-					)}</div>
-					<div class="step-index step-complete">${frappe.utils.icon(
-						"circle-check",
-						"md",
-						"",
-						"",
-						"step-icon"
-					)}</div>
-					<div class="step-text">${__(step.title)}</div>
-				</div>
-			</a>`);
-
-		step.$step = $step;
-
-		// Add skip button
-		if (!step.is_complete && !step.is_skipped) {
-			let skip_html = $(`<div class="step-skip">${__("Skip")}</div>`);
-
-			skip_html.appendTo($step);
-			skip_html.on("click", () => {
-				this.skip_step(step);
-				event.stopPropagation();
-			});
-		}
-		$step.on("click", () => this.show_step(step));
-		$step.appendTo(this.steps_wrapper);
-
+	make_step(step) {
+		const $step = $(`<div class="onboarding-step rounded-md px-2">
+			<button type="button" class="onboarding-step-head flex items-center gap-2 w-full">
+				<span class="step-icon shrink-0 flex"></span>
+				<span class="step-title truncate"></span>
+				<span class="step-skipped hidden text-p-sm text-ink-gray-4 ms-auto">${__("Skipped")}</span>
+			</button>
+			<div class="onboarding-step-collapse">
+				<div class="onboarding-step-body"></div>
+			</div>
+			<div class="onboarding-step-media"></div>
+		</div>`);
+		$step.find(".step-title").text(step.title);
+		$step.find(".onboarding-step-head").on("click", () => this.set_open_step(step));
 		return $step;
 	}
 
-	show_step(step) {
-		this.active_step && this.active_step.$step.removeClass("active");
+	set_open_step(step) {
+		if (step && step !== this.open_step) {
+			// filled on opening, so a closed step loads no thumbnail and shows its current state
+			const $step = this.step_elements.get(step);
+			$step.find(".onboarding-step-body").empty().append(this.make_step_content(step));
 
-		step.$step.addClass("active");
-		this.active_step = step;
+			const video_id = get_youtube_id(step.intro_video_url);
+			$step.toggleClass("has-media", !!video_id);
+			$step
+				.find(".onboarding-step-media")
+				.empty()
+				.append(video_id ? this.make_video(video_id) : null);
+		}
+		this.open_step = step;
+		this.steps.forEach((s) => this.update_step(s));
+	}
 
-		let actions = {
-			"Watch Video": (step) => this.show_video(step),
+	update_step(step) {
+		const is_open = step === this.open_step;
+		const is_done = step.is_complete || step.is_skipped;
+		const $step = this.step_elements.get(step);
+
+		$step.toggleClass("is-open", is_open);
+		$step.find(".onboarding-step-head").attr("aria-expanded", is_open);
+		$step.find(".step-icon").html(this.get_step_icon(step, is_open));
+		$step
+			.find(".step-title")
+			.toggleClass("text-base-medium text-ink-gray-9", is_open)
+			.toggleClass("text-base", !is_open)
+			.toggleClass("text-ink-gray-5", !is_open && !!step.is_complete)
+			.toggleClass("text-ink-gray-4", !is_open && !step.is_complete && !!step.is_skipped)
+			.toggleClass("text-ink-gray-8", !is_open && !is_done);
+		$step.find(".step-skipped").toggleClass("hidden", !step.is_skipped);
+	}
+
+	get_step_icon(step, is_open) {
+		if (step.is_complete) {
+			return frappe.utils.icon(
+				"circle-check",
+				"sm",
+				"",
+				"--icon-stroke: var(--ink-green-7)"
+			);
+		}
+		if (step.is_skipped) {
+			return frappe.utils.icon(
+				"circle-dashed",
+				"sm",
+				"",
+				"--icon-stroke: var(--ink-gray-4)"
+			);
+		}
+		const stroke = is_open ? "--ink-gray-8" : "--ink-gray-4";
+		return frappe.utils.icon("circle", "sm", "", `--icon-stroke: var(${stroke})`);
+	}
+
+	make_step_content(step) {
+		const $body = $(`<div class="onboarding-step-content flex flex-col gap-3"></div>`);
+
+		if (step.description) {
+			$(`<div class="onboarding-step-description text-p-sm text-ink-gray-6"></div>`)
+				.html(frappe.markdown(step.description))
+				.appendTo($body);
+		}
+
+		const $actions = $(`<div class="flex items-center gap-2"></div>`).appendTo($body);
+		$actions.append(
+			frappe.ui.button({
+				label: step.action_label || step.title,
+				variant: "solid",
+				icon_right: "arrow-right",
+				onclick: () => this.run_action(step),
+			})
+		);
+		if (!step.is_complete && !step.is_skipped) {
+			$actions.append(
+				frappe.ui.button({
+					label: __("Skip"),
+					variant: "subtle",
+					onclick: () => this.skip_step(step),
+				})
+			);
+		}
+		return $body;
+	}
+
+	// Only the thumbnail loads with the page; the player, and YouTube's cookies with it, wait
+	// for a click.
+	make_video(video_id) {
+		const $video = $(`<button type="button" class="onboarding-video">
+			<img alt="" decoding="async">
+			<span class="onboarding-video-play">${frappe.utils.icon("play", "md")}</span>
+		</button>`).attr("aria-label", __("Play video"));
+
+		// maxresdefault only exists for HD uploads; a missing one comes back as an error or as
+		// YouTube's 120px grey placeholder, and hqdefault always exists
+		const img = $video.find("img")[0];
+		const fall_back = () => (img.src = `https://i.ytimg.com/vi/${video_id}/hqdefault.jpg`);
+		img.onerror = fall_back;
+		img.onload = () =>
+			img.src.includes("maxresdefault") && img.naturalWidth <= 120 && fall_back();
+		img.src = `https://i.ytimg.com/vi/${video_id}/maxresdefault.jpg`;
+
+		$video.on("click", () => {
+			$video.replaceWith(
+				$(`<iframe class="onboarding-video-player"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+					referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`).attr({
+					src: `https://www.youtube-nocookie.com/embed/${video_id}?autoplay=1`,
+					title: __("YouTube video player"),
+				})
+			);
+		});
+		return $video;
+	}
+
+	run_action(step) {
+		const actions = {
 			"Create Entry": (step) => {
 				if (step.is_complete) {
 					frappe.set_route(`/desk/List/${step.reference_document}`);
+				} else if (step.show_full_form) {
+					this.create_entry(step);
 				} else {
-					if (step.show_full_form) {
-						this.create_entry(step);
-					} else {
-						this.show_quick_entry(step);
-					}
+					this.show_quick_entry(step);
 				}
 			},
 			"Show Form Tour": (step) => this.show_form_tour(step),
 			"Update Settings": (step) => this.update_settings(step),
 			"View Report": (step) => this.open_report(step),
 			"Go to Page": (step) => this.go_to_page(step),
+			"View Docs": (step) => this.view_docs(step),
 		};
+		actions[step.action]?.(step);
+	}
 
-		const toggle_content = () => {
-			this.step_body.empty();
-			this.step_footer.empty();
-			set_description();
-
-			if (step.intro_video_url) {
-				$(`<button class="btn btn-default btn-sm">${__("Watch Tutorial")}</button>`)
-					.appendTo(this.step_footer)
-					.on("click", toggle_video);
-			} else {
-				$(
-					`<button class="btn btn-default btn-sm">${
-						__(step.action_label) || __(step.action)
-					}</button>`
-				)
-					.appendTo(this.step_footer)
-					.on("click", () => actions[step.action](step));
-			}
-		};
-
-		const set_description = () => {
-			let content = __(step.description)
-				? frappe.markdown(__(step.description))
-				: `<h1>${__(step.title)}</h1>`;
-
-			if (step.action === "Create Entry") {
-				// add a secondary action to view list
-				content += `<p>
-					<a href='/desk/${frappe.router.slug(step.reference_document)}'>
-						${__("Show {0} List", [__(step.reference_document)])}</a>
-				</p>`;
-			}
-
-			this.step_body.html(content);
-		};
-
-		const toggle_video = () => {
-			this.step_body.empty();
-			this.step_footer.empty();
-
-			const video = $(
-				`<div class="video-player" data-plyr-provider="youtube" data-plyr-embed-id="${step.intro_video_url}"></div>`
-			);
-			video.appendTo(this.step_body);
-			let plyr = new frappe.Plyr(video[0], {
-				hideControls: true,
-				resetOnEnd: true,
-			});
-
-			$(
-				`<button class="btn btn-primary btn-sm">${
-					__(step.action_label) || __(step.action)
-				}</button>`
-			)
-				.appendTo(this.step_footer)
-				.on("click", () => {
-					plyr.pause();
-					actions[step.action](step);
-				});
-
-			$(`<button class="btn btn-secondary ml-2 btn-sm">${__("Back")}</button>`)
-				.appendTo(this.step_footer)
-				.on("click", toggle_content);
-		};
-
-		toggle_content();
+	view_docs(step) {
+		window.open(step.path, "_blank", "noopener");
+		this.mark_complete(step);
 	}
 
 	go_to_page(step) {
@@ -442,108 +469,63 @@ export default class OnboardingWidget extends Widget {
 		);
 	}
 
-	show_video(step) {
-		frappe.help.show_video(step.video_url, step.title);
-		this.mark_complete(step);
-	}
-
 	mark_complete(step) {
-		let $step = step.$step;
-
-		let callback = () => {
-			step.is_complete = true;
-			$step.removeClass("skipped");
-			$step.addClass("complete");
-		};
-
-		this.update_step_status(step, "is_complete", 1, callback);
-		this.activate_next_step(step);
+		this.update_step_status(step, "is_complete");
 	}
 
 	skip_step(step) {
-		let $step = step.$step;
-
-		let callback = () => {
-			step.is_skipped = true;
-			$step.removeClass("complete");
-			$step.removeClass("pending");
-			$step.addClass("skipped");
-		};
-
-		this.update_step_status(step, "is_skipped", 1, callback);
-		this.activate_next_step(step);
+		this.update_step_status(step, "is_skipped");
 	}
 
-	activate_next_step(step) {
-		let current_step_index = this.steps.findIndex((s) => s == step);
-		let next_step = this.steps[current_step_index + 1];
-
-		if (!next_step) return;
-
-		this.show_step(next_step);
-	}
-
-	update_step_status(step, status, value, callback) {
-		let icon_class = {
-			is_complete: "complete",
-			is_skipped: "skipped",
-		};
-		//  Clear any hooks
+	update_step_status(step, field) {
+		// a step done means the hooks set up for it are spent
 		frappe.route_hooks = {};
 
-		frappe
+		return frappe
 			.call("frappe.desk.desktop.update_onboarding_step", {
 				name: step.name,
-				field: status,
-				value: value,
+				field: field,
+				value: 1,
 			})
 			.then(() => {
-				callback();
-
-				step.$step
-					.removeClass("pending")
-					.removeClass("complete")
-					.removeClass("skipped")
-					.addClass(icon_class[status]);
-
-				let pending = this.steps.filter((step) => {
-					return !(step.is_complete || step.is_skipped);
-				});
-
-				if (pending.length == 0) {
-					this.show_success();
-				}
+				step[field] = 1;
+				this.update_progress();
+				this.set_open_step(this.get_next_step(step));
 			});
 	}
 
+	// The first unfinished step after `after`, wrapping round; the first unfinished one overall
+	// when nothing is given.
+	get_next_step(after) {
+		const start = after ? this.steps.indexOf(after) + 1 : 0;
+		const ordered = [...this.steps.slice(start), ...this.steps.slice(0, start)];
+		return ordered.find((step) => !step.is_complete && !step.is_skipped);
+	}
+
 	show_success() {
-		let success_message = this.success || __("You seem good to go!");
-		let success_state_image =
-			this.success_state_image || "/assets/frappe/images/ui-states/success-color.png";
-		let documentation = "";
-		if (this.docs_url) {
-			documentation = __(
-				'Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target="_blank" href="{0}">here</a>.',
-				[this.docs_url]
-			);
-		}
+		if (this.$done) return;
+		const $done = (this.$done =
+			$(`<div class="flex items-center justify-between gap-3 px-2 py-2">
+			<span class="text-p-sm text-ink-gray-6">${__("You're all set.")}</span>
+		</div>`));
+		$done.append(
+			frappe.ui.button({
+				label: __("Done"),
+				variant: "solid",
+				onclick: () => this.hide(),
+			})
+		);
+		this.body.append($done);
+	}
 
-		let success = $(`<div class="text-center onboarding-success">
-					<img src="${success_state_image}" alt="Success State" class="zoom-in success-state">
-					<h3>${success_message}</h3>
-					<div class="text-muted">${documentation}</div>
-					<button class="btn btn-primary btn-sm">${__("Continue")}</button>
-			</div>
-		`);
-
-		success.find(".btn").on("click", () => this.delete());
-
-		this.step_preview.empty();
-		success.appendTo(this.step_preview);
+	hide() {
+		this.delete(true, true);
+		this.widget.closest(".ce-block").hide();
 	}
 
 	set_body() {
 		this.widget.addClass("onboarding-widget-box");
+		this.body.addClass("flex flex-col gap-4");
 		if (this.is_dismissed()) {
 			this.widget.hide();
 		} else {
@@ -567,24 +549,25 @@ export default class OnboardingWidget extends Widget {
 	set_actions() {
 		if (this.in_customize_mode) return;
 
-		this.action_area.empty();
-		const dismiss = $(
-			`<div class="btn btn-sm btn-secondary small" style="cursor:pointer;">${__(
-				"Dismiss",
-				null,
-				"Stop showing the onboarding widget."
-			)}</div>`
-		);
-		dismiss.on("click", () => {
-			let dismissed = JSON.parse(localStorage.getItem("dismissed-onboarding") || "{}");
-			dismissed[this.title] = frappe.datetime.now_datetime();
+		this.action_area.empty().append(
+			frappe.ui.button({
+				label: __("Dismiss", null, "Stop showing the onboarding widget."),
+				variant: "ghost",
+				onclick: () => {
+					let dismissed = JSON.parse(
+						localStorage.getItem("dismissed-onboarding") || "{}"
+					);
+					dismissed[this.title] = frappe.datetime.now_datetime();
+					localStorage.setItem("dismissed-onboarding", JSON.stringify(dismissed));
 
-			localStorage.setItem("dismissed-onboarding", JSON.stringify(dismissed));
-			this.delete(true, true);
-			this.widget.closest(".ce-block").hide();
-			frappe.telemetry.capture("dismissed_" + frappe.scrub(this.title), "frappe_onboarding");
-		});
-		dismiss.appendTo(this.action_area);
+					this.hide();
+					frappe.telemetry.capture(
+						"dismissed_" + frappe.scrub(this.title),
+						"frappe_onboarding"
+					);
+				},
+			})
+		);
 	}
 
 	get_onboarding_data() {
@@ -593,12 +576,7 @@ export default class OnboardingWidget extends Widget {
 			.then((onboarding_doc) => {
 				if (onboarding_doc) {
 					this.onboarding_doc = onboarding_doc;
-					this.label = onboarding_doc.label;
 					this.title = onboarding_doc.title || __("Let's Get Started");
-					this.subtitle = onboarding_doc.subtitle;
-					this.success = onboarding_doc.success;
-					this.docs_url = onboarding_doc.docs_url;
-					this.user_can_dismiss = onboarding_doc.user_can_dismiss;
 					const method =
 						"frappe.desk.doctype.onboarding_step.onboarding_step.get_onboarding_steps";
 					return frappe
@@ -626,4 +604,33 @@ export default class OnboardingWidget extends Widget {
 
 		return docname || "new";
 	}
+}
+
+/**
+ * The video id in a YouTube link: watch?v=, youtu.be/, shorts/, live/, embed/ and v/, on
+ * youtube.com or youtube-nocookie.com. A bare id is accepted as is, since that is what the field
+ * used to hold.
+ */
+function get_youtube_id(value) {
+	value = (value || "").trim();
+	if (/^[\w-]{11}$/.test(value)) return value;
+
+	let url;
+	try {
+		url = new URL(value);
+	} catch {
+		return null;
+	}
+
+	const host = url.hostname.replace(/^(www|m|music)\./, "");
+	let id = null;
+	if (host === "youtu.be") {
+		id = url.pathname.split("/")[1];
+	} else if (host === "youtube.com" || host === "youtube-nocookie.com") {
+		id =
+			url.pathname === "/watch"
+				? url.searchParams.get("v")
+				: url.pathname.match(/^\/(?:embed|shorts|live|v)\/([\w-]+)/)?.[1];
+	}
+	return id && /^[\w-]{6,}$/.test(id) ? id : null;
 }
