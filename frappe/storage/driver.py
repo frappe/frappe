@@ -56,9 +56,21 @@ class StorageDriver(ABC):
 		return io.BytesIO(content[start : None if end is None else end + 1])
 
 	def download_url(
-		self, key: str, filename: str, expires_in: int, *, is_private: bool = False
+		self,
+		key: str,
+		filename: str,
+		expires_in: int,
+		*,
+		is_private: bool = False,
+		mime_type: str | None = None,
+		as_attachment: bool = False,
 	) -> str | None:
 		"""Native signed URL (e.g. S3 presigned GET).
+
+		*mime_type* is the blob's stored type. A driver that returns a URL
+		must serve the type and disposition that
+		``frappe.storage.blob.served_type`` gives, so a file shows inline or
+		downloads the same way as from ``/f/``.
 
 		None means: the framework serves the bytes itself."""
 		return None

@@ -108,7 +108,9 @@ class TestSigning(IntegrationTestCase):
 		with patch.object(driver, "download_url", return_value=native) as mocked:
 			self.assertEqual(signed_url(file, expires_in=900), native)
 
-		mocked.assert_called_once_with(blob.key, "a.txt", 900, is_private=True)
+		mocked.assert_called_once_with(
+			blob.key, "a.txt", 900, is_private=True, mime_type=blob.mime_type, as_attachment=False
+		)
 		# without a native URL the same file falls back to /f/
 		self.assertTrue(signed_url(file).startswith("/f/"))
 
@@ -120,7 +122,9 @@ class TestSigning(IntegrationTestCase):
 		with patch.object(driver, "download_url", return_value=native) as mocked:
 			self.assertEqual(signed_url_for_blob(blob, "node.txt", expires_in=120), native)
 
-		mocked.assert_called_once_with(blob.key, "node.txt", 120, is_private=True)
+		mocked.assert_called_once_with(
+			blob.key, "node.txt", 120, is_private=True, mime_type=blob.mime_type, as_attachment=False
+		)
 
 	def test_signature_is_stable_for_same_inputs(self):
 		expires = int(time.time()) + 60

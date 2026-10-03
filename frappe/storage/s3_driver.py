@@ -5,6 +5,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe import _
+from frappe.storage.blob import served_type
 from frappe.storage.driver import StorageDriver
 
 # TTL for presigned POST upload targets, in seconds.
@@ -102,19 +103,39 @@ class S3Driver(StorageDriver):
 		return True
 
 	def download_url(
-		self, key: str, filename: str, expires_in: int, *, is_private: bool = False
+		self,
+		key: str,
+		filename: str,
+		expires_in: int,
+		*,
+		is_private: bool = False,
+		mime_type: str | None = None,
+		as_attachment: bool = False,
 	) -> str | None:
-		"""Presigned GET with the filename carried in Content-Disposition.
+		"""Presigned GET that serves the blob the way ``/f/`` would.
+
+		S3 answers with the Content-Type and Content-Disposition the URL
+		carries, so a PDF shows in an ``<iframe>`` and active content still
+		downloads (``served_type`` decides both).
 
 		``is_private`` must be the blob's real privacy flag; it picks the
 		``private/`` or ``public/`` object prefix."""
-		ascii_name = filename.encode("ascii", "ignore").decode().replace('"', "").replace("\\", "")
-		disposition = f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
+		content_type, must_download = served_type(filename, mime_type, as_attachment=as_attachment)
+		# the quoted-string fallback keeps printable ASCII only; filename*
+		# carries the real name, percent-encoded per RFC 5987
+		ascii_name = "".join(
+			char for char in filename if char.isascii() and char.isprintable() and char not in '"\\'
+		)
+		disposition = (
+			f"{'attachment' if must_download else 'inline'}; "
+			f"filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename, safe='')}"
+		)
 		return self.client.generate_presigned_url(
 			"get_object",
 			Params={
 				"Bucket": self.bucket,
 				"Key": self.object_key(key, is_private),
+				"ResponseContentType": content_type,
 				"ResponseContentDisposition": disposition,
 			},
 			ExpiresIn=expires_in,
