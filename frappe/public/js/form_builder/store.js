@@ -8,6 +8,14 @@ import {
 import { computed, nextTick, ref, watch } from "vue";
 import { useDebouncedRefHistory, onKeyDown, useActiveElement } from "@vueuse/core";
 
+// web form props panel shows only these props per fieldtype; pages are Tab Breaks
+const WEB_FORM_LAYOUT_PROPS = ["label", "description", "hidden", "depends_on"];
+const WEB_FORM_PROPS_BY_FIELDTYPE = {
+	"Tab Break": WEB_FORM_LAYOUT_PROPS,
+	"Section Break": WEB_FORM_LAYOUT_PROPS,
+	"Column Break": WEB_FORM_LAYOUT_PROPS,
+};
+
 export const useStore = defineStore("form-builder-store", () => {
 	let doctype = ref("");
 	let frm = ref(null);
@@ -230,7 +238,14 @@ export const useStore = defineStore("form-builder-store", () => {
 		if (!frappe.get_meta("Web Form Field")) {
 			await load_doctype_model("Web Form Field");
 		}
-		docfields.value = frappe.get_meta("Web Form Field").fields;
+		// a copy, so the web_form_fields grid keeps the meta order
+		const first = ["label", "fieldtype", "fieldname"];
+		const rank = (df) =>
+			first.includes(df.fieldname) ? first.indexOf(df.fieldname) : first.length;
+		docfields.value = frappe
+			.get_meta("Web Form Field")
+			.fields.map(limit_to_fieldtype_props)
+			.sort((a, b) => rank(a) - rank(b));
 
 		// not for the properties panel: get_df() builds layout nodes from DocField meta
 		if (!frappe.get_meta("DocField")) {
@@ -852,3 +867,20 @@ export const useStore = defineStore("form-builder-store", () => {
 		tab_text,
 	};
 });
+
+// hides df for each fieldtype whose prop list leaves it out, keeping its own depends_on
+function limit_to_fieldtype_props(df) {
+	const hidden_for = Object.keys(WEB_FORM_PROPS_BY_FIELDTYPE).filter(
+		(fieldtype) => !WEB_FORM_PROPS_BY_FIELDTYPE[fieldtype].includes(df.fieldname)
+	);
+	if (!hidden_for.length) return df;
+
+	let condition = `!${JSON.stringify(hidden_for)}.includes(doc.fieldtype)`;
+	if (df.depends_on) condition += ` && (${depends_on_expression(df.depends_on)})`;
+	return { ...df, depends_on: `eval:${condition}` };
+}
+
+// a depends_on without "eval:" names a field that must be truthy
+function depends_on_expression(depends_on) {
+	return depends_on.startsWith("eval:") ? depends_on.slice("eval:".length) : `doc.${depends_on}`;
+}
