@@ -8,6 +8,7 @@ import pyperf
 
 import frappe
 from frappe.tests.microbenchmarks import (
+	bench_audit_hook,
 	bench_background_jobs,
 	bench_database,
 	bench_orm,
@@ -92,6 +93,7 @@ def discover_benchmarks(benchmark_filter):
 		bench_redis,
 		bench_background_jobs,
 		bench_web_requests,
+		bench_audit_hook,
 		bench_utils,
 		bench_qb,
 	]

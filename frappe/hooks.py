@@ -495,21 +495,17 @@ ignore_links_on_delete = [
 
 # Request Hooks
 before_request = [
+	"frappe._audit_hook.start",
 	"frappe.recorder.record",
 	"frappe.monitor.start",
 	"frappe.rate_limiter.apply",
 	"frappe.integrations.oauth2.set_cors_for_privileged_requests",
 ]
 
-after_request = [
-	"frappe.monitor.stop",
-]
+after_request = ["frappe.monitor.stop", "frappe._audit_hook.stop"]
 
 # Background Job Hooks
-before_job = [
-	"frappe.recorder.record",
-	"frappe.monitor.start",
-]
+before_job = ["frappe.recorder.record", "frappe.monitor.start", "frappe._audit_hook.start"]
 
 if os.getenv("FRAPPE_SENTRY_DSN") and (
 	os.getenv("ENABLE_SENTRY_DB_MONITORING")
@@ -523,6 +519,7 @@ after_job = [
 	"frappe.recorder.dump",
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
+	"frappe._audit_hook.stop",
 ]
 
 extend_bootinfo = [
