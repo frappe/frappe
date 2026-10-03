@@ -297,6 +297,43 @@ context("Espresso components", () => {
 		});
 	});
 
+	describe("BottomSheet", () => {
+		beforeEach(() => show("BottomSheet"));
+
+		it("opens as a dialog with focus inside, and Escape closes it back to the trigger", () => {
+			cy.contains(".explorer-group", "Picker (the current choice is checked")
+				.find('[aria-haspopup="dialog"]')
+				.first()
+				.as("trigger");
+
+			cy.get("@trigger").click();
+			cy.get(".es-bottom-sheet[role='dialog']").should("exist").and("have.focus");
+
+			cy.get(".es-bottom-sheet").trigger("keydown", { key: "Escape" });
+			cy.get(".es-bottom-sheet-root[data-state='open']").should("not.exist");
+			cy.get("@trigger").should("have.focus");
+		});
+
+		it("search narrows the rows, a pick pushes a step and Back returns", () => {
+			cy.contains(".explorer-group", "Steps inside one sheet")
+				.find('[aria-haspopup="dialog"]')
+				.first()
+				.click();
+
+			cy.get(".es-bottom-sheet__subheader input").type("deliv");
+			cy.get(".es-bottom-sheet__option:visible")
+				.should("have.length", 1)
+				.and("contain", "Delivery Date")
+				.click();
+
+			cy.get(".es-bottom-sheet__title").should("have.text", "Condition");
+			cy.get(".es-bottom-sheet__subtitle").should("have.text", "Delivery Date");
+
+			cy.get(".es-bottom-sheet__back").click();
+			cy.get(".es-bottom-sheet__title").should("have.text", "Choose field");
+		});
+	});
+
 	describe("Hover Card", () => {
 		beforeEach(() => show("Hover Card"));
 
