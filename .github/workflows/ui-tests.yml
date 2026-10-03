@@ -75,20 +75,29 @@ jobs:
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
           git diff --exit-code yarn.lock
 
-      - name: Cache cypress binary
+      - name: Cache Playwright browsers
         uses: actions/cache@v6
         with:
-          path: ~/.cache/Cypress
-          key: ${{ runner.os }}-cypress
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frappe/commands/testing.py') }}
 
       - name: Site Setup
         run: |
-          bench --site test_site execute frappe.utils.install.complete_setup_wizard
-          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
+          # a second site, so the shard can run two workers without sharing data
+          echo "127.0.0.1 test_site_2" | sudo tee -a /etc/hosts
+          bench new-site test_site_2 \
+            --db-type ${{ matrix.db }} \
+            --db-host 127.0.0.1 \
+            --db-name test_frappe_2 \
+            --db-password test_frappe
+          jq -s '.[1] + .[0] + {host_name: "http://test_site_2:8000"}' \
+            sites/test_site_2/site_config.json sites/test_site/site_config.json > site_config.json
+          mv site_config.json sites/test_site_2/site_config.json
 
-      - uses: browser-actions/setup-chrome@latest
-      - run: |
-          echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
+          for site in test_site test_site_2; do
+            bench --site $site execute frappe.utils.install.complete_setup_wizard
+            bench --site $site execute frappe.tests.ui_test_helpers.create_test_user
+          done
 
       - name: Run Tests
         id: ui-tests
@@ -96,26 +105,17 @@ jobs:
           bench --site test_site \
             run-ui-tests ${{ github.event.repository.name }} \
               --headless \
-              --browser ${{ env.BROWSER_PATH }} \
-              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \
-              --group ui-shard-${{ matrix.index }}
-        env:
-          CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
-          SPLIT: 4
-          SPLIT_INDEX: ${{ strategy.job-index }}
+              --parallel-site test_site_2 \
+              --shard=${{ matrix.index }}/4
 
-      - name: Compress Cypress Videos
-        if: always() && steps.ui-tests.outcome == 'failure'
-        run: |
-            if find ./cypressVideos -mindepth 1 | read; then
-              zip -r cypress_recordings.zip ./cypressVideos
-            fi
-      - name: Upload Cypress Videos
+      - name: Upload Playwright Report
         if: always() && steps.ui-tests.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
-          name: Cypress CI Video Recordings
-          path: ./cypress_recordings.zip
+          name: playwright-report-${{ matrix.index }}
+          path: |
+            apps/${{ github.event.repository.name }}/playwright-report
+            apps/${{ github.event.repository.name }}/test-results
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
