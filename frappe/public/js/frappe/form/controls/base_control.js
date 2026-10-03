@@ -70,7 +70,7 @@ frappe.ui.form.Control = class BaseControl {
 				if (explain) console.log("By Read Only: Read");
 				status = "Read";
 			} else if (
-				(this.grid && this.grid.display_status == "Read") ||
+				(this.grid && this.grid.control !== this && this.grid.display_status == "Read") ||
 				(this.layout && this.layout.grid && this.layout.grid.display_status == "Read")
 			) {
 				// parent grid is read
