@@ -151,6 +151,25 @@ def get_user_permissions(user: str | None = None):
 	return out
 
 
+def clear_descendant_user_permissions(doctype: str) -> None:
+	"""Clear the cached permissions that list descendants of `doctype` records, before and after commit."""
+	users = frappe.get_all(
+		"User Permission",
+		filters={"allow": doctype, "hide_descendants": 0},
+		pluck="user",
+		distinct=True,
+	)
+	if not users:
+		return
+
+	def clear():
+		frappe.cache.hdel("user_permissions", users)
+
+	clear()
+	frappe.db.after_commit.add(clear)
+	frappe.db.after_rollback.add(clear)
+
+
 def user_permission_exists(user, allow, for_value, applicable_for=None):
 	"""Checks if similar user permission already exists"""
 	user_permissions = get_user_permissions(user).get(allow, [])
