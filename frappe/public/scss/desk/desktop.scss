@@ -253,6 +253,59 @@ body {
 			background-color: var(--subtle-accent);
 		}
 
+		.chart-empty-state,
+		.chart-error-state {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.chart-empty-state {
+			position: relative;
+			overflow: hidden;
+
+			> :not(.chart-empty-sample) {
+				position: relative;
+			}
+
+			// the message is all a chart's empty state says, so it gets a little more ink than
+			// the muted description elsewhere
+			.text-p-sm {
+				color: var(--ink-gray-6);
+			}
+		}
+
+		// a sample line, blurred, under the message of an empty line chart
+		.chart-empty-sample {
+			position: absolute;
+			inset: 0;
+			filter: blur(4px);
+			opacity: 0.5;
+			pointer-events: none;
+
+			// the dark theme's chart colours are deep, and would vanish at this level
+			[data-theme="dark"] & {
+				opacity: 0.85;
+			}
+
+			// the line alone: no legend, axes or gridlines
+			.chart-legend,
+			.legend-dataset-text,
+			.x.axis,
+			.y.axis {
+				display: none;
+			}
+		}
+
+		.chart-error-state {
+			padding: calc(var(--spacing) * 4);
+
+			.es-alert {
+				width: 100%;
+				max-width: 40rem;
+			}
+		}
+
 		.report-summary {
 			grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
 			border: none;
@@ -565,44 +618,40 @@ body {
 		}
 	}
 
+	// Links are navigation, not content, so they get no box: a titled column, with the top padding
+	// spacing the rows. The charts and number cards above keep the boxed look for data.
 	&.links-widget-box {
-		.widget-head .widget-label .widget-title svg {
-			margin: 2px;
-			margin-right: 12px !important;
+		padding: calc(var(--spacing) * 4) calc(var(--spacing) * 2) 0;
+		background-color: transparent;
+
+		.widget-head .widget-label .widget-title {
+			@include get_textstyle("sm", "medium");
+			color: var(--ink-gray-9);
 		}
 
-		padding: 10px 12px;
-		border: 1px solid var(--border-color);
+		.widget-body {
+			@include flex(flex, null, null, column);
+			margin-top: var(--spacing);
+		}
 
 		.link-item {
 			display: flex;
-			text-decoration: none;
+			padding-block: 3px;
 			@include get_textstyle("sm", "regular");
-			color: var(--text-color);
-			padding: 4px;
-			margin-left: -4px;
-			margin-bottom: 0px;
-			border-radius: var(--radius-md);
+			color: var(--ink-gray-6);
+			text-decoration: none;
 			cursor: pointer;
 
-			&:first-child {
-				margin-top: 12px;
-			}
-
-			&:last-child {
-				margin-bottom: 0px !important;
-			}
-
-			.link-content {
-				flex: 1;
-
-				&:hover {
-					color: var(--invert-neutral);
-				}
+			&:hover,
+			&:focus-visible {
+				color: var(--ink-gray-9);
+				text-decoration: underline;
+				text-underline-offset: 2px;
+				outline: 0;
 			}
 
 			.disabled-link {
-				color: var(--text-muted);
+				color: var(--ink-gray-4);
 			}
 
 			.popover {
@@ -614,44 +663,35 @@ body {
 					left: 20%;
 				}
 			}
-
-			&:focus-visible {
-				text-decoration: underline;
-				background-color: var(--highlight-color);
-				outline: 0;
-			}
-		}
-
-		.widget-head .widget-label .widget-title {
-			font-size: var(--text-base);
-			font-weight: var(--weight-medium);
-		}
-
-		@include media-breakpoint-down(md) {
-			.link-item {
-				&:first-child {
-					margin-top: 5px;
-				}
-			}
 		}
 	}
 
+	// Drawn like the Espresso Stat Card (stat_card.css): a quiet label over the value, an outline
+	// that darkens on hover since the whole card opens its list, and the menu only on hover.
 	&.number-widget-box {
+		gap: calc(var(--spacing) * 1.5);
+		padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+		border: 1px solid var(--outline-gray-1);
+		background-color: var(--surface-base);
 		cursor: pointer;
-		min-height: 84px;
-		padding: 12px;
-		border: 1px solid var(--border-color);
+		transition: border-color 150ms ease;
+
+		&:hover {
+			border-color: var(--outline-gray-3);
+		}
 
 		.widget-head {
 			.widget-title {
-				font-weight: var(--weight-medium);
-				font-size: var(--text-sm);
+				@include get_textstyle("sm", "regular");
+				color: var(--ink-gray-5);
 			}
 
 			.widget-control {
 				right: -10px;
 				top: -10px;
 				height: 0px;
+				opacity: 0;
+				transition: opacity 150ms ease;
 			}
 
 			.card-actions {
@@ -659,71 +699,56 @@ body {
 			}
 		}
 
+		&:hover .widget-control,
+		.widget-control:focus-within {
+			opacity: 1;
+		}
+
 		.widget-body {
 			text-align: left;
 
 			.number-card-loading {
 				@include flex(flex, space-between, center, null);
-				height: 50px;
+				height: 28px;
 			}
 
 			.widget-content {
-				@include flex(flex, space-between, null, column);
-				padding-top: 12px;
+				@include flex(flex, null, null, column);
+				gap: calc(var(--spacing) * 1.5);
 
 				.number {
-					@include get_textstyle("2xl", "semibold");
-					line-height: var(--text-line-height-3xl);
-					color: var(--text-color);
-				}
-
-				.number-text {
-					color: $text-muted;
-					padding: var(--padding-xs);
-					font-size: $font-size-base;
-				}
-
-				.card-stats {
-					@include flex(flex, null, flex-end, row);
+					@include get_textstyle("xl", "semibold");
+					line-height: 1.35;
+					color: var(--ink-gray-8);
 				}
 
 				.percentage-stat-area {
-					font-size: $font-size-sm;
-					margin-top: var(--margin-sm);
+					@include flex(inline-flex, null, center, null);
+					gap: 2px;
+					@include get_textstyle("sm", "medium");
 
+					// the arrow drops its pill and takes the stat's colour; desk's .icon centres
+					// itself with an auto margin, which would push it away from the number
 					.indicator-pill-round {
-						height: 18px;
-						width: 18px;
-
-						.icon-xs {
-							width: 10px;
-							height: 10px;
-						}
+						display: contents;
 					}
-				}
 
-				.stat-period {
-					margin-left: var(--margin-xs);
+					.icon {
+						margin: 0;
+						--icon-stroke: currentColor;
+					}
 				}
 
 				.green-stat {
-					color: var(--green-500);
-
-					use {
-						stroke: var(--green-500);
-					}
+					color: var(--ink-green-7);
 				}
 
 				.red-stat {
-					color: var(--red-500);
-
-					use {
-						stroke: var(--red-500);
-					}
+					color: var(--ink-red-7);
 				}
 
 				.grey-stat {
-					color: var(--gray-600);
+					color: var(--ink-gray-6);
 				}
 			}
 		}
