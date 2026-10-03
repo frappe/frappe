@@ -52,15 +52,19 @@ class OnboardingStep(Document):
 
 @frappe.whitelist()
 def get_onboarding_steps(ob_steps: str | list):
-	steps = []
-	for s in frappe.parse_json(ob_steps):
-		doc = frappe.get_doc("Onboarding Step", s.get("step"))
-		step = doc.as_dict().copy()
-		step.label = _(doc.title)
-		if step.action == "Create Entry":
-			step.is_submittable = frappe.db.get_value(
-				"DocType", step.reference_document, "is_submittable", cache=True
-			)
-		steps.append(step)
+	return [get_step_details(s.get("step")) for s in frappe.parse_json(ob_steps)]
 
-	return steps
+
+def get_step_details(name: str) -> dict:
+	"""A step as the onboarding widget renders it, with its text translated."""
+	doc = frappe.get_doc("Onboarding Step", name)
+	step = doc.as_dict().copy()
+	step.label = _(doc.title)
+	step.title = _(doc.title)
+	step.description = _(doc.description) if doc.description else None
+	step.action_label = _(doc.action_label) if doc.action_label else None
+	if step.action == "Create Entry":
+		step.is_submittable = frappe.db.get_value(
+			"DocType", step.reference_document, "is_submittable", cache=True
+		)
+	return step

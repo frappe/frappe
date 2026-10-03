@@ -95,6 +95,33 @@ class ModuleOnboarding(Document):
 IMPLICIT_ROLE = "System Manager"
 
 
+def can_update_step(step: str) -> bool:
+	"""Whether the session user may tick off or skip `step`.
+
+	Progress is shared by the whole site, so the gate is the onboarding's own role list: anyone
+	who may see an onboarding that includes the step may mark it. A step no onboarding uses is
+	nobody's to mark.
+	"""
+	onboardings = frappe.get_all(
+		"Onboarding Step Map",
+		filters={"parenttype": "Module Onboarding", "step": step},
+		pluck="parent",
+	)
+	if not onboardings:
+		return False
+
+	roles = set(frappe.get_roles())
+	if IMPLICIT_ROLE in roles:
+		return True
+
+	allowed = frappe.get_all(
+		"Onboarding Permission",
+		filters={"parenttype": "Module Onboarding", "parent": ["in", onboardings]},
+		pluck="role",
+	)
+	return bool(roles & set(allowed))
+
+
 def get_permitted_onboardings() -> dict[str, str]:
 	"""Return the onboarding each module offers this user, keyed by module.
 

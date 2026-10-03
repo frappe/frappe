@@ -16,6 +16,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	get_customization,
 )
 from frappe.desk.utils import is_item_allowed
+from frappe.utils import cint
 from frappe.utils.caching import request_cache
 
 
@@ -51,6 +52,7 @@ class Workspace(DeskViews):
 			self.doc = frappe.get_cached_doc("Workspace", self.page_name)
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
+		self.onboarding_list = []
 
 		if not minimal:
 			if self.doc.content:
@@ -126,10 +128,9 @@ class Workspace(DeskViews):
 		if not frappe.get_system_settings("enable_onboarding"):
 			return None
 
-		if not self.onboarding_list:
-			return None
-
-		if frappe.db.get_value("Module Onboarding", onboarding, "is_complete"):
+		# a block can outlive the onboarding it names; that hides the block, not the workspace
+		is_complete = frappe.db.get_value("Module Onboarding", onboarding, "is_complete")
+		if is_complete is None or is_complete:
 			return None
 
 		doc = frappe.get_doc("Module Onboarding", onboarding)
@@ -146,11 +147,27 @@ class Workspace(DeskViews):
 
 		return doc
 
+	def get_onboardings(self):
+		from frappe.desk.doctype.onboarding_step.onboarding_step import get_step_details
+
+		onboardings = []
+		for name in self.onboarding_list:
+			doc = self.get_onboarding_doc(name)
+			if doc:
+				onboardings.append(
+					{
+						"label": name,
+						"title": _(doc.title),
+						"items": [get_step_details(step.step) for step in doc.steps],
+					}
+				)
+		return onboardings
+
 	def build_workspace(self):
 		self.cards = {"items": self.get_links()}
 		self.charts = {"items": self.get_charts()}
 		self.shortcuts = {"items": self.get_shortcuts()}
-		self.onboardings = {"items": []}
+		self.onboardings = {"items": self.get_onboardings()}
 		self.quick_lists = {"items": self.get_quick_lists()}
 		self.number_cards = {"items": self.get_number_cards()}
 		self.custom_blocks = {"items": self.get_custom_blocks()}
@@ -701,12 +718,17 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 	        value: Value to be updated
 
 	"""
+	from frappe.desk.doctype.module_onboarding.module_onboarding import can_update_step
 	from frappe.utils.telemetry import capture
 
 	allowed_fields = ["is_skipped", "is_complete"]
 	if field not in allowed_fields:
 		return
-	frappe.db.set_value("Onboarding Step", name, field, value)
+
+	if not can_update_step(name):
+		frappe.throw(_("You are not allowed to update this onboarding step"), frappe.PermissionError)
+
+	frappe.db.set_value("Onboarding Step", name, field, cint(value))
 
 	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
 
