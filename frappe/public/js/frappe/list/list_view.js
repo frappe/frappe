@@ -1933,6 +1933,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				css_class: "filterable ellipsis",
 				attrs: {
 					"data-filter": cstr(indicator[2] || ""),
+					"data-filter-dynamic": "1",
 				},
 			});
 		}
@@ -2080,12 +2081,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (e.metaKey || e.ctrlKey) return;
 			e.stopPropagation();
 			const $this = $(e.currentTarget);
+			// Indicator filters may use relative values; field cells contain literal document values.
+			const resolve_dynamic_values = $this.attr("data-filter-dynamic") === "1";
 			const filters = $this.attr("data-filter").split("|");
 			const filters_to_apply = filters.map((f) => {
 				f = f.split(",");
-				if (f[2] === "Today") {
+				const df = resolve_dynamic_values && frappe.meta.get_field(this.doctype, f[0]);
+				if (f[2] === "Today" && df && ["Date", "Datetime"].includes(df.fieldtype)) {
 					f[2] = frappe.datetime.get_today();
-				} else if (f[2] == "User") {
+				} else if (f[2] === "User" && df?.fieldtype === "Link" && df.options === "User") {
 					f[2] = frappe.session.user;
 				}
 				this.filter_area.remove(f[0]);
