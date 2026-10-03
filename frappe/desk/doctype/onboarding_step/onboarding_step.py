@@ -19,7 +19,13 @@ class OnboardingStep(Document):
 		from frappe.types import DF
 
 		action: DF.Literal[
-			"Create Entry", "Update Settings", "Show Form Tour", "View Report", "Go to Page", "View Docs"
+			"Create Entry",
+			"Update Settings",
+			"Show Form Tour",
+			"View Report",
+			"Go to Page",
+			"View Docs",
+			"Complete Onboarding",
 		]
 		action_label: DF.Data | None
 		callback_message: DF.SmallText | None
@@ -31,6 +37,7 @@ class OnboardingStep(Document):
 		is_complete: DF.Check
 		is_single: DF.Check
 		is_skipped: DF.Check
+		module_onboarding: DF.Link | None
 		path: DF.Data | None
 		reference_document: DF.Link | None
 		reference_report: DF.Link | None
@@ -61,6 +68,9 @@ class OnboardingStep(Document):
 		A record counts whoever made it, so a Company from the setup wizard or Customers from an
 		import finish their steps without anyone opening the onboarding.
 		"""
+		if self.action == "Complete Onboarding":
+			return self.is_onboarding_done()
+
 		doctype = self.reference_document
 		if not doctype or not frappe.db.exists("DocType", doctype):
 			return None
@@ -85,6 +95,31 @@ class OnboardingStep(Document):
 
 		return None
 
+	def is_onboarding_done(self) -> bool | None:
+		"""Whether the onboarding this step leads to has its required steps done.
+
+		Read one level deep: a step there that leads to yet another onboarding counts only once it
+		is ticked off or skipped, so two onboardings that lead to each other cannot loop.
+		"""
+		if not self.module_onboarding or not frappe.db.exists("Module Onboarding", self.module_onboarding):
+			return None
+
+		onboarding = frappe.get_doc("Module Onboarding", self.module_onboarding)
+		if onboarding.is_complete:
+			return True
+
+		for row in onboarding.steps:
+			if row.is_optional:
+				continue
+			step = frappe.get_doc("Onboarding Step", row.step)
+			if step.action == "Complete Onboarding":
+				done = step.is_complete or step.is_skipped
+			else:
+				done = step.is_done()
+			if not done:
+				return False
+		return True
+
 	def get_record_filters(self, meta) -> dict:
 		"""The step's `route_options`, the defaults its new record opens with, as filters.
 
@@ -105,6 +140,10 @@ class OnboardingStep(Document):
 	def throw_if_unfinished(self):
 		if self.is_work_done() is not False:
 			return
+
+		if self.action == "Complete Onboarding":
+			title = frappe.db.get_value("Module Onboarding", self.module_onboarding, "title")
+			frappe.throw(_("Finish {0} to finish this step.").format(_(title)))
 
 		doctype = _(self.reference_document)
 		if self.action == "Update Settings":
@@ -144,4 +183,7 @@ def get_step_details(name: str, is_optional: bool | int = 0) -> dict:
 			and frappe.get_meta(step.reference_document).allow_import
 			and frappe.has_permission(step.reference_document, "import")
 		)
+	elif step.action == "Complete Onboarding":
+		# the widget opens this module and shows its icon
+		step.module = frappe.db.get_value("Module Onboarding", step.module_onboarding, "module")
 	return step

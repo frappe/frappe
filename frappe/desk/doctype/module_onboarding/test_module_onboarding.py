@@ -383,3 +383,49 @@ class TestStepCompletion(OnboardingTestCase):
 
 		(shown,) = self.onboardings_on_workspace()
 		self.assertEqual([s.is_optional for s in shown["items"]], [1, 0])
+
+	def test_a_step_leading_to_an_onboarding_is_done_when_that_onboarding_is(self):
+		"""A front-door onboarding has a step per module, each done when the module's own is."""
+		from frappe.desk.doctype.onboarding_step.onboarding_step import get_step_details
+
+		create = self.make_step(
+			"Test Create Record Step", action="Create Entry", reference_document=self.record_doctype
+		)
+		optional = self.make_step("Test Optional Step")
+		module_onboarding = self.make_onboarding(
+			"Test Module Onboarding", [create, optional], roles=[self.role], optional=[optional]
+		)
+		lead = self.make_step(
+			"Test Lead Step", action="Complete Onboarding", module_onboarding=module_onboarding
+		)
+		self.onboarding_with(lead)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		self.assertEqual(get_step_details(lead).module, self.module)
+		self.assertFalse(get_step_details(lead).is_complete)
+		with self.assertRaisesRegex(frappe.ValidationError, "Finish Test Module Onboarding"):
+			update_onboarding_step(lead, "is_complete", 1)
+
+		self.make_record(self.record_doctype)
+		self.assertTrue(get_step_details(lead).is_complete)
+
+	def test_onboardings_leading_to_each_other_do_not_loop(self):
+		"""Each reads the other one level deep, by whether its step there is ticked off."""
+		from frappe.desk.doctype.onboarding_step.onboarding_step import get_step_details
+
+		first = self.make_onboarding("Test First Onboarding", [self.step], roles=[self.role])
+		second = self.make_onboarding("Test Second Onboarding", [self.step], roles=[self.role])
+		to_second = self.make_step(
+			"Test To Second Step", action="Complete Onboarding", module_onboarding=second
+		)
+		to_first = self.make_step("Test To First Step", action="Complete Onboarding", module_onboarding=first)
+		for onboarding, step in ((first, to_second), (second, to_first)):
+			doc = frappe.get_doc("Module Onboarding", onboarding)
+			doc.steps = []
+			doc.append("steps", {"step": step})
+			doc.save(ignore_permissions=True)
+
+		self.assertFalse(get_step_details(to_second).is_complete)
+
+		frappe.db.set_value("Onboarding Step", to_first, "is_skipped", 1)
+		self.assertTrue(get_step_details(to_second).is_complete)

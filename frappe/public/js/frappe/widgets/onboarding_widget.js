@@ -40,6 +40,30 @@ export default class OnboardingWidget extends Widget {
 		this.set_open_step(this.get_next_step());
 	}
 
+	// An onboarding whose steps lead to other onboardings is where a new user starts, so it greets
+	// them and keeps its own title for the line below.
+	leads_to_onboardings() {
+		return this.steps?.some((step) => step.action === "Complete Onboarding");
+	}
+
+	set_title() {
+		if (!this.leads_to_onboardings()) return super.set_title();
+
+		const hour = new Date().getHours();
+		// Administrator's first name is the account's name, not a person's
+		const name = frappe.session.user === "Administrator" ? "" : frappe.boot.user.first_name;
+		let greeting;
+		// the small hours are still the evening before
+		if (hour >= 5 && hour < 12) {
+			greeting = name ? __("Good morning, {0}", [name]) : __("Good morning");
+		} else if (hour >= 12 && hour < 17) {
+			greeting = name ? __("Good afternoon, {0}", [name]) : __("Good afternoon");
+		} else {
+			greeting = name ? __("Good evening, {0}", [name]) : __("Good evening");
+		}
+		this.title_field.empty().append($(`<span class="ellipsis"></span>`).text(greeting));
+	}
+
 	// Optional steps show what else the module can do; progress and completion count the rest.
 	get_required_steps() {
 		const required = this.steps.filter((step) => !step.is_optional);
@@ -54,10 +78,11 @@ export default class OnboardingWidget extends Widget {
 
 		// a skipped step needs no more doing, so it fills the bar, but it isn't counted as done
 		this.progress.set_value(((completed + skipped) / total) * 100);
+		const progress = skipped
+			? __("{0} of {1} done · {2} skipped", [completed, total, skipped])
+			: __("{0} of {1} steps done", [completed, total]);
 		this.subtitle_field.text(
-			skipped
-				? __("{0} of {1} done · {2} skipped", [completed, total, skipped])
-				: __("{0} of {1} steps done", [completed, total])
+			this.leads_to_onboardings() ? `${this.title} · ${progress}` : progress
 		);
 		if (completed + skipped === total) this.show_success();
 	}
@@ -66,7 +91,8 @@ export default class OnboardingWidget extends Widget {
 		const $step = $(`<div class="onboarding-step rounded-md px-2">
 			<button type="button" class="onboarding-step-head flex items-center gap-2 w-full">
 				<span class="step-icon shrink-0 flex"></span>
-				<span class="step-title truncate"></span>
+				<span class="step-module hidden shrink-0"></span>
+				<span class="step-title text-base truncate"></span>
 				${step.is_optional ? frappe.ui.badge.html({ label: __("Optional"), size: "sm" }) : ""}
 				<span class="step-skipped hidden text-p-sm text-ink-gray-4 ms-auto">${__("Skipped")}</span>
 			</button>
@@ -76,6 +102,14 @@ export default class OnboardingWidget extends Widget {
 			<div class="onboarding-step-media"></div>
 		</div>`);
 		$step.find(".step-title").text(step.title);
+		// a step leading to a module's onboarding is named by the module, which people choose by
+		if (step.module) {
+			const shell = frappe.boot.module_sidebars?.[get_shell(step.module)];
+			$step
+				.find(".step-module")
+				.text(__(shell?.label || step.module))
+				.removeClass("hidden");
+		}
 		// the whole row takes the click, not only the title button inside its padding; the button
 		// keeps it reachable from the keyboard, and its click bubbles up to here
 		$step.on("click", () => step !== this.open_step && this.set_open_step(step));
@@ -107,13 +141,21 @@ export default class OnboardingWidget extends Widget {
 		$step.toggleClass("is-open", is_open);
 		$step.find(".onboarding-step-head").attr("aria-expanded", is_open);
 		$step.find(".step-icon").html(this.get_step_icon(step, is_open));
-		$step
-			.find(".step-title")
+		// beside a module's name, the step's own title is the quieter half, open or not
+		const has_module = !!step.module;
+		const $label = has_module ? $step.find(".step-module") : $step.find(".step-title");
+		$label
 			.toggleClass("text-base-medium text-ink-gray-9", is_open)
 			.toggleClass("text-base", !is_open)
 			.toggleClass("text-ink-gray-5", !is_open && !!step.is_complete)
 			.toggleClass("text-ink-gray-4", !is_open && !step.is_complete && !!step.is_skipped)
 			.toggleClass("text-ink-gray-8", !is_open && !is_done);
+		if (has_module) {
+			$step
+				.find(".step-title")
+				.toggleClass("text-ink-gray-5", !step.is_skipped || !!step.is_complete)
+				.toggleClass("text-ink-gray-4", !step.is_complete && !!step.is_skipped);
+		}
 		$step.find(".step-skipped").toggleClass("hidden", !step.is_skipped);
 	}
 
@@ -134,6 +176,9 @@ export default class OnboardingWidget extends Widget {
 				"--icon-stroke: var(--ink-gray-4)"
 			);
 		}
+		const module_icon = frappe.get_module_icon(get_shell(step.module));
+		if (module_icon) return frappe.utils.icon(module_icon, "sm");
+
 		const stroke = is_open ? "--ink-gray-8" : "--ink-gray-4";
 		return frappe.utils.icon("circle", "sm", "", `--icon-stroke: var(${stroke})`);
 	}
@@ -229,6 +274,9 @@ export default class OnboardingWidget extends Widget {
 			"View Report": (step) => this.open_report(step),
 			"Go to Page": (step) => this.go_to_page(step),
 			"View Docs": (step) => this.view_docs(step),
+			// the step is done when that module's own onboarding is, so opening it ticks nothing
+			"Complete Onboarding": (step) =>
+				frappe.app.sidebar.open_module(get_shell(step.module)),
 		};
 		actions[step.action]?.(step);
 	}
@@ -488,6 +536,14 @@ export default class OnboardingWidget extends Widget {
 
 		return docname || "new";
 	}
+}
+
+// A shell is keyed by its sidebar's name, which is not always its module's: the Quality sidebar
+// is the Quality Management module's.
+function get_shell(module) {
+	const shells = frappe.boot.module_sidebars || {};
+	if (!module || shells[module]) return module;
+	return Object.keys(shells).find((name) => shells[name].module === module);
 }
 
 /**
