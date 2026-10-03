@@ -35,6 +35,9 @@
 /* Modifier on .es-popover — must load after it. */
 @import "frappe/public/css/espresso/components/hover_card.css";
 
+/* Panel is an .es-menu — must load after menu.css. */
+@import "frappe/public/css/espresso/components/combobox.css";
+
 @import "frappe/public/css/espresso/components/tabs.css";
 
 @import "frappe/public/css/espresso/components/tab_buttons.css";
