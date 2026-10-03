@@ -258,3 +258,65 @@ class TestChromeCdpReliability(IntegrationTestCase):
 		page.session = FakeSession([(None, {"message": "boom"})] * 4)
 		with patch("frappe.utils.chromium.page.time.sleep"):
 			self.assertRaisesRegex(RuntimeError, "Error evaluating expression", page.evaluate, "1+1")
+
+
+class TestPdfResourceUrlGuard(IntegrationTestCase):
+	"""Unit tests for guard_pdf_resource_urls — no wkhtmltopdf process involved.
+
+	Addresses used here are numeric IP literals so the check never depends on
+	real DNS/network being reachable from the test environment.
+	"""
+
+	def test_blocks_loopback_and_link_local(self):
+		html = '<img src="http://127.0.0.1:9999/probe.png"><img src="http://169.254.169.254/meta">'
+		guarded = pdfgen.guard_pdf_resource_urls(html)
+		self.assertNotIn("127.0.0.1:9999", guarded)
+		self.assertNotIn("169.254.169.254", guarded)
+
+	def test_blocks_private_range_in_css_url(self):
+		html = "<div style=\"background-image:url('http://10.1.2.3/probe.png')\"></div>"
+		guarded = pdfgen.guard_pdf_resource_urls(html)
+		self.assertNotIn("10.1.2.3", guarded)
+		self.assertIn("url('')", guarded)
+
+	def test_blocks_css_import_and_font_face(self):
+		html = (
+			"<style>@import url(http://10.1.2.3/x.css);@font-face{src:url('http://10.1.2.3/f.woff')}</style>"
+		)
+		guarded = pdfgen.guard_pdf_resource_urls(html)
+		self.assertNotIn("10.1.2.3", guarded)
+
+	def test_allows_public_address(self):
+		html = '<img src="http://8.8.8.8/probe.png"><div style="background-image:url(http://8.8.8.8/bg.png)"></div>'
+		guarded = pdfgen.guard_pdf_resource_urls(html)
+		self.assertEqual(guarded.count("8.8.8.8"), 2)
+
+	def test_trusted_domain_bypasses_resolution(self):
+		from unittest.mock import patch
+
+		# A domain that won't resolve — proves the trusted-host check short-circuits
+		# before any DNS lookup, not merely that the address happens to be public.
+		with patch.dict(frappe.conf, {"domains": ["trusted-external.invalid"]}):
+			guarded = pdfgen.guard_pdf_resource_urls('<img src="http://trusted-external.invalid/logo.png">')
+		self.assertIn("trusted-external.invalid", guarded)
+
+	def test_blocked_url_is_logged(self):
+		frappe.db.delete("Error Log", {"method": "Blocked internal PDF resource URL"})
+		pdfgen.guard_pdf_resource_urls('<img src="http://127.0.0.1:9998/marker.png">')
+		self.assertTrue(
+			frappe.db.exists(
+				"Error Log",
+				{"method": "Blocked internal PDF resource URL", "error": ["like", "%127.0.0.1:9998%"]},
+			)
+		)
+
+	def test_blocks_uppercase_scheme(self):
+		# URL schemes are case-insensitive by spec; a renderer still fetches "HTTP://".
+		html = '<img src="HTTP://127.0.0.1:9997/probe.png">'
+		guarded = pdfgen.guard_pdf_resource_urls(html)
+		self.assertNotIn("127.0.0.1:9997", guarded)
+
+	def test_blocks_quoted_css_url_containing_a_space(self):
+		html = "<div style=\"background-image:url('http://10.1.2.3/has space.png')\"></div>"
+		guarded = pdfgen.guard_pdf_resource_urls(html)
+		self.assertNotIn("10.1.2.3", guarded)
