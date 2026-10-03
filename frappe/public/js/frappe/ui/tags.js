@@ -122,6 +122,7 @@ frappe.ui.Tags = class {
 			css_class: "form-tag",
 			title: label,
 		});
+		this.apply_stored_color(label, $tag);
 
 		// the badge's label span; also the onTagClick target
 		$tag.find(".es-badge__label").addClass("pill-label ellipsis");
@@ -157,5 +158,30 @@ frappe.ui.Tags = class {
 			hash = (hash * 31 + label.charCodeAt(i)) % 997;
 		}
 		return themes[hash % themes.length];
+	}
+
+	apply_stored_color(label, $tag) {
+		const themes = {
+			Gray: "gray",
+			Black: "darkgrey",
+			Blue: "blue",
+			Green: "green",
+			Red: "red",
+			Pink: "pink",
+			Orange: "amber",
+			Amber: "amber",
+			Yellow: "yellow",
+			Cyan: "cyan",
+			Teal: "green",
+			Violet: "violet",
+			Purple: "purple",
+		};
+		frappe.db
+			.get_value("Tag", label, "color")
+			.then(({ message }) => {
+				const theme = themes[message?.color];
+				if (theme) $tag.attr("data-theme", theme);
+			})
+			.catch(() => {});
 	}
 };
