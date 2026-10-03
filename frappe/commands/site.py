@@ -1334,7 +1334,7 @@ def browse(
 	if not site:
 		raise SiteNotSpecifiedError
 
-	if site not in frappe.utils.get_sites():
+	if site not in frappe.utils.get_sites() and not os.path.isfile(os.path.join(site, "site_config.json")):
 		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
 		sys.exit(1)
 
