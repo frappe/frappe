@@ -46,6 +46,15 @@ def log_file():
 	return os.path.join(frappe.utils.get_bench_path(), "logs", "monitor.json.log")
 
 
+def get_request_wait(request_start: str, now: datetime.datetime) -> int:
+	"""Return microseconds between `request_start` (`t=<epoch seconds>`) and `now`."""
+	try:
+		start = float(request_start.removeprefix("t="))
+		return max(int((now.timestamp() - start) * 1_000_000), 0)
+	except (ValueError, OverflowError):
+		return 0
+
+
 class Monitor:
 	__slots__ = ("data",)
 
@@ -80,6 +89,10 @@ class Monitor:
 			request_id
 		):
 			self.data.uuid = request_id
+
+		# Time the request was received; the gap until now is time spent waiting for a web worker
+		if request_start := frappe.request.headers.get("X-Request-Start"):
+			self.data.request.wait = get_request_wait(request_start, self.data.timestamp)
 
 	def collect_job_meta(self, method, kwargs):
 		import rq
