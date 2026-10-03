@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
+from frappe.utils.telemetry import capture
 
 
 class ModuleOnboarding(Document):
@@ -66,6 +67,7 @@ class ModuleOnboarding(Document):
 	def mark_as_completed(self):
 		self.is_complete = True
 		self.save(ignore_permissions=True)
+		capture_onboarding_completed(self)
 
 	@frappe.whitelist()
 	def reset_progress(self):
@@ -113,6 +115,41 @@ def update_completion(step: str):
 		done = onboarding.required_steps_done()
 		if bool(onboarding.is_complete) != done:
 			onboarding.db_set("is_complete", int(done))
+			if done:
+				capture_onboarding_completed(onboarding)
+
+
+STEP_EVENTS = {"is_complete": "step_completed", "is_skipped": "step_skipped"}
+
+
+def capture_step_update(step: str, field: str, value: int):
+	"""Report a step ticked off, skipped or brought back, with the onboardings it belongs to.
+
+	The event is named for what happened and the step travels in its properties, so a funnel per
+	onboarding can follow its steps in order. An event named after each step, as this used to send,
+	cannot be grouped by onboarding.
+	"""
+	capture(
+		STEP_EVENTS[field] if value else "step_reopened",
+		app="frappe_onboarding",
+		properties={
+			"step": step,
+			"action": frappe.db.get_value("Onboarding Step", step, "action"),
+			"onboardings": frappe.get_all(
+				"Onboarding Step Map",
+				filters={"parenttype": "Module Onboarding", "step": step},
+				pluck="parent",
+			),
+		},
+	)
+
+
+def capture_onboarding_completed(onboarding: "ModuleOnboarding"):
+	capture(
+		"onboarding_completed",
+		app="frappe_onboarding",
+		properties={"onboarding": onboarding.name, "module": onboarding.module},
+	)
 
 
 def can_update_step(step: str) -> bool:

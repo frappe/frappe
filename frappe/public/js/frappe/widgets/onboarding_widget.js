@@ -127,7 +127,7 @@ export default class OnboardingWidget extends Widget {
 			$step
 				.find(".onboarding-step-media")
 				.empty()
-				.append(video_id ? this.make_video(video_id) : null);
+				.append(video_id ? this.make_video(step, video_id) : null);
 		}
 		this.open_step = step;
 		this.steps.forEach((s) => this.update_step(s));
@@ -189,6 +189,11 @@ export default class OnboardingWidget extends Widget {
 		if (step.description) {
 			$(`<div class="onboarding-step-description text-p-sm text-ink-gray-6"></div>`)
 				.html(frappe.markdown(step.description))
+				.on("click", "a", (e) =>
+					this.capture_step_event("step_docs_opened", step, {
+						url: e.currentTarget.href,
+					})
+				)
 				.appendTo($body);
 		}
 
@@ -225,7 +230,7 @@ export default class OnboardingWidget extends Widget {
 
 	// Only the thumbnail loads with the page; the player, and YouTube's cookies with it, wait
 	// for a click.
-	make_video(video_id) {
+	make_video(step, video_id) {
 		const $video = $(`<button type="button" class="onboarding-video">
 			<img alt="" decoding="async">
 			<span class="onboarding-video-play">${frappe.utils.icon("play", "md")}</span>
@@ -241,6 +246,7 @@ export default class OnboardingWidget extends Widget {
 		img.src = `https://i.ytimg.com/vi/${video_id}/maxresdefault.jpg`;
 
 		$video.on("click", () => {
+			this.capture_step_event("step_video_played", step);
 			$video.replaceWith(
 				$(`<iframe class="onboarding-video-player"
 					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -282,6 +288,7 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	view_docs(step) {
+		this.capture_step_event("step_docs_opened", step, { url: step.path });
 		window.open(step.path, "_blank", "noopener");
 		this.mark_complete(step);
 	}
@@ -493,13 +500,21 @@ export default class OnboardingWidget extends Widget {
 					localStorage.setItem("dismissed-onboarding", JSON.stringify(dismissed));
 
 					this.hide();
-					frappe.telemetry.capture(
-						"dismissed_" + frappe.scrub(this.title),
-						"frappe_onboarding"
-					);
+					frappe.telemetry.capture("onboarding_dismissed", "frappe_onboarding", {
+						onboarding: this.label,
+					});
 				},
 			})
 		);
+	}
+
+	// What people open from a step, so the funnel shows whether its videos and docs get used
+	capture_step_event(event, step, properties = {}) {
+		frappe.telemetry.capture(event, "frappe_onboarding", {
+			step: step.name,
+			onboarding: this.label,
+			...properties,
+		});
 	}
 
 	get_onboarding_data() {

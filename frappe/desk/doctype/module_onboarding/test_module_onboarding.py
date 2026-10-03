@@ -1,6 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -429,3 +430,38 @@ class TestStepCompletion(OnboardingTestCase):
 
 		frappe.db.set_value("Onboarding Step", to_first, "is_skipped", 1)
 		self.assertTrue(get_step_details(to_second).is_complete)
+
+
+class TestOnboardingTelemetry(OnboardingTestCase):
+	"""Telemetry names what happened and carries the step and its onboarding as properties, so one
+	funnel per onboarding can follow its steps.
+	"""
+
+	def captured(self, field: str, value: int) -> list:
+		with patch("frappe.desk.doctype.module_onboarding.module_onboarding.capture") as capture:
+			update_onboarding_step(self.step, field, value)
+		return [(call.args[0], call.kwargs["properties"]) for call in capture.call_args_list]
+
+	def test_ticking_off_the_last_step_reports_the_step_then_the_onboarding(self):
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		self.assertEqual(
+			self.captured("is_complete", 1),
+			[
+				(
+					"step_completed",
+					{"step": self.step, "action": "Go to Page", "onboardings": [self.onboarding]},
+				),
+				("onboarding_completed", {"onboarding": self.onboarding, "module": self.module}),
+			],
+		)
+
+	def test_skipping_and_bringing_back_a_step_are_reported(self):
+		second = self.make_step("Test Second Telemetry Step")
+		onboarding = frappe.get_doc("Module Onboarding", self.onboarding)
+		onboarding.append("steps", {"step": second})
+		onboarding.save(ignore_permissions=True)
+		frappe.set_user(self.make_user(roles=[self.role]))
+
+		self.assertEqual([event for event, _ in self.captured("is_skipped", 1)], ["step_skipped"])
+		self.assertEqual([event for event, _ in self.captured("is_skipped", 0)], ["step_reopened"])

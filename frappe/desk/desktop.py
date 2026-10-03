@@ -720,9 +720,9 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 	"""
 	from frappe.desk.doctype.module_onboarding.module_onboarding import (
 		can_update_step,
+		capture_step_update,
 		update_completion,
 	)
-	from frappe.utils.telemetry import capture
 
 	allowed_fields = ["is_skipped", "is_complete"]
 	if field not in allowed_fields:
@@ -735,9 +735,8 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 		frappe.get_doc("Onboarding Step", name).throw_if_unfinished()
 
 	frappe.db.set_value("Onboarding Step", name, field, cint(value))
+	capture_step_update(name, field, cint(value))
 	update_completion(name)
-
-	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
 
 
 @frappe.whitelist()
