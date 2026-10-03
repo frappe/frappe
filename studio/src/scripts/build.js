@@ -232,7 +232,7 @@ ${pageScripts
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import { createAppRouter, loadRouterConfig } from "@/router/app_router"
+import { createAppRouter, loadRouterConfig, showRouterError } from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 ${routerImport}
@@ -259,7 +259,11 @@ ${pageScriptSetup}
 
 async function bootstrap() {
 	// installing the router runs the first navigation, so the app's guards must already be in place
-	app.use(await createAppRouter(${routerConfig}))
+	try {
+		app.use(await createAppRouter(${routerConfig}))
+	} catch (error) {
+		return showRouterError(error)
+	}
 	app.mount("#app")
 }
 

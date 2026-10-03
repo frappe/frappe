@@ -8,6 +8,7 @@ from urllib.parse import quote
 import frappe
 from frappe import _
 from frappe.utils import get_files_path
+from frappe.utils.response import is_traceback_allowed
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -126,6 +127,7 @@ class StudioApp(WebsiteGenerator):
 		# the dev preview imports router.ts straight from the vite dev server; the build compiles it in
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
 		context.router_script = self.get_router_script()
+		context.show_error_details = bool(is_traceback_allowed())
 		context.vite_dev_server_host = get_vite_dev_server_host()
 
 	def get_router_file(self) -> str | None:

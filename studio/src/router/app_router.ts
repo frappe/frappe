@@ -5,7 +5,9 @@ import {
 	type Router,
 	type RouterOptions,
 } from "vue-router"
+import { createApp } from "vue"
 import AppContainer from "@/pages/AppContainer.vue"
+import ErrorPage from "@/pages/ErrorPage.vue"
 import NotFound from "@/pages/NotFound.vue"
 import { vueReactivityApis } from "@/stores/codeStore"
 import * as globalUtils from "@/utils/globalUtils"
@@ -30,7 +32,7 @@ const CONFIG_KEYS = ["routerOptions", "extendRoute", "setup"]
 
 export class RouterScriptError extends Error {
 	constructor(where: string, cause: unknown) {
-		super(`${where}: ${cause instanceof Error ? cause.message : String(cause)}`, { cause })
+		super(`${where}: ${cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause)}`, { cause })
 	}
 }
 
@@ -44,6 +46,7 @@ declare global {
 		router_script?: string | null
 		boot?: Record<string, unknown>
 		is_guest?: boolean
+		show_error_details?: boolean
 	}
 }
 
@@ -78,6 +81,20 @@ export async function loadRouterConfig(): Promise<RouterConfig> {
 	if (!window.router_file) return {}
 	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.router_file!))
 	return mod.default || {}
+}
+
+// like Frappe's error page: details only for those is_traceback_allowed() lets see a traceback
+export function showRouterError(error: unknown) {
+	console.error(error)
+	createApp(ErrorPage, { error: window.show_error_details ? getErrorDetails(error) : null }).mount("#app")
+}
+
+// the message names the failed hook; the cause's stack frames point into the app's own router code
+function getErrorDetails(error: unknown): string {
+	if (!(error instanceof Error)) return String(error)
+	const stack = (error.cause instanceof Error ? error.cause : error).stack || ""
+	const frames = stack.split("\n").filter((line) => /^\s+at /.test(line))
+	return [error.message, ...frames].join("\n")
 }
 
 async function runHook<T>(where: string, run: () => T | Promise<T>): Promise<T> {
