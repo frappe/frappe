@@ -33,7 +33,7 @@ class StaticDataMiddleware(SharedDataMiddleware):
 	def get_directory_loader(self, directory):
 		def loader(path):
 			site = get_site_name(frappe.app._site or self.environ.get("HTTP_HOST"))
-			files_path = Path(directory) / site / "public" / "files"
+			files_path = (Path(directory) / site / "public" / "files").resolve()
 			requested_path = Path(cstr(path))
 			path = (files_path / requested_path).resolve()
 			if not path.is_relative_to(files_path) or not path.is_file():
