@@ -71,9 +71,11 @@ function disableAppExport() {
 			method: "disable_app_export",
 		},
 		{
-			onSuccess: () => {
+			onSuccess: (data: { message?: string | null }) => {
 				store.setApp(store.activeApp!.name)
-				toast.success("App export disabled")
+				if (data?.message)
+					toast.warning("App export disabled", { description: data.message, duration: Infinity })
+				else toast.success("App export disabled")
 				showDialog.value = false
 			},
 			onError: (error: any) => {

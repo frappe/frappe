@@ -155,12 +155,13 @@ class StudioApp(WebsiteGenerator):
 				f.write(wrap_router_script(self.router_script))
 		self.db_set("router_script", None, update_modified=False)
 
-	def restore_router_script_from_file(self):
+	def restore_router_script_from_file(self) -> bool:
 		"""Load router.ts back into the `router_script` field, so the config survives in DB-only
 		mode (called before the export folder is deleted on un-export)."""
 		if not os.path.exists(self.get_router_file_path()):
-			return
+			return False
 		self.router_script = unwrap_router_script(frappe.read_file(self.get_router_file_path()))
+		return True
 
 	def get_boot(self) -> dict:
 		"""Get the boot data for this Studio app"""
@@ -339,15 +340,21 @@ class StudioApp(WebsiteGenerator):
 		self.export_router_script_to_file()
 
 	@frappe.whitelist()
-	def disable_app_export(self):
+	def disable_app_export(self) -> str | None:
+		"""Returns a notice for the user when router.ts was copied back, since it may not run as a script"""
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).restore_script_from_file()
-		self.restore_router_script_from_file()
+		router_restored = self.restore_router_script_from_file()
 
 		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
 
 		self.is_standard = 0
 		self.save()
+
+		if router_restored:
+			return _(
+				"Router Script restored from router.ts. Custom apps run it as plain JavaScript object. Remove import statements and TypeScript types if present."
+			)
 
 	def export_app(self):
 		if not can_export(self):
