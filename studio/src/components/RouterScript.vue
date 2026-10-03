@@ -56,21 +56,11 @@ import useStudioStore from "@/stores/studioStore"
 
 const ROUTER_FILE = "router.ts"
 const BOILERPLATE = `{
-	// passed to createRouter, e.g. scrollBehavior
-	routerOptions: {},
-
-	// once per page route, e.g. route.alias, route.meta, route.beforeEnter
-	extendRoute(route) {},
-
-	// the created router, before the first navigation
 	setup(router) {
-		router.beforeEach((to, from) => {
-			// return false to cancel, or a location to redirect
-		})
-
-		router.afterEach((to, from) => {
-			// e.g. track page views
-		})
+		// e.g. send users who have not finished onboarding to the Onboarding page
+		// router.beforeEach((to) => {
+		// 	if (!boot.onboarding_complete && to.name !== "Onboarding") return { name: "Onboarding" }
+		// })
 	},
 }`
 
