@@ -10,6 +10,20 @@
 					<a class="flex" :href="file.doc.file_url" v-if="file.doc" target="_blank">
 						<span class="file-name">{{ file.name }}</span>
 					</a>
+					<div class="flex align-center" v-else-if="allow_rename">
+						<input
+							ref="rename_input"
+							type="text"
+							class="form-control rename-input"
+							v-model="edited_name"
+							:title="__('File name (editable)')"
+							@keydown.enter.prevent="submit_upload"
+							@blur="commit_rename"
+						/>
+						<span class="file-extension" v-if="file_extension">{{
+							file_extension
+						}}</span>
+					</div>
 					<span class="file-name" v-else>{{ file.name }}</span>
 				</div>
 
@@ -92,11 +106,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch, nextTick } from "vue";
 import ProgressRing from "./ProgressRing.vue";
 
 // emits
-let emit = defineEmits(["toggle_optimize", "toggle_private", "toggle_image_cropper", "remove"]);
+let emit = defineEmits([
+	"toggle_optimize",
+	"toggle_private",
+	"toggle_image_cropper",
+	"remove",
+	"rename",
+	"upload",
+]);
 
 // props
 const props = defineProps({
@@ -115,6 +136,16 @@ const props = defineProps({
 // variables
 let src = ref(null);
 let optimize = ref(props.file.optimize);
+let rename_input = ref(null);
+function split_extension(name) {
+	const i = name ? name.lastIndexOf(".") : -1;
+	return i > 0 ? [name.slice(0, i), name.slice(i)] : [name || "", ""];
+}
+let edited_name = ref(split_extension(props.file.name)[0]);
+watch(
+	() => props.file.name,
+	(val) => (edited_name.value = split_extension(val)[0])
+);
 
 // computed
 let file_size = computed(() => {
@@ -160,6 +191,24 @@ let progress = computed(() => {
 	}
 	return value;
 });
+let allow_rename = computed(() => {
+	return !props.file.doc && !uploaded.value && !props.file.uploading && !props.file.failed;
+});
+let file_extension = computed(() => split_extension(props.file.name)[1]);
+
+// methods
+function commit_rename() {
+	let name = (edited_name.value || "").trim();
+	if (name && name !== split_extension(props.file.name)[0]) {
+		emit("rename", name);
+	} else {
+		edited_name.value = split_extension(props.file.name)[0];
+	}
+}
+function submit_upload() {
+	commit_rename();
+	emit("upload");
+}
 
 // mounted
 onMounted(() => {
@@ -169,6 +218,13 @@ onMounted(() => {
 			fr.onload = () => (src.value = fr.result);
 			fr.readAsDataURL(props.file.file_obj);
 		}
+	}
+	// Fokus + Vorauswahl: direkt lostippen ersetzt den Namen, Enter lädt hoch.
+	if (allow_rename.value) {
+		nextTick(() => {
+			rename_input.value?.focus();
+			rename_input.value?.select();
+		});
 	}
 });
 </script>
@@ -234,6 +290,22 @@ onMounted(() => {
 	-webkit-line-clamp: 1;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
+}
+
+.rename-input {
+	font-size: var(--text-base);
+	font-weight: var(--text-bold);
+	color: var(--text-color);
+	height: 26px;
+	max-width: 280px;
+	padding: 0 var(--padding-xs);
+}
+
+.file-extension {
+	font-size: var(--text-base);
+	font-weight: var(--text-bold);
+	color: var(--text-muted);
+	margin-left: var(--margin-xs);
 }
 
 .file-size {
