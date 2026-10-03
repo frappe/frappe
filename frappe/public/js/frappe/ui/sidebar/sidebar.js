@@ -887,6 +887,9 @@ frappe.ui.Sidebar = class Sidebar {
 	shell_can_show(shell, route, { listed_only = false } = {}) {
 		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
 
+		// A shared page counts as listed in every shell.
+		if (frappe.router.page_info_for(route)?.shared_page) return true;
+
 		const entity = this.entity_from_route(route);
 		if (!entity) return false;
 
@@ -901,6 +904,9 @@ frappe.ui.Sidebar = class Sidebar {
 	// The shell a URL for this route should name: the URL's own if it can show the route, then the
 	// one on screen, then the server's map.
 	shell_for_route(route) {
+		// A system page opens in no shell, so the sidebar on screen is left as it is.
+		if (frappe.router.page_info_for(route)?.system_page) return null;
+
 		// A private page's shell is its owner's, whatever module it is filed under.
 		if (route[0] === "Workspaces" && route[1] === "private") {
 			const name = route[2];
@@ -925,11 +931,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// A jump was not made from the shell on screen, so sharing an app is not enough to stay.
 		// Nor is a row in the Private shell, which is a shortcut and not where the entity belongs.
+		// A shared page belongs in every shell, Private included, so it stays there too.
 		const listed_only = frappe.router.is_jump;
-		const on_screen =
-			listed_only && this.current_module === frappe.ui.PRIVATE_SHELL
-				? null
-				: this.current_module;
+		const leaves_private =
+			listed_only &&
+			this.current_module === frappe.ui.PRIVATE_SHELL &&
+			!frappe.router.page_info_for(route)?.shared_page;
+		const on_screen = leaves_private ? null : this.current_module;
 		if (on_screen && this.shell_can_show(on_screen, route, { listed_only })) return on_screen;
 
 		return this.canonical_shell_for(route);
@@ -1132,7 +1140,9 @@ frappe.ui.Sidebar = class Sidebar {
 			canonical: this.canonical_shell_for(route),
 			resolved: this.shell_for_route(route),
 		};
-		info.reason = !info.resolved
+		info.reason = frappe.router.page_info_for(route)?.system_page
+			? "a system page opens in no shell"
+			: !info.resolved
 			? "the route names no entity, so nothing decides a shell"
 			: info.resolved === info.shell_in_url
 			? `the URL names "${info.shell_in_url}" and it can show this route`
