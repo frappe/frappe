@@ -195,6 +195,7 @@ class DataImport(Document):
 		self.set_delimiters_flag()
 		return self.get_importer().get_data_for_import_preview()
 
+	@frappe.whitelist(methods=["POST"])
 	def start_import(self):
 		from frappe.utils.scheduler import is_scheduler_inactive
 
