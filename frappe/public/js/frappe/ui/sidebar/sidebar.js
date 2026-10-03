@@ -155,66 +155,6 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 	}
 
-	remove_onboarding_wrapper() {
-		this.$onboarding.empty();
-		this.wrapper.find(".onboarding-sidebar").removeClass("hidden");
-
-		if (!this.sidebar_data?.module_onboarding) {
-			this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-		}
-	}
-
-	setup_onboarding() {
-		let me = this;
-		this.$onboarding = this.wrapper.find(".user-onboarding");
-
-		if (!this.sidebar_data || !this.sidebar_data.module_onboarding) {
-			this.remove_onboarding_wrapper();
-			return;
-		}
-
-		let module_name = this.sidebar_data.module_onboarding;
-
-		if (this?.onboarding_widget[module_name]) {
-			return;
-		}
-
-		this.remove_onboarding_wrapper();
-		if (module_name && !frappe.is_mobile()) {
-			if (
-				this?.onboarding_widget[module_name] &&
-				this.onboarding_widget[module_name].hide_panel
-			) {
-				return;
-			}
-
-			return frappe
-				.call({
-					method: "frappe.desk.desktop.get_onboarding_data",
-					args: {
-						module: module_name,
-					},
-					type: "GET",
-				})
-				.then((data) => {
-					if (data.message?.length > 0) {
-						let onboarding_data = data.message[0];
-						me.onboarding_widget = {};
-						me.onboarding_widget[module_name] = new frappe.ui.UserOnboarding({
-							title: onboarding_data.title,
-							steps: onboarding_data.items,
-							wrapper: me.$onboarding,
-							header_icon: me.sidebar_header.header_icon,
-						});
-					} else {
-						this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-					}
-				});
-		} else {
-			this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-		}
-	}
-
 	nest_section_items() {
 		const me = this;
 		let currentSection = null;
@@ -236,10 +176,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.sidebar_items = updated_items;
 	}
 	setup(current_module) {
-		if (!this.onboarding_widget) {
-			this.onboarding_widget = {};
-		}
-
 		$(document).trigger("sidebar_setup", { sidebar: this });
 		this.current_module = current_module;
 
@@ -249,15 +185,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.make_sidebar();
 		this.add_sidebar_cards();
 		this.setup_promotional_banners();
-		this.setup_onboarding();
-
-		this.wrapper.find(".onboarding-sidebar").click(() => {
-			if (this.sidebar_data?.module_onboarding) {
-				delete this.onboarding_widget[this.sidebar_data.module_onboarding];
-			}
-
-			this.setup_onboarding();
-		});
 	}
 	add_card(card) {
 		if (this.cards && this.cards.find((i) => i.title === card.title)) return;
@@ -783,12 +710,10 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!rail) {
 			this.wrapper.addClass("expanded");
 			this.wrapper.find(".avatar-name-email").show();
-			this.wrapper.find(".onboarding-sidebar span").show();
 			this.wrapper.find(".promotional-banner-title").show();
 		} else {
 			this.wrapper.removeClass("expanded");
 			this.wrapper.find(".avatar-name-email").hide();
-			this.wrapper.find(".onboarding-sidebar span").hide();
 			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
