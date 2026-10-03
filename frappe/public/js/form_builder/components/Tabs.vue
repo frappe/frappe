@@ -144,7 +144,7 @@ function delete_tab_message(tab) {
 			item-key="id"
 			:disabled="store.read_only"
 		>
-			<template #item="{ element }">
+			<template #item="{ element, index }">
 				<div
 					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
@@ -154,8 +154,21 @@ function delete_tab_message(tab) {
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"
 				>
-					<!-- a Page Break row stores no label, so the builder numbers pages by position -->
-					<span v-if="store.is_web_form">{{ element.df.label }}</span>
+					<!-- page 1 has no Page Break, so its name lives on the Web Form -->
+					<EditableInput
+						v-if="store.is_web_form && index == 0"
+						:text="store.first_page_label"
+						:placeholder="__('Page 1')"
+						:empty_label="__('Page 1')"
+						@update:modelValue="store.set_first_page_label"
+					/>
+					<EditableInput
+						v-else-if="store.is_web_form"
+						:text="element.df.label"
+						:placeholder="__('Page {0}', [index + 1])"
+						:empty_label="__('Page {0}', [index + 1])"
+						v-model="element.df.label"
+					/>
 					<EditableInput
 						v-else
 						:text="element.df.label"
