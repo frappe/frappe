@@ -4,6 +4,7 @@ import frappe
 from frappe.core.doctype.error_log.error_log import flush_error_logs, get_queued_error_log_count
 from frappe.deferred_insert import deferred_insert, queue_prefix, save_to_db
 from frappe.tests import IntegrationTestCase
+from frappe.utils.logging import get_log_db
 
 
 class TestDeferredInsert(IntegrationTestCase):
@@ -33,7 +34,7 @@ class TestDeferredInsert(IntegrationTestCase):
 		self.assertEqual(get_queued_error_log_count(), 1)
 		flush_error_logs()
 
-		self.assertTrue(frappe.db.exists("Error Log", {"method": "Deferred error"}))
+		self.assertTrue(get_log_db().exists("Error Log", {"method": "Deferred error"}))
 		self.assertEqual(get_queued_error_log_count(), 0)
 		self.assertEqual(frappe.cache.llen(f"{queue_prefix}Route History"), 1)
 

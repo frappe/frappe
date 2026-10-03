@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, ClassVar
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
+from frappe.utils.logging import get_log_db
 
 if TYPE_CHECKING:
 	from frappe.printing.doctype.print_format.print_format import PrintFormat
@@ -295,10 +296,14 @@ class TestPrintFormatHardening(IntegrationTestCase):
 		self.make(self.layout({**self.DATA, "visible_if": "   "}))
 
 	def test_runtime_condition_failure_shows_field_and_logs(self):
-		before = frappe.db.count("Error Log")
+		# Matched exactly on this print format's own failure title. The log database is
+		# shared with every other process on the site, so neither a global count nor a
+		# prefix match is stable here.
+		condition_errors = {"method": f"Print format condition failed: {self.NAME}"}
+		before = get_log_db().count("Error Log", condition_errors)
 		html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": "doc.nope.nope"}))
 		self.assertIn("PROBE", html)
-		self.assertGreater(frappe.db.count("Error Log"), before)
+		self.assertGreater(get_log_db().count("Error Log", condition_errors), before)
 
 	def test_malformed_table_columns_do_not_crash(self):
 		table = {"label": "T", "fieldname": "roles", "fieldtype": "Table", "options": "Has Role"}
@@ -314,7 +319,10 @@ class TestPrintFormatHardening(IntegrationTestCase):
 				self.assertIn("PROBE", html)
 
 	def test_failing_row_condition_logs_once_not_once_per_row(self):
-		frappe.db.delete("Error Log")
+		# Matched exactly on this print format's own failure title, and counted as a delta:
+		# the log database is shared with every other process on the site.
+		condition_errors = {"method": f"Print format condition failed: {self.NAME}"}
+		before = get_log_db().count("Error Log", condition_errors)
 		self.render(
 			self.layout(
 				{
@@ -330,7 +338,7 @@ class TestPrintFormatHardening(IntegrationTestCase):
 			)
 		)
 		self.assertGreater(frappe.db.count("Has Role", {"parent": "Administrator"}), 1)
-		self.assertEqual(frappe.db.count("Error Log"), 1)
+		self.assertEqual(get_log_db().count("Error Log", condition_errors) - before, 1)
 
 	def test_labels_are_escaped(self):
 		payload = "<script>alert(1)</script>"
