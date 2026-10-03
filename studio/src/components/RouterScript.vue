@@ -59,7 +59,7 @@ const BOILERPLATE = `{
 	setup(router) {
 		// e.g. send users who have not finished onboarding to the Onboarding page
 		// router.beforeEach((to) => {
-		// 	if (!boot.onboarding_complete && to.name !== "Onboarding") return { name: "Onboarding" }
+		// 	if (boot.onboarding_complete === false && to.name !== "Onboarding") return { name: "Onboarding" }
 		// })
 	},
 }`
