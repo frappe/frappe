@@ -147,6 +147,8 @@ def check_for_folder_in_google_drive():
 @frappe.whitelist()
 def take_backup():
 	"""Enqueue longjob for taking backup to Google Drive"""
+	frappe.only_for("System Manager")
+
 	enqueue(
 		"frappe.integrations.doctype.google_drive.google_drive.upload_system_backup_to_google_drive",
 		queue="long",
