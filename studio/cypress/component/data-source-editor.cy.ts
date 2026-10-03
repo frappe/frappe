@@ -96,7 +96,7 @@ describe("data source editor", () => {
 			field("Fields").click()
 			option("email").click()
 			cy.get("body").type("{esc}")
-			submit("Add")
+			save("Add")
 
 			savedDataSource("admins").should((resource) => {
 				expect(resource.resource_type).to.equal("Document List")
@@ -157,7 +157,7 @@ describe("data source editor", () => {
 			field("Fields").click()
 			option("user_type").click()
 			cy.get("body").type("{esc}")
-			submit("Save")
+			save("Save")
 
 			savedFields("users").should("deep.equal", ["email", "full_name", "user_type"])
 		})
@@ -182,7 +182,7 @@ describe("data source editor", () => {
 			openDataSource("staleUsers")
 			cy.get("[role='dialog']").contains("button", "Remove").click()
 			cy.contains("no longer a field").should("not.exist")
-			submit("Save")
+			save("Save")
 
 			savedFields("staleUsers").should("deep.equal", ["email", "full_name"])
 		})
@@ -275,3 +275,8 @@ const submit = (label: "Add" | "Save") =>
 		.get("[role='dialog']")
 		.contains("button", new RegExp(`^${label}$`))
 		.click()
+// the dialog closes once the save request resolves, so a read of the page after this sees the save
+const save = (label: "Add" | "Save") => {
+	submit(label)
+	cy.get("[role='dialog']").should("not.exist")
+}
