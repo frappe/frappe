@@ -67,9 +67,6 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 
 def strip_default_fields(doc, doc_export):
 	# strip out default fields from children
-	if doc.doctype == "DocType" and doc.migration_hash:
-		del doc_export["migration_hash"]
-
 	for df in doc.meta.get_table_fields():
 		for d in doc_export.get(df.fieldname):
 			for fieldname in frappe.model.default_fields + frappe.model.child_table_fields:
