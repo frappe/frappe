@@ -2,6 +2,9 @@
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
 			<div class="page-title">
+				<button class="btn-reset page-back-button" aria-label="{{ __("Back") }}">
+					<svg class="icon icon-md"><use href="#icon-chevron-left"></use></svg>
+				</button>
 				<div class="flex title-area ellipsis">
 					<nav class="es-breadcrumbs navbar-breadcrumbs {{frappe.is_mobile() ? "mobile-no-divider" : ""}}" aria-label="{{ __("Breadcrumb") }}"><ol></ol></nav>
 					<button class="btn btn-default more-button hide">
