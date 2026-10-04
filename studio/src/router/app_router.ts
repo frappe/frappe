@@ -45,7 +45,6 @@ declare global {
 		router_script?: string | null
 		boot?: Record<string, unknown>
 		is_guest?: boolean
-		show_error_details?: boolean
 	}
 }
 
@@ -82,10 +81,9 @@ export async function loadRouterConfig(): Promise<RouterConfig> {
 	return mod.default || {}
 }
 
-// like Frappe's error page: details only for those is_traceback_allowed() lets see a traceback
 export function showRouterError(error: unknown) {
 	console.error(error)
-	createApp(ErrorPage, { error: window.show_error_details ? getErrorDetails(error) : null }).mount("#app")
+	createApp(ErrorPage, { error: getErrorDetails(error) }).mount("#app")
 }
 
 // the message names the failed hook; the cause's stack frames point into the app's own router code
