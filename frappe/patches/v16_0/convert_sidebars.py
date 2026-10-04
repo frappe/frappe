@@ -181,9 +181,10 @@ def forks_by_owner() -> dict[tuple[str, str], list[frappe._dict]]:
 		if is_private_container(fork):
 			continue
 
-		fork.rows = archive_items(fork.name)
-		fork.sequence_id = 0
 		fork.source = source_of(fork)
+		# spacers are named after the sidebar the fork was copied from, so they match its rows
+		fork.rows = archive_items(fork.name, spacer_scope=fork.source)
+		fork.sequence_id = 0
 		fork.title = fork.source or fork.title
 
 		module = fork.module or majority_module_of(fork.rows)
@@ -252,7 +253,7 @@ def is_module(module: str | None) -> bool:
 	return bool(module) and bool(frappe.db.exists("Module Def", module))
 
 
-def archive_items(sidebar: str) -> list[frappe._dict]:
+def archive_items(sidebar: str, spacer_scope: str | None = None) -> list[frappe._dict]:
 	rows = frappe.get_all(
 		ARCHIVE_ITEM_DOCTYPE,
 		filters={"parenttype": ARCHIVE_DOCTYPE, "parentfield": "items", "parent": sidebar},
@@ -267,10 +268,11 @@ def archive_items(sidebar: str) -> list[frappe._dict]:
 		# v16's report-group button; its doctype is gone and nothing draws the row now
 		if row.type == "Sidebar Item Group":
 			continue
-		# an unlinked row is keyed by type and label, so unnamed spacers would collapse into one
+		# an unlinked row is keyed by type and label, and a module's sidebars are merged, so an
+		# unnamed spacer needs a label no other sidebar's spacer can share
 		if row.type == "Spacer" and not row.label:
 			spacers += 1
-			row.label = "Spacer" if spacers == 1 else f"Spacer {spacers}"
+			row.label = f"{spacer_scope or sidebar} spacer {spacers}"
 		items.append(row)
 
 	return items
