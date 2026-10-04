@@ -139,4 +139,3 @@ import "./frappe/scanner";
 
 import "./frappe/ui/address_autocomplete/autocomplete_dialog.js";
 import "./frappe/ui/desktop_icon.html";
-import "./frappe/ui/user_onboarding/user_onboarding.bundle.js";

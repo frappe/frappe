@@ -14,6 +14,7 @@ class OnboardingStepMap(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		is_optional: DF.Check
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

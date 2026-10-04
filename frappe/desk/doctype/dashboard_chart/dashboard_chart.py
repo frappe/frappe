@@ -359,6 +359,7 @@ class DashboardChart(Document):
 		custom_options: DF.Code | None
 		document_type: DF.Link | None
 		dynamic_filters_json: DF.Code | None
+		empty_state_message: DF.SmallText | None
 		filters_json: DF.Code
 		from_date: DF.Date | None
 		group_by_based_on: DF.Literal[None]
