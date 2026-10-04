@@ -5,7 +5,14 @@ test.describe("Customize Form", () => {
 		await page.goto("/desk/customize-form");
 		await desk.ready();
 
-		await desk.fill_field("doc_type", "ToDo", "Link");
+		const doc_type = desk.get_field("doc_type", "Link");
+		await doc_type.focus();
+		await doc_type.pressSequentially("ToDo", { delay: 100 });
+		await expect(
+			page.locator('[data-fieldname="doc_type"] div[role="option"]').first()
+		).toContainText("ToDo");
+		await doc_type.press("Enter");
+		await expect.poll(() => page.evaluate(() => cur_frm.doc.doc_type)).toBe("ToDo");
 		await expect(page.getByRole("tab", { name: "Form", exact: true })).toHaveClass(/active/);
 		await expect(page.locator(".form-builder-container")).toBeVisible();
 		await page.getByRole("tab", { name: "Details", exact: true }).click();
