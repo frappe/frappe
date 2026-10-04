@@ -55,7 +55,7 @@ class DesktopIcon(Document):
 			self.label = self.module_name
 
 	def on_trash(self):
-		clear_desktop_icons_cache()
+		clear_every_users_desktop_icons()
 		if frappe.conf.developer_mode and self.standard and self.app:
 			delete_desktop_icon_file(self.app, self.label)
 
@@ -72,11 +72,7 @@ class DesktopIcon(Document):
 
 	def on_update(self):
 		self.export_desktop_icon()
-		if self.standard:
-			frappe.cache.delete_key("desktop_icons")
-			frappe.cache.delete_key("bootinfo")
-		else:
-			clear_desktop_icons_cache(user=self.owner)
+		clear_every_users_desktop_icons()
 
 	def after_rename(self, old, new, merge):
 		delete_desktop_icon_file(self.app, old)
@@ -113,9 +109,6 @@ class DesktopIcon(Document):
 
 	# 	if has_common(roles, allowed):
 	# 		return True
-
-	def after_insert(self):
-		clear_desktop_icons_cache()
 
 
 def delete_desktop_icon_file(app, label):
@@ -228,6 +221,25 @@ def get_linked_workspace_modules(icons: list[dict]) -> dict[str, str]:
 	return {name: modules.get(workspace) for name, workspace in linked.items()}
 
 
+def is_shared_icon(icon, private_workspaces: set[str]) -> bool:
+	"""Whether a custom icon another user made can reach this user's grid.
+
+	A link is checked for permission like any other icon, so it is shared. A folder or an app icon
+	only arranges its maker's grid. A link to a private workspace stays with its owner, since the
+	permission check looks at the module, not at who the workspace belongs to.
+	"""
+	return icon.icon_type == "Link" and icon.link_to not in private_workspaces
+
+
+def get_private_workspaces(icons: list[dict]) -> set[str]:
+	"""The workspaces among `icons`' links that are not public."""
+	linked = {icon.link_to for icon in icons if icon.icon_type == "Link" and icon.link_to}
+	if not linked:
+		return set()
+
+	return set(frappe.get_all("Workspace", filters={"name": ("in", list(linked)), "public": 0}, pluck="name"))
+
+
 def get_desktop_icons(user=None, bootinfo=None):
 	"""Return desktop icons for user"""
 	if not user:
@@ -255,22 +267,15 @@ def get_desktop_icons(user=None, bootinfo=None):
 			"icon_image",
 		]
 
-		from frappe.query_builder import DocType
-
-		DesktopIcon = DocType("Desktop Icon")
-
-		user_icons = (
-			frappe.qb.from_(DesktopIcon)
-			.select(*fields)
-			.where(
-				(DesktopIcon.standard == 1)
-				| (
-					(DesktopIcon.standard == 0)
-					& (DesktopIcon.owner.isin(["Administrator", frappe.session.user]))
-				)
-			)
-			.distinct()
-		).run(as_dict=True)
+		rows = frappe.get_all("Desktop Icon", fields=[*fields, "owner"])
+		private_workspaces = get_private_workspaces(rows)
+		user_icons = [
+			row
+			for row in rows
+			if row.standard or row.owner in ("Administrator", user) or is_shared_icon(row, private_workspaces)
+		]
+		for row in user_icons:
+			del row["owner"]
 
 		# sort by idx
 		user_icons.sort(key=lambda a: a.idx)
@@ -320,6 +325,12 @@ DESK_LINK_PATTERN = re.compile(r"^/(desk|app)(/.*)?$")
 def is_desk_link(link: str | None) -> bool:
 	"""Whether `link` opens the desk, rather than an app's own portal."""
 	return bool(link and DESK_LINK_PATTERN.match(link))
+
+
+def clear_every_users_desktop_icons():
+	"""An icon can reach any user, so changing one has to drop every user's cached grid."""
+	frappe.cache.delete_key("desktop_icons")
+	frappe.cache.delete_key("bootinfo")
 
 
 def create_desktop_icons_from_workspace():

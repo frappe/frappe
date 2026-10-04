@@ -333,6 +333,9 @@ class DesktopPage {
 		}
 	}
 	handle_route_change() {
+		// setup() runs on every render, but one listener is enough
+		if (this.route_change_bound) return;
+		this.route_change_bound = true;
 		const me = this;
 		frappe.router.on("change", function () {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
@@ -343,3 +346,6 @@ class DesktopPage {
 		});
 	}
 }
+
+// The Desktop Icons grid in desktop_icons.bundle.js extends this page, so both modes share it.
+frappe.ui.DesktopPage = DesktopPage;
