@@ -43,8 +43,9 @@ frappe-mobile-nav.desk-mobile-nav {
 	}
 
 	// The page title opens the navigation sheet (MobileNav.open_navigation); the chevron
-	// says so. Drawn in CSS because the crumb is redrawn on every paint.
-	body.has-mobile-nav .page-head .navbar-breadcrumbs li:last-child {
+	// says so. Drawn in CSS because the crumb is redrawn on every paint. Not on a system
+	// page, which has no sidebar (MobileNav.apply_page_visibility).
+	body.mobile-nav-title .page-head .navbar-breadcrumbs li:last-child {
 		cursor: pointer;
 
 		// lucide's chevron-down as a mask, so it stays inside its own box: the title area
