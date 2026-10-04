@@ -47,66 +47,15 @@ function get_workspaces_from_app_name(app_name) {
 function get_route(desktop_icon) {
 	let route;
 	if (!desktop_icon) return;
-	let item = {};
 	if (desktop_icon.link_type == "External" && desktop_icon.link) {
 		route = window.location.origin + desktop_icon.link;
 		if (desktop_icon.link.startsWith("http") || desktop_icon.link.startsWith("https")) {
 			route = desktop_icon.link;
 		}
-	} else {
+	} else if (desktop_icon.link_type == "Workspace Sidebar") {
+		// The same landing the Apps screen and the dock open, in the `/desk/<shell>/...` grammar.
 		let sidebar = frappe.utils.sidebar_for_module(desktop_icon.module || desktop_icon.label);
-		if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
-			let first_link = sidebar.items.find((i) => i.type == "Link");
-			if (first_link) {
-				if (first_link.link_type === "Report") {
-					let args = {
-						type: first_link.link_type,
-						name: first_link.link_to,
-					};
-
-					// the body reads `first_link.report.*`, so a link whose report has been
-					// deleted (no `report` payload) has to skip it, not fall through to it
-					if (first_link.report) {
-						args.is_query_report =
-							first_link.report.report_type === "Query Report" ||
-							first_link.report.report_type == "Script Report";
-						args.report_ref_doctype = first_link.report.ref_doctype;
-					}
-
-					route = frappe.utils.generate_route(args);
-				} else if (first_link.link_type == "Workspace") {
-					let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
-					if (workspaces) {
-						let args = {
-							type: "workspace",
-							name: workspaces.title,
-							public: workspaces.public ? 1 : 0,
-							route_options: {
-								sidebar: desktop_icon.label,
-							},
-						};
-						route = frappe.utils.generate_route(args);
-					}
-				} else if (first_link.link_type === "URL") {
-					route = first_link.url;
-				} else if (first_link.link_type == "Page" && first_link.route_options) {
-					route = frappe.utils.generate_route({
-						type: first_link.link_type,
-						name: first_link.link_to,
-						route_options: JSON.parse(first_link.route_options),
-					});
-				} else {
-					route = frappe.utils.generate_route({
-						type: first_link.link_type,
-						name: first_link.link_to,
-						tab: first_link.tab,
-						route_options: {
-							sidebar: desktop_icon.label,
-						},
-					});
-				}
-			}
-		}
+		if (sidebar) route = frappe.app.sidebar?.module_landing_route(sidebar.name);
 	}
 	return route;
 }
