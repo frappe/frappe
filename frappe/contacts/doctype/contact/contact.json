@@ -150,6 +150,7 @@
   {
    "fieldname": "links",
    "fieldtype": "Table",
+   "in_import_template": 1,
    "label": "Links",
    "options": "Dynamic Link"
   },
@@ -192,6 +193,7 @@
   {
    "fieldname": "email_ids",
    "fieldtype": "Table",
+   "in_import_template": 1,
    "label": "Email IDs",
    "options": "Contact Email"
   },
@@ -204,6 +206,7 @@
   {
    "fieldname": "phone_nos",
    "fieldtype": "Table",
+   "in_import_template": 1,
    "label": "Contact Numbers",
    "options": "Contact Phone"
   },
