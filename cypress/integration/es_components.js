@@ -233,6 +233,38 @@ context("Espresso components", () => {
 			cy.get(".es-menu[data-state='open']").should("not.exist");
 			cy.get("@surface").should("not.have.attr", "data-state");
 		});
+
+		it("opens only the innermost menu when one target sits inside another's", () => {
+			cy.window().then((win) => {
+				const outer = win.document.createElement("div");
+				outer.className = "nested-menu-outer";
+				outer.style.cssText =
+					"position: fixed; top: 200px; left: 400px; padding: 40px; z-index: 2000; background: white;";
+				const inner = win.document.createElement("div");
+				inner.className = "nested-menu-inner";
+				inner.textContent = "Inner";
+				outer.appendChild(inner);
+				win.document.body.appendChild(outer);
+
+				new win.frappe.ui.ContextMenu({
+					target: outer,
+					options: [{ label: "Outer action" }],
+				});
+				new win.frappe.ui.ContextMenu({
+					target: inner,
+					options: [{ label: "Inner action" }],
+				});
+			});
+
+			cy.get(".nested-menu-inner").rightclick();
+			cy.get(".es-menu[data-state='open']").should("have.length", 1);
+			cy.get(".es-menu[data-state='open']").should("contain", "Inner action");
+			cy.get(".nested-menu-outer").should("not.have.attr", "data-state");
+
+			cy.get(".nested-menu-outer").rightclick("topLeft");
+			cy.get(".es-menu[data-state='open']").should("have.length", 1);
+			cy.get(".es-menu[data-state='open']").should("contain", "Outer action");
+		});
 	});
 
 	describe("Tooltip", () => {
