@@ -120,8 +120,14 @@ test.describe("Kanban v2 Board", () => {
 		admin,
 	}) => {
 		await set_kanban_v2(admin, false);
+		// the classic board saves its column order to the board on load
+		const order_saved = page.waitForResponse(
+			is_post_to("frappe.desk.doctype.kanban_board.kanban_board.update_order")
+		);
 		await visit_board(page);
 		await expect(page.locator(".kanban-column").nth(2)).toBeAttached();
 		await expect(page.locator(".kanban-v2-container")).toHaveCount(0);
+		// let that save land before afterAll writes to the same board
+		await order_saved;
 	});
 });

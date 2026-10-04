@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import { CHART_PALETTE } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
@@ -1605,9 +1606,13 @@ Object.assign(frappe.utils, {
 	},
 
 	make_chart(wrapper, custom_options = {}) {
+		// a chart that names no colours of its own gets Espresso's
+		if (!custom_options.colors?.length) {
+			custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
+		}
+
 		let chart_args = {
 			type: "bar",
-			colors: ["light-blue"],
 			axisOptions: {
 				xIsSeries: 1,
 				shortenYAxisNumbers: 1,
@@ -1625,6 +1630,15 @@ Object.assign(frappe.utils, {
 		}
 		frappe.utils.set_space_label_ratio(chart_args);
 		return new frappe.Chart(wrapper, chart_args);
+	},
+
+	// Espresso's chart colours (CHART_PALETTE) as the current theme defines them: frappe-charts
+	// lightens and blends colours from their literal values, which a CSS variable does not give it
+	get_chart_palette() {
+		const style = getComputedStyle(document.documentElement);
+		return CHART_PALETTE.map(
+			(color) => style.getPropertyValue(color.slice(4, -1)).trim() || color
+		);
 	},
 
 	format_chart_axis_number(label, country) {

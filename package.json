@@ -61,7 +61,7 @@
     "less": "^4.2.0",
     "localforage": "^1.10.0",
     "md5": "^2.3.0",
-    "moment": "^2.29.4",
+    "moment": "^2.31.0",
     "moment-timezone": "^0.5.35",
     "photoswipe": "^5.4.3",
     "pinia": "^2.0.23",

@@ -137,7 +137,7 @@ def has_permission(
 		return False
 
 	# docname == doctype for single doctypes
-	if not doc and meta.issingle:
+	if not doc and meta.issingle and not meta.is_virtual:
 		doc = meta.name
 
 	if doc:

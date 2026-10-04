@@ -1797,6 +1797,21 @@ class TestTBSanitization(IntegrationTestCase):
 
 		self.assertIn("should_be_visible", traceback)
 
+	def test_sanitization_hides_object_attributes(self):
+		class Connection:
+			def __init__(self):
+				self.password = "should_not_leak"
+
+		try:
+			connection = Connection()  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("connection =", traceback)
+		self.assertNotIn("should_not_leak", traceback)
+
 	def test_get_traceback_with_context_only_active_in_developer_mode(self):
 		def boom():
 			marker = "visible-marker"  # noqa: F841

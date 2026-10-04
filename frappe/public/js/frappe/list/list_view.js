@@ -1425,7 +1425,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_list_row_html_skeleton(left = "", right = "", { virtual = false } = {}) {
 		const virtual_attr = virtual ? ' data-virtual-row="1"' : "";
 		return `
-			<div class="list-row-container" tabindex="1"${virtual_attr}>
+			<div class="list-row-container" tabindex="0"${virtual_attr}>
 				<div class="level list-row">
 					<div class="level-left ellipsis">
 						${left}
@@ -1884,7 +1884,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			ellipsisSpan.classList.add("level-item", seen, "ellipsis");
 		}
 
-		div.appendChild(checkboxspan).appendChild(ef.get_checkbox_element(doc.name));
+		div.appendChild(checkboxspan).appendChild(ef.get_checkbox_element(doc.name, title));
 		div.appendChild(ellipsisSpan).appendChild(
 			ef.get_link_element(
 				doc.name,
@@ -1933,6 +1933,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				css_class: "filterable ellipsis",
 				attrs: {
 					"data-filter": cstr(indicator[2] || ""),
+					"data-filter-dynamic": "1",
 				},
 			});
 		}
@@ -2080,12 +2081,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (e.metaKey || e.ctrlKey) return;
 			e.stopPropagation();
 			const $this = $(e.currentTarget);
+			// Indicator filters may use relative values; field cells contain literal document values.
+			const resolve_dynamic_values = $this.attr("data-filter-dynamic") === "1";
 			const filters = $this.attr("data-filter").split("|");
 			const filters_to_apply = filters.map((f) => {
 				f = f.split(",");
-				if (f[2] === "Today") {
+				const df = resolve_dynamic_values && frappe.meta.get_field(this.doctype, f[0]);
+				if (f[2] === "Today" && df && ["Date", "Datetime"].includes(df.fieldtype)) {
 					f[2] = frappe.datetime.get_today();
-				} else if (f[2] == "User") {
+				} else if (f[2] === "User" && df?.fieldtype === "Link" && df.options === "User") {
 					f[2] = frappe.session.user;
 				}
 				this.filter_area.remove(f[0]);
@@ -3358,9 +3362,10 @@ class ElementFactory {
 		return like;
 	}
 
-	get_checkbox_element(name) {
+	get_checkbox_element(name, label) {
 		const checkbox = this.templates.checkbox.cloneNode(true);
 		checkbox.dataset.name = name;
+		checkbox.setAttribute("aria-label", __("Select {0}", [strip_html(String(label || name))]));
 		return checkbox;
 	}
 

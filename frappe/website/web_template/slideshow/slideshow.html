@@ -21,7 +21,7 @@
 		{% for slide in slides %}
 		<div class="{% if slide.idx == 1 %} active {% endif %} item carousel-item">
 			<a href="{{ slide.url or '' }}">
-				<img class="d-block w-100" src="{{ slide.image }}" />
+				<img class="d-block w-100" src="{{ slide.image }}" alt="{{ (slide.heading or _('Slide {0}').format(slide.idx)) | e }}" />
 			</a>
 			{% if slide.heading or slide.description %}
 			<div class="carousel-caption d-none d-md-block">

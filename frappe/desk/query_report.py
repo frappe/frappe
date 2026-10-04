@@ -64,12 +64,12 @@ def get_report_doc(report_name):
 	return doc
 
 
-@frappe.whitelist()
-def get_print_format_data(print_format: str):
+def get_permitted_report_print_format(print_format: str) -> frappe._dict:
+	"""Resolve an enabled Report print format, enforcing the report it belongs to."""
 	pf = frappe.db.get_value(
 		"Print Format",
 		{"name": print_format, "disabled": 0, "print_format_for": "Report"},
-		["report", "html", "css"],
+		["report", "html", "css", "print_format_type"],
 		as_dict=True,
 	)
 	if not pf:
@@ -78,7 +78,7 @@ def get_print_format_data(print_format: str):
 			frappe.DoesNotExistError,
 		)
 
-	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
+	# get_report_doc enforces the referenced Report's own permission model
 	report = get_report_doc(pf.report)
 
 	if not frappe.has_permission(report.ref_doctype, "print"):
@@ -87,7 +87,18 @@ def get_print_format_data(print_format: str):
 			frappe.PermissionError,
 		)
 
-	return {"html": pf.html, "css": pf.css}
+	return pf
+
+
+@frappe.whitelist()
+def get_print_format_data(print_format: str):
+	pf = get_permitted_report_print_format(print_format)
+
+	# a Jinja format is rendered server side, so its template never leaves the server
+	if pf.print_format_type == "Jinja":
+		return {"print_format_type": pf.print_format_type}
+
+	return {"html": pf.html, "css": pf.css, "print_format_type": pf.print_format_type}
 
 
 def get_report_result(report, filters):
