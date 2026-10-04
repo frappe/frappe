@@ -55,7 +55,7 @@ class DesktopIcon(Document):
 			self.label = self.module_name
 
 	def on_trash(self):
-		clear_desktop_icons_cache()
+		clear_every_users_desktop_icons()
 		if frappe.conf.developer_mode and self.standard and self.app:
 			delete_desktop_icon_file(self.app, self.label)
 
@@ -72,11 +72,7 @@ class DesktopIcon(Document):
 
 	def on_update(self):
 		self.export_desktop_icon()
-		if self.standard:
-			frappe.cache.delete_key("desktop_icons")
-			frappe.cache.delete_key("bootinfo")
-		else:
-			clear_desktop_icons_cache(user=self.owner)
+		clear_every_users_desktop_icons()
 
 	def after_rename(self, old, new, merge):
 		delete_desktop_icon_file(self.app, old)
@@ -115,7 +111,7 @@ class DesktopIcon(Document):
 	# 		return True
 
 	def after_insert(self):
-		clear_desktop_icons_cache()
+		clear_every_users_desktop_icons()
 
 
 def delete_desktop_icon_file(app, label):
@@ -255,22 +251,8 @@ def get_desktop_icons(user=None, bootinfo=None):
 			"icon_image",
 		]
 
-		from frappe.query_builder import DocType
-
-		DesktopIcon = DocType("Desktop Icon")
-
-		user_icons = (
-			frappe.qb.from_(DesktopIcon)
-			.select(*fields)
-			.where(
-				(DesktopIcon.standard == 1)
-				| (
-					(DesktopIcon.standard == 0)
-					& (DesktopIcon.owner.isin(["Administrator", frappe.session.user]))
-				)
-			)
-			.distinct()
-		).run(as_dict=True)
+		# Every row, whoever created it: what a user sees is decided by the permission check below.
+		user_icons = frappe.get_all("Desktop Icon", fields=fields)
 
 		# sort by idx
 		user_icons.sort(key=lambda a: a.idx)
@@ -313,6 +295,7 @@ def clear_desktop_icons_cache(user=None):
 	frappe.cache.hdel("bootinfo", user or frappe.session.user)
 
 
+<<<<<<< HEAD
 # `/app` is the old name for `/desk`, and App icons are still shipped with either.
 DESK_LINK_PATTERN = re.compile(r"^/(desk|app)(/.*)?$")
 
@@ -320,6 +303,12 @@ DESK_LINK_PATTERN = re.compile(r"^/(desk|app)(/.*)?$")
 def is_desk_link(link: str | None) -> bool:
 	"""Whether `link` opens the desk, rather than an app's own portal."""
 	return bool(link and DESK_LINK_PATTERN.match(link))
+=======
+def clear_every_users_desktop_icons():
+	"""An icon can reach any user, so changing one has to drop every user's cached grid."""
+	frappe.cache.delete_key("desktop_icons")
+	frappe.cache.delete_key("bootinfo")
+>>>>>>> a49b866 (fix(desktop): show a custom desktop icon to every permitted user, not only its creator)
 
 
 def create_desktop_icons_from_workspace():

@@ -37,6 +37,7 @@ from frappe.utils.install import create_desktop_icons_for_app
 SHIPPED = "Test Shipped Grid Icon"
 MODULE = "Core"
 USER = "test-icon-grid@example.com"
+VIEWER = "test-icon-grid-viewer@example.com"
 
 
 @contextmanager
@@ -308,6 +309,16 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 					"roles": [{"role": "System Manager"}],
 				}
 			).insert()
+		if not frappe.db.exists("User", VIEWER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": VIEWER,
+					"first_name": "Icon Grid Viewer",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Desk User"}],
+				}
+			).insert()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -345,6 +356,29 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 
 			self.assertIn("Test Open Icon", visible)
 			self.assertNotIn("Test Restricted Icon", visible)
+
+	def test_a_custom_icon_reaches_users_other_than_its_creator(self):
+		"""Who made a custom icon does not decide who sees it; the same gates as every other icon do."""
+		with desktop_page(DESKTOP_ICONS):
+			frappe.set_user(USER)
+			self.make_icon("Test Shared Custom Icon")
+
+			frappe.set_user(VIEWER)
+
+			self.assertIn("Test Shared Custom Icon", self.visible_icons())
+
+	def test_a_new_custom_icon_reaches_a_user_whose_grid_is_cached(self):
+		with desktop_page(DESKTOP_ICONS):
+			frappe.set_user(VIEWER)
+			get_desktop_icons(bootinfo=frappe._dict(module_sidebars={}))
+
+			frappe.set_user(USER)
+			self.make_icon("Test Late Custom Icon")
+
+			frappe.set_user(VIEWER)
+			visible = {icon.label for icon in get_desktop_icons(bootinfo=frappe._dict(module_sidebars={}))}
+
+			self.assertIn("Test Late Custom Icon", visible)
 
 	def test_a_folder_with_no_module_is_still_hidden_by_its_roles(self):
 		"""What the icon gate is for: the module model cannot hide a folder, because a folder has no
