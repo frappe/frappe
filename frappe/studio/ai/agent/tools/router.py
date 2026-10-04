@@ -1,7 +1,11 @@
 """Router-script tools for a custom (non-exported) app, whose router config is the Studio App's
 `router_script` field. An exported app keeps it in `router.ts`, written with write_app_file."""
 
+import os
 import re
+import shutil
+import subprocess
+import tempfile
 
 import frappe
 
@@ -52,11 +56,30 @@ def get_script_error(source: str) -> str | None:
 		return "script is required — pass the FULL object literal, not a fragment."
 	if re.search(r"(?m)^\s*(export|import)\b", source):
 		return "a custom app's router script has no `export`/`import` — pass just the object literal `{ … }`."
-	if not source.startswith("{"):
+	if not source.lstrip().startswith("{"):
 		return (
 			"the router script is one object literal: `{ routerOptions, extendRoute(route), setup(router) }`."
 		)
-	return None
+	return get_syntax_error(source)
+
+
+def get_syntax_error(source: str) -> str | None:
+	"""Parse the script with Node, wrapped like the renderer runs it, so a malformed object is never
+	saved: it would stop the app at startup. Skipped when Node isn't on the PATH."""
+	node = shutil.which("node")
+	if not node:
+		return None
+	with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as file:
+		file.write(f"(\n{source}\n)")
+	try:
+		result = subprocess.run([node, "--check", file.name], capture_output=True, text=True, timeout=10)
+	finally:
+		os.unlink(file.name)
+	if result.returncode == 0:
+		return None
+	# node prints the file:line, the offending line, a caret, then the SyntaxError
+	lines = [line for line in result.stderr.splitlines() if line.strip()][1:4]
+	return "the script does not parse:\n" + "\n".join(lines)
 
 
 get_router_script = Tool(

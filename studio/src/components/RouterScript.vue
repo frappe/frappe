@@ -105,7 +105,7 @@ const fieldSource = {
 	},
 	async save(source: string) {
 		// an object literal only parses as an expression
-		const syntaxError = source.trim() ? getScriptError(`(${source})`) : null
+		const syntaxError = source.trim() ? getScriptError(`(\n${source}\n)`) : null
 		if (syntaxError) throw new Error(syntaxError.message)
 		await store.updateActiveApp("router_script", source)
 	},
@@ -116,6 +116,16 @@ const source = computed(() => (store.activeApp?.is_standard ? fileSource : field
 function complete(context: CompletionContext) {
 	return routerScriptCompletions(context, Object.values(store.appPages))
 }
+
+// follow the saved script, like the page script editor does
+watch(
+	() => store.activeApp?.router_script || "",
+	(saved) => {
+		if (store.showRouterEditor && !store.activeApp?.is_standard && saved !== savedScript.value) {
+			fieldSource.load()
+		}
+	},
+)
 
 watch(
 	() => store.showRouterEditor && store.activeApp?.name,
