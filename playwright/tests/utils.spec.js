@@ -80,6 +80,10 @@ test.describe("Utils", () => {
 		expect(link).toBe('<a href="/desk/todo/TODO-0001"><b>Open item</b></a>');
 	});
 
+	test("should keep zero when shortening a number", async ({ page }) => {
+		expect(await run_util(page, "shorten_number", 0)).toBe("0");
+	});
+
 	test("should parse days, hours, minutes and seconds", async ({ page }) => {
 		const seconds = 60 * 60 * 24 + 60 * 60 + 60 + 1;
 
