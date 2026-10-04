@@ -247,7 +247,7 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 			options: [
 				{
 					label: __("Edit Layout"),
-					icon: "edit",
+					icon: "pencil",
 					condition: function () {
 						return !me.edit_mode;
 					},
@@ -636,7 +636,7 @@ class DesktopIcon {
 			options: [
 				{
 					label: __("Edit"),
-					icon: "edit",
+					icon: "pencil",
 					condition: function () {
 						return icon_data.standard != 1;
 					},
