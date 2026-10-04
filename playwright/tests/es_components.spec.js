@@ -219,6 +219,42 @@ test.describe("Espresso components", () => {
 			await expect(page.locator(".es-menu[data-state='open']")).toHaveCount(0);
 			await expect(surface).not.toHaveAttribute("data-state");
 		});
+
+		test("opens only the innermost menu when one target sits inside another's", async ({
+			page,
+		}) => {
+			await page.evaluate(() => {
+				const outer = document.createElement("div");
+				outer.className = "nested-menu-outer";
+				outer.style.cssText =
+					"position: fixed; top: 200px; left: 400px; padding: 40px; z-index: 2000; background: white;";
+				const inner = document.createElement("div");
+				inner.className = "nested-menu-inner";
+				inner.textContent = "Inner";
+				outer.appendChild(inner);
+				document.body.appendChild(outer);
+
+				new frappe.ui.ContextMenu({
+					target: outer,
+					options: [{ label: "Outer action" }],
+				});
+				new frappe.ui.ContextMenu({
+					target: inner,
+					options: [{ label: "Inner action" }],
+				});
+			});
+			const open_menu = page.locator(".es-menu[data-state='open']");
+			const outer = page.locator(".nested-menu-outer");
+
+			await page.locator(".nested-menu-inner").click({ button: "right" });
+			await expect(open_menu).toHaveCount(1);
+			await expect(open_menu).toContainText("Inner action");
+			await expect(outer).not.toHaveAttribute("data-state");
+
+			await outer.click({ button: "right", position: { x: 5, y: 5 } });
+			await expect(open_menu).toHaveCount(1);
+			await expect(open_menu).toContainText("Outer action");
+		});
 	});
 
 	test.describe("Tooltip", () => {
