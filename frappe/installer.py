@@ -374,11 +374,11 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
 
-	if set_as_patched:
-		set_all_patches_as_completed(name)
-
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
+
+	if set_as_patched:
+		set_all_patches_as_completed(name)
 
 	for fn in frappe.get_hooks("after_app_install"):
 		frappe.get_attr(fn)(name)

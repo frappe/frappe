@@ -120,10 +120,6 @@ frappe.views.TreeView = class TreeView {
 			frappe.ui.make_app_page({ parent: this.parent, single_column: true });
 			this.page = this.parent.page;
 			frappe.container.change_to(this.page_name);
-			frappe.breadcrumbs.add(
-				me.opts.breadcrumb || locals.DocType[me.doctype].module,
-				me.doctype
-			);
 
 			this.set_title();
 			this.setup_view_switcher();
@@ -578,7 +574,7 @@ frappe.views.TreeView = class TreeView {
 			},
 			{
 				label: __("Delete"),
-				icon: "trash-2",
+				icon: "trash",
 				danger: true,
 				condition: function (node) {
 					return me.can_delete;

@@ -206,7 +206,7 @@ onMounted(() => {
 	width: 2.625rem;
 	height: 2.625rem;
 	overflow: hidden;
-	margin-right: var(--margin-md);
+	margin-inline-end: var(--margin-md);
 	flex-shrink: 0;
 }
 
@@ -244,7 +244,7 @@ onMounted(() => {
 .file-actions {
 	width: 3rem;
 	flex-shrink: 0;
-	margin-left: auto;
+	margin-inline-start: auto;
 	text-align: center;
 }
 

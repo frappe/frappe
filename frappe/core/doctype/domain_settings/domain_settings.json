@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2017-05-03 16:28:11.295095",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/domain-settings",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

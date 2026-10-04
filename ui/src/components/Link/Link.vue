@@ -75,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+import { toLinkOption } from "./linkOption";
 import { computed, ref, useSlots, watch } from "vue";
 import { Combobox, createResource, frappeRequest, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
@@ -111,12 +112,7 @@ const options = createResource({
 	},
 	method: "POST",
 	resourceFetcher: frappeRequest,
-	transform: (data: LinkOption[]): LinkOption[] =>
-		data.map((doc: any) => ({
-			label: doc.label || doc.value,
-			value: doc.value,
-			description: doc.description,
-		})),
+	transform: (data: LinkOption[]): LinkOption[] => data.map(toLinkOption),
 });
 
 const createNewOption: ComboboxCustomOption = {
@@ -129,7 +125,11 @@ const createNewOption: ComboboxCustomOption = {
 };
 
 const linkOptions = computed<ComboboxOption[]>(() => {
-	const _options = options.data || [];
+	let _options: ComboboxOption[] = options.data || [];
+	const known = model.value && _options.some((option: any) => option.value === model.value);
+	if (props.title && model.value && !known) {
+		_options = [{ label: props.title, value: model.value }, ..._options];
+	}
 	if (props.creatable) {
 		return [..._options, createNewOption];
 	}

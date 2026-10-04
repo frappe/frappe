@@ -15,6 +15,7 @@
   "column_break_krzu",
   "type",
   "link_to",
+  "route",
   "child",
   "navigate_to_tab",
   "url",
@@ -67,6 +68,13 @@
    "in_list_view": 1,
    "label": "Link To",
    "options": "link_type"
+  },
+  {
+   "depends_on": "eval: doc.link_type == \"Page\"",
+   "description": "Path inside the page, e.g. \"payroll\" opens /desk/<page>/payroll. No leading slash, query or fragment.",
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "label": "Route"
   },
   {
    "depends_on": "eval: doc.type == \"Link\" || doc.type == \"Section Break\"",
@@ -221,7 +229,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-08-27 14:57:28.772713",
+ "modified": "2026-09-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Sidebar Item",

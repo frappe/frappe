@@ -6,7 +6,13 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.communication.communication import parse_email
-from frappe.desk.form.load import get_document_email, get_filtered_attachments, get_user_info_for_viewers
+from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.desk.form.load import (
+	add_comments,
+	get_document_email,
+	get_filtered_attachments,
+	get_user_info_for_viewers,
+)
 from frappe.tests import IntegrationTestCase
 
 
@@ -15,6 +21,59 @@ class TestLoad(IntegrationTestCase):
 		# users as a native list instead of a JSON string (frappe.parse_json passthrough)
 		info = get_user_info_for_viewers(["Administrator"])
 		self.assertIn("Administrator", info)
+
+	def test_add_comments_hides_attachment_activity_for_restricted_fields(self):
+		doctype = new_doctype(
+			fields=[
+				{"label": "Open Attach", "fieldname": "open_attach", "fieldtype": "Attach", "permlevel": 0},
+				{
+					"label": "Restricted Attach",
+					"fieldname": "restricted_attach",
+					"fieldtype": "Attach",
+					"permlevel": 1,
+				},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "permlevel": 0},
+				{"role": "System Manager", "read": 1, "write": 1, "permlevel": 1},
+				{"role": "All", "read": 1, "write": 1, "create": 1, "permlevel": 0},
+			],
+		).insert(ignore_if_duplicate=True)
+
+		doc = frappe.get_doc(doctype=doctype.name).insert(ignore_permissions=True)
+
+		def attach(fieldname):
+			return frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": f"{fieldname}.txt",
+					"content": fieldname,
+					"attached_to_doctype": doctype.name,
+					"attached_to_name": doc.name,
+					"attached_to_field": fieldname,
+				}
+			).insert(ignore_permissions=True)
+
+		open_file = attach("open_attach")
+		restricted_file = attach("restricted_attach")
+
+		def attachment_log_names():
+			out = frappe._dict()
+			add_comments(frappe.get_doc(doctype.name, doc.name), out)
+			return {c.content for c in out.attachment_logs}
+
+		frappe.set_user("test4@example.com")
+		try:
+			restricted_logs = attachment_log_names()
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertTrue(any(open_file.file_name in c for c in restricted_logs))
+		self.assertFalse(any(restricted_file.file_name in c for c in restricted_logs))
+
+		full_logs = attachment_log_names()
+		self.assertTrue(any(open_file.file_name in c for c in full_logs))
+		self.assertTrue(any(restricted_file.file_name in c for c in full_logs))
 
 	def test_get_filtered_attachments(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "Attachment filter test"}).insert()

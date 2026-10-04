@@ -16,20 +16,19 @@ dependencies = [
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
     "Pillow~=12.3.0",
-    "PyJWT~=2.13.0",
+    "PyJWT~=2.15.0",
     "duckdb~=1.4.3",
     "pyarrow~=25.0.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.16.1",
-    "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
+    "pypdf==6.19.0",
+    "PyPika @ git+https://github.com/frappe/pypika@054ffb18a0a60f3c3f472dcce86116fd86db1188",
     "mysqlclient==2.2.8",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
-    "RestrictedPython~=8.1",
+    "RestrictedPython~=8.5",
     "Werkzeug==3.1.6",
-    "Whoosh~=2.7.4",
     "beautifulsoup4~=4.15.0",
     "bleach-allowlist~=1.0.3",
     "chardet~=7.4.3",
@@ -47,7 +46,7 @@ dependencies = [
     "MarkupSafe~=3.0.3",
     "nh3~=0.3.2",
     "num2words~=0.5.14",
-    "oauthlib~=3.3.1",
+    "oauthlib~=4.0.0",
     "openpyxl~=3.1.5",
     "xlsxwriter~=3.2.9",
     "orjson~=3.11.5",
@@ -74,6 +73,7 @@ dependencies = [
     "rsa~=4.9.1",
     "semantic-version~=2.10.0",
     "sentry-sdk~=2.60.0",
+    "sqlglot~=30.16.0",
     "sqlparse~=0.6.0",
     "sql_metadata~=3.0.1",
     "tenacity~=9.1.2",
@@ -137,7 +137,6 @@ dev = [
     "types-six",
     "types-vobject",
     "types-zxcvbn",
-    "pypika-stubs",  # contributed
 ]
 test = [
     "unittest-xml-reporting~=4.0.0",
@@ -227,7 +226,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { sqlparse = false } # drop sqlparse after 2026-08-20
+exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06
 
 [tool.mypy]
 strict = false
@@ -276,17 +275,10 @@ module = [
     "google.oauth2",
     "google.oauth2.credentials",
     "markdown2",
-    "markdownify",
     "num2words",
     "pdfkit",
     "premailer",
     "pyngrok",
-    "pypika",
-    "pypika.dialects",
-    "pypika.functions",
-    "pypika.queries",
-    "pypika.terms",
-    "pypika.utils",
     "pyqrcode",
     "rauth",
     "requests_oauthlib",
@@ -294,15 +286,8 @@ module = [
     "RestrictedPython.Guards",
     "RestrictedPython.transformer",
     "semantic_version",
-    "sql_metadata",
-    "sqlparse",
     "terminaltables",
     "traceback_with_variables",
-    "whoosh.fields",
-    "whoosh.index",
-    "whoosh.qparser",
-    "whoosh.query",
-    "whoosh.writing",
     "xlrd",
     "xmlrunner",
 ]

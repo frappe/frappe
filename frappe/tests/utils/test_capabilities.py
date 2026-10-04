@@ -18,6 +18,7 @@ class TestService(StrEnum):
 
 	WEB_SERVER = "web server"
 	BACKGROUND_WORKER = "background worker"
+	SMTP_SERVER = "SMTP server"
 
 	@property
 	def cli_name(self) -> str:
@@ -35,6 +36,7 @@ class TestService(StrEnum):
 _SERVICE_ENVIRONMENT_VARIABLE = {
 	TestService.WEB_SERVER: "FRAPPE_TEST_WEB_SERVER",
 	TestService.BACKGROUND_WORKER: "FRAPPE_TEST_BACKGROUND_WORKER",
+	TestService.SMTP_SERVER: "FRAPPE_TEST_SMTP_SERVER",
 }
 _TRUE_VALUES = {"1", "true", "yes", "on"}
 _FALSE_VALUES = {"0", "false", "no", "off"}

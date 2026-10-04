@@ -3,6 +3,7 @@
  "allow_import": 1,
  "creation": "2017-07-17 14:25:27.881871",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/user-permissions",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

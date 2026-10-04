@@ -1,0 +1,225 @@
+/* Espresso Stepper: the step header for multi-step flows (wizards).
+ *
+ * frappe-ui and radix ship no stepper, so this file is the contract: a
+ * Vue/React port can render the same classes and data-attributes. If
+ * frappe-ui grows a Stepper later, converge there.
+ *
+ * Markup contract (framework-neutral, like every es component):
+ *
+ *   <nav class="es-stepper" aria-label="...">
+ *     <button type="button" class="es-stepper__step" data-state="completed" data-completed="true">
+ *       <span class="es-stepper__marker">(check)</span>
+ *       <span class="es-stepper__label">Config</span>
+ *     </button>
+ *     <span class="es-stepper__connector" aria-hidden="true" data-completed="true"></span>
+ *     <button type="button" class="es-stepper__step" data-state="active" aria-current="step">…</button>
+ *     …
+ *   </nav>
+ *
+ * data-state: active | completed | locked; absent = upcoming.
+ * data-completed="true" marks a done step regardless of position, so a
+ * revisited step can be active and completed at once. A connector gets it
+ * once the step before it is done.
+ * Marker icons come from the JS half: check (completed), dot (active and
+ * completed), circle-dot-dashed (active), circle-dashed (upcoming, locked).
+ * Completed markers sit on a filled disc painted by the marker box. There is
+ * no chip fill; ink strength (gray-7 vs gray-4) carries state.
+ * Locked steps use aria-disabled, not disabled, so they stay in the tab
+ * order; the click guard blocks them and calls on_locked_click.
+ *
+ * `label_position` (bottom | top | left) adds es-stepper--label-<position>.
+ * Bottom and top need --es-stepper-steps (the step count) on the nav.
+ *
+ * Compact mode (JS option `compact`) renders the frappe.ui.progress interval
+ * form with a "Step x of y" hint for narrow layouts; mount a compact and a
+ * full instance and toggle visibility at your breakpoint.
+ */
+
+.es-stepper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.es-stepper__step {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: calc(var(--spacing) * 1.5);
+    min-width: 0;
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    appearance: none;
+    cursor: pointer;
+    /* native button resets to the UA font otherwise */
+    font: inherit;
+    outline: none;
+    color: var(--ink-gray-4);
+}
+
+.es-stepper__step:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
+
+.es-stepper__step[data-state="active"],
+.es-stepper__step[data-state="completed"] {
+    color: var(--ink-gray-7);
+}
+
+/* Sprite <use> internals can't be part-styled, so the marker box paints the disc. */
+.es-stepper__step[data-completed="true"] .es-stepper__marker {
+    border-radius: var(--radius-full);
+    background: var(--surface-gray-9);
+    color: var(--ink-base);
+}
+
+.es-stepper__step[data-completed="true"] .es-stepper__marker .icon,
+.es-stepper__step[data-completed="true"] .es-stepper__marker svg {
+    width: calc(var(--spacing) * 2.5);
+    height: calc(var(--spacing) * 2.5);
+}
+
+/* Lucide's dot is a tiny circle; a thick stroke makes it readable. */
+.es-stepper__step[data-state="active"][data-completed="true"] .es-stepper__marker .icon,
+.es-stepper__step[data-state="active"][data-completed="true"] .es-stepper__marker svg {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    stroke-width: 7px;
+}
+
+.es-stepper__step[data-state="locked"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Fixed box so markers don't shift layout when the state changes. */
+.es-stepper__marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    line-height: 0;
+}
+
+/* Reset the global .icon margin, which drifts in flex layouts. */
+.es-stepper__marker .icon,
+.es-stepper__marker svg {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    margin: 0;
+    stroke: currentColor;
+}
+
+.es-stepper__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-base);
+    line-height: 1.15;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.015em;
+}
+
+.es-stepper__connector {
+    flex: 1;
+    min-width: calc(var(--spacing) * 2);
+    height: 1px;
+    margin-inline: calc(var(--spacing) * 1);
+    background: var(--outline-gray-2);
+}
+
+.es-stepper__connector[data-completed="true"] {
+    background: var(--outline-gray-3);
+}
+
+/* Query container for the cqi width cap below. */
+:is(.es-stepper--label-bottom, .es-stepper--label-top) {
+    align-items: flex-start;
+    container-type: inline-size;
+}
+
+/* Capped at a share of the row so long labels can't overlap. */
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step {
+    flex-direction: column;
+    flex-shrink: 1;
+    gap: calc(var(--spacing) * 1);
+    max-width: calc(100cqi / var(--es-stepper-steps, 1));
+}
+
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__label {
+    max-width: 100%;
+    text-align: center;
+}
+
+/* Puts connectors on the marker row, flush with the step half-lines. */
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__connector {
+    margin: calc(var(--spacing) * 3) 0 0;
+}
+
+/* Half-lines keep the marker gap fixed however wide the label is. */
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step {
+    position: relative;
+}
+
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step:not(:first-child)::before,
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--spacing) * 3);
+    height: 1px;
+    background: var(--outline-gray-2);
+}
+
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step::before {
+    inset-inline-start: 0;
+    inset-inline-end: calc(50% + var(--spacing) * 5);
+}
+
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step::after {
+    inset-inline-start: calc(50% + var(--spacing) * 5);
+    inset-inline-end: 0;
+}
+
+/* Each half-line takes the colour of the connector it continues. */
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step[data-completed="true"]::after,
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__connector[data-completed="true"] + .es-stepper__step::before {
+    background: var(--outline-gray-3);
+}
+
+/* Fade the content, not the step, so half-lines match the connector. */
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step[data-state="locked"] {
+    opacity: 1;
+}
+
+:is(.es-stepper--label-bottom, .es-stepper--label-top) .es-stepper__step[data-state="locked"] > * {
+    opacity: 0.55;
+}
+
+/* Marker is at the bottom, so lines align from there. */
+.es-stepper--label-top {
+    align-items: flex-end;
+}
+
+.es-stepper--label-top .es-stepper__step {
+    flex-direction: column-reverse;
+}
+
+.es-stepper--label-top .es-stepper__connector {
+    margin: 0 0 calc(var(--spacing) * 3);
+}
+
+.es-stepper--label-top .es-stepper__step:not(:first-child)::before,
+.es-stepper--label-top .es-stepper__step:not(:last-child)::after {
+    top: auto;
+    bottom: calc(var(--spacing) * 3);
+}
+
+.es-stepper--label-left .es-stepper__step {
+    flex-direction: row-reverse;
+}

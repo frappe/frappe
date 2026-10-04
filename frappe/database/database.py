@@ -164,10 +164,24 @@ class Database:
 		except Exception as e:
 			self.logger.warning(f"Couldn't set session time zone {e}")
 
-	def set_execution_timeout(self, seconds: int):
+	def set_execution_timeout(self, seconds: float):
 		"""Set session speicifc timeout on exeuction of statements.
 		If any statement takes more time it will be killed along with entire transaction."""
 		raise NotImplementedError
+
+	def get_execution_timeout(self) -> float:
+		"""Return the session timeout on execution of statements, in seconds."""
+		raise NotImplementedError
+
+	@contextmanager
+	def execution_timeout(self, seconds: float):
+		"""Apply an execution timeout inside the block, then restore the previous one."""
+		previous_timeout = self.get_execution_timeout()
+		self.set_execution_timeout(seconds)
+		try:
+			yield
+		finally:
+			self.set_execution_timeout(previous_timeout)
 
 	def set_session_time_zone(self, timezone: str):
 		"""Set session time zone so database clock functions match the system timezone."""
@@ -1210,7 +1224,21 @@ class Database:
 			self.begin()
 
 		self.value_cache.clear()
-		self.after_commit.run()
+		self.run_after_transaction_callbacks(self.after_commit)
+
+	def run_after_transaction_callbacks(self, callbacks: CallbackManager):
+		"""Run the callbacks queued for after the commit or rollback, logging the ones that fail.
+
+		The transaction has settled by now and these callbacks are side effects that can not
+		undo it, so raising here would only destroy the response of a request whose database
+		work is already finished.
+		"""
+		while len(callbacks):
+			try:
+				# the failing callback is already off the queue, so this resumes at the next one
+				callbacks.run()
+			except Exception:
+				frappe.log_error("Failed to run after transaction callback", defer_insert=True)
 
 	def rollback(self, *, save_point=None, chain=False):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
@@ -1231,7 +1259,7 @@ class Database:
 				self.begin()
 
 			self.value_cache.clear()
-			self.after_rollback.run()
+			self.run_after_transaction_callbacks(self.after_rollback)
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 
@@ -1372,7 +1400,10 @@ class Database:
 			columns = (
 				frappe.qb.from_(information_schema.columns)
 				.select(information_schema.columns.column_name)
-				.where(information_schema.columns.table_name == table)
+				.where(
+					(information_schema.columns.table_name == table)
+					& (information_schema.columns.table_schema == self.cur_db_name)
+				)
 				.run(pluck=True)
 			)
 

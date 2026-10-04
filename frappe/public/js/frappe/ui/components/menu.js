@@ -35,6 +35,7 @@ import { place } from "./position.js";
  * @typedef {Object} MenuItem
  * @property {string} label Row text. Rendered as text, never HTML.
  * @property {string} [icon] Lucide icon name shown before the label.
+ * @property {string} [icon_right] Lucide icon name shown at the end of the row, e.g. "external-link" on a row that opens a new tab. Submenu rows end in their chevron instead.
  * @property {string} [image] Image URL shown before the label, for a mark no lucide icon can stand in for (an app's logo). Ignored when `icon` is set; refused on code-running schemes, like `href`.
  * @property {string} [description] Smaller second line under the label.
  * @property {"gray"|"red"} [theme="gray"] "red" for destructive rows.
@@ -231,11 +232,21 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 		shortcut.className = "es-menu__shortcut";
 		shortcut.setAttribute("aria-hidden", "true");
 		for (const key of shortcut_keys(item.shortcut)) {
+			if (shortcut.childNodes.length && !frappe.utils.is_mac()) {
+				shortcut.append("+");
+			}
 			const kbd = document.createElement("kbd");
 			kbd.textContent = key;
 			shortcut.appendChild(kbd);
 		}
 		el.appendChild(shortcut);
+	}
+
+	if (item.icon_right && !item.submenu) {
+		el.insertAdjacentHTML(
+			"beforeend",
+			icon_html(item.icon_right, "es-menu__icon-right", component)
+		);
 	}
 
 	if (item.submenu) {
@@ -335,7 +346,7 @@ function build_panel(groups, { empty_text, component }) {
  * One open menu: the root panel plus any open submenu panels.
  * The owner (Dropdown/ContextMenu) creates a MenuTree per open and gets an
  * on_close(reason) callback; reasons are "activate", "escape", "outside",
- * "tab" and "owner" (closed programmatically).
+ * "tab", "navigate" and "owner" (closed programmatically).
  */
 export class MenuTree {
 	constructor({ options, empty_text, component, anchor, ignore, on_close, lock_scroll }) {
@@ -427,6 +438,8 @@ export class MenuTree {
 		// don't get stuck on
 		this.onblur = () => this.show_mnemonics(false);
 		window.addEventListener("blur", this.onblur);
+
+		frappe.router.once("change", () => this.close("navigate"));
 
 		// keyboard opens land on a row right away (ArrowDown = first,
 		// ArrowUp = last); mouse opens just focus the panel so keys work

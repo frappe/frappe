@@ -8,7 +8,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "hammer",
+   "icon": "code-app-duotone",
    "link_to": "Build",
    "link_type": "Sidebar",
    "title": "Build"
@@ -16,7 +16,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "users",
+   "icon": "users-duotone",
    "link_to": "Users",
    "link_type": "Sidebar",
    "title": "Users"
@@ -24,7 +24,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "mail",
+   "icon": "email-envelope-duotone",
    "link_to": "Email",
    "link_type": "Sidebar",
    "title": "Email"
@@ -32,7 +32,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "globe",
+   "icon": "website-browser-duotone",
    "link_to": "Website",
    "link_type": "Sidebar",
    "title": "Website"
@@ -40,7 +40,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "table",
+   "icon": "data-table-duotone",
    "link_to": "Data",
    "link_type": "Sidebar",
    "title": "Data"
@@ -48,7 +48,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "network",
+   "icon": "workflow-builder-duotone",
    "link_to": "Workflow",
    "link_type": "Sidebar",
    "title": "Workflow"
@@ -56,7 +56,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "printer",
+   "icon": "printing-printer-duotone",
    "link_to": "Printing",
    "link_type": "Sidebar",
    "title": "Printing"
@@ -64,7 +64,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "cable",
+   "icon": "integrations-puzzle-duotone",
    "link_to": "Integrations",
    "link_type": "Sidebar",
    "title": "Integrations"
@@ -72,7 +72,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "book-user",
+   "icon": "contacts-cards-duotone",
    "link_to": "Contacts",
    "link_type": "Sidebar",
    "title": "Contacts"
@@ -80,7 +80,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "repeat",
+   "icon": "automation-cycle-duotone",
    "link_to": "Automation",
    "link_type": "Sidebar",
    "title": "Automation"
@@ -88,7 +88,7 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "map",
+   "icon": "geo-globe-duotone",
    "link_to": "Geo",
    "link_type": "Sidebar",
    "title": "Geo"
@@ -96,13 +96,13 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "monitor-check",
+   "icon": "system-monitor-duotone",
    "link_to": "System",
    "link_type": "Sidebar",
    "title": "System"
   }
  ],
- "modified": "2026-08-27 12:00:00.000000",
+ "modified": "2026-10-01 03:09:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",

@@ -3,11 +3,11 @@ import type { DataImportStatus } from "./types";
 
 export const getBadgeColor = (status: DataImportStatus) => {
   const colorMap = {
-    Pending: "orange",
+    Pending: "amber",
     Success: "green",
-    "Partial Success": "orange",
+    "Partial Success": "amber",
     Error: "red",
-    "Timed Out": "orange",
+    "Timed Out": "amber",
   } as const;
   return colorMap[status as DataImportStatus] || "gray";
 };

@@ -3,6 +3,7 @@
 import "./linked_with";
 import "./form_viewers";
 import "./template_manager";
+import { safe_href } from "../ui/components/utils.js";
 import { ReminderManager } from "./reminders";
 
 frappe.ui.form.Toolbar = class Toolbar {
@@ -71,7 +72,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 		title = __(title);
 		this.page.set_title(title);
-		if (this.frm.meta.title_field) {
+		// Skip document title changes for forms embedded in dialogs
+		if (this.frm.meta.title_field && !this.frm.in_dialog) {
 			frappe.utils.set_title(title + " - " + this.frm.docname);
 		}
 		this.page.$title_area.toggleClass(
@@ -107,7 +109,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 	can_rename() {
-		return this.frm.perm[0].write && this.frm.meta.allow_rename && !this.frm.doc.__islocal;
+		return (
+			this.frm.perm[0].write &&
+			this.frm.meta.allow_rename &&
+			!this.frm.doc.__islocal &&
+			!this.frm.meta.issingle
+		);
 	}
 	show_unchanged_document_alert() {
 		frappe.show_alert({
@@ -690,6 +697,18 @@ frappe.ui.form.Toolbar = class Toolbar {
 					true
 				);
 			}
+		}
+
+		// as on the list view's menu
+		const docs = safe_href(this.frm.meta.documentation, "form");
+		if (docs) {
+			this.page.add_dropdown_item({
+				label: __("Documentation"),
+				click: () => window.open(docs, "_blank"),
+				standard: true,
+				parent: this.page.menu,
+				icon_right: "external-link",
+			});
 		}
 	}
 

@@ -1,9 +1,10 @@
 /**
- * The bounded page shell for a desk page an island draws.
+ * The bounded page shell for a desk page that fills the viewport.
  *
  * `pageview.js` puts `island-page` on <body> while a Frappe UI page is on
  * screen, and `dashboard_view.js` puts it there while its island renderer is.
- * Both need the same box, so the reasoning below lives once.
+ * Any other page opts in with `full-height-page`. All of them need the same
+ * box, so the reasoning below lives once.
  *
  * The island scrolls its own body, which needs a definite height to scroll in.
  * Against desk's document-scrolled page its `height: 100%` resolves to auto.
@@ -14,7 +15,8 @@
  * report view's idiom. That number is wrong by the head's border, and wrong
  * again wherever `.main-section` does not start at the top of the viewport.
  */
-body.island-page {
+body.island-page,
+body.full-height-page {
 	.main-section {
 		display: flex;
 		flex-direction: column;
@@ -46,10 +48,22 @@ body.island-page {
 		min-height: 0;
 	}
 
-	// The element the island mounts into. One class per host: a Frappe UI page
-	// and the dashboard page each build their own container.
+	// The element the page mounts into. One class per host: a Frappe UI page
+	// and the dashboard page each build their own container, and a page that
+	// opts in draws into the standard section.
 	.island-page-body,
 	.dashboard-view-island {
 		height: 100%;
+	}
+}
+
+// A page that opts in keeps desk's own section markup, so the box has to reach
+// through it. Islands replace that markup and skip these.
+body.full-height-page {
+	.layout-main,
+	.layout-main-section-wrapper,
+	.layout-main-section {
+		height: 100%;
+		min-height: 0;
 	}
 }

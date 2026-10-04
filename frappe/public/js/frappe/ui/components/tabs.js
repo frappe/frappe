@@ -35,7 +35,7 @@ let id_counter = 0;
  * const tabs = new frappe.ui.Tabs({
  *     tabs: [
  *         { label: __("Details"), content: () => this.render_details() },
- *         { label: __("Activity"), icon: "history", content: () => this.render_activity() },
+ *         { label: __("Activity"), icon: "rotate-ccw-clock", content: () => this.render_activity() },
  *     ],
  *     on_change: (i) => this.save_last_tab(i),
  * });

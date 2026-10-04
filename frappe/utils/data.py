@@ -1418,6 +1418,12 @@ def parse_val(v):
 	return v
 
 
+def get_currency_precision() -> int | None:
+	"""Return the configured Currency Precision, or None if it isn't set."""
+	currency_precision = frappe.db.get_default("currency_precision")
+	return cint(currency_precision) if currency_precision not in (None, "") else None
+
+
 def fmt_money(
 	amount: str | float | int | None,
 	precision: int | None = None,
@@ -1428,7 +1434,7 @@ def fmt_money(
 	number_format = NumberFormat.from_string(format) if format else get_number_format()
 
 	if precision is None:
-		precision = cint(frappe.db.get_default("currency_precision")) or None
+		precision = get_currency_precision()
 
 	if precision is None:
 		precision = number_format.precision
@@ -2645,6 +2651,11 @@ def sha256_hash(input: str | bytes) -> str:
 	if isinstance(input, str):
 		input = input.encode()
 	return hashlib.sha256(input).hexdigest()
+
+
+def is_sha256_hash(value: str) -> bool:
+	"""Return True if `value` has the shape of a sha256 hexdigest."""
+	return len(value) == 64 and all(character in "0123456789abcdef" for character in value.lower())
 
 
 def dict_with_keys(dict, keys):

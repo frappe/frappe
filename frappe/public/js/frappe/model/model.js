@@ -70,7 +70,6 @@ $.extend(frappe.model, {
 		"modified",
 		"modified_by",
 		"_user_tags",
-		"_comments",
 		"_assign",
 		"_liked_by",
 		"docstatus",
@@ -134,7 +133,6 @@ $.extend(frappe.model, {
 		},
 		{ fieldname: "_user_tags", fieldtype: "Data", label: __("Tags") },
 		{ fieldname: "_liked_by", fieldtype: "Data", label: __("Liked By") },
-		{ fieldname: "_comments", fieldtype: "Text", label: __("Comments") },
 		{ fieldname: "_assign", fieldtype: "Text", label: __("Assigned To") },
 		{ fieldname: "docstatus", fieldtype: "Int", label: __("Document Status") },
 	],
@@ -279,7 +277,13 @@ $.extend(frappe.model, {
 		}
 		// custom scripts run last so they can override the standard
 		// definitions for any view, calendar included (#37460)
-		for (const asset_key of ["__list_js", "__calendar_js", "__tree_js", "__custom_list_js"]) {
+		for (const asset_key of [
+			"__list_js",
+			"__calendar_js",
+			"__tree_js",
+			"__kanban_js",
+			"__custom_list_js",
+		]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}

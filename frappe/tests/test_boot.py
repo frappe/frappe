@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
 from frappe.desk.doctype.sidebar.test_sidebar import developer_mode
 from frappe.tests import IntegrationTestCase
@@ -96,6 +97,26 @@ class TestBootData(IntegrationTestCase):
 		self.assertNotIn(with_custom_role, allowed_reports)
 		self.assertNotIn(without_roles, allowed_reports)
 		self.assertIn(enabled, allowed_reports)
+
+	def test_report_on_a_missing_doctype_is_skipped_quietly(self):
+		frappe.set_user("Administrator")
+		orphan = self._make_report("Test Orphan Report")
+		enabled = self._make_report("Test Report Beside Orphan")
+		for report in (orphan, enabled):
+			frappe.db.delete("Has Role", {"parent": report, "parenttype": "Report"})
+		# stands in for a report whose DocType was deleted
+		frappe.db.set_value("Report", orphan, "ref_doctype", "Test Uninstalled DocType")
+
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+		error_logs = frappe.db.count("Error Log")
+
+		allowed_reports = DeskViews.get_allowed_reports()
+
+		self.assertNotIn(orphan, allowed_reports)
+		self.assertIn(enabled, allowed_reports)
+		self.assertEqual(frappe.get_message_log(), [])
+		self.assertEqual(frappe.db.count("Error Log"), error_logs)
 
 	def _make_report(self, report_name, disabled=0):
 		return (
@@ -246,6 +267,24 @@ class TestAllowedDashboards(IntegrationTestCase):
 		self.assertIn(empty.name, allowed)
 		self.assertNotIn(filled.name, allowed)
 
+	def test_a_missing_number_card_is_skipped_quietly(self):
+		frappe.set_user("Administrator")
+		card = frappe.get_doc(
+			doctype="Number Card",
+			label=frappe.generate_hash(),
+			type="Document Type",
+			document_type="ToDo",
+			function="Count",
+		).insert()
+		dashboard = self.dashboard(cards=[{"card": card.name}])
+		frappe.db.delete("Number Card", card.name)
+
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+
+		self.assertEqual(get_permitted_cards(dashboard.name), [])
+		self.assertEqual(frappe.get_message_log(), [])
+
 
 class TestPermissionQueries(IntegrationTestCase):
 	@classmethod
@@ -275,6 +314,8 @@ class TestPermissionQueries(IntegrationTestCase):
 			script="""conditions = f"(`tabReport`.is_standard = 'Yes' or `tabReport`.owner = '{frappe.session.user}')"
 				""",
 		).insert()
+		# the rollback drops the script but not the cached map that points to it
+		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
 
 		# Create a ToDo custom report with test user
 		frappe.set_user("test@example.com")

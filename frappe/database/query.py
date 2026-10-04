@@ -11,7 +11,7 @@ from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, Va
 import frappe
 from frappe import _
 from frappe.boot import get_additional_filters_from_hooks
-from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
+from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP, func_is
 from frappe.database.utils import (
 	DefaultOrderBy,
 	FilterValue,
@@ -23,7 +23,7 @@ from frappe.database.utils import (
 	is_order_by_in_select,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -41,6 +41,24 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 		"Series",
 	)
 )
+
+
+TABLES_WITHOUT_DOCTYPE = frozenset(("Singles", "Sessions", "Series"))
+
+# What MariaDB coerces `''` to in `is set`; postgres rejects `''` for these columns.
+# No real date equals MariaDB's zero date, so only NULL is empty for dates.
+IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
+	**dict.fromkeys((*numeric_fieldtypes, "Rating", "Duration"), 0),
+	"Time": "00:00:00",
+	"Date": None,
+	"Datetime": None,
+}
+# A NULL column's stand-in in db_query-style IFNULL filters; no real date is 0001-01-01.
+IFNULL_FALLBACK_VALUES = {**IS_SET_EMPTY_VALUES, "Date": "0001-01-01", "Datetime": "0001-01-01"}
+
+
+class JSONColumnCast(functions.Cast):
+	"""Cast this engine adds to a postgres `json` column, as opposed to a caller-supplied Cast."""
 
 
 def _cast_autoincrement_name(field: Field, doctype: str) -> Term:
@@ -268,13 +286,14 @@ class Engine:
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
-		self.function_aliases = set()
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
 		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
 		self.is_aggregate_query = False
 		self._grouped_queries = set()
 		self._joined_link_tables = []
+		self.link_table_aliases = {}
+		self.link_table_counts = {}
 
 		assert db_type in ("mariadb", "postgres", "sqlite"), f"unexpected db_type: {db_type}"
 
@@ -306,7 +325,7 @@ class Engine:
 			self.query = qb.from_(self.table, immutable=False).delete()
 		else:
 			self.query = qb.from_(self.table, immutable=False)
-			self.apply_fields(fields)
+			self.apply_fields(fields, cast_json_columns=self.is_postgres and bool(distinct or group_by))
 			is_select = True
 
 		self.apply_filters(filters)
@@ -378,19 +397,24 @@ class Engine:
 		self.query.immutable = True
 		return self.query
 
-	def apply_fields(self, fields):
+	def apply_fields(self, fields, cast_json_columns: bool = False):
 		self.fields = self.parse_fields(fields)
-
-		# Track field aliases for use in group_by/order_by
-		for field in self.fields:
-			if isinstance(field, Field | DynamicTableField | AggregateFunction) and field.alias:
-				self.field_aliases.add(field.alias)
 
 		if self.apply_permissions:
 			self.fields = self.apply_field_permissions()
 
+		# Track field aliases for use in group_by/order_by
+		for field in self.fields:
+			if alias := getattr(field, "alias", None):
+				self.field_aliases.add(alias)
+
 		if not self.fields:
 			self.fields = [self.table.name]
+
+		if cast_json_columns:
+			# DISTINCT and GROUP BY need the selected expression to match the clause's. Runs
+			# after the permission pass, which only checks Field terms.
+			self.fields = self._cast_json_select_fields(self.fields)
 
 		self.query._child_queries = []
 		self.query._name_field_injected = False
@@ -400,7 +424,7 @@ class Engine:
 
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
-				self.query = field.apply_select(self.query, engine=self)
+				self.query = field.apply_select(self.query, engine=self, cast_json=cast_json_columns)
 				has_select_field = True
 			elif isinstance(field, ChildQuery):
 				self.query._child_queries.append(field)
@@ -620,13 +644,13 @@ class Engine:
 		# Child/link table fields live in a different doctype than the parent; NULL-fallback
 		# typing must resolve against the field's own doctype, else a numeric child field gets
 		# an empty-string fallback and postgres rejects `COALESCE(col, '') < 200`.
-		filter_doctype = doctype or self.doctype
-		field_table = getattr(_field, "table", None)
-		if field_table is not None:
-			try:
-				filter_doctype = get_doctype_name(field_table.get_sql())
-			except Exception:
-				pass
+		filter_doctype = self._get_field_doctype(_field, doctype or self.doctype)
+		filter_field_name = (
+			field if isinstance(field, str) else (_field.name if hasattr(_field, "name") else str(_field))
+		).split(".")[-1]
+		# postgres `json` has no comparison operators, so compare the column's text instead
+		comparison_field = self._cast_json_column(_field, filter_doctype)
+		is_json_column = comparison_field is not _field
 
 		if isinstance(value, Field):
 			_value = value
@@ -692,8 +716,8 @@ class Engine:
 		if self.db_query_compat and _value is None and _operator.casefold() in ("in", "not in"):
 			_value = ("",)
 
-		if _operator in NESTED_SET_OPERATORS:
-			hierarchy = _operator
+		if _operator.casefold() in NESTED_SET_OPERATORS:
+			hierarchy = _operator.casefold()
 			docname = _value
 
 			# Use the original field name string for get_field if _field was converted
@@ -720,37 +744,10 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
-		# The `is` ("set"/"not set") operator compares against an empty string (`= ''`).
-		# MariaDB silently coerces `''` to the column's type (e.g. `0` for an int), but
-		# postgres rejects `date/numeric = ''` outright. Compare against the
-		# type-appropriate fallback instead so the same filter behaves identically on both
-		# backends (for a column that coerces `''` to its zero-value on MariaDB, the typed
-		# fallback yields the exact same match set). MariaDB keeps its existing path.
-		if self.is_postgres and _operator.casefold() == "is" and isinstance(_field, Field):
-			value_token = str(_value).strip().lower()
-			if value_token in ("set", "not set"):
-				is_field_name = (
-					field
-					if isinstance(field, str)
-					else (_field.name if hasattr(_field, "name") else str(_field))
-				)
-				if "." in is_field_name:
-					is_field_name = is_field_name.split(".")[-1]
-
-				fallback_sql = self._get_ifnull_fallback(filter_doctype, is_field_name)
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
-				if value_token == "set":
-					return _field != fallback_value
-				return _field.isnull() | (_field == fallback_value)
+		if _operator.casefold() == "is" and isinstance(_field, Field):
+			return func_is(
+				comparison_field, _value, self._get_is_set_empty_value(filter_doctype, filter_field_name)
+			)
 
 		if (
 			self.is_postgres and _operator.casefold() == "like"
@@ -760,71 +757,39 @@ class Engine:
 			operator_fn = OPERATOR_MAP[_operator.casefold()]
 		if _value is None and isinstance(_field, Field):
 			if operator_fn == builtin_operator.ne:
-				filter_field_name = (
-					field
-					if isinstance(field, str)
-					else (_field.name if hasattr(_field, "name") else str(_field))
-				)
-				if "." in filter_field_name:
-					filter_field_name = filter_field_name.split(".")[-1]
-
-				target_doctype = filter_doctype
-				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
-
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
-				return operator_fn(_field, ValueWrapper(fallback_value))
+				fallback_value = self._get_ifnull_fallback(filter_doctype, filter_field_name)
+				return operator_fn(comparison_field, ValueWrapper(fallback_value))
 			else:
 				return _field.isnull()
 		else:
-			filter_field_name = (
-				field if isinstance(field, str) else (_field.name if hasattr(_field, "name") else str(_field))
-			)
-
-			if "." in filter_field_name:
-				filter_field_name = filter_field_name.split(".")[-1]
-
 			target_doctype = filter_doctype
 
 			# Skip applying ifnull if field already has null-handling function
 			if not isinstance(_field, functions.IfNull | functions.Coalesce) and self._should_apply_ifnull(
 				target_doctype, filter_field_name, _operator, _value
 			):
-				fallback_sql = self._get_ifnull_fallback(target_doctype, filter_field_name)
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
+				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
 				if fallback_value == _value:
 					if _operator == "=":
-						return _field.isnull() | _field.eq(_value)
+						return _field.isnull() | comparison_field.eq(_value)
 					elif _operator == "!=":
-						return operator_fn(_field, _value)
+						return operator_fn(comparison_field, _value)
 
-				_field = functions.IfNull(_field, ValueWrapper(fallback_value))
+				comparison_field = functions.IfNull(comparison_field, ValueWrapper(fallback_value))
 
 			if (
 				self.is_postgres
+				and not is_json_column
 				and _operator.casefold() in ("like", "not like", "ilike")
 				and is_non_text_field(target_doctype, filter_field_name)
 			):
-				_field = functions.Cast(_field, "varchar")
+				comparison_field = functions.Cast(comparison_field, "varchar")
 
-			return operator_fn(_field, _value)
+			if _operator.casefold() == "not in" and isinstance(_value, list | tuple | set) and None in _value:
+				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
+				_value = tuple(fallback_value if v is None else v for v in _value)
+
+			return operator_fn(comparison_field, _value)
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
 		"""Parses a nested filter list like [cond1, 'and', cond2, 'or', cond3, ...] into a pypika Criterion."""
@@ -1171,7 +1136,14 @@ class Engine:
 			return self.permitted_fields_cache[cache_key]
 		else:
 			# for read permission, use standard permitted fields
-			return self._get_cached_permitted_fields(doctype, parenttype, permission_type)
+			permitted_fields = self._get_cached_permitted_fields(doctype, parenttype, permission_type)
+			if doctype == "User" and "user_type" not in permitted_fields:
+				# user_type is permlevel 1 but not itself sensitive, and the built-in
+				# Link-field search (user.user_query) filters by it for every caller.
+				# Allow it for filtering only - do not mutate the cached set, since that
+				# is also used to check permission for selecting/returning fields.
+				return permitted_fields | {"user_type"}
+			return permitted_fields
 
 	def parse_string_field(self, field: str):
 		"""
@@ -1400,6 +1372,8 @@ class Engine:
 			terms = self._get_star_fields(term) if isinstance(term, Star) else [term]
 			selected_field_count += len(terms)
 			for term in terms:
+				if isinstance(term, JSONColumnCast):
+					term = term.args[0]
 				if not isinstance(term, Field):
 					continue
 				table = term.table if term.table is not None else self.table
@@ -1481,8 +1455,15 @@ class Engine:
 		if field_name.isdigit():
 			return int(field_name)
 
-		# Allow function aliases and field aliases - return as Field (no table prefix)
-		if field_name in self.function_aliases or field_name in self.field_aliases:
+		# Allow select-list aliases - return as Field (no table prefix)
+		if field_name in self.field_aliases:
+			# GROUP BY binds a name to the table column before the select-list alias; ORDER BY does not
+			if (
+				clause_name == "Group By"
+				and self.apply_permissions
+				and field_name in frappe.get_meta(self.doctype).get_valid_columns()
+			):
+				self.check_filter_field_permission(self.doctype, field_name)
 			return Field(field_name)
 
 		# Parse backtick table.field notation: `tabDocType`.`fieldname`
@@ -1490,7 +1471,7 @@ class Engine:
 			if parsed := self._parse_backtick_field_notation(field_name):
 				table_name, field_name = parsed
 				self.check_filter_field_permission(table_name, field_name)
-				return frappe.qb.DocType(table_name)[field_name]
+				return self._cast_json_column(frappe.qb.DocType(table_name)[field_name])
 
 			# If parsing failed, fall through to error handling below
 			frappe.throw(
@@ -1514,7 +1495,7 @@ class Engine:
 
 			# Apply join for the dynamic field
 			self.query = dynamic_field.apply_join(self.query, engine=self)
-			return dynamic_field.field
+			return self._cast_json_column(dynamic_field.field)
 		else:
 			# Validate as simple field name (alphanumeric + underscore only)
 			if not SIMPLE_FIELD_PATTERN.match(field_name):
@@ -1529,7 +1510,7 @@ class Engine:
 			self.check_filter_field_permission(self.doctype, field_name)
 
 			# Create Field object for simple field
-			return self.table[field_name]
+			return self._cast_json_column(self.table[field_name])
 
 	def _validate_group_by(self, group_by: str) -> list[Field]:
 		"""Validate the group_by string argument, apply joins for dynamic fields, and return parsed Field objects."""
@@ -1785,6 +1766,23 @@ class Engine:
 		if condition := self.get_permission_conditions(self.permission_doctype, self.permission_table):
 			self.query = self.query.where(condition)
 
+	def get_link_table_alias(self, doctype: str, link_fieldname: str) -> str:
+		"""A stable, unique alias for a linked table joined via a specific link field.
+
+		Keyed by (doctype, link_fieldname) so the select and filter passes of the same
+		field share one join, and counted per target doctype so two link fields to the
+		same doctype get separate joins. A counter is used instead of the field name so
+		the alias can't collide when doctype names contain underscores, and the `tab_`
+		prefix keeps it out of the real table namespace, which doctype naming rules
+		forbid from starting with an underscore.
+		"""
+		key = (doctype, link_fieldname)
+		if key not in self.link_table_aliases:
+			count = self.link_table_counts.get(doctype, 0) + 1
+			self.link_table_counts[doctype] = count
+			self.link_table_aliases[key] = f"tab_{doctype}_{count}"
+		return self.link_table_aliases[key]
+
 	def get_permission_conditions(self, doctype: str, table: Table) -> Criterion | None:
 		role_permissions = frappe.permissions.get_role_permissions(doctype, user=self.user)
 		has_role_permission = role_permissions.get("read") or role_permissions.get("select")
@@ -1807,7 +1805,7 @@ class Engine:
 		elif user_perm_conditions := self.get_user_permission_conditions(doctype, table):
 			conditions.extend(user_perm_conditions)
 
-		conditions.extend(self.get_permission_query_conditions(doctype))
+		conditions.extend(self.get_permission_query_conditions(doctype, table))
 
 		if not conditions:
 			# no conditions to apply, all documents are accessible
@@ -1833,7 +1831,9 @@ class Engine:
 			tables.append(join.item.get_sql())
 		return list(set(tables))
 
-	def get_permission_query_conditions(self, doctype: str | None = None) -> list["Criterion"]:
+	def get_permission_query_conditions(
+		self, doctype: str | None = None, table: Table | None = None
+	) -> list["Criterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
@@ -1863,6 +1863,13 @@ class Engine:
 				self.user, active_child_tables=active_child_tables
 			):
 				conditions.append(RawCriterion(f"({condition})"))
+
+		if conditions and getattr(table, "alias", None):
+			base_table = frappe.qb.DocType(doctype)
+			permitted_names = (
+				frappe.qb.from_(base_table).select(base_table.name).where(Criterion.all(conditions))
+			)
+			return [table.name.isin(permitted_names)]
 		return conditions
 
 	def get_permission_type(
@@ -1909,7 +1916,7 @@ class Engine:
 			condition = self.get_permission_conditions(self.doctype, self.table)
 			if condition:
 				quote_char = "`" if self.is_mariadb else '"'
-				return condition.get_sql(with_namespace=True, quote_char=quote_char)
+				return condition.get_sql(with_namespace=True, quote_char=quote_char, subquery=True)
 			return ""
 
 		if not self.ignore_user_permissions:
@@ -1979,6 +1986,78 @@ class Engine:
 		finally:
 			self.apply_permissions = original_apply_permissions
 
+	def _get_field_doctype(self, field: Term, default: str) -> str:
+		"""The doctype a parsed field's table belongs to; a joined table is not the query's own."""
+		table = getattr(field, "table", None)
+		if table is None:
+			return default
+		try:
+			return get_doctype_name(getattr(table, "_table_name", None) or table.get_sql())
+		except Exception:
+			return default
+
+	def _cast_json_column(self, field: Term, doctype: str | None = None) -> Term:
+		"""postgres `json` has no comparison or ordering operators, so use the column's text."""
+		if not self.is_postgres or not isinstance(field, Field) or field.name == "*":
+			return field
+		doctype = doctype or self._get_field_doctype(field, self.doctype)
+		if not self._is_json_field(doctype, field.name):
+			return field
+		return JSONColumnCast(field, "varchar")
+
+	def _cast_json_select_field(self, field: Term) -> Term:
+		"""Keep the alias so the cast does not rename the column in the result."""
+		cast = self._cast_json_column(field)
+		return cast if cast is field else cast.as_(field.alias or field.name)
+
+	def _cast_json_select_fields(self, fields: list) -> list:
+		"""`*` cannot be cast, so list its columns out when one of them is JSON."""
+		cast_fields = []
+		for field in fields:
+			if not isinstance(field, Star):
+				cast_fields.append(self._cast_json_select_field(field))
+				continue
+			columns = [self._cast_json_select_field(column) for column in self._get_star_fields(field)]
+			has_json_column = any(isinstance(column, JSONColumnCast) for column in columns)
+			cast_fields.extend(columns if has_json_column else [field])
+		return cast_fields
+
+	def _is_json_field(self, doctype: str, fieldname: str) -> bool:
+		from frappe.model.meta import get_default_df
+
+		if get_default_df(fieldname) or fieldname in OPTIONAL_FIELDS:
+			return False
+		docfield = self._get_docfield(doctype, fieldname)
+		return bool(docfield) and docfield.fieldtype == "JSON"
+
+	def _get_is_set_empty_value(self, doctype: str, fieldname: str) -> int | str | None:
+		from frappe.model.meta import get_default_df
+
+		docfield = get_default_df(fieldname) or self._get_docfield(doctype, fieldname)
+		return IS_SET_EMPTY_VALUES.get(docfield.fieldtype, "") if docfield else ""
+
+	def _get_docfield(self, doctype: str, fieldname: str):
+		"""Core doctypes read the stored DocType: loading their meta queries Custom Field and
+		Property Setter through this engine, so `get_meta` would recurse."""
+		from frappe.model.meta import Meta
+
+		if doctype.startswith("__") or doctype in TABLES_WITHOUT_DOCTYPE:
+			return None
+
+		meta = frappe.client_cache.get_value(f"doctype_meta::{doctype}")
+		if meta is None:
+			try:
+				if doctype in CORE_DOCTYPES:
+					meta = frappe.get_cached_doc("DocType", doctype)
+				else:
+					meta = frappe.get_meta(doctype)
+			except frappe.DoesNotExistError:
+				return None
+
+		if isinstance(meta, Meta):
+			return meta.get_field(fieldname)
+		return next((df for df in meta.fields if df.fieldname == fieldname), None)
+
 	def _is_field_nullable(self, doctype: str, fieldname: str) -> bool:
 		"""Check if a field can contain NULL values."""
 		# primary key is never nullable, modified is usually indexed by default and always present
@@ -2004,7 +2083,7 @@ class Engine:
 
 		return True
 
-	def _get_ifnull_fallback(self, doctype: str, fieldname: str) -> str:
+	def _get_ifnull_fallback(self, doctype: str, fieldname: str) -> int | str:
 		"""Get type-appropriate fallback value for NULL comparisons."""
 		try:
 			meta = frappe.get_meta(doctype)
@@ -2026,42 +2105,17 @@ class Engine:
 					)
 				).run(pluck=True)
 				data_type = res[0] if res else None
-				if data_type in ("smallint", "bigint", "int", "numeric"):  # can add as needed
-					return "0"
-			return "''"
+				if data_type in ("smallint", "bigint", "integer", "numeric"):  # can add as needed
+					return 0
+			return ""
 
 		if df is None:
 			# Try to get standard field definition
 			from frappe.model.meta import get_default_df
 
 			df = get_default_df(fieldname)
-			if df is None:
-				return "''"
 
-		fieldtype = df.fieldtype
-
-		if fieldtype in ("Link", "Data", "Dynamic Link"):
-			return "''"
-
-		if fieldtype in ("Date", "Datetime"):
-			return "'0001-01-01'"
-
-		if fieldtype == "Time":
-			return "'00:00:00'"
-
-		if fieldtype in ("Float", "Int", "Currency", "Percent", "Check"):
-			return "0"
-
-		try:
-			db_type_info = frappe.db.type_map.get(fieldtype, ("varchar",))
-			if db_type_info:
-				db_type = db_type_info[0] if isinstance(db_type_info, tuple | list) else db_type_info
-				if db_type in ("varchar", "text", "longtext", "smalltext", "json"):
-					return "''"
-		except Exception:
-			pass
-
-		return "''"
+		return IFNULL_FALLBACK_VALUES.get(df.fieldtype, "") if df else ""
 
 	def _should_apply_ifnull(self, doctype: str, fieldname: str, operator: str, value: Any) -> bool:
 		"""Determine if IFNULL wrapping is needed for a filter condition."""
@@ -2222,8 +2276,12 @@ class DynamicTableField:
 
 		return None
 
-	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		raise NotImplementedError
+	def apply_select(
+		self, query: QueryBuilder, engine: "Engine" = None, cast_json: bool = False
+	) -> QueryBuilder:
+		query = self.apply_join(query, engine=engine)
+		field = self.field.as_(self.alias or None)
+		return query.select(engine._cast_json_select_field(field) if cast_json else field)
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		raise NotImplementedError
@@ -2245,11 +2303,6 @@ class ChildTableField(DynamicTableField):
 		self.parent_fieldname = parent_fieldname
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
-
-	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
-		query = self.apply_join(query, engine=engine)
-		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		main_table = frappe.qb.DocType(self.parent_doctype)
@@ -2278,25 +2331,24 @@ class LinkTableField(DynamicTableField):
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
 
-	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
-		query = self.apply_join(query, engine=engine)
-		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
-
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
+		if engine is not None:
+			alias = engine.get_link_table_alias(self.doctype, self.link_fieldname)
+			self.table = frappe.qb.DocType(self.doctype).as_(alias)
+			self.field = self.table[self.fieldname]
+
 		main_table = frappe.qb.DocType(self.parent_doctype)
-		if not query.is_joined(table):
-			link_name = _cast_autoincrement_name(table.name, self.doctype)
+		if not query.is_joined(self.table):
+			link_name = _cast_autoincrement_name(self.table.name, self.doctype)
 			clause = link_name == getattr(main_table, self.link_fieldname)
 
 			if engine and engine.apply_permissions:
-				if condition := engine.get_permission_conditions(self.doctype, table):
+				if condition := engine.get_permission_conditions(self.doctype, self.table):
 					clause &= condition
 
-			query = query.left_join(table).on(clause)
+			query = query.left_join(self.table).on(clause)
 			if engine is not None:
-				engine._joined_link_tables.append(table)
+				engine._joined_link_tables.append(self.table)
 
 		return query
 
@@ -2513,7 +2565,6 @@ class SQLFunctionParser:
 			)
 
 		if alias:
-			self.engine.function_aliases.add(alias)
 			return function_call.as_(alias)
 		else:
 			return function_call
@@ -2554,7 +2605,6 @@ class SQLFunctionParser:
 		expression = ArithmeticExpression(operator=operator, left=left, right=right)
 
 		if alias:
-			self.engine.function_aliases.add(alias)
 			return expression.as_(alias)
 		else:
 			return expression

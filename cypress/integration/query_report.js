@@ -71,6 +71,23 @@ context("Query Report", () => {
 			});
 	});
 
+	it("requires document type and field before adding a custom column", () => {
+		cy.visit("/desk/query-report/Test ToDo Report");
+
+		cy.get(".datatable", { timeout: 60000 }).should("exist");
+		cy.get("#page-query-report .page-actions .menu-btn-group button").click({ force: true });
+		cy.get("#page-query-report .menu-btn-group .dropdown-menu")
+			.contains("Add Column")
+			.click({ force: true });
+		cy.get_open_dialog().get(".modal-title").should("contain", "Add Column");
+		cy.get_open_dialog().findByRole("button", { name: "Submit" }).click({ force: true });
+
+		cy.get(".msgprint")
+			.should("be.visible")
+			.and("contain", "From Document Type")
+			.and("contain", "Field");
+	});
+
 	let save_report_and_open = (report, update_name) => {
 		cy.get("#page-query-report .page-actions .menu-btn-group button").click({ force: true });
 		cy.get("#page-query-report .menu-btn-group .dropdown-menu")

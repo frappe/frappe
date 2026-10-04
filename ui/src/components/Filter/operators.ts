@@ -93,6 +93,9 @@ export function getOperators(
 /** The operator a freshly-added condition starts on, by fieldtype. */
 export function getDefaultOperator(fieldtype: string): FilterOperator {
   if (SELECT_TYPES.includes(fieldtype)) return "equals";
+  // A Link picks a record, so it starts on the picker. Dynamic Link has no
+  // target doctype to pick from and stays on text.
+  if (fieldtype === "Link") return "equals";
   if (CHECK_TYPES.includes(fieldtype) || NUMBER_TYPES.includes(fieldtype))
     return "equals";
   if (DATE_TYPES.includes(fieldtype)) return "between";

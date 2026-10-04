@@ -114,6 +114,7 @@ def delete_doc(
 
 		doc = None
 		if doctype == "DocType":
+			custom_field_parents = []
 			if for_reload:
 				try:
 					doc = frappe.get_doc(doctype, name)
@@ -130,6 +131,11 @@ def delete_doc(
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
 				# delete custom table fields using this doctype.
+				custom_field_parents = frappe.get_all(
+					"Custom Field",
+					filters={"options": name, "fieldtype": ("in", frappe.model.table_fields)},
+					pluck="dt",
+				)
 				frappe.db.delete(
 					"Custom Field", {"options": name, "fieldtype": ("in", frappe.model.table_fields)}
 				)
@@ -154,6 +160,8 @@ def delete_doc(
 					pass
 
 			frappe.clear_cache(doctype=name)
+			for parent_doctype in custom_field_parents:
+				frappe.clear_cache(doctype=parent_doctype)
 
 		else:
 			# Lock the doc without waiting
@@ -207,7 +215,12 @@ def delete_doc(
 					"frappe.model.delete_doc.delete_dynamic_links",
 					doctype=doc.doctype,
 					name=doc.name,
-					now=frappe.in_test,
+					now=(
+						frappe.in_test
+						or frappe.flags.in_install
+						or frappe.flags.in_migrate
+						or frappe.flags.in_setup_wizard
+					),
 					enqueue_after_commit=True,
 				)
 
@@ -461,6 +474,8 @@ def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> l
 			# filter before limiting, or irrelevant rows could fill the limit
 			if method == "Delete":
 				query = query.where(RefDoc.docstatus != DocStatus.cancelled())
+				if df.parent == "Submission Queue":
+					query = query.where(RefDoc.status == "Queued")
 			elif method == "Cancel":
 				query = query.where(RefDoc.docstatus == DocStatus.submitted())
 			if limit:
@@ -525,6 +540,7 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 
 
 def delete_dynamic_links(doctype, name):
+	delete_references("Submission Queue", doctype, name, "ref_doctype", "ref_docname")
 	delete_references("ToDo", doctype, name, "reference_type")
 	delete_references("Email Unsubscribe", doctype, name)
 	delete_references("DocShare", doctype, name, "share_doctype", "share_name")

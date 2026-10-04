@@ -1,0 +1,79 @@
+name: Post Review
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number
+        required: true
+        type: number
+      review:
+        description: base64 of a review JSON ({event, body, comments, replies, discussion, resolve}); event must be COMMENT or REQUEST_CHANGES; replies are [{in_reply_to, body}] posted into existing threads; discussion is [body] posted as conversation comments; resolve is [thread node id] and only the bot's own unresolved threads on this PR are closed
+        required: true
+        type: string
+      review_id:
+        description: Existing review id to update; only its body is replaced
+        required: false
+        type: string
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: post-review-${{ inputs.pr }}
+  cancel-in-progress: false
+
+jobs:
+  post:
+    if: github.actor == 'iamejaaz'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Post or update review as frappe-pr-bot
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          PR: ${{ inputs.pr }}
+          REVIEW_B64: ${{ inputs.review }}
+          REVIEW_ID: ${{ inputs.review_id }}
+        run: |
+          printf '%s' "$REVIEW_B64" | base64 -d > review.json
+          jq -e '(.event == "COMMENT" or .event == "REQUEST_CHANGES") and (.body | type == "string") and (.comments | type == "array") and ((.replies // []) | type == "array") and ((.resolve // []) | type == "array")' review.json > /dev/null
+          jq -e '(.replies // []) | all((.in_reply_to | type == "number") and (.body | type == "string") and (.body | length > 0))' review.json > /dev/null
+          jq -e '(.resolve // []) | all(type == "string" and startswith("PRRT_"))' review.json > /dev/null
+          jq -e '((.discussion // []) | type == "array") and ((.discussion // []) | all(type == "string" and length > 0))' review.json > /dev/null
+          if [ -n "$REVIEW_ID" ]; then
+            jq -e '.event == "COMMENT"' review.json > /dev/null || { echo "an update replaces only the body; the event must be COMMENT" >&2; exit 1; }
+          fi
+          if [ "$(jq -r '(.body | length) + (.comments | length)' review.json)" != "0" ]; then
+            if [ -n "$REVIEW_ID" ]; then
+              jq '{body: .body}' review.json > payload.json
+              gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/reviews/$REVIEW_ID" --input payload.json --jq '.html_url'
+            else
+              jq '.comments |= map(with_entries(select(.value != null)))' review.json > payload.json
+              gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
+            fi
+          fi
+          jq -c '(.replies // [])[] | {body, in_reply_to}' review.json | while read -r reply; do
+            printf '%s' "$reply" > reply.json
+            gh api -X POST "repos/${{ github.repository }}/pulls/$PR/comments" --input reply.json --jq '.html_url'
+          done
+          jq -c '(.discussion // [])[] | {body: .}' review.json | while read -r note; do
+            printf '%s' "$note" > note.json
+            gh api -X POST "repos/${{ github.repository }}/issues/$PR/comments" --input note.json --jq '.html_url'
+          done
+          if [ "$(jq -r '(.resolve // []) | length' review.json)" != "0" ]; then
+            gh api graphql --paginate -F o="${GITHUB_REPOSITORY%%/*}" -F r="${GITHUB_REPOSITORY##*/}" -F n="$PR" -f query='
+              query($o:String!,$r:String!,$n:Int!,$endCursor:String){ repository(owner:$o,name:$r){ pullRequest(number:$n){
+                reviewThreads(first:100, after:$endCursor){ pageInfo{ hasNextPage endCursor }
+                  nodes{ id isResolved comments(first:1){ nodes{ author{ login } } } } } } } }' \
+              --jq '.data.repository.pullRequest.reviewThreads.nodes[]
+                    | select(.isResolved == false and .comments.nodes[0].author.login == "frappe-pr-bot") | .id' > own-threads.txt
+            jq -r '(.resolve // [])[]' review.json | while read -r thread; do
+              if grep -qxF "$thread" own-threads.txt; then
+                gh api graphql -f id="$thread" -f query='
+                  mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){ thread{ isResolved } } }' --jq '"resolved \(.data.resolveReviewThread.thread.isResolved)"'
+              else
+                echo "skipped $thread: not an unresolved frappe-pr-bot thread on this PR" >&2
+              fi
+            done
+          fi

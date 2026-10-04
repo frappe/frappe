@@ -47,6 +47,23 @@ class TestReport(IntegrationTestCase):
 				self.assertEqual(info["label"], expected_label)
 				self.assertEqual(info["fieldtype"], expected_fieldtype)
 
+	def test_aggregate_column_drops_currency_the_grouped_row_cannot_resolve(self):
+		from frappe.core.doctype.report.report import get_group_by_column_field
+
+		grand_total = frappe._dict(fieldtype="Currency", options="currency", label="Grand Total")
+		for group_by, expected_fieldtype in (("customer", "Float"), ("currency", "Currency")):
+			with self.subTest(group_by=group_by):
+				with patch("frappe.desk.reportview._aggregate_field_df", return_value=grand_total):
+					info = get_group_by_column_field(
+						{
+							"group_by": f"`tabSales Invoice`.`{group_by}`",
+							"aggregate_function": "sum",
+							"aggregate_on": "`tabSales Invoice`.`grand_total`",
+						},
+						"Sales Invoice",
+					)
+				self.assertEqual(info["fieldtype"], expected_fieldtype)
+
 	def test_parse_aggregate_field(self):
 		"""parse_aggregate_field extracts function name and target from aggregate field"""
 		from frappe.desk.reportview import parse_aggregate_field
@@ -438,6 +455,53 @@ result = [
 		# Set user back to administrator
 		frappe.set_user("Administrator")
 
+	def test_default_print_format_accepts_jinja_and_js(self):
+		"""Report print formats may be authored in either templating language."""
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": "Test Default Print Format Report",
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"query": "select name from `tabUser` limit 1",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		for print_format_type in ("Jinja", "JS"):
+			with self.subTest(print_format_type):
+				print_format = frappe.get_doc(
+					{
+						"doctype": "Print Format",
+						"name": f"Test Default {print_format_type} Format",
+						"print_format_for": "Report",
+						"report": report.name,
+						"print_format_type": print_format_type,
+						"standard": "No",
+						"custom_format": 1,
+						"html": "<p>body</p>",
+					}
+				).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+				report.default_print_format = print_format.name
+				report.save(ignore_permissions=True)
+
+		other_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": "Test Default Print Format Other Report",
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"query": "select name from `tabUser` limit 1",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		other_report.default_print_format = "Test Default Jinja Format"
+		self.assertRaises(frappe.ValidationError, other_report.save, ignore_permissions=True)
+
+		frappe.db.rollback()
+
 	def test_add_total_row_for_tree_reports(self):
 		report_settings = {"tree": True, "parent_field": "parent_value"}
 
@@ -488,6 +552,78 @@ result = [
 		self.assertEqual(result[-1][0], "Total")
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
+
+	def test_read_path_blocked_by_has_role(self):
+		"""has_permission hook raises PermissionError for unpermitted user on frappe.get_doc."""
+		role = "Test Read Path Role"
+		report_name = "Test Read Path Block Report"
+		try:
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_permissions=True)
+
+			frappe.get_doc(
+				{
+					"doctype": "Report",
+					"report_name": report_name,
+					"ref_doctype": "User",
+					"report_type": "Query Report",
+					"is_standard": "No",
+					"query": "select name from tabUser limit 1",
+					"roles": [{"role": role}],
+				}
+			).insert(ignore_permissions=True)
+
+			unpermitted = create_user("test_read_blocked@example.com", "Website Manager")
+			permitted = create_user("test_read_allowed@example.com", role)
+
+			with self.set_user(unpermitted.email):
+				with self.assertRaises(frappe.PermissionError):
+					frappe.get_doc("Report", report_name, check_permission=True)
+
+			with self.set_user(permitted.email):
+				doc = frappe.get_doc("Report", report_name, check_permission=True)
+				self.assertEqual(doc.name, report_name)
+
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.delete("Report", {"name": report_name})
+
+	def test_get_list_filtered_by_has_role(self):
+		"""get_permission_query_conditions excludes restricted reports from list for unpermitted users."""
+		role = "Test List Filter Role"
+		report_name = "Test List Filter Report"
+		try:
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_permissions=True)
+
+			frappe.get_doc(
+				{
+					"doctype": "Report",
+					"report_name": report_name,
+					"ref_doctype": "User",
+					"report_type": "Query Report",
+					"is_standard": "No",
+					"query": "select name from tabUser limit 1",
+					"roles": [{"role": role}],
+				}
+			).insert(ignore_permissions=True)
+
+			unpermitted = create_user("test_list_blocked@example.com", "Website Manager")
+			permitted = create_user("test_list_allowed@example.com", role)
+
+			with self.set_user(unpermitted.email):
+				results = frappe.get_list("Report", filters={"name": report_name}, fields=["name", "query"])
+				self.assertEqual(results, [])
+
+			with self.set_user(permitted.email):
+				results = frappe.get_list("Report", filters={"name": report_name}, fields=["name", "query"])
+				self.assertEqual(len(results), 1)
+				self.assertEqual(results[0].name, report_name)
+				self.assertEqual(results[0].query, "select name from tabUser limit 1")
+
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.delete("Report", {"name": report_name})
 
 	def test_report_cache_invalidation(self):
 		import frappe.sessions

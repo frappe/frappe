@@ -271,23 +271,22 @@ def get_notification_logs(limit: int = 20):
 
 @frappe.whitelist()
 def mark_all_as_read():
-	frappe.db.set_value(
-		"Notification Log",
-		{"read": 0, "for_user": frappe.session.user},
-		"read",
-		1,
-		update_modified=False,
-	)
+	_mark_as_read({})
 
 
 @frappe.whitelist()
 def mark_as_read(docname: str):
-	if frappe.flags.read_only or not docname:
+	if docname:
+		_mark_as_read({"name": str(docname)})
+
+
+def _mark_as_read(filters: dict):
+	if frappe.flags.read_only:
 		return
 
 	frappe.db.set_value(
 		"Notification Log",
-		{"name": str(docname), "for_user": frappe.session.user, "read": 0},
+		{**filters, "for_user": frappe.session.user, "read": 0},
 		"read",
 		1,
 		update_modified=False,

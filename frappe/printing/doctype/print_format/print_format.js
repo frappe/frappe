@@ -46,7 +46,7 @@ frappe.ui.form.on("Print Format", {
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
 		if (!frm.is_new() && frm.doc.print_format_for === "DocType") {
-			if (!frm.doc.custom_format) {
+			if (!frm.doc.custom_format && !frm.doc.__onload?.renders_from_file) {
 				frm.add_custom_button(__("Edit Format"), function () {
 					if (!frm.doc.doc_type) {
 						frappe.msgprint(__("Please select DocType first"));

@@ -14,7 +14,7 @@ frappe.provide("frappe.ui");
  * @property {number} [offset=4] Gap between trigger and menu, in px.
  * @property {string} [empty_text] Shown when no items are visible.
  * @property {function} [on_open]
- * @property {function} [on_close] Called with the reason: "activate" | "escape" | "outside" | "tab" | "owner".
+ * @property {function} [on_close] Called with the reason: "activate" | "escape" | "outside" | "tab" | "navigate" | "owner".
  */
 
 // TODO: switch/checkbox rows (frappe-ui DropdownSwitchOption) — needs the
@@ -32,7 +32,7 @@ frappe.provide("frappe.ui");
  *     trigger: this.$el.find(".menu-btn"),
  *     options: [
  *         { label: __("Edit"), icon: "pen", onclick: () => this.edit() },
- *         { label: __("Delete"), icon: "trash-2", theme: "red", onclick: () => this.delete() },
+ *         { label: __("Delete"), icon: "trash", theme: "red", onclick: () => this.delete() },
  *     ],
  * });
  */
@@ -46,10 +46,19 @@ frappe.ui.Dropdown = class Dropdown {
 		this.offset = opts.offset == null ? 4 : opts.offset;
 		this.menu = null;
 
+		const button_opts = { ...opts.button };
+		// icon-only buttons need no fallback label
+		if (
+			!button_opts.label &&
+			!button_opts.icon &&
+			!button_opts.icon_left &&
+			!button_opts.icon_right
+		) {
+			button_opts.label = __("Options");
+		}
 		// the trigger button owns the click that opens the menu, so its own
 		// onclick would double up — drop it (the menu's action lives on the
 		// item rows, not the trigger)
-		const button_opts = { label: __("Options"), ...opts.button };
 		if (button_opts.onclick) {
 			console.warn(
 				"frappe.ui.Dropdown: button.onclick is ignored — put actions on the items"

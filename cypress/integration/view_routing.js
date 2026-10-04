@@ -1,3 +1,6 @@
+// the page title is the last breadcrumb
+const TITLE = ".navbar-breadcrumbs:visible li:last-child";
+
 context("View", () => {
 	before(() => {
 		cy.login();
@@ -208,9 +211,11 @@ context("View", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
 			cy.visit("/desk/event");
 			cy.visit("/desk/event/view/list");
-			cy.location("pathname").should("eq", "/desk/event/view/list");
+			// Matched on the end rather than the whole path: a desk URL carries the shell it
+			// opened in, and which shell Event belongs to is not what this test is about.
+			cy.location("pathname").should("match", /\/event\/view\/list$/);
 			cy.go("back");
-			cy.location("pathname").should("eq", "/desk/event");
+			cy.location("pathname").should("match", /\/event$/);
 		});
 	});
 
@@ -226,6 +231,7 @@ context("View", () => {
 
 	it("Route to Website Workspace", () => {
 		cy.visit("/desk/website");
-		cy.get(".navbar-breadcrumbs:visible").get("li > a").should("contain", "Website");
+		// the workspace names itself in the last crumb, and it is not a link
+		cy.get(TITLE).should("contain", "Website");
 	});
 });

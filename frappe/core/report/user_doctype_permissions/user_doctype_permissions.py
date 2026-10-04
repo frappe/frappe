@@ -94,6 +94,10 @@ def get_data(filters: dict) -> list[list]:
 		if perm["permlevel"] != 0:  # ignore permlevel
 			continue
 
+		# Custom DocPerm is not a child table, so `parent` can be unset
+		if not perm["parent"]:
+			continue
+
 		dt = perm["parent"]
 		if_owner = perm["if_owner"]
 		role = perm["role"]

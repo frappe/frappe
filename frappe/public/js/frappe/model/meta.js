@@ -214,7 +214,6 @@ $.extend(frappe.meta, {
 			owner: "Created By",
 			_user_tags: "Tags",
 			_liked_by: "Liked By",
-			_comments: "Comments",
 			_assign: "Assigned To",
 		};
 		if (standard[fn]) {
@@ -281,7 +280,7 @@ $.extend(frappe.meta, {
 			if (
 				!print_format_list.includes(d.name) &&
 				d.print_format_type !== "JS" &&
-				d.print_format_for === "DocType" &&
+				d.print_format_for !== "Report" &&
 				(cint(enable_raw_printing) || !d.raw_printing)
 			) {
 				print_format_list.push(d.name);
@@ -335,8 +334,14 @@ $.extend(frappe.meta, {
 		if (df && df.precision) {
 			precision = cint(df.precision);
 		} else if (df && df.fieldtype === "Currency") {
-			precision = cint(frappe.defaults.get_default("currency_precision"));
-			if (!precision) {
+			var currency_precision = frappe.defaults.get_default("currency_precision");
+			if (
+				currency_precision !== null &&
+				currency_precision !== undefined &&
+				currency_precision !== ""
+			) {
+				precision = cint(currency_precision);
+			} else {
 				var currency = frappe.meta.get_field_currency(df, doc);
 				var number_format = get_number_format(currency);
 				var number_format_info = get_number_format_info(number_format);

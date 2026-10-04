@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import { CHART_PALETTE } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
@@ -1482,17 +1483,18 @@ Object.assign(frappe.utils, {
 								route = "/desk/private/" + frappe.router.slug(workspaces.title);
 							}
 						}
-
-						if (first_link.route) {
-							route = first_link.route;
-						}
 					} else if (first_link.link_type === "URL") {
 						route = first_link.url;
-					} else if (first_link.link_type == "Page" && first_link.route_options) {
+					} else if (first_link.link_type == "Page") {
 						route = frappe.utils.generate_route({
 							type: first_link.link_type,
 							name: first_link.link_to,
-							route_options: JSON.parse(first_link.route_options),
+							route: first_link.route
+								? `${first_link.link_to}/${first_link.route}`
+								: undefined,
+							route_options: first_link.route_options
+								? JSON.parse(first_link.route_options)
+								: undefined,
 						});
 					} else {
 						route = frappe.utils.generate_route({
@@ -1604,9 +1606,13 @@ Object.assign(frappe.utils, {
 	},
 
 	make_chart(wrapper, custom_options = {}) {
+		// a chart that names no colours of its own gets Espresso's
+		if (!custom_options.colors?.length) {
+			custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
+		}
+
 		let chart_args = {
 			type: "bar",
-			colors: ["light-blue"],
 			axisOptions: {
 				xIsSeries: 1,
 				shortenYAxisNumbers: 1,
@@ -1624,6 +1630,15 @@ Object.assign(frappe.utils, {
 		}
 		frappe.utils.set_space_label_ratio(chart_args);
 		return new frappe.Chart(wrapper, chart_args);
+	},
+
+	// Espresso's chart colours (CHART_PALETTE) as the current theme defines them: frappe-charts
+	// lightens and blends colours from their literal values, which a CSS variable does not give it
+	get_chart_palette() {
+		const style = getComputedStyle(document.documentElement);
+		return CHART_PALETTE.map(
+			(color) => style.getPropertyValue(color.slice(4, -1)).trim() || color
+		);
 	},
 
 	format_chart_axis_number(label, country) {
@@ -1705,7 +1720,9 @@ Object.assign(frappe.utils, {
 				if (item.public) {
 					route = frappe.router.slug(item.name);
 				} else {
-					route = "private/" + frappe.router.slug(item.name);
+					// By title: a private page's name carries its owner's email, and the only
+					// person who can open the page is that owner. See `router.private_workspace`.
+					route = "private/" + frappe.router.slug(item.title || item.name);
 				}
 			}
 		} else {

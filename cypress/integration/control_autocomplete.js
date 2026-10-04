@@ -50,4 +50,28 @@ context("Control Autocomplete", () => {
 			dialog.hide();
 		});
 	});
+
+	it("passes the form to a get_query function", () => {
+		cy.new_form("ToDo");
+		cy.window().then((win) => {
+			const frm = win.cur_frm;
+			let query_frm;
+			const control = win.frappe.ui.form.make_control({
+				parent: win.$("<div>"),
+				df: {
+					fieldtype: "Autocomplete",
+					fieldname: "autocomplete_query",
+					get_query: (doc, cdt, cdn, form) => {
+						query_frm = form;
+						return {};
+					},
+				},
+				frm: frm,
+				render_input: true,
+			});
+
+			control.execute_query_if_exists("");
+			expect(query_frm).to.equal(frm);
+		});
+	});
 });

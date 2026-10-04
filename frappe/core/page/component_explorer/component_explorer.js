@@ -30,7 +30,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								},
 								{
 									label: "Delete",
-									icon: "trash-2",
+									icon: "trash",
 									theme: "red",
 									onclick: () =>
 										frappe.ui.toast({ message: "Deleted", type: "error" }),
@@ -59,6 +59,12 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 											shortcut: "ctrl+p",
 											onclick: () =>
 												frappe.ui.toast({ message: "Print clicked" }),
+										},
+										{
+											label: "Documentation",
+											href: "https://docs.frappe.io/framework",
+											target: "_blank",
+											icon_right: "external-link",
 										},
 									],
 								},
@@ -408,6 +414,14 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			helper: "frappe.ui.tooltip",
 			code_first: "button_el",
 			make: (opts) => {
+				// a label that ellipsises at a fixed width, so there is something to cut off
+				if (opts.only_on_overflow) {
+					const $label = $(
+						`<div class="explorer-truncate text-base text-ink-gray-8"></div>`
+					).text(opts.__trigger);
+					frappe.ui.tooltip($label, opts);
+					return $label;
+				}
 				const $btn = frappe.ui.button({ label: opts.__trigger || __("Hover me") });
 				frappe.ui.tooltip($btn, opts);
 				return $btn;
@@ -467,6 +481,31 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{
 							__trigger: __("Long"),
 							text: "A longer explanation that wraps across a couple of lines instead of running off the screen",
+						},
+					],
+				},
+				{
+					title: __("A list of reasons"),
+					items: [
+						{
+							__trigger: __("List"),
+							text: "Typst cannot render:\n• Custom CSS in the Style box\n• HTML block",
+							text_align: "start",
+						},
+					],
+				},
+				{
+					title: __("Only when overflow"),
+					items: [
+						{
+							__code: "frappe.ui.tooltip(label_el, { only_on_overflow: true })",
+							__trigger: __("Quarterly Sales Commission Report"),
+							only_on_overflow: true,
+						},
+						{
+							__code: "frappe.ui.tooltip(label_el, { only_on_overflow: true })",
+							__trigger: __("DocType"),
+							only_on_overflow: true,
 						},
 					],
 				},
@@ -768,6 +807,122 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Stepper: {
+			helper: "frappe.ui.stepper",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (active + completed states)"),
+					items: [
+						{
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Fix issues" },
+								{ label: "Import" },
+							],
+							current: 1,
+						},
+					],
+				},
+				{
+					title: __("Locked steps"),
+					items: [
+						{
+							steps: [
+								{ label: "Details" },
+								{ label: "Review" },
+								{ label: "Submit" },
+							],
+							current: 0,
+							is_locked: (index) => index === 2,
+						},
+					],
+				},
+				{
+					title: __("Click to navigate"),
+					items: [
+						{
+							steps: [{ label: "One" }, { label: "Two" }, { label: "Three" }],
+							current: 0,
+							on_step_click: function (index) {
+								this.set_current(index);
+							},
+						},
+					],
+				},
+				{
+					title: __("Revisiting a finished flow (factual completion)"),
+					items: [
+						{
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Import" },
+							],
+							current: 1,
+							is_completed: () => true,
+						},
+					],
+				},
+				{
+					title: __("Label position"),
+					items: [
+						{
+							__code: 'frappe.ui.stepper({\n  steps: [{ label: "Config" }, { label: "Preview" }, { label: "Fix issues" }, { label: "Import" }],\n  current: 1,\n  label_position: "bottom",  // or "right" (default), "left", "top"\n})',
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Fix issues" },
+								{ label: "Import" },
+							],
+							current: 1,
+							label_position: "bottom",
+						},
+					],
+				},
+				{
+					title: __("Compact (narrow layouts)"),
+					items: [
+						{
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Fix issues" },
+								{ label: "Import" },
+							],
+							current: 1,
+							compact: true,
+						},
+					],
+				},
+				{
+					title: __("Live (next / previous on the first stepper above)"),
+					items: [
+						{
+							__label: __("Next step"),
+							__code: '$(".es-stepper").first().data("es-stepper").next_step();',
+							__run: () => {
+								$(".explorer-preview .es-stepper")
+									.first()
+									.data("es-stepper")
+									?.next_step();
+							},
+						},
+						{
+							__label: __("Previous step"),
+							__code: '$(".es-stepper").first().data("es-stepper").prev_step();',
+							__run: () => {
+								$(".explorer-preview .es-stepper")
+									.first()
+									.data("es-stepper")
+									?.prev_step();
+							},
+						},
+					],
+				},
+			],
+		},
 		Progress: {
 			helper: "frappe.ui.progress",
 			stacked: true,
@@ -828,6 +983,151 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							},
 						},
 					],
+				},
+			],
+		},
+		"Stat Card": {
+			helper: "frappe.ui.stat_card",
+			groups: [
+				{
+					title: __("Value + caption"),
+					items: [
+						{ label: "Open orders", value: "24", caption: "₹3,40,000 to deliver" },
+						{ label: "Customers", value: "1,208", icon: "users" },
+					],
+				},
+				{
+					title: __("Trend delta"),
+					items: [
+						{
+							label: "Net sales",
+							value: "₹12,40,000",
+							delta: { value: 12.4, suffix: "since last year" },
+						},
+						{
+							label: "Overdue",
+							value: "₹1,80,000",
+							delta: {
+								value: 8,
+								positive_is_good: false,
+								suffix: "since last month",
+							},
+						},
+						{ label: "Returns", value: "3", delta: { value: 0 } },
+					],
+				},
+				{
+					title: __("No reading vs zero"),
+					items: [
+						{ label: "Conversion rate", value: null },
+						{ label: "Refunds", value: "0" },
+					],
+				},
+				{
+					title: __("Loading"),
+					items: [{ label: "Net sales", loading: true }],
+				},
+				{
+					title: __("Series dot + clickable"),
+					items: [
+						{
+							label: "Paid",
+							value: "₹8,20,000",
+							dot: "var(--blue-600)",
+							onclick: () => frappe.ui.toast({ message: "Paid" }),
+						},
+					],
+				},
+			],
+		},
+		"Bar List": {
+			helper: "frappe.ui.bar_list",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							items: [
+								{ label: "Not due", value: 42000 },
+								{ label: "1–30 days", value: 18000 },
+								{ label: "31–60 days", value: 9500 },
+								{ label: "60+ days", value: 3000 },
+							],
+						},
+					],
+				},
+				{
+					title: __("Formatted, coloured, values on hover"),
+					items: [
+						{
+							items: [
+								{ label: "Laptops", value: 120 },
+								{ label: "Monitors", value: 84 },
+								{ label: "Keyboards", value: 51 },
+							],
+							format: (value) => value + " units",
+							color: "var(--green-600)",
+							values_on_hover: true,
+						},
+					],
+				},
+				{
+					title: __("Wide labels + clickable rows"),
+					items: [
+						{
+							items: [
+								{ label: "Kaveri Industrial Supplies", value: 540000 },
+								{ label: "Northwind Traders", value: 320000 },
+							],
+							label_width: 180,
+							onclick: (item) => frappe.ui.toast({ message: item.label }),
+						},
+					],
+				},
+				{
+					title: __("Empty"),
+					items: [{ items: [] }],
+				},
+			],
+		},
+		Donut: {
+			helper: "frappe.ui.donut",
+			groups: [
+				{
+					title: __("Centre value + legend"),
+					items: [
+						{
+							segments: [
+								{ label: "Paid", value: 70 },
+								{ label: "Unpaid", value: 20 },
+								{ label: "Overdue", value: 10 },
+							],
+							center: { value: "70%", label: "paid" },
+						},
+					],
+				},
+				{
+					title: __("Custom colours + format"),
+					items: [
+						{
+							segments: [
+								{ label: "Used", value: 55000, color: "var(--blue-600)" },
+								{
+									label: "Available",
+									value: 45000,
+									color: "var(--blue-400)",
+								},
+							],
+							center: { value: "55%", label: "used" },
+							format: (value) => format_currency(value),
+							size: 180,
+						},
+					],
+				},
+				{
+					title: __("Empty"),
+					items: [{ segments: [], size: 180 }],
 				},
 			],
 		},
@@ -1461,7 +1761,13 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		</div>
 	`).appendTo(page.main);
 
-	function render_component(name) {
+	let selected_component;
+	async function render_component(name) {
+		selected_component = name;
+		if (["Stat Card", "Bar List", "Donut"].includes(name)) {
+			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
+			if (selected_component !== name) return;
+		}
 		const component = COMPONENTS[name];
 		const $groups = $body.find(".explorer-groups").empty();
 		if (!component) return;

@@ -130,14 +130,31 @@ def _limited_b():
 	return "b"
 
 
+@rate_limit(limit=2, seconds=60, user_based=True)
+def _limited_user_based():
+	return "user-based"
+
+
+@rate_limit(limit=2, seconds=60, user_based=True, ip_based=False)
+def _limited_user_based_no_ip():
+	return "user-based-no-ip"
+
+
+@rate_limit(limit=1, seconds=60, key="priority", user_based=True)
+def _limited_user_based_with_key():
+	return "keyed"
+
+
 class TestRateLimitDecorator(IntegrationTestCase):
 	def setUp(self):
-		request, request_ip = (
+		request, request_ip, user = (
 			getattr(frappe.local, "request", None),
 			getattr(frappe.local, "request_ip", None),
+			getattr(frappe.session, "user", None),
 		)
 		self.addCleanup(setattr, frappe.local, "request", request)
 		self.addCleanup(setattr, frappe.local, "request_ip", request_ip)
+		self.addCleanup(frappe.set_user, user or "Administrator")
 		self.addCleanup(frappe.cache.delete_keys, "rl:")
 		self.addCleanup(frappe.form_dict.pop, "cmd", None)
 
@@ -167,3 +184,60 @@ class TestRateLimitDecorator(IntegrationTestCase):
 		self.assertRaises(frappe.RateLimitExceededError, _limited_a)
 
 		self.assertEqual(_limited_b(), "b")
+
+	def test_authenticated_user_shares_counter_across_ips(self):
+		frappe.set_user("Administrator")
+
+		frappe.local.request_ip = "10.0.0.1"
+		_limited_user_based()
+
+		frappe.local.request_ip = "10.0.0.2"
+		_limited_user_based()
+
+		self.assertRaises(frappe.RateLimitExceededError, _limited_user_based)
+
+	def test_different_authenticated_users_do_not_share_counter(self):
+		frappe.set_user("Administrator")
+		_limited_user_based()
+		_limited_user_based()
+
+		frappe.set_user("someone-else@example.com")
+		self.assertEqual(_limited_user_based(), "user-based")
+
+	def test_guest_falls_back_to_ip_when_ip_based(self):
+		frappe.set_user("Guest")
+		frappe.local.request_ip = "10.0.0.5"
+
+		_limited_user_based()
+		_limited_user_based()
+		self.assertRaises(frappe.RateLimitExceededError, _limited_user_based)
+
+		frappe.local.request_ip = "10.0.0.6"
+		self.assertEqual(_limited_user_based(), "user-based")
+
+	def test_guest_retains_ip_scoping_when_ip_based_is_false(self):
+		frappe.set_user("Guest")
+
+		frappe.local.request_ip = "10.0.0.7"
+		_limited_user_based_no_ip()
+		_limited_user_based_no_ip()
+		self.assertRaises(frappe.RateLimitExceededError, _limited_user_based_no_ip)
+
+		frappe.local.request_ip = "10.0.0.8"
+		self.assertEqual(_limited_user_based_no_ip(), "user-based-no-ip")
+
+	def test_user_based_with_key_is_further_scoped_by_key(self):
+		self.addCleanup(frappe.form_dict.pop, "priority", None)
+		frappe.set_user("Administrator")
+
+		frappe.form_dict.priority = "high"
+		_limited_user_based_with_key()
+		self.assertRaises(frappe.RateLimitExceededError, _limited_user_based_with_key)
+
+		# same user, different key value -> separate bucket
+		frappe.form_dict.priority = "low"
+		self.assertEqual(_limited_user_based_with_key(), "keyed")
+
+	def test_requires_an_identity_source(self):
+		fn = rate_limit(limit=1, seconds=60, ip_based=False, user_based=False)(lambda: "x")
+		self.assertRaises(frappe.ValidationError, fn)

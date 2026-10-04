@@ -1,7 +1,6 @@
 <template>
 	<div class="pfb-visibility-body">
-		<div class="pfb-insp-row--col" style="display: flex; flex-direction: column; gap: 6px">
-			<label class="pfb-insp-label">{{ __("Show when") }}</label>
+		<InspectorRow :label="__('Condition')" stacked>
 			<input
 				class="pfb-insp-input"
 				type="text"
@@ -11,39 +10,49 @@
 			/>
 			<div v-if="modelValue && modelValue.trim()" class="pfb-vis-status-row">
 				<template v-if="previewDoc">
-					<span class="es-badge" :data-theme="is_visible ? 'green' : 'gray'">
+					<span
+						v-if="check.error"
+						class="es-badge"
+						data-theme="orange"
+						:title="check.error"
+					>
+						{{ __("Can't check this condition") }}
+					</span>
+					<span
+						v-else-if="check.visible != null"
+						class="es-badge"
+						:data-theme="check.visible ? 'green' : 'gray'"
+					>
 						<span
 							class="pfb-vis-dot"
-							:class="is_visible ? 'pfb-vis-dot--show' : 'pfb-vis-dot--hide'"
+							:class="check.visible ? 'pfb-vis-dot--show' : 'pfb-vis-dot--hide'"
 						></span>
-						{{ is_visible ? __("Currently visible") : __("Currently hidden") }}
+						{{ check.visible ? __("Currently visible") : __("Currently hidden") }}
 					</span>
 				</template>
 				<span v-else class="pfb-vis-hint-no-doc">
 					{{ __("Load a document to see live status") }}
 				</span>
 			</div>
-			<p class="pfb-insp-hint text-muted">
-				{{ __("Leave blank to always show. Reference fields with") }}
-				<code>doc.fieldname</code>.
-			</p>
-		</div>
+		</InspectorRow>
 	</div>
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { evaluate_visible_if } from "../../utils";
+import { computed, inject } from "vue";
+import InspectorRow from "./InspectorRow.vue";
 
-const props = defineProps(["modelValue", "previewDoc"]);
+const props = defineProps(["modelValue"]);
 defineEmits(["update:modelValue"]);
 
-let is_visible = computed(() => evaluate_visible_if(props.modelValue, props.previewDoc));
+const store = inject("$store");
+const previewDoc = computed(() => store.preview_doc.value);
+const check = computed(() => store.condition_state(props.modelValue));
 </script>
 
 <style scoped>
 .pfb-visibility-body {
-	padding: 4px 14px 12px;
+	padding: 4px 16px 16px;
 }
 
 .pfb-vis-status-row {

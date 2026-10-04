@@ -36,25 +36,29 @@ def execute(filters=None):
 				ORDER BY 2 DESC;
 			""",
 			"sqlite": """
-				WITH RECURSIVE
-					page_size AS (
-						SELECT CAST(page_size AS FLOAT) as size FROM PRAGMA_page_size()
-					)
+				WITH page_usage AS (
+					SELECT
+						objects.tbl_name AS table_name,
+						SUM(CASE WHEN objects.type = 'table' THEN pages.pgsize ELSE 0 END) AS data_bytes,
+						SUM(CASE WHEN objects.type = 'index' THEN pages.pgsize ELSE 0 END) AS index_bytes
+					FROM dbstat AS pages
+					JOIN sqlite_master AS objects ON objects.name = pages.name
+					WHERE objects.type IN ('table', 'index')
+					GROUP BY objects.tbl_name
+				)
 				SELECT
-					m.name as 'table',
-					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name = m.name) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'data_size',
-					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name IN (
-						SELECT name FROM sqlite_master
-						WHERE type = 'index' AND tbl_name = m.name
-					)) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'index_size',
-					ROUND(CAST((SELECT SUM(pgsize) FROM dbstat WHERE name = m.name OR name IN (
-						SELECT name FROM sqlite_master
-						WHERE type = 'index' AND tbl_name = m.name
-					)) * page_size.size / (1024.0 * 1024.0 * 1024.0) AS FLOAT), 2) as 'size'
-				FROM sqlite_master m
-				CROSS JOIN page_size
-				WHERE m.type = 'table'
-				AND m.name NOT LIKE 'sqlite_%'
+					tables.name AS 'table',
+					ROUND(COALESCE(page_usage.data_bytes, 0) / (1024.0 * 1024.0), 2) AS 'data_size',
+					ROUND(COALESCE(page_usage.index_bytes, 0) / (1024.0 * 1024.0), 2) AS 'index_size',
+					ROUND(
+						(COALESCE(page_usage.data_bytes, 0) + COALESCE(page_usage.index_bytes, 0))
+						/ (1024.0 * 1024.0),
+						2
+					) AS 'size'
+				FROM sqlite_master AS tables
+				LEFT JOIN page_usage ON page_usage.table_name = tables.name
+				WHERE tables.type = 'table'
+				AND tables.name NOT LIKE 'sqlite_%'
 				ORDER BY size DESC;""",
 		},
 		as_dict=1,

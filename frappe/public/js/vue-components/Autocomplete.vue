@@ -31,7 +31,7 @@
 		<div class="frappe-autocomplete-input-wrap" :class="{ focused }">
 			<span
 				class="frappe-autocomplete-icon"
-				v-html="frappe.utils.icon('search', 'xs')"
+				v-html="frappe.utils.icon('search', 'sm')"
 			></span>
 			<input
 				ref="input_el"
@@ -158,7 +158,9 @@ defineExpose({ focus: () => input_el.value?.focus() });
 .frappe-autocomplete-icon {
 	display: flex;
 	align-items: center;
-	color: var(--gray-400);
+	/* the glyph takes --icon-stroke, not color */
+	--icon-stroke: var(--ink-gray-4);
+	color: var(--ink-gray-4);
 	flex-shrink: 0;
 }
 

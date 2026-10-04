@@ -7,7 +7,7 @@ import datetime
 import json
 import re
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from functools import cached_property, lru_cache
 
 import sqlparse
@@ -15,7 +15,6 @@ from sqlparse import tokens
 from sqlparse.sql import Function, Parenthesis, Statement
 
 import frappe
-import frappe.defaults
 import frappe.permissions
 import frappe.share
 from frappe import _
@@ -32,7 +31,6 @@ from frappe.database.utils import (
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
-from frappe.model.utils.mask import mask_field_value
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.types import Filters, FilterSignature, FilterTuple
@@ -69,6 +67,7 @@ LOCATE_CAST_PATTERN = re.compile(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", 
 FUNC_IFNULL_PATTERN = re.compile(r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", flags=re.IGNORECASE)
 CAST_VARCHAR_PATTERN = re.compile(r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", flags=re.IGNORECASE)
 ORDER_BY_PATTERN = re.compile(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", flags=re.IGNORECASE)
+QUALIFIED_COLUMN_PATTERN = re.compile(r"tab[\w -]+\.\w+")
 SUB_QUERY_PATTERN = re.compile("^.*[,();@].*", flags=re.DOTALL)
 IS_QUERY_PATTERN = re.compile(r"^(select|delete|update|drop|create)\s")
 IS_QUERY_PREDICATE_PATTERN = re.compile(r"\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )")
@@ -102,7 +101,6 @@ class DatabaseQuery:
 		self.permission_map = {}
 		self.shared = []
 		self._fetch_shared_documents = False
-		self._child_filters_via_exists = False
 		self._metas = {}
 
 	@cached_property
@@ -237,6 +235,7 @@ class DatabaseQuery:
 			} | self.__dict__
 			return frappe.call(controller.get_list, args=kwargs, **kwargs)
 
+		self.with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
 		self.columns = self.get_table_columns()
 
 		# no table & ignore_ddl, return
@@ -245,7 +244,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if sbool(with_comment_count) and not as_list and self.doctype:
+		if self.with_comment_count:
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -367,9 +366,10 @@ from {tables}
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
-		# decided before cast_name_fields wraps name columns in cast() on postgres
-		drop_dedup_group_by = self._is_redundant_dedup_group_by()
 		self.apply_fieldlevel_read_permissions()
+		# selected after the permission check: never user-requestable, popped in add_comment_count
+		if self.with_comment_count and not self.group_by and "_comments" in self.columns:
+			self.fields.append(f"`tab{self.doctype}`.`_comments`")
 
 		args = frappe._dict()
 
@@ -432,25 +432,10 @@ from {tables}
 		self.validate_order_by_and_group_by(args.order_by)
 		args.order_by = (args.order_by and (" order by " + args.order_by)) or ""
 
-		if drop_dedup_group_by:
-			# list views send group_by=parent primary key to dedup child-table join
-			# rows; once child filters use exists() nothing multiplies rows, and
-			# keeping it breaks postgres when fields include columns from joined
-			# link tables (show_title_field_in_link)
-			self.group_by = None
-
 		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = (self.group_by and (" group by " + self._group_by_with_link_table_pks())) or ""
 
 		return args
-
-	def _is_redundant_dedup_group_by(self) -> bool:
-		if not (self._child_filters_via_exists and len(self.tables) == 1):
-			return False
-		if any("(" in (field or "") for field in self.fields):
-			# aggregates change meaning without group by, keep it
-			return False
-		return self._is_dedup_group_by()
 
 	def _is_dedup_group_by(self) -> bool:
 		if not self.group_by:
@@ -471,11 +456,12 @@ from {tables}
 		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
 
 		if order_field not in args.fields:
-			extracted_column = order_column = order_field.replace("`", "")
-			if "." in extracted_column:
-				extracted_column = extracted_column.split(".")[1]
-
-			args.fields += f", MAX({extracted_column}) as `{order_column}`"
+			order_column = order_field.replace("`", "")
+			max_argument = order_field
+			if QUALIFIED_COLUMN_PATTERN.fullmatch(order_column):
+				table, column = order_column.split(".")
+				max_argument = f"`{table}`.`{column}`"
+			args.fields += f", MAX({max_argument}) as `{order_column}`"
 			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
 		return args
@@ -779,99 +765,14 @@ from {tables}
 	def build_conditions(self):
 		self.conditions = []
 		self.grouped_or_conditions = []
-
-		filters, exists_groups = self._split_child_table_filters(self.filters)
-		or_filters, or_exists_groups = self._split_child_table_filters(self.or_filters)
-
-		# a child table filtered in both filters and or_filters keeps the legacy
-		# join: both groups must test the same joined child row
-		for doctype in exists_groups.keys() & or_exists_groups.keys():
-			filters.extend(exists_groups.pop(doctype))
-			or_filters.extend(or_exists_groups.pop(doctype))
-
-		self._child_filters_via_exists = bool(exists_groups or or_exists_groups)
-
-		for ft, parsed in filters:
-			self.conditions.append(self.prepare_filter_condition(ft, parsed=parsed))
-		for doctype, group in exists_groups.items():
-			self.conditions.append(self.prepare_exists_condition(doctype, group))
-
-		for ft, parsed in or_filters:
-			self.grouped_or_conditions.append(self.prepare_filter_condition(ft, parsed=parsed))
-		for doctype, group in or_exists_groups.items():
-			self.grouped_or_conditions.append(self.prepare_exists_condition(doctype, group, any_match=True))
+		self.build_filter_conditions(self.filters, self.conditions)
+		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
 
 		# match conditions
 		if not self.flags.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
 				self.conditions.append(f"({match_conditions})")
-
-	def _split_child_table_filters(self, filters: Filters) -> tuple[list, dict[str, list]]:
-		"""Separate filters on child tables that are not part of the query itself.
-
-		These filter through an exists() subquery instead of a join, so the outer
-		query needs no `group by` to deduplicate parents. Return the remaining
-		filters and the exists candidates grouped by child doctype, both as
-		(filter, parsed filter) pairs so no filter is parsed twice.
-		"""
-		from frappe.boot import get_additional_filters_from_hooks
-
-		joined: list = []
-		exists_groups: dict[str, list] = {}
-		if not filters:
-			return joined, exists_groups
-		if not self._can_filter_via_exists():
-			return [(ft, None) for ft in filters], exists_groups
-
-		additional_filters_config = get_additional_filters_from_hooks()
-		# quotes are stripped so `tabX`.`col`, "tabX".col and tabX.col forms all match
-		sort_group_references = f"{self.group_by or ''} {self.order_by or ''}".replace("`", "").replace(
-			'"', ""
-		)
-		for ft in filters:
-			f = get_filter(self.doctype, ft, additional_filters_config)
-			if (
-				f.doctype
-				and f.doctype != self.doctype
-				and f"`tab{f.doctype}`" not in self.tables
-				and f"tab{f.doctype}" not in sort_group_references
-				and self.get_meta(f.doctype).istable
-			):
-				exists_groups.setdefault(f.doctype, []).append((ft, f))
-			else:
-				joined.append((ft, f))
-		return joined, exists_groups
-
-	def _can_filter_via_exists(self) -> bool:
-		if self.join != "left join" or self.with_childnames:
-			return False
-		if any("(" in (field or "") for field in self.fields or []):
-			return False
-		if self.order_by and self.order_by != DefaultOrderBy and "(" in self.order_by:
-			return False
-		if self.flags.ignore_permissions:
-			return True
-		return not get_server_script_map().get("permission_query", {}).get(self.doctype)
-
-	def prepare_exists_condition(self, child_doctype: str, filters: list, any_match=False) -> str:
-		"""Return an exists() condition that filters by a child table without joining it.
-
-		The child table is left joined to a one-row derived table, so a parent with
-		no child rows is tested against a single all-NULL child row — exactly like
-		the outer left join this replaces (filters like "is not set" must match
-		parents without child rows).
-		"""
-		self.check_read_permission(child_doctype, parent_doctype=self.doctype)
-		child_table = f"`tab{child_doctype}`"
-		joiner = " or " if any_match else " and "
-		conditions = joiner.join(
-			self.prepare_filter_condition(ft, skip_join=True, parsed=parsed) for ft, parsed in filters
-		)
-		return (
-			f"exists (select 1 from (select 1) as `_one_row` "
-			f"left join {child_table} on ({self._child_join_condition(child_table)}) where {conditions})"
-		)
 
 	def _child_join_condition(self, child_table: str) -> str:
 		parent_name = cast_name(f"`tab{self.doctype}`.name")
@@ -991,7 +892,7 @@ from {tables}
 			else:
 				self.remove_field(i)
 
-	def prepare_filter_condition(self, ft: FilterTuple, *, skip_join: bool = False, parsed=None) -> str:
+	def prepare_filter_condition(self, ft: FilterTuple) -> str:
 		"""Return a filter condition in the format:
 
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
@@ -1002,12 +903,10 @@ from {tables}
 		from frappe.boot import get_additional_filters_from_hooks
 
 		additional_filters_config = get_additional_filters_from_hooks()
-		f: FilterTuple = (
-			parsed if parsed is not None else get_filter(self.doctype, ft, additional_filters_config)
-		)
+		f: FilterTuple = get_filter(self.doctype, ft, additional_filters_config)
 
 		tname = "`tab" + f.doctype + "`"
-		if not skip_join and tname not in self.tables:
+		if tname not in self.tables:
 			self.append_table(tname)
 
 		column_name = cast_name(f.fieldname if "ifnull(" in f.fieldname else f"{tname}.`{f.fieldname}`")
@@ -1422,13 +1321,15 @@ from {tables}
 
 		quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
 		param_wrapper = NamedParameterWrapper()
-		sql = criterion.get_sql(with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper)
+		sql = criterion.get_sql(
+			with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper, subquery=True
+		)
 		for key, value in param_wrapper.get_parameters().items():
 			sql = sql.replace(f"%({key})s", frappe.db.escape(value))
 		return sql
 
 	def set_order_by(self, args):
-		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
+		if self.order_by and self.order_by != DefaultOrderBy:
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""
@@ -1531,13 +1432,12 @@ from {tables}
 
 	def add_comment_count(self, result):
 		for r in result:
+			comments = r.pop("_comments", None)
 			if not r.name:
 				continue
 
-			r._comment_count = 0
-			if "_comments" in r and r._comments:
-				# perf: Avoid parsing _comments, they can be huge and this is just a "UX feature"
-				r._comment_count = r._comments.count('"comment"')
+			# perf: Avoid parsing _comments, this is just a "UX feature"
+			r._comment_count = comments.count('"name"') if comments else 0
 
 	def update_user_settings(self):
 		# update user settings if new search

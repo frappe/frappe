@@ -1,6 +1,10 @@
 <template>
-	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height -->
-	<div ref="rootEl" class="activity-timeline flex flex-col-reverse overflow-y-auto">
+	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height.
+	     It already anchors, so Chrome's anchoring on top would shift a row as emails above load. -->
+	<div
+		ref="rootEl"
+		class="activity-timeline flex flex-col-reverse overflow-y-auto [overflow-anchor:none]"
+	>
 		<!-- min-h-full keeps short feeds at the top; shrink-0 keeps the overflow -->
 		<div class="min-h-full shrink-0">
 			<!-- spinner only on first load; cached data stays visible during revalidation -->
@@ -27,7 +31,7 @@
 					v-for="(activity, i) in displayActivities"
 					:key="getKey(activity, i)"
 					:id="getKey(activity, i)"
-					class="activity"
+					class="activity scroll-mt-[20vh]"
 				>
 					<!-- minmax 0: lets the content column shrink so inner truncation can engage -->
 					<div class="grid w-full grid-cols-[30px_minmax(0,_1fr)] gap-2 px-6 md:px-0">
@@ -61,7 +65,10 @@
 						</div>
 						<div
 							class="mb-4 flex flex-1"
-							:class="[i == displayActivities.length - 1 && 'mb-5']"
+							:class="[
+								i == displayActivities.length - 1 && 'mb-5',
+								activity.pending && 'pointer-events-none opacity-60',
+							]"
 							:data-type="activity.type"
 						>
 							<!-- Load More in activity -->

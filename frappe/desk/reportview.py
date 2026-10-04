@@ -14,6 +14,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.qb_query import DatabaseQuery
@@ -31,13 +32,33 @@ _FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
 @frappe.read_only()
 def get():
 	args = get_form_params()
+	with_link_titles = sbool(args.pop("with_link_titles", False))
+
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
 		data = compress(execute(**args), args=args)
+
+	if with_link_titles:
+		send_compressed_link_titles(args, data)
+
 	return data
+
+
+def send_compressed_link_titles(args, data):
+	"""Send the titles of the Link values in a `compress`ed result with the response."""
+	# `compress` returns the rows untouched when there are none, and reduces a child table
+	# field to its bare fieldname, so pair the requested fields back up with its key order.
+	if not isinstance(data, dict):
+		return
+	field_info = {
+		get_result_key(field, info): info
+		for field, info in zip(args.fields, get_field_info(args.fields, args.doctype), strict=True)
+	}
+	columns = [field_info.get(key) for key in data["keys"]]
+	send_link_titles(get_report_link_titles(columns, data["values"]))
 
 
 @frappe.whitelist()
@@ -332,6 +353,13 @@ def get_parenttype_and_fieldname(field, data):
 	return parenttype, fieldname
 
 
+def get_result_key(field: str | dict, info: dict) -> str:
+	"""Return the key a requested field gets in the result: its alias, else its fieldname."""
+	if isinstance(field, str) and " as " in field:
+		return field.split(" as ", 1)[1].strip(" '`\"")
+	return info.get("fieldname")
+
+
 def compress(data, args=None):
 	"""separate keys and values"""
 	from frappe.desk.query_report import add_total_row
@@ -433,6 +461,8 @@ def export_query():
 
 	form_params["as_list"] = True
 	csv_params = pop_csv_params(form_params)
+	# the report view sends this for its on-screen table; exports keep document names
+	form_params.pop("with_link_titles", None)
 	export_in_background = int(form_params.pop("export_in_background", 0))
 
 	if export_in_background:
@@ -525,7 +555,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	fields_info = get_field_info(db_query.fields, doctype)
+	fields_info = get_field_info(db_query.fields, doctype, form_params.get("group_by"))
 
 	labels = [info["label"] for info in fields_info]
 	sr_label = _("Sr")
@@ -620,7 +650,7 @@ def append_totals_row(data):
 	return data
 
 
-def get_field_info(fields, parent_doctype):
+def get_field_info(fields, parent_doctype, group_by: str | None = None):
 	"""
 	Get field's
 		- fieldname
@@ -641,7 +671,7 @@ def get_field_info(fields, parent_doctype):
 			doctype, fieldname = parse_field(field)
 		except ValueError:
 			# handles aggregate functions like COUNT, SUM, AVG etc.
-			field_info.append(get_aggregate_field_info(field, parent_doctype))
+			field_info.append(get_aggregate_field_info(field, parent_doctype, group_by))
 			continue
 
 		doctype = doctype or parent_doctype
@@ -818,7 +848,7 @@ assert set(AGGREGATE_FIELD_INFO_HANDLERS) == {fn.upper() for fn in SUPPORTED_AGG
 )
 
 
-def get_aggregate_field_info(field: str | dict, parent_doctype: str) -> dict:
+def get_aggregate_field_info(field: str | dict, parent_doctype: str, group_by: str | None = None) -> dict:
 	"""
 	Build field info for an aggregate column (e.g. COUNT/SUM/AVG).
 
@@ -854,6 +884,15 @@ def get_aggregate_field_info(field: str | dict, parent_doctype: str) -> dict:
 	if handler := AGGREGATE_FIELD_INFO_HANDLERS.get(function):
 		field_info = handler(doctype, fieldname)
 
+	if (
+		field_info.fieldtype == "Currency"
+		and field_info.options
+		and ":" not in field_info.options
+		and not (group_by and parse_field(group_by)[1] == field_info.options)
+	):
+		field_info.fieldtype = "Float"
+		field_info.options = None
+
 	# using a default fieldname for aggregate column
 	field_info["fieldname"] = DEFAULT_AGGREGATE_FIELDNAME
 
@@ -870,7 +909,7 @@ def delete_items():
 	doctype = frappe.form_dict.get("doctype")
 
 	if len(items) > 10:
-		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items)
+		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items, queue="long")
 		return None
 
 	return delete_bulk(doctype, items)

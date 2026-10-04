@@ -962,6 +962,7 @@ def rail_entry(entry) -> dict:
 	return {
 		**{field: entry.get(field) for field in DESTINATION_FIELDS},
 		**{field: entry.get(field) for field in REFERENCE_FIELDS},
+		"title": _(entry["title"]) if entry.get("title") else entry.get("title"),
 	}
 
 

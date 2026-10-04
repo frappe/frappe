@@ -44,37 +44,41 @@
 		background: var(--surface-elevation-2);
 	}
 
-	// The app's logo, or the letter tile desktop_icon() builds for whatever has no logo of its own.
-	// Both bring their own colour, so nothing is drawn behind them.
+	// The mark: a module's icon, an app's logo, or the letter tile desktop_icon() builds for whatever
+	// has neither. An icon comes at the size its own class gives it and is centred in the slot.
 	.header-logo {
 		flex: 0 0 auto;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		// `size-7 rounded-[6px]`
+		// `size-7`
 		width: 28px;
 		height: 28px;
-		border-radius: 6px;
-		overflow: hidden;
-		background: transparent;
 
-		img {
-			width: 100%;
-			height: 100%;
-			object-fit: contain;
-		}
-
+		// Neither of these has a size of its own, so they fill the slot.
+		img,
 		.icon-container {
 			width: 100%;
 			height: 100%;
+		}
+
+		// A logo sits on a chip, so one drawn on a clear background still reads as a mark.
+		//
+		// `--surface-gray-3`, not the raw `--gray-500` this was: a palette token is one flat colour in
+		// both themes, and a mid-grey chip that sat quietly on a dark sidebar was a heavy slab on a
+		// light one. This inverts with the theme and stays a step off the panel's #f8f8f8.
+		img {
+			object-fit: contain;
+			// `rounded-[6px]`
+			border-radius: 6px;
+			background-color: var(--surface-gray-3);
+		}
+
+		.icon-container {
 			display: flex;
 			align-items: center;
 			justify-content: center;
-		}
-
-		svg {
-			width: 16px;
-			height: 16px;
+			border-radius: var(--radius-5);
 		}
 	}
 
@@ -82,9 +86,14 @@
 		min-width: 0;
 	}
 
-	// `text-base-medium text-ink-gray-8` in a `leading-none` line
+	// `text-base-medium text-ink-gray-8`, spelled out rather than leant on: the shared
+	// .header-title below sets a 1.2 line and takes its tracking from the page, and the token is
+	// 1.15 on 0.015em.
 	.header-title {
 		font-size: var(--text-md);
+		line-height: 1.15;
+		font-weight: var(--font-weight-medium);
+		letter-spacing: 0.015em;
 		color: var(--ink-gray-8);
 		// the shared .header-title carries a 2px nudge for the logo-less header this replaced
 		margin-left: 0;
@@ -95,7 +104,9 @@
 	// Worn only by the rail's user button now, where the email sits under the name.
 	.header-subtitle {
 		color: var(--ink-gray-6);
-		line-height: 1;
+		line-height: 1.15;
+		font-weight: var(--font-weight-regular);
+		letter-spacing: 0.02em;
 		margin-top: 2px;
 	}
 
@@ -118,37 +129,6 @@
 		color: var(--ink-gray-8);
 	}
 }
-.header-logo-container {
-	border-radius: var(--radius);
-	background-color: var(--surface-gray-3);
-	&:has(img) {
-		background-color: unset;
-	}
-}
-.header-logo {
-	width: 32px;
-	height: 32px;
-	display: flex;
-	align-items: center;
-	background-color: var(--surface-gray-4);
-	border-radius: var(--radius-3);
-	& .icon-container {
-		padding: 4px;
-		border-radius: var(--radius-5);
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-	}
-	& img {
-		width: 100%;
-		height: 100%;
-	}
-}
-.header-logo:has(img) {
-	padding: 0px;
-}
-
 .title-container {
 	flex: 1 1 0%;
 	display: flex;

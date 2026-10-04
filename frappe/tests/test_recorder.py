@@ -9,6 +9,7 @@ import frappe
 import frappe.recorder
 from frappe.recorder import normalize_query
 from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests.utils.test_capabilities import TestService, is_test_service_available
 from frappe.utils import set_request
 from frappe.utils.doctor import any_job_pending
 from frappe.website.serve import get_response_content
@@ -25,6 +26,8 @@ class TestRecorder(IntegrationTestCase):
 
 	@timeout
 	def wait_for_background_jobs(self):
+		if not is_test_service_available(TestService.BACKGROUND_WORKER):
+			return
 		while any_job_pending(frappe.local.site):
 			time.sleep(1)
 
@@ -89,14 +92,22 @@ class TestRecorder(IntegrationTestCase):
 		requests = frappe.recorder.get()
 		request = frappe.recorder.get(requests[0]["uuid"])
 
-		self.assertEqual(len(request["calls"][0]["explain_result"]), 1)
+		self.assertTrue(request["calls"][0]["explain_result"])
 		self.assertEqual(len(request["calls"][1]["explain_result"]), 0)
 
 	def test_multiple_queries(self):
 		queries = [
-			{"mariadb": "SELECT * FROM tabDocType", "postgres": 'SELECT * FROM "tabDocType"'},
-			{"mariadb": "SELECT COUNT(*) FROM tabDocType", "postgres": 'SELECT COUNT(*) FROM "tabDocType"'},
-			{"mariadb": "COMMIT", "postgres": "COMMIT"},
+			{
+				"mariadb": "SELECT * FROM tabDocType",
+				"postgres": 'SELECT * FROM "tabDocType"',
+				"sqlite": 'SELECT * FROM "tabDocType"',
+			},
+			{
+				"mariadb": "SELECT COUNT(*) FROM tabDocType",
+				"postgres": 'SELECT COUNT(*) FROM "tabDocType"',
+				"sqlite": 'SELECT COUNT(*) FROM "tabDocType"',
+			},
+			{"mariadb": "COMMIT", "postgres": "COMMIT", "sqlite": "COMMIT"},
 		]
 
 		sql_dialect = frappe.db.db_type or "mariadb"

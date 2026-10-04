@@ -1,24 +1,17 @@
 <template>
-	<div class="pfb-insp-row pfb-insp-row--toggle">
-		<span class="pfb-insp-label">{{ label }}</span>
-		<label class="switch-control" :title="label">
-			<span class="input-area">
-				<input
-					type="checkbox"
-					role="switch"
-					:aria-label="label"
-					:checked="modelValue"
-					@change="$emit('update:modelValue', $event.target.checked)"
-				/>
-			</span>
-			<span class="switch-visual" aria-hidden="true">
-				<span class="switch-thumb"></span>
-			</span>
-		</label>
-	</div>
+	<InspectorRow :label="label" toggle>
+		<Switch
+			:label="label"
+			:model-value="modelValue"
+			@update:model-value="(v) => $emit('update:modelValue', v)"
+		/>
+	</InspectorRow>
 </template>
 
 <script setup>
+import InspectorRow from "./InspectorRow.vue";
+import Switch from "./Switch.vue";
+
 defineProps({
 	label: { type: String, default: "" },
 	modelValue: { type: Boolean, default: false },

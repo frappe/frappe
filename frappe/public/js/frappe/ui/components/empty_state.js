@@ -16,7 +16,8 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} EmptyStateOpts
  * @property {string} [icon] Lucide icon shown in a round grey well above the title.
- * @property {string} title The headline. Rendered as text, never HTML.
+ * @property {string} [title] The headline. Rendered as text, never HTML. Left out when the
+ *   description says it all.
  * @property {string} [description] Smaller supporting line under the title.
  * @property {EmptyStateAction[]} [actions] One or more actions — e.g. a "New …" button plus a docs link. Rendered in a row.
  * @property {string} [css_class] Extra classes on the root (e.g. a min-height so it fills its container).
@@ -116,10 +117,12 @@ frappe.ui.empty_state = function (opts = {}) {
 	// title + description sit close together (their own tight gap)
 	const text = document.createElement("div");
 	text.className = "flex flex-col items-center gap-1";
-	const title = document.createElement("div");
-	title.className = "text-base-medium text-ink-gray-8";
-	title.textContent = opts.title || "";
-	text.appendChild(title);
+	if (opts.title) {
+		const title = document.createElement("div");
+		title.className = "text-base-medium text-ink-gray-8";
+		title.textContent = opts.title;
+		text.appendChild(title);
+	}
 	if (opts.description) {
 		const desc = document.createElement("div");
 		desc.className = "text-p-sm text-ink-gray-5 max-w-xs";

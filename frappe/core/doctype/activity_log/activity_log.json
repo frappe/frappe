@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "creation": "2017-10-05 11:10:38.780133",
  "description": "Keep track of all update feeds",
@@ -155,7 +156,7 @@
    "label": "IP Address"
   }
  ],
- "icon": "fa fa-comment",
+ "icon": "square-activity",
  "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2024-03-23 16:01:26.898094",
@@ -172,6 +173,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "subject",
  "sort_field": "creation",
  "sort_order": "DESC",

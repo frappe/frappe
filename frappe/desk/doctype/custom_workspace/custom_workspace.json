@@ -5,6 +5,7 @@
  "creation": "2026-06-28 00:00:00.000000",
  "description": "A site's overrides on a standard (app-shipped) workspace. Site-owned and standard-only: there is no user layer, deliberately -- a private workspace is already yours to edit directly, and a public one is the site's. The merge is split on purpose. Roles, icon, visibility and sequence are a true diff, so an app's later changes to them keep flowing through. Content is a snapshot, so customizing the layout freezes it against app updates: workspace content is nested editor blocks where headings, paragraphs and spacers carry no key at all, and a delta cannot be written against unkeyed prose. Do not \"fix\" this into one or the other; `reset_workspace_customization` is the escape hatch.",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/workspace",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

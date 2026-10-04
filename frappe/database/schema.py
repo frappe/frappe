@@ -212,6 +212,11 @@ class DbColumn:
 		self.precision = precision
 		self.not_nullable = not_nullable
 
+	@property
+	def has_dynamic_default(self) -> bool:
+		"""Whether frappe resolves the default per document (Today, Now, __user, :fieldname, ...)."""
+		return self.default in frappe.db.DEFAULT_SHORTCUTS or cstr(self.default).startswith(":")
+
 	def get_definition(self, for_modification=False):
 		column_def = get_definition(
 			self.fieldtype,
@@ -236,11 +241,7 @@ class DbColumn:
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
 			default = flt(self.default)
 
-		elif (
-			self.default
-			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
-			and not cstr(self.default).startswith(":")
-		):
+		elif self.default and not self.has_dynamic_default:
 			default = frappe.db.escape(self.default)
 
 		if self.not_nullable and null:
@@ -264,7 +265,12 @@ class DbColumn:
 		return column_def
 
 	def build_for_alter_table(self, current_def):
-		column_type = get_definition(self.fieldtype, self.precision, self.length)
+		column_type = get_definition(
+			self.fieldtype,
+			precision=self.precision,
+			length=self.length,
+			options=self.options,
+		)
 
 		# no columns
 		if not column_type:
@@ -296,11 +302,7 @@ class DbColumn:
 			self.table.drop_unique.append(self)
 
 		# default
-		if (
-			self.default_changed(current_def)
-			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
-			and not cstr(self.default).startswith(":")
-		):
+		if self.default_changed(current_def) and not self.has_dynamic_default:
 			self.table.set_default.append(self)
 
 		# nullability
