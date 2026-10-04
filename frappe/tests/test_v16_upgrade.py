@@ -591,3 +591,72 @@ class TestALinkThatNoLongerResolves(IntegrationTestCase):
 		"""`write_user_layer` inserts a `Custom Sidebar` off the same rows, so it is exposed the same
 		way and is easy to fix on only one of the two paths."""
 		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": self.USER}))
+
+
+class TestRowTypesTheNewSidebarDropped(IntegrationTestCase):
+	"""v16's sidebar editor offered `Spacer` and `Sidebar Item Group` rows. A site that used either
+	must still migrate: spacers carry over, and the report-group button, whose doctype is gone, is
+	left behind.
+	"""
+
+	MODULE = "Test V16 Spacer Module"
+	USER = "test-v16-spacer@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": cls.MODULE, "app_name": "frappe"}
+			).insert()
+			clear_computed_base_cache(cls.MODULE)
+
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Spacer", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		items = [
+			{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"},
+			{"type": "Spacer"},
+			{"type": "Sidebar Item Group", "label": "Reports"},
+			{"type": "Link", "link_type": "DocType", "link_to": "Event", "label": "Events"},
+			{"type": "Spacer"},
+		]
+		archive("V16 Spacers", items, module=cls.MODULE)
+		# a second sidebar in the module, merged into the same base, with an unnamed spacer of its own
+		# and a title as long as v16 allowed, which a spacer label must not overflow
+		archive("V16 More Spacers ".ljust(140, "x"), [{"type": "Spacer"}], module=cls.MODULE)
+		archive(f"V16 Spacers-{cls.USER}", items, module=cls.MODULE, for_user=cls.USER)
+		cls.output = run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def base_types(self):
+		return [row.type for row in frappe.get_doc("Sidebar", {"module": self.MODULE}).items]
+
+	def test_spacers_carry_over_and_the_group_does_not(self):
+		self.assertEqual(self.base_types()[:4], ["Link", "Spacer", "Link", "Spacer"])
+		self.assertNotIn("Sidebar Item Group", self.base_types())
+
+	def test_spacers_from_two_merged_sidebars_all_survive(self):
+		"""Each sidebar numbers its own spacers, so the merge must not see two of them as one."""
+		self.assertEqual(self.base_types().count("Spacer"), 3)
+
+	def test_a_normal_user_sees_every_spacer(self):
+		"""Spacers link nowhere, so the permission filter must not drop them, and two of them must
+		not collapse into one as duplicates."""
+		shell = frappe.db.get_value("Sidebar", {"module": self.MODULE})
+		items = resolve_sidebar(shell, self.USER).items
+		self.assertEqual([item["type"] for item in items].count("Spacer"), 3)
+
+	def test_a_forks_spacers_refer_to_the_sidebar_it_copied(self):
+		"""Not added again with the originals hidden, which is what a fork-specific name would do."""
+		layer = frappe.get_doc("Custom Sidebar", {"module": self.MODULE, "user": self.USER})
+		spacers = [row for row in layer.sidebar_items if row.type == "Spacer"]
+		self.assertTrue(spacers)
+		self.assertFalse([row for row in spacers if row.added or row.hidden])

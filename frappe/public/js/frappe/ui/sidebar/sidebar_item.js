@@ -342,6 +342,22 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 	}
 };
 
+// A spacer has no path, so TypeLink.make would skip it.
+frappe.ui.sidebar_item.TypeSpacer = class SpacerSidebarItem extends (
+	frappe.ui.sidebar_item.TypeLink
+) {
+	make() {
+		this.wrapper = $(
+			frappe.render_template("sidebar_item", {
+				item: this.item,
+				path: null,
+				hide_icon: true,
+			})
+		);
+		$(this.container).append(this.wrapper);
+	}
+};
+
 frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sidebar_item.TypeLink {
 	constructor(item) {
 		super(item);
