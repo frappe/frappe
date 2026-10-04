@@ -109,9 +109,16 @@ context("Kanban v2 Board", () => {
 
 	it("falls back to the classic Kanban board when the setting is disabled", () => {
 		set_kanban_v2(false);
+		// the classic board saves its column order to the board on load
+		cy.intercept(
+			"POST",
+			"**/api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order"
+		).as("update-order");
 		visit_board();
 		cy.get(".kanban-column", { timeout: 15000 }).should("have.length.at.least", 3);
 		cy.get(".kanban-v2-container").should("not.exist");
+		// let that save land before after() writes to the same board
+		cy.wait("@update-order");
 	});
 
 	after(() => {
