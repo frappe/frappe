@@ -195,7 +195,7 @@ def attach_print(
 	pf_doc = _print_format_doc_or_none(print_format)
 
 	try:
-		with print_language(lang or frappe.local.lang):
+		with print_language(lang):
 			content = ""
 			if cint(print_settings.send_print_as_pdf):
 				ext = ".pdf"
