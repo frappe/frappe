@@ -318,7 +318,6 @@ def clear_desktop_icons_cache(user=None):
 	frappe.cache.hdel("bootinfo", user or frappe.session.user)
 
 
-<<<<<<< HEAD
 # `/app` is the old name for `/desk`, and App icons are still shipped with either.
 DESK_LINK_PATTERN = re.compile(r"^/(desk|app)(/.*)?$")
 
@@ -326,12 +325,12 @@ DESK_LINK_PATTERN = re.compile(r"^/(desk|app)(/.*)?$")
 def is_desk_link(link: str | None) -> bool:
 	"""Whether `link` opens the desk, rather than an app's own portal."""
 	return bool(link and DESK_LINK_PATTERN.match(link))
-=======
+
+
 def clear_every_users_desktop_icons():
 	"""An icon can reach any user, so changing one has to drop every user's cached grid."""
 	frappe.cache.delete_key("desktop_icons")
 	frappe.cache.delete_key("bootinfo")
->>>>>>> a49b866 (fix(desktop): show a custom desktop icon to every permitted user, not only its creator)
 
 
 def create_desktop_icons_from_workspace():
