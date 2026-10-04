@@ -2,8 +2,8 @@ frappe.provide("frappe.ui");
 
 /**
  * The bottom tab bar on phones. The bar itself is frappe-ui's <frappe-mobile-nav>
- * custom element (prebuilt into /assets/frappe/js/lib/frappe-mobile-nav.js and loaded
- * after this bundle, sharing Desk's Vue through frappe.Vue). This class only picks
+ * custom element (prebuilt into lib/frappe-mobile-nav.js and loaded with Vue from
+ * mobile_nav.bundle.js once the screen is phone-sized). This class only picks
  * the tabs and wires each one to something Desk already has. Search, Notifications and
  * Profile are pages of their own (desk/page/search, notifications, profile), for phones only.
  *
@@ -291,4 +291,17 @@ frappe.ui.MobileNav = class MobileNav {
 
 $(document).on("startup", () => {
 	if (!frappe.ui.mobile_nav) frappe.ui.mobile_nav = new frappe.ui.MobileNav();
+
+	// Until the elements load, the bar and sheet are inert tags. Same breakpoint as
+	// mobile_nav.scss; a window narrowed later loads them then. load_asset, not
+	// frappe.require, which would freeze the screen while it loads.
+	const phone = window.matchMedia("(max-width: 767.98px)");
+	const load = () => {
+		if (!phone.matches) return;
+		phone.removeEventListener("change", load);
+		const path = frappe.assets.bundled_asset("mobile_nav.bundle.js");
+		frappe.assets.load_asset(path, path);
+	};
+	phone.addEventListener("change", load);
+	load();
 });
