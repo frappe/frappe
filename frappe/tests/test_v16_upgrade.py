@@ -626,7 +626,8 @@ class TestRowTypesTheNewSidebarDropped(IntegrationTestCase):
 		]
 		archive("V16 Spacers", items, module=cls.MODULE)
 		# a second sidebar in the module, merged into the same base, with an unnamed spacer of its own
-		archive("V16 More Spacers", [{"type": "Spacer"}], module=cls.MODULE)
+		# and a title as long as v16 allowed, which a spacer label must not overflow
+		archive("V16 More Spacers ".ljust(140, "x"), [{"type": "Spacer"}], module=cls.MODULE)
 		archive(f"V16 Spacers-{cls.USER}", items, module=cls.MODULE, for_user=cls.USER)
 		cls.output = run_conversion()
 

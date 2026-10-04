@@ -1,3 +1,4 @@
+import hashlib
 from collections import defaultdict
 
 import click
@@ -269,10 +270,12 @@ def archive_items(sidebar: str, spacer_scope: str | None = None) -> list[frappe.
 		if row.type == "Sidebar Item Group":
 			continue
 		# an unlinked row is keyed by type and label, and a module's sidebars are merged, so an
-		# unnamed spacer needs a label no other sidebar's spacer can share
+		# unnamed spacer needs a label no other sidebar's spacer can share. The sidebar is hashed
+		# because its title alone can fill the label's 140 characters.
 		if row.type == "Spacer" and not row.label:
 			spacers += 1
-			row.label = f"{spacer_scope or sidebar} spacer {spacers}"
+			scope = hashlib.sha1((spacer_scope or sidebar).encode()).hexdigest()[:10]
+			row.label = f"Spacer {spacers} {scope}"
 		items.append(row)
 
 	return items
