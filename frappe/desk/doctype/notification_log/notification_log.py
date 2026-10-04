@@ -63,11 +63,19 @@ class NotificationLog(Document):
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
-		if is_email_notifications_enabled_for_type(self.for_user, self.type):
-			try:
-				send_notification_email(self)
-			except frappe.OutgoingEmailError:
-				self.log_error(_("Failed to send notification email"))
+		if not is_email_notifications_enabled_for_type(self.for_user, self.type):
+			return
+
+		from frappe.email.doctype.email_account.email_account import EmailAccount
+
+		# Fresh sites have no outgoing account; the in-app notification is enough.
+		if not EmailAccount.find_outgoing():
+			return
+
+		try:
+			send_notification_email(self)
+		except frappe.OutgoingEmailError:
+			self.log_error(_("Failed to send notification email"))
 
 	@staticmethod
 	def clear_old_logs(days=180):
