@@ -253,13 +253,27 @@ def is_module(module: str | None) -> bool:
 
 
 def archive_items(sidebar: str) -> list[frappe._dict]:
-	return frappe.get_all(
+	rows = frappe.get_all(
 		ARCHIVE_ITEM_DOCTYPE,
 		filters={"parenttype": ARCHIVE_DOCTYPE, "parentfield": "items", "parent": sidebar},
 		# no `key`: only `Sidebar Item` carries one
 		fields=["name", "idx", *SIDEBAR_ITEM_FIELDS],
 		order_by="idx asc",
 	)
+
+	items = []
+	spacers = 0
+	for row in rows:
+		# v16's report-group button; its doctype is gone and nothing draws the row now
+		if row.type == "Sidebar Item Group":
+			continue
+		# an unlinked row is keyed by type and label, so unnamed spacers would collapse into one
+		if row.type == "Spacer" and not row.label:
+			spacers += 1
+			row.label = "Spacer" if spacers == 1 else f"Spacer {spacers}"
+		items.append(row)
+
+	return items
 
 
 def write_user_layer(module: str, user: str, rows: list[dict]) -> None:
