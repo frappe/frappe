@@ -92,3 +92,17 @@ export function safe_attrs(attrs, component) {
 	}
 	return out;
 }
+
+/** frappe-ui's categorical chart colours, as their nearest Espresso tokens, in order. */
+export const CHART_PALETTE = [
+	"blue-600",
+	"blue-400",
+	"green-600",
+	"green-400",
+	"violet-600",
+	"violet-400",
+	"amber-600",
+	"amber-400",
+	"red-500",
+	"red-400",
+].map((token) => `var(--${token})`);
