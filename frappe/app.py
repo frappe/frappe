@@ -337,6 +337,11 @@ def set_authenticate_headers(response: Response):
 
 
 def make_form_dict(request: Request):
+	if request.path.rstrip("/") == "/api/mcp":
+		# The SDK must parse the envelope, including malformed JSON and notifications.
+		frappe.local.form_dict = frappe._dict()
+		return
+
 	request_data = request.get_data(as_text=True)
 	if request_data and request.is_json:
 		try:

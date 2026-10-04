@@ -4,7 +4,7 @@ from contextlib import suppress
 from enum import Enum, StrEnum
 
 from werkzeug.exceptions import NotFound
-from werkzeug.routing import Map, Submount
+from werkzeug.routing import Map, Rule, Submount
 from werkzeug.wrappers import Request, Response
 
 import frappe
@@ -85,12 +85,19 @@ def handle(request: Request):
 	return data
 
 
+def handle_mcp():
+	from frappe.mcp import handle
+
+	return handle()
+
+
 # Merge all API version routing rules
 from frappe.api.v1 import url_rules as v1_rules
 from frappe.api.v2 import url_rules as v2_rules
 
 API_URL_MAP = Map(
 	[
+		Rule("/api/mcp", endpoint=handle_mcp),
 		# V1 routes
 		Submount("/api", v1_rules),
 		Submount(f"/api/{ApiVersion.V1.value}", v1_rules),

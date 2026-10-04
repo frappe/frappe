@@ -85,6 +85,7 @@ dependencies = [
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.2",
     # integration dependencies
+    "mcp~=2.3.0",
     "google-api-python-client~=2.197.0",
     "google-auth-oauthlib~=1.4.0",
     "google-auth~=2.53.0",
