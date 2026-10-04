@@ -2536,6 +2536,9 @@ class ShellIndex:
 def routable_entities(perm_ctx: DeskViews) -> dict[str, dict[str, str]]:
 	"""Every entity of every kind this user can reach, mapped to the module it belongs to.
 
+	A system page is left out. It is part of the desk rather than of a module, so it opens in no
+	shell and the desk keeps its URL bare (`Page.system_page`).
+
 	Each kind is read from what the boot already builds for it, so the set is filtered the same
 	way the desk filters it and nothing here has to repeat a permission rule. Doctypes are the
 	exception, having no such payload: they come from the user's own read list, minus child
@@ -2554,6 +2557,10 @@ def routable_entities(perm_ctx: DeskViews) -> dict[str, dict[str, str]]:
 	return {
 		"DocType": doctypes,
 		"Report": {name: row.get("module") for name, row in (perm_ctx.allowed_reports or {}).items()},
-		"Page": {name: row.get("module") for name, row in (perm_ctx.allowed_pages or {}).items()},
+		"Page": {
+			name: row.get("module")
+			for name, row in (perm_ctx.allowed_pages or {}).items()
+			if not row.get("system_page")
+		},
 		"Dashboard": {row["name"]: row.get("module") for row in perm_ctx.get_allowed_dashboards(cache=True)},
 	}
