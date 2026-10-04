@@ -42,6 +42,10 @@ frappe-mobile-nav.desk-mobile-nav {
 		padding-bottom: var(--desk-mobile-nav-height) !important;
 	}
 
+	body.mobile-form-view .page-head .page-back-button {
+		display: flex;
+	}
+
 	// The page title opens the navigation sheet (MobileNav.open_navigation); the chevron
 	// says so. Drawn in CSS because the crumb is redrawn on every paint. Not on a system
 	// page, which has no sidebar (MobileNav.apply_page_visibility).
@@ -85,6 +89,29 @@ frappe-mobile-nav.desk-mobile-nav {
 			left: 50%;
 			transform: translateX(-50%);
 		}
+	}
+}
+
+// The back button a form gets on a phone, in place of the tab bar.
+.page-head .page-back-button {
+	display: none;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	margin-inline-start: -8px;
+	margin-inline-end: 4px;
+	border-radius: var(--radius-md);
+	color: var(--ink-gray-7);
+
+	&:active {
+		background: var(--surface-gray-2);
+	}
+
+	// points the other way in a right-to-left language
+	[dir="rtl"] & .icon {
+		transform: scaleX(-1);
 	}
 }
 

@@ -44,6 +44,9 @@ frappe.ui.MobileNav = class MobileNav {
 				this.open_navigation();
 			}
 		});
+
+		// A form on a phone has a back button in place of the tab bar (see apply_page_visibility).
+		$(document).on("click", ".page-head .page-back-button", () => this.go_back());
 	}
 
 	get_tabs() {
@@ -100,11 +103,26 @@ frappe.ui.MobileNav = class MobileNav {
 	// `has-mobile-nav` on <body> is what shows the bar and makes room for it.
 	apply_page_visibility() {
 		const page = frappe.container?.page?.page;
-		const shown = !!this.defined && !page?.hide_mobile_nav;
+		const route = frappe.get_route() || [];
+		// A form is a step into a list, not a place of its own: it gets the screen and a way
+		// back instead of the tabs.
+		const form = route[0] === "Form";
+		const shown = !!this.defined && !page?.hide_mobile_nav && !form;
 		document.body.classList.toggle("has-mobile-nav", shown);
+		document.body.classList.toggle("mobile-form-view", !!this.defined && form);
 		// A system page opens in no shell, so it has no sidebar for its title to open.
-		const system_page = frappe.router.page_info_for(frappe.get_route())?.system_page;
+		const system_page = frappe.router.page_info_for(route)?.system_page;
 		document.body.classList.toggle("mobile-nav-title", shown && !system_page);
+	}
+
+	// Back to where the form was opened from, or to its list when it was opened directly.
+	go_back() {
+		if (frappe.get_prev_route().length) {
+			window.history.back();
+			return;
+		}
+		const doctype = frappe.get_route()[1];
+		frappe.set_route(doctype ? ["List", doctype] : "/desk");
 	}
 
 	// Every tab but New is a place; New opens a sheet over the page.
