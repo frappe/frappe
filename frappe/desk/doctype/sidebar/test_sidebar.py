@@ -3,6 +3,7 @@
 
 import json
 from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
@@ -984,6 +985,45 @@ class TestCanonicalShell(IntegrationTestCase):
 		index = ShellIndex(shell_payload({"Stock": {"workspaces": ["Stock", "Warehousing"]}}))
 
 		self.assertEqual(dict(index.workspace_owners()), {"Stock": "Stock", "Warehousing": "Stock"})
+
+
+class TestCanonicalShellOfASystemOrSharedPage(IntegrationTestCase):
+	"""A system page opens in no shell and a shared page in any. Only the first changes the map:
+	a shared page still has to open somewhere when nothing states a shell.
+	"""
+
+	SIDEBARS = shell_payload({"Build": {"lists": [("Page", "desktop")]}, "Printing": {}})
+
+	def build(self):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={
+				"desktop": {"module": "Build", "system_page": 1},
+				"print": {"module": "Printing", "shared_page": 1},
+			},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_system_page_is_not_in_the_map(self):
+		self.assertNotIn("desktop", self.build())
+
+	def test_a_shared_page_opens_in_its_module_when_nothing_states_a_shell(self):
+		self.assertEqual(self.build()["print"], "Printing")
+
+	def test_the_desk_is_told_which_pages_are_which(self):
+		from frappe.desk.desk_views import DeskViews
+
+		email = user_with_roles("test-sidebar-page-flags@example.com", ["Desk User"])
+		self.enterContext(self.set_user(email))
+		pages = DeskViews.get_allowed_pages()
+
+		self.assertEqual(pages["print"].get("shared_page"), 1)
+		self.assertNotIn("system_page", pages["print"])
+		self.assertEqual(pages["desktop"].get("system_page"), 1)
+		self.assertNotIn("shared_page", pages["desktop"])
 
 
 class TestCanonicalShellPayload(IntegrationTestCase):

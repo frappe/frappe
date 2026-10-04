@@ -159,6 +159,15 @@ class TestPage(IntegrationTestCase):
 		self.assertEqual(source.count("<script"), 1)
 		self.assertEqual(source.count("</script>"), 1)
 
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_page_cannot_be_both_a_system_page_and_a_shared_page(self):
+		# One opens in no sidebar and the other in any, so both at once says nothing.
+		with self.assertRaises(frappe.ValidationError):
+			self.make_page(standard="No", system_page=1, shared_page=1)
+
+		self.make_page(standard="No", system_page=1)
+		self.make_page(standard="No", shared_page=1)
+
 	def make_page(self, **values):
 		"""A standard Page, written to disk and removed when the case ends."""
 		page = frappe.new_doc(

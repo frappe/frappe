@@ -907,6 +907,13 @@ frappe.router = {
 	write_shell_into_url() {
 		if (!this.current_route?.length) return;
 
+		// A system page opens in no shell, so one typed in front of it leaves the address bar.
+		// Asked before the sidebar is, which a cold load does not have yet.
+		if (this.page_info_for(this.current_route)?.system_page) {
+			if (this.current_shell) this.drop_shell_from_url();
+			return;
+		}
+
 		const shell = this.shell_for_route(this.current_route);
 		if (!shell || shell === this.current_shell) return;
 
@@ -950,6 +957,12 @@ frappe.router = {
 			"",
 			path + window.location.search + window.location.hash
 		);
+	},
+
+	// The Page a route opens, as the boot describes it, or null when it opens something else.
+	// `system_page` and `shared_page` on it are what the shell rules read.
+	page_info_for(route) {
+		return (route?.[0] && frappe.boot.page_info?.[route[0]]) || null;
 	},
 
 	// `current_shell` is cleared with the segment, since `path_on_screen` strips one whenever it
