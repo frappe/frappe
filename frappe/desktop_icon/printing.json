@@ -1,0 +1,25 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-06 10:43:13.440877",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "printer",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Printing",
+ "link_to": "Printing",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-01-01 20:07:01.569646",
+ "modified_by": "Administrator",
+ "name": "Printing",
+ "owner": "Administrator",
+ "parent_icon": "Framework",
+ "restrict_removal": 0,
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "standard": 1
+}

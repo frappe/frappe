@@ -1,0 +1,25 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-11 02:27:30.898706",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "table_2",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Data",
+ "link_to": "Data",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-01-01 20:07:01.385516",
+ "modified_by": "Administrator",
+ "name": "Data",
+ "owner": "Administrator",
+ "parent_icon": "Framework",
+ "restrict_removal": 0,
+ "roles": [
+  {
+   "role": "Accounts User"
+  }
+ ],
+ "standard": 1
+}
