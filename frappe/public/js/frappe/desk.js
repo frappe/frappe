@@ -542,12 +542,8 @@ frappe.Application = class Application {
 	}
 
 	set_desktop_page_class() {
-		// The two /app/desktop pages share CSS class names (.desktop-wrapper, .desktop-icon),
-		// so desktop.css scopes each set to one of these body classes. Exactly one is present.
-		const desktop_icons = frappe.boot.desktop_page === "Desktop Icons";
-		$("body")
-			.toggleClass("desktop-icons-page", desktop_icons)
-			.toggleClass("apps-page", !desktop_icons);
+		// desktop.css scopes its rules to this class. Both forms of /app/desktop share them.
+		$("body").addClass("desktop-page");
 	}
 
 	set_fullwidth_if_enabled() {
