@@ -325,26 +325,9 @@ body.desktop-page .folder-icon .icons .desktop-icon .icon-container img {
   width: var(--folder-thumbnail-icon-height);
   height: var(--folder-thumbnail-icon-height);
 }
-body.desktop-page .page-indicator-container {
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-}
-body.desktop-page .active-page {
-  background: var(--ink-gray-8) !important;
-}
-body.desktop-page .page-indicator {
-  background: var(--surface-gray-4);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
 body.desktop-page .no-apps-message {
   grid-column: 1/-1;
   grid-row: 1/-1;
-}
-body.desktop-page .right-page-arrow, body.desktop-page .left-page-arrow {
-  margin: 0px;
 }
 body.desktop-page .bounce {
   animation: bounceIn 2s infinite 2s;

@@ -270,11 +270,6 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 		this.icon_grid = new DesktopIconGrid({
 			wrapper: this.wrapper,
 			icons_data: this.apps_icons,
-			// one page is one screenful of the `.icons` grid in desktop.css
-			page_size: {
-				columns: 6,
-				rows: 3,
-			},
 		});
 		this.setup_context_menu();
 		if (this.edit_mode) {
@@ -441,18 +436,7 @@ class DesktopIconGrid {
 	init() {
 		this.icons = [];
 		this.icons_html = [];
-		// Only a grid given a `page_size` paginates: `.icons` is a fixed columns-by-rows CSS
-		// grid, so anything past one screenful has nowhere to go. The folder thumbnail, the
-		// folder modal and the hidden-icons pane pass none, each clipping or scrolling its own
-		// overflow, and stay on a single page. Mobile renders 3 columns (see make()), so the
-		// page size has to shrink with it or the last rows spill off screen.
-		if (this.page_size) {
-			this.icons_per_page =
-				(frappe.is_mobile() ? 3 : this.page_size.columns) * this.page_size.rows;
-		}
 		this.grids = [];
-		// re-created per render: update_grid() re-runs init() against a fresh DOM
-		this.sortables = [];
 		this.prepare();
 		this.make();
 		frappe.desktop_grids.push(this);
@@ -474,151 +458,19 @@ class DesktopIconGrid {
 			}
 			return a.idx - b.idx; // sort by idx
 		});
-		this.icons_data_by_page = this.icons_per_page
-			? this.split_data(this.icons_data, this.icons_per_page)
-			: [this.icons_data];
-		// an empty grid still renders one (empty) page
-		this.total_pages = this.icons_data_by_page.length || 1;
 	}
 	make() {
-		const me = this;
 		this.icons_container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
 		if (this.compact) {
 			this.icons_container.css("margin-top", "0px");
 		}
-		for (let i = 0; i < this.total_pages; i++) {
-			let template = `<div class="icons"></div>`;
-
-			if (this.row_size) {
-				template = `<div class="icons" style="display: none; grid-template-columns: repeat(${this.row_size}, 1fr)"></div>`;
-			}
-			if (frappe.is_mobile()) {
-				template = `<div class="icons" style="display: none; grid-template-columns: repeat(3, 1fr)"></div>`;
-			}
-			this.grids.push($(template).appendTo(this.icons_container));
-			this.make_icons(this.icons_data_by_page[i] || [], this.grids[i]);
+		const $grid = $(`<div class="icons"></div>`).appendTo(this.icons_container);
+		const columns = frappe.is_mobile() ? 3 : this.row_size;
+		if (columns) {
+			$grid.css("grid-template-columns", `repeat(${columns}, 1fr)`);
 		}
-		if (!this.in_folder && this.total_pages > 1) {
-			this.add_page_indicators();
-			this.setup_arrows();
-			this.setup_pagination();
-			this.setup_swipe_gesture();
-		} else {
-			this.grids[0] && this.grids[0].css("display", "grid");
-		}
-	}
-	setup_arrows() {
-		if (this.in_modal) {
-			const me = this;
-			this.wrapper
-				.parent()
-				.parent()
-				.parent()
-				.on("shown.bs.modal", function () {
-					me.add_arrows();
-				});
-		} else {
-			this.add_arrows(this.wrapper.find(".icons"));
-		}
-	}
-	setup_swipe_gesture() {
-		const me = this;
-		this.grids.forEach((grid) => {
-			$(grid).on("wheel", function (event) {
-				if (event.originalEvent) {
-					event = event.originalEvent; // for jQuery or wrapped events
-				}
-
-				if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
-					event.preventDefault();
-					if (event.deltaX > 0) {
-						if (me.current_page != me.total_pages - 1) me.current_page++;
-						me.change_to_page(me.current_page);
-					} else {
-						if (me.current_page != 0) me.current_page--;
-						me.change_to_page(me.current_page);
-					}
-				}
-			});
-		});
-	}
-	add_arrows(element) {
-		if (!element) element = this.wrapper;
-		const me = this;
-		// on the page the arrows take the themed icon stroke; the modal sits on a dark backdrop
-		let stroke_color = null;
-		let horizontal_movement = 0;
-		if (this.in_modal) {
-			stroke_color = "white";
-			horizontal_movement = "-40px";
-		}
-		this.left_arrow = $(
-			frappe.utils.icon("chevron-left", "lg", "", "", "left-page-arrow", "", stroke_color)
-		);
-		this.right_arrow = $(
-			frappe.utils.icon("chevron-right", "lg", "", "", "right-page-arrow", "", stroke_color)
-		);
-
-		this.icons_container.before(this.left_arrow);
-		this.icons_container.after(this.right_arrow);
-
-		let wrapper_style = getComputedStyle(element.get(0));
-		let total_height = parseInt(wrapper_style.height) - 2 * parseInt(wrapper_style.paddingTop);
-
-		this.left_arrow.css("top", `${total_height / 2}px`);
-		this.right_arrow.css("top", `${total_height / 2}px`);
-		if (horizontal_movement) {
-			this.left_arrow.css("left", horizontal_movement);
-			this.right_arrow.css("right", horizontal_movement);
-			this.left_arrow.css("position", "absolute");
-			this.right_arrow.css("position", "absolute");
-		}
-		this.left_arrow.on("click", function () {
-			if (me.current_page != 0) me.current_page--;
-			me.change_to_page(me.current_page);
-		});
-		this.right_arrow.on("click", function () {
-			if (me.current_page != me.total_pages - 1) me.current_page++;
-			me.change_to_page(me.current_page);
-		});
-	}
-	add_page_indicators(tempplate) {
-		this.page_indicators = [];
-		if (this.total_pages > 1) {
-			this.pagination_indicator = $(`<div class='page-indicator-container'></div>`).appendTo(
-				this.icons_container
-			);
-			for (let i = 0; i < this.total_pages; i++) {
-				this.page_indicators.push(
-					$("<div class='page-indicator'></div>").appendTo(this.pagination_indicator)
-				);
-			}
-		}
-	}
-	setup_pagination() {
-		this.current_page = this.old_index = 0;
-		this.change_to_page(this.current_page);
-	}
-	change_to_page(index) {
-		this.grids.forEach((g) => $(g).css("display", "none"));
-		this.grids[index].css("display", "grid");
-
-		if (this.page_indicators.length) {
-			this.page_indicators[this.old_index].removeClass("active-page");
-			this.page_indicators[this.current_page].addClass("active-page");
-		}
-		this.current_page = index;
-		this.old_index = index;
-	}
-
-	split_data(icons, size) {
-		const result = [];
-
-		for (let i = 0; i < icons.length; i += size) {
-			result.push(icons.slice(i, i + size));
-		}
-
-		return result;
+		this.grids.push($grid);
+		this.make_icons(this.icons_data, $grid);
 	}
 	make_icons(icons_data, grid) {
 		icons_data.forEach((icon) => {
@@ -643,8 +495,6 @@ class DesktopIconGrid {
 		this.hoverTarget = null;
 		this.hoverTimer = null;
 		if (!frappe.is_mobile()) {
-			// One Sortable per page, kept in `sortables`. `idx` is numbered across the whole
-			// grid, so a drop has to read every page's order, not just the page it landed on.
 			this.sortable = new Sortable($(grid).get(0), {
 				swapThreshold: 0.09,
 				desktop: true,
@@ -682,7 +532,7 @@ class DesktopIconGrid {
 					if (frappe.desktop_utils.in_folder_creation) return;
 					if (evt.oldIndex !== evt.newIndex) {
 						if (evt.to.parentElement == evt.from.parentElement) {
-							let reordered_icons = me.get_ordered_labels();
+							let reordered_icons = me.sortable.toArray();
 							let filters = {
 								parent_icon: me.parent_icon?.icon_data.label || "" || null,
 							};
@@ -694,11 +544,11 @@ class DesktopIconGrid {
 							let label = $(evt.item).attr("data-id");
 							let selected_icon = get_desktop_icon_by_label(label);
 							if ($(to.get(0).parentElement)) {
-								me.reorder_icons(me.get_ordered_labels());
+								me.reorder_icons(me.sortable.toArray());
 								me.reorder_icons(
 									frappe.pages[
 										"desktop"
-									].desktop_page.icon_grid.get_ordered_labels()
+									].desktop_page.icon_grid.sortable.toArray()
 								);
 								selected_icon.idx = evt.newIndex;
 								selected_icon.parent_icon = null;
@@ -708,14 +558,9 @@ class DesktopIconGrid {
 					// save_desktop();
 				},
 			});
-			this.sortables.push(this.sortable);
 		}
 	}
-	get_ordered_labels() {
-		// Every page's icon labels, in page order, which is what `reorder_icons` renumbers `idx`
-		// from.
-		return this.sortables.flatMap((sortable) => sortable.toArray());
-	}
+
 	update_grid(icons) {
 		this.wrapper.empty();
 		this.init();
