@@ -6,7 +6,6 @@
  */
 :root{
     --desktop-blur: blur(10.2px);
-    --desktop-modal-width: 590px;
     --desktop-modal-height: 450px;
     --folder-thumbnail-icon-height: 16px;
     --desktop-icon-dimension: 54px;
@@ -236,14 +235,26 @@ body.desktop-page #desktop-modal {
   transform: none;
   transition: none;
 }
+/* The folder modal fits its grid, so no column or row is cut off; it scrolls only on a short screen. */
+body.desktop-page .desktop-modal .modal-dialog {
+  width: fit-content;
+  max-width: calc(100vw - 20px);
+}
 body.desktop-page .desktop-modal-body {
-  width: var(--desktop-modal-width);
-  height: var(--desktop-modal-height);
+  min-height: var(--desktop-modal-height);
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
   padding: 24px 23px !important;
   width: fit-content;
 }
 body.desktop-page .desktop-modal-body .icons {
-  gap: 0px 0px;
+  gap: 16px;
+}
+/* Room for the remove buttons, which stick out past a tile's corner, inside the scrolling box. */
+@media screen and (min-width: 571px) {
+  body.desktop-page .modal .desktop-modal-body > .icons-container {
+    padding: 8px;
+  }
 }
 body.desktop-page .desktop-modal-body .icon-container {
   min-height: var(--desktop-icon-dimension);
