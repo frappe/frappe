@@ -732,7 +732,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				css_class: "btn-new-doc",
 			});
 
-			if (!has_filters_set && frappe.model.can_import(this.doctype, null, this.meta)) {
+			// importing doesn't depend on the filters; some lists open with one already set
+			if (frappe.model.can_import(this.doctype, null, this.meta)) {
 				actions.push({
 					label: __("Import"),
 					icon: "import",
