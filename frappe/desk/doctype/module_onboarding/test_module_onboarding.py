@@ -161,6 +161,19 @@ class TestWorkspaceOnboarding(OnboardingTestCase):
 			frappe.db.get_value("Onboarding Step", self.step, ["is_complete", "is_skipped"]), (0, 0)
 		)
 
+	def test_only_the_people_an_onboarding_is_for_can_read_its_steps(self):
+		"""A step's status says whether its work is done anywhere on the site, so it is not for
+		everyone who can log in."""
+		from frappe.desk.doctype.onboarding_step.onboarding_step import get_onboarding_steps
+
+		frappe.set_user(self.make_user(roles=[self.make_role("Test Other Onboarding Role")]))
+		with self.assertRaises(frappe.PermissionError):
+			get_onboarding_steps([{"step": self.step}])
+
+		frappe.set_user("Administrator")
+		frappe.set_user(self.make_user(roles=[self.role]))
+		self.assertEqual([s.name for s in get_onboarding_steps([{"step": self.step}])], [self.step])
+
 	def test_a_step_no_onboarding_uses_cannot_be_marked(self):
 		orphan = self.make_step("Test Orphan Onboarding Step")
 		frappe.set_user(self.make_user(roles=[self.role]))

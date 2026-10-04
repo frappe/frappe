@@ -157,7 +157,20 @@ class OnboardingStep(Document):
 
 @frappe.whitelist()
 def get_onboarding_steps(ob_steps: str | list):
-	return [get_step_details(s.get("step"), s.get("is_optional")) for s in frappe.parse_json(ob_steps)]
+	"""Steps as the widget renders them, for someone an onboarding using each of them is for.
+
+	A step's status says whether its work is done anywhere on the site, records the caller may not
+	read included, which is what site-wide progress means. So it goes only to the people who see
+	the step in an onboarding, the same ones who may tick it off.
+	"""
+	from frappe.desk.doctype.module_onboarding.module_onboarding import can_update_step
+
+	steps = frappe.parse_json(ob_steps)
+	for step in steps:
+		if not can_update_step(step.get("step")):
+			frappe.throw(_("You are not allowed to see this onboarding step"), frappe.PermissionError)
+
+	return [get_step_details(s.get("step"), s.get("is_optional")) for s in steps]
 
 
 def get_step_details(name: str, is_optional: bool | int = 0) -> dict:
@@ -177,13 +190,20 @@ def get_step_details(name: str, is_optional: bool | int = 0) -> dict:
 		step.is_submittable = frappe.db.get_value(
 			"DocType", step.reference_document, "is_submittable", cache=True
 		)
-		# masters like Customers or Items often arrive as a list; a transaction is made one at a time
-		step.can_import = bool(
-			not step.is_submittable
-			and frappe.get_meta(step.reference_document).allow_import
-			and frappe.has_permission(step.reference_document, "import")
-		)
+		step.can_import = can_import(step.reference_document, step.is_submittable)
 	elif step.action == "Complete Onboarding":
 		# the widget opens this module and shows its icon
 		step.module = frappe.db.get_value("Module Onboarding", step.module_onboarding, "module")
 	return step
+
+
+def can_import(doctype: str, is_submittable: bool | int) -> bool:
+	"""Whether a step can offer to import its records instead of making one.
+
+	Masters like Customers or Items often arrive as a list; a transaction is made one at a time.
+	"""
+	return bool(
+		not is_submittable
+		and frappe.get_meta(doctype).allow_import
+		and frappe.has_permission(doctype, "import")
+	)

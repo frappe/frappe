@@ -158,6 +158,10 @@ def can_update_step(step: str) -> bool:
 	Progress is shared by the whole site, so the gate is the onboarding's own role list: anyone
 	who may see an onboarding that includes the step may mark it. A step no onboarding uses is
 	nobody's to mark.
+
+	A step two onboardings share is one piece of work, so marking it from either counts for both.
+	That is the point of sharing it; an onboarding that should track its own progress gets a step
+	of its own.
 	"""
 	onboardings = frappe.get_all(
 		"Onboarding Step Map",
