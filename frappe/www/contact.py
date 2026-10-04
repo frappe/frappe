@@ -8,7 +8,9 @@ from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.utils import escape_html, validate_email_address
 
-sitemap = 1
+settings = frappe.get_doc("Contact Us Settings")
+if not settings.is_disabled:
+        sitemap = 1
 
 
 def get_context(context):
