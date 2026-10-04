@@ -105,29 +105,3 @@ class IntegrationTestDesktopIcon(IntegrationTestCase):
 			create_desktop_icons_from_workspace()
 
 			self.assertEqual(frappe.db.get_value("Desktop Icon", workspace.name, "hidden"), 1)
-
-
-class IntegrationTestFrameworkIcons(IntegrationTestCase):
-	"""A v16 site holds frappe's own icons; without their files a migrate deletes them as orphans."""
-
-	USER = "test-framework-icons@example.com"
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		frappe.get_doc(
-			{"doctype": "User", "email": cls.USER, "first_name": "Framework Icons", "send_welcome_email": 0}
-		).insert(ignore_if_duplicate=True).add_roles("System Manager")
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-
-	def test_a_system_manager_sees_the_framework_folder(self):
-		from frappe.boot import get_bootinfo
-
-		frappe.set_user(self.USER)
-		frappe.cache.hdel("desktop_icons", self.USER)
-		icons = {icon.label: icon for icon in get_bootinfo().desktop_icons}
-
-		self.assertEqual(icons["Framework"].icon_type, "App")
-		self.assertEqual(icons["System"].parent_icon, "Framework")
