@@ -5,34 +5,22 @@ import {
 	type Router,
 	type RouterOptions,
 } from "vue-router"
-import { createApp } from "vue"
 import AppContainer from "@/pages/AppContainer.vue"
-import ErrorPage from "@/pages/ErrorPage.vue"
 import NotFound from "@/pages/NotFound.vue"
 import * as globalUtils from "@/utils/globalUtils"
 
-interface Page {
-	name: string
-	route: string
-	page_title: string
-}
-
-// An app's studio/<app>/router.ts default export, or a custom app's router script
 export type RouterConfig = {
-	// forwarded to createRouter; `routes` and `history` are withheld, Studio owns both
 	routerOptions?: Omit<RouterOptions, "history" | "routes">
-	// once per Studio page, with the plain vue-router record; mutate it
 	extendRoute?: (route: RouteRecordRaw) => void
-	// called once, awaited before app.use(router) and the first navigation
 	setup?: (router: Router) => void | Promise<void>
 }
 
 const CONFIG_KEYS = ["routerOptions", "extendRoute", "setup"]
 
-export class RouterScriptError extends Error {
-	constructor(where: string, cause: unknown) {
-		super(`${where}: ${cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause)}`, { cause })
-	}
+interface Page {
+	name: string
+	route: string
+	page_title: string
 }
 
 declare global {
@@ -48,15 +36,13 @@ declare global {
 	}
 }
 
-export async function createAppRouter(config: RouterConfig = {}): Promise<Router> {
+export async function createAppRouter(config?: RouterConfig): Promise<Router> {
+	config ??= await loadRouterConfig()
 	const unknownKeys = Object.keys(config).filter((key) => !CONFIG_KEYS.includes(key))
 	if (unknownKeys.length) {
-		throw new RouterScriptError("router config", `unknown keys ${unknownKeys.join(", ")}`)
+		throw new Error(`router config: unknown keys ${unknownKeys.join(", ")}`)
 	}
 	const { routerOptions: options = {}, extendRoute } = config
-	for (const key of ["routes", "history"]) {
-		if (key in options) console.warn(`routerOptions.${key} is ignored, Studio owns it`)
-	}
 	const routes = getPageRoutes(window.app_pages)
 	if (extendRoute) await runHook("extendRoute", () => routes.forEach((route) => extendRoute(route)))
 
@@ -72,40 +58,15 @@ export async function createAppRouter(config: RouterConfig = {}): Promise<Router
 	return router
 }
 
-// a custom app's router script comes with the page; a standard app's router.ts is imported from the
-// vite dev server in the preview and compiled in by the production build
-export async function loadRouterConfig(): Promise<RouterConfig> {
+// custom app: the Studio App's router script; standard app: router.ts
+async function loadRouterConfig(): Promise<RouterConfig> {
 	if (window.router_script) return runHook("router script", () => compileRouterScript(window.router_script!))
 	if (!window.router_file) return {}
 	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.router_file!))
 	return mod.default || {}
 }
 
-export function showRouterError(error: unknown) {
-	console.error(error)
-	createApp(ErrorPage, { error: getErrorDetails(error) }).mount("#app")
-}
-
-// the message names the failed hook; the cause's stack frames point into the app's own router code
-function getErrorDetails(error: unknown): string {
-	if (!(error instanceof Error)) return String(error)
-	const stack = (error.cause instanceof Error ? error.cause : error).stack || ""
-	const frames = stack.split("\n").filter((line) => /^\s+at /.test(line))
-	return [error.message, ...frames].join("\n")
-}
-
-async function runHook<T>(where: string, run: () => T | Promise<T>): Promise<T> {
-	try {
-		return await run()
-	} catch (error) {
-		throw error instanceof RouterScriptError ? error : new RouterScriptError(where, error)
-	}
-}
-
-// the router.ts object without import/export, run like a custom page script: no module scope, so
-// call/toast are put in scope (boot is a global already)
 function compileRouterScript(source: string): RouterConfig {
-	if (!source.trim()) return {}
 	const factory = new Function("context", `with (context) { return (\n${source}\n) }`)
 	return factory({ ...globalUtils }) || {}
 }
@@ -147,4 +108,13 @@ function sendGuestToLogin(to: { meta: { notFound?: boolean }; fullPath: string }
 	const redirectTo = encodeURIComponent(`/${window.app_route}${to.fullPath}`)
 	window.location.href = `/login?redirect-to=${redirectTo}`
 	return false
+}
+
+async function runHook<T>(where: string, run: () => T | Promise<T>): Promise<T> {
+	try {
+		return await run()
+	} catch (error) {
+		const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+		throw new Error(`${where}: ${message}`, { cause: error })
+	}
 }

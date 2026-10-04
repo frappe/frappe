@@ -24,12 +24,17 @@
 import { computed, ref } from "vue"
 import { Button } from "frappe-ui"
 
-const props = defineProps<{ error?: string | null }>()
+const props = defineProps<{ error?: unknown }>()
 
 const showError = ref(false)
-const lines = computed(() => (props.error || "").split("\n"))
-const title = computed(() => lines.value.filter((line) => !isFrame(line)).join("\n"))
-const frames = computed(() => lines.value.filter(isFrame).map(parseFrame))
+const title = computed(() => (props.error instanceof Error ? props.error.message : String(props.error)))
+const frames = computed(() => getStack(props.error).split("\n").filter(isFrame).map(parseFrame))
+
+// a wrapped error's own frames point into Studio; its cause's point into the failing code
+function getStack(error: unknown) {
+	if (!(error instanceof Error)) return ""
+	return (error.cause instanceof Error ? error.cause : error).stack || ""
+}
 
 function isFrame(line: string) {
 	return /^\s+at /.test(line)

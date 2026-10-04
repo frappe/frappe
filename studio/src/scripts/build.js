@@ -226,13 +226,14 @@ ${pageScripts
 
 	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
-	const routerConfig = routerFile ? "routerConfig" : "await loadRouterConfig()"
+	const routerConfig = routerFile ? "routerConfig" : ""
 
 	const rendererContent = `import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import { createAppRouter, loadRouterConfig, showRouterError } from "@/router/app_router"
+import { createAppRouter } from "@/router/app_router"
+import ErrorPage from "@/pages/ErrorPage.vue"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 ${routerImport}
@@ -257,17 +258,12 @@ window.__APP_COMPONENTS__ = app._context.components
 
 ${pageScriptSetup}
 
-async function bootstrap() {
-	// installing the router runs the first navigation, so the app's guards must already be in place
-	try {
-		app.use(await createAppRouter(${routerConfig}))
-	} catch (error) {
-		return showRouterError(error)
-	}
-	app.mount("#app")
-}
-
-bootstrap()`
+createAppRouter(${routerConfig})
+	.then((router) => app.use(router).mount("#app"))
+	.catch((error) => {
+		console.error(error)
+		createApp(ErrorPage, { error }).mount("#app")
+	})`
 	return rendererContent
 }
 

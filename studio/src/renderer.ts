@@ -3,7 +3,8 @@ import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import { createAppRouter, loadRouterConfig, showRouterError } from "@/router/app_router"
+import { createAppRouter } from "@/router/app_router"
+import ErrorPage from "@/pages/ErrorPage.vue"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents, registerCustomVueComponents } from "@/globals"
@@ -33,18 +34,15 @@ if (window.is_preview && typeof window.is_preview === "string") {
 	window.is_preview = window.is_preview === "1" || window.is_preview === "True"
 }
 
-async function bootstrap() {
-	const frappeApp = (window as any).frappe_app
-	if (frappeApp) {
-		await Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
-	}
-	// installing the router runs the first navigation, so the app's guards must already be in place
-	try {
-		app.use(await createAppRouter(await loadRouterConfig()))
-	} catch (error) {
-		return showRouterError(error)
-	}
-	app.mount("#app")
-}
+const frappeApp = (window as any).frappe_app
+const componentsReady = frappeApp
+	? Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
+	: Promise.resolve()
 
-bootstrap()
+componentsReady
+	.then(() => createAppRouter())
+	.then((router) => app.use(router).mount("#app"))
+	.catch((error) => {
+		console.error(error)
+		createApp(ErrorPage, { error }).mount("#app")
+	})
