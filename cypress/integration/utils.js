@@ -84,6 +84,12 @@ context("Utils", () => {
 		});
 	});
 
+	it("should keep zero when shortening a number", () => {
+		run_util("shorten_number", 0).then((shortened_number) => {
+			expect(shortened_number).to.equal("0");
+		});
+	});
+
 	it("should parse days, hours, minutes and seconds", () => {
 		run_util("seconds_to_duration", 60 * 60 * 24 + 60 * 60 + 60 + 1).then((duration) => {
 			expect(duration).to.deep.equal({
