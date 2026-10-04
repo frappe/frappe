@@ -231,7 +231,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_formatted_number(df, doc) {
-		if (this.number === null) {
+		if (this.number === null || isNaN(this.number)) {
 			this.formatted_number = __("N/A", null, "Number not available");
 			return;
 		}
