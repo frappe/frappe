@@ -9,7 +9,6 @@ import { createApp } from "vue"
 import AppContainer from "@/pages/AppContainer.vue"
 import ErrorPage from "@/pages/ErrorPage.vue"
 import NotFound from "@/pages/NotFound.vue"
-import { vueReactivityApis } from "@/stores/codeStore"
 import * as globalUtils from "@/utils/globalUtils"
 
 interface Page {
@@ -106,11 +105,11 @@ async function runHook<T>(where: string, run: () => T | Promise<T>): Promise<T> 
 }
 
 // the router.ts object without import/export, run like a custom page script: no module scope, so
-// call/toast and the Vue reactivity APIs are put in scope (boot is a global already)
+// call/toast are put in scope (boot is a global already)
 function compileRouterScript(source: string): RouterConfig {
 	if (!source.trim()) return {}
 	const factory = new Function("context", `with (context) { return (\n${source}\n) }`)
-	return factory({ ...vueReactivityApis, ...globalUtils }) || {}
+	return factory({ ...globalUtils }) || {}
 }
 
 function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
