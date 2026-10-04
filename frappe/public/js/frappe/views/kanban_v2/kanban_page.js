@@ -351,8 +351,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.page.set_title(title, null, true);
 
 		await frappe.model.with_doctype(this.doctype);
-		// v16 has no per-page breadcrumbs, so add the DocType's as list views do
-		frappe.breadcrumbs.add(frappe.get_meta(this.doctype).module, this.doctype);
 		this.setup_meta();
 		this.setup_toolbar();
 		this.mount_board();
