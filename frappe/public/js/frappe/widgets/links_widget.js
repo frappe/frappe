@@ -4,7 +4,7 @@ frappe.provide("frappe.utils");
 
 export default class LinksWidget extends Widget {
 	constructor(opts) {
-		opts.icon = opts.icon || "es-line-filetype";
+		opts.icon = opts.icon || "file";
 		super(opts);
 	}
 
@@ -29,7 +29,7 @@ export default class LinksWidget extends Widget {
 		if (this.description) {
 			const description = $(`
 				<button class="btn-reset card-description-btn ml-2">
-					${frappe.utils.icon("help", "sm")}
+					${frappe.utils.icon("circle-question-mark", "sm")}
 				</button>
 			`).appendTo(this.widget.find(".widget-title"));
 
@@ -53,7 +53,7 @@ export default class LinksWidget extends Widget {
 				return "red";
 			}
 			if (item.onboard) {
-				return item.count ? "blue" : "yellow";
+				return item.count ? "blue" : "amber";
 			}
 			return "gray";
 		};
@@ -79,9 +79,8 @@ export default class LinksWidget extends Widget {
 				`;
 
 			return `
-				<span class="link-content ellipsis">
+				<span class="link-content">
 					<span class="link-text">${item.link_title}</span>
-					${frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")}
 				</span>
 			`;
 		};
@@ -103,7 +102,7 @@ export default class LinksWidget extends Widget {
 			item.link_title = item.label ? item.label : item.name;
 
 			const $link = $(`
-				<a href="${route}" class="link-item ellipsis
+				<a href="${route}" class="link-item
 					${item.onboard ? "onboard-spotlight" : ""} ${disabled_dependent(item)}"
 					type="${item.type}" title="${item.link_title}"
 				>

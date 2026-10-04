@@ -65,39 +65,22 @@ class DeskViews:
 
 		return frappe.cache.get_value("domain_restricted_pages") or build_domain_restricted_page_cache()
 
-	def is_item_allowed(self, name, item_type, allowed_workspaces=None):
-		"""Return whether the user may see a sidebar/workspace item.
+	@cached_property
+	def can_read(self):
+		"""Doctypes the session user may read. Built lazily so subclasses used purely as a
+		permission context don't pay for it on construction."""
+		user = frappe.get_user()
+		if not user.can_read:
+			user.build_permissions()
+		return user.can_read
 
-		Relies on the consumer setting `can_read`, `allowed_pages`, `allowed_reports`,
-		`allowed_dashboards`, `restricted_doctypes` and `restricted_pages` on the instance.
-		"""
-		if frappe.session.user == "Administrator":
-			return True
+	@cached_property
+	def allowed_workspaces(self):
+		"""Names of the workspaces the session user may see. Built lazily, like the other
+		permission caches above."""
+		from frappe.desk.desktop import get_workspaces
 
-		item_type = item_type.lower()
-
-		if item_type == "doctype":
-			try:
-				return (
-					name in (self.can_read or [])
-					and name in (self.restricted_doctypes or [])
-					and frappe.has_permission(name)
-				)
-			except frappe.DoesNotExistError:
-				frappe.clear_last_message()
-				return False
-		if item_type == "page":
-			return name in self.allowed_pages and name in self.restricted_pages
-		if item_type == "report":
-			return not frappe.db.get_value("Report", name, "disabled") and name in self.allowed_reports
-		if item_type == "dashboard":
-			return name in (self.allowed_dashboards or [])
-		if item_type in ("help", "url"):
-			return True
-		if item_type == "workspace":
-			return name in (allowed_workspaces or [])
-
-		return False
+		return [page.name for page in get_workspaces()["pages"]]
 
 	@classmethod
 	def get_allowed_pages(cls, cache=False, user: str | None = None):
@@ -121,10 +104,13 @@ class DeskViews:
 		from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards, get_permitted_charts
 
 		def build():
+			# `module` rides along so the client can resolve a dashboard's home sidebar; the row
+			# stays a dict in a list rather than becoming a name-keyed map, so search_utils'
+			# get_dashboards() is untouched.
 			return [
-				{"name": name}
-				for name in frappe.get_all("Dashboard", pluck="name")
-				if get_permitted_charts(name) or get_permitted_cards(name)
+				{"name": d.name, "module": d.module}
+				for d in frappe.get_all("Dashboard", fields=["name", "module"])
+				if get_permitted_charts(d.name) or get_permitted_cards(d.name)
 			]
 
 		return cls._allowed_entity_cache("allowed_dashboards", frappe.session.user, build, cache=cache)
@@ -167,10 +153,12 @@ class DeskViews:
 
 		is_report = parent == "Report"
 
+		# `module` is selected for both so the client can resolve a Page's or Report's home sidebar
+		# from boot data alone. Only a DocType's module comes from its meta.
 		if is_report:
-			columns = (report.name.as_("title"), report.ref_doctype, report.report_type)
+			columns = (report.name.as_("title"), report.ref_doctype, report.report_type, report.module)
 		else:
-			columns = (page.title.as_("title"),)
+			columns = (page.title.as_("title"), page.module)
 
 		customRole = DocType("Custom Role")
 		hasRole = DocType("Has Role")
@@ -196,7 +184,12 @@ class DeskViews:
 		).run(as_dict=True)
 
 		for p in pages_with_custom_roles:
-			has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
+			has_role[p.name] = {
+				"modified": p.modified,
+				"title": p.title,
+				"ref_doctype": p.ref_doctype,
+				"module": p.module,
+			}
 
 		subq = (
 			frappe.qb.from_(customRole)
@@ -218,7 +211,7 @@ class DeskViews:
 
 		for p in pages_with_standard_roles:
 			if p.name not in has_role:
-				has_role[p.name] = {"modified": p.modified, "title": p.title}
+				has_role[p.name] = {"modified": p.modified, "title": p.title, "module": p.module}
 				if parent == "Report":
 					has_role[p.name].update({"ref_doctype": p.ref_doctype})
 
@@ -235,7 +228,7 @@ class DeskViews:
 
 		for r in rows_with_no_roles:
 			if r.name not in has_role:
-				has_role[r.name] = {"modified": r.modified, "title": r.title}
+				has_role[r.name] = {"modified": r.modified, "title": r.title, "module": r.module}
 				if is_report:
 					has_role[r.name] |= {"ref_doctype": r.ref_doctype}
 

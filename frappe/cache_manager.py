@@ -39,6 +39,16 @@ global_cache_keys = (
 	"wkhtmltopdf_version",
 	"domain_restricted_doctypes",
 	"domain_restricted_pages",
+	# hash of per-module sidebar bases; `on_module_content_changed` busts single fields, this
+	# is the escape hatch for anything that changed a module's contents behind doc_events' back
+	"sidebar_computed_base",
+	# Which layers the dock holds. The document's own `on_update` and `on_trash` invalidate this
+	# on every ordinary write; it is listed here for writes that never reach a document, such as
+	# a bulk insert, a restore or an import. A stale entry only costs a lookup that finds nothing,
+	# but a missing one hides a layer someone saved, so `bench clear-cache` has to reach it. The
+	# sidebar's layers need no equivalent: they are read per request for the user asking and
+	# cached nowhere.
+	"dock_layers",
 	"information_schema:counts",
 	"db_tables",
 	"server_script_autocompletion_items",
@@ -60,6 +70,7 @@ user_cache_keys = (
 	"user_perm_can_read",
 	"has_role:Page",
 	"has_role:Report",
+	"allowed_dashboards",
 	"desk_sidebar_items",
 	"contacts",
 )

@@ -233,7 +233,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:class="is_filter_applied()"
 						@click="edit_filters"
 					>
-						<div v-html="frappe.utils.icon('filter', 'sm')" />
+						<div v-html="frappe.utils.icon('funnel', 'sm')" />
 					</button>
 					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
 						<div v-html="frappe.utils.icon('plus', 'sm')" />
@@ -243,7 +243,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:title="__('Duplicate field')"
 						@click.stop="duplicate_field"
 					>
-						<div v-html="frappe.utils.icon('duplicate', 'sm')" />
+						<div v-html="frappe.utils.icon('copy', 'sm')" />
 					</button>
 					<button
 						v-if="field.df.fieldtype === 'Table' && field.df.options"
@@ -271,7 +271,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 	text-align: left;
 	width: 100%;
 	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius-sm);
+	border-radius: var(--radius);
 	border: 1px solid transparent;
 	padding: 0.3rem;
 	font-size: var(--text-sm);

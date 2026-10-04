@@ -1,9 +1,11 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "creation": "2012-12-12 11:19:22",
  "default_view": "File",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/attachments",
  "engine": "InnoDB",
  "field_order": [
   "file_name",
@@ -188,7 +190,7 @@
   }
  ],
  "force_re_route_to_default_view": 1,
- "icon": "fa fa-file",
+ "icon": "file",
  "idx": 1,
  "links": [],
  "modified": "2026-04-15 19:56:45.317786",
@@ -218,6 +220,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

@@ -191,7 +191,6 @@ th {
   *,
   *:before,
   *:after {
-    color: #000;
     background: transparent;
     text-shadow: none !important;
     -webkit-box-shadow: none !important;
@@ -5759,10 +5758,6 @@ body {
 }
 .list-group-item {
   padding: 8px 15px;
-}
-h3,
-h4 {
-  font-weight: bold;
 }
 ul.with-margin li,
 ol.with-margin li {

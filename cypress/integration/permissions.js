@@ -39,3 +39,35 @@ context.skip("Permissions API", () => {
 		cy.call("logout");
 	});
 });
+
+context("Permissions before a doctype's meta is loaded", () => {
+	before(() => {
+		cy.login("frappe@example.com");
+		cy.visit("/app");
+	});
+
+	it("Resolves delete for ToDo before its meta is loaded", () => {
+		cy.window()
+			.then((win) => {
+				const { frappe, locals } = win;
+
+				delete locals.DocType["ToDo"];
+				delete frappe.perm.doctype_perm["ToDo"];
+
+				expect(frappe.get_meta("ToDo")).to.not.exist;
+				expect(frappe.perm.has_perm("ToDo", 0, "delete")).to.equal(true);
+
+				return new Promise((resolve) => frappe.model.with_doctype("ToDo", resolve));
+			})
+			.then(() => {
+				cy.window().then((win) => {
+					expect(win.frappe.get_meta("ToDo")).to.exist;
+					expect(win.frappe.perm.has_perm("ToDo", 0, "delete")).to.equal(true);
+				});
+			});
+	});
+
+	after(() => {
+		cy.call("logout");
+	});
+});

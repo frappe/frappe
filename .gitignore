@@ -200,3 +200,5 @@ cypress/videos
 .aider*
 # Playwright AI
 .playwright-mcp
+# local checkout of frappe-datatable; not a submodule of this repo
+ui/datatable/

@@ -22,13 +22,13 @@ def get_setup_stages(args):  # nosemgrep
 	# That is done by frappe after successful completion of all stages
 	stages = [
 		{
-			"status": _("Updating global settings"),
-			"fail_msg": _("Failed to update global settings"),
+			"status": _("Saving your language and region"),
+			"fail_msg": _("We couldn't save your language and region"),
 			"tasks": [
 				{
 					"fn": update_global_settings,
 					"args": args,
-					"fail_msg": "Failed to update global settings",
+					"fail_msg": _("We couldn't save your language and region"),
 					"app_name": "frappe",
 				}
 			],
@@ -40,9 +40,15 @@ def get_setup_stages(args):  # nosemgrep
 	stages.append(
 		{
 			# post executing hooks
-			"status": _("Wrapping up"),
-			"fail_msg": _("Failed to complete setup"),
-			"tasks": [{"fn": run_post_setup_complete, "args": args, "fail_msg": "Failed to complete setup"}],
+			"status": _("Almost done"),
+			"fail_msg": _("We couldn't finish setting things up"),
+			"tasks": [
+				{
+					"fn": run_post_setup_complete,
+					"args": args,
+					"fail_msg": _("We couldn't finish setting things up"),
+				}
+			],
 		}
 	)
 
@@ -125,13 +131,15 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 					enable_setup_wizard_complete("frappe")
 	except Exception:
 		handle_setup_exception(user_input)
-		message = current_task.get("fail_msg") if current_task else "Failed to complete setup"
+		message = current_task.get("fail_msg") if current_task else _("We couldn't finish setting things up")
 		capture(
 			"setup_failed",
 			"setup",
 			properties={
 				"telemetry_enabled": telemetry_enabled,
-				"stage": message,
+				# function name, not the message: messages are translated and reworded
+				"stage": current_task["fn"].__name__ if current_task else None,
+				"app": current_task.get("app_name") if current_task else None,
 			},
 		)
 		frappe.log_error(title=f"Setup failed: {message}")
@@ -247,13 +255,13 @@ def update_app_details_in_stages(_stages, app_name):
 def get_setup_complete_hooks(args):  # nosemgrep
 	return [
 		{
-			"status": "Executing method",
-			"fail_msg": "Failed to execute method",
+			"status": _("Setting up your apps"),
+			"fail_msg": _("We couldn't finish setting up your apps"),
 			"tasks": [
 				{
 					"fn": frappe.get_attr(method),
 					"args": args,
-					"fail_msg": "Failed to execute method",
+					"fail_msg": _("We couldn't finish setting up your apps"),
 					"app_name": method.split(".")[0],
 				}
 			],
