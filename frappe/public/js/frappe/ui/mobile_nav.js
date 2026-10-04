@@ -40,7 +40,7 @@ frappe.ui.MobileNav = class MobileNav {
 		// The title is the trail's last crumb (Page.set_title), redrawn on every paint, so
 		// the tap is delegated. Pages inside dialogs draw no trail and are left out.
 		$(document).on("click", ".page-head .navbar-breadcrumbs li:last-child", () => {
-			if (frappe.is_mobile() && document.body.classList.contains("has-mobile-nav")) {
+			if (frappe.is_mobile() && document.body.classList.contains("mobile-nav-title")) {
 				this.open_navigation();
 			}
 		});
@@ -100,7 +100,11 @@ frappe.ui.MobileNav = class MobileNav {
 	// `has-mobile-nav` on <body> is what shows the bar and makes room for it.
 	apply_page_visibility() {
 		const page = frappe.container?.page?.page;
-		document.body.classList.toggle("has-mobile-nav", !!this.defined && !page?.hide_mobile_nav);
+		const shown = !!this.defined && !page?.hide_mobile_nav;
+		document.body.classList.toggle("has-mobile-nav", shown);
+		// A system page opens in no shell, so it has no sidebar for its title to open.
+		const system_page = frappe.router.page_info_for(frappe.get_route())?.system_page;
+		document.body.classList.toggle("mobile-nav-title", shown && !system_page);
 	}
 
 	// Every tab but New is a place; New opens a sheet over the page.
