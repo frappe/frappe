@@ -110,9 +110,6 @@ class DesktopIcon(Document):
 	# 	if has_common(roles, allowed):
 	# 		return True
 
-	def after_insert(self):
-		clear_every_users_desktop_icons()
-
 
 def delete_desktop_icon_file(app, label):
 	folder_path = create_directory_on_app_path("desktop_icon", app)
@@ -224,6 +221,25 @@ def get_linked_workspace_modules(icons: list[dict]) -> dict[str, str]:
 	return {name: modules.get(workspace) for name, workspace in linked.items()}
 
 
+def is_shared_icon(icon, private_workspaces: set[str]) -> bool:
+	"""Whether a custom icon another user made can reach this user's grid.
+
+	A link is checked for permission like any other icon, so it is shared. A folder or an app icon
+	only arranges its maker's grid. A link to a private workspace stays with its owner, since the
+	permission check looks at the module, not at who the workspace belongs to.
+	"""
+	return icon.icon_type == "Link" and icon.link_to not in private_workspaces
+
+
+def get_private_workspaces(icons: list[dict]) -> set[str]:
+	"""The workspaces among `icons`' links that are not public."""
+	linked = {icon.link_to for icon in icons if icon.icon_type == "Link" and icon.link_to}
+	if not linked:
+		return set()
+
+	return set(frappe.get_all("Workspace", filters={"name": ("in", list(linked)), "public": 0}, pluck="name"))
+
+
 def get_desktop_icons(user=None, bootinfo=None):
 	"""Return desktop icons for user"""
 	if not user:
@@ -251,8 +267,15 @@ def get_desktop_icons(user=None, bootinfo=None):
 			"icon_image",
 		]
 
-		# Every row, whoever created it: what a user sees is decided by the permission check below.
-		user_icons = frappe.get_all("Desktop Icon", fields=fields)
+		rows = frappe.get_all("Desktop Icon", fields=[*fields, "owner"])
+		private_workspaces = get_private_workspaces(rows)
+		user_icons = [
+			row
+			for row in rows
+			if row.standard or row.owner in ("Administrator", user) or is_shared_icon(row, private_workspaces)
+		]
+		for row in user_icons:
+			del row["owner"]
 
 		# sort by idx
 		user_icons.sort(key=lambda a: a.idx)
