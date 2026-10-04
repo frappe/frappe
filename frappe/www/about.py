@@ -3,7 +3,9 @@
 
 import frappe
 
-sitemap = 1
+settings = frappe.get_doc("About Us Settings")
+if not settings.is_disabled:
+	sitemap = 1
 
 
 def get_context(context):
