@@ -30,10 +30,6 @@ app_include_js = [
 	"controls.bundle.js",
 	"report.bundle.js",
 	"telemetry.bundle.js",
-	# frappe-ui custom elements, prebuilt in frappe-ui (yarn build:custom-elements);
-	# they use desk.bundle.js's frappe.Vue, so they load after it
-	"/assets/frappe/js/lib/frappe-mobile-nav.js",
-	"/assets/frappe/js/lib/frappe-bottom-sheet.js",
 ]
 
 app_include_css = [
