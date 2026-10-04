@@ -59,4 +59,7 @@
                 {{ _("Save") }}
             </button>
     </div>
+    {% if desktop_layout is defined %}
+        <div class="hidden" id="desktop-layout">{{ desktop_layout |e }}</div>
+    {% endif %}
 </div>

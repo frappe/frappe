@@ -5,21 +5,10 @@
 // Loaded lazily by frappe/desk/page/desktop/desktop.js, because Page.load_assets reads exactly
 // one `<page_name>.js` per page, so a second file in that folder would never be served. Keeping
 // it out of desk.bundle also keeps about 1200 lines off every desk page load.
-import "./frappe/ui/desktop_icons_item.html";
-
-// One menu entry as a frappe.ui.Dropdown / frappe.ui.ContextMenu row.
 //
-// Rows apps contribute through `add_menu_item()` were written against the menu this page's menus
-// replaced, so its key names are still accepted alongside the component's own: `onClick` for
-// `onclick`, `url` for `href`. Labels arrive untranslated here, as they always have.
-function menu_row(item) {
-	const row = { label: __(item.label), icon: item.icon, condition: item.condition };
-	const href = item.href || item.url;
-	if (href) row.href = href;
-	const onclick = item.onclick || item.onClick;
-	if (onclick) row.onclick = onclick;
-	return row;
-}
+// The page extends the Apps screen, so both modes share one header, search, avatar menu and
+// stylesheet. Only the grid differs: this one draws the Desktop Icon rows, folders included.
+import "./frappe/ui/desktop_icons_item.html";
 
 frappe.desktop_utils = {};
 frappe.desktop_grids = [];
@@ -186,14 +175,18 @@ function add_icons_to_folder(folder_name, items) {
 	frappe.pages["desktop"].desktop_page.update();
 }
 
-class DesktopPage {
+class DesktopIconsPage extends frappe.ui.DesktopPage {
 	constructor(page) {
-		this.page = page;
+		super(page);
 		this.edit_mode = false;
-		this.desktop_menu_items = [];
-	}
-	update() {
-		this.make();
+		this.add_menu_item({
+			icon: "rotate-ccw",
+			label: "Reset Desktop Layout",
+			onclick: function () {
+				reset_to_default();
+				window.location.reload();
+			},
+		});
 	}
 	prepare() {
 		this.apps_icons = [];
@@ -253,23 +246,17 @@ class DesktopPage {
 			},
 			callback: function (r) {
 				me.data = r.message.layout;
-				me.make(me.page);
-				me.setup();
+				me.make();
 				frappe.new_icons = [];
 			},
 		});
 	}
-	make() {
-		this.page.page_head.hide();
-		$(this.page.body).empty();
-		this.awesomebar_setup = false;
-		$(frappe.render_template("desktop_icons")).appendTo(this.page.body);
+	render_app_icons() {
 		if (!this.data) {
 			this.data = JSON.parse($("#desktop-layout").text());
 		}
 		this.sync_layout();
 		this.prepare();
-		this.wrapper = this.page.body.find(".desktop-container");
 		this.icon_grid = new DesktopIconGrid({
 			wrapper: this.wrapper,
 			icons_data: this.apps_icons,
@@ -283,15 +270,6 @@ class DesktopPage {
 		if (this.edit_mode) {
 			this.start_editing_layout();
 		}
-		this.setup();
-	}
-	setup() {
-		$(document).trigger("desktop_screen", { desktop: this });
-		this.setup_avatar();
-		this.setup_notifications();
-		this.setup_navbar();
-		this.setup_awesomebar();
-		this.handle_route_change();
 	}
 	setup_edit_button() {
 		if (this.edit_mode || frappe.is_mobile()) return;
@@ -320,7 +298,6 @@ class DesktopPage {
 						return !me.edit_mode;
 					},
 					onclick: function () {
-						me.$desktop_edit_button.hide();
 						frappe.new_desktop_icons = JSON.parse(
 							JSON.stringify(frappe.desktop_icons)
 						);
@@ -440,16 +417,10 @@ class DesktopPage {
 			me.stop_editing_layout("submit");
 		});
 	}
-	setup_notifications() {
-		this.notifications = new frappe.ui.Notifications({
-			wrapper: $(".desktop-notifications"),
-			popover: true,
-		});
-	}
-
 	delete_new_icons() {
 		frappe.new_icons = [];
 	}
+<<<<<<< HEAD
 
 	setup_avatar() {
 		$(".desktop-avatar").html(frappe.avatar(frappe.session.user, "avatar-medium"));
@@ -541,13 +512,13 @@ class DesktopPage {
 			description: __("Open Awesomebar"),
 		});
 	}
+=======
+>>>>>>> 8f6914f (fix(desktop): bring the Desktop Icons grid up to v16 and onto the Apps screen's look)
 	handle_route_change() {
+		super.handle_route_change();
 		const me = this;
 		frappe.router.on("change", function () {
-			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
-				me.setup_navbar();
-			} else {
-				$(".navbar").show();
+			if (frappe.get_route()[0] != "desktop" && frappe.get_route()[0] != "") {
 				frappe.desktop_utils.close_desktop_modal();
 				// stop edit mode if route changes and cleanup
 				me.edit_mode = false;
@@ -672,7 +643,8 @@ class DesktopIconGrid {
 	add_arrows(element) {
 		if (!element) element = this.wrapper;
 		const me = this;
-		let stroke_color = "black";
+		// on the page the arrows take the themed icon stroke; the modal sits on a dark backdrop
+		let stroke_color = null;
 		let horizontal_movement = 0;
 		if (this.in_modal) {
 			stroke_color = "white";
@@ -755,7 +727,6 @@ class DesktopIconGrid {
 			this.setup_actions_on_icon(icon_obj);
 			grid.append(icon_html);
 		});
-		this.setup_tooltip();
 	}
 	setup_actions_on_icon(icon) {
 		if (this.edit_mode) {
@@ -764,14 +735,6 @@ class DesktopIconGrid {
 		if (this.is_pane) {
 			icon.in_pane = true;
 		}
-	}
-	setup_tooltip() {
-		$('[data-toggle="tooltip"]').tooltip({
-			placement: "bottom",
-		});
-	}
-	remove_label_tooltip() {
-		$('[data-toggle="tooltip"]').tooltip("disable");
 	}
 	setup_reordering(grid) {
 		const me = this;
@@ -909,7 +872,6 @@ class DesktopIcon {
 						if (this.in_folder) {
 							this.icon.removeClass("desktop-edit-mode");
 						}
-						this.grid.remove_label_tooltip();
 						this.setup_dragging();
 						this.setup_edit_menu();
 						this.setup_hide_button();
@@ -1040,7 +1002,8 @@ class DesktopIcon {
 	setup_click() {
 		const me = this;
 		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
-			$(this.icon).on("click", () => {
+			$(this.icon).on("click", (event) => {
+				event.preventDefault();
 				let modal = frappe.desktop_utils.create_desktop_modal(me);
 				modal.setup(me.icon_title, me.child_icons, 4);
 				let $title = modal.modal.find(".modal-title");
@@ -1163,6 +1126,11 @@ class DesktopModal {
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");
 			this.modal.find(".modal-body").addClass("desktop-modal-body");
 			this.$child_icons_wrapper = this.modal.find(".desktop-modal-body");
+			this.modal.find(".desktop-modal-heading").on("click", (e) => {
+				if (!$(e.target).closest(".modal-title").length) {
+					this.hide();
+				}
+			});
 		} else {
 			this.modal.find(".modal-title").text(icon_title);
 			$(this.modal.find(".modal-body")).empty();
@@ -1211,7 +1179,7 @@ class IconsPane {
 			return;
 		}
 		this.wrapper.append(
-			"<span style='margin-top: 10px; margin-bottom: 20px'>Removed Icons</span>"
+			`<span style='margin-top: 10px; margin-bottom: 20px'>${__("Removed Icons")}</span>`
 		);
 		this.grid = new DesktopIconGrid({
 			name: "hidden-icons-grid",
@@ -1289,7 +1257,4 @@ class InlineEditor {
 	}
 }
 
-// The page dispatcher constructs this; `DesktopPage` itself stays module-scoped so it
-// can't collide with the default apps-grid page class of the same name in desktop.js.
-frappe.provide("frappe.ui");
-frappe.ui.DesktopIconsPage = DesktopPage;
+frappe.ui.DesktopIconsPage = DesktopIconsPage;

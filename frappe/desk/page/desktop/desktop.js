@@ -343,3 +343,6 @@ class DesktopPage {
 		});
 	}
 }
+
+// The Desktop Icons grid in desktop_icons.bundle.js extends this page, so both modes share it.
+frappe.ui.DesktopPage = DesktopPage;
