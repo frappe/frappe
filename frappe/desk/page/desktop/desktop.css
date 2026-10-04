@@ -504,6 +504,10 @@ body.desktop-page .pane-icons-area .icons {
   height: 100%;
   overflow: scroll;
 }
+body.desktop-page .removed-icons-heading {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
 body.desktop-page .add-new-icon {
   cursor: pointer;
   gap: 0px;

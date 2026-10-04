@@ -30,20 +30,6 @@ $.extend(frappe.desktop_utils, {
 		}
 	},
 });
-// The workspaces on an app's rail, read from the one list `app_data` carries. This is a
-// behaviour change: that list holds the workspaces the app's `Dock` record names, its own plus
-// the ones companions mount onto it, rather than every workspace whose module belongs to the app.
-// The icon grid is a retired surface an Apps-mode site never renders.
-function get_workspaces_from_app_name(app_name) {
-	const app = frappe.boot.app_data.filter((a) => {
-		return a.app_title === app_name;
-	});
-	if (app.length > 0)
-		return (app[0].dock || [])
-			.filter((row) => row.link_type === "Workspace")
-			.map((row) => row.link_to);
-}
-
 function get_route(desktop_icon) {
 	let route;
 	if (!desktop_icon) return;
@@ -77,10 +63,6 @@ function get_desktop_icon_by_label(title, filters, force) {
 	}
 }
 
-function get_desktop_icon_by_idx(idx, parent_icon) {
-	return frappe.boot.desktop_icons.find((f) => f.idx == idx && f.parent_icon == parent_icon);
-}
-
 function save_desktop(icons) {
 	// saving in localStorage;
 	frappe.pages["desktop"].desktop_page.save_layout(icons, frappe.new_icons);
@@ -92,12 +74,6 @@ function reset_to_default() {
 		callback: function (r) {
 			frappe.ui.toolbar.clear_cache();
 		},
-	});
-}
-
-function toggle_icons(icons) {
-	icons.forEach((i) => {
-		$(i).parent().parent().show();
 	});
 }
 
@@ -136,7 +112,7 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 				window.location.reload();
 			},
 		});
-		// Registered once here: the Apps page's own route listener is re-added on every render.
+		// Registered once here, alongside the Apps page's own listener for the navbar.
 		frappe.router.on("change", () => {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") return;
 			frappe.desktop_utils.close_desktop_modal();
@@ -176,13 +152,7 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 			}
 		});
 	}
-	get_saved_layout() {
-		let keywords = ["null", "undefined"];
-		if (keywords.includes(localStorage.getItem(`${frappe.session.user}:desktop`))) {
-			return null;
-		}
-		return JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
-	}
+
 	sync_layout() {
 		const me = this;
 		let saved_layout = JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
@@ -225,21 +195,7 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 			this.start_editing_layout();
 		}
 	}
-	setup_edit_button() {
-		if (this.edit_mode || frappe.is_mobile()) return;
-		const me = this;
-		$(".desktop-edit").remove();
-		this.$desktop_edit_button = $(
-			"<button class='btn btn-reset desktop-edit'></button>"
-		).appendTo(document.body);
-		this.$desktop_edit_button.html(
-			frappe.utils.icon("square-pen", "md", "", "", "", "", "white")
-		);
-		this.$desktop_edit_button.on("click", () => {
-			frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
-			me.start_editing_layout();
-		});
-	}
+
 	setup_context_menu() {
 		const me = this;
 		new frappe.ui.ContextMenu({
@@ -295,9 +251,7 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 		});
 		frappe.desktop_grids.forEach((desktop_grid) => {
 			if (!desktop_grid.no_dragging) {
-				desktop_grid.grids.forEach((grid) => {
-					desktop_grid.setup_reordering(grid);
-				});
+				desktop_grid.setup_reordering(desktop_grid.grid);
 			}
 		});
 		this.add_new_icons_to_grid();
@@ -385,7 +339,6 @@ class DesktopIconGrid {
 	init() {
 		this.icons = [];
 		this.icons_html = [];
-		this.grids = [];
 		this.prepare();
 		this.make();
 		frappe.desktop_grids.push(this);
@@ -394,7 +347,7 @@ class DesktopIconGrid {
 		DesktopIconGrid.folder_count++;
 		let icon = frappe.model.get_new_doc("Desktop Icon");
 		icon.icon_type = "Folder";
-		icon.label = `Untitled ${DesktopIconGrid.folder_count}`;
+		icon.label = __("Untitled {0}", [DesktopIconGrid.folder_count]);
 		icon.idx = 100000;
 		frappe.new_desktop_icons.push(icon);
 		frappe.new_icons.push(icon);
@@ -413,13 +366,12 @@ class DesktopIconGrid {
 		if (this.compact) {
 			this.icons_container.css("margin-top", "0px");
 		}
-		const $grid = $(`<div class="icons"></div>`).appendTo(this.icons_container);
+		this.grid = $(`<div class="icons"></div>`).appendTo(this.icons_container);
 		const columns = frappe.is_mobile() ? 3 : this.row_size;
 		if (columns) {
-			$grid.css("grid-template-columns", `repeat(${columns}, 1fr)`);
+			this.grid.css("grid-template-columns", `repeat(${columns}, 1fr)`);
 		}
-		this.grids.push($grid);
-		this.make_icons(this.icons_data, $grid);
+		this.make_icons(this.icons_data, this.grid);
 	}
 	make_icons(icons_data, grid) {
 		icons_data.forEach((icon) => {
@@ -748,7 +700,6 @@ class DesktopIcon {
 				wrapper: this.folder_wrapper,
 				icons_data: this.child_icons,
 				in_folder: true,
-				in_modal: false,
 				no_dragging: true,
 			});
 			if (this.icon_type == "App") {
@@ -796,16 +747,13 @@ class DesktopModal {
 			icons_data: child_icons_data,
 			row_size: grid_row_size,
 			in_folder: false,
-			in_modal: true,
 			parent_icon: this.parent_icon_obj,
 			edit_mode: is_edit_mode, // Pass edit mode state
 		});
 
 		// If in edit mode, setup reordering for the modal icons
 		if (is_edit_mode) {
-			this.child_icon_grid.grids.forEach((grid) => {
-				this.child_icon_grid.setup_reordering(grid);
-			});
+			this.child_icon_grid.setup_reordering(this.child_icon_grid.grid);
 		}
 
 		this.modal.on("hidden.bs.modal", function () {
@@ -880,9 +828,7 @@ class IconsPane {
 			this.grid.update_grid();
 			return;
 		}
-		this.wrapper.append(
-			`<span style='margin-top: 10px; margin-bottom: 20px'>${__("Removed Icons")}</span>`
-		);
+		this.wrapper.append(`<span class="removed-icons-heading">${__("Removed Icons")}</span>`);
 		this.grid = new DesktopIconGrid({
 			name: "hidden-icons-grid",
 			wrapper: this.wrapper,
@@ -922,7 +868,7 @@ class InlineEditor {
 		this.container.html(`
 			<div class="title-widget">
 				<div class="title-input-label">
-					<span>${__(this.initialValue)}</span>
+					<span>${frappe.utils.escape_html(__(this.initialValue))}</span>
 				</div>
 				<div class="title-input-wrapper">
 					<input class="title-input">

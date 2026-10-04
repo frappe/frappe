@@ -1,11 +1,11 @@
-<a class="desktop-icon" data-id="{{ icon.label}}"  data-logo="{{ icon.logo_url }}" data-icon="{{ icon.icon }}" data-type="{{ icon.type }}" style="text-decoration:none">
+<a class="desktop-icon" data-id="{{ frappe.utils.escape_html(icon.label) }}" data-logo="{{ frappe.utils.escape_html(icon.logo_url) }}" data-icon="{{ frappe.utils.escape_html(icon.icon) }}" data-type="{{ frappe.utils.escape_html(icon.type) }}" style="text-decoration:none">
     {% if(frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style ) && icon.icon_type != "Folder") %}
         <div class="icon-container">
-            <img class="app-icon" src="{{ frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style) }}" alt="{{ icon.label }}" />
+            <img class="app-icon" src="{{ frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style) }}" alt="{{ frappe.utils.escape_html(icon.label) }}" />
         </div>
     {% else if (icon.logo_url || icon.icon_image) { %}
         <div class="icon-container">
-            <img class="app-icon" src="{{ icon.logo_url || icon.icon_image }}" alt="{{ icon.label }}" />
+            <img class="app-icon" src="{{ frappe.utils.escape_html(icon.logo_url || icon.icon_image) }}" alt="{{ frappe.utils.escape_html(icon.label) }}" />
         </div>
     {% } else if (icon.icon_type == "Folder") { %}
         <div class="icon-container folder-icon">
