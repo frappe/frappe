@@ -353,6 +353,12 @@ const useStudioStore = defineStore("store", () => {
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
 	// page and re-run setup() on the canvas. (Standard pages update only after their app rebuilds.)
+	async function reloadActiveAppRouterScript() {
+		if (!activeApp.value) return
+		const app = await fetchApp(activeApp.value.name)
+		if (app && activeApp.value?.name === app.name) activeApp.value.router_script = app.router_script
+	}
+
 	async function reloadActivePageScript() {
 		if (!activePage.value) return
 		const page = await fetchPage(activePage.value.name)
@@ -791,6 +797,7 @@ const useStudioStore = defineStore("store", () => {
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,
+		reloadActiveAppRouterScript,
 		publishPage,
 		unpublishPage,
 		revertPage,

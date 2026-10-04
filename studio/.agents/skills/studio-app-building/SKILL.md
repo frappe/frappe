@@ -10,6 +10,7 @@ Studio apps contain `Studio Page` documents with a JSON block tree, optional
 writing bindings, events, or styles. Read [DESIGN.md](DESIGN.md) before building
 or restyling a page. For available components, check
 `frontend/src/data/components.ts` and `frontend/src/data/componentFamilies.ts`.
+Read [ROUTING.md](ROUTING.md) for navigation, redirects, guards or `boot` data.
 
 ## Standard vs custom apps
 
