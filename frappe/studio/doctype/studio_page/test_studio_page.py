@@ -430,9 +430,11 @@ class TestGuestRendering(IntegrationTestCase):
 			route="/private",
 			blocks=frappe.as_json([component_ref(cls.secret_widget)]),
 		)
-		make_studio_page(cls.app.name, page_title="Draft Page", route="/draft", published=0, allow_guest=1)
+		cls.draft_page = make_studio_page(
+			cls.app.name, page_title="Draft Page", route="/draft", published=0, allow_guest=1
+		)
 		cls.members_app = make_studio_app(app_title="Members App", app_name="members-app")
-		make_studio_page(cls.members_app.name, page_title="Members Home", route="/home")
+		cls.members_page = make_studio_page(cls.members_app.name, page_title="Members Home", route="/home")
 
 	@classmethod
 	def delete_leftover_fixtures(cls):
@@ -452,24 +454,33 @@ class TestGuestRendering(IntegrationTestCase):
 
 	def test_guest_gets_public_page(self):
 		self.as_guest()
-		page = get_page(self.app.name, "/public")
+		page = get_page(self.app.name, self.public_page.name)
 		self.assertEqual(page["name"], self.public_page.name)
 
 	def test_guest_gets_404_for_anything_not_public(self):
 		self.as_guest()
-		for route in ("/private", "/draft", "/nonexistent"):
+		for page_name in (self.private_page.name, self.draft_page.name, "page-nonexistent"):
+			frappe.local.message_log = []
 			with self.assertRaises(frappe.DoesNotExistError):
-				get_page(self.app.name, route)
+				get_page(self.app.name, page_name)
+			# one reply for every case, so a guest can't tell a private page from a missing one
+			self.assertEqual(
+				[m["message"] for m in map(frappe.parse_json, frappe.local.message_log)], ["Page not found"]
+			)
+
+	def test_page_of_another_app_is_not_found(self):
+		with self.assertRaises(frappe.DoesNotExistError):
+			get_page(self.app.name, self.members_page.name)
 
 	def test_guest_cannot_preview_public_pages(self):
 		self.as_guest()
 		with self.assertRaisesRegex(
 			frappe.PermissionError, "You do not have permission to preview this page"
 		):
-			get_page(self.app.name, "/public", preview=True)
+			get_page(self.app.name, self.public_page.name, preview=True)
 
 	def test_logged_in_user_gets_private_page(self):
-		page = get_page(self.app.name, "/private")
+		page = get_page(self.app.name, self.private_page.name)
 		self.assertEqual(page["name"], self.private_page.name)
 
 	def test_renderer_serves_guests_only_apps_with_public_pages(self):
@@ -507,7 +518,7 @@ class TestGuestRendering(IntegrationTestCase):
 
 	def test_page_ships_its_component_definitions(self):
 		self.as_guest()
-		page = get_page(self.app.name, "/public")
+		page = get_page(self.app.name, self.public_page.name)
 		components = {component["name"]: component for component in page["components"]}
 		self.assertEqual(set(components), {self.hero.name, self.nested_card.name})
 		self.assertEqual(components[self.hero.name]["inputs"][0]["input_name"], "title")
