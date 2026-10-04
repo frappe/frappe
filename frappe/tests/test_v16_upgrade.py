@@ -591,3 +591,57 @@ class TestALinkThatNoLongerResolves(IntegrationTestCase):
 		"""`write_user_layer` inserts a `Custom Sidebar` off the same rows, so it is exposed the same
 		way and is easy to fix on only one of the two paths."""
 		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": self.USER}))
+
+
+class TestRowTypesTheNewSidebarDropped(IntegrationTestCase):
+	"""v16's sidebar editor offered `Spacer` and `Sidebar Item Group` rows. A site that used either
+	must still migrate: spacers carry over, and the report-group button, whose doctype is gone, is
+	left behind.
+	"""
+
+	MODULE = "Test V16 Spacer Module"
+	USER = "test-v16-spacer@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": cls.MODULE, "app_name": "frappe"}
+			).insert()
+			clear_computed_base_cache(cls.MODULE)
+
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Spacer", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		archive(
+			"V16 Spacers",
+			[
+				{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"},
+				{"type": "Spacer"},
+				{"type": "Sidebar Item Group", "label": "Reports"},
+				{"type": "Link", "link_type": "DocType", "link_to": "Event", "label": "Events"},
+				{"type": "Spacer"},
+			],
+			module=cls.MODULE,
+		)
+		cls.output = run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def test_spacers_carry_over_and_the_group_does_not(self):
+		base = frappe.get_doc("Sidebar", {"module": self.MODULE})
+		self.assertEqual([row.type for row in base.items], ["Link", "Spacer", "Link", "Spacer"])
+
+	def test_a_normal_user_sees_both_spacers(self):
+		"""Spacers link nowhere, so the permission filter must not drop them, and two of them must
+		not collapse into one as duplicates."""
+		shell = frappe.db.get_value("Sidebar", {"module": self.MODULE})
+		items = resolve_sidebar(shell, self.USER).items
+		self.assertEqual([item["type"] for item in items], ["Link", "Spacer", "Link", "Spacer"])
