@@ -187,6 +187,16 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 				window.location.reload();
 			},
 		});
+		// Registered once here: the Apps page's own route listener is re-added on every render.
+		frappe.router.on("change", () => {
+			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") return;
+			frappe.desktop_utils.close_desktop_modal();
+			// stop edit mode if route changes and cleanup
+			this.edit_mode = false;
+			$(".desktop-icon").removeClass("edit-mode");
+			$(".desktop-wrapper").removeAttr("data-mode");
+			$(".desktop-edit").remove();
+		});
 	}
 	prepare() {
 		this.apps_icons = [];
@@ -419,20 +429,6 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 	}
 	delete_new_icons() {
 		frappe.new_icons = [];
-	}
-	handle_route_change() {
-		super.handle_route_change();
-		const me = this;
-		frappe.router.on("change", function () {
-			if (frappe.get_route()[0] != "desktop" && frappe.get_route()[0] != "") {
-				frappe.desktop_utils.close_desktop_modal();
-				// stop edit mode if route changes and cleanup
-				me.edit_mode = false;
-				$(".desktop-icon").removeClass("edit-mode");
-				$(".desktop-wrapper").removeAttr("data-mode");
-				$(".desktop-edit").remove();
-			}
-		});
 	}
 }
 
@@ -1032,6 +1028,12 @@ class DesktopModal {
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");
 			this.modal.find(".modal-body").addClass("desktop-modal-body");
 			this.$child_icons_wrapper = this.modal.find(".desktop-modal-body");
+			// the modal sits outside the page body, so it needs the page's title tooltip of its own
+			frappe.ui.Tooltip.delegate(this.modal.get(0), ".icon-title", {
+				only_on_overflow: true,
+				side: "bottom",
+				delay: 150,
+			});
 			this.modal.find(".desktop-modal-heading").on("click", (e) => {
 				if (!$(e.target).closest(".modal-title").length) {
 					this.hide();
