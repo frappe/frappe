@@ -2,6 +2,10 @@ import { MenuTree } from "./menu.js";
 
 frappe.provide("frappe.ui");
 
+// Right-clicks a menu has already answered. The event bubbles through every target it sits in,
+// and only the innermost menu should open.
+const claimed = new WeakSet();
+
 /**
  * @typedef {Object} ContextMenuOpts
  * @property {Element|JQuery} target Right-clicking anywhere in this element opens the menu at the cursor.
@@ -14,7 +18,7 @@ frappe.provide("frappe.ui");
 /**
  * Right-click menu for a surface (a list row, a card, a canvas). Same
  * options as frappe.ui.Dropdown; the page can't scroll while it's open,
- * same as native context menus. While open, the target carries
+ * same as native context menus. When targets nest, the innermost menu opens. While open, the target carries
  * data-state="open" — style that to highlight the card/row being acted on.
  * @example
  * new frappe.ui.ContextMenu({
@@ -38,6 +42,8 @@ frappe.ui.ContextMenu = class ContextMenu {
 			return;
 		}
 		this.oncontextmenu = (e) => {
+			if (claimed.has(e)) return;
+			claimed.add(e);
 			e.preventDefault();
 			this.opts.on_open && this.opts.on_open(e);
 			this.open_at(e.clientX, e.clientY);
