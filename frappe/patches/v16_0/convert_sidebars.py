@@ -1,3 +1,4 @@
+import hashlib
 from collections import defaultdict
 
 import click
@@ -181,9 +182,10 @@ def forks_by_owner() -> dict[tuple[str, str], list[frappe._dict]]:
 		if is_private_container(fork):
 			continue
 
-		fork.rows = archive_items(fork.name)
-		fork.sequence_id = 0
 		fork.source = source_of(fork)
+		# spacers are named after the sidebar the fork was copied from, so they match its rows
+		fork.rows = archive_items(fork.name, spacer_scope=fork.source)
+		fork.sequence_id = 0
 		fork.title = fork.source or fork.title
 
 		module = fork.module or majority_module_of(fork.rows)
@@ -252,14 +254,31 @@ def is_module(module: str | None) -> bool:
 	return bool(module) and bool(frappe.db.exists("Module Def", module))
 
 
-def archive_items(sidebar: str) -> list[frappe._dict]:
-	return frappe.get_all(
+def archive_items(sidebar: str, spacer_scope: str | None = None) -> list[frappe._dict]:
+	rows = frappe.get_all(
 		ARCHIVE_ITEM_DOCTYPE,
 		filters={"parenttype": ARCHIVE_DOCTYPE, "parentfield": "items", "parent": sidebar},
 		# no `key`: only `Sidebar Item` carries one
 		fields=["name", "idx", *SIDEBAR_ITEM_FIELDS],
 		order_by="idx asc",
 	)
+
+	items = []
+	spacers = 0
+	for row in rows:
+		# v16's report-group button; its doctype is gone and nothing draws the row now
+		if row.type == "Sidebar Item Group":
+			continue
+		# an unlinked row is keyed by type and label, and a module's sidebars are merged, so an
+		# unnamed spacer needs a label no other sidebar's spacer can share. The sidebar is hashed
+		# because its title alone can fill the label's 140 characters.
+		if row.type == "Spacer" and not row.label:
+			spacers += 1
+			scope = hashlib.sha1((spacer_scope or sidebar).encode()).hexdigest()[:10]
+			row.label = f"Spacer {spacers} {scope}"
+		items.append(row)
+
+	return items
 
 
 def write_user_layer(module: str, user: str, rows: list[dict]) -> None:
