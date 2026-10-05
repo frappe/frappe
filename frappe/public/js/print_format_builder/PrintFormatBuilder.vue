@@ -510,6 +510,14 @@ function fit_zoom_to_canvas() {
 	canvas_zoom.value = fits.length ? Math.min(100, fits[fits.length - 1]) : ZOOM_LEVELS[0];
 }
 
+const canvas_resize = new ResizeObserver(fit_zoom_to_canvas);
+function observe_canvas() {
+	if (!canvas_ref.value) return;
+	canvas_resize.observe(canvas_ref.value);
+	const page = canvas_ref.value.querySelector(".print-format-main");
+	if (page) canvas_resize.observe(page);
+}
+
 const is_printable_docstatus = (docstatus) =>
 	frappe.model.can_print_docstatus($store.meta.value?.name, docstatus);
 const printable_filters = computed(() => {
@@ -581,7 +589,7 @@ onMounted(() => {
 	window.addEventListener("beforeunload", warn_before_unload);
 
 	$store.fetch().then(() => {
-		nextTick(fit_zoom_to_canvas);
+		nextTick(observe_canvas);
 		if ($store.print_format.value?.custom_format) {
 			frappe.set_route("Form", "Print Format", props.print_format_name);
 			return;
@@ -594,6 +602,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+	canvas_resize.disconnect();
 	document.removeEventListener("keydown", handle_keydown);
 	zoom_dropdown?.destroy();
 	window.removeEventListener("beforeunload", warn_before_unload);
