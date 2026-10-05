@@ -1281,16 +1281,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return $badge[0];
 	}
 
-	assignee_avatar(user, size = "md") {
-		const info = frappe.user_info(user);
-		return frappe.ui.avatar({
-			image: info.image || undefined,
-			label: info.fullname || user,
-			theme: this.hash_theme(user),
-			size,
-		})[0];
-	}
-
 	age_badge(card) {
 		const when = card[this.footer_date_field] || card.modified || card.creation;
 		if (!when) return null;
@@ -1876,43 +1866,30 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const users = this.parse_json_list(card._assign);
 		if (!interactive && !users.length) return null;
 
-		const group = document.createElement("div");
-		// overlap and ring live in .kn-assign-group
-		group.className = "kn-assign-group inline-flex items-center";
-		if (interactive) {
-			group.addEventListener("click", (e) => e.stopPropagation());
-		}
-
-		const shown = users.slice(0, 2);
-		const extra = users.slice(2);
-		shown.forEach((user) => {
-			const av = this.assignee_avatar(user, "md");
-			av.classList.add("kn-stack-av");
-			group.appendChild(av);
-			if (interactive) this.bind_assignee_hovercard(av, user, card);
+		const $group = frappe.ui.avatar_group({
+			avatars: users.map((user) => {
+				const info = frappe.user_info(user);
+				return {
+					user,
+					image: info.image || undefined,
+					label: info.fullname || user,
+					theme: this.hash_theme(user),
+				};
+			}),
+			max: 2,
+			// the ring takes the card colour (kanban_v2.scss)
+			css_class: "kn-assign-group",
+			hover_card:
+				interactive &&
+				((avatar, hovercard) => this.assignee_hovercard(avatar.user, card, hovercard)),
+			add: interactive && {
+				title: users.length ? __("Add assignee") : __("Assign"),
+				onclick: () => this.open_assign(card),
+			},
 		});
-
-		if (extra.length) {
-			const more = frappe.ui.avatar({ size: "md", label: "" })[0];
-			more.classList.add("kn-stack-av");
-			more.querySelector(".es-avatar__fallback").textContent = `+${extra.length}`;
-			more.title = extra.map((u) => frappe.user_info(u).fullname || u).join(", ");
-			group.appendChild(more);
-		}
-
-		if (interactive) {
-			const add = frappe.ui.avatar({ size: "md", label: "" })[0];
-			add.querySelector(".es-avatar__fallback").innerHTML = frappe.utils.icon("plus", "sm");
-			add.classList.add("kn-stack-av", "kn-assign-add", "cursor-pointer");
-			add.title = users.length ? __("Add assignee") : __("Assign");
-			add.addEventListener("click", (e) => {
-				e.stopPropagation();
-				this.open_assign(card);
-			});
-			group.appendChild(add);
-		}
-
-		return group;
+		// clicks on the stack must not open the card
+		if (interactive) $group.on("click", (e) => e.stopPropagation());
+		return $group[0];
 	}
 
 	assign_button(card) {
@@ -1921,16 +1898,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	open_assign(card) {
 		this.bulk().assign([card.name], () => this.board.refresh());
-	}
-
-	bind_assignee_hovercard(el, user, card) {
-		const hovercard = new frappe.ui.HoverCard(el, {
-			side: "bottom",
-			align: "start",
-			css_class: "kn-assignee-popover",
-			// built on open, so `hovercard` is set by then
-			content: () => this.assignee_hovercard(user, card, hovercard),
-		});
 	}
 
 	assignee_hovercard(user, card, hovercard) {
