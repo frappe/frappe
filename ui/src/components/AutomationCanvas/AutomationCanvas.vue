@@ -105,8 +105,8 @@
 								:role="readonly ? undefined : 'button'"
 								:aria-label="`${data.kicker}: ${data.label}`"
 								@click.stop="selectNode(id)"
-								@keydown.enter="selectNode(id)"
-								@keydown.space.prevent="selectNode(id)"
+								@keydown.enter.prevent="pressNode"
+								@keydown.space.prevent="pressNode"
 							>
 								<div
 									class="flex h-[47px] shrink-0 items-center gap-1.5 border-b border-outline-gray-3 px-2"
@@ -284,9 +284,12 @@ const RUN_STATES: Partial<Record<AutomationCanvasStatus, { icon: string; color: 
 };
 const EDGE_PADDING = 48;
 
+type Point = { x: number; y: number };
+
 const flowId = `automation-canvas-${getCurrentInstance()?.uid ?? "root"}`;
 const flowRoot = ref<InstanceType<typeof VueFlow> | null>(null);
-const moved = ref<Record<string, { x: number; y: number }>>({});
+// Where the user dragged each node, kept only while the app still places it where it was.
+const moved = ref<Record<string, { from: Point; to: Point }>>({});
 const { fitView, setViewport, viewport, zoomIn, zoomOut } = useVueFlow(flowId);
 
 const isBlankFlow = computed(() => props.nodes.length === 1 && props.nodes[0]?.data.empty);
@@ -302,7 +305,7 @@ const flowNodes = computed(() =>
 	props.nodes.map((node) => ({
 		...node,
 		type: "automation",
-		position: moved.value[node.id] || node.position,
+		position: draggedPosition(node.id, node.position) || node.position,
 	}))
 );
 const flowEdges = computed(() =>
@@ -392,8 +395,20 @@ function canvasRoot() {
 	return (root?.$el || root) as HTMLElement | undefined;
 }
 
-function rememberPosition({ node }: { node: { id: string; position: { x: number; y: number } } }) {
-	moved.value = { ...moved.value, [node.id]: { ...node.position } };
+function rememberPosition({ node }: { node: { id: string; position: Point } }) {
+	const from = props.nodes.find((item) => item.id === node.id)?.position;
+	if (from) moved.value = { ...moved.value, [node.id]: { from, to: { ...node.position } } };
+}
+
+/** A drag holds until the app moves the node itself, e.g. on undo or a new layout. */
+function draggedPosition(id: string, position: Point) {
+	const drag = moved.value[id];
+	return drag && drag.from.x === position.x && drag.from.y === position.y ? drag.to : null;
+}
+
+/** A div with role="button" gets no click from Enter or Space, and the start picker opens on click. */
+function pressNode(event: KeyboardEvent) {
+	(event.currentTarget as HTMLElement).click();
 }
 
 function selectNode(id: string) {
