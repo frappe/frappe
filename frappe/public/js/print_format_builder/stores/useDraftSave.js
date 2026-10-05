@@ -28,11 +28,14 @@ export function useDraftSave({
 	// count, not a flag — autosave and a manual save can overlap
 	const saving_count = ref(0);
 	const save_failed = ref(false);
-	const letterhead_failed = ref(false);
+	const letterhead_failed = ref(null);
+	const letterhead_unsaved = computed(
+		() => !!letterhead.value?._dirty || !!letterhead_failed.value?._dirty
+	);
 	const last_error = ref("");
 	const has_draft = ref(false);
 	const save_status = computed(() =>
-		save_failed.value || (letterhead_failed.value && letterhead.value?._dirty)
+		save_failed.value || letterhead_failed.value?._dirty
 			? "failed"
 			: saving_count.value > 0
 			? "saving"
@@ -74,7 +77,7 @@ export function useDraftSave({
 			.then(() => {
 				autosave_stopped = false;
 				save_failed.value = false;
-				letterhead_failed.value = false;
+				letterhead_failed.value = null;
 				frappe.show_alert({ message, indicator: "green" });
 			})
 			.finally(() => {
@@ -126,7 +129,7 @@ export function useDraftSave({
 					doc.modified = r.message.modified;
 					// an edit made while the request was in flight is still unsaved
 					doc._dirty = LETTERHEAD_EDITED_FIELDS.some((key) => doc[key] !== sent[key]);
-					letterhead_failed.value = false;
+					if (letterhead_failed.value === doc) letterhead_failed.value = null;
 					return r;
 				});
 		};
@@ -138,7 +141,8 @@ export function useDraftSave({
 		return push_letterhead();
 	}
 	function autosave_letterhead_now() {
-		if (!letterhead.value?._dirty) return Promise.resolve();
+		const doc = letterhead.value;
+		if (!doc?._dirty) return Promise.resolve();
 		saving_count.value++;
 		return push_letterhead()
 			.catch((xhr) => {
@@ -148,7 +152,7 @@ export function useDraftSave({
 						__("The latest changes to this letter head are not saved.")
 					);
 				}
-				letterhead_failed.value = true;
+				letterhead_failed.value = doc;
 			})
 			.finally(() => saving_count.value--);
 	}
@@ -216,7 +220,7 @@ export function useDraftSave({
 			.then(() => {
 				if (
 					save_failed.value ||
-					letterhead.value?._dirty ||
+					letterhead_unsaved.value ||
 					(dirty.value && !viewing_version.value)
 				) {
 					return Promise.reject(last_error.value);
@@ -273,6 +277,7 @@ export function useDraftSave({
 	return {
 		saving_count,
 		save_failed,
+		letterhead_unsaved,
 		has_draft,
 		save_status,
 		call_format: call,

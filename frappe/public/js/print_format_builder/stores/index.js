@@ -227,6 +227,7 @@ export function getStore(print_format_name) {
 	const {
 		saving_count,
 		save_failed,
+		letterhead_unsaved,
 		has_draft,
 		save_status,
 		call_format,
@@ -442,6 +443,7 @@ export function getStore(print_format_name) {
 		draft: {
 			saving_count,
 			save_failed,
+			letterhead_unsaved,
 			has_draft,
 			status: save_status,
 			save: save_changes,
