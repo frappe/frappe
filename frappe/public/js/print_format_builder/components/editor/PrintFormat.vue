@@ -157,6 +157,7 @@ function on_section_add(evt) {
 	const section = layout.value.sections[newIndex];
 	// If a page-break placeholder was dropped, convert it: remove the placeholder
 	// and toggle page_break on the section that now precedes it.
+	if (section && !section.page_break) store.select_section(section);
 	if (section && section.page_break && section.columns.every((c) => !c.fields.length)) {
 		layout.value.sections.splice(newIndex, 1);
 		const prev = layout.value.sections[newIndex - 1];

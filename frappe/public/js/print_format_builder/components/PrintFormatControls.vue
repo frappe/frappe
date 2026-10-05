@@ -96,14 +96,12 @@
 				</template>
 			</draggable>
 
-			<!-- Page Break drops into the sections container, not a column, so it
-			     stays a separate draggable — just without its own heading -->
 			<draggable
 				class="mt-2"
-				:list="page_break_block"
+				:list="section_blocks"
 				:group="{ name: 'sections', pull: 'clone', put: false }"
 				:sort="false"
-				:clone="clone_as_section"
+				:clone="clone_section_block"
 				item-key="fieldname"
 				v-bind="DRAG_OPTIONS"
 				@start="setDragging(true)"
@@ -111,11 +109,11 @@
 			>
 				<template #item="{ element }">
 					<BlockCard
-						icon="scissors-line-dashed"
+						:icon="element.icon"
 						:name="element.label"
 						:desc="element.desc"
 						:title="element.desc"
-						@click="add_page_break"
+						@click="add_section_block(element)"
 					/>
 				</template>
 			</draggable>
@@ -408,10 +406,17 @@ let store = inject("$store");
 let { meta, layout, print_format, letterhead } = store;
 
 // ── blocks tab items ──────────────────────────────────────
-const page_break_block = [
+const section_blocks = [
+	{
+		label: __("Section"),
+		fieldname: "section",
+		icon: "layout-template",
+		desc: __("A new area to place fields in"),
+	},
 	{
 		label: __("Page Break"),
 		fieldname: "page_break",
+		icon: "scissors-line-dashed",
 		desc: __("Force a new page"),
 	},
 ];
@@ -681,9 +686,18 @@ let snippet_groups = computed(() =>
 	}))
 );
 
-function add_page_break() {
+function new_section() {
+	return { label: "", columns: [{ label: "", fields: [] }] };
+}
+
+function clone_section_block(block) {
+	return block.fieldname === "page_break" ? clone_as_section() : new_section();
+}
+
+function add_section_block(block) {
 	if (!layout.value) return;
-	layout.value.sections.push(clone_as_section());
+	if (block.fieldname === "page_break") layout.value.sections.push(clone_as_section());
+	else store.insert_section(new_section());
 }
 
 // ── computed: field groups (by section break labels) ────────
