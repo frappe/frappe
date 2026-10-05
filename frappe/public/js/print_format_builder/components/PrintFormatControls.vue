@@ -250,7 +250,6 @@
 								     only earns a row once there's more than one -->
 								<div
 									v-if="section.columns.length > 1"
-									v-node-menu="zone_label(section) ? null : { section }"
 									class="pfb-tree-row"
 									role="treeitem"
 									tabindex="0"
