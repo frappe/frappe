@@ -90,7 +90,7 @@ AssistantContent = Annotated[TextContent | ThinkingContent | ToolCall, Field(dis
 
 
 class AttachmentContent(BaseModel):
-	"""Immutable metadata for bytes stored outside the event log."""
+	"""Immutable metadata for bytes stored outside the event log. A `file` reaches the model as its `path`."""
 
 	model_config = ConfigDict(extra="forbid")
 
@@ -99,9 +99,10 @@ class AttachmentContent(BaseModel):
 	name: str
 	mime_type: str
 	size: int = Field(ge=0)
-	kind: Literal["text", "image"]
+	kind: Literal["text", "image", "file"]
 	width: int | None = Field(default=None, gt=0)
 	height: int | None = Field(default=None, gt=0)
+	path: str | None = None
 
 
 UserContent = Annotated[TextContent | AttachmentContent, Field(discriminator="type")]

@@ -556,11 +556,11 @@ def estimate_message_tokens(message: TranscriptMessage) -> int:
 		for attachment in message.attachments:
 			# Text bytes become prompt text at the provider boundary. Images use a
 			# conservative fixed estimate because providers tokenize pixels differently.
-			estimated_message_tokens += (
-				max(1, (attachment.size + CHARS_PER_TOKEN - 1) // CHARS_PER_TOKEN)
-				if attachment.kind == "text"
-				else ESTIMATED_IMAGE_TOKENS
-			)
+			# A file sends only its note, counted above.
+			if attachment.kind == "text":
+				estimated_message_tokens += max(1, (attachment.size + CHARS_PER_TOKEN - 1) // CHARS_PER_TOKEN)
+			elif attachment.kind == "image":
+				estimated_message_tokens += ESTIMATED_IMAGE_TOKENS
 	elif isinstance(message, AssistantMessage):
 		estimated_message_tokens += estimate_text_tokens(message.text)
 		estimated_message_tokens += estimate_text_tokens(message.thinking_text)

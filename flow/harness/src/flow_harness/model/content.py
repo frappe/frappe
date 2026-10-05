@@ -10,6 +10,7 @@ from flow_harness.events import AttachmentContent, ToolResult, UserMessage
 
 NON_VISION_IMAGE_PLACEHOLDER = "(image contents unavailable to the current model)"
 MISSING_ATTACHMENT_PLACEHOLDER = "(attachment unavailable: {name})"
+FILE_PLACEHOLDER = "(contents not included; open it with your tools at {path})"
 
 
 @dataclass(frozen=True)
@@ -35,6 +36,9 @@ def resolve_user_content(
 	text = message.text
 	images: list[ResolvedImage] = []
 	for attachment in message.attachments:
+		if attachment.kind == "file":
+			text = _append(text, _file_note(attachment))
+			continue
 		data = _resolve(attachment, resolve_attachment)
 		if data is None:
 			text = _append(text, MISSING_ATTACHMENT_PLACEHOLDER.format(name=attachment.name))
@@ -89,8 +93,18 @@ def attachment_summary(
 			if body is not None:
 				text = _append(text, f'<file name="{_xml_attr(attachment.name)}">\n{body}\n</file>')
 				continue
+		if attachment.kind == "file":
+			text = _append(text, _file_note(attachment))  # keeps the path through compaction
+			continue
 		text = _append(text, f"[Attached {attachment.kind}: {attachment.name}]")
 	return text
+
+
+def _file_note(attachment: AttachmentContent) -> str:
+	size = attachment.size / 1024
+	size_text = f"{size / 1024:.1f} MB" if size >= 1024 else f"{max(1, round(size))} KB"
+	header = f"[Attached file: {attachment.name} ({attachment.mime_type}, {size_text})]"
+	return f"{header}\n{FILE_PLACEHOLDER.format(path=attachment.path)}"
 
 
 def _resolve(

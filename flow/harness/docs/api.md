@@ -105,7 +105,7 @@ Add `?wait=true` to `run`, `resume`, or `compact` to wait for completion. The re
 | `POST /sessions/{sid}/tool_result` | Delivers a background client tool's result: `{"token": "...", "content": "...", "is_error": false}`. Returns `{"delivered": false}` when no call waits on the token. |
 | `POST /sessions/{sid}/tool_waiting` | Whether a call still waits on `{"token": "..."}`: `{"waiting": true}`. False once it got a result, was aborted or timed out. |
 | `POST /sessions/{sid}/attachments` | Multipart upload with one or more `files` fields. Only supported images are accepted and normalized. |
-| `POST /sessions/{sid}/attachments/files` | Attaches project files by path: `{"paths": ["src/a.py"]}`, resolved from `cwd`. Images are stored as images, anything else as text named by its cwd-relative path. |
+| `POST /sessions/{sid}/attachments/files` | Attaches project files by path: `{"paths": ["src/a.py"]}`, resolved from `cwd` and named by their cwd-relative path. Images and UTF-8 text up to 256 KB go to the model inline. Anything else is a `file` attachment that points at the project file, with no copy, and the model gets its path. It is refused when the session's tools can't open it: `bash` opens any file, `read` only text. A file over 20 MB is never read in, so it always goes by path. |
 | `GET /sessions/{sid}/attachments/{id}` | Returns an uploaded image's bytes, for previews. |
 | `DELETE /sessions/{sid}/attachments` | Removes unclaimed uploaded attachments: `{"attachments": ["id"]}`. |
 

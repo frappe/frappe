@@ -28,8 +28,13 @@ from flow_harness.model.catalog import model_supports_images
 from flow_harness.model.discovery import context_window_for
 from flow_harness.server.policy import ServerPolicy, gate
 from flow_harness.server.utils import sse
-from flow_harness.server.utils.workspace import read_file_bytes, read_text_file, resolve_allowed_path
-from flow_harness.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES
+from flow_harness.server.utils.workspace import (
+	read_file_bytes,
+	read_file_head,
+	read_text_file,
+	resolve_allowed_path,
+)
+from flow_harness.session.attachments import MAX_ATTACHMENTS_PER_MESSAGE, MAX_SOURCE_BYTES, SNIFF_BYTES
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.file_changes import file_change_results, reconstruct_original
 from flow_harness.session.log import SessionLogError
@@ -265,17 +270,29 @@ def create_sessions_router(
 	@router.post("/sessions/{sid}/attachments/files", dependencies=gate(policy.fs_api))
 	async def attach_files(request: Request, sid: str, req: AttachFilesRequest):
 		"""Read project files by path and store them as attachments (@-mentions):
-		images are sniffed and stored as such, everything else as text."""
+		images and small text inline, anything else by its path."""
 		session = _get(resolve_store(request), sid)
 		assert session.attachment_store is not None
+		tools = session.server_tools or {}
 		stored = []
 		try:
 			for path in req.paths:
 				full_path = resolve_allowed_path(session.config.cwd, path, session.allowed_roots)
-				data = await asyncio.to_thread(read_file_bytes, full_path, MAX_SOURCE_BYTES, purpose="attach")
 				# named by its cwd-relative path, so the model can address the file
 				name = os.path.relpath(full_path, session.config.cwd)
-				stored.append(await asyncio.to_thread(session.attachment_store.add_file, name, data))
+				if os.path.isfile(full_path) and (size := os.path.getsize(full_path)) > MAX_SOURCE_BYTES:
+					# too big to read in; tools open it where it lies
+					head = await asyncio.to_thread(read_file_head, full_path, SNIFF_BYTES)
+					stored.append(
+						session.attachment_store.add_reference(name, head, size, full_path, tools=tools)
+					)
+					continue
+				data = await asyncio.to_thread(read_file_bytes, full_path, MAX_SOURCE_BYTES, purpose="attach")
+				stored.append(
+					await asyncio.to_thread(
+						session.attachment_store.add_file, name, data, tools=tools, path=full_path
+					)
+				)
 		except Exception:
 			for item in stored:
 				session.attachment_store.remove(item.id)

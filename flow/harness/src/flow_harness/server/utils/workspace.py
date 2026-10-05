@@ -52,6 +52,15 @@ def read_file_bytes(full_path: str, max_bytes: int, *, purpose: str = "display")
 		raise HTTPException(status_code=403, detail="file is not readable") from None
 
 
+def read_file_head(full_path: str, size: int) -> bytes:
+	"""A file's first `size` bytes, with the workspace routes' error mapping."""
+	try:
+		with open(full_path, "rb") as f:
+			return f.read(size)
+	except PermissionError:
+		raise HTTPException(status_code=403, detail="file is not readable") from None
+
+
 def save_text_file(full_path: str, content: str) -> None:
 	"""Write the viewer's edits, creating parent directories like the write tool does."""
 	try:
