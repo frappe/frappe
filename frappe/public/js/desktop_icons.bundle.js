@@ -23,7 +23,8 @@ frappe.desktop_utils = {};
 // dropped from it, because saving an edit writes the whole layout back: dropped, it would be gone
 // for good, even once the module it opens is unblocked.
 // The icons a save just created. A quick-entry icon arrives as its name, the rest as the icon.
-frappe.desktop_utils.icons_created = function (new_icons, new_desktop_icons) {
+// A new workspace's icon takes the module the server put the workspace in, or it opens nothing.
+frappe.desktop_utils.icons_created = function (new_icons, new_desktop_icons, workspace_modules) {
 	return (new_icons || [])
 		.map((icon) =>
 			typeof icon === "string"
@@ -31,7 +32,12 @@ frappe.desktop_utils.icons_created = function (new_icons, new_desktop_icons) {
 				: icon
 		)
 		.filter(Boolean)
-		.map(({ name, label, icon_type }) => ({ name, label, icon_type }));
+		.map(({ name, label, icon_type }) => ({
+			name,
+			label,
+			icon_type,
+			module: workspace_modules?.[label],
+		}));
 };
 
 frappe.desktop_utils.arrange_layout = function (layout, boot_icons) {
@@ -219,7 +225,11 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 				// The server's icons came at boot, before these existed. They are this user's
 				// own, which the server always sends, so the layout is matched against them too.
 				frappe.boot.desktop_icons.push(
-					...frappe.desktop_utils.icons_created(new_icons, frappe.new_desktop_icons)
+					...frappe.desktop_utils.icons_created(
+						new_icons,
+						frappe.new_desktop_icons,
+						r.message.workspace_modules
+					)
 				);
 				me.data = r.message.layout;
 				me.make();

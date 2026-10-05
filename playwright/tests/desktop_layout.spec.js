@@ -74,6 +74,19 @@ test.describe("Saved desktop layout", () => {
 		expect(layout.map((icon) => icon.not_permitted)).toEqual([false, false]);
 	});
 
+	test("routes a workspace the user just created by the module the server gave it", async ({
+		page,
+	}) => {
+		const [created] = await page.evaluate(() =>
+			frappe.desktop_utils.icons_created(
+				[{ name: "new-desktop-icon-4", label: "Fresh Space", icon_type: "Link" }],
+				[],
+				{ "Fresh Space": "Custom" }
+			)
+		);
+		expect(created.module).toBe("Custom");
+	});
+
 	test("always draws a folder", async ({ page }) => {
 		const [folder] = await arrange(page, [
 			{ name: "new-desktop-icon-2", label: "My Folder", icon_type: "Folder" },
