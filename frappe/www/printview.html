@@ -8,6 +8,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
+	<meta name="frappe-print-filename" content="{{ print_filename }}">
 	{{ include_style('print.bundle.css') }}
 	{{ include_script('print.bundle.js') }}
 	{% if print_style %}
@@ -41,6 +42,21 @@
 			}
 			document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode)
 		});
+
+		(() => {
+			const meta = document.querySelector('meta[name="frappe-print-filename"]');
+			const print_filename = meta && meta.content;
+			if (!print_filename) return;
+
+			let original_title = document.title;
+			window.addEventListener('beforeprint', () => {
+				original_title = document.title;
+				document.title = print_filename;
+			});
+			window.addEventListener('afterprint', () => {
+				document.title = original_title;
+			});
+		})();
 	</script>
 </body>
 {%- if comment -%}

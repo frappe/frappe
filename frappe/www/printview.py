@@ -76,6 +76,7 @@ def get_context(context) -> PrintContext:
 		"standalone": standalone,
 		"comment": frappe.session.user,
 		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
+		"print_filename": get_print_filename(doc),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"doctype": frappe.form_dict.doctype,
@@ -188,6 +189,12 @@ def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple
 
 	print_format = get_print_format_doc(print_format_name, meta=meta) or get_default_print_format(meta.name)
 	return print_format, uses_beta_renderer(print_format)
+
+
+def get_print_filename(doc: "Document") -> str:
+	from frappe.core.doctype.file.utils import get_safe_file_name
+
+	return get_safe_file_name(doc.name)
 
 
 def get_rendered_template(
