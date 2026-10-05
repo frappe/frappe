@@ -190,9 +190,11 @@ test.describe("Sidebar resolution", () => {
 
 	test("decides whether a shell may show a route", async ({ page }) => {
 		for (const { case: name, world, shell, route, expected } of can_show_cases) {
-			expect
-				.soft(await ask(page, world, ["shell_can_show", shell, route]), name)
-				.toBe(expected);
+			await test.step(name, async () => {
+				expect
+					.soft(await ask(page, world, ["shell_can_show", shell, route]), name)
+					.toBe(expected);
+			});
 		}
 	});
 
@@ -206,11 +208,13 @@ test.describe("Sidebar resolution", () => {
 			canonical: { Item: "Stock", Customer: "Selling", "Job Applicant": "HR" },
 		};
 		for (const { case: name, url_shell, on_screen, expected } of shell_for_route_cases) {
-			const shell = await ask(page, { ...world, url_shell, on_screen }, [
-				"shell_for_route",
-				["List", "Item"],
-			]);
-			expect.soft(shell, name).toBe(expected);
+			await test.step(name, async () => {
+				const shell = await ask(page, { ...world, url_shell, on_screen }, [
+					"shell_for_route",
+					["List", "Item"],
+				]);
+				expect.soft(shell, name).toBe(expected);
+			});
 		}
 	});
 
