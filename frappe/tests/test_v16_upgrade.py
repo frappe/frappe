@@ -728,6 +728,10 @@ class TestCustomSidebars(IntegrationTestCase):
 	REUSED = "V16 Reused"
 	SHOWROOM = "V16 Showroom"
 	FILTERED = "V16 Filtered"
+	GATED = "V16 Gated"
+	OPEN_ICON = "V16 Open Icon"
+	IN_FOLDER = "V16 In Folder"
+	GATED_ROLE = "Test V16 Gated Role"
 	USER = "test-v16-custom@example.com"
 	OTHER_USER = "test-v16-custom-other@example.com"
 
@@ -773,6 +777,21 @@ class TestCustomSidebars(IntegrationTestCase):
 		archive("??", items, module=cls.HOST)
 		archive(cls.FILTERED, [*items, link("ToDo", "Open Todos", route_options='{"status": "Open"}')])
 
+		# v16 showed a sidebar to whoever its desktop icon showed to: the icon's roles, and those of
+		# the folder it sat in
+		frappe.get_doc({"doctype": "Role", "role_name": cls.GATED_ROLE, "desk_access": 1}).insert(
+			ignore_if_duplicate=True
+		)
+		frappe.get_doc("User", cls.USER).add_roles(cls.GATED_ROLE)
+		for title in (cls.GATED, cls.OPEN_ICON, cls.IN_FOLDER):
+			archive(title, items, module=cls.HOST)
+		desktop_icon(cls.GATED, link_to=cls.GATED, roles=[cls.GATED_ROLE])
+		# one gated icon and one open one: the open one showed it to everyone
+		desktop_icon(f"{cls.OPEN_ICON} Gated", link_to=cls.OPEN_ICON, roles=[cls.GATED_ROLE])
+		desktop_icon(cls.OPEN_ICON, link_to=cls.OPEN_ICON)
+		desktop_icon("V16 Gated Folder", icon_type="Folder", roles=[cls.GATED_ROLE])
+		desktop_icon(cls.IN_FOLDER, link_to=cls.IN_FOLDER, parent_icon="V16 Gated Folder")
+
 		# what a conversion that put a site's sidebar into an app module would have left behind
 		old_base = frappe.new_doc("Sidebar")
 		with no_developer_mode():
@@ -809,6 +828,29 @@ class TestCustomSidebars(IntegrationTestCase):
 		self.assertEqual(module.custom, 1)
 		self.assertEqual(frappe.db.get_value("Sidebar", {"module": self.SHOWROOM}), self.SHOWROOM)
 
+	def rail_for(self, user: str) -> list[str]:
+		from frappe.desk.doctype.dock.dock import resolve_app_dock
+
+		frappe.set_user(user)
+		try:
+			return [entry["link_to"] for entry in resolve_app_dock("frappe")]
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_it_is_added_to_its_apps_dock_for_everyone(self):
+		from frappe.desk.doctype.dock.dock import get_app_base
+
+		rail = self.rail_for(self.OTHER_USER)
+		self.assertIn(self.SHOWROOM, rail)
+		# the app's own entries keep their order, ahead of it
+		shipped = [link for link in (entry["link_to"] for entry in get_app_base("frappe")) if link in rail]
+		self.assertEqual(rail[: len(shipped)], shipped)
+		self.assertGreater(rail.index(self.SHOWROOM), len(shipped) - 1)
+		self.assertTrue(
+			frappe.db.exists("Dock", {"app": "frappe", "user": "", "standard": 0}),
+			"the site's own dock layer holds it, not the app's",
+		)
+
 	def test_it_is_listed_with_the_app_v16_filed_it_under(self):
 		self.assertEqual(frappe.db.get_value("Module Def", self.SHOWROOM, "app_name"), "frappe")
 
@@ -841,6 +883,28 @@ class TestCustomSidebars(IntegrationTestCase):
 		]
 		self.assertEqual([row.label for row in todos], ["Todos", "Open Todos"])
 		self.assertEqual(json.loads(todos[1].filters), [["ToDo", "status", "=", "Open"]])
+
+	def test_it_is_blocked_for_users_v16_did_not_show_it_to(self):
+		def blocked(user):
+			return frappe.get_doc("User", user).get_blocked_modules()
+
+		for module in (self.GATED, self.IN_FOLDER):
+			self.assertIn(module, blocked(self.OTHER_USER))
+			self.assertNotIn(module, blocked(self.USER))
+			self.assertNotIn(module, blocked("Administrator"))
+		# shown to everyone: by an open icon beside a gated one, or by having no icon at all
+		self.assertNotIn(self.OPEN_ICON, blocked(self.OTHER_USER))
+		self.assertNotIn(self.SHOWROOM, blocked(self.OTHER_USER))
+
+		self.assertNotIn(self.GATED, self.rail_for(self.OTHER_USER))
+		self.assertIn(self.GATED, self.rail_for(self.USER))
+
+	def test_running_it_again_blocks_and_docks_nothing_twice(self):
+		run_conversion()
+		self.assertEqual(
+			frappe.db.count("Block Module", {"parent": self.OTHER_USER, "module": self.GATED}), 1
+		)
+		self.assertEqual(self.rail_for(self.USER).count(self.GATED), 1)
 
 	def test_a_custom_module_without_a_sidebar_is_reused(self):
 		self.assertTrue(frappe.db.exists("Sidebar", {"module": self.REUSED}))
@@ -883,6 +947,22 @@ def app_sidebar(module: str, title: str, items: list[dict]):
 		frappe.flags.in_patch = original
 	frappe.db.set_value("Sidebar", doc.name, "standard", 1, update_modified=False)
 	return doc
+
+
+def desktop_icon(label: str, roles: list[str] | None = None, icon_type: str = "Link", **fields):
+	"""A v16 desktop icon, opening the sidebar named in `link_to`."""
+	icon = frappe.get_doc(
+		{
+			"doctype": "Desktop Icon",
+			"label": label,
+			"icon_type": icon_type,
+			"link_type": "Workspace Sidebar" if icon_type == "Link" else None,
+			"roles": [{"role": role} for role in roles or []],
+			**fields,
+		}
+	)
+	icon.flags.in_patch = True
+	return icon.insert(ignore_permissions=True, ignore_links=True)
 
 
 def link(doctype: str, label: str, **extra) -> dict:
