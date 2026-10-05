@@ -803,6 +803,9 @@ def add_total_row(
 	is_row_dict = isinstance(result[0], dict) if result else False
 
 	for col_idx, col in enumerate(columns):
+		if isinstance(col, dict) and col.get("disable_total"):
+			continue
+
 		fieldtype, options, fieldname = None, None, None
 		if isinstance(col, str):
 			if meta:
