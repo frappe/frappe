@@ -160,6 +160,16 @@ test.describe("Web Form Pages", () => {
 		await expect(label).toHaveText("More");
 		await expect(stepper.locator(".es-progress")).toHaveCount(1);
 	});
+
+	test("Names a page in the stepper only, not above its fields", async ({ page }) => {
+		const headings = page.locator(".web-form .section-head:visible");
+
+		await page.goto(`/${PAGES_ROUTE}/new`);
+		await page.locator(".btn-next").click();
+		await expect(page.locator(".web-form-stepper .es-progress__label")).toHaveText("More");
+		// a Section Break on the page keeps its heading
+		await expect(headings).toHaveText(["Extras"]);
+	});
 });
 
 test.describe("Web Form Table", () => {

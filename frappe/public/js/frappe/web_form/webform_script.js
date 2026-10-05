@@ -61,6 +61,10 @@ frappe.ready(function () {
 			df.is_web_form = true;
 			df.fieldname = df.fieldname || `__field_${index}`;
 			df.read_only = df.read_only || (!web_form_doc.is_new && !web_form_doc.in_edit_mode);
+			// the stepper names each page, so its section skips the heading
+			if (df.fieldtype === "Page Break") {
+				df.hide_label = 1;
+			}
 			if (df.fieldtype === "Table") {
 				df.get_data = () => {
 					let data = [];
