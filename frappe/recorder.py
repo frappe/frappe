@@ -544,6 +544,7 @@ class Recorder:
 		for db in self.patched_databases:
 			# assigning the original back would keep `sql` on the instance and hide patches on the class
 			vars(db).pop("sql", None)
+			vars(db).pop("_sql", None)
 
 
 def do_not_record(function):
