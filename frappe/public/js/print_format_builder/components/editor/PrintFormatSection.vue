@@ -369,6 +369,7 @@ function remove_column(index) {
 	/* flow-root keeps the section's own margin inside this box, so the spacing
 	   handles can be positioned against it */
 	display: flow-root;
+	scroll-margin-top: 4rem;
 }
 
 .print-format-section-container:not(:last-child) {
