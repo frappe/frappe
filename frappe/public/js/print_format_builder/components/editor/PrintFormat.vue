@@ -287,6 +287,12 @@ let page_number_style = computed(() => {
 }
 
 .print-format-main {
+	--fg-color: var(--surface-base);
+	--subtle-accent: var(--surface-gray-1);
+	--bg-light-gray: var(--surface-gray-2);
+	--text-color: var(--ink-gray-8);
+	--text-muted: var(--ink-gray-6);
+	--border-color: var(--outline-gray-1);
 	position: relative;
 	margin-right: auto;
 	margin-left: auto;
