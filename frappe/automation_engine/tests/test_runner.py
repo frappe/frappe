@@ -10,6 +10,7 @@ from frappe.automation_engine.queue import clear_effects, effects_delivered
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import RUN, _failure_key, execute_automation, run_steps
 from frappe.automation_engine.tests.test_actions import FakeResponse, public_dns
+from frappe.database import get_db
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
 
@@ -50,6 +51,19 @@ def set_first_action_type(auto, action_type):
 	child = frappe.db.get_value("Automation Action", {"parent": auto}, "name")
 	frappe.db.set_value("Automation Action", child, "action_type", action_type, update_modified=False)
 	frappe.clear_document_cache("Automation Flow", auto)
+
+
+def delete_committed_run_fixtures(auto, todo_name):
+	runs = frappe.get_all(RUN, filters={"automation": auto}, pluck="name")
+	if runs:
+		frappe.db.delete("Automation Run Step", {"parent": ("in", runs)})
+	frappe.db.delete(RUN, {"automation": auto})
+	frappe.db.delete(QUEUE, {"automation": auto})
+	frappe.db.delete("Automation Action", {"parent": auto})
+	frappe.db.delete("Automation Flow", {"name": auto})
+	frappe.db.delete("ToDo", {"name": todo_name})
+	frappe.db.commit()
+	clear_automation_cache()
 
 
 class AutomationRunnerTestCase(IntegrationTestCase):
@@ -207,6 +221,34 @@ class TestRunner(AutomationRunnerTestCase):
 		execute_automation(self.queue_row(auto, todo.name))
 		self.assertEqual(self.run_status(auto), "Success")
 		self.assertGreaterEqual(Racy.calls, 2)
+
+	def test_timestamp_mismatch_retry_sees_a_commit_from_another_connection(self):
+		todo = make_todo()
+		auto = make_automation([set_field("priority", "High")])
+		name = self.queue_row(auto, todo.name)
+		frappe.db.commit()
+		self.addCleanup(delete_committed_run_fixtures, auto, todo.name)
+
+		# Open this transaction's snapshot before the other connection commits its edit.
+		frappe.db.sql("select name from `tabToDo` where name = %s", todo.name)
+		conf = frappe.conf
+		other = get_db(
+			socket=conf.db_socket,
+			host=conf.db_host,
+			port=conf.db_port,
+			user=conf.db_user or conf.db_name,
+			password=conf.db_password,
+			cur_db_name=conf.db_name,
+		)
+		other.connect()
+		self.addCleanup(other.close)
+		newer = frappe.utils.add_to_date(frappe.utils.now(), seconds=5)
+		other.sql("update `tabToDo` set modified = %s where name = %s", (newer, todo.name))
+		other.commit()
+
+		execute_automation(name)
+		self.assertEqual(self.run_status(auto), "Success")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
 
 	def test_triggering_user_is_recorded_as_execution_identity(self):
 		user = frappe.get_doc(
