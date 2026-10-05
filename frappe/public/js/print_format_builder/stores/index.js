@@ -240,6 +240,7 @@ export function getStore(print_format_name) {
 		save_changes,
 		save_letterhead,
 		autosave_letterhead,
+		flush_letterhead,
 		autosave,
 		resume_autosave,
 		flush,
@@ -299,6 +300,7 @@ export function getStore(print_format_name) {
 		return create_default_layout(meta.value, print_format.value);
 	}
 	function remove_letterhead() {
+		flush_letterhead();
 		letterhead.value = null;
 		if (layout.value) {
 			// empty string, not delete: marks "user removed it" so the
@@ -307,6 +309,7 @@ export function getStore(print_format_name) {
 		}
 	}
 	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
+		flush_letterhead();
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
 			// persist the letter head name inside format_data (layout) so it

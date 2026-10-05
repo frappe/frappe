@@ -101,10 +101,7 @@ const width_field = computed(() => F.value.width);
 const height_field = computed(() => F.value.height);
 
 const picked_source = ref(null);
-watch(
-	() => letterhead.value?.name,
-	() => (picked_source.value = null)
-);
+watch(letterhead, () => (picked_source.value = null));
 
 const zone_source = computed(() => {
 	const lh = letterhead.value;
