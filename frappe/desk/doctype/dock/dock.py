@@ -1161,7 +1161,7 @@ def entries_below(app: str, user: str | None) -> dict[str, dict]:
 	With the reach filter on, a Workspace Manager saving the site's rail with one module blocked
 	for them personally would turn that module's row into an add.
 	"""
-	below = resolve_app_dock(app, upto="user" if user else "site", gated=False)
+	below = resolve_app_dock(app, upto="site" if user else "app", gated=False)
 	return {dock_key(entry): entry for entry in below}
 
 
