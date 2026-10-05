@@ -75,6 +75,15 @@ test.describe("Desk URL shell segment", () => {
 			["query-report", "Permitted Documents For User"],
 			"Build",
 		]);
+
+		const slugs = await page.evaluate(() => [
+			frappe.router.shell_slug("Shift & Attendance"),
+			frappe.router.shell_slug("Build"),
+		]);
+		expect(slugs, "spells an ampersand out rather than encoding it").toEqual([
+			"shift-and-attendance",
+			"build",
+		]);
 	});
 
 	test("never strips a leading `private` as a shell prefix", async ({ page, desk }) => {
@@ -242,15 +251,6 @@ test.describe("Desk URL shell segment", () => {
 		await page.goto("/desk/private/no-such-page-of-mine");
 		await expect(desk.get_open_dialog()).toContainText("does not exist");
 		await desk.hide_dialog();
-	});
-
-	test("spells an ampersand out rather than encoding it", async ({ page, desk }) => {
-		await open_desk(page, desk);
-		const slugs = await page.evaluate(() => [
-			frappe.router.shell_slug("Shift & Attendance"),
-			frappe.router.shell_slug("Build"),
-		]);
-		expect(slugs).toEqual(["shift-and-attendance", "build"]);
 	});
 
 	test("honours a shell only when it can show what the route names", async ({ page, desk }) => {
