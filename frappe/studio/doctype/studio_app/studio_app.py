@@ -142,26 +142,6 @@ class StudioApp(WebsiteGenerator):
 			return None
 		return self.router_script or None
 
-	def get_router_file_path(self) -> str:
-		return os.path.join(self.get_folder_path(), "router.ts")
-
-	def export_router_script_to_file(self):
-		"""Move the router script into router.ts and clear the DB field. Called on enabling exports"""
-		if not self.router_script:
-			return
-		if not os.path.exists(self.get_router_file_path()):
-			with open(self.get_router_file_path(), "w") as f:
-				f.write(wrap_router_script(self.router_script))
-		self.db_set("router_script", None, update_modified=False)
-
-	def restore_router_script_from_file(self) -> bool:
-		"""Load router.ts back into the `router_script` field, so the config survives in DB-only
-		mode (called before the export folder is deleted on un-export)."""
-		if not os.path.exists(self.get_router_file_path()):
-			return False
-		self.router_script = unwrap_router_script(frappe.read_file(self.get_router_file_path()))
-		return True
-
 	def get_boot(self) -> dict:
 		"""Get the boot data for this Studio app"""
 		handlers = frappe.get_hooks("studio_app_boot", {}).get(self.name) or []
@@ -401,6 +381,27 @@ class StudioApp(WebsiteGenerator):
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.export_page()
 
+	def get_router_file_path(self) -> str:
+		return os.path.join(self.get_folder_path(), "router.ts")
+
+	def export_router_script_to_file(self):
+		"""Move the router script into router.ts and clear the DB field. Called on enabling exports"""
+		if not self.router_script:
+			return
+		if not os.path.exists(self.get_router_file_path()):
+			with open(self.get_router_file_path(), "w") as f:
+				f.write(f"export default {self.router_script.strip()}\n")
+		self.db_set("router_script", None, update_modified=False)
+
+	def restore_router_script_from_file(self) -> bool:
+		"""Load router.ts back into the `router_script` field, so the config survives in DB-only
+		mode (called before the export folder is deleted on un-export)."""
+		if not os.path.exists(self.get_router_file_path()):
+			return False
+		source = frappe.read_file(self.get_router_file_path())
+		self.router_script = re.sub(r"^\s*export\s+default\s+", "", source, count=1).strip()
+		return True
+
 	def add_to_studio_apps_txt(self):
 		if self.frappe_app != "studio":
 			return
@@ -515,19 +516,6 @@ class StudioApp(WebsiteGenerator):
 
 	def get_folder_path(self, name: str | None = None):
 		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)
-
-
-ROUTER_EXPORT_RE = re.compile(r"^\s*export\s+default\s+")
-
-
-def wrap_router_script(script: str) -> str:
-	return f"export default {script.strip()}\n"
-
-
-def unwrap_router_script(source: str) -> str:
-	"""router.ts without the `export default` a custom app's script has no use for. A file with
-	imports is kept as is; the renderer reports the error the same way it does for page scripts."""
-	return ROUTER_EXPORT_RE.sub("", source, count=1).strip()
 
 
 def custom_vue_component_names(blocks) -> set[str]:
