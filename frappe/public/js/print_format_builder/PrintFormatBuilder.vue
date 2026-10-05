@@ -80,6 +80,7 @@
 				</button>
 			</div>
 			<div
+				ref="canvas_ref"
 				class="print-format-container"
 				:class="{
 					'pfb-marquee-dragging': marquee_dragging,
@@ -124,7 +125,7 @@ import DeskControl from "./components/DeskControl.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";
 import { section_of } from "./layout";
-import { computed, ref, onMounted, onUnmounted, provide, watch } from "vue";
+import { computed, nextTick, ref, onMounted, onUnmounted, provide, watch } from "vue";
 
 const props = defineProps(["print_format_name"]);
 
@@ -134,6 +135,7 @@ const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 let show_preview = ref(false);
 let no_records = ref(false);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
+let canvas_ref = ref(null);
 let zoom_ref = ref(null);
 let zoom_dropdown = null;
 
@@ -503,6 +505,19 @@ function reset_zoom() {
 	set_zoom(100);
 }
 
+function fit_zoom_to_canvas() {
+	const page = canvas_ref.value?.querySelector(".print-format-main");
+	if (!page || localStorage.getItem(ZOOM_KEY)) return;
+	const page_width = page.getBoundingClientRect().width / (canvas_zoom.value / 100);
+	const style = getComputedStyle(canvas_ref.value);
+	const room =
+		canvas_ref.value.clientWidth -
+		parseFloat(style.paddingLeft) -
+		parseFloat(style.paddingRight);
+	const fits = ZOOM_LEVELS.filter((z) => (page_width * z) / 100 <= room);
+	canvas_zoom.value = fits.length ? Math.min(100, fits[fits.length - 1]) : ZOOM_LEVELS[0];
+}
+
 const is_printable_docstatus = (docstatus) =>
 	frappe.model.can_print_docstatus($store.meta.value?.name, docstatus);
 const printable_filters = computed(() => {
@@ -577,6 +592,7 @@ onMounted(() => {
 	window.addEventListener("beforeunload", warn_before_unload);
 
 	$store.fetch().then(() => {
+		nextTick(fit_zoom_to_canvas);
 		if ($store.print_format.value?.custom_format) {
 			frappe.set_route("Form", "Print Format", props.print_format_name);
 			return;
@@ -691,9 +707,8 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 
 .print-format-container {
 	flex: 1;
-	overflow-y: auto;
-	padding-top: 0.5rem;
-	padding-bottom: 4rem;
+	overflow: auto;
+	padding: 0.5rem 1rem 4rem;
 }
 
 .print-format-container :deep(.print-format-main) {
