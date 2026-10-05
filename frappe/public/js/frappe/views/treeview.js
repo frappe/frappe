@@ -176,10 +176,12 @@ frappe.views.TreeView = class TreeView {
 			frappe.utils.debounce(() => this.apply_search(search_field.get_value()), 300)
 		);
 
+		let $actions = $(
+			'<div class="tree-toolbar-actions ms-auto flex items-center gap-1 py-1"></div>'
+		).appendTo(this.page.page_form);
+		this.make_sort_selector($actions);
+
 		if (this.opts.show_expand_all) {
-			let $actions = $(
-				'<div class="tree-toolbar-actions ms-auto flex items-center gap-1 py-1"></div>'
-			).appendTo(this.page.page_form);
 			frappe.ui
 				.dropdown({
 					button: { label: __("Expand/Collapse"), icon_right: "chevron-down" },
@@ -208,6 +210,37 @@ frappe.views.TreeView = class TreeView {
 				})
 				.appendTo($actions);
 		}
+	}
+	make_sort_selector($parent) {
+		const options = [
+			{ value: "default", label: __("Default Order"), icon: "list" },
+			{ value: "asc", label: __("Name A to Z"), icon: "arrow-down-a-z" },
+			{ value: "desc", label: __("Name Z to A"), icon: "arrow-down-z-a" },
+		];
+		const saved = frappe.get_user_settings(this.doctype, "Tree")?.sort_order;
+		this.sort_order = options.some((o) => o.value === saved) ? saved : "default";
+		const get_label = () => options.find((o) => o.value === this.sort_order).label;
+
+		this.$sort_btn = frappe.ui
+			.dropdown({
+				button: { label: get_label(), icon: "arrow-up-down", icon_right: "chevron-down" },
+				align: "end",
+				options: () =>
+					options.map((option) => ({
+						label: option.label,
+						icon: option.icon,
+						selected: option.value === this.sort_order,
+						onclick: () => {
+							this.sort_order = option.value;
+							this.$sort_btn.find(".es-button__label").text(get_label());
+							this.tree && this.tree.set_sort_order(this.sort_order);
+							frappe.model.user_settings.save(this.doctype, "Tree", {
+								sort_order: this.sort_order,
+							});
+						},
+					})),
+			})
+			.appendTo($parent);
 	}
 	set_title() {
 		this.page.set_title(this.opts.title || __("{0} Tree", [__(this.doctype)]));
@@ -390,6 +423,7 @@ frappe.views.TreeView = class TreeView {
 			// page trees get full row actions; embedded trees opt in explicitly
 			use_row_actions: this.opts.use_row_actions ?? !this.opts.do_not_make_page,
 			row_style: this.opts.row_style,
+			sort_order: this.sort_order,
 
 			args: this.args,
 			method: this.get_tree_nodes,
