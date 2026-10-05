@@ -676,19 +676,7 @@ function select_letterhead(section) {
 const ZONE_LABELS = { header: __("Header"), footer: __("Footer") };
 const zone_label = (section) => ZONE_LABELS[zone_of(layout.value, section)] || "";
 
-let collapsed_nodes = ref(new Set());
-function is_collapsed(node) {
-	return collapsed_nodes.value.has(node);
-}
-function toggle_collapse(node) {
-	const next = new Set(collapsed_nodes.value);
-	next.has(node) ? next.delete(node) : next.add(node);
-	collapsed_nodes.value = next;
-}
-watch(
-	() => layout.value,
-	() => (collapsed_nodes.value = new Set())
-);
+const { is_collapsed, toggle_collapse } = store;
 
 function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };

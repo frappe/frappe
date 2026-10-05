@@ -15,6 +15,7 @@ import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
 import { useSnippets } from "../composables/useSnippets";
+import { useTreeNavigation } from "../composables/useTreeNavigation";
 import { watch, ref, computed, nextTick } from "vue";
 import { useDraftSave } from "./useDraftSave";
 import { useVersions } from "./useVersions";
@@ -50,6 +51,12 @@ export function getStore(print_format_name) {
 		select_letterhead,
 		remove_field,
 	} = selection;
+	const { is_collapsed, toggle_collapse, navigate } = useTreeNavigation({
+		layout,
+		letterhead,
+		selection,
+		scroll_target,
+	});
 
 	// remove everything currently selected — field tombstones + spliced sections
 	function remove_selection() {
@@ -435,6 +442,9 @@ export function getStore(print_format_name) {
 		dirty,
 		needs_setup,
 		scroll_target,
+		is_collapsed,
+		toggle_collapse,
+		navigate,
 		hovered_field,
 		hovered_section,
 		hovered_node,
