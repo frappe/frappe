@@ -6,8 +6,17 @@
 @import "./desk/css_variables";
 @import "./element/checkbox";
 
+h3,
+h4 {
+	font-weight: bold;
+}
+
 // !! PDF Barcode hack !!
 // Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
+svg[data-barcode-value] {
+	height: auto;
+}
+
 @media print {
 	svg[data-barcode-value] > rect {
 		fill: white !important;

@@ -4,12 +4,44 @@ context("Control Link", () => {
 		cy.visit("/desk/website");
 	});
 
+	// The description of the ToDo this test made, and the part of it worth typing. Two tests below
+	// find that record by typing into a Link field and then assert the field picked the record
+	// they just made. `beforeEach` runs once per test and nothing deletes what it creates, so with
+	// one fixed description the second such test is already searching against more than one match
+	// and its assertion is a coin toss. Both were failing on exactly that.
+	//
+	// Only the stamp is typed, since the field searches the whole description and typing runs at
+	// one character per 100ms.
+	let todo_stamp;
+	let todo_description;
+
+	// The user `cy.login()` signs in as. Read from the config rather than from `frappe.user.name`
+	// on the page: `cy.window()` resolves as soon as `frappe` exists, which can be before boot has
+	// filled it in, and the name is `Guest` until then. Two tests below switch this user's
+	// language, and one of them was intermittently switching Guest's instead, failing on a 403
+	// and leaving the real user in German.
+	const test_user = () => Cypress.config("testUser") || "Administrator";
+
 	beforeEach(() => {
 		cy.visit("/desk/website");
+		todo_stamp = String(Date.now());
+		todo_description = `this is a test todo for link ${todo_stamp}`;
 		cy.create_records({
 			doctype: "ToDo",
-			description: "this is a test todo for link",
+			description: todo_description,
 		}).as("todos");
+	});
+
+	// One test here switches the logged-in user to German, and the test after it switches back.
+	// That is not cleanup: it only runs if it runs. A failure in the German test, a spec filter,
+	// or an interrupted run leaves the user in German for good, and every other spec that reads
+	// English text off the screen then fails somewhere else entirely with no clue why. That is
+	// how `routing.js`, `view_routing.js` and `awesome_bar.js` came to be failing on a bench
+	// where nothing was wrong with them.
+	//
+	// `set_value` is a plain API call, so this holds even when the page never loaded.
+	after(() => {
+		cy.set_value("User", test_user(), { language: "en" });
 	});
 
 	function get_dialog_with_link() {
@@ -62,7 +94,7 @@ context("Control Link", () => {
 		// Wait for dropdown to appear (request might be cached)
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
 		cy.wait(200);
-		cy.get("@input").type("todo for link", { delay: 100 });
+		cy.get("@input").type(todo_stamp, { delay: 100 });
 		// Wait for dropdown to update with search results
 		cy.wait(500);
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
@@ -158,7 +190,7 @@ context("Control Link", () => {
 		// Wait for dropdown to appear (request might be cached)
 		cy.get("@input").parent().findByRole("listbox").should("be.visible");
 		cy.wait(200);
-		cy.get("@input").type("todo for link", { delay: 100 });
+		cy.get("@input").type(todo_stamp, { delay: 100 });
 		// Wait for dropdown to update with search results
 		cy.wait(500);
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
@@ -171,7 +203,7 @@ context("Control Link", () => {
 				let label = field.get_label_value();
 
 				expect(value).to.eq(todos[0]);
-				expect(label).to.eq("this is a test todo for link");
+				expect(label).to.eq(todo_description);
 			});
 		});
 	});
@@ -268,11 +300,7 @@ context("Control Link", () => {
 
 	it("show translated text for Gender link field with language de with input in de", () => {
 		cy.call("frappe.tests.ui_test_helpers.insert_translations").then(() => {
-			cy.window()
-				.its("frappe")
-				.then((frappe) => {
-					cy.set_value("User", frappe.user.name, { language: "de" });
-				});
+			cy.set_value("User", test_user(), { language: "de" });
 
 			cy.clear_cache();
 			cy.wait(500);
@@ -301,11 +329,7 @@ context("Control Link", () => {
 	});
 
 	it("show text for Gender link field with language en", () => {
-		cy.window()
-			.its("frappe")
-			.then((frappe) => {
-				cy.set_value("User", frappe.user.name, { language: "en" });
-			});
+		cy.set_value("User", test_user(), { language: "en" });
 
 		cy.clear_cache();
 		cy.wait(1000);
@@ -341,8 +365,8 @@ context("Control Link", () => {
 						{
 							html:
 								"<span class='text-primary custom-link-option'>" +
-								"<i class='fa fa-search' style='margin-right: 5px;'></i> " +
-								"Custom Link Option" +
+								frappe.utils.icon("search", "xs", "", "margin-right: 5px;") +
+								" Custom Link Option" +
 								"</span>",
 							label: "Custom Link Option",
 							value: "custom__link_option",
@@ -356,5 +380,41 @@ context("Control Link", () => {
 				cy.get("@input").type("custom", { delay: 100 });
 				cy.get(".custom-link-option").should("be.visible");
 			});
+	});
+
+	it("keeps list format filters when merging link filters", () => {
+		cy.dialog({
+			title: "Link",
+			fields: [
+				{
+					label: "Select ToDo",
+					fieldname: "link",
+					fieldtype: "Link",
+					options: "ToDo",
+					link_filters: '[["ToDo", "status", "=", "Closed"]]',
+					get_query: () => ({
+						filters: [
+							["ToDo", "status", "=", "Open"],
+							["ToDo", "priority", "=", "High"],
+							["Communication", "status", "=", "Open"],
+							["description", "like", "%test todo%"],
+						],
+					}),
+				},
+			],
+		}).as("dialog");
+
+		cy.wait(500);
+
+		cy.get("@dialog").then((dialog) => {
+			let filters = dialog.get_field("link").get_search_args("").filters;
+
+			expect(filters).to.deep.eq([
+				["ToDo", "priority", "=", "High"],
+				["Communication", "status", "=", "Open"],
+				["description", "like", "%test todo%"],
+				["status", "=", "Closed"],
+			]);
+		});
 	});
 });

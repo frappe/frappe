@@ -1,0 +1,449 @@
+/* Shared inspector-shell styles used by FieldInspector, LetterHeadZoneInspector
+   and VisibilitySection. Kept in one place so the classes don't drift between
+   the inspector panels. All selectors are .pfb- prefixed (builder-only). */
+
+.pfb-insp-body {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+.pfb-insp-section {
+	border-bottom: 1px solid var(--border-color);
+}
+.pfb-insp-section-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 16px;
+	cursor: pointer;
+	user-select: none;
+}
+.pfb-insp-section-head:hover {
+	background: var(--subtle-accent);
+}
+.pfb-insp-section-label {
+	font-size: var(--text-sm);
+	font-weight: var(--weight-semibold);
+	letter-spacing: 0;
+	color: var(--text-color);
+}
+.pfb-insp-chevron {
+	display: flex;
+	align-items: center;
+	color: var(--gray-400);
+	transition: transform 0.15s;
+}
+.pfb-insp-chevron.collapsed {
+	transform: rotate(-90deg);
+}
+.pfb-insp-section-body {
+	padding: 4px 16px 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.pfb-insp-row {
+	display: grid;
+	grid-template-columns: 88px 1fr;
+	align-items: center;
+	gap: 10px;
+}
+.pfb-insp-row > * {
+	min-width: 0;
+}
+.pfb-insp-row--col {
+	grid-template-columns: 1fr;
+	gap: 4px;
+}
+/* a standalone toggle reads as label-on-left, switch-on-right (settings style),
+   so the label gets the full width instead of an 80px column that wraps it */
+.pfb-insp-row--toggle {
+	grid-template-columns: 1fr auto;
+}
+.pfb-insp-row--toggle .switch-control {
+	justify-self: end;
+}
+.pfb-insp-label {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+.pfb-insp-autocomplete {
+	flex: 1;
+	min-width: 0;
+}
+
+.pfb-insp-row .pfb-insp-autocomplete .frappe-autocomplete-input-wrap {
+	background: var(--fg-color);
+}
+
+.pfb-insp-input,
+.pfb-insp-select {
+	width: 100%;
+	padding: 6px 8px;
+	font-size: var(--text-sm);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--fg-color);
+	color: var(--text-color);
+	outline: none;
+}
+.pfb-insp-input {
+	box-sizing: border-box;
+}
+.pfb-insp-select {
+	padding: 5px 8px;
+	cursor: pointer;
+}
+.pfb-insp-input:focus,
+.pfb-insp-select:focus {
+	border-color: var(--gray-500);
+}
+.pfb-insp-hint {
+	font-size: var(--text-sm);
+	line-height: 1.5;
+}
+.pfb-insp-col-count {
+	font-size: var(--text-tiny);
+}
+.pfb-add-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: var(--text-sm);
+	padding: 4px 8px;
+	border: 1px dashed var(--border-color);
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	width: 100%;
+	justify-content: center;
+}
+.pfb-add-btn:hover {
+	background: var(--subtle-accent);
+	color: var(--text-color);
+}
+.pfb-html-preview {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	padding: 6px 8px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--surface-gray-1);
+	max-height: 100px;
+	overflow: hidden;
+	margin-bottom: 2px;
+}
+/* HTML split editor dialog — shared by field and letter-head editors.
+   Renders in the modal portal, so it must stay global. */
+.pfb-html-split {
+	display: flex;
+	height: 480px;
+	gap: 0;
+	overflow: hidden;
+	margin: -15px;
+}
+.pfb-html-split-pane {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+}
+.pfb-html-split-divider {
+	width: 1px;
+	background: var(--border-color);
+	flex-shrink: 0;
+}
+.pfb-html-split-label {
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
+	letter-spacing: 0;
+	color: var(--text-muted);
+	padding: 10px 12px 8px;
+	border-bottom: 1px solid var(--border-color);
+	background: var(--surface-gray-1);
+	flex-shrink: 0;
+}
+.pfb-html-ctrl-host {
+	flex: 1;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	padding: 0 12px 12px;
+}
+.pfb-html-ctrl-host .frappe-control {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+.pfb-html-ctrl-host .form-group {
+	flex: 1;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+}
+.pfb-html-ctrl-host .CodeMirror {
+	flex: 1;
+	height: 100%;
+	font-size: 13px;
+	font-family: var(--monospace-font-family, monospace);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+}
+.pfb-html-ctrl-host .CodeMirror-scroll {
+	height: 100%;
+}
+.pfb-html-preview-frame {
+	flex: 1;
+	width: 100%;
+	border: none;
+	background: #fff;
+}
+
+/* ── Image / Barcode element rows ───────────────────────── */
+.pfb-image-upload {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.pfb-image-upload-preview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	max-height: 120px;
+	padding: 4px;
+	overflow: hidden;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+	background: var(--surface-gray-1);
+	box-sizing: border-box;
+}
+
+.pfb-image-upload-preview img {
+	display: block;
+	max-width: 100%;
+	max-height: 110px;
+	object-fit: contain;
+}
+
+.pfb-image-upload-actions {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.pfb-size-slider {
+	width: 100%;
+	accent-color: var(--primary);
+}
+
+.pfb-table-note {
+	text-align: center;
+	font-size: 11px;
+	padding: 6px;
+}
+
+/* bare toggle inside an inspector row: neutralise label.switch-control's
+   full-width/padding (it's built for full-row settings pages) */
+.pfb-insp-row .switch-control {
+	width: auto;
+	padding: 0;
+}
+
+
+.pfb-drag-fallback {
+	opacity: 0.95 !important;
+	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+	border-radius: var(--radius);
+	cursor: grabbing !important;
+	pointer-events: none;
+}
+
+/* One header area: with a letterhead present, an EMPTY header zone doesn't
+   render at all (display beats the section's data-driven inline margins), and
+   surfaces as a drop target the moment a drag starts. Fields dropped there
+   render right under the letterhead — same region. */
+.pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
+	display: none;
+}
+body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty,
+.pfb-header-area--selected:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
+	display: block;
+}
+
+.pfb-header-area--selected {
+	outline: var(--pfb-ring);
+}
+
+/* panel rows, block cards and layer rows being dragged: the clone lives on
+   <body>, outside the panel's scoped styles, so restate the look as a card */
+.pfb-field-row.pfb-drag-fallback,
+.pfb-block-card.pfb-drag-fallback,
+.pfb-tree-row.pfb-drag-fallback {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: auto !important;
+	padding: 8px 12px !important;
+	font-size: var(--text-sm);
+	background: var(--fg-color, #fff) !important;
+	border: 1px solid var(--gray-300) !important;
+}
+
+.pfb-drag-ghost {
+	height: 0 !important;
+	min-height: 0 !important;
+	/* zero flow impact: any height the ghost adds moves the container boundary
+	   under a pointer resting near it, which re-targets the drop and oscillates */
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	overflow: visible !important;
+	position: relative !important;
+	opacity: 1 !important;
+	box-shadow: none !important;
+}
+
+.pfb-drag-ghost > * {
+	visibility: hidden !important;
+}
+
+/* Builder-style drop indicator: a blue insertion line with round end caps */
+.pfb-drag-ghost::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -1.5px;
+	height: 3px;
+	background: var(--blue-500);
+	border-radius: 2px;
+}
+
+.pfb-drag-ghost::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -3px;
+	height: 6px;
+	background:
+		radial-gradient(circle 3px at left center, var(--blue-500) 99%, transparent 100%) no-repeat,
+		radial-gradient(circle 3px at right center, var(--blue-500) 99%, transparent 100%)
+			no-repeat;
+}
+
+.pfb-field-row,
+.pfb-block-card,
+.drag-container .field,
+.sections-container .section-drag-handle {
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+body.pfb-dragging,
+body.pfb-dragging * {
+	user-select: none !important;
+	-webkit-user-select: none !important;
+}
+
+.pfb-typst-input {
+	font-family: monospace;
+	font-size: var(--text-xs);
+	line-height: 1.5;
+	resize: vertical;
+	min-height: 120px;
+	margin-bottom: 6px;
+}
+
+/* the canvas draws its own selection and hover rings — the browser's focus
+   ring on these tabbable nodes only duplicates them (any keypress shows it) */
+.print-format-container .print-format-section:focus,
+.print-format-container .field--chip:focus,
+.print-format-container .field--preview:focus {
+	outline: none;
+}
+
+.pfb-static-text-input {
+	resize: vertical;
+	margin-bottom: 6px;
+}
+
+/* column rows shared by the child table and custom table inspectors */
+.pfb-col-list {
+	padding: 4px 0;
+}
+
+.pfb-col-item {
+	border-bottom: 1px solid var(--gray-100);
+}
+
+.pfb-col-item:last-child {
+	border-bottom: none;
+}
+
+.pfb-col-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 14px;
+}
+
+.pfb-col-drag {
+	cursor: grab;
+	color: var(--gray-300);
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.pfb-col-drag:hover {
+	color: var(--gray-500);
+}
+
+.pfb-col-add-row {
+	padding: 6px 14px 10px;
+	border-top: 1px solid var(--gray-100);
+}
+
+.pfb-col-editor {
+	margin: 6px 10px 10px;
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+}
+
+.pfb-col-row .pfb-tpl {
+	flex: 1;
+	min-width: 0;
+}
+
+.pfb-overlay-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1034;
+	background: rgba(0, 0, 0, 0.6);
+}
+
+.pfb-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 1035;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+}
+
+body.pfb-col-resizing,
+body.pfb-col-resizing * {
+	cursor: col-resize !important;
+	user-select: none;
+}
+

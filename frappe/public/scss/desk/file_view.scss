@@ -6,9 +6,11 @@
 			margin-top: var(--margin-md);
 		}
 	}
+
 	.list-header-subject .list-subject input {
 		margin-left: 10px;
 	}
+
 	.list-paging-area {
 		padding: var(--padding-md) var(--padding-sm);
 	}
@@ -41,7 +43,7 @@
 				@include flex(flex, space-between, null, column);
 				width: 100%;
 				border: 1px solid var(--border-color);
-				border-radius: var(--border-radius);
+				border-radius: var(--radius);
 				text-decoration: none;
 
 				.file-header {

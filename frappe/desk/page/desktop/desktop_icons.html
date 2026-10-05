@@ -1,0 +1,53 @@
+<!-- jinja -->
+<div class="desktop-wrapper">
+    <header class="desktop-navbar navbar navbar-expand navbar-container" role="navigation">
+        <div class="navbar-home">
+            <img
+                id="brand-logo"
+                src="{{ brand_logo |e }}"
+                alt="{{ _("App Logo") |e }}"
+            >
+        </div>
+        <div class="desktop-search-wrapper input-group search-bar">
+            <button
+                id="desktop-navbar-modal-search"
+                class="btn-reset flex justify-between desktop-navbar-modal-search"
+                title="Search"
+            >
+                <span class="desktop-search-icon">
+                    <svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+                    {{ _("Search") }}
+                </span>
+                <span class="desktop-keyboard-shortcut">
+                </span>
+            </button>
+        </div>
+        <div class="flex" style="gap:16px; align-items: center;">
+            <!-- the panel is a popover built by frappe.ui.Notifications off this button -->
+            <div class="desktop-notifications">
+                <button class="btn-reset nav-link text-muted desktop-notification-icon" aria-label="{{ _("Notifications") }}">
+                    <svg
+                        class="icon icon-md" aria-hidden="true"
+                    >
+                        <use href="#icon-bell"></use>
+                    </svg>
+                    <span class="notification-count hidden" aria-live="polite"></span>
+                </button>
+            </div>
+            <div class="desktop-avatar">
+            </div>
+            </div>
+
+    </header>
+    <div class="desktop-container">
+    </div>
+    <div class="edit-mode-buttons">
+            <button class="discard btn btn-default ellipsis">
+                {{ _("Discard") }}
+            </button>
+            <button class="save btn btn-primary ellipsis">
+                {{ _("Save") }}
+            </button>
+    </div>
+    <div class="hidden" id="desktop-layout">{{ desktop_layout }}</div>
+</div>

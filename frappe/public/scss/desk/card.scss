@@ -37,6 +37,14 @@
 	@include get_textstyle("sm", "regular");
 	white-space: wrap;
 }
+.frappe-card-link {
+	color: var(--ink-gray-8);
+	text-decoration: underline;
+	white-space: nowrap;
+	&:hover {
+		color: var(--ink-gray-9);
+	}
+}
 .frappe-card-header-slot {
 	align-items: flex-start;
 }

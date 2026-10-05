@@ -4,6 +4,7 @@
  "creation": "2013-01-29 17:55:08",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/customize-form",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

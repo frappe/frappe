@@ -14,6 +14,8 @@ from frappe.twofactor import (
 	confirm_otp_token,
 	get_cached_user_pass,
 	get_default,
+	get_email_body_for_2fa,
+	get_email_body_for_qr_code,
 	get_otpsecret_for_,
 	get_verification_obj,
 	process_2fa_for_email,
@@ -65,6 +67,13 @@ class TestTwoFactor(IntegrationTestCase):
 		verification_obj = process_2fa_for_email(self.user, token, otp_secret, "Frappe")
 		self.assertFalse(verification_obj["setup"])
 		self.assertFalse(verification_obj["prompt"])
+
+	def test_2fa_email_bodies_render(self):
+		code_body = get_email_body_for_2fa({"otp": "123456", "otp_issuer": "Frappe"})
+		self.assertIn("123456", code_body)
+
+		qr_body = get_email_body_for_qr_code({"qrcode_link": "https://example.com/qrcode/abc"})
+		self.assertIn("https://example.com/qrcode/abc", qr_body)
 
 	def test_authenticate_for_2factor(self):
 		"""Verification obj and tmp_id should be set in frappe.local."""

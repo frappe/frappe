@@ -339,7 +339,7 @@ onMounted(() => store.fetch());
 		position: relative;
 		height: 100%;
 		margin-right: 10px;
-		border-radius: var(--border-radius-lg);
+		border-radius: var(--radius-lg);
 		border: 1px solid var(--border-color);
 		background-color: var(--fg-color);
 	}
@@ -347,7 +347,7 @@ onMounted(() => store.fetch());
 .workflow-container {
 	width: 100%;
 	height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 65px);
-	border-radius: var(--border-radius-lg);
+	border-radius: var(--radius-lg);
 	border: 1px solid var(--border-color);
 	background-color: var(--fg-color);
 }

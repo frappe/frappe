@@ -16,22 +16,47 @@ const add_button = (label, group = "TestGroup") => {
 };
 
 const check_button_count = (label, group = "TestGroup") => {
-	// Verify main buttons
+	// the group opens an espresso menu; the hidden item store keeps one
+	// element per label (the dedupe contract)
+	cy.get(`[data-label="${encodeURIComponent(label)}"]`).should("have.length", 1);
 	cy.findByRole("button", { name: group }).click();
-	cy.get(`[data-label="${encodeURIComponent(label)}"]`)
+	cy.get('.es-menu [role="menuitem"]')
+		.filter((_, el) => el.textContent.trim() === label)
 		.should("have.length", 1)
-		.should("be.visible");
+		.should("be.visible")
+		.first()
+		// buttons aren't typeable — keyboard goes through trigger (see
+		// the es_components spec convention)
+		.trigger("keydown", { key: "Escape" });
 
-	// Verify dropdown buttons in mobile view
+	// Mobile: the ... menu shows the group as a nested submenu row
 	cy.viewport(420, 900);
 	const dropdown_btn_label = `${group} > ${label}`;
-	cy.get(".menu-btn-group > .btn").click();
-	cy.get(`[data-label="${encodeURIComponent(dropdown_btn_label)}"]`)
+	cy.get(`[data-label="${encodeURIComponent(dropdown_btn_label)}"]`).should("have.length", 1);
+	cy.get(".menu-btn-group > button").click();
+	cy.get('.es-menu [role="menuitem"]')
+		.filter((_, el) => el.textContent.trim() === group)
+		.should("have.length", 1)
+		.click();
+	cy.get('.es-menu [role="menuitem"]')
+		.filter((_, el) => el.textContent.trim() === label)
 		.should("have.length", 1)
 		.should("be.visible");
+	cy.get("body").type("{esc}");
 
 	//reset viewport
 	cy.viewport(Cypress.config("viewportWidth"), Cypress.config("viewportHeight"));
+};
+
+const click_frappe_call_button = (label, call_opts) => {
+	const button = `button[data-label="${encodeURIComponent(label)}"]`;
+	cy.intercept(`**/api/method/${call_opts.method}`).as("call");
+	cy.window().then((win) => {
+		win.cur_frm.add_custom_button(label, () => win.frappe.call(call_opts));
+	});
+	cy.get(button).click();
+	cy.wait("@call");
+	cy.get(button).should("not.be.disabled");
 };
 
 describe(
@@ -56,6 +81,18 @@ describe(
 				add_button(button_name);
 				check_button_count(button_name);
 			});
+		});
+
+		it("Clears the busy state when the callback returns a frappe.call", () => {
+			click_frappe_call_button("Deferred Button", { method: "frappe.auth.get_logged_user" });
+		});
+
+		it("Clears the busy state when the frappe.call fails", () => {
+			click_frappe_call_button("Failing Deferred Button", {
+				method: "frappe.client.get",
+				args: { doctype: "Note", name: "does-not-exist" },
+			});
+			cy.get("@call").its("response.statusCode").should("eq", 404);
 		});
 	}
 );

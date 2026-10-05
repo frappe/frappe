@@ -1,7 +1,13 @@
 {% extends "templates/print_format/macros/Data.html" %}
 
 {%- block value -%}
+{%- if legacy -%}
 <div class="value">
     <a href="{{ value }}">{{ value.rsplit('/', 1)[1] }}</a>
 </div>
+{%- else -%}
+<div class="value">
+    <a href="{{ value|e }}">{{ value.rsplit('/', 1)[1]|e }}</a>
+</div>
+{%- endif -%}
 {%- endblock -%}

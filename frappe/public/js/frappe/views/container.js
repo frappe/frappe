@@ -6,6 +6,14 @@ frappe.provide("frappe.pages");
 frappe.provide("frappe.views");
 
 window.cur_page = null;
+
+/**
+ * The `frappe.ui.Page` on screen, or null before one has rendered. Reaching it by hand means
+ * `frappe.container.page.page`, three hops through a container, its element and its page.
+ *
+ * @returns {frappe.ui.Page|null}
+ */
+frappe.get_current_page = () => frappe.container?.page?.page || null;
 frappe.views.Container = class Container {
 	// Container contains pages inside `#container` and manages page creation, switching
 	constructor() {
@@ -23,8 +31,8 @@ frappe.views.Container = class Container {
 			$("body").attr("data-sidebar", me.has_sidebar() ? 1 : 0);
 		});
 
-		$(document).bind("rename", function (event, dt, old_name, new_name) {
-			frappe.breadcrumbs.rename(dt, old_name, new_name);
+		$(document).bind("rename", function () {
+			frappe.breadcrumbs.update();
 		});
 	}
 	add_page(label) {
@@ -75,8 +83,7 @@ frappe.views.Container = class Container {
 			$(this.page).show();
 		}
 
-		$(document).trigger("page-change");
-
+		$(document).trigger("page-change", this.page);
 		this.page._route = frappe.router.get_sub_path();
 		$(this.page).trigger("show");
 		!this.page.disable_scroll_to_top && frappe.utils.scroll_to(0);
@@ -85,11 +92,10 @@ frappe.views.Container = class Container {
 		return this.page;
 	}
 	toggle_sidebar() {
-		if (this.page.page && this.page.page.hide_sidebar) {
-			frappe.app.sidebar.toggle(this.page.page.hide_sidebar);
-		} else {
-			frappe.app.sidebar.toggle(false);
-		}
+		// The body sidebar and the dock are hidden by default and shown only when the
+		// page now on screen allows them; the sidebar owns that decision (it reads the same page
+		// options for both shells), so just ask it to re-resolve.
+		frappe.app.sidebar.apply_page_visibility();
 	}
 	has_sidebar() {
 		var flag = 0;

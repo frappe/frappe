@@ -165,12 +165,14 @@ def update_move_node(doc: Document, parent_field: str):
 
 
 @frappe.whitelist()
+def rebuild_tree_for_doctype(doctype: str) -> None:
+	"""Rebuild the nested set of a tree doctype on request."""
+	frappe.only_for("System Manager")
+	rebuild_tree(doctype)
+
+
 def rebuild_tree(doctype: str) -> None:
 	"""Call rebuild_node for all root nodes."""
-	# Check for perm if called from client-side
-	if frappe.request and frappe.local.form_dict.cmd == "rebuild_tree":
-		frappe.only_for("System Manager")
-
 	meta = frappe.get_meta(doctype)
 	if not meta.has_field("lft") or not meta.has_field("rgt"):
 		frappe.throw(

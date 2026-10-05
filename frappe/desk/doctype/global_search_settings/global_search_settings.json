@@ -3,6 +3,7 @@
  "allow_bulk_edit": 1,
  "creation": "2019-09-03 16:08:21.333698",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/awesomebar-global-search",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

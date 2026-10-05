@@ -793,6 +793,7 @@ docfield_properties = {
 	"print_hide": "Check",
 	"print_hide_if_no_value": "Check",
 	"report_hide": "Check",
+	"in_import_template": "Check",
 	"allow_on_submit": "Check",
 	"translatable": "Check",
 	"mandatory_depends_on": "Data",

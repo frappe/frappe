@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "creation": "2026-05-19 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "column_label",
+  "source_value",
+  "no_of_rows",
+  "row_numbers",
+  "target_value",
+  "column",
+  "fieldname",
+  "parent_field",
+  "fieldtype",
+  "link_doctype",
+  "select_options"
+ ],
+ "fields": [
+  {
+   "fieldname": "column_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Column",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Value in File",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "no_of_rows",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "No. of Rows",
+   "read_only": 1
+  },
+  {
+   "fieldname": "row_numbers",
+   "fieldtype": "Code",
+   "label": "Row Numbers",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "target_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Map To"
+  },
+  {
+   "fieldname": "column",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Column",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Fieldname",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "parent_field",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Parent Field",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Fieldtype",
+   "options": "Select\nLink",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.fieldtype=='Link'",
+   "fieldname": "link_doctype",
+   "fieldtype": "Link",
+   "label": "Link DocType",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "select_options",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Select Options"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Data Import Value Mapping",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

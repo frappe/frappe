@@ -2,9 +2,17 @@
 # License: MIT. See LICENSE
 
 import datetime
+import json
 
 import frappe
-from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
+from frappe.desk.link_title import get_report_link_titles
+from frappe.desk.query_report import (
+	add_custom_column_data,
+	build_xlsx_data,
+	export_query,
+	format_fields,
+	run,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
@@ -17,6 +25,212 @@ class TestQueryReport(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def test_save_report_accepts_native_columns_and_filters(self):
+		from frappe.desk.query_report import save_report
+
+		frappe.set_user("Administrator")
+		ref = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Native Save Reference " + frappe.generate_hash(length=6),
+				"report_type": "Report Builder",
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+
+		custom_name = "Native Save Custom " + frappe.generate_hash(length=6)
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": custom_name,
+				"json": '{"columns":[],"filters":[]}',
+				"ref_doctype": "ToDo",
+				"is_standard": "No",
+				"report_type": "Custom Report",
+				"reference_report": ref.name,
+			}
+		).insert(ignore_permissions=True)
+
+		# columns as a native list and filters as a native dict (frappe.parse_json passthrough)
+		docname = save_report(
+			ref.name, custom_name, columns=[{"fieldname": "name"}], filters={"status": "Open"}
+		)
+		saved = json.loads(frappe.get_doc("Report", docname).json)
+		self.assertEqual(saved["columns"], [{"fieldname": "name"}])
+		self.assertEqual(saved["filters"], {"status": "Open"})
+
+	def test_export_query_coerces_non_list_visible_idx(self):
+		frappe.set_user("Administrator")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "Native Export Query " + frappe.generate_hash(length=6),
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		# visible_idx as a non-list, non-str value is coerced to [] (the new elif branch).
+		# The coercion runs before the report executes, so the call must complete without the
+		# TypeError that a non-list visible_idx would otherwise cause downstream.
+		frappe.local.form_dict = frappe._dict(
+			report_name=report.name,
+			file_format_type="CSV",
+			visible_idx=5,
+		)
+		frappe.local.response = frappe._dict()
+		export_query()
+		self.assertIn("type", frappe.local.response)
+
+	def test_export_query_preserves_visible_idx_order(self):
+		"""Regression: `export_query` must apply `visible_idx` as an ordered
+		list so the UI column-header sort survives into the exported file.
+
+		Old code did ``set(visible_idx)`` and iterated ``data.result`` in its
+		default order, discarding the client's sort direction. New code
+		iterates ``visible_idx`` so output rows match display order.
+
+		Uses `mock.patch` on `run` so the test is decoupled from actual
+		report execution.
+		"""
+		import csv
+		import io
+		from unittest.mock import patch
+
+		frappe.set_user("Administrator")
+
+		# Fixed synthetic data — 5 rows in "default order" [A, B, C, D, E].
+		# The response the mocked `run` returns for any input.
+		fake_data = {
+			"result": [
+				["row_A", "id_a"],
+				["row_B", "id_b"],
+				["row_C", "id_c"],
+				["row_D", "id_d"],
+				["row_E", "id_e"],
+			],
+			"columns": [
+				{"label": "Description", "fieldname": "description", "fieldtype": "Data"},
+				{"label": "ID", "fieldname": "name", "fieldtype": "Data"},
+			],
+			"add_total_row": 0,
+			"applied_filters": {},
+			"filters": {},
+		}
+
+		# Minimal report to satisfy get_report_doc(); export_query looks up
+		# report_name to check permissions. The report's own body is unused
+		# because `run` is mocked.
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": f"Sort Order Export {frappe.generate_hash(length=6)}",
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		# Non-identity, non-reverse permutation to catch order bugs. If the
+		# server iterated data.result (old code), the output would be A/B/C/D/E.
+		# If it iterates visible_idx (fixed code), output is D/A/E/B/C.
+		reorder = [3, 0, 4, 1, 2]
+		expected_descriptions = [fake_data["result"][i][0] for i in reorder]
+
+		frappe.local.form_dict = frappe._dict(
+			report_name=report.name,
+			file_format_type="CSV",
+			visible_idx=reorder,
+			applied_filters={},
+			filters={},
+		)
+		frappe.local.response = frappe._dict()
+
+		with patch("frappe.desk.query_report.run", return_value=fake_data):
+			export_query()
+
+		self.assertIn(
+			"filecontent",
+			frappe.local.response,
+			f"export_query didn't produce a file, got: {dict(frappe.local.response)!r}",
+		)
+		csv_bytes = frappe.local.response["filecontent"]
+		if isinstance(csv_bytes, bytes):
+			csv_bytes = csv_bytes.decode("utf-8")
+
+		# Data rows carry our "row_" marker; header row does not.
+		all_rows = list(csv.reader(io.StringIO(csv_bytes)))
+		data_rows = [r for r in all_rows if r and r[0].startswith("row_")]
+		self.assertEqual(
+			len(data_rows),
+			5,
+			f"expected 5 data rows in CSV, got {len(data_rows)}: {data_rows!r}",
+		)
+
+		actual_descriptions = [r[0] for r in data_rows]
+		self.assertEqual(
+			actual_descriptions,
+			expected_descriptions,
+			"CSV row order should follow visible_idx sequence, not default order",
+		)
+
+	def test_owner_opens_prepared_report_by_name_without_prepared_report_role(self):
+		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		owner = create_user("test_prepared_report_owner@example.com", "Website Manager")
+		reader = create_user("test_prepared_report_reader@example.com", "Website Manager")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "My Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		other_report = frappe.copy_doc(report)
+		other_report.report_name = "Closed ToDos " + frappe.generate_hash(length=6)
+		other_report.insert(ignore_permissions=True)
+
+		# the ready notification links a custom report's prepared report to its reference report
+		with self.set_user(owner.name):
+			prepared_report = frappe.get_doc(
+				{"doctype": "Prepared Report", "report_name": custom_report.name}
+			).insert(ignore_permissions=True)
+			create_json_gz_file(
+				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
+			)
+			filters = json.dumps({"prepared_report_name": prepared_report.name})
+			self.assertTrue(run(report.name, filters)["prepared_report"])
+			with self.assertRaises(frappe.PermissionError):
+				run(other_report.name, filters)
+
+		with self.set_user(reader.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
+
+		custom_report.delete()
+		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
@@ -134,6 +348,18 @@ class TestQueryReport(IntegrationTestCase):
 		format_fields(csv_data)
 		self.assertIsInstance(csv_data.result[0]["posting_date"], str)
 		self.assertIsInstance(csv_data.result[0]["created_on"], str)
+
+	def test_export_strips_quotes_from_link_labels(self):
+		"""Quoted link values are plain text labels in desk, so exports must drop the quotes too"""
+		data = frappe._dict(
+			columns=[
+				{"fieldname": "account", "fieldtype": "Link"},
+				{"fieldname": "remarks", "fieldtype": "Data"},
+			],
+			result=[{"account": "'Total Asset (Debit)'", "remarks": "'As per ledger'"}],
+		)
+		format_fields(data, "Excel")
+		self.assertEqual(data.result[0], {"account": "Total Asset (Debit)", "remarks": "'As per ledger'"})
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
@@ -293,6 +519,40 @@ data = columns, result
 			raise e
 			frappe.db.rollback()
 
+	def test_custom_column_linked_to_another_custom_column(self):
+		"""Test custom column that looks up its value through another custom column"""
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_custom_column_chain@example.com",
+				"first_name": "Rhea",
+				"last_name": "Menon",
+				"send_welcome_email": 0,
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		frappe.set_user(user.name)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Follow up on renewal"}).insert()
+
+		custom_columns = [
+			{"fieldname": "owner", "doctype": "ToDo", "link_field": {"fieldname": "todo", "names": []}},
+			{
+				"fieldname": "full_name",
+				"doctype": "User",
+				"link_field": {"fieldname": "owner", "names": []},
+			},
+		]
+
+		result = add_custom_column_data(custom_columns, [{"todo": todo.name}])
+
+		self.assertDictEqual(
+			{"todo": todo.name, "owner": user.name, "full_name": "Rhea Menon"},
+			result[0],
+		)
+
 	def test_xlsx_styles_structure(self):
 		"""build_xlsx_data with build_styles=True returns a well-formed styles dict"""
 		data = create_mock_data()
@@ -362,6 +622,21 @@ data = columns, result
 		self.assertIn("num_format", date_style)
 		self.assertEqual(date_style.get("align"), "right")
 
+	def test_xlsx_style_builder_float_indent_is_whole_number(self):
+		"""Excel ignores a fractional alignment indent, so float tree levels must become integers"""
+		column_map = {0: {"fieldname": "account", "fieldtype": "Data", "label": "Account"}}
+		row_map = {1: {"account": "Current Assets", "indent": 1.0}, 2: {"account": "Debtors", "indent": 2.0}}
+
+		builder = XLSXStyleBuilder(
+			XLSXMetadata(column_map=column_map, row_map=row_map), default_styling=False
+		)
+		builder.apply_indentations()
+
+		for row_idx, expected in ((1, 2), (2, 4)):
+			indent = builder.styles[builder.cell_styles[(row_idx, 0)][0]]["indent"]
+			self.assertEqual(indent, expected)
+			self.assertIsInstance(indent, int)
+
 	def test_export_report_via_email(self):
 		REPORT_NAME = "Test CSV Report"
 		REF_DOCTYPE = "DocType"
@@ -395,6 +670,66 @@ data = columns, result
 		self.assertTrue(email_queue, "Email was not enqueued")
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
+
+	def test_run_sends_link_titles(self):
+		report = self.make_link_column_report()
+		self.enable_link_titles("User")
+
+		self.run_report(report)
+
+		full_name = frappe.db.get_value("User", "Administrator", "full_name")
+		self.assertEqual(frappe.local.response["_link_titles"]["User::Administrator"], full_name)
+
+	def test_run_skips_link_titles_when_doctype_does_not_show_them(self):
+		report = self.make_link_column_report()
+
+		self.run_report(report)
+
+		self.assertNotIn("User::Administrator", frappe.local.response.get("_link_titles", {}))
+
+	def test_legacy_string_columns_resolve_link_titles(self):
+		"""Prepared reports can still carry `Label:Link/DocType:width` column strings."""
+		from frappe.desk.query_report import get_column_as_dict
+
+		self.enable_link_titles("User")
+		columns = [get_column_as_dict("Allocated To:Link/User:120")]
+
+		titles = get_report_link_titles(columns, [["Administrator"]])
+
+		full_name = frappe.db.get_value("User", "Administrator", "full_name")
+		self.assertEqual(titles["User::Administrator"], full_name)
+
+	def make_link_column_report(self):
+		"""Script report with an ID column and a User link column, returning one row."""
+		frappe.set_user("Administrator")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Link Title Report " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+				"columns": [
+					dict(fieldname="name", label="ID", fieldtype="Link", options="ToDo"),
+					dict(fieldname="allocated_to", label="Allocated To", fieldtype="Link", options="User"),
+				],
+			}
+		).insert(ignore_permissions=True)
+		report.report_script = 'result = [{"name": "todo-1", "allocated_to": "Administrator"}]'
+		report.save()
+		return report
+
+	def run_report(self, report):
+		previous_response = frappe.local.response
+		self.addCleanup(setattr, frappe.local, "response", previous_response)
+		frappe.local.response = frappe._dict()
+		run(report.name)
+
+	def enable_link_titles(self, doctype):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		make_property_setter(doctype, None, "show_title_field_in_link", "1", "Check", for_doctype=True)
 
 
 def create_mock_data():

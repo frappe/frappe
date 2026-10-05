@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "creation": "2016-09-01 01:34:34.985457",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/auto-email-reports",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

@@ -76,7 +76,7 @@ const selected = computed(() => store.selected(props.column.df.name));
 	flex-direction: column;
 	width: 100%;
 	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius);
+	border-radius: var(--radius);
 	border: 1px dashed var(--gray-400);
 	padding: 0.5rem;
 	margin-left: 4px;
@@ -136,7 +136,7 @@ const selected = computed(() => store.selected(props.column.df.name));
 
 	.column-container {
 		min-height: 2rem;
-		border-radius: var(--border-radius);
+		border-radius: var(--radius);
 		z-index: 1;
 
 		&:empty {

@@ -5,22 +5,49 @@ import os
 from typing import Any
 
 from rq.command import send_stop_job_command
-from rq.exceptions import InvalidJobOperation
+from rq.exceptions import InvalidJobOperation, NoSuchJobError
 from rq.timeouts import JobTimeoutException
 
 import frappe
 from frappe import _
 from frappe.core.doctype.data_import.exporter import Exporter
-from frappe.core.doctype.data_import.importer import Importer
+from frappe.core.doctype.data_import.importer import UPSERT, Importer
 from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.modules.import_file import import_file_by_path
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 from frappe.utils.background_jobs import enqueue, get_redis_conn, is_job_enqueued
 from frappe.utils.csvutils import validate_google_sheets_url
 
 BLOCKED_DOCTYPES = CORE_DOCTYPES - {"User", "Role", "Print Format"}
+
+
+def _value_mapping_state(doc) -> list[tuple[str, str, str, str]]:
+	"""Sorted mapping tuples used to detect whether Fix Issues targets changed."""
+	return sorted(
+		(
+			row.fieldname or "",
+			row.parent_field or "",
+			row.source_value or "",
+			(row.target_value or "").strip(),
+		)
+		for row in (doc.get("value_mappings") or [])
+	)
+
+
+def _import_source_fingerprint(doc) -> str:
+	"""Parse inputs; when these change, saved template warnings are stale."""
+	return "|".join(
+		[
+			cstr(doc.import_file),
+			cstr(doc.google_sheets_url),
+			cstr(cint(doc.use_csv_sniffer)),
+			cstr(cint(doc.custom_delimiters)),
+			cstr(doc.delimiter_options),
+			cstr(doc.template_options),
+		]
+	)
 
 
 class DataImport(Document):
@@ -30,22 +57,28 @@ class DataImport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.data_import_skipped_row.data_import_skipped_row import DataImportSkippedRow
+		from frappe.core.doctype.data_import_value_mapping.data_import_value_mapping import (
+			DataImportValueMapping,
+		)
 		from frappe.types import DF
 
 		custom_delimiters: DF.Check
 		delimiter_options: DF.Data | None
 		google_sheets_url: DF.Data | None
 		import_file: DF.Attach | None
-		import_type: DF.Literal["", "Insert New Records", "Update Existing Records"]
+		import_type: DF.Literal["Insert New Records", "Update Existing Records", "Insert or Update Records"]
 		mute_emails: DF.Check
 		payload_count: DF.Int
 		reference_doctype: DF.Link
-		show_failed_logs: DF.Check
-		status: DF.Literal["Pending", "Success", "Partial Success", "Error", "Timed Out"]
+		skipped_rows: DF.Table[DataImportSkippedRow]
+		status: DF.Literal["Pending", "In Progress", "Success", "Partial Success", "Error", "Timed Out"]
 		submit_after_import: DF.Check
 		template_options: DF.Code | None
 		template_warnings: DF.Code | None
+		tree_parent_overrides: DF.Code | None
 		use_csv_sniffer: DF.Check
+		value_mappings: DF.Table[DataImportValueMapping]
 	# end: auto-generated types
 
 	def validate(self):
@@ -57,16 +90,64 @@ class DataImport(Document):
 		):
 			self.template_options = ""
 			self.template_warnings = ""
+			self.value_mappings = []
+			self.skipped_rows = []
+			# Tree overrides are keyed by sheet row number, so a new file invalidates them.
+			self.tree_parent_overrides = ""
 
+		# Overrides belong to one DocType's tree.
+		if doc_before_save and doc_before_save.reference_doctype != self.reference_doctype:
+			self.tree_parent_overrides = ""
+
+		self.clear_stale_template_warnings(doc_before_save)
 		self.set_delimiters_flag()
 		self.validate_doctype()
-		self.validate_import_file()
 		self.validate_google_sheets_url()
-		self.set_payload_count()
+		importer = self.get_importer() if (self.import_file or self.google_sheets_url) else None
+		if importer:
+			self.set_payload_count(importer)
+			# The same URL can serve new content; changed mappings mean the warnings are stale.
+			mappings_before_sync = _value_mapping_state(self)
+			self.sync_value_mappings_from_import(importer)
+			if self.template_warnings and _value_mapping_state(self) != mappings_before_sync:
+				self.template_warnings = ""
+		else:
+			self.set_payload_count()
+
+	def clear_stale_template_warnings(self, doc_before_save) -> None:
+		"""Clear saved warnings once the file or mappings change, or the wizard stays on Fix Issues."""
+		if not self.template_warnings or not doc_before_save:
+			return
+
+		if _import_source_fingerprint(self) != _import_source_fingerprint(doc_before_save):
+			self.template_warnings = ""
+			return
+
+		# skipped_rows-only edits keep the warnings, so Undo Skip stays available.
+		if _value_mapping_state(self) != _value_mapping_state(doc_before_save):
+			self.template_warnings = ""
+
+	def sync_value_mappings_from_import(self, importer: Importer | None = None) -> bool:
+		"""Parse the import file and populate invalid Link/Select values in the child table."""
+		if not (self.import_file or self.google_sheets_url):
+			return False
+
+		from frappe.core.doctype.data_import.value_mapping import sync_value_mappings
+
+		if importer is None:
+			importer = self.get_importer()
+		return sync_value_mappings(self, importer.import_file)
 
 	def set_delimiters_flag(self):
-		if self.import_file:
-			frappe.flags.delimiter_options = self.delimiter_options or ","
+		if not (self.import_file or self.google_sheets_url):
+			return
+
+		if self.custom_delimiters and self.delimiter_options:
+			frappe.flags.delimiter_options = self.delimiter_options
+		elif self.use_csv_sniffer:
+			frappe.flags.delimiter_options = self.delimiter_options or ",;\t|"
+		else:
+			frappe.flags.delimiter_options = None
 
 	def validate_doctype(self):
 		if self.reference_doctype in BLOCKED_DOCTYPES:
@@ -86,11 +167,6 @@ class DataImport(Document):
 				frappe.PermissionError,
 			)
 
-	def validate_import_file(self):
-		if self.import_file:
-			# validate template
-			self.get_importer()
-
 	def validate_google_sheets_url(self):
 		if not self.google_sheets_url:
 			return
@@ -107,7 +183,6 @@ class DataImport(Document):
 	def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):
 		if import_file:
 			self.import_file = import_file
-			self.set_delimiters_flag()
 
 		if google_sheets_url:
 			self.google_sheets_url = google_sheets_url
@@ -115,8 +190,8 @@ class DataImport(Document):
 		if not (self.import_file or self.google_sheets_url):
 			return
 
-		i = self.get_importer()
-		return i.get_data_for_import_preview()
+		self.set_delimiters_flag()
+		return self.get_importer().get_data_for_import_preview()
 
 	def start_import(self):
 		from frappe.utils.scheduler import is_scheduler_inactive
@@ -143,6 +218,9 @@ class DataImport(Document):
 
 	def export_errored_rows(self):
 		return self.get_importer().export_errored_rows()
+
+	def export_skipped_rows(self):
+		return self.get_importer().export_skipped_rows()
 
 	def download_import_log(self):
 		return self.get_importer().export_import_log()
@@ -178,11 +256,30 @@ def stop_data_import(doc_name: str):
 
 	rq_job_id = f"{frappe.local.site}||data_import||{doc_name}"
 	job_id = rq_job_id.replace(":", "|")  # patching the change in job id format (for timestamp part)
+	job_was_running = True
 	try:
 		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
-	except InvalidJobOperation:
-		frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
-	return {"status": "success", "message": "Job stopped successfully"}
+	except (InvalidJobOperation, NoSuchJobError):
+		# The job already finished or the worker died, so there is nothing to stop.
+		job_was_running = False
+
+	# A killed worker may never write a status; only In Progress is ours to overwrite.
+	frappe.db.set_value(
+		"Data Import",
+		{"name": data_import.name, "status": "In Progress"},
+		{"status": "Error"},
+	)
+
+	frappe.publish_realtime(
+		"data_import_refresh",
+		{"data_import": data_import.name},
+		doctype="Data Import",
+		docname=data_import.name,
+	)
+
+	if not job_was_running:
+		return {"status": "not_running", "message": _("Job was not running; status updated.")}
+	return {"status": "success", "message": _("Job stopped successfully")}
 
 
 def start_import(data_import):
@@ -190,12 +287,9 @@ def start_import(data_import):
 	data_import = frappe.get_doc("Data Import", data_import)
 	# Apply same delimiter/sniffer settings as preview so CSV is parsed correctly (e.g. EU ";" delimiter)
 	data_import.set_delimiters_flag()
+	i = None
 	try:
-		i = Importer(
-			data_import.reference_doctype,
-			data_import=data_import,
-			use_sniffer=data_import.use_csv_sniffer,
-		)
+		i = data_import.get_importer()
 		i.import_data()
 	except JobTimeoutException:
 		frappe.db.rollback()
@@ -211,7 +305,31 @@ def start_import(data_import):
 	finally:
 		frappe.flags.in_import = False
 
-	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+	# A blocked run already sent `data_import_blocked`; a refresh too would reload twice.
+	if not (i and i.blocked_by_warnings):
+		frappe.publish_realtime(
+			"data_import_refresh",
+			{"data_import": data_import.name},
+			doctype="Data Import",
+			docname=data_import.name,
+		)
+
+		# list_update is muted while in_import, so send one for the list once the import ends.
+		if data_import.reference_doctype and data_import.status in ("Success", "Partial Success"):
+			data = {"doctype": data_import.reference_doctype, "name": None, "user": frappe.session.user}
+			frappe.publish_realtime("list_update", data, after_commit=True)  # nosemgrep
+
+
+@frappe.whitelist()
+def get_import_fields(doctype: str):
+	"""The provider's ``get_import_fields`` schema for the field picker, or None to use meta."""
+	if not doctype:
+		return None
+	frappe.has_permission(doctype, "read", throw=True)
+	from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+	provider = get_import_provider(doctype)
+	return provider.get_import_fields() if provider else None
 
 
 @frappe.whitelist()
@@ -268,6 +386,13 @@ def download_errored_template(data_import_name: str):
 
 
 @frappe.whitelist()
+def download_skipped_rows(data_import_name: str):
+	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import.check_permission("read")
+	data_import.export_skipped_rows()
+
+
+@frappe.whitelist()
 def download_import_log(data_import_name: str):
 	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
@@ -276,26 +401,46 @@ def download_import_log(data_import_name: str):
 
 @frappe.whitelist()
 def get_import_status(data_import_name: str):
+	from frappe.core.doctype.data_import.importer import ACTION_INSERT, ACTION_UPDATE
+
 	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
 
-	import_status = {"status": data_import.status}
-	logs = frappe.get_all(
+	import_status = {
+		"status": data_import.status,
+		"total_records": data_import.payload_count,
+	}
+	is_upsert = data_import.import_type == UPSERT
+	group_by = "success, import_action" if is_upsert else "success"
+	log_fields = [{"COUNT": "*", "as": "count"}, "success"]
+	if is_upsert:
+		log_fields.append("import_action")
+
+	for log in frappe.get_all(
 		"Data Import Log",
-		fields=[{"COUNT": "*", "as": "count"}, "success"],
+		fields=log_fields,
 		filters={"data_import": data_import_name},
-		group_by="success",
-	)
-
-	total_payload_count = data_import.payload_count
-
-	for log in logs:
+		group_by=group_by,
+	):
+		count = log.get("count")
 		if log.get("success"):
-			import_status["success"] = log.get("count")
+			import_status["success"] = import_status.get("success", 0) + count
+			if is_upsert:
+				if log.get("import_action") == ACTION_INSERT:
+					import_status["inserted"] = count
+				elif log.get("import_action") == ACTION_UPDATE:
+					import_status["updated"] = count
 		else:
-			import_status["failed"] = log.get("count")
+			import_status["failed"] = count
 
-	import_status["total_records"] = total_payload_count
+	if is_upsert:
+		import_status.setdefault("inserted", 0)
+		import_status.setdefault("updated", 0)
+
+	logged_total = import_status.get("success", 0) + import_status.get("failed", 0)
+	import_status["processed_records"] = logged_total
+	if logged_total and not import_status.get("total_records"):
+		import_status["total_records"] = logged_total
 
 	return import_status
 
@@ -310,15 +455,23 @@ def get_import_log_count(data_import: str):
 
 
 @frappe.whitelist()
-def get_import_logs(data_import: str):
+def get_import_logs(data_import: str, status: str | None = None):
+	"""Up to 1000 log rows; ``status`` is "all" (default), "success" or "failed"."""
 	doc = frappe.get_doc("Data Import", data_import)
 	doc.check_permission("read")
 
+	filters: dict[str, Any] = {"data_import": data_import}
+	status_key = (status or "all").lower()
+	if status_key == "success":
+		filters["success"] = 1
+	elif status_key == "failed":
+		filters["success"] = 0
+
 	return frappe.get_all(
 		"Data Import Log",
-		fields=["success", "docname", "messages", "exception", "row_indexes"],
-		filters={"data_import": data_import},
-		limit_page_length=5000,
+		fields=["success", "docname", "messages", "exception", "row_indexes", "import_action"],
+		filters=filters,
+		limit=1000,
 		order_by="log_index",
 	)
 
@@ -329,7 +482,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 
 	:param doctype: DocType to import
 	:param file_path: Path to .csv, .xls, or .xlsx file to import
-	:param import_type: One of "Insert" or "Update"
+	:param import_type: One of "Insert", "Update", or "Upsert"
 	:param submit_after_import: Whether to submit documents after import
 	:param console: Set to true if this is to be used from command line. Will print errors or progress to stdout.
 	"""
@@ -338,9 +491,13 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	data_import.reference_doctype = doctype
 	data_import.import_file = file_path
 	data_import.submit_after_import = submit_after_import
-	data_import.import_type = (
-		"Insert New Records" if import_type.lower() == "insert" else "Update Existing Records"
-	)
+	import_type_lower = import_type.lower()
+	if import_type_lower == "insert":
+		data_import.import_type = "Insert New Records"
+	elif import_type_lower == "upsert":
+		data_import.import_type = UPSERT
+	else:
+		data_import.import_type = "Update Existing Records"
 
 	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=console)
 	data_import.set_payload_count(i)
@@ -369,11 +526,7 @@ def import_doc(path, pre_process=None, sort=False):
 
 def export_json(doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc"):
 	def post_process(out):
-		# Note on Tree DocTypes:
-		# The tree structure is maintained in the database via the fields "lft"
-		# and "rgt". They are automatically set and kept up-to-date. Importing
-		# them would destroy any existing tree structure. For this reason they
-		# are not exported as well.
+		# lft/rgt are DB-managed; exporting them would corrupt the tree, so skip them
 		del_keys = ("modified_by", "creation", "owner", "idx", "lft", "rgt")
 		for doc in out:
 			for key in del_keys:

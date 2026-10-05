@@ -14,6 +14,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 		this.input_class && this.$input.addClass(this.input_class);
 		this.select_input = this.$input.get(0);
 		this.awesomplete = new Awesomplete(this.select_input, {
+			tabSelect: true,
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,

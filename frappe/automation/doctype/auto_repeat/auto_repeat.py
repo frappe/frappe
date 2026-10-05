@@ -79,6 +79,7 @@ class AutoRepeat(Document):
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()
+		self.validate_reference_permission()
 		self.validate_submit_on_creation()
 		self.validate_dates()
 		self.validate_email_id()
@@ -124,6 +125,16 @@ class AutoRepeat(Document):
 					self.reference_doctype
 				)
 			)
+
+	def validate_reference_permission(self):
+		if frappe.flags.in_patch or self.flags.ignore_permissions:
+			return
+		if (
+			self.is_new()
+			or self.has_value_changed("reference_doctype")
+			or self.has_value_changed("reference_document")
+		):
+			frappe.has_permission(self.reference_doctype, "write", self.reference_document, throw=True)
 
 	def validate_submit_on_creation(self):
 		if self.submit_on_creation and not frappe.get_meta(self.reference_doctype).is_submittable:
@@ -227,6 +238,12 @@ class AutoRepeat(Document):
 
 	def create_documents(self):
 		try:
+			if not frappe.has_permission(
+				self.reference_doctype, "read", self.reference_document, user=self.owner
+			):
+				self.log_error(_("Auto repeat skipped. The owner cannot access the reference document."))
+				return
+
 			if self.generate_separate_documents_for_each_assignee and self.assignee:
 				new_docs = self.make_new_documents()
 			else:
@@ -256,6 +273,7 @@ class AutoRepeat(Document):
 
 	def make_new_document(self, assignee=None):
 		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
+		frappe.has_permission(self.reference_doctype, "read", reference_doc, user=self.owner, throw=True)
 		new_doc = frappe.copy_doc(reference_doc, ignore_no_copy=False)
 		self.update_doc(new_doc, reference_doc)
 		new_doc.flags.updater_reference = {
@@ -609,7 +627,7 @@ def get_auto_repeat_doctypes(
 def update_reference(docname: str, reference: str):
 	doc = frappe.get_doc("Auto Repeat", str(docname))
 	doc.check_permission("write")
-	frappe.has_permission(doc.reference_doctype, "read", str(reference), throw=True)
+	frappe.has_permission(doc.reference_doctype, "write", str(reference), throw=True)
 	doc.db_set("reference_document", str(reference))
 	return "success"  # backward compatbility
 

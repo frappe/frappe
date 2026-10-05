@@ -167,6 +167,35 @@ class TestDashboardChart(IntegrationTestCase):
 
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
 
+	def test_value_based_on_required_for_sum_and_average(self):
+		for chart_type in ("Sum", "Average"):
+			chart = frappe.get_doc(
+				doctype="Dashboard Chart",
+				chart_name=f"Test {chart_type} Without Value Field",
+				chart_type=chart_type,
+				document_type=self.doctype_name,
+				based_on="date",
+				timespan="Last Year",
+				time_interval="Monthly",
+				filters_json="[]",
+				timeseries=1,
+			)
+			self.assertRaises(frappe.ValidationError, chart.insert)
+
+		chart = frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name="Test Count Without Value Field",
+			chart_type="Count",
+			document_type=self.doctype_name,
+			based_on="date",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="[]",
+			timeseries=1,
+		)
+		chart.insert()
+		self.addCleanup(chart.delete)
+
 	def test_daily_dashboard_chart(self):
 		insert_test_records(self.doctype_name)
 
@@ -273,6 +302,36 @@ class TestDashboardChart(IntegrationTestCase):
 		with patch.object(frappe.utils.data, "get_user_date_format", return_value="mm-dd-yyyy"):
 			result = get(chart_name="Test Dashboard Chart Date Label")
 			self.assertEqual(sorted(result.get("labels")), sorted(["01-19-2019", "01-05-2019", "01-12-2019"]))
+
+	def test_chart_returns_data_when_last_synced_on_write_deadlocks(self):
+		chart_name = "Test Dashboard Chart Sync Conflict"
+		if frappe.db.exists("Dashboard Chart", chart_name):
+			frappe.delete_doc("Dashboard Chart", chart_name)
+
+		frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name=chart_name,
+			chart_type="Count",
+			document_type="DocType",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="{}",
+			timeseries=1,
+		).insert()
+
+		set_value = frappe.db.set_value
+
+		def deadlock_on_chart_write(doctype, *args, **kwargs):
+			if doctype == "Dashboard Chart":
+				raise frappe.QueryDeadlockError
+			return set_value(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "set_value", side_effect=deadlock_on_chart_write):
+			result = get(chart_name=chart_name, refresh=1)
+
+		self.assertTrue(result.get("labels"))
+		self.assertIsNone(frappe.db.get_value("Dashboard Chart", chart_name, "last_synced_on"))
 
 
 def insert_test_records(doctype_name):

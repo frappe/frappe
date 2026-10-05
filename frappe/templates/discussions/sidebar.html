@@ -15,7 +15,7 @@
 			<div class="ml-2 frappe-timestamp small" data-timestamp="{{ topic.creation }}"> {{ frappe.utils.pretty_date(topic.creation) }} </div>
 			<div class="ml-auto">
 				<span class="d-flex align-items-center">
-					<img class="mr-1" src="/assets/frappe/icons/timeless/message.svg">
+					<svg class="icon icon-sm mr-1"><use href="#icon-message-circle"></use></svg>
 					<span class="reply-count">{{ replies | length }}</span>
 				</span>
 			</div>

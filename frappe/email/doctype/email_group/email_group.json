@@ -1,11 +1,13 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:title",
  "creation": "2015-03-18 06:08:32.729800",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/framework/user/en/email-groups",
  "engine": "InnoDB",
  "field_order": [
   "title",
@@ -65,6 +67,7 @@
    "label": "Add Query Parameters"
   }
  ],
+ "icon": "mailbox",
  "index_web_pages_for_search": 1,
  "links": [
   {
@@ -95,6 +98,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "show_name_in_global_search": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
