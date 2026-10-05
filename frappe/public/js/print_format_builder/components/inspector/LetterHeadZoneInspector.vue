@@ -189,9 +189,8 @@ function set_image(url) {
 			letterhead.value[image_field.value] = url;
 			letterhead.value[width_field.value] = new_width;
 			letterhead.value[height_field.value] = new_height;
-			if (props.zone === "footer") {
+			if (props.zone === "footer" && zone_source.value === "Image") {
 				letterhead.value[source_field.value] = "Image";
-				picked_source.value = "Image";
 			}
 			letterhead.value._dirty = true;
 		})
