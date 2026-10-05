@@ -165,6 +165,7 @@ import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
+import { section_menu_options } from "../../composables/useNodeMenu";
 import { always_has_content } from "../../fieldtypes";
 import {
 	DRAG_OPTIONS,
@@ -342,46 +343,9 @@ function remove_section() {
 
 const root = ref(null);
 let context_menu = null;
-const body_section = () => !props.is_header;
-const menu_options = [
-	{
-		label: __("Copy section"),
-		icon: "copy",
-		condition: body_section,
-		onclick: () => store.copy_section(props.section),
-	},
-	{
-		label: __("Duplicate section"),
-		icon: "copy-plus",
-		condition: body_section,
-		onclick: () => store.duplicate_section(props.section),
-	},
-	{
-		label: __("Save as snippet"),
-		icon: "bookmark-plus",
-		condition: body_section,
-		onclick: () => store.prompt_snippet(props.section, "Section"),
-	},
-	{
-		label: __("Paste"),
-		icon: "clipboard-paste",
-		condition: () => !!store.clipboard.value,
-		onclick: () => store.paste_clipboard(),
-	},
-	{
-		group: "",
-		hide_label: true,
-		options: [
-			{
-				label: __("Delete section"),
-				icon: "trash",
-				theme: "red",
-				condition: body_section,
-				onclick: () => remove_section(),
-			},
-		],
-	},
-];
+const menu_options = section_menu_options(store, props.section, {
+	condition: () => !props.is_header,
+});
 
 onMounted(() => {
 	context_menu = new frappe.ui.ContextMenu({
