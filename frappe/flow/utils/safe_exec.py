@@ -147,7 +147,7 @@ _SKIP_BUILTINS = frozenset(
 	{
 		"execute",
 		"grep",
-		"read_file",
+		"read",
 		"subagent",
 		"search_knowledge",
 		"search_attachments",

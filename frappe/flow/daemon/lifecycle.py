@@ -315,7 +315,7 @@ def _prepare(tenants: dict) -> tuple[list[str], dict[str, str]]:
 	runtime_dir().mkdir(parents=True, exist_ok=True)
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
 	env["FLOW_TENANTS_FILE"] = str(tenants_file())
-	allowed = ["read_file", "grep", "subagent"]
+	allowed = ["read", "grep", "subagent"]
 	for folder in _extension_folders(tenants):
 		for row in extension_tools([folder]):
 			if row["name"] not in allowed:

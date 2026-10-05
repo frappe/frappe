@@ -17,7 +17,7 @@ LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HT
 _CONFIRM_STR_LIMIT = 120
 _ERROR_LIMIT = 300
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
-SOURCE_TOOL_SLUGS = frozenset({"read_file", "grep"})
+SOURCE_TOOL_SLUGS = frozenset({"read", "grep"})
 SUBAGENT_TOOL_SLUG = "subagent"
 SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG}
 
@@ -27,7 +27,7 @@ def _server_only_tool() -> None:
 
 
 @tool
-def read_file(path: str, offset: int | None = None, limit: int | None = None, *, ctx: ToolContext) -> str:
+def read(path: str, offset: int | None = None, limit: int | None = None, *, ctx: ToolContext) -> str:
 	"""Read a text or image file from the source of an app installed on this site."""
 	_server_only_tool()
 
@@ -115,7 +115,7 @@ def describe(doctype: str, name: str | None = None, *, ctx: ToolContext) -> dict
 
 
 @tool
-def read(
+def read_records(
 	doctype: str,
 	filters: dict | None = None,
 	fields: list[str] | None = None,
@@ -306,7 +306,7 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	  fields=[{"SUM": "qty", "as": "total"}] or [{"COUNT": "*", "as": "n"}]),
 	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
 	- Writes: create, update, delete, run_action — the same permission-checked tools you call directly.
-	- Also: read, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
+	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
 	  frappe.sendmail, frappe.get_print, frappe.utils.* (dates, numbers, strings).
 
 	Sandbox limits — code using these FAILS:
@@ -556,8 +556,8 @@ def run_action(
 BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
+	read_records,
 	read,
-	read_file,
 	grep,
 	subagent,
 	search_knowledge,

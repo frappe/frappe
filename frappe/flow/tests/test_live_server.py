@@ -58,7 +58,7 @@ class LiveServerCase(IntegrationTestCase):
 				"title": "Live Session Agent",
 				"model": self.model.name,
 				"instructions": "Reply briefly.",
-				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"tools": [{"tool": "read_records"}, {"tool": "execute"}],
 				"enabled": 1,
 			}
 		).insert()

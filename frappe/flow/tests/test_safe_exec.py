@@ -24,12 +24,12 @@ class TestFlowSafeExecNamespace(IntegrationTestCase):
 
 	def test_injects_write_builtins_but_not_execute(self):
 		g = get_flow_safe_globals()
-		for name in ("create", "update", "delete", "run_action", "read", "describe", "find_doctypes"):
+		for name in ("create", "update", "delete", "run_action", "read_records", "describe", "find_doctypes"):
 			self.assertIn(name, g)
 		self.assertNotIn("execute", g)
 		self.assertNotIn("search_knowledge", g)
 		self.assertNotIn("search_attachments", g)
-		self.assertNotIn("read_file", g)
+		self.assertNotIn("read", g)
 		self.assertNotIn("grep", g)
 		self.assertNotIn("subagent", g)
 		self.assertNotIn("update_memory", g)

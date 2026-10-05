@@ -54,7 +54,7 @@ class ServerCase(IntegrationTestCase):
 				"title": "Session Lib Agent",
 				"model": self.model.name,
 				"instructions": "Be terse.",
-				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"tools": [{"tool": "read_records"}, {"tool": "execute"}],
 				"enabled": 1,
 			}
 		).insert()
@@ -83,7 +83,9 @@ class TestNewSession(ServerCase):
 			(config["session_id"], config["title"], config["model"], config["auto_approve"]),
 			(session.name, "Hello", "openai/gpt-4o-mini", True),
 		)
-		self.assertEqual([tool["function"]["name"] for tool in config["client_tools"]], ["read", "execute"])
+		self.assertEqual(
+			[tool["function"]["name"] for tool in config["client_tools"]], ["read_records", "execute"]
+		)
 
 	def test_new_session_commits_the_twin_before_returning_outside_tests(self):
 		with (
