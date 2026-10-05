@@ -394,7 +394,7 @@ body.pfb-dragging * {
 }
 
 .pfb-col-add-row {
-	padding: 6px 14px 10px;
+	padding: 6px 16px 10px;
 	border-top: 1px solid var(--gray-100);
 }
 
@@ -403,6 +403,9 @@ body.pfb-dragging * {
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
+}
+.pfb-col-editor > .pfb-insp-section-body {
+	padding-top: 12px;
 }
 
 .pfb-col-row .pfb-tpl {
