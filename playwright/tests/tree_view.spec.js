@@ -99,10 +99,11 @@ test.describe("Tree View", () => {
 		await pick("Name Z to A");
 		expect((await root_labels())[0]).toBe("Second Parent Node");
 
+		const saved = page.waitForResponse((r) => r.url().includes("user_settings.save"));
 		await pick("Name A to Z");
+		await saved;
 		let labels = await root_labels();
 		expect(labels[0]).toBe("Parent Node");
-		// natural order: 2 before 10
 		expect(labels.indexOf("Scroll Node 2")).toBeLessThan(labels.indexOf("Scroll Node 10"));
 
 		await page.reload();
@@ -113,7 +114,6 @@ test.describe("Tree View", () => {
 
 		await pick("Default Order");
 		labels = await root_labels();
-		// server order is by name
 		expect(labels.indexOf("Scroll Node 10")).toBeLessThan(labels.indexOf("Scroll Node 2"));
 	});
 
