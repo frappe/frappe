@@ -404,7 +404,7 @@ context("Child Table Data Import", () => {
 
 		primary("Skip Invalid and Continue");
 		active_step().should("contain", "Preview");
-		hint().should("contain", "2 rows will be added.");
+		hint().should("contain", "2 rows will be inserted.");
 		dialog().find(".grid-import-skip-cell").should("not.exist");
 	});
 

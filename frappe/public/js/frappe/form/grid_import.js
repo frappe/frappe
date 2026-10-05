@@ -93,18 +93,6 @@ export default class GridImport {
 		return df ? __(df.label || df.fieldname, null, df.parent) : fieldname;
 	}
 
-	preview_description() {
-		if (this.state.import_type === UPDATE) {
-			return __("These rows will update the matching rows in the table when you apply.");
-		}
-		if (this.state.import_type === UPSERT) {
-			return __(
-				"Rows with a matching ID will be updated and the rest added to the table when you apply."
-			);
-		}
-		return __("These rows will be added to the table when you apply.");
-	}
-
 	show() {
 		this.state = {
 			import_type: INSERT,
@@ -674,7 +662,7 @@ export default class GridImport {
 			.html(too_many ? this.too_many_issues_alert() : "");
 		$table
 			.find(
-				".grid-import-preview-head > span, .grid-import-mapping-note, .grid-import-preview-hint, .grid-import-preview-table"
+				".grid-import-mapping-note, .grid-import-preview-hint, .grid-import-preview-table"
 			)
 			.toggleClass("hide", too_many);
 	}
@@ -719,8 +707,8 @@ export default class GridImport {
 		const { insert, update } = this.get_import_counts(this.get_rows_to_apply());
 		if (import_type === INSERT) {
 			return insert === 1
-				? __("1 row will be added.")
-				: __("{0} rows will be added.", [insert]);
+				? __("1 row will be inserted.")
+				: __("{0} rows will be inserted.", [insert]);
 		}
 		if (import_type === UPDATE) {
 			return update === 1
@@ -728,8 +716,8 @@ export default class GridImport {
 				: __("{0} rows will be updated.", [update]);
 		}
 		return insert === 1
-			? __("1 row will be added and {0} updated.", [update])
-			: __("{0} rows will be added and {1} updated.", [insert, update]);
+			? __("1 row will be inserted and {0} updated.", [update])
+			: __("{0} rows will be inserted and {1} updated.", [insert, update]);
 	}
 
 	get_rows_to_apply() {
@@ -997,29 +985,7 @@ export default class GridImport {
 		);
 
 		return `
-			<div class="grid-import-preview-head">
-				${
-					mapping
-						? `<div>
-							${hint_html}
-							<div class="grid-import-mapping-note text-muted small">${__(
-								"Edit the highlighted cells to fix them, or select rows to skip them during import."
-							)}</div>
-						</div>`
-						: `<span class="text-muted small">${this.preview_description()}</span>`
-				}
-				<div class="grid-import-preview-head-actions">
-					${
-						this.state.google_sheets_url
-							? frappe.ui.button.html({
-									label: __("Refresh"),
-									icon: "refresh-cw",
-									css_class: "grid-import-refresh-sheet",
-							  })
-							: ""
-					}
-				</div>
-			</div>
+			${mapping ? this.get_fix_head_html(hint_html) : ""}
 			<div class="grid-import-preview-alert"></div>
 			${mapping ? "" : hint_html}
 			<div class="grid-import-preview-table">
@@ -1039,6 +1005,28 @@ export default class GridImport {
 					</thead>
 					<tbody>${mapping_row}${body.join("")}</tbody>
 				</table>
+			</div>
+		`;
+	}
+
+	get_fix_head_html(hint_html) {
+		const refresh = this.state.google_sheets_url
+			? frappe.ui.button.html({
+					label: __("Refresh"),
+					icon: "refresh-cw",
+					css_class: "grid-import-refresh-sheet",
+			  })
+			: "";
+
+		return `
+			<div class="grid-import-preview-head">
+				<div>
+					${hint_html}
+					<div class="grid-import-mapping-note text-muted small">${__(
+						"Edit the highlighted cells to fix them, or select rows to skip them during import."
+					)}</div>
+				</div>
+				<div class="grid-import-preview-head-actions">${refresh}</div>
 			</div>
 		`;
 	}
