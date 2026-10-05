@@ -129,15 +129,15 @@ onMounted(() => {
 	transition: border-color 0.15s;
 }
 
+.lh-zone:hover {
+	border-color: var(--gray-300);
+}
+
 .lh-zone--selected,
 .lh-zone--selected:hover {
 	z-index: 1;
 	border-color: transparent;
 	outline: var(--pfb-ring);
-}
-
-.lh-zone:hover {
-	border-color: var(--gray-300);
 }
 
 .lh-zone-empty {
