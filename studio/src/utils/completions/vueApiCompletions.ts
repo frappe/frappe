@@ -3,7 +3,7 @@ import type { EditorView } from "@codemirror/view"
 import type { EditorState } from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language"
 import type { CompletionSource } from "@/types"
-import { vueReactivityApis } from "@/stores/codeStore"
+import { vueReactivityApis } from "@/stores/pageScope"
 
 // Single source of truth: the Vue APIs injected into interpreted scripts are also the ones we
 // suggest (and auto-import) in code files.

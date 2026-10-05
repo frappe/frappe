@@ -1,6 +1,6 @@
 import type { CompletionContext, CompletionResult } from "@codemirror/autocomplete"
 import { isRef, unref } from "vue"
-import useCodeStore from "@/stores/codeStore"
+import useCodeStore, { usePageScope } from "@/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { getCompletions } from "./autocompletions"
 import { vueImportCompletions } from "./vueApiCompletions"
@@ -32,14 +32,15 @@ function contextSource(param: string): CompletionSource {
 // members, exactly like event scripts do.
 function buildContextItem(): Record<string, any> {
 	const codeStore = useCodeStore()
+	const pageScope = usePageScope()
 	const item: Record<string, any> = {}
-	for (const [name, value] of Object.entries(codeStore.variables || {})) {
+	for (const [name, value] of Object.entries(pageScope.variables || {})) {
 		item[name] = { value }
 	}
-	for (const [name, value] of Object.entries(codeStore.resources || {})) {
+	for (const [name, value] of Object.entries(pageScope.resources || {})) {
 		item[name] = value
 	}
-	for (const [name, binding] of Object.entries(codeStore.pageScriptBindings || {})) {
+	for (const [name, binding] of Object.entries(pageScope.pageScriptBindings || {})) {
 		item[name] = isRef(binding) ? { value: unref(binding) } : binding
 	}
 	item.route = codeStore.routeObject?.value

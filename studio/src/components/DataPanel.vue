@@ -1,9 +1,9 @@
 <template>
 	<div class="flex flex-col gap-3 p-4">
 		<CollapsibleSection sectionName="Data Sources">
-			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(codeStore.resources)">
+			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(pageScope.resources)">
 				<div
-					v-for="(resource, resource_name) in codeStore.resources"
+					v-for="(resource, resource_name) in pageScope.resources"
 					:key="resource_name"
 					class="group/item flex flex-row items-center justify-between"
 				>
@@ -36,9 +36,9 @@
 
 		<!-- Variables -->
 		<CollapsibleSection sectionName="Variables">
-			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(codeStore.variables)">
+			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(pageScope.variables)">
 				<div
-					v-for="(value, variable_name) in codeStore.variables"
+					v-for="(value, variable_name) in pageScope.variables"
 					:key="variable_name"
 					class="group/item flex flex-row items-center justify-between"
 				>
@@ -140,7 +140,7 @@
 import { ref, watch } from "vue"
 import { Dialog, Tooltip, Button, FormControl } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
-import useCodeStore from "@/stores/codeStore"
+import { usePageScope } from "@/stores/codeStore"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import ObjectBrowser from "@/components/ObjectBrowser.vue"
 import EmptyState from "@/components/EmptyState.vue"
@@ -163,7 +163,7 @@ import { copyDataSource } from "@/utils/blockCopyPaste"
  */
 
 const store = useStudioStore()
-const codeStore = useCodeStore()
+const pageScope = usePageScope()
 const showResourceDialog = ref(false)
 const existingResource = ref<Resource | null>()
 
@@ -188,7 +188,7 @@ const addResource = (resource: Resource) => {
 		})
 		.then(async (data: any) => {
 			if (store.activePage) {
-				await codeStore.setPageResources(store.activePage, true)
+				await pageScope.setPageResources(store.activePage, true)
 				store.syncPageModified(data)
 			}
 			showResourceDialog.value = false
@@ -204,7 +204,7 @@ const deleteResource = async (resource_name: string) => {
 		.submit(stored.resource_id)
 		.then(async () => {
 			if (store.activePage) {
-				await codeStore.setPageResources(store.activePage, true)
+				await pageScope.setPageResources(store.activePage, true)
 				await store.refreshActivePageModified()
 			}
 			toast.success(`Data Source ${resource_name} deleted`)
@@ -219,7 +219,7 @@ const editResource = async (resource: Resource) => {
 		.submit(getResourceValues(resource))
 		.then(async (data: any) => {
 			if (store.activePage) {
-				await codeStore.setPageResources(store.activePage, true)
+				await pageScope.setPageResources(store.activePage, true)
 				store.syncPageModified(data)
 			}
 			toast.success(`Data Source ${resource.resource_name} updated`)
@@ -322,7 +322,7 @@ const addVariable = (variable: Variable) => {
 		{
 			async onSuccess(data: any) {
 				if (store.activePage) {
-					await codeStore.setPageVariables(store.activePage)
+					await pageScope.setPageVariables(store.activePage)
 					store.syncPageModified(data)
 				}
 				showVariableDialog.value = false
@@ -347,7 +347,7 @@ const editVariable = (variable: Variable) => {
 		})
 		.then(async (data: any) => {
 			if (store.activePage) {
-				await codeStore.setPageVariables(store.activePage)
+				await pageScope.setPageVariables(store.activePage)
 				store.syncPageModified(data)
 			}
 			showVariableDialog.value = false
@@ -361,7 +361,7 @@ const deleteVariable = async (variable: Variable) => {
 			.submit(variable.name)
 			.then(async () => {
 				if (store.activePage) {
-					await codeStore.setPageVariables(store.activePage)
+					await pageScope.setPageVariables(store.activePage)
 					await store.refreshActivePageModified()
 				}
 				toast.success(`Variable ${variable.variable_name} deleted`)

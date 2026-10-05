@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import { ref, computed } from "vue"
 import { useRouter } from "vue-router"
 
-import useCodeStore from "@/stores/codeStore"
+import useCodeStore, { usePageScope } from "@/stores/codeStore"
 
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
@@ -17,8 +17,8 @@ const useAppStore = defineStore("appStore", () => {
 
 	async function setPageData(page: StudioPage) {
 		activePage.value = page
-		await codeStore.setPageVariables(page, page.variables)
-		await codeStore.setPageResources(page, false, page.resources)
+		await usePageScope().setPageVariables(page, page.variables)
+		await usePageScope().setPageResources(page, false, page.resources)
 	}
 
 	return {
