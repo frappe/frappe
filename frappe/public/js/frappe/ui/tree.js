@@ -139,8 +139,8 @@ frappe.ui.Tree = class {
 	}
 
 	sort_children(node) {
-		const $items = node.$ul && node.$ul.children("li.tree-node");
-		if (!$items || $items.length < 2) return;
+		const $items = node.$ul.children("li.tree-node");
+		if ($items.length < 2) return;
 
 		const collator = new Intl.Collator(undefined, {
 			numeric: true,
