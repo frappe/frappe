@@ -253,20 +253,6 @@ class TestRenameReadTools(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_agents_keep_their_tools_under_the_new_names(self):
-		sync_builtin_tools()
-		# the tools as they were before the rename
-		frappe.db.delete("Flow Tool", {"name": ["in", ["read_records", "read_file"]]})
-		frappe.get_doc(
-			{
-				"doctype": "Flow Tool",
-				"name": "read_file",
-				"slug": "read_file",
-				"title": "Read File",
-				"type": "Imported",
-				"import_path": "flow.tools.builtins.read_file",
-				"is_system_generated": 1,
-			}
-		).db_insert()
 		model = frappe.get_doc(
 			{"doctype": "Flow Model", "title": "Rename Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
 		).insert()
@@ -278,10 +264,24 @@ class TestRenameReadTools(IntegrationTestCase):
 				"instructions": "Be terse.",
 			}
 		).insert()
+		# the old file tool row, as before the rename
+		frappe.db.delete("Flow Tool", {"name": "read_file"})
+		frappe.get_doc(
+			{
+				"doctype": "Flow Tool",
+				"name": "read_file",
+				"slug": "read_file",
+				"title": "Read File",
+				"type": "Imported",
+				"import_path": "flow.tools.builtins.read_file",
+				"is_system_generated": 1,
+			}
+		).db_insert()
 		for tool in ("read", "read_file"):
 			agent.append("tools", {"tool": tool}).db_insert()
 
 		rename_read_tools()
+		rename_read_tools()  # a second run changes nothing
 
 		filters = {"parent": agent.name, "tool": ["like", "read%"]}
 		self.assertEqual(
