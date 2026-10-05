@@ -166,13 +166,20 @@ function set_size(val) {
 	letterhead.value._dirty = true;
 }
 
+function is_generated_image_markup(content, image) {
+	const body = new DOMParser().parseFromString(content, "text/html").body;
+	const wrapper = body.children.length === 1 ? body.firstElementChild : null;
+	const img = wrapper?.children.length === 1 ? wrapper.firstElementChild : null;
+	return img?.tagName === "IMG" && img.getAttribute("src") === image && !body.textContent.trim();
+}
+
 function set_image(url) {
 	if (!letterhead.value) return;
 	if (!url) {
 		const old_image = letterhead.value[image_field.value];
 		const content = letterhead.value[html_content_field.value] || "";
 		letterhead.value[image_field.value] = "";
-		if (old_image && content.includes(old_image)) {
+		if (old_image && is_generated_image_markup(content, old_image)) {
 			letterhead.value[html_content_field.value] = "";
 		}
 		letterhead.value._dirty = true;
