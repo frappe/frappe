@@ -126,32 +126,7 @@ export function getStore(print_format_name) {
 						selected_letterhead.value = false;
 						selected_lh_footer.value = false;
 
-						const lh_name = layout.value?.letter_head;
-						// mirrors the server's get_letterhead: a named letter head loads,
-						// "" is an explicit removal, and an absent key falls back to the
-						// system default — the canvas must show what the print will use
-						let load_lh;
-						if (lh_name) {
-							load_lh = frappe.db
-								.get_doc("Letter Head", lh_name)
-								.then((doc) => (letterhead.value = doc))
-								.catch(() => (letterhead.value = null));
-						} else if (lh_name === "") {
-							load_lh = Promise.resolve((letterhead.value = null));
-						} else {
-							load_lh = frappe.db
-								.get_value("Letter Head", { is_default: 1 }, "name")
-								.then((r) => {
-									const name = r?.message?.name;
-									if (!name) return (letterhead.value = null);
-									return frappe.db
-										.get_doc("Letter Head", name)
-										.then((doc) => (letterhead.value = doc));
-								})
-								.catch(() => (letterhead.value = null));
-						}
-
-						load_lh.then(() => {
+						load_letterhead({ reload: true }).then(() => {
 							reset_history();
 							nextTick(() => (dirty.value = converted));
 							resolve();
@@ -160,6 +135,35 @@ export function getStore(print_format_name) {
 				});
 			});
 		});
+	}
+	// mirrors the server's get_letterhead: a named letter head loads, "" is an
+	// explicit removal, and an absent key falls back to the document's letter head,
+	// then the system default — the canvas must show what the print will use
+	let letterhead_seq = 0;
+	function load_letterhead({ reload = false } = {}) {
+		const seq = ++letterhead_seq;
+		const key = layout.value?.letter_head;
+		const name_ready =
+			key != null
+				? Promise.resolve(key)
+				: preview_doc.value?.letter_head
+				? Promise.resolve(preview_doc.value.letter_head)
+				: frappe.db
+						.get_value("Letter Head", { is_default: 1 }, "name")
+						.then((r) => r?.message?.name || "");
+		return name_ready
+			.then((name) => {
+				if (seq !== letterhead_seq) return;
+				if (!reload && name === (letterhead.value?.name || "")) return;
+				if (!reload) flush_letterhead();
+				if (!name) return (letterhead.value = null);
+				return frappe.db.get_doc("Letter Head", name).then((doc) => {
+					if (seq === letterhead_seq) letterhead.value = doc;
+				});
+			})
+			.catch(() => {
+				if (seq === letterhead_seq) letterhead.value = null;
+			});
 	}
 	function convert_classic_layout(_print_format) {
 		return frappe
@@ -352,6 +356,10 @@ export function getStore(print_format_name) {
 		},
 		{ deep: true }
 	);
+	watch(
+		() => preview_doc.value?.letter_head,
+		() => layout.value && layout.value.letter_head == null && load_letterhead()
+	);
 	watch(dirty, (v) => v && autosave());
 
 	const typst_blockers = computed(() =>
@@ -491,7 +499,13 @@ export function getStore(print_format_name) {
 		insert_snippet,
 		delete_snippet,
 		paste_clipboard,
-		undo,
-		redo,
+		undo: () => {
+			undo();
+			load_letterhead();
+		},
+		redo: () => {
+			redo();
+			load_letterhead();
+		},
 	};
 }
