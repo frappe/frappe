@@ -110,6 +110,23 @@ def get_print(
 		if password:
 			pdf_options["password"] = password
 
+		if as_pdf and generator == "chrome" and pf_doc and uses_beta_renderer(pf_doc):
+			from frappe.model.document import Document
+			from frappe.www.printview import validate_print
+
+			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
+			validate_print(doc_obj)
+			pdf = _render_builder_pdf(pf_doc, doc_obj, letterhead, no_letterhead, password, style)
+			if output:
+				from io import BytesIO
+
+				from pypdf import PdfReader
+
+				for page in PdfReader(BytesIO(pdf)).pages:
+					output.add_page(page)
+				return output
+			return pdf
+
 		response = get_response_without_exception_handling("printview", 200)
 		html = str(response.data, "utf-8")
 
@@ -163,6 +180,14 @@ def get_print(
 		local.form_dict = original_form_dict
 
 
+def _render_builder_pdf(print_format, doc, letterhead, no_letterhead, password=None, style=None):
+	"""PDF of a builder format through its own renderer, which applies the format's margins."""
+	from frappe.utils.print_format_generator import PrintFormatGenerator
+
+	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, no_letterhead=no_letterhead)
+	return generator.render_pdf(password=password)
+
+
 def attach_print(
 	doctype,
 	name,
@@ -203,7 +228,6 @@ def attach_print(
 					content = get_pdf(html, options={"password": password} if password else None)
 				elif renders_through_generator(pf_doc):
 					from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
-					from frappe.utils.print_format_generator import PrintFormatGenerator
 					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
@@ -212,12 +236,13 @@ def attach_print(
 					if uses_legacy_weasyprint(pf_doc):
 						from frappe.utils.weasyprint import legacy_generator
 
-						generator = legacy_generator(pf_doc, doc_obj, letterhead_name)
-					else:
-						generator = PrintFormatGenerator(
-							pf_doc, doc_obj, letterhead_name, no_letterhead=not print_letterhead
+						content = legacy_generator(pf_doc, doc_obj, letterhead_name).render_pdf(
+							password=password
 						)
-					content = generator.render_pdf(password=password)
+					else:
+						content = _render_builder_pdf(
+							pf_doc, doc_obj, letterhead_name, not print_letterhead, password
+						)
 				else:
 					kwargs["as_pdf"] = True
 					content = get_print(doctype, name, **kwargs)
