@@ -47,6 +47,9 @@ def save_layout(user: str, layout: str, new_icons: str | None = None):
 	if layout:
 		desktop_layout.layout = json.dumps(layout)
 		desktop_layout.save()
+	# The module each new workspace landed in, by name, which is its icon's label. The client
+	# cannot know it, as the server picks it, and its icon opens nothing without it until a reload.
+	workspace_modules = {}
 	if new_icons:
 		new_icons = json.loads(new_icons)
 		for icon in new_icons:
@@ -67,13 +70,14 @@ def save_layout(user: str, layout: str, new_icons: str | None = None):
 					new_workspace.module = triage_module(new_workspace.for_user)
 				new_workspace.save()
 				add_workspace_to_desktop(new_workspace.name)
+				workspace_modules[new_workspace.name] = new_workspace.module
 				continue
 			desktop_icon = frappe.new_doc("Desktop Icon")
 			desktop_icon.update(icon)
 			desktop_icon.owner = frappe.session.user
 			desktop_icon.save()
 
-	return {"layout": layout}
+	return {"layout": layout, "workspace_modules": workspace_modules}
 
 
 @frappe.whitelist()
