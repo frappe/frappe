@@ -28,6 +28,20 @@ def pdf_writer(page_count=1) -> PdfWriter:
 	return writer
 
 
+def mark_before_print(doc, method, print_settings=None):
+	doc.flags.prepared_for_print = doc.name
+
+
+def replace_pdf_after_print(doc, method, pdf=None):
+	frappe.flags.print_hook = {
+		"marker": doc.flags.get("prepared_for_print"),
+		"doc_id": id(doc),
+	}
+	if doc.flags.get("prepared_for_print") != doc.name:
+		return pdf
+	return blank_pdf(page_count=3)
+
+
 class TestPrintUtils(IntegrationTestCase):
 	def _make_todo(self):
 		doc = frappe.get_doc({"doctype": "ToDo", "description": "print utils test"})
@@ -64,19 +78,54 @@ class TestPrintUtils(IntegrationTestCase):
 		self.assertIs(result, output)
 		self.assertEqual(len(result.pages), 3)
 
-	def test_after_print_hook_returns_bytes(self):
-		"""Hook may replace the PDF with new bytes."""
+	def test_before_and_after_print_share_the_doc(self):
+		"""
+		run_after_print_hook uses the doc that before_print hook has prepared,
+		the passed doc by argument (doc=),
+		or a cached doc from frappe.get_cached_doc().
+
+		The test itself checks directly the functionality of the
+		before_print and after_print hooks in addition.
+		"""
 		todo = self._make_todo()
-		original = blank_pdf()
-		replacement = blank_pdf(page_count=3)
+		frappe.flags.print_hook = {}
+		self.addCleanup(lambda: setattr(frappe.local, "doc_events_hooks", None))
+		self.addCleanup(lambda: setattr(frappe.local, "print_doc", None))
 
-		with patch("frappe.get_cached_doc", return_value=todo):
-			with patch.object(todo, "run_method", return_value=replacement) as run_method:
-				result = run_after_print_hook(todo.doctype, todo.name, original)
+		with self.patch_hooks(
+			{
+				"doc_events": {
+					"ToDo": {
+						"before_print": "frappe.utils.test_print_utils.mark_before_print",
+						"after_print": "frappe.utils.test_print_utils.replace_pdf_after_print",
+					}
+				}
+			}
+		):
+			frappe.local.doc_events_hooks = None
+			from frappe.www.printview import run_before_print
 
-		run_method.assert_called_once_with("after_print", pdf=original)
-		self.assertEqual(result, replacement)
-		self.assertEqual(len(PdfReader(io.BytesIO(result)).pages), 3)
+			run_before_print(todo, {})
+
+			# doc= skips print_doc; the passed object already carries the marker
+			with_doc = run_after_print_hook(todo.doctype, todo.name, blank_pdf(), doc=todo)
+			self.assertEqual(frappe.flags.print_hook["marker"], todo.name)
+			self.assertEqual(frappe.flags.print_hook["doc_id"], id(todo))
+			self.assertEqual(len(PdfReader(io.BytesIO(with_doc)).pages), 3)
+
+			# no doc and no print_doc: get_cached_doc has no marker, so the PDF stays 1 page
+			frappe.local.print_doc = None
+			from_cache = run_after_print_hook(todo.doctype, todo.name, blank_pdf())
+			self.assertIsNone(frappe.flags.print_hook["marker"])
+			self.assertNotEqual(frappe.flags.print_hook["doc_id"], id(todo))
+			self.assertEqual(len(PdfReader(io.BytesIO(from_cache)).pages), 1)
+
+			# before_print stores the prepared doc; after_print picks it up when doc is omitted
+			run_before_print(todo, {})
+			from_print_doc = run_after_print_hook(todo.doctype, todo.name, blank_pdf())
+			self.assertEqual(frappe.flags.print_hook["marker"], todo.name)
+			self.assertEqual(frappe.flags.print_hook["doc_id"], id(todo))
+			self.assertEqual(len(PdfReader(io.BytesIO(from_print_doc)).pages), 3)
 
 	def test_after_print_runs_for_all_pdf_backends(self):
 		"""after_print must run on wkhtmltopdf, Chrome, and Typst paths."""
