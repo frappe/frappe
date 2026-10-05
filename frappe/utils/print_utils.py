@@ -106,11 +106,19 @@ def get_print(
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
 		if as_pdf and generator == "chrome" and pf_doc and uses_beta_renderer(pf_doc):
+			from frappe.core.doctype.access_log.access_log import make_access_log
 			from frappe.model.document import Document
 			from frappe.www.printview import validate_print
 
 			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
 			validate_print(doc_obj)
+			make_access_log(
+				doctype=doc_obj.doctype,
+				document=doc_obj.name,
+				file_type="PDF",
+				method="Print",
+				page=f"Print Format: {pf_doc.name}",
+			)
 			pdf = _render_builder_pdf(pf_doc, doc_obj, letterhead, no_letterhead, password, style)
 			if output:
 				from io import BytesIO
