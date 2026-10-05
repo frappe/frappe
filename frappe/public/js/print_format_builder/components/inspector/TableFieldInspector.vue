@@ -167,7 +167,7 @@
 											>
 											<select
 												v-if="!is_image_merge(mf)"
-												class="pfb-insp-select"
+												class="form-control form-control-sm pfb-insp-select"
 												style="width: 104px; flex: none"
 												v-model="mf.style"
 												:title="__('Text style')"

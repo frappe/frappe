@@ -80,24 +80,6 @@
 .pfb-insp-input,
 .pfb-insp-select {
 	width: 100%;
-	padding: 6px 8px;
-	font-size: var(--text-sm);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
-}
-.pfb-insp-input {
-	box-sizing: border-box;
-}
-.pfb-insp-select {
-	padding: 5px 8px;
-	cursor: pointer;
-}
-.pfb-insp-input:focus,
-.pfb-insp-select:focus {
-	border-color: var(--gray-500);
 }
 .pfb-insp-hint {
 	font-size: var(--text-sm);
