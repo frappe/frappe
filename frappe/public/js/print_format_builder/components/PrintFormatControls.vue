@@ -624,7 +624,13 @@ function select_dropped_layer_field(column, e) {
 }
 
 function field_label(f) {
-	return f.label || (f.custom ? __(f.fieldtype) : f.fieldname) || __("Field");
+	if (f.label) return f.label;
+	if (f.fieldtype === "Repeater") {
+		return (
+			(f.source && frappe.meta.get_label(meta.value.name, f.source)) || __("Custom Table")
+		);
+	}
+	return known_fieldnames.value.has(f.fieldname) ? f.fieldname : __(f.fieldtype || "Field");
 }
 
 let known_fieldnames = computed(() => {
