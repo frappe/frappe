@@ -33,7 +33,9 @@
 			<div v-if="has_selection" class="pfb-inspector-head">
 				<div class="pfb-inspector-title">
 					<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
-					<span class="pfb-inspector-name">{{ inspector_subtitle }}</span>
+					<span v-if="inspector_subtitle" class="pfb-inspector-name">{{
+						inspector_subtitle
+					}}</span>
 				</div>
 				<button
 					v-if="snippet_kind"
@@ -172,7 +174,13 @@ let inspector_subtitle = computed(() => {
 	if (selected_letterhead.value) return letterhead.value?.name || "";
 	if (selected_field.value) {
 		const df = selected_field.value;
-		if (df.custom) return df.label || df.fieldname;
+		if (df.fieldtype === "Repeater") {
+			return (
+				df.label ||
+				(df.source ? frappe.meta.get_label(print_format.value.doc_type, df.source) : "")
+			);
+		}
+		if (df.custom) return df.label || __(df.fieldtype);
 		return frappe.meta.get_label(print_format.value.doc_type, df.fieldname);
 	}
 	if (selected_section.value) return selected_section.value.label || __("Untitled section");
@@ -210,13 +218,13 @@ function select_parent_section() {
 }
 
 .pfb-inspector-head {
-	height: 40px;
+	height: 44px;
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 8px 12px 8px 16px;
+	padding: 8px 16px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
 	min-height: 0;
@@ -263,6 +271,7 @@ function select_parent_section() {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
+	margin-left: -6px;
 	padding: 2px 6px;
 	border: none;
 	background: transparent;

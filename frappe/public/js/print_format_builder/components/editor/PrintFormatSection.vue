@@ -16,14 +16,6 @@
 		@mouseenter="store.hovered_section.value = section"
 		@mouseleave="store.hovered_section.value = null"
 	>
-		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
-		<div v-if="!is_header" class="section-preview-actions">
-			<div
-				class="drag-handle section-drag-handle"
-				v-html="frappe.utils.icon('grip', 'xs')"
-			></div>
-			<SectionActions :section="section" size="xs" @remove="remove_section" />
-		</div>
 		<div
 			class="print-format-section"
 			:class="{
@@ -165,6 +157,7 @@ import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
+import { section_menu_options } from "../../composables/useNodeMenu";
 import { always_has_content } from "../../fieldtypes";
 import {
 	DRAG_OPTIONS,
@@ -342,51 +335,11 @@ function remove_section() {
 
 const root = ref(null);
 let context_menu = null;
-const body_section = () => !props.is_header;
-const menu_options = [
-	{
-		label: __("Copy section"),
-		icon: "copy",
-		condition: body_section,
-		onclick: () => store.copy_section(props.section),
-	},
-	{
-		label: __("Duplicate section"),
-		icon: "copy-plus",
-		condition: body_section,
-		onclick: () => store.duplicate_section(props.section),
-	},
-	{
-		label: __("Save as snippet"),
-		icon: "bookmark-plus",
-		condition: body_section,
-		onclick: () => store.prompt_snippet(props.section, "Section"),
-	},
-	{
-		label: __("Paste"),
-		icon: "clipboard-paste",
-		condition: () => !!store.clipboard.value,
-		onclick: () => store.paste_clipboard(),
-	},
-	{
-		group: "",
-		hide_label: true,
-		options: [
-			{
-				label: __("Delete section"),
-				icon: "trash",
-				theme: "red",
-				condition: body_section,
-				onclick: () => remove_section(),
-			},
-		],
-	},
-];
-
 onMounted(() => {
 	context_menu = new frappe.ui.ContextMenu({
 		target: root.value,
-		options: menu_options,
+		options: () =>
+			section_menu_options(store, props.section, { condition: () => !props.is_header }),
 		empty_text: __("Nothing to paste"),
 		on_open: () => select_section(),
 	});
@@ -405,6 +358,7 @@ function remove_column(index) {
 	/* flow-root keeps the section's own margin inside this box, so the spacing
 	   handles can be positioned against it */
 	display: flow-root;
+	scroll-margin-top: 4rem;
 }
 
 .print-format-section-container:not(:last-child) {
@@ -650,24 +604,6 @@ function remove_column(index) {
 	margin: 0.25rem 0;
 }
 
-/* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
-.section-preview-actions {
-	display: none;
-	position: absolute;
-	bottom: calc(100% + 2px);
-	right: 4px;
-	z-index: 2;
-	gap: 2px;
-	padding: 1px 2px;
-	background: var(--fg-color);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	box-shadow: var(--shadow-xs);
-	align-items: center;
-	opacity: 0;
-	transition: opacity 0.12s;
-}
-
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
 	/* section padding is folded into the edge cells (see below) so the grid
@@ -758,15 +694,6 @@ function remove_column(index) {
 
 .section--preview .drag-container:not(.section--grid *) {
 	gap: 0;
-}
-
-.section--preview .section-preview-actions {
-	display: flex;
-}
-
-.section--preview:hover .section-preview-actions,
-.section--preview.pfb-section-active .section-preview-actions {
-	opacity: 1;
 }
 
 .section--preview .section-title-display {
