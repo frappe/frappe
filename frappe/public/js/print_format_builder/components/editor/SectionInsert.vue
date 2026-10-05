@@ -15,27 +15,16 @@ defineEmits(["insert"]);
 
 <style scoped>
 .section-insert {
-	position: relative;
-	z-index: 2;
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	height: 0.5rem;
-	margin: -0.25rem 0;
+	height: 1.5rem;
 	opacity: 0;
 	transition: opacity 0.15s ease;
 }
 
 .section-insert:hover {
 	opacity: 1;
-}
-
-.section-insert-btn {
-	pointer-events: none;
-}
-
-.section-insert:hover .section-insert-btn {
-	pointer-events: auto;
 }
 
 .section-insert-line {
