@@ -50,7 +50,14 @@ jobs:
               gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/reviews/$REVIEW_ID" --input payload.json --jq '.html_url'
             else
               jq '.comments |= map(with_entries(select(.value != null)))' review.json > payload.json
-              gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
+              head=$(gh api "repos/${{ github.repository }}/pulls/$PR" --jq '.head.sha')
+              gh api --paginate "repos/${{ github.repository }}/pulls/$PR/reviews" --jq ".[] | select(.user.login == \"frappe-pr-bot\" and .commit_id == \"$head\") | {body}" > posted-reviews.json
+              gh api --paginate "repos/${{ github.repository }}/pulls/$PR/comments" --jq ".[] | select(.user.login == \"frappe-pr-bot\" and .original_commit_id == \"$head\") | {path, body}" > posted-comments.json
+              if jq -e --slurpfile reviews posted-reviews.json --slurpfile comments posted-comments.json '. as $new | ($new.body == "" or ($reviews | any(.body == $new.body))) and ($new.comments | all(. as $c | $comments | any(.path == $c.path and .body == $c.body)))' payload.json > /dev/null; then
+                echo "skipped the review: frappe-pr-bot already posted it on this commit" >&2
+              else
+                gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
+              fi
             fi
           fi
           jq -c '(.replies // [])[] | {body, in_reply_to}' review.json | while read -r reply; do
