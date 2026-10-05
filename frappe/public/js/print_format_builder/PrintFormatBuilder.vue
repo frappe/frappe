@@ -555,7 +555,7 @@ function warn_before_unload(e) {
 		st.dirty.value ||
 		st.draft.saving_count.value > 0 ||
 		st.draft.save_failed.value ||
-		st.letterhead.value?._dirty
+		st.draft.letterhead_unsaved.value
 	)
 		e.preventDefault();
 }
