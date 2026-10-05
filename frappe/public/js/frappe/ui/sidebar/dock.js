@@ -264,10 +264,10 @@ frappe.ui.Dock = class Dock {
 		return { icon: this.entry_icon(icon, label), title: label };
 	}
 
-	entry_icon(icon, label) {
+	entry_icon(icon, label, letter_size = "sm") {
 		return icon
 			? frappe.utils.icon(icon, "md")
-			: frappe.utils.desktop_icon(label, "gray", "sm");
+			: frappe.utils.desktop_icon(label, "gray", letter_size);
 	}
 
 	name_tile($el, label) {
@@ -296,13 +296,15 @@ frappe.ui.Dock = class Dock {
 	make_dock_item(entry) {
 		let label = entry.label;
 		if (!label) return null;
-		let icon = this.entry_icon(entry.icon, label);
-
 		let is_active = this.sidebar.is_active_entry(entry);
 		// By name, since the sprites load after the page and the symbol may not exist yet.
 		let is_duotone = !!entry.icon && entry.icon.endsWith("-duotone");
+		// Duotone glyphs are drawn on a 24px grid.
+		let icon = is_duotone
+			? frappe.utils.icon(entry.icon, "lg")
+			: this.entry_icon(entry.icon, label, "md");
 		let $item = $(`<button
-			class="dock-item ${is_active ? "active" : ""} ${is_duotone ? "dock-item--duotone" : ""}"
+			class="dock-item ${is_active ? "active" : ""}"
 			aria-label="${frappe.utils.escape_html(label)}"
 			${is_active ? 'aria-current="page"' : ""}
 		>
