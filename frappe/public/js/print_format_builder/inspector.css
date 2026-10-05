@@ -182,7 +182,7 @@
 	flex: 1;
 	height: 100%;
 	font-size: 13px;
-	font-family: var(--monospace-font-family, monospace);
+	font-family: var(--font-family-monospace);
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
 }
