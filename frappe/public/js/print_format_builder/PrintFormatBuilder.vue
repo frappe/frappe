@@ -694,7 +694,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	padding: 6px 12px;
 	font-size: var(--text-sm);
 	background: var(--surface-amber-2);
-	color: var(--ink-amber-8);
+	color: var(--ink-amber-9);
 }
 
 .pfb-viewing-restore {
