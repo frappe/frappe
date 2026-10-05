@@ -32,7 +32,7 @@ export function useDraftSave({
 	const last_error = ref("");
 	const has_draft = ref(false);
 	const save_status = computed(() =>
-		save_failed.value || letterhead_failed.value
+		save_failed.value || (letterhead_failed.value && letterhead.value?._dirty)
 			? "failed"
 			: saving_count.value > 0
 			? "saving"
@@ -103,8 +103,8 @@ export function useDraftSave({
 	function push_letterhead() {
 		// one at a time — the manual save and the autosave can both ask, and the
 		// second would carry the timestamp the first is about to move
+		const doc = letterhead.value;
 		const run = () => {
-			const doc = letterhead.value;
 			const snapshot = () =>
 				Object.fromEntries(LETTERHEAD_EDITED_FIELDS.map((key) => [key, doc[key]]));
 			let sent = snapshot();
@@ -142,12 +142,21 @@ export function useDraftSave({
 		saving_count.value++;
 		return push_letterhead()
 			.catch((xhr) => {
-				if (!letterhead_failed.value) report_failure(xhr);
+				if (!letterhead_failed.value) {
+					report_failure(
+						xhr,
+						__("The latest changes to this letter head are not saved.")
+					);
+				}
 				letterhead_failed.value = true;
 			})
 			.finally(() => saving_count.value--);
 	}
 	const autosave_letterhead = frappe.utils.debounce(autosave_letterhead_now, 3000);
+	function flush_letterhead() {
+		autosave_letterhead.cancel();
+		return autosave_letterhead_now();
+	}
 	function server_message(xhr) {
 		let r = xhr?.responseJSON;
 		if (!r && xhr?.responseText) {
@@ -167,10 +176,12 @@ export function useDraftSave({
 		}
 		return r?.exc_type || xhr?.statusText || "";
 	}
-	function report_failure(xhr) {
+	function report_failure(
+		xhr,
+		message = __("The latest changes to this print format are not saved.")
+	) {
 		last_error.value = server_message(xhr);
 		if (save_failed.value) return;
-		const message = __("The latest changes to this print format are not saved.");
 		// a 500 already opened the framework's Server Error dialog
 		if (xhr?.status === 500) {
 			frappe.show_alert({ message, indicator: "red" });
@@ -270,6 +281,7 @@ export function useDraftSave({
 		save_changes,
 		save_letterhead,
 		autosave_letterhead,
+		flush_letterhead,
 		autosave,
 		resume_autosave,
 		flush,
