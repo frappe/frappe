@@ -517,6 +517,10 @@ function observe_canvas() {
 	const page = canvas_ref.value.querySelector(".print-format-main");
 	if (page) canvas_resize.observe(page);
 }
+watch(
+	() => $store.needs_setup.value,
+	(needs_setup) => !needs_setup && nextTick(observe_canvas)
+);
 
 const is_printable_docstatus = (docstatus) =>
 	frappe.model.can_print_docstatus($store.meta.value?.name, docstatus);
