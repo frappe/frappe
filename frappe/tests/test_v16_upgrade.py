@@ -771,6 +771,29 @@ class TestCustomSidebars(IntegrationTestCase):
 		archive(cls.CLASH, items, module=cls.HOST)
 		archive(cls.REUSED, items, module=cls.HOST)
 		archive("??", items, module=cls.HOST)
+
+		# what a conversion that put a site's sidebar into an app module would have left behind
+		old_base = frappe.new_doc("Sidebar")
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": "Test V16 Old Base Module", "app_name": "frappe"}
+			).insert()
+		old_base.update(
+			{
+				"module": "Test V16 Old Base Module",
+				"title": "V16 Old Base",
+				"merged_from": json.dumps(["V16 Old Base"]),
+			}
+		)
+		old_base.append(
+			"items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"}
+		)
+		frappe.flags.in_patch, in_patch = True, frappe.flags.get("in_patch")
+		try:
+			old_base.insert(ignore_permissions=True)
+		finally:
+			frappe.flags.in_patch = in_patch
+		archive("V16 Old Base", items, module=cls.HOST)
 		archive(f"{cls.SHOWROOM}-{cls.USER}", items[:1], module=cls.HOST, for_user=cls.USER)
 
 		cls.output = run_conversion()
@@ -800,6 +823,10 @@ class TestCustomSidebars(IntegrationTestCase):
 	def test_a_title_taken_by_another_module_is_suffixed(self):
 		self.assertEqual(frappe.db.get_value("Module Def", f"{self.CLASH} (Custom)", "custom"), 1)
 		self.assertEqual(frappe.get_all("Sidebar", filters={"module": self.CLASH}), [])
+
+	def test_a_base_in_an_app_module_is_not_mistaken_for_its_custom_module(self):
+		# the old base still answers to the title's URL, so the module takes the suffix
+		self.assertEqual(frappe.db.get_value("Module Def", "V16 Old Base (Custom)", "custom"), 1)
 
 	def test_a_title_with_nothing_routable_still_gets_a_module(self):
 		self.assertEqual(frappe.db.get_value("Module Def", "Custom Sidebar", "custom"), 1)
@@ -1022,14 +1049,14 @@ class TestASitesEditsToAnAppSidebar(IntegrationTestCase):
 		self.assertEqual(frappe.db.count("Custom Sidebar"), before)
 
 
-class TestEditsAcrossOneModulesSidebars(IntegrationTestCase):
-	"""A module can hold several app sidebars, and its site layer applies to all of them. v16's
-	`Invoicing` is a sidebar of its own under Accounts, so its edits are compared with it, not with
-	the sidebar named after the module."""
+class TestFoldedSidebarsShareOneLayer(IntegrationTestCase):
+	"""Several v16 sidebars can land on one module's sidebar: erpnext folded Banking, Budget and
+	Taxes into Accounts. Their edits share the module's layer, and a reorder in one of them does
+	not reorder what the others brought."""
 
-	MODULE = "Test V16 Shared Module"
-	OTHER = "V16 Shared Other"
-	USER = "test-v16-shared@example.com"
+	MODULE = "Test V16 Folded Module"
+	FOLDED = "V16 Folded In"
+	USER = "test-v16-folded@example.com"
 
 	@classmethod
 	def setUpClass(cls):
@@ -1045,9 +1072,10 @@ class TestEditsAcrossOneModulesSidebars(IntegrationTestCase):
 			clear_computed_base_cache(cls.MODULE)
 
 		frappe.get_doc(
-			{"doctype": "User", "email": cls.USER, "first_name": "V16 Shared", "send_welcome_email": 0}
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Folded", "send_welcome_email": 0}
 		).insert(ignore_if_duplicate=True).add_roles("Desk User")
 
+		# the module's one sidebar now, holding what the folded one used to
 		app_sidebar(
 			cls.MODULE,
 			cls.MODULE,
@@ -1056,17 +1084,17 @@ class TestEditsAcrossOneModulesSidebars(IntegrationTestCase):
 				link("ToDo", "Todos"),
 				link("Event", "Events"),
 				link("Contact", "Contacts"),
+				link("File", "Files"),
 			],
 		)
-		app_sidebar(cls.MODULE, cls.OTHER, [link("File", "Files"), link("User", "Users")])
 
 		cls.files = [
 			v16_file(cls.MODULE, [link("ToDo", "Todos"), link("Event", "Events"), link("Note", "Notes")]),
-			v16_file(cls.OTHER, [link("File", "Files"), link("User", "Users")]),
+			v16_file(cls.FOLDED, [link("File", "Files")]),
 		]
 		cls.addClassCleanup(lambda: [os.remove(path) for path in cls.files if os.path.exists(path)])
 
-		# the module's own sidebar reordered, and the other one only relabelled
+		# the module's own sidebar reordered, and the folded one only relabelled
 		archive(
 			cls.MODULE,
 			[link("Event", "Events"), link("ToDo", "Todos"), link("Note", "Notes")],
@@ -1074,13 +1102,7 @@ class TestEditsAcrossOneModulesSidebars(IntegrationTestCase):
 			standard=1,
 			app="frappe",
 		)
-		archive(
-			cls.OTHER,
-			[link("File", "Shared Files"), link("User", "Users")],
-			module=cls.MODULE,
-			standard=1,
-			app="frappe",
-		)
+		archive(cls.FOLDED, [link("File", "Shared Files")], module=cls.MODULE, standard=1, app="frappe")
 
 		run_conversion()
 
@@ -1089,13 +1111,64 @@ class TestEditsAcrossOneModulesSidebars(IntegrationTestCase):
 		frappe.clear_cache()
 		super().tearDownClass()
 
-	def seen(self, shell: str) -> list[str]:
-		return [item["label"] for item in resolve_sidebar(shell, self.USER).items]
-
-	def test_the_other_sidebars_edit_is_kept(self):
-		self.assertEqual(self.seen(self.OTHER), ["Shared Files", "Users"])
-
-	def test_the_reordered_sidebar_keeps_the_sites_order(self):
+	def test_both_sidebars_edits_are_kept_and_only_the_reorder_moves(self):
 		"""The reordered items sit together where the first of them stands in the app's order, and
-		what the app added since keeps its place after them."""
-		self.assertEqual(self.seen(self.MODULE), ["Events", "Todos", "Notes", "Contacts"])
+		the rest keep the app's order, the folded sidebar's relabel included."""
+		self.assertEqual(
+			[item["label"] for item in resolve_sidebar(self.MODULE, self.USER).items],
+			["Events", "Todos", "Notes", "Contacts", "Shared Files"],
+		)
+
+
+class TestAModuleWithSeveralSidebars(IntegrationTestCase):
+	"""A layer belongs to a module and applies to every sidebar in it, so one sidebar's edits
+	cannot be kept apart from another's. They stay in the archive, and the output says so."""
+
+	MODULE = "Test V16 Shared Module"
+	OTHER = "V16 Shared Other"
+
+	@classmethod
+	def setUpClass(cls):
+		import os
+
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": cls.MODULE, "app_name": "frappe"}
+			).insert()
+			clear_computed_base_cache(cls.MODULE)
+
+		app_sidebar(cls.MODULE, cls.MODULE, [link("Note", "Notes"), link("File", "Files")])
+		app_sidebar(cls.MODULE, cls.OTHER, [link("File", "Files"), link("User", "Users")])
+
+		cls.files = [v16_file(cls.OTHER, [link("File", "Files"), link("User", "Users")])]
+		cls.addClassCleanup(lambda: [os.remove(path) for path in cls.files if os.path.exists(path)])
+
+		archive(
+			cls.OTHER,
+			[link("File", "Shared Files"), link("User", "Users")],
+			module=cls.MODULE,
+			standard=1,
+			app="frappe",
+		)
+
+		cls.output = run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def test_the_edit_does_not_reach_the_other_sidebar(self):
+		self.assertFalse(
+			frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": ["in", ["", None]]})
+		)
+		labels = [item["label"] for item in resolve_sidebar(self.MODULE, "Administrator").items]
+		self.assertEqual(labels, ["Notes", "Files"])
+
+	def test_the_output_names_what_was_left(self):
+		self.assertTrue(
+			[line for line in self.output if self.OTHER in line and "archive" in line], self.output
+		)
