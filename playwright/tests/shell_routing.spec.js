@@ -348,6 +348,7 @@ test.describe("Desk URL shell segment", () => {
 		// module's shell. ToDo opens in Build when nothing names one, so dropping the shell from
 		// the link would land it there instead of in the module the icon stands for.
 		await page.goto("/desk/desktop");
+		await on_route(page, ["desktop"]);
 		await page.evaluate(() => {
 			const link = document.createElement("a");
 			link.href = "/desk/users/todo";
