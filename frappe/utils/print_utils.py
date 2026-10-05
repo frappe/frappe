@@ -187,7 +187,7 @@ def attach_print(
 	) in ("chrome", "Typst")
 
 	try:
-		with print_language(lang or frappe.local.lang):
+		with print_language(lang):
 			content = ""
 			if cint(print_settings.send_print_as_pdf):
 				ext = ".pdf"

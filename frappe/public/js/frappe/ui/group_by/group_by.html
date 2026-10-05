@@ -6,7 +6,7 @@
 	</div>
 	<div class="list_groupby row">
 		<div class="col-sm-8 form-group">
-			<select class="group-by form-control input-xs">
+			<select class="group-by form-control input-xs" aria-label="{{ __("Group By") }}">
 				<option value="" disabled selected>{{ __("Select Group By...") }}</option>
 				{% for (var parent_doctype in group_by_conditions) { %}
 					{% for (var val of group_by_conditions[parent_doctype]) { %}
@@ -24,14 +24,14 @@
 			</select>
 		</div>
 		<div class="col-sm-3 form-group">
-			<select class="aggregate-function form-control input-xs">
+			<select class="aggregate-function form-control input-xs" aria-label="{{ __("Aggregate Function") }}">
 				{% for condition in aggregate_function_conditions %}
 				<option value="{{condition.name}}">{{ __(condition.label) }}</option>
 				{% endfor %}
 			</select>
 		</div>
 		<div class="col-sm-4 col-xs-12" style="display: none">
-			<select class="aggregate-on form-control input-xs">
+			<select class="aggregate-on form-control input-xs" aria-label="{{ __("Aggregate On") }}">
 				<option value="" disabled selected>{{ __("Select Field...") }}</option>
 			</select>
 		</div>

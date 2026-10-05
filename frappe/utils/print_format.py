@@ -9,8 +9,10 @@ from urllib.parse import urlparse
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.desk.query_report import get_permitted_report_print_format
 from frappe.model.document import Document
 from frappe.translate import print_language
+from frappe.utils import cint
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
 
@@ -480,7 +482,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 	letter_head = frappe._dict(
 		frappe.db.get_value(
 			"Letter Head",
-			letterhead or {"is_default": 1},
+			letterhead or {"letter_head_for": "Report", "is_default": 1},
 			["content", "footer", "header_script", "footer_script", "custom_css"],
 			as_dict=True,
 		)
@@ -510,6 +512,53 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		rendered["footer"] = footer
 
 	return rendered
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def render_report_jinja(
+	print_format: str,
+	data: str | list | None = None,
+	columns: str | list | None = None,
+	filters: str | dict | None = None,
+	letterhead: str | None = None,
+	no_letterhead: bool | int = 0,
+) -> dict:
+	"""Render a Report print format authored in Jinja, using client-supplied data."""
+	pf = get_permitted_report_print_format(print_format)
+
+	if pf.print_format_type != "Jinja":
+		frappe.throw(_("Print Format {0} is not a Jinja format").format(print_format))
+	if not pf.html:
+		frappe.throw(_("Print Format {0} has no HTML body").format(print_format))
+
+	filters = frappe.parse_json(filters or {})
+	rows = frappe.parse_json(data or [])
+	cols = frappe.parse_json(columns or [])
+
+	rows = [frappe._dict(row) if isinstance(row, dict) else row for row in rows]
+
+	context = {
+		"report": frappe._dict(name=pf.report, report_name=pf.report),
+		"filters": filters,
+		"columns": cols,
+		"data": rows,
+		"no_letterhead": cint(no_letterhead),
+		"print_settings": frappe.get_single("Print Settings").as_dict(),
+	}
+
+	html = render_template(  # nosemgrep
+		pf.html, context, safe_render=True
+	)
+	body = f"<style>{pf.css or ''}</style>{html}"
+
+	letter_head = (
+		None
+		if cint(no_letterhead)
+		else (render_letterhead_for_print(letterhead=letterhead, doc=filters) or None)
+	)
+
+	return {"body": body, "letter_head": letter_head}
 
 
 @frappe.whitelist()

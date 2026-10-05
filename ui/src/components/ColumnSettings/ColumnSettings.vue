@@ -30,6 +30,7 @@
 				:label="hideLabel ? undefined : 'Columns'"
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
+				aria-label="Columns"
 			/>
 		</template>
 	</Combobox>
@@ -41,6 +42,7 @@
 				:label="hideLabel ? undefined : 'Columns'"
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
+				aria-label="Columns"
 				@click="confirmingReset = false"
 			/>
 		</template>
@@ -82,7 +84,12 @@
 								@keydown.esc.prevent="cancelEdit"
 								@blur="commitEdit"
 							/>
-							<Button variant="ghost" icon="lucide-x" @click="removeColumn(i)" />
+							<Button
+								variant="ghost"
+								icon="lucide-x"
+								aria-label="Remove column"
+								@click="removeColumn(i)"
+							/>
 						</div>
 					</template>
 				</Draggable>
