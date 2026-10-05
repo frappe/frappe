@@ -320,9 +320,10 @@ export function getStore(print_format_name) {
 		}
 	}
 	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
-		letterhead_seq++;
+		const seq = ++letterhead_seq;
 		flush_letterhead();
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
+			if (seq !== letterhead_seq) return;
 			letterhead.value = doc;
 			// persist the letter head name inside format_data (layout) so it
 			// survives save → reload without needing a separate doctype field
