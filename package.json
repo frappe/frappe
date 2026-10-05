@@ -92,12 +92,8 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
     "utf-8-validate": "^6.0.3"
-<<<<<<< HEAD
-=======
   },
   "resolutions": {
-    "esbuild-plugin-vue3/esbuild": "^0.28.0",
     "sortablejs": "^1.15.7"
->>>>>>> 4531beb (chore(deps): bump jquery, moment and sortablejs)
   }
 }
