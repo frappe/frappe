@@ -22,7 +22,13 @@ from flow_harness.events import (
 )
 from flow_harness.model.base import Model
 from flow_harness.model.catalog import model_supports_images
-from flow_harness.model.content import NON_VISION_IMAGE_PLACEHOLDER, resolve_tool_images, resolve_user_content
+from flow_harness.model.content import (
+	FILE_PLACEHOLDER,
+	NON_VISION_IMAGE_PLACEHOLDER,
+	attachment_summary,
+	resolve_tool_images,
+	resolve_user_content,
+)
 from flow_harness.model.litellm import _TOOL_IMAGE_PREFACE, LiteLLMModel, _openai_messages
 from flow_harness.model.mock import MockModel
 from flow_harness.model.providers.codex import CodexModel, _responses_input
@@ -140,6 +146,30 @@ def test_attachment_store_add_file_rejects_empty_oversized_and_binary(tmp_path):
 		assert "not a UTF-8 text file" in str(error)
 	else:
 		raise AssertionError("non-UTF8 attachment was accepted")
+
+
+def test_a_file_reaches_the_model_as_a_note_with_its_path():
+	attachment = AttachmentContent(
+		id="a" * 24,
+		name="clip.mp4",
+		mime_type="video/mp4",
+		size=3 * 1024 * 1024,
+		kind="file",
+		path="/data/clip.mp4",
+	)
+	message = UserMessage(content=[TextContent(text="what happens here?"), attachment])
+
+	def unread(_: str) -> bytes:
+		raise AssertionError("a file's bytes were read")
+
+	text, images = resolve_user_content(message, resolve_attachment=unread)
+
+	assert images == []
+	assert text == (
+		"what happens here?\n[Attached file: clip.mp4 (video/mp4, 3.0 MB)]\n"
+		+ FILE_PLACEHOLDER.format(path="/data/clip.mp4")
+	)
+	assert attachment_summary(message) == text  # compaction keeps the path
 
 
 def test_images_resolve_when_capability_is_unknown():

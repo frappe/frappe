@@ -390,3 +390,17 @@ def test_tool_result_images_count_toward_the_estimate():
 	with_image = plain.model_copy(update={"attachments": [image]})
 
 	assert estimate_message_tokens(with_image) == estimate_message_tokens(plain) + ESTIMATED_IMAGE_TOKENS
+
+
+def test_a_file_counts_only_its_note():
+	video = AttachmentContent(
+		id="a" * 24,
+		name="clip.mp4",
+		mime_type="video/mp4",
+		size=50_000_000,
+		kind="file",
+		path="/data/clip.mp4",
+	)
+	message = UserMessage(content=[TextContent(text="what happens here?"), video])
+
+	assert estimate_message_tokens(message) < 100
