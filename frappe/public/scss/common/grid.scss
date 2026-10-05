@@ -572,7 +572,9 @@
 	overflow: hidden;
 	height: 0;
 	opacity: 0;
-	z-index: 1021;
+	// Over the desk's fixed chrome (the dock, the sidebar's edge, scroll-to-top: 1020-1030) and
+	// under a dialog's backdrop (1040), so a dialog opened from the row still covers it.
+	z-index: 1039;
 	border-radius: var(--radius-md);
 	@include base-grid();
 
@@ -603,7 +605,7 @@
 }
 
 #freeze.grid-form {
-	z-index: 1020;
+	z-index: 1038;
 	background-color: var(--gray-800);
 
 	.freeze-message-container {
