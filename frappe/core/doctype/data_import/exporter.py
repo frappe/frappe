@@ -40,6 +40,9 @@ class Exporter:
 		# this will contain the csv content
 		self.csv_array = []
 
+		# tables an import provider adds that are not child tables of the DocType (e.g. Contact)
+		self.provider_tables = self.get_provider_tables()
+
 		# fields that get exported
 		self.exportable_fields = self.get_all_exportable_fields()
 		self.fields = self.serialize_exportable_fields()
@@ -50,6 +53,17 @@ class Exporter:
 		else:
 			self.data = []
 		self.add_data()
+
+	def get_provider_tables(self):
+		from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+		provider = get_import_provider(self.doctype)
+		schema = provider.get_import_fields() if provider else None
+		return {
+			table["fieldname"]: table
+			for table in (schema or {}).get("child_tables") or []
+			if not self.meta.get_field(table["fieldname"])
+		}
 
 	def get_all_exportable_fields(self):
 		permitted_levels = set(self.meta.get_permlevel_access("read"))
@@ -74,6 +88,14 @@ class Exporter:
 				child_doctype = child_df.options
 				exportable_fields[key] = self.get_exportable_fields(child_doctype, fieldnames)
 
+			elif key in self.provider_tables:
+				exportable_fields[key] = [
+					frappe._dict(df)
+					for df in self.provider_tables[key]["fields"]
+					if df["fieldname"] in fieldnames
+					and df.get("fieldtype") not in (display_fieldtypes + no_value_fields)
+				]
+
 		return exportable_fields
 
 	def serialize_exportable_fields(self):
@@ -88,7 +110,9 @@ class Exporter:
 
 				df.is_child_table_field = key != self.doctype
 				if df.is_child_table_field:
-					df.child_table_df = self.meta.get_field(key)
+					df.child_table_df = self.meta.get_field(key) or frappe._dict(
+						fieldname=key, label=self.provider_tables[key].get("label")
+					)
 				fields.append(df)
 		return fields
 
@@ -195,7 +219,8 @@ class Exporter:
 
 		child_data = {}
 		for key in self.exportable_fields:
-			if key == self.doctype:
+			# provider tables are not stored on the record, so their columns stay blank
+			if key == self.doctype or key in self.provider_tables:
 				continue
 			child_table_df = self.meta.get_field(key)
 			child_table_doctype = child_table_df.options
