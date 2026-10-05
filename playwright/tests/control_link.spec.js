@@ -33,6 +33,7 @@ test.describe("Control Link", () => {
 		await admin.set_value("User", TEST_USER, { language: "en" });
 		await admin.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link", true);
 		await admin.remove_doc("Property Setter", "ToDo-assigned_by-default", true);
+		await admin.remove_doc("Property Setter", "ToDo-main-show_preview_popup", true);
 	});
 
 	async function get_dialog_with_link(desk) {
@@ -382,5 +383,46 @@ test.describe("Control Link", () => {
 			return query_frm === frm;
 		});
 		expect(form_passed).toBe(true);
+	});
+
+	test("previews the doc the field holds after its value is set in code", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const [other_todo] = await api.create_records({
+			doctype: "ToDo",
+			description: `another test todo for link preview ${todo_stamp}`,
+		});
+		created_todos.push(other_todo);
+		await api.insert_doc(
+			"Property Setter",
+			{
+				doctype: "Property Setter",
+				doc_type: "ToDo",
+				property: "show_preview_popup",
+				property_type: "Check",
+				doctype_or_field: "DocType",
+				value: "1",
+			},
+			true
+		);
+		// link_preview_doctypes comes with the boot
+		await page.reload();
+		await desk.ready();
+
+		const dialog = await get_dialog_with_link(desk);
+		const input = page.locator(".frappe-control[data-fieldname=link] input");
+		const preview = page.locator(".link-preview-popover");
+		await page.evaluate(() => document.activeElement?.blur());
+
+		// a form reused for another doc sets its fields like this: no "change" event
+		for (const name of [todo, other_todo]) {
+			await dialog.evaluate((d, name) => d.set_value("link", name), name);
+			await input.hover();
+			await expect(preview).toContainText(name);
+			await desk.get_open_dialog().locator(".modal-title").hover();
+			await expect(preview).toHaveCount(0);
+		}
 	});
 });

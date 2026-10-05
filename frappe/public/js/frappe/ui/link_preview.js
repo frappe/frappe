@@ -45,11 +45,9 @@ frappe.ui.LinkPreview = class {
 		if (!(frappe.boot.link_preview_doctypes || []).includes(this.doctype)) {
 			return;
 		}
-		//If control field value is changed, new popover has to be created
-		this.element.on("change", () => {
-			this.new_popover = true;
-		});
-		if (!this.popover || this.new_popover) {
+
+		const key = `${this.doctype}::${this.name}`;
+		if (!this.popover || this.element.data("link-preview-key") !== key) {
 			this.data_timeout = setTimeout(() => {
 				this.create_popover(e);
 			}, 100);
@@ -64,7 +62,6 @@ frappe.ui.LinkPreview = class {
 	}
 
 	create_popover(e) {
-		this.new_popover = false;
 		if (this.element.is(":focus")) {
 			return;
 		}
@@ -82,6 +79,7 @@ frappe.ui.LinkPreview = class {
 					} else {
 						this.init_preview_popover(preview_data);
 					}
+					this.element.data("link-preview-key", `${this.doctype}::${this.name}`);
 					this.show_popover(e);
 				}, 1000);
 			}
@@ -140,7 +138,7 @@ frappe.ui.LinkPreview = class {
 				docname: this.name,
 			},
 			"GET",
-			{ cache: true }
+			{ cache: true },
 		);
 	}
 
@@ -215,7 +213,7 @@ frappe.ui.LinkPreview = class {
 		let avatar_html = frappe.get_avatar(
 			"avatar-medium",
 			preview_data.preview_title,
-			preview_data.preview_image
+			preview_data.preview_image,
 		);
 
 		return `<div class="preview-image">
