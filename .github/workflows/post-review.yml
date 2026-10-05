@@ -60,7 +60,8 @@ jobs:
               fi
             fi
           fi
-          jq -c '(.replies // [])[] | {body, in_reply_to}' review.json | while read -r reply; do
+          gh api --paginate "repos/${{ github.repository }}/pulls/$PR/comments" --jq '.[] | select(.user.login == "frappe-pr-bot" and .in_reply_to_id != null) | {body, in_reply_to: .in_reply_to_id}' > posted-replies.json
+          jq -c --slurpfile posted posted-replies.json '(.replies // [])[] | {body, in_reply_to} | select(. as $reply | $posted | any(. == $reply) | not)' review.json | while read -r reply; do
             printf '%s' "$reply" > reply.json
             gh api -X POST "repos/${{ github.repository }}/pulls/$PR/comments" --input reply.json --jq '.html_url'
           done
