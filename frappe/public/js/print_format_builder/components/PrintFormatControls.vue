@@ -630,7 +630,9 @@ function field_label(f) {
 			(f.source && frappe.meta.get_label(meta.value.name, f.source)) || __("Custom Table")
 		);
 	}
-	return known_fieldnames.value.has(f.fieldname) ? f.fieldname : __(f.fieldtype || "Field");
+	return known_fieldnames.value.has(f.fieldname) || field_broken(f)
+		? f.fieldname
+		: __(f.fieldtype || "Field");
 }
 
 let known_fieldnames = computed(() => {
