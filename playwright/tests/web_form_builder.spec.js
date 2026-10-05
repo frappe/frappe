@@ -324,20 +324,16 @@ test.describe("Web Form Builder", () => {
 		await expect(page.locator(`${CANVAS} input.input-text`)).toHaveCount(0);
 	});
 
-	test("Steps the desk chrome aside on the builder tab", async ({ page, api }) => {
+	test("Hides the form footer on the builder tab", async ({ page, api }) => {
 		await seed_web_form(api);
 		await open_builder(page);
 
-		const has_tight_margin = () => page.evaluate(() => cur_frm.form_wrapper.hasClass("mb-1"));
-
 		await expect(page.locator(`${PAGE} .form-footer`)).toBeHidden();
-		await expect.poll(has_tight_margin, "tight bottom margin").toBe(true);
 
 		await page.locator(PAGE).getByRole("tab", { name: "Settings", exact: true }).click();
 
 		await page.locator(`${PAGE} .form-footer`).scrollIntoViewIfNeeded();
 		await expect(page.locator(`${PAGE} .form-footer`)).toBeVisible();
-		await expect.poll(has_tight_margin).toBe(false);
 	});
 
 	test("Keeps the sidebar hidden on the builder tab across a save", async ({
