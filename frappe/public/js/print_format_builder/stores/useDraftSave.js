@@ -126,6 +126,7 @@ export function useDraftSave({
 					doc.modified = r.message.modified;
 					// an edit made while the request was in flight is still unsaved
 					doc._dirty = LETTERHEAD_EDITED_FIELDS.some((key) => doc[key] !== sent[key]);
+					letterhead_failed.value = false;
 					return r;
 				});
 		};
@@ -140,7 +141,6 @@ export function useDraftSave({
 		if (!letterhead.value?._dirty) return Promise.resolve();
 		saving_count.value++;
 		return push_letterhead()
-			.then(() => (letterhead_failed.value = false))
 			.catch((xhr) => {
 				if (!letterhead_failed.value) report_failure(xhr);
 				letterhead_failed.value = true;
