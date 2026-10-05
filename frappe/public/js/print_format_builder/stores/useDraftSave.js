@@ -28,10 +28,11 @@ export function useDraftSave({
 	// count, not a flag — autosave and a manual save can overlap
 	const saving_count = ref(0);
 	const save_failed = ref(false);
+	const letterhead_failed = ref(false);
 	const last_error = ref("");
 	const has_draft = ref(false);
 	const save_status = computed(() =>
-		save_failed.value
+		save_failed.value || letterhead_failed.value
 			? "failed"
 			: saving_count.value > 0
 			? "saving"
@@ -138,13 +139,10 @@ export function useDraftSave({
 		if (!letterhead.value?._dirty) return Promise.resolve();
 		saving_count.value++;
 		return push_letterhead()
-			.then(() => {
-				save_failed.value = false;
-				last_error.value = "";
-			})
+			.then(() => (letterhead_failed.value = false))
 			.catch((xhr) => {
-				save_failed.value = true;
-				report_failure(xhr);
+				if (!letterhead_failed.value) report_failure(xhr);
+				letterhead_failed.value = true;
 			})
 			.finally(() => saving_count.value--);
 	}

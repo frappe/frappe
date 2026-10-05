@@ -85,7 +85,11 @@ class PrintFormatBuilder {
 
 	has_unsaved_changes() {
 		const draft = this.$component?.$store.draft;
-		return !!draft && (this.$component.$store.dirty.value || draft.save_failed.value);
+		const store = this.$component?.$store;
+		return (
+			!!draft &&
+			(store.dirty.value || draft.save_failed.value || !!store.letterhead.value?._dirty)
+		);
 	}
 
 	leave(navigate) {
