@@ -304,7 +304,7 @@ frappe.ui.Dock = class Dock {
 			? frappe.utils.icon(entry.icon, "lg")
 			: this.entry_icon(entry.icon, label, "md");
 		let $item = $(`<button
-			class="dock-item ${is_active ? "active" : ""}"
+			class="dock-item ${is_active ? "active" : ""} ${is_duotone ? "dock-item--duotone" : ""}"
 			aria-label="${frappe.utils.escape_html(label)}"
 			${is_active ? 'aria-current="page"' : ""}
 		>
