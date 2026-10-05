@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from flow_harness.tools.builtins import BUILTIN_ALIASES, BUILTIN_TOOLS, bash, edit, read, write
+from flow_harness.tools.builtins import BUILTIN_TOOLS, bash, edit, read, write
 from flow_harness.tools.tool import ToolContext, ToolResult
 
 
@@ -14,10 +14,8 @@ def _ctx(tmp_path, **kw) -> ToolContext:
 
 def test_registry_keys():
 	assert set(BUILTIN_TOOLS) == {"bash", "read", "write", "edit", "subagent"}
-	assert set(BUILTIN_ALIASES) == {"read_file"}
 	assert BUILTIN_TOOLS["bash"].requires_confirmation is True
 	assert BUILTIN_TOOLS["read"].requires_confirmation is False
-	assert BUILTIN_ALIASES["read_file"].parameters == BUILTIN_TOOLS["read"].parameters
 
 
 async def test_write_then_read_roundtrip(tmp_path):

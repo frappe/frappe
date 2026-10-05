@@ -36,7 +36,6 @@ When Flow reaches a gated call, it saves `approval_required` and ends the run wi
 | --- | --- | --- | --- |
 | `bash` | `command`, `timeout?` | Yes | Runs in `cwd`, combines output, records exit code, and kills its process group on timeout or abort. |
 | `read` | `path`, `offset?`, `limit?` | No | Reads text with 1-indexed paging. |
-| `read_file` | `path`, `offset?`, `limit?` | No | Alias for `read`, for clients that already have a tool named `read`. Selectable by name, not listed by `GET /tools`. |
 | `write` | `path`, `content` | Yes | Creates parent directories and overwrites the file. |
 | `edit` | `path`, `edits` | Yes | Applies non-overlapping exact replacements. Every old value must appear exactly once. |
 | `subagent` | `task`, `description`, `agent?`, `subagent_id?` | No | Runs a sub-agent inside the session and returns its final answer, or continues an earlier one. See [Sub-agents](#sub-agents). |
