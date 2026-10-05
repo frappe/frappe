@@ -72,9 +72,12 @@ export function useTreeNavigation({ layout, letterhead, selection, scroll_target
 			select_letterhead({ footer: node.section === layout.value.footer });
 		else select_section(node.section);
 		scroll_target.value = node.field || node.section;
-		nextTick(() =>
-			document.querySelector(".pfb-tree-row.active")?.scrollIntoView({ block: "nearest" })
-		);
+		const tree_focused = !!document.activeElement?.closest(".pfb-tree");
+		nextTick(() => {
+			const row = document.querySelector(".pfb-tree-row.active");
+			row?.scrollIntoView({ block: "nearest" });
+			if (tree_focused) row?.focus({ preventScroll: true });
+		});
 	}
 
 	function navigate(key) {
