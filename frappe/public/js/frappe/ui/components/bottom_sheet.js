@@ -33,6 +33,7 @@ const EXIT_MS = 200; // keep in sync with es-sheet-out in bottom_sheet.css
 const CLOSE_SHARE = 0.25;
 const FLICK = 0.5; // px per ms
 const EXPAND_DRAG = 40;
+const SETTLE_MS = 250; // keep in sync with the height transition in bottom_sheet.css
 
 // page-level layers that can be in <body> before a sheet opens and still take
 // focus from it; anything else added to <body> after it opened is allowed too
@@ -87,9 +88,9 @@ function slot_parts(content, sheet) {
  * to close, or between snap points. A follow-up choice is a step pushed
  * into the same sheet (Back appears), never a second sheet.
  *
- * Not part of the desk bundle: load it before the first use.
+ * Not part of the desk bundles: load its script and styles before the first use.
  * @example
- * await frappe.require("bottom_sheet.bundle.js");
+ * await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
  * new frappe.ui.BottomSheet({
  *     title: __("Sort by"),
  *     options: [{ label: __("Created On"), selected: true, onclick: () => sort("creation") }],
@@ -459,7 +460,8 @@ frappe.ui.BottomSheet = class BottomSheet {
 	wait_for(el, promise) {
 		el.setAttribute("aria-busy", "true");
 		if (el.tagName === "BUTTON") el.disabled = true;
-		return promise.finally(() => {
+		// adopted, so a jQuery promise (frappe.call) works too: it has no finally
+		return Promise.resolve(promise).finally(() => {
 			el.removeAttribute("aria-busy");
 			if (el.tagName === "BUTTON") el.disabled = el.hasAttribute("data-disabled");
 		});
@@ -592,8 +594,8 @@ frappe.ui.BottomSheet = class BottomSheet {
 			last_y: e.clientY,
 			last_t: e.timeStamp,
 			velocity: 0,
-			offset: 0,
 			height: this.panel.offsetHeight,
+			...this.drag_room(),
 		};
 		this.panel.setAttribute("data-dragging", "");
 		this.ondragmove = (event) => this.drag_move(event);
@@ -611,10 +613,24 @@ frappe.ui.BottomSheet = class BottomSheet {
 		drag.last_y = e.clientY;
 		drag.last_t = e.timeStamp;
 		const dy = e.clientY - drag.start_y;
-		// upward drags resist: the sheet only grows by snapping
-		drag.offset = dy > 0 ? dy : dy / 4;
-		this.panel.style.transform = `translateY(${drag.offset}px)`;
-		this.scrim.style.opacity = String(1 - Math.max(0, dy) / drag.height);
+		// the top edge follows the finger while the footer stays put: the sheet grows or
+		// shrinks between its heights, and slides down only past the smallest, to close
+		const grow = dy < 0 ? (drag.can_grow ? -dy : -dy / 4) : 0;
+		const shrink = dy > 0 ? Math.min(dy, drag.can_shrink) : 0;
+		const slide = dy > 0 ? dy - shrink : 0;
+		this.panel.style.height = `${drag.height + grow - shrink}px`;
+		this.panel.style.transform = slide ? `translateY(${slide}px)` : "";
+		this.scrim.style.opacity = String(1 - slide / drag.height);
+	}
+
+	// how far a drag may resize the sheet before it resists (up) or slides (down)
+	drag_room() {
+		const index = this.snap_points.indexOf(this.current_height);
+		const smallest = index > 0 ? (window.visualViewport?.height || window.innerHeight) / 2 : 0;
+		return {
+			can_grow: index > -1 && index < this.snap_points.length - 1,
+			can_shrink: smallest ? Math.max(0, this.panel.offsetHeight - smallest) : 0,
+		};
 	}
 
 	drag_release() {
@@ -629,7 +645,16 @@ frappe.ui.BottomSheet = class BottomSheet {
 		}
 		this.panel.style.transform = "";
 		this.scrim.style.opacity = "";
-		if (next && next !== "close") this.set_height(next);
+		if (next && next !== "close") {
+			this.panel.style.height = "";
+			this.set_height(next);
+			return;
+		}
+		// back to where it was: an auto height has no value to ease to, so ease to its pixels
+		this.panel.style.height = `${drag.height}px`;
+		setTimeout(() => {
+			if (!this.drag && this.panel) this.panel.style.height = "";
+		}, SETTLE_MS);
 	}
 
 	drag_end() {
