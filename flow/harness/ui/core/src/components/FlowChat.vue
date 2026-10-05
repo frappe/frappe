@@ -41,7 +41,6 @@
 		<Dialogs />
 		<SettingsDialog :groups="SETTINGS">
 			<template #general><SettingsGeneral /></template>
-			<template #appearance><SettingsAppearance /></template>
 			<template #presets><SettingsPresets /></template>
 			<template #skills><SettingsSkills /></template>
 		</SettingsDialog>
@@ -77,7 +76,6 @@ import Composer from "./Composer.vue"
 import EditorView from "./EditorView.vue"
 import MessageList from "./MessageList.vue"
 import SessionSidebar from "./SessionSidebar.vue"
-import SettingsAppearance from "./SettingsAppearance.vue"
 import SettingsDialog from "./SettingsDialog.vue"
 import SettingsGeneral from "./SettingsGeneral.vue"
 import SettingsPresets from "./SettingsPresets.vue"
@@ -90,7 +88,6 @@ const SETTINGS = [
 		label: "Settings",
 		tabs: [
 			{ id: "general", label: "General", icon: "sliders" },
-			{ id: "appearance", label: "Appearance", icon: "sun" },
 			{ id: "presets", label: "Agent presets", icon: "layers" },
 			{ id: "skills", label: "Skills", icon: "book-open" },
 		],
