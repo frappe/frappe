@@ -176,7 +176,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		// doctype+name), so a filter change means re-resolving the docname and replacing the entry.
 		// loadDoc is the entry's only writer; latestRequest keeps only the newest lookup's result.
 		let latestRequest = 0
-		async function loadDoc(currentFilters: Filters) {
+		async function loadDoc(currentFilters: Partial<Filters>) {
 			const request = ++latestRequest
 			const docname = await resolveDocnameFromFilters(resource, currentFilters)
 			if (request !== latestRequest) return
@@ -216,7 +216,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			filters = JSON.parse(filters)
 		}
 
-		const evaluatedFilters: Filters = {}
+		const evaluatedFilters: Partial<Filters> = {}
 
 		for (const key in filters) {
 			const raw = filters[key]
@@ -264,7 +264,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return evaluated
 	}
 
-	const resolveDocnameFromFilters = async (resource: DocumentResource, filters: Filters) => {
+	const resolveDocnameFromFilters = async (resource: DocumentResource, filters: Partial<Filters>) => {
 		// the common `name = {{ route.params.id }}` case resolves to the docname itself — no server lookup needed
 		const keys = Object.keys(filters)
 		if (keys.length === 1 && keys[0] === "name") {
