@@ -988,6 +988,19 @@ body.grid-col-resizing {
 	padding-top: 0;
 }
 
+.grid-import-type .form-group {
+	margin-bottom: 0;
+}
+
+.grid-import-step-panel .form-section > .section-body {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.grid-import-step-panel .form-group.frappe-control:last-child {
+	margin-bottom: 0;
+}
+
 .grid-import-dialog .grid-import-panel .grid-import-fill {
 	display: flex;
 	flex-direction: column;
@@ -1054,7 +1067,7 @@ body.grid-col-resizing {
 	min-height: 0;
 
 	table {
-		margin-bottom: 0;
+		margin: 0;
 		border-collapse: separate;
 		border-spacing: 0;
 	}

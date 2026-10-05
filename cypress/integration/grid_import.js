@@ -12,7 +12,7 @@ context("Child Table Data Import", () => {
 				first_name: "Grid Import",
 				new_password: Cypress.env("adminPassword") || "apple",
 				send_welcome_email: 0,
-				roles: [{ role: "Blogger" }],
+				roles: [{ role: "Desk User" }],
 			},
 			true
 		);
@@ -207,9 +207,7 @@ context("Child Table Data Import", () => {
 				);
 
 				active_step().should("contain", "Preview");
-				hint()
-					.should("contain", "1 of 1 rows ready to import.")
-					.and("not.contain", "note");
+				hint().should("contain", "0 rows will be updated.").and("not.contain", "note");
 				dialog().find("td.has-error").should("not.exist");
 				primary("Upload");
 				cy.contains("0 updated, 0 skipped, save to apply").should("exist");
@@ -285,11 +283,11 @@ context("Child Table Data Import", () => {
 		dialog().find(".grid-import-preview-table tr[data-row]").should("have.length", 1);
 	});
 
-	it("counts rows with notes in the hint", () => {
+	it("marks rows with notes", () => {
 		open_import();
 		upload(["9876500070,0", "9876500071,0,extra"]);
 
-		hint().should("contain", "1 row has a note");
+		hint().should("not.contain", "note");
 		dialog().find(".grid-import-preview-row .indicator").should("have.length", 1);
 	});
 
@@ -304,16 +302,15 @@ context("Child Table Data Import", () => {
 			.should("contain", "Column 2 has no header and will be ignored.");
 	});
 
-	it("counts only the notes on rows the step shows", () => {
+	it("marks only the notes on rows the step shows", () => {
 		open_import();
 		upload(["9876500090,maybe", "9876500091,0,extra"]);
 
-		hint().should("contain", "1 of 2 imported rows have issues.").and("not.contain", "note");
+		hint().should("contain", "1 of 2 imported rows have issues.");
 		skip_all();
-		hint().should("contain", "· 1 skipped.").and("not.contain", "note");
+		hint().should("contain", "· 1 skipped.");
 
 		primary("Next");
-		hint().should("contain", "1 row has a note");
 		dialog().find(".grid-import-preview-row .indicator").should("have.length", 1);
 	});
 
@@ -389,7 +386,7 @@ context("Child Table Data Import", () => {
 
 		primary("Skip Invalid and Continue");
 		active_step().should("contain", "Preview");
-		hint().should("contain", "2 of 62 rows ready to import");
+		hint().should("contain", "2 rows will be added.");
 		dialog().find(".grid-import-skip-cell").should("not.exist");
 	});
 

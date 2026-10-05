@@ -25,6 +25,7 @@ const TAB_PREVIEW = 2;
 const UPLOAD_TAB_SHEET = 1;
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
 const TEMPLATE_HEADER = /^(.*\S)\s*\((\w+)\)$/;
+const PHONE_ISD_PREFIX = /^(\+\d+)[\s-]+/;
 
 const VALUE_FORMATTERS = {
 	Date: (val) => {
@@ -45,6 +46,7 @@ const VALUE_FORMATTERS = {
 	Percent: (val) => flt(val),
 	Rating: (val) => flt(val),
 	Duration: (val) => to_seconds(val),
+	Phone: (val) => cstr(val).trim().replace(PHONE_ISD_PREFIX, "$1-"),
 };
 
 const TIME_FORMATS = () => [frappe.datetime.get_user_time_fmt(), frappe.defaultTimeFormat];
@@ -697,34 +699,55 @@ export default class GridImport {
 		if (this.has_mapping_issues()) {
 			return __("Two columns map to the same field. Fix the mapping to continue.");
 		}
-		const shown = this.shown_rows($table);
-		const note_rows = this.rows_matching(
-			(w) => !w.blocking && w.col === undefined && shown.includes(cint(w.row))
-		);
-		return this.add_note_count(this.row_hint(), note_rows.size);
-	}
-
-	add_note_count(hint, count) {
-		if (!count) return hint;
-		const notes =
-			count === 1
-				? __("1 row has a note. Click its number to see it.")
-				: __("{0} rows have notes. Click a row number to see them.", [count]);
-		return `${hint} ${notes}`;
+		return this.row_hint();
 	}
 
 	row_hint() {
 		const total = this.state.rows.length;
 		const skipped = this.state.skipped_rows.size;
 
-		if (this.step !== TAB_FIX) {
-			return __("{0} of {1} rows ready to import.", [total - skipped, total]);
-		}
+		if (this.step !== TAB_FIX) return this.import_count_hint();
 
 		const issues = this.get_issue_rows().size;
 		return skipped
 			? __("{0} of {1} imported rows have issues · {2} skipped.", [issues, total, skipped])
 			: __("{0} of {1} imported rows have issues.", [issues, total]);
+	}
+
+	import_count_hint() {
+		const { import_type } = this.state;
+		const { insert, update } = this.get_import_counts();
+		if (import_type === INSERT) {
+			return insert === 1
+				? __("1 row will be added.")
+				: __("{0} rows will be added.", [insert]);
+		}
+		if (import_type === UPDATE) {
+			return update === 1
+				? __("1 row will be updated.")
+				: __("{0} rows will be updated.", [update]);
+		}
+		return insert === 1
+			? __("1 row will be added and {0} updated.", [update])
+			: __("{0} rows will be added and {1} updated.", [insert, update]);
+	}
+
+	get_import_counts() {
+		const { import_type, rows, row_numbers, skipped_rows, column_map } = this.state;
+		const id_index = this.get_id_index(column_map);
+		const rows_by_id = import_type === INSERT ? new Map() : this.get_rows_by_id();
+		const fields = this.get_mapped_fields(column_map);
+		const updated_ids = new Set();
+		let insert = 0;
+
+		rows.forEach((row, r) => {
+			if (skipped_rows.has(row_numbers[r])) return;
+			const id = id_index === undefined ? "" : cstr(row[id_index]).trim();
+			const target = rows_by_id.get(id);
+			if (!target) insert++;
+			else if (has_changes(row, fields, target)) updated_ids.add(id);
+		});
+		return { insert, update: updated_ids.size };
 	}
 
 	async on_file(data, google_sheets_url = "", is_refresh = false) {
@@ -975,7 +998,7 @@ export default class GridImport {
 						? `<div>
 							${hint_html}
 							<div class="grid-import-mapping-note text-muted small">${__(
-								"Click a cell to view its error. Fix issues or select rows to skip. 'Don't Import' columns will be ignored."
+								"Edit the highlighted cells to fix them, or select rows to skip them during import."
 							)}</div>
 						</div>`
 						: `<span class="text-muted small">${this.preview_description()}</span>`
@@ -1105,11 +1128,13 @@ export default class GridImport {
 		const file_rows_by_id = {};
 		rows.forEach((row, r) => {
 			const id = cstr(row[id_index]).trim();
-			if (id) (file_rows_by_id[id] ??= []).push(row_numbers[r]);
+			if (id && !this.state.skipped_rows.has(row_numbers[r])) {
+				(file_rows_by_id[id] ??= []).push(row_numbers[r]);
+			}
 		});
 		Object.entries(file_rows_by_id).forEach(([id, id_rows]) => {
 			if (id_rows.length > 1 && rows_by_id.has(id)) {
-				const message = __("ID {0} appears in rows {1} — only the last one will apply.", [
+				const message = __("ID {0} appears in rows {1}. Only the last one will apply.", [
 					id,
 					id_rows.join(", "),
 				]);
