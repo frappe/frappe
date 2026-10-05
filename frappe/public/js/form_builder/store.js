@@ -869,7 +869,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	};
 });
 
-// hides df for each fieldtype whose prop list leaves it out, keeping its own depends_on
+// wraps depends_on so the property's own condition still applies
 function limit_to_fieldtype_props(df) {
 	const hidden_for = Object.keys(WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE).filter(
 		(fieldtype) => !WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE[fieldtype].includes(df.fieldname)
