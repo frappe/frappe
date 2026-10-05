@@ -716,7 +716,7 @@ export default class GridImport {
 
 	import_count_hint() {
 		const { import_type } = this.state;
-		const { insert, update } = this.get_import_counts();
+		const { insert, update } = this.get_import_counts(this.get_rows_to_apply());
 		if (import_type === INSERT) {
 			return insert === 1
 				? __("1 row will be added.")
@@ -732,22 +732,30 @@ export default class GridImport {
 			: __("{0} rows will be added and {1} updated.", [insert, update]);
 	}
 
-	get_import_counts() {
-		const { import_type, rows, row_numbers, skipped_rows, column_map } = this.state;
+	get_rows_to_apply() {
+		const { rows, row_numbers, skipped_rows } = this.state;
+		return rows.filter((_, r) => !skipped_rows.has(row_numbers[r]));
+	}
+
+	get_import_counts(rows) {
+		const { import_type, column_map } = this.state;
 		const id_index = this.get_id_index(column_map);
 		const rows_by_id = import_type === INSERT ? new Map() : this.get_rows_by_id();
-		const fields = this.get_mapped_fields(column_map);
-		const updated_ids = new Set();
-		let insert = 0;
+		const last_row_by_id = new Map();
+		const counts = { insert: 0, update: 0, skip: 0 };
 
-		rows.forEach((row, r) => {
-			if (skipped_rows.has(row_numbers[r])) return;
+		rows.forEach((row) => {
 			const id = id_index === undefined ? "" : cstr(row[id_index]).trim();
-			const target = rows_by_id.get(id);
-			if (!target) insert++;
-			else if (has_changes(row, fields, target)) updated_ids.add(id);
+			if (rows_by_id.has(id)) last_row_by_id.set(id, row);
+			else if (import_type === UPDATE) counts.skip++;
+			else counts.insert++;
 		});
-		return { insert, update: updated_ids.size };
+
+		const fields = this.get_mapped_fields(column_map);
+		last_row_by_id.forEach((row, id) => {
+			if (has_changes(row, fields, rows_by_id.get(id))) counts.update++;
+		});
+		return counts;
 	}
 
 	async on_file(data, google_sheets_url = "", is_refresh = false) {
@@ -839,10 +847,7 @@ export default class GridImport {
 		if (active === TAB_PREVIEW) {
 			this.set_action(__("Upload"), () => {
 				this.dialog.hide();
-				const rows = this.state.rows.filter(
-					(_, r) => !this.state.skipped_rows.has(this.state.row_numbers[r])
-				);
-				this.apply_rows(rows);
+				this.apply_rows(this.get_rows_to_apply());
 			});
 			this.dialog.get_primary_btn().prop("disabled", this.has_issues());
 			return;
@@ -1287,20 +1292,16 @@ export default class GridImport {
 		const id_index = this.get_id_index(column_map);
 		const rows_by_id = this.get_rows_by_id();
 		const fields = this.get_mapped_fields(column_map);
-		const counts = { insert: 0, update: 0, skip: this.state.skipped_rows.size };
+		const counts = this.get_import_counts(rows);
+		counts.skip += this.state.skipped_rows.size;
 
 		rows.forEach((row) => {
 			const id = id_index === undefined ? "" : cstr(row[id_index]).trim();
 			let target = import_type !== INSERT && rows_by_id.get(id);
 
-			if (target) {
-				if (has_changes(row, fields, target)) counts.update++;
-			} else if (import_type === UPDATE) {
-				counts.skip++;
-				return;
-			} else {
+			if (!target) {
+				if (import_type === UPDATE) return;
 				target = this.grid.frm.add_child(this.grid.df.fieldname);
-				counts.insert++;
 			}
 
 			fields.forEach(({ i, df }) => {

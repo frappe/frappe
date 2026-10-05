@@ -214,6 +214,23 @@ context("Child Table Data Import", () => {
 			});
 	});
 
+	it("counts only the last row for a repeated ID", () => {
+		cy.window()
+			.its("cur_frm.doc.phone_nos.0")
+			.then((first) => {
+				open_import("Update Existing Records");
+				upload(
+					[`${first.name},9876500030`, `${first.name},${first.phone}`],
+					"ID,Number (phone)"
+				);
+
+				active_step().should("contain", "Preview");
+				hint().should("contain", "0 rows will be updated.");
+				primary("Upload");
+				cy.contains("0 updated, 0 skipped, save to apply").should("exist");
+			});
+	});
+
 	it("upserts: updates known IDs and adds the rest", () => {
 		cy.get("@firstRowId").then((id) => {
 			open_import("Insert or Update Records");
