@@ -31,6 +31,15 @@ export default defineConfig({
 		// @flow/ui-core is linked from harness/ui, which has its own node_modules: one Vue
 		dedupe: ["vue", "vue-router", "frappe-ui"],
 	},
-	optimizeDeps: { exclude: ["frappe-ui", "@flow/ui-core"] },
+	// keep one @codemirror/state for the code editor
+	optimizeDeps: {
+		exclude: [
+			"frappe-ui",
+			"@flow/ui-core",
+			"@codemirror/lang-json",
+			"@codemirror/lang-python",
+			"@codemirror/lint",
+		],
+	},
 	server: { fs: { allow: [here("."), here("./harness/ui/core")] } },
 });

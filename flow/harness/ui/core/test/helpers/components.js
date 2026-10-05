@@ -19,7 +19,7 @@ const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export co
 const settingsPieces = moduleURL(`
 	import { h } from ${JSON.stringify(vue)}
 	const piece = (name, tag = "div") => ({
-		props: ["value", "open", "tab", "size", "shortcut"],
+		props: ["value", "open", "tab", "size", "keyboardShortcut"],
 		render() {
 			return h(tag, { "data-stub": name, "data-value": this.value }, [this.$slots.label?.(), this.$slots.prefix?.(), this.$slots.default?.()])
 		},

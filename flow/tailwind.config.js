@@ -10,7 +10,7 @@ export default {
 		"./frontend/src/**/*.{vue,js}",
 		"./harness/ui/core/src/**/*.{vue,js}",
 		"./node_modules/frappe-ui/src/components/**/*.{vue,js,ts}",
-		"./node_modules/frappe-ui/experimental/CodeEditor/**/*.{vue,js,ts}",
+		"./node_modules/frappe-ui/src/utils/**/*.ts",
 	],
 	theme: {
 		extend: {
