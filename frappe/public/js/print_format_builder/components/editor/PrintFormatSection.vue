@@ -16,14 +16,6 @@
 		@mouseenter="store.hovered_section.value = section"
 		@mouseleave="store.hovered_section.value = null"
 	>
-		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
-		<div v-if="!is_header" class="section-preview-actions">
-			<div
-				class="drag-handle section-drag-handle"
-				v-html="frappe.utils.icon('grip', 'xs')"
-			></div>
-			<SectionActions :section="section" size="xs" @remove="remove_section" />
-		</div>
 		<div
 			class="print-format-section"
 			:class="{
@@ -615,25 +607,6 @@ function remove_column(index) {
 	margin: 0.25rem 0;
 }
 
-/* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
-.section-preview-actions {
-	display: none;
-	position: absolute;
-	top: 0;
-	left: calc(100% + 4px);
-	z-index: 2;
-	flex-direction: column;
-	gap: 2px;
-	padding: 1px 2px;
-	background: var(--fg-color);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	box-shadow: var(--shadow-xs);
-	align-items: center;
-	opacity: 0;
-	transition: opacity 0.12s;
-}
-
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
 	/* section padding is folded into the edge cells (see below) so the grid
@@ -724,15 +697,6 @@ function remove_column(index) {
 
 .section--preview .drag-container:not(.section--grid *) {
 	gap: 0;
-}
-
-.section--preview .section-preview-actions {
-	display: flex;
-}
-
-.section--preview:hover .section-preview-actions,
-.section--preview.pfb-section-active .section-preview-actions {
-	opacity: 1;
 }
 
 .section--preview .section-title-display {
