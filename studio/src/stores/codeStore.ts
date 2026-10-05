@@ -769,7 +769,6 @@ const useCodeStore = defineStore("codeStore", () => {
 		// resources
 		resources,
 		setPageResources,
-		stopResourceWatchers,
 		teardownPage,
 		// variables
 		variables,
