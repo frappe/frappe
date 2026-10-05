@@ -551,7 +551,12 @@ watch(doc_picker_df, (df, was) => df && !was && pick_initial_doc());
 
 function warn_before_unload(e) {
 	const st = $store;
-	if (st.dirty.value || st.draft.saving_count.value > 0 || st.draft.save_failed.value)
+	if (
+		st.dirty.value ||
+		st.draft.saving_count.value > 0 ||
+		st.draft.save_failed.value ||
+		st.letterhead.value?._dirty
+	)
 		e.preventDefault();
 }
 
