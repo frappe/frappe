@@ -73,12 +73,6 @@ const useStudioStore = defineStore("store", () => {
 	// cross-panel navigation
 	const selectedVueFile = ref<string | null>(null)
 	const selectedVueComponent = ref<string | null>(null)
-	// kept by FileExplorer from its tree; a custom app's router script is `activeApp.router_script`
-	const hasRouterFile = ref(false)
-	const showRouterEditor = ref(false)
-	const hasRouterScript = computed(() =>
-		activeApp.value?.is_standard ? hasRouterFile.value : Boolean(activeApp.value?.router_script),
-	)
 
 	function navigateToCodeFile(studioFilePath: string) {
 		studioLayout.value.leftPanelActiveTab = "Code"
@@ -92,6 +86,8 @@ const useStudioStore = defineStore("store", () => {
 		studioLayout.value.showLeftPanel = true
 		selectedVueComponent.value = componentName
 	}
+
+	const showRouterEditor = ref(false)
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
@@ -776,12 +772,10 @@ const useStudioStore = defineStore("store", () => {
 		customVueComponents,
 		// cross-panel navigation
 		selectedVueFile,
-		hasRouterFile,
-		hasRouterScript,
-		showRouterEditor,
 		selectedVueComponent,
 		navigateToCodeFile,
 		navigateToVueComponent,
+		showRouterEditor,
 		// studio pages
 		pageBlocks,
 		selectedPage,

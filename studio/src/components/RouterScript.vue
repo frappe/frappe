@@ -26,7 +26,7 @@
 				</div>
 			</Popover>
 			<Button
-				v-if="store.hasRouterScript"
+				v-if="savedScript"
 				size="xs"
 				variant="ghost"
 				icon="lucide-trash-2"
@@ -48,7 +48,7 @@ import type { CompletionContext } from "@codemirror/autocomplete"
 import { toast, Badge, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import RouterScriptHelp from "@/components/RouterScriptHelp.vue"
-import { createStudioFile, deleteStudioFile, readStudioFile, writeStudioFile } from "@/data/studioFiles"
+import { deleteStudioFile, readStudioFileIfExists, writeStudioFile } from "@/data/studioFiles"
 import { getScriptError } from "@/utils/parseCode"
 import { routerScriptCompletions } from "@/utils/completions/routerScriptCompletions"
 import { confirm } from "@/utils/helpers"
@@ -82,18 +82,15 @@ const location = computed(() => ({
 const fileSource = {
 	title: ROUTER_FILE,
 	async load() {
-		if (!store.hasRouterFile) return createFile()
-		const file = await readStudioFile(location.value, ROUTER_FILE)
-		setLoaded(file.content, file.hash)
+		const file = await readStudioFileIfExists(location.value, ROUTER_FILE)
+		setLoaded(file.content ?? "", file.hash ?? undefined)
+		if (file.content === null) script.value = `export default ${BOILERPLATE}\n`
 	},
 	async save(source: string) {
 		const result = await writeStudioFile(location.value, ROUTER_FILE, source, fileHash.value)
 		fileHash.value = result.hash
 	},
-	async remove() {
-		await deleteStudioFile(location.value, ROUTER_FILE)
-		store.hasRouterFile = false
-	},
+	remove: () => deleteStudioFile(location.value, ROUTER_FILE),
 }
 
 const fieldSource = {
@@ -140,14 +137,6 @@ watch(
 	},
 	{ immediate: true },
 )
-
-async function createFile() {
-	const starter = `export default ${BOILERPLATE}\n`
-	const created = await createStudioFile(location.value, ROUTER_FILE)
-	const written = await writeStudioFile(location.value, ROUTER_FILE, starter, created.hash)
-	store.hasRouterFile = true
-	setLoaded(starter, written.hash)
-}
 
 function setLoaded(content: string, hash?: string) {
 	script.value = content

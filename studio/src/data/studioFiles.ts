@@ -24,6 +24,13 @@ export function readStudioFile(
 	return call("studio.api.read_studio_file", { ...location, file_path })
 }
 
+export function readStudioFileIfExists(
+	location: StudioFileLocation,
+	file_path: string,
+): Promise<{ path: string; content: string | null; hash: string | null }> {
+	return call("studio.api.read_studio_file", { ...location, file_path, ignore_missing: true })
+}
+
 export function writeStudioFile(
 	location: StudioFileLocation,
 	file_path: string,

@@ -230,12 +230,14 @@ def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def read_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict:
+def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_missing: bool = False) -> dict:
 	"""Return a file's content plus a hash callers pass back to write_studio_file for conflict checks."""
 	_validate_studio_file_access()
 	_validate_allowed_extension(file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 	if not os.path.isfile(target):
+		if frappe.utils.sbool(ignore_missing):
+			return {"path": file_path, "content": None, "hash": None}
 		frappe.throw(_("File not found: {0}").format(file_path))
 
 	with open(target, encoding="utf-8") as f:

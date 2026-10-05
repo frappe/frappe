@@ -221,7 +221,6 @@ async function loadTree() {
 	loading.value = true
 	try {
 		tree.value = await listStudioFiles(location.value)
-		store.hasRouterFile = Boolean(findNode("router.ts"))
 	} catch (error: any) {
 		toast.error("Failed to load files", { description: error?.messages?.join(", ") })
 	} finally {
