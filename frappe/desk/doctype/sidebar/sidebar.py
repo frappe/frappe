@@ -1644,8 +1644,9 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 		filtered, context.private_rows.get(base.module), context.perm_ctx, hidden=hidden
 	)
 
-	# A shell needs at least one item this user can open, or it is dropped. Section Breaks do not
-	# count, since a header links nowhere; private pages and added rows are already in `filtered`.
+	# A shell needs at least one item this user can open, or it is dropped. Section Breaks and
+	# spacers do not count, since they link nowhere; private pages and added rows are already in
+	# `filtered`.
 	#
 	# The lower of two tiers. `User.block_modules` is the upper one, applied upstream in
 	# `get_navigable_modules`; it names modules, so this is a fallback for a module-rooted shell
@@ -1656,7 +1657,7 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 	# everyone, blank.
 	#
 	# `is_icon_permitted` mirrors this; the two must stay in step.
-	if not any(row.get("type") != "Section Break" for row in filtered):
+	if not any(row.get("type") not in ("Section Break", "Spacer") for row in filtered):
 		return None
 
 	label = base.title or shell
@@ -2094,7 +2095,7 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 		# queries.
 		if (
 			check_permission
-			and item.type != "Section Break"
+			and item.type not in ("Section Break", "Spacer")
 			and not is_item_allowed(item.link_to, item.link_type, perm_ctx)
 		):
 			continue
@@ -2500,7 +2501,9 @@ class ShellIndex:
 
 	def resolve(self, kind: str, entity: str, module: str | None) -> str | None:
 		"""The ladder itself, from `module+listed` down. The `owned` step is above this."""
-		listed = self.listed_in(kind, entity)
+		# A row in the Private shell is a shortcut one person kept, not a claim on where the entity
+		# belongs. Counted as one, pinning `Job Offer` there moved it out of `Recruitment`.
+		listed = [shell for shell in self.listed_in(kind, entity) if shell != PRIVATE_MODULE]
 		own = self.shell_of(module)
 
 		if own and own in listed:
@@ -2534,6 +2537,9 @@ class ShellIndex:
 def routable_entities(perm_ctx: DeskViews) -> dict[str, dict[str, str]]:
 	"""Every entity of every kind this user can reach, mapped to the module it belongs to.
 
+	A system page is left out. It is part of the desk rather than of a module, so it opens in no
+	shell and the desk keeps its URL bare (`Page.system_page`).
+
 	Each kind is read from what the boot already builds for it, so the set is filtered the same
 	way the desk filters it and nothing here has to repeat a permission rule. Doctypes are the
 	exception, having no such payload: they come from the user's own read list, minus child
@@ -2552,6 +2558,10 @@ def routable_entities(perm_ctx: DeskViews) -> dict[str, dict[str, str]]:
 	return {
 		"DocType": doctypes,
 		"Report": {name: row.get("module") for name, row in (perm_ctx.allowed_reports or {}).items()},
-		"Page": {name: row.get("module") for name, row in (perm_ctx.allowed_pages or {}).items()},
+		"Page": {
+			name: row.get("module")
+			for name, row in (perm_ctx.allowed_pages or {}).items()
+			if not row.get("system_page")
+		},
 		"Dashboard": {row["name"]: row.get("module") for row in perm_ctx.get_allowed_dashboards(cache=True)},
 	}

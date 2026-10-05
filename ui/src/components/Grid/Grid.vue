@@ -51,6 +51,7 @@
 						>
 							<Checkbox
 								:modelValue="allSelected"
+								aria-label="Select all"
 								@update:modelValue="
 									(checked: unknown) => toggleAll(checked as boolean)
 								"
@@ -114,6 +115,7 @@
 								>
 									<Checkbox
 										:modelValue="isSelected(row)"
+										:aria-label="`Select row ${rowIndex + 1}`"
 										@update:modelValue="
 											(checked: unknown) => setRow(row, checked as boolean)
 										"
@@ -162,6 +164,7 @@
 										variant="ghost"
 										icon="lucide-square-pen"
 										:tooltip="'Edit Row'"
+										:aria-label="'Edit Row'"
 										@click="emit('edit', { row, index: rowIndex })"
 									/>
 								</div>

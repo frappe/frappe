@@ -125,6 +125,12 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 		}
 	}
 
+	// A system page opens in no shell, and the router takes one off its URL, so a link that named
+	// one would never match the URL it leads to.
+	if (item.link_type === "Page" && frappe.router.page_info_for([item.link_to])?.system_page) {
+		return path;
+	}
+
 	return in_shell(path, shell);
 };
 
@@ -242,12 +248,14 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		if (this.collapsed) {
 			this.$drop_icon
 				.attr("data-state", "closed")
+				.attr("aria-expanded", "false")
 				.find("use")
 				.attr("href", "#icon-chevron-right");
 			$(this.$nested_items).addClass("hidden");
 		} else {
 			this.$drop_icon
 				.attr("data-state", "opened")
+				.attr("aria-expanded", "true")
 				.find("use")
 				.attr("href", "#icon-chevron-down");
 			$(this.$nested_items).removeClass("hidden");
@@ -281,6 +289,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		if (item.collapsible) {
 			this.$drop_icon = $(`<button class="btn-reset drop-icon hidden">`)
 				.html(frappe.utils.icon("chevron-down", "sm", "", "", "", "", stroke_color))
+				.attr("aria-label", __("Toggle {0}", [item.label]))
+				.attr("aria-expanded", "true")
 				.appendTo(sidebar_control);
 
 			this.$drop_icon.removeClass("hidden");
@@ -289,6 +299,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			// toggle indicator here instead of selecting the now-absent [item-icon] span.
 			this.$drop_icon = $(`<button class="btn-reset drop-icon">`)
 				.html(frappe.utils.icon("chevron-right", "sm", "", "", "", "", stroke_color))
+				.attr("aria-label", __("Toggle {0}", [item.label]))
 				.prependTo(this.wrapper.find(".item-anchor").first());
 		}
 
@@ -341,6 +352,22 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.section_breaks_state[this.current_module][this.item.label] = this.collapsed;
 
 		localStorage.setItem("section-breaks-state", JSON.stringify(this.section_breaks_state));
+	}
+};
+
+// A spacer has no path, so TypeLink.make would skip it.
+frappe.ui.sidebar_item.TypeSpacer = class SpacerSidebarItem extends (
+	frappe.ui.sidebar_item.TypeLink
+) {
+	make() {
+		this.wrapper = $(
+			frappe.render_template("sidebar_item", {
+				item: this.item,
+				path: null,
+				hide_icon: true,
+			})
+		);
+		$(this.container).append(this.wrapper);
 	}
 };
 
