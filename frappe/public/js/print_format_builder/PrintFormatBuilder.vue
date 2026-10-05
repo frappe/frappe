@@ -420,6 +420,19 @@ function handle_keydown(e) {
 		}
 	}
 
+	if (
+		e.key.startsWith("Arrow") &&
+		!(e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) &&
+		!is_typing_context() &&
+		!document.activeElement?.closest(
+			"select, [role=menu], [role=listbox], [role=tablist], [role=radiogroup]"
+		) &&
+		!document.querySelector("[role=menu]")
+	) {
+		if ($store.navigate(e.key)) e.preventDefault();
+		return;
+	}
+
 	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
 		if (is_typing_context()) return;
 		if (!$store.selected_field.value && !$store.selected_section.value) return;
