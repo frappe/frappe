@@ -30,6 +30,14 @@ defineEmits(["insert"]);
 	opacity: 1;
 }
 
+.section-insert-btn {
+	pointer-events: none;
+}
+
+.section-insert:hover .section-insert-btn {
+	pointer-events: auto;
+}
+
 .section-insert-line {
 	flex: 1;
 	height: 1px;

@@ -138,6 +138,11 @@ function closest(locator, class_name) {
 	);
 }
 
+async function click_section_insert(insert) {
+	await insert.hover();
+	await insert.locator(".section-insert-btn").click();
+}
+
 async function set_input(input, value) {
 	await input.fill(value);
 	await input.dispatchEvent("change");
@@ -641,7 +646,7 @@ test.describe("Print Format Builder — section insert", () => {
 		const sections = page.locator(".sections-container [data-pfb-section]");
 		await expect(sections).toHaveCount(1);
 
-		await page.locator(".section-with-insert .section-insert-btn").first().click();
+		await click_section_insert(page.locator(".section-with-insert .section-insert").first());
 
 		await expect(sections).toHaveCount(2);
 	});
@@ -673,13 +678,11 @@ test.describe("Print Format Builder — section insert", () => {
 		await page.locator(".body-empty").click();
 		await expect(sections).toHaveCount(1);
 
-		const insert_at_end = page.locator(
-			".sections-container > .section-insert .section-insert-btn"
-		);
-		await insert_at_end.click();
+		const insert_at_end = page.locator(".sections-container > .section-insert");
+		await click_section_insert(insert_at_end);
 		await expect(sections).toHaveCount(2);
 
-		await insert_at_end.click();
+		await click_section_insert(insert_at_end);
 		await expect(sections).toHaveCount(3);
 	});
 });
