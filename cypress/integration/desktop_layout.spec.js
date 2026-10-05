@@ -50,6 +50,30 @@ test.describe("Saved desktop layout", () => {
 		expect(icon.idx).toBe(3);
 	});
 
+	test("draws an icon the user just created, before the server knows of it", async ({
+		page,
+	}) => {
+		// what the save hands back: a new folder as the icon, a quick-entry icon by its name
+		const created = await page.evaluate(() =>
+			frappe.desktop_utils.icons_created(
+				[{ name: "new-desktop-icon-3", label: "Fresh", icon_type: "Link" }, "Quick Icon"],
+				[{ name: "Quick Icon", label: "Quick", icon_type: "Link" }]
+			)
+		);
+		const layout = await page.evaluate(
+			([created]) =>
+				frappe.desktop_utils.arrange_layout(
+					[
+						{ name: "Fresh", label: "Fresh", icon_type: "Link" },
+						{ name: "Quick Icon", label: "Quick", icon_type: "Link" },
+					],
+					created
+				),
+			[created]
+		);
+		expect(layout.map((icon) => icon.not_permitted)).toEqual([false, false]);
+	});
+
 	test("always draws a folder", async ({ page }) => {
 		const [folder] = await arrange(page, [
 			{ name: "new-desktop-icon-2", label: "My Folder", icon_type: "Folder" },
