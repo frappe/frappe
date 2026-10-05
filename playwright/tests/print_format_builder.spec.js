@@ -4,6 +4,7 @@ const PRINT_FORMAT_API = "api/method/frappe.printing.doctype.print_format.print_
 
 let PF_NAME;
 const created_formats = new Set();
+const created_letter_heads = new Set();
 
 test.beforeEach(() => {
 	PF_NAME = track(pf_name());
@@ -15,6 +16,9 @@ test.beforeEach(() => {
 test.afterAll(async ({ admin }) => {
 	for (const name of created_formats) {
 		await admin.remove_doc("Print Format", name, true);
+	}
+	for (const name of created_letter_heads) {
+		await admin.remove_doc("Letter Head", name, true);
 	}
 });
 
@@ -409,6 +413,43 @@ test.describe("Print Format Builder — create flow", () => {
 
 		const saved = await save_and_apply(page);
 		expect(saved.label_color).toBe("#c0392b");
+	});
+
+	test("picking Image shows image controls for an HTML-only letter head", async ({
+		page,
+		api,
+	}) => {
+		const letter_head = `Playwright LH ${Date.now()}`;
+		created_letter_heads.add(letter_head);
+		await api.insert_doc(
+			"Letter Head",
+			{ letter_head_name: letter_head, source: "Image", content: "<p>Acme Header</p>" },
+			true
+		);
+		await api.insert_doc(
+			"Print Format",
+			{
+				name: PF_NAME,
+				doc_type: "ToDo",
+				print_format_builder_beta: 1,
+				format_data: JSON.stringify({ ...builder_layout(), letter_head }),
+			},
+			true
+		);
+
+		await open_builder(page, PF_NAME);
+		await page.locator(".lh-zone").first().click();
+
+		const inspector = page.locator(".pfb-inspector");
+		const source = (label) => inspector.locator(".es-pill", { hasText: label }).first();
+		await expect(inspector).toContainText("Edit HTML");
+
+		await source("Image").click();
+		await expect(inspector).toContainText("Upload Image");
+		await expect(inspector).not.toContainText("Edit HTML");
+
+		await source("HTML").click();
+		await expect(inspector).toContainText("Edit HTML");
 	});
 
 	test("custom table column settings open from the row", async ({ page, api }) => {
