@@ -1,7 +1,7 @@
 import click
 
 import frappe
-from frappe.patches.v16_0.sidebar_archive import archive_exists, converted_module_of, is_custom, site_rows
+from frappe.patches.v16_0.sidebar_archive import archive_exists, custom_module_of, is_custom, site_rows
 
 
 def execute():
@@ -21,7 +21,7 @@ def execute():
 		if not is_custom(row):
 			continue
 
-		module = converted_module_of(row.name)
+		module = custom_module_of(row.name)
 		workspace = frappe.db.get_value(
 			"Workspace",
 			{"name": row.name, "standard": 0, "for_user": ["is", "not set"]},

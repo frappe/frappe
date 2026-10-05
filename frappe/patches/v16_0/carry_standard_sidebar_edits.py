@@ -61,6 +61,17 @@ def execute():
 		if get_customization(module, None):
 			continue
 
+		# A layer belongs to a module and applies to every sidebar in it, so in a module with
+		# several, one sidebar's edits would show on the others. Left in the archive until a layer
+		# can name its sidebar.
+		if frappe.db.count("Sidebar", {"module": module}) > 1:
+			click.secho(
+				f"Module '{module}' has several sidebars, so the site's edits to "
+				f"{', '.join(edit.row.name for edit in edits)} stay in the archive",
+				fg="yellow",
+			)
+			continue
+
 		if write_site_layer(module, sorted(edits, key=lambda edit: edit.row.modified)):
 			click.secho(
 				f"Module '{module}': kept the site's edits to {', '.join(edit.row.name for edit in edits)}",

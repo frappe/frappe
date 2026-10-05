@@ -7,7 +7,7 @@ import frappe
 from frappe.desk.doctype.sidebar.sidebar import UNROUTABLE_IN_A_TITLE, build_sidebar, shell_holding_slug
 from frappe.patches.v16_0.sidebar_archive import (
 	archive_exists,
-	converted_module_of,
+	custom_module_of,
 	is_custom,
 	is_module,
 	site_rows,
@@ -27,7 +27,7 @@ def execute():
 		return
 
 	for row in site_rows():
-		if not is_custom(row) or converted_module_of(row.name):
+		if not is_custom(row) or custom_module_of(row.name):
 			continue
 
 		module = make_module(row)

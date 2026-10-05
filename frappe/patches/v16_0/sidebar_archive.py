@@ -77,12 +77,34 @@ def converted_module_of(title: str) -> str | None:
 	Compared as JSON rather than as text, so a `merged_from` written with other spacing still
 	matches.
 	"""
-	for sidebar in frappe.get_all(
-		"Sidebar", filters={"standard": 0}, fields=["module", "merged_from"], order_by="creation asc"
-	):
-		if parse_json_list(sidebar.merged_from) == [title]:
-			return sidebar.module
-	return None
+	return next(iter(modules_converted_from(title)), None)
+
+
+def modules_converted_from(title: str) -> list[str]:
+	"""Every module holding a sidebar converted from the v16 sidebar `title` alone, oldest first."""
+	return [
+		sidebar.module
+		for sidebar in frappe.get_all(
+			"Sidebar", filters={"standard": 0}, fields=["module", "merged_from"], order_by="creation asc"
+		)
+		if parse_json_list(sidebar.merged_from) == [title]
+	]
+
+
+def custom_module_of(title: str) -> str | None:
+	"""The custom module a site's own v16 sidebar `title` became, if it has become one.
+
+	Only a custom module counts: a sidebar converted alone into an app's module is a base, not a
+	custom sidebar's home.
+	"""
+	return next(
+		(
+			module
+			for module in modules_converted_from(title)
+			if frappe.db.get_value("Module Def", module, "custom")
+		),
+		None,
+	)
 
 
 def parse_json_list(value: str | None) -> list:
