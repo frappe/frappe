@@ -533,20 +533,6 @@ def _reader_has_signature(reader: "PdfReader") -> bool:
 		return True
 
 
-def pdf_has_signature(content: bytes) -> bool:
-	"""Check if raw PDF bytes contain a signed digital-signature field."""
-	from io import BytesIO
-
-	from pypdf import PdfReader
-
-	try:
-		reader = PdfReader(BytesIO(content))
-	except Exception:
-		return False
-
-	return _reader_has_signature(reader)
-
-
 def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
 	"""Check declared image XObject dimensions without decoding any pixel data.
 	Avoid exhausting memory in loading image.

@@ -1093,26 +1093,23 @@ class TestImage(IntegrationTestCase):
 		writer.write(out)
 		return out.getvalue()
 
-	def test_pdf_has_signature(self):
-		from frappe.utils.pdf import pdf_has_signature
+	def test_reader_has_signature(self):
+		from pypdf import PdfReader
+
+		from frappe.utils.pdf import _reader_has_signature
 
 		signed_pdf = self._build_signed_pdf()
-		self.assertTrue(pdf_has_signature(signed_pdf))
+		self.assertTrue(_reader_has_signature(PdfReader(io.BytesIO(signed_pdf))))
 
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		unsigned_buf = io.BytesIO()
 		Image.open(image_file_path).save(unsigned_buf, format="PDF")
-		self.assertFalse(pdf_has_signature(unsigned_buf.getvalue()))
+		self.assertFalse(_reader_has_signature(PdfReader(io.BytesIO(unsigned_buf.getvalue()))))
 
-	def test_pdf_has_signature_false_for_unparseable_content(self):
-		from frappe.utils.pdf import pdf_has_signature
-
-		self.assertFalse(pdf_has_signature(b"not a real pdf"))
-
-	def test_pdf_has_signature_fails_safe_for_encrypted_pdf(self):
+	def test_reader_has_signature_fails_safe_for_encrypted_pdf(self):
 		from pypdf import PdfReader, PdfWriter
 
-		from frappe.utils.pdf import pdf_has_signature
+		from frappe.utils.pdf import _reader_has_signature
 
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		buf = io.BytesIO()
@@ -1124,8 +1121,8 @@ class TestImage(IntegrationTestCase):
 		out = io.BytesIO()
 		writer.write(out)
 		encrypted_content = out.getvalue()
-
-		self.assertTrue(pdf_has_signature(encrypted_content))
+		encrypted_reader = PdfReader(io.BytesIO(encrypted_content))
+		self.assertTrue(_reader_has_signature(encrypted_reader))
 
 	def test_optimize_pdf_skips_signed_pdf(self):
 		from frappe.utils.pdf import optimize_pdf
