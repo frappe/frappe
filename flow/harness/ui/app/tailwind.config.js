@@ -11,6 +11,8 @@ export default {
 		"../core/src/**/*.{vue,js}",
 		"./node_modules/frappe-ui/src/components/**/*.{vue,js,ts}",
 		"../node_modules/frappe-ui/src/components/**/*.{vue,js,ts}",
+		"./node_modules/frappe-ui/src/utils/**/*.ts",
+		"../node_modules/frappe-ui/src/utils/**/*.ts",
 	],
 	theme: {
 		extend: {

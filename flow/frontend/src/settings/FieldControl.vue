@@ -27,12 +27,11 @@
 
 	<div v-else-if="field.type === 'code'" class="flex flex-col gap-1">
 		<FormLabel :label="field.label" :required="field.required" />
-		<CodeEditor
+		<CodeField
 			:model-value="doc[field.name] ?? ''"
 			:language="field.language"
+			:placeholder="field.placeholder"
 			:disabled="disabled"
-			:placeholder="field.placeholder ?? ''"
-			style="--cm-max-height: 24rem"
 			@update:model-value="(value) => (doc[field.name] = value)"
 		/>
 		<span v-if="field.description" class="text-2xs text-ink-gray-5">{{
@@ -171,14 +170,16 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from "vue";
+import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { Button, FileUploader, FormControl, FormLabel, Switch } from "frappe-ui";
-import { CodeEditor } from "frappe-ui/experimental";
 
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 
 import { call } from "../api/frappe.js";
 import { searchLinks } from "./links.js";
+
+// CodeMirror loads only when a code field shows
+const CodeField = defineAsyncComponent(() => import("./CodeField.vue"));
 
 const props = defineProps({
 	field: { type: Object, required: true },

@@ -2,7 +2,7 @@
 	<SettingsDialog
 		v-model:tab="active"
 		size="6xl"
-		:shortcut="false"
+		:keyboard-shortcut="false"
 		:open="flow.state.settingsOpen"
 		@update:open="flow.setSettingsOpen($event)"
 	>

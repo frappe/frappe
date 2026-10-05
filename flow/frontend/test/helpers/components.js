@@ -21,6 +21,7 @@ const real = new Set([
 	"PopMenu.vue",
 	"DocPanel.vue",
 	"FieldControl.vue",
+	"CodeField.vue",
 	"SettingsPage.vue",
 	"RecordTable.vue",
 	"ValueView.vue",
@@ -77,7 +78,11 @@ const fakes = {
 		export const dialog = { danger() {}, prompt() {} }
 		export function useColorScheme() {}
 	`),
-	"frappe-ui/experimental": moduleURL(`export const CodeEditor = { render() { return null } }`),
+	"frappe-ui/code-editor": moduleURL(`
+		export const CodeEditor = { render() { return null } }
+		export const CodeEditorContent = { render() { return null } }
+		export const CodeKit = { configure() { return [] } }
+	`),
 	"frappe-ui/src/utils/dialog": moduleURL(`
 		import { ref } from ${JSON.stringify(vue)}
 		export const dialogs = ref([])
@@ -117,9 +122,10 @@ async function componentURL(url) {
 		const { descriptor } = parse(source, { filename: url.pathname });
 		content = compileScript(descriptor, { id: url.pathname, inlineTemplate: true }).content;
 	}
-	const imports = [...content.matchAll(/\bfrom\s+["']([^"']+)["']/g)];
+	// static imports and lazy import("…") calls
+	const imports = [...content.matchAll(/\b(from\s+|import\(\s*)["']([^"']+)["']/g)];
 	for (const match of imports.reverse()) {
-		const specifier = match[1];
+		const specifier = match[2];
 		let resolved;
 		if (specifier in fakes) resolved = fakes[specifier];
 		else if (specifier.endsWith(".vue")) {
@@ -133,7 +139,7 @@ async function componentURL(url) {
 		else resolved = targetURL(specifier, url).href;
 		content =
 			content.slice(0, match.index) +
-			`from ${JSON.stringify(resolved)}` +
+			`${match[1]}${JSON.stringify(resolved)}` +
 			content.slice(match.index + match[0].length);
 	}
 	const result = moduleURL(content);
