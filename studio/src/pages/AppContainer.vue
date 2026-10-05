@@ -3,8 +3,8 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref } from "vue"
-import { useRoute } from "vue-router"
+import { watch, ref, onUnmounted } from "vue"
+import { useRoute, useRouter } from "vue-router"
 import { usePageMeta } from "frappe-ui"
 
 import { fetchAppPage } from "@/utils/helpers"
@@ -21,6 +21,7 @@ import Block from "@/utils/block"
 
 const store = useAppStore()
 const route = useRoute()
+const router = useRouter()
 const codeStore = useCodeStore()
 const componentStore = useComponentStore()
 const page = ref<StudioPage | null>(null)
@@ -64,6 +65,12 @@ function getCurrentPageName(): string | undefined {
 }
 
 watch(() => route.path, handleRouteChange, { immediate: true })
+
+// stop the leaving page's resources before the route changes, or they refetch with the next page's params
+const removeLeaveGuard = router.beforeEach((to) => {
+	if (to.meta.pageName !== loadedPageName) codeStore.stopResourceWatchers()
+})
+onUnmounted(removeLeaveGuard)
 
 if (window.is_preview) useLivePreview(page, loadPage)
 
