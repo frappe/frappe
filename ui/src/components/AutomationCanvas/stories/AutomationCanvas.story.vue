@@ -14,9 +14,6 @@
 				:start-options="startOptions"
 				:block-options="blockOptions"
 				:selected-id="activeSample.selectedId"
-				:dim-unselected="activeSample.dimUnselected"
-				:can-delete="Boolean(activeSample.selectedId)"
-				:can-undo="true"
 				:readonly="activeSample.readonly"
 				@select="lastEvent = `Selected ${$event}`"
 				@pick-start="lastEvent = `Picked start ${$event}`"
@@ -25,11 +22,26 @@
 						$event.branch ? ` on ${$event.branch}` : ''
 					}`
 				"
-				@request-remove="lastEvent = `Remove ${$event}`"
 				@run-branch="lastEvent = `Run ${$event.arm.key} of ${$event.nodeId}`"
-				@undo="lastEvent = 'Undo'"
-				@redo="lastEvent = 'Redo'"
-			/>
+			>
+				<template v-if="!activeSample.readonly" #toolbar="{ selectedId }">
+					<Button
+						icon="lucide-undo-2"
+						variant="ghost"
+						aria-label="Undo"
+						@click="lastEvent = 'Undo'"
+					/>
+					<Button icon="lucide-redo-2" variant="ghost" aria-label="Redo" disabled />
+					<Button
+						v-if="selectedId"
+						icon="lucide-trash-2"
+						variant="ghost"
+						class="text-ink-red-5"
+						aria-label="Remove step"
+						@click="lastEvent = `Remove ${selectedId}`"
+					/>
+				</template>
+			</AutomationCanvas>
 		</div>
 		<div class="text-p-sm text-ink-gray-6">{{ lastEvent || "Interact with the canvas" }}</div>
 	</div>
@@ -37,7 +49,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Select } from "frappe-ui";
+import { Button, Select } from "frappe-ui";
 import AutomationCanvas from "../AutomationCanvas.vue";
 import type {
 	AutomationCanvasEdge,
@@ -50,7 +62,6 @@ interface Sample {
 	nodes: AutomationCanvasNode[];
 	edges: AutomationCanvasEdge[];
 	selectedId?: string;
-	dimUnselected?: boolean;
 	readonly?: boolean;
 }
 
@@ -123,7 +134,7 @@ const samples: Record<string, Sample> = {
 	linear: linearSample(),
 	branched: branchedSample(),
 	rejoin: rejoinSample(),
-	selected: { ...linearSample(), selectedId: "email", dimUnselected: true },
+	selected: inspecting(linearSample(), "email"),
 	error: errorSample(),
 	trial: trialSample(),
 	readonly: { ...rejoinSample(), readonly: true },
@@ -163,12 +174,15 @@ function linearSample(): Sample {
 function errorSample(): Sample {
 	const nodes = [
 		startNode(),
-		node("email", COLUMN, 0, { ...emailData(), error: true }),
+		node("email", COLUMN, 0, {
+			...emailData(),
+			issue: { level: "error", message: "The Welcome template no longer exists" },
+		}),
 		node("wait", COLUMN * 2, 0, {
 			...waitData({ terminal: true }),
 			label: "Wait",
 			detail: undefined,
-			incomplete: "Set how long to wait",
+			issue: { level: "warning", message: "Set how long to wait" },
 		}),
 	];
 	return { nodes, edges: chainEdges(nodes) };
@@ -205,24 +219,25 @@ function rejoinSample(): Sample {
 }
 
 function trialSample(): Sample {
-	const start = { ...startNode(), data: { ...startNode().data, status: "Success" as const } };
+	const start = {
+		...startNode(),
+		data: { ...startNode().data, run: { status: "Success" as const } },
+	};
 	const condition = conditionNode({
-		status: "Success",
-		forced: true,
-		retryArms: [{ key: "Else", label: "Otherwise" }],
+		run: { status: "Success", forced: true, retryArms: [{ key: "Else", label: "Otherwise" }] },
 	});
 	const yes = node("qualified-email", COLUMN * 2, -BRANCH_OFFSET, {
 		...emailData("Send qualified email"),
-		status: "Failed",
+		run: { status: "Failed" },
 	});
 	const no = node("assign", COLUMN * 2, BRANCH_OFFSET, {
 		...assignData(),
-		status: "Skipped",
+		run: { status: "Skipped" },
 		dimmed: true,
 	});
 	const wait = node("wait", COLUMN * 3, -BRANCH_OFFSET, {
 		...waitData({ terminal: true }),
-		status: "running",
+		run: { status: "running" },
 	});
 	return {
 		nodes: [start, condition, yes, no, wait],
@@ -234,6 +249,15 @@ function trialSample(): Sample {
 		],
 		readonly: true,
 	};
+}
+
+/** While a node is inspected the rest of the flow steps back. */
+function inspecting(sample: Sample, selectedId: string): Sample {
+	const nodes = sample.nodes.map((item) => ({
+		...item,
+		data: { ...item.data, dimmed: item.id !== selectedId },
+	}));
+	return { ...sample, nodes, selectedId };
 }
 
 function conditionNode(data: Partial<AutomationCanvasNodeData>) {

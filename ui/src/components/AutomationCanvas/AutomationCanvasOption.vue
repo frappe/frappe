@@ -8,7 +8,5 @@
 </template>
 
 <script setup lang="ts">
-import type { AutomationCanvasOption } from "./types";
-
-defineProps<{ item: AutomationCanvasOption }>();
+defineProps<{ item: { label: string; description?: string } }>();
 </script>

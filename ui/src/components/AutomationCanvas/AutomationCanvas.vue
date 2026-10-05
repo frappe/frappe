@@ -20,21 +20,8 @@
 			<div
 				class="flex items-center gap-0.5 rounded-[10px] border border-outline-gray-2 bg-surface-gray-1 p-1 shadow-md"
 			>
-				<template v-if="!readonly">
-					<Button
-						icon="lucide-undo-2"
-						variant="ghost"
-						:disabled="!canUndo"
-						:aria-label="translate('Undo')"
-						@click="emit('undo')"
-					/>
-					<Button
-						icon="lucide-redo-2"
-						variant="ghost"
-						:disabled="!canRedo"
-						:aria-label="translate('Redo')"
-						@click="emit('redo')"
-					/>
+				<template v-if="$slots.toolbar">
+					<slot name="toolbar" :selectedId="selectedId" />
 					<span
 						class="mx-1 h-5 w-px border-l border-outline-gray-2"
 						aria-hidden="true"
@@ -64,18 +51,6 @@
 					:aria-label="translate('Fit entire flow')"
 					@click="refitFlow()"
 				/>
-				<Button
-					v-if="canDelete && selectedId && !readonly"
-					icon="lucide-trash-2"
-					variant="ghost"
-					class="text-ink-red-5"
-					:aria-label="
-						selectedId === startNodeId
-							? translate('Remove trigger')
-							: translate('Remove step')
-					"
-					@click.stop="emit('request-remove', selectedId)"
-				/>
 			</div>
 		</Panel>
 		<template #node-automation="{ id, data }">
@@ -97,10 +72,7 @@
 						>
 							<div
 								class="automation-canvas-node relative flex h-[87px] w-[212px] flex-col overflow-hidden rounded-[10px] border bg-surface-base shadow-sm transition-all"
-								:class="[
-									nodeClasses(id, data),
-									{ 'opacity-40': data.dimmed || isFaded(id, data) },
-								]"
+								:class="[nodeClasses(id, data), { 'opacity-40': data.dimmed }]"
 								:tabindex="readonly ? -1 : 0"
 								:role="readonly ? undefined : 'button'"
 								:aria-label="`${data.kicker}: ${data.label}`"
@@ -123,31 +95,27 @@
 										{{ data.label }}
 									</div>
 									<Badge
-										v-if="data.forced"
+										v-if="data.run?.forced"
 										:label="translate('Forced')"
 										theme="amber"
 										variant="subtle"
 									/>
 									<Spinner
-										v-if="data.status === 'running'"
+										v-if="data.run?.status === 'running'"
 										size="sm"
 										class="shrink-0 text-ink-gray-7"
 									/>
 									<Icon
-										v-else-if="data.status && RUN_STATES[data.status]"
-										:name="RUN_STATES[data.status].icon"
+										v-else-if="runMark(data)"
+										:name="runMark(data)!.icon"
 										class="size-4 shrink-0"
-										:class="RUN_STATES[data.status].color"
+										:class="runMark(data)!.color"
 									/>
-									<Icon
-										v-else-if="data.error"
-										name="lucide-circle-alert"
-										class="size-4 shrink-0 text-ink-red-3"
-									/>
-									<Tooltip v-else-if="data.incomplete" :text="data.incomplete">
+									<Tooltip v-else-if="data.issue" :text="data.issue.message">
 										<Icon
-											name="lucide-triangle-alert"
-											class="size-4 shrink-0 text-ink-amber-5"
+											:name="issueMark(data).icon"
+											class="size-4 shrink-0"
+											:class="issueMark(data).color"
 										/>
 									</Tooltip>
 								</div>
@@ -194,12 +162,12 @@
 					</div>
 				</div>
 				<div
-					v-if="data.retryArms?.length"
+					v-if="data.run?.retryArms?.length"
 					class="automation-canvas-add nodrag absolute left-0 top-[calc(100%+8px)] flex gap-1.5"
 					@click.stop
 				>
 					<Button
-						v-for="arm in data.retryArms"
+						v-for="arm in data.run.retryArms"
 						:key="arm.key"
 						size="sm"
 						icon-left="lucide-play"
@@ -259,6 +227,7 @@ import AutomationCanvasPicker from "./AutomationCanvasPicker.vue";
 import type {
 	AutomationCanvasEmits,
 	AutomationCanvasExposed,
+	AutomationCanvasIssueLevel,
 	AutomationCanvasNodeData,
 	AutomationCanvasProps,
 	AutomationCanvasStatus,
@@ -268,19 +237,23 @@ const props = withDefaults(defineProps<AutomationCanvasProps>(), {
 	selectedId: "",
 	startOptions: () => [],
 	blockOptions: () => [],
-	dimUnselected: false,
-	canDelete: false,
-	canUndo: false,
-	canRedo: false,
 	readonly: false,
 });
 const emit = defineEmits<AutomationCanvasEmits>();
+defineSlots<{
+	/** Extra controls before the zoom buttons, e.g. undo and redo. */
+	toolbar?(props: { selectedId: string }): unknown;
+}>();
 
 const RUN_STATES: Partial<Record<AutomationCanvasStatus, { icon: string; color: string }>> = {
 	Success: { icon: "lucide-circle-check", color: "text-ink-green-4" },
 	Skipped: { icon: "lucide-circle-minus", color: "text-ink-gray-4" },
 	Failed: { icon: "lucide-circle-x", color: "text-ink-red-4" },
 	Waiting: { icon: "lucide-clock", color: "text-ink-amber-5" },
+};
+const ISSUES: Record<AutomationCanvasIssueLevel, { icon: string; color: string }> = {
+	error: { icon: "lucide-circle-alert", color: "text-ink-red-3" },
+	warning: { icon: "lucide-triangle-alert", color: "text-ink-amber-5" },
 };
 const EDGE_PADDING = 48;
 
@@ -424,11 +397,6 @@ function picksStart(data: AutomationCanvasNodeData) {
 	return Boolean(data.empty) && !props.readonly;
 }
 
-function isFaded(id: string, data: AutomationCanvasNodeData) {
-	if (!props.dimUnselected || data.empty) return false;
-	return Boolean(props.selectedId) && props.selectedId !== id;
-}
-
 /** `nodrag` because dragging swallows the click that opens the start picker. */
 function nodeClasses(id: string, data: AutomationCanvasNodeData) {
 	return [picksStart(data) ? "nodrag" : "", nodeSurface(id, data)];
@@ -437,12 +405,20 @@ function nodeClasses(id: string, data: AutomationCanvasNodeData) {
 // One surface per state: stacked border utilities would let stylesheet order pick the winner.
 function nodeSurface(id: string, data: AutomationCanvasNodeData) {
 	if (data.empty) return "border-dashed border-outline-gray-3 shadow-none";
-	if (data.status === "Failed") return "border-outline-red-2 bg-surface-modal shadow-sm";
-	if (data.status === "running") return "border-outline-gray-5 shadow-md";
-	if (data.error) return "border-outline-red-2 bg-surface-modal shadow-sm";
+	if (data.run?.status === "Failed") return "border-outline-red-2 bg-surface-modal shadow-sm";
+	if (data.run?.status === "running") return "border-outline-gray-5 shadow-md";
+	if (data.issue?.level === "error") return "border-outline-red-2 bg-surface-modal shadow-sm";
 	if (!props.readonly && props.selectedId === id) return "border-outline-gray-8 shadow-sm";
-	if (data.incomplete) return "border-outline-amber-2 shadow-md hover:border-outline-gray-8";
+	if (data.issue) return "border-outline-amber-2 shadow-md hover:border-outline-gray-8";
 	return "border-outline-gray-2 shadow-md hover:border-outline-gray-8";
+}
+
+function runMark(data: AutomationCanvasNodeData) {
+	return data.run ? RUN_STATES[data.run.status] : undefined;
+}
+
+function issueMark(data: AutomationCanvasNodeData) {
+	return ISSUES[data.issue?.level || "warning"];
 }
 
 function showAdd(data: AutomationCanvasNodeData) {

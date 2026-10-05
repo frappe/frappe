@@ -5,13 +5,13 @@
 		trigger="button"
 		:side="side"
 		:placeholder="placeholder"
-		@update:model-value="emit('pick', $event)"
+		@update:model-value="pick"
 	>
 		<template #item-prefix="{ item }">
-			<AutomationCanvasIcon :icon="item.icon" :tone="item.tone" />
+			<AutomationCanvasIcon :icon="row(item).icon" :tone="row(item).tone" />
 		</template>
 		<template #item-label="{ item }">
-			<AutomationCanvasOption :item="item" />
+			<AutomationCanvasOption :item="row(item)" />
 		</template>
 		<template #trigger>
 			<slot />
@@ -23,7 +23,7 @@
 import { Combobox } from "frappe-ui";
 import AutomationCanvasIcon from "./AutomationCanvasIcon.vue";
 import AutomationCanvasOption from "./AutomationCanvasOption.vue";
-import type { AutomationCanvasOptionGroup } from "./types";
+import type { AutomationCanvasOptionGroup, AutomationCanvasPickerOption } from "./types";
 
 withDefaults(
 	defineProps<{
@@ -35,4 +35,13 @@ withDefaults(
 	{ side: "bottom", disabled: false }
 );
 const emit = defineEmits<{ pick: [value: string] }>();
+
+/** Combobox types its rows as its own option shape, which has no `tone`. */
+function row(item: unknown) {
+	return item as AutomationCanvasPickerOption;
+}
+
+function pick(value: string | number | null | undefined) {
+	if (value != null) emit("pick", String(value));
+}
 </script>
