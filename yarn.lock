@@ -1496,10 +1496,10 @@ moment-timezone@^0.5.35:
   dependencies:
     moment "^2.29.4"
 
-moment@^2.29.4:
-  version "2.30.1"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
-  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
+moment@^2.29.4, moment@^2.31.0:
+  version "2.31.0"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.31.0.tgz#6e19184e8005a9dfc61c9351263d4d6ea2ace7aa"
+  integrity sha512-0acOTfMiWOheYS4eoWb80yYMb/JLvVv9SHbs2PehaDzfUG0Bw855SKyk0IKTnPGa5+U2bmi3W68l1+sGLX/pvw==
 
 ms@2.0.0:
   version "2.0.0"
@@ -1656,9 +1656,9 @@ preact@~10.12.1:
   integrity sha512-l8386ixSsBdbreOAkqtrwqHwdvR35ID8c3rKPa8lCWuO86dBi32QWHV4vfsZK1utLLFMvw+Z5Ad4XLkZzchscg==
 
 probe-image-size@^7.2.3:
-  version "7.3.0"
-  resolved "https://registry.yarnpkg.com/probe-image-size/-/probe-image-size-7.3.0.tgz#a07df2e2cffc1057026d5a1bda3a5b11ee970034"
-  integrity sha512-7CaDeBwiAbh6ohXsvLbAZhO7wzsZAmaevfxe39qvCwRh8LyaZfDlBGGLU1CCTgrTLtCOdwBBhjOrIHaIIimHfQ==
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/probe-image-size/-/probe-image-size-7.4.0.tgz#c189ae04e9aad1e3fa3a0998a956a7e9aab7f66d"
+  integrity sha512-cdEprVtZxV+awMde9X+4jILBFYh4CARxVrQaMl4wY4YcPWbul9jntXrIW95NInBDyJwcVUP3U0T6yukN8rMBaQ==
   dependencies:
     lodash.merge "^4.6.2"
     needle "^2.5.2"

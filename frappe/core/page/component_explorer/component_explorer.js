@@ -1564,6 +1564,22 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Label position"),
+					items: [
+						{
+							__code: 'frappe.ui.stepper({\n  steps: [{ label: "Config" }, { label: "Preview" }, { label: "Fix issues" }, { label: "Import" }],\n  current: 1,\n  label_position: "bottom",  // or "right" (default), "left", "top"\n})',
+							steps: [
+								{ label: "Config" },
+								{ label: "Preview" },
+								{ label: "Fix issues" },
+								{ label: "Import" },
+							],
+							current: 1,
+							label_position: "bottom",
+						},
+					],
+				},
+				{
 					title: __("Compact (narrow layouts)"),
 					items: [
 						{
@@ -2457,8 +2473,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		const component = COMPONENTS[name];
 		const $groups = $body.find(".explorer-groups").empty();
 		if (!component) return;
-		// marks which component is on screen — Cypress waits on this
-		// attribute after switching components (see cypress spec)
+		// marks which component is on screen — UI tests wait on this
+		// attribute after switching components
 		$groups.attr("data-component", name);
 
 		component.groups.forEach((group) => {
@@ -2518,8 +2534,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	picker.set_value("Button");
 	render_component("Button");
 
-	// Deterministic entry point for Cypress: switch the shown component
+	// Deterministic entry point for UI tests: switch the shown component
 	// without driving the Autocomplete widget. Safe to expose — the
-	// explorer is a dev-only page. See cypress/integration/es_components.js.
+	// explorer is a dev-only page. See playwright/tests/es_components.spec.js.
 	frappe.pages["component-explorer"].render_component = render_component;
 };

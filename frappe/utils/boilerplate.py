@@ -946,7 +946,6 @@ repos:
         exclude: |
             (?x)^(
                 {app_name}/public/dist/.*|
-                cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
                 {app_name}/templates/includes/.*|
