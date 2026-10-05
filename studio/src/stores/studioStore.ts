@@ -87,13 +87,26 @@ const useStudioStore = defineStore("store", () => {
 		selectedVueComponent.value = componentName
 	}
 
+	const showRouterEditor = ref(false)
+
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
 		if (!appDoc) return
 		activeApp.value = appDoc
+		await setAppBoot(appName)
 		await setAppPages(appName)
 		await setCustomComponents()
 		await setupPageScripts()
+	}
+
+	// the canvas is not a rendered app page, so it asks for the app's studio_app_boot dict
+	async function setAppBoot(appName: string) {
+		try {
+			window.boot = await call("studio.api.get_app_boot", { app_name: appName })
+		} catch (error) {
+			console.error("Failed to load app boot", error)
+			window.boot = {}
+		}
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -123,7 +136,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function updateActiveApp(key: string, value: string) {
-		studioApps.setValue.submit(
+		return studioApps.setValue.submit(
 			{ name: activeApp.value?.name, [key]: value },
 			{
 				onSuccess() {
@@ -336,6 +349,12 @@ const useStudioStore = defineStore("store", () => {
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
 	// page and re-run setup() on the canvas. (Standard pages update only after their app rebuilds.)
+	async function reloadActiveAppRouterScript() {
+		if (!activeApp.value) return
+		const app = await fetchApp(activeApp.value.name)
+		if (app && activeApp.value?.name === app.name) activeApp.value.router_script = app.router_script
+	}
+
 	async function reloadActivePageScript() {
 		if (!activePage.value) return
 		const page = await fetchPage(activePage.value.name)
@@ -756,6 +775,7 @@ const useStudioStore = defineStore("store", () => {
 		selectedVueComponent,
 		navigateToCodeFile,
 		navigateToVueComponent,
+		showRouterEditor,
 		// studio pages
 		pageBlocks,
 		selectedPage,
@@ -771,6 +791,7 @@ const useStudioStore = defineStore("store", () => {
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,
+		reloadActiveAppRouterScript,
 		publishPage,
 		unpublishPage,
 		revertPage,

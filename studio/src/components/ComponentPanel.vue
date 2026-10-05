@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col gap-2" ref="componentContainer">
-		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full flex-col gap-3 bg-surface-base py-3">
+		<div class="sticky top-11 z-50 -mt-3 flex w-full flex-col gap-3 bg-surface-base py-3">
 			<!-- Component Filter -->
 			<Input
 				type="text"

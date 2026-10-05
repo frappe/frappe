@@ -111,11 +111,12 @@ def _build_shared_registry() -> ToolRegistry:
 def build_custom_page_registry() -> ToolRegistry:
 	"""Non-exported (visual/DB) app: reactive state as Studio Page variables, page logic as a bare
 	interpreted script. No file surface — the app lives in the DB."""
-	from studio.ai.agent.tools import scripts, variables
+	from studio.ai.agent.tools import router, scripts, variables
 
 	registry = _build_shared_registry()
 	registry.extend(variables.TOOLS)
 	registry.extend(scripts.build_tools(is_standard=False))
+	registry.extend(router.TOOLS)
 	return registry
 
 

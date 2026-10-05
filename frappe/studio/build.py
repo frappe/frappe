@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shlex
 import subprocess
 import traceback
 
@@ -35,6 +36,7 @@ class StudioAppBuilder:
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
+		self.router_file: str | None = None
 		self.icons: set[str] = set()
 
 		if self.is_standard:
@@ -56,6 +58,7 @@ class StudioAppBuilder:
 		if self.is_standard:
 			self.get_app_components_from_files()
 			self.get_page_scripts_from_files()
+			self.router_file = get_router_file(self.frappe_app, self.app_name)
 		else:
 			self.get_app_components()
 		self._run_vite_build()
@@ -104,7 +107,7 @@ class StudioAppBuilder:
 			f"yarn build-studio-app"
 			f" --app {self.app_name}"
 			f" --components {components_str}"
-			f" --out-dir {self.out_dir}"
+			f" --out-dir {shlex.quote(self.out_dir)}"
 			f" --base {self.base}"
 		)
 
@@ -115,6 +118,9 @@ class StudioAppBuilder:
 		if self.page_scripts:
 			page_scripts_json = json.dumps(self.page_scripts)
 			command += f" --page-scripts '{page_scripts_json}'"
+
+		if self.router_file:
+			command += f" --router-file {shlex.quote(self.router_file)}"
 
 		if self.icons:
 			command += f" --icons {','.join(sorted(self.icons))}"
@@ -344,6 +350,12 @@ def get_published_custom_apps() -> list[str]:
 
 def get_studio_folder(frappe_app: str) -> str | None:
 	return frappe.get_app_source_path(frappe_app, "studio")
+
+
+def get_router_file(frappe_app: str, studio_app: str) -> str | None:
+	"""Path of the app's studio/<app>/router.ts, if it ships one."""
+	path = os.path.join(get_studio_folder(frappe_app), frappe.scrub(studio_app), "router.ts")
+	return path if os.path.exists(path) else None
 
 
 def after_app_build(built_apps: list[str]) -> None:

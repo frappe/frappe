@@ -1,76 +1,120 @@
-import { createRouter, createWebHistory } from "vue-router"
+import {
+	createRouter,
+	createWebHistory,
+	type RouteRecordRaw,
+	type Router,
+	type RouterOptions,
+} from "vue-router"
 import AppContainer from "@/pages/AppContainer.vue"
-import { toast } from "frappe-ui"
+import NotFound from "@/pages/NotFound.vue"
+import * as globalUtils from "@/utils/globalUtils"
 
-const routes = [
-	{
-		path: "/:pageRoute(.*)*",
-		name: "AppContainer",
-		component: AppContainer,
-		props: true,
-	},
-]
+export type RouterConfig = {
+	routerOptions?: Omit<RouterOptions, "history" | "routes">
+	extendRoute?: (route: RouteRecordRaw) => void
+	setup?: (router: Router) => void | Promise<void>
+}
+
+const CONFIG_KEYS = ["routerOptions", "extendRoute", "setup"]
 
 interface Page {
 	name: string
 	route: string
 	page_title: string
 }
+
 declare global {
 	interface Window {
 		app_name: string
 		app_route: string
 		app_pages: Page[]
+		app_home?: string
+		router_file?: string | null
+		router_script?: string | null
+		boot?: Record<string, unknown>
 		is_guest?: boolean
 	}
 }
 
-let router = createRouter({
-	history: createWebHistory(`/${window.app_route}`),
-	routes,
-})
+export async function createAppRouter(config?: RouterConfig): Promise<Router> {
+	config ??= await loadRouterConfig()
+	const unknownKeys = Object.keys(config).filter((key) => !CONFIG_KEYS.includes(key))
+	if (unknownKeys.length) {
+		throw new Error(`router config: unknown keys ${unknownKeys.join(", ")}`)
+	}
+	const { routerOptions: options = {}, extendRoute } = config
+	const routes = getPageRoutes(window.app_pages)
+	if (extendRoute) await runHook("extendRoute", () => routes.forEach((route) => extendRoute(route)))
 
-const addDynamicRoutes = (appRoute: string, pages: Page[]) => {
-	router.removeRoute("AppContainer")
-	pages.forEach((page) => {
-		router.addRoute({
-			path: page.route,
-			name: page.page_title,
-			component: AppContainer,
-			props: true,
-			meta: {
-				isDynamic: true,
-				appRoute: appRoute,
-			},
-		})
+	const router = createRouter({
+		...options,
+		history: createWebHistory(`/${window.app_route}`),
+		routes,
+	})
+	await runHook("setup", () => config.setup?.(router))
+	addHomeRouteFallback(router)
+	addNotFoundRouteFallback(router)
+	router.beforeEach(sendGuestToLogin)
+	return router
+}
+
+// custom app: the Studio App's router script; standard app: router.ts
+async function loadRouterConfig(): Promise<RouterConfig> {
+	if (window.router_script) return runHook("router script", () => compileRouterScript(window.router_script!))
+	if (!window.router_file) return {}
+	const mod = await runHook("router.ts", () => import(/* @vite-ignore */ window.router_file!))
+	return mod.default || {}
+}
+
+function compileRouterScript(source: string): RouterConfig {
+	const factory = new Function("context", `with (context) { return (\n${source}\n) }`)
+	return factory({ ...globalUtils }) || {}
+}
+
+function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
+	return pages.map((page) => ({
+		path: page.route,
+		name: page.page_title,
+		component: AppContainer,
+		props: true,
+		meta: {
+			pageName: page.name,
+			appRoute: window.app_route,
+		},
+	}))
+}
+
+function addHomeRouteFallback(router: Router) {
+	if (router.getRoutes().some((route) => route.path === "/")) return
+	const home = router.getRoutes().find((route) => !route.aliasOf && route.meta.pageName === window.app_home)
+	if (!home || home.path.includes(":")) return
+	router.addRoute({ path: "/", component: AppContainer, beforeEnter: () => home.path })
+}
+
+function addNotFoundRouteFallback(router: Router) {
+	if (router.getRoutes().some((route) => route.path.includes("(.*)"))) return
+	router.addRoute({
+		path: "/:pathMatch(.*)*",
+		name: "Not Found",
+		component: NotFound,
+		props: { home: `/${window.app_route}/` },
+		meta: { notFound: true },
 	})
 }
 
-router.beforeEach((to, _, next) => {
-	if (to.params.pageRoute && to.params.pageRoute !== "studio") {
-		// if pageRoute is still a param, dynamic routes have not been added yet
-		try {
-			addDynamicRoutes(to.params.appRoute as string, window.app_pages)
-			// Redirect to the same route to trigger re-evaluation with new routes
-			return next(to.fullPath)
-		} catch (error) {
-			console.error("Error adding dynamic routes:", error)
-			return next()
-		}
-	}
-	if (!to.matched.length) {
-		if (window.is_guest) {
-			// Private routes are absent for guests; retry after login.
-			const redirectTo = encodeURIComponent(`/${window.app_route}${to.fullPath}`)
-			window.location.href = `/login?redirect-to=${redirectTo}`
-			return false
-		}
-		toast.error(`Failed to navigate to ${to.fullPath}`, {
-			description: "Page does not exist or is not published"
-		})
-		return false
-	}
-	next()
-})
+// private routes are absent from a guest's page list, so an unknown path may exist after login
+function sendGuestToLogin(to: { meta: { notFound?: boolean }; fullPath: string }) {
+	if (!window.is_guest || !to.meta.notFound) return true
+	const redirectTo = encodeURIComponent(`/${window.app_route}${to.fullPath}`)
+	window.location.href = `/login?redirect-to=${redirectTo}`
+	return false
+}
 
-export default router
+async function runHook<T>(where: string, run: () => T | Promise<T>): Promise<T> {
+	try {
+		return await run()
+	} catch (error) {
+		const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+		throw new Error(`${where}: ${message}`, { cause: error })
+	}
+}

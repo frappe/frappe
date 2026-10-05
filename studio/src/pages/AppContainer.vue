@@ -7,7 +7,7 @@ import { watch, ref } from "vue"
 import { useRoute } from "vue-router"
 import { usePageMeta } from "frappe-ui"
 
-import { findPageWithRoute } from "@/utils/helpers"
+import { fetchAppPage } from "@/utils/helpers"
 import { getBlockInstance } from "@/utils/serializer"
 import { useLivePreview } from "@/utils/useLivePreview"
 import AppComponent from "@/components/AppComponent.vue"
@@ -27,27 +27,25 @@ const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
 
-let loadedPath: string | null = null
+let loadedPageName: string | null = null
 async function handleRouteChange() {
-	const currentPath = resolveCurrentPath()
-	if (currentPath && currentPath === loadedPath && page.value) {
-		// param-only navigation (/articles/a -> /articles/b)
-		return
-	}
+	const pageName = getCurrentPageName()
+	// same page, different params (/articles/a -> /articles/b): keep it loaded
+	if (pageName && pageName === loadedPageName && page.value) return
 	await loadPage()
 }
 
 let loadToken = 0
 async function loadPage() {
 	const token = ++loadToken
-	const currentPath = resolveCurrentPath()
-	if (!currentPath) {
+	const pageName = getCurrentPageName()
+	if (!pageName) {
 		rootBlock.value = null
 		return
 	}
 	codeStore.teardownPage()
 
-	page.value = await findPageWithRoute(window.app_name, currentPath, Boolean(window.is_preview))
+	page.value = await fetchAppPage(window.app_name, pageName, Boolean(window.is_preview))
 	if (token !== loadToken || !page.value) return
 	componentStore.setComponents(page.value.components || [])
 	await store.setPageData(page.value)
@@ -58,15 +56,11 @@ async function loadPage() {
 	if (blocks) {
 		rootBlock.value = getBlockInstance(blocks[0])
 	}
-	loadedPath = currentPath
+	loadedPageName = pageName
 }
 
-function resolveCurrentPath(): string | undefined {
-	const { pageRoute } = route.params as { pageRoute: string[] }
-	// registered page routes carry isDynamic meta
-	if (route.meta?.isDynamic) return route.matched?.[0]?.path
-	if (pageRoute) return pageRoute[0]
-	return "/"
+function getCurrentPageName(): string | undefined {
+	return route.meta.pageName as string | undefined
 }
 
 watch(() => route.path, handleRouteChange, { immediate: true })

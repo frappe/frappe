@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:app_name",
- "creation": "2024-09-25 20:56:56.296301",
+ "creation": "2026-09-30 18:07:15.467992",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -11,6 +11,8 @@
   "route",
   "column_break_aroi",
   "app_home",
+  "router_section",
+  "router_script",
   "export_section",
   "is_standard",
   "frappe_app"
@@ -62,6 +64,20 @@
    "fieldtype": "Select",
    "label": "Frappe App (for export)",
    "mandatory_depends_on": "is_standard"
+  },
+  {
+   "depends_on": "eval:!doc.is_standard",
+   "fieldname": "router_section",
+   "fieldtype": "Section Break",
+   "label": "Router"
+  },
+  {
+   "depends_on": "eval:!doc.is_standard",
+   "description": "Control navigation with guards, redirects, aliases and route metadata",
+   "fieldname": "router_script",
+   "fieldtype": "Code",
+   "label": "Router Script",
+   "options": "JavaScript"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -71,7 +87,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-04-01 12:40:55.395090",
+ "modified": "2026-10-03 18:37:56.359868",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",
