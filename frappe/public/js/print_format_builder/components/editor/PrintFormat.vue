@@ -355,4 +355,8 @@ let page_number_style = computed(() => {
 .section-with-insert:hover :deep(.section-insert) {
 	opacity: 1;
 }
+
+.section-with-insert:hover :deep(.section-insert:not(:hover) .section-insert-btn) {
+	visibility: hidden;
+}
 </style>
