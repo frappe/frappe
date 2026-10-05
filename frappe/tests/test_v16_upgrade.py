@@ -1121,11 +1121,13 @@ class TestFoldedSidebarsShareOneLayer(IntegrationTestCase):
 
 
 class TestAModuleWithSeveralSidebars(IntegrationTestCase):
-	"""A layer belongs to a module and applies to every sidebar in it, so one sidebar's edits
-	cannot be kept apart from another's. They stay in the archive, and the output says so."""
+	"""A layer belongs to a module and applies to every sidebar in it. Only what cannot show on
+	another sidebar is carried: a relabel of an item only this sidebar holds. A change to an item
+	the sidebars share stays in the archive, and the output names it."""
 
 	MODULE = "Test V16 Shared Module"
 	OTHER = "V16 Shared Other"
+	USER = "test-v16-shared@example.com"
 
 	@classmethod
 	def setUpClass(cls):
@@ -1140,15 +1142,20 @@ class TestAModuleWithSeveralSidebars(IntegrationTestCase):
 			).insert()
 			clear_computed_base_cache(cls.MODULE)
 
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Shared", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
 		app_sidebar(cls.MODULE, cls.MODULE, [link("Note", "Notes"), link("File", "Files")])
 		app_sidebar(cls.MODULE, cls.OTHER, [link("File", "Files"), link("User", "Users")])
 
 		cls.files = [v16_file(cls.OTHER, [link("File", "Files"), link("User", "Users")])]
 		cls.addClassCleanup(lambda: [os.remove(path) for path in cls.files if os.path.exists(path)])
 
+		# File is in both sidebars, User only in this one
 		archive(
 			cls.OTHER,
-			[link("File", "Shared Files"), link("User", "Users")],
+			[link("File", "Shared Files"), link("User", "Team")],
 			module=cls.MODULE,
 			standard=1,
 			app="frappe",
@@ -1161,14 +1168,14 @@ class TestAModuleWithSeveralSidebars(IntegrationTestCase):
 		frappe.clear_cache()
 		super().tearDownClass()
 
-	def test_the_edit_does_not_reach_the_other_sidebar(self):
-		self.assertFalse(
-			frappe.db.exists("Custom Sidebar", {"module": self.MODULE, "user": ["in", ["", None]]})
-		)
-		labels = [item["label"] for item in resolve_sidebar(self.MODULE, "Administrator").items]
-		self.assertEqual(labels, ["Notes", "Files"])
+	def seen(self, shell: str) -> list[str]:
+		return [item["label"] for item in resolve_sidebar(shell, self.USER).items]
+
+	def test_an_edit_to_an_item_only_this_sidebar_holds_is_kept(self):
+		self.assertEqual(self.seen(self.OTHER), ["Files", "Team"])
+
+	def test_the_other_sidebar_is_untouched(self):
+		self.assertEqual(self.seen(self.MODULE), ["Notes", "Files"])
 
 	def test_the_output_names_what_was_left(self):
-		self.assertTrue(
-			[line for line in self.output if self.OTHER in line and "archive" in line], self.output
-		)
+		self.assertTrue([line for line in self.output if "Shared Files" in line], self.output)
