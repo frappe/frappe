@@ -540,13 +540,9 @@ frappe.router = {
 	// would be chosen again by `write_shell_into_url`, which knows only the shell on screen and the
 	// entity's own, so Employee would open in HR Setup. A route naming the shell on screen stays
 	// without it, which keeps a self-link a self-link.
-	//
-	// The sidebar on screen counts only off a system page: the desktop opens in no shell, and the
-	// sidebar still remembers whichever page came before it.
 	keep_shell_moved_into(path, shell) {
 		if (!shell || shell === this.current_shell) return path;
-		const on_system_page = this.page_info_for(this.current_route || [])?.system_page;
-		if (!on_system_page && shell === frappe.app?.sidebar?.current_module) return path;
+		if (shell === frappe.app?.sidebar?.current_module) return path;
 
 		return "/desk/" + this.shell_slug(shell) + path.slice("/desk".length);
 	},

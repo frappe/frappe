@@ -324,6 +324,22 @@ describe("Desk URL shell segment", () => {
 		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
 	});
 
+	it("moves into the shell a link names, from a page with no shell", () => {
+		// What a desktop icon does: it opens its module on the first link, spelled with the
+		// module's shell. ToDo opens in Build when nothing names one, so dropping the shell from
+		// the link would land it there instead of in the module the icon stands for.
+		cy.visit("/desk/desktop");
+		cy.window().then((win) => {
+			const link = win.document.createElement("a");
+			link.href = "/desk/users/todo";
+			link.textContent = "ToDo in Users";
+			win.document.body.appendChild(link);
+			link.click();
+		});
+		cy.location("pathname").should("eq", "/desk/users/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Users");
+	});
+
 	it("does not rewrite history when you go back", () => {
 		// A URL outranks the sidebar on screen, or the back button would rewrite the entry it
 		// just returned to: going back to a ToDo opened in Build, while standing in Users, would
