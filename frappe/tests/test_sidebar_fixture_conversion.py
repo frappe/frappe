@@ -53,15 +53,8 @@ def old_fixtures(fixtures: dict[str, dict], app: str = "frappe"):
 			f.write(json.dumps(fixture, indent=1) + "\n")
 		written.append(path)
 
-	# Only these are in the folder as far as the conversion can tell. The app may ship real ones
-	# beside them, as frappe does with its frozen v16 baseline, and converting those would write
-	# exports into the app.
-	def listed(folder_name, app_name):
-		return list(written) if app_name == app else []
-
 	try:
-		with patch("frappe.desk.doctype.sidebar.convert_fixtures.get_app_level_files", side_effect=listed):
-			yield folder
+		yield folder
 	finally:
 		if created:
 			shutil.rmtree(folder, ignore_errors=True)
@@ -402,21 +395,13 @@ class TestTheNotice(IntegrationTestCase):
 	def test_it_names_the_app_and_the_command(self):
 		fixtures = {"only": fixture("Notice Only", "Core", [link("User")])}
 
-		with (
-			old_fixtures(fixtures),
-			patch("frappe.desk.doctype.sidebar.convert_fixtures.has_converted", return_value=False),
-		):
+		with old_fixtures(fixtures):
 			self.assertEqual(apps_with_old_fixtures().get("frappe"), 1)
 			lines = " ".join(self.run_patch())
 
 		self.assertIn("frappe", lines)
 		self.assertIn("workspace_sidebar", lines)
 		self.assertIn("convert-sidebar-fixtures", lines)
-
-	def test_an_app_that_has_converted_is_not_named(self):
-		"""It keeps its old folder on purpose, as the v16 baseline a site's edits are told apart by."""
-		self.assertTrue(apps_with_old_fixtures().get("frappe"))
-		self.assertNotIn("frappe ", " ".join(self.run_patch()))
 
 	def test_it_says_nothing_when_every_app_has_converted(self):
 		with patch(

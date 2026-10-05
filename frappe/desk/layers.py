@@ -23,9 +23,6 @@ Three things differ between the two, and each is a parameter:
 
 None of those is the merge itself, so the merge lives here and they are passed in as `key`,
 `apply_row` and `keep_unnamed`.
-
-A layer whose rows are all `in_place` is the exception to "moves what it names": it changes the
-entries it names without moving them (see `apply_layer`).
 """
 
 from collections.abc import Callable
@@ -137,14 +134,6 @@ def apply_layer(
 
 	if not named:
 		return items
-
-	# A layer that only touches items, rather than arranging them: its rows are all `in_place`.
-	# A relabel or a hide changes the item where it already stands, so the order below keeps
-	# applying, including order an app ships later, and an added row goes at the end.
-	if all(row.get("in_place") for row in rows):
-		return [by_key[key(item)] for item in items] + [
-			by_key[row_key] for row_key in arranged if row_key not in base_keys
-		]
 
 	arranged_items = [by_key[row_key] for row_key in arranged]
 	# Entries the layer never named. The sidebar keeps them after the ones it did name, so an app

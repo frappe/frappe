@@ -68,7 +68,6 @@ class CustomSidebar(Document):
 		from frappe.desk.doctype.sidebar_item.sidebar_item import SidebarItem
 		from frappe.types import DF
 
-		arranged: DF.Check
 		header_icon: DF.Icon | None
 		label: DF.Data | None
 		module: DF.Link
@@ -292,18 +291,10 @@ def resolve_arrangement(
 	"""
 	return resolve_layers(
 		items,
-		[rows_to_apply(layer) for layer in layers],
+		[layer.sidebar_items for layer in layers],
 		key=item_key,
 		apply_row=apply_sidebar_row,
 	)
-
-
-def rows_to_apply(layer: "CustomSidebar") -> list:
-	"""The rows a layer applies. Those of a layer that does not set the order are marked
-	`in_place`, so the merge changes the items they name without moving them."""
-	if layer.arranged:
-		return layer.sidebar_items
-	return [frappe._dict(row.as_dict(), in_place=1) for row in layer.sidebar_items]
 
 
 def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]:
@@ -354,10 +345,6 @@ def apply_sidebar_row(row, item: dict | None) -> dict | None:
 
 	if item is None:
 		return None
-
-	# In place, the item stays in the section the app put it in.
-	if row.get("in_place"):
-		return {**item, **overrides(row)}
 
 	return {**item, **overrides(row), "child": int(row.child or 0)}
 
@@ -862,8 +849,6 @@ def _save_customization(
 		doc.set("sidebar_items", [])
 		for row in rows:
 			doc.append("sidebar_items", row)
-		# the editor saves the whole list in its order
-		doc.arranged = 1
 
 	# ignore_permissions: a user arranging their own sidebar does not need write access to this
 	# doctype. Only their own layer is touched, and the arrangement is re-filtered by permissions
