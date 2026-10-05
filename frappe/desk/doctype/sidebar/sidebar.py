@@ -1043,7 +1043,7 @@ def unlinked_key(item) -> str:
 #
 #   * `convert_fixtures`, where an app's old fixtures were one file per workspace, so a module
 #     with four workspaces has to end up with one sidebar.
-#   * `patches.v16_0.convert_sidebars`, where a user may have forked several of a module's
+#   * `patches.v16_0.convert_personal_sidebars`, where a user may have forked several of a module's
 #     sidebars and now needs a single customization layer.
 #
 # Nothing on a running site merges. That is why this sits beside the model rather than inside
