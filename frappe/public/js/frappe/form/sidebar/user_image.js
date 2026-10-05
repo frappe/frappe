@@ -39,7 +39,11 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 		});
 	}
 
-	if (frm.meta.image_field && !frm.fields_dict[frm.meta.image_field].df.read_only) {
+	if (
+		frm.meta.image_field &&
+		!frm.fields_dict[frm.meta.image_field].df.read_only &&
+		frm.perm[0].write
+	) {
 		var upload_image = function () {
 			var field = frm.get_field(frm.meta.image_field);
 			if (!field.$input) {
@@ -48,6 +52,15 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 			field.$input.trigger("attach_doc_image");
 			frm.page.close_sidebar?.();
 		};
+
+		frm.sidebar.image_wrapper
+			.attr({ tabindex: 0, role: "button", "aria-label": __("Change photo") })
+			.on("keydown", function (e) {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					this.click();
+				}
+			});
 
 		// without an image, upload directly instead of opening the menu below
 		frm.sidebar.image_wrapper.on("click", function (e) {

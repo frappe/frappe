@@ -810,3 +810,8 @@ body[data-route^="Form"] .attachment-preview {
 .shared-user {
 	margin-bottom: 10px;
 }
+
+// menus open on the body, under the narrow-screen sidebar (1300)
+body:has(.overlay-sidebar.opened) .es-menu {
+	z-index: 1301;
+}
