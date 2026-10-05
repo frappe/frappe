@@ -385,11 +385,7 @@ test.describe("Control Link", () => {
 		expect(form_passed).toBe(true);
 	});
 
-	test("previews the doc the field holds after its value is set in code", async ({
-		page,
-		desk,
-		api,
-	}) => {
+	async function setup_todo_preview({ page, desk, api }) {
 		const [other_todo] = await api.create_records({
 			doctype: "ToDo",
 			description: `another test todo for link preview ${todo_stamp}`,
@@ -412,17 +408,80 @@ test.describe("Control Link", () => {
 		await desk.ready();
 
 		const dialog = await get_dialog_with_link(desk);
-		const input = page.locator(".frappe-control[data-fieldname=link] input");
-		const preview = page.locator(".link-preview-popover");
 		await page.evaluate(() => document.activeElement?.blur());
+		return {
+			other_todo,
+			dialog,
+			input: page.locator(".frappe-control[data-fieldname=link] input"),
+			preview: page.locator(".link-preview-popover"),
+			leave: () => desk.get_open_dialog().locator(".modal-title").hover(),
+		};
+	}
+
+	const is_preview_of = (name) => (res) =>
+		res.url().includes("get_preview_data") &&
+		new URL(res.url()).searchParams.get("docname") === name;
+
+	test("previews the doc the field holds after its value is set in code", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const { other_todo, dialog, input, preview, leave } = await setup_todo_preview({
+			page,
+			desk,
+			api,
+		});
 
 		// a form reused for another doc sets its fields like this: no "change" event
 		for (const name of [todo, other_todo]) {
 			await dialog.evaluate((d, name) => d.set_value("link", name), name);
 			await input.hover();
 			await expect(preview).toContainText(name);
-			await desk.get_open_dialog().locator(".modal-title").hover();
+			await leave();
 			await expect(preview).toHaveCount(0);
 		}
+	});
+
+	test("drops a preview that arrives after the field moved to another doc", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const { other_todo, dialog, input, preview, leave } = await setup_todo_preview({
+			page,
+			desk,
+			api,
+		});
+
+		let release;
+		const held = new Promise((resolve) => (release = resolve));
+		await page.route(
+			(url) =>
+				url.pathname.endsWith("get_preview_data") &&
+				url.searchParams.get("docname") === todo,
+			async (route) => {
+				await held;
+				await route.continue();
+			}
+		);
+
+		await dialog.evaluate((d, name) => d.set_value("link", name), todo);
+		const first_requested = page.waitForRequest((req) => is_preview_of(todo)(req));
+		await input.hover();
+		await first_requested;
+
+		await dialog.evaluate((d, name) => d.set_value("link", name), other_todo);
+		await leave();
+		const second_loaded = page.waitForResponse(is_preview_of(other_todo));
+		await input.hover();
+		await second_loaded;
+
+		const first_loaded = page.waitForResponse(is_preview_of(todo));
+		release();
+		await first_loaded;
+
+		await expect(preview).toContainText(other_todo);
+		await expect(preview).not.toContainText(todo);
 	});
 });
