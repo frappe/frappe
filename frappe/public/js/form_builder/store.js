@@ -1,21 +1,12 @@
 import { defineStore } from "pinia";
 import {
 	create_layout,
-	evaluate_depends_on_value,
 	scrub_field_names,
 	load_doctype_model,
 	section_boilerplate,
 } from "./utils";
 import { computed, nextTick, ref, watch } from "vue";
 import { useDebouncedRefHistory, onKeyDown, useActiveElement } from "@vueuse/core";
-
-// web form props panel shows only these props per fieldtype; pages are Tab Breaks
-const WEB_FORM_LAYOUT_PROPS = ["label", "description", "hidden", "depends_on"];
-const WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE = {
-	"Tab Break": WEB_FORM_LAYOUT_PROPS,
-	"Section Break": WEB_FORM_LAYOUT_PROPS,
-	"Column Break": WEB_FORM_LAYOUT_PROPS,
-};
 
 export const useStore = defineStore("form-builder-store", () => {
 	let doctype = ref("");
@@ -243,10 +234,9 @@ export const useStore = defineStore("form-builder-store", () => {
 		const first = ["label", "fieldtype", "fieldname"];
 		const rank = (df) =>
 			first.includes(df.fieldname) ? first.indexOf(df.fieldname) : first.length;
-		docfields.value = frappe
-			.get_meta("Web Form Field")
-			.fields.map(limit_to_fieldtype_props)
-			.sort((a, b) => rank(a) - rank(b));
+		docfields.value = [...frappe.get_meta("Web Form Field").fields].sort(
+			(a, b) => rank(a) - rank(b)
+		);
 
 		// not for the properties panel: get_df() builds layout nodes from DocField meta
 		if (!frappe.get_meta("DocField")) {
@@ -868,18 +858,3 @@ export const useStore = defineStore("form-builder-store", () => {
 		tab_text,
 	};
 });
-
-// wraps depends_on so the property's own condition still applies
-function limit_to_fieldtype_props(df) {
-	const hidden_for = Object.keys(WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE).filter(
-		(fieldtype) => !WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE[fieldtype].includes(df.fieldname)
-	);
-	if (!hidden_for.length) return df;
-
-	return {
-		...df,
-		depends_on: (doc) =>
-			!hidden_for.includes(doc.fieldtype) &&
-			(!df.depends_on || evaluate_depends_on_value(df.depends_on, doc)),
-	};
-}
