@@ -129,6 +129,7 @@ test.describe("Web Form Pages", () => {
 			admin,
 			[
 				{ fieldtype: "Page Break", label: "About You" },
+				{ fieldtype: "Section Break", label: "Basics" },
 				{ fieldname: "title", fieldtype: "Data", label: "Title" },
 				{ fieldtype: "Page Break", label: "More" },
 				{ fieldname: "kind", fieldtype: "Select", label: "Kind" },
@@ -148,6 +149,8 @@ test.describe("Web Form Pages", () => {
 			page.locator('.web-form .frappe-control[data-fieldname="title"]')
 		).toBeVisible();
 		await expect(visible_heading(page, "About You")).toBeVisible();
+		// the section keeps its own heading under the page name
+		await expect(visible_heading(page, "Basics")).toBeVisible();
 		await expect(page.locator(".slides-progress .slide-step")).toHaveCount(2);
 
 		await page.locator(".btn-next").click();

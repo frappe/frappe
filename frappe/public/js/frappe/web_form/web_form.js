@@ -88,14 +88,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	// a Page Break in row 1 names page 1 and opens no new page
 	with_first_page_heading(fields) {
-		let [first, next, ...rest] = fields;
+		let [first, ...rest] = fields;
 		if (first?.fieldtype !== "Page Break") return fields;
-
-		// an empty section is hidden, so label the opening break instead
-		if (next?.fieldtype === "Section Break") {
-			return [{ ...next, label: next.label || first.label }, ...rest];
-		}
-		return [{ ...first, fieldtype: "Section Break" }, ...fields.slice(1)];
+		return [{ ...first, fieldtype: "Section Break" }, ...rest];
 	}
 
 	setup_previous_next_button() {
