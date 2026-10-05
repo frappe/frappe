@@ -134,17 +134,10 @@ class TestNaming(IntegrationTestCase):
 		"""
 		Test if braced params are replaced for consecutive week number in format autoname
 		"""
-		doctype = "ToDo"
+		doctype = new_doctype(autoname="format:TODO-{WW}-{##}").insert()
 
-		todo_doctype = frappe.get_doc("DocType", doctype)
-		todo_doctype.autoname = "format:TODO-{WW}-{##}"
-		todo_doctype.save()
-
-		description = "Format"
-
-		todo = frappe.new_doc(doctype)
-		todo.description = description
-		todo.insert()
+		doc = frappe.new_doc(doctype.name)
+		doc.insert()
 
 		series = getseries("", 2)
 
@@ -155,7 +148,7 @@ class TestNaming(IntegrationTestCase):
 
 		week = determine_consecutive_week_number(now_datetime())
 
-		self.assertEqual(todo.name, f"TODO-{week}-{series}")
+		self.assertEqual(doc.name, f"TODO-{week}-{series}")
 
 	def test_expression_autoname_multiple_fields_pattern_without_dot_before_dash(self):
 		"""
