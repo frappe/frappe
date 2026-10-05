@@ -13,7 +13,7 @@ import { useLivePreview } from "@/utils/useLivePreview"
 import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
-import { usePageScope } from "@/stores/codeStore"
+import useCodeStore from "@/stores/codeStore"
 import useComponentStore from "@/stores/componentStore"
 
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -21,7 +21,7 @@ import Block from "@/utils/block"
 
 const store = useAppStore()
 const route = useRoute()
-const pageScope = usePageScope()
+const codeStore = useCodeStore()
 const componentStore = useComponentStore()
 const page = ref<StudioPage | null>(null)
 
@@ -43,20 +43,33 @@ async function loadPage() {
 		rootBlock.value = null
 		return
 	}
-	pageScope.teardownPage()
+	codeStore.activeScope.teardownPage()
 
 	page.value = await fetchAppPage(window.app_name, pageName, Boolean(window.is_preview))
 	if (token !== loadToken || !page.value) return
 	componentStore.setComponents(page.value.components || [])
-	await store.setPageData(page.value)
-	await pageScope.setPageScript(page.value, Boolean(page.value.is_standard))
-	if (token !== loadToken) return
+	const scope = await loadPageScope(page.value)
+	if (token !== loadToken) return scope.teardownPage()
 
+	// same tick as the block swap, so the old blocks never render against the new page's data
+	codeStore.activatePageScope(scope)
 	const blocks = JSON.parse(page.value?.blocks)
 	if (blocks) {
 		rootBlock.value = getBlockInstance(blocks[0])
 	}
 	loadedPageName = pageName
+}
+
+async function loadPageScope(page: StudioPage) {
+	const scope = codeStore.createPageScope()
+	try {
+		await store.setPageData(page, scope)
+		await scope.setPageScript(page, Boolean(page.is_standard))
+		return scope
+	} catch (error) {
+		scope.teardownPage()
+		throw error
+	}
 }
 
 function getCurrentPageName(): string | undefined {
