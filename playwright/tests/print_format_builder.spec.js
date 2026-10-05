@@ -698,21 +698,10 @@ test.describe("Print Format Builder — column width resize", () => {
 		expect_within(cols[0].width, 23, 38);
 		expect_within(cols[1].width, 60, 77);
 		expect_within(cols[0].width + cols[1].width, 88, 100);
-	});
-
-	test("section column resize clamps at the 10% minimum", async ({ page, api }) => {
-		await insert_builder_format(api, PF_NAME, two_column_section());
-
-		await open_builder(page, PF_NAME);
-		await expect(page.locator(".sections-container")).toBeVisible();
-		await wait_for_canvas(page);
 
 		await drag(page, page.locator(".sections-container .col-width-handle").first(), -5000);
-
 		await expect
-			.poll(() =>
-				css_number(page.locator(".sections-container .column").first(), "flex-grow")
-			)
+			.poll(() => css_number(columns.first(), "flex-grow"), "clamps at the 10% minimum")
 			.toBeGreaterThanOrEqual(10);
 	});
 

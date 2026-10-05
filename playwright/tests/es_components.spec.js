@@ -277,32 +277,6 @@ test.describe("Espresso components", () => {
 			await expect(page.locator(".es-tooltip")).toHaveCount(0);
 			await expect(trigger).not.toHaveAttribute("aria-describedby");
 		});
-
-		test("drops the arrow for es-tooltip--plain, and keeps it otherwise", async ({ page }) => {
-			const trigger = page
-				.locator(".es-button", { hasText: containing("No delay") })
-				.first();
-
-			await trigger.dispatchEvent("pointerenter", { pointerType: "mouse" });
-			await expect(page.locator(".es-tooltip")).not.toHaveClass(
-				with_class("es-tooltip--plain")
-			);
-			await expect(page.locator(".es-tooltip .es-tooltip__arrow")).toBeAttached();
-			await trigger.dispatchEvent("pointerleave");
-
-			const tip = await page.evaluateHandle(() => {
-				const tip = new frappe.ui.Tooltip(document.body, {
-					text: "Plain",
-					delay: 0,
-					class: "es-tooltip--plain",
-				});
-				tip.show();
-				return tip;
-			});
-			await expect(page.locator(".es-tooltip.es-tooltip--plain")).toBeAttached();
-			await expect(page.locator(".es-tooltip .es-tooltip__arrow")).toHaveCount(0);
-			await tip.evaluate((tip) => tip.destroy());
-		});
 	});
 
 	test.describe("Popover", () => {

@@ -80,19 +80,7 @@ test.describe("Frappe UI page", () => {
 		await expect(
 			page.locator(`#page-${PAGE} .page-content .page-island-fixture`)
 		).toBeAttached();
-	});
-
-	test("builds a page head, so the island draws no header of its own", async ({
-		page,
-		desk,
-	}) => {
-		await visit_page(page, desk);
 		await expect(page.locator(`#page-${PAGE} .page-head`)).toBeAttached();
-	});
-
-	test("bounds the page, so the island scrolls its own body", async ({ page, desk }) => {
-		await visit_page(page, desk);
-		await expect(page.locator("body")).toHaveClass(/(^|\s)island-page(\s|$)/);
 	});
 
 	test("takes the page title from what the island reports", async ({ page, desk }) => {

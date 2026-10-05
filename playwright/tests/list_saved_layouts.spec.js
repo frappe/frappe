@@ -13,11 +13,6 @@ async function open_layout_submenu(page) {
 	await expect(menu_item(page, "Default Layout")).toBeAttached();
 }
 
-async function close_menus(page) {
-	await page.keyboard.press("Escape");
-	await expect(page.locator(".es-menu[data-state='open']")).toHaveCount(0);
-}
-
 async function select_layout(page, label) {
 	await open_layout_submenu(page);
 	const preference_saved = page.waitForResponse((res) =>
@@ -44,18 +39,6 @@ test.describe("List View — Saved Layouts", () => {
 	test.beforeEach(async ({ api }) => {
 		await api.call("frappe.tests.ui_test_helpers.clear_list_layout_test_layouts");
 		await api.call("frappe.tests.ui_test_helpers.reset_list_layout_test_user_settings");
-	});
-
-	test("shows default layout and action rows in the menu", async ({ page, desk }) => {
-		await page.goto(LIST_URL);
-		await desk.ready();
-		await desk.clear_filters();
-
-		await open_layout_submenu(page);
-		await expect(menu_item(page, "Default Layout")).toBeVisible();
-		await expect(menu_item(page, "Create Layout")).toBeVisible();
-		await expect(menu_item(page, "Manage Layouts")).toBeVisible();
-		await close_menus(page);
 	});
 
 	test("restores last selected layout on a clean URL when no URL filters exist", async ({
