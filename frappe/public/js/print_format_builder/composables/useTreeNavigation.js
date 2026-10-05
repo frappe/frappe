@@ -43,7 +43,17 @@ export function useTreeNavigation({ layout, letterhead, selection, scroll_target
 	}
 
 	function current_index(nodes) {
-		if (selected_field.value) return nodes.findIndex((n) => n.field === selected_field.value);
+		const field = selected_field.value;
+		if (field) {
+			const i = nodes.findIndex((n) => n.field === field);
+			if (i !== -1) return i;
+			return nodes.findIndex(
+				(n) =>
+					!n.field &&
+					!n.letterhead &&
+					n.section.columns?.some((c) => c.fields?.includes(field))
+			);
+		}
 		if (selected_letterhead.value || selected_lh_footer.value) {
 			const zone = selected_lh_footer.value ? layout.value.footer : layout.value.header;
 			return nodes.findIndex((n) => n.letterhead && n.section === zone);
