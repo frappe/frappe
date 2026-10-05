@@ -5,13 +5,13 @@ from frappe.patches.v16_0.sidebar_archive import archive_exists, custom_module_o
 
 
 def execute():
-	"""Move the workspace each custom sidebar opened on into the module the sidebar became.
+	"""Move the workspace each custom sidebar opened on into the sidebar's new custom module.
 
-	A desktop icon finds its sidebar through the module of the workspace it links to, and v16's
-	icon for a custom sidebar links to a workspace of the same name. Left in the module v16 filed
-	it under, the icon opens that module's sidebar instead of the site's own.
+	A desktop icon links to a workspace, and opens the sidebar of that workspace's module. If the
+	workspace stayed in its old module, the icon would open the app's sidebar instead of the
+	site's own.
 
-	Only a page the site made is moved. An app's workspace belongs where the app put it.
+	Only workspaces the site made are moved. An app's workspace stays where the app put it.
 	"""
 	if not archive_exists():
 		return

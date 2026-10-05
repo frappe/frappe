@@ -14,10 +14,14 @@ from frappe.patches.v16_0.sidebar_archive import (
 
 
 def execute():
-	"""Carry an app's v16 sidebars into the module's `Sidebar`, where the app has not shipped one.
+	"""Build a `Sidebar` from an app's v16 sidebar, but only when the app no longer ships it.
 
-	A site's own sidebars and a user's forks are converted by the patches after this one. The old
-	rows are left untouched, so this is safe to re-run.
+	Usually the app ships its sidebars as files, and `bench migrate` has already installed them
+	before this runs, so there is nothing to do. This covers an app that dropped a sidebar, or has
+	not yet converted its old sidebar files.
+
+	Sidebars the site made and users' personal copies are handled by the patches after this one.
+	The old rows are not changed, so this is safe to run again.
 	"""
 	if not archive_exists():
 		return
@@ -43,12 +47,12 @@ def execute():
 
 
 def standard_sources() -> dict[str, list[frappe._dict]]:
-	"""The app rows nothing shipped today stands for, grouped by module.
+	"""The app's v16 sidebars that the app no longer ships, grouped by module.
 
-	A row is matched by title before module. An app that reorganised its modules ships the
-	sidebar under its old title in a new module: hrms's v16 `Expenses` said `HR`, and is the
-	`Expenses` sidebar of module `Expenses` now. Matched by module alone, every such row would be
-	merged into a second, stale `HR` sidebar.
+	A row is skipped when the app ships a sidebar with the same title, in any module. Checking
+	the module alone is not enough when an app has moved a sidebar: if `Books` was under
+	`Library` in v16 and now ships under `Catalog`, the old row still says `Library`. `Library`
+	has no sidebar now, so the row would be built into a second, outdated `Library` sidebar.
 	"""
 	rows = [
 		row
