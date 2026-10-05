@@ -57,6 +57,7 @@ function studioFolderWatcher(appsDir) {
 		// sibling JSON so the editor can match it to the active page. Stores keep their singleton
 		// state across this (they refresh code only via their own acceptHMRUpdate).
 		transform(code, id) {
+			if (isRouterFile(id)) return { code: code + ROUTER_HMR_FOOTER, map: null }
 			const pageName = pageScriptName(id)
 			if (!pageName) return
 			return { code: code + pageScriptHmrFooter(pageName), map: null }
@@ -141,6 +142,17 @@ function pageScriptName(id) {
 		return null
 	}
 }
+
+function isRouterFile(id) {
+	const ROUTER_FILE_RE = /\/studio\/[^/]+\/router\.ts$/
+	return ROUTER_FILE_RE.test(normalize(id).split("?")[0])
+}
+
+const ROUTER_HMR_FOOTER = `
+if (import.meta.hot) {
+	import.meta.hot.accept(() => window.location.reload())
+}
+`
 
 function pageScriptHmrFooter(pageName) {
 	return `
