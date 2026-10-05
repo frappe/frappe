@@ -129,6 +129,13 @@ async def test_read_missing_file(tmp_path):
 	assert "no such file" in res.content
 
 
+async def test_read_refuses_binary_files(tmp_path):
+	(tmp_path / "clip.mp4").write_bytes(b"\x00\x00\x00\x20ftypisom")
+	res = await read(path="clip.mp4", ctx=_ctx(tmp_path))
+	assert res.is_error
+	assert res.content == "[clip.mp4 is a binary file; read shows only text and images]"
+
+
 async def test_edit_single_and_errors(tmp_path):
 	ctx = _ctx(tmp_path)
 	(tmp_path / "f.txt").write_text("alpha beta alpha")

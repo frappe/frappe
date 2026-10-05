@@ -25,11 +25,15 @@ async def read(
 		return ToolResult(content=f"[no such file: {path}]", is_error=True)
 	try:
 		with open(full, "rb") as f:
-			head = f.read(12)
+			head = f.read(8192)
 	except OSError as e:
 		return ToolResult(content=f"[cannot read {path}: {e.strerror or e}]", is_error=True)
 	if _is_image(head):
 		return await _read_image(full, path, ctx)
+	if b"\0" in head:  # binary, the way git decides
+		return ToolResult(
+			content=f"[{path} is a binary file; read shows only text and images]", is_error=True
+		)
 	if offset is not None and offset < 1:
 		return ToolResult(content="[offset must be >= 1]", is_error=True)
 	if limit is not None and limit < 1:
