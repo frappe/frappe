@@ -11,6 +11,29 @@
 import "./frappe/ui/desktop_icons_item.html";
 
 frappe.desktop_utils = {};
+
+// A saved layout is an arrangement of the user's icons, not a copy of them. Its order, folders
+// and hidden flags are the user's, but what an icon opens and whether the user may see it are the
+// server's: each icon takes its `module` from the boot icon it matches, and one the server left
+// out is not drawn. A layout saved before icons carried a module would otherwise open by label,
+// and `Invoicing`, folded into Accounts, opens nothing.
+//
+// An icon is matched by name, or by label for one saved under a name it did not keep. A folder is
+// always drawn, as the server allows every folder. One left out is kept in the layout rather than
+// dropped from it, because saving an edit writes the whole layout back: dropped, it would be gone
+// for good, even once the module it opens is unblocked.
+frappe.desktop_utils.arrange_layout = function (layout, boot_icons) {
+	const by_name = new Map(boot_icons.map((icon) => [icon.name, icon]));
+	const by_label = new Map(boot_icons.map((icon) => [icon.label, icon]));
+	return layout.map((icon) => {
+		const match = by_name.get(icon.name) || by_label.get(icon.label);
+		return {
+			...icon,
+			module: match?.module,
+			not_permitted: !match && icon.icon_type !== "Folder",
+		};
+	});
+};
 frappe.desktop_grids = [];
 frappe.desktop_icons_objects = [];
 frappe.new_icons = [];
@@ -130,6 +153,7 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 		const icon_map = {};
 		let icons = this.edit_mode ? frappe.new_desktop_icons : frappe.desktop_icons;
 		const all_icons = icons.filter((icon) => {
+			if (icon.not_permitted) return false;
 			if (icon.hidden != 1) {
 				icon.child_icons = [];
 				icon_map[icon.label] = icon;
@@ -159,7 +183,10 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 		if (!this.data && saved_layout) {
 			this.save_layout(saved_layout);
 		} else if (Object.keys(this.data).length != 0) {
-			frappe.desktop_icons = this.data;
+			frappe.desktop_icons = frappe.desktop_utils.arrange_layout(
+				this.data,
+				frappe.boot.desktop_icons
+			);
 		} else {
 			frappe.desktop_icons = frappe.boot.desktop_icons;
 		}
@@ -170,7 +197,10 @@ class DesktopIconsPage extends frappe.ui.DesktopPage {
 			method: "frappe.desk.doctype.desktop_layout.desktop_layout.save_layout",
 			args: {
 				user: frappe.session.user,
-				layout: JSON.stringify(layout),
+				// what `arrange_layout` adds is the server's, worked out again on every load
+				layout: JSON.stringify(
+					(layout || []).map(({ module, not_permitted, ...icon }) => icon)
+				),
 				new_icons: JSON.stringify(new_icons),
 			},
 			callback: function (r) {
