@@ -87,7 +87,7 @@ frappe.ui.FilterGroup = class {
 
 	async open_sheet() {
 		// the sheet isn't in the desk bundle
-		await frappe.require("bottom_sheet.bundle.js");
+		await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
 		if (!this.sheet)
 			this.sheet = new frappe.ui.BottomSheet({
 				header: () => [
