@@ -52,18 +52,6 @@ def apps_with_old_fixtures() -> dict[str, int]:
 	return counts
 
 
-def has_converted(app: str) -> bool:
-	"""Whether `app` ships its sidebars the current way, as `<module>/sidebar/`.
-
-	Such an app keeps its old folder on purpose, frozen, as the v16 baseline that
-	`carry_standard_sidebar_edits` tells a site's edits apart by. Only an app with the old folder
-	and nothing else still has to convert.
-	"""
-	return any(
-		os.path.isdir(frappe.get_module_path(module, "sidebar")) for module in frappe.get_module_list(app)
-	)
-
-
 def read_fixtures(app: str) -> list[frappe._dict]:
 	"""Return the app's old fixtures, shaped like the merge's other sources.
 

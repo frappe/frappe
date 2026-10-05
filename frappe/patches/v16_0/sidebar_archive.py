@@ -3,7 +3,6 @@
 Shared by the patches that convert it, one per kind of row the archive holds:
 
 	convert_sidebars                 an app's standard rows, where the app ships no sidebar now
-	carry_standard_sidebar_edits     what a site changed in an app's rows, as the site's layer
 	convert_custom_sidebars          a site's own public sidebars, each into a module of its own
 	move_custom_sidebar_workspaces   the workspace a custom sidebar opened on, into that module
 	convert_personal_sidebars        a user's forked copy, into their `Custom Sidebar`
@@ -144,12 +143,7 @@ def archive_items(sidebar: str, spacer_scope: str | None = None) -> list[frappe.
 		order_by="idx asc",
 	)
 
-	return shape_rows(rows, spacer_scope or sidebar)
-
-
-def shape_rows(rows: list[frappe._dict], scope: str) -> list[frappe._dict]:
-	"""v16 rows in the shape they are converted in. The archive and the v16 files go through the
-	same shaping, so the same row reads the same from either."""
+	scope = hashlib.sha1((spacer_scope or sidebar).encode()).hexdigest()[:10]
 	items = []
 	spacers = 0
 	for row in rows:
@@ -161,104 +155,11 @@ def shape_rows(rows: list[frappe._dict], scope: str) -> list[frappe._dict]:
 		# because its title alone can fill the label's 140 characters.
 		if row.type == "Spacer" and not row.label:
 			spacers += 1
-			row.label = f"Spacer {spacers} {hashlib.sha1(scope.encode()).hexdigest()[:10]}"
+			row.label = f"Spacer {spacers} {scope}"
 		options_as_filters(row)
 		items.append(row)
 
 	return items
-
-
-def baseline_of(row, files: dict | None = None) -> frappe._dict | None:
-	"""The v16 file `row` was imported from, as the app's last v16 release shipped it.
-
-	An app keeps its `workspace_sidebar/` folder frozen for this (see its README). A row with no
-	file there has nothing to be compared against.
-	"""
-	if not row.app or row.app not in frappe.get_installed_apps():
-		return None
-
-	# read once per app for the whole run, rather than once per row
-	files = {} if files is None else files
-	if row.app not in files:
-		files[row.app] = v16_files(row.app)
-
-	fixture = files[row.app].get(row.name)
-	if not fixture:
-		return None
-
-	return frappe._dict(
-		fixture, rows=shape_rows([frappe._dict(item) for item in fixture.get("items") or []], row.name)
-	)
-
-
-def v16_files(app: str) -> dict[str, dict]:
-	"""The app's frozen v16 sidebar files, by the name each one carries."""
-	from frappe.modules.utils import get_app_level_files
-
-	by_name = {}
-	for path in get_app_level_files("workspace_sidebar", app):
-		if not path.endswith(".json"):
-			continue
-		# an installed app's own folder, not anything from a request
-		with open(path, encoding="utf-8") as f:  # nosemgrep
-			fixture = frappe._dict(json.load(f))
-		by_name[fixture.name or fixture.title] = fixture
-	return by_name
-
-
-# Per item, what a site layer can carry besides membership and order.
-RETOUCHABLE_FIELDS = ("label", "icon")
-
-
-def site_edits(row, baseline) -> frappe._dict | None:
-	"""What the site changed in `row` since the app shipped it, or None when it changed nothing.
-
-	Items are matched by identity (`item_key`), so a changed target or filter reads as one item
-	removed and another added.
-	"""
-	shipped = first_of_each(baseline.rows)
-	shipped_labels = {(item_key(item), item.label) for item in baseline.rows}
-	kept = first_of_each(row.rows)
-
-	retouched = {}
-	for key, item in kept.items():
-		if key not in shipped:
-			continue
-		changes = {
-			field: item.get(field)
-			for field in RETOUCHABLE_FIELDS
-			if (item.get(field) or None) != (shipped[key].get(field) or None)
-		}
-		if changes:
-			retouched[key] = changes
-
-	edits = frappe._dict(
-		row=row,
-		# a second link the site added with the same identity as another, differing only in what
-		# identity leaves out, such as `route_options`: a sidebar holds one, so it cannot be carried.
-		# The app's own v16 files repeat links too, and those are not the site's.
-		duplicates=[
-			item
-			for item in row.rows
-			if kept[item_key(item)] is not item and (item_key(item), item.label) not in shipped_labels
-		],
-		added=[item for key, item in kept.items() if key not in shipped],
-		removed=[key for key in shipped if key not in kept],
-		retouched=retouched,
-		reordered=[key for key in shipped if key in kept] != [key for key in kept if key in shipped],
-		title=row.title if (row.title or None) != (baseline.title or None) else None,
-		header_icon=row.icon if (row.icon or None) != (baseline.header_icon or None) else None,
-	)
-	changed = edits.added or edits.removed or edits.retouched or edits.reordered
-	return edits if changed or edits.title or edits.header_icon or edits.duplicates else None
-
-
-def first_of_each(items: list) -> dict:
-	"""Items by identity, the first occurrence of each, which is the one the desk shows."""
-	by_key = {}
-	for item in items:
-		by_key.setdefault(item_key(item), item)
-	return by_key
 
 
 def by_module(rows: list[frappe._dict]) -> dict[str, list[frappe._dict]]:
@@ -331,31 +232,21 @@ def layer_rows(items: list[dict], below: list, dropped: set[str] | None = None) 
 
 	rows = []
 	for item in items:
-		rows.append(reference_row(item, added=0) if item_key(item) in below_keys else added_row(item))
+		key = item_key(item)
+		added = key not in below_keys
+		row = {field: item.get(field) for field in (SIDEBAR_ITEM_FIELDS if added else LINKED_IDENTITY_FIELDS)}
+		# an unlinked row is named by its key; a linked one is named by its own columns
+		row["key"] = None if is_linked(item) else key
+		row["added"] = int(added)
+		rows.append(row)
 
 	for item in below:
 		key = item_key(item)
 		if key in kept or key not in (dropped or ()):
 			continue
-		rows.append(reference_row(item, hidden=1))
+		row = {field: item.get(field) for field in LINKED_IDENTITY_FIELDS}
+		row["key"] = None if is_linked(item) else key
+		row["hidden"] = 1
+		rows.append(row)
 
 	return rows
-
-
-def reference_row(item, **fields) -> dict:
-	"""A layer row naming an item below it, with whatever `fields` the layer says about it.
-
-	A linked item is named by its own columns, an unlinked one by its key.
-	"""
-	row = {field: item.get(field) for field in LINKED_IDENTITY_FIELDS}
-	row["key"] = None if is_linked(item) else item_key(item)
-	row.update(fields)
-	return row
-
-
-def added_row(item) -> dict:
-	"""A layer row holding an item nothing below has, whole."""
-	row = {field: item.get(field) for field in SIDEBAR_ITEM_FIELDS}
-	row["key"] = None if is_linked(item) else item_key(item)
-	row["added"] = 1
-	return row

@@ -102,11 +102,10 @@ def source_of(fork) -> str | None:
 
 
 def arrangement_below(module: str) -> list:
-	"""What the module showed everyone, which a person's layer is laid over: its base sidebar with
-	the site's layer applied.
+	"""The module's base sidebar, which a person's layer is laid over.
 
-	Read after the site's sidebars and the site's edits are converted, so items that exist in both
-	are stored as references and stay live.
+	Read after the site's sidebars are converted, so items that exist in both are stored as
+	references and stay live.
 
 	`get_module_base` rather than indexing `get_sidebar_bases` by the module: that dict is keyed by
 	shell, and a converted `Sidebar` is named after the v16 title it was converted from, which is
@@ -114,9 +113,7 @@ def arrangement_below(module: str) -> list:
 	"Invoicing" under `Accounts`, say -- means no key under the module, and a `KeyError` here takes
 	down the migrate of any site where such a module also has a fork.
 	"""
-	from frappe.desk.doctype.custom_sidebar.custom_sidebar import get_layers, merge_layers
-
-	return merge_layers(get_module_base(module).rows, get_layers(module, None))
+	return get_module_base(module).rows
 
 
 def dropped_keys(forks: list[frappe._dict], items: list[dict]) -> set[str]:
