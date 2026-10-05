@@ -2151,7 +2151,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			if (selected_component !== name) return;
 		}
 		if (name === "BottomSheet") {
-			await frappe.require("bottom_sheet.bundle.js");
+			await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
 			if (selected_component !== name) return;
 		}
 		const component = COMPONENTS[name];
@@ -2206,7 +2206,11 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			fieldname: "component",
 			label: __("Component"),
 			options: Object.keys(COMPONENTS).sort(),
-			change: () => render_component(picker.get_value()),
+			change: () => {
+				const name = picker.get_value();
+				// the picker reports again on blur; redrawing then would swallow the click that blurred it
+				if (name !== selected_component) render_component(name);
+			},
 		},
 		render_input: true,
 	});
