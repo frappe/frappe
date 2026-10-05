@@ -32,13 +32,13 @@ export function field_menu_options(store, df, { paste = true } = {}) {
 export function section_menu_options(store, section, { paste = true, condition } = {}) {
 	return [
 		{
-			label: __("Copy section"),
+			label: __("Copy"),
 			icon: "copy",
 			condition,
 			onclick: () => store.copy_section(section),
 		},
 		{
-			label: __("Duplicate section"),
+			label: __("Duplicate"),
 			icon: "copy-plus",
 			condition,
 			onclick: () => store.duplicate_section(section),
@@ -50,6 +50,6 @@ export function section_menu_options(store, section, { paste = true, condition }
 			onclick: () => store.prompt_snippet(section, "Section"),
 		},
 		...(paste ? [paste_option(store)] : []),
-		delete_group(__("Delete section"), () => store.remove_section(section), condition),
+		delete_group(__("Delete"), () => store.remove_section(section), condition),
 	];
 }
