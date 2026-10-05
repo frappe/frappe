@@ -31,6 +31,8 @@ frappe.ui.Tree = class {
 		on_node_render,
 	}) {
 		$.extend(this, arguments[0]);
+		// $.extend skips undefined, so the default would never land
+		this.sort_order = sort_order;
 		if (root_value == null) {
 			this.root_value = label;
 		}
@@ -140,7 +142,7 @@ frappe.ui.Tree = class {
 		const $items = node.$ul && node.$ul.children("li.tree-node");
 		if (!$items || $items.length < 2) return;
 
-		const collator = new Intl.Collator(frappe.boot.lang, {
+		const collator = new Intl.Collator(undefined, {
 			numeric: true,
 			sensitivity: "base",
 		});
