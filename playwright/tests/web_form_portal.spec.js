@@ -32,10 +32,6 @@ function roles_input(page) {
 	return page.locator('.web-form .frappe-control[data-fieldname="roles"] input');
 }
 
-function visible_heading(page, text) {
-	return page.locator(".web-form .section-head:visible", { hasText: text });
-}
-
 async function submit(page) {
 	await page.locator(".web-form-actions button", { hasText: "Save" }).first().click();
 }
@@ -196,16 +192,24 @@ test.describe("Web Form Pages", () => {
 		await expect(page.locator(".web-form-stepper .es-progress__hint")).toHaveText(
 			"Step 1 of 2"
 		);
-		await expect(visible_heading(page, "About You")).toBeVisible();
 		// the section keeps its own heading under the page name
-		await expect(visible_heading(page, "Basics")).toBeVisible();
+		await expect(page.locator(".web-form .section-head:visible")).toHaveText(["Basics"]);
 
 		await page.locator(".btn-next").click();
 		await expect(
 			page.locator('.web-form .frappe-control[data-fieldname="kind"]')
 		).toBeVisible();
 		await expect(label).toHaveText("More");
-		await expect(visible_heading(page, "More")).toBeVisible();
+	});
+
+	test("Names a page in the stepper only, not above its fields", async ({ page }) => {
+		const headings = page.locator(".web-form .section-head:visible");
+
+		await page.goto(`/${PAGES_ROUTE}/new`);
+		await page.locator(".btn-next").click();
+		await expect(page.locator(".web-form-stepper .es-progress__label")).toHaveText("More");
+		// a Section Break on the page keeps its heading
+		await expect(headings).toHaveText(["Extras"]);
 	});
 });
 
