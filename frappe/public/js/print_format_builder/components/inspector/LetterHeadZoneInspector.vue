@@ -1,11 +1,5 @@
 <template>
 	<div class="pfb-insp-body">
-		<!-- Zone label — footer only (matches original design; header has no zone label) -->
-		<div v-if="zone === 'footer'" class="pfb-lh-zone-label">
-			<span v-html="frappe.utils.icon('panel-bottom', 'xs')"></span>
-			{{ __("Letter Head Footer") }}
-		</div>
-
 		<!-- Based on toggle + letter head actions -->
 		<div class="pfb-insp-section">
 			<div class="pfb-insp-section-body" style="padding-top: 10px">
@@ -223,19 +217,3 @@ function edit_html() {
 	});
 }
 </script>
-
-<style scoped>
-.pfb-lh-zone-label {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	letter-spacing: 0;
-	color: var(--gray-600);
-	background: var(--surface-gray-1);
-	border-bottom: 1px solid var(--gray-200);
-	padding: 7px 14px;
-	flex-shrink: 0;
-}
-</style>
