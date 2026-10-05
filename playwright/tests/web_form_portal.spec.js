@@ -111,6 +111,57 @@ test.describe("Web Form Table MultiSelect", () => {
 	});
 });
 
+test.describe("Web Form Pages", () => {
+	const PAGES_ROUTE = "paged-note";
+
+	test.use({ storageState: GUEST });
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc("DocType", web_form_source_doctype, true);
+		await seed_web_form(
+			admin,
+			[
+				{ fieldname: "title", fieldtype: "Data", label: "Title" },
+				{ fieldtype: "Page Break", label: "More" },
+				{ fieldname: "kind", fieldtype: "Select", label: "Kind" },
+				{ fieldtype: "Section Break", label: "Extras" },
+				{ fieldname: "alpha_note", fieldtype: "Data", label: "Alpha Note" },
+				{ fieldtype: "Page Break" },
+				{ fieldname: "bare_note", fieldtype: "Data", label: "Bare Note" },
+			],
+			{
+				title: PAGES_ROUTE,
+				route: PAGES_ROUTE,
+				doc_type: web_form_source_doctype.name,
+				published: 1,
+				login_required: 0,
+			}
+		);
+	});
+
+	test("Shows the stepper above the fields and moves it with the page", async ({ page }) => {
+		const stepper = page.locator(".web-form > .web-form-stepper:first-child");
+		const label = stepper.locator(".es-progress__label");
+		const hint = stepper.locator(".es-progress__hint");
+
+		await page.goto(`/${PAGES_ROUTE}/new`);
+		// a page with no Page Break label is named by its position
+		await expect(label).toHaveText("Page 1");
+		await expect(hint).toHaveText("Step 1 of 3");
+
+		await page.locator(".btn-next").click();
+		await expect(label).toHaveText("More");
+		await expect(hint).toHaveText("Step 2 of 3");
+
+		await page.locator(".btn-next").click();
+		await expect(label).toHaveText("Page 3");
+
+		await page.locator(".btn-previous").click();
+		await expect(label).toHaveText("More");
+		await expect(stepper.locator(".es-progress")).toHaveCount(1);
+	});
+});
+
 test.describe("Web Form Table", () => {
 	const GRID_ROUTE = "grid-slideshow";
 

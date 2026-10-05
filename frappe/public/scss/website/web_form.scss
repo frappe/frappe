@@ -113,76 +113,10 @@
 					}
 
 					.web-form-stepper {
-						display: flex;
-						justify-content: center;
 						margin: 0.5rem 0;
-						@include get_textstyle("base", "regular");
 
 						&:empty {
 							display: none;
-						}
-
-						.slides-progress {
-							display: flex;
-
-							.slide-step {
-								@include flex(flex, center, center, null);
-
-								height: 18px;
-								width: 18px;
-								border-radius: var(--radius-full);
-								border: 1px solid var(--gray-300);
-								margin: 0 var(--margin-xs);
-								background-color: var(--card-bg);
-
-								.slide-step-indicator {
-									height: 6px;
-									width: 6px;
-									background-color: var(--gray-300);
-									border-radius: var(--radius-full);
-								}
-
-								.slide-step-complete {
-									display: none;
-
-									.icon-xs {
-										height: 10px;
-										width: 10px;
-									}
-								}
-
-								&.active {
-									border: 1px solid var(--primary);
-
-									.slide-step-indicator {
-										display: block;
-										background-color: var(--primary);
-									}
-								}
-
-								&.step-success:not(.active) {
-									background-color: var(--primary);
-									border: 1px solid var(--primary);
-
-									.slide-step-indicator {
-										display: none;
-									}
-
-									.slide-step-complete {
-										display: flex;
-
-										.icon use {
-											stroke-width: 2;
-											stroke: var(--white);
-										}
-									}
-								}
-
-								@include media-breakpoint-down(xs) {
-									width: 16px;
-									height: 16px;
-								}
-							}
 						}
 					}
 
