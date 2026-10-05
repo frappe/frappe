@@ -1,7 +1,7 @@
 {
  "actions": [],
  "autoname": "hash",
- "creation": "2026-08-11 21:30:00.000000",
+ "creation": "2026-08-11 21:30:00",
  "description": "Sidebar intent for a module, at either of the two layers a site has. `user` is what tells them apart: blank is the site layer, curated by a Workspace Manager and applying to everyone; a user's name is that person's own arrangement, which is applied on top and wins. The `Custom *` prefix elsewhere in this repo means site-owned override of app-shipped content, and this doctype knowingly overloads it: with the layers structurally identical there is nothing to gain from a second doctype, and `user` makes the layer unambiguous at a glance. Do not \"fix\" this by splitting it.",
  "doctype": "DocType",
  "documentation": "https://docs.frappe.io/framework/user/en/desk/workspace",
@@ -12,6 +12,7 @@
   "column_break_head",
   "label",
   "header_icon",
+  "arranged",
   "items_section",
   "sidebar_items"
  ],
@@ -61,12 +62,18 @@
    "fieldtype": "Table",
    "label": "Sidebar Items",
    "options": "Sidebar Item"
+  },
+  {
+   "default": "1",
+   "description": "Whether this layer sets the order. Off, its rows relabel, re-icon or hide items where the app puts them, and its added items go at the end.",
+   "fieldname": "arranged",
+   "fieldtype": "Check",
+   "label": "Arranged"
   }
  ],
  "grid_page_length": 50,
- "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-11 21:30:00.000000",
+ "modified": "2026-10-05 12:16:44.379607",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom Sidebar",
