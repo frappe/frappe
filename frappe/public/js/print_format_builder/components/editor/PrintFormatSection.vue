@@ -654,9 +654,10 @@ function remove_column(index) {
 .section-preview-actions {
 	display: none;
 	position: absolute;
-	bottom: calc(100% + 2px);
-	right: 4px;
+	top: 0;
+	left: calc(100% + 4px);
 	z-index: 2;
+	flex-direction: column;
 	gap: 2px;
 	padding: 1px 2px;
 	background: var(--fg-color);
