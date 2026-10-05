@@ -32,7 +32,7 @@ defineEmits(["update:modelValue"]);
 
 .pfb-style-input {
 	height: auto;
-	font-family: var(--monospace-font-family, monospace);
+	font-family: var(--font-family-monospace);
 	line-height: 1.5;
 	resize: vertical;
 	min-height: 60px;
