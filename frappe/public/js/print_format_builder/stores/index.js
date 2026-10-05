@@ -239,6 +239,7 @@ export function getStore(print_format_name) {
 		replace_from_server,
 		save_changes,
 		save_letterhead,
+		autosave_letterhead,
 		autosave,
 		resume_autosave,
 		flush,
@@ -345,14 +346,10 @@ export function getStore(print_format_name) {
 		},
 		{ deep: true }
 	);
-	// letterhead edits flag themselves with _dirty instead of touching `dirty` —
-	// route them into the same autosave pipeline
 	watch(
 		letterhead,
 		() => {
-			if (!letterhead.value?._dirty) return;
-			dirty.value = true;
-			resume_autosave();
+			if (letterhead.value?._dirty) autosave_letterhead();
 		},
 		{ deep: true }
 	);

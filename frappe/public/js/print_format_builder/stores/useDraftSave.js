@@ -134,6 +134,21 @@ export function useDraftSave({
 		if (!letterhead.value?._dirty) return Promise.resolve();
 		return push_letterhead();
 	}
+	function autosave_letterhead_now() {
+		if (!letterhead.value?._dirty) return Promise.resolve();
+		saving_count.value++;
+		return push_letterhead()
+			.then(() => {
+				save_failed.value = false;
+				last_error.value = "";
+			})
+			.catch((xhr) => {
+				save_failed.value = true;
+				report_failure(xhr);
+			})
+			.finally(() => saving_count.value--);
+	}
+	const autosave_letterhead = frappe.utils.debounce(autosave_letterhead_now, 3000);
 	function server_message(xhr) {
 		let r = xhr?.responseJSON;
 		if (!r && xhr?.responseText) {
@@ -177,7 +192,9 @@ export function useDraftSave({
 	// changes are still unsaved so the caller can warn instead of dropping them
 	function flush() {
 		autosave.cancel();
-		return after_autosave()
+		autosave_letterhead.cancel();
+		return autosave_letterhead_now()
+			.then(after_autosave)
 			.then(() => {
 				if (viewing_version.value || applying) return;
 				if (dirty.value) {
@@ -187,7 +204,11 @@ export function useDraftSave({
 				return after_autosave();
 			})
 			.then(() => {
-				if (save_failed.value || (dirty.value && !viewing_version.value)) {
+				if (
+					save_failed.value ||
+					letterhead.value?._dirty ||
+					(dirty.value && !viewing_version.value)
+				) {
 					return Promise.reject(last_error.value);
 				}
 			});
@@ -219,9 +240,6 @@ export function useDraftSave({
 				if (epoch !== draft_epoch) return;
 				has_draft.value = true;
 				if (!was_dirty) nextTick(() => (dirty.value = false));
-				if (letterhead.value && letterhead.value._dirty) {
-					return push_letterhead();
-				}
 			})
 			.then(() => {
 				save_failed.value = false;
@@ -252,6 +270,7 @@ export function useDraftSave({
 		replace_from_server,
 		save_changes,
 		save_letterhead,
+		autosave_letterhead,
 		autosave,
 		resume_autosave,
 		flush,
