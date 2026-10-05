@@ -624,7 +624,7 @@ function select_dropped_layer_field(column, e) {
 }
 
 function field_label(f) {
-	return f.label || f.fieldname || f.fieldtype || __("Field");
+	return f.label || (f.custom ? __(f.fieldtype) : f.fieldname) || __("Field");
 }
 
 let known_fieldnames = computed(() => {

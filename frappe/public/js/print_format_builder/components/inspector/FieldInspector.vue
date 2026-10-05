@@ -180,7 +180,7 @@ let inspector_subtitle = computed(() => {
 				(df.source ? frappe.meta.get_label(print_format.value.doc_type, df.source) : "")
 			);
 		}
-		if (df.custom) return df.label || df.fieldname;
+		if (df.custom) return df.label || __(df.fieldtype);
 		return frappe.meta.get_label(print_format.value.doc_type, df.fieldname);
 	}
 	if (selected_section.value) return selected_section.value.label || __("Untitled section");
