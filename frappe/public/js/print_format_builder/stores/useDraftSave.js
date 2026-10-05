@@ -74,6 +74,7 @@ export function useDraftSave({
 			.then(() => {
 				autosave_stopped = false;
 				save_failed.value = false;
+				letterhead_failed.value = false;
 				frappe.show_alert({ message, indicator: "green" });
 			})
 			.finally(() => {
