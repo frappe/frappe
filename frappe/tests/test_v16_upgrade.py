@@ -16,6 +16,7 @@ surfaces the desk boots from.
 
 """
 
+import json
 from unittest.mock import patch
 
 import frappe
@@ -27,13 +28,14 @@ from frappe.tests import IntegrationTestCase
 # in the order `patches.txt` runs them
 CONVERSION = (
 	"frappe.patches.v16_0.convert_sidebars",
+	"frappe.patches.v16_0.carry_standard_sidebar_edits",
 	"frappe.patches.v16_0.convert_custom_sidebars",
 	"frappe.patches.v16_0.move_custom_sidebar_workspaces",
 	"frappe.patches.v16_0.convert_personal_sidebars",
 )
 
 
-def archive(title, items, module=None, for_user=None, standard=0, ignore_links=False):
+def archive(title, items, module=None, for_user=None, standard=0, ignore_links=False, app=None):
 	"""A row as v16 left it. It is inserted under `in_patch`, because the archive takes no new
 	entries and a fixture standing in for what a v16 site already holds is the system's own write.
 
@@ -51,6 +53,7 @@ def archive(title, items, module=None, for_user=None, standard=0, ignore_links=F
 				"module": module,
 				"for_user": for_user,
 				"standard": standard,
+				"app": app,
 				"items": items,
 			}
 		).insert(ignore_permissions=True, ignore_links=ignore_links)
@@ -695,7 +698,7 @@ class TestAnAppThatMovedItsSidebar(IntegrationTestCase):
 			{"doctype": "User", "email": cls.USER, "first_name": "V16 Moved", "send_welcome_email": 0}
 		).insert(ignore_if_duplicate=True).add_roles("Desk User")
 
-		make_sidebar(cls.NEW_MODULE, title="V16 Moved")
+		app_sidebar(cls.NEW_MODULE, "V16 Moved", [link("User", "Users")])
 		items = [{"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"}]
 		archive("V16 Moved", items, module=cls.OLD_MODULE, standard=1)
 		archive(f"V16 Moved-{cls.USER}", items, module=cls.OLD_MODULE, for_user=cls.USER)
@@ -767,6 +770,7 @@ class TestCustomSidebars(IntegrationTestCase):
 		archive(cls.SHOWROOM, items, module=cls.HOST)
 		archive(cls.CLASH, items, module=cls.HOST)
 		archive(cls.REUSED, items, module=cls.HOST)
+		archive("??", items, module=cls.HOST)
 		archive(f"{cls.SHOWROOM}-{cls.USER}", items[:1], module=cls.HOST, for_user=cls.USER)
 
 		cls.output = run_conversion()
@@ -797,6 +801,10 @@ class TestCustomSidebars(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Module Def", f"{self.CLASH} (Custom)", "custom"), 1)
 		self.assertEqual(frappe.get_all("Sidebar", filters={"module": self.CLASH}), [])
 
+	def test_a_title_with_nothing_routable_still_gets_a_module(self):
+		self.assertEqual(frappe.db.get_value("Module Def", "Custom Sidebar", "custom"), 1)
+		self.assertTrue(frappe.db.exists("Sidebar", {"module": "Custom Sidebar"}))
+
 	def test_a_custom_module_without_a_sidebar_is_reused(self):
 		self.assertTrue(frappe.db.exists("Sidebar", {"module": self.REUSED}))
 		self.assertFalse(frappe.db.exists("Module Def", f"{self.REUSED} (Custom)"))
@@ -821,3 +829,273 @@ class TestCustomSidebars(IntegrationTestCase):
 		run_conversion()
 		after = frappe.db.count("Module Def"), frappe.db.count("Sidebar"), frappe.db.count("Custom Sidebar")
 		self.assertEqual(before, after)
+
+
+def app_sidebar(module: str, title: str, items: list[dict]):
+	"""A `Sidebar` as an app's file leaves it on a site: standard, and titled as the app titles it."""
+	doc = frappe.new_doc("Sidebar")
+	doc.module = module
+	doc.title = title
+	for item in items:
+		doc.append("items", item)
+	original = frappe.flags.get("in_patch")
+	frappe.flags.in_patch = True
+	try:
+		doc.insert(ignore_permissions=True)
+	finally:
+		frappe.flags.in_patch = original
+	frappe.db.set_value("Sidebar", doc.name, "standard", 1, update_modified=False)
+	return doc
+
+
+def v16_file(title: str, items: list[dict]) -> str:
+	"""The app's frozen v16 file for `title`, written into frappe's `workspace_sidebar/`."""
+	import json
+	import os
+
+	path = os.path.join(frappe.get_app_path("frappe", "workspace_sidebar"), f"{frappe.scrub(title)}.json")
+	with open(path, "w") as f:
+		json.dump({"doctype": "Workspace Sidebar", "name": title, "title": title, "items": items}, f)
+	return path
+
+
+def link(doctype: str, label: str, **extra) -> dict:
+	return {"type": "Link", "link_type": "DocType", "link_to": doctype, "label": label, **extra}
+
+
+class TestASitesEditsToAnAppSidebar(IntegrationTestCase):
+	"""A site that changed an app's v16 sidebar keeps its changes, as the site's layer over the
+	app's sidebar now, and the app's own changes still reach it underneath.
+
+	What the site changed is the difference between the app's frozen v16 file and the site's row.
+	"""
+
+	DUPLICATED = "Test V16 Duplicated Module"
+	RELABELLED = "Test V16 Relabelled Module"
+	REORDERED = "Test V16 Reordered Module"
+	UNTOUCHED = "Test V16 Untouched Module"
+	UNKNOWN = "Test V16 No Baseline Module"
+	USER = "test-v16-edits@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		import os
+
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			for module in (cls.RELABELLED, cls.REORDERED, cls.UNTOUCHED, cls.UNKNOWN, cls.DUPLICATED):
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": module, "app_name": "frappe"}
+				).insert()
+				clear_computed_base_cache(module)
+
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Edits", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		shipped = [link("ToDo", "Todos"), link("Event", "Events"), link("Note", "Notes")]
+
+		# what the app ships now: its v16 links, plus one it added since, in its new order
+		now = [
+			link("Note", "Notes"),
+			link("ToDo", "Todos"),
+			link("Event", "Events"),
+			link("Contact", "Contacts"),
+		]
+		for module, title in (
+			(cls.RELABELLED, "V16 Relabelled"),
+			(cls.REORDERED, "V16 Reordered"),
+			(cls.UNTOUCHED, "V16 Untouched"),
+			(cls.UNKNOWN, "V16 No Baseline"),
+			(cls.DUPLICATED, "V16 Duplicated"),
+		):
+			app_sidebar(module, title, now)
+
+		cls.files = [
+			v16_file(title, shipped)
+			for title in ("V16 Relabelled", "V16 Reordered", "V16 Untouched", "V16 Duplicated")
+		]
+		cls.addClassCleanup(lambda: [os.remove(path) for path in cls.files if os.path.exists(path)])
+
+		# relabelled one link, removed another, and added a filtered copy of the first, which v16
+		# spelled as route options
+		archive(
+			"V16 Relabelled",
+			[
+				link("ToDo", "My Todos"),
+				link("Note", "Notes"),
+				link("ToDo", "Open Todos", route_options='{"status": "Open"}'),
+			],
+			module=cls.RELABELLED,
+			standard=1,
+			app="frappe",
+		)
+		# moved one link up and added one
+		archive(
+			"V16 Reordered",
+			[link("Note", "Notes"), link("ToDo", "Todos"), link("Event", "Events"), link("File", "Files")],
+			module=cls.REORDERED,
+			standard=1,
+			app="frappe",
+		)
+		archive("V16 Untouched", shipped, module=cls.UNTOUCHED, standard=1, app="frappe")
+		# a second link to ToDo with nothing but its label to tell it apart
+		archive(
+			"V16 Duplicated",
+			# and two unnamed sections, which have no label or target to name them by
+			[*shipped, link("ToDo", "Todos Again"), {"type": "Section Break"}, {"type": "Section Break"}],
+			module=cls.DUPLICATED,
+			standard=1,
+			app="frappe",
+		)
+		archive("V16 No Baseline", [link("ToDo", "Changed")], module=cls.UNKNOWN, standard=1, app="frappe")
+
+		cls.output = run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def seen(self, module: str) -> list[tuple[str, str]]:
+		"""What a normal user is shown in `module`, as (target, label)."""
+		shell = frappe.db.get_value("Sidebar", {"module": module})
+		return [(item["link_to"], item["label"]) for item in resolve_sidebar(shell, self.USER).items]
+
+	def site_layer(self, module: str):
+		name = frappe.db.get_value("Custom Sidebar", {"module": module, "user": ["in", ["", None]]})
+		return name and frappe.get_doc("Custom Sidebar", name)
+
+	def test_a_relabel_and_a_removal_keep_the_apps_order(self):
+		self.assertEqual(
+			self.seen(self.RELABELLED),
+			[("Note", "Notes"), ("ToDo", "My Todos"), ("Contact", "Contacts"), ("ToDo", "Open Todos")],
+		)
+		self.assertEqual(self.site_layer(self.RELABELLED).arranged, 0)
+
+	def test_a_reorder_keeps_the_sites_order_and_what_it_added(self):
+		self.assertEqual(
+			self.seen(self.REORDERED),
+			[
+				("Note", "Notes"),
+				("ToDo", "Todos"),
+				("Event", "Events"),
+				("File", "Files"),
+				("Contact", "Contacts"),
+			],
+		)
+		self.assertEqual(self.site_layer(self.REORDERED).arranged, 1)
+
+	def test_a_repeated_link_does_not_relabel_the_first(self):
+		"""Two links to one target are one item to a sidebar, so the second cannot be carried. It is
+		named in the output rather than read as a relabel of the first."""
+		self.assertIn(("ToDo", "Todos"), self.seen(self.DUPLICATED))
+		self.assertTrue([line for line in self.output if "Todos Again" in line], self.output)
+
+	def test_a_link_with_route_options_is_a_link_of_its_own(self):
+		"""v16's `route_options` are filters, and filters are part of what an item is, so a filtered
+		copy of a link is added beside it rather than lost as a repeat of it."""
+		open_todos = next(
+			row for row in self.site_layer(self.RELABELLED).sidebar_items if row.label == "Open Todos"
+		)
+		self.assertTrue(open_todos.added)
+		self.assertEqual(json.loads(open_todos.filters), [["ToDo", "status", "=", "Open"]])
+
+	def test_an_untouched_sidebar_gets_no_layer(self):
+		self.assertFalse(self.site_layer(self.UNTOUCHED))
+
+	def test_without_a_baseline_nothing_is_guessed(self):
+		self.assertFalse(self.site_layer(self.UNKNOWN))
+		self.assertTrue([line for line in self.output if "V16 No Baseline" in line], self.output)
+
+	def test_the_app_sidebar_is_left_as_the_app_shipped_it(self):
+		self.assertEqual(
+			[row.label for row in frappe.get_doc("Sidebar", "V16 Relabelled").items],
+			["Notes", "Todos", "Events", "Contacts"],
+		)
+
+	def test_running_it_again_changes_nothing(self):
+		before = frappe.db.count("Custom Sidebar")
+		run_conversion()
+		self.assertEqual(frappe.db.count("Custom Sidebar"), before)
+
+
+class TestEditsAcrossOneModulesSidebars(IntegrationTestCase):
+	"""A module can hold several app sidebars, and its site layer applies to all of them. v16's
+	`Invoicing` is a sidebar of its own under Accounts, so its edits are compared with it, not with
+	the sidebar named after the module."""
+
+	MODULE = "Test V16 Shared Module"
+	OTHER = "V16 Shared Other"
+	USER = "test-v16-shared@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		import os
+
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": cls.MODULE, "app_name": "frappe"}
+			).insert()
+			clear_computed_base_cache(cls.MODULE)
+
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Shared", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		app_sidebar(
+			cls.MODULE,
+			cls.MODULE,
+			[
+				link("Note", "Notes"),
+				link("ToDo", "Todos"),
+				link("Event", "Events"),
+				link("Contact", "Contacts"),
+			],
+		)
+		app_sidebar(cls.MODULE, cls.OTHER, [link("File", "Files"), link("User", "Users")])
+
+		cls.files = [
+			v16_file(cls.MODULE, [link("ToDo", "Todos"), link("Event", "Events"), link("Note", "Notes")]),
+			v16_file(cls.OTHER, [link("File", "Files"), link("User", "Users")]),
+		]
+		cls.addClassCleanup(lambda: [os.remove(path) for path in cls.files if os.path.exists(path)])
+
+		# the module's own sidebar reordered, and the other one only relabelled
+		archive(
+			cls.MODULE,
+			[link("Event", "Events"), link("ToDo", "Todos"), link("Note", "Notes")],
+			module=cls.MODULE,
+			standard=1,
+			app="frappe",
+		)
+		archive(
+			cls.OTHER,
+			[link("File", "Shared Files"), link("User", "Users")],
+			module=cls.MODULE,
+			standard=1,
+			app="frappe",
+		)
+
+		run_conversion()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def seen(self, shell: str) -> list[str]:
+		return [item["label"] for item in resolve_sidebar(shell, self.USER).items]
+
+	def test_the_other_sidebars_edit_is_kept(self):
+		self.assertEqual(self.seen(self.OTHER), ["Shared Files", "Users"])
+
+	def test_the_reordered_sidebar_keeps_the_sites_order(self):
+		"""The reordered items sit together where the first of them stands in the app's order, and
+		what the app added since keeps its place after them."""
+		self.assertEqual(self.seen(self.MODULE), ["Events", "Todos", "Notes", "Contacts"])

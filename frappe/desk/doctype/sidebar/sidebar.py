@@ -1146,6 +1146,34 @@ def merge_items(primary: frappe._dict, secondaries: list[frappe._dict]) -> list[
 	return merged
 
 
+def options_as_filters(row) -> None:
+	"""Store a link's v16 `route_options` as its `filters`, which is what they were.
+
+	`filters` is part of an item's identity, so Stock Balance for one warehouse stays an item
+	apart from Stock Balance itself, rather than being merged into it. A Page is left alone: its
+	`route_options` is the page's own query, not a filter.
+	"""
+	if row.get("filters") or not row.get("route_options") or row.get("link_type") in ("Page", "URL"):
+		return
+
+	try:
+		options = json.loads(row.route_options)
+	except ValueError:
+		return
+	if not isinstance(options, dict) or not options:
+		return
+
+	row.filters = json.dumps(
+		[
+			[row.link_to, field, *value]
+			if isinstance(value, list) and len(value) == 2
+			else [row.link_to, field, "=", value]
+			for field, value in options.items()
+		]
+	)
+	row.route_options = None
+
+
 def build_sidebar(module: str, workspaces: list[frappe._dict]) -> frappe._dict:
 	"""Return the sidebar this module's workspaces merge into, as a plain dict."""
 	primary = pick_primary(module, workspaces)

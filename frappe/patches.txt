@@ -267,6 +267,7 @@ execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation 
 frappe.desk.doctype.workspace.patches.set_standard_flag
 frappe.patches.v16_0.backfill_workspace_module
 frappe.patches.v16_0.convert_sidebars
+frappe.patches.v16_0.carry_standard_sidebar_edits
 frappe.patches.v16_0.convert_custom_sidebars
 frappe.patches.v16_0.move_custom_sidebar_workspaces
 frappe.patches.v16_0.convert_personal_sidebars
