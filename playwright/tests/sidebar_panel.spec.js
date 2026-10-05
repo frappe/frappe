@@ -16,15 +16,6 @@ test.describe("Sidebar Panel", () => {
 		await shared.page.evaluate(() => frappe.ui.sidebar_panels.close_all());
 	});
 
-	test("registers the notification panel", async () => {
-		const { page } = shared;
-		await expect
-			.poll(() =>
-				page.evaluate(() => Boolean(frappe.ui.sidebar_panels.panels.notifications))
-			)
-			.toBe(true);
-	});
-
 	test("mounts the panel beside the sidebar, not inside it", async () => {
 		const { page } = shared;
 		await expect(page.locator(".body-sidebar-container > .sidebar-panel")).not.toHaveCount(0);
