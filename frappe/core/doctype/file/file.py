@@ -135,13 +135,16 @@ class File(Document):
 			return
 
 		if self.is_remote_file:
+			# a remote file has no local blob to hash
+			self.content_hash = None
 			self.validate_remote_file()
 		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
 			frappe.db.after_rollback.add(self.on_rollback)
 
-		self.validate_duplicate_entry()  # Hash is generated in save_file
+		if not self.is_remote_file:
+			self.validate_duplicate_entry()  # Hash is generated in save_file
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -175,6 +178,9 @@ class File(Document):
 			if self.file_url:
 				frappe.throw(_("A folder cannot have a File URL"))
 			return
+
+		if self.is_remote_file:
+			self.content_hash = None
 
 		self.validate_attachment_references()
 		self.enforce_public_file_restrictions()

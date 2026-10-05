@@ -402,6 +402,96 @@ class TestSameContent(IntegrationTestCase):
 		file_content_properly_decoded = saved_file.get_content(encodings=["utf-8-sig", "utf-8"])
 		self.assertEqual(file_content_properly_decoded, test_content1)
 
+<<<<<<< HEAD
+=======
+	def test_toggle_is_private_renames_on_name_collision(self):
+		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
+		private_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"content": "private original",
+				"is_private": 1,
+			}
+		).insert()
+		public_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"content": "public different",
+				"is_private": 0,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		# this used to raise FileExistsError; it must now auto-rename instead
+		public_file.is_private = 1
+		public_file.save()
+
+		public_file.reload()
+		self.assertNotEqual(public_file.file_url, private_file.file_url)
+		self.assertTrue(public_file.file_url.startswith("/private/files/"))
+		self.assertEqual(public_file.get_content(), "public different")
+		self.assertEqual(private_file.get_content(), "private original")
+
+	def test_toggle_is_private_renames_even_on_identical_content_collision(self):
+		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
+		content = f"identical-{frappe.generate_hash(length=8)}"
+		private_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+		public_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 0}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", private_file.name, force=True)
+		self.addCleanup(frappe.delete_doc, "File", public_file.name, force=True)
+
+		public_file.is_private = 1
+		public_file.save()
+
+		public_file.reload()
+		self.assertNotEqual(public_file.file_url, private_file.file_url)
+		self.assertTrue(public_file.file_url.startswith("/private/files/"))
+		self.assertEqual(public_file.get_content(), content)
+		self.assertEqual(private_file.get_content(), content)
+
+	def test_remote_file_ignores_content_hash(self):
+		existing = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"hash_{frappe.generate_hash(length=6)}.txt",
+				"content": "private-content",
+				"is_private": 1,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", existing.name, force=True)
+
+		for file_url in ("https://example.com/remote.png", "/api/method/remote"):
+			with self.subTest(file_url=file_url):
+				frappe.set_user("test@example.com")
+				try:
+					remote = frappe.get_doc(
+						{
+							"doctype": "File",
+							"file_name": "remote.png",
+							"is_private": 1,
+							"file_url": file_url,
+							"content_hash": existing.content_hash,
+						}
+					).insert()
+				finally:
+					frappe.set_user("Administrator")
+				self.addCleanup(frappe.delete_doc, "File", remote.name, force=True)
+
+				self.assertEqual(remote.file_url, file_url)
+				self.assertFalse(remote.content_hash)
+
+				remote.content_hash = existing.content_hash
+				remote.save()
+				self.assertFalse(remote.content_hash)
+
+>>>>>>> cfae122 (fix(file): clear client supplied content hash for remote files)
 
 class TestFile(IntegrationTestCase):
 	def setUp(self):
