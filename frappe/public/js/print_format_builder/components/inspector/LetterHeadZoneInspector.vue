@@ -169,8 +169,12 @@ function set_size(val) {
 function set_image(url) {
 	if (!letterhead.value) return;
 	if (!url) {
+		const old_image = letterhead.value[image_field.value];
+		const content = letterhead.value[html_content_field.value] || "";
 		letterhead.value[image_field.value] = "";
-		if (zone_source.value === "Image") letterhead.value[html_content_field.value] = "";
+		if (old_image && content.includes(old_image)) {
+			letterhead.value[html_content_field.value] = "";
+		}
 		letterhead.value._dirty = true;
 		return;
 	}
