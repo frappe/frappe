@@ -80,6 +80,13 @@
 .builder-root .frappe-autocomplete .frappe-autocomplete-input-wrap:not(.focused) {
 	border-color: transparent;
 }
+.pfb-insp-row .frappe-autocomplete .frappe-autocomplete-dropdown {
+	left: auto;
+	right: 0;
+	width: max-content;
+	min-width: 100%;
+	max-width: 256px;
+}
 
 .pfb-insp-input,
 .pfb-insp-select {
