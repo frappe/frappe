@@ -170,6 +170,7 @@ function set_image(url) {
 	if (!letterhead.value) return;
 	if (!url) {
 		letterhead.value[image_field.value] = "";
+		if (zone_source.value === "Image") letterhead.value[html_content_field.value] = "";
 		letterhead.value._dirty = true;
 		return;
 	}
