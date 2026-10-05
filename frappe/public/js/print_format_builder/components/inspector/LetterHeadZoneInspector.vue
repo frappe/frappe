@@ -19,6 +19,13 @@
 					]"
 					@update:model-value="set_source"
 				/>
+				<div v-if="letterhead" class="pfb-insp-hint text-muted">
+					{{
+						__(
+							"Letter head changes are saved right away and apply to every print format that uses it."
+						)
+					}}
+				</div>
 			</div>
 		</div>
 
