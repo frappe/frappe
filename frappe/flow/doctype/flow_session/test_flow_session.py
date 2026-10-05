@@ -234,9 +234,9 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 				"model": self.model.name,
 				"instructions": "Be terse.",
 				"tools": [
-					{"tool": "read"},
+					{"tool": "read_records"},
 					{"tool": "execute"},
-					{"tool": "read_file"},
+					{"tool": "read"},
 					{"tool": "grep"},
 				],
 				"enabled": 1,
@@ -558,9 +558,9 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 				"instructions": "Be terse.",
 				"max_iterations": 7,
 				"tools": [
-					{"tool": "read"},
+					{"tool": "read_records"},
 					{"tool": "execute"},
-					{"tool": "read_file"},
+					{"tool": "read"},
 					{"tool": "grep"},
 					{"tool": "subagent"},
 				],
@@ -613,7 +613,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 				"title": "Config Child",
 				"model": self.model.name,
 				"instructions": "Look it up.",
-				"tools": [{"tool": "read"}],
+				"tools": [{"tool": "read_records"}],
 				"enabled": 1,
 			}
 		).insert()
@@ -626,7 +626,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertEqual(
 			(sub["name"], sub["system_prompt"], sub["max_turns"]), (child.name, "Look it up.", 100)
 		)
-		self.assertEqual([t["function"]["name"] for t in sub["client_tools"]], ["read"])
+		self.assertEqual([t["function"]["name"] for t in sub["client_tools"]], ["read_records"])
 		self.assertEqual(sub["user_context"], {**config["user_context"], "agent": child.name})
 
 	def test_the_agents_skills_are_indexed_after_its_instructions(self):
@@ -650,16 +650,18 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 
 	def test_sessions_get_read_only_server_tools_and_the_agents_schemas(self):
 		config = self.config()
-		self.assertEqual(config["tools"], ["read_file", "grep", "subagent"])
+		self.assertEqual(config["tools"], ["read", "grep", "subagent"])
 		self.assertEqual(config["extension_tools"], [])
 		self.assertFalse(config["skills_enabled"])
-		self.assertEqual([tool["function"]["name"] for tool in config["client_tools"]], ["read", "execute"])
+		self.assertEqual(
+			[tool["function"]["name"] for tool in config["client_tools"]], ["read_records", "execute"]
+		)
 		self.assertEqual(config["confirm_tools"], ["execute"])
 		self.assertFalse(config["auto_approve"])
 		self.assertTrue(config["auto_compact"])
 
 	def test_disabled_app_code_tools_are_not_exposed_to_the_session(self):
-		frappe.db.set_value("Flow Tool", "read_file", "enabled", 0)
+		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
 		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
 		config = self.config()
 		self.assertEqual(config["tools"], ["subagent"])
@@ -667,7 +669,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 
 	def test_an_empty_prompt_is_still_verbatim(self):
 		frappe.db.set_value("Flow Agent", self.agent.name, "instructions", "")
-		self.assertEqual(self.config()["system_prompt"], lifecycle.app_source_prompt(["read_file", "grep"]))
+		self.assertEqual(self.config()["system_prompt"], lifecycle.app_source_prompt(["read", "grep"]))
 
 	def test_the_sessions_model_overrides_the_agents_and_takes_provider_credentials(self):
 		bare = frappe.get_doc(

@@ -295,7 +295,7 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent_doc = frappe.get_doc(
-			_agent(self.model_doc.name, tools=[{"tool": "read"}, {"tool": "execute"}])
+			_agent(self.model_doc.name, tools=[{"tool": "read_records"}, {"tool": "execute"}])
 		).insert()
 
 	def tearDown(self):
@@ -306,7 +306,9 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 
 	def test_schemas_and_the_confirmation_list(self):
 		config = self.agent_doc.client_tool_config()
-		self.assertEqual([tool["function"]["name"] for tool in config["client_tools"]], ["read", "execute"])
+		self.assertEqual(
+			[tool["function"]["name"] for tool in config["client_tools"]], ["read_records", "execute"]
+		)
 		self.assertEqual(config["client_tools"][0]["type"], "function")
 		self.assertIn("properties", config["client_tools"][0]["function"]["parameters"])
 		self.assertEqual(config["confirm_tools"], ["execute"])
@@ -314,27 +316,27 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 	def test_update_memory_travels_to_the_server(self):
 		self.agent_doc.append("tools", {"tool": "update_memory"})
 		self.agent_doc.save()
-		self.assertEqual(self.names(), ["read", "execute", "update_memory"])
+		self.assertEqual(self.names(), ["read_records", "execute", "update_memory"])
 
 	def test_disabled_tools_stay_home(self):
-		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
+		frappe.db.set_value("Flow Tool", "read_records", "enabled", 0)
 		self.assertEqual(self.names(), ["execute"])
 
 	def test_server_tools_are_selected_without_becoming_callback_tools(self):
-		self.agent_doc.append("tools", {"tool": "read_file"})
+		self.agent_doc.append("tools", {"tool": "read"})
 		self.agent_doc.append("tools", {"tool": "grep"})
 		self.agent_doc.append("tools", {"tool": "subagent"})
 		self.agent_doc.save()
 
-		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "grep", "subagent"])
-		self.assertEqual(self.names(), ["read", "execute"])
+		self.assertEqual(self.agent_doc.server_tools(), ["read", "grep", "subagent"])
+		self.assertEqual(self.names(), ["read_records", "execute"])
 		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["tools"], ["read_file", "grep", "subagent"])
-		self.assertIn("Use read_file, grep to inspect", config["system_prompt"])
+		self.assertEqual(config["tools"], ["read", "grep", "subagent"])
+		self.assertIn("Use read, grep to inspect", config["system_prompt"])
 
 		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
-		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "subagent"])
-		frappe.db.set_value("Flow Tool", "read_file", "enabled", 0)
+		self.assertEqual(self.agent_doc.server_tools(), ["read", "subagent"])
+		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
 		config = self.agent_doc.session_tool_config()
 		self.assertEqual(config["tools"], ["subagent"])
 		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
@@ -356,7 +358,7 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		config = self.agent_doc.session_tool_config()
 		self.assertEqual(config["extension_tools"], ["helpdesk_ticket"])
 		self.assertEqual(config["tools"], [])
-		self.assertEqual(self.names(), ["read", "execute"])
+		self.assertEqual(self.names(), ["read_records", "execute"])
 
 		frappe.db.set_value("Flow Tool", "helpdesk_ticket", "enabled", 0)
 		self.assertEqual(self.agent_doc.session_tool_config()["extension_tools"], [])
@@ -394,18 +396,20 @@ class TestFlowAgentSubAgents(IntegrationTestCase):
 				title="Lookup",
 				description="Finds past tickets.\nFast.",
 				max_iterations=3,
-				tools=[{"tool": "read"}, {"tool": "execute"}, {"tool": "read_file"}],
+				tools=[{"tool": "read_records"}, {"tool": "execute"}, {"tool": "read"}],
 			)
 		).insert()
 		self.agent_doc = frappe.get_doc(
-			_agent(self.model_doc.name, tools=[{"tool": "read"}], sub_agents=[{"agent": self.child.name}])
+			_agent(
+				self.model_doc.name, tools=[{"tool": "read_records"}], sub_agents=[{"agent": self.child.name}]
+			)
 		).insert()
 
 	def tearDown(self):
 		frappe.db.rollback()
 
 	def test_binding_a_sub_agent_attaches_the_tool_automatically(self):
-		self.assertEqual([row.tool for row in self.agent_doc.tools], ["read", "subagent"])
+		self.assertEqual([row.tool for row in self.agent_doc.tools], ["read_records", "subagent"])
 
 	def test_a_sub_agent_runs_on_its_own_model_prompt_and_tools_and_calls_back_as_itself(self):
 		context = {"site": "s", "user": "u", "agent": self.agent_doc.name, "session": "S1"}
@@ -414,8 +418,8 @@ class TestFlowAgentSubAgents(IntegrationTestCase):
 		self.assertEqual(config["model"], "openai/gpt-4o-mini")
 		self.assertTrue(config["system_prompt"].startswith("Be terse."))
 		self.assertIn("APP SOURCE CODE", config["system_prompt"])
-		self.assertEqual((config["tools"], config["extension_tools"]), (["read_file"], []))
-		self.assertEqual([t["function"]["name"] for t in config["client_tools"]], ["read", "execute"])
+		self.assertEqual((config["tools"], config["extension_tools"]), (["read"], []))
+		self.assertEqual([t["function"]["name"] for t in config["client_tools"]], ["read_records", "execute"])
 		self.assertEqual((config["confirm_tools"], config["max_turns"]), (["execute"], 3))
 		self.assertEqual(config["user_context"], {**context, "agent": "Lookup"})
 

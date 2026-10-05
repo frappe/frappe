@@ -73,7 +73,7 @@ class TestToolCallback(IntegrationTestCase):
 			}
 		).insert()
 		attached = (
-			"read",
+			"read_records",
 			"delete",
 			"execute",
 			"update_memory",
@@ -227,7 +227,7 @@ class TestToolCallback(IntegrationTestCase):
 		self.assertEqual(run.owner, OWNER)
 
 	def test_the_owners_permissions_apply(self):
-		result = self.call("read", {"doctype": "Error Log"})
+		result = self.call("read_records", {"doctype": "Error Log"})
 		self.assertTrue(result["is_error"])
 		self.assertIn("Permission", result["content"])
 		self.assertEqual(frappe.session.user, "Administrator")
@@ -283,8 +283,8 @@ class TestToolCallback(IntegrationTestCase):
 
 		self.assertEqual(self.call("whoami", agent=child), {"content": OWNER, "is_error": False})
 		self.assertEqual(
-			self.call("read", {"doctype": "ToDo"}, agent=child),
-			{"content": "Unknown tool read.", "is_error": True},
+			self.call("read_records", {"doctype": "ToDo"}, agent=child),
+			{"content": "Unknown tool read_records.", "is_error": True},
 		)
 		self.assertEqual(
 			self.call("whoami", agent=stranger),

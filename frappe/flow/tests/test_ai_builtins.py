@@ -5,6 +5,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow import ToolContext
+from flow.patches.rename_read_tools import execute as rename_read_tools
 from flow.tools.builtins import (
 	BUILTIN_TOOLS,
 	create,
@@ -12,7 +13,7 @@ from flow.tools.builtins import (
 	describe,
 	execute,
 	find_doctypes,
-	read,
+	read_records,
 	sync_builtin_tools,
 	update,
 )
@@ -72,24 +73,24 @@ class TestDescribe(IntegrationTestCase):
 			frappe.set_user("Administrator")
 
 
-class TestRead(IntegrationTestCase):
+class TestReadRecords(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
 	def test_reads_matching_records(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "ai builtin read probe"}).insert()
 
-		rows = read(doctype="ToDo", filters={"description": "ai builtin read probe"}, ctx=CTX)
+		rows = read_records(doctype="ToDo", filters={"description": "ai builtin read probe"}, ctx=CTX)
 
 		self.assertEqual([r["name"] for r in rows], [todo.name])
 
 	def test_limit_is_capped(self):
-		rows = read(doctype="DocType", limit=10_000, ctx=CTX)
+		rows = read_records(doctype="DocType", limit=10_000, ctx=CTX)
 		self.assertLessEqual(len(rows), 200)
 
 	def test_returns_requested_fields(self):
 		frappe.get_doc({"doctype": "ToDo", "description": "fields probe"}).insert()
-		rows = read(
+		rows = read_records(
 			doctype="ToDo",
 			filters={"description": "fields probe"},
 			fields=["name", "description"],
@@ -245,3 +246,45 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 		sync_builtin_tools()
 		count = frappe.db.count("Flow Tool", {"slug": "read"})
 		self.assertEqual(count, 1)
+
+
+class TestRenameReadTools(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_agents_keep_their_tools_under_the_new_names(self):
+		sync_builtin_tools()
+		# the tools as they were before the rename
+		frappe.db.delete("Flow Tool", {"name": ["in", ["read_records", "read_file"]]})
+		frappe.get_doc(
+			{
+				"doctype": "Flow Tool",
+				"name": "read_file",
+				"slug": "read_file",
+				"title": "Read File",
+				"type": "Imported",
+				"import_path": "flow.tools.builtins.read_file",
+				"is_system_generated": 1,
+			}
+		).db_insert()
+		model = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Rename Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert()
+		agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Rename Agent",
+				"model": model.name,
+				"instructions": "Be terse.",
+			}
+		).insert()
+		for tool in ("read", "read_file"):
+			agent.append("tools", {"tool": tool}).db_insert()
+
+		rename_read_tools()
+
+		filters = {"parent": agent.name, "tool": ["like", "read%"]}
+		self.assertEqual(
+			frappe.get_all("Flow Agent Tool", filters, pluck="tool", order_by="idx"), ["read_records", "read"]
+		)
+		self.assertFalse(frappe.db.exists("Flow Tool", "read_file"))

@@ -12,7 +12,7 @@ from flow.daemon.client import DaemonClient
 from flow.knowledge import Knowledge
 from flow.lib.agent import sync_agents, sync_tools
 from flow.tests.test_fake_daemon import FakeDaemon
-from flow.tools.builtins import read, sync_builtin_tools
+from flow.tools.builtins import read_records, sync_builtin_tools
 
 MODEL = "Code Agent Model"
 
@@ -73,7 +73,7 @@ class TestAgent(IntegrationTestCase):
 			"name": "Todo Helper",
 			"model": self.model.name,
 			"instructions": "Help with todos.",
-			"tools": [count_todos, close_todo, read],
+			"tools": [count_todos, close_todo, read_records],
 		}
 		return Agent(**{**fields, **overrides})
 
@@ -100,7 +100,7 @@ class TestAgent(IntegrationTestCase):
 			(doc.model, doc.instructions, doc.max_iterations, doc.enabled, doc.is_system_generated),
 			(self.model.name, "Help with todos.", 7, 1, 1),
 		)
-		self.assertEqual([row.tool for row in doc.tools], ["count_todos", "close_todo", "read"])
+		self.assertEqual([row.tool for row in doc.tools], ["count_todos", "close_todo", "read_records"])
 
 	def test_sync_restores_the_code_default_max_iterations(self):
 		self.synced(max_iterations=7)
@@ -135,7 +135,7 @@ class TestAgent(IntegrationTestCase):
 		)
 		self.assertEqual((doc.background, doc.is_system_generated), (1, 1))
 		self.assertEqual(frappe.db.get_value("Flow Tool", "count_todos", "requires_confirmation"), 0)
-		self.assertTrue(frappe.db.get_value("Flow Tool", "read", "is_system_generated"))
+		self.assertTrue(frappe.db.get_value("Flow Tool", "read_records", "is_system_generated"))
 
 	def test_sync_reapplies_the_definition_from_code(self):
 		self.synced()
@@ -312,7 +312,7 @@ class TestAgent(IntegrationTestCase):
 		config = self.daemon.configs[run.session]
 		self.assertEqual(
 			[client_tool["function"]["name"] for client_tool in config["client_tools"]],
-			["count_todos", "close_todo", "read"],
+			["count_todos", "close_todo", "read_records"],
 		)
 		self.assertEqual((config["confirm_tools"], config["auto_approve"]), (["close_todo"], True))
 

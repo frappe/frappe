@@ -177,7 +177,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			{
 				"PATH": "/usr/bin",
 				"FLOW_TENANTS_FILE": str(self.state / "tenants.json"),
-				"FLOW_POLICY": '{"tool_allowlist": ["read_file", "grep", "subagent"]}',
+				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent"]}',
 				"FLOW_REDIS_URL": "redis://q",
 			},
 		)
@@ -208,7 +208,7 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertNotIn("--extension", command)  # each site's folder comes from its tenants entry
 		self.assertEqual(  # the same tool in two sites is allowed once
 			kwargs["env"]["FLOW_POLICY"],
-			'{"tool_allowlist": ["read_file", "grep", "subagent", "helpdesk_ticket"]}',
+			'{"tool_allowlist": ["read", "grep", "subagent", "helpdesk_ticket"]}',
 		)
 
 	def test_extension_tools_runs_the_harness_listing(self):
@@ -468,7 +468,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			{
 				"PATH": "/usr/bin",
 				"FLOW_TENANTS_FILE": str(self.state / "tenants.json"),
-				"FLOW_POLICY": '{"tool_allowlist": ["read_file", "grep", "subagent"]}',
+				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent"]}',
 			},
 		)
 		chdir.assert_called_once_with(self.runtime)

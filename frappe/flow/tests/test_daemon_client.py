@@ -226,7 +226,7 @@ class TestLiveDaemon(IntegrationTestCase):
 				"title": "Live Agent",
 				"model": self.model.name,
 				"instructions": "Reply briefly.",
-				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"tools": [{"tool": "read_records"}, {"tool": "execute"}],
 				"enabled": 1,
 			}
 		).insert()
@@ -255,7 +255,7 @@ class TestLiveDaemon(IntegrationTestCase):
 		self.assertEqual(caught.exception.status, 401)
 
 	def test_the_daemons_own_tools_are_refused_by_policy(self):
-		for tools in (["bash"], ["read"]):
+		for tools in (["bash"], ["write"]):
 			with self.subTest(tools=tools), self.assertRaises(DaemonError) as caught:
 				self.client.create_session({**self.config("policy-probe"), "tools": tools})
 			self.assertEqual(caught.exception.status, 400)
