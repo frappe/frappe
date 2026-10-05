@@ -131,6 +131,7 @@ onMounted(() => {
 
 .lh-zone--selected,
 .lh-zone--selected:hover {
+	z-index: 1;
 	border-color: transparent;
 	outline: var(--pfb-ring);
 }
