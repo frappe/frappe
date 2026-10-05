@@ -5,6 +5,27 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	// sample people for the Avatar Group examples
+	const PEOPLE = [
+		{ label: "John Doe", image: "https://avatars.githubusercontent.com/u/499550?s=60&v=4" },
+		{ label: "Jane Smith", theme: "blue" },
+		{ label: "Sam Smith", theme: "green" },
+		{ label: "Alice Adams", theme: "amber" },
+		{ label: "Ryan Reed", theme: "violet" },
+		{ label: "Kim Lee", theme: "red" },
+		{ label: "Max Hart" },
+	];
+	const person_card = (person) =>
+		$('<div class="flex gap-3 items-center"></div>').append(
+			frappe.ui.avatar({ ...person, size: "xl" }),
+			$("<div></div>").append(
+				$('<div class="text-base-medium text-ink-gray-8"></div>').text(person.label),
+				$('<div class="text-sm text-ink-gray-5"></div>').text(
+					`${frappe.scrub(person.label, ".")}@example.com`
+				)
+			)
+		);
+
 	// Examples are grouped (all variants together, all sizes together...).
 	// Each item's opts object is both the displayed code and the real input
 	// for the live preview — what you see is exactly what runs.
@@ -1543,6 +1564,95 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						},
 						{ label: "Jane Smith", theme: "blue", indicator: "gray", size: "xl" },
 						{ label: "Sam Smith", theme: "violet", indicator: "red", size: "2xl" },
+					],
+				},
+			],
+		},
+		"Avatar Group": {
+			helper: "frappe.ui.avatar_group",
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							__code: "frappe.ui.avatar_group({ avatars: [{ label, image, theme }, ...] })",
+							avatars: PEOPLE.slice(0, 3),
+						},
+					],
+				},
+				{
+					title: __("Overflow (click +4 to see the rest)"),
+					items: [
+						{
+							__code: "frappe.ui.avatar_group({ avatars: seven_people, max: 3 })",
+							avatars: PEOPLE,
+							max: 3,
+						},
+					],
+				},
+				{
+					title: __("With add button"),
+					items: [
+						{
+							__code: 'frappe.ui.avatar_group({\n  avatars,\n  add: { title: "Assign", onclick: () => assign() },\n})',
+							avatars: PEOPLE.slice(0, 5),
+							add: {
+								title: __("Assign"),
+								onclick: () => frappe.ui.toast({ message: __("Add clicked") }),
+							},
+						},
+					],
+				},
+				{
+					title: __("Empty (only the add button)"),
+					items: [
+						{
+							__code: 'frappe.ui.avatar_group({ avatars: [], add: { title: "Assign" } })',
+							avatars: [],
+							add: { title: __("Assign") },
+						},
+					],
+				},
+				{
+					title: __("Clickable avatars (the +N list rows too)"),
+					items: [
+						{
+							__code: "frappe.ui.avatar_group({\n  avatars,\n  onclick: (avatar, e) => open_profile(avatar),\n})",
+							avatars: PEOPLE,
+							onclick: (avatar) =>
+								frappe.ui.toast({ message: __("Clicked {0}", [avatar.label]) }),
+						},
+					],
+				},
+				{
+					title: __("Hover card (rest the pointer on an avatar)"),
+					items: [
+						{
+							__code: "frappe.ui.avatar_group({\n  avatars,\n  hover_card: (avatar) => build_user_card(avatar),  // details only; actions go in onclick\n})",
+							avatars: PEOPLE.slice(0, 3),
+							hover_card: person_card,
+						},
+					],
+				},
+				{
+					title: __("Sizes"),
+					items: ["xs", "sm", "md", "lg", "xl"].map((size) => ({
+						__code: `frappe.ui.avatar_group({ avatars, size: "${size}", add: {} })`,
+						avatars: PEOPLE,
+						size,
+						add: {},
+					})),
+				},
+				{
+					title: __("Square"),
+					items: [
+						{
+							__code: 'frappe.ui.avatar_group({ avatars, size: "lg", shape: "square", add: {} })',
+							avatars: PEOPLE,
+							size: "lg",
+							shape: "square",
+							add: {},
+						},
 					],
 				},
 			],

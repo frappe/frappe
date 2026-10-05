@@ -4,7 +4,8 @@
  * Markup:
  *   <div class="es-avatar-group" data-size="sm" data-shape="square">
  *     <span class="es-avatar-group__stack">
- *       <span class="es-avatar">…</span> …
+ *       <span class="es-avatar">…</span> …   — each in a
+ *         <button class="es-avatar-group__item"> when the avatars are clickable
  *       <span class="es-avatar es-avatar-group__more">…+4…</span>
  *     </span>
  *     <button class="es-button es-avatar-group__add" data-icon-button="true">…</button>
@@ -70,15 +71,36 @@
     align-items: center;
 }
 
-.es-avatar-group__stack > .es-avatar + .es-avatar {
+.es-avatar-group__stack > * + * {
     margin-inline-start: calc(var(--es-ag-size) * -0.25);
 }
 
 /* the ring goes on the rounded children: the avatar root stays square so its
    status indicator isn't clipped */
-.es-avatar-group__stack > .es-avatar > img,
-.es-avatar-group__stack > .es-avatar > .es-avatar__fallback {
+.es-avatar-group__stack .es-avatar > img,
+.es-avatar-group__stack .es-avatar > .es-avatar__fallback {
     box-shadow: 0 0 0 2px var(--es-ag-ring);
+}
+
+.es-avatar-group__item {
+    position: relative;
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    border-radius: var(--es-ag-round);
+    background: none;
+    cursor: pointer;
+}
+
+/* the avatar under the pointer or focus comes to the front of the stack */
+.es-avatar-group__item:hover,
+.es-avatar-group__item:focus-visible {
+    z-index: 2;
+}
+
+.es-avatar-group__item:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
 }
 
 /* later avatars overlap earlier ones; keep status dots above them */
@@ -96,4 +118,49 @@
     --es-bt-h: var(--es-ag-size);
     --es-bt-icon: calc(var(--es-ag-size) * 0.55);
     border-radius: var(--es-ag-round);
+}
+
+/* ---- the +N popover: the hidden people, one per row ---- */
+.es-avatar-group__popover {
+    width: auto;
+    min-width: calc(var(--spacing) * 44);
+    max-width: calc(var(--spacing) * 72);
+    padding: var(--spacing);
+}
+
+.es-avatar-group__list {
+    display: flex;
+    flex-direction: column;
+}
+
+.es-avatar-group__list-item {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    width: 100%;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    border: 0;
+    border-radius: var(--radius);
+    background: none;
+    font-size: var(--text-base);
+    line-height: calc(var(--spacing) * 4);
+    color: var(--ink-gray-7);
+    text-align: start;
+}
+
+button.es-avatar-group__list-item {
+    cursor: pointer;
+    outline: none;
+}
+
+button.es-avatar-group__list-item:hover,
+button.es-avatar-group__list-item:focus-visible {
+    background: var(--surface-alpha-gray-2);
+}
+
+.es-avatar-group__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
