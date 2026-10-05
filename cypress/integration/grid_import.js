@@ -1,5 +1,6 @@
 context("Child Table Data Import", () => {
 	const USER = "grid.import@example.com";
+	const PASSWORD = "test_password";
 	let contact;
 
 	before(() => {
@@ -10,14 +11,14 @@ context("Child Table Data Import", () => {
 			{
 				email: USER,
 				first_name: "Grid Import",
-				new_password: Cypress.env("adminPassword") || "apple",
+				new_password: PASSWORD,
 				send_welcome_email: 0,
 				roles: [{ role: "Desk User" }],
 			},
 			true
 		);
 
-		cy.login(USER);
+		cy.login(USER, PASSWORD);
 		cy.visit("/desk/website");
 		cy.insert_doc("Contact", {
 			first_name: "Grid Import",
@@ -26,7 +27,7 @@ context("Child Table Data Import", () => {
 	});
 
 	beforeEach(() => {
-		cy.login(USER);
+		cy.login(USER, PASSWORD);
 		cy.visit(`/desk/contact/${contact}`);
 		cy.window()
 			.its("cur_frm")
