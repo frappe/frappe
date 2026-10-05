@@ -189,6 +189,7 @@
 				<template #item="{ element: section }">
 					<div class="pfb-tree-node">
 						<div
+							v-node-menu="zone_label(section) ? null : { section }"
 							class="pfb-tree-row"
 							@mouseenter="store.hovered_section.value = section"
 							@mouseleave="store.hovered_section.value = null"
@@ -249,6 +250,7 @@
 								     only earns a row once there's more than one -->
 								<div
 									v-if="section.columns.length > 1"
+									v-node-menu="zone_label(section) ? null : { section }"
 									class="pfb-tree-row"
 									role="treeitem"
 									tabindex="0"
@@ -290,6 +292,7 @@
 									<template #item="{ element: field }">
 										<div
 											v-show="!field.remove"
+											v-node-menu="{ field }"
 											class="pfb-tree-row"
 											:class="{
 												active: store.selected_fields.value.includes(
@@ -374,6 +377,7 @@ import {
 import BlockCard from "./BlockCard.vue";
 import EmptyState from "./EmptyState.vue";
 import { column_of, zone_of, zones } from "../layout";
+import { field_menu_options, section_menu_options } from "../composables/useNodeMenu";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
 // state
@@ -587,6 +591,33 @@ function select_field(field, section, e) {
 	if (!additive) store.scroll_target.value = field;
 	store.select_field(field, additive);
 }
+
+const vNodeMenu = {
+	mounted(el, { value }) {
+		if (!value) return;
+		el._pfb_node = value;
+		el._pfb_menu = new frappe.ui.ContextMenu({
+			target: el,
+			options: () => {
+				const { field, section } = el._pfb_node;
+				return field
+					? field_menu_options(store, field, { paste: false })
+					: section_menu_options(store, section, { paste: false });
+			},
+			on_open: () => {
+				const { field, section } = el._pfb_node;
+				if (field) store.select_field(field);
+				else store.select_section(section);
+			},
+		});
+	},
+	updated(el, { value }) {
+		if (value) el._pfb_node = value;
+	},
+	unmounted(el) {
+		el._pfb_menu?.destroy();
+	},
+};
 
 function select_dropped_layer_field(column, e) {
 	const field = column.fields[e.newIndex];
