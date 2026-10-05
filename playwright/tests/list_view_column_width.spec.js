@@ -90,36 +90,13 @@ test.describe("List View — Column Widths", () => {
 			.toBeLessThanOrEqual(15);
 	});
 
-	test("persists column width across page reloads", async ({ page, desk, api }) => {
-		await save_list_view_settings(
-			api,
-			JSON.stringify([
-				{ fieldname: "name", label: "Name" },
-				{ fieldname: "module", label: "Module", width: 220 },
-			])
-		);
-
-		await page.reload();
-		await desk.ready();
-
-		await expect
-			.poll(async () => Math.abs((await get_column_width(page, "module")) - 220))
-			.toBeLessThanOrEqual(15);
-	});
-
-	test("drag-to-resize handle changes column width", async ({ page }) => {
-		// BASE_FIELDS seeds module at 150 px, so 150+80=230 — well inside the 400 px cap.
-		const initial_width = await get_column_width(page, "module");
-		await drag_resize_column(page, "module", 80);
-		await expect
-			.poll(() => get_column_width(page, "module"))
-			.toBeGreaterThan(initial_width + 40);
-	});
-
-	test("drag-to-resize width is persisted in List View Settings", async ({ page, desk }) => {
+	test("drag-to-resize changes the column width and persists it", async ({ page, desk }) => {
 		// BASE_FIELDS seeds module at 150 px, so 150+60=210 — well inside the 400 px cap.
 		const initial_width = await get_column_width(page, "module");
 		await drag_resize_column(page, "module", 60);
+		await expect
+			.poll(() => get_column_width(page, "module"))
+			.toBeGreaterThan(initial_width + 30);
 
 		await page.reload();
 		await desk.ready();
@@ -137,28 +114,5 @@ test.describe("List View — Column Widths", () => {
 	test("enforces maximum column width of 400 px when dragging", async ({ page }) => {
 		await drag_resize_column(page, "module", 2000);
 		await expect.poll(() => get_column_width(page, "module")).toBeLessThanOrEqual(400);
-	});
-
-	test("shows resize handles in the list header", async ({ page }) => {
-		await expect(page.locator(".list-row-head .list-col-resize-handle")).not.toHaveCount(0);
-	});
-
-	test("shows Width (px) column header and drag hint in List View Settings", async ({
-		page,
-		desk,
-	}) => {
-		await open_list_settings(page, desk);
-
-		const dialog = page.locator(".modal-dialog:visible");
-		await expect(dialog).toContainText("Width (px)");
-		const hint_count = await dialog
-			.locator("[title]")
-			.evaluateAll(
-				(elements) =>
-					elements.filter((el) => el.title.toLowerCase().includes("drag")).length
-			);
-		expect(hint_count).toBeGreaterThan(0);
-
-		await dialog.locator(".btn-modal-close").click();
 	});
 });

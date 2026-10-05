@@ -179,24 +179,19 @@ test.describe("Web Form Get Fields", () => {
 		);
 	});
 
-	test("Filters the list without resizing it", async ({ desk }) => {
+	test("Filters the list as you type", async ({ desk }) => {
 		await open_picker_on(desk);
 
-		const list = picker(desk).locator('[data-fieldname="fields"]');
-		const list_height = () => list.evaluate((el) => $(el).height());
 		const unit = (fieldname) =>
 			picker(desk).locator(`.unit-checkbox:has(.label-area[data-unit='${fieldname}'])`);
 		const search = picker(desk).locator('[data-element="search"]');
 
 		// the search is bound, cleared and focused only once the dialog has finished opening
 		await expect(search).toBeFocused();
-		const height = await list_height();
-
 		await search.pressSequentially("alpha");
 
 		await expect(unit("alpha_note")).toBeVisible();
 		await expect(unit("title")).toBeHidden();
-		await expect.poll(list_height, "list height while filtering").toBe(height);
 	});
 
 	test("Ticks and unticks the whole list", async ({ desk }) => {

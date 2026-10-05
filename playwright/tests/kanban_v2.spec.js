@@ -46,13 +46,7 @@ test.describe("Kanban v2 Board", () => {
 		await expect(page.locator(".navbar-breadcrumbs:visible li:last-child")).toContainText(
 			"ToDo Kanban"
 		);
-	});
-
-	test("shows cards with titles in the Open column", async ({ page }) => {
-		await visit_kanban_v2(page);
-		const first_card = column_cards(page, "Open").first();
-		await expect(first_card).toBeAttached();
-		await expect(first_card.locator(".kn-card-title")).not.toBeEmpty();
+		await expect(column_cards(page, "Open").first().locator(".kn-card-title")).not.toBeEmpty();
 	});
 
 	test("creates a ToDo from the primary action", async ({ page, desk }) => {
