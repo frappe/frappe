@@ -310,6 +310,7 @@ export function getStore(print_format_name) {
 		return create_default_layout(meta.value, print_format.value);
 	}
 	function remove_letterhead() {
+		letterhead_seq++;
 		flush_letterhead();
 		letterhead.value = null;
 		if (layout.value) {
@@ -319,6 +320,7 @@ export function getStore(print_format_name) {
 		}
 	}
 	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
+		letterhead_seq++;
 		flush_letterhead();
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
