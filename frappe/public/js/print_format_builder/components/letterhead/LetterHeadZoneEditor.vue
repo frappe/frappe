@@ -129,8 +129,10 @@ onMounted(() => {
 	transition: border-color 0.15s;
 }
 
-.lh-zone--selected {
-	border-color: var(--gray-400);
+.lh-zone--selected,
+.lh-zone--selected:hover {
+	border-color: transparent;
+	outline: var(--pfb-ring);
 }
 
 .lh-zone:hover {
