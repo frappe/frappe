@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-28 04:21\n"
+"PO-Revision-Date: 2026-10-05 04:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -119,7 +119,7 @@ msgstr ""
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "0 - Draft; 1 - Submitted; 2 - Cancelled"
-msgstr ""
+msgstr "0 – Чернетка; 1 – Проведено; 2 – Скасовано"
 
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -411,7 +411,72 @@ msgid "<h3>Print Format Help</h3>\n"
 "\t\t</tr>\n"
 "\t</tbody>\n"
 "</table>\n"
-msgstr ""
+msgstr "<h3>Довідка з форм друку</h3>\n"
+"<hr>\n"
+"<h4>Вступ</h4>\n"
+"<p>Форми друку формуються на сервері мовою шаблонів Jinja. Усім формам доступний об'єкт <code>doc</code> з даними документа, який оформлюється. Загальні утиліти доступні через модуль <code>frappe</code>.</p>\n"
+"<p>Для оформлення доступний CSS-фреймворк Bootstrap з усім набором класів.</p>\n"
+"<hr>\n"
+"<h4>Посилання</h4>\n"
+"<ol>\n"
+"\t<li><a href=\"http://jinja.pocoo.org/docs/templates/\" target=\"_blank\">Jinja Templating Language</a></li>\n"
+"\t<li><a href=\"http://getbootstrap.com\" target=\"_blank\">Bootstrap CSS Framework</a></li>\n"
+"</ol>\n"
+"<hr>\n"
+"<h4>Приклад</h4>\n"
+"<pre><code>&lt;h3&gt;{{ doc.select_print_heading or \"Invoice\" }}&lt;/h3&gt;\n"
+"&lt;div class=\"row\"&gt;\n"
+"\t&lt;div class=\"col-md-3 text-right\"&gt;Customer Name&lt;/div&gt;\n"
+"\t&lt;div class=\"col-md-9\"&gt;{{ doc.customer_name }}&lt;/div&gt;\n"
+"&lt;/div&gt;\n"
+"&lt;div class=\"row\"&gt;\n"
+"\t&lt;div class=\"col-md-3 text-right\"&gt;Date&lt;/div&gt;\n"
+"\t&lt;div class=\"col-md-9\"&gt;{{ doc.get_formatted(\"invoice_date\") }}&lt;/div&gt;\n"
+"&lt;/div&gt;\n"
+"&lt;table class=\"table table-bordered\"&gt;\n"
+"\t&lt;tbody&gt;\n"
+"\t\t&lt;tr&gt;\n"
+"\t\t\t&lt;th&gt;Sr&lt;/th&gt;\n"
+"\t\t\t&lt;th&gt;Item Name&lt;/th&gt;\n"
+"\t\t\t&lt;th&gt;Description&lt;/th&gt;\n"
+"\t\t\t&lt;th class=\"text-right\"&gt;Qty&lt;/th&gt;\n"
+"\t\t\t&lt;th class=\"text-right\"&gt;Rate&lt;/th&gt;\n"
+"\t\t\t&lt;th class=\"text-right\"&gt;Amount&lt;/th&gt;\n"
+"\t\t&lt;/tr&gt;\n"
+"\t\t{%- for row in doc.items -%}\n"
+"\t\t&lt;tr&gt;\n"
+"\t\t\t&lt;td style=\"width: 3%;\"&gt;{{ row.idx }}&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 20%;\"&gt;\n"
+"\t\t\t\t{{ row.item_name }}\n"
+"\t\t\t\t{% if row.item_code != row.item_name -%}\n"
+"\t\t\t\t&lt;br&gt;Item Code: {{ row.item_code}}\n"
+"\t\t\t\t{%- endif %}\n"
+"\t\t\t&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 37%;\"&gt;\n"
+"\t\t\t\t&lt;div style=\"border: 0px;\"&gt;{{ row.description }}&lt;/div&gt;&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 10%; text-align: right;\"&gt;{{ row.qty }} {{ row.uom or row.stock_uom }}&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
+"\t\t\t\trow.get_formatted(\"rate\", doc) }}&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
+"\t\t\t\trow.get_formatted(\"amount\", doc) }}&lt;/td&gt;\n"
+"\t\t&lt;/tr&gt;\n"
+"\t\t{%- endfor -%}\n"
+"\t&lt;/tbody&gt;\n"
+"&lt;/table&gt;</code></pre>\n"
+"<hr>\n"
+"<h4>Common Functions</h4>\n"
+"<table class=\"table table-bordered\">\n"
+"\t<tbody>\n"
+"\t\t<tr>\n"
+"\t\t\t<td style=\"width: 30%;\"><code>doc.get_formatted(\"[fieldname]\", [parent_doc])</code></td>\n"
+"\t\t\t<td>Get document value formatted as Date, Currency, etc. Pass parent <code>doc</code> for currency type fields.</td>\n"
+"\t\t</tr>\n"
+"\t\t<tr>\n"
+"\t\t\t<td style=\"width: 30%;\"><code>frappe.db.get_value(\"[doctype]\", \"[name]\", \"fieldname\")</code></td>\n"
+"\t\t\t<td>Get value from another document.</td>\n"
+"\t\t</tr>\n"
+"\t</tbody>\n"
+"</table>\n"
 
 #. Description of the 'Template' (Code) field in DocType 'Address Template'
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -473,14 +538,18 @@ msgstr ""
 msgid "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
 "<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</code></pre>\n"
-msgstr ""
+msgstr "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
+"<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</code></pre>\n"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>"
-msgstr ""
+msgstr "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
+"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</pre>"
 
 #. Content of the 'Condition description' (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -896,7 +965,7 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Accounts User"
-msgstr ""
+msgstr "Користувач модуля “Бухгалтерія”"
 
 #: frappe/public/js/frappe/form/dashboard.js:510
 msgid "Accurate count can not be fetched, click here to view all documents"
@@ -1544,7 +1613,7 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save (Submitted Document)"
-msgstr ""
+msgstr "Після збереження (проведений документ)"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -1554,7 +1623,7 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Submit"
-msgstr ""
+msgstr "Після проведення"
 
 #: frappe/desk/doctype/number_card/number_card.py:66
 msgid "Aggregate Field is required to create a number card"
@@ -1725,7 +1794,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow Editing After Submit"
-msgstr ""
+msgstr "Дозволити редагування після проведення"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:79
 msgid "Allow Google Calendar Access"
@@ -1886,7 +1955,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Allow on Submit"
-msgstr ""
+msgstr "Дозволити після проведення"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -3204,7 +3273,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "B10"
-msgstr ""
+msgstr "B10"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -3516,12 +3585,12 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Save (Submitted Document)"
-msgstr ""
+msgstr "Перед збереженням (проведений документ)"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Submit"
-msgstr ""
+msgstr "Перед проведенням"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -3971,7 +4040,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "CMD"
-msgstr ""
+msgstr "CMD"
 
 #: frappe/public/js/frappe/color_picker/color_picker.js:26
 msgid "COLOR PICKER"
@@ -4112,7 +4181,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/templates/set_sharing.html:6
 #: frappe/public/js/frappe/form/templates/set_sharing.html:52
 msgid "Can Submit"
-msgstr ""
+msgstr "Можна проводити"
 
 #: frappe/public/js/frappe/form/templates/set_sharing.html:5
 #: frappe/public/js/frappe/form/templates/set_sharing.html:51
@@ -4230,7 +4299,7 @@ msgstr ""
 
 #: frappe/model/base_document.py:1084
 msgid "Cannot Update After Submit"
-msgstr ""
+msgstr "Не можна змінювати після проведення"
 
 #: frappe/core/doctype/file/file.py:685
 msgid "Cannot access file path {0}"
@@ -4246,7 +4315,7 @@ msgstr ""
 
 #: frappe/workflow/doctype/workflow/workflow.py:109
 msgid "Cannot cancel before submitting. See Transition {0}"
-msgstr ""
+msgstr "Не можна скасувати до проведення. Див. перехід {0}"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:306
 msgid "Cannot cancel {0}."
@@ -4258,7 +4327,7 @@ msgstr ""
 
 #: frappe/model/document.py:912
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
-msgstr ""
+msgstr "Стан документа не можна змінити з 1 (проведено) на 0 (чернетка)"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
@@ -4366,7 +4435,7 @@ msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:126
 msgid "Cannot enable {0} for a non-submittable doctype"
-msgstr ""
+msgstr "Не можна ввімкнути {0} для типу документа, що не проводиться"
 
 #: frappe/core/doctype/file/file.py:284
 msgid "Cannot find file {} on disk"
@@ -4418,7 +4487,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/bulk_operations.js:303
 msgid "Cannot submit {0}."
-msgstr ""
+msgstr "Не можна провести {0}."
 
 #: frappe/desk/doctype/workspace/workspace.py:370
 msgid "Cannot update private workspace of other users"
@@ -6493,7 +6562,7 @@ msgstr ""
 #: frappe/core/doctype/recorder/recorder.json
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "DELETE"
-msgstr ""
+msgstr "DELETE"
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -6505,7 +6574,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "DLE"
-msgstr ""
+msgstr "DLE"
 
 #: frappe/templates/print_formats/standard_macros.html:210
 msgid "DRAFT"
@@ -8149,7 +8218,7 @@ msgstr ""
 
 #: frappe/permissions.py:139
 msgid "Document Type is not submittable"
-msgstr ""
+msgstr "Тип документа не можна проводити"
 
 #. Label of a Link field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
@@ -8186,7 +8255,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1110
 msgid "Document has been submitted"
-msgstr ""
+msgstr "Документ проведено"
 
 #: frappe/public/js/frappe/list/list_view.js:1109
 msgid "Document is in draft state"
@@ -9390,7 +9459,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Enabling this will submit documents in background"
-msgstr ""
+msgstr "Після ввімкнення документи проводитимуться у фоні"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -9780,7 +9849,7 @@ msgstr ""
 #. Description of the 'Path' (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Example: #Tree/Account"
-msgstr ""
+msgstr "Приклад: # Дерево / Рахунок"
 
 #. Description of the 'Digits' (Int) field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
@@ -9839,7 +9908,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Executive"
-msgstr ""
+msgstr "Executive"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:28
 msgid "Existing Gravatar URLs may still be stored on User and Contact records. Do you want to delete these URLs now?"
@@ -10886,7 +10955,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Folio"
-msgstr ""
+msgstr "Folio"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:233
 msgid "Follow"
@@ -11265,7 +11334,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
-msgstr ""
+msgstr "Frappe Light"
 
 #. Label of a standard help item
 #. Type: Route
@@ -11429,7 +11498,7 @@ msgstr ""
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "GET"
-msgstr ""
+msgstr "GET"
 
 #. Option for the 'Service' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -11529,7 +11598,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/multi_select_dialog.js:87
 msgid "Get Items"
-msgstr ""
+msgstr "Отримати позиції"
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:6
 msgid "Get OpenID Configuration"
@@ -11955,7 +12024,7 @@ msgstr ""
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "HEAD"
-msgstr ""
+msgstr "HEAD"
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -12229,7 +12298,7 @@ msgstr ""
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Helvetica Neue"
-msgstr ""
+msgstr "Helvetica Neue"
 
 #: frappe/public/js/frappe/utils/utils.js:1777
 msgid "Here's your tracking URL"
@@ -13208,7 +13277,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/save.js:229
 msgid "In {0}, {1} is required in row {2}."
-msgstr ""
+msgstr "У {0} поле {1} обов'язкове в рядку {2}."
 
 #: frappe/public/js/frappe/form/save.js:238
 msgid "In {0}, {1} is required in rows {2}."
@@ -13298,7 +13367,7 @@ msgstr ""
 
 #: frappe/email/doctype/email_domain/email_domain.py:32
 msgid "Incoming email account not correct"
-msgstr ""
+msgstr "Обліковий запис вхідної пошти вказано неправильно"
 
 #: frappe/model/virtual_doctype.py:79 frappe/model/virtual_doctype.py:92
 msgid "Incomplete Virtual Doctype Implementation"
@@ -13541,7 +13610,7 @@ msgstr ""
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Inter"
-msgstr ""
+msgstr "Inter"
 
 #. Label of a Small Text field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -14176,7 +14245,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype_list.js:26
 msgid "Is Submittable"
-msgstr ""
+msgstr "Можна проводити"
 
 #. Label of a Check field in DocType 'Custom Field'
 #. Label of a Check field in DocType 'Customize Form Field'
@@ -14223,7 +14292,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Label"
-msgstr ""
+msgstr "Позначка елемента"
 
 #. Label of a Select field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
@@ -14442,7 +14511,7 @@ msgstr ""
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Keycloak"
-msgstr ""
+msgstr "Keycloak"
 
 #: frappe/public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
@@ -16429,7 +16498,7 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/user/user.json
 msgid "Mobile No"
-msgstr ""
+msgstr "Номер мобільного"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
@@ -17609,7 +17678,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr ""
+msgstr "З користувачем не пов’язано жодного облікового запису пошти. Додайте його в розділі Користувач > Поштова скринька."
 
 #: frappe/core/api/user_invitation.py:17
 msgid "No email addresses to invite"
@@ -18311,7 +18380,7 @@ msgstr ""
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "OPTIONS"
-msgstr ""
+msgstr "OPTIONS"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:190
 msgid "OR"
@@ -18922,7 +18991,7 @@ msgstr ""
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "PATCH"
-msgstr ""
+msgstr "PATCH"
 
 #: frappe/printing/page/print/print.js:71
 #: frappe/public/js/frappe/form/templates/print_layout.html:44
@@ -18978,7 +19047,7 @@ msgstr ""
 #. Label of a Data field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "PID"
-msgstr ""
+msgstr "PID"
 
 #: frappe/email/oauth.py:75
 msgid "POP3 OAuth authentication failed for Email Account {0}"
@@ -18989,14 +19058,14 @@ msgstr ""
 #: frappe/core/doctype/recorder/recorder.json
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "POST"
-msgstr ""
+msgstr "POST"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
 #: frappe/core/doctype/recorder/recorder.json
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "PUT"
-msgstr ""
+msgstr "PUT"
 
 #. Label of a Link field in DocType 'Module Def'
 #. Name of a DocType
@@ -19495,7 +19564,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:831
 msgid "Permanently Submit {0}?"
-msgstr ""
+msgstr "Остаточно провести {0}?"
 
 #: frappe/public/js/frappe/model/model.js:715
 msgid "Permanently delete {0}?"
@@ -20979,7 +21048,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "Python"
-msgstr ""
+msgstr "Python"
 
 #: frappe/www/qrcode.html:3
 msgid "QR Code"
@@ -21417,7 +21486,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Recipient Account Field"
-msgstr ""
+msgstr "Поле рахунку одержувача"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -23611,7 +23680,7 @@ msgstr ""
 
 #: frappe/core/doctype/user/user.py:1395
 msgid "Security Alert: Your account is being impersonated"
-msgstr ""
+msgstr "Сповіщення безпеки: від вашого імені працює інший користувач"
 
 #: frappe/core/doctype/user/user.py:293
 msgid "Security Alert: Your password has been changed."
@@ -25986,37 +26055,37 @@ msgstr ""
 #: frappe/social/doctype/energy_point_settings/energy_point_settings.js:47
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "Submit"
-msgstr ""
+msgstr "Провести"
 
 #: frappe/public/js/frappe/list/list_view.js:2028
 msgctxt "Button in list view actions menu"
 msgid "Submit"
-msgstr ""
+msgstr "Провести"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:45
 msgctxt "Button in web form"
 msgid "Submit"
-msgstr ""
+msgstr "Провести"
 
 #: frappe/public/js/frappe/ui/dialog.js:60
 msgctxt "Primary action in dialog"
 msgid "Submit"
-msgstr ""
+msgstr "Провести"
 
 #: frappe/public/js/frappe/ui/messages.js:103
 msgctxt "Primary action of prompt dialog"
 msgid "Submit"
-msgstr ""
+msgstr "Провести"
 
 #: frappe/public/js/frappe/desk.js:221
 msgctxt "Submit password for Email Account"
 msgid "Submit"
-msgstr ""
+msgstr "Провести"
 
 #. Label of a Check field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Submit After Import"
-msgstr ""
+msgstr "Провести після імпорту"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:106
 msgid "Submit an Issue"
@@ -26030,13 +26099,13 @@ msgstr ""
 #. Label of a Data field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Submit button label"
-msgstr ""
+msgstr "Напис на кнопці «Провести»"
 
 #. Label of a Check field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:127
 msgid "Submit on Creation"
-msgstr ""
+msgstr "Проводити під час створення"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:400
 msgid "Submit this document to complete this step."
@@ -26049,7 +26118,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_view.js:2033
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
-msgstr ""
+msgstr "Провести {0} документів?"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -26059,7 +26128,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/filters/filter.js:545
 #: frappe/website/doctype/web_form/templates/web_form.html:142
 msgid "Submitted"
-msgstr ""
+msgstr "Проведено"
 
 #: frappe/workflow/doctype/workflow/workflow.py:103
 msgid "Submitted Document cannot be converted back to draft. Transition row {0}"
@@ -26072,11 +26141,11 @@ msgstr ""
 #: frappe/public/js/frappe/form/save.js:10
 msgctxt "Freeze message while submitting a document"
 msgid "Submitting"
-msgstr ""
+msgstr "Проведено"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:99
 msgid "Submitting {0}"
-msgstr ""
+msgstr "Проведення {0}"
 
 #: frappe/model/db_query.py:274
 msgid "Subqueries are not allowed in this query."
@@ -26671,7 +26740,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Tabloid"
-msgstr ""
+msgstr "Tabloid"
 
 #. Name of a DocType
 #: frappe/desk/doctype/tag/tag.json
@@ -27079,7 +27148,7 @@ msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:43
 msgid "The user can create a new Item but cannot edit existing items."
-msgstr ""
+msgstr "Користувач може створити нову номенклатуру, але не може змінювати наявну."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:48
 msgid "The user can delete Draft / Cancelled documents."
@@ -27691,12 +27760,12 @@ msgstr ""
 #. Label of a Link field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Timeline DocType"
-msgstr ""
+msgstr "DocType стрічки подій"
 
 #. Label of a Data field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Timeline Field"
-msgstr ""
+msgstr "Поле стрічки подій"
 
 #. Label of a Section Break field in DocType 'Communication'
 #. Label of a Table field in DocType 'Communication'
@@ -27707,15 +27776,15 @@ msgstr ""
 #. Label of a Dynamic Link field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Timeline Name"
-msgstr ""
+msgstr "Назва стрічки подій"
 
 #: frappe/core/doctype/doctype/doctype.py:1516
 msgid "Timeline field must be a Link or Dynamic Link"
-msgstr ""
+msgstr "Поле стрічки подій має бути типу Link або Dynamic Link"
 
 #: frappe/core/doctype/doctype/doctype.py:1512
 msgid "Timeline field must be a valid fieldname"
-msgstr ""
+msgstr "Поле часової шкали має бути коректним іменем поля"
 
 #. Label of a Duration field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -30167,7 +30236,7 @@ msgstr ""
 #. Name of a DocType
 #: frappe/website/doctype/website_sidebar_item/website_sidebar_item.json
 msgid "Website Sidebar Item"
-msgstr ""
+msgstr "Елемент бічної панелі веб-сайту"
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
@@ -30216,7 +30285,7 @@ msgstr ""
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Websocket"
-msgstr ""
+msgstr "Websocket"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
@@ -31278,7 +31347,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:35
 msgctxt "Form timeline"
 msgid "You submitted this document {0}"
-msgstr ""
+msgstr "Ви провели цей документ {0}"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:184
 msgid "You viewed this"
@@ -31472,7 +31541,7 @@ msgstr ""
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "after_insert"
-msgstr ""
+msgstr "after_insert"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -32253,37 +32322,37 @@ msgstr ""
 #. Label of a Data field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "old_parent"
-msgstr ""
+msgstr "old_parent"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_cancel"
-msgstr ""
+msgstr "on_cancel"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_change"
-msgstr ""
+msgstr "on_change"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_submit"
-msgstr ""
+msgstr "on_submit"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_trash"
-msgstr ""
+msgstr "on_trash"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_update"
-msgstr ""
+msgstr "on_update"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_update_after_submit"
-msgstr ""
+msgstr "on_update_after_submit"
 
 #: frappe/utils/data.py:1412
 msgid "only."
@@ -32366,7 +32435,7 @@ msgstr ""
 #. Label of a HTML field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "processlist"
-msgstr ""
+msgstr "processlist"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -32629,7 +32698,7 @@ msgstr ""
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "submit"
-msgstr ""
+msgstr "проводити"
 
 #: frappe/desk/form/activity.py:530
 msgid "submitted this document"
@@ -32751,7 +32820,7 @@ msgstr ""
 #. Label of a HTML field in DocType 'Audit Trail'
 #: frappe/core/doctype/audit_trail/audit_trail.json
 msgid "version_table"
-msgstr ""
+msgstr "version_table"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:413
 msgid "via Assignment Rule"
@@ -33420,7 +33489,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1629
 msgid "{0} items selected"
-msgstr ""
+msgstr "Вибрано: {0}"
 
 #: frappe/core/doctype/user/user.py:1381
 msgid "{0} just impersonated as you. They gave this reason: {1}"
@@ -33633,12 +33702,12 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:51
 msgid "{0} submitted this document"
-msgstr ""
+msgstr "Документ проведено користувачем {0}"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:42
 msgctxt "Form timeline"
 msgid "{0} submitted this document {1}"
-msgstr ""
+msgstr "Проведено користувачем {0} {1}"
 
 #: frappe/email/doctype/email_group/email_group.py:71
 #: frappe/email/doctype/email_group/email_group.py:142
@@ -33746,15 +33815,15 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1838
 msgid "{0}: Cannot set Assign Amend if not Submittable"
-msgstr ""
+msgstr "{0}: не можна встановити «Призначити зміни», якщо документ не проводиться"
 
 #: frappe/core/doctype/doctype/doctype.py:1836
 msgid "{0}: Cannot set Assign Submit if not Submittable"
-msgstr ""
+msgstr "{0}: не можна задати «Призначити проведення», якщо документ не проводиться"
 
 #: frappe/core/doctype/doctype/doctype.py:1815
 msgid "{0}: Cannot set Cancel without Submit"
-msgstr ""
+msgstr "{0}: не можна задати «Скасування» без «Проведення»"
 
 #: frappe/core/doctype/doctype/doctype.py:1822
 msgid "{0}: Cannot set Import without Create"
@@ -33762,7 +33831,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1818
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
-msgstr ""
+msgstr "{0}: не можна задати «Провести», «Скасувати», «Виправити» без «Запису»"
 
 #: frappe/core/doctype/doctype/doctype.py:1842
 msgid "{0}: Cannot set import as {1} is not importable"
