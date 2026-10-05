@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { get_image_dimensions } from "../../utils";
 import { zone_fields } from "../letterhead/zone_fields";
 import { open_html_editor } from "../../composables/useHtmlEditorDialog";
@@ -93,9 +93,16 @@ const html_content_field = computed(() => F.value.content);
 const width_field = computed(() => F.value.width);
 const height_field = computed(() => F.value.height);
 
+const picked_source = ref(null);
+watch(
+	() => letterhead.value?.name,
+	() => (picked_source.value = null)
+);
+
 const zone_source = computed(() => {
 	const lh = letterhead.value;
 	if (!lh) return "Image";
+	if (picked_source.value) return picked_source.value;
 	if (lh[source_field.value] === "HTML") return "HTML";
 	if (!lh[image_field.value] && lh[html_content_field.value]) return "HTML";
 	return "Image";
@@ -132,6 +139,7 @@ const zone_size_max = computed(() => {
 
 function set_source(val) {
 	if (!letterhead.value) return;
+	picked_source.value = val;
 	letterhead.value[source_field.value] = val;
 	letterhead.value._dirty = true;
 }
