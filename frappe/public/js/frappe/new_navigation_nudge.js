@@ -5,7 +5,10 @@
 frappe.provide("frappe.ui");
 
 frappe.ui.maybe_show_new_navigation_prompt = function ({ onhide } = {}) {
-	if (!frappe.boot.show_new_navigation_prompt) {
+	if (
+		!frappe.boot.show_new_navigation_prompt ||
+		(frappe.get_route()[0] || frappe.boot.home_page) !== "desktop"
+	) {
 		return false;
 	}
 
