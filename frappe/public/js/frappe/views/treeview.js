@@ -220,10 +220,14 @@ frappe.views.TreeView = class TreeView {
 		const saved = frappe.get_user_settings(this.doctype, "Tree")?.sort_order;
 		this.sort_order = options.some((o) => o.value === saved) ? saved : "default";
 		const get_label = () => options.find((o) => o.value === this.sort_order).label;
+		// list view's sort order icons; server order has no direction
+		const get_icon = () =>
+			({ asc: "arrow-up-narrow-wide", desc: "arrow-down-wide-narrow" }[this.sort_order] ||
+			"arrow-up-down");
 
 		this.$sort_btn = frappe.ui
 			.dropdown({
-				button: { label: get_label(), icon: "arrow-up-down", icon_right: "chevron-down" },
+				button: { label: get_label(), icon: get_icon(), icon_right: "chevron-down" },
 				align: "end",
 				options: () =>
 					options.map((option) => ({
@@ -233,6 +237,10 @@ frappe.views.TreeView = class TreeView {
 						onclick: () => {
 							this.sort_order = option.value;
 							this.$sort_btn.find(".es-button__label").text(get_label());
+							this.$sort_btn
+								.find(`use[href^="#icon-"]`)
+								.first()
+								.attr("href", `#icon-${get_icon()}`);
 							this.tree && this.tree.set_sort_order(this.sort_order);
 							frappe.model.user_settings.save(this.doctype, "Tree", {
 								sort_order: this.sort_order,
