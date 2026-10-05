@@ -370,6 +370,8 @@ def _run_one(registry, step, doc, context, idx):
 		if last_attempt:
 			return "Failed", outcome[1], outcome[2]
 		if doc:
+			# A locking read; a plain one returns this transaction's stale snapshot.
+			doc.flags.for_update = True
 			doc.reload()
 
 
