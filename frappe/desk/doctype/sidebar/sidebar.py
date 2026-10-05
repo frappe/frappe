@@ -986,10 +986,12 @@ def unlinked_key(item) -> str:
 # ---------------------------------------------------------------------------------------
 # The merge: folding a module's several old sidebars into one
 #
-# Only data conversion uses this. Both callers are conversions:
+# Only data conversion uses this. Every caller is a conversion:
 #
 #   * `convert_fixtures`, where an app's old fixtures were one file per workspace, so a module
 #     with four workspaces has to end up with one sidebar.
+#   * `patches.v16_0.convert_sidebars`, the same for the rows of a site's v16 app sidebars.
+#   * `patches.v16_0.convert_custom_sidebars`, which merges nothing but builds the same shape.
 #   * `patches.v16_0.convert_personal_sidebars`, where a user may have forked several of a module's
 #     sidebars and now needs a single customization layer.
 #
@@ -1097,8 +1099,8 @@ def options_as_filters(row) -> None:
 	"""Store a link's v16 `route_options` as its `filters`, which is what they were.
 
 	`filters` is part of an item's identity, so Stock Balance for one warehouse stays an item
-	apart from Stock Balance itself, rather than being merged into it. A Page is left alone: its
-	`route_options` is the page's own query, not a filter.
+	apart from Stock Balance itself, rather than being merged into it. A Page or a URL is left
+	alone: its `route_options` is the page's own query, not a filter.
 	"""
 	if row.get("filters") or not row.get("route_options") or row.get("link_type") in ("Page", "URL"):
 		return
