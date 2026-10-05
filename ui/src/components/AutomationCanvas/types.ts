@@ -22,6 +22,14 @@ export type AutomationCanvasStatus =
   | "Failed"
   | "Waiting";
 
+export type AutomationCanvasIssueLevel = "error" | "warning";
+
+/** Something wrong with a node, shown as a coloured border and an icon with this message. */
+export interface AutomationCanvasIssue {
+  level: AutomationCanvasIssueLevel;
+  message: string;
+}
+
 export interface AutomationCanvasArm {
   key: string;
   label: string;
@@ -35,12 +43,8 @@ export interface AutomationCanvasNodeData {
   tone?: AutomationCanvasTone;
   start?: boolean;
   empty?: boolean;
-  error?: boolean;
-  /** Why the node is not ready yet, shown as a warning tooltip. */
-  incomplete?: string;
-  status?: AutomationCanvasStatus;
-  /** A trial run took this branch regardless of its condition. */
-  forced?: boolean;
+  issue?: AutomationCanvasIssue;
+  run?: AutomationCanvasRun;
   dimmed?: boolean;
   branching?: boolean;
   terminal?: boolean;
@@ -48,7 +52,14 @@ export interface AutomationCanvasNodeData {
   arms?: AutomationCanvasArm[];
   /** Offer a step that runs once every arm of this branch has finished. */
   canContinue?: boolean;
-  /** Arms a trial run skipped and can still run. */
+}
+
+/** How a trial run left a node. */
+export interface AutomationCanvasRun {
+  status: AutomationCanvasStatus;
+  /** The run took this branch regardless of its condition. */
+  forced?: boolean;
+  /** Arms the run skipped and can still run. */
   retryArms?: AutomationCanvasArm[];
 }
 
@@ -62,12 +73,12 @@ export interface AutomationCanvasEdge {
   id: string;
   source: string;
   target: string;
-  label?: string | null;
+  label?: string;
   animated?: boolean;
   style?: Record<string, string | number>;
 }
 
-export interface AutomationCanvasOption {
+export interface AutomationCanvasPickerOption {
   value: string;
   label: string;
   description?: string;
@@ -78,7 +89,7 @@ export interface AutomationCanvasOption {
 
 export interface AutomationCanvasOptionGroup {
   group: string;
-  options: AutomationCanvasOption[];
+  options: AutomationCanvasPickerOption[];
 }
 
 export interface AutomationCanvasProps {
@@ -87,11 +98,6 @@ export interface AutomationCanvasProps {
   selectedId?: string;
   startOptions?: AutomationCanvasOptionGroup[];
   blockOptions?: AutomationCanvasOptionGroup[];
-  /** Fade every node but the selected one, e.g. while it is being inspected. */
-  dimUnselected?: boolean;
-  canDelete?: boolean;
-  canUndo?: boolean;
-  canRedo?: boolean;
   readonly?: boolean;
 }
 
@@ -114,8 +120,5 @@ export interface AutomationCanvasEmits {
   select: [nodeId: string];
   "pick-start": [value: string];
   "add-node": [payload: AutomationCanvasAddNodePayload];
-  "request-remove": [nodeId: string];
   "run-branch": [payload: AutomationCanvasRunBranchPayload];
-  undo: [];
-  redo: [];
 }
