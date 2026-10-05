@@ -144,6 +144,7 @@
 									/>
 								</div>
 								<draggable
+									v-if="col.merged_fields?.length"
 									:list="col.merged_fields"
 									handle=".pfb-merge-drag"
 									:animation="150"
@@ -167,7 +168,7 @@
 											>
 											<select
 												v-if="!is_image_merge(mf)"
-												class="pfb-insp-select"
+												class="form-control form-control-sm pfb-insp-select"
 												style="width: 104px; flex: none"
 												v-model="mf.style"
 												:title="__('Text style')"
@@ -511,12 +512,12 @@ function set_image_size(col, value) {
 }
 
 .pfb-merge-direction {
-	padding: 8px 14px 10px;
+	padding: 8px 16px 10px;
 	border-top: 1px solid var(--gray-100);
 }
 
 .pfb-col-cond {
-	padding: 8px 14px 10px;
+	padding: 8px 16px 10px;
 	border-top: 1px solid var(--gray-100);
 }
 

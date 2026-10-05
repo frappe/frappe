@@ -157,6 +157,7 @@ function on_section_add(evt) {
 	const section = layout.value.sections[newIndex];
 	// If a page-break placeholder was dropped, convert it: remove the placeholder
 	// and toggle page_break on the section that now precedes it.
+	if (section && !section.page_break) store.select_section(section);
 	if (section && section.page_break && section.columns.every((c) => !c.fields.length)) {
 		layout.value.sections.splice(newIndex, 1);
 		const prev = layout.value.sections[newIndex - 1];
@@ -287,6 +288,14 @@ let page_number_style = computed(() => {
 }
 
 .print-format-main {
+	--fg-color: var(--surface-base);
+	--subtle-accent: var(--surface-gray-1);
+	--bg-light-gray: var(--surface-gray-2);
+	--text-color: var(--ink-gray-8);
+	--heading-color: var(--ink-gray-9);
+	--text-muted: var(--ink-gray-6);
+	--border-color: var(--outline-gray-1);
+	color: var(--text-muted);
 	position: relative;
 	margin-right: auto;
 	margin-left: auto;
@@ -344,9 +353,5 @@ let page_number_style = computed(() => {
 .section-with-insert {
 	display: flex;
 	flex-direction: column;
-}
-
-.section-with-insert:hover :deep(.section-insert) {
-	opacity: 1;
 }
 </style>

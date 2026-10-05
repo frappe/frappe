@@ -136,6 +136,12 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 			}
 		).insert()
 		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+		self.addCleanup(
+			lambda: [
+				frappe.delete_doc("Contact", contact, force=True)
+				for contact in frappe.get_all("Contact", {"email_id": user.email}, pluck="name")
+			]
+		)
 		frappe.db.set_value("User", user.name, "last_login", "2026-02-11 09:30:00", update_modified=False)
 		user.reload()
 

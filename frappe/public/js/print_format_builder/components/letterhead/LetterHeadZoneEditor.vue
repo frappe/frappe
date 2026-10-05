@@ -47,6 +47,7 @@ function select_zone() {
 	store.select_letterhead({ footer: props.zone !== "header" });
 }
 
+let render_again = false;
 async function refresh_rendered_content() {
 	const doc = preview_doc.value;
 	const content = zone_content.value;
@@ -55,7 +56,10 @@ async function refresh_rendered_content() {
 		render_failed.value = false;
 		return;
 	}
-	if (render_pending.value) return;
+	if (render_pending.value) {
+		render_again = true;
+		return;
+	}
 	render_pending.value = true;
 	try {
 		rendered_content.value = await render_jinja_html(
@@ -66,6 +70,10 @@ async function refresh_rendered_content() {
 		render_failed.value = rendered_content.value === null;
 	} finally {
 		render_pending.value = false;
+		if (render_again) {
+			render_again = false;
+			refresh_rendered_content();
+		}
 	}
 }
 
@@ -121,12 +129,15 @@ onMounted(() => {
 	transition: border-color 0.15s;
 }
 
-.lh-zone--selected {
-	border-color: var(--gray-400);
-}
-
 .lh-zone:hover {
 	border-color: var(--gray-300);
+}
+
+.lh-zone--selected,
+.lh-zone--selected:hover {
+	z-index: 1;
+	border-color: transparent;
+	outline: var(--pfb-ring);
 }
 
 .lh-zone-empty {
