@@ -210,7 +210,7 @@ function select_parent_section() {
 }
 
 .pfb-inspector-head {
-	height: 40px;
+	height: 44px;
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
