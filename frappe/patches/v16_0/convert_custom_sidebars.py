@@ -18,10 +18,10 @@ from frappe.utils.modules import get_module_placement
 
 
 def execute():
-	"""Give each sidebar a v16 site made a custom module of its own, holding it as its `Sidebar`.
+	"""Turn each sidebar the site made in v16 into a custom module with that sidebar.
 
-	It cannot stay under the module v16 filed it in: that module has the app's sidebar now, and a
-	module answers with one. The old rows are left untouched, so this is safe to re-run.
+	It cannot stay in the module v16 filed it under, because a module has one sidebar and that
+	module now shows the app's. The old rows are not changed, so this is safe to run again.
 	"""
 	if not archive_exists():
 		return

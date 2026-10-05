@@ -1,13 +1,14 @@
-"""Reading the v16 sidebar archive, and writing what comes out of it.
+"""Helpers for the patches that turn v16 sidebars into v17 ones.
 
-Shared by the patches that convert it, one per kind of row the archive holds:
+v16 kept every sidebar as a `Workspace Sidebar` row. These rows are now read only during the
+upgrade, by four patches that each handle one kind of row:
 
-	convert_sidebars                 an app's standard rows, where the app ships no sidebar now
-	convert_custom_sidebars          a site's own public sidebars, each into a module of its own
-	move_custom_sidebar_workspaces   the workspace a custom sidebar opened on, into that module
-	convert_personal_sidebars        a user's forked copy, into their `Custom Sidebar`
+	convert_sidebars                 an app's sidebar that the app no longer ships
+	convert_custom_sidebars          a sidebar the site made, which becomes a custom module
+	move_custom_sidebar_workspaces   that sidebar's workspace, which moves into the new module
+	convert_personal_sidebars        a user's personal copy, which becomes their `Custom Sidebar`
 
-Not a patch itself, so it is not listed in `patches.txt`.
+This file is not a patch, so it is not listed in `patches.txt`.
 """
 
 import hashlib
@@ -66,7 +67,11 @@ def site_rows() -> list[frappe._dict]:
 
 
 def is_custom(row) -> bool:
-	"""A sidebar the site made: v16 marked an app's own rows standard and named the app."""
+	"""Whether the site made this sidebar itself.
+
+	When v16 imported a sidebar from an app, it set `standard` and `app` on the row. A row with
+	neither was made on the site.
+	"""
 	return not row.standard and not row.app
 
 
@@ -115,11 +120,11 @@ def parse_json_list(value: str | None) -> list:
 
 
 def module_holding(title: str) -> str | None:
-	"""The module now holding the v16 sidebar `title`.
+	"""The module the v16 sidebar `title` lives in now.
 
-	Either the one it was converted into, or the module of the app's own sidebar of that title,
-	which is where an app that reorganised its modules moved it: hrms's `Expenses` was under `HR`
-	in v16 and is a module of its own now.
+	That is the module it was converted into, or else the module of the app's sidebar with the
+	same title. The second covers an app that moved a sidebar: if `Books` was under `Library` in
+	v16 and the app now ships it under `Catalog`, this returns `Catalog`.
 	"""
 	return converted_module_of(title) or frappe.db.get_value("Sidebar", title, "module")
 

@@ -17,10 +17,11 @@ from frappe.patches.v16_0.sidebar_archive import (
 
 
 def execute():
-	"""Turn every v16 fork into a `Custom Sidebar` for the person who made it.
+	"""Turn each user's personal copy of a v16 sidebar into their own `Custom Sidebar`.
 
-	Runs after the site's sidebars are converted, since a fork is laid over the one it was copied
-	from. The old rows are left untouched, so this is safe to re-run.
+	v16 let a user copy a sidebar and rearrange it. The copy becomes a layer over the sidebar it
+	was copied from, so this runs after the other sidebar patches. The old rows are not changed, so
+	this is safe to run again.
 	"""
 	if not archive_exists():
 		return
@@ -109,9 +110,9 @@ def arrangement_below(module: str) -> list:
 
 	`get_module_base` rather than indexing `get_sidebar_bases` by the module: that dict is keyed by
 	shell, and a converted `Sidebar` is named after the v16 title it was converted from, which is
-	only the module's name when several sidebars were merged. One sidebar called anything else --
-	"Invoicing" under `Accounts`, say -- means no key under the module, and a `KeyError` here takes
-	down the migrate of any site where such a module also has a fork.
+	only the module's name when several sidebars were merged. A sidebar called anything else, such
+	as "Invoicing" under `Accounts`, has no key under the module, and the `KeyError` would stop
+	the migrate of any site where that module also has a personal copy.
 	"""
 	return get_module_base(module).rows
 
