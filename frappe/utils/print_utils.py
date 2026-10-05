@@ -2,6 +2,7 @@ import re
 from typing import Literal
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils.data import cint, cstr
 
@@ -286,6 +287,7 @@ def _finalize_pdf(doctype: str, name: str, pdf, output=None, doc: Document | Non
 
 	from pypdf import PdfReader, PdfWriter
 
+	from frappe.exceptions import PrintFormatError
 	from frappe.utils.pdf import get_file_data_from_writer
 
 	if isinstance(pdf, PdfWriter):
@@ -293,8 +295,15 @@ def _finalize_pdf(doctype: str, name: str, pdf, output=None, doc: Document | Non
 
 	pdf = run_after_print_hook(doctype, name, pdf, doc=doc)
 
-	if output:
-		for page in PdfReader(BytesIO(pdf)).pages:
+	if output and isinstance(pdf, bytes):
+		reader = PdfReader(BytesIO(pdf))
+		if isinstance(output, PdfWriter):
+			if reader.is_encrypted:
+				frappe.throw(
+					_("Cannot append an encrypted PDF to a merged print"),
+					PrintFormatError,
+				)
+		for page in reader.pages:
 			output.add_page(page)
 		return output
 	return pdf
@@ -302,6 +311,11 @@ def _finalize_pdf(doctype: str, name: str, pdf, output=None, doc: Document | Non
 
 def run_after_print_hook(doctype: str, name: str, pdf: bytes, doc: Document | None = None) -> bytes:
 	"""run the after_print hook for a document after its pdf is generated"""
+	# if the doc is run by before_print hook, try to get it from the local print_doc
+	print_doc = getattr(frappe.local, "print_doc", None)
+	if doc is None and print_doc and print_doc.doctype == doctype and print_doc.name == name:
+		doc = print_doc
+		frappe.local.print_doc = None
 	if doc is None:
 		doc = frappe.get_cached_doc(doctype, name)
 	return doc.run_method("after_print", pdf=pdf) or pdf
