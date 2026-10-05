@@ -90,7 +90,7 @@ def add_to_site_dock(module: str) -> None:
 
 
 def v16_icons(sidebar: str) -> list[frappe._dict]:
-	"""The v16 desktop icons that opened `sidebar`, each with its roles and its folder."""
+	"""The v16 desktop icons that opened `sidebar`, each with its roles and its parent."""
 	icons = frappe.get_all(
 		"Desktop Icon",
 		filters={"link_type": "Workspace Sidebar", "link_to": sidebar},
@@ -98,26 +98,22 @@ def v16_icons(sidebar: str) -> list[frappe._dict]:
 	)
 	for icon in icons:
 		icon.roles = roles_of(icon.name)
-		icon.folder = None
+		icon.parent = None
 		if icon.parent_icon:
-			# v16 matched a folder by label, among the icons at the top level
-			icon.folder = next(
+			# v16 matched a parent by label among the icons at the top level, a folder or an app
+			icon.parent = next(
 				iter(
 					frappe.get_all(
 						"Desktop Icon",
-						filters={
-							"label": icon.parent_icon,
-							"icon_type": "Folder",
-							"parent_icon": ["is", "not set"],
-						},
-						fields=["name", "owner", "standard"],
+						filters={"label": icon.parent_icon, "parent_icon": ["is", "not set"]},
+						fields=["name", "label", "owner", "standard", "icon_type", "app"],
 						limit=1,
 					)
 				),
 				None,
 			)
-			if icon.folder:
-				icon.folder.roles = roles_of(icon.folder.name)
+			if icon.parent:
+				icon.parent.roles = roles_of(icon.parent.name)
 	return icons
 
 
@@ -130,17 +126,39 @@ def roles_of(icon: str) -> set[str]:
 def v16_showed(icons: list[frappe._dict], user: str, roles: set[str]) -> bool:
 	"""Whether v16's desktop showed `user` any of `icons`, by the rules of its
 	`get_desktop_icons`: an icon is loaded when it is standard or Administrator's or the user's own,
-	passes when the user holds one of its roles or it has none, and one inside a folder needs the
-	folder to pass too."""
+	passes when the user holds one of its roles or it has none, and one inside a folder or an app
+	needs that parent to pass too. An app passes only if the app lets the user in."""
 
 	def passes(icon) -> bool:
 		if not (icon.standard or icon.owner in ("Administrator", user)):
 			return False
-		return not icon.roles or bool(icon.roles & roles)
+		if icon.roles and not icon.roles & roles:
+			return False
+		return icon.icon_type != "App" or app_permitted(icon, user)
 
 	return any(
-		passes(icon) and (not icon.parent_icon or (icon.folder and passes(icon.folder))) for icon in icons
+		passes(icon) and (not icon.parent_icon or (icon.parent and passes(icon.parent))) for icon in icons
 	)
+
+
+def app_permitted(icon: frappe._dict, user: str) -> bool:
+	"""v16's `check_app_permission` for an App icon, asked as `user`: the app's apps-screen
+	`has_permission`, or yes when it declares none. An icon no installed app answers to is not
+	permitted."""
+	for app in frappe.get_installed_apps():
+		if app != icon.app and (frappe.get_hooks("app_title", app_name=app) or [None])[0] != icon.label:
+			continue
+		screen = frappe.get_hooks("add_to_apps_screen", app_name=app)
+		method = screen and screen[0].get("has_permission")
+		if not method:
+			return True
+		current = frappe.session.user
+		frappe.set_user(user)
+		try:
+			return bool(frappe.call(method))
+		finally:
+			frappe.set_user(current)
+	return False
 
 
 def system_user_roles() -> dict[str, set[str]]:

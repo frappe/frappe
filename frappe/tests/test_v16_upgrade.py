@@ -731,6 +731,8 @@ class TestCustomSidebars(IntegrationTestCase):
 	GATED = "V16 Gated"
 	OPEN_ICON = "V16 Open Icon"
 	IN_FOLDER = "V16 In Folder"
+	IN_APP = "V16 In App"
+	SYSTEM_MANAGER = "test-v16-custom-manager@example.com"
 	GATED_ROLE = "Test V16 Gated Role"
 	USER = "test-v16-custom@example.com"
 	OTHER_USER = "test-v16-custom-other@example.com"
@@ -791,6 +793,18 @@ class TestCustomSidebars(IntegrationTestCase):
 		desktop_icon(cls.OPEN_ICON, link_to=cls.OPEN_ICON)
 		desktop_icon("V16 Gated Folder", icon_type="Folder", roles=[cls.GATED_ROLE])
 		desktop_icon(cls.IN_FOLDER, link_to=cls.IN_FOLDER, parent_icon="V16 Gated Folder")
+		# frappe's app icon is open to System Managers only
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": cls.SYSTEM_MANAGER,
+				"first_name": "V16 Manager",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_if_duplicate=True).add_roles("System Manager")
+		archive(cls.IN_APP, items, module=cls.HOST)
+		desktop_icon("V16 App Parent", icon_type="App", app="frappe")
+		desktop_icon(cls.IN_APP, link_to=cls.IN_APP, parent_icon="V16 App Parent")
 
 		# what a conversion that put a site's sidebar into an app module would have left behind
 		old_base = frappe.new_doc("Sidebar")
@@ -892,6 +906,9 @@ class TestCustomSidebars(IntegrationTestCase):
 			self.assertIn(module, blocked(self.OTHER_USER))
 			self.assertNotIn(module, blocked(self.USER))
 			self.assertNotIn(module, blocked("Administrator"))
+		# under an app icon, shown to whoever the app lets in
+		self.assertIn(self.IN_APP, blocked(self.OTHER_USER))
+		self.assertNotIn(self.IN_APP, blocked(self.SYSTEM_MANAGER))
 		# shown to everyone: by an open icon beside a gated one, or by having no icon at all
 		self.assertNotIn(self.OPEN_ICON, blocked(self.OTHER_USER))
 		self.assertNotIn(self.SHOWROOM, blocked(self.OTHER_USER))
