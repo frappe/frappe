@@ -1267,30 +1267,6 @@ class BaseDocument:
 			if data_field_options == "IBAN":
 				validate_iban(data, throw=True)
 
-	def _validate_constants(self):
-		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
-			return
-
-		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": ("=", 1)})]
-		if constants:
-			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
-
-		for fieldname in constants:
-			df = self.meta.get_field(fieldname)
-
-			# This conversion to string only when fieldtype is Date
-			if df.fieldtype == "Date" or df.fieldtype == "Datetime":
-				value = str(values.get(fieldname))
-
-			else:
-				value = values.get(fieldname)
-
-			if self.get(fieldname) != value:
-				frappe.throw(
-					_("Value cannot be changed for {0}").format(self.meta.get_translated_label(fieldname)),
-					frappe.CannotChangeConstantError,
-				)
-
 	def _validate_length(self):
 		if frappe.flags.in_install:
 			return
