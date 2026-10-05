@@ -269,14 +269,19 @@ def address_query(
 ):
 	from frappe.desk.search import search_widget
 
-	_filters = []
+	link_filters = {"parenttype": "Address"}
 	if link_doctype := filters.pop("link_doctype", None):
-		_filters.append(["Dynamic Link", "link_doctype", "=", link_doctype])
+		link_filters["link_doctype"] = link_doctype
 
 	if link_name := filters.pop("link_name", None):
-		_filters.append(["Dynamic Link", "link_name", "=", link_name])
+		link_filters["link_name"] = link_name
 
-	_filters.extend([key, "=", value] for key, value in filters.items())
+	_filters = [[key, "=", value] for key, value in filters.items()]
+	if link_doctype or link_name:
+		# The Engine blocks child table filters for users with only select permission,
+		# so look up the linked addresses first. Address permissions still apply.
+		linked_addresses = frappe.get_all("Dynamic Link", filters=link_filters, pluck="parent")
+		_filters.append(["name", "in", linked_addresses])
 
 	return search_widget(
 		"Address", txt, filters=_filters, searchfield=searchfield, start=start, page_length=page_len
