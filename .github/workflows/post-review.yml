@@ -51,9 +51,9 @@ jobs:
             else
               jq '.comments |= map(with_entries(select(.value != null)))' review.json > payload.json
               head=$(gh api "repos/${{ github.repository }}/pulls/$PR" --jq '.head.sha')
-              gh api --paginate "repos/${{ github.repository }}/pulls/$PR/reviews" --jq ".[] | select(.user.login == \"frappe-pr-bot\" and .commit_id == \"$head\") | {body}" > posted-reviews.json
-              gh api --paginate "repos/${{ github.repository }}/pulls/$PR/comments" --jq ".[] | select(.user.login == \"frappe-pr-bot\" and .original_commit_id == \"$head\") | {path, body}" > posted-comments.json
-              if jq -e --slurpfile reviews posted-reviews.json --slurpfile comments posted-comments.json '. as $new | ($new.body == "" or ($reviews | any(.body == $new.body))) and ($new.comments | all(. as $c | $comments | any(.path == $c.path and .body == $c.body)))' payload.json > /dev/null; then
+              gh api --paginate "repos/${{ github.repository }}/pulls/$PR/reviews" --jq ".[] | select(.user.login == \"frappe-pr-bot\" and .commit_id == \"$head\") | {id, state, body}" > posted-reviews.json
+              gh api --paginate "repos/${{ github.repository }}/pulls/$PR/comments" --jq '.[] | select(.user.login == "frappe-pr-bot") | {review: .pull_request_review_id, path, line: .original_line, body}' > posted-comments.json
+              if jq -e --slurpfile reviews posted-reviews.json --slurpfile comments posted-comments.json '. as $new | {COMMENT: "COMMENTED", REQUEST_CHANGES: "CHANGES_REQUESTED"}[$new.event] as $state | $reviews | any(. as $posted | .state == $state and .body == $new.body and ($new.comments | all(. as $c | $comments | any(.review == $posted.id and .path == $c.path and .line == $c.line and .body == $c.body))))' payload.json > /dev/null; then
                 echo "skipped the review: frappe-pr-bot already posted it on this commit" >&2
               else
                 gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
