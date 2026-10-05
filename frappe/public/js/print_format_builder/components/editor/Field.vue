@@ -82,12 +82,11 @@ function kbd_select(e) {
 const root = ref(null);
 let context_menu = null;
 // the section under this field binds its own menu, and the event bubbles there
-const menu_options = field_menu_options(store, props.df);
 
 onMounted(() => {
 	context_menu = new frappe.ui.ContextMenu({
 		target: root.value,
-		options: menu_options,
+		options: () => field_menu_options(store, props.df),
 		on_open: (e) => {
 			e.stopPropagation();
 			store.select_field(props.df);

@@ -335,14 +335,11 @@ function remove_section() {
 
 const root = ref(null);
 let context_menu = null;
-const menu_options = section_menu_options(store, props.section, {
-	condition: () => !props.is_header,
-});
-
 onMounted(() => {
 	context_menu = new frappe.ui.ContextMenu({
 		target: root.value,
-		options: menu_options,
+		options: () =>
+			section_menu_options(store, props.section, { condition: () => !props.is_header }),
 		empty_text: __("Nothing to paste"),
 		on_open: () => select_section(),
 	});
