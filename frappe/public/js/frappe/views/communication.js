@@ -221,6 +221,10 @@ frappe.views.CommunicationComposer = class {
 				return e.email_id;
 			});
 
+			if (this.sender && !this.user_email_accounts.includes(this.sender)) {
+				this.user_email_accounts.push(this.sender);
+			}
+
 			fields.unshift({
 				label: __("From", null, "Email Sender"),
 				fieldtype: "Select",
@@ -231,10 +235,11 @@ frappe.views.CommunicationComposer = class {
 					this.setup_recipients_if_reply();
 				},
 			});
+			
 			//Preselect email senders if there is only one
-			if (this.user_email_accounts.length == 1) {
+			if (!this.sender && this.user_email_accounts.length == 1) {
 				this["sender"] = this.user_email_accounts;
-			} else if (this.user_email_accounts.includes(frappe.session.user_email)) {
+			} else if (!this.sender && this.user_email_accounts.includes(frappe.session.user_email)) {
 				this["sender"] = frappe.session.user_email;
 			}
 		}
