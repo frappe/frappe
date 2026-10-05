@@ -190,7 +190,8 @@ frappe.data_import.DataExporter = class DataExporter {
 			  this.get_field_source().groups.map((g) => g.fieldname)
 			: frappe.meta
 					.get_table_fields(this.doctype)
-					.filter((df) => df.reqd)
+					// an optional table can opt in, like a Contact's links, emails and phones
+					.filter((df) => df.reqd || df.in_import_template)
 					.map((df) => df.fieldname)
 					.concat(this.doctype);
 

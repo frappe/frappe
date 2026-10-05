@@ -785,6 +785,10 @@ class Engine:
 			):
 				comparison_field = functions.Cast(comparison_field, "varchar")
 
+			if _operator.casefold() == "not in" and isinstance(_value, list | tuple | set) and None in _value:
+				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
+				_value = tuple(fallback_value if v is None else v for v in _value)
+
 			return operator_fn(comparison_field, _value)
 
 	def _parse_nested_filters(self, nested_list: list | tuple) -> "Criterion | None":
