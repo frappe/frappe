@@ -8,7 +8,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
-	<meta name="frappe-print-filename" content="{{ print_filename | default('') }}">
+	<meta name="frappe-print-filename" content="{{ print_filename | default('') | e }}">
 	{{ include_style('print.bundle.css') }}
 	{{ include_script('print.bundle.js') }}
 	{% if print_style %}
