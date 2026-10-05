@@ -15,10 +15,13 @@ defineEmits(["insert"]);
 
 <style scoped>
 .section-insert {
+	position: relative;
+	z-index: 2;
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	height: 1.5rem;
+	height: 0.5rem;
+	margin: -0.25rem 0;
 	opacity: 0;
 	transition: opacity 0.15s ease;
 }
