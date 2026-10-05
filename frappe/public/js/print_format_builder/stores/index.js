@@ -157,9 +157,13 @@ export function getStore(print_format_name) {
 				if (!reload && name === (letterhead.value?.name || "")) return;
 				if (!reload) flush_letterhead();
 				if (!name) return (letterhead.value = null);
-				return frappe.db.get_doc("Letter Head", name).then((doc) => {
-					if (seq === letterhead_seq) letterhead.value = doc;
-				});
+				return frappe.db.exists("Letter Head", name).then((exists) =>
+					exists
+						? frappe.db.get_doc("Letter Head", name).then((doc) => {
+								if (seq === letterhead_seq) letterhead.value = doc;
+						  })
+						: seq === letterhead_seq && (letterhead.value = null)
+				);
 			})
 			.catch(() => {
 				if (seq === letterhead_seq) letterhead.value = null;
@@ -262,6 +266,7 @@ export function getStore(print_format_name) {
 		viewing_version,
 		call_format,
 		after_autosave,
+		flush,
 		replace_from_server,
 		get_preview_format_doc,
 		adopt_layout,

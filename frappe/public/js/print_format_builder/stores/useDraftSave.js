@@ -86,6 +86,13 @@ export function useDraftSave({
 			});
 	}
 	function save_changes() {
+		if (viewing_version.value) {
+			frappe.show_alert({
+				message: __("Go back to the current version before applying"),
+				indicator: "orange",
+			});
+			return Promise.resolve();
+		}
 		saving_count.value++;
 		return replace_from_server(
 			__("Applying…"),
