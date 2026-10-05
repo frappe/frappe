@@ -216,7 +216,7 @@ function select_parent_section() {
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 8px 12px 8px 16px;
+	padding: 8px 16px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
 	min-height: 0;
@@ -263,6 +263,7 @@ function select_parent_section() {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
+	margin-left: -6px;
 	padding: 2px 6px;
 	border: none;
 	background: transparent;
