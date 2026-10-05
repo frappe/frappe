@@ -490,6 +490,7 @@ export function getStore(print_format_name) {
 		reflow_dragged_group,
 		select_section,
 		select_letterhead,
+		insert_section,
 		remove_section,
 		get_default_layout,
 		change_letterhead,
