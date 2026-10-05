@@ -184,6 +184,7 @@ function set_image(url) {
 			letterhead.value[height_field.value] = new_height;
 			if (props.zone === "footer") {
 				letterhead.value[source_field.value] = "Image";
+				picked_source.value = "Image";
 			}
 			letterhead.value._dirty = true;
 		})
