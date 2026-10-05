@@ -295,6 +295,7 @@ let page_number_style = computed(() => {
 	--heading-color: var(--ink-gray-9);
 	--text-muted: var(--ink-gray-6);
 	--border-color: var(--outline-gray-1);
+	color: var(--text-muted);
 	position: relative;
 	margin-right: auto;
 	margin-left: auto;
