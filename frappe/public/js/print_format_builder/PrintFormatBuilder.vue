@@ -179,8 +179,20 @@ watch(
 
 function restore_viewed() {
 	const v = $store.versions.viewing.value;
-	if (v.published) $store.draft.discard();
-	else $store.versions.restore(v.name);
+	if (v.published) {
+		frappe.confirm(
+			__("Discard your unapplied changes and go back to what this format prints?"),
+			() => $store.draft.discard()
+		);
+		return;
+	}
+	frappe.confirm(
+		__(
+			"Replace your current draft with {0}? Nothing prints differently until you Save & Apply.",
+			[frappe.utils.bold(v.label)]
+		),
+		() => $store.versions.restore(v.name)
+	);
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";

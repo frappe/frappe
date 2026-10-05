@@ -22,6 +22,7 @@ export function useVersions({
 	viewing_version,
 	call_format,
 	after_autosave,
+	flush,
 	replace_from_server,
 	get_preview_format_doc,
 	adopt_layout,
@@ -31,6 +32,7 @@ export function useVersions({
 	const versions = ref([]);
 	const show_history = ref(false);
 	let edit_state = null;
+	let edit_dirty = false;
 
 	function load_versions() {
 		return call_format("get_versions").then((r) => (versions.value = r.message || []));
@@ -71,12 +73,18 @@ export function useVersions({
 		nextTick(() => (dirty.value = false));
 	}
 	function view_version(version) {
-		const fields_ready = version.published
-			? frappe.db.get_doc("Print Format", name)
-			: call_format("get_version_fields", { version: version.name }).then((r) => r.message);
+		const saved = edit_state ? Promise.resolve() : flush().catch(() => {});
+		const fields_ready = saved.then(() =>
+			version.published
+				? frappe.db.get_doc("Print Format", name)
+				: call_format("get_version_fields", { version: version.name }).then(
+						(r) => r.message
+				  )
+		);
 		return fields_ready.then((fields) => {
 			if (!edit_state) {
 				edit_state = get_preview_format_doc();
+				edit_dirty = dirty.value;
 				pause_history(true);
 			}
 			viewing_version.value = version;
@@ -90,8 +98,10 @@ export function useVersions({
 	}
 	function exit_version() {
 		if (!edit_state) return;
+		const was_dirty = edit_dirty;
 		show_version_fields(edit_state);
 		forget_version();
+		nextTick(() => (dirty.value = was_dirty));
 	}
 	function toggle_history() {
 		if (show_history.value) close_history();
