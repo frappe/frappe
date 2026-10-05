@@ -626,7 +626,8 @@ frappe.ui.BottomSheet = class BottomSheet {
 	// how far a drag may resize the sheet before it resists (up) or slides (down)
 	drag_room() {
 		const index = this.snap_points.indexOf(this.current_height);
-		const smallest = index > 0 ? (window.visualViewport?.height || window.innerHeight) / 2 : 0;
+		// half height is 50dvh in the CSS, which an on-screen keyboard doesn't shrink
+		const smallest = index > 0 ? window.innerHeight / 2 : 0;
 		return {
 			can_grow: index > -1 && index < this.snap_points.length - 1,
 			can_shrink: smallest ? Math.max(0, this.panel.offsetHeight - smallest) : 0,
