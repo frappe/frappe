@@ -10,9 +10,10 @@ def execute():
 	erpnext and hrms would lose their curated navigation on upgrade. Only apps that still hold
 	fixtures are named.
 	"""
-	from frappe.desk.doctype.sidebar.convert_fixtures import apps_with_old_fixtures
+	from frappe.desk.doctype.sidebar.convert_fixtures import apps_with_old_fixtures, has_converted
 
-	counts = apps_with_old_fixtures()
+	# an app that has converted keeps its old folder as the v16 baseline, so it is not named
+	counts = {app: count for app, count in apps_with_old_fixtures().items() if not has_converted(app)}
 	if not counts:
 		return
 
