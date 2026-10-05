@@ -34,6 +34,7 @@ from flow_harness.model.mock import MockModel
 from flow_harness.model.providers.codex import CodexModel, _responses_input
 from flow_harness.model.providers.opencode import opencode_go_model
 from flow_harness.server import create_app
+from flow_harness.server.routes import sessions as session_routes
 from flow_harness.session import attachments as attachment_module
 from flow_harness.session.attachments import AttachmentError, AttachmentStore
 from flow_harness.session.config import SessionConfig
@@ -111,41 +112,76 @@ def test_attachment_store_rejects_non_images(tmp_path):
 
 def test_attachment_store_add_file_keeps_the_path_and_decides_by_content(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	attachment = store.add_file("src/notes.txt", b"hello world")
+	attachment = store.add_file(
+		"src/notes.txt", b"hello world", tools=(), path=str(tmp_path / "src/notes.txt")
+	)
 
 	assert attachment.kind == "text"
 	assert attachment.name == "src/notes.txt"  # mentions keep their directories
 	assert attachment.mime_type == "text/plain"
 	assert store.read(attachment.id) == b"hello world"
 
-	image = store.add_file("img/shot", _png())  # image bytes under an extensionless name
+	image = store.add_file("img/shot", _png(), tools=(), path=str(tmp_path / "img/shot"))  # no extension
 	assert (image.kind, image.name, image.mime_type) == ("image", "img/shot", "image/png")
 
 
-def test_attachment_store_add_file_rejects_empty_oversized_and_binary(tmp_path):
+def test_attachment_store_points_at_what_cannot_go_inline(tmp_path):
+	"""Big text and binary are not copied: the model's tools open the project file."""
 	store = AttachmentStore(str(tmp_path / "attachments"))
-
 	try:
-		store.add_file("empty.txt", b"")
+		store.add_file("empty.txt", b"", tools={"bash"}, path="/project/empty.txt")
 	except AttachmentError as error:
 		assert "empty" in str(error)
 	else:
-		raise AssertionError("empty text attachment was accepted")
+		raise AssertionError("empty attachment was accepted")
 
-	oversized = b"x" * (attachment_module.MAX_TEXT_BYTES + 1)
-	try:
-		store.add_file("big.txt", oversized)
-	except AttachmentError as error:
-		assert "KB limit" in str(error)
-	else:
-		raise AssertionError("oversized text attachment was accepted")
+	big_text = b"x" * (attachment_module.MAX_TEXT_BYTES + 1)
+	big = store.add_file("big.txt", big_text, tools={"bash"}, path="/project/big.txt")
+	pdf = store.add_file("docs/q3.pdf", b"%PDF-1.7\n\xff\x00", tools={"bash"}, path="/project/docs/q3.pdf")
 
+	assert (big.kind, big.path) == ("file", "/project/big.txt")
+	assert (pdf.kind, pdf.mime_type, pdf.path) == ("file", "application/pdf", "/project/docs/q3.pdf")
+	assert {item.suffix for item in (tmp_path / "attachments").iterdir()} == {".json"}  # metadata only
+
+
+def test_a_file_the_agent_cannot_open_is_refused(tmp_path):
+	"""bash opens any file and read only text; with neither, only what goes inline is taken."""
+	store = AttachmentStore(str(tmp_path / "attachments"))
+	pdf = b"%PDF-1.7\n\xff\x00"
+	big_text = b"x" * (attachment_module.MAX_TEXT_BYTES + 1)
+
+	assert store.add_file("report.pdf", pdf, tools={"bash"}, path="/p/report.pdf").kind == "file"
+	assert store.add_file("big.txt", big_text, tools={"read"}, path="/p/big.txt").kind == "file"
+	for name, data, tools in (
+		("report.pdf", pdf, {"read"}),
+		("report.pdf", pdf, ()),
+		("big.txt", big_text, ()),
+	):
+		try:
+			store.add_file(name, data, tools=tools, path=f"/p/{name}")
+		except AttachmentError as error:
+			assert str(error) == f"{name} can't be opened by this agent"
+		else:
+			raise AssertionError(f"{name} was accepted with tools {tools}")
+
+
+def test_a_mentioned_animation_too_big_to_send_goes_by_path(tmp_path, monkeypatch):
+	"""A GIF over the image limits is pointed at instead of failing; an upload still errors."""
+	monkeypatch.setattr(attachment_module, "MAX_IMAGE_DIMENSION", 16)
+	frames = [Image.new("RGB", (40, 40), color) for color in ("red", "blue")]
+	output = io.BytesIO()
+	frames[0].save(output, format="GIF", save_all=True, append_images=frames[1:])
+	store = AttachmentStore(str(tmp_path / "attachments"))
+
+	attachment = store.add_file("demo.gif", output.getvalue(), tools={"bash"}, path="/p/demo.gif")
+
+	assert (attachment.kind, attachment.mime_type) == ("file", "image/gif")
 	try:
-		store.add_file("binary.bin", b"\xff\xfe\x00\x01")
+		store.add_bytes("demo.gif", output.getvalue())
 	except AttachmentError as error:
-		assert "not a UTF-8 text file" in str(error)
+		assert "animated image" in str(error)
 	else:
-		raise AssertionError("non-UTF8 attachment was accepted")
+		raise AssertionError("an oversized animation upload was accepted")
 
 
 def test_a_file_reaches_the_model_as_a_note_with_its_path():
@@ -477,6 +513,53 @@ def test_attach_files_http_reads_image_files_by_extension(tmp_path):
 	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
 	user = next(entry for entry in entries if entry["type"] == "user_message")
 	assert user["content"][1]["kind"] == "image"
+
+
+def test_attach_files_http_points_at_project_files_it_cannot_inline(tmp_path, monkeypatch):
+	"""A binary file, or one over the read cap, goes by path and nothing is copied."""
+	monkeypatch.setattr(session_routes, "MAX_SOURCE_BYTES", 1024)
+	data_dir = tmp_path / "data"
+	client = TestClient(create_app(SessionStore(str(data_dir))))
+	project = tmp_path / "project"
+	project.mkdir()
+	(project / "report.pdf").write_bytes(b"%PDF-1.7\n\xff\x00")
+	(project / "app.log").write_text("x" * 2048)  # over the read cap
+
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["report.pdf"]})
+	too_big = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["app.log"]})
+
+	assert response.status_code == 200
+	[pdf] = response.json()["attachments"]
+	assert (pdf["kind"], pdf["path"]) == ("file", str(project / "report.pdf"))
+	assert too_big.status_code == 200
+	[log] = too_big.json()["attachments"]
+	assert (log["kind"], log["size"], log["path"]) == ("file", 2048, str(project / "app.log"))
+	attachments_dir = next((data_dir / "sessions").rglob(f"{sid}.attachments"))
+	assert {item.suffix for item in attachments_dir.iterdir()} == {".json"}  # metadata only
+
+
+def test_attachment_http_refuses_a_file_the_agent_cannot_open(tmp_path, monkeypatch):
+	"""A read-only agent is refused a PDF or a big binary, but gets big text."""
+	monkeypatch.setattr(session_routes, "MAX_SOURCE_BYTES", 1024)
+	project = tmp_path / "project"
+	project.mkdir()
+	(project / "report.pdf").write_bytes(b"%PDF-1.7\n\xff\x00")
+	(project / "dump.bin").write_bytes(b"\x00" * 2048)
+	(project / "app.log").write_text("x" * 2048)
+	client = TestClient(create_app(SessionStore(str(tmp_path / "data"))))
+	sid = client.post("/sessions", json={"cwd": str(project), "tools": ["read"]}).json()["session_id"]
+
+	pdf = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["report.pdf"]})
+	big_binary = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["dump.bin"]})
+	big_text = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["app.log"]})
+
+	assert pdf.status_code == 400
+	assert pdf.json() == {"detail": "report.pdf can't be opened by this agent"}
+	assert big_binary.status_code == 400
+	assert big_binary.json() == {"detail": "dump.bin can't be opened by this agent"}
+	assert big_text.status_code == 200
+	assert big_text.json()["attachments"][0]["kind"] == "file"
 
 
 def test_attach_files_http_rejects_path_outside_allowed_roots(tmp_path):

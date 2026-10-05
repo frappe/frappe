@@ -15,6 +15,7 @@ import re
 import shutil
 import uuid
 import warnings
+from collections.abc import Collection
 from tempfile import mkstemp
 from threading import Lock
 
@@ -25,6 +26,7 @@ from flow_harness.events import AttachmentContent
 MAX_ATTACHMENTS_PER_MESSAGE = 10
 MAX_SOURCE_BYTES = 20 * 1024 * 1024
 MAX_TEXT_BYTES = 256 * 1024
+SNIFF_BYTES = 8192  # how far read looks for binary
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 MAX_IMAGE_DIMENSION = 2_000
 MAX_IMAGE_PIXELS = 40_000_000
@@ -65,24 +67,45 @@ class AttachmentStore:
 			raise AttachmentError(f"{name} is not a supported image")
 		return self._store_image(name, processed)
 
-	def add_file(self, name: str, data: bytes) -> AttachmentContent:
-		"""Validate and store one server-read project file (the @-mention path): an
-		image by content, else UTF-8 text under the text cap. `name` keeps its
-		directories so the model can address the file."""
+	def add_file(self, name: str, data: bytes, *, tools: Collection[str], path: str) -> AttachmentContent:
+		"""Inline a mentioned image or small text; else point the model's tools at `path`."""
 		if not data:
 			raise AttachmentError("attachment is empty")
 		if len(data) > MAX_SOURCE_BYTES:
 			raise AttachmentError(f"attachment exceeds the {MAX_SOURCE_BYTES // 1024 // 1024} MB limit")
 		name = _safe_name(name, keep_dirs=True)
-		processed = _process_image(data)
-		if processed is not None:
-			return self._store_image(name, processed)
-		if len(data) > MAX_TEXT_BYTES:
-			raise AttachmentError(f"{name} exceeds the {MAX_TEXT_BYTES // 1024} KB limit for text")
+		inline = self._add_inline(name, data)
+		if inline is not None:
+			return inline
+		return self.add_reference(name, data, len(data), path, tools=tools)
+
+	def add_reference(
+		self, name: str, head: bytes, size: int, path: str, *, tools: Collection[str]
+	) -> AttachmentContent:
+		"""Record a project file the model's tools open where it lies; `head` is its start."""
+		name = _safe_name(name, keep_dirs=True)
+		_check_tools(name, head, tools)
+		content = AttachmentContent(
+			id=uuid.uuid4().hex[:24], name=name, mime_type=_file_type(name), size=size, kind="file", path=path
+		)
+		with self._lock:
+			_write_private(self._meta_path(content.id), content.model_dump_json().encode())
+		return content
+
+	def _add_inline(self, name: str, data: bytes) -> AttachmentContent | None:
+		"""Store an image or small UTF-8 text for the model to see; None for anything else."""
+		try:
+			processed_image = _process_image(data)
+		except AttachmentError:
+			return None  # an image too big or odd to send goes as a file
+		if processed_image is not None:
+			return self._store_image(name, processed_image)
+		if len(data) > MAX_TEXT_BYTES or b"\0" in data:  # a NUL byte means binary
+			return None
 		try:
 			data.decode("utf-8")
 		except UnicodeDecodeError:
-			raise AttachmentError(f"{name} is not a UTF-8 text file") from None
+			return None
 		content = AttachmentContent(
 			id=uuid.uuid4().hex[:24],
 			name=name,
@@ -221,6 +244,16 @@ def _safe_name(name: str, *, keep_dirs: bool = False) -> str:
 	if not name or name in {".", ".."}:
 		raise AttachmentError("attachment needs a valid filename")
 	return name
+
+
+def _check_tools(name: str, data: bytes, tools: Collection[str]) -> None:
+	# bash opens any file; read opens text only
+	if "bash" not in tools and ("read" not in tools or b"\0" in data[:SNIFF_BYTES]):
+		raise AttachmentError(f"{name} can't be opened by this agent")
+
+
+def _file_type(name: str) -> str:
+	return mimetypes.guess_type(name)[0] or "application/octet-stream"
 
 
 def _process_image(data: bytes) -> tuple[bytes, str, int, int] | None:
