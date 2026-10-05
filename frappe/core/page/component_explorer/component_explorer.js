@@ -1581,7 +1581,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
-					title: __("Overflow (click +4 to see the rest)"),
+					title: __("Overflow (hover +4 to see everyone)"),
 					items: [
 						{
 							__code: "frappe.ui.avatar_group({ avatars: seven_people, max: 3 })",
@@ -1614,7 +1614,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
-					title: __("Clickable avatars (the +N list rows too)"),
+					title: __("Clickable avatars (click +4: the list rows click too)"),
 					items: [
 						{
 							__code: "frappe.ui.avatar_group({\n  avatars,\n  onclick: (avatar, e) => open_profile(avatar),\n})",

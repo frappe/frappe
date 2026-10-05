@@ -8,8 +8,8 @@ frappe.provide("frappe.ui");
  * @property {number} [max=3] Avatars shown before the +N circle. One hidden person is shown instead of a "+1".
  * @property {"xs"|"sm"|"md"|"lg"|"xl"|"2xl"|"3xl"} [size="md"]
  * @property {"circle"|"square"} [shape="circle"]
- * @property {function} [onclick] Makes each avatar a button; called with the clicked avatar's options and the event (element form only). Rows in the +N list call it too.
- * @property {function} [hover_card] Called with an avatar's options; returns the content of a hover card shown in place of the name tooltip (element form only). Details only: put actions behind `onclick`, since a hover card can't be reached by touch.
+ * @property {function} [onclick] Makes each avatar a button; called with the clicked avatar's options and the event (element form only). The +N list then opens on click and its rows call it too; without it the list is read-only and shows on hover.
+ * @property {function} [hover_card] Called with an avatar's options and the HoverCard (to close it from inside); returns the content of a hover card shown in place of the name tooltip (element form only). Touch can't open a hover card, so keep anything essential reachable another way too.
  * @property {Object} [add] Shows an add button after the avatars: { title, icon = "plus", onclick }.
  * @property {string} [css_class] Extra CSS classes.
  * @property {Object<string, string|true>} [attrs] Extra attributes.
@@ -109,18 +109,21 @@ frappe.ui.avatar_group = function (opts = {}) {
 		// the button carries the name; a bare avatar needs it once the title is gone
 		if (!$button.length && name) $avatar.attr({ role: "img", "aria-label": name });
 		if (opts.hover_card) {
-			frappe.ui.hover_card($trigger, {
-				content: () => opts.hover_card(shown[i]),
+			const hover_card = new frappe.ui.HoverCard($trigger, {
+				content: () => opts.hover_card(shown[i], hover_card),
 				align: "start",
+				css_class: "es-avatar-group__hover-card",
 			});
 		} else if (name) {
 			frappe.ui.tooltip($trigger, { text: name });
 		}
 		if (opts.onclick) $button.on("click", (e) => opts.onclick(shown[i], e));
 	});
-	if (hidden.length) {
-		const $more = $group.find(".es-avatar-group__more").removeAttr("title");
-		const $trigger = $more
+	if (hidden.length && opts.onclick) {
+		// the rows are actions, so the list opens on click and stays open (touch too)
+		const $trigger = $group
+			.find(".es-avatar-group__more")
+			.removeAttr("title")
 			.wrap('<button type="button" class="es-avatar-group__item"></button>')
 			.parent()
 			.attr("aria-label", __("{0} more", [hidden.length]));
@@ -128,15 +131,27 @@ frappe.ui.avatar_group = function (opts = {}) {
 			trigger: $trigger,
 			css_class: "es-avatar-group__popover",
 			content: () =>
-				hidden_list(
-					hidden,
-					shape,
-					opts.onclick &&
-						((item, e) => {
-							popover.close("owner");
-							opts.onclick(item, e);
-						})
-				),
+				hidden_list(hidden, shape, (item, e) => {
+					popover.close("owner");
+					opts.onclick(item, e);
+				}),
+		});
+	} else if (hidden.length) {
+		// a read-only list shows on hover and closes when the pointer leaves;
+		// screen readers get the names from the label, as they can't reach the card
+		const names = hidden.map(avatar_name).join(", ");
+		const $more = $group
+			.find(".es-avatar-group__more")
+			.removeAttr("title")
+			.attr({
+				tabindex: 0,
+				role: "img",
+				"aria-label": __("{0} more: {1}", [hidden.length, names]),
+			});
+		new frappe.ui.HoverCard($more, {
+			content: () => hidden_list(hidden, shape),
+			align: "start",
+			css_class: "es-avatar-group__popover",
 		});
 	}
 

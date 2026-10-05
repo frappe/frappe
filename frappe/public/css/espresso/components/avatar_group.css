@@ -120,8 +120,21 @@
     border-radius: var(--es-ag-round);
 }
 
-/* ---- the +N popover: the hidden people, one per row ---- */
-.es-avatar-group__popover {
+/* the hover card fits whatever the caller puts in it */
+.es-hover-card.es-avatar-group__hover-card {
+    width: auto;
+}
+
+/* the read-only +N takes keyboard focus to show its list */
+.es-avatar-group__more[tabindex]:focus-visible {
+    border-radius: var(--es-ag-round);
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
+
+/* ---- the +N list (a popover, or a hover card when read-only):
+        the hidden people, one per row ---- */
+.es-popover.es-avatar-group__popover {
     width: auto;
     min-width: calc(var(--spacing) * 44);
     max-width: calc(var(--spacing) * 72);
