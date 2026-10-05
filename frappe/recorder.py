@@ -428,7 +428,8 @@ class Recorder:
 
 	def _unpatch_sql(self):
 		for db in self.patched_databases:
-			db.sql = db._sql
+			# assigning the original back would keep `sql` on the instance and hide patches on the class
+			vars(db).pop("sql", None)
 
 
 def do_not_record(function):
