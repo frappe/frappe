@@ -1436,7 +1436,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			el.innerHTML = `${frappe.ui.avatar.html({
 				image: info.image || undefined,
 				label: info.fullname || val,
-				theme: this.hash_theme(val),
+				theme: "auto",
 				size: "xs",
 				css_class: "shrink-0",
 			})}<span class="truncate">${frappe.utils.escape_html(info.fullname || val)}</span>`;
@@ -1869,12 +1869,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const $group = frappe.ui.avatar_group({
 			avatars: users.map((user) => {
 				const info = frappe.user_info(user);
-				return {
-					user,
-					image: info.image || undefined,
-					label: info.fullname || user,
-					theme: this.hash_theme(user),
-				};
+				return { user, image: info.image || undefined, label: info.fullname || user };
 			}),
 			max: 2,
 			// the ring takes the card colour (kanban_v2.scss)
@@ -1917,7 +1912,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		head.innerHTML = `${frappe.ui.avatar.html({
 			image: info.image || undefined,
 			label: fullname,
-			theme: this.hash_theme(user),
+			theme: "auto",
 			size: "lg",
 		})}
 			<div class="min-w-0">
@@ -2033,7 +2028,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 				.avatar({
 					image: info.image || undefined,
 					label: info.fullname || lane.value,
-					theme: this.page.hash_theme(lane.value),
+					theme: "auto",
 					size: "sm",
 				})
 				.insertAfter($head.find(".kn-swimlane-caret"));

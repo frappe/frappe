@@ -9,7 +9,8 @@
  * Attributes (all optional):
  *   data-size    xs | sm | md | lg | xl | 2xl | 3xl   (default: md)
  *   data-shape   circle | square                      (default: circle)
- *   data-theme   gray | blue | green | amber | red | violet   (default: gray)
+ *   data-theme   gray | blue | green | amber | red | violet | orange | pink |
+ *                yellow | teal | cyan | purple                (default: gray)
  *
  * The theme colors the initials fallback; an image simply covers it.
  * An optional status dot sits at the bottom-right corner:
@@ -122,6 +123,36 @@
 .es-avatar[data-theme="violet"] {
     --es-av-bg: var(--surface-violet-2);
     --es-av-fg: var(--ink-violet-8);
+}
+
+.es-avatar[data-theme="orange"] {
+    --es-av-bg: var(--surface-orange-2);
+    --es-av-fg: var(--ink-orange-8);
+}
+
+.es-avatar[data-theme="pink"] {
+    --es-av-bg: var(--surface-pink-2);
+    --es-av-fg: var(--ink-pink-8);
+}
+
+.es-avatar[data-theme="yellow"] {
+    --es-av-bg: var(--surface-yellow-2);
+    --es-av-fg: var(--ink-yellow-8);
+}
+
+.es-avatar[data-theme="teal"] {
+    --es-av-bg: var(--surface-teal-2);
+    --es-av-fg: var(--ink-teal-8);
+}
+
+.es-avatar[data-theme="cyan"] {
+    --es-av-bg: var(--surface-cyan-2);
+    --es-av-fg: var(--ink-cyan-8);
+}
+
+.es-avatar[data-theme="purple"] {
+    --es-av-bg: var(--surface-purple-2);
+    --es-av-fg: var(--ink-purple-8);
 }
 
 /* ---- children ---- */

@@ -8,6 +8,7 @@ frappe.provide("frappe.ui");
  * @property {number} [max=3] Avatars shown before the +N circle. One hidden person is shown instead of a "+1".
  * @property {"xs"|"sm"|"md"|"lg"|"xl"|"2xl"|"3xl"} [size="md"]
  * @property {"circle"|"square"} [shape="circle"]
+ * @property {string} [theme="auto"] Fallback color for every avatar (a frappe.ui.avatar theme); "auto" gives each name its own. An avatar's own theme wins.
  * @property {function} [onclick] Makes each avatar a button; called with the clicked avatar's options and the event (element form only). The +N list then opens on click and its rows call it too; without it the list is read-only and shows on hover.
  * @property {function} [hover_card] Called with an avatar's options and the HoverCard (to close it from inside); returns the content of a hover card shown in place of the name tooltip (element form only). Touch can't open a hover card, so keep anything essential reachable another way too.
  * @property {Object} [add] Shows an add button after the avatars: { title, icon = "plus", onclick }.
@@ -18,7 +19,10 @@ frappe.provide("frappe.ui");
 const SIZES = ["xs", "sm", "md", "lg", "xl", "2xl", "3xl"];
 const SHAPES = ["circle", "square"];
 
+// an avatar's own tooltip and label: its title when given ("Sam is viewing")
 const avatar_name = (item) => item.title || item.label || "";
+// a person in a list of names (+N): the name itself
+const person_name = (item) => item.label || item.title || "";
 
 function resolve(opts) {
 	const avatars = opts.avatars || [];
@@ -29,17 +33,18 @@ function resolve(opts) {
 	return {
 		size: validated(opts.size, SIZES, "size", "avatar_group") || "md",
 		shape: validated(opts.shape, SHAPES, "shape", "avatar_group") || "circle",
+		theme: opts.theme || "auto",
 		shown: avatars.slice(0, split),
 		hidden: avatars.slice(split),
 	};
 }
 
 // `clickable` wraps the avatars in buttons; only the element form can wire them
-function group_html(opts, { size, shape, shown, hidden }, clickable) {
+function group_html(opts, { size, shape, theme, shown, hidden }, clickable) {
 	const escape = frappe.utils.escape_html;
 
 	const avatar = (item) => {
-		const html = frappe.ui.avatar.html({ ...item, size, shape });
+		const html = frappe.ui.avatar.html({ ...item, size, shape, theme: item.theme || theme });
 		if (!clickable) return html;
 		const name = avatar_name(item);
 		const label = name ? ` aria-label="${escape(name)}"` : "";
@@ -48,7 +53,7 @@ function group_html(opts, { size, shape, shown, hidden }, clickable) {
 	let stack = shown.map(avatar).join("");
 	if (hidden.length) {
 		// avatar markup by hand: frappe.ui.avatar would show only the "+"
-		const names = hidden.map(avatar_name).join(", ");
+		const names = hidden.map(person_name).join(", ");
 		const shape_attr = shape !== "circle" ? ` data-shape="${shape}"` : "";
 		stack += `<span class="es-avatar es-avatar-group__more" data-size="${size}"${shape_attr} title="${escape(
 			names
@@ -72,14 +77,16 @@ function group_html(opts, { size, shape, shown, hidden }, clickable) {
 }
 
 // rows of the +N popover: the hidden people, as buttons when they're clickable
-function hidden_list(hidden, shape, onclick) {
+function hidden_list(hidden, { shape, theme }, onclick) {
 	const $list = $('<div class="es-avatar-group__list"></div>');
 	for (const item of hidden) {
 		const $row = onclick
 			? $('<button type="button" class="es-avatar-group__list-item"></button>')
 			: $('<div class="es-avatar-group__list-item"></div>');
-		const $avatar = frappe.ui.avatar({ ...item, size: "sm", shape }).removeAttr("title");
-		const $name = $('<span class="es-avatar-group__name"></span>').text(avatar_name(item));
+		const $avatar = frappe.ui
+			.avatar({ ...item, size: "sm", shape, theme: item.theme || theme })
+			.removeAttr("title");
+		const $name = $('<span class="es-avatar-group__name"></span>').text(person_name(item));
 		$row.append($avatar, $name);
 		if (onclick) $row.on("click", (e) => onclick(item, e));
 		$list.append($row);
@@ -96,7 +103,7 @@ function hidden_list(hidden, shape, onclick) {
  */
 frappe.ui.avatar_group = function (opts = {}) {
 	const resolved = resolve(opts);
-	const { shape, shown, hidden } = resolved;
+	const { shown, hidden } = resolved;
 	const $group = $(group_html(opts, resolved, Boolean(opts.onclick)));
 
 	// shown avatars, in order; the tooltip, hover card and click go on the
@@ -131,7 +138,7 @@ frappe.ui.avatar_group = function (opts = {}) {
 			trigger: $trigger,
 			css_class: "es-avatar-group__popover",
 			content: () =>
-				hidden_list(hidden, shape, (item, e) => {
+				hidden_list(hidden, resolved, (item, e) => {
 					popover.close("owner");
 					opts.onclick(item, e);
 				}),
@@ -139,7 +146,7 @@ frappe.ui.avatar_group = function (opts = {}) {
 	} else if (hidden.length) {
 		// a read-only list shows on hover and closes when the pointer leaves;
 		// screen readers get the names from the label, as they can't reach the card
-		const names = hidden.map(avatar_name).join(", ");
+		const names = hidden.map(person_name).join(", ");
 		const $more = $group
 			.find(".es-avatar-group__more")
 			.removeAttr("title")
@@ -149,7 +156,7 @@ frappe.ui.avatar_group = function (opts = {}) {
 				"aria-label": __("{0} more: {1}", [hidden.length, names]),
 			});
 		new frappe.ui.HoverCard($more, {
-			content: () => hidden_list(hidden, shape),
+			content: () => hidden_list(hidden, resolved),
 			align: "start",
 			css_class: "es-avatar-group__popover",
 		});

@@ -8,11 +8,11 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	// sample people for the Avatar Group examples
 	const PEOPLE = [
 		{ label: "John Doe", image: "https://avatars.githubusercontent.com/u/499550?s=60&v=4" },
-		{ label: "Jane Smith", theme: "blue" },
-		{ label: "Sam Smith", theme: "green" },
-		{ label: "Alice Adams", theme: "amber" },
-		{ label: "Ryan Reed", theme: "violet" },
-		{ label: "Kim Lee", theme: "red" },
+		{ label: "Jane Smith" },
+		{ label: "Sam Smith" },
+		{ label: "Alice Adams" },
+		{ label: "Ryan Reed" },
+		{ label: "Kim Lee" },
 		{ label: "Max Hart" },
 	];
 	const person_card = (person) =>
@@ -1531,6 +1531,22 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{ label: "Alice Adams", theme: "amber" },
 						{ label: "Ryan Reed", theme: "red" },
 						{ label: "Violet Vane", theme: "violet" },
+						{ label: "Olive Oak", theme: "orange" },
+						{ label: "Pia Park", theme: "pink" },
+						{ label: "Yara Young", theme: "yellow" },
+						{ label: "Theo Tan", theme: "teal" },
+						{ label: "Cyra Cole", theme: "cyan" },
+						{ label: "Paul Price", theme: "purple" },
+					],
+				},
+				{
+					title: __("Auto theme (picked from the name, same name same color)"),
+					items: [
+						{ label: "John Doe", theme: "auto" },
+						{ label: "Jane Smith", theme: "auto" },
+						{ label: "Sam Smith", theme: "auto" },
+						{ label: "Alice Adams", theme: "auto" },
+						{ label: "Ryan Reed", theme: "auto" },
 					],
 				},
 				{
@@ -1642,6 +1658,24 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						size,
 						add: {},
 					})),
+				},
+				{
+					title: __("Colors (auto by default; a group or avatar theme overrides it)"),
+					items: [
+						{
+							__code: 'frappe.ui.avatar_group({ avatars })  // theme: "auto"',
+							avatars: PEOPLE.slice(1),
+						},
+						{
+							__code: 'frappe.ui.avatar_group({ avatars, theme: "gray" })',
+							avatars: PEOPLE.slice(1),
+							theme: "gray",
+						},
+						{
+							__code: 'frappe.ui.avatar_group({ avatars: [{ label: "Everyone", theme: "blue" }, ...] })',
+							avatars: [{ label: "Everyone", theme: "blue" }, ...PEOPLE.slice(1, 4)],
+						},
+					],
 				},
 				{
 					title: __("Square"),
