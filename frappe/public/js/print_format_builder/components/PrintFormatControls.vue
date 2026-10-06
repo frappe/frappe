@@ -211,13 +211,9 @@
 							></button>
 							<span
 								class="pfb-tree-icon"
-								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
+								v-html="frappe.utils.icon(section_icon(section), 'sm')"
 							></span>
-							<span class="pfb-tree-label">
-								{{
-									section.label || zone_label(section) || __("Untitled section")
-								}}
-							</span>
+							<span class="pfb-tree-label">{{ section_label(section) }}</span>
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
 							<div
@@ -679,6 +675,12 @@ function select_letterhead(section) {
 }
 
 const zone_label = (section) => zone_label_of(layout.value, section);
+const section_icon = (section) =>
+	section.page_break ? "scissors-line-dashed" : "rectangle-horizontal";
+const section_label = (section) =>
+	section.label ||
+	zone_label(section) ||
+	(section.page_break ? __("Page Break") : __("Untitled section"));
 
 const { is_collapsed, toggle_collapse } = store;
 
