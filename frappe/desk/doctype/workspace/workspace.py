@@ -407,6 +407,8 @@ class Workspace(Document, DeskViews):
 		frappe.delete_doc_if_exists("Desktop Icon", self.name)
 
 	def after_delete(self):
+		self.keep_copy_for_restore()
+
 		if disable_saving_as_public():
 			return
 
@@ -417,6 +419,23 @@ class Workspace(Document, DeskViews):
 		# no folder to remove for such a page either.
 		if self.can_export() and frappe.db.exists("Module Def", self.module):
 			delete_folder(self.module, "Workspace", self.title)
+
+	def keep_copy_for_restore(self):
+		"""Keep the old row when an import replaces a workspace the site had edited.
+
+		A reload-delete writes no Deleted Document, so once a newer app version drops a
+		shipped shortcut or card, the rows an edited layout pointed at are gone for good. The
+		restore page (frappe/desk/page/workspace_restore) reads them back from this copy. A
+		workspace with no Version rows was never edited here and needs no copy.
+		"""
+		if not frappe.flags.in_import:
+			return
+		if not frappe.db.exists("Version", {"ref_doctype": "Workspace", "docname": self.name}):
+			return
+
+		from frappe.model.delete_doc import add_to_deleted_document
+
+		add_to_deleted_document(self)
 
 	@staticmethod
 	def rename_private_workspaces(old_name, new_name):

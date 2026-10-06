@@ -116,7 +116,7 @@ class WorkspaceRestore {
 	describe(summary) {
 		const parts = [__("{0} blocks", [summary.blocks])];
 		for (const [type, count] of Object.entries(summary.widgets || {})) {
-			parts.push(__("{0} added {1}", [count, __(type.replace("_", " "))]));
+			parts.push(__("{0} {1}", [count, __(type.replace("_", " "))]));
 		}
 		if (summary.roles) {
 			parts.push(__("{0} role changes", [summary.roles]));

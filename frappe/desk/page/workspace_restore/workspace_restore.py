@@ -213,6 +213,7 @@ def replay_versions(versions: list[frappe._dict], base) -> frappe._dict:
 	if content is not None:
 		widgets = _prune_widgets(widgets, content)
 		drop_shadowed_widgets(widgets, base, warnings)
+		recover_dropped_widgets(content, widgets, base)
 		warn_about_missing_widgets(content, widgets, base, warnings)
 
 	base_roles = {r.role for r in base.roles}
@@ -319,8 +320,9 @@ def drop_shadowed_widgets(widgets: dict, base, warnings: list[str]) -> None:
 			widgets.pop(widget_type)
 
 
-def warn_about_missing_widgets(content: list, widgets: dict, base, warnings: list[str]) -> None:
-	"""Name the blocks whose widget neither the app nor the edit defines any more."""
+def missing_widgets(content: list, widgets: dict, base) -> list[tuple[str, str]]:
+	"""The (type, label) of every block whose widget neither the app nor the edit defines."""
+	missing = []
 	for block in content:
 		widget_type = block.get("type")
 		if widget_type not in WIDGET_PARENTFIELD:
@@ -330,6 +332,63 @@ def warn_about_missing_widgets(content: list, widgets: dict, base, warnings: lis
 			continue
 		if label in {row.label for row in base.get(WIDGET_PARENTFIELD[widget_type])}:
 			continue
+		missing.append((widget_type, label))
+	return missing
+
+
+def recover_dropped_widgets(content: list, widgets: dict, base) -> None:
+	"""Fill the blocks whose widget the newer app no longer ships from the copy kept at import.
+
+	`Workspace.keep_copy_for_restore` writes the old row to Deleted Document when an import
+	replaces a site-edited workspace. A shipped shortcut or card the newer version dropped is in
+	that copy and nowhere else, since base rows never appear in a Version's `added` list.
+	"""
+	missing = missing_widgets(content, widgets, base)
+	if not missing:
+		return
+	copy = deleted_copy(base.name)
+	if not copy:
+		return
+
+	for widget_type, label in missing:
+		rows = copy.get(WIDGET_PARENTFIELD[widget_type]) or []
+		if widget_type == "card":
+			card = card_from_rows(rows, label)
+			if card:
+				widgets.setdefault("card", []).append(card)
+		else:
+			row = next((r for r in rows if r.get("label") == label), None)
+			if row:
+				widgets.setdefault(widget_type, []).append(strip_row(row))
+
+
+def deleted_copy(workspace: str) -> dict | None:
+	"""The newest copy of the workspace row an import replaced, as a plain dict."""
+	data = frappe.db.get_value(
+		"Deleted Document",
+		{"deleted_doctype": "Workspace", "deleted_name": workspace},
+		"data",
+		order_by="creation desc",
+	)
+	return loads(data) if data else None
+
+
+def card_from_rows(rows: list[dict], label: str) -> dict | None:
+	"""One card out of a workspace's flat `links` rows: its Card Break and the Links up to the next."""
+	start = next(
+		(i for i, row in enumerate(rows) if row.get("type") == "Card Break" and row.get("label") == label),
+		None,
+	)
+	if start is None:
+		return None
+	end = next((i for i in range(start + 1, len(rows)) if rows[i].get("type") == "Card Break"), len(rows))
+	cards = cards_from_link_rows(rows[start:end], [])
+	return cards[0] if cards else None
+
+
+def warn_about_missing_widgets(content: list, widgets: dict, base, warnings: list[str]) -> None:
+	"""Name the blocks that stay empty because nothing defines their widget any more."""
+	for widget_type, label in missing_widgets(content, widgets, base):
 		warnings.append(
 			_("The block {0} points at a {1} this version of the app no longer ships.").format(
 				frappe.bold(label), widget_label(widget_type)

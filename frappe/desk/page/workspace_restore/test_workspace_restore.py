@@ -187,6 +187,9 @@ class TestWorkspaceRestore(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.addCleanup(frappe.set_user, "Administrator")
+		# get_workspaces is request-cached and no request ends inside a test run
+		self.clear_request_cache()
+		self.addCleanup(self.clear_request_cache)
 		self.make_user(self.MANAGER, ["Desk User", "Workspace Manager"])
 		self.make_user(self.DESK_USER, ["Desk User"])
 
@@ -205,10 +208,15 @@ class TestWorkspaceRestore(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.delete_doc_if_exists("Custom Workspace", self.WORKSPACE)
 		frappe.db.delete("Version", {"ref_doctype": "Workspace", "docname": self.WORKSPACE})
+		frappe.db.delete("Deleted Document", {"deleted_doctype": "Workspace", "deleted_name": self.WORKSPACE})
 		frappe.db.delete("Workspace", {"name": self.WORKSPACE})
 		# the parent alone would leave its rows behind for the next test to render
 		for table in frappe.get_meta("Workspace").get_table_fields():
 			frappe.db.delete(table.options, {"parent": self.WORKSPACE, "parenttype": "Workspace"})
+
+	def clear_request_cache(self):
+		if getattr(frappe.local, "request_cache", None):
+			frappe.local.request_cache.clear()
 
 	def make_user(self, email, roles):
 		if not frappe.db.exists("User", email):
@@ -234,9 +242,13 @@ class TestWorkspaceRestore(IntegrationTestCase):
 			doc.append("shortcuts", shortcut)
 		doc.save(ignore_permissions=True, ignore_version=False)
 
-	def upgrade(self):
+	def upgrade(self, shipped=None):
 		"""The migrate re-import: the shipped JSON replaces the row, Version rows stay."""
-		import_doc(dict(self.shipped), ignore_version=True)
+		import_doc(dict(shipped or self.shipped), ignore_version=True)
+
+	def shipped_without_shortcuts(self):
+		"""A newer app version that dropped the shipped shortcut and its block."""
+		return {**self.shipped, "content": dumps([]), "shortcuts": []}
 
 	def listed(self):
 		return next((row for row in get_restorable_workspaces() if row["workspace"] == self.WORKSPACE), None)
@@ -272,6 +284,41 @@ class TestWorkspaceRestore(IntegrationTestCase):
 		# the base stays the app's
 		self.assertEqual(loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content")), BASE_CONTENT)
 		self.assertEqual(self.listed()["state"], "Restored")
+
+	def copies_kept(self):
+		return frappe.db.count(
+			"Deleted Document", {"deleted_doctype": "Workspace", "deleted_name": self.WORKSPACE}
+		)
+
+	def test_upgrade_keeps_a_copy_only_of_an_edited_workspace(self):
+		self.upgrade()
+		self.assertEqual(self.copies_kept(), 0)
+		self.edit_in_place([*BASE_CONTENT, MESSAGE_BLOCK])
+		self.upgrade()
+		self.assertEqual(self.copies_kept(), 1)
+
+	def test_a_shipped_shortcut_the_new_version_dropped_comes_back(self):
+		self.edit_in_place([*BASE_CONTENT, MESSAGE_BLOCK])
+		self.upgrade(self.shipped_without_shortcuts())
+		self.assertEqual(frappe.db.count("Workspace Shortcut", {"parent": self.WORKSPACE}), 0)
+
+		frappe.set_user(self.MANAGER)
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			payload = restore_workspace_edits(self.WORKSPACE)
+		self.assertEqual(payload["warnings"], [])
+
+		from frappe.desk.desktop import get_desktop_page
+
+		rendered = get_desktop_page({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
+		self.assertIn("My ToDos", [s.label for s in rendered["shortcuts"]["items"]])
+
+	def test_a_dropped_widget_with_no_copy_is_reported(self):
+		self.edit_in_place([*BASE_CONTENT, MESSAGE_BLOCK])
+		self.upgrade(self.shipped_without_shortcuts())
+		frappe.db.delete("Deleted Document", {"deleted_doctype": "Workspace", "deleted_name": self.WORKSPACE})
+		frappe.set_user(self.MANAGER)
+		row = self.listed()
+		self.assertTrue(any("My ToDos" in warning for warning in row["warnings"]))
 
 	def test_restore_is_idempotent(self):
 		self.edit_in_place([*BASE_CONTENT, MESSAGE_BLOCK])
