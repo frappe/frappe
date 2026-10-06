@@ -57,7 +57,13 @@ class WebPageView(SQLiteLogDocument):
 		db.commit()
 
 
-@frappe.whitelist(allow_guest=True)
+# Guests are the subject of this endpoint: an anonymous visitor's page view is the thing
+# being counted, so it cannot require a session. The move to the log database leaves that
+# exposure unchanged -- every argument is stored as plain data and none is interpolated into
+# a query, the path comes from the `Referer` header and is kept only if `is_site_link`
+# passes and it is not a desk, API or asset route, and the write is deferred so a caller
+# cannot drive one database insert per request.
+@frappe.whitelist(allow_guest=True)  # nosemgrep: guest-whitelisted-method
 def make_view_log(
 	referrer: str | None = None,
 	browser: str | None = None,
