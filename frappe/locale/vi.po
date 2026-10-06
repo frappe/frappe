@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-28 04:21\n"
+"PO-Revision-Date: 2026-10-05 04:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -13399,7 +13399,7 @@ msgstr "Thêm trường tên"
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Include Search in Top Bar"
-msgstr "Bao gồm Tìm kiếm trong Thanh trên cùng"
+msgstr ""
 
 #: frappe/website/doctype/website_theme/website_theme.js:61
 msgid "Include Theme from Apps"

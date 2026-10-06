@@ -921,6 +921,41 @@ class TestFile(FrappeTestCase):
 			if hasattr(frappe.local, "request"):
 				del frappe.local.request
 
+	def test_remote_file_ignores_content_hash(self):
+		existing = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"hash_{frappe.generate_hash(length=6)}.txt",
+				"content": "private-content",
+				"is_private": 1,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", existing.name, force=True)
+
+		for file_url in ("https://example.com/remote.png", "/api/method/remote"):
+			with self.subTest(file_url=file_url):
+				frappe.set_user("test@example.com")
+				try:
+					remote = frappe.get_doc(
+						{
+							"doctype": "File",
+							"file_name": "remote.png",
+							"is_private": 1,
+							"file_url": file_url,
+							"content_hash": existing.content_hash,
+						}
+					).insert()
+				finally:
+					frappe.set_user("Administrator")
+				self.addCleanup(frappe.delete_doc, "File", remote.name, force=True)
+
+				self.assertEqual(remote.file_url, file_url)
+				self.assertFalse(remote.content_hash)
+
+				remote.content_hash = existing.content_hash
+				remote.save()
+				self.assertFalse(remote.content_hash)
+
 
 @contextmanager
 def convert_to_symlink(directory):
@@ -1040,6 +1075,28 @@ class TestAttachmentsAccess(FrappeTestCase):
 		self.assertIn("test_sm_attachment.txt", system_manager_attachments_files)
 		self.assertIn("test_user_attachment.txt", system_manager_attachments_files)
 		self.assertIn("test_user_attachment.txt", user_attachments_files)
+
+	def test_attach_to_doc_without_write_permission_is_blocked(self):
+		frappe.set_user("test4@example.com")
+		self.assertFalse(frappe.has_permission("User", "write", "test@example.com"))
+
+		attack = frappe.new_doc(
+			"File",
+			file_name="poisoned.svg",
+			attached_to_doctype="User",
+			attached_to_name="test@example.com",
+			content="<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attack.insert)
+
+		frappe.set_user("test@example.com")
+		self.assertEqual(
+			frappe.get_all(
+				"File", filters={"attached_to_doctype": "User", "attached_to_name": "test@example.com"}
+			),
+			[],
+		)
 
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")

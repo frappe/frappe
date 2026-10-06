@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-28 04:21\n"
+"PO-Revision-Date: 2026-10-05 04:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -178,7 +178,7 @@ msgstr "1 mese fa"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:3
 msgid "1 of 2"
-msgstr "1 di 2"
+msgstr ""
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:230
 msgid "1 record will be exported"
@@ -8926,7 +8926,7 @@ msgstr "Ad esempio smsgateway.com/api/send_sms.cgi"
 
 #: frappe/rate_limiter.py:153
 msgid "Either key or IP flag is required."
-msgstr "È richiesta la chiave o il flag IP."
+msgstr ""
 
 #. Label of a Data field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -13292,7 +13292,7 @@ msgstr "Nella Vista Griglia"
 #. Label of a Check field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "In List Filter"
-msgstr "Nel Filtro di Lista"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -13397,7 +13397,7 @@ msgstr "Includi Campo Nome"
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Include Search in Top Bar"
-msgstr "Includi la Ricerca nella Barra Superiore"
+msgstr ""
 
 #: frappe/website/doctype/website_theme/website_theme.js:61
 msgid "Include Theme from Apps"
@@ -20657,7 +20657,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Builder Beta"
-msgstr "Generatore di formato di stampa Beta"
+msgstr ""
 
 #: frappe/utils/pdf.py:78
 msgid "Print Format Error"

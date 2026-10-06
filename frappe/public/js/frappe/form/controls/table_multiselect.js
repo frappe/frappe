@@ -131,7 +131,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 
 		// falsy / duplicate value
 		if (
-			frappe.utils.is_empty(link_value) ||
+			(!link_value && link_value !== 0) ||
 			all_rows_except_last.some(
 				(row) => cstr(row[link_field.fieldname]) === cstr(link_value)
 			)
@@ -139,14 +139,16 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 			return all_rows_except_last;
 		}
 
-		return this.validate_link_and_fetch(link_value).then((validated_value) => {
-			if (cstr(validated_value) === cstr(link_value)) {
-				return rows;
-			} else {
-				rows.pop();
-				return rows;
+		return Promise.resolve(this.validate_link_and_fetch(link_value)).then(
+			(validated_value) => {
+				if (cstr(validated_value) === cstr(link_value)) {
+					return rows;
+				} else {
+					rows.pop();
+					return rows;
+				}
 			}
-		});
+		);
 	}
 	set_formatted_input(value) {
 		this._update_rows(value || []);
