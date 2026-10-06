@@ -134,15 +134,22 @@
 	{%- else -%}
 	{#- Chrome PDF: layout.footer rendered once at the end of body -#}
 	{{ chrome_layout_footer or '' }}
-	{#- HTML preview: render layout.footer once at the bottom of the body -#}
-	{%- if not for_chrome and layout.footer -%}
+	{%- if for_chrome -%}
+	{{ footer or '' }}
+	{%- else -%}
+	{#- HTML preview: layout.footer and the letterhead footer once, pinned to the page bottom -#}
+	{%- set preview_footer -%}
 	{%- if layout.footer is string -%}
 	<div class="document-footer-content">{{ frappe.render_template(layout.footer, {'doc': doc}) }}</div>
-	{%- elif layout.footer.columns -%}
+	{%- elif layout.footer and layout.footer.columns -%}
 	{{ macros.render_zone(layout.footer, doc, 'document-footer-content') }}
 	{%- endif -%}
-	{%- endif -%}
 	{{ footer or '' }}
+	{%- endset -%}
+	{%- if preview_footer | trim -%}
+	<div class="print-footer-once">{{ preview_footer }}</div>
+	{%- endif -%}
+	{%- endif -%}
 	{%- endif -%}
 	{{ include_script('print.bundle.js') }}
 	<script>document.querySelectorAll("svg[data-barcode-value]").forEach(render_barcode);</script>

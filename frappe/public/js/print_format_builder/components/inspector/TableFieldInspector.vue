@@ -492,7 +492,7 @@ function set_image_size(col, value) {
 .pfb-col-add-row.top {
 	padding: 8px 14px;
 	border-top: none;
-	border-bottom: 1px solid var(--gray-100);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .pfb-col-editor .pfb-merge-drag {
@@ -513,12 +513,12 @@ function set_image_size(col, value) {
 
 .pfb-merge-direction {
 	padding: 8px 16px 10px;
-	border-top: 1px solid var(--gray-100);
+	border-top: 1px solid var(--border-color);
 }
 
 .pfb-col-cond {
 	padding: 8px 16px 10px;
-	border-top: 1px solid var(--gray-100);
+	border-top: 1px solid var(--border-color);
 }
 
 .pfb-row-cond {
