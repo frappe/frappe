@@ -31,13 +31,15 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 	if (!doctype) doctype = doc.doctype;
 
 	let meta = frappe.get_meta(doctype);
-	var workflow = frappe.workflow.get_workflow(doc, doctype);
-	var without_workflow = workflow ? workflow["override_status"] : true;
+	let workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
+	// list rows lack the condition fields, so read every active workflow of the doctype
+	var without_workflow = (frappe.workflow.candidates[doctype] || []).every(
+		(workflow) => workflow.override_status
+	);
 
 	var settings = frappe.listview_settings[doctype] || {};
 
 	var is_submittable = frappe.model.is_submittable(doctype);
-	let workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
 
 	let avoid_status_override = (frappe.workflow.avoid_status_override[doctype] || []).includes(
 		doc[workflow_fieldname]

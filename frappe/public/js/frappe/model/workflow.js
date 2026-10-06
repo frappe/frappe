@@ -66,9 +66,9 @@ frappe.workflow = {
 			);
 		});
 	},
-	get_workflow: function (doc, doctype) {
-		doctype = doctype || doc?.doctype;
-		if (!doc || !doctype) return null;
+	get_workflow: function (doc) {
+		const doctype = doc?.doctype;
+		if (!doctype) return null;
 
 		frappe.workflow.setup(doctype);
 		return (
