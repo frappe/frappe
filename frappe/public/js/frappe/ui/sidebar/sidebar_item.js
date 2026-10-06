@@ -31,6 +31,24 @@ function split_query(path) {
 	return at === -1 ? [path, ""] : [path.slice(0, at), path.slice(at)];
 }
 
+// An item's `filters` as the route options its link carries, or null when it has none.
+function filters_as_options(item) {
+	// get_filter_as_json() returns null for an empty filter array, so an item stored
+	// with `filters` of "[]" lands here with nothing to convert.
+	const filters_as_json = item.filters
+		? frappe.utils.get_filter_as_json(JSON.parse(item.filters))
+		: null;
+	if (!filters_as_json) return null;
+
+	const filters_json = JSON.parse(filters_as_json);
+	for (const [key, value] of Object.entries(filters_json)) {
+		if (Array.isArray(value)) {
+			filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
+		}
+	}
+	return filters_json;
+}
+
 // Resolve a sidebar item (from `bootinfo.module_sidebars`) to a navigable route.
 // Shared by the rendered sidebar links and the header workspace switcher.
 //
@@ -56,6 +74,9 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 				return;
 			}
 		}
+		// a report reads its filters off the query string, so Stock Balance for one warehouse is a
+		// link of its own
+		args.route_options = filters_as_options(item);
 
 		path = frappe.utils.generate_route(args);
 	} else if (item.link_type == "Workspace") {
@@ -88,18 +109,8 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 			name: item.link_to,
 			tab: item.tab,
 		};
-		// get_filter_as_json() returns null for an empty filter array, so an item stored
-		// with `filters` of "[]" lands here with nothing to convert.
-		const filters_as_json = item.filters
-			? frappe.utils.get_filter_as_json(JSON.parse(item.filters))
-			: null;
-		if (filters_as_json) {
-			let filters_json = JSON.parse(filters_as_json);
-			for (const [key, value] of Object.entries(filters_json)) {
-				if (Array.isArray(value)) {
-					filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
-				}
-			}
+		const filters_json = filters_as_options(item);
+		if (filters_json) {
 			if (item.link_type == "DocType") {
 				args.doc_view = "List";
 				args.route_options = filters_json;

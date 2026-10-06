@@ -1063,6 +1063,29 @@ class TestWhatACustomisationMayDo(DockTestCase):
 
 		self.assertEqual(names(dock_for(self.PERSON, among=None)), [ALPHA, "https://frappe.io"])
 
+	def test_a_layer_saved_again_keeps_what_it_added(self):
+		"""The editor sends back the rail it shows, add included. That add is the layer's own, so it
+		is not something below to reference, and the second save keeps it as an add."""
+		docs = added({"link_type": "URL", "url": "https://frappe.io"}, title="Frappe")
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(ALPHA, docs))
+		save_site_dock(APP, payload(ALPHA, docs))
+		frappe.set_user("Administrator")
+
+		self.assertEqual(names(dock_for(self.PERSON, among=None)), [ALPHA, "https://frappe.io"])
+		self.assertEqual([row["added"] for row in get_site_dock(APP)], [0, 1])
+
+	def test_a_person_saving_again_keeps_their_add_and_their_label(self):
+		docs = added({"link_type": "URL", "url": "https://frappe.io"}, title="Frappe")
+		frappe.set_user(self.PERSON)
+		save_user_dock(APP, payload(sidebar(ALPHA, title="Mine"), docs))
+		save_user_dock(APP, payload(sidebar(ALPHA, title="Mine"), docs))
+		frappe.set_user("Administrator")
+
+		rail = dock_for(self.PERSON, among=None)
+		self.assertEqual(names(rail), [ALPHA, "https://frappe.io"])
+		self.assertEqual(rail[0]["title"], "Mine")
+
 	def test_an_unreachable_add_is_refused(self):
 		"""Reach is the only bound. A user may name anything they can already navigate to and
 		nothing else, which stops an add from being a way past permissions.
