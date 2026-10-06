@@ -1,7 +1,7 @@
 frappe.pages["workspace-restore"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("Restore Workspace Edits"),
+		title: __("Restore Workspace"),
 		single_column: true,
 	});
 	wrapper.workspace_restore = new WorkspaceRestore(page);
@@ -49,11 +49,12 @@ class WorkspaceRestore {
 		);
 
 		if (!rows.length) {
-			this.$body.append(
-				`<p class="text-muted">${__(
-					"No pre-upgrade edits to standard workspaces were found."
-				)}</p>`
-			);
+			const reason = frappe.boot.developer_mode
+				? __(
+						"This site is in developer mode, so edits to standard workspaces belong to the app's JSON and there is nothing to restore."
+				  )
+				: __("No pre-upgrade edits to standard workspaces were found.");
+			this.$body.append(`<p class="text-muted">${reason}</p>`);
 			return;
 		}
 
