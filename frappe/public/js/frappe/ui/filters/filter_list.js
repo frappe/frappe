@@ -43,7 +43,6 @@ frappe.ui.FilterGroup = class {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.filters = this.filters || [];
-		window.fltr = this;
 		if (!this.filter_button) {
 			this.wrapper = this.parent;
 			this.wrapper.append(this.get_filter_area_template());
@@ -641,10 +640,10 @@ frappe.ui.FilterGroup = class {
 		// the clear button only shows, and joins the filter button, when there is something to clear
 		this.filter_button.toggleClass("rounded-se-none rounded-ee-none", count > 0);
 		this.filter_x_button?.toggleClass("hidden", !count);
-		this.filter_button.attr(
-			"title",
-			count ? __("{0} filters applied", [count]) : __("Filter")
-		);
+		let title = __("Filter");
+		if (count)
+			title = count === 1 ? __("1 filter applied") : __("{0} filters applied", [count]);
+		this.filter_button.attr("title", title);
 	}
 
 	set_filter_events() {

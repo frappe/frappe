@@ -932,6 +932,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			} finally {
 				this._syncing_filters = false;
 			}
+			// a quick filter picked meanwhile was skipped above; the board catches up now
+			if (this.board) this.apply_filters();
 		}
 		this.sync_filter_ui();
 	}

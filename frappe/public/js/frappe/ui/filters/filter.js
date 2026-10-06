@@ -329,8 +329,13 @@ frappe.ui.Filter = class {
 		}
 		if (condition) this.set_condition(condition, true);
 
-		// set value can be asynchronous, so update_filter_tag should happen after field is set
+		// the value can be set asynchronously; callers wait on this
 		this._filter_value_set = Promise.resolve();
+
+		// an "in" list kept as text by older filters and links: "a,b" or '["a","b"]'
+		if (this.field.df.fieldtype === "MultiSelectList" && typeof value === "string" && value) {
+			value = this.utils.split_values(value);
+		}
 
 		if (
 			["in", "not in"].includes(condition) &&
@@ -619,6 +624,19 @@ frappe.ui.Filter = class {
 };
 
 frappe.ui.filter_utils = {
+	// an "in" list as text: a JSON array, or values separated by commas
+	split_values(text) {
+		try {
+			const parsed = JSON.parse(text);
+			return Array.isArray(parsed) ? parsed : [String(parsed)];
+		} catch {
+			return text
+				.split(",")
+				.map((v) => strip(v))
+				.filter((v) => v != null && v !== "");
+		}
+	},
+
 	get_formatted_value(field, value) {
 		if (field.df.fieldname === "docstatus") {
 			value = { 0: "Draft", 1: "Submitted", 2: "Cancelled" }[value] || value;
@@ -661,15 +679,7 @@ frappe.ui.filter_utils = {
 			if (Array.isArray(val)) {
 				val = val.length ? val : null;
 			} else if (val) {
-				try {
-					const parsed = JSON.parse(val);
-					val = Array.isArray(parsed) ? parsed : [String(parsed)];
-				} catch {
-					val = val
-						.split(",")
-						.map((v) => strip(v))
-						.filter((v) => v != null && v !== "");
-				}
+				val = frappe.ui.filter_utils.split_values(val);
 			}
 		} else if (frappe.boot.additional_filters_config[condition]) {
 			val = field.value || val;
