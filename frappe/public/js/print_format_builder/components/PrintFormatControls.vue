@@ -124,9 +124,6 @@
 			<div class="pfb-group-label">
 				{{ __("Saved Snippets") }}
 			</div>
-			<div class="pfb-group-desc">
-				{{ __("Save a section or field as a snippet") }}
-			</div>
 			<template v-for="grp in snippet_groups" :key="grp.type">
 				<draggable
 					v-if="grp.items.length"
@@ -919,12 +916,6 @@ function handle_slash_key(e) {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-}
-
-.pfb-group-desc {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 0 16px 4px;
 }
 
 /* ── Field row (Fields tab) ──────────────────────────────── */
