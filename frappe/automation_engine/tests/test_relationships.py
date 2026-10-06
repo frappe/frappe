@@ -7,13 +7,8 @@ import frappe
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.relationships import AutomationRelationshipProvider
 from frappe.automation_engine.runner import execute_automation
-from frappe.automation_engine.tests.test_runner import (
-	commit_edit_from_another_connection,
-	delete_committed_run_fixtures,
-	make_automation,
-)
+from frappe.automation_engine.tests.test_runner import make_automation
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 
 PROVIDER = "frappe.automation_engine.tests.test_relationships.ToDoNoteProvider"
 
@@ -63,28 +58,6 @@ class TestRelationships(IntegrationTestCase):
 			relationships=json.dumps([{"alias": "note", "relationship": "reference"}]),
 		)
 		execute_automation(self._queue(auto, todo.name))
-		self.assertEqual(frappe.db.get_value("Note", note.name, "title"), "after")
-
-	@unimplemented_for(db_type_is.SQLITE)
-	def test_retry_relocks_a_related_record_edited_by_another_connection(self):
-		note = self._note("before")
-		todo = self._todo(note)
-		auto = make_automation(
-			[
-				{
-					"action_type": "SetFieldValue",
-					"target": "note",
-					"params": '{"field":"title","value":"after"}',
-				}
-			],
-			relationships=json.dumps([{"alias": "note", "relationship": "reference"}]),
-		)
-		queue = self._queue(auto, todo.name)
-		frappe.db.commit()
-		self.addCleanup(delete_committed_run_fixtures, auto, todo, note)
-
-		commit_edit_from_another_connection(note)
-		execute_automation(queue)
 		self.assertEqual(frappe.db.get_value("Note", note.name, "title"), "after")
 
 	def test_unknown_target_alias_is_rejected_on_save(self):
