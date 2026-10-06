@@ -263,23 +263,6 @@
 								}
 							}
 
-							.center-area {
-								display: flex;
-								align-items: center;
-								@include get_textstyle("base", "regular");
-
-								@include media-breakpoint-down(sm) {
-									order: 0;
-									width: 100%;
-									justify-content: center;
-									margin-bottom: 1.5rem;
-
-									&:empty {
-										margin: 0;
-									}
-								}
-							}
-
 							.right-area {
 								display: flex;
 								justify-content: flex-end;
