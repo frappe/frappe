@@ -235,6 +235,13 @@ class File(Document):
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
+		if self.flags.ignore_permissions or frappe.flags.in_install:
+			return
+
+		from frappe.handler import check_write_permission
+
+		check_write_permission(self.attached_to_doctype, self.attached_to_name)
+
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():
 			setup_folder_path(successor, self.name)
