@@ -667,7 +667,7 @@ export default class Grid {
 				this.frm.doc,
 				this.perm
 			);
-		} else if (this.df.is_web_form && this.control) {
+		} else if (this.control) {
 			this.display_status = this.control.get_status();
 		} else {
 			// not in form
