@@ -144,6 +144,7 @@ class SQLiteLogDocument(Document):
 		order_by=None,
 		group_by=None,
 		as_list=False,
+		pluck=None,
 		start=None,
 		offset=None,
 		limit_start=None,
@@ -183,8 +184,11 @@ class SQLiteLogDocument(Document):
 			offset=start_at or None,
 		)
 
-		# `as_list` callers index rows positionally, so they must not get dicts back.
-		return db.sql(query, as_dict=not as_list)
+		# `as_list` callers index rows positionally, so they must not get dicts back, and a
+		# `pluck` caller wants the bare column values. Both dispatchers select the plucked
+		# field as the only field, so flattening the first column is all that is left to do --
+		# without this, `frappe.get_all(..., pluck="name")` hands back a list of dicts.
+		return db.sql(query, as_dict=not (as_list or pluck), pluck=bool(pluck))
 
 	@staticmethod
 	def get_count(doctype: str, filters=None, **kwargs) -> int:

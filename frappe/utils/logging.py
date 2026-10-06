@@ -167,6 +167,8 @@ def ensure_log_table(doctype: str) -> None:
 		"`idx` INTEGER NOT NULL DEFAULT 0",
 	]
 
+	indexed = []
+
 	for column in meta.get_valid_columns():
 		if column in log_db.DEFAULT_COLUMNS:
 			continue
@@ -175,13 +177,38 @@ def ensure_log_table(doctype: str) -> None:
 		column_type = log_db.type_map.get(field.fieldtype, ("TEXT", None))[0] if field else "TEXT"
 		definitions.append(f"`{column}` {column_type}")
 
+		# A log DocType is read through the same filters it was designed for -- Web Page View
+		# counts views per `path` and checks a `visitor_id` on every single view -- so the
+		# indexes its meta declares matter just as much here as they did in the primary
+		# database. Nothing else creates them: `DBTable.sync`, which normally does, skips
+		# virtual doctypes along with their table.
+		if field and field.search_index:
+			indexed.append(column)
+
 	# `IF NOT EXISTS` rather than a `get_tables()` probe: that helper caches under the
 	# site-global `db_tables` key, which the primary connection also uses, so asking it here
 	# would overwrite the primary's cached table list.
 	log_db.sql_ddl("CREATE TABLE IF NOT EXISTS `{}` ({})".format(table, ", ".join(definitions)))
-	log_db.sql_ddl(f"CREATE INDEX IF NOT EXISTS `{table}_creation_idx` ON `{table}` (`creation`)")
+
+	for column in ["creation", *indexed]:
+		log_db.sql_ddl(f"CREATE INDEX IF NOT EXISTS `{table}_{column}_idx` ON `{table}` (`{column}`)")
 
 	created.add(doctype)
+
+
+def log_cutoff(days: int) -> str:
+	"""Return the timestamp `days` in the past, as a string.
+
+	Log retention is expressed as "older than N days", and every log DocType needs the same
+	boundary. The cutoff is computed in Python rather than with `Now() - Interval(days=...)`,
+	which the query builder renders for SQLite as
+	`CURRENT_TIMESTAMP - datetime('now', '+N days')` -- one timestamp minus another, which
+	SQLite evaluates numerically and never matches. A literal keeps the comparison correct,
+	and `creation` is an ISO timestamp so string ordering is chronological ordering.
+	"""
+	from frappe.utils import add_days, cint, now
+
+	return add_days(now(), -cint(days))
 
 
 def log_table(doctype: str):

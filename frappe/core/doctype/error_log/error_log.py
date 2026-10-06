@@ -3,22 +3,9 @@
 
 import frappe
 from frappe.query_builder.functions import Count, Date, Max, Min
-from frappe.utils import add_days, cint, now
 from frappe.utils.caching import http_cache
-from frappe.utils.logging import get_log_db, log_table
+from frappe.utils.logging import get_log_db, log_cutoff, log_table
 from frappe.utils.sqlite_document import SQLiteLogDocument
-
-
-def _cutoff(days: int) -> str:
-	"""Return the timestamp `days` in the past, as a string.
-
-	The cutoff is computed in Python rather than with `Now() - Interval(days=...)`, which the
-	query builder renders for SQLite as `CURRENT_TIMESTAMP - datetime('now', '+N days')` --
-	one timestamp minus another, which SQLite evaluates numerically and never matches. A
-	literal keeps the comparison correct, and `creation` is an ISO timestamp so string
-	ordering is chronological ordering.
-	"""
-	return add_days(now(), -cint(days))
 
 
 class ErrorLog(SQLiteLogDocument):
@@ -62,7 +49,7 @@ class ErrorLog(SQLiteLogDocument):
 		db = get_log_db()
 		qb, table = log_table("Error Log")
 
-		db.sql(qb.from_(table).where(table.creation < _cutoff(days)).delete())
+		db.sql(qb.from_(table).where(table.creation < log_cutoff(days)).delete())
 		db.commit()
 
 
@@ -129,7 +116,7 @@ def get_fingerprint_stats(fingerprint: str) -> dict:
 	timeline = db.sql(
 		qb.from_(table)
 		.where(table.fingerprint == fingerprint)
-		.where(table.creation >= _cutoff(30))
+		.where(table.creation >= log_cutoff(30))
 		.groupby(Date(table.creation))
 		.orderby(Date(table.creation))
 		.select(Date(table.creation).as_("day"), Count("*").as_("count")),
