@@ -195,11 +195,13 @@ body {
 	}
 }
 
-{%- if for_chrome and chrome_layout_footer %}
+{%- if (for_chrome and chrome_layout_footer) or not (for_chrome or repeat_frame) %}
 body {
 	display: flex;
 	flex-direction: column;
+{%- if for_chrome %}
 	min-height: 100vh;
+{%- endif %}
 }
 .print-footer-once {
 	margin-top: auto;
