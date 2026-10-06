@@ -18,7 +18,6 @@ from frappe.utils.logging import ensure_log_table, get_log_db, log_table
 
 class SQLiteLogDocument(Document):
 	"""Base controller for log DocTypes that store their rows in the log database.
-
 	Log DocTypes are declared `is_virtual`, which tells the framework it owns no table
 	for them in the site's primary database, and routes persistence and listing through
 	the controller. This class implements that contract against :func:`get_log_db`,
