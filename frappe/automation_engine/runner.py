@@ -22,8 +22,22 @@ from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.relationships import load_record, resolve_relationships
 from frappe.utils import add_to_date, cint, now
 
-TASK_METHOD = "frappe.automation_engine.runner.execute_automation"
-TASK_NAME_PREFIX = "Automation Flow: "
+RUN = "Automation Run"
+STEP_FIELDS = (
+	"step_idx",
+	"step_key",
+	"action_type",
+	"status",
+	"detail",
+	"message",
+	"exception",
+	"traceback",
+	"condition",
+	"condition_values",
+	"output",
+	"duration_ms",
+)
+STEP_JSON_FIELDS = ("condition_values", "output")
 WAIT_UNIT_SECONDS = {"Seconds": 1, "Minutes": 60, "Hours": 3600, "Days": 86400}
 
 
@@ -75,11 +89,20 @@ def _run_state(rule, row, doc):
 
 
 def _resumed_run_state(row):
-	"""Pick a waiting run back up: same Background Task, its original snapshot and steps."""
-	run = frappe.get_doc("Background Task", row.resume_run)
-	arguments = frappe.parse_json(run.arguments) if run.arguments else {}
-	result = frappe.parse_json(run.result) if run.result else {}
-	return run, result.get("steps") or [], arguments.get("actions_snapshot") or []
+	"""Pick a waiting run back up: same Automation Run, its original snapshot and steps."""
+	run = frappe.get_doc(RUN, row.resume_run)
+	return run, run_steps(run), frappe.parse_json(run.actions_snapshot) or []
+
+
+def run_steps(run) -> list[dict]:
+	"""The run's recorded steps as plain dicts, in the shape the runner appends them."""
+	steps = []
+	for row in run.steps:
+		step = {field: row.get(field) for field in STEP_FIELDS}
+		for field in STEP_JSON_FIELDS:
+			step[field] = frappe.parse_json(step[field]) if step[field] else None
+		steps.append(step)
+	return steps
 
 
 def _load_target(row):
@@ -92,44 +115,27 @@ def _load_target(row):
 
 
 def _create_run(rule, row, snapshot, doc):
-	run = frappe.new_doc("Background Task")
-	run.update(_task_values(rule, row, snapshot, doc))
+	run = frappe.new_doc(RUN)
+	run.update(_run_start_values(rule, row, snapshot, doc))
 	# The referenced doc may legitimately be gone (deleted, or a Doc Deleted trigger); the
-	# task must record it regardless, so skip Dynamic Link existence validation.
+	# run must record it regardless, so skip Dynamic Link existence validation.
 	run.flags.ignore_links = True
-	# Automations work in the background: their runs are found in the task list and the logs,
-	# never announced with a toast.
-	run.flags.silent = True
 	return run.insert(ignore_permissions=True)
 
 
-def _task_values(rule, row, snapshot, doc) -> dict:
-	return {
-		"task_id": frappe.generate_hash(length=20),
-		"job_id": row.name,
-		"task_name": automation_task_name(rule.name),
-		"user": _execution_user(rule, row, doc),
-		"method": TASK_METHOD,
-		"status": "Running",
-		"queue": "default",
-		"ref_doctype": row.ref_doctype,
-		"ref_docname": row.ref_name,
-		"started_at": now(),
-		"arguments": frappe.as_json(_task_arguments(rule, row, snapshot)),
-		"show_progress_bar": 0,
-		"allow_user_cancellation": 0,
-		"allow_user_retry": 0,
-	}
-
-
-def _task_arguments(rule, row, snapshot) -> dict:
+def _run_start_values(rule, row, snapshot, doc) -> dict:
 	return {
 		"automation": rule.name,
 		"automation_title": rule.title,
+		"status": "Running",
+		"reference_doctype": row.ref_doctype,
+		"reference_name": row.ref_name,
+		"user": _execution_user(rule, row, doc),
 		"depth": cint(row.depth),
-		"event_payload": frappe.parse_json(row.event_payload) if row.event_payload else {},
-		"actions_snapshot": snapshot,
-		"relationships": frappe.parse_json(rule.relationships) if rule.relationships else [],
+		"queue_row": row.name,
+		"started_at": now(),
+		"actions_snapshot": frappe.as_json(snapshot),
+		"relationships": rule.relationships,
 	}
 
 
@@ -149,15 +155,10 @@ def _action_snapshot(action) -> dict:
 	}
 
 
-def automation_task_name(automation: str) -> str:
-	return f"{TASK_NAME_PREFIX}{automation}"
-
-
 def _context(row, run, rule, doc, event=None) -> dict:
 	"""Assemble what steps can read. A resumed run restores the aliases and outputs the first
-	leg recorded on the Background Task instead of re-resolving them."""
-	arguments = frappe.parse_json(run.arguments) if run.arguments else {}
-	result = frappe.parse_json(run.result) if run.result else {}
+	leg recorded on the Automation Run instead of re-resolving them."""
+	state = frappe.parse_json(run.run_state) if run.run_state else {}
 	return {
 		"payload": frappe.parse_json(row.event_payload) if row.event_payload else {},
 		"event": event or {},
@@ -165,9 +166,9 @@ def _context(row, run, rule, doc, event=None) -> dict:
 		"run": run,
 		"rule": rule,
 		"trigger_doc": doc,
-		"steps": result.get("step_outputs") or {},
-		"records": result.get("records") or resolve_relationships(doc, arguments.get("relationships")),
-		"branches": result.get("branches") or {},
+		"steps": state.get("step_outputs") or {},
+		"records": state.get("records") or resolve_relationships(doc, frappe.parse_json(run.relationships)),
+		"branches": state.get("branches") or {},
 	}
 
 
@@ -257,7 +258,7 @@ def _branch_active(step, taken) -> bool:
 
 
 def _branch_key(idx) -> str:
-	# Keyed by string: this dict round-trips through the run's JSON result, which has no
+	# Keyed by string: this dict round-trips through the run's JSON state, which has no
 	# integer keys, and a resumed leg has to look up what the first one wrote.
 	return str(cint(idx))
 
@@ -505,9 +506,9 @@ def _ms(started) -> int:
 
 def _finalize(run, rule, row, status, steps, error=None, context=None):
 	error_summary = error or _error_summary(status, steps)
-	run.update(_run_values(rule, row, status, steps, error_summary, context))
+	run.update(_run_values(status, steps, error_summary, context))
 	# The target may have been deleted since the run started (notably across a Wait, or on a
-	# Doc Deleted trigger); the task must still record its outcome, so skip link validation.
+	# Doc Deleted trigger); the run must still record its outcome, so skip link validation.
 	run.flags.ignore_links = True
 	run.save(ignore_permissions=True)
 	_settle_queue_row(row, status)
@@ -533,25 +534,34 @@ def _publish_update(run, rule, status):
 	frappe.publish_realtime(
 		"automation_run_update",
 		{"automation": rule.name, "run": run.name, "status": status},
-		doctype=run.ref_doctype,
-		docname=run.ref_docname,
+		doctype=run.reference_doctype,
+		docname=run.reference_name,
 	)
 
 
-def _run_values(rule, row, status, steps, error_summary, context=None) -> dict:
-	values = {
-		"result": frappe.as_json(_run_result(rule, row, status, steps, error_summary, context)),
-		"exception": _first_error_detail(steps) if status == "Failed" else None,
-	}
-	if status == "Waiting":
-		# Background Task has no paused state, and the resume row finishes this same task.
-		return {**values, "status": "Running"}
-	return {
-		**values,
-		"status": "Failed" if status == "Failed" else "Completed",
-		"ended_at": now(),
-		"progress": 100,
-	}
+def _run_values(status, steps, error_summary, context=None) -> dict:
+	values = {"status": status, "error_summary": error_summary, "steps": _step_rows(steps)}
+	if context:
+		values["run_state"] = frappe.as_json(
+			{
+				"step_outputs": context["steps"],
+				"records": context["records"],
+				"branches": context["branches"],
+			}
+		)
+	if status != "Waiting":
+		# A Waiting run is finished by the resume row, on this same record.
+		values["ended_at"] = now()
+	return values
+
+
+def _step_rows(steps) -> list[dict]:
+	# Serialized here rather than by the JSON field, which cannot encode the dates and decimals
+	# a condition or an action output can carry.
+	return [
+		{**step, **{field: frappe.as_json(step[field]) for field in STEP_JSON_FIELDS if step.get(field)}}
+		for step in steps
+	]
 
 
 def _settle_queue_row(row, status):
@@ -562,26 +572,6 @@ def _settle_queue_row(row, status):
 		frappe.db.delete(QUEUE, {"name": row.name})
 	else:
 		frappe.db.set_value(QUEUE, row.name, "status", status, update_modified=False)
-
-
-def _run_result(rule, row, status, steps, error_summary, context=None) -> dict:
-	result = {
-		"automation": rule.name,
-		"automation_title": rule.title,
-		"automation_status": status,
-		"depth": cint(row.depth),
-		"error_summary": error_summary,
-		"steps": steps,
-	}
-	if context:
-		result.update(
-			{
-				"step_outputs": context["steps"],
-				"records": context["records"],
-				"branches": context["branches"],
-			}
-		)
-	return result
 
 
 def _error_summary(status, steps) -> str | None:

@@ -970,6 +970,19 @@ class TestSiteMigration(BaseTestCommands):
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
 
+	def test_deprecated_skip_search_index_option(self):
+		context = frappe._dict(sites=[TEST_SITE], profile=False)
+		with patch("frappe.migrate.SiteMigration") as site_migration:
+			result = CliRunner().invoke(
+				frappe.commands.site.migrate,
+				["--skip-search-index"],
+				obj=context,
+			)
+
+		self.assertEqual(result.exit_code, 0, result.output)
+		self.assertIn("--skip-search-index is deprecated and has no effect", result.stderr)
+		site_migration.return_value.run.assert_called_once_with(site=TEST_SITE)
+
 
 class TestAddNewUser(BaseTestCommands):
 	def test_create_user(self):

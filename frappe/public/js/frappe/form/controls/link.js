@@ -478,7 +478,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			cache: use_get,
 			args: args,
 			callback: async (r) => {
-				if (!window.Cypress && !this.$input.is(":focus")) {
+				if (!navigator.webdriver && !this.$input.is(":focus")) {
 					return;
 				}
 				r.message = this.merge_duplicates(r.message);

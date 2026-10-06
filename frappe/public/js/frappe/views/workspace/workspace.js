@@ -279,11 +279,7 @@ frappe.views.Workspace = class Workspace {
 			const me = this;
 			// private workspaces are stored as `${title}-${for_user}`; show just the title
 			let header_dropdown = `${__(this._page.title)}`;
-			frappe.breadcrumbs.add({
-				type: "Custom",
-				label: header_dropdown,
-				route: "#",
-			});
+			this.page.set_breadcrumbs([{ label: header_dropdown }]);
 			if (!this.add_workspace_controls) {
 				this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
 
@@ -414,7 +410,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
 				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
-				// this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
+				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
@@ -1298,7 +1294,7 @@ frappe.views.Workspace = class Workspace {
 				callback: (r) => {
 					if (r.message) {
 						let message = __("Workspace {0} created", [new_page.title.bold()]);
-						if (!window.Cypress) {
+						if (!navigator.webdriver) {
 							frappe.show_alert({
 								message: message,
 								indicator: "green",
@@ -1515,7 +1511,7 @@ frappe.views.Workspace = class Workspace {
 							page.is_layout_customized = 1;
 							me.discard = true;
 							me.reload();
-							if (window.Cypress) return;
+							if (navigator.webdriver) return;
 							frappe.show_alert({
 								message: __("Saved"),
 								indicator: "green",

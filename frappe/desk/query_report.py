@@ -11,6 +11,7 @@ import frappe
 import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
+from frappe.database.duckdb.database import get_latest_complete_sync
 from frappe.desk.form.load import get_attachments
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.desk.reportview import clean_params, parse_json
@@ -63,12 +64,12 @@ def get_report_doc(report_name):
 	return doc
 
 
-@frappe.whitelist()
-def get_print_format_data(print_format: str):
+def get_permitted_report_print_format(print_format: str) -> frappe._dict:
+	"""Resolve an enabled Report print format, enforcing the report it belongs to."""
 	pf = frappe.db.get_value(
 		"Print Format",
 		{"name": print_format, "disabled": 0, "print_format_for": "Report"},
-		["report", "html", "css"],
+		["report", "html", "css", "print_format_type"],
 		as_dict=True,
 	)
 	if not pf:
@@ -77,7 +78,7 @@ def get_print_format_data(print_format: str):
 			frappe.DoesNotExistError,
 		)
 
-	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
+	# get_report_doc enforces the referenced Report's own permission model
 	report = get_report_doc(pf.report)
 
 	if not frappe.has_permission(report.ref_doctype, "print"):
@@ -86,7 +87,18 @@ def get_print_format_data(print_format: str):
 			frappe.PermissionError,
 		)
 
-	return {"html": pf.html, "css": pf.css}
+	return pf
+
+
+@frappe.whitelist()
+def get_print_format_data(print_format: str):
+	pf = get_permitted_report_print_format(print_format)
+
+	# a Jinja format is rendered server side, so its template never leaves the server
+	if pf.print_format_type == "Jinja":
+		return {"print_format_type": pf.print_format_type}
+
+	return {"html": pf.html, "css": pf.css, "print_format_type": pf.print_format_type}
 
 
 def get_report_result(report, filters):
@@ -174,18 +186,11 @@ def generate_report_result(
 	}
 
 	if report.snapshot_report and report.doctype_to_sync:
-		if latest_sync := frappe.db.get_all(
-			"DuckDB Sync",
-			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
-			fields=["creation"],
-			pluck="creation",
-			order_by="creation desc",
-			limit=1,
-		):
+		if latest_sync := get_latest_complete_sync(report.doctype_to_sync[0].doc_type):
 			return_dict.update(
 				{
 					"snapshot_report": True,
-					"snapshot_at": latest_sync[0],
+					"snapshot_at": latest_sync.creation,
 				}
 			)
 
@@ -961,7 +966,7 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	if_owner = role_permissions.get("if_owner", {}).get("report")
 
 	if ref_doctype_meta.get_masked_fields():
-		from frappe.model.db_query import mask_field_value
+		from frappe.model.utils.mask import mask_field_value
 
 		# Apply masking to the fields
 		for field in ref_doctype_meta.get_masked_fields():

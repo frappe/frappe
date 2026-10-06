@@ -20,7 +20,7 @@
 			</template>
 		</Button>
 	</div>
-	<Button v-else @click="signupNow">
+	<Button v-else aria-label="Sign up now" @click="signupNow">
 		<LightningIcon class="h-4 my-0.5 shrink-0" />
 	</Button>
 </template>

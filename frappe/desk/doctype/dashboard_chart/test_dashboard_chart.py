@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 from datetime import datetime
+from itertools import pairwise
 from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
@@ -303,6 +304,40 @@ class TestDashboardChart(IntegrationTestCase):
 			result = get(chart_name="Test Average Dashboard Chart", refresh=1)
 			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019", "01-20-2019"])
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 150.0, 266.6666666666667, 0.0])
+
+	def test_heatmap_dashboard_chart(self):
+		insert_test_records(self.doctype_name)
+		create_new_record(self.doctype_name, "Title 7", datetime(2019, 1, 1), 25)
+		frappe.delete_doc_if_exists("Dashboard Chart", "Test Heatmap Dashboard Chart")
+
+		frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name="Test Heatmap Dashboard Chart",
+			chart_type="Sum",
+			type="Heatmap",
+			document_type=self.doctype_name,
+			based_on="date",
+			value_based_on="number",
+			filters_json="[]",
+		).insert()
+
+		result = get(chart_name="Test Heatmap Dashboard Chart", heatmap_year=2019, no_cache=1)
+		days_apart = [(b - a) // 86400 for a, b in pairwise(result["dataPoints"])]
+
+		self.assertEqual(list(result["dataPoints"].values()), [25, 100, 200, 400, 300, 100])
+		self.assertEqual(days_apart, [3, 2, 1, 1, 2])
+
+	def test_heatmap_dashboard_chart_checks_permission(self):
+		chart = {
+			"name": "Test Heatmap",
+			"chart_type": "Count",
+			"type": "Heatmap",
+			"document_type": self.doctype_name,
+			"based_on": "date",
+		}
+
+		with self.set_user("Guest"), self.assertRaises(frappe.PermissionError):
+			get(chart=frappe.as_json(chart), no_cache=1)
 
 	def test_user_date_label_dashboard_chart(self):
 		frappe.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")

@@ -10,8 +10,8 @@ Check these first. Ask for the missing piece before reading the code.
 
 - UI changes have before/after screenshots or a video. Ask again after every UI push.
 - The bug reproduces on latest develop with the steps in the PR. If there are no steps, ask for a traceback or a minimal repro. If it cannot be reproduced, close for now.
-- Branch is rebased with no merge commits or unrelated commits.
-- Title and commits follow Conventional Commits.
+- Branch has no unrelated commits. Allow merge commits that only bring in the target branch. Do not require a rebase for these commits.
+- Title and authored commits follow Conventional Commits. Generated messages for target-branch merge commits are exempt.
 - Description says what was broken, why, what changed and how to test, and matches the final diff.
 - Read the other reviewers' comments and the linked issue before writing your own.
 
@@ -79,7 +79,6 @@ Check these first. Ask for the missing piece before reading the code.
 - No `commit()` in document events. Side effects that must survive run `after_commit`.
 - Convert inputs into query builder objects; never regex-check or rewrite generated SQL. MariaDB is the reference; DB-specific code lives in `frappe/database/<db>/`. Sorts that feed pagination are deterministic.
 - Pick the right cache and prove invalidation. `site_cache` is per process and never invalidated.
-- DocType JSON is changed through the UI, never by hand, and committed with a bumped `modified`. Patches only when data actually needs to move.
 
 ### UI
 
@@ -111,7 +110,7 @@ Check these first. Ask for the missing piece before reading the code.
 ## Verdict
 
 - Any real ask means changes requested. Approve when there is none. "Ready with nits" is only for things you would not actually ask to change.
-- Blocking, not a nit: a new crash or uncaught exception, leftover no-op code, the same bug in a sibling file, a missing `modified` bump, a missing permission check, a breaking change without `!` and a migration path.
+- Blocking, not a nit: a new crash or uncaught exception, leftover no-op code, the same bug in a sibling file, a missing permission check, a breaking change without `!` and a migration path.
 - Before reporting a finding, confirm the symbol, string or class you name exists where you say it does. Cite a file and line you actually read.
 - Bot findings (Greptile, Copilot, Semgrep) are reproduced and answered with evidence, not dismissed and not repeated blindly.
 

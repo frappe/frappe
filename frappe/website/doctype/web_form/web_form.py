@@ -770,9 +770,6 @@ def get_context(context):
 			elif field.options == "URL":
 				validate_url(value, throw=True)
 
-	def allow_website_search_indexing(self):
-		return False
-
 	def has_web_form_permission(self, doctype, name, ptype="read"):
 		if frappe.session.user == "Guest":
 			return False
@@ -840,6 +837,12 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
+	link_filters = field.get("link_filters")
+	if field.get("doctype") == "Web Form Field":
+		web_form_doctype = frappe.get_cached_doc("Web Form", web_form_name).doc_type
+		docfield = frappe.get_meta(web_form_doctype).get_field(field.fieldname)
+		link_filters = docfield.link_filters if docfield else None
+
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
 		web_form_name,
@@ -847,6 +850,7 @@ def process_link_field(field, web_form_name, web_form_request_key=None, docname=
 		getattr(field, "allow_read_on_all_link_options", False),
 		web_form_request_key=web_form_request_key,
 		docname=docname,
+		link_filters=link_filters,
 	)
 	return field
 
@@ -1301,6 +1305,7 @@ def get_link_options(
 	allow_read_on_all_link_options=False,
 	web_form_request_key=None,
 	docname=None,
+	link_filters=None,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
@@ -1322,9 +1327,13 @@ def get_link_options(
 			frappe.PermissionError,
 		)
 
-	link_options, filters = [], {}
+	filters = [
+		link_filter
+		for link_filter in json.loads(link_filters or "[]")
+		if not frappe.cstr(link_filter[3]).startswith("eval:")
+	]
 	if web_form.login_required and not allow_read_on_all_link_options:
-		filters = {"owner": frappe.session.user}
+		filters.append(["owner", "=", frappe.session.user])
 
 	fields = ["name as value"]
 
@@ -1334,7 +1343,7 @@ def get_link_options(
 	if show_title_field:
 		fields.append(f"{meta.title_field} as label")
 
-	link_options = frappe.get_all(doctype, filters, fields)
+	link_options = frappe.get_all(doctype, filters=filters, fields=fields)
 
 	# the portal matches with `value.toLowerCase()`, which throws on an autoincrement name or
 	# a numeric title field. cstr, not str, so a missing title stays ""

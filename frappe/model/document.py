@@ -565,7 +565,7 @@ class Document(BaseDocument):
 		return self
 
 	def mask_fields(self):
-		from frappe.model.db_query import mask_field_value
+		from frappe.model.utils.mask import mask_field_value
 
 		mask_fields = frappe.get_meta(self.doctype).get_masked_fields()
 
@@ -748,7 +748,7 @@ class Document(BaseDocument):
 
 		# parent
 		if getattr(self.meta, "issingle", 0):
-			self.update_single(self.get_valid_dict())
+			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
@@ -859,7 +859,7 @@ class Document(BaseDocument):
 
 		# parent
 		if self.meta.issingle:
-			self.update_single(self.get_valid_dict())
+			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_update()
 

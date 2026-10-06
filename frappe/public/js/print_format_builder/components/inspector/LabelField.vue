@@ -9,7 +9,7 @@
 			/>
 			<input
 				v-if="!showToggle || show_on"
-				class="pfb-insp-input"
+				class="form-control form-control-sm pfb-insp-input"
 				type="text"
 				:placeholder="placeholder"
 				:value="modelValue"

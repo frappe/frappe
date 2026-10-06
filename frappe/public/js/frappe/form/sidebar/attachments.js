@@ -57,7 +57,9 @@ frappe.ui.form.Attachments = class Attachments {
 		this.parent.find(".attachment-row").remove();
 
 		var max_reached = this.max_reached();
-		this.add_attachment_wrapper.find(".add-attachment-btn").toggle(!max_reached);
+		this.add_attachment_wrapper
+			.find(".add-attachment-btn")
+			.toggle(!max_reached && this.frm.has_perm("write"));
 
 		// add attachment objects
 		var attachments = this.get_attachments();

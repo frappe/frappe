@@ -76,6 +76,7 @@ import "./frappe/ui/island/index.js";
 import "./frappe/ui/naming_series.js";
 
 import "./frappe/model/model.js";
+import "./frappe/views/kanban_v2/settings.js";
 import "./frappe/db.js";
 import "./frappe/model/meta.js";
 import "./frappe/model/sync.js";
@@ -141,4 +142,3 @@ import "./frappe/scanner";
 
 import "./frappe/ui/address_autocomplete/autocomplete_dialog.js";
 import "./frappe/ui/desktop_icon.html";
-import "./frappe/ui/user_onboarding/user_onboarding.bundle.js";

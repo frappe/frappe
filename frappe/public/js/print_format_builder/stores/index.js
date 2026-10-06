@@ -14,6 +14,7 @@ import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
 import { useSnippets } from "../composables/useSnippets";
+import { useTreeNavigation } from "../composables/useTreeNavigation";
 import { watch, ref, computed, nextTick } from "vue";
 import { useDraftSave } from "./useDraftSave";
 import { useVersions } from "./useVersions";
@@ -49,6 +50,12 @@ export function getStore(print_format_name) {
 		select_letterhead,
 		remove_field,
 	} = selection;
+	const { is_collapsed, toggle_collapse, navigate } = useTreeNavigation({
+		layout,
+		letterhead,
+		selection,
+		scroll_target,
+	});
 
 	// remove everything currently selected — field tombstones + spliced sections
 	function remove_selection() {
@@ -125,32 +132,7 @@ export function getStore(print_format_name) {
 						selected_letterhead.value = false;
 						selected_lh_footer.value = false;
 
-						const lh_name = layout.value?.letter_head;
-						// mirrors the server's get_letterhead: a named letter head loads,
-						// "" is an explicit removal, and an absent key falls back to the
-						// system default — the canvas must show what the print will use
-						let load_lh;
-						if (lh_name) {
-							load_lh = frappe.db
-								.get_doc("Letter Head", lh_name)
-								.then((doc) => (letterhead.value = doc))
-								.catch(() => (letterhead.value = null));
-						} else if (lh_name === "") {
-							load_lh = Promise.resolve((letterhead.value = null));
-						} else {
-							load_lh = frappe.db
-								.get_value("Letter Head", { is_default: 1 }, "name")
-								.then((r) => {
-									const name = r?.message?.name;
-									if (!name) return (letterhead.value = null);
-									return frappe.db
-										.get_doc("Letter Head", name)
-										.then((doc) => (letterhead.value = doc));
-								})
-								.catch(() => (letterhead.value = null));
-						}
-
-						load_lh.then(() => {
+						load_letterhead({ reload: true }).then(() => {
 							reset_history();
 							nextTick(() => (dirty.value = converted));
 							resolve();
@@ -159,6 +141,39 @@ export function getStore(print_format_name) {
 				});
 			});
 		});
+	}
+	// mirrors the server's get_letterhead: a named letter head loads, "" is an
+	// explicit removal, and an absent key falls back to the document's letter head,
+	// then the system default — the canvas must show what the print will use
+	let letterhead_seq = 0;
+	function load_letterhead({ reload = false } = {}) {
+		const seq = ++letterhead_seq;
+		const key = layout.value?.letter_head;
+		const name_ready =
+			key != null
+				? Promise.resolve(key)
+				: preview_doc.value?.letter_head
+				? Promise.resolve(preview_doc.value.letter_head)
+				: frappe.db
+						.get_value("Letter Head", { is_default: 1 }, "name")
+						.then((r) => r?.message?.name || "");
+		return name_ready
+			.then((name) => {
+				if (seq !== letterhead_seq) return;
+				if (!reload && name === (letterhead.value?.name || "")) return;
+				if (!reload) flush_letterhead();
+				if (!name) return (letterhead.value = null);
+				return frappe.db.exists("Letter Head", name).then((exists) =>
+					exists
+						? frappe.db.get_doc("Letter Head", name).then((doc) => {
+								if (seq === letterhead_seq) letterhead.value = doc;
+						  })
+						: seq === letterhead_seq && (letterhead.value = null)
+				);
+			})
+			.catch(() => {
+				if (seq === letterhead_seq) letterhead.value = null;
+			});
 	}
 	function convert_classic_layout(_print_format) {
 		return frappe
@@ -232,6 +247,7 @@ export function getStore(print_format_name) {
 	const {
 		saving_count,
 		save_failed,
+		letterhead_unsaved,
 		has_draft,
 		save_status,
 		call_format,
@@ -239,6 +255,8 @@ export function getStore(print_format_name) {
 		replace_from_server,
 		save_changes,
 		save_letterhead,
+		autosave_letterhead,
+		flush_letterhead,
 		autosave,
 		resume_autosave,
 		flush,
@@ -260,6 +278,7 @@ export function getStore(print_format_name) {
 		viewing_version,
 		call_format,
 		after_autosave,
+		flush,
 		replace_from_server,
 		get_preview_format_doc,
 		adopt_layout,
@@ -298,6 +317,8 @@ export function getStore(print_format_name) {
 		return create_default_layout(meta.value, print_format.value);
 	}
 	function remove_letterhead() {
+		letterhead_seq++;
+		flush_letterhead();
 		letterhead.value = null;
 		if (layout.value) {
 			// empty string, not delete: marks "user removed it" so the
@@ -306,7 +327,10 @@ export function getStore(print_format_name) {
 		}
 	}
 	function change_letterhead(_letterhead, { keep_clean = false } = {}) {
+		const seq = ++letterhead_seq;
+		flush_letterhead();
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
+			if (seq !== letterhead_seq) return;
 			letterhead.value = doc;
 			// persist the letter head name inside format_data (layout) so it
 			// survives save → reload without needing a separate doctype field
@@ -345,16 +369,16 @@ export function getStore(print_format_name) {
 		},
 		{ deep: true }
 	);
-	// letterhead edits flag themselves with _dirty instead of touching `dirty` —
-	// route them into the same autosave pipeline
 	watch(
 		letterhead,
 		() => {
-			if (!letterhead.value?._dirty) return;
-			dirty.value = true;
-			resume_autosave();
+			if (letterhead.value?._dirty) autosave_letterhead();
 		},
 		{ deep: true }
+	);
+	watch(
+		() => preview_doc.value?.letter_head,
+		() => layout.value && layout.value.letter_head == null && load_letterhead()
 	);
 	watch(dirty, (v) => v && autosave());
 
@@ -411,6 +435,9 @@ export function getStore(print_format_name) {
 		dirty,
 		needs_setup,
 		scroll_target,
+		is_collapsed,
+		toggle_collapse,
+		navigate,
 		hovered_field,
 		hovered_section,
 		hovered_node,
@@ -435,6 +462,7 @@ export function getStore(print_format_name) {
 		draft: {
 			saving_count,
 			save_failed,
+			letterhead_unsaved,
 			has_draft,
 			status: save_status,
 			save: save_changes,
@@ -465,6 +493,7 @@ export function getStore(print_format_name) {
 		reflow_dragged_group,
 		select_section,
 		select_letterhead,
+		insert_section,
 		remove_section,
 		get_default_layout,
 		change_letterhead,
@@ -482,7 +511,13 @@ export function getStore(print_format_name) {
 		insert_snippet,
 		delete_snippet,
 		paste_clipboard,
-		undo,
-		redo,
+		undo: () => {
+			undo();
+			load_letterhead();
+		},
+		redo: () => {
+			redo();
+			load_letterhead();
+		},
 	};
 }

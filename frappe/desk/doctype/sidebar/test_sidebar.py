@@ -896,6 +896,20 @@ class TestCanonicalShell(IntegrationTestCase):
 
 		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Selling")
 
+	def test_a_row_in_the_private_shell_claims_nothing(self):
+		"""A user who keeps a shortcut to `Job Offer` in their own shell has not moved it there.
+		`Private` sorts ahead of `Recruitment`, so counted as a claim it would win.
+		"""
+		index = shell_payload(
+			{
+				"HR": {},
+				"Private": {"lists": [("DocType", "Job Offer")]},
+				"Recruitment": {"lists": [("DocType", "Job Offer")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Job Offer", "HR"), "Recruitment")
+
 	def test_the_module_answers_last_when_no_shell_lists_the_entity(self):
 		index = shell_payload({"Stock": {}, "Selling": {"lists": [("DocType", "Customer")]}})
 
@@ -1011,6 +1025,48 @@ class TestCanonicalShellOfAPageRoute(IntegrationTestCase):
 		]
 
 		self.assertEqual(build_entity_module_map(sidebars)[f"{self.PAGE}/pulse-health"], "Pulse")
+
+
+class TestCanonicalShellOfASystemOrSharedPage(IntegrationTestCase):
+	"""A system page opens in no shell and a shared page in any. Only the first changes the map:
+	a shared page still has to open somewhere when nothing states a shell.
+	"""
+
+	SIDEBARS = shell_payload({"Build": {"lists": [("Page", "desktop", "apps")]}, "Printing": {}})
+
+	def build(self):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={
+				"desktop": {"module": "Build", "system_page": 1},
+				"print": {"module": "Printing", "shared_page": 1},
+			},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_system_page_is_not_in_the_map(self):
+		self.assertNotIn("desktop", self.build())
+
+	def test_a_route_into_a_system_page_is_not_in_the_map_either(self):
+		self.assertNotIn("desktop/apps", self.build())
+
+	def test_a_shared_page_opens_in_its_module_when_nothing_states_a_shell(self):
+		self.assertEqual(self.build()["print"], "Printing")
+
+	def test_the_desk_is_told_which_pages_are_which(self):
+		from frappe.desk.desk_views import DeskViews
+
+		email = user_with_roles("test-sidebar-page-flags@example.com", ["Desk User"])
+		self.enterContext(self.set_user(email))
+		pages = DeskViews.get_allowed_pages()
+
+		self.assertEqual(pages["print"].get("shared_page"), 1)
+		self.assertNotIn("system_page", pages["print"])
+		self.assertEqual(pages["desktop"].get("system_page"), 1)
+		self.assertNotIn("shared_page", pages["desktop"])
 
 
 class TestCanonicalShellPayload(IntegrationTestCase):

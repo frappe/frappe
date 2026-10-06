@@ -36,7 +36,7 @@ class SidebarItem(Document):
 		route: DF.Data | None
 		route_options: DF.Code | None
 		show_arrow: DF.Check
-		type: DF.Literal["Link", "Section Break"]
+		type: DF.Literal["Link", "Section Break", "Spacer"]
 		url: DF.Data | None
 	# end: auto-generated types
 
