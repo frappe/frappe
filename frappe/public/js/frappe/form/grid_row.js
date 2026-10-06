@@ -1336,7 +1336,16 @@ export default class GridRow {
 				if (is_first_column) {
 					const ri = this.grid.get_current_row(e.target);
 					if (ri == 0) return;
-					this.grid.grid_rows[ri - 1].toggle_editable_row(true);
+
+					const prev_row = this.grid.grid_rows[ri - 1];
+					if (!prev_row) {
+						return;
+					}
+
+					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+						prev_row.toggle_editable_row(true);
+					});
+					return false;
 				}
 			}
 		});
