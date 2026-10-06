@@ -183,8 +183,13 @@ frappe.ui.MobileNav = class MobileNav {
 				$sidebar.appendTo($body);
 
 				// Rows that navigate close the sheet through the route change; this catches a
-				// tap on the row for the page already open, which changes no route.
-				$body.on("click", "a[href]", () => this.close_sheet());
+				// tap on the row for the page already open, which changes no route. A picked
+				// row keeps the module it is in: putting the sidebar back would rebuild it
+				// under the tap, and the browser would follow the link as a full page load.
+				$body.on("click", "a[href]", () => {
+					this.route_changed = true;
+					this.close_sheet();
+				});
 				return $body[0];
 			},
 		}));
