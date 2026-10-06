@@ -153,14 +153,13 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
-			if (!xhr.responseJSON?._server_messages) {
-				frappe.msgprint({
-					title: __("Not found"),
-					indicator: "red",
-					message: __("The resource you are looking for is not available"),
-					re_route: true,
-				});
-			}
+			frappe.msgprint({
+				title: __("Not found"),
+				indicator: "red",
+				message: __("The resource you are looking for is not available"),
+				re_route: true,
+				clear: true,
+			});
 			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {
