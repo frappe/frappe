@@ -15,6 +15,10 @@ def draws_the_dashboard(doc, method=None):
 	doc.set_onload("island", {"name": "someapp.dashboard", "props": {"dashboard": doc.name}})
 
 
+def draws_the_chart(doc, method=None):
+	doc.set_onload("island", {"name": "someapp.chart", "props": {"chart": doc.name}})
+
+
 class TestUiIslandsRegistry(IntegrationTestCase):
 	"""A build registers an island by writing its asset key."""
 
@@ -120,3 +124,22 @@ class TestIslandOnLoad(IntegrationTestCase):
 			doc.run_method("onload")
 
 		self.assertNotIn("island", doc.get_onload())
+
+	def test_a_chart_an_app_draws_carries_the_island(self):
+		chart = frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name=frappe.generate_hash(),
+			chart_type="Count",
+			document_type="ToDo",
+			based_on="creation",
+			filters_json="[]",
+		).insert()
+
+		with self.patch_doc_events({"Dashboard Chart": {"onload": f"{HERE}.draws_the_chart"}}):
+			doc = frappe.get_doc("Dashboard Chart", chart.name)
+			doc.run_method("onload")
+
+		self.assertEqual(
+			doc.get_onload("island"),
+			{"name": "someapp.chart", "props": {"chart": chart.name}},
+		)
