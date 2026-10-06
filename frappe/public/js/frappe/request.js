@@ -48,14 +48,14 @@ frappe.xcall = function (method, params, type, opts = {}) {
 // generic server call (call page, object)
 frappe.call = function (opts) {
 	if (!frappe.is_online()) {
-		frappe.show_alert(
-			{
-				indicator: "orange",
-				message: __("Connection Lost"),
-				subtitle: __("You are not connected to Internet. Retry after sometime."),
-			},
-			3
-		);
+		// the same toast as the offline event in dom.js, so calls made while offline don't stack copies
+		frappe.ui.toast({
+			id: "connection-status",
+			type: "warning",
+			message: __("Connection Lost"),
+			description: __("You are not connected to Internet. Retry after sometime."),
+			duration: 3000,
+		});
 	}
 	if (typeof arguments[0] === "string") {
 		opts = {

@@ -5,6 +5,8 @@
 .print-format-doc {
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
+	font-weight: 400;
+	letter-spacing: normal;
 }
 .print-format-doc .label {
 	border: none;
@@ -30,6 +32,7 @@
 
 /* Keep field label and value on the same page */
 .print-format-doc .field {
+	color: var(--gray-900);
 	break-inside: avoid;
 	page-break-inside: avoid;
 }
@@ -49,7 +52,7 @@
 }
 
 .print-format-doc .field .value {
-	color: var(--gray-900);
+	color: inherit;
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */

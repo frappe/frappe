@@ -14,7 +14,7 @@ from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cint, dict_with_keys, now_datetime, strip_html
+from frappe.utils import cint, cstr, dict_with_keys, now_datetime, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import escape_html
 from frappe.website.doctype.web_form_request.web_form_request import (
@@ -107,6 +107,7 @@ class WebForm(WebsiteGenerator):
 
 		if not frappe.flags.in_import:
 			self.validate_fields()
+			self.warn_about_empty_pages()
 
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
@@ -139,6 +140,36 @@ class WebForm(WebsiteGenerator):
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
+
+	def warn_about_empty_pages(self):
+		"""The portal skips a page with no visible fields and shows the rest of the form.
+		An empty page only surprises the author, so report it and do not block the save."""
+		if empty_pages := self.get_empty_pages():
+			frappe.msgprint(
+				_("The web form skips these pages, because they have no visible fields: {0}").format(
+					", ".join(frappe.bold(escape_html(label)) for label in empty_pages)
+				)
+				+ "<br>"
+				# an orange dialog on save reads as a failure unless it says otherwise
+				+ _("The rest of the form is saved."),
+				title=_("Empty Page"),
+				indicator="orange",
+			)
+
+	def get_empty_pages(self):
+		"""Labels of the empty pages. The first page always shows, so it is not checked."""
+		pages = []
+		for df in self.web_form_fields:
+			if df.fieldtype == "Page Break":
+				pages.append({"label": df.label, "has_fields": False})
+			elif pages and not df.hidden and df.fieldtype not in ("Section Break", "Column Break"):
+				pages[-1]["has_fields"] = True
+
+		return [
+			page["label"] or _("Page {0}").format(i + 2)
+			for i, page in enumerate(pages)
+			if not page["has_fields"]
+		]
 
 	def validate_hidden_and_mandatory(self):
 		if self.allow_incomplete:
@@ -565,6 +596,15 @@ def get_context(context):
 					field.options, self.name, web_form_request_key, docname
 				)
 
+			if field.fieldtype == "Table MultiSelect":
+				field.fields = get_table_multiselect_fields(
+					field.options,
+					self.name,
+					web_form_request_key,
+					docname,
+					field.allow_read_on_all_link_options,
+				)
+
 			if field.fieldtype == "Link":
 				process_link_field(field, self.name, web_form_request_key, docname)
 
@@ -730,9 +770,6 @@ def get_context(context):
 			elif field.options == "URL":
 				validate_url(value, throw=True)
 
-	def allow_website_search_indexing(self):
-		return False
-
 	def has_web_form_permission(self, doctype, name, ptype="read"):
 		if frappe.session.user == "Guest":
 			return False
@@ -800,6 +837,12 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
+	link_filters = field.get("link_filters")
+	if field.get("doctype") == "Web Form Field":
+		web_form_doctype = frappe.get_cached_doc("Web Form", web_form_name).doc_type
+		docfield = frappe.get_meta(web_form_doctype).get_field(field.fieldname)
+		link_filters = docfield.link_filters if docfield else None
+
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
 		web_form_name,
@@ -807,6 +850,7 @@ def process_link_field(field, web_form_name, web_form_request_key=None, docname=
 		getattr(field, "allow_read_on_all_link_options", False),
 		web_form_request_key=web_form_request_key,
 		docname=docname,
+		link_filters=link_filters,
 	)
 	return field
 
@@ -1141,6 +1185,15 @@ def get_form_data(
 			)
 			out.update({field.fieldname: field.fields})
 
+		if field.fieldtype == "Table MultiSelect":
+			field.fields = get_table_multiselect_fields(
+				field.options,
+				web_form_name,
+				web_form_request_key,
+				docname,
+				field.allow_read_on_all_link_options,
+			)
+
 		if field.fieldtype == "Link":
 			process_link_field(field, web_form_name, web_form_request_key, docname)
 
@@ -1178,7 +1231,8 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 
 	def get_field_df(fieldname):
 		if fieldname == "name":
-			return {"label": "Name", "fieldname": "name", "fieldtype": "Data"}
+			# these dfs also back the editable Table child-row grids, where name is not user-settable
+			return {"label": "Name", "fieldname": "name", "fieldtype": "Data", "hidden": 1}
 
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
@@ -1186,6 +1240,30 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 		return df
 
 	return [get_field_df(f) for f in fields]
+
+
+def get_table_multiselect_fields(
+	child_doctype, web_form_name=None, web_form_request_key=None, docname=None, allow_read_on_all=False
+):
+	"""Not get_in_list_view_fields(): it drops non-list-view fields and turns Link into
+	Autocomplete, but the control needs the raw Link.
+	"""
+	try:
+		meta = frappe.get_meta(child_doctype)
+	except frappe.DoesNotExistError:
+		# a stale field whose child table was deleted must not take the whole form down
+		return []
+
+	link_field = next((df for df in meta.fields if df.fieldtype == "Link"), None)
+	if not link_field:
+		return []
+
+	df = link_field.as_dict()
+	if web_form_name:
+		df.link_options = get_link_options(
+			web_form_name, df.options, allow_read_on_all, web_form_request_key, docname
+		)
+	return [df]
 
 
 def is_guest_key_web_form(web_form):
@@ -1207,7 +1285,7 @@ def has_link_option(fields, doctype):
 	for f in fields:
 		if f.options == doctype:
 			return True
-		if f.fieldtype == "Table" and f.options:
+		if f.fieldtype in ("Table", "Table MultiSelect") and f.options:
 			child_doctype = f.options
 			if not isinstance(child_doctype, str) or not child_doctype.strip():
 				continue
@@ -1227,6 +1305,7 @@ def get_link_options(
 	allow_read_on_all_link_options=False,
 	web_form_request_key=None,
 	docname=None,
+	link_filters=None,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
@@ -1248,9 +1327,13 @@ def get_link_options(
 			frappe.PermissionError,
 		)
 
-	link_options, filters = [], {}
+	filters = [
+		link_filter
+		for link_filter in json.loads(link_filters or "[]")
+		if not frappe.cstr(link_filter[3]).startswith("eval:")
+	]
 	if web_form.login_required and not allow_read_on_all_link_options:
-		filters = {"owner": frappe.session.user}
+		filters.append(["owner", "=", frappe.session.user])
 
 	fields = ["name as value"]
 
@@ -1260,7 +1343,14 @@ def get_link_options(
 	if show_title_field:
 		fields.append(f"{meta.title_field} as label")
 
-	link_options = frappe.get_all(doctype, filters, fields)
+	link_options = frappe.get_all(doctype, filters=filters, fields=fields)
+
+	# the portal matches with `value.toLowerCase()`, which throws on an autoincrement name or
+	# a numeric title field. cstr, not str, so a missing title stays ""
+	for row in link_options:
+		row.value = cstr(row.value)
+		if show_title_field:
+			row.label = cstr(row.label)
 
 	if show_title_field:
 		if meta.translated_doctype:
@@ -1274,7 +1364,7 @@ def get_link_options(
 			return [{"value": row.value, "label": _(row.value)} for row in link_options]
 
 		# Use the actual names as options without labels
-		return "\n".join([str(doc.value) for doc in link_options])
+		return "\n".join([doc.value for doc in link_options])
 
 
 @redis_cache(ttl=60 * 60)

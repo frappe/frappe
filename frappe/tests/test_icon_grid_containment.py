@@ -37,6 +37,9 @@ from frappe.utils.install import create_desktop_icons_for_app
 SHIPPED = "Test Shipped Grid Icon"
 MODULE = "Core"
 USER = "test-icon-grid@example.com"
+VIEWER = "test-icon-grid-viewer@example.com"
+# A shell named after the icon, so a `Link` icon with no workspace passes the sidebar gate.
+SHARED_SIDEBAR = {"Test Shared Custom Icon": {"module": "Test Shared Custom Icon"}}
 
 
 @contextmanager
@@ -308,6 +311,16 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 					"roles": [{"role": "System Manager"}],
 				}
 			).insert()
+		if not frappe.db.exists("User", VIEWER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": VIEWER,
+					"first_name": "Icon Grid Viewer",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Desk User"}],
+				}
+			).insert()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -345,6 +358,63 @@ class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):
 
 			self.assertIn("Test Open Icon", visible)
 			self.assertNotIn("Test Restricted Icon", visible)
+
+	def test_a_custom_icon_reaches_users_other_than_its_creator(self):
+		"""Who made a custom icon does not decide who sees it; the same gates as every other icon do."""
+		with desktop_page(DESKTOP_ICONS):
+			frappe.set_user(USER)
+			self.make_icon("Test Shared Custom Icon", icon_type="Link")
+
+			frappe.set_user(VIEWER)
+
+			self.assertIn("Test Shared Custom Icon", self.visible_icons(SHARED_SIDEBAR))
+
+	def test_a_new_custom_icon_reaches_a_user_whose_grid_is_cached(self):
+		with desktop_page(DESKTOP_ICONS):
+			bootinfo = frappe._dict(module_sidebars=SHARED_SIDEBAR)
+			frappe.set_user(VIEWER)
+			get_desktop_icons(bootinfo=bootinfo)
+
+			frappe.set_user(USER)
+			self.make_icon("Test Shared Custom Icon", icon_type="Link")
+
+			frappe.set_user(VIEWER)
+			visible = {icon.label for icon in get_desktop_icons(bootinfo=bootinfo)}
+
+			self.assertIn("Test Shared Custom Icon", visible)
+
+	def test_another_users_folder_stays_on_their_grid(self):
+		"""Only a link is shared: a folder arranges its maker's own grid."""
+		with desktop_page(DESKTOP_ICONS):
+			frappe.set_user(USER)
+			self.make_icon("Test Personal Folder", icon_type="Folder")
+			self.assertIn("Test Personal Folder", self.visible_icons())
+
+			frappe.set_user(VIEWER)
+
+			self.assertNotIn("Test Personal Folder", self.visible_icons())
+
+	def test_an_icon_for_a_private_workspace_stays_with_its_owner(self):
+		with desktop_page(DESKTOP_ICONS):
+			frappe.set_user(USER)
+			workspace = frappe.get_doc(
+				{
+					"doctype": "Workspace",
+					"title": "Test Private Grid Workspace",
+					"label": "Test Private Grid Workspace",
+					"module": MODULE,
+					"public": 0,
+					"for_user": USER,
+					"content": "[]",
+				}
+			).insert()
+			add_workspace_to_desktop(workspace.name)
+			sidebars = {MODULE: {"module": MODULE}}
+			self.assertIn(workspace.name, self.visible_icons(sidebars))
+
+			frappe.set_user(VIEWER)
+
+			self.assertNotIn(workspace.name, self.visible_icons(sidebars))
 
 	def test_a_folder_with_no_module_is_still_hidden_by_its_roles(self):
 		"""What the icon gate is for: the module model cannot hide a folder, because a folder has no

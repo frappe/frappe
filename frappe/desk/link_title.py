@@ -17,7 +17,7 @@ def get_link_title_field(doctype: str) -> str | None:
 		return None
 
 	title_field = meta.title_field.strip()
-	if title_field == "name" or not frappe.has_permission(doctype):
+	if title_field == "name" or not frappe.has_permission(doctype, "select"):
 		return None
 	if title_field not in get_permitted_fields(doctype, ignore_virtual=True):
 		return None

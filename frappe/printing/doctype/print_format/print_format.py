@@ -76,6 +76,8 @@ class PrintFormat(Document):
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
 		print_format_type: DF.Literal["Jinja", "JS"]
+		published_by: DF.Link | None
+		published_on: DF.Datetime | None
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
@@ -117,6 +119,9 @@ class PrintFormat(Document):
 
 		if self.print_format_builder_beta and not self.custom_format and self.pdf_generator != "Typst":
 			self.pdf_generator = "chrome"
+
+		self.published_on = self.modified
+		self.published_by = self.modified_by
 
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)
@@ -352,6 +357,26 @@ def _condition(holder, label, key):
 		yield label, condition
 
 
+COPIED_PRINT_OPTIONS = (
+	"show_section_headings",
+	"line_breaks",
+	"align_labels_right",
+	"show_label_colon",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"font",
+	"font_size",
+	"label_color",
+	"value_color",
+	"page_number",
+	"absolute_value",
+	"css",
+	"default_print_language",
+)
+
+
 @frappe.whitelist()
 def create_custom_format(doctype: str, name: str | int, based_on: str = "Standard"):
 	doc = frappe.new_doc("Print Format")
@@ -379,6 +404,8 @@ def create_custom_format(doctype: str, name: str | int, based_on: str = "Standar
 			source = None
 	if source:
 		doc.format_data = source.format_data
+		for fieldname in COPIED_PRINT_OPTIONS:
+			doc.set(fieldname, source.get(fieldname))
 	else:
 		# seed the layout so the format prints something before its first Save & Apply
 		doc.format_data = frappe.as_json(create_default_layout(frappe.get_meta(doctype)))

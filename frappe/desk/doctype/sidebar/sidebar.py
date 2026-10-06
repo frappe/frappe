@@ -954,6 +954,21 @@ def is_linked(item) -> bool:
 	return bool(item.get("link_to") or item.get("url"))
 
 
+def linked_entities(item) -> list[str]:
+	"""Return the entities this row links, as the desk names them when picking a shell.
+
+	A Page row with a `route` links the page and the page route it opens, `<page>/<route>`.
+	Several apps link one container page at routes of their own, so the page alone cannot say
+	which shell a route belongs to. Mirrors `linked_entities` in the desk's sidebar.js.
+	"""
+	link_to = item.get("link_to")
+	if not link_to:
+		return []
+	if item.get("link_type") == "Page" and item.get("route"):
+		return [link_to, f"{link_to}/{item['route']}"]
+	return [link_to]
+
+
 def validate_item_route(item) -> None:
 	"""Refuse a `route` that is not a relative path inside a Page. A query belongs in
 	`route_options`."""
@@ -1024,11 +1039,13 @@ def unlinked_key(item) -> str:
 # ---------------------------------------------------------------------------------------
 # The merge: folding a module's several old sidebars into one
 #
-# Only data conversion uses this. Both callers are conversions:
+# Only data conversion uses this. Every caller is a conversion:
 #
 #   * `convert_fixtures`, where an app's old fixtures were one file per workspace, so a module
 #     with four workspaces has to end up with one sidebar.
-#   * `patches.v16_0.convert_sidebars`, where a user may have forked several of a module's
+#   * `patches.v16_0.convert_sidebars`, the same for the rows of a site's v16 app sidebars.
+#   * `patches.v16_0.convert_custom_sidebars`, which merges nothing but builds the same shape.
+#   * `patches.v16_0.convert_personal_sidebars`, where a user may have forked several of a module's
 #     sidebars and now needs a single customization layer.
 #
 # Nothing on a running site merges. That is why this sits beside the model rather than inside
@@ -1129,6 +1146,34 @@ def merge_items(primary: frappe._dict, secondaries: list[frappe._dict]) -> list[
 			take(item, force_child=True)
 
 	return merged
+
+
+def options_as_filters(row) -> None:
+	"""Store a link's v16 `route_options` as its `filters`, which is what they were.
+
+	`filters` is part of an item's identity, so Stock Balance for one warehouse stays an item
+	apart from Stock Balance itself, rather than being merged into it. A Page or a URL is left
+	alone: its `route_options` is the page's own query, not a filter.
+	"""
+	if row.get("filters") or not row.get("route_options") or row.get("link_type") in ("Page", "URL"):
+		return
+
+	try:
+		options = json.loads(row.route_options)
+	except ValueError:
+		return
+	if not isinstance(options, dict) or not options:
+		return
+
+	row.filters = json.dumps(
+		[
+			[row.link_to, field, *value]
+			if isinstance(value, list) and len(value) == 2
+			else [row.link_to, field, "=", value]
+			for field, value in options.items()
+		]
+	)
+	row.route_options = None
 
 
 def build_sidebar(module: str, workspaces: list[frappe._dict]) -> frappe._dict:
@@ -1629,8 +1674,9 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 		filtered, context.private_rows.get(base.module), context.perm_ctx, hidden=hidden
 	)
 
-	# A shell needs at least one item this user can open, or it is dropped. Section Breaks do not
-	# count, since a header links nowhere; private pages and added rows are already in `filtered`.
+	# A shell needs at least one item this user can open, or it is dropped. Section Breaks and
+	# spacers do not count, since they link nowhere; private pages and added rows are already in
+	# `filtered`.
 	#
 	# The lower of two tiers. `User.block_modules` is the upper one, applied upstream in
 	# `get_navigable_modules`; it names modules, so this is a fallback for a module-rooted shell
@@ -1641,7 +1687,7 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 	# everyone, blank.
 	#
 	# `is_icon_permitted` mirrors this; the two must stay in step.
-	if not any(row.get("type") != "Section Break" for row in filtered):
+	if not any(row.get("type") not in ("Section Break", "Spacer") for row in filtered):
 		return None
 
 	label = base.title or shell
@@ -2079,7 +2125,7 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 		# queries.
 		if (
 			check_permission
-			and item.type != "Section Break"
+			and item.type not in ("Section Break", "Spacer")
 			and not is_item_allowed(item.link_to, item.link_type, perm_ctx)
 		):
 			continue
@@ -2344,7 +2390,10 @@ def build_canonical_shells(
 	canonical = {kind: {} for kind in ROUTABLE_ENTITY_KINDS}
 	homeless = []
 
-	for kind, entities in routable_entities(perm_ctx).items():
+	entities_by_kind = routable_entities(perm_ctx)
+	entities_by_kind["Page"] |= shells.page_routes(entities_by_kind["Page"])
+
+	for kind, entities in entities_by_kind.items():
 		for name, module in entities.items():
 			# `entity_module` is the flat `is_default_module` map the desk already reads, so the
 			# owned step answers exactly what the client's does. It is flat rather than keyed by
@@ -2427,8 +2476,8 @@ class ShellIndex:
 
 		for shell, sidebar in module_sidebars.items():
 			for item in sidebar["items"]:
-				kind, entity = item.get("link_type"), item.get("link_to")
-				if kind and entity:
+				kind = item.get("link_type")
+				for entity in linked_entities(item) if kind else ():
 					self.listing.setdefault((kind, entity), []).append(shell)
 			# A shell keyed by its module answers for that module; the naming rule makes that the
 			# usual case. A renamed shell is found through the column it stores its module in,
@@ -2469,9 +2518,22 @@ class ShellIndex:
 	def listed_in(self, kind: str, entity: str) -> list[str]:
 		return self.listing.get((kind, entity), [])
 
+	def page_routes(self, pages: dict[str, str]) -> dict[str, str]:
+		"""Every page route a shell lists, of a page in `pages`, mapped to that page's module."""
+		routes = {}
+		for kind, entity in self.listing:
+			if kind != "Page":
+				continue
+			page, _, route = entity.partition("/")
+			if route and page in pages:
+				routes[entity] = pages[page]
+		return routes
+
 	def resolve(self, kind: str, entity: str, module: str | None) -> str | None:
 		"""The ladder itself, from `module+listed` down. The `owned` step is above this."""
-		listed = self.listed_in(kind, entity)
+		# A row in the Private shell is a shortcut one person kept, not a claim on where the entity
+		# belongs. Counted as one, pinning `Job Offer` there moved it out of `Recruitment`.
+		listed = [shell for shell in self.listed_in(kind, entity) if shell != PRIVATE_MODULE]
 		own = self.shell_of(module)
 
 		if own and own in listed:
@@ -2505,6 +2567,9 @@ class ShellIndex:
 def routable_entities(perm_ctx: DeskViews) -> dict[str, dict[str, str]]:
 	"""Every entity of every kind this user can reach, mapped to the module it belongs to.
 
+	A system page is left out. It is part of the desk rather than of a module, so it opens in no
+	shell and the desk keeps its URL bare (`Page.system_page`).
+
 	Each kind is read from what the boot already builds for it, so the set is filtered the same
 	way the desk filters it and nothing here has to repeat a permission rule. Doctypes are the
 	exception, having no such payload: they come from the user's own read list, minus child
@@ -2523,6 +2588,10 @@ def routable_entities(perm_ctx: DeskViews) -> dict[str, dict[str, str]]:
 	return {
 		"DocType": doctypes,
 		"Report": {name: row.get("module") for name, row in (perm_ctx.allowed_reports or {}).items()},
-		"Page": {name: row.get("module") for name, row in (perm_ctx.allowed_pages or {}).items()},
+		"Page": {
+			name: row.get("module")
+			for name, row in (perm_ctx.allowed_pages or {}).items()
+			if not row.get("system_page")
+		},
 		"Dashboard": {row["name"]: row.get("module") for row in perm_ctx.get_allowed_dashboards(cache=True)},
 	}

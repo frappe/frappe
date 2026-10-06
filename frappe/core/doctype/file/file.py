@@ -133,13 +133,16 @@ class File(Document):
 			return
 
 		if self.is_remote_file:
+			# a remote file has no local blob to hash
+			self.content_hash = None
 			self.validate_remote_file()
 		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
 			frappe.db.after_rollback.add(self.on_rollback)
 
-		self.validate_duplicate_entry()  # Hash is generated in save_file
+		if not self.is_remote_file:
+			self.validate_duplicate_entry()  # Hash is generated in save_file
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -174,6 +177,9 @@ class File(Document):
 				frappe.throw(_("A folder cannot have a File URL"))
 			return
 
+		if self.is_remote_file:
+			self.content_hash = None
+
 		self.validate_attachment_references()
 		self.enforce_public_file_restrictions()
 
@@ -199,6 +205,13 @@ class File(Document):
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
+
+		if self.flags.ignore_permissions or frappe.flags.in_install:
+			return
+
+		from frappe.handler import check_write_permission
+
+		check_write_permission(self.attached_to_doctype, self.attached_to_name)
 
 	def enforce_public_file_restrictions(self):
 		if not self.is_private and frappe.get_system_settings(
@@ -1042,10 +1055,21 @@ class File(Document):
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith("/private"))
 
+	def validate_file_url_matches_record(self):
+		"""Ensure file_url actually resolves back to an existing File record with this name."""
+		if not self.file_url:
+			return
+
+		actual_file_url = frappe.db.get_value("File", self.name, "file_url") if self.name else None
+		if actual_file_url != self.file_url:
+			frappe.throw(_("The File URL does not belong to this File record"), frappe.PermissionError)
+
 	@frappe.whitelist()
 	def optimize_file(self):
 		if self.is_folder:
 			raise TypeError("Folders cannot be optimized")
+
+		self.validate_file_url_matches_record()
 
 		content_type = mimetypes.guess_type(self.file_name)[0]
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
@@ -1160,8 +1184,16 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
 		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
 
+	# Custom DocPerm rows can outlive their DocType, drop those
+	# before frappe.get_meta() below assumes the doctype still exists.
+	candidate_doctypes = get_doctypes_with_read(user)
+	existing_doctypes = set(
+		frappe.get_all("DocType", filters={"name": ["in", candidate_doctypes]}, pluck="name")
+	)
+	readable_doctypes = [dt for dt in candidate_doctypes if dt in existing_doctypes]
+
 	openly_readable_doctypes, owner_restricted_doctypes = _split_doctypes_by_owner_constraint(
-		get_doctypes_with_read(user), user
+		readable_doctypes, user
 	)
 	# a doctype that requires an owner constraint is never additionally scoped by User
 	# Permissions here - same "if_owner takes priority, else check user permissions" rule

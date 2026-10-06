@@ -3,6 +3,7 @@
 
 import json
 from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
@@ -819,16 +820,20 @@ def shell_payload(spec: dict) -> dict:
 	"""A `bootinfo.module_sidebars` payload from a compact spelling, for the ladder's tests.
 
 	Each shell is given as `{"module": ..., "workspaces": [...], "lists": [(kind, entity), ...]}`,
-	and everything the ladder does not read is left out. Building the payload by hand rather than
-	from documents is what lets one test say one thing: the ladder's order is the subject, and
-	real sidebars would drag permissions, customizations and computed bases into it.
+	where a Page entry may add the item's `route` as a third element. Everything the ladder does not
+	read is left out. Building the payload by hand rather than from documents is what lets one test
+	say one thing: the ladder's order is the subject, and real sidebars would drag permissions,
+	customizations and computed bases into it.
 	"""
 	return {
 		shell: {
 			"module": shell_spec.get("module", shell),
 			"workspaces": shell_spec.get("workspaces", []),
 			"computed": shell_spec.get("computed", 0),
-			"items": [{"link_type": kind, "link_to": entity} for kind, entity in shell_spec.get("lists", [])],
+			"items": [
+				{"link_type": kind, "link_to": entity, "route": route}
+				for kind, entity, route in ((*listed, None)[:3] for listed in shell_spec.get("lists", []))
+			],
 		}
 		for shell, shell_spec in spec.items()
 	}
@@ -890,6 +895,20 @@ class TestCanonicalShell(IntegrationTestCase):
 		)
 
 		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Selling")
+
+	def test_a_row_in_the_private_shell_claims_nothing(self):
+		"""A user who keeps a shortcut to `Job Offer` in their own shell has not moved it there.
+		`Private` sorts ahead of `Recruitment`, so counted as a claim it would win.
+		"""
+		index = shell_payload(
+			{
+				"HR": {},
+				"Private": {"lists": [("DocType", "Job Offer")]},
+				"Recruitment": {"lists": [("DocType", "Job Offer")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Job Offer", "HR"), "Recruitment")
 
 	def test_the_module_answers_last_when_no_shell_lists_the_entity(self):
 		index = shell_payload({"Stock": {}, "Selling": {"lists": [("DocType", "Customer")]}})
@@ -956,6 +975,98 @@ class TestCanonicalShell(IntegrationTestCase):
 		index = ShellIndex(shell_payload({"Stock": {"workspaces": ["Stock", "Warehousing"]}}))
 
 		self.assertEqual(dict(index.workspace_owners()), {"Stock": "Stock", "Warehousing": "Stock"})
+
+
+class TestCanonicalShellOfAPageRoute(IntegrationTestCase):
+	"""Several apps link one container page with a route of their own: Selling links
+	`insights-dashboard` at `selling`, Pulse at `pulse-health`. The page belongs to Insights, so
+	keyed by the page alone every such route opened in Insights.
+	"""
+
+	PAGE = "insights-dashboard"
+	SIDEBARS = shell_payload(
+		{
+			"Insights": {"lists": [("Page", PAGE)]},
+			"Selling": {"lists": [("Page", PAGE, "selling")]},
+			"Pulse": {"lists": [("Page", PAGE, "pulse-health")]},
+		}
+	)
+
+	def build(self, entity_module=None):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={self.PAGE: {"module": "Insights"}},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, entity_module or {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_page_route_opens_in_the_shell_that_lists_it(self):
+		pages = self.build()
+
+		self.assertEqual(pages[f"{self.PAGE}/selling"], "Selling")
+		self.assertEqual(pages[f"{self.PAGE}/pulse-health"], "Pulse")
+
+	def test_the_page_itself_still_opens_in_its_module(self):
+		self.assertEqual(self.build()[self.PAGE], "Insights")
+
+	def test_an_item_with_a_route_still_lists_its_page(self):
+		self.assertEqual(
+			ShellIndex(self.SIDEBARS).listed_in("Page", self.PAGE), ["Insights", "Selling", "Pulse"]
+		)
+
+	def test_a_page_route_can_be_claimed(self):
+		from frappe.boot import build_entity_module_map
+
+		sidebars = shell_payload({"Insights": {}, "Pulse": {}})
+		sidebars["Pulse"]["items"] = [
+			{"link_type": "Page", "link_to": self.PAGE, "route": "pulse-health", "is_default_module": 1}
+		]
+
+		self.assertEqual(build_entity_module_map(sidebars)[f"{self.PAGE}/pulse-health"], "Pulse")
+
+
+class TestCanonicalShellOfASystemOrSharedPage(IntegrationTestCase):
+	"""A system page opens in no shell and a shared page in any. Only the first changes the map:
+	a shared page still has to open somewhere when nothing states a shell.
+	"""
+
+	SIDEBARS = shell_payload({"Build": {"lists": [("Page", "desktop", "apps")]}, "Printing": {}})
+
+	def build(self):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={
+				"desktop": {"module": "Build", "system_page": 1},
+				"print": {"module": "Printing", "shared_page": 1},
+			},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_system_page_is_not_in_the_map(self):
+		self.assertNotIn("desktop", self.build())
+
+	def test_a_route_into_a_system_page_is_not_in_the_map_either(self):
+		self.assertNotIn("desktop/apps", self.build())
+
+	def test_a_shared_page_opens_in_its_module_when_nothing_states_a_shell(self):
+		self.assertEqual(self.build()["print"], "Printing")
+
+	def test_the_desk_is_told_which_pages_are_which(self):
+		from frappe.desk.desk_views import DeskViews
+
+		email = user_with_roles("test-sidebar-page-flags@example.com", ["Desk User"])
+		self.enterContext(self.set_user(email))
+		pages = DeskViews.get_allowed_pages()
+
+		self.assertEqual(pages["print"].get("shared_page"), 1)
+		self.assertNotIn("system_page", pages["print"])
+		self.assertEqual(pages["desktop"].get("system_page"), 1)
+		self.assertNotIn("shared_page", pages["desktop"])
 
 
 class TestCanonicalShellPayload(IntegrationTestCase):

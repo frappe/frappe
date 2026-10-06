@@ -22,7 +22,7 @@ from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension, get_web_image
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_files_path, set_request
 
@@ -462,6 +462,41 @@ class TestSameContent(IntegrationTestCase):
 		self.assertTrue(public_file.file_url.startswith("/private/files/"))
 		self.assertEqual(public_file.get_content(), content)
 		self.assertEqual(private_file.get_content(), content)
+
+	def test_remote_file_ignores_content_hash(self):
+		existing = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"hash_{frappe.generate_hash(length=6)}.txt",
+				"content": "private-content",
+				"is_private": 1,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", existing.name, force=True)
+
+		for file_url in ("https://example.com/remote.png", "/api/method/remote"):
+			with self.subTest(file_url=file_url):
+				frappe.set_user("test@example.com")
+				try:
+					remote = frappe.get_doc(
+						{
+							"doctype": "File",
+							"file_name": "remote.png",
+							"is_private": 1,
+							"file_url": file_url,
+							"content_hash": existing.content_hash,
+						}
+					).insert()
+				finally:
+					frappe.set_user("Administrator")
+				self.addCleanup(frappe.delete_doc, "File", remote.name, force=True)
+
+				self.assertEqual(remote.file_url, file_url)
+				self.assertFalse(remote.content_hash)
+
+				remote.content_hash = existing.content_hash
+				remote.save()
+				self.assertFalse(remote.content_hash)
 
 
 class TestFile(IntegrationTestCase):
@@ -1719,6 +1754,28 @@ class TestAttachmentsAccess(IntegrationTestCase):
 		self.assertIn("test_user_attachment.txt", system_manager_attachments_files)
 		self.assertIn("test_user_attachment.txt", user_attachments_files)
 
+	def test_attach_to_doc_without_write_permission_is_blocked(self):
+		frappe.set_user("test4@example.com")
+		self.assertFalse(frappe.has_permission("User", "write", "test@example.com"))
+
+		attack = frappe.new_doc(
+			"File",
+			file_name="poisoned.svg",
+			attached_to_doctype="User",
+			attached_to_name="test@example.com",
+			content="<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attack.insert)
+
+		frappe.set_user("test@example.com")
+		self.assertEqual(
+			frappe.get_all(
+				"File", filters={"attached_to_doctype": "User", "attached_to_name": "test@example.com"}
+			),
+			[],
+		)
+
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
@@ -1910,6 +1967,113 @@ class TestFileOptimization(IntegrationTestCase):
 
 			self.assertLess(optimized_size, original_size)
 			self.assertNotEqual(original_content_hash, updated_content_hash)
+
+	def test_optimize_file_rejects_mismatched_file_url(self):
+		"""optimize_file must not read/write through a file_url belonging to another File record."""
+		with make_test_image_file(private=True) as first_file:
+			original_content = first_file.get_content()
+
+			# distinct content from the first file's, so this doesn't collide with it via
+			# the File doctype's identical-content deduplication
+			second_image_path = frappe.get_app_path("frappe", "tests/data/exif_sample_image.jpg")
+			with open(second_image_path, "rb") as f:
+				second_content = f.read()
+			self.assertNotEqual(second_content, original_content)
+
+			second_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "second_file.jpg",
+					"content": second_content,
+					"is_private": 1,
+				}
+			).insert()
+			self.addCleanup(second_file.delete)
+
+			# same identity (name/owner) as second_file, but file_url/file_name swapped
+			# to point at first_file's path
+			crafted = frappe.get_doc(
+				{
+					"doctype": "File",
+					"name": second_file.name,
+					"owner": second_file.owner,
+					"file_name": first_file.file_name,
+					"file_url": first_file.file_url,
+					"is_private": 1,
+					"file_size": first_file.file_size,
+					"modified": second_file.modified,
+					"creation": second_file.creation,
+				}
+			)
+
+			self.assertRaises(frappe.PermissionError, crafted.optimize_file)
+
+			# neither the read nor the write side of optimize_file executed
+			self.assertEqual(first_file.get_content(), original_content)
+			self.assertEqual(frappe.get_doc("File", second_file.name).file_url, second_file.file_url)
+
+	def test_validate_file_url_matches_record_allows_own_url(self):
+		with make_test_image_file() as test_file:
+			test_file.validate_file_url_matches_record()
+
+	def test_validate_file_url_matches_record_rejects_missing_name(self):
+		"""A doc with no name at all must not bypass the check by short-circuiting on it -
+		optimize_file never legitimately runs against a document with no backing record."""
+		doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "not_yet_saved.jpg",
+				"file_url": "/private/files/not_yet_saved.jpg",
+				"is_private": 1,
+			}
+		)
+		self.assertIsNone(doc.name)
+		self.assertRaises(frappe.PermissionError, doc.validate_file_url_matches_record)
+
+	def test_optimize_file_rejects_doc_with_no_name(self):
+		"""A crafted doc with owner set to the caller but name omitted must not bypass the
+		guard: permission checks upstream may still pass (falling back to create-level
+		permission), so this method must fail closed rather than skip validation."""
+		with make_test_image_file(private=True) as target:
+			original_content = target.get_content()
+
+			crafted = frappe.get_doc(
+				{
+					"doctype": "File",
+					"owner": frappe.session.user,
+					"file_name": target.file_name,
+					"file_url": target.file_url,
+					"is_private": 1,
+					"file_size": target.file_size,
+				}
+			)
+			self.assertIsNone(crafted.name)
+
+			self.assertRaises(frappe.PermissionError, crafted.optimize_file)
+			self.assertEqual(target.get_content(), original_content)
+
+	def test_validate_file_url_matches_record_allows_url_shared_by_multiple_files(self):
+		"""Two File records may legitimately share one file_url (see create_attachment_copy);
+		each one must still be able to operate on its own record using that shared url."""
+		doctype, docname = make_test_doc()
+		source = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"shared-{frappe.generate_hash(length=8)}.jpg",
+				"content": open(
+					frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg"), "rb"
+				).read(),
+				"is_private": 1,
+			}
+		).insert()
+		self.addCleanup(source.delete)
+
+		copy = source.create_attachment_copy(doctype, docname)
+		self.assertEqual(copy.file_url, source.file_url)
+
+		# both the original and the copy must pass, regardless of DB row ordering
+		frappe.get_doc("File", source.name).validate_file_url_matches_record()
+		frappe.get_doc("File", copy.name).validate_file_url_matches_record()
 
 	def test_optimize_svg(self):
 		file_path = frappe.get_app_path("frappe", "tests/data/sample_svg.svg")
@@ -2372,3 +2536,20 @@ class TestFileListUserPermissionRestriction(IntegrationTestCase):
 			filters={"name": ["in", [self.permitted_file.name, self.out_of_scope_file.name]]},
 		)
 		self.assertEqual(len(files), 2)
+
+
+class TestFilePermissionQuery(UnitTestCase):
+	def test_ignores_stale_custom_docperm_doctype(self):
+		"""A stale Custom DocPerm can reference a deleted DocType; must not crash the File list query."""
+		from frappe.core.doctype.file.file import get_permission_query_conditions
+		from frappe.permissions import SYSTEM_USER_ROLE
+
+		with (
+			patch(
+				"frappe.core.doctype.file.file.get_doctypes_with_read",
+				return_value=["Deleted Doctype XYZ"],
+			),
+			patch("frappe.get_roles", return_value=[SYSTEM_USER_ROLE]),
+		):
+			# should not raise frappe.exceptions.DoesNotExistError
+			get_permission_query_conditions(user="test1@example.com")

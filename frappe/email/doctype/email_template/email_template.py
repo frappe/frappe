@@ -75,7 +75,7 @@ def get_email_template(template_name: str, doc: str | dict[str, Any], sender: st
 
 	email_template = frappe.get_doc("Email Template", template_name)
 	email_template.check_permission("read")
-	return email_template.get_formatted_email(doc, sender=sender)
+	return {**email_template.get_formatted_email(doc, sender=sender), "use_html": email_template.use_html}
 
 
 @frappe.whitelist()

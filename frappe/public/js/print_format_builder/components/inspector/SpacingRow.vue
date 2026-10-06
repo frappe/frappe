@@ -1,5 +1,5 @@
 <template>
-	<InspectorRow :label="label">
+	<InspectorRow :label="label" class="pfb-spacing-row">
 		<div class="pfb-spacing-sides">
 			<div v-for="side in sides" :key="side" class="pfb-spacing-side">
 				<input
@@ -61,9 +61,19 @@ function set_side(side, v) {
 	min-width: 0;
 }
 
+.pfb-spacing-row {
+	align-items: start;
+}
+
+.pfb-spacing-row :deep(.pfb-insp-label) {
+	line-height: var(--input-height);
+}
+
 .pfb-spacing-side input {
+	box-sizing: border-box;
 	width: 100%;
 	min-width: 0;
+	height: var(--input-height);
 	padding: 4px 2px;
 	text-align: center;
 	font-size: var(--text-sm);

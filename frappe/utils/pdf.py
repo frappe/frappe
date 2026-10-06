@@ -241,6 +241,7 @@ def prepare_options(html, options):
 	)
 
 	if pdf_page_size == "Custom":
+		options.pop("page-size", None)
 		options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
 			"Print Settings", "pdf_page_height"
 		)
@@ -470,31 +471,46 @@ def pdf_contains_js(file_content: bytes):
 	from io import BytesIO
 
 	from pypdf import PdfReader, errors
+	from pypdf.generic import IndirectObject
 
 	reader = PdfReader(BytesIO(file_content))
 
-	def has_javascript(obj):
+	def has_javascript(obj, seen=None):
+		if seen is None:
+			seen = set()
+		if isinstance(obj, IndirectObject):
+			key = (obj.idnum, obj.generation)
+			if key in seen:
+				return False
+			seen.add(key)
+			obj = obj.get_object()
 		if isinstance(obj, dict):
 			for key, value in obj.items():
+				if key == "/Parent":
+					continue
 				if key in ("/JS", "/JavaScript"):
 					return True
-				if has_javascript(value):
+				if has_javascript(value, seen):
 					return True
 		elif isinstance(obj, list):
 			for item in obj:
-				if has_javascript(item):
+				if has_javascript(item, seen):
 					return True
 		return False
 
 	root = reader.trailer.get("/Root", {})
-	if has_javascript(root):
-		return True
 
 	try:
+		if has_javascript(root):
+			return True
+
 		for page in reader.pages:
 			if has_javascript(page):
 				return True
 	except errors.FileNotDecryptedError:
+		# resolving any indirect object (root, page, or otherwise) requires
+		# decryption; an encrypted file we can't decrypt is treated as not
+		# containing JS, same as an unreadable/undecryptable file always was
 		pass
 
 	return False

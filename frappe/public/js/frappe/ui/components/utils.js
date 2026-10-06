@@ -92,3 +92,33 @@ export function safe_attrs(attrs, component) {
 	}
 	return out;
 }
+
+/**
+ * Make a non-button element act like one: focusable, announced as a button,
+ * and fired by Enter/Space as well as a click.
+ */
+export function make_activatable($el, handler) {
+	return $el
+		.attr({ role: "button", tabindex: 0 })
+		.on("click", handler)
+		.on("keydown", (e) => {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				handler(e);
+			}
+		});
+}
+
+/** frappe-ui's categorical chart colours, as their nearest Espresso tokens, in order. */
+export const CHART_PALETTE = [
+	"blue-600",
+	"blue-400",
+	"green-600",
+	"green-400",
+	"violet-600",
+	"violet-400",
+	"amber-600",
+	"amber-400",
+	"red-500",
+	"red-400",
+].map((token) => `var(--${token})`);

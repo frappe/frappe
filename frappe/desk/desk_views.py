@@ -185,11 +185,16 @@ class DeskViews:
 		if is_report:
 			columns = (report.name.as_("title"), report.ref_doctype, report.report_type, report.module)
 		else:
-			columns = (page.title.as_("title"), page.module)
+			# The two flags decide a page's shell on the client: see `Sidebar.shell_for_route`.
+			columns = (page.title.as_("title"), page.module, page.system_page, page.shared_page)
 
 		customRole = DocType("Custom Role")
 		hasRole = DocType("Has Role")
 		parentTable = DocType(parent)
+
+		def shell_flags(row):
+			# Only the flag that is set is shipped; most pages have neither.
+			return {flag: 1 for flag in ("system_page", "shared_page") if row.get(flag)}
 
 		def exclude_disabled_reports(query):
 			return query.where(report.disabled == 0) if is_report else query
@@ -216,6 +221,7 @@ class DeskViews:
 				"title": p.title,
 				"ref_doctype": p.ref_doctype,
 				"module": p.module,
+				**shell_flags(p),
 			}
 
 		subq = (
@@ -238,7 +244,12 @@ class DeskViews:
 
 		for p in pages_with_standard_roles:
 			if p.name not in has_role:
-				has_role[p.name] = {"modified": p.modified, "title": p.title, "module": p.module}
+				has_role[p.name] = {
+					"modified": p.modified,
+					"title": p.title,
+					"module": p.module,
+					**shell_flags(p),
+				}
 				if parent == "Report":
 					has_role[p.name].update({"ref_doctype": p.ref_doctype})
 
@@ -255,7 +266,12 @@ class DeskViews:
 
 		for r in rows_with_no_roles:
 			if r.name not in has_role:
-				has_role[r.name] = {"modified": r.modified, "title": r.title, "module": r.module}
+				has_role[r.name] = {
+					"modified": r.modified,
+					"title": r.title,
+					"module": r.module,
+					**shell_flags(r),
+				}
 				if is_report:
 					has_role[r.name] |= {"ref_doctype": r.ref_doctype}
 
@@ -270,17 +286,23 @@ class DeskViews:
 				ignore_ifnull=True,
 				user=user,
 			)
+			# deleting a DocType leaves its reports behind, still pointing at it
+			existing_doctypes = set(
+				frappe.get_all(
+					"DocType",
+					filters={"name": ("in", {r.ref_doctype for r in reports if r.ref_doctype})},
+					pluck="name",
+				)
+			)
 			permitted_names = set()
 			for report in reports:
-				try:
-					if report.ref_doctype and not has_permission(
-						report.ref_doctype, "report", user=user, print_logs=False
-					):
-						continue
-					has_role[report.name]["report_type"] = report.report_type
-					permitted_names.add(report.name)
-				except frappe.DoesNotExistError:
-					frappe.log_error("Error occurred while checking report permissions")
+				if report.ref_doctype and (
+					report.ref_doctype not in existing_doctypes
+					or not has_permission(report.ref_doctype, "report", user=user, print_logs=False)
+				):
+					continue
+				has_role[report.name]["report_type"] = report.report_type
+				permitted_names.add(report.name)
 
 			non_permitted_reports = set(has_role.keys()) - permitted_names
 			for r in non_permitted_reports:

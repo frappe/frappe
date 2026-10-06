@@ -1443,6 +1443,48 @@ class TestLinkTitle(IntegrationTestCase):
 
 		prop_setter.delete()
 
+	def test_link_title_without_read_permission(self):
+		"""
+		Test that a link to a document the user cannot read returns the docname without raising
+		"""
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "ToDo",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"user_type": "Website User",
+				"email": "arjun.nair@example.com",
+				"send_welcome_email": 0,
+				"first_name": "Arjun",
+			}
+		).insert(ignore_permissions=True)
+
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Renew the Contoso support contract"}
+		).insert()
+
+		from frappe.desk.search import get_link_title
+
+		self.assertEqual(get_link_title("ToDo", todo.name), todo.description)
+
+		frappe.clear_messages()
+		with self.set_user(user.name):
+			self.assertEqual(get_link_title("ToDo", todo.name), todo.name)
+		self.assertEqual(frappe.get_message_log(), [])
+
+		todo.delete()
+		user.delete()
+		prop_setter.delete()
+
 
 class TestAppParser(MockedRequestTestCase):
 	def test_app_name_parser(self):
@@ -1754,6 +1796,21 @@ class TestTBSanitization(IntegrationTestCase):
 				traceback = frappe.get_traceback(with_context=True)
 
 		self.assertIn("should_be_visible", traceback)
+
+	def test_sanitization_hides_object_attributes(self):
+		class Connection:
+			def __init__(self):
+				self.password = "should_not_leak"
+
+		try:
+			connection = Connection()  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("connection =", traceback)
+		self.assertNotIn("should_not_leak", traceback)
 
 	def test_get_traceback_with_context_only_active_in_developer_mode(self):
 		def boom():

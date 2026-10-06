@@ -3,6 +3,12 @@
 	border: 1px solid var(--gray-400) !important;
 }
 
+// grid_row.js reparents an open Link dropdown here and offsets it from this box,
+// so it has to be the containing block the offsets are resolved against
+.grid-field {
+	position: relative;
+}
+
 .form-grid {
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--radius-md);
@@ -537,7 +543,7 @@
 
 	// for left aligned currency symbol
 	.grid-currency-input.grid-currency-has-value:not(.grid-currency-symbol-right) .form-control {
-		padding-left: calc(4px + 1em);
+		padding-left: calc(12px + var(--grid-currency-symbol-width, 1em));
 		position: relative;
 		z-index: 1;
 		text-align: left;
@@ -545,7 +551,7 @@
 
 	// for right aligned currency symbol
 	.grid-currency-input.grid-currency-has-value.grid-currency-symbol-right .form-control {
-		padding-right: calc(4px + 1em);
+		padding-right: calc(12px + var(--grid-currency-symbol-width, 1em));
 		position: relative;
 		z-index: 1;
 	}
@@ -566,7 +572,9 @@
 	overflow: hidden;
 	height: 0;
 	opacity: 0;
-	z-index: 1021;
+	// Over the desk's fixed chrome (the dock, the sidebar's edge, scroll-to-top: 1020-1030) and
+	// under a dialog's backdrop (1040), so a dialog opened from the row still covers it.
+	z-index: 1039;
 	border-radius: var(--radius-md);
 	@include base-grid();
 
@@ -597,7 +605,7 @@
 }
 
 #freeze.grid-form {
-	z-index: 1020;
+	z-index: 1038;
 	background-color: var(--gray-800);
 
 	.freeze-message-container {
