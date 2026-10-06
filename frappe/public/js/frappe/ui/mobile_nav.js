@@ -9,7 +9,7 @@ frappe.provide("frappe.ui");
  *
  * The tabs are the same everywhere. Where you are lives in the page header instead: tapping
  * the page title opens a sheet with the dock across the top and the sidebar under it
- * (see open_navigation). New opens a sheet too; both are one <frappe-bottom-sheet>.
+ * (see open_navigation). New opens a sheet too; both are a frappe.ui.BottomSheet.
  *
  * It is always in the DOM; mobile_nav.scss shows it below the md breakpoint only, so
  * rotating or resizing past 768px needs no JS.
@@ -20,7 +20,6 @@ frappe.ui.MobileNav = class MobileNav {
 		this.nav.className = "desk-mobile-nav";
 		this.tabs = this.get_tabs().map((tab) => this.make_tab(tab));
 		document.body.appendChild(this.nav);
-		this.make_sheet();
 
 		// .main-section makes room for the bar only once the element can draw it, so a
 		// missing frappe-mobile-nav.js costs no blank strip at the bottom of the page.
@@ -135,36 +134,24 @@ frappe.ui.MobileNav = class MobileNav {
 		}
 	}
 
-	// One sheet for every use. Its body is a child of the element before the element is
-	// connected, because Vue takes a light-DOM element's slot content from its children
-	// once, at connect, and keeps those nodes across opens; anything appended later would
-	// sit outside the sheet.
-	make_sheet() {
-		this.sheet = document.createElement("frappe-bottom-sheet");
-		this.$body = $(`<div class="desk-mobile-sheet"></div>`).appendTo(this.sheet);
-		document.body.appendChild(this.sheet);
-
-		// The element writes `open` back itself when swiped or tapped away.
-		this.sheet.addEventListener("update:open", (e) => {
-			if (!e.detail[0]) this.on_sheet_close();
-		});
-		// Rows that navigate close the sheet through the route change; this catches a tap on
-		// the row for the page already open, which changes no route.
-		this.$body.on("click", "a[href]", () => this.close_sheet());
-	}
-
+	// frappe.ui.BottomSheet comes from bottom_sheet.bundle.js, loaded with the tab bar
+	// (see the startup handler below), so a tap before it arrives does nothing.
 	open_sheet(title, render) {
-		this.on_sheet_close();
-		this.sheet.setAttribute("title", title);
-		this.$body.empty();
-		render(this.$body);
-		this.sheet.open = true;
+		if (!frappe.ui.BottomSheet) return;
+		this.close_sheet();
+		this.sheet = new frappe.ui.BottomSheet({
+			title,
+			...render(),
+			on_close: () => {
+				this.sheet = null;
+				this.on_sheet_close();
+			},
+		});
+		this.sheet.open();
 	}
 
 	close_sheet() {
-		if (!this.sheet.open) return;
-		this.sheet.open = false;
-		this.on_sheet_close();
+		this.sheet?.close();
 	}
 
 	on_sheet_close() {
@@ -180,19 +167,27 @@ frappe.ui.MobileNav = class MobileNav {
 		const sidebar = frappe.app.sidebar;
 		if (!sidebar?.$items_container) return;
 
-		this.open_sheet(this.module_label(sidebar.current_module), ($body) => {
-			this.opened_on = sidebar.current_module;
-			this.route_changed = false;
+		this.open_sheet(this.module_label(sidebar.current_module), () => ({
+			content: () => {
+				this.opened_on = sidebar.current_module;
+				this.route_changed = false;
+				const $body = $(`<div class="desk-mobile-sheet"></div>`);
 
-			const $dock = $(`<div class="desk-mobile-sheet-dock"></div>`).appendTo($body);
-			this.render_dock($dock);
+				const $dock = $(`<div class="desk-mobile-sheet-dock"></div>`).appendTo($body);
+				this.render_dock($dock);
 
-			// .body-sidebar carries the row styles; mobile_nav.scss undoes its drawer layout
-			const $sidebar = $(`<div class="body-sidebar desk-mobile-sheet-sidebar"></div>`);
-			this.items_home = sidebar.$items_container.parent();
-			sidebar.$items_container.appendTo($sidebar);
-			$sidebar.appendTo($body);
-		});
+				// .body-sidebar carries the row styles; mobile_nav.scss undoes its drawer layout
+				const $sidebar = $(`<div class="body-sidebar desk-mobile-sheet-sidebar"></div>`);
+				this.items_home = sidebar.$items_container.parent();
+				sidebar.$items_container.appendTo($sidebar);
+				$sidebar.appendTo($body);
+
+				// Rows that navigate close the sheet through the route change; this catches a
+				// tap on the row for the page already open, which changes no route.
+				$body.on("click", "a[href]", () => this.close_sheet());
+				return $body[0];
+			},
+		}));
 	}
 
 	render_dock($dock) {
@@ -226,8 +221,10 @@ frappe.ui.MobileNav = class MobileNav {
 			return;
 		}
 		sidebar.select_shell(entry.module);
-		this.sheet.setAttribute("title", this.module_label(entry.module));
+		this.sheet.set_title(this.module_label(entry.module));
 		this.render_dock($dock);
+		// the tapped tile was just rebuilt; focus left on <body> would miss the sheet's Escape
+		$dock.find(".active").trigger("focus");
 	}
 
 	// Put the items list back in the drawer, and the sidebar back on the module the page
@@ -257,50 +254,43 @@ frappe.ui.MobileNav = class MobileNav {
 			return true;
 		});
 
-		this.open_sheet(__("New"), ($body) => {
-			if (!items.length) {
-				$body.append(
-					`<p class="desk-mobile-sheet-empty">${__("Nothing to create in {0}", [
-						this.module_label(sidebar?.current_module),
-					])}</p>`
-				);
-				return;
-			}
-			for (const item of items) {
-				this.make_row($body, {
-					// the doctype, not the row's label: rows are often views such as "All"
-					label: __(item.link_to),
-					icon: item.icon || "file",
-					onclick: () => {
-						this.close_sheet();
-						frappe.new_doc(item.link_to);
-					},
-				});
-			}
-		});
-	}
-
-	make_row($body, { label, icon, onclick }) {
-		$(`<button type="button" class="desk-mobile-sheet-row"></button>`)
-			.append(frappe.utils.icon(icon, "md"))
-			.append($(`<span></span>`).text(label))
-			.on("click", onclick)
-			.appendTo($body);
+		this.open_sheet(__("New"), () =>
+			items.length
+				? {
+						options: items.map((item) => ({
+							// the doctype, not the row's label: rows are often views such as "All"
+							label: __(item.link_to),
+							icon: item.icon || "file",
+							onclick: () => frappe.new_doc(item.link_to),
+						})),
+				  }
+				: {
+						content: __("Nothing to create in {0}", [
+							this.module_label(sidebar?.current_module),
+						]),
+				  }
+		);
 	}
 };
 
 $(document).on("startup", () => {
 	if (!frappe.ui.mobile_nav) frappe.ui.mobile_nav = new frappe.ui.MobileNav();
 
-	// Until the elements load, the bar and sheet are inert tags. Same breakpoint as
-	// mobile_nav.scss; a window narrowed later loads them then. load_asset, not
-	// frappe.require, which would freeze the screen while it loads.
+	// Until the element loads, the bar is an inert tag. Same breakpoint as
+	// mobile_nav.scss; a window narrowed later loads it then, with the sheet its tabs open.
+	// load_asset, not frappe.require, which would freeze the screen while it loads.
 	const phone = window.matchMedia("(max-width: 767.98px)");
 	const load = () => {
 		if (!phone.matches) return;
 		phone.removeEventListener("change", load);
-		const path = frappe.assets.bundled_asset("mobile_nav.bundle.js");
-		frappe.assets.load_asset(path, path);
+		for (const asset of [
+			"mobile_nav.bundle.js",
+			"bottom_sheet.bundle.js",
+			"bottom_sheet.bundle.css",
+		]) {
+			const path = frappe.assets.bundled_asset(asset);
+			frappe.assets.load_asset(path, path);
+		}
 	};
 	phone.addEventListener("change", load);
 	load();
