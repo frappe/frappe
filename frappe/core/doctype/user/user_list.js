@@ -19,6 +19,7 @@ frappe.listview_settings["User"] = {
 		}
 	},
 	add_bulk_role_actions(listview) {
+		if (!frappe.model.can_write("User")) return;
 		const open_role_dialog = ({ title, get_action_label, method, destructive }) => {
 			const users = listview.get_checked_items(true);
 			if (!users.length) {
