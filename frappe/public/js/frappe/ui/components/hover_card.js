@@ -155,6 +155,11 @@ frappe.ui.HoverCard = class HoverCard {
 		document.addEventListener("keydown", this.onkeydown);
 		window.addEventListener("resize", this.onreposition);
 		document.addEventListener("scroll", this.onreposition, { capture: true, passive: true });
+		// a re-render can remove the trigger under an open card; close with it
+		this.observer = new MutationObserver(() => {
+			if (!this.trigger_el.isConnected) this.close();
+		});
+		this.observer.observe(document.body, { childList: true, subtree: true });
 
 		this.opts.on_open && this.opts.on_open(this);
 	}
@@ -165,6 +170,7 @@ frappe.ui.HoverCard = class HoverCard {
 		const panel = this.panel;
 		this.panel = null;
 
+		this.observer.disconnect();
 		document.removeEventListener("keydown", this.onkeydown);
 		window.removeEventListener("resize", this.onreposition);
 		document.removeEventListener("scroll", this.onreposition, { capture: true });
