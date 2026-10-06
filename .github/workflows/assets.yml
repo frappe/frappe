@@ -2,7 +2,7 @@ name: Pre-build assets
 
 on:
   push:
-    branches: [develop, version-16, version-16-hotfix, version-15]
+    branches: [develop, version-16, version-16-hotfix, version-15, version-15-hotfix]
 
 jobs:
   assets:
