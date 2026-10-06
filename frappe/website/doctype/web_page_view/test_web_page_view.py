@@ -69,6 +69,28 @@ class TestWebPageView(IntegrationTestCase):
 		reloaded.delete()
 		self.assertFalse(self.log_db.exists("Web Page View", view.name))
 
+	def test_get_doc_accepts_filters_instead_of_a_name(self):
+		"""`frappe.get_doc(doctype, <dict>)` has to work, as it does for any other DocType.
+
+		`Document.load_from_db` treats a non-scalar `name` as a set of filters, and callers
+		lean on it to turn a row from `frappe.get_all` straight into a document. Comparing
+		the `name` column against a dict renders the dict into the SQL instead.
+		"""
+		view = self._add_view(path="pricing", visitor_id="v1")
+
+		row = frappe.get_all("Web Page View", filters={"path": "pricing"})[0]
+		self.assertIsInstance(row, dict)
+		self.assertEqual(frappe.get_doc("Web Page View", row).name, view.name)
+
+		# a filter on something other than `name` is the same contract
+		self.assertEqual(frappe.get_doc("Web Page View", {"visitor_id": "v1"}).name, view.name)
+
+		# and a scalar name still takes the direct path
+		self.assertEqual(frappe.get_doc("Web Page View", view.name).name, view.name)
+
+		with self.assertRaises(frappe.DoesNotExistError):
+			frappe.get_doc("Web Page View", {"visitor_id": "no-such-visitor"})
+
 	def test_list_view_reads_the_log_database(self):
 		self._add_view(path="pricing")
 		self._add_view(path="about")

@@ -139,19 +139,32 @@ class SQLiteLogDocument(Document):
 			self.notify_update()
 
 	def load_from_db(self):
-		"""Populate this document from its row in the log database."""
-		qb, table = log_table(self.doctype)
+		"""Populate this document from its row in the log database.
 
-		rows = get_log_db().sql(
-			qb.from_(table).select(table.star).where(table.name == self.name),
-			as_dict=True,
-		)
+		`name` is usually the row's name, but `Document.load_from_db` also accepts anything
+		else as a set of filters, and callers rely on that: `frappe.get_doc("Activity Log",
+		row)` where `row` came straight out of `frappe.get_all` passes `{"name": "..."}`.
+		Comparing the `name` column against a dict would render the dict into the SQL, so the
+		two cases are kept apart exactly as the base class keeps them apart.
+		"""
+		db = get_log_db()
 
-		if not rows:
+		if isinstance(self.name, str | int):
+			qb, table = log_table(self.doctype)
+			rows = db.sql(
+				qb.from_(table).select(table.star).where(table.name == self.name),
+				as_dict=True,
+			)
+			row = rows[0] if rows else None
+		else:
+			ensure_log_table(self.doctype)
+			row = db.get_value(self.doctype, filters=self.name, fieldname="*", as_dict=True)
+
+		if not row:
 			raise frappe.DoesNotExistError(doctype=self.doctype)
 
 		# Bypass Document.__init__, which would try to load the document again.
-		super(Document, self).__init__(rows[0])
+		super(Document, self).__init__(row)
 
 	def delete(self, *args, **kwargs):
 		"""Delete this document from the log database."""
