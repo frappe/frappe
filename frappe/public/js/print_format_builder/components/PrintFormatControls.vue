@@ -124,9 +124,6 @@
 			<div class="pfb-group-label">
 				{{ __("Saved Snippets") }}
 			</div>
-			<div class="pfb-group-desc">
-				{{ __("Save a section or field as a snippet") }}
-			</div>
 			<template v-for="grp in snippet_groups" :key="grp.type">
 				<draggable
 					v-if="grp.items.length"
@@ -864,10 +861,9 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	/* the heading below carries its own 16px of top padding, so the field only
-	   needs a little clearance under it */
-	margin: 16px 16px 4px;
-	padding: 6px 8px;
+	height: 28px;
+	margin: 16px 16px 0;
+	padding: 0 8px;
 	border-radius: var(--radius);
 	background: var(--surface-gray-2);
 }
@@ -922,20 +918,12 @@ function handle_slash_key(e) {
 	align-items: center;
 }
 
-.pfb-group-desc {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 0 16px 4px;
-}
-
 /* ── Field row (Fields tab) ──────────────────────────────── */
 .pfb-field-row {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	/* the design sizes a row at 39px on a 284px panel; 34px keeps the drag target
-	   comfortable here and gives back about four fields per screen */
-	min-height: 34px;
+	min-height: 39px;
 	/* hover is a pill inset from the panel edge, so the row carries 8px of margin
 	   and 8px of padding and the label still sits on the 16px text grid */
 	margin: 0 8px;
@@ -955,7 +943,7 @@ function handle_slash_key(e) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-weight: 450;
+	font-weight: var(--weight-regular);
 }
 
 .pfb-field-type {
@@ -1089,6 +1077,7 @@ body.pfb-dragging .pfb-tree-fields {
 }
 
 .pfb-field-group {
+	padding-bottom: 4px;
 	border-bottom: 1px solid var(--border-color);
 }
 
