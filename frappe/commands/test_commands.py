@@ -670,7 +670,10 @@ class TestBackups(BaseTestCommands):
 					"Note",
 				]
 			},
-			"excludes": {"excludes": ["Activity Log", "Access Log", "View Log"]},
+			# Only DocTypes the site database actually holds a table for. `test_dont_backup_conf`
+			# asserts each of these appears in a full dump, which a log DocType never can:
+			# Access Log keeps its rows in the SQLite log database, outside a site backup.
+			"excludes": {"excludes": ["Activity Log", "View Log"]},
 		}
 	)
 	home = os.path.expanduser("~")

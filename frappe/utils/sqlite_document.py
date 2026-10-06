@@ -8,7 +8,10 @@ The connection itself, and the helpers that open and shape it, are in
 a DocType's persistence through it.
 """
 
+import json
+
 import frappe
+from frappe.database.utils import commit_after_response
 from frappe.model.document import Document
 from frappe.utils.logging import ensure_log_table, get_log_db, log_table
 
@@ -34,11 +37,36 @@ class SQLiteLogDocument(Document):
 		if not self.name:
 			set_new_name(self)
 
+		# `BaseDocument.db_insert` stamps these when they are unset, and callers rely on it:
+		# `make_access_log` reaches for `db_insert` directly rather than `insert`, which is the
+		# path that would otherwise have filled them in. Without this the row lands with a NULL
+		# `creation`, which hides it from retention (`creation < cutoff` never matches) and from
+		# the default `creation desc` ordering.
+		if not self.creation:
+			self.creation = self.modified = frappe.utils.now()
+			self.owner = self.modified_by = frappe.session.user
+
 		d = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 
 		qb, table = log_table(self.doctype)
 		db = get_log_db()
-		db.sql(qb.into(table).columns(*d.keys()).insert(*d.values()))
+
+		try:
+			db.sql(qb.into(table).columns(*d.keys()).insert(*d.values()))
+		except Exception as e:
+			# Mirrors `BaseDocument.db_insert`. Log DocTypes are named by hash, and a collision
+			# has to be retried with a fresh name rather than surfacing -- `_handle_hash_conflict`
+			# clears `name` and calls back in here, giving up after five tries. Anything else is
+			# re-raised as `DuplicateEntryError` so callers that retry on it keep working
+			# (`make_access_log` is decorated with exactly that retry).
+			if not db.is_primary_key_violation(e):
+				raise
+
+			if self.meta.autoname == "hash":
+				return self._handle_hash_conflict()
+
+			raise frappe.DuplicateEntryError(self.doctype, self.name, e) from e
+
 		db.commit()
 
 		self.set("__islocal", False)
@@ -133,6 +161,47 @@ class SQLiteLogDocument(Document):
 		db = get_log_db()
 		db.sql(qb.from_(table).where(table.name == self.name).delete())
 		db.commit()
+
+	def _set_log_column(self, column: str, value) -> None:
+		"""Write one column on this row, touching nothing else.
+
+		Unlike :meth:`db_set` this runs no hooks and does not bump `modified`. It exists for
+		the framework's bookkeeping columns, which are updated as a side effect of reading a
+		document and must not make it look edited.
+		"""
+		qb, table = log_table(self.doctype)
+
+		db = get_log_db()
+		db.sql(qb.update(table).set(table[column], value).where(table.name == self.name))
+		db.commit()
+
+	def add_seen(self, user=None):
+		"""Record that `user` has opened this document, in the log database.
+
+		`Document.add_seen` writes `_seen` with `frappe.db.set_value`, which targets the
+		primary database -- where a log DocType has no table, so opening the form would either
+		raise or silently update a leftover table nobody reads. Same payload and the same
+		deferral to after the response; only the connection changes.
+		"""
+		if not self.meta.track_seen or frappe.flags.read_only or self.meta.issingle:
+			return
+
+		user = user or frappe.session.user
+		seen = frappe.parse_json(self.get("_seen") or [])
+
+		if user in seen:
+			return
+
+		seen.append(user)
+		self.set("_seen", json.dumps(seen))
+		commit_after_response(lambda: self._set_log_column("_seen", json.dumps(seen)))
+
+	def reset_seen(self):
+		"""Reset `_seen` to just the current user. See :meth:`add_seen` for why this is here."""
+		if not self.meta.track_seen or self.meta.issingle or self.is_new():
+			return
+
+		self._set_log_column("_seen", json.dumps([frappe.session.user]))
 
 	# ============ class/static methods ============
 

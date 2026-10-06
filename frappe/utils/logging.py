@@ -185,6 +185,13 @@ def ensure_log_table(doctype: str) -> None:
 		if field and field.search_index:
 			indexed.append(column)
 
+	# `_seen` is an optional column rather than a field, so `get_valid_columns` never reports
+	# it and the loop above cannot create it. A DocType that asks to track who has read it
+	# (Access Log does) needs somewhere to record that, which
+	# :meth:`SQLiteLogDocument.add_seen` then writes.
+	if meta.track_seen:
+		definitions.append("`_seen` TEXT")
+
 	# `IF NOT EXISTS` rather than a `get_tables()` probe: that helper caches under the
 	# site-global `db_tables` key, which the primary connection also uses, so asking it here
 	# would overwrite the primary's cached table list.
