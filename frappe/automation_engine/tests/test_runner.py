@@ -13,6 +13,7 @@ from frappe.automation_engine.tests.test_actions import FakeResponse, public_dns
 from frappe.database import get_db
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 
 QUEUE = "Automation Trigger Queue"
 
@@ -53,7 +54,7 @@ def set_first_action_type(auto, action_type):
 	frappe.clear_document_cache("Automation Flow", auto)
 
 
-def delete_committed_run_fixtures(auto, todo_name):
+def delete_committed_run_fixtures(auto, *docs):
 	runs = frappe.get_all(RUN, filters={"automation": auto}, pluck="name")
 	if runs:
 		frappe.db.delete("Automation Run Step", {"parent": ("in", runs)})
@@ -61,9 +62,31 @@ def delete_committed_run_fixtures(auto, todo_name):
 	frappe.db.delete(QUEUE, {"automation": auto})
 	frappe.db.delete("Automation Action", {"parent": auto})
 	frappe.db.delete("Automation Flow", {"name": auto})
-	frappe.db.delete("ToDo", {"name": todo_name})
+	for doc in docs:
+		frappe.db.delete(doc.doctype, {"name": doc.name})
 	frappe.db.commit()
 	clear_automation_cache()
+
+
+def commit_edit_from_another_connection(doc):
+	"""Open this transaction's snapshot, then commit a newer `modified` for `doc` elsewhere."""
+	frappe.db.sql(f"select name from `tab{doc.doctype}` where name = %s", doc.name)
+	conf = frappe.conf
+	other = get_db(
+		socket=conf.db_socket,
+		host=conf.db_host,
+		port=conf.db_port,
+		user=conf.db_user or conf.db_name,
+		password=conf.db_password,
+		cur_db_name=conf.db_name,
+	)
+	other.connect()
+	try:
+		newer = frappe.utils.add_to_date(frappe.utils.now(), seconds=5)
+		other.sql(f"update `tab{doc.doctype}` set modified = %s where name = %s", (newer, doc.name))
+		other.commit()
+	finally:
+		other.close()
 
 
 class AutomationRunnerTestCase(IntegrationTestCase):
@@ -222,30 +245,15 @@ class TestRunner(AutomationRunnerTestCase):
 		self.assertEqual(self.run_status(auto), "Success")
 		self.assertGreaterEqual(Racy.calls, 2)
 
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_timestamp_mismatch_retry_sees_a_commit_from_another_connection(self):
 		todo = make_todo()
 		auto = make_automation([set_field("priority", "High")])
 		name = self.queue_row(auto, todo.name)
 		frappe.db.commit()
-		self.addCleanup(delete_committed_run_fixtures, auto, todo.name)
+		self.addCleanup(delete_committed_run_fixtures, auto, todo)
 
-		# Open this transaction's snapshot before the other connection commits its edit.
-		frappe.db.sql("select name from `tabToDo` where name = %s", todo.name)
-		conf = frappe.conf
-		other = get_db(
-			socket=conf.db_socket,
-			host=conf.db_host,
-			port=conf.db_port,
-			user=conf.db_user or conf.db_name,
-			password=conf.db_password,
-			cur_db_name=conf.db_name,
-		)
-		other.connect()
-		self.addCleanup(other.close)
-		newer = frappe.utils.add_to_date(frappe.utils.now(), seconds=5)
-		other.sql("update `tabToDo` set modified = %s where name = %s", (newer, todo.name))
-		other.commit()
-
+		commit_edit_from_another_connection(todo)
 		execute_automation(name)
 		self.assertEqual(self.run_status(auto), "Success")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "High")
