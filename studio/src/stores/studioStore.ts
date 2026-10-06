@@ -533,6 +533,7 @@ const useStudioStore = defineStore("store", () => {
 		)
 	}
 
+	let previewTab: Window | null = null
 	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
 		let route = `/${app.route}${resolveRouteVariables(page.route)}`
 		if (preview) {
@@ -542,14 +543,9 @@ const useStudioStore = defineStore("store", () => {
 			route = `${window.site_url}${route}`
 		}
 
-		const targetWindow = window.open(route, "studio-preview")
-		if (targetWindow?.location.pathname === route) {
-			targetWindow?.location.reload()
-		} else {
-			setTimeout(() => {
-				targetWindow?.location.reload()
-			}, 50)
-		}
+		// a fresh tab opens in front; navigating a reused named tab leaves it in the background
+		previewTab?.close()
+		previewTab = window.open(route, "_blank")
 	}
 
 	// substitute test route variables set by the user into the dynamic route so preview opens the concrete URL,
