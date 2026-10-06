@@ -170,6 +170,7 @@ const props = defineProps<{
 	block?: Block
 }>()
 const store = useStudioStore()
+const pageScope = usePageScope()
 const getEditorCompletions = useStudioCompletions(true)
 const multipleBlocksSelected = computed(() => blockController.multipleBlocksSelected())
 
@@ -269,7 +270,7 @@ const loadDoctypeFields = async (doctype: string) => {
 }
 
 const getDefaultFieldRows = () => {
-	const variables = Object.keys(usePageScope().variables)
+	const variables = Object.keys(pageScope.variables)
 	return doctypeFields.value.map((field) => ({
 		field: field.value,
 		value: variables.includes(field.value) ? field.value : "",

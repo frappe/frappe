@@ -233,7 +233,7 @@ const useStudioStore = defineStore("store", () => {
 		settingPage.value = true
 		pageConflict.value = false
 		savingPage.value = false
-		usePageScope().teardownPage()
+		pageScope.teardownPage()
 
 		const page = await fetchPage(pageName)
 		if (!page) {
@@ -243,7 +243,7 @@ const useStudioStore = defineStore("store", () => {
 		activePage.value = page
 		loadRouteVariables(page)
 		await setPageData(page)
-		await usePageScope().setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -360,7 +360,7 @@ const useStudioStore = defineStore("store", () => {
 		const page = await fetchPage(activePage.value.name)
 		if (!page) return
 		activePage.value = page
-		await usePageScope().setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 	}
 
 	async function publishPage() {
@@ -679,11 +679,12 @@ const useStudioStore = defineStore("store", () => {
 		if (!page) return
 		// re-resolve data sources with the new value, then re-run the page script so bindings that
 		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc.
-		await usePageScope().setPageResources(page, true)
-		await usePageScope().setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageResources(page, true)
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 	}, 300)
 
 	const codeStore = useCodeStore()
+	const pageScope = usePageScope()
 	codeStore.setRouteObject(routeObject)
 	codeStore.setRouterObject(readonly(router))
 
@@ -692,8 +693,8 @@ const useStudioStore = defineStore("store", () => {
 	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
 	// (studioPageScripts caches the latest setup).
 	async function setPageData(page: StudioPage) {
-		await usePageScope().setPageVariables(page)
-		await usePageScope().setPageResources(page, true)
+		await pageScope.setPageVariables(page)
+		await pageScope.setPageResources(page, true)
 	}
 
 	const variableConfigs = computed<Record<string, Variable>>(() => {
@@ -727,12 +728,12 @@ const useStudioStore = defineStore("store", () => {
 			}
 		}
 
-		traverse(usePageScope().variables)
+		traverse(pageScope.variables)
 		return options
 	})
 
 	const pageScriptBindingOptions = computed<VariableOption[]>(() => {
-		return Object.entries(usePageScope().pageScriptTemplateBindings).map(([key, value]) => ({
+		return Object.entries(pageScope.pageScriptTemplateBindings).map(([key, value]) => ({
 			value: key,
 			label: key,
 			type: typeof value,
