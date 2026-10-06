@@ -348,7 +348,14 @@ class DatabaseQuery:
 		if not isinstance(or_filters, Filters):
 			or_filters = Filters(or_filters, doctype=self.doctype)
 
-		_page_length = page_length or limit or limit_page_length or 20
+		# `or` cannot tell 0 from None, and 0 is Frappe's "no limit": a falsy limit adds no
+		# LIMIT clause on the non-virtual path below, and `frappe.get_all` sets
+		# `limit_page_length = 0` whenever the caller names no page. Chaining `or` collapsed
+		# both into the default page of 20, so `frappe.get_all` silently returned at most
+		# twenty rows for a virtual DocType while returning every row for any other one.
+		_page_length = next(
+			(value for value in (page_length, limit, limit_page_length) if value is not None), 20
+		)
 		kwargs = {
 			"fields": fields,
 			"filters": filters,
