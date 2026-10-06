@@ -458,9 +458,15 @@ class Meta(Document):
 
 		if frappe.db.estimate_count(self.name) > LARGE_TABLE_SIZE_THRESHOLD:
 			# Raw SQL to prevent querying meta when already in meta
+<<<<<<< HEAD
 			recent_change = frappe.db.sql(  # nosemgrep
 				f"SELECT `modified` FROM `tab{self.name}` ORDER BY `modified` DESC LIMIT 1"
 			)
+=======
+			recent_change = frappe.db.sql(
+				f"SELECT `modified` FROM `tab{self.name}` ORDER BY `modified` DESC LIMIT 1"
+			)  # nosemgrep
+>>>>>>> cc82e09 (fix(meta): use indexed modified column in large table check)
 			# NOTE: should not require use of zone -information, minimal comparison, to prevent querying meta when in meta.
 			if recent_change and get_datetime(recent_change[0][0]) > (
 				datetime.now() + timedelta(days=(-1 * LARGE_TABLE_RECENCY_THRESHOLD))
