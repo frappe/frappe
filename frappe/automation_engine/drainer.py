@@ -3,6 +3,7 @@
 
 import re
 import time
+from contextlib import contextmanager
 
 import frappe
 from frappe.automation_engine import runner, settings
@@ -20,6 +21,7 @@ from frappe.utils.background_jobs import get_queues_timeout
 DEFAULT_BATCH_SIZE = 500
 # Share of the drain queue's timeout a drain will spend claiming, leaving room for the last batch.
 DRAIN_TIME_BUDGET = 0.6
+ISOLATION_LEVELS = ("READ UNCOMMITTED", "READ COMMITTED", "REPEATABLE READ", "SERIALIZABLE")
 
 
 def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
@@ -33,22 +35,60 @@ def drain(batch_size=DEFAULT_BATCH_SIZE, max_batches=None, executor=None):
 	# Resolved on the module, not imported by name: the tests swap runner.execute_automation out.
 	executor = executor or runner.execute_automation
 
-	promote_due_scheduled()
-	deadline = time.monotonic() + drain_time_budget()
-	batches = 0
-	while True:
-		names = claim_batch(batch_size)
-		if not names:
-			break
-		execute_batch(executor, names)
-		batches += 1
-		if max_batches and batches >= max_batches:
-			break
-		if time.monotonic() >= deadline:
-			break
+	with read_committed():
+		promote_due_scheduled()
+		deadline = time.monotonic() + drain_time_budget()
+		batches = 0
+		while True:
+			names = claim_batch(batch_size)
+			if not names:
+				break
+			execute_batch(executor, names)
+			batches += 1
+			if max_batches and batches >= max_batches:
+				break
+			if time.monotonic() >= deadline:
+				break
 
 	if _has_due_pending():
 		kick_drainer()
+
+
+@contextmanager
+def read_committed():
+	"""Run the drain's transactions at READ COMMITTED, then restore the session's level.
+
+	Runs read documents that other requests keep saving. Under a repeatable-read snapshot taken at
+	the start of a commit group, the TimestampMismatchError retry rereads the same stale row, and
+	MariaDB 11.6+ (innodb_snapshot_isolation) rejects the locking read in save() outright.
+	"""
+	if frappe.db.db_type not in ("mariadb", "postgres"):
+		yield
+		return
+	previous = _session_isolation()
+	_set_session_isolation("READ COMMITTED")
+	try:
+		yield
+	finally:
+		_set_session_isolation(previous)
+
+
+def _session_isolation() -> str:
+	if frappe.db.db_type == "postgres":
+		level = frappe.db.sql("SHOW default_transaction_isolation")[0][0]
+	else:
+		level = frappe.db.sql("SELECT @@SESSION.tx_isolation")[0][0]
+	return level.replace("-", " ").upper()
+
+
+def _set_session_isolation(level):
+	if level not in ISOLATION_LEVELS:
+		return
+	# Takes effect from the next transaction. `level` is one of the fixed ISOLATION_LEVELS.
+	if frappe.db.db_type == "postgres":
+		frappe.db.sql(f"SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL {level}")  # nosemgrep
+	else:
+		frappe.db.sql(f"SET SESSION TRANSACTION ISOLATION LEVEL {level}")  # nosemgrep
 
 
 def drain_time_budget() -> float:
