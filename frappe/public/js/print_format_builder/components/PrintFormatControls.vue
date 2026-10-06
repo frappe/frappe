@@ -124,9 +124,6 @@
 			<div class="pfb-group-label">
 				{{ __("Saved Snippets") }}
 			</div>
-			<div class="pfb-group-desc">
-				{{ __("Save a section or field as a snippet") }}
-			</div>
 			<template v-for="grp in snippet_groups" :key="grp.type">
 				<draggable
 					v-if="grp.items.length"
@@ -214,13 +211,9 @@
 							></button>
 							<span
 								class="pfb-tree-icon"
-								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
+								v-html="frappe.utils.icon(section_icon(section), 'sm')"
 							></span>
-							<span class="pfb-tree-label">
-								{{
-									section.label || zone_label(section) || __("Untitled section")
-								}}
-							</span>
+							<span class="pfb-tree-label">{{ section_label(section) }}</span>
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
 							<div
@@ -375,7 +368,7 @@ import {
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
 import EmptyState from "./EmptyState.vue";
-import { column_of, zone_of, zones } from "../layout";
+import { column_of, zone_label as zone_label_of, zone_of, zones } from "../layout";
 import { field_menu_options, section_menu_options } from "../composables/useNodeMenu";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
@@ -659,7 +652,9 @@ const FIELD_ICONS = {
 	"Small Text": "file-text",
 	"Long Text": "file-text",
 	Text: "file-text",
-	Barcode: "square",
+	Barcode: "barcode",
+	Divider: "separator-horizontal",
+	Spacer: "minus",
 };
 function field_icon(f) {
 	return FIELD_ICONS[f.fieldtype] || "type";
@@ -681,8 +676,13 @@ function select_letterhead(section) {
 	store.select_letterhead({ footer: section === layout.value?.footer });
 }
 
-const ZONE_LABELS = { header: __("Header"), footer: __("Footer") };
-const zone_label = (section) => ZONE_LABELS[zone_of(layout.value, section)] || "";
+const zone_label = (section) => zone_label_of(layout.value, section);
+const section_icon = (section) =>
+	section.page_break ? "scissors-line-dashed" : "rectangle-horizontal";
+const section_label = (section) =>
+	section.label ||
+	zone_label(section) ||
+	(section.page_break ? __("Page Break") : __("Untitled section"));
 
 const { is_collapsed, toggle_collapse } = store;
 
@@ -722,8 +722,7 @@ function clone_section_block(block) {
 
 function add_section_block(block) {
 	if (!layout.value) return;
-	if (block.fieldname === "page_break") layout.value.sections.push(clone_as_section());
-	else store.insert_section(new_section());
+	store.insert_section(block.fieldname === "page_break" ? clone_as_section() : new_section());
 }
 
 // ── computed: field groups (by section break labels) ────────
@@ -864,10 +863,9 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	/* the heading below carries its own 16px of top padding, so the field only
-	   needs a little clearance under it */
-	margin: 16px 16px 4px;
-	padding: 6px 8px;
+	height: 28px;
+	margin: 16px 16px 0;
+	padding: 0 8px;
 	border-radius: var(--radius);
 	background: var(--surface-gray-2);
 }
@@ -922,20 +920,12 @@ function handle_slash_key(e) {
 	align-items: center;
 }
 
-.pfb-group-desc {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 0 16px 4px;
-}
-
 /* ── Field row (Fields tab) ──────────────────────────────── */
 .pfb-field-row {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	/* the design sizes a row at 39px on a 284px panel; 34px keeps the drag target
-	   comfortable here and gives back about four fields per screen */
-	min-height: 34px;
+	min-height: 39px;
 	/* hover is a pill inset from the panel edge, so the row carries 8px of margin
 	   and 8px of padding and the label still sits on the 16px text grid */
 	margin: 0 8px;
@@ -955,7 +945,7 @@ function handle_slash_key(e) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-weight: 450;
+	font-weight: var(--weight-regular);
 }
 
 .pfb-field-type {
@@ -1089,6 +1079,7 @@ body.pfb-dragging .pfb-tree-fields {
 }
 
 .pfb-field-group {
+	padding-bottom: 4px;
 	border-bottom: 1px solid var(--border-color);
 }
 

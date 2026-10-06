@@ -110,6 +110,7 @@ export function getStore(print_format_name) {
 			frappe.model.clear_doc("Print Format", print_format_name);
 			frappe.model.with_doc("Print Format", print_format_name, () => {
 				let _print_format = frappe.get_doc("Print Format", print_format_name);
+				if (!_print_format) return frappe.show_not_found();
 				frappe.model.with_doctype(_print_format.doc_type, () => {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;

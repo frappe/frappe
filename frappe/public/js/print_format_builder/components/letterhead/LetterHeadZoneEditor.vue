@@ -122,21 +122,19 @@ onMounted(() => {
 <style scoped>
 .lh-zone {
 	position: relative;
-	border: 1px solid transparent;
 	border-radius: var(--radius);
-	padding: 1rem;
+	outline-offset: 2px;
 	cursor: pointer;
-	transition: border-color 0.15s;
+	transition: outline-color 0.15s;
 }
 
 .lh-zone:hover {
-	border-color: var(--gray-300);
+	outline: 1px solid var(--gray-300);
 }
 
 .lh-zone--selected,
 .lh-zone--selected:hover {
 	z-index: 1;
-	border-color: transparent;
 	outline: var(--pfb-ring);
 }
 
