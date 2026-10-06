@@ -704,6 +704,15 @@ body {
 			opacity: 1;
 		}
 
+		// An island draws the card's body and handles its own clicks, so the card opens no list.
+		&.number-widget-island {
+			cursor: default;
+
+			&:hover {
+				border-color: var(--outline-gray-1);
+			}
+		}
+
 		.widget-body {
 			text-align: left;
 
