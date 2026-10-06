@@ -123,18 +123,12 @@ frappe-mobile-nav.desk-mobile-nav {
 	color: var(--ink-gray-9);
 }
 
-// What the tab bar puts in its <frappe-bottom-sheet>. The sheet's own look ships with the
-// element.
-.desk-mobile-sheet {
-	padding-bottom: calc(16px + env(safe-area-inset-bottom));
-}
-
 // The dock, as a row of tiles across the top of the navigation sheet.
 .desk-mobile-sheet-dock {
 	display: flex;
 	gap: 2px;
 	overflow-x: auto;
-	padding: 0 8px 12px;
+	padding-bottom: 12px;
 	border-bottom: 1px solid var(--outline-gray-1);
 }
 
@@ -188,7 +182,7 @@ frappe-mobile-nav.desk-mobile-nav {
 	position: static;
 	width: auto;
 	height: auto;
-	padding: 8px 8px 0;
+	padding: 8px 0 0;
 	border: none;
 	background: none;
 	z-index: auto;
@@ -201,43 +195,4 @@ frappe-mobile-nav.desk-mobile-nav {
 	.standard-sidebar-item .sidebar-item-label {
 		font-size: var(--text-base);
 	}
-}
-
-.desk-mobile-sheet-row {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	width: calc(100% - 16px);
-	height: 44px;
-	margin: 0 8px;
-	padding: 0 12px;
-	border: none;
-	border-radius: var(--radius);
-	background: none;
-	color: var(--ink-gray-8);
-	font-size: var(--text-base);
-	text-align: left;
-	text-decoration: none;
-
-	svg {
-		flex: none;
-		// a desk rule centres a lone button glyph with auto margins
-		margin: 0;
-		color: var(--ink-gray-6);
-	}
-
-	&:active {
-		background: var(--surface-gray-2);
-	}
-
-	&:hover {
-		color: var(--ink-gray-8);
-		text-decoration: none;
-	}
-}
-
-.desk-mobile-sheet-empty {
-	padding: 32px 16px;
-	text-align: center;
-	color: var(--ink-gray-5);
 }
