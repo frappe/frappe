@@ -318,7 +318,9 @@ class TestWorkspaceRestore(IntegrationTestCase):
 
 		page = next(p for p in get_workspaces()["pages"] if p["name"] == self.WORKSPACE)
 		self.assertEqual(loads(page["content"]), [*BASE_CONTENT, MESSAGE_BLOCK, AUDIT_BLOCK])
-		rendered = get_desktop_page({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
+		rendered = get_desktop_page(
+			frappe.as_json({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
+		)
 		self.assertIn("Audit", [s.label for s in rendered["shortcuts"]["items"]])
 		# the base stays the app's
 		self.assertEqual(loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content")), BASE_CONTENT)
@@ -348,7 +350,9 @@ class TestWorkspaceRestore(IntegrationTestCase):
 
 		from frappe.desk.desktop import get_desktop_page
 
-		rendered = get_desktop_page({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
+		rendered = get_desktop_page(
+			frappe.as_json({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
+		)
 		self.assertIn("My ToDos", [s.label for s in rendered["shortcuts"]["items"]])
 
 	def test_a_later_upgrade_keeps_the_copy_that_holds_the_edit(self):
@@ -368,7 +372,9 @@ class TestWorkspaceRestore(IntegrationTestCase):
 
 		from frappe.desk.desktop import get_desktop_page
 
-		rendered = get_desktop_page({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
+		rendered = get_desktop_page(
+			frappe.as_json({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
+		)
 		self.assertIn("My ToDos", [s.label for s in rendered["shortcuts"]["items"]])
 
 	def test_a_dropped_widget_with_no_copy_is_reported(self):
