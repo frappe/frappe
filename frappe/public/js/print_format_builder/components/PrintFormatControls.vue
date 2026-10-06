@@ -652,7 +652,9 @@ const FIELD_ICONS = {
 	"Small Text": "file-text",
 	"Long Text": "file-text",
 	Text: "file-text",
-	Barcode: "square",
+	Barcode: "barcode",
+	Divider: "separator-horizontal",
+	Spacer: "minus",
 };
 function field_icon(f) {
 	return FIELD_ICONS[f.fieldtype] || "type";
