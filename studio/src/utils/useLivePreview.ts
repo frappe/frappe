@@ -14,8 +14,9 @@ export function useLivePreview() {
 	const router = useRouter()
 	const revision = ref(0)
 
-	const reloadPage = useDebounceFn(async () => {
-		const { path, query, hash } = router.currentRoute.value
+	const reloadPage = useDebounceFn(async (pageName: string) => {
+		const { path, query, hash, meta } = router.currentRoute.value
+		if (meta.pageName !== pageName) return
 		const failure = await router.replace({ path, query, hash, force: true })
 		if (!failure) revision.value++
 	}, 300)
@@ -24,7 +25,7 @@ export function useLivePreview() {
 		if (info?.doctype === "Studio Component") {
 			useComponentStore().reloadComponent(info.name)
 		} else if (info?.doctype === "Studio Page" && info?.name === router.currentRoute.value.meta.pageName) {
-			reloadPage()
+			reloadPage(info.name)
 		}
 	}
 

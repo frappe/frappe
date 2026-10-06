@@ -31,18 +31,21 @@ export async function preparePage(router: Router, to: RouteLocationNormalized, f
 
 	const pageRoute = shallowRef(to)
 	const scope = createPageScope(pageRoute, shallowRef(router))
-	await scope.setPageVariables(page, page.variables)
-	await scope.setPageResources(page, false, page.resources)
-	await scope.setPageScript(page, Boolean(page.is_standard))
-	if (navigation !== latestNavigation) return scope.teardownPage()
-
-	const root = getBlockInstance(JSON.parse(page.blocks)[0])
-	preparedPages.set(to.fullPath, { page, scope, pageRoute, root })
+	try {
+		await scope.setPageVariables(page, page.variables)
+		await scope.setPageResources(page, false, page.resources)
+		await scope.setPageScript(page, Boolean(page.is_standard))
+		if (navigation !== latestNavigation) return scope.teardownPage()
+		const root = getBlockInstance(JSON.parse(page.blocks)[0])
+		preparedPages.set(to.fullPath, { page, scope, pageRoute, root })
+	} catch (error) {
+		scope.teardownPage()
+		throw error
+	}
 }
 
 // afterEach: a navigation that did not go through discards what it prepared
 export function discardPreparedPage(to: RouteLocationNormalized, failure: unknown) {
-	latestNavigation++
 	if (!failure) return
 	preparedPages.get(to.fullPath)?.scope.teardownPage()
 	preparedPages.delete(to.fullPath)
