@@ -14,9 +14,12 @@ EXECUTABLE_PATHS = {
 GENERATOR_ENGINES = ("chrome", "Typst", "WeasyPrint")
 
 
-def _print_format_doc_or_none(print_format: str | None):
+def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None):
 	"""The Print Format doc, or None for an empty, "Standard" or deleted name so a
-	notification referencing a removed format still sends with the Standard render."""
+	notification referencing a removed format still sends with the Standard render.
+	With a doctype, an empty name means the doctype's default print format."""
+	if not print_format and doctype:
+		print_format = frappe.get_meta(doctype).default_print_format
 	if not print_format or print_format == "Standard":
 		return None
 	try:
@@ -225,7 +228,7 @@ def attach_print(
 
 	frappe.local.flags.ignore_print_permissions = True
 
-	pf_doc = _print_format_doc_or_none(print_format)
+	pf_doc = _print_format_doc_or_none(print_format, doctype)
 
 	try:
 		with print_language(lang):
