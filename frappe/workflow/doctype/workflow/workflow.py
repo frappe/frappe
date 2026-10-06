@@ -99,9 +99,9 @@ class Workflow(Document):
 	def update_default_workflow_status(self):
 		"""Seed the state field of documents this workflow governs, leaving the rest untouched.
 
-		A state this workflow does not define is treated as unset. A workflow that outranks a
-		peer has to correct what the peer seeded before it existed, the same way validate_workflow
-		re-enters a document whose stored state is foreign to the workflow that governs it.
+		A state only a peer defines is treated as unset, so a workflow that outranks a peer corrects
+		what the peer seeded before it existed. A state no active workflow defines, such as one just
+		renamed, is left for the user to fix.
 		"""
 		outranking = self.get_higher_priority_workflows()
 		if any(not workflow.conditions for workflow in outranking):
@@ -115,7 +115,9 @@ class Workflow(Document):
 			Not(Criterion.all(workflow.get_condition_criteria(TargetDocType))) for workflow in outranking
 		]
 
-		own_states = [d.state for d in self.states]
+		unset = state_field.isnull() | (state_field == "")
+		if peer_states := self.get_peer_states():
+			unset |= state_field.isin(peer_states)
 
 		for d in self.get("states"):
 			if d.doc_status in docstatus_map:
@@ -124,7 +126,7 @@ class Workflow(Document):
 			query = (
 				frappe.qb.update(TargetDocType)
 				.set(state_field, d.state)
-				.where(state_field.isnull() | (state_field == "") | state_field.notin(own_states))
+				.where(unset)
 				.where(TargetDocType.docstatus == d.doc_status)
 			)
 			for criterion in criteria:
@@ -144,6 +146,15 @@ class Workflow(Document):
 			return []
 
 		return [frappe.get_cached_doc("Workflow", name) for name in names[: names.index(self.name)]]
+
+	def get_peer_states(self) -> set[str]:
+		"""States that another active workflow of this doctype defines and this one does not."""
+		peers = [
+			frappe.get_cached_doc("Workflow", name)
+			for name in get_workflow_names(self.document_type)
+			if name != self.name
+		]
+		return {d.state for peer in peers for d in peer.states} - {d.state for d in self.states}
 
 	def get_condition_criteria(self, table) -> list:
 		return [CONDITION_COMPARATORS[d.condition](getattr(table, d.field), d.value) for d in self.conditions]

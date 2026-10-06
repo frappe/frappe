@@ -311,7 +311,7 @@ def validate_workflow(doc):
 	if getattr(doc, "_doc_before_save", None):
 		current_state = doc._doc_before_save.get(workflow.workflow_state_field)
 
-	if current_state and not any(d.state == current_state for d in workflow.states):
+	if current_state in workflow.get_peer_states():
 		current_state = get_state_for_docstatus(workflow, doc.docstatus)
 		doc.set(workflow.workflow_state_field, current_state)
 
