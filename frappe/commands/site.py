@@ -1268,7 +1268,13 @@ def set_user_password(site, user, password, logout_all_sessions=False, force=Fal
 			set_admin_password_login_setting(0)
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
-		if enable_password_login:
+		if frappe.get_system_settings("disable_user_pass_login"):
+			# blocks Administrator too, so the brute force warning below would be wrong here
+			warn_admin_password_login_enabled(
+				f"Warning: username/password login is disabled on {site}, so this password cannot be used to log in "
+				"until 'Disable Username/Password Login' is turned off in System Settings."
+			)
+		elif enable_password_login:
 			warn_admin_password_login_enabled()
 		frappe.db.commit()
 	finally:
