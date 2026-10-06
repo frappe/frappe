@@ -372,7 +372,7 @@ import {
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
 import EmptyState from "./EmptyState.vue";
-import { column_of, zone_of, zones } from "../layout";
+import { column_of, zone_label as zone_label_of, zone_of, zones } from "../layout";
 import { field_menu_options, section_menu_options } from "../composables/useNodeMenu";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
@@ -678,8 +678,7 @@ function select_letterhead(section) {
 	store.select_letterhead({ footer: section === layout.value?.footer });
 }
 
-const ZONE_LABELS = { header: __("Header"), footer: __("Footer") };
-const zone_label = (section) => ZONE_LABELS[zone_of(layout.value, section)] || "";
+const zone_label = (section) => zone_label_of(layout.value, section);
 
 const { is_collapsed, toggle_collapse } = store;
 
