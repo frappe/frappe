@@ -737,6 +737,17 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		self.assertIsNone(get_workflow_name("ToDo", undated))
 		self.assertIsNone(undated.workflow_state)
 
+	def test_seeding_reaches_a_document_a_higher_priority_workflow_leaves_unset(self):
+		undated = create_new_todo()
+		frappe.db.set_value("ToDo", undated.name, "date", None)
+
+		build_conditional_todo_workflow([("date", "<", "2026-01-01")], workflow_priority=10).insert()
+		catch_all = create_conditional_todo_workflow(workflow_priority=0)
+
+		undated.reload()
+		self.assertEqual(get_workflow_name("ToDo", undated), catch_all.name)
+		self.assertEqual(undated.workflow_state, "Pending")
+
 	def test_conditions_must_name_a_real_field(self):
 		workflow = build_todo_workflow()
 		workflow.append("conditions", dict(field="not_a_field", condition="=", value="High"))
