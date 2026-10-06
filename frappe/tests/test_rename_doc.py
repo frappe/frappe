@@ -289,6 +289,47 @@ class TestRenameDoc(IntegrationTestCase):
 		self.available_documents.append(new_name)
 		self.available_documents.remove(name)
 
+	def test_rename_honours_write_permission(self):
+		from inspect import signature
+
+		public_params = set(signature(frappe.model.document.Document.rename).parameters)
+		self.assertNotIn("validate_rename", public_params)
+		self.assertNotIn("force", public_params)
+
+		role = frappe.get_doc({"doctype": "Role", "role_name": frappe.generate_hash(length=10)}).insert()
+		doctype = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": "Test Rename Perm " + frappe.generate_hash(length=6),
+				"module": "Core",
+				"custom": 1,
+				"autoname": "Prompt",
+				"allow_rename": 1,
+				"fields": [{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+				"permissions": [
+					{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+					{"role": role.name, "read": 1, "write": 0, "create": 0, "delete": 0},
+				],
+			}
+		).insert()
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": f"{frappe.generate_hash(length=10)}@example.com",
+				"first_name": "Rename",
+				"roles": [{"role": role.name}],
+			}
+		).insert()
+		frappe.get_doc(doctype=doctype.name, name="OLD-NAME").insert(ignore_permissions=True)
+
+		with self.set_user(user.name):
+			self.assertFalse(frappe.has_permission(doctype.name, "write", doc="OLD-NAME"))
+			self.assertRaises(
+				frappe.ValidationError, frappe.get_doc(doctype.name, "OLD-NAME").rename, "NEW-NAME"
+			)
+
+		self.assertTrue(frappe.db.exists(doctype.name, "OLD-NAME"))
+
 	def test_parenttype(self):
 		child = new_doctype(istable=1).insert()
 		table_field = {
