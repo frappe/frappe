@@ -26,18 +26,9 @@ from frappe.utils.modules import get_module_placement
 
 
 def execute():
-	"""Turn each sidebar the site made in v16 into a custom module with that sidebar, and put it
-	on the dock of the app v16 filed it under.
-
-	It cannot stay in the module v16 filed it under, because a module has one sidebar and that
-	module now shows the app's.
-
-	v16 showed such a sidebar only to the users its desktop icon showed to. A module has no roles,
-	so the module is blocked for everyone else instead.
-
-	The old rows are not changed, and every step skips what is already done, so this is safe to
-	run again, including after a run that stopped partway.
-	"""
+	"""Each sidebar a site made becomes its own custom module, added to the end of its app's dock
+	as the site's own dock edit. v16 showed such a sidebar only to the users its desktop icon
+	showed to, so the module is blocked for everyone else."""
 	if not archive_exists():
 		return
 
@@ -64,12 +55,7 @@ def execute():
 
 
 def add_to_site_dock(module: str) -> None:
-	"""Add the module's sidebar to the end of its app's dock, as the site's own edit.
-
-	The site's dock layer is the whole rail, so it is saved with every entry already on it, the
-	same as "Manage Dock" does for everyone. A companion app has no rail of its own, so its
-	modules go on the rail of the app it mounts on. A module with no app has no dock to go on.
-	"""
+	"""Add the module's sidebar to the end of its app's dock, saved like Manage Dock for everyone."""
 	app = get_module_placement(module)
 	sidebar = frappe.db.get_value("Sidebar", {"module": module}, ["name", "header_icon"], as_dict=True)
 	if not app or not sidebar:
@@ -124,10 +110,7 @@ def roles_of(icon: str) -> set[str]:
 
 
 def v16_showed(icons: list[frappe._dict], user: str, roles: set[str]) -> bool:
-	"""Whether v16's desktop showed `user` any of `icons`, by the rules of its
-	`get_desktop_icons`: an icon is loaded when it is standard or Administrator's or the user's own,
-	passes when the user holds one of its roles or it has none, and one inside a folder or an app
-	needs that parent to pass too. An app passes only if the app lets the user in."""
+	"""Whether v16's `get_desktop_icons` showed `user` any of `icons`."""
 
 	def passes(icon) -> bool:
 		if not (icon.standard or icon.owner in ("Administrator", user)):
@@ -142,9 +125,7 @@ def v16_showed(icons: list[frappe._dict], user: str, roles: set[str]) -> bool:
 
 
 def app_permitted(icon: frappe._dict, user: str) -> bool:
-	"""v16's `check_app_permission` for an App icon, asked as `user`: the app's apps-screen
-	`has_permission`, or yes when it declares none. An icon no installed app answers to is not
-	permitted."""
+	"""v16's `check_app_permission` for an App icon, asked as `user`."""
 	for app in frappe.get_installed_apps():
 		if app != icon.app and (frappe.get_hooks("app_title", app_name=app) or [None])[0] != icon.label:
 			continue
@@ -163,8 +144,7 @@ def app_permitted(icon: frappe._dict, user: str) -> bool:
 
 
 def system_user_roles() -> dict[str, set[str]]:
-	"""Every desk user's roles, read once: their own plus the ones each desk user has
-	automatically."""
+	"""Every desk user's roles, read once."""
 	users = {
 		user: {GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE}
 		for user in frappe.get_all(
@@ -180,12 +160,7 @@ def system_user_roles() -> dict[str, set[str]]:
 
 
 def block_where_v16_hid(module: str, icons: list[frappe._dict], users: dict[str, set[str]]) -> bool:
-	"""Block `module` for every user v16 did not show any of `icons` to. A sidebar with no icon
-	was not gated, so nobody is blocked.
-
-	The rows are inserted in one go rather than by saving each user, which would run the whole of
-	`User.validate` per user.
-	"""
+	"""Block `module` for every user v16 showed none of `icons` to, in one insert."""
 	if not icons:
 		return False
 
@@ -238,7 +213,7 @@ def block_where_v16_hid(module: str, icons: list[frappe._dict], users: dict[str,
 
 
 def make_module(row) -> str:
-	"""Create the custom module `row` becomes, listed in the dock of the app v16 filed it under."""
+	"""Create the custom module `row` becomes, placed in the app v16 filed it under."""
 	name = module_name_for(row.name)
 	if frappe.db.exists("Module Def", name):
 		return name
@@ -259,15 +234,7 @@ MODULE_NAME_LENGTH = 140
 
 
 def module_name_for(title: str) -> str:
-	"""The sidebar's title, or the nearest free name to it.
-
-	The title is also the sidebar's, so it has to be one a desk URL can carry. A custom module that
-	has no sidebar yet is the site's own and is reused; any other module of that name is not this
-	sidebar's, so `Stock` becomes `Stock (Custom)`.
-
-	A module's name holds 140 characters, so the title is cut short enough to take the suffix. One
-	with nothing left once cleaned, such as `//`, is named `Custom Sidebar` instead.
-	"""
+	"""The sidebar's title, made URL-safe, or the nearest free name: `Stock` becomes `Stock (Custom)`."""
 	cleaned = " ".join(re.sub(f"[{re.escape(UNROUTABLE_IN_A_TITLE)}]", " ", title).split())
 	cleaned = cleaned[: MODULE_NAME_LENGTH - len(" (Custom) 999")].strip() or "Custom Sidebar"
 	candidates = chain((cleaned, f"{cleaned} (Custom)"), (f"{cleaned} (Custom) {n}" for n in count(2)))

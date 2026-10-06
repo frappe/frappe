@@ -14,15 +14,7 @@ from frappe.patches.v16_0.sidebar_archive import (
 
 
 def execute():
-	"""Build a `Sidebar` from an app's v16 sidebar, but only when the app no longer ships it.
-
-	Usually the app ships its sidebars as files, and `bench migrate` has already installed them
-	before this runs, so there is nothing to do. This covers an app that dropped a sidebar, or has
-	not yet converted its old sidebar files.
-
-	Sidebars the site made and users' personal copies are handled by the patches after this one.
-	The old rows are not changed, so this is safe to run again.
-	"""
+	"""A sidebar is only built from old rows when the app no longer ships one at all."""
 	if not archive_exists():
 		return
 
@@ -47,13 +39,8 @@ def execute():
 
 
 def standard_sources() -> dict[str, list[frappe._dict]]:
-	"""The app's v16 sidebars that the app no longer ships, grouped by module.
-
-	A row is skipped when the app ships a sidebar with the same title, in any module. Checking
-	the module alone is not enough when an app has moved a sidebar: if `Books` was under
-	`Library` in v16 and now ships under `Catalog`, the old row still says `Library`. `Library`
-	has no sidebar now, so the row would be built into a second, outdated `Library` sidebar.
-	"""
+	"""The app rows to convert, by module. A row is skipped when the app ships a sidebar with
+	the same name, in any module, so a sidebar the app moved is not built twice."""
 	rows = [
 		row
 		for row in site_rows()

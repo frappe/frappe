@@ -17,12 +17,8 @@ from frappe.patches.v16_0.sidebar_archive import (
 
 
 def execute():
-	"""Turn each user's personal copy of a v16 sidebar into their own `Custom Sidebar`.
-
-	v16 let a user copy a sidebar and rearrange it. The copy becomes a layer over the sidebar it
-	was copied from, so this runs after the other sidebar patches. The old rows are not changed, so
-	this is safe to run again.
-	"""
+	"""A user's personal copy becomes their `Custom Sidebar`, laid over the sidebar it was copied
+	from."""
 	if not archive_exists():
 		return
 
@@ -51,11 +47,7 @@ def execute():
 
 
 def forks_by_owner() -> dict[tuple[str, str], list[frappe._dict]]:
-	"""Every convertible fork, grouped by the person and module it belongs to.
-
-	One group per `(user, module)`: v16 forked per workspace sidebar, so one person can hold
-	several arrangements that now have a single layer to become. They are merged, not made to compete.
-	"""
+	"""Every convertible personal copy, grouped by user and module, since they merge into one layer."""
 	forks = frappe.get_all(
 		ARCHIVE_DOCTYPE,
 		filters={"for_user": ["is", "set"]},
@@ -89,11 +81,7 @@ def forks_by_owner() -> dict[tuple[str, str], list[frappe._dict]]:
 
 
 def source_of(fork) -> str | None:
-	"""Return the sidebar this fork was copied from. v16 named a fork `<sidebar>-<user>`.
-
-	It is worth recovering, because it is the list the user was looking at when they rearranged
-	it.
-	"""
+	"""The sidebar this copy was made from. v16 named a copy `<sidebar>-<user>`."""
 	title = fork.title or fork.name
 	source = title.removesuffix(f"-{fork.for_user}")
 	if source == title:
@@ -103,26 +91,13 @@ def source_of(fork) -> str | None:
 
 
 def arrangement_below(module: str) -> list:
-	"""The module's base sidebar, which a person's layer is laid over.
-
-	Read after the site's sidebars are converted, so items that exist in both are stored as
-	references and stay live.
-
-	`get_module_base` rather than indexing `get_sidebar_bases` by the module: that dict is keyed by
-	shell, and a converted `Sidebar` is named after the v16 title it was converted from, which is
-	only the module's name when several sidebars were merged. A sidebar called anything else, such
-	as "Invoicing" under `Accounts`, has no key under the module, and the `KeyError` would stop
-	the migrate of any site where that module also has a personal copy.
-	"""
+	"""The module's base sidebar. `get_sidebar_bases` is keyed by sidebar name, not module, so
+	indexing it by module fails for a sidebar like "Invoicing" under `Accounts`."""
 	return get_module_base(module).rows
 
 
 def dropped_keys(forks: list[frappe._dict], items: list[dict]) -> set[str]:
-	"""Return what this user removed, as opposed to what they were never offered.
-
-	Only items the source sidebar showed them count as removed. Anything the module gained since
-	is new to them rather than something they hid.
-	"""
+	"""What this user removed from the sidebar they copied, not what was added since."""
 	kept = {item_key(item) for item in items}
 	offered = {item_key(row) for fork in forks if fork.source for row in archive_items(fork.source)}
 	return offered - kept
