@@ -2,8 +2,8 @@
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
 			<div class="page-title">
-				<button class="btn-reset page-back-button" aria-label="{{ __("Back") }}">
-					<svg class="icon icon-md"><use href="#icon-chevron-left"></use></svg>
+				<button class="es-button page-back-button" data-variant="ghost" data-size="md" data-icon-button="true" aria-label="{{ __("Back") }}">
+					{{ frappe.utils.icon("chevron-left", "md") }}
 				</button>
 				<div class="flex title-area ellipsis">
 					<nav class="es-breadcrumbs navbar-breadcrumbs {{frappe.is_mobile() ? "mobile-no-divider" : ""}}" aria-label="{{ __("Breadcrumb") }}"><ol></ol></nav>
