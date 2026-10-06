@@ -227,6 +227,25 @@ def log_table(doctype: str):
 	return qb, qb.DocType(doctype)
 
 
+def connection_for(doctype: str):
+	"""Return the connection that holds `doctype`'s rows.
+
+	For framework code that handles log and ordinary DocTypes through one path -- the
+	reference cleanup on delete, the GDPR redaction -- and so cannot simply reach for
+	`frappe.db`: a log DocType's rows live in the log database, and the site database has no
+	table to act on.
+
+	Creates the log table when it is the answer, so a caller cannot fail just because
+	nothing has been logged on this site yet.
+	"""
+	if not is_log_doctype(doctype):
+		return frappe.db
+
+	log_table(doctype)
+
+	return get_log_db()
+
+
 def is_log_doctype(doctype: str) -> bool:
 	"""Return True if `doctype` keeps its rows in the log database.
 

@@ -345,10 +345,14 @@ class SystemHealthReport(Document):
 
 	@health_check("Users")
 	def fetch_user_stats(self):
+		from frappe.utils.logging import get_log_db
+
 		threshold = add_to_date(None, days=-30, as_datetime=True)
 		self.total_users = frappe.db.count("User", {"enabled": 1})
 		self.new_users = frappe.db.count("User", {"enabled": 1, "creation": (">", threshold)})
-		self.failed_logins = frappe.db.count(
+		# Activity Log rows live in the site's SQLite log database, so the count is asked of
+		# that connection -- the site database holds no table for it.
+		self.failed_logins = get_log_db().count(
 			"Activity Log",
 			{
 				"operation": "login",

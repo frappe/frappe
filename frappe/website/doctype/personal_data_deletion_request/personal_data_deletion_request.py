@@ -11,27 +11,9 @@ from frappe.core.utils import find
 from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
 from frappe.model.document import Document
 from frappe.utils import add_days, get_datetime, get_fullname, now_datetime, time_diff_in_hours
+from frappe.utils.logging import connection_for
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
-
-
-def _connection_for(doctype: str):
-	"""Return the connection that holds `doctype`'s rows.
-
-	`user_data_fields` names log DocTypes alongside ordinary ones -- Access Log and Activity
-	Log are both on that list -- and a log DocType's rows live in the site's SQLite log
-	database rather than the site database.
-	"""
-	from frappe.utils.logging import get_log_db, is_log_doctype, log_table
-
-	if not is_log_doctype(doctype):
-		return frappe.db
-
-	# Creates the table if this site has never written one, so the redaction cannot fail
-	# just because nothing has been logged yet.
-	log_table(doctype)
-
-	return get_log_db()
 
 
 class PersonalDataDeletionRequest(Document):
@@ -373,9 +355,11 @@ class PersonalDataDeletionRequest(Document):
 		# it raises "table doesn't exist" on any site installed after the move. The statement
 		# itself is unchanged: `REPLACE()` and backtick-quoted identifiers mean the same thing
 		# on both backends.
+		# `user_data_fields` names log DocTypes alongside ordinary ones -- Access Log and
+		# Activity Log are both on that list -- so the connection has to be chosen per DocType.
 		# Not committed here: the log connection is in autocommit, so the statement is already
 		# durable, and committing `frappe.db` is this method's caller's business.
-		_connection_for(doctype["doctype"]).sql(
+		connection_for(doctype["doctype"]).sql(
 			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
 			{"name": self.full_name, "email": self.email},
 		)
