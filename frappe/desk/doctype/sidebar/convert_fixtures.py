@@ -31,6 +31,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	SIDEBAR_ITEM_FIELDS,
 	build_sidebar,
 	majority_module_of,
+	options_as_filters,
 )
 from frappe.modules.utils import get_app_level_files
 
@@ -74,6 +75,8 @@ def read_fixtures(app: str) -> list[frappe._dict]:
 		rows = [frappe._dict(row) for row in (fixture.get("items") or [])]
 		if not rows:
 			continue
+		for row in rows:
+			options_as_filters(row)
 
 		sources.append(
 			frappe._dict(
