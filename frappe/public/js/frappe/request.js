@@ -155,12 +155,7 @@ frappe.request.call = function (opts) {
 		404: function (xhr) {
 			if (xhr.responseJSON?._server_messages && frappe.msg_dialog?.msg_area.html()) {
 				// cleanup has already shown the server's messages
-				frappe.msg_dialog.custom_onhide = function () {
-					frappe.route_flags.replace_route = true;
-					let prev_route = frappe.get_prev_route();
-					if (prev_route.length == 0) frappe.set_route("");
-					frappe.set_route(prev_route);
-				};
+				frappe.re_route_on_msgprint_hide();
 			} else {
 				frappe.msgprint({
 					title: __("Not found"),
