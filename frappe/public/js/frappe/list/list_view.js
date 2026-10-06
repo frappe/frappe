@@ -198,6 +198,42 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				});
 			}
 		});
+		this.setup_load_on_scroll();
+	}
+
+	// On a phone the page-size pills and Load More are hidden (list.scss); the next page
+	// loads as the end of the list nears the screen. Past the virtualization threshold
+	// the rows scroll in their own box, which the observer sees through.
+	setup_load_on_scroll() {
+		if (typeof IntersectionObserver === "undefined") return;
+		this.$paging_area.addClass("list-paging-auto");
+		this.$list_end = $(`<div class="list-end" aria-hidden="true"></div>`);
+		this.$result.after(this.$list_end);
+
+		this.scroll_observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((entry) => entry.isIntersecting)) this.load_more_on_scroll();
+			},
+			{ rootMargin: "0px 0px 600px 0px" }
+		);
+		this.scroll_observer.observe(this.$list_end[0]);
+	}
+
+	load_more_on_scroll() {
+		// a short last page means there is nothing more; this is when Load More hides
+		if (!frappe.is_mobile() || this.loading_more || this.data.length < this.page_length)
+			return;
+		this.loading_more = true;
+		this.start = this.data.length;
+		this.page_length = this.selected_page_count;
+		this.refresh().finally(() => {
+			this.loading_more = false;
+			// the observer only reports changes; observing again re-checks a list end that
+			// is still in view because the new page didn't fill the screen
+			const list_end = this.$list_end[0];
+			this.scroll_observer.unobserve(list_end);
+			this.scroll_observer.observe(list_end);
+		});
 	}
 
 	setup_page_head() {
