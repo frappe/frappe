@@ -52,7 +52,6 @@ frappe.ui.MobileNav = class MobileNav {
 		const { search_bar, notifications } = frappe.boot.desk_settings || {};
 		return [
 			{ name: "home", label: __("Home"), icon: "house", to: "/desk" },
-			// the search page (desk/page/search), the awesomebar as a page of its own
 			search_bar && {
 				name: "search",
 				label: __("Search"),
@@ -65,14 +64,12 @@ frappe.ui.MobileNav = class MobileNav {
 				icon: "plus",
 				on_click: () => this.open_new(),
 			},
-			// the notifications page (desk/page/notifications)
-			notifications &&
-				frappe.session.user !== "Guest" && {
-					name: "notifications",
-					label: __("Notifications"),
-					icon: "bell",
-					to: "/desk/notifications",
-				},
+			notifications && {
+				name: "notifications",
+				label: __("Notifications"),
+				icon: "bell",
+				to: "/desk/notifications",
+			},
 			{
 				name: "profile",
 				label: __("Profile"),
@@ -144,7 +141,7 @@ frappe.ui.MobileNav = class MobileNav {
 			...render(),
 			on_close: () => {
 				this.sheet = null;
-				this.on_sheet_close();
+				this.return_sidebar();
 			},
 		});
 		this.sheet.open();
@@ -152,10 +149,6 @@ frappe.ui.MobileNav = class MobileNav {
 
 	close_sheet() {
 		this.sheet?.close();
-	}
-
-	on_sheet_close() {
-		this.return_sidebar();
 	}
 
 	// The page title, tapped on a phone. The dock is a row of its entries; tapping
@@ -186,8 +179,10 @@ frappe.ui.MobileNav = class MobileNav {
 				// tap on the row for the page already open, which changes no route. A picked
 				// row keeps the module it is in: putting the sidebar back would rebuild it
 				// under the tap, and the browser would follow the link as a full page load.
-				$body.on("click", "a[href]", () => {
-					this.route_changed = true;
+				$body.on("click", "a[href]", (e) => {
+					// a new tab leaves this page as it is, so the sidebar goes back too
+					const new_tab = e.currentTarget.target === "_blank" || e.ctrlKey || e.metaKey;
+					if (!new_tab) this.route_changed = true;
 					this.close_sheet();
 				});
 				return $body[0];
@@ -279,15 +274,14 @@ frappe.ui.MobileNav = class MobileNav {
 };
 
 $(document).on("startup", () => {
-	if (!frappe.ui.mobile_nav) frappe.ui.mobile_nav = new frappe.ui.MobileNav();
-
-	// Until the element loads, the bar is an inert tag. Same breakpoint as
-	// mobile_nav.scss; a window narrowed later loads it then, with the sheet its tabs open.
+	// Nothing is built on a wider screen. Same breakpoint as mobile_nav.scss; a window
+	// narrowed later builds the bar then. Until its element loads, the bar is an inert tag.
 	// load_asset, not frappe.require, which would freeze the screen while it loads.
 	const phone = window.matchMedia("(max-width: 767.98px)");
 	const load = () => {
 		if (!phone.matches) return;
 		phone.removeEventListener("change", load);
+		if (!frappe.ui.mobile_nav) frappe.ui.mobile_nav = new frappe.ui.MobileNav();
 		for (const asset of [
 			"mobile_nav.bundle.js",
 			"bottom_sheet.bundle.js",

@@ -64,8 +64,8 @@ body.has-mobile-nav.desktop-page .desktop-navbar > :not(.navbar-home, .desktop-n
 }
 body.has-mobile-nav.desktop-page .desktop-navbar #brand-logo {
   height: 28px;
-  margin-left: 4px;
-  border-radius: 7px;
+  margin-left: var(--spacing);
+  border-radius: var(--radius);
 }
 body.has-mobile-nav.desktop-page .desktop-navbar-title {
   display: block;

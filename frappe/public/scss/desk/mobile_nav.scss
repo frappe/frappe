@@ -36,7 +36,8 @@ frappe-mobile-nav.desk-mobile-nav {
 	}
 
 	// A bounded page (island_page.scss) zeroes that padding, so its box, and the island
-	// scrolling inside it, would run on under the bar.
+	// scrolling inside it, would run on under the bar. That rule is `!important`, so this
+	// one has to be too.
 	body.has-mobile-nav.island-page .main-section,
 	body.has-mobile-nav.full-height-page .main-section {
 		padding-bottom: var(--desk-mobile-nav-height) !important;
@@ -60,7 +61,7 @@ frappe-mobile-nav.desk-mobile-nav {
 			flex: none;
 			width: 16px;
 			height: 16px;
-			margin-left: 4px;
+			margin-left: var(--spacing);
 			vertical-align: middle;
 			background-color: var(--ink-gray-5);
 			$chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
@@ -74,18 +75,8 @@ frappe-mobile-nav.desk-mobile-nav {
 .page-head .page-back-button {
 	display: none;
 	flex: none;
-	align-items: center;
-	justify-content: center;
-	width: 32px;
-	height: 32px;
-	margin-inline-start: -8px;
-	margin-inline-end: 4px;
-	border-radius: var(--radius-md);
-	color: var(--ink-gray-7);
-
-	&:active {
-		background: var(--surface-gray-2);
-	}
+	margin-inline-start: calc(var(--spacing) * -2);
+	margin-inline-end: var(--spacing);
 
 	// points the other way in a right-to-left language
 	[dir="rtl"] & .icon {
@@ -96,9 +87,9 @@ frappe-mobile-nav.desk-mobile-nav {
 // The dock, as a row of tiles across the top of the navigation sheet.
 .desk-mobile-sheet-dock {
 	display: flex;
-	gap: 2px;
+	gap: calc(var(--spacing) * 0.5);
 	overflow-x: auto;
-	padding-bottom: 12px;
+	padding-bottom: calc(var(--spacing) * 3);
 	border-bottom: 1px solid var(--outline-gray-1);
 }
 
@@ -107,8 +98,8 @@ frappe-mobile-nav.desk-mobile-nav {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 4px;
-	padding: 4px 0;
+	gap: var(--spacing);
+	padding: var(--spacing) 0;
 	border: none;
 	background: none;
 	color: var(--ink-gray-6);
@@ -119,7 +110,7 @@ frappe-mobile-nav.desk-mobile-nav {
 		justify-content: center;
 		width: 44px;
 		height: 44px;
-		border-radius: 12px;
+		border-radius: var(--radius-lg);
 		background: var(--surface-gray-2);
 		// see .dock-item in dock.scss
 		--icon-stroke: currentColor;
@@ -152,7 +143,7 @@ frappe-mobile-nav.desk-mobile-nav {
 	position: static;
 	width: auto;
 	height: auto;
-	padding: 8px 0 0;
+	padding: calc(var(--spacing) * 2) 0 0;
 	border: none;
 	background: none;
 	z-index: auto;
