@@ -925,6 +925,7 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 
 	if parse:
 		import ast
+
 		if isinstance(value, str):
 			val_lower = value.strip().lower()
 			if val_lower == "true":
@@ -935,9 +936,7 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 				try:
 					value = ast.literal_eval(value)
 				except (ValueError, SyntaxError):
-					raise click.BadParameter(
-						f"'{value}' is not a valid Python literal/object."
-					)
+					raise click.BadParameter(f"'{value}' is not a valid Python literal/object.")
 
 	if global_:
 		sites_path = os.getcwd()
