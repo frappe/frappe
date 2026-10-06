@@ -15,6 +15,25 @@ from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 
+def _connection_for(doctype: str):
+	"""Return the connection that holds `doctype`'s rows.
+
+	`user_data_fields` names log DocTypes alongside ordinary ones -- Access Log and Activity
+	Log are both on that list -- and a log DocType's rows live in the site's SQLite log
+	database rather than the site database.
+	"""
+	from frappe.utils.logging import get_log_db, is_log_doctype, log_table
+
+	if not is_log_doctype(doctype):
+		return frappe.db
+
+	# Creates the table if this site has never written one, so the redaction cannot fail
+	# just because nothing has been logged yet.
+	log_table(doctype)
+
+	return get_log_db()
+
+
 class PersonalDataDeletionRequest(Document):
 	_DOCTYPE_NAME = "Personal Data Deletion Request"
 
@@ -349,7 +368,14 @@ class PersonalDataDeletionRequest(Document):
 			"" if doctype.get("strict") else f"WHERE `{doctype.get('filter_by', 'owner')}` = %(email)s"
 		)
 
-		frappe.db.sql(
+		# A log DocType keeps its rows in the site's SQLite log database, so the redaction has
+		# to run on that connection -- the site database holds no table to update, and asking
+		# it raises "table doesn't exist" on any site installed after the move. The statement
+		# itself is unchanged: `REPLACE()` and backtick-quoted identifiers mean the same thing
+		# on both backends.
+		# Not committed here: the log connection is in autocommit, so the statement is already
+		# durable, and committing `frappe.db` is this method's caller's business.
+		_connection_for(doctype["doctype"]).sql(
 			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
 			{"name": self.full_name, "email": self.email},
 		)

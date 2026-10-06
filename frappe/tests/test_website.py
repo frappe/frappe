@@ -4,6 +4,7 @@ import frappe
 from frappe import get_hooks
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
+from frappe.utils.logging import get_log_db
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import build_response, clear_website_cache, get_boot_data, get_home_page
@@ -18,7 +19,11 @@ class TestWebsite(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.conf.developer_mode = self._developer_mode
-		frappe.db.delete("Access Log")
+		# Access Log rows live in the site's SQLite log database. `frappe.db.delete` would
+		# target the site database, which holds no table for a virtual DocType.
+		log_db = get_log_db()
+		log_db.delete("Access Log")
+		log_db.commit()
 		frappe.set_user("Administrator")
 		self._clearRequest()
 
