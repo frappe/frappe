@@ -33,7 +33,10 @@ test.describe("Tree View", () => {
 	}) => {
 		await page.goto(TREE_URL);
 
-		const toggle_menu = () => page.locator(".tree-toolbar-actions .es-button").first().click();
+		const toggle_menu = () =>
+			page
+				.locator(".tree-toolbar-actions .es-button", { hasText: "Expand/Collapse" })
+				.click();
 		const assert_buttons = async (expand_enabled, collapse_enabled) => {
 			await toggle_menu();
 			await expect(menu_item(page, "Expand All")).toBeEnabled({ enabled: expand_enabled });
@@ -72,6 +75,46 @@ test.describe("Tree View", () => {
 		await click_toolbar_button("Collapse All");
 		await expect(tree_link(page, "Child Node")).toHaveCount(0);
 		await assert_buttons(true, false);
+	});
+
+	test("sorts nodes by name and remembers the choice", async ({ page }) => {
+		await page.goto(TREE_URL);
+
+		const sort_button = page.locator(".tree-toolbar-actions .es-button").first();
+		const root_labels = () =>
+			page.evaluate(() =>
+				cur_tree.root_node.$ul
+					.children("li.tree-node")
+					.map((i, li) => $(li).children(".tree-link").attr("data-label"))
+					.get()
+			);
+		const pick = async (label) => {
+			await sort_button.click();
+			await menu_item(page, label).click();
+			await expect(sort_button).toContainText(label);
+		};
+
+		await expect(tree_link(page, "Parent Node")).toBeVisible();
+
+		await pick("Name Z to A");
+		expect((await root_labels())[0]).toBe("Second Parent Node");
+
+		const saved = page.waitForResponse((r) => r.url().includes("user_settings.save"));
+		await pick("Name A to Z");
+		await saved;
+		let labels = await root_labels();
+		expect(labels[0]).toBe("Parent Node");
+		expect(labels.indexOf("Scroll Node 2")).toBeLessThan(labels.indexOf("Scroll Node 10"));
+
+		await page.reload();
+		await expect(tree_link(page, "Parent Node")).toBeVisible();
+		await expect(sort_button).toContainText("Name A to Z");
+		labels = await root_labels();
+		expect(labels.indexOf("Scroll Node 2")).toBeLessThan(labels.indexOf("Scroll Node 10"));
+
+		await pick("Default Order");
+		labels = await root_labels();
+		expect(labels.indexOf("Scroll Node 10")).toBeLessThan(labels.indexOf("Scroll Node 2"));
 	});
 
 	test("restores the scroll position when navigating back to the tree", async ({ page }) => {
