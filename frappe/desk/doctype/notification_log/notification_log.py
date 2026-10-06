@@ -255,8 +255,13 @@ def format_email_header(header_map, language, docname):
 @frappe.whitelist()
 @http_cache(max_age=60, stale_while_revalidate=60 * 60)
 def get_notification_logs(limit: int = 20):
+	# Administrator may read everyone's logs, but the panel and the badge are about their own
 	notification_logs = frappe.db.get_list(
-		"Notification Log", fields=["*"], limit=limit, order_by="creation desc"
+		"Notification Log",
+		fields=["*"],
+		filters={"for_user": frappe.session.user},
+		limit=limit,
+		order_by="creation desc",
 	)
 
 	users = [log.from_user for log in notification_logs]
