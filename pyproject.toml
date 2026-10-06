@@ -26,7 +26,7 @@ dependencies = [
     "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.2",
-    "RestrictedPython~=8.1",
+    "RestrictedPython~=8.5",
     "WeasyPrint==69.0",
     "pydyf==0.12.1",
     "Werkzeug==3.1.6",
