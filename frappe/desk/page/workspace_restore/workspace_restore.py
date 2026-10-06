@@ -20,7 +20,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	get_customization,
 )
 from frappe.desk.doctype.workspace.workspace import check_workspace_manager, workspace_payload
-from frappe.utils import escape_html
+from frappe.utils import cint, escape_html
 
 PARENTFIELD_WIDGET = {parentfield: widget for widget, parentfield in WIDGET_PARENTFIELD.items()}
 
@@ -45,10 +45,13 @@ BOOKKEEPING_KEYS = frozenset(
 LINK_KEYS = ("label", "link_type", "link_to", "onboard", "only_for", "dependencies", "is_query_report")
 
 # Workspace fields the delta can carry besides the layout.
-PROPERTY_FIELDS = ("icon", "indicator_color")
+PROPERTY_FIELDS = ("icon", "indicator_color", "is_hidden")
+
+# The Custom Workspace fields a restore owns. Restoring again resets the ones the edit left alone.
+CUSTOMIZATION_PROPERTIES = {"icon": None, "indicator_color": None, "visibility": "Inherit"}
 
 # Fields whose change says nothing about the layout and needs no warning.
-SILENT_FIELDS = frozenset({"name", "docstatus", "is_hidden", "sequence_id", "content"})
+SILENT_FIELDS = frozenset({"name", "docstatus", "content"})
 
 
 @frappe.whitelist()
@@ -122,8 +125,8 @@ def restore_workspace_edits(workspace: str) -> dict:
 	customization.widgets = dumps(replay.widgets)
 	customization.set("added_roles", [{"role": role} for role in replay.added_roles])
 	customization.set("removed_roles", [{"role": role} for role in replay.removed_roles])
-	for field, value in replay.properties.items():
-		customization.set(field, value)
+	for field, default in CUSTOMIZATION_PROPERTIES.items():
+		customization.set(field, replay.properties.get(field, default))
 	customization.save()
 
 	return workspace_payload(warnings=replay.warnings)
@@ -162,6 +165,7 @@ def replay_versions(versions: list[frappe._dict], base) -> frappe._dict:
 	role_events: dict[str, str] = {}
 	changed: dict[str, object] = {}
 	warnings: list[str] = []
+	moved = False
 
 	for version in versions:
 		diff = version.diff
@@ -179,12 +183,23 @@ def replay_versions(versions: list[frappe._dict], base) -> frappe._dict:
 					content = decoded
 			elif field in PROPERTY_FIELDS:
 				changed[field] = new
+			elif field == "sequence_id":
+				# set against the old version's order, which the import renumbered
+				moved = True
 			elif field not in SILENT_FIELDS:
 				warnings.append(
 					_("The change to {0} cannot be carried by a customization.").format(
 						field_label(base, field)
 					)
 				)
+
+		# A dialog edit removes the old row and adds its replacement under the same label in one
+		# save, so removals go first or the replacement is dropped with the row it replaced.
+		for parentfield, row in diff.get("removed", []):
+			if parentfield == "roles":
+				role_events[row["role"]] = "remove"
+			elif parentfield in PARENTFIELD_WIDGET:
+				added.get(parentfield, {}).pop(row.get("label"), None)
 
 		link_rows = []
 		for parentfield, row in diff.get("added", []):
@@ -197,18 +212,15 @@ def replay_versions(versions: list[frappe._dict], base) -> frappe._dict:
 		for card in cards_from_link_rows(link_rows, warnings):
 			added.setdefault("links", {})[card["label"]] = card
 
-		for parentfield, row in diff.get("removed", []):
-			if parentfield == "roles":
-				role_events[row["role"]] = "remove"
-			elif parentfield in PARENTFIELD_WIDGET:
-				added.get(parentfield, {}).pop(row.get("label"), None)
-
 		for parentfield, _index, _row_name, _changes in diff.get("row_changed", []):
 			warnings.append(
 				_("An edit to a shipped row in {0} cannot be carried by a customization.").format(
 					field_label(base, parentfield)
 				)
 			)
+
+	if moved:
+		warnings.append(_("The workspace's place in the sidebar is not restored."))
 
 	widgets = {PARENTFIELD_WIDGET[pf]: list(rows.values()) for pf, rows in added.items() if rows}
 	if content is not None:
@@ -401,7 +413,7 @@ def warn_about_missing_widgets(content: list, widgets: dict, base, warnings: lis
 
 
 def restorable_properties(changed: dict, base, warnings: list[str]) -> dict:
-	"""Icon and colour as the delta stores them. Select values were translated when the Version
+	"""Icon, colour and visibility as the delta stores them. Select values were translated when the Version
 	was written, so the colour is mapped back onto its options."""
 	properties = {}
 	if "icon" in changed and changed["icon"] != base.icon:
@@ -417,6 +429,10 @@ def restorable_properties(changed: dict, base, warnings: list[str]) -> dict:
 			)
 		elif color != base.indicator_color:
 			properties["indicator_color"] = color
+	if "is_hidden" in changed:
+		hidden = cint(changed["is_hidden"])
+		if hidden != cint(base.is_hidden):
+			properties["visibility"] = "Hidden" if hidden else "Visible"
 	return properties
 
 
@@ -424,12 +440,24 @@ def get_state(workspace, replay) -> str:
 	"""Where this workspace stands: still holding the edit, overwritten, or already restored."""
 	customization = get_customization(workspace.name)
 	if customization:
-		same_content = loads(customization.content or "[]") == replay.content
-		same_widgets = loads(customization.widgets or "{}") == replay.widgets
-		return "Restored" if same_content and same_widgets else "Customized since"
+		return "Restored" if holds_replay(customization, replay) else "Customized since"
 	if loads(workspace.content or "[]") == replay.content:
 		return "Not yet overwritten"
 	return "Overwritten"
+
+
+def holds_replay(customization, replay) -> bool:
+	"""Whether the customization is exactly what restoring would write."""
+	return (
+		loads(customization.content or "[]") == replay.content
+		and loads(customization.widgets or "{}") == replay.widgets
+		and sorted(r.role for r in customization.added_roles) == replay.added_roles
+		and sorted(r.role for r in customization.removed_roles) == replay.removed_roles
+		and all(
+			(customization.get(field) or default) == replay.properties.get(field, default)
+			for field, default in CUSTOMIZATION_PROPERTIES.items()
+		)
+	)
 
 
 def summarize(replay) -> dict:

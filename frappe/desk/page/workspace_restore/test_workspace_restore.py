@@ -94,6 +94,33 @@ class TestReplay(IntegrationTestCase):
 		replay = replay_versions([added, removed], make_base_doc())
 		self.assertEqual(replay.widgets, {})
 
+	def test_widget_replaced_in_one_save_keeps_the_replacement(self):
+		first = child_row("shortcuts", type="DocType", link_to="ToDo", label="Audit")
+		second = child_row("shortcuts", type="DocType", link_to="Note", label="Audit")
+		replay = replay_versions(
+			[
+				version_row(
+					changed=[["content", None, dumps([*BASE_CONTENT, AUDIT_BLOCK])]],
+					added=[["shortcuts", first]],
+				),
+				version_row(added=[["shortcuts", second]], removed=[["shortcuts", first]]),
+			],
+			make_base_doc(),
+		)
+		self.assertEqual([s["link_to"] for s in replay.widgets["shortcut"]], ["Note"])
+
+	def test_hidden_is_carried_and_a_moved_workspace_is_reported_once(self):
+		replay = replay_versions(
+			[
+				version_row(changed=[["content", None, dumps(BASE_CONTENT)], ["is_hidden", 0, "1"]]),
+				version_row(changed=[["sequence_id", "2.00", "5.00"]]),
+				version_row(changed=[["sequence_id", "5.00", "7.00"]]),
+			],
+			make_base_doc(),
+		)
+		self.assertEqual(replay.properties["visibility"], "Hidden")
+		self.assertEqual(len(replay.warnings), 1)
+
 	def test_flat_link_rows_regroup_into_a_card(self):
 		block = {"id": "c1", "type": "card", "data": {"card_name": "My Card", "col": 4}}
 		row = version_row(
@@ -372,6 +399,24 @@ class TestWorkspaceRestore(IntegrationTestCase):
 		).insert()
 		frappe.set_user(self.MANAGER)
 		self.assertEqual(self.listed()["state"], "Customized since")
+
+	def test_restore_again_replaces_later_settings(self):
+		self.edit_in_place([*BASE_CONTENT, MESSAGE_BLOCK])
+		self.upgrade()
+		frappe.set_user(self.MANAGER)
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			restore_workspace_edits(self.WORKSPACE)
+			customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
+			customization.icon = "cable"
+			customization.append("added_roles", {"role": "System Manager"})
+			customization.save()
+			self.assertEqual(self.listed()["state"], "Customized since")
+
+			restore_workspace_edits(self.WORKSPACE)
+		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
+		self.assertFalse(customization.icon)
+		self.assertEqual(customization.added_roles, [])
+		self.assertEqual(self.listed()["state"], "Restored")
 
 	def test_requires_workspace_manager(self):
 		self.edit_in_place([*BASE_CONTENT, MESSAGE_BLOCK])
