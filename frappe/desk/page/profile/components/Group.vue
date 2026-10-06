@@ -6,7 +6,7 @@ defineProps({ label: { type: String, default: "" } });
 
 <template>
 	<section>
-		<div v-if="label" class="mb-2 pl-[18px] text-lg-medium text-ink-gray-5">{{ label }}</div>
+		<div v-if="label" class="mb-2 pl-4 text-lg-medium text-ink-gray-5">{{ label }}</div>
 		<nav class="overflow-hidden rounded-7 bg-surface-base">
 			<slot />
 		</nav>

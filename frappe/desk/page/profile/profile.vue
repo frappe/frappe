@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { Button, Switch, TextInput } from "frappe-ui";
+import { redirect_off_phone } from "../search/phone_page.js";
 import Group from "./components/Group.vue";
+import Photo from "./components/Photo.vue";
 import Row from "./components/Row.vue";
 
 // Gameplan's phone "You" page (frontend/src/components/MobileMoreMenu.vue) and its settings
@@ -41,15 +43,6 @@ const language = ref("");
 // the user_info desk keeps, which a save of the name or the photo updates
 const user = ref(frappe.user_info(me));
 const refresh_user = () => (user.value = { ...frappe.user_info(me) });
-const initials = computed(() =>
-	(user.value.fullname || me)
-		.split(/\s+/)
-		.filter(Boolean)
-		.slice(0, 2)
-		.map((word) => word[0])
-		.join("")
-		.toUpperCase()
-);
 
 async function load() {
 	// Not in the desk bundle, so it is loaded the first time the page shows.
@@ -60,8 +53,6 @@ async function load() {
 	Object.assign(name_form, pick_name(user_data));
 }
 
-// ─── switches ────────────────────────────────────────────────────────────────
-
 const switches = (section) => settings.value?.switches(section) || [];
 
 function toggle(fieldname, on) {
@@ -71,8 +62,6 @@ function toggle(fieldname, on) {
 		user_data[fieldname] = before;
 	});
 }
-
-// ─── profile ─────────────────────────────────────────────────────────────────
 
 const pick_name = (data) => ({
 	first_name: data.first_name || "",
@@ -107,24 +96,14 @@ function change_language() {
 	);
 }
 
-// ─── theme ───────────────────────────────────────────────────────────────────
-
-// Desk's ThemeSwitcher lists the themes and applies a pick, here as in the settings dialog.
-// It builds a dialog this page never shows; drop it, as the settings dialog does.
-const switcher = new frappe.ui.ThemeSwitcher();
-switcher.dialog.$wrapper.remove();
-const themes = ref([]);
-switcher.fetch_themes().then((list) => (themes.value = list));
-const theme_mode = ref(switcher.current_theme);
-const theme = computed(() => themes.value.find((t) => t.name === theme_mode.value)?.label);
-
-// Gameplan's Theme row: a tap moves to the next theme.
-const THEME_CYCLE = ["light", "dark", "automatic"];
-const THEME_ICONS = {
-	light: "lucide-sun",
-	dark: "lucide-moon",
-	automatic: "lucide-monitor-smartphone",
+// Gameplan's Theme row: a tap moves to the next theme, in this order.
+const THEMES = {
+	light: { label: __("Light"), value: "Light", icon: "lucide-sun" },
+	dark: { label: __("Dark"), value: "Dark", icon: "lucide-moon" },
+	automatic: { label: __("Automatic"), value: "Automatic", icon: "lucide-monitor-smartphone" },
 };
+const THEME_CYCLE = Object.keys(THEMES);
+const theme_mode = ref(document.documentElement.getAttribute("data-theme-mode") || "light");
 
 // Each tap shows its theme at once; only where the taps stop is saved. A save per tap could
 // reach the server out of order and keep a theme that is no longer on screen.
@@ -134,17 +113,17 @@ function cycle_theme() {
 	theme_mode.value = next;
 	document.documentElement.setAttribute("data-theme-mode", next);
 	clearTimeout(theme_save);
-	theme_save = setTimeout(() => switcher.toggle_theme(next), 600);
+	theme_save = setTimeout(
+		() =>
+			frappe.xcall("frappe.core.doctype.user.user.switch_theme", {
+				theme: THEMES[next].value,
+			}),
+		600
+	);
 }
 
-// ─── session defaults ────────────────────────────────────────────────────────
-
 const session_defaults = frappe.boot.session_defaults || [];
-const can_configure_defaults =
-	frappe.user_roles.includes("System Manager") ||
-	!!frappe.perm.get_perm("Session Default Settings")?.[0]?.read;
-
-// ─── the page itself ─────────────────────────────────────────────────────────
+const can_configure_defaults = frappe.model.can_read("Session Default Settings");
 
 // The settings tabs, listed directly as Gameplan lists its own.
 const SETTINGS_ROWS = [
@@ -157,15 +136,14 @@ const SETTINGS_ROWS = [
 	{ screen: "session-defaults", icon: "lucide-settings-2" },
 ];
 
-// The rest of the sidebar's user menu, in the first group. Settings is the rows above, the
-// dock is not on a phone to manage, Reload is not a thing a phone user reaches for, and
-// Logout closes the Settings group.
+// The sidebar user menu options this page does not list in its first group. Settings is
+// the rows above, the dock is not on a phone to manage, Reload is not a thing a phone user
+// reaches for, and Logout closes the Settings group.
+const MENU_NOT_LISTED = ["settings", "workspace-selector", "reload", "logout"];
 const menu = (frappe.app.sidebar?.user_menu_options() || []).flatMap((group) => group.options);
 const logout = menu.find((option) => option.name === "logout");
 const MORE = menu.filter(
-	(option) =>
-		!["settings", "workspace-selector", "reload", "logout"].includes(option.name) &&
-		(!option.condition || option.condition())
+	(option) => !MENU_NOT_LISTED.includes(option.name) && (!option.condition || option.condition())
 );
 const MENU_ICONS = { "my-space": "lucide-lock" };
 
@@ -175,14 +153,7 @@ function open(option) {
 }
 
 onMounted(() => {
-	// A phone's page. A wider screen has the sidebar's user menu, and the User form for
-	// the profile itself, so it goes there instead. The route is replaced so Back does not
-	// land here again.
-	if (!frappe.is_mobile()) {
-		frappe.route_flags.replace_route = true;
-		frappe.set_route("Form", "User", me);
-		return;
-	}
+	if (redirect_off_phone("Form", "User", me)) return;
 
 	// No header on a phone, as Gameplan's page has none: the screens bring their own bar.
 	// The same call the desktop page makes for its own header; it hides this page's only.
@@ -197,7 +168,6 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 
 <template>
 	<div class="h-full overflow-y-auto bg-surface-gray-1">
-		<!-- a settings screen -->
 		<div v-if="screen" class="space-y-6 px-4 pt-3 pb-10">
 			<!-- the page head is hidden (see onMounted), so a screen names itself -->
 			<div class="flex items-center gap-1">
@@ -223,7 +193,7 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 						@click="frappe.ui.toolbar.setup_session_defaults()"
 					/>
 				</Group>
-				<p v-else class="pl-[18px] text-lg text-ink-gray-5">
+				<p v-else class="pl-4 text-lg text-ink-gray-5">
 					{{ __("No session defaults configured.") }}
 				</p>
 				<Group>
@@ -243,23 +213,13 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 				</Group>
 			</template>
 
-			<p v-else-if="!settings" class="pl-[18px] text-lg text-ink-gray-5">
+			<p v-else-if="!settings" class="pl-4 text-lg text-ink-gray-5">
 				{{ __("Loading...") }}
 			</p>
 
 			<template v-else-if="screen === 'personal'">
 				<div class="flex flex-col items-center">
-					<div
-						class="flex size-[120px] items-center justify-center overflow-hidden rounded-full bg-surface-gray-3 text-5xl-semibold text-ink-gray-7 shadow-sm"
-					>
-						<img
-							v-if="user.image"
-							:src="user.image"
-							:alt="user.fullname"
-							class="size-full object-cover"
-						/>
-						<span v-else>{{ initials }}</span>
-					</div>
+					<Photo :image="user.image" :name="user.fullname || me" />
 					<Button
 						variant="ghost"
 						size="lg"
@@ -344,20 +304,9 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 			</template>
 		</div>
 
-		<!-- the page -->
 		<div v-else class="px-4 pt-8 pb-10">
 			<div class="flex flex-col items-center text-center">
-				<div
-					class="flex size-[120px] items-center justify-center overflow-hidden rounded-full bg-surface-gray-3 text-5xl-semibold text-ink-gray-7 shadow-sm"
-				>
-					<img
-						v-if="user.image"
-						:src="user.image"
-						:alt="user.fullname"
-						class="size-full object-cover"
-					/>
-					<span v-else>{{ initials }}</span>
-				</div>
+				<Photo :image="user.image" :name="user.fullname || me" />
 				<div class="mt-5 max-w-full truncate text-5xl-semibold text-ink-gray-9">
 					{{ user.fullname }}
 				</div>
@@ -392,9 +341,9 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 						@click="go(row.screen)"
 					/>
 					<Row
-						:icon="THEME_ICONS[theme_mode] || THEME_ICONS.light"
+						:icon="(THEMES[theme_mode] || THEMES.light).icon"
 						:label="__('Theme')"
-						:value="theme"
+						:value="THEMES[theme_mode]?.label"
 						divider
 						@click="cycle_theme"
 					/>
