@@ -156,6 +156,9 @@ let shouldRender = computed(() => {
 
 provide("$store", $store);
 
+const print_settings_rev = ref(0);
+provide("print_settings_rev", print_settings_rev);
+
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
@@ -217,6 +220,7 @@ async function open_print_settings() {
 				})
 				.then(() => {
 					Object.assign(doc, values);
+					print_settings_rev.value++;
 					dialog.hide();
 					frappe.show_alert({
 						message: __("Print Settings updated"),
