@@ -47,7 +47,7 @@
   },
   {
    "default": "0",
-   "description": "If checked, all other workflows become inactive.",
+   "description": "Activating a workflow without conditions deactivates the other workflows of this document type that have no conditions.",
    "fieldname": "is_active",
    "fieldtype": "Check",
    "label": "Is Active"
@@ -135,7 +135,7 @@
  "icon": "workflow",
  "idx": 1,
  "links": [],
- "modified": "2026-09-10 16:00:00.000000",
+ "modified": "2026-10-06 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
