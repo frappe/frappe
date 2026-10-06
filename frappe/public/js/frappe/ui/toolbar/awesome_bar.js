@@ -369,11 +369,14 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.then((r) => r.message || []);
 	}
 
+	merge_hook_results(options, results) {
+		return this.deduplicate(options.concat(results)).sort((a, b) => b.index - a.index);
+	}
+
 	fetch_hook_results(txt, seq) {
 		this.get_hook_results(txt).then((results) => {
 			if (seq !== this._hook_search_seq || !results.length) return;
-			this.options = this.deduplicate(this.options.concat(results));
-			this.options.sort((a, b) => b.index - a.index);
+			this.options = this.merge_hook_results(this.options, results);
 			$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(this.options?.length) == 0);
 			this.search_modal
 				.find(".cool-awesomebar-modal-footer")

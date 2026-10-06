@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { Avatar, Button, TabButtons } from "frappe-ui";
 import { List, ListCell, ListRow } from "frappe-ui/list";
+import { redirect_off_phone } from "../search/phone_page.js";
 
 // Gameplan's notifications page, drawn from desk's Notification Log.
 
@@ -44,11 +45,7 @@ function load() {
 	}
 	view.get_notifications_list(LIMIT).then((r) => {
 		frappe.update_user_info(r.message?.user_info);
-		// A System Manager may read everyone's logs, but marking only touches their own,
-		// and the badge counts only their own.
-		logs.value = (r.message?.notification_logs || []).filter(
-			(log) => log.for_user === frappe.session.user
-		);
+		logs.value = r.message?.notification_logs || [];
 		loading.value = false;
 	});
 }
@@ -79,18 +76,11 @@ function open(log) {
 	else window.location.href = link;
 }
 
-// a new one arrives while the page is open
 onMounted(() => frappe.realtime.on("notification", load));
 onUnmounted(() => frappe.realtime.off("notification", load));
 
 onMounted(() => {
-	// A phone's page. A wider screen has the panel, and the full log the panel links to, so
-	// it goes there instead. The route is replaced so Back does not land here again.
-	if (!frappe.is_mobile()) {
-		frappe.route_flags.replace_route = true;
-		frappe.set_route("List", "Notification Log");
-		return;
-	}
+	if (redirect_off_phone("List", "Notification Log")) return;
 
 	emit("title", __("Notifications"));
 	emit("actions", []);
@@ -161,7 +151,7 @@ const ICONS = {
 					/>
 					<div
 						v-else
-						class="grid size-10 place-items-center rounded-[8px] bg-surface-gray-2"
+						class="grid size-10 place-items-center rounded-4 bg-surface-gray-2"
 					>
 						<span
 							:class="[ICONS[log.type] || 'lucide-bell', 'size-5 text-ink-gray-6']"

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { TextInput } from "frappe-ui";
 import { List, ListCell, ListRow, ListRows } from "frappe-ui/list";
+import { redirect_off_phone } from "./phone_page.js";
 
 defineProps({
 	route: { type: Array, default: () => [] },
@@ -41,9 +42,8 @@ function search() {
 	if (txt.length > 1 && window.frappe.boot.has_awesomebar_search) {
 		awesome_bar.get_hook_results(txt).then((hook_results) => {
 			if (at !== seq || !hook_results.length) return;
-			results.value = awesome_bar
-				.deduplicate(results.value.concat(hook_results))
-				.sort((a, b) => b.index - a.index);
+			const from_hook = hook_results.map((option) => ({ ...option, from_hook: true }));
+			results.value = awesome_bar.merge_hook_results(results.value, from_hook);
 		});
 	}
 }
@@ -55,11 +55,7 @@ watch(text, () => {
 });
 
 onMounted(() => {
-	// A phone's page. A wider screen has the awesomebar modal, so it goes there instead,
-	// and the route is replaced so Back does not land here again.
-	if (!window.frappe.is_mobile()) {
-		window.frappe.route_flags.replace_route = true;
-		window.frappe.set_route("/desk");
+	if (redirect_off_phone("/desk")) {
 		awesome_bar?.open();
 		return;
 	}
@@ -93,6 +89,12 @@ function icon(option) {
 	// a recent page's route is an array, a frequent one's a "List/Item" string
 	const route = Array.isArray(option.route) ? option.route[0] : option.route?.split("/")[0];
 	return ICONS[option.default] || ICONS[option.type] || ICONS[route] || "lucide-history";
+}
+
+// The awesome bar builds its own labels as HTML, already translated, with what the reader
+// typed escaped and the match marked. A hook's results are an app's data, so they are text.
+function content(option, text) {
+	return option.from_hook ? { textContent: text } : { innerHTML: text };
 }
 </script>
 
@@ -133,17 +135,15 @@ function icon(option) {
 							/>
 						</ListCell>
 						<ListCell>
-							<!-- Labels carry the awesomebar's own markup (the matched part in bold),
-							     escaped where it holds user input, as the modal renders them. -->
 							<div class="min-w-0">
 								<p
 									class="truncate text-base text-ink-gray-8"
-									v-html="__(item.label || item.value)"
+									v-bind="content(item, item.label || item.value)"
 								/>
 								<p
 									v-if="item.description && item.description !== item.value"
 									class="truncate text-xs text-ink-gray-5"
-									v-html="__(item.description)"
+									v-bind="content(item, item.description)"
 								/>
 							</div>
 						</ListCell>
