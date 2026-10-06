@@ -78,10 +78,10 @@ def query_related(source_doc, relationship: str, filters=None, limit=MAX_RELATED
 	return [_permitted_reference(row, definition) for row in rows or []]
 
 
-def load_record(reference, permission_type=None):
+def load_record(reference, permission_type=None, for_update=False):
 	if not reference:
 		frappe.throw(_("Record alias could not be resolved"))
-	doc = frappe.get_doc(reference["doctype"], reference["name"])
+	doc = frappe.get_doc(reference["doctype"], reference["name"], for_update=for_update)
 	if permission_type:
 		doc.check_permission(permission_type)
 	return doc
