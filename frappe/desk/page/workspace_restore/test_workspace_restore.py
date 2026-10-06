@@ -127,6 +127,18 @@ class TestReplay(IntegrationTestCase):
 		self.assertEqual(replay.widgets, {})
 		self.assertTrue(any("Note" in warning for warning in replay.warnings))
 
+	def test_a_typed_label_is_escaped_in_warnings(self):
+		label = '<img src=x onerror="alert(1)">'
+		row = version_row(
+			changed=[["content", dumps(BASE_CONTENT), dumps(BASE_CONTENT)]],
+			added=[
+				["links", child_row("links", type="Link", label=label, link_type="DocType", link_to="Note")]
+			],
+		)
+		(warning,) = replay_versions([row], make_base_doc()).warnings
+		self.assertNotIn("<img", warning)
+		self.assertIn("&lt;img", warning)
+
 	def test_shipped_widget_edited_in_place_is_reported_not_carried(self):
 		edited = {"type": "DocType", "link_to": "Note", "label": "My ToDos"}
 		row = version_row(
@@ -302,6 +314,26 @@ class TestWorkspaceRestore(IntegrationTestCase):
 		self.upgrade(self.shipped_without_shortcuts())
 		self.assertEqual(frappe.db.count("Workspace Shortcut", {"parent": self.WORKSPACE}), 0)
 
+		frappe.set_user(self.MANAGER)
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			payload = restore_workspace_edits(self.WORKSPACE)
+		self.assertEqual(payload["warnings"], [])
+
+		from frappe.desk.desktop import get_desktop_page
+
+		rendered = get_desktop_page({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
+		self.assertIn("My ToDos", [s.label for s in rendered["shortcuts"]["items"]])
+
+	def test_a_later_upgrade_keeps_the_copy_that_holds_the_edit(self):
+		self.edit_in_place([*BASE_CONTENT, MESSAGE_BLOCK])
+		self.upgrade(self.shipped_without_shortcuts())
+		self.upgrade(self.shipped_without_shortcuts())
+		self.assertEqual(self.copies_kept(), 1)
+
+		# a site upgraded before this fix kept a copy of the app's own row as well
+		from frappe.model.delete_doc import add_to_deleted_document
+
+		add_to_deleted_document(frappe.get_doc("Workspace", self.WORKSPACE))
 		frappe.set_user(self.MANAGER)
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
 			payload = restore_workspace_edits(self.WORKSPACE)

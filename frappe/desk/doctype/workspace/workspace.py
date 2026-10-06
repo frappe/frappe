@@ -426,11 +426,23 @@ class Workspace(Document, DeskViews):
 		A reload-delete writes no Deleted Document, so once a newer app version drops a
 		shipped shortcut or card, the rows an edited layout pointed at are gone for good. The
 		restore page (frappe/desk/page/workspace_restore) reads them back from this copy. A
-		workspace with no Version rows was never edited here and needs no copy.
+		workspace with no Version rows was never edited here and needs no copy. Once an import
+		after the last edit has kept one, later imports replace the app's own row and keep nothing.
 		"""
 		if not frappe.flags.in_import:
 			return
-		if not frappe.db.exists("Version", {"ref_doctype": "Workspace", "docname": self.name}):
+		last_edit = frappe.db.get_value(
+			"Version",
+			{"ref_doctype": "Workspace", "docname": self.name},
+			"creation",
+			order_by="creation desc",
+		)
+		if not last_edit:
+			return
+		if frappe.db.exists(
+			"Deleted Document",
+			{"deleted_doctype": "Workspace", "deleted_name": self.name, "creation": (">", last_edit)},
+		):
 			return
 
 		from frappe.model.delete_doc import add_to_deleted_document
