@@ -718,8 +718,7 @@ function clone_section_block(block) {
 
 function add_section_block(block) {
 	if (!layout.value) return;
-	if (block.fieldname === "page_break") layout.value.sections.push(clone_as_section());
-	else store.insert_section(new_section());
+	store.insert_section(block.fieldname === "page_break" ? clone_as_section() : new_section());
 }
 
 // ── computed: field groups (by section break labels) ────────
