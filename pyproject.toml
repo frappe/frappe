@@ -25,15 +25,10 @@ dependencies = [
     "pypdf==6.15.0",
     "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
     "PyQRCode~=1.2.1",
-<<<<<<< HEAD
     "PyYAML~=6.0.2",
-    "RestrictedPython~=8.1",
+    "RestrictedPython~=8.5",
     "WeasyPrint==69.0",
     "pydyf==0.12.1",
-=======
-    "PyYAML~=6.0.3",
-    "RestrictedPython~=8.5",
->>>>>>> ad6bd29 (chore(deps): bump RestrictedPython to 8.5)
     "Werkzeug==3.1.6",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
