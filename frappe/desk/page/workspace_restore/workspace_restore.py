@@ -20,6 +20,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	get_customization,
 )
 from frappe.desk.doctype.workspace.workspace import check_workspace_manager, workspace_payload
+from frappe.utils import escape_html
 
 PARENTFIELD_WIDGET = {parentfield: widget for widget, parentfield in WIDGET_PARENTFIELD.items()}
 
@@ -96,7 +97,7 @@ def get_restorable_workspaces() -> list[dict]:
 	return rows
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def restore_workspace_edits(workspace: str) -> dict:
 	"""Write the replayed edit as the workspace's Custom Workspace and return the desk payload."""
 	check_workspace_manager(_("You need the Workspace Manager role to restore workspace edits."))
@@ -109,12 +110,12 @@ def restore_workspace_edits(workspace: str) -> dict:
 		)
 
 	if not frappe.db.get_value("Workspace", workspace, "standard"):
-		frappe.throw(_("{0} is not a standard workspace.").format(frappe.bold(workspace)))
+		frappe.throw(_("{0} is not a standard workspace.").format(bold(workspace)))
 
 	base = frappe.get_doc("Workspace", workspace)
 	replay = replay_versions(get_versions([workspace]).get(workspace, []), base)
 	if replay.content is None:
-		frappe.throw(_("No pre-upgrade layout edit is recorded for {0}.").format(frappe.bold(workspace)))
+		frappe.throw(_("No pre-upgrade layout edit is recorded for {0}.").format(bold(workspace)))
 
 	customization = _get_or_new(workspace)
 	customization.content = dumps(replay.content)
@@ -123,7 +124,7 @@ def restore_workspace_edits(workspace: str) -> dict:
 	customization.set("removed_roles", [{"role": role} for role in replay.removed_roles])
 	for field, value in replay.properties.items():
 		customization.set(field, value)
-	customization.save(ignore_permissions=True)
+	customization.save()
 
 	return workspace_payload(warnings=replay.warnings)
 
@@ -213,7 +214,7 @@ def replay_versions(versions: list[frappe._dict], base) -> frappe._dict:
 	if content is not None:
 		widgets = _prune_widgets(widgets, content)
 		drop_shadowed_widgets(widgets, base, warnings)
-		recover_dropped_widgets(content, widgets, base)
+		recover_dropped_widgets(content, widgets, base, versions[-1].creation)
 		warn_about_missing_widgets(content, widgets, base, warnings)
 
 	base_roles = {r.role for r in base.roles}
@@ -284,7 +285,7 @@ def cards_from_link_rows(rows: list[dict], warnings: list[str]) -> list[dict]:
 			warnings.append(
 				_(
 					"The link {0} was added to a shipped card and cannot be carried by a customization."
-				).format(frappe.bold(row.get("label")))
+				).format(bold(row.get("label")))
 			)
 
 	for card in cards:
@@ -309,7 +310,7 @@ def drop_shadowed_widgets(widgets: dict, base, warnings: list[str]) -> None:
 			if item.get("label") in base_labels:
 				warnings.append(
 					_("{0} is a shipped {1} edited in place; the app's version is shown.").format(
-						frappe.bold(item.get("label")), widget_label(widget_type)
+						bold(item.get("label")), widget_label(widget_type)
 					)
 				)
 			else:
@@ -336,7 +337,7 @@ def missing_widgets(content: list, widgets: dict, base) -> list[tuple[str, str]]
 	return missing
 
 
-def recover_dropped_widgets(content: list, widgets: dict, base) -> None:
+def recover_dropped_widgets(content: list, widgets: dict, base, last_edit) -> None:
 	"""Fill the blocks whose widget the newer app no longer ships from the copy kept at import.
 
 	`Workspace.keep_copy_for_restore` writes the old row to Deleted Document when an import
@@ -346,7 +347,7 @@ def recover_dropped_widgets(content: list, widgets: dict, base) -> None:
 	missing = missing_widgets(content, widgets, base)
 	if not missing:
 		return
-	copy = deleted_copy(base.name)
+	copy = deleted_copy(base.name, last_edit)
 	if not copy:
 		return
 
@@ -362,13 +363,16 @@ def recover_dropped_widgets(content: list, widgets: dict, base) -> None:
 				widgets.setdefault(widget_type, []).append(strip_row(row))
 
 
-def deleted_copy(workspace: str) -> dict | None:
-	"""The newest copy of the workspace row an import replaced, as a plain dict."""
+def deleted_copy(workspace: str, last_edit) -> dict | None:
+	"""The row the first import after the last edit replaced, as a plain dict.
+
+	Later imports replace the app's own row, so a newer copy no longer holds the edit.
+	"""
 	data = frappe.db.get_value(
 		"Deleted Document",
-		{"deleted_doctype": "Workspace", "deleted_name": workspace},
+		{"deleted_doctype": "Workspace", "deleted_name": workspace, "creation": (">", last_edit)},
 		"data",
-		order_by="creation desc",
+		order_by="creation asc",
 	)
 	return loads(data) if data else None
 
@@ -391,7 +395,7 @@ def warn_about_missing_widgets(content: list, widgets: dict, base, warnings: lis
 	for widget_type, label in missing_widgets(content, widgets, base):
 		warnings.append(
 			_("The block {0} points at a {1} this version of the app no longer ships.").format(
-				frappe.bold(label), widget_label(widget_type)
+				bold(label), widget_label(widget_type)
 			)
 		)
 
@@ -408,7 +412,9 @@ def restorable_properties(changed: dict, base, warnings: list[str]) -> dict:
 		value = changed["indicator_color"]
 		color = value if value in options else by_translation.get(value)
 		if color is None:
-			warnings.append(_("The colour {0} is not one the desk offers and was skipped.").format(value))
+			warnings.append(
+				_("The colour {0} is not one the desk offers and was skipped.").format(bold(value))
+			)
 		elif color != base.indicator_color:
 			properties["indicator_color"] = color
 	return properties
@@ -429,7 +435,7 @@ def get_state(workspace, replay) -> str:
 def summarize(replay) -> dict:
 	return {
 		"blocks": len(replay.content),
-		"widgets": {widget_type: len(items) for widget_type, items in replay.widgets.items()},
+		"widgets": {widget_label(widget_type): len(items) for widget_type, items in replay.widgets.items()},
 		"roles": len(replay.added_roles) + len(replay.removed_roles),
 	}
 
@@ -441,3 +447,8 @@ def field_label(base, fieldname: str) -> str:
 
 def widget_label(widget_type: str) -> str:
 	return _(widget_type.replace("_", " "))
+
+
+def bold(text) -> str:
+	"""Labels here come from what users typed into old saves, and the desk shows warnings as HTML."""
+	return frappe.bold(escape_html(text))
