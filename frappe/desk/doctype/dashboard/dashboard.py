@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import os
 
 import frappe
 from frappe import _
@@ -30,6 +31,22 @@ class Dashboard(Document):
 		is_standard: DF.Check
 		module: DF.Link | None
 	# end: auto-generated types
+
+	def onload(self):
+		if self.has_insights_version():
+			self.set_onload("dashboards", frappe.db.get_single_value("System Settings", "dashboards"))
+
+	def has_insights_version(self) -> bool:
+		"""Whether the app that ships this dashboard also ships an Insights board for it.
+
+		The app's file names the board in `insights_dashboard`. Only Insights stores that key, so on a
+		site without Insights the file is the one place that says so.
+		"""
+		# A custom module ships no app files, and resolving its path throws.
+		if not self.is_standard or not frappe.local.module_app.get(frappe.scrub(self.module or "")):
+			return False
+		path = frappe.get_module_path(self.module, f"{self.module}_dashboard", self.name, f"{self.name}.json")
+		return os.path.isfile(path) and bool(frappe.get_file_json(path).get("insights_dashboard"))
 
 	def clear_cache(self):
 		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
