@@ -607,6 +607,18 @@ class TestConditionalWorkflow(IntegrationTestCase):
 		self.assertEqual(get_workflow_name("ToDo", todo), high.name)
 		self.assertEqual(todo.workflow_state, "Pending")
 
+	def test_renaming_a_state_leaves_documents_in_it_alone(self):
+		workflow = create_conditional_todo_workflow()
+		todo = apply_workflow(create_new_todo(), "Approve")
+		self.assertEqual(todo.workflow_state, "Approved")
+
+		workflow.states[1].state = "Rejected"
+		workflow.transitions[0].next_state = "Rejected"
+		workflow.save()
+
+		todo.reload()
+		self.assertEqual(todo.workflow_state, "Approved")
+
 	def test_deleting_a_workflow_drops_it_from_the_cache(self):
 		from frappe.desk.form.meta import get_meta
 
