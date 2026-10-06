@@ -476,6 +476,31 @@ describe("Desk URL shell segment", () => {
 		});
 	});
 
+	it("opens a report link with its filters", () => {
+		// Stock Balance for one warehouse is a link of its own: v16 kept the warehouse in route
+		// options, the conversion stores it as filters, and the report reads it off the query string.
+		cy.visit("/desk/build/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+		cy.window().then((win) => {
+			const route = win.frappe.ui.sidebar_item.get_route(
+				{
+					type: "Link",
+					link_type: "Report",
+					link_to: "Permitted Documents For User",
+					report: { report_type: "Script Report", ref_doctype: "User" },
+					filters: JSON.stringify([
+						["Permitted Documents For User", "user", "=", "test@example.com"],
+					]),
+				},
+				false,
+				"Build"
+			);
+			expect(route).to.eq(
+				"/desk/build/query-report/Permitted Documents For User?user=test%40example.com"
+			);
+		});
+	});
+
 	it("takes a stale shell off a workspace URL", () => {
 		// `/desk/<other>/<workspace>` is a workspace under a shell that cannot show it. The shell
 		// written in is the workspace's own, and when the workspace is named after that shell
