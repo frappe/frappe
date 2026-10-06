@@ -166,29 +166,61 @@ frappe.ui.form.on("User", {
 				frm.toggle_display(["sb1", "sb3", "modules_access"], true);
 			}
 
+			const password_login_disabled =
+				frappe.defaults.is_enabled("disable_user_pass_login") ||
+				(frm.doc.name === "Administrator" &&
+					frappe.defaults.is_enabled("disable_admin_password_login"));
+
+			const show_password_login_disabled = () => {
+				const setting = frappe.defaults.is_enabled("disable_user_pass_login")
+					? __("Disable Username/Password Login")
+					: __("Disable Administrator Password Login");
+				frappe.msgprint({
+					title: __("Password Login Disabled"),
+					message: frappe.user.has_role("System Manager")
+						? __(
+								"Password login is disabled. Turn off {0} in System Settings to use password actions.",
+								[frappe.utils.bold(setting)]
+						  )
+						: __("Password login and related actions are disabled on this site."),
+					indicator: "orange",
+				});
+			};
+
 			if (cint(frm.doc.enabled) && frm.has_perm("write")) {
 				frm.add_custom_button(
 					__("Change Password"),
-					() =>
-						frappe.ui.show_change_password_dialog(frm.doc.name, () =>
-							frm.reload_doc()
-						),
+					function () {
+						if (password_login_disabled) {
+							show_password_login_disabled();
+						} else {
+							frappe.ui.show_change_password_dialog(frm.doc.name, () =>
+								frm.reload_doc()
+							);
+						}
+					},
 					__("Password")
 				);
 			}
 
-			frm.add_custom_button(
-				__("Reset Password"),
-				function () {
-					frappe.call({
-						method: "frappe.core.doctype.user.user.reset_password",
-						args: {
-							user: frm.doc.name,
-						},
-					});
-				},
-				__("Password")
-			);
+			if (frm.doc.name !== "Administrator") {
+				frm.add_custom_button(
+					__("Reset Password"),
+					function () {
+						if (frappe.defaults.is_enabled("disable_user_pass_login")) {
+							show_password_login_disabled();
+						} else {
+							frappe.call({
+								method: "frappe.core.doctype.user.user.reset_password",
+								args: {
+									user: frm.doc.name,
+								},
+							});
+						}
+					},
+					__("Password")
+				);
+			}
 
 			if (frappe.user.has_role("System Manager")) {
 				frappe.db.get_single_value("LDAP Settings", "enabled").then((value) => {
@@ -245,15 +277,30 @@ frappe.ui.form.on("User", {
 				frappe.defaults.is_enabled("enable_two_factor_auth") &&
 				(frappe.session.user == doc.name || frappe.user.has_role("System Manager"))
 			) {
+				const reset_otp_secret = () =>
+					frappe.call({
+						method: "frappe.twofactor.reset_otp_secret",
+						args: {
+							user: frm.doc.name,
+						},
+					});
+
 				frm.add_custom_button(
 					__("Reset OTP Secret"),
 					function () {
-						frappe.call({
-							method: "frappe.twofactor.reset_otp_secret",
-							args: {
-								user: frm.doc.name,
-							},
-						});
+						if (!password_login_disabled) return reset_otp_secret();
+						if (
+							frm.doc.name === "Administrator" ||
+							!frappe.user.has_role("System Manager")
+						) {
+							return show_password_login_disabled();
+						}
+						// LDAP login also asks for OTP when 2FA is enabled
+						frappe.db
+							.get_single_value("LDAP Settings", "enabled")
+							.then((ldap_enabled) =>
+								ldap_enabled ? reset_otp_secret() : show_password_login_disabled()
+							);
 					},
 					__("Password")
 				);

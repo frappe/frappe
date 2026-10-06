@@ -140,6 +140,16 @@ def delete_login_failed_cache(user):
 	frappe.cache.hdel("login_failed_count", user)
 
 
+def is_admin_password_login_disabled(user):
+	return user == "Administrator" and bool(frappe.get_system_settings("disable_admin_password_login"))
+
+
+def is_password_login_disabled(user):
+	return bool(frappe.get_system_settings("disable_user_pass_login")) or is_admin_password_login_disabled(
+		user
+	)
+
+
 def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False):
 	"""
 	Update the password for the User
@@ -150,6 +160,12 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	:param fieldname: fieldname (in given doctype) (for encryption)
 	:param logout_all_session: delete all other session
 	"""
+	if doctype == "User" and is_admin_password_login_disabled(user):
+		frappe.throw(
+			_("Password login is disabled for Administrator"),
+			exc=frappe.AdminPasswordDisabled,
+		)
+
 	hashPwd = passlibctx.hash(pwd)
 
 	query = frappe.qb.into(Auth).columns(

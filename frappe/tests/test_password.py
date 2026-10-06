@@ -3,6 +3,7 @@
 from cryptography.fernet import Fernet
 
 import frappe
+from frappe.core.doctype.system_settings.system_settings import set_admin_password_login_setting
 from frappe.tests import IntegrationTestCase
 from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
 
@@ -108,6 +109,19 @@ class TestPassword(IntegrationTestCase):
 		doc.password = ""
 		doc.save()
 		self.assertEqual(doc.get_password(raise_exception=False), None)
+
+	def test_no_administrator_password_while_disabled(self):
+		before = frappe.get_system_settings("disable_admin_password_login")
+		set_admin_password_login_setting(1)
+		self.addCleanup(set_admin_password_login_setting, before)
+
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		self.assertRaises(frappe.AdminPasswordDisabled, update_password, "Administrator", "new-admin-pwd")
+		# other users are not affected
+		update_password("test@example.com", "new-test-pwd")
+		self.assertEqual(check_password("test@example.com", "new-test-pwd"), "test@example.com")
 
 	def test_custom_encryption_key(self):
 		text = "Frappe Framework"

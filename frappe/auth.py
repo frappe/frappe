@@ -23,7 +23,7 @@ from frappe.twofactor import (
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, get_datetime, today
-from frappe.utils.password import check_password, get_decrypted_password
+from frappe.utils.password import check_password, get_decrypted_password, is_admin_password_login_disabled
 from frappe.website.utils import get_home_page
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
@@ -285,12 +285,10 @@ class LoginManager:
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("Invalid login credentials", user=_raw_user_name)
 
-		if user.name == "Administrator" and frappe.get_system_settings(
-			"disable_administrator_password_login"
-		):
+		if is_admin_password_login_disabled(user.name):
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail(
-				"Administrator password login is disabled",
+				"Password login is disabled for Administrator",
 				user=user.name,
 				exc=frappe.AdminPasswordDisabled,
 			)

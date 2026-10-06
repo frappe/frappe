@@ -44,7 +44,7 @@ class SystemSettings(Document):
 		default_app: DF.Literal[None]
 		delete_background_exported_reports_after: DF.Int
 		deny_multiple_sessions: DF.Check
-		disable_administrator_password_login: DF.Check
+		disable_admin_password_login: DF.Check
 		disable_change_log_notification: DF.Check
 		disable_document_sharing: DF.Check
 		disable_product_suggestion: DF.Check
@@ -278,6 +278,12 @@ def clear_system_settings_cache():
 	frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
 	frappe.cache.delete_value("system_settings")
 	frappe.cache.delete_value("time_zone")
+
+
+def set_admin_password_login_setting(value):
+	frappe.db.set_single_value("System Settings", "disable_admin_password_login", cint(value))
+	frappe.db.set_default("disable_admin_password_login", cint(value))
+	clear_system_settings_cache()
 
 
 def sync_system_settings():

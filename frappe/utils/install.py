@@ -130,22 +130,26 @@ def install_basic_docs():
 def setup_admin_password():
 	"""Set the Administrator password on a new site, only if given via --admin-password or common_site_config.
 
-	No password: nothing is inserted in __Auth and `disable_administrator_password_login` stays on (default),
+	No password: nothing is inserted in __Auth and `disable_admin_password_login` stays on (default),
 	so Administrator cannot log in with a password.
 	Password given: it is set and the setting is turned off.
 	"""
+	from frappe.core.doctype.system_settings.system_settings import set_admin_password_login_setting
+
 	password = frappe.conf.get("admin_password")
 	if not password:
 		return
-	frappe.db.set_single_value("System Settings", "disable_administrator_password_login", 0)
+	# turn the setting off first, update_password refuses Administrator while it is on
+	set_admin_password_login_setting(0)
 	update_password("Administrator", password)
 	warn_admin_password_login_enabled()
 
 
-def warn_admin_password_login_enabled():
+def warn_admin_password_login_enabled(message=None):
 	click.secho(
-		"Warning: Administrator password login is enabled, so the account is open to password attacks.\n"
-		"Turn it off in System Settings and open an Administrator session from your site management tool instead.",
+		message
+		or "Warning: Administrator password login is enabled, so the account is open to brute force attacks.\n"
+		"Turn on 'Disable Administrator Password Login' in System Settings and open Administrator sessions from your site management tool instead.",
 		fg="yellow",
 	)
 

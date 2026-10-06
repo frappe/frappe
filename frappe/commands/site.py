@@ -1240,8 +1240,9 @@ def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessi
 
 
 def set_user_password(site, user, password, logout_all_sessions=False, force=False):
+	from frappe.core.doctype.system_settings.system_settings import set_admin_password_login_setting
 	from frappe.utils.install import warn_admin_password_login_enabled
-	from frappe.utils.password import update_password
+	from frappe.utils.password import is_admin_password_login_disabled, update_password
 
 	try:
 		frappe.init(site)
@@ -1251,9 +1252,7 @@ def set_user_password(site, user, password, logout_all_sessions=False, force=Fal
 			print(f"User {user} does not exist")
 			sys.exit(1)
 
-		enable_password_login = user == "Administrator" and frappe.get_system_settings(
-			"disable_administrator_password_login"
-		)
+		enable_password_login = is_admin_password_login_disabled(user)
 
 		if enable_password_login and not force:
 			click.confirm(
@@ -1264,9 +1263,12 @@ def set_user_password(site, user, password, logout_all_sessions=False, force=Fal
 		while not password:
 			password = getpass.getpass(f"{user}'s password for {site}: ")
 
+		# turn the setting off first, update_password refuses Administrator password write while it is on
+		if enable_password_login:
+			set_admin_password_login_setting(0)
+
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
 		if enable_password_login:
-			frappe.db.set_single_value("System Settings", "disable_administrator_password_login", 0)
 			warn_admin_password_login_enabled()
 		frappe.db.commit()
 	finally:

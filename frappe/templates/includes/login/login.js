@@ -309,7 +309,7 @@ login.login_handlers = (function () {
 					}
 				}) || []).join('<br>') || default_message;
 			} else if (data.exc_type === "AdminPasswordDisabled") {
-				message = {{ _("Administrator password login is disabled") | tojson }};
+				message = {{ _("Password login is disabled for Administrator") | tojson }};
 			}
 
 			login.set_invalid(message);

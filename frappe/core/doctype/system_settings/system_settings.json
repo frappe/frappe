@@ -38,7 +38,7 @@
   "column_break_txqh",
   "deny_multiple_sessions",
   "disable_user_pass_login",
-  "disable_administrator_password_login",
+  "disable_admin_password_login",
   "max_signups_allowed_per_hour",
   "login_methods_section",
   "allow_login_using_mobile_number",
@@ -539,7 +539,7 @@
   {
    "default": "1",
    "description": "Administrator is a known username on every site, so password login invites brute force attacks. Disable it and open a session from your site management tool instead.",
-   "fieldname": "disable_administrator_password_login",
+   "fieldname": "disable_admin_password_login",
    "fieldtype": "Check",
    "label": "Disable Administrator Password Login",
    "permlevel": 1
@@ -865,7 +865,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-01 13:07:06.205531",
+ "modified": "2026-10-06 13:47:20.476601",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
