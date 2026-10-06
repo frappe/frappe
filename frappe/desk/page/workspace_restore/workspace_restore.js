@@ -42,71 +42,77 @@ class WorkspaceRestore {
 
 	render(rows) {
 		this.$body.empty();
-		this.$body.append(
-			`<p class="text-muted">${__(
+		const $content = $(`<div class="flex flex-col gap-4 p-4"></div>`).appendTo(this.$body);
+		$content.append(
+			`<p class="text-p-sm text-ink-gray-5 max-w-lg m-0">${__(
 				"Workspaces this site edited before the upgrade, as recorded in their version history. Restoring writes the edit as a customization, so the workspace shows it again at its usual address."
 			)}</p>`
 		);
 
 		if (!rows.length) {
-			const reason = frappe.boot.developer_mode
-				? __(
-						"This site is in developer mode, so edits to standard workspaces belong to the app's JSON and there is nothing to restore."
-				  )
-				: __("No pre-upgrade edits to standard workspaces were found.");
-			this.$body.append(`<p class="text-muted">${reason}</p>`);
+			$content.append(
+				frappe.ui.empty_state({
+					icon: "history",
+					title: __("Nothing to restore"),
+					description: frappe.boot.developer_mode
+						? __(
+								"This site is in developer mode, so edits to standard workspaces belong to the app's JSON and there is nothing to restore."
+						  )
+						: __("No pre-upgrade edits to standard workspaces were found."),
+					css_class: "border border-outline-gray-2 rounded-lg",
+				})
+			);
 			return;
 		}
 
-		const $table = $(`
-			<table class="table table-sm">
-				<thead>
-					<tr>
-						<th>${__("Workspace")}</th>
-						<th>${__("Last edited")}</th>
-						<th>${__("Changes")}</th>
-						<th>${__("Status")}</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody></tbody>
-			</table>
-		`);
-		for (const row of rows) {
-			$table.find("tbody").append(this.render_row(row));
-		}
-		this.$body.append($table);
+		const $list = $(`<div class="border border-outline-gray-2 rounded-lg"></div>`);
+		rows.forEach((row, i) => {
+			const $row = this.render_row(row);
+			if (i) $row.addClass("border-t border-outline-gray-2");
+			$list.append($row);
+		});
+		$content.append($list);
 	}
 
 	render_row(row) {
-		const state = STATES[row.state] || STATES.Overwritten;
+		const state = STATES[row.state];
+		const escape = frappe.utils.escape_html;
+		const details = [
+			__(row.module),
+			this.describe(row.summary),
+			__("edited {0} by {1}", [
+				frappe.datetime.prettyDate(row.last_edited_on),
+				frappe.user_info(row.last_edited_by).fullname,
+			]),
+		];
 		const $row = $(`
-			<tr>
-				<td>
-					<div>${frappe.utils.escape_html(__(row.title))}</div>
-					<div class="text-muted small">${frappe.utils.escape_html(__(row.module))}</div>
-				</td>
-				<td>
-					<div>${frappe.datetime.comment_when(row.last_edited_on)}</div>
-					<div class="text-muted small">${frappe.utils.escape_html(
-						frappe.user_info(row.last_edited_by).fullname
-					)}</div>
-				</td>
-				<td>
-					<div>${this.describe(row.summary)}</div>
+			<div class="flex items-center gap-4 px-4 py-3">
+				<div class="flex flex-col gap-1 flex-1 min-w-0">
+					<div class="flex items-center gap-2">
+						<span class="text-base-medium text-ink-gray-8 truncate">${escape(__(row.title))}</span>
+						${frappe.ui.badge.html({ label: state.label, theme: state.theme, size: "sm" })}
+					</div>
+					<div class="text-sm text-ink-gray-5 truncate">${escape(details.join(" · "))}</div>
 					${this.render_warnings(row.warnings)}
-				</td>
-				<td>${frappe.ui.badge.html({ label: state.label, theme: state.theme })}</td>
-				<td class="text-right"></td>
-			</tr>
+				</div>
+				<div class="flex items-center gap-2 shrink-0"></div>
+			</div>
 		`);
+		const $actions = $row.children().last();
 		if (state.action) {
-			$row.find("td:last").append(
+			$actions.append(
 				frappe.ui.button({
 					label: state.action,
-					variant: row.state === "Customized since" ? "subtle" : "solid",
-					size: "sm",
-					onclick: () => this.restore(row, state),
+					onclick: () => this.restore(row),
+				})
+			);
+		}
+		if (row.state === "Restored") {
+			$actions.append(
+				frappe.ui.button({
+					label: __("Visit"),
+					icon_right: "arrow-up-right",
+					onclick: () => frappe.set_route("desk", frappe.router.slug(row.workspace)),
 				})
 			);
 		}
@@ -115,24 +121,30 @@ class WorkspaceRestore {
 
 	describe(summary) {
 		const parts = [__("{0} blocks", [summary.blocks])];
-		for (const [type, count] of Object.entries(summary.widgets || {})) {
-			parts.push(__("{0} {1}", [count, __(type.replace("_", " "))]));
+		for (const [label, count] of Object.entries(summary.widgets || {})) {
+			parts.push(__("{0} {1}", [count, label]));
 		}
 		if (summary.roles) {
 			parts.push(__("{0} role changes", [summary.roles]));
 		}
-		return frappe.utils.escape_html(parts.join(", "));
+		return parts.join(", ");
 	}
 
 	render_warnings(warnings) {
 		if (!warnings?.length) return "";
 		const items = warnings
-			.map((w) => `<li>${frappe.utils.icon("alert-triangle", "xs")} ${w}</li>`)
+			.map(
+				(w) =>
+					`<li class="flex items-center gap-1.5">${frappe.utils.icon(
+						"triangle-alert",
+						"xs"
+					)}<span>${w}</span></li>`
+			)
 			.join("");
-		return `<ul class="list-unstyled text-muted small">${items}</ul>`;
+		return `<ul class="list-none flex flex-col gap-1 p-0 m-0 text-sm text-ink-amber-6">${items}</ul>`;
 	}
 
-	restore(row, state) {
+	restore(row) {
 		const message =
 			row.state === "Customized since"
 				? __(
@@ -146,13 +158,13 @@ class WorkspaceRestore {
 		return new Promise((resolve) => {
 			frappe.confirm(
 				message,
-				() => resolve(this.call_restore(row, state)),
+				() => resolve(this.call_restore(row)),
 				() => resolve()
 			);
 		});
 	}
 
-	call_restore(row, state) {
+	call_restore(row) {
 		return frappe
 			.xcall(
 				"frappe.desk.page.workspace_restore.workspace_restore.restore_workspace_edits",
