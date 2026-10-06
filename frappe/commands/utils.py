@@ -696,6 +696,8 @@ def console(context: CliCtxObj, autoreload=False):
 
 	terminal.colors = "neutral"
 	terminal.display_banner = False
+	terminal.user_ns.update(locals())
+	terminal.default_user_namespaces = False
 	terminal()
 
 
