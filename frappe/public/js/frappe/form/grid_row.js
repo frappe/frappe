@@ -1344,6 +1344,10 @@ export default class GridRow {
 
 					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
 						prev_row.toggle_editable_row(true);
+						prev_row.row
+							.find('input[type="Text"],textarea,select')
+							.filter(":visible:last")
+							.focus();
 					});
 					return false;
 				}
