@@ -50,6 +50,11 @@ body.desktop-page .navbar-container {
   z-index: 1030;
   border-bottom: 1px solid var(--border-color);
 }
+/* the phone tab bar (mobile_nav.js) has search, notifications and the user menu, so the
+page is just its apps */
+body.has-mobile-nav.desktop-page .desktop-navbar.navbar-container {
+  display: none;
+}
 body.desktop-page #brand-logo {
   width: auto;
 }
