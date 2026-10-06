@@ -568,7 +568,8 @@ class TestUser(IntegrationTestCase):
 		with test_user(roles=["System Manager"]) as admin, test_user(roles=["_Test Role 2"]) as user:
 			user.append("block_modules", {"module": "_Test Gone Module"})
 			user.save()
-			frappe.db.delete("Module Def", "_Test Gone Module")
+			frappe.delete_doc("Module Def", "_Test Gone Module", force=True)
+			self.assertFalse(frappe.db.exists("Module Def", "_Test Gone Module"))
 
 			with self.set_user(admin.name):
 				frappe.response.docs = []
