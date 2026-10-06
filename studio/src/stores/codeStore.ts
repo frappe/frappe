@@ -1,39 +1,32 @@
 import { defineStore } from "pinia"
-import { ref, shallowRef, type ComputedRef } from "vue"
+import { ref, shallowRef, inject, getCurrentInstance, type ComputedRef, type InjectionKey } from "vue"
 import type { Router } from "vue-router"
-import { setPageScriptHotUpdateHandler } from "@/data/studioPageScripts"
+import { onPageScriptHotUpdate } from "@/data/studioPageScripts"
 import { createPageScope, type PageScope } from "@/stores/pageScope"
 
-// The app renderer loads the next page into a new scope and activates it with the new blocks,
-// so the page on screen keeps its data until then
+// The editor's page scope. Rendered apps give each page its own (see AppPage.vue).
 const useCodeStore = defineStore("codeStore", () => {
 	const routeObject = ref<ComputedRef>()
 	const routerObject = ref<Router | Readonly<Router>>()
-	const activeScope = shallowRef(newPageScope())
+	const pageScope = shallowRef(createPageScope(routeObject, routerObject))
 
-	function newPageScope(): PageScope {
-		return createPageScope(routeObject, routerObject)
-	}
-
-	function activatePageScope(scope: PageScope) {
-		activeScope.value = scope
-	}
-
-	setPageScriptHotUpdateHandler((pageName, setup) => activeScope.value.applyPageScriptHotUpdate(pageName, setup))
+	onPageScriptHotUpdate((pageName, setup) => pageScope.value.applyPageScriptHotUpdate(pageName, setup))
 
 	return {
 		setRouteObject: (route: ComputedRef) => (routeObject.value = route),
 		setRouterObject: (router: Router | Readonly<Router>) => (routerObject.value = router),
 		routeObject,
 		routerObject,
-		activeScope,
-		createPageScope: newPageScope,
-		activatePageScope,
+		pageScope,
 	}
 })
 
-export function usePageScope() {
-	return useCodeStore().activeScope
+export const pageScopeKey: InjectionKey<PageScope> = Symbol("pageScope")
+
+export function usePageScope(): PageScope {
+	// inject() warns outside a component; stores and tests call this from plain functions
+	const provided = getCurrentInstance() ? inject(pageScopeKey, null) : null
+	return provided ?? useCodeStore().pageScope
 }
 
 export default useCodeStore

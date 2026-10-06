@@ -25,7 +25,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { ExpressionEvaluationContext } from "@/types"
 import type { Ref } from "vue"
-import type { Router } from "vue-router"
+import type { Router, RouteLocationNormalized } from "vue-router"
 
 export const vueReactivityApis = {
 	ref, reactive, computed, watch, watchEffect, watchDebounced,
@@ -35,7 +35,7 @@ export const vueReactivityApis = {
 
 // One page's data: resources, variables, page script and the contexts bindings evaluate against
 export function createPageScope(
-	routeObject: Ref<ComputedRef | undefined>,
+	routeObject: Ref<ComputedRef | RouteLocationNormalized | undefined>,
 	routerObject: Ref<Router | Readonly<Router> | undefined>,
 ) {
 	const resources = ref<Record<string, Resource>>({})
