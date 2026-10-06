@@ -403,7 +403,8 @@ test.describe("Control Link", () => {
 			},
 			true
 		);
-		// link_preview_doctypes comes with the boot
+		// link_preview_doctypes comes with the boot, which stays cached per user
+		await api.call("frappe.sessions.clear");
 		await page.reload();
 		await desk.ready();
 

@@ -151,7 +151,7 @@ frappe.ui.LinkPreview = class {
 				docname: this.name,
 			},
 			"GET",
-			{ cache: true },
+			{ cache: true }
 		);
 	}
 
@@ -226,7 +226,7 @@ frappe.ui.LinkPreview = class {
 		let avatar_html = frappe.get_avatar(
 			"avatar-medium",
 			preview_data.preview_title,
-			preview_data.preview_image,
+			preview_data.preview_image
 		);
 
 		return `<div class="preview-image">
