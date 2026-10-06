@@ -181,18 +181,6 @@
 	cursor: pointer;
 	transition: background-color 0.15s ease, color 0.15s ease;
 
-	// Lucide strokes go wonky above 20px.
-	svg,
-	img {
-		width: 20px;
-		height: 20px;
-	}
-
-	&.dock-item--duotone svg {
-		width: 26px;
-		height: 26px;
-	}
-
 	// Animated icons play on hover. Only custom properties reach inside a `<use>`.
 	svg {
 		overflow: visible;
