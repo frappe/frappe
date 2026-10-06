@@ -11,6 +11,7 @@ import signal
 import string
 import subprocess
 import sys
+import tempfile
 import time
 import types
 import unittest
@@ -994,6 +995,67 @@ class TestCommandUtils(IntegrationTestCase):
 		app_groups = get_app_groups()
 		self.assertIn("frappe", app_groups)
 		self.assertIsInstance(app_groups["frappe"], click.Group)
+
+
+class TestRunUITests(IntegrationTestCase):
+	def run_ui_tests(self, config_files, args):
+		from frappe.commands.testing import run_ui_tests
+
+		with tempfile.TemporaryDirectory() as app_path:
+			for name in config_files:
+				Path(app_path, name).touch()
+
+			with (
+				patch("frappe.get_app_source_path", return_value=app_path),
+				patch("frappe.commands.testing._run_playwright") as playwright,
+				patch("frappe.commands.testing._run_cypress") as cypress,
+			):
+				result = CliRunner().invoke(
+					run_ui_tests, args, obj=frappe._dict(sites=[frappe.local.site], profile=False)
+				)
+		return result, playwright, cypress
+
+	def test_runs_playwright_when_the_app_has_its_config(self):
+		result, playwright, cypress = self.run_ui_tests(
+			["playwright.config.js", "cypress.config.js"], ["frappe", "--headless", "--shard=1/2"]
+		)
+
+		self.assertEqual(result.exit_code, 0, result.output)
+		cypress.assert_not_called()
+		self.assertEqual(playwright.call_args.kwargs["runnerargs"], ("--shard=1/2",))
+
+	def test_runs_cypress_for_an_app_that_still_uses_it(self):
+		# what the v16 CI template sends, and downstream apps still copy
+		result, playwright, cypress = self.run_ui_tests(
+			["cypress.config.js"],
+			[
+				"erpnext",
+				"--with-coverage",
+				"--headless",
+				"--browser",
+				"chrome",
+				"--ci-build-id",
+				"123-1",
+				"--group",
+				"ui-shard-1",
+			],
+		)
+
+		self.assertEqual(result.exit_code, 0, result.output)
+		self.assertIn("deprecated", result.output)
+		playwright.assert_not_called()
+		kwargs = cypress.call_args.kwargs
+		self.assertTrue(kwargs["with_coverage"])
+		self.assertEqual(kwargs["ci_build_id"], "123-1")
+		self.assertEqual(kwargs["browser"], "chrome")
+		self.assertEqual(kwargs["runnerargs"], ("--group", "ui-shard-1"))
+
+	def test_fails_for_an_app_without_ui_tests(self):
+		result, playwright, cypress = self.run_ui_tests([], ["frappe", "--headless"])
+
+		self.assertEqual(result.exit_code, 1)
+		playwright.assert_not_called()
+		cypress.assert_not_called()
 
 
 class TestDBCli(BaseTestCommands):
