@@ -62,7 +62,9 @@
 					<span v-html="frappe.utils.icon('arrow-up', 'xs')"></span>
 					<span class="pfb-breadcrumb-label">{{ __("Section:") }}</span>
 					<span class="pfb-breadcrumb-name">{{
-						parent_section.label || __("Untitled")
+						parent_section.label ||
+						zone_label(layout, parent_section) ||
+						__("Untitled")
 					}}</span>
 				</button>
 			</div>
@@ -101,7 +103,7 @@
 
 <script setup>
 import { computed, inject } from "vue";
-import { section_of } from "../../layout";
+import { section_of, zone_label } from "../../layout";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
 import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
@@ -183,7 +185,13 @@ let inspector_subtitle = computed(() => {
 		if (df.custom) return df.label || __(df.fieldtype);
 		return frappe.meta.get_label(print_format.value.doc_type, df.fieldname);
 	}
-	if (selected_section.value) return selected_section.value.label || __("Untitled section");
+	if (selected_section.value) {
+		return (
+			selected_section.value.label ||
+			zone_label(layout.value, selected_section.value) ||
+			__("Untitled section")
+		);
+	}
 	return "";
 });
 
