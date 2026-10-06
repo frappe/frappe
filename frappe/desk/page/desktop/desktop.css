@@ -50,10 +50,37 @@ body.desktop-page .navbar-container {
   z-index: 1030;
   border-bottom: 1px solid var(--border-color);
 }
-/* the phone tab bar (mobile_nav.js) has search, notifications and the user menu, so the
-page is just its apps */
-body.has-mobile-nav.desktop-page .desktop-navbar.navbar-container {
+body.desktop-page .desktop-navbar-title {
   display: none;
+}
+/* the phone tab bar (mobile_nav.js) has search, notifications and the user menu, so the
+header keeps only the logo set in Navbar Settings and names the page, as a phone page
+header does: a centred title, inset past the logo so it stays centred */
+body.has-mobile-nav.desktop-page {
+  --desktop-navbar-height: 52px;
+}
+body.has-mobile-nav.desktop-page .desktop-navbar > :not(.navbar-home, .desktop-navbar-title) {
+  display: none;
+}
+body.has-mobile-nav.desktop-page .desktop-navbar #brand-logo {
+  height: 28px;
+  margin-left: 4px;
+  border-radius: 7px;
+}
+body.has-mobile-nav.desktop-page .desktop-navbar-title {
+  display: block;
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+  color: var(--ink-gray-9);
 }
 body.desktop-page #brand-logo {
   width: auto;
