@@ -153,13 +153,22 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
-			frappe.msgprint({
-				title: __("Not found"),
-				indicator: "red",
-				message: __("The resource you are looking for is not available"),
-				re_route: true,
-				clear: true,
-			});
+			if (xhr.responseJSON?._server_messages && frappe.msg_dialog?.msg_area.html()) {
+				// cleanup has already shown the server's messages
+				frappe.msg_dialog.custom_onhide = function () {
+					frappe.route_flags.replace_route = true;
+					let prev_route = frappe.get_prev_route();
+					if (prev_route.length == 0) frappe.set_route("");
+					frappe.set_route(prev_route);
+				};
+			} else {
+				frappe.msgprint({
+					title: __("Not found"),
+					indicator: "red",
+					message: __("The resource you are looking for is not available"),
+					re_route: true,
+				});
+			}
 			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {
