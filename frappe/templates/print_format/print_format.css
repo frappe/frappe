@@ -41,7 +41,7 @@ body {
 		background-color: white;
 		box-shadow: var(--shadow-md);
 		margin: 2rem auto;
-		min-height: 297mm;
+		min-height: {{ page_height | int }}mm;
 		height: min-content;
 	{%- if not for_chrome %}
 		min-width: {{ page_width | int }}mm !important;
