@@ -310,14 +310,17 @@ export function create_default_layout(meta, print_format) {
 
 export function get_table_columns(df) {
 	let table_columns = [];
-	let table_fields = frappe.get_meta(df.options).fields;
+	let table_fields = frappe
+		.get_meta(df.options)
+		.fields.filter(
+			(tf) => !["Section Break", "Column Break"].includes(tf.fieldtype) && !tf.print_hide
+		);
+	if (table_fields.some((tf) => tf.in_list_view)) {
+		table_fields = table_fields.filter((tf) => tf.in_list_view);
+	}
 	let total_width = 0;
 	for (let tf of table_fields) {
-		if (
-			!["Section Break", "Column Break"].includes(tf.fieldtype) &&
-			!tf.print_hide &&
-			total_width < 100
-		) {
+		if (total_width < 100) {
 			let width =
 				typeof tf.width == "number" && tf.width < 100 ? tf.width : tf.width ? 20 : 10;
 			table_columns.push({
