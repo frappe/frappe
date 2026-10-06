@@ -567,6 +567,44 @@ class TestCommands(BaseTestCommands):
 
 		self.assertEqual(conf[key], value)
 
+	def test_set_config_parse_accepts_lowercase_boolean(self):
+		"""ast.literal_eval only understands Python's capitalized True/False;
+		JSON/JS-style lowercase true/false is special-cased ahead of it so this
+		common input actually works, rather than erroring and telling the user
+		to capitalize it."""
+		key = "test_set_config_parse_value"
+
+		def cleanup():
+			from frappe.installer import get_site_config_path
+
+			path = get_site_config_path()
+			with open(path) as f:
+				conf = json.load(f)
+			conf.pop(key, None)
+			with open(path, "w") as f:
+				json.dump(conf, f, indent=1)
+				f.write("\n")
+
+		self.addCleanup(cleanup)
+
+		self.execute(f"bench --site {{site}} set-config --parse {key} false")
+		self.assertEqual(self.returncode, 0)
+		conf = frappe.get_site_config()
+		self.assertIs(conf[key], False)
+
+		self.execute(f"bench --site {{site}} set-config --parse {key} TRUE")
+		self.assertEqual(self.returncode, 0)
+		conf = frappe.get_site_config()
+		self.assertIs(conf[key], True)
+
+	def test_set_config_parse_rejects_unparseable_value(self):
+		self.execute("bench --site {site} set-config --parse test_set_config_parse_value disable")
+
+		self.assertEqual(self.returncode, 2)  # click.BadParameter's exit code
+		self.assertNotIn("Traceback", self.stdout)
+		self.assertNotIn("Traceback", self.stderr)
+		self.assertIn("not a valid Python literal", self.stdout + self.stderr)
+
 	@skipIf(
 		frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",

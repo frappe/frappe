@@ -925,8 +925,19 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 
 	if parse:
 		import ast
-
-		value = ast.literal_eval(value)
+		if isinstance(value, str):
+			val_lower = value.strip().lower()
+			if val_lower == "true":
+				value = True
+			elif val_lower == "false":
+				value = False
+			else:
+				try:
+					value = ast.literal_eval(value)
+				except (ValueError, SyntaxError):
+					raise click.BadParameter(
+						f"'{value}' is not a valid Python literal/object."
+					)
 
 	if global_:
 		sites_path = os.getcwd()
