@@ -104,8 +104,8 @@ frappe.ui.MobileNav = class MobileNav {
 		const page = frappe.container?.page?.page;
 		const route = frappe.get_route() || [];
 		// A form is a step into a list, not a place of its own: it gets the screen and a way
-		// back instead of the tabs.
-		const form = route[0] === "Form";
+		// back instead of the tabs. A single doctype has no list, so it is a place.
+		const form = route[0] === "Form" && !frappe.get_meta(route[1])?.issingle;
 		const shown = !!this.defined && !page?.hide_mobile_nav && !form;
 		document.body.classList.toggle("has-mobile-nav", shown);
 		document.body.classList.toggle("mobile-form-view", !!this.defined && form);
