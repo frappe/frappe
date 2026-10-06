@@ -244,6 +244,10 @@ def attach_print(
 					if uses_legacy_weasyprint(pf_doc):
 						from frappe.utils.weasyprint import legacy_generator
 
+						if print_letterhead and not letterhead_name:
+							letterhead_name = doc_obj.get("letter_head") or frappe.db.get_value(
+								"Letter Head", {"is_default": 1}, "name"
+							)
 						content = legacy_generator(pf_doc, doc_obj, letterhead_name).render_pdf(
 							password=password
 						)
