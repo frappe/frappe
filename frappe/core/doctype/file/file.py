@@ -180,29 +180,6 @@ class File(Document):
 		self.validate_file_on_disk()
 		self.file_size = frappe.form_dict.file_size or self.file_size
 
-<<<<<<< HEAD
-=======
-	def validate_attachment_references(self):
-		if not self.attached_to_doctype:
-			return
-
-		if not self.attached_to_name or not isinstance(self.attached_to_name, str | int):
-			frappe.throw(
-				_("Attached To Name must be a string or an integer"),
-				frappe.ValidationError,
-			)
-
-		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
-			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
-
-		if self.flags.ignore_permissions or frappe.flags.in_install:
-			return
-
-		from frappe.handler import check_write_permission
-
-		check_write_permission(self.attached_to_doctype, self.attached_to_name)
-
->>>>>>> 6f23777 (fix(file): check write perm. on attachment)
 	def enforce_public_file_restrictions(self):
 		if not self.is_private and frappe.get_system_settings(
 			"only_allow_system_managers_to_upload_public_files"
@@ -251,6 +228,13 @@ class File(Document):
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
+
+		if self.flags.ignore_permissions or frappe.flags.in_install:
+			return
+
+		from frappe.handler import check_write_permission
+
+		check_write_permission(self.attached_to_doctype, self.attached_to_name)
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():
