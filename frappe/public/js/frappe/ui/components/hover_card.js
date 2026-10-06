@@ -1,5 +1,5 @@
 import { place, SIDES, ALIGNS } from "./position.js";
-import { validated } from "./utils.js";
+import { validated, resolve_content } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -99,18 +99,8 @@ frappe.ui.HoverCard = class HoverCard {
 	// Same policy as Popover: elements and element-returning functions are
 	// the rich channel; strings become text nodes, never markup.
 	resolve_content() {
-		let content = this.opts.content;
-		if (typeof content === "function") content = content(this);
-		if (typeof content === "string") {
-			const p = document.createElement("div");
-			p.textContent = content;
-			return p;
-		}
-		const el = content && $(content)[0];
-		if (!el) {
-			console.warn("frappe.ui.HoverCard: no content to show");
-			return null;
-		}
+		const el = resolve_content(this.opts.content, this);
+		if (!el) console.warn("frappe.ui.HoverCard: no content to show");
 		return el;
 	}
 
