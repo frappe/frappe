@@ -384,6 +384,9 @@ frappe.ui.Filter = class {
 
 		this.resolve_dynamic_link(df, original_docfield);
 
+		// make_field gives a Select box a blank first option; still the same options
+		const options = (o) => (typeof o === "string" ? o.replace(/^\n/, "") : o);
+
 		// called when condition is changed,
 		// don't change if all is well
 		if (
@@ -391,7 +394,7 @@ frappe.ui.Filter = class {
 			cur.fieldname == fieldname &&
 			df.fieldtype == cur.fieldtype &&
 			df.parent == cur.parent &&
-			df.options == cur.options
+			options(df.options) == options(cur.options)
 		) {
 			// same box, but its hint follows the condition (Like → Equals → In)
 			if (!this.field.df.dynamic_link_hint) {
