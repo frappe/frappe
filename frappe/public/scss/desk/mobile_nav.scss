@@ -68,28 +68,6 @@ frappe-mobile-nav.desk-mobile-nav {
 			mask: $chevron center / contain no-repeat;
 		}
 	}
-
-	// The desktop page's header. Its search, notifications and user menu are tabs on a phone,
-	// so the Apps screen (desktop.html) is just its apps; both classes outrank desktop.css's
-	// `body.apps-page .navbar-container`, which loads after this. The Desktop Icons grid
-	// (desktop_icons.html) keeps its header and names the page in it instead.
-	body.has-mobile-nav.apps-page .desktop-navbar.navbar-container {
-		display: none;
-	}
-
-	body.has-mobile-nav.desktop-icons-page .desktop-navbar {
-		.desktop-search-wrapper,
-		.desktop-notifications {
-			display: none;
-		}
-
-		.desktop-navbar-title {
-			display: block;
-			position: absolute;
-			left: 50%;
-			transform: translateX(-50%);
-		}
-	}
 }
 
 // The back button a form gets on a phone, in place of the tab bar.
@@ -113,14 +91,6 @@ frappe-mobile-nav.desk-mobile-nav {
 	[dir="rtl"] & .icon {
 		transform: scaleX(-1);
 	}
-}
-
-.desktop-navbar-title {
-	display: none;
-	margin: 0;
-	font-size: var(--text-lg);
-	font-weight: var(--font-weight-semibold);
-	color: var(--ink-gray-9);
 }
 
 // The dock, as a row of tiles across the top of the navigation sheet.
@@ -194,5 +164,16 @@ frappe-mobile-nav.desk-mobile-nav {
 
 	.standard-sidebar-item .sidebar-item-label {
 		font-size: var(--text-base);
+	}
+
+	// a flat fill, not the desktop's raised card: the sheet is already the surface on top
+	.standard-sidebar-item.active-sidebar,
+	.standard-sidebar-item:has(a:not(.section-break)):active {
+		background: var(--surface-gray-2);
+		box-shadow: none;
+	}
+
+	.standard-sidebar-item.active-sidebar .item-anchor {
+		color: var(--ink-gray-9);
 	}
 }
