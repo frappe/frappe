@@ -1405,6 +1405,12 @@ def parse_val(v):
 	return v
 
 
+def get_currency_precision() -> int | None:
+	"""Return the configured Currency Precision, or None if it isn't set."""
+	currency_precision = frappe.db.get_default("currency_precision")
+	return cint(currency_precision) if currency_precision not in (None, "") else None
+
+
 def fmt_money(
 	amount: str | float | int | None,
 	precision: int | None = None,
@@ -1415,7 +1421,7 @@ def fmt_money(
 	number_format = NumberFormat.from_string(format) if format else get_number_format()
 
 	if precision is None:
-		precision = cint(frappe.db.get_default("currency_precision")) or None
+		precision = get_currency_precision()
 
 	if precision is None:
 		precision = number_format.precision
@@ -1480,7 +1486,7 @@ def fmt_money(
 	if amount != "0":
 		amount = minus + amount
 
-	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
+	if currency and frappe.defaults.get_global_default("hide_currency_symbol") not in ("1", "Yes"):
 		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
 		symbol_on_right = frappe.db.get_value("Currency", currency, "symbol_on_right", cache=True)
 
@@ -1625,6 +1631,118 @@ def is_image(filepath: str) -> bool:
 	# filepath can be https://example.com/bed.jpg?v=129
 	filepath = (filepath or "").split("?", 1)[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
+
+
+def validate_egress_url(url: str) -> None:
+	"""Raise ValueError if url resolves to a private/internal address.
+
+	Guards server-side HTTP fetches against SSRF by resolving the hostname and
+	blocking loopback, link-local (including 169.254.169.254), private, and
+	reserved ranges regardless of the URL's textual representation.
+	"""
+	import ipaddress
+	import socket
+
+	parsed = urlparse(url)
+	if parsed.scheme not in ("http", "https"):
+		raise ValueError(f"Disallowed scheme: {parsed.scheme!r}")
+
+	hostname = parsed.hostname
+	if not hostname:
+		raise ValueError("URL has no hostname")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, None)
+	except socket.gaierror as exc:
+		raise ValueError(f"Cannot resolve host {hostname!r}") from exc
+
+	for record in addr_info:
+		try:
+			ip = ipaddress.ip_address(record[4][0])
+		except (ValueError, IndexError):
+			continue
+		if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+			raise ValueError(f"Requests to internal address {ip} are not permitted")
+
+
+def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> str:
+	"""Return a base64 data: URI thumbnail of `url`, or the original `url` on
+	any error. Used by print templates to keep generated PDFs small: Chrome's
+	`Page.printToPDF` embeds images at their natural resolution regardless of
+	the CSS display size, so a 5000x5000 stock photo bloats the PDF by several
+	MB even when the image is rendered at 100px.
+
+	Only http://, https:// and /-rooted URLs are processed; anything else is
+	returned unchanged so the caller's URL-scheme validation is preserved.
+	"""
+	import base64
+	import io
+	import os
+
+	if not url or not isinstance(url, str):
+		return url
+	if not (url.startswith("http://") or url.startswith("https://") or url.startswith("/")):
+		return url
+
+	# Per-request cache so repeated rows that share an image only resize once.
+	cache = getattr(frappe.local, "_print_thumbnail_cache", None)
+	if cache is None:
+		cache = frappe.local._print_thumbnail_cache = {}
+	key = (url, max_dim, quality)
+	if key in cache:
+		return cache[key]
+
+	if not url.startswith("/"):
+		try:
+			validate_egress_url(url)
+		except ValueError:
+			return url
+
+	try:
+		if url.startswith("/"):
+			path = None
+			for prefix in ("public", "private"):
+				candidate = frappe.get_site_path(prefix, url.lstrip("/"))
+				if os.path.exists(candidate):
+					path = candidate
+					break
+			if not path:
+				return url
+			with open(path, "rb") as f:
+				content = f.read()
+		else:
+			import requests
+
+			r = requests.get(url, timeout=5, stream=True, allow_redirects=False)
+			r.raise_for_status()
+			chunks, total = [], 0
+			for chunk in r.iter_content(8192):
+				chunks.append(chunk)
+				total += len(chunk)
+				if total > 20 * 1024 * 1024:
+					return url
+			content = b"".join(chunks)
+
+		from PIL import Image
+
+		img = Image.open(io.BytesIO(content))
+		img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+		fmt = "PNG" if img.mode in ("RGBA", "LA", "P") else "JPEG"
+		if fmt == "JPEG" and img.mode != "RGB":
+			img = img.convert("RGB")
+		buf = io.BytesIO()
+		save_kwargs = {"format": fmt, "optimize": True}
+		if fmt == "JPEG":
+			save_kwargs["quality"] = quality
+		img.save(buf, **save_kwargs)
+		encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+		data_uri = f"data:image/{fmt.lower()};base64,{encoded}"
+		cache[key] = data_uri
+		return data_uri
+	except Exception:
+		# Network/decode failures fall back to the original URL so the cell
+		# still renders something. No per-row log to avoid error log spam.
+		return url
 
 
 def get_thumbnail_base64_for_image(src: str) -> dict[str, str] | None:

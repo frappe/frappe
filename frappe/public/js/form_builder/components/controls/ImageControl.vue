@@ -8,7 +8,7 @@ const props = defineProps(["df"]);
 			<slot name="label" />
 			<slot name="actions" />
 		</div>
-		<div class="missing-image" v-html="frappe.utils.icon('restriction', 'md')" />
+		<div class="missing-image" v-html="frappe.utils.icon('ban', 'md')" />
 		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
 	</div>
 </template>

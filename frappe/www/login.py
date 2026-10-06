@@ -109,7 +109,7 @@ def get_context(context):
 	if frappe.utils.cint(frappe.get_system_settings("allow_login_using_user_name")):
 		login_label.append(_("Username"))
 
-	context["login_label"] = f" {_('or')} ".join(login_label)
+	context["login_label"] = " / ".join(login_label)
 
 	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
 
@@ -157,6 +157,7 @@ def send_login_link(email: str):
 			template="login_with_email_link",
 			args={"link": link, "minutes": expiry, "app_name": app_name},
 			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 			now=True,
 		)
 	except frappe.DoesNotExistError:
@@ -172,8 +173,8 @@ def send_login_link(email: str):
 def _generate_temporary_login_link(email: str, expiry: int):
 	assert isinstance(email, str)
 
-	if not frappe.db.exists("User", email):
-		frappe.throw(_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError)
+	if not frappe.db.exists("User", {"name": email, "enabled": 1}):
+		frappe.throw(_("No active user found with email address {0}").format(email), frappe.DoesNotExistError)
 	key = frappe.generate_hash()
 	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 

@@ -14,13 +14,6 @@
 	stroke-linejoin: round;
 }
 
-.es-icon {
-	@extend .icon;
-	// es-icons need to be "filled"
-	fill: var(--icon-stroke);
-	stroke-width: 0;
-}
-
 /* like icon */
 use.like-icon {
 	--icon-stroke: transparent;

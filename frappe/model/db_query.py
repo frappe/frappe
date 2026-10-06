@@ -7,7 +7,7 @@ import datetime
 import json
 import re
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from functools import cached_property, lru_cache
 
 import sqlparse
@@ -15,7 +15,6 @@ from sqlparse import tokens
 from sqlparse.sql import Function, Parenthesis, Statement
 
 import frappe
-import frappe.defaults
 import frappe.permissions
 import frappe.share
 from frappe import _
@@ -24,7 +23,6 @@ from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSet
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
-from frappe.model.utils.mask import mask_field_value
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.types import Filters, FilterSignature, FilterTuple
@@ -818,6 +816,13 @@ from {tables}
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 
+		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
+		# single member; treat them as `like`/`not like` against the serialized value.
+		if f.fieldname in ("_assign", "_liked_by") and f.operator in ("=", "!="):
+			f.operator = "like" if f.operator == "=" else "not like"
+			if isinstance(f.value, str) and f.value:
+				f.value = f"%{f.value}%"
+
 		# primary key is never nullable, modified is usually indexed by default and always present
 		can_be_null = f.fieldname not in ("name", "modified", "creation")
 
@@ -1182,7 +1187,7 @@ from {tables}
 		return " and ".join(conditions) if conditions else ""
 
 	def set_order_by(self, args):
-		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
+		if self.order_by and self.order_by != DefaultOrderBy:
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""

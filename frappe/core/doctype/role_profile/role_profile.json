@@ -3,6 +3,7 @@
  "autoname": "role_profile",
  "creation": "2017-08-31 04:16:38.764465",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/role-and-role-profile",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

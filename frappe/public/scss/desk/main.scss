@@ -36,12 +36,14 @@ body {
 
 .main-section {
 	width: 100%;
-	height: 100vh;
+	height: 100vh; // fallback for engines without dvh
+	height: 100dvh; // tracks the mobile browser bar
 	overflow: scroll;
 	overflow-x: hidden;
 	overflow-y: visible;
 	scrollbar-gutter: stable;
 }
+
 .sticky-top {
 	z-index: 1019;
 }

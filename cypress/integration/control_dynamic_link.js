@@ -132,6 +132,13 @@ context("Dynamic Link", () => {
 
 		//Entering User in the Doctype field
 		cy.fill_field("doc_type", "User", "Link", { delay: 500 });
+
+		// fill_field commits the input value, but the model value is set
+		// asynchronously on blur. The dynamic link's get_options() reads the
+		// model value, so wait for it to land before opening doc_id, otherwise
+		// the search is skipped and the dropdown never populates.
+		cy.window().its("cur_frm.doc.doc_type").should("eq", "User");
+
 		cy.get_field("doc_id").click();
 
 		//Checking if the listbox have length greater than 0
@@ -150,6 +157,8 @@ context("Dynamic Link", () => {
 		//Entering System Settings in the Doctype field
 		cy.fill_field("doc_type", "System Settings", "Link", { delay: 500 });
 
+		// wait for the model value to land before opening doc_id (see above)
+		cy.window().its("cur_frm.doc.doc_type").should("eq", "System Settings");
 		cy.get_field("doc_id").click();
 
 		//Checking if the system throws error

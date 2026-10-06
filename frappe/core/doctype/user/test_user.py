@@ -10,6 +10,7 @@ from werkzeug.http import parse_cookie
 
 import frappe
 import frappe.exceptions
+from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
 	handle_password_test_fail,
@@ -44,6 +45,49 @@ class TestUser(IntegrationTestCase):
 	def reset_password(user) -> str:
 		link = user._reset_password()
 		return parse_qs(urlparse(link).query)["key"][0]
+
+	def test_my_space_is_offered_only_when_asked_for(self):
+		"""The user menu's way into the Private shell is off until somebody turns it on, so a first
+		time user is not shown a place they have put nothing in. It travels with the other per-user
+		desk toggles, so the desk reads it the way it reads the search bar.
+		"""
+		from frappe.boot import get_desk_settings
+
+		user = frappe.get_doc(
+			doctype="User",
+			email=frappe.generate_hash() + "@example.com",
+			first_name="Space",
+			roles=[{"role": "System Manager"}],
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
+
+		frappe.set_user(user.name)
+		self.assertEqual(get_desk_settings().show_my_space, 0)
+
+		user.db_set("show_my_space", 1)
+		frappe.clear_cache(user=user.name)
+		self.assertEqual(get_desk_settings().show_my_space, 1)
+
+	def test_dock_pinned_until_floated(self):
+		"""The dock starts pinned beside the sidebar. Floating it off the left edge is a per-user
+		desk toggle, so the desk reads it from the boot's desk settings like the others.
+		"""
+		from frappe.boot import get_desk_settings
+
+		user = frappe.get_doc(
+			doctype="User",
+			email=frappe.generate_hash() + "@example.com",
+			first_name="Dock",
+			roles=[{"role": "_Test Role 2"}],
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
+
+		frappe.set_user(user.name)
+		self.assertEqual(get_desk_settings().dock_mode, "Pinned")
+
+		set_value("User", user.name, "dock_mode", "Floating")
+		frappe.clear_cache(user=user.name)
+		self.assertEqual(get_desk_settings().dock_mode, "Floating")
 
 	def test_user_type(self):
 		user_id = frappe.generate_hash() + "@example.com"
@@ -314,6 +358,64 @@ class TestUser(IntegrationTestCase):
 
 		frappe.delete_doc("User", new_name)
 
+	def test_user_rename_updates_private_workspace(self):
+		old_name = "test_user_rename_ws@example.com"
+		new_name = "test_user_rename_ws_new@example.com"
+		actor_name = "test_user_rename_ws_actor@example.com"
+
+		old_workspace = f"Test Rename Workspace-{old_name}"
+		for email in (old_name, new_name, actor_name):
+			frappe.delete_doc("User", email, ignore_permissions=True, force=True)
+		if frappe.db.exists("Workspace", old_workspace):
+			frappe.delete_doc("Workspace", old_workspace, ignore_permissions=True, force=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": old_name,
+				"enabled": 1,
+				"first_name": "_Test",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": actor_name,
+				"enabled": 1,
+				"first_name": "_Test Actor",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "Test Rename Workspace",
+				"label": old_workspace,
+				"type": "Workspace",
+				"for_user": old_name,
+				"public": 0,
+				# Mandatory now: a private workspace belongs to a module like any other.
+				"module": "Core",
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+
+		with self.set_user(actor_name):
+			frappe.rename_doc("User", old_name, new_name)
+
+		new_workspace = f"Test Rename Workspace-{new_name}"
+		self.assertTrue(frappe.db.exists("Workspace", new_workspace))
+		self.assertEqual(frappe.db.get_value("Workspace", new_workspace, "for_user"), new_name)
+
+		frappe.delete_doc("Workspace", new_workspace, ignore_permissions=True, force=True)
+		frappe.delete_doc("User", new_name, ignore_permissions=True, force=True)
+		frappe.delete_doc("User", actor_name, ignore_permissions=True, force=True)
+
 	def test_signup(self):
 		import frappe.website.utils
 
@@ -455,16 +557,36 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(frappe.message_log[0].get("message"), _GENERIC_MSG)
 
 	def test_user_onload_modules(self):
+		"""The editor lists custom modules, and keeps a blocked module even after it is deleted"""
 		from frappe.desk.form.load import getdoc
-		from frappe.utils.modules import get_modules_from_all_apps
 
-		frappe.response.docs = []
-		getdoc("User", "Administrator")
-		doc = frappe.response.docs[0]
-		self.assertListEqual(
-			sorted(doc.get("__onload").get("all_modules", [])),
-			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
-		)
+		for name in ("_Test Site Module", "_Test Gone Module"):
+			frappe.get_doc({"doctype": "Module Def", "module_name": name, "custom": 1}).insert(
+				ignore_if_duplicate=True
+			)
+
+		with test_user(roles=["System Manager"]) as admin, test_user(roles=["_Test Role 2"]) as user:
+			user.append("block_modules", {"module": "_Test Gone Module"})
+			user.save()
+			frappe.delete_doc("Module Def", "_Test Gone Module", force=True)
+			self.assertFalse(frappe.db.exists("Module Def", "_Test Gone Module"))
+
+			with self.set_user(admin.name):
+				frappe.response.docs = []
+				getdoc("User", user.name)
+				all_modules = frappe.response.docs[0].get("__onload").get("all_modules")
+
+		self.assertIn("Core", all_modules)
+		self.assertIn("_Test Site Module", all_modules)
+		self.assertIn("_Test Gone Module", all_modules)
+
+	def test_user_onload_modules_hidden_from_normal_user(self):
+		from frappe.desk.form.load import getdoc
+
+		with test_user(roles=["_Test Role 2"]) as user, self.set_user(user.name):
+			frappe.response.docs = []
+			getdoc("User", user.name)
+			self.assertNotIn("all_modules", frappe.response.docs[0].get("__onload"))
 
 	def test_default_app(self):
 		from frappe.apps import get_default_path

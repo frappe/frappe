@@ -136,7 +136,7 @@ export default class Section {
 	}
 
 	set_icon(hide) {
-		let indicator_icon = hide ? "chevron-right" : "es-line-down";
+		let indicator_icon = hide ? "chevron-right" : "chevron-down";
 		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 
@@ -149,10 +149,13 @@ export default class Section {
 	}
 
 	has_missing_mandatory() {
+		// a dialog has no doc; its values are the doc
+		const doc =
+			this.layout.doc || (this.layout.get_values && this.layout.get_values(true)) || {};
 		let missing_mandatory = false;
 		for (let j = 0, l = this.fields_list.length; j < l; j++) {
 			const section_df = this.fields_list[j].df;
-			if (section_df.reqd && this.layout.doc[section_df.fieldname] == null) {
+			if (section_df.reqd && doc[section_df.fieldname] == null) {
 				missing_mandatory = true;
 				break;
 			}

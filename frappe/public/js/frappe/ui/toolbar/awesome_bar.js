@@ -5,7 +5,7 @@ frappe.provide("frappe.tags");
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
-		$(".search-bar, .navbar-search-bar").removeClass("hidden");
+		$(".navbar-search-bar").removeClass("hidden");
 
 		this.options = [];
 		this.global_results = [];
@@ -13,10 +13,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.setup_search_modal(element);
 
 		frappe.search.utils.setup_recent();
+		this.setup_page_change_event();
 	}
 
 	setup_search_modal(element) {
-		let is_event_listeners_added = false;
 		let $search_element = $(element);
 
 		let search_modal = new frappe.get_modal("Search", "");
@@ -71,21 +71,37 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.addClass("cool-awesomebar-modal-footer")
 			.html(search_modal_footer);
 
-		$search_element.on("click", () => {
-			if ($(search_modal).hasClass("show")) {
-				search_modal.modal("hide");
+		$(document).on("click", element, () => {
+			if (this.is_open()) {
+				this.close();
 				return;
 			}
 			search_modal.modal("show");
-
-			if (is_event_listeners_added) return;
-			is_event_listeners_added = true;
-
 			this.setup_event_listeners(search_modal);
 		});
 	}
 
+	open(search_modal) {
+		const modal = search_modal || this.search_modal;
+		if (!modal) return;
+		modal.modal("show");
+		this.setup_event_listeners(modal);
+	}
+
+	close() {
+		if (!this.is_open()) return;
+		this.search_modal.modal("hide");
+	}
+
+	is_open() {
+		return Boolean(this.search_modal?.hasClass("show"));
+	}
+
 	setup_event_listeners(search_modal) {
+		// Listeners and the Awesomplete dropdown only need to be set up once.
+		// Re-running this on every open creates duplicate dropdowns and shows results twice.
+		if (this.awesomplete) return;
+
 		var me = this;
 		let $input = search_modal.find("#navbar-search");
 		let input = $input.get(0);
@@ -132,13 +148,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 							)
 						)
 					);
-				}
-				if (d.type == "Desktop Icon") {
-					target = frappe.utils.get_route_for_icon(d.icon_data);
-					d.route = target;
-					d.route_options = {
-						sidebar: d.icon_data.label,
-					};
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
@@ -279,11 +288,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_doctypes(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_desktop_icons(txt),
+				frappe.search.utils.get_workspaces(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
-				frappe.search.utils.get_executables(txt),
-				frappe.search.utils.get_marketplace_apps(txt)
+				frappe.search.utils.get_executables(txt)
 			);
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);
@@ -424,44 +432,35 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	make_calculator(txt) {
-		function getDecimalPlaces(num) {
-			if (Math.floor(num) === num) return 0;
-			return num.toString().split(".")[1].length || 0;
-		}
+		const decimalStr = get_number_format_info().decimal_str;
+		const first = txt.substr(0, 1);
 
-		var first = txt.substr(0, 1);
 		if (first == parseInt(first) || first === "(" || first === "=") {
 			if (first === "=") {
 				txt = txt.substr(1);
 			}
 			try {
-				var val = eval(txt);
-
 				// Split the input to find the numbers and their decimal places
-				var numbers = txt.match(/[+-]?([0-9]*[.])?[0-9]+/g);
-				var maxDecimalPlaces = 0;
+				const numbers = txt.match(/[+-]?([0-9]*[.,])?[0-9]+/g);
+
+				let maxDecimalPlaces = 0;
 				if (numbers) {
 					maxDecimalPlaces = Math.max(
-						...numbers.map((num) => getDecimalPlaces(parseFloat(num)))
+						...numbers.map((num) => num.split(decimalStr)[1]?.length || 0)
 					);
 				}
 
-				// Use a default precision of 2 decimal places if no decimal places are found
-				if (maxDecimalPlaces === 0) {
-					maxDecimalPlaces = 2;
-				}
-
-				// Adjust the result to the maximum number of decimal places found or default precision
-				var rounded_val = parseFloat(val.toFixed(maxDecimalPlaces));
-
-				var formatted_value = __("{0} = {1}", [
+				// Find the result to the appropriate number of decimal places
+				const val = frappe.utils.eval_expression(txt);
+				const result = format_number(val, null, maxDecimalPlaces);
+				const formatted_value = __("{0} = {1}", [
 					frappe.utils.xss_sanitise(txt),
-					(rounded_val + "").bold(),
+					result.bold(),
 				]);
 				this.options.push({
 					label: formatted_value,
-					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), rounded_val]),
-					match: rounded_val,
+					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), result]),
+					match: result,
 					index: 80,
 					default: "Calculator",
 					onclick: function () {
@@ -484,6 +483,28 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				},
 			});
 		}
+	}
+
+	setup_correct_button(wrapper) {
+		let small_button = $(wrapper).find("#small-search-button");
+		let full_button = $(wrapper).find("#full-search-button");
+		if (frappe.is_mobile()) {
+			small_button.removeClass("hidden");
+			full_button.addClass("hidden");
+			return;
+		}
+		small_button.addClass("hidden");
+		full_button.removeClass("hidden");
+	}
+	setup_page_change_event() {
+		const me = this;
+		$(document).on("page-change", function (event, data) {
+			me.setup_correct_button(data);
+		});
+
+		$(document).on("form-refresh", function (event, data) {
+			me.setup_correct_button(data.wrapper);
+		});
 	}
 };
 

@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2020-09-07 12:48:48.334318",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/document-naming",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

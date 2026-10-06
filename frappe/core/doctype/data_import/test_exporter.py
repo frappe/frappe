@@ -2,11 +2,29 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.data_import.exporter import Exporter
+from frappe.core.doctype.data_import.import_provider import ImportProvider
+from frappe.core.doctype.data_import.importer import build_fields_dict_for_column_matching
 from frappe.core.doctype.data_import.test_importer import create_doctype_if_not_exists
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.tests import IntegrationTestCase
 
 doctype_name = "DocType for Export"
+
+
+class ContactImportProvider(ImportProvider):
+	def get_import_fields(self):
+		return {
+			"fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+			"child_tables": [
+				{
+					"fieldname": "contacts",
+					"label": "Contact",
+					"fields": [
+						{"fieldname": "email_id", "label": "Email", "fieldtype": "Data", "parent": "Contact"}
+					],
+				}
+			],
+		}
 
 
 class TestExporter(IntegrationTestCase):
@@ -146,3 +164,28 @@ class TestExporter(IntegrationTestCase):
 		self.assertIn("Child Title (Table Field 1)", export[0])
 		self.assertNotIn("Child Description (Table Field 1)", export[0])
 		self.assertNotIn("Restricted Value", str(export))
+
+	def test_template_includes_import_provider_tables(self):
+		test_doc = "_Test Provider Export"
+		frappe.delete_doc_if_exists(doctype_name, test_doc)
+		self.addCleanup(frappe.delete_doc_if_exists, doctype_name, test_doc)
+		self.addCleanup(reset, doctype_name)
+		add(doctype_name, "All", 0)
+		update(doctype_name, "All", 0, "read", 1)
+		update(doctype_name, "All", 0, "export", 1)
+		frappe.get_doc(doctype=doctype_name, title=test_doc).insert()
+
+		hooks = {"data_import_providers": {doctype_name: [f"{__name__}.ContactImportProvider"]}}
+		with self.patch_hooks(hooks), self.set_user("test@example.com"):
+			export = Exporter(
+				doctype_name,
+				export_fields={doctype_name: ["title"], "contacts": ["email_id"]},
+				export_data=True,
+				export_filters={"name": test_doc},
+			).get_csv_array()
+			columns = build_fields_dict_for_column_matching(doctype_name)
+
+		self.assertEqual(export[0], ["Title", "Email (Contact)"])
+		self.assertIn("Email (Contact)", columns)
+		# Contact rows are separate records, so the column stays blank
+		self.assertEqual(export[1], [test_doc, ""])

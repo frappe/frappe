@@ -1,7 +1,13 @@
 {% extends "templates/print_format/macros/Data.html" %}
 
 {%- block value -%}
+{%- if legacy -%}
 <div class="value">
     <img src="{{ value }}" alt="{{ _(df.label) }}">
 </div>
+{%- else -%}
+<div class="value">
+    <img src="{{ value|e }}" alt="{{ _(df.label)|e }}">
+</div>
+{%- endif -%}
 {%- endblock -%}

@@ -21,13 +21,13 @@ context("Control Icon", () => {
 		get_dialog_with_icon().as("dialog");
 		cy.get(".frappe-control[data-fieldname=icon]").findByRole("textbox").click();
 
-		cy.get(".icon-picker .icon-wrapper[id=heart-active]").first().click();
+		cy.get(".icon-picker .icon-wrapper[id=heart-pulse]").first().click();
 		cy.get(".frappe-control[data-fieldname=icon]")
 			.findByRole("textbox")
-			.should("have.value", "heart-active");
+			.should("have.value", "heart-pulse");
 		cy.get("@dialog").then((dialog) => {
 			let value = dialog.get_value("icon");
-			expect(value).to.equal("heart-active");
+			expect(value).to.equal("heart-pulse");
 		});
 
 		cy.get(".icon-picker .icon-wrapper[id=heart]").first().click();
