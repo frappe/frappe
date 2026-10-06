@@ -364,22 +364,20 @@ def _run_one(registry, step, doc, context, idx):
 	handler = registry.get(step.get("action_type"))
 	params = _step_params(step)
 	for last_attempt in (False, True):
-		outcome = _try_action(handler, step, doc, context, params, savepoint, idx, started, last_attempt)
+		outcome = _try_action(handler, step, doc, context, params, savepoint, idx, started)
 		if outcome[0] != "Retry":
 			return outcome
 		if last_attempt:
 			return "Failed", outcome[1], outcome[2]
 		if doc:
-			# A locking read; a plain one returns this transaction's stale snapshot.
-			doc.flags.for_update = True
 			doc.reload()
 
 
-def _try_action(handler, step, doc, context, params, savepoint, idx, started, for_update=False):
+def _try_action(handler, step, doc, context, params, savepoint, idx, started):
 	frappe.db.savepoint(savepoint)
 	messages_before = len(frappe.local.message_log)
 	try:
-		target = _target_doc(step, doc, context, permission_type="write", for_update=for_update)
+		target = _target_doc(step, doc, context, permission_type="write")
 		if not handler:
 			raise ValueError(f"Unknown action type: {step.get('action_type')}")
 		handler.validate(params, target.doctype if target else None)
@@ -470,13 +468,13 @@ def _trim(value):
 	return value[:5000] if value else None
 
 
-def _target_doc(step, trigger_doc, context, permission_type=None, for_update=False):
+def _target_doc(step, trigger_doc, context, permission_type=None):
 	target = step.get("target") or "trigger"
 	if target == "trigger":
 		if trigger_doc and permission_type:
 			trigger_doc.check_permission(permission_type)
 		return trigger_doc
-	return load_record(context["records"].get(target), permission_type=permission_type, for_update=for_update)
+	return load_record(context["records"].get(target), permission_type=permission_type)
 
 
 def _update_context(context, step, entry):
