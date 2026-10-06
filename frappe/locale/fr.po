@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-28 04:21\n"
+"PO-Revision-Date: 2026-10-05 04:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -178,7 +178,7 @@ msgstr "Il y a 1 mois"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:3
 msgid "1 of 2"
-msgstr "1 sur 2"
+msgstr ""
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:230
 msgid "1 record will be exported"

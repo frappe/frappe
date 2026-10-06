@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-28 04:20\n"
+"PO-Revision-Date: 2026-10-05 04:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -282,7 +282,7 @@ msgstr "<div class=\"ql-editor read-mode\"><p>Zatražite datoteku koja sadrži v
 #. Introduction text of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Send a request to delete your account and personally identifiable information (PII) that is stored on our system. You will receive an email to verify your request. Once the request is verified we will take care of deleting your PII. If you just want to check what PII we have stored, you can <a href=\"/request-data\" rel=\"noopener noreferrer\">request your data</a>.</p></div>"
-msgstr "<div class=\"ql-editor read-mode\"><p>Pošalji zahtjev za brisanje vašeg računa i ličnih podataka (PII) koji su pohranjeni u našem sistemu. Primit ćete e-poštu za potvrdu vašeg zahtjeva. Nakon što zahtjev bude potvrđen, mi ćemo se pobrinuti za brisanje vaših PII podataka. Ako samo želite provjeriti koje smo PII podatke pohranili, možete <a href=\"/request-data\" rel=\"noopener noreferrer\">zatražiti svoje podatke</a>.</p></div>"
+msgstr "<div class=\"ql-editor read-mode\"><p>Pošalji zahtjev za brisanje vašeg računa i ličnih podataka (PII) koji su spremljeni u našem sistemu. Primit ćete e-poštu za potvrdu vašeg zahtjeva. Nakon što zahtjev bude potvrđen, mi ćemo se pobrinuti za brisanje vaših PII podataka. Ako samo želite provjeriti koje smo PII podatke pohranili, možete <a href=\"/request-data\" rel=\"noopener noreferrer\">zatražiti svoje podatke</a>.</p></div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -6340,7 +6340,7 @@ msgstr "Preciznost valute"
 #. Description of a DocType
 #: frappe/geo/doctype/currency/currency.json
 msgid "Currency list stores the currency value, its symbol and fraction unit"
-msgstr "Popis valuta pohranjuje vrijednost valute, njen simbol i jedinicu razlomka"
+msgstr "Popis valuta sprema vrijednost valute, njen simbol i jedinicu razlomka"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -9569,13 +9569,13 @@ msgstr "Omogućavanje e-pošte za {0} za sve korisnike u pozadini."
 #. Description of a DocType
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved."
-msgstr "Omogućavanjem ove opcije registrovaćete svoju web-lokaciju na centralnom relejnom serveru za slanje push obavijesti za sve instalirane aplikacije putem Firebase Cloud Messaging. Ovaj server pohranjuje samo korisničke tokene i zapisnike grešaka, a poruke se ne spremaju."
+msgstr "Omogućavanjem ove opcije registrovaćete svoju web-lokaciju na centralnom relejnom serveru za slanje push obavijesti za sve instalirane aplikacije putem Firebase Cloud Messaging. Ovaj server sprema samo korisničke tokene i zapisnike grešaka, a poruke se ne spremaju."
 
 #. Description of the 'Relay Settings' (Section Break) field in DocType 'Push
 #. Notification Settings'
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved. "
-msgstr "Omogućavanjem ove opcije registrovaćete svoju web-lokaciju na centralnom relejnom serveru za slanje push obavijesti za sve instalirane aplikacije putem Firebase Cloud Messaging. Ovaj server pohranjuje samo korisničke tokene i zapisnike grešaka, a poruke se ne spremaju. "
+msgstr "Omogućavanjem ove opcije registrovaćete svoju web-lokaciju na centralnom relejnom serveru za slanje push obavijesti za sve instalirane aplikacije putem Firebase Cloud Messaging. Ovaj server sprema samo korisničke tokene i zapisnike grešaka, a poruke se ne spremaju. "
 
 #. Description of the 'Queue in Background (BETA)' (Check) field in DocType
 #. 'DocType'
@@ -10025,7 +10025,7 @@ msgstr "Izvršite skriptu konzole"
 
 #: frappe/desk/doctype/system_console/system_console.js:18
 msgid "Executing..."
-msgstr "Izvršavanje..."
+msgstr "Izvršenje..."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2150
 msgid "Execution Time: {0} sec"
@@ -10038,11 +10038,11 @@ msgstr "Izvršni"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:28
 msgid "Existing Gravatar URLs may still be stored on User and Contact records. Do you want to delete these URLs now?"
-msgstr "Postojeći Gravatar URL-ovi i dalje mogu biti pohranjeni u zapisima korisnika i kontakata. Želite li sada izbrisati te URL-ove?"
+msgstr "Postojeći Gravatar URL-ovi i dalje mogu biti spremljeni u zapisima korisnika i kontakata. Želite li sada izbrisati te URL-ove?"
 
 #: frappe/public/js/frappe/legacy_gravatar_cleanup.js:25
 msgid "Existing Gravatar URLs may still be stored on User, Contact, and Lead records. Do you want to delete these URLs now?"
-msgstr "Postojeći Gravatar URL-ovi i dalje mogu biti pohranjeni u zapisima korisnika, kontakata i potencijalnih klijenata. Želite li sada izbrisati te URL-ove?"
+msgstr "Postojeći Gravatar URL-ovi i dalje mogu biti spremljeni u zapisima korisnika, kontakata i potencijalnih klijenata. Želite li sada izbrisati te URL-ove?"
 
 #: frappe/public/js/frappe/widgets/base_widget.js:160
 msgid "Expand"
@@ -14946,7 +14946,7 @@ msgstr "Zadnja sigurnosna kopija u"
 #. Label of a Datetime field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Last Execution"
-msgstr "Zadnje izvršavanje"
+msgstr "Zadnje izvršenje"
 
 #. Label of a Datetime field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -18699,7 +18699,7 @@ msgstr "Jedan od"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1357
 msgid "One of the child page with name {0} already exist in {1} Section. Please update the name of the child page first before moving"
-msgstr "Jedna od podređenih stranica sa imenom {0} već postoji u {1} sekciji. Molimo prvo ažurirajte naziv podređene stranice prije premještanja"
+msgstr "Jedna od podređenih stranica sa imenom {0} već postoji u {1} sekciji. Molimo prvo ažuriraj naziv podređene stranice prije premještanja"
 
 #: frappe/client.py:247
 msgid "Only 200 inserts allowed in one request"
@@ -19665,12 +19665,12 @@ msgstr "Čeka se verifikacija"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Percent"
-msgstr "Procenat"
+msgstr "Postotak"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Percentage"
-msgstr "Procenat"
+msgstr "Postotak"
 
 #. Label of a Select field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -19922,7 +19922,7 @@ msgstr "Postavi grafikon"
 
 #: frappe/core/doctype/sms_settings/sms_settings.py:83
 msgid "Please Update SMS Settings"
-msgstr "Ažurirajte postavke za SMS"
+msgstr "Ažuriraj postavke za SMS"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:595
 msgid "Please add a subject to your email"
@@ -20296,11 +20296,11 @@ msgstr "Molimo pokušajte ponovo"
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:19
 msgid "Please update your security settings from desk."
-msgstr "Molimo ažurirajte svoje sigurnosne postavke s radnog mjesta."
+msgstr "Molimo ažuriraj svoje sigurnosne postavke s radnog mjesta."
 
 #: frappe/integrations/google_oauth.py:56
 msgid "Please update {} before continuing."
-msgstr "Ažurirajte {} prije nego nastavite."
+msgstr "Ažuriraj {} prije nego nastavite."
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:335
 msgid "Please use a valid LDAP search filter"
@@ -25416,7 +25416,7 @@ msgstr "Pojedinačni tipovi dokumenata se ne mogu prilagoditi."
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype_list.js:52
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
-msgstr "Pojedinačni tipovi imaju samo jedan zapis bez pridruženih tablica. Vrijednosti se pohranjuju u tabSingles"
+msgstr "Pojedinačni tipovi imaju samo jedan zapis bez pridruženih tablica. Vrijednosti se spremaju u tabSingles"
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:5
 msgid "Site"
@@ -25618,7 +25618,7 @@ msgstr "Neki poštanski sandučići zahtijevaju drugačije ime poslane mape, npr
 
 #: frappe/public/js/frappe/desk.js:20
 msgid "Some of the features might not work in your browser. Please update your browser to the latest version."
-msgstr "Neke od funkcija možda neće raditi u vašem pretraživaču. Molimo ažurirajte svoj pretraživač na najnoviju verziju."
+msgstr "Neke od funkcija možda neće raditi u vašem pretraživaču. Molimo ažuriraj svoj pretraživač na najnoviju verziju."
 
 #: frappe/public/js/frappe/views/translation_manager.js:101
 msgid "Something went wrong"
@@ -28112,7 +28112,7 @@ msgstr "Za dodavanje dinamičkih vrijednosti iz dokumenta upotrijebite jinja ozn
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:107
 msgid "To allow more reports update limit in System Settings."
-msgstr "Da biste omogućili više izvještaja, ažurirajte ograničenje u postavkama sistema."
+msgstr "Da biste omogućili više izvještaja, ažuriraj ograničenje u postavkama sistema."
 
 #. Label of a Section Break field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -29025,7 +29025,7 @@ msgstr "Ažuriranje pojedinosti"
 #. Option for the 'Import Type' (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Update Existing Records"
-msgstr "Ažurirajte Postojeće Zapise"
+msgstr "Ažuriraj Postojeće Zapise"
 
 #. Label of a Select field in DocType 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
@@ -29035,7 +29035,7 @@ msgstr "Ažuriraj polje"
 #: frappe/core/doctype/installed_applications/installed_applications.js:6
 #: frappe/core/doctype/installed_applications/installed_applications.js:13
 msgid "Update Hooks Resolution Order"
-msgstr "Ažurirajte redoslijed razrješenja kukica"
+msgstr "Ažuriraj redoslijed razrješenja kukica"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:45
 msgid "Update Order"
@@ -33590,7 +33590,7 @@ msgstr "{0} nije ispravan broj telefona"
 
 #: frappe/model/workflow.py:189
 msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
-msgstr "{0} nije važeće stanje radnog toka. Molimo ažurirajte svoj radni tok i pokušajte ponovo."
+msgstr "{0} nije važeće stanje radnog toka. Molimo ažuriraj svoj radni tok i pokušajte ponovo."
 
 #: frappe/permissions.py:802
 msgid "{0} is not a valid parent DocType for {1}"
