@@ -557,16 +557,36 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(frappe.message_log[0].get("message"), _GENERIC_MSG)
 
 	def test_user_onload_modules(self):
+		"""The editor lists custom modules, and keeps a blocked module even after it is deleted"""
 		from frappe.desk.form.load import getdoc
-		from frappe.utils.modules import get_modules_from_all_apps
 
-		frappe.response.docs = []
-		getdoc("User", "Administrator")
-		doc = frappe.response.docs[0]
-		self.assertListEqual(
-			sorted(doc.get("__onload").get("all_modules", [])),
-			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
-		)
+		for name in ("_Test Site Module", "_Test Gone Module"):
+			frappe.get_doc({"doctype": "Module Def", "module_name": name, "custom": 1}).insert(
+				ignore_if_duplicate=True
+			)
+
+		with test_user(roles=["System Manager"]) as admin, test_user(roles=["_Test Role 2"]) as user:
+			user.append("block_modules", {"module": "_Test Gone Module"})
+			user.save()
+			frappe.delete_doc("Module Def", "_Test Gone Module", force=True)
+			self.assertFalse(frappe.db.exists("Module Def", "_Test Gone Module"))
+
+			with self.set_user(admin.name):
+				frappe.response.docs = []
+				getdoc("User", user.name)
+				all_modules = frappe.response.docs[0].get("__onload").get("all_modules")
+
+		self.assertIn("Core", all_modules)
+		self.assertIn("_Test Site Module", all_modules)
+		self.assertIn("_Test Gone Module", all_modules)
+
+	def test_user_onload_modules_hidden_from_normal_user(self):
+		from frappe.desk.form.load import getdoc
+
+		with test_user(roles=["_Test Role 2"]) as user, self.set_user(user.name):
+			frappe.response.docs = []
+			getdoc("User", user.name)
+			self.assertNotIn("all_modules", frappe.response.docs[0].get("__onload"))
 
 	def test_default_app(self):
 		from frappe.apps import get_default_path
