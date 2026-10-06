@@ -6,6 +6,14 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils.island import get_island_assets, get_ui_islands
 
+# The handlers the cases below declare. A `doc_events` handler is a dotted path,
+# so these reach `run_method` the way an app's own does.
+HERE = "frappe.tests.test_island"
+
+
+def draws_the_dashboard(doc, method=None):
+	doc.set_onload("island", {"name": "someapp.dashboard", "props": {"dashboard": doc.name}})
+
 
 class TestUiIslandsRegistry(IntegrationTestCase):
 	"""A build registers an island by writing its asset key."""
@@ -79,3 +87,36 @@ class TestIslandAssets(IntegrationTestCase):
 		):
 			with self.assertRaises(frappe.ValidationError):
 				get_island_assets("nosuchapp.example")
+
+
+class TestIslandOnLoad(IntegrationTestCase):
+	"""An app claims a desk document with a `doc_events` onload handler."""
+
+	def patch_doc_events(self, doc_events):
+		# `frappe.get_doc_hooks` caches its expansion on `frappe.local`, so the
+		# patched hook only reaches `run_method` once the cache is gone.
+		patched = self.patch_hooks({"doc_events": doc_events})
+		frappe.local.doc_events_hooks = {}
+		self.addCleanup(setattr, frappe.local, "doc_events_hooks", {})
+		return patched
+
+	def test_a_dashboard_an_app_draws_carries_the_island(self):
+		dashboard = frappe.get_doc(doctype="Dashboard", dashboard_name=frappe.generate_hash()).insert()
+
+		with self.patch_doc_events({"Dashboard": {"onload": f"{HERE}.draws_the_dashboard"}}):
+			doc = frappe.get_doc("Dashboard", dashboard.name)
+			doc.run_method("onload")
+
+		self.assertEqual(
+			doc.get_onload("island"),
+			{"name": "someapp.dashboard", "props": {"dashboard": dashboard.name}},
+		)
+
+	def test_a_dashboard_no_app_draws_carries_no_island(self):
+		dashboard = frappe.get_doc(doctype="Dashboard", dashboard_name=frappe.generate_hash()).insert()
+
+		with self.patch_doc_events({}):
+			doc = frappe.get_doc("Dashboard", dashboard.name)
+			doc.run_method("onload")
+
+		self.assertNotIn("island", doc.get_onload())
