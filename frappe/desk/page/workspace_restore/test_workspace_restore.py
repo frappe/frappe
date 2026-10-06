@@ -300,10 +300,12 @@ class TestWorkspaceRestore(IntegrationTestCase):
 		self.assertRaises(frappe.PermissionError, get_restorable_workspaces)
 		self.assertRaises(frappe.PermissionError, restore_workspace_edits, self.WORKSPACE)
 
-	def test_developer_mode_refuses_the_write(self):
+	def test_developer_mode_lists_nothing_and_refuses_the_write(self):
 		self.edit_in_place([*BASE_CONTENT, MESSAGE_BLOCK])
 		frappe.set_user(self.MANAGER)
 		with patch.dict(frappe.conf, {"developer_mode": 1}):
+			# an author's edits live in the app's JSON, not in a customization
+			self.assertIsNone(self.listed())
 			self.assertRaises(frappe.ValidationError, restore_workspace_edits, self.WORKSPACE)
 
 	def test_an_edit_without_a_layout_change_is_not_listed(self):

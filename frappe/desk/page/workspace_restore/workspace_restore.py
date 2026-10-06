@@ -55,6 +55,11 @@ def get_restorable_workspaces() -> list[dict]:
 	"""Standard workspaces whose Version rows hold a pre-upgrade layout edit, with their state."""
 	check_workspace_manager(_("You need the Workspace Manager role to see pre-upgrade workspace edits."))
 
+	# In developer mode the editor writes the base row, so every Version here is an app author's
+	# own edit, already exported to the app's JSON. There is nothing a customization should carry.
+	if frappe.conf.developer_mode:
+		return []
+
 	workspaces = {
 		ws.name: ws
 		for ws in frappe.get_all(
