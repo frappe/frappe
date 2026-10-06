@@ -157,7 +157,12 @@ class Workflow(Document):
 		return {d.state for peer in peers for d in peer.states} - {d.state for d in self.states}
 
 	def get_condition_criteria(self, table) -> list:
-		return [CONDITION_COMPARATORS[d.condition](getattr(table, d.field), d.value) for d in self.conditions]
+		"""The conditions as SQL. The not-null guard keeps a negated condition true for an unset field."""
+		return [
+			getattr(table, d.field).notnull()
+			& CONDITION_COMPARATORS[d.condition](getattr(table, d.field), d.value)
+			for d in self.conditions
+		]
 
 	def validate_docstatus(self):
 		def get_state(state):
