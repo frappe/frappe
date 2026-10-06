@@ -41,6 +41,7 @@ function upload() {
 	new frappe.ui.FileUploader({
 		folder: "Home/Attachments",
 		restrictions: { allowed_file_types: ["image/*"] },
+		make_attachments_public: true,
 		on_success: (file_doc) => emit("update:modelValue", file_doc.file_url),
 	});
 }
