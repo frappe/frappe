@@ -27,7 +27,7 @@ dependencies = [
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
-    "RestrictedPython~=8.1",
+    "RestrictedPython~=8.5",
     "WeasyPrint==68.0",
     "typst~=0.15.0",
     "pydyf==0.12.1",
