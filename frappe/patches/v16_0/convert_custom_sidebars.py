@@ -152,12 +152,13 @@ def app_permitted(icon: frappe._dict, user: str) -> bool:
 		method = screen and screen[0].get("has_permission")
 		if not method:
 			return True
+		# the hook answers for the session user, so it is asked as each user in turn
 		current = frappe.session.user
-		frappe.set_user(user)
+		frappe.set_user(user)  # nosemgrep
 		try:
-			return bool(frappe.call(method))
+			return bool(frappe.get_attr(method)())
 		finally:
-			frappe.set_user(current)
+			frappe.set_user(current)  # nosemgrep
 	return False
 
 
