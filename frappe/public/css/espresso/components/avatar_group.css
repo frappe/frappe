@@ -20,9 +20,7 @@
 
 .es-avatar-group {
 
-    /* same steps as .es-avatar, so the add button matches the avatars */
-    --es-ag-size: calc(var(--spacing) * 6);
-    --es-ag-radius: var(--radius-2);
+    /* --es-av-size and --es-av-radius come from avatar.css */
     --es-ag-round: var(--radius-full);
     --es-ag-ring: var(--surface-base);
 
@@ -32,38 +30,8 @@
     vertical-align: middle;
 }
 
-.es-avatar-group[data-size="xs"] {
-    --es-ag-size: calc(var(--spacing) * 4);
-    --es-ag-radius: 4px;
-}
-
-.es-avatar-group[data-size="sm"] {
-    --es-ag-size: calc(var(--spacing) * 5);
-    --es-ag-radius: 5px;
-}
-
-.es-avatar-group[data-size="lg"] {
-    --es-ag-size: calc(var(--spacing) * 7);
-    --es-ag-radius: 6px;
-}
-
-.es-avatar-group[data-size="xl"] {
-    --es-ag-size: calc(var(--spacing) * 8);
-    --es-ag-radius: 6px;
-}
-
-.es-avatar-group[data-size="2xl"] {
-    --es-ag-size: calc(var(--spacing) * 10);
-    --es-ag-radius: 8px;
-}
-
-.es-avatar-group[data-size="3xl"] {
-    --es-ag-size: calc(var(--spacing) * 11.5);
-    --es-ag-radius: 10px;
-}
-
 .es-avatar-group[data-shape="square"] {
-    --es-ag-round: var(--es-ag-radius);
+    --es-ag-round: var(--es-av-radius);
 }
 
 .es-avatar-group__stack {
@@ -72,7 +40,7 @@
 }
 
 .es-avatar-group__stack > * + * {
-    margin-inline-start: calc(var(--es-ag-size) * -0.25);
+    margin-inline-start: calc(var(--es-av-size) * -0.25);
 }
 
 /* the ring goes on the rounded children: the avatar root stays square so its
@@ -93,6 +61,7 @@
 }
 
 /* the avatar under the pointer or focus comes to the front of the stack */
+.es-avatar-group__stack > .es-avatar:hover,
 .es-avatar-group__item:hover,
 .es-avatar-group__item:focus-visible {
     z-index: 2;
@@ -109,14 +78,14 @@
 }
 
 .es-avatar-group__more > .es-avatar__fallback {
-    font-size: calc(var(--es-ag-size) * 0.4);
+    font-size: calc(var(--es-av-size) * 0.4);
     font-weight: var(--font-weight-medium);
     color: var(--ink-gray-8);
 }
 
 .es-avatar-group__add.es-button {
-    --es-bt-h: var(--es-ag-size);
-    --es-bt-icon: calc(var(--es-ag-size) * 0.55);
+    --es-bt-h: var(--es-av-size);
+    --es-bt-icon: calc(var(--es-av-size) * 0.55);
     border-radius: var(--es-ag-round);
 }
 
