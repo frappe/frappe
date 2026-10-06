@@ -542,9 +542,11 @@ frappe.views.BaseList = class BaseList {
 			return Promise.resolve();
 		}
 		this.freeze(true);
-		// fetch data from server
+		// a newer refresh (a filter change during a scroll load) owns start and page_length
+		// now, so an older response must not be rendered over it
+		const refresh_id = (this.refresh_id = (this.refresh_id || 0) + 1);
 		return frappe.call(args).then((r) => {
-			// render
+			if (refresh_id !== this.refresh_id) return;
 			this.prepare_data(r);
 			this.toggle_result_area();
 			this.before_render();

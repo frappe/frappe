@@ -425,11 +425,6 @@ $level-margin-right: 8px;
 		background-color: var(--fg-color);
 		z-index: 3;
 	}
-
-	// the list view loads the next page as it scrolls (ListView.setup_load_on_scroll)
-	.frappe-list .list-paging-area.list-paging-auto {
-		display: none !important;
-	}
 }
 
 .list-paging-area,
