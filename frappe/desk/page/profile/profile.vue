@@ -62,6 +62,8 @@ async function load() {
 	if (id !== load_id) return;
 
 	Object.assign(user_data, values);
+	// desk's user_info is from boot, so a name or photo changed on the User form is not in it
+	user.value = { ...user.value, fullname: values.full_name, image: values.user_image };
 	language.value = language_name;
 	Object.assign(name_form, pick_name(values));
 	settings.value = user_settings;
