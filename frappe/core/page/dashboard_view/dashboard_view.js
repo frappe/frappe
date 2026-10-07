@@ -14,7 +14,8 @@
  *
  * A standard dashboard that ships an Insights version also carries
  * `__onload.dashboards`, the site's System Settings choice. Classic keeps the
- * legacy renderer even when Insights claims the dashboard.
+ * legacy renderer even when Insights claims the dashboard. Until the site
+ * answers, a System Manager gets a one-line prompt above the legacy renderer.
  *
  * Nothing stays alive across a draw. Every entry to the page builds what it
  * draws, and `clear()` releases it, so the island re-mounts instead of taking
@@ -31,6 +32,8 @@ frappe.provide("frappe.dashboards.chart_sources");
 // route alone cannot decide this.
 const ISLAND_PAGE_CLASS = "island-page";
 
+const INSIGHTS_INSTALLATION_URL = "https://docs.frappe.io/insights/get-started/installation";
+
 frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -41,7 +44,12 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	// The island on screen, while one is.
 	let island = null;
 
-	$(wrapper).on("show", async () => {
+	$(wrapper).on("show", show);
+	$(wrapper).on("hide", clear);
+
+	async function show() {
+		// Open's request calls this after it lands, and the reader may have left.
+		if (frappe.get_route()[0] !== "dashboard-view") return;
 		const name = frappe.get_route()[1];
 		// The route always carries a name. A bare /desk/dashboard-view names no
 		// document, so send the reader to the list instead.
@@ -60,11 +68,14 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		clear();
 		if (!doc) return show_missing(name);
 		// `as_dict` drops an empty `__onload`, so no key at all is the common case.
-		if (doc.__onload?.island && doc.__onload.dashboards !== "Classic") return show_island(doc);
-		show_legacy(doc);
-	});
+		const claimed = Boolean(doc.__onload?.island);
+		if (claimed && doc.__onload.dashboards !== "Classic") return show_island(doc);
 
-	$(wrapper).on("hide", clear);
+		show_legacy(doc);
+		if (doc.__onload?.show_insights_dashboards_prompt) {
+			show_insights_dashboards_prompt(claimed, doc.__onload.insights_dashboard_title);
+		}
+	}
 
 	// Releases everything the last draw left, in one place, so no renderer has
 	// to know what drew before it. `empty()` alone would drop the widget nodes
@@ -101,6 +112,56 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 				],
 			})
 		);
+	}
+
+	// Either answer is the site's: Open switches every Insights dashboard on, the
+	// dismiss keeps classic.
+	function show_insights_dashboards_prompt(claimed, title) {
+		const submit = (action) =>
+			frappe.xcall(
+				"frappe.desk.doctype.dashboard.dashboard.submit_insights_dashboards_prompt",
+				{ action }
+			);
+		const text = !claimed
+			? __("Insights dashboards are available for this site")
+			: title
+			? __("This dashboard has an Insights version: {0}", [
+					`<b>${frappe.utils.escape_html(title)}</b>`,
+			  ])
+			: __("This dashboard has an Insights version");
+		const prompt = $(`<div class="dashboard-view-prompt">
+			<span class="dashboard-view-prompt__text">${text}</span>
+			<span class="dashboard-view-prompt__actions"></span>
+		</div>`);
+		prompt.find(".dashboard-view-prompt__actions").append(
+			claimed
+				? frappe.ui.button({
+						label: __("Open"),
+						onclick: () =>
+							new Promise((resolve) =>
+								frappe.confirm(
+									__(
+										"Open the Insights version of every dashboard that has one, for everyone on this site? You can switch back in System Settings."
+									),
+									() => resolve(submit("open_insights_dashboards").then(show)),
+									resolve,
+									__("Open Insights")
+								)
+							),
+				  })
+				: frappe.ui.button({
+						label: __("Install Insights"),
+						icon_right: "external-link",
+						onclick: () => window.open(INSIGHTS_INSTALLATION_URL, "_blank"),
+				  }),
+			frappe.ui.button({
+				icon: "x",
+				variant: "ghost",
+				tooltip: __("Dismiss"),
+				onclick: () => submit("keep_classic_dashboards").then(() => prompt.remove()),
+			})
+		);
+		prompt.prependTo(content);
 	}
 
 	/**
