@@ -112,6 +112,14 @@
 						padding: 1rem 1.5rem 1.5rem;
 					}
 
+					.web-form-stepper {
+						margin: 0.5rem 0;
+
+						&:empty {
+							display: none;
+						}
+					}
+
 					.web-form-wrapper {
 						.form-control {
 							color: var(--text-color);
@@ -252,86 +260,6 @@
 
 								@include media-breakpoint-down(sm) {
 									order: 1;
-								}
-							}
-
-							.center-area {
-								display: flex;
-								align-items: center;
-								@include get_textstyle("base", "regular");
-
-								.slides-progress {
-									display: flex;
-
-									.slide-step {
-										@include flex(flex, center, center, null);
-
-										height: 18px;
-										width: 18px;
-										border-radius: var(--radius-full);
-										border: 1px solid var(--gray-300);
-										margin: 0 var(--margin-xs);
-										background-color: var(--card-bg);
-
-										.slide-step-indicator {
-											height: 6px;
-											width: 6px;
-											background-color: var(--gray-300);
-											border-radius: var(--radius-full);
-										}
-
-										.slide-step-complete {
-											display: none;
-
-											.icon-xs {
-												height: 10px;
-												width: 10px;
-											}
-										}
-
-										&.active {
-											border: 1px solid var(--primary);
-
-											.slide-step-indicator {
-												display: block;
-												background-color: var(--primary);
-											}
-										}
-
-										&.step-success:not(.active) {
-											background-color: var(--primary);
-											border: 1px solid var(--primary);
-
-											.slide-step-indicator {
-												display: none;
-											}
-
-											.slide-step-complete {
-												display: flex;
-
-												.icon use {
-													stroke-width: 2;
-													stroke: var(--white);
-												}
-											}
-										}
-
-										@include media-breakpoint-down(xs) {
-											width: 16px;
-											height: 16px;
-										}
-									}
-								}
-
-								@include media-breakpoint-down(sm) {
-									order: 0;
-									width: 100%;
-									justify-content: center;
-									margin-bottom: 1.5rem;
-
-									&:empty {
-										margin: 0;
-									}
 								}
 							}
 

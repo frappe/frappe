@@ -72,15 +72,17 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	set_page_breaks() {
-		this.page_breaks = $(".page-break");
+		let page_break_fields = this.fields.filter((df) => df.fieldtype === "Page Break");
+		// page 1 has no Page Break row, so it has no name
+		this.page_names = [""];
 
-		if (this.page_breaks.length) {
-			this.page_breaks.each((i, page_break) => {
-				if (!$(page_break).find("form").length) {
-					$(page_break).remove();
-				}
-			});
-		}
+		$(".page-break").each((i, page_break) => {
+			if (!$(page_break).find("form").length) {
+				$(page_break).remove();
+				return;
+			}
+			this.page_names.push(page_break_fields[i]?.label || "");
+		});
 
 		this.page_breaks = $(".page-break");
 		this.is_multi_step_form = !!this.page_breaks.length;
@@ -284,47 +286,31 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// close any open child table row form before switching pages
 		frappe.ui.form?.close_grid_form && frappe.ui.form.close_grid_form();
 
-		this.render_progress_dots();
+		this.render_stepper();
 		this.toggle_previous_button();
 		this.hide_form_pages();
 		this.show_form_page();
 		this.toggle_buttons();
 	}
 
-	render_progress_dots() {
+	render_stepper() {
 		if (!this.is_multi_step_form) return;
-		$(".center-area.paging").empty();
 
-		if (this.in_view_mode) {
-			let paging_text = __("Page {0} of {1}", [
-				this.current_section + 1,
-				this.page_breaks.length + 1,
-			]);
-			$(".center-area.paging").append(`<div>${paging_text}</div>`);
+		if (!this.stepper) {
+			this.stepper = new frappe.ui.Stepper({
+				steps: this.get_page_labels().map((label) => ({ label })),
+				current: this.current_section,
+				label: __("Form pages"),
+				compact: true,
+			});
+			$(".web-form-stepper").append(this.stepper.$el);
 			return;
 		}
+		this.stepper.set_current(this.current_section);
+	}
 
-		this.$slide_progress = $(`<div class="slides-progress"></div>`).appendTo(
-			$(".center-area.paging")
-		);
-		this.$slide_progress.empty();
-
-		if (this.page_breaks.length < 1) return;
-
-		for (let i = 0; i <= this.page_breaks.length; i++) {
-			let $dot = $(`<div class="slide-step">
-				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("check", "xs")}</div>
-			</div>`).attr({ "data-step-id": i });
-
-			if (i < this.current_section) {
-				$dot.addClass("step-success");
-			}
-			if (i === this.current_section) {
-				$dot.addClass("active");
-			}
-			this.$slide_progress.append($dot);
-		}
+	get_page_labels() {
+		return this.page_names.map((name, i) => (name ? __(name) : __("Page {0}", [i + 1])));
 	}
 
 	toggle_buttons() {
