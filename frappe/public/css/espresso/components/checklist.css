@@ -16,11 +16,12 @@
  *     <div class="es-checklist__collapse">
  *       <div class="es-checklist__items">
  *         <div class="es-checklist__item" data-status="pending|done|skipped" data-locked data-overdue>
- *           <span class="es-checklist__marker">(icon)</span>
+ *           <span class="es-checklist__marker">(icon, or a status menu button)</span>
  *           <div class="es-checklist__text">
  *             <div class="es-checklist__title"><span class="es-checklist__label">Assign Leave Policy</span></div>
  *             <div class="es-checklist__meta">Standard Policy</div>
  *           </div>
+ *           <div class="es-checklist__status">(badge, only In Progress or Stuck)</div>
  *           <div class="es-checklist__owner"><button class="es-checklist__trigger">(avatar)</button></div>
  *           <div class="es-checklist__due"><button class="es-checklist__trigger">12-10-2026</button></div>
  *           <div class="es-checklist__actions">(buttons)</div>
@@ -33,9 +34,10 @@
  * carries data-collapsed. A collapsed card keeps its head and progress bar;
  * only the items fold away.
  *
- * Markers: circle-check (done), circle-dashed (skipped), lock (locked),
- * circle (pending). Green marks done items and red overdue dates; everything
- * else is gray.
+ * Markers: circle (not started), circle-dot-dashed (in progress), circle-alert
+ * (stuck), circle-check (done), circle-dashed (skipped), lock (locked and not
+ * started). Green marks done items; red marks stuck items and overdue dates;
+ * everything else is gray.
  */
 
 .es-checklist {
@@ -147,7 +149,7 @@
 
 .es-checklist__item {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto calc(var(--spacing) * 24) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto calc(var(--spacing) * 24) auto;
     align-items: center;
     column-gap: calc(var(--spacing) * 3);
     padding: calc(var(--spacing) * 2);
@@ -172,6 +174,10 @@
 
 .es-checklist__item[data-status="done"] .es-checklist__marker {
     color: var(--ink-green-7);
+}
+
+.es-checklist__item[data-status="stuck"] .es-checklist__marker {
+    color: var(--ink-red-7);
 }
 
 .es-checklist__text {
@@ -256,7 +262,7 @@
 /* Narrow cards stack the owner, date and actions under the title. */
 @container (max-width: 560px) {
     .es-checklist__item {
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
         row-gap: calc(var(--spacing) * 2);
     }
 

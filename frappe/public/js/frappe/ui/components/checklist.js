@@ -10,7 +10,9 @@ frappe.provide("frappe.ui");
  * @typedef {Object} ChecklistItem
  * @property {string} id Unique across the whole checklist.
  * @property {string} label Translated text. Rendered as text, never HTML.
- * @property {"pending"|"done"|"skipped"} [status="pending"]
+ * @property {boolean} [done] The work is finished; the row is checked.
+ * @property {boolean} [skipped] Set aside without doing it; counts toward progress but not as done.
+ * @property {"in_progress"|"stuck"} [status] Where unfinished work stands, shown as a badge. Ignored once done or skipped.
  * @property {string} [description] Plain text shown as the label's tooltip.
  * @property {string} [value] Muted second line, e.g. a default or a linked record name.
  * @property {string} [assignee] User ID of the person who owns the item.
@@ -26,15 +28,29 @@ frappe.provide("frappe.ui");
  * @property {(item:ChecklistItem, checklist:Checklist)=>void|Promise} [on_skip] Runs before an item is marked skipped; reject to keep it pending.
  * @property {(item:ChecklistItem, user:string|null)=>void|Promise} [on_assign] Makes the assignee editable; runs before the item changes, reject to keep the old one.
  * @property {(item:ChecklistItem, date:string|null)=>void|Promise} [on_due_date_change] Makes the due date editable, the same way.
+ * @property {(item:ChecklistItem, status:string|null)=>void|Promise} [on_status_change] Makes an unfinished item's marker a menu to set it In Progress or Stuck, or clear that; finishing stays with the caller.
  * @property {string} [css_class] Extra classes on the root.
  */
 
-const STATUSES = ["pending", "done", "skipped"];
+const STATUSES = ["in_progress", "stuck"];
+
+const STATUS_LABELS = {
+	in_progress: __("In Progress"),
+	stuck: __("Stuck"),
+};
+
+const MARKER_ICONS = {
+	pending: "circle",
+	in_progress: "circle-dot-dashed",
+	stuck: "circle-alert",
+	done: "circle-check",
+	skipped: "circle-dashed",
+};
 
 /**
  * A checklist card: a title, progress, and one row per item with its owner, due date and
  * actions. The card folds away to its head and progress. The caller owns completion: an
- * item only changes status through set_status or update_item, so a row is checked when its
+ * item is only checked through update_item({ done: true }), so a row is checked when its
  * record exists, not when someone ticks it.
  * Styles are in espresso/components/checklist.css.
  *
@@ -43,7 +59,7 @@ const STATUSES = ["pending", "done", "skipped"];
  *   title: __("Onboarding"),
  *   items: [
  *     { id: "create_user", label: __("Create User"), assignee: "hr@example.com", due_date: "2026-10-12",
- *       actions: [{ label: __("Create"), onclick: (item, list) => create_user().then(() => list.set_status(item.id, "done")) }] },
+ *       actions: [{ label: __("Create"), onclick: (item, list) => create_user().then(() => list.update_item(item.id, { done: true })) }] },
  *   ],
  *   on_assign: (item, user) => save_assignee(item.id, user),
  *   on_due_date_change: (item, date) => save_due_date(item.id, date),
@@ -87,6 +103,7 @@ frappe.ui.Checklist = class Checklist {
 		items.forEach((item) => this.update_row(item));
 	}
 
+	/** Set an item In Progress or Stuck, or clear that with null. */
 	set_status(item_id, status) {
 		this.update_item(item_id, { status: validated(status, STATUSES, "status", "Checklist") });
 	}
@@ -110,8 +127,8 @@ frappe.ui.Checklist = class Checklist {
 		const counted = required.length ? required : items;
 		return {
 			total: counted.length,
-			done: counted.filter((item) => item.status === "done").length,
-			skipped: counted.filter((item) => item.status === "skipped").length,
+			done: counted.filter((item) => item.done).length,
+			skipped: counted.filter((item) => !item.done && item.skipped).length,
 		};
 	}
 
@@ -151,6 +168,7 @@ frappe.ui.Checklist = class Checklist {
 				<div class="es-checklist__title"><span class="es-checklist__label"></span></div>
 				<div class="es-checklist__meta"></div>
 			</div>
+			<div class="es-checklist__status"></div>
 			<div class="es-checklist__owner"></div>
 			<div class="es-checklist__due"></div>
 			<div class="es-checklist__actions"></div>`;
@@ -170,13 +188,13 @@ frappe.ui.Checklist = class Checklist {
 	update_row(item) {
 		const row = this.rows.get(item);
 		const reason = this.is_finished(item) ? null : item.locked;
-		row.setAttribute("data-status", item.status || "pending");
+		row.setAttribute("data-status", this.get_state(item));
 		row.toggleAttribute("data-locked", Boolean(reason));
 		row.toggleAttribute("data-overdue", this.is_overdue(item));
-		row.querySelector(".es-checklist__marker").innerHTML = this.get_marker_icon(item, reason);
+		row.querySelector(".es-checklist__marker").replaceChildren(this.make_marker(item, reason));
 
-		const meta = [reason || item.value, item.status === "skipped" && __("Skipped")];
-		row.querySelector(".es-checklist__meta").textContent = meta.filter(Boolean).join(", ");
+		row.querySelector(".es-checklist__meta").textContent = reason || item.value || "";
+		row.querySelector(".es-checklist__status").replaceChildren(this.make_status(item));
 
 		row.querySelector(".es-checklist__owner").replaceChildren(this.make_owner(item));
 		row.querySelector(".es-checklist__due").replaceChildren(this.make_due(item));
@@ -185,16 +203,37 @@ frappe.ui.Checklist = class Checklist {
 		);
 	}
 
-	get_marker_icon(item, locked) {
-		const name =
-			item.status === "done"
-				? "circle-check"
-				: item.status === "skipped"
-				? "circle-dashed"
-				: locked
-				? "lock"
-				: "circle";
-		return frappe.utils.icon(name, "sm", "", "", "", true);
+	make_marker(item, locked) {
+		const state = this.get_state(item);
+		const name = locked && state === "pending" ? "lock" : MARKER_ICONS[state];
+		const icon = $(frappe.utils.icon(name, "sm", "", "", "", true));
+		if (!this.opts.on_status_change || this.is_finished(item)) return icon[0];
+
+		const trigger = this.make_trigger(icon, __("Set status"));
+		const set = (status) =>
+			Promise.resolve(this.opts.on_status_change(item, status)).then(() =>
+				this.update_item(item.id, { status })
+			);
+		const options = STATUSES.filter((status) => status !== item.status).map((status) => ({
+			label: STATUS_LABELS[status],
+			icon: MARKER_ICONS[status],
+			onclick: () => set(status),
+		}));
+		if (item.status) {
+			options.push({ label: __("Clear status"), icon: "circle", onclick: () => set(null) });
+		}
+		new frappe.ui.Dropdown({ trigger, options });
+		return trigger;
+	}
+
+	make_status(item) {
+		const label = !this.is_finished(item) && STATUS_LABELS[item.status];
+		if (!label) return document.createTextNode("");
+		return frappe.ui.badge({
+			label,
+			theme: item.status === "stuck" ? "red" : "gray",
+			size: "sm",
+		})[0];
 	}
 
 	make_owner(item) {
@@ -285,7 +324,7 @@ frappe.ui.Checklist = class Checklist {
 
 	make_actions(item, locked) {
 		const buttons = [];
-		if (item.skippable && (item.status || "pending") === "pending") {
+		if (item.skippable && !this.is_finished(item)) {
 			buttons.push(
 				frappe.ui.button({
 					label: __("Skip"),
@@ -310,7 +349,7 @@ frappe.ui.Checklist = class Checklist {
 
 	skip(item) {
 		return Promise.resolve(this.opts.on_skip?.(item, this)).then(() =>
-			this.set_status(item.id, "skipped")
+			this.update_item(item.id, { skipped: true })
 		);
 	}
 
@@ -323,7 +362,14 @@ frappe.ui.Checklist = class Checklist {
 	}
 
 	is_finished(item) {
-		return item.status === "done" || item.status === "skipped";
+		return Boolean(item.done || item.skipped);
+	}
+
+	/** One word for the marker and data-status: done, skipped, stuck, in_progress or pending. */
+	get_state(item) {
+		if (item.done) return "done";
+		if (item.skipped) return "skipped";
+		return item.status || "pending";
 	}
 };
 

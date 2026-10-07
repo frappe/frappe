@@ -733,6 +733,23 @@ test.describe("Espresso components", () => {
 			await expect(read_only.locator(".es-checklist__due button")).toHaveCount(0);
 		});
 
+		test("the marker sets an unfinished row In Progress or Stuck, shown as a badge", async ({
+			page,
+		}) => {
+			const group = onboarding(page);
+			const employee = row(group, "Create Employee");
+
+			await expect(employee.locator(".es-checklist__status")).toHaveText("");
+			await employee.locator(".es-checklist__marker button").click();
+			await page.locator(".es-menu__item", { hasText: "Stuck" }).click();
+			await expect(employee).toHaveAttribute("data-status", "stuck");
+			await expect(employee.locator(".es-checklist__status")).toHaveText("Stuck");
+
+			const user = row(group, "Create User");
+			await expect(user.locator(".es-checklist__status")).toHaveText("");
+			await expect(user.locator(".es-checklist__marker button")).toHaveCount(0);
+		});
+
 		test("a card folds its items away but keeps its head and progress", async ({ page }) => {
 			const card = onboarding(page).locator(".es-checklist").first();
 			const head = card.locator(".es-checklist__head");
