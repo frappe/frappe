@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+import binascii
 import datetime
 import html
 
@@ -287,7 +288,7 @@ def decode_dataurl(dataurl: str) -> bytes:
 
 	try:
 		return base64.b64decode(payload)
-	except Exception:
+	except binascii.Error:
 		frappe.throw(_("Could not read the uploaded file"), title=_("Invalid File"))
 
 
