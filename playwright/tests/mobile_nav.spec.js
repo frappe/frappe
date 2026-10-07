@@ -187,6 +187,8 @@ test.describe("Phone tab bar", () => {
 				})
 			);
 
+			await page.evaluate(() => frappe.set_route("profile"));
+			await expect(page.getByText(/Changed Elsewhere$/)).toBeVisible();
 			await page.evaluate(() => frappe.set_route("profile", "personal"));
 			await expect(field("Last Name")).toHaveValue("Changed Elsewhere");
 			await field("Middle Name").fill("Middle");
