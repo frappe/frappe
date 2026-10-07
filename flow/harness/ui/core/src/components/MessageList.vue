@@ -6,6 +6,7 @@
 		:class="prompts.length > 3 ? 'md:px-10' : ''"
 		:style="{ scrollPaddingBottom: composerHeight + 24 + 'px' }"
 		@scroll="onScroll"
+		@mousedown="onMouseDown"
 	>
 		<!-- pad by the floating composer's height so "center" means the visible
 		     area above it, not the full page -->
@@ -236,6 +237,11 @@ function onScroll() {
 	if (distance < 4) stick.value = true
 	else if (goingUp) stick.value = false
 	updateActivePrompt()
+}
+
+// a clicked button, link or summary takes no focus, so a closing dialog can't scroll the list back to it
+function onMouseDown(event) {
+	if (event.target.closest("button, a[href], summary")) event.preventDefault()
 }
 
 // collapsing a fold, a tool group or a thought can leave the view at the bottom
