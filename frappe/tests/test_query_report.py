@@ -65,6 +65,8 @@ class TestQueryReport(IntegrationTestCase):
 		# nothing to say when the exception carried no message
 		self.assertEqual("", get_user_facing_error(thrown.format("frappe.exceptions.ValidationError")))
 		self.assertEqual("", get_user_facing_error(None))
+		# errors stored as plain text, like a stalled report timing out, are kept whole
+		self.assertEqual("Report timed out.", get_user_facing_error("Report timed out."))
 		# no markup survives, so nothing reaches the page as HTML
 		self.assertEqual(
 			"alert(1)",

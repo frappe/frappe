@@ -399,8 +399,13 @@ def get_user_facing_error(traceback: str | None) -> str:
 	if not traceback:
 		return ""
 
-	message = (traceback or "").strip().rsplit("\n", 1)[-1]
-	message = re.sub(r"<[^>]*>", " ", message.partition(": ")[2])
+	lines = traceback.strip().splitlines()
+	message = lines[-1]
+	# a traceback ends in "module.Exception: message", a single line is already the message
+	if len(lines) > 1:
+		message = message.partition(": ")[2]
+
+	message = re.sub(r"<[^>]*>", " ", message)
 
 	return unescape(" ".join(message.split()))
 
