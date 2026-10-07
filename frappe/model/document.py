@@ -1378,7 +1378,7 @@ class Document(BaseDocument):
 	@frappe.whitelist()
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
-		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
+		return self._rename(name=name, merge=merge, force=force)
 
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
 		"""Delete document."""
