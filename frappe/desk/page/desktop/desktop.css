@@ -70,8 +70,8 @@ body.has-mobile-nav.desktop-page .desktop-navbar #brand-logo {
 body.has-mobile-nav.desktop-page .desktop-navbar-title {
   display: block;
   position: absolute;
-  left: 60px;
-  right: 60px;
+  left: calc(var(--spacing) * 15);
+  right: calc(var(--spacing) * 15);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
