@@ -61,6 +61,12 @@ let docfield_df = computed(() => {
 			df.fieldtype = "Fetch From";
 		}
 
+		// the grid fills this Select's options, the builder has none
+		if (store.is_web_form && df.fieldname === "fieldname") {
+			df.fieldtype = "Data";
+			df.read_only = 1;
+		}
+
 		if (
 			["fetch_from", "fetch_if_empty"].includes(df.fieldname) &&
 			in_list(frappe.model.no_value_type, store.form.selected_field.fieldtype)
