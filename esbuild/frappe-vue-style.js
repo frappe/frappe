@@ -8,6 +8,14 @@ module.exports = {
 	setup(build) {
 		build.initialOptions.write = false;
 		build.onEnd(async (result) => {
+			// esbuild runs onEnd even when the build failed, and a failed build
+			// carries no metafile. Reading it threw from inside the plugin, so
+			// every failed build reported a second, misleading error next to the
+			// one that actually broke it. There is nothing to post-process here.
+			if (!result.metafile) {
+				return;
+			}
+
 			let files = get_files(result.metafile.outputs);
 			let keys = Object.keys(files);
 			// process everything before writing anything: the rename below also
