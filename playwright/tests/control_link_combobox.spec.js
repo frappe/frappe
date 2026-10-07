@@ -4,6 +4,8 @@ import { test, expect } from "../support";
 test.describe("Control Link (combobox)", () => {
 	let todo;
 	let todo_stamp;
+	// a second ToDo, for the one test that moves between rows
+	let other_todo;
 
 	test.beforeAll(async ({ admin }) => {
 		await admin.set_value("System Settings", "System Settings", {
@@ -30,6 +32,8 @@ test.describe("Control Link (combobox)", () => {
 
 	test.afterEach(async ({ admin }) => {
 		await admin.remove_doc("ToDo", todo, true);
+		if (other_todo) await admin.remove_doc("ToDo", other_todo, true);
+		other_todo = null;
 	});
 
 	const panel = (page) => page.locator(".es-combobox__panel[data-state='open']");
@@ -42,7 +46,11 @@ test.describe("Control Link (combobox)", () => {
 			fields: [{ label: options, fieldname, fieldtype: "Link", options }],
 		});
 
-	test("picks a row, clears it, and is driven from the keyboard", async ({ page, desk }) => {
+	test("picks a row, clears it, and is driven from the keyboard", async ({
+		page,
+		desk,
+		api,
+	}) => {
 		const dialog = await link_dialog(desk, "link", "ToDo");
 		const field = page.locator(".modal.show .frappe-control[data-fieldname=link] input");
 
@@ -62,7 +70,12 @@ test.describe("Control Link (combobox)", () => {
 		await expect.poll(() => value_of(dialog, "link")).toBe("");
 		await expect(field).toBeFocused();
 
-		// ArrowDown opens it, moves through the rows, and Tab picks the row moved to
+		// ArrowDown opens it, moves through the rows, and Tab picks the row moved to;
+		// other specs may have removed every other ToDo, so add a second row to move to
+		[other_todo] = await api.create_records({
+			doctype: "ToDo",
+			description: "another test todo to move to",
+		});
 		await field.press("ArrowDown");
 		await expect(search(page)).toBeFocused();
 		await expect(rows(page).nth(1)).toBeVisible();
