@@ -5,7 +5,7 @@
 		:name="editing"
 		:title="editing ? `Edit ${spec.singular}` : `New ${spec.singular}`"
 		:back="`Back to ${spec.label.toLowerCase()}`"
-		@saved="changed"
+		@saved="saved"
 		@deleted="changed"
 		@close="mode = 'list'"
 	/>
@@ -144,6 +144,12 @@ async function load(append = false) {
 function edit(name) {
 	editing.value = name;
 	mode.value = "form";
+}
+
+// a save stays on the form, now editing the saved record
+function saved(doc) {
+	editing.value = doc.name;
+	load();
 }
 
 function changed() {

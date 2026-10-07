@@ -206,11 +206,16 @@ function toggleTool(key, name, on) {
 	draft.value[key] = on ? [...names, name] : names
 }
 
+// stays on the form, reopened as saved
 function save() {
-	if (draft.value.default) flow.saveDefaultPreset(draft.value)
-	else flow.savePreset({ ...draft.value, name: draft.value.name.trim() })
+	if (draft.value.default) {
+		flow.saveDefaultPreset(draft.value)
+		editDefault()
+	} else {
+		const id = flow.savePreset({ ...draft.value, name: draft.value.name.trim() })
+		edit(flow.state.presets.find((p) => p.id === id))
+	}
 	flow.notify("Preset saved")
-	draft.value = null
 }
 
 function back() {
