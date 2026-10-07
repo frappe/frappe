@@ -189,6 +189,39 @@ class TestSearch(IntegrationTestCase):
 
 		self.assertEqual(get_image_field("User"), "user_image")
 
+	def test_image_field_needs_read_access(self):
+		from frappe.desk.search import get_image_field
+
+		# select-only access covers the search fields, not the image
+		with patch("frappe.has_permission", return_value=False):
+			self.assertIsNone(get_image_field("User"))
+		self.assertEqual(get_image_field("User"), "user_image")
+
+	def test_boot_link_settings_skip_disabled_apps(self):
+		from frappe.boot import get_link_settings
+
+		original = frappe.db.get_value("DocType", "Role", "link_display_mode")
+		self.addCleanup(frappe.db.set_value, "DocType", "Role", "link_display_mode", original)
+		frappe.db.set_value("DocType", "Role", "link_display_mode", "Search")
+		ps = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "Role",
+				"property": "link_display_mode",
+				"property_type": "Select",
+				"value": "Select",
+			}
+		).insert()
+		self.addCleanup(ps.delete)
+		frappe.db.set_value("Property Setter", ps.name, "is_app_disabled", 1)
+
+		# a disabled app's setting is skipped while disabled apps are hidden, as Meta does
+		with patch("frappe.app_state.is_disabled_app_filtering_active", return_value=True):
+			self.assertNotIn("Role", get_link_settings())
+		with patch("frappe.app_state.is_disabled_app_filtering_active", return_value=False):
+			self.assertEqual(get_link_settings()["Role"], {"display_mode": "Select"})
+
 	def test_boot_link_settings(self):
 		from frappe.boot import get_link_settings
 
