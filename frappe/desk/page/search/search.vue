@@ -1,10 +1,10 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { TextInput } from "frappe-ui";
 import { List, ListCell, ListRow, ListRows } from "frappe-ui/list";
-import { redirect_off_phone } from "./phone_page.js";
+import { on_phone_visit } from "./phone_page.js";
 
-defineProps({
+const props = defineProps({
 	route: { type: Array, default: () => [] },
 	query: { type: Object, default: () => ({}) },
 });
@@ -54,17 +54,17 @@ watch(text, () => {
 	timer = setTimeout(search, 50);
 });
 
-onMounted(() => {
-	if (redirect_off_phone("/desk")) {
-		awesome_bar?.open();
-		return;
-	}
-
-	emit("title", __("Search"));
-	emit("actions", []);
-	search();
-	input.value?.querySelector("input")?.focus();
-});
+on_phone_visit(
+	props,
+	["/desk"],
+	() => {
+		emit("title", __("Search"));
+		emit("actions", []);
+		search();
+		input.value?.querySelector("input")?.focus();
+	},
+	() => awesome_bar?.open()
+);
 
 // Written out whole, so Tailwind's scan finds every icon class.
 const ICONS = {
