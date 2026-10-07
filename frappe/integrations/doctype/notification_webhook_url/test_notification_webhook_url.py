@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import requests
 
@@ -11,6 +11,7 @@ from frappe.email.doctype.notification.notification import Notification
 from frappe.integrations.doctype.notification_webhook_url.notification_webhook_url import (
 	SERVICE_CLASSES,
 	NotificationWebhookURL,
+	WebhookDeliveryError,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
@@ -160,25 +161,49 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 				self.subTest(service=service),
 				set_user(self.user_name),
 				patch("requests.post", return_value=Mock(ok=False, status_code=404, text="Not Found")),
-				self.assertRaisesRegex(frappe.ValidationError, expected),
+				self.assertRaisesRegex(WebhookDeliveryError, expected),
 			):
 				self._make_webhook(service).send("Test", "User", REFERENCE_NAME)
 
 	def test_unknown_http_error(self):
 		with (
 			patch("requests.post", return_value=Mock(ok=False, status_code=502, text="Bad Gateway")),
-			self.assertRaisesRegex(frappe.ValidationError, "502: Bad Gateway"),
+			self.assertRaisesRegex(WebhookDeliveryError, "502: Bad Gateway"),
 		):
 			self._make_webhook().send("Test", "User", REFERENCE_NAME)
 
-	def test_timeout(self):
+	def test_transport_errors_are_wrapped(self):
 		for service in ("Slack", "Ntfy", "Matrix (Hookshot)"):
-			with (
-				self.subTest(service=service),
-				patch("requests.post", side_effect=requests.Timeout),
-				self.assertRaises(requests.Timeout),
-			):
-				self._make_webhook(service).send("Test", "User", REFERENCE_NAME)
+			for error_type in (requests.Timeout, requests.ConnectionError, requests.RequestException):
+				error = error_type("Transport failure")
+				with (
+					self.subTest(service=service, error_type=error_type),
+					set_user(self.user_name),
+					patch("requests.post", side_effect=error),
+					self.assertRaisesRegex(
+						WebhookDeliveryError, "Unable to deliver the webhook notification."
+					) as raised,
+				):
+					self._make_webhook(service).send("Test", "User", REFERENCE_NAME)
+				self.assertIs(raised.exception.__cause__, error)
+				self.assertIsInstance(raised.exception, frappe.ValidationError)
+
+	def test_payload_errors_are_not_wrapped(self):
+		for service in ("Slack", "Ntfy", "Matrix (Hookshot)"):
+			for error_type in (requests.RequestException, frappe.ValidationError, RuntimeError):
+				error = error_type("Payload failure")
+				with (
+					self.subTest(service=service, error_type=error_type),
+					set_user(self.user_name),
+					patch.object(
+						SERVICE_CLASSES[service], "doc_url", new_callable=PropertyMock, side_effect=error
+					),
+					patch("requests.post") as post,
+					self.assertRaises(error_type) as raised,
+				):
+					self._make_webhook(service).send("Test", "User", REFERENCE_NAME)
+				self.assertIs(raised.exception, error)
+				post.assert_not_called()
 
 	def test_discord_truncation(self):
 		for service in ("Discord", "Raven"):
@@ -237,7 +262,7 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 		with (
 			set_user(self.user_name),
 			patch("requests.post", return_value=Mock(ok=False, status_code=404, text="Not Found")),
-			self.assertRaisesRegex(frappe.ValidationError, "404: Channel not found"),
+			self.assertRaisesRegex(WebhookDeliveryError, "404: Channel not found"),
 		):
 			params.send_test_message("Test", "User", self.user_name)
 
@@ -249,19 +274,78 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 			post.assert_called_once_with(params.webhook_url, json={"text": "Hello Webhook Test"}, timeout=10)
 
 	def test_notification_logs_delivery_failure_and_sends_system_notification(self):
-		params = self._make_webhook().insert()
-		notification = self._make_notification(params)
-		notification.send_system_notification = 1
+		for service in ("Slack", "Ntfy", "Matrix (Hookshot)"):
+			for result, error_message in (
+				(Mock(ok=False, status_code=502, text="Bad Gateway"), "502: Bad Gateway"),
+				(requests.Timeout("Request timed out"), "Request timed out"),
+				(requests.ConnectionError("Connection failed"), "Connection failed"),
+			):
+				params = self._make_webhook(service).insert()
+				notification = self._make_notification(params)
+				notification.send_system_notification = 1
+				with (
+					self.subTest(service=service, error_message=error_message),
+					set_user(self.user_name),
+					patch("requests.post") as post,
+					patch.object(notification, "log_error") as log_error,
+					patch.object(notification, "create_system_notification") as system_notification,
+				):
+					if isinstance(result, requests.RequestException):
+						post.side_effect = result
+					else:
+						post.return_value = result
+					notification.send(self.user)
+				post.assert_called_once()
+				log_error.assert_called_once()
+				self.assertEqual(log_error.call_args.kwargs["title"], "Failed to send Notification")
+				self.assertIn("WebhookDeliveryError", log_error.call_args.kwargs["message"])
+				self.assertIn(error_message, log_error.call_args.kwargs["message"])
+				system_notification.assert_called_once()
+
+	def test_notification_missing_webhook_is_not_swallowed(self):
+		notification = self._make_notification(self._make_webhook())
+		notification.notification_webhook_url = f"Missing webhook {frappe.generate_hash(length=8)}"
 		with (
 			set_user(self.user_name),
-			patch("requests.post", return_value=Mock(ok=False, status_code=502, text="Bad Gateway")) as post,
+			patch("requests.post") as post,
 			patch.object(notification, "log_error") as log_error,
-			patch.object(notification, "create_system_notification") as system_notification,
+			self.assertRaises(frappe.DoesNotExistError),
 		):
-			notification.send(self.user)
-		post.assert_called_once()
-		log_error.assert_called_once_with("Failed to send Notification")
-		system_notification.assert_called_once()
+			notification.send_webhook_message(self.user, {"doc": self.user})
+		post.assert_not_called()
+		log_error.assert_not_called()
+
+	def test_notification_rendering_error_is_not_swallowed(self):
+		params = self._make_webhook().insert()
+		notification = self._make_notification(params)
+		error = frappe.ValidationError("Invalid template")
+		with (
+			set_user(self.user_name),
+			patch.object(frappe, "render_template", side_effect=error),
+			patch("requests.post") as post,
+			patch.object(notification, "log_error") as log_error,
+			self.assertRaises(frappe.ValidationError) as raised,
+		):
+			notification.send_webhook_message(self.user, {"doc": self.user})
+		self.assertIs(raised.exception, error)
+		post.assert_not_called()
+		log_error.assert_not_called()
+
+	def test_notification_unrelated_sending_errors_are_not_swallowed(self):
+		params = self._make_webhook().insert()
+		notification = self._make_notification(params)
+		for error_type in (RuntimeError, frappe.ValidationError, frappe.DoesNotExistError):
+			error = error_type("Unrelated failure")
+			with (
+				self.subTest(error_type=error_type),
+				set_user(self.user_name),
+				patch("requests.post", side_effect=error),
+				patch.object(notification, "log_error") as log_error,
+				self.assertRaises(error_type) as raised,
+			):
+				notification.send_webhook_message(self.user, {"doc": self.user})
+			self.assertIs(raised.exception, error)
+			log_error.assert_not_called()
 
 	def test_notification_webhook_is_required(self):
 		notification = self._make_notification(self._make_webhook())
