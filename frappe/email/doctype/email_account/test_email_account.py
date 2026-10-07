@@ -178,6 +178,21 @@ class TestEmailAccount(IntegrationTestCase):
 		)
 		self.assertTrue("test-mail-000" in sent_mail.get("Subject"))
 
+	def test_reply_to_follows_email_id_change(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.reply_to_addresses = []
+		email_account.append("reply_to_addresses", {"email": email_account.email_id})
+		email_account.append("reply_to_addresses", {"email": "other@example.com"})
+		email_account.load_doc_before_save()
+
+		email_account.email_id = "renamed@example.com"
+		email_account.sync_reply_to_with_email_id()
+
+		self.assertEqual(
+			[row.email for row in email_account.reply_to_addresses],
+			["renamed@example.com", "other@example.com"],
+		)
+
 	def test_sendmail(self):
 		frappe.sendmail(
 			sender="test_sender@example.com",
