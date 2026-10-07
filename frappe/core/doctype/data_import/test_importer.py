@@ -74,6 +74,12 @@ class RecordingImportProvider(ImportProvider):
 		return record, None
 
 
+class MetaFieldsImportProvider(RecordingImportProvider):
+	# the sample file uses the DocType's own fields and child tables
+	def get_import_fields(self):
+		return None
+
+
 class RejectingImportProvider(RecordingImportProvider):
 	def validate(self, import_file):
 		return [{"row": import_file.data[0].row_number, "message": "Rejected by provider"}]
@@ -735,7 +741,7 @@ class TestImporter(IntegrationTestCase):
 		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
 		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
 
-		with self.patch_hooks(_provider_hooks(RecordingImportProvider)):
+		with self.patch_hooks(_provider_hooks(MetaFieldsImportProvider)):
 			data_import.start_import()
 
 		self.assertEqual(data_import.reload().status, "Success")
