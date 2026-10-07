@@ -153,5 +153,11 @@ test.describe("Phone tab bar", () => {
 		await page.goto("/desk/profile");
 		await desk.ready();
 		await expect(page).toHaveURL(/\/user\//);
+
+		// desk keeps the page's island mounted, so a second visit has to redirect as well
+		await page.evaluate(() => frappe.set_route("List", "ToDo"));
+		await expect(page).toHaveURL(/\/todo/);
+		await page.evaluate(() => frappe.set_route("profile"));
+		await expect(page).toHaveURL(/\/user\//);
 	});
 });

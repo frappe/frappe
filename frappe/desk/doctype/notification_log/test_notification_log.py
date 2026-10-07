@@ -220,6 +220,19 @@ class TestNotificationLog(IntegrationTestCase):
 		self.assertTrue(logs)
 		self.assertEqual({log.for_user for log in logs}, {"Administrator"})
 
+	def test_get_notification_logs_as_a_normal_user(self):
+		you = make_recipient("notify_you@example.com")
+		other = make_recipient("notify_other@example.com")
+		for user in (you, other):
+			frappe.get_doc(
+				{"doctype": "Notification Log", "subject": f"for {user}", "for_user": user}
+			).insert(ignore_permissions=True)
+
+		with self.set_user(you):
+			logs = get_notification_logs(limit=100)["notification_logs"]
+
+		self.assertEqual([log.subject for log in logs], [f"for {you}"])
+
 
 def make_recipient(email: str) -> str:
 	if not frappe.db.exists("User", email):
