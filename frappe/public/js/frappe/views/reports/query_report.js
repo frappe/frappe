@@ -2474,7 +2474,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return frappe.ui.empty_state({
 			icon: "clock",
 			title: __("This is a background report"),
-			description: __("Set the appropriate filters and then generate a new one."),
+			description: __("Set the filters and generate a new one."),
 		})[0].outerHTML;
 	}
 
@@ -2496,7 +2496,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		const description =
 			this.prepared_report_error ||
-			(can_read ? "" : __("Something went wrong. Please contact your System Manager."));
+			(can_read ? "" : __("Something went wrong. Contact your System Manager."));
 
 		return frappe.ui.empty_state({
 			icon: "triangle-alert",
