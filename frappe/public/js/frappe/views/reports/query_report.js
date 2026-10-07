@@ -837,6 +837,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.snapshot_at = data.snapshot_at;
 				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
+				const report_failed = data.doc?.status === "Error";
 
 				const check_if_report_is_stale = () => {
 					let generated_at =
@@ -878,7 +879,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						</div>
 					`);
 					}
-				} else {
+				} else if (!report_failed) {
 					this.stale_report_interval = setInterval(check_if_report_is_stale, 60000);
 				}
 
@@ -909,7 +910,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 					this.add_prepared_report_buttons(data.doc);
 					// the error message already shows when it failed
-					if (data.doc?.status !== "Error") check_if_report_is_stale();
+					if (!report_failed) check_if_report_is_stale();
 				}
 
 				if (data.report_summary) {
