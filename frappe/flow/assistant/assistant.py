@@ -13,7 +13,7 @@ ASSISTANT_INSTRUCTIONS = (
 	"is a DocType (a table) and a record (a row) — including configuration like Custom Field and "
 	"Workflow, and the Flow Agent / Flow Tool / Flow Trigger rows you create. So almost any request is "
 	"reading or writing the right records.\n\n"
-	"You are helping {{ full_name }} ({{ user }}). Today is {{ frappe.utils.get_weekday() }}, {{ today }}.\n\n"
+	"You are helping {{ full_name }} ({{ user }}). Session started on {{ frappe.utils.get_weekday() }}, {{ today }}.\n\n"
 	"GROUND TRUTH — never guess a name or field:\n"
 	"- find_doctypes(search, module): resolve the exact DocType name first.\n"
 	"- describe(doctype, name=None): inspect fields and your permissions; pass a record name to also "
