@@ -51,6 +51,12 @@ test.describe("Control Link (combobox)", () => {
 		desk,
 		api,
 	}) => {
+		// a second row for ArrowDown to move to, as other specs may have removed every other
+		// ToDo; made before the dialog, whose first (empty) search is cached for a minute
+		[other_todo] = await api.create_records({
+			doctype: "ToDo",
+			description: "another test todo to move to",
+		});
 		const dialog = await link_dialog(desk, "link", "ToDo");
 		const field = page.locator(".modal.show .frappe-control[data-fieldname=link] input");
 
@@ -70,12 +76,7 @@ test.describe("Control Link (combobox)", () => {
 		await expect.poll(() => value_of(dialog, "link")).toBe("");
 		await expect(field).toBeFocused();
 
-		// ArrowDown opens it, moves through the rows, and Tab picks the row moved to;
-		// other specs may have removed every other ToDo, so add a second row to move to
-		[other_todo] = await api.create_records({
-			doctype: "ToDo",
-			description: "another test todo to move to",
-		});
+		// ArrowDown opens it, moves through the rows, and Tab picks the row moved to
 		await field.press("ArrowDown");
 		await expect(search(page)).toBeFocused();
 		await expect(rows(page).nth(1)).toBeVisible();
