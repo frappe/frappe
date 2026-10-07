@@ -49,6 +49,6 @@ let show_on = computed(() => props.show !== "hide");
 .label-field {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: calc(var(--spacing) * 2);
 }
 </style>
