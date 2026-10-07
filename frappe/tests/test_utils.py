@@ -1434,10 +1434,8 @@ class TestTypingValidations(FrappeTestCase):
 		report.toggle_disable(current_value)
 
 
-<<<<<<< HEAD
 class TestTBSanitization(FrappeTestCase):
 	def test_traceback_sanitzation(self):
-=======
 		lax_types = frappe.whitelist(force_types=False)(func)
 		lax_types(1)  # should run without error
 
@@ -1490,20 +1488,12 @@ class TestTBSanitization(FrappeTestCase):
 class TestTBSanitization(IntegrationTestCase):
 	def test_traceback_sanitization(self):
 		handle = io.BufferedWriter(io.BytesIO())
->>>>>>> a4814e5 (fix(log): Hide sensitive info from getting logged)
 		try:
 			password = frappe.generate_hash()
 			args = {"password": "42", "pwd": password, "safe": "safe_value"}
 			args = frappe._dict({"password": "42", "pwd": password, "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
-<<<<<<< HEAD
-			traceback = frappe.get_traceback(with_context=True)
-			self.assertNotIn(password, traceback)
-			self.assertIn("********", traceback)
-			self.assertIn("password =", traceback)
-			self.assertIn("safe_value", traceback)
-=======
 			with patch.dict(frappe.conf, {"developer_mode": 1}):
 				traceback = frappe.get_traceback(with_context=True)
 		finally:
@@ -1514,7 +1504,6 @@ class TestTBSanitization(IntegrationTestCase):
 		self.assertIn("********", traceback)
 		self.assertIn("password =", traceback)
 		self.assertIn("safe_value", traceback)
->>>>>>> a4814e5 (fix(log): Hide sensitive info from getting logged)
 
 	def test_sanitization_catches_keys_not_matching_blocklist_exactly(self):
 		try:
