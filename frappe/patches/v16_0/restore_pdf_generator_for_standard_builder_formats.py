@@ -28,4 +28,4 @@ def get_shipped_pdf_generator(row):
 	except (frappe.DoesNotExistError, OSError, ValueError):
 		return
 	if isinstance(doc, dict):
-		return doc.get("pdf_generator")
+		return doc.get("pdf_generator") or frappe.get_meta("Print Format").get_field("pdf_generator").default
