@@ -574,6 +574,20 @@ result = [
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
 
+	def test_add_total_row_skips_columns_with_disable_total(self):
+		columns = [
+			{"fieldname": "item", "label": "Item", "fieldtype": "Data"},
+			{"fieldname": "qty", "label": "Qty", "fieldtype": "Float", "disable_total": 1},
+			{"fieldname": "stock_qty", "label": "Stock Qty", "fieldtype": "Float"},
+		]
+		result = [
+			{"item": "Item A", "qty": 10, "stock_qty": 10},
+			{"item": "Item B", "qty": 2, "stock_qty": 24},
+		]
+
+		total_row = add_total_row(result, columns)[-1]
+		self.assertEqual(total_row, ["Total", "", 34])
+
 	def test_read_path_blocked_by_has_role(self):
 		"""has_permission hook raises PermissionError for unpermitted user on frappe.get_doc."""
 		role = "Test Read Path Role"
