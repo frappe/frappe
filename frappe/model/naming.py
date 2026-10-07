@@ -471,6 +471,13 @@ def getseries(key, digits, doctype=None):
 
 	# Postgres rejects FOR UPDATE with an aggregate, so take the max in Python.
 	counters = dict(query.for_update().run())
+	if "" not in counters:
+		# Every caller locks the shared row, so scoped and unscoped calls cannot race each other.
+		frappe.db.bulk_insert(
+			"Series", ["name", "doctype", "current"], [(key, "", 0)], ignore_duplicates=True
+		)
+		counters = dict(query.for_update().run())
+
 	current = cint(max(counters.values(), default=0)) + 1
 
 	if doctype in counters:
