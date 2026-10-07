@@ -1,4 +1,5 @@
 [pre_model_sync]
+frappe.patches.v16_0.rename_slack_webhook_url
 frappe.patches.v16_0.enable_setup_complete #01-07-2025 re-run-patch
 frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
@@ -199,6 +200,7 @@ frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
 
 [post_model_sync]
+frappe.patches.v16_0.migrate_slack_notifications
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.core.doctype.role.patches.v13_set_default_desk_properties
 frappe.patches.v14_0.update_workspace2 # 06.06.2023
