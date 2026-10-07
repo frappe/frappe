@@ -48,7 +48,8 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 	def test_the_prompt_names_the_session_user_and_today(self):
 		prompt = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).render_instructions()
 		self.assertIn(
-			f"You are helping Administrator (Administrator). Today is {get_weekday()}, {today()}.", prompt
+			f"You are helping Administrator (Administrator). Session started on {get_weekday()}, {today()}.",
+			prompt,
 		)
 
 	def test_install_adds_builtin_tools_before_any_model(self):
