@@ -645,13 +645,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				'<div class="standard-filter-section kanban-v2-quick-filters flex"></div>'
 			).insertBefore(this.$filter_section);
 		}
-		// keep typed values across re-renders (board or swimlane change)
-		const preserved = {};
+		// the boxes' filters outlive them (board or swimlane change), each replacing a filter
+		// on its field: the new boxes take back the ones they can hold, the rest stay in the panel
+		const quick = this.get_quick_filters();
+		const boxed = new Set(quick.map(([, fn]) => fn));
+		this.filters = (this.filters || [])
+			.filter(([doctype, fn]) => !(doctype === this.doctype && boxed.has(fn)))
+			.concat(quick);
 		(this._quick_filter_fields || []).forEach((fn) => {
 			const f = page.fields_dict[fn];
 			if (f) {
-				const v = f.get_value();
-				if (v) preserved[fn] = v;
 				f.$wrapper && f.$wrapper.remove();
 				delete page.fields_dict[fn];
 			}
@@ -677,15 +680,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 
 		await this.seed_quick_filters();
-
-		this._seeding_quick = true;
-		try {
-			await Promise.all(
-				Object.keys(preserved).map((fn) => page.fields_dict[fn]?.set_value(preserved[fn]))
-			);
-		} finally {
-			this._seeding_quick = false;
-		}
 	}
 
 	/** Mirrors the list view's standard filters. */
