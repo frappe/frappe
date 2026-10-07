@@ -210,7 +210,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.load_on_scroll = true;
 		this.$list_end = $(`<div class="list-end" aria-hidden="true"></div>`);
 		this.$result.after(this.$list_end);
-		this.observe_list_end();
 	}
 
 	// Past the virtualization threshold the rows scroll in their own box, so the early
@@ -219,8 +218,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const root = this.virtualization_state?.enabled
 			? this.virtualization_state.container
 			: null;
-		// a new observer also re-checks a list end that is still in view because the last
-		// page didn't fill the screen; an existing one only reports changes
+		// a new observer also reports a list end that is already in view; an existing one
+		// only reports changes
 		this.scroll_observer?.disconnect();
 		this.scroll_observer = new IntersectionObserver(
 			(entries) => {
@@ -238,6 +237,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.loading_more = true;
 		this.start = this.data.length;
 		this.page_length = this.selected_page_count;
+		// a newer refresh can render while this one is pending, and then drop its response;
+		// its own check of the list end came while this load still held loading_more
 		this.refresh().finally(() => {
 			this.loading_more = false;
 			this.observe_list_end();
@@ -1073,6 +1074,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	after_render() {
 		this.$no_result.html(this.get_no_result_message());
 		this.setup_new_doc_event();
+		// after every render, not only a scroll load: a first page or a filtered page that
+		// fits on screen leaves the list end in view, and nothing else would report it
+		if (this.load_on_scroll) this.observe_list_end();
 	}
 
 	render() {
