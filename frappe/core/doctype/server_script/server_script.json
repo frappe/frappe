@@ -3,6 +3,7 @@
  "autoname": "Prompt",
  "creation": "2019-09-30 11:56:57.943241",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/scripting/server-script",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

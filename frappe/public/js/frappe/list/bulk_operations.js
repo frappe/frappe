@@ -127,6 +127,16 @@ export default class BulkOperations {
 						let task_id = response.message.task_id;
 						frappe.realtime.task_subscribe(task_id);
 						frappe.realtime.on(`task_complete:${task_id}`, (data) => {
+							frappe.realtime.task_unsubscribe(task_id);
+							frappe.realtime.off(`task_complete:${task_id}`);
+							if (data.error) {
+								frappe.msgprint({
+									title: __("Bulk PDF Export"),
+									message: data.error,
+									indicator: "red",
+								});
+								return;
+							}
 							frappe.msgprint({
 								title: __("Bulk PDF Export"),
 								message: __("Your PDF is ready for download"),
@@ -136,8 +146,6 @@ export default class BulkOperations {
 									args: data.file_url,
 								},
 							});
-							frappe.realtime.task_unsubscribe(task_id);
-							frappe.realtime.off(`task_complete:${task_id}`);
 						});
 					});
 			} else {
@@ -499,7 +507,9 @@ export default class BulkOperations {
 		frappe.require("data_import_tools.bundle.js", () => {
 			const data_exporter = new frappe.data_import.DataExporter(
 				doctype,
-				"Insert New Records"
+				"Insert New Records",
+				"CSV",
+				true
 			);
 			data_exporter.dialog.set_value("export_records", "by_filter");
 			data_exporter.filter_group.add_filters_to_filter_group([

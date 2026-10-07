@@ -11,6 +11,7 @@
   "label",
   "link_type",
   "icon",
+  "default_workspace",
   "column_break_krzu",
   "type",
   "link_to",
@@ -161,13 +162,26 @@
    "fieldname": "filter_area",
    "fieldtype": "HTML",
    "label": "Filter Area"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.link_type === \"URL\";",
+   "fieldname": "open_in_new_tab",
+   "fieldtype": "Check",
+   "label": "Open in New Tab"
+  },
+  {
+   "default": "0",
+   "fieldname": "default_workspace",
+   "fieldtype": "Check",
+   "label": "Default Workspace"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-11 10:13:54.279416",
+ "modified": "2026-09-22 04:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar Item",

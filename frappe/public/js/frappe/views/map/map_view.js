@@ -34,6 +34,17 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	setup_view() {
+		return this.load_lib().then(() => this.setup_map());
+	}
+
+	load_lib() {
+		return Promise.all([
+			frappe.require("leaflet.bundle.js"),
+			frappe.require("leaflet.bundle.css"),
+		]);
+	}
+
+	setup_map() {
 		this.map_id = frappe.dom.get_unique_id();
 		this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
 

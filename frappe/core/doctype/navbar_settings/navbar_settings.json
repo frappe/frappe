@@ -11,7 +11,9 @@
   "settings_dropdown",
   "help_dropdown",
   "announcements_section",
-  "announcement_widget"
+  "announcement_widget",
+  "announcement_widget_color",
+  "dismissible_announcement_widget"
  ],
  "fields": [
   {
@@ -47,16 +49,27 @@
    "label": "Announcements"
   },
   {
-   "description": "These announcements will appear inside a dismissible alert below the Navbar.",
+   "description": "These announcements will appear inside an alert below the Navbar.",
    "fieldname": "announcement_widget",
    "fieldtype": "Text Editor",
    "label": "Announcement Widget",
    "max_height": "10em"
+  },
+  {
+   "fieldname": "announcement_widget_color",
+   "fieldtype": "Color",
+   "label": "Widget Color"
+  },
+  {
+   "default": "1",
+   "fieldname": "dismissible_announcement_widget",
+   "fieldtype": "Check",
+   "label": "Is Dismissible"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2024-05-01 14:09:54.587137",
+ "modified": "2026-02-05 15:19:55.524034",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Navbar Settings",
@@ -74,6 +87,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

@@ -3,8 +3,9 @@
  "allow_import": 1,
  "allow_rename": 1,
  "creation": "2022-01-10 17:29:51.672911",
- "description": "Represents a User in the system.",
+ "description": "Someone who can log in to your site.",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
  "engine": "InnoDB",
  "field_order": [
   "user_details_tab",
@@ -53,6 +54,8 @@
   "navigation_settings_section",
   "search_bar",
   "notifications",
+  "show_my_space",
+  "dock_mode",
   "list_settings_section",
   "list_sidebar",
   "bulk_actions",
@@ -63,6 +66,8 @@
   "timeline",
   "dashboard",
   "show_absolute_datetime_in_timeline",
+  "report_settings_section",
+  "report_split_view",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -83,6 +88,7 @@
   "email_signature",
   "thread_notify",
   "send_me_a_copy",
+  "send_read_receipt",
   "allowed_in_mentions",
   "user_emails",
   "workspace_section",
@@ -161,6 +167,7 @@
    "bold": 1,
    "fieldname": "last_name",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Last Name",
    "oldfieldname": "last_name",
    "oldfieldtype": "Data"
@@ -179,6 +186,7 @@
    "depends_on": "eval:doc.__islocal",
    "fieldname": "send_welcome_email",
    "fieldtype": "Check",
+   "in_import_template": 1,
    "label": "Send Welcome Email"
   },
   {
@@ -280,6 +288,7 @@
   {
    "fieldname": "mobile_no",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Mobile No",
    "options": "Phone",
    "unique": 1
@@ -329,11 +338,13 @@
    "depends_on": "eval:doc.enabled && (!doc.__islocal || !cint(doc.send_welcome_email))",
    "fieldname": "change_password",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Change Password"
   },
   {
    "fieldname": "new_password",
    "fieldtype": "Password",
+   "hidden": 1,
    "label": "Set New Password",
    "no_copy": 1
   },
@@ -341,6 +352,7 @@
    "default": "1",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Logout From All Devices After Changing Password"
   },
   {
@@ -406,6 +418,12 @@
    "fieldname": "send_me_a_copy",
    "fieldtype": "Check",
    "label": "Send Me A Copy of Outgoing Emails"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_read_receipt",
+   "fieldtype": "Check",
+   "label": "Send Read Receipt"
   },
   {
    "default": "1",
@@ -495,6 +513,7 @@
    "description": "If the user has any role checked, then the user becomes a \"System User\". \"System User\" has access to the desktop",
    "fieldname": "user_type",
    "fieldtype": "Link",
+   "in_import_template": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "User Type",
@@ -786,6 +805,21 @@
    "label": "Notifications"
   },
   {
+   "default": "0",
+   "description": "Add a link to your own private workspaces in the user menu.",
+   "fieldname": "show_my_space",
+   "fieldtype": "Check",
+   "label": "Show My Space"
+  },
+  {
+   "default": "Pinned",
+   "description": "Pinned sits beside the sidebar. Floating slides in from the left edge.",
+   "fieldname": "dock_mode",
+   "fieldtype": "Select",
+   "label": "Dock",
+   "options": "Floating\nPinned"
+  },
+  {
    "collapsible": 1,
    "fieldname": "list_settings_section",
    "fieldtype": "Section Break",
@@ -840,6 +874,19 @@
    "label": "Show Absolute Datetime in Timeline"
   },
   {
+   "collapsible": 1,
+   "fieldname": "report_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Report Settings"
+  },
+  {
+   "default": "1",
+   "description": "Open linked documents in a side panel instead of navigating away from the report.",
+   "fieldname": "report_split_view",
+   "fieldtype": "Check",
+   "label": "Split view in reports"
+  },
+  {
    "fieldname": "sessions_tab",
    "fieldtype": "Tab Break",
    "label": "Sessions"
@@ -856,10 +903,10 @@
    "default": "1",
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
-   "label": "Navigation Buttons"
+   "label": "Show navigation buttons"
   }
  ],
- "icon": "fa fa-user",
+ "icon": "user-round",
  "idx": 413,
  "image_field": "user_image",
  "links": [
@@ -910,7 +957,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-04-28 21:59:59.160099",
+ "modified": "2026-10-01 05:17:48.844566",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

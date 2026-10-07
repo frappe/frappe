@@ -50,6 +50,43 @@ def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None 
 	]
 
 
+@frappe.whitelist()
+def get_recipient_avatars(emails: str) -> dict:
+	"""User info for recipients who are users (the same info the comment stream shows),
+	and contact images for the rest. Unknown addresses are absent."""
+	try:
+		addresses = frappe.parse_json(emails)
+	except ValueError:
+		addresses = None
+
+	if not isinstance(addresses, list):
+		return {"user_info": {}, "contact_images": {}}
+
+	cleaned = (e.strip().lower() for e in addresses if isinstance(e, str) and e.strip())
+	addresses = list(dict.fromkeys(cleaned))[:100]
+
+	user_info = {}
+	frappe.utils.add_user_info(addresses, user_info)
+
+	# Contacts are the fallback, so only look up addresses without a user photo.
+	contact_images = {}
+	remaining = [a for a in addresses if not user_info.get(a, {}).get("image")]
+	if remaining and frappe.has_permission("Contact"):
+		for row in frappe.get_list(
+			"Contact",
+			fields=["`tabContact Email`.email_id", "image"],
+			filters=[
+				["Contact Email", "email_id", "in", remaining],
+				["Contact", "image", "is", "set"],
+			],
+			limit_page_length=0,
+		):
+			if row.email_id:
+				contact_images.setdefault(row.email_id.lower(), row.image)
+
+	return {"user_info": user_info, "contact_images": contact_images}
+
+
 def get_system_managers():
 	return frappe.db.sql_list(
 		"""select parent FROM `tabHas Role`
@@ -135,6 +172,7 @@ def sendmail(
 	raw_html=False,
 	add_css=True,
 	redact_message_after_send=False,
+	wrapper=None,
 ) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -231,6 +269,7 @@ def sendmail(
 		raw_html=raw_html,
 		add_css=add_css,
 		redact_message_after_send=redact_message_after_send,
+		wrapper=wrapper,
 	)
 
 	# build email queue and send the email if send_now is True.

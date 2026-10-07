@@ -2,10 +2,14 @@
 # License: MIT. See LICENSE
 
 import json
+import os
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.utils.user_settings import clear_user_settings_cache
+from frappe.modules.utils import get_module_path
+from frappe.utils import cint
 
 
 class KanbanBoard(Document):
@@ -16,33 +20,236 @@ class KanbanBoard(Document):
 
 	if TYPE_CHECKING:
 		from frappe.desk.doctype.kanban_board_column.kanban_board_column import KanbanBoardColumn
+		from frappe.desk.doctype.kanban_board_field.kanban_board_field import KanbanBoardField
+		from frappe.desk.doctype.kanban_board_group_field.kanban_board_group_field import (
+			KanbanBoardGroupField,
+		)
 		from frappe.types import DF
 
+		card_fields: DF.Table[KanbanBoardField]
 		columns: DF.Table[KanbanBoardColumn]
 		field_name: DF.Literal[None]
 		fields: DF.Code | None
 		filters: DF.Code | None
+		footer_date_field: DF.Literal["Modified", "Creation"]
+		group_by_fields: DF.Table[KanbanBoardGroupField]
+		image_field: DF.Autocomplete | None
+		is_standard: DF.Literal["No", "Yes"]
 		kanban_board_name: DF.Data
+		module: DF.Link | None
+		preview_fields: DF.Table[KanbanBoardField]
 		private: DF.Check
 		reference_doctype: DF.Link
+		show_assigned_to: DF.Check
+		show_tags_on_card: DF.Check
 		show_labels: DF.Check
+		title_field: DF.Autocomplete | None
+		use_kanban_v2: DF.Check
 	# end: auto-generated types
 
 	def validate(self):
+		if self.is_standard == "Yes" or self._was_standard():
+			self.validate_standard()
 		self.validate_column_name()
+
+	def validate_standard(self):
+		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
+			frappe.throw(
+				_("Standard Kanban Boards can only be changed in developer mode"), frappe.PermissionError
+			)
+
+		if self.is_standard != "Yes":
+			return
+
+		if not self.is_new() and not self._was_standard():
+			frappe.throw(_("Only a new Kanban Board can be made standard"))
+
+		if not self.module:
+			frappe.throw(_("Module is required for a standard Kanban Board"), frappe.MandatoryError)
+
+		if self.private:
+			frappe.throw(_("A standard Kanban Board cannot be private"))
+
+		# the classic board saves card order to the board, which a standard board can't take
+		if not self.use_kanban_v2:
+			frappe.throw(_("A standard Kanban Board must use Kanban v2"))
+
+	def _was_standard(self) -> bool:
+		before = self.get_doc_before_save()
+		return bool(before and before.is_standard == "Yes")
 
 	def on_change(self):
 		frappe.clear_cache(doctype=self.reference_doctype)
-		frappe.cache.delete_keys("_user_settings")
+		clear_user_settings_cache(self.reference_doctype)
+
+	def on_update(self):
+		if not frappe.conf.developer_mode or frappe.flags.in_import:
+			return
+
+		if self.is_standard == "Yes":
+			self.export_board()
+		elif self._was_standard():
+			# no longer shipped with the app
+			self.get_doc_before_save().remove_export()
+
+	def on_trash(self):
+		if frappe.flags.in_migrate or self.is_standard != "Yes":
+			return
+
+		if not frappe.conf.developer_mode:
+			frappe.throw(
+				_("Standard Kanban Boards can only be deleted in developer mode"), frappe.PermissionError
+			)
+
+		# Otherwise the next migrate brings the board back.
+		self.remove_export()
+
+	def remove_export(self):
+		path = self.get_export_path()
+		if os.path.exists(path):
+			os.remove(path)
+
+	def before_rename(self, old: str, new: str, merge: bool = False):
+		if self.is_standard == "Yes":
+			frappe.throw(_("A standard Kanban Board cannot be renamed"))
+
+	def get_export_path(self) -> str:
+		"""Kept with the DocType it belongs to: doctype/{reference_doctype}/kanban_board/{name}.json"""
+		return os.path.join(
+			get_module_path(self.module),
+			"doctype",
+			frappe.scrub(self.reference_doctype),
+			"kanban_board",
+			f"{frappe.scrub(self.name)}.json",
+		)
+
+	def export_board(self):
+		path = self.get_export_path()
+		frappe.create_folder(os.path.dirname(path))
+		with open(path, "w+") as f:  # nosemgrep
+			f.write(frappe.as_json(self.as_dict(no_nulls=True, no_private_properties=True)) + "\n")
 
 	def before_insert(self):
-		for column in self.columns:
-			column.order = get_order_for_column(self, column.column_name)
+		# a board synced from an app file is taken as is
+		if frappe.flags.in_import:
+			return
+
+		self.use_kanban_v2 = 1
+		self.seed_title_and_image_fields()
+		self.seed_card_fields()
+		self.seed_preview_fields()
+		self.seed_group_by_fields()
+
+	def seed_title_and_image_fields(self):
+		"""Old boards leave these empty; the page then uses the doctype's fields."""
+		if not self.reference_doctype:
+			return
+		if not self.title_field:
+			self.title_field = default_title_field(self.reference_doctype)
+		if not self.image_field:
+			self.image_field = default_image_field(self.reference_doctype)
+
+	def seed_card_fields(self):
+		self._seed_field_table("card_fields", default_card_fieldnames(self.reference_doctype))
+
+	def seed_preview_fields(self):
+		self._seed_field_table("preview_fields", default_preview_fieldnames(self.reference_doctype))
+
+	def seed_group_by_fields(self):
+		# no fallback: an empty table hides the Group button
+		self._seed_field_table("group_by_fields", default_group_by_fieldnames(self.reference_doctype))
+
+	def _seed_field_table(self, tablefield: str, fieldnames: list[str]):
+		if self.get(tablefield) or not self.reference_doctype:
+			return
+		meta = frappe.get_meta(self.reference_doctype)
+		# these already have their own place on the card
+		skip = {self.field_name, self.title_field, self.image_field}
+		for fieldname in fieldnames:
+			if fieldname in skip:
+				continue
+			df = meta.get_field(fieldname)
+			self.append(
+				tablefield,
+				{"fieldname": fieldname, "label": df.label if df else fieldname},
+			)
 
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
 				frappe.msgprint(_("Column Name cannot be empty"), raise_exception=True)
+
+
+TITLE_FIELDTYPES = ("Data", "Text", "Small Text", "Text Editor")
+
+
+def default_title_field(doctype: str) -> str:
+	meta = frappe.get_meta(doctype)
+	title = meta.get("title_field")
+	if title:
+		df = meta.get_field(title)
+		# a DocType's own title is often a hidden, computed field
+		if df and df.fieldtype in TITLE_FIELDTYPES:
+			return title
+	for df in meta.fields:
+		if df.fieldtype in TITLE_FIELDTYPES and df.fieldname and not df.hidden:
+			return df.fieldname
+	return "name"
+
+
+def default_image_field(doctype: str) -> str | None:
+	meta = frappe.get_meta(doctype)
+	if meta.image_field:
+		return meta.image_field
+	images = meta.get_image_fields()
+	return images[0].fieldname if images else None
+
+
+def default_card_fieldnames(doctype: str) -> list[str]:
+	"""In-list-view fields, else mandatory ones; the page picks the same when the table is empty."""
+	from frappe.model import no_value_fields, table_fields
+
+	meta = frappe.get_meta(doctype)
+
+	def usable(df):
+		return (
+			df.fieldtype not in no_value_fields
+			and df.fieldtype not in table_fields
+			and df.fieldtype != "Check"
+			and not df.hidden
+		)
+
+	fieldnames = [df.fieldname for df in meta.fields if df.in_list_view and usable(df)]
+	if not fieldnames:
+		fieldnames = [df.fieldname for df in meta.fields if df.reqd and usable(df)]
+	return fieldnames[:6]
+
+
+def default_preview_fieldnames(doctype: str) -> list[str]:
+	"""Same source as link previews: in-preview fields, else mandatory ones."""
+	from frappe.model import no_value_fields, table_fields
+
+	meta = frappe.get_meta(doctype)
+	skip = {meta.get_title_field(), meta.image_field, "name"}
+
+	def usable(df):
+		return (
+			df.fieldtype not in no_value_fields
+			and df.fieldtype not in table_fields
+			and df.fieldtype != "Check"
+			and not df.hidden
+			and df.fieldname not in skip
+		)
+
+	fieldnames = [df.fieldname for df in meta.fields if df.in_preview and usable(df)]
+	if not fieldnames:
+		fieldnames = [df.fieldname for df in meta.fields if df.reqd and usable(df)]
+	return fieldnames[:6]
+
+
+def default_group_by_fieldnames(doctype: str) -> list[str]:
+	meta = frappe.get_meta(doctype)
+	return [df.fieldname for df in meta.fields if df.fieldtype == "Select" and not df.hidden]
 
 
 def get_permission_query_conditions(user):
@@ -70,9 +277,260 @@ def get_kanban_boards(doctype: str):
 	"""Get Kanban Boards for doctype to show in List View"""
 	return frappe.get_list(
 		"Kanban Board",
-		fields=["name", "filters", "reference_doctype", "private"],
+		fields=["name", "filters", "reference_doctype", "private", "is_standard", "use_kanban_v2"],
 		filters={"reference_doctype": doctype},
 	)
+
+
+def ensure_kanban_board_permission(board: Document, ptype: str = "read") -> None:
+	frappe.has_permission("Kanban Board", ptype, doc=board, throw=True)
+
+
+# Paginated Kanban APIs: load cards per column in pages instead of all at once.
+def get_kanban_reportview_args():
+	"""Read list-view style args from the request, plus Kanban paging fields."""
+	from frappe.desk.reportview import clean_params, validate_args
+
+	data = frappe._dict(frappe.local.form_dict)
+	board_name = data.pop("board_name", None)
+	column_name = data.pop("column_name", None)
+	kanban_start = cint(data.pop("kanban_start", data.pop("start", 0)))
+	kanban_page_length = cint(data.pop("kanban_page_length", 50)) or 50
+
+	if not board_name:
+		frappe.throw(_("Board name is required"), title=_("Kanban Board"))
+
+	clean_params(data)
+	validate_args(data)
+	return board_name, column_name, kanban_start, kanban_page_length, data
+
+
+def get_kanban_board_context(board_name: str):
+	"""Load the board and return active (non-archived) column names."""
+	board = frappe.get_doc("Kanban Board", board_name)
+	ensure_kanban_board_permission(board, "read")
+	frappe.has_permission(board.reference_doctype, "read", throw=True)
+	column_names = [col.column_name for col in board.columns if col.status != "Archived"]
+	return board, column_names
+
+
+def merge_kanban_filters(board: Document, filters: list | None) -> list:
+	"""Add board filters to the request without duplicating them."""
+	merged = list(filters or [])
+	if not board.filters:
+		return merged
+
+	board_filters = frappe.parse_json(board.filters)
+	if not board_filters:
+		return merged
+
+	existing = {_kanban_filter_key(f) for f in merged}
+	for filt in board_filters:
+		if _kanban_filter_key(filt) not in existing:
+			merged.append(filt)
+	return merged
+
+
+def _kanban_filter_key(filt):
+	"""Simple key so we do not add the same filter twice."""
+
+	def _hashable(value):
+		if isinstance(value, list):
+			return tuple(value)
+		return value
+
+	if isinstance(filt, (list, tuple)):
+		parts = list(filt[:4]) if len(filt) >= 4 else list(filt)
+		return tuple(_hashable(part) for part in parts)
+	return (_hashable(filt),)
+
+
+def column_filter(doctype: str, field_name: str, column_name: str, filters: list | None) -> list:
+	"""Add a filter so we only get cards in this column."""
+	return [*(filters or []), [doctype, field_name, "=", column_name]]
+
+
+def fetch_kanban_column_cards(
+	reportview_args,
+	doctype: str,
+	field_name: str,
+	column_name: str,
+	start: int,
+	page_length: int,
+):
+	"""Load one page of cards for a column from the database."""
+	from frappe.desk.reportview import compress, execute, send_compressed_link_titles
+
+	query_args = frappe._dict(reportview_args.copy())
+	query_args.start = cint(start)
+	query_args.page_length = cint(page_length)
+	query_args.filters = column_filter(doctype, field_name, column_name, query_args.filters)
+	data = compress(execute(**query_args), args=query_args)
+	# so Link fields show titles, as in the list view
+	send_compressed_link_titles(query_args, data)
+	return data
+
+
+def get_kanban_column_counts(
+	doctype: str, field_name: str, filters: list | None, column_names: list[str]
+) -> dict[str, int]:
+	"""Count cards in each column. If group-by fails, count each column separately."""
+	counts = {name: 0 for name in column_names}
+	if not column_names:
+		return counts
+
+	try:
+		rows = frappe.get_list(
+			doctype,
+			filters=filters,
+			group_by=field_name,
+			fields=[f"{field_name} as name", {"COUNT": "*", "as": "_count"}],
+			order_by=None,
+			limit=0,
+		)
+		for row in rows:
+			if row.name in counts:
+				counts[row.name] = cint(row.get("_count", 0))
+	except Exception:
+		frappe.log_error(
+			title="Kanban column count group-by failed",
+			message=frappe.get_traceback(),
+		)
+		for column_name in column_names:
+			counts[column_name] = frappe.db.count(
+				doctype,
+				filters=column_filter(doctype, field_name, column_name, filters),
+			)
+	return counts
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_kanban_board_data():
+	"""First load: total per column + first page of cards (default 50 each)."""
+	board_name, _, _, kanban_page_length, reportview_args = get_kanban_reportview_args()
+	board, column_names = get_kanban_board_context(board_name)
+	doctype = board.reference_doctype
+	field_name = board.field_name
+	filters = merge_kanban_filters(board, reportview_args.filters)
+	reportview_args.filters = filters
+
+	counts = get_kanban_column_counts(doctype, field_name, filters, column_names)
+	columns = {}
+
+	for column_name in column_names:
+		cards = fetch_kanban_column_cards(
+			reportview_args, doctype, field_name, column_name, 0, kanban_page_length
+		)
+		columns[column_name] = {"total": counts.get(column_name, 0), "cards": cards}
+
+	return {"columns": columns}
+
+
+def validate_kanban_group_by(board, group_by: str):
+	"""Only fields the board offers in its Group menu."""
+	if group_by == "_assign":
+		# unset means on, as on the page
+		if not cint(board.show_assigned_to, 1):
+			frappe.throw(_("Invalid group field"), title=_("Kanban Board"))
+		return
+
+	allowed = {row.fieldname for row in (board.group_by_fields or []) if row.fieldname}
+	if group_by not in allowed or not frappe.get_meta(board.reference_doctype).get_field(group_by):
+		frappe.throw(_("Invalid group field"), title=_("Kanban Board"))
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_kanban_group_values(board_name: str, group_by: str, filters: str | list | None = None):
+	"""Lane values with counts, most cards first, capped so a Link like Customer can't explode the board."""
+	from collections import Counter
+
+	board, _ = get_kanban_board_context(board_name)
+	doctype = board.reference_doctype
+	validate_kanban_group_by(board, group_by)
+
+	merged = merge_kanban_filters(board, frappe.parse_json(filters) if filters else None)
+	limit = 20
+	lanes = []
+	unset = 0
+
+	if group_by == "_assign":
+		counter = Counter()
+		# bounded so a large doctype can't exhaust the worker; counts past it are approximate
+		assign_scan_limit = 5000
+		for raw in frappe.get_list(doctype, filters=merged, pluck="_assign", limit=assign_scan_limit):
+			users = frappe.parse_json(raw) if raw else []
+			if users:
+				for user in users:
+					counter[user] += 1
+			else:
+				unset += 1
+		lanes = [{"value": user, "label": user, "count": count} for user, count in counter.most_common(limit)]
+	else:
+		rows = frappe.get_list(
+			doctype,
+			filters=merged,
+			fields=[f"{group_by} as value", {"COUNT": "*", "as": "_count"}],
+			group_by=group_by,
+			order_by="_count desc",
+			limit=limit + 1,
+		)
+		for row in rows:
+			value = row.get("value")
+			count = cint(row.get("_count"))
+			if value in (None, ""):
+				unset += count
+			else:
+				lanes.append({"value": value, "label": value, "count": count})
+		lanes = lanes[:limit]
+		set_link_lane_labels(doctype, group_by, lanes)
+
+	return {"lanes": lanes, "unset": unset}
+
+
+def set_link_lane_labels(doctype: str, group_by: str, lanes: list[dict]):
+	"""Label Link lanes with their titles, as the list view shows them."""
+	from frappe.desk.link_title import get_link_title_field, get_link_titles
+
+	df = frappe.get_meta(doctype).get_field(group_by)
+	if not lanes or df.fieldtype != "Link":
+		return
+	title_field = get_link_title_field(df.options)
+	if not title_field:
+		return
+	titles = get_link_titles(df.options, title_field, {lane["value"] for lane in lanes})
+	for lane in lanes:
+		lane["label"] = titles.get(lane["value"]) or lane["value"]
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_kanban_column_page():
+	"""Load the next chunk of cards for one column (scroll up or down).
+
+	kanban_start = which card index to start from (0 = first card in column).
+	"""
+	board_name, column_name, kanban_start, kanban_page_length, reportview_args = get_kanban_reportview_args()
+	if not column_name:
+		frappe.throw(_("Column name is required"), title=_("Kanban Board"))
+
+	board, column_names = get_kanban_board_context(board_name)
+	if column_name not in column_names:
+		frappe.throw(_("Invalid column"), title=_("Kanban Board"))
+
+	doctype = board.reference_doctype
+	field_name = board.field_name
+	filters = merge_kanban_filters(board, reportview_args.filters)
+	reportview_args.filters = filters
+	col_filters = column_filter(doctype, field_name, column_name, filters)
+
+	cards = fetch_kanban_column_cards(
+		reportview_args, doctype, field_name, column_name, kanban_start, kanban_page_length
+	)
+	total = frappe.db.count(doctype, filters=col_filters)
+
+	return {"total": total, "cards": cards}
 
 
 @frappe.whitelist()
@@ -103,7 +561,7 @@ def archive_restore_column(board_name: str, column_title: str, status: str):
 
 
 @frappe.whitelist()
-def update_order(board_name: str, order: str):
+def update_order(board_name: str, order: str | dict):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	# Card ordering only requires read access to the board plus write access to the
@@ -118,20 +576,27 @@ def update_order(board_name: str, order: str):
 		return board, updated_cards
 
 	fieldname = board.field_name
-	order_dict = json.loads(order)
+	order_dict = frappe.parse_json(order)
 
 	for col_name, cards in order_dict.items():
+		# the classic board's saved order can still list deleted documents
+		valid_cards = []
 		for card in cards:
-			column = frappe.get_value(doctype, {"name": card}, fieldname)
+			column = frappe.db.get_value(doctype, card, fieldname)
 			if column != col_name:
+				if not frappe.db.exists(doctype, card):
+					continue
 				frappe.set_value(doctype, card, fieldname, col_name)
 				updated_cards.append(dict(name=card, column=col_name))
+			valid_cards.append(card)
 
 		for column in board.columns:
 			if column.column_name == col_name:
-				column.order = json.dumps(cards)
+				column.order = json.dumps(valid_cards)
 
-	return board.save(ignore_permissions=True), updated_cards
+	saved = board.save(ignore_permissions=True)
+	publish_kanban_board_update(saved)
+	return saved, updated_cards
 
 
 @frappe.whitelist()
@@ -140,10 +605,16 @@ def update_order_for_single_card(
 	docname: str,
 	from_colname: str,
 	to_colname: str,
-	old_index: str | int,
-	new_index: str | int,
+	old_index: str | int | None = None,
+	new_index: str | int | None = None,
+	from_order: str | list | None = None,
+	to_order: str | list | None = None,
 ):
-	"""Save the order of cards in columns"""
+	"""Save card order after drag.
+
+	Send from_order and to_order when the client already has the full lists.
+	Otherwise send old_index and new_index.
+	"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	# Card ordering only requires read access to the board plus write access to the
 	# underlying records; see update_order for why this isn't board-write.
@@ -153,41 +624,55 @@ def update_order_for_single_card(
 	frappe.has_permission(doctype, "write", throw=True)
 
 	fieldname = board.field_name
-	old_index = frappe.parse_json(old_index)
-	new_index = frappe.parse_json(new_index)
-
-	# save current order and index of columns to be updated
 	from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
 	to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
 
-	if from_colname == to_colname:
-		from_col_order = to_col_order
+	if from_order is not None and to_order is not None:
+		from_col_order = frappe.parse_json(from_order)
+		to_col_order = frappe.parse_json(to_order)
+	else:
+		old_index = frappe.parse_json(old_index)
+		new_index = frappe.parse_json(new_index)
 
-	if from_col_order:
-		to_col_order.insert(new_index, from_col_order.pop(old_index))
+		if from_colname == to_colname:
+			from_col_order = to_col_order
+
+		if from_col_order:
+			to_col_order.insert(new_index, from_col_order.pop(old_index))
 
 	# save updated order
 	board.columns[from_col_idx].order = frappe.as_json(from_col_order)
 	board.columns[to_col_idx].order = frappe.as_json(to_col_order)
-	board.save(ignore_permissions=True)
+	saved = board.save(ignore_permissions=True)
+	publish_kanban_board_update(saved)
 
 	# update changed value in doc
 	frappe.set_value(doctype, docname, fieldname, to_colname)
 
-	return board
+	return saved
 
 
 def get_kanban_column_order_and_index(board, colname):
+	"""Return parsed card-name order list and board.columns index for a column."""
 	for i, col in enumerate(board.columns):
 		if col.column_name == colname:
-			col_order = frappe.parse_json(col.order)
-			col_idx = i
+			return frappe.parse_json(col.order), i
+	frappe.throw(_("Invalid column"), title=_("Kanban Board"))
 
-	return col_order, col_idx
+
+def publish_kanban_board_update(board):
+	"""Tell other open Kanban tabs to refresh column order."""
+	frappe.publish_realtime(
+		"kanban_board_update",
+		{"board_name": board.name, "reference_doctype": board.reference_doctype},
+		doctype=board.reference_doctype,
+		after_commit=True,
+	)
 
 
 @frappe.whitelist()
 def add_card(board_name: str, docname: str, colname: str):
+	"""Prepend a new card to a column's saved order and notify other sessions."""
 	board = frappe.get_doc("Kanban Board", board_name)
 	# Card ordering only requires read access to the board plus write access to the
 	# underlying records; see update_order for why this isn't board-write.
@@ -200,11 +685,18 @@ def add_card(board_name: str, docname: str, colname: str):
 
 	board.columns[col_idx].order = frappe.as_json(col_order)
 
-	return board.save(ignore_permissions=True)
+	saved = board.save(ignore_permissions=True)
+	publish_kanban_board_update(saved)
+	return saved
 
 
 @frappe.whitelist()
-def quick_kanban_board(doctype: str, board_name: str, field_name: str, project: str | None = None):
+def quick_kanban_board(
+	doctype: str,
+	board_name: str,
+	field_name: str,
+	project: str | None = None,
+):
 	"""Create new KanbanBoard quickly with default options"""
 
 	doc = frappe.new_doc("Kanban Board")
@@ -247,11 +739,11 @@ def get_order_for_column(board, colname):
 
 
 @frappe.whitelist()
-def update_column_order(board_name: str, order: str):
+def update_column_order(board_name: str, order: str | list):
 	"""Set the order of columns in Kanban Board"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	board.check_permission("write")
-	order = json.loads(order)
+	order = frappe.parse_json(order)
 	old_columns = board.columns
 	new_columns = []
 
@@ -294,8 +786,8 @@ def set_indicator(board_name: str, column_name: str, indicator: str):
 
 
 @frappe.whitelist()
-def save_settings(board_name: str, settings: str) -> Document:
-	settings = json.loads(settings)
+def save_settings(board_name: str, settings: str | dict) -> Document:
+	settings = frappe.parse_json(settings) or {}
 	doc = frappe.get_doc("Kanban Board", board_name)
 	doc.check_permission("write")
 
@@ -304,7 +796,8 @@ def save_settings(board_name: str, settings: str) -> Document:
 		fields = json.dumps(fields)
 
 	doc.fields = fields
-	doc.show_labels = settings["show_labels"]
+	if "show_labels" in settings:
+		doc.show_labels = settings.get("show_labels")
 	doc.save()
 
 	resp = doc.as_dict()
