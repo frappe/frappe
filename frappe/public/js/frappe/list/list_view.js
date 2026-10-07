@@ -1703,12 +1703,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let assigned_users = doc._assign ? JSON.parse(doc._assign) : [];
 		if (assigned_users.length) {
+			// clicking an avatar filters the list by that assignee (setup_filterable)
+			const avatars = assigned_users.map((user) => {
+				const { fullname, image } = frappe.user_info(user);
+				return {
+					label: fullname,
+					image,
+					css_class: "filterable",
+					attrs: { "data-filter": `_assign,like,%${user}%` },
+				};
+			});
 			assigned_to = `<div class="list-assignments d-flex align-items-center">
-					${
-						frappe.avatar_group(assigned_users, this.max_number_of_avatars - 1, {
-							filterable: true,
-						})[0].outerHTML
-					}
+					${frappe.ui.avatar_group.html({
+						avatars,
+						max: this.max_number_of_avatars - 1,
+						size: "md",
+					})}
 				</div>`;
 		}
 

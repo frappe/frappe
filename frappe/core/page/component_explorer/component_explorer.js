@@ -5,6 +5,27 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	// sample people for the Avatar Group examples
+	const PEOPLE = [
+		{ label: "John Doe", image: "https://avatars.githubusercontent.com/u/499550?s=60&v=4" },
+		{ label: "Jane Smith" },
+		{ label: "Sam Smith" },
+		{ label: "Alice Adams" },
+		{ label: "Ryan Reed" },
+		{ label: "Kim Lee" },
+		{ label: "Max Hart" },
+	];
+	const person_card = (person) =>
+		$('<div class="flex gap-3 items-center"></div>').append(
+			frappe.ui.avatar({ ...person, size: "xl" }),
+			$("<div></div>").append(
+				$('<div class="text-base-medium text-ink-gray-8"></div>').text(person.label),
+				$('<div class="text-sm text-ink-gray-5"></div>').text(
+					`${frappe.scrub(person.label, ".")}@example.com`
+				)
+			)
+		);
+
 	// the quick entry example's fields, read back by its Save action
 	let explorer_todo_fields;
 	// the search box and the button of the BottomSheet multi-select example
@@ -1908,6 +1929,22 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{ label: "Alice Adams", theme: "amber" },
 						{ label: "Ryan Reed", theme: "red" },
 						{ label: "Violet Vane", theme: "violet" },
+						{ label: "Olive Oak", theme: "orange" },
+						{ label: "Pia Park", theme: "pink" },
+						{ label: "Yara Young", theme: "yellow" },
+						{ label: "Theo Tan", theme: "teal" },
+						{ label: "Cyra Cole", theme: "cyan" },
+						{ label: "Paul Price", theme: "purple" },
+					],
+				},
+				{
+					title: __("Auto theme (picked from the name, same name same color)"),
+					items: [
+						{ label: "John Doe", theme: "auto" },
+						{ label: "Jane Smith", theme: "auto" },
+						{ label: "Sam Smith", theme: "auto" },
+						{ label: "Alice Adams", theme: "auto" },
+						{ label: "Ryan Reed", theme: "auto" },
 					],
 				},
 				{
@@ -1941,6 +1978,113 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						},
 						{ label: "Jane Smith", theme: "blue", indicator: "gray", size: "xl" },
 						{ label: "Sam Smith", theme: "violet", indicator: "red", size: "2xl" },
+					],
+				},
+			],
+		},
+		"Avatar Group": {
+			helper: "frappe.ui.avatar_group",
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							__code: "frappe.ui.avatar_group({ avatars: [{ label, image, theme }, ...] })",
+							avatars: PEOPLE.slice(0, 3),
+						},
+					],
+				},
+				{
+					title: __("Overflow (hover +4 to see everyone)"),
+					items: [
+						{
+							__code: "frappe.ui.avatar_group({ avatars: seven_people, max: 3 })",
+							avatars: PEOPLE,
+							max: 3,
+						},
+					],
+				},
+				{
+					title: __("With add button"),
+					items: [
+						{
+							__code: 'frappe.ui.avatar_group({\n  avatars,\n  add: { title: "Assign", onclick: () => assign() },\n})',
+							avatars: PEOPLE.slice(0, 5),
+							add: {
+								title: __("Assign"),
+								onclick: () => frappe.ui.toast({ message: __("Add clicked") }),
+							},
+						},
+					],
+				},
+				{
+					title: __("Empty (only the add button)"),
+					items: [
+						{
+							__code: 'frappe.ui.avatar_group({ avatars: [], add: { title: "Assign" } })',
+							avatars: [],
+							add: { title: __("Assign") },
+						},
+					],
+				},
+				{
+					title: __("Clickable avatars (click +4: the list rows click too)"),
+					items: [
+						{
+							__code: "frappe.ui.avatar_group({\n  avatars,\n  onclick: (avatar, e) => open_profile(avatar),\n})",
+							avatars: PEOPLE,
+							onclick: (avatar) =>
+								frappe.ui.toast({ message: __("Clicked {0}", [avatar.label]) }),
+						},
+					],
+				},
+				{
+					title: __("Hover card (rest the pointer on an avatar)"),
+					items: [
+						{
+							__code: "frappe.ui.avatar_group({\n  avatars,\n  hover_card: (avatar) => build_user_card(avatar),  // details only; actions go in onclick\n})",
+							avatars: PEOPLE.slice(0, 3),
+							hover_card: person_card,
+						},
+					],
+				},
+				{
+					title: __("Sizes"),
+					items: ["xs", "sm", "md", "lg", "xl"].map((size) => ({
+						__code: `frappe.ui.avatar_group({ avatars, size: "${size}", add: {} })`,
+						avatars: PEOPLE,
+						size,
+						add: {},
+					})),
+				},
+				{
+					title: __("Colors (auto by default; a group or avatar theme overrides it)"),
+					items: [
+						{
+							__code: 'frappe.ui.avatar_group({ avatars })  // theme: "auto"',
+							avatars: PEOPLE.slice(1),
+						},
+						{
+							__code: 'frappe.ui.avatar_group({ avatars, theme: "gray" })',
+							avatars: PEOPLE.slice(1),
+							theme: "gray",
+						},
+						{
+							__code: 'frappe.ui.avatar_group({ avatars: [{ label: "Everyone", theme: "blue" }, ...] })',
+							avatars: [{ label: "Everyone", theme: "blue" }, ...PEOPLE.slice(1, 4)],
+						},
+					],
+				},
+				{
+					title: __("Square"),
+					items: [
+						{
+							__code: 'frappe.ui.avatar_group({ avatars, size: "lg", shape: "square", add: {} })',
+							avatars: PEOPLE,
+							size: "lg",
+							shape: "square",
+							add: {},
+						},
 					],
 				},
 			],
