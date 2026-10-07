@@ -246,7 +246,7 @@ onMounted(() => {
 .pfb-renderer-note {
 	margin-top: 4px;
 	font-size: var(--text-sm);
-	color: var(--text-muted);
+	color: var(--ink-gray-6);
 }
 
 .pfb-settings :deep(.pfb-insp-row:not(.pfb-insp-row--toggle)) {
