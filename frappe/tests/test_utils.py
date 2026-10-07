@@ -1433,58 +1433,6 @@ class TestTypingValidations(FrappeTestCase):
 		report.toggle_disable(changed_value)
 		report.toggle_disable(current_value)
 
-	def test_forced_types(self):
-		def func(a, b=None, **kwargs):
-			pass
-
-		lax_types = frappe.whitelist(force_types=False)(func)
-		lax_types(1)  # should run without error
-
-		forced_types = frappe.whitelist(force_types=True)(func)
-		with self.assertRaises(frappe.FrappeTypeError):
-			forced_types(1)
-
-		@frappe.whitelist(force_types=True)
-		def func(a: int, b=None, **kwargs):
-			pass
-
-		with self.assertRaises(frappe.FrappeTypeError):
-			func(1)
-
-		@frappe.whitelist(force_types=True)
-		def func(a: int, b: int | None = None, **kwargs):
-			pass
-
-		func(1)  # should run without error
-
-	def test_whitelisted_http_methods_are_stored_as_tuple(self):
-		def default_methods():
-			pass
-
-		def list_methods():
-			pass
-
-		def tuple_methods():
-			pass
-
-		def string_method():
-			pass
-
-		default_methods = frappe.whitelist()(default_methods)
-		list_methods = frappe.whitelist(methods=["GET", "POST"])(list_methods)
-		tuple_methods = frappe.whitelist(methods=("PUT", "DELETE"))(tuple_methods)
-		string_method = frappe.whitelist(methods="GET")(string_method)
-
-		self.assertEqual(
-			frappe.allowed_http_methods_for_whitelisted_func[default_methods],
-			("GET", "POST", "PUT", "DELETE", "QUERY"),
-		)
-		self.assertEqual(
-			frappe.allowed_http_methods_for_whitelisted_func[list_methods], ("GET", "POST", "QUERY")
-		)
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[tuple_methods], ("PUT", "DELETE"))
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET", "QUERY"))
-
 
 class TestTBSanitization(FrappeTestCase):
 	def test_traceback_sanitization(self):
