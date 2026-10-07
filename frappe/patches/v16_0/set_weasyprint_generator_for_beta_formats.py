@@ -7,7 +7,7 @@ def execute():
 	frappe.reload_doctype("Print Format")
 	for row in frappe.get_all(
 		"Print Format",
-		filters={"print_format_builder_beta": 1, "custom_format": 0, "raw_printing": 0},
+		filters={"print_format_builder_beta": 1, "custom_format": 0, "raw_printing": 0, "standard": "No"},
 		fields=["name", "pdf_generator"],
 	):
 		if row.pdf_generator in ("Typst", "WeasyPrint"):
