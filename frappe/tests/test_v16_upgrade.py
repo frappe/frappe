@@ -31,6 +31,7 @@ CONVERSION = (
 	"frappe.patches.v16_0.convert_custom_sidebars",
 	"frappe.patches.v16_0.move_custom_sidebar_workspaces",
 	"frappe.patches.v16_0.convert_personal_sidebars",
+	"frappe.patches.v16_0.remove_modules_made_from_generated_sidebars",
 )
 
 
@@ -732,6 +733,7 @@ class TestCustomSidebars(IntegrationTestCase):
 	OPEN_ICON = "V16 Open Icon"
 	IN_FOLDER = "V16 In Folder"
 	IN_APP = "V16 In App"
+	GENERATED = "V16 Generated"
 	SYSTEM_MANAGER = "test-v16-custom-manager@example.com"
 	GATED_ROLE = "Test V16 Gated Role"
 	USER = "test-v16-custom@example.com"
@@ -830,6 +832,10 @@ class TestCustomSidebars(IntegrationTestCase):
 		archive("V16 Old Base", items, module=cls.HOST)
 		archive(f"{cls.SHOWROOM}-{cls.USER}", items[:1], module=cls.HOST, for_user=cls.USER)
 
+		# what v16 built on its own from an app's workspace, with neither flag set
+		standard_workspace(cls.GENERATED, cls.HOST)
+		archive(cls.GENERATED, [home(cls.GENERATED), *items], module=cls.HOST)
+
 		cls.output = run_conversion()
 
 	@classmethod
@@ -884,6 +890,13 @@ class TestCustomSidebars(IntegrationTestCase):
 	def test_a_base_in_an_app_module_is_not_mistaken_for_its_custom_module(self):
 		# the old base still answers to the title's URL, so the module takes the suffix
 		self.assertEqual(frappe.db.get_value("Module Def", "V16 Old Base (Custom)", "custom"), 1)
+
+	def test_a_row_v16_generated_from_an_apps_workspace_is_the_apps(self):
+		"""It names the app's workspace and links to it, so it is the app's content: the host
+		keeps its own sidebar, and no module is made for the row."""
+		self.assertFalse(frappe.db.exists("Module Def", self.GENERATED))
+		self.assertFalse(frappe.db.exists("Module Def", f"{self.GENERATED} (Custom)"))
+		self.assertFalse(frappe.db.exists("Sidebar", {"merged_from": json.dumps([self.GENERATED])}))
 
 	def test_a_title_with_nothing_routable_still_gets_a_module(self):
 		self.assertEqual(frappe.db.get_value("Module Def", "Custom Sidebar", "custom"), 1)
@@ -947,6 +960,127 @@ class TestCustomSidebars(IntegrationTestCase):
 		run_conversion()
 		after = frappe.db.count("Module Def"), frappe.db.count("Sidebar"), frappe.db.count("Custom Sidebar")
 		self.assertEqual(before, after)
+
+
+class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
+	"""A site that ran the earlier conversion holds a custom module per sidebar v16 generated from
+	an app's workspace, beside the app's own module. The cleanup takes them out again."""
+
+	HELD = "Test V16 Held Module"
+	BARE = "Test V16 Bare Module"
+	HELD_ROW = "V16 Held Generated"
+	BARE_ROW = "V16 Bare Generated"
+	USER = "test-v16-cleanup@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+
+		with no_developer_mode():
+			for module in (cls.HELD, cls.BARE):
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": module, "app_name": "frappe"}
+				).insert()
+				clear_computed_base_cache(module)
+		# one module the app ships a sidebar for, one it does not
+		make_sidebar(cls.HELD)
+
+		frappe.get_doc(
+			{"doctype": "User", "email": cls.USER, "first_name": "V16 Cleanup", "send_welcome_email": 0}
+		).insert(ignore_if_duplicate=True).add_roles("Desk User")
+
+		for title, module in ((cls.HELD_ROW, cls.HELD), (cls.BARE_ROW, cls.BARE)):
+			standard_workspace(title, module)
+			archive(title, [home(title), link("ToDo", "Todos")], module=module)
+			cls.wrongly_converted(title)
+
+		frappe.get_doc(
+			{
+				"doctype": "Dock",
+				"app": "frappe",
+				"user": "",
+				"items": [
+					{"link_type": "Sidebar", "link_to": f"{cls.HELD_ROW} (Custom)", "title": cls.HELD_ROW}
+				],
+			}
+		).insert(ignore_permissions=True)
+
+		original = frappe.flags.get("in_patch")
+		frappe.flags.in_patch = True
+		try:
+			frappe.get_attr(CONVERSION[-1] + ".execute")()
+		finally:
+			frappe.flags.in_patch = original
+
+	@classmethod
+	def wrongly_converted(cls, title: str):
+		"""What `convert_custom_sidebars` made of the row before it told a generated row apart from
+		a site's own: a custom module, its sidebar, and a block for the user v16 did not show it
+		to."""
+		module = f"{title} (Custom)"
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": module, "custom": 1, "app_name": "frappe"}
+			).insert()
+		sidebar = frappe.new_doc("Sidebar")
+		sidebar.update({"module": module, "title": module, "merged_from": json.dumps([title])})
+		sidebar.append("items", link("ToDo", "Todos"))
+		original = frappe.flags.get("in_patch")
+		frappe.flags.in_patch = True
+		try:
+			sidebar.insert(ignore_permissions=True)
+		finally:
+			frappe.flags.in_patch = original
+		user = frappe.get_doc("User", cls.USER)
+		user.append("block_modules", {"module": module})
+		user.save(ignore_permissions=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.clear_cache()
+		super().tearDownClass()
+
+	def test_the_extra_module_goes(self):
+		for title in (self.HELD_ROW, self.BARE_ROW):
+			self.assertFalse(frappe.db.exists("Module Def", f"{title} (Custom)"))
+			self.assertFalse(frappe.db.exists("Sidebar", {"module": f"{title} (Custom)"}))
+
+	def test_the_apps_sidebar_is_left_alone(self):
+		self.assertEqual(
+			[row.link_to for row in frappe.get_doc("Sidebar", {"module": self.HELD}).items], ["User"]
+		)
+
+	def test_a_module_without_a_sidebar_takes_the_row(self):
+		items = frappe.get_doc("Sidebar", {"module": self.BARE}).items
+		self.assertEqual([row.link_to for row in items if row.link_type == "DocType"], ["ToDo"])
+
+	def test_its_dock_entry_and_blocks_go(self):
+		self.assertFalse(
+			frappe.db.exists("Dock Item", {"link_type": "Sidebar", "link_to": f"{self.HELD_ROW} (Custom)"})
+		)
+		self.assertNotIn(f"{self.HELD_ROW} (Custom)", frappe.get_doc("User", self.USER).get_blocked_modules())
+
+
+def standard_workspace(title: str, module: str):
+	"""An app's workspace, as its import leaves it on a site."""
+	with no_developer_mode():
+		return frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": title,
+				"module": module,
+				"public": 1,
+				"standard": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+
+
+def home(workspace: str) -> dict:
+	"""The link v16 put first on every sidebar it generated from a workspace."""
+	return {"type": "Link", "link_type": "Workspace", "link_to": workspace, "label": "Home"}
 
 
 def app_sidebar(module: str, title: str, items: list[dict]):
