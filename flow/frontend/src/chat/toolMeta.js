@@ -22,7 +22,7 @@ const TOOLS = {
 		label: "Reading DocType Meta",
 		stat: (result) => count(result.fields?.length ?? 0, "field"),
 	},
-	read: {
+	read_records: {
 		icon: "database",
 		label: "Reading Records",
 		view: ReadView,
