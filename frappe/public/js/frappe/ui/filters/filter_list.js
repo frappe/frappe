@@ -693,12 +693,12 @@ frappe.ui.FilterGroup = class {
 		});
 	}
 
-	add_filter(doctype, fieldname, condition, value, hidden) {
+	add_filter(doctype, fieldname, condition, value) {
 		if (!fieldname) return Promise.resolve();
 		// adds a new filter, returns true if filter has been added
 
 		if (!this.validate_args(doctype, fieldname)) return false;
-		let args = [doctype, fieldname, condition, value, hidden];
+		let args = [doctype, fieldname, condition, value];
 		const promise = this.push_new_filter(args);
 		this.toggle_empty_filters(false);
 		this.refresh_prefixes();
@@ -733,7 +733,7 @@ frappe.ui.FilterGroup = class {
 		}
 	}
 
-	_push_new_filter(doctype, fieldname, condition, value, hidden = false) {
+	_push_new_filter(doctype, fieldname, condition, value) {
 		let filter;
 		let args = {
 			parent: this.wrapper,
@@ -743,8 +743,6 @@ frappe.ui.FilterGroup = class {
 			fieldname: fieldname,
 			condition: condition,
 			value: value,
-			hidden: hidden,
-			index: this.filters.length + 1,
 			on_change: (update) => {
 				if (update) this.update_filters();
 				this.refresh_dynamic_link_filters();
