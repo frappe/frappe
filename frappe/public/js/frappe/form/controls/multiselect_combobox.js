@@ -105,7 +105,8 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 	pill_label(value) {
 		const title =
 			this.is_title_link() && frappe.utils.get_link_title(this.get_options(), value);
-		return this.get_translated(title || value);
+		// a rich-text title field arrives as HTML; pills show its text
+		return this.get_translated(frappe.utils.html2text(title || value));
 	}
 
 	// titles not cached yet: fetch them, then redraw the pills

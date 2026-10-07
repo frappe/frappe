@@ -150,7 +150,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	// called after the title loads; skip if the value changed
 	translate_and_set_input_value(link_title, value) {
 		if (value !== this.displayed_value) return;
-		const text = this.get_translated(link_title || value);
+		// a rich-text title field arrives as HTML; the field shows its text
+		const text = this.get_translated(frappe.utils.html2text(link_title || value));
 		// can run before make_input (hidden field set by script)
 		this.title_value_map = this.title_value_map || {};
 		this.title_value_map[text] = value;
@@ -366,7 +367,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 				for (const row of rows) {
 					// don't cache a name as the title
 					if (row.label && row.label !== row.value) {
-						frappe.utils.add_link_title(context.doctype, row.value, row.label);
+						const title = frappe.utils.html2text(row.label);
+						frappe.utils.add_link_title(context.doctype, row.value, title);
 					}
 				}
 				const options = rows.map((row) => this.to_option(row, context));
@@ -520,7 +522,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	}
 
 	to_option(row, { doctype, show_image, is_title_link }) {
-		const label = this.get_translated(row.label || row.value);
+		// a rich-text title field arrives as HTML; rows show its text
+		const label = this.get_translated(frappe.utils.html2text(row.label || row.value));
 		let description = row.description;
 		// show the name only when it differs from the label
 		if (description && !is_title_link && description === row.value) {
