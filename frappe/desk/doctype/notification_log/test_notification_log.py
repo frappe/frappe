@@ -233,6 +233,21 @@ class TestNotificationLog(IntegrationTestCase):
 
 		self.assertEqual([log.subject for log in logs], [f"for {you}"])
 
+	def test_get_notification_logs_by_read_state(self):
+		you = make_recipient("notify_read_state@example.com")
+		for subject, read in (("old unread", 0), ("newer read", 1)):
+			frappe.get_doc(
+				{"doctype": "Notification Log", "subject": subject, "for_user": you, "read": read}
+			).insert(ignore_permissions=True)
+
+		with self.set_user(you):
+			unread = get_notification_logs(limit=1, read=0)["notification_logs"]
+			read = get_notification_logs(limit=1, read=1)["notification_logs"]
+
+		# with one shared limit, the newer read log alone would fill it
+		self.assertEqual([log.subject for log in unread], ["old unread"])
+		self.assertEqual([log.subject for log in read], ["newer read"])
+
 
 def make_recipient(email: str) -> str:
 	if not frappe.db.exists("User", email):
