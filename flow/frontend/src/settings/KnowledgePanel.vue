@@ -54,7 +54,7 @@ const tab = ref("bases");
 
 const base = ref("");
 const baseQuery = ref("");
-const query = useDebouncedValue(baseQuery, 150);
+const query = useDebouncedValue(baseQuery, 300);
 const bases = ref([]);
 const error = ref("");
 watch([tab, query], async ([value, text], _, onCleanup) => {

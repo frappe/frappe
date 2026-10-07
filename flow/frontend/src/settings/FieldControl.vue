@@ -206,11 +206,11 @@ const inputValue = computed(() => {
 	return value ?? "";
 });
 
-// Selected values remain visible while a different query is loading.
+// The current options stay while another query loads; selected values are always offered.
 const linkQuery = ref("");
-const debouncedLinkQuery = useDebouncedValue(linkQuery, 150);
+const debouncedLinkQuery = useDebouncedValue(linkQuery, 300);
 const links = ref([]);
-const linksLoading = ref(false);
+const linksLoading = ref(!!props.field.link); // until the first results arrive
 const linksError = ref("");
 const options = computed(() => {
 	const value = props.doc[props.field.name];
@@ -227,9 +227,7 @@ watch(
 	async ([doctype, query], _, onCleanup) => {
 		let stale = false;
 		onCleanup(() => (stale = true));
-		links.value = [];
 		linksError.value = "";
-		linksLoading.value = !!doctype;
 		if (!doctype) return;
 		try {
 			const data = await searchLinks(doctype, query, props.doc.doctype);

@@ -28,7 +28,7 @@
 				@click="edit(null)"
 			/>
 		</div>
-		<div v-if="loading && !rows.length" class="py-8 text-center text-xs text-ink-gray-5">
+		<div v-if="loading && !loaded" class="py-8 text-center text-xs text-ink-gray-5">
 			Loading…
 		</div>
 		<div
@@ -98,12 +98,13 @@ const page = inject("flowPage");
 const mode = ref("list");
 const editing = ref(null);
 const query = ref("");
-const debouncedQuery = useDebouncedValue(query, 150);
+const debouncedQuery = useDebouncedValue(query, 300);
 const canCreate = computed(() => page.can(props.spec.doctype, "create"));
 const hasEnabled = props.spec.fields.some((field) => field.name === "enabled");
 
 const PAGE_LENGTH = 200;
 const rows = ref([]);
+const loaded = ref(false);
 const loading = ref(false);
 const error = ref("");
 const hasMore = ref(false);
@@ -112,10 +113,10 @@ let request = 0;
 watch([debouncedQuery, () => props.filters], () => load(), { deep: true, immediate: true });
 onBeforeUnmount(() => request++);
 
+// a reload keeps the current rows on screen until its own arrive
 async function load(append = false) {
 	if (append && loading.value) return;
 	const own = ++request;
-	if (!append) rows.value = [];
 	loading.value = true;
 	error.value = "";
 	const query = debouncedQuery.value.trim().replace(/[\\%_]/g, "\\$&");
@@ -128,14 +129,18 @@ async function load(append = false) {
 				? props.spec.listFields.map((field) => [field, "like", `%${query}%`])
 				: [],
 			order_by: `${props.spec.orderBy ?? `${props.spec.titleField} asc`}, name asc`,
-			limit_start: rows.value.length,
+			limit_start: append ? rows.value.length : 0,
 			limit_page_length: PAGE_LENGTH + 1,
 		});
 		if (own !== request) return;
 		hasMore.value = data.length > PAGE_LENGTH;
+		if (!append) rows.value = [];
 		rows.value.push(...data.slice(0, PAGE_LENGTH));
+		loaded.value = true;
 	} catch (err) {
-		if (own === request) error.value = err.message;
+		if (own !== request) return;
+		if (!append) rows.value = []; // so Retry starts over
+		error.value = err.message;
 	} finally {
 		if (own === request) loading.value = false;
 	}
@@ -154,6 +159,8 @@ function saved(doc) {
 
 function changed() {
 	mode.value = "list";
+	// the deleted record goes now, not when the reload lands
+	rows.value = rows.value.filter((row) => row.name !== editing.value);
 	load();
 }
 </script>
