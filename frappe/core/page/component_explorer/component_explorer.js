@@ -7,7 +7,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 
 	function get_onboarding_checklist_items() {
 		const today = frappe.datetime.get_today();
-		const finish = (item, list) => list.set_status(item.id, "done");
+		const finish = (item, list) => list.update_item(item.id, { done: true });
 		const assign = (id, label, value) => ({
 			id,
 			label,
@@ -27,7 +27,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			{
 				id: "create_user",
 				label: "Create User",
-				status: "done",
+				done: true,
 				value: "jane@example.com",
 				assignee: frappe.session.user,
 				due_date: frappe.datetime.add_days(today, -3),
@@ -36,6 +36,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			{
 				id: "letter",
 				label: "Appointment Letter",
+				status: "in_progress",
 				description: "Create the letter, then email it to the new hire.",
 				assignee: frappe.session.user,
 				due_date: frappe.datetime.add_days(today, -1),
@@ -1821,10 +1822,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Basic (click an action to finish the item)"),
 					items: [
 						{
-							__code: 'frappe.ui.checklist({\n  title: "Set up",\n  items: [\n    { id: "company", label: "Create company", status: "done" },\n    { id: "users", label: "Invite users", skippable: true, actions: [\n      { label: "Invite", onclick: (item, list) => list.set_status(item.id, "done") },\n    ] },\n  ],\n})',
+							__code: 'frappe.ui.checklist({\n  title: "Set up",\n  items: [\n    { id: "company", label: "Create company", done: true },\n    { id: "users", label: "Invite users", skippable: true, actions: [\n      { label: "Invite", onclick: (item, list) => list.update_item(item.id, { done: true }) },\n    ] },\n  ],\n})',
 							title: "Set up",
 							items: [
-								{ id: "company", label: "Create company", status: "done" },
+								{ id: "company", label: "Create company", done: true },
 								{
 									id: "users",
 									label: "Invite users",
@@ -1835,7 +1836,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 										{
 											label: "Invite",
 											onclick: (item, list) =>
-												list.set_status(item.id, "done"),
+												list.update_item(item.id, { done: true }),
 										},
 									],
 								},
@@ -1847,7 +1848,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 										{
 											label: "Pick",
 											onclick: (item, list) =>
-												list.set_status(item.id, "done"),
+												list.update_item(item.id, { done: true }),
 										},
 									],
 								},
@@ -1859,9 +1860,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Owners, due dates and locked rows (employee onboarding)"),
 					items: [
 						{
-							__code: 'frappe.ui.checklist({\n  title: "Onboarding",\n  items: [\n    { id: "letter", label: "Appointment Letter", assignee: "hr@example.com", due_date: "2026-10-06", actions: [...] },\n    { id: "leave_policy", label: "Assign Leave Policy", value: "Standard", locked: "Needs: Create Employee", skippable: true, actions: [...] },\n  ],\n  on_assign: (item, user) => save_assignee(item.id, user),\n  on_due_date_change: (item, date) => save_due_date(item.id, date),\n})',
+							__code: 'frappe.ui.checklist({\n  title: "Onboarding",\n  items: [\n    { id: "letter", label: "Appointment Letter", assignee: "hr@example.com", due_date: "2026-10-06", actions: [...] },\n    { id: "leave_policy", label: "Assign Leave Policy", value: "Standard", locked: "Needs: Create Employee", skippable: true, actions: [...] },\n  ],\n  on_assign: (item, user) => save_assignee(item.id, user),\n  on_due_date_change: (item, date) => save_due_date(item.id, date),\n  on_status_change: (item, status) => save_status(item.id, status),\n})',
 							on_assign: () => null,
 							on_due_date_change: () => null,
+							on_status_change: () => null,
 							title: "Onboarding",
 							items: get_onboarding_checklist_items(),
 						},
