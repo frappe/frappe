@@ -100,6 +100,23 @@ test("an older settings search cannot overwrite a newer result", async (t) => {
 	assert.ok(el.querySelector("li").textContent.includes("Matching"));
 });
 
+test("saving keeps the form open; deleting goes back to the list", async (t) => {
+	transport.answers["frappe.client.get_list"] = () => [{ name: "tool-1", title: "Tool 1" }];
+	const el = mount(t, DocPanel, { spec });
+	await until(() => el.querySelector("li"));
+	[...el.querySelectorAll("button")].find((b) => b.textContent === "New tool").click();
+	await nextTick();
+	// the form is a stub here, so emit its events for it
+	const form = () => el.querySelector("[data-stub=DocForm]");
+	form().__vueParentComponent.emit("saved", { name: "tool-2", title: "Tool 2" });
+	await nextTick();
+	assert.equal(form().getAttribute("name"), "tool-2");
+	assert.equal(form().getAttribute("title"), "Edit tool");
+	form().__vueParentComponent.emit("deleted");
+	await until(() => el.querySelector("li"));
+	assert.equal(form(), null);
+});
+
 for (const typeName of ["link", "multilink"]) {
 	test(`${typeName} searches the server and retains the current selection`, async (t) => {
 		transport.calls.length = 0;
