@@ -1,10 +1,13 @@
 from unittest.mock import patch
 
 import frappe
+import frappe.hooks
 from frappe import get_hooks
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
+from frappe.website.path_resolver import get_website_rules, resolve_redirect
+from frappe.website.router import get_doctypes_with_web_view
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import build_response, clear_website_cache, get_boot_data, get_home_page
 
@@ -240,6 +243,71 @@ class TestWebsite(IntegrationTestCase):
 
 		delattr(frappe.hooks, "website_redirects")
 		frappe.client_cache.delete_value("app_hooks")
+
+	def test_redirects_do_not_grow_cached_hooks(self):
+		self.addCleanup(frappe.clear_cache)
+		hook_redirects = [{"source": "/hook-source", "target": "/hook-target"}]
+		settings_redirects = [frappe._dict(source="/removed-source", target="/removed-target")]
+
+		with patch.object(frappe.hooks, "website_redirects", hook_redirects, create=True):
+			frappe.clear_cache()
+			declared = list(frappe.get_hooks("website_redirects"))
+
+			with patch.object(frappe, "get_website_settings", return_value=settings_redirects):
+				resolve_redirect("first-uncached-path")
+				resolve_redirect("second-uncached-path")
+
+			self.assertEqual(frappe.get_hooks("website_redirects"), declared)
+
+			# the Website Settings redirect was removed, so it must stop matching
+			with patch.object(frappe, "get_website_settings", return_value=[]):
+				try:
+					resolve_redirect("removed-source")
+				except frappe.Redirect:
+					self.fail("a removed Website Settings redirect is still served")
+
+	def test_route_rules_do_not_grow_cached_hooks(self):
+		self.addCleanup(frappe.clear_cache)
+		real_get_all = frappe.get_all
+
+		def get_all(doctype, *args, **kwargs):
+			if doctype == "DocType" and args[:1] == ("name, route",):
+				return [frappe._dict(name="_Test Web View", route="test-web-view")]
+			return real_get_all(doctype, *args, **kwargs)
+
+		hook_rules = [{"from_route": "/hook-route", "to_route": "hook-page"}]
+		with (
+			patch.object(frappe.hooks, "website_route_rules", hook_rules, create=True),
+			patch.object(frappe, "get_all", get_all),
+		):
+			frappe.clear_cache()
+			declared = list(frappe.get_hooks("website_route_rules"))
+
+			for _ in range(2):
+				frappe.cache.delete_value("website_route_rules")
+				rules = get_website_rules()
+			self.assertEqual(frappe.get_hooks("website_route_rules"), declared)
+			self.assertEqual(len(rules), len(declared) + 1)
+
+			# the dev server rebuilds the rules on every call
+			with patch.object(frappe, "_dev_server", 1):
+				get_website_rules()
+				rules = get_website_rules()
+			self.assertEqual(frappe.get_hooks("website_route_rules"), declared)
+			self.assertEqual(len(rules), len(declared) + 1)
+
+	def test_website_generators_do_not_grow_cached_hooks(self):
+		self.addCleanup(frappe.clear_cache)
+		with patch.object(frappe.hooks, "website_generators", ["_Test Generator"], create=True):
+			frappe.clear_cache()
+			declared = list(frappe.get_hooks("website_generators"))
+
+			for _ in range(2):
+				frappe.cache.delete_value("doctypes_with_web_view")
+				doctypes = get_doctypes_with_web_view()
+
+			self.assertEqual(frappe.get_hooks("website_generators"), declared)
+			self.assertEqual(doctypes.count("_Test Generator"), 1)
 
 	def test_custom_page_renderer(self):
 		from frappe import get_hooks

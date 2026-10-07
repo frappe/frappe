@@ -1055,7 +1055,9 @@ def get_hooks(
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
 	:param default: Default if no hook found.
-	:param app_name: Filter by app."""
+	:param app_name: Filter by app.
+
+	The returned value is cached and shared across calls. Copy it before modifying."""
 
 	if app_name:
 		hooks = _request_cached_load_app_hooks(app_name)
