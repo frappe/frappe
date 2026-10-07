@@ -934,3 +934,229 @@ body.grid-col-resizing {
 		padding-right: 0 !important;
 	}
 }
+
+.grid-import-panel .file-preview-container + .justify-content-end {
+	display: none;
+}
+
+.grid-import-file-pane .file-size,
+.grid-import-file-pane .config-area {
+	display: none;
+}
+
+.grid-import-file-pane .file-preview-container .file-preview-outline {
+	border-color: var(--border-color);
+	border-radius: var(--radius);
+}
+
+.grid-import-upload-pane {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.grid-import-file-pane > .file-uploader {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.grid-import-file-pane > .file-uploader .file-upload-area {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.grid-import-step-panel {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow-y: clip;
+}
+
+.grid-import-upload-tabs {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.grid-import-upload-tabs > .es-tabs__panel {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+.grid-import-type .form-section > .section-body:first-child {
+	padding-top: 0;
+}
+
+.grid-import-type .form-group {
+	margin-bottom: 0;
+}
+
+.grid-import-step-panel .form-section > .section-body {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.grid-import-step-panel .form-group.frappe-control:last-child {
+	margin-bottom: 0;
+}
+
+.grid-import-dialog .grid-import-panel .grid-import-fill {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.modal-dialog.grid-import-dialog {
+	.modal-content {
+		height: min(85vh, calc(var(--spacing) * 144));
+		display: flex;
+		flex-direction: column;
+	}
+
+	.modal-body {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: clip;
+	}
+}
+
+.grid-import-body {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.modal.show:has(> .grid-import-dialog) ~ .modal-backdrop {
+	z-index: $zindex-modal + 1;
+}
+
+.modal.show:has(> .grid-import-dialog) ~ .modal.show {
+	z-index: $zindex-modal + 2;
+}
+
+.grid-import-preview-head-actions {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	flex: 0 0 auto;
+}
+
+.grid-import-preview-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: calc(var(--spacing) * 4);
+	margin-bottom: calc(var(--spacing) * 2);
+}
+
+.grid-import-footer-message {
+	align-self: center;
+	max-width: 60ch;
+}
+
+.grid-import-preview-hint {
+	margin-bottom: calc(var(--spacing) * 1);
+}
+
+.grid-import-preview-table {
+	--grid-import-row-height: calc(var(--spacing) * 11);
+	flex: 1 1 auto;
+	overflow: auto;
+	min-height: 0;
+
+	table {
+		margin: 0;
+		border-collapse: separate;
+		border-spacing: 0;
+	}
+
+	th,
+	td {
+		border-top-width: 0;
+		border-left-width: 0;
+	}
+}
+
+.grid-import-preview-row {
+	width: 1%;
+	white-space: nowrap;
+	color: var(--ink-gray-6);
+	text-align: center;
+}
+
+.grid-import-skip-cell {
+	width: 1%;
+	white-space: nowrap;
+	text-align: center;
+	vertical-align: middle;
+	position: sticky;
+	left: 0;
+	z-index: 1;
+	background-color: var(--fg-color);
+}
+
+.grid-import-skipped-row td:not(.grid-import-skip-cell) {
+	opacity: 0.5;
+}
+
+.grid-import-preview-table thead th {
+	vertical-align: top;
+	font-weight: var(--font-weight-semibold);
+	color: var(--ink-gray-8);
+}
+
+.grid-import-preview-table th[data-col] {
+	min-width: calc(var(--spacing) * 45);
+
+	&::before {
+		content: "";
+		display: inline-block;
+		vertical-align: middle;
+		width: calc(var(--spacing) * 1.5);
+		height: calc(var(--spacing) * 1.5);
+		margin-inline-end: calc(var(--spacing) * 2);
+		border-radius: 50%;
+		background: var(--surface-gray-3);
+	}
+
+	&[data-mapped="1"]::before {
+		background: var(--ink-green-6);
+	}
+
+	&.has-error::before {
+		background: var(--ink-red-6);
+	}
+}
+
+.grid-import-preview-table td[data-mapped="0"] {
+	color: var(--ink-gray-6);
+}
+
+.grid-import-preview-table td[data-col] .frappe-control {
+	margin-bottom: 0;
+}
+
+.grid-import-preview-table tbody td {
+	height: var(--grid-import-row-height);
+}
+
+.grid-import-preview-table tr[data-row] {
+	--control-bg: var(--neutral);
+
+	.form-control {
+		border: 1px solid var(--border-color);
+	}
+
+	.has-error .form-control {
+		border-color: var(--error-border);
+	}
+}
+
+.grid-import-preview-table tbody tr[data-row] td {
+	padding: 0 calc(var(--spacing) * 2);
+	vertical-align: middle;
+}
