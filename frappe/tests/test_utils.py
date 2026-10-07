@@ -1436,7 +1436,7 @@ class TestTypingValidations(FrappeTestCase):
 	def test_forced_types(self):
 		def func(a, b=None, **kwargs):
 			pass
-		
+
 		lax_types = frappe.whitelist(force_types=False)(func)
 		lax_types(1)  # should run without error
 
@@ -1486,7 +1486,7 @@ class TestTypingValidations(FrappeTestCase):
 		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET", "QUERY"))
 
 
-class TestTBSanitization(IntegrationTestCase):
+class TestTBSanitization(FrappeTestCase):
 	def test_traceback_sanitization(self):
 		handle = io.BufferedWriter(io.BytesIO())
 		try:
