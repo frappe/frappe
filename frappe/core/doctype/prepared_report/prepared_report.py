@@ -312,19 +312,23 @@ def expire_stalled_report():
 	if not stalled_reports:
 		return
 
+	status = "Error"
+	error_message = _("Report timed out.")
+
 	frappe.db.set_value(
 		"Prepared Report",
 		{"name": ("in", [instance.name for instance in stalled_reports])},
 		{
-			"status": "Error",
-			"error_message": _("Report timed out."),
+			"status": status,
+			"error_message": error_message,
 			"report_end_time": now(),
 		},
 		update_modified=False,
 	)
 
 	for instance in stalled_reports:
-		instance.status = "Error"
+		instance.status = status
+		instance.error_message = error_message
 		notify_report_status(instance)
 
 
