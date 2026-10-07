@@ -44,7 +44,7 @@ export async function createAppRouter(config?: RouterConfig): Promise<Router> {
 	}
 	const { routerOptions: options = {}, extendRoute } = config
 	const routes = getPageRoutes(window.app_pages)
-	if (extendRoute) await runHook("extendRoute", () => routes.forEach((route) => extendRoute(route)))
+	if (extendRoute) await runHook("extendRoute", () => routes.forEach((route) => extendPageRoute(route, extendRoute)))
 
 	const router = createRouter({
 		...options,
@@ -82,6 +82,13 @@ function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
 			appRoute: window.app_route,
 		},
 	}))
+}
+
+// `route.meta = {...}` must not drop the page's own meta keys
+function extendPageRoute(route: RouteRecordRaw, extendRoute: (route: RouteRecordRaw) => void) {
+	const pageMeta = route.meta
+	extendRoute(route)
+	route.meta = { ...route.meta, ...pageMeta }
 }
 
 function addHomeRouteFallback(router: Router) {
