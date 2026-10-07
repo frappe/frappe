@@ -259,6 +259,7 @@ onMounted(() => {
 	display: flex;
 	align-items: center;
 	gap: 4px;
+	margin-bottom: 6px;
 }
 
 .pfb-label-with-hint .control-label {
@@ -271,10 +272,6 @@ onMounted(() => {
 }
 
 .pfb-settings .form-group {
-	margin-bottom: 12px;
-}
-
-.pfb-settings .form-group:last-child {
 	margin-bottom: 0;
 }
 

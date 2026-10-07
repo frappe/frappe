@@ -542,6 +542,32 @@ test.describe("Desk URL shell segment", () => {
 		);
 	});
 
+	test("opens a report link with its filters", async ({ page }) => {
+		// Stock Balance for one warehouse is a link of its own: v16 kept the warehouse in route
+		// options, the conversion stores it as filters, and the report reads it off the query string.
+		await page.goto("/desk/build/todo");
+		await expect_shell(page, "Build");
+
+		const route = await page.evaluate(() =>
+			frappe.ui.sidebar_item.get_route(
+				{
+					type: "Link",
+					link_type: "Report",
+					link_to: "Permitted Documents For User",
+					report: { report_type: "Script Report", ref_doctype: "User" },
+					filters: JSON.stringify([
+						["Permitted Documents For User", "user", "=", "test@example.com"],
+					]),
+				},
+				false,
+				"Build"
+			)
+		);
+		expect(route).toBe(
+			"/desk/build/query-report/Permitted Documents For User?user=test%40example.com"
+		);
+	});
+
 	test("takes a stale shell off a workspace URL", async ({ page, desk }) => {
 		await open_desk(page, desk);
 		// The pair is read off this site's payload rather than named, because which shell lists

@@ -1,59 +1,34 @@
-import hashlib
-from collections import defaultdict
-
 import click
 
 import frappe
-from frappe.desk.doctype.sidebar.sidebar import (
-	LINKED_IDENTITY_FIELDS,
-	SIDEBAR_ITEM_FIELDS,
-	build_sidebar,
-	get_module_base,
-	is_linked,
-	item_key,
-	majority_module_of,
-	routable_title,
+from frappe.desk.doctype.sidebar.sidebar import build_sidebar
+from frappe.patches.v16_0.sidebar_archive import (
+	archive_exists,
+	by_module,
+	is_custom,
+	is_module,
+	site_rows,
+	write_base,
+	written_as_of,
 )
-
-# The v16 sidebar store. Nothing reads or writes it at runtime any more; this patch only reads.
-ARCHIVE_DOCTYPE = "Workspace Sidebar"
-ARCHIVE_ITEM_DOCTYPE = "Workspace Sidebar Item"
-
-# v16 hung a user's private workspaces off a sidebar titled "My Workspaces". Nothing in it was
-# authored and those links are derived on read now, so it is skipped rather than converted.
-PRIVATE_CONTAINER_TITLE = "my workspaces"
 
 
 def execute():
-	"""Carry every sidebar a v16 site holds into the documents that hold one now.
+	"""Build a `Sidebar` from an app's v16 sidebar, but only when the app no longer ships it.
 
-	Site-level rows become each module's `Sidebar`; a user's forked copy becomes their
-	`Custom Sidebar`. The old rows are left untouched, so this is safe to re-run.
+	Usually the app ships its sidebars as files, and `bench migrate` has already installed them
+	before this runs, so there is nothing to do. This covers an app that dropped a sidebar, or has
+	not yet converted its old sidebar files.
+
+	Sidebars the site made and users' personal copies are handled by the patches after this one.
+	The old rows are not changed, so this is safe to run again.
 	"""
-	if not frappe.db.exists("DocType", ARCHIVE_DOCTYPE):
+	if not archive_exists():
 		return
 
-	converted = convert_site_sidebars()
-	forks = convert_forks()
-
-	if converted or forks:
-		click.secho(
-			f"Sidebars: {len(converted)} module(s) carried over, {len(forks)} personal arrangement(s) kept.",
-			fg="green",
-		)
-
-
-# ---------------------------------------------------------------------------------------
-# The base: what this site showed everybody
-# ---------------------------------------------------------------------------------------
-
-
-def convert_site_sidebars() -> list[str]:
-	"""Merge each module's site-level rows into one `Sidebar`, unless the module already has one."""
 	converted = []
-	for module, sources in sorted(site_sources().items()):
-		# A sidebar that already exists is the current arrangement for this module, whoever made
-		# it.
+	for module, sources in sorted(standard_sources().items()):
+		# the app ships this module's sidebar, so it is the current arrangement
 		if frappe.db.exists("Sidebar", {"module": module}):
 			continue
 
@@ -67,260 +42,23 @@ def convert_site_sidebars() -> list[str]:
 				fg="yellow",
 			)
 
-	return converted
+	if converted:
+		click.secho(f"Sidebars: {len(converted)} module(s) carried over.", fg="green")
 
 
-def write_base(module: str, plan, as_of) -> None:
-	"""Write the merged list as the module's base sidebar."""
-	doc = frappe.new_doc("Sidebar")
-	doc.module = module
-	# the site's own name for the module: one sidebar keeps its workspace's title, a merge of
-	# several takes the module name.
-	#
-	# A v16 title was free text, and a title is a segment of the desk URL now, so one that cannot
-	# be -- `Buying / Selling`, or one slugging like another shell -- is repaired rather than
-	# inserted as it stands. `insert` would refuse it, and one label must not abort a migrate
-	# any more than one dead link may (see below).
-	doc.title = routable_title(plan["title"], module)
-	doc.header_icon = plan["header_icon"]
-	doc.standard = 0
-	doc.merged_from = plan["merged_from"]
-	# no `app`: nothing here came from an app's file
-	for item in plan["items"]:
-		doc.append("items", {field: item.get(field) for field in SIDEBAR_ITEM_FIELDS})
+def standard_sources() -> dict[str, list[frappe._dict]]:
+	"""The app's v16 sidebars that the app no longer ships, grouped by module.
 
-	# `ignore_links`, because these rows are the site's, not ours. A v16 site has been
-	# accumulating them for two release lines, and some of them point at things that are gone:
-	# erpnext's shipped v16 sidebars still name `Repost Accounting Ledger Settings`, a doctype it
-	# deleted in April, and an uninstalled app leaves the same kind of row behind. Validating them
-	# would let one dead link abort the whole migrate, and the item is worth more carried than
-	# dropped -- it is a broken link on a sidebar, which the user can see and remove, rather than a
-	# customer stuck partway through `bench update`.
-	doc.insert(ignore_permissions=True, ignore_links=True)
-
-	# Stamped with what it was converted from, not with today: `import_file` skips a file older
-	# than the row it overwrites, so a row stamped `now` would keep the app's own sidebar out.
-	frappe.db.set_value("Sidebar", doc.name, "modified", as_of, update_modified=False)
-
-
-def written_as_of(sources: list[frappe._dict]):
-	"""When v16 last wrote any of these rows."""
-	return max(source.modified for source in sources)
-
-
-def site_sources() -> dict[str, list[frappe._dict]]:
-	"""The archive's site-level rows, grouped by the module each belongs to."""
-	rows = frappe.get_all(
-		ARCHIVE_DOCTYPE,
-		filters={"for_user": ["is", "not set"]},
-		fields=["name", "title", "module", "header_icon as icon", "creation", "modified"],
-		order_by="creation asc",
-	)
-
-	by_module = defaultdict(list)
-	for row in rows:
-		if is_private_container(row):
-			continue
-
-		row.rows = archive_items(row.name)
-		# the archive has no `sequence_id`; the `creation` order stands in for it
-		row.sequence_id = 0
-		module = row.module or majority_module_of(row.rows)
-		if not row.rows or not is_module(module):
-			continue
-
-		by_module[module].append(row)
-
-	return by_module
-
-
-# ---------------------------------------------------------------------------------------
-# User layers: what one user changed about what everybody was shown
-# ---------------------------------------------------------------------------------------
-
-
-def convert_forks() -> list[tuple[str, str]]:
-	"""Turn every fork into a `Custom Sidebar` for the person who made it."""
-	from frappe.desk.doctype.custom_sidebar.custom_sidebar import get_customization
-
-	converted = []
-	for (user, module), forks in sorted(forks_by_owner().items()):
-		if get_customization(module, user):
-			continue
-
-		plan = build_sidebar(module, forks)
-		write_user_layer(
-			module,
-			user,
-			layer_rows(plan["items"], arrangement_below(module), dropped_keys(forks, plan["items"])),
-		)
-		converted.append((user, module))
-
-		click.secho(
-			f"Module '{module}': kept {user}'s own arrangement from {', '.join(f.name for f in forks)}",
-			fg="green",
-		)
-
-	return converted
-
-
-def forks_by_owner() -> dict[tuple[str, str], list[frappe._dict]]:
-	"""Every convertible fork, grouped by the person and module it belongs to.
-
-	One group per `(user, module)`: v16 forked per workspace sidebar, so one person can hold
-	several arrangements that now have a single layer to become. They are merged, not made to compete.
+	A row is skipped when the app ships a sidebar with the same title, in any module. Checking
+	the module alone is not enough when an app has moved a sidebar: if `Books` was under
+	`Library` in v16 and now ships under `Catalog`, the old row still says `Library`. `Library`
+	has no sidebar now, so the row would be built into a second, outdated `Library` sidebar.
 	"""
-	forks = frappe.get_all(
-		ARCHIVE_DOCTYPE,
-		filters={"for_user": ["is", "set"]},
-		fields=["name", "title", "module", "header_icon as icon", "for_user", "creation"],
-		order_by="creation asc",
-	)
-
-	by_owner = defaultdict(list)
-	for fork in forks:
-		if is_private_container(fork):
-			continue
-
-		fork.source = source_of(fork)
-		# spacers are named after the sidebar the fork was copied from, so they match its rows
-		fork.rows = archive_items(fork.name, spacer_scope=fork.source)
-		fork.sequence_id = 0
-		fork.title = fork.source or fork.title
-
-		module = fork.module or majority_module_of(fork.rows)
-		# a fork with no owner, no module or no rows has no layer to become; left in the archive
-		if not fork.rows or not is_module(module):
-			continue
-		if not frappe.db.exists("User", fork.for_user):
-			continue
-
-		by_owner[(fork.for_user, module)].append(fork)
-
-	return by_owner
-
-
-def source_of(fork) -> str | None:
-	"""Return the sidebar this fork was copied from. v16 named a fork `<sidebar>-<user>`.
-
-	It is worth recovering, because it is the list the user was looking at when they rearranged
-	it.
-	"""
-	title = fork.title or fork.name
-	source = title.removesuffix(f"-{fork.for_user}")
-	if source == title:
-		return None
-
-	return source if frappe.db.exists(ARCHIVE_DOCTYPE, source) else None
-
-
-def arrangement_below(module: str) -> list:
-	"""The module's base sidebar, which a person's layer is laid over.
-
-	Read after the base pass, so items that exist in both are stored as references and stay live.
-
-	`get_module_base` rather than indexing `get_sidebar_bases` by the module: that dict is keyed by
-	shell, and the base pass above names each `Sidebar` after the v16 title it was converted from,
-	which is only the module's name when several sidebars were merged. One sidebar called anything
-	else -- "Invoicing" under `Accounts`, say -- means no key under the module, and a `KeyError`
-	here takes down the migrate of any site where such a module also has a fork.
-	"""
-	return get_module_base(module).rows
-
-
-def dropped_keys(forks: list[frappe._dict], items: list[dict]) -> set[str]:
-	"""Return what this user removed, as opposed to what they were never offered.
-
-	Only items the source sidebar showed them count as removed. Anything the module gained since
-	is new to them rather than something they hid.
-	"""
-	kept = {item_key(item) for item in items}
-	offered = {item_key(row) for fork in forks if fork.source for row in archive_items(fork.source)}
-	return offered - kept
-
-
-# ---------------------------------------------------------------------------------------
-# Reading the archive, and writing what comes out of it
-# ---------------------------------------------------------------------------------------
-
-
-def is_private_container(sidebar) -> bool:
-	return PRIVATE_CONTAINER_TITLE in (sidebar.title or sidebar.name or "").lower()
-
-
-def is_module(module: str | None) -> bool:
-	"""Return whether the site still has this module. A sidebar outlives the app that authored
-	it."""
-	return bool(module) and bool(frappe.db.exists("Module Def", module))
-
-
-def archive_items(sidebar: str, spacer_scope: str | None = None) -> list[frappe._dict]:
-	rows = frappe.get_all(
-		ARCHIVE_ITEM_DOCTYPE,
-		filters={"parenttype": ARCHIVE_DOCTYPE, "parentfield": "items", "parent": sidebar},
-		# no `key`: only `Sidebar Item` carries one
-		fields=["name", "idx", *SIDEBAR_ITEM_FIELDS],
-		order_by="idx asc",
-	)
-
-	items = []
-	spacers = 0
-	for row in rows:
-		# v16's report-group button; its doctype is gone and nothing draws the row now
-		if row.type == "Sidebar Item Group":
-			continue
-		# an unlinked row is keyed by type and label, and a module's sidebars are merged, so an
-		# unnamed spacer needs a label no other sidebar's spacer can share. The sidebar is hashed
-		# because its title alone can fill the label's 140 characters.
-		if row.type == "Spacer" and not row.label:
-			spacers += 1
-			scope = hashlib.sha1((spacer_scope or sidebar).encode()).hexdigest()[:10]
-			row.label = f"Spacer {spacers} {scope}"
-		items.append(row)
-
-	return items
-
-
-def write_user_layer(module: str, user: str, rows: list[dict]) -> None:
-	"""Store one person's arrangement of `module`'s sidebar, over whatever its base is.
-
-	No title or icon: a fork only carries v16's names, and that shouldn't rename the module.
-	"""
-	doc = frappe.new_doc("Custom Sidebar")
-	doc.module = module
-	doc.user = user
-	for row in rows:
-		doc.append("sidebar_items", row)
-	# Same reason as `write_base`: a fork is the site's data too, and holds the same dead links.
-	doc.insert(ignore_permissions=True, ignore_links=True)
-
-
-def layer_rows(items: list[dict], below: list, dropped: set[str] | None = None) -> list[dict]:
-	"""The merged list, expressed as a delta on what sits below it.
-
-	An item already below is stored as a reference, so its label and link stay live; a new one is
-	stored whole; a dropped one is stored hidden.
-	"""
-	below_keys = {item_key(row) for row in below}
-	kept = {item_key(item) for item in items}
-
-	rows = []
-	for item in items:
-		key = item_key(item)
-		added = key not in below_keys
-		row = {field: item.get(field) for field in (SIDEBAR_ITEM_FIELDS if added else LINKED_IDENTITY_FIELDS)}
-		# an unlinked row is named by its key; a linked one is named by its own columns
-		row["key"] = None if is_linked(item) else key
-		row["added"] = int(added)
-		rows.append(row)
-
-	for item in below:
-		key = item_key(item)
-		if key in kept or key not in (dropped or ()):
-			continue
-		row = {field: item.get(field) for field in LINKED_IDENTITY_FIELDS}
-		row["key"] = None if is_linked(item) else key
-		row["hidden"] = 1
-		rows.append(row)
-
-	return rows
+	rows = [
+		row
+		for row in site_rows()
+		if not is_custom(row)
+		and is_module(row.module)
+		and not frappe.db.exists("Sidebar", {"name": row.name, "standard": 1})
+	]
+	return by_module(rows)
