@@ -182,8 +182,18 @@ class Report(Document):
 
 		check_safe_sql_query(self.query)
 
+<<<<<<< HEAD
 		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+=======
+		frappe.db.begin(read_only=True)
+		try:
+			result = [list(t) for t in frappe.db.sql(self.query, filters)]
+			columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		finally:
+			# a raised query would leave the transaction open, blocking every later write
+			frappe.db.rollback()
+>>>>>>> a6da97a (fix: show prepared report errors in the report view (#43534))
 
 		return [columns, result]
 

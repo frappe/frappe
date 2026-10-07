@@ -5,6 +5,8 @@ import DataTable from "frappe-datatable";
 // Expose DataTable globally to allow customizations.
 window.DataTable = DataTable;
 
+const ONE_MINUTE = 60000;
+
 frappe.provide("frappe.widget.utils");
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
@@ -107,7 +109,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	setup_events() {
-		frappe.realtime.on("report_generated", (data) => {
+		frappe.realtime.on("report_processed", (data) => {
 			this.toggle_primary_button_disabled(false);
 			if (data.report_name) {
 				// If generated report and currently active Prepared Report has same fiters
@@ -795,6 +797,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.every((res) => res === true);
 
 		this.show_loading_screen();
+		clearInterval(this.stale_report_interval);
 
 		// only one refresh at a time
 		if (this.last_ajax) {
@@ -837,6 +840,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.snapshot_at = data.snapshot_at;
 				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
+				const report_failed = data.doc?.status === "Error";
 
 				const check_if_report_is_stale = () => {
 					let generated_at =
@@ -866,6 +870,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				};
 
+				const show_error_message = () =>
+					this.toggle_message(true, this.get_prepared_report_error_message(data.doc));
+
 				if (this.snapshot_report) {
 					if (data.result.length > 0) {
 						let diff = frappe.datetime.comment_when(this.snapshot_at);
@@ -878,8 +885,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						</div>
 					`);
 					}
+				} else if (report_failed) {
+					this.stale_report_interval = setInterval(show_error_message, ONE_MINUTE);
 				} else {
-					this.stale_report_interval = setInterval(check_if_report_is_stale, 60000);
+					this.stale_report_interval = setInterval(check_if_report_is_stale, ONE_MINUTE);
 				}
 
 				if (data.custom_filters) {
@@ -890,6 +899,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (data.prepared_report) {
 					this.prepared_report = true;
 					this.prepared_report_document = data.doc;
+<<<<<<< HEAD
+=======
+					this.prepared_report_error = data.error;
+					if (data.attachments.length) {
+						data.doc.attachments = data.attachments;
+					}
+>>>>>>> a6da97a (fix: show prepared report errors in the report view (#43534))
 					// If query_string contains prepared_report_name then set filters
 					// to match the mentioned prepared report doc and disable editing
 					if (this.prepared_report_name) {
@@ -904,7 +920,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						});
 					}
 					this.add_prepared_report_buttons(data.doc);
-					check_if_report_is_stale();
+					// the error message already shows when it failed
+					if (!report_failed) check_if_report_is_stale();
 				}
 
 				if (data.report_summary) {
@@ -969,7 +986,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
+<<<<<<< HEAD
 		if (doc && frappe.model.can_read("Prepared Report")) {
+=======
+		if (doc && doc.status !== "Error" && frappe.model.can_read("Prepared Report")) {
+			let is_csv =
+				doc.attachments &&
+				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
+			let label = is_csv ? __("Download Report as CSV") : __("Download Report");
+			let format = is_csv ? "csv" : "json";
+>>>>>>> a6da97a (fix: show prepared report errors in the report view (#43534))
 			this.page.add_inner_button(
 				__("Download Report"),
 				function () {
@@ -2464,12 +2490,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	toggle_nothing_to_show(flag) {
-		let message =
-			this.prepared_report && !this.prepared_report_document
-				? __(
-						"This is a background report. Please set the appropriate filters and then generate a new one."
-				  )
-				: this.get_no_result_message();
+		let message;
+		if (this.prepared_report_document?.status === "Error") {
+			message = this.get_prepared_report_error_message(this.prepared_report_document);
+		} else if (this.prepared_report && !this.prepared_report_document) {
+			message = this.get_background_report_message();
+		} else {
+			message = this.get_no_result_message();
+		}
 
 		this.toggle_message(flag, message);
 
@@ -2478,6 +2506,42 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.add_prepared_report_buttons();
 			}
 		}
+	}
+
+	get_background_report_message() {
+		return frappe.ui.empty_state({
+			icon: "clock",
+			title: __("This is a background report"),
+			description: __("Set the filters and generate a new one."),
+		})[0].outerHTML;
+	}
+
+	get_prepared_report_error_message(doc) {
+		const can_read = frappe.model.can_read("Prepared Report");
+		const actions = can_read
+			? [
+					{
+						label: __("View Details"),
+						href: frappe.utils.get_form_link(doc.doctype, doc.name),
+					},
+			  ]
+			: [];
+
+		// say when, so a failure from yesterday does not read as one from just now
+		const title = doc.report_end_time
+			? __("Report generation failed {0}", [frappe.datetime.prettyDate(doc.report_end_time)])
+			: __("Report generation failed");
+
+		const description =
+			this.prepared_report_error ||
+			(can_read ? "" : __("Something went wrong. Contact your System Manager."));
+
+		return frappe.ui.empty_state({
+			icon: "triangle-alert",
+			title,
+			description,
+			actions,
+		})[0].outerHTML;
 	}
 
 	toggle_message(flag, message) {
