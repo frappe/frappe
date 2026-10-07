@@ -1,14 +1,14 @@
 const CHANNEL_COLORS = {
 	Email: "blue",
 	SMS: "green",
-	Slack: "purple",
+	Webhook: "purple",
 	"System Notification": "orange",
 };
 
 const CHANNEL_ICONS = {
 	Email: "mail",
 	SMS: "smartphone",
-	Slack: "slack",
+	Webhook: "webhook",
 	"System Notification": "bell",
 };
 
