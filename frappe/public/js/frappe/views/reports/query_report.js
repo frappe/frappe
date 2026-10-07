@@ -5,6 +5,8 @@ import DataTable from "frappe-datatable";
 // Expose DataTable globally to allow customizations.
 window.DataTable = DataTable;
 
+const ONE_MINUTE = 60000;
+
 frappe.provide("frappe.widget.utils");
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
@@ -867,6 +869,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				};
 
+				const show_error_message = () =>
+					this.toggle_message(true, this.get_prepared_report_error_message(data.doc));
+
 				if (this.snapshot_report) {
 					if (data.result.length > 0) {
 						let diff = frappe.datetime.comment_when(this.snapshot_at);
@@ -879,8 +884,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						</div>
 					`);
 					}
-				} else if (!report_failed) {
-					this.stale_report_interval = setInterval(check_if_report_is_stale, 60000);
+				} else if (report_failed) {
+					this.stale_report_interval = setInterval(show_error_message, ONE_MINUTE);
+				} else {
+					this.stale_report_interval = setInterval(check_if_report_is_stale, ONE_MINUTE);
 				}
 
 				if (data.custom_filters) {
