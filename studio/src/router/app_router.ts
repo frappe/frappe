@@ -7,7 +7,7 @@ import {
 } from "vue-router"
 import { toast } from "frappe-ui"
 import AppPage from "@/pages/AppPage.vue"
-import { preparePage, discardPreparedPage } from "@/router/pageLoader"
+import { loadPage, discardPage } from "@/router/pageLoader"
 import NotFound from "@/pages/NotFound.vue"
 import * as globalUtils from "@/utils/globalUtils"
 
@@ -57,8 +57,8 @@ export async function createAppRouter(config?: RouterConfig): Promise<Router> {
 	addHomeRouteFallback(router)
 	addNotFoundRouteFallback(router)
 	router.beforeEach(sendGuestToLogin)
-	router.beforeResolve((to, from) => preparePage(router, to, from))
-	router.afterEach((to, _from, failure) => discardPreparedPage(to, failure))
+	router.beforeResolve((to, from) => loadPage(router, to, from))
+	router.afterEach((to, _from, failure) => discardPage(to, failure))
 	router.onError(reportNavigationError)
 	return router
 }
