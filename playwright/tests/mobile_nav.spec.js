@@ -208,6 +208,24 @@ test.describe("Phone tab bar", () => {
 		}
 	});
 
+	test("an island page shows a skeleton until its bundle has mounted", async ({ page }) => {
+		let release_bundle;
+		const bundle_held = new Promise((resolve) => (release_bundle = resolve));
+		await page.route(
+			/\/page-island\/frappe\.page\.notifications\.island\.[^/]+\.js$/,
+			(route) => bundle_held.then(() => route.continue())
+		);
+
+		await page.setViewportSize(PHONE);
+		await page.goto("/desk/notifications");
+		const skeleton = page.locator(".island-page-skeleton");
+		await expect(skeleton).toBeAttached();
+
+		release_bundle();
+		await expect(page.locator(".island-page-body .frappe-island")).toBeAttached();
+		await expect(skeleton).toHaveCount(0);
+	});
+
 	test("the phone pages send a wide screen to their desktop home", async ({ page, desk }) => {
 		await page.goto("/desk/notifications");
 		await desk.ready();
