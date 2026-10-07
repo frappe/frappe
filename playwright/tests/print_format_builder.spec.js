@@ -1028,14 +1028,14 @@ test.describe("Print Format Builder — draft and Save & Apply", () => {
 	});
 
 	test("reopening the builder shows the draft, not what prints", async ({ page }) => {
-		await set_input(margin_top(page), "29");
+		await set_input(margin_top(page), "12.5");
 		await expect(page_status(page)).toContainText("Draft");
 
 		await page.reload();
 		await expect(page.locator(".pfb-settings .pfb-spacing-row")).toBeVisible();
 
 		await expect(page_status(page)).toContainText("Draft");
-		await expect(margin_top(page)).toHaveValue("29");
+		await expect(margin_top(page)).toHaveValue("12.5");
 	});
 });
 
