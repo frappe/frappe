@@ -5,6 +5,62 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	function get_onboarding_checklist_items() {
+		const today = frappe.datetime.get_today();
+		const finish = (item, list) => list.set_status(item.id, "done");
+		const assign = (id, label, value) => ({
+			id,
+			label,
+			value,
+			due_date: frappe.datetime.add_days(today, 7),
+			locked: "Needs: Create Employee",
+			skippable: true,
+			actions: [{ label: __("Assign"), onclick: finish }],
+		});
+		const assignments = [
+			assign("holiday_list", "Assign Holiday List", "India 2026"),
+			assign("leave_policy", "Assign Leave Policy", "Standard"),
+			assign("salary_structure", "Assign Salary Structure", "Grade B"),
+			assign("shift_type", "Assign Shift Type"),
+		];
+		return [
+			{
+				id: "create_user",
+				label: "Create User",
+				status: "done",
+				value: "jane@example.com",
+				assignee: frappe.session.user,
+				due_date: frappe.datetime.add_days(today, -3),
+				actions: [{ label: __("Open"), variant: "subtle" }],
+			},
+			{
+				id: "letter",
+				label: "Appointment Letter",
+				description: "Create the letter, then email it to the new hire.",
+				assignee: frappe.session.user,
+				due_date: frappe.datetime.add_days(today, -1),
+				actions: [{ label: __("Send"), icon: "send", onclick: finish }],
+			},
+			{
+				id: "create_employee",
+				label: "Create Employee",
+				due_date: frappe.datetime.add_days(today, 2),
+				actions: [
+					{
+						label: __("Create"),
+						onclick: (item, list) => {
+							assignments.forEach((row) =>
+								list.update_item(row.id, { locked: null })
+							);
+							finish(item, list);
+						},
+					},
+				],
+			},
+			...assignments,
+		];
+	}
+
 	// sample people for the Avatar Group examples
 	const PEOPLE = [
 		{ label: "John Doe", image: "https://avatars.githubusercontent.com/u/499550?s=60&v=4" },
@@ -1450,6 +1506,72 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 									.data("es-stepper")
 									?.prev_step();
 							},
+						},
+					],
+				},
+			],
+		},
+		Checklist: {
+			helper: "frappe.ui.checklist",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (click an action to finish the item)"),
+					items: [
+						{
+							__code: 'frappe.ui.checklist({\n  title: "Set up",\n  items: [\n    { id: "company", label: "Create company", status: "done" },\n    { id: "users", label: "Invite users", skippable: true, actions: [\n      { label: "Invite", onclick: (item, list) => list.set_status(item.id, "done") },\n    ] },\n  ],\n})',
+							title: "Set up",
+							items: [
+								{ id: "company", label: "Create company", status: "done" },
+								{
+									id: "users",
+									label: "Invite users",
+									description:
+										"Send an invite to everyone who needs desk access.",
+									skippable: true,
+									actions: [
+										{
+											label: "Invite",
+											onclick: (item, list) =>
+												list.set_status(item.id, "done"),
+										},
+									],
+								},
+								{
+									id: "theme",
+									label: "Pick a theme",
+									optional: true,
+									actions: [
+										{
+											label: "Pick",
+											onclick: (item, list) =>
+												list.set_status(item.id, "done"),
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Owners, due dates and locked rows (employee onboarding)"),
+					items: [
+						{
+							__code: 'frappe.ui.checklist({\n  title: "Onboarding",\n  items: [\n    { id: "letter", label: "Appointment Letter", assignee: "hr@example.com", due_date: "2026-10-06", actions: [...] },\n    { id: "leave_policy", label: "Assign Leave Policy", value: "Standard", locked: "Needs: Create Employee", skippable: true, actions: [...] },\n  ],\n  on_assign: (item, user) => save_assignee(item.id, user),\n  on_due_date_change: (item, date) => save_due_date(item.id, date),\n})',
+							on_assign: () => null,
+							on_due_date_change: () => null,
+							title: "Onboarding",
+							items: get_onboarding_checklist_items(),
+						},
+					],
+				},
+				{
+					title: __("Read-only owners (no on_assign)"),
+					items: [
+						{
+							__code: "frappe.ui.checklist({ title, items })  // without on_assign and on_due_date_change, owners and dates are shown but not editable",
+							title: "Onboarding",
+							items: get_onboarding_checklist_items(),
 						},
 					],
 				},

@@ -1,0 +1,275 @@
+/* Espresso Checklist: a card of items, each one row with its owner, due date and
+ * actions, for work several people complete in any order (onboarding a new hire,
+ * setting up a module).
+ *
+ * Markup contract:
+ *
+ *   <section class="es-checklist">   (data-collapsed when folded)
+ *     <button type="button" class="es-checklist__head" aria-expanded="true">
+ *       <span class="es-checklist__heading">
+ *         <span class="es-checklist__name">Onboarding</span>
+ *         <span class="es-checklist__count">2 of 8 done</span>
+ *       </span>
+ *       (chevron)
+ *     </button>
+ *     <div class="es-checklist__progress"><div class="es-progress">...</div></div>   (empty with nothing to count)
+ *     <div class="es-checklist__collapse">
+ *       <div class="es-checklist__items">
+ *         <div class="es-checklist__item" data-status="pending|done|skipped" data-locked data-overdue>
+ *           <span class="es-checklist__marker">(icon)</span>
+ *           <div class="es-checklist__text">
+ *             <div class="es-checklist__title"><span class="es-checklist__label">Assign Leave Policy</span></div>
+ *             <div class="es-checklist__meta">Standard Policy</div>
+ *           </div>
+ *           <div class="es-checklist__owner"><button class="es-checklist__trigger">(avatar)</button></div>
+ *           <div class="es-checklist__due"><button class="es-checklist__trigger">12-10-2026</button></div>
+ *           <div class="es-checklist__actions">(buttons)</div>
+ *         </div>
+ *       </div>
+ *     </div>
+ *   </section>
+ *
+ * The card is gray, like the workspace onboarding card, and open unless it
+ * carries data-collapsed. A collapsed card keeps its head and progress bar;
+ * only the items fold away.
+ *
+ * Markers: circle-check (done), circle-dashed (skipped), lock (locked),
+ * circle (pending). Green marks done items and red overdue dates; everything
+ * else is gray.
+ */
+
+.es-checklist {
+    width: 100%;
+    padding: calc(var(--spacing) * 4) calc(var(--spacing) * 3);
+    border-radius: var(--radius-lg);
+    background-color: var(--surface-gray-1);
+    container-type: inline-size;
+}
+
+/* Head and bar line up with the item labels; only the item boxes reach the card's content edge. */
+.es-checklist > .es-checklist__head,
+.es-checklist > .es-checklist__progress {
+    padding-inline: calc(var(--spacing) * 2);
+}
+
+.es-checklist__progress:not(:empty) {
+    margin-top: calc(var(--spacing) * 3);
+}
+
+.es-checklist .es-progress__segment:not([data-filled]) {
+    background: var(--surface-gray-3);
+}
+
+.es-checklist__head,
+.es-checklist__trigger {
+    padding: 0;
+    border: 0;
+    background: none;
+    appearance: none;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    cursor: pointer;
+    outline: none;
+}
+
+.es-checklist__head:focus-visible,
+.es-checklist__trigger:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+}
+
+.es-checklist__head {
+    display: flex;
+    align-items: flex-start;
+    gap: calc(var(--spacing) * 2);
+    width: 100%;
+}
+
+.es-checklist__heading {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 1);
+    min-width: 0;
+}
+
+.es-checklist__name {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-9);
+}
+
+.es-checklist__count {
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+}
+
+.es-checklist__head .es-checklist__chevron {
+    flex-shrink: 0;
+    margin: 0;
+    color: var(--ink-gray-5);
+    transform: rotate(180deg);
+    transition: transform 200ms ease-out;
+}
+
+.es-checklist[data-collapsed] .es-checklist__head .es-checklist__chevron {
+    transform: rotate(0deg);
+}
+
+/* Grid rows animate from 0fr to 1fr, so content opens to its height without measuring it. */
+.es-checklist__collapse {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 200ms ease-out;
+}
+
+.es-checklist__collapse > * {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.es-checklist[data-collapsed] > .es-checklist__collapse {
+    grid-template-rows: 0fr;
+}
+
+.es-checklist__items {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 0.5);
+}
+
+/* A margin, not padding, so a folded card clips it to nothing. */
+.es-checklist__items > :first-child {
+    margin-top: calc(var(--spacing) * 3);
+}
+
+.es-checklist__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto calc(var(--spacing) * 24) auto;
+    align-items: center;
+    column-gap: calc(var(--spacing) * 3);
+    padding: calc(var(--spacing) * 2);
+    border-radius: var(--radius-md);
+    transition: background-color 200ms ease-out;
+}
+
+.es-checklist__item:hover {
+    background-color: var(--surface-gray-2);
+}
+
+.es-checklist__marker {
+    display: flex;
+    color: var(--ink-gray-4);
+}
+
+/* Reset the global .icon margin, which drifts in flex layouts. */
+.es-checklist__marker .icon,
+.es-checklist__owner .icon {
+    margin: 0;
+}
+
+.es-checklist__item[data-status="done"] .es-checklist__marker {
+    color: var(--ink-green-7);
+}
+
+.es-checklist__text {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 0.5);
+    min-width: 0;
+}
+
+.es-checklist__title {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    min-width: 0;
+}
+
+.es-checklist__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-base);
+    color: var(--ink-gray-8);
+}
+
+.es-checklist__item:is([data-status="done"], [data-status="skipped"], [data-locked])
+    .es-checklist__label {
+    color: var(--ink-gray-5);
+}
+
+.es-checklist__meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-p-sm);
+    color: var(--ink-gray-5);
+}
+
+.es-checklist__meta:empty {
+    display: none;
+}
+
+.es-checklist__owner {
+    display: flex;
+    color: var(--ink-gray-4);
+}
+
+.es-checklist__trigger {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius);
+}
+
+.es-checklist__due {
+    font-size: var(--text-p-sm);
+    color: var(--ink-gray-6);
+    white-space: nowrap;
+}
+
+.es-checklist__due .es-checklist__trigger[data-empty] {
+    color: var(--ink-gray-4);
+}
+
+.es-checklist__item[data-overdue] .es-checklist__due {
+    color: var(--ink-red-7);
+}
+
+.es-checklist__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: calc(var(--spacing) * 2);
+}
+
+.es-checklist__editor {
+    width: calc(var(--spacing) * 64);
+    padding: calc(var(--spacing) * 3);
+}
+
+.es-checklist__editor .frappe-control {
+    margin-bottom: 0;
+}
+
+/* Narrow cards stack the owner, date and actions under the title. */
+@container (max-width: 560px) {
+    .es-checklist__item {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        row-gap: calc(var(--spacing) * 2);
+    }
+
+    .es-checklist__actions {
+        grid-column: 2 / -1;
+        justify-content: flex-start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-checklist__collapse,
+    .es-checklist__head .es-checklist__chevron,
+    .es-checklist__item {
+        transition: none;
+    }
+}
