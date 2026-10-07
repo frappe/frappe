@@ -544,8 +544,11 @@ const useStudioStore = defineStore("store", () => {
 		}
 
 		// a fresh tab opens in front; navigating a reused named tab leaves it in the background
-		previewTab?.close()
-		previewTab = window.open(route, "_blank")
+		const nextTab = window.open(route, "_blank")
+		if (nextTab) {
+			previewTab?.close()
+			previewTab = nextTab
+		}
 	}
 
 	// substitute test route variables set by the user into the dynamic route so preview opens the concrete URL,
