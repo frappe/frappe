@@ -240,7 +240,7 @@ onMounted(() => {
 
 .pfb-hint-icon {
 	display: inline-flex;
-	color: var(--text-muted);
+	color: var(--ink-gray-6);
 }
 
 .pfb-renderer-note {
