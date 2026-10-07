@@ -27,6 +27,10 @@ export function zone_of(layout, section) {
 	return null;
 }
 
+export function zone_label(layout, section) {
+	return { header: __("Header"), footer: __("Footer") }[zone_of(layout, section)] || "";
+}
+
 export function column_of(layout, df) {
 	for (const zone of zones(layout)) {
 		for (const col of columns(zone)) if (col.fields?.includes(df)) return col;

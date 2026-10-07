@@ -526,9 +526,10 @@ frappe.router = {
 		let route = Array.from(arguments);
 
 		return new Promise((resolve) => {
-			route = this.get_route_from_arguments(route);
+			let shell;
+			({ route, shell } = this.read_route_arguments(route));
 			route = this.convert_from_standard_route(route);
-			let sub_path = this.make_url(route);
+			let sub_path = this.keep_shell_moved_into(this.make_url(route), shell);
 			sub_path += frappe.route_hash || "";
 			frappe.route_hash = null;
 			if (frappe.open_in_new_tab) {
@@ -563,7 +564,28 @@ frappe.router = {
 		}).finally(() => (frappe.route_flags = {}));
 	},
 
+	// A route naming another shell than the one on screen is a move into that shell: a desktop
+	// icon opens `/desk/people-ops/employee` from a page with no shell at all. Dropped, the shell
+	// would be chosen again by `write_shell_into_url`, which knows only the shell on screen and the
+	// entity's own, so Employee would open in HR Setup. A route naming the shell on screen stays
+	// without it, which keeps a self-link a self-link.
+	//
+	// The sidebar on screen counts only off a system page: the desktop opens in no shell, and the
+	// sidebar still remembers whichever page came before it.
+	keep_shell_moved_into(path, shell) {
+		if (!shell || shell === this.current_shell) return path;
+		const on_system_page = this.page_info_for(this.current_route || [])?.system_page;
+		if (!on_system_page && shell === frappe.app?.sidebar?.current_module) return path;
+
+		return "/desk/" + this.shell_slug(shell) + path.slice("/desk".length);
+	},
+
 	get_route_from_arguments(route) {
+		return this.read_route_arguments(route).route;
+	},
+
+	// The route, and the shell it named in front, if any, which is taken off.
+	read_route_arguments(route) {
 		if (route.length === 1 && $.isArray(route[0])) {
 			// called as frappe.set_route(['a', 'b', 'c']);
 			route = route[0];
@@ -603,8 +625,12 @@ frappe.router = {
 		// Left in, `push_state` compares a path with a shell against `path_on_screen()`, which
 		// has none, reads every self-link as a move, and re-renders the page under it -- throwing
 		// away whatever the render was holding. The form sidebar lost its "Show All" this way.
+		//
+		// It is handed back, though, for `set_route` to keep when it names another shell than the
+		// one on screen (see `keep_shell_moved_into`).
+		let shell = null;
 		if (this.begins_with_shell(route)) {
-			route.shift();
+			shell = this.shell_routes[route.shift()];
 		}
 
 		// Handle cases where "/" is part of the name
@@ -612,7 +638,7 @@ frappe.router = {
 			route = [route[0], route[1], route.slice(2).join("/")];
 		}
 
-		return route;
+		return { route, shell };
 	},
 
 	convert_from_standard_route(route) {

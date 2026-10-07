@@ -5,7 +5,12 @@
 frappe.provide("frappe.ui");
 
 frappe.ui.maybe_show_new_navigation_prompt = function ({ onhide } = {}) {
-	if (!frappe.boot.show_new_navigation_prompt) {
+	const route = frappe.get_route();
+	if (
+		!frappe.boot.show_new_navigation_prompt ||
+		!route ||
+		(route[0] || frappe.boot.home_page) !== "desktop"
+	) {
 		return false;
 	}
 
@@ -17,13 +22,13 @@ frappe.ui.maybe_show_new_navigation_prompt = function ({ onhide } = {}) {
 
 				if (message === "switched") {
 					frappe.show_alert({
-						message: __("Switched to the new navigation. Reloading…"),
+						message: __("Switching you to the new navigation…"),
 						indicator: "green",
 					});
 					setTimeout(() => window.location.reload(), 1000);
 				} else {
 					frappe.show_alert({
-						message: __("Keeping the icon grid."),
+						message: __("No problem. You can try it anytime from Desktop Settings."),
 						indicator: "blue",
 					});
 				}
@@ -36,17 +41,26 @@ frappe.ui.maybe_show_new_navigation_prompt = function ({ onhide } = {}) {
 			{
 				fieldname: "message",
 				fieldtype: "HTML",
-				options: `<p>${__(
-					"Your desktop now has a second form: modules in a dock, each with a sidebar of its own, instead of a grid of icons."
-				)}</p>
+				options: `<p>${__("Navigation on the desktop has two modes:")}</p>
+				<ul>
+					<li>${__("{0}: a grid of icons you can arrange, which is what you use today.", [
+						`<b>${__("Desktop Icons")}</b>`,
+					])}</li>
+					<li>${__("{0}: your modules sit in a dock, and each one has its own sidebar.", [
+						`<b>${__("Apps")}</b>`,
+					])}</li>
+				</ul>
 				<p>${__(
-					"Nothing is deleted either way — your icons and their arrangement stay exactly as they are, and you can switch back from Desktop Settings at any time."
-				)}</p>`,
+					"Your icons and their layout stay just as they are, and you can switch back anytime from Desktop Settings."
+				)}</p>
+				<p><a href="https://docs.frappe.io/framework/user/en/desk/navigation/migrating-to-the-new-navigation" target="_blank" rel="noopener noreferrer">${__(
+					"Read the migration guide"
+				)}</a></p>`,
 			},
 		],
 		primary_action_label: __("Try it"),
 		primary_action: () => submit("try_new_navigation"),
-		secondary_action_label: __("Keep the icon grid"),
+		secondary_action_label: __("No thanks"),
 		secondary_action: () => submit("keep_icon_grid"),
 	});
 

@@ -93,6 +93,25 @@ export function safe_attrs(attrs, component) {
 	return out;
 }
 
+/** What Tab can land on, for the focus bookkeeping in panels. */
+export const TABBABLE =
+	'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * A panel's body from a component's `content` option. Elements and
+ * element-returning functions (called with `arg`) are the rich channel;
+ * strings become text, never markup. Null when there's nothing to show.
+ */
+export function resolve_content(content, arg) {
+	if (typeof content === "function") content = content(arg);
+	if (typeof content === "string") {
+		const el = document.createElement("div");
+		el.textContent = content;
+		return el;
+	}
+	return (content && $(content)[0]) || null;
+}
+
 /** True for promises and other thenables (async options, submenus...). */
 export function is_thenable(value) {
 	return !!value && typeof value.then === "function";
