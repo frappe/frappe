@@ -1,12 +1,15 @@
 """Helpers for the patches that turn v16 sidebars into v17 ones.
 
 v16 kept every sidebar as a `Workspace Sidebar` row. These rows are now read only during the
-upgrade, by four patches that each handle one kind of row:
+upgrade, by five patches that each handle one kind of row:
 
 	convert_sidebars                 an app's sidebar that the app no longer ships
 	convert_custom_sidebars          a sidebar the site made, which becomes a custom module
 	move_custom_sidebar_workspaces   that sidebar's workspace, which moves into the new module
 	convert_personal_sidebars        a user's personal copy, which becomes their `Custom Sidebar`
+	remove_modules_made_from_generated_sidebars
+	                                 the custom modules an earlier run made from rows v16 had
+	                                 generated from app workspaces
 
 This file is not a patch, so it is not listed in `patches.txt`.
 """
@@ -59,7 +62,10 @@ def site_rows() -> list[frappe._dict]:
 		row.rows = archive_items(row.name)
 		# the archive has no `sequence_id`; the `creation` order stands in for it
 		row.sequence_id = 0
-		row.module = row.module or majority_module_of(row.rows)
+		# a row v16 generated from a workspace carries no module of its own: it belongs where the
+		# workspace does, not where most of its links point
+		workspace = app_workspace_of(row)
+		row.module = (workspace and workspace.module) or row.module or majority_module_of(row.rows)
 		if row.rows:
 			converted.append(row)
 
@@ -79,16 +85,26 @@ def generated_from_app_workspace(row) -> bool:
 	"""Whether v16 built this row from an app's workspace rather than a person writing it.
 
 	v16 made a `Workspace Sidebar` for every public workspace that had none, on install and in
-	`auto_generate_desktop_icon_and_sidebar`: titled after the workspace, holding a link to it,
-	with neither `standard` nor `app` set. One built from an app's workspace is that app's content
-	under another name, so it belongs in the app's module like any other app row, not in a custom
-	module of its own.
+	`auto_generate_desktop_icon_and_sidebar`: titled after the workspace, opening with a `Home` link
+	to it, with neither `standard` nor `app` set. One built from an app's workspace is that app's
+	content under another name, so it belongs in the app's module like any other app row, not in a
+	custom module of its own.
 	"""
-	title = row.title or row.name
-	if not frappe.db.exists("Workspace", {"name": title, "standard": 1}):
-		return False
-	return any(
-		item.get("link_type") == "Workspace" and item.get("link_to") == title for item in row.rows or ()
+	return app_workspace_of(row) is not None
+
+
+def app_workspace_of(row) -> frappe._dict | None:
+	"""The app's workspace v16 generated `row` from, with its module, or None.
+
+	The row is named after the workspace, and its first item is the link to it. Only the first:
+	a person's own sidebar may well link to a workspace somewhere down the list, and treating it as
+	the app's would drop what they wrote.
+	"""
+	first = next(iter(row.rows or ()), None)
+	if not first or first.get("link_type") != "Workspace" or first.get("link_to") != row.name:
+		return None
+	return frappe.db.get_value(
+		"Workspace", {"name": row.name, "standard": 1}, ["name", "module"], as_dict=True
 	)
 
 
