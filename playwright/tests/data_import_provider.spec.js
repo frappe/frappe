@@ -68,7 +68,7 @@ test.describe("Data Import for a DocType with an import provider", () => {
 
 			const dialog = page.locator(".modal:visible", { hasText: "Export Data" });
 			await expect(dialog.getByText("First Name", { exact: true })).toBeVisible();
-			const id_checkbox = dialog.locator(':checkbox[data-unit="name"]');
+			const id_checkbox = dialog.locator('input[type="checkbox"][data-unit="name"]');
 			if (offers_id) {
 				await expect(id_checkbox).toBeChecked();
 			} else {
