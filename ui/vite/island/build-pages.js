@@ -14,6 +14,7 @@
 // and nothing of the app's. An island that needs the app's own code has
 // outgrown this build and belongs in the app's frontend, as a normal island.
 
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,15 +46,21 @@ if (!Object.keys(entries).length) {
 	process.exit(0);
 }
 
-// `loadTools` would report this too, but it names an app frontend and its
-// devDependencies, which is the wrong fix here. The toolchain's dependencies are
-// pinned in its own package.json and installed once per bench.
+// The toolchain's dependencies are pinned in its own package.json and lockfile.
+// Nothing else installs them, so the first build on a bench does, or every
+// Frappe UI page would show its unbuilt state.
 if (!fs.existsSync(path.join(root, "node_modules"))) {
-	console.error(
-		`[island] the page-island toolchain is not installed at ${root}.\n` +
-			`Run it once for this bench:\n\n    yarn install --cwd ${root}\n`
-	);
-	process.exit(1);
+	console.log(`[island] installing the page-island toolchain at ${root}`);
+	const install = spawnSync("yarn", ["install", "--frozen-lockfile", "--cwd", root], {
+		stdio: "inherit",
+	});
+	if (install.status !== 0) {
+		console.error(
+			`[island] could not install the page-island toolchain at ${root}.\n` +
+				`Run it once for this bench:\n\n    yarn install --cwd ${root}\n`
+		);
+		process.exit(1);
+	}
 }
 
 await buildIslands({
