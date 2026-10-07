@@ -4,6 +4,7 @@ const PRINT_FORMAT_API = "api/method/frappe.printing.doctype.print_format.print_
 
 let PF_NAME;
 const created_formats = new Set();
+const created_letter_heads = new Set();
 
 test.beforeEach(() => {
 	PF_NAME = track(pf_name());
@@ -15,6 +16,9 @@ test.beforeEach(() => {
 test.afterAll(async ({ admin }) => {
 	for (const name of created_formats) {
 		await admin.remove_doc("Print Format", name, true);
+	}
+	for (const name of created_letter_heads) {
+		await admin.remove_doc("Letter Head", name, true);
 	}
 });
 
@@ -132,6 +136,11 @@ function closest(locator, class_name) {
 	return locator.locator(
 		`xpath=ancestor::*[contains(concat(" ", normalize-space(@class), " "), " ${class_name} ")][1]`
 	);
+}
+
+async function click_section_insert(insert) {
+	await insert.hover();
+	await insert.locator(".section-insert-btn").click();
 }
 
 async function set_input(input, value) {
@@ -411,6 +420,43 @@ test.describe("Print Format Builder — create flow", () => {
 		expect(saved.label_color).toBe("#c0392b");
 	});
 
+	test("picking Image shows image controls for an HTML-only letter head", async ({
+		page,
+		api,
+	}) => {
+		const letter_head = `Playwright LH ${Date.now()}`;
+		created_letter_heads.add(letter_head);
+		await api.insert_doc(
+			"Letter Head",
+			{ letter_head_name: letter_head, source: "Image", content: "<p>Acme Header</p>" },
+			true
+		);
+		await api.insert_doc(
+			"Print Format",
+			{
+				name: PF_NAME,
+				doc_type: "ToDo",
+				print_format_builder_beta: 1,
+				format_data: JSON.stringify({ ...builder_layout(), letter_head }),
+			},
+			true
+		);
+
+		await open_builder(page, PF_NAME);
+		await page.locator(".lh-zone").first().click();
+
+		const inspector = page.locator(".pfb-inspector");
+		const source = (label) => inspector.locator(".es-pill", { hasText: label }).first();
+		await expect(inspector).toContainText("Edit HTML");
+
+		await source("Image").click();
+		await expect(inspector).toContainText("Upload Image");
+		await expect(inspector).not.toContainText("Edit HTML");
+
+		await source("HTML").click();
+		await expect(inspector).toContainText("Edit HTML");
+	});
+
 	test("custom table column settings open from the row", async ({ page, api }) => {
 		await insert_contact_table_format(api, PF_NAME);
 
@@ -600,7 +646,7 @@ test.describe("Print Format Builder — section insert", () => {
 		const sections = page.locator(".sections-container [data-pfb-section]");
 		await expect(sections).toHaveCount(1);
 
-		await page.locator(".section-with-insert .section-insert-btn").first().click();
+		await click_section_insert(page.locator(".section-with-insert .section-insert").first());
 
 		await expect(sections).toHaveCount(2);
 	});
@@ -632,13 +678,11 @@ test.describe("Print Format Builder — section insert", () => {
 		await page.locator(".body-empty").click();
 		await expect(sections).toHaveCount(1);
 
-		const insert_at_end = page.locator(
-			".sections-container > .section-insert .section-insert-btn"
-		);
-		await insert_at_end.click();
+		const insert_at_end = page.locator(".sections-container > .section-insert");
+		await click_section_insert(insert_at_end);
 		await expect(sections).toHaveCount(2);
 
-		await insert_at_end.click();
+		await click_section_insert(insert_at_end);
 		await expect(sections).toHaveCount(3);
 	});
 });

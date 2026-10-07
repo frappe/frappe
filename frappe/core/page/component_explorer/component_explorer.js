@@ -5,17 +5,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
-	// Examples are grouped (all variants together, all sizes together...).
-	// Each item's opts object is both the displayed code and the real input
-	// for the live preview — what you see is exactly what runs.
-	// a footer row two Combobox demos share
-	const CREATE_CUSTOMER_ROW = {
-		type: "custom",
-		label: "Create a new Customer",
-		icon: "plus",
-		onclick: ({ query }) => frappe.ui.toast({ message: `Create "${query || "new"}"` }),
-	};
-
 	// the quick entry example's fields, read back by its Save action
 	let explorer_todo_fields;
 	// the search box and the button of the BottomSheet multi-select example
@@ -41,6 +30,17 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					return false;
 				},
 			}));
+
+	// Examples are grouped (all variants together, all sizes together...).
+	// Each item's opts object is both the displayed code and the real input
+	// for the live preview — what you see is exactly what runs.
+	// a footer row two Combobox demos share
+	const CREATE_CUSTOMER_ROW = {
+		type: "custom",
+		label: "Create a new Customer",
+		icon: "plus",
+		onclick: ({ query }) => frappe.ui.toast({ message: `Create "${query || "new"}"` }),
+	};
 
 	const COMPONENTS = {
 		Combobox: {

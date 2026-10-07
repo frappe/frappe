@@ -41,6 +41,7 @@ import FieldChip from "./FieldChip.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { field_uid } from "../../utils";
 import { useFieldRoot } from "./useFieldRoot";
+import { field_menu_options } from "../../composables/useNodeMenu";
 
 const props = defineProps(["df", "field_orientation"]);
 const store = inject("$store");
@@ -81,42 +82,11 @@ function kbd_select(e) {
 const root = ref(null);
 let context_menu = null;
 // the section under this field binds its own menu, and the event bubbles there
-const menu_options = [
-	{ label: __("Copy"), icon: "copy", onclick: () => store.copy_field(props.df) },
-	{
-		label: __("Duplicate"),
-		icon: "copy-plus",
-		onclick: () => store.duplicate_field(props.df),
-	},
-	{
-		label: __("Save as snippet"),
-		icon: "bookmark-plus",
-		onclick: () => store.prompt_snippet(props.df, "Field"),
-	},
-	{
-		label: __("Paste"),
-		icon: "clipboard-paste",
-		condition: () => !!store.clipboard.value,
-		onclick: () => store.paste_clipboard(),
-	},
-	{
-		group: "",
-		hide_label: true,
-		options: [
-			{
-				label: __("Delete"),
-				icon: "trash",
-				theme: "red",
-				onclick: () => store.remove_field(props.df),
-			},
-		],
-	},
-];
 
 onMounted(() => {
 	context_menu = new frappe.ui.ContextMenu({
 		target: root.value,
-		options: menu_options,
+		options: () => field_menu_options(store, props.df),
 		on_open: (e) => {
 			e.stopPropagation();
 			store.select_field(props.df);

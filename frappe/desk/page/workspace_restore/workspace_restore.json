@@ -1,0 +1,25 @@
+{
+ "content": null,
+ "creation": "2026-10-06 12:31:45.335784",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-10-06 12:31:45.335784",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "workspace-restore",
+ "owner": "Administrator",
+ "page_name": "workspace-restore",
+ "roles": [
+  {
+   "role": "Workspace Manager"
+  }
+ ],
+ "script": null,
+ "shared_page": 0,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 1,
+ "title": "Restore Workspace Edits",
+ "type": ""
+}

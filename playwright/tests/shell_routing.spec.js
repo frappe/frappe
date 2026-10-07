@@ -305,6 +305,23 @@ test.describe("Desk URL shell segment", () => {
 		await expect_shell(page, "Users");
 	});
 
+	test("moves into the shell a link names, from a page with no shell", async ({ page }) => {
+		// What a desktop icon does: it opens its module on the first link, spelled with the
+		// module's shell. ToDo opens in Build when nothing names one, so dropping the shell from
+		// the link would land it there instead of in the module the icon stands for.
+		await page.goto("/desk/desktop");
+		await on_route(page, ["desktop"]);
+		await page.evaluate(() => {
+			const link = document.createElement("a");
+			link.href = "/desk/users/todo";
+			link.textContent = "ToDo in Users";
+			document.body.appendChild(link);
+			link.click();
+		});
+		await expect.poll(() => pathname(page)).toBe("/desk/users/todo");
+		await expect_shell(page, "Users");
+	});
+
 	test("leaves the shell you are standing in when the awesomebar opens something it does not list", async ({
 		page,
 	}) => {
@@ -522,6 +539,32 @@ test.describe("Desk URL shell segment", () => {
 		);
 		expect(await frappe_route({ link_type: "Page", link_to: "desktop" }, "Build")).toBe(
 			"/desk/desktop"
+		);
+	});
+
+	test("opens a report link with its filters", async ({ page }) => {
+		// Stock Balance for one warehouse is a link of its own: v16 kept the warehouse in route
+		// options, the conversion stores it as filters, and the report reads it off the query string.
+		await page.goto("/desk/build/todo");
+		await expect_shell(page, "Build");
+
+		const route = await page.evaluate(() =>
+			frappe.ui.sidebar_item.get_route(
+				{
+					type: "Link",
+					link_type: "Report",
+					link_to: "Permitted Documents For User",
+					report: { report_type: "Script Report", ref_doctype: "User" },
+					filters: JSON.stringify([
+						["Permitted Documents For User", "user", "=", "test@example.com"],
+					]),
+				},
+				false,
+				"Build"
+			)
+		);
+		expect(route).toBe(
+			"/desk/build/query-report/Permitted Documents For User?user=test%40example.com"
 		);
 	});
 
