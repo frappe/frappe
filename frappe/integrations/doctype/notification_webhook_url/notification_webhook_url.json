@@ -34,7 +34,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Service",
-   "options": "Google Chat\nMattermost\nRocket.Chat\nSlack\nDiscord\nNtfy\nRaven",
+   "options": "Google Chat\nMatrix (Hookshot)\nMattermost\nRocket.Chat\nSlack\nDiscord\nNtfy\nRaven",
    "reqd": 1
   },
   {

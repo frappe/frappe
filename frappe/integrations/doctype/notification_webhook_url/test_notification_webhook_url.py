@@ -42,6 +42,7 @@ EXPECTED_PAYLOADS = {
 		"attachments": [{"title": "Document link", "title_link": DOCUMENT_URL}],
 	},
 	"Google Chat": {"text": f"Test\n<{DOCUMENT_URL}|Document link>"},
+	"Matrix (Hookshot)": {"text": f"Test\n\n[Document link]({DOCUMENT_URL})"},
 	"Mattermost": {"text": f"Test\n<{DOCUMENT_URL}|Document link>"},
 	"Discord": {
 		"content": "Test",
@@ -152,6 +153,7 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 		for service, expected in (
 			("Slack", "404: Channel not found"),
 			("Google Chat", "404: Not Found"),
+			("Matrix (Hookshot)", "404: Not Found"),
 			("Ntfy", "404: Not Found"),
 		):
 			with (
@@ -170,7 +172,7 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 			self._make_webhook().send("Test", "User", REFERENCE_NAME)
 
 	def test_timeout(self):
-		for service in ("Slack", "Ntfy"):
+		for service in ("Slack", "Ntfy", "Matrix (Hookshot)"):
 			with (
 				self.subTest(service=service),
 				patch("requests.post", side_effect=requests.Timeout),
