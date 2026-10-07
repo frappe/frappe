@@ -17,12 +17,14 @@ surfaces the desk boots from.
 """
 
 import json
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, resolve_sidebar
 from frappe.desk.doctype.sidebar.test_sidebar import make_sidebar, no_developer_mode
 from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
+from frappe.patches.v16_0.sidebar_archive import layer_rows, write_user_layer
 from frappe.tests import IntegrationTestCase
 
 # in the order `patches.txt` runs them
@@ -35,6 +37,18 @@ CONVERSION = (
 )
 
 
+@contextmanager
+def in_patch():
+	"""Write as the patch handler does. A `Sidebar` is app content, and a customer site only
+	accepts one from the system."""
+	original = frappe.flags.get("in_patch")
+	frappe.flags.in_patch = True
+	try:
+		yield
+	finally:
+		frappe.flags.in_patch = original
+
+
 def archive(title, items, module=None, for_user=None, standard=0, ignore_links=False, app=None):
 	"""A row as v16 left it. It is inserted under `in_patch`, because the archive takes no new
 	entries and a fixture standing in for what a v16 site already holds is the system's own write.
@@ -43,9 +57,7 @@ def archive(title, items, module=None, for_user=None, standard=0, ignore_links=F
 	while the target still existed, so there is no way to write one here honestly except to skip
 	the check the site skipped by being older than the deletion.
 	"""
-	original = frappe.flags.get("in_patch")
-	frappe.flags.in_patch = True
-	try:
+	with in_patch():
 		return frappe.get_doc(
 			{
 				"doctype": "Workspace Sidebar",
@@ -57,8 +69,6 @@ def archive(title, items, module=None, for_user=None, standard=0, ignore_links=F
 				"items": items,
 			}
 		).insert(ignore_permissions=True, ignore_links=ignore_links)
-	finally:
-		frappe.flags.in_patch = original
 
 
 def run_conversion() -> list[str]:
@@ -70,14 +80,9 @@ def run_conversion() -> list[str]:
 
 	"""
 	lines = []
-	original = frappe.flags.get("in_patch")
-	frappe.flags.in_patch = True
-	try:
-		with patch("click.secho", side_effect=lambda message="", **kwargs: lines.append(message)):
-			for name in CONVERSION:
-				frappe.get_attr(name + ".execute")()
-	finally:
-		frappe.flags.in_patch = original
+	with in_patch(), patch("click.secho", side_effect=lambda message="", **kwargs: lines.append(message)):
+		for name in CONVERSION:
+			frappe.get_attr(name + ".execute")()
 	return lines
 
 
@@ -824,17 +829,14 @@ class TestCustomSidebars(IntegrationTestCase):
 		old_base.append(
 			"items", {"type": "Link", "link_type": "DocType", "link_to": "ToDo", "label": "Todos"}
 		)
-		frappe.flags.in_patch, in_patch = True, frappe.flags.get("in_patch")
-		try:
+		with in_patch():
 			old_base.insert(ignore_permissions=True)
-		finally:
-			frappe.flags.in_patch = in_patch
 		archive("V16 Old Base", items, module=cls.HOST)
 		archive(f"{cls.SHOWROOM}-{cls.USER}", items[:1], module=cls.HOST, for_user=cls.USER)
 
-		# what v16 built on its own from an app's workspace, with neither flag set
+		# what v16 built on its own from an app's workspace: neither flag, and no module
 		standard_workspace(cls.GENERATED, cls.HOST)
-		archive(cls.GENERATED, [home(cls.GENERATED), *items], module=cls.HOST)
+		archive(cls.GENERATED, [home(cls.GENERATED), *items])
 
 		cls.output = run_conversion()
 
@@ -892,8 +894,9 @@ class TestCustomSidebars(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Module Def", "V16 Old Base (Custom)", "custom"), 1)
 
 	def test_a_row_v16_generated_from_an_apps_workspace_is_the_apps(self):
-		"""It names the app's workspace and links to it, so it is the app's content: the host
-		keeps its own sidebar, and no module is made for the row."""
+		"""It names the app's workspace and opens on it, so it is the app's content, and it is the
+		workspace that says which module, not the links after it: the host keeps its own sidebar,
+		and no module is made for the row."""
 		self.assertFalse(frappe.db.exists("Module Def", self.GENERATED))
 		self.assertFalse(frappe.db.exists("Module Def", f"{self.GENERATED} (Custom)"))
 		self.assertFalse(frappe.db.exists("Sidebar", {"merged_from": json.dumps([self.GENERATED])}))
@@ -970,6 +973,7 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 	BARE = "Test V16 Bare Module"
 	HELD_ROW = "V16 Held Generated"
 	BARE_ROW = "V16 Bare Generated"
+	KEPT_ROW = "V16 Kept Generated"
 	USER = "test-v16-cleanup@example.com"
 
 	@classmethod
@@ -990,11 +994,26 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 			{"doctype": "User", "email": cls.USER, "first_name": "V16 Cleanup", "send_welcome_email": 0}
 		).insert(ignore_if_duplicate=True).add_roles("Desk User")
 
-		for title, module in ((cls.HELD_ROW, cls.HELD), (cls.BARE_ROW, cls.BARE)):
+		for title, module in ((cls.HELD_ROW, cls.HELD), (cls.BARE_ROW, cls.BARE), (cls.KEPT_ROW, cls.HELD)):
 			standard_workspace(title, module)
 			archive(title, [home(title), link("ToDo", "Todos")], module=module)
 			cls.wrongly_converted(title)
 
+		# the user arranged the sidebar where the earlier run put it
+		write_user_layer(
+			f"{cls.HELD_ROW} (Custom)", cls.USER, layer_rows([link("Event", "Events")], below=[])
+		)
+		# the site has since filed a report under one of them
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "V16 Kept Report",
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"module": f"{cls.KEPT_ROW} (Custom)",
+				"is_standard": "No",
+			}
+		).insert()
 		frappe.get_doc(
 			{
 				"doctype": "Dock",
@@ -1006,15 +1025,15 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		original = frappe.flags.get("in_patch")
-		frappe.flags.in_patch = True
-		try:
+		cls.output = []
+		with (
+			in_patch(),
+			patch("click.secho", side_effect=lambda message="", **kwargs: cls.output.append(message)),
+		):
 			frappe.get_attr(CONVERSION[-1] + ".execute")()
-		finally:
-			frappe.flags.in_patch = original
 
 	@classmethod
-	def wrongly_converted(cls, title: str):
+	def wrongly_converted(cls, title: str) -> None:
 		"""What `convert_custom_sidebars` made of the row before it told a generated row apart from
 		a site's own: a custom module, its sidebar, and a block for the user v16 did not show it
 		to."""
@@ -1026,12 +1045,8 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		sidebar = frappe.new_doc("Sidebar")
 		sidebar.update({"module": module, "title": module, "merged_from": json.dumps([title])})
 		sidebar.append("items", link("ToDo", "Todos"))
-		original = frappe.flags.get("in_patch")
-		frappe.flags.in_patch = True
-		try:
+		with in_patch():
 			sidebar.insert(ignore_permissions=True)
-		finally:
-			frappe.flags.in_patch = original
 		user = frappe.get_doc("User", cls.USER)
 		user.append("block_modules", {"module": module})
 		user.save(ignore_permissions=True)
@@ -1052,14 +1067,28 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		)
 
 	def test_a_module_without_a_sidebar_takes_the_row(self):
-		items = frappe.get_doc("Sidebar", {"module": self.BARE}).items
-		self.assertEqual([row.link_to for row in items if row.link_type == "DocType"], ["ToDo"])
+		self.assertEqual(frappe.db.get_value("Sidebar", {"module": self.BARE}), self.BARE_ROW)
+		items = resolve_sidebar(self.BARE_ROW, self.USER).items
+		self.assertEqual([item["link_to"] for item in items if item["link_type"] == "DocType"], ["ToDo"])
 
 	def test_its_dock_entry_and_blocks_go(self):
 		self.assertFalse(
 			frappe.db.exists("Dock Item", {"link_type": "Sidebar", "link_to": f"{self.HELD_ROW} (Custom)"})
 		)
 		self.assertNotIn(f"{self.HELD_ROW} (Custom)", frappe.get_doc("User", self.USER).get_blocked_modules())
+
+	def test_a_users_arrangement_moves_to_the_apps_module(self):
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.HELD, "user": self.USER}))
+		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": f"{self.HELD_ROW} (Custom)"}))
+		items = resolve_sidebar(self.HELD, self.USER).items
+		self.assertIn("Event", [item["link_to"] for item in items])
+
+	def test_a_module_holding_other_documents_is_kept(self):
+		module = f"{self.KEPT_ROW} (Custom)"
+		self.assertTrue(frappe.db.exists("Module Def", module))
+		self.assertTrue(frappe.db.exists("Sidebar", {"module": module}))
+		self.assertIn(module, frappe.get_doc("User", self.USER).get_blocked_modules())
+		self.assertIn(f"Module '{module}': kept, Report V16 Kept Report is filed under it", self.output)
 
 
 def standard_workspace(title: str, module: str):
@@ -1090,12 +1119,8 @@ def app_sidebar(module: str, title: str, items: list[dict]):
 	doc.title = title
 	for item in items:
 		doc.append("items", item)
-	original = frappe.flags.get("in_patch")
-	frappe.flags.in_patch = True
-	try:
+	with in_patch():
 		doc.insert(ignore_permissions=True)
-	finally:
-		frappe.flags.in_patch = original
 	frappe.db.set_value("Sidebar", doc.name, "standard", 1, update_modified=False)
 	return doc
 
