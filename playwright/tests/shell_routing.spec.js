@@ -503,45 +503,47 @@ test.describe("Desk URL shell segment", () => {
 		expect(linking.any).toContain("Build");
 	});
 
-	test.fixme(
-		"opens the dock from the keyboard and hands focus back when it closes",
-		async ({ page, desk }) => {
-			await page.goto("/desk/build/todo");
-			await desk.ready();
+	test("opens the dock from the keyboard and hands focus back when it closes", async ({
+		page,
+		desk,
+	}) => {
+		await page.goto("/desk/build/todo");
+		await desk.ready();
 
-			// Driven through the method the shortcut calls, since synthesising `shift+ctrl+/`
-			// depends on the keyboard layout.
-			const result = await page.evaluate(() => {
-				const dock = frappe.app.sidebar.dock;
-				if (!dock?.enabled) return null;
+		// Driven through the method the shortcut calls, since synthesising `shift+ctrl+/`
+		// depends on the keyboard layout.
+		const result = await page.evaluate(() => {
+			const dock = frappe.app.sidebar.dock;
+			if (!dock?.enabled) return null;
+			// only a floating dock is summoned and dismissed; a pinned one stays open
+			dock.set_pinned(false);
 
-				const result = {
-					shortcut_handlers: (frappe.ui.keys.handlers["shift+ctrl+/"] || []).length,
-				};
+			const result = {
+				shortcut_handlers: (frappe.ui.keys.handlers["shift+ctrl+/"] || []).length,
+			};
 
-				const opener = document.querySelector(".body-sidebar .item-anchor");
-				opener.focus();
+			const opener = document.querySelector(".body-sidebar .item-anchor[href]");
+			opener.focus();
 
-				dock.toggle_from_keyboard();
-				result.opened = dock.is_open;
-				result.focus_in_dock = dock.$dock[0].contains(document.activeElement);
+			dock.toggle_from_keyboard();
+			result.opened = dock.is_open;
+			result.focus_in_dock = dock.$dock[0].contains(document.activeElement);
 
-				$(document).trigger($.Event("mousemove", { clientX: 600, clientY: 300 }));
-				result.open_after_pointer_move = dock.is_open;
+			$(document).trigger($.Event("mousemove", { clientX: 600, clientY: 300 }));
+			result.open_after_pointer_move = dock.is_open;
 
-				$(document).trigger($.Event("keydown", { key: "Escape" }));
-				result.open_after_escape = dock.is_open;
-				result.focus_handed_back = document.activeElement === opener;
-				return result;
-			});
-			if (!result) return;
+			$(document).trigger($.Event("keydown", { key: "Escape" }));
+			result.open_after_escape = dock.is_open;
+			result.focus_handed_back = document.activeElement === opener;
+			return result;
+		});
+		if (!result) return;
 
-			expect(result.shortcut_handlers, "shortcut registered").toBeGreaterThan(0);
-			expect(result.opened).toBe(true);
-			expect(result.focus_in_dock, "focus in the dock").toBe(true);
-			expect(result.open_after_pointer_move, "survives a pointer move").toBe(true);
-			expect(result.open_after_escape).toBe(false);
-			expect(result.focus_handed_back, "focus handed back").toBe(true);
-		}
-	);
+		expect(result.shortcut_handlers, "shortcut registered").toBeGreaterThan(0);
+		expect(result.opened).toBe(true);
+		expect(result.focus_in_dock, "focus in the dock").toBe(true);
+		expect(result.open_after_pointer_move, "survives a pointer move").toBe(true);
+		expect(result.open_after_escape).toBe(false);
+		expect(result.focus_handed_back, "focus handed back").toBe(true);
+	});
 });
