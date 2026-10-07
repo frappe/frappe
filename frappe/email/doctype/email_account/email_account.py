@@ -223,7 +223,6 @@ class EmailAccount(Document):
 			for e in self.get_unreplied_notification_emails():
 				validate_email_address(e, True)
 
-		self.sync_reply_to_with_email_id()
 		if self.enable_outgoing:
 			self.validate_reply_to_addresses()
 
@@ -292,16 +291,6 @@ class EmailAccount(Document):
 		session = self.get_smtp_server().session
 		self.validate_dsn(session)
 		del self._smtp_server_instance
-
-	def sync_reply_to_with_email_id(self) -> None:
-		"""Carry Reply-To rows pointing at the old Email ID over to the new one."""
-		if self.is_new() or not self.has_value_changed("email_id"):
-			return
-
-		old_email_id = self.get_doc_before_save().email_id
-		for reply_to in self.reply_to_addresses:
-			if reply_to.email == old_email_id:
-				reply_to.email = self.email_id
 
 	def validate_reply_to_addresses(self) -> None:
 		for reply_to in self.reply_to_addresses:
