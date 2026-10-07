@@ -100,6 +100,46 @@ test("an older settings search cannot overwrite a newer result", async (t) => {
 	assert.ok(el.querySelector("li").textContent.includes("Matching"));
 });
 
+test("a settings search keeps what is shown until its results arrive", async (t) => {
+	const pending = [];
+	transport.answers["frappe.client.get_list"] = ({ or_filters }) =>
+		or_filters.length
+			? new Promise((resolve) => pending.push(resolve))
+			: [
+					{ name: "tool-1", title: "Tool 1" },
+					{ name: "tool-2", title: "Tool 2" },
+			  ];
+	const el = mount(t, DocPanel, { spec });
+	await until(() => el.querySelectorAll("li").length === 2);
+	type(el, "Tool 3");
+	await until(() => pending.length === 1);
+	assert.equal(el.querySelectorAll("li").length, 2);
+	pending[0]([]);
+	await until(() => el.textContent.includes("No tools yet."));
+	type(el, "Tool 33");
+	await until(() => pending.length === 2);
+	assert.ok(el.textContent.includes("No tools yet."));
+	assert.ok(!el.textContent.includes("Loading"));
+});
+
+test("a deleted record leaves the list before it reloads", async (t) => {
+	transport.answers["frappe.client.get_list"] = () => [
+		{ name: "tool-1", title: "Tool 1" },
+		{ name: "tool-2", title: "Tool 2" },
+	];
+	const el = mount(t, DocPanel, { spec });
+	await until(() => el.querySelectorAll("li").length === 2);
+	el.querySelectorAll("li button")[1].click();
+	await nextTick();
+	transport.answers["frappe.client.get_list"] = () => new Promise(() => {});
+	el.querySelector("[data-stub=DocForm]").__vueParentComponent.emit("deleted");
+	await nextTick();
+	assert.deepEqual(
+		[...el.querySelectorAll("li")].map((li) => li.textContent.trim()),
+		["Tool 1"]
+	);
+});
+
 test("saving keeps the form open; deleting goes back to the list", async (t) => {
 	transport.answers["frappe.client.get_list"] = () => [{ name: "tool-1", title: "Tool 1" }];
 	const el = mount(t, DocPanel, { spec });
@@ -136,6 +176,23 @@ for (const typeName of ["link", "multilink"]) {
 		assert.ok(el.textContent.includes("selected"));
 		assert.equal(transport.calls.at(-1)[1].txt, "later");
 		assert.equal(transport.calls.at(-1)[1].reference_doctype, "Flow Agent");
+	});
+
+	test(`${typeName} keeps its options while a new search loads`, async (t) => {
+		let finish;
+		transport.answers["frappe.desk.search.search_link"] = ({ txt }) =>
+			txt ? new Promise((resolve) => (finish = resolve)) : [{ value: "tool-1" }];
+		const el = mount(t, FieldControl, {
+			field: { name: "tools", type: typeName, label: "Tools", link: "Flow Tool" },
+			doc: { doctype: "Flow Agent", tools: typeName === "multilink" ? [] : "" },
+		});
+		await until(() => el.textContent.includes("tool-1"));
+		type(el, "later");
+		await until(() => finish);
+		assert.ok(el.textContent.includes("tool-1"));
+		finish([{ value: "tool-900", label: "A later tool" }]);
+		await until(() => el.textContent.includes("A later tool"));
+		assert.ok(!el.textContent.includes("tool-1"));
 	});
 }
 

@@ -64,13 +64,15 @@ const fakes = {
 			render() { return h("button", { disabled: this.loading }, this.label) }
 		}
 		export const FormControl = {
-			props: ["modelValue", "options", "query", "type", "label", "filterable"],
+			props: ["modelValue", "options", "query", "type", "label", "filterable", "loading"],
 			emits: ["update:modelValue", "update:query"],
 			render() {
 				const remote = ["combobox", "multiselect"].includes(this.type)
+				// like frappe-ui's combobox, a loading control shows no options
+				const options = this.loading ? [] : this.options || []
 				return h("div", { "data-control": this.label || this.type }, [
 					h("input", { value: remote ? this.query : this.modelValue, onInput: e => this.$emit(remote ? "update:query" : "update:modelValue", e.target.value) }),
-					...(this.options || []).map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label)),
+					...options.map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label)),
 				])
 			}
 		}
