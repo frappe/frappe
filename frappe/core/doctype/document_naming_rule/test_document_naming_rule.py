@@ -4,6 +4,7 @@ import frappe
 from frappe.patches.v16_0.seed_naming_rule_series import execute as seed_naming_rule_series
 from frappe.query_builder import DocType
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_naming import use_separate_series_counter
 
 
 class TestDocumentNamingRule(IntegrationTestCase):
@@ -229,20 +230,33 @@ class TestDocumentNamingRule(IntegrationTestCase):
 
 		self.assertEqual(self.series_current(prefix), 1)
 
-	def test_same_prefix_on_two_doctypes_counts_separately(self):
+	def test_same_prefix_on_two_doctypes_shares_the_counter(self):
+		prefix = self.make_rules_for_todo_and_note()
+
+		self.assertEqual(self.make_todo().name, prefix + "00001")
+		self.assertEqual(self.make_note().name, prefix + "00002")
+
+	def test_same_prefix_on_two_doctypes_with_separate_counters(self):
+		prefix = self.make_rules_for_todo_and_note()
+		use_separate_series_counter(self, "ToDo")
+		use_separate_series_counter(self, "Note")
+
+		self.assertEqual(self.make_todo().name, prefix + "00001")
+		self.assertEqual(self.make_note().name, prefix + "00001")
+
+	def make_rules_for_todo_and_note(self):
 		prefix = f"test-shared-{frappe.generate_hash(length=6)}-"
 		self.make_rule(prefix)
 		note_rule = frappe.get_doc(
 			doctype="Document Naming Rule", document_type="Note", prefix=prefix, prefix_digits=5
 		).insert()
 		self.addCleanup(note_rule.delete)
+		return prefix
 
-		todo = self.make_todo()
+	def make_note(self):
 		note = frappe.get_doc(doctype="Note", title="Is this my name " + frappe.generate_hash()).insert()
 		self.addCleanup(note.delete)
-
-		self.assertEqual(todo.name, prefix + "00001")
-		self.assertEqual(note.name, prefix + "00001")
+		return note
 
 	def make_rule(self, prefix, digits=5, priority=0, disabled=0):
 		naming_rule = frappe.get_doc(
@@ -258,7 +272,7 @@ class TestDocumentNamingRule(IntegrationTestCase):
 
 	def drop_series(self, prefix):
 		series = DocType("Series")
-		frappe.qb.from_(series).delete().where((series.name == prefix) & (series.doctype == "ToDo")).run()
+		frappe.qb.from_(series).delete().where(series.name == prefix).run()
 
 	def make_todo(self, priority="Medium"):
 		todo = frappe.get_doc(
@@ -271,10 +285,5 @@ class TestDocumentNamingRule(IntegrationTestCase):
 
 	def series_current(self, prefix):
 		series = DocType("Series")
-		row = (
-			frappe.qb.from_(series)
-			.where((series.name == prefix) & (series.doctype == "ToDo"))
-			.select("current")
-			.run()
-		)
+		row = frappe.qb.from_(series).where(series.name == prefix).select("current").run()
 		return row[0][0] if row else None

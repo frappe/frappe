@@ -8,6 +8,7 @@ from frappe.core.doctype.document_naming_settings.document_naming_settings impor
 )
 from frappe.model.naming import NamingSeries, get_default_naming_series, make_autoname
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_naming import use_separate_series_counter
 from frappe.utils import cint
 
 
@@ -92,6 +93,7 @@ class TestNamingSeries(IntegrationTestCase):
 	def test_update_series_counter_per_doctype(self):
 		prefix = f"ZZT{frappe.generate_hash(length=6)}-"
 		key = prefix + ".###"
+		use_separate_series_counter(self, "ToDo")
 
 		self.dns.prefix = prefix
 		self.dns.transaction_type = "ToDo"
@@ -108,6 +110,7 @@ class TestNamingSeries(IntegrationTestCase):
 
 		self.assertEqual(self.dns.get_current(), 20)
 		self.assertEqual(make_autoname(key, "Note"), prefix + "021")
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "012")
 
 	def test_amended_naming(self):
 		self.dns.amend_naming_override = []

@@ -130,35 +130,26 @@ class NamingSeries:
 		"""Warning: Incorrectly updating series can result in unusable transactions"""
 		Series = frappe.qb.DocType("Series")
 		prefix = self.get_prefix()
-		doctype = self.doctype or ""
-		new_count = cint(new_count)
+		doctype = get_series_counter_doctype(self.doctype)
 		row = (Series.name == prefix) & (Series.doctype == doctype)
 
-		if doctype:
-			shared_row = (Series.name == prefix) & (Series.doctype == "")
-			shared_query = frappe.qb.from_(Series).select(Series.current).where(shared_row)
-			shared = cint(max(shared_query.run(pluck=True), default=0))
-			if new_count < shared:
-				frappe.throw(
-					_(
-						"Counter for {0} cannot be lower than {1}, the counter shared by all document types. Clear the document type to change the shared counter."
-					).format(frappe.bold(doctype), shared)
-				)
-
+		# Initialize if not present in DB
 		if not frappe.qb.from_(Series).select(Series.name).where(row).run():
 			frappe.qb.into(Series).columns("name", "doctype", "current").insert(prefix, doctype, 0).run()
 
-		# Without a DocType all rows of the prefix act as one counter, so set them all.
-		target = row if doctype else Series.name == prefix
-		frappe.qb.update(Series).set(Series.current, new_count).where(target).run()
+		frappe.qb.update(Series).set(Series.current, cint(new_count)).where(row).run()
 
 	def get_current_value(self) -> int:
+		"""Return the counter of the DocType, or the shared counter it would start from."""
 		Series = frappe.qb.DocType("Series")
-		query = frappe.qb.from_(Series).select(Series.current).where(Series.name == self.get_prefix())
-		if self.doctype:
-			query = query.where(Series.doctype.isin([self.doctype, ""]))
-
-		return cint(max(query.for_update().run(pluck=True), default=0))
+		doctype = get_series_counter_doctype(self.doctype)
+		query = (
+			frappe.qb.from_(Series)
+			.select(Series.doctype, Series.current)
+			.where((Series.name == self.get_prefix()) & Series.doctype.isin([doctype, ""]))
+		)
+		counters = dict(query.for_update().run())
+		return cint(counters.get(doctype, counters.get("")))
 
 
 def set_new_name(doc):
@@ -448,52 +439,41 @@ def determine_consecutive_week_number(datetime):
 	return w
 
 
+def get_series_counter_doctype(doctype: str | None) -> str:
+	"""Return the DocType that owns its series counters, or "" for the counters shared by all DocTypes."""
+	if doctype and frappe.get_meta(doctype).get("separate_series_counter"):
+		return doctype
+	return ""
+
+
 def getseries(key, digits, doctype=None):
-	doctype = doctype or ""
+	"""Return the next number of the series. A DocType with a separate counter starts it from the shared counter."""
+	doctype = get_series_counter_doctype(doctype)
 
 	if frappe.db.db_type == "sqlite":
 		current = frappe.db.sql(
 			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`)
 			VALUES (%(key)s, %(dt)s, (
-				SELECT COALESCE(MAX(`current`), 0) + 1 FROM `tabSeries`
-				WHERE `name` = %(key)s AND (%(dt)s = '' OR `doctype` IN (%(dt)s, ''))
+				SELECT COALESCE(MAX(`current`), 0) + 1 FROM `tabSeries` WHERE `name` = %(key)s AND `doctype` = ''
 			))
-			ON CONFLICT (`name`, `doctype`) DO UPDATE SET `current` = excluded.`current`
+			ON CONFLICT (`name`, `doctype`) DO UPDATE SET `current` = `current` + 1
 			RETURNING `current`""",
 			{"key": key, "dt": doctype},
 		)[0][0]
 		return ("%0" + str(digits) + "d") % current
 
 	series = DocType("Series")
-	query = frappe.qb.from_(series).select(series.doctype, series.current).where(series.name == key)
-	if doctype:
-		query = query.where(series.doctype.isin([doctype, ""]))
+	row = (series.name == key) & (series.doctype == doctype)
+	current = frappe.qb.from_(series).select(series.current).where(row).for_update().run()
 
-	# Postgres rejects FOR UPDATE with an aggregate, so take the max in Python.
-	counters = dict(query.for_update().run())
-	if "" not in counters:
-		# Every caller locks the shared row, so scoped and unscoped calls cannot race each other.
-		frappe.db.bulk_insert(
-			"Series", ["name", "doctype", "current"], [(key, "", 0)], ignore_duplicates=True
-		)
-		counters = dict(query.for_update().run())
-
-	current = cint(max(counters.values(), default=0)) + 1
-
-	if doctype in counters:
-		frappe.qb.update(series).set(series.current, current).where(
-			(series.name == key) & (series.doctype == doctype)
-		).run()
-	elif frappe.db.db_type == "postgres":
-		# A concurrent first mint for this DocType may have inserted the row after our snapshot.
-		current = frappe.db.sql(
-			"""INSERT INTO "tabSeries" ("name", "doctype", "current") VALUES (%s, %s, %s)
-			ON CONFLICT ("name", "doctype")
-			DO UPDATE SET "current" = GREATEST("tabSeries"."current" + 1, excluded."current")
-			RETURNING "current" """,
-			(key, doctype, current),
-		)[0][0]
+	if current and current[0][0] is not None:
+		current = cint(current[0][0]) + 1
+		frappe.qb.update(series).set(series.current, current).where(row).run()
 	else:
+		current = 1
+		if doctype:
+			shared = frappe.db.get_value("Series", {"name": key, "doctype": ""}, "current", order_by="name")
+			current += cint(shared)
 		frappe.qb.into(series).columns("name", "doctype", "current").insert(key, doctype, current).run()
 
 	return ("%0" + str(digits) + "d") % current
@@ -547,7 +527,7 @@ def revert_series_if_last(key, name, doc=None):
 		prefix = name[:boundary]
 	else:
 		count = cint(name.replace(prefix, ""))
-	doctype = doc.doctype if doc else ""
+	doctype = get_series_counter_doctype(doc.doctype if doc else None)
 	series = DocType("Series")
 	row = (series.name == prefix) & (series.doctype == doctype)
 	current = frappe.qb.from_(series).where(row).for_update().select("current").run()

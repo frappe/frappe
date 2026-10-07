@@ -169,6 +169,7 @@ class DocType(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		separate_series_counter: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
