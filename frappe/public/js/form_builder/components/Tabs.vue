@@ -130,6 +130,11 @@ function delete_tab_message(tab) {
 
 	return store.tab_text.delete_message;
 }
+
+// an unnamed Web Form page shows its position
+function page_number_label(index) {
+	if (store.is_web_form) return __("Page {0}", [index + 1]);
+}
 </script>
 
 <template>
@@ -155,16 +160,9 @@ function delete_tab_message(tab) {
 					@dragover="drag_over(element)"
 				>
 					<EditableInput
-						v-if="store.is_web_form"
 						:text="element.df.label"
-						:placeholder="__('Page {0}', [index + 1])"
-						:empty_label="__('Page {0}', [index + 1])"
-						v-model="element.df.label"
-					/>
-					<EditableInput
-						v-else
-						:text="element.df.label"
-						:placeholder="__('Tab Label')"
+						:placeholder="page_number_label(index) || __('Tab Label')"
+						:empty_label="page_number_label(index)"
 						v-model="element.df.label"
 					/>
 					<button
