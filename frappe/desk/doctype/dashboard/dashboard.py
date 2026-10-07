@@ -3,13 +3,23 @@
 
 import json
 import os
+from enum import Enum
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.query_builder import DocType
+from frappe.utils import cint
 from frappe.utils.modules import get_modules_from_all_apps_for_user
+
+# Temporary: goes with the Classic choice in System Settings.
+SKIP_INSIGHTS_DASHBOARDS_PROMPT = "skip_insights_dashboards_prompt"
+
+
+class Action(Enum):
+	OPEN_INSIGHTS_DASHBOARDS = "open_insights_dashboards"
+	KEEP_CLASSIC_DASHBOARDS = "keep_classic_dashboards"
 
 
 class Dashboard(Document):
@@ -33,8 +43,16 @@ class Dashboard(Document):
 	# end: auto-generated types
 
 	def onload(self):
-		if self.has_insights_version():
-			self.set_onload("dashboards", frappe.db.get_single_value("System Settings", "dashboards"))
+		if not self.has_insights_version():
+			return
+		self.set_onload("dashboards", frappe.db.get_single_value("System Settings", "dashboards"))
+		# Insights adds the `insights_dashboard` field. A dashboard it installs no board for has
+		# nothing to open, and asking to install Insights would be wrong.
+		if self.meta.get_field("insights_dashboard") and not self.get("insights_dashboard"):
+			return
+		if should_show_insights_dashboards_prompt():
+			self.set_onload("show_insights_dashboards_prompt", True)
+			self.set_onload("insights_dashboard_title", self.get_insights_dashboard_title())
 
 	def has_insights_version(self) -> bool:
 		"""Whether the app that ships this dashboard also ships an Insights board for it.
@@ -47,6 +65,14 @@ class Dashboard(Document):
 			return False
 		path = frappe.get_module_path(self.module, f"{self.module}_dashboard", self.name, f"{self.name}.json")
 		return os.path.isfile(path) and bool(frappe.get_file_json(path).get("insights_dashboard"))
+
+	def get_insights_dashboard_title(self) -> str | None:
+		"""The title of the Insights board that claims this dashboard, which often differs from its name."""
+		field = self.meta.get_field("insights_dashboard")
+		if not field or not self.get("insights_dashboard"):
+			return None
+		title_field = frappe.get_meta(field.options).get_title_field()
+		return frappe.db.get_value(field.options, self.insights_dashboard, title_field)
 
 	def clear_cache(self):
 		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
@@ -89,6 +115,29 @@ class Dashboard(Document):
 				json.loads(self.chart_options)
 			except ValueError as error:
 				frappe.throw(_("Invalid json added in the custom options: {0}").format(str(error)))
+
+
+def should_show_insights_dashboards_prompt() -> bool:
+	"""The page shows the prompt only where it draws classic: on a Classic site, or without Insights."""
+	if cint(frappe.defaults.get_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT)):
+		return False
+
+	return "System Manager" in frappe.get_roles()
+
+
+@frappe.whitelist(methods=["POST"])
+def submit_insights_dashboards_prompt(action: str) -> None:
+	"""Either answer is the site's, so no System Manager is asked again. System Settings can still change the choice."""
+	frappe.only_for("System Manager")
+
+	if action == Action.OPEN_INSIGHTS_DASHBOARDS.value:
+		settings = frappe.get_single("System Settings")
+		settings.dashboards = "Insights"
+		settings.save(ignore_permissions=True)
+	elif action != Action.KEEP_CLASSIC_DASHBOARDS.value:
+		frappe.throw(_("Invalid action"))
+
+	frappe.defaults.set_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT, 1)
 
 
 def get_permission_query_conditions(user):

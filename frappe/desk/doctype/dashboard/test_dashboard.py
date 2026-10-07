@@ -8,6 +8,11 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.user.test_user import test_user
+from frappe.desk.doctype.dashboard.dashboard import (
+	SKIP_INSIGHTS_DASHBOARDS_PROMPT,
+	should_show_insights_dashboards_prompt,
+	submit_insights_dashboards_prompt,
+)
 from frappe.patches.v16_0.set_classic_dashboards import execute
 from frappe.tests import IntegrationTestCase
 from frappe.utils.modules import get_modules_from_all_apps_for_user
@@ -106,3 +111,82 @@ class TestDashboardView(IntegrationTestCase):
 		)
 		doc.run_method("onload")
 		self.assertNotIn("dashboards", doc.get_onload())
+
+
+class TestInsightsDashboardsPrompt(IntegrationTestCase):
+	"""A site that draws classic dashboards tells its System Managers once about the Insights ones."""
+
+	def setUp(self):
+		self.original = frappe.db.get_single_value("System Settings", "dashboards")
+		frappe.db.set_single_value("System Settings", "dashboards", "Classic")
+		frappe.defaults.clear_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT)
+
+	def tearDown(self):
+		frappe.db.set_single_value("System Settings", "dashboards", self.original)
+		frappe.defaults.clear_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT)
+
+	def test_it_asks_a_system_manager(self):
+		self.assertTrue(should_show_insights_dashboards_prompt())
+
+	def test_it_asks_nobody_else(self):
+		with test_user(roles=["_Test Role"]) as user, self.set_user(user.name):
+			self.assertFalse(should_show_insights_dashboards_prompt())
+
+	def test_the_choice_does_not_decide_the_prompt(self):
+		frappe.db.set_single_value("System Settings", "dashboards", "Insights")
+		self.assertTrue(should_show_insights_dashboards_prompt())
+
+	def test_keeping_classic_is_final_and_switches_nothing(self):
+		submit_insights_dashboards_prompt("keep_classic_dashboards")
+		self.assertFalse(should_show_insights_dashboards_prompt())
+		self.assertEqual(frappe.db.get_single_value("System Settings", "dashboards"), "Classic")
+
+	def test_opening_insights_switches_the_site_and_is_final(self):
+		submit_insights_dashboards_prompt("open_insights_dashboards")
+		self.assertEqual(frappe.db.get_single_value("System Settings", "dashboards"), "Insights")
+
+		frappe.db.set_single_value("System Settings", "dashboards", "Classic")
+		self.assertFalse(should_show_insights_dashboards_prompt())
+
+	def test_someone_else_cannot_answer_for_the_site(self):
+		with test_user(roles=["_Test Role"]) as user, self.set_user(user.name):
+			self.assertRaises(
+				frappe.PermissionError, submit_insights_dashboards_prompt, "keep_classic_dashboards"
+			)
+
+	def test_an_insights_version_carries_the_prompt_without_insights(self):
+		doc = frappe.get_doc({"doctype": "Dashboard", "name": "Test Prompt"})
+		with (
+			patch.object(type(doc), "has_insights_version", return_value=True),
+			patch.object(doc.meta, "get_field", return_value=None),
+		):
+			doc.run_method("onload")
+			self.assertTrue(doc.get_onload().get("show_insights_dashboards_prompt"))
+
+			submit_insights_dashboards_prompt("keep_classic_dashboards")
+			doc = frappe.get_doc({"doctype": "Dashboard", "name": "Test Prompt"})
+			doc.run_method("onload")
+			self.assertNotIn("show_insights_dashboards_prompt", doc.get_onload())
+
+	def test_the_prompt_names_the_insights_board(self):
+		doc = frappe.get_doc({"doctype": "Dashboard", "name": "Test Prompt"})
+		doc.insights_dashboard = "Administrator"
+		with (
+			patch.object(type(doc), "has_insights_version", return_value=True),
+			patch.object(doc.meta, "get_field", return_value=frappe._dict(options="User")),
+		):
+			doc.run_method("onload")
+		self.assertEqual(
+			doc.get_onload().get("insights_dashboard_title"),
+			frappe.db.get_value("User", "Administrator", "full_name"),
+		)
+
+	def test_a_dashboard_insights_installs_no_board_for_carries_no_prompt(self):
+		doc = frappe.get_doc({"doctype": "Dashboard", "name": "Test Prompt"})
+		with (
+			patch.object(type(doc), "has_insights_version", return_value=True),
+			patch.object(doc.meta, "get_field", return_value=frappe._dict(options="User")),
+		):
+			doc.run_method("onload")
+		self.assertEqual(doc.get_onload().get("dashboards"), "Classic")
+		self.assertNotIn("show_insights_dashboards_prompt", doc.get_onload())
