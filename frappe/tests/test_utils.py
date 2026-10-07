@@ -1433,9 +1433,10 @@ class TestTypingValidations(FrappeTestCase):
 		report.toggle_disable(changed_value)
 		report.toggle_disable(current_value)
 
-
-class TestTBSanitization(FrappeTestCase):
-	def test_traceback_sanitzation(self):
+	def test_forced_types(self):
+		def func(a, b=None, **kwargs):
+			pass
+		
 		lax_types = frappe.whitelist(force_types=False)(func)
 		lax_types(1)  # should run without error
 
