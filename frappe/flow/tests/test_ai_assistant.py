@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_weekday, today
 
 from flow.assistant import (
 	ASSISTANT_AGENT_TITLE,
@@ -43,6 +44,13 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertTrue(doc.enabled)
 		expected_slugs = sorted(t.name for t in BUILTIN_TOOLS)
 		self.assertEqual(sorted(row.tool for row in doc.tools), expected_slugs)
+
+	def test_the_prompt_names_the_session_user_and_today(self):
+		prompt = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).render_instructions()
+		self.assertIn(
+			f"You are helping Administrator (Administrator). Session started on {get_weekday()}, {today()}.",
+			prompt,
+		)
 
 	def test_install_adds_builtin_tools_before_any_model(self):
 		self.assertIn(

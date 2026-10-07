@@ -141,7 +141,8 @@ export const SPECS = {
 				type: "textarea",
 				rows: 10,
 				required: true,
-				description: "What the agent does, and the rules it follows.",
+				description:
+					"What the agent does, and the rules it follows. {{ user }}, {{ full_name }} and {{ today }} are filled in when a chat starts.",
 				locked: system,
 			},
 			{

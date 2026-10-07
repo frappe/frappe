@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import today
 
 from flow import ToolContext
 from flow.assistant.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
@@ -483,6 +484,63 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
 			self.assertEqual(self._search_tool()(query="refund", ctx=CTX), [])
 		retrieve.assert_not_called()
+
+
+class TestFlowAgentInstructions(IntegrationTestCase):
+	"""Jinja tags in the instructions, filled in when a session starts."""
+
+	def setUp(self):
+		self.model_doc = frappe.get_doc(_model()).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_tags_name_the_session_user_and_today(self):
+		agent = frappe.get_doc(
+			_agent(self.model_doc.name, instructions="Helping {{ full_name }} ({{ user }}) on {{ today }}.")
+		).insert()
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "instructions-user@example.com",
+				"first_name": "Ada",
+				"last_name": "Lovelace",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+		frappe.set_user("instructions-user@example.com")
+
+		self.assertEqual(
+			agent.session_tool_config()["system_prompt"],
+			f"Helping Ada Lovelace (instructions-user@example.com) on {today()}.",
+		)
+
+	def test_a_broken_template_is_refused(self):
+		doc = frappe.get_doc(_agent(self.model_doc.name, instructions="Helping {{ full_name"))
+		with self.assertRaisesRegex(frappe.ValidationError, "Could not fill in the instructions"):
+			doc.insert()
+
+	def test_example_jinja_is_refused_until_kept_as_plain_text(self):
+		example = "Dear {{ doc.customer_name }},"
+		doc = frappe.get_doc(_agent(self.model_doc.name, instructions=example))
+		with self.assertRaisesRegex(frappe.ValidationError, "'doc' is undefined"):
+			doc.insert()
+
+		raw = "{% raw %}" + example + "{% endraw %}"
+		agent = frappe.get_doc(_agent(self.model_doc.name, title="Raw", instructions=raw)).insert()
+		self.assertEqual(agent.render_instructions(), example)
+
+	def test_text_with_a_file_name_or_dunder_stays_as_written(self):
+		for i, text in enumerate(("Answer using README.md", "Never touch obj.__dict__ in scripts.")):
+			agent = frappe.get_doc(
+				_agent(self.model_doc.name, title=f"Plain {i}", instructions=text)
+			).insert()
+			self.assertEqual(agent.render_instructions(), text)
+
+	def test_underscore_attributes_stay_blocked(self):
+		agent = frappe.get_doc(_agent(self.model_doc.name, instructions="{{ user.__class__ }}"))
+		self.assertNotIn("<class", agent.render_instructions())
 
 
 class TestFlowAgentSkillIndex(IntegrationTestCase):

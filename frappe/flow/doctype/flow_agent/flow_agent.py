@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import get_fullname, today
+from frappe.utils.jinja import get_jenv, safe_render_flags
 
 from flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
@@ -82,6 +84,7 @@ class FlowAgent(Document):
 		self._validate_token_budget()
 		self._validate_skills()
 		self._validate_sub_agents()
+		self.render_instructions()
 		self._ensure_knowledge_search_tool()
 		validate_immutable(
 			self,
@@ -234,13 +237,29 @@ class FlowAgent(Document):
 
 		server_tools = self.server_tools()
 		return {
-			"system_prompt": (self.instructions or "")
+			"system_prompt": self.render_instructions()
 			+ self.skill_index()
 			+ lifecycle.app_source_prompt([name for name in server_tools if name in SOURCE_TOOL_SLUGS]),
 			"tools": server_tools,
 			"extension_tools": self.extension_tools(),
 			**self.client_tool_config(session),
 		}
+
+	def render_instructions(self) -> str:
+		"""The instructions with their Jinja tags filled in for the current user."""
+		user = frappe.session.user
+		context = {"user": user, "full_name": get_fullname(user), "today": today()}
+		try:
+			# not render_template: it misreads "x.md" and ".__" text
+			with safe_render_flags():
+				return get_jenv().from_string(self.instructions or "").render(context)
+		except Exception as e:
+			frappe.throw(
+				_(
+					"Could not fill in the instructions: {0}. To keep Jinja as plain text, wrap it in {1}."
+				).format(str(e).rstrip("."), "{% raw %}…{% endraw %}"),
+				title=_("Invalid Instructions"),
+			)
 
 	def extension_tools(self) -> list[str]:
 		"""Enabled flow server extension tools selected for this agent."""

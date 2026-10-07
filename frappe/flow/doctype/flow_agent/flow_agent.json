@@ -93,7 +93,7 @@
    "label": "Instructions"
   },
   {
-   "description": "System message shown to the LLM. Describe the agent's role, scope, and rules.",
+   "description": "System message shown to the LLM. Describe the agent's role, scope, and rules. Jinja tags {{ user }}, {{ full_name }} and {{ today }} are filled in when a session starts.",
    "fieldname": "instructions",
    "fieldtype": "Long Text",
    "ignore_xss_filter": 1,
@@ -156,7 +156,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-26 00:21:27.926255",
+ "modified": "2026-10-07 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",
