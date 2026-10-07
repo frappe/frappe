@@ -16,11 +16,12 @@ const emit = defineEmits(["title", "actions"]);
 const frappe = window.frappe;
 const __ = window.__;
 
-// The sidebar's notifications view (frappe.ui.Notifications): this page fetches, links and
-// counts through it, so the page, the panel and the unread badge agree.
+// The sidebar's notifications view (frappe.ui.Notifications): this page links and counts
+// through it, so the page, the panel and the unread badge agree.
 const view = frappe.app.sidebar?.notifications?.tabs?.notifications;
 
 const LIMIT = 100;
+const GET_LOGS = "frappe.desk.doctype.notification_log.notification_log.get_notification_logs";
 const MARK_AS_READ = "frappe.desk.doctype.notification_log.notification_log.mark_as_read";
 const MARK_ALL_AS_READ = "frappe.desk.doctype.notification_log.notification_log.mark_all_as_read";
 
@@ -43,14 +44,17 @@ function load() {
 		loading.value = false;
 		return;
 	}
-	view.get_notifications_list(LIMIT).then((r) => {
-		frappe.update_user_info(r.message?.user_info);
-		logs.value = r.message?.notification_logs || [];
-		loading.value = false;
-	});
+	// unread and read apart, so a run of newer read logs cannot push older unread ones out
+	Promise.all([0, 1].map((read) => frappe.xcall(GET_LOGS, { limit: LIMIT, read }))).then(
+		(pages) => {
+			pages.forEach((page) => frappe.update_user_info(page.user_info));
+			logs.value = pages.flatMap((page) => page.notification_logs);
+			loading.value = false;
+		}
+	);
 }
 
-// the badge moves by what was marked, as in the panel: the page holds at most LIMIT logs
+// the badge moves by what was marked, as in the panel: the page holds at most LIMIT unread logs
 function mark_as_read(log) {
 	log.read = 1;
 	view.update_count_badge(Math.max(view.unread_count - 1, 0));

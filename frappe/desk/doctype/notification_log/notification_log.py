@@ -254,12 +254,17 @@ def format_email_header(header_map, language, docname):
 
 @frappe.whitelist()
 @http_cache(max_age=60, stale_while_revalidate=60 * 60)
-def get_notification_logs(limit: int = 20):
+def get_notification_logs(limit: int = 20, read: int | None = None):
 	# Administrator may read everyone's logs, but the panel and the badge are about their own
+	filters = {"for_user": frappe.session.user}
+	# the phone page lists read and unread logs apart, so neither crowds the other out of the limit
+	if read is not None:
+		filters["read"] = read
+
 	notification_logs = frappe.db.get_list(
 		"Notification Log",
 		fields=["*"],
-		filters={"for_user": frappe.session.user},
+		filters=filters,
 		limit=limit,
 		order_by="creation desc",
 	)
