@@ -921,7 +921,41 @@ test("the Default preset locks the core tools and takes bundled and extension pi
 	save().click()
 	await nextTick()
 	assert.deepEqual(store.state.prefs.defaultPreset, { tools: ["grep"], extensionTools: ["hello"] })
+	assert.equal(el.querySelector("h2").textContent, "Default preset") // the form stays open
+	assert.ok(save().disabled)
+	el.querySelector("button[title='Back to presets']").click()
+	await nextTick()
 	assert.match(el.textContent, /3 of 3 tools/)
+})
+
+test("a new preset stays open after saving, as an edit of itself", async (t) => {
+	const { createFlowStore } = await import("../src/store.js")
+	const SettingsPresets = await loadComponent("SettingsPresets")
+	globalThis.localStorage = { getItem: () => null, setItem() {} }
+	t.after(() => delete globalThis.localStorage)
+	const store = createFlowStore({}, { requireCwd: false, skillsEnabled: false })
+	const { el } = mount(t, SettingsPresets, {}, store)
+	const button = (label) => [...el.querySelectorAll("button")].find((b) => b.textContent === label)
+	const type = (field, value) => {
+		field.value = value
+		field.dispatchEvent(new window.Event("input"))
+		return nextTick()
+	}
+
+	button("New preset").click()
+	await nextTick()
+	await type(el.querySelector("input"), "Reviewer ")
+	button("Save").click()
+	await nextTick()
+	assert.equal(el.querySelector("h2").textContent, "Edit preset")
+	assert.equal(el.querySelector("input").value, "Reviewer")
+	assert.ok(button("Save").disabled)
+	assert.ok(button("Delete"))
+
+	await type(el.querySelector("textarea"), "Be brief.")
+	button("Save").click()
+	await nextTick()
+	assert.deepEqual(store.state.presets.map((p) => [p.name, p.prompt]), [["Reviewer", "Be brief."]]) // updated, not a second preset
 })
 
 function subagentConversation() {
