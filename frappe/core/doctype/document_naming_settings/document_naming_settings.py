@@ -87,7 +87,7 @@ class DocumentNamingSettings(Document):
 		evalauted_prefix = set()
 
 		series = frappe.qb.DocType("Series")
-		prefixes_from_db = frappe.qb.from_(series).select(series.name).run(pluck=True)
+		prefixes_from_db = frappe.qb.from_(series).select(series.name).distinct().run(pluck=True)
 		evalauted_prefix.update(prefixes_from_db)
 
 		for series_template in series_templates:
@@ -188,7 +188,7 @@ class DocumentNamingSettings(Document):
 	def get_current(self):
 		"""get series current"""
 		if self.prefix is not None:
-			self.current_value = NamingSeries(self.prefix).get_current_value()
+			self.current_value = NamingSeries(self.prefix, self.transaction_type or None).get_current_value()
 		return self.current_value
 
 	@frappe.whitelist()
@@ -215,7 +215,7 @@ class DocumentNamingSettings(Document):
 		if self.prefix is None:
 			frappe.throw(_("Please select prefix first"))
 
-		naming_series = NamingSeries(self.prefix)
+		naming_series = NamingSeries(self.prefix, self.transaction_type or None)
 		previous_value = naming_series.get_current_value()
 		naming_series.update_counter(self.current_value)
 
