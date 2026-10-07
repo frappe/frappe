@@ -11,6 +11,10 @@ from frappe.model.document import Document
 from frappe.utils import get_url, get_url_to_form, validate_url
 
 
+class WebhookDeliveryError(frappe.ValidationError):
+	"""A transport failure or unsuccessful response from a notification webhook."""
+
+
 class NotificationWebhookParametersBase:
 	def __init__(
 		self,
@@ -35,10 +39,14 @@ class NotificationWebhookParametersBase:
 		return data
 
 	def send(self) -> requests.Response:
-		response = requests.post(self.params.webhook_url, json=self.build_data(), timeout=10)
+		data = self.build_data()
+		try:
+			response = requests.post(self.params.webhook_url, json=data, timeout=10)
+		except requests.RequestException as exc:
+			raise WebhookDeliveryError(_("Unable to deliver the webhook notification.")) from exc
 		if not response.ok:
 			message = self.get_error_messages().get(response.status_code)
-			frappe.throw(message or f"{response.status_code}: {response.text}")
+			frappe.throw(message or f"{response.status_code}: {response.text}", exc=WebhookDeliveryError)
 		return response
 
 	def get_error_messages(self) -> dict[int, str]:
@@ -123,11 +131,13 @@ class DiscordParameters(NotificationWebhookParametersBase):
 class NtfyParameters(NotificationWebhookParametersBase):
 	def send(self) -> requests.Response:
 		headers = {"Click": self.doc_url} if self.params.show_document_link else {}
-		response = requests.post(
-			self.params.webhook_url, data=self.message.encode("utf-8"), headers=headers, timeout=10
-		)
+		data = self.message.encode("utf-8")
+		try:
+			response = requests.post(self.params.webhook_url, data=data, headers=headers, timeout=10)
+		except requests.RequestException as exc:
+			raise WebhookDeliveryError(_("Unable to deliver the webhook notification.")) from exc
 		if not response.ok:
-			frappe.throw(f"{response.status_code}: {response.text}")
+			frappe.throw(f"{response.status_code}: {response.text}", exc=WebhookDeliveryError)
 		return response
 
 
