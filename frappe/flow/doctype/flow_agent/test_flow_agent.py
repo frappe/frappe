@@ -518,8 +518,29 @@ class TestFlowAgentInstructions(IntegrationTestCase):
 
 	def test_a_broken_template_is_refused(self):
 		doc = frappe.get_doc(_agent(self.model_doc.name, instructions="Helping {{ full_name"))
-		with self.assertRaisesRegex(frappe.ValidationError, "Syntax error in template"):
+		with self.assertRaisesRegex(frappe.ValidationError, "Could not fill in the instructions"):
 			doc.insert()
+
+	def test_example_jinja_is_refused_until_kept_as_plain_text(self):
+		example = "Dear {{ doc.customer_name }},"
+		doc = frappe.get_doc(_agent(self.model_doc.name, instructions=example))
+		with self.assertRaisesRegex(frappe.ValidationError, "'doc' is undefined"):
+			doc.insert()
+
+		raw = "{% raw %}" + example + "{% endraw %}"
+		agent = frappe.get_doc(_agent(self.model_doc.name, title="Raw", instructions=raw)).insert()
+		self.assertEqual(agent.render_instructions(), example)
+
+	def test_text_with_a_file_name_or_dunder_stays_as_written(self):
+		for i, text in enumerate(("Answer using README.md", "Never touch obj.__dict__ in scripts.")):
+			agent = frappe.get_doc(
+				_agent(self.model_doc.name, title=f"Plain {i}", instructions=text)
+			).insert()
+			self.assertEqual(agent.render_instructions(), text)
+
+	def test_underscore_attributes_stay_blocked(self):
+		agent = frappe.get_doc(_agent(self.model_doc.name, instructions="{{ user.__class__ }}"))
+		self.assertNotIn("<class", agent.render_instructions())
 
 
 class TestFlowAgentSkillIndex(IntegrationTestCase):
