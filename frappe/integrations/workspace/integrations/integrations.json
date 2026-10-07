@@ -76,9 +76,9 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Slack Webhook URL",
+   "label": "Notification Webhook URL",
    "link_count": 0,
-   "link_to": "Slack Webhook URL",
+   "link_to": "Notification Webhook URL",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
