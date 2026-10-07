@@ -60,8 +60,34 @@ def site_rows() -> list[frappe._dict]:
 
 
 def is_custom(row) -> bool:
+<<<<<<< HEAD
 	"""Whether the site made this sidebar: v16 set `standard` and `app` on an app's rows."""
 	return not row.standard and not row.app
+=======
+	"""Whether the site made this sidebar itself.
+
+	When v16 imported a sidebar from an app, it set `standard` and `app` on the row. A row with
+	neither was made on the site, unless v16 generated it from an app's workspace.
+	"""
+	return not row.standard and not row.app and not generated_from_app_workspace(row)
+
+
+def generated_from_app_workspace(row) -> bool:
+	"""Whether v16 built this row from an app's workspace rather than a person writing it.
+
+	v16 made a `Workspace Sidebar` for every public workspace that had none, on install and in
+	`auto_generate_desktop_icon_and_sidebar`: titled after the workspace, holding a link to it,
+	with neither `standard` nor `app` set. One built from an app's workspace is that app's content
+	under another name, so it belongs in the app's module like any other app row, not in a custom
+	module of its own.
+	"""
+	title = row.title or row.name
+	if not frappe.db.exists("Workspace", {"name": title, "standard": 1}):
+		return False
+	return any(
+		item.get("link_type") == "Workspace" and item.get("link_to") == title for item in row.rows or ()
+	)
+>>>>>>> e82a69c (fix(sidebar): a sidebar v16 generated from an app workspace is the app's)
 
 
 def converted_module_of(title: str) -> str | None:
