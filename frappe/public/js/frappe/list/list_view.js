@@ -239,7 +239,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.page_length = this.selected_page_count;
 		// a newer refresh can render while this one is pending, and then drop its response;
 		// its own check of the list end came while this load still held loading_more
-		this.refresh().finally(() => {
+		this.refresh_now().finally(() => {
 			this.loading_more = false;
 			this.observe_list_end();
 		});
@@ -364,6 +364,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	patch_refresh_and_load_lib() {
 		// throttle refresh for 1s
 		this.refresh = this.refresh.bind(this);
+		// a scroll load skips the throttle: loading_more already keeps it to one at a time,
+		// and inside the window the throttle hands back the last refresh's settled promise
+		this.refresh_now = this.refresh;
 		this.refresh = frappe.utils.throttle(this.refresh, 1000);
 		this.load_lib = new Promise((resolve) => {
 			if (this.required_libs) {
