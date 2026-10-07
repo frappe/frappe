@@ -240,9 +240,15 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 				</Group>
 			</template>
 
-			<p v-else-if="!settings" class="pl-4 text-lg text-ink-gray-5">
-				{{ __("Loading...") }}
-			</p>
+			<Group v-else-if="!settings" aria-busy="true">
+				<span class="sr-only">{{ __("Loading...") }}</span>
+				<div v-for="index in 5" :key="index" class="flex min-h-14 items-center">
+					<span class="flex w-14 shrink-0 justify-center">
+						<span class="size-5 animate-pulse rounded bg-surface-gray-2" />
+					</span>
+					<span class="h-3 w-1/2 animate-pulse rounded bg-surface-gray-2" />
+				</div>
+			</Group>
 
 			<template v-else-if="screen === 'personal'">
 				<div class="flex flex-col items-center">
