@@ -1,6 +1,6 @@
 <template>
-	<InspectorRow :label="label">
-		<div class="label-field-controls">
+	<div class="label-field">
+		<InspectorRow :label="label" :toggle="showToggle">
 			<Switch
 				v-if="showToggle"
 				:label="showLabel"
@@ -8,15 +8,23 @@
 				@update:model-value="(on) => $emit('update:show', on ? 'show' : 'hide')"
 			/>
 			<input
-				v-if="!showToggle || show_on"
+				v-else
 				class="form-control form-control-sm pfb-insp-input"
 				type="text"
 				:placeholder="placeholder"
 				:value="modelValue"
 				@input="$emit('update:modelValue', $event.target.value)"
 			/>
-		</div>
-	</InspectorRow>
+		</InspectorRow>
+		<input
+			v-if="showToggle && show_on"
+			class="form-control form-control-sm pfb-insp-input"
+			type="text"
+			:placeholder="placeholder"
+			:value="modelValue"
+			@input="$emit('update:modelValue', $event.target.value)"
+		/>
+	</div>
 </template>
 
 <script setup>
@@ -38,14 +46,9 @@ let show_on = computed(() => props.show !== "hide");
 </script>
 
 <style scoped>
-.label-field-controls {
+.label-field {
 	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-.label-field-controls .pfb-insp-input {
-	flex: 1;
-	min-width: 0;
+	flex-direction: column;
+	gap: 8px;
 }
 </style>
