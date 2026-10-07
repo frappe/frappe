@@ -1,5 +1,5 @@
 <template>
-	<InspectorRow :label="label" stacked>
+	<InspectorRow :label="label">
 		<div class="label-field-controls">
 			<Switch
 				v-if="showToggle"
@@ -46,5 +46,6 @@ let show_on = computed(() => props.show !== "hide");
 
 .label-field-controls .pfb-insp-input {
 	flex: 1;
+	min-width: 0;
 }
 </style>
