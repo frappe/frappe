@@ -48,12 +48,15 @@ if (!Object.keys(entries).length) {
 
 // The toolchain's dependencies are pinned in its own package.json and lockfile.
 // Nothing else installs them, so the first build on a bench does, or every
-// Frappe UI page would show its unbuilt state.
+// Frappe UI page would show its unbuilt state. They are all devDependencies, which
+// yarn skips under NODE_ENV=production unless told otherwise.
 if (!fs.existsSync(path.join(root, "node_modules"))) {
 	console.log(`[island] installing the page-island toolchain at ${root}`);
-	const install = spawnSync("yarn", ["install", "--frozen-lockfile", "--cwd", root], {
-		stdio: "inherit",
-	});
+	const install = spawnSync(
+		"yarn",
+		["install", "--frozen-lockfile", "--production=false", "--cwd", root],
+		{ stdio: "inherit" }
+	);
 	if (install.status !== 0) {
 		console.error(
 			`[island] could not install the page-island toolchain at ${root}.\n` +
