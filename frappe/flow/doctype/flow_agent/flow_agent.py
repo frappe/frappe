@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import get_fullname, today
+from frappe.utils.jinja import validate_template
 
 from flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
@@ -82,6 +84,7 @@ class FlowAgent(Document):
 		self._validate_token_budget()
 		self._validate_skills()
 		self._validate_sub_agents()
+		validate_template(self.instructions)
 		self._ensure_knowledge_search_tool()
 		validate_immutable(
 			self,
@@ -234,13 +237,20 @@ class FlowAgent(Document):
 
 		server_tools = self.server_tools()
 		return {
-			"system_prompt": (self.instructions or "")
+			"system_prompt": self.render_instructions()
 			+ self.skill_index()
 			+ lifecycle.app_source_prompt([name for name in server_tools if name in SOURCE_TOOL_SLUGS]),
 			"tools": server_tools,
 			"extension_tools": self.extension_tools(),
 			**self.client_tool_config(session),
 		}
+
+	def render_instructions(self) -> str:
+		"""The instructions with their Jinja tags filled in for the current user."""
+		user = frappe.session.user
+		return frappe.render_template(
+			self.instructions, {"user": user, "full_name": get_fullname(user), "today": today()}
+		)
 
 	def extension_tools(self) -> list[str]:
 		"""Enabled flow server extension tools selected for this agent."""
