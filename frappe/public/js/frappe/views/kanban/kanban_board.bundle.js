@@ -534,7 +534,6 @@ if (frappe.views.KanbanView) {
 				self.$kanban_board.appendTo(self.wrapper);
 			}
 
-			self.$filter_area = self.cur_list.$page.find(".active-tag-filters");
 			bind_events();
 			setup_sortable();
 		}

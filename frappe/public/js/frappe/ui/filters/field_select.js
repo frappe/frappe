@@ -26,7 +26,6 @@ frappe.ui.FieldSelect = class FieldSelect {
 		// the trigger keeps the old `$input` name: callers focus it
 		this.$input = this.combobox.$trigger.appendTo(this.parent);
 		this.input_class && this.$input.addClass(this.input_class);
-		this.select_input = this.$input.get(0);
 	}
 
 	on_pick(value) {
