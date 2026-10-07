@@ -51,7 +51,10 @@ async function load() {
 	await frappe.require("user_settings_dialog.bundle.js");
 	const user_settings = frappe.ui.user_settings;
 	Object.assign(user_data, await user_settings.load());
-	language.value = await user_settings.language_name(user_data.language);
+	// only the display name; the code stands in if the lookup fails
+	language.value = await Promise.resolve(user_settings.language_name(user_data.language)).catch(
+		() => user_data.language
+	);
 	Object.assign(name_form, pick_name(user_data));
 	settings.value = user_settings;
 }
