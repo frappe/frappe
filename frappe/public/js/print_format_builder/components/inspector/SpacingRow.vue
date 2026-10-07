@@ -5,6 +5,7 @@
 				<input
 					type="number"
 					min="0"
+					step="any"
 					:value="modelValue?.[side] ?? 0"
 					:title="side_labels[side]"
 					@change="(e) => set_side(side, e.target.value)"
@@ -33,7 +34,7 @@ const side_labels = {
 };
 
 function set_side(side, v) {
-	const n = Math.max(0, parseInt(v) || 0);
+	const n = Math.max(0, parseFloat(v) || 0);
 	emit("update:modelValue", {
 		top: 0,
 		right: 0,
