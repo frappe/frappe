@@ -14,7 +14,7 @@ import frappe
 from frappe import _
 from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
-from frappe.desk.query_report import generate_report_result, get_reference_report
+from frappe.desk.query_report import generate_report_result, get_reference_report, get_user_facing_error
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import add_to_date, get_url_to_report_with_filters, now
@@ -167,10 +167,16 @@ def generate_report(prepared_report):
 
 def notify_report_status(instance: PreparedReport):
 	"""Notify the owner that the report is done, successfully or not."""
+
+	if instance.status not in ("Completed", "Error"):
+		return
+
 	if instance.status == "Completed":
-		subject = _("Report {0} is ready.").format(instance.report_name)
+		subject = _("Report {0} is ready.").format(frappe.bold(instance.report_name))
 	else:
-		subject = _("Report {0} could not be generated.").format(instance.report_name)
+		subject = _("Report {0} failed to generate.").format(frappe.bold(instance.report_name))
+		if error := get_user_facing_error(instance.error_message):
+			subject = _("{0} Error: {1}", context="Prepared Report Notification").format(subject, error)
 
 	link = get_url_to_report_with_filters(instance.report_name, f"prepared_report_name={instance.name}")
 

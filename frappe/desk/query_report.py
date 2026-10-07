@@ -395,6 +395,10 @@ def add_custom_column_data(custom_columns, result):
 
 def get_user_facing_error(traceback: str | None) -> str:
 	"""Return the error message from a traceback, without the exception class."""
+
+	if not traceback:
+		return ""
+
 	message = (traceback or "").strip().rsplit("\n", 1)[-1]
 	message = re.sub(r"<[^>]*>", " ", message.partition(": ")[2])
 
