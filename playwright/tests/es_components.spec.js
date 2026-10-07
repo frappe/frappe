@@ -666,4 +666,82 @@ test.describe("Espresso components", () => {
 			await expect(page.locator(".es-toast")).toContainText("Paid");
 		});
 	});
+
+	test.describe("Checklist", () => {
+		const onboarding = (page) => explorer_group(page, "employee onboarding");
+		const row = (group, label) =>
+			group.locator(".es-checklist__item", { hasText: containing(label) }).first();
+		const count = (group) => group.locator(".es-checklist__count").first();
+
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Checklist");
+		});
+
+		test("an action that finishes the work checks its row and the count", async ({ page }) => {
+			const group = onboarding(page);
+			await expect(count(group)).toHaveText("1 of 7 done");
+
+			await row(group, "Appointment Letter").getByRole("button", { name: "Send" }).click();
+			await expect(row(group, "Appointment Letter")).toHaveAttribute("data-status", "done");
+			await expect(count(group)).toHaveText("2 of 7 done");
+		});
+
+		test("a locked row says why and disables its actions until the caller unlocks it", async ({
+			page,
+		}) => {
+			const group = onboarding(page);
+			const holiday_list = row(group, "Assign Holiday List");
+
+			await expect(holiday_list).toHaveAttribute("data-locked", "");
+			await expect(holiday_list.locator(".es-checklist__meta")).toHaveText(
+				"Needs: Create Employee"
+			);
+			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeDisabled();
+
+			await row(group, "Create Employee").getByRole("button", { name: "Create" }).click();
+			await expect(holiday_list).not.toHaveAttribute("data-locked", "");
+			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeEnabled();
+		});
+
+		test("a past due date is overdue only while the row is unfinished", async ({ page }) => {
+			const group = onboarding(page);
+
+			await expect(row(group, "Appointment Letter")).toHaveAttribute("data-overdue", "");
+			await expect(row(group, "Create User")).not.toHaveAttribute("data-overdue", "");
+		});
+
+		test("skipping fills the bar but is counted apart from done", async ({ page }) => {
+			const group = explorer_group(page, "Basic");
+
+			await row(group, "Invite users").getByRole("button", { name: "Skip" }).click();
+			await expect(row(group, "Invite users")).toHaveAttribute("data-status", "skipped");
+			await expect(row(group, "Invite users").locator(".es-checklist__meta")).toHaveText(
+				"Skipped"
+			);
+			await expect(count(group)).toHaveText("1 of 2 done, 1 skipped");
+		});
+
+		test("owners and due dates are editable only when the caller can save them", async ({
+			page,
+		}) => {
+			const editable = row(onboarding(page), "Create Employee");
+			const read_only = row(explorer_group(page, "Read-only owners"), "Create Employee");
+
+			await expect(editable.locator(".es-checklist__owner button")).toHaveCount(1);
+			await expect(editable.locator(".es-checklist__due button")).toHaveCount(1);
+			await expect(read_only.locator(".es-checklist__owner button")).toHaveCount(0);
+			await expect(read_only.locator(".es-checklist__due button")).toHaveCount(0);
+		});
+
+		test("a card folds its items away but keeps its head and progress", async ({ page }) => {
+			const card = onboarding(page).locator(".es-checklist").first();
+			const head = card.locator(".es-checklist__head");
+
+			await expect(head).toHaveAttribute("aria-expanded", "true");
+			await head.click();
+			await expect(head).toHaveAttribute("aria-expanded", "false");
+			await expect(card.locator(".es-progress")).toBeVisible();
+			await expect(card.locator(".es-checklist__items")).not.toBeInViewport();
+		});
+	});
 });
