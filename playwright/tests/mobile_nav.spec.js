@@ -158,6 +158,56 @@ test.describe("Phone tab bar", () => {
 		await expect(page.locator("button[role='switch']").first()).toBeVisible();
 	});
 
+	test("profile loads the name again on return, so a save keeps a change made elsewhere", async ({
+		page,
+		admin,
+	}) => {
+		const name_fields = ["middle_name", "last_name"];
+		const { message: before } = await admin.call("frappe.client.get_value", {
+			doctype: "User",
+			filters: TEST_USER,
+			fieldname: name_fields,
+		});
+		const field = (label) => page.getByLabel(label);
+
+		try {
+			await page.setViewportSize(PHONE);
+			await page.goto("/desk/profile/personal");
+			await expect(field("First Name")).not.toHaveValue("");
+
+			// desk keeps Profile mounted while another page changes the name
+			await page.evaluate(() => frappe.set_route("List", "ToDo"));
+			await expect(page).toHaveURL(/\/todo/);
+			await page.evaluate(() =>
+				frappe.xcall("frappe.client.set_value", {
+					doctype: "User",
+					name: frappe.session.user,
+					fieldname: "last_name",
+					value: "Changed Elsewhere",
+				})
+			);
+
+			await page.evaluate(() => frappe.set_route("profile", "personal"));
+			await expect(field("Last Name")).toHaveValue("Changed Elsewhere");
+			await field("Middle Name").fill("Middle");
+			const saved = page.waitForResponse((r) => r.url().includes("frappe.client.set_value"));
+			await page.getByRole("button", { name: "Save", exact: true }).click();
+			await saved;
+
+			const { message: after } = await admin.call("frappe.client.get_value", {
+				doctype: "User",
+				filters: TEST_USER,
+				fieldname: name_fields,
+			});
+			expect(after).toEqual({ middle_name: "Middle", last_name: "Changed Elsewhere" });
+		} finally {
+			await admin.set_value("User", TEST_USER, {
+				middle_name: before.middle_name || "",
+				last_name: before.last_name || "",
+			});
+		}
+	});
+
 	test("the phone pages send a wide screen to their desktop home", async ({ page, desk }) => {
 		await page.goto("/desk/notifications");
 		await desk.ready();
