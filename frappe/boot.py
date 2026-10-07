@@ -590,6 +590,7 @@ def get_link_title_doctypes():
 
 def get_link_settings() -> dict[str, dict]:
 	"""Non-default Link field settings per DocType; Property Setters override."""
+	from frappe.app_state import is_disabled_app_filtering_active, is_module_disabled
 	from frappe.desk.search import get_image_field
 
 	flags: dict[str, dict] = {}
@@ -604,14 +605,18 @@ def get_link_settings() -> dict[str, dict]:
 			"image": bool(cint(d.show_image_in_link)),
 		}
 
+	# skip the settings of disabled apps and modules, as Meta does
+	hide_disabled = is_disabled_app_filtering_active()
 	for ps in frappe.get_all(
 		"Property Setter",
 		filters={
 			"doctype_or_field": "DocType",
 			"property": ["in", ["link_display_mode", "show_image_in_link"]],
 		},
-		fields=["doc_type", "property", "value"],
+		fields=["doc_type", "property", "value", "module", "is_app_disabled"],
 	):
+		if (hide_disabled and ps.is_app_disabled) or is_module_disabled(ps.module):
+			continue
 		entry = flags.setdefault(ps.doc_type, {"select": False, "image": False})
 		if ps.property == "link_display_mode":
 			entry["select"] = ps.value == "Select"

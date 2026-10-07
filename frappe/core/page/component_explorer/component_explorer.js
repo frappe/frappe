@@ -37,9 +37,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	// a footer row two Combobox demos share
 	const CREATE_CUSTOMER_ROW = {
 		type: "custom",
-		label: "Create a new Customer",
+		label: __("Create a new Customer"),
 		icon: "plus",
-		onclick: ({ query }) => frappe.ui.toast({ message: `Create "${query || "new"}"` }),
+		onclick: ({ query }) =>
+			frappe.ui.toast({ message: __('Create "{0}"', [query || __("new")]) }),
 	};
 
 	const COMPONENTS = {
@@ -51,17 +52,18 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Basic"),
 					items: [
 						{
-							placeholder: "Select status",
+							placeholder: __("Select status"),
 							options: ["Open", "Working", "Pending Review", "Closed"],
-							on_change: (value) => frappe.ui.toast({ message: `Picked ${value}` }),
+							on_change: (value) =>
+								frappe.ui.toast({ message: __("Picked {0}", [value]) }),
 						},
 						{
-							placeholder: "Select status",
+							placeholder: __("Select status"),
 							value: "Working",
 							options: ["Open", "Working", "Closed"],
 						},
 						{
-							placeholder: "Disabled",
+							placeholder: __("Disabled"),
 							value: "Open",
 							disabled: true,
 							options: ["Open", "Closed"],
@@ -72,8 +74,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Rich rows: avatar, description, badge, disabled"),
 					items: [
 						{
-							placeholder: "Select customer",
-							search_placeholder: "Search customers...",
+							placeholder: __("Select customer"),
+							search_placeholder: __("Search customers..."),
 							options: [
 								{
 									label: "Acme Industries",
@@ -107,7 +109,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								frappe.ui.toast({ message: `${option.label} (${value})` }),
 						},
 						{
-							placeholder: "Select priority",
+							placeholder: __("Select priority"),
 							options: [
 								{ label: "Urgent", value: "Urgent", icon: "flame" },
 								{ label: "High", value: "High", icon: "arrow-up" },
@@ -121,8 +123,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Groups"),
 					items: [
 						{
-							placeholder: "Select account",
-							search_placeholder: "Search 412 accounts...",
+							placeholder: __("Select account"),
+							search_placeholder: __("Search 412 accounts..."),
 							options: [
 								{
 									group: "Receivable",
@@ -157,16 +159,16 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Custom rows (footer) and empty state"),
 					items: [
 						{
-							placeholder: "Select customer",
+							placeholder: __("Select customer"),
 							options: ["Acme Industries", "Ace Hardware Ltd"],
 							footer: [
 								CREATE_CUSTOMER_ROW,
 								{
 									type: "custom",
-									label: "Browse all Customers",
+									label: __("Browse all Customers"),
 									icon: "search",
 									condition: ({ query }) => !query,
-									onclick: () => frappe.ui.toast({ message: "Browse all" }),
+									onclick: () => frappe.ui.toast({ message: __("Browse all") }),
 								},
 							],
 						},
@@ -176,12 +178,12 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Applied filters — every operator, many at once, long values"),
 					items: [
 						{
-							placeholder: "One filter",
+							placeholder: __("One filter"),
 							filters: ["Customer Group: Commercial"],
 							options: ["Acme Industries", "Pacific Traders"],
 						},
 						{
-							placeholder: "Every operator",
+							placeholder: __("Every operator"),
 							filters: [
 								"Customer Group: Commercial",
 								"Status ≠ Disabled",
@@ -196,7 +198,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							options: ["Acme Industries", "Pacific Traders"],
 						},
 						{
-							placeholder: "Long values",
+							placeholder: __("Long values"),
 							filters: [
 								"Company: Frappe Technologies Private Limited (Mumbai Head Office and Regional Branches)",
 								"Cost Center: Main - Frappe Technologies Private Limited - Mumbai - FT",
@@ -204,7 +206,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							options: ["Acme Industries", "Pacific Traders"],
 						},
 						{
-							placeholder: "Plain text form",
+							placeholder: __("Plain text form"),
 							filters:
 								"Customer Group equals Commercial and Territory is one of India, Nepal, Bhutan and Status is not Disabled",
 							options: ["Acme Industries", "Pacific Traders"],
@@ -215,7 +217,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("No search row (short lists)"),
 					items: [
 						{
-							placeholder: "Select company",
+							placeholder: __("Select company"),
 							hide_search: true,
 							value: "Frappe Technologies",
 							options: ["Frappe Technologies", "Frappe Cloud LLC", "Frappe UK Ltd"],
@@ -226,8 +228,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Load more on scroll (page_size)"),
 					items: [
 						{
-							placeholder: "Select item",
-							search_placeholder: "Search 143 items...",
+							placeholder: __("Select item"),
+							search_placeholder: __("Search 143 items..."),
 							filterable: false,
 							page_size: 20,
 							options: (query, { start }) =>
@@ -251,8 +253,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Async options (server search)"),
 					items: [
 						{
-							placeholder: "Select user",
-							search_placeholder: "Search users...",
+							placeholder: __("Select user"),
+							search_placeholder: __("Search users..."),
 							filterable: false,
 							options: (query) =>
 								new Promise((resolve) =>
@@ -289,7 +291,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Basic"),
 					items: [
 						{
-							placeholder: "Select roles",
+							placeholder: __("Select roles"),
 							options: [
 								"Accounts Manager",
 								"Accounts User",
@@ -298,10 +300,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								"System Manager",
 							],
 							on_change: (values) =>
-								frappe.ui.toast({ message: `${values.length} selected` }),
+								frappe.ui.toast({ message: __("{0} selected", [values.length]) }),
 						},
 						{
-							placeholder: "Select roles",
+							placeholder: __("Select roles"),
 							value: ["Sales User", "System Manager"],
 							options: [
 								"Accounts User",
@@ -311,7 +313,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							],
 						},
 						{
-							placeholder: "Disabled",
+							placeholder: __("Disabled"),
 							value: ["Sales User"],
 							disabled: true,
 							options: ["Sales User"],

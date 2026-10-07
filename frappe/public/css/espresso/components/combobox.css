@@ -109,14 +109,14 @@ input.es-combobox__value:disabled {
 
 /* overlay scrollbars give no hint that more rows follow: fade the edge */
 .es-combobox__list[data-more-below] {
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--spacing) * 9), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - var(--spacing) * 9), transparent);
 }
 
 /* ---- search row ---- */
 .es-combobox__search > .es-spinner {
-    width: 14px;
-    height: 14px;
+    width: calc(var(--spacing) * 3.5);
+    height: calc(var(--spacing) * 3.5);
 }
 
 .es-combobox__input {
@@ -198,7 +198,7 @@ input.es-combobox__value:disabled {
 }
 
 .es-combobox__badge {
-    vertical-align: 1px;
+    vertical-align: calc(var(--spacing) * 0.25);
 }
 
 .es-combobox__match {
@@ -226,9 +226,9 @@ input.es-combobox__value:disabled {
     overflow: hidden;
 }
 
-/* badges set their own display, which would beat the hidden attribute */
-.es-combobox__pills [hidden] {
-    display: none !important;
+/* badges set their own display: two classes' weight lets the hidden attribute win */
+.es-combobox__pills > [hidden] {
+    display: none;
 }
 
 .es-combobox--multi input.es-combobox__value {

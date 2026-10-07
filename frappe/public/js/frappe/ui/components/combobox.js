@@ -248,7 +248,7 @@ frappe.ui.Combobox = class Combobox {
 		this.prefix_el.hidden = true;
 
 		if (this.opts.value_input) {
-			// not readonly, as tests can't type into readonly inputs; edits are blocked in beforeinput
+			// not readonly: paste, IME and phone keyboards never reach a readonly input; edits are blocked in beforeinput
 			this.value_el = document.createElement("input");
 			this.value_el.type = "text";
 			this.value_el.setAttribute("autocomplete", "off");
