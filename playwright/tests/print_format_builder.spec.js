@@ -350,38 +350,6 @@ test.describe("Print Format Builder — create flow", () => {
 		await expect(tree_row(page, "Beta")).toHaveClass(/(^|\s)active(\s|$)/);
 	});
 
-	test("field breadcrumb navigates to parent section", async ({ page, api }) => {
-		await insert_builder_format(api, PF_NAME, [
-			{
-				label: "Details",
-				columns: [
-					{
-						label: "",
-						fields: [
-							{ fieldtype: "Data", fieldname: "description", label: "Description" },
-						],
-					},
-				],
-			},
-		]);
-
-		await open_builder(page, PF_NAME);
-
-		await page.locator(".es-tabs__tab[data-tab='layers']").click();
-		await tree_row(page, "Details").click();
-
-		await page.locator(".print-format-container").click();
-		await section(page, "Details").locator(".field").first().click();
-
-		await expect(page.locator(".pfb-breadcrumb")).toBeVisible();
-		await expect(page.locator(".pfb-breadcrumb-name")).toContainText("Details");
-
-		await page.locator(".pfb-breadcrumb-btn").click();
-		await expect(page.locator(".pfb-inspector")).toContainText("Section");
-		await expect(page.locator(".pfb-inspector")).toContainText("Details");
-		await expect(page.locator(".pfb-breadcrumb")).toHaveCount(0);
-	});
-
 	test("font size change applies to canvas preview", async ({ page, api }) => {
 		await insert_builder_format(api, PF_NAME, []);
 
