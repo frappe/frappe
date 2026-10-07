@@ -95,9 +95,6 @@ test.describe("Phone tab bar", () => {
 		await show_seeded_todos(page);
 		await expect.poll(() => page.evaluate(() => cur_list.data.length)).toBe(20);
 
-		// ListView.refresh is throttled to one call a second; a call inside that window would
-		// only queue behind the last one instead of going out now
-		await page.waitForTimeout(1100);
 		await page.evaluate(() => cur_list.loading_more || cur_list.load_more_on_scroll());
 		await scroll_load;
 		await page.evaluate((tag) => {
