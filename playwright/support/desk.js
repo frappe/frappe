@@ -182,9 +182,10 @@ export class Desk {
 	}
 
 	async clear_filters() {
-		// saved filters are applied before the first refresh, so let that one render first
+		// saved filters are applied before the first refresh, so let that one render first;
+		// a row rather than the paging area, which a phone hides for scroll loading
 		await expect(
-			this.page.locator(".list-paging-area:visible, .no-result:visible").first()
+			this.page.locator(".result .list-row:visible, .no-result:visible").first()
 		).toBeVisible();
 		if (!(await this.page.evaluate(() => cur_list.filter_area.get().length))) {
 			return;
