@@ -156,6 +156,35 @@ export const FIELD_SECTIONS = [
 			},
 			bold(is_static_text),
 			font_size(is_static_text),
+		],
+	},
+	{
+		key: "style",
+		label: () => __("Style"),
+		rows: [
+			bold(styled_text),
+			font_size(styled_text),
+			color("label_color", () => __("Label")),
+			color("value_color", () => __("Value")),
+			{
+				key: "hide_colon",
+				component: ToggleRow,
+				when: (df, ctx) =>
+					is_text(df) &&
+					!!ctx.print_format?.show_label_colon &&
+					!!df.label &&
+					df.show_label !== "hide",
+				props: () => ({ label: __("Hide colon") }),
+				get: (df) => !!df.hide_colon,
+				set: (df, v, ctx) => ctx.set(df, "hide_colon", v ? 1 : 0, 0),
+				mixed: false,
+			},
+		],
+	},
+	{
+		key: "layout",
+		label: () => __("Layout"),
+		rows: [
 			{
 				key: "align",
 				component: SegmentedRow,
@@ -212,34 +241,15 @@ export const FIELD_SECTIONS = [
 		],
 	},
 	{
-		key: "style",
-		label: () => __("Style"),
+		key: "custom_css",
+		label: () => __("Custom CSS"),
 		init_open: false,
-		rows: [
-			bold(styled_text),
-			font_size(styled_text),
-			color("label_color", () => __("Label")),
-			color("value_color", () => __("Value")),
-			{
-				key: "hide_colon",
-				component: ToggleRow,
-				when: (df, ctx) =>
-					is_text(df) &&
-					!!ctx.print_format?.show_label_colon &&
-					!!df.label &&
-					df.show_label !== "hide",
-				props: () => ({ label: __("Hide colon") }),
-				get: (df) => !!df.hide_colon,
-				set: (df, v, ctx) => ctx.set(df, "hide_colon", v ? 1 : 0, 0),
-				mixed: false,
-			},
-		],
+		rows: [],
 		after: [
 			{
 				key: "custom_style",
 				component: StyleSection,
 				single: true,
-				props: () => ({ label: __("Custom CSS") }),
 				set: (df, v) => (df.custom_style = v),
 			},
 		],
