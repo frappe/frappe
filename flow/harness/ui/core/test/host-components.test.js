@@ -786,6 +786,34 @@ test("an opened thought stays open as it merges into a tool group and the run en
 	assert.ok(panel())
 })
 
+test("a click doesn't focus the thread's buttons, links or summaries, so a closing dialog can't scroll back to one", async (t) => {
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "list files" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 11,
+		content: [{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } }],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 12, tool_call_id: "call-1", content: "a.js" })
+	applyEvent(conversation, { type: "assistant_message", seq: 5, ts: 13, content: [{ type: "text", text: "One file." }], stop_reason: "stop" })
+	applyEvent(conversation, { type: "run_ended", seq: 6, ts: 13, reason: "done" })
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	// false once a handler cancels the press, which is what stops the browser focusing
+	const press = (target) => target.dispatchEvent(new window.MouseEvent("mousedown", { bubbles: true, cancelable: true }))
+	assert.equal(press(el.querySelector("[data-turn-fold] span")), false)
+	// links in replies and summaries in host tool views take focus on click too
+	const thread = el.querySelector(".flow-thread")
+	thread.insertAdjacentHTML("beforeend", '<a href="#x">docs</a><details><summary>Fields</summary></details>')
+	assert.equal(press(thread.querySelector("a[href]")), false)
+	assert.equal(press(thread.querySelector("summary")), false)
+	assert.equal(press(thread), true)
+})
+
 // A finished thread scrolled to its bottom. jsdom has no layout, so the list's scroll
 // geometry is faked (scrollTop clamps like a browser's) and resizes are reported by hand.
 async function bottomedList(t) {
