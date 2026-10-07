@@ -2,11 +2,11 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { Avatar, Button, TabButtons } from "frappe-ui";
 import { List, ListCell, ListRow } from "frappe-ui/list";
-import { redirect_off_phone } from "../search/phone_page.js";
+import { on_phone_visit } from "../search/phone_page.js";
 
 // Gameplan's notifications page, drawn from desk's Notification Log.
 
-defineProps({
+const props = defineProps({
 	route: { type: Array, default: () => [] },
 	query: { type: Object, default: () => ({}) },
 });
@@ -79,9 +79,7 @@ function open(log) {
 onMounted(() => frappe.realtime.on("notification", load));
 onUnmounted(() => frappe.realtime.off("notification", load));
 
-onMounted(() => {
-	if (redirect_off_phone("List", "Notification Log")) return;
-
+on_phone_visit(props, ["List", "Notification Log"], () => {
 	emit("title", __("Notifications"));
 	emit("actions", []);
 	load();

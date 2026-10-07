@@ -1,7 +1,7 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { Button, Switch, TextInput } from "frappe-ui";
-import { redirect_off_phone } from "../search/phone_page.js";
+import { on_phone_visit } from "../search/phone_page.js";
 import Group from "./components/Group.vue";
 import Photo from "./components/Photo.vue";
 import Row from "./components/Row.vue";
@@ -44,13 +44,16 @@ const language = ref("");
 const user = ref(frappe.user_info(me));
 const refresh_user = () => (user.value = { ...frappe.user_info(me) });
 
+// Set last: the controls show once `settings` is set, and an edit made before the saved
+// values arrived would be overwritten by them.
 async function load() {
 	// Not in the desk bundle, so it is loaded the first time the page shows.
 	await frappe.require("user_settings_dialog.bundle.js");
-	settings.value = frappe.ui.user_settings;
-	Object.assign(user_data, await settings.value.load());
-	language.value = await settings.value.language_name(user_data.language);
+	const user_settings = frappe.ui.user_settings;
+	Object.assign(user_data, await user_settings.load());
+	language.value = await user_settings.language_name(user_data.language);
 	Object.assign(name_form, pick_name(user_data));
+	settings.value = user_settings;
 }
 
 const switches = (section) => settings.value?.switches(section) || [];
@@ -152,15 +155,15 @@ function open(option) {
 	else option.onclick?.();
 }
 
-onMounted(() => {
-	if (redirect_off_phone("Form", "User", me)) return;
-
+// a screen change below the page is a new route too, and must not load the values again
+let loading;
+on_phone_visit(props, ["Form", "User", me], () => {
 	// No header on a phone, as Gameplan's page has none: the screens bring their own bar.
 	// The same call the desktop page makes for its own header; it hides this page's only.
 	frappe.pages["profile"]?.page?.page_head.hide();
 
 	emit("actions", []);
-	load();
+	loading ||= load().catch(() => (loading = null));
 });
 
 watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immediate: true });
