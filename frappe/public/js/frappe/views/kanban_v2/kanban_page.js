@@ -645,12 +645,19 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				'<div class="standard-filter-section kanban-v2-quick-filters flex"></div>'
 			).insertBefore(this.$filter_section);
 		}
-		// the boxes' filters outlive them (board or swimlane change), each replacing a filter
-		// on its field: the new boxes take back the ones they can hold, the rest stay in the panel
+		// the boxes' filters outlive them (board or swimlane change), each replacing the filter its
+		// box would hold: the new boxes take back the ones they can hold, the rest stay in the panel
 		const quick = this.get_quick_filters();
 		const boxed = new Set(quick.map(([, fn]) => fn));
 		this.filters = (this.filters || [])
-			.filter(([doctype, fn]) => !(doctype === this.doctype && boxed.has(fn)))
+			.filter(
+				([doctype, fn, cond, val]) =>
+					!(
+						doctype === this.doctype &&
+						boxed.has(fn) &&
+						frappe.ui.FilterGroup.fits_box(page.fields_dict[fn], cond, val)
+					)
+			)
 			.concat(quick);
 		(this._quick_filter_fields || []).forEach((fn) => {
 			const f = page.fields_dict[fn];
