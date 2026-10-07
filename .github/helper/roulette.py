@@ -197,7 +197,7 @@ if __name__ == "__main__":
 		print("Only Frontend code was updated; Stopping Python build process.")
 		sys.exit(0)
 	elif build_type == "ui" and only_py_changed and not has_run_ui_tests_label(pr_number, repo):
-		print("Only Python code was updated, stopping Cypress build process.")
+		print("Only Python code was updated, stopping UI test build process.")
 		sys.exit(0)
 
 	# If we reach here, run the build
