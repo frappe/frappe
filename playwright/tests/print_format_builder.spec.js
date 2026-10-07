@@ -436,10 +436,7 @@ test.describe("Print Format Builder — create flow", () => {
 		await expect(page.locator(".pfb-inspector")).toContainText("Due Date");
 		await expect(page.locator(".pfb-inspector")).not.toContainText("Deadline");
 		await expect(
-			page
-				.locator(".pfb-insp-row", { hasText: "Label" })
-				.first()
-				.locator("input.pfb-insp-input")
+			page.locator(".pfb-inspector .label-field").first().locator("input.pfb-insp-input")
 		).toHaveValue("Deadline");
 	});
 
