@@ -2,7 +2,6 @@ frappe.ui.form.FormViewers = class FormViewers {
 	constructor({ frm, parent }) {
 		this.frm = frm;
 		this.parent = parent;
-		this.parent.tooltip({ title: __("Currently Viewing") });
 
 		this._past_users = {};
 		this._active_users = {};
@@ -36,11 +35,11 @@ frappe.ui.form.FormViewers = class FormViewers {
 			this.parent.empty();
 			return;
 		}
-		let avatar_group = frappe.avatar_group(this.active_users, 5, {
-			align: "left",
-			overlap: true,
+		const avatars = this.active_users.map((user) => {
+			const { fullname, image } = frappe.user_info(user);
+			return { label: fullname, image, title: __("{0} is viewing", [fullname]) };
 		});
-		this.parent.empty().append(avatar_group);
+		this.parent.empty().append(frappe.ui.avatar_group({ avatars, max: 5 }));
 	}
 
 	setup_events() {
