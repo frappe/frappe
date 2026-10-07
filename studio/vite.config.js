@@ -128,10 +128,21 @@ export default defineConfig(async () => {
 				"engine.io-client",
 				"highlight.js/lib/core",
 				"debug",
-				"prosemirror-state",
-				"prosemirror-view",
+				// Pre-bundle all prosemirror packages. This makes sure that the editor loads only one copy.
+				// Two copies cause the error "Duplicate use of selection JSON ID gapcursor".
+				"prosemirror-changeset",
+				"prosemirror-commands",
+				"prosemirror-dropcursor",
+				"prosemirror-gapcursor",
+				"prosemirror-history",
+				"prosemirror-inputrules",
+				"prosemirror-keymap",
 				"prosemirror-model",
+				"prosemirror-schema-list",
+				"prosemirror-state",
+				"prosemirror-tables",
 				"prosemirror-transform",
+				"prosemirror-view",
 			],
 		},
 	}

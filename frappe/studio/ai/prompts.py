@@ -17,10 +17,11 @@ TEXT & DISPLAY:
 - ImageView: {image: "url", size: "xs|sm|md|lg|xl"}
 - Divider: (no props)
 - Tooltip: {text: "string"}
-- HTML: {html: "<p>raw html</p>"}
+- HTML: {html: "<p>raw html</p>"} # can also use for a custom SVG (a logo or an illustration)
+- Icon: {icon: "lucide-icon-name"} # use for a standalone lucide icon, NEVER a raw span with a lucide-* class
 
 INPUTS:
-- TextInput: {modelValue: "string", label: "string", placeholder: "string"} # slots: prefix, suffix (e.g. an icon before/after the field)
+- TextInput: {modelValue: "string", label: "string", placeholder: "string"} # slots: prefix, suffix (e.g. an Icon before/after the field)
 - Textarea: {modelValue: "string", label: "string", placeholder: "string"}
 - FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|combobox|multiselect|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and combobox)}
 - Select: {modelValue: "string", label: "string", placeholder: "string", options: [{label: "string", value: "string"}]} # slots: prefix, suffix, item-label, empty, footer

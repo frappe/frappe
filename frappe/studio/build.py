@@ -12,7 +12,6 @@ import frappe
 from frappe.build import get_node_env
 from frappe.utils import get_files_path
 
-from studio.constants import NON_VUE_COMPONENTS
 from studio.utils import walk_blocks
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
@@ -223,7 +222,7 @@ class StudioAppBuilder:
 				self._add_studio_components(block)
 			elif block.get("isCustomVueComponent"):
 				self._add_custom_vue_component(block.get("componentName"))
-			elif block.get("componentName") not in NON_VUE_COMPONENTS:
+			elif is_vue_component(block.get("componentName")):
 				self.components.add(block.get("componentName"))
 
 	def _add_studio_components(self, block: dict):
@@ -356,6 +355,12 @@ def get_router_file(frappe_app: str, studio_app: str) -> str | None:
 	"""Path of the app's studio/<app>/router.ts, if it ships one."""
 	path = os.path.join(get_studio_folder(frappe_app), frappe.scrub(studio_app), "router.ts")
 	return path if os.path.exists(path) else None
+
+
+def is_vue_component(component_name: str | None) -> bool:
+	"""Vue components are PascalCase; lowercase names are native elements (div, span, …)
+	or layout blocks (container) that need no import."""
+	return bool(component_name) and component_name[0].isupper()
 
 
 def after_app_build(built_apps: list[str]) -> None:

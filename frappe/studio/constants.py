@@ -1,5 +1,3 @@
-NON_VUE_COMPONENTS = ["div", "container", "header"]
-
 # All standard component names (frappe-ui + studio built-in) used for conflict detection
 STANDARD_COMPONENT_NAMES = {
 	# frappe-ui

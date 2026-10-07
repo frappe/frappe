@@ -37,6 +37,11 @@
   `value` prop with `{{ value }}`.
 - Icons are plain `lucide-<name>` strings on any `icon`, `iconLeft` or `iconRight`
   prop and on `Icon`; there is no `getIcon()` helper and no `FeatherIcon`.
+- Use the `Icon` component for a standalone lucide icon:
+  `{"componentName": "Icon", "componentProps": {"icon": "lucide-<name>"}}`.
+  Do not make a raw `span` with a `lucide-*` class. It has no `icon` prop, so the
+  icon picker does not show for it.
+  For a custom SVG (a logo or an illustration), use an `HTML` block.
 - Style values use espresso tokens — `var(--ink-…)` for text, `var(--surface-…)`
   for backgrounds, `var(--outline-…)` for borders — NEVER raw hex or rgb().
   Pick the exact step by ROLE from the design language.

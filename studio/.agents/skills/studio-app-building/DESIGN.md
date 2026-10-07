@@ -119,7 +119,7 @@ principles above instead; the widths are starting points, not limits.
   `width: "320px"` with a left hairline, holding label/value rows (label
   `text-sm` `ink-gray-6`, value `text-base` `ink-gray-8`).
 - **Empty state** (any list/dashboard with no data): centered column,
-  `padding: "64px 0px"`, `gap: "12px"` — an icon in a `var(--surface-gray-2)`
+  `padding: "64px 0px"`, `gap: "12px"` — an `Icon` in a `var(--surface-gray-2)`
   circle (`padding: "12px"`, `borderRadius: "9999px"`, icon `ink-gray-5`), a
   `text-base` `ink-gray-7` title, a `text-sm` `ink-gray-5` caption, and one
   solid CTA. Never render a bare "No data" string.

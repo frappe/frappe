@@ -120,6 +120,33 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertIn("Dialog", builder.components)
 		self.assertIn("TextInput", builder.components)
 
+	def test_skips_native_html_elements(self):
+		app = make_studio_app(app_title="Native Element App", app_name="native-element-app")
+		blocks = json.dumps(
+			[
+				{
+					"componentName": "TextInput",
+					"children": [],
+					"componentSlots": {
+						"prefix": {
+							"slotContent": [
+								{
+									"componentName": "span",
+									"originalElement": "span",
+									"classes": ["lucide-search"],
+								},
+							]
+						}
+					},
+				}
+			]
+		)
+		make_studio_page(app.name, page_title="Native Element Page", blocks=blocks, published=1)
+
+		builder = StudioAppBuilder(app.name, is_standard=False)
+		builder.get_app_components()
+		self.assertEqual(builder.components, {"TextInput"})
+
 	def test_extracts_h_function_components(self):
 		"""h(ComponentName, ...) calls in blocks string should be extracted."""
 		app = make_studio_app(app_title="H Func App", app_name="h-func-app")
