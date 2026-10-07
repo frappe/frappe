@@ -140,5 +140,25 @@ class TestDataExporter(IntegrationTestCase):
 
 		self.assertEqual([doc.name for doc in exporter.data], [owned_doc.name])
 
+		frappe.get_doc(
+			doctype="Custom DocPerm",
+			parent=self.doctype_name,
+			role=role.name,
+			read=1,
+			export=0,
+		).insert()
+		frappe.clear_cache(doctype=self.doctype_name)
+
+		with self.set_user(user.name):
+			visible_names = frappe.get_list(self.doctype_name, pluck="name")
+			self.assertIn(self.doc.name, visible_names)
+			self.assertIn(owned_doc.name, visible_names)
+
+			exporter = DataExporter(doctype=self.doctype_name, file_type="CSV")
+			exporter.build_response()
+			self.assertEqual([doc.name for doc in exporter.data], [owned_doc.name])
+			self.assertIn(owned_doc.name, frappe.response["result"])
+			self.assertNotIn(self.doc.name, frappe.response["result"])
+
 	def tearDown(self):
 		pass
