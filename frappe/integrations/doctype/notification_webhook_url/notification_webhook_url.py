@@ -86,6 +86,16 @@ class GoogleChatParameters(NotificationWebhookParametersBase):
 	pass
 
 
+class MatrixHookshotParameters(NotificationWebhookParametersBase):
+	"""Format messages for Matrix Hookshot's inbound webhooks."""
+
+	def build_data(self) -> dict:
+		text = self.message
+		if self.params.show_document_link:
+			text += f"\n\n[{_('Document link')}]({self.doc_url})"
+		return {"text": text}
+
+
 class MattermostParameters(NotificationWebhookParametersBase):
 	pass
 
@@ -123,6 +133,7 @@ class NtfyParameters(NotificationWebhookParametersBase):
 
 SERVICE_CLASSES: dict[str, type[NotificationWebhookParametersBase]] = {
 	"Google Chat": GoogleChatParameters,
+	"Matrix (Hookshot)": MatrixHookshotParameters,
 	"Mattermost": MattermostParameters,
 	"Rocket.Chat": RocketChatParameters,
 	"Slack": SlackParameters,
@@ -145,7 +156,16 @@ class NotificationWebhookURL(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		service: DF.Literal["Google Chat", "Mattermost", "Rocket.Chat", "Slack", "Discord", "Ntfy", "Raven"]
+		service: DF.Literal[
+			"Google Chat",
+			"Matrix (Hookshot)",
+			"Mattermost",
+			"Rocket.Chat",
+			"Slack",
+			"Discord",
+			"Ntfy",
+			"Raven",
+		]
 		show_document_link: DF.Check
 		webhook_name: DF.Data
 		webhook_url: DF.SmallText
