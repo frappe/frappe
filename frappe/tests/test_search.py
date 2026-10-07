@@ -182,8 +182,9 @@ class TestSearch(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "Property Setter", "User-user_image-permlevel", force=True)
 		frappe.clear_cache(doctype="User")
 
-		# rows are read with permissions off, so the field itself is the gate
-		with self.set_user("Guest"):
+		# rows are read with permissions off, so the field itself is the gate;
+		# past the read check, only the permlevel stops it
+		with self.set_user("Guest"), patch("frappe.has_permission", return_value=True):
 			self.assertEqual(frappe.get_meta("User").get_permlevel_access("read"), set())
 			self.assertIsNone(get_image_field("User"))
 
@@ -249,8 +250,9 @@ class TestSearch(IntegrationTestCase):
 		self.assertNotIn("Role", get_link_settings())
 
 		# Role has no image_field, so its flag is dropped
+		original_image = frappe.db.get_value("DocType", "User", "show_image_in_link")
+		self.addCleanup(frappe.db.set_value, "DocType", "User", "show_image_in_link", original_image)
 		frappe.db.set_value("DocType", "User", "show_image_in_link", 1)
-		self.addCleanup(frappe.db.set_value, "DocType", "User", "show_image_in_link", 0)
 		self.assertEqual(get_link_settings()["User"], {"image_field": "user_image"})
 		frappe.db.set_value("DocType", "Role", "show_image_in_link", 1)
 		self.addCleanup(frappe.db.set_value, "DocType", "Role", "show_image_in_link", 0)

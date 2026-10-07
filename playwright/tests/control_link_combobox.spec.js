@@ -7,7 +7,11 @@ test.describe("Control Link (combobox)", () => {
 	// a second ToDo, for the one test that moves between rows
 	let other_todo;
 
+	let original_setting;
+
 	test.beforeAll(async ({ admin }) => {
+		const settings = (await admin.get_doc("System Settings", "System Settings")).data;
+		original_setting = settings.enable_combobox_link_field;
 		await admin.set_value("System Settings", "System Settings", {
 			enable_combobox_link_field: 1,
 		});
@@ -15,7 +19,7 @@ test.describe("Control Link (combobox)", () => {
 
 	test.afterAll(async ({ admin }) => {
 		await admin.set_value("System Settings", "System Settings", {
-			enable_combobox_link_field: 0,
+			enable_combobox_link_field: original_setting,
 		});
 	});
 

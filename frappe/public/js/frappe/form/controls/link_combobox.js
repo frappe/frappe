@@ -4,7 +4,7 @@
 // to change, remove or group ([{ group, options }]) rows before they show.
 
 import { describe_link_filters } from "./link_filter_description.js";
-import { mount_combobox, awesomplete_shim } from "./combobox_control.js";
+import { mount_combobox, awesomplete_shim, title_text } from "./combobox_control.js";
 import { is_thenable } from "../../ui/components/utils.js";
 
 frappe.ui.form.is_combobox_link_enabled = function () {
@@ -150,8 +150,7 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	// called after the title loads; skip if the value changed
 	translate_and_set_input_value(link_title, value) {
 		if (value !== this.displayed_value) return;
-		// a rich-text title field arrives as HTML; the field shows its text
-		const text = this.get_translated(frappe.utils.html2text(link_title || value));
+		const text = this.get_translated(title_text(link_title || value));
 		// can run before make_input (hidden field set by script)
 		this.title_value_map = this.title_value_map || {};
 		this.title_value_map[text] = value;
@@ -367,8 +366,7 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 				for (const row of rows) {
 					// don't cache a name as the title
 					if (row.label && row.label !== row.value) {
-						const title = frappe.utils.html2text(row.label);
-						frappe.utils.add_link_title(context.doctype, row.value, title);
+						frappe.utils.add_link_title(context.doctype, row.value, row.label);
 					}
 				}
 				const options = rows.map((row) => this.to_option(row, context));
@@ -522,20 +520,27 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	}
 
 	to_option(row, { doctype, show_image, is_title_link }) {
-		// a rich-text title field arrives as HTML; rows show its text
-		const label = this.get_translated(frappe.utils.html2text(row.label || row.value));
+		const label = this.get_translated(title_text(row.label || row.value));
 		let description = row.description;
 		// show the name only when it differs from the label
 		if (description && !is_title_link && description === row.value) {
 			description = null;
 		}
-		if (description) description = __(frappe.utils.html2text(description));
+		if (description) description = __(title_text(description));
 		if (show_image) {
 			// image is in the result, so no extra request
 			const key = `${doctype}::${row.value}`;
 			remember(image_promises, key, Promise.resolve(row.image || null), IMAGE_CACHE_MAX);
 		}
-		return { label, value: row.value, description, image: row.image, avatar: show_image };
+		// the raw title goes to the title cache: shown text is converted once, when it's drawn
+		return {
+			label,
+			value: row.value,
+			link_title: row.label,
+			description,
+			image: row.image,
+			avatar: show_image,
+		};
 	}
 
 	async get_filter_chips() {
@@ -550,6 +555,12 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		const descriptions = await describe_link_filters(this.get_link_doctype(), filters);
 		// formatter may return HTML; chips show plain text
 		return descriptions.map((text) => frappe.utils.html2text(text));
+	}
+
+	// the new record must show up in every field's search, not when the cache expires
+	new_doc() {
+		search_cache.clear();
+		return super.new_doc();
 	}
 
 	get_footer_rows() {
@@ -622,9 +633,9 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		}
 		this.title_value_map[option.label] = value;
 		this.label = this.get_translated(option.label);
-		// cache only a real title, not free text
-		if (option.label && option.label !== value) {
-			frappe.utils.add_link_title(this.get_link_doctype(), value, option.label);
+		// cache only the server's raw title: shown text would be converted again on redraw
+		if (option.link_title && option.link_title !== value) {
+			frappe.utils.add_link_title(this.get_link_doctype(), value, option.link_title);
 		}
 		// set the value, then trigger change for dialogs and MultiSelectDialog
 		this.$input.trigger("change");
