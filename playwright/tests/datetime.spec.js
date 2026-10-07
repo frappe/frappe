@@ -118,6 +118,7 @@ test.describe("Control Date, Time and DateTime", () => {
 			await input.blur();
 
 			// overwrite without emptying the input, so the picker is not cleared in between
+			await open_picker(page, input);
 			await input.press("ControlOrMeta+a");
 			await input.pressSequentially("11:00:00", { delay: 100 });
 			await input.blur();
