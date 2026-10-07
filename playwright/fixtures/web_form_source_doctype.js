@@ -6,7 +6,7 @@ export default {
 	doctype: "DocType",
 	engine: "InnoDB",
 	fields: [
-		// a DocType opens with a Tab Break; a rebuild has to drop it, or page 1 comes out blank
+		// a DocType opens with a Tab Break, which a rebuild turns into page 1's Page Break
 		{ fieldname: "details_tab", fieldtype: "Tab Break", label: "Details" },
 		{ fieldname: "title", fieldtype: "Data", label: "Title", reqd: 1 },
 		{ fieldname: "kind", fieldtype: "Select", label: "Kind", options: "Alpha\nBeta" },

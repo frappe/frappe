@@ -5,7 +5,7 @@ import {
 	load_doctype_model,
 	section_boilerplate,
 } from "./utils";
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { useDebouncedRefHistory, onKeyDown, useActiveElement } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
@@ -276,38 +276,24 @@ export const useStore = defineStore("form-builder-store", () => {
 			return df;
 		});
 
-		// page 1 is implicit: N pages are stored as N-1 Page Break rows
-		fields.unshift(get_df("Tab Break"));
+		// a Page Break in row 1 is page 1's own, like a DocType's opening Tab Break
+		if (fields[0]?.fieldtype !== "Tab Break") {
+			fields.unshift(get_df("Tab Break"));
+		}
 
 		return fields;
 	}
 
 	function setup_web_form_pages() {
-		renumber_web_form_pages();
-
 		// create_layout() prunes empty sections, leaving a page with no drop target
 		form.value.layout.tabs.forEach((tab) => {
 			if (!tab.sections.length) tab.sections.push(section_boilerplate());
 		});
 	}
 
-	function renumber_web_form_pages() {
-		// a Page Break row carries no label, so number the pages by position
-		form.value.layout.tabs.forEach((tab, i) => {
-			tab.df.label = __("Page {0}", [i + 1]);
-		});
-	}
-
-	// adding, moving, deleting or dragging a page shifts every later position
-	watch(
-		() => is_web_form.value && form.value.layout.tabs?.map((tab) => tab.df.name).join(),
-		(page_order) => page_order && renumber_web_form_pages()
-	);
-
-	// page 1 has no Page Break, so a new page brings the count to tabs.length
 	function validate_web_form_page_limit() {
 		if (is_web_form.value) {
-			validate_page_limit.value?.(form.value.layout.tabs.length);
+			validate_page_limit.value?.(form.value.layout.tabs.length + 1);
 		}
 	}
 
@@ -576,15 +562,10 @@ export const useStore = defineStore("form-builder-store", () => {
 
 	// rows are updated in place: frm.set_value() on a table drops each row's name
 	function web_form_fields_to_rows(fields) {
-		// drop the implicit page 1, but only if get_updated_fields() kept it, or page 2's
-		// break goes instead
-		let tab_count = fields.filter((df) => df.fieldtype === "Tab Break").length;
-		let dfs = tab_count === form.value.layout.tabs.length ? fields.slice(1) : fields;
-
 		let parent = frm.value.doc;
 		let unclaimed = new Map((parent.web_form_fields || []).map((row) => [row.name, row]));
 
-		let rows = dfs.map((df, i) => {
+		let rows = fields.map((df, i) => {
 			// a duplicated field carries its source's row, so only the first one claims it
 			let row = unclaimed.get(df.web_form_field_row);
 			if (row) {
@@ -604,11 +585,6 @@ export const useStore = defineStore("form-builder-store", () => {
 			if (WEB_FORM_STRUCTURAL_FIELDTYPES.includes(row.fieldtype)) {
 				row.fieldname = "";
 				row.options = "";
-			}
-
-			// pages are named by position on read, so the label is never stored
-			if (row.fieldtype === "Page Break") {
-				row.label = "";
 			}
 
 			return row;
@@ -656,10 +632,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		let layout_fields = JSON.parse(JSON.stringify(form.value.layout.tabs));
 
 		layout_fields.forEach((tab, i) => {
-			if (
-				(i == 0 && is_df_updated(tab.df, get_df("Tab Break", "", __("Details")))) ||
-				i > 0
-			) {
+			if ((i == 0 && is_first_tab_updated(tab.df)) || i > 0) {
 				idx++;
 				tab.df.idx = idx;
 				if (tab.df.__unsaved && tab.df.__islocal) {
@@ -721,6 +694,16 @@ export const useStore = defineStore("form-builder-store", () => {
 		return fields;
 	}
 
+	function is_first_tab_updated(df) {
+		if (!is_web_form.value) {
+			return is_df_updated(df, get_df("Tab Break", "", __("Details")));
+		}
+
+		// page 1 gets a Page Break row only once it is named or changed
+		let blank = get_df("Tab Break");
+		return web_form_field_props.value.some((prop) => (df[prop] || "") != (blank[prop] || ""));
+	}
+
 	function is_df_updated(df, new_df) {
 		let df_copy = JSON.parse(JSON.stringify(df));
 		let new_df_copy = JSON.parse(JSON.stringify(new_df));
@@ -737,7 +720,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	function add_new_tab(sections = [section_boilerplate()]) {
 		validate_web_form_page_limit();
 
-		// a Web Form page is named by the renumbering watcher
+		// Tabs.vue shows an unnamed page as "Page N"
 		let label = is_web_form.value ? "" : "Tab " + (form.value.layout.tabs.length + 1);
 
 		let tab = {
