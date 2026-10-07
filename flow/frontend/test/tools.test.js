@@ -74,7 +74,7 @@ test("create tables only the fields the records use, before and after the run", 
 	);
 });
 
-test("read links each record to its Desk form, skipping fields nothing filled", (t) => {
+test("read_records links each record to its Desk form, skipping fields nothing filled", (t) => {
 	const rows = [
 		{ name: "INV-001", status: "Paid", remarks: "", customer: "" },
 		{ name: "INV-002", status: "Paid", remarks: "", customer: "Alpha" },
@@ -82,7 +82,7 @@ test("read links each record to its Desk form, skipping fields nothing filled", 
 	const el = mount(t, ReadView, { arguments: { doctype: "Sales Invoice" }, result: json(rows) });
 	assert.deepEqual(texts(el, "th"), ["Name", "Status", "Customer"]);
 	assert.deepEqual(hrefs(el), ["/app/sales-invoice/INV-001", "/app/sales-invoice/INV-002"]);
-	assert.equal(presentTool("read", {}, json(rows)).stat, "2 records");
+	assert.equal(presentTool("read_records", {}, json(rows)).stat, "2 records");
 });
 
 test("delete links its targets until they are gone", (t) => {
@@ -200,8 +200,8 @@ test("a custom tool always shows its output, unfolded", (t) => {
 
 test("an approval card gets the view, a bare row does not", () => {
 	assert.equal(presentTool("create", createArgs).argsComponent, CreateView);
-	assert.equal(presentTool("read", {}).argsComponent, undefined);
-	assert.equal(presentTool("read", {}).resultComponent, ReadView);
+	assert.equal(presentTool("read_records", {}).argsComponent, undefined);
+	assert.equal(presentTool("read_records", {}).resultComponent, ReadView);
 });
 
 async function openDetails(el) {
