@@ -435,9 +435,7 @@ test.describe("Print Format Builder — create flow", () => {
 
 		await expect(page.locator(".pfb-inspector")).toContainText("Due Date");
 		await expect(page.locator(".pfb-inspector")).not.toContainText("Deadline");
-		await expect(
-			page.locator(".pfb-inspector .label-field").first().locator("input.pfb-insp-input")
-		).toHaveValue("Deadline");
+		await expect(page.locator(".pfb-inspector .label-field > input")).toHaveValue("Deadline");
 	});
 
 	test("field align overrides a conflicting label-justify setting", async ({ page, api }) => {
