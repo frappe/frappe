@@ -135,7 +135,10 @@ def validate_rows(
 	child_doctype = get_child_doctype(doctype, fieldname, docname)
 	rows = frappe.parse_json(rows)
 	if len(rows) > MAX_IMPORT_ROWS:
-		frappe.throw(_("Cannot import table with more than {0} rows.").format(MAX_IMPORT_ROWS))
+		frappe.throw(
+			_("Cannot import table with more than {0} rows.").format(MAX_IMPORT_ROWS),
+			title=_("Too Many Rows"),
+		)
 
 	writable = get_writable_fields(doctype, child_doctype)
 	meta = frappe.get_meta(child_doctype)

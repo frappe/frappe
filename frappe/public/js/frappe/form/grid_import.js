@@ -14,6 +14,7 @@ const BLANK_TEMPLATE = "blank_template";
 const FIVE_RECORDS = "5_records";
 const SECONDS_PATTERN = /^\d+$/;
 const NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
+const DISPLAY_FIELDTYPES = ["Check", "Date", "Datetime"];
 const PARSED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", ...NUMERIC_FIELDTYPES];
 const DATA_FORMATS = { Email: "email", Phone: "phone", Name: "name", URL: "url" };
 const PREVIEW_ROWS = 10;
@@ -554,9 +555,7 @@ export default class GridImport {
 			const mapped_df =
 				fieldname && frappe.meta.get_docfield(this.grid.df.options, fieldname);
 			if (!warning?.field) {
-				if (mapped_df?.fieldtype === "Check") {
-					$(cell).text(VALUE_FORMATTERS.Check(this.state.rows[r][col]));
-				}
+				$(cell).text(display_value(mapped_df, this.state.rows[r][col]));
 				return;
 			}
 
@@ -623,6 +622,12 @@ export default class GridImport {
 		return this.state.warnings.some((w) => w.blocking && w.row === undefined);
 	}
 
+	get_table_issue() {
+		return this.state.warnings.find(
+			(w) => w.blocking && w.row === undefined && w.col === undefined
+		);
+	}
+
 	skip_issue_rows() {
 		this.get_issue_rows().forEach((row) => this.state.skipped_rows.add(row));
 		return this.refresh_preview({ revalidate: [] });
@@ -656,14 +661,15 @@ export default class GridImport {
 		this.lock_step(TAB_PREVIEW, blocked);
 		const $table = this.preview_form.get_field("table").$wrapper;
 		const too_many = this.has_too_many_issues();
-		$table.find(".grid-import-preview-hint").text(this.preview_hint($table));
+		$table.find(".grid-import-preview-hint").text(this.preview_hint());
 		$table
 			.find(".grid-import-preview-alert")
 			.html(too_many ? this.too_many_issues_alert() : "");
 		$table
-			.find(
-				".grid-import-mapping-note, .grid-import-preview-hint, .grid-import-preview-table"
-			)
+			.find(".grid-import-mapping-note")
+			.toggleClass("hide", too_many || !!this.get_table_issue());
+		$table
+			.find(".grid-import-preview-hint, .grid-import-preview-table")
 			.toggleClass("hide", too_many);
 	}
 
@@ -679,10 +685,8 @@ export default class GridImport {
 		});
 	}
 
-	preview_hint($table) {
-		const table_issue = this.state.warnings.find(
-			(w) => w.blocking && w.row === undefined && w.col === undefined
-		);
+	preview_hint() {
+		const table_issue = this.get_table_issue();
 		if (table_issue) return table_issue.message;
 		if (this.has_mapping_issues()) {
 			return __("Two columns map to the same field. Fix the mapping to continue.");
@@ -747,7 +751,8 @@ export default class GridImport {
 	}
 
 	async on_file(data, google_sheets_url = "", is_refresh = false) {
-		if (cint(data.length) - 1 > MAX_ROWS) {
+		const { rows, row_numbers } = get_filled_rows(data);
+		if (rows.length > MAX_ROWS) {
 			frappe.msgprint({
 				message: __("Cannot import table with more than {0} rows.", [MAX_ROWS]),
 				title: __("Too Many Rows"),
@@ -759,13 +764,8 @@ export default class GridImport {
 		this.state.google_sheets_url = google_sheets_url;
 		if (google_sheets_url) this.state.library_file_url = "";
 		this.state.headers = data[0] || [];
-		this.state.rows = [];
-		this.state.row_numbers = [];
-		data.slice(1).forEach((row, i) => {
-			if (!row.some((v) => v)) return;
-			this.state.rows.push(row);
-			this.state.row_numbers.push(i + 2);
-		});
+		this.state.rows = rows;
+		this.state.row_numbers = row_numbers;
 
 		if (!this.state.rows.length) {
 			frappe.msgprint({
@@ -999,7 +999,7 @@ export default class GridImport {
 									</th>`
 									: ""
 							}
-							<th class="grid-import-preview-row">${__("Row")}</th>
+							<th class="grid-import-preview-row">${__("No.", null, "Title of the 'row number' column")}</th>
 							${head.join("")}
 						</tr>
 					</thead>
@@ -1112,7 +1112,7 @@ export default class GridImport {
 			return [
 				{
 					blocking: true,
-					message: __("No column is mapped to ID, so rows can't be matched."),
+					message: __("ID is mandatory to update records."),
 				},
 			];
 		}
@@ -1348,6 +1348,23 @@ function has_changes(row, fields, target) {
 function to_field_value(df, value) {
 	const format = VALUE_FORMATTERS[df.fieldtype];
 	return format ? format(value) : value;
+}
+
+function display_value(df, value) {
+	if (!DISPLAY_FIELDTYPES.includes(df?.fieldtype)) return value;
+	const field_value = to_field_value(df, value);
+	return df.fieldtype === "Check" ? field_value : frappe.datetime.str_to_user(field_value);
+}
+
+function get_filled_rows(data) {
+	const rows = [];
+	const row_numbers = [];
+	data.slice(1).forEach((row, i) => {
+		if (!row.some((v) => v)) return;
+		rows.push(row);
+		row_numbers.push(i + 2);
+	});
+	return { rows, row_numbers };
 }
 
 function as_raw_value_field(df) {
