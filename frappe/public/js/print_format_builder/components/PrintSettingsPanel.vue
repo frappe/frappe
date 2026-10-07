@@ -218,7 +218,7 @@ onMounted(() => {
 
 .pfb-hint-icon {
 	display: inline-flex;
-	color: var(--text-muted);
+	color: var(--ink-gray-6);
 }
 
 .pfb-settings :deep(.pfb-insp-row:not(.pfb-insp-row--toggle)) {
