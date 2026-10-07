@@ -73,10 +73,12 @@ async function _load_user_data() {
 		frappe.all_timezones = message?.timezones || [];
 	}
 
-	// Fields already loaded at boot time; fetch only the rest.
-	const boot_user = frappe.boot.user || {};
+	// All from the server, not boot: the User form and this module both change them
+	// after boot, and the profile page loads them again when it is shown again.
 	const response = await frappe.db.get_value("User", frappe.session.user, [
+		"first_name",
 		"middle_name",
+		"last_name",
 		"username",
 		"thread_notify",
 		"time_zone",
@@ -92,18 +94,14 @@ async function _load_user_data() {
 		"report_split_view",
 		"show_my_space",
 		"dock_mode",
+		"email_signature",
+		"language",
+		"mute_sounds",
+		"send_me_a_copy",
+		"send_read_receipt",
+		"show_absolute_datetime_in_timeline",
 	]);
-	return {
-		first_name: boot_user.first_name,
-		last_name: boot_user.last_name,
-		email_signature: boot_user.email_signature,
-		language: boot_user.language,
-		mute_sounds: boot_user.mute_sounds,
-		send_me_a_copy: boot_user.send_me_a_copy,
-		send_read_receipt: boot_user.send_read_receipt,
-		show_absolute_datetime_in_timeline: boot_user.show_absolute_datetime_in_timeline,
-		...response.message,
-	};
+	return response.message;
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
