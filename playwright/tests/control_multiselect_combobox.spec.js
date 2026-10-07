@@ -4,7 +4,11 @@ const OTHER_USER = "multiselect_combobox@example.com";
 
 // Table MultiSelect, MultiSelectPills and MultiSelect with the combobox setting on.
 test.describe("Control MultiSelect (combobox)", () => {
+	let original_setting;
+
 	test.beforeAll(async ({ admin }) => {
+		const settings = (await admin.get_doc("System Settings", "System Settings")).data;
+		original_setting = settings.enable_combobox_link_field;
 		await admin.set_value("System Settings", "System Settings", {
 			enable_combobox_link_field: 1,
 		});
@@ -18,8 +22,9 @@ test.describe("Control MultiSelect (combobox)", () => {
 
 	test.afterAll(async ({ admin }) => {
 		await admin.set_value("System Settings", "System Settings", {
-			enable_combobox_link_field: 0,
+			enable_combobox_link_field: original_setting,
 		});
+		await admin.remove_doc("User", OTHER_USER, true);
 	});
 
 	test.beforeEach(async ({ page, desk }) => {

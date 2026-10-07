@@ -12,6 +12,13 @@ export function mount_combobox(control, combobox) {
 	control.bind_change_event();
 }
 
+// a rich-text title field arrives as HTML; only text with a closing tag is markup,
+// so a plain title such as "a<b" or "1 </ 2" stays whole
+export function title_text(title) {
+	const text = cstr(title);
+	return /<\/[a-z]/i.test(text) ? frappe.utils.html2text(text) : text;
+}
+
 // awesomplete stand-in for desk code and apps; `extra` adds getters
 export function awesomplete_shim(control, extra = {}) {
 	const combobox = () => control.combobox;

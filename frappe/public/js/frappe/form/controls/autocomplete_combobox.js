@@ -121,7 +121,8 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 			const q = get_query(
 				(this.frm && this.frm.doc) || this.doc,
 				this.doctype,
-				this.docname
+				this.docname,
+				this.frm
 			);
 			if (typeof q === "string") args.query = q;
 			else if ($.isPlainObject(q)) apply(q);

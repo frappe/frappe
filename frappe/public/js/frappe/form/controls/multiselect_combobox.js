@@ -1,9 +1,21 @@
 // Table MultiSelect, MultiSelectPills and MultiSelect using frappe.ui.MultiCombobox,
 // used when the System Settings toggle is on.
 
-import { mount_combobox } from "./combobox_control.js";
+import { mount_combobox, title_text } from "./combobox_control.js";
 
 const classic_table = frappe.ui.form.ControlTableMultiSelect.prototype;
+
+// click away or Tab adds the typed text, as the classic controls did on blur
+function add_typed_text(control, reason, free_text) {
+	const cb = control.combobox;
+	const query = cb.query;
+	if (!query || ["escape", "select", "disabled", "hidden"].includes(reason)) return;
+	// the text was already used to tick or untick a row
+	if (query === control.picked_query) return;
+	const match = cb.match_option(query);
+	if (match) cb.add_value(match);
+	else if (free_text) cb.add_value(query);
+}
 
 // ---- Table MultiSelect: child rows, searched like a Link field ----
 
@@ -31,13 +43,20 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 			filters: () => this.get_filter_chips(),
 			pill_href: (value) => this.pill_href(value),
 			before_open: () => this.before_open(),
-			on_open: () => (this.autocomplete_open = true),
+			on_open: () => {
+				this.autocomplete_open = true;
+				this.picked_query = null;
+			},
 			// Ctrl+S waits for picks still being saved
-			on_close: () => {
+			on_close: (reason) => {
 				this.autocomplete_open = false;
+				add_typed_text(this, reason, false);
 				return this.sync_pending ? this.sync_chain : undefined;
 			},
-			on_change: () => this.sync_model(),
+			on_change: () => {
+				this.picked_query = combobox.query;
+				this.sync_model();
+			},
 		});
 		mount_combobox(this, combobox);
 		this.$input.attr("data-target", this.get_options());
@@ -105,7 +124,7 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 	pill_label(value) {
 		const title =
 			this.is_title_link() && frappe.utils.get_link_title(this.get_options(), value);
-		return this.get_translated(title || value);
+		return this.get_translated(title_text(title || value));
 	}
 
 	// titles not cached yet: fetch them, then redraw the pills
@@ -142,7 +161,6 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 				// show what was saved: a value that failed validation drops out
 				this.set_formatted_input(this._get_rows());
 			});
-		return (this.last_write = this.sync_chain);
 	}
 
 	async apply_values(values) {
@@ -197,9 +215,18 @@ frappe.ui.form.ControlMultiSelectPillsCombobox = class ControlMultiSelectPillsCo
 			filterable: true,
 			options: (query) => this.fetch_options(query),
 			before_open: () => this.before_open(),
-			on_open: () => (this.autocomplete_open = true),
-			on_close: () => (this.autocomplete_open = false),
-			on_change: (values) => this.on_pick_values(values),
+			on_open: () => {
+				this.autocomplete_open = true;
+				this.picked_query = null;
+			},
+			on_close: (reason) => {
+				this.autocomplete_open = false;
+				add_typed_text(this, reason, this.allows_free_text());
+			},
+			on_change: (values) => {
+				this.picked_query = combobox.query;
+				this.on_pick_values(values);
+			},
 		});
 		mount_combobox(this, combobox);
 		this.set_options();
@@ -302,7 +329,7 @@ frappe.ui.form.ControlMultiSelectPillsCombobox = class ControlMultiSelectPillsCo
 
 	on_pick_values(values) {
 		this.rows = values;
-		return (this.last_write = this.validate_and_set_in_model(this.model_value(values)));
+		this.validate_and_set_in_model(this.model_value(values));
 	}
 
 	model_value(values) {

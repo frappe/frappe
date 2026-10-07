@@ -331,6 +331,8 @@ frappe.ui.Combobox = class Combobox {
 			this.pointer_timer = setTimeout(() => (this.pointer_active = false), POINTER_FOCUS_MS);
 		};
 		this.onclick = (e) => {
+			// an action link routes through the desk's link handler on body
+			if (this.actions_el.contains(e.target)) return;
 			e.preventDefault();
 			this.pointer_active = false;
 			if (this.disabled) return;
@@ -401,6 +403,8 @@ frappe.ui.Combobox = class Combobox {
 		const el = index >= 0 && this.action_els[index];
 		// the button may have been removed
 		if (!el || el.hidden || !el.isConnected) return false;
+		// in a dialog Ctrl+Enter saves it, as with the classic field
+		if (this.trigger_el.closest(".modal")) return false;
 		e.preventDefault();
 		el.click();
 		return true;
@@ -433,16 +437,22 @@ frappe.ui.Combobox = class Combobox {
 			css_class: action.css_class,
 			attrs: { tabindex: "-1" },
 			onclick: (e) => {
-				e.stopPropagation();
+				// a link must reach the desk's router; the field ignores action clicks
+				if (!action.href) e.stopPropagation();
 				action.onclick && action.onclick(e, this);
 			},
 		})[0];
 	}
 
+	// callers may also disable the value input itself (prepared reports, Data Import)
+	get disabled() {
+		return this.is_disabled || !!(this.input_el && this.input_el.disabled);
+	}
+
 	set_disabled(disabled) {
-		this.disabled = !!disabled;
+		this.is_disabled = !!disabled;
 		const t = this.trigger_el;
-		if (this.disabled) {
+		if (this.is_disabled) {
 			t.setAttribute("aria-disabled", "true");
 			t.setAttribute("data-disabled", "");
 			t.setAttribute("tabindex", "-1");
@@ -908,6 +918,8 @@ frappe.ui.Combobox = class Combobox {
 			return;
 		}
 		this.settled_request_id = request_id;
+		// an older async load may still show the spinner
+		this.set_loading(false);
 		this.set_rows(value);
 	}
 
@@ -947,7 +959,7 @@ frappe.ui.Combobox = class Combobox {
 	}
 
 	load_more() {
-		if (!this.panel || !this.has_more || this.loading_more) return;
+		if (!this.panel || !this.has_more || this.loading_more || this.rows_pending) return;
 		const token = { request_id: this.request_id, query: this.query };
 		this.loading_more = token;
 		let value;
