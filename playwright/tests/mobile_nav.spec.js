@@ -142,11 +142,7 @@ test.describe("Phone tab bar", () => {
 		await expect(header.locator(".desktop-avatar")).toBeHidden();
 	});
 
-	test("profile settings show when the language name lookup fails", async ({
-		page,
-		desk,
-		admin,
-	}) => {
+	test("profile settings show when the language name lookup fails", async ({ page, admin }) => {
 		// with no language set there is no lookup to fail
 		await admin.set_value("User", TEST_USER, { language: "en" });
 		const failed_lookup = page.waitForRequest(/frappe\.client\.get_value\?.*doctype=Language/);
@@ -154,7 +150,10 @@ test.describe("Phone tab bar", () => {
 			route.fulfill({ status: 500, contentType: "application/json", body: "{}" })
 		);
 
-		await open_on_phone(page, desk, "/desk/profile/preferences");
+		// not open_on_phone: desk.ready() waits on the standard page body, and an island
+		// page draws into its own
+		await page.setViewportSize(PHONE);
+		await page.goto("/desk/profile/preferences");
 		await failed_lookup;
 		await expect(page.locator("button[role='switch']").first()).toBeVisible();
 	});
