@@ -93,6 +93,7 @@ def get_print(
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
+		doc = doc or frappe.get_lazy_doc(doctype, name)
 		local.form_dict.pdf_generator = generator
 		local.form_dict.doctype = doctype
 		local.form_dict.name = name
@@ -311,11 +312,6 @@ def _finalize_pdf(doctype: str, name: str, pdf, output=None, doc: Document | Non
 
 def run_after_print_hook(doctype: str, name: str, pdf: bytes, doc: Document | None = None) -> bytes:
 	"""run the after_print hook for a document after its pdf is generated"""
-	# if the doc is run by before_print hook, try to get it from the local print_doc
-	print_doc = getattr(frappe.local, "print_doc", None)
-	if doc is None and print_doc and print_doc.doctype == doctype and print_doc.name == name:
-		doc = print_doc
-		frappe.local.print_doc = None
 	if doc is None:
 		doc = frappe.get_cached_doc(doctype, name)
 	return doc.run_method("after_print", pdf=pdf) or pdf

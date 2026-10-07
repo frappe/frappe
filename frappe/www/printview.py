@@ -486,7 +486,6 @@ def run_before_print(doc: "Document", print_settings: dict) -> None:
 	doc.flags.in_print = True
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
-	frappe.local.print_doc = doc
 	doc.run_method("before_print", print_settings)
 
 

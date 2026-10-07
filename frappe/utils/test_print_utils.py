@@ -79,18 +79,9 @@ class TestPrintUtils(IntegrationTestCase):
 		self.assertEqual(len(result.pages), 3)
 
 	def test_before_and_after_print_share_the_doc(self):
-		"""
-		run_after_print_hook uses the doc that before_print hook has prepared,
-		the passed doc by argument (doc=),
-		or a cached doc from frappe.get_cached_doc().
-
-		The test itself checks directly the functionality of the
-		before_print and after_print hooks in addition.
-		"""
 		todo = self._make_todo()
 		frappe.flags.print_hook = {}
 		self.addCleanup(lambda: setattr(frappe.local, "doc_events_hooks", None))
-		self.addCleanup(lambda: setattr(frappe.local, "print_doc", None))
 
 		with self.patch_hooks(
 			{
@@ -113,19 +104,11 @@ class TestPrintUtils(IntegrationTestCase):
 			self.assertEqual(frappe.flags.print_hook["doc_id"], id(todo))
 			self.assertEqual(len(PdfReader(io.BytesIO(with_doc)).pages), 3)
 
-			# no doc and no print_doc: get_cached_doc has no marker, so the PDF stays 1 page
-			frappe.local.print_doc = None
+			# no doc: get_cached_doc has no marker, so the PDF stays 1 page
 			from_cache = run_after_print_hook(todo.doctype, todo.name, blank_pdf())
 			self.assertIsNone(frappe.flags.print_hook["marker"])
 			self.assertNotEqual(frappe.flags.print_hook["doc_id"], id(todo))
 			self.assertEqual(len(PdfReader(io.BytesIO(from_cache)).pages), 1)
-
-			# before_print stores the prepared doc; after_print picks it up when doc is omitted
-			run_before_print(todo, {})
-			from_print_doc = run_after_print_hook(todo.doctype, todo.name, blank_pdf())
-			self.assertEqual(frappe.flags.print_hook["marker"], todo.name)
-			self.assertEqual(frappe.flags.print_hook["doc_id"], id(todo))
-			self.assertEqual(len(PdfReader(io.BytesIO(from_print_doc)).pages), 3)
 
 	def test_after_print_runs_for_all_pdf_backends(self):
 		"""after_print must run on wkhtmltopdf, Chrome, and Typst paths."""
@@ -146,7 +129,9 @@ class TestPrintUtils(IntegrationTestCase):
 				patch("frappe.utils.pdf.get_pdf", return_value=pdf),
 			):
 				get_print(todo.doctype, todo.name, as_pdf=True, pdf_generator="wkhtmltopdf")
-			mock_hook.assert_called_with(todo.doctype, todo.name, pdf, doc=None)
+
+			passed = mock_hook.call_args.kwargs["doc"]
+			self.assertEqual((passed.doctype, passed.name), (todo.doctype, todo.name))
 
 			self.assertEqual(mock_hook.call_count, 1)
 
