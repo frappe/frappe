@@ -60,7 +60,7 @@ def seed_doctype(doctype, rules):
 			patterns.append(pattern)
 
 	for prefix, current in collect_counters(doctype, patterns).items():
-		raise_series(prefix, current)
+		raise_series(doctype, prefix, current)
 
 
 def build_name_pattern(rule):
@@ -117,12 +117,13 @@ def record_counter(counters, patterns, name):
 			counters[prefix] = suffix
 
 
-def raise_series(prefix, current):
+def raise_series(doctype, prefix, current):
 	"""Move the series forward, never backward."""
 	series = DocType("Series")
-	existing = (frappe.qb.from_(series).where(series.name == prefix).select("current")).run()
+	row = (series.name == prefix) & (series.doctype == doctype)
+	existing = frappe.qb.from_(series).where(row).select("current").run()
 
 	if not existing:
-		frappe.qb.into(series).insert(prefix, current).run()
+		frappe.qb.into(series).columns("name", "doctype", "current").insert(prefix, doctype, current).run()
 	elif (existing[0][0] or 0) < current:
-		frappe.qb.update(series).set(series.current, current).where(series.name == prefix).run()
+		frappe.qb.update(series).set(series.current, current).where(row).run()

@@ -410,6 +410,9 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 	if is_autoincremented(new, meta):
 		update_sequence_name(old, new)
 
+	Series = frappe.qb.DocType("Series")
+	frappe.qb.update(Series).set(Series.doctype, new).where(Series.doctype == old).run()
+
 
 def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 	# update "parent"

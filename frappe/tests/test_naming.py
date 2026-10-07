@@ -26,6 +26,16 @@ from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import now_datetime, nowdate, nowtime
 
 
+def series_current(prefix, doctype):
+	series = frappe.qb.DocType("Series")
+	return (
+		frappe.qb.from_(series)
+		.select(series.current)
+		.where((series.name == prefix) & (series.doctype == doctype))
+		.run()[0][0]
+	)
+
+
 class TestNaming(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Note")
@@ -54,9 +64,94 @@ class TestNaming(IntegrationTestCase):
 		key = f"atomic-series-{frappe.generate_hash()}"
 		self.addCleanup(frappe.db.delete, "Series", {"name": key})
 
-		self.assertEqual(getseries(key, 5), "00001")
-		self.assertEqual(getseries(key, 5), "00002")
-		self.assertEqual(frappe.db.get_value("Series", key, "current"), 2)
+		self.assertEqual(getseries(key, 5, "ToDo"), "00001")
+		self.assertEqual(getseries(key, 5, "ToDo"), "00002")
+		self.assertEqual(getseries(key, 5), "00003")
+		self.assertEqual(series_current(key, "ToDo"), 2)
+
+	def make_series_key(self):
+		prefix = f"ZZT{frappe.generate_hash(length=6)}-"
+		self.addCleanup(frappe.db.delete, "Series", {"name": ("like", prefix + "%")})
+		return prefix, prefix + ".####"
+
+	def test_series_counter_is_scoped_per_doctype(self):
+		prefix, key = self.make_series_key()
+
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0001")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0001")
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0002")
+
+	def test_doctype_counter_continues_from_shared_counter(self):
+		prefix, key = self.make_series_key()
+		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `doctype`, `current`) VALUES (%s, '', 41)", (prefix,))
+
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0042")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0042")
+
+	def test_series_without_doctype_stays_ahead_of_all_doctypes(self):
+		prefix, key = self.make_series_key()
+		for _ in range(3):
+			make_autoname(key, "ToDo")
+
+		self.assertEqual(make_autoname(key), prefix + "0004")
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0005")
+
+	def test_revert_series_only_touches_the_doctype_counter(self):
+		prefix, key = self.make_series_key()
+		make_autoname(key, "ToDo")
+		note = frappe.new_doc("Note")
+		note_name = make_autoname(key, "Note")
+
+		revert_series_if_last(key, note_name, note)
+
+		self.assertEqual(series_current(prefix, "Note"), 0)
+		self.assertEqual(series_current(prefix, "ToDo"), 1)
+
+	def test_update_counter_without_doctype_sets_every_doctype(self):
+		prefix, key = self.make_series_key()
+		for _ in range(5):
+			make_autoname(key, "ToDo")
+
+		NamingSeries(key).update_counter(2)
+
+		self.assertEqual(NamingSeries(key).get_current_value(), 2)
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0003")
+
+	def test_doctype_counter_cannot_go_below_shared_counter(self):
+		prefix, key = self.make_series_key()
+		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `doctype`, `current`) VALUES (%s, '', 41)", (prefix,))
+
+		self.assertRaises(frappe.ValidationError, NamingSeries(key, "ToDo").update_counter, 10)
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0042")
+
+	def test_renamed_doctype_keeps_its_counter(self):
+		prefix, key = self.make_series_key()
+		doctype = new_doctype(autoname=key).insert().name
+		new_name = doctype + "R"
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "DocType", new_name, force=True)
+
+		frappe.new_doc(doctype).insert()
+		frappe.rename_doc("DocType", doctype, new_name, force=True)
+
+		self.assertEqual(frappe.new_doc(new_name).insert().name, prefix + "0002")
+
+	def test_same_autoname_on_two_doctypes_counts_separately(self):
+		prefix, _key = self.make_series_key()
+		doctypes = [
+			new_doctype(autoname=autoname).insert().name
+			for autoname in ("{some_fieldname}-.####", "{some_fieldname}.-.####")
+		]
+		self.addCleanup(frappe.db.commit)
+		for doctype in doctypes:
+			self.addCleanup(frappe.delete_doc, "DocType", doctype, force=True)
+
+		with self.set_user("test@example.com"):
+			names = [
+				frappe.new_doc(doctype, some_fieldname=prefix[:-1]).insert().name for doctype in doctypes
+			]
+
+		self.assertEqual(names, [prefix + "0001", prefix + "0001"])
 
 	def test_field_autoname_name_sync(self):
 		country = frappe.get_last_doc("Country")
@@ -126,7 +221,7 @@ class TestNaming(IntegrationTestCase):
 		doc.some_fieldname = description
 		doc.insert()
 
-		series = getseries("", 2)
+		series = getseries("", 2, doctype.name)
 		series = int(series) - 1
 
 		self.assertEqual(doc.name, f"TODO-{now_datetime().strftime('%m')}-{description}-{series:02}")
@@ -140,7 +235,7 @@ class TestNaming(IntegrationTestCase):
 			doc.field = field
 			doc.insert()
 
-			series = getseries("", 2)
+			series = getseries("", 2, doctype.name)
 			series = int(series) - 1
 
 			self.assertEqual(doc.name, f"TODO-{field}-{series:02}")
@@ -154,7 +249,7 @@ class TestNaming(IntegrationTestCase):
 		doc = frappe.new_doc(doctype.name)
 		doc.insert()
 
-		series = getseries("", 2)
+		series = getseries("", 2, doctype.name)
 
 		series = str(int(series) - 1)
 
@@ -231,7 +326,9 @@ class TestNaming(IntegrationTestCase):
 		series = f"TEST-{year}-"
 		key = "TEST-.YYYY.-"
 		name = f"TEST-{year}-00001"
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
+		frappe.db.sql(
+			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 1)""", (series,)
+		)
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -243,7 +340,9 @@ class TestNaming(IntegrationTestCase):
 		series = f"TEST-{year}-"
 		key = "TEST-.YYYY.-.#####"
 		name = f"TEST-{year}-00002"
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
+		frappe.db.sql(
+			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 2)""", (series,)
+		)
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -256,7 +355,9 @@ class TestNaming(IntegrationTestCase):
 		key = "TEST-"
 		name = "TEST-00003"
 		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
+		frappe.db.sql(
+			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 3)""", (series,)
+		)
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -269,7 +370,9 @@ class TestNaming(IntegrationTestCase):
 		key = "TEST1-.#####.-2021-22"
 		name = "TEST1-00003-2021-22"
 		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
+		frappe.db.sql(
+			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 3)""", (series,)
+		)
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -282,7 +385,9 @@ class TestNaming(IntegrationTestCase):
 		key = ".#####.-2021-22"
 		name = "00003-2021-22"
 		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
+		frappe.db.sql(
+			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 3)""", (series,)
+		)
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -300,7 +405,9 @@ class TestNaming(IntegrationTestCase):
 		series = "PO-2020-01-01-"
 		name = "PO-2020-01-01-005"
 		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 5)""", (series,))
+		frappe.db.sql(
+			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 5)""", (series,)
+		)
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True

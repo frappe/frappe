@@ -45,11 +45,12 @@ class InvalidUUIDValue(frappe.ValidationError):
 
 
 class NamingSeries:
-	__slots__ = ("series",)
+	__slots__ = ("doctype", "series")
 
-	def __init__(self, series: str):
+	def __init__(self, series: str, doctype: str | None = None):
 		assert isinstance(series, str), "naming series key must be a string"
 		self.series = series
+		self.doctype = doctype
 
 		# Add default number part if missing
 		if "#" not in self.series:
@@ -85,7 +86,7 @@ class NamingSeries:
 			self.validate()
 
 		parts = self.series.split(".")
-		return parse_naming_series(parts, doc=doc)
+		return parse_naming_series(parts, doctype=self.doctype, doc=doc)
 
 	def get_prefix(self) -> str:
 		"""Naming series stores prefix to maintain a counter in DB. This prefix can be used to update counter or validations.
@@ -129,16 +130,35 @@ class NamingSeries:
 		"""Warning: Incorrectly updating series can result in unusable transactions"""
 		Series = frappe.qb.DocType("Series")
 		prefix = self.get_prefix()
+		doctype = self.doctype or ""
+		new_count = cint(new_count)
+		row = (Series.name == prefix) & (Series.doctype == doctype)
 
-		# Initialize if not present in DB
-		if frappe.db.get_value("Series", prefix, "name", order_by="name") is None:
-			frappe.qb.into(Series).insert(prefix, 0).columns("name", "current").run()
+		if doctype:
+			shared_row = (Series.name == prefix) & (Series.doctype == "")
+			shared_query = frappe.qb.from_(Series).select(Series.current).where(shared_row)
+			shared = cint(max(shared_query.run(pluck=True), default=0))
+			if new_count < shared:
+				frappe.throw(
+					_(
+						"Counter for {0} cannot be lower than {1}, the counter shared by all document types. Clear the document type to change the shared counter."
+					).format(frappe.bold(doctype), shared)
+				)
 
-		(frappe.qb.update(Series).set(Series.current, cint(new_count)).where(Series.name == prefix)).run()
+		if not frappe.qb.from_(Series).select(Series.name).where(row).run():
+			frappe.qb.into(Series).columns("name", "doctype", "current").insert(prefix, doctype, 0).run()
+
+		# Without a DocType all rows of the prefix act as one counter, so set them all.
+		target = row if doctype else Series.name == prefix
+		frappe.qb.update(Series).set(Series.current, new_count).where(target).run()
 
 	def get_current_value(self) -> int:
-		prefix = self.get_prefix()
-		return cint(frappe.db.get_value("Series", prefix, "current", order_by="name", for_update=True))
+		Series = frappe.qb.DocType("Series")
+		query = frappe.qb.from_(Series).select(Series.current).where(Series.name == self.get_prefix())
+		if self.doctype:
+			query = query.where(Series.doctype.isin([self.doctype, ""]))
+
+		return cint(max(query.for_update().run(pluck=True), default=0))
 
 
 def set_new_name(doc):
@@ -308,7 +328,7 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 		hashed_name = (_get_timestamp_prefix() + _generate_random_string(7))[:10]
 		return hashed_name
 
-	series = NamingSeries(key)
+	series = NamingSeries(key, doctype or None)
 	return series.generate_next_name(doc, ignore_validate=ignore_validate)
 
 
@@ -363,7 +383,10 @@ def parse_naming_series(
 		parts = parts.split(".")
 
 	if not number_generator:
-		number_generator = getseries
+		scope = doctype or (doc.doctype if doc else None)
+
+		def number_generator(prefix, digits):
+			return getseries(prefix, digits, scope)
 
 	series_set = False
 	today = now_datetime()
@@ -425,30 +448,47 @@ def determine_consecutive_week_number(datetime):
 	return w
 
 
-def getseries(key, digits):
+def getseries(key, digits, doctype=None):
+	doctype = doctype or ""
+
 	if frappe.db.db_type == "sqlite":
 		current = frappe.db.sql(
-			"""INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)
-			ON CONFLICT (`name`) DO UPDATE SET `current` = `current` + 1
+			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`)
+			VALUES (%(key)s, %(dt)s, (
+				SELECT COALESCE(MAX(`current`), 0) + 1 FROM `tabSeries`
+				WHERE `name` = %(key)s AND (%(dt)s = '' OR `doctype` IN (%(dt)s, ''))
+			))
+			ON CONFLICT (`name`, `doctype`) DO UPDATE SET `current` = excluded.`current`
 			RETURNING `current`""",
-			(key,),
+			{"key": key, "dt": doctype},
 		)[0][0]
 		return ("%0" + str(digits) + "d") % current
 
-	# series created ?
-	# Using frappe.qb as frappe.get_values does not allow order_by=None
 	series = DocType("Series")
-	current = (frappe.qb.from_(series).where(series.name == key).for_update().select("current")).run()
+	query = frappe.qb.from_(series).select(series.doctype, series.current).where(series.name == key)
+	if doctype:
+		query = query.where(series.doctype.isin([doctype, ""]))
 
-	if current and current[0][0] is not None:
-		current = current[0][0]
-		# yes, update it
-		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` + 1 WHERE `name`=%s", (key,))
-		current = cint(current) + 1
+	# Postgres rejects FOR UPDATE with an aggregate, so take the max in Python.
+	counters = dict(query.for_update().run())
+	current = cint(max(counters.values(), default=0)) + 1
+
+	if doctype in counters:
+		frappe.qb.update(series).set(series.current, current).where(
+			(series.name == key) & (series.doctype == doctype)
+		).run()
+	elif frappe.db.db_type == "postgres":
+		# A concurrent first mint for this DocType may have inserted the row after our snapshot.
+		current = frappe.db.sql(
+			"""INSERT INTO "tabSeries" ("name", "doctype", "current") VALUES (%s, %s, %s)
+			ON CONFLICT ("name", "doctype")
+			DO UPDATE SET "current" = GREATEST("tabSeries"."current" + 1, excluded."current")
+			RETURNING "current" """,
+			(key, doctype, current),
+		)[0][0]
 	else:
-		# no, create it
-		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (key,))
-		current = 1
+		frappe.qb.into(series).columns("name", "doctype", "current").insert(key, doctype, current).run()
+
 	return ("%0" + str(digits) + "d") % current
 
 
@@ -500,11 +540,13 @@ def revert_series_if_last(key, name, doc=None):
 		prefix = name[:boundary]
 	else:
 		count = cint(name.replace(prefix, ""))
+	doctype = doc.doctype if doc else ""
 	series = DocType("Series")
-	current = (frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")).run()
+	row = (series.name == prefix) & (series.doctype == doctype)
+	current = frappe.qb.from_(series).where(row).for_update().select("current").run()
 
 	if current and current[0][0] == count:
-		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
+		frappe.qb.update(series).set(series.current, series.current - 1).where(row).run()
 
 
 def get_default_naming_series(doctype: str) -> str | None:
