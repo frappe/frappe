@@ -16,6 +16,7 @@ from frappe.core.doctype.data_import.importer import (
 	_parse_number,
 	build_fields_dict_for_column_matching,
 	create_import_log,
+	get_df_for_column_header,
 	get_tree_alias_fieldname,
 	uses_tree_alias_references,
 )
@@ -78,6 +79,15 @@ class MetaFieldsImportProvider(RecordingImportProvider):
 	# the sample file uses the DocType's own fields and child tables
 	def get_import_fields(self):
 		return None
+
+
+class UserScopedImportProvider(RecordingImportProvider):
+	# offers Description only to test@example.com, like a provider hiding tables a user can't read
+	def get_import_fields(self):
+		schema = super().get_import_fields()
+		if frappe.session.user == "test@example.com":
+			schema["fields"].append({"fieldname": "description", "label": "Description", "fieldtype": "Data"})
+		return schema
 
 
 class RejectingImportProvider(RecordingImportProvider):
@@ -780,6 +790,19 @@ class TestImporter(IntegrationTestCase):
 			self.assertEqual(get_import_fields(doctype_name), RecordingImportProvider().get_import_fields())
 			with self.set_user("Guest"):
 				self.assertRaises(frappe.PermissionError, get_import_fields, doctype_name)
+
+	def test_provider_columns_are_matched_for_the_importing_user(self):
+		frappe.local.request_cache.clear()  # a fresh request
+
+		with self.patch_hooks(_provider_hooks(UserScopedImportProvider)):
+			with self.set_user("test@example.com"):
+				self.assertEqual(
+					get_df_for_column_header(doctype_name, "Description").fieldname, "description"
+				)
+			# another user must not get the first user's columns
+			with self.set_user("test1@example.com"):
+				self.assertIsNone(get_df_for_column_header(doctype_name, "Description"))
+				self.assertEqual(get_df_for_column_header(doctype_name, "Title").fieldname, "title")
 
 	def get_importer(self, doctype, import_file, update=False, use_sniffer=False, import_type=None):
 		data_import = frappe.new_doc("Data Import")
