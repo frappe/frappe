@@ -26,7 +26,6 @@ const LAYOUT_OVERRIDE_PROPS = new Set([
 	"translatable",
 ]);
 
-// web form shows only these props per fieldtype; pages are Tab Breaks
 const WEB_FORM_LAYOUT_PROPS = ["label", "description", "hidden", "depends_on"];
 const WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE = {
 	"Tab Break": WEB_FORM_LAYOUT_PROPS,
