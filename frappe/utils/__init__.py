@@ -363,19 +363,10 @@ def _get_traceback_sanitizer():
 		return isinstance(name, str) and bool(name_pattern.search(name) or exact_pattern.search(name))
 
 	def dict_printer(v: dict) -> str:
-<<<<<<< HEAD
-		from copy import deepcopy
-
-		v = deepcopy(v)
-		for key in blocklist:
-			if key in v:
-				v[key] = placeholder
-=======
 		v = v.copy()
 		for k in list(v):
 			if is_sensitive_name(k):
 				v[k] = placeholder
->>>>>>> eb93a72 (fix(log): Hide sensitive info from getting logged)
 
 		return str(v)
 
