@@ -195,7 +195,33 @@ frappe.ui.form.on("Email Account", {
 		set_default_max_attachment_size(frm);
 	},
 
+	before_save: function (frm) {
+		const old_email_id = frm.saved_email_id;
+		const new_email_id = frm.doc.email_id;
+		if (!old_email_id || !new_email_id || old_email_id === new_email_id) return;
+
+		const stale_rows = (frm.doc.reply_to_addresses || []).filter(
+			(row) => row.email?.toLowerCase() === old_email_id.toLowerCase()
+		);
+		if (!stale_rows.length) return;
+
+		return new Promise((resolve) => {
+			frappe.confirm(
+				__("Reply-To Addresses still include {0}. Change it to {1} as well?", [
+					frappe.utils.escape_html(old_email_id).bold(),
+					frappe.utils.escape_html(new_email_id).bold(),
+				]),
+				() => {
+					stale_rows.forEach((row) => (row.email = new_email_id));
+					resolve();
+				},
+				resolve
+			);
+		});
+	},
+
 	refresh: function (frm) {
+		frm.saved_email_id = frm.doc.email_id;
 		frm.events.enable_incoming(frm);
 		frm.events.show_oauth_authorization_message(frm);
 
