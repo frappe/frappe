@@ -44,18 +44,26 @@ const language = ref("");
 const user = ref(frappe.user_info(me));
 const refresh_user = () => (user.value = { ...frappe.user_info(me) });
 
-// Set last: the controls show once `settings` is set, and an edit made before the saved
-// values arrived would be overwritten by them.
+// Bumped when the page is hidden, so a load still running from an earlier visit writes nothing
+let load_id = 0;
+
+// Everything is written at the end, `settings` last: the controls show once it is set, and an
+// edit made before the saved values arrived would be overwritten by them.
 async function load() {
+	const id = load_id;
 	// Not in the desk bundle, so it is loaded the first time the page shows.
 	await frappe.require("user_settings_dialog.bundle.js");
 	const user_settings = frappe.ui.user_settings;
-	Object.assign(user_data, await user_settings.load());
+	const values = await user_settings.load();
 	// only the display name; the code stands in if the lookup fails
-	language.value = await Promise.resolve(user_settings.language_name(user_data.language)).catch(
-		() => user_data.language
-	);
-	Object.assign(name_form, pick_name(user_data));
+	const language_name = await Promise.resolve(
+		user_settings.language_name(values.language)
+	).catch(() => values.language);
+	if (id !== load_id) return;
+
+	Object.assign(user_data, values);
+	language.value = language_name;
+	Object.assign(name_form, pick_name(values));
 	settings.value = user_settings;
 }
 
@@ -166,6 +174,7 @@ let loading;
 // for the first.
 const wrapper = window.$(frappe.pages["profile"]);
 const forget_values = () => {
+	load_id++;
 	loading = null;
 	settings.value = null;
 };
