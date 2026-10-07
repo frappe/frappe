@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, ref, watch } from "vue";
+import { computed, onUnmounted, reactive, ref, watch } from "vue";
 import { Button, Switch, TextInput } from "frappe-ui";
 import { on_phone_visit } from "../search/phone_page.js";
 import Group from "./components/Group.vue";
@@ -160,6 +160,18 @@ function open(option) {
 
 // a screen change below the page is a new route too, and must not load the values again
 let loading;
+
+// Desk keeps this page mounted while another one shows, and the User form there can change
+// these values, so a return loads them again. The controls wait for that load as they do
+// for the first.
+const wrapper = window.$(frappe.pages["profile"]);
+const forget_values = () => {
+	loading = null;
+	settings.value = null;
+};
+wrapper.on("hide", forget_values);
+onUnmounted(() => wrapper.off("hide", forget_values));
+
 on_phone_visit(props, ["Form", "User", me], () => {
 	// No header on a phone, as Gameplan's page has none: the screens bring their own bar.
 	// The same call the desktop page makes for its own header; it hides this page's only.
