@@ -156,7 +156,7 @@ import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
 import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
-import { computed, inject, onMounted, onUnmounted, ref } from "vue";
+import { computed, inject, onMounted, onUnmounted, provide, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import { section_menu_options } from "../../composables/useNodeMenu";
 import { always_has_content } from "../../fieldtypes";
@@ -201,6 +201,7 @@ let hidden_reason = computed(() => {
 	if (!has_content.value) return __("Not printed: no values for this record");
 	return null;
 });
+provide("section_hidden_reason", hidden_reason);
 
 let is_grid = computed(() => !!props.section.field_borders);
 
