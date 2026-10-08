@@ -1,8 +1,17 @@
 // @vitest-environment node
 import { fileURLToPath } from "node:url";
 import { build, type Rolldown } from "vite";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import runtimeVue from "../runtimeVue.js";
+
+// The shell's config reads the manifest that `bench build` writes; a clean clone has none.
+vi.mock("../manifest.js", () => ({
+  readManifest: () => [
+    { app: "frappe", source_dir: "/bench/apps/frappe/frappe", import_map: { vue: "vue" } },
+  ],
+  readAllSourceDirs: () => [],
+}));
+vi.mock("../presets.js", () => ({ loadPresets: () => {} }));
 
 const frontend = fileURLToPath(new URL("../..", import.meta.url));
 // A call, not the definition the runtime build keeps on its export list.
@@ -31,6 +40,12 @@ async function buildDraggable(alias: object[]) {
 }
 
 describe("the vue every importer gets", () => {
+  it("is the shell config's alias", async () => {
+    const { default: shellConfig } = await import("../../vite.config.js");
+    const config = shellConfig({ command: "build", mode: "production" });
+    expect(config.resolve.alias).toContain(runtimeVue);
+  });
+
   it("holds no template compiler, even for a CommonJS package", async () => {
     const chunks = await buildDraggable([runtimeVue]);
     expect(chunks.join("\n")).toContain("vuedraggable");
