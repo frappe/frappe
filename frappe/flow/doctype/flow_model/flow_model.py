@@ -149,14 +149,18 @@ class FlowModel(Document):
 
 
 def _detect_context_window(model_id: str) -> int:
-	"""Max input tokens for `model_id` per litellm, or 0 if unknown/unmapped."""
+	"""Max input tokens for `model_id` per litellm, else for the id behind its prefix
+	(a gateway's custom_openai/openai/gpt-x), or 0 if neither is mapped."""
 	import litellm
 
-	try:
-		info = litellm.get_model_info(model_id)
-	except Exception:
-		return 0
-	return int(info.get("max_input_tokens") or 0)
+	for candidate in (model_id, model_id.partition("/")[2]):
+		try:
+			window = litellm.get_model_info(candidate).get("max_input_tokens")
+		except Exception:
+			continue
+		if window:
+			return int(window)
+	return 0
 
 
 @frappe.whitelist()

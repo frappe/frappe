@@ -152,6 +152,12 @@ class TestContextWindow(IntegrationTestCase):
 		with patch("litellm.get_model_info", return_value={}):
 			self.assertEqual(_detect_context_window("vendor/x"), 0)
 
+	def test_detect_falls_back_to_the_id_behind_the_prefix(self):
+		# LiteLLM returns a window-less stub for the gateway id
+		catalog = {"custom_openai/openai/gpt-x": {}, "openai/gpt-x": {"max_input_tokens": 400000}}
+		with patch("litellm.get_model_info", side_effect=catalog.__getitem__):
+			self.assertEqual(_detect_context_window("custom_openai/openai/gpt-x"), 400000)
+
 	def test_auto_fills_on_insert(self):
 		with patch("litellm.get_model_info", return_value={"max_input_tokens": 128000}):
 			doc = frappe.get_doc(_model()).insert()
