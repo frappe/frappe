@@ -216,13 +216,21 @@ class TestAutoRepeat(IntegrationTestCase):
 			)
 			self.addCleanup(field.delete)
 
-		todo = frappe.get_doc(
-			doctype="ToDo",
-			description="test recurring todo with period",
-			from_date=add_days(today(), -1),
-			to_date=add_days(today(), -1),
-		).insert()
-		doc = make_auto_repeat(reference_document=todo.name)
+		with set_user(create_user_without_reference_access()):
+			todo = frappe.get_doc(
+				doctype="ToDo",
+				description="test recurring todo with period",
+				from_date=add_days(today(), -1),
+				to_date=add_days(today(), -1),
+			).insert()
+			doc = frappe.get_doc(
+				doctype="Auto Repeat",
+				reference_doctype="ToDo",
+				reference_document=todo.name,
+				frequency="Daily",
+				start_date=add_days(today(), -1),
+			).insert()
+
 		create_repeated_entries(get_auto_repeat_entries(getdate(today())))
 
 		new_todo = frappe.get_doc("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)})
