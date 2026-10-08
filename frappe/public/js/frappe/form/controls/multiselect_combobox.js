@@ -37,7 +37,8 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 		const combobox = new frappe.ui.MultiCombobox({
 			open_on_focus: true,
 			arrow_keys_open: !this.grid_row,
-			one_line: !!this.grid_row,
+			// a grid cell or a filter box keeps its height: the pills that don't fit show as +N
+			one_line: !!this.grid_row || !!this.df.is_filter,
 			filterable: false, // search_link does the filtering
 			options: (query, { start }) => this.fetch_options(query, start),
 			filters: () => this.get_filter_chips(),
@@ -211,7 +212,8 @@ frappe.ui.form.ControlMultiSelectPillsCombobox = class ControlMultiSelectPillsCo
 		const combobox = new frappe.ui.MultiCombobox({
 			open_on_focus: true,
 			arrow_keys_open: !this.grid_row,
-			one_line: !!this.grid_row,
+			// a grid cell or a filter box keeps its height: the pills that don't fit show as +N
+			one_line: !!this.grid_row || !!this.df.is_filter,
 			filterable: true,
 			options: (query) => this.fetch_options(query),
 			before_open: () => this.before_open(),
