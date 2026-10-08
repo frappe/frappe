@@ -367,11 +367,11 @@ function remove_column(index) {
 /* One ring for every active section state — selected, hover (canvas), and
    layer-hover all look identical. The :has() guard keeps hover on the innermost
    element: when a field inside is hovered, the field's ring shows, not this.
-   Drawn on the container with no offset: square corners (an outline always
-   follows the element's own radius) and flush against the section's border. */
-.print-format-section-container.pfb-section-active,
-.print-format-section-container.pfb-layer-hover,
-.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
+   Drawn on the section itself so it follows the section's radius. */
+.print-format-section-container.pfb-section-active > .print-format-section,
+.print-format-section-container.pfb-layer-hover > .print-format-section,
+.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover))
+	> .print-format-section {
 	outline: var(--pfb-ring);
 }
 
