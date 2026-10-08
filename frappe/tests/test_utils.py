@@ -1867,6 +1867,18 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 		with self.assertRaises(FrappeTypeError):
 			test_sequence("a", [{"a": 1}], True)
 
+		# frappe's JS client (frappe.call) always JSON.stringify()s object/array arguments
+		# before sending them as form data, so a dict/list-typed argument commonly arrives
+		# as a JSON-encoded string rather than an already-parsed object. That must still
+		# validate successfully instead of raising a FrappeTypeError (#regression).
+		self.assertEqual(
+			test_sequence("a", '[{"a": 1}]', '{"a": 1}'), ("a", [{"a": 1}], {"a": 1})
+		)
+		self.assertEqual(test_sequence("a", '[{"a": 1}]', None), ("a", [{"a": 1}], None))
+		# a string that isn't valid/matching JSON should still raise, same as before
+		with self.assertRaises(FrappeTypeError):
+			test_sequence("a", "not valid json", None)
+
 		doctype = frappe.get_last_doc("DocType")
 		self.assertEqual(test_doctypes(doctype), doctype)
 		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
