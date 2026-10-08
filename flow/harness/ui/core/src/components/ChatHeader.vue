@@ -47,7 +47,7 @@
 					<span>{{ formatTokens(contextTokens) }} / {{ formatTokens(contextWindow) }}</span>
 				</span>
 				<span v-else-if="contextTokens > 0" title="Current context">
-					{{ formatTokens(contextTokens) }} tokens
+					{{ formatTokens(contextTokens) }} in context
 				</span>
 				<!-- a model switch drops the context reading; the session's spend stands in -->
 				<span v-else title="Tokens used so far">{{ formatTokens(spent) }} used</span>
