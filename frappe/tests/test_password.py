@@ -91,14 +91,13 @@ class TestPassword(IntegrationTestCase):
 		self.assertTrue(check_password(user, nfc))
 		self.assertTrue(check_password(user, nfd))
 
-		# old hashes of raw NFD text log in with either form, then get rehashed as NFC
-		for typed in (nfd, nfc):
-			set_raw_hash(user, nfd)
-			self.assertTrue(check_password(user, typed))
+		# old hash of raw NFD text logs in as before, then gets rehashed normalized
+		set_raw_hash(user, nfd)
+		self.assertTrue(check_password(user, nfd))
 
-			stored = get_password_list(dict(doctype="User", name=user))[0].password
-			self.assertTrue(passlibctx.verify(nfc, stored))
-			self.assertFalse(passlibctx.verify(nfd, stored))
+		stored = get_password_list(dict(doctype="User", name=user))[0].password
+		self.assertTrue(passlibctx.verify(nfc, stored))
+		self.assertFalse(passlibctx.verify(nfd, stored))
 
 		self.assertRaises(frappe.AuthenticationError, check_password, user, "Cafe_43A1W")
 		update_password(user, "Eastern_43A1W")

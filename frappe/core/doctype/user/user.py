@@ -1012,8 +1012,11 @@ def update_password(
 	    old_password (str, optional): Old password. Defaults to None.
 	"""
 
+	if old_password and len(old_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("Old password size exceeded the maximum allowed size."))
+
 	if len(new_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("Password size exceeded the maximum allowed size."))
+		frappe.throw(_("New password size exceeded the maximum allowed size."))
 
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
