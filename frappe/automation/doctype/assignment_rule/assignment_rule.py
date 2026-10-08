@@ -131,13 +131,16 @@ class AssignmentRule(Document):
 		Get next user based on round robin
 		"""
 
+		# self.last_user can be stale: cached doc, or a snapshot older than another assignment
+		last_user = frappe.db.get_value("Assignment Rule", self.name, "last_user", for_update=True)
+
 		# first time, or last in list, pick the first
-		if not self.last_user or self.last_user == self.users[-1].user:
+		if not last_user or last_user == self.users[-1].user:
 			return self.users[0].user
 
 		# find out the next user in the list
 		for i, d in enumerate(self.users):
-			if self.last_user == d.user:
+			if last_user == d.user:
 				return self.users[i + 1].user
 
 		# bad last user, assign to the first one
