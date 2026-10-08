@@ -402,3 +402,37 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script.disabled = 0
 		script.save()
 		self.assertFalse(job.reload().stopped)
+
+	def test_file_sourced_script(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_sourced",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		frappe.client_cache.delete_value("server_script_map")
+
+		self.assertTrue(os.path.exists(path))
+
+		with open(path, "w") as f:
+			f.write("doc.status = 'Cancelled'\n")
+		self.assertEqual(frappe.get_doc(doctype="ToDo", description="file one").insert().status, "Cancelled")
+
+		with open(path, "w") as f:
+			f.write("doc.status = 'Closed'\n")
+		os.utime(path, ns=(1, os.stat(path).st_mtime_ns + 1_000_000))
+		self.assertEqual(frappe.get_doc(doctype="ToDo", description="file two").insert().status, "Closed")
+
+		script.save()
+		self.assertIn("doc.status = 'Closed'", open(path).read())
+
+		os.remove(path)
+		with self.assertRaises(frappe.DoesNotExistError):
+			frappe.get_doc(doctype="ToDo", description="file three").insert()
