@@ -6,6 +6,7 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.form.grid_import import (
 	MAX_IMPORT_ROWS,
 	MAX_TEMPLATE_ROWS,
@@ -21,7 +22,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import format_datetime
 from frappe.utils.xlsxutils import make_xlsx
 
-USER = "test2@example.com"
+USER = "grid-import@example.com"
 HEADER = ["ID", "Number (phone)"]
 
 
@@ -33,6 +34,7 @@ class TestGridImport(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		create_user(USER, "Translator")
 		cls.other_contact = frappe.get_doc({"doctype": "Contact", "first_name": "Not Yours"}).insert().name
 		frappe.set_user(USER)
 		cls.contact = frappe.get_doc({"doctype": "Contact", "first_name": "Grid Import"}).insert().name
