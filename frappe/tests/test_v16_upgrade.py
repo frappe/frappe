@@ -834,9 +834,12 @@ class TestCustomSidebars(IntegrationTestCase):
 		archive("V16 Old Base", items, module=cls.HOST)
 		archive(f"{cls.SHOWROOM}-{cls.USER}", items[:1], module=cls.HOST, for_user=cls.USER)
 
-		# what v16 built on its own from an app's workspace: neither flag, and no module
+		# what v16 built on its own from an app's workspace: neither flag, and no module. The
+		# app's sidebar is titled after the host, not after the workspace, so a personal copy of
+		# the row has only the workspace to say which module it is laid over.
 		standard_workspace(cls.GENERATED, cls.HOST)
 		archive(cls.GENERATED, [home(cls.GENERATED), *items])
+		archive(f"{cls.GENERATED}-{cls.OTHER_USER}", [home(cls.GENERATED), items[0]], for_user=cls.OTHER_USER)
 
 		cls.output = run_conversion()
 
@@ -900,6 +903,11 @@ class TestCustomSidebars(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Module Def", self.GENERATED))
 		self.assertFalse(frappe.db.exists("Module Def", f"{self.GENERATED} (Custom)"))
 		self.assertFalse(frappe.db.exists("Sidebar", {"merged_from": json.dumps([self.GENERATED])}))
+
+	def test_a_personal_copy_of_it_is_laid_over_the_apps_module(self):
+		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.HOST, "user": self.OTHER_USER}))
+		items = resolve_sidebar(self.HOST, self.OTHER_USER).items
+		self.assertIn("ToDo", [item["link_to"] for item in items])
 
 	def test_a_title_with_nothing_routable_still_gets_a_module(self):
 		self.assertEqual(frappe.db.get_value("Module Def", "Custom Sidebar", "custom"), 1)
@@ -975,6 +983,7 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 	BARE_ROW = "V16 Bare Generated"
 	KEPT_ROW = "V16 Kept Generated"
 	HOMED_ROW = "V16 Homed Generated"
+	ADDED_ROW = "V16 Added Generated"
 	USER = "test-v16-cleanup@example.com"
 
 	@classmethod
@@ -1000,16 +1009,25 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 			(cls.BARE_ROW, cls.BARE),
 			(cls.KEPT_ROW, cls.HELD),
 			(cls.HOMED_ROW, cls.HELD),
+			(cls.ADDED_ROW, cls.HELD),
 		)
 		for title, module in rows:
 			standard_workspace(title, module)
 			archive(title, [home(title), link("ToDo", "Todos")], module=module)
 			cls.wrongly_converted(title)
 
-		# the user arranged the sidebar where the earlier run put it
+		# the user arranged the sidebar where the earlier run put it: kept its Todos, added Events
 		write_user_layer(
-			f"{cls.HELD_ROW} (Custom)", cls.USER, layer_rows([link("Event", "Events")], below=[])
+			f"{cls.HELD_ROW} (Custom)",
+			cls.USER,
+			layer_rows([link("ToDo", "Todos"), link("Event", "Events")], below=[link("ToDo", "Todos")]),
 		)
+		# and added a second sidebar under one of the modules
+		added = frappe.new_doc("Sidebar")
+		added.update({"module": f"{cls.ADDED_ROW} (Custom)", "title": "V16 Added Deals"})
+		added.append("items", link("Event", "Deals"))
+		with in_patch():
+			added.insert(ignore_permissions=True)
 		# the site has since filed a report under one of them
 		frappe.get_doc(
 			{
@@ -1098,10 +1116,18 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		self.assertNotIn(f"{self.HELD_ROW} (Custom)", frappe.get_doc("User", self.USER).get_blocked_modules())
 
 	def test_a_users_arrangement_moves_to_the_apps_module(self):
+		"""With what they kept as well as what they added: the app's base holds neither, so a
+		reference to the old base would name nothing there."""
 		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.HELD, "user": self.USER}))
 		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": f"{self.HELD_ROW} (Custom)"}))
-		items = resolve_sidebar(self.HELD, self.USER).items
-		self.assertIn("Event", [item["link_to"] for item in items])
+		links = [item["link_to"] for item in resolve_sidebar(self.HELD, self.USER).items]
+		self.assertEqual([link for link in links if link in ("ToDo", "Event")], ["ToDo", "Event"])
+
+	def test_a_module_holding_another_sidebar_is_kept(self):
+		module = f"{self.ADDED_ROW} (Custom)"
+		self.assertTrue(frappe.db.exists("Module Def", module))
+		self.assertTrue(frappe.db.exists("Sidebar", "V16 Added Deals"))
+		self.assertIn(f"Module '{module}': kept, Sidebar V16 Added Deals is filed under it", self.output)
 
 	def test_a_module_holding_other_documents_is_kept(self):
 		module = f"{self.KEPT_ROW} (Custom)"

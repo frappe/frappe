@@ -103,9 +103,15 @@ def app_workspace_of(row) -> frappe._dict | None:
 	first = next(iter(row.rows or ()), None)
 	if not first or first.get("link_type") != "Workspace" or first.get("link_to") != row.name:
 		return None
-	# by name, so the lookup is cached across the patches that each ask this of every row
+	return app_workspace(row.name)
+
+
+def app_workspace(title: str) -> frappe._dict | None:
+	"""The app's workspace named `title`, with its module, or None when the site made it or
+	there is none. By name, so the lookup is cached across the patches that each ask this of
+	every row."""
 	workspace = frappe.db.get_value(
-		"Workspace", row.name, ["name", "module", "standard"], as_dict=True, cache=True
+		"Workspace", title, ["name", "module", "standard"], as_dict=True, cache=True
 	)
 	return workspace if workspace and workspace.standard else None
 
@@ -159,9 +165,15 @@ def module_holding(title: str) -> str | None:
 
 	That is the module it was converted into, or else the module of the app's sidebar with the
 	same title. The second covers an app that moved a sidebar: if `Books` was under `Library` in
-	v16 and the app now ships it under `Catalog`, this returns `Catalog`.
+	v16 and the app now ships it under `Catalog`, this returns `Catalog`. A row v16 generated
+	from an app's workspace may have become neither, when the app ships its sidebar under another
+	title; it lives where the workspace does.
 	"""
-	return converted_module_of(title) or frappe.db.get_value("Sidebar", title, "module")
+	return (
+		converted_module_of(title)
+		or frappe.db.get_value("Sidebar", title, "module")
+		or ((workspace := app_workspace(title)) and workspace.module)
+	)
 
 
 def is_private_container(sidebar) -> bool:
