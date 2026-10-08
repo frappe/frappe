@@ -187,6 +187,16 @@
 	}
 }
 
+/* fades in only after a beat, so a quick load never flashes it */
+@keyframes flow-reveal {
+	from {
+		opacity: 0;
+	}
+}
+.flow-late-reveal {
+	animation: flow-reveal 0.2s ease-out 0.3s both;
+}
+
 /* executing tool row: a glare band sweeps over the normal row content, so the
    row keeps its settled styling and only signals activity */
 .flow-tool-live {
