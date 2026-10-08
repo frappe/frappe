@@ -34,7 +34,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Service",
-   "options": "Google Chat\nMatrix (Hookshot)\nMattermost\nRocket.Chat\nSlack\nDiscord\nNtfy\nRaven",
+   "options": "Google Chat\nMatrix (Hookshot)\nMattermost\nRocket.Chat\nSlack\nTeams\nDiscord\nNtfy\nRaven",
    "reqd": 1
   },
   {
@@ -47,7 +47,7 @@
  ],
  "icon": "webhook",
  "links": [],
- "modified": "2026-10-07 00:00:00.000000",
+  "modified": "2026-10-08 19:09:53.821645",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Notification Webhook URL",

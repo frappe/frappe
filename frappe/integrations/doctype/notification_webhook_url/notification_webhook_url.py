@@ -108,6 +108,24 @@ class MattermostParameters(NotificationWebhookParametersBase):
 	pass
 
 
+class TeamsParameters(NotificationWebhookParametersBase):
+	"""Format messages as Adaptive Cards for Teams incoming webhooks."""
+
+	def build_data(self) -> dict:
+		card = {
+			"$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+			"type": "AdaptiveCard",
+			"version": "1.2",
+			"body": [{"type": "TextBlock", "text": self.message, "wrap": True}],
+		}
+		if self.params.show_document_link:
+			card["actions"] = [{"type": "Action.OpenUrl", "title": _("Document link"), "url": self.doc_url}]
+		return {
+			"type": "message",
+			"attachments": [{"contentType": "application/vnd.microsoft.card.adaptive", "content": card}],
+		}
+
+
 class DiscordParameters(NotificationWebhookParametersBase):
 	def build_data(self) -> dict:
 		app_logo = frappe.get_website_settings("app_logo") or "/assets/frappe/images/frappe-logo.png"
@@ -147,6 +165,7 @@ SERVICE_CLASSES: dict[str, type[NotificationWebhookParametersBase]] = {
 	"Mattermost": MattermostParameters,
 	"Rocket.Chat": RocketChatParameters,
 	"Slack": SlackParameters,
+	"Teams": TeamsParameters,
 	"Discord": DiscordParameters,
 	"Ntfy": NtfyParameters,
 	"Raven": DiscordParameters,
@@ -172,6 +191,7 @@ class NotificationWebhookURL(Document):
 			"Mattermost",
 			"Rocket.Chat",
 			"Slack",
+			"Teams",
 			"Discord",
 			"Ntfy",
 			"Raven",
