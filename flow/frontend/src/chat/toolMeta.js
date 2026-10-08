@@ -115,6 +115,8 @@ export function presentTool(name, args = {}, result = null) {
 	// a custom Imported or Script tool: its return is the point, so always show it
 	if (!tool) return { resultComponent: JsonView };
 	const parsed = tool.stat ? parseResult(result) : null;
+	// a cut result is no longer JSON, so show its text; execute's view already does
+	const cut = result?.details?.truncation?.truncated && tool.view !== CodeView;
 	return {
 		icon: tool.icon,
 		label: typeof tool.label === "function" ? tool.label(args) : tool.label,
@@ -122,7 +124,7 @@ export function presentTool(name, args = {}, result = null) {
 		stat: parsed ? tool.stat(parsed) : "",
 		expandable: tool.view ? undefined : false,
 		argsComponent: tool.asks ? tool.view : undefined,
-		resultComponent: tool.view,
+		resultComponent: cut ? JsonView : tool.view,
 	};
 }
 
