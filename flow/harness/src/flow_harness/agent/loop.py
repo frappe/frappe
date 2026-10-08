@@ -72,6 +72,7 @@ from flow_harness.model.reasoning import reasoning_params
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.transcript import PendingApproval
 from flow_harness.tools import SubagentOutcome, Tool, ToolContext
+from flow_harness.tools.builtins.common import truncate
 from flow_harness.tools.tool import display_template_variables
 
 if TYPE_CHECKING:
@@ -628,7 +629,7 @@ async def _finished_call(
 		_raise_if_aborted(inputs.abort)
 		if rewritten is not None:
 			result = result.model_copy(update={"content": rewritten})
-	return result
+	return _capped(result)
 
 
 async def _dispatch(
@@ -652,6 +653,27 @@ async def _dispatch(
 		return _result(call, f"[unknown tool: {call.name}]", is_error=True)
 	except Exception as error:  # tool errors go back to the model, not the floor
 		return _result(call, f"[tool error: {error}]", is_error=True)
+
+
+def _capped(result: ToolResult) -> ToolResult:
+	"""Cut an oversized result, unless its tool already cut it."""
+	if "truncation" in result.details:
+		return result
+	body, truncation = truncate(result.content, keep="head")
+	if not truncation["truncated"]:
+		return result
+	note = (
+		f"\n\n[Cut to the first {_size(len(body.encode()))} of {_size(truncation['total_bytes'])}. "
+		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
+		"Don't repeat a call that changed data.]"
+	)
+	return result.model_copy(
+		update={"content": body + note, "details": {**result.details, "truncation": truncation}}
+	)
+
+
+def _size(n: int) -> str:
+	return f"{n / 1024**2:.1f} MB" if n >= 1024**2 else f"{max(1, round(n / 1024))} KB"
 
 
 async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs) -> str:
