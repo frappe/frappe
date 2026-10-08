@@ -39,7 +39,7 @@
 		border-radius: var(--radius-full);
 		background-color: currentColor;
 		border: 2px solid var(--white);
-		box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 0 0 1px var(--outline-gray-3), var(--shadow-sm);
 	}
 
 	.color-map {

@@ -13,6 +13,7 @@ class Picker {
 	refresh() {
 		this.set_selector_position(true);
 		this.update_color_map();
+		this.mark_active_swatch();
 	}
 
 	setup_picker() {
