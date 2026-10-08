@@ -1225,6 +1225,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
+			const on_sort_column = datatable_options.events?.onSortColumn;
+			datatable_options.events = {
+				...datatable_options.events,
+				onSortColumn(column) {
+					if (this.options.treeView) {
+						this.datamanager.rowViewOrder = get_sorted_tree_row_indices(
+							this.datamanager.rows,
+							this.datamanager.rowViewOrder
+						);
+						this.rowmanager.refreshRows();
+					}
+					on_sort_column?.call(this, column);
+				},
+			};
 			this.datatable = new window.DataTable(this.$report[0], datatable_options);
 		}
 
@@ -2582,3 +2596,38 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 };
+
+// DataTable sorts all rows together; use that order to rank siblings.
+function get_sorted_tree_row_indices(rows, sorted_row_indices) {
+	const sort_positions = new Map();
+	for (const [position, row_index] of sorted_row_indices.entries()) {
+		sort_positions.set(row_index, position);
+	}
+
+	const root = { indent: -Infinity, children: [] };
+	const ancestors = [root];
+
+	for (const [row_index, row] of rows.entries()) {
+		const indent = Number(row.meta.indent) || 0;
+
+		while (ancestors[ancestors.length - 1].indent >= indent) {
+			ancestors.pop();
+		}
+
+		const node = { row_index, indent, children: [] };
+		ancestors[ancestors.length - 1].children.push(node);
+		ancestors.push(node);
+	}
+
+	const row_order = [];
+	function append_siblings(siblings) {
+		siblings.sort((a, b) => sort_positions.get(a.row_index) - sort_positions.get(b.row_index));
+		for (const node of siblings) {
+			row_order.push(node.row_index);
+			append_siblings(node.children);
+		}
+	}
+
+	append_siblings(root.children);
+	return row_order;
+}
