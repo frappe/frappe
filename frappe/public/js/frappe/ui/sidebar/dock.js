@@ -294,7 +294,7 @@ frappe.ui.Dock = class Dock {
 	}
 
 	make_dock_item(entry) {
-		let label = entry.label;
+		let label = entry.label && __(entry.label);
 		if (!label) return null;
 		let is_active = this.sidebar.is_active_entry(entry);
 		// By name, since the sprites load after the page and the symbol may not exist yet.
