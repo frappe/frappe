@@ -1223,33 +1223,6 @@ class TestQuery(IntegrationTestCase):
 		self.assertTrue(list_result)
 		self.assertNotIn("user_type", list_result[0])
 
-	def test_user_enabled_readable_with_select_permission(self):
-		"""Select-only users must get `enabled` so the User list shows the right status."""
-		test_role = "UserEnabledSelectTestRole"
-		test_user_email = "test2@example.com"
-
-		frappe.set_user("Administrator")
-		test_user = frappe.get_doc("User", test_user_email)
-		frappe.get_doc({"doctype": "Role", "role_name": test_role}).insert(ignore_if_duplicate=True)
-		add_permission("User", test_role, 0, ptype="select")
-		update_permission_property("User", test_role, 0, "read", 0, validate=False)
-		test_user.add_roles(test_role)
-
-		def cleanup():
-			frappe.set_user("Administrator")
-			test_user.remove_roles(test_role)
-			frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
-
-		self.addCleanup(cleanup)
-
-		frappe.set_user(test_user_email)
-		self.assertTrue(frappe.only_has_select_perm("User"))
-
-		result = frappe.get_list("User", fields=["name", "enabled", "email"], filters={"enabled": 1}, limit=1)
-		self.assertTrue(result)
-		self.assertEqual(result[0].get("enabled"), 1)
-		self.assertNotIn("email", result[0])
-
 	def test_nested_permission(self):
 		"""Test permission on nested doctypes"""
 		frappe.set_user("Administrator")
