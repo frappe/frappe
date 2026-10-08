@@ -659,9 +659,8 @@ class Engine:
 			return operator_fn(_field, nodes or ("",))
 
 		if _operator.casefold() == "is" and isinstance(_field, Field):
-			filter_field_name = (field if isinstance(field, str) else _field.name).split(".")[-1]
 			filter_doctype = self._get_field_doctype(_field, doctype or self.doctype)
-			return func_is(_field, _value, self._get_is_set_empty_value(filter_doctype, filter_field_name))
+			return func_is(_field, _value, self._get_is_set_empty_value(filter_doctype, _field.name))
 
 		if (
 			self.is_postgres and _operator.casefold() == "like"
