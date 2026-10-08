@@ -104,6 +104,17 @@ def test_litellm_unknown_model_passes_through_and_bypasses_the_guard(monkeypatch
 	}
 
 
+def test_litellm_provider_without_the_param_bypasses_the_guard(monkeypatch):
+	# litellm's entry for custom_openai/openai/gpt-6-*: a reasoning model, a provider without the param
+	_catalog(monkeypatch, {"supports_reasoning": True, "supported_openai_params": ["temperature"]})
+	assert reasoning_params("custom_openai/openai/gpt-x", "high") == {
+		"reasoning_effort": "high",
+		"allowed_openai_params": ["reasoning_effort"],
+	}
+	_catalog(monkeypatch, {"supports_reasoning": True, "supported_openai_params": ["reasoning_effort"]})
+	assert reasoning_params("openai/gpt-x", "high") == {"reasoning_effort": "high"}
+
+
 def test_opencode_go_clamps_minimal_to_low_without_changing_openrouter(monkeypatch):
 	_catalog(monkeypatch, None)
 	assert reasoning_params("opencode-go/kimi-k2.5", "minimal") == {

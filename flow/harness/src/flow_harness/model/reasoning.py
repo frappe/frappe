@@ -49,7 +49,8 @@ def reasoning_params(model: str, effort: ReasoningEffort | None) -> dict[str, An
 def _litellm_params(model: str, effort: ReasoningEffort) -> dict[str, Any] | None:
 	"""LiteLLM's unified param, clamped to what the model supports.
 
-	Models litellm does not know (gateway ids behind a custom base) skip its
+	Models litellm does not know (gateway ids behind a custom base), or whose
+	provider it lists without the param (custom_openai/openai/gpt-x), skip its
 	client-side support guard via allowed_openai_params; the provider decides.
 	"""
 	provider = model.split("/", 1)[0]
@@ -68,6 +69,9 @@ def _litellm_params(model: str, effort: ReasoningEffort) -> dict[str, Any] | Non
 		effort = "low"
 	if effort == "low" and info.get("supports_low_reasoning_effort") is False:
 		effort = "medium"
+	supported = info.get("supported_openai_params")
+	if supported is not None and "reasoning_effort" not in supported:
+		return {"reasoning_effort": effort, "allowed_openai_params": ["reasoning_effort"]}
 	return {"reasoning_effort": effort}
 
 
