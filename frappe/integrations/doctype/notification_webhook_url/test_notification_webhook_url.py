@@ -110,7 +110,7 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 		field = frappe.get_meta("Notification Webhook URL").get_field("service")
 		assert field is not None
 		self.assertEqual(set(field.options.split("\n")), set(SERVICE_CLASSES))
-		self.assertEqual(set(EXPECTED_PAYLOADS) | {"Ntfy"}, set(SERVICE_CLASSES))
+		self.assertEqual(set(EXPECTED_PAYLOADS) | {"Ntfy", "Teams"}, set(SERVICE_CLASSES))
 
 	def test_send_as_regular_user(self):
 		for service, payload in EXPECTED_PAYLOADS.items():
@@ -134,6 +134,36 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 					else {"text": "Test"}
 				)
 				post.assert_called_once_with(params.webhook_url, json=expected, timeout=10)
+
+	def test_teams_adaptive_card(self):
+		for show_link in (0, 1):
+			with (
+				self.subTest(show_link=show_link),
+				set_user(self.user_name),
+				patch("requests.post", return_value=Mock(ok=True)) as post,
+			):
+				params = self._make_webhook("Teams", show_link)
+				self.assertEqual(params.send("Notification reçue", "User", REFERENCE_NAME), "success")
+				post.assert_called_once()
+				self.assertEqual(post.call_args.args, (params.webhook_url,))
+				self.assertEqual(post.call_args.kwargs["timeout"], 10)
+				payload = post.call_args.kwargs["json"]
+				self.assertEqual(payload["type"], "message")
+				self.assertEqual(len(payload["attachments"]), 1)
+				attachment = payload["attachments"][0]
+				self.assertEqual(attachment["contentType"], "application/vnd.microsoft.card.adaptive")
+				card = attachment["content"]
+				self.assertEqual(card["type"], "AdaptiveCard")
+				self.assertEqual(len(card["body"]), 1)
+				self.assertEqual(card["body"][0]["type"], "TextBlock")
+				self.assertEqual(card["body"][0]["text"], "Notification reçue")
+				self.assertIs(card["body"][0]["wrap"], True)
+				actions = card.get("actions", [])
+				self.assertEqual(len(actions), show_link)
+				if show_link:
+					self.assertEqual(actions[0]["type"], "Action.OpenUrl")
+					self.assertEqual(actions[0]["title"], "Document link")
+					self.assertEqual(actions[0]["url"], DOCUMENT_URL)
 
 	def test_ntfy_utf8_message(self):
 		for show_link in (0, 1):
