@@ -75,8 +75,7 @@
    "fieldname": "references",
    "fieldtype": "Table",
    "label": "References",
-   "options": "Dynamic Link",
-   "read_only": 1
+   "options": "Dynamic Link"
   },
   {
    "fieldname": "first_used_on",
@@ -88,7 +87,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-05-14 19:09:06.550774",
+ "modified": "2026-10-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Request",
