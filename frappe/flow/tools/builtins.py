@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Literal
 
 import frappe
@@ -137,6 +138,81 @@ def read_records(
 		limit=limit,
 		order_by=order_by,
 	)
+
+
+@tool
+def run_report(
+	report_name: str,
+	filters: dict | None = None,
+	limit: int = 20,
+	*,
+	ctx: ToolContext,
+) -> dict[str, Any]:
+	"""Run a Query or Script report, such as General Ledger, honouring the user's permissions.
+
+	Find names with read_records("Report", {"name": ["like", "%ledger%"]}, ["name", "ref_doctype"]),
+	or by the DocType a report covers, {"ref_doctype": "Sales Invoice"}.
+	`filters` is a dict like {"company": "Acme", "from_date": "2026-01-01"}; a failed or empty run
+	lists the filters it can find (may be incomplete). Returns the columns, up to `limit` rows (capped at 200), the full row
+	count, and the report's total row if it has one.
+	"""
+	from frappe.desk.query_report import get_report_doc, run
+
+	report = get_report_doc(report_name)  # raises if missing, forbidden or disabled
+	if report.report_type == "Report Builder":
+		raise ValueError(f"{report_name} is a Report Builder report; read its DocType with read_records.")
+	# a failing query report breaks the transaction
+	if report.report_type == "Query Report":
+		given = filters or report.custom_filters or {}
+		if missing := set(re.findall(r"%\((\w+)\)s", report.query or "")) - set(given):
+			raise ValueError(f"Missing filters: {', '.join(sorted(missing))}")
+	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
+	try:
+		# saved filters apply only when none are passed
+		data = run(
+			report_name, filters=filters or {}, ignore_prepared_report=True, are_default_filters=not filters
+		)
+	except Exception as e:
+		cause = e
+		if isinstance(e, frappe.InReadOnlyMode):  # frappe's failure log hid the report's error
+			while cause.__context__:
+				cause = cause.__context__
+		raise ValueError(f"{_error_text(cause)}\nThe report's filters {_report_filters(report_name)}") from e
+
+	fieldnames = [c["fieldname"] for c in data["columns"]]
+	columns = [
+		{"fieldname": c["fieldname"], "label": c.get("label")} for c in data["columns"] if not c.get("hidden")
+	]
+	rows = [_report_row(row, fieldnames, columns) for row in data["result"] or []]
+	total_row = rows.pop() if data.get("add_total_row") and rows else None
+	result: dict[str, Any] = {"columns": columns, "rows": rows[:limit], "row_count": len(rows)}
+	if total_row:
+		result["total_row"] = total_row
+	if not rows:
+		result["available_filters"] = _report_filters(report_name)
+	return result
+
+
+def _report_row(row: Any, fieldnames: list[str], columns: list[dict]) -> dict[str, Any]:
+	"""A row keyed by fieldname, shown columns only; the total row arrives as a list."""
+	cells = row if isinstance(row, dict) else dict(zip(fieldnames, row, strict=True))
+	return {c["fieldname"]: cells.get(c["fieldname"]) for c in columns}
+
+
+def _report_filters(report_name: str) -> str:
+	"""Filter fieldnames from the report's Report Filter rows and its JS."""
+	from frappe.desk.query_report import get_script
+
+	script = get_script(report_name)
+	names = [f.fieldname + ("*" if f.mandatory else "") for f in script["filters"]]
+	# a JS filter runs to the next fieldname
+	parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
+	names += [
+		name + ("*" if re.search(r"""reqd["']?\s*:\s*(1|true)""", rest) else "")
+		for name, rest in zip(parts[1::2], parts[2::2], strict=True)
+	]
+	# legend first; long errors get cut
+	return "(* = required) " + ", ".join(dict.fromkeys(names)) if names else "none found (may be incomplete)"
 
 
 KNOWLEDGE_SEARCH_SLUG = "search_knowledge"
@@ -557,6 +633,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	find_doctypes,
 	describe,
 	read_records,
+	run_report,
 	read,
 	grep,
 	subagent,
