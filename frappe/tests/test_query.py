@@ -1280,6 +1280,10 @@ class TestQuery(IntegrationTestCase):
 		self.assertFalse(frappe.qb.get_query(doctype.name, filters={"docstatus": ["is", "set"]}).run())
 		self.assertFalse(frappe.qb.get_query(doctype.name, filters={"modified": ["is", "not set"]}).run())
 
+		qualified_date = f"`tab{doctype.name}`.`{fieldnames['Date']}`"
+		query = frappe.qb.get_query(doctype.name, filters={qualified_date: ["is", "set"]})
+		self.assertEqual(query.run(pluck="name"), [filled.name])
+
 	def test_permission_query_condition(self):
 		"""Test permission query condition being applied from hooks and server script"""
 		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
