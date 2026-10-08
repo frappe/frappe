@@ -49,7 +49,6 @@
 					@update:model-value="(v) => set('background', v)"
 				/>
 				<StepperRow
-					v-if="selected_section.background || selected_section.field_borders"
 					:label="__('Radius')"
 					:model-value="selected_section.radius ?? null"
 					unit="px"

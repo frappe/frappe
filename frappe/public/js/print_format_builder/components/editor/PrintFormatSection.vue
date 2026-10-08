@@ -290,8 +290,6 @@ let section_inline_style = computed(() => {
 	}
 	if (props.section.radius != null) {
 		style.borderRadius = `${props.section.radius}px`;
-		// clip content to the rounded corners (non-grid sections are overflow:visible)
-		style.overflow = "hidden";
 	}
 	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
