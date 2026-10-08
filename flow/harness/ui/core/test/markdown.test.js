@@ -21,6 +21,13 @@ test("a table renders inside the scroll wrapper", () => {
 	assert.equal(html.match(/flow-md-table/g).length, 1)
 })
 
+test("an all-blank header row is dropped", () => {
+	const html = renderMarkdown("| | |\n| --- | --- |\n| a | 1 |")
+	assert.ok(!html.includes("<thead>"))
+	assert.match(html, /<tbody><tr>\s*<td>a<\/td>/)
+	assert.ok(renderMarkdown(TABLE).includes("<thead>"))
+})
+
 test("the segmented renderer wraps tables too", () => {
 	const segments = renderMarkdownSegments(`intro\n\n${TABLE}\n\n\`\`\`js\ncode\n\`\`\``)
 	assert.deepEqual(

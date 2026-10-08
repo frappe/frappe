@@ -7,7 +7,10 @@ marked.setOptions({ gfm: true, breaks: false })
 marked.use({
 	renderer: {
 		table(token) {
-			return `<div class="flow-md-table">${Renderer.prototype.table.call(this, token)}</div>\n`
+			let html = Renderer.prototype.table.call(this, token)
+			// a header-less table arrives as `| | |`: skip the empty strip
+			if (token.header.every((cell) => !cell.text.trim())) html = html.replace(/<thead>[\s\S]*?<\/thead>\n?/, "")
+			return `<div class="flow-md-table">${html}</div>\n`
 		},
 	},
 })
