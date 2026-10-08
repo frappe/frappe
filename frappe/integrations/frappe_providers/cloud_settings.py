@@ -2,9 +2,14 @@
 created on Frappe Cloud / Atlas. The site talks to its bench's pilot admin over
 HTTP using a site-scoped token both written into site_config on site creation."""
 
+<<<<<<< HEAD
 from urllib.parse import quote
 
 import requests
+=======
+import re
+from urllib.parse import parse_qs, quote, urlsplit
+>>>>>>> 132f9df (fix(cloud-settings): validate requests and normalize domains (#44075))
 
 import frappe
 from frappe import _
@@ -185,12 +190,16 @@ def get_domains() -> dict:
 	client = PilotClient()
 	response = client.get(client.site_path("domains"))
 	primary = response.get("primary") or client.site
-	custom = response.get("domains") or []
-	return {
-		"primary": primary,
-		"domains": [_domain_row(client.site, primary, is_default=True)]
-		+ [_domain_row(domain, primary) for domain in custom],
-	}
+	rows = {client.site: _domain_row(client.site, primary, is_default=True)}
+	for route in response.get("domains") or []:
+		domain = route.get("domain") if isinstance(route, dict) else route
+		if not isinstance(domain, str) or not domain:
+			frappe.throw(_("Pilot returned an invalid domain."), frappe.ValidationError)
+		row = _domain_row(domain, primary, is_default=domain == client.site)
+		if isinstance(route, dict):
+			row.update(public_scheme=route.get("public_scheme"), tls=bool(route.get("tls")))
+		rows[domain] = row
+	return {"primary": primary, "domains": list(rows.values())}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -257,6 +266,51 @@ def update_apps(apps: str | None = None) -> dict:
 	return cloud_marketplace.update(PilotClient(), apps)
 
 
+<<<<<<< HEAD
+=======
+@frappe.whitelist(methods=["GET", "POST"])
+def pilot_request(method: str = "", path: str = "", data: str | dict | None = None) -> dict | list:
+	"""Forward an allowlisted site-scoped request to pilot, so a new Cloud Settings
+	feature needs a pilot route and an entry in PILOT_PASSTHROUGH_ROUTES, not a
+	new method here."""
+	_assert_access()
+	if not isinstance(method, str) or not isinstance(path, str):
+		frappe.throw(_("Invalid Cloud Settings operation."), frappe.ValidationError)
+	method = method.upper()
+	path = path.strip("/")
+	# A GET skips frappe's CSRF check, so it may only forward a GET.
+	if method != "GET" and (not frappe.request or frappe.request.method != "POST"):
+		frappe.throw(_("Use POST for a Cloud Settings action."), frappe.PermissionError)
+	_validate_pilot_path(method, path)
+	payload = frappe.parse_json(data) if data else None
+	if payload is not None and (method != "PATCH" or not isinstance(payload, dict)):
+		frappe.throw(_("Invalid Cloud Settings data."), frappe.ValidationError)
+	client = PilotClient()
+	return client._request(method, client.site_path(path), payload)
+
+
+def _validate_pilot_path(method: str, path: str) -> None:
+	parsed = urlsplit(path)
+	if (
+		parsed.scheme
+		or parsed.netloc
+		or parsed.fragment
+		or not any(re.fullmatch(route, parsed.path) for route in PILOT_PASSTHROUGH_ROUTES.get(method, ()))
+	):
+		frappe.throw(_("Invalid Cloud Settings operation."), frappe.ValidationError)
+	if not parsed.query:
+		return
+	try:
+		query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True)
+	except ValueError:
+		frappe.throw(_("Invalid Cloud Settings query."), frappe.ValidationError)
+	if method != "GET" or parsed.path not in {"monitoring", "uptime"} or set(query) != {"window"}:
+		frappe.throw(_("Invalid Cloud Settings query."), frappe.ValidationError)
+	if len(query["window"]) != 1 or query["window"][0] not in {"30m", "1h", "6h", "12h", "24h", "1w"}:
+		frappe.throw(_("Invalid Cloud Settings time window."), frappe.ValidationError)
+
+
+>>>>>>> 132f9df (fix(cloud-settings): validate requests and normalize domains (#44075))
 @frappe.whitelist(methods=["GET"])
 def get_task(task_id: str) -> dict:
 	"""Status of a background task the bench started (install/uninstall/update),
