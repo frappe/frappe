@@ -7,8 +7,8 @@
 			:value="value"
 			:placeholder="placeholder"
 			@change="(e) => $emit('input', e.target.value)"
-			@keydown.up.prevent="$emit('increment')"
-			@keydown.down.prevent="$emit('decrement')"
+			@keydown.up.prevent="(e) => step(e, 'increment')"
+			@keydown.down.prevent="(e) => step(e, 'decrement')"
 		/>
 		<span class="pfb-stepper-suffix">
 			<span v-if="unit && value !== '' && value != null" class="pfb-stepper-unit">{{
@@ -41,14 +41,24 @@
 </template>
 
 <script setup>
-defineProps({
+import { nextTick } from "vue";
+
+const props = defineProps({
 	value: { type: [Number, String], default: "" },
 	min: { type: [Number, String], default: 0 },
 	unit: { type: String, default: "" },
 	placeholder: { type: String, default: "" },
 	sm: { type: Boolean, default: false },
 });
-defineEmits(["decrement", "increment", "input"]);
+const emit = defineEmits(["decrement", "increment", "input"]);
+
+async function step(e, direction) {
+	if (e.target.value !== String(props.value ?? "")) {
+		emit("input", e.target.value);
+		await nextTick();
+	}
+	emit(direction);
+}
 </script>
 
 <style scoped>
@@ -63,13 +73,13 @@ defineEmits(["decrement", "increment", "input"]);
 
 .pfb-stepper-input {
 	width: 100%;
-	padding-right: 72px;
+	padding-right: calc(var(--spacing) * 18);
 	font-variant-numeric: tabular-nums;
 	-moz-appearance: textfield;
 }
 
 .pfb-stepper--sm .pfb-stepper-input {
-	padding-right: 64px;
+	padding-right: calc(var(--spacing) * 16);
 }
 
 .pfb-stepper-input::-webkit-inner-spin-button,
