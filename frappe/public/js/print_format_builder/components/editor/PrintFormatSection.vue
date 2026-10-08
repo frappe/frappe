@@ -2,6 +2,7 @@
 	<div
 		ref="root"
 		class="print-format-section-container"
+		:title="hidden_reason"
 		data-pfb-section
 		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
@@ -193,6 +194,13 @@ let section_chrome_style = computed(() => {
 });
 let preview_doc = computed(() => store.preview_doc.value);
 let is_section_visible = computed(() => store.is_visible(props.section.visible_if));
+
+let hidden_reason = computed(() => {
+	if (!preview_doc.value) return null;
+	if (!is_section_visible.value) return __("Hidden by its visibility condition");
+	if (!has_content.value) return __("Not printed: no values for this record");
+	return null;
+});
 
 let is_grid = computed(() => !!props.section.field_borders);
 
