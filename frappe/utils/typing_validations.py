@@ -194,7 +194,22 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 		try:
 			current_arg_value_after = TypeAdapter(current_arg_type).validate_python(current_arg_value)
 		except (TypeError, PydanticValidationError) as e:
-			raise_type_error(func, current_arg, current_arg_type, current_arg_value, current_exception=e)
+			# Complex-typed arguments (dict, list, ...) commonly arrive JSON-encoded as a string:
+			# frappe's JS client (frappe.call) always JSON.stringify()s object/array arguments before
+			# sending them as form data, and whitelisted methods have long relied on that string being
+			# parsed back transparently. Retry once against the parsed value before treating this as a
+			# genuine type mismatch.
+			if isinstance(current_arg_value, str):
+				try:
+					current_arg_value_after = TypeAdapter(current_arg_type).validate_python(
+						frappe.parse_json(current_arg_value)
+					)
+				except Exception:
+					raise_type_error(
+						func, current_arg, current_arg_type, current_arg_value, current_exception=e
+					)
+			else:
+				raise_type_error(func, current_arg, current_arg_type, current_arg_value, current_exception=e)
 
 		if isinstance(current_arg_value_after, EllipsisType):
 			raise_type_error(func, current_arg, current_arg_type, current_arg_value)
