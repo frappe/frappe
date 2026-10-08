@@ -8,7 +8,7 @@
 			{{ `${stepsCompleted}/${totalSteps} steps completed` }}
 		</div>
 	</div>
-	<div class="flex flex-col gap-2.5 overflow-hidden">
+	<div class="flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden">
 		<div class="flex justify-between items-center py-0.5">
 			<Badge
 				:label="`${completedPercentage}% completed`"
@@ -30,7 +30,10 @@
 				/>
 			</div>
 		</div>
-		<div class="flex flex-col gap-1.5 overflow-y-auto">
+		<ScrollArea
+			class="min-h-0 flex-1"
+			viewportClass="flex flex-col gap-1.5"
+		>
 			<div
 				v-for="step in steps"
 				:key="step.title"
@@ -70,11 +73,11 @@
 					@click.stop="() => reset(step.name, afterReset)"
 				/>
 			</div>
-		</div>
+		</ScrollArea>
 	</div>
 </template>
 <script setup lang="ts">
-import { Badge, Button, Tooltip } from "frappe-ui";
+import { Badge, Button, ScrollArea, Tooltip } from "frappe-ui";
 import { useOnboarding } from "./onboarding";
 import type { OnboardingStep, OnboardingStepsProps } from "./types";
 

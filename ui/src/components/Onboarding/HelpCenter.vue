@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col gap-2 overflow-hidden">
+	<div class="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
 		<div class="m-1">
 			<TextInput
 				ref="searchInput"
@@ -18,7 +18,10 @@
 				<LucideArrowUpRight class="size-4 text-ink-gray-5" />
 			</Button>
 		</div>
-		<div class="flex flex-col gap-1.5 overflow-y-auto">
+		<ScrollArea
+			class="min-h-0 flex-1"
+			viewportClass="flex flex-col gap-1.5"
+		>
 			<div v-for="a in parsedArticles" :key="a.title" class="flex flex-col gap-1.5">
 				<div
 					class="flex items-center justify-between p-1.5 hover:bg-surface-gray-1 rounded-4 cursor-pointer"
@@ -51,11 +54,11 @@
 					</div>
 				</div>
 			</div>
-		</div>
+		</ScrollArea>
 	</div>
 </template>
 <script setup lang="ts">
-import { Button, TextInput } from "frappe-ui";
+import { Button, ScrollArea, TextInput } from "frappe-ui";
 import LucideArrowUpRight from "~icons/lucide/arrow-up-right";
 import LucideChevronDown from "~icons/lucide/chevron-down";
 import LucideChevronRight from "~icons/lucide/chevron-right";
