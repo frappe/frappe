@@ -7,7 +7,7 @@
 		"dev": "node scripts/unlink-frappe-ui.mjs && vite",
 		"dev:frappe-ui": "node scripts/link-frappe-ui.mjs && vite",
 		"build": "node scripts/unlink-frappe-ui.mjs && vite build --base=/assets/studio/frontend/ && yarn copy-html-entry && yarn copy-studio-renderer",
-		"build-studio-app": "node scripts/unlink-frappe-ui.mjs && node src/scripts/build.js",
+		"build-studio-app": "node scripts/unlink-frappe-ui.mjs && NODE_ENV=production node src/scripts/build.js",
 		"copy-html-entry": "cp ../studio/public/frontend/index.html ../studio/www/studio.html",
 		"copy-studio-renderer": "cp ../studio/public/frontend/renderer.html ../studio/templates/generators/studio_renderer.html",
 		"serve": "vite preview",
