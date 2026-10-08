@@ -60,6 +60,71 @@ test.describe("List filter", () => {
 		});
 	});
 
+	test.describe("Link in, with the combobox", () => {
+		test.beforeAll(async ({ admin }) => {
+			await admin.set_value("System Settings", "System Settings", {
+				enable_combobox_link_field: 1,
+			});
+		});
+
+		test.afterAll(async ({ admin }) => {
+			await admin.set_value("System Settings", "System Settings", {
+				enable_combobox_link_field: 0,
+			});
+		});
+
+		const panel = (page) => page.locator(".es-combobox__panel[data-state='open']");
+		const search = (page) => panel(page).locator(".es-combobox__input");
+
+		for (const condition of ["in", "not in"]) {
+			test(`${condition}: search text that is no record is not a value`, async ({
+				page,
+				desk,
+			}) => {
+				await desk.go_to_list("ToDo");
+				await desk.clear_filters();
+				await page.evaluate(
+					(condition) =>
+						cur_list.filter_area.add([
+							["ToDo", "reference_type", condition, ["ToDo"]],
+						]),
+					condition
+				);
+				const kept = [["reference_type", condition, ["ToDo"]]];
+				await expect.poll(() => applied(page)).toEqual(kept);
+				await desk.open_list_filter();
+				const value = page.locator(".filter-popover .filter-field .es-combobox__value");
+
+				// Tab straight away, while the rows may still be loading
+				await value.click();
+				await search(page).pressSequentially("Lea");
+				await search(page).press("Tab");
+				await expect(panel(page)).toHaveCount(0);
+				expect(await applied(page)).toEqual(kept);
+
+				// the "Use …" row is gone, and a click away drops the text too
+				await value.click();
+				await search(page).pressSequentially("Lea");
+				await expect(panel(page).getByText('Use "Lea"')).toHaveCount(0);
+				await page.locator(".page-head").click();
+				await expect(panel(page)).toHaveCount(0);
+				expect(await applied(page)).toEqual(kept);
+
+				// an exact name still picks its record
+				await expect(page.locator(".filter-popover")).toHaveCount(0);
+				await desk.open_list_filter();
+				await value.click();
+				await search(page).pressSequentially("Lead");
+				// rows loaded, so Tab can match the name
+				await expect(panel(page).getByRole("option").first()).toBeVisible();
+				await search(page).press("Tab");
+				await expect
+					.poll(() => applied(page))
+					.toEqual([["reference_type", condition, ["ToDo", "Lead"]]]);
+			});
+		}
+	});
+
 	test.describe("sheet on a phone", () => {
 		test.use({ viewport: { width: 402, height: 800 } });
 
