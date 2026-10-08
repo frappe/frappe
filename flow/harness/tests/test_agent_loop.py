@@ -242,6 +242,26 @@ async def test_tool_that_cuts_its_own_output_is_not_cut_again(tmp_path):
 	assert "Cut to the first" not in content
 
 
+async def test_hook_that_grows_a_cut_result_is_still_capped(tmp_path):
+	(tmp_path / "a.txt").write_text("AAA")
+	session, events = _session(tmp_path)
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="ok")])
+
+	await _run(session, "read", model=mock, after_tool_call=lambda tc, result: "y" * 200_000)
+	assert _of(events, "tool_result")[0]["content"].startswith("y" * 51_200 + "\n\n[Cut to the first 50 KB")
+
+
+async def test_before_hook_result_is_capped(tmp_path):
+	session, events = _session(tmp_path)
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="ok")])
+
+	def before(tc, ctx):
+		return HookDecision(result="z" * 200_000)
+
+	await _run(session, "read", model=mock, before_tool_call=before)
+	assert _of(events, "tool_result")[0]["content"].startswith("z" * 51_200 + "\n\n[Cut to the first 50 KB")
+
+
 async def test_pause_and_resume(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
 	session, events = _session(tmp_path, confirm_tools=["read"])
