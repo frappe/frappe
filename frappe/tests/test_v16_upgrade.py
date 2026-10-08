@@ -974,6 +974,7 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 	HELD_ROW = "V16 Held Generated"
 	BARE_ROW = "V16 Bare Generated"
 	KEPT_ROW = "V16 Kept Generated"
+	HOMED_ROW = "V16 Homed Generated"
 	USER = "test-v16-cleanup@example.com"
 
 	@classmethod
@@ -994,7 +995,13 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 			{"doctype": "User", "email": cls.USER, "first_name": "V16 Cleanup", "send_welcome_email": 0}
 		).insert(ignore_if_duplicate=True).add_roles("Desk User")
 
-		for title, module in ((cls.HELD_ROW, cls.HELD), (cls.BARE_ROW, cls.BARE), (cls.KEPT_ROW, cls.HELD)):
+		rows = (
+			(cls.HELD_ROW, cls.HELD),
+			(cls.BARE_ROW, cls.BARE),
+			(cls.KEPT_ROW, cls.HELD),
+			(cls.HOMED_ROW, cls.HELD),
+		)
+		for title, module in rows:
 			standard_workspace(title, module)
 			archive(title, [home(title), link("ToDo", "Todos")], module=module)
 			cls.wrongly_converted(title)
@@ -1014,6 +1021,17 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 				"is_standard": "No",
 			}
 		).insert()
+		# and made a workspace under another, which no delete would refuse on behalf of
+		frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "V16 Homed Page",
+				"label": "V16 Homed Page",
+				"module": f"{cls.HOMED_ROW} (Custom)",
+				"public": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
 		frappe.get_doc(
 			{
 				"doctype": "Dock",
@@ -1057,9 +1075,11 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		super().tearDownClass()
 
 	def test_the_extra_module_goes(self):
+		"""With its sidebar and the page `Module Def.after_insert` made for it."""
 		for title in (self.HELD_ROW, self.BARE_ROW):
 			self.assertFalse(frappe.db.exists("Module Def", f"{title} (Custom)"))
 			self.assertFalse(frappe.db.exists("Sidebar", {"module": f"{title} (Custom)"}))
+			self.assertFalse(frappe.db.exists("Workspace", f"{title} (Custom)"))
 
 	def test_the_apps_sidebar_is_left_alone(self):
 		self.assertEqual(
@@ -1089,6 +1109,11 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Sidebar", {"module": module}))
 		self.assertIn(module, frappe.get_doc("User", self.USER).get_blocked_modules())
 		self.assertIn(f"Module '{module}': kept, Report V16 Kept Report is filed under it", self.output)
+
+	def test_a_module_holding_a_workspace_is_kept(self):
+		module = f"{self.HOMED_ROW} (Custom)"
+		self.assertTrue(frappe.db.exists("Module Def", module))
+		self.assertIn(f"Module '{module}': kept, Workspace V16 Homed Page is filed under it", self.output)
 
 
 def standard_workspace(title: str, module: str):

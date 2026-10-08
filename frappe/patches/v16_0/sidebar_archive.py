@@ -103,9 +103,11 @@ def app_workspace_of(row) -> frappe._dict | None:
 	first = next(iter(row.rows or ()), None)
 	if not first or first.get("link_type") != "Workspace" or first.get("link_to") != row.name:
 		return None
-	return frappe.db.get_value(
-		"Workspace", {"name": row.name, "standard": 1}, ["name", "module"], as_dict=True
+	# by name, so the lookup is cached across the patches that each ask this of every row
+	workspace = frappe.db.get_value(
+		"Workspace", row.name, ["name", "module", "standard"], as_dict=True, cache=True
 	)
+	return workspace if workspace and workspace.standard else None
 
 
 def converted_module_of(title: str) -> str | None:

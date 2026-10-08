@@ -59,8 +59,13 @@ def document_filed_under(module: str) -> str | None:
 	"""The first document naming `module`, as `DocType name`, or None when nothing does.
 
 	A `Block Module` row is reported as its user and does not count: `convert_custom_sidebars`
-	wrote those rows, and `remove_module` takes them back.
+	wrote those rows, and `remove_module` takes them back. Nor does the page named after the
+	module, which `Module Def.after_insert` made with it. Any other workspace is asked for on its
+	own, since `Workspace` is in `ignore_links_on_delete` and a delete would not refuse on its
+	behalf.
 	"""
+	if workspace := frappe.db.get_value("Workspace", {"module": module, "name": ["!=", module]}):
+		return f"Workspace {workspace}"
 	for link in get_linked_docs(frappe.get_doc("Module Def", module)):
 		if link["reference_doctype"] != "User":
 			return f"{link['reference_doctype']} {link['reference_docname']}"
@@ -72,8 +77,11 @@ def move_user_layers(module: str, into: str | None) -> None:
 	base. One already there is the user's later word on that module, so it wins and this one is
 	dropped, as it is when there is nowhere to move it."""
 	for layer in frappe.get_all("Custom Sidebar", filters={"module": module}, fields=["name", "user"]):
-		taken = frappe.db.exists("Custom Sidebar", {"module": into, "user": layer.user})
-		if into and is_module(into) and not taken:
+		if (
+			into
+			and is_module(into)
+			and not frappe.db.exists("Custom Sidebar", {"module": into, "user": layer.user})
+		):
 			frappe.db.set_value("Custom Sidebar", layer.name, "module", into, update_modified=False)
 		else:
 			who = layer.user or "the site"
@@ -84,6 +92,10 @@ def remove_module(module: str) -> None:
 	# deleted in place, the way `convert_custom_sidebars` inserted them: saving each user would run
 	# the whole of `User.validate` per user
 	frappe.db.delete("Block Module", {"parenttype": "User", "module": module})
+	# the module's own page was made with it; `Module Def.on_trash` leaves content alone, which
+	# would strand it under a module that is gone
+	if frappe.db.get_value("Workspace", module, "module") == module:
+		frappe.delete_doc("Workspace", module)
 	# `Module Def.on_trash` takes the sidebars and what is left of the user layers, and each
 	# sidebar's `on_trash` takes its dock rows
 	frappe.delete_doc("Module Def", module)
