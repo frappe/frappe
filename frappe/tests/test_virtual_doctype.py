@@ -160,6 +160,23 @@ class TestVirtualDoctypes(IntegrationTestCase):
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
 		self.assertEqual(docs, listed_docs)
 
+	def test_get_list_page_length_reaches_controller(self):
+		from unittest.mock import patch
+
+		received = []
+
+		def fake_get_list(**kwargs):
+			received.append(kwargs.get("page_length"))
+			return []
+
+		with patch.object(VirtualDoctypeTest, "get_list", staticmethod(fake_get_list)):
+			frappe.get_all(TEST_DOCTYPE_NAME)  # get_all means "no limit"
+			frappe.get_list(TEST_DOCTYPE_NAME, limit_page_length=0)
+			frappe.get_list(TEST_DOCTYPE_NAME)  # nothing passed: keep the default
+			frappe.get_list(TEST_DOCTYPE_NAME, page_length=5)
+
+		self.assertEqual(received, [0, 0, 20, 5])
+
 	def test_get_count(self):
 		self.assertIsInstance(VirtualDoctypeTest.get_count(), int)
 

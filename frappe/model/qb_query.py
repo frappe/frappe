@@ -346,7 +346,9 @@ class DatabaseQuery:
 		if not isinstance(or_filters, Filters):
 			or_filters = Filters(or_filters, doctype=self.doctype)
 
-		_page_length = page_length or limit or limit_page_length or 20
+		# Only fall back to the default when no page length was passed at all: an explicit 0 means
+		# "no limit" (frappe.get_all passes limit_page_length=0), as it does for regular doctypes.
+		_page_length = next((v for v in (page_length, limit, limit_page_length) if v is not None), 20)
 		kwargs = {
 			"fields": fields,
 			"filters": filters,
