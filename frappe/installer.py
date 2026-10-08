@@ -372,24 +372,33 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	add_to_installed_apps(name)
 
-	frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
+	try:
+		frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
 
-	for after_install in app_hooks.after_install or []:
-		frappe.get_attr(after_install)()
+		for after_install in app_hooks.after_install or []:
+			frappe.get_attr(after_install)()
 
-	if set_as_patched:
-		set_all_patches_as_completed(name)
+		if set_as_patched:
+			set_all_patches_as_completed(name)
 
-	for fn in frappe.get_hooks("after_app_install"):
-		frappe.get_attr(fn)(name)
+		for fn in frappe.get_hooks("after_app_install"):
+			frappe.get_attr(fn)(name)
 
-	sync_jobs()
-	sync_fixtures(name)
-	sync_customizations(name)
-	sync_dashboards(name)
+		sync_jobs()
+		sync_fixtures(name)
+		sync_customizations(name)
+		sync_dashboards(name)
 
-	for after_sync in app_hooks.after_sync or []:
-		frappe.get_attr(after_sync)()  #
+		for after_sync in app_hooks.after_sync or []:
+			frappe.get_attr(after_sync)()
+
+	except Exception:
+		# The app counts as installed from `add_to_installed_apps` on, so a failure after it would
+		# leave `install-app` reporting "already installed" and never finishing the install.
+		frappe.db.rollback()
+		remove_from_installed_apps(name)
+		frappe.flags.in_install = False
+		raise
 
 	frappe.clear_cache()
 	frappe.client_cache.erase_persistent_caches()
@@ -882,6 +891,9 @@ def make_site_dirs():
 def add_module_defs(app, ignore_if_duplicate=False):
 	modules = frappe.get_module_list(app)
 	for module in modules:
+		# A retried install meets the rows its failed attempt already committed
+		if frappe.db.exists("Module Def", {"name": module, "app_name": app, "custom": 0}):
+			continue
 		rename_conflicting_custom_module(module, app)
 
 		d = frappe.new_doc("Module Def")
