@@ -41,6 +41,12 @@ def insert_then_fail(*, ctx: ToolContext) -> None:
 	raise ValueError("after insert")
 
 
+@tool(background=lambda args: args.get("slow"))
+def maybe_later(slow: bool = False, *, ctx: ToolContext) -> str:
+	"""The user this tool runs as; queued only when slow."""
+	return frappe.session.user
+
+
 @tool
 def end_savepoint_then_fail(*, ctx: ToolContext) -> None:
 	"""Drops the callback's savepoint, as a query report does, then raises."""
@@ -67,7 +73,13 @@ class TestToolCallback(IntegrationTestCase):
 			frappe.get_doc(
 				{"doctype": "User", "email": OWNER, "first_name": "Callback", "send_welcome_email": 0}
 			).insert(ignore_permissions=True)
-		for slug in ("whoami", "insert_then_fail", "end_savepoint_then_fail", "callback_context"):
+		for slug in (
+			"whoami",
+			"maybe_later",
+			"insert_then_fail",
+			"end_savepoint_then_fail",
+			"callback_context",
+		):
 			self.flow_tool(slug, type="Imported", import_path=f"{MODULE}.{slug}")
 		self.flow_tool("boom", type="Script", code=BOOM)
 		self.flow_tool("whoami_later", type="Script", code=WHOAMI, background=1)
@@ -87,6 +99,7 @@ class TestToolCallback(IntegrationTestCase):
 			"search_attachments",
 			"whoami",
 			"whoami_later",
+			"maybe_later",
 			"insert_then_fail",
 			"end_savepoint_then_fail",
 			"callback_context",
@@ -344,6 +357,16 @@ class TestToolCallback(IntegrationTestCase):
 				("tool_result", self.session.name, "t1", {"content": OWNER, "is_error": False}),
 			],
 		)
+
+	def test_a_tool_can_choose_the_background_per_call(self):
+		inline = {"content": OWNER, "is_error": False}
+		with patch("frappe.enqueue") as enqueue:
+			self.assertEqual(self.call("maybe_later", {"slow": False}, result_token="t1"), inline)
+			enqueue.assert_not_called()
+			self.assertTrue(self.call("maybe_later", {"slow": True}, result_token="t2")["pending"])
+			enqueue.assert_called_once()
+			# the job itself passes no token, so it runs the tool
+			self.assertEqual(self.call("maybe_later", {"slow": True}), inline)
 
 	def test_site_config_sets_the_background_tool_timeout(self):
 		with (

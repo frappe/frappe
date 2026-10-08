@@ -140,7 +140,11 @@ def read_records(
 	)
 
 
-@tool
+@tool(
+	background=lambda args: bool(
+		frappe.db.get_value("Report", {"name": args.get("report_name")}, "prepared_report")
+	)
+)
 def run_report(
 	report_name: str,
 	filters: dict | None = None,
@@ -667,7 +671,7 @@ def sync_builtin_tools() -> None:
 					"import_path": import_path,
 					"description": builtin.description,
 					"requires_confirmation": int(builtin.requires_confirmation),
-					"background": int(builtin.background),
+					"background": int(builtin.background is True),
 					"is_system_generated": 1,
 				},
 			)
@@ -682,6 +686,6 @@ def sync_builtin_tools() -> None:
 					"description": builtin.description,
 					"is_system_generated": 1,
 					"requires_confirmation": int(builtin.requires_confirmation),
-					"background": int(builtin.background),
+					"background": int(builtin.background is True),
 				}
 			).insert(ignore_permissions=True)

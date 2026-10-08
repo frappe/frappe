@@ -133,7 +133,7 @@ def _ensure_tool(tool: Tool) -> str:
 	definition = {
 		"description": tool.description,
 		"requires_confirmation": int(tool.requires_confirmation),
-		"background": int(tool.background),
+		"background": int(tool.background is True),
 		"is_system_generated": 1,
 	}
 	row = frappe.db.get_value("Flow Tool", tool.name, ["import_path", *definition], as_dict=True)

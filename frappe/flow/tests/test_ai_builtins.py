@@ -252,6 +252,13 @@ class TestRunReport(IntegrationTestCase):
 			run_report(report_name=custom.name, ctx=CTX)
 		ran.assert_called_once()
 
+	def test_only_a_prepared_report_runs_in_the_background(self):
+		args = {"report_name": self.report.name}
+		self.assertFalse(run_report.background(args))
+		self.report.db_set("prepared_report", 1)
+		self.assertTrue(run_report.background(args))
+		self.assertFalse(run_report.background({}))
+
 	def test_permission_denied_raises(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.PermissionError):
@@ -411,6 +418,12 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 		runtime = doc.to_tool()
 		self.assertEqual(runtime.name, "describe")
 		self.assertIn("doctype", runtime.parameters["properties"])
+
+	def test_a_per_call_background_rule_stays_in_code(self):
+		sync_builtin_tools()
+		doc = frappe.get_doc("Flow Tool", "run_report")
+		self.assertEqual(doc.background, 0)
+		self.assertTrue(callable(doc.to_tool().background))
 
 	def test_is_idempotent(self):
 		sync_builtin_tools()

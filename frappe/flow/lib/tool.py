@@ -40,7 +40,7 @@ class Tool:
 	func: Callable[..., Any]
 	requires_confirmation: bool = False
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
-	background: bool = False
+	background: bool | Callable[[dict[str, Any]], bool] = False
 	display_template: str | None = None
 
 	def __post_init__(self) -> None:
@@ -81,7 +81,7 @@ def tool(
 	description: str | None = None,
 	requires_confirmation: bool = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
-	background: bool = False,
+	background: bool | Callable[[dict[str, Any]], bool] = False,
 	display_template: str | None = None,
 ) -> Tool | Callable[[Callable[..., Any]], Tool]:
 	def wrap(f: Callable[..., Any]) -> Tool:

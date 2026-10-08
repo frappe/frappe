@@ -119,7 +119,8 @@ def _dispatch(
 		return _error(_("Unknown tool {0}.").format(name))
 	if mode == "confirm":
 		return {"prompt": confirm_prompt(tool, args)}
-	if tool.background and result_token:  # the job itself passes no token
+	# the job itself passes no token
+	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)
 	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
 	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
