@@ -1,6 +1,9 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import json
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -14,11 +17,31 @@ from flow.tools.builtins import (
 	execute,
 	find_doctypes,
 	read_records,
+	run_report,
 	sync_builtin_tools,
 	update,
 )
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
+
+REPORT_SCRIPT = """
+if not filters.company:
+	frappe.throw("Company is mandatory")
+columns = [
+	{"fieldname": "item", "label": "Item", "fieldtype": "Data"},
+	{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"},
+	{"fieldname": "note", "label": "Note", "fieldtype": "Data", "hidden": 1},
+]
+rows = [{"item": f"Item {i}", "qty": i, "note": "x"} for i in range(1, 26)]
+data = [columns, rows if filters.company == "Acme" else []]
+"""
+
+REPORT_JS = """frappe.query_reports["Flow Report Probe"] = {
+	filters: [
+		{ fieldname: "company", label: __("Company"), fieldtype: "Link", options: "Company", reqd: 1 },
+		{ fieldname: "item", label: __("Item"), fieldtype: "Data" },
+	],
+};"""
 
 
 class TestFindDoctypes(IntegrationTestCase):
@@ -97,6 +120,161 @@ class TestReadRecords(IntegrationTestCase):
 			ctx=CTX,
 		)
 		self.assertEqual(rows[0]["description"], "fields probe")
+
+
+class TestRunReport(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		cls.enterClassContext(cls.enable_safe_exec())
+		super().setUpClass()
+
+	def setUp(self):
+		self.report = self.make_report(
+			"Flow Report Probe",
+			"Script Report",
+			report_script=REPORT_SCRIPT,
+			javascript=REPORT_JS,
+			filters=[{"fieldname": "warehouse", "label": "Warehouse", "fieldtype": "Data", "mandatory": 1}],
+		)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_returns_shown_columns_capped_rows_and_count(self):
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=10, ctx=CTX)
+
+		self.assertEqual(
+			result["columns"], [{"fieldname": "item", "label": "Item"}, {"fieldname": "qty", "label": "Qty"}]
+		)
+		self.assertEqual(result["rows"][0], {"item": "Item 1", "qty": 1})
+		self.assertEqual(len(result["rows"]), 10)
+		self.assertEqual(result["row_count"], 25)
+		self.assertNotIn("total_row", result)
+		self.assertNotIn("available_filters", result)
+
+	def test_total_row_is_kept_past_the_cap(self):
+		self.report.db_set("add_total_row", 1)
+
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=10, ctx=CTX)
+
+		self.assertEqual(result["total_row"], {"item": "Total", "qty": 325})
+		self.assertEqual(result["row_count"], 25)
+
+		rows = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=200, ctx=CTX)[
+			"rows"
+		]
+		self.assertEqual((len(rows), rows[-1]), (25, {"item": "Item 25", "qty": 25}))
+
+	def test_failed_run_lists_the_filters(self):
+		# frappe's failure log survives the rollback
+		with patch("frappe.log_error"), self.assertRaises(ValueError) as caught:
+			run_report(report_name=self.report.name, ctx=CTX)
+
+		self.assertIn("Company is mandatory", str(caught.exception))
+		self.assertIn("(* = required) warehouse*, company*, item", str(caught.exception))
+
+	def test_a_query_reports_own_error_is_kept(self):
+		def fail(*args, **kwargs):
+			try:
+				raise KeyError("owner")
+			except KeyError:  # frappe's failure log can't write in the report's read-only transaction
+				raise frappe.InReadOnlyMode("Site is running in read only mode")
+
+		with patch("frappe.desk.query_report.run", side_effect=fail), self.assertRaises(ValueError) as caught:
+			run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+		self.assertTrue(str(caught.exception).startswith("'owner'\n"))
+
+	def test_empty_run_lists_the_filters(self):
+		result = run_report(report_name=self.report.name, filters={"company": "Other"}, ctx=CTX)
+
+		self.assertEqual(result["row_count"], 0)
+		self.assertEqual(result["available_filters"], "(* = required) warehouse*, company*, item")
+
+	def test_report_that_returns_nothing_is_empty(self):
+		self.report.db_set("report_script", "pass")
+
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+
+		self.assertEqual(result["rows"], [])
+		self.assertIn("available_filters", result)
+
+	def test_report_builder_is_refused(self):
+		builder = self.make_report("Flow Builder Probe", "Report Builder")
+
+		with self.assertRaises(ValueError) as caught:
+			run_report(report_name=builder.name, ctx=CTX)
+		self.assertIn("read_records", str(caught.exception))
+
+	def test_query_report_runs(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "query report probe"}).insert()
+		query = self.make_report(
+			"Flow Query Probe",
+			"Query Report",
+			query='select name as "ToDo:Link/ToDo:120", description as "Description:Data:200" '
+			"from tabToDo where description = %(description)s",
+		)
+
+		# a query report opens its own transaction; keep it in the test's
+		with patch.object(frappe.db, "begin"), patch.object(frappe.db, "rollback"):
+			result = run_report(
+				report_name=query.name, filters={"description": "query report probe"}, ctx=CTX
+			)
+
+		self.assertEqual(
+			result["columns"],
+			[{"fieldname": "todo", "label": "ToDo"}, {"fieldname": "description", "label": "Description"}],
+		)
+		self.assertEqual(result["rows"], [{"todo": todo.name, "description": "query report probe"}])
+
+	def test_query_report_needs_its_sql_filters_first(self):
+		# never run it here: a query report opens its own transaction
+		query = self.make_report(
+			"Flow Query Probe", "Query Report", query="select name from tabToDo where owner = %(owner)s"
+		)
+
+		with self.assertRaises(ValueError) as caught:
+			run_report(report_name=query.name, ctx=CTX)
+		self.assertEqual(str(caught.exception), "Missing filters: owner")
+
+	def test_custom_report_uses_its_saved_filters(self):
+		query = self.make_report(
+			"Flow Query Probe", "Query Report", query="select name from tabToDo where owner = %(owner)s"
+		)
+		custom = self.make_report(
+			"Flow Custom Probe",
+			"Custom Report",
+			reference_report=query.name,
+			json=json.dumps({"filters": {"owner": "Administrator"}}),
+		)
+
+		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
+			run_report(report_name=custom.name, ctx=CTX)
+		ran.assert_called_once()
+
+	def test_only_a_prepared_report_runs_in_the_background(self):
+		args = {"report_name": self.report.name}
+		self.assertFalse(run_report.background(args))
+		self.report.db_set("prepared_report", 1)
+		self.assertTrue(run_report.background(args))
+		self.assertFalse(run_report.background({}))
+
+	def test_permission_denied_raises(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+
+	def make_report(self, name: str, report_type: str, **values):
+		return frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": name,
+				"ref_doctype": "ToDo",
+				"report_type": report_type,
+				"is_standard": "No",
+				**values,
+			}
+		).insert()
 
 
 class TestExecute(IntegrationTestCase):
@@ -240,6 +418,12 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 		runtime = doc.to_tool()
 		self.assertEqual(runtime.name, "describe")
 		self.assertIn("doctype", runtime.parameters["properties"])
+
+	def test_a_per_call_background_rule_stays_in_code(self):
+		sync_builtin_tools()
+		doc = frappe.get_doc("Flow Tool", "run_report")
+		self.assertEqual(doc.background, 0)
+		self.assertTrue(callable(doc.to_tool().background))
 
 	def test_is_idempotent(self):
 		sync_builtin_tools()

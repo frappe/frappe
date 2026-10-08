@@ -67,7 +67,7 @@ def tool_callback(
 	try:
 		return _dispatch(session_id, agent, tool, args or {}, mode, result_token)
 	except Exception as exc:
-		frappe.db.rollback(save_point=SAVEPOINT)
+		_rollback()
 		return _error(str(exc).strip() or type(exc).__name__)
 	finally:
 		frappe.set_user(user)
@@ -119,7 +119,8 @@ def _dispatch(
 		return _error(_("Unknown tool {0}.").format(name))
 	if mode == "confirm":
 		return {"prompt": confirm_prompt(tool, args)}
-	if tool.background and result_token:  # the job itself passes no token
+	# the job itself passes no token
+	if result_token and (tool.background(args) if callable(tool.background) else tool.background):
 		return _enqueue(session_id, agent, name, args, result_token)
 	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
 	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
@@ -167,6 +168,14 @@ def _deliver(daemon: DaemonClient, session_id: str, result_token: str, result: d
 		except DaemonError:
 			if attempt == len(DELIVERY_RETRY_DELAYS):
 				raise
+
+
+def _rollback() -> None:
+	"""Undo a failed tool's writes, even if it ended the transaction."""
+	try:
+		frappe.db.rollback(save_point=SAVEPOINT)
+	except Exception:  # the savepoint went with the transaction
+		frappe.db.rollback()
 
 
 def _error(message: str) -> dict:
