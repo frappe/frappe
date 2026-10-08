@@ -21,6 +21,14 @@
 			</slot>
 		</div>
 		<div
+			v-else-if="loading"
+			class="flow-late-reveal flex h-full items-center justify-center gap-2 text-sm text-ink-gray-5"
+			:style="{ paddingBottom: composerHeight + 'px' }"
+		>
+			<Spinner />
+			Loading…
+		</div>
+		<div
 			v-else
 			ref="thread"
 			class="flow-thread mx-auto flex max-w-[800px] flex-col gap-5 pt-10"
@@ -141,6 +149,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
+import Spinner from "frappe-ui/src/components/Spinner/Spinner.vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildItems, formatTime, panelIds, userAttachments, userText } from "../transcript.js"
@@ -166,9 +175,10 @@ const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
 const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
 
-const empty = computed(
-	() => !flow.state.loading && !items.value.length && !conversation.value.running && !conversation.value.liveLabel,
-)
+// nothing to draw yet: the empty state, or a loading line while a session opens
+const blank = computed(() => !items.value.length && !conversation.value.running && !conversation.value.liveLabel)
+const empty = computed(() => blank.value && !flow.state.loading)
+const loading = computed(() => blank.value && flow.state.loading)
 const composerHeight = inject("composerHeight", ref(120))
 const lastTurnCopyIndex = computed(() =>
 	items.value.findLastIndex((item) => item.kind === "turn-copy"),

@@ -189,6 +189,26 @@ test("new chats inherit the active session cwd and accept a project override", (
 	assert.equal(flow.state.prefs.cwd, "/projects/selected")
 })
 
+test("a new chat started while a session loads is not left loading", async () => {
+	let respond
+	const client = {
+		session: () => new Promise((resolve) => (respond = resolve)),
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+	}
+	const flow = createFlowStore(client)
+	const opened = flow.openSession("s1")
+	assert.equal(flow.state.loading, true)
+
+	flow.startNewChat()
+	assert.equal(flow.state.loading, false)
+	respond({ session_id: "s1", model: "m", latest_seq: 1 })
+	await opened
+	assert.equal(flow.state.loading, false)
+	assert.equal(flow.state.sessionId, null)
+})
+
 test("multiline skill steering uses the expanded event's canonical match key", async () => {
 	const client = {
 		async run() {

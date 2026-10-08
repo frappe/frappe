@@ -587,6 +587,26 @@ test("an existing session without saved messages shows the empty state after rel
 	assert.ok(el.textContent.includes("What would you like to build?"))
 })
 
+test("a session that is still loading says so instead of showing a blank thread", async (t) => {
+	const conversation = reactive(initialConversation())
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: true, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	assert.ok(el.textContent.includes("Loading"))
+	assert.ok(!el.textContent.includes("What would you like to build?"))
+
+	// a first message in flight keeps its bubble and status while the new session loads
+	conversation.sending = [{ key: "sending:1", entry: { type: "user_message", content: [{ type: "text", text: "hi" }], ts: 1 } }]
+	await nextTick()
+	assert.ok(!el.textContent.includes("Loading"))
+	assert.ok(el.textContent.includes("Working"))
+
+	conversation.sending = []
+	flow.state.loading = false
+	await nextTick()
+	assert.ok(!el.textContent.includes("Loading"))
+	assert.ok(el.textContent.includes("What would you like to build?"))
+})
+
 test("the settings shell renders a host's tabs and panels", (t) => {
 	const groups = [{ label: "Settings", tabs: [{ id: "alpha", label: "Alpha", icon: "x" }, { id: "beta", label: "Beta", icon: "y" }] }]
 	const flow = { state: reactive({ settingsOpen: true }), setSettingsOpen() {} }

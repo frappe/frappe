@@ -506,6 +506,7 @@ export function createFlowStore(client, options = {}) {
 		swapQueue(null)
 		state.sessionId = null
 		state.session = null
+		state.loading = false // a session still opening is dropped
 		state.skills = []
 		state.conversation = initialConversation()
 		loadedSkillsFor = null
