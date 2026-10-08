@@ -324,8 +324,9 @@ class AutoRepeat(Document):
 		# on recurring method of that doctype is triggered
 		new_doc.run_method("on_recurring", reference_doc=reference_doc, auto_repeat_doc=auto_repeat_doc)
 
-	def set_auto_repeat_period(self, new_doc, reference_doc):
+	def set_auto_repeat_period(self, new_doc, reference_doc=None):
 		"""Set the invoice period of the new document, counted from the period of the reference document."""
+		reference_doc = reference_doc or frappe.get_doc(self.reference_doctype, self.reference_document)
 		anchor = reference_doc.get("from_date")
 		if not (anchor and new_doc.meta.get_field("to_date")):
 			return
