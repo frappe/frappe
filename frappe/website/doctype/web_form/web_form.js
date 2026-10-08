@@ -768,7 +768,6 @@ function on_controlled_access_change(frm) {
 		frm.set_value("allow_delete", 0);
 		frm.set_value("show_list", 0);
 	}
-	render_list_settings_message(frm);
 }
 
 // the builder and the web_form_fields grid edit one child table without watching each
@@ -970,33 +969,4 @@ function get_referenced_fieldnames(condition) {
 	if (!condition.startsWith("eval:")) return [condition];
 	const refs = condition.matchAll(/\bdoc(?:\.(\w+)|\[["'](\w+)["']\])/g);
 	return [...refs].map((m) => m[1] || m[2]);
-}
-
-function render_list_settings_message(frm) {
-	// render list setting message
-	if (
-		frm.fields_dict["list_setting_message"] &&
-		!frm.doc.login_required &&
-		!frm.doc.key_required
-	) {
-		const go_to_access_fields = `
-			<code class="pointer" title="${__("Go to Access Control section")}">
-				${__("Login Required")}
-			</code>
-			${__("or")}
-			<code class="pointer" title="${__("Go to Access Control section")}">
-				${__("Key Required")}
-			</code>
-		`;
-		let message = __(
-			"Login or a request key is required to see web form list view. Enable {0} to see list settings",
-			[go_to_access_fields]
-		);
-		$(frm.fields_dict["list_setting_message"].wrapper)
-			.html($(`<div class="form-message blue">${message}</div>`))
-			.find("code")
-			.click(() => frm.scroll_to_field("access_control_section"));
-	} else {
-		$(frm.fields_dict["list_setting_message"].wrapper).empty();
-	}
 }

@@ -23,53 +23,52 @@
   "settings_tab",
   "access_control_section",
   "key_required",
-  "anonymous",
   "login_required",
   "column_break_2",
+  "anonymous",
   "apply_document_permissions",
-  "allow_edit",
+  "section_break_5",
   "allow_multiple",
+  "allow_edit",
   "allow_delete",
-  "form_settings_section",
-  "allow_incomplete",
+  "column_break_responses",
   "allow_comments",
+  "show_attachments",
   "allow_print",
   "print_format",
-  "max_attachment_size",
-  "show_attachments",
-  "column_break_hhec",
-  "hide_navbar",
-  "hide_footer",
-  "allowed_embedding_domains",
-  "condition_section",
-  "condition_description",
-  "condition_json",
-  "dynamic_filters_section",
-  "dynamic_filters_json",
   "section_break_3",
-  "list_setting_message",
   "show_list",
   "list_title",
   "list_columns",
-  "section_break_4",
-  "show_sidebar",
-  "website_sidebar",
-  "web_form_fields_section",
-  "web_form_fields",
-  "customization_tab",
-  "button_label",
-  "column_break_3",
   "breadcrumbs",
-  "section_break_5",
+  "condition_description",
+  "condition_json",
+  "dynamic_filters_label",
+  "dynamic_filters_json",
+  "form_settings_section",
+  "button_label",
+  "max_attachment_size",
+  "allow_incomplete",
+  "column_break_hhec",
   "success_title",
   "success_url",
-  "column_break_4",
   "success_message",
+  "embedding_section",
+  "allowed_embedding_domains",
   "meta_section",
   "meta_title",
   "meta_description",
   "column_break_khxs",
   "meta_image",
+  "web_form_fields_section",
+  "web_form_fields",
+  "customization_tab",
+  "section_break_4",
+  "hide_navbar",
+  "hide_footer",
+  "column_break_page",
+  "show_sidebar",
+  "website_sidebar",
   "section_break_6",
   "client_script",
   "custom_css"
@@ -243,11 +242,13 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.anonymous",
    "fieldname": "show_sidebar",
    "fieldtype": "Check",
    "label": "Show sidebar"
   },
   {
+   "depends_on": "eval: doc.show_list && (doc.login_required || doc.key_required)",
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
    "fieldname": "breadcrumbs",
    "fieldtype": "Code",
@@ -278,7 +279,7 @@
    "depends_on": "show_list",
    "fieldname": "list_title",
    "fieldtype": "Data",
-   "label": "Title"
+   "label": "List title"
   },
   {
    "depends_on": "show_list",
@@ -288,15 +289,11 @@
    "options": "Web Form List Column"
   },
   {
+   "depends_on": "eval:doc.show_sidebar && !doc.anonymous",
    "fieldname": "website_sidebar",
    "fieldtype": "Link",
    "label": "Website Sidebar",
    "options": "Website Sidebar"
-  },
-  {
-   "fieldname": "list_setting_message",
-   "fieldtype": "HTML",
-   "label": "List setting message"
   },
   {
    "fieldname": "customization_tab",
@@ -334,33 +331,23 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "show_list",
-   "depends_on": "eval:!doc.anonymous",
+   "depends_on": "eval: !doc.anonymous && (doc.login_required || doc.key_required)",
+   "description": "Show respondents a list of their responses.",
    "fieldname": "section_break_3",
    "fieldtype": "Section Break",
    "label": "List Settings"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "show_sidebar",
-   "depends_on": "eval:!doc.anonymous",
+   "description": "Choose what the page shows around the form.",
    "fieldname": "section_break_4",
    "fieldtype": "Section Break",
-   "label": "Sidebar Settings"
+   "label": "Page Display"
   },
   {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.success_title || doc.success_message || doc.success_url",
+   "depends_on": "eval: doc.login_required || doc.key_required",
    "fieldname": "section_break_5",
    "fieldtype": "Section Break",
-   "label": "After Submission"
-  },
-  {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
+   "label": "Respondent Permissions"
   },
   {
    "collapsible": 1,
@@ -371,16 +358,19 @@
   },
   {
    "collapsible": 1,
+   "description": "How this form appears in search results and link previews.",
    "fieldname": "meta_section",
    "fieldtype": "Section Break",
    "label": "Meta"
   },
   {
+   "description": "Defaults to the form title.",
    "fieldname": "meta_title",
    "fieldtype": "Data",
    "label": "Meta title"
   },
   {
+   "description": "Defaults to the first 140 characters of the introduction.",
    "fieldname": "meta_description",
    "fieldtype": "Small Text",
    "label": "Meta description"
@@ -390,6 +380,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Shown when the link is shared.",
    "fieldname": "meta_image",
    "fieldtype": "Attach Image",
    "label": "Meta image"
@@ -409,12 +400,7 @@
    "fieldname": "condition_description",
    "fieldtype": "HTML",
    "label": "Condition description",
-   "options": "<p>Filter the records this web form shows (e.g., <b>year = 2023</b> for a yearly feedback form).</p>"
-  },
-  {
-   "fieldname": "condition_section",
-   "fieldtype": "Section Break",
-   "label": "Filters"
+   "options": "<label class=\"control-label\">Filters</label><p>Filter the records this web form shows (e.g., <b>year = 2023</b> for a yearly feedback form).</p>"
   },
   {
    "fieldname": "condition_json",
@@ -445,23 +431,28 @@
    "label": "Access Control"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.allow_incomplete || doc.max_attachment_size || doc.success_title || doc.success_message || doc.success_url",
    "fieldname": "form_settings_section",
    "fieldtype": "Section Break",
-   "label": "Form Settings"
+   "label": "Submission"
   },
   {
    "fieldname": "column_break_hhec",
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "show_list",
    "fieldname": "dynamic_filters_json",
    "fieldtype": "JSON",
    "label": "Dynamic Filters JSON"
   },
   {
-   "fieldname": "dynamic_filters_section",
-   "fieldtype": "Section Break",
-   "label": "Dynamic Filters"
+   "depends_on": "show_list",
+   "fieldname": "dynamic_filters_label",
+   "fieldtype": "HTML",
+   "label": "Dynamic Filters label",
+   "options": "<label class=\"control-label\">Dynamic Filters</label>"
   },
   {
    "default": "0",
@@ -469,6 +460,20 @@
    "fieldname": "key_required",
    "fieldtype": "Check",
    "label": "Key required"
+  },
+  {
+   "fieldname": "column_break_responses",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_page",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "embedding_section",
+   "fieldtype": "Section Break",
+   "label": "Embedding"
   }
  ],
  "icon": "pencil",
@@ -479,7 +484,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-09-26 12:10:00.000000",
+ "modified": "2026-10-08 19:10:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
