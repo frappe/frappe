@@ -78,21 +78,8 @@ class LiteLLMModel(Model):
 		return self._model_limits()[1]
 
 	def _model_limits(self) -> tuple[int | None, int | None]:
-		if self._limits is not None:
-			return self._limits
-		import litellm
-
-		try:
-			info = litellm.get_model_info(self.name)
-		except Exception:
-			self._limits = (None, None)
-			return self._limits
-		context = info.get("max_input_tokens") or info.get("max_tokens")
-		output = info.get("max_output_tokens")
-		self._limits = (
-			int(context) if context else None,
-			int(output) if output else None,
-		)
+		if self._limits is None:
+			self._limits = litellm_limits(self.name)
 		return self._limits
 
 	async def run(self, request: ModelRequest) -> AsyncIterator[AnyEvent]:
@@ -209,6 +196,23 @@ class LiteLLMModel(Model):
 
 		yield assembler.assistant_message(self)
 		yield assembler.usage()
+
+
+def litellm_limits(name: str) -> tuple[int | None, int | None]:
+	"""(context window, max output) from LiteLLM's catalog, else from the id behind the
+	prefix when the full name has no window (a gateway's custom_openai/openai/gpt-x)."""
+	import litellm
+
+	for candidate in filter(None, (name, name.partition("/")[2])):
+		try:
+			info = litellm.get_model_info(candidate)
+		except Exception:
+			continue
+		context = info.get("max_input_tokens") or info.get("max_tokens")
+		if context:
+			output = info.get("max_output_tokens")
+			return int(context), int(output) if output else None
+	return None, None
 
 
 @dataclass(slots=True)

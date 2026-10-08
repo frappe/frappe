@@ -55,13 +55,11 @@ def context_window_for(model: str) -> int | None:
 			from flow_harness.model.providers.codex import static_context_window
 
 			return static_context_window(rest)
-		import litellm
+		from flow_harness.model.litellm import litellm_limits
 
-		info = litellm.get_model_info(model)
+		return litellm_limits(model)[0]
 	except Exception:
 		return None
-	window = info.get("max_input_tokens") or info.get("max_tokens")
-	return int(window) if window else None
 
 
 async def available_models(
