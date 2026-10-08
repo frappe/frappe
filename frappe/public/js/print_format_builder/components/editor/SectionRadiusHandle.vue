@@ -47,7 +47,7 @@ function start(e) {
 <style scoped>
 .pfb-radius-handle {
 	position: absolute;
-	top: min(var(--pfb-radius-inset), calc(50% - 6px));
+	top: calc(var(--pfb-radius-top, 0px) + min(var(--pfb-radius-inset), calc(50% - 6px)));
 	left: min(var(--pfb-radius-inset), calc(50% - 6px));
 	width: 12px;
 	height: 12px;

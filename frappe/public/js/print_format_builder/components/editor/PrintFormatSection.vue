@@ -352,6 +352,7 @@ function remove_column(index) {
 
 <style scoped>
 .print-format-section-container {
+	--pfb-section-toolbar-h: calc(var(--spacing) * 10);
 	position: relative;
 	/* flow-root keeps the section's own margin inside this box, so the spacing
 	   handles can be positioned against it */
@@ -395,7 +396,12 @@ function remove_column(index) {
 	z-index: 3;
 }
 
+.print-format-section-container:not(.section--preview) > .pfb-section-chrome {
+	--pfb-radius-top: var(--pfb-section-toolbar-h);
+}
+
 .section-toolbar {
+	height: var(--pfb-section-toolbar-h);
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
