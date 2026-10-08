@@ -3374,12 +3374,26 @@ class TestQuery(IntegrationTestCase):
 
 		query = frappe.qb.get_query("Doctype", offset=10).get_sql()
 		if frappe.db.db_type != "postgres":
-			self.assertIn(f"LIMIT {MAX_LIMIT} OFFSET 10", query)
+			no_limit = -1 if frappe.db.db_type == "sqlite" else MAX_LIMIT
+			self.assertIn(f"LIMIT {no_limit} OFFSET 10", query)
 			query = frappe.qb.get_query("Doctype", limit=10, offset=10).get_sql()
 			self.assertIn("LIMIT 10 OFFSET 10", query)
 		else:
 			self.assertNotIn("LIMIT", query)
 			self.assertIn("OFFSET 10", query)
+
+	def test_get_list_with_offset_and_no_limit(self):
+		with self.set_user("test2@example.com"):
+			for _ in range(12):
+				frappe.get_doc({"doctype": "ToDo", "description": "_Test offset without limit"}).insert()
+			query = {
+				"filters": {"description": "_Test offset without limit"},
+				"order_by": "name",
+				"pluck": "name",
+			}
+			names = frappe.get_list("ToDo", **query)
+			self.assertEqual(frappe.get_list("ToDo", offset=10, **query), names[10:])
+			self.assertEqual(len(names[10:]), 2)
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_build_filter_conditions_escapes_backslash_safely(self):
