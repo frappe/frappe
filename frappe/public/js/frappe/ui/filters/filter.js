@@ -482,6 +482,8 @@ frappe.ui.Filter = class {
 			parent: field_area,
 			only_input: true,
 		});
+		// a record picker takes records, never the search text on its own
+		if (RECORD_PICKERS.includes(df.fieldtype)) f.allows_free_text = () => false;
 		f.refresh();
 
 		this.field = f;
