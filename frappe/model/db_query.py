@@ -1513,14 +1513,7 @@ from {tables}
 				column = ORDER_GROUP_BY_DIRECTION_PATTERN.sub("", term)
 
 				# same rule as fields: quoted names and expressions are left as is
-for term in split_top_level(clause):
-	term = term.strip()
-	column = ORDER_DIRECTION_PATTERN.sub("", term)
-	if column.isidentifier():
-		term = f"`{column}`{term[len(column) :]}"
-	terms.append(term)
-					terms.append(term)
-				elif column.isidentifier():
+				if column.isidentifier():
 					terms.append(f"`{column}`{term[len(column) :]}")
 				else:
 					terms.append(term)
