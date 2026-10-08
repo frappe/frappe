@@ -111,7 +111,7 @@ class TestNaming(IntegrationTestCase):
 		prefix, key = self.make_series_key()
 		use_separate_series_counter(self, "ToDo")
 		use_separate_series_counter(self, "Note")
-		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `doctype`, `current`) VALUES (%s, '', 41)", (prefix,))
+		NamingSeries(key).update_counter(41)
 
 		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0042")
 		self.assertEqual(make_autoname(key, "Note"), prefix + "0042")
@@ -119,7 +119,7 @@ class TestNaming(IntegrationTestCase):
 	def test_separate_counter_is_independent_after_seeding(self):
 		prefix, key = self.make_series_key()
 		use_separate_series_counter(self, "ToDo")
-		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `doctype`, `current`) VALUES (%s, '', 41)", (prefix,))
+		NamingSeries(key).update_counter(41)
 
 		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0042")
 		self.assertEqual(make_autoname(key, "Note"), prefix + "0042")
@@ -129,15 +129,16 @@ class TestNaming(IntegrationTestCase):
 	def test_turning_off_separate_counter_keeps_its_names(self):
 		prefix, key = self.make_series_key()
 		use_separate_series_counter(self, "ToDo")
-		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `doctype`, `current`) VALUES (%s, '', 41)", (prefix,))
+		NamingSeries(key).update_counter(41)
 		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0042")
 		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0043")
 
-		customize_form = frappe.get_doc("Customize Form")
-		customize_form.doc_type = "ToDo"
-		customize_form.fetch_to_customize()
-		customize_form.separate_series_counter = 0
-		customize_form.save_customization()
+		with self.set_user("test@example.com"):
+			customize_form = frappe.get_doc("Customize Form")
+			customize_form.doc_type = "ToDo"
+			customize_form.fetch_to_customize()
+			customize_form.separate_series_counter = 0
+			customize_form.save_customization()
 
 		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0044")
 		self.assertEqual(make_autoname(key, "Note"), prefix + "0045")
@@ -169,7 +170,7 @@ class TestNaming(IntegrationTestCase):
 	def test_update_separate_counter_keeps_shared_counter(self):
 		prefix, key = self.make_series_key()
 		use_separate_series_counter(self, "ToDo")
-		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `doctype`, `current`) VALUES (%s, '', 41)", (prefix,))
+		NamingSeries(key).update_counter(41)
 
 		self.assertEqual(NamingSeries(key, "ToDo").get_current_value(), 41)
 		NamingSeries(key, "ToDo").update_counter(10)
@@ -380,9 +381,7 @@ class TestNaming(IntegrationTestCase):
 		series = f"TEST-{year}-"
 		key = "TEST-.YYYY.-"
 		name = f"TEST-{year}-00001"
-		frappe.db.sql(
-			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 1)""", (series,)
-		)
+		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -394,9 +393,7 @@ class TestNaming(IntegrationTestCase):
 		series = f"TEST-{year}-"
 		key = "TEST-.YYYY.-.#####"
 		name = f"TEST-{year}-00002"
-		frappe.db.sql(
-			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 2)""", (series,)
-		)
+		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -409,9 +406,7 @@ class TestNaming(IntegrationTestCase):
 		key = "TEST-"
 		name = "TEST-00003"
 		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql(
-			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 3)""", (series,)
-		)
+		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -424,9 +419,7 @@ class TestNaming(IntegrationTestCase):
 		key = "TEST1-.#####.-2021-22"
 		name = "TEST1-00003-2021-22"
 		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql(
-			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 3)""", (series,)
-		)
+		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -439,9 +432,7 @@ class TestNaming(IntegrationTestCase):
 		key = ".#####.-2021-22"
 		name = "00003-2021-22"
 		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql(
-			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 3)""", (series,)
-		)
+		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
@@ -459,9 +450,7 @@ class TestNaming(IntegrationTestCase):
 		series = "PO-2020-01-01-"
 		name = "PO-2020-01-01-005"
 		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql(
-			"""INSERT INTO `tabSeries` (`name`, `doctype`, `current`) values (%s, '', 5)""", (series,)
-		)
+		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 5)""", (series,))
 		revert_series_if_last(key, name)
 		current_index = frappe.db.sql(
 			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
