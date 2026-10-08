@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import json
+import logging
 import quopri
 import smtplib
+import time
 import traceback
 from contextlib import suppress
 from email.parser import Parser
@@ -195,6 +197,11 @@ class EmailQueue(Document):
 		if not self.can_send_now() and not force_send:
 			return
 
+		if (email_account := self.get_email_account()) and not EmailRateLimiter(email_account).has_capacity():
+			# Skip early so the queue isn't flipped to "Sending" and back for nothing.
+			self.flags.rate_limited_account = email_account.name
+			return
+
 		with SendMailContext(self, smtp_server_instance, frappe_mail_client) as ctx:
 			ctx.fetch_outgoing_server()
 
@@ -239,6 +246,12 @@ class EmailQueue(Document):
 			for recipient in self.recipients:
 				if recipient.is_mail_sent():
 					continue
+
+				if not ctx.rate_limiter.acquire():
+					# Account's send quota is used up for now; the remaining
+					# recipients stay queued and are picked up by a later flush.
+					ctx.mark_rate_limited()
+					break
 
 				message = ctx.build_message(recipient.recipient)
 				last_message = message
@@ -310,6 +323,111 @@ from frappe.deprecation_dumpster import send_mail as _send_mail
 send_mail = task(queue="short")(_send_mail)
 
 
+# Per Email Account sending rate limits, see EmailRateLimiter.
+# (Email Account fieldname, window length in seconds)
+RATE_LIMIT_WINDOWS: tuple[tuple[str, int], ...] = (
+	("send_rate_limit_per_minute", 60),
+	("send_rate_limit_per_hour", 60 * 60),
+	("send_rate_limit_per_day", 24 * 60 * 60),
+)
+RATE_LIMIT_WINDOW_LABELS = {60: "per-minute", 60 * 60: "per-hour", 24 * 60 * 60: "per-day"}
+
+
+class EmailRateLimiter:
+	"""Fixed-window send counter for one Email Account.
+
+	Call `acquire()` before sending each message; if it returns False, leave the
+	message in the queue for a later flush.
+	"""
+
+	def __init__(self, email_account):
+		self.email_account = email_account.name
+		self.limits: dict[int, int] = {}
+		for fieldname, window in RATE_LIMIT_WINDOWS:
+			limit = cint(email_account.get(fieldname))
+			if limit > 0:
+				self.limits[window] = limit
+
+	@property
+	def enabled(self) -> bool:
+		return bool(self.limits)
+
+	def _key(self, window: int, now: float, kind: str = "count") -> str:
+		bucket = int(now // window)
+		return frappe.cache.make_key(f"email-send-rate-limit:{kind}:{self.email_account}:{window}:{bucket}")
+
+	def _log_limit_reached(self, window: int, limit: int, now: float):
+		"""Write one line to `logs/email_rate_limit.log` the first time a window is exhausted.
+
+		A marker key that expires with the window keeps it to one line per
+		account and window, instead of one per scheduler tick.
+		"""
+		try:
+			if frappe.cache.set(self._key(window, now, kind="logged"), 1, nx=True, ex=window + 60):
+				logger = frappe.logger("email_rate_limit")
+				# Frappe's default threshold (ERROR in production) would drop this
+				# informational line; an explicitly configured level still wins.
+				logger.setLevel(frappe.log_level or logging.INFO)
+				logger.info(
+					f"Email Account {self.email_account!r} reached its "
+					f"{RATE_LIMIT_WINDOW_LABELS.get(window, f'{window}s')} send limit ({limit}); "
+					"remaining mail is deferred until the window resets"
+				)
+		except Exception:
+			# Logging must never change whether mail is sent.
+			pass
+
+	def acquire(self) -> bool:
+		"""Reserve one send slot in every configured window.
+
+		Returns False, without consuming any slot, if any window is exhausted.
+		If Redis is unreachable the limiter fails open so mail keeps flowing.
+		"""
+		if not self.enabled:
+			return True
+
+		now = time.time()
+		reserved: list[str] = []
+		try:
+			for window, limit in self.limits.items():
+				key = self._key(window, now)
+				count = frappe.cache.incrby(key, 1)
+				reserved.append(key)
+				if count == 1:
+					# First hit in this bucket: let it expire shortly after the window ends.
+					frappe.cache.expire(key, window + 60)
+				if count > limit:
+					for k in reserved:
+						frappe.cache.decrby(k, 1)
+					self._log_limit_reached(window, limit, now)
+					return False
+		except Exception:
+			frappe.log_error(
+				title="Email rate limiter unavailable",
+				reference_doctype="Email Account",
+				reference_name=self.email_account,
+			)
+			return True
+
+		return True
+
+	def has_capacity(self) -> bool:
+		"""Check, without reserving, whether at least one more email may be sent now."""
+		if not self.enabled:
+			return True
+
+		now = time.time()
+		try:
+			for window, limit in self.limits.items():
+				if cint(frappe.cache.get(self._key(window, now))) >= limit:
+					self._log_limit_reached(window, limit, now)
+					return False
+		except Exception:
+			return True
+
+		return True
+
+
 class SendMailContext:
 	def __init__(
 		self,
@@ -324,9 +442,12 @@ class SendMailContext:
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
 		)
 		self.email_account_doc = None
+		self.rate_limiter: EmailRateLimiter | None = None
+		self.rate_limited = False
 
 	def fetch_outgoing_server(self):
 		self.email_account_doc = self.queue_doc.get_email_account(raise_error=True)
+		self.rate_limiter = EmailRateLimiter(self.email_account_doc)
 
 		if self.email_account_doc.service == "Frappe Mail":
 			if not self.frappe_mail_client:
@@ -351,12 +472,15 @@ class SendMailContext:
 			else:
 				update_fields.update({"status": "Error"})
 				self.notify_failed_email()
+		elif self.rate_limited:
+			# Not a failure: don't consume a retry, just leave it for the next flush.
+			update_fields = {"status": "Partially Sent" if self.sent_to_atleast_one_recipient else "Not Sent"}
 		else:
 			update_fields = {"status": "Sent"}
 
 		self.queue_doc.update_status(**update_fields, commit=True)
 
-		if not exc_type and self.queue_doc.redact_message_after_send:
+		if not exc_type and not self.rate_limited and self.queue_doc.redact_message_after_send:
 			try:
 				self.queue_doc.redact_message()
 			except Exception:
@@ -380,6 +504,10 @@ class SendMailContext:
 		notification.document_name = self.queue_doc.name
 		notification.subject = _("Failed to send email with subject:") + f" {subject}"
 		notification.insert()
+
+	def mark_rate_limited(self):
+		self.rate_limited = True
+		self.queue_doc.flags.rate_limited_account = self.email_account_doc.name
 
 	def update_recipient_status_to_sent(self, recipient):
 		self.sent_to_atleast_one_recipient = True
@@ -544,6 +672,14 @@ def send_now(name: str | int, force_send: bool = False):
 	if record:
 		record.check_permission()
 		record.send(force_send=force_send)
+		if record.flags.rate_limited_account:
+			frappe.msgprint(
+				_(
+					"Email Account {0} has reached its sending rate limit. Remaining recipients will be sent automatically once the limit resets."
+				).format(frappe.bold(record.flags.rate_limited_account)),
+				indicator="orange",
+				alert=True,
+			)
 
 
 @frappe.whitelist()

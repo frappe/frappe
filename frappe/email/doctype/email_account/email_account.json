@@ -81,6 +81,12 @@
   "no_smtp_authentication",
   "dsn_notify_type",
   "always_bcc",
+  "rate_limit_section",
+  "send_rate_limit_per_minute",
+  "column_break_rl1",
+  "send_rate_limit_per_hour",
+  "column_break_rl2",
+  "send_rate_limit_per_day",
   "signature_section",
   "add_signature",
   "signature",
@@ -713,6 +719,42 @@
    "options": "Email"
   },
   {
+   "collapsible": 1,
+   "description": "Maximum number of emails sent through this account in each window. Emails over the limit stay in the queue and are sent once the window resets. Set to 0 for no limit.",
+   "fieldname": "rate_limit_section",
+   "fieldtype": "Section Break",
+   "label": "Sending Rate Limits"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_rate_limit_per_minute",
+   "fieldtype": "Int",
+   "label": "Max Emails per Minute",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_rl1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_rate_limit_per_hour",
+   "fieldtype": "Int",
+   "label": "Max Emails per Hour",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_rl2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_rate_limit_per_day",
+   "fieldtype": "Int",
+   "label": "Max Emails per Day",
+   "non_negative": 1
+  },
+  {
    "depends_on": "eval: doc.service == \"Frappe Mail\"",
    "fieldname": "last_received_at",
    "fieldtype": "Datetime",
@@ -769,7 +811,7 @@
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-08-21 23:24:23.931446",
+ "modified": "2026-10-08 14:30:00.000000",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

@@ -2,10 +2,15 @@
 # License: MIT. See LICENSE
 import smtplib
 import textwrap
-from unittest.mock import MagicMock
+import time
+from unittest.mock import MagicMock, patch
 
 import frappe
-from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
+from frappe.email.doctype.email_queue.email_queue import (
+	EmailRateLimiter,
+	SendMailContext,
+	get_email_retry_limit,
+)
 from frappe.tests import IntegrationTestCase
 
 
@@ -174,3 +179,165 @@ class TestEmailQueue(IntegrationTestCase):
 
 		self.assertIn(link, mock_session.sendmail.call_args.kwargs["msg"].decode())
 		self.assertNotIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))
+
+
+class TestEmailQueueRateLimit(IntegrationTestCase):
+	EMAIL_ACCOUNT = "_Test Email Account 1"
+
+	def setUp(self):
+		self._clear_counters()
+		self.addCleanup(self._clear_counters)
+		# Sending commits (Email Queue status updates), which also persists the
+		# limits set by a test, so the reset has to be committed too.
+		self.addCleanup(self._set_limits, commit=True)
+
+	@staticmethod
+	def _clear_counters():
+		frappe.cache.delete_keys("email-send-rate-limit:")
+
+	def _set_limits(self, per_minute=0, per_hour=0, per_day=0, commit=False):
+		frappe.get_doc("Email Account", self.EMAIL_ACCOUNT).db_set(
+			{
+				"send_rate_limit_per_minute": per_minute,
+				"send_rate_limit_per_hour": per_hour,
+				"send_rate_limit_per_day": per_day,
+			},
+			commit=commit,
+		)
+
+	@staticmethod
+	def _delete_queue(name):
+		# Sending commits, so rows would otherwise outlive the test's rollback.
+		frappe.db.delete("Email Queue Recipient", {"parent": name})
+		frappe.db.delete("Email Queue", {"name": name})
+		frappe.db.commit()  # nosemgrep
+
+	def _make_queue(self, recipients):
+		queue = frappe.new_doc(
+			"Email Queue",
+			sender="Test <test@example.com>",
+			show_as_cc="",
+			email_account=self.EMAIL_ACCOUNT,
+			message=textwrap.dedent(
+				f"""\
+			MIME-Version: 1.0
+			Content-Type: text/plain; charset="utf-8"
+			Message-Id: {frappe.generate_hash()}
+			Subject: Rate limit
+			From: Test <test@example.com>
+			To: <!--recipient-->
+
+			Hello
+			"""
+			),
+			status="Not Sent",
+			# Ahead of any other queued mail, so flush() reaches these first.
+			priority=100,
+			recipients=[{"recipient": r} for r in recipients],
+		).insert()
+		self.addCleanup(self._delete_queue, queue.name)
+		return queue
+
+	@staticmethod
+	def _mock_smtp_server():
+		mock_session = MagicMock()
+		mock_session.has_extn.return_value = False
+		mock_smtp_server = MagicMock()
+		mock_smtp_server.session = mock_session
+		return mock_smtp_server
+
+	def test_limiter_disabled_without_limits(self):
+		self._set_limits()
+		limiter = EmailRateLimiter(frappe.get_cached_doc("Email Account", self.EMAIL_ACCOUNT))
+		self.assertFalse(limiter.enabled)
+		self.assertTrue(all(limiter.acquire() for _ in range(50)))
+
+	def test_limiter_enforces_tightest_window_without_leaking_slots(self):
+		self._set_limits(per_minute=5, per_hour=3)
+		limiter = EmailRateLimiter(frappe.get_cached_doc("Email Account", self.EMAIL_ACCOUNT))
+
+		self.assertEqual([limiter.acquire() for _ in range(4)], [True, True, True, False])
+		self.assertFalse(limiter.has_capacity())
+
+		# A rejected acquire must not consume a slot in the other windows.
+		self._set_limits(per_minute=5)
+		limiter = EmailRateLimiter(frappe.get_cached_doc("Email Account", self.EMAIL_ACCOUNT))
+		self.assertEqual([limiter.acquire() for _ in range(3)], [True, True, False])
+
+	def test_limit_reached_is_logged_once_per_window(self):
+		self._set_limits(per_minute=1)
+		limiter = EmailRateLimiter(frappe.get_cached_doc("Email Account", self.EMAIL_ACCOUNT))
+		window_start = (int(time.time()) // 60) * 60
+
+		with patch("frappe.logger") as logger, patch("time.time", return_value=window_start + 1):
+			self.assertTrue(limiter.acquire())
+			self.assertFalse(limiter.acquire())
+			self.assertFalse(limiter.acquire())
+			self.assertFalse(limiter.has_capacity())
+
+			logger.assert_called_once_with("email_rate_limit")
+			logger.return_value.info.assert_called_once()
+			message = logger.return_value.info.call_args.args[0]
+			self.assertIn(self.EMAIL_ACCOUNT, message)
+			self.assertIn("per-minute send limit (1)", message)
+
+		# The next window starts fresh and is logged again once exhausted.
+		with patch("frappe.logger") as logger, patch("time.time", return_value=window_start + 61):
+			self.assertTrue(limiter.acquire())
+			self.assertFalse(limiter.acquire())
+			self.assertFalse(limiter.acquire())
+			logger.return_value.info.assert_called_once()
+
+	def test_rate_limited_queue_is_deferred_without_using_retries(self):
+		self._set_limits(per_minute=2)
+		email_record = self._make_queue([f"rate_limit_{i}@example.com" for i in range(3)])
+		smtp_server = self._mock_smtp_server()
+
+		frappe.flags.testing_email = True
+		try:
+			email_record.send(smtp_server_instance=smtp_server)
+			self.assertEqual(smtp_server.session.sendmail.call_count, 2)
+			self.assertEqual(email_record.flags.rate_limited_account, self.EMAIL_ACCOUNT)
+
+			email_record.reload()
+			self.assertEqual(email_record.status, "Partially Sent")
+			self.assertEqual(email_record.retry, 0)
+			self.assertEqual([r.status for r in email_record.recipients], ["Sent", "Sent", "Not Sent"])
+
+			# Still within the same window: nothing is sent and the status isn't touched.
+			email_record.send(smtp_server_instance=smtp_server)
+			self.assertEqual(smtp_server.session.sendmail.call_count, 2)
+			self.assertEqual(
+				frappe.db.get_value("Email Queue", email_record.name, "status"), "Partially Sent"
+			)
+
+			# Window resets: the remaining recipient goes out.
+			self._clear_counters()
+			email_record.reload()
+			email_record.send(smtp_server_instance=smtp_server)
+		finally:
+			frappe.flags.testing_email = False
+
+		self.assertEqual(smtp_server.session.sendmail.call_count, 3)
+		self.assertEqual(frappe.db.get_value("Email Queue", email_record.name, "status"), "Sent")
+
+	def test_flush_holds_back_queues_of_rate_limited_account(self):
+		from frappe.email.queue import flush
+		from frappe.utils import add_to_date, now_datetime
+
+		self._set_limits(per_hour=1)
+		queues = [
+			self._make_queue(["rate_limit_first@example.com"]),
+			self._make_queue(["rate_limit_second@example.com"]),
+		]
+
+		with self.freeze_time(add_to_date(now_datetime(), seconds=12)):
+			flush()
+
+		rows = frappe.get_all(
+			"Email Queue",
+			filters={"name": ("in", [q.name for q in queues])},
+			fields=["status", "retry"],
+		)
+		self.assertEqual(sorted(r.status for r in rows), ["Not Sent", "Sent"])
+		self.assertTrue(all(r.retry == 0 for r in rows))

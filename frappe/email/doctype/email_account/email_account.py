@@ -115,6 +115,9 @@ class EmailAccount(Document):
 		password: DF.Password | None
 		reply_to_addresses: DF.Table[ReplyToAddress]
 		send_notification_to: DF.SmallText | None
+		send_rate_limit_per_day: DF.Int
+		send_rate_limit_per_hour: DF.Int
+		send_rate_limit_per_minute: DF.Int
 		send_unsubscribe_message: DF.Check
 		sent_folder_name: DF.Data | None
 		service: DF.Literal[
