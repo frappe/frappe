@@ -446,6 +446,29 @@ def get_series_counter_doctype(doctype: str | None) -> str:
 	return ""
 
 
+def merge_separate_series_counters(doctype: str) -> None:
+	"""Move the counters of a DocType without a separate series counter into the shared counters.
+
+	Keeps the higher value, so the DocType doesn't repeat names it already generated.
+	"""
+	if frappe.get_meta(doctype).get("separate_series_counter"):
+		return
+
+	series = DocType("Series")
+	counters = (
+		frappe.qb.from_(series).select(series.name, series.current).where(series.doctype == doctype).run()
+	)
+	for prefix, current in counters:
+		shared_row = (series.name == prefix) & (series.doctype == "")
+		shared = frappe.qb.from_(series).select(series.current).where(shared_row).for_update().run()
+		if not shared:
+			frappe.qb.into(series).columns("name", "doctype", "current").insert(prefix, "", current).run()
+		elif cint(shared[0][0]) < current:
+			frappe.qb.update(series).set(series.current, current).where(shared_row).run()
+
+	frappe.qb.from_(series).delete().where(series.doctype == doctype).run()
+
+
 def getseries(key, digits, doctype=None):
 	"""Return the next number of the series. A DocType with a separate counter starts it from the shared counter."""
 	doctype = get_series_counter_doctype(doctype)

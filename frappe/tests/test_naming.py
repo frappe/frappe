@@ -126,6 +126,22 @@ class TestNaming(IntegrationTestCase):
 		self.assertEqual(make_autoname(key, "Note"), prefix + "0043")
 		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0043")
 
+	def test_turning_off_separate_counter_keeps_its_names(self):
+		prefix, key = self.make_series_key()
+		use_separate_series_counter(self, "ToDo")
+		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `doctype`, `current`) VALUES (%s, '', 41)", (prefix,))
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0042")
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0043")
+
+		customize_form = frappe.get_doc("Customize Form")
+		customize_form.doc_type = "ToDo"
+		customize_form.fetch_to_customize()
+		customize_form.separate_series_counter = 0
+		customize_form.save_customization()
+
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0044")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0045")
+
 	def test_revert_series_only_touches_the_doctype_counter(self):
 		prefix, key = self.make_series_key()
 		use_separate_series_counter(self, "ToDo")
