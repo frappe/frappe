@@ -61,6 +61,12 @@ use.like-icon {
 	height: 20px;
 }
 
+// A module glyph in a rail tile: drawn on a 24 grid, set a step under it so the tile has room.
+.icon-rail {
+	width: 22px;
+	height: 22px;
+}
+
 .icon-lg {
 	width: 24px;
 	height: 24px;
