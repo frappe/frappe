@@ -20,7 +20,7 @@ frappe.pages["backups"].on_page_load = function (wrapper) {
 
 	page.add_inner_button(__("Get Backup Encryption Key"), function () {
 		if (frappe.user.has_role("System Manager")) {
-			frappe.confirm_action(function () {
+			frappe.confirm_sensitive_action(function () {
 				frappe.call({
 					method: "frappe.utils.backups.get_backup_encryption_key",
 					callback: function (r) {
