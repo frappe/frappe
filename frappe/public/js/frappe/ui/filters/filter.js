@@ -492,8 +492,13 @@ frappe.ui.Filter = class {
 			this.field.set_value(old_text);
 		}
 
+		// a list (In, Not in) goes whole to another list field; a single value field takes one item
 		if (Array.isArray(old_text) && df.fieldtype !== old_fieldtype) {
-			this.field.set_value(this.value);
+			if ([...RECORD_PICKERS, "MultiSelect"].includes(df.fieldtype)) {
+				this.field.set_value(this.value);
+			} else if (old_text.length === 1) {
+				this.field.set_value(old_text[0]);
+			}
 		}
 
 		this.bind_filter_field_events();
