@@ -1,15 +1,19 @@
 import click
 
 import frappe
-from frappe.desk.doctype.sidebar.sidebar import build_sidebar
+from frappe.desk.doctype.custom_sidebar.custom_sidebar import merged_arrangement
+from frappe.desk.doctype.sidebar.sidebar import build_sidebar, get_module_base
 from frappe.model.delete_doc import get_linked_docs
 from frappe.patches.v16_0.sidebar_archive import (
 	archive_exists,
 	generated_from_app_workspace,
 	is_module,
+	layer_rows,
 	modules_converted_from,
+	parse_json_list,
 	site_rows,
 	write_base,
+	write_user_layer,
 	written_as_of,
 )
 
@@ -39,7 +43,7 @@ def execute():
 		for module in modules_converted_from(row.name):
 			if module == row.module or not frappe.db.get_value("Module Def", module, "custom"):
 				continue
-			if held := document_filed_under(module):
+			if held := document_filed_under(module, row.name):
 				click.secho(f"Module '{module}': kept, {held} is filed under it", fg="yellow")
 				continue
 
@@ -55,15 +59,19 @@ def execute():
 		frappe.clear_cache()
 
 
-def document_filed_under(module: str) -> str | None:
+def document_filed_under(module: str, converted_from: str) -> str | None:
 	"""The first document naming `module`, as `DocType name`, or None when nothing does.
 
-	A `Block Module` row is reported as its user and does not count: `convert_custom_sidebars`
-	wrote those rows, and `remove_module` takes them back. Nor does the page named after the
-	module, which `Module Def.after_insert` made with it. Any other workspace is asked for on its
-	own, since `Workspace` is in `ignore_links_on_delete` and a delete would not refuse on its
-	behalf.
+	Three things the module was made with do not count: the sidebar converted from
+	`converted_from`, which is the reason it exists; the page named after it, which
+	`Module Def.after_insert` made with it; and each user's `Block Module` row, reported as its
+	user, which `convert_custom_sidebars` wrote and `remove_module` takes back. Another sidebar
+	or workspace is the site's content. Both are asked for on their own, since both doctypes are
+	in `ignore_links_on_delete` and a delete would not refuse on their behalf.
 	"""
+	for sidebar in frappe.get_all("Sidebar", filters={"module": module}, fields=["name", "merged_from"]):
+		if parse_json_list(sidebar.merged_from) != [converted_from]:
+			return f"Sidebar {sidebar.name}"
 	if workspace := frappe.db.get_value("Workspace", {"module": module, "name": ["!=", module]}):
 		return f"Workspace {workspace}"
 	for link in get_linked_docs(frappe.get_doc("Module Def", module)):
@@ -73,19 +81,30 @@ def document_filed_under(module: str) -> str | None:
 
 
 def move_user_layers(module: str, into: str | None) -> None:
-	"""Re-file each user's arrangement of `module`'s sidebar under `into`, which holds the same
-	base. One already there is the user's later word on that module, so it wins and this one is
-	dropped, as it is when there is nowhere to move it."""
+	"""Write each user's arrangement of `module`'s sidebar again as a layer over `into`'s base.
+
+	A layer is a delta on the base below it: a reference row names an item the base holds and
+	stores nothing else, so moving the row to another base would lose every item that base does
+	not hold. The arrangement is read as the user sees it and expressed again over the new base,
+	where an item that base lacks is carried whole. The old layer goes with the module.
+
+	A layer already on `into` is the user's later word on that module, so it wins and this one is
+	dropped, as it is when there is nowhere to move it.
+	"""
 	for layer in frappe.get_all("Custom Sidebar", filters={"module": module}, fields=["name", "user"]):
+		who = layer.user or "the site"
 		if (
-			into
-			and is_module(into)
-			and not frappe.db.exists("Custom Sidebar", {"module": into, "user": layer.user})
+			not into
+			or not is_module(into)
+			or frappe.db.exists("Custom Sidebar", {"module": into, "user": layer.user})
 		):
-			frappe.db.set_value("Custom Sidebar", layer.name, "module", into, update_modified=False)
-		else:
-			who = layer.user or "the site"
 			click.secho(f"Custom Sidebar of {who} on '{module}': dropped", fg="yellow")
+			continue
+
+		doc = frappe.get_doc("Custom Sidebar", layer.name)
+		items, hidden = merged_arrangement(get_module_base(module).rows, [doc])
+		write_user_layer(into, layer.user, layer_rows(items, get_module_base(into).rows, hidden))
+		click.secho(f"Custom Sidebar of {who}: moved from '{module}' to '{into}'", fg="green")
 
 
 def remove_module(module: str) -> None:
