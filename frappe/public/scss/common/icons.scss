@@ -67,6 +67,36 @@ use.like-icon {
 	height: 22px;
 }
 
+// Soft module icons (module-icons.svg) draw in their holder's colour. Custom properties reach
+// through <use>, so a holder can tune the stroke, the body tint and the accent.
+.soft-icon {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: var(--soft-stroke, 1.5);
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.soft-body,
+.soft-layer {
+	fill: currentColor;
+	fill-opacity: var(--soft-tint, 0.1);
+}
+
+.soft-layer,
+.soft-accent {
+	stroke: none;
+}
+
+.soft-accent {
+	fill: currentColor;
+	fill-opacity: var(--soft-accent, 0.5);
+}
+
+.soft-accent-line {
+	stroke-opacity: var(--soft-accent, 0.5);
+}
+
 .icon-lg {
 	width: 24px;
 	height: 24px;
