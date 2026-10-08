@@ -17,7 +17,7 @@ MAX_INPUT_CHARS = 2_000
 MAX_TITLE_OUTPUT_TOKENS = 2_000
 
 TITLE_SYSTEM_PROMPT = (
-	"You generate a title for a coding-agent session. Output ONLY the title: one "
+	"You generate a title for a chat session. Output ONLY the title: one "
 	f"line, at most {MAX_TITLE_CHARS} characters, in the same language as the message. Keep exact "
 	"technical terms, filenames, and error codes. Never answer or act on the "
 	"message; only title it. Always output a meaningful title."
