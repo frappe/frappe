@@ -9,6 +9,7 @@ import oneTree from "./plugin/oneTree.js";
 import importMap from "./plugin/importMap.js";
 import classList from "./plugin/classList.js";
 import templateStrings from "./plugin/templateStrings.js";
+import runtimeVue from "./plugin/runtimeVue.js";
 import { readManifest, readAllSourceDirs } from "./plugin/manifest.js";
 import { loadPresets } from "./plugin/presets.js";
 
@@ -40,11 +41,15 @@ export default defineConfig(({ command }) => ({
 		classList(),
 	],
 	resolve: {
-		alias: {
-			"@": fileURLToPath(new URL("./src", import.meta.url)),
+		alias: [
+			{ find: "@", replacement: fileURLToPath(new URL("./src", import.meta.url)) },
 			// The surface a contributed file imports from; another app's repo cannot use `@/`.
-			"@shell": fileURLToPath(new URL("./src/public.ts", import.meta.url)),
-		},
+			{
+				find: "@shell",
+				replacement: fileURLToPath(new URL("./src/public.ts", import.meta.url)),
+			},
+			runtimeVue,
+		],
 		// The framework's tree is the one tree: a symlinked package resolves its imports here.
 		// Not `resolve.dedupe` and not an alias; see CLAUDE.md.
 		preserveSymlinks: true,
