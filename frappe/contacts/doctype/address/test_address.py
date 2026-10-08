@@ -3,19 +3,9 @@
 from functools import partial
 
 import frappe
-<<<<<<< HEAD
 from frappe.contacts.doctype.address.address import address_query, get_address_display
-from frappe.tests.utils import FrappeTestCase
-=======
-from frappe.contacts.doctype.address.address import (
-	address_query,
-	get_address_display,
-	get_address_list,
-	get_list_context,
-)
 from frappe.permissions import add_permission, update_permission_property
-from frappe.tests import IntegrationTestCase
->>>>>>> f3ba360 (fix(address): let select-only users search linked addresses)
+from frappe.tests.utils import FrappeTestCase
 
 
 class TestAddress(FrappeTestCase):
