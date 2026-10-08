@@ -1,7 +1,7 @@
 import { dialog, toast, call } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import useCodeStore from "@/stores/codeStore"
+import { usePageScope } from "@/stores/codeStore"
 import useComponentStore from "@/stores/componentStore"
 import { studioPages } from "@/data/studioPages"
 import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
@@ -371,8 +371,8 @@ function usesComponents(blocks: BlockOptions[]): boolean {
 }
 
 function usesPageData(blocks: BlockOptions[]): boolean {
-	const codeStore = useCodeStore()
-	const names = [...Object.keys(codeStore.resources), ...Object.keys(codeStore.variables)]
+	const pageScope = usePageScope()
+	const names = [...Object.keys(pageScope.resources), ...Object.keys(pageScope.variables)]
 	const text = JSON.stringify(blocks)
 	return names.some((name) => name && text.includes(name))
 }

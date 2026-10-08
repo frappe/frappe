@@ -1,22 +1,31 @@
-import { inject, onMounted, onBeforeUnmount, type Ref } from "vue"
+import { ref, inject, onMounted, onBeforeUnmount } from "vue"
+import { useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 
 import { reloadCustomVueComponents } from "@/globals"
 import useComponentStore from "@/stores/componentStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
 
 // Re-render the preview when the open page changes in the DB — an editor save, an AI edit, or a disk
-// edit synced by the watcher (studio_doc_update from studio/realtime.py). Debounced so a burst of
-// autosaves coalesces into one reload.
-export function useLivePreview(page: Ref<StudioPage | null>, reload: () => void) {
+// edit synced by the watcher (studio_doc_update from studio/realtime.py). Returns a revision that
+// bumps once the page has been re-prepared, so it remounts; debounced so a burst of autosaves
+// coalesces into one reload.
+export function useLivePreview() {
 	const socket = inject<any>("socket")
-	const reloadDebounced = useDebounceFn(reload, 300)
+	const router = useRouter()
+	const revision = ref(0)
+
+	const reloadPage = useDebounceFn(async (pageName: string) => {
+		const { path, query, hash, meta } = router.currentRoute.value
+		if (meta.pageName !== pageName) return
+		const failure = await router.replace({ path, query, hash, force: true })
+		if (!failure) revision.value++
+	}, 300)
 
 	const onDocUpdate = (info: any) => {
 		if (info?.doctype === "Studio Component") {
 			useComponentStore().reloadComponent(info.name)
-		} else if (info?.doctype === "Studio Page" && info?.name === page.value?.name) {
-			reloadDebounced()
+		} else if (info?.doctype === "Studio Page" && info?.name === router.currentRoute.value.meta.pageName) {
+			reloadPage(info.name)
 		}
 	}
 
@@ -32,4 +41,5 @@ export function useLivePreview(page: Ref<StudioPage | null>, reload: () => void)
 		socket?.off("studio_doc_update", onDocUpdate)
 		import.meta.hot?.off("studio:custom-components-changed", onCustomComponentsChanged)
 	})
+	return revision
 }

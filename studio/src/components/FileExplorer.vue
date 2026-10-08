@@ -167,9 +167,9 @@
 
 		<template #banner>
 			<ErrorMessage
-				v-if="codeStore.pageScriptError && isEditingActivePageScript"
+				v-if="pageScope.pageScriptError && isEditingActivePageScript"
 				class="border-b border-outline-gray-2 px-3 py-2"
-				:message="`Error: ${codeStore.pageScriptError}`"
+				:message="`Error: ${pageScope.pageScriptError}`"
 			/>
 		</template>
 	</CodeEditorDock>
@@ -183,7 +183,7 @@ import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import ContextMenu from "@/components/ContextMenu.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import useStudioStore from "@/stores/studioStore"
-import useCodeStore from "@/stores/codeStore"
+import { usePageScope } from "@/stores/codeStore"
 import {
 	listStudioFiles,
 	readStudioFile,
@@ -200,7 +200,7 @@ import { pageScriptCompletions } from "@/utils/completions/pageScriptCompletions
 import type { ContextMenuOption } from "@/types"
 
 const store = useStudioStore()
-const codeStore = useCodeStore()
+const pageScope = usePageScope()
 const app = computed(() => store.activeApp)
 
 const treeStyle = {

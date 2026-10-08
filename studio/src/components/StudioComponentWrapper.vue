@@ -7,7 +7,7 @@ import { provide, computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
-import useCodeStore from "@/stores/codeStore"
+import { usePageScope } from "@/stores/codeStore"
 
 const props = defineProps<{
 	studioComponent: Block
@@ -15,7 +15,7 @@ const props = defineProps<{
 	breakpoint?: string
 }>()
 const componentStore = useComponentStore()
-const codeStore = useCodeStore()
+const pageScope = usePageScope()
 
 const componentContext = computed(() => {
 	const context = props.studioComponent?.getPropsAndAttributes() || {}
@@ -27,7 +27,7 @@ const componentContext = computed(() => {
 			}
 
 			Object.entries(context).forEach(([inputName, value]) => {
-				context[inputName] = codeStore.evaluateDynamicValues(value, props.evaluationContext)
+				context[inputName] = pageScope.evaluateDynamicValues(value, props.evaluationContext)
 			})
 		})
 	}

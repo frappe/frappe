@@ -47,7 +47,7 @@ import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import type { SlotScope } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
-import useCodeStore from "@/stores/codeStore"
+import { usePageScope } from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
 import LucideCirclePlus from "~icons/lucide/circle-plus"
 
@@ -70,7 +70,7 @@ watch(
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
-const codeStore = useCodeStore()
+const pageScope = usePageScope()
 
 const dynamicValueOptions = computed(() => {
 	const groups = []
@@ -111,9 +111,9 @@ const dynamicValueOptions = computed(() => {
 		}
 
 		// Data Sources group
-		const dataSourceOptions = Object.keys(codeStore.resources).map((resourceName) => {
+		const dataSourceOptions = Object.keys(pageScope.resources).map((resourceName) => {
 			const completion =
-				codeStore.resources[resourceName]?.resource_type === "Document"
+				pageScope.resources[resourceName]?.resource_type === "Document"
 					? `${resourceName}.doc`
 					: `${resourceName}.data`
 			return {
@@ -130,7 +130,7 @@ const dynamicValueOptions = computed(() => {
 		}
 
 		// Page script bindings group (refs/reactive/computed/functions
-		const pageScriptOptions = Object.entries(codeStore.pageScriptBindings).map(([name, binding]) => {
+		const pageScriptOptions = Object.entries(pageScope.pageScriptBindings).map(([name, binding]) => {
 			const bindingType = getBindingType(binding)
 			const value = bindingType === "function" ? `${name}()` : name
 			return {

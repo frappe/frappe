@@ -8,7 +8,7 @@ import "@/setupFrappeUIResource"
 import DataPanel from "@/components/DataPanel.vue"
 import ResourceDialog from "@/components/ResourceDialog.vue"
 import useStudioStore from "@/stores/studioStore"
-import useCodeStore from "@/stores/codeStore"
+import { usePageScope } from "@/stores/codeStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
 const APP_NAME = "cypress-data-sources"
@@ -217,7 +217,7 @@ describe("data source editor", () => {
 		// after the test's queued saves, so the panel loads the data sources they added
 		cy.then(() => {
 			useStudioStore().activePage = page
-			return useCodeStore().setPageResources(page, true)
+			return usePageScope().setPageResources(page, true)
 		})
 		cy.mount(DataPanel, { global: { plugins: [pinia, resourcesPlugin] } })
 	}

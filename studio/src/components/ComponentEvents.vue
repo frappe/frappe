@@ -163,13 +163,14 @@ import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
 import type { DocTypeField } from "@/types"
 import { toast } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import useCodeStore from "@/stores/codeStore"
+import { usePageScope } from "@/stores/codeStore"
 import useComponentInstance from "@/utils/useComponentInstance"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const store = useStudioStore()
+const pageScope = usePageScope()
 const getEditorCompletions = useStudioCompletions(true)
 const multipleBlocksSelected = computed(() => blockController.multipleBlocksSelected())
 
@@ -269,7 +270,7 @@ const loadDoctypeFields = async (doctype: string) => {
 }
 
 const getDefaultFieldRows = () => {
-	const variables = Object.keys(useCodeStore().variables)
+	const variables = Object.keys(pageScope.variables)
 	return doctypeFields.value.map((field) => ({
 		field: field.value,
 		value: variables.includes(field.value) ? field.value : "",

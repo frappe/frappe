@@ -49,11 +49,11 @@ import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import PageScriptHelp from "@/components/PageScriptHelp.vue"
 import { getScriptError } from "@/utils/parseCode"
 import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
-import useCodeStore from "@/stores/codeStore"
+import { usePageScope } from "@/stores/codeStore"
 import useStudioStore from "@/stores/studioStore"
 
 const store = useStudioStore()
-const codeStore = useCodeStore()
+const pageScope = usePageScope()
 const completions = useStudioCompletions(true, true)
 
 const savedScript = computed(() => store.activePage?.script || "")
@@ -89,7 +89,7 @@ async function saveScript() {
 	try {
 		await store.updateActivePage("script", script.value)
 		// keep the runtime bindings in sync with the saved script
-		codeStore.setPageScript(store.activePage!)
+		pageScope.setPageScript(store.activePage!)
 		toast.success("Saved the page script")
 	} catch (error: any) {
 		toast.error("Failed to save the page script", { description: error?.messages?.join(", ") })

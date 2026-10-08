@@ -5,7 +5,9 @@ import {
 	type Router,
 	type RouterOptions,
 } from "vue-router"
-import AppContainer from "@/pages/AppContainer.vue"
+import { toast } from "frappe-ui"
+import AppPage from "@/pages/AppPage.vue"
+import { loadPage, discardPage } from "@/page/pageLoader"
 import NotFound from "@/pages/NotFound.vue"
 import * as globalUtils from "@/utils/globalUtils"
 
@@ -55,6 +57,9 @@ export async function createAppRouter(config?: RouterConfig): Promise<Router> {
 	addHomeRouteFallback(router)
 	addNotFoundRouteFallback(router)
 	router.beforeEach(sendGuestToLogin)
+	router.beforeResolve((to, from) => loadPage(router, to, from))
+	router.afterEach((to, _from, failure) => discardPage(to, failure))
+	router.onError(reportNavigationError)
 	return router
 }
 
@@ -75,7 +80,7 @@ function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
 	return pages.map((page) => ({
 		path: page.route,
 		name: page.page_title,
-		component: AppContainer,
+		component: AppPage,
 		props: true,
 		meta: {
 			pageName: page.name,
@@ -95,7 +100,7 @@ function addHomeRouteFallback(router: Router) {
 	if (router.getRoutes().some((route) => route.path === "/")) return
 	const home = router.getRoutes().find((route) => !route.aliasOf && route.meta.pageName === window.app_home)
 	if (!home || home.path.includes(":")) return
-	router.addRoute({ path: "/", component: AppContainer, beforeEnter: () => home.path })
+	router.addRoute({ path: "/", component: AppPage, beforeEnter: () => home.path })
 }
 
 function addNotFoundRouteFallback(router: Router) {
@@ -107,6 +112,11 @@ function addNotFoundRouteFallback(router: Router) {
 		props: { home: `/${window.app_route}/` },
 		meta: { notFound: true },
 	})
+}
+
+function reportNavigationError(error: Error) {
+	console.error(error)
+	toast.error("Could not load page", { description: error.message })
 }
 
 // private routes are absent from a guest's page list, so an unknown path may exist after login

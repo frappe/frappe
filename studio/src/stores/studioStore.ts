@@ -11,7 +11,7 @@ import { studioVariables } from "@/data/studioVariables"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import useCodeStore from "@/stores/codeStore"
+import useCodeStore, { usePageScope } from "@/stores/codeStore"
 import { reloadCustomVueComponents } from "@/globals"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
 import { registerCustomComponentPaths } from "@/utils/components"
@@ -233,7 +233,7 @@ const useStudioStore = defineStore("store", () => {
 		settingPage.value = true
 		pageConflict.value = false
 		savingPage.value = false
-		codeStore.teardownPage()
+		pageScope.teardownPage()
 
 		const page = await fetchPage(pageName)
 		if (!page) {
@@ -243,7 +243,7 @@ const useStudioStore = defineStore("store", () => {
 		activePage.value = page
 		loadRouteVariables(page)
 		await setPageData(page)
-		await codeStore.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -360,7 +360,7 @@ const useStudioStore = defineStore("store", () => {
 		const page = await fetchPage(activePage.value.name)
 		if (!page) return
 		activePage.value = page
-		await codeStore.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 	}
 
 	async function publishPage() {
@@ -533,6 +533,7 @@ const useStudioStore = defineStore("store", () => {
 		)
 	}
 
+	let previewTab: Window | null = null
 	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
 		let route = `/${app.route}${resolveRouteVariables(page.route)}`
 		if (preview) {
@@ -542,13 +543,11 @@ const useStudioStore = defineStore("store", () => {
 			route = `${window.site_url}${route}`
 		}
 
-		const targetWindow = window.open(route, "studio-preview")
-		if (targetWindow?.location.pathname === route) {
-			targetWindow?.location.reload()
-		} else {
-			setTimeout(() => {
-				targetWindow?.location.reload()
-			}, 50)
+		// a fresh tab opens in front; navigating a reused named tab leaves it in the background
+		const nextTab = window.open(route, "_blank")
+		if (nextTab) {
+			previewTab?.close()
+			previewTab = nextTab
 		}
 	}
 
@@ -683,11 +682,12 @@ const useStudioStore = defineStore("store", () => {
 		if (!page) return
 		// re-resolve data sources with the new value, then re-run the page script so bindings that
 		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc.
-		await codeStore.setPageResources(page, true)
-		await codeStore.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageResources(page, true)
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 	}, 300)
 
 	const codeStore = useCodeStore()
+	const pageScope = usePageScope()
 	codeStore.setRouteObject(routeObject)
 	codeStore.setRouterObject(readonly(router))
 
@@ -696,8 +696,8 @@ const useStudioStore = defineStore("store", () => {
 	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
 	// (studioPageScripts caches the latest setup).
 	async function setPageData(page: StudioPage) {
-		await codeStore.setPageVariables(page)
-		await codeStore.setPageResources(page, true)
+		await pageScope.setPageVariables(page)
+		await pageScope.setPageResources(page, true)
 	}
 
 	const variableConfigs = computed<Record<string, Variable>>(() => {
@@ -731,12 +731,12 @@ const useStudioStore = defineStore("store", () => {
 			}
 		}
 
-		traverse(codeStore.variables)
+		traverse(pageScope.variables)
 		return options
 	})
 
 	const pageScriptBindingOptions = computed<VariableOption[]>(() => {
-		return Object.entries(codeStore.pageScriptTemplateBindings).map(([key, value]) => ({
+		return Object.entries(pageScope.pageScriptTemplateBindings).map(([key, value]) => ({
 			value: key,
 			label: key,
 			type: typeof value,
