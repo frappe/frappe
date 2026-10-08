@@ -1,19 +1,24 @@
 import click
 
 import frappe
-from frappe.desk.doctype.custom_sidebar.custom_sidebar import merged_arrangement
-from frappe.desk.doctype.sidebar.sidebar import build_sidebar, get_module_base
+from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
+	_save_customization,
+	base_items,
+	get_customization,
+	layer_arrangement,
+	layers_below,
+	resolve_arrangement,
+)
+from frappe.desk.doctype.sidebar.sidebar import build_sidebar, item_key
 from frappe.model.delete_doc import get_linked_docs
 from frappe.patches.v16_0.sidebar_archive import (
 	archive_exists,
 	generated_from_app_workspace,
 	is_module,
-	layer_rows,
 	modules_converted_from,
 	parse_json_list,
 	site_rows,
 	write_base,
-	write_user_layer,
 	written_as_of,
 )
 
@@ -81,29 +86,46 @@ def document_filed_under(module: str, converted_from: str) -> str | None:
 
 
 def move_user_layers(module: str, into: str | None) -> None:
-	"""Write each user's arrangement of `module`'s sidebar again as a layer over `into`'s base.
+	"""Save each arrangement of `module`'s sidebar again as a layer over `into`'s base.
 
-	A layer is a delta on the base below it: a reference row names an item the base holds and
-	stores nothing else, so moving the row to another base would lose every item that base does
-	not hold. The arrangement is read as the user sees it and expressed again over the new base,
-	where an item that base lacks is carried whole. The old layer goes with the module.
+	A layer is a delta on what sits below it: a reference row names an item the base or the site's
+	layer holds, and stores only what it overrides. Moved as it stands, every reference to an item
+	the new base lacks would name nothing. So each arrangement is read whole, the way the editor
+	opens it (`layer_arrangement`: this layer over the site's, with what it hid), and saved whole
+	the way the editor saves it (`_save_customization`, which settles references against the new
+	base and keeps the layer's label and icon). An item the new base and site layer do not show
+	travels as the layer's own, which is what `added` means. The site's layer goes first, so the
+	users' layers settle against it. The old layers go with the module.
 
 	A layer already on `into` is the user's later word on that module, so it wins and this one is
 	dropped, as it is when there is nowhere to move it.
 	"""
-	for layer in frappe.get_all("Custom Sidebar", filters={"module": module}, fields=["name", "user"]):
+	layers = frappe.get_all(
+		"Custom Sidebar",
+		filters={"module": module},
+		fields=["name", "user", "label", "header_icon"],
+		order_by="user asc",
+	)
+	for layer in layers:
+		user = layer.user or None
 		who = layer.user or "the site"
-		if (
-			not into
-			or not is_module(into)
-			or frappe.db.exists("Custom Sidebar", {"module": into, "user": layer.user})
-		):
+		if not into or not is_module(into) or get_customization(into, user):
 			click.secho(f"Custom Sidebar of {who} on '{module}': dropped", fg="yellow")
 			continue
 
-		doc = frappe.get_doc("Custom Sidebar", layer.name)
-		items, hidden = merged_arrangement(get_module_base(module).rows, [doc])
-		write_user_layer(into, layer.user, layer_rows(items, get_module_base(into).rows, hidden))
+		arrangement = layer_arrangement(module, user)
+		shown, _hidden = resolve_arrangement(base_items(into), layers_below(into, user))
+		shown_keys = {item_key(item) for item in shown}
+		rows = []
+		for item in arrangement:
+			if item_key(item) not in shown_keys:
+				# hidden here and absent there: a hidden row would name nothing
+				if item["hidden"]:
+					continue
+				item["added"] = 1
+			rows.append(item)
+
+		_save_customization(into, rows, user, label=layer.label, header_icon=layer.header_icon)
 		click.secho(f"Custom Sidebar of {who}: moved from '{module}' to '{into}'", fg="green")
 
 

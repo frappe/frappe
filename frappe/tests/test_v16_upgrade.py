@@ -21,7 +21,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, resolve_sidebar
+from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, item_key, resolve_sidebar
 from frappe.desk.doctype.sidebar.test_sidebar import make_sidebar, no_developer_mode
 from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
 from frappe.patches.v16_0.sidebar_archive import layer_rows, write_user_layer
@@ -1016,11 +1016,22 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 			archive(title, [home(title), link("ToDo", "Todos")], module=module)
 			cls.wrongly_converted(title)
 
-		# the user arranged the sidebar where the earlier run put it: kept its Todos, added Events
+		# where the earlier run put the sidebar, the site added Notes, and the user then hid them,
+		# put Events ahead of the Todos they kept, relabelled those, and named their layer
+		held = f"{cls.HELD_ROW} (Custom)"
 		write_user_layer(
-			f"{cls.HELD_ROW} (Custom)",
-			cls.USER,
-			layer_rows([link("ToDo", "Todos"), link("Event", "Events")], below=[link("ToDo", "Todos")]),
+			held,
+			"",
+			layer_rows([link("ToDo", "Todos"), link("Note", "Notes")], below=[link("ToDo", "Todos")]),
+		)
+		below = [link("ToDo", "Todos"), link("Note", "Notes")]
+		rows = layer_rows(
+			[link("Event", "Events"), link("ToDo", "Todos")], below, dropped={item_key(link("Note", "Notes"))}
+		)
+		next(row for row in rows if row["link_to"] == "ToDo")["label"] = "My Todos"
+		write_user_layer(held, cls.USER, rows)
+		frappe.db.set_value(
+			"Custom Sidebar", {"module": held, "user": cls.USER}, {"label": "Mine", "header_icon": "star"}
 		)
 		# and added a second sidebar under one of the modules
 		added = frappe.new_doc("Sidebar")
@@ -1115,13 +1126,24 @@ class TestV16GeneratedSidebarCleanup(IntegrationTestCase):
 		)
 		self.assertNotIn(f"{self.HELD_ROW} (Custom)", frappe.get_doc("User", self.USER).get_blocked_modules())
 
-	def test_a_users_arrangement_moves_to_the_apps_module(self):
-		"""With what they kept as well as what they added: the app's base holds neither, so a
-		reference to the old base would name nothing there."""
-		self.assertTrue(frappe.db.exists("Custom Sidebar", {"module": self.HELD, "user": self.USER}))
+	def test_the_sites_arrangement_moves_to_the_apps_module(self):
+		"""What the site added is the site's there too, not every user's own."""
 		self.assertFalse(frappe.db.exists("Custom Sidebar", {"module": f"{self.HELD_ROW} (Custom)"}))
-		links = [item["link_to"] for item in resolve_sidebar(self.HELD, self.USER).items]
-		self.assertEqual([link for link in links if link in ("ToDo", "Event")], ["ToDo", "Event"])
+		site = frappe.get_doc("Custom Sidebar", {"module": self.HELD, "user": ""})
+		self.assertEqual([row.link_to for row in site.sidebar_items if row.added], ["ToDo", "Note"])
+
+	def test_a_users_arrangement_moves_to_the_apps_module(self):
+		"""With their order, what they hid, what they relabelled and what they named the layer: the
+		app's base holds none of these items, so a reference to the old base would name nothing."""
+		layer = frappe.get_doc("Custom Sidebar", {"module": self.HELD, "user": self.USER})
+		self.assertEqual((layer.label, layer.header_icon), ("Mine", "star"))
+		# the site's layer shows Todos and Notes now, so the user's rows stay references to them
+		self.assertEqual([row.link_to for row in layer.sidebar_items if row.added], ["Event"])
+
+		items = resolve_sidebar(self.HELD, self.USER).items
+		links = [item["link_to"] for item in items]
+		self.assertEqual([link for link in links if link in ("ToDo", "Event", "Note")], ["Event", "ToDo"])
+		self.assertEqual(next(item["label"] for item in items if item["link_to"] == "ToDo"), "My Todos")
 
 	def test_a_module_holding_another_sidebar_is_kept(self):
 		module = f"{self.ADDED_ROW} (Custom)"
