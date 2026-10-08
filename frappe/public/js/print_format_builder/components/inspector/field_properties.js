@@ -49,7 +49,6 @@ const font_size = (when) => ({
 	props: () => ({
 		label: __("Font size"),
 		base: 13,
-		unit: "px",
 		placeholder: __("auto"),
 		allowEmpty: true,
 	}),
@@ -112,7 +111,6 @@ export const FIELD_SECTIONS = [
 					label: __("Height"),
 					base: 16,
 					step: 4,
-					unit: "px",
 					placeholder: __("auto"),
 					allowEmpty: true,
 				}),
@@ -223,7 +221,6 @@ export const FIELD_SECTIONS = [
 					label: __("Label gap"),
 					base: 8,
 					step: 2,
-					unit: "px",
 					placeholder: __("auto"),
 					allowEmpty: true,
 				}),

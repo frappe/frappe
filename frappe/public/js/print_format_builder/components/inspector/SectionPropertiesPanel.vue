@@ -35,7 +35,6 @@
 				:model-value="selected_section.gap ?? 20"
 				:step="4"
 				:base="20"
-				unit="px"
 				@update:model-value="(v) => (selected_section.gap = v)"
 			/>
 		</InspectorSection>
@@ -49,10 +48,8 @@
 					@update:model-value="(v) => set('background', v)"
 				/>
 				<StepperRow
-					v-if="selected_section.background || selected_section.field_borders"
 					:label="__('Radius')"
 					:model-value="selected_section.radius ?? null"
-					unit="px"
 					:placeholder="__('none')"
 					allow-empty
 					@update:model-value="(v) => set('radius', v)"
@@ -84,7 +81,6 @@
 						:label="__('Cell padding')"
 						:model-value="selected_section.cell_padding ?? 8"
 						:base="8"
-						unit="px"
 						@update:model-value="(v) => (selected_section.cell_padding = v)"
 					/>
 					<ColorField

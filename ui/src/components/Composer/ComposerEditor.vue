@@ -20,7 +20,6 @@
 				>
 					<slot name="top" />
 
-					<EditorBubbleMenu :items="commentToolbar" />
 					<EditorTableMenu />
 
 					<div
@@ -183,11 +182,9 @@ import LucidePaperclip from "~icons/lucide/paperclip";
 import {
 	Editor,
 	EditorContent,
-	EditorBubbleMenu,
 	EditorFixedMenu,
 	EditorTableMenu,
 	RichTextKit,
-	commentToolbar,
 	Paragraph,
 	H2,
 	H3,
