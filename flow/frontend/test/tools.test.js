@@ -203,6 +203,16 @@ test("execute keeps the code and pretty-prints what it returned", (t) => {
 	);
 });
 
+test("a cut result shows as text, except under execute's code", () => {
+	const cut = {
+		content: '[{"name": "A"}, {"na\n\n[Cut to the first 50 KB of 2.0 MB.]',
+		details: { truncation: { truncated: true } },
+	};
+	assert.equal(presentTool("read_records", {}, cut).resultComponent, JsonView);
+	assert.equal(presentTool("run_report", {}, cut).resultComponent, JsonView);
+	assert.equal(presentTool("execute", {}, cut).resultComponent, CodeView);
+});
+
 test("search hits group under the source they came from", (t) => {
 	const hits = [
 		{ source: "Policy", content: "Overdue after 30 days" },

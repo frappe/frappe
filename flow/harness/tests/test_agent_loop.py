@@ -217,6 +217,51 @@ async def test_after_hook_rewrites_result(tmp_path):
 	assert _of(events, "tool_result")[0]["content"] == "[redacted]"
 
 
+async def test_oversized_tool_result_is_cut_with_a_note(tmp_path):
+	@tool
+	async def dump(*, ctx):
+		return RuntimeToolResult(content="x" * 200_000)
+
+	session, events = _session(tmp_path)
+	assert session.server_tools is not None
+	session.server_tools[dump.name] = dump
+	call = AssistantMessage(content=[ToolCall(id="c1", name="dump", arguments={})])
+	await _run(session, "dump", model=MockModel(replies=[call, AssistantMessage(content="ok")]))
+	result = _of(events, "tool_result")[0]
+	assert result["content"].startswith("x" * 51_200 + "\n\n[Cut to the first 50 KB of 195 KB.")
+	assert "Don't repeat a call that changed data.]" in result["content"]
+	assert result["details"]["truncation"]["truncated"] is True
+
+
+async def test_tool_that_cuts_its_own_output_is_not_cut_again(tmp_path):
+	(tmp_path / "a.txt").write_text("line\n" * 3000)
+	session, events = _session(tmp_path)
+	await _run(session, "read", model=MockModel(replies=[_read_call(), AssistantMessage(content="ok")]))
+	content = _of(events, "tool_result")[0]["content"]
+	assert content.endswith("use offset=2001 to continue]")
+	assert "Cut to the first" not in content
+
+
+async def test_hook_that_grows_a_cut_result_is_still_capped(tmp_path):
+	(tmp_path / "a.txt").write_text("AAA")
+	session, events = _session(tmp_path)
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="ok")])
+
+	await _run(session, "read", model=mock, after_tool_call=lambda tc, result: "y" * 200_000)
+	assert _of(events, "tool_result")[0]["content"].startswith("y" * 51_200 + "\n\n[Cut to the first 50 KB")
+
+
+async def test_before_hook_result_is_capped(tmp_path):
+	session, events = _session(tmp_path)
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="ok")])
+
+	def before(tc, ctx):
+		return HookDecision(result="z" * 200_000)
+
+	await _run(session, "read", model=mock, before_tool_call=before)
+	assert _of(events, "tool_result")[0]["content"].startswith("z" * 51_200 + "\n\n[Cut to the first 50 KB")
+
+
 async def test_pause_and_resume(tmp_path):
 	(tmp_path / "a.txt").write_text("SECRET")
 	session, events = _session(tmp_path, confirm_tools=["read"])
