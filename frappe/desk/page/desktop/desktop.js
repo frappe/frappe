@@ -267,13 +267,7 @@ class DesktopPage {
 				onclick: function () {
 					window.open("https://support.frappe.io/help", "_blank");
 				},
-			},
-			{
-				icon: "log-out",
-				label: "Logout",
-				onClick: function () {
-					frappe.app.logout();
-				},
+				order: 40,
 			},
 		];
 		// sort() is stable, so items sharing an `order` keep the order they were added in.

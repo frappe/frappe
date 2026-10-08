@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 import frappe
 from frappe import _
 from frappe.utils.caching import redis_cache
@@ -128,6 +130,18 @@ def get_modules_from_all_apps():
 	for app in frappe.get_installed_apps():
 		modules_list += get_modules_from_app(app)
 	return modules_list
+
+
+def get_blockable_module_names(blocked: Iterable[str] = ()) -> list[str]:
+	"""Modules a User or Module Profile can block: every app module and every custom module.
+
+	Modules already in `blocked` stay in the list even if they no longer exist, because the module
+	editor removes any blocked row it has no checkbox for when the form is saved.
+	"""
+	names = set(blocked)
+	names.update(m.get("module_name") for m in get_modules_from_all_apps())
+	names.update(frappe.get_all("Module Def", filters={"custom": 1}, pluck="name"))
+	return sorted(names)
 
 
 @redis_cache

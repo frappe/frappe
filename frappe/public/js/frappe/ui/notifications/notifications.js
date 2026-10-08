@@ -220,7 +220,7 @@ frappe.ui.notifications = {
 			}
 			$.extend(frappe.route_options, filters);
 		}
-		frappe.set_route("List", doctype);
+		frappe.set_route("List", doctype, "List");
 	},
 };
 

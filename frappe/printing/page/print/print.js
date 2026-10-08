@@ -123,7 +123,7 @@ frappe.ui.form.PrintView = class {
 		});
 		this.print_format_selector = this.print_format_field.$input;
 
-		this.language_selector = this.add_sidebar_item({
+		this.language_field = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "language",
 			label: __("Language"),
@@ -132,7 +132,8 @@ frappe.ui.form.PrintView = class {
 				this.set_user_lang();
 				this.preview();
 			},
-		}).$input;
+		});
+		this.language_selector = this.language_field.$input;
 
 		let description = "";
 		if (!cint(this.print_settings.repeat_header_footer)) {
@@ -420,14 +421,17 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_user_lang() {
-		this.lang_code = this.language_selector.val();
+		this.lang_code = this.language_field
+			? this.language_field.get_value()
+			: this.language_selector.val();
 	}
 
 	set_default_print_language() {
 		let print_format = this.get_print_format();
 		this.lang_code =
 			this.frm.doc.language || print_format.default_print_language || frappe.boot.lang;
-		this.language_selector.val(this.lang_code);
+		if (this.language_field) this.language_field.set_input(this.lang_code);
+		else this.language_selector.val(this.lang_code);
 	}
 
 	toggle_raw_printing() {
