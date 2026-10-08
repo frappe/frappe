@@ -21,6 +21,7 @@ from flow_harness.model import (
 	get_model,
 	register_provider,
 )
+from flow_harness.model.discovery import context_window_for
 from flow_harness.model.litellm import (
 	_build_tool_call,
 	_openai_messages,
@@ -237,6 +238,25 @@ def test_get_model_falls_through_to_litellm():
 	assert model.name == "anthropic/claude-3-5-sonnet"
 	assert model._api_key == "sk-test"
 	assert model._api_base == "https://x"
+
+
+def test_gateway_model_takes_limits_from_the_id_behind_its_prefix(monkeypatch):
+	catalog = {
+		"custom_openai/openai/gpt-x": {"max_input_tokens": None},  # LiteLLM's stub for a gateway id
+		"openai/gpt-x": {"max_input_tokens": 400_000, "max_output_tokens": 64_000},
+	}
+
+	def get_model_info(name):
+		if name not in catalog:
+			raise Exception("This model isn't mapped yet.")
+		return catalog[name]
+
+	monkeypatch.setattr("litellm.get_model_info", get_model_info)
+
+	gateway = LiteLLMModel("custom_openai/openai/gpt-x")
+	assert (gateway.context_window, gateway.max_output_tokens) == (400_000, 64_000)
+	assert context_window_for("custom_openai/openai/gpt-x") == 400_000
+	assert LiteLLMModel("custom_openai/vendor/unmapped").context_window is None
 
 
 def test_register_provider_dispatch():
