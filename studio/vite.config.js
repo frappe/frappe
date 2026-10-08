@@ -8,7 +8,6 @@ import sharedDependencyResolver from "./vite/sharedDependencyResolver"
 import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
-import frameworkUICodeEditorShim from "./vite/frameworkUICodeEditorShim"
 import lucideStaticAlias from "./vite/lucideStaticAlias"
 
 const viteDevServerPort = getViteDevServerPort()
@@ -38,7 +37,7 @@ const isStudioAppTsconfig = (file) =>
 export default defineConfig(async () => {
 	// Only pull in @framework/ui's vite plugin + source aliases when it exists.
 	const frameworkUIPlugins = frameworkUIAvailable
-		? [(await import("@framework/ui/vite")).default(), frameworkUICodeEditorShim(appsDir, __dirname)]
+		? [(await import("@framework/ui/vite")).default()]
 		: []
 	// When absent, alias @framework/ui/* to a stub so the dev server can resolve the
 	// (dead-branch) imports in globals.ts. Production builds DCE them; the dev server

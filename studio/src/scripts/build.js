@@ -20,7 +20,6 @@ import frappeui from "frappe-ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
-import frameworkUICodeEditorShim from "../../vite/frameworkUICodeEditorShim.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 // bench apps folder (scripts -> src -> frontend -> studio -> apps)
@@ -319,7 +318,6 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 				? [
 						// Resolves @framework/ui's own deps from studio's node_modules
 						(await import("@framework/ui/vite")).default(),
-						frameworkUICodeEditorShim(APPS_DIR, path.resolve(__dirname, "../../")),
 					]
 				: []),
 		],
