@@ -143,10 +143,16 @@ is accepted-and-ignored rather than refused.
 When the shell is genuinely not built, `ShellPage` throws a "Shell Not Built" page and
 returns **200, never 404** — a 404 loses the asset preloads.
 
-## Imports: one alias, and a package that is not aliased
+## Imports: three aliases, and a package that is not aliased
 
-- **`@/` → `frontend/src`.** That is the *only* alias, in both `vite.config.js` and
-  `tsconfig.json`.
+- **`@/` → `frontend/src`**, in both `vite.config.js` and `tsconfig.json`, and
+  **`@shell` → `src/public.ts`**, the names an app file may import.
+- **`vue` → `vue/dist/vue.runtime.esm-bundler.js`, exact match** (`plugin/runtimeVue.js`).
+  It is the file `import "vue"` already gets, so it picks a file of the one installed Vue,
+  not a version. It exists for CommonJS packages: vuedraggable's `require("vue")` would
+  otherwise get the full build, whose template compiler would render, in the browser, a
+  template the compile step missed. `plugin/tests/runtimeVue.test.ts` fails the build of
+  such a package if a chunk calls `registerRuntimeCompiler`.
 - **`@framework/ui` is not an alias** — it is a real dependency, `link:../ui`. Aliasing it
   was rejected on purpose (`frontend/vite.config.js`): aliasing a package to a
   directory bypasses its `exports` map and breaks every subpath import. `resolve.dedupe`
