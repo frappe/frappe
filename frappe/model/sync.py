@@ -258,6 +258,8 @@ def remove_orphan_entities(entity_types=None):
 
 
 def create_entity_file_map(entities):
+	import glob
+
 	from frappe.modules.import_file import read_doc_from_file
 
 	entity_file_map = {}
