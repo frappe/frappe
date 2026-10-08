@@ -160,6 +160,8 @@ class TestRunReport(IntegrationTestCase):
 
 		self.assertEqual(result["total_row"], {"item": "Total", "qty": 325})
 		self.assertEqual(result["row_count"], 25)
+		# a cut keeps the head, so the count and total come before the rows
+		self.assertEqual(list(result), ["columns", "row_count", "total_row", "rows"])
 
 		rows = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=200, ctx=CTX)[
 			"rows"

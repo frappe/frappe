@@ -157,8 +157,10 @@ def run_report(
 	Find names with read_records("Report", {"name": ["like", "%ledger%"]}, ["name", "ref_doctype"]),
 	or by the DocType a report covers, {"ref_doctype": "Sales Invoice"}.
 	`filters` is a dict like {"company": "Acme", "from_date": "2026-01-01"}; a failed or empty run
-	lists the filters it can find (may be incomplete). Returns the columns, up to `limit` rows (capped at 200), the full row
-	count, and the report's total row if it has one.
+	lists the filters it can find (may be incomplete). Returns the columns, the full row count, the report's total row if
+	it has one, and up to `limit` rows (capped at 200). To work over more rows, run the report inside execute with
+	frappe.call("frappe.desk.query_report.run", report_name=..., filters=..., ignore_prepared_report=True) and return
+	only what you need, such as totals or the top rows.
 	"""
 	from frappe.desk.query_report import get_report_doc, run
 
@@ -190,13 +192,11 @@ def run_report(
 	rows = data["result"] or []
 	total_row = rows[-1] if data.get("add_total_row") and rows else None
 	row_count = len(rows) - 1 if total_row is not None else len(rows)
-	result: dict[str, Any] = {
-		"columns": columns,
-		"rows": [_report_row(row, fieldnames, columns) for row in rows[: min(limit, row_count)]],
-		"row_count": row_count,
-	}
+	# count and total before the rows, so a cut keeps them
+	result: dict[str, Any] = {"columns": columns, "row_count": row_count}
 	if total_row is not None:
 		result["total_row"] = _report_row(total_row, fieldnames, columns)
+	result["rows"] = [_report_row(row, fieldnames, columns) for row in rows[: min(limit, row_count)]]
 	if not row_count:
 		result["available_filters"] = _report_filters(report_name)
 	return result
