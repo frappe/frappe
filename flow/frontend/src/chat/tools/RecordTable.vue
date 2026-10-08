@@ -16,7 +16,7 @@
 							:key="column"
 							class="sticky top-0 whitespace-nowrap bg-surface-gray-1 px-3 py-1.5 font-medium text-ink-gray-5"
 						>
-							{{ humanize(column) }}
+							{{ labels?.[column] || humanize(column) }}
 						</th>
 					</tr>
 				</thead>
@@ -94,6 +94,18 @@
 						</tr>
 					</template>
 				</tbody>
+				<tfoot v-if="footer">
+					<tr>
+						<td v-if="withStatus" class="sticky bottom-0 bg-surface-gray-1" />
+						<td
+							v-for="column in columns"
+							:key="column"
+							class="sticky bottom-0 max-w-[220px] truncate bg-surface-gray-1 px-3 py-1.5 align-top font-medium text-ink-gray-8"
+						>
+							<ValueView :value="footer[column]" />
+						</td>
+					</tr>
+				</tfoot>
 			</table>
 		</div>
 		<button
@@ -120,13 +132,15 @@ import { cellText, columnsOf, deskUrl, humanize, isTable } from "./result.js";
 // table of its own in a row beneath, spanning the width, and the cap on the height
 // lifts so nothing scrolls inside a scroll. Like a tool's dropdown, a row that unfolds
 // past the bottom edge is nudged into view. The table fills its panel edge to edge, so
-// the panel's own border frames it.
+// the panel's own border frames it. A footer row, like a report's total, stays pinned.
 const props = defineProps({
 	columns: { type: Array, required: true },
 	rows: { type: Array, required: true },
 	doctype: { type: String, default: "" },
 	linkColumn: { type: String, default: "" },
 	statusLabel: { type: String, default: "name" },
+	footer: { type: Object, default: null },
+	labels: { type: Object, default: null },
 });
 
 const PAGE_SIZE = 20;

@@ -23,6 +23,7 @@ const { loadComponent, loadModule } = await import("./helpers/components.js");
 const { presentTool } = await loadModule("chat/toolMeta.js");
 const CreateView = await loadComponent("chat/tools/CreateView.vue");
 const ReadView = await loadComponent("chat/tools/ReadView.vue");
+const ReportView = await loadComponent("chat/tools/ReportView.vue");
 const NamesView = await loadComponent("chat/tools/NamesView.vue");
 const CodeView = await loadComponent("chat/tools/CodeView.vue");
 const SnippetView = await loadComponent("chat/tools/SnippetView.vue");
@@ -83,6 +84,58 @@ test("read_records links each record to its Desk form, skipping fields nothing f
 	assert.deepEqual(texts(el, "th"), ["Name", "Status", "Customer"]);
 	assert.deepEqual(hrefs(el), ["/app/sales-invoice/INV-001", "/app/sales-invoice/INV-002"]);
 	assert.equal(presentTool("read_records", {}, json(rows)).stat, "2 records");
+});
+
+test("run_report tables rows under the report's labels, its total pinned below", (t) => {
+	const args = { report_name: "Accounts Receivable" };
+	// two columns share a label, and numeric fieldnames would sort first as object keys
+	const report = {
+		columns: [
+			{ fieldname: "party", label: "Party" },
+			{ fieldname: "2026", label: "Balance" },
+			{ fieldname: "2027", label: "Balance" },
+			{ fieldname: "remarks", label: "Remarks" },
+		],
+		rows: Array.from({ length: 25 }, (_, i) => ({
+			party: `P${i + 1}`,
+			2026: 1,
+			2027: 2,
+			remarks: "",
+		})),
+		row_count: 30,
+		total_row: { party: "Total", 2026: 25, 2027: 50, remarks: "" },
+	};
+	const el = mount(t, ReportView, { arguments: args, result: json(report) });
+	assert.deepEqual(texts(el, "th"), ["Party", "Balance", "Balance"]);
+	assert.deepEqual(texts(el, "tbody tr:first-child td"), ["P1", "1", "2"]);
+	// page one holds 20 rows; the total stays in view
+	assert.equal(el.querySelectorAll("tbody tr").length, 20);
+	assert.deepEqual(texts(el, "tfoot td"), ["Total", "25", "50"]);
+	const presented = presentTool("run_report", args, json(report));
+	assert.equal(presented.subject, "Accounts Receivable");
+	assert.equal(presented.stat, "25 of 30 rows");
+	assert.equal(
+		presentTool("run_report", args, json({ ...report, row_count: 25 })).stat,
+		"25 rows"
+	);
+});
+
+test("run_report labels a total row Frappe left unlabelled, never a data row", (t) => {
+	const report = {
+		columns: [
+			{ fieldname: "posting_date", label: "Posting Date" },
+			{ fieldname: "amount", label: "Amount" },
+		],
+		rows: [
+			{ posting_date: "2026-08-19", amount: 10 },
+			{ posting_date: "", amount: 5 },
+		],
+		row_count: 2,
+		total_row: { posting_date: "", amount: 15 },
+	};
+	const el = mount(t, ReportView, { arguments: {}, result: json(report) });
+	assert.deepEqual(texts(el, "tbody tr:last-child td"), ["", "5"]);
+	assert.deepEqual(texts(el, "tfoot td"), ["Total", "15"]);
 });
 
 test("delete links its targets until they are gone", (t) => {

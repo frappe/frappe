@@ -3,6 +3,7 @@ import CreateView from "./tools/CreateView.vue";
 import JsonView from "./tools/JsonView.vue";
 import NamesView from "./tools/NamesView.vue";
 import ReadView from "./tools/ReadView.vue";
+import ReportView from "./tools/ReportView.vue";
 import { parseResult } from "./tools/result.js";
 import SnippetView from "./tools/SnippetView.vue";
 
@@ -27,6 +28,15 @@ const TOOLS = {
 		label: "Reading Records",
 		view: ReadView,
 		stat: (result) => count(result.length, "record"),
+	},
+	run_report: {
+		icon: "bar-chart-2",
+		label: "Running Report",
+		view: ReportView,
+		stat: (result) =>
+			result.rows.length < result.row_count
+				? `${result.rows.length} of ${count(result.row_count, "row")}`
+				: count(result.row_count, "row"),
 	},
 	create: {
 		icon: "file-plus",
@@ -89,7 +99,16 @@ const ACTIONS = {
 	rename: "Renaming",
 };
 
-const SUBJECT_KEYS = ["doctype", "query", "search", "name", "action", "description", "content"];
+const SUBJECT_KEYS = [
+	"doctype",
+	"report_name",
+	"query",
+	"search",
+	"name",
+	"action",
+	"description",
+	"content",
+];
 
 export function presentTool(name, args = {}, result = null) {
 	const tool = TOOLS[name];
