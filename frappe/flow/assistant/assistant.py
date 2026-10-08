@@ -46,7 +46,7 @@ ASSISTANT_INSTRUCTIONS = (
 	"through the agent's knowledge_bases table. The search tool attaches itself.\n"
 	"- Skills: a Flow Skill row (title, one-line description of when it applies, instructions) linked "
 	"through the agent's skills table. The load-skill tool attaches itself. is_global offers it to every "
-	"agent, including you; user_invocable lets people start it by typing /skill:<name>.\n\n"
+	"agent that has the tool, including you; user_invocable lets people start it by typing /skill:<name>.\n\n"
 	"WRITING A SCRIPT TOOL: the code defines a top-level main(...) with type-annotated parameters (they "
 	"become the input schema) that RETURNS its result; no `result` variable, no *args/**kwargs, never "
 	"call main() yourself. Same sandbox rules as execute.\n\n"
