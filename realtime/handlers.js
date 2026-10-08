@@ -88,9 +88,9 @@ function frappe_handlers(socket) {
 		socket.leave(room);
 
 		if (socket.subscribed_documents) {
-			socket.subscribed_documents = socket.subscribed_documents.filter(([dt, dn]) => {
-				!(dt == doctype && dn == docname);
-			});
+			socket.subscribed_documents = socket.subscribed_documents.filter(
+				([dt, dn]) => !(dt == doctype && dn == docname)
+			);
 		}
 
 		notify_subscribed_doc_users({

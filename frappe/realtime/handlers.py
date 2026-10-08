@@ -99,8 +99,6 @@ async def doc_open(socket: Socket, doctype: str, docname: str) -> None:
 @realtime.on("doc_close", allow_guest=True)
 async def doc_close(socket: Socket, doctype: str, docname: str) -> None:
 	await socket.leave(open_doc_room(doctype, docname))
-	# Fix Node bug (handlers.js:91-93): the filter callback never returned, so the
-	# pair was never dropped. Actually remove it here.
 	tracked = socket.get("subscribed_documents", [])
 	tracked = [pair for pair in tracked if not (pair[0] == doctype and pair[1] == docname)]
 	await socket.set("subscribed_documents", tracked)
