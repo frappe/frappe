@@ -1,4 +1,8 @@
 // One filter row: field picker, condition dropdown, value control, remove.
+
+// value controls that pick several records for "in" on a Link field
+const RECORD_PICKERS = ["MultiSelectList", "MultiSelectPills"];
+
 frappe.ui.Filter = class {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -261,9 +265,12 @@ frappe.ui.Filter = class {
 			fieldtype = "MultiSelect";
 		}
 
-		// pick several records instead of typing names separated by commas
+		// pick several records instead of typing names separated by commas;
+		// MultiSelectPills has a combobox variant, MultiSelectList does not
 		if (this.field.df.original_type === "Link" && in_condition) {
-			fieldtype = "MultiSelectList";
+			fieldtype = frappe.ui.form.is_combobox_link_enabled()
+				? "MultiSelectPills"
+				: "MultiSelectList";
 		}
 
 		this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
@@ -333,14 +340,18 @@ frappe.ui.Filter = class {
 		this._filter_value_set = Promise.resolve();
 
 		// an "in" list kept as text by older filters and links: "a,b" or '["a","b"]'
-		if (this.field.df.fieldtype === "MultiSelectList" && typeof value === "string" && value) {
+		if (
+			RECORD_PICKERS.includes(this.field.df.fieldtype) &&
+			typeof value === "string" &&
+			value
+		) {
 			value = this.utils.split_values(value);
 		}
 
 		if (
 			["in", "not in"].includes(condition) &&
 			Array.isArray(value) &&
-			this.field.df.fieldtype !== "MultiSelectList"
+			!RECORD_PICKERS.includes(this.field.df.fieldtype)
 		) {
 			value = value.some((v) => String(v).includes(","))
 				? JSON.stringify(value)
@@ -462,7 +473,7 @@ frappe.ui.Filter = class {
 				df.options = "\n" + (df.options || "");
 			}
 		}
-		if (df.fieldtype === "MultiSelectList") {
+		if (RECORD_PICKERS.includes(df.fieldtype)) {
 			df.get_data = (txt) => this.get_link_options(df, txt);
 			df.change = () => this.on_change();
 		}
@@ -503,7 +514,7 @@ frappe.ui.Filter = class {
 		if (df.fieldtype === "Time") return __("Select time");
 		// named after the field, so an empty box says what goes in it
 		const label = df.label ? __(df.label, null, df.parent) : "";
-		const pick = ["Link", "Dynamic Link", "Select", "MultiSelect", "MultiSelectList"];
+		const pick = ["Link", "Dynamic Link", "Select", "MultiSelect", ...RECORD_PICKERS];
 		if (pick.includes(df.fieldtype)) return label ? __("Select {0}", [label]) : __("Select");
 		if (numeric || df.fieldtype === "Data")
 			return label ? __("Enter {0}", [label]) : __("Value");
