@@ -5,6 +5,38 @@ import DataTable from "frappe-datatable";
 // Expose DataTable globally to allow customizations.
 window.DataTable = DataTable;
 
+// Keep tree rows together while using DataTable's column sort to rank siblings.
+function sortTreeRows(rows, sortedRowIndices) {
+	const rank = new Map(sortedRowIndices.map((rowIndex, index) => [rowIndex, index]));
+	const roots = [];
+	const ancestors = [];
+
+	rows.forEach((row, rowIndex) => {
+		const indent = Number(row.meta.indent) || 0;
+		const node = { rowIndex, indent, children: [] };
+
+		while (ancestors.length && ancestors[ancestors.length - 1].indent >= indent) {
+			ancestors.pop();
+		}
+
+		const siblings = ancestors.length ? ancestors[ancestors.length - 1].children : roots;
+		siblings.push(node);
+		ancestors.push(node);
+	});
+
+	const result = [];
+	function appendSorted(siblings) {
+		siblings.sort((a, b) => rank.get(a.rowIndex) - rank.get(b.rowIndex));
+		for (const node of siblings) {
+			result.push(node.rowIndex);
+			appendSorted(node.children);
+		}
+	}
+
+	appendSorted(roots);
+	return result;
+}
+
 frappe.provide("frappe.widget.utils");
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
@@ -1213,6 +1245,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
+			}
+			if (this.tree_report) {
+				const onSortColumn = datatable_options.events?.onSortColumn;
+				datatable_options.events = {
+					...datatable_options.events,
+					onSortColumn(column) {
+						this.datamanager.rowViewOrder = sortTreeRows(
+							this.datamanager.rows,
+							this.datamanager.rowViewOrder
+						);
+						this.rowmanager.refreshRows();
+						onSortColumn?.call(this, column);
+					},
+				};
 			}
 			this.datatable = new window.DataTable(this.$report[0], datatable_options);
 		}
