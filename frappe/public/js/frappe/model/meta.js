@@ -225,6 +225,28 @@ $.extend(frappe.meta, {
 		}
 	},
 
+	get_translated_label: function (dt, fn, dn) {
+		if (
+			[
+				"name",
+				"creation",
+				"docstatus",
+				"idx",
+				"modified",
+				"modified_by",
+				"owner",
+				"_user_tags",
+				"_liked_by",
+				"_comments",
+				"_assign",
+			].includes(fn)
+		) {
+			return frappe.meta.get_label(dt, fn, dn);
+		}
+
+		return __(frappe.meta.get_label(dt, fn, dn), null, dt);
+	},
+
 	get_print_sizes: function () {
 		return [
 			"A0",
@@ -330,8 +352,14 @@ $.extend(frappe.meta, {
 		if (df && df.precision) {
 			precision = cint(df.precision);
 		} else if (df && df.fieldtype === "Currency") {
-			precision = cint(frappe.defaults.get_default("currency_precision"));
-			if (!precision) {
+			var currency_precision = frappe.defaults.get_default("currency_precision");
+			if (
+				currency_precision !== null &&
+				currency_precision !== undefined &&
+				currency_precision !== ""
+			) {
+				precision = cint(currency_precision);
+			} else {
 				var currency = frappe.meta.get_field_currency(df, doc);
 				var number_format = get_number_format(currency);
 				var number_format_info = get_number_format_info(number_format);

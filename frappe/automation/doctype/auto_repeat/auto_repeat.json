@@ -1,10 +1,12 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:AUT-AR-{#####}",
  "creation": "2018-03-09 11:22:31.192349",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/auto-repeat",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -219,12 +221,13 @@
    "options": "Auto Repeat User"
   }
  ],
+ "icon": "repeat",
  "links": [],
  "modified": "2025-06-09 18:20:23.775881",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Repeat",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

@@ -1249,8 +1249,11 @@ class BaseDocument:
 		autoname = self.meta.autoname or ""
 		_empty, _field_specifier, fieldname = autoname.partition("field:")
 
-		if fieldname and self.name and self.name != self.get(fieldname):
-			self.set(fieldname, self.name)
+		if fieldname and self.name:
+			df = self.meta.get_field(fieldname)
+			name = self.cast(self.name, df) if df else self.name
+			if name != self.get(fieldname):
+				self.set(fieldname, name)
 
 	def throw_length_exceeded_error(self, df, max_length, value):
 		# check if parentfield exists (only applicable for child table doctype)
@@ -1334,7 +1337,7 @@ class BaseDocument:
 			if df and (
 				df.get("ignore_xss_filter")
 				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options") == "Email")
-				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
+				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code", "JSON")
 				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()
 				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))
@@ -1601,6 +1604,7 @@ RESERVED_KEYWORDS = frozenset(
 		"flags",
 		"_parent_doc",
 		"_doc_before_save",
+		"_action",
 		"dont_update_if_missing",
 		*CACHED_PROPERTIES,
 	)

@@ -68,11 +68,8 @@ frappe.form.formatters = {
 			return frappe.form.formatters.Currency(value, docfield, options, doc);
 		} else {
 			// show 1.000000 as 1
-			if (!(options || {}).always_show_decimals && !is_null(value)) {
-				var temp = cstr(value).split(".");
-				if (temp[1] == undefined || cint(temp[1]) === 0) {
-					precision = 0;
-				}
+			if (!(options || {}).always_show_decimals && !is_null(value) && flt(value) % 1 === 0) {
+				precision = 0;
 			}
 
 			value = value == null || value === "" ? "" : value;
@@ -95,7 +92,9 @@ frappe.form.formatters = {
 			return "";
 		}
 
-		const valuePrecision = value?.toString().split(".")[1]?.length || 0;
+		const [mantissa, exponent] = cstr(value).toLowerCase().split("e");
+		const valuePrecision = Math.max((mantissa.split(".")[1]?.length || 0) - cint(exponent), 0);
+
 		const precision =
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
@@ -166,6 +165,7 @@ frappe.form.formatters = {
 		return `<input type="checkbox" disabled
 			class="disabled-${cint(value) ? "selected" : "deselected"}">`;
 	},
+
 	Link: function (value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
@@ -180,7 +180,7 @@ frappe.form.formatters = {
 		}
 
 		if (options && (options.for_print || options.only_value)) {
-			return link_title || value;
+			return get_link_display_value(doctype, link_title, value);
 		}
 
 		if (frappe.form.link_formatters[doctype]) {
@@ -213,10 +213,10 @@ frappe.form.formatters = {
 				a.innerText = __((options && options.label) || link_title || value);
 				return a.outerHTML;
 			} else {
-				return link_title || value;
+				return get_link_display_value(doctype, link_title, value);
 			}
 		} else {
-			return link_title || value;
+			return get_link_display_value(doctype, link_title, value);
 		}
 	},
 	Date: function (value) {
@@ -353,11 +353,13 @@ frappe.form.formatters = {
 				"<span class='label label-%(style)s' \
 				data-workflow-state='%(value)s'\
 				style='padding-bottom: 4px; cursor: pointer;'>\
-				<i class='fa fa-small fa-white fa-%(icon)s'></i> %(value)s</span>",
+				%(icon)s %(value)s</span>",
 				{
 					value: value,
 					style: workflow_state.style.toLowerCase(),
-					icon: workflow_state.icon,
+					icon: workflow_state.icon
+						? frappe.utils.icon(workflow_state.icon, "xs", "", "", "", true)
+						: "",
 				}
 			);
 		} else {
@@ -413,6 +415,13 @@ frappe.form.formatters = {
 	AttachImage: format_attachment_url,
 };
 
+function get_link_display_value(doctype, link_title, value) {
+	let translated_doctypes = frappe.boot?.translated_doctypes || [];
+	if (translated_doctypes.includes(doctype)) {
+		return __(link_title || value);
+	}
+	return link_title || value;
+}
 function format_attachment_url(url) {
 	let escaped = frappe.utils.escape_html(url);
 	return url ? `<a href="${escaped}" target="_blank">${escaped}</a>` : "";
@@ -440,7 +449,9 @@ frappe.format = function (value, df, options, doc) {
 		df._options = doc ? doc[df.options] : null;
 	}
 
-	var formatter = df.formatter || frappe.form.get_formatter(fieldtype);
+	var formatter =
+		frappe.meta.get_docfield(doc?.doctype, df.fieldname)?.formatter ||
+		frappe.form.get_formatter(fieldtype);
 
 	var formatted = formatter(value, df, options, doc);
 

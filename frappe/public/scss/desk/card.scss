@@ -28,7 +28,7 @@
 }
 .frappe-card {
 	width: 100%;
-	background-color: var(--surface-modal);
+	background-color: var(--surface-elevation-2);
 	box-shadow: var(--shadow-sm);
 	border-radius: 12px;
 	padding: 16px;
@@ -36,6 +36,14 @@
 .frappe-card-description {
 	@include get_textstyle("sm", "regular");
 	white-space: wrap;
+}
+.frappe-card-link {
+	color: var(--ink-gray-8);
+	text-decoration: underline;
+	white-space: nowrap;
+	&:hover {
+		color: var(--ink-gray-9);
+	}
 }
 .frappe-card-header-slot {
 	align-items: flex-start;

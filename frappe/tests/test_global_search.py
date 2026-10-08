@@ -205,3 +205,21 @@ class TestGlobalSearch(IntegrationTestCase):
 			text="company", scope='manufacturing" UNION ALL SELECT 1,2,3,4,doctype from __global_search'
 		)
 		self.assertTrue(results == [])
+
+	def test_settings_validate_rejects_core_doctype_row(self):
+		core_dt = "File"
+		self.assertEqual(frappe.get_meta(core_dt).module, "Core")
+
+		settings = frappe.get_single("Global Search Settings")
+		original_rows = [row.document_type for row in settings.allowed_in_global_search]
+
+		try:
+			settings.append("allowed_in_global_search", {"document_type": core_dt})
+			with self.assertRaises(frappe.ValidationError):
+				settings.save(ignore_permissions=True)
+		finally:
+			settings.reload()
+			settings.allowed_in_global_search = []
+			for dt in original_rows:
+				settings.append("allowed_in_global_search", {"document_type": dt})
+			settings.save(ignore_permissions=True)

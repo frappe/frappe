@@ -21,6 +21,15 @@
 		.remove-filter {
 			cursor: pointer;
 			line-height: 2;
+
+			&:focus {
+				outline: none;
+			}
+
+			&:focus-visible .icon {
+				box-shadow: var(--focus-default);
+				border-radius: 4px;
+			}
 		}
 
 		.filter-field {
@@ -51,6 +60,7 @@
 	.filter-action-buttons {
 		display: flex;
 		justify-content: space-between;
+		margin-bottom: 0.5rem;
 
 		.add-filter {
 			cursor: pointer;
@@ -58,10 +68,15 @@
 
 		.btn {
 			box-shadow: none;
+
+			&:focus-visible {
+				box-shadow: var(--focus-default) !important;
+			}
 		}
 	}
 
 	.divider {
+		margin: 15px 0;
 		background-color: var(--border-color);
 	}
 }

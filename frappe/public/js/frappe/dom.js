@@ -348,23 +348,34 @@ frappe.get_modal = function (title, content) {
 						<h4 class="modal-title">${title}</h4>
 					</div>
 					<div class="modal-actions d-flex">
-						<button class="btn btn-ghost btn-modal-minimize icon-btn hide">
-							${frappe.utils.icon("collapse")}
-						</button>
-						<button class="btn btn-ghost btn-modal-close icon-btn" data-dismiss="modal">
-							${frappe.utils.icon("x", "sm")}
-						</button>
+						${frappe.ui.button.html({
+							icon: "minimize-2",
+							variant: "ghost",
+							title: __("Minimize"),
+							css_class: "btn-modal-minimize icon-btn hide",
+						})}
+						${frappe.ui.button.html({
+							icon: "x",
+							variant: "ghost",
+							title: __("Close"),
+							css_class: "btn-modal-close icon-btn",
+							attrs: { "data-dismiss": "modal" },
+						})}
 					</div>
 				</div>
 				<div class="modal-body ui-front">${content}</div>
 				<div class="modal-footer hide">
 					<div class="custom-actions"></div>
 					<div class="standard-actions">
-						<button type="button" class="btn btn-secondary btn-sm hide btn-modal-secondary">
-						</button>
-						<button type="button" class="btn btn-primary btn-sm hide btn-modal-primary">
-							${__("Confirm")}
-						</button>
+						${frappe.ui.button.html({
+							label: "",
+							css_class: "btn-modal-secondary hide",
+						})}
+						${frappe.ui.button.html({
+							label: __("Confirm"),
+							variant: "solid",
+							css_class: "btn-modal-primary hide",
+						})}
 					</div>
 				</div>
 			</div>
@@ -427,19 +438,25 @@ frappe.create_shadow_element = function (wrapper, html, css, js) {
 	wrapper.innerHTML = `<${random_id}></${random_id}>`;
 };
 
-// bind online/offline events
+// bind online/offline events; they share one toast (see frappe.call), so it updates instead of stacking
 $(window).on("online", function () {
 	if (document.hidden) return;
-	frappe.show_alert({
-		indicator: "green",
+	frappe.ui.toast({
+		id: "connection-status",
+		type: "success",
 		message: __("You are connected to internet."),
+		description: "",
+		duration: 7000,
 	});
 });
 
 $(window).on("offline", function () {
 	if (document.hidden) return;
-	frappe.show_alert({
-		indicator: "orange",
+	frappe.ui.toast({
+		id: "connection-status",
+		type: "warning",
 		message: __("Connection lost. Some features might not work."),
+		description: "",
+		duration: 7000,
 	});
 });

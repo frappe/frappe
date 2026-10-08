@@ -3,6 +3,7 @@
 
 import json
 import re
+from json import JSONDecodeError
 
 import frappe
 import frappe.utils
@@ -22,21 +23,36 @@ MILESTONE_PAGE_SIZE = 20
 
 
 @frappe.whitelist()
-def get_activity_timeline(doctype: str, name: str | int) -> dict:
+def get_activity_timeline(
+	doctype: str,
+	name: str | int,
+	visible_types: list[str | dict[str, list[str]]] | str | None = None,
+) -> dict:
+	"""`visible_types` limits sources server-side so pagination math stays correct."""
 	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 	user_info: dict = {}  # cache user lookups
 
-	emails, has_more_emails = get_email_activities(doc, user_info)
-	milestones, has_more_milestones, next_milestone_start = get_milestone_activities(doc, user_info)
+	visible, version_fields = parse_visible_types(visible_types)
+
+	def show(*types: str) -> bool:
+		return visible is None or not visible.isdisjoint(types)
+
+	emails, has_more_emails = get_email_activities(doc, user_info) if show("email") else ([], False)
+	milestones, has_more_milestones, next_milestone_start = (
+		get_milestone_activities(doc, user_info) if show("log") else ([], False, 0)
+	)
 	activities = [
-		*get_creation_activity(doc, user_info),
-		*get_edit_activity(doc, user_info),
+		*(get_creation_activity(doc, user_info) if show("log") else []),
+		*(get_edit_activity(doc, user_info) if show("log") else []),
 		*emails,
-		*get_comment_and_log_activities(doc, user_info),
-		*get_view_activities(doc, user_info),
+		*(get_comment_and_log_activities(doc, user_info) if show("comment", "log", "attachment_log") else []),
+		*(get_view_activities(doc, user_info) if show("log") else []),
 		*milestones,
-		*get_version_activities(doc, user_info),
+		*(get_version_activities(doc, user_info, version_fields) if show("version") else []),
 	]
+	if visible is not None:
+		# comment/log/attachment_log share one fetcher; drop the leftover types here
+		activities = [a for a in activities if a["type"] in visible]
 
 	activities.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
 	return {
@@ -45,6 +61,40 @@ def get_activity_timeline(doctype: str, name: str | int) -> dict:
 		"has_more_milestones": has_more_milestones,
 		"next_milestone_start": next_milestone_start,
 	}
+
+
+def parse_visible_types(visible_types) -> tuple[set[str] | None, list[str] | None]:
+	"""["email", {"version": ["status"]}] → (type set, version-field allowlist).
+
+	Unknown type and field names are left alone; a malformed shape is rejected, since
+	silently reinterpreting it would hide activity the caller expected to see.
+	"""
+	if isinstance(visible_types, str):
+		# form/query transport delivers arguments as JSON strings
+		try:
+			visible_types = frappe.parse_json(visible_types)
+		except JSONDecodeError:
+			frappe.throw(_("visible_types is not valid JSON: {0}").format(visible_types))
+	if not visible_types:
+		return None, None
+	if not isinstance(visible_types, list):
+		frappe.throw(_("visible_types must be a list"))
+
+	types: set[str] = set()
+	version_fields = None
+	for entry in visible_types:
+		if isinstance(entry, str):
+			types.add(entry)
+		elif isinstance(entry, dict):
+			for activity_type, fields in entry.items():
+				if not isinstance(fields, list):
+					frappe.throw(_("visible_types fields for {0} must be a list").format(activity_type))
+				types.add(activity_type)
+				if activity_type == "version":
+					version_fields = fields
+		else:
+			frappe.throw(_("visible_types entries must be strings or {type: [fields]} maps"))
+	return types, version_fields
 
 
 @frappe.whitelist()
@@ -204,6 +254,7 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 
 	out = []
 
+	attachments = get_comment_attachments([c.name for c in comment_log_data.comments])
 	for c in comment_log_data.comments:
 		author = get_author_info(c.owner, user_info)
 		out.append(
@@ -212,7 +263,11 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 				"key": f"comment:{c.name}",
 				"timestamp": str(c.creation),
 				"author": author,
-				"data": {"name": c.name, "content": c.content},
+				"data": {
+					"name": c.name,
+					"content": c.content,
+					"attachments": attachments.get(c.name, []),
+				},
 			}
 		)
 
@@ -252,6 +307,23 @@ def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dic
 		author = get_author_info(c.owner, user_info)
 		out.append(add_activity_record(c, author, "shared", activity_text(c.content)))
 
+	return out
+
+
+def get_comment_attachments(comment_names: list[str]) -> dict[str, list[dict]]:
+	"""Files attached to the given comments, batched, shaped like email attachments."""
+	if not comment_names:
+		return {}
+	out: dict[str, list[dict]] = {}
+	for f in frappe.get_all(
+		"File",
+		filters={"attached_to_doctype": "Comment", "attached_to_name": ("in", comment_names)},
+		fields=["file_url", "file_name", "is_private", "attached_to_name"],
+		order_by="creation",
+	):
+		out.setdefault(f.attached_to_name, []).append(
+			{"file_url": f.file_url, "file_name": f.file_name, "is_private": f.is_private}
+		)
 	return out
 
 
@@ -389,9 +461,7 @@ def get_milestone_activities(
 		return [], False, next_start
 
 	# A milestone names a field and its value, so it needs the same read check as a version.
-	permitted = set(
-		frappe.model.get_permitted_fields(doc.doctype, user=frappe.session.user, permission_type="read")
-	)
+	permitted = readable_permlevels(doc.meta)
 	frappe.utils.add_user_info({m.owner for m in milestones if m.owner}, user_info)
 
 	out = []
@@ -434,20 +504,20 @@ LONG_TEXT_FIELDTYPES = {
 }
 
 
-def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
+def get_version_activities(
+	doc: "Document", user_info: dict, allowed_fields: list[str] | None = None
+) -> list[dict]:
 	versions = get_versions(doc)
 	if not versions:
 		return []
 
 	doctype = doc.doctype
 	meta = doc.meta
-	permitted = set(
-		frappe.model.get_permitted_fields(doctype, user=frappe.session.user, permission_type="read")
-	)  # handles field level perms aswell
+	permitted = readable_permlevels(meta)
 
 	frappe.utils.add_user_info({v.owner for v in versions if v.owner}, user_info)
 
-	child_cache: dict[str, tuple[set, "frappe.Meta"]] = {}
+	child_cache: dict[str, tuple[set | None, "frappe.Meta"]] = {}
 
 	result = []
 	for v in versions:
@@ -457,9 +527,9 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 		for fieldname, old, new in data.get("changed", []):
 			if fieldname == "docstatus":
 				if new == 1:
-					changes.append(format_docstatus_change(_("submitted this document")))
+					changes.append(format_phrase_change(_("submitted this document")))
 				elif new == 2:
-					changes.append(format_docstatus_change(_("cancelled this document")))
+					changes.append(format_phrase_change(_("cancelled this document")))
 				continue
 
 			df = is_field_visible(meta, permitted, fieldname)
@@ -468,54 +538,11 @@ def get_version_activities(doc: "Document", user_info: dict) -> list[dict]:
 
 			changes.append(format_version_change(df, fieldname, old, new))
 
-		for key, value in (
-			("added", _("added {0} row(s) to {1}")),
-			("removed", _("removed {0} row(s) from {1}")),
-		):
-			counts: dict[str, int] = {}
-			for table_fieldname, _row in data.get(key, []):
-				counts[table_fieldname] = counts.get(table_fieldname, 0) + 1
-			for table_fieldname, count in counts.items():
-				df = is_field_visible(meta, permitted, table_fieldname)
-				if not df:
-					continue
-				changes.append(format_docstatus_change(value.format(count, _(df.label or table_fieldname))))
+		changes.extend(get_child_table_changes(data, doctype, meta, permitted, child_cache))
 
-		for entry in data.get("row_changed", []):
-			# get_diff order is (table_fieldname, row_index, row_name, changes); version.py docstring is wrong
-			table_fieldname, row_index, _row_name, child_changes = entry
-			df = is_field_visible(meta, permitted, table_fieldname)
-			if not df:
-				continue
-
-			child_dt = df.options
-			if child_dt not in child_cache:
-				child_cache[child_dt] = (
-					set(
-						frappe.model.get_permitted_fields(
-							child_dt,
-							parenttype=doctype,
-							user=frappe.session.user,
-							permission_type="read",
-						)
-					),
-					frappe.get_meta(child_dt),
-				)
-			child_permitted, child_meta = child_cache[child_dt]
-
-			for cfield, _cold, cnew in child_changes:
-				cdf = is_field_visible(child_meta, child_permitted, cfield)
-				if not cdf:
-					continue
-				changes.append(
-					format_docstatus_change(
-						_("set {0} to {1} in row #{2}").format(
-							_(cdf.label or cfield),
-							truncate_value(cnew),
-							row_index + 1,
-						)
-					)
-				)
+		# allowlist means "only these fields": doc-level rows (fieldname None) drop too
+		if allowed_fields is not None:
+			changes = [c for c in changes if c.get("fieldname") in allowed_fields]
 
 		author = get_author_info(v.owner, user_info)
 		for idx, change in enumerate(changes):
@@ -562,17 +589,91 @@ def format_version_change(df, fieldname: str, old, new) -> dict:
 	}
 
 
-def format_docstatus_change(text: str) -> dict:
-	"""A doc-level change (submit/cancel/table rows) — a phrase that never folds."""
-	return {"fieldname": None, "type": "phrase", "text": text}
+def format_phrase_change(text: str, fieldname: str | None = None) -> dict:
+	"""A finished phrase; child-table rows carry the table's fieldname, submit/cancel carry none."""
+	return {"fieldname": fieldname, "type": "phrase", "text": text}
 
 
-def is_field_visible(meta, permitted: set, fieldname: str):
-	"""The docfield, or None if it's not readable or is hidden from the timeline."""
-	if fieldname not in permitted:
+def get_child_table_changes(
+	data: dict,
+	doctype: str,
+	meta,
+	permitted: set | None,
+	child_cache: dict,
+) -> list[dict]:
+	"""Child-table entries of a version — row adds/removes as per-table counts, plus
+	field edits inside rows. All carry the parent table's fieldname."""
+	changes: list[dict] = []
+
+	for key, template in (
+		("added", _("added {0} row(s) to {1}")),
+		("removed", _("removed {0} row(s) from {1}")),
+	):
+		counts: dict[str, int] = {}
+		for table_fieldname, _row in data.get(key, []):
+			counts[table_fieldname] = counts.get(table_fieldname, 0) + 1
+		for table_fieldname, count in counts.items():
+			df = is_field_visible(meta, permitted, table_fieldname)
+			if not df:
+				continue
+			changes.append(
+				format_phrase_change(
+					template.format(count, _(df.label or table_fieldname)), fieldname=table_fieldname
+				)
+			)
+
+	for entry in data.get("row_changed", []):
+		# get_diff order is (table_fieldname, row_index, row_name, changes); version.py docstring is wrong
+		table_fieldname, row_index, _row_name, child_changes = entry
+		df = is_field_visible(meta, permitted, table_fieldname)
+		if not df:
+			continue
+
+		child_dt = df.options
+		if child_dt not in child_cache:
+			child_meta = frappe.get_meta(child_dt)
+			child_cache[child_dt] = (readable_permlevels(child_meta, parenttype=doctype), child_meta)
+		child_permitted, child_meta = child_cache[child_dt]
+
+		for cfield, _cold, cnew in child_changes:
+			cdf = is_field_visible(child_meta, child_permitted, cfield)
+			if not cdf:
+				continue
+			changes.append(
+				format_phrase_change(
+					_("set {0} to {1} in row #{2}").format(
+						_(cdf.label or cfield),
+						truncate_value(cnew),
+						row_index + 1,
+					),
+					fieldname=table_fieldname,
+				)
+			)
+
+	return changes
+
+
+def readable_permlevels(meta, parenttype: str | None = None) -> set[int] | None:
+	"""Permlevels the session user can read (desk's field_display_status model);
+	None ⇒ no permission rows defined, everything readable."""
+	if not meta.get_permissions(parenttype):
 		return None
+	levels = set(meta.get_permlevel_access("read", parenttype, user=frappe.session.user))
+	# shared reads carry no role row; the doctype-wide get_shared check suffices —
+	# a role-less reader only passes check_permission via a share on this document
+	if 0 not in levels and frappe.share.get_shared(
+		parenttype or meta.name, frappe.session.user, rights=["read"], limit=1
+	):
+		levels.add(0)
+	return levels
+
+
+def is_field_visible(meta, permlevels: set | None, fieldname: str):
+	"""The docfield, or None if it's not readable or is hidden from the timeline."""
 	df = meta.get_field(fieldname)
 	if not df or (df.hidden and not df.show_on_timeline):
+		return None
+	if permlevels is not None and df.permlevel not in permlevels:
 		return None
 	return df
 

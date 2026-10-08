@@ -290,12 +290,13 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 			internal_links_data_for_d = get_internal_links(doc, internal_link_for_doctype, d)
 			if internal_links_data_for_d["count"]:
 				out["internal_links_found"].append(internal_links_data_for_d)
+			elif has_external_link_field(d, links):
+				# pairs can be linked from either side, e.g. a Sales Invoice made
+				# from a Delivery Note (internal) vs one a Delivery Note was made
+				# from (external), so probe the other direction too
+				out["external_links_found"].append(get_external_links(d, name, links))
 			else:
-				try:
-					external_links_data_for_d = get_external_links(d, name, links)
-					out["external_links_found"].append(external_links_data_for_d)
-				except Exception:
-					out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
+				out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
 		else:
 			external_links_data_for_d = get_external_links(d, name, links)
 			out["external_links_found"].append(external_links_data_for_d)
@@ -336,13 +337,38 @@ def get_internal_links(doc, link, link_doctype):
 	return data
 
 
+def get_external_link_fieldname(doctype, links):
+	return links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
+
+
+def has_external_link_field(doctype, links):
+	"""Whether `doctype` (or one of its child tables) has the field that links it back."""
+	fieldname = get_external_link_fieldname(doctype, links)
+	if not fieldname:
+		return False
+	return frappe.get_meta(doctype).has_field(fieldname) or bool(
+		get_child_doctypes_with_field(doctype, fieldname)
+	)
+
+
+def get_child_doctypes_with_field(doctype, fieldname):
+	"""Child tables of `doctype` carrying `fieldname`, empty when the parent itself has it."""
+	meta = frappe.get_meta(doctype)
+	if meta.has_field(fieldname):
+		return []
+	return [df.options for df in meta.get_table_fields() if frappe.get_meta(df.options).has_field(fieldname)]
+
+
 def get_external_links(doctype, name, links):
-	fieldname = links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
-	filters = {fieldname: name}
+	fieldname = get_external_link_fieldname(doctype, links)
 
 	# updating filters based on dynamic_links
-	if dynamic_link_filters := get_dynamic_link_filters(doctype, links, fieldname):
-		filters.update(dynamic_link_filters)
+	filters = get_dynamic_link_filters(doctype, links, fieldname) or {}
+
+	if len(child_doctypes := get_child_doctypes_with_field(doctype, fieldname)) > 1:
+		return get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters)
+
+	filters[fieldname] = name
 
 	total_count = get_doc_count(doctype, filters)
 
@@ -352,6 +378,32 @@ def get_external_links(doctype, name, links):
 		open_count = get_doc_count(doctype, filters)
 
 	return {"doctype": doctype, "count": total_count, "open_count": open_count}
+
+
+def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters):
+	"""A filter on a fieldname that several child tables share resolves to whichever of them
+	is scanned first, so match the link in any of them and let the client route by name."""
+	try:
+		names = frappe.get_list(
+			doctype,
+			filters=filters,
+			or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
+			limit=100,
+			distinct=True,
+			ignore_ifnull=True,
+			order_by=None,
+			pluck="name",
+		)
+	except Exception as e:
+		if frappe.db.is_statement_timeout(e):
+			return {"doctype": doctype, "count": "?", "open_count": 0}
+		raise
+
+	open_count = 0
+	if names and (open_count_filters := get_filters_for(doctype)):
+		open_count = get_doc_count(doctype, {"name": ("in", names), **open_count_filters})
+
+	return {"doctype": doctype, "count": len(names), "open_count": open_count, "names": names}
 
 
 def get_doc_count(doctype, filters) -> int | Literal["?"]:

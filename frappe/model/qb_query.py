@@ -122,6 +122,16 @@ class DatabaseQuery:
 
 		# Handle virtual doctypes before any other processing
 		if is_virtual_doctype(self.doctype):
+			if not ignore_permissions:
+				ptype = "select" if frappe.only_has_select_perm(self.doctype, user=user) else "read"
+				frappe.has_permission(
+					self.doctype,
+					ptype=ptype,
+					parent_doctype=parent_doctype,
+					throw=True,
+					user=user,
+				)
+
 			return self._handle_virtual_doctype(
 				fields,
 				filters,

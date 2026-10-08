@@ -231,7 +231,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_formatted_number(df, doc) {
-		if (this.number === null) {
+		if (this.number === null || isNaN(this.number)) {
 			this.formatted_number = __("N/A", null, "Number not available");
 			return;
 		}
@@ -300,7 +300,7 @@ export default class NumberCardWidget extends Widget {
 				color_class = "grey-stat";
 			} else if (this.percentage_stat > 0) {
 				caret_html = `<span class="indicator-pill-round green">
-						${frappe.utils.icon("es-line-arrow-up-right", "xs")}
+						${frappe.utils.icon("arrow-up-right", "xs")}
 					</span>`;
 				color_class = "green-stat";
 			} else {

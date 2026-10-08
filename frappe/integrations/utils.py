@@ -46,15 +46,33 @@ class OAuth2DynamicClientMetadata(BaseModel):
 	jwks: dict | None = None
 
 
-def make_request(method: str, url: str, auth=None, headers=None, data=None, json=None, params=None):
+def make_request(
+	method: str,
+	url: str,
+	auth=None,
+	headers=None,
+	data=None,
+	json=None,
+	params=None,
+	*,
+	session=None,
+	timeout=None,
+):
 	auth = auth or ""
 	data = data or {}
 	headers = headers or {}
 
 	try:
-		s = get_request_session()
+		s = session or get_request_session()
 		response = frappe.flags.integration_request = s.request(
-			method, url, data=data, auth=auth, headers=headers, json=json, params=params
+			method,
+			url,
+			data=data,
+			auth=auth,
+			headers=headers,
+			json=json,
+			params=params,
+			timeout=timeout,
 		)
 		response.raise_for_status()
 

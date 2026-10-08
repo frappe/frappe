@@ -193,7 +193,20 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	get_primary_btn() {
-		return this.standard_actions.find(".btn-primary");
+		return this.standard_actions.find(".btn-modal-primary");
+	}
+
+	// the footer buttons are es-buttons — swap only the label text so the
+	// spinner/loading-label structure survives; when there's no label span
+	// (empty initial label, or an external caller .html()'d the structure
+	// away) rebuild it via dress, which leaves the other attributes alone
+	set_btn_label($btn, label) {
+		const $label = $btn.find(".es-button__label");
+		if ($label.length) {
+			$label.text(label);
+		} else {
+			frappe.ui.button.dress($btn, { label });
+		}
 	}
 
 	get_minimize_btn() {
@@ -234,7 +247,15 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.footer.removeClass("hide");
 		this.has_primary_action = true;
 		var me = this;
-		const primary_btn = this.get_primary_btn().removeClass("hide").html(label);
+		// rebuild the es-button content so the spinner + loading-label
+		// structure matches this action (replaces the old hand-rolled
+		// spinner html; the busy visuals are pure CSS on aria-busy)
+		const primary_btn = this.get_primary_btn().removeClass("hide");
+		frappe.ui.button.dress(primary_btn, {
+			label,
+			loading_label: this.primary_action_loading_label || undefined,
+			variant: "solid",
+		});
 		if (typeof click == "function") {
 			primary_btn.off("click").on("click", function () {
 				me.primary_action_fulfilled = true;
@@ -243,7 +264,13 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				// if no values then return
 				var values = me.get_values();
 				if (!values) return;
-				click && click.apply(me, [values]);
+				const action = click.apply(me, [values]);
+				if (action && typeof action.then === "function") {
+					primary_btn.attr("aria-busy", "true");
+					Promise.resolve(action).finally(() => {
+						primary_btn.removeAttr("aria-busy");
+					});
+				}
 			});
 		}
 		return primary_btn;
@@ -255,15 +282,16 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	set_secondary_action_label(label) {
-		this.get_secondary_btn().removeClass("hide").html(label);
+		this.set_btn_label(this.get_secondary_btn().removeClass("hide"), label);
 	}
 
 	disable_primary_action() {
-		this.get_primary_btn().addClass("disabled");
+		// class kept in sync for callers that read .hasClass("disabled")
+		this.get_primary_btn().prop("disabled", true).addClass("disabled");
 	}
 
 	enable_primary_action() {
-		this.get_primary_btn().removeClass("disabled");
+		this.get_primary_btn().prop("disabled", false).removeClass("disabled");
 	}
 
 	make_head() {
@@ -365,11 +393,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	add_custom_action(label, action, css_class = null) {
 		this.footer.removeClass("hide");
-		let action_button = $(`
-			<button class="btn btn-secondary btn-sm ${css_class || ""}">
-				${label}
-			</button>
-		`);
+		let action_button = frappe.ui.button({
+			label,
+			css_class: css_class || "",
+		});
 		this.custom_actions.append(action_button);
 
 		action && action_button.click(action);

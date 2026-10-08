@@ -3,6 +3,7 @@
  "creation": "2022-01-06 03:18:16.326761",
  "doctype": "DocType",
  "document_type": "System",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/system-settings",
  "engine": "InnoDB",
  "field_order": [
   "localization",

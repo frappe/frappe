@@ -66,7 +66,6 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
-.cypress-coverage
 
 # Translations
 *.mo
@@ -188,9 +187,9 @@ typings/
 # next.js build output
 .next
 
-# cypress
-cypress/screenshots
-cypress/videos
+# playwright
+test-results/
+playwright-report/
 
 # JetBrains IDEs
 .idea/
@@ -200,3 +199,5 @@ cypress/videos
 .aider*
 # Playwright AI
 .playwright-mcp
+# local checkout of frappe-datatable; not a submodule of this repo
+ui/datatable/

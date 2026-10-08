@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.query_builder import Field, functions
+from frappe.query_builder import functions
 
 
 @frappe.whitelist()
@@ -47,24 +47,27 @@ def get_children(doctype: str, parent: str = "", include_disabled: str | int | b
 
 def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
 	meta = frappe.get_meta(doctype)
+	table = frappe.qb.DocType(doctype)
 	parent_field = meta.get("nsm_parent_field") or "parent_" + frappe.scrub(doctype)
 
-	qb = (
-		frappe.qb.from_(doctype)
-		.select(
-			Field("name").as_("value"),
-			Field(meta.get("title_field") or "name").as_("title"),
-			Field("is_group").as_("expandable"),
-		)
-		.where(functions.IfNull(Field(parent_field), "").eq(parent))
-		.where(Field("docstatus") < 2)
-	)
-
+	filters = [["docstatus", "<", 2]]
 	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
 		# used 0 instead of `false` since type of check in postgres is smallint
-		qb = qb.where(Field("disabled").eq(0))
-	# Order by name and execute
-	return qb.orderby("name").run(as_dict=True)
+		filters.append(["disabled", "=", 0])
+
+	qb = frappe.qb.get_query(
+		doctype,
+		fields=[
+			"name as value",
+			f"{meta.get('title_field') or 'name'} as title",
+			"is_group as expandable",
+		],
+		filters=filters,
+		order_by="name asc",
+		ignore_permissions=ignore_permissions,
+	).where(functions.IfNull(table[parent_field], "").eq(parent))
+
+	return qb.run(as_dict=True)
 
 
 @frappe.whitelist()

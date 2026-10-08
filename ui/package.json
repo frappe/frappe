@@ -13,6 +13,10 @@
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
     },
+    "./ActivityTimeline": {
+      "import": "./src/components/ActivityTimeline/index.ts",
+      "types": "./src/components/ActivityTimeline/index.ts"
+    },
     "./FileUpload": {
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
@@ -32,6 +36,10 @@
     "./Filter": {
       "import": "./src/components/Filter/index.ts",
       "types": "./src/components/Filter/index.ts"
+    },
+    "./ConditionBuilder": {
+      "import": "./src/components/ConditionBuilder/index.ts",
+      "types": "./src/components/ConditionBuilder/index.ts"
     },
     "./QuickFilter": {
       "import": "./src/components/QuickFilter/index.ts",
@@ -75,6 +83,7 @@
     "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
+    "@vueuse/core": ">=10.4.1",
     "frappe-ui": ">=1.0.0-beta.16",
     "vue": ">=3.3.0",
     "vue-router": "^4.1.5"

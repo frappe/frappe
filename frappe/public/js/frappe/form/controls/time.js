@@ -52,26 +52,13 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			return;
 		}
 
-		let should_refresh = this.last_value && this.last_value !== value;
-		let time_format = frappe.sys_defaults.time_format || "HH:mm:ss";
-		if (!should_refresh) {
-			if (this.datepicker.selectedDates.length > 0) {
-				// if time is selected but different from value, refresh
-				const selected_date = moment(this.datepicker.selectedDates[0]).format(
-					this.time_format
-				);
-
-				should_refresh = selected_date !== value;
-			} else {
-				// if datepicker has no selected time, refresh
-				should_refresh = true;
-			}
-		}
-
-		if (should_refresh) {
-			this.datepicker.selectDate(
-				frappe.datetime.moment_to_date_obj(moment(value, time_format))
-			);
+		// sync the picker, else it writes its stale time back into the input when shown
+		const selected_date = this.datepicker.selectedDates[0];
+		const selected_time =
+			selected_date && moment(selected_date).format(frappe.defaultTimeFormat);
+		const time = moment(value, frappe.defaultTimeFormat);
+		if (selected_time !== time.format(frappe.defaultTimeFormat)) {
+			this.datepicker.selectDate(frappe.datetime.moment_to_date_obj(time));
 		}
 	}
 	set_datepicker() {
@@ -91,13 +78,15 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		}
 	}
 	set_description() {
-		const { description } = this.df;
+		const description = this.df.description
+			? __(this.df.description, null, this.df.parent)
+			: this.df.description;
 		const { time_zone } = frappe.sys_defaults;
 		if (!frappe.datetime.is_system_time_zone()) {
 			if (!description) {
 				this.df.description = time_zone;
 			} else if (!description.includes(time_zone)) {
-				this.df.description += "<br>" + time_zone;
+				this.df.description = description + "<br>" + time_zone;
 			}
 		}
 		super.set_description();

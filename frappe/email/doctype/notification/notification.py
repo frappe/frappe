@@ -9,7 +9,7 @@ from functools import partial
 import frappe
 from frappe import _
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
+from frappe.core.doctype.sms_settings.sms_settings import _send_sms as send_via_sms_gateway
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
@@ -44,6 +44,7 @@ class Notification(Document):
 		datetime_last_run: DF.Datetime | None
 		days_in_advance: DF.Int
 		document_type: DF.Link
+		email_template: DF.Link | None
 		enabled: DF.Check
 		event: DF.Literal[
 			"",
@@ -114,13 +115,17 @@ class Notification(Document):
 	def preview_message(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
-			context = get_context(doc)
-			context.update({"alert": self, "comments": None})
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
-			if self.is_standard:
-				self.load_standard_properties(context)
-			msg = frappe.render_template(self.message, context)
+			template_content = self.get_email_template_content(doc)
+			if template_content:
+				msg = template_content["message"]
+			else:
+				context = get_context(doc)
+				context.update({"alert": self, "comments": None})
+				if doc.get("_comments"):
+					context["comments"] = json.loads(doc.get("_comments"))
+				if self.is_standard:
+					self.load_standard_properties(context)
+				msg = frappe.render_template(self.message, context)
 			if self.channel == "SMS":
 				return frappe.utils.strip_html_tags(msg)
 			return msg
@@ -131,6 +136,9 @@ class Notification(Document):
 	def preview_subject(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
+			template_content = self.get_email_template_content(doc)
+			if template_content:
+				return template_content["subject"] or _("No subject")
 			context = get_context(doc)
 			context.update({"alert": self, "comments": None})
 			if doc.get("_comments"):
@@ -179,6 +187,14 @@ class Notification(Document):
 
 		if self.attach_files == "From Field" and not self.from_attach_field:
 			frappe.throw(_("Please specify the field from which to attach files"))
+
+		if self.email_template and self.channel != "Email":
+			frappe.throw(_("Email Template can only be used with the Email channel"))
+
+		if self.email_template:
+			email_template = frappe.get_cached_doc("Email Template", self.email_template)
+			if not email_template.response_:
+				frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
 
 		self.validate_forbidden_document_types()
 		self.validate_condition()
@@ -427,23 +443,46 @@ def get_context(context):
 	def send_notification_by_channel(self, doc, context):
 		"""Send notification based on the specified channel."""
 		try:
+			template_content = self.get_email_template_content(doc)
+
 			if self.channel == "Email":
-				self.send_an_email(doc, context)
+				self.send_an_email(doc, context, template_content)
 			elif self.channel == "Slack":
 				self.send_a_slack_msg(doc, context)
 			elif self.channel == "SMS":
 				self.send_sms(doc, context)
 			elif self.channel == "System Notification":
-				self.create_system_notification(doc, context)
+				self.create_system_notification(doc, context, template_content)
 
 			# Additionally, if explicitly enabled, create a system notification
 			# even when the primary channel is not "System Notification".
 			if self.send_system_notification and self.channel != "System Notification":
-				self.create_system_notification(doc, context)
+				self.create_system_notification(doc, context, template_content)
 		except Exception:
 			self.log_error("Failed to send Notification")
 
-	def create_system_notification(self, doc, context):
+	def get_email_template_content(self, doc):
+		"""Return {"subject", "message"} from `email_template`, or None.
+
+		Uses EmailTemplate's own renderer since its content expects bare `{{ field }}`, not `{{ doc.field }}`.
+		"""
+		if not self.email_template:
+			return None
+
+		email_template = frappe.get_cached_doc("Email Template", self.email_template)
+		doc_dict = doc.as_dict()
+		if email_template.use_html:
+			doc_dict = email_template.inject_email_account(doc_dict, self.sender_email)
+
+		subject = frappe.render_template(email_template.subject, doc_dict, restrict_globals=True)
+		message = frappe.render_template(email_template.response_, doc_dict, restrict_globals=True)
+
+		if not message:
+			frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
+
+		return {"subject": subject, "message": message}
+
+	def create_system_notification(self, doc, context, template_content=None):
 		def _render(template):
 			# Templates (subject / notification_title / notification_message) come from the
 			# System Notification rule, authored by System Managers — the same trusted source as
@@ -454,12 +493,20 @@ def get_context(context):
 				template, context
 			)
 
+		if template_content is None:
+			template_content = self.get_email_template_content(doc)
+		if template_content:
+			subject = template_content["subject"]
+			email_content = template_content["message"]
+		else:
+			subject = _render(self.subject)
+			email_content = _render(self.message)
+
 		# Title falls back to the email Subject so existing rules keep their headline.
 		# Description, however, comes ONLY from the dedicated Notification Message — we do not
 		# fall back to the email Message, whose default placeholder ("Add your message here")
 		# would otherwise leak into the panel. This matches the older behaviour where the bell
 		# showed just the headline when there was no body.
-		subject = _render(self.subject)
 		title = _render(self.notification_title) or subject
 		description = _render(self.notification_message)
 
@@ -483,24 +530,30 @@ def get_context(context):
 			"title": title,
 			"subject": subject,
 			"description": description,
-			# Email body comes from the rule's Message field (its dedicated purpose), not the
+			# Email body comes from the rule's Message field (or its Email Template), not the
 			# in-app Description: a non-skip notification_type can make the log email itself
 			# (NotificationLog.after_insert), and a blank Notification Message must not produce a
 			# body-less email. This restores the pre-split behaviour (email_content <- self.message).
-			"email_content": _render(self.message),
+			"email_content": email_content,
 			"from_user": doc.modified_by or doc.owner,
 			"attached_file": json.dumps(attachments) if attachments else None,
 		}
 		enqueue_create_notification(users, notification_doc)
 
-	def send_an_email(self, doc, context):
+	def send_an_email(self, doc, context, template_content=None):
 		from email.utils import formataddr
 
 		from frappe.core.doctype.communication.email import _make as make_communication
 
-		subject = self.subject
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+		if template_content is None:
+			template_content = self.get_email_template_content(doc)
+		if template_content:
+			subject, message = template_content["subject"], template_content["message"]
+		else:
+			subject = self.subject
+			if "{" in subject:
+				subject = frappe.render_template(self.subject, context)
+			message = frappe.render_template(self.message, context)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -508,7 +561,6 @@ def get_context(context):
 			return
 
 		sender = None
-		message = frappe.render_template(self.message, context)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 
@@ -565,7 +617,7 @@ def get_context(context):
 		)
 
 	def send_sms(self, doc, context):
-		send_sms(
+		send_via_sms_gateway(
 			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
 			msg=frappe.utils.strip_html_tags(frappe.render_template(self.message, context)),
 		)

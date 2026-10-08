@@ -140,6 +140,40 @@ describe("flt", () => {
   });
 });
 
+describe("rounding correction", () => {
+  it("does not inflate exactly representable values", () => {
+    const roundingMethod = "Commercial Rounding";
+    expect(flt(9750000.0, { precision: 9, roundingMethod })).toBe(9750000);
+    expect(flt(6500000.0, { precision: 9, roundingMethod })).toBe(6500000);
+    expect(flt(26509905246072.0, { precision: 2, roundingMethod })).toBe(
+      26509905246072
+    );
+    expect(
+      flt(26509905246072.01, {
+        precision: 2,
+        roundingMethod: "Banker's Rounding",
+      })
+    ).toBe(26509905246072.01);
+  });
+
+  it("breaks representable ties away from zero for Commercial Rounding", () => {
+    // Past 2**50 floats are spaced 0.25 apart, so a .5 tie is exactly representable.
+    const roundingMethod = "Commercial Rounding";
+    expect(flt(2 ** 50 + 0.5, { precision: 0, roundingMethod })).toBe(
+      2 ** 50 + 1
+    );
+    expect(flt(-(2 ** 50) - 0.5, { precision: 0, roundingMethod })).toBe(
+      -(2 ** 50) - 1
+    );
+  });
+
+  it("still corrects representation error below the rounding step", () => {
+    expect(flt(2.675, { precision: 2, roundingMethod: "Commercial Rounding" })).toBe(
+      2.68
+    );
+  });
+});
+
 describe("formatField", () => {
   it("formats Int as a plain integer — no grouping, no decimals (matches Frappe cint)", () => {
     expect(formatField(1234.7, { fieldtype: "Int" })).toBe("1234");

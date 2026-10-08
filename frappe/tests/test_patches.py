@@ -78,6 +78,48 @@ class TestPatches(IntegrationTestCase):
 		self.assertGreaterEqual(finished_patches, len(all_patches))
 
 
+class TestNeverSkipPatches(IntegrationTestCase):
+	NEVER_SKIP = "app.module.critical_patch"
+
+	def run_all(self, patches):
+		"""run `patches` with --skip-failing, all of them failing
+
+		`self.skipped` holds the patches that were logged as skipped."""
+		self.skipped = skipped = []
+
+		with (
+			patch.object(patch_handler, "get_all_patches", return_value=patches),
+			patch.object(patch_handler, "run_single", side_effect=Exception("patch failed")),
+			patch.object(patch_handler, "update_patch_log", side_effect=lambda p, **kw: skipped.append(p)),
+			patch.object(frappe, "get_hooks", return_value=[self.NEVER_SKIP]),
+			patch.object(frappe, "get_all", return_value=[]),
+		):
+			patch_handler.run_all(skip_failing=True)
+
+	def test_failing_patch_is_skipped(self):
+		self.run_all(["app.module.patch1"])
+		self.assertEqual(self.skipped, ["app.module.patch1"])
+
+	def test_never_skip_patch_stops_migration(self):
+		with self.assertRaises(Exception):
+			self.run_all([self.NEVER_SKIP])
+
+		self.assertEqual(self.skipped, [])
+
+	def test_never_skip_patch_is_matched_with_prefix_and_arguments(self):
+		with self.assertRaises(Exception):
+			self.run_all([f"finally:{self.NEVER_SKIP} #2"])
+
+		self.assertEqual(self.skipped, [])
+
+	def test_migration_stops_at_the_never_skip_patch(self):
+		with self.assertRaises(Exception):
+			self.run_all(["app.module.patch1", self.NEVER_SKIP, "app.module.patch2"])
+
+		# patch1 was skipped, patch2 never got a chance to run
+		self.assertEqual(self.skipped, ["app.module.patch1"])
+
+
 class TestPatchReader(IntegrationTestCase):
 	def get_patches(self):
 		return (

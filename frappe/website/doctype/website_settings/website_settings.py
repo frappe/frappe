@@ -50,7 +50,6 @@ class WebsiteSettings(Document):
 		home_page: DF.Data | None
 		indexing_authorization_code: DF.Data | None
 		indexing_refresh_token: DF.Data | None
-		navbar_search: DF.Check
 		navbar_template: DF.Link | None
 		navbar_template_values: DF.Code | None
 		robots_txt: DF.Code | None
@@ -200,7 +199,6 @@ def get_website_settings(context=None):
 		"title_prefix",
 		"navbar_template",
 		"footer_template",
-		"navbar_search",
 		"enable_view_tracking",
 		"footer_logo",
 		"call_to_action",

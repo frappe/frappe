@@ -29,7 +29,6 @@ class Dashboard {
 
 	show() {
 		this.route = frappe.get_route();
-		this.set_breadcrumbs();
 		if (this.route.length > 1) {
 			// from route
 			this.show_dashboard(this.route.slice(-1)[0]);
@@ -66,7 +65,9 @@ class Dashboard {
 				// ensure dashboard title has "dashboard"
 				title = __("{0} Dashboard", [__(title)]);
 			}
-			this.page.set_title(__(title));
+			// the document is the last crumb; the title only names the browser tab
+			this.set_breadcrumbs(this.dashboard_name);
+			frappe.utils.set_title(__(title));
 			this.set_dropdown();
 			this.container.empty();
 			this.refresh();
@@ -75,8 +76,11 @@ class Dashboard {
 		frappe.last_dashboard = current_dashboard_name;
 	}
 
-	set_breadcrumbs() {
-		frappe.breadcrumbs.add("Desk", "Dashboard");
+	set_breadcrumbs(docname) {
+		this.page.set_breadcrumbs([
+			{ label: __("Dashboard"), href: "/desk/dashboard" },
+			{ label: docname },
+		]);
 	}
 
 	refresh() {

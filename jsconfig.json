@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"checkJs": false
+	},
+	"include": ["frappe/public/js/**/*", "frappe/core/page/**/*.js"],
+	"exclude": ["node_modules", "frappe/public/dist", "frappe/public/js/lib"]
+}

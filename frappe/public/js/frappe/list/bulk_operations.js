@@ -127,6 +127,16 @@ export default class BulkOperations {
 						let task_id = response.message.task_id;
 						frappe.realtime.task_subscribe(task_id);
 						frappe.realtime.on(`task_complete:${task_id}`, (data) => {
+							frappe.realtime.task_unsubscribe(task_id);
+							frappe.realtime.off(`task_complete:${task_id}`);
+							if (data.error) {
+								frappe.msgprint({
+									title: __("Bulk PDF Export"),
+									message: data.error,
+									indicator: "red",
+								});
+								return;
+							}
 							frappe.msgprint({
 								title: __("Bulk PDF Export"),
 								message: __("Your PDF is ready for download"),
@@ -136,8 +146,6 @@ export default class BulkOperations {
 									args: data.file_url,
 								},
 							});
-							frappe.realtime.task_unsubscribe(task_id);
-							frappe.realtime.off(`task_complete:${task_id}`);
 						});
 					});
 			} else {
@@ -321,14 +329,12 @@ export default class BulkOperations {
 
 	edit(docnames, field_mappings, done) {
 		const field_options = Object.keys(field_mappings).sort(function (a, b) {
-			return __(cstr(field_mappings[a].label)).localeCompare(
-				cstr(__(field_mappings[b].label))
+			return field_mappings[a].translated_label.localeCompare(
+				field_mappings[b].translated_label
 			);
 		});
-		// Same strings as legacy Select (`options`: sorted mapping keys)—parent `Label (Doctype)`,
-		// child `Child Label (Table column)`, so labels stay distinguishable after Autocomplete swap.
 		const field_autocomplete_options = field_options.map((key) => ({
-			label: __(cstr(key)),
+			label: field_mappings[key].translated_label,
 			value: key,
 		}));
 		const status_regex = /status/i;
@@ -501,7 +507,9 @@ export default class BulkOperations {
 		frappe.require("data_import_tools.bundle.js", () => {
 			const data_exporter = new frappe.data_import.DataExporter(
 				doctype,
-				"Insert New Records"
+				"Insert New Records",
+				"CSV",
+				true
 			);
 			data_exporter.dialog.set_value("export_records", "by_filter");
 			data_exporter.filter_group.add_filters_to_filter_group([

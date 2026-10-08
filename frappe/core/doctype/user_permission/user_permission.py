@@ -9,7 +9,8 @@ from frappe import _
 from frappe.core.utils import find
 from frappe.desk.form.linked_with import get_linked_doctypes
 from frappe.model.document import Document
-from frappe.utils import cstr
+from frappe.query_builder import Order
+from frappe.utils import cint, cstr
 
 
 class UserPermission(Document):
@@ -86,13 +87,13 @@ def send_user_permissions(bootinfo):
 
 
 @frappe.whitelist()
+def get_current_user_permissions():
+	"""Return the permissions of the logged in user."""
+	return get_user_permissions(frappe.session.user)
+
+
 def get_user_permissions(user: str | None = None):
 	"""Get all users permissions for the user as a dict of doctype"""
-	# if this is called from client-side,
-	# user can access only his/her user permissions
-	if frappe.request and frappe.local.form_dict.cmd == "get_user_permissions":
-		user = frappe.session.user
-
 	if not user:
 		user = frappe.session.user
 
@@ -242,6 +243,44 @@ def clear_user_permissions(user: str, for_doctype: str):
 		frappe.clear_cache()
 
 	return total
+
+
+@frappe.whitelist()
+def get_user_permission_list(allow: str, txt: str | None = None, start: int = 0, page_length: int = 50):
+	"""One page of User Permissions for `allow`, with each user's name and image joined in.
+	`txt` searches the user, their name, the value and the applicable doctype."""
+	frappe.only_for("System Manager")
+
+	up = frappe.qb.DocType("User Permission")
+	user = frappe.qb.DocType("User")
+	query = (
+		frappe.qb.from_(up)
+		.left_join(user)
+		.on(up.user == user.name)
+		.select(
+			up.name,
+			up.user,
+			up.for_value,
+			up.applicable_for,
+			up.apply_to_all_doctypes,
+			user.full_name,
+			user.user_image,
+		)
+		.where(up.allow == allow)
+		.orderby(up.modified, order=Order.desc)
+		.orderby(up.name, order=Order.desc)
+		.limit(cint(page_length))
+		.offset(cint(start))
+	)
+	if txt:
+		like = f"%{txt}%"
+		query = query.where(
+			up.user.like(like)
+			| user.full_name.like(like)
+			| up.for_value.like(like)
+			| up.applicable_for.like(like)
+		)
+	return query.run(as_dict=True)
 
 
 @frappe.whitelist()

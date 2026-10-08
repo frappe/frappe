@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import { CHART_PALETTE } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
@@ -303,7 +304,18 @@ Object.assign(frappe.utils, {
 		return content.html();
 	},
 	scroll_page_to_top() {
-		$(".main-section").scrollTop(0);
+		const $container = $(".main-section");
+		$container.animate(
+			{ scrollTop: 0 },
+			{
+				duration: 300,
+				easing: "swing",
+				complete: function () {
+					// Ensure we're at the top
+					$container.scrollTop(0);
+				},
+			}
+		);
 	},
 	scroll_to: function (
 		element,
@@ -323,7 +335,7 @@ Object.assign(frappe.utils, {
 			scroll_top =
 				typeof element == "number"
 					? element - cint(additional_offset)
-					: this.get_scroll_position(element, additional_offset);
+					: this.get_scroll_position(element, additional_offset, element_to_be_scrolled);
 		}
 
 		if (scroll_top < 0) {
@@ -361,10 +373,33 @@ Object.assign(frappe.utils, {
 			element_to_be_scrolled.scrollTop(scroll_top);
 		}
 	},
-	get_scroll_position: function (element, additional_offset) {
-		let header_offset =
-			$(".navbar").height() + $(".page-head:visible").height() || $(".navbar").height();
-		return $(element).offset().top - header_offset - cint(additional_offset);
+	get_scroll_position: function (element, additional_offset, element_to_be_scrolled) {
+		const get_offset_relative_to_container = () => {
+			let offset = 0;
+
+			let el = element instanceof HTMLElement ? element : element[0];
+			const container = element_to_be_scrolled ? element_to_be_scrolled[0] : null;
+
+			while (el && el !== container && el.offsetParent) {
+				offset += el.offsetTop;
+				el = el.offsetParent;
+			}
+
+			return offset;
+		};
+
+		const get_header_offset = () => {
+			const navbar_height = $(".navbar").height() || 0;
+			const page_head_height = $(".page-head:visible").height() || 0;
+			const tabs_container_height = $(".form-tabs-list:visible").height() || 0;
+
+			return navbar_height + page_head_height + tabs_container_height;
+		};
+
+		const element_offset_top = get_offset_relative_to_container();
+		const header_offset = get_header_offset();
+
+		return element_offset_top - header_offset - cint(additional_offset);
 	},
 	filter_dict: function (dict, filters) {
 		var ret = [];
@@ -489,7 +524,7 @@ Object.assign(frappe.utils, {
 			text = cstr(text);
 			if (has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
-				colour = "orange";
+				colour = "amber";
 			} else if (
 				has_words(["Open", "Urgent", "High", "Failed", "Rejected", "Error"], text)
 			) {
@@ -539,7 +574,7 @@ Object.assign(frappe.utils, {
 				const style = state.style;
 				const colour_map = {
 					Success: "green",
-					Warning: "orange",
+					Warning: "amber",
 					Danger: "red",
 					Primary: "blue",
 				};
@@ -933,7 +968,7 @@ Object.assign(frappe.utils, {
 		display_text = null,
 		query_params_obj = null
 	) {
-		display_text = display_text || name;
+		display_text = display_text || frappe.utils.escape_html(name);
 		name = encodeURIComponent(name);
 		let route = `/desk/${encodeURIComponent(
 			doctype.toLowerCase().replace(/ /g, "-")
@@ -1311,6 +1346,66 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
+	desktop_icon(label, color, size, style) {
+		let letter = label.charAt(0).toUpperCase();
+		let icon_size = size ? size : "md";
+		let opacity_hex = "1A";
+		let icon_html = $(`
+			<div class="icon-container">
+				<svg fill="currentColor" class="desktop-alphabet icon text-ink-gray-7 icon-${icon_size}" stroke=none style="" aria-hidden="true">
+				<use class="" href="#${letter}"></use>
+				</svg>
+			</div>
+		`);
+		let pallete_color = this.desktop_pallete[color || "blue"];
+		let bg_color = pallete_color + opacity_hex;
+		let stroke_color = pallete_color;
+		// `style` overrides the global desktop_icon_style for callers that always want a
+		// specific look (e.g. a solid letter icon regardless of the user's setting).
+		if ((style || frappe.boot.desktop_icon_style) == "Solid") {
+			bg_color = stroke_color;
+			stroke_color = "var(--white)";
+		}
+		icon_html.css("backgroundColor", bg_color);
+		icon_html.find("svg").css("color", stroke_color);
+		return icon_html.get(0).outerHTML;
+	},
+	// An app's mark and name, as `{ icon, title }`, or null when there is no app.
+	//
+	// An app that declares no logo gets a letter icon from its title, the same one the desktop
+	// apps screen draws for it. Both surfaces that stand in for the app on screen -- the dock's
+	// top slot and a dock-less sidebar's header -- resolve it here, so an app looks the same
+	// whichever of the two is up.
+	app_logo(app) {
+		if (!app) return null;
+		const title = app.app_title || app.app_name;
+		// `app_logo_url` is a list on an app that ships a light and a dark mark; the first is
+		// the one the rest of the desk uses.
+		const logo_url = Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url;
+		const icon = logo_url
+			? `<img src="${frappe.utils.escape_html(logo_url)}" alt="${frappe.utils.escape_html(
+					title
+			  )}" />`
+			: frappe.utils.desktop_icon(title, "gray", "sm");
+		return { icon, title };
+	},
+
+	// The boot entry for a module's own shell, or undefined.
+	//
+	// `frappe.boot.module_sidebars` is keyed by shell: a `Sidebar` document's name, or the module's
+	// name where the base was computed. A sidebar is named after its module unless it was renamed,
+	// so a module is its own key in almost every case, and the renamed ones are found by the
+	// `module` every entry carries. That is one pass over a payload already in memory. There is no
+	// module-to-shell index in the boot, because the naming rule answers this.
+	sidebar_for_module(module) {
+		if (!module) return undefined;
+		const all = frappe.boot.module_sidebars || {};
+		return all[module] || Object.values(all).find((entry) => entry.module === module);
+	},
+
+	// --- Desktop Icon grid -----------------------------------------------------------
+	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
+	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
 	get_route_for_icon(desktop_icon) {
 		let route;
 		if (!desktop_icon) return;
@@ -1318,7 +1413,9 @@ Object.assign(frappe.utils, {
 		if (desktop_icon.link_type == "External" && desktop_icon.link) {
 			route = desktop_icon.link;
 		} else {
-			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+			let sidebar = frappe.utils.sidebar_for_module(
+				desktop_icon.module || desktop_icon.label
+			);
 			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
 				let first_link = sidebar.items.find((i) => i.type == "Link");
 				if (first_link) {
@@ -1328,7 +1425,9 @@ Object.assign(frappe.utils, {
 							name: first_link.link_to,
 						};
 
-						if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+						// the body reads `first_link.report.*`, so a link whose report has been
+						// deleted (no `report` payload) has to skip it, not fall through to it
+						if (first_link.report) {
 							args.is_query_report =
 								first_link.report.report_type === "Query Report" ||
 								first_link.report.report_type == "Script Report";
@@ -1369,28 +1468,36 @@ Object.assign(frappe.utils, {
 		}
 		return route;
 	},
-	desktop_icon(label, color, size) {
-		let letter = label.charAt(0).toUpperCase();
-		let icon_size = size ? size : "md";
-		let opacity_hex = "1A";
-		let icon_html = $(`
-			<div class="icon-container">
-				<svg fill="currentColor" class="desktop-alphabet icon text-ink-gray-7 icon-${icon_size}" stroke=none style="" aria-hidden="true">
-				<use class="" href="#${letter}"></use>
-				</svg>
-			</div>
-		`);
-		let pallete_color = this.desktop_pallete[color || "blue"];
-		let bg_color = pallete_color + opacity_hex;
-		let stroke_color = pallete_color;
-		if (frappe.boot.desktop_icon_style == "Solid") {
-			bg_color = stroke_color;
-			stroke_color = "var(--white)";
+
+	get_desktop_icon(icon_name, variant) {
+		let exists = false;
+		let icon_data = this.get_desktop_icon_by_label(icon_name);
+		variant = variant.toLowerCase();
+		if (!icon_data?.app) return exists;
+		let app_name = icon_data.app;
+		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
+			icon_name
+		)}.svg`;
+
+		if (frappe.boot.desktop_icon_urls[app_name]?.[variant]?.includes(icon_url)) {
+			return `/${icon_url}`;
 		}
-		icon_html.css("backgroundColor", bg_color);
-		icon_html.find("svg").css("color", stroke_color);
-		return icon_html.get(0).outerHTML;
+		return exists;
 	},
+
+	get_desktop_icon_by_label(title, filters) {
+		if (!filters) {
+			return frappe.boot.desktop_icons.find((f) => f.label === title);
+		} else {
+			return frappe.boot.desktop_icons.find((f) => {
+				return (
+					f.label === title &&
+					Object.keys(filters).every((key) => f[key] === filters[key])
+				);
+			});
+		}
+	},
+
 	desktop_pallete: {
 		blue: "#0289F7",
 		gray: "#7B808A",
@@ -1459,47 +1566,20 @@ Object.assign(frappe.utils, {
 		);
 	},
 
-	get_desktop_icon(icon_name, variant) {
-		let exists = false;
-		let icon_data = this.get_desktop_icon_by_label(icon_name);
-		variant = variant.toLowerCase();
-		if (!icon_data?.app) return exists;
-		let app_name = icon_data.app;
-		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
-			icon_name
-		)}.svg`;
-
-		if (
-			frappe.boot.desktop_icon_urls[app_name] &&
-			frappe.boot.desktop_icon_urls[app_name][variant].includes(icon_url)
-		) {
-			return `/${icon_url}`;
-		}
-		return exists;
-	},
-
 	desktop_icon_exists(app_name, url) {
 		let exists = false;
 		if (frappe.boot.desktop_icon_urls[app_name].includes(url)) exists = true;
 		return exists;
 	},
-	get_desktop_icon_by_label(title, filters) {
-		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title);
-		} else {
-			return frappe.boot.desktop_icons.find((f) => {
-				return (
-					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key])
-				);
-			});
-		}
-	},
 
 	make_chart(wrapper, custom_options = {}) {
+		// a chart that names no colours of its own gets Espresso's
+		if (!custom_options.colors?.length) {
+			custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
+		}
+
 		let chart_args = {
 			type: "bar",
-			colors: ["light-blue"],
 			axisOptions: {
 				xIsSeries: 1,
 				shortenYAxisNumbers: 1,
@@ -1517,6 +1597,15 @@ Object.assign(frappe.utils, {
 		}
 		frappe.utils.set_space_label_ratio(chart_args);
 		return new frappe.Chart(wrapper, chart_args);
+	},
+
+	// Espresso's chart colours (CHART_PALETTE) as the current theme defines them: frappe-charts
+	// lightens and blends colours from their literal values, which a CSS variable does not give it
+	get_chart_palette() {
+		const style = getComputedStyle(document.documentElement);
+		return CHART_PALETTE.map(
+			(color) => style.getPropertyValue(color.slice(4, -1)).trim() || color
+		);
 	},
 
 	format_chart_axis_number(label, country) {
@@ -1598,7 +1687,9 @@ Object.assign(frappe.utils, {
 				if (item.public) {
 					route = frappe.router.slug(item.name);
 				} else {
-					route = "private/" + frappe.router.slug(item.name);
+					// By title: a private page's name carries its owner's email, and the only
+					// person who can open the page is that owner. See `router.private_workspace`.
+					route = "private/" + frappe.router.slug(item.title || item.name);
 				}
 			}
 		} else {
@@ -1609,7 +1700,13 @@ Object.assign(frappe.utils, {
 			route +=
 				"?" +
 				$.map(item.route_options, function (value, key) {
-					return encodeURIComponent(key) + "=" + encodeURIComponent(value);
+					// An array is a filter: [operator, value]. Left to implicit string coercion it
+					// arrives as "like,%Admin%", one string, and the list view reads it as an
+					// equals against that whole text. JSON is what the decoder already expects:
+					// parse_filters_from_route_options() parses any value that looks like a JSON
+					// array and splits the pair back out.
+					const encoded = Array.isArray(value) ? JSON.stringify(value) : value;
+					return encodeURIComponent(key) + "=" + encodeURIComponent(encoded);
 				}).join("&");
 		}
 
@@ -1630,7 +1727,7 @@ Object.assign(frappe.utils, {
 		 */
 
 		// return empty for null, undefined, or empty string
-		if (!number || isNaN(number)) {
+		if (is_null(number) || isNaN(number)) {
 			return "";
 		}
 
@@ -1766,7 +1863,7 @@ Object.assign(frappe.utils, {
 				</button>
 
 				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
-					${frappe.utils.icon("down", "xs")}
+					${frappe.utils.icon("chevron-down", "xs")}
 				</button>
 
 				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
@@ -2154,10 +2251,7 @@ Object.assign(frappe.utils, {
 	 * @returns {boolean}
 	 */
 	can_upload_public_files() {
-		if (
-			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
-			1
-		) {
+		if (!frappe.defaults.is_enabled("only_allow_system_managers_to_upload_public_files")) {
 			return true;
 		}
 		return frappe.user.has_role(["System Manager", "Administrator"]);

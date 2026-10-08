@@ -1,3 +1,61 @@
-.warnings .warning {
-	margin-bottom: 40px;
+/* Skipped warnings are faded. */
+.warnings .warning.skipped .body {
+	opacity: 0.6;
+}
+
+/* Preview sections take the full width inside the wizard. */
+.data-import-tree-preview-section .section-body,
+.data-import-preview-section .section-body {
+	display: block;
+	width: 100%;
+}
+
+.data-import-tree-preview-section .section-body .form-column,
+.data-import-preview-section .section-body .form-column {
+	width: 100%;
+	max-width: 100%;
+}
+
+[data-fieldname="import_tree_preview"] > .form-group .control-label {
+	display: none;
+}
+
+/* The wizard moves import_log_heading into the Import step panel. */
+.diw-step-panel[data-step="3"]
+	.frappe-control[data-fieldname="import_log_heading"]
+	.section-head.import-log-title {
+	font-size: var(--text-base);
+	font-weight: 600;
+	line-height: 1.5;
+	color: var(--ink-gray-8);
+	padding-bottom: calc(var(--spacing) * 5);
+}
+
+/* Hide duplicate field labels; section break is the collapsible header. */
+[data-fieldname="import_warnings"] > .form-group .control-label,
+[data-fieldname="import_preview"] > .form-group .control-label,
+[data-fieldname="import_log_preview"] > .form-group .control-label {
+	display: none;
+}
+
+[data-fieldname="value_mappings"] > .grid-field > .control-label {
+	display: none;
+}
+
+[data-fieldname="value_mappings"] .awesomplete > ul {
+	z-index: 1050;
+	max-height: 240px;
+	overflow-y: auto;
+}
+
+/* Tree editor: Actions shows on hover, focus, or while its menu is open. */
+.diw-preview-step .diw-tree-node-actions {
+	opacity: 0;
+	transition: opacity 0.1s ease;
+}
+
+.diw-preview-step .tree-node.hover-active > .diw-tree-row .diw-tree-node-actions,
+.diw-preview-step .diw-tree-node-actions:focus,
+.diw-preview-step .diw-tree-node-actions[aria-expanded="true"] {
+	opacity: 1;
 }

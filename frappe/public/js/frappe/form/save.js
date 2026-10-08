@@ -2,7 +2,11 @@
 // MIT License. See license.txt
 
 frappe.ui.form.save = function (frm, action, callback, btn) {
-	$(btn).prop("disabled", true);
+	// aria-busy is managed everywhere this file manages disabled: the save
+	// promise never settles on validation errors (missing mandatory fields,
+	// "no changes"), so the page header's promise-based busy state can't be
+	// trusted to clear itself — the button would stay stuck on "Saving...".
+	$(btn).prop("disabled", true).attr("aria-busy", "true");
 
 	// specified here because there are keyboard shortcuts to save
 	const working_label = {
@@ -34,7 +38,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		} else {
 			!frm.is_dirty() &&
 				frappe.show_alert({ message: __("No changes in document"), indicator: "orange" });
-			$(btn).prop("disabled", false);
+			$(btn).prop("disabled", false).removeAttr("aria-busy");
 		}
 	};
 
@@ -97,7 +101,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			},
 			error: opts.error,
 			always: function (r) {
-				$(btn).prop("disabled", false);
+				$(btn).prop("disabled", false).removeAttr("aria-busy");
 				frappe.ui.form.is_saving = false;
 
 				if (r) {
@@ -348,17 +352,22 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 		frappe.utils.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
 	}
 
-	// set value
-	if (doc && doc.parentfield) {
-		const row_exists = field_obj.frm.fields_dict[doc.parentfield].grid.grid_rows.find(
-			(row) => row.doc.name === doc.name
-		);
-		if (row_exists) field_obj.set_value(newdoc.name);
-	} else {
-		// parsing is needed for table multiselect to convert string to array
-		field_obj.parse_validate_and_set_in_model(newdoc.name);
-	}
+	// parsing is needed for table multiselect to convert string to array
+	await field_obj.parse_validate_and_set_in_model(newdoc.name);
 
-	// refresh field
 	field_obj.refresh();
+
+	// only quick entry form should proceed from here on
+	if (field_obj.frm || !(field_obj.layout instanceof frappe.ui.form.QuickEntryForm)) return;
+
+	const quick_entry = field_obj.layout;
+
+	// quick entry form is still open (nested case), no need to redirect
+	if (quick_entry.wrapper[0].offsetParent !== null) return;
+
+	// redirect to the original doc's form
+	const { doc: original_doc } = quick_entry;
+	if (original_doc && original_doc.doctype && original_doc.name) {
+		frappe.set_route("Form", original_doc.doctype, original_doc.name);
+	}
 };

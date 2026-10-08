@@ -68,6 +68,9 @@ def get_public_pages_from_doctypes():
 				raise e
 
 		for r in res:
+			if not r.route or is_dynamic_route(r.route):
+				continue
+
 			if robot_parser_instance and not robot_parser_instance.can_fetch("*", f"/{r.route}"):
 				continue
 
@@ -78,3 +81,8 @@ def get_public_pages_from_doctypes():
 			}
 
 	return routes
+
+
+def is_dynamic_route(route: str) -> bool:
+	"""Check if route has dynamic segments like /project/<name> or /blog/:name."""
+	return "<" in route or any(part.startswith(":") for part in route.split("/"))

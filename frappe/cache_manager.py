@@ -39,6 +39,16 @@ global_cache_keys = (
 	"wkhtmltopdf_version",
 	"domain_restricted_doctypes",
 	"domain_restricted_pages",
+	# hash of per-module sidebar bases; `on_module_content_changed` busts single fields, this
+	# is the escape hatch for anything that changed a module's contents behind doc_events' back
+	"sidebar_computed_base",
+	# Which layers the dock holds. The document's own `on_update` and `on_trash` invalidate this
+	# on every ordinary write; it is listed here for writes that never reach a document, such as
+	# a bulk insert, a restore or an import. A stale entry only costs a lookup that finds nothing,
+	# but a missing one hides a layer someone saved, so `bench clear-cache` has to reach it. The
+	# sidebar's layers need no equivalent: they are read per request for the user asking and
+	# cached nowhere.
+	"dock_layers",
 	"information_schema:counts",
 	"db_tables",
 	"server_script_autocompletion_items",
@@ -60,6 +70,7 @@ user_cache_keys = (
 	"user_perm_can_read",
 	"has_role:Page",
 	"has_role:Report",
+	"allowed_dashboards",
 	"desk_sidebar_items",
 	"contacts",
 )
@@ -227,7 +238,12 @@ def build_table_count_cache():
 		table_rows = frappe.qb.Field("table_rows").as_("count")
 		information_schema = frappe.qb.Schema("information_schema")
 
-		data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(as_dict=True)
+		query = frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
+		if frappe.db.db_type == "postgres":
+			query = query.where(frappe.qb.Field("schemaname") == frappe.db.db_schema)
+		else:
+			query = query.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
+		data = query.run(as_dict=True)
 		counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
 		frappe.cache.set_value("information_schema:counts", counts)
 	else:

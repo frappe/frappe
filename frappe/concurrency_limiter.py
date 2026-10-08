@@ -17,44 +17,45 @@ Usage::
 
 """
 
+import os
+import sys
 from collections.abc import Callable
-from functools import wraps
+from functools import cache, wraps
 
 import frappe
 from frappe.exceptions import ServiceUnavailableError
 from frappe.utils import cint
-from frappe.utils.caching import redis_cache
 from frappe.utils.redis_semaphore import RedisSemaphore
 
 # Default wait timeout (seconds) before returning 503 to the caller.
 _DEFAULT_WAIT_TIMEOUT = 10
 
 
-@redis_cache(shared=True)
-def _default_limit() -> int:
-	"""Derive a sensible default concurrency limit from gunicorn's max concurrency."""
-	return max(1, gunicorn_max_concurrency() // 2)
+@cache
+def web_tier_concurrency() -> int | None:
+	"""Number of requests this process' web tier serves at once.
+
+	Returns ``None`` when there is no fixed pool to exhaust: the development
+	server starts a thread per request, and CLI commands and background jobs
+	are not a web tier at all.
+
+	Gunicorn sets ``SERVER_SOFTWARE``, and its workers are forked from the master,
+	so ``sys.argv`` in a worker is the master's own command line. Both hold on
+	every platform. Reading the parent's ``/proc/<pid>/cmdline`` instead reports
+	nothing on macOS, where every process then looks like a small gunicorn.
+	"""
+	if not os.environ.get("SERVER_SOFTWARE", "").startswith("gunicorn"):
+		return None
+
+	workers = _extract_cli_int(sys.argv, "-w", "--workers") or 1
+	threads = _extract_cli_int(sys.argv, "--threads") or 1
+	return workers * threads
 
 
-def gunicorn_max_concurrency() -> int:
-	"""Detect max concurrent requests from the running gunicorn master's cmdline."""
-	import os
-
-	fallback = 4
-
-	try:
-		ppid = os.getppid()
-		with open(f"/proc/{ppid}/cmdline", "rb") as f:
-			args = f.read().rstrip(b"\0").decode().split("\0")
-
-		if not any("gunicorn" in a for a in args):
-			return fallback
-
-		workers = _extract_cli_int(args, "-w", "--workers") or fallback
-		threads = _extract_cli_int(args, "--threads") or 1
-		return workers * threads
-	except OSError:
-		return fallback
+def _default_limit() -> int | None:
+	"""Half of the web tier's capacity, or ``None`` when nothing needs protecting."""
+	capacity = web_tier_concurrency()
+	return max(1, capacity // 2) if capacity else None
 
 
 def _extract_cli_int(args: list[str], *flags: str) -> int | None:
@@ -64,10 +65,17 @@ def _extract_cli_int(args: list[str], *flags: str) -> int | None:
 	"""
 	for i, arg in enumerate(args):
 		for flag in flags:
+			value = None
 			if arg == flag and i + 1 < len(args):
-				return int(args[i + 1])
-			if arg.startswith(f"{flag}="):
-				return int(arg.split("=", 1)[1])
+				value = args[i + 1]
+			elif arg.startswith(f"{flag}="):
+				value = arg.split("=", 1)[1]
+
+			if value is not None:
+				try:
+					return int(value)
+				except ValueError:
+					return None
 	return None
 
 
@@ -75,7 +83,8 @@ def concurrent_limit(limit: int | None = None, wait_timeout: int = _DEFAULT_WAIT
 	"""Decorator that limits simultaneous in-flight executions of the wrapped function.
 
 	:param limit: Maximum number of concurrent executions. Defaults to half of ``workers x threads``
-	    as detected from the gunicorn master process.
+	    as detected from the gunicorn command line, and to no limit when the process serves
+	    requests without a fixed worker pool.
 	:param wait_timeout: Seconds to wait for a free slot before returning 503.
 	    Defaults to 10 s.
 
@@ -92,6 +101,9 @@ def concurrent_limit(limit: int | None = None, wait_timeout: int = _DEFAULT_WAIT
 				return fn(*args, **kwargs)
 
 			_limit = cint(limit) if limit is not None else _default_limit()
+			if _limit is None:
+				return fn(*args, **kwargs)
+
 			key = f"concurrency:{fn.__module__}.{fn.__qualname__}"
 
 			sem = RedisSemaphore(key, _limit, wait_timeout, shared=True)
@@ -117,9 +129,7 @@ def concurrent_limit(limit: int | None = None, wait_timeout: int = _DEFAULT_WAIT
 @frappe.whitelist()
 def get_stats() -> dict:
 	frappe.only_for("System Manager")
-	cached_limit = _default_limit()
-	gunicorn_limit = gunicorn_max_concurrency()
 	return {
-		"cached_limit": cached_limit,
-		"gunicorn_limit": gunicorn_limit,
+		"default_limit": _default_limit(),
+		"web_tier_concurrency": web_tier_concurrency(),
 	}

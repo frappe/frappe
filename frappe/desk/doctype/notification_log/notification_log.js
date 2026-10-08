@@ -33,7 +33,7 @@ frappe.ui.form.on("Notification Log", {
 		$wrapper.html(`
 			<div class="attached-file text-medium">
 				<div class="ellipsis">
-					<i class="fa fa-paperclip"></i>
+					${frappe.utils.icon("paperclip", "sm")}
 					<a class="attached-file-link">${attachment.name}.pdf</a>
 				</div>
 			</div>
