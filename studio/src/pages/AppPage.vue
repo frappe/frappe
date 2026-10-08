@@ -6,7 +6,7 @@
 import { provide, onUnmounted } from "vue"
 import { usePageMeta } from "frappe-ui"
 
-import { useLoadedPage } from "@/router/pageLoader"
+import { useLoadedPage } from "@/page/pageLoader"
 import { onPageScriptHotUpdate } from "@/data/studioPageScripts"
 import AppComponent from "@/components/AppComponent.vue"
 

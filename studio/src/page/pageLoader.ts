@@ -2,7 +2,7 @@ import { shallowRef, watch, type ShallowRef } from "vue"
 import { useRouter, type Router, type RouteLocationNormalized } from "vue-router"
 import { fetchAppPage } from "@/utils/helpers"
 import { getBlockInstance } from "@/utils/serializer"
-import { createPageScope, type PageScope } from "@/stores/pageScope"
+import { createPageScope, type PageScope } from "@/page/pageScope"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type Block from "@/utils/block"
 

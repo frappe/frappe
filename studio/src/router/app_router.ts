@@ -7,7 +7,7 @@ import {
 } from "vue-router"
 import { toast } from "frappe-ui"
 import AppPage from "@/pages/AppPage.vue"
-import { loadPage, discardPage } from "@/router/pageLoader"
+import { loadPage, discardPage } from "@/page/pageLoader"
 import NotFound from "@/pages/NotFound.vue"
 import * as globalUtils from "@/utils/globalUtils"
 
