@@ -167,6 +167,7 @@ class TestGridImport(IntegrationTestCase):
 		)
 
 	def test_validate_rows_flags_select_values_outside_the_options(self):
+		frappe.set_user("Administrator")
 		rows = [["Yes"], ["Someday"]]
 		warnings = self.validate("Event", "event_participants", ["Attending"], rows, {0: "attending"})
 
