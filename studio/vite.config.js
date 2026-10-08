@@ -10,6 +10,7 @@ import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
 import frameworkUICodeEditorShim from "./vite/frameworkUICodeEditorShim"
 import lucideStaticAlias from "./vite/lucideStaticAlias"
+import skipBuiltRendererInDevMode from "./vite/skipBuiltRendererInDevMode"
 
 const viteDevServerPort = getViteDevServerPort()
 const appsDir = path.resolve(__dirname, "../../")
@@ -88,6 +89,7 @@ export default defineConfig(async () => {
 			// Root must be the frontend dir
 			sharedDependencyResolver(path.resolve(__dirname)),
 			studioFolderWatcher(appsDir),
+			skipBuiltRendererInDevMode(),
 		],
 		resolve: {
 			alias: [
