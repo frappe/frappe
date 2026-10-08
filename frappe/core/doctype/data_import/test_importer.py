@@ -51,6 +51,14 @@ def _delete_doctype_records(doctype, names):
 	frappe.db.commit()  # nosemgrep
 
 
+def _delete_import_doc(doctype, name):
+	"""Remove an import document and its logs; Importer commits them row by row."""
+	for log in frappe.get_all("Data Import Log", filters={"data_import": name}, pluck="name"):
+		frappe.delete_doc("Data Import Log", log, force=1, ignore_permissions=True)
+	frappe.delete_doc(doctype, name, force=1, ignore_permissions=True)
+	frappe.db.commit()  # nosemgrep
+
+
 def _register_data_import_cleanup(test_case, data_import):
 	test_case.addCleanup(_delete_data_import, data_import.name)
 
@@ -744,7 +752,7 @@ class TestImporter(IntegrationTestCase):
 					"import_file": get_import_file("sample_import_file").file_url,
 				}
 			).insert()
-			self.addCleanup(frappe.db.delete, "Data Import Log", {"data_import": import_doc.name})
+			self.addCleanup(_delete_import_doc, import_doctype, import_doc.name)
 
 			Importer(doctype_name, data_import=import_doc).import_data()
 
