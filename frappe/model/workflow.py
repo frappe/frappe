@@ -239,13 +239,13 @@ def apply_workflow(doc: Document | str | dict, action: str):
 		for async_task in async_tasks:
 			frappe.enqueue(async_task, doc=doc, enqueue_after_commit=True)
 
+	from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+	from frappe.utils.scheduler import is_scheduler_inactive
+
 	new_docstatus = DocStatus(next_state.doc_status or 0)
 	if doc.docstatus.is_draft() and new_docstatus.is_draft():
 		doc.save()
 	elif doc.docstatus.is_draft() and new_docstatus.is_submitted():
-		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-		from frappe.utils.scheduler import is_scheduler_inactive
-
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, "Submit")
 			return
