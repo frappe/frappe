@@ -161,6 +161,11 @@ class TestRunReport(IntegrationTestCase):
 		self.assertEqual(result["total_row"], {"item": "Total", "qty": 325})
 		self.assertEqual(result["row_count"], 25)
 
+		rows = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=200, ctx=CTX)[
+			"rows"
+		]
+		self.assertEqual((len(rows), rows[-1]), (25, {"item": "Item 25", "qty": 25}))
+
 	def test_failed_run_lists_the_filters(self):
 		# frappe's failure log survives the rollback
 		with patch("frappe.log_error"), self.assertRaises(ValueError) as caught:
@@ -200,6 +205,27 @@ class TestRunReport(IntegrationTestCase):
 		with self.assertRaises(ValueError) as caught:
 			run_report(report_name=builder.name, ctx=CTX)
 		self.assertIn("read_records", str(caught.exception))
+
+	def test_query_report_runs(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "query report probe"}).insert()
+		query = self.make_report(
+			"Flow Query Probe",
+			"Query Report",
+			query='select name as "ToDo:Link/ToDo:120", description as "Description:Data:200" '
+			"from tabToDo where description = %(description)s",
+		)
+
+		# a query report opens its own transaction; keep it in the test's
+		with patch.object(frappe.db, "begin"), patch.object(frappe.db, "rollback"):
+			result = run_report(
+				report_name=query.name, filters={"description": "query report probe"}, ctx=CTX
+			)
+
+		self.assertEqual(
+			result["columns"],
+			[{"fieldname": "todo", "label": "ToDo"}, {"fieldname": "description", "label": "Description"}],
+		)
+		self.assertEqual(result["rows"], [{"todo": todo.name, "description": "query report probe"}])
 
 	def test_query_report_needs_its_sql_filters_first(self):
 		# never run it here: a query report opens its own transaction

@@ -183,12 +183,17 @@ def run_report(
 	columns = [
 		{"fieldname": c["fieldname"], "label": c.get("label")} for c in data["columns"] if not c.get("hidden")
 	]
-	rows = [_report_row(row, fieldnames, columns) for row in data["result"] or []]
-	total_row = rows.pop() if data.get("add_total_row") and rows else None
-	result: dict[str, Any] = {"columns": columns, "rows": rows[:limit], "row_count": len(rows)}
-	if total_row:
-		result["total_row"] = total_row
-	if not rows:
+	rows = data["result"] or []
+	total_row = rows[-1] if data.get("add_total_row") and rows else None
+	row_count = len(rows) - 1 if total_row is not None else len(rows)
+	result: dict[str, Any] = {
+		"columns": columns,
+		"rows": [_report_row(row, fieldnames, columns) for row in rows[: min(limit, row_count)]],
+		"row_count": row_count,
+	}
+	if total_row is not None:
+		result["total_row"] = _report_row(total_row, fieldnames, columns)
+	if not row_count:
 		result["available_filters"] = _report_filters(report_name)
 	return result
 
