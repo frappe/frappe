@@ -210,10 +210,6 @@ def create_desktop_icons_for_app(app_name=None):
 
 def delete_desktop_icons_for_app(app_name, dry_run=False):
 	"""Remove an uninstalled app's Desktop Icons."""
-	# `remove_app` fires after_app_uninstall hooks even on a dry run, so respect dry_run
-	# ourselves: preview only, don't touch the database.
-	if dry_run:
-		return
 
 	# Icons are named/labelled by the app's title (Desktop Icon autoname is `field:label`,
 	# set to app_title in create_desktop_icons_from_installed_apps), not the package name --
