@@ -61,18 +61,6 @@ test.describe("List filter", () => {
 	});
 
 	test.describe("Link in, with the combobox", () => {
-		test.beforeAll(async ({ admin }) => {
-			await admin.set_value("System Settings", "System Settings", {
-				enable_combobox_link_field: 1,
-			});
-		});
-
-		test.afterAll(async ({ admin }) => {
-			await admin.set_value("System Settings", "System Settings", {
-				enable_combobox_link_field: 0,
-			});
-		});
-
 		const panel = (page) => page.locator(".es-combobox__panel[data-state='open']");
 		const search = (page) => panel(page).locator(".es-combobox__input");
 
@@ -83,6 +71,8 @@ test.describe("List filter", () => {
 			}) => {
 				await desk.go_to_list("ToDo");
 				await desk.clear_filters();
+				// the combobox for this page only: other tests run with the setting as it is
+				await page.evaluate(() => (frappe.sys_defaults.enable_combobox_link_field = 1));
 				await page.evaluate(
 					(condition) =>
 						cur_list.filter_area.add([
@@ -97,30 +87,40 @@ test.describe("List filter", () => {
 
 				// Tab straight away, while the rows may still be loading
 				await value.click();
-				await search(page).pressSequentially("Lea");
+				await search(page).pressSequentially("Not");
 				await search(page).press("Tab");
 				await expect(panel(page)).toHaveCount(0);
 				expect(await applied(page)).toEqual(kept);
 
 				// the "Use …" row is gone, and a click away drops the text too
 				await value.click();
-				await search(page).pressSequentially("Lea");
-				await expect(panel(page).getByText('Use "Lea"')).toHaveCount(0);
-				await page.locator(".page-head").click();
+				await search(page).pressSequentially("Not");
+				await expect(panel(page).getByText('Use "Not"')).toHaveCount(0);
+				const area = await page.locator(".layout-main-section").boundingBox();
+				await page.mouse.click(area.x + area.width / 2, area.y + area.height - 5);
 				await expect(panel(page)).toHaveCount(0);
 				expect(await applied(page)).toEqual(kept);
 
-				// an exact name still picks its record
+				// an exact name still picks its record (core DocTypes: no app is installed in CI)
 				await expect(page.locator(".filter-popover")).toHaveCount(0);
 				await desk.open_list_filter();
 				await value.click();
-				await search(page).pressSequentially("Lead");
-				// rows loaded, so Tab can match the name
-				await expect(panel(page).getByRole("option").first()).toBeVisible();
+				await search(page).pressSequentially("Note");
+				// the rows have loaded the exact name, so Tab picks it
+				await expect
+					.poll(() =>
+						page.evaluate(
+							() =>
+								!!cur_list.filter_area.filter_list.filters
+									.find((f) => f.field)
+									.field.combobox.match_option("Note")
+						)
+					)
+					.toBe(true);
 				await search(page).press("Tab");
 				await expect
 					.poll(() => applied(page))
-					.toEqual([["reference_type", condition, ["ToDo", "Lead"]]]);
+					.toEqual([["reference_type", condition, ["ToDo", "Note"]]]);
 			});
 		}
 	});

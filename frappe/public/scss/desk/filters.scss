@@ -8,7 +8,7 @@
 		min-width: calc(var(--spacing) * 5);
 		height: calc(var(--spacing) * 5);
 		padding-inline: var(--spacing);
-		border-radius: 5px;
+		border-radius: var(--radius-2);
 		background-color: var(--surface-base);
 		box-shadow: var(--elevation-sm);
 		font-size: var(--text-xs);
@@ -26,8 +26,8 @@
 .filter-popover {
 	// sized by its rows, not a fixed width
 	width: max-content;
-	min-width: min(400px, calc(100vw - 16px));
-	max-width: calc(100vw - 16px);
+	min-width: min(calc(var(--spacing) * 100), calc(100vw - var(--spacing) * 4));
+	max-width: calc(100vw - var(--spacing) * 4);
 	// a classic Link field's awesomplete list hangs out of the panel
 	overflow: visible;
 }
@@ -36,7 +36,7 @@
 	// one grid for every row so the columns line up
 	.filter-edit-area {
 		display: grid;
-		grid-template-columns: auto 140px auto 170px auto;
+		grid-template-columns: auto calc(var(--spacing) * 35) auto calc(var(--spacing) * 42.5) auto;
 		column-gap: calc(var(--spacing) * 2);
 		row-gap: calc(var(--spacing) * 2);
 		align-items: center;
@@ -86,7 +86,7 @@
 			& > [role="listbox"] {
 				min-width: 100%;
 				width: max-content;
-				max-width: 300px;
+				max-width: calc(var(--spacing) * 75);
 			}
 		}
 	}
@@ -156,11 +156,6 @@
 		.es-combobox,
 		.filter-field .form-control {
 			height: calc(var(--spacing) * 10);
-		}
-
-		// a typed value reads like the other two boxes (.bold is an !important utility)
-		.filter-field .form-control.bold {
-			font-weight: var(--font-weight-regular) !important;
 		}
 
 		.condition {

@@ -382,9 +382,11 @@ frappe.ui.Filter = class {
 
 		let df = copy_dict(original_docfield);
 
-		// filter field shouldn't be read only or hidden
+		// filter field shouldn't be read only, hidden, mandatory or bold
 		df.read_only = 0;
 		df.hidden = 0;
+		df.reqd = 0;
+		df.bold = 0;
 		df.is_filter = true;
 		delete df.hidden_due_to_dependency;
 
@@ -482,8 +484,8 @@ frappe.ui.Filter = class {
 			parent: field_area,
 			only_input: true,
 		});
-		// a record picker takes records, never the search text on its own
-		if (RECORD_PICKERS.includes(df.fieldtype)) f.allows_free_text = () => false;
+		// the combobox picker takes records, never the search text on its own
+		if (df.fieldtype === "MultiSelectPills") f.allows_free_text = () => false;
 		f.refresh();
 
 		this.field = f;
