@@ -96,7 +96,7 @@ class TestMcpTransport(McpTestCase):
 		response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
 		self.assertEqual(
 			[tool["name"] for tool in response.json["result"]["tools"]],
-			["discover", "get_documents", "write_document"],
+			["discover", "get_documents", "write_document", "call_method"],
 		)
 
 	def test_origin(self):

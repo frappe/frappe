@@ -50,8 +50,9 @@ class Tool:
 def registry() -> tuple[Tool, ...]:
 	from frappe.mcp.tools.discover import TOOL
 	from frappe.mcp.tools.documents import GET_DOCUMENTS, WRITE_DOCUMENT
+	from frappe.mcp.tools.methods import CALL_METHOD
 
-	return (TOOL, GET_DOCUMENTS, WRITE_DOCUMENT)
+	return (TOOL, GET_DOCUMENTS, WRITE_DOCUMENT, CALL_METHOD)
 
 
 def definitions() -> list[dict]:
