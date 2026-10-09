@@ -229,6 +229,15 @@
     color: var(--ink-gray-4);
 }
 
+/* Owner and date stay dark on locked rows: they can still be edited. */
+.es-checklist .es-checklist__control {
+    color: var(--ink-gray-7);
+}
+
+.es-checklist__owner .es-avatar {
+    margin: 0;
+}
+
 .es-checklist__trigger {
     display: inline-flex;
     align-items: center;
@@ -242,11 +251,17 @@
     white-space: nowrap;
 }
 
-.es-checklist__due .es-checklist__trigger[data-empty] {
+.es-checklist__due .es-checklist__control {
+    margin-inline: calc(var(--spacing) * -2);
+    font-size: var(--text-p-sm);
+}
+
+.es-checklist__due .es-checklist__control[data-empty] {
     color: var(--ink-gray-4);
 }
 
-.es-checklist__item[data-overdue] .es-checklist__due {
+.es-checklist__item[data-overdue] .es-checklist__due,
+.es-checklist__item[data-overdue] .es-checklist__due .es-checklist__control {
     color: var(--ink-red-7);
 }
 

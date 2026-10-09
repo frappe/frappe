@@ -246,7 +246,8 @@ frappe.ui.Checklist = class Checklist {
 			: $(frappe.utils.icon("user-plus", "sm", "", "", "", true));
 		if (!this.opts.on_assign) return user ? face[0] : document.createTextNode("");
 
-		const trigger = this.make_trigger(face, user ? user.fullname : __("Assign"));
+		const trigger = this.make_control(face, user ? user.fullname : __("Assign"));
+		trigger.setAttribute("data-icon-button", "true");
 		this.attach_editor(trigger, item, {
 			fieldtype: "Link",
 			options: "User",
@@ -266,7 +267,7 @@ frappe.ui.Checklist = class Checklist {
 			: "";
 		if (!this.opts.on_due_date_change) return document.createTextNode(text);
 
-		const trigger = this.make_trigger($("<span></span>").text(text), __("Due date"));
+		const trigger = this.make_control($("<span></span>").text(text), __("Due date"));
 		trigger.toggleAttribute("data-empty", !item.due_date);
 		this.attach_editor(trigger, item, {
 			fieldtype: "Date",
@@ -286,6 +287,17 @@ frappe.ui.Checklist = class Checklist {
 		trigger.title = label;
 		trigger.append(...$content.toArray());
 		return trigger;
+	}
+
+	// Owner and date: ghost buttons, so they read as clickable.
+	make_control($content, label) {
+		const control = document.createElement("button");
+		control.className = "es-checklist__control";
+		frappe.ui.button.dress(control, { variant: "ghost" });
+		control.setAttribute("aria-label", label);
+		control.append(...$content.toArray());
+		frappe.ui.tooltip(control, { text: label });
+		return control;
 	}
 
 	// One field in a popover; a change saves through the caller, then updates the row.
