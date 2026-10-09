@@ -800,7 +800,10 @@ def get_linked_docs(
 	limit: int | None = None,
 	order_by: str | None = None,
 ) -> dict[str, list]:
-	"""`filters`, `limit` and `order_by` apply to the documents of each linked doctype."""
+	"""`filters`, `limit` and `order_by` apply to the documents of each linked doctype.
+
+	A filter applies only to linked doctypes that have its field; one that names a doctype
+	(`[doctype, field, operator, value]`) applies only to that doctype."""
 	# additional fields are added in linkinfo
 	linkinfo = frappe.parse_json(linkinfo)
 	filters = frappe.parse_json(filters) or []
@@ -908,7 +911,7 @@ def get_linked_docs(
 			ret = frappe.get_list(
 				doctype=linked_doctype,
 				fields=fields,
-				filters=[*link_filters, *filters],
+				filters=[*link_filters, *get_doctype_filters(linked_doctype_meta, filters)],
 				or_filters=or_filters,
 				distinct=True,
 				order_by=order_by,
@@ -926,6 +929,18 @@ def get_linked_docs(
 		}
 
 	return results
+
+
+def get_doctype_filters(meta, filters: list) -> list:
+	"""The filters that apply to the linked doctype of `meta`."""
+	applicable = []
+	for condition in filters:
+		doctype, fieldname = (
+			(condition[0], condition[1]) if len(condition) == 4 else (meta.name, condition[0])
+		)
+		if doctype == meta.name and (meta.has_field(fieldname) or fieldname in frappe.model.default_fields):
+			applicable.append(condition)
+	return applicable
 
 
 def count_linked_docs(doctype: str, filters: list, or_filters: list, ignore_permissions: bool = False) -> int:
