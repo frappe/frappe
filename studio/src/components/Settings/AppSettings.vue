@@ -8,28 +8,22 @@
 				@update:modelValue="(value: string) => update('app_title', value)"
 			/>
 			<Input
-				label="Route"
-				:description="appURL"
-				:modelValue="app.route"
-				:hideClearButton="true"
-				@update:modelValue="(value: string) => update('route', value)"
-			/>
-		</div>
-		<div class="flex gap-5">
-			<Input
 				type="select"
 				label="App Home"
 				:options="homeOptions"
 				:modelValue="app.app_home"
 				@update:modelValue="(value: string) => update('app_home', value)"
 			/>
-			<div class="w-full" />
 		</div>
-		<div class="flex flex-col gap-3 text-base">
-			<div class="flex">
-				<span class="w-24 text-ink-gray-6">App Name</span>
-				<span class="font-medium text-ink-gray-8">{{ app.app_name || app.name }}</span>
-			</div>
+		<div class="flex gap-5">
+			<Input
+				label="Route"
+				:description="appURL"
+				:modelValue="app.route"
+				:hideClearButton="true"
+				@update:modelValue="(value: string) => update('route', value)"
+			/>
+			<div class="w-full" />
 		</div>
 
 		<hr class="w-full border-outline-gray-2" />
