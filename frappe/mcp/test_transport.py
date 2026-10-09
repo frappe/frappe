@@ -93,9 +93,8 @@ class TestMcpTransport(McpTestCase):
 			self.request({"jsonrpc": "2.0", "id": 1, "method": "missing"}).json["error"]["code"],
 			protocol.METHOD_NOT_FOUND,
 		)
-		self.assertEqual(
-			self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}).json["result"], {"tools": []}
-		)
+		response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
+		self.assertEqual([tool["name"] for tool in response.json["result"]["tools"]], ["discover"])
 
 	def test_origin(self):
 		self.assertEqual(self.ping(headers={"Origin": "https://untrusted.example.com"}).status_code, 403)

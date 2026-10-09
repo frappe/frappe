@@ -41,14 +41,16 @@ class Tool:
 	def definition(self) -> dict:
 		return {
 			"name": self.name,
-			"description": self.description,
+			"description": _(self.description),
 			"inputSchema": self.input_schema,
 			"annotations": self.annotations,
 		}
 
 
 def registry() -> tuple[Tool, ...]:
-	return ()
+	from frappe.mcp.tools.discover import TOOL
+
+	return (TOOL,)
 
 
 def definitions() -> list[dict]:
