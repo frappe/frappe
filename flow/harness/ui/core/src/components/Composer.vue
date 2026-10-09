@@ -414,7 +414,7 @@ function prepareAttachment(item) {
 	const pending = preparationQueue.then(async () => {
 		try {
 			if (!attachments.value.includes(item)) return
-			const prepared = await flow.prepareAttachment(item.file)
+			const prepared = await flow.prepareAttachment(item.file, currentModel.value)
 			Object.assign(item, prepared)
 			if (!attachments.value.includes(item)) discardAttachment(item)
 		} catch (error) {

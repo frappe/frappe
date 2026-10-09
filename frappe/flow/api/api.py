@@ -283,17 +283,18 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 
 
 @frappe.whitelist()
-def attach_file(file: str) -> dict[str, Any]:
+def attach_file(file: str, model: str | None = None) -> dict[str, Any]:
 	"""Validate and extract an uploaded File for use as a chat attachment. Errors
 	(unsupported type, unreadable, not owned) surface here, at upload time. The
-	extracted text is staged in cache; the attachment row is written on send."""
+	extracted text is staged in cache; the attachment row is written on send.
+	`model` is the Flow Model in the picker: an image is OCRed now only if it cannot see it."""
 	if not isinstance(file, str) or not file.strip():
 		frappe.throw(_("File is required."), title=_("Invalid Attachment"))
 
 	frappe.has_permission("Flow Session", "create", throw=True)
 	from flow.flow.doctype.flow_session_attachment.flow_session_attachment import stage_attachment
 
-	return stage_attachment(file.strip())
+	return stage_attachment(file.strip(), model)
 
 
 @frappe.whitelist()
