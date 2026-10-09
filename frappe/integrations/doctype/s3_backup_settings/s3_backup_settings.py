@@ -79,6 +79,8 @@ class S3BackupSettings(Document):
 @frappe.whitelist()
 def take_backup():
 	"""Enqueue longjob for taking backup to s3"""
+	frappe.only_for("System Manager")
+
 	job = enqueue(
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
 		queue="long",
@@ -105,7 +107,6 @@ def take_backups_if(freq):
 			take_backups_s3()
 
 
-@frappe.whitelist()
 def take_backups_s3(retry_count=0):
 	try:
 		validate_file_size()
