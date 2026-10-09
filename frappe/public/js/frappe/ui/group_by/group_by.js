@@ -324,7 +324,7 @@ frappe.ui.GroupBy = class {
 							${__("Add Group")}
 						</span>
 					</button>
-					<button class="btn btn-default btn-sm group-by-x-button hidden" title="${__("Clear Grouping")}">
+					<button class="btn btn-default btn-sm group-by-x-button" title="${__("Clear Grouping")}">
 						<span class="button-icon">
 							${frappe.utils.icon("x")}
 						</span>
@@ -335,7 +335,10 @@ frappe.ui.GroupBy = class {
 
 		this.group_by_button = this.page.wrapper.find(".group-by-button");
 		this.group_by_x_button = this.page.wrapper.find(".group-by-x-button");
-		this.group_by_x_button.on("click", () => this.remove_group_by());
+		this.group_by_x_button.on("click", () => {
+			// without a grouping there is nothing to clear, and removing would reset the columns
+			if (this.group_by) this.remove_group_by();
+		});
 	}
 
 	apply_group_by() {
@@ -552,7 +555,6 @@ frappe.ui.GroupBy = class {
 			.toggleClass("btn-primary-light", group_by_applied);
 
 		this.group_by_button.find(".group-by-icon").toggleClass("active", group_by_applied);
-		this.group_by_x_button.toggleClass("hidden", !group_by_applied);
 
 		this.group_by_button.find(".button-label").html(button_label);
 		this.group_by_button.attr("title", __("Results are Grouped by {0}", [group_by_labels]));
