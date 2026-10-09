@@ -23,7 +23,7 @@ const has_tabs = computed(() => store.form.layout.tabs.length > 1);
 // a Web Form names the page the author is on from page 1; a DocType only grows a strip
 // once it has two tabs
 const has_tab_strip = computed(() => has_tabs.value || store.is_web_form);
-// page 1 is implicit, so a form with one page has no Page Break row to delete
+// a Web Form always has page 1, so its only page cannot be deleted
 const can_remove_tab = computed(() => !store.is_web_form || has_tabs.value);
 store.form.active_tab = store.form.layout.tabs[0].df.name;
 
@@ -130,6 +130,11 @@ function delete_tab_message(tab) {
 
 	return store.tab_text.delete_message;
 }
+
+// an unnamed Web Form page shows its position
+function page_number_label(index) {
+	if (store.is_web_form) return __("Page {0}", [index + 1]);
+}
 </script>
 
 <template>
@@ -144,7 +149,7 @@ function delete_tab_message(tab) {
 			item-key="id"
 			:disabled="store.read_only"
 		>
-			<template #item="{ element }">
+			<template #item="{ element, index }">
 				<div
 					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
@@ -154,12 +159,10 @@ function delete_tab_message(tab) {
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"
 				>
-					<!-- a Page Break row stores no label, so the builder numbers pages by position -->
-					<span v-if="store.is_web_form">{{ element.df.label }}</span>
 					<EditableInput
-						v-else
 						:text="element.df.label"
-						:placeholder="__('Tab Label')"
+						:placeholder="page_number_label(index) || __('Tab Label')"
+						:empty_label="page_number_label(index)"
 						v-model="element.df.label"
 					/>
 					<button
@@ -309,7 +312,8 @@ function delete_tab_message(tab) {
 
 		.remove-tab-btn {
 			position: absolute;
-			right: -2px;
+			// inside the tab, or hovering the last tab overflows the strip and shows a scrollbar
+			right: 0;
 			display: none;
 			padding: 2px;
 		}

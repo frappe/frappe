@@ -123,6 +123,16 @@ def import_file_by_path(
 				get_datetime(doc.get("modified")) <= get_datetime(db_modified_timestamp)
 			)
 
+			# board names are global, so an app's board never replaces a site's own
+			if (
+				not force
+				and doc["doctype"] == "Kanban Board"
+				and db_modified_timestamp
+				and frappe.db.get_value("Kanban Board", doc["name"], "is_standard") != "Yes"
+			):
+				print(f"Skipping {path}: a Kanban Board named {doc['name']} already exists on this site")
+				continue
+
 			if not force and db_modified_timestamp:
 				if stored_hash == calculated_hash:
 					continue
@@ -143,7 +153,7 @@ def import_file_by_path(
 			imported = True
 
 			new_modified_timestamp = doc.get("modified")
-			if is_db_timestamp_latest and doc["doctype"] == "DocType":
+			if is_db_timestamp_latest and doc["doctype"] == "DocType" and not data_import:
 				new_modified_timestamp = now()
 
 			if new_modified_timestamp:

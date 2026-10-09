@@ -111,6 +111,10 @@ class DBTable:
 
 	def validate(self):
 		"""Check if change in varchar length isn't truncating the columns"""
+		if self.meta.get("is_virtual"):
+			return
+
+		validate_table_name_length(self.doctype)
 		if self.is_new():
 			return
 
@@ -212,6 +216,11 @@ class DbColumn:
 		self.precision = precision
 		self.not_nullable = not_nullable
 
+	@property
+	def has_dynamic_default(self) -> bool:
+		"""Whether frappe resolves the default per document (Today, Now, __user, :fieldname, ...)."""
+		return self.default in frappe.db.DEFAULT_SHORTCUTS or cstr(self.default).startswith(":")
+
 	def get_definition(self, for_modification=False):
 		column_def = get_definition(
 			self.fieldtype,
@@ -236,11 +245,7 @@ class DbColumn:
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
 			default = flt(self.default)
 
-		elif (
-			self.default
-			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
-			and not cstr(self.default).startswith(":")
-		):
+		elif self.default and not self.has_dynamic_default:
 			default = frappe.db.escape(self.default)
 
 		if self.not_nullable and null:
@@ -301,11 +306,7 @@ class DbColumn:
 			self.table.drop_unique.append(self)
 
 		# default
-		if (
-			self.default_changed(current_def)
-			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
-			and not cstr(self.default).startswith(":")
-		):
+		if self.default_changed(current_def) and not self.has_dynamic_default:
 			self.table.set_default.append(self)
 
 		# nullability
@@ -412,9 +413,20 @@ def validate_column_name(n):
 	return n
 
 
+def validate_table_name_length(doctype):
+	max_length = frappe.db.MAX_COLUMN_LENGTH - 3
+	if len(doctype) > max_length:
+		frappe.throw(
+			_("Doctype name is limited to {0} characters ({1})").format(max_length, doctype),
+			frappe.NameError,
+		)
+
+
 def validate_column_length(fieldname):
 	if len(fieldname) > frappe.db.MAX_COLUMN_LENGTH:
-		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
+		frappe.throw(
+			_("Fieldname is limited to {0} characters ({1})").format(frappe.db.MAX_COLUMN_LENGTH, fieldname)
+		)
 
 
 def get_definition(fieldtype, precision=None, length=None, *, options=None, duckdb=False):

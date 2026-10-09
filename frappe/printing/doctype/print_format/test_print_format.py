@@ -112,6 +112,12 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 			}
 		).insert()
 		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+		self.addCleanup(
+			lambda: [
+				frappe.delete_doc("Contact", contact, force=True)
+				for contact in frappe.get_all("Contact", {"email_id": user.email}, pluck="name")
+			]
+		)
 		frappe.db.set_value("User", user.name, "last_login", "2026-02-11 09:30:00", update_modified=False)
 		user.reload()
 
@@ -1011,6 +1017,28 @@ class TestPrintFormatDraft(IntegrationTestCase):
 
 		delete_version(self.pf.name, versions[0]["name"])
 		self.assertEqual([v["type"] for v in get_versions(self.pf.name)], ["Save & Apply"])
+
+	def test_published_stamp_moves_on_apply_only(self):
+		from frappe.printing.doctype.print_format.print_format import (
+			apply_draft,
+			delete_version,
+			discard_draft,
+			get_versions,
+			save_draft,
+		)
+
+		save_draft(self.pf.name, {"margin_top": 25}, self.stamp())
+		apply_draft(self.pf.name, self.stamp())
+		published = self.live("published_on", "published_by", "modified")
+		self.assertEqual(published.published_on, published.modified)
+		self.assertEqual(published.published_by, frappe.session.user)
+
+		save_draft(self.pf.name, {"margin_top": 40}, self.stamp())
+		delete_version(self.pf.name, get_versions(self.pf.name)[0]["name"])
+		discard_draft(self.pf.name, self.stamp())
+		live = self.live("published_on", "modified")
+		self.assertEqual(live.published_on, published.published_on)
+		self.assertGreater(live.modified, live.published_on)
 
 	def test_draft_ignores_fields_outside_the_whitelist(self):
 		from frappe.printing.doctype.print_format.print_format import apply_draft, save_draft

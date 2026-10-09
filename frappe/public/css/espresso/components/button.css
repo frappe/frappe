@@ -92,8 +92,12 @@ a.es-button:focus {
     }
 }
 
+/* an open menu or popover keeps its trigger pressed (Dropdown and Popover set
+   aria-haspopup; plain disclosure toggles only set aria-expanded) */
 .es-button:not([data-variant]):active,
-.es-button[data-variant="subtle"]:active {
+.es-button:not([data-variant])[aria-haspopup][aria-expanded="true"],
+.es-button[data-variant="subtle"]:active,
+.es-button[data-variant="subtle"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-fill-bg-active);
 }
 
@@ -153,7 +157,8 @@ a.es-button:focus {
     }
 }
 
-.es-button[data-variant="solid"]:active {
+.es-button[data-variant="solid"]:active,
+.es-button[data-variant="solid"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-solid-bg-active);
 }
 
@@ -169,7 +174,8 @@ a.es-button:focus {
     }
 }
 
-.es-button[data-variant="outline"]:active {
+.es-button[data-variant="outline"]:active,
+.es-button[data-variant="outline"][aria-haspopup][aria-expanded="true"] {
     border-color: var(--bt-border-hover);
     background: var(--bt-outline-bg-active);
 }
@@ -185,7 +191,8 @@ a.es-button:focus {
     }
 }
 
-.es-button[data-variant="ghost"]:active {
+.es-button[data-variant="ghost"]:active,
+.es-button[data-variant="ghost"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-fill-bg-active);
 }
 

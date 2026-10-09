@@ -1504,6 +1504,11 @@ class Database:
 		"""
 		return self.sql_ddl(f"truncate `{get_table_name(doctype)}`")
 
+	def drop_columns(self, doctype: str, columns: list[str]):
+		"""Drop columns from a doctype's table. This runs a DDL command `ALTER TABLE`."""
+		drops = ", ".join(f"DROP `{column}`" for column in columns)
+		self.sql_ddl(f"ALTER TABLE `{get_table_name(doctype)}` {drops}")
+
 	def get_last_created(self, doctype):
 		last_record = self.get_all(doctype, ("creation"), limit=1, order_by="creation desc")
 		if last_record:

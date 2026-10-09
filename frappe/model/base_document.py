@@ -1267,30 +1267,6 @@ class BaseDocument:
 			if data_field_options == "IBAN":
 				validate_iban(data, throw=True)
 
-	def _validate_constants(self):
-		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
-			return
-
-		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": ("=", 1)})]
-		if constants:
-			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
-
-		for fieldname in constants:
-			df = self.meta.get_field(fieldname)
-
-			# This conversion to string only when fieldtype is Date
-			if df.fieldtype == "Date" or df.fieldtype == "Datetime":
-				value = str(values.get(fieldname))
-
-			else:
-				value = values.get(fieldname)
-
-			if self.get(fieldname) != value:
-				frappe.throw(
-					_("Value cannot be changed for {0}").format(self.meta.get_translated_label(fieldname)),
-					frappe.CannotChangeConstantError,
-				)
-
 	def _validate_length(self):
 		if frappe.flags.in_install:
 			return
@@ -1342,8 +1318,11 @@ class BaseDocument:
 		autoname = self.meta.autoname or ""
 		_empty, _field_specifier, fieldname = autoname.partition("field:")
 
-		if fieldname and self.name and self.name != self.get(fieldname):
-			self.set(fieldname, self.name)
+		if fieldname and self.name:
+			df = self.meta.get_field(fieldname)
+			name = self.cast(self.name, df) if df else self.name
+			if name != self.get(fieldname):
+				self.set(fieldname, name)
 
 	def throw_length_exceeded_error(self, df, max_length, value):
 		# check if parentfield exists (only applicable for child table doctype)
@@ -1694,6 +1673,7 @@ RESERVED_KEYWORDS = frozenset(
 		"flags",
 		"_parent_doc",
 		"_doc_before_save",
+		"_action",
 		"dont_update_if_missing",
 		*CACHED_PROPERTIES,
 	)

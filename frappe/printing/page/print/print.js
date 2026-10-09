@@ -123,7 +123,7 @@ frappe.ui.form.PrintView = class {
 		});
 		this.print_format_selector = this.print_format_field.$input;
 
-		this.language_selector = this.add_sidebar_item({
+		this.language_field = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "language",
 			label: __("Language"),
@@ -132,7 +132,8 @@ frappe.ui.form.PrintView = class {
 				this.set_user_lang();
 				this.preview();
 			},
-		}).$input;
+		});
+		this.language_selector = this.language_field.$input;
 
 		let description = "";
 		if (!cint(this.print_settings.repeat_header_footer)) {
@@ -224,7 +225,13 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_breadcrumbs() {
-		frappe.breadcrumbs.add(this.frm.meta.module, this.frm.doctype);
+		const items = frappe.ui.form.get_breadcrumbs(this.frm);
+		// the form is one page back from here, so the document stays a way to reach it
+		items[items.length - 1].href = `/desk/${frappe.router.slug(
+			this.frm.doctype
+		)}/${encodeURIComponent(this.frm.docname)}`;
+		items.push({ label: __("Print") });
+		this.page.set_breadcrumbs(items);
 	}
 
 	setup_additional_settings() {
@@ -354,6 +361,8 @@ frappe.ui.form.PrintView = class {
 				}
 				if (letter_head) {
 					this.letterhead_selector.val(letter_head);
+				} else if (letter_head === "") {
+					this.letterhead_selector.val("");
 				} else {
 					return this.set_default_letterhead();
 				}
@@ -444,14 +453,17 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_user_lang() {
-		this.lang_code = this.language_selector.val();
+		this.lang_code = this.language_field
+			? this.language_field.get_value()
+			: this.language_selector.val();
 	}
 
 	set_default_print_language() {
 		let print_format = this.get_print_format();
 		this.lang_code =
 			this.frm.doc.language || print_format.default_print_language || frappe.boot.lang;
-		this.language_selector.val(this.lang_code);
+		if (this.language_field) this.language_field.set_input(this.lang_code);
+		else this.language_selector.val(this.lang_code);
 	}
 
 	toggle_raw_printing() {

@@ -14,13 +14,15 @@ frappe.data_import.DataExporter = class DataExporter {
 		exporting_for,
 		filetype = "CSV",
 		hide_blank_template = false,
-		provider_schema = null
+		provider_schema = null,
+		local_source = null
 	) {
 		this.doctype = doctype;
 		this.exporting_for = exporting_for;
 		this.hide_blank_template = hide_blank_template;
 		// {fields, child_tables}; when set, the picker reads it instead of DocType meta.
 		this.provider_schema = provider_schema || null;
+		this.local_source = local_source || null;
 		frappe.model.with_doctype(doctype, () => {
 			this.make_dialog(filetype);
 		});
@@ -46,10 +48,9 @@ frappe.data_import.DataExporter = class DataExporter {
 							label: __("All Records"),
 							value: "all",
 						},
-						{
-							label: __("Filtered Records"),
-							value: "by_filter",
-						},
+						...(this.local_source
+							? []
+							: [{ label: __("Filtered Records"), value: "by_filter" }]),
 						{
 							label: __("5 Records"),
 							value: "5_records",
@@ -123,6 +124,11 @@ frappe.data_import.DataExporter = class DataExporter {
 			}
 		}
 
+		if (this.local_source) {
+			this.local_source.download(values, doctype_field_map[this.doctype]);
+			return;
+		}
+
 		let filters = null;
 		if (values.export_records === "by_filter") {
 			filters = this.get_filters();
@@ -184,7 +190,8 @@ frappe.data_import.DataExporter = class DataExporter {
 			  this.get_field_source().groups.map((g) => g.fieldname)
 			: frappe.meta
 					.get_table_fields(this.doctype)
-					.filter((df) => df.reqd)
+					// an optional table can opt in, like a Contact's links, emails and phones
+					.filter((df) => df.reqd || df.in_import_template)
 					.map((df) => df.fieldname)
 					.concat(this.doctype);
 
@@ -217,14 +224,16 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	update_record_count_message() {
+		let local_count = this.local_source?.rows.length;
 		let count_method = {
-			all: () => frappe.db.count(this.doctype),
+			all: () =>
+				this.local_source ? Promise.resolve(local_count) : frappe.db.count(this.doctype),
 			by_filter: () =>
 				frappe.db.count(this.doctype, {
 					filters: this.get_filters(),
 				}),
 			blank_template: () => Promise.resolve(0),
-			"5_records": () => Promise.resolve(5),
+			"5_records": () => Promise.resolve(this.local_source ? Math.min(5, local_count) : 5),
 		};
 
 		let export_records = this.dialog.get_value("export_records");

@@ -4,7 +4,8 @@ from unittest import skipIf
 
 import frappe
 from frappe.contacts.doctype.contact.contact import contact_query, get_full_name
-from frappe.email import get_contact_list
+from frappe.email import get_contact_list, get_recipient_avatars
+from frappe.permissions import add_permission, update_permission_property
 from frappe.tests import IntegrationTestCase, timeout
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Contact", "Salutation"]
@@ -65,6 +66,35 @@ class TestContact(IntegrationTestCase):
 		results = contact_query("Contact", "Contact Query Match", "name", 0, 10, filters)
 		self.assertEqual(results[0][0], contact.name)
 
+	def test_contact_query_without_link_filters(self):
+		contact = create_contact("Unlinked Contact Query", "Mr")
+
+		results = contact_query("Contact", contact.name, "name", 0, 10, {})
+		self.assertEqual(results, [])
+
+	def test_contact_query_with_only_select_permission(self):
+		contact = create_contact("Select Only Contact Query", "Mr", save=False)
+		contact.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		contact.insert()
+
+		role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		add_permission("Contact", role, 0, ptype="select")
+		update_permission_property("Contact", role, 0, "read", 0, validate=False)
+		# "All" grants owner-only read, which would lift the user above select
+		update_permission_property("Contact", "All", 0, "read", 0, validate=False)
+		user = frappe.get_doc(
+			doctype="User",
+			email=f"select-{frappe.generate_hash(length=8)}@example.com",
+			first_name="Select Only",
+			send_welcome_email=0,
+			roles=[{"role": role}],
+		).insert()
+
+		filters = {"link_doctype": "User", "link_name": "Administrator"}
+		with self.set_user(user.name):
+			results = contact_query("Contact", contact.name, "name", 0, 10, filters)
+		self.assertEqual(results[0][0], contact.name)
+
 	def test_contact_query_ranks_company_name_matches(self):
 		later_match = create_contact("A Company Contact", "Mr", save=False)
 		later_match.company_name = "Supplier Company Match"
@@ -107,6 +137,25 @@ class TestContact(IntegrationTestCase):
 		)
 		self.assertEqual(results[0][0], company_name_match.name)
 
+	def test_contact_query_ranks_matches_regardless_of_case(self):
+		later_match = create_contact("A Mixedcase Rank", "Mr", save=False)
+		later_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		later_match.insert()
+
+		prefix_match = create_contact("Mixedcase Rank", "Mr", save=False)
+		prefix_match.append("links", {"link_doctype": "User", "link_name": "Administrator"})
+		prefix_match.insert()
+
+		results = contact_query(
+			"Contact",
+			"mixedcase rank",
+			"full_name",
+			0,
+			1,
+			{"link_doctype": "User", "link_name": "Administrator"},
+		)
+		self.assertEqual(results[0][0], prefix_match.name)
+
 	def test_get_contact_list(self):
 		# First time from database
 		results = get_contact_list("_Test Supplier")
@@ -119,6 +168,62 @@ class TestContact(IntegrationTestCase):
 		self.assertEqual(results[0].label, "test_contact@example.com")
 		self.assertEqual(results[0].value, "test_contact@example.com")
 		self.assertEqual(results[0].description, "_Test Contact For _Test Supplier")
+
+	def test_get_recipient_avatars(self):
+		suffix = frappe.generate_hash(length=8)
+		with_photo = f"avatar-user-{suffix}@example.com"
+		without_photo = f"avatar-nophoto-{suffix}@example.com"
+		contact_only = f"avatar-contact-{suffix}@example.com"
+		unknown = f"avatar-unknown-{suffix}@example.com"
+
+		for email, image in ((with_photo, "/files/user.png"), (without_photo, None)):
+			frappe.get_doc(
+				doctype="User", email=email, first_name="Avatar", user_image=image, send_welcome_email=0
+			).insert()
+
+		for email, image in (
+			(with_photo, "/files/contact-for-user.png"),
+			(without_photo, "/files/contact-for-nophoto.png"),
+			(contact_only, "/files/contact.png"),
+		):
+			contact = create_contact(
+				"Avatar Contact", "Mr", emails=[{"email": email, "is_primary": 1}], save=False
+			)
+			contact.image = image
+			contact.insert()
+
+		def make_caller(can_read_contacts):
+			role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+			if can_read_contacts:
+				add_permission("Contact", role, 0, ptype="read")
+			return frappe.get_doc(
+				doctype="User",
+				email=f"caller-{frappe.generate_hash(length=8)}@example.com",
+				first_name="Caller",
+				send_welcome_email=0,
+				roles=[{"role": role}],
+			).insert()
+
+		emails = frappe.as_json([with_photo.upper(), without_photo, contact_only, unknown])
+
+		with self.set_user(make_caller(can_read_contacts=True).name):
+			result = get_recipient_avatars(emails)
+
+		# a user's own photo is never replaced by a contact's; contacts only fill the gaps
+		self.assertEqual(result["user_info"][with_photo]["image"], "/files/user.png")
+		self.assertEqual(
+			result["contact_images"],
+			{without_photo: "/files/contact-for-nophoto.png", contact_only: "/files/contact.png"},
+		)
+		self.assertNotIn(unknown, result["user_info"])
+
+		# "All" grants owner-only read, which would still count as Contact access
+		update_permission_property("Contact", "All", 0, "read", 0, validate=False)
+		with self.set_user(make_caller(can_read_contacts=False).name):
+			result = get_recipient_avatars(emails)
+
+		self.assertEqual(result["user_info"][with_photo]["image"], "/files/user.png")
+		self.assertEqual(result["contact_images"], {})
 
 	def test_only_one_primary_contact_per_link(self):
 		first_contact = create_contact("First Primary Contact", "Mr", save=False)

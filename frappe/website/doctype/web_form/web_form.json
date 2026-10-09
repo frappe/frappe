@@ -471,7 +471,7 @@
    "label": "Key required"
   }
  ],
- "icon": "icon-edit",
+ "icon": "pencil",
  "is_published_field": "published",
  "links": [
   {

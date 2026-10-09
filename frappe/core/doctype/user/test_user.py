@@ -11,8 +11,11 @@ from werkzeug.http import parse_cookie
 
 import frappe
 import frappe.exceptions
+from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
+	bulk_add_roles,
+	bulk_remove_roles,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -70,6 +73,27 @@ class TestUser(IntegrationTestCase):
 		user.db_set("show_my_space", 1)
 		frappe.clear_cache(user=user.name)
 		self.assertEqual(get_desk_settings().show_my_space, 1)
+
+	def test_dock_pinned_until_floated(self):
+		"""The dock starts pinned beside the sidebar. Floating it off the left edge is a per-user
+		desk toggle, so the desk reads it from the boot's desk settings like the others.
+		"""
+		from frappe.boot import get_desk_settings
+
+		user = frappe.get_doc(
+			doctype="User",
+			email=frappe.generate_hash() + "@example.com",
+			first_name="Dock",
+			roles=[{"role": "_Test Role 2"}],
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_missing=True)
+
+		frappe.set_user(user.name)
+		self.assertEqual(get_desk_settings().dock_mode, "Pinned")
+
+		set_value("User", user.name, "dock_mode", "Floating")
+		frappe.clear_cache(user=user.name)
+		self.assertEqual(get_desk_settings().dock_mode, "Floating")
 
 	def test_user_type(self):
 		user_id = frappe.generate_hash() + "@example.com"
@@ -651,16 +675,36 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(frappe.message_log[0].get("message"), _GENERIC_MSG)
 
 	def test_user_onload_modules(self):
+		"""The editor lists custom modules, and keeps a blocked module even after it is deleted"""
 		from frappe.desk.form.load import getdoc
-		from frappe.utils.modules import get_modules_from_all_apps
 
-		frappe.response.docs = []
-		getdoc("User", "Administrator")
-		doc = frappe.response.docs[0]
-		self.assertListEqual(
-			sorted(doc.get("__onload").get("all_modules", [])),
-			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
-		)
+		for name in ("_Test Site Module", "_Test Gone Module"):
+			frappe.get_doc({"doctype": "Module Def", "module_name": name, "custom": 1}).insert(
+				ignore_if_duplicate=True
+			)
+
+		with test_user(roles=["System Manager"]) as admin, test_user(roles=["_Test Role 2"]) as user:
+			user.append("block_modules", {"module": "_Test Gone Module"})
+			user.save()
+			frappe.delete_doc("Module Def", "_Test Gone Module", force=True)
+			self.assertFalse(frappe.db.exists("Module Def", "_Test Gone Module"))
+
+			with self.set_user(admin.name):
+				frappe.response.docs = []
+				getdoc("User", user.name)
+				all_modules = frappe.response.docs[0].get("__onload").get("all_modules")
+
+		self.assertIn("Core", all_modules)
+		self.assertIn("_Test Site Module", all_modules)
+		self.assertIn("_Test Gone Module", all_modules)
+
+	def test_user_onload_modules_hidden_from_normal_user(self):
+		from frappe.desk.form.load import getdoc
+
+		with test_user(roles=["_Test Role 2"]) as user, self.set_user(user.name):
+			frappe.response.docs = []
+			getdoc("User", user.name)
+			self.assertNotIn("all_modules", frappe.response.docs[0].get("__onload"))
 
 	def test_default_app(self):
 		from frappe.apps import get_default_path
@@ -689,6 +733,81 @@ class TestUser(IntegrationTestCase):
 			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
+
+	def test_bulk_add_roles(self):
+		"""Roles are appended across the selection without disturbing existing ones."""
+		with (
+			test_user(roles=["_Test Role"]) as first,
+			test_user(roles=["Website Manager"]) as second,
+		):
+			bulk_add_roles([first.name, second.name], ["_Test Role 4", "_Test Role"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["_Test Role", "_Test Role 4"])
+			self.assertCountEqual(
+				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "_Test Role"]
+			)
+
+	def test_bulk_remove_roles(self):
+		"""Roles are stripped across the selection, leaving other roles intact."""
+		with (
+			test_user(roles=["_Test Role", "Website Manager"]) as first,
+			test_user(roles=["_Test Role"]) as second,
+		):
+			bulk_remove_roles([first.name, second.name], ["_Test Role", "_Test Role 4"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+			self.assertCountEqual([d.role for d in second.roles], [])
+
+			bulk_remove_roles([], ["Website Manager"])
+			bulk_remove_roles([first.name], [])
+
+			first.reload()
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+
+	def test_bulk_role_endpoints_enqueue_large_batches(self):
+		"""Over 20 users, each endpoint defers to its own background job."""
+		users = [f"bulk{i}@example.com" for i in range(21)]
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_add_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._assign_roles")
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_remove_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._unassign_roles")
+
+	def test_bulk_role_args_are_validated(self):
+		"""Parsed arguments must be lists of plain strings, within the batch cap."""
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([{"name": ["!=", ""]}], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles(["someone@example.com"], [{"role": ["!=", ""]}])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_remove_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+	def test_bulk_role_endpoints_require_write_permission(self):
+		with test_user(roles=["_Test Role 4"]) as actor, test_user(roles=["_Test Role 4"]) as target:
+			with self.set_user(actor.name):
+				with self.assertRaises(frappe.PermissionError):
+					bulk_add_roles([target.name], ["Website Manager"])
+
+				with self.assertRaises(frappe.PermissionError):
+					bulk_remove_roles([target.name], ["_Test Role 4"])
 
 
 class TestImpersonation(FrappeAPITestCase):

@@ -437,6 +437,11 @@ $level-margin-right: 8px;
 	.footnote-area {
 		padding: var(--padding-sm) 0;
 	}
+
+	// clear the home indicator where the page runs under it; 0 everywhere else
+	.list-paging-area {
+		padding-bottom: calc(var(--padding-sm) + env(safe-area-inset-bottom, 0px));
+	}
 }
 
 .progress {
@@ -902,9 +907,7 @@ input.list-header-checkbox {
 }
 
 @media screen and (max-width: 375px) {
-	.navbar-breadcrumbs li:last-child > a {
+	.navbar-breadcrumbs li:last-child .es-breadcrumbs__label {
 		max-width: 105px;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 }

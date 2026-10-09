@@ -188,9 +188,12 @@ class Report(Document):
 		check_safe_sql_query(self.query)
 
 		frappe.db.begin(read_only=True)
-		result = [list(t) for t in frappe.db.sql(self.query, filters)]
-		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
-		frappe.db.rollback()
+		try:
+			result = [list(t) for t in frappe.db.sql(self.query, filters)]
+			columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		finally:
+			# a raised query would leave the transaction open, blocking every later write
+			frappe.db.rollback()
 
 		return [columns, result]
 
@@ -462,17 +465,11 @@ class Report(Document):
 		pf = frappe.db.get_value(
 			"Print Format",
 			self.default_print_format,
-			["report", "print_format_for", "print_format_type", "disabled"],
+			["report", "print_format_for", "disabled"],
 			as_dict=True,
 		)
 
-		if (
-			not pf
-			or pf.report != self.name
-			or pf.print_format_for != "Report"
-			or pf.print_format_type != "JS"
-			or pf.disabled
-		):
+		if not pf or pf.report != self.name or pf.print_format_for != "Report" or pf.disabled:
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
 	def validate_default_letter_head(self):
@@ -550,7 +547,7 @@ def get_group_by_column_field(group_by_args: dict, parent_doctype: str) -> dict:
 	"""
 	field = get_group_by_field(group_by_args)
 
-	return get_aggregate_field_info(field, parent_doctype)
+	return get_aggregate_field_info(field, parent_doctype, group_by_args.get("group_by"))
 
 
 def enable_prepared_report(report: str, site: str):
@@ -562,10 +559,7 @@ def enable_prepared_report(report: str, site: str):
 
 
 def get_permission_query_conditions(user=None):
-	"""Hide Postgres-only diagnostic reports (named with a "Postgres " prefix) from the report
-	list on other database backends, where they raise instead of running.
-
-	Also hide reports whose Has Role table is set but does not include any role held by the
+	"""Hide reports whose Has Role table is set but does not include any role held by the
 	current user — mirroring the gate applied on the run path by get_report_doc()."""
 	user = user or frappe.session.user
 	user_roles = frappe.get_roles(user)
@@ -599,8 +593,6 @@ def get_permission_query_conditions(user=None):
 		)"""
 		return role_condition
 
-	# substr comparison, not LIKE 'Postgres %': a literal % in a permission condition is read as a
-	# printf placeholder when the list query is parameterized, raising "not enough arguments".
 	role_condition = f"""(
 		EXISTS (
 			SELECT 1 FROM `tabCustom Role` cr
@@ -626,15 +618,10 @@ def get_permission_query_conditions(user=None):
 			)
 		)
 	)"""
-	return f"substr(`tabReport`.`name`, 1, 9) != 'Postgres ' AND {role_condition}"
+	return role_condition
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
-	"""Deny document-level access to a Postgres-only report on other backends. Running the report
-	is separately guarded by its execute() raising on non-Postgres. Case-insensitive to match the
-	report list's SQL filter under MariaDB's case-insensitive collation."""
-	if frappe.db.db_type != "postgres" and doc.name and doc.name.lower().startswith("postgres "):
-		return False
 	if ptype in ("read", "report") and not doc.is_permitted(user):
 		return False
 	return True

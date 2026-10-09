@@ -3,6 +3,7 @@
 import "./linked_with";
 import "./form_viewers";
 import "./template_manager";
+import { safe_href } from "../ui/components/utils.js";
 import { ReminderManager } from "./reminders";
 
 frappe.ui.form.Toolbar = class Toolbar {
@@ -697,6 +698,18 @@ frappe.ui.form.Toolbar = class Toolbar {
 				);
 			}
 		}
+
+		// as on the list view's menu
+		const docs = safe_href(this.frm.meta.documentation, "form");
+		if (docs) {
+			this.page.add_dropdown_item({
+				label: __("Documentation"),
+				click: () => window.open(docs, "_blank"),
+				standard: true,
+				parent: this.page.menu,
+				icon_right: "external-link",
+			});
+		}
 	}
 
 	can_repeat() {
@@ -730,9 +743,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		return this.get_docstatus() === 2 && this.frm.perm[0].amend && !this.read_only;
 	}
 	has_workflow() {
-		if (this._has_workflow === undefined)
-			this._has_workflow = frappe.model.has_workflow(this.frm.doctype);
-		return this._has_workflow;
+		return frappe.workflow.has_workflow(this.frm.doc);
 	}
 	get_docstatus() {
 		return cint(this.frm.doc.docstatus);
@@ -841,6 +852,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				frappe
 					.xcall("frappe.model.workflow.can_cancel_document", {
 						doctype: this.frm.doc.doctype,
+						docname: this.frm.doc.name,
 					})
 					.then((can_cancel) => {
 						if (can_cancel) {

@@ -3,7 +3,7 @@
  "allow_import": 1,
  "allow_rename": 1,
  "creation": "2022-01-10 17:29:51.672911",
- "description": "Represents a User in the system.",
+ "description": "Someone who can log in to your site.",
  "doctype": "DocType",
  "documentation": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
  "engine": "InnoDB",
@@ -54,6 +54,7 @@
   "search_bar",
   "notifications",
   "show_my_space",
+  "dock_mode",
   "list_settings_section",
   "bulk_actions",
   "list_sidebar",
@@ -86,6 +87,7 @@
   "email_signature",
   "thread_notify",
   "send_me_a_copy",
+  "send_read_receipt",
   "allowed_in_mentions",
   "user_emails",
   "workspace_section",
@@ -164,6 +166,7 @@
    "bold": 1,
    "fieldname": "last_name",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Last Name",
    "oldfieldname": "last_name",
    "oldfieldtype": "Data"
@@ -182,6 +185,7 @@
    "depends_on": "eval:doc.__islocal",
    "fieldname": "send_welcome_email",
    "fieldtype": "Check",
+   "in_import_template": 1,
    "label": "Send Welcome Email"
   },
   {
@@ -283,6 +287,7 @@
   {
    "fieldname": "mobile_no",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Mobile No",
    "options": "Phone",
    "unique": 1
@@ -409,6 +414,12 @@
    "label": "Send Me A Copy of Outgoing Emails"
   },
   {
+   "default": "0",
+   "fieldname": "send_read_receipt",
+   "fieldtype": "Check",
+   "label": "Send Read Receipt"
+  },
+  {
    "default": "1",
    "fieldname": "allowed_in_mentions",
    "fieldtype": "Check",
@@ -496,6 +507,7 @@
    "description": "If the user has any role checked, then the user becomes a \"System User\". \"System User\" has access to the desktop",
    "fieldname": "user_type",
    "fieldtype": "Link",
+   "in_import_template": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "User Type",
@@ -794,6 +806,14 @@
    "label": "Show My Space"
   },
   {
+   "default": "Pinned",
+   "description": "Pinned sits beside the sidebar. Floating slides in from the left edge.",
+   "fieldname": "dock_mode",
+   "fieldtype": "Select",
+   "label": "Dock",
+   "options": "Floating\nPinned"
+  },
+  {
    "collapsible": 1,
    "fieldname": "list_settings_section",
    "fieldtype": "Section Break",
@@ -932,7 +952,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-09-23 23:32:05.786280",
+ "modified": "2026-10-01 00:45:05.600707",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
