@@ -211,9 +211,15 @@
 	.group-by-box {
 		padding: var(--margin-xs) var(--margin-md) var(--margin-xs) 0;
 
-		.remove-group-by {
+		.remove-group-by-row,
+		.remove-aggregate {
 			line-height: 2em;
 			cursor: pointer;
+		}
+
+		.group-by-actions {
+			gap: var(--margin-sm);
+			margin-bottom: var(--margin-sm);
 		}
 
 		.select-icon .icon {
@@ -363,13 +369,6 @@
 	.group-by-popover {
 		min-width: 100%;
 		margin-left: -5px;
-
-		.group-by-box {
-			.remove-group-by {
-				color: var(--primary);
-				@include get_textstyle("sm", "regular");
-			}
-		}
 	}
 
 	.group-by-box .row > div[class*="col-sm-"] {

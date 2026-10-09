@@ -173,7 +173,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			add_totals_row: this.report_doc.json.add_totals_row,
 			page_length: this.report_doc.json.page_length,
 			column_widths: this.report_doc.json.column_widths,
-			group_by: this.report_doc.json.group_by,
+			group_by:
+				this.report_doc.json.group_by &&
+				this.group_by_control.normalize_settings(this.report_doc.json.group_by),
 			chart_args: this.report_doc.json.chart_args,
 		};
 
@@ -1182,10 +1184,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	build_column(c) {
 		let [fieldname, doctype] = c;
 		let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
+		const is_aggregate_column = /^_aggregate_column(_[0-9]+)?$/.test(fieldname);
 
 		// group by column
-		if (fieldname === "_aggregate_column") {
-			docfield = this.group_by_control.get_group_by_docfield();
+		if (is_aggregate_column) {
+			docfield = this.group_by_control.get_group_by_docfield(fieldname);
 		}
 
 		// child table index column
@@ -1241,7 +1244,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let id = fieldname;
 
 		// child table column
-		if (doctype !== this.doctype && fieldname !== "_aggregate_column") {
+		if (doctype !== this.doctype && !is_aggregate_column) {
 			id = `${doctype}:${fieldname}`;
 		}
 
@@ -1913,10 +1916,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let search_params = super.get_search_params();
 		let config = this.group_by_control.get_settings();
 		if (config) {
-			search_params.append(
-				"_group_by",
-				JSON.stringify([config.group_by, config.aggregate_on, config.aggregate_function])
-			);
+			search_params.append("_group_by", JSON.stringify(config));
 		}
 		return search_params;
 	}
@@ -1925,11 +1925,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (frappe.route_options?._group_by) {
 			try {
 				let config = JSON.parse(frappe.route_options._group_by);
-				this.group_by_control.apply_settings({
-					group_by: config[0],
-					aggregate_on: config[1],
-					aggregate_function: config[2],
-				});
+				if (Array.isArray(config)) {
+					config = {
+						group_by: config[0],
+						aggregate_on: config[1],
+						aggregate_function: config[2],
+					};
+				}
+				this.group_by_control.apply_settings(config);
 				delete frappe.route_options["_group_by"];
 			} catch (e) {
 				console.warn("Failed to parse group by from URL", e);
