@@ -14,7 +14,7 @@
  *     <div class="es-checklist__collapse">
  *       <div class="es-checklist__items">
  *         <div class="es-checklist__item" data-status="pending|done|skipped" data-locked data-overdue>
- *           <span class="es-checklist__marker">(icon, or a status menu button)</span>
+ *           <span class="es-checklist__marker">(icon, a status menu button, or the lock)</span>
  *           <div class="es-checklist__text">
  *             <div class="es-checklist__title"><span class="es-checklist__label">Assign Leave Policy</span></div>
  *             <div class="es-checklist__meta">Standard Policy</div>
@@ -168,6 +168,16 @@
 .es-checklist__marker .icon,
 .es-checklist__owner .icon {
     margin: 0;
+}
+
+.es-checklist__lock {
+    display: flex;
+    border-radius: var(--radius-sm);
+}
+
+.es-checklist__lock:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
 }
 
 .es-checklist__item[data-status="done"] .es-checklist__marker {

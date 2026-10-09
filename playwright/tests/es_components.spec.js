@@ -693,9 +693,11 @@ test.describe("Espresso components", () => {
 			const holiday_list = row(group, "Assign Holiday List");
 
 			await expect(holiday_list).toHaveAttribute("data-locked", "");
-			await expect(holiday_list.locator(".es-checklist__meta")).toHaveText(
+			await expect(holiday_list.locator(".es-checklist__lock")).toHaveAttribute(
+				"aria-label",
 				"Needs: Create Employee"
 			);
+			await expect(holiday_list.locator(".es-checklist__meta")).toHaveText("India 2026");
 			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeDisabled();
 
 			await row(group, "Create Employee").getByRole("button", { name: "Create" }).click();
