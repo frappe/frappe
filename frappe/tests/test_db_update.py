@@ -595,6 +595,31 @@ class TestDBUpdate(IntegrationTestCase):
 			)[0][0]
 		self.assertEqual(length, 64)
 
+	def test_trim_table_drops_every_orphaned_column(self):
+		from frappe.database.schema import add_column
+
+		doctype = new_doctype().insert()
+		table = f"tab{doctype.name}"
+		# the DDL below commits itself, so the table outlives this test's rollback
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f"DROP TABLE IF EXISTS `{table}`")
+		self.addCleanup(doctype.delete)
+
+		orphaned_columns = ["orphan_one", "orphan_two"]
+		for column in orphaned_columns:
+			add_column(doctype.name, column_name=column, fieldtype="Data")
+		# SQLite can't drop an indexed column, so trim has to drop these indexes first
+		frappe.db.sql_ddl(f"CREATE INDEX `{table}_orphan` ON `{table}` (`orphan_one`)")
+		frappe.db.sql_ddl(f"CREATE INDEX `{table}_mixed` ON `{table}` (`some_fieldname`, `orphan_two`)")
+		frappe.db.sql_ddl(f"CREATE INDEX `{table}_kept` ON `{table}` (`some_fieldname`)")
+
+		dropped_columns = frappe.model.meta.trim_table(doctype.name, dry_run=False)
+
+		self.assertCountEqual(dropped_columns, orphaned_columns)
+		for column in orphaned_columns:
+			self.assertFalse(frappe.db.has_column(doctype.name, column))
+		self.assertTrue(frappe.db.has_index(table, f"{table}_kept"))
+
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_generated_column_keeps_unique_index(self):
 		"""A generated column is never a deleted field, so sync must keep its unique index"""
