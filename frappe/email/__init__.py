@@ -16,7 +16,7 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None = None) -> list[dict]:
+def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | list | None = None) -> list[dict]:
 	"""Return email ids for a multiselect field."""
 	if extra_filters:
 		extra_filters = frappe.parse_json(extra_filters)
@@ -51,7 +51,7 @@ def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None 
 
 
 @frappe.whitelist()
-def get_recipient_avatars(emails: str) -> dict:
+def get_recipient_avatars(emails: str | list) -> dict:
 	"""User info for recipients who are users (the same info the comment stream shows),
 	and contact images for the rest. Unknown addresses are absent."""
 	try:
