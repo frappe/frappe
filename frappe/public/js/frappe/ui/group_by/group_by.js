@@ -193,8 +193,13 @@ frappe.ui.GroupBy = class {
 			this.apply_group_by_and_refresh();
 		});
 
-		this.$group_by_area.on("click", ".remove-group-by", () => {
+		this.$group_by_area.on("click", ".clear-group-by", () => {
 			this.remove_group_by();
+			this.group_by_button.popover("hide");
+		});
+
+		this.$group_by_area.on("click", ".apply-group-by", () => {
+			this.group_by_button.popover("hide");
 		});
 	}
 
@@ -310,18 +315,27 @@ frappe.ui.GroupBy = class {
 	make_group_by_button() {
 		this.page.wrapper.find(".sort-selector").before(
 			$(`<div class="group-by-selector">
-				<button class="btn btn-default btn-sm group-by-button ellipsis">
-					<span class="group-by-icon button-icon">
-						${frappe.utils.icon("folder")}
-					</span>
-					<span class="button-label hidden-xs">
-						${__("Add Group")}
-					</span>
-				</button>
+				<div class="btn-group">
+					<button class="btn btn-default btn-sm group-by-button ellipsis">
+						<span class="group-by-icon button-icon">
+							${frappe.utils.icon("folder")}
+						</span>
+						<span class="button-label hidden-xs">
+							${__("Add Group")}
+						</span>
+					</button>
+					<button class="btn btn-default btn-sm group-by-x-button hidden" title="${__("Clear Grouping")}">
+						<span class="button-icon">
+							${frappe.utils.icon("x")}
+						</span>
+					</button>
+				</div>
 			</div>`)
 		);
 
 		this.group_by_button = this.page.wrapper.find(".group-by-button");
+		this.group_by_x_button = this.page.wrapper.find(".group-by-x-button");
+		this.group_by_x_button.on("click", () => this.remove_group_by());
 	}
 
 	apply_group_by() {
@@ -472,6 +486,7 @@ frappe.ui.GroupBy = class {
 		this.report_view.setup_columns();
 		this.original_fields = null;
 		this.report_view.refresh();
+		this.update_group_by_button();
 	}
 
 	get_group_by_fields() {
@@ -537,6 +552,7 @@ frappe.ui.GroupBy = class {
 			.toggleClass("btn-primary-light", group_by_applied);
 
 		this.group_by_button.find(".group-by-icon").toggleClass("active", group_by_applied);
+		this.group_by_x_button.toggleClass("hidden", !group_by_applied);
 
 		this.group_by_button.find(".button-label").html(button_label);
 		this.group_by_button.attr("title", __("Results are Grouped by {0}", [group_by_labels]));

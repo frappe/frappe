@@ -148,7 +148,7 @@
 	}
 }
 
-.group-by-button {
+.group-by-selector .btn-group {
 	margin: 5px;
 }
 
@@ -259,6 +259,7 @@
 		.group-by-actions {
 			display: flex;
 			justify-content: flex-end;
+			gap: var(--margin-xs);
 		}
 	}
 }
