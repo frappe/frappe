@@ -167,31 +167,33 @@ class TestSearch(IntegrationTestCase):
 
 		expected = [title for title in titles if "Depot" in title]
 
-		for query in (None, "frappe.tests.test_search.paginated_query"):
-			with self.subTest(query=query):
-				pages = [
-					[
-						result[0]
-						for result in search_widget(
-							doctype=doctype, txt="Depot", query=query, start=start, page_length=3
-						)
+		with self.as_search_reader():
+			for query in (None, "frappe.tests.test_search.paginated_query"):
+				with self.subTest(query=query):
+					pages = [
+						[
+							result[0]
+							for result in search_widget(
+								doctype=doctype, txt="Depot", query=query, start=start, page_length=3
+							)
+						]
+						for start in (0, 3, 6, 9)
 					]
-					for start in (0, 3, 6, 9)
-				]
 
-				self.assertEqual(pages, [expected[0:3], expected[3:6], expected[6:9], []])
+					self.assertEqual(pages, [expected[0:3], expected[3:6], expected[6:9], []])
 
 	def test_translated_doctype_search_treats_percent_as_wildcard(self):
 		doctype = self.make_translated_search_doctype(
 			[{"title": "Copper Mesh"}, {"title": "Cast Hinge"}, {"title": "Hinge Cast"}]
 		)
 
-		results = search_widget(doctype=doctype, txt="c%s%h")
-		self.assertEqual(sorted(result[0] for result in results), ["Cast Hinge", "Copper Mesh"])
+		with self.as_search_reader():
+			results = search_widget(doctype=doctype, txt="c%s%h")
+			self.assertEqual(sorted(result[0] for result in results), ["Cast Hinge", "Copper Mesh"])
 
-		# `_` matches any one character, as in LIKE
-		results = search_widget(doctype=doctype, txt="c_st h")
-		self.assertEqual([result[0] for result in results], ["Cast Hinge"])
+			# `_` matches any one character, as in LIKE
+			results = search_widget(doctype=doctype, txt="c_st h")
+			self.assertEqual([result[0] for result in results], ["Cast Hinge"])
 
 	def test_like_contains_does_not_backtrack(self):
 		# a regex built from many `%`s backtracks for seconds on a value like this one
@@ -206,9 +208,10 @@ class TestSearch(IntegrationTestCase):
 			]
 		)
 
-		# notes is only displayed, so it must not be matched
-		results = search_widget(doctype=doctype, txt="stone", filter_fields=["notes"], as_dict=True)
-		self.assertEqual([result.name for result in results], ["Granite Block"])
+		with self.as_search_reader():
+			# notes is only displayed, so it must not be matched
+			results = search_widget(doctype=doctype, txt="stone", filter_fields=["notes"], as_dict=True)
+			self.assertEqual([result.name for result in results], ["Granite Block"])
 
 	def test_translated_doctype_search_pages_in_sql_order(self):
 		doctype = self.make_translated_search_doctype(
@@ -224,13 +227,17 @@ class TestSearch(IntegrationTestCase):
 		frappe.db.set_value(doctype, "Old Depot", "idx", 50)
 		frappe.db.set_value(doctype, "Depot Zulu", "idx", 10)
 
-		pages = [
-			[result[0] for result in search_widget(doctype=doctype, txt="depot", start=start, page_length=2)]
-			for start in (0, 2, 4)
-		]
-		self.assertEqual(
-			pages, [["Depot Alpha", "Depot Zulu"], ["Depot Bravo", "Depot Charlie"], ["Old Depot"]]
-		)
+		with self.as_search_reader():
+			pages = [
+				[
+					result[0]
+					for result in search_widget(doctype=doctype, txt="depot", start=start, page_length=2)
+				]
+				for start in (0, 2, 4)
+			]
+			self.assertEqual(
+				pages, [["Depot Alpha", "Depot Zulu"], ["Depot Bravo", "Depot Charlie"], ["Old Depot"]]
+			)
 
 	def test_translated_doctype_custom_query_matches_value_in_query_order(self):
 		doctype = self.make_translated_search_doctype(
@@ -243,18 +250,30 @@ class TestSearch(IntegrationTestCase):
 		)
 		query = "frappe.tests.test_search.category_query"
 
-		# only the value column is matched, in the query's order (Z to A), then paged
-		pages = [
-			[
-				row[0]
-				for row in search_widget(doctype=doctype, txt="box", query=query, start=start, page_length=1)
+		with self.as_search_reader():
+			# only the value column is matched, in the query's order (Z to A), then paged
+			pages = [
+				[
+					row[0]
+					for row in search_widget(
+						doctype=doctype, txt="box", query=query, start=start, page_length=1
+					)
+				]
+				for start in (0, 1)
 			]
-			for start in (0, 1)
-		]
-		self.assertEqual(pages, [["Box Depot"], []])
+			self.assertEqual(pages, [["Box Depot"], []])
 
-		results = search_widget(doctype=doctype, txt="depot", query=query)
-		self.assertEqual([row[0] for row in results], ["Depot Zulu", "Depot Alpha", "Box Depot"])
+			results = search_widget(doctype=doctype, txt="depot", query=query)
+			self.assertEqual([row[0] for row in results], ["Depot Zulu", "Depot Alpha", "Box Depot"])
+
+	def as_search_reader(self):
+		"""Run as a normal user, who can read the translated search doctype."""
+		email = "translated-search-reader@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": "Search Reader", "send_welcome_email": 0}
+			).insert(ignore_permissions=True)
+		return self.set_user(email)
 
 	def make_translated_search_doctype(self, records: list[dict]) -> str:
 		doctype = "Test Translated Search"
@@ -265,6 +284,7 @@ class TestSearch(IntegrationTestCase):
 			translated_doctype=1,
 			autoname="field:title",
 			search_fields="category",
+			permissions=[{"role": "All", "read": 1}],
 			sort_field="sequence",
 			sort_order="ASC",
 			fields=[
@@ -1132,7 +1152,7 @@ def category_query(
 	start: int,
 	page_len: int,
 	filters: str | list | dict[str, Any],
-):
+) -> list[tuple]:
 	table = frappe.qb.DocType(doctype)
 	query = (
 		frappe.qb.from_(table).select(table.name, table.category).orderby(table.name, order=frappe.qb.desc)
