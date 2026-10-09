@@ -209,24 +209,56 @@
 	@include get_textstyle("base", "regular");
 
 	.group-by-box {
-		padding: var(--margin-xs) var(--margin-md) var(--margin-xs) 0;
+		padding: var(--padding-xs) 0;
+
+		.group-by-section + .group-by-section {
+			margin-top: var(--margin-md);
+		}
+
+		.group-by-section-label {
+			margin-bottom: var(--margin-xs);
+			color: var(--text-muted);
+			@include get_textstyle("sm", "medium");
+		}
+
+		.group-by-row {
+			display: flex;
+			align-items: center;
+			gap: var(--margin-sm);
+			margin-bottom: var(--margin-xs);
+
+			.group-by,
+			.aggregate-on {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.aggregate-function {
+				flex: 0 0 120px;
+			}
+		}
 
 		.remove-group-by-row,
 		.remove-aggregate {
-			line-height: 2em;
-			cursor: pointer;
+			padding: var(--padding-xs);
+			color: var(--text-muted);
+			box-shadow: none;
+		}
+
+		.add-group-by,
+		.add-aggregate {
+			padding-left: 0;
+			box-shadow: none;
+		}
+
+		.divider {
+			margin: var(--margin-sm) 0;
+			background-color: var(--border-color);
 		}
 
 		.group-by-actions {
-			gap: var(--margin-sm);
-			margin-bottom: var(--margin-sm);
-		}
-
-		.select-icon .icon {
-			position: absolute;
-			top: 7px;
-			right: 12px;
-			pointer-events: none;
+			display: flex;
+			justify-content: flex-end;
 		}
 	}
 }
@@ -355,11 +387,6 @@
 
 // for sm and above
 @include media-breakpoint-up(xs) {
-	.group-by-box .row > div[class*="col-sm-"] {
-		padding-right: 0px;
-		margin-bottom: 0;
-	}
-
 	.frappe-control {
 		position: relative;
 	}
@@ -369,10 +396,6 @@
 	.group-by-popover {
 		min-width: 100%;
 		margin-left: -5px;
-	}
-
-	.group-by-box .row > div[class*="col-sm-"] {
-		margin-bottom: 5px;
 	}
 }
 

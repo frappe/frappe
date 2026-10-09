@@ -1,7 +1,8 @@
 <div class="group-by-box">
-	{% for (var i = 0; i < group_bys.length; i++) { %}
-	<div class="list_groupby row" data-idx="{{ i }}">
-		<div class="col-sm-11 col-xs-10 form-group">
+	<div class="group-by-section">
+		<div class="group-by-section-label">{{ __("Group By") }}</div>
+		{% for (var i = 0; i < group_bys.length; i++) { %}
+		<div class="group-by-row" data-idx="{{ i }}">
 			<select class="group-by form-control input-xs" aria-label="{{ __("Group By") }}">
 				<option value="" disabled {{ group_bys[i].fieldname ? "" : "selected" }}>{{ __("Select Group By...") }}</option>
 				{% for (var parent_doctype in group_by_conditions) { %}
@@ -18,67 +19,57 @@
 					{% } %}
 				{% } %}
 			</select>
-		</div>
-		<div class="groupby-actions col-sm-1 col-xs-2">
-			{% if (grouped) { %}
-			<span class="remove-group-by-row" title="{{ __("Remove") }}">
+			<button class="btn btn-xs btn-link remove-group-by-row {{ grouped ? "" : "invisible" }}" title="{{ __("Remove") }}" aria-label="{{ __("Remove") }}">
 				{{ frappe.utils.icon("x", "sm") }}
-			</span>
-			{% } %}
-		</div>
-	</div>
-	{% } %}
-	{% if (grouped) { %}
-		{% for (var i = 0; i < aggregates.length; i++) { %}
-		<div class="list_aggregate row" data-idx="{{ i }}">
-			<div class="col-sm-4 col-xs-12 form-group">
-				<select class="aggregate-function form-control input-xs" aria-label="{{ __("Aggregate Function") }}">
-					{% for (var condition of aggregate_function_conditions) { %}
-					<option value="{{condition.name}}" {{ aggregates[i].aggregate_function == condition.name ? "selected" : "" }}>
-						{{ condition.label }}
-					</option>
-					{% } %}
-				</select>
-			</div>
-			<div class="col-sm-7 col-xs-10 form-group">
-				{% if (aggregates[i].aggregate_function != "count") { %}
-				<select class="aggregate-on form-control input-xs" aria-label="{{ __("Aggregate On") }}">
-					<option value="" disabled {{ aggregates[i].aggregate_on_field ? "" : "selected" }}>{{ __("Select Field...") }}</option>
-					{% for (var field of aggregate_on_options) { %}
-					<option
-						data-doctype="{{field.doctype}}"
-						value="{{field.fieldname}}"
-						{{ aggregates[i].aggregate_on_doctype == field.doctype && aggregates[i].aggregate_on_field == field.fieldname ? "selected" : "" }}
-					>
-						{{ field.label }}
-					</option>
-					{% } %}
-				</select>
-				{% } %}
-			</div>
-			<div class="groupby-actions col-sm-1 col-xs-2">
-				{% if (aggregates.length > 1) { %}
-				<span class="remove-aggregate" title="{{ __("Remove") }}">
-					{{ frappe.utils.icon("x", "sm") }}
-				</span>
-				{% } %}
-			</div>
+			</button>
 		</div>
 		{% } %}
-	{% } %}
-	<div class="group-by-actions flex justify-between align-center">
-		<div>
-			<button class="btn btn-xs btn-default add-group-by">
-				{{ frappe.utils.icon("plus", "xs") }} {{ __("Add Group By") }}
-			</button>
-			{% if (grouped) { %}
-			<button class="btn btn-xs btn-default add-aggregate">
-				{{ frappe.utils.icon("plus", "xs") }} {{ __("Add Aggregate") }}
-			</button>
-			{% } %}
-		</div>
 		{% if (grouped) { %}
-		<button class="btn btn-xs btn-default remove-group-by">{{ __("Remove") }}</button>
+		<button class="btn btn-xs btn-link text-muted add-group-by">
+			{{ frappe.utils.icon("plus", "xs") }} {{ __("Add Group By") }}
+		</button>
 		{% } %}
 	</div>
+	{% if (grouped) { %}
+	<div class="group-by-section">
+		<div class="group-by-section-label">{{ __("Aggregate") }}</div>
+		{% for (var i = 0; i < aggregates.length; i++) { %}
+		<div class="group-by-row" data-idx="{{ i }}">
+			<select class="aggregate-function form-control input-xs" aria-label="{{ __("Aggregate Function") }}">
+				{% for (var condition of aggregate_function_conditions) { %}
+				<option value="{{condition.name}}" {{ aggregates[i].aggregate_function == condition.name ? "selected" : "" }}>
+					{{ condition.label }}
+				</option>
+				{% } %}
+			</select>
+			{% if (aggregates[i].aggregate_function != "count") { %}
+			<select class="aggregate-on form-control input-xs" aria-label="{{ __("Aggregate On") }}">
+				<option value="" disabled {{ aggregates[i].aggregate_on_field ? "" : "selected" }}>{{ __("Select Field...") }}</option>
+				{% for (var field of aggregate_on_options) { %}
+				<option
+					data-doctype="{{field.doctype}}"
+					value="{{field.fieldname}}"
+					{{ aggregates[i].aggregate_on_doctype == field.doctype && aggregates[i].aggregate_on_field == field.fieldname ? "selected" : "" }}
+				>
+					{{ field.label }}
+				</option>
+				{% } %}
+			</select>
+			{% } else { %}
+			<div class="flex-1"></div>
+			{% } %}
+			<button class="btn btn-xs btn-link remove-aggregate {{ aggregates.length > 1 ? "" : "invisible" }}" title="{{ __("Remove") }}" aria-label="{{ __("Remove") }}">
+				{{ frappe.utils.icon("x", "sm") }}
+			</button>
+		</div>
+		{% } %}
+		<button class="btn btn-xs btn-link text-muted add-aggregate">
+			{{ frappe.utils.icon("plus", "xs") }} {{ __("Add Aggregate") }}
+		</button>
+	</div>
+	<hr class="divider">
+	<div class="group-by-actions">
+		<button class="btn btn-xs btn-secondary remove-group-by">{{ __("Remove Grouping") }}</button>
+	</div>
+	{% } %}
 </div>

@@ -100,7 +100,7 @@ frappe.ui.GroupBy = class {
 	}
 
 	set_group_by_events() {
-		const get_idx = (e) => cint($(e.target).closest(".row").attr("data-idx"));
+		const get_idx = (e) => cint($(e.target).closest("[data-idx]").attr("data-idx"));
 
 		this.$group_by_area.on("change", "select.group-by", (e) => {
 			const was_grouped = this.get_group_bys().length > 0;
