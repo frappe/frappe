@@ -224,3 +224,19 @@ test("the chat list offers the next page on demand and asks for it past the last
 	);
 	assert.equal(loadMore(), undefined, "a short page is the last");
 });
+
+test("a chat the user may only view shows no composer", async (t) => {
+	await router.replace("/s/theirs");
+	transport.answers["flow.api.session"] = { ...session, name: "theirs", read_only: true };
+	t.after(() => (transport.answers["flow.api.session"] = session));
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(FlowPage, { boot }).use(router);
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	await until(() => el.textContent.includes("Only the owner of this chat can send messages."));
+	assert.equal(el.querySelector("textarea"), null);
+});
