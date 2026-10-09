@@ -1,0 +1,14 @@
+{
+ "creation": "2026-10-10 12:00:00.000000",
+ "css": ".print-format-doc.print-format-doc--standard .section-label {\n\tfont-size: 0.95em;\n\tcolor: #fff;\n\tbackground-color: #171717;\n\tborder-bottom: none;\n\tborder-radius: 4px;\n\tpadding: 0.4em 0.65em;\n\tmargin-bottom: 0.75em;\n}\n.print-format-doc.print-format-doc--standard .child-table .table thead th {\n\tcolor: #fff !important;\n}\n.print-format-doc.print-format-doc--standard .print-heading h2 {\n\tfont-weight: 700;\n}\n",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Print Style",
+ "idx": 0,
+ "modified": "2026-10-10 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Bold",
+ "owner": "Administrator",
+ "print_style_name": "Bold",
+ "standard": 1
+}
