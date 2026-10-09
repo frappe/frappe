@@ -48,6 +48,9 @@ def build_lookup_from_mappings(
 		# Resolve DocType: explicit on row, else caller default, else child-table parenttype.
 		ref = row.reference_doctype or reference_doctype or row.parenttype
 		source, target = normalize_source_value(row.source_value), (row.target_value or "").strip()
+		if not target and cint(row.create_new) and cint(row.can_create):
+			# created under its own name when the import runs
+			target = source
 		# Ignore incomplete mappings — they must not block or remap anything.
 		if not (ref and row.fieldname and source and target):
 			continue
@@ -65,9 +68,54 @@ def build_lookup_for_data_import(
 	rows = frappe.get_all(
 		"Data Import Value Mapping",
 		filters={"parent": data_import_name},
-		fields=["fieldname", "parent_field", "source_value", "target_value"],
+		fields=["fieldname", "parent_field", "source_value", "target_value", "create_new", "can_create"],
 	)
 	return build_lookup_from_mappings(rows, reference_doctype)
+
+
+def get_create_field(doctype: str) -> str | None:
+	"""Field a ``doctype`` record is named by when one can be made from a file value alone, else None.
+
+	Only doctypes named by a field, with no other required field lacking a default,
+	that the user may create.
+	"""
+	from frappe.model import no_value_fields
+
+	meta = frappe.get_meta(doctype)
+	if meta.issingle or meta.istable or not (meta.autoname or "").startswith("field:"):
+		return None
+	fieldname = meta.autoname[len("field:") :].strip()
+	for df in meta.fields:
+		if df.reqd and df.fieldname != fieldname and df.default in INVALID_VALUES:
+			if df.fieldtype not in no_value_fields:
+				return None
+	if not frappe.has_permission(doctype, "create"):
+		return None
+	return fieldname
+
+
+def create_missing_link_records(data_import) -> None:
+	"""Insert the Link records the user chose to create, before any row is imported.
+
+	A record that fails to insert is left out; its rows then fail with the usual link error.
+	"""
+	for row in data_import.get("value_mappings") or []:
+		if (row.target_value or "").strip() or not (cint(row.create_new) and cint(row.can_create)):
+			continue
+		value = normalize_source_value(row.source_value)
+		fieldname = get_create_field(row.link_doctype)
+		if not fieldname or frappe.db.exists(row.link_doctype, value):
+			continue
+		try:
+			frappe.get_doc({"doctype": row.link_doctype, fieldname: value}).insert()
+			frappe.db.commit()
+		except Exception:
+			frappe.db.rollback()
+			frappe.clear_messages()
+			frappe.logger("data_import").error(
+				f"Data Import {data_import.name}: could not create {row.link_doctype} {value}",
+				exc_info=True,
+			)
 
 
 def get_skipped_row_numbers(data_import) -> set[int]:
@@ -211,6 +259,7 @@ def get_mapping_hints(import_file, reference_doctype: str, lookup: dict) -> dict
 		field_map = get_field_map(col, lookup, reference_doctype)
 		parent_field = get_parent_field(col.df) or ""
 		select_options = get_select_options(col.df) if col.df.fieldtype == "Select" else []
+		can_create = col.df.fieldtype == "Link" and bool(get_create_field(col.df.options))
 
 		hints[cstr(col.column_number)] = [
 			{
@@ -220,6 +269,7 @@ def get_mapping_hints(import_file, reference_doctype: str, lookup: dict) -> dict
 				"fieldtype": col.df.fieldtype,
 				"link_doctype": col.df.options if col.df.fieldtype == "Link" else None,
 				"select_options": select_options,
+				"can_create": can_create,
 				"source_value": item["source"],
 				"rows": item["rows"],
 				"target_value": field_map.get(normalize_source_value(item["source"])),
@@ -298,6 +348,8 @@ def child_row_from_hint(item: dict, columns: dict) -> dict:
 		"fieldtype": item.fieldtype,
 		"link_doctype": item.link_doctype,
 		"select_options": "\n".join(select_options) if select_options else "",
+		"can_create": 1 if item.can_create else 0,
+		"create_new": 0,
 		"source_value": item.source_value,
 		"target_value": item.target_value or "",
 		"row_numbers": json.dumps(rows),
@@ -320,15 +372,15 @@ def sync_value_mappings(doc, import_file, lookup: dict | None = None) -> bool:
 			return True
 		return False
 
-	existing_targets = {
-		mapping_row_key(row): (row.target_value or "").strip() for row in (doc.get("value_mappings") or [])
-	}
+	existing = {mapping_row_key(row): row for row in (doc.get("value_mappings") or [])}
 	new_rows = []
 	for item in items:
 		key = mapping_row_key(item)
 		data = child_row_from_hint(item, columns)
-		target_value = existing_targets.get(key) or (item.get("target_value") or "")
-		data["target_value"] = target_value
+		row = existing.get(key)
+		if row:
+			data["target_value"] = (row.target_value or "").strip()
+			data["create_new"] = cint(row.create_new) if data["can_create"] else 0
 		new_rows.append(data)
 
 	current_rows = [
@@ -341,6 +393,8 @@ def sync_value_mappings(doc, import_file, lookup: dict | None = None) -> bool:
 			"fieldtype": row.fieldtype,
 			"link_doctype": row.link_doctype,
 			"select_options": row.select_options,
+			"can_create": cint(row.can_create),
+			"create_new": cint(row.create_new),
 			"target_value": row.target_value or "",
 			"row_numbers": row.row_numbers,
 			"no_of_rows": row.no_of_rows,
