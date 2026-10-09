@@ -195,15 +195,15 @@ commands.register({
 	icon: "lucide-settings",
 	group: "General",
 	condition: () => Boolean(store.activeApp),
-	action: () => (store.showAppDialog = true),
+	action: () => store.openSettings("app"),
 })
 
 commands.register({
-	name: "studio-settings",
-	title: "Studio Settings",
+	name: "editor-settings",
+	title: "Editor Settings",
 	icon: "lucide-sliders-vertical",
 	group: "General",
-	action: () => (store.showStudioSettingsDialog = true),
+	action: () => store.openSettings("editor"),
 })
 
 commands.register({

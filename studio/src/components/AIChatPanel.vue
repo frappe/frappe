@@ -15,9 +15,9 @@
 
 		<div v-if="!isAIEnabled" class="flex flex-1 flex-col items-start gap-3 p-4">
 			<p class="text-p-xs text-ink-gray-6">
-				Configure an AI API key in Studio Settings to use the AI assistant.
+				Configure an AI API key in Editor Settings to use the AI assistant.
 			</p>
-			<Button variant="subtle" label="Open Settings" @click="store.showStudioSettingsDialog = true" />
+			<Button variant="subtle" label="Open Settings" @click="store.openSettings('editor')" />
 		</div>
 
 		<div v-else ref="messagesEl" class="no-scrollbar flex-1 space-y-4 overflow-y-auto px-4 py-4">

@@ -25,6 +25,7 @@ import type {
 	LeftPanelOptions,
 	RightPanelOptions,
 	leftPanelComponentTabOptions,
+	SettingsTab,
 	StudioMode,
 } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
@@ -54,10 +55,15 @@ const useStudioStore = defineStore("store", () => {
 
 	// dialogs
 	const showSearchBlock = ref(false)
-	const showStudioSettingsDialog = ref(false)
+	const showSettingsDialog = ref(false)
+	const settingsTab = ref<SettingsTab>("app")
 	const showPageOptions = ref(false)
-	const showAppDialog = ref(false)
 	const showShortcutsDialog = ref(false)
+
+	function openSettings(tab: SettingsTab) {
+		settingsTab.value = tab
+		showSettingsDialog.value = true
+	}
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -751,8 +757,9 @@ const useStudioStore = defineStore("store", () => {
 		activeLayers,
 		// dialogs
 		showSearchBlock,
-		showStudioSettingsDialog,
-		showAppDialog,
+		showSettingsDialog,
+		settingsTab,
+		openSettings,
 		showShortcutsDialog,
 		showPageOptions,
 		// studio app

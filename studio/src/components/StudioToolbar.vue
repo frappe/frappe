@@ -38,14 +38,9 @@
 						hideLabel: true,
 						options: [
 							{
-								label: 'App Settings',
+								label: 'Settings',
 								icon: 'lucide-settings',
-								onClick: () => (store.showAppDialog = true),
-							},
-							{
-								label: 'Studio Settings',
-								icon: 'lucide-sliders-vertical',
-								onClick: () => (store.showStudioSettingsDialog = true),
+								onClick: () => store.openSettings('app'),
 							},
 							{
 								label: 'Keyboard Shortcuts',
@@ -172,12 +167,7 @@
 			</Button>
 			<PublishButton :disabled="canvasStore.showFragmentCanvas" />
 		</div>
-		<AppDialog
-			v-model:showDialog="store.showAppDialog"
-			:app="store.activeApp"
-			@update="(app: StudioApp) => store.setApp(app.name)"
-		/>
-		<StudioSettingsDialog v-model:showDialog="store.showStudioSettingsDialog" />
+		<SettingsDialog />
 	</div>
 </template>
 
@@ -191,14 +181,12 @@ import PageOptions from "@/components/PageOptions.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import ExportAppDialog from "@/components/ExportAppDialog.vue"
 import PublishButton from "@/components/PublishButton.vue"
-import StudioSettingsDialog from "@/components/StudioSettingsDialog.vue"
-import AppDialog from "@/components/AppDialog.vue"
+import SettingsDialog from "@/components/Settings/SettingsDialog.vue"
 
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
 import { isObjectEmpty, openAppInDesk, openPageInDesk } from "@/utils/helpers"
-import { StudioApp } from "@/types/Studio/StudioApp"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
