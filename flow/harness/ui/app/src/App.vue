@@ -60,19 +60,23 @@ const token = ref("")
 const error = ref("")
 const checking = ref(false)
 const starting = ref(true)
+let attempt = 0 // the newest attempt wins; an older one's late answer is dropped
 
 async function tryConnect(config, { silent = false } = {}) {
-	checking.value = true
+	const own = ++attempt
+	// the silent startup check never locks the form, so a stuck daemon can be replaced
+	if (!silent) checking.value = true
 	error.value = ""
 	const client = new DaemonClient(config)
 	try {
 		await client.health()
+		if (own !== attempt) return
 		localStorage.setItem(CONNECTION_KEY, JSON.stringify(config))
 		store.value = createFlowStore(client)
 	} catch (err) {
-		if (!silent) error.value = err?.message ?? "Could not reach the daemon."
+		if (own === attempt && !silent) error.value = err?.message ?? "Could not reach the daemon."
 	} finally {
-		checking.value = false
+		if (own === attempt) checking.value = false
 	}
 }
 
