@@ -148,6 +148,8 @@ test.describe("Report View group by button", () => {
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
 		await page.goto("/desk/report-group-by-label/view/report");
 		await expect.poll(() => page.evaluate(() => window.cur_list?.view_name)).toBe("Report");
+		// let the ungrouped first load finish so its response cannot overwrite the grouped rows
+		await expect(page.locator(".dt-row-0")).toBeVisible();
 
 		const totals = await page.evaluate(async () => {
 			const amount = "`tabReport Group By Label`.`amount`";
