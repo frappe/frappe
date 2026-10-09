@@ -240,3 +240,26 @@ test("a chat the user may only view shows no composer", async (t) => {
 	await until(() => el.textContent.includes("Only the owner of this chat can send messages."));
 	assert.equal(el.querySelector("textarea"), null);
 });
+
+test("the thumbs show under a finished run, but not in a chat the user may only view", async (t) => {
+	const FeedbackBar = await loadComponent("chat/FeedbackBar.vue");
+	for (const [readOnly, buttons] of [
+		[false, 2],
+		[true, 0],
+	]) {
+		const el = document.createElement("div");
+		document.body.append(el);
+		const app = createApp(FeedbackBar, { turnKey: "turn:1" });
+		app.provide("flow", { state: { sessionId: "S1" } });
+		app.provide("flowPage", {
+			state: { readOnly: { S1: readOnly } },
+			runForTurn: () => ({ name: "R1", status: "Completed" }),
+		});
+		app.mount(el);
+		t.after(() => {
+			app.unmount();
+			el.remove();
+		});
+		assert.equal(el.querySelectorAll("button").length, buttons);
+	}
+});
