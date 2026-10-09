@@ -1,141 +1,107 @@
 <template>
-	<div class="flex min-h-0 flex-col text-base py-5 w-[90%] lg:w-[700px] mx-auto">
-		<div class="flex items-center justify-between">
-			<div>
-				<div class="text-lg font-semibold mb-1 text-ink-gray-9">Data Import</div>
-				<div class="text-ink-gray-6 leading-5">
-					Import data into your system using CSV files.
-				</div>
+	<div class="mx-auto flex min-h-0 w-full max-w-[700px] flex-col gap-5 px-4 py-5 text-base">
+		<div class="flex items-center justify-between gap-4">
+			<div class="text-ink-gray-6">
+				{{ t("Import data into your system using CSV files.") }}
 			</div>
-			<Button variant="solid" @click="showModal = true">
-				<template #prefix>
-					<LucidePlus class="size-4 stroke-1.5" />
-				</template>
-				Import
-			</Button>
+			<Button
+				variant="solid"
+				:label="t('Import')"
+				icon-left="lucide-plus"
+				@click="emit('new')"
+			/>
 		</div>
 
-		<div class="flex items-center space-x-2 my-5">
+		<div class="flex items-center gap-2">
 			<FormControl
 				v-model="search"
-				placeholder="Search imported files"
+				:placeholder="t('Search imported files')"
 				type="text"
 				class="flex-1"
 			/>
 			<div class="w-44 shrink-0">
-				<FormControl v-model="importStatus" type="select" :options="importOptions" />
+				<FormControl v-model="status" type="select" :options="statusOptions" />
 			</div>
 		</div>
 
-		<div v-if="dataImports.data?.length" class="overflow-y-scroll">
-			<div class="divide-y">
+		<div v-if="rows.length" class="flex flex-col gap-5 overflow-y-auto">
+			<div class="flex flex-col divide-y divide-outline-gray-1">
 				<div
-					class="grid grid-cols-[75%,20%] lg:grid-cols-[85%,20%] items-center text-sm text-ink-gray-5 py-1.5 mx-2 my-0.5 px-1"
+					class="grid grid-cols-[1fr_7rem_8rem] items-center px-3 py-1.5 text-sm text-ink-gray-6"
 				>
-					<div>Name</div>
-					<div class="pl-1">Status</div>
+					<div>{{ t("Document Type") }}</div>
+					<div>{{ t("Import Type") }}</div>
+					<div class="ps-1">{{ t("Status") }}</div>
 				</div>
 				<div
-					v-for="dataImport in dataImports.data"
-					@click="() => redirectToImport(dataImport.name!)"
-					class="grid grid-cols-[75%,20%] lg:grid-cols-[85%,20%] items-center cursor-pointer py-2.5 px-1 mx-2"
+					v-for="row in rows"
+					:key="row.name"
+					class="grid cursor-pointer grid-cols-[1fr_7rem_8rem] items-center px-3 py-2.5"
+					@click="emit('open', row.name)"
 				>
-					<div class="space-y-1">
-						<div class="text-ink-gray-7">
-							{{ dataImport.reference_doctype }}
+					<div class="flex flex-col gap-1">
+						<div class="text-ink-gray-8">
+							{{ row.reference_doctype }}
 						</div>
-						<div class="text-ink-gray-5">
-							{{ dayjs(dataImport.creation).fromNow() }}
+						<div class="text-ink-gray-6">
+							{{ dayjs(row.creation).fromNow() }}
 						</div>
 					</div>
+					<div class="text-ink-gray-8">{{ importTypeLabel(row.import_type) }}</div>
 					<Badge
-						:label="dataImport.status"
-						:theme="getBadgeColor(dataImport.status) as BadgeProps['theme']"
+						:label="t(row.status)"
+						:theme="getBadgeColor(row.status) as BadgeProps['theme']"
 						class="w-fit"
 					/>
 				</div>
 			</div>
-			<div class="my-5 flex justify-center">
-				<Button v-if="props.dataImports.hasNextPage" @click="props.dataImports.next?.()">
-					<template #prefix>
-						<LucideRefreshCw class="size-4 stroke-1.5" />
-					</template>
-					Load More
-				</Button>
+			<div v-if="hasNextPage" class="flex justify-center">
+				<Button :label="t('Load More')" icon-left="lucide-refresh-cw" @click="loadMore" />
 			</div>
 		</div>
-		<div v-else class="text-sm italic text-ink-gray-5 mt-5">No data imports found.</div>
-		<Dialog
-			v-model="showModal"
-			:options="{
-				title: 'New Data Import',
-				actions: [
-					{
-						label: 'Continue',
-						variant: 'solid',
-						onClick({ close }) {
-							createDataImport(close);
-						},
-					},
-				],
-			}"
-		>
-			<template #body-content>
-				<div class="space-y-4">
-					<Link
-						v-model="doctypeForImport"
-						doctype="DocType"
-						:filters="{
-							allow_import: 1,
-						}"
-						label="Choose a Document Type to import"
-					/>
-					<div class="space-y-1.5">
-						<FormControl
-							type="select"
-							v-model="importType"
-							:options="importTypeOptions"
-							:label="t('Import type')"
-						/>
-						<div class="text-p-sm text-ink-gray-5 leading-4">
-							{{ importTypeDescription }}
-						</div>
-					</div>
-				</div>
-			</template>
-		</Dialog>
+		<div v-else-if="!loading" class="text-ink-gray-6">
+			{{ t("No data imports found.") }}
+		</div>
 	</div>
 </template>
+
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { useRouter } from "vue-router";
-import type { DataImports, DataImport } from "./types";
-import { Badge, Button, Dialog, FormControl, dayjs, toast } from "frappe-ui";
+import { computed } from "vue";
+import { Badge, Button, FormControl, dayjs } from "frappe-ui";
 import type { BadgeProps } from "frappe-ui";
-import LucidePlus from "~icons/lucide/plus";
-import LucideRefreshCw from "~icons/lucide/refresh-cw";
-import { Link } from "../Link";
 import { getBadgeColor } from "./dataImport";
+import { t } from "./translate";
+import type { DataImportType } from "./types";
+import type { DataImportListStatus, UseDataImportList } from "./useDataImportList";
 
-const search = ref("");
-const importStatus = ref("All");
-const showModal = ref(false);
-const doctypeForImport = ref<string | null>(null);
-const importType = ref("Insert New Records");
+const props = defineProps<{ list: UseDataImportList }>();
+const emit = defineEmits<{ open: [name: string]; new: [] }>();
 
-// This library ships no i18n of its own; read the host translator at call time.
-function t(message: string): string {
-	const translate = (globalThis as { __?: (m: string) => string }).__;
-	return typeof translate === "function" ? translate(message) : message;
-}
+const { search, status, rows, loading, hasNextPage, loadMore } = props.list;
 
+<<<<<<< HEAD
 const importTypeOptions = [
 	{ label: t("Insert New Records"), value: "Insert New Records" },
 	{ label: t("Update Existing Records"), value: "Update Existing Records" },
 ];
+=======
+const statusOptions = computed(() => {
+	const statuses: DataImportListStatus[] = [
+		"All",
+		"Pending",
+		"In Progress",
+		"Success",
+		"Partial Success",
+		"Error",
+		"Timed Out",
+	];
+	return statuses.map((value) => ({ label: t(value), value }));
+});
+>>>>>>> 47ce96e (refactor(ui)!: rebuild DataImport to match the Desk import wizard)
 
-const importTypeDescription = computed(() => {
+function importTypeLabel(importType: DataImportType) {
 	return {
+<<<<<<< HEAD
 		"Insert New Records": t("Add new records. Existing records are not changed."),
 		"Update Existing Records": t(
 			"Update records that already exist. Each row must include the record's ID (name)."
@@ -198,4 +164,11 @@ const redirectToImport = (importName: string) => {
 		},
 	});
 };
+=======
+		"Insert New Records": t("Insert"),
+		"Update Existing Records": t("Update"),
+		"Insert or Update Records": t("Upsert"),
+	}[importType];
+}
+>>>>>>> 47ce96e (refactor(ui)!: rebuild DataImport to match the Desk import wizard)
 </script>
