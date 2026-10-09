@@ -331,18 +331,23 @@ async function saveCustom() {
 	}
 }
 
+// only the newest reload lands, so an older answer can't end its loading or replace its list
+let reloadRequest = 0
 async function reload() {
+	const own = ++reloadRequest
 	loading.value = true
 	try {
-		rows.value = (await flow.client.providers()).providers
+		const { providers } = await flow.client.providers()
+		if (own !== reloadRequest) return
+		rows.value = providers
 		// the custom-setup row is synthetic and never in the server's list
 		if (selected.value && !selected.value.custom_setup) {
 			selected.value = rows.value.find((p) => p.id === selected.value.id) ?? null
 		}
 	} catch (error) {
-		flow.notify(error.message, "error")
+		if (own === reloadRequest) flow.notify(error.message, "error")
 	} finally {
-		loading.value = false
+		if (own === reloadRequest) loading.value = false
 	}
 }
 reload()

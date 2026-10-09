@@ -51,6 +51,8 @@ import { onMounted, ref } from "vue"
 import { DaemonClient, FlowChat, LoadingState, createFlowStore } from "@flow/ui-core"
 
 const CONNECTION_KEY = "flow.ui.connection"
+// past this, a slow or stuck daemon gets the form back while the check goes on
+const STARTUP_WAIT_MS = 3000
 
 const store = ref(null)
 const baseUrl = ref("")
@@ -89,7 +91,9 @@ onMounted(async () => {
 		baseUrl.value = saved.baseUrl ?? ""
 		token.value = saved.token ?? ""
 	}
+	const showForm = setTimeout(() => (starting.value = false), STARTUP_WAIT_MS)
 	await tryConnect(saved ?? { baseUrl: "", token: "" }, { silent: true })
+	clearTimeout(showForm)
 	starting.value = false
 })
 </script>

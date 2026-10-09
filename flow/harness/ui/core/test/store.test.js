@@ -200,6 +200,24 @@ test("the model list is marked loading while models are fetched", async () => {
 	assert.equal(flow.state.models.length, 1)
 })
 
+test("only the latest model refresh ends the loading and fills the list", async () => {
+	const answers = []
+	const flow = createFlowStore({ models: () => new Promise((resolve) => answers.push(resolve)) })
+	const first = flow.refreshModels()
+	const second = flow.refreshModels()
+	answers[0]({ models: [{ name: "old/model", provider: "old" }] })
+	await first
+	assert.equal(flow.state.modelsLoading, true)
+	assert.deepEqual(flow.state.models, [])
+	answers[1]({ models: [{ name: "new/model", provider: "new" }] })
+	await second
+	assert.equal(flow.state.modelsLoading, false)
+	assert.deepEqual(
+		flow.state.models.map((model) => model.name),
+		["new/model"],
+	)
+})
+
 test("a chat being opened waits for its own model, and an effort picked meanwhile changes no model", async () => {
 	let respond
 	const changes = []

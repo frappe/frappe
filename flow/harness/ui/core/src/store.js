@@ -247,9 +247,13 @@ export function createFlowStore(client, options = {}) {
 		return refreshSessions({ query })
 	}
 
+	// only the newest request lands, so an older answer can't end its loading or replace its list
+	let modelsRequest = 0
 	async function refreshModels() {
+		const own = ++modelsRequest
 		state.modelsLoading = true
 		const data = await guard(() => client.models())
+		if (own !== modelsRequest) return
 		state.modelsLoading = false
 		if (data) {
 			state.models = data.models
