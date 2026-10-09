@@ -1,7 +1,6 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from "frappe-datatable";
-import DataManager from "frappe-datatable/src/datamanager";
 
 // Expose DataTable globally to allow customizations.
 window.DataTable = DataTable;
@@ -1226,33 +1225,32 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
-			const base_data_manager =
-				datatable_options.overrideComponents?.DataManager || DataManager;
-			class TreeSortDataManager extends base_data_manager {
-				_sortRows(col_index, sort_order) {
-					super._sortRows(col_index, sort_order);
-					if (this.options.treeView) {
-						this.rowViewOrder = get_sorted_tree_row_indices(
-							this.rows,
-							this.rowViewOrder
+			class TreeSortDataTable extends window.DataTable {
+				initializeComponents() {
+					super.initializeComponents();
+					const data_manager = this.datamanager;
+					const sort_rows = data_manager.sortRows;
+					data_manager.sortRows = async (col_index, sort_order) => {
+						await sort_rows(col_index, sort_order);
+						if (!data_manager.options.treeView) return;
+
+						data_manager.rowViewOrder = get_sorted_tree_row_indices(
+							data_manager.rows,
+							data_manager.rowViewOrder
 						);
-						if (this.hasColumnById("_rowIndex")) {
-							const serial_number_column_index =
-								this.getColumnIndexById("_rowIndex");
-							this.rowViewOrder.forEach((row_index, view_index) => {
-								const cell = this.rows[row_index][serial_number_column_index];
-								cell.content = String(view_index + 1);
-								cell.html = null;
-							});
-						}
-					}
+						if (!data_manager.hasColumnById("_rowIndex")) return;
+
+						const serial_number_column_index =
+							data_manager.getColumnIndexById("_rowIndex");
+						data_manager.rowViewOrder.forEach((row_index, view_index) => {
+							const cell = data_manager.rows[row_index][serial_number_column_index];
+							cell.content = String(view_index + 1);
+							cell.html = null;
+						});
+					};
 				}
 			}
-			datatable_options.overrideComponents = {
-				...datatable_options.overrideComponents,
-				DataManager: TreeSortDataManager,
-			};
-			this.datatable = new window.DataTable(this.$report[0], datatable_options);
+			this.datatable = new TreeSortDataTable(this.$report[0], datatable_options);
 		}
 
 		if (typeof this.report_settings.initial_depth == "number") {
