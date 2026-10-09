@@ -712,15 +712,23 @@ test.describe("Espresso components", () => {
 			await expect(row(group, "Create User")).not.toHaveAttribute("data-overdue", "");
 		});
 
-		test("skipping fills the bar but is counted apart from done", async ({ page }) => {
+		test("skipping from the row menu fills the bar, and the skip can be undone", async ({
+			page,
+		}) => {
 			const group = explorer_group(page, "Basic");
+			const invite = row(group, "Invite users");
+			const menu_item = (label) => page.locator(".es-menu__item", { hasText: label });
 
-			await row(group, "Invite users").getByRole("button", { name: "Skip" }).click();
-			await expect(row(group, "Invite users")).toHaveAttribute("data-status", "skipped");
-			await expect(row(group, "Invite users").locator(".es-checklist__meta")).toHaveText(
-				"Skipped"
-			);
+			await expect(invite.getByRole("button", { name: "Skip" })).toHaveCount(0);
+			await invite.locator(".es-checklist__menu").click();
+			await menu_item("Skip").click();
+			await expect(invite).toHaveAttribute("data-status", "skipped");
 			await expect(count(group)).toHaveText("1 of 2 done, 1 skipped");
+
+			await invite.locator(".es-checklist__menu").click();
+			await menu_item("Undo skip").click();
+			await expect(invite).toHaveAttribute("data-status", "pending");
+			await expect(count(group)).toHaveText("1 of 2 done");
 		});
 
 		test("owners and due dates are editable only when the caller can save them", async ({

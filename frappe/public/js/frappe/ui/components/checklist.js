@@ -18,7 +18,7 @@ frappe.provide("frappe.ui");
  * @property {string} [assignee] User ID of the person who owns the item.
  * @property {string} [due_date] Date the item is due, as YYYY-MM-DD. Past and unfinished shows as overdue.
  * @property {ChecklistAction[]} [actions] Buttons at the end of the row.
- * @property {boolean} [skippable] Shows a Skip button while the item is pending.
+ * @property {boolean} [skippable] Offers Skip, and Undo skip once skipped, in the row's ... menu.
  * @property {boolean} [optional] Shows an Optional badge and leaves the item out of progress, unless every item is optional.
  * @property {string} [locked] Why the item can't be done yet. Shown on the lock icon's tooltip; the actions are disabled, Skip stays available.
  *
@@ -26,6 +26,7 @@ frappe.provide("frappe.ui");
  * @property {string} title Translated text in the card's head.
  * @property {ChecklistItem[]} items
  * @property {(item:ChecklistItem, checklist:Checklist)=>void|Promise} [on_skip] Runs before an item is marked skipped; reject to keep it pending.
+ * @property {(item:ChecklistItem, checklist:Checklist)=>void|Promise} [on_unskip] Runs before a skip is undone; reject to keep it skipped.
  * @property {(item:ChecklistItem, user:string|null)=>void|Promise} [on_assign] Makes the assignee editable; runs before the item changes, reject to keep the old one.
  * @property {(item:ChecklistItem, date:string|null)=>void|Promise} [on_due_date_change] Makes the due date editable, the same way.
  * @property {(item:ChecklistItem, status:string|null)=>void|Promise} [on_status_change] Makes an unfinished item's marker a menu to set it In Progress or Stuck, or clear that; finishing stays with the caller.
@@ -348,15 +349,7 @@ frappe.ui.Checklist = class Checklist {
 
 	make_actions(item, locked) {
 		const buttons = [];
-		if (item.skippable && !this.is_finished(item)) {
-			buttons.push(
-				frappe.ui.button({
-					label: __("Skip"),
-					variant: "ghost",
-					onclick: () => this.skip(item),
-				})
-			);
-		}
+		if (item.skippable && !item.done) buttons.push(this.make_menu(item));
 		for (const action of item.actions || []) {
 			buttons.push(
 				frappe.ui.button({
@@ -371,9 +364,34 @@ frappe.ui.Checklist = class Checklist {
 		return buttons.map(($button) => $button[0]);
 	}
 
+	// Skip sits behind a click, so it isn't hit by accident; a skip can be undone.
+	make_menu(item) {
+		const $button = frappe.ui.button({
+			variant: "ghost",
+			icon: "ellipsis",
+			tooltip: __("More actions"),
+			css_class: "es-checklist__menu",
+		});
+		new frappe.ui.Dropdown({
+			trigger: $button,
+			align: "end",
+			options: () =>
+				item.skipped
+					? [{ label: __("Undo skip"), onclick: () => this.unskip(item) }]
+					: [{ label: __("Skip"), onclick: () => this.skip(item) }],
+		});
+		return $button;
+	}
+
 	skip(item) {
 		return Promise.resolve(this.opts.on_skip?.(item, this)).then(() =>
 			this.update_item(item.id, { skipped: true })
+		);
+	}
+
+	unskip(item) {
+		return Promise.resolve(this.opts.on_unskip?.(item, this)).then(() =>
+			this.update_item(item.id, { skipped: false })
 		);
 	}
 
