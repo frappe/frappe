@@ -15,6 +15,8 @@ frappe.provide("frappe.ui");
  * @property {number} [max] Minimum axis maximum; expands to fit the largest value.
  * @property {function} [format] (value) -> string, for the end labels and axis ticks.
  * @property {string} [color] Bar colour: any CSS colour or token, e.g. var(--green-600). Defaults to the first chart colour.
+ * @property {string} [name] Series name shown in the hover tooltip, e.g. "Outstanding".
+ * @property {function} [tooltip_format] (value) -> string, for the hover tooltip; defaults to `format`.
  * @property {number} [label_width=96] Width of the label gutter, in px.
  * @property {boolean} [values_on_hover=false] Hide clickable row values until hovered or focused; static rows keep values visible.
  * @property {function} [onclick] (item) -> void. Makes each row a button.
@@ -39,6 +41,8 @@ frappe.ui.bar_list = function ({
 	max,
 	format,
 	color,
+	name,
+	tooltip_format,
 	label_width,
 	values_on_hover,
 	onclick,
@@ -67,6 +71,7 @@ frappe.ui.bar_list = function ({
 
 	const $rows = $('<div class="es-bar-list__rows">').appendTo($plot);
 	items.forEach((it) => $rows.append(build_row(it, { at, format, color, onclick })));
+	bind_tooltip($root, $rows, { color, name, format: tooltip_format || format });
 
 	const $axis = $('<div class="es-bar-list__axis">').appendTo($plot);
 	ticks.forEach((t) => {
@@ -80,7 +85,7 @@ frappe.ui.bar_list = function ({
 };
 
 function build_row(item, { at, format, color, onclick }) {
-	const $row = $('<div class="es-bar-list__row">');
+	const $row = $('<div class="es-bar-list__row">').data("item", item);
 	if (onclick) {
 		make_activatable($row.addClass("es-bar-list__row--clickable"), () => onclick(item));
 	}
@@ -95,6 +100,52 @@ function build_row(item, { at, format, color, onclick }) {
 		.text(item.formatted != null ? item.formatted : format(item.value))
 		.appendTo($row);
 	return $row;
+}
+
+function bind_tooltip($root, $rows, opts) {
+	const $tip = $('<div class="es-bar-list__tip">').appendTo($root);
+	$rows
+		.on("mouseenter", ".es-bar-list__row", function () {
+			fill_tip($tip, $(this).data("item"), opts);
+			place_tip($root, $tip, $(this));
+		})
+		.on("mouseleave", ".es-bar-list__row", () => $tip.removeClass("is-visible"));
+}
+
+function fill_tip($tip, item, { color, name, format }) {
+	$tip.empty()
+		.append($('<div class="es-bar-list__tip-title">').text(item.label))
+		.append(
+			$('<div class="es-bar-list__tip-row">')
+				.append(
+					$('<span class="es-bar-list__tip-dot">').css(
+						"background-color",
+						color || CHART_PALETTE[0]
+					)
+				)
+				.append(name ? $('<span class="es-bar-list__tip-name">').text(name) : null)
+				.append($("<b>").text(format(item.value)))
+		)
+		.addClass("is-visible");
+}
+
+function place_tip($root, $tip, $row) {
+	const gap = 12;
+	const root = $root[0].getBoundingClientRect();
+	const row = $row[0].getBoundingClientRect();
+	const bar = $row.find(".es-bar-list__bar")[0].getBoundingClientRect();
+	const rtl = getComputedStyle($root[0]).direction === "rtl";
+	const end = rtl ? bar.left : bar.right;
+	const width = $tip.outerWidth();
+	const outward = rtl
+		? end - gap - width >= 0
+		: end + gap + width <= document.documentElement.clientWidth;
+	const to_right = rtl ? !outward : outward;
+	$tip.css({
+		left: end - root.left + (to_right ? gap : -gap),
+		top: row.top - root.top + row.height / 2,
+		transform: to_right ? "translateY(-50%)" : "translate(-100%, -50%)",
+	});
 }
 
 /* A "nice" number near `range` (1, 2 or 5 × 10^n) so ticks land on round values. */
