@@ -269,7 +269,7 @@ def apply_workflow(doc: Document | str | dict, action: str):
 
 
 @frappe.whitelist()
-def can_cancel_document(doctype: str, docname: str | None = None):
+def can_cancel_document(doctype: str, docname: str | int | None = None):
 	doc = None
 	if docname:
 		# doctype level first, so a caller without read access cannot probe for names
