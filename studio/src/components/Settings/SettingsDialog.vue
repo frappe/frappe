@@ -23,9 +23,9 @@
 				<div class="relative flex flex-1 flex-col gap-5 overflow-hidden bg-surface-base p-14 pl-16 pr-12 pb-0">
 					<div class="flex flex-col gap-2">
 						<h2 class="text-xl-semibold leading-none text-ink-gray-9">{{ activeTab.title }}</h2>
-						<p v-if="activeTab.description" class="text-base text-ink-gray-5">{{ activeTab.description() }}</p>
+						<component v-if="activeTab.subtitle" :is="activeTab.subtitle" />
 					</div>
-					<Button icon="lucide-x" variant="subtle" class="absolute right-5 top-5" @click="close" />
+					<Button icon="lucide-x" size="xs" variant="subtle" class="absolute right-5 top-5" @click="close" />
 					<div class="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-4">
 						<component :is="activeTab.component" class="pb-16" />
 					</div>
@@ -39,6 +39,7 @@
 import { computed } from "vue"
 import { Button, Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
+import AppName from "@/components/Settings/AppName.vue"
 import AppSettings from "@/components/Settings/AppSettings.vue"
 import PagesSettings from "@/components/Settings/PagesSettings.vue"
 import AISettings from "@/components/Settings/AISettings.vue"
@@ -50,7 +51,7 @@ type Tab = {
 	name: SettingsTab
 	label: string
 	title: string
-	description?: () => string | undefined
+	subtitle?: object
 	icon: string
 	component: object
 }
@@ -60,7 +61,7 @@ const tabs: Tab[] = [
 		name: "app",
 		label: "App",
 		title: "App",
-		description: () => store.activeApp?.app_name || store.activeApp?.name,
+		subtitle: AppName,
 		icon: "lucide-app-window",
 		component: AppSettings,
 	},

@@ -1,6 +1,7 @@
 import { pinia } from "../support/component"
 
 import { setActivePinia } from "pinia"
+import { createMemoryHistory, createRouter } from "vue-router"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
 
@@ -10,6 +11,7 @@ import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
 const APP_NAME = "cypress-settings"
+const RENAMED_APP = "cypress-settings-renamed"
 const PRE_LOGIN_FETCHES = ["frappe.client.get_list", "frappe.client.get"]
 // a 1x1 transparent PNG
 const FAVICON = Cypress.Buffer.from(
@@ -21,6 +23,7 @@ describe("settings dialog", () => {
 	let store: ReturnType<typeof useStudioStore>
 	let aboutPage: StudioPage
 	let contactPage: StudioPage
+	let router: ReturnType<typeof editorRouter>
 
 	// the app's auto-loaded resources fetch on import, before the spec has logged in
 	before(() => {
@@ -30,6 +33,7 @@ describe("settings dialog", () => {
 	after(() => {
 		cy.login()
 		cy.remove_doc("Studio App", APP_NAME, true)
+		cy.remove_doc("Studio App", RENAMED_APP, true)
 	})
 
 	beforeEach(() => {
@@ -40,11 +44,16 @@ describe("settings dialog", () => {
 		cy.login()
 		cy.intercept("/api/method/frappe.client.set_value").as("save")
 		cy.remove_doc("Studio App", APP_NAME, true)
+		cy.remove_doc("Studio App", RENAMED_APP, true)
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Settings" })
 		cy.insert_doc("Studio Page", { studio_app: APP_NAME, page_title: "About" }).then((page) => (aboutPage = page))
 		cy.insert_doc("Studio Page", { studio_app: APP_NAME, page_title: "Contact" }).then((page) => (contactPage = page))
 		cy.wrap(null).then(() => store.setApp(APP_NAME))
-		cy.mount(SettingsDialog, { global: { plugins: [pinia, resourcesPlugin] } })
+		cy.wrap(null).then(() => {
+			router = editorRouter()
+			return router.push({ name: "StudioPage", params: { appID: APP_NAME, pageID: aboutPage.name } })
+		})
+		cy.then(() => cy.mount(SettingsDialog, { global: { plugins: [pinia, resourcesPlugin, router] } }))
 	})
 
 	it("saves the title when it changes", () => {
@@ -128,6 +137,32 @@ describe("settings dialog", () => {
 		cy.window().then((win) => delete win.is_developer_mode)
 	})
 
+	it("renames the app and moves the editor to its new URL", () => {
+		cy.intercept("/api/method/run_doc_method").as("rename")
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.get('button[aria-label="Rename App"]').click()
+		cy.contains("label", "App Name").parent().find("input").clear().type(RENAMED_APP)
+		cy.contains("button", "Rename").click()
+		cy.wait("@rename")
+		// the dialog closes once the renamed app has fully loaded
+		cy.contains("label", "App Name").should("not.exist")
+		cy.get_doc("Studio App", RENAMED_APP).its("data.app_name").should("eq", RENAMED_APP)
+		cy.wrap(null).should(() => {
+			expect(router.currentRoute.value.params.appID).to.eq(RENAMED_APP)
+			expect(router.currentRoute.value.params.pageID).to.eq(aboutPage.name)
+			expect(store.activeApp?.name).to.eq(RENAMED_APP)
+		})
+	})
+
+	it("shows why a rename was refused", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.get('button[aria-label="Rename App"]').click()
+		cy.contains("label", "App Name").parent().find("input").clear().type("Not Valid")
+		cy.contains("button", "Rename").click()
+		cy.contains("App Name can only have lowercase letters").should("be.visible")
+		cy.wrap(null).should(() => expect(router.currentRoute.value.params.appID).to.eq(APP_NAME))
+	})
+
 	it("opens on the requested tab", () => {
 		cy.wrap(null).then(() => store.openSettings("ai"))
 		cy.contains("label", "OpenRouter API Key").should("be.visible")
@@ -139,3 +174,10 @@ describe("settings dialog", () => {
 		return cy.get(`[role=switch][aria-label="Allow guest access to ${pageTitle}"]`)
 	}
 })
+
+function editorRouter() {
+	return createRouter({
+		history: createMemoryHistory(),
+		routes: [{ path: "/app/:appID/:pageID", name: "StudioPage", component: { render: () => null } }],
+	})
+}
