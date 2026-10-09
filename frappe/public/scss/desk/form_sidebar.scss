@@ -196,13 +196,13 @@
 
 		.sidebar-image-edit {
 			position: absolute;
-			right: -4px;
-			bottom: -4px;
+			right: calc(var(--spacing) * -1);
+			bottom: calc(var(--spacing) * -1);
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			width: 24px;
-			height: 24px;
+			width: calc(var(--spacing) * 6);
+			height: calc(var(--spacing) * 6);
 			border: 1px solid var(--outline-gray-2);
 			border-radius: var(--radius-full);
 			background: var(--surface-base);
