@@ -272,12 +272,8 @@
     gap: calc(var(--spacing) * 2);
 }
 
-.es-checklist__editor {
-    width: calc(var(--spacing) * 64);
-    padding: calc(var(--spacing) * 3);
-}
-
-.es-checklist__editor .frappe-control {
+.es-checklist__editor .frappe-control,
+.es-checklist__editor .form-group {
     margin-bottom: 0;
 }
 
