@@ -21,7 +21,7 @@
 					</div>
 				</div>
 				<div class="relative flex flex-1 flex-col gap-5 overflow-hidden bg-surface-base p-14 pl-16 pr-12 pb-0">
-					<h2 class="text-xl-semibold leading-none text-ink-gray-9">{{ activeTab.title }}</h2>
+					<h2 class="text-lg-semibold leading-none text-ink-gray-9">{{ activeTab.title }}</h2>
 					<Button icon="lucide-x" size="xs" variant="subtle" class="absolute right-5 top-5" @click="close" />
 					<div class="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-4">
 						<component :is="activeTab.component" class="pb-16" />
