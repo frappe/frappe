@@ -92,3 +92,51 @@ test.describe("Report View without report permission", () => {
 		await expect(page.locator(TITLE)).toContainText("DocType Without Report Permission");
 	});
 });
+
+test.describe("Report View group by button", () => {
+	const test_user = "test_report_group_by@example.com";
+	const role = "Report Group By Test Role";
+	const doctype = "Report Group By Label";
+	const label = "Category <b>bold</b>";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc("Role", { role_name: role, desk_access: 1 }, true);
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: doctype,
+				custom: 1,
+				module: "Custom",
+				fields: [{ fieldname: "category", fieldtype: "Data", label }],
+				permissions: [{ role, read: 1, report: 1 }],
+			},
+			true
+		);
+		await admin.call("frappe.tests.ui_test_helpers.create_test_user", { username: test_user });
+		await admin.call("frappe.tests.ui_test_helpers.add_remove_role", {
+			action: "add",
+			user: test_user,
+			role,
+		});
+	});
+
+	test.beforeEach(async ({ desk }) => {
+		await desk.login(test_user);
+	});
+
+	test("shows the group by field label as text", async ({ page }) => {
+		await page.goto("/desk/report-group-by-label/view/report");
+		await expect.poll(() => page.evaluate(() => window.cur_list?.view_name)).toBe("Report");
+
+		await page.evaluate(() =>
+			window.cur_list.group_by_control.apply_settings({
+				group_by: ["`tabReport Group By Label`.`category`"],
+				aggregates: [{ aggregate_function: "count" }],
+			})
+		);
+
+		const button_label = page.locator(".group-by-button .button-label");
+		await expect(button_label).toContainText(label);
+		await expect(button_label.locator("b")).toHaveCount(0);
+	});
+});
