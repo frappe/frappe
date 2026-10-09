@@ -350,6 +350,7 @@ frappe.ui.Checklist = class Checklist {
 	make_actions(item, locked) {
 		const buttons = [];
 		if (item.skippable && !item.done) buttons.push(this.make_menu(item));
+		if (item.skipped) return buttons.map(($button) => $button[0]);
 		for (const action of item.actions || []) {
 			buttons.push(
 				frappe.ui.button({
