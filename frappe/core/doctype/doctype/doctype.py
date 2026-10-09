@@ -208,6 +208,9 @@ class DocType(Document):
 		self.set("can_change_name_type", validate_autoincrement_autoname(self))
 		self.validate_document_type()
 		validate_fields(self)
+		# not in validate_fields: that also runs on other saves, for fields nobody changed
+		for d in self.fields:
+			validate_show_for_module(d, self.name)
 		self.check_indexing_for_dashboard_links()
 		if not self.istable:
 			validate_permissions(self)
@@ -1851,7 +1854,6 @@ def validate_fields(meta: Meta):
 		validate_data_field_type(d)
 		check_decimal_config(d)
 		validate_link_filters(d)
-		validate_show_for_module(d, meta.get("name"))
 
 		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)

@@ -206,6 +206,21 @@ class TestShowForModuleSaveRules(CustomizationTestCase):
 		with registered_modules(self.MODULES), self.assertRaises(frappe.ValidationError):
 			validate_show_for_module(field, "Some DocType")
 
+	def test_unknown_module_does_not_block_other_custom_fields(self):
+		with registered_modules(self.MODULES):
+			self.custom_field(show_for_module="Stock")
+		# the app that registered Stock is uninstalled
+		with registered_modules({"frappe": []}):
+			frappe.get_doc(
+				{
+					"doctype": "Custom Field",
+					"dt": "Event",
+					"fieldname": "test_bm_other",
+					"label": "Test BM Other",
+					"fieldtype": "Data",
+				}
+			).insert()
+
 	def test_known_module_is_accepted(self):
 		with registered_modules(self.MODULES):
 			doc = self.custom_field(show_for_module="Stock")

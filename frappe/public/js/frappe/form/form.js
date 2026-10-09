@@ -2131,8 +2131,9 @@ frappe.ui.form.Form = class FrappeForm {
 	apply_hidden_module_fields() {
 		if (!this.hidden_modules || !this.fields_dict) return;
 
+		// a mandatory field stays visible, or the form cannot be saved
 		const is_off = (df) =>
-			!!df.show_for_module && this.hidden_modules.includes(df.show_for_module);
+			!!df.show_for_module && !df.reqd && this.hidden_modules.includes(df.show_for_module);
 
 		// own fields
 		for (const fieldname of Object.keys(this.fields_dict)) {
