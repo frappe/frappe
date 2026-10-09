@@ -160,9 +160,70 @@ frappe.ui.form.PrintView = class {
 				print_view.preview();
 			},
 		}).$input;
+		this.setup_style_picker();
 		this.sidebar_dynamic_section = $(`<div class="dynamic-settings"></div>`).appendTo(
 			this.sidebar
 		);
+	}
+
+	setup_style_picker() {
+		this.style_picker = $(`<div class="print-style-picker form-group">
+			<div class="control-label">${__("Style")}</div>
+			<div class="print-style-options"></div>
+		</div>`).appendTo(this.sidebar);
+		this.style_picker.on("click", ".print-style-option", (e) => {
+			this.print_style = e.currentTarget.dataset.style;
+			this.render_style_options();
+			this.preview();
+		});
+		frappe.db
+			.get_list("Print Style", {
+				filters: { disabled: 0 },
+				fields: ["name"],
+				order_by: "creation asc",
+				limit: 100,
+			})
+			.then((rows) => {
+				const order = ["Redesign", "Modern", "Classic", "Bold", "Striped", "Monochrome"];
+				const rank = (name) => (order.includes(name) ? order.indexOf(name) : order.length);
+				this.print_styles = rows.map((r) => r.name).sort((a, b) => rank(a) - rank(b));
+				this.render_style_options();
+			});
+	}
+
+	render_style_options() {
+		const styles = this.print_styles || [];
+		const active = this.print_style || this.print_settings.print_style;
+		this.style_picker.find(".print-style-options").html(
+			styles
+				.map((name) => {
+					const slug = frappe.scrub(name).replace(/_/g, "-");
+					const selected = name === active;
+					return `<button type="button" class="print-style-option${
+						selected ? " active" : ""
+					}" data-style="${frappe.utils.escape_html(name)}" aria-pressed="${selected}">
+						<span class="print-style-thumb print-style-thumb--${slug}">
+							<span class="thumb-label"></span>
+							<span class="thumb-fields"><i></i><i></i></span>
+							<span class="thumb-table"><i></i><i></i><i></i></span>
+						</span>
+						<span class="print-style-name">${frappe.utils.escape_html(__(name))}</span>
+					</button>`;
+				})
+				.join("")
+		);
+		this.toggle_style_picker();
+	}
+
+	toggle_style_picker() {
+		this.style_picker?.toggle(
+			this.selected_format() === "Standard" && !!(this.print_styles || []).length
+		);
+	}
+
+	get_print_style() {
+		if (this.selected_format() !== "Standard") return "";
+		return this.print_style || this.print_settings.print_style || "";
 	}
 
 	add_sidebar_item(df, is_dynamic) {
@@ -335,6 +396,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	refresh_print_format() {
+		this.toggle_style_picker();
 		this.set_default_print_language();
 		this.toggle_raw_printing();
 		this.update_letterhead_for_print_format().then(() => this.preview());
@@ -477,6 +539,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	preview() {
+		this.toggle_style_picker();
 		let print_format = this.get_print_format();
 		if (this.renders_via_generator(print_format)) {
 			this.print_wrapper.find(".print-preview-wrapper").hide();
@@ -527,6 +590,9 @@ frappe.ui.form.PrintView = class {
 		}
 		if (this.additional_settings && Object.keys(this.additional_settings).length) {
 			params.append("settings", JSON.stringify(this.additional_settings));
+		}
+		if (this.get_print_style()) {
+			params.append("style", this.get_print_style());
 		}
 		iframe.prop("src", `/printpreview?${params.toString()}`);
 		iframe.css("height", "calc(100vh - var(--page-head-height) - var(--navbar-height))");
@@ -767,6 +833,9 @@ frappe.ui.form.PrintView = class {
 			if (this.lang_code) {
 				params.append("_lang", this.lang_code);
 			}
+			if (this.get_print_style()) {
+				params.append("style", this.get_print_style());
+			}
 			let w = window.open(
 				`/api/method/frappe.utils.print_format_generator.download_pdf?${params}`
 			);
@@ -811,6 +880,9 @@ frappe.ui.form.PrintView = class {
 					"&settings=" +
 					encodeURIComponent(JSON.stringify(this.additional_settings)) +
 					(this.lang_code ? "&_lang=" + this.lang_code : "") +
+					(this.get_print_style()
+						? "&style=" + encodeURIComponent(this.get_print_style())
+						: "") +
 					"&pdf_generator=" +
 					encodeURIComponent(pdf_generator)
 			)
