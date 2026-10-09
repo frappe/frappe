@@ -15,7 +15,7 @@
 				@update:modelValue="(value: string) => update('app_home', value)"
 			/>
 		</div>
-		<div class="flex gap-5">
+		<div class="flex items-start gap-5">
 			<Input
 				label="Route"
 				:description="appURL"
@@ -23,7 +23,7 @@
 				:hideClearButton="true"
 				@update:modelValue="(value: string) => update('route', value)"
 			/>
-			<div class="w-full" />
+			<AppName />
 		</div>
 
 		<hr class="w-full border-outline-gray-2" />
@@ -75,6 +75,7 @@
 import { computed } from "vue"
 import { Button, FileUploader, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
+import AppName from "@/components/Settings/AppName.vue"
 import AppExport from "@/components/Settings/AppExport.vue"
 import useStudioStore from "@/stores/studioStore"
 import defaultFavicon from "/favicon.png"

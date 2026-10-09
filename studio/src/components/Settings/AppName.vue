@@ -1,7 +1,7 @@
 <template>
-	<div class="flex items-center gap-1">
-		<span class="text-base text-ink-gray-5">{{ appName }}</span>
-		<Button variant="ghost" size="sm" icon="lucide-pencil" aria-label="Rename App" @click="openDialog" />
+	<div class="flex w-full items-end gap-2">
+		<FormControl label="App Name" type="text" class="w-full" :modelValue="appName" :disabled="true" />
+		<Button label="Rename" @click="openDialog" />
 
 		<Dialog v-model:open="showDialog" title="Rename App" size="md">
 			<template #default>

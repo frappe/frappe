@@ -161,12 +161,12 @@ describe("settings dialog", () => {
 	it("renames the app and moves the editor to its new URL", () => {
 		cy.intercept("/api/method/run_doc_method").as("rename")
 		cy.wrap(null).then(() => store.openSettings("app"))
-		cy.get('button[aria-label="Rename App"]').click()
-		cy.contains("label", "App Name").parent().find("input").clear().type(RENAMED_APP)
 		cy.contains("button", "Rename").click()
+		cy.contains("[role=dialog]", "Rename App").find("input").clear().type(RENAMED_APP)
+		cy.contains("[role=dialog]", "Rename App").contains("button", "Rename").click()
 		cy.wait("@rename")
 		// the dialog closes once the renamed app has fully loaded
-		cy.contains("label", "App Name").should("not.exist")
+		cy.contains("[role=dialog]", "Rename App").should("not.exist")
 		cy.get_doc("Studio App", RENAMED_APP).its("data.app_name").should("eq", RENAMED_APP)
 		cy.wrap(null).should(() => {
 			expect(router.currentRoute.value.params.appID).to.eq(RENAMED_APP)
@@ -177,9 +177,9 @@ describe("settings dialog", () => {
 
 	it("shows why a rename was refused", () => {
 		cy.wrap(null).then(() => store.openSettings("app"))
-		cy.get('button[aria-label="Rename App"]').click()
-		cy.contains("label", "App Name").parent().find("input").clear().type("Not Valid")
 		cy.contains("button", "Rename").click()
+		cy.contains("[role=dialog]", "Rename App").find("input").clear().type("Not Valid")
+		cy.contains("[role=dialog]", "Rename App").contains("button", "Rename").click()
 		cy.contains("App Name can only have lowercase letters").should("be.visible")
 		cy.wrap(null).should(() => expect(router.currentRoute.value.params.appID).to.eq(APP_NAME))
 	})
