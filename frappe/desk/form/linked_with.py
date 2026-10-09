@@ -15,6 +15,7 @@ from frappe.model.delete_doc import get_linked_docs as get_statically_linked_doc
 from frappe.model.meta import is_single
 from frappe.modules import load_doctype_module
 from frappe.query_builder.functions import Count
+from frappe.utils.data import get_filter
 from frappe.utils.scheduler import is_scheduler_inactive
 
 
@@ -802,11 +803,13 @@ def get_linked_docs(
 ) -> dict[str, list]:
 	"""`filters`, `limit` and `order_by` apply to the documents of each linked doctype.
 
-	A filter applies only to linked doctypes that have its field; one that names a doctype
-	(`[doctype, field, operator, value]`) applies only to that doctype."""
+	A filter applies only to linked doctypes that have its column (or whose child table has it);
+	one that names a doctype (`[doctype, field, operator, value]`) applies only to that doctype."""
 	# additional fields are added in linkinfo
 	linkinfo = frappe.parse_json(linkinfo)
 	filters = frappe.parse_json(filters) or []
+	if isinstance(filters, dict):
+		filters = [{fieldname: value} for fieldname, value in filters.items()]
 	# a child-row sort field would list a document once per child row
 	if order_by and any("." in field for field in get_order_by_fields(order_by)):
 		frappe.throw(_("Linked documents can only be ordered by their own fields"))
@@ -932,13 +935,12 @@ def get_linked_docs(
 
 
 def get_doctype_filters(meta, filters: list) -> list:
-	"""The filters that apply to the linked doctype of `meta`."""
+	"""The filters that apply to the linked doctype of `meta`: on a column of it or of its child tables."""
+	doctypes = {meta.name, *(df.options for df in meta.get_table_fields())}
 	applicable = []
 	for condition in filters:
-		doctype, fieldname = (
-			(condition[0], condition[1]) if len(condition) == 4 else (meta.name, condition[0])
-		)
-		if doctype == meta.name and (meta.has_field(fieldname) or fieldname in frappe.model.default_fields):
+		f = get_filter(meta.name, condition)
+		if f.doctype in doctypes and frappe.db.has_column(f.doctype, f.fieldname):
 			applicable.append(condition)
 	return applicable
 
