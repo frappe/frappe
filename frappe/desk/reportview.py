@@ -296,9 +296,15 @@ def _validate_group_by_args(group_by: dict, doctype: str):
 	if not isinstance(aggregates, list) or not aggregates:
 		frappe.throw(_("Invalid aggregate function: {0}").format(aggregates), frappe.DataError)
 
-	field_doctypes = {_validate_group_by_field(field, doctype) for field in group_by_fields}
-	field_doctypes.update(_validate_aggregate(aggregate, doctype) for aggregate in aggregates)
-	field_doctypes.discard(doctype)
+	group_by_doctypes = {_validate_group_by_field(field, doctype) for field in group_by_fields}
+	aggregate_doctypes = {_validate_aggregate(aggregate, doctype) for aggregate in aggregates}
+	field_doctypes = (group_by_doctypes | aggregate_doctypes) - {doctype}
+	# only group by fields join the child table, an aggregate alone would reference a missing table
+	if field_doctypes - group_by_doctypes:
+		frappe.throw(
+			_("Aggregate fields from a child table need a Group By field from the same child table."),
+			frappe.DataError,
+		)
 	if len(field_doctypes) > 1:
 		frappe.throw(
 			_("Group By and aggregate fields can only use one child table, found: {0}").format(

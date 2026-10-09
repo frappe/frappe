@@ -302,6 +302,10 @@ class TestReport(IntegrationTestCase):
 						{"aggregate_function": "sum", "aggregate_on": "`tabBlock Module`.`idx`"},
 					],
 				},
+				{
+					"group_by": ["`tabUser`.`user_type`"],
+					"aggregates": [{"aggregate_function": "sum", "aggregate_on": "`tabHas Role`.`idx`"}],
+				},
 			):
 				with self.subTest(group_by=invalid), self.assertRaises(frappe.DataError):
 					save("Test Invalid Group By", invalid, ["user_type"])

@@ -367,8 +367,20 @@ frappe.ui.GroupBy = class {
 				.concat(aggregates.map((a) => a.aggregate_on_doctype))
 				.filter((doctype) => doctype && doctype !== this.doctype)
 		);
-		if (child_doctypes.size > 1) {
-			frappe.msgprint(__("Group By and aggregate fields can only use one child table."));
+		const child_aggregate_without_group_by = aggregates.some(
+			(a) =>
+				a.aggregate_on_doctype &&
+				a.aggregate_on_doctype !== this.doctype &&
+				!group_bys.some((f) => f.doctype === a.aggregate_on_doctype)
+		);
+		if (child_doctypes.size > 1 || child_aggregate_without_group_by) {
+			frappe.msgprint(
+				child_aggregate_without_group_by
+					? __(
+							"Aggregate fields from a child table need a Group By field from the same child table."
+					  )
+					: __("Group By and aggregate fields can only use one child table.")
+			);
 			this.group_by_fields_selected = this.applied_group_bys.map((f) => ({ ...f }));
 			this.aggregates = this.applied_aggregates.map((a) => ({ ...a }));
 			this.render_group_by_area();
