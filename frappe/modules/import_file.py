@@ -83,15 +83,14 @@ def import_file_by_path(
 	"""Import file from the given path.
 
 	A record is imported when `force` is set or it is not in the database. Otherwise it is skipped
-	when the file's hash matches the stored Migration Hash, and imported when one of these is true:
+	when one of these is true:
 
-	- It is a DocType.
-	- The file's `modified` is newer than the database.
-	- Both `modified` values match and the stored hash differs from the file's.
+	- The file's hash matches the stored Migration Hash.
+	- It is not a DocType and the site changed it after the file's `modified`.
 
-	So a site edit made after the file's `modified` is kept, and a file changed without a new
-	`modified` still syncs. The hash is stored per file, so two files that hold the same record
-	do not replace each other's hash.
+	The hash is stored only after an import. So a file changed without a new `modified` still
+	syncs, and a record whose file has no stored hash yet is imported once. The hash is stored
+	per file, so two files that hold the same record do not replace each other's hash.
 
 	Args:
 	        path (str): Path to the file.
@@ -122,6 +121,9 @@ def import_file_by_path(
 			is_db_timestamp_latest = db_modified_timestamp and (
 				get_datetime(doc.get("modified")) <= get_datetime(db_modified_timestamp)
 			)
+			is_db_timestamp_newer = db_modified_timestamp and (
+				get_datetime(doc.get("modified")) < get_datetime(db_modified_timestamp)
+			)
 
 			# board names are global, so an app's board never replaces a site's own
 			if (
@@ -137,9 +139,7 @@ def import_file_by_path(
 				if stored_hash == calculated_hash:
 					continue
 
-				if doc["doctype"] != "DocType" and is_site_version_kept(
-					doc, db_modified_timestamp, stored_hash
-				):
+				if doc["doctype"] != "DocType" and is_db_timestamp_newer:
 					continue
 
 			import_doc(
@@ -159,21 +159,10 @@ def import_file_by_path(
 			if new_modified_timestamp:
 				update_modified(new_modified_timestamp, doc)
 
-		if stored_hash != calculated_hash and not data_import:
+		if imported and stored_hash != calculated_hash and not data_import:
 			set_migration_hash(path, calculated_hash)
 
 	return imported
-
-
-def is_site_version_kept(doc: dict, db_modified_timestamp, stored_hash: str | None) -> bool:
-	"""Return True if the database version of a changed file's record stays.
-
-	It stays when the site changed it after the file's `modified`. It also stays when both `modified`
-	values match and no hash is stored yet, because nothing shows that the file changed.
-	"""
-	file_modified = get_datetime(doc.get("modified"))
-	db_modified = get_datetime(db_modified_timestamp)
-	return db_modified > file_modified or (db_modified == file_modified and not stored_hash)
 
 
 def read_doc_from_file(path):
