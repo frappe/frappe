@@ -141,6 +141,7 @@
 	>
 		<FeatherIcon name="arrow-down" class="h-4 w-4" />
 	</button>
+	<AddToChat :within="scroller" />
 	</div>
 </template>
 
@@ -149,6 +150,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reacti
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildItems, formatTime, panelIds, userAttachments, userText } from "../transcript.js"
+import AddToChat from "./AddToChat.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"

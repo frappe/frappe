@@ -143,7 +143,7 @@
 						</span>
 					</figure>
 				</div>
-				<div v-if="codeRefs.length || fileChips.length" class="flex flex-wrap items-center gap-1.5 px-1 pt-0.5">
+				<div v-if="codeRefs.length || quotes.length || fileChips.length" class="flex flex-wrap items-center gap-1.5 px-1 pt-0.5">
 					<span
 						v-for="(ref, i) in codeRefs"
 						:key="`${ref.path}:${ref.start}-${ref.end}`"
@@ -153,6 +153,13 @@
 						<span :class="chipIconClass"><FeatherIcon name="code" class="h-3.5 w-3.5" /></span>
 						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
 						<button :class="chipRemoveClass" title="Remove reference" :disabled="submitting" @click="flow.removeCodeRef(i)">
+							<FeatherIcon name="x" class="h-3 w-3" />
+						</button>
+					</span>
+					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
+						<span :class="chipIconClass"><FeatherIcon name="align-left" class="h-3.5 w-3.5" /></span>
+						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
+						<button :class="chipRemoveClass" title="Remove quote" :disabled="submitting" @click="flow.removeQuote(i)">
 							<FeatherIcon name="x" class="h-3 w-3" />
 						</button>
 					</span>
@@ -308,7 +315,15 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
-import { APPROVAL_MODES, approvalToAnswer, codeRefLabel, subagentTitle } from "../transcript.js"
+import {
+	APPROVAL_MODES,
+	approvalToAnswer,
+	codeRefLabel,
+	quoteBlock,
+	splitCodeRefs,
+	splitQuotes,
+	subagentTitle,
+} from "../transcript.js"
 import ApprovalCard from "./ApprovalCard.vue"
 import FileMentionPalette from "./FileMentionPalette.vue"
 import ImageViewer from "./ImageViewer.vue"
@@ -573,6 +588,7 @@ watch(
 		if (!submitting.value) {
 			clearAttachments()
 			flow.clearCodeRefs()
+			flow.clearQuotes()
 		}
 		nextTick(() => box.value?.focus())
 	},
@@ -649,9 +665,11 @@ const approval = computed(() => {
 	}
 })
 const codeRefs = computed(() => flow.state.codeRefs)
-// "Add to chat" hands off to typing: pull focus as soon as a ref arrives
+const quotes = computed(() => flow.state.quotes)
+const quoteLabel = (quote) => quote.replace(/\s+/g, " ").slice(0, 120)
+// "Add to chat" hands off to typing: pull focus as soon as a ref or quote arrives
 watch(
-	() => codeRefs.value.length,
+	() => codeRefs.value.length + quotes.value.length,
 	(count, prev) => {
 		if (count > (prev ?? 0)) nextTick(() => box.value?.focus())
 	},
@@ -672,7 +690,7 @@ const canSend = computed(
 	() =>
 		!submitting.value &&
 		!needsCwd.value &&
-		(text.value.trim().length > 0 || attachments.value.length > 0 || codeRefs.value.length > 0),
+		(text.value.trim().length > 0 || attachments.value.length > 0 || codeRefs.value.length > 0 || quotes.value.length > 0),
 )
 
 // inside a session the button reflects that session's live mode; outside, the
@@ -775,7 +793,7 @@ async function submit() {
 	if (submitting.value) return
 	const draftText = text.value
 	const value = draftText.trim()
-	if (!value && !attachments.value.length && !codeRefs.value.length) return
+	if (!value && !attachments.value.length && !codeRefs.value.length && !quotes.value.length) return
 	if (value.startsWith("/")) {
 		const [name, ...rest] = value.slice(1).split(" ")
 		const command = enabledCommands.value.find((c) => c.name === name)
@@ -786,9 +804,12 @@ async function submit() {
 		}
 	}
 	if (needsCwd.value) return // the composer banner points at the fix
-	// code references travel as file:line tokens appended to the message
-	const selectedCodeRefs = codeRefs.value.map((ref) => ({ ...ref }))
-	const outgoing = [value, selectedCodeRefs.map(refToken).join("\n")].filter(Boolean).join("\n\n")
+	// quotes travel as blockquotes under the message, code references as file:line tokens after them
+	const selectedQuotes = [...quotes.value]
+	const selectedCodeRefs = [...codeRefs.value]
+	const outgoing = [value, selectedQuotes.map(quoteBlock).join("\n\n"), selectedCodeRefs.map(refToken).join("\n")]
+		.filter(Boolean)
+		.join("\n\n")
 	const selectedAttachments = [...attachments.value]
 	const sendingSessionId = flow.state.sessionId
 	submitting.value = true
@@ -803,7 +824,9 @@ async function submit() {
 		text.value = ""
 		if (await flow.send(outgoing, selectedAttachments)) {
 			clearAttachments(false)
-			flow.clearCodeRefs()
+			// only what went out: a ref or quote added meanwhile stays staged
+			flow.clearCodeRefs(selectedCodeRefs)
+			flow.clearQuotes(selectedQuotes)
 		} else {
 			text.value = draftText
 		}
@@ -823,7 +846,14 @@ watch(
 	() => flow.state.draft,
 	(draft) => {
 		if (draft == null) return
-		text.value = typeof draft === "string" ? draft : draft.text
+		// its quotes and code references come back as chips, not as their tokens
+		const { body, refs } = splitCodeRefs(typeof draft === "string" ? draft : draft.text)
+		const { body: plain, quotes: quoted } = splitQuotes(body)
+		text.value = plain
+		flow.clearCodeRefs()
+		flow.clearQuotes()
+		for (const ref of refs) flow.addCodeRef(ref.path, ref.start, ref.end)
+		for (const quote of quoted) flow.addQuote(quote)
 		clearAttachments()
 		const restored = (typeof draft === "string" ? [] : draft.attachments ?? []).map((item) => ({
 			...item,

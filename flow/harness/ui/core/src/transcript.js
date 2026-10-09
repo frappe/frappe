@@ -907,6 +907,23 @@ export function codeRefLabel(ref) {
 	return `${fileName(ref.path)} (${ref.start}${ref.end !== ref.start ? `-${ref.end}` : ""})`
 }
 
+const QUOTE_LINE = /^> ?(.*)$/
+
+// a thread selection added to chat travels as a blockquote under the message
+export function quoteBlock(text) {
+	return text.split("\n").map((line) => (line ? `> ${line}` : ">")).join("\n")
+}
+
+// split those blockquotes back out so a bubble can show them as quotes
+export function splitQuotes(text) {
+	const paragraphs = String(text ?? "").split("\n\n")
+	const quotes = []
+	while (paragraphs.length && paragraphs.at(-1).split("\n").every((line) => QUOTE_LINE.test(line))) {
+		quotes.unshift(paragraphs.pop().split("\n").map((line) => line.replace(QUOTE_LINE, "$1")).join("\n"))
+	}
+	return { body: paragraphs.join("\n\n"), quotes }
+}
+
 export function conversationTitle(conversation) {
 	const first =
 		conversation.entries.find((e) => e.type === "user_message") ?? conversation.sending?.[0]?.entry

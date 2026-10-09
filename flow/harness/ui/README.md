@@ -74,7 +74,8 @@ file when the host stages uploads itself), `placeholder` (the textarea's hint),
 tools), `disabled` (shown but inert, every control included). `ChatHeader` takes `workspace` (`false` when the host mounts no file
 panel). `MessageList` has an `empty` slot for the host's own empty state, and a
 `conversation` prop to draw a thread other than the session's (the workspace panel
-draws a sub-agent's this way).
+draws a sub-agent's this way). Selecting text in either thread shows an "Add to chat"
+pill that quotes it under the next message.
 
 `WorkspacePanel` is a shell as well: the tab strip, the window controls and a
 sub-agent's thread are shared, and three slots take the host's own views. `actions`

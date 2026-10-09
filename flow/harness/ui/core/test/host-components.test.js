@@ -53,13 +53,24 @@ function mount(t, component, props, flow) {
 	return { el, vm }
 }
 
+// jsdom measures nothing: a test that needs boxes stubs them for its duration
+const box = (left, top, right, bottom) => ({ left, top, right, bottom, width: right - left, height: bottom - top })
+function measure(t, boxes) {
+	const protos = { element: dom.window.Element.prototype, range: dom.window.Range.prototype }
+	const before = { element: protos.element.getBoundingClientRect, range: protos.range.getBoundingClientRect }
+	for (const kind of ["element", "range"]) protos[kind].getBoundingClientRect = () => boxes[kind]
+	t.after(() => {
+		for (const kind of ["element", "range"]) protos[kind].getBoundingClientRect = before[kind]
+	})
+}
+
 for (const disabled of [false, true]) {
 	test(`composer skills ${disabled ? "can be disabled" : "stay enabled by default"}`, async (t) => {
 		let loads = 0
 		const flow = {
 			options: { requireCwd: false, maxAttachments: 10, ...(disabled ? { skillsEnabled: false } : {}) },
 			state: reactive({
-				prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+				prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
 				skills: [{ name: "review", description: "Review files" }], conversation: {}, draft: null,
 			}),
 			loadSkills() { loads++ },
@@ -239,7 +250,7 @@ test("the composer toolbar defaults to the model button and takes a host's picke
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: {}, draft: null,
 		}),
 	}
@@ -284,7 +295,7 @@ test("the composer shows a pending batch one call at a time, above the box", asy
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: { pendingApproval: pending }, draft: null,
 		}),
 		answerApproval: (id, answer) => (flow.state.conversation.pendingApproval.answers[id] = answer),
@@ -313,7 +324,7 @@ test("the queue steers or takes back a waiting message", async (t) => {
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [],
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], quotes: [],
 			queued: [{ key: "q1", label: "Also check this" }],
 			skills: [], conversation: { running: true }, draft: null,
 		}),
@@ -354,7 +365,7 @@ test("the composer takes a host's placeholder and approval-mode copy", async (t)
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: {}, draft: null,
 		}),
 	}
@@ -390,13 +401,95 @@ test("a sent message is a bubble before the server echoes it", async (t) => {
 	assert.equal(el.textContent.match(/count the todos/g).length, 1)
 })
 
+test("selecting text in the thread shows Add to chat, which quotes it for the composer", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const boxes = { element: box(0, 0, 800, 600), range: box(100, 200, 300, 220) }
+	measure(t, boxes)
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, { type: "user_message", seq: 1, ts: 10, content: "the daemon pins the list" })
+	const quotes = []
+	const flow = {
+		options: {},
+		state: reactive({ sessionId: "s1", loading: false, conversation }),
+		addQuote: (text) => quotes.push(text),
+	}
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	const pill = () => el.querySelector(".flow-add-to-chat")
+	const select = (node) => {
+		const range = document.createRange()
+		range.selectNodeContents(node)
+		document.getSelection().removeAllRanges()
+		document.getSelection().addRange(range)
+		t.mock.timers.tick(150) // jsdom's queued selectionchange arms the pill
+		t.mock.timers.tick(150) // the debounce
+		return nextTick()
+	}
+
+	await select(el.querySelector("[data-prompt-key] .whitespace-pre-wrap"))
+	assert.equal(pill().textContent.trim(), "Add to chat")
+	// centered over the selection, sitting above it
+	assert.equal(pill().style.left, "200px")
+	assert.equal(pill().style.top, "200px")
+	assert.ok(pill().style.transform.includes("-100%"))
+
+	// scrolled out of view, the selection takes the pill with it; scrolled back, it returns
+	boxes.range = box(100, -40, 300, -20)
+	document.dispatchEvent(new window.Event("scroll"))
+	await nextTick()
+	assert.equal(pill(), null)
+	// back near the top, with no room above: it sits under the selection
+	boxes.range = box(100, 10, 300, 30)
+	document.dispatchEvent(new window.Event("scroll"))
+	await nextTick()
+	assert.equal(pill().style.top, "30px")
+	assert.ok(!pill().style.transform.includes("-100%"))
+	// a selection filling the view keeps the pill inside the list, not under the composer
+	boxes.range = box(100, -40, 300, 900)
+	document.dispatchEvent(new window.Event("scroll"))
+	await nextTick()
+	assert.equal(pill().style.top, "570px")
+
+	pill().click()
+	await nextTick()
+	assert.deepEqual(quotes, ["the daemon pins the list"])
+	assert.equal(document.getSelection().rangeCount, 0)
+	assert.equal(pill(), null)
+
+	// text outside the thread is not the thread's to quote
+	const outside = document.createElement("p")
+	outside.textContent = "elsewhere"
+	document.body.append(outside)
+	t.after(() => outside.remove())
+	await select(outside)
+	assert.equal(pill(), null)
+})
+
+test("a message's quotes show as quotes above its text", async (t) => {
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, {
+		type: "user_message",
+		seq: 1,
+		ts: 10,
+		content: "why?\n\n> pins the list\n> in place\n\n@/w/a.py:3",
+	})
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	const bubble = el.querySelector("[data-prompt-key]")
+	assert.equal(bubble.querySelector("blockquote").textContent, "pins the list\nin place")
+	assert.ok(bubble.textContent.includes("a.py (3)"))
+	assert.ok(!bubble.textContent.includes(">"))
+	assert.ok(bubble.querySelector(".whitespace-pre-wrap").textContent.endsWith("why?"))
+})
+
 test("the composer empties at once and spins the send button until sending succeeds", async (t) => {
 	let finishSend
 	let sent
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: { running: false }, draft: null,
 		}),
 		send(message, attachments) {
@@ -404,6 +497,7 @@ test("the composer empties at once and spins the send button until sending succe
 			return new Promise((resolve) => (finishSend = resolve))
 		},
 		clearCodeRefs() { this.state.codeRefs = [] },
+		clearQuotes() { this.state.quotes = [] },
 		notify() {},
 	}
 	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
@@ -445,11 +539,12 @@ test("the composer retains an attachment draft when sending fails", async (t) =>
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: { running: false }, draft: null,
 		}),
 		async send() { return false },
 		clearCodeRefs() { this.state.codeRefs = [] },
+		clearQuotes() { this.state.quotes = [] },
 		notify() {},
 	}
 	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
@@ -470,6 +565,71 @@ test("the composer retains an attachment draft when sending fails", async (t) =>
 	assert.equal(el.querySelector(".animate-spin"), null)
 })
 
+test("a quote shows as a chip and travels under the message, before the code refs", async (t) => {
+	let sent
+	let finishSend
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], queued: [],
+			codeRefs: [{ path: "/w/a.py", rel: "a.py", start: 3, end: 3 }], quotes: ["pins the list\nin place", "stale row"],
+			skills: [], conversation: { running: false }, draft: null,
+		}),
+		send(message) {
+			sent = message
+			return new Promise((resolve) => (finishSend = resolve))
+		},
+		clearCodeRefs(went) { this.state.codeRefs = went ? this.state.codeRefs.filter((ref) => !went.includes(ref)) : [] },
+		clearQuotes(went) { this.state.quotes = went ? this.state.quotes.filter((quote) => !went.includes(quote)) : [] },
+		removeQuote(i) { this.state.quotes.splice(i, 1) },
+		notify() {},
+	}
+	const { el, vm } = mount(t, Composer, { commands: [], mentions: false }, flow)
+	await nextTick()
+	const chips = () => [...el.querySelectorAll("[title]")].filter((node) => flow.state.quotes.includes(node.title))
+	assert.equal(chips().length, 2)
+	assert.equal(chips()[0].textContent.trim(), "pins the list in place") // one line; the full text is the title
+	chips()[1].querySelector("button[title='Remove quote']").click()
+	await nextTick()
+	assert.deepEqual(flow.state.quotes, ["pins the list\nin place"])
+	assert.equal(el.querySelector("button[title='Send']").disabled, false) // a quote alone can go
+
+	vm.prefill("why?")
+	el.querySelector("button[title='Send']").click()
+	await nextTick()
+	assert.equal(sent, "why?\n\n> pins the list\n> in place\n\n@a.py:3")
+	// staged while the send is still out: these outlive it
+	flow.state.quotes.push("added meanwhile")
+	flow.state.codeRefs.push({ path: "/w/b.py", rel: "b.py", start: 1, end: 1 })
+	finishSend(true)
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.deepEqual(flow.state.quotes, ["added meanwhile"])
+	assert.deepEqual(flow.state.codeRefs.map((ref) => ref.rel), ["b.py"])
+})
+
+test("a rewound message brings its quotes and code references back as chips", async (t) => {
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], queued: [], codeRefs: [], quotes: ["stale"],
+			skills: [], conversation: { running: false }, draft: null,
+		}),
+		addCodeRef(path, start, end) { this.state.codeRefs.push({ path, rel: path, start, end }) },
+		addQuote(text) { this.state.quotes.push(text) },
+		clearCodeRefs() { this.state.codeRefs = [] },
+		clearQuotes() { this.state.quotes = [] },
+		setDraft(draft) { this.state.draft = draft },
+		notify() {},
+	}
+	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
+	flow.state.draft = { text: "why?\n\n> pins the list\n\n@a.py:3-4", attachments: [] }
+	await nextTick()
+	assert.equal(el.querySelector("textarea").value, "why?")
+	assert.deepEqual(flow.state.quotes, ["pins the list"])
+	assert.deepEqual(flow.state.codeRefs, [{ path: "a.py", rel: "a.py", start: 3, end: 4 }])
+	assert.equal(flow.state.draft, null)
+})
+
 function preparingComposer(t) {
 	const requests = []
 	const sent = []
@@ -477,7 +637,7 @@ function preparingComposer(t) {
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: { running: false }, draft: null,
 		}),
 		prepareAttachment(file) {
@@ -486,6 +646,7 @@ function preparingComposer(t) {
 		async discardAttachments(ids) { discarded.push(...ids) },
 		async send(text, items) { sent.push({ text, ids: items.map((item) => item.id) }); return true },
 		clearCodeRefs() { this.state.codeRefs = [] },
+		clearQuotes() { this.state.quotes = [] },
 		notify() {},
 	}
 	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
@@ -630,7 +791,7 @@ test("a host's own command opens its palette slot", async (t) => {
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: {}, draft: null,
 		}),
 	}
@@ -655,7 +816,7 @@ test("a disabled composer is shown but inert, its host pickers included", async 
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: {}, draft: null,
 		}),
 	}
@@ -1226,7 +1387,7 @@ test("a sub-agent's question shows in the composer, named after the sub-agent", 
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], queued: [],
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation, draft: null,
 		}),
 		answerApproval: (id, answer) => answers.push([id, answer]),

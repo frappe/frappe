@@ -110,6 +110,7 @@ export function createFlowStore(client, options = {}) {
 		toast: null,
 		draft: null, // { text, attachments } handed to the composer after rewind
 		codeRefs: [], // { path, rel, start, end } selections queued for the next message
+		quotes: [], // thread selections ("Add to chat") quoted under the next message
 		// right panel; tabs are typed, keyed by `path` (browser/terminal later) —
 		// editor tabs: { kind, path, name, content, error, loading, dirty }, content
 		// being the last server-confirmed text (the editor owns unsaved edits);
@@ -917,7 +918,8 @@ export function createFlowStore(client, options = {}) {
 	function addCodeRef(path, start, end) {
 		const cwd = state.session?.config?.cwd
 		const rel = cwd && path.startsWith(cwd + "/") ? path.slice(cwd.length + 1) : path
-		if (state.codeRefs.some((r) => r.path === path && r.start === start && r.end === end)) return
+		// by rel: a rewound token comes back relative, the editor sends the full path
+		if (state.codeRefs.some((r) => r.rel === rel && r.start === start && r.end === end)) return
 		state.codeRefs.push({ path, rel, start, end })
 	}
 
@@ -925,8 +927,22 @@ export function createFlowStore(client, options = {}) {
 		state.codeRefs.splice(index, 1)
 	}
 
-	function clearCodeRefs() {
-		state.codeRefs = []
+	// Drop the refs a message carried, or every one after a session switch.
+	function clearCodeRefs(sent = null) {
+		state.codeRefs = sent ? state.codeRefs.filter((ref) => !sent.includes(ref)) : []
+	}
+
+	// Thread selections quoted under the next message, as the text itself.
+	function addQuote(text) {
+		if (!state.quotes.includes(text)) state.quotes.push(text)
+	}
+
+	function removeQuote(index) {
+		state.quotes.splice(index, 1)
+	}
+
+	function clearQuotes(sent = null) {
+		state.quotes = sent ? state.quotes.filter((quote) => !sent.includes(quote)) : []
 	}
 
 	async function selectModel(model) {
@@ -1431,6 +1447,9 @@ export function createFlowStore(client, options = {}) {
 		addCodeRef,
 		removeCodeRef,
 		clearCodeRefs,
+		addQuote,
+		removeQuote,
+		clearQuotes,
 		selectModel,
 		selectEffort,
 		setMode,
