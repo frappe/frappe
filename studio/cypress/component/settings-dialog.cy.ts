@@ -91,16 +91,29 @@ describe("settings dialog", () => {
 		guestSwitch("Contact").should("have.attr", "aria-checked", "false")
 	})
 
-	it("renames a page and adds the leading slash to its route", () => {
+	it("edits a page's title, route and guest access from its row", () => {
 		cy.wrap(null).then(() => store.openSettings("pages"))
-		cy.get('input[aria-label="Title of About"]').clear().type("About Us").blur()
-		cy.wait("@save")
-		cy.get('input[aria-label="Route of About Us"]').clear().type("about-us").blur()
-		cy.wait("@save")
+		cy.get('button[aria-label="Edit About"]').click()
+		cy.contains("label", "Title").parent().find("input").clear().type("About Us")
+		cy.contains("label", "Route").parent().find("input").clear().type("about-us")
+		cy.contains("[role=dialog]", "Edit Page").find("[role=switch]").click()
+		cy.contains("button", "Save").click()
+		cy.wait(["@save", "@save", "@save"])
 		cy.get_doc("Studio Page", aboutPage.name).then(({ data }) => {
 			expect(data.page_title).to.eq("About Us")
 			expect(data.route).to.eq("/about-us")
+			expect(data.allow_guest).to.eq(1)
 		})
+		guestSwitch("About Us").should("have.attr", "aria-checked", "true")
+		cy.contains("h2", "Pages").should("be.visible")
+		cy.get("[role=cell]").should("contain.text", "About Us").and("contain.text", "/about-us")
+	})
+
+	it("toggles guest access without opening the page editor", () => {
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		guestSwitch("Contact").click()
+		cy.wait("@save")
+		cy.contains("Edit Page").should("not.exist")
 	})
 
 	it("shows export settings only in developer mode", () => {

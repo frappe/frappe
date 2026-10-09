@@ -362,6 +362,12 @@ const useStudioStore = defineStore("store", () => {
 		await studioPages.reload()
 	}
 
+	// the open page's flag can be newer than its row in the pages list
+	function pageAllowsGuests(page: StudioPage) {
+		const isActive = activePage.value?.name === page.name
+		return Boolean(isActive ? activePage.value?.allow_guest : page.allow_guest)
+	}
+
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
 	// page and re-run setup() on the canvas. (Standard pages update only after their app rebuilds.)
 	async function reloadActiveAppRouterScript() {
@@ -805,6 +811,7 @@ const useStudioStore = defineStore("store", () => {
 		savePage,
 		updateActivePage,
 		updatePage,
+		pageAllowsGuests,
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,

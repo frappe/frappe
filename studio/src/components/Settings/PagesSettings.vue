@@ -1,64 +1,62 @@
 <template>
-	<List :columns="['minmax(0,1fr)', 'minmax(0,1fr)', '120px']" :row-height="44">
+	<div>
+	<List :columns="['minmax(0,1fr)', 'minmax(0,1fr)', '120px']" :row-height="44" class="[--list-row-padding-x:0.75rem]">
 		<ListHeader>
 			<ListHeaderCell>Title</ListHeaderCell>
 			<ListHeaderCell>Route</ListHeaderCell>
 			<ListHeaderCell class="justify-end">Guest Access</ListHeaderCell>
 		</ListHeader>
 		<ListRows :items="pages" v-slot="{ item: page }">
-			<ListRow>
+			<ListRow class="hover:bg-surface-gray-1 sm:rounded-[10px]">
+				<button
+					type="button"
+					class="absolute inset-0 sm:rounded-[10px]"
+					:aria-label="`Edit ${page.page_title}`"
+					@click="editPage(page)"
+				/>
 				<ListCell>
-					<Input
-						:modelValue="page.page_title"
-						:hideClearButton="true"
-						:aria-label="`Title of ${page.page_title}`"
-						@update:modelValue="(value: string) => update(page, 'page_title', value)"
-					/>
+					<span class="truncate text-base text-ink-gray-8">{{ page.page_title }}</span>
 				</ListCell>
 				<ListCell>
-					<Input
-						:modelValue="page.route"
-						:hideClearButton="true"
-						:aria-label="`Route of ${page.page_title}`"
-						@update:modelValue="(value: string) => update(page, 'route', withLeadingSlash(value))"
-					/>
+					<span class="truncate text-base text-ink-gray-6">{{ page.route }}</span>
 				</ListCell>
 				<ListCell class="justify-end">
 					<Switch
 						size="sm"
-						:modelValue="allowsGuests(page)"
+						class="relative"
+						:modelValue="store.pageAllowsGuests(page)"
 						:aria-label="`Allow guest access to ${page.page_title}`"
-						@update:modelValue="(value: boolean) => update(page, 'allow_guest', value ? 1 : 0)"
+						@update:modelValue="(value: boolean) => setGuestAccess(page, value)"
 					/>
 				</ListCell>
 			</ListRow>
 		</ListRows>
 	</List>
+	<EditPageDialog v-model:open="showEditDialog" :page="selectedPage" />
+	</div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { Switch, toast } from "frappe-ui"
 import { List, ListCell, ListHeader, ListHeaderCell, ListRow, ListRows } from "frappe-ui/list"
-import Input from "@/components/Input.vue"
+import EditPageDialog from "@/components/Settings/EditPageDialog.vue"
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
 const store = useStudioStore()
 const pages = computed(() => Object.values(store.appPages))
+const selectedPage = ref<StudioPage | null>(null)
+const showEditDialog = ref(false)
 
-function allowsGuests(page: StudioPage) {
-	const isActive = store.activePage?.name === page.name
-	return Boolean(isActive ? store.activePage?.allow_guest : page.allow_guest)
+function editPage(page: StudioPage) {
+	selectedPage.value = page
+	showEditDialog.value = true
 }
 
-function update(page: StudioPage, field: "page_title" | "route" | "allow_guest", value: string | number) {
-	store.updatePage(page, field, value).catch((error: any) => {
+function setGuestAccess(page: StudioPage, allow: boolean) {
+	store.updatePage(page, "allow_guest", allow ? 1 : 0).catch((error: any) => {
 		toast.error(error?.messages?.join(", ") || error?.message || "Failed to update the page")
 	})
-}
-
-function withLeadingSlash(route: string) {
-	return route.startsWith("/") ? route : `/${route}`
 }
 </script>
