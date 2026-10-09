@@ -173,7 +173,18 @@ test.describe("Report View group by button", () => {
 			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
 		).toEqual([{ doctype, fieldname: "category" }]);
 
+		// re-rendering for aggregate changes keeps focus on the changed or added control
+		const aggregate_function = popover.locator("select.aggregate-function");
+		await aggregate_function.first().focus();
+		await aggregate_function.first().selectOption("sum");
+		await expect(aggregate_function.first()).toBeFocused();
+		await popover.locator(".add-aggregate").focus();
+		await page.keyboard.press("Enter");
+		await expect(aggregate_function).toHaveCount(2);
+		await expect(aggregate_function.last()).toBeFocused();
+
 		// Escape outside a field closes the popover and returns focus to the button
+		await popover.locator(".remove-group-by-row").first().focus();
 		await page.keyboard.press("Escape");
 		await expect(popover).toBeHidden();
 		await expect(button).toBeFocused();

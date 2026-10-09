@@ -206,6 +206,7 @@ frappe.ui.GroupBy = class {
 				? { ...aggregate, aggregate_function }
 				: { aggregate_function };
 			this.render_group_by_area();
+			this.$group_by_area.find("select.aggregate-function").eq(get_idx(e)).trigger("focus");
 			this.apply_group_by_and_refresh();
 		});
 
@@ -218,6 +219,7 @@ frappe.ui.GroupBy = class {
 		this.$group_by_area.on("click", ".add-aggregate", () => {
 			this.aggregates.push({ aggregate_function: "count" });
 			this.render_group_by_area();
+			this.$group_by_area.find("select.aggregate-function").last().trigger("focus");
 			this.apply_group_by_and_refresh();
 		});
 
