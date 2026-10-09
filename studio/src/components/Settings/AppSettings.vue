@@ -89,9 +89,15 @@ const homeOptions = computed(() =>
 )
 const isDeveloperMode = Boolean(window.is_developer_mode)
 
-function update(field: "app_title" | "route" | "app_home" | "favicon", value: string) {
-	store.updateActiveApp(field, value).catch((error: any) => {
-		toast.error(error?.messages?.join(", ") || error?.message || "Failed to update the app")
-	})
+const FIELD_LABELS = { app_title: "Title", route: "Route", app_home: "App Home", favicon: "Favicon" }
+
+function update(field: keyof typeof FIELD_LABELS, value: string) {
+	const label = FIELD_LABELS[field]
+	store
+		.updateActiveApp(field, value)
+		.then(() => toast.success(`${label} saved`))
+		.catch((error: any) => {
+			toast.error(`Could not save ${label}`, { description: error?.messages?.join(", ") || error?.message })
+		})
 }
 </script>

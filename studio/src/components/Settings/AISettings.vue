@@ -32,6 +32,6 @@ function save(apiKey: string) {
 	studioSettings.setValue
 		.submit({ ai_api_key: apiKey })
 		.then(() => toast.success("API key saved"))
-		.catch((error: any) => toast.error(error?.message || "Failed to save the API key"))
+		.catch((error: any) => toast.error("Could not save the API key", { description: error?.message }))
 }
 </script>
