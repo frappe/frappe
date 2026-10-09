@@ -6,9 +6,15 @@ import os
 import tempfile
 
 import frappe
-from frappe.core.doctype.migration_hash.migration_hash import get_migration_hash, get_relative_file_path
+from frappe.core.doctype.migration_hash.migration_hash import (
+	delete_migration_hashes,
+	get_migration_hash,
+	get_relative_file_path,
+	set_migration_hash,
+)
 from frappe.modules.import_file import calculate_hash, import_file_by_path
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_bench_path
 
 MODIFIED = "2020-01-01 00:00:00.000000"
 
@@ -86,6 +92,17 @@ class IntegrationTestMigrationHash(IntegrationTestCase):
 
 			self.assertTrue(import_file_by_path(path))
 			self.assertEqual(get_migration_hash(path), calculate_hash(path))
+
+	def test_removing_an_app_deletes_only_its_hashes(self):
+		apps_path = os.path.join(get_bench_path(), "apps")
+		removed_app_path = os.path.join(apps_path, "_test_removed_app", "report.json")
+		kept_app_path = os.path.join(apps_path, "_test_kept_app", "report.json")
+		set_migration_hash(removed_app_path, "removed")
+		set_migration_hash(kept_app_path, "kept")
+
+		delete_migration_hashes("_test_removed_app")
+		self.assertIsNone(get_migration_hash(removed_app_path))
+		self.assertEqual(get_migration_hash(kept_app_path), "kept")
 
 	def test_files_holding_the_same_record_keep_their_own_hash(self):
 		name = "_Test Migration Hash Duplicate"
