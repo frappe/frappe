@@ -29,7 +29,9 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 	get_input_value() {
 		if (this.$input) {
 			const label = this.$input.val();
-			const item = this._data?.find((i) => i.label == label);
+			if (!label) return label;
+			// items without a label (e.g. Users with no full_name) must never match
+			const item = this._data?.find((i) => i.label && i.label == label);
 			return item ? item.value : label;
 		}
 	}
