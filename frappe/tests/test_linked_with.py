@@ -1106,6 +1106,20 @@ class TestLinkedWith(IntegrationTestCase):
 		with linked_entry_target() as (target, _user), self.assertRaises(frappe.ValidationError):
 			linked_with.get(target.doctype, target.name, order_by="`tabLinked Entry Row`.`target` asc")
 
+	def test_get_skips_filters_a_linked_doctype_cannot_apply(self):
+		with linked_entry_target() as (target, _user):
+			live = make_linked_entry(target)
+			make_linked_entry(target).submit().cancel()
+			filters = [
+				# Linked Entry has no status field, so this filter doesn't apply to it
+				["status", "!=", "Cancelled"],
+				["docstatus", "!=", 2],
+				["Linked Entry Target", "name", "=", "not this one"],
+			]
+			linked = linked_with.get(target.doctype, target.name, filters=filters)
+
+		self.assertEqual([doc.name for doc in linked["Linked Entry"]["docs"]], [live.name])
+
 	def test_get_filters_linked_docs_without_changing_hidden_count(self):
 		with linked_entry_target() as (target, user):
 			# owned by Administrator, so hidden from the user
