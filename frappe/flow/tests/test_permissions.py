@@ -5,6 +5,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow import api
+from flow.memory import store as memory_store
 from flow.patches.grant_flow_role import FLOW_USER_ROLE_PROFILE
 from flow.patches.grant_flow_role import execute as grant_flow_role
 from flow.permissions import FLOW_USER_ROLE, ensure_flow_role
@@ -69,6 +70,75 @@ class TestFlowAccess(IntegrationTestCase):
 				self.assertFalse(frappe.has_permission(doctype, "read", user=outsider))
 				self.assertTrue(frappe.has_permission(doctype, "read", user=member))
 				self.assertTrue(frappe.has_permission(doctype, "read", user=manager))
+
+	def test_sessions_runs_and_personal_memories_stay_private_to_their_owner(self):
+		self.addCleanup(memory_store.drop_table)
+		owner = _user("flow-private-owner@example.com", FLOW_USER_ROLE)
+		member = _user("flow-private-member@example.com", FLOW_USER_ROLE)
+		manager = _user("flow-private-manager@example.com", "System Manager")
+		agent = _agent()
+		frappe.set_user(owner)
+		chat = frappe.get_doc(
+			{"doctype": "Flow Session", "agent": agent, "messages": [{"role": "user", "content": "Private."}]}
+		).insert(ignore_permissions=True)
+		fired = frappe.get_doc({"doctype": "Flow Session", "agent": agent, "source": "Trigger"}).insert(
+			ignore_permissions=True
+		)
+		run, fired_run = (
+			frappe.get_doc(
+				{"doctype": "Flow Run", "session": s.name, "source": s.source, "status": "Completed"}
+			).insert(ignore_permissions=True)
+			for s in (chat, fired)
+		)
+		memory, agent_memory = (
+			frappe.get_doc(
+				{
+					"doctype": "Flow Agent Memory",
+					"agent": agent,
+					"scope": scope,
+					"user": owner,
+					"content": "Noted.",
+				}
+			).insert(ignore_permissions=True)
+			for scope in ("User", "Agent")
+		)
+		frappe.set_user("Administrator")
+
+		for user in (member, manager):
+			with self.subTest(user):
+				self.assertFalse(frappe.has_permission("Flow Session", "read", chat, user=user))
+				self.assertFalse(frappe.has_permission("Flow Run", "read", run, user=user))
+				self.assertFalse(frappe.has_permission("Flow Agent Memory", "read", memory, user=user))
+				self.assertFalse(
+					frappe.get_list(
+						"Flow Session Message",
+						parent_doctype="Flow Session",
+						filters={"parent": chat.name},
+						user=user,
+					)
+				)
+		for doc in (chat, run, memory):
+			with self.subTest(doc.doctype):
+				self.assertFalse(frappe.get_list(doc.doctype, filters={"name": doc.name}, user=manager))
+				self.assertTrue(frappe.has_permission(doc.doctype, "delete", doc, user=manager))
+		for doc in (fired, fired_run, agent_memory):
+			with self.subTest(doc.doctype):
+				self.assertTrue(frappe.has_permission(doc.doctype, "read", doc, user=manager))
+				self.assertTrue(frappe.get_list(doc.doctype, filters={"name": doc.name}, user=manager))
+
+		# changing the fields the rules read cannot open a record, and runs stay read-only
+		frappe.set_user(manager)
+		for doctype, name, changes, refusal in (
+			("Flow Run", run.name, {"source": "Trigger"}, frappe.PermissionError),
+			("Flow Run", fired_run.name, {"status": "Failed"}, frappe.PermissionError),
+			("Flow Agent Memory", memory.name, {"scope": "Agent"}, frappe.CannotChangeConstantError),
+			("Flow Agent Memory", memory.name, {"user": manager}, frappe.CannotChangeConstantError),
+		):
+			with self.subTest(doctype, changes=changes):
+				doc = frappe.get_doc(doctype, name)
+				doc.update(changes)
+				with self.assertRaises(refusal):
+					doc.save()
 
 	def test_every_endpoint_refuses_a_user_without_the_role(self):
 		agent = _agent()
