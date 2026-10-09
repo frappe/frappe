@@ -150,7 +150,7 @@ def take_backup():
 	enqueue(
 		"frappe.integrations.doctype.google_drive.google_drive.upload_system_backup_to_google_drive",
 		queue="long",
-		timeout=1500,
+		timeout=frappe.conf.get("google_drive_backup_timeout", 1500),
 	)
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
