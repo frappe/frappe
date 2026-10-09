@@ -219,8 +219,9 @@ class TestContact(IntegrationTestCase):
 
 		# "All" grants owner-only read, which would still count as Contact access
 		update_permission_property("Contact", "All", 0, "read", 0, validate=False)
+		# desk sends a native list
 		with self.set_user(make_caller(can_read_contacts=False).name):
-			result = get_recipient_avatars(emails)
+			result = get_recipient_avatars(frappe.parse_json(emails))
 
 		self.assertEqual(result["user_info"][with_photo]["image"], "/files/user.png")
 		self.assertEqual(result["contact_images"], {})
