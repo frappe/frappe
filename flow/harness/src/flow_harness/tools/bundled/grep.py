@@ -27,6 +27,12 @@ async def grep(
 ) -> ToolResult:
 	"""Search files for a regex pattern (uses ripgrep if available), skipping node_modules and binary files."""
 	target = resolve(ctx, path, read_only=True)
+	names = _name_globs(include)
+	if any("{" in name for name in names):  # plain grep would read the rest literally and find nothing
+		return ToolResult(
+			content="[include takes one {a,b} group; list every combination in it, e.g. *.{spec.js,test.js}]",
+			is_error=True,
+		)
 	# grep would skip the very folder it was asked to search
 	skip_node_modules = os.path.basename(target) != "node_modules"
 	rg = shutil.which("rg")
@@ -35,7 +41,7 @@ async def grep(
 	# The last matching glob wins, so the skips must follow the caller's include.
 	if rg:
 		cmd = [rg, "--line-number", "--no-heading", "--color=never"]
-		cmd.extend(f"--glob={name}" for name in _name_globs(include))
+		cmd.extend(f"--glob={name}" for name in names)
 		if skip_node_modules:
 			cmd.append("--glob=!node_modules")
 		if ctx.ignore_hidden_files:
@@ -43,7 +49,7 @@ async def grep(
 		cmd.extend(("--", pattern, target))
 	else:
 		cmd = ["grep", "-rnI"]
-		cmd.extend(f"--include={name}" for name in _name_globs(include))
+		cmd.extend(f"--include={name}" for name in names)
 		if skip_node_modules:
 			cmd.append("--exclude-dir=node_modules")
 		if ctx.ignore_hidden_files:

@@ -97,6 +97,15 @@ async def test_grep_include_limits_the_files_searched(tmp_path, engine):
 	assert "c.vue" in result.content
 
 
+async def test_grep_refuses_an_include_with_two_brace_groups(tmp_path, engine):
+	(tmp_path / "a.spec.js").write_text("needle\n")
+
+	result = await grep(pattern="needle", include="*.{spec,test}.{js,ts}", ctx=_ctx(tmp_path))
+
+	assert result.is_error
+	assert "one {a,b} group" in result.content
+
+
 async def test_grep_skips_node_modules_and_binary_files(tmp_path, engine):
 	(tmp_path / "a.py").write_text("needle\n")
 	(tmp_path / "node_modules" / "pkg").mkdir(parents=True)
