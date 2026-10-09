@@ -67,8 +67,17 @@ def set_migration_hash(path: str, migration_hash: str) -> None:
 
 
 def delete_migration_hashes(app: str) -> None:
-	"""Delete the hashes of an app's files, for when the app is removed from the site."""
+	"""Delete the hashes of an app's files, for when the app is removed from the site.
+
+	`LIKE` reads an `_` in the app name as any character, so each path is checked again exactly.
+	"""
 	if not frappe.db.table_exists("Migration Hash"):
 		return
 
-	frappe.db.delete("Migration Hash", {"file_path": ("like", f"{app}/%")})
+	prefix = f"{app}/"
+	rows = frappe.get_all(
+		"Migration Hash", filters={"file_path": ("like", f"{prefix}%")}, fields=["name", "file_path"]
+	)
+	names = [row.name for row in rows if row.file_path.startswith(prefix)]
+	if names:
+		frappe.db.delete("Migration Hash", {"name": ("in", names)})
