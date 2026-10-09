@@ -99,9 +99,9 @@ frappe.ui.FilterGroup = class {
 				this.set_filter_events();
 			}
 			this.toggle_empty_filters(false);
-			!hide_empty_filters && this.add_filter(this.doctype, "name");
-
-			this.filters[0]?.fieldselect?.$input?.focus();
+			if (!hide_empty_filters) {
+				this._push_new_filter(this.doctype).fieldselect.$input.focus();
+			}
 		});
 
 		this.filter_button.on("hidden.bs.popover", () => {
