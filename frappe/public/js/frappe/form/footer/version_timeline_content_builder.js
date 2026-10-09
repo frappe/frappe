@@ -160,17 +160,8 @@ function get_version_timeline_content(version_doc, frm) {
 					) {
 						parts.push(
 							__("{0} from {1} to {2} in row #{3}", [
-<<<<<<< HEAD
 								__(
-									frappe.meta.get_label(
-										frm.fields_dict[row[0]].grid.doctype,
-										p[0]
-									)
-=======
-								frappe.meta.get_translated_label(
-									frm.fields_dict[row[0]].df.options,
-									p[0]
->>>>>>> 22661a1 (fix: form goes blank after a table multiselect row is changed)
+									frappe.meta.get_label(frm.fields_dict[row[0]].df.options, p[0])
 								),
 								format_content_for_timeline(p[1]),
 								format_content_for_timeline(p[2]),
