@@ -207,7 +207,7 @@ def create_multiple_todo_records():
 
 @whitelist_for_tests()
 def ensure_todo_kanban_board():
-	"""Create the ToDo Kanban board used by cypress/integration/kanban.js."""
+	"""Create the ToDo Kanban board used by playwright/tests/kanban.spec.js."""
 	if frappe.db.exists("Kanban Board", "ToDo Kanban"):
 		return "ToDo Kanban"
 
@@ -227,6 +227,8 @@ def ensure_todo_kanban_board():
 		}
 	)
 	doc.insert(ignore_permissions=True)
+	# new boards are v2; this one covers the classic board
+	doc.db_set("use_kanban_v2", 0)
 	return doc.name
 
 
@@ -753,18 +755,18 @@ def slow_task(duration, title, doctype, docname):
 		time.sleep(int(duration) / steps)
 
 
-LIST_LAYOUT_TEST_PREFIX = "_cypress_layout_"
+LIST_LAYOUT_TEST_PREFIX = "_test_layout_"
 
 
 @whitelist_for_tests()
 def clear_list_layout_test_layouts():
-	"""Remove saved layouts created by Cypress saved-layout tests."""
+	"""Remove saved layouts created by the saved-layout UI tests."""
 	frappe.db.delete("List Filter", {"filter_name": ["like", f"{LIST_LAYOUT_TEST_PREFIX}%"]})
 
 
 @whitelist_for_tests()
 def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
-	"""Clear saved layout preference so Cypress starts from Default Layout."""
+	"""Clear saved layout preference so UI tests start from Default Layout."""
 	import json
 
 	from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -787,7 +789,7 @@ def create_list_layout_test_layout(
 	sort_field: str = "modified",
 	sort_order: str = "desc",
 ):
-	"""Insert a saved list filter for Cypress tests."""
+	"""Insert a saved list filter for UI tests."""
 	import json
 
 	filter_name = filter_name or layout_name or f"{LIST_LAYOUT_TEST_PREFIX}open"

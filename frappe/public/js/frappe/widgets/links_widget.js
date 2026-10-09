@@ -79,9 +79,8 @@ export default class LinksWidget extends Widget {
 				`;
 
 			return `
-				<span class="link-content ellipsis">
+				<span class="link-content">
 					<span class="link-text">${item.link_title}</span>
-					${frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-2")}
 				</span>
 			`;
 		};
@@ -103,7 +102,7 @@ export default class LinksWidget extends Widget {
 			item.link_title = item.label ? item.label : item.name;
 
 			const $link = $(`
-				<a href="${route}" class="link-item ellipsis
+				<a href="${route}" class="link-item
 					${item.onboard ? "onboard-spotlight" : ""} ${disabled_dependent(item)}"
 					type="${item.type}" title="${item.link_title}"
 				>

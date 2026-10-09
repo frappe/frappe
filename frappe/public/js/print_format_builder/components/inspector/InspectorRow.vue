@@ -3,7 +3,9 @@
 		class="pfb-insp-row"
 		:class="{ 'pfb-insp-row--col': stacked, 'pfb-insp-row--toggle': toggle }"
 	>
-		<span class="pfb-insp-label">{{ label }}</span>
+		<span class="pfb-insp-label"
+			><slot name="label">{{ label }}</slot></span
+		>
 		<slot />
 	</div>
 </template>

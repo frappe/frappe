@@ -7,6 +7,7 @@ const BOOT_USER_FIELDS = [
 	"language",
 	"mute_sounds",
 	"send_me_a_copy",
+	"send_read_receipt",
 	"show_absolute_datetime_in_timeline",
 ];
 
@@ -45,6 +46,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			language: boot_user.language,
 			mute_sounds: boot_user.mute_sounds,
 			send_me_a_copy: boot_user.send_me_a_copy,
+			send_read_receipt: boot_user.send_read_receipt,
 			show_absolute_datetime_in_timeline: boot_user.show_absolute_datetime_in_timeline,
 			...response.message,
 		};
@@ -299,6 +301,13 @@ function _email_tab(user_data) {
 				description: __("Receive a copy of every email you send in your inbox."),
 				default: user_data.send_me_a_copy,
 			},
+			{
+				fieldtype: "Switch",
+				fieldname: "send_read_receipt",
+				label: __("Request read receipts for outgoing emails"),
+				description: __("Get notified when a recipient opens an email you send."),
+				default: user_data.send_read_receipt,
+			},
 			{ fieldtype: "Section Break", label: __("Email Signature") },
 			{
 				fieldtype: "Text Editor",
@@ -316,7 +325,7 @@ function _email_tab(user_data) {
 			},
 		],
 		render(panel) {
-			_bind_switch_autosave(panel, ["thread_notify", "send_me_a_copy"]);
+			_bind_switch_autosave(panel, ["thread_notify", "send_me_a_copy", "send_read_receipt"]);
 		},
 	};
 }
@@ -406,10 +415,10 @@ function _layout_preview_window(type) {
 }
 
 function _render_dock_cards(panel, user_data) {
-	const current = user_data.dock_mode === "Pinned" ? "Pinned" : "Floating";
+	const current = user_data.dock_mode === "Floating" ? "Floating" : "Pinned";
 	const options = [
-		{ value: "Floating", label: __("Floating") },
 		{ value: "Pinned", label: __("Pinned") },
+		{ value: "Floating", label: __("Floating") },
 	];
 
 	const $grid = $(`<div class="flex gap-3 mb-4 max-w-lg"></div>`);

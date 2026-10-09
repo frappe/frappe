@@ -128,7 +128,7 @@
 	.body-sidebar-bottom {
 		// The user chip is the header's row drawn again -- a 40px trigger around a 28px mark --
 		// so it takes the header's 4px gutter rather than the rows' 8px.
-		padding: 0 4px 4px;
+		padding: 0 4px calc(4px + env(safe-area-inset-bottom, 0px));
 		width: 100%;
 	}
 
@@ -229,7 +229,6 @@
 		margin: calc(var(--spacing) * 2) 0;
 	}
 
-	.onboarding-sidebar,
 	.promotional-banner {
 		text-decoration: none;
 		font-size: var(--text-sm);
@@ -356,10 +355,6 @@
 			.indent + .nested-container {
 				margin-left: 0;
 				border-left: none;
-
-				.sidebar-item-container {
-					margin-left: 0;
-				}
 			}
 		}
 
@@ -438,7 +433,7 @@
 .sidebar-collapse-arrow {
 	position: absolute;
 	// centred on the user chip: its 40px row sits 8px off the bottom, so its middle is 28px up
-	bottom: 16px;
+	bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 	left: calc(var(--sidebar-width) - 12px);
 	z-index: 1023;
 	display: flex;
@@ -598,13 +593,11 @@
 	}
 }
 
+// The rule runs down the middle of the group's icon (row padding plus half the 16px icon), and
+// the rows below it start their text where the group's own label starts.
 .indent + .nested-container {
-	margin-left: calc(var(--spacing) * 2 + 1px);
+	margin-left: calc(var(--spacing) * 4 - 1px);
 	border-left: 1px solid var(--outline-gray-1);
-
-	.sidebar-item-container {
-		margin-left: var(--spacing);
-	}
 }
 
 // A count, or a shortcut hint: `mr-2 text-sm text-ink-gray-4` on a zone the label's flex-grow has

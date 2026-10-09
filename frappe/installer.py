@@ -174,7 +174,7 @@ def install_db(
 		source_sql=source_sql,
 	)
 
-	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
+	frappe.conf.admin_password = admin_password or frappe.conf.admin_password
 
 	remove_missing_apps()
 

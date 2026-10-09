@@ -172,7 +172,9 @@ class Importer:
 
 		# parse docs from rows
 		payloads = self.import_file.get_payloads_for_import()
-		if self.data_import.name:
+		self.data_import.payload_count = len(payloads)
+		# Subclasses such as Bank Statement Import pass a doc without this column.
+		if self.data_import.name and self.data_import.meta.has_field("payload_count"):
 			self.data_import.db_set("payload_count", len(payloads))
 
 		# dont import if there are non-ignorable warnings

@@ -52,6 +52,14 @@ def _delete_doctype_records(doctype, names):
 	frappe.db.commit()  # nosemgrep
 
 
+def _delete_import_doc(doctype, name):
+	"""Remove an import document and its logs; Importer commits them row by row."""
+	for log in frappe.get_all("Data Import Log", filters={"data_import": name}, pluck="name"):
+		frappe.delete_doc("Data Import Log", log, force=1, ignore_permissions=True)
+	frappe.delete_doc(doctype, name, force=1, ignore_permissions=True)
+	frappe.db.commit()  # nosemgrep
+
+
 def _register_data_import_cleanup(test_case, data_import):
 	test_case.addCleanup(_delete_data_import, data_import.name)
 
@@ -768,6 +776,28 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(response["status"], "not_running")
 		self.assertEqual(frappe.db.get_value("Data Import", data_import.name, "status"), "Error")
 
+	def test_import_through_doctype_without_payload_count(self):
+		"""Apps pass their own import doctype (e.g. Bank Statement Import) that has no payload_count column."""
+		import_doctype = create_import_doctype_without_payload_count()
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+
+		with self.set_user("test@example.com"):
+			import_doc = frappe.get_doc(
+				{
+					"doctype": import_doctype,
+					"reference_doctype": doctype_name,
+					"import_type": "Insert New Records",
+					"import_file": get_import_file("sample_import_file").file_url,
+				}
+			).insert()
+			self.addCleanup(_delete_import_doc, import_doctype, import_doc.name)
+
+			Importer(doctype_name, data_import=import_doc).import_data()
+
+		self.assertEqual(import_doc.payload_count, 3)
+		self.assertEqual(frappe.db.get_value(import_doctype, import_doc.name, "status"), "Success")
+		self.assertTrue(frappe.db.exists(doctype_name, "Test"))
+
 	def test_import_provider_creates_the_records(self):
 		_delete_doctype_records(doctype_name, SAMPLE_IMPORT_DOC_NAMES)
 		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
@@ -988,6 +1018,42 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 			"permissions": [{"role": "System Manager", "import": 1}],
 		}
 	).insert()
+
+
+def create_import_doctype_without_payload_count():
+	"""An import doctype with the fields Importer reads and writes, minus payload_count."""
+	name = "Test Import Without Payload Count"
+	if frappe.db.exists("DocType", name):
+		return name
+
+	from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+	new_doctype(
+		name,
+		fields=[
+			{"fieldname": "reference_doctype", "fieldtype": "Data"},
+			{
+				"fieldname": "import_type",
+				"fieldtype": "Select",
+				"options": "Insert New Records\nUpdate Existing Records",
+			},
+			{"fieldname": "import_file", "fieldtype": "Attach"},
+			{"fieldname": "google_sheets_url", "fieldtype": "Data"},
+			{"fieldname": "template_options", "fieldtype": "Code"},
+			{"fieldname": "template_warnings", "fieldtype": "Code"},
+			{
+				"fieldname": "status",
+				"fieldtype": "Select",
+				"options": "Pending\nIn Progress\nSuccess\nPartial Success\nError",
+				"default": "Pending",
+			},
+			{"fieldname": "mute_emails", "fieldtype": "Check", "default": "1"},
+			{"fieldname": "submit_after_import", "fieldtype": "Check"},
+			{"fieldname": "custom_delimiters", "fieldtype": "Check"},
+			{"fieldname": "delimiter_options", "fieldtype": "Data"},
+		],
+	).insert()
+	return name
 
 
 def get_import_file(csv_file_name, force=False):

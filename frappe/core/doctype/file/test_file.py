@@ -72,6 +72,32 @@ def make_test_image_file(private=False):
 		_test_file.delete()
 
 
+@contextmanager
+def make_test_pdf_file(private=False):
+	import io
+
+	from PIL import Image
+
+	image_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+	buf = io.BytesIO()
+	Image.open(image_path).save(buf, format="PDF")
+
+	test_file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": "sample_pdf_for_optimization.pdf",
+			"content": buf.getvalue(),
+			"is_private": private,
+		}
+	).insert()
+	_test_file: File = frappe.get_doc("File", test_file.name)
+
+	try:
+		yield _test_file
+	finally:
+		_test_file.delete()
+
+
 class TestSimpleFile(IntegrationTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
@@ -462,6 +488,41 @@ class TestSameContent(IntegrationTestCase):
 		self.assertTrue(public_file.file_url.startswith("/private/files/"))
 		self.assertEqual(public_file.get_content(), content)
 		self.assertEqual(private_file.get_content(), content)
+
+	def test_remote_file_ignores_content_hash(self):
+		existing = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"hash_{frappe.generate_hash(length=6)}.txt",
+				"content": "private-content",
+				"is_private": 1,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", existing.name, force=True)
+
+		for file_url in ("https://example.com/remote.png", "/api/method/remote"):
+			with self.subTest(file_url=file_url):
+				frappe.set_user("test@example.com")
+				try:
+					remote = frappe.get_doc(
+						{
+							"doctype": "File",
+							"file_name": "remote.png",
+							"is_private": 1,
+							"file_url": file_url,
+							"content_hash": existing.content_hash,
+						}
+					).insert()
+				finally:
+					frappe.set_user("Administrator")
+				self.addCleanup(frappe.delete_doc, "File", remote.name, force=True)
+
+				self.assertEqual(remote.file_url, file_url)
+				self.assertFalse(remote.content_hash)
+
+				remote.content_hash = existing.content_hash
+				remote.save()
+				self.assertFalse(remote.content_hash)
 
 
 class TestFile(IntegrationTestCase):
@@ -2039,6 +2100,18 @@ class TestFileOptimization(IntegrationTestCase):
 		# both the original and the copy must pass, regardless of DB row ordering
 		frappe.get_doc("File", source.name).validate_file_url_matches_record()
 		frappe.get_doc("File", copy.name).validate_file_url_matches_record()
+
+	def test_optimize_pdf(self):
+		with make_test_pdf_file() as test_file:
+			original_size = test_file.file_size
+			original_content_hash = test_file.content_hash
+
+			test_file.optimize_file()
+			optimized_size = test_file.file_size
+			updated_content_hash = test_file.content_hash
+
+			self.assertLess(optimized_size, original_size)
+			self.assertNotEqual(original_content_hash, updated_content_hash)
 
 	def test_optimize_svg(self):
 		file_path = frappe.get_app_path("frappe", "tests/data/sample_svg.svg")

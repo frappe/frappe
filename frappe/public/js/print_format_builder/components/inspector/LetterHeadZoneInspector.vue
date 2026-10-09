@@ -1,11 +1,5 @@
 <template>
 	<div class="pfb-insp-body">
-		<!-- Zone label — footer only (matches original design; header has no zone label) -->
-		<div v-if="zone === 'footer'" class="pfb-lh-zone-label">
-			<span v-html="frappe.utils.icon('panel-bottom', 'xs')"></span>
-			{{ __("Letter Head Footer") }}
-		</div>
-
 		<!-- Based on toggle + letter head actions -->
 		<div class="pfb-insp-section">
 			<div class="pfb-insp-section-body" style="padding-top: 10px">
@@ -19,6 +13,13 @@
 					]"
 					@update:model-value="set_source"
 				/>
+				<div v-if="letterhead" class="pfb-insp-hint text-muted">
+					{{
+						__(
+							"Letter head changes are saved right away and apply to every print format that uses it."
+						)
+					}}
+				</div>
 			</div>
 		</div>
 
@@ -69,7 +70,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { get_image_dimensions } from "../../utils";
 import { zone_fields } from "../letterhead/zone_fields";
 import { open_html_editor } from "../../composables/useHtmlEditorDialog";
@@ -93,9 +94,13 @@ const html_content_field = computed(() => F.value.content);
 const width_field = computed(() => F.value.width);
 const height_field = computed(() => F.value.height);
 
+const picked_source = ref(null);
+watch(letterhead, () => (picked_source.value = null));
+
 const zone_source = computed(() => {
 	const lh = letterhead.value;
 	if (!lh) return "Image";
+	if (picked_source.value) return picked_source.value;
 	if (lh[source_field.value] === "HTML") return "HTML";
 	if (!lh[image_field.value] && lh[html_content_field.value]) return "HTML";
 	return "Image";
@@ -132,6 +137,7 @@ const zone_size_max = computed(() => {
 
 function set_source(val) {
 	if (!letterhead.value) return;
+	picked_source.value = val;
 	letterhead.value[source_field.value] = val;
 	letterhead.value._dirty = true;
 }
@@ -154,10 +160,22 @@ function set_size(val) {
 	letterhead.value._dirty = true;
 }
 
+function is_generated_image_markup(content, image) {
+	const body = new DOMParser().parseFromString(content, "text/html").body;
+	const wrapper = body.children.length === 1 ? body.firstElementChild : null;
+	const img = wrapper?.children.length === 1 ? wrapper.firstElementChild : null;
+	return img?.tagName === "IMG" && img.getAttribute("src") === image && !body.textContent.trim();
+}
+
 function set_image(url) {
 	if (!letterhead.value) return;
 	if (!url) {
+		const old_image = letterhead.value[image_field.value];
+		const content = letterhead.value[html_content_field.value] || "";
 		letterhead.value[image_field.value] = "";
+		if (old_image && is_generated_image_markup(content, old_image)) {
+			letterhead.value[html_content_field.value] = "";
+		}
 		letterhead.value._dirty = true;
 		return;
 	}
@@ -174,7 +192,7 @@ function set_image(url) {
 			letterhead.value[image_field.value] = url;
 			letterhead.value[width_field.value] = new_width;
 			letterhead.value[height_field.value] = new_height;
-			if (props.zone === "footer") {
+			if (props.zone === "footer" && zone_source.value === "Image") {
 				letterhead.value[source_field.value] = "Image";
 			}
 			letterhead.value._dirty = true;
@@ -199,19 +217,3 @@ function edit_html() {
 	});
 }
 </script>
-
-<style scoped>
-.pfb-lh-zone-label {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	letter-spacing: 0;
-	color: var(--gray-600);
-	background: var(--surface-gray-1);
-	border-bottom: 1px solid var(--gray-200);
-	padding: 7px 14px;
-	flex-shrink: 0;
-}
-</style>

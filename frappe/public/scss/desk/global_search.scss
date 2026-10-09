@@ -63,7 +63,8 @@
 			width: auto;
 			max-width: none;
 			box-sizing: border-box;
-			padding-inline: var(--padding-md);
+			/* the modal body's padding already lines the results up with the search input */
+			padding-inline: 0;
 
 			.global-search-doctype-filters {
 				flex-shrink: 0;
@@ -378,32 +379,6 @@
 
 			.list-row .avatar {
 				--avatar-size: var(--avatar-size-medium, 26px);
-			}
-		}
-
-		.empty-state {
-			.empty-state-text {
-				font-weight: 600;
-				color: var(--text-color);
-				margin-top: var(--margin-lg);
-				font-size: var(--text-xl);
-			}
-
-			.global-search-empty-state-tip {
-				font-size: var(--text-xs);
-				margin-top: var(--margin-md);
-				max-width: 28rem;
-				margin-left: auto;
-				margin-right: auto;
-				line-height: 1.45;
-
-				.global-search-shortcut-key {
-					background-color: var(--border-color);
-					padding: 2px 4px;
-					border-radius: 4px;
-					font-size: x-small;
-					display: inline-block;
-				}
 			}
 		}
 

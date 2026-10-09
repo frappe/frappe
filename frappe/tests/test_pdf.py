@@ -20,6 +20,70 @@ def blank_pdf() -> bytes:
 	return stream.getvalue()
 
 
+def pdf_with_document_level_js() -> bytes:
+	from pypdf import PdfWriter
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	writer.add_js("app.alert('hello from pdf');")
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def pdf_with_page_level_js() -> bytes:
+	from pypdf import PdfWriter
+	from pypdf.generic import DictionaryObject, NameObject, TextStringObject
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	action = DictionaryObject(
+		{
+			NameObject("/S"): NameObject("/JavaScript"),
+			NameObject("/JS"): TextStringObject("app.alert('hello from page');"),
+		}
+	)
+	writer.pages[0][NameObject("/AA")] = DictionaryObject({NameObject("/O"): writer._add_object(action)})
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def encrypted_pdf_with_js() -> bytes:
+	from pypdf import PdfWriter
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	writer.add_js("app.alert('hello from encrypted');")
+	writer.encrypt("frappe")
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def js_reachable_without_resolving_indirects(content: bytes) -> bool:
+	reader = PdfReader(io.BytesIO(content))
+
+	def walk(obj):
+		if isinstance(obj, dict):
+			for key, value in obj.items():
+				if key == "/Parent":
+					continue
+				if key in ("/JS", "/JavaScript"):
+					return True
+				if walk(value):
+					return True
+		elif isinstance(obj, list):
+			for item in obj:
+				if walk(item):
+					return True
+		return False
+
+	if walk(reader.trailer.get("/Root", {})):
+		return True
+	return any(walk(page) for page in reader.pages)
+
+
 class TestPdf(IntegrationTestCase):
 	@property
 	def html(self):
@@ -134,6 +198,22 @@ class TestPdf(IntegrationTestCase):
 
 		# If image was actually retrieved then size will be  in few kbs, else bytes.
 		self.assertGreaterEqual(len(pdf), 10_000)
+
+	def test_pdf_contains_js_detects_document_level_js(self):
+		content = pdf_with_document_level_js()
+		self.assertFalse(js_reachable_without_resolving_indirects(content))
+		self.assertTrue(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_detects_page_level_js(self):
+		content = pdf_with_page_level_js()
+		self.assertFalse(js_reachable_without_resolving_indirects(content))
+		self.assertTrue(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_false_for_clean_pdf(self):
+		self.assertFalse(pdfgen.pdf_contains_js(blank_pdf()))
+
+	def test_pdf_contains_js_does_not_raise_on_encrypted_pdf(self):
+		self.assertFalse(pdfgen.pdf_contains_js(encrypted_pdf_with_js()))
 
 
 class TestChromePdfGeometry(IntegrationTestCase):

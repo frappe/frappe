@@ -180,6 +180,9 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)
 
+	def test_unfollow_accepts_autoincrement_name(self):
+		self.assertFalse(document_follow.unfollow_document("ToDo", 0))
+
 	def test_cannot_follow_without_read_permission(self):
 		user = get_user()
 		event_doc = get_event()

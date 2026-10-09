@@ -340,9 +340,10 @@ class Engine:
 			if not isinstance(offset, int) or offset < 0:
 				frappe.throw(_("Offset must be a non-negative integer"), TypeError)
 
-			# In MariaDB and SQLite, offset requires limit
+			# In MariaDB and SQLite, offset requires limit. MAX_LIMIT overflows SQLite's signed
+			# integers, but SQLite reads a negative limit as no limit.
 			if not self.is_postgres and not limit:
-				self.query = self.query.limit(MAX_LIMIT)
+				self.query = self.query.limit(-1 if self.is_sqlite else MAX_LIMIT)
 
 			self.query = self.query.offset(offset)
 
@@ -784,6 +785,10 @@ class Engine:
 				and is_non_text_field(target_doctype, filter_field_name)
 			):
 				comparison_field = functions.Cast(comparison_field, "varchar")
+
+			if _operator.casefold() == "not in" and isinstance(_value, list | tuple | set) and None in _value:
+				fallback_value = self._get_ifnull_fallback(target_doctype, filter_field_name)
+				_value = tuple(fallback_value if v is None else v for v in _value)
 
 			return operator_fn(comparison_field, _value)
 

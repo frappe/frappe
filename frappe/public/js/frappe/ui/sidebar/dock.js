@@ -1,5 +1,5 @@
-// The app switcher: the modules of the app that owns the sidebar on screen. Floating (the default)
-// it slides in over the sidebar when the pointer hits the window's left edge; pinned it is a column.
+// The app switcher: the modules of the app that owns the sidebar on screen. Pinned (the default)
+// it is a column; floating it slides in over the sidebar when the pointer hits the window's left edge.
 frappe.ui.Dock = class Dock {
 	// Pixels from the left edge: reveal at the edge, hide once the pointer is past the tray.
 	static REVEAL_EDGE = 1;
@@ -10,7 +10,7 @@ frappe.ui.Dock = class Dock {
 		this.is_open = false;
 		this.enabled = false;
 		// The user's preference; `is_pinned` is whether it applies on the page on screen.
-		this.pinned = frappe.boot.desk_settings?.dock_mode === "Pinned";
+		this.pinned = frappe.boot.desk_settings?.dock_mode !== "Floating";
 		this.is_pinned = false;
 		this.opener = null;
 		this.tooltips = [];
@@ -296,11 +296,12 @@ frappe.ui.Dock = class Dock {
 	make_dock_item(entry) {
 		let label = entry.label;
 		if (!label) return null;
-		let icon = this.entry_icon(entry.icon, label);
-
 		let is_active = this.sidebar.is_active_entry(entry);
 		// By name, since the sprites load after the page and the symbol may not exist yet.
 		let is_duotone = !!entry.icon && entry.icon.endsWith("-duotone");
+		let icon = entry.icon
+			? frappe.utils.icon(entry.icon, "rail")
+			: frappe.utils.desktop_icon(label, "gray", "rail");
 		let $item = $(`<button
 			class="dock-item ${is_active ? "active" : ""} ${is_duotone ? "dock-item--duotone" : ""}"
 			aria-label="${frappe.utils.escape_html(label)}"

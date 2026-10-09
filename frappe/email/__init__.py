@@ -16,7 +16,7 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None = None) -> list[dict]:
+def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | list | None = None) -> list[dict]:
 	"""Return email ids for a multiselect field."""
 	if extra_filters:
 		extra_filters = frappe.parse_json(extra_filters)
@@ -48,6 +48,43 @@ def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None 
 		)
 		for d in contacts
 	]
+
+
+@frappe.whitelist()
+def get_recipient_avatars(emails: str | list) -> dict:
+	"""User info for recipients who are users (the same info the comment stream shows),
+	and contact images for the rest. Unknown addresses are absent."""
+	try:
+		addresses = frappe.parse_json(emails)
+	except ValueError:
+		addresses = None
+
+	if not isinstance(addresses, list):
+		return {"user_info": {}, "contact_images": {}}
+
+	cleaned = (e.strip().lower() for e in addresses if isinstance(e, str) and e.strip())
+	addresses = list(dict.fromkeys(cleaned))[:100]
+
+	user_info = {}
+	frappe.utils.add_user_info(addresses, user_info)
+
+	# Contacts are the fallback, so only look up addresses without a user photo.
+	contact_images = {}
+	remaining = [a for a in addresses if not user_info.get(a, {}).get("image")]
+	if remaining and frappe.has_permission("Contact"):
+		for row in frappe.get_list(
+			"Contact",
+			fields=["`tabContact Email`.email_id", "image"],
+			filters=[
+				["Contact Email", "email_id", "in", remaining],
+				["Contact", "image", "is", "set"],
+			],
+			limit_page_length=0,
+		):
+			if row.email_id:
+				contact_images.setdefault(row.email_id.lower(), row.image)
+
+	return {"user_info": user_info, "contact_images": contact_images}
 
 
 def get_system_managers():
