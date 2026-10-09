@@ -739,7 +739,7 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def new_page(new_page: dict):
+def new_page(new_page: dict | str):
 	# frappe auto-parses JSON-looking string args back into objects before this runs, so
 	# `new_page` may already be a dict; only `loads` it when it's still a string.
 	page = frappe.parse_json(new_page)
@@ -961,7 +961,7 @@ def add_private_to_sidebar(workspace):
 
 
 @frappe.whitelist()
-def save_page(name: str, public: str | int, new_widgets: dict, blocks: str):
+def save_page(name: str, public: str | int, new_widgets: dict | str, blocks: str):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)

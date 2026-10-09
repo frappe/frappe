@@ -236,6 +236,25 @@ class TestWorkspaceAccessLevels(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("Workspace", name, "for_user"), self.DESK_USER)
 
+	def test_a_desk_user_creates_and_saves_a_page_from_form_encoded_args(self):
+		"""The desk form-encodes requests, so object arguments arrive as JSON strings."""
+		from frappe.desk.doctype.workspace.workspace import new_page, save_page
+
+		frappe.set_user(self.DESK_USER)
+		name = f"Test Form Encoded Page-{self.DESK_USER}"
+		new_page(json.dumps(self.page("Test Form Encoded Page", label=name, for_user=self.DESK_USER)))
+		self.assertEqual(frappe.db.get_value("Workspace", name, "for_user"), self.DESK_USER)
+
+		save_page(
+			name=name,
+			public=0,
+			new_widgets=json.dumps({"shortcut": [{"type": "DocType", "link_to": "ToDo", "label": "ToDo"}]}),
+			blocks=json.dumps(
+				[{"id": "abcdef1234", "type": "shortcut", "data": {"shortcut_name": "ToDo", "col": 4}}]
+			),
+		)
+		self.assertEqual([s.label for s in frappe.get_doc("Workspace", name).shortcuts], ["ToDo"])
+
 	def test_a_desk_user_cannot_create_a_page_anybody_else_can_see(self):
 		from frappe.desk.doctype.workspace.workspace import new_page
 
