@@ -7,6 +7,8 @@ frappe.ui.GroupBy = class {
 		this.doctype = report_view.doctype;
 		this.group_by_fields_selected = [];
 		this.aggregates = [];
+		this.applied_group_bys = [];
+		this.applied_aggregates = [];
 		this.make();
 	}
 
@@ -214,8 +216,10 @@ frappe.ui.GroupBy = class {
 		}
 
 		return {
-			group_by: this.get_group_bys().map((f) => this.get_sql_field(f.doctype, f.fieldname)),
-			aggregates: this.get_aggregates().map((a) =>
+			group_by: this.applied_group_bys.map((f) =>
+				this.get_sql_field(f.doctype, f.fieldname)
+			),
+			aggregates: this.applied_aggregates.map((a) =>
 				a.aggregate_function === "count"
 					? { aggregate_function: "count" }
 					: {
@@ -302,23 +306,32 @@ frappe.ui.GroupBy = class {
 
 	apply_group_by() {
 		const group_bys = this.get_group_bys();
+		const aggregates = this.get_aggregates();
 		const child_doctypes = new Set(
 			group_bys
 				.map((f) => f.doctype)
-				.concat(this.get_aggregates().map((a) => a.aggregate_on_doctype))
+				.concat(aggregates.map((a) => a.aggregate_on_doctype))
 				.filter((doctype) => doctype && doctype !== this.doctype)
 		);
 		if (child_doctypes.size > 1) {
 			frappe.msgprint(__("Group By and aggregate fields can only use one child table."));
+			this.group_by_fields_selected = this.applied_group_bys.map((f) => ({ ...f }));
+			this.aggregates = this.applied_aggregates.map((a) => ({ ...a }));
+			this.render_group_by_area();
 			return false;
 		}
 
-		this.group_by = group_bys.length
-			? group_bys.map((f) => this.get_sql_field(f.doctype, f.fieldname)).join(", ")
-			: null;
+		// only complete selections reach the query, half-edited rows stay in the popover
+		if (!group_bys.length || aggregates.length !== this.aggregates.length) {
+			return false;
+		}
 
-		//All necessary fields must be set before applying group by
-		return Boolean(this.group_by) && this.get_aggregates().length === this.aggregates.length;
+		this.applied_group_bys = group_bys.map((f) => ({ ...f }));
+		this.applied_aggregates = aggregates.map((a) => ({ ...a }));
+		this.group_by = group_bys
+			.map((f) => this.get_sql_field(f.doctype, f.fieldname))
+			.join(", ");
+		return true;
 	}
 
 	apply_group_by_and_refresh() {
@@ -341,13 +354,13 @@ frappe.ui.GroupBy = class {
 			this.original_fields = this.report_view.fields.map((f) => f);
 		}
 
-		this.report_view.fields = this.get_group_bys().map((f) => [f.fieldname, f.doctype]);
+		this.report_view.fields = this.applied_group_bys.map((f) => [f.fieldname, f.doctype]);
 
 		// rebuild fields for group by
 		args.fields = this.report_view.get_fields();
 
 		// add aggregate columns in both query args and report views
-		this.get_aggregates().forEach((aggregate, idx) => {
+		this.applied_aggregates.forEach((aggregate, idx) => {
 			const fieldname = this.get_aggregate_fieldname(idx);
 			const doctype = aggregate.aggregate_on_doctype || this.doctype;
 			const aggregate_on = this.get_sql_field(
@@ -375,7 +388,7 @@ frappe.ui.GroupBy = class {
 	get_group_by_docfield(fieldname) {
 		// called from build_column
 		const idx = fieldname === "_aggregate_column" ? 0 : cint(fieldname.split("_").pop());
-		const aggregate = this.get_aggregates()[idx];
+		const aggregate = this.applied_aggregates[idx];
 
 		let docfield = {};
 		if (aggregate.aggregate_function === "count") {
@@ -407,7 +420,7 @@ frappe.ui.GroupBy = class {
 				docfield.fieldtype == "Currency" &&
 				docfield.options &&
 				!docfield.options.includes(":") &&
-				!this.get_group_bys().some((f) => f.fieldname == docfield.options)
+				!this.applied_group_bys.some((f) => f.fieldname == docfield.options)
 			) {
 				docfield.precision = frappe.meta.get_field_precision(docfield);
 				docfield.fieldtype = "Float";
@@ -425,6 +438,8 @@ frappe.ui.GroupBy = class {
 		this.report_view.group_by = null;
 		this.group_by_fields_selected = [];
 		this.aggregates = [];
+		this.applied_group_bys = [];
+		this.applied_aggregates = [];
 		this.render_group_by_area();
 
 		// restore original fields
@@ -508,7 +523,7 @@ frappe.ui.GroupBy = class {
 	}
 
 	get_group_by_field_labels() {
-		return this.get_group_bys()
+		return this.applied_group_bys
 			.map((group_by) => {
 				let field = this.group_by_fields[group_by.doctype]?.find(
 					(field) => field.fieldname == group_by.fieldname
