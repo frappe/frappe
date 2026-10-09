@@ -9,33 +9,22 @@
 // Icons only. A label per row is what a 220px column is for, and this is 56px wide: the tile is the
 // whole row, and the name it would have carried is a tooltip (see Dock.sync_row_tooltips). That is
 // also why the tray can be centred at all -- sixteen modules at 28px of row each is a column, and
-// at 40px of tile each it is a strip half the screen's height.
+// at 34px of tile each it is a strip half the screen's height.
 //
 // dock.js carries the reveal rules; what is here is the geometry.
 :root {
-	// The tray's own width: a 40px tile in 8px of padding either side.
-	--dock-tile: 40px;
+	// The tray's own width: a 34px tile in 11px of padding either side, with a 22px glyph (icon-rail)
+	// in it, so the glyph sits with room around it instead of filling its cell.
+	--dock-tile: 34px;
 	--dock-width: 56px;
 
 	// The sidebar's surface, so the dock reads as part of the same shell.
 	--dock-bg: var(--desk-sidebar-bg);
-	--dock-ink: var(--ink-gray-7);
-	--dock-ink-strong: var(--ink-gray-9);
-
-	// A tile's own fills, and the rule under the app mark. These are the one thing the token scales
-	// cannot express, because "a step forward" is not the same direction in both themes: on a light
-	// tray it is darker and on a dark tray it is lighter, and no single `--surface-gray-N` is on the
-	// near side of the tray's surface in both. So they are overlays, stated per theme, the way
-	// `--desk-sidebar-bg` is in sidebar.scss.
-	--dock-tile-hover: rgba(0, 0, 0, 0.07);
-	--dock-tile-active: rgba(0, 0, 0, 0.12);
-	--dock-rule: rgba(0, 0, 0, 0.12);
-}
-
-[data-theme="dark"] {
-	--dock-tile-hover: rgba(255, 255, 255, 0.14);
-	--dock-tile-active: rgba(255, 255, 255, 0.22);
-	--dock-rule: rgba(255, 255, 255, 0.18);
+	// Idle tiles step back so the active one is the only full-strength mark in the column. A soft
+	// glyph draws in currentColor, so it steps with the ink.
+	--dock-ink: var(--ink-gray-5);
+	--dock-ink-hover: var(--ink-gray-7);
+	--dock-ink-active: var(--ink-gray-8);
 }
 
 .dock {
@@ -69,8 +58,8 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 6px;
-	padding: 8px;
+	gap: var(--spacing);
+	padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.75) calc(var(--spacing) * 3);
 
 	background: var(--dock-bg);
 	border-radius: 18px;
@@ -80,12 +69,18 @@
 		display: none;
 	}
 
-	// The app's mark, pinned to the top of the tray. It is the same 40px tile as a module below it,
-	// so the column reads as one run of tiles, and it opens the menu the sidebar header's chevron
-	// opens (see Dock.setup_header_menu).
+	// The app's mark, pinned to the top of the tray in a band one page header tall, so the rule
+	// under it carries the header's bottom border across a pinned dock. The rule is the band's, not
+	// the tiles', because a pinned dock's tiles scroll and bleed past the column (below).
 	.dock-logo {
 		flex: 0 0 auto;
 		width: 100%;
+		height: calc(var(--page-head-height) + 1px);
+		margin-top: calc(var(--spacing) * -2);
+		border-bottom: 1px solid var(--outline-gray-1);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 
 		.shell-header {
 			display: flex;
@@ -96,7 +91,7 @@
 			height: var(--dock-tile);
 			padding: 0;
 			border: none;
-			border-radius: 12px;
+			border-radius: var(--radius-4);
 			background: transparent;
 			cursor: pointer;
 		}
@@ -110,7 +105,7 @@
 
 		// Same for the app's mark, on the same reasoning as the tiles below it. An app whose mark is
 		// a real logo is an <img> and takes no notice of either token.
-		color: var(--dock-ink-strong);
+		color: var(--dock-ink-active);
 		--icon-stroke: currentColor;
 
 		.header-logo {
@@ -122,21 +117,15 @@
 			// An app whose mark is a letter tile rather than a logo. Round it to the tile's own
 			// radius so it fills the slot instead of sitting in it as a swatch.
 			.icon-container {
-				border-radius: 12px;
+				border-radius: var(--radius-4);
 				overflow: hidden;
 			}
 		}
 	}
 
-	// The rule between the app's mark and its modules. Inset from the tray's padding so it reads as
-	// a division of the column rather than a line across the whole object.
-	.dock-logo + .dock-items::before {
-		content: "";
-		display: block;
-		width: 24px;
-		height: 1px;
-		margin: 2px auto 6px;
-		background: var(--dock-rule);
+	.dock-logo + .dock-items {
+		margin-top: calc(var(--spacing) * -1);
+		padding-top: calc(var(--spacing) * 3);
 	}
 
 	.dock-items {
@@ -146,14 +135,13 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 6px;
+		gap: var(--spacing);
 	}
 }
 
-// One tile. The whole row, since there is no label beside it: a 40px square with the module's glyph
-// centred in it, transparent until it is hovered or active -- the ghost treatment the rail's rows
-// have always had, restated here because the surfaces it used to borrow are page surfaces and this
-// tray is not the page.
+// One tile. The whole row, since there is no label beside it: a square with the module's glyph
+// centred in it, transparent until it is hovered or active. The ghost rail item's treatment: a gray
+// fill on hover, and the active tile raised the way the sidebar's active row is.
 .dock-item {
 	position: relative;
 	flex: 0 0 auto;
@@ -167,10 +155,8 @@
 	justify-content: center;
 
 	border: none;
-	border-radius: 12px;
+	border-radius: var(--radius-4);
 	background: transparent;
-	// Held a step back from the strongest ink, so the hovered and active tiles have somewhere to
-	// step forward to.
 	color: var(--dock-ink);
 	// A desk glyph is stroked from `--icon-stroke`, not from `color` (see common/icons.scss), and
 	// that token is set per surface -- `--gray-700` on the page, `--gray-300` in dark. Neither is
@@ -201,27 +187,27 @@
 	// A module with no authored icon wears the letter tile desktop_icon() builds, which brings its
 	// own colour. Round it to the tile's radius so it fills the slot.
 	.icon-container {
-		border-radius: 12px;
+		border-radius: var(--radius-4);
 		overflow: hidden;
 	}
 
-	// A step in ink and no fill, and nothing that moves. A tile that slid out of the tray on hover
-	// read as bouncing, and it dragged the tooltip's gap around with it -- the bubble is placed
-	// when the pointer arrives and the tile then travelled toward it.
+	// A fill and nothing that moves. A tile that slid out of the tray on hover read as bouncing,
+	// and it dragged the tooltip's gap around with it -- the bubble is placed when the pointer
+	// arrives and the tile then travelled toward it.
+	// The sidebar rows' hover fill. Gray-3 would match the active fill in dark, where both are gray-600.
 	&:hover {
-		color: var(--dock-ink-strong);
+		background: var(--surface-gray-2);
+		color: var(--dock-ink-hover);
 	}
 
-	// Where you are. A filled tile rather than the page's `.active-sidebar` surface, for the same
-	// reason the ink is white: that surface is drawn to sit on the page, and this one sits on the
-	// tray.
 	&.active {
-		background: var(--dock-tile-active);
-		color: var(--dock-ink-strong);
+		background: var(--surface-elevation-3);
+		box-shadow: var(--shadow-sm);
+		color: var(--dock-ink-active);
 	}
 
 	&:focus-visible {
-		outline: 2px solid var(--dock-ink-strong);
+		outline: 2px solid var(--outline-gray-4);
 		outline-offset: 2px;
 	}
 }
@@ -249,17 +235,16 @@ body.dock-pinned .dock {
 	border-radius: 0;
 	box-shadow: none;
 	border-right: 1px solid var(--outline-gray-1);
-	// Lines the mark up with the apps screen's logo.
-	padding-top: 4px;
+	padding-top: calc(var(--spacing) * 2);
 	// The tiles scroll, not the column, so the avatar stays in view.
 	overflow: hidden;
 
-	// Levels the rule with the page header's border; on the rule itself it would be clipped.
-	.dock-logo {
-		margin-bottom: -4px;
-	}
-
+	// A scroller clips on both axes, so a column only as wide as its tiles cut the active tile's
+	// shadow off at the sides. It bleeds into the tray's side padding to leave the shadow room.
 	.dock-items {
+		width: calc(100% + var(--spacing) * 5.5);
+		margin-inline: calc(var(--spacing) * -2.75);
+		padding-bottom: var(--spacing);
 		min-height: 0;
 		overflow-y: auto;
 		scrollbar-width: none;
@@ -295,7 +280,7 @@ body.dock-pinned .dock .dock-user-button {
 	}
 
 	&.user-menu-active {
-		background: var(--dock-tile-hover);
+		background: var(--surface-gray-2);
 	}
 }
 
