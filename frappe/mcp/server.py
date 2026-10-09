@@ -22,8 +22,12 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 			"ttlMs": 3600000,
 			"cacheScope": "private",
 		}
-	if method == "tools/list":
-		return {"tools": [], "ttlMs": 300000, "cacheScope": "private"}
+	if method in ("tools/list", "tools/call"):
+		from frappe.mcp import tools
+
+		if method == "tools/list":
+			return {"tools": tools.definitions(), "ttlMs": 300000, "cacheScope": "private"}
+		return tools.call(params)
 
 	raise McpError(METHOD_NOT_FOUND, _("Unknown MCP method: {0}").format(method), status=404)
 
