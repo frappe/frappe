@@ -40,6 +40,8 @@ frappe.ui.FieldSelect = class FieldSelect {
 			var o = e.originalEvent;
 			var value = o.text.value;
 			var item = me.awesomplete.get_item(value);
+			// re-picking the current field must not reset the filter's condition and value
+			if (value === me.get_value()) return;
 			me.selected_doctype = item.doctype;
 			me.selected_fieldname = item.fieldname;
 			if (me.select) me.select(item.doctype, item.fieldname);

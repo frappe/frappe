@@ -310,7 +310,7 @@ test.describe("List View", () => {
 		await desk.go_to_list("ToDo");
 		await desk.clear_filters();
 		await page.evaluate(() =>
-			cur_list.filter_area.add([["ToDo", "owner", "=", "test@example.com"]])
+			cur_list.filter_area.add([["ToDo", "owner", "like", "%example.com%"]])
 		);
 		await desk.open_list_filter();
 
@@ -319,10 +319,13 @@ test.describe("List View", () => {
 		await expect(input).not.toBeFocused();
 		await expect(page.locator(".filter-popover")).toBeFocused();
 
-		// keyboard users reach the first field with Tab and keep it with another Tab
+		// keyboard users reach the first field with Tab and keep the whole filter with another Tab
 		await page.keyboard.press("Tab");
 		await expect(input).toBeFocused();
 		await page.keyboard.press("Tab");
 		await expect(input).toHaveValue("Created By");
+		expect(
+			await page.evaluate(() => cur_list.filter_area.filter_list.filters[0].get_value())
+		).toEqual(["ToDo", "owner", "like", "%example.com%"]);
 	});
 });
