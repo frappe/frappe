@@ -50,6 +50,21 @@ class IntegrationTestMigrationHash(IntegrationTestCase):
 			self.assertEqual(get_migration_hash(path), calculate_hash(path))
 			self.assertFalse(import_file_by_path(path))
 
+	def test_record_older_than_file_is_imported_with_a_matching_hash(self):
+		name = "_Test Migration Hash Older Record"
+		with tempfile.TemporaryDirectory() as folder:
+			path = write_note_file(folder, name, "first")
+			import_file_by_path(path)
+			frappe.db.set_value(
+				"Note",
+				name,
+				{"content": "restored", "modified": "2019-01-01 00:00:00"},
+				update_modified=False,
+			)
+
+			self.assertTrue(import_file_by_path(path))
+			self.assertEqual(frappe.db.get_value("Note", name, "content"), "first")
+
 	def test_site_edit_newer_than_file_is_kept(self):
 		name = "_Test Migration Hash Site Edit"
 		with tempfile.TemporaryDirectory() as folder:
