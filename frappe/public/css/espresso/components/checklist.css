@@ -28,8 +28,8 @@
  *     </div>
  *   </section>
  *
- * The card is gray, like the workspace onboarding card, and open unless it
- * carries data-collapsed. A collapsed card keeps its head and progress bar;
+ * The card is outlined, so its subtle buttons keep their contrast, and open
+ * unless it carries data-collapsed. A collapsed card keeps its head and progress bar;
  * only the items fold away.
  *
  * Markers: circle (not started), circle-dot-dashed (in progress), circle-alert
@@ -41,8 +41,9 @@
 .es-checklist {
     width: 100%;
     padding: calc(var(--spacing) * 4) calc(var(--spacing) * 3);
+    border: 1px solid var(--outline-gray-2);
     border-radius: var(--radius-lg);
-    background-color: var(--surface-gray-1);
+    background-color: var(--surface-base);
     container-type: inline-size;
 }
 
@@ -56,8 +57,8 @@
     margin-top: calc(var(--spacing) * 3);
 }
 
-.es-checklist .es-progress__segment:not([data-filled]) {
-    background: var(--surface-gray-3);
+.es-checklist .es-button[data-variant="ghost"]:hover {
+    background: var(--surface-gray-2);
 }
 
 .es-checklist__head,
