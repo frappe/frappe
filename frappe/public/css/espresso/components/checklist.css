@@ -140,9 +140,13 @@
     margin-top: calc(var(--spacing) * 3);
 }
 
+/* Fixed columns, so the badges, owners and dates line up down the list. */
 .es-checklist__item {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto calc(var(--spacing) * 24) auto;
+    grid-template-columns:
+        auto minmax(0, 1fr) calc(var(--spacing) * 22) 28px calc(var(--spacing) * 24)
+        calc(108px + var(--spacing));
+    grid-template-areas: "marker text status owner due actions";
     align-items: center;
     column-gap: calc(var(--spacing) * 3);
     padding: calc(var(--spacing) * 2);
@@ -155,6 +159,7 @@
 }
 
 .es-checklist__marker {
+    grid-area: marker;
     display: flex;
     color: var(--ink-gray-4);
 }
@@ -174,6 +179,7 @@
 }
 
 .es-checklist__text {
+    grid-area: text;
     display: flex;
     flex-direction: column;
     gap: calc(var(--spacing) * 0.5);
@@ -212,7 +218,13 @@
     display: none;
 }
 
+.es-checklist__status {
+    grid-area: status;
+}
+
 .es-checklist__owner {
+    grid-area: owner;
+    justify-content: center;
     display: flex;
     color: var(--ink-gray-4);
 }
@@ -224,6 +236,7 @@
 }
 
 .es-checklist__due {
+    grid-area: due;
     font-size: var(--text-p-sm);
     color: var(--ink-gray-6);
     white-space: nowrap;
@@ -238,6 +251,7 @@
 }
 
 .es-checklist__actions {
+    grid-area: actions;
     display: flex;
     justify-content: flex-end;
     gap: calc(var(--spacing) * 2);
@@ -255,12 +269,14 @@
 /* Narrow cards stack the owner, date and actions under the title. */
 @container (max-width: 560px) {
     .es-checklist__item {
-        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+        grid-template-areas:
+            "marker text status owner due"
+            ". actions actions actions actions";
         row-gap: calc(var(--spacing) * 2);
     }
 
     .es-checklist__actions {
-        grid-column: 2 / -1;
         justify-content: flex-start;
     }
 }
