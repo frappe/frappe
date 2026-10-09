@@ -6,9 +6,18 @@ from frappe.www.sitemap import get_public_pages_from_doctypes
 
 class TestSitemap(IntegrationTestCase):
 	def test_sitemap(self):
-		xml = get_html_for_route("sitemap.xml")
+		with (
+			self.change_settings("About Us Settings", is_disabled=0),
+			self.change_settings("Contact Us Settings", is_disabled=0),
+		):
+			xml = get_html_for_route("sitemap.xml")
 		self.assertTrue("/about</loc>" in xml)
 		self.assertTrue("/contact</loc>" in xml)
+
+	def test_disabled_pages_excluded(self):
+		with self.change_settings("About Us Settings", is_disabled=1):
+			xml = get_html_for_route("sitemap.xml")
+			self.assertNotIn("/about</loc>", xml)
 
 	def test_dynamic_routes_excluded(self):
 		web_page = frappe.get_doc(
