@@ -20,7 +20,7 @@ frappe.provide("frappe.ui");
  * @property {ChecklistAction[]} [actions] Buttons at the end of the row.
  * @property {boolean} [skippable] Shows a Skip button while the item is pending.
  * @property {boolean} [optional] Shows an Optional badge and leaves the item out of progress, unless every item is optional.
- * @property {string} [locked] Why the item can't be done yet. Replaces the second line and disables the actions; Skip stays available.
+ * @property {string} [locked] Why the item can't be done yet. Shown on the lock icon's tooltip; the actions are disabled, Skip stays available.
  *
  * @typedef {Object} ChecklistOpts
  * @property {string} title Translated text in the card's head.
@@ -191,7 +191,7 @@ frappe.ui.Checklist = class Checklist {
 		row.toggleAttribute("data-overdue", this.is_overdue(item));
 		row.querySelector(".es-checklist__marker").replaceChildren(this.make_marker(item, reason));
 
-		row.querySelector(".es-checklist__meta").textContent = reason || item.value || "";
+		row.querySelector(".es-checklist__meta").textContent = item.value || "";
 		row.querySelector(".es-checklist__status").replaceChildren(this.make_status(item));
 
 		row.querySelector(".es-checklist__owner").replaceChildren(this.make_owner(item));
@@ -201,10 +201,12 @@ frappe.ui.Checklist = class Checklist {
 		);
 	}
 
-	make_marker(item, locked) {
-		const state = this.get_state(item);
-		const name = locked && state === "pending" ? "lock" : MARKER_ICONS[state];
-		const icon = $(frappe.utils.icon(name, "sm", "", "", "", true));
+	make_marker(item, reason) {
+		if (reason) return this.make_lock(reason);
+
+		const icon = $(
+			frappe.utils.icon(MARKER_ICONS[this.get_state(item)], "sm", "", "", "", true)
+		);
 		if (!this.opts.on_status_change || this.is_finished(item)) return icon[0];
 
 		const trigger = this.make_trigger(icon, __("Set status"));
@@ -222,6 +224,18 @@ frappe.ui.Checklist = class Checklist {
 		}
 		new frappe.ui.Dropdown({ trigger, options });
 		return trigger;
+	}
+
+	// The lock says what the row is waiting for, on hover and on focus.
+	make_lock(reason) {
+		const lock = document.createElement("span");
+		lock.className = "es-checklist__lock";
+		lock.tabIndex = 0;
+		lock.setAttribute("role", "img");
+		lock.setAttribute("aria-label", reason);
+		lock.innerHTML = frappe.utils.icon("lock", "sm", "", "", "", true);
+		frappe.ui.tooltip(lock, { text: reason });
+		return lock;
 	}
 
 	make_status(item) {
