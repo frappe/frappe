@@ -84,7 +84,7 @@
 				</div>
 				<pre
 					v-if="diffLines"
-					class="m-0 max-h-[260px] overflow-auto py-2 font-mono text-xs leading-[1.7]"
+					class="m-0 grid max-h-[260px] overflow-auto py-2 font-mono text-xs leading-[1.7]"
 				><span
 					v-for="(line, i) in diffLines"
 					:key="i"

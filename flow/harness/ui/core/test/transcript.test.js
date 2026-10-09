@@ -990,6 +990,29 @@ test("a text-less thinking block in the durable message takes no thought ordinal
 	)
 })
 
+test("a text block keeps its key from the streamed preview to the durable message", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 2,
+		content: [
+			{ type: "text", text: "Checking" },
+			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", content: "a.js" })
+	applyEvent(conversation, { type: "text_delta", text: "| a |" })
+	const textKeys = () => buildItems(conversation).filter((item) => item.kind === "text").map((item) => item.key)
+	const live = textKeys()
+
+	applyEvent(conversation, { type: "assistant_message", seq: 4, content: [{ type: "text", text: "| a |" }] })
+	assert.deepEqual(textKeys(), live)
+	assert.equal(new Set(live).size, 2)
+})
+
 test("a settled turn stays unfolded while one of its rows is open", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 1, ts: 100, content: "Fix it" })

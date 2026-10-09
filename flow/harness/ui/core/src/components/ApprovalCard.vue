@@ -29,7 +29,7 @@
 		<div v-else-if="edits" class="max-h-[260px] overflow-auto border-y border-outline-gray-1 bg-surface-gray-1">
 			<div v-for="(r, i) in edits" :key="i" :class="i > 0 ? 'border-t border-outline-gray-1' : ''">
 				<pre
-					class="m-0 overflow-auto px-3.5 py-1 font-mono text-2xs leading-[1.7]"
+					class="m-0 grid overflow-auto px-3.5 py-1 font-mono text-2xs leading-[1.7]"
 				><span v-for="(line, j) in r.old.split('\n')" :key="'o' + j" class="block bg-surface-red-1 text-ink-red-6">- {{ line }}</span><span v-for="(line, j) in r.new.split('\n')" :key="'n' + j" class="block bg-surface-green-1 text-ink-green-6">+ {{ line }}</span></pre>
 			</div>
 		</div>

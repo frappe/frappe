@@ -10,7 +10,8 @@ marked.use({
 			let html = Renderer.prototype.table.call(this, token)
 			// a header-less table arrives as `| | |`: skip the empty strip
 			if (token.header.every((cell) => !cell.text.trim())) html = html.replace(/<thead>[\s\S]*?<\/thead>\n?/, "")
-			return `<div class="flow-md-table">${html}</div>\n`
+			// a table segment's wrapper is drawn by MarkdownContent
+			return token.segment ? html : `<div class="flow-md-table">${html}</div>\n`
 		},
 	},
 })
@@ -37,6 +38,7 @@ export function renderMarkdown(text) {
 // component (header, copy button, highlighting) instead of raw HTML:
 //   {type: "html", html}          sanitized rendered markdown
 //   {type: "code", code, lang}    fenced or indented code block
+//   {type: "table", html}         table without its scroll wrapper
 export function renderMarkdownSegments(text) {
 	const tokens = marked.lexer(text ?? "")
 	const segments = []
@@ -52,6 +54,9 @@ export function renderMarkdownSegments(text) {
 		if (token.type === "code") {
 			flush()
 			segments.push({ type: "code", code: token.text, lang: token.lang?.split(/\s+/)[0] || null })
+		} else if (token.type === "table") {
+			flush()
+			segments.push({ type: "table", html: sanitize(marked.parser([{ ...token, segment: true }])) })
 		} else {
 			pending.push(token)
 		}

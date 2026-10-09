@@ -26,13 +26,25 @@ test("an all-blank header row is dropped", () => {
 	assert.ok(!html.includes("<thead>"))
 	assert.match(html, /<tbody><tr>\s*<td>a<\/td>/)
 	assert.ok(renderMarkdown(TABLE).includes("<thead>"))
+	assert.ok(!renderMarkdownSegments("| | |\n| --- | --- |\n| a | 1 |")[0].html.includes("<thead>"))
 })
 
-test("the segmented renderer wraps tables too", () => {
+test("the segmented renderer splits out top-level tables, unwrapped", () => {
 	const segments = renderMarkdownSegments(`intro\n\n${TABLE}\n\n\`\`\`js\ncode\n\`\`\``)
 	assert.deepEqual(
 		segments.map((segment) => segment.type),
-		["html", "code"],
+		["html", "table", "code"],
+	)
+	assert.match(segments[1].html, /^<table>/)
+	assert.ok(!segments[1].html.includes("flow-md-table"))
+})
+
+test("a nested table keeps its wrapper", () => {
+	const nested = TABLE.replace(/^/gm, "  ")
+	const segments = renderMarkdownSegments(`- item\n\n${nested}`)
+	assert.deepEqual(
+		segments.map((segment) => segment.type),
+		["html"],
 	)
 	assert.ok(segments[0].html.includes('class="flow-md-table"'))
 })
