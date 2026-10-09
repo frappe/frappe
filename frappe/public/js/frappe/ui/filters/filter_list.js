@@ -99,7 +99,6 @@ frappe.ui.FilterGroup = class {
 					// the global Escape handler would blur the button again
 					e.stopPropagation();
 					this.hide_popover();
-					this.filter_button.trigger("focus");
 				});
 				if (hide_empty_filters) {
 					this.toggle_empty_filters(false);
@@ -113,6 +112,13 @@ frappe.ui.FilterGroup = class {
 				this.wrapper.trigger("focus");
 			} else {
 				this._push_new_filter(this.doctype).fieldselect.$input.focus();
+			}
+		});
+
+		this.filter_button.on("hide.bs.popover", () => {
+			// hiding detaches the popover, keep keyboard focus on the button
+			if (this.wrapper?.[0].contains(document.activeElement)) {
+				this.filter_button.trigger("focus");
 			}
 		});
 

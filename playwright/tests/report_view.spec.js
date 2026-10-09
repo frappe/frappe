@@ -177,6 +177,14 @@ test.describe("Report View group by button", () => {
 		await page.keyboard.press("Escape");
 		await expect(popover).toBeHidden();
 		await expect(button).toBeFocused();
+
+		// so does Enter on the apply button
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await popover.locator(".apply-group-by").focus();
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeHidden();
+		await expect(button).toBeFocused();
 	});
 
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {

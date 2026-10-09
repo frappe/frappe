@@ -163,7 +163,6 @@ frappe.ui.GroupBy = class {
 					// the global Escape handler would blur the button again
 					e.stopPropagation();
 					this.group_by_button.popover("hide");
-					this.group_by_button.trigger("focus");
 				});
 			}
 			if (this.get_group_bys().length) {
@@ -171,6 +170,13 @@ frappe.ui.GroupBy = class {
 				this.wrapper.trigger("focus");
 			} else {
 				this.focus_last_group_by();
+			}
+		});
+
+		this.group_by_button.on("hide.bs.popover", () => {
+			// hiding detaches the popover, keep keyboard focus on the button
+			if (this.wrapper?.[0].contains(document.activeElement)) {
+				this.group_by_button.trigger("focus");
 			}
 		});
 
@@ -232,8 +238,9 @@ frappe.ui.GroupBy = class {
 		});
 
 		this.$group_by_area.on("click", ".clear-group-by", () => {
-			this.remove_group_by();
+			// hide first, re-rendering would drop the focus that hiding returns to the button
 			this.group_by_button.popover("hide");
+			this.remove_group_by();
 		});
 
 		this.$group_by_area.on("click", ".apply-group-by", () => {
