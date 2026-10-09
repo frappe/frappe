@@ -622,3 +622,24 @@ body.print-format-doc .letter-head,
 .print-format-doc .field .label.label--no-colon::after {
 	content: none;
 }
+
+.print-format-doc--standard .print-heading {
+	border-bottom: 1px solid #f4f5f6;
+	padding-bottom: 5px;
+	margin-bottom: 10px;
+}
+
+.print-format-doc--standard .print-heading h2 {
+	font-size: 24px;
+}
+
+.print-format-doc--standard .print-heading h2 div {
+	font-weight: 600;
+}
+
+.print-format-doc--standard .print-heading small {
+	font-size: 13px;
+	font-weight: normal;
+	line-height: 2.5;
+	color: #4c5a67;
+}

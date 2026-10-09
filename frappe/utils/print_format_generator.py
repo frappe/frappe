@@ -38,6 +38,7 @@ def download_pdf(
 	print_format: str | None = None,
 	letterhead: str | None = None,
 	settings: str | dict | None = None,
+	style: str | None = None,
 ):
 	from frappe.www.printview import resolve_print_format, validate_print
 
@@ -50,7 +51,9 @@ def download_pdf(
 		from frappe.utils.print_format import download_pdf as download_jinja_pdf
 
 		return download_jinja_pdf(doctype, name, format=print_format.name, letterhead=letterhead)
-	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
+	generator = PrintFormatGenerator(
+		print_format, doc, letterhead, style=style, settings=frappe.parse_json(settings)
+	)
 	pdf = generator.render_pdf()
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
@@ -398,6 +401,7 @@ class PrintFormatGenerator:
 		page_width, page_height = page_size_mm(self.print_settings)
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
+		self.style_name = style_name
 		print_style = (
 			frappe.get_doc("Print Style", style_name)
 			if style_name and frappe.db.exists("Print Style", {"name": style_name, "disabled": 0})
@@ -416,6 +420,7 @@ class PrintFormatGenerator:
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
 				"content_fieldtypes": CONTENT_FIELDTYPES,
+				"is_default_layout": bool(self.print_format.flags.is_default_layout),
 			}
 		)
 
@@ -790,6 +795,10 @@ class PrintFormatGenerator:
 			)
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
+		if print_format.flags.is_default_layout:
+			from frappe.printing.print_style_presets import apply_style_preset
+
+			layout = apply_style_preset(layout, self.style_name)
 		return self.get_processed_layout(layout)
 
 	def get_processed_layout(self, layout):
