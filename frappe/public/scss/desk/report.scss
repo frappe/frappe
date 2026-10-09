@@ -227,8 +227,8 @@
 			gap: var(--margin-sm);
 			margin-bottom: var(--margin-xs);
 
-			.group-by,
-			.aggregate-on {
+			.group-by-field-select,
+			.aggregate-on-field-select {
 				flex: 1;
 				min-width: 0;
 			}

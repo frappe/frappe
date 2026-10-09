@@ -52,15 +52,68 @@ frappe.ui.GroupBy = class {
 				group_bys: group_bys,
 				aggregates: this.aggregates,
 				grouped: this.get_group_bys().length > 0,
-				group_by_conditions: this.group_by_fields,
 				aggregate_function_conditions: [
 					{ name: "count", label: __("Count") },
 					{ name: "sum", label: __("Sum") },
 					{ name: "avg", label: __("Average") },
 				],
-				aggregate_on_options: this.get_aggregate_on_options(),
 			})
 		);
+
+		this.$group_by_area.find(".group-by-field-select").each((i, parent) => {
+			const idx = cint($(parent).closest("[data-idx]").attr("data-idx"));
+			const { doctype, fieldname } = group_bys[idx];
+			this.make_field_select(parent, this.get_group_by_select_fields(), {
+				doctype,
+				fieldname,
+				placeholder: __("Select Group By..."),
+				select: (doctype, fieldname) => this.set_group_by_field(idx, doctype, fieldname),
+			});
+		});
+
+		this.$group_by_area.find(".aggregate-on-field-select").each((i, parent) => {
+			const idx = cint($(parent).closest("[data-idx]").attr("data-idx"));
+			const aggregate = this.aggregates[idx];
+			this.make_field_select(parent, this.get_aggregate_on_select_fields(), {
+				doctype: aggregate.aggregate_on_doctype,
+				fieldname: aggregate.aggregate_on_field,
+				placeholder: __("Select Field..."),
+				select: (doctype, fieldname) =>
+					this.set_aggregate_on_field(idx, doctype, fieldname),
+			});
+		});
+	}
+
+	make_field_select(parent, fields, { doctype, fieldname, placeholder, select }) {
+		const field_select = new frappe.ui.FieldSelect({
+			parent,
+			doctype: this.doctype,
+			filter_fields: fields,
+			input_class: "input-xs",
+			select,
+		});
+		field_select.$input.attr({ placeholder, "aria-label": placeholder });
+		field_select.set_value(doctype, fieldname);
+	}
+
+	set_group_by_field(idx, doctype, fieldname) {
+		const was_grouped = this.get_group_bys().length > 0;
+		this.group_by_fields_selected[idx] = { doctype, fieldname };
+		if (!this.aggregates.length) {
+			this.aggregates = [{ aggregate_function: "count" }];
+		}
+		if (!was_grouped) {
+			this.render_group_by_area();
+		}
+		this.apply_group_by_and_refresh();
+	}
+
+	set_aggregate_on_field(idx, doctype, fieldname) {
+		Object.assign(this.aggregates[idx], {
+			aggregate_on_doctype: doctype,
+			aggregate_on_field: fieldname,
+		});
+		this.apply_group_by_and_refresh();
 	}
 
 	// TODO: make common with filter popover
@@ -102,21 +155,6 @@ frappe.ui.GroupBy = class {
 	set_group_by_events() {
 		const get_idx = (e) => cint($(e.target).closest("[data-idx]").attr("data-idx"));
 
-		this.$group_by_area.on("change", "select.group-by", (e) => {
-			const was_grouped = this.get_group_bys().length > 0;
-			this.group_by_fields_selected[get_idx(e)] = {
-				fieldname: $(e.target).val(),
-				doctype: $(e.target).find(":selected").attr("data-doctype"),
-			};
-			if (!this.aggregates.length) {
-				this.aggregates = [{ aggregate_function: "count" }];
-			}
-			if (!was_grouped) {
-				this.render_group_by_area();
-			}
-			this.apply_group_by_and_refresh();
-		});
-
 		this.$group_by_area.on("change", "select.aggregate-function", (e) => {
 			const aggregate_function = $(e.target).val();
 			const aggregate = this.aggregates[get_idx(e)];
@@ -125,13 +163,6 @@ frappe.ui.GroupBy = class {
 					? { aggregate_function }
 					: { ...aggregate, aggregate_function };
 			this.render_group_by_area();
-			this.apply_group_by_and_refresh();
-		});
-
-		this.$group_by_area.on("change", "select.aggregate-on", (e) => {
-			const aggregate = this.aggregates[get_idx(e)];
-			aggregate.aggregate_on_field = $(e.target).val();
-			aggregate.aggregate_on_doctype = $(e.target).find(":selected").attr("data-doctype");
 			this.apply_group_by_and_refresh();
 		});
 
@@ -167,29 +198,18 @@ frappe.ui.GroupBy = class {
 		});
 	}
 
-	get_aggregate_on_options() {
-		const options = [];
-		for (let doctype in this.all_fields) {
-			this.all_fields[doctype].forEach((field) => {
-				// pick numeric fields for sum / avg
-				if (frappe.model.is_numeric_field(field.fieldtype)) {
-					let field_label = __(
-						field.label || frappe.model.unscrub(field.fieldname),
-						null,
-						field.parent
-					);
-					options.push({
-						doctype: doctype,
-						fieldname: field.fieldname,
-						label:
-							doctype == this.doctype
-								? field_label
-								: `${field_label} (${__(doctype)})`,
-					});
-				}
-			});
-		}
-		return options;
+	get_group_by_select_fields() {
+		return Object.entries(this.group_by_fields).flatMap(([doctype, fields]) =>
+			fields.map((df) => ({ ...df, parent: doctype }))
+		);
+	}
+
+	get_aggregate_on_select_fields() {
+		return Object.entries(this.all_fields).flatMap(([doctype, fields]) =>
+			fields
+				.filter((df) => frappe.model.is_numeric_field(df.fieldtype))
+				.map((df) => ({ ...df, parent: doctype }))
+		);
 	}
 
 	get_group_bys() {
