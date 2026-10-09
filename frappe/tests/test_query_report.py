@@ -791,6 +791,61 @@ data = columns, result
 		report.save()
 		return report
 
+	def make_report_with_link_filter(self, options: str = "User"):
+		"""Minimal report document with a single Link filter named `owner`."""
+		frappe.set_user("Administrator")
+		return frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Link Filter Report " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True), [
+			{"fieldname": "owner", "fieldtype": "Link", "options": options},
+		]
+
+	def test_link_filter_with_select_permission_does_not_print_permission_messages(self):
+		"""A select-only user may set a Link filter without triggering permission toasts."""
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+		from frappe.desk.query_report import validate_filters_permissions
+
+		frappe.set_user("Administrator")
+		user = create_user("test_link_filter_user@example.com", "Desk User")
+		target = create_user("test_link_filter_target@example.com")
+		report, js_filters = self.make_report_with_link_filter()
+
+		with self.set_user(user.name):
+			# `Desk User` role grants `select`, but not `read`, on User
+			self.assertFalse(frappe.has_permission("User", "read", doc=target.name))
+			self.assertTrue(frappe.has_permission("User", "select", doc=target.name))
+
+			message_count = len(frappe.message_log)
+			validate_filters_permissions(report.name, filters={"owner": target.name}, js_filters=js_filters)
+			self.assertEqual(len(frappe.message_log), message_count)
+
+	def test_link_filter_without_select_permission_raises(self):
+		"""A user with neither read nor select permission on the filter's doctype is blocked."""
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+		from frappe.desk.query_report import validate_filters_permissions
+
+		frappe.set_user("Administrator")
+		user = create_user("test_link_filter_noperm_user@example.com", "Website Manager")
+		target = create_user("test_link_filter_noperm_target@example.com")
+		user.roles = []  # `Desk User` is granted through the user type defaults
+		user.save(ignore_permissions=True)
+		report, js_filters = self.make_report_with_link_filter()
+
+		with self.set_user(user.name):
+			self.assertFalse(frappe.has_permission("User", "select", doc=target.name))
+
+			with self.assertRaises(frappe.ValidationError):
+				validate_filters_permissions(
+					report.name, filters={"owner": target.name}, js_filters=js_filters
+				)
+
 	def run_report(self, report):
 		previous_response = frappe.local.response
 		self.addCleanup(setattr, frappe.local, "response", previous_response)

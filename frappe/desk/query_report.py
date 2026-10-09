@@ -1239,10 +1239,21 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 			field = field.as_dict()
 		if field.get("fieldname") in filters and field.get("fieldtype") == "Link":
 			linked_doctype = field.get("options")
+			# silence permission-check logs: a select-only user legitimately cannot
+			# read the linked doctype, so a failed read check is not an error by
+			# itself and must not surface as a user-facing message.
 			if not has_permission(
-				doctype=linked_doctype, ptype="read", doc=filters[field.get("fieldname")], user=user
+				doctype=linked_doctype,
+				ptype="read",
+				doc=filters[field.get("fieldname")],
+				user=user,
+				print_logs=False,
 			) and not has_permission(
-				doctype=linked_doctype, ptype="select", doc=filters[field.get("fieldname")], user=user
+				doctype=linked_doctype,
+				ptype="select",
+				doc=filters[field.get("fieldname")],
+				user=user,
+				print_logs=False,
 			):
 				frappe.throw(
 					_("You do not have permission to access {0}: {1}.").format(
