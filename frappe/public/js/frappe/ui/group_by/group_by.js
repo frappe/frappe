@@ -101,11 +101,13 @@ frappe.ui.GroupBy = class {
 
 	set_group_by_field(idx, doctype, fieldname) {
 		const was_grouped = this.get_group_bys().length > 0;
+		const previous_doctype = this.group_by_fields_selected[idx]?.doctype;
 		this.group_by_fields_selected[idx] = { doctype, fieldname };
 		if (!this.aggregates.length) {
 			this.aggregates = [{ aggregate_function: "count" }];
 		}
-		if (!was_grouped) {
+		// the aggregate field options depend on the group by doctypes
+		if (!was_grouped || doctype !== previous_doctype) {
 			this.render_group_by_area();
 		}
 		this.apply_group_by_and_refresh();
@@ -223,7 +225,12 @@ frappe.ui.GroupBy = class {
 		const std_date_fields = frappe.model.std_fields.filter(
 			(df) => df.fieldtype === "Datetime"
 		);
-		return Object.entries(this.all_fields).flatMap(([doctype, fields]) =>
+		// only group by fields join a child table, so its fields can only be aggregated then
+		const doctypes = [this.doctype, ...this.get_group_bys().map((f) => f.doctype)];
+		const fields_by_doctype = Object.entries(this.all_fields).filter(([doctype]) =>
+			doctypes.includes(doctype)
+		);
+		return fields_by_doctype.flatMap(([doctype, fields]) =>
 			(doctype === this.doctype ? fields.concat(std_date_fields) : fields)
 				.filter(
 					(df) =>
