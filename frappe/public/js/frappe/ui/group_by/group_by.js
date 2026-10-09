@@ -229,12 +229,15 @@ frappe.ui.GroupBy = class {
 			} else {
 				this.remove_group_by();
 			}
+			// re-rendering removed the focused button, keep focus in the popover
+			this.wrapper.trigger("focus");
 		});
 
 		this.$group_by_area.on("click", ".remove-aggregate", (e) => {
 			this.aggregates.splice(get_idx(e), 1);
 			this.render_group_by_area();
 			this.apply_group_by_and_refresh();
+			this.wrapper.trigger("focus");
 		});
 
 		this.$group_by_area.on("click", ".clear-group-by", () => {

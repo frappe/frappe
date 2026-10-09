@@ -178,6 +178,8 @@ frappe.ui.Filter = class {
 		this.filter_edit_area.find(".remove-filter").on("click", () => {
 			this.remove();
 			this.on_change();
+			// the removed button had focus, keep it in the popover
+			this.parent?.trigger("focus");
 		});
 
 		this.filter_edit_area.find(".remove-filter").on("keydown", (e) => {

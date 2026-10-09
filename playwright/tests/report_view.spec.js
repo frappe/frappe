@@ -185,6 +185,15 @@ test.describe("Report View group by button", () => {
 		await page.keyboard.press("Enter");
 		await expect(popover).toBeHidden();
 		await expect(button).toBeFocused();
+
+		// removing a row keeps focus in the popover, so Escape still closes it
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await popover.locator(".remove-group-by-row").first().focus();
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await page.keyboard.press("Escape");
+		await expect(popover).toBeHidden();
 	});
 
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {

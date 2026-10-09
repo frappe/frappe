@@ -341,5 +341,14 @@ test.describe("List View", () => {
 		await page.keyboard.press("Enter");
 		await expect(page.locator(".filter-popover")).toBeHidden();
 		await expect(page.locator(".filter-section .filter-button")).toBeFocused();
+
+		// removing a row keeps focus in the popover, so Escape still closes it
+		await page.keyboard.press("Enter");
+		await expect(page.locator(".filter-popover")).toBeFocused();
+		await page.locator(".filter-popover .remove-filter[role=button]").first().focus();
+		await page.keyboard.press("Enter");
+		await expect(page.locator(".filter-popover")).toBeFocused();
+		await page.keyboard.press("Escape");
+		await expect(page.locator(".filter-popover")).toBeHidden();
 	});
 });
