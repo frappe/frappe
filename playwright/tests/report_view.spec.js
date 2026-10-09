@@ -107,7 +107,10 @@ test.describe("Report View group by button", () => {
 				name: doctype,
 				custom: 1,
 				module: "Custom",
-				fields: [{ fieldname: "category", fieldtype: "Data", label }],
+				fields: [
+					{ fieldname: "category", fieldtype: "Data", label },
+					{ fieldname: "amount", fieldtype: "Float", label: "Amount" },
+				],
 				permissions: [{ role, read: 1, report: 1 }],
 			},
 			true
@@ -118,6 +121,8 @@ test.describe("Report View group by button", () => {
 			user: test_user,
 			role,
 		});
+		await admin.insert_doc(doctype, { category: "A", amount: 10.25 });
+		await admin.insert_doc(doctype, { category: "B", amount: 20.25 });
 	});
 
 	test.beforeEach(async ({ desk }) => {
@@ -138,5 +143,27 @@ test.describe("Report View group by button", () => {
 		const button_label = page.locator(".group-by-button .button-label");
 		await expect(button_label).toContainText(label);
 		await expect(button_label.locator("b")).toHaveCount(0);
+	});
+
+	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
+		await page.goto("/desk/report-group-by-label/view/report");
+		await expect.poll(() => page.evaluate(() => window.cur_list?.view_name)).toBe("Report");
+
+		const totals = await page.evaluate(async () => {
+			const amount = "`tabReport Group By Label`.`amount`";
+			window.cur_list.add_totals_row = 1;
+			window.cur_list.group_by_control.apply_settings({
+				group_by: ["`tabReport Group By Label`.`category`"],
+				aggregates: [
+					{ aggregate_function: "min", aggregate_on: amount },
+					{ aggregate_function: "max", aggregate_on: amount },
+				],
+			});
+			await window.cur_list.refresh();
+			return window.cur_list.get_columns_totals(window.cur_list.data);
+		});
+
+		expect(totals._aggregate_column).toBe(10.25);
+		expect(totals._aggregate_column_1).toBe(20.25);
 	});
 });
