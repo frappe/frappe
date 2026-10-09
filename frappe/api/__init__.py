@@ -88,6 +88,7 @@ def handle(request: Request):
 # Merge all API version routing rules
 from frappe.api.v1 import url_rules as v1_rules
 from frappe.api.v2 import url_rules as v2_rules
+from frappe.mcp import url_rules as mcp_rules
 
 API_URL_MAP = Map(
 	[
@@ -95,6 +96,7 @@ API_URL_MAP = Map(
 		Submount("/api", v1_rules),
 		Submount(f"/api/{ApiVersion.V1.value}", v1_rules),
 		Submount(f"/api/{ApiVersion.V2.value}", v2_rules),
+		Submount("/api", mcp_rules),
 	],
 	strict_slashes=False,  # Allows skipping trailing slashes
 	merge_slashes=False,
