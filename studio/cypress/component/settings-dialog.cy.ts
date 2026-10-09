@@ -135,7 +135,8 @@ describe("settings dialog", () => {
 	})
 
 	it("keeps the page editor open when the open page changed elsewhere", () => {
-		cy.wrap(null).then(() => store.setPage(aboutPage.name))
+		// loading a page sets up its script and data sources, which can outlast the default timeout
+		cy.wrap(null).then({ timeout: 15000 }, () => store.setPage(aboutPage.name))
 		cy.wrap(null).then(() => store.openSettings("pages"))
 		cy.update_doc("Studio Page", aboutPage.name, { allow_guest: 1 })
 		cy.get('button[aria-label="Edit About"]').click()
