@@ -15,7 +15,11 @@ from frappe.cache_manager import clear_controller_cache, clear_user_cache
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database import savepoint
-from frappe.database.schema import validate_column_length, validate_column_name
+from frappe.database.schema import (
+	validate_column_length,
+	validate_column_name,
+	validate_table_name_length,
+)
 from frappe.desk.notifications import delete_notification_count_for, get_filters_for
 from frappe.desk.utils import validate_route_conflict
 from frappe.model import (
@@ -131,7 +135,6 @@ class DocType(Document):
 		icon: DF.Icon | None
 		image_field: DF.Data | None
 		in_create: DF.Check
-		index_web_pages_for_search: DF.Check
 		is_calendar_and_gantt: DF.Check
 		is_published_field: DF.Data | None
 		is_submittable: DF.Check
@@ -183,7 +186,6 @@ class DocType(Document):
 		track_seen: DF.Check
 		track_views: DF.Check
 		translated_doctype: DF.Check
-		website_search_field: DF.Data | None
 	# end: auto-generated types
 
 	def validate(self):
@@ -1102,15 +1104,7 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
-		# a Doctype name is the tablename created in database
-		# `tab<Doctype Name>` the length of tablename is limited to 64 characters
-		max_length = frappe.db.MAX_COLUMN_LENGTH - 3
-		if len(name) > max_length:
-			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
-			frappe.throw(
-				_("Doctype name is limited to {0} characters ({1})").format(max_length, name),
-				frappe.NameError,
-			)
+		validate_table_name_length(name)
 
 		# a DocType name should not start or end with an empty space
 		if WHITESPACE_PADDING_PATTERN.search(name):
@@ -1647,18 +1641,6 @@ def validate_fields(meta: Meta):
 		if meta.is_published_field not in fieldname_list:
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
-	def check_website_search_field(meta):
-		if not meta.get("website_search_field"):
-			return
-
-		if meta.website_search_field not in fieldname_list:
-			frappe.throw(_("Website Search Field must be a valid fieldname"), InvalidFieldNameError)
-
-		if "title" not in fieldname_list:
-			frappe.throw(
-				_('Field "title" is mandatory if "Website Search Field" is set.'), title=_("Missing Field")
-			)
-
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
 			return
@@ -1884,7 +1866,6 @@ def validate_fields(meta: Meta):
 		check_title_field(meta)
 		check_timeline_field(meta)
 		check_is_published_field(meta)
-		check_website_search_field(meta)
 		check_sort_field(meta)
 		check_image_field(meta)
 

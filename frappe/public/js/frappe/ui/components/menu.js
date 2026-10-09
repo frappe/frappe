@@ -1,4 +1,4 @@
-import { validated, safe_href, shortcut_keys } from "./utils.js";
+import { validated, safe_href, shortcut_keys, is_thenable, is_group, icon_html } from "./utils.js";
 import { place } from "./position.js";
 
 /**
@@ -35,6 +35,7 @@ import { place } from "./position.js";
  * @typedef {Object} MenuItem
  * @property {string} label Row text. Rendered as text, never HTML.
  * @property {string} [icon] Lucide icon name shown before the label.
+ * @property {string} [icon_right] Lucide icon name shown at the end of the row, e.g. "external-link" on a row that opens a new tab. Submenu rows end in their chevron instead.
  * @property {string} [image] Image URL shown before the label, for a mark no lucide icon can stand in for (an app's logo). Ignored when `icon` is set; refused on code-running schemes, like `href`.
  * @property {string} [description] Smaller second line under the label.
  * @property {"gray"|"red"} [theme="gray"] "red" for destructive rows.
@@ -57,10 +58,6 @@ import { place } from "./position.js";
  */
 
 const THEMES = ["gray", "red"];
-
-function is_thenable(value) {
-	return !!value && typeof value.then === "function";
-}
 
 const SUBMENU_OFFSET = 4;
 const SUBMENU_OPEN_DELAY = 150;
@@ -85,10 +82,6 @@ function point_in_polygon(x, y, polygon) {
 		}
 	}
 	return inside;
-}
-
-function is_group(entry) {
-	return entry && typeof entry === "object" && "group" in entry && Array.isArray(entry.options);
 }
 
 // flatten the mixed list into explicit groups (loose items become unlabeled
@@ -128,15 +121,6 @@ export function normalize_options(options) {
 	return groups;
 }
 
-// icon names end up inside svg use hrefs, so only plain names pass
-function icon_html(name, svg_class, component) {
-	if (typeof name !== "string" || !/^[a-z0-9-]+$/i.test(name)) {
-		console.warn(`frappe.ui.${component}: icons take a lucide icon name, got "${name}"`);
-		return "";
-	}
-	return frappe.utils.icon(name, "sm", "", "", svg_class, true);
-}
-
 // Underline the first free a-z letter of the label so Alt+letter can activate
 // the row (skipping letters earlier rows in the same panel already took).
 // Built from text nodes + a span, never innerHTML, so labels still can't
@@ -160,7 +144,7 @@ function assign_mnemonic(label_el, text, taken) {
 	return null;
 }
 
-function build_item(item, { reserve_icon_space, component, taken }) {
+export function build_item(item, { reserve_icon_space, component, taken }) {
 	// a disabled row is always a real disabled <button>, never a link — a
 	// disabled <a> keeps a working href that a screen reader's link list or
 	// a script click would still follow, right past the disabled state
@@ -231,11 +215,21 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 		shortcut.className = "es-menu__shortcut";
 		shortcut.setAttribute("aria-hidden", "true");
 		for (const key of shortcut_keys(item.shortcut)) {
+			if (shortcut.childNodes.length && !frappe.utils.is_mac()) {
+				shortcut.append("+");
+			}
 			const kbd = document.createElement("kbd");
 			kbd.textContent = key;
 			shortcut.appendChild(kbd);
 		}
 		el.appendChild(shortcut);
+	}
+
+	if (item.icon_right && !item.submenu) {
+		el.insertAdjacentHTML(
+			"beforeend",
+			icon_html(item.icon_right, "es-menu__icon-right", component)
+		);
 	}
 
 	if (item.submenu) {

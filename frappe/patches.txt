@@ -267,6 +267,9 @@ execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation 
 frappe.desk.doctype.workspace.patches.set_standard_flag
 frappe.patches.v16_0.backfill_workspace_module
 frappe.patches.v16_0.convert_sidebars
+frappe.patches.v16_0.convert_custom_sidebars
+frappe.patches.v16_0.move_custom_sidebar_workspaces
+frappe.patches.v16_0.convert_personal_sidebars
 frappe.patches.v16_0.notify_apps_to_convert_sidebar_fixtures
 frappe.patches.v16_0.clear_if_owner_above_permlevel_zero
 frappe.patches.v16_0.migrate_classic_print_formats
@@ -282,6 +285,7 @@ frappe.patches.v16_0.seed_naming_rule_series
 frappe.patches.v16_0.backfill_print_settings_bulk_export_limits
 frappe.patches.v16_0.hash_session_ids
 frappe.patches.v16_0.set_print_format_for_doctype
+frappe.patches.v16_0.unescape_currency_number_format
 
 
 [post_fixture_sync]

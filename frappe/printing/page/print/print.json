@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2020-10-09 17:23:15.163030",
+ "modified": "2026-10-02 17:53:57.731125",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "print",
@@ -12,6 +12,7 @@
  "page_name": "Print",
  "roles": [],
  "script": null,
+ "shared_page": 1,
  "standard": "Yes",
  "style": null,
  "system_page": 0

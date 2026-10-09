@@ -77,6 +77,12 @@ frappe.router = {
 	// writes the shell into a URL yet, so `current_shell` is only ever set by a hand-typed one.
 	shell_routes: {},
 	current_shell: null,
+
+	// Whether the route being resolved was asked for from outside the sidebar, by setting
+	// `frappe.route_flags.jump` before `set_route`. The awesomebar does: what it opens was picked
+	// from the whole desk, not from the shell on screen, so that shell is only kept when it lists
+	// what was picked (see `sidebar.shell_for_route`).
+	is_jump: false,
 	factory_views: ["form", "list", "report", "tree", "print", "dashboard"],
 	list_views: [
 		"list",
@@ -169,6 +175,10 @@ frappe.router = {
 			frappe.set_route(["setup-wizard"]);
 		}
 		if (this.re_route(sub_path)) return;
+
+		// Read before the parse, which may wait on a doctype, by which time `set_route` has
+		// already cleared the flags.
+		this.is_jump = !!frappe.route_flags.jump;
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
@@ -516,9 +526,10 @@ frappe.router = {
 		let route = Array.from(arguments);
 
 		return new Promise((resolve) => {
-			route = this.get_route_from_arguments(route);
+			let shell;
+			({ route, shell } = this.read_route_arguments(route));
 			route = this.convert_from_standard_route(route);
-			let sub_path = this.make_url(route);
+			let sub_path = this.keep_shell_moved_into(this.make_url(route), shell);
 			sub_path += frappe.route_hash || "";
 			frappe.route_hash = null;
 			if (frappe.open_in_new_tab) {
@@ -553,7 +564,28 @@ frappe.router = {
 		}).finally(() => (frappe.route_flags = {}));
 	},
 
+	// A route naming another shell than the one on screen is a move into that shell: a desktop
+	// icon opens `/desk/people-ops/employee` from a page with no shell at all. Dropped, the shell
+	// would be chosen again by `write_shell_into_url`, which knows only the shell on screen and the
+	// entity's own, so Employee would open in HR Setup. A route naming the shell on screen stays
+	// without it, which keeps a self-link a self-link.
+	//
+	// The sidebar on screen counts only off a system page: the desktop opens in no shell, and the
+	// sidebar still remembers whichever page came before it.
+	keep_shell_moved_into(path, shell) {
+		if (!shell || shell === this.current_shell) return path;
+		const on_system_page = this.page_info_for(this.current_route || [])?.system_page;
+		if (!on_system_page && shell === frappe.app?.sidebar?.current_module) return path;
+
+		return "/desk/" + this.shell_slug(shell) + path.slice("/desk".length);
+	},
+
 	get_route_from_arguments(route) {
+		return this.read_route_arguments(route).route;
+	},
+
+	// The route, and the shell it named in front, if any, which is taken off.
+	read_route_arguments(route) {
 		if (route.length === 1 && $.isArray(route[0])) {
 			// called as frappe.set_route(['a', 'b', 'c']);
 			route = route[0];
@@ -593,8 +625,12 @@ frappe.router = {
 		// Left in, `push_state` compares a path with a shell against `path_on_screen()`, which
 		// has none, reads every self-link as a move, and re-renders the page under it -- throwing
 		// away whatever the render was holding. The form sidebar lost its "Show All" this way.
+		//
+		// It is handed back, though, for `set_route` to keep when it names another shell than the
+		// one on screen (see `keep_shell_moved_into`).
+		let shell = null;
 		if (this.begins_with_shell(route)) {
-			route.shift();
+			shell = this.shell_routes[route.shift()];
 		}
 
 		// Handle cases where "/" is part of the name
@@ -602,7 +638,7 @@ frappe.router = {
 			route = [route[0], route[1], route.slice(2).join("/")];
 		}
 
-		return route;
+		return { route, shell };
 	},
 
 	convert_from_standard_route(route) {
@@ -696,7 +732,23 @@ frappe.router = {
 
 			// now process the route
 			this.route();
+		} else if (frappe.route_flags.jump) {
+			this.choose_shell_again(path + query_params);
 		}
+	},
+
+	// A jump to the route already on screen. There is nothing to render, but the shell was chosen
+	// by whatever brought the user here, and a jump chooses it afresh: ToDo opened from Users and
+	// then picked in the awesomebar belongs in Build.
+	//
+	// The shell is taken out of the URL first, the same as a jump from anywhere else arrives
+	// without one, so the shell that was there cannot answer for itself.
+	choose_shell_again(url) {
+		history.replaceState(history.state, "", url + window.location.hash);
+		this.current_shell = null;
+		this.is_jump = true;
+		this.write_shell_into_url();
+		this.trigger("change", this);
 	},
 
 	// The path on screen, spelled the way `make_url` would have spelled it: without the shell.
@@ -865,6 +917,13 @@ frappe.router = {
 	write_shell_into_url() {
 		if (!this.current_route?.length) return;
 
+		// A system page opens in no shell, so one typed in front of it leaves the address bar.
+		// Asked before the sidebar is, which a cold load does not have yet.
+		if (this.page_info_for(this.current_route)?.system_page) {
+			if (this.current_shell) this.drop_shell_from_url();
+			return;
+		}
+
 		const shell = this.shell_for_route(this.current_route);
 		if (!shell || shell === this.current_shell) return;
 
@@ -907,6 +966,24 @@ frappe.router = {
 			history.state,
 			"",
 			path + window.location.search + window.location.hash
+		);
+	},
+
+	// The Page a route opens, as the boot describes it, or null when it opens something else.
+	// `system_page` and `shared_page` on it are what the shell rules read.
+	page_info_for(route) {
+		return (route?.[0] && frappe.boot.page_info?.[route[0]]) || null;
+	},
+
+	// `current_shell` is cleared with the segment, since `path_on_screen` strips one whenever it
+	// is set.
+	drop_shell_from_url() {
+		const rest = this.strip_prefix(window.location.pathname).split("/").slice(1).join("/");
+		this.current_shell = null;
+		history.replaceState(
+			history.state,
+			"",
+			"/desk/" + rest + window.location.search + window.location.hash
 		);
 	},
 

@@ -76,6 +76,8 @@ class PrintFormat(Document):
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
 		print_format_type: DF.Literal["Jinja", "JS"]
+		published_by: DF.Link | None
+		published_on: DF.Datetime | None
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
@@ -117,6 +119,9 @@ class PrintFormat(Document):
 
 		if self.print_format_builder_beta and not self.custom_format and self.pdf_generator != "Typst":
 			self.pdf_generator = "chrome"
+
+		self.published_on = self.modified
+		self.published_by = self.modified_by
 
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)

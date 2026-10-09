@@ -65,12 +65,13 @@ def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 	generator = getattr(frappe.local, "print_format_generator", None)
 	if generator is None:
 		from frappe.model.document import Document
+		from frappe.utils.print_utils import _print_format_doc_or_none
 
 		fd = frappe.form_dict
-		if not print_format or not fd.get("doctype") or not fd.get("name"):
+		if not fd.get("doctype") or not fd.get("name"):
 			return
-		pf = frappe.get_doc("Print Format", print_format)
-		if not pf.get("print_format_builder_beta"):
+		pf = _print_format_doc_or_none(print_format, fd.doctype)
+		if not pf or not pf.get("print_format_builder_beta"):
 			return
 		doc = fd.get("doc")
 		if not isinstance(doc, Document):
@@ -394,7 +395,7 @@ class PrintFormatGenerator:
 		run_before_print(self.doc, self.print_settings.as_dict())
 		self.doc.flags.absolute_value = self.print_format.absolute_value
 
-		page_width = page_size_mm(self.print_settings)[0]
+		page_width, page_height = page_size_mm(self.print_settings)
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
 		print_style = (
@@ -410,6 +411,7 @@ class PrintFormatGenerator:
 				"print_style": print_style,
 				"letterhead": self.letterhead,
 				"page_width": page_width,
+				"page_height": page_height,
 				"body_width": body_width,
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
@@ -728,7 +730,11 @@ class PrintFormatGenerator:
 		if is_header and page_no_html:
 			body_parts = [self._reserve_top_margin("\n".join(body_parts))]
 		parts.extend(body_parts)
-		return "\n".join(parts) or None
+
+		from bs4 import BeautifulSoup
+
+		# Jinja branches can leave a tag open; unbalanced, the PDF parser folds the body into the overlay.
+		return str(BeautifulSoup("\n".join(parts), "html.parser")) or None
 
 	_ZONE_SECTION_TEMPLATE = (
 		'{%- import "templates/print_format/macros.html" as macros -%}'

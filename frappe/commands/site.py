@@ -765,24 +765,43 @@ def disable_user(context: CliCtxObj, email):
 
 @click.command("migrate")
 @click.option("--skip-failing", is_flag=True, help="Skip patches that fail to run")
-@click.option("--skip-search-index", is_flag=True, help="Skip search indexing for web documents")
+@click.option(
+	"--skip-search-index",
+	is_flag=True,
+	help=(
+		"Deprecated and ignored because website search indexing has been removed. Remove this option from "
+		"migration scripts; it will be removed in v17."
+	),
+)
 @click.option("--skip-fixtures", is_flag=True, help="Skip loading fixtures")
 @pass_context
 def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False, skip_fixtures=False):
 	"Run patches, sync schema and rebuild files/translations"
+	if skip_search_index:
+		click.secho(
+			"Warning: --skip-search-index is deprecated and has no effect because website search indexing "
+			"has been removed. Remove it from your migration command; it will be removed in v17.",
+			fg="yellow",
+			err=True,
+		)
 
 	from frappe.migrate import SiteMigration
 
 	for site in context.sites:
 		click.secho(f"Migrating {site}", fg="green")
 		try:
-			SiteMigration(
-				skip_failing=skip_failing, skip_search_index=skip_search_index, skip_fixtures=skip_fixtures
-			).run(site=site)
+			SiteMigration(skip_failing=skip_failing, skip_fixtures=skip_fixtures).run(site=site)
 		finally:
 			print()
 	if not context.sites:
 		raise SiteNotSpecifiedError
+
+
+@click.command("build-search-index")
+@pass_context
+def build_search_index(context: CliCtxObj):
+	"""Kept for compatibility; website search indexing has been removed."""
+	get_site(context)
 
 
 @click.command("migrate-to")
@@ -1446,25 +1465,6 @@ def start_ngrok(context: CliCtxObj, bind_tls, use_default_authtoken):
 		ngrok.kill()
 
 
-@click.command("build-search-index")
-@pass_context
-def build_search_index(context):
-	"""Rebuild search index used by global search."""
-	from frappe.search.website_search import build_index_for_all_routes
-
-	site = get_site(context)
-	if not site:
-		raise SiteNotSpecifiedError
-
-	print(f"Building search index for {site}")
-	frappe.init(site)
-	frappe.connect()
-	try:
-		build_index_for_all_routes()
-	finally:
-		frappe.destroy()
-
-
 @click.command("clear-log-table")
 @click.option("--doctype", required=True, type=str, help="Log DocType")
 @click.option("--days", type=int, help="Keep records for days")
@@ -1535,25 +1535,7 @@ def trim_database(context: CliCtxObj, dry_run, format, no_backup, yes=False):
 		frappe.init(site)
 		frappe.connect()
 
-		TABLES_TO_DROP = []
-		STANDARD_TABLES = get_standard_tables()
-		information_schema = frappe.qb.Schema("information_schema")
-		table_name = frappe.qb.Field("table_name").as_("name")
-
-		database_tables: list[str] = (
-			frappe.qb.from_(information_schema.tables)
-			.select(table_name)
-			.where(information_schema.tables.table_schema == frappe.conf.db_name)
-			.where(information_schema.tables.table_type == "BASE TABLE")
-			.run(pluck=True)
-		)
-		doctype_tables = frappe.get_all("DocType", pluck="name")
-
-		for table_name in database_tables:
-			if not table_name.startswith("tab"):
-				continue
-			if table_name.replace("tab", "", 1) not in doctype_tables and table_name not in STANDARD_TABLES:
-				TABLES_TO_DROP.append(table_name)
+		TABLES_TO_DROP = get_ghost_tables()
 
 		if not TABLES_TO_DROP:
 			if format == "text":
@@ -1588,6 +1570,7 @@ def trim_database(context: CliCtxObj, dry_run, format, no_backup, yes=False):
 					print(f"* Dropping Table '{table}'...")
 				frappe.db.sql_ddl(f"drop table `{table}`")
 
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 			ALL_DATA[frappe.local.site] = TABLES_TO_DROP
 		frappe.destroy()
 
@@ -1595,6 +1578,40 @@ def trim_database(context: CliCtxObj, dry_run, format, no_backup, yes=False):
 		import json
 
 		print(json.dumps(ALL_DATA, indent=1))
+
+
+def get_ghost_tables() -> list[str]:
+	"""Return tables of DocTypes that no longer exist."""
+	ghost_tables = []
+	standard_tables = get_standard_tables()
+	doctype_tables = [
+		f"tab{doctype}"[: frappe.db.MAX_COLUMN_LENGTH] for doctype in frappe.get_all("DocType", pluck="name")
+	]
+
+	for table_name in get_base_tables():
+		if not table_name.startswith("tab"):
+			continue
+		if table_name not in doctype_tables and table_name not in standard_tables:
+			ghost_tables.append(table_name)
+
+	return ghost_tables
+
+
+def get_base_tables() -> list[str]:
+	"""Return database tables, leaving out views and sequences."""
+	if frappe.db.db_type != "mariadb":
+		return frappe.db.get_tables(cached=False)
+
+	information_schema = frappe.qb.Schema("information_schema")
+	table_name = frappe.qb.Field("table_name").as_("name")
+
+	return (
+		frappe.qb.from_(information_schema.tables)
+		.select(table_name)
+		.where(information_schema.tables.table_schema == frappe.conf.db_name)
+		.where(information_schema.tables.table_type == "BASE TABLE")
+		.run(pluck=True)
+	)
 
 
 def get_standard_tables():

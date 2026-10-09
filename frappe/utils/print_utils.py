@@ -7,13 +7,18 @@ from frappe.utils.data import cint, cstr
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
 
-def _print_format_doc_or_none(print_format: str | None):
+def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None):
 	"""Return the Print Format doc, or None for an empty/"Standard"/deleted name.
+
+	With a doctype, an empty name means the doctype's default print format, the one
+	printview renders, so the PDF engine is picked for the format that is printed.
 
 	Degrading a missing name to None (instead of raising DoesNotExistError) keeps
 	notifications and scheduled jobs that reference a removed format from breaking
 	mid-send — they fall back to the Standard render.
 	"""
+	if not print_format and doctype:
+		print_format = frappe.get_meta(doctype).default_print_format
 	if not print_format or print_format == "Standard":
 		return None
 	try:
@@ -80,9 +85,8 @@ def get_print(
 	from frappe.website.serve import get_response_without_exception_handling
 
 	local = frappe.local
-	generator = local.form_dict.get("pdf_generator") or resolve_pdf_generator(
-		_print_format_doc_or_none(print_format), pdf_generator
-	)
+	pf_doc = _print_format_doc_or_none(print_format, doctype)
+	generator = local.form_dict.get("pdf_generator") or resolve_pdf_generator(pf_doc, pdf_generator)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
@@ -98,6 +102,33 @@ def get_print(
 		pdf_options = pdf_options or {}
 		if password:
 			pdf_options["password"] = password
+
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+		if as_pdf and generator == "chrome" and pf_doc and uses_beta_renderer(pf_doc):
+			from frappe.core.doctype.access_log.access_log import make_access_log
+			from frappe.model.document import Document
+			from frappe.www.printview import validate_print
+
+			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
+			validate_print(doc_obj)
+			pdf = _render_builder_pdf(pf_doc, doc_obj, letterhead, no_letterhead, password, style)
+			make_access_log(
+				doctype=doc_obj.doctype,
+				document=doc_obj.name,
+				file_type="PDF",
+				method="Print",
+				page=f"Print Format: {pf_doc.name}",
+			)
+			if output:
+				from io import BytesIO
+
+				from pypdf import PdfReader
+
+				for page in PdfReader(BytesIO(pdf)).pages:
+					output.add_page(page)
+				return output
+			return pdf
 
 		response = get_response_without_exception_handling("printview", 200)
 		html = str(response.data, "utf-8")
@@ -142,6 +173,14 @@ def get_print(
 		local.form_dict = original_form_dict
 
 
+def _render_builder_pdf(print_format, doc, letterhead, no_letterhead, password=None, style=None):
+	"""PDF of a builder format through its own renderer, which applies the format's margins."""
+	from frappe.utils.print_format_generator import PrintFormatGenerator
+
+	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, no_letterhead=no_letterhead)
+	return generator.render_pdf(password=password)
+
+
 def attach_print(
 	doctype,
 	name,
@@ -176,30 +215,30 @@ def attach_print(
 		uses_beta_renderer,
 	)
 
-	pf_doc = _print_format_doc_or_none(print_format)
+	pf_doc = _print_format_doc_or_none(print_format, doctype)
 	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
 		pf_doc
 	) in ("chrome", "Typst")
 
 	try:
-		with print_language(lang or frappe.local.lang):
+		with print_language(lang):
 			content = ""
 			if cint(print_settings.send_print_as_pdf):
 				ext = ".pdf"
 				if html:
 					content = get_pdf(html, options={"password": password} if password else None)
 				elif render_via_generator:
-					from frappe.utils.print_format_generator import PrintFormatGenerator
 					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
-					letterhead_name = letterhead if print_letterhead else None
-					pf = pf_doc or get_default_print_format(doc_obj.doctype)
-					generator = PrintFormatGenerator(
-						pf, doc_obj, letterhead_name, no_letterhead=not print_letterhead
+					content = _render_builder_pdf(
+						pf_doc or get_default_print_format(doc_obj.doctype),
+						doc_obj,
+						letterhead if print_letterhead else None,
+						not print_letterhead,
+						password,
 					)
-					content = generator.render_pdf(password=password)
 				else:
 					kwargs["as_pdf"] = True
 					content = get_print(doctype, name, **kwargs)

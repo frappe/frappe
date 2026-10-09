@@ -26,10 +26,24 @@ const LAYOUT_OVERRIDE_PROPS = new Set([
 	"translatable",
 ]);
 
+const WEB_FORM_LAYOUT_PROPS = ["label", "description", "hidden", "depends_on"];
+const WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE = {
+	"Tab Break": WEB_FORM_LAYOUT_PROPS,
+	"Section Break": WEB_FORM_LAYOUT_PROPS,
+	"Column Break": WEB_FORM_LAYOUT_PROPS,
+};
+
 let docfield_df = computed(() => {
 	let fields = store.get_docfields.filter((df) => {
 		// Layout mode: only show overrideable properties
 		if (store.is_layout_form && !LAYOUT_OVERRIDE_PROPS.has(df.fieldname)) {
+			return false;
+		}
+
+		const web_form_props =
+			store.is_web_form &&
+			WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE[store.form.selected_field.fieldtype];
+		if (web_form_props && !web_form_props.includes(df.fieldname)) {
 			return false;
 		}
 
@@ -45,6 +59,12 @@ let docfield_df = computed(() => {
 
 		if (df.fieldname === "fetch_from") {
 			df.fieldtype = "Fetch From";
+		}
+
+		// the grid fills this Select's options, the builder has none
+		if (store.is_web_form && df.fieldname === "fieldname") {
+			df.fieldtype = "Data";
+			df.read_only = 1;
 		}
 
 		if (

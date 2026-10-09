@@ -16,12 +16,12 @@
 @import "navbar";
 @import "search_widget";
 @import "../common/modal";
+@import "../common/email_composer";
 @import "settings_dialog";
 @import "user_settings_dialog";
 @import "doctype_settings";
 @import "../common/about";
 @import "slides";
-@import "breadcrumb";
 @import "../common/indicator";
 @import "tags";
 @import "page";
@@ -47,6 +47,7 @@
 @import "frappe_gantt";
 @import "image_view";
 @import "kanban";
+@import "kanban_v2";
 @import "calendar";
 @import "dashboard_view";
 @import "charts";

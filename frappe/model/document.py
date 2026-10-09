@@ -565,7 +565,7 @@ class Document(BaseDocument):
 		return self
 
 	def mask_fields(self):
-		from frappe.model.db_query import mask_field_value
+		from frappe.model.utils.mask import mask_field_value
 
 		mask_fields = frappe.get_meta(self.doctype).get_masked_fields()
 
@@ -748,7 +748,7 @@ class Document(BaseDocument):
 
 		# parent
 		if getattr(self.meta, "issingle", 0):
-			self.update_single(self.get_valid_dict())
+			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
@@ -859,7 +859,7 @@ class Document(BaseDocument):
 
 		# parent
 		if self.meta.issingle:
-			self.update_single(self.get_valid_dict())
+			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_update()
 
@@ -1190,7 +1190,7 @@ class Document(BaseDocument):
 		"""Validate if the workflow transition is valid"""
 		if frappe.flags.in_install == "frappe":
 			return
-		workflow = self.meta.get_workflow()
+		workflow = self.meta.get_workflow(self)
 		if workflow:
 			validate_workflow(self)
 			if self._action != "save":
@@ -1825,7 +1825,7 @@ class Document(BaseDocument):
 	@frappe.whitelist()
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
-		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
+		return self._rename(name=name, merge=merge, force=force)
 
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
 		"""Delete document."""

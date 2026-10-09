@@ -32,6 +32,7 @@ import frappe.commands.scheduler
 import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
@@ -567,6 +568,44 @@ class TestCommands(BaseTestCommands):
 
 		self.assertEqual(conf[key], value)
 
+	def test_set_config_parse_accepts_lowercase_boolean(self):
+		"""ast.literal_eval only understands Python's capitalized True/False;
+		JSON/JS-style lowercase true/false is special-cased ahead of it so this
+		common input actually works, rather than erroring and telling the user
+		to capitalize it."""
+		key = "test_set_config_parse_value"
+
+		def cleanup():
+			from frappe.installer import get_site_config_path
+
+			path = get_site_config_path()
+			with open(path) as f:
+				conf = json.load(f)
+			conf.pop(key, None)
+			with open(path, "w") as f:
+				json.dump(conf, f, indent=1)
+				f.write("\n")
+
+		self.addCleanup(cleanup)
+
+		self.execute(f"bench --site {{site}} set-config --parse {key} false")
+		self.assertEqual(self.returncode, 0)
+		conf = frappe.get_site_config()
+		self.assertIs(conf[key], False)
+
+		self.execute(f"bench --site {{site}} set-config --parse {key} TRUE")
+		self.assertEqual(self.returncode, 0)
+		conf = frappe.get_site_config()
+		self.assertIs(conf[key], True)
+
+	def test_set_config_parse_rejects_unparseable_value(self):
+		self.execute("bench --site {site} set-config --parse test_set_config_parse_value disable")
+
+		self.assertEqual(self.returncode, 2)  # click.BadParameter's exit code
+		self.assertNotIn("Traceback", self.stdout)
+		self.assertNotIn("Traceback", self.stderr)
+		self.assertIn("not a valid Python literal", self.stdout + self.stderr)
+
 	@skipIf(
 		frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
@@ -970,6 +1009,19 @@ class TestSiteMigration(BaseTestCommands):
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
 
+	def test_deprecated_skip_search_index_option(self):
+		context = frappe._dict(sites=[TEST_SITE], profile=False)
+		with patch("frappe.migrate.SiteMigration") as site_migration:
+			result = CliRunner().invoke(
+				frappe.commands.site.migrate,
+				["--skip-search-index"],
+				obj=context,
+			)
+
+		self.assertEqual(result.exit_code, 0, result.output)
+		self.assertIn("--skip-search-index is deprecated and has no effect", result.stderr)
+		site_migration.return_value.run.assert_called_once_with(site=TEST_SITE)
+
 
 class TestAddNewUser(BaseTestCommands):
 	def test_create_user(self):
@@ -1017,6 +1069,25 @@ class TestCommandUtils(IntegrationTestCase):
 		app_groups = get_app_groups()
 		self.assertIn("frappe", app_groups)
 		self.assertIsInstance(app_groups["frappe"], click.Group)
+
+
+class TestTrimDatabase(IntegrationTestCase):
+	def test_ghost_tables_include_deleted_doctype_tables(self):
+		doctype = new_doctype().insert().name
+		frappe.db.delete("DocType", {"name": doctype})
+
+		ghost_tables = frappe.commands.site.get_ghost_tables()
+
+		self.assertIn(f"tab{doctype}", ghost_tables)
+		self.assertNotIn("tabUser", ghost_tables)
+
+	def test_ghost_tables_skip_truncated_doctype_tables(self):
+		doctype = new_doctype("Test " + "x" * 56)
+		doctype.db_insert()
+		truncated_table = f"tab{doctype.name}"[: frappe.db.MAX_COLUMN_LENGTH]
+
+		with patch("frappe.commands.site.get_base_tables", return_value=[truncated_table]):
+			self.assertNotIn(truncated_table, frappe.commands.site.get_ghost_tables())
 
 
 class TestDBCli(BaseTestCommands):

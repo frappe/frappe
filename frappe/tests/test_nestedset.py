@@ -185,6 +185,35 @@ class TestNestedSet(IntegrationTestCase):
 		parent_lft_new, parent_rgt_new = frappe.db.get_value(TEST_DOCTYPE, "Parent 2", ["lft", "rgt"])
 		self.assertFalse((parent_lft_new > child_2.lft) and (parent_rgt_new > child_2.rgt))
 
+	def test_save_ignores_client_tree_fields(self):
+		# form opened before another node shifted it
+		stale = frappe.get_doc(TEST_DOCTYPE, "Parent 2").as_dict()
+		frappe.get_doc(
+			{"doctype": TEST_DOCTYPE, "some_fieldname": "Child 4", "parent_test_tree_doctype": "Parent 1"}
+		).insert()
+		frappe.get_doc(stale).save()
+		self.assertEqual(get_descendants_of(TEST_DOCTYPE, "Parent 2", ignore_permissions=True), ["Child 3"])
+
+		child_3 = frappe.get_doc(TEST_DOCTYPE, "Child 3")
+		child_3.update({"parent_test_tree_doctype": "Parent 1", "old_parent": "Parent 1"})
+		child_3.save()
+		self.assertEqual(get_descendants_of(TEST_DOCTYPE, "Parent 2", ignore_permissions=True), [])
+
+	def test_insert_ignores_client_tree_fields(self):
+		lft, rgt = frappe.db.get_value(TEST_DOCTYPE, "Parent 1", ["lft", "rgt"])
+		frappe.get_doc(
+			{
+				"doctype": TEST_DOCTYPE,
+				"some_fieldname": "Child 4",
+				"parent_test_tree_doctype": "Parent 2",
+				"lft": lft,
+				"rgt": rgt,
+			}
+		).insert()
+		self.assertCountEqual(
+			get_descendants_of(TEST_DOCTYPE, "Parent 2", ignore_permissions=True), ["Child 3", "Child 4"]
+		)
+
 	def test_delete_leaf(self):
 		global records
 		el = {"some_fieldname": "Child 1", "parent_test_tree_doctype": "Parent 1", "is_group": 0}

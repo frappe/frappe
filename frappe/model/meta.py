@@ -393,8 +393,8 @@ class Meta(Document):
 		if field := self.get_field(fieldname):
 			return field.translatable
 
-	def get_workflow(self):
-		return get_workflow_name(self.name)
+	def get_workflow(self, doc=None):
+		return get_workflow_name(self.name, doc)
 
 	def get_naming_series_options(self) -> list[str]:
 		"""Get list naming series options."""
@@ -724,7 +724,7 @@ class Meta(Document):
 			permission_type = "select" if frappe.only_has_select_perm(self.name, user=user) else "read"
 
 		if permission_type == "select":
-			return self.get_search_fields()
+			return self.get_select_fieldnames(with_virtual_fields)
 
 		if not self.get_permissions(parenttype=parenttype):
 			return self.get_fieldnames_with_value()
@@ -746,6 +746,20 @@ class Meta(Document):
 			if df.permlevel in permlevel_access
 		)
 		return permitted_fieldnames
+
+	def get_select_fieldnames(self, with_virtual_fields=True):
+		"""Search fields, plus the link title when its field is permitted."""
+		fieldnames = self.get_search_fields()
+		title = (
+			self.get_field(self.title_field) if self.show_title_field_in_link and self.title_field else None
+		)
+		if not title:
+			return fieldnames
+		if title.permlevel or (title.is_virtual and not with_virtual_fields):
+			return [fieldname for fieldname in fieldnames if fieldname != title.fieldname]
+		if title.fieldname not in fieldnames:
+			fieldnames.append(title.fieldname)
+		return fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = set()
@@ -1038,20 +1052,26 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 def trim_table(doctype, dry_run=True):
 	key = f"table_columns::tab{doctype}"
-	frappe.cache.delete_value(key)
+	frappe.client_cache.delete_value(key)
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
+	# docfields never get generated columns, so the controller owns these
+	generated_columns = {
+		column.name
+		for column in frappe.db.get_table_columns_description(f"tab{doctype}")
+		if column.is_generated
+	}
 
 	def is_internal(field):
 		return field not in ignore_fields and not field.startswith("_")
 
-	columns_to_remove = [f for f in list(set(columns) - set(fields)) if is_internal(f)]
+	columns_to_remove = [f for f in list(set(columns) - set(fields) - generated_columns) if is_internal(f)]
 	DROPPED_COLUMNS = columns_to_remove[:]
 
 	if columns_to_remove and not dry_run:
-		columns_to_remove = ", ".join(f"DROP `{c}`" for c in columns_to_remove)
-		frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` {columns_to_remove}")
+		frappe.db.drop_columns(doctype, columns_to_remove)
+		frappe.client_cache.delete_value(key)
 
 	return DROPPED_COLUMNS
 

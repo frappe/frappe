@@ -23,7 +23,7 @@ class TestListFilter(UnitTestCase):
 
 	def tearDown(self):
 		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_filter_%"]})
-		frappe.db.delete("List Filter", {"filter_name": ["like", "_cypress_layout_%"]})
+		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_layout_%"]})
 		for email in (LIST_FILTER_OWNER, LIST_FILTER_OTHER):
 			if frappe.db.exists("User", email):
 				frappe.delete_doc("User", email, force=True, ignore_permissions=True)
@@ -179,14 +179,14 @@ class TestListFilter(UnitTestCase):
 		self.assertIsNone(updated["sort_field"])
 		self.assertIsNone(updated["sort_order"])
 
-	def test_cypress_test_filter_helpers(self):
+	def test_ui_test_filter_helpers(self):
 		from frappe.tests.ui_test_helpers import (
 			clear_list_layout_test_layouts,
 			create_list_layout_test_layout,
 		)
 
 		filter_name = create_list_layout_test_layout(
-			filter_name="_cypress_layout_api_test",
+			filter_name="_test_layout_api_test",
 			filters="[]",
 		)
 		self.assertTrue(frappe.db.exists("List Filter", filter_name))

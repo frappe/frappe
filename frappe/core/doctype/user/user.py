@@ -14,6 +14,7 @@ from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.apps import get_default_path
 from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
+from frappe.database import savepoint
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	create_notification_settings,
 	toggle_notifications,
@@ -55,6 +56,7 @@ desk_properties = (
 	"dashboard",
 	"report_split_view",
 	"show_my_space",
+	"dock_mode",
 )
 
 
@@ -92,6 +94,7 @@ class User(Document):
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
+		dock_mode: DF.Literal["Floating", "Pinned"]
 		document_follow_notify: DF.Check
 		email: DF.Data
 		email_signature: DF.TextEditor | None
@@ -138,6 +141,7 @@ class User(Document):
 		roles: DF.Table[HasRole]
 		search_bar: DF.Check
 		send_me_a_copy: DF.Check
+		send_read_receipt: DF.Check
 		send_welcome_email: DF.Check
 		show_absolute_datetime_in_timeline: DF.Check
 		show_my_space: DF.Check
@@ -206,9 +210,14 @@ class User(Document):
 			self.name = self.email
 
 	def onload(self):
-		from frappe.utils.modules import get_modules_from_all_apps
+		from frappe.utils.modules import get_blockable_module_names
 
-		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
+		if not self.has_permlevel_access_to("block_modules", permission_type="write"):
+			return
+
+		self.set_onload(
+			"all_modules", get_blockable_module_names(blocked=[d.module for d in self.block_modules])
+		)
 
 	def before_insert(self):
 		self.flags.in_insert = True
@@ -1003,8 +1012,11 @@ def update_password(
 	    old_password (str, optional): Old password. Defaults to None.
 	"""
 
+	if old_password and len(old_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("Old password size exceeded the maximum allowed size."))
+
 	if len(new_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("Password size exceeded the maximum allowed size."))
+		frappe.throw(_("New password size exceeded the maximum allowed size."))
 
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
@@ -1184,6 +1196,13 @@ def reset_user_data(user):
 
 @frappe.whitelist(methods=["POST"])
 def verify_password(password: str):
+	from frappe.deprecation_dumpster import deprecation_warning
+
+	deprecation_warning(
+		"2026-09-30",
+		"v17",
+		"`verify_password` is deprecated: the frontend no longer calls it, and it only gated the UI while the method in its callback could be called directly, bypassing the check.",
+	)
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 
@@ -1469,7 +1488,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
-		try:
+		with savepoint(catch=frappe.DuplicateEntryError):
 			contact = frappe.get_doc(
 				{
 					"doctype": "Contact",
@@ -1492,8 +1511,6 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.insert(
 				ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
 			)
-		except frappe.DuplicateEntryError:
-			pass
 	else:
 		try:
 			contact = frappe.get_doc("Contact", contact_name)
@@ -1624,3 +1641,97 @@ def clear_session(sid_hash: str):
 	if owned:
 		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
 		frappe.toast(_("Successfully signed out"))
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_add_roles(users: str | list, roles: str | list) -> None:
+	"""Bulk assign roles to multiple users without overwriting existing roles."""
+	frappe.has_permission("User", "write", throw=True)
+
+	users, roles = _validate_bulk_role_args(users, roles)
+
+	if not users or not roles:
+		return
+
+	if len(users) > 500:
+		frappe.throw(_("Bulk role assignment is limited to 500 users at a time."))
+
+	if len(users) > 20:
+		frappe.enqueue(
+			"frappe.core.doctype.user.user._assign_roles",
+			users=users,
+			roles=roles,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+		frappe.msgprint(
+			_("Role assignment for {0} users has been queued in the background.").format(len(users)),
+			alert=True,
+		)
+	else:
+		_assign_roles(users, roles)
+		frappe.msgprint(
+			_("Roles successfully added to {0} users.").format(len(users)), alert=True, indicator="green"
+		)
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_remove_roles(users: str | list, roles: str | list) -> None:
+	"""Remove roles from multiple users, leaving their other roles intact."""
+	frappe.has_permission("User", "write", throw=True)
+
+	users, roles = _validate_bulk_role_args(users, roles)
+
+	if not users or not roles:
+		return
+
+	if len(users) > 500:
+		frappe.throw(_("Bulk role unassignment is limited to 500 users at a time."))
+
+	if len(users) > 20:
+		frappe.enqueue(
+			"frappe.core.doctype.user.user._unassign_roles",
+			users=users,
+			roles=roles,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+		frappe.msgprint(
+			_("Role removal for {0} users has been queued in the background.").format(len(users)),
+			alert=True,
+		)
+	else:
+		_unassign_roles(users, roles)
+		frappe.msgprint(
+			_("Roles successfully removed from {0} users.").format(len(users)), alert=True, indicator="green"
+		)
+
+
+def _validate_bulk_role_args(users: str | list, roles: str | list) -> tuple[list, list]:
+	"""Parse and type-check arguments shared by the bulk role endpoints."""
+	if isinstance(users, str):
+		users = frappe.parse_json(users)
+	if isinstance(roles, str):
+		roles = frappe.parse_json(roles)
+
+	if not isinstance(users, list) or not all(isinstance(u, str) for u in users):
+		frappe.throw(_("Users must be a list of string identifiers."))
+
+	if not isinstance(roles, list) or not all(isinstance(r, str) for r in roles):
+		frappe.throw(_("Roles must be a list of string identifiers."))
+
+	return users, roles
+
+
+def _assign_roles(users: list, roles: list) -> None:
+	"""Internal method to handle the DB loop, either synchronously or via background job."""
+	for user_id in users:
+		user_doc = frappe.get_doc("User", user_id)
+		user_doc.add_roles(*roles)
+
+
+def _unassign_roles(users: list, roles: list) -> None:
+	"""Internal method to handle the DB loop, either synchronously or via background job."""
+	for user_id in users:
+		user_doc = frappe.get_doc("User", user_id)
+		user_doc.remove_roles(*roles)
