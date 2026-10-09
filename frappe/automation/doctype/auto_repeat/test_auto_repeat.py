@@ -167,8 +167,6 @@ class TestAutoRepeat(FrappeTestCase):
 		docnames = frappe.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
 		self.assertEqual(len(docnames), months)
 
-<<<<<<< HEAD
-=======
 	def test_auto_repeat_period(self):
 		cases = [
 			# full calendar months
@@ -219,8 +217,6 @@ class TestAutoRepeat(FrappeTestCase):
 		self.assertEqual(getdate(new_todo.from_date), getdate(today()))
 		self.assertEqual(getdate(new_todo.to_date), getdate(today()))
 
-	@requires_test_service(TestService.WEB_SERVER)
->>>>>>> 4c79c8f (fix(Auto Repeat): calculate invoice period from the reference document (#44189))
 	def test_email_notification(self):
 		todo = frappe.get_doc(
 			dict(
