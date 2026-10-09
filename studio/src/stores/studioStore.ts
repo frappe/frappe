@@ -34,6 +34,8 @@ import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
 
+const PAGE_CHANGED_MESSAGE = "This page was changed outside the editor. Refresh to load the latest version."
+
 const useStudioStore = defineStore("store", () => {
 	const studioLayout = useStorage(
 		"studioLayout",
@@ -334,32 +336,44 @@ const useStudioStore = defineStore("store", () => {
 		} else throw error
 	}
 
-	function updateActivePage(key: string, value: string | number) {
+	// resolves to false when the page changed elsewhere: the conflict prompt takes it from there
+	function updateActivePage(key: string, value: string | number): Promise<boolean> | undefined {
 		if (!activePage.value) return
 		const page = activePage.value
-		return studioPages.runDocMethod
-			.submit({
-				name: page.name,
-				method: "save_page_field",
-				fieldname: key,
-				value: value,
-				known_modified: page.modified,
-			})
+		return savePageField(page, key, value)
 			.then((response: any) => {
-				if (activePage.value?.name !== page.name) return
+				if (activePage.value?.name !== page.name) return true
 				activePage.value[key] = value
 				syncPageModified(response)
+				return true
 			})
-			.catch(handlePageWriteConflict)
+			.catch((error: any) => {
+				handlePageWriteConflict(error)
+				return false
+			})
 	}
 
-	// the open page goes through updateActivePage, which keeps it in sync and checks for edit conflicts
+	// rejects when the page changed after it was loaded, instead of overwriting the newer version
 	async function updatePage(page: StudioPage, key: string, value: string | number) {
-		if (activePage.value?.name !== page.name) {
-			return studioPages.setValue.submit({ name: page.name, [key]: value })
+		if (activePage.value?.name === page.name) {
+			if (!(await updateActivePage(key, value))) throw new Error(PAGE_CHANGED_MESSAGE)
+		} else {
+			await savePageField(page, key, value).catch(async (error: any) => {
+				await studioPages.reload()
+				throw error
+			})
 		}
-		await updateActivePage(key, value)
 		await studioPages.reload()
+	}
+
+	function savePageField(page: StudioPage, key: string, value: string | number) {
+		return studioPages.runDocMethod.submit({
+			name: page.name,
+			method: "save_page_field",
+			fieldname: key,
+			value: value,
+			known_modified: page.modified,
+		})
 	}
 
 	// the open page's flag can be newer than its row in the pages list

@@ -76,7 +76,8 @@ function updateIfChanged(
 	current: string | number,
 ) {
 	if (value === current) return
-	return store.updatePage(page, field, value)
+	// each save moves `modified` on, so the next one locks against the refreshed row
+	return store.updatePage(store.appPages[page.name] || page, field, value)
 }
 
 function withLeadingSlash(value: string) {

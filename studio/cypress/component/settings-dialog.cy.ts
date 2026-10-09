@@ -43,6 +43,7 @@ describe("settings dialog", () => {
 		store.showSettingsDialog = false
 		cy.login()
 		cy.intercept("/api/method/frappe.client.set_value").as("save")
+		cy.intercept("/api/method/run_doc_method").as("savePage")
 		cy.remove_doc("Studio App", APP_NAME, true)
 		cy.remove_doc("Studio App", RENAMED_APP, true)
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Settings" })
@@ -95,7 +96,7 @@ describe("settings dialog", () => {
 	it("allows guests on a page that isn't open", () => {
 		cy.wrap(null).then(() => store.openSettings("pages"))
 		guestSwitch("About").click()
-		cy.wait("@save")
+		cy.wait("@savePage")
 		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 1)
 		guestSwitch("Contact").should("have.attr", "aria-checked", "false")
 	})
@@ -107,7 +108,7 @@ describe("settings dialog", () => {
 		cy.contains("label", "Route").parent().find("input").clear().type("about-us")
 		cy.contains("[role=dialog]", "Edit Page").find("[role=switch]").click()
 		cy.contains("button", "Save").click()
-		cy.wait(["@save", "@save", "@save"])
+		cy.wait(["@savePage", "@savePage", "@savePage"])
 		cy.get_doc("Studio Page", aboutPage.name).then(({ data }) => {
 			expect(data.page_title).to.eq("About Us")
 			expect(data.route).to.eq("/about-us")
@@ -121,8 +122,28 @@ describe("settings dialog", () => {
 	it("toggles guest access without opening the page editor", () => {
 		cy.wrap(null).then(() => store.openSettings("pages"))
 		guestSwitch("Contact").click()
-		cy.wait("@save")
+		cy.wait("@savePage")
 		cy.contains("Edit Page").should("not.exist")
+	})
+
+	it("doesn't overwrite a page that changed after the list loaded", () => {
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		cy.update_doc("Studio Page", aboutPage.name, { page_title: "About (changed elsewhere)" })
+		guestSwitch("About").click()
+		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 0)
+		guestSwitch("About (changed elsewhere)").should("have.attr", "aria-checked", "false")
+	})
+
+	it("keeps the page editor open when the open page changed elsewhere", () => {
+		cy.wrap(null).then(() => store.setPage(aboutPage.name))
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		cy.update_doc("Studio Page", aboutPage.name, { allow_guest: 1 })
+		cy.get('button[aria-label="Edit About"]').click()
+		cy.contains("label", "Title").parent().find("input").clear().type("About Us")
+		cy.contains("button", "Save").click()
+		cy.contains("changed outside the editor").should("be.visible")
+		cy.contains("label", "Title").should("exist")
+		cy.get_doc("Studio Page", aboutPage.name).its("data.page_title").should("eq", "About")
 	})
 
 	it("shows export settings only in developer mode", () => {
