@@ -6,24 +6,32 @@ frappe.ui.FieldSelect = class FieldSelect {
 		$.extend(this, opts);
 		this.fields_by_name = {};
 		this.options = [];
-		this.$input = $('<input class="form-control">')
-			.appendTo(this.parent)
-			.on("click", function () {
-				$(this).select();
-			});
+		this.$input = $('<input class="form-control">').appendTo(this.parent);
 		this.input_class && this.$input.addClass(this.input_class);
 		this.select_input = this.$input.get(0);
 		this.awesomplete = new Awesomplete(this.select_input, {
 			tabSelect: true,
 			minChars: 0,
-			maxItems: 99,
+			maxItems: Infinity,
 			autoFirst: true,
 			list: me.options,
+			// keep the label order while browsing, rank by match length once the user types
+			sort: (a, b) => (me.$input.val() ? Awesomplete.SORT_BYLENGTH(a, b) : 0),
 			item(item) {
 				return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
 					.data("item.autocomplete", item)
 					.get(0);
 			},
+		});
+		// list all fields on focus instead of only those matching the current label
+		this.$input.on("focus", function () {
+			me.placeholder = me.$input.attr("placeholder");
+			me.$input.attr("placeholder", me.$input.val() || me.placeholder).val("");
+			me.awesomplete.evaluate();
+		});
+		this.$input.on("blur", function () {
+			me.$input.attr("placeholder", me.placeholder);
+			me.set_value(me.selected_doctype, me.selected_fieldname);
 		});
 		this.$input.on("awesomplete-select", function (e) {
 			var o = e.originalEvent;
