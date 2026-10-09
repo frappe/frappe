@@ -9,6 +9,7 @@
 			/>
 			<Input
 				label="Route"
+				:description="appURL"
 				:modelValue="app.route"
 				:hideClearButton="true"
 				@update:modelValue="(value: string) => update('route', value)"
@@ -25,10 +26,6 @@
 			<div class="w-full" />
 		</div>
 		<div class="flex flex-col gap-3 text-base">
-			<div class="flex">
-				<span class="w-24 text-ink-gray-6">URL</span>
-				<a class="font-medium text-ink-gray-8 hover:underline" target="_blank" :href="appURL">{{ appURL }}</a>
-			</div>
 			<div class="flex">
 				<span class="w-24 text-ink-gray-6">App Name</span>
 				<span class="font-medium text-ink-gray-8">{{ app.app_name || app.name }}</span>
