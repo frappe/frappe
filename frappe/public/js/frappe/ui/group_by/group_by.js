@@ -578,7 +578,9 @@ frappe.ui.GroupBy = class {
 		const group_by_applied = Boolean(this.group_by);
 		const group_by_labels = this.get_group_by_field_labels();
 		const button_label = group_by_applied
-			? __("Grouped by <span style='font-weight:600;'>{0}</b>", [group_by_labels])
+			? __("Grouped by <span style='font-weight:600;'>{0}</b>", [
+					frappe.utils.escape_html(group_by_labels),
+			  ])
 			: __("Add Group");
 		if (group_by_applied) {
 			this.group_by_button.find(".button-label").css("gap", "4px");
