@@ -43,7 +43,7 @@ frappe.ui.FilterGroup = class {
 		this.filter_button.popover({
 			content: this.get_filter_area_template(),
 			template: `
-				<div class="filter-popover popover" tabindex="-1">
+				<div class="filter-popover popover">
 					<div class="arrow"></div>
 					<div class="popover-body popover-content">
 					</div>
@@ -91,7 +91,8 @@ frappe.ui.FilterGroup = class {
 			let hide_empty_filters = this.filters && this.filters.length > 0;
 
 			if (!this.wrapper) {
-				this.wrapper = $(".filter-popover");
+				// set here because the popover template sanitizer drops tabindex
+				this.wrapper = $(".filter-popover").attr("tabindex", "-1");
 				if (hide_empty_filters) {
 					this.toggle_empty_filters(false);
 					this.add_filters_to_popover(this.filters);

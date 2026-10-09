@@ -309,11 +309,13 @@ test.describe("List View", () => {
 	test("does not focus saved filters when the popover opens", async ({ page, desk }) => {
 		await desk.go_to_list("ToDo");
 		await desk.clear_filters();
-		await page.evaluate(() => cur_list.filter_area.add([["ToDo", "status", "=", "Open"]]));
+		await page.evaluate(() =>
+			cur_list.filter_area.add([["ToDo", "owner", "=", "test@example.com"]])
+		);
 		await desk.open_list_filter();
 
 		const input = page.locator(".filter-popover .fieldname-select-area input").first();
-		await expect(input).toHaveValue("Status");
+		await expect(input).toHaveValue("Created By");
 		await expect(input).not.toBeFocused();
 		await expect(page.locator(".filter-popover")).toBeFocused();
 
@@ -321,6 +323,6 @@ test.describe("List View", () => {
 		await page.keyboard.press("Tab");
 		await expect(input).toBeFocused();
 		await page.keyboard.press("Tab");
-		await expect(input).toHaveValue("Status");
+		await expect(input).toHaveValue("Created By");
 	});
 });
