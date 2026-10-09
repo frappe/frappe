@@ -6,7 +6,6 @@ from frappe.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
 	get_applicable_for_doctype_list,
 	get_user_permission_list,
-	get_user_permissions,
 	remove_applicable,
 )
 from frappe.permissions import add_permission, has_user_permission
@@ -231,15 +230,21 @@ class TestUserPermission(IntegrationTestCase):
 		parent = frappe.get_doc({"doctype": "Person", "person_name": "Parent", "is_group": 1}).insert()
 		other = frappe.get_doc({"doctype": "Person", "person_name": "Other"}).insert()
 		add_user_permissions(get_params(user, "Person", parent.name))
+		add_permission("Person", "Blogger")
 
 		def permitted():
-			return {d.doc for d in get_user_permissions(user.name)["Person"]}
+			frappe.set_user(user.name)
+			names = set(frappe.get_list("Person", pluck="name"))
+			frappe.set_user("Administrator")
+			return names
 
 		self.assertEqual(permitted(), {parent.name})
 
 		child = frappe.get_doc(
 			{"doctype": "Person", "person_name": "Child", "parent_person": parent.name}
 		).insert()
+		self.assertEqual(permitted(), {parent.name, child.name})
+
 		other.parent_person = parent.name
 		other.save()
 
