@@ -720,6 +720,9 @@ class TestImporter(IntegrationTestCase):
 		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
 		self.addCleanup(frappe.local.request_cache.clear)
 		frappe.local.lang = "en"
+		frappe.local.request_cache.clear()
+		frappe.local.job = frappe._dict(user="test@example.com")
+		self.addCleanup(delattr, frappe.local, "job")
 
 		import_file = frappe.get_doc(
 			doctype="File",
@@ -735,10 +738,7 @@ class TestImporter(IntegrationTestCase):
 			self.set_user("test@example.com"),
 			patch("frappe.translate.get_user_lang", return_value="de"),
 		):
-			data_import = self.get_importer("Currency", import_file)
-			# the background job starts with an empty request cache
-			frappe.local.request_cache.clear()
-			data_import.start_import()
+			self.get_importer("Currency", import_file).start_import()
 
 		self.assertTrue(frappe.db.exists("Currency", "_Test User Language"))
 
