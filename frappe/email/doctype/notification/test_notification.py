@@ -269,7 +269,7 @@ class TestNotification(IntegrationTestCase):
 
 		notification = {
 			"name": "Test App From Module",
-			"notification_title": "Test App From Module",
+			"subject": "Test App From Module",
 			"document_type": "Event",
 			"module": "Core",  # owned by the frappe app
 			"event": "Minutes Before",
@@ -281,9 +281,9 @@ class TestNotification(IntegrationTestCase):
 		}
 
 		with get_test_notification(notification) as n:
-			frappe.db.delete("Notification Log", {"title": n.notification_title})
+			frappe.db.delete("Notification Log", {"title": n.subject})
 			trigger_notifications(None, "offset")
-			app = frappe.db.get_value("Notification Log", {"title": n.notification_title}, "app")
+			app = frappe.db.get_value("Notification Log", {"title": n.subject}, "app")
 			self.assertEqual(app, "frappe")
 
 	def test_minutes_negative_offset(self):
