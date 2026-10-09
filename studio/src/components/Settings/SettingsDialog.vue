@@ -2,7 +2,7 @@
 	<Dialog v-model:open="store.showSettingsDialog" size="5xl" bare>
 		<template #default="{ close }">
 			<Dialog.Title class="sr-only">Settings</Dialog.Title>
-			<Dialog.Description class="sr-only">Configure this app and the Studio editor.</Dialog.Description>
+			<Dialog.Description class="sr-only">Configure this app, its pages and the AI assistant.</Dialog.Description>
 			<div class="flex h-[88vh] max-h-[min(800px,calc(100vh-6rem))] overflow-hidden">
 				<div class="flex w-48 shrink-0 flex-col gap-5 bg-surface-gray-1 p-4 px-2">
 					<span class="text-md-semibold px-2 text-ink-gray-9">Settings</span>
@@ -41,7 +41,7 @@ import { Button, Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import AppSettings from "@/components/Settings/AppSettings.vue"
 import PagesSettings from "@/components/Settings/PagesSettings.vue"
-import EditorSettings from "@/components/Settings/EditorSettings.vue"
+import AISettings from "@/components/Settings/AISettings.vue"
 import type { SettingsTab } from "@/types"
 
 const store = useStudioStore()
@@ -65,7 +65,7 @@ const tabs: Tab[] = [
 		component: AppSettings,
 	},
 	{ name: "pages", label: "Pages", title: "Pages", icon: "lucide-files", component: PagesSettings },
-	{ name: "editor", label: "Editor", title: "Editor", icon: "lucide-sliders-vertical", component: EditorSettings },
+	{ name: "ai", label: "AI", title: "AI", icon: "lucide-sparkles", component: AISettings },
 ]
 
 const activeTab = computed(() => tabs.find((tab) => tab.name === store.settingsTab) || tabs[0])

@@ -119,7 +119,7 @@ describe("settings dialog", () => {
 	it("shows export settings only in developer mode", () => {
 		cy.wrap(null).then(() => store.openSettings("app"))
 		cy.contains("Enable App Export").should("not.exist")
-		cy.contains("button", "Editor").click()
+		cy.contains("button", "AI").click()
 		cy.window().then((win) => (win.is_developer_mode = true))
 		cy.contains("button", "App").click()
 		cy.contains("Enable App Export").parents(".justify-between").first().find("[role=switch]").click()
@@ -129,7 +129,7 @@ describe("settings dialog", () => {
 	})
 
 	it("opens on the requested tab", () => {
-		cy.wrap(null).then(() => store.openSettings("editor"))
+		cy.wrap(null).then(() => store.openSettings("ai"))
 		cy.contains("label", "OpenRouter API Key").should("be.visible")
 		cy.contains("button", "App").click()
 		cy.contains("label", "Route").should("be.visible")

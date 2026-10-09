@@ -199,11 +199,11 @@ commands.register({
 })
 
 commands.register({
-	name: "editor-settings",
-	title: "Editor Settings",
-	icon: "lucide-sliders-vertical",
+	name: "ai-settings",
+	title: "AI Settings",
+	icon: "lucide-sparkles",
 	group: "General",
-	action: () => store.openSettings("editor"),
+	action: () => store.openSettings("ai"),
 })
 
 commands.register({
