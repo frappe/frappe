@@ -156,9 +156,11 @@ test.describe("Report View group by button", () => {
 					{ aggregate_function: "max", aggregate_on: amount },
 				],
 			});
+			// the group by controls may already have started this refresh, then refresh() resolves
+			// before the grouped rows arrive, so poll for them instead of awaiting it
+			window.cur_list.refresh();
 		});
 
-		// the group by controls refresh on their own, a second refresh() call would be throttled
 		await expect
 			.poll(() =>
 				page.evaluate(() => {
