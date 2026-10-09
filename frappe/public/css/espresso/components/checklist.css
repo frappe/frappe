@@ -149,13 +149,9 @@
     grid-template-areas: "marker text status owner due actions";
     align-items: center;
     column-gap: calc(var(--spacing) * 3);
+    min-height: calc(28px + var(--spacing) * 4);
     padding: calc(var(--spacing) * 2);
     border-radius: var(--radius-md);
-    transition: background-color 200ms ease-out;
-}
-
-.es-checklist__item:hover {
-    background-color: var(--surface-gray-2);
 }
 
 .es-checklist__marker {
@@ -304,8 +300,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .es-checklist__collapse,
-    .es-checklist__head .es-checklist__chevron,
-    .es-checklist__item {
+    .es-checklist__head .es-checklist__chevron {
         transition: none;
     }
 }
