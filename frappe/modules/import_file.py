@@ -85,7 +85,7 @@ def import_file_by_path(
 	A record is imported when `force` is set or it is not in the database. Otherwise it is skipped
 	when one of these is true:
 
-	- The file's hash matches the stored Migration Hash.
+	- The file's hash matches the stored Migration Hash and the database is not older than the file.
 	- It is not a DocType and the site changed it after the file's `modified`.
 
 	The hash is stored only after an import. So a file changed without a new `modified` still
@@ -136,7 +136,7 @@ def import_file_by_path(
 				continue
 
 			if not force and db_modified_timestamp:
-				if stored_hash == calculated_hash:
+				if stored_hash == calculated_hash and is_db_timestamp_latest:
 					continue
 
 				if doc["doctype"] != "DocType" and is_db_timestamp_newer:
