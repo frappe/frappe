@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import (
 	_reorder_by_visible_names,
 	export_query,
@@ -333,3 +334,33 @@ class TestReportview(IntegrationTestCase):
 			allocated_to=frappe.session.user,
 			assigned_by=frappe.session.user,
 		).insert()
+
+	def test_get_with_multiple_group_by_and_aggregates(self):
+		user = create_user("test_reportview_group_by@example.com", "System Manager")
+		with self.set_user(user.name):
+			frappe.local.form_dict = frappe._dict(
+				doctype="User",
+				fields=[
+					"`tabUser`.`user_type`",
+					"`tabUser`.`enabled`",
+					{"COUNT": "`tabUser`.`name`", "as": "_aggregate_column"},
+					{"SUM": "`tabUser`.`simultaneous_sessions`", "as": "_aggregate_column_1"},
+				],
+				group_by="`tabUser`.`user_type`, `tabUser`.`enabled`",
+				order_by="_aggregate_column desc",
+			)
+			result = get()
+			expected = frappe.get_list(
+				"User",
+				fields=[
+					"user_type",
+					"enabled",
+					{"COUNT": "*", "as": "count"},
+					{"SUM": "simultaneous_sessions", "as": "total"},
+				],
+				group_by="user_type, enabled",
+				as_list=True,
+			)
+
+		self.assertEqual(result["keys"], ["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"])
+		self.assertEqual(sorted(map(tuple, result["values"])), sorted(map(tuple, expected)))

@@ -178,6 +178,87 @@ class TestReport(IntegrationTestCase):
 			sorted((row[0], row[1], row[2]) for row in data), sorted(tuple(row) for row in expected)
 		)
 
+	def test_saved_report_with_multiple_group_by_runs_as_user(self):
+		user = create_user("test_report_group_by@example.com", "System Manager")
+
+		def save(name, group_by, fields):
+			settings = {
+				"filters": [],
+				"fields": [[fieldname, "User"] for fieldname in fields],
+				"order_by": "_aggregate_column desc",
+				"group_by": group_by,
+			}
+			return frappe.get_doc("Report", _save_report(name, "User", json.dumps(settings)))
+
+		with self.set_user(user.name):
+			report = save(
+				"Test Multi Group By",
+				{
+					"group_by": ["`tabUser`.`user_type`", "`tabUser`.`enabled`"],
+					"aggregates": [
+						{"aggregate_function": "count"},
+						{"aggregate_function": "avg", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+					],
+				},
+				["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"],
+			)
+			columns, data = report.get_data()
+			self.assertEqual(
+				[(c.fieldname, c.label) for c in columns],
+				[
+					("user_type", "User Type"),
+					("enabled", "Enabled"),
+					("_aggregate_column", "Count"),
+					("_aggregate_column_1", "Average of Simultaneous Sessions"),
+				],
+			)
+			expected = frappe.get_list(
+				"User",
+				fields=[
+					"user_type",
+					"enabled",
+					{"COUNT": "*", "as": "count"},
+					{"AVG": "simultaneous_sessions", "as": "average"},
+				],
+				group_by="user_type, enabled",
+				as_list=True,
+			)
+			self.assertEqual(sorted(map(tuple, data)), sorted(map(tuple, expected)))
+
+			legacy_report = save(
+				"Test Legacy Group By",
+				{
+					"group_by": "`tabUser`.`user_type`",
+					"aggregate_function": "sum",
+					"aggregate_on": "`tabUser`.`simultaneous_sessions`",
+				},
+				["user_type", "_aggregate_column"],
+			)
+			columns, data = legacy_report.get_data()
+			self.assertEqual(columns[-1].fieldname, "_aggregate_column")
+			self.assertEqual(columns[-1].label, "Sum of Simultaneous Sessions")
+			expected = frappe.get_list(
+				"User",
+				fields=["user_type", {"SUM": "simultaneous_sessions", "as": "total"}],
+				group_by="user_type",
+				as_list=True,
+			)
+			self.assertEqual(sorted((row[0], row[-1]) for row in data), sorted(map(tuple, expected)))
+
+			for invalid in (
+				{"group_by": ["`tabUser`.`user_type`"], "aggregates": [{"aggregate_function": "max"}]},
+				{"group_by": ["`tabUser`.`no_such_field`"], "aggregates": [{"aggregate_function": "count"}]},
+				{
+					"group_by": ["`tabHas Role`.`role`"],
+					"aggregates": [
+						{"aggregate_function": "count"},
+						{"aggregate_function": "sum", "aggregate_on": "`tabBlock Module`.`idx`"},
+					],
+				},
+			):
+				with self.subTest(group_by=invalid), self.assertRaises(frappe.DataError):
+					save("Test Invalid Group By", invalid, ["user_type"])
+
 	def test_normalize_legacy_group_by_settings(self):
 		from frappe.desk.reportview import normalize_group_by_settings
 
