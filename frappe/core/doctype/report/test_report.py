@@ -112,6 +112,91 @@ class TestReport(IntegrationTestCase):
 		self.assertEqual(columns[1].get("label"), "User Type")
 		self.assertTrue("Administrator" in [d[0] for d in data])
 
+	def test_report_builder_multiple_group_by_and_aggregates(self):
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": frappe.generate_hash(),
+				"ref_doctype": "User",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"json": json.dumps(
+					{
+						"fields": [
+							["user_type", "User"],
+							["enabled", "User"],
+							["_aggregate_column", "User"],
+							["_aggregate_column_1", "User"],
+						],
+						"group_by": {
+							"group_by": ["`tabUser`.`user_type`", "`tabUser`.`enabled`"],
+							"aggregates": [
+								{"aggregate_function": "count"},
+								{
+									"aggregate_function": "sum",
+									"aggregate_on": "`tabUser`.`simultaneous_sessions`",
+								},
+							],
+						},
+					}
+				),
+			}
+		).insert()
+		self.addCleanup(report.delete)
+
+		columns, data = report.get_data()
+		self.assertEqual(
+			[c.fieldname for c in columns],
+			["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"],
+		)
+		self.assertEqual(columns[2].label, "Count")
+		self.assertEqual(columns[3].label, "Sum of Simultaneous Sessions")
+
+		from frappe.desk.reportview import get_field_info
+
+		export_info = get_field_info(
+			[
+				"`tabUser`.`user_type`",
+				{"COUNT": "*", "as": "_aggregate_column"},
+				{"SUM": "`tabUser`.`simultaneous_sessions`", "as": "_aggregate_column_1"},
+			],
+			"User",
+			"`tabUser`.`user_type`, `tabUser`.`enabled`",
+		)
+		self.assertEqual(
+			[i.get("fieldname") for i in export_info],
+			["user_type", "_aggregate_column", "_aggregate_column_1"],
+		)
+
+		expected = frappe.get_all(
+			"User",
+			fields=["user_type", "enabled", {"COUNT": "*", "as": "count"}],
+			group_by="user_type, enabled",
+			as_list=True,
+		)
+		self.assertEqual(
+			sorted((row[0], row[1], row[2]) for row in data), sorted(tuple(row) for row in expected)
+		)
+
+	def test_normalize_legacy_group_by_settings(self):
+		from frappe.desk.reportview import normalize_group_by_settings
+
+		self.assertEqual(
+			normalize_group_by_settings(
+				{
+					"group_by": "`tabUser`.`user_type`",
+					"aggregate_function": "sum",
+					"aggregate_on": "`tabUser`.`simultaneous_sessions`",
+				}
+			),
+			{
+				"group_by": ["`tabUser`.`user_type`"],
+				"aggregates": [
+					{"aggregate_function": "sum", "aggregate_on": "`tabUser`.`simultaneous_sessions`"}
+				],
+			},
+		)
+
 	def test_query_report(self):
 		report = frappe.get_doc("Report", "Permitted Documents For User")
 		columns, data = report.get_data(filters={"user": "Administrator", "doctype": "DocType"})
@@ -794,6 +879,33 @@ result = [
 				),
 			)
 
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 8",
+				"User",
+				_settings(
+					{
+						"group_by": ["`tabHas Role`.`role`", "`tabBlock Module`.`module`"],
+						"aggregates": [{"aggregate_function": "count"}],
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 9",
+				"User",
+				_settings(
+					{
+						"group_by": ["`tabUser`.`user_type`"],
+						"aggregates": [
+							{"aggregate_function": "count"},
+							{"aggregate_function": "sum", "aggregate_on": "length(name)"},
+						],
+					}
+				),
+			)
+
 		# valid cases
 
 		try:
@@ -829,6 +941,23 @@ result = [
 					{
 						"group_by": "`tabUser`.`user_type`",
 						"aggregate_function": "count",
+					}
+				),
+			)
+
+			_save_report(
+				report_name,
+				"User",
+				_settings(
+					{
+						"group_by": ["`tabUser`.`user_type`", "`tabHas Role`.`role`"],
+						"aggregates": [
+							{"aggregate_function": "count"},
+							{
+								"aggregate_function": "sum",
+								"aggregate_on": "`tabUser`.`simultaneous_sessions`",
+							},
+						],
 					}
 				),
 			)

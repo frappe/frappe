@@ -233,8 +233,25 @@ def raise_invalid_field(fieldname):
 	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
 
 
-def _validate_group_by_field(raw: str, doctype: str):
-	"""Validate a single `tabDoctype`.`fieldname` expression from saved report JSON."""
+def get_aggregate_fieldname(index: int) -> str:
+	"""Return the alias of the aggregate column at `index`: `_aggregate_column`, `_aggregate_column_1`, ..."""
+	return f"{DEFAULT_AGGREGATE_FIELDNAME}_{index}" if index else DEFAULT_AGGREGATE_FIELDNAME
+
+
+def normalize_group_by_settings(group_by: dict) -> dict:
+	"""Convert legacy single group by settings to the form with several group by fields and aggregates."""
+	if "aggregates" in group_by:
+		return group_by
+
+	aggregate = {"aggregate_function": group_by.get("aggregate_function")}
+	if group_by.get("aggregate_on"):
+		aggregate["aggregate_on"] = group_by["aggregate_on"]
+
+	return {"group_by": [group_by.get("group_by", "")], "aggregates": [aggregate]}
+
+
+def _validate_group_by_field(raw: str, doctype: str) -> str:
+	"""Validate a single `tabDoctype`.`fieldname` expression from saved report JSON and return its doctype."""
 	if not isinstance(raw, str) or not raw:
 		raise_invalid_field(raw)
 	try:
@@ -250,20 +267,45 @@ def _validate_group_by_field(raw: str, doctype: str):
 		raise_invalid_field(raw)
 	if not has_col:
 		raise_invalid_field(raw)
+	return field_doctype
 
 
-def _validate_group_by_args(group_by: dict, doctype: str):
-	raw_func = group_by.get("aggregate_function")
+def _validate_aggregate(aggregate: dict, doctype: str) -> str:
+	if not isinstance(aggregate, dict):
+		frappe.throw(_("Invalid aggregate function: {0}").format(aggregate), frappe.DataError)
+
+	raw_func = aggregate.get("aggregate_function")
 	if not isinstance(raw_func, str):
 		frappe.throw(_("Invalid aggregate function: {0}").format(raw_func), frappe.DataError)
 	func = raw_func.lower()
 	if func not in SUPPORTED_AGGREGATE_FUNCTIONS:
 		frappe.throw(_("Invalid aggregate function: {0}").format(func), frappe.DataError)
 
-	_validate_group_by_field(group_by.get("group_by", ""), doctype)
+	if func == "count":
+		return doctype
 
-	if func != "count":
-		_validate_group_by_field(group_by.get("aggregate_on", ""), doctype)
+	return _validate_group_by_field(aggregate.get("aggregate_on", ""), doctype)
+
+
+def _validate_group_by_args(group_by: dict, doctype: str):
+	settings = normalize_group_by_settings(group_by)
+	group_by_fields = settings.get("group_by")
+	aggregates = settings.get("aggregates")
+	if not isinstance(group_by_fields, list) or not group_by_fields:
+		raise_invalid_field(group_by_fields)
+	if not isinstance(aggregates, list) or not aggregates:
+		frappe.throw(_("Invalid aggregate function: {0}").format(aggregates), frappe.DataError)
+
+	field_doctypes = {_validate_group_by_field(field, doctype) for field in group_by_fields}
+	field_doctypes.update(_validate_aggregate(aggregate, doctype) for aggregate in aggregates)
+	field_doctypes.discard(doctype)
+	if len(field_doctypes) > 1:
+		frappe.throw(
+			_("Group By and aggregate fields can only use one child table, found: {0}").format(
+				", ".join(sorted(field_doctypes))
+			),
+			frappe.DataError,
+		)
 
 
 def is_standard(fieldname):
@@ -884,17 +926,19 @@ def get_aggregate_field_info(field: str | dict, parent_doctype: str, group_by: s
 	if handler := AGGREGATE_FIELD_INFO_HANDLERS.get(function):
 		field_info = handler(doctype, fieldname)
 
+	group_by_fieldnames = {parse_field(f.strip())[1] for f in group_by.split(",")} if group_by else set()
 	if (
 		field_info.fieldtype == "Currency"
 		and field_info.options
 		and ":" not in field_info.options
-		and not (group_by and parse_field(group_by)[1] == field_info.options)
+		and field_info.options not in group_by_fieldnames
 	):
 		field_info.fieldtype = "Float"
 		field_info.options = None
 
-	# using a default fieldname for aggregate column
-	field_info["fieldname"] = DEFAULT_AGGREGATE_FIELDNAME
+	# dict fields carry their alias, e.g. `_aggregate_column_1` when there are several aggregates
+	alias = field.get("as") if isinstance(field, dict) else None
+	field_info["fieldname"] = alias or DEFAULT_AGGREGATE_FIELDNAME
 
 	return field_info
 
