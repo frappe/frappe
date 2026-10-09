@@ -283,18 +283,32 @@
     margin-bottom: 0;
 }
 
-/* Narrow cards stack the owner, date and actions under the title. */
+/* Narrow cards keep owner and date beside the title and put the buttons under them: two lines per item. */
 @container (max-width: 560px) {
+    .es-checklist__items {
+        gap: calc(var(--spacing) * 2);
+    }
+
     .es-checklist__item {
         grid-template-columns: auto minmax(0, 1fr) auto auto auto;
         grid-template-areas:
             "marker text status owner due"
-            ". actions actions actions actions";
-        row-gap: calc(var(--spacing) * 2);
+            ". text actions actions actions";
+        align-items: start;
+        row-gap: var(--spacing);
     }
 
+    .es-checklist__marker,
+    .es-checklist__status,
+    .es-checklist__owner,
+    .es-checklist__due {
+        align-self: center;
+    }
+
+    .es-checklist__owner,
+    .es-checklist__due,
     .es-checklist__actions {
-        justify-content: flex-start;
+        justify-self: end;
     }
 }
 
