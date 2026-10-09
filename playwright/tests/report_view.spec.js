@@ -145,6 +145,68 @@ test.describe("Report View group by button", () => {
 		await expect(button_label.locator("b")).toHaveCount(0);
 	});
 
+	test("keeps keyboard focus in the group by popover", async ({ page }) => {
+		const button = page.locator(".group-by-button");
+		const popover = page.locator(".group-by-popover");
+		const input = popover.locator(".group-by-field-select input").first();
+		await page.evaluate(() => window.cur_list.group_by_control.remove_group_by());
+
+		await button.click();
+		await expect(input).toBeFocused();
+		await expect(popover.locator("li", { hasText: "Category" })).toBeVisible();
+
+		// picking the first group by re-renders the popover, focus moves on to the row
+		await input.pressSequentially("Category");
+		await input.press("Enter");
+		await expect(popover.locator(".remove-group-by-row").first()).toBeFocused();
+
+		// reopening focuses the popover, Tab reaches the field and another Tab keeps it
+		await button.click();
+		await expect(popover).toBeHidden();
+		await button.click();
+		await expect(popover).toBeFocused();
+		await page.keyboard.press("Tab");
+		await expect(input).toBeFocused();
+		await page.keyboard.press("Tab");
+		await expect(input).toHaveValue(label);
+		expect(
+			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
+		).toEqual([{ doctype, fieldname: "category" }]);
+
+		// re-rendering for aggregate changes keeps focus on the changed or added control
+		const aggregate_function = popover.locator("select.aggregate-function");
+		await aggregate_function.first().focus();
+		await aggregate_function.first().selectOption("sum");
+		await expect(aggregate_function.first()).toBeFocused();
+		await popover.locator(".add-aggregate").focus();
+		await page.keyboard.press("Enter");
+		await expect(aggregate_function).toHaveCount(2);
+		await expect(aggregate_function.last()).toBeFocused();
+
+		// Escape outside a field closes the popover and returns focus to the button
+		await popover.locator(".remove-group-by-row").first().focus();
+		await page.keyboard.press("Escape");
+		await expect(popover).toBeHidden();
+		await expect(button).toBeFocused();
+
+		// so does Enter on the apply button
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await popover.locator(".apply-group-by").focus();
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeHidden();
+		await expect(button).toBeFocused();
+
+		// removing a row keeps focus in the popover, so Escape still closes it
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await popover.locator(".remove-group-by-row").first().focus();
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await page.keyboard.press("Escape");
+		await expect(popover).toBeHidden();
+	});
+
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
 		await page.evaluate(() => {
 			const amount = "`tabReport Group By Label`.`amount`";

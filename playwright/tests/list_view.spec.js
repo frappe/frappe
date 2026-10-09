@@ -267,4 +267,88 @@ test.describe("List View", () => {
 			"#icon-arrow-up-narrow-wide"
 		);
 	});
+
+	test("opens an empty filter row with all fields listed", async ({ page, desk }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		await desk.open_list_filter();
+
+		const area = page.locator(".filter-popover .fieldname-select-area").first();
+		const input = area.locator("input");
+		const highlighted = area.locator('li[aria-selected="true"]');
+
+		await expect(input).toBeFocused();
+		await expect(input).toHaveValue("");
+		await expect(area.locator("li", { hasText: /^Status$/ })).toBeVisible();
+		await expect(highlighted).toHaveCount(0);
+
+		await input.pressSequentially("Status");
+		await input.press("Enter");
+		await input.blur();
+		await expect(input).toHaveValue("Status");
+
+		// blur without a selection restores the current field
+		await input.click();
+		await input.pressSequentially("Desc");
+		await input.blur();
+		await expect(input).toHaveValue("Status");
+
+		// Tab on the full list keeps the current field instead of the first one
+		await input.click();
+		await expect(input).toHaveValue("");
+		await expect(highlighted).toHaveText("Status");
+		await input.press("Tab");
+		await expect(input).toHaveValue("Status");
+		expect(
+			await page.evaluate(() =>
+				cur_list.filter_area.filter_list.filters[0].fieldselect.get_value()
+			)
+		).toBe("ToDo.status");
+	});
+
+	test("does not focus saved filters when the popover opens", async ({ page, desk }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		await page.evaluate(() =>
+			cur_list.filter_area.add([["ToDo", "owner", "like", "%example.com%"]])
+		);
+		await desk.open_list_filter();
+
+		const input = page.locator(".filter-popover .fieldname-select-area input").first();
+		await expect(input).toHaveValue("Created By");
+		await expect(input).not.toBeFocused();
+		await expect(page.locator(".filter-popover")).toBeFocused();
+
+		// keyboard users reach the first field with Tab and keep the whole filter with another Tab
+		await page.keyboard.press("Tab");
+		await expect(input).toBeFocused();
+		await page.keyboard.press("Tab");
+		await expect(input).toHaveValue("Created By");
+		expect(
+			await page.evaluate(() => cur_list.filter_area.filter_list.filters[0].get_value())
+		).toEqual(["ToDo", "owner", "like", "%example.com%"]);
+
+		// Escape outside a field closes the popover and returns focus to the button
+		await page.locator(".filter-popover .remove-filter[role=button]").first().focus();
+		await page.keyboard.press("Escape");
+		await expect(page.locator(".filter-popover")).toBeHidden();
+		await expect(page.locator(".filter-section .filter-button")).toBeFocused();
+
+		// so does Enter on the apply button
+		await page.keyboard.press("Enter");
+		await expect(page.locator(".filter-popover")).toBeFocused();
+		await page.locator(".filter-popover .apply-filters").focus();
+		await page.keyboard.press("Enter");
+		await expect(page.locator(".filter-popover")).toBeHidden();
+		await expect(page.locator(".filter-section .filter-button")).toBeFocused();
+
+		// removing a row keeps focus in the popover, so Escape still closes it
+		await page.keyboard.press("Enter");
+		await expect(page.locator(".filter-popover")).toBeFocused();
+		await page.locator(".filter-popover .remove-filter[role=button]").first().focus();
+		await page.keyboard.press("Enter");
+		await expect(page.locator(".filter-popover")).toBeFocused();
+		await page.keyboard.press("Escape");
+		await expect(page.locator(".filter-popover")).toBeHidden();
+	});
 });

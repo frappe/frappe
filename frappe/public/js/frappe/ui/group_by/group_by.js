@@ -99,6 +99,10 @@ frappe.ui.GroupBy = class {
 		field_select.set_value(doctype, fieldname);
 	}
 
+	focus_last_group_by() {
+		this.$group_by_area.find(".group-by-field-select input").last().trigger("focus");
+	}
+
 	set_group_by_field(idx, doctype, fieldname) {
 		const was_grouped = this.get_group_bys().length > 0;
 		const previous_doctype = this.group_by_fields_selected[idx]?.doctype;
@@ -109,6 +113,13 @@ frappe.ui.GroupBy = class {
 		// the aggregate field options depend on the group by doctypes
 		if (!was_grouped || doctype !== previous_doctype) {
 			this.render_group_by_area();
+			// re-rendering drops focus, move it on like Tab would
+			this.$group_by_area
+				.find(".group-by-field-select")
+				.eq(idx)
+				.closest(".group-by-row")
+				.find(".remove-group-by-row")
+				.trigger("focus");
 		}
 		this.apply_group_by_and_refresh();
 	}
@@ -144,7 +155,28 @@ frappe.ui.GroupBy = class {
 
 		this.group_by_button.on("shown.bs.popover", () => {
 			if (!this.wrapper) {
-				this.wrapper = $(".group-by-popover");
+				// set here because the popover template sanitizer drops tabindex
+				this.wrapper = $(".group-by-popover").attr("tabindex", "-1");
+				// fields keep their own Escape handling
+				this.wrapper.on("keydown", (e) => {
+					if (e.key !== "Escape" || $(e.target).is("input, select, textarea")) return;
+					// the global Escape handler would blur the button again
+					e.stopPropagation();
+					this.group_by_button.popover("hide");
+				});
+			}
+			if (this.get_group_bys().length) {
+				// the popover lives at the end of body, focus it so Tab reaches the rows
+				this.wrapper.trigger("focus");
+			} else {
+				this.focus_last_group_by();
+			}
+		});
+
+		this.group_by_button.on("hide.bs.popover", () => {
+			// hiding detaches the popover, keep keyboard focus on the button
+			if (this.wrapper?.[0].contains(document.activeElement)) {
+				this.group_by_button.trigger("focus");
 			}
 		});
 
@@ -174,17 +206,20 @@ frappe.ui.GroupBy = class {
 				? { ...aggregate, aggregate_function }
 				: { aggregate_function };
 			this.render_group_by_area();
+			this.$group_by_area.find("select.aggregate-function").eq(get_idx(e)).trigger("focus");
 			this.apply_group_by_and_refresh();
 		});
 
 		this.$group_by_area.on("click", ".add-group-by", () => {
 			this.group_by_fields_selected.push({});
 			this.render_group_by_area();
+			this.focus_last_group_by();
 		});
 
 		this.$group_by_area.on("click", ".add-aggregate", () => {
 			this.aggregates.push({ aggregate_function: "count" });
 			this.render_group_by_area();
+			this.$group_by_area.find("select.aggregate-function").last().trigger("focus");
 			this.apply_group_by_and_refresh();
 		});
 
@@ -196,17 +231,21 @@ frappe.ui.GroupBy = class {
 			} else {
 				this.remove_group_by();
 			}
+			// re-rendering removed the focused button, keep focus in the popover
+			this.wrapper.trigger("focus");
 		});
 
 		this.$group_by_area.on("click", ".remove-aggregate", (e) => {
 			this.aggregates.splice(get_idx(e), 1);
 			this.render_group_by_area();
 			this.apply_group_by_and_refresh();
+			this.wrapper.trigger("focus");
 		});
 
 		this.$group_by_area.on("click", ".clear-group-by", () => {
-			this.remove_group_by();
+			// hide first, re-rendering would drop the focus that hiding returns to the button
 			this.group_by_button.popover("hide");
+			this.remove_group_by();
 		});
 
 		this.$group_by_area.on("click", ".apply-group-by", () => {

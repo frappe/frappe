@@ -91,7 +91,15 @@ frappe.ui.FilterGroup = class {
 			let hide_empty_filters = this.filters && this.filters.length > 0;
 
 			if (!this.wrapper) {
-				this.wrapper = $(".filter-popover");
+				// set here because the popover template sanitizer drops tabindex
+				this.wrapper = $(".filter-popover").attr("tabindex", "-1");
+				// fields keep their own Escape handling
+				this.wrapper.on("keydown", (e) => {
+					if (e.key !== "Escape" || $(e.target).is("input, select, textarea")) return;
+					// the global Escape handler would blur the button again
+					e.stopPropagation();
+					this.hide_popover();
+				});
 				if (hide_empty_filters) {
 					this.toggle_empty_filters(false);
 					this.add_filters_to_popover(this.filters);
@@ -99,9 +107,19 @@ frappe.ui.FilterGroup = class {
 				this.set_filter_events();
 			}
 			this.toggle_empty_filters(false);
-			!hide_empty_filters && this.add_filter(this.doctype, "name");
+			if (hide_empty_filters) {
+				// the popover lives at the end of body, focus it so Tab reaches the filters
+				this.wrapper.trigger("focus");
+			} else {
+				this._push_new_filter(this.doctype).fieldselect.$input.focus();
+			}
+		});
 
-			this.filters[0]?.fieldselect?.$input?.focus();
+		this.filter_button.on("hide.bs.popover", () => {
+			// hiding detaches the popover, keep keyboard focus on the button
+			if (this.wrapper?.[0].contains(document.activeElement)) {
+				this.filter_button.trigger("focus");
+			}
 		});
 
 		this.filter_button.on("hidden.bs.popover", () => {
