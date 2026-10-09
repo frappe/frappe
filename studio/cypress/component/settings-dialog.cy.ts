@@ -85,10 +85,10 @@ describe("settings dialog", () => {
 
 	it("allows guests on a page that isn't open", () => {
 		cy.wrap(null).then(() => store.openSettings("pages"))
-		guestRow("About").find("[role=switch]").click()
+		guestSwitch("About").click()
 		cy.wait("@save")
 		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 1)
-		guestRow("Contact").find("[role=switch]").should("have.attr", "aria-checked", "false")
+		guestSwitch("Contact").should("have.attr", "aria-checked", "false")
 	})
 
 	it("shows export settings only in developer mode", () => {
@@ -110,7 +110,7 @@ describe("settings dialog", () => {
 		cy.contains("label", "Route").should("be.visible")
 	})
 
-	function guestRow(pageTitle: string) {
-		return cy.contains(".divide-y > div", pageTitle)
+	function guestSwitch(pageTitle: string) {
+		return cy.get(`[role=switch][aria-label="Allow guest access to ${pageTitle}"]`)
 	}
 })
