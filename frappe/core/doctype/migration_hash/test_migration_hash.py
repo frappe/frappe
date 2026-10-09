@@ -95,12 +95,12 @@ class IntegrationTestMigrationHash(IntegrationTestCase):
 
 	def test_removing_an_app_deletes_only_its_hashes(self):
 		apps_path = os.path.join(get_bench_path(), "apps")
-		removed_app_path = os.path.join(apps_path, "_test_removed_app", "report.json")
-		kept_app_path = os.path.join(apps_path, "_test_kept_app", "report.json")
+		removed_app_path = os.path.join(apps_path, "_test_my_app", "report.json")
+		kept_app_path = os.path.join(apps_path, "_test_myxapp", "report.json")
 		set_migration_hash(removed_app_path, "removed")
 		set_migration_hash(kept_app_path, "kept")
 
-		delete_migration_hashes("_test_removed_app")
+		delete_migration_hashes("_test_my_app")
 		self.assertIsNone(get_migration_hash(removed_app_path))
 		self.assertEqual(get_migration_hash(kept_app_path), "kept")
 
