@@ -37,17 +37,18 @@ class IntegrationTestMigrationHash(IntegrationTestCase):
 
 			self.assertFalse(import_file_by_path(path))
 
-	def test_file_without_hash_falls_back_to_modified(self):
-		name = "_Test Migration Hash Fallback"
+	def test_stale_record_without_hash_is_imported_once(self):
+		name = "_Test Migration Hash Stale"
 		with tempfile.TemporaryDirectory() as folder:
 			path = write_note_file(folder, name, "first")
 			import_file_by_path(path)
 			frappe.db.delete("Migration Hash", {"file_path": get_relative_file_path(path)})
 
 			write_note_file(folder, name, "second")
-			self.assertFalse(import_file_by_path(path))
-			self.assertEqual(frappe.db.get_value("Note", name, "content"), "first")
+			self.assertTrue(import_file_by_path(path))
+			self.assertEqual(frappe.db.get_value("Note", name, "content"), "second")
 			self.assertEqual(get_migration_hash(path), calculate_hash(path))
+			self.assertFalse(import_file_by_path(path))
 
 	def test_site_edit_newer_than_file_is_kept(self):
 		name = "_Test Migration Hash Site Edit"
