@@ -16,10 +16,16 @@ base_template_path = "www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
+	disabled_pages = {
+		route
+		for route, settings in {"about": "About Us Settings", "contact": "Contact Us Settings"}.items()
+		if frappe.get_single_value(settings, "is_disabled")
+	}
+
 	links = [
 		{"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()}
 		for route, page in get_pages().items()
-		if page.sitemap
+		if page.sitemap and route not in disabled_pages
 	]
 
 	links.extend(
