@@ -14,6 +14,16 @@
 				@update:modelValue="(value: string) => update('route', value)"
 			/>
 		</div>
+		<div class="flex gap-5">
+			<Input
+				type="select"
+				label="App Home"
+				:options="homeOptions"
+				:modelValue="app.app_home"
+				@update:modelValue="(value: string) => update('app_home', value)"
+			/>
+			<div class="w-full" />
+		</div>
 		<div class="flex flex-col gap-3 text-base">
 			<div class="flex">
 				<span class="w-24 text-ink-gray-6">URL</span>
@@ -59,6 +69,17 @@
 				</div>
 			</div>
 		</div>
+
+		<hr class="w-full border-outline-gray-2" />
+		<AppGuestAccess />
+
+		<template v-if="isDeveloperMode">
+			<hr class="w-full border-outline-gray-2" />
+			<div class="flex flex-col gap-3">
+				<span class="text-md-semibold text-ink-gray-9">Export</span>
+				<AppExport />
+			</div>
+		</template>
 	</div>
 </template>
 
@@ -66,6 +87,8 @@
 import { computed } from "vue"
 import { Button, FileUploader, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
+import AppGuestAccess from "@/components/Settings/AppGuestAccess.vue"
+import AppExport from "@/components/Settings/AppExport.vue"
 import useStudioStore from "@/stores/studioStore"
 import defaultFavicon from "/favicon.png"
 
@@ -74,8 +97,12 @@ type FileDoc = { file_url: string }
 const store = useStudioStore()
 const app = computed(() => store.activeApp)
 const appURL = computed(() => `${window.location.origin}/${app.value?.route}`)
+const homeOptions = computed(() =>
+	Object.values(store.appPages).map((page) => ({ label: page.page_title, value: page.name })),
+)
+const isDeveloperMode = Boolean(window.is_developer_mode)
 
-function update(field: "app_title" | "route" | "favicon", value: string) {
+function update(field: "app_title" | "route" | "app_home" | "favicon", value: string) {
 	store.updateActiveApp(field, value).catch((error: any) => {
 		toast.error(error?.messages?.join(", ") || error?.message || "Failed to update the app")
 	})

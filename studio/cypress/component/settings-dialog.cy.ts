@@ -7,6 +7,7 @@ import { resourcesPlugin } from "frappe-ui"
 import "@/setupFrappeUIResource"
 import SettingsDialog from "@/components/Settings/SettingsDialog.vue"
 import useStudioStore from "@/stores/studioStore"
+import type { StudioPage } from "@/types/Studio/StudioPage"
 
 const APP_NAME = "cypress-settings"
 const PRE_LOGIN_FETCHES = ["frappe.client.get_list", "frappe.client.get"]
@@ -18,6 +19,8 @@ const FAVICON = Cypress.Buffer.from(
 
 describe("settings dialog", () => {
 	let store: ReturnType<typeof useStudioStore>
+	let aboutPage: StudioPage
+	let contactPage: StudioPage
 
 	// the app's auto-loaded resources fetch on import, before the spec has logged in
 	before(() => {
@@ -31,12 +34,15 @@ describe("settings dialog", () => {
 
 	beforeEach(() => {
 		setActivePinia(pinia)
+		cy.viewport(1400, 900)
 		store = useStudioStore()
 		store.showSettingsDialog = false
 		cy.login()
 		cy.intercept("/api/method/frappe.client.set_value").as("save")
 		cy.remove_doc("Studio App", APP_NAME, true)
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Settings" })
+		cy.insert_doc("Studio Page", { studio_app: APP_NAME, page_title: "About" }).then((page) => (aboutPage = page))
+		cy.insert_doc("Studio Page", { studio_app: APP_NAME, page_title: "Contact" }).then((page) => (contactPage = page))
 		cy.wrap(null).then(() => store.setApp(APP_NAME))
 		cy.mount(SettingsDialog, { global: { plugins: [pinia, resourcesPlugin] } })
 	})
@@ -69,10 +75,42 @@ describe("settings dialog", () => {
 		cy.get("img[alt='App Favicon']").should("have.attr", "src").and("include", "favicon.png")
 	})
 
+	it("sets the app home", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.contains("label", "App Home").parent().find("button").click()
+		cy.contains("[role=option]", "Contact").click()
+		cy.wait("@save")
+		cy.get_doc("Studio App", APP_NAME).its("data.app_home").should("eq", contactPage.name)
+	})
+
+	it("allows guests on a page that isn't open", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		guestRow("About").find("[role=switch]").click()
+		cy.wait("@save")
+		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 1)
+		guestRow("Contact").find("[role=switch]").should("have.attr", "aria-checked", "false")
+	})
+
+	it("shows export settings only in developer mode", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.contains("Enable App Export").should("not.exist")
+		cy.contains("button", "Editor").click()
+		cy.window().then((win) => (win.is_developer_mode = true))
+		cy.contains("button", "App").click()
+		cy.contains("Enable App Export").parents(".justify-between").first().find("[role=switch]").click()
+		cy.contains("span", /^Frappe App$/).should("be.visible")
+		cy.contains("button", "Update").scrollIntoView().should("be.visible").and("be.disabled")
+		cy.window().then((win) => delete win.is_developer_mode)
+	})
+
 	it("opens on the requested tab", () => {
 		cy.wrap(null).then(() => store.openSettings("editor"))
 		cy.contains("label", "OpenRouter API Key").should("be.visible")
 		cy.contains("button", "App").click()
 		cy.contains("label", "Route").should("be.visible")
 	})
+
+	function guestRow(pageTitle: string) {
+		return cy.contains(".divide-y > div", pageTitle)
+	}
 })
