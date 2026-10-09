@@ -317,7 +317,9 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
 
-	if not doc.get("public") and doc.get("for_user") != frappe.session.user and not is_workspace_manager():
+	if doc.get("public") and not is_workspace_manager():
+		frappe.throw(_("Need Workspace Manager role to edit public workspaces."))
+	elif not doc.get("public") and doc.get("for_user") != frappe.session.user and not is_workspace_manager():
 		frappe.throw(
 			_("Need Workspace Manager role to edit private workspace of other users"),
 			frappe.PermissionError,
