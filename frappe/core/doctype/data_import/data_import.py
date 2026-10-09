@@ -286,6 +286,8 @@ def stop_data_import(doc_name: str):
 
 def start_import(data_import):
 	"""This method runs in background job"""
+	# the template headers are matched while the importer is built
+	frappe.set_user_lang(frappe.session.user)
 	data_import = frappe.get_doc("Data Import", data_import)
 	# Apply same delimiter/sniffer settings as preview so CSV is parsed correctly (e.g. EU ";" delimiter)
 	data_import.set_delimiters_flag()
