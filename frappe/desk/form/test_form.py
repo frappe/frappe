@@ -23,7 +23,7 @@ class TestForm(IntegrationTestCase):
 			)
 
 		self.assertEqual(comment.comment_email, user)
-		self.assertEqual(comment.comment_by, frappe.get_cached_value("User", user, "full_name"))
+		self.assertEqual(comment.comment_by, frappe.utils.get_fullname(user))
 
 	def test_savedocs_accepts_native_dict(self):
 		from frappe.desk.form.save import savedocs
