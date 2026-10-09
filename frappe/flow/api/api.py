@@ -113,13 +113,18 @@ def list_sessions(
 		filters["title"] = ("like", f"%{_escape_like(query.strip())}%")
 	if before:
 		filters["modified"] = ("<", before)
-	return frappe.get_all(
+	rows = frappe.get_all(
 		"Flow Session",
 		filters=filters,
 		fields=["name", "title", "agent", "model", "modified"],
 		order_by="modified desc",
 		limit=min(cint(limit) or 20, LIST_LIMIT),
 	)
+	# the model in force, as `session` reports it: the chat's own pick, else its agent's
+	for row in rows:
+		if not row.model and row.agent:
+			row.model = frappe.get_cached_value("Flow Agent", row.agent, "model")
+	return rows
 
 
 @frappe.whitelist()

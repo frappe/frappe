@@ -28,7 +28,8 @@
 				</span>
 				<span class="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-ink-gray-9">{{ row.label }}</span>
 			</button>
-			<div v-if="rows && !rows.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
+			<LoadingState v-if="rows === null" class="justify-center px-3 py-8 text-xs text-ink-gray-5" />
+			<div v-else-if="!rows.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
 				{{ searchActive ? "No matching files" : "No files here" }}
 			</div>
 			<div v-if="truncated" class="px-3 pb-1 pt-2 text-center text-2xs text-ink-gray-5">
@@ -43,6 +44,7 @@ import { computed, inject, ref, toRef, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
+import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
 
 const props = defineProps({ query: { type: String, default: "" } })

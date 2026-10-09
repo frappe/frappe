@@ -81,12 +81,10 @@
 						Retry
 					</button>
 				</div>
-				<div
+				<LoadingState
 					v-else-if="activeTab.content == null"
-					class="flex flex-1 items-center justify-center text-xs text-ink-gray-4"
-				>
-					Loading…
-				</div>
+					class="flex-1 justify-center text-xs text-ink-gray-4"
+				/>
 				<div v-show="showEditorHost" ref="editorEl" class="min-h-0 flex-1" />
 				<div v-show="showDiffHost" ref="diffEl" class="min-h-0 flex-1" />
 			</div>
@@ -104,6 +102,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 
 import { compactDisplayText } from "../transcript.js"
 import FilesBar from "./FilesBar.vue"
+import LoadingState from "./LoadingState.vue"
 
 const flow = inject("flow")
 const workspace = computed(() => flow.state.workspace)

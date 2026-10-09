@@ -89,9 +89,10 @@ const cwd = computed(() => {
 	return raw && raw !== "." ? raw : null
 })
 
-// no folder to show: fall back to the session's title, or "New chat"
+// no folder to show: fall back to the session's title, or "New chat" (nothing while a chat loads)
 const title = computed(
-	() => flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? "New chat",
+	() =>
+		flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? (flow.state.loading ? "" : "New chat"),
 )
 const cwdName = computed(() => (cwd.value ?? "").split("/").filter(Boolean).pop() ?? "")
 

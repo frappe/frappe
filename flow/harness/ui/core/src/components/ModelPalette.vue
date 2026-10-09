@@ -6,7 +6,11 @@
 				title="Refresh models"
 				@click="flow.refreshModels()"
 			>
-				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" />
+				<FeatherIcon
+					name="refresh-cw"
+					class="h-3.5 w-3.5"
+					:class="flow.state.modelsLoading ? 'animate-spin' : ''"
+				/>
 			</button>
 		</template>
 
@@ -41,7 +45,11 @@
 					class="h-4 w-4 flex-none text-ink-gray-7"
 				/>
 			</button>
-			<div v-if="!options.length" class="flex flex-col items-center gap-2 px-3 py-8 text-center">
+			<LoadingState
+				v-if="!options.length && flow.state.modelsLoading"
+				class="justify-center px-3 py-8 text-xs text-ink-gray-5"
+			/>
+			<div v-else-if="!options.length" class="flex flex-col items-center gap-2 px-3 py-8 text-center">
 				<span class="text-xs text-ink-gray-5">
 					{{ providers ? "No models yet — connect a provider to get started." : "No models available." }}
 				</span>
@@ -63,6 +71,7 @@ import { computed, inject, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
+import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
 import PaletteSearch from "./PaletteSearch.vue"
 import ProviderIcon from "./ProviderIcon.vue"

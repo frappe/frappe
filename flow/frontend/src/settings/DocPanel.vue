@@ -28,9 +28,10 @@
 				@click="edit(null)"
 			/>
 		</div>
-		<div v-if="loading && !loaded" class="py-8 text-center text-xs text-ink-gray-5">
-			Loading…
-		</div>
+		<LoadingState
+			v-if="loading && !loaded"
+			class="justify-center py-8 text-xs text-ink-gray-5"
+		/>
 		<div
 			v-else-if="!rows.length && !error"
 			class="rounded-6 border border-dashed border-outline-gray-2 py-10 text-center text-xs text-ink-gray-5"
@@ -80,6 +81,7 @@
 import { computed, inject, onBeforeUnmount, ref, watch } from "vue";
 import { Badge, Button, ErrorMessage, FormControl } from "frappe-ui";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
 
 import DocForm from "./DocForm.vue";

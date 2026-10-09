@@ -51,6 +51,8 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //                  over from the text dump, and expandable: false drops the dropdown
 //   turnActions    a component rendered after each finished turn's copy button, with
 //                  the turn's key, response text and timestamp as props
+//   listedModel    true when a session-list row's `model` is the chat's current one, so a
+//                  chat being opened shows it before it loads (the daemon's can lag)
 export function createFlowStore(client, options = {}) {
 	const capabilities = { rewind: typeof client.rewind === "function" }
 	options = {
@@ -100,6 +102,7 @@ export function createFlowStore(client, options = {}) {
 		conversation: initialConversation(),
 		queued: [], // the composer's queue: messages waiting for the run to end
 		models: [],
+		modelsLoading: false,
 		modelErrors: [],
 		tools: [], // what the daemon lets a session enable: { name, description, extension }
 		skills: [],
@@ -244,8 +247,14 @@ export function createFlowStore(client, options = {}) {
 		return refreshSessions({ query })
 	}
 
+	// only the newest request lands, so an older answer can't end its loading or replace its list
+	let modelsRequest = 0
 	async function refreshModels() {
+		const own = ++modelsRequest
+		state.modelsLoading = true
 		const data = await guard(() => client.models())
+		if (own !== modelsRequest) return
+		state.modelsLoading = false
 		if (data) {
 			state.models = data.models
 			state.modelErrors = data.errors ?? []
@@ -349,6 +358,9 @@ export function createFlowStore(client, options = {}) {
 		state.skills = []
 		loadedSkillsFor = null
 		state.conversation = initialConversation()
+		// a chat just created knows its model, and a list row's when the host vouches for it;
+		// anything else waits for the load
+		state.conversation.model = config?.model ?? (options.listedModel ? listed?.model : null) ?? null
 		lastRunEnd = null
 		// a message sent before this session existed is still in flight: its bubble
 		// stays up instead of blinking out while the transcript loads
@@ -420,7 +432,8 @@ export function createFlowStore(client, options = {}) {
 			} catch (error) {
 				if (stream === own) notify(error.message, "error")
 			} finally {
-				if (state.sessionId === sid) state.loading = false
+				// a stream closed by a reload of this same chat must not end that reload's loading
+				if (stream === own && state.sessionId === sid) state.loading = false
 			}
 		})()
 	}
@@ -919,15 +932,20 @@ export function createFlowStore(client, options = {}) {
 	async function selectModel(model) {
 		state.prefs.lastModel = model
 		savePrefs()
-		if (!state.sessionId) return
+		const sid = state.sessionId
+		if (!sid) return
 		const data = await guard(() =>
-			client.setModel(state.sessionId, {
+			client.setModel(sid, {
 				model,
 				reasoning_effort:
 					state.prefs.lastEffort && state.prefs.lastEffort !== "default" ? state.prefs.lastEffort : null,
 			}),
 		)
 		if (!data) return
+		// the list's copy is what this chat shows while it reopens
+		const listed = state.sessions.find((s) => s.session_id === sid)
+		if (listed) listed.model = data.model
+		if (state.sessionId !== sid) return // the user moved to another chat meanwhile
 		state.conversation.model = data.model
 		state.conversation.contextWindow = data.context_window ?? null
 		if (state.session) {
@@ -940,15 +958,17 @@ export function createFlowStore(client, options = {}) {
 	async function selectEffort(effort) {
 		state.prefs.lastEffort = effort
 		savePrefs()
-		if (!state.sessionId) return
+		const sid = state.sessionId
+		if (!sid) return
 		const model = state.conversation.model ?? state.session?.model
 		if (!model) return
-		await guard(() =>
-			client.setModel(state.sessionId, {
+		const data = await guard(() =>
+			client.setModel(sid, {
 				model,
 				reasoning_effort: effort === "default" ? null : effort,
 			}),
 		)
+		if (!data || state.sessionId !== sid) return // failed, or the user moved to another chat meanwhile
 		state.conversation.reasoningEffort = effort === "default" ? null : effort
 	}
 

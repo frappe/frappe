@@ -27,9 +27,10 @@
 				:disabled="!canWrite || isLocked(field)"
 			/>
 		</form>
-		<div v-else class="py-8 text-center text-xs text-ink-gray-5">
-			{{ error || "Loading…" }}
+		<div v-else-if="error" class="py-8 text-center text-xs text-ink-gray-5">
+			{{ error }}
 		</div>
+		<LoadingState v-else class="justify-center py-8 text-xs text-ink-gray-5" />
 		<template v-if="doc" #footer>
 			<Button
 				v-for="action in actions"
@@ -59,6 +60,7 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { Button, ErrorMessage, Switch, dialog, toast } from "frappe-ui";
+import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
 
 import { call } from "../api/frappe.js";

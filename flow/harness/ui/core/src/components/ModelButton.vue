@@ -48,7 +48,10 @@ const emit = defineEmits(["open"])
 const flow = inject("flow")
 const menu = ref(false)
 
-const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
+// a chat that is still loading shows its own model once known, never the last one picked
+const currentModel = computed(
+	() => flow.state.conversation.model ?? (flow.state.loading ? null : flow.state.prefs.lastModel),
+)
 const currentEffort = computed(
 	() => flow.state.conversation.reasoningEffort ?? flow.state.prefs.lastEffort ?? "default",
 )
@@ -56,7 +59,7 @@ const currentEffort = computed(
 // namespace segments (for example openrouter/openai/gpt).
 const modelLabel = computed(() => {
 	const model = currentModel.value
-	if (!model) return "Choose Model"
+	if (!model) return flow.state.loading ? "" : "Choose Model"
 	return model.split("/").filter(Boolean).pop() || model
 })
 const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")

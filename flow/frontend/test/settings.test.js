@@ -248,3 +248,24 @@ test("a JSON field the user filled in is saved as written", async (t) => {
 	});
 	assert.equal(sent.filters, '{"status": "Open"}');
 });
+
+test("a settings list and an opened record show the spinner until they load", async (t) => {
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	let list, record;
+	transport.answers["frappe.client.get_list"] = () => new Promise((resolve) => (list = resolve));
+	transport.answers["frappe.client.get"] = () => new Promise((resolve) => (record = resolve));
+
+	const panel = mount(t, DocPanel, { spec });
+	await until(() => list);
+	assert.ok(panel.querySelector("[data-stub=Spinner]"));
+	list([]);
+	await until(() => !panel.querySelector("[data-stub=Spinner]"));
+
+	const form = mount(t, DocForm, { spec: sourceSpec, name: "source-1" });
+	await until(() => record);
+	assert.ok(form.querySelector("[data-stub=Spinner]"));
+	record({ name: "source-1", title: "Old" });
+	await until(() => form.querySelector("input"));
+	assert.equal(form.querySelector("[data-stub=Spinner]"), null);
+});

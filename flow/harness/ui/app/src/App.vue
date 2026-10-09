@@ -1,6 +1,11 @@
 <template>
 	<FlowChat v-if="store" :store="store" class="h-full" />
 
+	<!-- the saved connection is being tried: no form until it fails -->
+	<div v-else-if="starting" class="flex h-full items-center justify-center bg-surface-base">
+		<LoadingState class="text-sm text-ink-gray-5" />
+	</div>
+
 	<div v-else class="flex h-full items-center justify-center bg-surface-base">
 		<form
 			class="flex w-[380px] flex-col gap-3 rounded-6 border border-outline-gray-2 bg-surface-base p-5 shadow-sm"
@@ -43,28 +48,35 @@
 
 <script setup>
 import { onMounted, ref } from "vue"
-import { DaemonClient, FlowChat, createFlowStore } from "@flow/ui-core"
+import { DaemonClient, FlowChat, LoadingState, createFlowStore } from "@flow/ui-core"
 
 const CONNECTION_KEY = "flow.ui.connection"
+// past this, a slow or stuck daemon gets the form back while the check goes on
+const STARTUP_WAIT_MS = 3000
 
 const store = ref(null)
 const baseUrl = ref("")
 const token = ref("")
 const error = ref("")
 const checking = ref(false)
+const starting = ref(true)
+let attempt = 0 // the newest attempt wins; an older one's late answer is dropped
 
 async function tryConnect(config, { silent = false } = {}) {
-	checking.value = true
+	const own = ++attempt
+	// the silent startup check never locks the form, so a stuck daemon can be replaced
+	if (!silent) checking.value = true
 	error.value = ""
 	const client = new DaemonClient(config)
 	try {
 		await client.health()
+		if (own !== attempt) return
 		localStorage.setItem(CONNECTION_KEY, JSON.stringify(config))
 		store.value = createFlowStore(client)
 	} catch (err) {
-		if (!silent) error.value = err?.message ?? "Could not reach the daemon."
+		if (own === attempt && !silent) error.value = err?.message ?? "Could not reach the daemon."
 	} finally {
-		checking.value = false
+		if (own === attempt) checking.value = false
 	}
 }
 
@@ -72,7 +84,7 @@ function connect() {
 	tryConnect({ baseUrl: baseUrl.value.trim(), token: token.value.trim() })
 }
 
-onMounted(() => {
+onMounted(async () => {
 	let saved = null
 	try {
 		saved = JSON.parse(localStorage.getItem(CONNECTION_KEY))
@@ -83,6 +95,9 @@ onMounted(() => {
 		baseUrl.value = saved.baseUrl ?? ""
 		token.value = saved.token ?? ""
 	}
-	tryConnect(saved ?? { baseUrl: "", token: "" }, { silent: true })
+	const showForm = setTimeout(() => (starting.value = false), STARTUP_WAIT_MS)
+	await tryConnect(saved ?? { baseUrl: "", token: "" }, { silent: true })
+	clearTimeout(showForm)
+	starting.value = false
 })
 </script>

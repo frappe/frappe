@@ -128,6 +128,7 @@ const store = createFlowStore(client, {
 	storageKey: `flow.page.${props.boot.user?.name ?? "user"}`,
 	presentTool,
 	turnActions: FeedbackBar,
+	listedModel: true, // list_sessions names each chat's model in force
 });
 provide("flow", store);
 provide("flowPage", page);
