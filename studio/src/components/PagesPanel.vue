@@ -97,7 +97,7 @@ const getPageMenu = (page: StudioPage) => {
 					icon: "lucide-earth",
 					switch: true,
 					switchValue: Boolean(isPageActive(page) ? store.activePage?.allow_guest : page.allow_guest),
-					onClick: (value: boolean) => store.updateActivePage("allow_guest", value ? 1 : 0),
+					onClick: (value: boolean) => store.updatePage(page, "allow_guest", value ? 1 : 0),
 				},
 			],
 		},

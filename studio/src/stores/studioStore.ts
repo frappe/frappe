@@ -353,6 +353,15 @@ const useStudioStore = defineStore("store", () => {
 			.catch(handlePageWriteConflict)
 	}
 
+	// the open page goes through updateActivePage, which keeps it in sync and checks for edit conflicts
+	async function updatePage(page: StudioPage, key: string, value: string | number) {
+		if (activePage.value?.name !== page.name) {
+			return studioPages.setValue.submit({ name: page.name, [key]: value })
+		}
+		await updateActivePage(key, value)
+		await studioPages.reload()
+	}
+
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
 	// page and re-run setup() on the canvas. (Standard pages update only after their app rebuilds.)
 	async function reloadActiveAppRouterScript() {
@@ -795,6 +804,7 @@ const useStudioStore = defineStore("store", () => {
 		setPage,
 		savePage,
 		updateActivePage,
+		updatePage,
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,
