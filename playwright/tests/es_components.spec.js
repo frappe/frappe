@@ -705,6 +705,16 @@ test.describe("Espresso components", () => {
 			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeEnabled();
 		});
 
+		test("a skipped row offers no action, so skipping can't unlock it", async ({ page }) => {
+			const holiday_list = row(onboarding(page), "Assign Holiday List");
+
+			await holiday_list.locator(".es-checklist__menu").click();
+			await page.locator(".es-menu__item", { hasText: "Skip" }).click();
+
+			await expect(holiday_list).toHaveAttribute("data-status", "skipped");
+			await expect(holiday_list.getByRole("button", { name: "Assign" })).toHaveCount(0);
+		});
+
 		test("a past due date is overdue only while the row is unfinished", async ({ page }) => {
 			const group = onboarding(page);
 
