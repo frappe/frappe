@@ -199,11 +199,10 @@ def search_widget(
 		finally:
 			frappe.flags.ignore_user_permissions_for_doctype = None
 
-		if not for_link_validation:
-			if meta.translated_doctype:
-				values = filter_translated(values, txt, as_dict)
-				values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-				values = values[start : start + page_length]
+		if meta.translated_doctype and not for_link_validation:
+			# like other custom queries, keep the query's order
+			values = filter_translated(values, txt, lambda row: [row.name if as_dict else row[0]])
+			values = values[start : start + page_length]
 
 		return values
 
@@ -221,7 +220,6 @@ def search_widget(
 	if for_link_validation:
 		filters.append([doctype, "name", "=", txt])
 
-	# fields that txt is matched against
 	match_fields = []
 	if txt:
 		field_types = {
@@ -249,7 +247,6 @@ def search_widget(
 			if f == "name" or (fmeta and fmeta.fieldtype in field_types):
 				match_fields.append(f.strip())
 
-	# translated doctypes are matched against translated values below
 	or_filters = [] if meta.translated_doctype else [[doctype, f, "like", f"%{txt}%"] for f in match_fields]
 
 	if not include_disabled:
@@ -306,14 +303,12 @@ def search_widget(
 		ignore_permissions=doctype == "DocType",
 		ignore_user_permissions=ignore_user_permissions,
 		reference_doctype=reference_doctype,
-		# as dicts, so translated doctypes can match only `match_fields`
 		as_list=not (as_dict or meta.translated_doctype),
 		strict=False,
 	)
 
-	# match, order and page like the SQL above does for other doctypes
 	if meta.translated_doctype and not for_link_validation:
-		values = filter_translated(values, txt, as_dict=True, fields=match_fields)
+		values = filter_translated(values, txt, lambda row: [row.get(field) for field in match_fields])
 		values = sorted(values, key=lambda row: get_translated_relevance(row.name, txt))
 		values = values[start : start + page_length]
 
@@ -497,17 +492,10 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
-def filter_translated(values, txt: str, as_dict: bool, fields: list[str] | None = None) -> list:
-	"""Return rows where a translated value contains txt as `LIKE %txt%` would match it.
-
-	Match only `fields` of dict rows when given, else every value."""
+def filter_translated(values, txt: str, get_values) -> list:
+	"""Return rows where a translated value from `get_values(row)` contains txt as `LIKE %txt%` would match it."""
 	if not txt:
 		return values
-
-	def get_values(row):
-		if fields:
-			return [row.get(field) for field in fields]
-		return row.values() if as_dict else row
 
 	return [
 		row for row in values if any(like_contains(_(cstr(value)) or "", txt) for value in get_values(row))
@@ -530,6 +518,8 @@ def like_contains(value: str, txt: str) -> bool:
 
 def find_like_part(value: str, part: str, start: int) -> int:
 	"""Index of part's first match in value from start, `_` matching any character; -1 if none."""
+	if "_" not in part:
+		return value.find(part, start)
 	for index in range(start, len(value) - len(part) + 1):
 		if all(char in ("_", value[index + offset]) for offset, char in enumerate(part)):
 			return index
