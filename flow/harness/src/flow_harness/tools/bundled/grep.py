@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import os
+import re
 import shutil
+from typing import Annotated
 
 from flow_harness.tools.builtins.common import resolve, truncate
 from flow_harness.tools.tool import ToolContext, ToolResult, tool
@@ -15,19 +18,34 @@ MAX_READ_BYTES = 1 << 20
 	prompt_snippet="Search file contents for regex patterns",
 	display_template="Searching code for {{ pattern }}",
 )
-async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult:
-	"""Search files for a regex pattern (uses ripgrep if available) and return matches."""
+async def grep(
+	pattern: str,
+	path: str = ".",
+	include: Annotated[str | None, "file names to search, e.g. *.py; folders go in path"] = None,
+	*,
+	ctx: ToolContext,
+) -> ToolResult:
+	"""Search files for a regex pattern (uses ripgrep if available), skipping node_modules and binary files."""
 	target = resolve(ctx, path, read_only=True)
+	# grep would skip the very folder it was asked to search
+	skip_node_modules = os.path.basename(target) != "node_modules"
 	rg = shutil.which("rg")
 	# `--` ends the option list: without it a pattern like "-L" is read as a flag, which
 	# shifts `target` out of its slot and searches the daemon's cwd instead of the root.
+	# The last matching glob wins, so the skips must follow the caller's include.
 	if rg:
 		cmd = [rg, "--line-number", "--no-heading", "--color=never"]
+		cmd.extend(f"--glob={name}" for name in _name_globs(include))
+		if skip_node_modules:
+			cmd.append("--glob=!node_modules")
 		if ctx.ignore_hidden_files:
 			cmd.extend(("--glob=!.*", "--glob=!**/.*"))
 		cmd.extend(("--", pattern, target))
 	else:
-		cmd = ["grep", "-rn"]
+		cmd = ["grep", "-rnI"]
+		cmd.extend(f"--include={name}" for name in _name_globs(include))
+		if skip_node_modules:
+			cmd.append("--exclude-dir=node_modules")
 		if ctx.ignore_hidden_files:
 			cmd.extend(("--exclude=.*", "--exclude-dir=.*"))
 		cmd.extend(("--", pattern, target))
@@ -57,6 +75,15 @@ async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult
 		content=body + notice,
 		details={"pattern": pattern, "matches": matches, "truncation": trunc},
 	)
+
+
+def _name_globs(include: str | None) -> list[str]:
+	"""File-name globs both engines read alike: folders dropped, one {a,b} group expanded."""
+	name = (include or "").rsplit("/", 1)[-1]
+	group = re.search(r"\{([^{}]*)\}", name)
+	if not group:
+		return [name] if name else []
+	return [name[: group.start()] + alt + name[group.end() :] for alt in group.group(1).split(",")]
 
 
 async def _read_capped(stream: asyncio.StreamReader) -> tuple[bytes, bool]:

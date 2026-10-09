@@ -17,6 +17,16 @@ def _ctx(tmp_path, **kw) -> ToolContext:
 	return ToolContext(cwd=str(tmp_path), **kw)
 
 
+@pytest.fixture(params=[True, False], ids=["ripgrep", "grep"])
+def engine(request, monkeypatch):
+	"""Run once on ripgrep (when installed) and once on the grep fallback."""
+	grep_module = importlib.import_module("flow_harness.tools.bundled.grep")
+	rg = grep_module.shutil.which("rg")
+	if request.param and rg is None:
+		pytest.skip("ripgrep is not installed")
+	monkeypatch.setattr(grep_module.shutil, "which", lambda _name: rg if request.param else None)
+
+
 def test_registry_keys():
 	assert set(BUNDLED_TOOLS) == {"grep"}
 	assert not set(BUNDLED_TOOLS) & set(BUILTIN_TOOLS)
@@ -73,6 +83,53 @@ async def test_hidden_paths_can_be_ignored(tmp_path, monkeypatch, use_ripgrep):
 	assert "visible.txt" in result.content
 	assert ".private" not in result.content
 	assert ".secret" not in result.content
+
+
+async def test_grep_include_limits_the_files_searched(tmp_path, engine):
+	(tmp_path / "sub").mkdir()
+	for name in ("a.py", "b.js", "sub/c.vue"):
+		(tmp_path / name).write_text("needle\n")
+
+	result = await grep(pattern="needle", include="**/*.{py,vue}", ctx=_ctx(tmp_path))
+
+	assert result.details["matches"] == 2
+	assert "a.py" in result.content
+	assert "c.vue" in result.content
+
+
+async def test_grep_skips_node_modules_and_binary_files(tmp_path, engine):
+	(tmp_path / "a.py").write_text("needle\n")
+	(tmp_path / "node_modules" / "pkg").mkdir(parents=True)
+	(tmp_path / "node_modules" / "pkg" / "x.py").write_text("needle\n")
+	(tmp_path / "blob.bin").write_bytes(b"needle\0\x01")
+
+	result = await grep(pattern="needle", ctx=_ctx(tmp_path))
+
+	assert result.details["matches"] == 1
+	assert "a.py" in result.content
+
+
+async def test_grep_searches_node_modules_when_pointed_at_it(tmp_path, engine):
+	(tmp_path / "node_modules" / "pkg").mkdir(parents=True)
+	(tmp_path / "node_modules" / "pkg" / "x.py").write_text("needle\n")
+
+	result = await grep(pattern="needle", path="node_modules", ctx=_ctx(tmp_path))
+
+	assert result.details["matches"] == 1
+
+
+async def test_grep_include_cannot_reach_hidden_files(tmp_path, engine):
+	"""An include placed after the hidden-file skips would win and search `.secret.py`."""
+	(tmp_path / "a.py").write_text("needle\n")
+	(tmp_path / ".secret.py").write_text("needle\n")
+	(tmp_path / ".private").mkdir()
+	(tmp_path / ".private" / "x.py").write_text("needle\n")
+	ctx = _ctx(tmp_path, allowed_roots=(str(tmp_path),), ignore_hidden_files=True)
+
+	result = await grep(pattern="needle", include="*.py", ctx=ctx)
+
+	assert result.details["matches"] == 1
+	assert "a.py" in result.content
 
 
 async def test_grep_finds_and_misses(tmp_path):

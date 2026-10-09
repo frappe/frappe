@@ -64,7 +64,7 @@ Shipped with the harness but off by default: the default `tools` list is `bash`,
 
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |
-| `grep` | `pattern`, `path?` | No | Searches with ripgrep when available, otherwise `grep`. Keeps the head of the output. |
+| `grep` | `pattern`, `path?`, `include?` | No | Searches with ripgrep when available, otherwise `grep`. `include` limits the search to matching file names (`*.py`, `*.{js,vue}`). Skips `node_modules` and binary files. Keeps the head of the output. |
 
 ## Extensions
 
