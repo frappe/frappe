@@ -54,6 +54,13 @@ class TestStudioApp(FrappeTestCase):
 			app.disable_app_export()
 			self.assertEqual(app.reload().router_script, ROUTER_SCRIPT)
 
+	def test_app_favicon(self):
+		app = make_studio_app(app_title="Favicon App", app_name="favicon-app")
+		self.assertIn('href="/assets/studio/frontend/favicon.png"', render_app_template(app))
+
+		app.favicon = "/files/favicon-app.png"
+		self.assertIn('href="/files/favicon-app.png"', render_app_template(app))
+
 	def test_studio_app_boot(self):
 		app = unsaved_studio_app("boot-app")
 		with patch_boot_hook(app.name, f"{__name__}.boot_contribution"):
@@ -430,6 +437,10 @@ def get_renderer_context(app):
 	with patch.object(frappe.db, "commit"):
 		app.get_context(context)
 	return context
+
+
+def render_app_template(app):
+	return frappe.render_template(StudioApp.website.template, get_renderer_context(app))
 
 
 def unsaved_studio_app(name):

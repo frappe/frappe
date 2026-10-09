@@ -92,6 +92,7 @@ class StudioApp(WebsiteGenerator):
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data
+		favicon: DF.AttachImage | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
 		route: DF.Data | None
@@ -114,6 +115,7 @@ class StudioApp(WebsiteGenerator):
 		context.app_route = self.route
 		context.app_title = self.app_title
 		context.app_home = self.app_home
+		context.favicon = self.favicon
 		context.frappe_app = self.frappe_app or ""
 		context.is_guest = frappe.session.user == "Guest"
 		page_filters = dict(studio_app=self.name, published=1)
