@@ -516,7 +516,6 @@ frappe.setup.slides_settings = [
 				slide.form.fields_dict.email.df.read_only = 1;
 				slide.form.fields_dict.email.refresh();
 			} else {
-				slide.form.fields_dict.password.df.reqd = 1;
 				slide.form.fields_dict.password.refresh();
 				if (frappe.setup.data.full_name) {
 					slide.form.fields_dict.full_name.set_input(frappe.setup.data.full_name);
