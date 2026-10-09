@@ -145,6 +145,35 @@ test.describe("Report View group by button", () => {
 		await expect(button_label.locator("b")).toHaveCount(0);
 	});
 
+	test("keeps keyboard focus in the group by popover", async ({ page }) => {
+		const button = page.locator(".group-by-button");
+		const popover = page.locator(".group-by-popover");
+		const input = popover.locator(".group-by-field-select input").first();
+		await page.evaluate(() => window.cur_list.group_by_control.remove_group_by());
+
+		await button.click();
+		await expect(input).toBeFocused();
+		await expect(popover.locator("li", { hasText: "Category" })).toBeVisible();
+
+		// picking the first group by re-renders the popover, focus moves on to the row
+		await input.pressSequentially("Category");
+		await input.press("Enter");
+		await expect(popover.locator(".remove-group-by-row").first()).toBeFocused();
+
+		// reopening focuses the popover, Tab reaches the field and another Tab keeps it
+		await button.click();
+		await expect(popover).toBeHidden();
+		await button.click();
+		await expect(popover).toBeFocused();
+		await page.keyboard.press("Tab");
+		await expect(input).toBeFocused();
+		await page.keyboard.press("Tab");
+		await expect(input).toHaveValue(label);
+		expect(
+			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
+		).toEqual([{ doctype, fieldname: "category" }]);
+	});
+
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
 		await page.evaluate(() => {
 			const amount = "`tabReport Group By Label`.`amount`";
