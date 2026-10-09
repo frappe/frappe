@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
+		class="flex max-h-[min(500px,72vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
 	>
 		<div class="flex items-start gap-3 px-3.5 py-2.5">
 			<div class="min-w-0 flex-1 text-base leading-snug text-ink-gray-9">{{ title }}</div>
@@ -18,9 +18,8 @@
 			</span>
 		</div>
 
-		<!-- the host's view fills the card body: its own padding, so a table can go edge to
-		     edge, and its own height cap, since the card floats over the thread -->
-		<div v-if="presentation.argsComponent" class="border-y border-outline-gray-1">
+		<!-- the host's view fills the card body with its own padding, so a table can go edge to edge -->
+		<div v-if="presentation.argsComponent" class="overflow-y-auto border-y border-outline-gray-1">
 			<component :is="presentation.argsComponent" :arguments="args" />
 		</div>
 		<pre
