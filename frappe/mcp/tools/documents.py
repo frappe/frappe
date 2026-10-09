@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 """Document tools reuse REST API v2 permissions and controller hooks."""
 
-from typing import Any, Self
+from typing import Any, Literal, Self
 
 from pydantic import Field, model_validator
 
@@ -28,6 +28,25 @@ class GetDocumentsArguments(ToolArguments):
 	def check_mode(self) -> Self:
 		if self.name is not None and self.count_only:
 			raise ValueError(_("Use name to read one document, or count_only to count matches"))
+		return self
+
+
+class WriteDocumentArguments(ToolArguments):
+	action: Literal["create", "update", "delete"]
+	doctype: str = Field(min_length=1, description="DocType to change.")
+	name: str | None = Field(default=None, min_length=1, description="Document to update or delete.")
+	data: dict[str, Any] | None = Field(default=None, description="Field values for create or update.")
+
+	@model_validator(mode="after")
+	def check_action(self) -> Self:
+		if self.action in ("update", "delete") and self.name is None:
+			raise ValueError(_("name is required for update or delete"))
+		if self.action in ("create", "update") and self.data is None:
+			raise ValueError(_("data is required for create or update"))
+		if self.action == "create" and self.name is not None:
+			raise ValueError(_("For create, specify a document name inside data"))
+		if self.action == "delete" and self.data is not None:
+			raise ValueError(_("Delete accepts a document name, not data"))
 		return self
 
 
@@ -61,6 +80,21 @@ def get_documents(
 	}
 
 
+def write_document(
+	action: Literal["create", "update", "delete"],
+	doctype: str,
+	name: str | None = None,
+	data: dict[str, Any] | None = None,
+) -> dict:
+	with form_dict(data or {}):
+		if action == "create":
+			return {"action": action, "document": v2.create_doc(doctype)}
+		if action == "update":
+			return {"action": action, "document": v2.update_doc(doctype, name)}
+		v2.delete_doc(doctype, name)
+		return {"action": action, "doctype": doctype, "name": name}
+
+
 GET_DOCUMENTS = Tool(
 	name="get_documents",
 	description=(
@@ -75,4 +109,21 @@ GET_DOCUMENTS = Tool(
 	arguments=GetDocumentsArguments,
 	handler=get_documents,
 	annotations={"readOnlyHint": True},
+)
+
+
+WRITE_DOCUMENT = Tool(
+	name="write_document",
+	description=(
+		"Create, update or delete one document using your Frappe permissions. "
+		"For create supply action, doctype and data; put a custom document name inside data. "
+		"For update supply action, doctype, name and data. For delete supply action, doctype and name. "
+		"Frappe validates document fields and runs the normal controller hooks. "
+		"A failed operation rolls back its database changes and runs its rollback cleanup. "
+		"Use discover to inspect fields and requirements before writing. "
+		"Submit and cancel are lifecycle methods for call_method, not write actions."
+	),
+	arguments=WriteDocumentArguments,
+	handler=write_document,
+	annotations={"destructiveHint": True, "idempotentHint": False},
 )
