@@ -549,15 +549,6 @@ def get_group_by_field(group_by_args: dict, fieldname: str = DEFAULT_AGGREGATE_F
 	return {func_name: aggregate_on, "as": fieldname}
 
 
-def get_group_by_column_field(group_by_args: dict, parent_doctype: str) -> dict:
-	"""
-	Build full field info (fieldname, label, fieldtype, options) for the aggregate column.
-	"""
-	field = get_group_by_field(group_by_args)
-
-	return get_aggregate_field_info(field, parent_doctype, group_by_args.get("group_by"))
-
-
 def enable_prepared_report(report: str, site: str):
 	frappe.init(site)
 	frappe.connect()

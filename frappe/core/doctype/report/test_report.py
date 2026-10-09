@@ -25,7 +25,8 @@ class TestReport(IntegrationTestCase):
 
 	def test_aggregate_column_field_info(self):
 		"""Aggregate column gets proper label and fieldtype"""
-		from frappe.core.doctype.report.report import get_group_by_column_field
+		from frappe.core.doctype.report.report import get_group_by_field
+		from frappe.desk.reportview import get_aggregate_field_info
 
 		cases = [
 			({"aggregate_function": "count"}, "Count", "Int"),
@@ -43,24 +44,24 @@ class TestReport(IntegrationTestCase):
 
 		for args, expected_label, expected_fieldtype in cases:
 			with self.subTest(aggregate_function=args["aggregate_function"]):
-				info = get_group_by_column_field(args, "User")
+				info = get_aggregate_field_info(get_group_by_field(args), "User")
 				self.assertEqual(info["label"], expected_label)
 				self.assertEqual(info["fieldtype"], expected_fieldtype)
 
 	def test_aggregate_column_drops_currency_the_grouped_row_cannot_resolve(self):
-		from frappe.core.doctype.report.report import get_group_by_column_field
+		from frappe.core.doctype.report.report import get_group_by_field
+		from frappe.desk.reportview import get_aggregate_field_info
 
 		grand_total = frappe._dict(fieldtype="Currency", options="currency", label="Grand Total")
 		for group_by, expected_fieldtype in (("customer", "Float"), ("currency", "Currency")):
 			with self.subTest(group_by=group_by):
 				with patch("frappe.desk.reportview._aggregate_field_df", return_value=grand_total):
-					info = get_group_by_column_field(
-						{
-							"group_by": f"`tabSales Invoice`.`{group_by}`",
-							"aggregate_function": "sum",
-							"aggregate_on": "`tabSales Invoice`.`grand_total`",
-						},
+					info = get_aggregate_field_info(
+						get_group_by_field(
+							{"aggregate_function": "sum", "aggregate_on": "`tabSales Invoice`.`grand_total`"}
+						),
 						"Sales Invoice",
+						f"`tabSales Invoice`.`{group_by}`",
 					)
 				self.assertEqual(info["fieldtype"], expected_fieldtype)
 
