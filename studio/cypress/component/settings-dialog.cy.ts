@@ -84,7 +84,7 @@ describe("settings dialog", () => {
 	})
 
 	it("allows guests on a page that isn't open", () => {
-		cy.wrap(null).then(() => store.openSettings("app"))
+		cy.wrap(null).then(() => store.openSettings("pages"))
 		guestRow("About").find("[role=switch]").click()
 		cy.wait("@save")
 		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 1)

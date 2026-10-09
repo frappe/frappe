@@ -37,6 +37,7 @@ import { computed } from "vue"
 import { Button, Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import AppSettings from "@/components/Settings/AppSettings.vue"
+import PagesSettings from "@/components/Settings/PagesSettings.vue"
 import EditorSettings from "@/components/Settings/EditorSettings.vue"
 import type { SettingsTab } from "@/types"
 
@@ -44,6 +45,7 @@ const store = useStudioStore()
 
 const tabs: { name: SettingsTab; label: string; title: string; icon: string; component: object }[] = [
 	{ name: "app", label: "App", title: "App", icon: "lucide-app-window", component: AppSettings },
+	{ name: "pages", label: "Pages", title: "Pages", icon: "lucide-files", component: PagesSettings },
 	{ name: "editor", label: "Editor", title: "Editor", icon: "lucide-sliders-vertical", component: EditorSettings },
 ]
 

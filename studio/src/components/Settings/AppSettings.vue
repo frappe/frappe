@@ -70,9 +70,6 @@
 			</div>
 		</div>
 
-		<hr class="w-full border-outline-gray-2" />
-		<AppGuestAccess />
-
 		<template v-if="isDeveloperMode">
 			<hr class="w-full border-outline-gray-2" />
 			<div class="flex flex-col gap-3">
@@ -87,7 +84,6 @@
 import { computed } from "vue"
 import { Button, FileUploader, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
-import AppGuestAccess from "@/components/Settings/AppGuestAccess.vue"
 import AppExport from "@/components/Settings/AppExport.vue"
 import useStudioStore from "@/stores/studioStore"
 import defaultFavicon from "/favicon.png"
