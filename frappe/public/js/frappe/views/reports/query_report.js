@@ -1227,9 +1227,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_link_side_panel() {
 		this.$report
 			.off("click.side-panel")
-			.on("click.side-panel", "a[data-doctype][data-name]", (e) =>
-				frappe.ui.handle_link_cell_click(e, this.datatable)
-			);
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) => {
+				frappe.ui.handle_link_cell_click(e, this.datatable);
+			});
 	}
 
 	update_masked_fields_in_columns(columns) {
