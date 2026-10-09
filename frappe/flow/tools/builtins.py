@@ -34,7 +34,7 @@ def read(path: str, offset: int | None = None, limit: int | None = None, *, ctx:
 
 
 @tool
-def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> str:
+def grep(pattern: str, path: str = ".", include: str | None = None, *, ctx: ToolContext) -> str:
 	"""Search installed app source files for a regular-expression pattern."""
 	_server_only_tool()
 
