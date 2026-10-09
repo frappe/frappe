@@ -49,6 +49,30 @@ test.describe("Grid Pagination", () => {
 		await expect(table.locator(".total-page-number")).toContainText("20");
 	});
 
+	test("deletes selected rows from every page", async ({ page }) => {
+		const table = get_table(page);
+		const rows = table.locator(".grid-body .grid-row");
+		await expect(rows.first()).toHaveAttribute("data-idx", "1");
+		const first_row = await rows.first().getAttribute("data-name");
+		await rows.first().locator(".grid-row-check").click();
+		await table.locator(".next-page").click();
+		await expect(rows.last()).toHaveAttribute("data-idx", "100");
+		const last_row = await rows.last().getAttribute("data-name");
+		await rows.last().locator(".grid-row-check").click();
+		await table.locator(".prev-page").click();
+		await expect(table.locator(".current-page-number")).toHaveValue("1");
+		await table.getByRole("button", { name: "Delete 2 rows", exact: true }).click();
+		await expect
+			.poll(() =>
+				page.evaluate(
+					(deleted) =>
+						cur_frm.doc.phone_nos.filter((row) => deleted.includes(row.name)).length,
+					[first_row, last_row]
+				)
+			)
+			.toBe(0);
+	});
+
 	test("go to specific page, use up and down arrow, type characters, 0 page and more than existing page", async ({
 		page,
 	}) => {
