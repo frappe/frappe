@@ -5,7 +5,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} ChecklistAction
  * Button options for frappe.ui.button. `onclick` gets the item and the checklist.
- * Actions default to the subtle variant and follow the Skip button.
+ * Actions default to the subtle variant and take no icons, so every row's buttons look alike.
  *
  * @typedef {Object} ChecklistItem
  * @property {string} id Unique across the whole checklist.
@@ -351,7 +351,7 @@ frappe.ui.Checklist = class Checklist {
 		const buttons = [];
 		if (item.skippable && !item.done) buttons.push(this.make_menu(item));
 		if (item.skipped) return buttons.map(($button) => $button[0]);
-		for (const action of item.actions || []) {
+		for (const { icon, icon_left, icon_right, ...action } of item.actions || []) {
 			buttons.push(
 				frappe.ui.button({
 					...action,
