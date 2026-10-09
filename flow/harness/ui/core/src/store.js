@@ -918,7 +918,8 @@ export function createFlowStore(client, options = {}) {
 	function addCodeRef(path, start, end) {
 		const cwd = state.session?.config?.cwd
 		const rel = cwd && path.startsWith(cwd + "/") ? path.slice(cwd.length + 1) : path
-		if (state.codeRefs.some((r) => r.path === path && r.start === start && r.end === end)) return
+		// by rel: a rewound token comes back relative, the editor sends the full path
+		if (state.codeRefs.some((r) => r.rel === rel && r.start === start && r.end === end)) return
 		state.codeRefs.push({ path, rel, start, end })
 	}
 

@@ -29,6 +29,7 @@ const composerHeight = inject("composerHeight", ref(0))
 const layer = ref(null)
 const pill = ref(null)
 let timer = null
+let resizeObserver = null
 
 // the selection, when it is a non-empty one inside the thread
 function selected() {
@@ -75,9 +76,13 @@ function add() {
 onMounted(() => {
 	document.addEventListener("selectionchange", onSelectionChange)
 	document.addEventListener("scroll", place, true) // the pill rides along, and returns with its selection
+	if (typeof ResizeObserver === "undefined") return
+	resizeObserver = new ResizeObserver(place) // a resized thread re-wraps the selection
+	resizeObserver.observe(layer.value)
 })
 onBeforeUnmount(() => {
 	clearTimeout(timer)
+	resizeObserver?.disconnect()
 	document.removeEventListener("selectionchange", onSelectionChange)
 	document.removeEventListener("scroll", place, true)
 })

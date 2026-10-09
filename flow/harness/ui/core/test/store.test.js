@@ -1895,7 +1895,9 @@ test("a quote queues once; clearing takes what was sent, or everything", () => {
 	flow.clearQuotes()
 	assert.deepEqual(flow.state.quotes, [])
 
+	flow.state.session = { config: { cwd: "/w" } }
 	flow.addCodeRef("/w/a.py", 1, 2)
+	flow.addCodeRef("a.py", 1, 2) // a rewound token, the same lines
 	flow.addCodeRef("/w/b.py", 3, 3)
 	flow.clearCodeRefs([flow.state.codeRefs[0]])
 	assert.deepEqual(flow.state.codeRefs.map((ref) => ref.path), ["/w/b.py"])
