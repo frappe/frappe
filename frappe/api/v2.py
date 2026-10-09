@@ -224,6 +224,7 @@ def update_doc(doctype: str, name: str):
 	data = frappe.form_dict
 
 	doc = frappe.get_doc(doctype, name, for_update=True)
+	doc.check_permission("write")
 	data.pop("flags", None)
 	doc.update(data)
 	doc.save()
