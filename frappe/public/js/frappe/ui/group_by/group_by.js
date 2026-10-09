@@ -220,8 +220,11 @@ frappe.ui.GroupBy = class {
 
 	get_aggregate_on_select_fields(aggregate_function) {
 		const allows_dates = ["min", "max"].includes(aggregate_function);
+		const std_date_fields = frappe.model.std_fields.filter(
+			(df) => df.fieldtype === "Datetime"
+		);
 		return Object.entries(this.all_fields).flatMap(([doctype, fields]) =>
-			fields
+			(doctype === this.doctype ? fields.concat(std_date_fields) : fields)
 				.filter(
 					(df) =>
 						frappe.model.is_numeric_field(df.fieldtype) ||
@@ -455,7 +458,7 @@ frappe.ui.GroupBy = class {
 				{},
 				frappe.meta.docfield_map[aggregate.aggregate_on_doctype][
 					aggregate.aggregate_on_field
-				]
+				] || frappe.model.get_std_field(aggregate.aggregate_on_field)
 			);
 
 			if (aggregate.aggregate_function === "sum") {

@@ -833,7 +833,14 @@ def _aggregate_field_df(doctype: str, fieldname: str):
 	if not doctype or not fieldname:
 		return
 
-	return frappe.get_meta(doctype).get_field(fieldname)
+	from frappe.model.meta import get_default_df
+
+	meta = frappe.get_meta(doctype)
+	if df := meta.get_field(fieldname):
+		return df
+
+	if df := get_default_df(fieldname):
+		return df.update(label=meta.get_label(fieldname))
 
 
 # NOTE: Parameter kept for handler signature consistency.

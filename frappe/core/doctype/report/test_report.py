@@ -50,6 +50,11 @@ class TestReport(IntegrationTestCase):
 				"Maximum of Last Active",
 				"Datetime",
 			),
+			(
+				{"aggregate_function": "max", "aggregate_on": "`tabUser`.`creation`"},
+				"Maximum of Created On",
+				"Datetime",
+			),
 		]
 
 		for args, expected_label, expected_fieldtype in cases:
