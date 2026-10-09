@@ -58,8 +58,8 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 4px;
-	padding: 8px 11px 12px;
+	gap: var(--spacing);
+	padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.75) calc(var(--spacing) * 3);
 
 	background: var(--dock-bg);
 	border-radius: 18px;
@@ -75,8 +75,8 @@
 	.dock-logo {
 		flex: 0 0 auto;
 		width: 100%;
-		height: 49px;
-		margin-top: -8px;
+		height: calc(var(--page-head-height) + 1px);
+		margin-top: calc(var(--spacing) * -2);
 		border-bottom: 1px solid var(--outline-gray-1);
 		display: flex;
 		align-items: center;
@@ -124,8 +124,8 @@
 	}
 
 	.dock-logo + .dock-items {
-		margin-top: -4px;
-		padding-top: 12px;
+		margin-top: calc(var(--spacing) * -1);
+		padding-top: calc(var(--spacing) * 3);
 	}
 
 	.dock-items {
@@ -135,7 +135,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 4px;
+		gap: var(--spacing);
 	}
 }
 
@@ -235,16 +235,16 @@ body.dock-pinned .dock {
 	border-radius: 0;
 	box-shadow: none;
 	border-right: 1px solid var(--outline-gray-1);
-	padding-top: 8px;
+	padding-top: calc(var(--spacing) * 2);
 	// The tiles scroll, not the column, so the avatar stays in view.
 	overflow: hidden;
 
 	// A scroller clips on both axes, so a column only as wide as its tiles cut the active tile's
 	// shadow off at the sides. It bleeds into the tray's side padding to leave the shadow room.
 	.dock-items {
-		width: calc(100% + 22px);
-		margin-inline: -11px;
-		padding-bottom: 4px;
+		width: calc(100% + var(--spacing) * 5.5);
+		margin-inline: calc(var(--spacing) * -2.75);
+		padding-bottom: var(--spacing);
 		min-height: 0;
 		overflow-y: auto;
 		scrollbar-width: none;
