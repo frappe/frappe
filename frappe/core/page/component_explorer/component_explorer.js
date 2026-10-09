@@ -40,7 +40,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				description: "Create the letter, then email it to the new hire.",
 				assignee: frappe.session.user,
 				due_date: frappe.datetime.add_days(today, -1),
-				actions: [{ label: __("Send"), icon: "send", onclick: finish }],
+				actions: [{ label: __("Send"), onclick: finish }],
 			},
 			{
 				id: "create_employee",
