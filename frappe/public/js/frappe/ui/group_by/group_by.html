@@ -4,15 +4,11 @@
 		{% for (var i = 0; i < group_bys.length; i++) { %}
 		<div class="group-by-row" data-idx="{{ i }}">
 			<div class="group-by-field-select"></div>
-			<button class="btn btn-xs btn-link remove-group-by-row {{ grouped ? "" : "invisible" }}" title="{{ __("Remove") }}" aria-label="{{ __("Remove") }}">
-				{{ frappe.utils.icon("x", "sm") }}
-			</button>
+			{%= frappe.ui.button.html({ icon: "x", variant: "ghost", title: __("Remove"), css_class: grouped ? "remove-group-by-row" : "remove-group-by-row invisible" }) %}
 		</div>
 		{% } %}
 		{% if (grouped) { %}
-		<button class="btn btn-xs btn-link text-muted add-group-by">
-			{{ frappe.utils.icon("plus", "xs") }} {{ __("Add Group By") }}
-		</button>
+		{%= frappe.ui.button.html({ label: __("Add Group By"), icon: "plus", variant: "ghost", css_class: "add-group-by" }) %}
 		{% } %}
 	</div>
 	{% if (grouped) { %}
@@ -32,19 +28,15 @@
 			{% } else { %}
 			<div class="flex-1"></div>
 			{% } %}
-			<button class="btn btn-xs btn-link remove-aggregate {{ aggregates.length > 1 ? "" : "invisible" }}" title="{{ __("Remove") }}" aria-label="{{ __("Remove") }}">
-				{{ frappe.utils.icon("x", "sm") }}
-			</button>
+			{%= frappe.ui.button.html({ icon: "x", variant: "ghost", title: __("Remove"), css_class: aggregates.length > 1 ? "remove-aggregate" : "remove-aggregate invisible" }) %}
 		</div>
 		{% } %}
-		<button class="btn btn-xs btn-link text-muted add-aggregate">
-			{{ frappe.utils.icon("plus", "xs") }} {{ __("Add Aggregate") }}
-		</button>
+		{%= frappe.ui.button.html({ label: __("Add Aggregate"), icon: "plus", variant: "ghost", css_class: "add-aggregate" }) %}
 	</div>
 	<hr class="divider">
 	<div class="group-by-actions">
-		<button class="btn btn-xs btn-secondary clear-group-by">{{ __("Clear Grouping") }}</button>
-		<button class="btn btn-xs btn-primary apply-group-by">{{ __("Apply") }}</button>
+		{%= frappe.ui.button.html({ label: __("Clear Grouping"), css_class: "clear-group-by" }) %}
+		{%= frappe.ui.button.html({ label: __("Apply"), variant: "solid", css_class: "apply-group-by" }) %}
 	</div>
 	{% } %}
 </div>

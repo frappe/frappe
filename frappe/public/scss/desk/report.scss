@@ -238,19 +238,6 @@
 			}
 		}
 
-		.remove-group-by-row,
-		.remove-aggregate {
-			padding: var(--padding-xs);
-			color: var(--text-muted);
-			box-shadow: none;
-		}
-
-		.add-group-by,
-		.add-aggregate {
-			padding-left: 0;
-			box-shadow: none;
-		}
-
 		.divider {
 			margin: var(--margin-sm) 0;
 			background-color: var(--border-color);
