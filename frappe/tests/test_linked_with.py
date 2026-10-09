@@ -1121,18 +1121,22 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual([doc.name for doc in linked["Linked Entry"]["docs"]], [live.name])
 
 	def test_get_filters_by_stored_columns_and_dict_entries(self):
-		with linked_entry_target() as (target, _user):
-			assigned = make_linked_entry(target)
-			cancelled = make_linked_entry(target).submit().cancel()
-			make_linked_entry(target)
+		with linked_entry_target() as (target, user):
+			with self.set_user(user):
+				assigned = make_linked_entry(target)
+				cancelled = make_linked_entry(target).submit().cancel()
+				make_linked_entry(target)
 			frappe.db.set_value("Linked Entry", assigned.name, "_assign", '["owner@example.com"]')
 
 			def names(filters):
-				linked = linked_with.get(target.doctype, target.name, filters=filters)
+				with self.set_user(user):
+					linked = linked_with.get(target.doctype, target.name, filters=filters)
 				return {doc.name for doc in linked["Linked Entry"]["docs"]}
 
 			self.assertEqual(names([["_assign", "like", "%owner@example.com%"]]), {assigned.name})
 			self.assertNotIn(cancelled.name, names([{"docstatus": ["!=", 2]}]))
+			# each field of a dict is checked on its own
+			self.assertNotIn(cancelled.name, names([{"absent": "x", "docstatus": ["!=", 2]}]))
 			# a dict arrives as JSON over HTTP
 			self.assertNotIn(cancelled.name, names(frappe.as_json({"docstatus": ["!=", 2]})))
 
