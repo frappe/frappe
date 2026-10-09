@@ -401,24 +401,15 @@ def _webui_dist() -> str | None:
 
 
 def _warm_litellm() -> None:
-	"""Import litellm off the event loop before it serves requests.
+	"""Import litellm before serving so the first model call doesn't block the event loop."""
+	# not in a thread: litellm 1.104+ breaks when another thread logs during its import
+	try:
+		import litellm
 
-	The first model call imports litellm lazily, ~2 s of CPU that would block the
-	event loop and hold back SSE delivery of the run's first events. Warming it in a
-	thread overlaps the cost with server startup instead.
-	"""
-	import threading
-
-	def _import() -> None:
-		try:
-			import litellm
-
-			# silence the "Provider List / Give Feedback" lines litellm prints on errors
-			litellm.suppress_debug_info = True
-		except Exception:
-			pass  # the request path imports it again and reports the real error
-
-	threading.Thread(target=_import, name="litellm-warmup", daemon=True).start()
+		# silence the "Provider List / Give Feedback" lines litellm prints on errors
+		litellm.suppress_debug_info = True
+	except Exception:
+		pass  # the request path imports it again and reports the real error
 
 
 def _is_loopback(host: str) -> bool:

@@ -48,7 +48,7 @@ class PrivateDaemon:
 def spawn_private(
 	data_dir: str,
 	*,
-	timeout: float = 5.0,
+	timeout: float = 15.0,
 	extension_paths: list[str] | None = None,
 	extensions_enabled: bool = True,
 ) -> PrivateDaemon:
@@ -95,7 +95,7 @@ def spawn_background(
 	port: int,
 	data_dir: str,
 	*,
-	timeout: float = 5.0,
+	timeout: float = 15.0,
 	extension_paths: list[str] | None = None,
 	extensions_enabled: bool = True,
 	profile: str = "local",
