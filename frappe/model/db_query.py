@@ -21,7 +21,12 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
+from frappe.database.utils import (
+	ORDER_GROUP_BY_DIRECTION_PATTERN,
+	DefaultOrderBy,
+	FallBackDateTimeStr,
+	NestedSetHierarchy,
+)
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
@@ -61,6 +66,7 @@ LOCATE_CAST_PATTERN = re.compile(r"locate\(([^,]+),\s*([`\"]?name[`\"]?)\s*\)", 
 FUNC_IFNULL_PATTERN = re.compile(r"(strpos|ifnull|coalesce)\(\s*[`\"]?name[`\"]?\s*,", flags=re.IGNORECASE)
 CAST_VARCHAR_PATTERN = re.compile(r"([`\"]?tab[\w`\" -]+\.[`\"]?name[`\"]?)(?!\w)", flags=re.IGNORECASE)
 ORDER_BY_PATTERN = re.compile(r"\ order\ by\ |\ asc|\ ASC|\ desc|\ DESC", flags=re.IGNORECASE)
+TOP_LEVEL_COMMA_PATTERN = re.compile(r",(?![^()]*\))")
 SUB_QUERY_PATTERN = re.compile("^.*[,();@].*", flags=re.DOTALL)
 IS_QUERY_PATTERN = re.compile(r"^(select|delete|update|drop|create)\s")
 IS_QUERY_PREDICATE_PATTERN = re.compile(r"\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )")
@@ -583,6 +589,7 @@ from {tables}
 				fields.append(f"`{field}`")
 
 		args.fields = ", ".join(fields)
+		self.quote_order_by_and_group_by()
 
 		self.set_order_by(args)
 
@@ -1491,6 +1498,27 @@ from {tables}
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""
+
+	def quote_order_by_and_group_by(self):
+		"""Backticks bare column names so a field named after a SQL keyword stays an identifier."""
+		for attr in ("order_by", "group_by"):
+			clause = getattr(self, attr)
+			if not clause or not isinstance(clause, str) or clause == DefaultOrderBy:
+				continue
+
+			terms = []
+			# split on commas outside parentheses so function arguments stay together
+			for term in TOP_LEVEL_COMMA_PATTERN.split(clause):
+				term = term.strip()
+				column = ORDER_GROUP_BY_DIRECTION_PATTERN.sub("", term)
+
+				# same rule as fields: quoted names and expressions are left as is
+				if column.isidentifier():
+					terms.append(f"`{column}`{term[len(column) :]}")
+				else:
+					terms.append(term)
+
+			setattr(self, attr, ", ".join(terms))
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":

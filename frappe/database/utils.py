@@ -19,6 +19,7 @@ QueryValues = tuple | list | dict | None
 EmptyQueryValues = object()
 FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
 DefaultOrderBy = "KEEP_DEFAULT_ORDERING"
+ORDER_GROUP_BY_DIRECTION_PATTERN = re.compile(r"\s+(asc|desc)\s*$", flags=re.IGNORECASE)
 NestedSetHierarchy = (
 	"ancestors of",
 	"descendants of",
