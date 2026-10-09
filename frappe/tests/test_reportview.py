@@ -94,7 +94,7 @@ class TestReportview(IntegrationTestCase):
 			{"MIN": "`tabToDo`.`idx`", "as": "_aggregate_column_1"},
 			"max(`tabToDo`.`idx`) as _aggregate_column_2",
 		]
-		data = [("Open", 10, 3, 10), ("Closed", 20, 1, 20)]
+		data = [("Open", 10, 3, 10), ("Closed", 20, 1, 20), ("Cancelled", None, None, None)]
 
 		totals = append_totals_row(data, fields)[-1]
 

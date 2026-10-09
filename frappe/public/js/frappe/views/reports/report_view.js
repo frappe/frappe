@@ -1598,7 +1598,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			// the total of group minimums / maximums is their minimum / maximum, not their sum
 			const aggregate_function = this.group_by_control.get_aggregate_function(col.id);
 			if (["min", "max"].includes(aggregate_function) && totals !== undefined) {
-				row_totals[col.id] = Math[aggregate_function](...data.map((d) => flt(d[col.id])));
+				// groups without values (e.g. no child rows) have a null minimum / maximum
+				const values = data.map((d) => d[col.id]).filter((value) => value != null);
+				row_totals[col.id] = values.length
+					? Math[aggregate_function](...values.map(flt))
+					: undefined;
 			}
 		});
 
