@@ -9,15 +9,69 @@ import frappe
 from frappe.utils import get_request_session
 
 
+<<<<<<< HEAD
 def make_request(method, url, auth=None, headers=None, data=None, json=None, params=None):
+=======
+class OAuth2DynamicClientMetadata(BaseModel):
+	"""
+	OAuth 2.0 Dynamic Client Registration Metadata.
+
+	As defined in RFC7591 - OAuth 2.0 Dynamic Client Registration Protocol
+	https://datatracker.ietf.org/doc/html/rfc7591#section-2
+	"""
+
+	#  Used to identify the client to the authorization server
+	redirect_uris: list[HttpUrl]
+	token_endpoint_auth_method: str | None = "client_secret_basic"
+	grant_types: list[str] | None = ["authorization_code"]
+	response_types: list[str] | None = ["code"]
+
+	#  Client identifiers shown to user
+	client_name: str
+	scope: str | None = None
+	client_uri: HttpUrl | None = None
+	logo_uri: HttpUrl | None = None
+
+	#  Client contact and other information for the client
+	contacts: list[str] | None = None
+	tos_uri: HttpUrl | None = None
+	policy_uri: HttpUrl | None = None
+	software_id: str | None = None
+	software_version: str | None = None
+
+	#  JSON Web Key Set (JWKS) not used here
+	jwks_uri: HttpUrl | None = None
+	jwks: dict | None = None
+
+
+def make_request(
+	method: str,
+	url: str,
+	auth=None,
+	headers=None,
+	data=None,
+	json=None,
+	params=None,
+	*,
+	session=None,
+	timeout=None,
+):
+>>>>>>> d90ba13 (fix: add ip revalidation on every hop)
 	auth = auth or ""
 	data = data or {}
 	headers = headers or {}
 
 	try:
-		s = get_request_session()
+		s = session or get_request_session()
 		response = frappe.flags.integration_request = s.request(
-			method, url, data=data, auth=auth, headers=headers, json=json, params=params
+			method,
+			url,
+			data=data,
+			auth=auth,
+			headers=headers,
+			json=json,
+			params=params,
+			timeout=timeout,
 		)
 		response.raise_for_status()
 
