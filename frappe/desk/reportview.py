@@ -601,7 +601,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
 
 	if add_totals_row:
-		ret = append_totals_row(ret)
+		ret = append_totals_row(ret, db_query.fields)
 
 	fields_info = get_field_info(db_query.fields, doctype, form_params.get("group_by"))
 
@@ -677,17 +677,29 @@ def _reorder_by_visible_names(ret, fields, doctype, visible_names):
 	return [ret_by_name[n] for n in visible_names if n in ret_by_name]
 
 
-def append_totals_row(data):
+def append_totals_row(data, fields=None):
 	if not data:
 		return data
 	data = list(data)
 	totals = []
 	totals.extend([""] * len(data[0]))
+	# the total of group minimums / maximums is their minimum / maximum, not their sum
+	functions = (
+		[
+			parse_aggregate_field(field)[0] if isinstance(field, dict) or "(" in field else None
+			for field in fields
+		]
+		if fields
+		else [None] * len(totals)
+	)
 
 	for row in data:
 		for i in range(len(row)):
 			if isinstance(row[i], float | int):
-				totals[i] = (totals[i] or 0) + row[i]
+				if totals[i] == "" or functions[i] not in ("MIN", "MAX"):
+					totals[i] = (totals[i] or 0) + row[i]
+				else:
+					totals[i] = (min if functions[i] == "MIN" else max)(totals[i], row[i])
 
 	if not isinstance(totals[0], int | float):
 		totals[0] = "Total"

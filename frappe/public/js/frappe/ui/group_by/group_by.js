@@ -458,6 +458,12 @@ frappe.ui.GroupBy = class {
 		});
 	}
 
+	get_aggregate_function(fieldname) {
+		if (!/^_aggregate_column(_[0-9]+)?$/.test(fieldname)) return;
+		const idx = fieldname === "_aggregate_column" ? 0 : cint(fieldname.split("_").pop());
+		return this.applied_aggregates[idx]?.aggregate_function;
+	}
+
 	get_group_by_docfield(fieldname) {
 		// called from build_column
 		const idx = fieldname === "_aggregate_column" ? 0 : cint(fieldname.split("_").pop());

@@ -327,12 +327,13 @@ class Report(Document):
 		result = []
 		order_by, group_by, aggregate_fields = self.get_standard_report_order_by(params)
 
+		fields = [
+			aggregate_fields.get(fieldname) or Report._format([doctype, fieldname])
+			for fieldname, doctype in columns
+		]
 		_result = frappe.get_list(
 			self.ref_doctype,
-			fields=[
-				aggregate_fields.get(fieldname) or Report._format([doctype, fieldname])
-				for fieldname, doctype in columns
-			],
+			fields=fields,
 			filters=self.get_standard_report_filters(params, filters),
 			order_by=order_by,
 			group_by=group_by,
@@ -346,7 +347,7 @@ class Report(Document):
 		result = result + [list(d) for d in _result]
 
 		if params.get("add_totals_row"):
-			result = append_totals_row(result)
+			result = append_totals_row(result, fields)
 
 		return columns, result
 

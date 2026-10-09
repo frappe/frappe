@@ -7,6 +7,7 @@ import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import (
 	_reorder_by_visible_names,
+	append_totals_row,
 	export_query,
 	extract_fieldnames,
 	get,
@@ -85,6 +86,19 @@ class TestReportview(IntegrationTestCase):
 		export_query()
 		self.assertTrue(frappe.response["filename"].endswith(".csv"))
 		self.assertEqual(frappe.response["type"], "binary")
+
+	def test_append_totals_row_uses_min_and_max_for_min_and_max_aggregates(self):
+		fields = [
+			"`tabToDo`.`status`",
+			{"SUM": "`tabToDo`.`idx`", "as": "_aggregate_column"},
+			{"MIN": "`tabToDo`.`idx`", "as": "_aggregate_column_1"},
+			"max(`tabToDo`.`idx`) as _aggregate_column_2",
+		]
+		data = [("Open", 10, 3, 10), ("Closed", 20, 1, 20)]
+
+		totals = append_totals_row(data, fields)[-1]
+
+		self.assertEqual(totals, ["Total", 30, 1, 20])
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
