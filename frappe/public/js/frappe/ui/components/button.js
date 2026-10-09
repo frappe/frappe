@@ -1,4 +1,4 @@
-import { validated, safe_attrs } from "./utils.js";
+import { validated, safe_attrs, safe_href } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -13,6 +13,7 @@ frappe.provide("frappe.ui");
  * @property {string} [icon_left] Same as `icon`.
  * @property {string} [icon_right] Lucide icon name, shown after the label.
  * @property {string} [title] Native browser tooltip; doubles as aria-label on icon-only buttons. Prefer `tooltip`.
+ * @property {string} [href] Render as a link (`<a>`) with this href instead of a `<button>` — middle-click / ctrl-click open a tab. Code-running schemes are refused.
  * @property {string|Object} [tooltip] Espresso tooltip text (or full TooltipOpts) shown on hover/focus (element form only, like onclick). Doubles as aria-label on icon-only buttons.
  * @property {boolean} [disabled]
  * @property {boolean} [loading] Shows spinner, blocks clicks, sets aria-busy.
@@ -51,7 +52,9 @@ function button_html(opts = {}) {
 	const icon_left_name = opts.icon_left || opts.icon;
 	const icon_only = Boolean((icon_left_name || opts.icon_right) && !opts.label);
 
-	const attrs = [`type="${escape(opts.type || "button")}"`];
+	const href = safe_href(opts.href, "button");
+	// a link keeps the button's look but none of a button's attributes
+	const attrs = href ? [`href="${escape(href)}"`] : [`type="${escape(opts.type || "button")}"`];
 	// omit attributes that equal the CSS defaults (subtle / sm / gray)
 	if (variant && variant !== "subtle") attrs.push(`data-variant="${variant}"`);
 	if (size && size !== "sm") attrs.push(`data-size="${size}"`);
@@ -82,7 +85,8 @@ function button_html(opts = {}) {
 
 	// no whitespace around the content: legacy callers read labels back with
 	// $(btn).text(), which includes every text node inside the button
-	return `<button class="${classes}" ${attrs.join(" ")}>${content_html(opts)}</button>`;
+	const tag = href ? "a" : "button";
+	return `<${tag} class="${classes}" ${attrs.join(" ")}>${content_html(opts)}</${tag}>`;
 }
 
 // The button's children: spinner + loading label + icons + label. Shared by

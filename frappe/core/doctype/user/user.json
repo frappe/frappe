@@ -986,6 +986,7 @@
  "route": "user",
  "row_format": "Dynamic",
  "search_fields": "full_name",
+ "show_image_in_link": 1,
  "show_name_in_global_search": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

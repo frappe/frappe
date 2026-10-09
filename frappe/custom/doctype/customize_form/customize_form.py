@@ -763,6 +763,8 @@ doctype_properties = {
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",
+	"link_display_mode": "Select",
+	"show_image_in_link": "Check",
 	"grid_page_length": "Int",
 	"rows_threshold_for_grid_search": "Int",
 }

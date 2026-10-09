@@ -1,57 +1,79 @@
-// <select> widget with all fields of a doctype as options
+// Searchable field picker for filters: a combobox over the doctype's own and
+// standard fields, with each child table's fields in a group of their own.
 frappe.ui.FieldSelect = class FieldSelect {
-	// opts parent, doctype, filter_fields, with_blank, select
+	// opts parent, doctype, parent_doctype, filter_fields, with_blank, select, placeholder
 	constructor(opts) {
-		var me = this;
 		$.extend(this, opts);
 		this.fields_by_name = {};
 		this.options = [];
-		this.$input = $('<input class="form-control">')
-			.appendTo(this.parent)
-			.on("click", function () {
-				$(this).select();
-			});
-		this.input_class && this.$input.addClass(this.input_class);
-		this.select_input = this.$input.get(0);
-		this.awesomplete = new Awesomplete(this.select_input, {
-			tabSelect: true,
-			minChars: 0,
-			maxItems: 99,
-			autoFirst: true,
-			list: me.options,
-			item(item) {
-				return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
-					.data("item.autocomplete", item)
-					.get(0);
-			},
-		});
-		this.$input.on("awesomplete-select", function (e) {
-			var o = e.originalEvent;
-			var value = o.text.value;
-			var item = me.awesomplete.get_item(value);
-			me.selected_doctype = item.doctype;
-			me.selected_fieldname = item.fieldname;
-			if (me.select) me.select(item.doctype, item.fieldname);
-		});
-		this.$input.on("awesomplete-selectcomplete", function (e) {
-			var o = e.originalEvent;
-			var value = o.text.value;
-			var item = me.awesomplete.get_item(value);
-			me.$input.val(item.label);
-		});
 
 		if (this.filter_fields) {
-			for (var i in this.filter_fields) this.add_field_option(this.filter_fields[i]);
+			for (const df of this.filter_fields) this.add_field_option(df);
 		} else {
 			this.build_options();
 		}
-		this.set_value(this.doctype, "name");
+
+		this.combobox = new frappe.ui.Combobox({
+			placeholder: this.placeholder || __("Select field"),
+			search_placeholder: __("Search fields..."),
+			clear_button: false,
+			hide_search: this.options.length <= 8,
+			// narrowed here, by label and fieldname: every value starts with the
+			// doctype, so the doctype's own name would match all of them
+			options: (query) => this.get_combobox_options(query),
+			on_change: (value) => this.on_pick(value),
+		});
+		// the trigger keeps the old `$input` name: callers focus it
+		this.$input = this.combobox.$trigger.appendTo(this.parent);
+		this.input_class && this.$input.addClass(this.input_class);
 	}
+
+	on_pick(value) {
+		const item = this.options.find((o) => o.value === value);
+		if (!item) return;
+		this.selected_doctype = item.doctype;
+		this.selected_fieldname = item.fieldname;
+		// outside its group a child table's field needs its table: "Cost Center (Items)"
+		if (item.group) this.combobox.set_value(item.value, { label: this.get_label(item) });
+		this.select && this.select(item.doctype, item.fieldname);
+	}
+
+	get_label(item) {
+		return item.group ? `${item.label} (${item.group})` : item.label;
+	}
+
+	selected_label() {
+		const item = this.options.find(
+			(o) => o.doctype === this.selected_doctype && o.fieldname === this.selected_fieldname
+		);
+		return item ? this.get_label(item) : "";
+	}
+
+	// loose rows first (the doctype's own fields), then one group per child table
+	get_combobox_options(query = "") {
+		const q = query.trim().toLowerCase();
+		// a table's name finds its fields too
+		const shown = this.options.filter(
+			(o) =>
+				!q || `${o.label} ${o.fieldname || ""} ${o.group || ""}`.toLowerCase().includes(q)
+		);
+		const main = shown.filter((o) => !o.group);
+		const groups = [...new Set(shown.filter((o) => o.group).map((o) => o.group))];
+		return [
+			...main,
+			...groups.map((group) => ({
+				group,
+				options: shown.filter((o) => o.group === group),
+			})),
+		];
+	}
+
 	get_value() {
 		return this.selected_doctype
 			? this.selected_doctype + "." + this.selected_fieldname
 			: null;
 	}
+
 	val(value) {
 		if (value === undefined) {
 			return this.get_value();
@@ -59,43 +81,50 @@ frappe.ui.FieldSelect = class FieldSelect {
 			this.set_value(value);
 		}
 	}
+
 	clear() {
 		this.selected_doctype = null;
 		this.selected_fieldname = null;
-		this.$input.val("");
+		this.combobox.set_value(null);
 	}
+
 	set_value(doctype, fieldname) {
-		var me = this;
 		this.clear();
 		if (!doctype) return;
 
 		// old style
 		if (doctype.indexOf(".") !== -1) {
-			var parts = doctype.split(".");
+			const parts = doctype.split(".");
 			doctype = parts[0];
 			fieldname = parts[1];
 		}
 
-		$.each(this.options, function (i, v) {
-			if (v.doctype === doctype && v.fieldname === fieldname) {
-				me.selected_doctype = doctype;
-				me.selected_fieldname = fieldname;
-				me.$input.val(v.label);
-				return false;
-			}
-		});
+		const item = this.options.find((o) => o.doctype === doctype && o.fieldname === fieldname);
+		if (!item) return;
+		this.selected_doctype = doctype;
+		this.selected_fieldname = fieldname;
+		this.combobox.set_value(item.value, { label: this.get_label(item) });
 	}
+
+	focus() {
+		this.combobox.focus();
+	}
+
+	open() {
+		this.combobox.open({ motion: "instant" });
+	}
+
 	build_options() {
-		var me = this;
+		const me = this;
 		me.table_fields = [];
-		var std_filters = $.map(frappe.model.std_fields, function (d) {
-			var opts = { parent: me.doctype };
+		let std_filters = $.map(frappe.model.std_fields, function (d) {
+			const opts = { parent: me.doctype };
 			if (d.fieldname == "name") opts.options = me.doctype;
 			return $.extend(copy_dict(d), opts);
 		});
 
 		// add parenttype column
-		var doctype_obj = frappe.get_meta(me.doctype);
+		const doctype_obj = frappe.get_meta(me.doctype);
 		if (doctype_obj && cint(doctype_obj.istable)) {
 			std_filters = std_filters.concat([
 				{
@@ -115,14 +144,17 @@ frappe.ui.FieldSelect = class FieldSelect {
 			});
 		}
 
-		// main table
-		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
-		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function (i, df) {
+		// main table, ID first
+		const main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
+		const sorted = frappe.utils.sort(main_table_fields, "label", "string");
+		const id_index = sorted.findIndex((df) => df.fieldname == "name");
+		if (id_index > 0) sorted.unshift(...sorted.splice(id_index, 1));
+		$.each(sorted, function (i, df) {
 			if (df.is_virtual) {
 				return;
 			}
 
-			let doctype =
+			const doctype =
 				frappe.get_meta(me.doctype).istable && me.parent_doctype
 					? me.parent_doctype
 					: me.doctype;
@@ -144,7 +176,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 				}
 
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function (i, df) {
-					let doctype =
+					const doctype =
 						frappe.get_meta(me.doctype).istable && me.parent_doctype
 							? me.parent_doctype
 							: me.doctype;
@@ -158,7 +190,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 	}
 
 	add_field_option(df, table_df) {
-		let me = this;
+		const me = this;
 
 		if (df.fieldname == "docstatus" && !frappe.model.is_submittable(me.doctype)) return;
 
@@ -169,13 +201,18 @@ frappe.ui.FieldSelect = class FieldSelect {
 
 		let label = null;
 		let table = null;
+		let group = null;
 
 		if (me.doctype && df.parent == me.doctype) {
 			label = __(df.label, null, df.parent);
 			table = me.doctype;
+		} else if (table_df) {
+			// a child table's field: grouped under the table's label
+			label = __(df.label, null, df.parent);
+			table = df.parent;
+			group = table_df.label ? __(table_df.label) : __(df.parent);
 		} else {
-			const suffix = table_df && table_df.label ? __(table_df.label) : __(df.parent);
-			label = __(df.label, null, df.parent) + " (" + suffix + ")";
+			label = __(df.label, null, df.parent) + " (" + __(df.parent) + ")";
 			table = df.parent;
 		}
 
@@ -188,6 +225,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 				value: table + "." + df.fieldname,
 				fieldname: df.fieldname,
 				doctype: df.parent,
+				group: group,
 			});
 			if (!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
 			me.fields_by_name[df.parent][df.fieldname] = df;

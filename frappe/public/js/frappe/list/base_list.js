@@ -668,10 +668,12 @@ class FilterArea {
 		this.$filter_list_wrapper = this.list_view.$filter_section;
 		this.trigger_refresh = true;
 
-		this.debounced_refresh_list_view = frappe.utils.debounce(
-			this.refresh_list_view.bind(this),
-			300
-		);
+		const refresh = frappe.utils.debounce(this.refresh_list_view.bind(this), 300);
+		this.debounced_refresh_list_view = () => {
+			// a box filled now goes after the filters added before it, refreshed or not
+			this.filter_list?.order_filters(this.get_standard_filters());
+			refresh();
+		};
 		this.setup();
 		if (!this.list_view.hide_page_form) this.setup_mobile_toolbar();
 	}
@@ -727,7 +729,8 @@ class FilterArea {
 		let filters = this.filter_list.get_filters();
 		let standard_filters = this.get_standard_filters();
 
-		return filters.concat(standard_filters).uniqBy(JSON.stringify);
+		const all = filters.concat(standard_filters).uniqBy(JSON.stringify);
+		return this.filter_list.order_filters(all, true);
 	}
 
 	set(filters) {
@@ -749,6 +752,8 @@ class FilterArea {
 		}
 
 		filters = filters.filter((f) => !this.exists(f));
+		// saved filters come in the order they were added
+		this.filter_list.order_filters(filters);
 
 		// standard filters = filters visible on list view
 		// non-standard filters = filters set by filter button
@@ -767,6 +772,8 @@ class FilterArea {
 	}
 
 	refresh_list_view() {
+		// the filter button counts the toolbar boxes too
+		this.filter_list.update_filter_button();
 		if (this.trigger_refresh) {
 			this.list_view.start = 0;
 			this.list_view.refresh();
@@ -793,6 +800,10 @@ class FilterArea {
 		return exists;
 	}
 
+	get_standard_field(fieldname) {
+		return this.list_view.page.fields_dict[fieldname];
+	}
+
 	set_standard_filter(filters) {
 		if (filters.length === 0) {
 			return {
@@ -809,18 +820,7 @@ class FilterArea {
 			out.non_standard_filters = out.non_standard_filters || [];
 
 			// set in list view area if filters are present
-			// don't set like filter on link fields (gets reset)
-			// a Check standard filter is a checkbox that can't hold "= 0", so keep it as a regular filter
-			const is_unchecked_check =
-				fields_dict[fieldname]?.df?.fieldtype === "Check" && !cint(value);
-			if (
-				fields_dict[fieldname] &&
-				!is_unchecked_check &&
-				(condition === "=" ||
-					(condition === "like" && fields_dict[fieldname]?.df?.fieldtype != "Link") ||
-					(condition === "descendants of (inclusive)" &&
-						fields_dict[fieldname]?.df?.fieldtype == "Link"))
-			) {
+			if (frappe.ui.FilterGroup.fits_box(fields_dict[fieldname], condition, value)) {
 				// standard filter
 				out.promise = out.promise.then(() => {
 					// Set match type for fields that support it
@@ -1138,8 +1138,6 @@ class FilterArea {
 			this.trigger_refresh = false;
 		}
 
-		this.filter_list.clear_filters();
-
 		const promises = [];
 		const fields_dict = this.list_view.page.fields_dict;
 		for (let key in fields_dict) {
@@ -1147,6 +1145,9 @@ class FilterArea {
 			promises.push(() => field.set_value(""));
 		}
 		return frappe.run_serially(promises).then(() => {
+			// last, so the filter count drops once, after the toolbar boxes are empty
+			this.filter_list.clear_filters();
+			this.filter_list.filter_order = [];
 			this.trigger_refresh = true;
 			if (promises.length === 0) {
 				// refresh if there are no standard fields
@@ -1404,28 +1405,13 @@ class FilterArea {
 	}
 
 	make_filter_list() {
-		$(`<div class="filter-selector">
-			<div class="btn-group">
-				<button class="btn btn-default btn-sm filter-button">
-					<span class="filter-icon button-icon">
-						${frappe.utils.icon("funnel")}
-					</span>
-					<span class="button-label hidden-xs">
-					${__("Filter")}
-					<span>
-				</button>
-				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
-					<span class="filter-icon button-icon">
-						${frappe.utils.icon("x")}
-					</span>
-				</button>
-			</div>
-		</div>`).appendTo(this.$filter_list_wrapper);
-
-		this.filter_button = this.$filter_list_wrapper.find(".filter-button");
-		this.filter_x_button = this.$filter_list_wrapper.find(".filter-x-button");
+		const { $selector, filter_button, filter_x_button } = frappe.ui.FilterGroup.make_buttons();
+		$selector.appendTo(this.$filter_list_wrapper);
+		this.filter_button = filter_button;
+		this.filter_x_button = filter_x_button;
 		this.filter_list = new frappe.ui.FilterGroup({
 			base_list: this.list_view,
+			toolbar: this,
 			parent: this.$filter_list_wrapper,
 			doctype: this.list_view.doctype,
 			filter_button: this.filter_button,

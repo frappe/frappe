@@ -28,8 +28,8 @@ test.describe("List View", () => {
 			frappe.route_options = { published: ["=", 0] };
 			frappe.set_route("List", "Web Page");
 		});
-		await expect(page.locator(".filter-selector .filter-button .button-label")).toContainText(
-			"Filters"
+		await expect(page.locator(".filter-selector .filter-button .filter-label")).toHaveText(
+			"1"
 		);
 		await expect
 			.poll(() =>
