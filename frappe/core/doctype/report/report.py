@@ -9,7 +9,13 @@ from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
 from frappe.desk.query_report import _run
-from frappe.desk.reportview import DEFAULT_AGGREGATE_FIELDNAME, append_totals_row, get_aggregate_field_info
+from frappe.desk.reportview import (
+	DEFAULT_AGGREGATE_FIELDNAME,
+	append_totals_row,
+	get_aggregate_field_info,
+	get_aggregate_fieldname,
+	normalize_group_by_settings,
+)
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
@@ -319,16 +325,15 @@ class Report(Document):
 		params = json.loads(self.json)
 		columns = self.get_standard_report_columns(params)
 		result = []
-		order_by, group_by, group_by_args = self.get_standard_report_order_by(params)
+		order_by, group_by, aggregate_fields = self.get_standard_report_order_by(params)
 
+		fields = [
+			aggregate_fields.get(fieldname) or Report._format([doctype, fieldname])
+			for fieldname, doctype in columns
+		]
 		_result = frappe.get_list(
 			self.ref_doctype,
-			fields=[
-				get_group_by_field(group_by_args)
-				if fieldname == DEFAULT_AGGREGATE_FIELDNAME and group_by_args
-				else Report._format([doctype, fieldname])
-				for fieldname, doctype in columns
-			],
+			fields=fields,
 			filters=self.get_standard_report_filters(params, filters),
 			order_by=order_by,
 			group_by=group_by,
@@ -337,12 +342,12 @@ class Report(Document):
 			user=user,
 		)
 
-		columns = self.build_standard_report_columns(columns, group_by_args)
+		columns = self.build_standard_report_columns(columns, aggregate_fields, group_by)
 
 		result = result + [list(d) for d in _result]
 
 		if params.get("add_totals_row"):
-			result = append_totals_row(result)
+			result = append_totals_row(result, fields)
 
 		return columns, result
 
@@ -381,7 +386,7 @@ class Report(Document):
 		return _filters
 
 	def get_standard_report_order_by(self, params):
-		group_by_args = None
+		aggregate_fields = {}
 		if params.get("sort_by"):
 			order_by = Report._format(params.get("sort_by").split(".")) + " " + params.get("sort_order")
 
@@ -400,13 +405,17 @@ class Report(Document):
 
 		group_by = None
 		if params.get("group_by"):
-			group_by_args = frappe._dict(params["group_by"])
-			group_by = group_by_args["group_by"]
+			group_by_settings = normalize_group_by_settings(params["group_by"])
+			group_by = ", ".join(group_by_settings["group_by"])
+			aggregate_fields = {
+				get_aggregate_fieldname(i): get_group_by_field(aggregate, get_aggregate_fieldname(i))
+				for i, aggregate in enumerate(group_by_settings["aggregates"])
+			}
 			order_by = f"{DEFAULT_AGGREGATE_FIELDNAME} desc"
 
-		return order_by, group_by, group_by_args
+		return order_by, group_by, aggregate_fields
 
-	def build_standard_report_columns(self, columns, group_by_args):
+	def build_standard_report_columns(self, columns, aggregate_fields, group_by):
 		from frappe.model.meta import get_default_df
 
 		report_columns = []
@@ -427,8 +436,8 @@ class Report(Document):
 					column.fieldtype = "Link"
 					column.options = doctype
 			else:
-				if fieldname == DEFAULT_AGGREGATE_FIELDNAME:
-					column = get_group_by_column_field(group_by_args, doctype)
+				if fieldname in aggregate_fields:
+					column = get_aggregate_field_info(aggregate_fields[fieldname], doctype, group_by)
 				else:
 					column = frappe._dict(
 						fieldname=fieldname,
@@ -531,23 +540,14 @@ def get_report_module_dotted_path(module, report_name):
 	)
 
 
-def get_group_by_field(group_by_args: dict) -> dict:
+def get_group_by_field(group_by_args: dict, fieldname: str = DEFAULT_AGGREGATE_FIELDNAME) -> dict:
 	"""
 	Build the group by field based on the aggregate function and aggregate on field.
 	"""
 	func_name = group_by_args["aggregate_function"].upper()
 	aggregate_on = "*" if func_name == "COUNT" else group_by_args["aggregate_on"]
 
-	return {func_name: aggregate_on, "as": DEFAULT_AGGREGATE_FIELDNAME}
-
-
-def get_group_by_column_field(group_by_args: dict, parent_doctype: str) -> dict:
-	"""
-	Build full field info (fieldname, label, fieldtype, options) for the aggregate column.
-	"""
-	field = get_group_by_field(group_by_args)
-
-	return get_aggregate_field_info(field, parent_doctype, group_by_args.get("group_by"))
+	return {func_name: aggregate_on, "as": fieldname}
 
 
 def enable_prepared_report(report: str, site: str):
