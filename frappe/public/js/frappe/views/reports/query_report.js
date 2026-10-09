@@ -1,6 +1,7 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from "frappe-datatable";
+import DataManager from "frappe-datatable/src/datamanager";
 
 // Expose DataTable globally to allow customizations.
 window.DataTable = DataTable;
@@ -1225,19 +1226,31 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
-			const on_sort_column = datatable_options.events?.onSortColumn;
-			datatable_options.events = {
-				...datatable_options.events,
-				onSortColumn(column) {
+			const base_data_manager =
+				datatable_options.overrideComponents?.DataManager || DataManager;
+			class TreeSortDataManager extends base_data_manager {
+				_sortRows(col_index, sort_order) {
+					super._sortRows(col_index, sort_order);
 					if (this.options.treeView) {
-						this.datamanager.rowViewOrder = get_sorted_tree_row_indices(
-							this.datamanager.rows,
-							this.datamanager.rowViewOrder
+						this.rowViewOrder = get_sorted_tree_row_indices(
+							this.rows,
+							this.rowViewOrder
 						);
-						this.rowmanager.refreshRows();
+						if (this.hasColumnById("_rowIndex")) {
+							const serial_number_column_index =
+								this.getColumnIndexById("_rowIndex");
+							this.rowViewOrder.forEach((row_index, view_index) => {
+								const cell = this.rows[row_index][serial_number_column_index];
+								cell.content = String(view_index + 1);
+								cell.html = null;
+							});
+						}
 					}
-					on_sort_column?.call(this, column);
-				},
+				}
+			}
+			datatable_options.overrideComponents = {
+				...datatable_options.overrideComponents,
+				DataManager: TreeSortDataManager,
 			};
 			this.datatable = new window.DataTable(this.$report[0], datatable_options);
 		}

@@ -79,6 +79,15 @@ async function expect_row_order(page, expected) {
 	).toHaveText(expected.map(String));
 }
 
+async function expect_serial_numbers(page, count) {
+	const serial_numbers = await page
+		.locator(".dt-scrollable .dt-row .dt-cell:first-child .dt-cell__content")
+		.allTextContents();
+	expect(serial_numbers.map((number) => number.trim())).toEqual(
+		Array.from({ length: count }, (_, index) => String(index + 1))
+	);
+}
+
 test.describe("Query Report", () => {
 	test.beforeAll(async ({ admin }) => {
 		await admin.insert_doc(
@@ -154,15 +163,29 @@ test.describe("Query Report", () => {
 		]);
 		await expect_row_order(page, [7, 1, 8, 3, 4, 5, 6, 2]);
 
+		await page.evaluate(() => {
+			const row_manager = frappe.query_report.datatable.rowmanager;
+			const refresh_rows = row_manager.refreshRows;
+			window.tree_sort_draws = 0;
+			row_manager.refreshRows = (...args) => {
+				window.tree_sort_draws += 1;
+				return refresh_rows(...args);
+			};
+		});
 		await sort_report(page, "Sort Ascending");
 		await expect_row_order(page, [3, 2, 4, 5, 6, 7, 1, 8]);
+		await expect_serial_numbers(page, 8);
+		expect(await page.evaluate(() => window.tree_sort_draws)).toBe(1);
 		await toggle_tree_row(page, 7);
 		await expect_row_order(page, [3, 2, 4, 5, 6, 7]);
 		await toggle_tree_row(page, 7);
 		await expect_row_order(page, [3, 2, 4, 5, 6, 7, 1, 8]);
 
+		await page.evaluate(() => (window.tree_sort_draws = 0));
 		await sort_report(page, "Sort Descending");
 		await expect_row_order(page, [7, 8, 1, 3, 4, 6, 5, 2]);
+		await expect_serial_numbers(page, 8);
+		expect(await page.evaluate(() => window.tree_sort_draws)).toBe(1);
 		await toggle_tree_row(page, 3);
 		await expect_row_order(page, [7, 8, 1, 3]);
 		await toggle_tree_row(page, 3);
@@ -170,8 +193,11 @@ test.describe("Query Report", () => {
 		await toggle_tree_row(page, 4);
 		await expect_row_order(page, [7, 8, 1, 3, 4, 6, 5, 2]);
 
+		await page.evaluate(() => (window.tree_sort_draws = 0));
 		await sort_report(page, "Reset sorting");
 		await expect_row_order(page, [7, 1, 8, 3, 4, 5, 6, 2]);
+		await expect_serial_numbers(page, 8);
+		expect(await page.evaluate(() => window.tree_sort_draws)).toBe(1);
 	});
 
 	test("sorts flat report rows without tree grouping", async ({ page }) => {
