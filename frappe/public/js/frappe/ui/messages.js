@@ -192,12 +192,7 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 	}
 
 	if (frappe.msg_dialog && data.re_route) {
-		frappe.msg_dialog.custom_onhide = function () {
-			frappe.route_flags.replace_route = true;
-			let prev_route = frappe.get_prev_route();
-			if (prev_route.length == 0) frappe.set_route("");
-			frappe.set_route(prev_route);
-		};
+		frappe.re_route_on_msgprint_hide();
 	}
 	if (!frappe.msg_dialog) {
 		frappe.msg_dialog = new frappe.ui.Dialog({
@@ -331,6 +326,15 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 };
 
 window.msgprint = frappe.msgprint;
+
+frappe.re_route_on_msgprint_hide = function () {
+	frappe.msg_dialog.custom_onhide = function () {
+		frappe.route_flags.replace_route = true;
+		let prev_route = frappe.get_prev_route();
+		if (prev_route.length == 0) frappe.set_route("");
+		frappe.set_route(prev_route);
+	};
+};
 
 frappe.hide_msgprint = function (instant) {
 	// clear msgprint

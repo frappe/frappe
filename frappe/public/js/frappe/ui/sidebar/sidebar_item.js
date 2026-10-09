@@ -36,6 +36,24 @@ function split_query(path) {
 	return at === -1 ? [path, ""] : [path.slice(0, at), path.slice(at)];
 }
 
+// An item's `filters` as the route options its link carries, or null when it has none.
+function filters_as_options(item) {
+	// get_filter_as_json() returns null for an empty filter array, so an item stored
+	// with `filters` of "[]" lands here with nothing to convert.
+	const filters_as_json = item.filters
+		? frappe.utils.get_filter_as_json(JSON.parse(item.filters))
+		: null;
+	if (!filters_as_json) return null;
+
+	const filters_json = JSON.parse(filters_as_json);
+	for (const [key, value] of Object.entries(filters_json)) {
+		if (Array.isArray(value)) {
+			filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
+		}
+	}
+	return filters_json;
+}
+
 // Resolve a sidebar item (from `bootinfo.module_sidebars`) to a navigable route.
 // Shared by the rendered sidebar links and the header workspace switcher.
 //
@@ -61,6 +79,9 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 				return;
 			}
 		}
+		// a report reads its filters off the query string, so Stock Balance for one warehouse is a
+		// link of its own
+		args.route_options = filters_as_options(item);
 
 		path = frappe.utils.generate_route(args);
 	} else if (item.link_type == "Workspace") {
@@ -90,18 +111,8 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 			name: item.link_to,
 			tab: item.tab,
 		};
-		// get_filter_as_json() returns null for an empty filter array, so an item stored
-		// with `filters` of "[]" lands here with nothing to convert.
-		const filters_as_json = item.filters
-			? frappe.utils.get_filter_as_json(JSON.parse(item.filters))
-			: null;
-		if (filters_as_json) {
-			let filters_json = JSON.parse(filters_as_json);
-			for (const [key, value] of Object.entries(filters_json)) {
-				if (Array.isArray(value)) {
-					filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
-				}
-			}
+		const filters_json = filters_as_options(item);
+		if (filters_json) {
 			if (item.link_type == "DocType") {
 				args.doc_view = "List";
 				args.route_options = filters_json;
@@ -123,6 +134,12 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 				path = `/desk/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
 			}
 		}
+	}
+
+	// A system page opens in no shell, and the router takes one off its URL, so a link that named
+	// one would never match the URL it leads to.
+	if (item.link_type === "Page" && frappe.router.page_info_for([item.link_to])?.system_page) {
+		return path;
 	}
 
 	return in_shell(path, shell);
@@ -242,12 +259,14 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		if (this.collapsed) {
 			this.$drop_icon
 				.attr("data-state", "closed")
+				.attr("aria-expanded", "false")
 				.find("use")
 				.attr("href", "#icon-chevron-right");
 			$(this.$nested_items).addClass("hidden");
 		} else {
 			this.$drop_icon
 				.attr("data-state", "opened")
+				.attr("aria-expanded", "true")
 				.find("use")
 				.attr("href", "#icon-chevron-down");
 			$(this.$nested_items).removeClass("hidden");
@@ -281,6 +300,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		if (item.collapsible) {
 			this.$drop_icon = $(`<button class="btn-reset drop-icon hidden">`)
 				.html(frappe.utils.icon("chevron-down", "sm", "", "", "", "", stroke_color))
+				.attr("aria-label", __("Toggle {0}", [item.label]))
+				.attr("aria-expanded", "true")
 				.appendTo(sidebar_control);
 
 			this.$drop_icon.removeClass("hidden");
@@ -289,6 +310,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			// toggle indicator here instead of selecting the now-absent [item-icon] span.
 			this.$drop_icon = $(`<button class="btn-reset drop-icon">`)
 				.html(frappe.utils.icon("chevron-right", "sm", "", "", "", "", stroke_color))
+				.attr("aria-label", __("Toggle {0}", [item.label]))
 				.prependTo(this.wrapper.find(".item-anchor").first());
 		}
 
@@ -341,6 +363,22 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.section_breaks_state[this.current_module][this.item.label] = this.collapsed;
 
 		localStorage.setItem("section-breaks-state", JSON.stringify(this.section_breaks_state));
+	}
+};
+
+// A spacer has no path, so TypeLink.make would skip it.
+frappe.ui.sidebar_item.TypeSpacer = class SpacerSidebarItem extends (
+	frappe.ui.sidebar_item.TypeLink
+) {
+	make() {
+		this.wrapper = $(
+			frappe.render_template("sidebar_item", {
+				item: this.item,
+				path: null,
+				hide_icon: true,
+			})
+		);
+		$(this.container).append(this.wrapper);
 	}
 };
 

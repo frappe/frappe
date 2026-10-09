@@ -4,7 +4,12 @@ no_cache = 1
 def get_context(context):
 	import frappe
 	from frappe.utils.jinja_globals import is_rtl
-	from frappe.www.printview import get_print_style, get_rendered_template, resolve_print_format
+	from frappe.www.printview import (
+		get_print_filename,
+		get_print_style,
+		get_rendered_template,
+		resolve_print_format,
+	)
 
 	doctype = frappe.form_dict.doctype
 	docname = frappe.form_dict.name
@@ -35,6 +40,7 @@ def get_context(context):
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
 				"title": doc.get_title() or doc.name,
+				"print_filename": get_print_filename(doc),
 				"comment": None,
 			},
 		)

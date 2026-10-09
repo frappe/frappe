@@ -47,8 +47,9 @@ async def ping(socket: Socket) -> None:
 
 @realtime.on("doctype_subscribe", allow_guest=True)
 async def doctype_subscribe(socket: Socket, doctype: str) -> None:
-	if await socket.has_permission(doctype):
-		await socket.join(doctype_room(doctype))
+	room = doctype_room(doctype)
+	if socket.sid not in socket.participants(room) and await socket.has_permission(doctype):
+		await socket.join(room)
 
 
 @realtime.on("doctype_unsubscribe", allow_guest=True)
@@ -73,8 +74,9 @@ async def progress_subscribe(socket: Socket, task_id: str) -> None:
 
 @realtime.on("doc_subscribe", allow_guest=True)
 async def doc_subscribe(socket: Socket, doctype: str, docname: str) -> None:
-	if await socket.has_permission(doctype, docname):
-		await socket.join(doc_room(doctype, docname))
+	room = doc_room(doctype, docname)
+	if socket.sid not in socket.participants(room) and await socket.has_permission(doctype, docname):
+		await socket.join(room)
 
 
 @realtime.on("doc_unsubscribe", allow_guest=True)
@@ -84,9 +86,11 @@ async def doc_unsubscribe(socket: Socket, doctype: str, docname: str) -> None:
 
 @realtime.on("doc_open", allow_guest=True)
 async def doc_open(socket: Socket, doctype: str, docname: str) -> None:
-	if not await socket.has_permission(doctype, docname):
-		return
-	await socket.join(open_doc_room(doctype, docname))
+	room = open_doc_room(doctype, docname)
+	if socket.sid not in socket.participants(room):
+		if not await socket.has_permission(doctype, docname):
+			return
+		await socket.join(room)
 
 	tracked = socket.get("subscribed_documents", [])
 	pair = [doctype, docname]
@@ -99,8 +103,6 @@ async def doc_open(socket: Socket, doctype: str, docname: str) -> None:
 @realtime.on("doc_close", allow_guest=True)
 async def doc_close(socket: Socket, doctype: str, docname: str) -> None:
 	await socket.leave(open_doc_room(doctype, docname))
-	# Fix Node bug (handlers.js:91-93): the filter callback never returned, so the
-	# pair was never dropped. Actually remove it here.
 	tracked = socket.get("subscribed_documents", [])
 	tracked = [pair for pair in tracked if not (pair[0] == doctype and pair[1] == docname)]
 	await socket.set("subscribed_documents", tracked)

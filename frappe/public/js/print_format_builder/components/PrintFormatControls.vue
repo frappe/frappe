@@ -96,14 +96,12 @@
 				</template>
 			</draggable>
 
-			<!-- Page Break drops into the sections container, not a column, so it
-			     stays a separate draggable — just without its own heading -->
 			<draggable
 				class="mt-2"
-				:list="page_break_block"
+				:list="section_blocks"
 				:group="{ name: 'sections', pull: 'clone', put: false }"
 				:sort="false"
-				:clone="clone_as_section"
+				:clone="clone_section_block"
 				item-key="fieldname"
 				v-bind="DRAG_OPTIONS"
 				@start="setDragging(true)"
@@ -111,11 +109,11 @@
 			>
 				<template #item="{ element }">
 					<BlockCard
-						icon="scissors-line-dashed"
+						:icon="element.icon"
 						:name="element.label"
 						:desc="element.desc"
 						:title="element.desc"
-						@click="add_page_break"
+						@click="add_section_block(element)"
 					/>
 				</template>
 			</draggable>
@@ -125,9 +123,6 @@
 		<div v-else-if="activeTab === 'library'" class="pfb-tab-body">
 			<div class="pfb-group-label">
 				{{ __("Saved Snippets") }}
-			</div>
-			<div class="pfb-group-desc">
-				{{ __("Save a section or field as a snippet") }}
 			</div>
 			<template v-for="grp in snippet_groups" :key="grp.type">
 				<draggable
@@ -191,6 +186,7 @@
 				<template #item="{ element: section }">
 					<div class="pfb-tree-node">
 						<div
+							v-node-menu="zone_label(section) ? null : { section }"
 							class="pfb-tree-row"
 							@mouseenter="store.hovered_section.value = section"
 							@mouseleave="store.hovered_section.value = null"
@@ -215,13 +211,9 @@
 							></button>
 							<span
 								class="pfb-tree-icon"
-								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
+								v-html="frappe.utils.icon(section_icon(section), 'sm')"
 							></span>
-							<span class="pfb-tree-label">
-								{{
-									section.label || zone_label(section) || __("Untitled section")
-								}}
-							</span>
+							<span class="pfb-tree-label">{{ section_label(section) }}</span>
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
 							<div
@@ -292,6 +284,7 @@
 									<template #item="{ element: field }">
 										<div
 											v-show="!field.remove"
+											v-node-menu="{ field }"
 											class="pfb-tree-row"
 											:class="{
 												active: store.selected_fields.value.includes(
@@ -375,7 +368,8 @@ import {
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
 import EmptyState from "./EmptyState.vue";
-import { column_of, zone_of, zones } from "../layout";
+import { column_of, zone_label as zone_label_of, zone_of, zones } from "../layout";
+import { field_menu_options, section_menu_options } from "../composables/useNodeMenu";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
 // state
@@ -408,10 +402,17 @@ let store = inject("$store");
 let { meta, layout, print_format, letterhead } = store;
 
 // ── blocks tab items ──────────────────────────────────────
-const page_break_block = [
+const section_blocks = [
+	{
+		label: __("Section"),
+		fieldname: "section",
+		icon: "layout-template",
+		desc: __("A new area to place fields in"),
+	},
 	{
 		label: __("Page Break"),
 		fieldname: "page_break",
+		icon: "scissors-line-dashed",
 		desc: __("Force a new page"),
 	},
 ];
@@ -583,13 +584,48 @@ function select_field(field, section, e) {
 	store.select_field(field, additive);
 }
 
+const vNodeMenu = {
+	mounted(el, { value }) {
+		if (!value) return;
+		el._pfb_node = value;
+		el._pfb_menu = new frappe.ui.ContextMenu({
+			target: el,
+			options: () => {
+				const { field, section } = el._pfb_node;
+				return field
+					? field_menu_options(store, field, { paste: false })
+					: section_menu_options(store, section, { paste: false });
+			},
+			on_open: () => {
+				const { field, section } = el._pfb_node;
+				if (field) store.select_field(field);
+				else store.select_section(section);
+			},
+		});
+	},
+	updated(el, { value }) {
+		if (value) el._pfb_node = value;
+	},
+	unmounted(el) {
+		el._pfb_menu?.destroy();
+	},
+};
+
 function select_dropped_layer_field(column, e) {
 	const field = column.fields[e.newIndex];
 	if (field) store.select_field(field);
 }
 
 function field_label(f) {
-	return f.label || f.fieldname || f.fieldtype || __("Field");
+	if (f.label) return f.label;
+	if (f.fieldtype === "Repeater") {
+		return (
+			(f.source && frappe.meta.get_label(meta.value.name, f.source)) || __("Custom Table")
+		);
+	}
+	return known_fieldnames.value.has(f.fieldname) || field_broken(f)
+		? f.fieldname
+		: __(f.fieldtype || "Field");
 }
 
 let known_fieldnames = computed(() => {
@@ -616,7 +652,9 @@ const FIELD_ICONS = {
 	"Small Text": "file-text",
 	"Long Text": "file-text",
 	Text: "file-text",
-	Barcode: "square",
+	Barcode: "barcode",
+	Divider: "separator-horizontal",
+	Spacer: "minus",
 };
 function field_icon(f) {
 	return FIELD_ICONS[f.fieldtype] || "type";
@@ -638,22 +676,15 @@ function select_letterhead(section) {
 	store.select_letterhead({ footer: section === layout.value?.footer });
 }
 
-const ZONE_LABELS = { header: __("Header"), footer: __("Footer") };
-const zone_label = (section) => ZONE_LABELS[zone_of(layout.value, section)] || "";
+const zone_label = (section) => zone_label_of(layout.value, section);
+const section_icon = (section) =>
+	section.page_break ? "scissors-line-dashed" : "rectangle-horizontal";
+const section_label = (section) =>
+	section.label ||
+	zone_label(section) ||
+	(section.page_break ? __("Page Break") : __("Untitled section"));
 
-let collapsed_nodes = ref(new Set());
-function is_collapsed(node) {
-	return collapsed_nodes.value.has(node);
-}
-function toggle_collapse(node) {
-	const next = new Set(collapsed_nodes.value);
-	next.has(node) ? next.delete(node) : next.add(node);
-	collapsed_nodes.value = next;
-}
-watch(
-	() => layout.value,
-	() => (collapsed_nodes.value = new Set())
-);
+const { is_collapsed, toggle_collapse } = store;
 
 function clone_as_section() {
 	return { label: "", columns: [{ label: "", fields: [] }], page_break: true };
@@ -681,9 +712,17 @@ let snippet_groups = computed(() =>
 	}))
 );
 
-function add_page_break() {
+function new_section() {
+	return { label: "", columns: [{ label: "", fields: [] }] };
+}
+
+function clone_section_block(block) {
+	return block.fieldname === "page_break" ? clone_as_section() : new_section();
+}
+
+function add_section_block(block) {
 	if (!layout.value) return;
-	layout.value.sections.push(clone_as_section());
+	store.insert_section(block.fieldname === "page_break" ? clone_as_section() : new_section());
 }
 
 // ── computed: field groups (by section break labels) ────────
@@ -824,10 +863,9 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	/* the heading below carries its own 16px of top padding, so the field only
-	   needs a little clearance under it */
-	margin: 16px 16px 4px;
-	padding: 6px 8px;
+	height: 28px;
+	margin: 16px 16px 0;
+	padding: 0 8px;
 	border-radius: var(--radius);
 	background: var(--surface-gray-2);
 }
@@ -882,20 +920,12 @@ function handle_slash_key(e) {
 	align-items: center;
 }
 
-.pfb-group-desc {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	padding: 0 16px 4px;
-}
-
 /* ── Field row (Fields tab) ──────────────────────────────── */
 .pfb-field-row {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	/* the design sizes a row at 39px on a 284px panel; 34px keeps the drag target
-	   comfortable here and gives back about four fields per screen */
-	min-height: 34px;
+	min-height: 39px;
 	/* hover is a pill inset from the panel edge, so the row carries 8px of margin
 	   and 8px of padding and the label still sits on the 16px text grid */
 	margin: 0 8px;
@@ -915,7 +945,7 @@ function handle_slash_key(e) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-weight: 450;
+	font-weight: var(--weight-regular);
 }
 
 .pfb-field-type {
@@ -1049,6 +1079,7 @@ body.pfb-dragging .pfb-tree-fields {
 }
 
 .pfb-field-group {
+	padding-bottom: 4px;
 	border-bottom: 1px solid var(--border-color);
 }
 

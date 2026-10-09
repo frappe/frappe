@@ -155,66 +155,6 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 	}
 
-	remove_onboarding_wrapper() {
-		this.$onboarding.empty();
-		this.wrapper.find(".onboarding-sidebar").removeClass("hidden");
-
-		if (!this.sidebar_data?.module_onboarding) {
-			this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-		}
-	}
-
-	setup_onboarding() {
-		let me = this;
-		this.$onboarding = this.wrapper.find(".user-onboarding");
-
-		if (!this.sidebar_data || !this.sidebar_data.module_onboarding) {
-			this.remove_onboarding_wrapper();
-			return;
-		}
-
-		let module_name = this.sidebar_data.module_onboarding;
-
-		if (this?.onboarding_widget[module_name]) {
-			return;
-		}
-
-		this.remove_onboarding_wrapper();
-		if (module_name && !frappe.is_mobile()) {
-			if (
-				this?.onboarding_widget[module_name] &&
-				this.onboarding_widget[module_name].hide_panel
-			) {
-				return;
-			}
-
-			return frappe
-				.call({
-					method: "frappe.desk.desktop.get_onboarding_data",
-					args: {
-						module: module_name,
-					},
-					type: "GET",
-				})
-				.then((data) => {
-					if (data.message?.length > 0) {
-						let onboarding_data = data.message[0];
-						me.onboarding_widget = {};
-						me.onboarding_widget[module_name] = new frappe.ui.UserOnboarding({
-							title: onboarding_data.title,
-							steps: onboarding_data.items,
-							wrapper: me.$onboarding,
-							header_icon: me.sidebar_header.header_icon,
-						});
-					} else {
-						this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-					}
-				});
-		} else {
-			this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-		}
-	}
-
 	nest_section_items() {
 		const me = this;
 		let currentSection = null;
@@ -236,10 +176,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.sidebar_items = updated_items;
 	}
 	setup(current_module) {
-		if (!this.onboarding_widget) {
-			this.onboarding_widget = {};
-		}
-
 		$(document).trigger("sidebar_setup", { sidebar: this });
 		this.current_module = current_module;
 
@@ -249,15 +185,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.make_sidebar();
 		this.add_sidebar_cards();
 		this.setup_promotional_banners();
-		this.setup_onboarding();
-
-		this.wrapper.find(".onboarding-sidebar").click(() => {
-			if (this.sidebar_data?.module_onboarding) {
-				delete this.onboarding_widget[this.sidebar_data.module_onboarding];
-			}
-
-			this.setup_onboarding();
-		});
 	}
 	add_card(card) {
 		if (this.cards && this.cards.find((i) => i.title === card.title)) return;
@@ -783,12 +710,10 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!rail) {
 			this.wrapper.addClass("expanded");
 			this.wrapper.find(".avatar-name-email").show();
-			this.wrapper.find(".onboarding-sidebar span").show();
 			this.wrapper.find(".promotional-banner-title").show();
 		} else {
 			this.wrapper.removeClass("expanded");
 			this.wrapper.find(".avatar-name-email").hide();
-			this.wrapper.find(".onboarding-sidebar span").hide();
 			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
@@ -887,6 +812,9 @@ frappe.ui.Sidebar = class Sidebar {
 	shell_can_show(shell, route, { listed_only = false } = {}) {
 		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
 
+		// A shared page counts as listed in every shell.
+		if (frappe.router.page_info_for(route)?.shared_page) return true;
+
 		const entity = this.entity_from_route(route);
 		if (!entity) return false;
 
@@ -901,6 +829,9 @@ frappe.ui.Sidebar = class Sidebar {
 	// The shell a URL for this route should name: the URL's own if it can show the route, then the
 	// one on screen, then the server's map.
 	shell_for_route(route) {
+		// A system page opens in no shell, so the sidebar on screen is left as it is.
+		if (frappe.router.page_info_for(route)?.system_page) return null;
+
 		// A private page's shell is its owner's, whatever module it is filed under.
 		if (route[0] === "Workspaces" && route[1] === "private") {
 			const name = route[2];
@@ -925,11 +856,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// A jump was not made from the shell on screen, so sharing an app is not enough to stay.
 		// Nor is a row in the Private shell, which is a shortcut and not where the entity belongs.
+		// A shared page belongs in every shell, Private included, so it stays there too.
 		const listed_only = frappe.router.is_jump;
-		const on_screen =
-			listed_only && this.current_module === frappe.ui.PRIVATE_SHELL
-				? null
-				: this.current_module;
+		const leaves_private =
+			listed_only &&
+			this.current_module === frappe.ui.PRIVATE_SHELL &&
+			!frappe.router.page_info_for(route)?.shared_page;
+		const on_screen = leaves_private ? null : this.current_module;
 		if (on_screen && this.shell_can_show(on_screen, route, { listed_only })) return on_screen;
 
 		return this.canonical_shell_for(route);
@@ -1132,7 +1065,9 @@ frappe.ui.Sidebar = class Sidebar {
 			canonical: this.canonical_shell_for(route),
 			resolved: this.shell_for_route(route),
 		};
-		info.reason = !info.resolved
+		info.reason = frappe.router.page_info_for(route)?.system_page
+			? "a system page opens in no shell"
+			: !info.resolved
 			? "the route names no entity, so nothing decides a shell"
 			: info.resolved === info.shell_in_url
 			? `the URL names "${info.shell_in_url}" and it can show this route`

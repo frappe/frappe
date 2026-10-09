@@ -13,23 +13,20 @@ class Picker {
 	refresh() {
 		this.set_selector_position(true);
 		this.update_color_map();
+		this.mark_active_swatch();
 	}
 
 	setup_picker() {
 		let color_picker_template = document.createElement("template");
 		color_picker_template.innerHTML = `
 			<div class="color-picker">
-				<div class="swatch-section">
-					${__("SWATCHES")}<br>
-					<div class="swatches"></div>
-				</div>
-				${__("COLOR PICKER")}<br>
 				<div class="color-map">
 					<div class="color-selector"></div>
 				</div>
 				<div class="hue-map">
 					<div class="hue-selector"></div>
 				</div>
+				<div class="swatches"></div>
 			</div>
 		`.trim();
 		this.color_picker_wrapper =
@@ -52,10 +49,15 @@ class Picker {
 
 	setup_swatches() {
 		let swatch_template = document.createElement("template");
-		swatch_template.innerHTML = '<div class="swatch" tabindex=0></div>';
+		swatch_template.innerHTML = '<div class="swatch" tabindex=0 role="button"></div>';
+		this.swatch_elements = [];
 		this.swatches.forEach((color) => {
 			let swatch = swatch_template.content.firstElementChild.cloneNode(true);
+			swatch.dataset.color = color.toLowerCase();
+			swatch.setAttribute("aria-label", color);
+			swatch.title = color;
 			this.swatches_wrapper.appendChild(swatch);
+			this.swatch_elements.push(swatch);
 			const set_values = () => {
 				this.set_color(color);
 				this.set_selector_position();
@@ -73,6 +75,14 @@ class Picker {
 			};
 			swatch.style.backgroundColor = color;
 		});
+		this.mark_active_swatch();
+	}
+
+	mark_active_swatch() {
+		const color = this.get_color().toLowerCase();
+		(this.swatch_elements || []).forEach((swatch) =>
+			swatch.classList.toggle("active", swatch.dataset.color === color)
+		);
 	}
 
 	set_selector_position(silent) {
@@ -193,6 +203,7 @@ class Picker {
 
 	set_color(color) {
 		this.color = color || "#ffffff";
+		this.mark_active_swatch();
 	}
 
 	get_color() {

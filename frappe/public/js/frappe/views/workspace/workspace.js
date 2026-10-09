@@ -410,7 +410,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
 				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
-				// this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
+				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
@@ -1294,7 +1294,7 @@ frappe.views.Workspace = class Workspace {
 				callback: (r) => {
 					if (r.message) {
 						let message = __("Workspace {0} created", [new_page.title.bold()]);
-						if (!window.Cypress) {
+						if (!navigator.webdriver) {
 							frappe.show_alert({
 								message: message,
 								indicator: "green",
@@ -1511,7 +1511,7 @@ frappe.views.Workspace = class Workspace {
 							page.is_layout_customized = 1;
 							me.discard = true;
 							me.reload();
-							if (window.Cypress) return;
+							if (navigator.webdriver) return;
 							frappe.show_alert({
 								message: __("Saved"),
 								indicator: "green",

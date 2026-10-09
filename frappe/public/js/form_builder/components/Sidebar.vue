@@ -53,7 +53,7 @@ function resize(e) {
 				<button
 					class="new-tab-btn btn btn-default btn-xs"
 					:title="store.tab_text.add_title"
-					@click="store.add_new_tab"
+					@click="store.add_new_tab()"
 				>
 					{{ store.tab_text.add }}
 				</button>

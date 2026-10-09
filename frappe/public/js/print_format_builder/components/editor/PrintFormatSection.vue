@@ -2,6 +2,7 @@
 	<div
 		ref="root"
 		class="print-format-section-container"
+		:title="hidden_reason"
 		data-pfb-section
 		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
@@ -16,14 +17,6 @@
 		@mouseenter="store.hovered_section.value = section"
 		@mouseleave="store.hovered_section.value = null"
 	>
-		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
-		<div v-if="!is_header" class="section-preview-actions">
-			<div
-				class="drag-handle section-drag-handle"
-				v-html="frappe.utils.icon('grip', 'xs')"
-			></div>
-			<SectionActions :section="section" size="xs" @remove="remove_section" />
-		</div>
 		<div
 			class="print-format-section"
 			:class="{
@@ -163,8 +156,9 @@ import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
 import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
-import { computed, inject, onMounted, onUnmounted, ref } from "vue";
+import { computed, inject, onMounted, onUnmounted, provide, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
+import { section_menu_options } from "../../composables/useNodeMenu";
 import { always_has_content } from "../../fieldtypes";
 import {
 	DRAG_OPTIONS,
@@ -200,6 +194,14 @@ let section_chrome_style = computed(() => {
 });
 let preview_doc = computed(() => store.preview_doc.value);
 let is_section_visible = computed(() => store.is_visible(props.section.visible_if));
+
+let hidden_reason = computed(() => {
+	if (!preview_doc.value) return null;
+	if (!is_section_visible.value) return __("Hidden by its visibility condition");
+	if (!has_content.value) return __("Not printed: no values for this record");
+	return null;
+});
+provide("section_hidden_reason", hidden_reason);
 
 let is_grid = computed(() => !!props.section.field_borders);
 
@@ -297,8 +299,6 @@ let section_inline_style = computed(() => {
 	}
 	if (props.section.radius != null) {
 		style.borderRadius = `${props.section.radius}px`;
-		// clip content to the rounded corners (non-grid sections are overflow:visible)
-		style.overflow = "hidden";
 	}
 	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
@@ -342,51 +342,11 @@ function remove_section() {
 
 const root = ref(null);
 let context_menu = null;
-const body_section = () => !props.is_header;
-const menu_options = [
-	{
-		label: __("Copy section"),
-		icon: "copy",
-		condition: body_section,
-		onclick: () => store.copy_section(props.section),
-	},
-	{
-		label: __("Duplicate section"),
-		icon: "copy-plus",
-		condition: body_section,
-		onclick: () => store.duplicate_section(props.section),
-	},
-	{
-		label: __("Save as snippet"),
-		icon: "bookmark-plus",
-		condition: body_section,
-		onclick: () => store.prompt_snippet(props.section, "Section"),
-	},
-	{
-		label: __("Paste"),
-		icon: "clipboard-paste",
-		condition: () => !!store.clipboard.value,
-		onclick: () => store.paste_clipboard(),
-	},
-	{
-		group: "",
-		hide_label: true,
-		options: [
-			{
-				label: __("Delete section"),
-				icon: "trash",
-				theme: "red",
-				condition: body_section,
-				onclick: () => remove_section(),
-			},
-		],
-	},
-];
-
 onMounted(() => {
 	context_menu = new frappe.ui.ContextMenu({
 		target: root.value,
-		options: menu_options,
+		options: () =>
+			section_menu_options(store, props.section, { condition: () => !props.is_header }),
 		empty_text: __("Nothing to paste"),
 		on_open: () => select_section(),
 	});
@@ -401,10 +361,12 @@ function remove_column(index) {
 
 <style scoped>
 .print-format-section-container {
+	--pfb-section-toolbar-h: calc(var(--spacing) * 10);
 	position: relative;
 	/* flow-root keeps the section's own margin inside this box, so the spacing
 	   handles can be positioned against it */
 	display: flow-root;
+	scroll-margin-top: 4rem;
 }
 
 .print-format-section-container:not(:last-child) {
@@ -414,11 +376,11 @@ function remove_column(index) {
 /* One ring for every active section state — selected, hover (canvas), and
    layer-hover all look identical. The :has() guard keeps hover on the innermost
    element: when a field inside is hovered, the field's ring shows, not this.
-   Drawn on the container with no offset: square corners (an outline always
-   follows the element's own radius) and flush against the section's border. */
-.print-format-section-container.pfb-section-active,
-.print-format-section-container.pfb-layer-hover,
-.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
+   Drawn on the section itself so it follows the section's radius. */
+.print-format-section-container.pfb-section-active > .print-format-section,
+.print-format-section-container.pfb-layer-hover > .print-format-section,
+.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover))
+	> .print-format-section {
 	outline: var(--pfb-ring);
 }
 
@@ -443,7 +405,12 @@ function remove_column(index) {
 	z-index: 3;
 }
 
+.print-format-section-container:not(.section--preview) > .pfb-section-chrome {
+	--pfb-radius-top: var(--pfb-section-toolbar-h);
+}
+
 .section-toolbar {
+	height: var(--pfb-section-toolbar-h);
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -650,24 +617,6 @@ function remove_column(index) {
 	margin: 0.25rem 0;
 }
 
-/* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
-.section-preview-actions {
-	display: none;
-	position: absolute;
-	bottom: calc(100% + 2px);
-	right: 4px;
-	z-index: 2;
-	gap: 2px;
-	padding: 1px 2px;
-	background: var(--fg-color);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	box-shadow: var(--shadow-xs);
-	align-items: center;
-	opacity: 0;
-	transition: opacity 0.12s;
-}
-
 /* ── Table layout (field borders) ───────────────────────── */
 .section--grid {
 	/* section padding is folded into the edge cells (see below) so the grid
@@ -758,15 +707,6 @@ function remove_column(index) {
 
 .section--preview .drag-container:not(.section--grid *) {
 	gap: 0;
-}
-
-.section--preview .section-preview-actions {
-	display: flex;
-}
-
-.section--preview:hover .section-preview-actions,
-.section--preview.pfb-section-active .section-preview-actions {
-	opacity: 1;
 }
 
 .section--preview .section-title-display {

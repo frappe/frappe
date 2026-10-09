@@ -395,7 +395,7 @@ class PrintFormatGenerator:
 		run_before_print(self.doc, self.print_settings.as_dict())
 		self.doc.flags.absolute_value = self.print_format.absolute_value
 
-		page_width = page_size_mm(self.print_settings)[0]
+		page_width, page_height = page_size_mm(self.print_settings)
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
 		print_style = (
@@ -411,6 +411,7 @@ class PrintFormatGenerator:
 				"print_style": print_style,
 				"letterhead": self.letterhead,
 				"page_width": page_width,
+				"page_height": page_height,
 				"body_width": body_width,
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
