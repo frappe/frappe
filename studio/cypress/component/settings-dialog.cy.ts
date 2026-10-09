@@ -41,22 +41,22 @@ describe("settings dialog", () => {
 		cy.mount(SettingsDialog, { global: { plugins: [pinia, resourcesPlugin] } })
 	})
 
-	it("saves the app's title and favicon", () => {
+	it("saves the title when it changes", () => {
 		cy.wrap(null).then(() => store.openSettings("app"))
-		cy.get("[role=tabpanel]").contains("label", "Title").parent().find("input").clear().type("Renamed App")
+		cy.contains("label", "Title").parent().find("input").clear().type("Renamed App").blur()
+		cy.wait("@save")
+		cy.get_doc("Studio App", APP_NAME).its("data.app_title").should("eq", "Renamed App")
+	})
+
+	it("saves the favicon on upload", () => {
+		cy.wrap(null).then(() => store.openSettings("app"))
 		cy.get("input[type=file]").selectFile(
 			{ contents: FAVICON, fileName: "cypress-favicon.png", mimeType: "image/png" },
 			{ force: true },
 		)
-		cy.get("img[alt='App Favicon']").should("have.attr", "src").and("include", "cypress-favicon")
-		cy.contains("button", "Save").click()
 		cy.wait("@save")
-
-		cy.get_doc("Studio App", APP_NAME).then(({ data }) => {
-			expect(data.app_title).to.eq("Renamed App")
-			expect(data.favicon).to.include("cypress-favicon")
-		})
-		cy.wrap(null).should(() => expect(store.activeApp?.favicon).to.include("cypress-favicon"))
+		cy.get_doc("Studio App", APP_NAME).its("data.favicon").should("include", "cypress-favicon")
+		cy.get("img[alt='App Favicon']").should("have.attr", "src").and("include", "cypress-favicon")
 	})
 
 	it("removes the favicon", () => {
@@ -64,16 +64,15 @@ describe("settings dialog", () => {
 		cy.wrap(null).then(() => store.setApp(APP_NAME))
 		cy.wrap(null).then(() => store.openSettings("app"))
 		cy.contains("button", "Remove").click()
-		cy.get("img[alt='App Favicon']").should("have.attr", "src", "/assets/studio/frontend/favicon.png")
-		cy.contains("button", "Save").click()
 		cy.wait("@save")
 		cy.get_doc("Studio App", APP_NAME).its("data.favicon").should("not.be.ok")
+		cy.get("img[alt='App Favicon']").should("have.attr", "src").and("include", "favicon.png")
 	})
 
 	it("opens on the requested tab", () => {
 		cy.wrap(null).then(() => store.openSettings("editor"))
 		cy.contains("label", "OpenRouter API Key").should("be.visible")
-		cy.contains("[role=tab]", "App").click()
-		cy.contains("label", "App Route").should("be.visible")
+		cy.contains("button", "App").click()
+		cy.contains("label", "Route").should("be.visible")
 	})
 })

@@ -1,95 +1,83 @@
 <template>
-	<SettingsHeader title="App" description="Settings for this app">
-		<template #actions>
-			<Button variant="solid" label="Save" :loading="saving" :disabled="!isDirty" @click="save" />
-		</template>
-	</SettingsHeader>
-	<SettingsBody>
-		<div class="flex flex-col gap-4 pt-6">
-			<ErrorMessage :message="error" />
-			<FormControl label="Title" type="text" variant="outline" v-model="app.app_title" :required="true" />
-			<FormControl label="App Route" type="text" variant="outline" v-model="app.route" />
-			<FormControl label="App Name" type="text" variant="outline" :model-value="appName" :disabled="true" />
+	<div v-if="app" class="flex flex-col gap-6 px-[2px]">
+		<div class="flex gap-5">
+			<Input
+				label="Title"
+				:modelValue="app.app_title"
+				:hideClearButton="true"
+				@update:modelValue="(value: string) => update('app_title', value)"
+			/>
+			<Input
+				label="Route"
+				:modelValue="app.route"
+				:hideClearButton="true"
+				@update:modelValue="(value: string) => update('route', value)"
+			/>
+		</div>
+		<div class="flex flex-col gap-3 text-base">
+			<div class="flex">
+				<span class="w-24 text-ink-gray-6">URL</span>
+				<a class="font-medium text-ink-gray-8 hover:underline" target="_blank" :href="appURL">{{ appURL }}</a>
+			</div>
+			<div class="flex">
+				<span class="w-24 text-ink-gray-6">App Name</span>
+				<span class="font-medium text-ink-gray-8">{{ app.app_name || app.name }}</span>
+			</div>
+		</div>
 
-			<hr class="border-outline-gray-2" />
+		<hr class="w-full border-outline-gray-2" />
 
-			<div class="flex flex-col gap-3">
-				<span class="text-base font-medium text-ink-gray-8">Favicon</span>
-				<div class="flex items-center gap-5">
-					<div
-						class="flex items-center justify-center rounded border border-outline-gray-1 bg-surface-gray-2 px-12 py-5"
+		<div class="flex flex-col gap-5">
+			<span class="text-md-semibold text-ink-gray-9">Favicon</span>
+			<div class="flex flex-1 gap-5">
+				<div
+					class="flex items-center justify-center rounded-4 border border-outline-gray-1 bg-surface-gray-2 px-20 py-5"
+				>
+					<img :src="app.favicon || defaultFavicon" alt="App Favicon" class="size-6 rounded-4" />
+				</div>
+				<div class="flex flex-1 flex-col gap-2">
+					<FileUploader
+						file-types="image/*"
+						:private="false"
+						doctype="Studio App"
+						:docname="app.name"
+						class="text-base"
+						@success="(file: FileDoc) => update('favicon', file.file_url)"
 					>
-						<img :src="app.favicon || DEFAULT_FAVICON" alt="App Favicon" class="size-6 rounded-sm" />
-					</div>
-					<div class="flex flex-col gap-2">
-						<FileUploader
-							file-types="image/*"
-							:private="false"
-							doctype="Studio App"
-							:docname="appName"
-							@success="(file: FileDoc) => (app.favicon = file.file_url)"
-						>
-							<template #default="{ uploading, progress, openFileSelector }">
-								<div class="flex gap-2">
-									<Button @click="openFileSelector">
-										{{ uploading ? `Uploading ${progress}%` : app.favicon ? "Change" : "Upload" }}
-									</Button>
-									<Button v-if="app.favicon" @click="app.favicon = ''">Remove</Button>
-								</div>
-							</template>
-						</FileUploader>
-						<span class="text-p-sm text-ink-gray-6">
-							Appears next to the title in the browser tab. Recommended size is 32x32 px in PNG or ICO.
-						</span>
-					</div>
+						<template #default="{ uploading, progress, openFileSelector }">
+							<div class="flex items-end gap-2">
+								<Button @click="openFileSelector">
+									{{ uploading ? `Uploading ${progress}%` : app.favicon ? "Change" : "Upload" }}
+								</Button>
+								<Button v-if="app.favicon" @click="update('favicon', '')">Remove</Button>
+							</div>
+						</template>
+					</FileUploader>
+					<span class="text-p-sm text-ink-gray-6">
+						Appears next to the title in the browser tab. Recommended size is 32x32 px in PNG or ICO
+					</span>
 				</div>
 			</div>
 		</div>
-	</SettingsBody>
+	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
-import { Button, ErrorMessage, FileUploader, FormControl, SettingsBody, SettingsHeader, toast } from "frappe-ui"
+import { computed } from "vue"
+import { Button, FileUploader, toast } from "frappe-ui"
+import Input from "@/components/Input.vue"
 import useStudioStore from "@/stores/studioStore"
-import { studioApps } from "@/data/studioApps"
+import defaultFavicon from "/favicon.png"
 
 type FileDoc = { file_url: string }
 
-const DEFAULT_FAVICON = "/assets/studio/frontend/favicon.png"
-
 const store = useStudioStore()
-const appName = store.activeApp!.name
+const app = computed(() => store.activeApp)
+const appURL = computed(() => `${window.location.origin}/${app.value?.route}`)
 
-const savedApp = computed(() => ({
-	app_title: store.activeApp?.app_title || "",
-	route: store.activeApp?.route || "",
-	favicon: store.activeApp?.favicon || "",
-}))
-const app = ref({ ...savedApp.value })
-const isDirty = computed(() => JSON.stringify(app.value) !== JSON.stringify(savedApp.value))
-
-const error = ref("")
-const saving = ref(false)
-
-function save() {
-	if (!app.value.app_title) {
-		error.value = "Title is required"
-		return
-	}
-	saving.value = true
-	error.value = ""
-	studioApps.setValue
-		.submit({ name: appName, ...app.value })
-		.then(async () => {
-			await store.setApp(appName)
-			toast.success("App settings saved")
-		})
-		.catch((e: any) => {
-			error.value = e?.messages?.join(", ") || e?.message || "Failed to save app settings"
-		})
-		.finally(() => {
-			saving.value = false
-		})
+function update(field: "app_title" | "route" | "favicon", value: string) {
+	store.updateActiveApp(field, value).catch((error: any) => {
+		toast.error(error?.messages?.join(", ") || error?.message || "Failed to update the app")
+	})
 }
 </script>

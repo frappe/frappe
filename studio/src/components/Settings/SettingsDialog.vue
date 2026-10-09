@@ -1,40 +1,51 @@
 <template>
-	<SettingsDialog v-model:open="store.showSettingsDialog" v-model:tab="store.settingsTab" size="3xl">
-		<SettingsSidebar>
-			<SettingsNavGroup label="Settings">
-				<SettingsNavItem value="app">
-					<template #prefix><span class="lucide-app-window size-4" /></template>
-					App
-				</SettingsNavItem>
-				<SettingsNavItem value="editor">
-					<template #prefix><span class="lucide-sliders-vertical size-4" /></template>
-					Editor
-				</SettingsNavItem>
-			</SettingsNavGroup>
-		</SettingsSidebar>
-		<SettingsContent>
-			<SettingsPanel value="app">
-				<AppSettings v-if="store.activeApp" />
-			</SettingsPanel>
-			<SettingsPanel value="editor">
-				<EditorSettings />
-			</SettingsPanel>
-		</SettingsContent>
-	</SettingsDialog>
+	<Dialog v-model:open="store.showSettingsDialog" size="5xl" bare>
+		<template #default="{ close }">
+			<Dialog.Title class="sr-only">Settings</Dialog.Title>
+			<Dialog.Description class="sr-only">Configure this app and the Studio editor.</Dialog.Description>
+			<div class="flex h-[88vh] max-h-[min(800px,calc(100vh-6rem))] overflow-hidden">
+				<div class="flex w-48 shrink-0 flex-col gap-5 bg-surface-gray-1 p-4 px-2">
+					<span class="text-md-semibold px-2 text-ink-gray-9">Settings</span>
+					<div class="flex flex-col gap-0.5">
+						<Button
+							v-for="tab in tabs"
+							:key="tab.name"
+							:variant="store.settingsTab === tab.name ? 'subtle' : 'ghost'"
+							:icon-left="tab.icon"
+							:class="{ '!bg-surface-gray-3': store.settingsTab === tab.name }"
+							class="!justify-start"
+							@click="store.settingsTab = tab.name"
+						>
+							{{ tab.label }}
+						</Button>
+					</div>
+				</div>
+				<div class="relative flex flex-1 flex-col gap-5 overflow-hidden bg-surface-base p-14 px-16 pb-0">
+					<h2 class="text-xl-semibold leading-none text-ink-gray-9">{{ activeTab.title }}</h2>
+					<Button icon="lucide-x" variant="subtle" class="absolute right-5 top-5" @click="close" />
+					<div class="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
+						<component :is="activeTab.component" class="pb-16" />
+					</div>
+				</div>
+			</div>
+		</template>
+	</Dialog>
 </template>
 
 <script setup lang="ts">
-import {
-	SettingsDialog,
-	SettingsSidebar,
-	SettingsNavGroup,
-	SettingsNavItem,
-	SettingsContent,
-	SettingsPanel,
-} from "frappe-ui"
+import { computed } from "vue"
+import { Button, Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import AppSettings from "@/components/Settings/AppSettings.vue"
 import EditorSettings from "@/components/Settings/EditorSettings.vue"
+import type { SettingsTab } from "@/types"
 
 const store = useStudioStore()
+
+const tabs: { name: SettingsTab; label: string; title: string; icon: string; component: object }[] = [
+	{ name: "app", label: "App", title: "App", icon: "lucide-app-window", component: AppSettings },
+	{ name: "editor", label: "Editor", title: "Editor", icon: "lucide-sliders-vertical", component: EditorSettings },
+]
+
+const activeTab = computed(() => tabs.find((tab) => tab.name === store.settingsTab) || tabs[0])
 </script>
