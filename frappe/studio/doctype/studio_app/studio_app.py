@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shutil
 from urllib.parse import quote
 
 import frappe
@@ -11,10 +12,11 @@ from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
-from studio.export import can_export, delete_folder, write_document_file
+from studio.export import can_export, delete_file, delete_folder, write_document_file
 from studio.realtime import publish_doc_change
 from studio.utils import walk_blocks
 
+APP_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
 
@@ -198,13 +200,36 @@ class StudioApp(WebsiteGenerator):
 		path = self.get_folder_path()
 		delete_folder(path)
 
+	@frappe.whitelist()
+	def rename_app(self, new_name: str) -> dict:
+		"""Rename the app (its docname and app_name). Built assets carry the old name in their
+		URLs, so `stale_build` tells the caller the app needs a rebuild to serve the build again."""
+		if not APP_NAME_RE.match(new_name or ""):
+			frappe.throw(_("App Name can only have lowercase letters, numbers, hyphens and underscores."))
+		had_build = bool(self.get_assets_from_manifest())
+		new_name = frappe.rename_doc("Studio App", self.name, new_name)
+		return {"name": new_name, "stale_build": had_build}
+
+	def before_rename(self, old, new, merge=False):
+		if can_export(self) and os.path.exists(self.get_folder_path(new)):
+			frappe.throw(_("Folder {0} already exists.").format(self.get_folder_path(new)))
+
 	def after_rename(self, old, new, merge=False):
 		if not can_export(self):
 			return
 
+		self.move_app_folder(old)
 		self.export_app()
+		self.remove_from_studio_apps_txt(old)
+
+	def move_app_folder(self, old: str):
+		"""Carry every exported file (page scripts, router.ts, components) over to the new folder.
+		The old app JSON goes: export_app writes it again under the new name."""
 		old_path = self.get_folder_path(old)
-		delete_folder(old_path)
+		if not os.path.exists(old_path):
+			return
+		shutil.move(old_path, self.get_folder_path())
+		delete_file(self.get_folder_path(), f"{frappe.scrub(old)}.json")
 
 	@frappe.whitelist()
 	def generate_app_build(self) -> dict:
@@ -403,6 +428,17 @@ class StudioApp(WebsiteGenerator):
 		source = frappe.read_file(self.get_router_file_path())
 		self.router_script = re.sub(r"^\s*export\s+default\s+", "", source, count=1).strip()
 		return True
+
+	def remove_from_studio_apps_txt(self, name: str):
+		if self.frappe_app != "studio":
+			return
+
+		path = frappe.get_app_path("studio", "studio_apps.txt")
+		apps = frappe.get_file_items(path)
+		if frappe.scrub(name) in apps:
+			apps.remove(frappe.scrub(name))
+			with open(path, "w") as f:
+				f.write("\n".join(apps))
 
 	def add_to_studio_apps_txt(self):
 		if self.frappe_app != "studio":

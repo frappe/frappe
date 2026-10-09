@@ -61,6 +61,46 @@ class TestStudioApp(FrappeTestCase):
 		app.favicon = "/files/favicon-app.png"
 		self.assertIn('href="/files/favicon-app.png"', render_app_template(app))
 
+	def test_rename_keeps_exported_files(self):
+		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
+			app = make_studio_app(app_title="Rename Me", app_name="rename-me")
+			page = make_studio_page(app.name, page_title="Rename Page", script="console.log('kept')")
+			app.reload()  # the first page becomes the app home
+			app.router_script = ROUTER_SCRIPT
+			app.save()
+			app.enable_app_export("studio")
+			old_folder = app.get_folder_path()
+			with open(os.path.join(old_folder, "Extra.vue"), "w") as f:
+				f.write("<template>kept</template>")
+
+			result = app.rename_app("renamed-app")
+
+			app = frappe.get_doc("Studio App", "renamed-app")
+			page.reload()
+			new_folder = app.get_folder_path()
+			self.assertEqual(result, {"name": "renamed-app", "stale_build": False})
+			self.assertEqual(app.app_name, "renamed-app")
+			self.assertEqual(page.studio_app, "renamed-app")
+			self.assertFalse(os.path.exists(old_folder))
+			self.assertEqual(frappe.read_file(app.get_router_file_path()), f"export default {ROUTER_SCRIPT}\n")
+			self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('kept')")
+			self.assertEqual(frappe.read_file(os.path.join(new_folder, "Extra.vue")), "<template>kept</template>")
+			self.assertTrue(os.path.exists(os.path.join(new_folder, "renamed_app.json")))
+			self.assertFalse(os.path.exists(os.path.join(new_folder, "rename_me.json")))
+			exported_page = json.loads(frappe.read_file(page.get_folder_path(with_filename=True)))
+			self.assertEqual(exported_page["studio_app"], "renamed-app")
+
+	def test_rename_flags_a_stale_build(self):
+		app = make_studio_app(app_title="Built App", app_name="built-app")
+		with patch.object(StudioApp, "get_assets_from_manifest", return_value={"script": "/x.js"}):
+			self.assertTrue(app.rename_app("built-app-2")["stale_build"])
+
+	def test_rename_rejects_invalid_names(self):
+		app = make_studio_app(app_title="Valid App", app_name="valid-app")
+		for name in ("", "Has Space", "UPPER", "-leading"):
+			with self.assertRaises(frappe.ValidationError):
+				app.rename_app(name)
+
 	def test_studio_app_boot(self):
 		app = unsaved_studio_app("boot-app")
 		with patch_boot_hook(app.name, f"{__name__}.boot_contribution"):
