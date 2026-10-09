@@ -211,11 +211,12 @@ export class FrappeClient {
 
 	// --- attachments -----------------------------------------------------------
 
-	async prepareAttachment(file) {
+	async prepareAttachment(file, model) {
 		const uploaded = await this.transport.uploadFile(file);
 		try {
 			const staged = await this.transport.call("flow.api.attach_file", {
 				file: uploaded.name,
+				model,
 			});
 			this.fileIds.set(staged.file_name, staged.file);
 			return {

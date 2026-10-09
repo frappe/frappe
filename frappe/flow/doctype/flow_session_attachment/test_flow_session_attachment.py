@@ -100,9 +100,38 @@ class TestLoadAttachment(IntegrationTestCase):
 
 
 class TestStageAttachment(IntegrationTestCase):
+	def setUp(self):
+		self.model = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Stage Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert()
+
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
+
+	def test_an_image_is_ocred_at_upload_only_for_a_text_only_model(self):
+		file_doc = _file(file_name="pic.png", content=png_bytes())
+		with (
+			patch(VISION, return_value=False),
+			patch(f"{MODULE}.extract_file", return_value="OCR") as extract,
+		):
+			stage_attachment(file_doc.name, self.model.name)
+		extract.assert_called_once()
+		self.assertEqual(staged_attachment(file_doc.name)["ocr_text"], "OCR")
+
+	def test_an_image_for_a_model_that_sees_images_is_not_ocred_at_upload(self):
+		file_doc = _file(file_name="pic.png", content=png_bytes())
+		with patch(VISION, return_value=True), patch(f"{MODULE}.extract_file") as extract:
+			stage_attachment(file_doc.name, self.model.name)
+		extract.assert_not_called()
+		self.assertNotIn("ocr_text", staged_attachment(file_doc.name))
+
+	def test_an_image_without_a_known_model_is_not_ocred_at_upload(self):
+		file_doc = _file(file_name="pic.png", content=png_bytes())
+		with patch(f"{MODULE}.extract_file") as extract:
+			stage_attachment(file_doc.name)
+			stage_attachment(file_doc.name, "no-such-model")
+		extract.assert_not_called()
 
 	def test_stage_caches_extraction_and_returns_chip_metadata(self):
 		file_doc = _file(content="staged body")
@@ -320,8 +349,11 @@ class TestBuildTurn(IntegrationTestCase):
 
 	def test_prepared_image_reuses_ocr_and_can_still_be_sent_to_a_vision_model(self):
 		file_doc = _file(file_name="pic.png", content=png_bytes())
-		with patch(f"{MODULE}.extract_file", return_value="OCR TEXT") as extract:
-			stage_attachment(file_doc.name)
+		with (
+			patch(VISION, return_value=False),
+			patch(f"{MODULE}.extract_file", return_value="OCR TEXT") as extract,
+		):
+			stage_attachment(file_doc.name, self.model.name)
 			extract.assert_called_once()
 		with patch(f"{MODULE}.extract_file", side_effect=AssertionError("OCR repeated")):
 			with patch(VISION, return_value=False):
@@ -331,6 +363,15 @@ class TestBuildTurn(IntegrationTestCase):
 		self.assertIn("OCR TEXT", text_turn.message)
 		self.assertEqual(len(image_turn.images), 1)
 		self.assertEqual(image_turn.message, "look")
+
+	def test_an_image_staged_for_a_vision_model_is_ocred_on_send_for_a_text_only_one(self):
+		file_doc = _file(file_name="pic.png", content=png_bytes())
+		with patch(VISION, return_value=True):
+			stage_attachment(file_doc.name, self.model.name)
+		with patch(VISION, return_value=False), patch(f"{MODULE}.extract_file", return_value="OCR TEXT"):
+			turn = build_turn(self.session, "read it", [file_doc.name])
+		self.assertIn("OCR TEXT", turn.message)
+		self.assertEqual(turn.images, [])
 
 	def test_an_image_without_text_is_refused_for_a_text_only_model(self):
 		file_doc = _file(file_name="pic.png", content=png_bytes())

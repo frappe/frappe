@@ -150,6 +150,18 @@ test("attachments are uploaded as private Files and staged, and cleaned up by Fi
 	]);
 });
 
+test("staging tells the server which model the picker holds", async () => {
+	const transport = fakeTransport({
+		"flow.api.attach_file": ({ file }) => ({ file, file_name: "shot.png", file_size: 1 }),
+	});
+	const client = new FrappeClient({ boot, transport });
+	await client.prepareAttachment({ name: "shot.png" }, "GPT");
+	assert.deepEqual(transport.calls.at(-1), [
+		"flow.api.attach_file",
+		{ file: "FILE-shot.png", model: "GPT" },
+	]);
+});
+
 test("preparation failures discard the upload without creating a session", async () => {
 	const transport = fakeTransport({
 		"flow.api.attach_file": () => {

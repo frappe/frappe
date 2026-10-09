@@ -1,9 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""Files sent with a chat turn: validated and extracted at upload time, then folded into
-that turn's flow server message on send. Earlier turns are never rewritten, so a file
-travels with the turn it was sent on and the prompt prefix stays cacheable."""
+"""Files sent with a chat turn: validated at upload time, when text is also extracted and
+an image is OCRed only for a text-only model, then folded into that turn's flow server
+message on send. Earlier turns are never rewritten, so a file travels with the turn it was
+sent on and the prompt prefix stays cacheable."""
 
 from __future__ import annotations
 
@@ -82,7 +83,7 @@ def build_turn(session: FlowSession, input: str, files: list[str]) -> Turn:
 			_("Attach at most {0} files per message.").format(MAX_ATTACHMENTS), title=_("Too Many Files")
 		)
 	budget = _inline_text_budget(session)
-	vision = _model_sees_images(session)
+	vision = _model_sees_images(_session_model(session))
 	embeddings_on = _embeddings_configured()
 	turn = Turn(message=input)
 	text_files: list[tuple[dict[str, Any], str]] = []
@@ -134,13 +135,12 @@ def build_turn(session: FlowSession, input: str, files: list[str]) -> Turn:
 	return turn
 
 
-def stage_attachment(file: str) -> dict[str, Any]:
+def stage_attachment(file: str, model: str | None = None) -> dict[str, Any]:
 	"""Extract at upload time and cache the result, so send need not parse the file again.
+	An image is OCRed now only when `model` cannot see it, else on send if still needed.
 	Returns lightweight metadata for the composer chip."""
 	data, file_doc = load_attachment(file)
-	# Keep image delivery independent of the selected model, which can change while
-	# composing. Cache OCR separately for models that need the text fallback.
-	if data["extracted_text"] is None and "ocr_text" not in data:
+	if data["extracted_text"] is None and "ocr_text" not in data and not _model_sees_images(model):
 		data["ocr_text"] = extract_file(file_doc)
 	frappe.cache.set_value(_cache_key(file), data, expires_in_sec=CACHE_TTL)
 	return {"file": data["file"], "file_name": data["file_name"], "file_size": data["file_size"]}
@@ -162,7 +162,7 @@ def cleanup_indexed_files(session: str, files: list[str]) -> None:
 def load_attachment(file: str) -> tuple[dict[str, Any], Document]:
 	"""A File the caller may read, with its extraction: the one staged at upload, else a
 	fresh one. Raises for an unreadable file or an unsupported type. Whether images
-	are sent directly or use their cached OCR is decided on send."""
+	are sent directly or as OCR text, cached or fresh, is decided on send."""
 	file_doc = _readable_file(file)
 	return staged_attachment(file) or _extract(file_doc), file_doc
 
@@ -207,12 +207,14 @@ def _inline_text_budget(session: FlowSession) -> int:
 	return int(window * CHARS_PER_TOKEN * INLINE_TEXT_FRACTION)
 
 
-def _model_sees_images(session: FlowSession) -> bool:
+def _model_sees_images(model: str | None) -> bool:
 	"""Same rule as the flow server: only a model known to be text-only gets no images."""
 	from flow_harness.model.catalog import model_supports_images
 
-	model = _session_model(session)
-	return model_supports_images(frappe.db.get_value("Flow Model", model, "model_id")) is not False
+	model_id = frappe.db.get_value("Flow Model", model, "model_id") if model else None
+	if not model_id:
+		return True
+	return model_supports_images(model_id) is not False
 
 
 def _session_model(session: FlowSession) -> str:

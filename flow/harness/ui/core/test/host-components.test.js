@@ -637,11 +637,11 @@ function preparingComposer(t) {
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
-			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
-			skills: [], conversation: { running: false }, draft: null,
+			prefs: { mode: "ask", lastModel: "GPT" }, sessionId: null, session: null, models: [], codeRefs: [],
+			quotes: [], queued: [], skills: [], conversation: { running: false }, draft: null,
 		}),
-		prepareAttachment(file) {
-			return new Promise((resolve, reject) => requests.push({ file, resolve, reject }))
+		prepareAttachment(file, model) {
+			return new Promise((resolve, reject) => requests.push({ file, model, resolve, reject }))
 		},
 		async discardAttachments(ids) { discarded.push(...ids) },
 		async send(text, items) { sent.push({ text, ids: items.map((item) => item.id) }); return true },
@@ -663,6 +663,7 @@ test("attaching starts preparation before a session exists, and send waits for i
 	const { el, flow, requests, sent, discarded } = preparingComposer(t)
 	await nextTick()
 	assert.equal(requests.length, 1)
+	assert.equal(requests[0].model, "GPT")
 	assert.equal(flow.state.sessionId, null)
 	assert.equal(el.querySelector('[role="status"]').getAttribute("aria-label"), "Preparing notes.pdf")
 	el.querySelector("button[title='Send']").click()

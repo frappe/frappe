@@ -80,18 +80,26 @@ class TestAttachFile(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "File is required"):
 			attach_file("   ")
 
-	def test_attach_file_prepares_image_ocr_without_forcing_text_delivery(self):
+	def test_attach_file_stages_an_image_without_ocr_when_no_model_rules_it_out(self):
 		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
 
 		file_doc = self._file(file_name="pic.png", content=png_bytes())
 		with patch(
-			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.extract_file",
-			return_value="OCR",
-		):
+			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.extract_file"
+		) as extract:
 			self.assertEqual(attach_file(file_doc.name)["file_name"], "pic.png")
+		extract.assert_not_called()
 		data = staged_attachment(file_doc.name)
 		self.assertIsNone(data["extracted_text"])
-		self.assertEqual(data["ocr_text"], "OCR")
+		self.assertNotIn("ocr_text", data)
+
+	def test_attach_file_hands_the_pickers_model_to_staging(self):
+		with patch(
+			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.stage_attachment",
+			return_value={},
+		) as stage:
+			attach_file(" F ", "GPT")
+		stage.assert_called_once_with("F", "GPT")
 
 	def test_attach_file_unsupported_type_surfaces_at_upload(self):
 		file_doc = self._file(file_name="data.bin", content="x")
