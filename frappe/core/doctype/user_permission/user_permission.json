@@ -35,7 +35,8 @@
    "in_standard_filter": 1,
    "label": "Allow",
    "options": "DocType",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "for_value",
@@ -90,7 +91,7 @@
   }
  ],
  "links": [],
- "modified": "2022-01-03 11:25:03.726150",
+ "modified": "2026-10-09 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Permission",
