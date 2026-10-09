@@ -1601,7 +1601,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				// groups without values (e.g. no child rows) have a null minimum / maximum
 				const values = data.map((d) => d[col.id]).filter((value) => value != null);
 				row_totals[col.id] = values.length
-					? Math[aggregate_function](...values.map(flt))
+					? Math[aggregate_function](...values.map((value) => flt(value)))
 					: undefined;
 			}
 		});
