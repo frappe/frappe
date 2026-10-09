@@ -74,10 +74,8 @@ frappe.ui.Checklist = class Checklist {
 		this.el.className = ["es-checklist", opts.css_class].filter(Boolean).join(" ");
 		this.el.innerHTML = `
 			<button type="button" class="es-checklist__head">
-				<span class="es-checklist__heading">
-					<span class="es-checklist__name"></span>
-					<span class="es-checklist__count"></span>
-				</span>
+				<span class="es-checklist__name"></span>
+				<span class="es-checklist__count"></span>
 				${frappe.utils.icon("chevron-down", "sm", "", "", "es-checklist__chevron", true)}
 			</button>
 			<div class="es-checklist__progress"></div>
