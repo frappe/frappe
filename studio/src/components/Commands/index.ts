@@ -190,20 +190,12 @@ commands.register({
 })
 
 commands.register({
-	name: "app-settings",
-	title: "App Settings",
+	name: "settings",
+	title: "Settings",
 	icon: "lucide-settings",
 	group: "General",
 	condition: () => Boolean(store.activeApp),
 	action: () => store.openSettings("app"),
-})
-
-commands.register({
-	name: "ai-settings",
-	title: "AI Settings",
-	icon: "lucide-sparkles",
-	group: "General",
-	action: () => store.openSettings("ai"),
 })
 
 commands.register({

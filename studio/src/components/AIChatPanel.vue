@@ -15,7 +15,7 @@
 
 		<div v-if="!isAIEnabled" class="flex flex-1 flex-col items-start gap-3 p-4">
 			<p class="text-p-xs text-ink-gray-6">
-				Configure an AI API key in AI Settings to use the AI assistant.
+				Add an AI API key in Settings to use the AI assistant.
 			</p>
 			<Button variant="subtle" label="Open Settings" @click="store.openSettings('ai')" />
 		</div>
