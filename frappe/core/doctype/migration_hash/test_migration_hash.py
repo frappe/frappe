@@ -60,6 +60,17 @@ class IntegrationTestMigrationHash(IntegrationTestCase):
 			self.assertFalse(import_file_by_path(path))
 			self.assertEqual(frappe.db.get_value("Note", name, "content"), "site edit")
 
+	def test_file_path_longer_than_an_indexed_column_is_stored(self):
+		name = "_Test Migration Hash Long Path"
+		with tempfile.TemporaryDirectory() as folder:
+			long_folder = os.path.join(folder, "x" * 140, "x" * 140)
+			os.makedirs(long_folder)
+			path = write_note_file(long_folder, name, "first")
+			self.assertGreater(len(get_relative_file_path(path)), 255)
+
+			self.assertTrue(import_file_by_path(path))
+			self.assertEqual(get_migration_hash(path), calculate_hash(path))
+
 	def test_files_holding_the_same_record_keep_their_own_hash(self):
 		name = "_Test Migration Hash Duplicate"
 		with tempfile.TemporaryDirectory() as first_folder, tempfile.TemporaryDirectory() as second_folder:
