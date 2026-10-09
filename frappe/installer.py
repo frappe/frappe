@@ -17,6 +17,7 @@ from semantic_version import Version
 
 import frappe
 from frappe import _
+from frappe.core.doctype.migration_hash.migration_hash import delete_migration_hashes
 from frappe.defaults import _clear_cache
 from frappe.utils import cint, comma_and, is_git_url
 from frappe.utils.dashboard import sync_dashboards
@@ -587,6 +588,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	release_custom_module_placements(app_name, dry_run=dry_run)
 
 	if not dry_run:
+		delete_migration_hashes(app_name)
 		remove_from_installed_apps(app_name)
 		frappe.get_single("Installed Applications").update_versions()
 		frappe.db.commit()

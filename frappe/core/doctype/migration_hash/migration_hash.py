@@ -64,3 +64,11 @@ def set_migration_hash(path: str, migration_hash: str) -> None:
 	frappe.get_doc(
 		{"doctype": "Migration Hash", "name": name, "file_path": file_path, "migration_hash": migration_hash}
 	).insert(ignore_permissions=True)
+
+
+def delete_migration_hashes(app: str) -> None:
+	"""Delete the hashes of an app's files, for when the app is removed from the site."""
+	if not frappe.db.table_exists("Migration Hash"):
+		return
+
+	frappe.db.delete("Migration Hash", {"file_path": ("like", f"{app}/%")})
