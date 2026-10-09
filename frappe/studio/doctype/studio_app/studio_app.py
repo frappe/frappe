@@ -231,6 +231,18 @@ class StudioApp(WebsiteGenerator):
 		shutil.move(old_path, self.get_folder_path())
 		delete_file(self.get_folder_path(), f"{frappe.scrub(old)}.json")
 
+	def move_export_to(self, target_app: str):
+		"""Carry the export folder, files and all, into another Frappe app. Exported page scripts
+		and router.ts live only in these files, so re-exporting from the DB would lose them."""
+		old_path = self.get_folder_path()
+		new_path = self.get_folder_path(frappe_app=target_app)
+		if os.path.exists(new_path):
+			frappe.throw(_("Folder {0} already exists.").format(new_path))
+		self.remove_from_studio_apps_txt(self.name)
+		if os.path.exists(old_path):
+			frappe.create_folder(os.path.dirname(new_path))
+			shutil.move(old_path, new_path)
+
 	@frappe.whitelist()
 	def generate_app_build(self) -> dict:
 		"""Build the app bundle. Failures are logged to an Error Log and returned as
@@ -328,6 +340,9 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def enable_app_export(self, target_app: str):
+		if self.is_standard and self.frappe_app and self.frappe_app != target_app:
+			self.move_export_to(target_app)
+
 		frappe.db.set_value(
 			"Studio Page",
 			{"studio_app": self.name},
@@ -552,8 +567,8 @@ class StudioApp(WebsiteGenerator):
 			frappe.throw(_("Invalid file path: {0}").format(path), frappe.PermissionError)
 		return target
 
-	def get_folder_path(self, name: str | None = None):
-		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)
+	def get_folder_path(self, name: str | None = None, frappe_app: str | None = None):
+		return frappe.get_app_source_path(frappe_app or self.frappe_app, "studio", name or self.name)
 
 
 def custom_vue_component_names(blocks) -> set[str]:

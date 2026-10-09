@@ -1,9 +1,10 @@
 import { pinia } from "../support/component"
 
+import { h } from "vue"
 import { setActivePinia } from "pinia"
 import { createMemoryHistory, createRouter } from "vue-router"
 // @ts-ignore
-import { resourcesPlugin } from "frappe-ui"
+import { FrappeUIProvider, resourcesPlugin } from "frappe-ui"
 
 import "@/setupFrappeUIResource"
 import SettingsDialog from "@/components/Settings/SettingsDialog.vue"
@@ -54,7 +55,9 @@ describe("settings dialog", () => {
 			router = editorRouter()
 			return router.push({ name: "StudioPage", params: { appID: APP_NAME, pageID: aboutPage.name } })
 		})
-		cy.then(() => cy.mount(SettingsDialog, { global: { plugins: [pinia, resourcesPlugin, router] } }))
+		// the provider renders confirm dialogs, as App.vue does
+		const WithProvider = { render: () => h(FrappeUIProvider, null, () => h(SettingsDialog)) }
+		cy.then(() => cy.mount(WithProvider, { global: { plugins: [pinia, resourcesPlugin, router] } }))
 	})
 
 	it("saves the title when it changes", () => {
@@ -142,20 +145,41 @@ describe("settings dialog", () => {
 		cy.get('button[aria-label="Edit About"]').click()
 		cy.contains("label", "Title").parent().find("input").clear().type("About Us")
 		cy.contains("button", "Save").click()
-		cy.contains("changed outside the editor").should("be.visible")
-		cy.contains("label", "Title").should("exist")
+		// the editor's own conflict prompt offers a refresh; dismiss it to look at the dialog behind
+		cy.contains("[role=dialog]", "Page changed outside the editor").contains("button", "Cancel").click()
+		cy.contains("[role=dialog]", "Edit Page").should("contain.text", "changed outside the editor")
 		cy.get_doc("Studio Page", aboutPage.name).its("data.page_title").should("eq", "About")
 	})
 
 	it("shows export settings only in developer mode", () => {
 		cy.wrap(null).then(() => store.openSettings("app"))
-		cy.contains("Enable App Export").should("not.exist")
+		cy.contains("Not exported to any Frappe App").should("not.exist")
 		cy.contains("button", "AI").click()
 		cy.window().then((win) => (win.is_developer_mode = true))
 		cy.contains("button", "App").click()
-		cy.contains("Enable App Export").parents(".justify-between").first().find("[role=switch]").click()
+		cy.contains("Not exported to any Frappe App").should("be.visible")
+		cy.contains("button", "Edit").click()
+		exportSwitch().click()
+		// nothing to export until a Frappe App is picked
 		cy.contains("span", /^Frappe App$/).should("be.visible")
-		cy.contains("button", "Update").scrollIntoView().should("be.visible").and("be.disabled")
+		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").should("be.disabled")
+		cy.window().then((win) => delete win.is_developer_mode)
+	})
+
+	it("asks before disabling export and keeps it on when cancelled", () => {
+		cy.window().then((win) => (win.is_developer_mode = true))
+		cy.wrap(null).then(() => {
+			store.activeApp!.is_standard = 1
+			store.activeApp!.frappe_app = "studio"
+			store.openSettings("app")
+		})
+		cy.contains("code", "studio/studio/cypress_settings").should("be.visible")
+		cy.contains("button", "Edit").click()
+		exportSwitch().should("have.attr", "aria-checked", "true").click()
+		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").click()
+		cy.contains("[role=dialog]", "Disable App Export").contains("button", "Cancel").click()
+		cy.contains("[role=dialog]", "Export Settings").should("be.visible")
+		cy.get("@savePage.all").should("have.length", 0)
 		cy.window().then((win) => delete win.is_developer_mode)
 	})
 
@@ -191,6 +215,10 @@ describe("settings dialog", () => {
 		cy.contains("button", "App").click()
 		cy.contains("label", "Route").should("be.visible")
 	})
+
+	function exportSwitch() {
+		return cy.contains("Enable App Export").parents(".justify-between").first().find("[role=switch]")
+	}
 
 	function guestSwitch(pageTitle: string) {
 		return cy.get(`[role=switch][aria-label="Allow guest access to ${pageTitle}"]`)

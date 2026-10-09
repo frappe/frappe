@@ -90,6 +90,29 @@ class TestStudioApp(FrappeTestCase):
 			exported_page = json.loads(frappe.read_file(page.get_folder_path(with_filename=True)))
 			self.assertEqual(exported_page["studio_app"], "renamed-app")
 
+	def test_changing_the_frappe_app_moves_the_export_folder(self):
+		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
+			app = make_studio_app(app_title="Moving App", app_name="moving-app")
+			page = make_studio_page(app.name, page_title="Moving Page", script="console.log('kept')")
+			app.reload()
+			app.router_script = ROUTER_SCRIPT
+			app.save()
+			app.enable_app_export("studio")
+			old_folder = app.get_folder_path()
+			with open(os.path.join(old_folder, "Extra.vue"), "w") as f:
+				f.write("<template>kept</template>")
+
+			app.enable_app_export("frappe")
+
+			page.reload()
+			new_folder = app.get_folder_path()
+			self.assertEqual(app.frappe_app, "frappe")
+			self.assertNotEqual(old_folder, new_folder)
+			self.assertFalse(os.path.exists(old_folder))
+			self.assertEqual(frappe.read_file(app.get_router_file_path()), f"export default {ROUTER_SCRIPT}\n")
+			self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('kept')")
+			self.assertEqual(frappe.read_file(os.path.join(new_folder, "Extra.vue")), "<template>kept</template>")
+
 	def test_rename_flags_a_stale_build(self):
 		app = make_studio_app(app_title="Built App", app_name="built-app")
 		with patch.object(StudioApp, "get_assets_from_manifest", return_value={"script": "/x.js"}):

@@ -63,21 +63,30 @@
 
 		<template v-if="isDeveloperMode">
 			<hr class="w-full border-outline-gray-2" />
-			<div class="flex flex-col gap-3">
-				<span class="text-md-semibold text-ink-gray-9">Export</span>
-				<AppExport />
+			<div class="flex items-center justify-between gap-5">
+				<div class="flex flex-col gap-1.5">
+					<span class="text-md-semibold text-ink-gray-9">Export</span>
+					<span v-if="app.is_standard && app.frappe_app" class="text-p-sm text-ink-gray-6">
+						Exported to
+						<code class="rounded-1 bg-surface-gray-2 px-1 py-0.5 font-mono text-ink-gray-8">{{ exportFolder }}</code>
+					</span>
+					<span v-else class="text-p-sm text-ink-gray-6">Not exported to any Frappe App</span>
+				</div>
+				<Button label="Edit" @click="showExportDialog = true" />
 			</div>
+			<ExportAppDialog v-model:showDialog="showExportDialog" />
 		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { Button, FileUploader, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import AppRenameDialog from "@/components/Settings/AppRenameDialog.vue"
-import AppExport from "@/components/Settings/AppExport.vue"
+import ExportAppDialog from "@/components/ExportAppDialog.vue"
 import useStudioStore from "@/stores/studioStore"
+import { scrub } from "@/utils/helpers"
 import defaultFavicon from "/favicon.png"
 
 type FileDoc = { file_url: string }
@@ -89,6 +98,8 @@ const homeOptions = computed(() =>
 	Object.values(store.appPages).map((page) => ({ label: page.page_title, value: page.name })),
 )
 const isDeveloperMode = Boolean(window.is_developer_mode)
+const showExportDialog = ref(false)
+const exportFolder = computed(() => `${app.value?.frappe_app}/studio/${scrub(app.value?.app_name || "")}`)
 
 const FIELD_LABELS = { app_title: "Title", route: "Route", app_home: "App Home", favicon: "Favicon" }
 
