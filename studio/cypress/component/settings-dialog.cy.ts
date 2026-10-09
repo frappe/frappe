@@ -91,6 +91,18 @@ describe("settings dialog", () => {
 		guestSwitch("Contact").should("have.attr", "aria-checked", "false")
 	})
 
+	it("renames a page and adds the leading slash to its route", () => {
+		cy.wrap(null).then(() => store.openSettings("pages"))
+		cy.get('input[aria-label="Title of About"]').clear().type("About Us").blur()
+		cy.wait("@save")
+		cy.get('input[aria-label="Route of About Us"]').clear().type("about-us").blur()
+		cy.wait("@save")
+		cy.get_doc("Studio Page", aboutPage.name).then(({ data }) => {
+			expect(data.page_title).to.eq("About Us")
+			expect(data.route).to.eq("/about-us")
+		})
+	})
+
 	it("shows export settings only in developer mode", () => {
 		cy.wrap(null).then(() => store.openSettings("app"))
 		cy.contains("Enable App Export").should("not.exist")
