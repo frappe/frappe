@@ -15,8 +15,10 @@ import {
 	initialConversation,
 	normalizeSkillCommand,
 	parseSkillInvocation,
+	quoteBlock,
 	skillCommand,
 	splitCodeRefs,
+	splitQuotes,
 	stepLiveLabel,
 	stepStat,
 	stepSubject,
@@ -62,6 +64,14 @@ test("code references appended by the composer split back out of the text", () =
 	assert.equal(codeRefLabel(refs[0]), "agent.py (10-15)")
 	assert.equal(codeRefLabel(refs[1]), "config.py (17)")
 	assert.deepEqual(splitCodeRefs("plain text"), { body: "plain text", refs: [] })
+})
+
+test("quotes added to chat travel as blockquotes under the text and split back out", () => {
+	assert.equal(quoteBlock("a\n\nb"), "> a\n>\n> b")
+	assert.deepEqual(splitQuotes("hi\n\n> a\n>\n> b\n\n> c"), { body: "hi", quotes: ["a\n\nb", "c"] })
+	assert.deepEqual(splitQuotes("> only"), { body: "", quotes: ["only"] })
+	assert.deepEqual(splitQuotes("> top\n\nplain"), { body: "> top\n\nplain", quotes: [] })
+	assert.deepEqual(splitQuotes("plain"), { body: "plain", quotes: [] })
 })
 
 test("expanded skill messages render as the command the user typed", () => {

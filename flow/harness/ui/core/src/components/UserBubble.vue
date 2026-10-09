@@ -3,7 +3,7 @@
 	     absolute buttons can never overlap the next message -->
 	<div class="group relative flex justify-end pb-7">
 		<div class="flow-prose max-w-[76%] rounded-7 bg-surface-gray-2 px-3.5 py-2.5 text-ink-gray-9">
-			<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5" :class="body || chips.length ? 'mb-2' : ''">
+			<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5" :class="hasText || chips.length ? 'mb-2' : ''">
 				<button
 					v-for="item in imageTiles"
 					:key="item.id"
@@ -15,7 +15,7 @@
 					<img :src="previews[item.id]" :alt="item.name" class="h-full w-full object-cover" />
 				</button>
 			</div>
-			<div v-if="chips.length" class="flex flex-wrap items-center gap-1.5" :class="body ? 'mb-2' : ''">
+			<div v-if="chips.length" class="flex flex-wrap items-center gap-1.5" :class="hasText ? 'mb-2' : ''">
 				<span
 					v-for="chip in chips"
 					:key="chip.key"
@@ -29,11 +29,19 @@
 				</span>
 			</div>
 			<div
-				v-if="body"
+				v-if="hasText"
 				ref="textEl"
 				class="whitespace-pre-wrap break-words"
 				:class="expanded ? '' : 'line-clamp-[12]'"
-			><span v-if="slash" class="text-ink-blue-6">{{ slash.prefix }}</span>{{ slash ? slash.rest : body }}</div>
+			><div
+					v-if="quotes.length"
+					class="flex flex-col gap-2"
+					:class="body ? 'mb-2' : ''"
+				><blockquote
+						v-for="(quote, i) in quotes"
+						:key="i"
+						class="border-l-2 border-outline-gray-2 pl-3 text-ink-gray-6"
+					>{{ quote }}</blockquote></div><span v-if="slash" class="text-ink-blue-6">{{ slash.prefix }}</span>{{ slash ? slash.rest : body }}</div>
 			<button
 				v-if="clampable"
 				class="mt-1.5 text-xs font-medium text-ink-gray-5 hover:text-ink-gray-8"
@@ -67,7 +75,7 @@ import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
-import { codeRefLabel, formatTime, splitCodeRefs, userAttachments, userText } from "../transcript.js"
+import { codeRefLabel, formatTime, splitCodeRefs, splitQuotes, userAttachments, userText } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 import ImageViewer from "./ImageViewer.vue"
 
@@ -77,7 +85,10 @@ const time = computed(() => formatTime(props.entry.ts))
 const text = computed(() => userText(props.entry)) // full text, for copy
 const attachments = computed(() => userAttachments(props.entry))
 const split = computed(() => splitCodeRefs(text.value))
-const body = computed(() => split.value.body)
+const quoted = computed(() => splitQuotes(split.value.body))
+const body = computed(() => quoted.value.body)
+const quotes = computed(() => quoted.value.quotes)
+const hasText = computed(() => !!body.value || quotes.value.length > 0)
 // a skill command keeps the blue prefix it had in the composer
 const slash = computed(() => {
 	const match = body.value.match(/^\/skill:[^\s]+(?=\s|$)/)
