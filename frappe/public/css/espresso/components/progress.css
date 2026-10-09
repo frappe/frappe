@@ -80,8 +80,7 @@
     transition: width 300ms ease;
 }
 
-/* ---- interval form: equal segments with gaps; the rounded track clips
-   the outer corners of the first and last segment ---- */
+/* ---- interval form: equal rounded segments with gaps ---- */
 .es-progress__track[data-intervals] {
     display: flex;
     gap: calc(var(--spacing) * 1);
@@ -91,6 +90,7 @@
 .es-progress__segment {
     flex: 1 1 0;
     height: 100%;
+    border-radius: var(--radius-full);
     background: var(--surface-gray-2);
     /* segments are discrete by nature — a short fade softens the flip */
     transition: background-color 150ms ease-out;
