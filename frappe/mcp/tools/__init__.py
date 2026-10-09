@@ -8,13 +8,13 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any
-from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 import frappe
 from frappe import _
 from frappe.mcp.protocol import INVALID_PARAMS, METHOD_NOT_FOUND, McpError
+from frappe.mcp.transaction import tool_savepoint
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import strip_html
 from frappe.utils.response import json_handler
@@ -69,17 +69,11 @@ def call(params: dict) -> dict:
 	except ValidationError as error:
 		return error_result(validation_message(error))
 
-	savepoint = f"mcp_{uuid4().hex}"
-	frappe.db.savepoint(savepoint)
 	try:
-		with form_dict(arguments.model_dump()):
+		with tool_savepoint(), form_dict(arguments.model_dump()):
 			result = success_result(tool.handler(**frappe.form_dict))
 	except Exception as error:
-		# The request commits POSTs, including failed calls returned as tool results.
-		frappe.db.rollback(save_point=savepoint)
 		result = error_result(str(error) or type(error).__name__)
-	finally:
-		frappe.db.release_savepoint(savepoint)
 	return result
 
 
