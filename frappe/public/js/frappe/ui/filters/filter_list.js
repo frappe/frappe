@@ -6,6 +6,8 @@
 // the box stays their home. It has get_standard_field(fieldname),
 // get_standard_filters() and clear().
 
+const filter_key = ([doctype, fieldname]) => `${doctype}.${fieldname}`;
+
 frappe.ui.FilterGroup = class {
 	// the Filter button with its count, and the clear button that joins it
 	static make_buttons() {
@@ -305,7 +307,7 @@ frappe.ui.FilterGroup = class {
 		if (with_time) title = time_only ? __("Choose time") : __("Choose date and time");
 		this.sheet.push({
 			title,
-			subtitle: __(field.df.label),
+			subtitle: filter.fieldselect.selected_label(),
 			content: calendar,
 			footer: with_time && done,
 		});
@@ -353,7 +355,8 @@ frappe.ui.FilterGroup = class {
 		</div>`);
 		const value = this.get_sheet_value(filter);
 		$row.find(".filter-sheet-row__field").text(
-			__(filter.field.df.label, null, filter.field.df.parent)
+			filter.fieldselect.selected_label() ||
+				__(filter.field.df.label, null, filter.field.df.parent)
 		);
 		$row.find(".filter-sheet-row__condition").text(
 			filter.get_condition_label(filter.get_condition())
@@ -379,8 +382,10 @@ frappe.ui.FilterGroup = class {
 
 	// the value as text: "Paid", "Acme, Globex", "01-01-2026 to 31-01-2026"
 	get_sheet_value(filter) {
-		let value = filter.get_selected_value();
-		if (typeof value === "string") value = value.replace(/^%+|%+$/g, "");
+		// a like row as typed: "%todo" (ends with) is not "todo" (contains)
+		let value = filter.get_condition().includes("like")
+			? filter.field.get_value()
+			: filter.get_selected_value();
 		const values = [].concat(value ?? []).filter((v) => v !== "" && v != null);
 		const label = values.length === 1 && filter.get_selected_label();
 		if (label) return label;
@@ -474,7 +479,7 @@ frappe.ui.FilterGroup = class {
 				return false;
 			},
 		}));
-		const subtitle = filter.field ? __(filter.field.df.label) : "";
+		const subtitle = filter.field ? filter.fieldselect.selected_label() : "";
 		this.sheet.push({ title: __("Condition"), subtitle, options });
 	}
 
@@ -512,22 +517,46 @@ frappe.ui.FilterGroup = class {
 		const rows = this.toolbar
 			.get_standard_filters()
 			.map(([doctype, fieldname, condition, value]) => {
-				if (condition === "like" && typeof value === "string") {
-					value = value.replace(/^%+|%+$/g, "");
+				// a like box's own text, so the wildcards stay where the user typed them
+				if (condition === "like") {
+					value = this.toolbar.get_standard_field(fieldname).get_value();
 				}
 				const filter = this._push_new_filter(doctype, fieldname, condition, value);
+				// a field the picker doesn't offer: no row, and the box keeps its filter
+				if (!filter.field) return null;
 				filter.standard_field = fieldname;
-				own.length && filter.filter_edit_area.insertBefore(own[0].filter_edit_area);
 				return filter;
-			});
-		this.filters = [...rows, ...own];
+			})
+			.filter(Boolean);
+		// in the order they were added, wherever they live; a box filled meanwhile comes last
+		this.order_filters([...own, ...rows].filter((f) => f.field).map((f) => f.get_value()));
+		const position = (f) => {
+			const i = this.filter_order.indexOf(
+				filter_key([f.fieldselect.selected_doctype, f.field?.df.fieldname])
+			);
+			return i === -1 ? this.filter_order.length : i;
+		};
+		this.filters = [...rows, ...own].sort((a, b) => position(a) - position(b));
+		this.filters.forEach((f) => f.filter_edit_area.appendTo(f.filter_edit_area.parent()));
 		rows.length && this.toggle_empty_filters(false);
 		// a Type set in the toolbar turns a Dynamic Link row into a record picker
 		this.refresh_dynamic_link_filters();
 		this.refresh_prefixes();
 	}
 
+	// the fields filtered on, in the order they were added: the panel and the saved filters keep it
+	order_filters(filters, prune = false) {
+		const keys = filters.map(filter_key);
+		const order = (this.filter_order || []).filter((k) => !prune || keys.includes(k));
+		keys.forEach((k) => !order.includes(k) && order.push(k));
+		this.filter_order = order;
+		return filters
+			.slice()
+			.sort((a, b) => order.indexOf(filter_key(a)) - order.indexOf(filter_key(b)));
+	}
+
 	drop_standard_rows() {
+		this.order_filters(this.filters.filter((f) => f.field).map((f) => f.get_value()));
 		this.filters.filter((f) => f.standard_field).forEach((f) => f.remove());
 		this.filters = this.filters.filter((f) => !f.standard_field);
 	}
@@ -565,8 +594,9 @@ frappe.ui.FilterGroup = class {
 
 		if (this.fits_toolbar_box(filter, filter.standard_field)) {
 			const condition = filter.get_condition();
-			const value = filter.get_selected_value();
-			const box_value = condition === "like" ? value.replace(/^%+|%+$/g, "") : value;
+			// a like row's text as typed: the box adds the wildcards itself
+			const box_value =
+				condition === "like" ? filter.field.get_value() : filter.get_selected_value();
 			// the box refreshes the list on every set, changed or not
 			const box_condition = box.df.match_type || box.df.condition || "=";
 			if (box_condition === condition && box.get_value() == box_value) return;
@@ -636,10 +666,15 @@ frappe.ui.FilterGroup = class {
 
 		const standard = this.toolbar?.get_standard_filters().length || 0;
 		const count = this.get_filters().length + standard;
-		this.filter_button.find(".filter-label").text(count).toggleClass("hidden", !count);
+		const $label = this.filter_button.find(".filter-label");
+		$label.text(count).toggleClass("hidden", !count);
+		// a host's own button (a dashboard chart) has no count: it shows applied as develop did
+		if (!$label.length) this.filter_button.toggleClass("btn-primary-light", count > 0);
 		// the clear button only shows, and joins the filter button, when there is something to clear
-		this.filter_button.toggleClass("rounded-se-none rounded-ee-none", count > 0);
-		this.filter_x_button?.toggleClass("hidden", !count);
+		if (this.filter_x_button) {
+			this.filter_button.toggleClass("rounded-se-none rounded-ee-none", count > 0);
+			this.filter_x_button.toggleClass("hidden", !count);
+		}
 		let title = __("Filter");
 		if (count)
 			title = count === 1 ? __("1 filter applied") : __("{0} filters applied", [count]);

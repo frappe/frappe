@@ -181,6 +181,12 @@ export class Desk {
 		await expect(this.page.locator(".filter-popover")).toBeAttached();
 	}
 
+	// a second click on the Filter button closes the panel
+	async close_list_filter() {
+		await this.page.locator(".filter-section .filter-button").click();
+		await expect(this.page.locator(".filter-popover")).toHaveCount(0);
+	}
+
 	// a filter row's field picker opens as a combobox panel in <body>
 	async pick_filter_field(label) {
 		const input = this.page.locator(

@@ -30,6 +30,11 @@
 	max-width: calc(100vw - var(--spacing) * 4);
 	// a classic Link field's awesomplete list hangs out of the panel
 	overflow: visible;
+
+	// unless the panel is taller than the screen: then it is capped, and must scroll
+	&[style*="max-height"] {
+		overflow: auto;
+	}
 }
 
 .filter-area {
@@ -193,11 +198,6 @@
 			display: flex;
 			align-items: center;
 		}
-	}
-
-	// Add filter and Clear all live in the sheet's footer and header
-	.filter-action-buttons {
-		display: none;
 	}
 }
 

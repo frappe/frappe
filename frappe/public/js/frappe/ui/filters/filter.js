@@ -19,26 +19,26 @@ frappe.ui.Filter = class {
 	set_conditions() {
 		this.conditions = [
 			["=", __("Equals")],
-			["!=", __("Not equals")],
+			["!=", __("Not Equals")],
 			["like", __("Like")],
-			["not like", __("Not like")],
+			["not like", __("Not Like")],
 			["in", __("In")],
-			["not in", __("Not in")],
+			["not in", __("Not In")],
 			["is", __("Is")],
-			[">", __("Greater than")],
-			["<", __("Less than")],
-			[">=", __("Greater than or equal to")],
-			["<=", __("Less than or equal to")],
+			[">", __("Greater Than")],
+			["<", __("Less Than")],
+			[">=", __("Greater Than Or Equal To")],
+			["<=", __("Less Than Or Equal To")],
 			["Between", __("Between")],
 			["Timespan", __("Timespan")],
 		];
 
 		this.nested_set_conditions = [
-			["descendants of", __("Descendants of")],
-			["descendants of (inclusive)", __("Descendants of (inclusive)")],
-			["not descendants of", __("Not descendants of")],
-			["ancestors of", __("Ancestors of")],
-			["not ancestors of", __("Not ancestors of")],
+			["descendants of", __("Descendants Of")],
+			["descendants of (inclusive)", __("Descendants Of (inclusive)")],
+			["not descendants of", __("Not Descendants Of")],
+			["ancestors of", __("Ancestors Of")],
+			["not ancestors of", __("Not Ancestors Of")],
 		];
 
 		this.conditions.push(...this.nested_set_conditions);
@@ -47,14 +47,14 @@ frappe.ui.Filter = class {
 			Date: {
 				"<": __("Before"),
 				">": __("After"),
-				"<=": __("On or before"),
-				">=": __("On or after"),
+				"<=": __("On or Before"),
+				">=": __("On or After"),
 			},
 			Datetime: {
 				"<": __("Before"),
 				">": __("After"),
-				"<=": __("On or before"),
-				">=": __("On or after"),
+				"<=": __("On or Before"),
+				">=": __("On or After"),
 			},
 		};
 
@@ -476,7 +476,7 @@ frappe.ui.Filter = class {
 			}
 		}
 		if (RECORD_PICKERS.includes(df.fieldtype)) {
-			df.get_data = (txt) => this.get_link_options(df, txt);
+			df.get_data = (txt) => frappe.db.get_link_options(df.options, txt, {}, 20);
 			df.change = () => this.on_change();
 		}
 		let f = frappe.ui.form.make_control({
@@ -511,7 +511,7 @@ frappe.ui.Filter = class {
 			df.original_type
 		);
 		if (["in", "not in"].includes(condition) && df.fieldtype === "Data") {
-			return numeric ? "100, 200, 300" : __("Values, comma separated");
+			return numeric ? __("100, 200, 300") : __("Values, comma separated");
 		}
 		if (["like", "not like"].includes(condition)) {
 			return __("Text to match, % as wildcard");
@@ -528,22 +528,6 @@ frappe.ui.Filter = class {
 		if (numeric || df.fieldtype === "Data")
 			return label ? __("Enter {0}", [label]) : __("Value");
 		return "";
-	}
-
-	get_link_options(df, txt) {
-		return frappe
-			.xcall("frappe.desk.search.search_link", {
-				doctype: df.options,
-				txt: txt || "",
-				page_length: 20,
-			})
-			.then((r) =>
-				(r?.results || r || []).map((d) => ({
-					value: d.value,
-					label: d.label || d.value,
-					description: d.description || "",
-				}))
-			);
 	}
 
 	bind_filter_field_events() {
@@ -566,18 +550,20 @@ frappe.ui.Filter = class {
 				this.on_change();
 			});
 		} else {
-			// a pick in a select or a datepicker lands as a change, with no focusout
-			this.field.$input.on("change", () => this.on_change());
+			// a pick in a select or a datepicker lands as a change, with no focusout,
+			// and a pick from the classic Link list as its own event
+			this.field.$input.on("change awesomplete-selectcomplete", () => this.on_change());
 		}
 
-		// run on enter
+		// Enter applies the row and closes the panel, unless a list in the box used it to
+		// pick (a Link suggestion, or a row of an "in" picker)
 		$(this.field.wrapper)
 			.find(":input")
 			.keydown((e) => {
-				if (e.which == 13 && this.field.df.fieldtype !== "MultiSelect") {
-					this.on_change();
-					this.on_enter && this.on_enter();
-				}
+				if (e.which !== 13 || e.isDefaultPrevented()) return;
+				if (["MultiSelect", ...RECORD_PICKERS].includes(this.field.df.fieldtype)) return;
+				this.on_change();
+				this.on_enter && this.on_enter();
 			});
 	}
 

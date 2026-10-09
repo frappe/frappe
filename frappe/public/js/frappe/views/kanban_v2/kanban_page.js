@@ -716,6 +716,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			if (options.length && options[0] !== "") options.unshift("");
 			options = options.join("\n");
 		}
+		// a tree's box takes the branch under the picked node, as on the list view
+		if (df.fieldtype === "Link" && df.options && frappe.boot.treeviews.includes(df.options)) {
+			condition = "descendants of (inclusive)";
+		}
 		return {
 			fieldtype,
 			label: __(df.label, null, df.parent),
@@ -736,7 +740,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			if (!box || seeds.has(box)) return true;
 			if (!frappe.ui.FilterGroup.fits_box(box, cond, val)) return true;
 			box.df.match_type = cond;
-			seeds.set(box, typeof val === "string" ? val.replace(/^%+|%+$/g, "") : val);
+			// only the pair of wildcards the box adds itself: "%#4" (ends with) stays as it is
+			const pair = cond === "like" && typeof val === "string" && /^%.*%$/s.test(val);
+			seeds.set(box, pair ? val.slice(1, -1) : val);
 			return false;
 		});
 		this._seeding_quick = true;

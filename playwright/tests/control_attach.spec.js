@@ -220,10 +220,8 @@ test.describe("Attach Control with Failed Document Save", () => {
 		await expect(page.locator("header .level-right .list-count:visible")).toContainText(
 			"1 of 1"
 		);
-		// close the panel: the next test opens it again
-		const area = await page.locator(".layout-main-section").boundingBox();
-		await page.mouse.click(area.x + area.width / 2, area.y + area.height - 5);
-		await expect(page.locator(".filter-popover")).toHaveCount(0);
+		// the next test opens the panel again
+		await desk.close_list_filter();
 	});
 
 	test("Check if file exists with temporary name", async () => {

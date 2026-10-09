@@ -668,10 +668,12 @@ class FilterArea {
 		this.$filter_list_wrapper = this.list_view.$filter_section;
 		this.trigger_refresh = true;
 
-		this.debounced_refresh_list_view = frappe.utils.debounce(
-			this.refresh_list_view.bind(this),
-			300
-		);
+		const refresh = frappe.utils.debounce(this.refresh_list_view.bind(this), 300);
+		this.debounced_refresh_list_view = () => {
+			// a box filled now goes after the filters added before it, refreshed or not
+			this.filter_list?.order_filters(this.get_standard_filters());
+			refresh();
+		};
 		this.setup();
 		if (!this.list_view.hide_page_form) this.setup_mobile_toolbar();
 	}
@@ -727,7 +729,8 @@ class FilterArea {
 		let filters = this.filter_list.get_filters();
 		let standard_filters = this.get_standard_filters();
 
-		return filters.concat(standard_filters).uniqBy(JSON.stringify);
+		const all = filters.concat(standard_filters).uniqBy(JSON.stringify);
+		return this.filter_list.order_filters(all, true);
 	}
 
 	set(filters) {
@@ -749,6 +752,8 @@ class FilterArea {
 		}
 
 		filters = filters.filter((f) => !this.exists(f));
+		// saved filters come in the order they were added
+		this.filter_list.order_filters(filters);
 
 		// standard filters = filters visible on list view
 		// non-standard filters = filters set by filter button
@@ -1142,6 +1147,7 @@ class FilterArea {
 		return frappe.run_serially(promises).then(() => {
 			// last, so the filter count drops once, after the toolbar boxes are empty
 			this.filter_list.clear_filters();
+			this.filter_list.filter_order = [];
 			this.trigger_refresh = true;
 			if (promises.length === 0) {
 				// refresh if there are no standard fields

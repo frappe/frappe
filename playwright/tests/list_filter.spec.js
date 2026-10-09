@@ -6,8 +6,22 @@ const applied = (page) =>
 	page.evaluate(() => cur_list.filter_area.get().map((f) => f.slice(1, 4)));
 const box_value = (page, fieldname) =>
 	page.evaluate((fieldname) => cur_list.page.fields_dict[fieldname].get_value(), fieldname);
+// no request still on its way, so a filter that would apply has applied
+const settled = (page) => page.waitForFunction(() => frappe.request.ajax_count === 0);
 
 test.describe("List filter", () => {
+	// saved list filters would carry over to the specs that open these lists next
+	test.afterEach(async ({ page, api }) => {
+		const doctype = await page.evaluate(() => window.cur_list?.doctype);
+		if (!doctype) return;
+		await page.evaluate(() => cur_list.filter_area.clear());
+		await settled(page);
+		await api.call("frappe.model.utils.user_settings.save", {
+			doctype,
+			user_settings: JSON.stringify({ List: { filters: [] } }),
+		});
+	});
+
 	test.describe("panel", () => {
 		test("applies a filter as soon as it is complete", async ({ page, desk }) => {
 			await desk.go_to_list("ToDo");
@@ -38,11 +52,29 @@ test.describe("List filter", () => {
 			);
 			await expect(value).toHaveValue("first");
 			await value.fill("second");
-			const area = await page.locator(".layout-main-section").boundingBox();
-			await page.mouse.click(area.x + area.width / 2, area.y + area.height - 5);
+			await desk.close_list_filter();
 
-			await expect(page.locator(".filter-popover")).toHaveCount(0);
 			await expect.poll(() => box_value(page, "name")).toBe("second");
+		});
+
+		test("leaves the wildcards typed in a like box as they are", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			// ends with "todo", not contains it
+			await page.evaluate(() => cur_list.page.fields_dict.description.set_value("%todo"));
+			await expect
+				.poll(() => applied(page))
+				.toContainEqual(["description", "like", "%todo"]);
+
+			await desk.open_list_filter();
+			await expect(
+				page.locator('.filter-popover .filter-field input[data-fieldname="description"]')
+			).toHaveValue("%todo");
+			await desk.close_list_filter();
+
+			await settled(page);
+			expect(await box_value(page, "description")).toBe("%todo");
+			expect(await applied(page)).toContainEqual(["description", "like", "%todo"]);
 		});
 
 		test("a Check field filters only once Yes or No is chosen", async ({ page, desk }) => {
@@ -53,6 +85,7 @@ test.describe("List filter", () => {
 			await desk.pick_filter_field("Published");
 			const select = page.locator(".filter-popover .filter-field select");
 			await expect(select).toHaveValue("");
+			await settled(page);
 			expect(await applied(page)).toHaveLength(0);
 
 			await select.selectOption("No");
@@ -90,19 +123,19 @@ test.describe("List filter", () => {
 				await search(page).pressSequentially("Not");
 				await search(page).press("Tab");
 				await expect(panel(page)).toHaveCount(0);
+				await settled(page);
 				expect(await applied(page)).toEqual(kept);
 
 				// the "Use …" row is gone, and a click away drops the text too
 				await value.click();
 				await search(page).pressSequentially("Not");
 				await expect(panel(page).getByText('Use "Not"')).toHaveCount(0);
-				const area = await page.locator(".layout-main-section").boundingBox();
-				await page.mouse.click(area.x + area.width / 2, area.y + area.height - 5);
+				await desk.close_list_filter();
 				await expect(panel(page)).toHaveCount(0);
+				await settled(page);
 				expect(await applied(page)).toEqual(kept);
 
 				// an exact name still picks its record (core DocTypes: no app is installed in CI)
-				await expect(page.locator(".filter-popover")).toHaveCount(0);
 				await desk.open_list_filter();
 				await value.click();
 				await search(page).pressSequentially("Note");

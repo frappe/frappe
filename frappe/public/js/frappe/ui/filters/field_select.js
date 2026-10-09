@@ -33,7 +33,20 @@ frappe.ui.FieldSelect = class FieldSelect {
 		if (!item) return;
 		this.selected_doctype = item.doctype;
 		this.selected_fieldname = item.fieldname;
+		// outside its group a child table's field needs its table: "Cost Center (Items)"
+		if (item.group) this.combobox.set_value(item.value, { label: this.get_label(item) });
 		this.select && this.select(item.doctype, item.fieldname);
+	}
+
+	get_label(item) {
+		return item.group ? `${item.label} (${item.group})` : item.label;
+	}
+
+	selected_label() {
+		const item = this.options.find(
+			(o) => o.doctype === this.selected_doctype && o.fieldname === this.selected_fieldname
+		);
+		return item ? this.get_label(item) : "";
 	}
 
 	// loose rows first (the doctype's own fields), then one group per child table
@@ -90,7 +103,7 @@ frappe.ui.FieldSelect = class FieldSelect {
 		if (!item) return;
 		this.selected_doctype = doctype;
 		this.selected_fieldname = fieldname;
-		this.combobox.set_value(item.value, { label: item.label });
+		this.combobox.set_value(item.value, { label: this.get_label(item) });
 	}
 
 	focus() {
