@@ -121,6 +121,11 @@ def get_common_site_config(sites_path: str | None = None, cached=False) -> _dict
 
 
 def _apply_common_env_overrides(config: _dict[str, Any]) -> None:
+	from frappe.utils.data import cint, sbool
+
+	config["allow_symlink_sites"] = cint(
+		sbool(os.environ.get("FRAPPE_ALLOW_SYMLINK_SITES", config.get("allow_symlink_sites", False)))
+	)
 	config["redis_queue"] = (
 		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
 	)

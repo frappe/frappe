@@ -5,11 +5,13 @@ import io
 import json
 import os
 import sys
+import tempfile
 from datetime import UTC, date, datetime, time, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
 from mimetypes import guess_type
+from pathlib import Path
 from typing import Literal
 from unittest.mock import patch
 
@@ -2415,6 +2417,47 @@ class TestURLTrackers(IntegrationTestCase):
 		self.assertDocumentEqual(result["utm_medium"], expected["utm_medium"])
 		self.assertDocumentEqual(result["utm_campaign"], expected["utm_campaign"])
 		self.assertEqual(result["utm_content"], expected["utm_content"])
+
+
+class TestSiteDiscovery(UnitTestCase):
+	def test_symlink_sites_configuration(self):
+		with tempfile.TemporaryDirectory() as directory:
+			root = Path(directory)
+			sites = root / "sites"
+			sites.mkdir()
+			regular = sites / "regular.example.com"
+			regular.mkdir()
+			(regular / "site_config.json").write_text("{}")
+			target = root / "target"
+			target.mkdir()
+			(target / "site_config.json").write_text("{}")
+			(sites / "linked.example.com").symlink_to(target, target_is_directory=True)
+			(sites / "broken.example.com").symlink_to(root / "missing", target_is_directory=True)
+			(sites / "unconfigured.example.com").mkdir()
+			(sites / "unconfigured-link.example.com").symlink_to(
+				sites / "unconfigured.example.com", target_is_directory=True
+			)
+
+			for common_value, env_value, enabled in (
+				(None, None, False),
+				(False, None, False),
+				(True, None, True),
+				(False, "1", True),
+				(False, "true", True),
+				(True, "0", False),
+				(True, "false", False),
+			):
+				with self.subTest(common_value=common_value, env_value=env_value):
+					config = {} if common_value is None else {"allow_symlink_sites": common_value}
+					(sites / "common_site_config.json").write_text(json.dumps(config))
+					with patch.dict(os.environ):
+						os.environ.pop("FRAPPE_ALLOW_SYMLINK_SITES", None)
+						if env_value is not None:
+							os.environ["FRAPPE_ALLOW_SYMLINK_SITES"] = env_value
+						expected = ["regular.example.com"]
+						if enabled:
+							expected.insert(0, "linked.example.com")
+						self.assertEqual(get_sites(str(sites)), expected)
 
 
 class TestDataUtils(UnitTestCase):

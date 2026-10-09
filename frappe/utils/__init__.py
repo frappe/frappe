@@ -706,16 +706,19 @@ def is_a_property(x) -> bool:
 
 
 def get_sites(sites_path=None):
+	from frappe.config import get_common_site_config
+
 	if not sites_path:
 		sites_path = getattr(frappe.local, "sites_path", None) or "."
 
+	allow_symlinks = get_common_site_config(sites_path).allow_symlink_sites
 	sites = []
 	for site in os.listdir(sites_path):
 		path = os.path.join(sites_path, site)
 
 		if (
 			os.path.isdir(path)
-			and not os.path.islink(path)
+			and (allow_symlinks or not os.path.islink(path))
 			and os.path.exists(os.path.join(path, "site_config.json"))
 		):
 			# is a dir and has site_config.json
