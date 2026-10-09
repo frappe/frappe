@@ -315,5 +315,12 @@ test.describe("List View", () => {
 		const input = page.locator(".filter-popover .fieldname-select-area input").first();
 		await expect(input).toHaveValue("Status");
 		await expect(input).not.toBeFocused();
+		await expect(page.locator(".filter-popover")).toBeFocused();
+
+		// keyboard users reach the first field with Tab and keep it with another Tab
+		await page.keyboard.press("Tab");
+		await expect(input).toBeFocused();
+		await page.keyboard.press("Tab");
+		await expect(input).toHaveValue("Status");
 	});
 });

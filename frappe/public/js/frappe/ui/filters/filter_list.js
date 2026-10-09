@@ -43,7 +43,7 @@ frappe.ui.FilterGroup = class {
 		this.filter_button.popover({
 			content: this.get_filter_area_template(),
 			template: `
-				<div class="filter-popover popover">
+				<div class="filter-popover popover" tabindex="-1">
 					<div class="arrow"></div>
 					<div class="popover-body popover-content">
 					</div>
@@ -99,7 +99,10 @@ frappe.ui.FilterGroup = class {
 				this.set_filter_events();
 			}
 			this.toggle_empty_filters(false);
-			if (!hide_empty_filters) {
+			if (hide_empty_filters) {
+				// the popover lives at the end of body, focus it so Tab reaches the filters
+				this.wrapper.trigger("focus");
+			} else {
 				this._push_new_filter(this.doctype).fieldselect.$input.focus();
 			}
 		});
