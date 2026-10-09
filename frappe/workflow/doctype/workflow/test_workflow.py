@@ -215,6 +215,116 @@ class TestWorkflow(FrappeTestCase):
 			"invalid python code" in str(se.exception).lower(), msg="Python code validation not working"
 		)
 
+<<<<<<< HEAD
+=======
+	def test_dynamic_update_value_expression(self):
+		"""Test dynamic expression evaluation in workflow update_value field"""
+		self.workflow.states[1].update_field = "assigned_by"
+		self.workflow.states[1].update_value = "frappe.session.user"
+		self.workflow.states[1].evaluate_as_expression = 1
+		self.workflow.save()
+
+		todo = create_new_todo()
+		apply_workflow(todo, "Approve")
+
+		self.assertEqual(todo.assigned_by, frappe.session.user)
+
+	def test_dynamic_update_value_with_doc_field(self):
+		"""Test dynamic expression using doc field value"""
+		self.workflow.states[1].update_field = "description"
+		self.workflow.states[1].update_value = "doc.allocated_to or 'No assignee'"
+		self.workflow.states[1].evaluate_as_expression = 1
+		self.workflow.save()
+
+		todo = create_new_todo()
+		todo.allocated_to = "Administrator"
+		todo.save()
+
+		apply_workflow(todo, "Approve")
+
+		self.assertEqual(todo.description, "Administrator")
+
+	def test_static_value_when_expression_disabled(self):
+		"""Test that value is not evaluated when evaluate_as_expression is disabled"""
+		self.workflow.states[1].update_field = "description"
+		self.workflow.states[1].update_value = "frappe.session.user"
+		self.workflow.states[1].evaluate_as_expression = 0
+		self.workflow.save()
+
+		todo = create_new_todo()
+		apply_workflow(todo, "Approve")
+
+		self.assertEqual(todo.description, "frappe.session.user")
+
+	def test_invalid_expression_raises_error(self):
+		"""Test that invalid expression raises proper error"""
+		self.workflow.states[1].update_field = "description"
+		self.workflow.states[1].update_value = "invalid_syntax(("
+		self.workflow.states[1].evaluate_as_expression = 1
+		self.workflow.save()
+
+		todo = create_new_todo()
+
+		with self.assertRaises(frappe.ValidationError):
+			apply_workflow(todo, "Approve")
+
+	def test_get_workflow_state_count_requires_workflow_permission(self):
+		"""Only callers who can configure Workflows may use this, regardless of doctype/field chosen."""
+		from frappe.workflow.doctype.workflow.workflow import get_workflow_state_count
+
+		create_new_todo()
+
+		frappe.set_user("test2@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		with self.assertRaises(frappe.PermissionError):
+			get_workflow_state_count(doctype="ToDo", workflow_state_field="workflow_state", states=[])
+
+	# app-defined workflow task tests start here
+	def test_sync_tasks(self, doc=None):
+		"""test workflow with workflow tasks (server scripts, webhooks and app-defined methods)"""
+
+		# for webhooks
+		self.responses = responses.RequestsMock()
+		self.responses.start()
+
+		self.responses.add(
+			responses.POST,
+			"https://workflowtasks.org/post",
+			status=200,
+			json={},
+		)
+
+		domain = frappe.new_doc("Domain")
+		domain.domain = random_string(length=10)
+		domain.save()
+
+		with self.patch_hooks(
+			{
+				"workflow_methods": [
+					{
+						"name": "Create Note",
+						"method": "frappe.workflow.doctype.workflow.test_workflow.create_new_note",
+					}
+				]
+			}
+		):
+			apply_workflow(domain, "Approve")
+
+		# refer create_new_task()
+		self.assertTrue(
+			frappe.db.exists("Note", {"title": "workflow - " + domain.name, "content": "workflow test"})
+		)
+		self.assertTrue(frappe.db.exists("Domain", {"name": "workflow - " + domain.name}))
+		self.assertTrue(frappe.db.exists("Webhook Request Log", {"url": "https://workflowtasks.org/post"}))
+
+		# for webhooks
+		self.responses.stop()
+		self.responses.reset()
+
+		return domain
+
+>>>>>>> f53bbe8 (test: add regression tests for the change)
 
 def create_todo_workflow():
 	from frappe.tests.ui_test_helpers import UI_TEST_USER
