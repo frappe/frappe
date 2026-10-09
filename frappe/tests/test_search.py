@@ -232,6 +232,30 @@ class TestSearch(IntegrationTestCase):
 			pages, [["Depot Alpha", "Depot Zulu"], ["Depot Bravo", "Depot Charlie"], ["Old Depot"]]
 		)
 
+	def test_translated_doctype_custom_query_matches_value_in_query_order(self):
+		doctype = self.make_translated_search_doctype(
+			[
+				{"title": "Depot Alpha", "category": "Box"},
+				{"title": "Box Depot", "category": "Crate"},
+				{"title": "Crate Store", "category": "Box"},
+				{"title": "Depot Zulu", "category": "Box"},
+			]
+		)
+		query = "frappe.tests.test_search.category_query"
+
+		# only the value column is matched, in the query's order (Z to A), then paged
+		pages = [
+			[
+				row[0]
+				for row in search_widget(doctype=doctype, txt="box", query=query, start=start, page_length=1)
+			]
+			for start in (0, 1)
+		]
+		self.assertEqual(pages, [["Box Depot"], []])
+
+		results = search_widget(doctype=doctype, txt="depot", query=query)
+		self.assertEqual([row[0] for row in results], ["Depot Zulu", "Depot Alpha", "Box Depot"])
+
 	def make_translated_search_doctype(self, records: list[dict]) -> str:
 		doctype = "Test Translated Search"
 		if frappe.db.exists("DocType", doctype):
@@ -1097,3 +1121,20 @@ def teardown_test_link_field_order(TestCase):
 	)
 
 	TestCase.tree_doc.delete()
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def category_query(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	table = frappe.qb.DocType(doctype)
+	query = (
+		frappe.qb.from_(table).select(table.name, table.category).orderby(table.name, order=frappe.qb.desc)
+	)
+	return query.offset(start).limit(page_len).run()
