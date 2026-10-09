@@ -361,30 +361,19 @@ frappe.update_msgprint = function (html) {
 	}
 };
 
-frappe.verify_password = function (callback) {
-	frappe.prompt(
-		{
-			fieldname: "password",
-			label: __("Enter your password"),
-			fieldtype: "Password",
-			reqd: 1,
-		},
-		function (data) {
-			frappe.call({
-				method: "frappe.core.doctype.user.user.verify_password",
-				args: {
-					password: data.password,
-				},
-				callback: function (r) {
-					if (!r.exc) {
-						callback();
-					}
-				},
-			});
-		},
-		__("Verify Password"),
-		__("Verify")
+frappe.confirm_sensitive_action = function (callback, message) {
+	return frappe.warn(
+		__("Confirm Sensitive Action"),
+		message || __("This is a sensitive action. Are you sure you want to continue?"),
+		callback,
+		__("Continue")
 	);
+};
+
+// deprecated: a client-side password check guards nothing, use frappe.confirm_sensitive_action instead
+frappe.verify_password = function (callback) {
+	console.warn("frappe.verify_password is deprecated, use frappe.confirm_sensitive_action");
+	frappe.confirm_sensitive_action(callback);
 };
 
 frappe.show_progress = (title, count, total = 100, description, hide_on_completion = false) => {
