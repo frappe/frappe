@@ -7,7 +7,6 @@ from datetime import date
 import frappe
 from frappe import _
 from frappe.query_builder import functions
-from frappe.query_builder.terms import ValueWrapper
 from frappe.utils import get_datetime, getdate
 
 
@@ -40,6 +39,7 @@ def get_events(
 	field_map: str,
 	filters: str | None = None,
 	fields: str | list[str] | None = None,
+	order_by: str | None = None,
 ):
 	start, end = getdate(start), get_datetime(end)
 
@@ -65,8 +65,8 @@ def get_events(
 			frappe.throw(_("{0} is not a valid field of {1}").format(field_map.get(key), doctype))
 
 	dt = frappe.qb.DocType(doctype)
-	start_field = functions.IfNull(dt[field_map.start], ValueWrapper("0001-01-01 00:00:00"))
-	end_field = functions.IfNull(dt[field_map.end], ValueWrapper("2199-12-31 00:00:00"))
+	start_field = functions.IfNull(dt[field_map.start], dt[field_map.end])
+	end_field = functions.IfNull(dt[field_map.end], dt[field_map.start])
 
 	filters += [
 		[start_field, "<=", end],
@@ -74,4 +74,4 @@ def get_events(
 	]
 
 	fields = list({field for field in fields if field})
-	return frappe.get_list(doctype, fields=fields, filters=filters)
+	return frappe.get_list(doctype, fields=fields, filters=filters, order_by=order_by)

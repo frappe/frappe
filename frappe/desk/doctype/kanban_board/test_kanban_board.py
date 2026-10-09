@@ -1,7 +1,576 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+
+import os
+import shutil
+import tempfile
+from unittest.mock import patch
+
+import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
+from frappe.desk.doctype.kanban_board import kanban_board as kb
+from frappe.desk.doctype.kanban_board.kanban_board import (
+	get_kanban_board_data,
+	get_kanban_column_order_and_index,
+	get_kanban_column_page,
+	update_order,
+	update_order_for_single_card,
+)
 from frappe.tests import IntegrationTestCase
 
 
+def _decompress_kanban_cards(cards):
+	if isinstance(cards, dict) and cards.get("keys"):
+		return [dict(zip(cards["keys"], values, strict=True)) for values in cards["values"]]
+	return cards or []
+
+
 class TestKanbanBoard(IntegrationTestCase):
-	pass
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.board_name = "_Test Kanban Order Board"
+		if frappe.db.exists("Kanban Board", cls.board_name):
+			frappe.delete_doc("Kanban Board", cls.board_name, force=1)
+
+		cls.todos = []
+		for i, status in enumerate(["Open", "Open", "Open", "Closed"]):
+			doc = frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"description": f"Kanban order test {i}",
+					"status": status,
+				}
+			).insert(ignore_permissions=True)
+			cls.todos.append(doc.name)
+
+		board = frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": cls.board_name,
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"private": 1,
+				"filters": frappe.as_json([["ToDo", "name", "in", cls.todos]]),
+				"columns": [
+					{
+						"column_name": "Open",
+						"order": frappe.as_json(cls.todos[:3]),
+					},
+					{
+						"column_name": "Closed",
+						"order": frappe.as_json(cls.todos[3:]),
+					},
+				],
+			}
+		).insert(ignore_permissions=True)
+		cls.board_name = board.name
+
+	@classmethod
+	def tearDownClass(cls):
+		if frappe.db.exists("Kanban Board", cls.board_name):
+			frappe.delete_doc("Kanban Board", cls.board_name, force=1)
+		for name in cls.todos:
+			if frappe.db.exists("ToDo", name):
+				frappe.delete_doc("ToDo", name, force=1)
+		super().tearDownClass()
+
+	def setUp(self):
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		board.filters = frappe.as_json([["ToDo", "name", "in", self.todos]])
+		board.columns[0].order = frappe.as_json(self.todos[:3])
+		board.columns[1].order = frappe.as_json(self.todos[3:])
+		board.save(ignore_permissions=True)
+		for i, status in enumerate(["Open", "Open", "Open", "Closed"]):
+			frappe.db.set_value("ToDo", self.todos[i], "status", status)
+
+	def test_update_order_for_single_card_with_order_arrays_same_column(self):
+		open_order, _ = get_kanban_column_order_and_index(
+			frappe.get_doc("Kanban Board", self.board_name), "Open"
+		)
+		moved = open_order.pop(0)
+		open_order.insert(1, moved)
+
+		update_order_for_single_card(
+			board_name=self.board_name,
+			docname=moved,
+			from_colname="Open",
+			to_colname="Open",
+			from_order=open_order,
+			to_order=open_order,
+		)
+
+		saved_order, _ = get_kanban_column_order_and_index(
+			frappe.get_doc("Kanban Board", self.board_name), "Open"
+		)
+		self.assertEqual(saved_order[1], moved)
+		self.assertEqual(len(saved_order), 3)
+
+	def test_update_order_for_single_card_with_order_arrays_cross_column(self):
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		open_order, _ = get_kanban_column_order_and_index(board, "Open")
+		closed_order, _ = get_kanban_column_order_and_index(board, "Closed")
+
+		moved = open_order.pop(1)
+		closed_order.insert(0, moved)
+
+		update_order_for_single_card(
+			board_name=self.board_name,
+			docname=moved,
+			from_colname="Open",
+			to_colname="Closed",
+			from_order=open_order,
+			to_order=closed_order,
+		)
+
+		board.reload()
+		open_order, _ = get_kanban_column_order_and_index(board, "Open")
+		closed_order, _ = get_kanban_column_order_and_index(board, "Closed")
+
+		self.assertNotIn(moved, open_order)
+		self.assertEqual(closed_order[0], moved)
+		self.assertEqual(frappe.db.get_value("ToDo", moved, "status"), "Closed")
+
+	def test_update_order_for_single_card_legacy_indices(self):
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		open_order, _ = get_kanban_column_order_and_index(board, "Open")
+		if len(open_order) < 2:
+			self.skipTest("Need at least two Open cards")
+
+		update_order_for_single_card(
+			board_name=self.board_name,
+			docname=open_order[0],
+			from_colname="Open",
+			to_colname="Open",
+			old_index=0,
+			new_index=1,
+		)
+
+		saved_order, _ = get_kanban_column_order_and_index(
+			frappe.get_doc("Kanban Board", self.board_name), "Open"
+		)
+		self.assertEqual(saved_order[1], open_order[0])
+
+	def test_update_order_bulk(self):
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		open_order, _ = get_kanban_column_order_and_index(board, "Open")
+		reversed_open = list(reversed(open_order))
+
+		update_order(
+			self.board_name,
+			frappe.as_json({"Open": reversed_open, "Closed": []}),
+		)
+
+		saved_order, _ = get_kanban_column_order_and_index(
+			frappe.get_doc("Kanban Board", self.board_name), "Open"
+		)
+		self.assertEqual(saved_order, reversed_open)
+
+	def test_update_order_skips_missing_docs(self):
+		"""On-load sync must not throw when saved order still lists deleted cards."""
+		missing = "ToDo-does-not-exist"
+		open_with_stale = [self.todos[0], missing, self.todos[1], self.todos[2]]
+
+		board, updated = update_order(
+			self.board_name,
+			frappe.as_json({"Open": open_with_stale, "Closed": self.todos[3:]}),
+		)
+
+		saved_order, _ = get_kanban_column_order_and_index(board, "Open")
+		self.assertEqual(saved_order, [self.todos[0], self.todos[1], self.todos[2]])
+		self.assertNotIn(missing, saved_order)
+		self.assertEqual(updated, [])
+
+	def test_get_kanban_board_data(self):
+		frappe.local.form_dict = frappe._dict(
+			{
+				"board_name": self.board_name,
+				"doctype": "ToDo",
+				"fields": '["name", "status", "description"]',
+				"filters": "[]",
+				"kanban_page_length": 50,
+			}
+		)
+
+		result = get_kanban_board_data()
+		open_data = result["columns"]["Open"]
+		closed_data = result["columns"]["Closed"]
+
+		self.assertEqual(open_data["total"], 3)
+		self.assertEqual(closed_data["total"], 1)
+		self.assertEqual(len(_decompress_kanban_cards(open_data["cards"])), 3)
+		self.assertEqual(len(_decompress_kanban_cards(closed_data["cards"])), 1)
+
+	def make_user_theme_board(self):
+		# Language shows its title in links, as Project does in ERPNext
+		self.assertTrue(frappe.get_meta("Language").show_title_field_in_link)
+		board = frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": "_Test User Theme Board",
+				"reference_doctype": "User",
+				"field_name": "desk_theme",
+				"columns": [{"column_name": "Light"}, {"column_name": "Dark"}, {"column_name": "Automatic"}],
+				"group_by_fields": [{"fieldname": "language"}],
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Kanban Board", board.name, force=1)
+		frappe.db.set_value("User", "Administrator", "language", "en")
+		return board
+
+	def test_get_kanban_group_values_labels_links_with_titles(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		board = self.make_user_theme_board()
+		res = get_kanban_group_values(board.name, "language", [["User", "name", "=", "Administrator"]])
+
+		self.assertEqual(res["lanes"], [{"value": "en", "label": "English", "count": 1}])
+
+	def test_get_kanban_board_data_sends_link_titles(self):
+		board = self.make_user_theme_board()
+		frappe.local.response.pop("_link_titles", None)
+		frappe.local.form_dict = frappe._dict(
+			{
+				"board_name": board.name,
+				"doctype": "User",
+				"fields": '["name", "desk_theme", "language"]',
+				"filters": '[["User", "name", "=", "Administrator"]]',
+				"kanban_page_length": 50,
+			}
+		)
+
+		get_kanban_board_data()
+
+		self.assertEqual(frappe.local.response["_link_titles"].get("Language::en"), "English")
+
+	def test_on_change_clears_only_reference_doctype_user_settings(self):
+		from frappe.model.utils import user_settings
+
+		user = frappe.session.user
+		user_settings.update_user_settings("ToDo", {"sentinel": "ref"})
+		user_settings.update_user_settings("User", {"sentinel": "other"})
+
+		self.assertIsNotNone(frappe.cache.hget("_user_settings", f"ToDo::{user}"))
+		self.assertIsNotNone(frappe.cache.hget("_user_settings", f"User::{user}"))
+
+		frappe.get_doc("Kanban Board", self.board_name).save(ignore_permissions=True)
+
+		self.assertIsNone(frappe.cache.hget("_user_settings", f"ToDo::{user}"))
+		self.assertIsNotNone(frappe.cache.hget("_user_settings", f"User::{user}"))
+
+		frappe.cache.hdel("_user_settings", f"User::{user}")
+
+	def test_get_kanban_column_page(self):
+		frappe.local.form_dict = frappe._dict(
+			{
+				"board_name": self.board_name,
+				"column_name": "Open",
+				"doctype": "ToDo",
+				"fields": '["name", "status", "description"]',
+				"filters": "[]",
+				"kanban_start": 0,
+				"kanban_page_length": 2,
+			}
+		)
+
+		first_page = get_kanban_column_page()
+		self.assertEqual(first_page["total"], 3)
+		self.assertEqual(len(_decompress_kanban_cards(first_page["cards"])), 2)
+
+		frappe.local.form_dict["kanban_start"] = 2
+		second_page = get_kanban_column_page()
+		self.assertEqual(len(_decompress_kanban_cards(second_page["cards"])), 1)
+
+	def test_private_board_blocks_other_users(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import (
+			add_card,
+			get_kanban_board_context,
+			update_order,
+			update_order_for_single_card,
+		)
+
+		other = "kanban_perm_test@example.com"
+		if not frappe.db.exists("User", other):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": other,
+					"first_name": "Kanban",
+					"last_name": "Perm",
+					"send_welcome_email": 0,
+					"roles": [{"role": "System Manager"}],
+				}
+			).insert(ignore_permissions=True)
+
+		# Board is private and owned by the test session user, not `other`.
+		frappe.set_user(other)
+		self.assertRaises(frappe.PermissionError, lambda: get_kanban_board_context(self.board_name))
+		self.assertRaises(
+			frappe.PermissionError,
+			lambda: update_order_for_single_card(
+				board_name=self.board_name,
+				docname=self.todos[0],
+				from_colname="Open",
+				to_colname="Closed",
+				from_order=[],
+				to_order=[self.todos[0]],
+			),
+		)
+		self.assertRaises(
+			frappe.PermissionError,
+			lambda: update_order(self.board_name, {"Open": self.todos[:3]}),
+		)
+		self.assertRaises(
+			frappe.PermissionError,
+			lambda: add_card(self.board_name, self.todos[0], "Open"),
+		)
+		frappe.set_user("Administrator")
+
+	def test_group_by_fields_seeded_with_select_fields(self):
+		name = frappe.generate_hash(length=10)
+		board = frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": name,
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"columns": [{"column_name": "Open"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lambda: frappe.delete_doc("Kanban Board", board.name, force=1))
+
+		meta = frappe.get_meta("ToDo")
+		seeded = {f.fieldname for f in board.group_by_fields}
+		# Every seeded field is a non-hidden Select…
+		for fieldname in seeded:
+			self.assertEqual(meta.get_field(fieldname).fieldtype, "Select")
+		# …the column field (status) is excluded, and other Select fields are in.
+		self.assertNotIn("status", seeded)
+		self.assertIn("priority", seeded)
+
+	def test_new_board_uses_kanban_v2(self):
+		self.assertEqual(frappe.db.get_value("Kanban Board", self.board_name, "use_kanban_v2"), 1)
+
+	def test_title_field_can_be_a_text_field(self):
+		# ToDo's title field is description, a Text Editor
+		self.assertEqual(frappe.db.get_value("Kanban Board", self.board_name, "title_field"), "description")
+
+	def test_title_field_can_be_the_doctypes_hidden_title(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import default_title_field
+
+		# Contact's title field, full_name, is hidden and computed
+		self.assertTrue(frappe.get_meta("Contact").get_field("full_name").hidden)
+		self.assertEqual(default_title_field("Contact"), "full_name")
+
+	def test_get_kanban_group_values(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		# priority is seeded into group_by_fields; status (column field) is not.
+		for name, priority in zip(self.todos, ["High", "High", "High", "Medium"], strict=True):
+			frappe.db.set_value("ToDo", name, "priority", priority)
+
+		res = get_kanban_group_values(self.board_name, "priority")
+		lanes = {lane["value"]: lane["count"] for lane in res["lanes"]}
+		self.assertEqual(lanes.get("High"), 3)
+		self.assertEqual(lanes.get("Medium"), 1)
+		self.assertEqual(res["unset"], 0)
+
+		# Group by _assign: none are assigned, so everything is in the not-set bucket.
+		res_assign = get_kanban_group_values(self.board_name, "_assign")
+		self.assertEqual(res_assign["lanes"], [])
+		self.assertEqual(res_assign["unset"], 4)
+
+	def test_get_kanban_group_values_respects_permissions(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		for name, priority in zip(self.todos, ["High", "High", "High", "Medium"], strict=True):
+			frappe.db.set_value("ToDo", name, "priority", priority)
+		frappe.db.set_value("Kanban Board", self.board_name, "private", 0)
+		self.addCleanup(frappe.db.set_value, "Kanban Board", self.board_name, "private", 1)
+
+		# A user without a ToDo role only sees the ToDos allocated to them.
+		user = create_user("kanban_lane_reader@example.com", "Desk User")
+		frappe.db.set_value("ToDo", self.todos[0], "allocated_to", user.name)
+		self.addCleanup(frappe.db.set_value, "ToDo", self.todos[0], "allocated_to", None)
+
+		with self.set_user(user.name):
+			res = get_kanban_group_values(self.board_name, "priority")
+			res_assign = get_kanban_group_values(self.board_name, "_assign")
+
+		self.assertEqual(res["lanes"], [{"value": "High", "label": "High", "count": 1}])
+		self.assertEqual(res["unset"], 0)
+		self.assertEqual(res_assign["unset"], 1)
+
+	def test_get_kanban_group_values_rejects_unconfigured_field(self):
+		from frappe.desk.doctype.kanban_board.kanban_board import get_kanban_group_values
+
+		# Column field and other DocType fields are not groupable unless listed.
+		self.assertRaises(frappe.ValidationError, get_kanban_group_values, self.board_name, "status")
+		self.assertRaises(frappe.ValidationError, get_kanban_group_values, self.board_name, "owner")
+		self.assertRaises(frappe.ValidationError, get_kanban_group_values, self.board_name, "nope")
+
+	def test_get_kanban_column_order_and_index_invalid_column(self):
+		board = frappe.get_doc("Kanban Board", self.board_name)
+		self.assertRaises(frappe.ValidationError, get_kanban_column_order_and_index, board, "Not A Column")
+
+	def test_group_by_fields_not_reseeded_when_configured(self):
+		name = frappe.generate_hash(length=10)
+		board = frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": name,
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"columns": [{"column_name": "Open"}],
+				"group_by_fields": [{"fieldname": "priority", "label": "Priority"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lambda: frappe.delete_doc("Kanban Board", board.name, force=1))
+		self.assertEqual([f.fieldname for f in board.group_by_fields], ["priority"])
+
+
+class TestKanbanBoardNativePayloads(IntegrationTestCase):
+	def setUp(self):
+		self.board = kb.quick_kanban_board("ToDo", frappe.generate_hash(length=10), "status")
+
+	def tearDown(self):
+		frappe.delete_doc("Kanban Board", self.board.name, force=True)
+
+	def test_endpoints_accept_native_payloads(self):
+		# update_column_order with a native list (frappe.parse_json passthrough)
+		kb.update_column_order(self.board.name, [c.column_name for c in self.board.columns])
+
+		# save_settings with a native dict (partial payload must not KeyError)
+		resp = kb.save_settings(self.board.name, {"fields": []})
+		self.assertEqual(resp["doctype"], "Kanban Board")
+		resp = kb.save_settings(self.board.name, {"fields": [], "show_labels": 0})
+		self.assertEqual(resp["doctype"], "Kanban Board")
+
+		# update_order with a native dict
+		_board, updated_cards = kb.update_order(self.board.name, {})
+		self.assertEqual(updated_cards, [])
+
+
+class TestStandardKanbanBoard(IntegrationTestCase):
+	def setUp(self):
+		self.addCleanup(frappe.db.rollback)
+		self.module_path = tempfile.mkdtemp()
+		self.addCleanup(shutil.rmtree, self.module_path)
+		patcher = patch(
+			"frappe.desk.doctype.kanban_board.kanban_board.get_module_path", return_value=self.module_path
+		)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def make_standard_board(self, **kwargs):
+		with patch.dict(frappe.conf, developer_mode=1):
+			return frappe.get_doc(
+				{
+					"doctype": "Kanban Board",
+					"kanban_board_name": "_Test Standard Board",
+					"reference_doctype": "ToDo",
+					"field_name": "status",
+					"use_kanban_v2": 1,
+					"is_standard": "Yes",
+					"module": "Desk",
+					"columns": [{"column_name": "Open"}, {"column_name": "Closed"}],
+					**kwargs,
+				}
+			).insert()
+
+	def test_export_and_sync(self):
+		from frappe.model.sync import get_doc_files
+		from frappe.modules.import_file import import_file_by_path
+
+		board = self.make_standard_board()
+
+		path = board.get_export_path()
+		self.assertEqual(
+			path,
+			os.path.join(self.module_path, "doctype", "todo", "kanban_board", "_test_standard_board.json"),
+		)
+		with open(path) as f:
+			exported = frappe.parse_json(f.read())
+		self.assertEqual([c["column_name"] for c in exported["columns"]], ["Open", "Closed"])
+
+		# an app can ship a board with a table left empty on purpose
+		exported["card_fields"] = []
+		with open(path, "w") as f:
+			f.write(frappe.as_json(exported))
+
+		# migrate brings it back as shipped
+		self.assertIn(path, get_doc_files([], self.module_path))
+		with patch.dict(frappe.flags, in_migrate=True):
+			frappe.delete_doc("Kanban Board", board.name)
+		import_file_by_path(path)
+		synced = frappe.get_doc("Kanban Board", board.name)
+		self.assertEqual(synced.is_standard, "Yes")
+		self.assertEqual(synced.card_fields, [])
+
+	def test_sync_keeps_a_site_board_with_the_same_name(self):
+		from frappe.modules.import_file import import_file_by_path
+
+		board = self.make_standard_board()
+		path = board.get_export_path()
+		with open(path) as f:
+			shipped = f.read()
+		with patch.dict(frappe.flags, in_migrate=True):
+			frappe.delete_doc("Kanban Board", board.name)
+
+		# a site made its own board with the name before the app shipped one
+		frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"kanban_board_name": board.name,
+				"reference_doctype": "ToDo",
+				"field_name": "priority",
+			}
+		).insert()
+		frappe.db.set_value("Kanban Board", board.name, "modified", "2020-01-01", update_modified=False)
+		with open(path, "w") as f:
+			f.write(shipped)
+
+		import_file_by_path(path)
+		kept = frappe.get_doc("Kanban Board", board.name)
+		self.assertEqual(kept.is_standard, "No")
+		self.assertEqual(kept.field_name, "priority")
+
+	def test_locked_outside_developer_mode(self):
+		board = self.make_standard_board()
+
+		with patch.dict(frappe.conf, developer_mode=0):
+			board.show_assigned_to = 0
+			self.assertRaises(frappe.PermissionError, board.save)
+			self.assertRaises(frappe.PermissionError, frappe.delete_doc, "Kanban Board", board.name)
+
+		self.assertRaises(frappe.ValidationError, frappe.rename_doc, "Kanban Board", board.name, "Renamed")
+
+	def test_clearing_standard_removes_file(self):
+		board = self.make_standard_board()
+		path = board.get_export_path()
+		self.assertTrue(os.path.exists(path))
+
+		board.is_standard = "No"
+		with patch.dict(frappe.conf, developer_mode=1):
+			board.save()
+
+		self.assertFalse(os.path.exists(path))
+
+	def test_delete_in_developer_mode_removes_file(self):
+		board = self.make_standard_board()
+		path = board.get_export_path()
+		self.assertTrue(os.path.exists(path))
+
+		with patch.dict(frappe.conf, developer_mode=1):
+			frappe.delete_doc("Kanban Board", board.name)
+
+		self.assertFalse(os.path.exists(path))
+
+	def test_standard_board_rules(self):
+		self.assertRaises(frappe.ValidationError, self.make_standard_board, private=1)
+		self.assertRaises(frappe.MandatoryError, self.make_standard_board, module=None)
+
+		board = self.make_standard_board()
+		board.use_kanban_v2 = 0
+		with patch.dict(frappe.conf, developer_mode=1):
+			self.assertRaises(frappe.ValidationError, board.save)

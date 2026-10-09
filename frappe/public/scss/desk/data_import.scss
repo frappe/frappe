@@ -1,19 +1,10 @@
 // Data Import
-.map-columns .form-section {
-	padding: 0 7px 7px;
-	border-top: none;
-
-	.clearfix {
-		display: none;
-	}
-}
-
-.map-columns .form-section:first-child {
-	padding-top: 7px;
-}
 
 .table-preview {
-	margin-top: 12px;
+	.datatable {
+		width: max-content;
+		min-width: 100%;
+	}
 
 	.datatable .dt-scrollable .dt-row:last-child .dt-cell {
 		border-bottom: 1px solid var(--border-color);
@@ -27,3 +18,5 @@
 		background-color: unset;
 	}
 }
+
+@import "data_import_wizard";

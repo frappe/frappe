@@ -11,7 +11,7 @@ from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, Va
 import frappe
 from frappe import _
 from frappe.boot import get_additional_filters_from_hooks
-from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
+from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP, func_is
 from frappe.database.utils import (
 	DefaultOrderBy,
 	FilterValue,
@@ -20,7 +20,7 @@ from frappe.database.utils import (
 	get_doctype_sort_info,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -38,6 +38,16 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 		"Series",
 	)
 )
+
+
+# What MariaDB coerces `''` to in `is set`; postgres rejects `''` for these columns.
+# No real date equals MariaDB's zero date, so only NULL is empty for dates.
+IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
+	**dict.fromkeys((*numeric_fieldtypes, "Rating", "Duration"), 0),
+	"Time": "00:00:00",
+	"Date": None,
+	"Datetime": None,
+}
 
 
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
@@ -84,7 +94,7 @@ def _apply_date_field_filter_conversion(value, operator: str, doctype: str, fiel
 		elif isinstance(value, datetime.datetime):
 			return value.date()
 
-	except AttributeError, TypeError, KeyError:
+	except (AttributeError, TypeError, KeyError):
 		pass
 
 	return value
@@ -580,6 +590,13 @@ class Engine:
 			frappe.throw(_("Document cannot be used as a filter value"))
 		_operator = operator
 
+		# _assign and _liked_by store a JSON array of user ids, so `=`/`!=` never match a
+		# single member; treat them as `like`/`not like` against the serialized value.
+		if isinstance(field, str) and field in ("_assign", "_liked_by") and _operator in ("=", "!="):
+			_operator = "like" if _operator == "=" else "not like"
+			if isinstance(_value, str) and _value:
+				_value = f"%{_value}%"
+
 		if _operator.lower() in ("timespan", "previous", "next"):
 			from frappe.model.db_query import get_date_range
 
@@ -641,6 +658,10 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
+		if _operator.casefold() == "is" and isinstance(_field, Field):
+			filter_doctype = self._get_field_doctype(_field, doctype or self.doctype)
+			return func_is(_field, _value, self._get_is_set_empty_value(filter_doctype, _field.name))
+
 		if (
 			self.is_postgres and _operator.casefold() == "like"
 		):  # use `ILIKE` to support case insensitive search in postgres
@@ -667,7 +688,7 @@ class Engine:
 				else:
 					try:
 						fallback_value = int(fallback_sql)
-					except ValueError, TypeError:
+					except (ValueError, TypeError):
 						fallback_value = fallback_sql
 
 				return operator_fn(_field, ValueWrapper(fallback_value))
@@ -696,7 +717,7 @@ class Engine:
 				else:
 					try:
 						fallback_value = int(fallback_sql)
-					except ValueError, TypeError:
+					except (ValueError, TypeError):
 						fallback_value = fallback_sql
 
 				if fallback_value == _value:
@@ -1766,6 +1787,25 @@ class Engine:
 				conditions.append(c.get_sql(with_namespace=True, quote_char=quote_char))
 		finally:
 			self.apply_permissions = original_apply_permissions
+
+	def _get_field_doctype(self, field: Term, default: str) -> str:
+		"""The doctype a parsed field's table belongs to; a joined table is not the query's own."""
+		table = getattr(field, "table", None)
+		if table is None:
+			return default
+		try:
+			return get_doctype_name(getattr(table, "_table_name", None) or table.get_sql())
+		except Exception:
+			return default
+
+	def _get_is_set_empty_value(self, doctype: str, fieldname: str) -> int | str | None:
+		from frappe.model.meta import get_default_df
+
+		try:
+			docfield = get_default_df(fieldname) or frappe.get_meta(doctype).get_field(fieldname)
+		except frappe.DoesNotExistError:
+			return ""
+		return IS_SET_EMPTY_VALUES.get(docfield.fieldtype, "") if docfield else ""
 
 	def _is_field_nullable(self, doctype: str, fieldname: str) -> bool:
 		"""Check if a field can contain NULL values."""

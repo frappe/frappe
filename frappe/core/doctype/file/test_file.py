@@ -22,7 +22,7 @@ from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -401,6 +401,41 @@ class TestSameContent(IntegrationTestCase):
 		self.assertEqual(file_content_decoded[0], "\ufeff")
 		file_content_properly_decoded = saved_file.get_content(encodings=["utf-8-sig", "utf-8"])
 		self.assertEqual(file_content_properly_decoded, test_content1)
+
+	def test_remote_file_ignores_content_hash(self):
+		existing = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"hash_{frappe.generate_hash(length=6)}.txt",
+				"content": "private-content",
+				"is_private": 1,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", existing.name, force=True)
+
+		for file_url in ("https://example.com/remote.png", "/api/method/remote"):
+			with self.subTest(file_url=file_url):
+				frappe.set_user("test@example.com")
+				try:
+					remote = frappe.get_doc(
+						{
+							"doctype": "File",
+							"file_name": "remote.png",
+							"is_private": 1,
+							"file_url": file_url,
+							"content_hash": existing.content_hash,
+						}
+					).insert()
+				finally:
+					frappe.set_user("Administrator")
+				self.addCleanup(frappe.delete_doc, "File", remote.name, force=True)
+
+				self.assertEqual(remote.file_url, file_url)
+				self.assertFalse(remote.content_hash)
+
+				remote.content_hash = existing.content_hash
+				remote.save()
+				self.assertFalse(remote.content_hash)
 
 
 class TestFile(IntegrationTestCase):
@@ -994,6 +1029,77 @@ class TestAttachment(IntegrationTestCase):
 		self.assertTrue(exists)
 
 
+class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
+	"""Test that attached_to_field and folder are copied when amending a document."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.test_doctype = "Test Amendable Attachment"
+		new_doctype(
+			cls.test_doctype,
+			is_submittable=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
+
+	def test_attached_to_field_and_folder_copied_on_amend(self):
+		# Create custom folder
+		custom_folder = frappe.get_doc(
+			{"doctype": "File", "file_name": "Test Amend Folder", "is_folder": 1, "folder": "Home"}
+		).insert()
+
+		# Create original document and attach file with attached_to_field and custom folder
+		doc = frappe.get_doc(doctype=self.test_doctype, title="Original").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "amend_test_attach.txt",
+				"content": "Test Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+				"folder": custom_folder.name,
+			}
+		).insert()
+
+		doc.attachment = file.file_url
+		doc.save()
+
+		# Submit and cancel
+		doc.submit()
+		doc.cancel()
+
+		# Amend document
+		amended_doc = frappe.copy_doc(doc)
+		amended_doc.docstatus = 0
+		amended_doc.amended_from = doc.name
+		amended_doc.save()
+
+		# Verify copied file has attached_to_field and folder from original
+		copied_files = frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": amended_doc.name,
+				"file_name": "amend_test_attach.txt",
+			},
+			fields=["name", "attached_to_field", "folder"],
+		)
+		self.assertEqual(len(copied_files), 1, "Exactly one file should be copied to amended doc")
+		self.assertEqual(copied_files[0].attached_to_field, "attachment")
+		self.assertEqual(copied_files[0].folder, custom_folder.name)
+
+
 class TestAttachmentsAccess(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})
@@ -1054,6 +1160,28 @@ class TestAttachmentsAccess(IntegrationTestCase):
 		self.assertIn("test_sm_attachment.txt", system_manager_attachments_files)
 		self.assertIn("test_user_attachment.txt", system_manager_attachments_files)
 		self.assertIn("test_user_attachment.txt", user_attachments_files)
+
+	def test_attach_to_doc_without_write_permission_is_blocked(self):
+		frappe.set_user("test4@example.com")
+		self.assertFalse(frappe.has_permission("User", "write", "test@example.com"))
+
+		attack = frappe.new_doc(
+			"File",
+			file_name="poisoned.svg",
+			attached_to_doctype="User",
+			attached_to_name="test@example.com",
+			content="<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attack.insert)
+
+		frappe.set_user("test@example.com")
+		self.assertEqual(
+			frappe.get_all(
+				"File", filters={"attached_to_doctype": "User", "attached_to_name": "test@example.com"}
+			),
+			[],
+		)
 
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
@@ -1710,3 +1838,20 @@ class TestFileListUserPermissionRestriction(IntegrationTestCase):
 			filters={"name": ["in", [self.permitted_file.name, self.out_of_scope_file.name]]},
 		)
 		self.assertEqual(len(files), 2)
+
+
+class TestFilePermissionQuery(UnitTestCase):
+	def test_ignores_stale_custom_docperm_doctype(self):
+		"""A stale Custom DocPerm can reference a deleted DocType; must not crash the File list query."""
+		from frappe.core.doctype.file.file import get_permission_query_conditions
+		from frappe.permissions import SYSTEM_USER_ROLE
+
+		with (
+			patch(
+				"frappe.core.doctype.file.file.get_doctypes_with_read",
+				return_value=["Deleted Doctype XYZ"],
+			),
+			patch("frappe.get_roles", return_value=[SYSTEM_USER_ROLE]),
+		):
+			# should not raise frappe.exceptions.DoesNotExistError
+			get_permission_query_conditions(user="test1@example.com")

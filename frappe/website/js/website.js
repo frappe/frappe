@@ -96,6 +96,23 @@ $.extend(frappe, {
 				403: function () {
 					frappe.msgprint(__("Not permitted"));
 				},
+				417: function (xhr) {
+					var data = xhr.responseJSON;
+					if (!data) {
+						try {
+							data = JSON.parse(xhr.responseText);
+						} catch (e) {
+							data = xhr.responseText;
+						}
+					}
+					// 417 means the server threw, so only the error handler runs.
+					// This used to call opts.callback too, which made success
+					// handlers fire on a failed request: a caller that guards on
+					// `r.exc` saw nothing to guard against, because the traceback is
+					// only sent to a dev server or a system user. A guest posting a
+					// web form got the "Submitted" page for a rejected submission.
+					if (opts.error) opts.error(data);
+				},
 				200: function (data) {
 					if (opts.callback) opts.callback(data);
 					if (opts.success) opts.success(data);
@@ -152,19 +169,19 @@ $.extend(frappe, {
 
 		if (data._server_messages) {
 			var server_messages = JSON.parse(data._server_messages || "[]");
-			server_messages
-				.map((msg) => {
-					// temp fix for messages sent as dict
-					try {
-						return JSON.parse(msg);
-					} catch (e) {
-						return msg;
-					}
-				})
-				.join("<br>");
 
 			if (opts.error_msg) {
-				$(opts.error_msg).html(server_messages).toggle(true);
+				var message_html = server_messages
+					.map((msg) => {
+						try {
+							const parsed = JSON.parse(msg);
+							return parsed && typeof parsed === "object" ? parsed.message : parsed;
+						} catch (e) {
+							return msg;
+						}
+					})
+					.join("<br>");
+				$(opts.error_msg).html(message_html).toggle(true);
 			} else {
 				frappe.msgprint(server_messages);
 			}
@@ -199,16 +216,12 @@ $.extend(frappe, {
 		}
 	},
 	show_message: function (text, icon) {
-		if (!icon) icon = "fa fa-refresh fa-spin";
+		let icon_html = icon
+			? '<i class="' + icon + ' text-muted"></i>'
+			: frappe.utils.icon("refresh-cw", "lg");
 		frappe.hide_message();
 		$('<div class="message-overlay"></div>')
-			.html(
-				'<div class="content"><i class="' +
-					icon +
-					' text-muted"></i><br>' +
-					text +
-					"</div>"
-			)
+			.html('<div class="content">' + icon_html + "<br>" + text + "</div>")
 			.appendTo(document.body);
 	},
 	has_permission: function (doctype, docname, perm_type, callback) {
@@ -288,7 +301,7 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function () {
-		hljs.initHighlighting();
+		hljs.highlightAll();
 	},
 	bind_filters: function () {
 		// set in select

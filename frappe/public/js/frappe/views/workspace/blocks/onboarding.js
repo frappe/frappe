@@ -4,7 +4,7 @@ export default class Onboarding extends Block {
 	static get toolbox() {
 		return {
 			title: "Onboarding",
-			icon: frappe.utils.icon("onboarding", "sm"),
+			icon: frappe.utils.icon("list-checks", "sm"),
 		};
 	}
 
@@ -76,7 +76,7 @@ export default class Onboarding extends Block {
 
 	make(block, block_name) {
 		let block_data = this.config.page_data["onboardings"].items.find((obj) => {
-			return obj.label == __(block_name);
+			return obj.label == block_name;
 		});
 		if (!block_data) return false;
 		this.wrapper.innerHTML = "";
@@ -92,11 +92,7 @@ export default class Onboarding extends Block {
 			},
 			label: block_data.label,
 			title: block_data.title || __("Let's Get Started"),
-			subtitle: block_data.subtitle,
 			steps: block_data.items,
-			success: block_data.success,
-			docs_url: block_data.docs_url,
-			user_can_dismiss: block_data.user_can_dismiss,
 		});
 		this.wrapper.setAttribute(block + "_name", block_name);
 		if (!this.readOnly) {

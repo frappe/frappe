@@ -7,6 +7,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.permissions import get_roles
 
+INVITATION_EXPIRY_DAYS = 3
+
 
 class UserInvitation(Document):
 	# begin: auto-generated types
@@ -58,6 +60,7 @@ class UserInvitation(Document):
 			template="user_invitation_cancelled",
 			args={"title": email_title},
 			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 			now=True,
 		)
 		return True
@@ -75,6 +78,7 @@ class UserInvitation(Document):
 			template="user_invitation_expired",
 			args={"title": email_title},
 			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 			now=False,
 		)
 
@@ -111,8 +115,14 @@ class UserInvitation(Document):
 			recipients=self.email,
 			subject=_("You've been invited to join {0}").format(email_title),
 			template="user_invitation",
-			args={"title": email_title, "invite_link": invite_link},
+			args={
+				"title": email_title,
+				"invite_link": invite_link,
+				"invited_by": frappe.utils.get_fullname(self.invited_by),
+				"expiry_days": INVITATION_EXPIRY_DAYS,
+			},
 			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 			now=True,
 		)
 		self.db_set("email_sent_at", frappe.utils.now())
@@ -206,7 +216,7 @@ class UserInvitation(Document):
 
 
 def mark_expired_invitations() -> None:
-	days = 3
+	days = INVITATION_EXPIRY_DAYS
 	invitations_to_expire = frappe.db.get_all(
 		"User Invitation",
 		filters={"status": "Pending", "creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},

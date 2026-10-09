@@ -89,7 +89,7 @@ class EmailAccount(Document):
 		default_outgoing: DF.Check
 		domain: DF.Link | None
 		dsn_notify_type: DF.Literal[
-			"SUCCESS", "FAILURE", "DELAY", "SUCCESS,FAILURE", "SUCCESS,FAILURE,DELAY", "NEVER"
+			"", "SUCCESS", "FAILURE", "DELAY", "SUCCESS,FAILURE", "SUCCESS,FAILURE,DELAY", "NEVER"
 		]
 		email_account_name: DF.Data | None
 		email_id: DF.Data
@@ -568,6 +568,7 @@ class EmailAccount(Document):
 			"smtp_server": {"conf_names": ("mail_server",)},
 			"smtp_port": {"conf_names": ("mail_port",)},
 			"use_tls": {"conf_names": ("use_tls", "mail_login")},
+			"use_ssl_for_outgoing": {"conf_names": ("use_ssl",)},
 			"login_id": {"conf_names": ("mail_login",)},
 			"email_id": {
 				"conf_names": ("auto_email_id", "mail_login"),

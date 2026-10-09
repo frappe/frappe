@@ -7,8 +7,18 @@
  "field_order": [
   "filter_name",
   "reference_doctype",
+  "is_standard",
+  "module",
+  "layout_order",
+  "column_break_mfss",
+  "sort_field",
+  "sort_order",
   "for_user",
-  "filters"
+  "route_signature",
+  "section_break_aljf",
+  "filters",
+  "section_break_lrva",
+  "columns"
  ],
  "fields": [
   {
@@ -29,14 +39,73 @@
    "options": "User"
   },
   {
+   "fieldname": "route_signature",
+   "fieldtype": "Small Text",
+   "label": "Route Signature",
+   "read_only": 1
+  },
+  {
    "fieldname": "filters",
    "fieldtype": "Long Text",
    "label": "Filters"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Long Text",
+   "label": "Columns"
+  },
+  {
+   "fieldname": "sort_field",
+   "fieldtype": "Data",
+   "label": "Sort Field"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Data",
+   "label": "Sort Order"
+  },
+  {
+   "fieldname": "column_break_mfss",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_aljf",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "section_break_lrva",
+   "fieldtype": "Section Break",
+   "label": "Columns"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "no_copy": 1,
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval: doc.is_standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval: doc.is_standard",
+   "options": "Module Def"
+  },
+  {
+   "description": "Set this to decide which position a layout appears in the dropdown",
+   "fieldname": "layout_order",
+   "fieldtype": "Int",
+   "label": "Layout Order",
+   "no_copy": 1
   }
  ],
+ "icon": "funnel",
  "in_create": 1,
  "links": [],
- "modified": "2024-03-23 16:03:29.075357",
+ "modified": "2026-09-30 21:06:57.496094",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List Filter",
@@ -56,6 +125,7 @@
   }
  ],
  "read_only": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []

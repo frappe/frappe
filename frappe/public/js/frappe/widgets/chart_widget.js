@@ -4,6 +4,23 @@ frappe.provide("frappe.widget.utils");
 frappe.provide("frappe.dashboards");
 frappe.provide("frappe.dashboards.chart_sources");
 
+// An empty line chart draws this behind its message, blurred, so the card still reads as a chart.
+// A line is a thin stroke and stays out of the text's way, which bars and slices would not.
+// None of it is real data.
+const EMPTY_SAMPLE_LINE = {
+	labels: Array(6).fill(""),
+	datasets: [{ values: [30, 45, 40, 60, 55, 75] }],
+};
+
+const EMPTY_STATE_ICONS = {
+	Line: "chart-line",
+	Bar: "chart-column",
+	Pie: "chart-pie",
+	Donut: "chart-pie",
+	Percentage: "chart-bar-stacked",
+	Heatmap: "grid-3x3",
+};
+
 export default class ChartWidget extends Widget {
 	constructor(opts) {
 		opts.shadow = true;
@@ -53,15 +70,11 @@ export default class ChartWidget extends Widget {
 		);
 		this.loading.appendTo(this.body);
 
-		this.empty = $(
-			`<div class="chart-loading-state text-extra-muted" style="height: ${
-				this.height
-			}px;">${__("No Data")}</div>`
-		);
+		this.empty = $(`<div class="chart-empty-state" style="height: ${this.height}px;"></div>`);
 		this.empty.hide().appendTo(this.body);
 
 		this.error_state = $(
-			`<div class="chart-loading-state text-danger" style="height: ${this.height}px;"></div>`
+			`<div class="chart-error-state" style="height: ${this.height}px;"></div>`
 		);
 		this.error_state.hide().appendTo(this.body);
 
@@ -559,16 +572,35 @@ export default class ChartWidget extends Widget {
 		}
 		return frappe.xcall(method, args, undefined, {
 			silent: true,
-			error: (err) => {
-				const message = JSON.parse(JSON.parse(err._server_messages)[0])?.message;
-				this.chart_wrapper.hide();
-				this.loading.hide();
-				this.$summary && this.$summary.hide();
-				this.empty.hide();
-				this.error_state.text(message);
-				this.error_state.show();
-			},
+			error: (err) => this.show_error(err),
 		});
+	}
+
+	// Mostly a chart that is not set up yet, like Bank Balance before an account is chosen, so it
+	// reads as a warning with the server's reason rather than a failure.
+	show_error(err) {
+		let message;
+		try {
+			message = JSON.parse(JSON.parse(err._server_messages)[0]).message;
+		} catch {
+			// a network failure carries no server message
+		}
+
+		this.chart_wrapper.hide();
+		this.loading.hide();
+		this.$summary && this.$summary.hide();
+		this.empty.hide();
+		this.error_state
+			.empty()
+			.append(
+				frappe.ui.alert({
+					theme: "yellow",
+					title: message
+						? frappe.utils.html2text(message)
+						: __("This chart couldn't load"),
+				})
+			)
+			.show();
 	}
 
 	async get_source_doctype() {
@@ -599,12 +631,12 @@ export default class ChartWidget extends Widget {
 			}
 		};
 
-		if (!this.data || !this.data.labels || !Object.keys(this.data).length) {
+		if (!this.has_data()) {
 			this.chart_wrapper.hide();
 			this.loading.hide();
 			this.$summary && this.$summary.hide();
-			this.empty.show();
 			this.error_state.hide();
+			this.show_empty_state();
 		} else {
 			this.loading.hide();
 			this.empty.hide();
@@ -621,6 +653,44 @@ export default class ChartWidget extends Widget {
 			this.width == "Full" && this.summary && this.set_summary();
 			this.chart_doc.type == "Heatmap" && this.render_heatmap_legend();
 		}
+	}
+
+	has_data() {
+		if (!this.data || !this.data.labels || !Object.keys(this.data).length) return false;
+		if (this.chart_doc.type == "Heatmap") return true;
+		// a chart over a period with nothing in it comes back as labels with zeroes, which draws
+		// bare axes rather than an empty chart
+		return (this.data.datasets || []).some((dataset) =>
+			(dataset.values || []).some((value) => flt(value))
+		);
+	}
+
+	// Says what the chart will show once there is something to show, so a dashboard of empty
+	// charts reads as a list of what is coming rather than "No data yet" over and over.
+	show_empty_state() {
+		const message = this.chart_doc.empty_state_message;
+		// shown before the sample is drawn, which sizes itself to the space it is given
+		this.empty.empty().show();
+
+		if (this.chart_doc.type == "Line") {
+			const $sample = $(`<div class="chart-empty-sample" aria-hidden="true"></div>`);
+			$sample.appendTo(this.empty);
+			frappe.utils.make_chart($sample[0], {
+				type: "line",
+				colors: this.get_chart_colors(),
+				height: this.height,
+				animate: 0,
+				lineOptions: { regionFill: 1, hideDots: 1, spline: 1 },
+				data: EMPTY_SAMPLE_LINE,
+			});
+		}
+
+		this.empty.append(
+			frappe.ui.empty_state({
+				icon: EMPTY_STATE_ICONS[this.chart_doc.type] || "chart-column",
+				description: message ? __(message) : __("No data yet"),
+			})
+		);
 	}
 
 	get_chart_args() {
@@ -720,19 +790,19 @@ export default class ChartWidget extends Widget {
 		return chart_args;
 	}
 
+	// One colour per series. A series without its own takes Espresso's colour for its place, and a
+	// chart that names none returns nothing, so make_chart gives it the whole palette.
 	get_chart_colors() {
 		let colors = [];
 		if (this.chart_doc.y_axis.length) {
-			this.chart_doc.y_axis.map((field) => {
-				colors.push(field.color);
-			});
+			colors = this.chart_doc.y_axis.map((field) => field.color);
 		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
-			colors = [this.chart_doc.color || []];
-		} else if (this.chart_doc.type == "Heatmap") {
-			colors = [];
+			colors = [this.chart_doc.color];
 		}
+		if (!colors.some(Boolean)) return [];
 
-		return colors;
+		const palette = frappe.utils.get_chart_palette();
+		return colors.map((color, i) => color || palette[i % palette.length]);
 	}
 
 	render_heatmap_legend() {

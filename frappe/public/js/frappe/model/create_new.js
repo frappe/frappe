@@ -148,7 +148,7 @@ $.extend(frappe.model, {
 			allowed_records.length;
 
 		// don't set defaults for "User" link field using User Permissions!
-		if (df.fieldtype === "Link" && df.options !== "User") {
+		if (!df.read_only && df.fieldtype === "Link" && df.options !== "User") {
 			// If user permission has Is Default enabled or single-user permission has found against respective doctype.
 			if (has_user_permissions && default_doc) {
 				value = default_doc;
@@ -322,7 +322,44 @@ $.extend(frappe.model, {
 		return newdoc;
 	},
 
+	_mapped_doc_guards: [],
+	_running_mapped_doc_guards: 0,
+
+	add_mapped_doc_guard: function (fn) {
+		// fn(mapped_doc, opts) -> boolean | Promise<boolean>; false blocks opening the doc
+		if (!frappe.model._mapped_doc_guards.includes(fn)) {
+			frappe.model._mapped_doc_guards.push(fn);
+		}
+	},
+
+	remove_mapped_doc_guard: function (fn) {
+		frappe.model._mapped_doc_guards = frappe.model._mapped_doc_guards.filter(
+			(guard) => guard !== fn
+		);
+	},
+
+	should_open_mapped_doc: async function (mapped_doc, opts) {
+		for (const guard of frappe.model._mapped_doc_guards) {
+			try {
+				if (!(await guard(mapped_doc, opts))) {
+					return false;
+				}
+			} catch (e) {
+				// a broken guard must never block document creation
+				console.error(e);
+			}
+		}
+		return true;
+	},
+
 	open_mapped_doc: function (opts) {
+		// the request's own freeze lifts while guards are still deciding
+		// (a visual freeze there would cover the guards' own dialogs), so
+		// ignore new invocations until pending guards resolve; responses
+		// already in flight are never discarded
+		if (frappe.model._running_mapped_doc_guards) {
+			return;
+		}
 		if (opts.frm && opts.frm.doc.__unsaved) {
 			frappe.throw(
 				__("You have unsaved changes in this form. Please save before you continue.")
@@ -344,17 +381,23 @@ $.extend(frappe.model, {
 			},
 			freeze: true,
 			freeze_message: opts.freeze_message || "",
-			callback: function (r) {
-				if (!r.exc) {
-					frappe.model.sync(r.message);
-					if (opts.run_link_triggers) {
-						frappe.get_doc(
-							r.message.doctype,
-							r.message.name
-						).__run_link_triggers = true;
-					}
-					frappe.set_route("Form", r.message.doctype, r.message.name);
+			callback: async function (r) {
+				if (r.exc) {
+					return;
 				}
+				frappe.model._running_mapped_doc_guards++;
+				try {
+					if (!(await frappe.model.should_open_mapped_doc(r.message, opts))) {
+						return;
+					}
+				} finally {
+					frappe.model._running_mapped_doc_guards--;
+				}
+				frappe.model.sync(r.message);
+				if (opts.run_link_triggers) {
+					frappe.get_doc(r.message.doctype, r.message.name).__run_link_triggers = true;
+				}
+				frappe.set_route("Form", r.message.doctype, r.message.name);
 			},
 		});
 	},

@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta name="viewport" content="width=device-width" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="color-scheme" content="light" />
+	<meta name="supported-color-schemes" content="light" />
+	<title>{{ subject or "" }}</title>
+</head>
+
+<body>
+	<table class="body-table auth-email" cellpadding="0" cellspacing="0">
+		<tr>
+			<td class="body-content" align="center" valign="top">
+				<!--[if mso]><table role="presentation" align="center" width="600" border="0" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
+				<div class="email-card">
+					<div class="email-content">
+						{{ header or "" }}
+						{{ content }}
+					</div>
+					<div class="email-divider"></div>
+					<div class="email-footer">
+						<a href="{{ site_url or 'https://frappe.io' }}">
+							{% if brand_logo %}
+							<img class="email-brand-logo" src="{{ brand_logo }}" alt="{{ brand_name or 'Frappe' }}" />
+							{% elif brand_name and brand_name != "Frappe" %}
+							<span class="email-brand-name">{{ brand_name }}</span>
+							{% else %}
+							<img class="email-brand-logo" src="/assets/frappe/images/frappe-wordmark.png" alt="Frappe" />
+							{% endif %}
+						</a>
+					</div>
+				</div>
+				<!--[if mso]></td></tr></table><![endif]-->
+				<div class="email-footer-meta">
+					<div data-email-footer="true">{{ footer }}</div>
+					<div class="print-html">{{ print_html or "" }}</div>
+				</div>
+			</td>
+		</tr>
+	</table>
+</body>
+
+</html>
