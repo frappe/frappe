@@ -1,10 +1,19 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import unicodedata
+
 from cryptography.fernet import Fernet
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
+from frappe.utils.password import (
+	Auth,
+	check_password,
+	decrypt,
+	encrypt,
+	passlibctx,
+	update_password,
+)
 
 
 class TestPassword(IntegrationTestCase):
@@ -74,6 +83,25 @@ class TestPassword(IntegrationTestCase):
 		# shouldn't work with old password
 		self.assertRaises(frappe.AuthenticationError, check_password, user, new_password)
 
+	def test_unicode_password_normalized(self, user="test@example.com"):
+		nfc = "Caf\u00e9_43A1W"
+		nfd = unicodedata.normalize("NFD", nfc)
+
+		update_password(user, nfd)
+		self.assertTrue(check_password(user, nfc))
+		self.assertTrue(check_password(user, nfd))
+
+		# old hash of raw NFD text logs in as before, then gets rehashed normalized
+		set_raw_hash(user, nfd)
+		self.assertTrue(check_password(user, nfd))
+
+		stored = get_password_list(dict(doctype="User", name=user))[0].password
+		self.assertTrue(passlibctx.verify(nfc, stored))
+		self.assertFalse(passlibctx.verify(nfd, stored))
+
+		self.assertRaises(frappe.AuthenticationError, check_password, user, "Cafe_43A1W")
+		update_password(user, "Eastern_43A1W")
+
 	def test_password_on_rename_user(self):
 		password = "test-rename-password"
 
@@ -131,3 +159,10 @@ def get_password_list(doc):
 		(doc.get("doctype"), doc.get("name")),
 		as_dict=1,
 	)
+
+
+def set_raw_hash(user, pwd):
+	"""Stores a hash of pwd as-is, like before normalization."""
+	frappe.qb.update(Auth).set(Auth.password, passlibctx.hash(pwd)).where(
+		(Auth.doctype == "User") & (Auth.name == user) & (Auth.fieldname == "password")
+	).run()
