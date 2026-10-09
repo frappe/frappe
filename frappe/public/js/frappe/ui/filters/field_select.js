@@ -28,6 +28,9 @@ frappe.ui.FieldSelect = class FieldSelect {
 			me.placeholder = me.$input.attr("placeholder");
 			me.$input.attr("placeholder", me.$input.val() || me.placeholder).val("");
 			me.awesomplete.evaluate();
+			// highlight the current field so Tab or Enter keeps it
+			const current = me.get_value();
+			me.awesomplete.goto(me.awesomplete.suggestions.findIndex((s) => s.value === current));
 		});
 		this.$input.on("blur", function () {
 			me.$input.attr("placeholder", me.placeholder);
