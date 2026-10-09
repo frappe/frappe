@@ -23,7 +23,7 @@ from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
-SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg")
+SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg", "min", "max")
 DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
 _FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
 
@@ -848,18 +848,30 @@ def _aggregate_count_column_info(doctype: str, fieldname: str) -> dict:
 	)
 
 
-def _aggregate_sum_column_info(doctype: str, fieldname: str) -> dict:
+def _aggregate_same_type_column_info(doctype: str, fieldname: str, function_label: str) -> dict:
 	df = _aggregate_field_df(doctype, fieldname)
 	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
 
 	return frappe._dict(
 		{
-			"label": _("{0} of {1}").format(_("Sum"), label),
+			"label": _("{0} of {1}").format(function_label, label),
 			"fieldtype": df.fieldtype if df else "Float",
 			"translatable": False,
 			"options": df.options if df else None,
 		}
 	)
+
+
+def _aggregate_sum_column_info(doctype: str, fieldname: str) -> dict:
+	return _aggregate_same_type_column_info(doctype, fieldname, _("Sum"))
+
+
+def _aggregate_min_column_info(doctype: str, fieldname: str) -> dict:
+	return _aggregate_same_type_column_info(doctype, fieldname, _("Minimum"))
+
+
+def _aggregate_max_column_info(doctype: str, fieldname: str) -> dict:
+	return _aggregate_same_type_column_info(doctype, fieldname, _("Maximum"))
 
 
 def _aggregate_avg_column_info(doctype: str, fieldname: str) -> dict:
@@ -883,6 +895,8 @@ AGGREGATE_FIELD_INFO_HANDLERS = {
 	"COUNT": _aggregate_count_column_info,
 	"SUM": _aggregate_sum_column_info,
 	"AVG": _aggregate_avg_column_info,
+	"MIN": _aggregate_min_column_info,
+	"MAX": _aggregate_max_column_info,
 }
 
 assert set(AGGREGATE_FIELD_INFO_HANDLERS) == {fn.upper() for fn in SUPPORTED_AGGREGATE_FUNCTIONS}, (
@@ -892,7 +906,7 @@ assert set(AGGREGATE_FIELD_INFO_HANDLERS) == {fn.upper() for fn in SUPPORTED_AGG
 
 def get_aggregate_field_info(field: str | dict, parent_doctype: str, group_by: str | None = None) -> dict:
 	"""
-	Build field info for an aggregate column (e.g. COUNT/SUM/AVG).
+	Build field info for an aggregate column (e.g. COUNT/SUM/AVG/MIN/MAX).
 
 	Example:
 

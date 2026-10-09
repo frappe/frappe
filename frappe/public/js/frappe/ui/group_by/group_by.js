@@ -56,6 +56,8 @@ frappe.ui.GroupBy = class {
 					{ name: "count", label: __("Count") },
 					{ name: "sum", label: __("Sum") },
 					{ name: "avg", label: __("Average") },
+					{ name: "min", label: __("Minimum") },
+					{ name: "max", label: __("Maximum") },
 				],
 			})
 		);
@@ -74,7 +76,8 @@ frappe.ui.GroupBy = class {
 		this.$group_by_area.find(".aggregate-on-field-select").each((i, parent) => {
 			const idx = cint($(parent).closest("[data-idx]").attr("data-idx"));
 			const aggregate = this.aggregates[idx];
-			this.make_field_select(parent, this.get_aggregate_on_select_fields(), {
+			const fields = this.get_aggregate_on_select_fields(aggregate.aggregate_function);
+			this.make_field_select(parent, fields, {
 				doctype: aggregate.aggregate_on_doctype,
 				fieldname: aggregate.aggregate_on_field,
 				placeholder: __("Select Field..."),
@@ -158,10 +161,16 @@ frappe.ui.GroupBy = class {
 		this.$group_by_area.on("change", "select.aggregate-function", (e) => {
 			const aggregate_function = $(e.target).val();
 			const aggregate = this.aggregates[get_idx(e)];
-			this.aggregates[get_idx(e)] =
-				aggregate_function === "count"
-					? { aggregate_function }
-					: { ...aggregate, aggregate_function };
+			const keeps_field =
+				aggregate_function !== "count" &&
+				this.get_aggregate_on_select_fields(aggregate_function).some(
+					(df) =>
+						df.parent === aggregate.aggregate_on_doctype &&
+						df.fieldname === aggregate.aggregate_on_field
+				);
+			this.aggregates[get_idx(e)] = keeps_field
+				? { ...aggregate, aggregate_function }
+				: { aggregate_function };
 			this.render_group_by_area();
 			this.apply_group_by_and_refresh();
 		});
@@ -209,10 +218,15 @@ frappe.ui.GroupBy = class {
 		);
 	}
 
-	get_aggregate_on_select_fields() {
+	get_aggregate_on_select_fields(aggregate_function) {
+		const allows_dates = ["min", "max"].includes(aggregate_function);
 		return Object.entries(this.all_fields).flatMap(([doctype, fields]) =>
 			fields
-				.filter((df) => frappe.model.is_numeric_field(df.fieldtype))
+				.filter(
+					(df) =>
+						frappe.model.is_numeric_field(df.fieldtype) ||
+						(allows_dates && ["Date", "Datetime", "Time"].includes(df.fieldtype))
+				)
 				.map((df) => ({ ...df, parent: doctype }))
 		);
 	}
@@ -446,6 +460,10 @@ frappe.ui.GroupBy = class {
 
 			if (aggregate.aggregate_function === "sum") {
 				docfield.label = __("Sum of {0}", [__(docfield.label, null, docfield.parent)]);
+			} else if (aggregate.aggregate_function === "min") {
+				docfield.label = __("Minimum of {0}", [__(docfield.label, null, docfield.parent)]);
+			} else if (aggregate.aggregate_function === "max") {
+				docfield.label = __("Maximum of {0}", [__(docfield.label, null, docfield.parent)]);
 			} else {
 				if (docfield.fieldtype == "Int") {
 					docfield.fieldtype = "Float"; // average of ints can be a float

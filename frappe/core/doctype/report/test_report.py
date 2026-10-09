@@ -40,6 +40,16 @@ class TestReport(IntegrationTestCase):
 				"Average of Simultaneous Sessions",
 				"Float",
 			),
+			(
+				{"aggregate_function": "min", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+				"Minimum of Simultaneous Sessions",
+				"Int",
+			),
+			(
+				{"aggregate_function": "max", "aggregate_on": "`tabUser`.`last_active`"},
+				"Maximum of Last Active",
+				"Datetime",
+			),
 		]
 
 		for args, expected_label, expected_fieldtype in cases:
@@ -246,8 +256,39 @@ class TestReport(IntegrationTestCase):
 			)
 			self.assertEqual(sorted((row[0], row[-1]) for row in data), sorted(map(tuple, expected)))
 
+			min_max_report = save(
+				"Test Min Max Group By",
+				{
+					"group_by": ["`tabUser`.`user_type`"],
+					"aggregates": [
+						{"aggregate_function": "min", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+						{"aggregate_function": "max", "aggregate_on": "`tabUser`.`last_active`"},
+					],
+				},
+				["user_type", "_aggregate_column", "_aggregate_column_1"],
+			)
+			columns, data = min_max_report.get_data()
+			self.assertEqual(
+				[(c.fieldname, c.label, c.fieldtype) for c in columns[1:]],
+				[
+					("_aggregate_column", "Minimum of Simultaneous Sessions", "Int"),
+					("_aggregate_column_1", "Maximum of Last Active", "Datetime"),
+				],
+			)
+			expected = frappe.get_list(
+				"User",
+				fields=[
+					"user_type",
+					{"MIN": "simultaneous_sessions", "as": "minimum"},
+					{"MAX": "last_active", "as": "maximum"},
+				],
+				group_by="user_type",
+				as_list=True,
+			)
+			self.assertEqual(sorted(map(tuple, data)), sorted(map(tuple, expected)))
+
 			for invalid in (
-				{"group_by": ["`tabUser`.`user_type`"], "aggregates": [{"aggregate_function": "max"}]},
+				{"group_by": ["`tabUser`.`user_type`"], "aggregates": [{"aggregate_function": "median"}]},
 				{"group_by": ["`tabUser`.`no_such_field`"], "aggregates": [{"aggregate_function": "count"}]},
 				{
 					"group_by": ["`tabHas Role`.`role`"],
