@@ -25,6 +25,10 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev
 
+      # without it, every ripgrep variant of the grep tests skips
+      - name: Install ripgrep
+        run: sudo apt-get install -y ripgrep
+
       - name: Run tests
         run: uv run pytest
 
