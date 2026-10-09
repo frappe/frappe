@@ -16,8 +16,10 @@ from frappe.desk.form import assign_to
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
 from frappe.email.frappemail import FrappeMail
 from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
+from frappe.email.setup import raise_friendly
 from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
+from frappe.integrations.doctype.connected_app.connected_app import has_token
 from frappe.model.document import Document
 from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
 from frappe.utils.background_jobs import enqueue, get_jobs
@@ -181,7 +183,7 @@ class EmailAccount(Document):
 			return
 
 		use_oauth = self.auth_method == "OAuth"
-		validate_oauth = use_oauth and not (self.is_new() and not self.get_oauth_token())
+		validate_oauth = use_oauth and self.has_stored_token()
 		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 
 		if use_oauth:
@@ -195,21 +197,11 @@ class EmailAccount(Document):
 			and not self.service == "Frappe Mail"
 		):
 			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
-				if self.enable_incoming:
-					self.flags.validate_imap_pop_connection = True
-
-					server = self.get_incoming_server(in_receive=self.use_imap)
-					if self.use_imap:
-						try:
-							self.validate_imap_folders_exist(server)
-						finally:
-							if hasattr(server, "imap") and server.imap is not None:
-								server.logout()
-
-					self.no_failed = 0
-
-				if self.enable_outgoing:
-					self.validate_smtp_conn()
+				message_count = len(frappe.message_log)
+				try:
+					self.validate_connections()
+				except Exception as e:
+					raise_friendly(e, self, message_count)
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					if not use_oauth:
@@ -225,6 +217,28 @@ class EmailAccount(Document):
 
 		if self.enable_outgoing:
 			self.validate_reply_to_addresses()
+
+	def has_stored_token(self) -> bool:
+		if self.backend_app_flow:
+			return True
+		return bool(self.connected_app) and has_token(self.connected_app, self.connected_user)
+
+	def validate_connections(self, incoming=True, outgoing=True):
+		if incoming and self.enable_incoming:
+			self.flags.validate_imap_pop_connection = True
+
+			server = self.get_incoming_server(in_receive=self.use_imap)
+			if self.use_imap:
+				try:
+					self.validate_imap_folders_exist(server)
+				finally:
+					if hasattr(server, "imap") and server.imap is not None:
+						server.logout()
+
+			self.no_failed = 0
+
+		if outgoing and self.enable_outgoing:
+			self.validate_smtp_conn()
 
 	@frappe.whitelist()
 	def validate_frappe_mail_settings(self):
@@ -375,7 +389,6 @@ class EmailAccount(Document):
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Return logged in POP3/IMAP connection object."""
-		oauth_token = self.get_oauth_token()
 		args = frappe._dict(
 			{
 				"email_account_name": self.email_account_name,
@@ -389,7 +402,7 @@ class EmailAccount(Document):
 				"incoming_port": get_port(self),
 				"initial_sync_count": self.initial_sync_count or 100,
 				"use_oauth": self.auth_method == "OAuth",
-				"access_token": oauth_token.get_password("access_token") if oauth_token else None,
+				"access_token": self.get_access_token(),
 			}
 		)
 
@@ -606,7 +619,7 @@ class EmailAccount(Document):
 
 	def get_access_token(self) -> str | None:
 		oauth_token = self.get_oauth_token()
-		return oauth_token.get_password("access_token") if oauth_token else None
+		return oauth_token.get_password("access_token", raise_exception=False) if oauth_token else None
 
 	def sendmail_config(self):
 		config = {
