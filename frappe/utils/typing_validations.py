@@ -115,7 +115,11 @@ def TypeAdapter(type_):
 @lru_cache(maxsize=2048)
 def get_resolved_annotations(func: Callable) -> dict:
 	"""Evaluate string annotations; unresolvable ones are kept as `ForwardRef`."""
-	return get_type_hints(func, include_extras=True, format=Format.FORWARDREF)
+	try:
+		return get_type_hints(func, include_extras=True, format=Format.FORWARDREF)
+	except SyntaxError:
+		# a string annotation that isn't an expression, e.g. `x: "free text"`, is skipped
+		return func.__annotations__
 
 
 def has_forward_ref(annotation) -> bool:
