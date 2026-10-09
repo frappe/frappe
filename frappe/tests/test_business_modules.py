@@ -108,6 +108,7 @@ class CustomizationTestCase(IntegrationTestCase):
 	def setUp(self):
 		# Skip the table change, so a rollback can undo everything a test made.
 		self.enterContext(patch.object(frappe.db, "updatedb"))
+		self.enterContext(self.set_user("test@example.com"))
 
 	def tearDown(self):
 		frappe.db.rollback()
