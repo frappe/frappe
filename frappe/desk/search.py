@@ -4,7 +4,8 @@
 import functools
 import json
 import math
-from typing import NotRequired, TypedDict
+from collections.abc import Callable
+from typing import Any, NotRequired, TypedDict
 
 import frappe
 
@@ -492,7 +493,7 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
-def filter_translated(values, txt: str, get_values) -> list:
+def filter_translated(values: list, txt: str, get_values: Callable[[Any], list]) -> list:
 	"""Return rows where a translated value from `get_values(row)` contains txt as `LIKE %txt%` would match it."""
 	if not txt:
 		return values
