@@ -20,14 +20,11 @@
 				<h2 class="max-w-xs text-6xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:max-w-none">What would you like to build?</h2>
 			</slot>
 		</div>
-		<div
+		<LoadingState
 			v-else-if="loading"
-			class="flow-late-reveal flex h-full items-center justify-center gap-2 text-sm text-ink-gray-5"
+			class="h-full justify-center text-sm text-ink-gray-5"
 			:style="{ paddingBottom: composerHeight + 'px' }"
-		>
-			<Spinner />
-			Loading…
-		</div>
+		/>
 		<div
 			v-else
 			ref="thread"
@@ -149,13 +146,13 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
-import Spinner from "frappe-ui/src/components/Spinner/Spinner.vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildItems, formatTime, panelIds, userAttachments, userText } from "../transcript.js"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"
+import LoadingState from "./LoadingState.vue"
 import PromptRail from "./PromptRail.vue"
 import ThinkingBlock from "./ThinkingBlock.vue"
 import ToolGroup from "./ToolGroup.vue"

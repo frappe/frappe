@@ -458,6 +458,14 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(set(rows[0].keys()), {"name", "title", "agent", "model", "modified"})
 		self.assertEqual([row.name for row in api.list_sessions(limit=1)], [second])
 
+	def test_list_sessions_names_the_model_in_force(self):
+		picked = frappe.get_doc(_model_doc(title="Picked Model")).insert()
+		on_agent = self.create(title="On the agent's model")
+		on_pick = self.create(title="On its own model", model=picked.name)
+		models = {row.name: row.model for row in api.list_sessions()}
+		self.assertEqual(models[on_agent], self.model.name)
+		self.assertEqual(models[on_pick], picked.name)
+
 	def test_list_sessions_escapes_like_wildcards_in_the_query(self):
 		percent = self.create(title="100% done")
 		self.create(title="100 percent done")

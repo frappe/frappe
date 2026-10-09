@@ -11,7 +11,7 @@
 				title="Refresh providers"
 				@click="reload"
 			>
-				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" />
+				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" :class="loading ? 'animate-spin' : ''" />
 			</button>
 		</template>
 
@@ -41,6 +41,7 @@
 				</span>
 				<FeatherIcon v-else name="chevron-right" class="h-4 w-4 text-ink-gray-4" />
 			</button>
+			<LoadingState v-if="loading && !rows.length" class="justify-center px-3 py-7 text-xs text-ink-gray-5" />
 			<!-- pinned at the bottom: local runtimes and private gateways -->
 			<button
 				data-palette-item
@@ -62,7 +63,10 @@
 				</span>
 				<FeatherIcon name="chevron-right" class="h-4 w-4 text-ink-gray-4" />
 			</button>
-			<div v-if="!filtered.length && debouncedQuery" class="px-3 py-7 text-center text-xs text-ink-gray-5">
+			<div
+				v-if="!filtered.length && debouncedQuery && !loading"
+				class="px-3 py-7 text-center text-xs text-ink-gray-5"
+			>
 				No providers found
 			</div>
 		</div>
@@ -245,6 +249,7 @@ import { computed, inject, onBeforeUnmount, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
+import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
 import PaletteSearch from "./PaletteSearch.vue"
 import ProviderIcon from "./ProviderIcon.vue"
@@ -253,6 +258,7 @@ const emit = defineEmits(["close", "back"])
 const flow = inject("flow")
 
 const rows = ref([])
+const loading = ref(false)
 const selected = ref(null)
 const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)
@@ -326,6 +332,7 @@ async function saveCustom() {
 }
 
 async function reload() {
+	loading.value = true
 	try {
 		rows.value = (await flow.client.providers()).providers
 		// the custom-setup row is synthetic and never in the server's list
@@ -334,6 +341,8 @@ async function reload() {
 		}
 	} catch (error) {
 		flow.notify(error.message, "error")
+	} finally {
+		loading.value = false
 	}
 }
 reload()

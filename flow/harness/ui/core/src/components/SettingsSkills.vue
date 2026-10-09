@@ -85,6 +85,7 @@
 					</button>
 				</div>
 				<p v-else-if="!loading" class="mt-3 text-xs text-ink-gray-5">{{ scope.empty }}</p>
+				<LoadingState v-else class="mt-3 text-xs text-ink-gray-5" />
 				<p v-if="scope.cut" class="mt-2 text-xs text-ink-gray-5">Not every skill is shown: this folder has too many entries.</p>
 			</section>
 		</template>
@@ -99,6 +100,7 @@ import { Select } from "frappe-ui/src/components/Select"
 import { TextInput } from "frappe-ui/src/components/TextInput"
 import { dialog } from "frappe-ui/src/utils/dialog"
 import FeatherIcon from "./FeatherIcon.vue"
+import LoadingState from "./LoadingState.vue"
 
 const flow = inject("flow")
 

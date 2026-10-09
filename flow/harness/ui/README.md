@@ -44,6 +44,9 @@ filesystem must change, so it can reuse the components instead of copying them:
   subset, for the host's own tools in transcript rows and approval cards.
 - `turnActions` — a component rendered after each finished turn's copy button, with
   `turnKey`, `text` and `ts` props (Flow's feedback thumbs).
+- `listedModel` — `true` when a session-list row's `model` is the chat's current one,
+  so a chat being opened shows it before it loads; defaults to `false` (the daemon's
+  list can lag a model change).
 
 The store exposes `capabilities.rewind` when its client implements `rewind`.
 Both the message action and composer command follow that capability.

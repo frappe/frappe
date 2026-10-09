@@ -189,6 +189,149 @@ test("new chats inherit the active session cwd and accept a project override", (
 	assert.equal(flow.state.prefs.cwd, "/projects/selected")
 })
 
+test("the model list is marked loading while models are fetched", async () => {
+	let answer
+	const flow = createFlowStore({ models: () => new Promise((resolve) => (answer = resolve)) })
+	const refresh = flow.refreshModels()
+	assert.equal(flow.state.modelsLoading, true)
+	answer({ models: [{ name: "a/b", provider: "a" }] })
+	await refresh
+	assert.equal(flow.state.modelsLoading, false)
+	assert.equal(flow.state.models.length, 1)
+})
+
+test("a chat being opened waits for its own model, and an effort picked meanwhile changes no model", async () => {
+	let respond
+	const changes = []
+	const client = {
+		session: () => new Promise((resolve) => (respond = resolve)),
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+		async setModel(sid, body) {
+			changes.push(body)
+			return body
+		},
+		stream() {
+			return { close() {}, async *[Symbol.asyncIterator]() {} }
+		},
+	}
+	const flow = createFlowStore(client)
+	// a cold chat's list row can lag a later model change
+	flow.state.sessions = [{ session_id: "s1", model: "openai/created-with" }]
+	const opened = flow.openSession("s1")
+	assert.equal(flow.state.conversation.model, null)
+	await flow.selectEffort("high")
+	assert.deepEqual(changes, [])
+	respond({ session_id: "s1", model: "openai/current", latest_seq: 1 })
+	await opened
+	assert.equal(flow.state.conversation.model, "openai/current")
+
+	// a chat just created already knows its model
+	const created = flow.openSession("s2", { config: { model: "openai/new" } })
+	assert.equal(flow.state.conversation.model, "openai/new")
+	respond({ session_id: "s2", model: "openai/new", latest_seq: 1 })
+	await created
+	flow.detach()
+})
+
+test("a host whose list carries the current model shows it while a chat opens, and keeps that row current", async () => {
+	let respond, answerModel
+	const client = {
+		session: () => new Promise((resolve) => (respond = resolve)),
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+		setModel: () => new Promise((resolve) => (answerModel = resolve)),
+		stream() {
+			return { close() {}, async *[Symbol.asyncIterator]() {} }
+		},
+	}
+	const flow = createFlowStore(client, { listedModel: true })
+	flow.state.sessions = [
+		{ session_id: "a", model: "m/a" },
+		{ session_id: "b", model: "m/b" },
+	]
+	const opened = flow.openSession("a")
+	assert.equal(flow.state.conversation.model, "m/a")
+	respond({ session_id: "a", model: "m/a", latest_seq: 1 })
+	await opened
+
+	// a model change that lands after a switch belongs to the chat it was made in
+	const changed = flow.selectModel("m/new")
+	const switched = flow.openSession("b")
+	respond({ session_id: "b", model: "m/b", latest_seq: 1 })
+	await switched
+	answerModel({ model: "m/new" })
+	await changed
+	assert.deepEqual(
+		flow.state.sessions.map((s) => s.model),
+		["m/new", "m/b"],
+	)
+	assert.equal(flow.state.conversation.model, "m/b")
+	flow.detach()
+})
+
+test("reopening the chat that is already open keeps it loading until the reload lands", async () => {
+	let respond
+	const client = {
+		session: () => new Promise((resolve) => (respond = resolve)),
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+		// a live stream stays open until it is closed
+		stream() {
+			let finish
+			const closed = new Promise((resolve) => (finish = resolve))
+			return {
+				close: () => finish(),
+				async *[Symbol.asyncIterator]() {
+					await closed
+				},
+			}
+		},
+	}
+	const flow = createFlowStore(client)
+	const opened = flow.openSession("s1")
+	respond({ session_id: "s1", model: "m", latest_seq: 1 })
+	await opened
+
+	const reopened = flow.openSession("s1")
+	await new Promise((resolve) => setImmediate(resolve)) // the old stream winds down
+	assert.equal(flow.state.loading, true)
+	respond({ session_id: "s1", model: "m", latest_seq: 1 })
+	await reopened
+	assert.equal(flow.state.loading, false)
+	flow.detach()
+})
+
+test("a thinking level that lands after a switch stays with the chat it was picked in", async () => {
+	let respond, answer
+	const client = {
+		session: () => new Promise((resolve) => (respond = resolve)),
+		async entries() {
+			return { entries: [], latest_seq: 1 }
+		},
+		setModel: () => new Promise((resolve) => (answer = resolve)),
+		stream() {
+			return { close() {}, async *[Symbol.asyncIterator]() {} }
+		},
+	}
+	const flow = createFlowStore(client)
+	const opened = flow.openSession("a")
+	respond({ session_id: "a", model: "m/a", latest_seq: 1 })
+	await opened
+
+	const picked = flow.selectEffort("high")
+	const switched = flow.openSession("b")
+	respond({ session_id: "b", model: "m/b", latest_seq: 1 })
+	await switched
+	answer({ model: "m/a", reasoning_effort: "high" })
+	await picked
+	assert.equal(flow.state.conversation.reasoningEffort, null)
+	flow.detach()
+})
+
 test("a new chat started while a session loads is not left loading", async () => {
 	let respond
 	const client = {

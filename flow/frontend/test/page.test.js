@@ -263,3 +263,66 @@ test("the thumbs show under a finished run, but not in a chat the user may only 
 		assert.equal(el.querySelectorAll("button").length, buttons);
 	}
 });
+
+test("a chat opened from its link names no agent or model until it loads", async (t) => {
+	await router.replace("/s/slow");
+	let answer;
+	transport.answers["flow.api.session"] = () => new Promise((resolve) => (answer = resolve));
+	t.after(() => (transport.answers["flow.api.session"] = session));
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(FlowPage, { boot }).use(router);
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	await until(() => answer);
+	await nextTick();
+	const agent = el.querySelector("button[title^='The agent is fixed']");
+	assert.equal(agent.textContent.trim(), "");
+	assert.ok(!el.textContent.includes("Choose Model"));
+
+	answer({ ...session, name: "slow" });
+	await until(() => agent.textContent.trim() === "Reviewer");
+	assert.ok(el.textContent.includes("Sonnet"));
+});
+
+test("a chat picked in the sidebar shows its agent and model before it loads", async (t) => {
+	await router.replace("/");
+	let answer;
+	transport.answers["flow.api.list_sessions"] = [
+		{
+			name: "listed",
+			title: "Listed chat",
+			agent: "reviewer",
+			model: "Sonnet",
+			modified: "2026-10-09",
+		},
+	];
+	transport.answers["flow.api.session"] = () => new Promise((resolve) => (answer = resolve));
+	t.after(() => {
+		transport.answers["flow.api.list_sessions"] = [];
+		transport.answers["flow.api.session"] = session;
+	});
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(FlowPage, { boot }).use(router);
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	await until(() => el.textContent.includes("Listed chat"));
+	[...el.querySelectorAll("[role=button]")]
+		.find((row) => row.textContent.includes("Listed chat"))
+		.click();
+	await until(() => answer);
+	await nextTick();
+	assert.equal(
+		el.querySelector("button[title^='The agent is fixed']").textContent.trim(),
+		"Reviewer"
+	);
+	assert.ok(el.querySelector("button[title^='Sonnet']"));
+	answer({ ...session, name: "listed" });
+});

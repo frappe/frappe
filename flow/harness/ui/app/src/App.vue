@@ -1,6 +1,11 @@
 <template>
 	<FlowChat v-if="store" :store="store" class="h-full" />
 
+	<!-- the saved connection is being tried: no form until it fails -->
+	<div v-else-if="starting" class="flex h-full items-center justify-center bg-surface-base">
+		<LoadingState class="text-sm text-ink-gray-5" />
+	</div>
+
 	<div v-else class="flex h-full items-center justify-center bg-surface-base">
 		<form
 			class="flex w-[380px] flex-col gap-3 rounded-6 border border-outline-gray-2 bg-surface-base p-5 shadow-sm"
@@ -43,7 +48,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue"
-import { DaemonClient, FlowChat, createFlowStore } from "@flow/ui-core"
+import { DaemonClient, FlowChat, LoadingState, createFlowStore } from "@flow/ui-core"
 
 const CONNECTION_KEY = "flow.ui.connection"
 
@@ -52,6 +57,7 @@ const baseUrl = ref("")
 const token = ref("")
 const error = ref("")
 const checking = ref(false)
+const starting = ref(true)
 
 async function tryConnect(config, { silent = false } = {}) {
 	checking.value = true
@@ -72,7 +78,7 @@ function connect() {
 	tryConnect({ baseUrl: baseUrl.value.trim(), token: token.value.trim() })
 }
 
-onMounted(() => {
+onMounted(async () => {
 	let saved = null
 	try {
 		saved = JSON.parse(localStorage.getItem(CONNECTION_KEY))
@@ -83,6 +89,7 @@ onMounted(() => {
 		baseUrl.value = saved.baseUrl ?? ""
 		token.value = saved.token ?? ""
 	}
-	tryConnect(saved ?? { baseUrl: "", token: "" }, { silent: true })
+	await tryConnect(saved ?? { baseUrl: "", token: "" }, { silent: true })
+	starting.value = false
 })
 </script>

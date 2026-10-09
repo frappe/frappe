@@ -164,7 +164,11 @@
 					</template>
 				</Dropdown>
 			</div>
-			<div v-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
+			<LoadingState
+				v-if="filtered.length === 0 && flow.state.sessionsLoading"
+				class="justify-center px-2.5 py-8 text-xs text-ink-gray-5"
+			/>
+			<div v-else-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
 				{{ emptyMessage }}
 			</div>
 			<button
@@ -208,6 +212,7 @@ import { dialog } from "frappe-ui/src/utils/dialog"
 import { useDebouncedValue } from "../debounce.js"
 import { sidebarIsDrawer } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
+import LoadingState from "./LoadingState.vue"
 import PopMenu from "./PopMenu.vue"
 
 const props = defineProps({ open: { type: Boolean, default: true } })

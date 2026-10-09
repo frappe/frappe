@@ -13,11 +13,12 @@ export function useAgent() {
 					?.agent
 			: page.state.agent
 	);
+	// a chat still loading, with no listed row to name its agent, shows none yet
 	const title = computed(
 		() =>
 			page.state.boot.agents.find((agent) => agent.name === current.value)?.title ??
 			current.value ??
-			"Choose an agent"
+			(locked.value && flow.state.loading ? "" : "Choose an agent")
 	);
 	return { locked, current, title };
 }

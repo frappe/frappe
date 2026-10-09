@@ -33,6 +33,12 @@ const SubagentView = await loadComponent("SubagentView")
 const TranscriptDialog = await loadComponent("TranscriptDialog")
 const WorkspacePanel = await loadComponent("WorkspacePanel")
 const FilesBar = await loadComponent("FilesBar")
+const SessionSidebar = await loadComponent("SessionSidebar")
+const ModelPalette = await loadComponent("ModelPalette")
+const FileMentionPalette = await loadComponent("FileMentionPalette")
+const ProvidersDialog = await loadComponent("ProvidersDialog")
+const SettingsSkills = await loadComponent("SettingsSkills")
+const ChatHeader = await loadComponent("ChatHeader")
 
 function mount(t, component, props, flow) {
 	const el = document.createElement("div")
@@ -1275,3 +1281,169 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 	assert.equal(panel.querySelectorAll("button").length, 1) // only the close button
 })
 
+test("the chat list says it is loading, not that there are no chats or matches", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const flow = {
+		options: {},
+		state: reactive({ sessions: [], sessionsLoading: true, sessionsMore: false, sessionId: null, prefs: {} }),
+		sessionTitle: (session) => session.title,
+		// past a full page, a search goes to the host
+		searchSessions() {
+			flow.state.sessionsLoading = true
+		},
+	}
+	const { el } = mount(t, SessionSidebar, {}, flow)
+	assert.ok(el.textContent.includes("Loading"))
+	assert.ok(!el.textContent.includes("No chats yet"))
+	flow.state.sessionsLoading = false
+	await nextTick()
+	assert.ok(!el.textContent.includes("Loading"))
+	assert.ok(el.textContent.includes("No chats yet"))
+
+	flow.state.sessions = [{ session_id: "s1", title: "Alpha" }]
+	await typeSearch(t, el, "beta")
+	assert.ok(el.textContent.includes("Loading"))
+	assert.ok(!el.textContent.includes("No matches"))
+	flow.state.sessionsLoading = false
+	await nextTick()
+	assert.ok(el.textContent.includes("No matches"))
+})
+
+test("the model list says it is loading, not that no provider is connected", async (t) => {
+	const flow = { state: reactive({ models: [], modelsLoading: true, conversation: {}, prefs: {} }) }
+	const { el } = mount(t, ModelPalette, {}, flow)
+	assert.ok(el.textContent.includes("Loading"))
+	assert.ok(!el.textContent.includes("No models yet"))
+	flow.state.modelsLoading = false
+	await nextTick()
+	assert.ok(!el.textContent.includes("Loading"))
+	assert.ok(el.textContent.includes("No models yet"))
+})
+
+test("the file picker says it is loading until its first listing arrives", async (t) => {
+	let answer
+	const flow = {
+		explorerCwd: () => "/w",
+		listFiles: () => new Promise((resolve) => (answer = resolve)),
+	}
+	const { el } = mount(t, FileMentionPalette, {}, flow)
+	assert.ok(el.textContent.includes("Loading"))
+	answer({ path: "/w", entries: [] })
+	await settle()
+	assert.ok(!el.textContent.includes("Loading"))
+	assert.ok(el.textContent.includes("No files here"))
+})
+
+test("the files panel says it is loading until its tree or change list arrives", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	let list, changes
+	const flow = {
+		state: reactive({ workspace: { tabs: [], active: null }, prefs: {} }),
+		explorerCwd: () => "/w",
+		listFiles: () => new Promise((resolve) => (list = resolve)),
+		gitChanges: () => new Promise((resolve) => (changes = resolve)),
+	}
+	const tree = mount(t, FilesBar, { open: true, mode: "files" }, flow)
+	assert.ok(tree.el.textContent.includes("Loading"))
+	list({ path: "/w", entries: [] })
+	await settle()
+	assert.ok(!tree.el.textContent.includes("Loading"))
+	assert.ok(tree.el.textContent.includes("Empty folder"))
+
+	const diff = mount(t, FilesBar, { open: true, mode: "diff" }, flow)
+	assert.ok(diff.el.textContent.includes("Loading"))
+	changes({ root: "/w", files: [] })
+	await settle()
+	assert.ok(!diff.el.textContent.includes("Loading"))
+	assert.ok(diff.el.textContent.includes("No uncommitted changes"))
+
+	// no folder to list, or a failed call: nothing keeps spinning
+	const none = { ...flow, listFiles: async () => null, gitChanges: async () => null }
+	const bare = mount(t, FilesBar, { open: true, mode: "files" }, none)
+	const bareDiff = mount(t, FilesBar, { open: true, mode: "diff" }, none)
+	await settle()
+	assert.ok(!bare.el.textContent.includes("Loading"))
+	assert.ok(!bareDiff.el.textContent.includes("Loading"))
+})
+
+test("the providers list says it is loading until it arrives", async (t) => {
+	let answer
+	const flow = { client: { providers: () => new Promise((resolve) => (answer = resolve)) } }
+	const { el } = mount(t, ProvidersDialog, {}, flow)
+	assert.ok(el.textContent.includes("Loading"))
+	answer({ providers: [{ id: "openai", name: "OpenAI" }] })
+	await settle()
+	assert.ok(!el.textContent.includes("Loading"))
+	assert.ok(el.textContent.includes("OpenAI"))
+})
+
+test("the skills settings say they are loading until the skill folders are read", async (t) => {
+	let answer
+	const flow = {
+		state: reactive({ settingsOpen: true, sessionId: null, session: null, sessions: [], prefs: {} }),
+		client: { skillFiles: () => new Promise((resolve) => (answer = resolve)) },
+	}
+	const { el } = mount(t, SettingsSkills, {}, flow)
+	assert.ok(el.textContent.includes("Loading"))
+	assert.ok(!el.textContent.includes("No global skills yet"))
+	answer({ skills: [], roots: { global: "/g" } })
+	await settle()
+	assert.ok(!el.textContent.includes("Loading"))
+	assert.ok(el.textContent.includes("No global skills yet"))
+})
+
+test("a sub-agent's tab says it is loading while its session loads, not that it is starting", async (t) => {
+	const flow = { state: reactive({ loading: true, conversation: { subagents: {} } }) }
+	const { el } = mount(t, SubagentView, { id: "a1" }, flow)
+	assert.ok(el.textContent.includes("Loading"))
+	assert.ok(!el.textContent.includes("Starting"))
+	flow.state.loading = false
+	await nextTick()
+	assert.ok(!el.textContent.includes("Loading"))
+	assert.ok(el.textContent.includes("Starting"))
+})
+
+test("the header says nothing while a chat loads, not that it is a new chat", async (t) => {
+	const flow = {
+		state: reactive({
+			loading: false, sessionId: null, session: null, conversation: initialConversation(), prefs: {}, workspace: {},
+		}),
+	}
+	const { el } = mount(t, ChatHeader, {}, flow)
+	assert.ok(el.textContent.includes("New chat"))
+
+	// a chat opened from its link: no title to seed until it arrives
+	flow.state.sessionId = "s1"
+	flow.state.loading = true
+	await nextTick()
+	assert.ok(!el.textContent.includes("New chat"))
+	flow.state.session = { title: "Quarterly report" }
+	flow.state.loading = false
+	await nextTick()
+	assert.ok(el.textContent.includes("Quarterly report"))
+})
+
+test("the model button never shows the last model picked while a chat loads", async (t) => {
+	const conversation = reactive(initialConversation())
+	const flow = { state: reactive({ loading: true, conversation, prefs: { lastModel: "openai/gpt-old" } }) }
+	const { el } = mount(t, ModelButton, {}, flow)
+	assert.ok(!el.textContent.includes("gpt-old"))
+	assert.ok(!el.textContent.includes("Choose Model"))
+	conversation.model = "openai/gpt-6" // the chat's own, from the list or the loaded session
+	await nextTick()
+	assert.ok(el.textContent.includes("gpt-6"))
+})
+
+test("a file search in flight shows the spinner with its own word", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const flow = {
+		state: reactive({ workspace: { tabs: [], active: null }, prefs: {} }),
+		explorerCwd: () => "/w",
+		listFiles: async () => ({ path: "/w", entries: [] }),
+		searchFiles: () => new Promise(() => {}),
+	}
+	const { el } = mount(t, FilesBar, { open: true, mode: "files" }, flow)
+	await typeSearch(t, el, "app")
+	assert.ok(el.textContent.includes("Searching…"))
+	assert.ok(el.querySelector("[data-stub=Spinner]"))
+})

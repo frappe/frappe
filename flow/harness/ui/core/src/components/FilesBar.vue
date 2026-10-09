@@ -69,12 +69,13 @@
 					<div v-else-if="changes && !gitFiles.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
 						No uncommitted changes
 					</div>
+					<LoadingState v-else-if="changesPending" class="px-1.5 py-2 text-2xs text-ink-gray-4" />
 				</template>
 				<!-- searching: a pruned tree of matches only, branches open until folded -->
 				<template v-else-if="searchActive">
-					<div v-if="searchMatches === null" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<LoadingState v-if="searchMatches === null" class="px-1.5 py-2 text-2xs text-ink-gray-4">
 						Searching…
-					</div>
+					</LoadingState>
 					<template v-else>
 						<div
 							v-for="row in searchRows"
@@ -118,6 +119,10 @@
 						Empty folder
 					</div>
 				</div>
+				<LoadingState
+					v-else-if="mode === 'files' && rootLoading && !searchActive"
+					class="px-1.5 py-2 text-2xs text-ink-gray-4"
+				/>
 			</div>
 		</div>
 		<div
@@ -135,6 +140,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { useDebouncedValue } from "../debounce.js"
 import { fileName } from "../transcript.js"
 import FileTree from "./FileTree.vue"
+import LoadingState from "./LoadingState.vue"
 
 const props = defineProps({
 	open: { type: Boolean, default: false },
@@ -149,11 +155,15 @@ const activeTab = computed(
 
 const rootDir = ref(null)
 const rootEntries = ref(null)
+const rootLoading = ref(false)
 
 async function loadRoot() {
 	const cwd = flow.explorerCwd()
+	rootLoading.value = true
 	const data = await flow.listFiles() // refetch on every open: stays fresh
-	if (!data || flow.explorerCwd() !== cwd) return // a cwd switch mid-flight: not our tree
+	if (flow.explorerCwd() !== cwd) return // a cwd switch mid-flight: not our tree
+	rootLoading.value = false
+	if (!data) return
 	rootDir.value = data.path
 	rootEntries.value = data.entries
 }
@@ -163,13 +173,16 @@ async function loadRoot() {
 // overlaps the next one. Bumping pollId retires the loop and its stale replies.
 const DIFF_POLL_MS = 3000
 const changes = ref(null) // {root, files}; root is null outside a git repo
+const changesPending = ref(false) // the list's first answer is on its way
 const gitFiles = computed(() => changes.value?.files ?? [])
 let pollId = 0
 
 async function pollChanges(id) {
+	changesPending.value = !changes.value
 	while (id === pollId) {
 		const data = await flow.gitChanges()
 		if (id !== pollId) return
+		changesPending.value = false
 		if (data) changes.value = data
 		await new Promise((resolve) => setTimeout(resolve, DIFF_POLL_MS))
 	}

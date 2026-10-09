@@ -16,6 +16,7 @@ const real = new Set([
 	"SessionSidebar.vue",
 	"ChatHeader.vue",
 	"MessageList.vue",
+	"LoadingState.vue",
 	"Composer.vue",
 	"ModelButton.vue",
 	"PopMenu.vue",
