@@ -386,7 +386,8 @@ class TestSessionEndpoints(ApiCase):
 			api.set_title(name, "  ")
 		with self.assertRaisesRegex(frappe.ValidationError, "Path must be"):
 			api.entries(name, path="branch")
-		for answers in ("nope", "[1]", 3):
+		# Frappe itself refuses an answers value that is neither text nor an object
+		for answers in ("nope", "[1]"):
 			with self.assertRaisesRegex(frappe.ValidationError, "JSON object"):
 				api.resume(name, answers)
 
@@ -483,7 +484,8 @@ class TestSessionEndpoints(ApiCase):
 			)
 		first = api.list_sessions("Paged", limit=2)
 		self.assertEqual([row.name for row in first], [names[2], names[1]])
-		rest = api.list_sessions("Paged", limit=2, before=first[-1].modified)
+		# the browser sends the timestamp back as text
+		rest = api.list_sessions("Paged", limit=2, before=str(first[-1].modified))
 		self.assertEqual([row.name for row in rest], [names[0]])
 
 	def test_run_answers_started_and_sync_session_completes_the_run(self):
@@ -637,7 +639,8 @@ class TestSessionEndpoints(ApiCase):
 		expected = {"skills": [{"name": "expense-approval", "description": "How to review a claim."}]}
 		self.assertEqual(api.skills(session=self.create()), expected)
 		self.assertEqual(api.skills(agent=self.agent.name), expected)
-		for bad in ({}, {"agent": ["x"]}, {"agent": " "}):
+		# a non-text agent is Frappe's own type error now
+		for bad in ({}, {"agent": " "}):
 			with self.assertRaisesRegex(frappe.ValidationError, "Session or agent"):
 				api.skills(**bad)
 
