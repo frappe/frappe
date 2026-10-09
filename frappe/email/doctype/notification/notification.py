@@ -93,6 +93,16 @@ class Notification(Document):
 		value_changed: DF.Literal[None]
 	# end: auto-generated types
 
+	@classmethod
+	def prepare_for_import(cls, docdict: dict) -> None:
+		"""Normalize Slack notifications shipped by older app fixtures and JSON exports."""
+		if docdict.get("channel") != "Slack":
+			return
+		docdict["channel"] = "Webhook"
+		if not docdict.get("notification_webhook_url") and docdict.get("slack_webhook_url"):
+			docdict["notification_webhook_url"] = docdict["slack_webhook_url"]
+		docdict.pop("slack_webhook_url", None)
+
 	def onload(self):
 		"""load message"""
 		if self.is_standard:
