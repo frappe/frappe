@@ -14,6 +14,7 @@ export function createPage(boot, { refresh = () => {} } = {}) {
 		boot,
 		agent: defaultAgent(boot),
 		runs: {}, // session → Flow Run rows as the server last reported them
+		readOnly: {}, // session → true when the user may view it but not write to it
 		log: {}, // session → durable log rows, slimmed to what run mapping needs
 		settingsTab: "general", // the settings dialog opens on this tab
 	});
@@ -30,6 +31,7 @@ export function createPage(boot, { refresh = () => {} } = {}) {
 
 	function onSession(payload) {
 		state.runs[payload.name] = payload.runs ?? [];
+		state.readOnly[payload.name] = Boolean(payload.read_only);
 	}
 
 	function onRows(sid, rows, { replace }) {

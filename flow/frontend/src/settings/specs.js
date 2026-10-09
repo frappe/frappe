@@ -564,6 +564,7 @@ export const SPECS = {
 				type: "select",
 				options: ["Agent", "User"],
 				description: "Agent: shared by everyone. User: one person only.",
+				locked: saved,
 			},
 			{
 				name: "user",
@@ -571,6 +572,7 @@ export const SPECS = {
 				type: "link",
 				link: "User",
 				when: (doc) => doc.scope === "User",
+				locked: saved,
 			},
 			{ name: "status", label: "Status", type: "select", options: ["Active", "Archived"] },
 			{ name: "source", label: "Source", type: "readonly", when: saved },

@@ -1,5 +1,5 @@
 <template>
-	<span v-if="run && finished" class="flex items-center gap-0.5">
+	<span v-if="run && finished && !page.state.readOnly[sid]" class="flex items-center gap-0.5">
 		<button
 			class="flow-feedback-btn"
 			:class="rating === 'Up' ? 'flow-feedback-selected' : ''"

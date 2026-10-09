@@ -230,7 +230,7 @@ def delete_session(session: str) -> dict[str, str]:
 def sync_session(session: str) -> dict[str, Any]:
 	"""Record the flow server's log into this session after a terminal event, or when a
 	client reconnects; never called on a schedule."""
-	doc = _load_session(session, "write")
+	doc = _load_session(session, "read")
 	sync_with_retry(doc)
 	return _session_payload(doc)
 
@@ -329,6 +329,7 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"model": model,
 		"source": doc.source,
 		"auto_approve": bool(doc.auto_approve),
+		"read_only": not frappe.has_permission("Flow Session", "write", doc),
 		"runs": frappe.get_all(
 			"Flow Run", filters={"session": doc.name}, fields=RUN_FIELDS, order_by="creation asc"
 		),

@@ -22,6 +22,7 @@
 				</template>
 			</MessageList>
 			<Composer
+				v-if="!readOnly"
 				ref="composer"
 				:commands="COMMANDS"
 				:mentions="false"
@@ -39,6 +40,12 @@
 					<AgentPalette v-if="view === 'agents'" @close="close" @back="back" />
 				</template>
 			</Composer>
+			<p
+				v-else
+				class="absolute inset-x-0 bottom-0 px-5 pb-5 text-center text-xs text-ink-gray-5"
+			>
+				Only the owner of this chat can send messages.
+			</p>
 		</main>
 		<WorkspacePanel>
 			<template #empty>
@@ -138,6 +145,8 @@ const placeholder = computed(() => {
 	const title = page.state.boot.agents.find((agent) => agent.name === name)?.title ?? "Flow";
 	return `Ask ${title}…`;
 });
+// someone else's chat is view-only: its tools would run as its owner
+const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
 // no model or no agent: the empty state says so, and the composer waits
 const needsSetup = computed(
 	() => !page.state.boot.models?.length || !page.state.boot.agents?.length

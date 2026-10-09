@@ -30,6 +30,18 @@ doc_events = {
 	}
 }
 
+# a session's tools run as its owner, so its content is theirs alone
+has_permission = {
+	"Flow Session": "flow.permissions.has_session_permission",
+	"Flow Run": "flow.permissions.has_session_permission",
+	"Flow Agent Memory": "flow.permissions.has_memory_permission",
+}
+permission_query_conditions = {
+	"Flow Session": "flow.permissions.session_query_conditions",
+	"Flow Run": "flow.permissions.session_query_conditions",
+	"Flow Agent Memory": "flow.permissions.memory_query_conditions",
+}
+
 # Flow's references to other docs are bookkeeping — they must never block deleting
 # the referenced doc. A knowledge chunk indexes a doc; a Flow Run records the doc a
 # trigger acted on. The incremental sweep removes orphaned chunks afterwards.

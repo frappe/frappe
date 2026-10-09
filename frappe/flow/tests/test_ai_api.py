@@ -13,6 +13,7 @@ from flow.api import attach_file, cleanup_attachments, submit_feedback
 from flow.daemon.client import DaemonClient
 from flow.flow.doctype.flow_session.flow_session import FlowSession
 from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
+from flow.lib.session import new_session
 from flow.memory import store as memory_store
 from flow.permissions import FLOW_USER_ROLE
 from flow.tests.test_fake_daemon import FakeDaemon, child_pause, pause
@@ -20,6 +21,7 @@ from flow.tests.test_live_server import LiveServerCase
 from flow.tools.builtins import sync_builtin_tools
 
 OTHER = "api-other-user@example.com"
+MANAGER = "api-manager@example.com"
 
 
 def _model_doc(**overrides: Any) -> dict:
@@ -110,6 +112,14 @@ def _ensure_user(email: str) -> str:
 		).insert(ignore_permissions=True)
 	frappe.get_doc("User", email).add_roles(FLOW_USER_ROLE)
 	return email
+
+
+def _ensure_manager() -> str:
+	"""A System Manager without the Flow User role."""
+	user = frappe.get_doc("User", _ensure_user(MANAGER))
+	user.add_roles("System Manager")
+	user.remove_roles(FLOW_USER_ROLE)
+	return user.name
 
 
 class TestSubmitFeedback(IntegrationTestCase):
@@ -392,6 +402,38 @@ class TestSessionEndpoints(ApiCase):
 			with self.assertRaises(frappe.PermissionError):
 				call()
 		self.assertEqual(api.list_sessions(), [])
+
+	def test_a_system_manager_views_others_trigger_sessions_only_and_writes_only_their_own(self):
+		manager = _ensure_manager()
+		frappe.set_user(_ensure_user(OTHER))
+		chat = self.create()
+		fired = new_session(self.agent.name, source="Trigger").name
+		self.assertFalse(api.session(fired)["read_only"])
+		frappe.set_user(manager)
+
+		with self.assertRaises(frappe.PermissionError):
+			api.session(chat)
+		self.assertTrue(api.session(fired)["read_only"])
+		api.entries(fired)
+		self.assertTrue(api.sync_session(fired)["read_only"])
+		for call in (
+			lambda: api.run(fired, "hi"),
+			lambda: api.resume(fired, "{}"),
+			lambda: api.abort(fired),
+			lambda: api.cancel_pending(fired),
+			lambda: api.set_model(fired, self.model.name),
+			lambda: api.set_title(fired, "x"),
+			lambda: api.set_auto_approve(fired, 1),
+			lambda: api.cleanup_attachments(fired),
+		):
+			with self.assertRaises(frappe.PermissionError):
+				call()
+
+		own = self.create()
+		self.assertFalse(api.session(own)["read_only"])
+		self.assertEqual(api.run(own, "hi")["status"], "started")
+		with self.assertRaises(frappe.PermissionError):
+			api.delete_session(chat)
 
 	def test_list_sessions_shows_own_manual_sessions_newest_first(self):
 		first = self.create(title="First")

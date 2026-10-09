@@ -107,7 +107,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-09-10 20:00:00",
+ "modified": "2026-10-08 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",
@@ -115,13 +115,17 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
    "delete": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
-   "share": 1,
+   "share": 1
+  },
+  {
+   "create": 1,
+   "if_owner": 1,
+   "role": "System Manager",
    "write": 1
   },
   {
