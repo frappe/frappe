@@ -31,7 +31,6 @@
  *   .es-bar-list--hover-values    end labels appear only on row hover */
 
 .es-bar-list {
-    position: relative;
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -110,10 +109,10 @@
     position: absolute;
     inset-inline-start: 0;
     top: 50%;
-    height: 24px;
-    margin-top: -12px;
-    border-start-end-radius: 4px;
-    border-end-end-radius: 4px;
+    height: calc(var(--spacing) * 6);
+    transform: translateY(-50%);
+    border-start-end-radius: var(--radius-sm);
+    border-end-end-radius: var(--radius-sm);
 }
 
 .es-bar-list__value {
@@ -171,23 +170,9 @@
 }
 
 .es-bar-list__tip {
-    position: absolute;
-    z-index: 1;
-    min-width: 160px;
-    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-    white-space: nowrap;
-    font-size: var(--text-sm);
-    background: var(--surface-elevation-2);
-    border: 1px solid var(--outline-elevation-2);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--elevation-xl);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 120ms ease;
-}
-
-.es-bar-list__tip.is-visible {
-    opacity: 1;
+    position: fixed;
+    z-index: 1070;
+    min-width: calc(var(--spacing) * 40);
 }
 
 .es-bar-list__tip-title {
@@ -203,8 +188,8 @@
 
 .es-bar-list__tip-dot {
     flex-shrink: 0;
-    width: 8px;
-    height: 8px;
+    width: calc(var(--spacing) * 2);
+    height: calc(var(--spacing) * 2);
     border-radius: var(--radius-full);
 }
 
@@ -215,6 +200,4 @@
 .es-bar-list__tip b {
     margin-inline-start: auto;
     padding-inline-start: calc(var(--spacing) * 4);
-    font-weight: var(--font-weight-semibold);
-    color: var(--ink-gray-8);
 }

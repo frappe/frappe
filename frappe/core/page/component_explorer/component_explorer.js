@@ -1487,6 +1487,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							],
 							format: (value) => value + " units",
 							color: "var(--green-600)",
+							name: __("In stock"),
+							tooltip_format: (value) => __("{0} units in the warehouse", [value]),
 							values_on_hover: true,
 						},
 					],
