@@ -172,6 +172,11 @@ test.describe("Report View group by button", () => {
 		expect(
 			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
 		).toEqual([{ doctype, fieldname: "category" }]);
+
+		// Escape outside a field closes the popover and returns focus to the button
+		await page.keyboard.press("Escape");
+		await expect(popover).toBeHidden();
+		await expect(button).toBeFocused();
 	});
 
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {

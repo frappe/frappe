@@ -93,6 +93,14 @@ frappe.ui.FilterGroup = class {
 			if (!this.wrapper) {
 				// set here because the popover template sanitizer drops tabindex
 				this.wrapper = $(".filter-popover").attr("tabindex", "-1");
+				// fields keep their own Escape handling
+				this.wrapper.on("keydown", (e) => {
+					if (e.key !== "Escape" || $(e.target).is("input, select, textarea")) return;
+					// the global Escape handler would blur the button again
+					e.stopPropagation();
+					this.hide_popover();
+					this.filter_button.trigger("focus");
+				});
 				if (hide_empty_filters) {
 					this.toggle_empty_filters(false);
 					this.add_filters_to_popover(this.filters);

@@ -327,5 +327,11 @@ test.describe("List View", () => {
 		expect(
 			await page.evaluate(() => cur_list.filter_area.filter_list.filters[0].get_value())
 		).toEqual(["ToDo", "owner", "like", "%example.com%"]);
+
+		// Escape outside a field closes the popover and returns focus to the button
+		await page.locator(".filter-popover .remove-filter[role=button]").first().focus();
+		await page.keyboard.press("Escape");
+		await expect(page.locator(".filter-popover")).toBeHidden();
+		await expect(page.locator(".filter-section .filter-button")).toBeFocused();
 	});
 });

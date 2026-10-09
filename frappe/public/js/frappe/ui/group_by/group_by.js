@@ -157,6 +157,14 @@ frappe.ui.GroupBy = class {
 			if (!this.wrapper) {
 				// set here because the popover template sanitizer drops tabindex
 				this.wrapper = $(".group-by-popover").attr("tabindex", "-1");
+				// fields keep their own Escape handling
+				this.wrapper.on("keydown", (e) => {
+					if (e.key !== "Escape" || $(e.target).is("input, select, textarea")) return;
+					// the global Escape handler would blur the button again
+					e.stopPropagation();
+					this.group_by_button.popover("hide");
+					this.group_by_button.trigger("focus");
+				});
 			}
 			if (this.get_group_bys().length) {
 				// the popover lives at the end of body, focus it so Tab reaches the rows
