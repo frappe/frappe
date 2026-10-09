@@ -2256,6 +2256,13 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 
 		self.assertEqual(test_nested([obj]), [obj])
 
+	def test_skip_invalid_string_annotation(self):
+		@validate_argument_types
+		def test_invalid(name: "free text"):
+			return name
+
+		self.assertEqual(test_invalid({"a": 1}), {"a": 1})
+
 	def test_whitelisted_method_validates_string_annotations(self):
 		from frappe.handler import execute_cmd
 
