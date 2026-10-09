@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from copy import deepcopy
 from unittest.mock import Mock, PropertyMock, patch
 
 import requests
@@ -13,6 +14,7 @@ from frappe.integrations.doctype.notification_webhook_url.notification_webhook_u
 	NotificationWebhookURL,
 	WebhookDeliveryError,
 )
+from frappe.modules.import_file import import_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 
@@ -376,6 +378,56 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 				notification.send_webhook_message(self.user, {"doc": self.user})
 			self.assertIs(raised.exception, error)
 			log_error.assert_not_called()
+
+	def test_repeated_legacy_notification_imports_keep_sending(self):
+		self.user.add_roles("System Manager")
+		params = self._make_webhook(show_document_link=0).insert()
+		notification = self._make_notification(params).insert()
+		legacy = notification.as_dict()
+		legacy["channel"] = "Slack"
+		legacy["slack_webhook_url"] = legacy.pop("notification_webhook_url")
+
+		with set_user(self.user_name):
+			for attempt in range(2):
+				with self.subTest(attempt=attempt):
+					docdict = deepcopy(legacy)
+					import_doc(docdict)
+					imported = Notification.docs.get(notification.name)
+					self.assertEqual(imported.channel, "Webhook")
+					self.assertEqual(imported.notification_webhook_url, params.name)
+					self.assertNotIn("slack_webhook_url", docdict)
+					with patch("requests.post", return_value=Mock(ok=True)) as post:
+						imported.send(self.user)
+						post.assert_called_once_with(
+							params.webhook_url, json={"text": "Hello Webhook Test"}, timeout=10
+						)
+
+	def test_legacy_notification_import_preserves_migrated_target(self):
+		self.user.add_roles("System Manager")
+		legacy_target = self._make_webhook().insert()
+		migrated_target = self._make_webhook("Discord").insert()
+		notification = self._make_notification(migrated_target).insert()
+		legacy = notification.as_dict()
+		legacy["channel"] = "Slack"
+		legacy["slack_webhook_url"] = legacy_target.name
+
+		with set_user(self.user_name):
+			for attempt in range(2):
+				with self.subTest(attempt=attempt):
+					docdict = deepcopy(legacy)
+					import_doc(docdict)
+					imported = Notification.docs.get(notification.name)
+					self.assertEqual(imported.channel, "Webhook")
+					self.assertEqual(imported.notification_webhook_url, migrated_target.name)
+					self.assertNotIn("slack_webhook_url", docdict)
+
+	def test_notification_import_leaves_other_channels_unchanged(self):
+		with set_user(self.user_name):
+			for channel in ("Email", "Webhook", None):
+				with self.subTest(channel=channel):
+					docdict = {"channel": channel, "slack_webhook_url": "Legacy webhook"}
+					Notification.prepare_for_import(docdict)
+					self.assertEqual(docdict, {"channel": channel, "slack_webhook_url": "Legacy webhook"})
 
 	def test_notification_webhook_is_required(self):
 		notification = self._make_notification(self._make_webhook())
