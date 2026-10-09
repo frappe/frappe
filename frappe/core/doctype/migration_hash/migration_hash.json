@@ -1,8 +1,8 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "autoname": "hash",
- "creation": "2026-09-26 16:21:17.725067",
+ "autoname": "prompt",
+ "creation": "2026-10-09 08:43:24.095985",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -20,23 +20,20 @@
   },
   {
    "fieldname": "file_path",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "File Path",
-   "length": 255,
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
- "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-26 16:21:17.725067",
+ "modified": "2026-10-09 08:43:33.605552",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Migration Hash",
- "naming_rule": "Random",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
