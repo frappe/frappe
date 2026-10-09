@@ -125,14 +125,14 @@ test.describe("Report View group by button", () => {
 		await admin.insert_doc(doctype, { category: "B", amount: 20.25 });
 	});
 
-	test.beforeEach(async ({ desk }) => {
+	test.beforeEach(async ({ desk, page }) => {
 		await desk.login(test_user);
+		await page.goto("/desk/report-group-by-label/view/report");
+		// group by is set up and the ungrouped first load is done once rows render
+		await expect(page.locator(".dt-row-0")).toBeVisible();
 	});
 
 	test("shows the group by field label as text", async ({ page }) => {
-		await page.goto("/desk/report-group-by-label/view/report");
-		await expect.poll(() => page.evaluate(() => window.cur_list?.view_name)).toBe("Report");
-
 		await page.evaluate(() =>
 			window.cur_list.group_by_control.apply_settings({
 				group_by: ["`tabReport Group By Label`.`category`"],
@@ -146,12 +146,7 @@ test.describe("Report View group by button", () => {
 	});
 
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
-		await page.goto("/desk/report-group-by-label/view/report");
-		await expect.poll(() => page.evaluate(() => window.cur_list?.view_name)).toBe("Report");
-		// let the ungrouped first load finish so its response cannot overwrite the grouped rows
-		await expect(page.locator(".dt-row-0")).toBeVisible();
-
-		const totals = await page.evaluate(async () => {
+		await page.evaluate(() => {
 			const amount = "`tabReport Group By Label`.`amount`";
 			window.cur_list.add_totals_row = 1;
 			window.cur_list.group_by_control.apply_settings({
@@ -161,11 +156,16 @@ test.describe("Report View group by button", () => {
 					{ aggregate_function: "max", aggregate_on: amount },
 				],
 			});
-			await window.cur_list.refresh();
-			return window.cur_list.get_columns_totals(window.cur_list.data);
 		});
 
-		expect(totals._aggregate_column).toBe(10.25);
-		expect(totals._aggregate_column_1).toBe(20.25);
+		// the group by controls refresh on their own, a second refresh() call would be throttled
+		await expect
+			.poll(() =>
+				page.evaluate(() => {
+					const totals = window.cur_list.get_columns_totals(window.cur_list.data);
+					return [totals._aggregate_column, totals._aggregate_column_1];
+				})
+			)
+			.toEqual([10.25, 20.25]);
 	});
 });
