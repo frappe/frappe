@@ -376,6 +376,7 @@ export default class Grid {
 							doc.doctype,
 							doc.name
 						);
+						this.frm.dirty();
 					})
 					.catch((e) => console.trace(e));
 			});
@@ -392,7 +393,6 @@ export default class Grid {
 		tasks.push(() => {
 			if (dirty) {
 				this.refresh();
-				this.frm && this.frm.dirty();
 				this.frm &&
 					this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
 			}
