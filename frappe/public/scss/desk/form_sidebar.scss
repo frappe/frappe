@@ -179,6 +179,12 @@
 			width: fit-content;
 			height: fit-content;
 			cursor: pointer;
+			border-radius: var(--radius-lg);
+
+			&:focus-visible {
+				outline: none;
+				box-shadow: var(--focus-default);
+			}
 		}
 
 		.sidebar-image,
@@ -188,29 +194,26 @@
 			border-radius: var(--radius-lg);
 		}
 
-		.sidebar-image-wrapper:hover .sidebar-image-actions {
-			display: block;
-		}
-
-		.sidebar-image-actions {
-			display: none;
+		.sidebar-image-edit {
 			position: absolute;
-			inset: 0;
-			z-index: 1;
-			background: color-mix(in srgb, var(--ink-gray-8) 10%, transparent);
-			border-radius: var(--radius-lg);
+			right: -4px;
+			bottom: -4px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 24px;
+			height: 24px;
+			border: 1px solid var(--outline-gray-2);
+			border-radius: var(--radius-full);
+			background: var(--surface-base);
+			box-shadow: var(--shadow-md);
+			--icon-stroke: var(--ink-gray-6);
+			transition: box-shadow 0.15s;
 		}
 
-		.sidebar-image:not(.hide) ~ .sidebar-image-actions {
-			background: color-mix(in srgb, var(--gray-900) 15%, transparent);
-		}
-
-		// TODO: find better fix
-		.sidebar-standard-image {
-			.standard-image {
-				height: 0;
-				padding: 50% 0;
-			}
+		.sidebar-image-wrapper:hover .sidebar-image-edit {
+			box-shadow: var(--shadow-lg);
+			--icon-stroke: var(--ink-gray-8);
 		}
 	}
 

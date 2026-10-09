@@ -11,6 +11,10 @@ frappe.ui.form.set_user_image = function (frm) {
 		return;
 	}
 
+	image_section
+		.find(".sidebar-image-edit")
+		.html(frappe.utils.icon(image ? "camera" : "plus", "xs"));
+
 	// if image field has value
 	if (image) {
 		image_section.find(".sidebar-image").attr("src", image).removeClass("hide");
@@ -54,7 +58,7 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 		};
 
 		frm.sidebar.image_wrapper
-			.attr({ tabindex: 0, role: "button", "aria-label": __("Change photo") })
+			.attr({ tabindex: 0, role: "button", "aria-label": __("Change image") })
 			.on("keydown", function (e) {
 				if (e.key === "Enter" || e.key === " ") {
 					e.preventDefault();
@@ -73,10 +77,10 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 		new frappe.ui.Dropdown({
 			trigger: frm.sidebar.image_wrapper,
 			options: [
-				{ label: __("Upload a photo"), icon: "image-plus", onclick: upload_image },
+				{ label: __("Upload image"), icon: "image-plus", onclick: upload_image },
 				{
-					label: __("Remove photo"),
-					icon: "trash",
+					label: __("Remove image"),
+					icon: "trash-2",
 					theme: "red",
 					onclick: () => frm.get_field(frm.meta.image_field).clear_attachment(),
 				},
