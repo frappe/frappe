@@ -23,7 +23,7 @@
 				:hideClearButton="true"
 				@update:modelValue="(value: string) => update('route', value)"
 			/>
-			<AppName />
+			<AppRenameDialog />
 		</div>
 
 		<hr class="w-full border-outline-gray-2" />
@@ -75,7 +75,7 @@
 import { computed } from "vue"
 import { Button, FileUploader, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
-import AppName from "@/components/Settings/AppName.vue"
+import AppRenameDialog from "@/components/Settings/AppRenameDialog.vue"
 import AppExport from "@/components/Settings/AppExport.vue"
 import useStudioStore from "@/stores/studioStore"
 import defaultFavicon from "/favicon.png"
