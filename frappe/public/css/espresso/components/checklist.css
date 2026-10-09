@@ -6,10 +6,8 @@
  *
  *   <section class="es-checklist">   (data-collapsed when folded)
  *     <button type="button" class="es-checklist__head" aria-expanded="true">
- *       <span class="es-checklist__heading">
- *         <span class="es-checklist__name">Onboarding</span>
- *         <span class="es-checklist__count">2 of 8 done</span>
- *       </span>
+ *       <span class="es-checklist__name">Onboarding</span>
+ *       <span class="es-checklist__count">2 of 8 done</span>
  *       (chevron)
  *     </button>
  *     <div class="es-checklist__progress"><div class="es-progress">...</div></div>   (empty with nothing to count)
@@ -84,26 +82,21 @@
 
 .es-checklist__head {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: calc(var(--spacing) * 2);
     width: 100%;
 }
 
-.es-checklist__heading {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: calc(var(--spacing) * 1);
-    min-width: 0;
-}
-
 .es-checklist__name {
+    flex: 1;
+    min-width: 0;
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
     color: var(--ink-gray-9);
 }
 
 .es-checklist__count {
+    white-space: nowrap;
     font-size: var(--text-sm);
     color: var(--ink-gray-5);
 }
