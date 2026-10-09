@@ -120,7 +120,7 @@ class TestFlowAccess(IntegrationTestCase):
 		for doc in (chat, run, memory):
 			with self.subTest(doc.doctype):
 				self.assertFalse(frappe.get_list(doc.doctype, filters={"name": doc.name}, user=manager))
-				self.assertTrue(frappe.has_permission(doc.doctype, "delete", doc, user=manager))
+				self.assertFalse(frappe.has_permission(doc.doctype, "delete", doc, user=manager))
 		for doc in (fired, fired_run, agent_memory):
 			with self.subTest(doc.doctype):
 				self.assertTrue(frappe.has_permission(doc.doctype, "read", doc, user=manager))

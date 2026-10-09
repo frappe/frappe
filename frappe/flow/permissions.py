@@ -8,7 +8,7 @@
 - Doctype permissions: which agents and models. User Permissions narrow them per user; checked
   when a session starts and on every turn.
 - Ownership: sessions, runs and personal memories are private to their owner, since a session's
-  tools run as them. System Managers see Trigger sessions and may delete any record.
+  tools run as them. System Managers also see Trigger sessions.
 
 Triggers run as their run_as account or owner, which must be able to read the agent. The flow
 server's callbacks act as the session owner."""
@@ -34,9 +34,9 @@ def has_app_permission() -> bool:
 	return frappe.has_permission("Flow Session", "read")
 
 
-def has_session_permission(doc, ptype: str | None, user: str) -> bool:
-	"""Sessions and runs are private to their owner, except Trigger ones; deleting follows the role."""
-	return user in (doc.owner, "Administrator") or doc.source == "Trigger" or ptype == "delete"
+def has_session_permission(doc, user: str) -> bool:
+	"""Sessions and runs are private to their owner, except Trigger ones."""
+	return user in (doc.owner, "Administrator") or doc.source == "Trigger"
 
 
 def session_query_conditions(user: str | None = None, doctype: str | None = None) -> str:
@@ -47,9 +47,9 @@ def session_query_conditions(user: str | None = None, doctype: str | None = None
 	return f"(`tab{doctype}`.`owner` = {frappe.db.escape(user)} or `tab{doctype}`.`source` = 'Trigger')"
 
 
-def has_memory_permission(doc, ptype: str | None, user: str) -> bool:
-	"""A personal memory is private to its user; deleting follows the role."""
-	return doc.scope != "User" or user in (doc.user, "Administrator") or ptype == "delete"
+def has_memory_permission(doc, user: str) -> bool:
+	"""A personal memory is private to its user."""
+	return doc.scope != "User" or user in (doc.user, "Administrator")
 
 
 def memory_query_conditions(user: str | None = None) -> str:

@@ -432,8 +432,8 @@ class TestSessionEndpoints(ApiCase):
 		own = self.create()
 		self.assertFalse(api.session(own)["read_only"])
 		self.assertEqual(api.run(own, "hi")["status"], "started")
-		with patch("flow.knowledge.attachment_store.delete"):
-			self.assertEqual(api.delete_session(chat), {"status": "deleted"})
+		with self.assertRaises(frappe.PermissionError):
+			api.delete_session(chat)
 
 	def test_list_sessions_shows_own_manual_sessions_newest_first(self):
 		first = self.create(title="First")
