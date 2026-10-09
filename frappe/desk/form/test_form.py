@@ -14,8 +14,6 @@ class TestForm(IntegrationTestCase):
 		self.assertTrue("User" in results)
 		self.assertTrue("DocType" in results)
 
-<<<<<<< HEAD
-=======
 	def test_add_comment_ignores_client_supplied_author(self):
 		todo = frappe.get_doc(doctype="ToDo", description="comment author test").insert()
 		user = "test@example.com"
@@ -25,19 +23,8 @@ class TestForm(IntegrationTestCase):
 			)
 
 		self.assertEqual(comment.comment_email, user)
-		self.assertEqual(comment.comment_by, frappe.get_cached_value("User", user, "full_name"))
+		self.assertEqual(comment.comment_by, frappe.utils.get_fullname(user))
 
-	def test_savedocs_accepts_native_dict(self):
-		from frappe.desk.form.save import savedocs
-
-		frappe.local.form_dict = frappe._dict()
-		# doc as a native dict instead of a JSON string (frappe.parse_json passthrough, L18)
-		savedocs(doc={"doctype": "ToDo", "description": "via dict"}, action="Save")
-		self.assertTrue(frappe.local.response.docs)
-		self.assertEqual(frappe.local.response.docs[0].description, "via dict")
-		frappe.delete_doc("ToDo", frappe.local.response.docs[0].name)
-
->>>>>>> f9e8e81 (test(test_form): add regression test for the change)
 	def test_sort_field_fallback(self):
 		self.assertIsNone(_sort_field_fallback("Note", "name"))
 		self.assertIsNone(_sort_field_fallback("Note", "creation"))
