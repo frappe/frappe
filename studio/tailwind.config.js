@@ -43,6 +43,7 @@ export default {
 		"../../frappe/ui/src/**/*.{vue,js,ts,jsx,tsx}",
 		"../../*/studio/**/*.{vue,js,ts,jsx,tsx,json}",
 		"!../../*/studio/**/node_modules/**",
+		"!../../studio/studio/public/**",
 	],
 	theme: {
 		extend: {},
