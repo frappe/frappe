@@ -531,11 +531,13 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 	if reference_doctype == reference_docname:
 		reference_doctype = ""
 
+	exception = frappe.LinkExistsError()
+	exception.linked_with = f"{_(reference_doctype)} {reference_link} {row}"
 	frappe.throw(
 		_("Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}").format(
 			_(doc.doctype), doc_link, _(reference_doctype), reference_link, row
 		),
-		frappe.LinkExistsError,
+		exception,
 	)
 
 
