@@ -127,6 +127,9 @@ def get_print(
 
 			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
 			validate_print(doc_obj)
+			for hook in frappe.get_hooks("on_print_pdf"):
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
+				frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 			render_format = pf_doc or get_default_print_format(doc_obj.doctype)
 			pdf = _render_builder_pdf(
 				render_format,
