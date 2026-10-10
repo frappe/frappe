@@ -65,6 +65,7 @@ def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
 			"styles": styles,
 			"html_id": html_id,
 			"css": css,
+			"body_class": " ".join(soup.body.get("class", [])) if soup.body else "",
 			"lang": frappe.local.lang,
 			"layout_direction": "rtl" if is_rtl() else "ltr",
 		},
