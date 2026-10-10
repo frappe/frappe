@@ -12,6 +12,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
+from frappe.utils.print_utils import resolve_pdf_generator
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
@@ -68,9 +69,7 @@ def get_context(context) -> PrintContext:
 	print_format, standalone = resolve_print_format(None, meta)
 
 	print_format_name = getattr(print_format, "name", "Standard")
-	pdf_generator = frappe.form_dict.get(
-		"pdf_generator", getattr(print_format, "pdf_generator", "wkhtmltopdf")
-	)
+	pdf_generator = resolve_pdf_generator(print_format, frappe.form_dict.get("pdf_generator"))
 
 	context = {
 		"standalone": standalone,
@@ -706,7 +705,7 @@ def get_print_style(
 
 def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
 	sides = ["15mm"] * 4
-	if not print_format or not print_format.css or print_format.pdf_generator != "chrome":
+	if not print_format or not print_format.css or resolve_pdf_generator(print_format) != "chrome":
 		return " ".join(sides)
 
 	import cssutils

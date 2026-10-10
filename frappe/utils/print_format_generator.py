@@ -466,8 +466,7 @@ class PrintFormatGenerator:
 
 		pf = self.print_format
 		generator_name = pf.get("pdf_generator") or "chrome"
-		# chrome renders below; wkhtmltopdf never reached hooks before this branch either
-		if generator_name not in ("chrome", "wkhtmltopdf"):
+		if generator_name != "chrome":
 			previous = getattr(frappe.local, "print_format_generator", None)
 			frappe.local.print_format_generator = self
 			try:
