@@ -74,6 +74,7 @@ class Page:
 				"value": frappe.session.sid,
 				"domain": domain,
 				"sameSite": "Strict",
+				"httpOnly": True,
 			}
 			_result, error = self.send("Network.enable")
 			if error:
