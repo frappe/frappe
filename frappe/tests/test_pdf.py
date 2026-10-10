@@ -144,6 +144,12 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
+	def test_password_with_output_writer_appends_pages(self):
+		from pypdf import PdfWriter
+
+		output = pdfgen.get_pdf("<p>first</p>", options={"password": "qwe"}, output=PdfWriter())
+		self.assertEqual(len(output.pages), 1)
+
 	def test_report_pdf_blocks_external_requests(self):
 		from unittest.mock import patch
 

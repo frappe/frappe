@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import contextlib
-import io
 from typing import TYPE_CHECKING
 
 import frappe
@@ -90,16 +89,9 @@ def get_pdf(html, options=None, output: "PdfWriter" | None = None, print_format:
 	generator, token = ChromiumManager.acquire()
 	try:
 		browser = Browser(generator, print_format, html, options or {})
-		pdf = PDFTransformer(browser).transform_pdf(output=output)
+		return PDFTransformer(browser).transform_pdf(output=output)
 	finally:
 		generator.release(token)
-
-	if output and isinstance(pdf, bytes):
-		from pypdf import PdfReader
-
-		output.append_pages_from_reader(PdfReader(io.BytesIO(pdf)))
-		return output
-	return pdf
 
 
 def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):

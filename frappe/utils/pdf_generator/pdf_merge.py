@@ -31,6 +31,13 @@ class PDFTransformer:
 		footer = self.footer_pdf
 
 		if not header and not footer:
+			if output:
+				from io import BytesIO
+
+				from pypdf import PdfReader
+
+				output.append_pages_from_reader(PdfReader(BytesIO(body)))
+				return output
 			if self.encrypt_password:
 				return self._encrypt_raw(body)
 			return body
