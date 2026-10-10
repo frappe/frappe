@@ -1,5 +1,3 @@
-import frappe
-
 STYLE_PRESETS = {
 	"Modern": {
 		"table": {"table_style": "lined", "table_bordered": False, "table_radius": 6},
@@ -30,15 +28,8 @@ STYLE_PRESETS = {
 }
 
 
-def get_style_presets() -> dict:
-	presets = dict(STYLE_PRESETS)
-	for hook in frappe.get_hooks("print_style_presets"):
-		presets.update(frappe.get_attr(hook)() or {})
-	return presets
-
-
 def apply_style_preset(layout: dict, style: str | None) -> dict:
-	preset = get_style_presets().get(style) if style else None
+	preset = STYLE_PRESETS.get(style) if style else None
 	if not preset or not isinstance(layout, dict):
 		return layout
 	for section in layout.get("sections") or []:
