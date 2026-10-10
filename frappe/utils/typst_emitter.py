@@ -17,7 +17,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.printing.fieldtypes import MERGE_IMAGE_FIELDTYPES, is_image_column
+from frappe.printing.fieldtypes import CONTENT_FIELDTYPES, MERGE_IMAGE_FIELDTYPES, is_image_column
 from frappe.printing.layout import iter_nodes
 from frappe.utils.html_utils import unescape_html
 
@@ -627,7 +627,7 @@ class TypstEmitter:
 	# ── sections ────────────────────────────────────────────────
 
 	def _section(self, section, zone=False) -> str:
-		if section.get("_hidden"):
+		if section.get("_hidden") or (not zone and self._is_empty_labelled(section)):
 			return ""
 		columns = [c for c in section.get("columns") or [] if isinstance(c, dict)]
 		if not columns:
@@ -668,9 +668,30 @@ class TypstEmitter:
 		return out + f"\n#v({bottom + 6}pt)"
 
 	def _page_break(self, section) -> str:
-		if section.get("page_break") and not section.get("_hidden"):
+		if section.get("page_break") and not section.get("_hidden") and not self._is_empty_labelled(section):
 			return "#pagebreak(weak: true)"
 		return ""
+
+	def _is_empty_labelled(self, section) -> bool:
+		if not section.get("label"):
+			return False
+		for column in section.get("columns") or []:
+			for df in (column.get("fields") or []) if isinstance(column, dict) else []:
+				fieldtype = df.get("fieldtype")
+				if fieldtype in CONTENT_FIELDTYPES:
+					return False
+				if fieldtype == "Repeater":
+					if df.get("source") and self.doc.get(df["source"]):
+						return False
+				elif fieldtype == "Table":
+					rows = (
+						df.get("_rows") if df.get("_rows") is not None else self.doc.get(df.get("fieldname"))
+					)
+					if rows and df.get("table_columns"):
+						return False
+				elif self.doc.get(df.get("fieldname")):
+					return False
+		return True
 
 	def _section_block_args(self, section) -> list[str]:
 		args = ["width: 100%"]
