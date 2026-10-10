@@ -113,20 +113,12 @@ frappe.ui.form.PrintView = class {
 
 		this.page.add_button(__("Email"), () => this.email_doc(), { icon: "mail" });
 
-		this.page.add_action_icon(
-			"chevron-left",
-			() => this.navigate_records(1),
-			"",
-			__("Previous")
-		);
-		this.page.add_action_icon("chevron-right", () => this.navigate_records(0), "", __("Next"));
-
 		if (frappe.is_mobile()) {
 			this.page.add_button(__("Form"), () => this.go_to_form_view(), {
 				icon: "file-spreadsheet",
 			});
 		} else {
-			this.page.add_action_icon("file", () => this.go_to_form_view(), "", __("Form"));
+			this.page.add_action_icon("file-pen", () => this.go_to_form_view(), "", __("Form"));
 		}
 	}
 
@@ -788,29 +780,6 @@ frappe.ui.form.PrintView = class {
 			const frm = frappe.views.formview?.[this.frm.doctype]?.frm;
 			frm && set_print_options(frm.email_doc());
 		});
-	}
-
-	navigate_records(prev) {
-		let filters, sort_field, sort_order;
-		const list_settings = frappe.get_user_settings(this.frm.doctype)["List"];
-		if (list_settings) {
-			({ filters, sort_by: sort_field, sort_order } = list_settings);
-		}
-		frappe
-			.call({
-				method: "frappe.desk.form.utils.get_next",
-				args: {
-					doctype: this.frm.doctype,
-					value: this.frm.docname,
-					filters,
-					sort_order,
-					sort_field,
-					prev,
-				},
-			})
-			.then((r) => {
-				if (r.message) frappe.set_route("print", this.frm.doctype, r.message);
-			});
 	}
 
 	setup_keyboard_shortcuts() {
