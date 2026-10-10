@@ -213,7 +213,15 @@ frappe.ui.form.PrintView = class {
 			fieldtype: "Select",
 			fieldname: "pdf_page_size",
 			label: __("Paper Size"),
-			options: ["", "A4", "A5", "A3", "Letter", "Legal", "Tabloid"],
+			options: [
+				{ label: __("Default"), value: "" },
+				"A4",
+				"A5",
+				"A3",
+				"Letter",
+				"Legal",
+				"Tabloid",
+			],
 			change() {
 				set("pdf_page_size", this.get_value());
 			},
