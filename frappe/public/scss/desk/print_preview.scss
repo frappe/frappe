@@ -184,15 +184,15 @@
 .print-style-picker {
 	.print-style-options {
 		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: calc(var(--spacing) * 2);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: calc(var(--spacing) * 1.5);
 	}
 
 	.print-style-option {
 		display: flex;
 		flex-direction: column;
-		gap: calc(var(--spacing) * 1.5);
-		padding: calc(var(--spacing) * 1.5);
+		gap: calc(var(--spacing) * 1);
+		padding: calc(var(--spacing) * 1);
 		background: transparent;
 		border: 1px solid var(--outline-gray-1);
 		border-radius: var(--radius-md);
@@ -225,9 +225,9 @@
 		--thumb-ink: #171717;
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
-		height: 56px;
-		padding: 6px;
+		gap: 3px;
+		height: 40px;
+		padding: 4px;
 		background: #fff;
 		border: 1px solid #ececec;
 		border-radius: var(--radius-sm);
