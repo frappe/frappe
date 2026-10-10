@@ -114,12 +114,15 @@ frappe.ui.Stepper = class Stepper {
 		this._render_key = render_key;
 
 		// A rebuild drops focus, so restore it to the same step for keyboard users.
-		const had_focus =
+		const focused =
 			document.activeElement && this.nav.contains(document.activeElement)
-				? Array.from(this.nav.querySelectorAll(".es-stepper__step")).indexOf(
-						document.activeElement.closest(".es-stepper__step")
-				  )
-				: -1;
+				? document.activeElement
+				: null;
+		const had_focus = focused
+			? Array.from(this.nav.querySelectorAll(".es-stepper__step")).indexOf(
+					focused.closest(".es-stepper__step")
+			  )
+			: -1;
 
 		this.nav.textContent = "";
 
@@ -147,7 +150,10 @@ frappe.ui.Stepper = class Stepper {
 			this.nav.appendChild(step_el);
 		});
 
-		if (had_focus > -1) {
+		// content nodes are reused, so a control inside one gets its focus back
+		if (focused && this.nav.contains(focused)) {
+			focused.focus({ preventScroll: true });
+		} else if (had_focus > -1) {
 			const target = this.nav.querySelectorAll(".es-stepper__step")[had_focus];
 			target && target.focus({ preventScroll: true });
 		}

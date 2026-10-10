@@ -466,7 +466,7 @@ test.describe("Espresso components", () => {
 			await expect(items.nth(2).locator(".es-stepper__content")).toHaveCount(0);
 		});
 
-		test("vertical content: a string stays text, and an unchanged refresh keeps it", async ({
+		test("vertical content: a string stays text, and reused content keeps its value and focus", async ({
 			page,
 		}) => {
 			const result = await page.evaluate(() => {
@@ -481,12 +481,19 @@ test.describe("Espresso components", () => {
 						],
 					})
 					.appendTo("body");
+				const stepper = $stepper.data("es-stepper");
 				input.val("typed");
-				$stepper.data("es-stepper").refresh();
+				input[0].focus();
+				stepper.refresh();
+				const kept_on_refresh = document.activeElement === input[0];
+				// a step change rebuilds every step
+				stepper.set_current(1);
 				const out = {
 					text: $stepper.find(".es-stepper__content").first().text(),
 					bold: $stepper.find(".es-stepper__content b").length,
 					value: $stepper.find("input").val(),
+					focus: kept_on_refresh && document.activeElement === input[0],
+					current: $stepper.find("[aria-current=step] .es-stepper__label").text(),
 					boxes: $stepper.find(".es-stepper__content").length,
 					items: $stepper.find("ol > li.es-stepper__item").length,
 				};
@@ -497,6 +504,8 @@ test.describe("Espresso components", () => {
 				text: "<b>not markup</b>",
 				bold: 0,
 				value: "typed",
+				focus: true,
+				current: "Two",
 				// the empty jQuery content gets no box
 				boxes: 2,
 				items: 3,
