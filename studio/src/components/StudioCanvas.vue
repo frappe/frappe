@@ -21,7 +21,7 @@
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,
 			}"
 		>
-			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-5 bg-surface-base px-3">
+			<div class="absolute right-0 top-[-60px] flex rounded-5 bg-surface-base px-3">
 				<div
 					v-show="!canvasProps.scaling && !canvasProps.panning"
 					class="w-auto cursor-pointer p-2"
@@ -34,8 +34,8 @@
 						:class="[
 							breakpoint.icon,
 							{
-								'dark:text-zinc-50 text-ink-gray-6': breakpoint.visible,
-								'dark:text-zinc-500 text-ink-gray-2': !breakpoint.visible,
+								'text-ink-gray-6': breakpoint.visible,
+								'text-ink-gray-2': !breakpoint.visible,
 							},
 						]"
 					/>
@@ -54,7 +54,7 @@
 					}"
 				>
 					<div
-						class="cursor dark:text-zinc-300 absolute left-0 select-none text-4xl text-ink-gray-6"
+						class="cursor absolute left-0 select-none text-4xl text-ink-gray-6"
 						:style="{
 							fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
 							top: `calc(${-20}px * 1/${canvasProps.scale})`,
@@ -420,10 +420,10 @@ defineExpose({
 
 <style>
 .hovered-block {
-	@apply border-outline-blue-3 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
+	@apply border-outline-blue-3 text-ink-gray-6;
 }
 .block-selected {
-	@apply border-outline-blue-4 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
+	@apply border-outline-blue-4 text-ink-gray-8;
 }
 .slot-selected {
 	@apply border-outline-purple-4 text-ink-gray-8;

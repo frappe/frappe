@@ -24,7 +24,7 @@
 					:title="element.componentId"
 					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded-4 border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 					:class="{
-						'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
+						'border-outline-blue-5 !bg-surface-blue-2':
 							canvasStore.layerDraggingOverBlock === element.componentId,
 					}"
 					@click.stop="openBlockEditor(element, $event)"
@@ -50,15 +50,13 @@
 							:is="element.getIcon()"
 							class="h-3 w-3"
 							:class="{
-								'text-ink-purple-5 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
-									element.isStudioComponent,
+								'text-ink-purple-5 opacity-80': element.isStudioComponent,
 							}"
 						/>
 						<span
 							class="layer-label min-h-[1em] min-w-[2em] max-w-64 scroll-my-16 truncate"
 							:class="{
-								'text-ink-purple-5 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
-									element.isStudioComponent,
+								'text-ink-purple-5 opacity-80': element.isStudioComponent,
 							}"
 							:contenteditable="element.editable"
 							:title="element.blockId"
@@ -126,8 +124,7 @@
 							:title="slot.slotName"
 							class="relative min-w-24 cursor-pointer select-none rounded-4 border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 							:class="{
-								'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
-									canvasStore.layerDraggingOverSlot === slot.slotId,
+								'border-outline-blue-5 !bg-surface-blue-2': canvasStore.layerDraggingOverSlot === slot.slotId,
 							}"
 							@click.stop="canvasStore.activeCanvas?.selectSlot(slot)"
 						>

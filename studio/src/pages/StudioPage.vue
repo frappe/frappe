@@ -104,7 +104,7 @@
 
 			<StudioRightPanel
 				v-show="store.studioLayout.showRightPanel"
-				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l border-outline-gray-2 bg-surface-base dark:border-outline-gray-7"
+				class="no-scrollbar absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l border-outline-gray-2 bg-surface-base"
 			/>
 
 			<!-- File explorer teleport for code editor -->

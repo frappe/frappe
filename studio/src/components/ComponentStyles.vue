@@ -291,7 +291,7 @@ const dimensionSectionProperties = [
 		component: "hr",
 		getProps: () => {
 			return {
-				class: "dark:border-zinc-700",
+				class: "border-outline-gray-2",
 			}
 		},
 		searchKeyWords: "",

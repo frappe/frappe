@@ -128,7 +128,7 @@
 						</div>
 						<span
 							v-if="store.activePage && store.activePage.published"
-							class="lucide-external-link h-[14px] w-[14px] !text-ink-gray-6 dark:!text-ink-gray-1"
+							class="lucide-external-link h-[14px] w-[14px] !text-ink-gray-6"
 							@click.stop="store.openPageInBrowser(store.activeApp!, store.activePage)"
 						/>
 					</div>
