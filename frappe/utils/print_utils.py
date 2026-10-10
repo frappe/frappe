@@ -226,11 +226,9 @@ def attach_print(
 	)
 
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
-	printed_format = pf_doc or get_default_print_format(doctype)
-	render_via_generator = uses_beta_renderer(printed_format) and resolve_pdf_generator(printed_format) in (
-		"chrome",
-		"Typst",
-	)
+	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
+		pf_doc
+	) in ("chrome", "Typst")
 
 	try:
 		with print_language(lang):
@@ -245,7 +243,7 @@ def attach_print(
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
 					content = _render_builder_pdf(
-						printed_format,
+						pf_doc or get_default_print_format(doc_obj.doctype),
 						doc_obj,
 						letterhead if print_letterhead else None,
 						not print_letterhead,

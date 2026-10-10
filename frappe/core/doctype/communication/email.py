@@ -54,12 +54,12 @@ def make(
 	communication_type: str | None = None,
 	send_after: str | datetime | None = None,
 	print_language: str | None = None,
-	print_style: str | None = None,
-	print_settings: str | dict | None = None,
 	now: int | bool = False,
 	raw_html: int | bool = False,
 	add_css: int | bool = True,
 	in_reply_to: str | None = None,
+	print_style: str | None = None,
+	print_settings: str | dict | None = None,
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
@@ -169,12 +169,12 @@ def _make(
 	add_signature=True,
 	send_after=None,
 	print_language=None,
-	print_style=None,
-	print_settings=None,
 	now=False,
 	raw_html=False,
 	add_css=True,
 	in_reply_to=None,
+	print_style=None,
+	print_settings=None,
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
