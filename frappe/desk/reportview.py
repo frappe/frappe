@@ -19,8 +19,9 @@ from frappe.model import child_table_fields, default_fields, get_permitted_field
 from frappe.model.base_document import get_controller
 from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import add_user_info, cint, format_duration
+from frappe.utils import add_user_info, cint, cstr, format_duration, get_link_to_form
 from frappe.utils.data import sbool
+from frappe.utils.html_utils import clean_html
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
 SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg", "min", "max")
@@ -1000,8 +1001,10 @@ def delete_items():
 
 def delete_bulk(doctype, items):
 	"""Delete documents one by one. Returns names that could not be deleted."""
-	undeleted_items = []
+	undeleted_items = {}
+	linked_with = {}
 	for i, d in enumerate(items):
+		message_count = len(frappe.message_log)
 		try:
 			frappe.flags.in_bulk_delete = True
 			frappe.delete_doc(doctype, d)
@@ -1017,21 +1020,69 @@ def delete_bulk(doctype, items):
 				)
 			# Commit after successful deletion
 			frappe.db.commit()
-		except Exception:
+		except Exception as e:
 			# rollback if any record failed to delete
 			# if not rollbacked, queries get committed on after_request method in app.py
-			undeleted_items.append(d)
+			reasons = [
+				"<br>".join(message.message) if message.as_list else cstr(message.message)
+				for message in frappe.message_log[message_count:]
+				if message.raise_exception
+			]
+			del frappe.message_log[message_count:]
 			frappe.db.rollback()
+			link_error = e.__context__ if isinstance(e.__context__, frappe.LinkExistsError) else e
+			if isinstance(link_error, frappe.LinkExistsError) and link_error.linked_with:
+				linked_with[d] = link_error.linked_with
+				reasons = [] if link_error is e else [str(e)]
+			elif not reasons:
+				error_log = frappe.log_error(
+					title=f"Failed to delete {doctype} {d}", reference_doctype=doctype, reference_name=d
+				)
+				# the next failed delete rolls back, which would take this log with it
+				frappe.db.commit()
+				reasons = [
+					_("Check the Error Log for more information: {0}").format(
+						get_link_to_form("Error Log", error_log.name)
+					)
+					if frappe.has_permission("Error Log")
+					else _("An unexpected error occurred. Please contact your System Manager.")
+				]
+			undeleted_items[d] = reasons
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
-		return delete_bulk(doctype, undeleted_items)
+		return delete_bulk(doctype, list(undeleted_items))
 	elif undeleted_items:
+		documents_by_reason = {}
+		for name, reasons in undeleted_items.items():
+			for reason in reasons:
+				documents_by_reason.setdefault(reason, []).append(name)
+
+		links = {name: clean_html(get_link_to_form(doctype, name)) for name in undeleted_items}
+		named = set(linked_with)
+		for name, reasons in undeleted_items.items():
+			if any(links[name] in reason for reason in reasons):
+				named.add(name)
+
+		message = []
+		if linked_with:
+			documents = "".join(f"<li>{links[name]}<br>{linked_with[name]}</li>" for name in linked_with)
+			message.append(
+				_("These documents are linked with other documents and cannot be deleted:")
+				+ f"<ul>{documents}</ul>"
+			)
+		for reason, names in sorted(documents_by_reason.items(), key=lambda item: len(item[1])):
+			documents = "".join(f"<li>{links[name]}</li>" for name in names if name not in named)
+			message.append(f"{reason}<ul>{documents}</ul>" if documents else reason)
+
 		frappe.msgprint(
-			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
-			realtime=True,
-			title=_("Bulk Operation Failed"),
+			message,
+			as_list=True,
+			indicator="red",
+			is_minimizable=True,
+			realtime=bool(frappe.job),
+			title=_("Failed to delete {0} documents").format(len(undeleted_items)),
 		)
-		return undeleted_items
+		return list(undeleted_items)
 
 	frappe.msgprint(
 		_("Deleted {0} records from {1} doctype").format(len(items), doctype),
