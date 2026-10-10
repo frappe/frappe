@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.installer import install_app
+from frappe.installer import add_module_defs, install_app, remove_from_installed_apps
 from frappe.tests import IntegrationTestCase
 
 FAKE_APP = "abc_test_install_app"
@@ -52,7 +52,6 @@ def install_fake_app(after_install: str):
 		patch.object(frappe, "setup_module_map"),
 		patch("frappe.model.sync.sync_for"),
 		patch("frappe.installer.add_module_defs"),
-		patch("frappe.installer.add_to_installed_apps"),
 		patch("frappe.installer.sync_dashboards"),
 		patch("frappe.core.doctype.scheduled_job_type.scheduled_job_type.sync_jobs"),
 		patch("frappe.utils.fixtures.sync_fixtures"),
@@ -68,6 +67,11 @@ class TestInstallAppOrdering(IntegrationTestCase):
 		install_hook_calls.clear()
 		frappe.set_user("Administrator")
 		self.addCleanup(self.delete_fake_patch_log_rows)
+		self.addCleanup(self.uninstall_fake_app)
+
+	def uninstall_fake_app(self):
+		frappe.flags.in_install = False
+		remove_from_installed_apps(FAKE_APP)
 
 	def delete_fake_patch_log_rows(self):
 		frappe.db.delete("Patch Log", {"patch": ["in", FAKE_PATCHES]})
@@ -90,3 +94,28 @@ class TestInstallAppOrdering(IntegrationTestCase):
 
 		self.assertEqual(install_hook_calls, ["after_install_failing"])
 		self.assertEqual(self.stamped_fake_patches(), set())
+
+	def test_failed_install_can_be_retried(self):
+		with install_fake_app(after_install=f"{__name__}.fail_after_install"):
+			with self.assertRaises(AfterInstallFailure):
+				install_app(FAKE_APP)
+
+		self.assertNotIn(FAKE_APP, frappe.get_installed_apps())
+
+		with install_fake_app(after_install=f"{__name__}.record_after_install"):
+			install_app(FAKE_APP)
+
+		self.assertEqual(install_hook_calls, ["after_install_failing", "after_install_ok"])
+		self.assertIn(FAKE_APP, frappe.get_installed_apps())
+		self.assertEqual(self.stamped_fake_patches(), set(FAKE_PATCHES))
+
+
+class TestAddModuleDefs(IntegrationTestCase):
+	def test_skips_modules_the_app_already_has(self):
+		modules = frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name")
+
+		add_module_defs("frappe")
+
+		self.assertCountEqual(
+			frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name"), modules
+		)
