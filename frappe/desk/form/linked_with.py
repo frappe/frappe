@@ -9,10 +9,13 @@ import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
+from frappe.database.utils import get_order_by_fields
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_dynamic_linked_docs
 from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.modules import load_doctype_module
+from frappe.query_builder.functions import Count
+from frappe.utils.data import get_filter
 from frappe.utils.scheduler import is_scheduler_inactive
 
 
@@ -790,9 +793,26 @@ def get_exempted_doctypes():
 	return list(frappe.get_hooks("auto_cancel_exempted_doctypes"))
 
 
-def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> dict[str, list]:
+def get_linked_docs(
+	doctype: str,
+	name: str,
+	linkinfo: dict | None = None,
+	filters: str | list | None = None,
+	limit: int | None = None,
+	order_by: str | None = None,
+) -> dict[str, list]:
+	"""`filters`, `limit` and `order_by` apply to the documents of each linked doctype.
+
+	A filter applies only to linked doctypes that have its column (or whose child table has it);
+	one that names a doctype (`[doctype, field, operator, value]`) applies only to that doctype."""
 	# additional fields are added in linkinfo
 	linkinfo = frappe.parse_json(linkinfo)
+	filters = frappe.parse_json(filters) or []
+	if isinstance(filters, dict):
+		filters = [filters]
+	# a child-row sort field would list a document once per child row
+	if order_by and any("." in field for field in get_order_by_fields(order_by)):
+		frappe.throw(_("Linked documents can only be ordered by their own fields"))
 
 	results = {}
 
@@ -808,13 +828,13 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			continue
 
 		has_permission = frappe.has_permission(linked_doctype)
-		filters = []
+		link_filters = []
 		or_filters = []
 		ret = None
 		parent_info = None
 
 		if filters_ctx := link_context.get("filters"):
-			filters = filters_ctx
+			link_filters = filters_ctx
 
 		elif link_context.get("get_parent"):
 			# check for child table
@@ -828,7 +848,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			if not (parent_info and parent_info.parenttype == linked_doctype):
 				continue
 
-			filters = [[linked_doctype, "name", "=", parent_info.parent]]
+			link_filters = [[linked_doctype, "name", "=", parent_info.parent]]
 
 		elif child_doctype := link_context.get("child_doctype"):
 			# doctype may link through more than one child table, each with its own Link field
@@ -843,7 +863,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 
 			# dynamic link_context
 			if doctype_fieldname := link_context.get("doctype_fieldname"):
-				filters.append([child_doctype, doctype_fieldname, "=", doctype])
+				link_filters.append([child_doctype, doctype_fieldname, "=", doctype])
 
 		elif link_fieldnames := link_context.get("fieldname"):
 			if isinstance(link_fieldnames, str):
@@ -856,7 +876,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			]
 			# dynamic link_context
 			if doctype_fieldname := link_context.get("doctype_fieldname"):
-				filters.append([linked_doctype, doctype_fieldname, "=", doctype])
+				link_filters.append([linked_doctype, doctype_fieldname, "=", doctype])
 			# check for child table that no one links to
 			if linked_doctype_meta.istable:
 				if not (
@@ -865,16 +885,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 				):
 					continue
 
-		total_count = len(
-			frappe.get_all(
-				linked_doctype,
-				filters=filters,
-				or_filters=or_filters,
-				fields=["name"],
-				distinct=True,
-				order_by=None,
-			)
-		)
+		total_count = count_linked_docs(linked_doctype, link_filters, or_filters, ignore_permissions=True)
 
 		if not total_count:
 			continue
@@ -894,18 +905,26 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			if add_fields := link_context.get("add_fields"):
 				fields += add_fields
 
+			if order_by:
+				# Postgres orders a DISTINCT query only by selected fields
+				fields += get_order_by_fields(order_by)
+
 			fields = [sf.strip() for sf in fields if sf]
 
 			ret = frappe.get_list(
 				doctype=linked_doctype,
 				fields=fields,
-				filters=filters,
+				filters=[*link_filters, *get_doctype_filters(linked_doctype_meta, filters)],
 				or_filters=or_filters,
 				distinct=True,
-				order_by=None,
+				order_by=order_by,
+				limit=limit,
 			)
 
 		permitted_count = len(ret or [])
+		if has_permission and (filters or limit):
+			# hidden_count ignores filters and limit, so filters can't probe restricted docs
+			permitted_count = count_linked_docs(linked_doctype, link_filters, or_filters)
 		assert permitted_count <= total_count, "permitted linked docs cannot exceed total linked docs"
 		results[linked_doctype] = {
 			"docs": ret or [],
@@ -915,11 +934,62 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 	return results
 
 
+def get_doctype_filters(meta, filters: list) -> list:
+	"""The filters that apply to the linked doctype of `meta`: on a column of it or of its child tables."""
+	from frappe.boot import get_additional_filters_from_hooks
+
+	filters_config = get_additional_filters_from_hooks()
+	doctypes = {meta.name, *(df.options for df in meta.get_table_fields())}
+	applicable = []
+	for condition in split_filters(filters):
+		f = get_filter(meta.name, condition, filters_config)
+		if f.doctype in doctypes and frappe.db.has_column(f.doctype, f.fieldname):
+			applicable.append(condition)
+	return applicable
+
+
+def split_filters(filters: list) -> list:
+	"""Each condition on its own: a dict naming several fields becomes one dict per field."""
+	conditions = []
+	for condition in filters:
+		if isinstance(condition, dict):
+			conditions += [{fieldname: value} for fieldname, value in condition.items()]
+		else:
+			conditions.append(condition)
+	return conditions
+
+
+def count_linked_docs(doctype: str, filters: list, or_filters: list, ignore_permissions: bool = False) -> int:
+	query = frappe.get_list(
+		doctype,
+		filters=filters,
+		or_filters=or_filters,
+		distinct=True,
+		order_by=None,
+		ignore_permissions=ignore_permissions,
+		run=False,
+	)
+	return frappe.qb.from_(query).select(Count("*")).run()[0][0]
+
+
 @frappe.whitelist()
-def get(doctype: str, docname: str):
+def get(
+	doctype: str,
+	docname: str,
+	filters: str | list | None = None,
+	limit: int | None = None,
+	order_by: str | None = None,
+):
 	frappe.has_permission(doctype, doc=docname, throw=True)
 	linked_doctypes = get_linked_doctypes(doctype=doctype)
-	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
+	return get_linked_docs(
+		doctype=doctype,
+		name=docname,
+		linkinfo=linked_doctypes,
+		filters=filters,
+		limit=limit,
+		order_by=order_by,
+	)
 
 
 @frappe.whitelist()
