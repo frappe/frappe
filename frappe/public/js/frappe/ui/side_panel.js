@@ -665,11 +665,12 @@ frappe.ui.SidePanel = class SidePanel {
 				if (row.__side_panel_bound) continue;
 				row.__side_panel_bound = true;
 
-				row.row.css("cursor", "pointer").on("click", (e) => {
-					// The row's own links/checkboxes keep their behaviour.
-					if ($(e.target).closest("a, button, input").length) return;
-					this.open_row_dialog(child_doctype, row.doc);
-				});
+				// The grid already binds the row and the edit (pencil) button to row.toggle_view()
+				// — static_rows makes is_editable() false, so a row click takes that path too.
+				// Override toggle_view to open our read-only dialog instead of the native frm-based
+				// editor; no extra click handler, which would double-fire.
+				row.toggle_view = () => this.open_row_dialog(child_doctype, row.doc);
+				row.row.css("cursor", "pointer");
 			}
 		}
 	}
