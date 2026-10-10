@@ -159,14 +159,18 @@ class Browser:
 		if self.header_page:
 			self.header_page.wait_for_navigate()
 			self.header_page.set_content(
-				self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[]),
+				self.with_layout_classes(
+					self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[])
+				),
 				wait_for=header_footer_wait,
 			)
 
 		if self.footer_page:
 			self.footer_page.wait_for_navigate()
 			self.footer_page.set_content(
-				self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[]),
+				self.with_layout_classes(
+					self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[])
+				),
 				wait_for=header_footer_wait,
 			)
 		if self.header_page:
@@ -405,7 +409,7 @@ class Browser:
 		toggle_visible_pdf(content)
 		id_map = {"header": "pdf_header_html", "footer": "pdf_footer_html"}
 		hook_func = frappe.get_hooks(id_map.get(type))
-		html = frappe.call(
+		return frappe.call(
 			hook_func[-1],
 			soup=self.soup,
 			head=head,
@@ -415,6 +419,8 @@ class Browser:
 			css=css,
 			path="templates/print_formats/chrome_pdf_header_footer.html",
 		)
+
+	def with_layout_classes(self, html):
 		body_class = self.soup.body.get("class") if self.soup.body else None
 		if not body_class:
 			return html
