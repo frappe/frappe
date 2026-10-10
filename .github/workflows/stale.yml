@@ -31,7 +31,7 @@ jobs:
       - uses: actions/github-script@v8
         with:
           script: |
-            const cutoff = Date.now() - 10 * 24 * 60 * 60 * 1000;
+            const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
             const prs = await github.paginate(github.rest.pulls.list, {
               ...context.repo,
               state: "open",
@@ -44,7 +44,7 @@ jobs:
               await github.rest.issues.createComment({
                 ...context.repo,
                 issue_number: pr.number,
-                body: "This backport had no activity for 10 days, so it is being closed. Reopen it when you are ready to fix the conflicts.",
+                body: "This backport had no activity for 7 days, so it is being closed. Reopen it when you are ready to fix the conflicts.",
               });
               await github.rest.pulls.update({
                 ...context.repo,
