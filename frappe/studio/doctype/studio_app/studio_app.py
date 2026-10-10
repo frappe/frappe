@@ -4,8 +4,6 @@ import json
 import os
 import re
 import shutil
-import tempfile
-from contextlib import contextmanager
 from urllib.parse import quote
 
 import frappe
@@ -216,11 +214,10 @@ class StudioApp(WebsiteGenerator):
 		if not can_export(self):
 			return
 
-		with restore_on_failure(self.get_folder_path(old), self.get_folder_path(), studio_apps_txt_path()):
-			# carry every exported file (page scripts, router.ts, components) over to the new folder
-			move_folder(self.get_folder_path(old), self.get_folder_path())
-			self.export_app()
-			self.remove_exported_name(old, kept_name=self.name)
+		# carry every exported file (page scripts, router.ts, components) over to the new folder
+		move_folder(self.get_folder_path(old), self.get_folder_path())
+		self.export_app()
+		self.remove_exported_name(old, kept_name=self.name)
 
 	def remove_exported_name(self, name: str, kept_name: str):
 		"""Drop the app JSON and studio_apps.txt entry for `name`. Both are keyed by the scrubbed
@@ -337,16 +334,9 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def enable_app_export(self, target_app: str):
-		previous_app = self.frappe_app if self.is_standard else None
-		if not previous_app or previous_app == target_app:
-			return self.save_export_settings(target_app)
-
-		new_path = self.get_folder_path(frappe_app=target_app)
-		with restore_on_failure(self.get_folder_path(), new_path, studio_apps_txt_path()):
+		if self.is_standard and self.frappe_app and self.frappe_app != target_app:
 			self.move_export_to(target_app)
-			self.save_export_settings(target_app)
 
-	def save_export_settings(self, target_app: str):
 		frappe.db.set_value(
 			"Studio Page",
 			{"studio_app": self.name},
@@ -579,32 +569,6 @@ def validate_app_name(name: str):
 	"""The name is used in the editor's URL and the export folder, so it must be URL-friendly"""
 	if not name or name != cleanup_page_name(name):
 		frappe.throw(_("App Name must be lowercase, with hyphens instead of spaces or punctuation."))
-
-
-@contextmanager
-def restore_on_failure(*paths: str):
-	"""The DB rolls back a failed change but files on disk don't, so back up these files and
-	folders first and put them back as they were if the change fails."""
-	backup_dir = tempfile.mkdtemp()
-	backups = {path: os.path.join(backup_dir, str(index)) for index, path in enumerate(dict.fromkeys(paths))}
-	for path, backup in backups.items():
-		if os.path.isdir(path):
-			shutil.copytree(path, backup)
-		elif os.path.isfile(path):
-			shutil.copy2(path, backup)
-	try:
-		yield
-	except Exception:
-		for path, backup in backups.items():
-			if os.path.isdir(path):
-				delete_folder(path)
-			else:
-				delete_file(path)
-			if os.path.exists(backup):
-				shutil.move(backup, path)
-		raise
-	finally:
-		shutil.rmtree(backup_dir, ignore_errors=True)
 
 
 def studio_apps_txt_path() -> str:
