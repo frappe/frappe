@@ -206,6 +206,8 @@ describe("settings dialog", () => {
 		cy.contains("[role=dialog]", "Rename App").contains("button", "Rename").click()
 		cy.contains("App Name can only have lowercase letters").should("be.visible")
 		cy.wrap(null).should(() => expect(router.currentRoute.value.params.appID).to.eq(APP_NAME))
+		// the prompt lives in the shared provider, so close it before the next test mounts
+		cy.contains("[role=dialog]", "Rename App").contains("button", "Cancel").click()
 	})
 
 	it("only renames an exported app in developer mode", () => {

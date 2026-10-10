@@ -6,50 +6,15 @@
 				<Button label="Rename" :disabled="Boolean(renameBlockedReason)" @click="openDialog" />
 			</span>
 		</Tooltip>
-
-		<Dialog v-model:open="showDialog" title="Rename App" size="md">
-			<template #default>
-				<div class="flex flex-col gap-3">
-					<FormControl
-						label="App Name"
-						type="text"
-						variant="outline"
-						v-model="newName"
-						description="Lowercase letters, numbers, hyphens and underscores"
-					/>
-					<p class="text-p-sm text-ink-gray-6">
-						The editor's URL changes to the new name. The app's route stays the same. If the app is
-						published, publish it again to rebuild it under the new name.
-						<template v-if="store.activeApp?.is_standard">
-							Its export folder moves to {{ store.activeApp.frappe_app }}/studio/{{ scrub(newName) || "…" }}.
-						</template>
-					</p>
-				</div>
-			</template>
-			<template #actions>
-				<div class="flex flex-col gap-2">
-					<ErrorMessage :message="error" />
-					<Button
-						variant="solid"
-						label="Rename"
-						class="w-full"
-						:loading="renaming"
-						:disabled="!newName || newName === appName"
-						@click="rename"
-					/>
-				</div>
-			</template>
-		</Dialog>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { Button, Dialog, ErrorMessage, FormControl, Tooltip, call, toast } from "frappe-ui"
+import { Button, FormControl, Tooltip, call, dialog, toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import { studioApps } from "@/data/studioApps"
-import { scrub } from "@/utils/helpers"
 
 const store = useStudioStore()
 const route = useRoute()
@@ -62,39 +27,41 @@ const renameBlockedReason = computed(() =>
 		? "Exported apps can only be renamed in developer mode"
 		: "",
 )
-const showDialog = ref(false)
-const newName = ref("")
-const error = ref("")
-const renaming = ref(false)
 
 function openDialog() {
-	newName.value = appName.value
-	error.value = ""
-	showDialog.value = true
+	dialog.prompt({
+		title: "Rename App",
+		message: renameNote(),
+		fields: [
+			{
+				name: "app_name",
+				label: "App Name",
+				defaultValue: appName.value,
+				required: true,
+				description: "Lowercase letters, numbers, hyphens and underscores",
+				validate: (value: string) => (value.trim() === appName.value ? "Enter a new name" : null),
+			},
+		],
+		confirmLabel: "Rename",
+		onConfirm: ({ values }: { values: Record<string, string> }) => rename(values.app_name.trim()),
+	})
 }
 
-async function rename() {
-	renaming.value = true
-	error.value = ""
-	try {
-		const name = (await call("frappe.client.rename_doc", {
-			doctype: "Studio App",
-			old_name: appName.value,
-			new_name: newName.value.trim(),
-		})) as string
-		await openRenamedApp(name)
-		showDialog.value = false
-		toast.success("App renamed")
-	} catch (renameError: any) {
-		error.value = renameError?.messages?.join(", ") || renameError?.message || "Failed to rename the app"
-	} finally {
-		renaming.value = false
-	}
+function renameNote() {
+	const note =
+		"The editor's URL changes to the new name. The app's route stays the same. If the app is published, publish it again to rebuild it under the new name."
+	return store.activeApp?.is_standard ? `${note} Its export folder moves with it.` : note
 }
 
-async function openRenamedApp(name: string) {
+async function rename(newName: string) {
+	const name = (await call("frappe.client.rename_doc", {
+		doctype: "Studio App",
+		old_name: appName.value,
+		new_name: newName,
+	})) as string
 	await router.replace({ name: route.name!, params: { ...route.params, appID: name } })
 	await store.setApp(name)
 	studioApps.reload()
+	toast.success("App renamed")
 }
 </script>
