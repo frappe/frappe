@@ -249,7 +249,10 @@ function render_accounts(panel) {
 			icon: "plus",
 			onclick: () => show_providers(panel),
 		},
-		load: () => load_setup(true).then((setup) => setup.accounts),
+		load: () =>
+			load_setup(true).then((setup) =>
+				panel.email_view === "list" ? setup.accounts : new Promise(() => {})
+			),
 		title_column: {
 			primary: (row) => row.email_id,
 			secondary: (row) => describe_account(row),
