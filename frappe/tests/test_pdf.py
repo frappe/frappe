@@ -165,12 +165,16 @@ class TestPdf(IntegrationTestCase):
 		self.assertIn("report body", text)
 
 	def test_empty_header_and_footer_are_skipped(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		pdf = pdfgen.get_pdf(
 			'<div id="header-html" class="hidden-pdf"></div><p>body text</p><div id="footer-html"></div>'
 		)
 		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
 
 	def test_print_format_margins_keep_header_and_footer_on_every_page(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		rows = "".join(f"<p>row {i}</p>" for i in range(150))
 		pdf = pdfgen.get_pdf(
 			"<style>.print-format { margin-top: 30mm; margin-bottom: 20mm; }</style>"
