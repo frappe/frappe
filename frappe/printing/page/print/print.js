@@ -1,3 +1,5 @@
+const STANDARD_PRINT_STYLES = ["Redesign", "Modern", "Classic", "Bold", "Striped", "Monochrome"];
+
 frappe.pages["print"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
@@ -341,19 +343,14 @@ frappe.ui.form.PrintView = class {
 			this.render_style_options();
 			this.preview();
 		});
-		frappe.db
-			.get_list("Print Style", {
-				filters: { disabled: 0 },
-				fields: ["name"],
-				order_by: "creation asc",
-				limit: 100,
-			})
-			.then((rows) => {
-				const order = ["Redesign", "Modern", "Classic", "Bold", "Striped", "Monochrome"];
-				const rank = (name) => (order.includes(name) ? order.indexOf(name) : order.length);
-				this.print_styles = rows.map((r) => r.name).sort((a, b) => rank(a) - rank(b));
-				this.render_style_options();
-			});
+		frappe.xcall("frappe.printing.page.print.print.get_print_styles").then((names) => {
+			const rank = (name) =>
+				STANDARD_PRINT_STYLES.includes(name)
+					? STANDARD_PRINT_STYLES.indexOf(name)
+					: STANDARD_PRINT_STYLES.length;
+			this.print_styles = names.sort((a, b) => rank(a) - rank(b));
+			this.render_style_options();
+		});
 	}
 
 	render_style_options() {
@@ -367,19 +364,22 @@ frappe.ui.form.PrintView = class {
 					return `<button type="button" class="print-style-option${
 						selected ? " active" : ""
 					}" data-style="${frappe.utils.escape_html(name)}" aria-pressed="${selected}">
-						<span class="print-style-thumb print-style-thumb--${slug}">
+						<span class="print-style-thumb print-style-thumb--${frappe.utils.escape_html(slug)}">
 							<span class="thumb-label"></span>
 							<span class="thumb-fields"><i></i><i></i></span>
 							<span class="thumb-table"><i></i><i></i><i></i></span>
 						</span>
-						<span class="print-style-name">${frappe.utils.escape_html(
-							name === "Redesign" ? __("Default") : __(name)
-						)}</span>
+						<span class="print-style-name">${frappe.utils.escape_html(this.print_style_label(name))}</span>
 					</button>`;
 				})
 				.join("")
 		);
 		this.toggle_style_picker();
+	}
+
+	print_style_label(name) {
+		if (name === "Redesign") return __("Default");
+		return STANDARD_PRINT_STYLES.includes(name) ? __(name) : name;
 	}
 
 	toggle_style_picker() {
@@ -683,27 +683,39 @@ frappe.ui.form.PrintView = class {
 		if (!doc?.body) return null;
 		const body = doc.body;
 		const page_height = parseFloat(getComputedStyle(body).minHeight) || body.offsetHeight;
-		return {
-			doc,
-			body,
-			page_height,
-			pages: Math.max(1, Math.ceil((body.offsetHeight - 1) / page_height)),
+		const body_rect = body.getBoundingClientRect();
+		const scale = body.offsetHeight / (body_rect.height || 1);
+		const bottom_of = (el) => (el.getBoundingClientRect().bottom - body_rect.top) * scale;
+		const starts = [0];
+		const fill = (start, end) => {
+			while (end - start > page_height + 1) {
+				start += page_height;
+				starts.push(start);
+			}
+			return start;
 		};
+		let start = 0;
+		doc.querySelectorAll(".section.page-break").forEach((section) => {
+			const end = bottom_of(section);
+			start = fill(start, end);
+			if (end < body.offsetHeight - 1) {
+				start = end;
+				starts.push(start);
+			}
+		});
+		fill(start, body.offsetHeight);
+		return { doc, body, starts, pages: starts.length };
 	}
 
 	update_page_label() {
 		const m = this.page_metrics();
 		if (!m) return;
 		const el = m.doc.scrollingElement;
-		const scroll = el.scrollTop / this.zoom - m.body.offsetTop;
+		const middle = (el.scrollTop + el.clientHeight / 2) / this.zoom - m.body.offsetTop;
 		const at_end = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
 		this.current_page = at_end
 			? m.pages
-			: Math.min(
-					m.pages,
-					Math.max(1, Math.floor((scroll + m.page_height / 2) / m.page_height) + 1)
-			  );
-		this.page_count = m.pages;
+			: Math.max(1, m.starts.filter((start) => start <= middle).length);
 		this.preview_bar
 			.find(".page-label")
 			.text(__("Page {0} of {1}", [this.current_page, m.pages]));
@@ -718,7 +730,7 @@ frappe.ui.form.PrintView = class {
 		if (!m) return;
 		page = Math.min(m.pages, Math.max(1, page));
 		m.doc.scrollingElement.scrollTo({
-			top: (m.body.offsetTop + (page - 1) * m.page_height) * this.zoom,
+			top: (m.body.offsetTop + m.starts[page - 1]) * this.zoom,
 			behavior: "smooth",
 		});
 	}
@@ -1099,6 +1111,7 @@ frappe.ui.form.PrintView = class {
 					print_format: me.selected_format(),
 					no_letterhead: me.with_letterhead(),
 					letterhead: me.get_letterhead(),
+					style: me.get_print_style() || undefined,
 				},
 				callback: function () {},
 			});
