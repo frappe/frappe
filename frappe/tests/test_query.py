@@ -1135,6 +1135,52 @@ class TestQuery(IntegrationTestCase):
 		self.assertEqual(len(result), 1, "Should find the note when filtering by permlevel 0 field")
 		self.assertEqual(result[0]["name"], note.name)
 
+	def test_filter_on_child_table_with_select_permission(self):
+		"""Select-only users can filter on permlevel 0 child table fields behind a permlevel 0 table field."""
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Child Table Filter Select Role"}).insert()
+		for doctype in ("Module Profile", "Note"):
+			add_permission(doctype, role.name, 0, ptype="select")
+			update_permission_property(doctype, role.name, 0, "read", 0, validate=False)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "child-table-filter-select@example.com",
+				"first_name": "Child Table Filter",
+				"user_type": "Website User",
+				"send_welcome_email": 0,
+				"roles": [{"role": role.name}],
+			}
+		).insert()
+		profile = frappe.get_doc(
+			{
+				"doctype": "Module Profile",
+				"module_profile_name": "Child Table Filter Profile",
+				"block_modules": [{"module": "Core"}],
+			}
+		).insert()
+		frappe.get_doc(
+			doctype="Note", title="Child Table Filter Note", public=1, seen_by=[{"user": "Administrator"}]
+		).insert()
+
+		with self.set_user(user.name):
+			for module, expected in (("Core", [profile.name]), ("Desk", [])):
+				for filters in (
+					{"name": profile.name, "block_modules.module": module},
+					[["name", "=", profile.name], ["Block Module", "module", "=", module]],
+				):
+					self.assertEqual(
+						frappe.get_list("Module Profile", filters=filters, pluck="name"), expected
+					)
+
+			self.assertEqual(
+				frappe.get_list(
+					"Module Profile", filters={"name": profile.name}, fields=["name", "block_modules.module"]
+				),
+				[{"name": profile.name}],
+			)
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list("Note", filters={"seen_by.user": "Administrator"})
+
 	def test_core_doctype_filterable_fields_with_select_permission(self):
 		"""Core doctypes like User should allow filtering by any field when the user
 		only has select permission. Regression test for #37923."""

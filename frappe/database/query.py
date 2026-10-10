@@ -920,10 +920,14 @@ class Engine:
 				# Parsed successfully as link/child field access
 				target_doctype = dynamic_field.doctype
 				target_fieldname = dynamic_field.fieldname
-				parent_doctype_for_perm = (
-					dynamic_field.parent_doctype if isinstance(dynamic_field, ChildTableField) else None
+				parent_doctype_for_perm, parent_fieldname = (
+					(dynamic_field.parent_doctype, dynamic_field.parent_fieldname)
+					if isinstance(dynamic_field, ChildTableField)
+					else (None, None)
 				)
-				self.check_filter_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
+				self.check_filter_field_permission(
+					target_doctype, target_fieldname, parent_doctype_for_perm, parent_fieldname
+				)
 
 				self.query = dynamic_field.apply_join(self.query, engine=self)
 				# Return the pypika Field object associated with the dynamic field
@@ -983,7 +987,9 @@ class Engine:
 
 				# For permission check, the parent is the main doctype
 				parent_doctype_for_perm = self.doctype
-				self.check_filter_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
+				self.check_filter_field_permission(
+					target_doctype, target_fieldname, parent_doctype_for_perm, parent_fieldname
+				)
 
 				# Delegate join logic
 				self.query = child_field_handler.apply_join(self.query, engine=self)
@@ -1024,7 +1030,7 @@ class Engine:
 							)
 							parent_doctype_for_perm = self.doctype
 							self.check_filter_field_permission(
-								df.options, target_fieldname, parent_doctype_for_perm
+								df.options, target_fieldname, parent_doctype_for_perm, df.fieldname
 							)
 							self.query = child_field_handler.apply_join(self.query, engine=self)
 							return child_field_handler.field
@@ -1037,16 +1043,30 @@ class Engine:
 		"""Check if the user has permission to select the given field."""
 		self._check_field_permission(doctype, fieldname, parent_doctype, for_filtering=False)
 
-	def check_filter_field_permission(self, doctype: str, fieldname: str, parent_doctype: str | None = None):
+	def check_filter_field_permission(
+		self,
+		doctype: str,
+		fieldname: str,
+		parent_doctype: str | None = None,
+		parent_fieldname: str | None = None,
+	):
 		"""Check if the user has permission to filter/order/group by the given field.
 
-		It allows all permlevel 0 fields for users with select permission,
-		and all permitted fields for users with read permission.
+		It allows all permlevel 0 fields for users with select permission, including child table
+		fields reached through a permlevel 0 table field, and all permitted fields for users with
+		read permission.
 		"""
-		self._check_field_permission(doctype, fieldname, parent_doctype, for_filtering=True)
+		self._check_field_permission(
+			doctype, fieldname, parent_doctype, for_filtering=True, parent_fieldname=parent_fieldname
+		)
 
 	def _check_field_permission(
-		self, doctype: str, fieldname: str, parent_doctype: str | None = None, for_filtering: bool = False
+		self,
+		doctype: str,
+		fieldname: str,
+		parent_doctype: str | None = None,
+		for_filtering: bool = False,
+		parent_fieldname: str | None = None,
 	):
 		"""Check if the user has permission to access the given field."""
 		if not self.apply_permissions:
@@ -1060,9 +1080,12 @@ class Engine:
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 
-		# Don't allow querying child table fields if user has only "select" permission
 		permission_type = self.get_permission_type(doctype, parent_doctype)
-		if parent_doctype and permission_type == "select":
+		if (
+			parent_doctype
+			and permission_type == "select"
+			and not (for_filtering and self._is_permlevel_0_table_field(parent_doctype, parent_fieldname))
+		):
 			frappe.throw(
 				_("You do not have permission to access child table field: {0}").format(
 					frappe.bold(f"{doctype}.{fieldname}")
@@ -1099,13 +1122,18 @@ class Engine:
 			)
 		return self.permitted_fields_cache[cache_key]
 
+	def _is_permlevel_0_table_field(self, parent_doctype: str, parent_fieldname: str | None) -> bool:
+		"""Return True if the parent's table field is visible to select-only users."""
+		table_field = parent_fieldname and frappe.get_meta(parent_doctype).get_field(parent_fieldname)
+		return bool(table_field) and table_field.permlevel == 0
+
 	def _get_filterable_fields(
 		self, doctype: str, parenttype: str | None = None, permission_type: str | None = None
 	) -> set:
 		"""Get fields that can be used in filters/order by/group by.
 
-		For users with only select permission on parent doctypes, this returns
-		all permlevel 0 fields (not just search fields which are used for selected fields).
+		For users with only select permission, this returns all permlevel 0 fields
+		(not just search fields which are used for selected fields).
 		For users with read permission, returns standard permitted fields.
 		"""
 		if permission_type is None:
@@ -1113,10 +1141,6 @@ class Engine:
 
 		if permission_type == "select":
 			meta = frappe.get_meta(doctype)
-
-			# Only allow filtering by all permlevel 0 fields for parent doctypes.
-			if meta.istable:
-				return set()
 
 			# for select permission on parent doctype, allow all permlevel 0 fields in filters
 			cache_key = (doctype, None, "_filterable_select")
@@ -1486,7 +1510,10 @@ class Engine:
 			# Check permissions for dynamic field
 			if isinstance(dynamic_field, ChildTableField):
 				self.check_filter_field_permission(
-					dynamic_field.doctype, dynamic_field.fieldname, dynamic_field.parent_doctype
+					dynamic_field.doctype,
+					dynamic_field.fieldname,
+					dynamic_field.parent_doctype,
+					dynamic_field.parent_fieldname,
 				)
 			elif isinstance(dynamic_field, LinkTableField):
 				# Check permission for the link field in parent doctype
