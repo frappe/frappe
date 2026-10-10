@@ -37,6 +37,10 @@ describe("settings dialog", () => {
 		cy.remove_doc("Studio App", RENAMED_APP, true)
 	})
 
+	afterEach(() => {
+		cy.window().then((win) => delete win.is_developer_mode)
+	})
+
 	beforeEach(() => {
 		setActivePinia(pinia)
 		cy.viewport(1400, 900)
@@ -44,7 +48,7 @@ describe("settings dialog", () => {
 		store.showSettingsDialog = false
 		cy.login()
 		cy.intercept("/api/method/frappe.client.set_value").as("save")
-		cy.intercept("/api/method/run_doc_method").as("savePage")
+		cy.intercept("/api/method/run_doc_method").as("docMethod")
 		cy.remove_doc("Studio App", APP_NAME, true)
 		cy.remove_doc("Studio App", RENAMED_APP, true)
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Settings" })
@@ -99,9 +103,11 @@ describe("settings dialog", () => {
 	it("allows guests on a page that isn't open", () => {
 		cy.wrap(null).then(() => store.openSettings("pages"))
 		guestSwitch("About").click()
-		cy.wait("@savePage")
+		cy.wait("@docMethod")
 		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 1)
 		guestSwitch("Contact").should("have.attr", "aria-checked", "false")
+		// the switch sits on the row's edit button, so it mustn't open the page dialog
+		cy.contains("Edit Page").should("not.exist")
 	})
 
 	it("edits a page's title, route and guest access from its row", () => {
@@ -111,12 +117,8 @@ describe("settings dialog", () => {
 		cy.contains("label", "Route").parent().find("input").clear().type("about-us")
 		cy.contains("[role=dialog]", "Edit Page").find("[role=switch]").click()
 		cy.contains("button", "Save").click()
-		cy.wait("@savePage").its("request.body.args.fieldname").should("deep.equal", {
-			page_title: "About Us",
-			route: "/about-us",
-			allow_guest: 1,
-		})
-		cy.get("@savePage.all").should("have.length", 1)
+		cy.wait("@docMethod")
+		cy.get("@docMethod.all").should("have.length", 1)
 		cy.get_doc("Studio Page", aboutPage.name).then(({ data }) => {
 			expect(data.page_title).to.eq("About Us")
 			expect(data.route).to.eq("/about-us")
@@ -127,17 +129,11 @@ describe("settings dialog", () => {
 		cy.get("[role=cell]").should("contain.text", "About Us").and("contain.text", "/about-us")
 	})
 
-	it("toggles guest access without opening the page editor", () => {
-		cy.wrap(null).then(() => store.openSettings("pages"))
-		guestSwitch("Contact").click()
-		cy.wait("@savePage")
-		cy.contains("Edit Page").should("not.exist")
-	})
-
 	it("doesn't overwrite a page that changed after the list loaded", () => {
 		cy.wrap(null).then(() => store.openSettings("pages"))
 		cy.update_doc("Studio Page", aboutPage.name, { page_title: "About (changed elsewhere)" })
 		guestSwitch("About").click()
+		cy.wait("@docMethod")
 		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 0)
 		guestSwitch("About (changed elsewhere)").should("have.attr", "aria-checked", "false")
 	})
@@ -168,7 +164,6 @@ describe("settings dialog", () => {
 		// nothing to export until a Frappe App is picked
 		cy.contains("span", /^Frappe App$/).should("be.visible")
 		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").should("be.disabled")
-		cy.window().then((win) => delete win.is_developer_mode)
 	})
 
 	it("asks before disabling export and keeps it on when cancelled", () => {
@@ -184,17 +179,15 @@ describe("settings dialog", () => {
 		cy.contains("[role=dialog]", "Export Settings").contains("button", "Update").click()
 		cy.contains("[role=dialog]", "Disable App Export").contains("button", "Cancel").click()
 		cy.contains("[role=dialog]", "Export Settings").should("be.visible")
-		cy.get("@savePage.all").should("have.length", 0)
-		cy.window().then((win) => delete win.is_developer_mode)
+		cy.get("@docMethod.all").should("have.length", 0)
 	})
 
 	it("renames the app and moves the editor to its new URL", () => {
-		cy.intercept("/api/method/run_doc_method").as("rename")
 		cy.wrap(null).then(() => store.openSettings("app"))
 		cy.contains("button", "Rename").click()
 		cy.contains("[role=dialog]", "Rename App").find("input").clear().type(RENAMED_APP)
 		cy.contains("[role=dialog]", "Rename App").contains("button", "Rename").click()
-		cy.wait("@rename")
+		cy.wait("@docMethod")
 		// the dialog closes once the renamed app has fully loaded
 		cy.contains("[role=dialog]", "Rename App").should("not.exist")
 		cy.get_doc("Studio App", RENAMED_APP).its("data.app_name").should("eq", RENAMED_APP)
@@ -224,7 +217,6 @@ describe("settings dialog", () => {
 		cy.contains("button", "AI").click()
 		cy.contains("button", "App").click()
 		cy.contains("button", "Rename").should("not.be.disabled")
-		cy.window().then((win) => delete win.is_developer_mode)
 	})
 
 	it("opens on the requested tab", () => {

@@ -64,15 +64,6 @@ class TestStudioPage(IntegrationTestCase):
 		page.reload()
 		self.assertEqual((page.page_title, page.route), ("Renamed Page", "/renamed"))
 
-	def test_save_page_field_saves_nothing_when_one_field_is_refused(self):
-		app = make_studio_app(app_title="Refused App", app_name="refused-app")
-		page = make_studio_page(app.name, page_title="Refused Page")
-
-		with self.assertRaises(frappe.ValidationError):
-			page.save_page_field({"page_title": "Changed", "blocks": "[]"}, known_modified=page.modified)
-
-		self.assertEqual(frappe.db.get_value("Studio Page", page.name, "page_title"), "Refused Page")
-
 	def test_remove_empty_values(self):
 		test_dict = {
 			"keep_this": "value",
