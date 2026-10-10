@@ -761,13 +761,19 @@ frappe.ui.Sidebar = class Sidebar {
 		if (this.folded_for_page) return;
 		this.folded_for_page = true;
 		this.unfold_after_page = !!this.sidebar_expanded;
-		if (this.unfold_after_page) this.close();
+		if (!this.unfold_after_page) return;
+		this.sidebar_expanded = false;
+		this.apply_expanded_state();
 	}
 
 	unfold_after_leaving_page() {
 		if (!this.folded_for_page) return;
 		this.folded_for_page = false;
-		if (this.unfold_after_page) this.open();
+		if (this.unfold_after_page) {
+			this.sidebar_expanded = true;
+			this.apply_expanded_state();
+			this.highlight_active_item();
+		}
 		this.unfold_after_page = false;
 	}
 
