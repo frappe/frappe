@@ -49,8 +49,11 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 		if print_format.get("pdf_generator") == "Typst":
 			return "Typst"
 		return "chrome"
-	generator = pdf_generator or (print_format and print_format.get("pdf_generator"))
-	return generator if generator in get_pdf_generators() else "chrome"
+	known = get_pdf_generators()
+	for generator in (pdf_generator, print_format and print_format.get("pdf_generator")):
+		if generator in known:
+			return generator
+	return "chrome"
 
 
 def get_print(
