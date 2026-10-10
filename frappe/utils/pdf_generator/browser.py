@@ -17,7 +17,7 @@ class Browser:
 		try:
 			# sets soup from html
 			self.set_html(html)
-			# sets wkhtmltopdf options
+			# sets pdf options
 			self.set_options(options)
 			# start cdp connection and create browser context ( kind of like new window / incognito mode)
 			self.open(generator)

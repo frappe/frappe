@@ -80,7 +80,12 @@ def measure_time(func):
 
 
 @measure_time
-def get_pdf(html, options=None, output: "PdfWriter" | None = None, print_format: str | None = None):
+def get_pdf(
+	html: str,
+	options: dict | None = None,
+	output: "PdfWriter" | None = None,
+	print_format: str | None = None,
+):
 	"""Render `html` to PDF with Chromium."""
 	from frappe.utils.chromium import ChromiumManager
 	from frappe.utils.pdf_generator.browser import Browser
