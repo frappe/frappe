@@ -1,44 +1,50 @@
 <template>
 	<div>
-	<List :columns="['minmax(0,1fr)', 'minmax(0,1fr)', '120px']" :row-height="44" class="[--list-row-padding-x:0.75rem]">
-		<ListHeader>
-			<ListHeaderCell>Title</ListHeaderCell>
-			<ListHeaderCell>Route</ListHeaderCell>
-			<ListHeaderCell class="justify-end">Guest Access</ListHeaderCell>
-		</ListHeader>
-		<ListRows :items="pages" v-slot="{ item: page }">
-			<ListRow class="hover:bg-surface-gray-1 sm:rounded-[10px]">
-				<button
-					type="button"
-					class="absolute inset-0 sm:rounded-[10px]"
-					:aria-label="`Edit ${page.page_title}`"
-					@click="editPage(page)"
-				/>
-				<ListCell>
-					<span class="truncate text-base text-ink-gray-8">{{ page.page_title }}</span>
-				</ListCell>
-				<ListCell>
-					<span class="truncate text-base text-ink-gray-6">{{ page.route }}</span>
-				</ListCell>
-				<ListCell class="justify-end">
-					<Switch
-						size="sm"
-						class="relative"
-						:modelValue="store.pageAllowsGuests(page)"
-						:aria-label="`Allow guest access to ${page.page_title}`"
-						@update:modelValue="(value: boolean) => setGuestAccess(page, value)"
-					/>
-				</ListCell>
-			</ListRow>
-		</ListRows>
-	</List>
-	<EditPageDialog v-model:open="showEditDialog" :page="selectedPage" />
+		<List
+			:columns="['minmax(0,1fr)', 'minmax(0,1fr)', '120px', '72px']"
+			:row-height="44"
+			class="[--list-row-padding-x:0.75rem]"
+		>
+			<ListHeader>
+				<ListHeaderCell>Title</ListHeaderCell>
+				<ListHeaderCell>Route</ListHeaderCell>
+				<ListHeaderCell class="justify-end">Guest Access</ListHeaderCell>
+				<ListHeaderCell />
+			</ListHeader>
+			<ListRows :items="pages" v-slot="{ item: page }">
+				<ListRow>
+					<ListCell>
+						<span class="truncate text-base text-ink-gray-8">{{ page.page_title }}</span>
+					</ListCell>
+					<ListCell>
+						<span class="truncate text-base text-ink-gray-6">{{ page.route }}</span>
+					</ListCell>
+					<ListCell class="justify-end">
+						<Switch
+							size="sm"
+							:modelValue="store.pageAllowsGuests(page)"
+							:aria-label="`Allow guest access to ${page.page_title}`"
+							@update:modelValue="(value: boolean) => setGuestAccess(page, value)"
+						/>
+					</ListCell>
+					<ListCell class="justify-end">
+						<Button
+							size="xs"
+							label="Edit"
+							:aria-label="`Edit ${page.page_title}`"
+							@click="editPage(page)"
+						/>
+					</ListCell>
+				</ListRow>
+			</ListRows>
+		</List>
+		<EditPageDialog v-model:open="showEditDialog" :page="selectedPage" />
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Switch, toast } from "frappe-ui"
+import { Button, Switch, toast } from "frappe-ui"
 import { List, ListCell, ListHeader, ListHeaderCell, ListRow, ListRows } from "frappe-ui/list"
 import EditPageDialog from "@/components/Settings/EditPageDialog.vue"
 import useStudioStore from "@/stores/studioStore"

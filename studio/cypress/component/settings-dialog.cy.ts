@@ -107,13 +107,11 @@ describe("settings dialog", () => {
 		cy.wait("@docMethod")
 		cy.get_doc("Studio Page", aboutPage.name).its("data.allow_guest").should("eq", 1)
 		guestSwitch("Contact").should("have.attr", "aria-checked", "false")
-		// the switch sits on the row's edit button, so it mustn't open the page dialog
-		cy.contains("Edit Page").should("not.exist")
 	})
 
 	it("edits a page's title, route and guest access from its row", () => {
 		cy.wrap(null).then(() => store.openSettings("pages"))
-		cy.get('button[aria-label="Edit About"]').click()
+		editButton("About").click()
 		cy.contains("label", "Title").parent().find("input").clear().type("About Us")
 		cy.contains("label", "Route").parent().find("input").clear().type("about-us")
 		cy.contains("[role=dialog]", "Edit Page").find("[role=switch]").click()
@@ -144,7 +142,7 @@ describe("settings dialog", () => {
 		cy.wrap(null).then({ timeout: 15000 }, () => store.setPage(aboutPage.name))
 		cy.wrap(null).then(() => store.openSettings("pages"))
 		cy.update_doc("Studio Page", aboutPage.name, { allow_guest: 1 })
-		cy.get('button[aria-label="Edit About"]').click()
+		editButton("About").click()
 		cy.contains("label", "Title").parent().find("input").clear().type("About Us")
 		cy.contains("button", "Save").click()
 		// the editor's own conflict prompt offers a refresh; dismiss it to look at the dialog behind
@@ -228,6 +226,10 @@ describe("settings dialog", () => {
 		cy.contains("button", "App").click()
 		cy.contains("label", "Route").should("be.visible")
 	})
+
+	function editButton(pageTitle: string) {
+		return cy.contains("[role=row]", pageTitle).contains("button", "Edit")
+	}
 
 	function exportSwitch() {
 		return cy.contains("Enable App Export").parents(".justify-between").first().find("[role=switch]")
