@@ -331,8 +331,6 @@
 	}
 
 	.print-style-thumb--striped {
-		gap: 3px;
-
 		.thumb-table {
 			border: none;
 
@@ -396,7 +394,7 @@
 	align-items: center;
 	gap: calc(var(--spacing) * 1);
 	padding: calc(var(--spacing) * 1);
-	background: var(--surface-modal, var(--surface-base));
+	background: var(--surface-base);
 	border: 1px solid var(--outline-gray-2);
 	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-md);
