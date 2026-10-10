@@ -632,7 +632,12 @@ function show_account_form(panel, provider, setup) {
 		const fg = panel.fieldgroup;
 		const set_incoming_port = () => {
 			const pop = fg.get_value("incoming_protocol") === "POP";
-			const ssl = fg.get_value("incoming_security") === "SSL";
+			let security = fg.get_value("incoming_security");
+			if (pop && security === "STARTTLS") {
+				security = "SSL";
+				fg.set_value("incoming_security", security);
+			}
+			const ssl = security === "SSL";
 			if ([993, 143, 995, 110].includes(cint(fg.get_value("incoming_port")))) {
 				fg.set_value("incoming_port", pop ? (ssl ? 995 : 110) : ssl ? 993 : 143);
 			}

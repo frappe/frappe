@@ -317,6 +317,9 @@ def create_email_account(
 			}
 		)
 
+	if doc.enable_incoming and not doc.use_imap and doc.use_starttls and not doc.use_ssl:
+		frappe.throw(_("STARTTLS works only with IMAP. Use SSL for POP."), title=_("Unsupported Security"))
+
 	if login_id and login_id.strip() != email_id:
 		doc.login_id_is_different = 1
 		doc.login_id = login_id.strip()
