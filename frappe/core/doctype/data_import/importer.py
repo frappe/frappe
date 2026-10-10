@@ -179,6 +179,7 @@ class Importer:
 
 		# dont import if there are non-ignorable warnings
 		from frappe.core.doctype.data_import.value_mapping import (
+			create_missing_link_records,
 			get_blocking_warnings,
 			get_skipped_row_numbers,
 		)
@@ -201,6 +202,8 @@ class Importer:
 					user=frappe.session.user,
 				)
 			return
+
+		create_missing_link_records(self.data_import)
 
 		# Read previous status before 'In Progress' overwrites it; retry purge needs it.
 		previous_status = self.data_import.status
@@ -669,10 +672,11 @@ class Importer:
 		if not self.data_import or not self.data_import.skipped_rows:
 			return
 
+		# Read from the file: row_data is only filled for rows the preview carried.
+		skipped = {cint(row.row_number) for row in self.data_import.skipped_rows}
 		header_row = [col.header_title for col in self.import_file.columns]
 		rows = [header_row]
-		for skipped in sorted(self.data_import.skipped_rows, key=lambda r: r.row_number):
-			rows.append(frappe.parse_json(skipped.row_data))
+		rows += [row.data for row in self.import_file.data if row.row_number in skipped]
 
 		build_csv_response(rows, _(self.doctype))
 
@@ -935,6 +939,9 @@ class ImportFile:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
+			# Fix issues shows a warned row's cells, which may fall past the preview.
+			warned = {cint(w.get("row")) for w in out.warnings if w.get("row")}
+			out.warning_rows = [row for row in data[MAX_ROWS_IN_PREVIEW:] if row[0] in warned]
 
 		return out
 
