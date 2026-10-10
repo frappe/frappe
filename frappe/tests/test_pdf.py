@@ -105,16 +105,20 @@ class TestPdf(IntegrationTestCase):
 				Please mail us at <a href="mailto:test@example.com">email</a>
 			</div>"""
 
-	def runTest(self):
-		self.test_read_options_from_html()
+	def test_print_format_margins_are_read_from_html(self):
+		from bs4 import BeautifulSoup
 
-	def test_read_options_from_html(self):
-		_, html_options = pdfgen.read_options_from_html(self.html)
-		self.assertTrue(html_options["margin-top"] == "0")
-		self.assertTrue(html_options["margin-left"] == "10mm")
-		self.assertTrue(html_options["margin-right"] == "0")
+		def margins(html):
+			styles = pdfgen.get_print_format_styles(BeautifulSoup(html, "html5lib"))
+			return {style.name: style.value for style in styles}
 
-		html_1 = """<style>
+		options = margins(self.html)
+		self.assertEqual(options["margin-top"], "0")
+		self.assertEqual(options["margin-left"], "10mm")
+		self.assertEqual(options["margin-right"], "0")
+
+		options = margins(
+			"""<style>
 			.print-format {
 				margin-top: 0mm;
 				margin-left: 10mm;
@@ -126,23 +130,12 @@ class TestPdf(IntegrationTestCase):
 				margin-bottom: 20mm;
 			}
 			</style>
-			<div class="more-info">Hello</div>
-		"""
-		_, options = pdfgen.read_options_from_html(html_1)
-
-		self.assertTrue(options["margin-top"] == "0")
-		self.assertTrue(options["margin-left"] == "10mm")
-		self.assertTrue(options["margin-bottom"] == "20mm")
-		# margin-right was for .more-info (child of .print-format)
-		# so it should not be extracted into options
-		self.assertFalse(options.get("margin-right"))
-
-	def test_empty_style(self):
-		html = """<style></style>
-			<div class="more-info">Hello</div>
-		"""
-		_, options = pdfgen.read_options_from_html(html)
-		self.assertTrue(options)
+			<div class="more-info">Hello</div>"""
+		)
+		self.assertEqual(options["margin-top"], "0")
+		self.assertEqual(options["margin-left"], "10mm")
+		self.assertEqual(options["margin-bottom"], "20mm")
+		self.assertNotIn("margin-right", options)
 
 	def test_pdf_encryption(self):
 		password = "qwe"
@@ -151,35 +144,17 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
-	def test_smart_shrinking_is_opt_in(self):
-		from unittest.mock import patch
-
-		captured = {}
-
-		def capture_options(html, options=None, verbose=True):
-			captured.clear()
-			captured.update(options or {})
-			return blank_pdf()
-
-		with (
-			patch.object(pdfgen.pdfkit, "from_string", side_effect=capture_options),
-			patch.object(pdfgen, "get_wkhtmltopdf_version", return_value="0.12.6"),
-		):
-			pdfgen.get_pdf(self.html)
-			self.assertIn("disable-smart-shrinking", captured)
-
-			pdfgen.get_pdf(self.html, smart_shrinking=True)
-			self.assertNotIn("disable-smart-shrinking", captured)
-
-	def test_report_pdf_is_scaled_to_fit_the_page(self):
+	def test_report_pdf_blocks_external_requests(self):
 		from unittest.mock import patch
 
 		from frappe.utils import print_format
 
 		with patch.object(print_format, "get_pdf", return_value=blank_pdf()) as get_report_pdf:
-			print_format.report_to_pdf("<table><tr><td>a wide report</td></tr></table>")
+			print_format.report_to_pdf("<table><tr><td>a report</td></tr></table>", orientation="Portrait")
 
-		self.assertTrue(get_report_pdf.call_args.kwargs["smart_shrinking"])
+		options = get_report_pdf.call_args.args[1]
+		self.assertTrue(options["block-external-requests"])
+		self.assertEqual(options["orientation"], "Portrait")
 
 	def test_pdf_generation_as_a_user(self):
 		frappe.set_user("Administrator")

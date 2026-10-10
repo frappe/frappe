@@ -107,6 +107,7 @@ class Browser:
 
 		page = Page(self.session, self.browser_context_id, page_type)
 		page.is_print_designer = self.is_print_designer
+		page.block_external_requests = bool(self.options.get("block-external-requests"))
 
 		return page
 

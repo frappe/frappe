@@ -344,21 +344,12 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		):
 			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
 
-	def test_standard_print_follows_print_settings_pdf_generator(self):
-		"""Standard (no print format) must honour Print Settings, while a beta format
-		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
+	def test_standard_print_renders_with_chrome(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		beta = self._make_print_format()
-		original = frappe.db.get_single_value("Print Settings", "pdf_generator")
-		self.addCleanup(frappe.db.set_single_value, "Print Settings", "pdf_generator", original)
-
-		for setting in ("wkhtmltopdf", "chrome"):
-			frappe.db.set_single_value("Print Settings", "pdf_generator", setting)
-			self.assertEqual(resolve_pdf_generator(None), setting)
-			self.assertEqual(resolve_pdf_generator(beta), "chrome")
-
-		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None), "chrome")
+		self.assertEqual(resolve_pdf_generator(beta), "chrome")
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 
 	# ------------------------------------------------------------------ #

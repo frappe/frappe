@@ -33,7 +33,7 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 
 	The beta renderer emits flexbox layouts that only Chromium lays out correctly, so a
 	beta format pins itself to Chrome. Everything else honours an explicit choice, then
-	the format's own setting, then the site default in Print Settings.
+	the format's own setting, then Chromium.
 
 	A beta format's Typst choice dispatches through the `pdf_generator` hook, so the
 	HTML pipeline's PDF consumers reach the Typst renderer too.
@@ -48,7 +48,7 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 		return pdf_generator
 	if print_format and print_format.get("pdf_generator"):
 		return print_format.get("pdf_generator")
-	return frappe.db.get_single_value("Print Settings", "pdf_generator") or "wkhtmltopdf"
+	return "chrome"
 
 
 def get_print(
@@ -63,7 +63,7 @@ def get_print(
 	password=None,
 	pdf_options=None,
 	letterhead=None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
+	pdf_generator: Literal["chrome", "Typst"] | None = None,
 ):
 	"""Get Print Format for given document.
 	:param doctype: DocType of document.
@@ -72,7 +72,7 @@ def get_print(
 	:param style: Print Format style.
 	:param as_pdf: Return as PDF. Default False.
 	:param password: Password to encrypt the pdf with. Default None
-	:param pdf_generator: PDF generator to use. Default 'wkhtmltopdf'
+	:param pdf_generator: PDF generator to use. Default 'chrome'
 	"""
 
 	"""
@@ -136,39 +136,38 @@ def get_print(
 		if not as_pdf:
 			return html
 
-		if generator != "wkhtmltopdf":
-			hook_func = frappe.get_hooks("pdf_generator")
-			for hook in hook_func:
-				"""
-				check pdf_generator value in your hook function.
-				if it matches run and return pdf else return None
-				"""
-				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
-				pdf = frappe.call(
-					hook,
-					print_format=print_format,
-					html=html,
-					options=pdf_options,
-					output=output,
-					pdf_generator=generator,
-				)
-				# if hook returns a value, assume it was the correct pdf_generator and return it
-				if pdf:
-					if output and isinstance(pdf, bytes):
-						from io import BytesIO
+		hook_func = frappe.get_hooks("pdf_generator")
+		for hook in hook_func:
+			"""
+			check pdf_generator value in your hook function.
+			if it matches run and return pdf else return None
+			"""
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
+			pdf = frappe.call(
+				hook,
+				print_format=print_format,
+				html=html,
+				options=pdf_options,
+				output=output,
+				pdf_generator=generator,
+			)
+			# if hook returns a value, assume it was the correct pdf_generator and return it
+			if pdf:
+				if output and isinstance(pdf, bytes):
+					from io import BytesIO
 
-						from pypdf import PdfReader
+					from pypdf import PdfReader
 
-						reader = PdfReader(BytesIO(pdf))
-						for page in reader.pages:
-							output.add_page(page)
-						return output
-					return pdf
+					reader = PdfReader(BytesIO(pdf))
+					for page in reader.pages:
+						output.add_page(page)
+					return output
+				return pdf
 
 		for hook in frappe.get_hooks("on_print_pdf"):
 			frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
-		return get_pdf(html, options=pdf_options, output=output)
+		return get_pdf(html, options=pdf_options, output=output, print_format=print_format)
 	finally:
 		local.form_dict = original_form_dict
 

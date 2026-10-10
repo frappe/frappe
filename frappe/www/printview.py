@@ -68,9 +68,7 @@ def get_context(context) -> PrintContext:
 	print_format, standalone = resolve_print_format(None, meta)
 
 	print_format_name = getattr(print_format, "name", "Standard")
-	pdf_generator = frappe.form_dict.get(
-		"pdf_generator", getattr(print_format, "pdf_generator", "wkhtmltopdf")
-	)
+	pdf_generator = frappe.form_dict.get("pdf_generator", getattr(print_format, "pdf_generator", "chrome"))
 
 	context = {
 		"standalone": standalone,

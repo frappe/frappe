@@ -307,11 +307,11 @@
    "label": "Show Colon After Field Labels"
   },
   {
-   "default": "wkhtmltopdf",
+   "default": "chrome",
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome\nTypst"
+   "options": "chrome\nTypst"
   },
   {
    "default": "DocType",
@@ -360,7 +360,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-09-30 23:00:00.000000",
+ "modified": "2026-10-10 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

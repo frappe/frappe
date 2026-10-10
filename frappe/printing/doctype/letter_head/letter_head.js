@@ -54,22 +54,10 @@ if (el.length > 0) {
 }
 </code>
 </pre>
-<p>${__("You can also access wkhtmltopdf variables (valid only in PDF print):")}</p>
+<p>${__("In the PDF, these classes are filled in on every page:")}</p>
 <pre>
 <code>
-// ${__("Get Header and Footer wkhtmltopdf variables")}
-// ${__("Snippet and more variables:  {0}", ["https://wkhtmltopdf.org/usage/wkhtmltopdf.txt"])}
-var vars = {};
-var query_strings_from_url = document.location.search.substring(1).split('&');
-for (var query_string in query_strings_from_url) {
-	if (query_strings_from_url.hasOwnProperty(query_string)) {
-		var temp_var = query_strings_from_url[query_string].split('=', 2);
-		vars[temp_var[0]] = decodeURI(temp_var[1]);
-	}
-}
-var el = document.getElementsByClassName("header-content");
-if (el.length > 0 && vars["page"] == 1) {
-	el[0].textContent += " : " + vars["date"];
-}
+&lt;span class="page"&gt;&lt;/span&gt; / &lt;span class="topage"&gt;&lt;/span&gt;
+&lt;span class="date"&gt;&lt;/span&gt; &lt;span class="time"&gt;&lt;/span&gt;
 </code>
 </pre>`;
