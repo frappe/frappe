@@ -405,7 +405,7 @@ class Browser:
 		toggle_visible_pdf(content)
 		id_map = {"header": "pdf_header_html", "footer": "pdf_footer_html"}
 		hook_func = frappe.get_hooks(id_map.get(type))
-		return frappe.call(
+		html = frappe.call(
 			hook_func[-1],
 			soup=self.soup,
 			head=head,
@@ -415,6 +415,13 @@ class Browser:
 			css=css,
 			path="templates/print_formats/chrome_pdf_header_footer.html",
 		)
+		body_class = self.soup.body.get("class") if self.soup.body else None
+		if not body_class:
+			return html
+		rendered = BeautifulSoup(html, "html5lib")
+		if wrapper := rendered.select_one(".wrapper.print-format-doc"):
+			wrapper["class"] = list(dict.fromkeys(wrapper["class"] + body_class))
+		return str(rendered)
 
 	def update_header_footer_page(self):
 		if not self.header_page and not self.footer_page:
