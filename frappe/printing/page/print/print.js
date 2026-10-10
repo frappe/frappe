@@ -1053,6 +1053,7 @@ frappe.ui.form.PrintView = class {
 					no_letterhead: me.with_letterhead(),
 					letterhead: me.get_letterhead(),
 					style: me.get_print_style() || undefined,
+					settings: JSON.stringify(me.get_print_settings_param()),
 				},
 				callback: function () {},
 			});

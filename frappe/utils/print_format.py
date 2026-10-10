@@ -396,6 +396,8 @@ def download_pdf(
 	language: str | None = None,
 	letterhead: str | None = None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
@@ -410,6 +412,8 @@ def download_pdf(
 			letterhead=letterhead,
 			no_letterhead=no_letterhead,
 			pdf_generator=pdf_generator,
+			style=style,
+			settings=settings,
 		)
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
@@ -571,6 +575,7 @@ def print_by_server(
 	no_letterhead: bool | int = 0,
 	file_path: str | None = None,  # backward compatibility
 	style: str | None = None,
+	settings: str | None = None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -596,6 +601,7 @@ def print_by_server(
 			no_letterhead=no_letterhead,
 			as_pdf=True,
 			output=output,
+			settings=settings,
 		)
 		with tempfile.NamedTemporaryFile(prefix="frappe-pdf-", suffix=".pdf", delete=False) as f:
 			file_path = f.name

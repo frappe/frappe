@@ -64,6 +64,7 @@ def get_print(
 	pdf_options=None,
 	letterhead=None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
+	settings=None,
 ):
 	"""Get Print Format for given document.
 	:param doctype: DocType of document.
@@ -98,6 +99,7 @@ def get_print(
 		local.form_dict.doc = doc
 		local.form_dict.no_letterhead = no_letterhead
 		local.form_dict.letterhead = letterhead
+		local.form_dict.settings = settings
 
 		pdf_options = pdf_options or {}
 		if password:
@@ -105,20 +107,24 @@ def get_print(
 
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
-		if as_pdf and generator == "chrome" and pf_doc and uses_beta_renderer(pf_doc):
+		if as_pdf and generator == "chrome" and (pf_doc is None or uses_beta_renderer(pf_doc)):
 			from frappe.core.doctype.access_log.access_log import make_access_log
 			from frappe.model.document import Document
+			from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
 			from frappe.www.printview import validate_print
 
 			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
 			validate_print(doc_obj)
-			pdf = _render_builder_pdf(pf_doc, doc_obj, letterhead, no_letterhead, password, style)
+			render_format = pf_doc or get_default_print_format(doc_obj.doctype)
+			pdf = _render_builder_pdf(
+				render_format, doc_obj, letterhead, no_letterhead, password, style, settings=settings
+			)
 			make_access_log(
 				doctype=doc_obj.doctype,
 				document=doc_obj.name,
 				file_type="PDF",
 				method="Print",
-				page=f"Print Format: {pf_doc.name}",
+				page=f"Print Format: {render_format.name}",
 			)
 			if output:
 				from io import BytesIO
@@ -216,6 +222,7 @@ def attach_print(
 		no_letterhead=not print_letterhead,
 		letterhead=letterhead,
 		password=password,
+		settings=settings,
 	)
 
 	frappe.local.flags.ignore_print_permissions = True
