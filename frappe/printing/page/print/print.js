@@ -768,6 +768,9 @@ frappe.ui.form.PrintView = class {
 
 	email_doc() {
 		const set_print_options = (composer) => {
+			composer.print_style = this.get_print_style() || undefined;
+			const settings = this.get_print_settings_param();
+			composer.print_settings = Object.keys(settings).length ? settings : undefined;
 			composer.dialog.set_value("select_print_format", this.selected_format());
 			const letterhead = this.get_letterhead();
 			if (letterhead) composer.dialog.set_value("select_letter_head", letterhead);

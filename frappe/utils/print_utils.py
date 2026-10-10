@@ -173,11 +173,20 @@ def get_print(
 		local.form_dict = original_form_dict
 
 
-def _render_builder_pdf(print_format, doc, letterhead, no_letterhead, password=None, style=None):
+def _render_builder_pdf(
+	print_format, doc, letterhead, no_letterhead, password=None, style=None, settings=None
+):
 	"""PDF of a builder format through its own renderer, which applies the format's margins."""
 	from frappe.utils.print_format_generator import PrintFormatGenerator
 
-	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, no_letterhead=no_letterhead)
+	generator = PrintFormatGenerator(
+		print_format,
+		doc,
+		letterhead,
+		style=style,
+		settings=frappe.parse_json(settings) if settings else None,
+		no_letterhead=no_letterhead,
+	)
 	return generator.render_pdf(password=password)
 
 
@@ -193,6 +202,7 @@ def attach_print(
 	print_letterhead=True,
 	password=None,
 	letterhead=None,
+	settings=None,
 ):
 	from frappe.translate import print_language
 	from frappe.utils import scrub_urls
@@ -216,9 +226,11 @@ def attach_print(
 	)
 
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
-	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
-		pf_doc
-	) in ("chrome", "Typst")
+	printed_format = pf_doc or get_default_print_format(doctype)
+	render_via_generator = uses_beta_renderer(printed_format) and resolve_pdf_generator(printed_format) in (
+		"chrome",
+		"Typst",
+	)
 
 	try:
 		with print_language(lang):
@@ -233,11 +245,13 @@ def attach_print(
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
 					content = _render_builder_pdf(
-						pf_doc or get_default_print_format(doc_obj.doctype),
+						printed_format,
 						doc_obj,
 						letterhead if print_letterhead else None,
 						not print_letterhead,
 						password,
+						style=style,
+						settings=settings,
 					)
 				else:
 					kwargs["as_pdf"] = True

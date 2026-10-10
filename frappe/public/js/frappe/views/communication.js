@@ -1736,6 +1736,11 @@ frappe.views.CommunicationComposer = class {
 				letterhead: letterhead || null,
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
+				print_style: form_values.attach_document_print ? me.print_style : undefined,
+				print_settings:
+					form_values.attach_document_print && me.print_settings
+						? JSON.stringify(me.print_settings)
+						: undefined,
 				raw_html: form_values.use_html,
 				in_reply_to: (this.is_a_reply && this.last_email?.name) || null,
 			},
