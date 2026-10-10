@@ -414,12 +414,12 @@ class PrintFormatGenerator:
 		page_width, page_height = page_size_mm(self.print_settings)
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
-		self.style_name = style_name
 		print_style = (
 			frappe.get_doc("Print Style", style_name)
 			if style_name and frappe.db.exists("Print Style", {"name": style_name, "disabled": 0})
 			else None
 		)
+		self.style_name = print_style.name if print_style else None
 		self.context = frappe._dict(
 			{
 				"doc": self.doc,
