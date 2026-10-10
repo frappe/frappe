@@ -735,7 +735,7 @@ frappe.ui.form.PrintView = class {
 		const settings = this.get_print_settings_param();
 		const print_options = {
 			print_format: this.selected_format(),
-			letter_head: this.letterhead_selector.val() || undefined,
+			letter_head: this.letterhead_selector.val() || "",
 			print_style: this.get_print_style() || undefined,
 			print_settings: Object.keys(settings).length ? settings : undefined,
 		};

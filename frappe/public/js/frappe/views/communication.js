@@ -1418,8 +1418,8 @@ frappe.views.CommunicationComposer = class {
 
 	set_default_letterhead() {
 		const fields = this.dialog.fields_dict;
-		const letter_head = this.letter_head || this.frm.doc?.letter_head;
-		if (letter_head) {
+		const letter_head = this.letter_head ?? this.frm.doc?.letter_head;
+		if (letter_head || this.letter_head === "") {
 			this.dialog
 				.set_value("select_letter_head", letter_head)
 				.then(() => this.render_print_card_meta());
@@ -1735,7 +1735,7 @@ frappe.views.CommunicationComposer = class {
 				email_template: form_values.email_template,
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
-				print_letterhead: me.is_print_letterhead_checked(),
+				print_letterhead: letterhead ? me.is_print_letterhead_checked() : 0,
 				letterhead: letterhead || null,
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
