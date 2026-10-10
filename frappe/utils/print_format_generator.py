@@ -782,11 +782,15 @@ class PrintFormatGenerator:
 			frappe.log_error(title=f"Unreadable print format layout: {print_format.name}")
 			layout = copy.deepcopy(self.EMPTY_LAYOUT)
 		if isinstance(layout, list) and layout:
-			from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
+			from frappe.printing.doctype.print_format.classic_converter import (
+				convert_classic_to_beta,
+				missing_numeric_defaults,
+			)
 
 			layout, _dropped = convert_classic_to_beta(
 				layout, frappe.get_meta(print_format.doc_type), print_format
 			)
+			print_format.update(missing_numeric_defaults(print_format))
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
 		return self.get_processed_layout(layout)
