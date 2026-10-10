@@ -129,7 +129,10 @@ def read_records(
 
 	`filters` is a dict like {"status": "Open"} or {"qty": [">", 5]}. `fields` defaults
 	to the record name. Returns a list of matching records (capped at 200).
+	A single DocType returns its one record, with every field unless `fields` is given.
 	"""
+	if frappe.get_meta(doctype).issingle:
+		return [_read_single(doctype, fields)]
 	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
 	return frappe.get_list(
 		doctype,
@@ -138,6 +141,15 @@ def read_records(
 		limit=limit,
 		order_by=order_by,
 	)
+
+
+def _read_single(doctype: str, fields: list[str] | None) -> dict[str, Any]:
+	"""A Single's values as its form shows them to this user."""
+	doc = frappe.get_doc(doctype)
+	doc.check_permission("read")
+	doc.apply_fieldlevel_read_permissions()
+	values = doc.as_dict(no_nulls=True)
+	return {f: values.get(f) for f in fields} if fields else values
 
 
 @tool(

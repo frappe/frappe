@@ -98,6 +98,7 @@ class TestDescribe(IntegrationTestCase):
 
 class TestReadRecords(IntegrationTestCase):
 	def tearDown(self):
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
 	def test_reads_matching_records(self):
@@ -120,6 +121,20 @@ class TestReadRecords(IntegrationTestCase):
 			ctx=CTX,
 		)
 		self.assertEqual(rows[0]["description"], "fields probe")
+
+	def test_reads_a_single(self):
+		time_zone = frappe.db.get_single_value("System Settings", "time_zone")
+
+		rows = read_records(doctype="System Settings", fields=["time_zone"], ctx=CTX)
+		[values] = read_records(doctype="System Settings", ctx=CTX)
+
+		self.assertEqual(rows, [{"time_zone": time_zone}])
+		self.assertEqual((values["name"], values["time_zone"]), ("System Settings", time_zone))
+
+	def test_single_needs_read_permission(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			read_records(doctype="System Settings", ctx=CTX)
 
 
 class TestRunReport(IntegrationTestCase):
