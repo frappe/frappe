@@ -113,6 +113,17 @@ class TestStudioApp(FrappeTestCase):
 			self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('kept')")
 			self.assertEqual(frappe.read_file(os.path.join(new_folder, "Extra.vue")), "<template>kept</template>")
 
+	def test_rename_keeps_the_app_json_when_the_names_scrub_the_same(self):
+		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt") as remove_entry:
+			app = make_studio_app(app_title="Dashed App", app_name="dashed-app")
+			app.enable_app_export("studio")
+
+			app.rename_app("dashed_app")
+
+			app = frappe.get_doc("Studio App", "dashed_app")
+			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
+			remove_entry.assert_not_called()
+
 	def test_a_failed_move_leaves_the_export_folder_in_place(self):
 		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
 			app = make_studio_app(app_title="Stuck App", app_name="stuck-app")

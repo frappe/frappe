@@ -213,7 +213,8 @@ class StudioApp(WebsiteGenerator):
 	def before_rename(self, old, new, merge=False):
 		if self.is_standard and not can_export(self):
 			frappe.throw(_("Exported apps can only be renamed in developer mode."))
-		if can_export(self) and os.path.exists(self.get_folder_path(new)):
+		moves_folder = frappe.scrub(old) != frappe.scrub(new)
+		if can_export(self) and moves_folder and os.path.exists(self.get_folder_path(new)):
 			frappe.throw(_("Folder {0} already exists.").format(self.get_folder_path(new)))
 
 	def after_rename(self, old, new, merge=False):
@@ -227,14 +228,20 @@ class StudioApp(WebsiteGenerator):
 		except Exception:
 			self.undo_rename_export(old)
 			raise
-		delete_file(self.get_folder_path(), f"{frappe.scrub(old)}.json")
-		self.remove_from_studio_apps_txt(old)
+		self.remove_exported_name(old, kept_name=self.name)
 
 	def undo_rename_export(self, old: str):
 		"""The DB rolls back a failed rename but the folder move doesn't, so put it back."""
-		delete_file(self.get_folder_path(), f"{frappe.scrub(self.name)}.json")
-		self.remove_from_studio_apps_txt(self.name)
+		self.remove_exported_name(self.name, kept_name=old)
 		move_folder(self.get_folder_path(), self.get_folder_path(old))
+
+	def remove_exported_name(self, name: str, kept_name: str):
+		"""Drop the app JSON and studio_apps.txt entry for `name`. Both are keyed by the scrubbed
+		name, so they stay when `kept_name` scrubs the same (my-app and my_app share my_app.json)."""
+		if frappe.scrub(name) == frappe.scrub(kept_name):
+			return
+		delete_file(self.get_folder_path(), f"{frappe.scrub(name)}.json")
+		self.remove_from_studio_apps_txt(name)
 
 	def move_export_to(self, target_app: str):
 		"""Carry the export folder, files and all, into another Frappe app. Exported page scripts
