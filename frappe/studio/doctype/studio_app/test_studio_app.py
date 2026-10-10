@@ -106,30 +106,31 @@ class TestStudioApp(FrappeTestCase):
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
 			StudioApp.remove_from_studio_apps_txt.assert_not_called()
 
-	def test_a_failed_move_leaves_the_export_folder_in_place(self):
+	def test_a_failed_move_leaves_the_export_folder_as_it_was(self):
 		with exports_in_tempdir():
-			app = make_studio_app(app_title="Stuck App", app_name="stuck-app")
-			app.enable_app_export("studio")
-			old_folder = app.get_folder_path()
+			app, _page = make_exported_app_with_files("stuck-app")
+			before = folder_snapshot(app.get_folder_path())
 
 			with patch.object(StudioApp, "export_router_script_to_file", side_effect=OSError("disk full")):
 				self.assertRaises(OSError, app.enable_app_export, "frappe")
 
-			self.assertTrue(os.path.exists(old_folder))
+			self.assertEqual(folder_snapshot(app.get_folder_path(frappe_app="studio")), before)
 			self.assertFalse(os.path.exists(app.get_folder_path(frappe_app="frappe")))
 
-	def test_a_failed_rename_leaves_the_export_folder_in_place(self):
-		with exports_in_tempdir():
-			app = make_studio_app(app_title="Unrenamed App", app_name="unrenamed-app")
-			app.enable_app_export("studio")
-			old_folder = app.get_folder_path()
+	def test_a_failed_rename_leaves_the_export_folder_as_it_was(self):
+		# the app and page JSONs are rewritten under the new name before studio_apps.txt is updated
+		for new_name in ("renamed-twice", "unrenamed_app"):
+			with self.subTest(new_name=new_name), exports_in_tempdir():
+				app, _page = make_exported_app_with_files("unrenamed-app")
+				before = folder_snapshot(app.get_folder_path())
 
-			with patch.object(StudioApp, "export_studio_pages", side_effect=OSError("disk full")):
-				self.assertRaises(OSError, frappe.rename_doc, "Studio App", app.name, "renamed-twice")
+				with patch.object(StudioApp, "add_to_studio_apps_txt", side_effect=OSError("disk full")):
+					self.assertRaises(OSError, frappe.rename_doc, "Studio App", app.name, new_name)
 
-			self.assertTrue(os.path.exists(os.path.join(old_folder, "unrenamed_app.json")))
-			self.assertFalse(os.path.exists(os.path.join(old_folder, "renamed_twice.json")))
-			self.assertFalse(os.path.exists(app.get_folder_path("renamed-twice")))
+				self.assertEqual(folder_snapshot(app.get_folder_path()), before)
+				if frappe.scrub(new_name) != frappe.scrub(app.name):
+					self.assertFalse(os.path.exists(app.get_folder_path(new_name)))
+				frappe.db.rollback()
 
 	def test_exported_apps_cannot_be_renamed_outside_developer_mode(self):
 		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
@@ -535,6 +536,15 @@ def make_exported_app_with_files(app_name):
 	with open(os.path.join(app.get_folder_path(), "Extra.vue"), "w") as f:
 		f.write("<template>kept</template>")
 	return app, page
+
+
+def folder_snapshot(path):
+	"""Every file under `path` with its contents, to compare a folder before and after a change"""
+	return {
+		os.path.relpath(os.path.join(root, name), path): frappe.read_file(os.path.join(root, name))
+		for root, _dirs, files in os.walk(path)
+		for name in files
+	}
 
 
 def render_app_template(app):
