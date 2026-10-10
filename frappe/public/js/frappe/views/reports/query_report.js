@@ -1225,7 +1225,32 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
-			this.datatable = new window.DataTable(this.$report[0], datatable_options);
+			class TreeSortDataTable extends window.DataTable {
+				initializeComponents() {
+					super.initializeComponents();
+					const data_manager = this.datamanager;
+					const sort_rows = data_manager.sortRows;
+					data_manager.sortRows = async (col_index, sort_order) => {
+						await sort_rows(col_index, sort_order);
+						if (!data_manager.options.treeView) return;
+
+						data_manager.rowViewOrder = get_sorted_tree_row_indices(
+							data_manager.rows,
+							data_manager.rowViewOrder
+						);
+						if (!data_manager.hasColumnById("_rowIndex")) return;
+
+						const serial_number_column_index =
+							data_manager.getColumnIndexById("_rowIndex");
+						data_manager.rowViewOrder.forEach((row_index, view_index) => {
+							const cell = data_manager.rows[row_index][serial_number_column_index];
+							cell.content = String(view_index + 1);
+							cell.html = null;
+						});
+					};
+				}
+			}
+			this.datatable = new TreeSortDataTable(this.$report[0], datatable_options);
 		}
 
 		if (typeof this.report_settings.initial_depth == "number") {
@@ -2582,3 +2607,38 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 };
+
+// DataTable sorts all rows together; use that order to rank siblings.
+function get_sorted_tree_row_indices(rows, sorted_row_indices) {
+	const sort_positions = new Map();
+	for (const [position, row_index] of sorted_row_indices.entries()) {
+		sort_positions.set(row_index, position);
+	}
+
+	const root = { indent: -Infinity, children: [] };
+	const ancestors = [root];
+
+	for (const [row_index, row] of rows.entries()) {
+		const indent = Number(row.meta.indent) || 0;
+
+		while (ancestors[ancestors.length - 1].indent >= indent) {
+			ancestors.pop();
+		}
+
+		const node = { row_index, indent, children: [] };
+		ancestors[ancestors.length - 1].children.push(node);
+		ancestors.push(node);
+	}
+
+	const row_order = [];
+	function append_siblings(siblings) {
+		siblings.sort((a, b) => sort_positions.get(a.row_index) - sort_positions.get(b.row_index));
+		for (const node of siblings) {
+			row_order.push(node.row_index);
+			append_siblings(node.children);
+		}
+	}
+
+	append_siblings(root.children);
+	return row_order;
+}
