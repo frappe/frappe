@@ -398,6 +398,13 @@ class TestChromePdfGeometry(IntegrationTestCase):
 		self.assertAlmostEqual(options["marginBottom"], 20 / 25.4, delta=0.01)
 		self.assertAlmostEqual(options["marginLeft"], 30 / 25.4, delta=0.01)
 
+		from frappe.www.printview import get_page_rule_margins
+
+		self.assertEqual(
+			get_page_rule_margins("@page { margin: auto 12pt 5mm 0; }"),
+			{"margin-bottom": "5mm", "margin-left": "0"},
+		)
+
 	def test_custom_page_size_without_dimensions_raises(self):
 		from unittest.mock import patch
 

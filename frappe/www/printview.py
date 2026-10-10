@@ -735,6 +735,8 @@ def get_page_rule_margins(css: str) -> dict[str, str]:
 			else:
 				continue
 			for side, value in updates:
+				if not re.fullmatch(r"0|[+-]?(\d*\.)?\d+(px|mm|cm|in)", value.strip()):
+					continue
 				if prop.priority or side not in important:
 					margins[side] = value
 					if prop.priority:
