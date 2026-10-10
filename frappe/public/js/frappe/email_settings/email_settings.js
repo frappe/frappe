@@ -465,7 +465,9 @@ function show_account_form(panel, provider, setup) {
 			fieldname: "password",
 			fieldtype: "Password",
 			label: provider.password_label,
-			depends_on: is_other ? "eval:!doc.no_smtp_authentication" : uses_password,
+			depends_on: is_other
+				? "eval:!doc.no_smtp_authentication || doc.enable_incoming"
+				: uses_password,
 			mandatory_depends_on: uses_password || undefined,
 			reqd: uses_password || is_other ? 0 : 1,
 			description: [
@@ -669,7 +671,7 @@ function connect(panel, provider, oauth) {
 	const missing = [
 		values.auth_method !== "OAuth" &&
 			provider.service !== "Frappe Mail" &&
-			!values.no_smtp_authentication &&
+			!(values.no_smtp_authentication && !values.enable_incoming) &&
 			!values.password &&
 			panel.get_field("password").df.label,
 		values.enable_outgoing &&
@@ -725,7 +727,8 @@ function connect(panel, provider, oauth) {
 			use_imap: values.incoming_protocol === "POP" ? 0 : 1,
 			use_ssl: values.incoming_security === "SSL" ? 1 : 0,
 			use_starttls: values.incoming_security === "STARTTLS" ? 1 : 0,
-			no_smtp_authentication: values.no_smtp_authentication ? 1 : 0,
+			no_smtp_authentication:
+				values.no_smtp_authentication && !values.enable_incoming ? 1 : 0,
 			smtp_server: values.smtp_server,
 			smtp_port: values.smtp_port,
 			use_tls: values.smtp_security === "TLS" ? 1 : 0,
