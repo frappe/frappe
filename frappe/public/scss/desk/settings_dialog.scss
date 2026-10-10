@@ -306,7 +306,7 @@ table + .settings-dialog-section-heading {
 
 	.settings-dialog-sidebar {
 		flex-direction: row;
-		gap: 3px;
+		gap: calc(var(--spacing) * 0.75);
 		width: auto;
 		overflow-x: auto;
 		overflow-y: hidden;
@@ -335,6 +335,6 @@ table + .settings-dialog-section-heading {
 	}
 
 	.settings-dialog-panel {
-		padding: 1rem 0.5rem;
+		padding: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
 	}
 }
