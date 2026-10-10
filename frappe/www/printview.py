@@ -704,16 +704,23 @@ def get_print_style(
 
 
 def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
-	sides = ["15mm"] * 4
 	if not print_format or not print_format.css or resolve_pdf_generator(print_format) != "chrome":
-		return " ".join(sides)
+		return " ".join(["15mm"] * 4)
 
+	margins = get_page_rule_margins(print_format.css)
+	return " ".join(margins.get(side, "15mm") for side in PAGE_MARGIN_SIDES)
+
+
+PAGE_MARGIN_SIDES = ("margin-top", "margin-right", "margin-bottom", "margin-left")
+
+
+def get_page_rule_margins(css: str) -> dict[str, str]:
 	import cssutils
 
 	cssutils.log.setLog(frappe.logger("cssutils"))
-	side_names = ("margin-top", "margin-right", "margin-bottom", "margin-left")
-	important = [False] * 4
-	for rule in cssutils.parseString(print_format.css):
+	margins = {}
+	important = set()
+	for rule in cssutils.parseString(css):
 		if not isinstance(rule, cssutils.css.CSSPageRule) or rule.selectorText:
 			continue
 		for prop in rule.style:
@@ -722,17 +729,20 @@ def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
 				right = values[1] if len(values) > 1 else top
 				bottom = values[2] if len(values) > 2 else top
 				left = values[3] if len(values) > 3 else right
-				updates = enumerate((top, right, bottom, left))
-			elif prop.name in side_names:
-				updates = [(side_names.index(prop.name), prop.value)]
+				updates = zip(PAGE_MARGIN_SIDES, (top, right, bottom, left), strict=True)
+			elif prop.name in PAGE_MARGIN_SIDES:
+				updates = [(prop.name, prop.value)]
 			else:
 				continue
-			for i, value in updates:
-				if prop.priority or not important[i]:
-					sides[i] = value
-					important[i] = bool(prop.priority)
+			for side, value in updates:
+				if not re.fullmatch(r"0|[+-]?(\d*\.)?\d+(px|mm|cm|in)", value.strip()):
+					continue
+				if prop.priority or side not in important:
+					margins[side] = value
+					if prop.priority:
+						important.add(side)
 
-	return " ".join(sides)
+	return margins
 
 
 def get_font(
