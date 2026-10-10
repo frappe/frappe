@@ -200,6 +200,8 @@ class TestPdf(IntegrationTestCase):
 	def test_report_pdf_fits_wide_tables_and_runs_no_scripts(self):
 		from frappe.utils import print_format
 
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		header = "".join(f"<th>Column{i:02d}</th>" for i in range(1, 31))
 		html = f"<table><tr>{header}</tr></table><script>document.body.append('script ran')</script>"
 		print_format.report_to_pdf(html, orientation="Landscape")
