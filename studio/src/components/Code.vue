@@ -58,6 +58,8 @@ import { EditorView, keymap, placeholder as placeholderExtension } from "@codemi
 import { indentMore, indentLess } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { tomorrow } from "thememirror"
+import { tomorrowNight } from "@/utils/tomorrowNight"
+import useStudioStore from "@/stores/studioStore"
 import JSON5 from "json5"
 import { isPrivateKey } from "@/utils/helpers"
 import { normalizeCode } from "@/utils/code"
@@ -106,6 +108,7 @@ const props = withDefaults(
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
+const store = useStudioStore()
 
 const code = ref<string>("")
 const editorView = ref<EditorView | null>(null)
@@ -236,7 +239,7 @@ const extensions = computed(() => {
 		getAutocompletionOptions(),
 		props.showLineNumbers ? EditorView.lineWrapping : [],
 		isObjectLiteral.value ? customIndent : [],
-		tomorrow,
+		store.isDark ? tomorrowNight : tomorrow,
 		EditorView.theme({
 			"&": {
 				fontFamily: "monospace",
