@@ -32,7 +32,7 @@ Maintainers review every pull request against [code_review.md](code_review.md). 
 - Run `pre-commit run --files <changed files>`, and `bench --site <site> run-tests --module <module>` for the code you touched. After you push, fix every CI failure your change causes.
 - Review your diff against [code_review.md](code_review.md), section by section, and fix what you find.
 - Read the final diff line by line: no debug code, no unrelated files.
-- List every comment line your diff adds (`git diff develop -U0 | grep -E '^\+\s*(#|//|/\*|\*)'`). Delete each one that says what the code does, what was wrong before, or why you changed it. That belongs in the pull request. Docstrings and test comments count too.
+- List every comment line your diff adds (`git diff develop -U0 | grep -E '^\+\s*(#|//|/\*|\*)'`). Delete each one that says what the code does, what was wrong before, or why you changed it. That belongs in the pull request. Keep a docstring that tells callers something the signature does not, such as a limit or a side effect.
 - Target `develop`. Backports go through Mergify. The title and every commit use [Conventional Commits](https://www.conventionalcommits.org/): `fix:`, `feat:`, `refactor:`, `perf:`, `chore:`, and `!` for a breaking change.
 
 ## The pull request description
