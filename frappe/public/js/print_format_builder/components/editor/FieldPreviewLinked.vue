@@ -15,7 +15,7 @@
 <script setup>
 import { computed, inject, ref, watch, watchEffect } from "vue";
 import { useDoctypeFields } from "../../composables/useDoctypeFields";
-import { linked_target, linked_values } from "../../composables/linkedValues";
+import { linked_target } from "../../composables/linkedValues";
 
 const props = defineProps(["df"]);
 const store = inject("$store");
@@ -59,7 +59,7 @@ watchEffect(() => {
 			return "";
 		});
 	cache[key].then((v) => {
-		linked_values[key] = v;
+		store.linked_values.value[key] = v;
 		if (pending_key === key) value.value = v;
 	});
 });

@@ -1,7 +1,3 @@
-import { reactive } from "vue";
-
-export const linked_values = reactive({});
-
 export function linked_target(df, meta, doc) {
 	const [link_fieldname, fieldname] = (df.link_path || "").split(".");
 	if (!fieldname) return null;
