@@ -95,6 +95,16 @@ class TestDescribe(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
+	def test_describes_a_child_table(self):
+		frappe.set_user(_user("flow-describe-probe@example.com"))
+		try:
+			result = describe(doctype="Contact Phone", ctx=CTX)
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertIn("phone", {f["fieldname"] for f in result["fields"]})
+		self.assertTrue(result["permissions"]["read"])
+
 
 class TestReadRecords(IntegrationTestCase):
 	def tearDown(self):
@@ -135,6 +145,41 @@ class TestReadRecords(IntegrationTestCase):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.PermissionError):
 			read_records(doctype="System Settings", ctx=CTX)
+
+	def test_reads_child_rows_of_parents_the_user_can_read(self):
+		user = _user("flow-child-probe@example.com")  # reads only the Contacts they own
+		mine = _contact_with_phone(owner=user)
+		_contact_with_phone(owner="Administrator")
+		frappe.set_user(user)
+
+		rows = read_records(doctype="Contact Phone", fields=["parent"], ctx=CTX)
+
+		self.assertEqual({r["parent"] for r in rows}, {mine})
+
+	def test_child_table_of_several_doctypes_needs_parent_doctype(self):
+		with self.assertRaises(ValueError) as caught:
+			read_records(doctype="Has Role", ctx=CTX)
+
+		self.assertIn("pass parent_doctype, one of:", str(caught.exception))
+		self.assertIn("Role Profile", str(caught.exception))
+
+	def test_child_rows_come_only_from_the_given_parent_doctype(self):
+		user = _user("flow-collision-probe@example.com")
+		frappe.get_doc("User", user).add_roles("System Manager")
+		# a Role Profile named like the user, whose role rows match the user by name
+		frappe.get_doc(
+			{"doctype": "Role Profile", "role_profile": user, "roles": [{"role": "System Manager"}]}
+		).insert()
+
+		rows = read_records(
+			doctype="Has Role",
+			filters={"parent": user},
+			fields=["parenttype"],
+			parent_doctype="User",
+			ctx=CTX,
+		)
+
+		self.assertEqual({r["parenttype"] for r in rows}, {"User"})
 
 
 class TestRunReport(IntegrationTestCase):
@@ -489,3 +534,20 @@ class TestRenameReadTools(IntegrationTestCase):
 			frappe.get_all("Flow Agent Tool", filters, pluck="tool", order_by="idx"), ["read_records", "read"]
 		)
 		self.assertFalse(frappe.db.exists("Flow Tool", "read_file"))
+
+
+def _user(email: str) -> str:
+	"""A user with no roles, so permission checks apply."""
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": "Probe", "send_welcome_email": 0}
+		).insert(ignore_permissions=True)
+	return email
+
+
+def _contact_with_phone(owner: str) -> str:
+	contact = frappe.get_doc(
+		{"doctype": "Contact", "first_name": "Flow Probe", "phone_nos": [{"phone": "+1 555 0100"}]}
+	).insert()
+	frappe.db.set_value("Contact", contact.name, "owner", owner)
+	return contact.name
