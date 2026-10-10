@@ -1578,3 +1578,32 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			),
 			{"repeat_header_footer": 1},
 		)
+
+	def test_print_settings_override_rejects_invalid_values(self):
+		from frappe.www.printview import get_allowed_print_settings_override
+
+		todo = self._make_todo()
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo,
+				{
+					"pdf_page_size": "A5",
+					"page_orientation": "Landscape",
+					"print_font": "Open Sans",
+					"pdf_page_width": "210",
+				},
+			),
+			{
+				"pdf_page_size": "A5",
+				"page_orientation": "Landscape",
+				"print_font": "Open Sans",
+				"pdf_page_width": 210.0,
+			},
+		)
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo,
+				{"pdf_page_size": "A5; x", "page_orientation": "Sideways", "print_font": "Inter;}"},
+			),
+			{},
+		)
