@@ -399,6 +399,18 @@ class TestReportview(IntegrationTestCase):
 		error_log = frappe.db.get_value("Error Log", {"reference_name": "test@example.com"})
 		self.assertIn(error_log, frappe.message_log[-1].message[0])
 
+	def test_delete_bulk_hides_error_log_link_without_permission(self):
+		user = create_user("test_reportview_bulk_delete@example.com", "Website Manager")
+		with (
+			self.set_user(user.name),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch("frappe.delete_doc", side_effect=frappe.QueryTimeoutError),
+		):
+			delete_bulk("User", ["test@example.com"])
+
+		self.assertNotIn("error-log", frappe.message_log[-1].message[0])
+
 	def test_delete_bulk_lists_what_each_document_is_linked_with(self):
 		salutation = frappe.get_doc(doctype="Salutation", salutation="Professor").insert()
 		contact = frappe.get_doc(doctype="Contact", first_name="Priya", salutation=salutation.name).insert()
