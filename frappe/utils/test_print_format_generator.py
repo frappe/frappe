@@ -1595,7 +1595,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		frappe.set_user("test@example.com")
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "settings handoff"}).insert()
 
-		self.addCleanup(frappe.form_dict.pop, "settings", None)
+		self.addCleanup(lambda: frappe.form_dict.pop("settings", None))
 		frappe.form_dict.settings = json.dumps({"page_orientation": "Landscape"})
 		page = PdfReader(io.BytesIO(frappe.get_print("ToDo", todo.name, as_pdf=True))).pages[0]
 		self.assertGreater(float(page.mediabox.width), float(page.mediabox.height))
