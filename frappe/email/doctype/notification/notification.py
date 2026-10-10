@@ -11,7 +11,9 @@ from frappe import _
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.core.doctype.sms_settings.sms_settings import _send_sms as send_via_sms_gateway
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
-from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from frappe.integrations.doctype.notification_webhook_url.notification_webhook_url import (
+	WebhookDeliveryError,
+)
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import (
@@ -46,7 +48,7 @@ class Notification(Document):
 
 		attach_files: DF.Literal["", "From Field", "All"]
 		attach_print: DF.Check
-		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
+		channel: DF.Literal["Email", "Webhook", "System Notification", "SMS"]
 		condition: DF.Code | None
 		condition_type: DF.Literal["Python", "Filters"]
 		date_changed: DF.Literal[None]
@@ -78,6 +80,7 @@ class Notification(Document):
 		minutes_offset: DF.Int
 		module: DF.Link | None
 		notification_type: DF.Link | None
+		notification_webhook_url: DF.Link | None
 		print_format: DF.Link | None
 		property_value: DF.Data | None
 		recipients: DF.Table[NotificationRecipient]
@@ -86,10 +89,19 @@ class Notification(Document):
 		sender: DF.Link | None
 		sender_email: DF.Data | None
 		set_property_after_alert: DF.Literal[None]
-		slack_webhook_url: DF.Link | None
 		subject: DF.Data | None
 		value_changed: DF.Literal[None]
 	# end: auto-generated types
+
+	@classmethod
+	def prepare_for_import(cls, docdict: dict) -> None:
+		"""Normalize Slack notifications shipped by older app fixtures and JSON exports."""
+		if docdict.get("channel") != "Slack":
+			return
+		docdict["channel"] = "Webhook"
+		if not docdict.get("notification_webhook_url") and docdict.get("slack_webhook_url"):
+			docdict["notification_webhook_url"] = docdict["slack_webhook_url"]
+		docdict.pop("slack_webhook_url", None)
 
 	def onload(self):
 		"""load message"""
@@ -161,10 +173,16 @@ class Notification(Document):
 		self.remove_invalid_condition()
 
 	def validate(self):
-		if self.channel in ("Email", "Slack", "System Notification"):
+		if self.channel in ("Email", "Webhook", "System Notification"):
 			validate_template(self.subject)
 
 		validate_template(self.message)
+		if self.channel == "Webhook" and not self.notification_webhook_url:
+			frappe.throw(
+				_("Notification Webhook URL is required for the Webhook channel"),
+				frappe.MandatoryError,
+				title=_("Missing Webhook URL"),
+			)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
 			frappe.throw(_("Please specify which date field must be checked"))
@@ -442,8 +460,8 @@ def get_context(context):
 
 			if self.channel == "Email":
 				self.send_an_email(doc, context, template_content)
-			elif self.channel == "Slack":
-				self.send_a_slack_msg(doc, context)
+			elif self.channel == "Webhook":
+				self.send_webhook_message(doc, context)
 			elif self.channel == "SMS":
 				self.send_sms(doc, context)
 			elif self.channel == "System Notification":
@@ -589,13 +607,18 @@ def get_context(context):
 			communication=communication,
 		)
 
-	def send_a_slack_msg(self, doc, context):
-		send_slack_message(
-			webhook_url=self.slack_webhook_url,
-			message=frappe.render_template(self.message, context, restrict_globals=True),
-			reference_doctype=get_reference_doctype(doc),
-			reference_name=get_reference_name(doc),
-		)
+	def send_webhook_message(self, doc, context):
+		webhook = frappe.get_doc("Notification Webhook URL", self.notification_webhook_url)
+		message = frappe.render_template(self.message, context, restrict_globals=True)
+		try:
+			webhook.send(
+				message=message,
+				reference_doctype=get_reference_doctype(doc),
+				reference_name=get_reference_name(doc),
+			)
+		except WebhookDeliveryError:
+			# A failed external delivery must not prevent an additional system notification.
+			self.log_error(title=_("Failed to send Notification"), message=frappe.get_traceback())
 
 	def send_sms(self, doc, context):
 		send_via_sms_gateway(
