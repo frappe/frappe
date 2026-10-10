@@ -46,7 +46,7 @@
 						<template v-for="(option, index) in displayOptions" :key="`${option.value}-${index}`">
 							<ComboboxSeparator
 								v-if="option.value.startsWith('_separator_line')"
-								class="bg-outline-gray-2 mx-2 my-1 h-px"
+								class="mx-2 my-1 h-px bg-surface-gray-3"
 							/>
 							<ComboboxLabel
 								v-else-if="option.value.startsWith('_separator')"
