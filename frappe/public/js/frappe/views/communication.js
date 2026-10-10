@@ -1408,7 +1408,7 @@ frappe.views.CommunicationComposer = class {
 			$(fields.select_print_format.input)
 				.empty()
 				.add_options(print_formats)
-				.val(print_formats[0]);
+				.val(this.print_format || print_formats[0]);
 			this.set_default_letterhead();
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
@@ -1418,8 +1418,11 @@ frappe.views.CommunicationComposer = class {
 
 	set_default_letterhead() {
 		const fields = this.dialog.fields_dict;
-		if (this.frm.doc?.letter_head) {
-			this.dialog.set_value("select_letter_head", this.frm.doc.letter_head);
+		const letter_head = this.letter_head || this.frm.doc?.letter_head;
+		if (letter_head) {
+			this.dialog
+				.set_value("select_letter_head", letter_head)
+				.then(() => this.render_print_card_meta());
 			return;
 		}
 		frappe.db

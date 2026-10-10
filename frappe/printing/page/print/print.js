@@ -723,25 +723,26 @@ frappe.ui.form.PrintView = class {
 	}
 
 	email_doc() {
+		const settings = this.get_print_settings_param();
+		const print_options = {
+			print_format: this.selected_format(),
+			letter_head: this.letterhead_selector.val() || undefined,
+			print_style: this.get_print_style() || undefined,
+			print_settings: Object.keys(settings).length ? settings : undefined,
+		};
 		const set_print_options = (composer) => {
-			composer.print_style = this.get_print_style() || undefined;
-			const settings = this.get_print_settings_param();
-			composer.print_settings = Object.keys(settings).length ? settings : undefined;
-			composer.dialog.set_value("select_print_format", this.selected_format());
-			const letterhead = this.get_letterhead();
-			if (letterhead) composer.dialog.set_value("select_letter_head", letterhead);
 			if (this.lang_code) composer.dialog.set_value("print_language", this.lang_code);
 		};
 		const form = this.frm.email_doc
 			? this.frm
 			: frappe.views.formview?.[this.frm.doctype]?.frm;
 		if (form && form.docname === this.frm.docname) {
-			set_print_options(form.email_doc());
+			set_print_options(form.email_doc(undefined, print_options));
 			return;
 		}
 		frappe.set_route("Form", this.frm.doctype, this.frm.docname).then(() => {
 			const frm = frappe.views.formview?.[this.frm.doctype]?.frm;
-			frm && set_print_options(frm.email_doc());
+			frm && set_print_options(frm.email_doc(undefined, print_options));
 		});
 	}
 
