@@ -194,7 +194,10 @@ class Browser:
 			self.header_height = self.header_page.get_element_height()
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
-		else:
+			if not self.header_height:
+				self.header_page.close()
+				self.header_page = None
+		if not self.header_page:
 			# Fallback only when the caller did not explicitly pass margin-top.
 			# If margin-top is already set (e.g. from PrintFormatGenerator), keep it.
 			if "margin-top" not in options:
@@ -205,7 +208,10 @@ class Browser:
 			self.footer_height = self.footer_page.get_element_height()
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
-		else:
+			if not self.footer_height:
+				self.footer_page.close()
+				self.footer_page = None
+		if not self.footer_page:
 			# Fallback only when the caller did not explicitly pass margin-bottom.
 			if "margin-bottom" not in options:
 				options["margin-bottom"] = "15mm"

@@ -164,6 +164,12 @@ class TestPdf(IntegrationTestCase):
 		self.assertIn("REPORT HEADER", text)
 		self.assertIn("report body", text)
 
+	def test_empty_header_and_footer_are_skipped(self):
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html" class="hidden-pdf"></div><p>body text</p><div id="footer-html"></div>'
+		)
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
 	def test_pdf_visibility_classes_apply_to_the_body(self):
 		pdf = pdfgen.get_pdf(
 			"<style>.visible-pdf { display: none; }</style>"
