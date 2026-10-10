@@ -39,6 +39,7 @@ const FileMentionPalette = await loadComponent("FileMentionPalette")
 const ProvidersDialog = await loadComponent("ProvidersDialog")
 const SettingsSkills = await loadComponent("SettingsSkills")
 const ChatHeader = await loadComponent("ChatHeader")
+const MarkdownContent = await loadComponent("MarkdownContent")
 
 function mount(t, component, props, flow) {
 	const el = document.createElement("div")
@@ -972,6 +973,17 @@ test("an opened thought stays open as it merges into a tool group and the run en
 	await nextTick()
 	assert.equal(el.querySelector("[data-turn-fold] button").getAttribute("aria-expanded"), "true")
 	assert.ok(panel())
+})
+
+test("a streaming table keeps its scroll box as rows and text arrive", async (t) => {
+	const props = reactive({ text: "| a | b |\n| --- | --- |\n| 1 | 2 |" })
+	const { el } = mount(t, { render: () => h(MarkdownContent, props) }, {}, {})
+	const box = el.querySelector(".flow-md-table")
+	props.text += "\n| 3 | 4 |\n\nAfter the table"
+	await nextTick()
+	assert.equal(el.querySelector(".flow-md-table"), box)
+	assert.equal(box.querySelectorAll("tbody tr").length, 2)
+	assert.ok(el.textContent.includes("After the table"))
 })
 
 test("a click doesn't focus the thread's buttons, links or summaries, so a closing dialog can't scroll back to one", async (t) => {

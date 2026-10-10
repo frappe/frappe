@@ -332,7 +332,7 @@
 .flow-md a:hover {
 	color: var(--ink-gray-9);
 }
-/* wrapper element from markdown.js — a wide table scrolls here, not the thread */
+/* table wrapper from markdown.js or MarkdownContent.vue — a wide table scrolls here, not the thread */
 .flow-md-table {
 	width: fit-content;
 	max-width: 100%;
@@ -365,7 +365,8 @@
 
 /* Rendered-markdown segments (MarkdownContent.vue): each top-level chunk —
    prose HTML or a code block — spaces itself like a paragraph and trims its
-   own edges, so the .flow-md > :first/:last-child rules keep working. */
+   own edges, so the .flow-md > :first/:last-child rules keep working. A table
+   chunk spaces itself through .flow-md-table. */
 .flow-md-seg {
 	margin: 0.85em 0;
 }
@@ -387,6 +388,7 @@
 	background: transparent;
 	font-size: 0.85em;
 	line-height: 1.6;
+	overflow-x: auto;
 }
 .flow-code pre code {
 	font-size: 1em;

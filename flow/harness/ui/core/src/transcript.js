@@ -538,8 +538,9 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	const { turns, turnByEntry, latestTurnKey } = deriveTurns(conversation.entries)
 	let currentTurnKey = null
 	let bufferedThoughts = []
-	// a thought has no wire id, so its turn and ordinal name it across the preview's durable swap
+	// a thought or text has no wire id, so its turn and ordinal name it across the preview's durable swap
 	let thoughtCount = 0
+	let textCount = 0
 
 	const currentGroup = (firstCallId) => {
 		const last = items[items.length - 1]
@@ -574,11 +575,10 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 					? block.thinking
 						? `${currentTurnKey}:th:${thoughtCount++}`
 						: `th:${entry.seq}:${blockIdx}`
-					: provisional
-						? `p:${blockIdx}`
-						: `t:${entry.seq}:${blockIdx}`
+					: `${currentTurnKey}:tx:${textCount}`
 			if (block.type === "text" && block.text.trim()) {
 				flushThoughts()
+				textCount++
 				items.push({ kind: "text", key, turnKey: currentTurnKey, block, entry, provisional })
 			} else if (block.type === "thinking") {
 				const last = items[items.length - 1]
