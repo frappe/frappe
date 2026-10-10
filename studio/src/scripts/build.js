@@ -81,6 +81,7 @@ const { values: argv } = parseArgs({
 		"page-scripts": { type: "string" },
 		"router-file": { type: "string" },
 		icons: { type: "string" },
+		"tailwind-content": { type: "string", multiple: true },
 	},
 	strict: false,
 })
@@ -99,6 +100,7 @@ await generateAppBuild(
 	argv["page-scripts"],
 	argv.icons,
 	argv["router-file"],
+	argv["tailwind-content"],
 )
 
 export async function generateAppBuild(
@@ -110,6 +112,7 @@ export async function generateAppBuild(
 	pageScriptsJson,
 	icons,
 	routerFile,
+	tailwindContent = [],
 ) {
 	if (!appName) return
 
@@ -121,7 +124,7 @@ export async function generateAppBuild(
 	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	const iconList = icons ? icons.split(",") : []
-	await buildWithVite(appName, tempRendererPath, outDir, base, iconList)
+	await buildWithVite(appName, tempRendererPath, outDir, base, iconList, tailwindContent)
 	deleteRendererFile(tempRendererPath)
 }
 
@@ -297,7 +300,7 @@ function writeRendererFile(appName, content) {
 	return rendererPath
 }
 
-async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = []) {
+async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [], tailwindContent = []) {
 	outDir = outDir || path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`)
 	basePath = basePath || `/assets/studio/app_builds/${appName}/`
 
@@ -344,7 +347,7 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 		},
 		css: {
 			postcss: {
-				plugins: [tailwindcss(getAppTailwindConfig(appName, icons)), autoprefixer()],
+				plugins: [tailwindcss(getAppTailwindConfig(appName, icons, tailwindContent)), autoprefixer()],
 			},
 		},
 		build: {
@@ -368,8 +371,16 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 	console.log(`Vite build completed for ${appName}`)
 }
 
-function getAppTailwindConfig(appName, appIconClasses) {
-	const baseConfig = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
+function getAppTailwindConfig(appName, appIconClasses, appTailwindContent) {
+	const editorConfig = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
+	// The editor scans every studio app; an app build scans only its own pages
+	const baseConfig = {
+		...editorConfig,
+		content: [
+			...editorConfig.content.filter((entry) => !entry.includes("/*/studio/")),
+			...appTailwindContent,
+		],
+	}
 	const config = mergeStudioAppConfigs(baseConfig, APPS_DIR, appName)
 
 	// The editor needs every icon for its picker. App builds replace that rule
