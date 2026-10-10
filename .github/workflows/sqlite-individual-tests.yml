@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  SHARD_COUNT: 4
+  SHARD_COUNT: 2
 
 jobs:
   checkrun:
@@ -113,18 +113,13 @@ jobs:
           echo "$ALL_TESTS" | jq -r --argjson shard "$SHARD_INDEX" --argjson total "$SHARD_COUNT" \
             '[to_entries[] | select(.key % $total == ($shard - 1)) | .value] | .[]' > shard_tests.txt
 
-          status=0
-          while IFS= read -r test; do
-            # MariaDB's individual-test workflow gives every module a fresh site. Restore the
-            # SQLite site too, so committed database rows and files cannot leak between modules.
-            rsync --archive --delete "$RUNNER_TEMP/pristine-site/" sites/test_site/
-            bench --site test_site clear-cache
-
-            echo "Running $test"
-            bench --site test_site run-tests --app frappe --module "$test" || status=1
-          done < shard_tests.txt
-
-          exit "$status"
+          cd sites
+          ../env/bin/python -m frappe.tests.utils.sqlite_test_shard \
+            --site test_site \
+            --app frappe \
+            --modules-file "$GITHUB_WORKSPACE/shard_tests.txt" \
+            --snapshot "$RUNNER_TEMP/pristine-site" \
+            --sites-path .
 
   http-integration:
     needs: checkrun
