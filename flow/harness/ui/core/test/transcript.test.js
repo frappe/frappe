@@ -633,6 +633,166 @@ test("a steered message waits below the message still on its way, whose run it j
 	)
 })
 
+test("a steered message joins its run's turn: nothing folds until the run ends, then one fold and one bar", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 100 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 100, content: "Find my interview" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 105,
+		content: [
+			{ type: "text", text: "Let me search the applicants." },
+			{ type: "tool_call", id: "call-1", name: "read_records", arguments: { doctype: "Job Applicant" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 106, tool_call_id: "call-1", content: "[]" })
+	applyEvent(conversation, { type: "user_message", seq: 5, ts: 107, content: "Use frappe interview" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 6,
+		ts: 110,
+		content: [{ type: "tool_call", id: "call-2", name: "read_records", arguments: { doctype: "Frappe Interview" } }],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 7, ts: 111, tool_call_id: "call-2", content: "[]" })
+
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "text", "group", "user", "group"])
+
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 8,
+		ts: 132,
+		content: [{ type: "text", text: "Found it!" }],
+		stop_reason: "stop",
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 9, ts: 132.5, reason: "done" })
+
+	const collapsed = buildItems(conversation)
+	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])
+	assert.equal(collapsed[1].label, "Worked for 32s")
+	assert.equal(collapsed.at(-1).text, "Found it!")
+	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
+	assert.deepEqual(expanded.map((item) => item.kind), [
+		"user",
+		"turn-fold",
+		"text",
+		"group",
+		"user",
+		"group",
+		"text",
+		"turn-copy",
+	])
+})
+
+test("a message steered into a run resumed after approval joins its turn too", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Change it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 12,
+		content: [{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "a.js" } }],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, {
+		type: "approval_required",
+		seq: 4,
+		ts: 12,
+		calls: [{ id: "call-1", name: "write", args: { path: "a.js" } }],
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 12, reason: "paused" })
+	applyEvent(conversation, { type: "run_started", seq: 6, ts: 15 })
+	applyEvent(conversation, { type: "tool_result", seq: 7, ts: 15, tool_call_id: "call-1", content: "[wrote]" })
+	applyEvent(conversation, { type: "user_message", seq: 8, ts: 16, content: "Also b.js" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 9,
+		ts: 18,
+		content: [{ type: "tool_call", id: "call-2", name: "write", arguments: { path: "b.js" } }],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 10, ts: 19, tool_call_id: "call-2", content: "[wrote]" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 11,
+		ts: 20,
+		content: [{ type: "text", text: "Done." }],
+		stop_reason: "stop",
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 12, ts: 20, reason: "done" })
+
+	const items = buildItems(conversation)
+	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])
+	assert.equal(items[1].label, "Worked for 10s")
+})
+
+test("a manual compaction after a turn stays below its copy row", () => {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "Fix it" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			ts: 12,
+			content: [{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } }],
+			stop_reason: "tool_use",
+		},
+		{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "ok" },
+		{ type: "assistant_message", seq: 5, ts: 15, content: [{ type: "text", text: "Done." }], stop_reason: "stop" },
+		{ type: "run_ended", seq: 6, ts: 15, reason: "done" },
+		{ type: "run_started", seq: 7, ts: 30 },
+		{ type: "compaction", seq: 8, ts: 31, reason: "manual", summary: "Fixed it.", compact_up_to_seq: 6 },
+		{ type: "run_ended", seq: 9, ts: 31, reason: "done" },
+	]) applyEvent(conversation, event)
+
+	const collapsed = buildItems(conversation)
+	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
+	assert.deepEqual(expanded.map((item) => item.kind), [
+		"user",
+		"turn-fold",
+		"group",
+		"text",
+		"turn-copy",
+		"compaction",
+	])
+})
+
+test("the copy row closes the turn, below the work that follows the response text", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Check the records" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 12,
+		content: [
+			{ type: "thinking", thinking: "One more lookup." },
+			{ type: "text", text: "Let me look once more." },
+			{ type: "tool_call", id: "call-1", name: "read_records", arguments: { doctype: "ToDo" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "[]" })
+	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 13, reason: "max_turns" })
+
+	const collapsed = buildItems(conversation)
+	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "text", "notice", "turn-copy"])
+	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
+	assert.deepEqual(expanded.map((item) => item.kind), [
+		"user",
+		"turn-fold",
+		"thinking",
+		"text",
+		"group",
+		"notice",
+		"turn-copy",
+	])
+})
+
 test("a run that ends mid-compaction leaves no compaction behind", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
