@@ -49,6 +49,7 @@ describe("settings dialog", () => {
 		cy.login()
 		cy.intercept("/api/method/frappe.client.set_value").as("save")
 		cy.intercept("/api/method/run_doc_method").as("docMethod")
+		cy.intercept("/api/method/frappe.client.rename_doc").as("rename")
 		cy.remove_doc("Studio App", APP_NAME, true)
 		cy.remove_doc("Studio App", RENAMED_APP, true)
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Settings" })
@@ -187,7 +188,7 @@ describe("settings dialog", () => {
 		cy.contains("button", "Rename").click()
 		cy.contains("[role=dialog]", "Rename App").find("input").clear().type(RENAMED_APP)
 		cy.contains("[role=dialog]", "Rename App").contains("button", "Rename").click()
-		cy.wait("@docMethod")
+		cy.wait("@rename")
 		// the dialog closes once the renamed app has fully loaded
 		cy.contains("[role=dialog]", "Rename App").should("not.exist")
 		cy.get_doc("Studio App", RENAMED_APP).its("data.app_name").should("eq", RENAMED_APP)

@@ -158,8 +158,10 @@ class StudioApp(WebsiteGenerator):
 			return {}
 
 	def autoname(self):
-		if not self.name:
-			self.name = self.app_name or self.app_title.lower().replace(" ", "-")
+		if self.name:
+			return
+		self.name = self.app_name or re.sub(r"[^a-z0-9_-]+", "-", self.app_title.lower()).strip("-_")
+		validate_app_name(self.name)
 
 	@property
 	def is_published(self):
@@ -200,17 +202,8 @@ class StudioApp(WebsiteGenerator):
 		path = self.get_folder_path()
 		delete_folder(path)
 
-	@frappe.whitelist()
-	def rename_app(self, new_name: str) -> dict:
-		"""Rename the app (its docname and app_name). Built assets carry the old name in their
-		URLs, so `stale_build` tells the caller the app needs a rebuild to serve the build again."""
-		if not APP_NAME_RE.match(new_name or ""):
-			frappe.throw(_("App Name can only have lowercase letters, numbers, hyphens and underscores."))
-		had_build = bool(self.get_assets_from_manifest())
-		new_name = frappe.rename_doc("Studio App", self.name, new_name)
-		return {"name": new_name, "stale_build": had_build}
-
 	def before_rename(self, old, new, merge=False):
+		validate_app_name(new)
 		if self.is_standard and not can_export(self):
 			frappe.throw(_("Exported apps can only be renamed in developer mode."))
 		moves_folder = frappe.scrub(old) != frappe.scrub(new)
@@ -596,6 +589,12 @@ class StudioApp(WebsiteGenerator):
 
 	def get_folder_path(self, name: str | None = None, frappe_app: str | None = None):
 		return frappe.get_app_source_path(frappe_app or self.frappe_app, "studio", name or self.name)
+
+
+def validate_app_name(name: str):
+	"""The name is used in the editor's URL, the export folder and studio_apps.txt"""
+	if not APP_NAME_RE.match(name or ""):
+		frappe.throw(_("App Name can only have lowercase letters, numbers, hyphens and underscores."))
 
 
 def move_folder(source: str, destination: str):

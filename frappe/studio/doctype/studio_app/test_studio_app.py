@@ -66,11 +66,10 @@ class TestStudioApp(FrappeTestCase):
 			app, page = make_exported_app_with_files("rename-me")
 			old_folder = app.get_folder_path()
 
-			result = app.rename_app("renamed-app")
+			frappe.rename_doc("Studio App", app.name, "renamed-app")
 
 			app = frappe.get_doc("Studio App", "renamed-app")
 			page.reload()
-			self.assertEqual(result, {"name": "renamed-app", "stale_build": False})
 			self.assertEqual(app.app_name, "renamed-app")
 			self.assertFalse(os.path.exists(old_folder))
 			self.assert_exported_files_kept(app, page)
@@ -101,7 +100,7 @@ class TestStudioApp(FrappeTestCase):
 			app = make_studio_app(app_title="Dashed App", app_name="dashed-app")
 			app.enable_app_export("studio")
 
-			app.rename_app("dashed_app")
+			frappe.rename_doc("Studio App", app.name, "dashed_app")
 
 			app = frappe.get_doc("Studio App", "dashed_app")
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
@@ -126,7 +125,7 @@ class TestStudioApp(FrappeTestCase):
 			old_folder = app.get_folder_path()
 
 			with patch.object(StudioApp, "export_studio_pages", side_effect=OSError("disk full")):
-				self.assertRaises(OSError, app.rename_app, "renamed-twice")
+				self.assertRaises(OSError, frappe.rename_doc, "Studio App", app.name, "renamed-twice")
 
 			self.assertTrue(os.path.exists(os.path.join(old_folder, "unrenamed_app.json")))
 			self.assertFalse(os.path.exists(os.path.join(old_folder, "renamed_twice.json")))
@@ -136,13 +135,15 @@ class TestStudioApp(FrappeTestCase):
 		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
 		app.db_set({"is_standard": 1, "frappe_app": "studio"})
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			self.assertRaises(frappe.ValidationError, app.rename_app, "deployed-renamed")
+			self.assertRaises(frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, "deployed-renamed")
 
-	def test_rename_rejects_invalid_names(self):
+	def test_validate_app_name(self):
 		app = make_studio_app(app_title="Valid App", app_name="valid-app")
-		for name in ("", "Has Space", "UPPER", "-leading"):
-			with self.assertRaises(frappe.ValidationError):
-				app.rename_app(name)
+		for name in ("Has Space", "UPPER", "-leading", "a/b"):
+			self.assertRaises(frappe.ValidationError, make_studio_app, app_title="Invalid", app_name=name)
+			self.assertRaises(frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, name)
+
+		self.assertEqual(make_studio_app(app_title="My App! (v2)", app_name=None).name, "my-app-v2")
 
 	def test_studio_app_boot(self):
 		app = unsaved_studio_app("boot-app")

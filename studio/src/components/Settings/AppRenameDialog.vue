@@ -18,9 +18,10 @@
 						description="Lowercase letters, numbers, hyphens and underscores"
 					/>
 					<p class="text-p-sm text-ink-gray-6">
-						The editor's URL changes to the new name. The app's route stays the same.
+						The editor's URL changes to the new name. The app's route stays the same. If the app is
+						published, publish it again to rebuild it under the new name.
 						<template v-if="store.activeApp?.is_standard">
-							Its export folder moves to {{ store.activeApp.frappe_app }}/studio/{{ newName || "…" }}.
+							Its export folder moves to {{ store.activeApp.frappe_app }}/studio/{{ scrub(newName) || "…" }}.
 						</template>
 					</p>
 				</div>
@@ -45,9 +46,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { Button, Dialog, ErrorMessage, FormControl, Tooltip, toast } from "frappe-ui"
+import { Button, Dialog, ErrorMessage, FormControl, Tooltip, call, toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import { studioApps } from "@/data/studioApps"
+import { scrub } from "@/utils/helpers"
 
 const store = useStudioStore()
 const route = useRoute()
@@ -75,15 +77,14 @@ async function rename() {
 	renaming.value = true
 	error.value = ""
 	try {
-		const response = await studioApps.runDocMethod.submit({
-			name: appName.value,
-			method: "rename_app",
+		const name = (await call("frappe.client.rename_doc", {
+			doctype: "Studio App",
+			old_name: appName.value,
 			new_name: newName.value.trim(),
-		})
-		const { name, stale_build } = response.message
+		})) as string
 		await openRenamedApp(name)
 		showDialog.value = false
-		notifyRenamed(stale_build)
+		toast.success("App renamed")
 	} catch (renameError: any) {
 		error.value = renameError?.messages?.join(", ") || renameError?.message || "Failed to rename the app"
 	} finally {
@@ -95,17 +96,5 @@ async function openRenamedApp(name: string) {
 	await router.replace({ name: route.name!, params: { ...route.params, appID: name } })
 	await store.setApp(name)
 	studioApps.reload()
-}
-
-function notifyRenamed(staleBuild: boolean) {
-	if (!staleBuild) {
-		toast.success("App renamed")
-		return
-	}
-	toast.warning("App renamed. Publish it again to rebuild it", {
-		description:
-			"The app's build still uses the old name, so the published app runs on the default renderer until it is rebuilt.",
-		duration: Infinity,
-	})
 }
 </script>
