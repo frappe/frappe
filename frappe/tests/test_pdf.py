@@ -185,6 +185,26 @@ class TestPdf(IntegrationTestCase):
 			self.assertIn("TOP", text)
 			self.assertIn(f"Page {number} of {len(pages)}", text)
 
+	def test_bulk_pdf_with_password_keeps_every_document(self):
+		import json
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		names = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"bulk {i}"}).insert().name for i in range(2)
+		]
+
+		_download_multi_pdf(
+			"ToDo", json.dumps(names), format="Standard", options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertGreaterEqual(len(reader.pages), 2)
+
 	def test_pdf_visibility_classes_apply_to_the_body(self):
 		pdf = pdfgen.get_pdf(
 			"<style>.visible-pdf { display: none; }</style>"

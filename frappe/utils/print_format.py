@@ -277,7 +277,7 @@ def _download_multi_pdf(
 			generator = PrintFormatGenerator(
 				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
 			)
-			pdf = generator.render_pdf(password=(options or {}).get("password"))
+			pdf = generator.render_pdf()
 			for page in PdfReader(BytesIO(pdf)).pages:
 				pdf_writer.add_page(page)
 			return pdf_writer
@@ -359,6 +359,8 @@ def _download_multi_pdf(
 			frappe.local.response.filename = f"{name}.pdf"
 
 	with BytesIO() as merged_pdf:
+		if password := (options or {}).get("password"):
+			pdf_writer.encrypt(password)
 		pdf_writer.write(merged_pdf)
 		if task_id:
 			_file = frappe.get_doc(
