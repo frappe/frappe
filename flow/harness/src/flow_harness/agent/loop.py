@@ -673,7 +673,8 @@ def _capped(result: ToolResult, *, changed: bool = False) -> ToolResult:
 		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
 		"Don't repeat a call that changed data.]"
 	)
-	truncation["output_lines"] = head_cut["output_lines"] + tail_cut["output_lines"]
+	shown = head_cut["output_lines"] + tail_cut["output_lines"]
+	truncation["output_lines"] = min(shown, truncation["total_lines"])  # both ends may hold part of one line
 	return result.model_copy(
 		update={
 			"content": f"{head}\n\n{note}\n\n{tail}",

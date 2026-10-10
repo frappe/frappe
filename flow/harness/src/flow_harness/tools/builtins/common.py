@@ -65,10 +65,10 @@ def truncate(
 			break
 		picked.append(line)
 		used += add
-	if not picked:  # a single line exceeds the byte budget on its own
-		edge = seq[0].encode()
-		picked = [(edge[:max_bytes] if keep == "head" else edge[-max_bytes:]).decode("utf-8", "ignore")]
-		truncated_by = "bytes"
+	room = max_bytes - used - (1 if picked else 0)
+	if truncated_by == "bytes" and room > 0 and (keep == "tail" or not picked):
+		edge = seq[len(picked)].encode()
+		picked.append((edge[:room] if keep == "head" else edge[-room:]).decode("utf-8", "ignore"))
 	if keep == "tail":
 		picked.reverse()
 	return "\n".join(picked), {

@@ -240,6 +240,13 @@ async def test_oversized_tool_result_keeps_its_start_and_end(tmp_path):
 		"Don't repeat a call that changed data.]\n\n" + "b" * 10_240
 	)
 	assert result["details"]["truncation"]["truncated"] is True
+	assert result["details"]["truncation"]["output_lines"] == 1  # both ends are parts of one line
+
+
+async def test_a_trailing_newline_keeps_the_end(tmp_path):
+	session, events = _session(tmp_path)
+	result = await _dump(session, events, "a" * 100_000 + "b" * 100_000 + "\n")
+	assert result["content"].endswith("]\n\n" + "b" * 10_239 + "\n")
 
 
 async def test_a_long_list_keeps_most_lines_from_its_start(tmp_path):

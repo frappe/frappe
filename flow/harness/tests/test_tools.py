@@ -295,5 +295,12 @@ def test_tail_cut_of_one_long_line_keeps_its_end():
 	assert body == "b" * 51_200
 
 
+def test_tail_cut_fills_its_room_with_the_end_of_a_long_line():
+	body, _ = truncate("a" * 60_000 + "b" * 1_000 + "\n}", keep="tail")
+	assert body == "a" * 50_198 + "b" * 1_000 + "\n}"
+	body, _ = truncate("b" * 60_000 + "\n", keep="tail")  # a trailing newline no longer empties it
+	assert body == "b" * 51_199 + "\n"
+
+
 def test_tools_are_async():
 	assert inspect.iscoroutinefunction(bash.func)
