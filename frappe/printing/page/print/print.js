@@ -641,10 +641,17 @@ frappe.ui.form.PrintView = class {
 		const body_rect = body.getBoundingClientRect();
 		const scale = body.offsetHeight / (body_rect.height || 1);
 		const bottom_of = (el) => (el.getBoundingClientRect().bottom - body_rect.top) * scale;
+		const height_of = (el) => (el ? el.getBoundingClientRect().height * scale : 0);
+		const header = doc.querySelector(".document-header-content");
+		const repeated = this.print_settings?.repeat_header_footer
+			? (header ? bottom_of(header) - parseFloat(getComputedStyle(body).paddingTop) : 0) +
+			  height_of(doc.querySelector(".document-footer-content"))
+			: 0;
 		const starts = [0];
 		const fill = (start, end) => {
-			while (end - start > page_height + 1) {
-				start += page_height;
+			const step = () => (starts.length > 1 ? page_height - repeated : page_height);
+			while (end - start > step() + 1) {
+				start += step();
 				starts.push(start);
 			}
 			return start;
