@@ -99,6 +99,7 @@ export function getStore(print_format_name) {
 		preview_doc_name,
 		preview_values,
 		preview_child_values,
+		linked_values,
 		load_preview_doc,
 		persisted_preview_doc_name,
 	} = usePreviewDoc(print_format, print_format_name);
@@ -464,6 +465,7 @@ export function getStore(print_format_name) {
 		is_visible,
 		preview_values,
 		preview_child_values,
+		linked_values,
 		load_preview_doc,
 		persisted_preview_doc_name,
 		fetch,

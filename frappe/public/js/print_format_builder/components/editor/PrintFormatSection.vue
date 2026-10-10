@@ -160,7 +160,7 @@ import { computed, inject, onMounted, onUnmounted, provide, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import { section_menu_options } from "../../composables/useNodeMenu";
 import { always_has_content } from "../../fieldtypes";
-import { linked_target, linked_values } from "../../composables/linkedValues";
+import { linked_target } from "../../composables/linkedValues";
 import {
 	DRAG_OPTIONS,
 	JUSTIFY_CLASSES,
@@ -264,7 +264,7 @@ function field_has_content(f) {
 	if (f.fieldtype === "Static Text") return !!f.text?.trim();
 	if (f.fieldtype === "Typst") return !!f.typst?.trim();
 	if (f.fieldtype === "Linked Field")
-		return !!linked_values[linked_target(f, store.meta.value, doc)?.key];
+		return !!store.linked_values.value[linked_target(f, store.meta.value, doc)?.key];
 	if (f.fieldtype === "Repeater") return !!(f.source && doc[f.source]?.length);
 	if (f.fieldtype === "Table") return !!(doc[f.fieldname]?.length && f.table_columns?.length);
 	return !!doc[f.fieldname];
