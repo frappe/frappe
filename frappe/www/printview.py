@@ -712,17 +712,26 @@ def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
 	import cssutils
 
 	cssutils.log.setLog(frappe.logger("cssutils"))
+	side_names = ("margin-top", "margin-right", "margin-bottom", "margin-left")
+	important = [False] * 4
 	for rule in cssutils.parseString(print_format.css):
 		if not isinstance(rule, cssutils.css.CSSPageRule) or rule.selectorText:
 			continue
-		if values := rule.style.getPropertyValue("margin").split():
-			top = values[0]
-			right = values[1] if len(values) > 1 else top
-			bottom = values[2] if len(values) > 2 else top
-			left = values[3] if len(values) > 3 else right
-			sides = [top, right, bottom, left]
-		for i, side in enumerate(("top", "right", "bottom", "left")):
-			sides[i] = rule.style.getPropertyValue(f"margin-{side}") or sides[i]
+		for prop in rule.style:
+			if prop.name == "margin" and (values := prop.value.split()):
+				top = values[0]
+				right = values[1] if len(values) > 1 else top
+				bottom = values[2] if len(values) > 2 else top
+				left = values[3] if len(values) > 3 else right
+				updates = enumerate((top, right, bottom, left))
+			elif prop.name in side_names:
+				updates = [(side_names.index(prop.name), prop.value)]
+			else:
+				continue
+			for i, value in updates:
+				if prop.priority or not important[i]:
+					sides[i] = value
+					important[i] = bool(prop.priority)
 
 	return " ".join(sides)
 
