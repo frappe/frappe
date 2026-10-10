@@ -505,12 +505,11 @@ class TypstEmitter:
 		lh_header = self._letterhead_image(lh, "header")
 		if lh_header:
 			self.header_src = "\n".join(p for p in (lh_header, self.header_src) if p)
-		self.body_src = "\n".join(
-			part
-			for s in self.layout.get("sections") or []
-			for part in (self._section(s), self._page_break(s))
-			if part
-		)
+		parts = []
+		for s in self.layout.get("sections") or []:
+			body = self._section(s)
+			parts += [body, self._page_break(s, body)]
+		self.body_src = "\n".join(part for part in parts if part)
 		footer_zone = self.layout.get("footer")
 		self.footer_src = self._section(footer_zone, zone=True) if isinstance(footer_zone, dict) else ""
 		lh_footer = self._letterhead_image(lh, "footer")
@@ -660,8 +659,11 @@ class TypstEmitter:
 		if not columns:
 			return ""
 		shrink = section.get("justify") in SHRINK_JUSTIFY
-		rendered_columns = [self._column(section, c, shrink=shrink) for c in columns]
+		rendered = [self._column(section, c, shrink=shrink) for c in columns]
+		rendered_columns = [body for body, _printed in rendered]
 		if not any(rendered_columns):
+			return ""
+		if section.get("label") and not zone and not any(printed for _body, printed in rendered):
 			return ""
 
 		grid = self._columns_grid(section, columns, rendered_columns)
@@ -694,8 +696,8 @@ class TypstEmitter:
 			out = f"#v({top}pt)\n{out}"
 		return out + f"\n#v({bottom + 6}pt)"
 
-	def _page_break(self, section) -> str:
-		if section.get("page_break") and not section.get("_hidden"):
+	def _page_break(self, section, body) -> str:
+		if section.get("page_break") and not section.get("_hidden") and (body or not section.get("label")):
 			return "#pagebreak(weak: true)"
 		return ""
 
@@ -784,7 +786,8 @@ class TypstEmitter:
 		rendered = [(df, body) for df, body in rendered if body]
 		parts = [body for _, body in rendered]
 		if not parts:
-			return ""
+			return "", False
+		printed = any(not self._is_placeholder(df) for df, _ in rendered)
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
 			pad = pt(section.get("cell_padding"), 8)
 			ruled = [
@@ -796,7 +799,10 @@ class TypstEmitter:
 			body = parts[0]
 		else:
 			body = "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
-		return self._shrink_to_content(rendered, body) if shrink else body
+		return (self._shrink_to_content(rendered, body) if shrink else body), printed
+
+	def _is_placeholder(self, df) -> bool:
+		return bool(df.get("show_empty")) and not self._formatted_value({**df, "show_empty": 0})
 
 	@staticmethod
 	def _shrink_to_content(rendered, body: str) -> str:
@@ -906,7 +912,7 @@ class TypstEmitter:
 			return ""
 		value = self.doc.get(fieldname)
 		# {% if value %} in Data.html gates on the raw value, hiding 0 / 0.0 / False
-		if not value:
+		if not value and not df.get("show_empty"):
 			return ""
 		if df.get("fieldtype") == "Check":
 			return _("Yes") if frappe.utils.cint(value) else _("No")
