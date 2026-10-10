@@ -63,13 +63,14 @@ frappe.ui.Page = class Page {
 		// the two are independent, and `hide_sidebar` takes the panel away on a desktop and merely
 		// closes the drawer on a narrow screen (see Sidebar.page_allows_sidebar)
 		if (!Object.keys(opts).includes("hide_dock")) this.hide_dock = false;
+		// and the phone tab bar, the same way (see MobileNav.apply_page_visibility)
+		if (!Object.keys(opts).includes("hide_mobile_nav")) this.hide_mobile_nav = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
 	make() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_main_sidebar_toggle();
 		this.setup_awesomebar();
 	}
 
@@ -282,14 +283,6 @@ frappe.ui.Page = class Page {
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		return button;
-	}
-
-	setup_main_sidebar_toggle() {
-		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
-			frappe.app.sidebar.set_height();
-			frappe.app.sidebar.toggle_width();
-			frappe.app.sidebar.prevent_scroll();
-		});
 	}
 
 	clear_indicator() {

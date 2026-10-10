@@ -7,7 +7,9 @@ import { useStore } from "../store";
 let store = useStore();
 
 let search_text = ref("");
-let args = ref({});
+let args = computed(() =>
+	store.form.selected_field?.fieldtype === "Table" ? { is_table_field: 1 } : {}
+);
 
 const LAYOUT_OVERRIDE_PROPS = new Set([
 	"label",
@@ -33,8 +35,12 @@ const WEB_FORM_VISIBLE_PROPS_BY_FIELDTYPE = {
 	"Column Break": WEB_FORM_LAYOUT_PROPS,
 };
 
+// Copies: the filter below rewrites some definitions for the panel, and a computed that
+// writes what it reads re-runs itself without end.
+const panel_docfields = computed(() => store.get_docfields.map((df) => ({ ...df })));
+
 let docfield_df = computed(() => {
-	let fields = store.get_docfields.filter((df) => {
+	let fields = panel_docfields.value.filter((df) => {
 		// Layout mode: only show overrideable properties
 		if (store.is_layout_form && !LAYOUT_OVERRIDE_PROPS.has(df.fieldname)) {
 			return false;
@@ -81,7 +87,6 @@ let docfield_df = computed(() => {
 		if (df.fieldname === "options") {
 			df.fieldtype = "Small Text";
 			df.options = "";
-			args.value = {};
 
 			if (
 				["Table MultiSelect", "Table", "Link"].includes(
@@ -90,10 +95,6 @@ let docfield_df = computed(() => {
 			) {
 				df.fieldtype = "Link";
 				df.options = "DocType";
-
-				if (store.form.selected_field.fieldtype === "Table") {
-					args.value.is_table_field = 1;
-				}
 			}
 			if (
 				store.form.selected_field.fieldtype === "Data" &&

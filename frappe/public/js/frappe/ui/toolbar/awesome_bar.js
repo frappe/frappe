@@ -173,29 +173,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		$input.on(
 			"input",
 			frappe.utils.debounce(function (e) {
-				var value = e.target.value;
-				var txt = value.trim().replace(/\s\s+/g, " ");
-				var last_space = txt.lastIndexOf(" ");
-				me.global_results = [];
+				var txt = e.target.value.trim().replace(/\s\s+/g, " ");
 				me._hook_search_seq = (me._hook_search_seq || 0) + 1;
 
-				me.options = [];
-
-				if (txt && txt.length > 1) {
-					if (last_space !== -1) {
-						me.set_specifics(txt.slice(0, last_space), txt.slice(last_space + 1));
-					}
-					me.add_defaults(txt);
-					me.options = me.options.concat(me.build_options(txt));
-					me.options = me.options.concat(me.global_results);
-					if (frappe.boot.has_awesomebar_search) {
-						me.fetch_hook_results(txt, me._hook_search_seq);
-					}
-				} else {
-					me.options = me.options.concat(
-						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
-					);
-					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
+				let options = me.get_options(txt);
+				if (txt.length > 1 && frappe.boot.has_awesomebar_search) {
+					me.fetch_hook_results(txt, me._hook_search_seq);
 				}
 
 				// hide footer and remove spacing when there are no results
@@ -204,7 +187,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					.find(".cool-awesomebar-modal-footer")
 					.toggleClass("hide", cint(me.options?.length) == 0);
 
-				let options = me.deduplicate(me.options);
 				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
 				Awesomplete.prototype._itemCursor = 0;
 				awesomplete.list = options;
@@ -229,27 +211,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 		$input.on("awesomplete-select", function (e) {
 			var o = e.originalEvent;
-			var value = o.text.value;
-			var item = awesomplete.get_item(value);
-
-			if (item.route_options) {
-				frappe.route_options = item.route_options;
-			}
-
-			if (item.onclick) {
-				item.onclick(item.match);
-			} else if (is_external_url(item.route)) {
-				window.open(first_route(item.route), "_blank");
-			} else if (is_in_app_path(item.route)) {
-				navigate_in_app_path(first_route(item.route), o.originalEvent);
-			} else {
-				let event = o.originalEvent;
-				if (event.ctrlKey || event.metaKey) {
-					frappe.open_in_new_tab = true;
-				}
-				frappe.route_flags.jump = true;
-				frappe.set_route(item.route);
-			}
+			me.open_option(awesomplete.get_item(o.text.value), o.originalEvent);
 			$input.val("");
 			$input.trigger("blur");
 			search_modal.modal("hide");
@@ -265,6 +227,52 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			}
 		});
 	}
+
+	// What the modal lists for `txt`, which has its spaces already squeezed, before any
+	// results from the `awesomebar_search` hook. The search page lists the same.
+	get_options(txt) {
+		const last_space = txt.lastIndexOf(" ");
+		this.global_results = [];
+		this.options = [];
+
+		if (txt.length > 1) {
+			if (last_space !== -1) {
+				this.set_specifics(txt.slice(0, last_space), txt.slice(last_space + 1));
+			}
+			this.add_defaults(txt);
+			this.options = this.options.concat(this.build_options(txt));
+			this.options = this.options.concat(this.global_results);
+		} else {
+			this.options = this.options.concat(
+				this.deduplicate(frappe.search.utils.get_recent_pages(txt))
+			);
+			this.options = this.options.concat(frappe.search.utils.get_frequent_links());
+		}
+
+		return this.deduplicate(this.options);
+	}
+
+	// Go where an option leads. `event` is the click or keypress that picked it.
+	open_option(item, event) {
+		if (item.route_options) {
+			frappe.route_options = item.route_options;
+		}
+
+		if (item.onclick) {
+			item.onclick(item.match);
+		} else if (is_external_url(item.route)) {
+			window.open(first_route(item.route), "_blank");
+		} else if (is_in_app_path(item.route)) {
+			navigate_in_app_path(first_route(item.route), event);
+		} else {
+			if (event.ctrlKey || event.metaKey) {
+				frappe.open_in_new_tab = true;
+			}
+			frappe.route_flags.jump = true;
+			frappe.set_route(item.route);
+		}
+	}
+
 	create_options_with_descriptions(options) {
 		let options_with_desc = {};
 		options.forEach((opt) => {
@@ -354,23 +362,29 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.global_results = this.global_results.concat(global_results);
 	}
 
+	// Results apps add through the `awesomebar_search` hook. Fetched, so they arrive late.
+	get_hook_results(txt) {
+		return frappe
+			.call({ method: "frappe.desk.search.awesomebar_search", args: { txt } })
+			.then((r) => r.message || []);
+	}
+
+	merge_hook_results(options, results) {
+		return this.deduplicate(options.concat(results)).sort((a, b) => b.index - a.index);
+	}
+
 	fetch_hook_results(txt, seq) {
-		frappe.call({
-			method: "frappe.desk.search.awesomebar_search",
-			args: { txt },
-			callback: (r) => {
-				if (seq !== this._hook_search_seq || !r.message?.length) return;
-				this.options = this.deduplicate(this.options.concat(r.message));
-				this.options.sort((a, b) => b.index - a.index);
-				$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(this.options?.length) == 0);
-				this.search_modal
-					.find(".cool-awesomebar-modal-footer")
-					.toggleClass("hide", cint(this.options?.length) == 0);
-				this.awesomplete.options_with_desc = this.create_options_with_descriptions(
-					this.options
-				);
-				this.awesomplete.list = this.options;
-			},
+		this.get_hook_results(txt).then((results) => {
+			if (seq !== this._hook_search_seq || !results.length) return;
+			this.options = this.merge_hook_results(this.options, results);
+			$(this.awesomplete.ul).toggleClass("p-0 m-0", cint(this.options?.length) == 0);
+			this.search_modal
+				.find(".cool-awesomebar-modal-footer")
+				.toggleClass("hide", cint(this.options?.length) == 0);
+			this.awesomplete.options_with_desc = this.create_options_with_descriptions(
+				this.options
+			);
+			this.awesomplete.list = this.options;
 		});
 	}
 
@@ -505,15 +519,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	setup_correct_button(wrapper) {
-		let small_button = $(wrapper).find("#small-search-button");
-		let full_button = $(wrapper).find("#full-search-button");
-		if (frappe.is_mobile()) {
-			small_button.removeClass("hidden");
-			full_button.addClass("hidden");
-			return;
-		}
-		small_button.addClass("hidden");
-		full_button.removeClass("hidden");
+		$(wrapper).find("#full-search-button").toggleClass("hidden", frappe.is_mobile());
 	}
 	setup_page_change_event() {
 		const me = this;

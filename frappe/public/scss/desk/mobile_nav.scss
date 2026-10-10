@@ -1,0 +1,170 @@
+// Placement of the phone tab bar (frappe.ui.MobileNav). The bar's own look ships with
+// the <frappe-mobile-nav> element; this file only pins it to the bottom of the screen.
+
+:root {
+	// 56px row + 1px top border, plus the home-indicator inset on notched phones
+	--desk-mobile-nav-height: calc(57px + env(safe-area-inset-bottom));
+}
+
+// Tag-qualified: the element copies its class onto the <nav> it renders, and these
+// rules are for the host only.
+frappe-mobile-nav.desk-mobile-nav {
+	display: none;
+}
+
+@include media-breakpoint-down(sm) {
+	// see MobileNav.apply_page_visibility for when <body> has the class
+	body.has-mobile-nav frappe-mobile-nav.desk-mobile-nav {
+		display: block;
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		// over sidebar panels (1000), so its Notifications tab can close the one it
+		// opened; under sticky headers (1020), the drawer's scrim (1021) and modals (1050)
+		z-index: 1010;
+
+		[data-slot="mobile-nav"] {
+			padding-bottom: env(safe-area-inset-bottom);
+		}
+	}
+
+	// .main-section is Desk's scroll container; the end of the page has to scroll
+	// clear of the bar
+	body.has-mobile-nav .main-section {
+		padding-bottom: var(--desk-mobile-nav-height);
+	}
+
+	// A bounded page (island_page.scss) forces that padding to zero, so its box ends
+	// above the bar instead, and the island scrolling inside it stops there too.
+	body.has-mobile-nav.island-page .main-section,
+	body.has-mobile-nav.full-height-page .main-section {
+		height: calc(100vh - var(--desk-mobile-nav-height));
+		height: calc(100dvh - var(--desk-mobile-nav-height));
+	}
+
+	body.mobile-form-view .page-head .page-back-button {
+		display: flex;
+	}
+
+	// The page title opens the navigation sheet (MobileNav.open_navigation); the chevron
+	// says so. Drawn in CSS because the crumb is redrawn on every paint. Not on a system
+	// page, which has no sidebar (MobileNav.apply_page_visibility).
+	body.mobile-nav-title .page-head .navbar-breadcrumbs li:last-child {
+		cursor: pointer;
+
+		// lucide's chevron-down as a mask, so it stays inside its own box: the title area
+		// clips overflow for its ellipsis
+		&::after {
+			content: "";
+			display: inline-block;
+			flex: none;
+			width: 16px;
+			height: 16px;
+			margin-left: var(--spacing);
+			vertical-align: middle;
+			background-color: var(--ink-gray-5);
+			$chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+			-webkit-mask: $chevron center / contain no-repeat;
+			mask: $chevron center / contain no-repeat;
+		}
+	}
+}
+
+// The back button a form gets on a phone, in place of the tab bar.
+.page-head .page-back-button {
+	display: none;
+	flex: none;
+	margin-inline-start: calc(var(--spacing) * -2);
+	margin-inline-end: var(--spacing);
+
+	// points the other way in a right-to-left language
+	[dir="rtl"] & .icon {
+		transform: scaleX(-1);
+	}
+}
+
+// The dock, as a row of tiles across the top of the navigation sheet.
+.desk-mobile-sheet-dock {
+	display: flex;
+	gap: calc(var(--spacing) * 0.5);
+	overflow-x: auto;
+	padding-bottom: calc(var(--spacing) * 3);
+	border-bottom: 1px solid var(--outline-gray-1);
+}
+
+.desk-mobile-sheet-dock-item {
+	flex: 0 0 64px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--spacing);
+	padding: var(--spacing) 0;
+	border: none;
+	background: none;
+	color: var(--ink-gray-6);
+
+	.dock-item-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		border-radius: var(--radius-lg);
+		background: var(--surface-gray-2);
+		// see .dock-item in dock.scss
+		--icon-stroke: currentColor;
+
+		svg,
+		img {
+			width: 20px;
+			height: 20px;
+		}
+	}
+
+	.dock-item-label {
+		max-width: 100%;
+		@include truncate();
+		font-size: var(--text-xs);
+	}
+
+	&.active {
+		color: var(--ink-gray-9);
+
+		.dock-item-icon {
+			background: var(--surface-gray-4);
+		}
+	}
+}
+
+// The desk sidebar's own items list, borrowed while the sheet is open. It keeps the
+// .body-sidebar class for its row styles, so the drawer's layout is undone here.
+.desk-mobile-sheet .desk-mobile-sheet-sidebar {
+	position: static;
+	width: auto;
+	height: auto;
+	padding: calc(var(--spacing) * 2) 0 0;
+	border: none;
+	background: none;
+	z-index: auto;
+
+	// rows a thumb can hit, a step taller than the desktop's 28px
+	.standard-sidebar-item .item-anchor {
+		height: 40px;
+	}
+
+	.standard-sidebar-item .sidebar-item-label {
+		font-size: var(--text-base);
+	}
+
+	// a flat fill, not the desktop's raised card: the sheet is already the surface on top
+	.standard-sidebar-item.active-sidebar,
+	.standard-sidebar-item:has(a:not(.section-break)):active {
+		background: var(--surface-gray-2);
+		box-shadow: none;
+	}
+
+	.standard-sidebar-item.active-sidebar .item-anchor {
+		color: var(--ink-gray-9);
+	}
+}

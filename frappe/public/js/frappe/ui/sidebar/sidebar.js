@@ -364,100 +364,104 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// The user menu, shared by the sidebar's user button and the dock's avatar.
 	create_user_menu({ parent, button, side = "top", align = "start" }) {
-		const me = this;
 		const $btn = button;
-		const $container = parent;
 
 		new frappe.ui.Dropdown({
-			trigger: $container,
+			trigger: parent,
 			side,
 			align,
-			options: [
-				{
-					group: "",
-					options: [
-						{
-							name: "my-space",
-							label: __("My Space"),
-							icon: "user",
-							href: "/desk/private",
-							condition: () => !!frappe.boot.desk_settings.show_my_space,
-						},
-						{
-							name: "settings",
-							label: __("Settings"),
-							icon: "settings",
-							onclick: function () {
-								// Not in the desk bundle, so it is loaded on click.
-								frappe
-									.require("user_settings_dialog.bundle.js")
-									.then(() => frappe.ui.show_user_settings("profile"))
-									.catch((e) => {
-										console.error(
-											"Sidebar: failed to load user_settings_dialog.bundle.js",
-											e
-										);
-										frappe.ui.toast({
-											message: __(
-												"Could not open Settings. Please refresh the page."
-											),
-											type: "error",
-										});
-									});
-							},
-						},
-						{
-							name: "workspace-selector",
-							label: __("Manage Dock"),
-							icon: "monitor",
-							// A module in no app has no dock to arrange.
-							condition: () => !!me.get_sidebar_app(),
-							onclick: function () {
-								// Not in the desk bundle, so it is loaded on click.
-								frappe
-									.require("arrangement_editor.bundle.js")
-									.then(() => new frappe.ui.DockManager())
-									.catch((e) => {
-										console.error(
-											"Sidebar: failed to load arrangement_editor.bundle.js",
-											e
-										);
-										frappe.ui.toast({
-											message: __(
-												"Could not open the dock manager. Please refresh the page."
-											),
-											type: "error",
-										});
-									});
-							},
-						},
-						{
-							name: "reload",
-							label: __("Reload"),
-							icon: "rotate-ccw",
-							onclick: function () {
-								frappe.ui.toolbar.clear_cache();
-							},
-						},
-					],
-				},
-				{
-					group: "",
-					options: [
-						{
-							name: "logout",
-							label: __("Logout"),
-							icon: "log-out",
-							onclick: function () {
-								frappe.app.logout();
-							},
-						},
-					],
-				},
-			],
+			options: this.user_menu_options(),
 			on_open: () => $btn.addClass("user-menu-active"),
 			on_close: () => $btn.removeClass("user-menu-active"),
 		});
+	}
+
+	// Also listed by the phone Profile page (desk/page/profile).
+	user_menu_options() {
+		const me = this;
+		return [
+			{
+				group: "",
+				options: [
+					{
+						name: "my-space",
+						label: __("My Space"),
+						icon: "user",
+						href: "/desk/private",
+						condition: () => !!frappe.boot.desk_settings.show_my_space,
+					},
+					{
+						name: "settings",
+						label: __("Settings"),
+						icon: "settings",
+						onclick: function () {
+							// Not in the desk bundle, so it is loaded on click.
+							frappe
+								.require("user_settings_dialog.bundle.js")
+								.then(() => frappe.ui.show_user_settings("profile"))
+								.catch((e) => {
+									console.error(
+										"Sidebar: failed to load user_settings_dialog.bundle.js",
+										e
+									);
+									frappe.ui.toast({
+										message: __(
+											"Could not open Settings. Please refresh the page."
+										),
+										type: "error",
+									});
+								});
+						},
+					},
+					{
+						name: "workspace-selector",
+						label: __("Manage Dock"),
+						icon: "monitor",
+						// A module in no app has no dock to arrange.
+						condition: () => !!me.get_sidebar_app(),
+						onclick: function () {
+							// Not in the desk bundle, so it is loaded on click.
+							frappe
+								.require("arrangement_editor.bundle.js")
+								.then(() => new frappe.ui.DockManager())
+								.catch((e) => {
+									console.error(
+										"Sidebar: failed to load arrangement_editor.bundle.js",
+										e
+									);
+									frappe.ui.toast({
+										message: __(
+											"Could not open the dock manager. Please refresh the page."
+										),
+										type: "error",
+									});
+								});
+						},
+					},
+					{
+						name: "reload",
+						label: __("Reload"),
+						icon: "rotate-ccw",
+						onclick: function () {
+							frappe.ui.toolbar.clear_cache();
+						},
+					},
+				],
+			},
+			{
+				group: "",
+				options: [
+					{
+						name: "logout",
+						label: __("Logout"),
+						icon: "log-out",
+						onclick: function () {
+							frappe.app.logout();
+						},
+					},
+				],
+			},
+		];
 	}
 
 	highlight_active_item() {
@@ -556,10 +560,9 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
+	// The items list, not a lookup inside the wrapper: the phone's navigation sheet borrows it.
 	empty() {
-		if (this.wrapper.find(".sidebar-items")[0]) {
-			this.wrapper.find(".sidebar-items").html("");
-		}
+		this.$items_container.html("");
 	}
 	make_sidebar() {
 		this.empty();
@@ -583,7 +586,7 @@ frappe.ui.Sidebar = class Sidebar {
 			let no_items_message = $(
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
-			this.wrapper.find(".sidebar-items").append(no_items_message);
+			this.$items_container.append(no_items_message);
 		}
 	}
 	// Search, notifications and background tasks, as rows in a band under the header.
@@ -652,7 +655,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	remove_item(item, index) {}
 
-	// Close the drawer on a click anywhere but the sidebar, the dock or the page's own toggle.
+	// Close the drawer on a click anywhere but the sidebar or the dock.
 	setup_click_away() {
 		$(document)
 			// Rebuilt on some navigations, so drop the old handler instead of stacking another.
@@ -662,7 +665,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// Panels mount beside the sidebar but still belong to it.
 				if (
 					$(e.target).closest(
-						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel, .sidebar-collapse-arrow"
+						".body-sidebar, .dock, .sidebar-panel, .sidebar-collapse-arrow"
 					).length
 				)
 					return;

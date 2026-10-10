@@ -2,16 +2,8 @@
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
 			<div class="page-title">
-				<button class="btn-reset sidebar-toggle-btn navbar-brand" aria-label="{{ __("Toggle Sidebar") }}">
-					<svg class="icon icon-md sidebar-toggle-placeholder">
-						<use href="#icon-menu"></use>
-					</svg>
-					<span class="sidebar-toggle-icon">
-						<svg class="icon icon-md">
-							<use href="#icon-panel-left-close">
-							</use>
-						</svg>
-					</span>
+				<button class="es-button page-back-button" data-variant="ghost" data-size="md" data-icon-button="true" aria-label="{{ __("Back") }}">
+					{{ frappe.utils.icon("chevron-left", "md") }}
 				</button>
 				<div class="flex title-area ellipsis">
 					<nav class="es-breadcrumbs navbar-breadcrumbs {{frappe.is_mobile() ? "mobile-no-divider" : ""}}" aria-label="{{ __("Breadcrumb") }}"><ol></ol></nav>
@@ -25,11 +17,6 @@
 				</div>
 			</div>
 			<div class="align-center flex standard-items-section">
-				<button id="small-search-button" class="btn-reset search-bar navbar-modal-search-mobile hidden" aria-label="{{ __("Search") }}">
-					<span class="search-icon">
-						<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
-					</span>
-				</button>
 				<div class="flex col page-actions justify-content-end {% if frappe.is_mobile() %} pl-0 {% endif %}">
 					<!-- buttons -->
 					<div class="filters flex"></div>

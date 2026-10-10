@@ -1,0 +1,20 @@
+{
+ "content": null,
+ "creation": "2026-10-02 15:33:32.625636",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-10-02 18:19:48.368751",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "notifications",
+ "owner": "Administrator",
+ "page_name": "notifications",
+ "roles": [],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 1,
+ "title": "Notifications",
+ "type": "Frappe UI"
+}
