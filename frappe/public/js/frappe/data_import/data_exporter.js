@@ -294,7 +294,7 @@ frappe.data_import.DataExporter = class DataExporter {
 				label: __(this.doctype),
 				doctype: parent_fields?.[0]?.parent || this.doctype,
 			});
-			columns[this.doctype] = parent_fields;
+			columns[this.doctype] = with_id_field(parent_fields);
 			(this.provider_schema.child_tables || []).forEach((ct) => {
 				let child_fields = ct.fields || [];
 				groups.push({
@@ -424,6 +424,15 @@ frappe.data_import.DataExporter = class DataExporter {
 		this.select_mandatory();
 	}
 };
+
+// A provider's fields don't include ID; offer it like get_columns_for_picker does, so an
+// export can be imported back as an update.
+export function with_id_field(fields) {
+	if (fields.some((df) => df.fieldname === "name")) {
+		return fields;
+	}
+	return [{ label: __("ID"), fieldname: "name", fieldtype: "Data", reqd: 1 }].concat(fields);
+}
 
 export function get_columns_for_picker(doctype) {
 	let out = {};
