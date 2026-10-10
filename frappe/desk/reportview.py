@@ -1044,6 +1044,8 @@ def delete_bulk(doctype, items):
 					_("Check the Error Log for more information: {0}").format(
 						get_link_to_form("Error Log", error_log.name)
 					)
+					if frappe.has_permission("Error Log")
+					else _("An unexpected error occurred. Please contact your System Manager.")
 				]
 			undeleted_items[d] = reasons
 	if undeleted_items and len(items) != len(undeleted_items):
