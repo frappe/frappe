@@ -718,7 +718,7 @@ def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
 		if not isinstance(rule, cssutils.css.CSSPageRule) or rule.selectorText:
 			continue
 		for prop in rule.style:
-			if prop.name == "margin" and (values := prop.value.split()):
+			if prop.name == "margin" and (values := [v.cssText for v in prop.propertyValue]):
 				top = values[0]
 				right = values[1] if len(values) > 1 else top
 				bottom = values[2] if len(values) > 2 else top
