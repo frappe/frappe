@@ -217,20 +217,39 @@ async def test_after_hook_rewrites_result(tmp_path):
 	assert _of(events, "tool_result")[0]["content"] == "[redacted]"
 
 
-async def test_oversized_tool_result_is_cut_with_a_note(tmp_path):
+async def _dump(session, events, content):
+	"""Run a tool that returns `content`; return its tool_result event."""
+
 	@tool
 	async def dump(*, ctx):
-		return RuntimeToolResult(content="x" * 200_000)
+		return RuntimeToolResult(content=content)
 
-	session, events = _session(tmp_path)
 	assert session.server_tools is not None
 	session.server_tools[dump.name] = dump
 	call = AssistantMessage(content=[ToolCall(id="c1", name="dump", arguments={})])
 	await _run(session, "dump", model=MockModel(replies=[call, AssistantMessage(content="ok")]))
-	result = _of(events, "tool_result")[0]
-	assert result["content"].startswith("x" * 51_200 + "\n\n[Cut to the first 50 KB of 195 KB.")
-	assert "Don't repeat a call that changed data.]" in result["content"]
+	return _of(events, "tool_result")[0]
+
+
+async def test_oversized_tool_result_keeps_its_start_and_end(tmp_path):
+	session, events = _session(tmp_path)
+	result = await _dump(session, events, "a" * 100_000 + "b" * 100_000)
+	assert result["content"] == (
+		"a" * 40_960 + "\n\n[Cut the middle: showing the first 40 KB and the last 10 KB of 195 KB. "
+		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
+		"Don't repeat a call that changed data.]\n\n" + "b" * 10_240
+	)
 	assert result["details"]["truncation"]["truncated"] is True
+
+
+async def test_a_long_list_keeps_most_lines_from_its_start(tmp_path):
+	session, events = _session(tmp_path)
+	result = await _dump(session, events, "\n".join(str(i) for i in range(5000)))
+	head, note, tail = result["content"].split("\n\n")
+	assert head.split("\n") == [str(i) for i in range(1600)]
+	assert tail.split("\n") == [str(i) for i in range(4600, 5000)]
+	assert note.startswith("[Cut the middle")
+	assert result["details"]["truncation"]["output_lines"] == 2000
 
 
 async def test_tool_that_cuts_its_own_output_is_not_cut_again(tmp_path):
@@ -239,7 +258,7 @@ async def test_tool_that_cuts_its_own_output_is_not_cut_again(tmp_path):
 	await _run(session, "read", model=MockModel(replies=[_read_call(), AssistantMessage(content="ok")]))
 	content = _of(events, "tool_result")[0]["content"]
 	assert content.endswith("use offset=2001 to continue]")
-	assert "Cut to the first" not in content
+	assert "Cut the middle" not in content
 
 
 async def test_hook_that_grows_a_cut_result_is_still_capped(tmp_path):
@@ -248,7 +267,10 @@ async def test_hook_that_grows_a_cut_result_is_still_capped(tmp_path):
 	mock = MockModel(replies=[_read_call(), AssistantMessage(content="ok")])
 
 	await _run(session, "read", model=mock, after_tool_call=lambda tc, result: "y" * 200_000)
-	assert _of(events, "tool_result")[0]["content"].startswith("y" * 51_200 + "\n\n[Cut to the first 50 KB")
+	content = _of(events, "tool_result")[0]["content"]
+	assert content.startswith("y" * 40_960 + "\n\n[Cut the middle") and content.endswith(
+		"]\n\n" + "y" * 10_240
+	)
 
 
 async def test_before_hook_result_is_capped(tmp_path):
@@ -259,7 +281,10 @@ async def test_before_hook_result_is_capped(tmp_path):
 		return HookDecision(result="z" * 200_000)
 
 	await _run(session, "read", model=mock, before_tool_call=before)
-	assert _of(events, "tool_result")[0]["content"].startswith("z" * 51_200 + "\n\n[Cut to the first 50 KB")
+	content = _of(events, "tool_result")[0]["content"]
+	assert content.startswith("z" * 40_960 + "\n\n[Cut the middle") and content.endswith(
+		"]\n\n" + "z" * 10_240
+	)
 
 
 async def test_pause_and_resume(tmp_path):

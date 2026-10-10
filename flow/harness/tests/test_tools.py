@@ -5,6 +5,7 @@ import os
 import pytest
 
 from flow_harness.tools.builtins import BUILTIN_TOOLS, bash, edit, read, write
+from flow_harness.tools.builtins.common import truncate
 from flow_harness.tools.tool import ToolContext, ToolResult
 
 
@@ -287,6 +288,11 @@ async def test_bash_truncation_spills_to_temp_file(tmp_path):
 	assert full.strip().splitlines()[-1] == "3000"  # full output preserved
 	assert "3000" in res.content  # tail kept in the model-visible slice
 	assert f"full output: {path}" in res.content
+
+
+def test_tail_cut_of_one_long_line_keeps_its_end():
+	body, _ = truncate("a" * 10 + "b" * 60_000, keep="tail")
+	assert body == "b" * 51_200
 
 
 def test_tools_are_async():

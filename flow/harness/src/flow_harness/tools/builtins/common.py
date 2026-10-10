@@ -34,13 +34,15 @@ def detect_ending(text: str) -> str:
 	return "\r\n" if i > 0 and text[i - 1] == "\r" else "\n"
 
 
-def truncate(text: str, *, keep: str) -> tuple[str, dict]:
+def truncate(
+	text: str, *, keep: str, max_lines: int = DEFAULT_MAX_LINES, max_bytes: int = DEFAULT_MAX_BYTES
+) -> tuple[str, dict]:
 	"""Clip `text` to the line+byte budget, keeping the head or tail. Returns the
 	clipped text plus truncation metadata for a tool result's `details`."""
 	lines = text.split("\n")
 	total_lines = len(lines)
 	total_bytes = len(text.encode())
-	if total_lines <= DEFAULT_MAX_LINES and total_bytes <= DEFAULT_MAX_BYTES:
+	if total_lines <= max_lines and total_bytes <= max_bytes:
 		return text, {
 			"truncated": False,
 			"truncated_by": None,
@@ -54,17 +56,18 @@ def truncate(text: str, *, keep: str) -> tuple[str, dict]:
 	used = 0
 	truncated_by = "lines"
 	for line in seq:
-		if len(picked) >= DEFAULT_MAX_LINES:
+		if len(picked) >= max_lines:
 			truncated_by = "lines"
 			break
 		add = len(line.encode()) + (1 if picked else 0)
-		if used + add > DEFAULT_MAX_BYTES:
+		if used + add > max_bytes:
 			truncated_by = "bytes"
 			break
 		picked.append(line)
 		used += add
 	if not picked:  # a single line exceeds the byte budget on its own
-		picked = [seq[0].encode()[:DEFAULT_MAX_BYTES].decode("utf-8", "ignore")]
+		edge = seq[0].encode()
+		picked = [(edge[:max_bytes] if keep == "head" else edge[-max_bytes:]).decode("utf-8", "ignore")]
 		truncated_by = "bytes"
 	if keep == "tail":
 		picked.reverse()
