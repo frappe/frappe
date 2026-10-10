@@ -14,6 +14,13 @@ from studio.utils import has_page_write_perm
 
 
 @frappe.whitelist()
+def get_app_boot(app_name: str) -> dict:
+	app = frappe.get_doc("Studio App", app_name)
+	app.check_permission("read")
+	return app.get_boot()
+
+
+@frappe.whitelist()
 def get_doctype_fields(doctype: str, with_standard_fields: bool = False) -> list[dict]:
 	frappe.has_permission(doctype, ptype="read", throw=True)
 	excluded_fieldtypes = (set(no_value_fields) | set(display_fieldtypes)) - set(table_fields)
@@ -223,12 +230,14 @@ def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def read_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict:
+def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_missing: bool = False) -> dict:
 	"""Return a file's content plus a hash callers pass back to write_studio_file for conflict checks."""
 	_validate_studio_file_access()
 	_validate_allowed_extension(file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 	if not os.path.isfile(target):
+		if frappe.utils.sbool(ignore_missing):
+			return {"path": file_path, "content": None, "hash": None}
 		frappe.throw(_("File not found: {0}").format(file_path))
 
 	with open(target, encoding="utf-8") as f:

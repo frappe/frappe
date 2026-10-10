@@ -351,13 +351,16 @@ class StudioPage(Document):
 		return self.modified
 
 	@frappe.whitelist()
-	def save_page_field(self, fieldname: str, value, known_modified: str | None = None):
-		"""Update an editor-owned field using the page's optimistic lock."""
+	def save_page_field(self, fieldname: str | dict, value=None, known_modified: str | None = None):
+		"""Update editor-owned fields using the page's optimistic lock. Pass a dict as `fieldname` to
+		save several fields at once, so they save together or not at all."""
 		FIELDS = ["page_title", "route", "script", "allow_guest"]
-		if fieldname not in FIELDS:
-			frappe.throw(_("Field {0} is not editable outside the Studio editor").format(fieldname))
+		values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
+		for field in values:
+			if field not in FIELDS:
+				frappe.throw(_("Field {0} is not editable outside the Studio editor").format(field))
 		self.reject_if_stale(known_modified)
-		self.set(fieldname, value)
+		self.update(values)
 		self._skip_validate = True
 		self.save()
 		return self.modified
@@ -434,20 +437,21 @@ class StudioPage(Document):
 		return os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
 
 
-@frappe.whitelist()
-def find_page_with_route(app_name: str, page_route: str) -> str | None:
-	if not page_route.startswith("/"):
-		page_route = f"/{page_route}"
+def get_app_page(app_name: str, page_name: str) -> "StudioPage":
+	"""The cached page, or the same 404 whether it is missing or belongs to another app."""
 	try:
-		return frappe.db.get_value(
-			"Studio Page", dict(studio_app=app_name, route=page_route), "name", cache=True
-		)
+		page = frappe.get_cached_doc("Studio Page", page_name) if page_name else None
 	except frappe.DoesNotExistError:
-		pass
+		# get_doc queues "Studio Page <name> not found" for the client; keep the reply to "Page not found"
+		frappe.clear_last_message()
+		page = None
+	if not page or page.studio_app != app_name:
+		frappe.throw(_("Page not found"), frappe.DoesNotExistError)
+	return page
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
-def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
+def get_page(app_name: str, page_name: str, preview: bool = False) -> dict:
 	"""Serve a page definition to the app renderer in a single call.
 
 	Published pages need no role — a published definition is markup; the data it
@@ -458,11 +462,7 @@ def get_page(app_name: str, page_route: str, preview: bool = False) -> dict:
 
 	The served blocks' component definitions ship in the same payload, so what a
 	caller can see of components is exactly what the pages they can fetch use."""
-	page_name = find_page_with_route(app_name, page_route)
-	if not page_name:
-		frappe.throw(_("Page not found"), frappe.DoesNotExistError)
-
-	page = frappe.get_cached_doc("Studio Page", page_name)
+	page = get_app_page(app_name, page_name)
 	is_guest = frappe.session.user == "Guest"
 	if preview:
 		if not frappe.has_permission("Studio Page", ptype="read", doc=page):

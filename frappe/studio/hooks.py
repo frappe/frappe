@@ -244,3 +244,10 @@ export_python_type_annotations = True
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+# Studio App Boot
+# ---------------
+# Data a Studio app starts with, keyed by Studio app name. The function returns a dict that is
+# served as `window.boot` before the first navigation, so scripts and bindings read `boot.<key>`.
+#
+# studio_app_boot = {"helpdesk": "helpdesk.studio.boot.get_boot"}

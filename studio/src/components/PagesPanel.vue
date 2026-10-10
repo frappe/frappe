@@ -51,11 +51,13 @@
 				<Button icon-left="lucide-plus" class="w-full">New Page</Button>
 			</router-link>
 		</div>
+		<RouterScript v-if="store.activeApp" />
 	</div>
 </template>
 
 <script setup lang="ts">
 import useStudioStore from "@/stores/studioStore"
+import RouterScript from "@/components/RouterScript.vue"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { copyEntirePage } from "@/utils/blockCopyPaste"
@@ -95,7 +97,7 @@ const getPageMenu = (page: StudioPage) => {
 					icon: "lucide-earth",
 					switch: true,
 					switchValue: Boolean(isPageActive(page) ? store.activePage?.allow_guest : page.allow_guest),
-					onClick: (value: boolean) => store.updateActivePage("allow_guest", value ? 1 : 0),
+					onClick: (value: boolean) => store.updatePage(page, { allow_guest: value ? 1 : 0 }),
 				},
 			],
 		},

@@ -2,16 +2,18 @@
 # See license.txt
 
 import os
-import tempfile
-from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
 
 from studio.export import remove_empty_values
-from studio.studio.doctype.studio_app.studio_app import StudioApp, StudioAppRenderer
-from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
+from studio.studio.doctype.studio_app.studio_app import StudioAppRenderer
+from studio.studio.doctype.studio_app.test_studio_app import (
+	exports_in_tempdir,
+	make_studio_app,
+	make_studio_page,
+)
 from studio.studio.doctype.studio_page.copy_paste_handler import (
 	create_missing_dependencies,
 	duplicate_page,
@@ -50,17 +52,6 @@ def make_page_with_data(app_name: str):
 	page.script = PAGE_SCRIPT
 	page.save()
 	return page
-
-
-@contextmanager
-def exports_in_tempdir():
-	with (
-		tempfile.TemporaryDirectory() as tmpdir,
-		patch("frappe.get_app_source_path", side_effect=lambda app, *path: os.path.join(tmpdir, app, *path)),
-		patch.dict(frappe.conf, {"developer_mode": 1}),
-		patch.object(StudioApp, "add_to_studio_apps_txt"),
-	):
-		yield
 
 
 class TestStudioPage(IntegrationTestCase):
@@ -106,7 +97,10 @@ class TestStudioPage(IntegrationTestCase):
 						"componentName": "Button",
 						"componentProps": {"empty_value": "", "false_value": False},
 						"componentSlots": {
-							"default": {"slotName": "default", "slotContent": [{"componentName": "TextBlock"}]},
+							"default": {
+								"slotName": "default",
+								"slotContent": [{"componentName": "TextBlock"}],
+							},
 							"label": {"slotName": "label", "slotContent": ""},
 						},
 						"children": [{"componentName": "TextBlock"}],
@@ -436,9 +430,11 @@ class TestGuestRendering(IntegrationTestCase):
 			route="/private",
 			blocks=frappe.as_json([component_ref(cls.secret_widget)]),
 		)
-		make_studio_page(cls.app.name, page_title="Draft Page", route="/draft", published=0, allow_guest=1)
+		cls.draft_page = make_studio_page(
+			cls.app.name, page_title="Draft Page", route="/draft", published=0, allow_guest=1
+		)
 		cls.members_app = make_studio_app(app_title="Members App", app_name="members-app")
-		make_studio_page(cls.members_app.name, page_title="Members Home", route="/home")
+		cls.members_page = make_studio_page(cls.members_app.name, page_title="Members Home", route="/home")
 
 	@classmethod
 	def delete_leftover_fixtures(cls):
@@ -458,24 +454,33 @@ class TestGuestRendering(IntegrationTestCase):
 
 	def test_guest_gets_public_page(self):
 		self.as_guest()
-		page = get_page(self.app.name, "/public")
+		page = get_page(self.app.name, self.public_page.name)
 		self.assertEqual(page["name"], self.public_page.name)
 
 	def test_guest_gets_404_for_anything_not_public(self):
 		self.as_guest()
-		for route in ("/private", "/draft", "/nonexistent"):
+		for page_name in (self.private_page.name, self.draft_page.name, "page-nonexistent"):
+			frappe.local.message_log = []
 			with self.assertRaises(frappe.DoesNotExistError):
-				get_page(self.app.name, route)
+				get_page(self.app.name, page_name)
+			# one reply for every case, so a guest can't tell a private page from a missing one
+			self.assertEqual(
+				[m["message"] for m in map(frappe.parse_json, frappe.local.message_log)], ["Page not found"]
+			)
+
+	def test_page_of_another_app_is_not_found(self):
+		with self.assertRaises(frappe.DoesNotExistError):
+			get_page(self.app.name, self.members_page.name)
 
 	def test_guest_cannot_preview_public_pages(self):
 		self.as_guest()
 		with self.assertRaisesRegex(
 			frappe.PermissionError, "You do not have permission to preview this page"
 		):
-			get_page(self.app.name, "/public", preview=True)
+			get_page(self.app.name, self.public_page.name, preview=True)
 
 	def test_logged_in_user_gets_private_page(self):
-		page = get_page(self.app.name, "/private")
+		page = get_page(self.app.name, self.private_page.name)
 		self.assertEqual(page["name"], self.private_page.name)
 
 	def test_renderer_serves_guests_only_apps_with_public_pages(self):
@@ -513,7 +518,7 @@ class TestGuestRendering(IntegrationTestCase):
 
 	def test_page_ships_its_component_definitions(self):
 		self.as_guest()
-		page = get_page(self.app.name, "/public")
+		page = get_page(self.app.name, self.public_page.name)
 		components = {component["name"]: component for component in page["components"]}
 		self.assertEqual(set(components), {self.hero.name, self.nested_card.name})
 		self.assertEqual(components[self.hero.name]["inputs"][0]["input_name"], "title")

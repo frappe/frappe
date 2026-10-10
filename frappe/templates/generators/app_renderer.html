@@ -3,7 +3,7 @@
 <html lang="en" class="h-full">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="icon" href="/assets/studio/frontend/favicon.png" />
+		<link rel="icon" href="{{ favicon or '/assets/studio/frontend/favicon.png' }}" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{{ app_title }}</title>
 
@@ -20,12 +20,15 @@
 		<div id="modals"></div>
 		<div id="popovers"></div>
 		<script>
+			window.boot = {{ boot|tojson }};
 			window.csrf_token = "{{ csrf_token }}";
 			window.app_name = "{{ app_name }}";
 			window.app_route = "{{ app_route }}";
 			window.app_title = "{{ app_title }}";
 			window.frappe_app = "{{ frappe_app }}";
 			window.app_pages = {{ app_pages|tojson }};
+			window.app_home = {{ app_home|tojson }};
+			window.router_script = {{ router_script|tojson }};
 			window.is_guest = {{ is_guest|tojson }};
 		</script>
 	</body>

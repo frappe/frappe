@@ -1,5 +1,5 @@
 import { computed, unref, isRef } from "vue"
-import useCodeStore from "@/stores/codeStore"
+import useCodeStore, { usePageScope } from "@/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
@@ -12,10 +12,11 @@ import * as globalUtils from "@/utils/globalUtils"
 
 export const useStudioCompletions = (canEditValues: boolean = false, includeVueApis: boolean = false) => {
 	const codeStore = useCodeStore()
+	const pageScope = usePageScope()
 
 	const completionSources = computed(() => {
 		const sources: CompletionSource[] = []
-		Object.entries(codeStore.variables || {}).forEach(([variable, item]) => {
+		Object.entries(pageScope.variables || {}).forEach(([variable, item]) => {
 			// When canEditValues is true, variables are refs (toRefs)
 			const wrappedItem = canEditValues ? { value: item } : item
 			sources.push({
@@ -34,7 +35,7 @@ export const useStudioCompletions = (canEditValues: boolean = false, includeVueA
 			})
 		})
 
-		Object.entries(codeStore.resources || {}).forEach(([resource, item]) => {
+		Object.entries(pageScope.resources || {}).forEach(([resource, item]) => {
 			sources.push({
 				item,
 				completion: {
@@ -87,7 +88,7 @@ export const useStudioCompletions = (canEditValues: boolean = false, includeVueA
 			})
 		}
 
-		Object.entries(codeStore.pageScriptBindings || {}).forEach(([name, binding]) => {
+		Object.entries(pageScope.pageScriptBindings || {}).forEach(([name, binding]) => {
 			const unwrapped = unref(binding)
 			const isFunction = typeof unwrapped === "function"
 			const refLike = isRef(binding)

@@ -230,7 +230,7 @@ import Grid from "@/components/Grid.vue"
 import type { DocTypeField, SelectOption } from "@/types"
 import type { ResourceType, Resource } from "@/types/Studio/StudioResource"
 import { getParamsArray, isObjectEmpty } from "@/utils/helpers"
-import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { useStudioCompletions } from "@/utils/completions/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 const props = defineProps<{

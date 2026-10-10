@@ -3,7 +3,8 @@ import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import app_router from "@/router/app_router"
+import { createAppRouter } from "@/router/app_router"
+import ErrorPage from "@/pages/ErrorPage.vue"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents, registerCustomVueComponents } from "@/globals"
@@ -14,7 +15,6 @@ import { initSocket } from "@/socket"
 const app = createApp(AppRenderer)
 const pinia = createPinia()
 
-app.use(app_router)
 app.use(pinia)
 app.use(resourcesPlugin)
 app.provide("socket", initSocket())
@@ -35,13 +35,14 @@ if (window.is_preview && typeof window.is_preview === "string") {
 }
 
 const frappeApp = (window as any).frappe_app
-if (frappeApp) {
-	Promise.all([
-		registerCustomVueComponents(frappeApp),
-		registerStudioPageScripts(frappeApp),
-	]).then(() => {
-		app.mount("#app")
+const componentsReady = frappeApp
+	? Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
+	: Promise.resolve()
+
+componentsReady
+	.then(() => createAppRouter())
+	.then((router) => app.use(router).mount("#app"))
+	.catch((error) => {
+		console.error(error)
+		createApp(ErrorPage, { error }).mount("#app")
 	})
-} else {
-	app.mount("#app")
-}

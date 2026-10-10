@@ -3,7 +3,11 @@
 		<div class="flex flex-col items-center justify-center">
 			<h1 class="text-3xl-semibold mt-1 text-ink-gray-5">404</h1>
 			<div class="mt-2 text-base text-ink-gray-4">The page you are looking for does not exist.</div>
-			<a href="/desk" class="mt-4 text-base text-ink-gray-5 underline">Back to Home</a>
+			<a :href="home" class="mt-4 text-base text-ink-gray-5 underline">Back to Home</a>
 		</div>
 	</div>
 </template>
+
+<script setup lang="ts">
+withDefaults(defineProps<{ home?: string }>(), { home: "/desk" })
+</script>

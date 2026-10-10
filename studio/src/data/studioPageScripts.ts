@@ -23,11 +23,13 @@ const latestPageSetups: Record<string, PageScriptSetup> = {}
 
 type PageScriptSetup = (...args: any[]) => any
 
-// Invoked when a page script (or a composable/util it imports) hot-updates, with the page's docname
-// and freshly hot-loaded setup. studioStore registers this to re-run the active page live.
-let pageScriptHotUpdateHandler: ((pageName: string, setup: PageScriptSetup) => void) | null = null
-export function setPageScriptHotUpdateHandler(handler: typeof pageScriptHotUpdateHandler) {
-	pageScriptHotUpdateHandler = handler
+// Called when a page script (or a composable/util it imports) hot-updates, with the page's docname
+// and freshly hot-loaded setup. Each page scope subscribes to re-run its script live.
+type HotUpdateListener = (pageName: string, setup: PageScriptSetup) => void
+const hotUpdateListeners = new Set<HotUpdateListener>()
+export function onPageScriptHotUpdate(listener: HotUpdateListener) {
+	hotUpdateListeners.add(listener)
+	return () => hotUpdateListeners.delete(listener)
 }
 
 /**
@@ -72,7 +74,7 @@ function applyPageScriptHotUpdate(pageName: string, mod: ModuleNamespace) {
 	const setup = mod?.default
 	if (typeof setup !== "function") return
 	latestPageSetups[pageName] = setup
-	pageScriptHotUpdateHandler?.(pageName, setup)
+	hotUpdateListeners.forEach((listener) => listener(pageName, setup))
 }
 
 if (import.meta.hot) {

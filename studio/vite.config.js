@@ -8,8 +8,8 @@ import sharedDependencyResolver from "./vite/sharedDependencyResolver"
 import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
-import frameworkUICodeEditorShim from "./vite/frameworkUICodeEditorShim"
 import lucideStaticAlias from "./vite/lucideStaticAlias"
+import skipBuiltRendererInDevMode from "./vite/skipBuiltRendererInDevMode"
 
 const viteDevServerPort = getViteDevServerPort()
 const appsDir = path.resolve(__dirname, "../../")
@@ -38,7 +38,7 @@ const isStudioAppTsconfig = (file) =>
 export default defineConfig(async () => {
 	// Only pull in @framework/ui's vite plugin + source aliases when it exists.
 	const frameworkUIPlugins = frameworkUIAvailable
-		? [(await import("@framework/ui/vite")).default(), frameworkUICodeEditorShim(appsDir, __dirname)]
+		? [(await import("@framework/ui/vite")).default()]
 		: []
 	// When absent, alias @framework/ui/* to a stub so the dev server can resolve the
 	// (dead-branch) imports in globals.ts. Production builds DCE them; the dev server
@@ -88,6 +88,7 @@ export default defineConfig(async () => {
 			// Root must be the frontend dir
 			sharedDependencyResolver(path.resolve(__dirname)),
 			studioFolderWatcher(appsDir),
+			skipBuiltRendererInDevMode(),
 		],
 		resolve: {
 			alias: [
@@ -124,14 +125,25 @@ export default defineConfig(async () => {
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {
-			// Pre-bundling frappe-ui splits its module-level state in two: toast()/dialog.*, so imperative toasts/dialogs never show in dev.
-			exclude: ["frappe-ui"],
 			include: [
-				// CommonJS dep reached through the now-unbundled frappe-ui (tailwind/colorPalette.js)
-				"tailwindcss/colors",
 				"engine.io-client",
 				"highlight.js/lib/core",
 				"debug",
+				// Pre-bundle all prosemirror packages. This makes sure that the editor loads only one copy.
+				// Two copies cause the error "Duplicate use of selection JSON ID gapcursor".
+				"prosemirror-changeset",
+				"prosemirror-commands",
+				"prosemirror-dropcursor",
+				"prosemirror-gapcursor",
+				"prosemirror-history",
+				"prosemirror-inputrules",
+				"prosemirror-keymap",
+				"prosemirror-model",
+				"prosemirror-schema-list",
+				"prosemirror-state",
+				"prosemirror-tables",
+				"prosemirror-transform",
+				"prosemirror-view",
 			],
 		},
 	}

@@ -3,12 +3,18 @@
 		<Button
 			size="sm"
 			variant="solid"
-			:disabled="disabled || store.publishingPage"
+			:disabled="disabled"
 			:loading="store.publishingPage || store.publishingApp"
 			class="rounded-br-none rounded-tr-none border-0"
 			@click="store.publishPage()"
 		>
-			{{ store.publishingApp ? "Publishing App..." : store.publishingPage ? "Publishing Page..." : "Publish Page" }}
+			{{
+				store.publishingApp
+					? "Publishing App..."
+					: store.publishingPage
+						? "Publishing Page..."
+						: "Publish Page"
+			}}
 		</Button>
 		<Dropdown
 			:options="[
@@ -61,9 +67,11 @@
 				<Button
 					size="sm"
 					variant="solid"
-					:disabled="disabled || store.publishingPage || store.publishingApp"
+					:disabled="disabled"
 					icon="lucide-chevron-down"
 					class="!w-6 justify-start rounded-bl-none rounded-tl-none border-0 pr-0 text-xs"
+					:class="{ 'pointer-events-none': isPublishing }"
+					:tabindex="isPublishing ? -1 : undefined"
 				/>
 			</template>
 		</Dropdown>
@@ -71,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
 import { Dropdown, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import LucideCircleDashed from "~icons/lucide/circle-dashed"
@@ -83,4 +92,5 @@ defineProps<{
 }>()
 
 const store = useStudioStore()
+const isPublishing = computed(() => store.publishingPage || store.publishingApp)
 </script>

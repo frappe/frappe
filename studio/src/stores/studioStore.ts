@@ -11,7 +11,7 @@ import { studioVariables } from "@/data/studioVariables"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import useCodeStore from "@/stores/codeStore"
+import useCodeStore, { usePageScope } from "@/stores/codeStore"
 import { reloadCustomVueComponents } from "@/globals"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
 import { registerCustomComponentPaths } from "@/utils/components"
@@ -25,6 +25,7 @@ import type {
 	LeftPanelOptions,
 	RightPanelOptions,
 	leftPanelComponentTabOptions,
+	SettingsTab,
 	StudioMode,
 } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
@@ -32,6 +33,10 @@ import type ComponentLayers from "@/components/ComponentLayers.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
+
+type PageFields = Partial<Pick<StudioPage, "page_title" | "route" | "script" | "allow_guest">>
+
+const PAGE_CHANGED_MESSAGE = "This page was changed outside the editor. Refresh to load the latest version."
 
 const useStudioStore = defineStore("store", () => {
 	const studioLayout = useStorage(
@@ -54,10 +59,15 @@ const useStudioStore = defineStore("store", () => {
 
 	// dialogs
 	const showSearchBlock = ref(false)
-	const showStudioSettingsDialog = ref(false)
+	const showSettingsDialog = ref(false)
+	const settingsTab = ref<SettingsTab>("app")
 	const showPageOptions = ref(false)
-	const showAppDialog = ref(false)
 	const showShortcutsDialog = ref(false)
+
+	function openSettings(tab: SettingsTab) {
+		settingsTab.value = tab
+		showSettingsDialog.value = true
+	}
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -87,13 +97,26 @@ const useStudioStore = defineStore("store", () => {
 		selectedVueComponent.value = componentName
 	}
 
+	const showRouterEditor = ref(false)
+
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
 		if (!appDoc) return
 		activeApp.value = appDoc
+		await setAppBoot(appName)
 		await setAppPages(appName)
 		await setCustomComponents()
 		await setupPageScripts()
+	}
+
+	// the canvas is not a rendered app page, so it asks for the app's studio_app_boot dict
+	async function setAppBoot(appName: string) {
+		try {
+			window.boot = await call("studio.api.get_app_boot", { app_name: appName })
+		} catch (error) {
+			console.error("Failed to load app boot", error)
+			window.boot = {}
+		}
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -123,7 +146,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	function updateActiveApp(key: string, value: string) {
-		studioApps.setValue.submit(
+		return studioApps.setValue.submit(
 			{ name: activeApp.value?.name, [key]: value },
 			{
 				onSuccess() {
@@ -220,7 +243,7 @@ const useStudioStore = defineStore("store", () => {
 		settingPage.value = true
 		pageConflict.value = false
 		savingPage.value = false
-		codeStore.teardownPage()
+		pageScope.teardownPage()
 
 		const page = await fetchPage(pageName)
 		if (!page) {
@@ -230,7 +253,7 @@ const useStudioStore = defineStore("store", () => {
 		activePage.value = page
 		loadRouteVariables(page)
 		await setPageData(page)
-		await codeStore.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -315,33 +338,70 @@ const useStudioStore = defineStore("store", () => {
 		} else throw error
 	}
 
-	function updateActivePage(key: string, value: string | number) {
+	// resolves to false when the page changed elsewhere: the conflict prompt takes it from there
+	function updateActivePage(key: string, value: string | number): Promise<boolean> | undefined {
+		return saveActivePage({ [key]: value } as PageFields)
+	}
+
+	function saveActivePage(values: PageFields): Promise<boolean> | undefined {
 		if (!activePage.value) return
 		const page = activePage.value
-		return studioPages.runDocMethod
-			.submit({
-				name: page.name,
-				method: "save_page_field",
-				fieldname: key,
-				value: value,
-				known_modified: page.modified,
-			})
+		return savePageFields(page, values)
 			.then((response: any) => {
-				if (activePage.value?.name !== page.name) return
-				activePage.value[key] = value
+				if (activePage.value?.name !== page.name) return true
+				Object.assign(activePage.value, values)
 				syncPageModified(response)
+				return true
 			})
-			.catch(handlePageWriteConflict)
+			.catch((error: any) => {
+				handlePageWriteConflict(error)
+				return false
+			})
+	}
+
+	// saves the fields together, and rejects when the page changed after it was loaded instead of
+	// overwriting the newer version
+	async function updatePage(page: StudioPage, values: PageFields) {
+		if (activePage.value?.name === page.name) {
+			if (!(await saveActivePage(values))) throw new Error(PAGE_CHANGED_MESSAGE)
+		} else {
+			await savePageFields(page, values).catch(async (error: any) => {
+				await studioPages.reload()
+				throw error
+			})
+		}
+		await studioPages.reload()
+	}
+
+	function savePageFields(page: StudioPage, values: PageFields) {
+		return studioPages.runDocMethod.submit({
+			name: page.name,
+			method: "save_page_field",
+			fieldname: values,
+			known_modified: page.modified,
+		})
+	}
+
+	// the open page's flag can be newer than its row in the pages list
+	function pageAllowsGuests(page: StudioPage) {
+		const isActive = activePage.value?.name === page.name
+		return Boolean(isActive ? activePage.value?.allow_guest : page.allow_guest)
 	}
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
 	// page and re-run setup() on the canvas. (Standard pages update only after their app rebuilds.)
+	async function reloadActiveAppRouterScript() {
+		if (!activeApp.value) return
+		const app = await fetchApp(activeApp.value.name)
+		if (app && activeApp.value?.name === app.name) activeApp.value.router_script = app.router_script
+	}
+
 	async function reloadActivePageScript() {
 		if (!activePage.value) return
 		const page = await fetchPage(activePage.value.name)
 		if (!page) return
 		activePage.value = page
-		await codeStore.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 	}
 
 	async function publishPage() {
@@ -514,6 +574,7 @@ const useStudioStore = defineStore("store", () => {
 		)
 	}
 
+	let previewTab: Window | null = null
 	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
 		let route = `/${app.route}${resolveRouteVariables(page.route)}`
 		if (preview) {
@@ -523,13 +584,11 @@ const useStudioStore = defineStore("store", () => {
 			route = `${window.site_url}${route}`
 		}
 
-		const targetWindow = window.open(route, "studio-preview")
-		if (targetWindow?.location.pathname === route) {
-			targetWindow?.location.reload()
-		} else {
-			setTimeout(() => {
-				targetWindow?.location.reload()
-			}, 50)
+		// a fresh tab opens in front; navigating a reused named tab leaves it in the background
+		const nextTab = window.open(route, "_blank")
+		if (nextTab) {
+			previewTab?.close()
+			previewTab = nextTab
 		}
 	}
 
@@ -664,11 +723,12 @@ const useStudioStore = defineStore("store", () => {
 		if (!page) return
 		// re-resolve data sources with the new value, then re-run the page script so bindings that
 		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc.
-		await codeStore.setPageResources(page, true)
-		await codeStore.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.setPageResources(page, true)
+		await pageScope.setPageScript(page, Boolean(page.is_standard))
 	}, 300)
 
 	const codeStore = useCodeStore()
+	const pageScope = usePageScope()
 	codeStore.setRouteObject(routeObject)
 	codeStore.setRouterObject(readonly(router))
 
@@ -677,8 +737,8 @@ const useStudioStore = defineStore("store", () => {
 	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
 	// (studioPageScripts caches the latest setup).
 	async function setPageData(page: StudioPage) {
-		await codeStore.setPageVariables(page)
-		await codeStore.setPageResources(page, true)
+		await pageScope.setPageVariables(page)
+		await pageScope.setPageResources(page, true)
 	}
 
 	const variableConfigs = computed<Record<string, Variable>>(() => {
@@ -712,12 +772,12 @@ const useStudioStore = defineStore("store", () => {
 			}
 		}
 
-		traverse(codeStore.variables)
+		traverse(pageScope.variables)
 		return options
 	})
 
 	const pageScriptBindingOptions = computed<VariableOption[]>(() => {
-		return Object.entries(codeStore.pageScriptTemplateBindings).map(([key, value]) => ({
+		return Object.entries(pageScope.pageScriptTemplateBindings).map(([key, value]) => ({
 			value: key,
 			label: key,
 			type: typeof value,
@@ -732,8 +792,9 @@ const useStudioStore = defineStore("store", () => {
 		activeLayers,
 		// dialogs
 		showSearchBlock,
-		showStudioSettingsDialog,
-		showAppDialog,
+		showSettingsDialog,
+		settingsTab,
+		openSettings,
 		showShortcutsDialog,
 		showPageOptions,
 		// studio app
@@ -756,6 +817,7 @@ const useStudioStore = defineStore("store", () => {
 		selectedVueComponent,
 		navigateToCodeFile,
 		navigateToVueComponent,
+		showRouterEditor,
 		// studio pages
 		pageBlocks,
 		selectedPage,
@@ -768,9 +830,12 @@ const useStudioStore = defineStore("store", () => {
 		setPage,
 		savePage,
 		updateActivePage,
+		updatePage,
+		pageAllowsGuests,
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,
+		reloadActiveAppRouterScript,
 		publishPage,
 		unpublishPage,
 		revertPage,

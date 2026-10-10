@@ -14,10 +14,14 @@ export interface StudioApp {
 	route: string
 	/**	App Home : Link to the Studio Page */
 	app_home: string
+	/**	Favicon : Attach Image */
+	favicon?: string
 	/**	Is Standard : Check */
 	is_standard: 0 | 1
 	/**	Frappe App : Target Frappe App for export */
 	frappe_app?: string
+	/**	Router Script : router.ts's object for a custom app, kept in the DB */
+	router_script?: string
 }
 
 export type NewStudioApp = Pick<StudioApp, "app_title" | "route" | "app_name"> & {
