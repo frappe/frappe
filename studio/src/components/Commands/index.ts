@@ -190,20 +190,12 @@ commands.register({
 })
 
 commands.register({
-	name: "app-settings",
-	title: "App Settings",
+	name: "settings",
+	title: "Settings",
 	icon: "lucide-settings",
 	group: "General",
 	condition: () => Boolean(store.activeApp),
-	action: () => (store.showAppDialog = true),
-})
-
-commands.register({
-	name: "studio-settings",
-	title: "Studio Settings",
-	icon: "lucide-sliders-vertical",
-	group: "General",
-	action: () => (store.showStudioSettingsDialog = true),
+	action: () => store.openSettings("app"),
 })
 
 commands.register({

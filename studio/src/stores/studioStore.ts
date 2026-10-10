@@ -25,6 +25,7 @@ import type {
 	LeftPanelOptions,
 	RightPanelOptions,
 	leftPanelComponentTabOptions,
+	SettingsTab,
 	StudioMode,
 } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
@@ -32,6 +33,10 @@ import type ComponentLayers from "@/components/ComponentLayers.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
+
+type PageFields = Partial<Pick<StudioPage, "page_title" | "route" | "script" | "allow_guest">>
+
+const PAGE_CHANGED_MESSAGE = "This page was changed outside the editor. Refresh to load the latest version."
 
 const useStudioStore = defineStore("store", () => {
 	const studioLayout = useStorage(
@@ -54,10 +59,15 @@ const useStudioStore = defineStore("store", () => {
 
 	// dialogs
 	const showSearchBlock = ref(false)
-	const showStudioSettingsDialog = ref(false)
+	const showSettingsDialog = ref(false)
+	const settingsTab = ref<SettingsTab>("app")
 	const showPageOptions = ref(false)
-	const showAppDialog = ref(false)
 	const showShortcutsDialog = ref(false)
+
+	function openSettings(tab: SettingsTab) {
+		settingsTab.value = tab
+		showSettingsDialog.value = true
+	}
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -328,23 +338,54 @@ const useStudioStore = defineStore("store", () => {
 		} else throw error
 	}
 
-	function updateActivePage(key: string, value: string | number) {
+	// resolves to false when the page changed elsewhere: the conflict prompt takes it from there
+	function updateActivePage(key: string, value: string | number): Promise<boolean> | undefined {
+		return saveActivePage({ [key]: value } as PageFields)
+	}
+
+	function saveActivePage(values: PageFields): Promise<boolean> | undefined {
 		if (!activePage.value) return
 		const page = activePage.value
-		return studioPages.runDocMethod
-			.submit({
-				name: page.name,
-				method: "save_page_field",
-				fieldname: key,
-				value: value,
-				known_modified: page.modified,
-			})
+		return savePageFields(page, values)
 			.then((response: any) => {
-				if (activePage.value?.name !== page.name) return
-				activePage.value[key] = value
+				if (activePage.value?.name !== page.name) return true
+				Object.assign(activePage.value, values)
 				syncPageModified(response)
+				return true
 			})
-			.catch(handlePageWriteConflict)
+			.catch((error: any) => {
+				handlePageWriteConflict(error)
+				return false
+			})
+	}
+
+	// saves the fields together, and rejects when the page changed after it was loaded instead of
+	// overwriting the newer version
+	async function updatePage(page: StudioPage, values: PageFields) {
+		if (activePage.value?.name === page.name) {
+			if (!(await saveActivePage(values))) throw new Error(PAGE_CHANGED_MESSAGE)
+		} else {
+			await savePageFields(page, values).catch(async (error: any) => {
+				await studioPages.reload()
+				throw error
+			})
+		}
+		await studioPages.reload()
+	}
+
+	function savePageFields(page: StudioPage, values: PageFields) {
+		return studioPages.runDocMethod.submit({
+			name: page.name,
+			method: "save_page_field",
+			fieldname: values,
+			known_modified: page.modified,
+		})
+	}
+
+	// the open page's flag can be newer than its row in the pages list
+	function pageAllowsGuests(page: StudioPage) {
+		const isActive = activePage.value?.name === page.name
+		return Boolean(isActive ? activePage.value?.allow_guest : page.allow_guest)
 	}
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
@@ -751,8 +792,9 @@ const useStudioStore = defineStore("store", () => {
 		activeLayers,
 		// dialogs
 		showSearchBlock,
-		showStudioSettingsDialog,
-		showAppDialog,
+		showSettingsDialog,
+		settingsTab,
+		openSettings,
 		showShortcutsDialog,
 		showPageOptions,
 		// studio app
@@ -788,6 +830,8 @@ const useStudioStore = defineStore("store", () => {
 		setPage,
 		savePage,
 		updateActivePage,
+		updatePage,
+		pageAllowsGuests,
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,

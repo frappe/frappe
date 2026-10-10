@@ -3,15 +3,17 @@
 import json
 import os
 import re
+import shutil
 from urllib.parse import quote
 
 import frappe
 from frappe import _
 from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
+from frappe.website.utils import cleanup_page_name
 from frappe.website.website_generator import WebsiteGenerator
 
-from studio.export import can_export, delete_folder, write_document_file
+from studio.export import can_export, delete_file, delete_folder, write_document_file
 from studio.realtime import publish_doc_change
 from studio.utils import walk_blocks
 
@@ -92,6 +94,7 @@ class StudioApp(WebsiteGenerator):
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data
+		favicon: DF.AttachImage | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
 		route: DF.Data | None
@@ -114,6 +117,7 @@ class StudioApp(WebsiteGenerator):
 		context.app_route = self.route
 		context.app_title = self.app_title
 		context.app_home = self.app_home
+		context.favicon = self.favicon
 		context.frappe_app = self.frappe_app or ""
 		context.is_guest = frappe.session.user == "Guest"
 		page_filters = dict(studio_app=self.name, published=1)
@@ -154,8 +158,10 @@ class StudioApp(WebsiteGenerator):
 			return {}
 
 	def autoname(self):
-		if not self.name:
-			self.name = self.app_name or self.app_title.lower().replace(" ", "-")
+		if self.name:
+			return
+		self.name = self.app_name or self.scrub(self.app_title)
+		validate_app_name(self.name)
 
 	@property
 	def is_published(self):
@@ -196,13 +202,40 @@ class StudioApp(WebsiteGenerator):
 		path = self.get_folder_path()
 		delete_folder(path)
 
+	def before_rename(self, old, new, merge=False):
+		validate_app_name(new)
+		if self.is_standard and not can_export(self):
+			frappe.throw(_("Exported apps can only be renamed in developer mode."))
+		moves_folder = frappe.scrub(old) != frappe.scrub(new)
+		if can_export(self) and moves_folder and os.path.exists(self.get_folder_path(new)):
+			frappe.throw(_("Folder {0} already exists.").format(self.get_folder_path(new)))
+
 	def after_rename(self, old, new, merge=False):
 		if not can_export(self):
 			return
 
+		# carry every exported file (page scripts, router.ts, components) over to the new folder
+		move_folder(self.get_folder_path(old), self.get_folder_path())
 		self.export_app()
-		old_path = self.get_folder_path(old)
-		delete_folder(old_path)
+		self.remove_exported_name(old, kept_name=self.name)
+
+	def remove_exported_name(self, name: str, kept_name: str):
+		"""Drop the app JSON and studio_apps.txt entry for `name`. Both are keyed by the scrubbed
+		name, so they stay when `kept_name` scrubs the same (my-app and my_app share my_app.json)."""
+		if frappe.scrub(name) == frappe.scrub(kept_name):
+			return
+		delete_file(self.get_folder_path(), f"{frappe.scrub(name)}.json")
+		self.remove_from_studio_apps_txt(name)
+
+	def move_export_to(self, target_app: str):
+		"""Carry the export folder, files and all, into another Frappe app. Exported page scripts
+		and router.ts live only in these files, so re-exporting from the DB would lose them."""
+		old_path = self.get_folder_path()
+		new_path = self.get_folder_path(frappe_app=target_app)
+		if os.path.exists(new_path):
+			frappe.throw(_("Folder {0} already exists.").format(new_path))
+		self.remove_from_studio_apps_txt(self.name)
+		move_folder(old_path, new_path)
 
 	@frappe.whitelist()
 	def generate_app_build(self) -> dict:
@@ -301,6 +334,9 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def enable_app_export(self, target_app: str):
+		if self.is_standard and self.frappe_app and self.frappe_app != target_app:
+			self.move_export_to(target_app)
+
 		frappe.db.set_value(
 			"Studio Page",
 			{"studio_app": self.name},
@@ -402,20 +438,31 @@ class StudioApp(WebsiteGenerator):
 		self.router_script = re.sub(r"^\s*export\s+default\s+", "", source, count=1).strip()
 		return True
 
+	def remove_from_studio_apps_txt(self, name: str):
+		if self.frappe_app != "studio":
+			return
+
+		path = studio_apps_txt_path()
+		apps = frappe.get_file_items(path)
+		if frappe.scrub(name) in apps:
+			apps.remove(frappe.scrub(name))
+			with open(path, "w") as f:
+				f.write("\n".join(apps))
+
 	def add_to_studio_apps_txt(self):
 		if self.frappe_app != "studio":
 			return
 
 		apps = None
 		app_folder_name = frappe.scrub(self.name)
-		with open(frappe.get_app_path("studio", "studio_apps.txt")) as f:
+		with open(studio_apps_txt_path()) as f:
 			content = f.read()
 			if app_folder_name not in content.splitlines():
 				apps = list(filter(None, content.splitlines()))
 				apps.append(app_folder_name)
 
 			if apps:
-				with open(frappe.get_app_path("studio", "studio_apps.txt"), "w") as f:
+				with open(studio_apps_txt_path(), "w") as f:
 					f.write("\n".join(apps))
 
 	def collect_files(self, script: str, script_dir: str, blocks) -> list[dict]:
@@ -514,8 +561,25 @@ class StudioApp(WebsiteGenerator):
 			frappe.throw(_("Invalid file path: {0}").format(path), frappe.PermissionError)
 		return target
 
-	def get_folder_path(self, name: str | None = None):
-		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)
+	def get_folder_path(self, name: str | None = None, frappe_app: str | None = None):
+		return frappe.get_app_source_path(frappe_app or self.frappe_app, "studio", name or self.name)
+
+
+def validate_app_name(name: str):
+	"""The name is used in the editor's URL and the export folder, so it must be URL-friendly"""
+	if not name or name != cleanup_page_name(name):
+		frappe.throw(_("App Name must be lowercase, with hyphens instead of spaces or punctuation."))
+
+
+def studio_apps_txt_path() -> str:
+	return frappe.get_app_path("studio", "studio_apps.txt")
+
+
+def move_folder(source: str, destination: str):
+	if not os.path.exists(source) or os.path.exists(destination):
+		return
+	frappe.create_folder(os.path.dirname(destination))
+	shutil.move(source, destination)
 
 
 def custom_vue_component_names(blocks) -> set[str]:

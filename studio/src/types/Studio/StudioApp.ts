@@ -14,6 +14,8 @@ export interface StudioApp {
 	route: string
 	/**	App Home : Link to the Studio Page */
 	app_home: string
+	/**	Favicon : Attach Image */
+	favicon?: string
 	/**	Is Standard : Check */
 	is_standard: 0 | 1
 	/**	Frappe App : Target Frappe App for export */
