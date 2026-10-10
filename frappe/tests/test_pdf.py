@@ -170,6 +170,21 @@ class TestPdf(IntegrationTestCase):
 		)
 		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
 
+	def test_print_format_margins_keep_header_and_footer_on_every_page(self):
+		rows = "".join(f"<p>row {i}</p>" for i in range(150))
+		pdf = pdfgen.get_pdf(
+			"<style>.print-format { margin-top: 30mm; margin-bottom: 20mm; }</style>"
+			'<div class="print-format"><div id="header-html"><b>TOP</b></div>'
+			f"{rows}"
+			'<div id="footer-html">Page <span class="page"></span> of <span class="topage"></span></div></div>'
+		)
+		pages = PdfReader(io.BytesIO(pdf)).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			text = page.extract_text()
+			self.assertIn("TOP", text)
+			self.assertIn(f"Page {number} of {len(pages)}", text)
+
 	def test_pdf_visibility_classes_apply_to_the_body(self):
 		pdf = pdfgen.get_pdf(
 			"<style>.visible-pdf { display: none; }</style>"
