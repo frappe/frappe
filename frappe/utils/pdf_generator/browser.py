@@ -88,7 +88,10 @@ class Browser:
 		self.browser_context_id = result["browserContextId"]
 
 	def set_html(self, html):
+		from frappe.utils.pdf import toggle_visible_pdf
+
 		self.soup = BeautifulSoup(html, "html5lib")
+		toggle_visible_pdf(self.soup)
 
 	def set_options(self, options):
 		self.options = options
