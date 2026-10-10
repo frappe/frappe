@@ -207,7 +207,9 @@ frappe.ui.form.PrintView = class {
 							<span class="thumb-fields"><i></i><i></i></span>
 							<span class="thumb-table"><i></i><i></i><i></i></span>
 						</span>
-						<span class="print-style-name">${frappe.utils.escape_html(__(name))}</span>
+						<span class="print-style-name">${frappe.utils.escape_html(
+							name === "Redesign" ? __("Default") : __(name)
+						)}</span>
 					</button>`;
 				})
 				.join("")
