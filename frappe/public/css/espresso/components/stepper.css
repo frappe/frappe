@@ -26,6 +26,8 @@
  * no chip fill; ink strength (gray-7 vs gray-4) carries state.
  * Locked steps use aria-disabled, not disabled, so they stay in the tab
  * order; the click guard blocks them and calls on_locked_click.
+ * Without on_step_click or on_locked_click a step is a <div>, not a button,
+ * since nothing happens on click.
  *
  * `label_position` (bottom | top | left) adds es-stepper--label-<position>.
  * Bottom and top need --es-stepper-steps (the step count) on the nav.
@@ -33,6 +35,19 @@
  * Compact mode (JS option `compact`) renders the frappe.ui.progress interval
  * form with a "Step x of y" hint for narrow layouts; mount a compact and a
  * full instance and toggle visibility at your breakpoint.
+ *
+ * Vertical (JS option `orientation: "vertical"`, class es-stepper--vertical)
+ * stacks the steps for a checklist that stays open, as an ordered list:
+ *
+ *   <ol class="es-stepper__list">
+ *     <li class="es-stepper__item">
+ *       <button class="es-stepper__step" …>(marker)(label)</button>
+ *       <span class="es-stepper__connector"></span>   (not on the last step)
+ *       <div class="es-stepper__content">…</div>      (when the step has content)
+ *     </li>
+ *   </ol>
+ *
+ * Its rules use child selectors, so a stepper inside a step's content keeps its own layout.
  */
 
 .es-stepper {
@@ -57,6 +72,10 @@
     font: inherit;
     outline: none;
     color: var(--ink-gray-4);
+}
+
+.es-stepper__step:not(button) {
+    cursor: default;
 }
 
 .es-stepper__step:focus-visible {
@@ -222,4 +241,71 @@
 
 .es-stepper--label-left .es-stepper__step {
     flex-direction: row-reverse;
+}
+
+/* Vertical: markers in a column joined by a line, each step's content beside it. */
+.es-stepper--vertical {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.es-stepper__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.es-stepper__list > .es-stepper__item {
+    display: grid;
+    grid-template-columns: calc(var(--spacing) * 4) minmax(0, 1fr);
+    column-gap: calc(var(--spacing) * 3);
+}
+
+/* Spans both columns, with the column gap, so the label lines up with the content. */
+.es-stepper__item > .es-stepper__step {
+    grid-column: 1 / -1;
+    justify-self: start;
+    align-items: flex-start;
+    max-width: 100%;
+    gap: calc(var(--spacing) * 3);
+    padding: calc(var(--spacing) * 0.5) 0;
+    color: var(--ink-gray-6);
+}
+
+/* There is room below, so a long label wraps instead of being cut off. */
+.es-stepper__item > .es-stepper__step > .es-stepper__label {
+    white-space: normal;
+}
+
+/* Every step stays readable here, since its content is open below it. */
+.es-stepper__item > .es-stepper__step[data-state="completed"] {
+    color: var(--ink-gray-7);
+}
+
+.es-stepper__item > .es-stepper__step[data-state="active"] {
+    color: var(--ink-gray-9);
+}
+
+.es-stepper__item > .es-stepper__connector {
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: center;
+    width: 1px;
+    min-width: 0;
+    height: auto;
+    min-height: calc(var(--spacing) * 4);
+    margin: calc(var(--spacing) * 1.5) 0;
+}
+
+.es-stepper__item > .es-stepper__content {
+    grid-row: 2;
+    grid-column: 2;
+    min-width: 0;
+    padding: calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 6);
+}
+
+.es-stepper__item:last-child > .es-stepper__content {
+    padding-bottom: 0;
 }
