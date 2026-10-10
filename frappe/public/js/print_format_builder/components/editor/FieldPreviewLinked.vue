@@ -15,6 +15,7 @@
 <script setup>
 import { computed, inject, ref, watch, watchEffect } from "vue";
 import { useDoctypeFields } from "../../composables/useDoctypeFields";
+import { linked_target, linked_values } from "../../composables/linkedValues";
 
 const props = defineProps(["df"]);
 const store = inject("$store");
@@ -46,28 +47,19 @@ watch(
 watchEffect(() => {
 	value.value = "";
 	pending_key = null;
-	const path = props.df.link_path;
-	const preview_doc = store.preview_doc.value;
-	if (!path || !path.includes(".")) return;
-	const [link_fieldname, target_fieldname] = path.split(".");
-	if (!target_fieldname) return;
-	const link_df = (store.meta.value?.fields || []).find(
-		(f) => f.fieldname === link_fieldname && f.fieldtype === "Link"
-	);
-	if (!link_df?.options) return;
-	if (!target_fields.value.some((f) => f.fieldname === target_fieldname)) return;
-	const name = preview_doc?.[link_fieldname];
-	if (!name) return;
-	const key = `${link_df.options}:${name}:${target_fieldname}`;
+	const target = linked_target(props.df, store.meta.value, store.preview_doc.value);
+	if (!target || !target_fields.value.some((f) => f.fieldname === target.fieldname)) return;
+	const { key, fieldname: target_fieldname } = target;
 	pending_key = key;
 	cache[key] ??= frappe.db
-		.get_value(link_df.options, name, target_fieldname)
+		.get_value(target.doctype, target.name, target_fieldname)
 		.then((r) => r?.message?.[target_fieldname] ?? "")
 		.catch(() => {
 			delete cache[key];
 			return "";
 		});
 	cache[key].then((v) => {
+		linked_values[key] = v;
 		if (pending_key === key) value.value = v;
 	});
 });
