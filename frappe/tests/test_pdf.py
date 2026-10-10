@@ -334,6 +334,7 @@ class TestChromePdfGeometry(IntegrationTestCase):
 
 		browser = Browser.__new__(Browser)
 		browser.is_print_designer = False
+		browser.print_format = None
 		browser.options = options
 		browser.soup = BeautifulSoup("<html><head></head><body></body></html>", "html5lib")
 		browser.body_page = SimpleNamespace(options={})
@@ -373,6 +374,29 @@ class TestChromePdfGeometry(IntegrationTestCase):
 
 			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
 			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
+
+	def test_print_format_page_margin_reaches_pdf(self):
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": "Test Page Margin",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"html": "<p>{{ doc.name }}</p>",
+				"css": "@page { margin: 40mm 10mm 20mm 30mm; }",
+			}
+		).insert(ignore_if_duplicate=True)
+		self.addCleanup(print_format.delete)
+		browser = self.make_browser({"page-size": "A4"})
+		browser.print_format = print_format.name
+		browser.prepare_options_for_pdf()
+
+		options = browser.body_page.options
+		self.assertAlmostEqual(options["marginTop"], 40 / 25.4, delta=0.01)
+		self.assertAlmostEqual(options["marginRight"], 10 / 25.4, delta=0.01)
+		self.assertAlmostEqual(options["marginBottom"], 20 / 25.4, delta=0.01)
+		self.assertAlmostEqual(options["marginLeft"], 30 / 25.4, delta=0.01)
 
 	def test_custom_page_size_without_dimensions_raises(self):
 		from unittest.mock import patch
