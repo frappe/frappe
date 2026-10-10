@@ -56,6 +56,12 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 	return "chrome"
 
 
+def _run_print_pdf_hooks(doctype, name, print_format):
+	for hook in frappe.get_hooks("on_print_pdf"):
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
+		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+
+
 def get_print(
 	doctype=None,
 	name=None,
@@ -127,9 +133,7 @@ def get_print(
 
 			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
 			validate_print(doc_obj)
-			for hook in frappe.get_hooks("on_print_pdf"):
-				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
-				frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+			_run_print_pdf_hooks(doctype, name, print_format)
 			render_format = pf_doc or get_default_print_format(doc_obj.doctype)
 			pdf = _render_builder_pdf(
 				render_format,
@@ -163,8 +167,7 @@ def get_print(
 		if not as_pdf:
 			return html
 
-		for hook in frappe.get_hooks("on_print_pdf"):
-			frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+		_run_print_pdf_hooks(doctype, name, print_format)
 
 		hook_func = frappe.get_hooks("pdf_generator")
 		for hook in hook_func:
