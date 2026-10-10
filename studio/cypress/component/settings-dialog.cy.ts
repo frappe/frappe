@@ -111,7 +111,12 @@ describe("settings dialog", () => {
 		cy.contains("label", "Route").parent().find("input").clear().type("about-us")
 		cy.contains("[role=dialog]", "Edit Page").find("[role=switch]").click()
 		cy.contains("button", "Save").click()
-		cy.wait(["@savePage", "@savePage", "@savePage"])
+		cy.wait("@savePage").its("request.body.args.fieldname").should("deep.equal", {
+			page_title: "About Us",
+			route: "/about-us",
+			allow_guest: 1,
+		})
+		cy.get("@savePage.all").should("have.length", 1)
 		cy.get_doc("Studio Page", aboutPage.name).then(({ data }) => {
 			expect(data.page_title).to.eq("About Us")
 			expect(data.route).to.eq("/about-us")

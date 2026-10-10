@@ -56,7 +56,7 @@ function editPage(page: StudioPage) {
 
 function setGuestAccess(page: StudioPage, allow: boolean) {
 	store
-		.updatePage(page, "allow_guest", allow ? 1 : 0)
+		.updatePage(page, { allow_guest: allow ? 1 : 0 })
 		.then(() => toast.success(`Guest access ${allow ? "allowed" : "removed"} for ${page.page_title}`))
 		.catch((error: any) => {
 			toast.error(`Could not change guest access for ${page.page_title}`, {

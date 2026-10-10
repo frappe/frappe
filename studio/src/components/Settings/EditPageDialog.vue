@@ -57,10 +57,11 @@ async function save() {
 	saving.value = true
 	error.value = ""
 	try {
-		await updateIfChanged(page, "page_title", title.value.trim(), page.page_title || "")
-		await updateIfChanged(page, "route", withLeadingSlash(route.value.trim()), page.route)
-		await updateIfChanged(page, "allow_guest", allowGuest.value ? 1 : 0, store.pageAllowsGuests(page) ? 1 : 0)
-		toast.success("Page updated")
+		const changes = changedFields(page)
+		if (Object.keys(changes).length) {
+			await store.updatePage(store.appPages[page.name] || page, changes)
+			toast.success("Page updated")
+		}
 		open.value = false
 	} catch (saveError: any) {
 		error.value = saveError?.messages?.join(", ") || saveError?.message || "Failed to update the page"
@@ -69,15 +70,14 @@ async function save() {
 	}
 }
 
-function updateIfChanged(
-	page: StudioPage,
-	field: "page_title" | "route" | "allow_guest",
-	value: string | number,
-	current: string | number,
-) {
-	if (value === current) return
-	// each save moves `modified` on, so the next one locks against the refreshed row
-	return store.updatePage(store.appPages[page.name] || page, field, value)
+function changedFields(page: StudioPage) {
+	const changes: Partial<StudioPage> = {}
+	const pageTitle = title.value.trim()
+	const pageRoute = withLeadingSlash(route.value.trim())
+	if (pageTitle !== (page.page_title || "")) changes.page_title = pageTitle
+	if (pageRoute !== page.route) changes.route = pageRoute
+	if (allowGuest.value !== store.pageAllowsGuests(page)) changes.allow_guest = allowGuest.value ? 1 : 0
+	return changes
 }
 
 function withLeadingSlash(value: string) {

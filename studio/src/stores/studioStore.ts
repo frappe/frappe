@@ -34,6 +34,8 @@ import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
 
+type PageFields = Partial<Pick<StudioPage, "page_title" | "route" | "script" | "allow_guest">>
+
 const PAGE_CHANGED_MESSAGE = "This page was changed outside the editor. Refresh to load the latest version."
 
 const useStudioStore = defineStore("store", () => {
@@ -338,12 +340,16 @@ const useStudioStore = defineStore("store", () => {
 
 	// resolves to false when the page changed elsewhere: the conflict prompt takes it from there
 	function updateActivePage(key: string, value: string | number): Promise<boolean> | undefined {
+		return saveActivePage({ [key]: value } as PageFields)
+	}
+
+	function saveActivePage(values: PageFields): Promise<boolean> | undefined {
 		if (!activePage.value) return
 		const page = activePage.value
-		return savePageField(page, key, value)
+		return savePageFields(page, values)
 			.then((response: any) => {
 				if (activePage.value?.name !== page.name) return true
-				activePage.value[key] = value
+				Object.assign(activePage.value, values)
 				syncPageModified(response)
 				return true
 			})
@@ -353,12 +359,13 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
-	// rejects when the page changed after it was loaded, instead of overwriting the newer version
-	async function updatePage(page: StudioPage, key: string, value: string | number) {
+	// saves the fields together, and rejects when the page changed after it was loaded instead of
+	// overwriting the newer version
+	async function updatePage(page: StudioPage, values: PageFields) {
 		if (activePage.value?.name === page.name) {
-			if (!(await updateActivePage(key, value))) throw new Error(PAGE_CHANGED_MESSAGE)
+			if (!(await saveActivePage(values))) throw new Error(PAGE_CHANGED_MESSAGE)
 		} else {
-			await savePageField(page, key, value).catch(async (error: any) => {
+			await savePageFields(page, values).catch(async (error: any) => {
 				await studioPages.reload()
 				throw error
 			})
@@ -366,12 +373,11 @@ const useStudioStore = defineStore("store", () => {
 		await studioPages.reload()
 	}
 
-	function savePageField(page: StudioPage, key: string, value: string | number) {
+	function savePageFields(page: StudioPage, values: PageFields) {
 		return studioPages.runDocMethod.submit({
 			name: page.name,
 			method: "save_page_field",
-			fieldname: key,
-			value: value,
+			fieldname: values,
 			known_modified: page.modified,
 		})
 	}
