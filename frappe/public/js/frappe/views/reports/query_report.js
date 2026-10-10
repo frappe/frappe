@@ -105,7 +105,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_no_result_message() {
-		return frappe.ui.empty_state({ icon: "sheet", title: __("Nothing to show") })[0].outerHTML;
+		return frappe.ui.empty_state({
+			icon: "sheet",
+			title: __("Nothing to show"),
+			description: this.filters?.length ? __("Try changing the filters.") : "",
+		})[0].outerHTML;
 	}
 
 	setup_events() {
