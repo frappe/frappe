@@ -28,12 +28,17 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 		return None
 
 
+def get_pdf_generators() -> list[str]:
+	"""PDF engines a Print Format can pick, including ones apps add as options."""
+	return (frappe.get_meta("Print Format").get_field("pdf_generator").options or "").split("\n")
+
+
 def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -> str:
 	"""Pick the PDF engine for a render.
 
 	The beta renderer emits flexbox layouts that only Chromium lays out correctly, so a
 	beta format pins itself to Chrome. Everything else honours an explicit choice, then
-	the format's own setting, then Chromium.
+	the format's own setting. Anything that is not a known engine renders with Chromium.
 
 	A beta format's Typst choice dispatches through the `pdf_generator` hook, so the
 	HTML pipeline's PDF consumers reach the Typst renderer too.
@@ -44,11 +49,8 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 		if print_format.get("pdf_generator") == "Typst":
 			return "Typst"
 		return "chrome"
-	if pdf_generator:
-		return pdf_generator
-	if print_format and print_format.get("pdf_generator"):
-		return print_format.get("pdf_generator")
-	return "chrome"
+	generator = pdf_generator or (print_format and print_format.get("pdf_generator"))
+	return generator if generator in get_pdf_generators() else "chrome"
 
 
 def get_print(
@@ -86,7 +88,7 @@ def get_print(
 
 	local = frappe.local
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
-	generator = local.form_dict.get("pdf_generator") or resolve_pdf_generator(pf_doc, pdf_generator)
+	generator = resolve_pdf_generator(pf_doc, local.form_dict.get("pdf_generator") or pdf_generator)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:

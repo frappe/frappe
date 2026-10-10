@@ -130,6 +130,11 @@ class PrintFormat(Document):
 		return download_pdf(self.doc_type, docname, self.name, letterhead)
 
 	def validate(self):
+		from frappe.utils.print_utils import get_pdf_generators
+
+		if self.pdf_generator not in get_pdf_generators():
+			self.pdf_generator = "chrome"
+
 		if (
 			self.standard == "Yes"
 			and not frappe.local.conf.get("developer_mode")

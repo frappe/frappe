@@ -3,7 +3,6 @@ import os
 import tempfile
 import uuid
 from io import BytesIO
-from typing import Literal
 
 import frappe
 from frappe import _
@@ -394,7 +393,7 @@ def download_pdf(
 	no_letterhead: bool | int = 0,
 	language: str | None = None,
 	letterhead: str | None = None,
-	pdf_generator: Literal["chrome", "Typst"] | None = None,
+	pdf_generator: str | None = None,
 ):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)

@@ -344,6 +344,38 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		):
 			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
 
+	def test_unknown_pdf_generator_renders_with_chrome(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+
+		jinja = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Jinja {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"standard": "No",
+				"html": "<p>{{ doc.description }}</p>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", jinja.name, force=True)
+		todo = self._make_todo()
+
+		for value in ("wkhtmltopdf", "no-such-engine"):
+			jinja.db_set("pdf_generator", value)
+			frappe.clear_document_cache("Print Format", jinja.name)
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "chrome")
+			self.assertEqual(resolve_pdf_generator(None, value), "chrome")
+			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+				frappe.get_print("ToDo", todo.name, print_format=jinja.name, as_pdf=True, pdf_generator=value)
+			self.assertEqual(chrome_pdf.call_args.kwargs["pdf_generator"], "chrome")
+
+		jinja.reload()
+		jinja.save()
+		self.assertEqual(jinja.pdf_generator, "chrome")
+
 	def test_standard_print_renders_with_chrome(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
