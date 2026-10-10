@@ -155,6 +155,8 @@ class TestPdf(IntegrationTestCase):
 		self.assertEqual(len(output.pages), 1)
 
 	def test_repeated_header_marked_hidden_pdf_still_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		pdf = pdfgen.get_pdf(
 			'<div id="header-html" class="hidden-pdf"><b>REPORT HEADER</b></div><p>report body</p>'
 		)

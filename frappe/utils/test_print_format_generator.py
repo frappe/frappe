@@ -361,17 +361,21 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			}
 		).insert()
 		self.addCleanup(frappe.delete_doc, "Print Format", jinja.name, force=True)
-		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
 
 		for value in ("wkhtmltopdf", "no-such-engine"):
+			frappe.set_user("Administrator")
 			jinja.db_set("pdf_generator", value)
 			frappe.clear_document_cache("Print Format", jinja.name)
+			frappe.set_user("test@example.com")
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "pdf engine fallback"}).insert()
 			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "chrome")
 			self.assertEqual(resolve_pdf_generator(None, value), "chrome")
 			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
 				frappe.get_print("ToDo", todo.name, print_format=jinja.name, as_pdf=True, pdf_generator=value)
 			self.assertEqual(chrome_pdf.call_args.kwargs["pdf_generator"], "chrome")
 
+		frappe.set_user("Administrator")
 		jinja.reload()
 		jinja.save()
 		self.assertEqual(jinja.pdf_generator, "chrome")
