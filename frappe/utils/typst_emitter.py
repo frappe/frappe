@@ -689,7 +689,13 @@ class TypstEmitter:
 					)
 					if rows and df.get("table_columns"):
 						return False
-				elif self.doc.get(df.get("fieldname")):
+				elif fieldtype == "Static Text":
+					if (df.get("text") or "").strip():
+						return False
+				elif fieldtype == "Typst":
+					if (df.get("typst") or "").strip():
+						return False
+				elif df.get("_value") or self.doc.get(df.get("fieldname")):
 					return False
 		return True
 
