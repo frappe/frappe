@@ -278,6 +278,14 @@ class TestChromePdfGeometry(IntegrationTestCase):
 		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 8.27, delta=0.05)
 		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 11.69, delta=0.05)
 
+	def test_every_print_settings_page_size_is_known(self):
+		from frappe.utils.pdf_generator.browser import PageSize
+
+		options = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+		for size in options:
+			if size != "Custom":
+				self.assertTrue(PageSize.get(size), size)
+
 	def test_landscape_orientation_swaps_paper_size(self):
 		for orientation in ("Landscape", "landscape"):
 			browser = self.make_browser({"page-size": "A4", "orientation": orientation})
