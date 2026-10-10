@@ -894,7 +894,7 @@ class TypstEmitter:
 
 	def _data_field(self, section, df) -> str:
 		value = self._formatted_value(df)
-		if not value:
+		if not value and not df.get("show_empty"):
 			return ""
 		show_label = df.get("show_label") or "show"
 		inline = show_label == "inline" or section.get("field_orientation") == "left-right"
