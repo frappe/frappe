@@ -1301,6 +1301,43 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Vertical (each step with its content)"),
+					items: [
+						{
+							orientation: "vertical",
+							current: 1,
+							steps: [
+								{
+									label: "Chart of Accounts",
+									content: () =>
+										$(`<p class="text-p-sm text-ink-gray-6 m-0"></p>`).text(
+											"Kept the chart made during setup."
+										),
+								},
+								{
+									label: "Opening balances",
+									content: () =>
+										$(`<div class="flex flex-col gap-2 items-start"></div>`)
+											.append(
+												$(
+													`<p class="text-p-sm text-ink-gray-6 m-0"></p>`
+												).text(
+													"Bring the closing balances from your old books."
+												)
+											)
+											.append(
+												frappe.ui.button({
+													label: "Open",
+													variant: "solid",
+												})
+											),
+								},
+								{ label: "Go Live" },
+							],
+						},
+					],
+				},
+				{
 					title: __("Compact (narrow layouts)"),
 					items: [
 						{

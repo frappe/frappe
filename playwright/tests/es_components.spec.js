@@ -435,6 +435,88 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Stepper", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Stepper");
+		});
+
+		test("vertical puts each step's content beside a line down to the next step", async ({
+			page,
+		}) => {
+			const items = explorer_group(page, "Vertical").locator(".es-stepper__item");
+			await expect(items).toHaveCount(3);
+
+			// a line after every step but the last, marked done after a done step
+			await expect(
+				explorer_group(page, "Vertical").locator(".es-stepper__connector")
+			).toHaveCount(2);
+			await expect(items.nth(0).locator(".es-stepper__connector")).toHaveAttribute(
+				"data-completed",
+				"true"
+			);
+
+			await expect(items.nth(1).locator(".es-stepper__step")).toHaveAttribute(
+				"aria-current",
+				"step"
+			);
+			await expect(items.nth(1).locator(".es-stepper__content")).toContainText(
+				"Bring the closing balances"
+			);
+			// a step without content gets no content box
+			await expect(items.nth(2).locator(".es-stepper__content")).toHaveCount(0);
+		});
+
+		test("vertical content: a string stays text, and an unchanged refresh keeps it", async ({
+			page,
+		}) => {
+			const result = await page.evaluate(() => {
+				const input = $(`<input>`);
+				const $stepper = frappe.ui
+					.stepper({
+						orientation: "vertical",
+						steps: [
+							{ label: "One", content: "<b>not markup</b>" },
+							{ label: "Two", content: () => input },
+							{ label: "Three", content: () => $() },
+						],
+					})
+					.appendTo("body");
+				input.val("typed");
+				$stepper.data("es-stepper").refresh();
+				const out = {
+					text: $stepper.find(".es-stepper__content").first().text(),
+					bold: $stepper.find(".es-stepper__content b").length,
+					value: $stepper.find("input").val(),
+					boxes: $stepper.find(".es-stepper__content").length,
+					items: $stepper.find("ol > li.es-stepper__item").length,
+				};
+				$stepper.remove();
+				return out;
+			});
+			expect(result).toEqual({
+				text: "<b>not markup</b>",
+				bold: 0,
+				value: "typed",
+				// the empty jQuery content gets no box
+				boxes: 2,
+				items: 3,
+			});
+		});
+
+		test("a step is a button only when something handles its click", async ({ page }) => {
+			await expect(
+				explorer_group(page, "Click to navigate").locator("button.es-stepper__step")
+			).toHaveCount(3);
+			// nothing handles clicks here, so no dead tab stops
+			await expect(
+				explorer_group(page, "Vertical").locator(".es-stepper__step")
+			).toHaveCount(3);
+			await expect(
+				explorer_group(page, "Vertical").locator("button.es-stepper__step")
+			).toHaveCount(0);
+		});
+	});
+
 	test.describe("Stat Card", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Stat Card");

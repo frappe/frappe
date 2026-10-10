@@ -3,6 +3,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} StepperStep
  * @property {string} label Translated step name.
+ * @property {string|Element|JQuery|((index:number)=>string|Element|JQuery)} [content] Shown beside the marker line in the vertical layout; a string shows as text. Built when the steps render: on creation and whenever the current step or a step's state changes.
  *
  * @typedef {Object} StepperOpts
  * @property {StepperStep[]} steps
@@ -12,8 +13,9 @@ frappe.provide("frappe.ui");
  * @property {(index:number)=>boolean} [is_completed] Marks a step done. Without it, every step before the current one counts as done.
  * @property {(index:number)=>void} [on_step_click] Called for an unlocked step; call set_current to move.
  * @property {(index:number)=>void} [on_locked_click] Called for a locked step; ignored if not given.
- * @property {boolean} [compact] Show a progress bar with "Step x of y" instead of the steps, for narrow layouts.
- * @property {"right"|"left"|"top"|"bottom"} [label_position="right"] Where each label sits relative to its marker.
+ * @property {boolean} [compact] Show a progress bar with "Step x of y" instead of the steps, for narrow layouts. Horizontal only.
+ * @property {"horizontal"|"vertical"} [orientation="horizontal"] Vertical stacks the steps, each with its content, for a checklist that stays open.
+ * @property {"right"|"left"|"top"|"bottom"} [label_position="right"] Where each label sits relative to its marker. Horizontal only.
  * @property {string} [css_class] Extra classes on the nav.
  */
 
@@ -26,6 +28,12 @@ frappe.provide("frappe.ui");
  *   on_step_click: (i) => stepper.set_current(i),
  * });
  * $(".wizard-head").append(stepper.$el);
+ *
+ * @example
+ * frappe.ui.stepper({
+ *   orientation: "vertical",
+ *   steps: [{ label: __("Accounts"), content: $accounts_actions }, { label: __("Go Live") }],
+ * });
  */
 frappe.ui.Stepper = class Stepper {
 	/** @param {StepperOpts} opts */
@@ -36,13 +44,21 @@ frappe.ui.Stepper = class Stepper {
 		this.is_completed = opts.is_completed || null;
 		this.on_step_click = opts.on_step_click || null;
 		this.on_locked_click = opts.on_locked_click || null;
-		this.compact = Boolean(opts.compact);
+		this.vertical = opts.orientation === "vertical";
+		this.compact = Boolean(opts.compact) && !this.vertical;
 
 		this.nav = document.createElement("nav");
-		this.nav.className = ["es-stepper", opts.css_class].filter(Boolean).join(" ");
-		const label_position = ["bottom", "top", "left"].includes(opts.label_position)
-			? opts.label_position
-			: "right";
+		this.nav.className = [
+			"es-stepper",
+			this.vertical && "es-stepper--vertical",
+			opts.css_class,
+		]
+			.filter(Boolean)
+			.join(" ");
+		const label_position =
+			!this.vertical && ["bottom", "top", "left"].includes(opts.label_position)
+				? opts.label_position
+				: "right";
 		if (label_position !== "right") {
 			this.nav.classList.add(`es-stepper--label-${label_position}`);
 		}
@@ -112,75 +128,109 @@ frappe.ui.Stepper = class Stepper {
 			return;
 		}
 
+		// vertical steps are an ordered list, so assistive tech announces their count and order
+		const list = this.vertical && document.createElement("ol");
+		if (list) {
+			list.className = "es-stepper__list";
+			this.nav.appendChild(list);
+		}
+
 		this.steps.forEach((step, index) => {
-			if (index > 0) {
-				const connector = document.createElement("span");
-				connector.className = "es-stepper__connector";
-				connector.setAttribute("aria-hidden", "true");
-				if (done(index - 1)) {
-					connector.setAttribute("data-completed", "true");
-				}
-				this.nav.appendChild(connector);
+			const step_el = this.make_step(step, index, done);
+			if (list) {
+				list.appendChild(this.make_item(step, index, step_el, done));
+				return;
 			}
-
-			const locked = Boolean(
-				this.is_locked && index !== this.current && this.is_locked(index)
-			);
-			const is_done = done(index);
-			const state =
-				index === this.current
-					? "active"
-					: is_done
-					? "completed"
-					: locked
-					? "locked"
-					: null;
-
-			const button = document.createElement("button");
-			button.type = "button";
-			button.className = "es-stepper__step";
-			if (state) button.setAttribute("data-state", state);
-			if (state === "active") button.setAttribute("aria-current", "step");
-			// Separate from data-state so a revisited done step can also be active.
-			if (is_done) button.setAttribute("data-completed", "true");
-			// Not `disabled`, so locked steps stay in the tab order; the click guard blocks.
-			if (locked) button.setAttribute("aria-disabled", "true");
-
-			const marker = document.createElement("span");
-			marker.className = "es-stepper__marker";
-			const icon_name = is_done
-				? state === "active"
-					? "dot"
-					: "check"
-				: state === "active"
-				? "circle-dot-dashed"
-				: "circle-dashed";
-			marker.innerHTML = frappe.utils.icon(icon_name, "sm", "", "", "", true);
-			button.appendChild(marker);
-
-			const label = document.createElement("span");
-			label.className = "es-stepper__label";
-			label.textContent = step.label;
-			button.appendChild(label);
-			// Full label on hover, since long ones get cut off.
-			button.title = step.label;
-
-			button.addEventListener("click", () => {
-				if (button.getAttribute("aria-disabled") === "true") {
-					this.on_locked_click && this.on_locked_click(index);
-					return;
-				}
-				if (index === this.current) return;
-				this.on_step_click && this.on_step_click(index);
-			});
-
-			this.nav.appendChild(button);
+			if (index > 0) {
+				this.nav.appendChild(this.make_connector(done(index - 1)));
+			}
+			this.nav.appendChild(step_el);
 		});
 
 		if (had_focus > -1) {
 			const target = this.nav.querySelectorAll(".es-stepper__step")[had_focus];
 			target && target.focus({ preventScroll: true });
 		}
+	}
+
+	make_step(step, index, done) {
+		const locked = Boolean(this.is_locked && index !== this.current && this.is_locked(index));
+		const is_done = done(index);
+		const state =
+			index === this.current ? "active" : is_done ? "completed" : locked ? "locked" : null;
+
+		// a step nothing can click is text, so keyboard users get no dead tab stop
+		const clickable = Boolean(this.on_step_click || this.on_locked_click);
+		const step_el = document.createElement(clickable ? "button" : "div");
+		if (clickable) step_el.type = "button";
+		step_el.className = "es-stepper__step";
+		if (state) step_el.setAttribute("data-state", state);
+		if (state === "active") step_el.setAttribute("aria-current", "step");
+		// Separate from data-state so a revisited done step can also be active.
+		if (is_done) step_el.setAttribute("data-completed", "true");
+		// Not `disabled`, so locked steps stay in the tab order; the click guard blocks.
+		if (locked) step_el.setAttribute("aria-disabled", "true");
+
+		const marker = document.createElement("span");
+		marker.className = "es-stepper__marker";
+		const icon_name = is_done
+			? state === "active"
+				? "dot"
+				: "check"
+			: state === "active"
+			? "circle-dot-dashed"
+			: "circle-dashed";
+		marker.innerHTML = frappe.utils.icon(icon_name, "sm", "", "", "", true);
+		step_el.appendChild(marker);
+
+		const label = document.createElement("span");
+		label.className = "es-stepper__label";
+		label.textContent = step.label;
+		step_el.appendChild(label);
+		// Full label on hover, since long ones get cut off.
+		step_el.title = step.label;
+
+		if (clickable) {
+			step_el.addEventListener("click", () => {
+				if (step_el.getAttribute("aria-disabled") === "true") {
+					this.on_locked_click && this.on_locked_click(index);
+					return;
+				}
+				if (index === this.current) return;
+				this.on_step_click && this.on_step_click(index);
+			});
+		}
+
+		return step_el;
+	}
+
+	make_connector(completed) {
+		const connector = document.createElement("span");
+		connector.className = "es-stepper__connector";
+		connector.setAttribute("aria-hidden", "true");
+		if (completed) {
+			connector.setAttribute("data-completed", "true");
+		}
+		return connector;
+	}
+
+	make_item(step, index, step_el, done) {
+		const item = document.createElement("li");
+		item.className = "es-stepper__item";
+		item.appendChild(step_el);
+		if (index < this.steps.length - 1) {
+			item.appendChild(this.make_connector(done(index)));
+		}
+		let content = typeof step.content === "function" ? step.content(index) : step.content;
+		// a string stays text, like the label beside it
+		if (typeof content === "string") content = content && document.createTextNode(content);
+		if (content && $(content).length) {
+			const body = document.createElement("div");
+			body.className = "es-stepper__content";
+			$(body).append(content);
+			item.appendChild(body);
+		}
+		return item;
 	}
 
 	render_compact() {
