@@ -643,3 +643,14 @@ body.print-format-doc .letter-head,
 	line-height: 2.5;
 	color: #4c5a67;
 }
+
+.print-format-doc.print-format-doc--ink-saver *,
+.print-format-doc.print-format-doc--ink-saver .child-table .table td,
+.print-format-doc.print-format-doc--ink-saver .child-table .table thead th {
+	background-color: transparent !important;
+	color: #000 !important;
+}
+
+.print-format-doc.print-format-doc--ink-saver .label {
+	color: #444 !important;
+}

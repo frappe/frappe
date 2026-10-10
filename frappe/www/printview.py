@@ -424,6 +424,15 @@ def get_rendered_raw_commands(
 
 
 PAGE_SIZE_SETTINGS = ("pdf_page_size", "pdf_page_height", "pdf_page_width")
+PRINT_PAGE_SETTINGS = (
+	"page_orientation",
+	"margin_top",
+	"margin_right",
+	"margin_bottom",
+	"margin_left",
+	"print_font",
+	"ink_saver",
+)
 
 
 def get_allowed_print_settings_override(doc: "Document", settings: dict | None) -> dict:
@@ -433,6 +442,7 @@ def get_allowed_print_settings_override(doc: "Document", settings: dict | None) 
 		return {}
 	allowed = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
 	allowed.update(PAGE_SIZE_SETTINGS)
+	allowed.update(PRINT_PAGE_SETTINGS)
 	return {key: value for key, value in settings.items() if key in allowed}
 
 
