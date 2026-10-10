@@ -162,6 +162,12 @@ class Browser:
 		# code is structured like this to improve performance by running commands in chrome as soon as possible.
 		soup = self.soup
 		options = self.options
+		if options.get("block-external-requests"):
+			for script in soup.find_all("script"):
+				script.decompose()
+			for tag in soup.find_all(True):
+				for attr in [attr for attr in tag.attrs if attr.lower().startswith("on")]:
+					del tag[attr]
 		# open header and footer pages
 		self._open_header_footer_pages()
 
