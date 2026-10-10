@@ -19,14 +19,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue"
 import { toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import { studioSettings } from "@/data/studioSettings"
-
-onMounted(() => {
-	if (!studioSettings.doc) studioSettings.reload()
-})
 
 function save(apiKey: string) {
 	studioSettings.setValue
