@@ -1,5 +1,5 @@
 import { ref, nextTick, computed, toRaw, readonly } from "vue"
-import { useDebounceFn, useStorage } from "@vueuse/core"
+import { useDark, useDebounceFn, useStorage, useToggle } from "@vueuse/core"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -48,6 +48,8 @@ const useStudioStore = defineStore("store", () => {
 		localStorage,
 		{ mergeDefaults: true },
 	)
+	const isDark = useDark({ attribute: "data-theme" })
+	const toggleTheme = useToggle(isDark)
 	const mode = ref<StudioMode>("select")
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 	const activeLayers = ref<InstanceType<typeof ComponentLayers> | null>(null)
@@ -746,6 +748,8 @@ const useStudioStore = defineStore("store", () => {
 	return {
 		// layout
 		studioLayout,
+		isDark,
+		toggleTheme,
 		mode,
 		componentContextMenu,
 		activeLayers,

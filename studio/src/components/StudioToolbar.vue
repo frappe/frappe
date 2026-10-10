@@ -52,6 +52,11 @@
 								icon: 'lucide-command',
 								onClick: () => (store.showShortcutsDialog = true),
 							},
+							{
+								label: 'Toggle Theme',
+								icon: store.isDark ? 'lucide-sun' : 'lucide-moon',
+								onClick: () => store.toggleTheme(),
+							},
 						],
 					},
 					{
