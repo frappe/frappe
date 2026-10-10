@@ -757,6 +757,20 @@ frappe.ui.Sidebar = class Sidebar {
 		this.highlight_active_item();
 	}
 
+	fold_for_page() {
+		if (this.folded_for_page) return;
+		this.folded_for_page = true;
+		this.unfold_after_page = !!this.sidebar_expanded;
+		if (this.unfold_after_page) this.close();
+	}
+
+	unfold_after_leaving_page() {
+		if (!this.folded_for_page) return;
+		this.folded_for_page = false;
+		if (this.unfold_after_page) this.open();
+		this.unfold_after_page = false;
+	}
+
 	set_height() {
 		$(".body-sidebar").css("height", window.innerHeight + "px");
 		$(".overlay").css("height", window.innerHeight + "px");

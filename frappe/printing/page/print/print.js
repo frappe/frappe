@@ -3,12 +3,13 @@ const STANDARD_PRINT_STYLES = ["Redesign", "Modern", "Classic", "Bold", "Striped
 frappe.pages["print"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		hide_sidebar: true,
 	});
 
 	let print_view = new frappe.ui.form.PrintView(wrapper);
 
+	$(wrapper).on("hide", () => frappe.app?.sidebar?.unfold_after_leaving_page());
 	$(wrapper).bind("show", () => {
+		frappe.app?.sidebar?.fold_for_page();
 		const route = frappe.get_route();
 		const doctype = route[1];
 		const docname = route.slice(2).join("/");
