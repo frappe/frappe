@@ -246,16 +246,9 @@ frappe.ui.form.PrintView = class {
 			});
 			return;
 		}
-		frappe
-			.call("frappe.printing.doctype.print_format.print_format.make_default", {
-				name: format,
-			})
-			.then(() =>
-				frappe.show_alert({
-					message: __("{0} is now the default for {1}", [format, __(this.frm.doctype)]),
-					indicator: "green",
-				})
-			);
+		frappe.call("frappe.printing.doctype.print_format.print_format.make_default", {
+			name: format,
+		});
 	}
 
 	get_print_settings_param() {
@@ -383,7 +376,9 @@ frappe.ui.form.PrintView = class {
 			false,
 			"Shift+R"
 		);
-		this.page.add_menu_item(__("Set as Default Format"), () => this.make_default_format());
+		if (frappe.model.can_write("Print Format")) {
+			this.page.add_menu_item(__("Set as Default Format"), () => this.make_default_format());
+		}
 
 		this.page.add_menu_item(__("Print Settings"), () => {
 			frappe.set_route("Form", "Print Settings");
@@ -755,13 +750,6 @@ frappe.ui.form.PrintView = class {
 			frappe.ui.keys.get_shortcut_group(this.frm.page).add($(el));
 		});
 
-		frappe.ui.keys.add_shortcut({
-			shortcut: "shift+r",
-			action: (e) => {
-				this.refresh_print_format();
-			},
-			description: __("Refresh Print Preview"),
-		});
 		[
 			["ctrl+p", () => this.printit(), __("Print")],
 			["ctrl+shift+p", () => this.render_pdf(), __("Download PDF")],
