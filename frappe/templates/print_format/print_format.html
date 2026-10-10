@@ -16,9 +16,6 @@
 	{%- if print_style and print_style.css -%}
 	<style>{{ print_style.css }}</style>
 	{%- endif -%}
-	{%- if ink_saver -%}
-	<style>{% include "templates/print_format/ink_saver.css" %}</style>
-	{%- endif -%}
 	{%- if print_format.css -%}
 	<style>{{ print_format.css }}</style>
 	{%- endif -%}
@@ -26,7 +23,7 @@
 	<style>{{ letterhead.custom_css }}</style>
 	{%- endif -%}
 </head>
-<body class="print-format-doc{% if print_format and print_format.show_label_colon %} show-label-colon{% endif %}{% if is_default_layout %} print-format-doc--standard{% endif %}{% if ink_saver %} print-format-doc--ink-saver{% endif %}">
+<body class="print-format-doc{% if print_format and print_format.show_label_colon %} show-label-colon{% endif %}{% if is_default_layout %} print-format-doc--standard{% endif %}">
 	{{ action_banner or '' }}
 	{%- if repeat_frame -%}
 	<table class="print-repeating-frame">

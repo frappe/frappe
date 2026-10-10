@@ -383,33 +383,6 @@
 	margin-top: calc(var(--spacing) * 2);
 }
 
-.print-margins-row {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: calc(var(--spacing) * 1.5);
-}
-
-.print-margin {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: calc(var(--spacing) * 1);
-	margin: 0;
-	font-size: var(--text-2xs);
-	color: var(--ink-gray-5);
-
-	input {
-		text-align: center;
-		padding-inline: calc(var(--spacing) * 1);
-		-moz-appearance: textfield;
-	}
-
-	input::-webkit-inner-spin-button,
-	input::-webkit-outer-spin-button {
-		-webkit-appearance: none;
-	}
-}
-
 .preview-beta-wrapper {
 	position: relative;
 }

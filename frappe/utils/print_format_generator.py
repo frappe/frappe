@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint, flt
+from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -392,9 +392,6 @@ class PrintFormatGenerator:
 			width, height = page_size_mm(settings)
 			settings.pdf_page_size = "Custom"
 			settings.pdf_page_width, settings.pdf_page_height = height, width
-		for field in ("margin_top", "margin_right", "margin_bottom", "margin_left"):
-			if settings.get(field) not in (None, ""):
-				self.print_format.set(field, max(flt(settings.get(field)), 0))
 		if settings.get("print_font"):
 			self.print_format.font = settings.get("print_font")
 
@@ -434,7 +431,6 @@ class PrintFormatGenerator:
 				"layout_direction": "rtl" if is_rtl() else "ltr",
 				"content_fieldtypes": CONTENT_FIELDTYPES,
 				"is_default_layout": bool(self.print_format.flags.is_default_layout),
-				"ink_saver": cint(self.print_settings.get("ink_saver")),
 			}
 		)
 

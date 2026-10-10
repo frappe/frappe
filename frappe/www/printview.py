@@ -426,12 +426,7 @@ def get_rendered_raw_commands(
 PAGE_SIZE_SETTINGS = ("pdf_page_size", "pdf_page_height", "pdf_page_width")
 PRINT_PAGE_SETTINGS = (
 	"page_orientation",
-	"margin_top",
-	"margin_right",
-	"margin_bottom",
-	"margin_left",
 	"print_font",
-	"ink_saver",
 )
 
 

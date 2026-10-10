@@ -234,24 +234,6 @@ frappe.ui.form.PrintView = class {
 				set("page_orientation", this.get_value() === "Landscape" ? "Landscape" : "");
 			},
 		});
-		const margins = $(`<div class="form-group print-margins">
-			<div class="control-label">${__("Margins (mm)")}</div>
-			<div class="print-margins-row"></div>
-		</div>`).appendTo(this.page_settings);
-		[
-			["margin_top", __("T"), __("Top")],
-			["margin_right", __("R"), __("Right")],
-			["margin_bottom", __("B"), __("Bottom")],
-			["margin_left", __("L"), __("Left")],
-		].forEach(([key, short, label]) => {
-			$(`<label class="print-margin">
-				<input type="number" min="0" class="form-control form-control-sm" aria-label="${label}">
-				<span>${short}</span>
-			</label>`)
-				.appendTo(margins.find(".print-margins-row"))
-				.find("input")
-				.on("change", (e) => set(key, e.target.value === "" ? "" : cint(e.target.value)));
-		});
 	}
 
 	make_default_format() {
@@ -282,7 +264,6 @@ frappe.ui.form.PrintView = class {
 		}
 		if (this.selected_format() === "Standard") {
 			if (this.print_font) settings.print_font = this.print_font;
-			if (this.ink_saver) settings.ink_saver = 1;
 		}
 		return settings;
 	}
@@ -311,20 +292,6 @@ frappe.ui.form.PrintView = class {
 				],
 				change() {
 					print_view.print_font = this.get_value();
-					print_view.preview();
-				},
-			},
-			parent: this.style_picker,
-			render_input: 1,
-		});
-		frappe.ui.form.make_control({
-			df: {
-				fieldtype: "Check",
-				fieldname: "ink_saver",
-				label: __("Ink saver"),
-				description: __("Prints without colours or filled areas"),
-				change() {
-					print_view.ink_saver = cint(this.get_value());
 					print_view.preview();
 				},
 			},
