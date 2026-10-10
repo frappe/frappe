@@ -26,6 +26,33 @@ from frappe.tests.test_query_builder import run_only_if
 from frappe.utils import now_datetime, nowdate, nowtime
 
 
+def series_current(prefix, doctype):
+	series = frappe.qb.DocType("Series")
+	return (
+		frappe.qb.from_(series)
+		.select(series.current)
+		.where((series.name == prefix) & (series.doctype == doctype))
+		.run()[0][0]
+	)
+
+
+def use_separate_series_counter(test, doctype):
+	frappe.make_property_setter(
+		{
+			"doctype": doctype,
+			"doctype_or_field": "DocType",
+			"property": "separate_series_counter",
+			"value": 1,
+			"property_type": "Check",
+		}
+	)
+	test.addCleanup(frappe.clear_cache, doctype=doctype)
+	test.addCleanup(
+		frappe.db.delete, "Property Setter", {"doc_type": doctype, "property": "separate_series_counter"}
+	)
+	frappe.clear_cache(doctype=doctype)
+
+
 class TestNaming(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.delete("Note")
@@ -53,10 +80,133 @@ class TestNaming(IntegrationTestCase):
 	def test_getseries_uses_an_atomic_sqlite_increment(self):
 		key = f"atomic-series-{frappe.generate_hash()}"
 		self.addCleanup(frappe.db.delete, "Series", {"name": key})
+		use_separate_series_counter(self, "ToDo")
 
+		self.assertEqual(getseries(key, 5, "ToDo"), "00001")
+		self.assertEqual(getseries(key, 5, "ToDo"), "00002")
 		self.assertEqual(getseries(key, 5), "00001")
-		self.assertEqual(getseries(key, 5), "00002")
-		self.assertEqual(frappe.db.get_value("Series", key, "current"), 2)
+		self.assertEqual(series_current(key, "ToDo"), 2)
+
+	def make_series_key(self):
+		prefix = f"ZZT{frappe.generate_hash(length=6)}-"
+		self.addCleanup(frappe.db.delete, "Series", {"name": ("like", prefix + "%")})
+		return prefix, prefix + ".####"
+
+	def test_series_counter_is_shared_by_default(self):
+		prefix, key = self.make_series_key()
+
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0001")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0002")
+
+	def test_series_counter_is_scoped_per_doctype(self):
+		prefix, key = self.make_series_key()
+		use_separate_series_counter(self, "ToDo")
+		use_separate_series_counter(self, "Note")
+
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0001")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0001")
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0002")
+
+	def test_doctype_counter_continues_from_shared_counter(self):
+		prefix, key = self.make_series_key()
+		use_separate_series_counter(self, "ToDo")
+		use_separate_series_counter(self, "Note")
+		NamingSeries(key).update_counter(41)
+
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0042")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0042")
+
+	def test_separate_counter_is_independent_after_seeding(self):
+		prefix, key = self.make_series_key()
+		use_separate_series_counter(self, "ToDo")
+		NamingSeries(key).update_counter(41)
+
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0042")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0042")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0043")
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0043")
+
+	def test_turning_off_separate_counter_keeps_its_names(self):
+		prefix, key = self.make_series_key()
+		use_separate_series_counter(self, "ToDo")
+		NamingSeries(key).update_counter(41)
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0042")
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0043")
+
+		with self.set_user("test@example.com"):
+			customize_form = frappe.get_doc("Customize Form")
+			customize_form.doc_type = "ToDo"
+			customize_form.fetch_to_customize()
+			customize_form.separate_series_counter = 0
+			customize_form.save_customization()
+
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0044")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0045")
+
+	def test_revert_series_only_touches_the_doctype_counter(self):
+		prefix, key = self.make_series_key()
+		use_separate_series_counter(self, "ToDo")
+		use_separate_series_counter(self, "Note")
+		make_autoname(key, "ToDo")
+		note = frappe.new_doc("Note")
+		note_name = make_autoname(key, "Note")
+
+		revert_series_if_last(key, note_name, note)
+
+		self.assertEqual(series_current(prefix, "Note"), 0)
+		self.assertEqual(series_current(prefix, "ToDo"), 1)
+
+	def test_update_counter_of_shared_doctype_keeps_separate_counters(self):
+		prefix, key = self.make_series_key()
+		use_separate_series_counter(self, "ToDo")
+		for _ in range(3):
+			make_autoname(key, "ToDo")
+
+		NamingSeries(key, "Note").update_counter(1)
+
+		self.assertEqual(series_current(prefix, "ToDo"), 3)
+		self.assertEqual(series_current(prefix, ""), 1)
+
+	def test_update_separate_counter_keeps_shared_counter(self):
+		prefix, key = self.make_series_key()
+		use_separate_series_counter(self, "ToDo")
+		NamingSeries(key).update_counter(41)
+
+		self.assertEqual(NamingSeries(key, "ToDo").get_current_value(), 41)
+		NamingSeries(key, "ToDo").update_counter(10)
+
+		self.assertEqual(NamingSeries(key, "ToDo").get_current_value(), 10)
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "0011")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "0042")
+
+	def test_renamed_doctype_keeps_its_counter(self):
+		prefix, key = self.make_series_key()
+		doctype = new_doctype(autoname=key, separate_series_counter=1).insert().name
+		new_name = doctype + "R"
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "DocType", new_name, force=True)
+
+		frappe.new_doc(doctype).insert()
+		frappe.rename_doc("DocType", doctype, new_name, force=True)
+
+		self.assertEqual(frappe.new_doc(new_name).insert().name, prefix + "0002")
+
+	def test_same_autoname_on_two_doctypes_counts_separately(self):
+		prefix, _key = self.make_series_key()
+		doctypes = [
+			new_doctype(autoname=autoname, separate_series_counter=1).insert().name
+			for autoname in ("{some_fieldname}-.####", "{some_fieldname}.-.####")
+		]
+		self.addCleanup(frappe.db.commit)
+		for doctype in doctypes:
+			self.addCleanup(frappe.delete_doc, "DocType", doctype, force=True)
+
+		with self.set_user("test@example.com"):
+			names = [
+				frappe.new_doc(doctype, some_fieldname=prefix[:-1]).insert().name for doctype in doctypes
+			]
+
+		self.assertEqual(names, [prefix + "0001", prefix + "0001"])
 
 	def test_field_autoname_name_sync(self):
 		country = frappe.get_last_doc("Country")
