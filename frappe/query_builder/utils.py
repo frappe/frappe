@@ -171,17 +171,24 @@ def get_masked_joined_fields(doctype: str, fields: list[Any]) -> list[Any]:
 	return masked_fields
 
 
-def execute_query(query, *args, **kwargs):
+def execute_query(query, *args, _db=None, **kwargs):
+	"""Run a Query Builder object and apply the post-processing `run` has always done.
+
+	`_db` names the connection. It defaults to the site's primary one, which is what
+	`QueryBuilder.run` assumes; `Database` passes itself so a replica or the log database
+	gets the same field masking, child-query expansion and dialect handling.
+	"""
+	db = _db or frappe.local.db
 	dt = query.__dict__.get("_doctype")
 	parent_dt = query.__dict__.get("_parent_doctype")
 	fields = query.__dict__.get("_fields_list", [])
 	child_queries = query._child_queries
 	name_field_injected = query.__dict__.get("_name_field_injected", False)
 	query, params = prepare_query(query)
-	if frappe.local.db.db_type == "sqlite":
+	if db.db_type == "sqlite":
 		# The SQLite query builder already emitted the target dialect.
 		kwargs["_skip_sqlite_transpilation"] = True
-	result = frappe.local.db.sql(query, params, *args, **kwargs)  # nosemgrep
+	result = db.sql(query, params, *args, **kwargs)  # nosemgrep
 
 	if child_queries and isinstance(child_queries, list) and result:
 		execute_child_queries(child_queries, result)

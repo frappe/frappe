@@ -93,8 +93,9 @@
   }
  ],
  "in_create": 1,
+ "is_virtual": 1,
  "links": [],
- "modified": "2025-02-20 19:20:47.267461",
+ "modified": "2026-10-06 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page View",

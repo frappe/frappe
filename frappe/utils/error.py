@@ -85,10 +85,24 @@ def log_error(
 		fingerprint=fingerprint,
 	)
 
-	if frappe.flags.read_only or defer_insert:
-		error_log.deferred_insert()
-	else:
-		error_log.insert(ignore_permissions=True)
+	try:
+		if frappe.flags.read_only or defer_insert:
+			error_log.deferred_insert()
+		else:
+			error_log.insert(ignore_permissions=True)
+	except Exception:
+		# `log_error` must never raise. It is called from exception handlers throughout the
+		# framework -- `frappe.email.doctype.email_queue` calls it mid-send, `notification`
+		# calls it while dispatching -- so anything that escapes here turns a handled error
+		# into an unhandled one and aborts work that has nothing to do with logging.
+		#
+		# Narrowing this to contention was tried and reverted: it broke email sending, where
+		# a failed log write after a successful send stopped the remaining mails.
+		#
+		# The failure is not hidden. `exc_info=True` records the full traceback in the site's
+		# log file, which is the one sink that cannot itself be unavailable.
+		frappe.logger().error(f"Failed to write Error Log: {title}", exc_info=True)
+		return None
 
 	# Capture exception data if telemetry is enabled
 	if os.getenv("FRAPPE_SENTRY_DSN"):
