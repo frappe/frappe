@@ -649,7 +649,10 @@ frappe.ui.form.PrintView = class {
 			: 0;
 		const starts = [0];
 		const fill = (start, end) => {
-			const step = () => (starts.length > 1 ? page_height - repeated : page_height);
+			const step = () =>
+				starts.length > 1
+					? Math.max(page_height - repeated, page_height / 4)
+					: page_height;
 			while (end - start > step() + 1) {
 				start += step();
 				starts.push(start);
