@@ -4,15 +4,17 @@ frappe.provide("frappe.ui");
  * The bottom tab bar on phones. The bar itself is frappe-ui's <frappe-mobile-nav>
  * custom element (prebuilt into lib/frappe-mobile-nav.js and loaded with Vue from
  * mobile_nav.bundle.js once the screen is phone-sized). This class only picks
- * the tabs and wires each one to something Desk already has. Search, Notifications and
+ * the tabs and wires each one to something Desk already has. It ships in
+ * mobile_nav.bundle.js, so a desktop downloads none of it. Search, Notifications and
  * Profile are pages of their own (desk/page/search, notifications, profile), for phones only.
  *
  * The tabs are the same everywhere. Where you are lives in the page header instead: tapping
  * the page title opens a sheet with the dock across the top and the sidebar under it
  * (see open_navigation). New opens a sheet too; both are a frappe.ui.BottomSheet.
  *
- * It is always in the DOM; mobile_nav.scss shows it below the md breakpoint only, so
- * rotating or resizing past 768px needs no JS.
+ * It is always in the DOM once built; mobile_nav.scss shows it below the md breakpoint
+ * only, so rotating or resizing past 768px needs no JS. It is built when
+ * mobile_nav.bundle.js loads, which mobile_nav_loader.js does on a phone-sized screen.
  */
 frappe.ui.MobileNav = class MobileNav {
 	constructor() {
@@ -132,7 +134,7 @@ frappe.ui.MobileNav = class MobileNav {
 	}
 
 	// frappe.ui.BottomSheet comes from bottom_sheet.bundle.js, loaded with the tab bar
-	// (see the startup handler below), so a tap before it arrives does nothing.
+	// (see mobile_nav_loader.js), so a tap before it arrives does nothing.
 	open_sheet(title, render) {
 		if (!frappe.ui.BottomSheet) return;
 		this.close_sheet();
@@ -273,24 +275,4 @@ frappe.ui.MobileNav = class MobileNav {
 	}
 };
 
-$(document).on("startup", () => {
-	// Nothing is built on a wider screen. Same breakpoint as mobile_nav.scss; a window
-	// narrowed later builds the bar then. Until its element loads, the bar is an inert tag.
-	// load_asset, not frappe.require, which would freeze the screen while it loads.
-	const phone = window.matchMedia("(max-width: 767.98px)");
-	const load = () => {
-		if (!phone.matches) return;
-		phone.removeEventListener("change", load);
-		if (!frappe.ui.mobile_nav) frappe.ui.mobile_nav = new frappe.ui.MobileNav();
-		for (const asset of [
-			"mobile_nav.bundle.js",
-			"bottom_sheet.bundle.js",
-			"bottom_sheet.bundle.css",
-		]) {
-			const path = frappe.assets.bundled_asset(asset);
-			frappe.assets.load_asset(path, path);
-		}
-	};
-	phone.addEventListener("change", load);
-	load();
-});
+frappe.ui.mobile_nav = new frappe.ui.MobileNav();
