@@ -230,11 +230,10 @@ frappe.ui.form.PrintView = class {
 				{ label: __("Portrait"), value: "Portrait" },
 				{ label: __("Landscape"), value: "Landscape" },
 			],
-			default: "Portrait",
 			change() {
 				set("page_orientation", this.get_value() === "Landscape" ? "Landscape" : "");
 			},
-		});
+		}).set_input("Portrait");
 	}
 
 	make_default_format() {
