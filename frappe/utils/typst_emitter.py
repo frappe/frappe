@@ -479,7 +479,10 @@ class TypstEmitter:
 		if lh_header:
 			self.header_src = "\n".join(p for p in (lh_header, self.header_src) if p)
 		self.body_src = "\n".join(
-			part for part in (self._section(s) for s in self.layout.get("sections") or []) if part
+			part
+			for s in self.layout.get("sections") or []
+			for part in (self._section(s), self._page_break(s))
+			if part
 		)
 		footer_zone = self.layout.get("footer")
 		self.footer_src = self._section(footer_zone, zone=True) if isinstance(footer_zone, dict) else ""
@@ -663,6 +666,11 @@ class TypstEmitter:
 		if top:
 			out = f"#v({top}pt)\n{out}"
 		return out + f"\n#v({bottom + 6}pt)"
+
+	def _page_break(self, section) -> str:
+		if section.get("page_break") and not section.get("_hidden"):
+			return "#pagebreak(weak: true)"
+		return ""
 
 	def _section_block_args(self, section) -> list[str]:
 		args = ["width: 100%"]
