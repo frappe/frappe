@@ -465,9 +465,9 @@ function show_account_form(panel, provider, setup) {
 			fieldname: "password",
 			fieldtype: "Password",
 			label: provider.password_label,
-			depends_on: uses_password,
+			depends_on: is_other ? "eval:!doc.no_smtp_authentication" : uses_password,
 			mandatory_depends_on: uses_password || undefined,
-			reqd: uses_password ? 0 : 1,
+			reqd: uses_password || is_other ? 0 : 1,
 			description: [
 				provider.password_help,
 				provider.password_url && link(provider.password_url, __("Create one here")),
@@ -475,6 +475,17 @@ function show_account_form(panel, provider, setup) {
 				.filter(Boolean)
 				.join(" "),
 		});
+		if (is_other) {
+			fields.push({
+				fieldname: "no_smtp_authentication",
+				fieldtype: "Check",
+				label: __("The server needs no password"),
+				depends_on: "eval:!doc.enable_incoming",
+				description: __(
+					"Tick for a mail relay that accepts email without signing in, like a local relay. Sending only."
+				),
+			});
+		}
 	}
 
 	fields.push(
@@ -548,9 +559,19 @@ function show_account_form(panel, provider, setup) {
 				fieldtype: "Int",
 				label: __("Port"),
 				default: 993,
-				description: __("993 for IMAP and 995 for POP with SSL. 143 and 110 without SSL."),
+				description: __("993 for IMAP and 995 for POP with SSL. 143 and 110 otherwise."),
 			},
-			{ fieldname: "use_ssl", fieldtype: "Check", label: __("Use SSL"), default: 1 },
+			{
+				fieldname: "incoming_security",
+				fieldtype: "Select",
+				label: __("Security"),
+				options: [
+					{ value: "SSL", label: __("SSL") },
+					{ value: "STARTTLS", label: __("STARTTLS (IMAP only)") },
+					{ value: "None", label: __("None") },
+				],
+				default: "SSL",
+			},
 			{
 				fieldtype: "Section Break",
 				label: __("Sending Server (SMTP)"),
@@ -611,13 +632,13 @@ function show_account_form(panel, provider, setup) {
 		const fg = panel.fieldgroup;
 		const set_incoming_port = () => {
 			const pop = fg.get_value("incoming_protocol") === "POP";
-			const ssl = fg.get_value("use_ssl");
+			const ssl = fg.get_value("incoming_security") === "SSL";
 			if ([993, 143, 995, 110].includes(cint(fg.get_value("incoming_port")))) {
 				fg.set_value("incoming_port", pop ? (ssl ? 995 : 110) : ssl ? 993 : 143);
 			}
 		};
 		fg.fields_dict.incoming_protocol.$input.on("change", set_incoming_port);
-		fg.fields_dict.use_ssl.$input.on("change", set_incoming_port);
+		fg.fields_dict.incoming_security.$input.on("change", set_incoming_port);
 		fg.fields_dict.smtp_security.$input.on("change", () => {
 			const ports = { TLS: 587, SSL: 465, None: 25 };
 			if (Object.values(ports).includes(cint(fg.get_value("smtp_port")))) {
@@ -643,6 +664,7 @@ function connect(panel, provider, oauth) {
 	const missing = [
 		values.auth_method !== "OAuth" &&
 			provider.service !== "Frappe Mail" &&
+			!values.no_smtp_authentication &&
 			!values.password &&
 			panel.get_field("password").df.label,
 		values.enable_outgoing &&
@@ -696,7 +718,9 @@ function connect(panel, provider, oauth) {
 			email_server: values.email_server,
 			incoming_port: values.incoming_port,
 			use_imap: values.incoming_protocol === "POP" ? 0 : 1,
-			use_ssl: values.use_ssl ? 1 : 0,
+			use_ssl: values.incoming_security === "SSL" ? 1 : 0,
+			use_starttls: values.incoming_security === "STARTTLS" ? 1 : 0,
+			no_smtp_authentication: values.no_smtp_authentication ? 1 : 0,
 			smtp_server: values.smtp_server,
 			smtp_port: values.smtp_port,
 			use_tls: values.smtp_security === "TLS" ? 1 : 0,

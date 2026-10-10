@@ -246,10 +246,12 @@ def create_email_account(
 	incoming_port: int | None = None,
 	use_imap: int = 1,
 	use_ssl: int = 0,
+	use_starttls: int = 0,
 	smtp_server: str | None = None,
 	smtp_port: int | None = None,
 	use_tls: int = 0,
 	use_ssl_for_outgoing: int = 0,
+	no_smtp_authentication: int = 0,
 	frappe_mail_site: str | None = None,
 	api_key: str | None = None,
 	api_secret: str | None = None,
@@ -306,10 +308,12 @@ def create_email_account(
 				"incoming_port": incoming_port,
 				"use_imap": cint(use_imap),
 				"use_ssl": cint(use_ssl),
+				"use_starttls": cint(use_starttls),
 				"smtp_server": smtp_server,
 				"smtp_port": smtp_port,
 				"use_tls": cint(use_tls),
 				"use_ssl_for_outgoing": cint(use_ssl_for_outgoing),
+				"no_smtp_authentication": cint(no_smtp_authentication) and not cint(enable_incoming),
 			}
 		)
 
@@ -345,7 +349,7 @@ def create_email_account(
 			)
 		doc.connected_app = connected_app
 		doc.connected_user = frappe.session.user
-	elif service != "Frappe Mail":
+	elif service != "Frappe Mail" and not doc.no_smtp_authentication:
 		if not password:
 			frappe.throw(_("Password is required"))
 		doc.password = password
