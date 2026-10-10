@@ -92,6 +92,7 @@ class Comment(Document):
 			"Comment": "comments",
 			"Attachment": "attachment_logs",
 			"Attachment Removed": "attachment_logs",
+			"Label": "info_logs",
 		}
 		key = key_map.get(self.comment_type)
 		if not key:
