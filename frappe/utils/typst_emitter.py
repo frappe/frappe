@@ -478,12 +478,11 @@ class TypstEmitter:
 		lh_header = self._letterhead_image(lh, "header")
 		if lh_header:
 			self.header_src = "\n".join(p for p in (lh_header, self.header_src) if p)
-		self.body_src = "\n".join(
-			part
-			for s in self.layout.get("sections") or []
-			for part in (self._section(s), self._page_break(s))
-			if part
-		)
+		parts = []
+		for s in self.layout.get("sections") or []:
+			body = self._section(s)
+			parts += [body, self._page_break(s, body)]
+		self.body_src = "\n".join(part for part in parts if part)
 		footer_zone = self.layout.get("footer")
 		self.footer_src = self._section(footer_zone, zone=True) if isinstance(footer_zone, dict) else ""
 		lh_footer = self._letterhead_image(lh, "footer")
@@ -667,10 +666,13 @@ class TypstEmitter:
 			out = f"#v({top}pt)\n{out}"
 		return out + f"\n#v({bottom + 6}pt)"
 
-	def _page_break(self, section) -> str:
-		if section.get("page_break") and not section.get("_hidden"):
-			return "#pagebreak(weak: true)"
-		return ""
+	def _page_break(self, section, body) -> str:
+		if not section.get("page_break") or section.get("_hidden"):
+			return ""
+		has_fields = any(c.get("fields") for c in section.get("columns") or [] if isinstance(c, dict))
+		if has_fields and not body:
+			return ""
+		return "#pagebreak(weak: true)"
 
 	def _section_block_args(self, section) -> list[str]:
 		args = ["width: 100%"]
