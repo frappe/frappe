@@ -906,7 +906,7 @@ class TypstEmitter:
 			return ""
 		value = self.doc.get(fieldname)
 		# {% if value %} in Data.html gates on the raw value, hiding 0 / 0.0 / False
-		if not value:
+		if not value and not df.get("show_empty"):
 			return ""
 		if df.get("fieldtype") == "Check":
 			return _("Yes") if frappe.utils.cint(value) else _("No")
