@@ -29,7 +29,7 @@
 .cm-matchingBracket {
 	font-weight: 500 !important;
 	background: none !important;
-	border-bottom: 1px solid #000 !important;
+	border-bottom: 1px solid var(--ink-gray-9) !important;
 	outline: none !important;
 }
 .cm-focused {
@@ -42,8 +42,7 @@
 	font-family: 'Inter' !important;
 }
 .cm-tooltip-autocomplete ul li[aria-selected='true'] {
-	@apply !rounded-4 !bg-surface-gray-3/80;
-	color: #000 !important;
+	@apply !rounded-4 !bg-surface-gray-3 !text-ink-gray-9;
 }
 .cm-completionLabel {
 	margin-right: 1rem !important;
