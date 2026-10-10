@@ -1,0 +1,14 @@
+{
+ "creation": "2026-10-10 12:00:00.000000",
+ "css": ".print-format-doc.print-format-doc--standard {\n\tfont-size: 0.92em;\n}\n.print-format-doc.print-format-doc--standard .field + .field {\n\tmargin-top: 0.3em;\n}\n.print-format-doc.print-format-doc--standard .section-label {\n\tfont-size: 1em;\n\tborder-bottom: 1px solid var(--gray-900);\n\tmargin-bottom: 0.5em;\n}\n.print-format-doc.print-format-doc--standard .child-table .table thead th {\n\tborder-bottom: 1.5px solid var(--gray-900) !important;\n}\n.print-format-doc.print-format-doc--standard .child-table--striped .table .even td {\n\tbackground-color: var(--gray-100) !important;\n}\n",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Print Style",
+ "idx": 0,
+ "modified": "2026-10-10 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Striped",
+ "owner": "Administrator",
+ "print_style_name": "Striped",
+ "standard": 1
+}

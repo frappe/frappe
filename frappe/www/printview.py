@@ -85,6 +85,8 @@ def get_context(context) -> PrintContext:
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
 		"pdf_generator": pdf_generator,
+		"style": frappe.form_dict.style,
+		"settings": frappe.as_json(settings, indent=None) if settings else None,
 	}
 
 	if standalone:
@@ -422,17 +424,26 @@ def get_rendered_raw_commands(
 	}
 
 
-PAGE_SIZE_SETTINGS = ("pdf_page_size", "pdf_page_height", "pdf_page_width")
-
-
 def get_allowed_print_settings_override(doc: "Document", settings: dict | None) -> dict:
 	"""Keep only the Print Settings a caller may override: the doctype's own print toggles,
 	never unrelated flags like allow_print_for_draft that the docstatus guard reads."""
 	if not settings:
 		return {}
-	allowed = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
-	allowed.update(PAGE_SIZE_SETTINGS)
-	return {key: value for key, value in settings.items() if key in allowed}
+	doc_settings = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
+	page_sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+	allowed = {}
+	for key, value in settings.items():
+		if key in doc_settings:
+			allowed[key] = cint(value)
+		elif key in ("pdf_page_height", "pdf_page_width"):
+			allowed[key] = flt(value)
+		elif (
+			(key == "pdf_page_size" and value in page_sizes)
+			or (key == "page_orientation" and value in ("", "Portrait", "Landscape"))
+			or (key == "print_font" and re.fullmatch(r"[A-Za-z0-9 ]*", cstr(value)))
+		):
+			allowed[key] = value
+	return allowed
 
 
 def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = None) -> None:

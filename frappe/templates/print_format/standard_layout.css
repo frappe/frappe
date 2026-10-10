@@ -1,0 +1,20 @@
+.print-format-doc--standard .print-heading {
+	border-bottom: 1px solid var(--gray-100);
+	padding-bottom: var(--padding-xs);
+	margin-bottom: var(--margin-sm);
+}
+
+.print-format-doc--standard .print-heading h2 {
+	font-size: var(--text-4xl);
+}
+
+.print-format-doc--standard .print-heading h2 div {
+	font-weight: var(--font-weight-semibold);
+}
+
+.print-format-doc--standard .print-heading small {
+	font-size: var(--text-sm);
+	font-weight: normal;
+	line-height: 2.5;
+	color: var(--gray-700);
+}

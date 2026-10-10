@@ -17,7 +17,7 @@ class TestPrintFormat(IntegrationTestCase):
 	def test_print_user(self, style=None):
 		# The default (Standard) print now renders through the new builder's renderer.
 		print_html = frappe.get_print("User", "Administrator", style=style)
-		self.assertIn('class="print-format-doc"', print_html)
+		self.assertIn('class="print-format-doc', print_html)
 		self.assertIn("First Name", print_html)
 		self.assertIn('<div class="value">', print_html)
 		return print_html

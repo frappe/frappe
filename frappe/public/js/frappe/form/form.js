@@ -1767,8 +1767,9 @@ frappe.ui.form.Form = class FrappeForm {
 		this.shared.show();
 	}
 
-	email_doc(message) {
+	email_doc(message, opts) {
 		return new frappe.views.CommunicationComposer({
+			...opts,
 			doc: this.doc,
 			frm: this,
 			subject: __(this.meta.name) + ": " + this.docname,

@@ -38,6 +38,7 @@ def download_pdf(
 	print_format: str | None = None,
 	letterhead: str | None = None,
 	settings: str | dict | None = None,
+	style: str | None = None,
 ):
 	from frappe.www.printview import resolve_print_format, validate_print
 
@@ -50,7 +51,9 @@ def download_pdf(
 		from frappe.utils.print_format import download_pdf as download_jinja_pdf
 
 		return download_jinja_pdf(doctype, name, format=print_format.name, letterhead=letterhead)
-	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
+	generator = PrintFormatGenerator(
+		print_format, doc, letterhead, style=style, settings=frappe.parse_json(settings)
+	)
 	pdf = generator.render_pdf()
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
@@ -383,12 +386,22 @@ class PrintFormatGenerator:
 			return None
 		return frappe.get_doc("Letter Head", name)
 
+	def apply_page_overrides(self):
+		settings = self.print_settings
+		if settings.get("page_orientation") == "Landscape":
+			width, height = page_size_mm(settings)
+			settings.pdf_page_size = "Custom"
+			settings.pdf_page_width, settings.pdf_page_height = height, width
+		if settings.get("print_font"):
+			self.print_format.font = settings.get("print_font")
+
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
 		if self.settings_override:
 			from frappe.www.printview import get_allowed_print_settings_override
 
 			self.print_settings.update(get_allowed_print_settings_override(self.doc, self.settings_override))
+			self.apply_page_overrides()
 
 		from frappe.www.printview import run_before_print
 
@@ -403,6 +416,7 @@ class PrintFormatGenerator:
 			if style_name and frappe.db.exists("Print Style", {"name": style_name, "disabled": 0})
 			else None
 		)
+		self.style_name = print_style.name if print_style else None
 		self.context = frappe._dict(
 			{
 				"doc": self.doc,
@@ -416,6 +430,7 @@ class PrintFormatGenerator:
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
 				"content_fieldtypes": CONTENT_FIELDTYPES,
+				"is_default_layout": bool(self.print_format.flags.is_default_layout),
 			}
 		)
 
@@ -789,6 +804,10 @@ class PrintFormatGenerator:
 			)
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
+		if print_format.flags.is_default_layout:
+			from frappe.printing.print_style_presets import apply_style_preset
+
+			layout = apply_style_preset(layout, self.style_name)
 		return self.get_processed_layout(layout)
 
 	def get_processed_layout(self, layout):
