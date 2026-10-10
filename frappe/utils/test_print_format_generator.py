@@ -1603,6 +1603,28 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pdf = frappe.get_print("ToDo", todo.name, as_pdf=True, pdf_options={"password": "secret"})
 		self.assertTrue(PdfReader(io.BytesIO(pdf)).is_encrypted)
 
+	def test_standard_attachment_matches_the_pdf_button(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import attach_print
+
+		self.addCleanup(
+			frappe.db.set_single_value,
+			"Print Settings",
+			"pdf_generator",
+			frappe.db.get_single_value("Print Settings", "pdf_generator"),
+		)
+		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "attachment"}).insert()
+
+		with patch("frappe.utils.print_utils._render_builder_pdf", return_value=b"%PDF-") as render:
+			attach_print("ToDo", todo.name, style="Modern", settings={"pdf_page_size": "A5"})
+
+		self.assertEqual(render.call_args.kwargs["style"], "Modern")
+		self.assertEqual(render.call_args.kwargs["settings"], {"pdf_page_size": "A5"})
+
 	def test_print_settings_override_rejects_invalid_values(self):
 		from frappe.www.printview import get_allowed_print_settings_override
 

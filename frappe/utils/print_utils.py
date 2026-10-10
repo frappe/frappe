@@ -246,9 +246,7 @@ def attach_print(
 	)
 
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
-	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
-		pf_doc
-	) in ("chrome", "Typst")
+	render_via_generator = pf_doc is None or uses_beta_renderer(pf_doc)
 
 	try:
 		with print_language(lang):
