@@ -3,7 +3,7 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.utils.data import cint
+from frappe.utils.data import cint, cstr
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
@@ -270,7 +270,6 @@ class Browser:
 			"marginBottom": 0,
 			"marginLeft": 0,
 			"marginRight": 0,
-			"landscape": options.get("orientation", "Portrait") == "Landscape",
 			"preferCSSPageSize": False,
 			"pageRanges": options.get("page-ranges", ""),
 			# Experimental
@@ -303,6 +302,12 @@ class Browser:
 
 		if isinstance(options["page-width"], str):
 			options["page-width"] = self._get_converted_num(options["page-width"])
+
+		if (
+			cstr(options.get("orientation")).lower() == "landscape"
+			and options["page-width"] < options["page-height"]
+		):
+			options["page-width"], options["page-height"] = options["page-height"], options["page-width"]
 
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
 

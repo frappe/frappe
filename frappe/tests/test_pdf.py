@@ -252,6 +252,14 @@ class TestChromePdfGeometry(IntegrationTestCase):
 		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 8.27, delta=0.05)
 		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 11.69, delta=0.05)
 
+	def test_landscape_orientation_swaps_paper_size(self):
+		for orientation in ("Landscape", "landscape"):
+			browser = self.make_browser({"page-size": "A4", "orientation": orientation})
+			browser.prepare_options_for_pdf()
+
+			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
+			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
+
 	def test_custom_page_size_without_dimensions_raises(self):
 		from unittest.mock import patch
 
