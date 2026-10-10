@@ -326,6 +326,23 @@ def create_email_account(
 				_("Set up Sign in with {0} first.").format(provider or _("OAuth")),
 				title=_("Sign-in App Missing"),
 			)
+		if provider == "Google" and (
+			other := frappe.db.get_value(
+				"Email Account",
+				{
+					"connected_app": connected_app,
+					"connected_user": frappe.session.user,
+					"auth_method": "OAuth",
+				},
+				"email_id",
+			)
+		):
+			frappe.throw(
+				_(
+					"{0} is already connected with Sign in with Google under your user. Each user can sign in to one Google mailbox, so connect {1} from another user, or choose App Password."
+				).format(frappe.bold(other), frappe.bold(email_id)),
+				title=_("Google Mailbox Already Connected"),
+			)
 		doc.connected_app = connected_app
 		doc.connected_user = frappe.session.user
 	elif service != "Frappe Mail":

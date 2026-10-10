@@ -183,7 +183,9 @@ class EmailAccount(Document):
 			return
 
 		use_oauth = self.auth_method == "OAuth"
-		validate_oauth = use_oauth and self.has_stored_token()
+		validate_oauth = (
+			use_oauth and self.has_stored_token() and (self.backend_app_flow or not self.is_new())
+		)
 		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 
 		if use_oauth:
