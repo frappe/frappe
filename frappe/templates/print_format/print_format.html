@@ -10,6 +10,9 @@
 	<title>{{ doc.doctype }}: {{ doc.name }}</title>
 	{{ include_style('print_format.bundle.css') }}
 	<style>{{ css }}</style>
+	{%- if is_default_layout -%}
+	<style>{% include "templates/print_format/standard_layout.css" %}</style>
+	{%- endif -%}
 	{%- if print_style and print_style.css -%}
 	<style>{{ print_style.css }}</style>
 	{%- endif -%}

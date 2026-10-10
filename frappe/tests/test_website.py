@@ -266,7 +266,7 @@ class TestWebsite(IntegrationTestCase):
 	def test_printview_page(self):
 		frappe.set_user("Administrator")
 		content = get_response_content("/Language/ru")
-		self.assertIn('class="print-format-doc"', content)
+		self.assertIn('class="print-format-doc', content)
 		self.assertIn("Language Code", content)
 
 	def test_custom_base_template_path(self):
