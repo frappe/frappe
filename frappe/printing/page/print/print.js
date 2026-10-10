@@ -762,8 +762,8 @@ frappe.ui.form.PrintView = class {
 
 		[
 			["ctrl+p", () => this.printit(), __("Print")],
-			["ctrl+shift+p", () => this.render_pdf(), __("Download PDF")],
-			["ctrl+shift+e", () => this.email_doc(), __("Email")],
+			["shift+ctrl+p", () => this.render_pdf(), __("Download PDF")],
+			["shift+ctrl+e", () => this.email_doc(), __("Email")],
 		].forEach(([shortcut, action, description]) => {
 			frappe.ui.keys.add_shortcut({
 				shortcut,
