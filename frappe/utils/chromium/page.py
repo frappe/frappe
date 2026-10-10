@@ -461,6 +461,7 @@ class Page:
 				break
 
 		pdf_data = b"".join(chunks)
+		chunks.clear()
 		_result, error = self.send("IO.close", {"handle": stream_id})
 		if error:
 			raise RuntimeError(f"Error closing PDF stream: {error}")
