@@ -182,14 +182,18 @@ class TestPdf(IntegrationTestCase):
 				return ["frappe.tests.test_pdf.record_print"]
 			return get_hooks(hook, *args, **kwargs)
 
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
 		with (
 			patch.object(frappe, "get_hooks", side_effect=hooks),
 			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
 			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"),
 		):
-			frappe.get_print("User", "Administrator", as_pdf=True)
+			frappe.get_print("ToDo", todo.name, as_pdf=True)
 
-		self.assertEqual(calls, [{"doctype": "User", "name": "Administrator", "print_format": None}])
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
 
 	def test_report_pdf_blocks_external_requests(self):
 		from unittest.mock import patch
