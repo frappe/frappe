@@ -18,7 +18,8 @@ export interface FirstPageResponse {
 
 export function createPagedSources(): PagedSources {
   return {
-    hasMoreEmails: ref(true),
+    // unknown until the first page answers; true would flash "load more" over cached rows
+    hasMoreEmails: ref(false),
     hasMoreMilestones: ref(false),
     milestoneStart: ref(0),
   };
