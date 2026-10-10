@@ -1,6 +1,6 @@
 /* Espresso Bar List — a horizontal labeled bar chart (frappe.ui.bar_list): one
  * row per item (label · proportional bar · end value) over a shared value axis
- * with dashed gridlines and ticks. Fills the gap left by frappe-charts, which has
+ * with dotted gridlines and ticks. Fills the gap left by frappe-charts, which has
  * no horizontal bar type. Self-contained; the host needs no chart CSS.
  *
  *   <div class="es-bar-list">
@@ -23,9 +23,18 @@
  * With no items the root carries data-state="empty" and holds only
  *   <div class="es-bar-list__empty">No data to show</div>
  *
+ * Rows share any extra height the host gives the chart, so it can fill a panel.
+ * Hovering a row tints it and shows .es-bar-list__tip beside the bar's end.
+ *
  * Modifiers:
  *   .es-bar-list__row--clickable  the row acts as a button
  *   .es-bar-list--hover-values    end labels appear only on row hover */
+
+.es-bar-list {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
 
 .es-bar-list__empty {
     display: flex;
@@ -38,6 +47,9 @@
 
 .es-bar-list__plot {
     position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
     /* left gutter holds the labels; right gutter lets the end value overflow the last bar */
     margin-block: 4px 0;
     margin-inline: calc(var(--es-bl-label-w, 96px) + 14px) 48px;
@@ -49,16 +61,30 @@
     top: 0;
     bottom: var(--es-bl-axis-h);
     width: 0;
-    border-inline-start: 1px dashed var(--outline-gray-2);
+    border-inline-start: 1px dotted var(--outline-gray-2);
 }
 
 .es-bar-list__rows {
     position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
 }
 
 .es-bar-list__row {
     position: relative;
-    height: 30px;
+    flex: 1 0 38px;
+}
+
+.es-bar-list__row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm);
+}
+
+.es-bar-list__row:hover::before {
+    background: var(--surface-gray-2);
 }
 
 .es-bar-list__row--clickable {
@@ -68,9 +94,9 @@
 .es-bar-list__label {
     position: absolute;
     inset-inline-end: calc(100% + 10px);
-    top: 0;
+    top: 50%;
+    transform: translateY(-50%);
     width: var(--es-bl-label-w, 96px);
-    line-height: 30px;
     text-align: end;
     font-size: var(--text-sm);
     color: var(--ink-gray-5);
@@ -82,18 +108,20 @@
 .es-bar-list__bar {
     position: absolute;
     inset-inline-start: 0;
-    top: 8px;
-    height: 14px;
-    border-radius: 2px;
+    top: 50%;
+    height: calc(var(--spacing) * 6);
+    transform: translateY(-50%);
+    border-start-end-radius: var(--radius-sm);
+    border-end-end-radius: var(--radius-sm);
 }
 
 .es-bar-list__value {
     position: absolute;
-    top: 0;
+    top: 50%;
+    transform: translateY(-50%);
     margin-inline-start: 8px;
-    line-height: 30px;
     font-size: var(--text-sm);
-    color: var(--ink-gray-5);
+    color: var(--ink-gray-7);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
     transition: opacity 120ms ease;
@@ -139,4 +167,37 @@
     .es-bar-list--hover-values .es-bar-list__value {
         opacity: 1;
     }
+}
+
+.es-bar-list__tip {
+    position: fixed;
+    z-index: 1070;
+    min-width: calc(var(--spacing) * 40);
+}
+
+.es-bar-list__tip-title {
+    margin-bottom: calc(var(--spacing) * 2);
+    color: var(--ink-gray-5);
+}
+
+.es-bar-list__tip-row {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+}
+
+.es-bar-list__tip-dot {
+    flex-shrink: 0;
+    width: calc(var(--spacing) * 2);
+    height: calc(var(--spacing) * 2);
+    border-radius: var(--radius-full);
+}
+
+.es-bar-list__tip-name {
+    color: var(--ink-gray-7);
+}
+
+.es-bar-list__tip b {
+    margin-inline-start: auto;
+    padding-inline-start: calc(var(--spacing) * 4);
 }
