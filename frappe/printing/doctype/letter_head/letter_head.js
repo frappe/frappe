@@ -58,6 +58,5 @@ if (el.length > 0) {
 <pre>
 <code>
 &lt;span class="page"&gt;&lt;/span&gt; / &lt;span class="topage"&gt;&lt;/span&gt;
-&lt;span class="date"&gt;&lt;/span&gt; &lt;span class="time"&gt;&lt;/span&gt;
 </code>
 </pre>`;
