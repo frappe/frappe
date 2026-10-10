@@ -2,12 +2,14 @@
 # License: MIT. See LICENSE
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import (
 	_reorder_by_visible_names,
 	append_totals_row,
+	delete_bulk,
 	export_query,
 	extract_fieldnames,
 	get,
@@ -378,3 +380,30 @@ class TestReportview(IntegrationTestCase):
 
 		self.assertEqual(result["keys"], ["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"])
 		self.assertEqual(sorted(map(tuple, result["values"])), sorted(map(tuple, expected)))
+
+	def test_delete_bulk_reports_reason_per_document(self):
+		with patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+			undeleted = delete_bulk("User", ["Guest"])
+
+		self.assertEqual(undeleted, ["Guest"])
+		self.assertIn("User Guest cannot be deleted", frappe.message_log[-1].message[0])
+
+	def test_delete_bulk_logs_unexpected_error(self):
+		with (
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch("frappe.delete_doc", side_effect=frappe.QueryTimeoutError),
+		):
+			delete_bulk("User", ["test@example.com"])
+
+		error_log = frappe.db.get_value("Error Log", {"reference_name": "test@example.com"})
+		self.assertIn(error_log, frappe.message_log[-1].message[0])
+
+	def test_delete_bulk_lists_what_each_document_is_linked_with(self):
+		salutation = frappe.get_doc(doctype="Salutation", salutation="Professor").insert()
+		contact = frappe.get_doc(doctype="Contact", first_name="Priya", salutation=salutation.name).insert()
+
+		with patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+			delete_bulk("Salutation", [salutation.name])
+
+		self.assertIn(contact.name, frappe.message_log[-1].message[0])
