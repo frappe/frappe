@@ -44,7 +44,7 @@ jobs:
               await github.rest.issues.createComment({
                 ...context.repo,
                 issue_number: pr.number,
-                body: "This backport had no activity for 7 days, so it is being closed. Reopen it when you are ready to fix the conflicts.",
+                body: "This backport had no activity for 7 days, so it is being closed. Reopen it if it is still needed.",
               });
               await github.rest.pulls.update({
                 ...context.repo,
