@@ -3,7 +3,6 @@ class PDFTransformer:
 		self.browser = browser
 		self.body_pdf = browser.body_pdf
 		self.is_print_designer = browser.is_print_designer
-		self.encrypt_password = self.browser.options.get("password", None)
 		self._set_header_pdf()
 		self._set_footer_pdf()
 		if not self.header_pdf and not self.footer_pdf:
@@ -38,8 +37,6 @@ class PDFTransformer:
 
 				output.append_pages_from_reader(PdfReader(BytesIO(body)))
 				return output
-			if self.encrypt_password:
-				return self._encrypt_raw(body)
 			return body
 
 		body_height = body.pages[0].mediabox.top
@@ -106,19 +103,7 @@ class PDFTransformer:
 
 		writer = PdfWriter()
 		writer.append_pages_from_reader(body)
-		if self.encrypt_password:
-			writer.encrypt(self.encrypt_password)
 
-		return self.get_file_data_from_writer(writer)
-
-	def _encrypt_raw(self, body):
-		from io import BytesIO
-
-		from pypdf import PdfReader, PdfWriter
-
-		writer = PdfWriter()
-		writer.append_pages_from_reader(PdfReader(BytesIO(body)))
-		writer.encrypt(self.encrypt_password)
 		return self.get_file_data_from_writer(writer)
 
 	def _transform(self, page, page_top, ty):
