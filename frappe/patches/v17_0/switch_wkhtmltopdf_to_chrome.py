@@ -10,12 +10,14 @@ def execute():
 	).run()
 
 	frappe.db.delete("Singles", {"doctype": "Print Settings", "field": "pdf_generator"})
-	frappe.db.delete(
+	for name in frappe.get_all(
 		"Property Setter",
-		{
+		filters={
 			"doc_type": ("in", ["Print Format", "Print Settings"]),
 			"field_name": "pdf_generator",
 			"value": ("like", "%wkhtmltopdf%"),
 		},
-	)
+		pluck="name",
+	):
+		frappe.delete_doc("Property Setter", name, ignore_permissions=True)
 	frappe.clear_cache(doctype="Print Settings")
