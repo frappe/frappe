@@ -13,6 +13,9 @@
 	{%- if print_style and print_style.css -%}
 	<style>{{ print_style.css }}</style>
 	{%- endif -%}
+	{%- if ink_saver -%}
+	<style>{% include "templates/print_format/ink_saver.css" %}</style>
+	{%- endif -%}
 	{%- if print_format.css -%}
 	<style>{{ print_format.css }}</style>
 	{%- endif -%}
