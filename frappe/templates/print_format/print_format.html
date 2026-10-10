@@ -91,9 +91,17 @@
 	{#- Skip labelled sections where every data field is empty -#}
 	{%- set ns = namespace(has_content=false) -%}
 	{%- for column in section.columns -%}
-		{%- for df in column.fields -%}
+		{%- for df in column.fields if not df.get('_hidden') -%}
 			{%- if df.fieldtype in content_fieldtypes -%}
 				{%- set ns.has_content = true -%}
+			{%- elif df.fieldtype == 'Static Text' -%}
+				{%- if (df.text or '')|trim -%}
+					{%- set ns.has_content = true -%}
+				{%- endif -%}
+			{%- elif df.fieldtype == 'Typst' -%}
+				{%- if (df.typst or '')|trim -%}
+					{%- set ns.has_content = true -%}
+				{%- endif -%}
 			{%- elif df.fieldtype == 'Repeater' -%}
 				{%- if df.source and doc.get(df.source) -%}
 					{%- set ns.has_content = true -%}
@@ -103,7 +111,7 @@
 				{%- if _tr and df.table_columns -%}
 					{%- set ns.has_content = true -%}
 				{%- endif -%}
-			{%- elif doc.get(df.fieldname) -%}
+			{%- elif df.get('_value') or doc.get(df.fieldname) -%}
 				{%- set ns.has_content = true -%}
 			{%- endif -%}
 		{%- endfor -%}
