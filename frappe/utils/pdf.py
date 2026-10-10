@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import contextlib
+import io
 from typing import TYPE_CHECKING
 
 import frappe
@@ -8,6 +9,8 @@ from frappe import _
 from frappe.utils import cstr
 from frappe.utils.data import get_url
 from frappe.utils.jinja_globals import is_rtl
+
+LARGE_PDF_SIZE = 2 * 1024 * 1024
 
 if TYPE_CHECKING:
 	import cssutils
@@ -91,12 +94,32 @@ def get_pdf(
 	from frappe.utils.pdf_generator.browser import Browser
 	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 
+	options = dict(options or {})
+	password = options.pop("password", None)
 	generator, token = ChromiumManager.acquire()
 	try:
-		browser = Browser(generator, print_format, html, options or {})
-		return PDFTransformer(browser).transform_pdf(output=output)
+		browser = Browser(generator, print_format, html, options)
+		pdf = PDFTransformer(browser).transform_pdf(output=output)
 	finally:
 		generator.release(token)
+
+	if output:
+		return pdf
+	if len(pdf) > LARGE_PDF_SIZE:
+		pdf = optimize_pdf(pdf)
+	if password:
+		pdf = encrypt_pdf(pdf, password)
+	return pdf
+
+
+def encrypt_pdf(content: bytes, password: str) -> bytes:
+	from pypdf import PdfReader, PdfWriter
+
+	writer = PdfWriter(clone_from=PdfReader(io.BytesIO(content)))
+	writer.encrypt(password)
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
 
 
 def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):

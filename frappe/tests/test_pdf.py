@@ -209,6 +209,24 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.decrypt("qwe"))
 		self.assertGreaterEqual(len(reader.pages), 2)
 
+	def test_large_pdf_is_optimized_before_encryption(self):
+		import os
+
+		from PIL import Image
+
+		path = frappe.get_site_path("public", "files", "_test_large_photo.jpg")
+		Image.effect_noise((3000, 3000), 80).convert("RGB").save(path, quality=95)
+		self.addCleanup(os.remove, path)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		html = '<p>photo</p><img src="/files/_test_large_photo.jpg" style="width: 80px">'
+		self.assertLess(len(pdfgen.get_pdf(html)), pdfgen.LARGE_PDF_SIZE)
+
+		reader = PdfReader(io.BytesIO(pdfgen.get_pdf(html, {"password": "qwe"})))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("qwe"))
+
 	def test_pdf_visibility_classes_apply_to_the_body(self):
 		pdf = pdfgen.get_pdf(
 			"<style>.visible-pdf { display: none; }</style>"
