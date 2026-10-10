@@ -1,90 +1,47 @@
-frappe.email_defaults = {
-	"Frappe Mail": {
-		domain: null,
-		password: null,
-		awaiting_password: 0,
-		ascii_encode_password: 0,
-		login_id_is_different: 0,
-		login_id: null,
-		use_imap: 0,
-		use_ssl: 0,
-		validate_ssl_certificate: 0,
-		use_starttls: 0,
-		email_server: null,
-		incoming_port: 0,
-		always_use_account_email_id_as_sender: 1,
-		use_tls: 0,
-		use_ssl_for_outgoing: 0,
-		smtp_server: null,
-		smtp_port: null,
-		no_smtp_authentication: 0,
-	},
-	GMail: {
-		email_server: "imap.gmail.com",
-		incoming_port: 993,
-		use_ssl: 1,
-		enable_outgoing: 1,
-		smtp_server: "smtp.gmail.com",
-		smtp_port: 587,
-		use_tls: 1,
-		use_imap: 1,
-	},
-	"Outlook.com": {
-		email_server: "imap-mail.outlook.com",
-		use_ssl: 1,
-		enable_outgoing: 1,
-		smtp_server: "smtp-mail.outlook.com",
-		smtp_port: 587,
-		use_tls: 1,
-		use_imap: 1,
-	},
-	Sendgrid: {
-		enable_outgoing: 1,
-		smtp_server: "smtp.sendgrid.net",
-		smtp_port: 587,
-		use_tls: 1,
-	},
-	SparkPost: {
-		enable_incoming: 0,
-		enable_outgoing: 1,
-		smtp_server: "smtp.sparkpostmail.com",
-		smtp_port: 587,
-		use_tls: 1,
-	},
-	"Yahoo Mail": {
-		email_server: "imap.mail.yahoo.com",
-		use_ssl: 1,
-		enable_outgoing: 1,
-		smtp_server: "smtp.mail.yahoo.com",
-		smtp_port: 587,
-		use_tls: 1,
-		use_imap: 1,
-	},
-	"Yandex.Mail": {
-		email_server: "imap.yandex.com",
-		use_ssl: 1,
-		enable_outgoing: 1,
-		smtp_server: "smtp.yandex.com",
-		smtp_port: 587,
-		use_tls: 1,
-		use_imap: 1,
-	},
+const FRAPPE_MAIL_DEFAULTS = {
+	domain: null,
+	password: null,
+	awaiting_password: 0,
+	ascii_encode_password: 0,
+	login_id_is_different: 0,
+	login_id: null,
+	use_imap: 0,
+	use_ssl: 0,
+	validate_ssl_certificate: 0,
+	use_starttls: 0,
+	email_server: null,
+	incoming_port: 0,
+	always_use_account_email_id_as_sender: 1,
+	use_tls: 0,
+	use_ssl_for_outgoing: 0,
+	smtp_server: null,
+	smtp_port: null,
+	no_smtp_authentication: 0,
 };
 
-frappe.email_defaults_pop = {
-	GMail: {
-		email_server: "pop.gmail.com",
-	},
-	"Outlook.com": {
-		email_server: "pop3-mail.outlook.com",
-	},
-	"Yahoo Mail": {
-		email_server: "pop.mail.yahoo.com",
-	},
-	"Yandex.Mail": {
-		email_server: "pop.yandex.com",
-	},
-};
+function get_service_settings(frm, use_imap) {
+	return frappe.xcall("frappe.email.setup.get_service_settings", {
+		service: frm.doc.service,
+		use_imap,
+	});
+}
+
+function set_oauth_app(frm, settings) {
+	if (frm.doc.auth_method !== "OAuth" || frm.doc.backend_app_flow) return;
+	const current = frm.doc.connected_app;
+	if (
+		settings.connected_app &&
+		(!current ||
+			(current !== settings.connected_app && settings.provider_apps.includes(current)))
+	) {
+		frm.set_value("connected_app", settings.connected_app);
+	}
+	if (!frm.doc.connected_user) frm.set_value("connected_user", frappe.session.user);
+}
+
+function with_email_settings(fn) {
+	frappe.require("email_settings.bundle.js", () => fn(frappe.email_settings));
+}
 
 function oauth_access(frm) {
 	frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
@@ -116,16 +73,26 @@ function set_default_max_attachment_size(frm) {
 	}
 }
 function add_helpful_links(frm) {
-	// For better UX
 	if (frm.doc.service === "GMail") {
 		frm.set_df_property(
 			"password",
 			"description",
-			__("To generate password click {0}", [
-				"<a href='https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237' target='_blank'>" +
-					__("here") +
-					"</a>",
-			])
+			__(
+				"Use a 16-letter App Password, not your Google password. {0}. Or set Method to OAuth to use Sign in with Google.",
+				[
+					"<a href='https://myaccount.google.com/apppasswords' target='_blank' rel='noopener noreferrer'>" +
+						__("Create an App Password") +
+						"</a>",
+				]
+			)
+		);
+	} else if (frm.doc.service === "Outlook.com") {
+		frm.set_df_property(
+			"password",
+			"description",
+			__(
+				"Microsoft has turned off password sign-in for most mailboxes. Set Method to OAuth to use Sign in with Microsoft."
+			)
 		);
 	} else {
 		frm.set_df_property("password", "description", "");
@@ -146,27 +113,29 @@ function add_helpful_links(frm) {
 
 frappe.ui.form.on("Email Account", {
 	service: function (frm) {
-		$.each(frappe.email_defaults[frm.doc.service], function (key, value) {
-			frm.set_value(key, value);
-		});
-		if (!frm.doc.use_imap) {
-			$.each(frappe.email_defaults_pop[frm.doc.service], function (key, value) {
-				frm.set_value(key, value);
-			});
-		}
 		add_helpful_links(frm);
+		if (frm.doc.service === "Frappe Mail") {
+			frm.set_value(FRAPPE_MAIL_DEFAULTS);
+			return;
+		}
+		return get_service_settings(frm, 1).then((settings) => {
+			frm.set_value(settings.values);
+			set_oauth_app(frm, settings);
+		});
 	},
 
 	use_imap: function (frm) {
-		if (!frm.doc.use_imap) {
-			$.each(frappe.email_defaults_pop[frm.doc.service], function (key, value) {
-				frm.set_value(key, value);
-			});
-		} else {
-			$.each(frappe.email_defaults[frm.doc.service], function (key, value) {
-				frm.set_value(key, value);
-			});
-		}
+		if (!frm.doc.service || frm.doc.service === "Frappe Mail") return;
+		return get_service_settings(frm, frm.doc.use_imap).then(({ values }) => {
+			const { email_server, incoming_port, use_ssl } = values;
+			if (email_server) frm.set_value({ email_server, incoming_port, use_ssl });
+		});
+	},
+
+	auth_method: function (frm) {
+		return get_service_settings(frm, frm.doc.use_imap).then((settings) =>
+			set_oauth_app(frm, settings)
+		);
 	},
 
 	enable_incoming: function (frm) {
@@ -222,12 +191,39 @@ frappe.ui.form.on("Email Account", {
 
 	refresh: function (frm) {
 		frm.saved_email_id = frm.doc.email_id;
+		add_helpful_links(frm);
 		frm.events.enable_incoming(frm);
 		frm.events.show_oauth_authorization_message(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
 			delete locals["User"][frappe.route_flags.linked_user];
+		}
+
+		if (frappe.user.has_role("System Manager")) {
+			frm.page.add_menu_item(__("Email Settings"), () =>
+				with_email_settings((settings) => settings.open())
+			);
+		}
+
+		if (
+			!frm.is_new() &&
+			!frm.is_dirty() &&
+			frm.perm[0]?.write &&
+			(frm.doc.enable_incoming || frm.doc.enable_outgoing)
+		) {
+			frm.add_custom_button(__("Test Connection"), () =>
+				with_email_settings((settings) => settings.test(frm.doc.name))
+			);
+			if (frm.doc.enable_outgoing) {
+				frm.add_custom_button(__("Send Test Email"), () =>
+					with_email_settings((settings) => settings.send_test_email(frm.doc.name))
+				);
+			}
+			if (frappe.route_options?.email_setup) {
+				frappe.route_options = null;
+				with_email_settings((settings) => settings.test(frm.doc.name));
+			}
 		}
 
 		if (!frm.is_dirty() && frm.doc.enable_incoming) {
@@ -274,7 +270,7 @@ frappe.ui.form.on("Email Account", {
 				callback: (r) => {
 					if (!r.message) {
 						let msg = __(
-							'OAuth has been enabled but not authorised. Please use "Authorise API Access" button to do the same.'
+							"This account is not signed in yet, so it cannot send or receive emails. Click Authorize API Access to sign in."
 						);
 						frm.dashboard.clear_headline();
 						frm.dashboard.set_headline_alert(msg, "yellow");

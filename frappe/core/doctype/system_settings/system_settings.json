@@ -526,7 +526,8 @@
    "default": "3",
    "fieldname": "email_retry_limit",
    "fieldtype": "Int",
-   "label": "Email Retry Limit"
+   "label": "Email Retry Limit",
+   "non_negative": 1
   },
   {
    "default": "0",
@@ -856,7 +857,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-06 17:22:18.039321",
+ "modified": "2026-10-10 09:40:48.015481",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
