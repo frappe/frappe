@@ -10,13 +10,13 @@ import frappe
 from frappe import _
 from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
+from frappe.website.utils import cleanup_page_name
 from frappe.website.website_generator import WebsiteGenerator
 
 from studio.export import can_export, delete_file, delete_folder, write_document_file
 from studio.realtime import publish_doc_change
 from studio.utils import walk_blocks
 
-APP_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
 
@@ -160,7 +160,7 @@ class StudioApp(WebsiteGenerator):
 	def autoname(self):
 		if self.name:
 			return
-		self.name = self.app_name or re.sub(r"[^a-z0-9_-]+", "-", self.app_title.lower()).strip("-_")
+		self.name = self.app_name or self.scrub(self.app_title)
 		validate_app_name(self.name)
 
 	@property
@@ -592,9 +592,9 @@ class StudioApp(WebsiteGenerator):
 
 
 def validate_app_name(name: str):
-	"""The name is used in the editor's URL, the export folder and studio_apps.txt"""
-	if not APP_NAME_RE.match(name or ""):
-		frappe.throw(_("App Name can only have lowercase letters, numbers, hyphens and underscores."))
+	"""The name is used in the editor's URL and the export folder, so it must be URL-friendly"""
+	if not name or name != cleanup_page_name(name):
+		frappe.throw(_("App Name must be lowercase, with hyphens instead of spaces or punctuation."))
 
 
 def move_folder(source: str, destination: str):

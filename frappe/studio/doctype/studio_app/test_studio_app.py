@@ -139,11 +139,11 @@ class TestStudioApp(FrappeTestCase):
 
 	def test_validate_app_name(self):
 		app = make_studio_app(app_title="Valid App", app_name="valid-app")
-		for name in ("Has Space", "UPPER", "-leading", "a/b"):
+		for name in ("Has Space", "UPPER", "a/b"):
 			self.assertRaises(frappe.ValidationError, make_studio_app, app_title="Invalid", app_name=name)
 			self.assertRaises(frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, name)
 
-		self.assertEqual(make_studio_app(app_title="My App! (v2)", app_name=None).name, "my-app-v2")
+		self.assertEqual(make_studio_app(app_title="Café (v2)!", app_name=None).name, "café-v2")
 
 	def test_studio_app_boot(self):
 		app = unsaved_studio_app("boot-app")

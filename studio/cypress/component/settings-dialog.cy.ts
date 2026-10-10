@@ -204,7 +204,7 @@ describe("settings dialog", () => {
 		cy.contains("button", "Rename").click()
 		cy.contains("[role=dialog]", "Rename App").find("input").clear().type("Not Valid")
 		cy.contains("[role=dialog]", "Rename App").contains("button", "Rename").click()
-		cy.contains("App Name can only have lowercase letters").should("be.visible")
+		cy.contains("App Name must be lowercase").should("be.visible")
 		cy.wrap(null).should(() => expect(router.currentRoute.value.params.appID).to.eq(APP_NAME))
 		// the prompt lives in the shared provider, so close it before the next test mounts
 		cy.contains("[role=dialog]", "Rename App").contains("button", "Cancel").click()

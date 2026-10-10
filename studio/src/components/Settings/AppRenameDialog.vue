@@ -38,7 +38,7 @@ function openDialog() {
 				label: "App Name",
 				defaultValue: appName.value,
 				required: true,
-				description: "Lowercase letters, numbers, hyphens and underscores",
+				description: "Lowercase, with hyphens instead of spaces",
 				validate: (value: string) => (value.trim() === appName.value ? "Enter a new name" : null),
 			},
 		],
