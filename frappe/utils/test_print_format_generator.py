@@ -1579,6 +1579,30 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			{"repeat_header_footer": 1},
 		)
 
+	def test_standard_pdf_keeps_request_settings_and_password(self):
+		import io
+
+		from pypdf import PdfReader
+
+		self.addCleanup(
+			frappe.db.set_single_value,
+			"Print Settings",
+			"pdf_generator",
+			frappe.db.get_single_value("Print Settings", "pdf_generator"),
+		)
+		frappe.db.set_single_value("Print Settings", "pdf_generator", "chrome")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "settings handoff"}).insert()
+
+		self.addCleanup(frappe.form_dict.pop, "settings", None)
+		frappe.form_dict.settings = json.dumps({"page_orientation": "Landscape"})
+		page = PdfReader(io.BytesIO(frappe.get_print("ToDo", todo.name, as_pdf=True))).pages[0]
+		self.assertGreater(float(page.mediabox.width), float(page.mediabox.height))
+
+		pdf = frappe.get_print("ToDo", todo.name, as_pdf=True, pdf_options={"password": "secret"})
+		self.assertTrue(PdfReader(io.BytesIO(pdf)).is_encrypted)
+
 	def test_print_settings_override_rejects_invalid_values(self):
 		from frappe.www.printview import get_allowed_print_settings_override
 

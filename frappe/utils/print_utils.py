@@ -89,6 +89,8 @@ def get_print(
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
 	generator = local.form_dict.get("pdf_generator") or resolve_pdf_generator(pf_doc, pdf_generator)
 
+	settings = settings or local.form_dict.get("settings")
+
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
 		local.form_dict.pdf_generator = generator
@@ -107,7 +109,12 @@ def get_print(
 
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
-		if as_pdf and generator == "chrome" and (pf_doc is None or uses_beta_renderer(pf_doc)):
+		standard_pdf_options = set(pdf_options) <= {"password"}
+		if (
+			as_pdf
+			and generator == "chrome"
+			and ((pf_doc is None and standard_pdf_options) or (pf_doc and uses_beta_renderer(pf_doc)))
+		):
 			from frappe.core.doctype.access_log.access_log import make_access_log
 			from frappe.model.document import Document
 			from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
@@ -117,7 +124,13 @@ def get_print(
 			validate_print(doc_obj)
 			render_format = pf_doc or get_default_print_format(doc_obj.doctype)
 			pdf = _render_builder_pdf(
-				render_format, doc_obj, letterhead, no_letterhead, password, style, settings=settings
+				render_format,
+				doc_obj,
+				letterhead,
+				no_letterhead,
+				pdf_options.get("password"),
+				style,
+				settings=settings,
 			)
 			make_access_log(
 				doctype=doc_obj.doctype,
