@@ -871,7 +871,36 @@ frappe.setup.utils = {
 
 // https://github.com/eggert/tz/blob/main/backward add more if required.
 const TZ_BACKWARD_COMPATBILITY_MAP = {
+	"Africa/Asmera": "Africa/Asmara",
+	"America/Buenos_Aires": "America/Argentina/Buenos_Aires",
+	"America/Catamarca": "America/Argentina/Catamarca",
+	"America/Coral_Harbour": "America/Atikokan",
+	"America/Cordoba": "America/Argentina/Cordoba",
+	"America/Godthab": "America/Nuuk",
+	"America/Indianapolis": "America/Indiana/Indianapolis",
+	"America/Jujuy": "America/Argentina/Jujuy",
+	"America/Louisville": "America/Kentucky/Louisville",
+	"America/Mendoza": "America/Argentina/Mendoza",
+	"America/Montreal": "America/Toronto",
+	"America/Nipigon": "America/Toronto",
+	"America/Pangnirtung": "America/Iqaluit",
+	"America/Rainy_River": "America/Winnipeg",
+	"America/Santa_Isabel": "America/Tijuana",
+	"America/Thunder_Bay": "America/Toronto",
+	"America/Yellowknife": "America/Edmonton",
 	"Asia/Calcutta": "Asia/Kolkata",
+	"Asia/Chongqing": "Asia/Shanghai",
+	"Asia/Choibalsan": "Asia/Ulaanbaatar",
+	"Asia/Harbin": "Asia/Shanghai",
+	"Asia/Kashgar": "Asia/Urumqi",
+	"Asia/Katmandu": "Asia/Kathmandu",
+	"Asia/Rangoon": "Asia/Yangon",
+	"Atlantic/Faeroe": "Atlantic/Faroe",
+	"Australia/Currie": "Australia/Hobart",
+	"Europe/Kiev": "Europe/Kyiv",
+	"Europe/Uzhgorod": "Europe/Kyiv",
+	"Europe/Zaporozhye": "Europe/Kyiv",
+	"Pacific/Enderbury": "Pacific/Kanton",
 };
 
 function guess_country(country_info) {
