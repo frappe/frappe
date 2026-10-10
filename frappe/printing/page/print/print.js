@@ -53,9 +53,31 @@ frappe.ui.form.PrintView = class {
 		</div>
 		<div class="preview-beta-wrapper">
 			<iframe width="100%" height="0" frameBorder="0"></iframe>
+			<div class="print-preview-bar">
+				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="prev-page" aria-label="${__(
+					"Previous page"
+				)}">${frappe.utils.icon("chevron-up", "sm")}</button>
+				<span class="print-preview-bar-label page-label"></span>
+				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="next-page" aria-label="${__(
+					"Next page"
+				)}">${frappe.utils.icon("chevron-down", "sm")}</button>
+				<span class="print-preview-bar-divider"></span>
+				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="zoom-out" aria-label="${__(
+					"Zoom out"
+				)}">${frappe.utils.icon("minus", "sm")}</button>
+				<span class="print-preview-bar-label zoom-label"></span>
+				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="zoom-in" aria-label="${__(
+					"Zoom in"
+				)}">${frappe.utils.icon("plus", "sm")}</button>
+				<button class="es-button" data-variant="ghost" data-size="sm" data-action="fit">${__(
+					"Fit"
+				)}</button>
+			</div>
 		</div>
 		`
 		);
+		this.zoom = 1;
+		this.setup_preview_bar();
 
 		const htmlSkeleton = `
 		<!DOCTYPE html>
@@ -84,15 +106,17 @@ frappe.ui.form.PrintView = class {
 	setup_toolbar() {
 		this.page.set_primary_action(__("Print"), () => this.printit(), "printer");
 
-		this.page.add_button(__("Full Page"), () => this.render_page("/printview?"), {
-			icon: "fullscreen",
-		});
+		this.page.add_button(__("PDF"), () => this.render_pdf(), { icon: "download" });
 
-		this.page.add_button(__("PDF"), () => this.render_pdf(), { icon: "file" });
+		this.page.add_button(__("Email"), () => this.email_doc(), { icon: "mail" });
 
-		this.page.add_button(__("Refresh"), () => this.refresh_print_format(), {
-			icon: "refresh-cw",
-		});
+		this.page.add_action_icon(
+			"chevron-left",
+			() => this.navigate_records(1),
+			"",
+			__("Previous")
+		);
+		this.page.add_action_icon("chevron-right", () => this.navigate_records(0), "", __("Next"));
 
 		if (frappe.is_mobile()) {
 			this.page.add_button(__("Form"), () => this.go_to_form_view(), {
@@ -105,6 +129,7 @@ frappe.ui.form.PrintView = class {
 
 	setup_sidebar() {
 		this.sidebar = this.page.sidebar.addClass("print-preview-sidebar");
+		this.add_sidebar_heading(__("Format"));
 
 		this.print_format_field = this.add_sidebar_item({
 			fieldtype: "Link",
@@ -161,16 +186,148 @@ frappe.ui.form.PrintView = class {
 			},
 		}).$input;
 		this.setup_style_picker();
+		this.setup_page_settings();
 		this.sidebar_dynamic_section = $(`<div class="dynamic-settings"></div>`).appendTo(
 			this.sidebar
 		);
 	}
 
+	add_sidebar_heading(label, parent) {
+		return $(`<div class="print-sidebar-heading">${label}</div>`).appendTo(
+			parent || this.sidebar
+		);
+	}
+
+	setup_page_settings() {
+		this.page_overrides = {};
+		this.page_settings = $(`<div class="print-page-settings"></div>`).appendTo(this.sidebar);
+		this.add_sidebar_heading(__("Page"), this.page_settings);
+		const set = (key, value) => {
+			if (value === "" || value == null) delete this.page_overrides[key];
+			else this.page_overrides[key] = value;
+			this.preview();
+		};
+		const make = (df) =>
+			frappe.ui.form.make_control({ df, parent: this.page_settings, render_input: 1 });
+		make({
+			fieldtype: "Select",
+			fieldname: "pdf_page_size",
+			label: __("Paper Size"),
+			options: ["", "A4", "A5", "A3", "Letter", "Legal", "Tabloid"],
+			change() {
+				set("pdf_page_size", this.get_value());
+			},
+		});
+		make({
+			fieldtype: "Select",
+			fieldname: "page_orientation",
+			label: __("Orientation"),
+			options: [
+				{ label: __("Portrait"), value: "Portrait" },
+				{ label: __("Landscape"), value: "Landscape" },
+			],
+			default: "Portrait",
+			change() {
+				set("page_orientation", this.get_value() === "Landscape" ? "Landscape" : "");
+			},
+		});
+		const margins = $(`<div class="form-group print-margins">
+			<div class="control-label">${__("Margins (mm)")}</div>
+			<div class="print-margins-row"></div>
+		</div>`).appendTo(this.page_settings);
+		[
+			["margin_top", __("T"), __("Top")],
+			["margin_right", __("R"), __("Right")],
+			["margin_bottom", __("B"), __("Bottom")],
+			["margin_left", __("L"), __("Left")],
+		].forEach(([key, short, label]) => {
+			$(`<label class="print-margin">
+				<input type="number" min="0" class="form-control form-control-sm" aria-label="${label}">
+				<span>${short}</span>
+			</label>`)
+				.appendTo(margins.find(".print-margins-row"))
+				.find("input")
+				.on("change", (e) => set(key, e.target.value === "" ? "" : cint(e.target.value)));
+		});
+	}
+
+	make_default_format() {
+		const format = this.selected_format();
+		if (format === "Standard") {
+			frappe.show_alert({
+				message: __("Standard is used when no default is set"),
+				indicator: "blue",
+			});
+			return;
+		}
+		frappe
+			.call("frappe.printing.doctype.print_format.print_format.make_default", {
+				name: format,
+			})
+			.then(() =>
+				frappe.show_alert({
+					message: __("{0} is now the default for {1}", [format, __(this.frm.doctype)]),
+					indicator: "green",
+				})
+			);
+	}
+
+	get_print_settings_param() {
+		const settings = Object.assign({}, this.additional_settings);
+		if (this.renders_via_generator(this.get_print_format())) {
+			Object.assign(settings, this.page_overrides);
+		}
+		if (this.selected_format() === "Standard") {
+			if (this.print_font) settings.print_font = this.print_font;
+			if (this.ink_saver) settings.ink_saver = 1;
+		}
+		return settings;
+	}
+
 	setup_style_picker() {
-		this.style_picker = $(`<div class="print-style-picker form-group">
-			<div class="control-label">${__("Style")}</div>
-			<div class="print-style-options"></div>
+		this.style_picker = $(`<div class="print-style-picker">
+			<div class="print-sidebar-heading">${__("Style")}</div>
+			<div class="form-group"><div class="print-style-options"></div></div>
 		</div>`).appendTo(this.sidebar);
+		const print_view = this;
+		frappe.ui.form.make_control({
+			df: {
+				fieldtype: "Select",
+				fieldname: "print_font",
+				label: __("Font"),
+				options: [
+					{ label: __("Default"), value: "" },
+					"Inter",
+					"Roboto",
+					"Open Sans",
+					"Lato",
+					"Noto Sans",
+					"IBM Plex Sans",
+					"Lora",
+					"Merriweather",
+				],
+				change() {
+					print_view.print_font = this.get_value();
+					print_view.preview();
+				},
+			},
+			parent: this.style_picker,
+			render_input: 1,
+		});
+		frappe.ui.form.make_control({
+			df: {
+				fieldtype: "Check",
+				fieldname: "ink_saver",
+				label: __("Ink saver"),
+				description: __("Prints without colours or filled areas"),
+				change() {
+					print_view.ink_saver = cint(this.get_value());
+					print_view.preview();
+				},
+			},
+			parent: this.style_picker,
+			render_input: 1,
+		});
 		this.style_picker.on("click", ".print-style-option", (e) => {
 			this.print_style = e.currentTarget.dataset.style;
 			this.render_style_options();
@@ -221,6 +378,7 @@ frappe.ui.form.PrintView = class {
 		this.style_picker?.toggle(
 			this.selected_format() === "Standard" && !!(this.print_styles || []).length
 		);
+		this.page_settings?.toggle(this.renders_via_generator(this.get_print_format()));
 	}
 
 	get_print_style() {
@@ -248,6 +406,15 @@ frappe.ui.form.PrintView = class {
 
 	setup_menu() {
 		this.page.clear_menu();
+
+		this.page.add_menu_item(__("Full Page"), () => this.render_page("/printview?"));
+		this.page.add_menu_item(
+			__("Refresh"),
+			() => this.refresh_print_format(),
+			false,
+			"Shift+R"
+		);
+		this.page.add_menu_item(__("Set as Default Format"), () => this.make_default_format());
 
 		this.page.add_menu_item(__("Print Settings"), () => {
 			frappe.set_route("Form", "Print Settings");
@@ -481,6 +648,147 @@ frappe.ui.form.PrintView = class {
 		});
 	}
 
+	setup_preview_bar() {
+		this.preview_bar = this.print_wrapper.find(".print-preview-bar");
+		this.preview_bar.on("click", "[data-action]", (e) => {
+			const action = e.currentTarget.dataset.action;
+			if (action === "zoom-in") this.set_zoom(this.zoom + 0.1);
+			else if (action === "zoom-out") this.set_zoom(this.zoom - 0.1);
+			else if (action === "fit") this.fit_zoom();
+			else if (action === "next-page") this.go_to_page(this.current_page + 1);
+			else if (action === "prev-page") this.go_to_page(this.current_page - 1);
+		});
+	}
+
+	on_preview_load(iframe) {
+		this.preview_frame = iframe;
+		const doc = iframe.contentDocument;
+		if (!doc?.body) return;
+		this.apply_zoom();
+		doc.addEventListener("scroll", () => this.update_page_label());
+		doc.addEventListener("keydown", (e) => this.handle_print_keys(e));
+		this.update_page_label();
+	}
+
+	page_metrics() {
+		const doc = this.preview_frame?.contentDocument;
+		if (!doc?.body) return null;
+		const body = doc.body;
+		const page_height = parseFloat(getComputedStyle(body).minHeight) || body.offsetHeight;
+		return {
+			doc,
+			body,
+			page_height,
+			pages: Math.max(1, Math.ceil((body.offsetHeight - 1) / page_height)),
+		};
+	}
+
+	update_page_label() {
+		const m = this.page_metrics();
+		if (!m) return;
+		const el = m.doc.scrollingElement;
+		const scroll = el.scrollTop / this.zoom - m.body.offsetTop;
+		const at_end = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+		this.current_page = at_end
+			? m.pages
+			: Math.min(
+					m.pages,
+					Math.max(1, Math.floor((scroll + m.page_height / 2) / m.page_height) + 1)
+			  );
+		this.page_count = m.pages;
+		this.preview_bar
+			.find(".page-label")
+			.text(__("Page {0} of {1}", [this.current_page, m.pages]));
+		this.preview_bar.find("[data-action=prev-page]").prop("disabled", this.current_page <= 1);
+		this.preview_bar
+			.find("[data-action=next-page]")
+			.prop("disabled", this.current_page >= m.pages);
+	}
+
+	go_to_page(page) {
+		const m = this.page_metrics();
+		if (!m) return;
+		page = Math.min(m.pages, Math.max(1, page));
+		m.doc.scrollingElement.scrollTo({
+			top: (m.body.offsetTop + (page - 1) * m.page_height) * this.zoom,
+			behavior: "smooth",
+		});
+	}
+
+	set_zoom(zoom) {
+		this.zoom = Math.min(2, Math.max(0.5, Math.round(zoom * 10) / 10));
+		this.apply_zoom();
+	}
+
+	apply_zoom() {
+		const doc = this.preview_frame?.contentDocument;
+		if (doc?.documentElement) doc.documentElement.style.zoom = this.zoom;
+		this.preview_bar.find(".zoom-label").text(`${Math.round(this.zoom * 100)}%`);
+		this.update_page_label();
+	}
+
+	fit_zoom() {
+		const m = this.page_metrics();
+		if (!m) return;
+		const available = this.preview_frame.clientWidth - 64;
+		this.set_zoom(available / m.body.offsetWidth);
+	}
+
+	handle_print_keys(e) {
+		if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+		const key = e.key.toLowerCase();
+		if (key === "p") {
+			e.preventDefault();
+			e.shiftKey ? this.render_pdf() : this.printit();
+		} else if (key === "e" && e.shiftKey) {
+			e.preventDefault();
+			this.email_doc();
+		}
+	}
+
+	email_doc() {
+		const set_print_options = (composer) => {
+			composer.dialog.set_value("select_print_format", this.selected_format());
+			const letterhead = this.get_letterhead();
+			if (letterhead) composer.dialog.set_value("select_letter_head", letterhead);
+			if (this.lang_code) composer.dialog.set_value("print_language", this.lang_code);
+		};
+		const form = this.frm.email_doc
+			? this.frm
+			: frappe.views.formview?.[this.frm.doctype]?.frm;
+		if (form && form.docname === this.frm.docname) {
+			set_print_options(form.email_doc());
+			return;
+		}
+		frappe.set_route("Form", this.frm.doctype, this.frm.docname).then(() => {
+			const frm = frappe.views.formview?.[this.frm.doctype]?.frm;
+			frm && set_print_options(frm.email_doc());
+		});
+	}
+
+	navigate_records(prev) {
+		let filters, sort_field, sort_order;
+		const list_settings = frappe.get_user_settings(this.frm.doctype)["List"];
+		if (list_settings) {
+			({ filters, sort_by: sort_field, sort_order } = list_settings);
+		}
+		frappe
+			.call({
+				method: "frappe.desk.form.utils.get_next",
+				args: {
+					doctype: this.frm.doctype,
+					value: this.frm.docname,
+					filters,
+					sort_order,
+					sort_field,
+					prev,
+				},
+			})
+			.then((r) => {
+				if (r.message) frappe.set_route("print", this.frm.doctype, r.message);
+			});
+	}
+
 	setup_keyboard_shortcuts() {
 		this.wrapper.find(".print-toolbar a.btn-default").each((i, el) => {
 			frappe.ui.keys.get_shortcut_group(this.frm.page).add($(el));
@@ -492,6 +800,22 @@ frappe.ui.form.PrintView = class {
 				this.refresh_print_format();
 			},
 			description: __("Refresh Print Preview"),
+		});
+		[
+			["ctrl+p", () => this.printit(), __("Print")],
+			["ctrl+shift+p", () => this.render_pdf(), __("Download PDF")],
+			["ctrl+shift+e", () => this.email_doc(), __("Email")],
+		].forEach(([shortcut, action, description]) => {
+			frappe.ui.keys.add_shortcut({
+				shortcut,
+				action: (e) => {
+					e?.preventDefault?.();
+					action();
+				},
+				page: this.page,
+				description,
+				ignore_inputs: true,
+			});
 		});
 	}
 
@@ -590,12 +914,14 @@ frappe.ui.form.PrintView = class {
 		if (letterhead) {
 			params.append("letterhead", letterhead);
 		}
-		if (this.additional_settings && Object.keys(this.additional_settings).length) {
-			params.append("settings", JSON.stringify(this.additional_settings));
+		const settings = this.get_print_settings_param();
+		if (Object.keys(settings).length) {
+			params.append("settings", JSON.stringify(settings));
 		}
 		if (this.get_print_style()) {
 			params.append("style", this.get_print_style());
 		}
+		iframe.off("load").on("load", () => this.on_preview_load(iframe.get(0)));
 		iframe.prop("src", `/printpreview?${params.toString()}`);
 		iframe.css("height", "calc(100vh - var(--page-head-height) - var(--navbar-height))");
 	}
@@ -829,8 +1155,9 @@ frappe.ui.form.PrintView = class {
 				// the doctype's default, the same as everywhere else in printing
 				print_format: this.selected_format(),
 			});
-			if (this.additional_settings && Object.keys(this.additional_settings).length) {
-				params.append("settings", JSON.stringify(this.additional_settings));
+			const settings = this.get_print_settings_param();
+			if (Object.keys(settings).length) {
+				params.append("settings", JSON.stringify(settings));
 			}
 			if (this.lang_code) {
 				params.append("_lang", this.lang_code);
@@ -880,7 +1207,7 @@ frappe.ui.form.PrintView = class {
 					"&letterhead=" +
 					encodeURIComponent(this.get_letterhead()) +
 					"&settings=" +
-					encodeURIComponent(JSON.stringify(this.additional_settings)) +
+					encodeURIComponent(JSON.stringify(this.get_print_settings_param())) +
 					(this.lang_code ? "&_lang=" + this.lang_code : "") +
 					(this.get_print_style()
 						? "&style=" + encodeURIComponent(this.get_print_style())

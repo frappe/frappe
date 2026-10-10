@@ -63,6 +63,14 @@
 	padding: var(--padding-md);
 	border-left: 0px;
 
+	@include media-breakpoint-up(sm) {
+		position: sticky;
+		top: var(--page-head-height);
+		align-self: flex-start;
+		max-height: calc(100vh - var(--page-head-height) - var(--navbar-height));
+		overflow-y: auto;
+	}
+
 	.checkbox label {
 		align-items: unset;
 	}
@@ -358,5 +366,87 @@
 		.thumb-table i:first-child {
 			background: transparent;
 		}
+	}
+}
+
+.print-sidebar-heading {
+	font-size: var(--text-sm);
+	font-weight: var(--font-weight-medium);
+	color: var(--ink-gray-5);
+	margin: calc(var(--spacing) * 2) 0 calc(var(--spacing) * 3);
+}
+
+.print-page-settings,
+.print-style-picker {
+	border-top: 1px solid var(--outline-gray-1);
+	padding-top: calc(var(--spacing) * 2);
+	margin-top: calc(var(--spacing) * 2);
+}
+
+.print-margins-row {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: calc(var(--spacing) * 1.5);
+}
+
+.print-margin {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+	margin: 0;
+	font-size: var(--text-2xs);
+	color: var(--ink-gray-5);
+
+	input {
+		text-align: center;
+		padding-inline: calc(var(--spacing) * 1);
+		-moz-appearance: textfield;
+	}
+
+	input::-webkit-inner-spin-button,
+	input::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+	}
+}
+
+.preview-beta-wrapper {
+	position: relative;
+}
+
+.print-preview-bar {
+	position: absolute;
+	left: 50%;
+	bottom: calc(var(--spacing) * 4);
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+	padding: calc(var(--spacing) * 1);
+	background: var(--surface-modal, var(--surface-base));
+	border: 1px solid var(--outline-gray-2);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	z-index: 2;
+
+	.print-preview-bar-label {
+		padding: 0 calc(var(--spacing) * 1.5);
+		font-size: var(--text-sm);
+		font-variant-numeric: tabular-nums;
+		color: var(--ink-gray-6);
+		white-space: nowrap;
+	}
+
+	.zoom-label {
+		min-width: 3rem;
+		text-align: center;
+		padding: 0;
+	}
+
+	.print-preview-bar-divider {
+		width: 1px;
+		height: 1rem;
+		margin: 0 calc(var(--spacing) * 1);
+		background: var(--outline-gray-2);
 	}
 }
