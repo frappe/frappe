@@ -147,7 +147,10 @@ def read_records(
 	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
 	if parent_doctype := _parent_doctype(doctype, parent_doctype):
 		# frappe matches child rows to parents by name only
-		filters = {**(filters or {}), "parenttype": parent_doctype}
+		if isinstance(filters, list):
+			filters = [*filters, ["parenttype", "=", parent_doctype]]
+		else:
+			filters = {**(filters or {}), "parenttype": parent_doctype}
 	return frappe.get_list(
 		doctype,
 		filters=filters,
@@ -171,18 +174,18 @@ def _parent_doctype(doctype: str, given: str | None) -> str | None:
 	"""The DocType a child table is read through: the one given, else its only parent."""
 	if not frappe.get_meta(doctype).istable:
 		return None
-	if given:
-		return given
 	table = {"fieldtype": ["in", frappe.model.table_fields], "options": doctype}
 	parents = sorted(
 		set(frappe.get_all("DocField", filters=table, pluck="parent"))
 		| set(frappe.get_all("Custom Field", filters=table, pluck="dt"))
 	)
-	if len(parents) != 1:
-		raise ValueError(
-			f"{doctype} is a child table; pass parent_doctype, one of: {', '.join(parents) or 'none'}"
-		)
-	return parents[0]
+	if given in parents:
+		return given
+	if not given and len(parents) == 1:
+		return parents[0]
+	raise ValueError(
+		f"{doctype} is a child table; pass parent_doctype, one of: {', '.join(parents) or 'none'}"
+	)
 
 
 @tool(

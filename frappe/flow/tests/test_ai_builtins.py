@@ -133,13 +133,14 @@ class TestReadRecords(IntegrationTestCase):
 		self.assertEqual(rows[0]["description"], "fields probe")
 
 	def test_reads_a_single(self):
-		time_zone = frappe.db.get_single_value("System Settings", "time_zone")
+		# CI's site skips the setup wizard, which sets the time zone
+		frappe.db.set_single_value("System Settings", "time_zone", "Asia/Kolkata")
 
 		rows = read_records(doctype="System Settings", fields=["time_zone"], ctx=CTX)
 		[values] = read_records(doctype="System Settings", ctx=CTX)
 
-		self.assertEqual(rows, [{"time_zone": time_zone}])
-		self.assertEqual((values["name"], values["time_zone"]), ("System Settings", time_zone))
+		self.assertEqual(rows, [{"time_zone": "Asia/Kolkata"}])
+		self.assertEqual((values["name"], values["time_zone"]), ("System Settings", "Asia/Kolkata"))
 
 	def test_single_needs_read_permission(self):
 		frappe.set_user("Guest")
@@ -163,6 +164,12 @@ class TestReadRecords(IntegrationTestCase):
 		self.assertIn("pass parent_doctype, one of:", str(caught.exception))
 		self.assertIn("Role Profile", str(caught.exception))
 
+	def test_a_parent_doctype_the_table_isnt_in_lists_its_parents(self):
+		with self.assertRaises(ValueError) as caught:
+			read_records(doctype="Has Role", parent_doctype="ToDo", ctx=CTX)
+
+		self.assertIn("Role Profile", str(caught.exception))
+
 	def test_child_rows_come_only_from_the_given_parent_doctype(self):
 		user = _user("flow-collision-probe@example.com")
 		frappe.get_doc("User", user).add_roles("System Manager")
@@ -178,8 +185,17 @@ class TestReadRecords(IntegrationTestCase):
 			parent_doctype="User",
 			ctx=CTX,
 		)
+		# execute's sandbox calls the function unchecked, where filters can be a list
+		listed = read_records.func(
+			doctype="Has Role",
+			filters=[["parent", "=", user]],
+			fields=["parenttype"],
+			parent_doctype="User",
+			ctx=CTX,
+		)
 
 		self.assertEqual({r["parenttype"] for r in rows}, {"User"})
+		self.assertEqual({r["parenttype"] for r in listed}, {"User"})
 
 
 class TestRunReport(IntegrationTestCase):
