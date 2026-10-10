@@ -106,7 +106,7 @@ def get_pdf(
 	if output:
 		return pdf
 	if len(pdf) > LARGE_PDF_SIZE:
-		pdf = optimize_pdf(pdf)
+		pdf = optimize_pdf(pdf, notify=False)
 	if password:
 		pdf = encrypt_pdf(pdf, password)
 	return pdf
@@ -275,7 +275,7 @@ def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
 	return False
 
 
-def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> bytes:
+def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600, notify: bool = True) -> bytes:
 	"""Recompress embedded raster images and compress content streams to shrink a PDF.
 
 	Only benefits image-heavy PDFs (e.g. scanned documents); text/vector-only PDFs
@@ -346,7 +346,8 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 		EOFError,
 		zlib.error,
 	) as e:
-		frappe.msgprint(_("Failed to optimize PDF: {0}").format(str(e)))
+		if notify:
+			frappe.msgprint(_("Failed to optimize PDF: {0}").format(str(e)))
 		return content
 	except Exception:
 		frappe.log_error(title=_("Unexpected error while optimizing PDF"))
