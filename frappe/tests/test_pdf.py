@@ -195,6 +195,18 @@ class TestPdf(IntegrationTestCase):
 
 		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
 
+	def test_report_pdf_fits_wide_tables_and_runs_no_scripts(self):
+		from frappe.utils import print_format
+
+		header = "".join(f"<th>Column{i:02d}</th>" for i in range(1, 31))
+		html = f"<table><tr>{header}</tr></table><script>document.body.append('script ran')</script>"
+		print_format.report_to_pdf(html, orientation="Landscape")
+
+		text = PdfReader(io.BytesIO(frappe.local.response.filecontent)).pages[0].extract_text()
+		self.assertIn("Column01", text)
+		self.assertIn("Column30", text)
+		self.assertNotIn("script ran", text)
+
 	def test_report_pdf_blocks_external_requests(self):
 		from unittest.mock import patch
 
@@ -205,6 +217,7 @@ class TestPdf(IntegrationTestCase):
 
 		options = get_report_pdf.call_args.args[1]
 		self.assertTrue(options["block-external-requests"])
+		self.assertTrue(options["shrink-to-fit"])
 		self.assertEqual(options["orientation"], "Portrait")
 
 	def test_pdf_generation_as_a_user(self):

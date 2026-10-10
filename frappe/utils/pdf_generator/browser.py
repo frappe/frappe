@@ -33,6 +33,7 @@ class Browser:
 			self.try_async_header_footer_pdf()
 			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
+			self.fit_body_to_page()
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
 			self.update_header_footer_page()
 
@@ -116,9 +117,24 @@ class Browser:
 
 		toggle_visible_pdf(self.soup)
 		self.body_page = self.new_page("body")
+		if self.options.get("block-external-requests"):
+			self.body_page.send("Emulation.setScriptExecutionDisabled", {"value": True})
 		self.body_page.set_tab_url(get_host_url())
 		self.body_page.wait_for_navigate()
 		self.body_page.set_content(str(self.soup))
+
+	def fit_body_to_page(self):
+		if not self.options.get("shrink-to-fit"):
+			return
+		options = self.body_page.options
+		printable = 96 * (
+			options["paperWidth"] - options.get("marginLeft", 0) - options.get("marginRight", 0)
+		)
+		self.body_page.set_device_metrics(width=int(printable), height=1000)
+		result = self.body_page.evaluate("document.documentElement.scrollWidth")
+		content_width = (result or {}).get("result", {}).get("value") or 0
+		if content_width > printable:
+			options["scale"] = max(0.1, printable / content_width)
 
 	def close_page(self, type):
 		page = getattr(self, f"{type}_page")

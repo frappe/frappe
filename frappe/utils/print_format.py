@@ -421,7 +421,7 @@ def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True}
+		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
 	)
 	frappe.local.response.type = "pdf"
 
