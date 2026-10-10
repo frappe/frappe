@@ -167,6 +167,12 @@ function load_setup(force) {
 	return setup_promise;
 }
 
+function disable_password_checks(panel) {
+	panel.fieldgroup.fields_list
+		.filter((field) => field.df.fieldtype === "Password")
+		.forEach((field) => field.disable_password_checks());
+}
+
 function link(url, label) {
 	return `<a href="${encodeURI(
 		url
@@ -591,6 +597,8 @@ function show_account_form(panel, provider, setup) {
 		fields,
 	});
 
+	disable_password_checks(panel);
+
 	panel.body.find(".email-settings-goto").on("click", (e) => {
 		e.preventDefault();
 		panel.dialog.activate($(e.currentTarget).data("tab"));
@@ -788,6 +796,8 @@ function render_oauth_app(panel, provider) {
 			],
 			fields,
 		});
+
+		disable_password_checks(panel);
 
 		const $copy = panel.body.find(".email-settings-copy");
 		$copy.find(".email-settings-copy-value").text(app.redirect_uri);
