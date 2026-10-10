@@ -211,6 +211,8 @@ class StudioApp(WebsiteGenerator):
 		return {"name": new_name, "stale_build": had_build}
 
 	def before_rename(self, old, new, merge=False):
+		if self.is_standard and not can_export(self):
+			frappe.throw(_("Exported apps can only be renamed in developer mode."))
 		if can_export(self) and os.path.exists(self.get_folder_path(new)):
 			frappe.throw(_("Folder {0} already exists.").format(self.get_folder_path(new)))
 

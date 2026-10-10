@@ -1,7 +1,11 @@
 <template>
 	<div class="flex w-full items-end gap-2">
 		<FormControl label="App Name" type="text" class="w-full" :modelValue="appName" :disabled="true" />
-		<Button label="Rename" @click="openDialog" />
+		<Tooltip :text="renameBlockedReason" :disabled="!renameBlockedReason">
+			<span>
+				<Button label="Rename" :disabled="Boolean(renameBlockedReason)" @click="openDialog" />
+			</span>
+		</Tooltip>
 
 		<Dialog v-model:open="showDialog" title="Rename App" size="md">
 			<template #default>
@@ -41,7 +45,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { Button, Dialog, ErrorMessage, FormControl, toast } from "frappe-ui"
+import { Button, Dialog, ErrorMessage, FormControl, Tooltip, toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import { studioApps } from "@/data/studioApps"
 
@@ -50,6 +54,12 @@ const route = useRoute()
 const router = useRouter()
 
 const appName = computed(() => store.activeApp?.name || "")
+// the export folder is named after the app and only moves with it in developer mode
+const renameBlockedReason = computed(() =>
+	store.activeApp?.is_standard && !window.is_developer_mode
+		? "Exported apps can only be renamed in developer mode"
+		: "",
+)
 const showDialog = ref(false)
 const newName = ref("")
 const error = ref("")

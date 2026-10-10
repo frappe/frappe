@@ -139,6 +139,13 @@ class TestStudioApp(FrappeTestCase):
 			self.assertFalse(os.path.exists(os.path.join(old_folder, "renamed_twice.json")))
 			self.assertFalse(os.path.exists(app.get_folder_path("renamed-twice")))
 
+	def test_exported_apps_cannot_be_renamed_outside_developer_mode(self):
+		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
+		app.db_set({"is_standard": 1, "frappe_app": "studio"})
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			self.assertRaises(frappe.ValidationError, app.rename_app, "deployed-renamed")
+		self.assertTrue(frappe.db.exists("Studio App", "deployed-app"))
+
 	def test_rename_flags_a_stale_build(self):
 		app = make_studio_app(app_title="Built App", app_name="built-app")
 		with patch.object(StudioApp, "get_assets_from_manifest", return_value={"script": "/x.js"}):

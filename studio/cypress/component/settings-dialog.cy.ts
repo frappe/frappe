@@ -209,6 +209,19 @@ describe("settings dialog", () => {
 		cy.wrap(null).should(() => expect(router.currentRoute.value.params.appID).to.eq(APP_NAME))
 	})
 
+	it("only renames an exported app in developer mode", () => {
+		cy.wrap(null).then(() => {
+			store.activeApp!.is_standard = 1
+			store.openSettings("app")
+		})
+		cy.contains("button", "Rename").should("be.disabled")
+		cy.window().then((win) => (win.is_developer_mode = true))
+		cy.contains("button", "AI").click()
+		cy.contains("button", "App").click()
+		cy.contains("button", "Rename").should("not.be.disabled")
+		cy.window().then((win) => delete win.is_developer_mode)
+	})
+
 	it("opens on the requested tab", () => {
 		cy.wrap(null).then(() => store.openSettings("ai"))
 		cy.contains("label", "OpenRouter API Key").should("be.visible")
