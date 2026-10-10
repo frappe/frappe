@@ -32,6 +32,10 @@ export function initialConversation() {
 		// messages steered into the running turn that it has yet to take: bubbles below
 		// it, as { key, entry, text, attachmentIds }, until the server's copy lands
 		steering: [],
+		// seqs of the messages steered into a run already under way: each joins that run's turn
+		steeredSeqs: [],
+		// where the current run's entries begin in `entries`
+		runStart: 0,
 		// Ordered, presentation-only assistant blocks accumulated from streaming
 		// deltas. The terminal assistant_message atomically replaces this preview.
 		partial: [],
@@ -106,6 +110,7 @@ function foldEvent(s, e) {
 			s.liveLabel = "Working"
 			s.partial = []
 			s.pendingApproval = null // a new run consumes the batch (resume) — same as the server reducer
+			s.runStart = s.entries.length
 			break
 		case "user_message":
 		case "assistant_message":
@@ -114,6 +119,8 @@ function foldEvent(s, e) {
 				s.liveLabel ??= "Working"
 				// the server's copy of the oldest unechoed message: its bubble is real now
 				s.sending.shift()
+				// a run logs its own message first; one it takes after other rows was steered in
+				if (s.running && s.entries.length > s.runStart) s.steeredSeqs.push(e.seq)
 			}
 			if (e.type === "assistant_message") {
 				s.partial = []
@@ -432,13 +439,14 @@ export function formatDuration(durationMs) {
 	return `${minutes}m ${seconds}s`
 }
 
-function deriveTurns(entries) {
+function deriveTurns(entries, steeredSeqs = []) {
 	const turns = new Map()
 	const turnByEntry = new Map()
 	let current = null
 
 	for (const [index, entry] of entries.entries()) {
-		if (entry.type === "user_message") {
+		// a steered message joins the turn it was steered into: one fold, one copy row
+		if (entry.type === "user_message" && !(current && steeredSeqs.includes(entry.seq))) {
 			current = {
 				key: `turn:${entry.seq ?? index}`,
 				hasUser: true,
@@ -535,7 +543,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	const stepsById = new Map()
 	const pending = conversation.pendingApproval
 	const pendingIds = new Set(pending?.calls.map((c) => c.id) ?? [])
-	const { turns, turnByEntry, latestTurnKey } = deriveTurns(conversation.entries)
+	const { turns, turnByEntry, latestTurnKey } = deriveTurns(conversation.entries, conversation.steeredSeqs)
 	let currentTurnKey = null
 	let bufferedThoughts = []
 	// a thought or text has no wire id, so its turn and ordinal name it across the preview's durable swap
@@ -671,16 +679,16 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 			terminalTextByTurn.set(item.turnKey, terminal)
 		}
 	}
-	const lastTerminalKeyByTurn = new Map(
-		[...terminalTextByTurn].map(([turnKey, terminal]) => [turnKey, terminal.items.at(-1)?.key]),
+	// the files card and the copy/time row close the turn, below all it shows but a later compaction
+	const lastKeyByTurn = new Map(
+		filtered.filter((item) => item.kind !== "compaction").map((item) => [item.turnKey, item.key]),
 	)
 	const fileChangesByTurn = deriveFileChanges(conversation.entries, turnByEntry)
 	const withCopyRows = []
 	for (const item of filtered) {
 		withCopyRows.push(item)
-		if (lastTerminalKeyByTurn.get(item.turnKey) !== item.key) continue
 		const terminal = terminalTextByTurn.get(item.turnKey)
-		// the files card folds into the response; the copy/time row closes the turn
+		if (!terminal || lastKeyByTurn.get(item.turnKey) !== item.key) continue
 		const changed = fileChangesByTurn.get(item.turnKey)
 		if (changed?.size) {
 			withCopyRows.push({
@@ -690,12 +698,13 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 				files: [...changed.values()],
 			})
 		}
+		const response = terminal.items.at(-1)
 		withCopyRows.push({
 			kind: "turn-copy",
-			key: `tc:${item.key}`,
+			key: `tc:${response.key}`,
 			turnKey: item.turnKey,
 			text: terminal.text.join("\n\n"),
-			ts: item.entry?.ts ?? null,
+			ts: response.entry?.ts ?? null,
 		})
 	}
 
