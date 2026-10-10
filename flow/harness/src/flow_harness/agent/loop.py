@@ -72,7 +72,7 @@ from flow_harness.model.reasoning import reasoning_params
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.transcript import PendingApproval
 from flow_harness.tools import SubagentOutcome, Tool, ToolContext
-from flow_harness.tools.builtins.common import truncate
+from flow_harness.tools.builtins.common import DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, truncate
 from flow_harness.tools.tool import display_template_variables
 
 if TYPE_CHECKING:
@@ -657,19 +657,29 @@ async def _dispatch(
 
 
 def _capped(result: ToolResult, *, changed: bool = False) -> ToolResult:
-	"""Cut an oversized result, unless its tool already cut it and no hook changed it."""
+	"""Cut an oversized result to its start and end, unless its tool already cut it and
+	no hook changed it."""
 	if "truncation" in result.details and not changed:
 		return result
-	body, truncation = truncate(result.content, keep="head")
+	_, truncation = truncate(result.content, keep="head")
 	if not truncation["truncated"]:
 		return result
+	lines, size = DEFAULT_MAX_LINES // 5, DEFAULT_MAX_BYTES // 5  # the end gets a fifth of the budget
+	head, head_cut = truncate(result.content, keep="head", max_lines=lines * 4, max_bytes=size * 4)
+	tail, tail_cut = truncate(result.content, keep="tail", max_lines=lines, max_bytes=size)
 	note = (
-		f"\n\n[Cut to the first {_size(len(body.encode()))} of {_size(truncation['total_bytes'])}. "
+		f"[Cut the middle: showing the first {_size(len(head.encode()))} and the last "
+		f"{_size(len(tail.encode()))} of {_size(truncation['total_bytes'])}. "
 		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
 		"Don't repeat a call that changed data.]"
 	)
+	shown = head_cut["output_lines"] + tail_cut["output_lines"]
+	truncation["output_lines"] = min(shown, truncation["total_lines"])  # both ends may hold part of one line
 	return result.model_copy(
-		update={"content": body + note, "details": {**result.details, "truncation": truncation}}
+		update={
+			"content": f"{head}\n\n{note}\n\n{tail}",
+			"details": {**result.details, "truncation": truncation},
+		}
 	)
 
 

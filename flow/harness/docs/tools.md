@@ -40,7 +40,7 @@ When Flow reaches a gated call, it saves `approval_required` and ends the run wi
 | `edit` | `path`, `edits` | Yes | Applies non-overlapping exact replacements. Every old value must appear exactly once. |
 | `subagent` | `task`, `description`, `agent?`, `subagent_id?` | No | Runs a sub-agent inside the session and returns its final answer, or continues an earlier one. See [Sub-agents](#sub-agents). |
 
-Every tool's output is capped at 2,000 lines or 50 KB. `bash` keeps the tail and saves oversized full output to a temporary log; reading and search keep the head. Any other tool keeps the head, plus a note telling the model to ask for less. `edit` returns a unified diff in `details` and preserves BOM and line-ending style.
+Every tool's output is capped at 2,000 lines or 50 KB. `bash` keeps the tail and saves oversized full output to a temporary log; reading, search and `subagent` keep the head. Any other tool keeps its start (1,600 lines or 40 KB) and end (400 lines or 10 KB), with a note between them telling the model to ask for less. `edit` returns a unified diff in `details` and preserves BOM and line-ending style.
 
 Paths for `read`, `write`, `edit`, and `grep` are resolved from `cwd`. With `FLOW_ALLOWED_ROOTS`, those tools reject targets outside the configured roots, including symlink escapes. A tenant may also opt into `ignore_hidden_files`, which rejects dot-prefixed descendants and excludes them from recursive grep. This is a path policy, not a sandbox: `bash` can still access anything the daemon process can access.
 
