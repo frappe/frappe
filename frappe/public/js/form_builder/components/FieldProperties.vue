@@ -78,6 +78,10 @@ let docfield_df = computed(() => {
 			return false;
 		}
 
+		if (df.fieldname === "show_for_module") {
+			df.options = frappe.business_modules.get_select_options();
+		}
+
 		if (df.fieldname === "options") {
 			df.fieldtype = "Small Text";
 			df.options = "";

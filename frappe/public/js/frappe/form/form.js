@@ -875,6 +875,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		this.layout.refresh(this.doc);
 		this.layout.primary_button = this.$wrapper.find(".btn-primary");
+		this.apply_hidden_module_fields();
 
 		// cleanup activities after refresh
 		this.cleanup_refresh(this);
@@ -2117,6 +2118,70 @@ frappe.ui.form.Form = class FrappeForm {
 		this.field_map(fnames, function (field) {
 			field.hidden = show ? 0 : 1;
 		});
+	}
+
+	/**
+	 * Hide fields of the given business modules. Fields of other modules or without a module are shown.
+	 * @param {string[]} modules - Modules to hide, e.g. ["Stock", "POS"]. Pass [] to show all.
+	 * @example frm.hide_module_fields(["Stock"]);
+	 */
+	hide_module_fields(modules) {
+		this.hidden_modules = modules || [];
+		this.apply_hidden_module_fields();
+	}
+
+	/** Re-apply the list given to hide_module_fields. Runs on every form refresh. */
+	apply_hidden_module_fields() {
+		if (!this.hidden_modules || !this.fields_dict) return;
+
+		// a mandatory field stays visible, or the form cannot be saved
+		const is_off = (df) =>
+			!!df.show_for_module && !df.reqd && this.hidden_modules.includes(df.show_for_module);
+
+		// own fields
+		for (const fieldname of Object.keys(this.fields_dict)) {
+			const df = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
+			if (!df || !df.show_for_module) continue;
+			if (this.set_hidden_by_module(df, is_off(df))) {
+				this.refresh_field(fieldname);
+			}
+		}
+
+		// child table fields
+		for (const table_df of frappe.meta.get_table_fields(this.doctype)) {
+			const grid = this.fields_dict[table_df.fieldname]?.grid;
+			if (!grid) continue;
+			let changed = false;
+			for (const df of grid.docfields || []) {
+				if (!df.show_for_module) continue;
+				if (this.set_hidden_by_module(df, is_off(df))) {
+					grid.update_docfield_property(df.fieldname, "hidden", df.hidden);
+					changed = true;
+				}
+			}
+			// the grid caches its visible columns, so build them again
+			if (changed) grid.reset_grid();
+		}
+	}
+
+	/**
+	 * Hide or show one field for a module. Only shows it again if we hid it.
+	 * @param {object} df - The field's docfield.
+	 * @param {boolean} off - True if the field's module is off.
+	 * @returns {boolean} True if the field changed.
+	 */
+	set_hidden_by_module(df, off) {
+		if (off && !df.hidden) {
+			df.hidden = 1;
+			df.hidden_by_module = 1;
+			return true;
+		}
+		if (!off && df.hidden_by_module) {
+			df.hidden = 0;
+			delete df.hidden_by_module;
+			return true;
+		}
+		return false;
 	}
 
 	get_files() {

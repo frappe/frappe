@@ -6,6 +6,11 @@
 
 frappe.ui.form.on("Custom Field", {
 	setup: function (frm) {
+		frm.set_df_property(
+			"show_for_module",
+			"options",
+			frappe.business_modules.get_select_options()
+		);
 		frm.set_query("dt", function (doc) {
 			var filters = [
 				["DocType", "issingle", "=", 0],
