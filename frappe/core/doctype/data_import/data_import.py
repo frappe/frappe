@@ -501,6 +501,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	else:
 		data_import.import_type = "Update Existing Records"
 
+	frappe.set_user_lang(frappe.session.user)
 	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=console)
 	data_import.set_payload_count(i)
 	i.import_data()
