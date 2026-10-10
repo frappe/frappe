@@ -154,6 +154,14 @@ class TestPdf(IntegrationTestCase):
 		output = pdfgen.get_pdf("<p>first</p>", options={"password": "qwe"}, output=PdfWriter())
 		self.assertEqual(len(output.pages), 1)
 
+	def test_repeated_header_marked_hidden_pdf_still_prints(self):
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html" class="hidden-pdf"><b>REPORT HEADER</b></div><p>report body</p>'
+		)
+		text = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+		self.assertIn("REPORT HEADER", text)
+		self.assertIn("report body", text)
+
 	def test_pdf_visibility_classes_apply_to_the_body(self):
 		pdf = pdfgen.get_pdf(
 			"<style>.visible-pdf { display: none; }</style>"

@@ -88,10 +88,7 @@ class Browser:
 		self.browser_context_id = result["browserContextId"]
 
 	def set_html(self, html):
-		from frappe.utils.pdf import toggle_visible_pdf
-
 		self.soup = BeautifulSoup(html, "html5lib")
-		toggle_visible_pdf(self.soup)
 
 	def set_options(self, options):
 		self.options = options
@@ -115,6 +112,9 @@ class Browser:
 		return page
 
 	def setup_body_page(self):
+		from frappe.utils.pdf import toggle_visible_pdf
+
+		toggle_visible_pdf(self.soup)
 		self.body_page = self.new_page("body")
 		self.body_page.set_tab_url(get_host_url())
 		self.body_page.wait_for_navigate()
