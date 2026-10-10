@@ -346,6 +346,7 @@ class PrintFormatGenerator:
 		self._header_absorbs_top_margin = False
 		self._logged_conditions = set()
 		self.letterhead = None
+		self.apply_classic_margin_defaults()
 
 		self.build_context()
 		self.layout = self.get_layout(self.print_format)
@@ -382,6 +383,18 @@ class PrintFormatGenerator:
 		if not name or not frappe.db.exists("Letter Head", name):
 			return None
 		return frappe.get_doc("Letter Head", name)
+
+	def apply_classic_margin_defaults(self):
+		from frappe.printing.doctype.print_format.classic_converter import (
+			MARGIN_FIELDS,
+			is_classic_layout,
+			missing_numeric_defaults,
+		)
+
+		if not is_classic_layout(self.print_format.format_data):
+			return
+		defaults = missing_numeric_defaults(self.print_format)
+		self.print_format.update({field: defaults[field] for field in MARGIN_FIELDS if field in defaults})
 
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
@@ -782,15 +795,11 @@ class PrintFormatGenerator:
 			frappe.log_error(title=f"Unreadable print format layout: {print_format.name}")
 			layout = copy.deepcopy(self.EMPTY_LAYOUT)
 		if isinstance(layout, list) and layout:
-			from frappe.printing.doctype.print_format.classic_converter import (
-				convert_classic_to_beta,
-				missing_numeric_defaults,
-			)
+			from frappe.printing.doctype.print_format.classic_converter import convert_classic_to_beta
 
 			layout, _dropped = convert_classic_to_beta(
 				layout, frappe.get_meta(print_format.doc_type), print_format
 			)
-			print_format.update(missing_numeric_defaults(print_format))
 			if not print_format.page_number or print_format.page_number == "Hide":
 				print_format.page_number = "Bottom Center"
 		return self.get_processed_layout(layout)
