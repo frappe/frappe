@@ -868,16 +868,6 @@ function render_general(panel) {
 						click: () => {
 							const values = panel.get_values();
 							if (!values) return;
-							if (cint(values.email_retry_limit) < 0) {
-								frappe.msgprint({
-									title: __("Invalid Value"),
-									indicator: "orange",
-									message: __("{0} cannot be negative.", [
-										panel.get_field("email_retry_limit").df.label.bold(),
-									]),
-								});
-								return;
-							}
 							frappe
 								.call({
 									method: "frappe.client.set_value",
