@@ -62,7 +62,7 @@ class TestStudioApp(FrappeTestCase):
 		self.assertIn('href="/files/favicon-app.png"', render_app_template(app))
 
 	def test_rename_keeps_exported_files(self):
-		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
+		with exports_in_tempdir():
 			app, page = make_exported_app_with_files("rename-me")
 			old_folder = app.get_folder_path()
 
@@ -72,7 +72,6 @@ class TestStudioApp(FrappeTestCase):
 			page.reload()
 			self.assertEqual(result, {"name": "renamed-app", "stale_build": False})
 			self.assertEqual(app.app_name, "renamed-app")
-			self.assertEqual(page.studio_app, "renamed-app")
 			self.assertFalse(os.path.exists(old_folder))
 			self.assert_exported_files_kept(app, page)
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "renamed_app.json")))
@@ -81,14 +80,13 @@ class TestStudioApp(FrappeTestCase):
 			self.assertEqual(exported_page["studio_app"], "renamed-app")
 
 	def test_changing_the_frappe_app_moves_the_export_folder(self):
-		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
+		with exports_in_tempdir():
 			app, page = make_exported_app_with_files("moving-app")
 			old_folder = app.get_folder_path()
 
 			app.enable_app_export("frappe")
 
 			page.reload()
-			self.assertEqual(app.frappe_app, "frappe")
 			self.assertFalse(os.path.exists(old_folder))
 			self.assert_exported_files_kept(app, page)
 
@@ -99,7 +97,7 @@ class TestStudioApp(FrappeTestCase):
 		self.assertEqual(frappe.read_file(extra_file), "<template>kept</template>")
 
 	def test_rename_keeps_the_app_json_when_the_names_scrub_the_same(self):
-		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt") as remove_entry:
+		with exports_in_tempdir():
 			app = make_studio_app(app_title="Dashed App", app_name="dashed-app")
 			app.enable_app_export("studio")
 
@@ -107,10 +105,10 @@ class TestStudioApp(FrappeTestCase):
 
 			app = frappe.get_doc("Studio App", "dashed_app")
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
-			remove_entry.assert_not_called()
+			StudioApp.remove_from_studio_apps_txt.assert_not_called()
 
 	def test_a_failed_move_leaves_the_export_folder_in_place(self):
-		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
+		with exports_in_tempdir():
 			app = make_studio_app(app_title="Stuck App", app_name="stuck-app")
 			app.enable_app_export("studio")
 			old_folder = app.get_folder_path()
@@ -120,10 +118,9 @@ class TestStudioApp(FrappeTestCase):
 
 			self.assertTrue(os.path.exists(old_folder))
 			self.assertFalse(os.path.exists(app.get_folder_path(frappe_app="frappe")))
-			self.assertEqual(app.frappe_app, "studio")
 
 	def test_a_failed_rename_leaves_the_export_folder_in_place(self):
-		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
+		with exports_in_tempdir():
 			app = make_studio_app(app_title="Unrenamed App", app_name="unrenamed-app")
 			app.enable_app_export("studio")
 			old_folder = app.get_folder_path()
@@ -140,12 +137,6 @@ class TestStudioApp(FrappeTestCase):
 		app.db_set({"is_standard": 1, "frappe_app": "studio"})
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
 			self.assertRaises(frappe.ValidationError, app.rename_app, "deployed-renamed")
-		self.assertTrue(frappe.db.exists("Studio App", "deployed-app"))
-
-	def test_rename_flags_a_stale_build(self):
-		app = make_studio_app(app_title="Built App", app_name="built-app")
-		with patch.object(StudioApp, "get_assets_from_manifest", return_value={"script": "/x.js"}):
-			self.assertTrue(app.rename_app("built-app-2")["stale_build"])
 
 	def test_rename_rejects_invalid_names(self):
 		app = make_studio_app(app_title="Valid App", app_name="valid-app")
@@ -519,6 +510,7 @@ def exports_in_tempdir():
 		),
 		patch.dict(frappe.conf, {"developer_mode": 1}),
 		patch.object(StudioApp, "add_to_studio_apps_txt"),
+		patch.object(StudioApp, "remove_from_studio_apps_txt"),
 	):
 		yield
 

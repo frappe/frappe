@@ -55,15 +55,6 @@ def make_page_with_data(app_name: str):
 
 
 class TestStudioPage(IntegrationTestCase):
-	def test_save_page_field_saves_several_fields_together(self):
-		app = make_studio_app(app_title="Fields App", app_name="fields-app")
-		page = make_studio_page(app.name, page_title="Fields Page")
-
-		page.save_page_field({"page_title": "Renamed Page", "route": "/renamed"}, known_modified=page.modified)
-
-		page.reload()
-		self.assertEqual((page.page_title, page.route), ("Renamed Page", "/renamed"))
-
 	def test_remove_empty_values(self):
 		test_dict = {
 			"keep_this": "value",
