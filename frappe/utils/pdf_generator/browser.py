@@ -10,6 +10,7 @@ from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
 class Browser:
 	def __init__(self, generator, print_format, html, options):
+		self.print_format = print_format
 		self.is_print_designer = frappe.get_cached_value("Print Format", print_format, "print_designer")
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 		self.browserID = frappe.utils.random_string(10)
@@ -209,7 +210,7 @@ class Browser:
 		from frappe.utils.pdf import get_print_format_styles
 
 		soup: BeautifulSoup = self.soup
-		options = {}
+		options = self._get_print_format_page_margins()
 		print_format_css = get_print_format_styles(soup)
 		attrs = (
 			"margin-top",
@@ -224,6 +225,17 @@ class Browser:
 		)
 		options |= {style.name: style.value for style in print_format_css if style.name in attrs}
 		self.options.update(options)
+
+	def _get_print_format_page_margins(self):
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+		from frappe.www.printview import get_page_rule_margins
+
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
+			return {}
+		print_format = frappe.get_cached_doc("Print Format", self.print_format)
+		if not print_format.css or uses_beta_renderer(print_format) or print_format.pdf_generator != "chrome":
+			return {}
+		return get_page_rule_margins(print_format.css)
 
 	def _set_default_page_size(self):
 		options = self.options
