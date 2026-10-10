@@ -15,7 +15,7 @@ jobs:
       - uses: actions/stale@v11
         with:
           days-before-pr-stale: 15
-          days-before-pr-close: 2
+          days-before-pr-close: 1
           days-before-issue-stale: -1
           days-before-issue-close: -1
           stale-pr-label: 'inactive'
