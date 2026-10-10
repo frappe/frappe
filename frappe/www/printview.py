@@ -733,6 +733,7 @@ def get_print_style(
 		"print_settings": print_settings,
 		"print_style": style,
 		"font": get_font(print_settings, print_format, for_legacy),
+		"page_margin": get_page_margin(print_format),
 	}
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
@@ -755,6 +756,29 @@ def get_print_style(
 		css += "\n\n" + print_format.css
 
 	return css
+
+
+def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
+	sides = ["15mm"] * 4
+	if not print_format or not print_format.css or print_format.pdf_generator != "chrome":
+		return " ".join(sides)
+
+	import cssutils
+
+	cssutils.log.setLog(frappe.logger("cssutils"))
+	for rule in cssutils.parseString(print_format.css):
+		if not isinstance(rule, cssutils.css.CSSPageRule) or rule.selectorText:
+			continue
+		if values := rule.style.getPropertyValue("margin").split():
+			top = values[0]
+			right = values[1] if len(values) > 1 else top
+			bottom = values[2] if len(values) > 2 else top
+			left = values[3] if len(values) > 3 else right
+			sides = [top, right, bottom, left]
+		for i, side in enumerate(("top", "right", "bottom", "left")):
+			sides[i] = rule.style.getPropertyValue(f"margin-{side}") or sides[i]
+
+	return " ".join(sides)
 
 
 def get_font(
