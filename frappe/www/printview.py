@@ -12,6 +12,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
+from frappe.utils.print_utils import resolve_pdf_generator
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
@@ -68,9 +69,7 @@ def get_context(context) -> PrintContext:
 	print_format, standalone = resolve_print_format(None, meta)
 
 	print_format_name = getattr(print_format, "name", "Standard")
-	pdf_generator = frappe.form_dict.get(
-		"pdf_generator", getattr(print_format, "pdf_generator", "wkhtmltopdf")
-	)
+	pdf_generator = resolve_pdf_generator(print_format, frappe.form_dict.get("pdf_generator"))
 
 	context = {
 		"standalone": standalone,
@@ -689,6 +688,7 @@ def get_print_style(
 		"print_settings": print_settings,
 		"print_style": style,
 		"font": get_font(print_settings, print_format, for_legacy),
+		"page_margin": get_page_margin(print_format),
 	}
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
@@ -712,6 +712,38 @@ def get_print_style(
 		css += "\n\n" + print_format.css
 
 	return css
+
+
+def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
+	sides = ["15mm"] * 4
+	if not print_format or not print_format.css or resolve_pdf_generator(print_format) != "chrome":
+		return " ".join(sides)
+
+	import cssutils
+
+	cssutils.log.setLog(frappe.logger("cssutils"))
+	side_names = ("margin-top", "margin-right", "margin-bottom", "margin-left")
+	important = [False] * 4
+	for rule in cssutils.parseString(print_format.css):
+		if not isinstance(rule, cssutils.css.CSSPageRule) or rule.selectorText:
+			continue
+		for prop in rule.style:
+			if prop.name == "margin" and (values := [v.cssText for v in prop.propertyValue]):
+				top = values[0]
+				right = values[1] if len(values) > 1 else top
+				bottom = values[2] if len(values) > 2 else top
+				left = values[3] if len(values) > 3 else right
+				updates = enumerate((top, right, bottom, left))
+			elif prop.name in side_names:
+				updates = [(side_names.index(prop.name), prop.value)]
+			else:
+				continue
+			for i, value in updates:
+				if prop.priority or not important[i]:
+					sides[i] = value
+					important[i] = bool(prop.priority)
+
+	return " ".join(sides)
 
 
 def get_font(

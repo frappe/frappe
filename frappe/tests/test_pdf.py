@@ -84,6 +84,10 @@ def js_reachable_without_resolving_indirects(content: bytes) -> bool:
 	return any(walk(page) for page in reader.pages)
 
 
+def record_print(**kwargs):
+	pass
+
+
 class TestPdf(IntegrationTestCase):
 	@property
 	def html(self):
@@ -105,16 +109,20 @@ class TestPdf(IntegrationTestCase):
 				Please mail us at <a href="mailto:test@example.com">email</a>
 			</div>"""
 
-	def runTest(self):
-		self.test_read_options_from_html()
+	def test_print_format_margins_are_read_from_html(self):
+		from bs4 import BeautifulSoup
 
-	def test_read_options_from_html(self):
-		_, html_options = pdfgen.read_options_from_html(self.html)
-		self.assertTrue(html_options["margin-top"] == "0")
-		self.assertTrue(html_options["margin-left"] == "10mm")
-		self.assertTrue(html_options["margin-right"] == "0")
+		def margins(html):
+			styles = pdfgen.get_print_format_styles(BeautifulSoup(html, "html5lib"))
+			return {style.name: style.value for style in styles}
 
-		html_1 = """<style>
+		options = margins(self.html)
+		self.assertEqual(options["margin-top"], "0")
+		self.assertEqual(options["margin-left"], "10mm")
+		self.assertEqual(options["margin-right"], "0")
+
+		options = margins(
+			"""<style>
 			.print-format {
 				margin-top: 0mm;
 				margin-left: 10mm;
@@ -126,23 +134,12 @@ class TestPdf(IntegrationTestCase):
 				margin-bottom: 20mm;
 			}
 			</style>
-			<div class="more-info">Hello</div>
-		"""
-		_, options = pdfgen.read_options_from_html(html_1)
-
-		self.assertTrue(options["margin-top"] == "0")
-		self.assertTrue(options["margin-left"] == "10mm")
-		self.assertTrue(options["margin-bottom"] == "20mm")
-		# margin-right was for .more-info (child of .print-format)
-		# so it should not be extracted into options
-		self.assertFalse(options.get("margin-right"))
-
-	def test_empty_style(self):
-		html = """<style></style>
-			<div class="more-info">Hello</div>
-		"""
-		_, options = pdfgen.read_options_from_html(html)
-		self.assertTrue(options)
+			<div class="more-info">Hello</div>"""
+		)
+		self.assertEqual(options["margin-top"], "0")
+		self.assertEqual(options["margin-left"], "10mm")
+		self.assertEqual(options["margin-bottom"], "20mm")
+		self.assertNotIn("margin-right", options)
 
 	def test_pdf_encryption(self):
 		password = "qwe"
@@ -151,35 +148,144 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
-	def test_smart_shrinking_is_opt_in(self):
+	def test_password_with_output_writer_appends_pages(self):
+		from pypdf import PdfWriter
+
+		output = pdfgen.get_pdf("<p>first</p>", options={"password": "qwe"}, output=PdfWriter())
+		self.assertEqual(len(output.pages), 1)
+
+	def test_repeated_header_marked_hidden_pdf_still_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html" class="hidden-pdf"><b>REPORT HEADER</b></div><p>report body</p>'
+		)
+		text = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+		self.assertIn("REPORT HEADER", text)
+		self.assertIn("report body", text)
+
+	def test_empty_header_and_footer_are_skipped(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html" class="hidden-pdf"></div><p>body text</p><div id="footer-html"></div>'
+		)
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
+	def test_print_format_margins_keep_header_and_footer_on_every_page(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		rows = "".join(f"<p>row {i}</p>" for i in range(150))
+		pdf = pdfgen.get_pdf(
+			"<style>.print-format { margin-top: 30mm; margin-bottom: 20mm; }</style>"
+			'<div class="print-format"><div id="header-html"><b>TOP</b></div>'
+			f"{rows}"
+			'<div id="footer-html">Page <span class="page"></span> of <span class="topage"></span></div></div>'
+		)
+		pages = PdfReader(io.BytesIO(pdf)).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			text = page.extract_text()
+			self.assertIn("TOP", text)
+			self.assertIn(f"Page {number} of {len(pages)}", text)
+
+	def test_bulk_pdf_with_password_keeps_every_document(self):
+		import json
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		names = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"bulk {i}"}).insert().name for i in range(2)
+		]
+
+		_download_multi_pdf(
+			"ToDo", json.dumps(names), format="Standard", options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertGreaterEqual(len(reader.pages), 2)
+
+	def test_large_pdf_is_optimized_before_encryption(self):
+		import os
+
+		from PIL import Image
+
+		path = frappe.get_site_path("public", "files", "_test_large_photo.jpg")
+		Image.effect_noise((3000, 3000), 80).convert("RGB").save(path, quality=95)
+		self.addCleanup(os.remove, path)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		html = '<p>photo</p><img src="/files/_test_large_photo.jpg" style="width: 80px">'
+		self.assertLess(len(pdfgen.get_pdf(html)), pdfgen.LARGE_PDF_SIZE)
+
+		reader = PdfReader(io.BytesIO(pdfgen.get_pdf(html, {"password": "qwe"})))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("qwe"))
+
+	def test_pdf_visibility_classes_apply_to_the_body(self):
+		pdf = pdfgen.get_pdf(
+			"<style>.visible-pdf { display: none; }</style>"
+			'<p class="hidden-pdf">screen only</p><p class="visible-pdf">pdf only</p>'
+		)
+		text = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+		self.assertIn("pdf only", text)
+		self.assertNotIn("screen only", text)
+
+	def test_on_print_pdf_hook_runs_for_chrome_prints(self):
 		from unittest.mock import patch
 
-		captured = {}
+		get_hooks = frappe.get_hooks
+		calls = []
 
-		def capture_options(html, options=None, verbose=True):
-			captured.clear()
-			captured.update(options or {})
-			return blank_pdf()
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
 
 		with (
-			patch.object(pdfgen.pdfkit, "from_string", side_effect=capture_options),
-			patch.object(pdfgen, "get_wkhtmltopdf_version", return_value="0.12.6"),
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"),
 		):
-			pdfgen.get_pdf(self.html)
-			self.assertIn("disable-smart-shrinking", captured)
+			frappe.get_print("ToDo", todo.name, as_pdf=True)
 
-			pdfgen.get_pdf(self.html, smart_shrinking=True)
-			self.assertNotIn("disable-smart-shrinking", captured)
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
 
-	def test_report_pdf_is_scaled_to_fit_the_page(self):
+	def test_report_pdf_fits_wide_tables_and_runs_no_scripts(self):
+		from frappe.utils import print_format
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		header = "".join(f"<th>Column{i:02d}</th>" for i in range(1, 31))
+		html = f"<table><tr>{header}</tr></table><script>document.body.append('script ran')</script>"
+		print_format.report_to_pdf(html, orientation="Landscape")
+
+		text = PdfReader(io.BytesIO(frappe.local.response.filecontent)).pages[0].extract_text()
+		self.assertIn("Column01", text)
+		self.assertIn("Column30", text)
+		self.assertNotIn("script ran", text)
+
+	def test_report_pdf_blocks_external_requests(self):
 		from unittest.mock import patch
 
 		from frappe.utils import print_format
 
 		with patch.object(print_format, "get_pdf", return_value=blank_pdf()) as get_report_pdf:
-			print_format.report_to_pdf("<table><tr><td>a wide report</td></tr></table>")
+			print_format.report_to_pdf("<table><tr><td>a report</td></tr></table>", orientation="Portrait")
 
-		self.assertTrue(get_report_pdf.call_args.kwargs["smart_shrinking"])
+		options = get_report_pdf.call_args.args[1]
+		self.assertTrue(options["block-external-requests"])
+		self.assertTrue(options["shrink-to-fit"])
+		self.assertEqual(options["orientation"], "Portrait")
 
 	def test_pdf_generation_as_a_user(self):
 		frappe.set_user("Administrator")
@@ -251,6 +357,22 @@ class TestChromePdfGeometry(IntegrationTestCase):
 		# 210x297mm must match A4 in inches, not be consumed as px
 		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 8.27, delta=0.05)
 		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 11.69, delta=0.05)
+
+	def test_every_print_settings_page_size_is_known(self):
+		from frappe.utils.pdf_generator.browser import PageSize
+
+		options = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+		for size in options:
+			if size != "Custom":
+				self.assertTrue(PageSize.get(size), size)
+
+	def test_landscape_orientation_swaps_paper_size(self):
+		for orientation in ("Landscape", "landscape"):
+			browser = self.make_browser({"page-size": "A4", "orientation": orientation})
+			browser.prepare_options_for_pdf()
+
+			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
+			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
 
 	def test_custom_page_size_without_dimensions_raises(self):
 		from unittest.mock import patch

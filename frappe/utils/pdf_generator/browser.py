@@ -3,7 +3,7 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.utils.data import cint
+from frappe.utils.data import cint, cstr
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
@@ -17,7 +17,7 @@ class Browser:
 		try:
 			# sets soup from html
 			self.set_html(html)
-			# sets wkhtmltopdf options
+			# sets pdf options
 			self.set_options(options)
 			# start cdp connection and create browser context ( kind of like new window / incognito mode)
 			self.open(generator)
@@ -33,6 +33,7 @@ class Browser:
 			self.try_async_header_footer_pdf()
 			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
+			self.fit_body_to_page()
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
 			self.update_header_footer_page()
 
@@ -107,14 +108,33 @@ class Browser:
 
 		page = Page(self.session, self.browser_context_id, page_type)
 		page.is_print_designer = self.is_print_designer
+		page.block_external_requests = bool(self.options.get("block-external-requests"))
 
 		return page
 
 	def setup_body_page(self):
+		from frappe.utils.pdf import toggle_visible_pdf
+
+		toggle_visible_pdf(self.soup)
 		self.body_page = self.new_page("body")
+		if self.options.get("block-external-requests"):
+			self.body_page.send("Emulation.setScriptExecutionDisabled", {"value": True})
 		self.body_page.set_tab_url(get_host_url())
 		self.body_page.wait_for_navigate()
 		self.body_page.set_content(str(self.soup))
+
+	def fit_body_to_page(self):
+		if not self.options.get("shrink-to-fit"):
+			return
+		options = self.body_page.options
+		printable = 96 * (
+			options["paperWidth"] - options.get("marginLeft", 0) - options.get("marginRight", 0)
+		)
+		self.body_page.set_device_metrics(width=int(printable), height=1000)
+		result = self.body_page.evaluate("document.documentElement.scrollWidth")
+		content_width = (result or {}).get("result", {}).get("value") or 0
+		if content_width > printable:
+			options["scale"] = max(0.1, printable / content_width)
 
 	def close_page(self, type):
 		page = getattr(self, f"{type}_page")
@@ -178,7 +198,10 @@ class Browser:
 			self.header_height = self.header_page.get_element_height()
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
-		else:
+			if not self.header_height:
+				self.header_page.close()
+				self.header_page = None
+		if not self.header_page:
 			# Fallback only when the caller did not explicitly pass margin-top.
 			# If margin-top is already set (e.g. from PrintFormatGenerator), keep it.
 			if "margin-top" not in options:
@@ -189,7 +212,10 @@ class Browser:
 			self.footer_height = self.footer_page.get_element_height()
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
-		else:
+			if not self.footer_height:
+				self.footer_page.close()
+				self.footer_page = None
+		if not self.footer_page:
 			# Fallback only when the caller did not explicitly pass margin-bottom.
 			if "margin-bottom" not in options:
 				options["margin-bottom"] = "15mm"
@@ -274,7 +300,6 @@ class Browser:
 			"marginBottom": 0,
 			"marginLeft": 0,
 			"marginRight": 0,
-			"landscape": options.get("orientation", "Portrait") == "Landscape",
 			"preferCSSPageSize": False,
 			"pageRanges": options.get("page-ranges", ""),
 			# Experimental
@@ -307,6 +332,12 @@ class Browser:
 
 		if isinstance(options["page-width"], str):
 			options["page-width"] = self._get_converted_num(options["page-width"])
+
+		if (
+			cstr(options.get("orientation")).lower() == "landscape"
+			and options["page-width"] < options["page-height"]
+		):
+			options["page-width"], options["page-height"] = options["page-height"], options["page-width"]
 
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
 
@@ -542,6 +573,11 @@ class PageSize:
 		"Letter": (216, 279),
 		"Tabloid": (279, 432),
 		"Ledger": (432, 279),
+		"C5E": (163, 229),
+		"Comm10E": (105, 241),
+		"DLE": (110, 220),
+		"Executive": (191, 254),
+		"Folio": (210, 330),
 		"ANSI C": (432, 559),
 		"ANSI A (letter)": (216, 279),
 		"ANSI B (ledger & tabloid)": (279, 432),

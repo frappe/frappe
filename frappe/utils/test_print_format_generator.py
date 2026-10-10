@@ -344,21 +344,48 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		):
 			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
 
-	def test_standard_print_follows_print_settings_pdf_generator(self):
-		"""Standard (no print format) must honour Print Settings, while a beta format
-		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
+	def test_unknown_pdf_generator_renders_with_chrome(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+
+		jinja = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Jinja {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"standard": "No",
+				"html": "<p>{{ doc.description }}</p>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", jinja.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		for value in ("wkhtmltopdf", "no-such-engine"):
+			frappe.set_user("Administrator")
+			jinja.db_set("pdf_generator", value)
+			frappe.clear_document_cache("Print Format", jinja.name)
+			frappe.set_user("test@example.com")
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "pdf engine fallback"}).insert()
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "chrome")
+			self.assertEqual(resolve_pdf_generator(None, value), "chrome")
+			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+				frappe.get_print("ToDo", todo.name, print_format=jinja.name, as_pdf=True, pdf_generator=value)
+			self.assertEqual(chrome_pdf.call_args.kwargs["pdf_generator"], "chrome")
+
+		frappe.set_user("Administrator")
+		jinja.reload()
+		jinja.save()
+		self.assertEqual(jinja.pdf_generator, "chrome")
+
+	def test_standard_print_renders_with_chrome(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		beta = self._make_print_format()
-		original = frappe.db.get_single_value("Print Settings", "pdf_generator")
-		self.addCleanup(frappe.db.set_single_value, "Print Settings", "pdf_generator", original)
-
-		for setting in ("wkhtmltopdf", "chrome"):
-			frappe.db.set_single_value("Print Settings", "pdf_generator", setting)
-			self.assertEqual(resolve_pdf_generator(None), setting)
-			self.assertEqual(resolve_pdf_generator(beta), "chrome")
-
-		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None), "chrome")
+		self.assertEqual(resolve_pdf_generator(beta), "chrome")
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 
 	# ------------------------------------------------------------------ #
@@ -1584,13 +1611,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		from pypdf import PdfReader
 
-		self.addCleanup(
-			frappe.db.set_single_value,
-			"Print Settings",
-			"pdf_generator",
-			frappe.db.get_single_value("Print Settings", "pdf_generator"),
-		)
-		frappe.db.set_single_value("Print Settings", "pdf_generator", "chrome")
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "settings handoff"}).insert()
@@ -1608,13 +1628,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		from frappe.utils.print_utils import attach_print
 
-		self.addCleanup(
-			frappe.db.set_single_value,
-			"Print Settings",
-			"pdf_generator",
-			frappe.db.get_single_value("Print Settings", "pdf_generator"),
-		)
-		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "attachment"}).insert()

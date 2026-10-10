@@ -34,6 +34,7 @@ class Page:
 		self.get_frame_id_on_demand()
 		self.set_media_emulation("print")
 		self.set_cookies()
+		self.block_external_requests = False
 
 	# TODO: make send to return future and don't wait for it by default.
 	def send(self, method, params=None, return_future=False):
@@ -73,6 +74,7 @@ class Page:
 				"value": frappe.session.sid,
 				"domain": domain,
 				"sameSite": "Strict",
+				"httpOnly": True,
 			}
 			_result, error = self.send("Network.enable")
 			if error:
@@ -199,6 +201,13 @@ class Page:
 							message=f"Blocked access to: {clean_path} \nResolved Path to: {final_system_path}",
 						)
 						return
+				elif self.block_external_requests:
+					self.session.send(
+						"Fetch.failRequest",
+						{"requestId": data["request_id"], "errorReason": "BlockedByClient"},
+						return_future=True,
+					)
+					return
 				self.session.send(
 					"Fetch.continueRequest",
 					{"requestId": data["request_id"]},

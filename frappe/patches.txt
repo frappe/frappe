@@ -243,7 +243,6 @@ frappe.patches.v16_0.switch_default_sort_order
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
 frappe.patches.v16_0.move_role_desk_settings_to_user
-frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
 frappe.patches.v14_0.fix_user_settings_collation
 execute:frappe.call("frappe.core.doctype.system_settings.system_settings.sync_system_settings")
 frappe.patches.v15_0.migrate_to_utm
@@ -286,6 +285,7 @@ frappe.patches.v16_0.backfill_print_settings_bulk_export_limits
 frappe.patches.v16_0.hash_session_ids
 frappe.patches.v16_0.set_print_format_for_doctype
 frappe.patches.v16_0.unescape_currency_number_format
+frappe.patches.v17_0.switch_wkhtmltopdf_to_chrome
 
 
 [post_fixture_sync]

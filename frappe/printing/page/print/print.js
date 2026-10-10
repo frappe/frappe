@@ -1087,24 +1087,6 @@ frappe.ui.form.PrintView = class {
 			},
 		});
 	}
-	async is_wkhtmltopdf_valid() {
-		const is_valid = await frappe.xcall("frappe.utils.pdf.is_wkhtmltopdf_valid");
-		// function returns true or false
-		if (is_valid) return;
-		frappe.msgprint({
-			title: __("Invalid wkhtmltopdf version"),
-			message:
-				__("PDF generation may not work as expected.") +
-				"<hr/>" +
-				__("Please contact your system manager to install correct version.") +
-				"<br/>" +
-				__("Correct version :") +
-				" <b><a href ='https://wkhtmltopdf.org/downloads.html'>" +
-				__("wkhtmltopdf 0.12.x (with patched qt).") +
-				"</a></b>",
-			indicator: "red",
-		});
-	}
 	render_pdf() {
 		let print_format = this.get_print_format();
 		if (this.renders_via_generator(print_format)) {
@@ -1134,10 +1116,6 @@ frappe.ui.form.PrintView = class {
 				return;
 			}
 		} else {
-			let pdf_generator = this.get_pdf_generator(print_format?.pdf_generator);
-			if (pdf_generator === "wkhtmltopdf") {
-				this.is_wkhtmltopdf_valid();
-			}
 			this.render_page(
 				"/api/method/frappe.utils.print_format.download_pdf?",
 				false,
@@ -1145,14 +1123,7 @@ frappe.ui.form.PrintView = class {
 			);
 		}
 	}
-	get_pdf_generator(pdf_generator) {
-		if (!pdf_generator) {
-			pdf_generator = this.print_settings.pdf_generator || "wkhtmltopdf";
-		}
-		return pdf_generator;
-	}
 	render_page(method, printit = false, pdf_generator) {
-		pdf_generator = this.get_pdf_generator(pdf_generator);
 		let w = window.open(
 			frappe.urllib.get_full_url(
 				method +
@@ -1174,7 +1145,7 @@ frappe.ui.form.PrintView = class {
 						? "&style=" + encodeURIComponent(this.get_print_style())
 						: "") +
 					"&pdf_generator=" +
-					encodeURIComponent(pdf_generator)
+					encodeURIComponent(pdf_generator || "chrome")
 			)
 		);
 		if (!w) {
