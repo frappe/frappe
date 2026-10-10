@@ -84,6 +84,10 @@ def js_reachable_without_resolving_indirects(content: bytes) -> bool:
 	return any(walk(page) for page in reader.pages)
 
 
+def record_print(**kwargs):
+	pass
+
+
 class TestPdf(IntegrationTestCase):
 	@property
 	def html(self):
@@ -158,6 +162,26 @@ class TestPdf(IntegrationTestCase):
 		text = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
 		self.assertIn("pdf only", text)
 		self.assertNotIn("screen only", text)
+
+	def test_on_print_pdf_hook_runs_for_chrome_prints(self):
+		from unittest.mock import patch
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"),
+		):
+			frappe.get_print("User", "Administrator", as_pdf=True)
+
+		self.assertEqual(calls, [{"doctype": "User", "name": "Administrator", "print_format": None}])
 
 	def test_report_pdf_blocks_external_requests(self):
 		from unittest.mock import patch

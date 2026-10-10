@@ -136,6 +136,9 @@ def get_print(
 		if not as_pdf:
 			return html
 
+		for hook in frappe.get_hooks("on_print_pdf"):
+			frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+
 		hook_func = frappe.get_hooks("pdf_generator")
 		for hook in hook_func:
 			"""
@@ -163,9 +166,6 @@ def get_print(
 						output.add_page(page)
 					return output
 				return pdf
-
-		for hook in frappe.get_hooks("on_print_pdf"):
-			frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
 		return get_pdf(html, options=pdf_options, output=output, print_format=print_format)
 	finally:
