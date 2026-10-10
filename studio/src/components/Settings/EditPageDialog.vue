@@ -1,16 +1,12 @@
 <template>
 	<Dialog v-model:open="open" title="Edit Page" size="md">
 		<template #default>
-			<div class="flex flex-col gap-4">
-				<FormControl label="Title" type="text" variant="outline" v-model="title" :required="true" />
-				<FormControl label="Route" type="text" variant="outline" v-model="route" :description="pageURL" />
-				<Switch
-					size="sm"
-					label="Allow Guest Access"
-					description="Anyone can open this page without logging in"
-					v-model="allowGuest"
-				/>
-			</div>
+			<PageMetaFields
+				:appRoute="store.activeApp?.route"
+				v-model:title="title"
+				v-model:route="route"
+				v-model:allowGuest="allowGuest"
+			/>
 		</template>
 		<template #actions>
 			<div class="flex flex-col gap-2">
@@ -22,9 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
-import { Button, Dialog, ErrorMessage, FormControl, Switch, toast } from "frappe-ui"
+import { ref, watch } from "vue"
+import { Button, Dialog, ErrorMessage, toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
+import PageMetaFields from "@/components/PageMetaFields.vue"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
 const props = defineProps<{ page: StudioPage | null }>()
@@ -36,9 +33,6 @@ const route = ref("")
 const allowGuest = ref(false)
 const error = ref("")
 const saving = ref(false)
-const pageURL = computed(
-	() => `${window.location.origin}/${store.activeApp?.route}${withLeadingSlash(route.value.trim())}`,
-)
 
 watch(open, (isOpen) => {
 	if (!isOpen || !props.page) return
@@ -73,14 +67,9 @@ async function save() {
 function changedFields(page: StudioPage) {
 	const changes: Partial<StudioPage> = {}
 	const pageTitle = title.value.trim()
-	const pageRoute = withLeadingSlash(route.value.trim())
 	if (pageTitle !== (page.page_title || "")) changes.page_title = pageTitle
-	if (pageRoute !== page.route) changes.route = pageRoute
+	if (route.value !== page.route) changes.route = route.value
 	if (allowGuest.value !== store.pageAllowsGuests(page)) changes.allow_guest = allowGuest.value ? 1 : 0
 	return changes
-}
-
-function withLeadingSlash(value: string) {
-	return value.startsWith("/") ? value : `/${value}`
 }
 </script>

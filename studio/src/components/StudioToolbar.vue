@@ -128,17 +128,12 @@
 						/>
 					</div>
 				</template>
-				<template #default="{ open }">
+				<template #default>
 					<div
 						class="flex w-96 flex-col gap-3 rounded-4 bg-surface-base p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
-						<PageOptions
-							v-if="store.activePage"
-							:page="store.activePage"
-							:app="store.activeApp"
-							:isOpen="open"
-						></PageOptions>
+						<PageOptions v-if="store.activePage" :page="store.activePage" :app="store.activeApp" />
 					</div>
 				</template>
 			</Popover>
