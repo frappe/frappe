@@ -28,3 +28,27 @@ jobs:
             recent activity. It will be closed within 1 day if no further activity occurs, but it
             only takes a comment to keep a contribution alive :) Also, even if it is closed,
             you can always reopen the PR when you're ready. Thank you for contributing.
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const cutoff = Date.now() - 10 * 24 * 60 * 60 * 1000;
+            const prs = await github.paginate(github.rest.pulls.list, {
+              ...context.repo,
+              state: "open",
+              per_page: 100,
+            });
+            for (const pr of prs) {
+              if (pr.user.login !== "mergify[bot]") continue;
+              if (pr.labels.some((l) => l.name === "no-stale")) continue;
+              if (new Date(pr.updated_at).getTime() > cutoff) continue;
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: pr.number,
+                body: "This backport had no activity for 10 days, so it is being closed. Reopen it when you are ready to fix the conflicts.",
+              });
+              await github.rest.pulls.update({
+                ...context.repo,
+                pull_number: pr.number,
+                state: "closed",
+              });
+            }
