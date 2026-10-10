@@ -50,6 +50,7 @@ const useStudioStore = defineStore("store", () => {
 	)
 	const isDark = useDark({ attribute: "data-theme" })
 	const toggleTheme = useToggle(isDark)
+	const isCanvasDark = useStorage("studioCanvasDarkMode", false)
 	const mode = ref<StudioMode>("select")
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
 	const activeLayers = ref<InstanceType<typeof ComponentLayers> | null>(null)
@@ -750,6 +751,7 @@ const useStudioStore = defineStore("store", () => {
 		studioLayout,
 		isDark,
 		toggleTheme,
+		isCanvasDark,
 		mode,
 		componentContextMenu,
 		activeLayers,
