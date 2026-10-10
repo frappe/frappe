@@ -113,6 +113,32 @@ class TestStudioApp(FrappeTestCase):
 			self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('kept')")
 			self.assertEqual(frappe.read_file(os.path.join(new_folder, "Extra.vue")), "<template>kept</template>")
 
+	def test_a_failed_move_leaves_the_export_folder_in_place(self):
+		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
+			app = make_studio_app(app_title="Stuck App", app_name="stuck-app")
+			app.enable_app_export("studio")
+			old_folder = app.get_folder_path()
+
+			with patch.object(StudioApp, "export_router_script_to_file", side_effect=OSError("disk full")):
+				self.assertRaises(OSError, app.enable_app_export, "frappe")
+
+			self.assertTrue(os.path.exists(old_folder))
+			self.assertFalse(os.path.exists(app.get_folder_path(frappe_app="frappe")))
+			self.assertEqual(app.frappe_app, "studio")
+
+	def test_a_failed_rename_leaves_the_export_folder_in_place(self):
+		with exports_in_tempdir(), patch.object(StudioApp, "remove_from_studio_apps_txt"):
+			app = make_studio_app(app_title="Unrenamed App", app_name="unrenamed-app")
+			app.enable_app_export("studio")
+			old_folder = app.get_folder_path()
+
+			with patch.object(StudioApp, "export_studio_pages", side_effect=OSError("disk full")):
+				self.assertRaises(OSError, app.rename_app, "renamed-twice")
+
+			self.assertTrue(os.path.exists(os.path.join(old_folder, "unrenamed_app.json")))
+			self.assertFalse(os.path.exists(os.path.join(old_folder, "renamed_twice.json")))
+			self.assertFalse(os.path.exists(app.get_folder_path("renamed-twice")))
+
 	def test_rename_flags_a_stale_build(self):
 		app = make_studio_app(app_title="Built App", app_name="built-app")
 		with patch.object(StudioApp, "get_assets_from_manifest", return_value={"script": "/x.js"}):
