@@ -3,6 +3,7 @@ const STANDARD_PRINT_STYLES = ["Redesign", "Modern", "Classic", "Bold", "Striped
 frappe.pages["print"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
+		hide_sidebar: true,
 	});
 
 	let print_view = new frappe.ui.form.PrintView(wrapper);
