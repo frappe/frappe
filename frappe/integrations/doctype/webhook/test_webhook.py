@@ -90,6 +90,18 @@ class TestWebhookRequest(UnitTestCase):
 		self.assertEqual(response.status_code, 200)
 		self.transport.assert_called_once()
 
+	def test_failed_delivery_is_not_retried_by_transport(self):
+		self.transport.side_effect = lambda *args, **kwargs: self.response(500)
+		for allow_internal in (False, True):
+			self.config["allow_internal_webhook_urls"] = allow_internal
+			for method in ("POST", "PUT", "DELETE"):
+				with self.subTest(allow_internal=allow_internal, method=method):
+					self.transport.reset_mock()
+					response = send_webhook_request(method, "https://example.com/", {}, {}, 5)
+					self.transport.assert_called_once()
+					self.assertEqual(response.status_code, 500)
+					self.assertEqual(response.text, "webhook response")
+
 
 @contextmanager
 def get_test_webhook(config):
