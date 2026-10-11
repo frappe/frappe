@@ -13,10 +13,12 @@ import {
 	formatDuration,
 	humanizeToolName,
 	initialConversation,
+	invokedSkills,
 	normalizeSkillCommand,
 	parseSkillInvocation,
 	quoteBlock,
 	skillCommand,
+	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
 	stepLiveLabel,
@@ -84,7 +86,7 @@ test("expanded skill messages render as the command the user typed", () => {
 		content: expanded,
 	}
 
-	assert.equal(parseSkillInvocation(expanded).name, "security-review")
+	assert.deepEqual(parseSkillInvocation(expanded).names, ["security-review"])
 	assert.equal(userText(entry), "/skill:security-review check this branch")
 	assert.equal(skillCommand(entry), "/skill:security-review check this branch")
 	assert.equal(conversationTitle({ entries: [entry] }), "check this branch")
@@ -92,6 +94,37 @@ test("expanded skill messages render as the command the user typed", () => {
 	assert.equal(conversationTitle({ entries: [], sending: [{ entry: typed }] }), "fix the tests")
 	assert.equal(userText({ content: "ordinary" }), "ordinary")
 	assert.equal(normalizeSkillCommand("/skill:security-review\n\ncheck this branch"), "/skill:security-review check this branch")
+})
+
+test("skill commands later in a message render where they were typed", () => {
+	const block = (name) => `<skill name="${name}" location="/skills/${name}/SKILL.md">\nbody\n</skill>`
+	const typed = "check /skill:review then /skill:tests"
+	const entry = { type: "user_message", content: `${block("review")}\n\n${block("tests")}\n\n${typed}` }
+
+	assert.deepEqual(invokedSkills(entry), ["review", "tests"])
+	assert.equal(userText(entry), typed)
+	assert.equal(conversationTitle({ entries: [entry] }), typed)
+	// a leading command gave way to its skill; a later one is still in the text
+	const leading = { type: "user_message", content: `${block("review")}\n\n${block("tests")}\n\nfix with /skill:tests` }
+	assert.equal(userText(leading), "/skill:review fix with /skill:tests")
+	assert.equal(normalizeSkillCommand("/skill:review\nfix with /skill:tests"), "/skill:review fix with /skill:tests")
+	// named again later, the server keeps the text as typed, leading command included
+	const repeated = { type: "user_message", content: `${block("review")}\n\n/skill:review do /skill:review` }
+	assert.equal(userText(repeated), "/skill:review do /skill:review")
+	assert.equal(normalizeSkillCommand(" /skill:review do /skill:review "), "/skill:review do /skill:review")
+	assert.equal(invokedSkills({ content: "plain" }), null)
+	assert.deepEqual(skillSegments("a /skill:review b/skill:review /skill:other", ["review"]), [
+		{ text: "a ", skill: false },
+		{ text: "/skill:review", skill: true },
+		{ text: " b/skill:review /skill:other", skill: false },
+	])
+	// a quoted line starts nothing, so it shows plain and doesn't count as typed
+	assert.deepEqual(skillSegments("/skill:review\n> /skill:review", ["review"]), [
+		{ text: "/skill:review", skill: true },
+		{ text: "\n> /skill:review", skill: false },
+	])
+	const quoted = { type: "user_message", content: `${block("review")}\n\nfix\n\n> see /skill:review` }
+	assert.equal(userText(quoted), "/skill:review fix\n\n> see /skill:review")
 })
 
 test("declarative tool displays drive live labels", () => {

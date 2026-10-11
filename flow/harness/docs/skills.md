@@ -38,6 +38,8 @@ Users can invoke one directly:
 /skill:security-review review the current changes
 ```
 
+The command works anywhere in a message, and one message can use several skills: `check this branch with /skill:security-review and /skill:testing`.
+
 Flow reads and expands the skill on the server, then saves that expanded text as the user message. A skill added after the session was created can still be invoked this way: Flow looks the name up on disk, under the same precedence and allowed roots as session creation, and adds it to the session's catalog. The prompt index the model sees is fixed at session creation, so a new skill becomes model-invocable only in a new session.
 
 Skill files may contain scripts or instructions that lead to code execution. Treat skills, especially project-provided ones, as trusted content.

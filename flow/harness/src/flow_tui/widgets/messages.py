@@ -361,7 +361,7 @@ def _render_user(message: UserMessage, *, steered: bool) -> Text:
 	# the tinted background marks a user entry, so a prompt glyph adds nothing
 	invocation = parse_skill_invocation(message.text)
 	if invocation is not None:
-		body = f"Using skill: {invocation.name}"
+		body = f"Using skill: {', '.join(skill.name for skill in invocation.skills)}"
 		if invocation.instructions:
 			body += f"\n{invocation.instructions}"
 	else:

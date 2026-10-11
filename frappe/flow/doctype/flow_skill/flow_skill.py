@@ -18,6 +18,8 @@ MAX_DESCRIPTION_LENGTH = 1024
 MAX_GLOBAL_SKILLS = 10
 
 _SKILL_COMMAND_RE = re.compile(r"/skill:(\S+)(?:\s+(.*))?$", re.DOTALL)
+# a "/skill:<command>" word anywhere in a message
+_SKILL_TOKEN_RE = re.compile(r"(?<!\S)/skill:(\S+)")
 
 # Rides inside the wrapper, unseen by the user: the agent's index still says to load skills.
 SKILL_LOADED_NOTE = "This is the full skill, already loaded. Follow it; do not call load_skill for it."
@@ -93,27 +95,43 @@ class FlowSkill(Document):
 
 
 def expand_skill_command(agent: str, text: str) -> str:
-	"""`/skill:<command> [instructions]` becomes the skill's instructions in the flow server's
-	own wrapper, which the chat shows as the command again. Any other text passes through."""
-	match = _SKILL_COMMAND_RE.match(text.strip())
-	if not match:
+	"""Put the instructions of each skill named with `/skill:<command>` before the message."""
+	stripped = text.strip()
+	leading = _SKILL_COMMAND_RE.match(stripped)
+	instructions = (leading.group(2) or "").strip() if leading else stripped
+	# skip quoted lines
+	later = [
+		command
+		for line in instructions.split("\n")
+		if not line.startswith(">")
+		for command in _SKILL_TOKEN_RE.findall(line)
+	]
+	# named again later: keep the text as typed, leading command included
+	if leading and leading.group(1) in later:
+		instructions = stripped
+	commands = ([leading.group(1)] if leading else []) + later
+	if not commands:
 		return text
-	command, instructions = match.group(1), (match.group(2) or "").strip()
-	skills = frappe.get_doc("Flow Agent", agent).invocable_skills()
-	row = next((row for row in skills if row["command"] == command), None)
-	if row is None:
+	skills: dict[str, dict] = {}
+	for row in frappe.get_doc("Flow Agent", agent).invocable_skills():
+		skills.setdefault(row["command"], row)
+	if leading and leading.group(1) not in skills:
 		frappe.throw(
-			_("No skill named {0}. Available: {1}").format(
-				command, ", ".join(row["command"] for row in skills) or "none"
-			),
+			_("No skill named {0}. Available: {1}").format(leading.group(1), ", ".join(skills) or "none"),
 			title=_("Unknown Skill"),
 		)
+	blocks = [_skill_block(skills[command]) for command in dict.fromkeys(commands) if command in skills]
+	if not blocks:
+		return text
+	return "\n\n".join([*blocks, instructions] if instructions else blocks)
+
+
+def _skill_block(row: dict) -> str:
 	body = (frappe.db.get_value("Flow Skill", row["name"], "instructions") or "").strip()
-	block = (
-		f'<skill name="{command}" location="Flow Skill/{escape(row["name"], quote=True)}">\n'
+	return (
+		f'<skill name="{row["command"]}" location="Flow Skill/{escape(row["name"], quote=True)}">\n'
 		f"{SKILL_LOADED_NOTE}\n\n{body}\n</skill>"
 	)
-	return f"{block}\n\n{instructions}" if instructions else block
 
 
 def skill_command(title: str) -> str:
