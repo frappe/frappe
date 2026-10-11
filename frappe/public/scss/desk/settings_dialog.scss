@@ -134,6 +134,8 @@
 	display: flex;
 	flex-direction: column;
 	flex: 1;
+	min-width: 0;
+	min-height: 0;
 	overflow: clip;
 	background-color: var(--bg-color);
 }
@@ -294,4 +296,45 @@ table + .settings-dialog-section-heading {
 	border-top: 1px solid var(--outline-gray-2);
 	padding-top: var(--padding-sm);
 	margin-top: var(--padding-sm);
+}
+
+@include media-breakpoint-down(sm) {
+	.settings-dialog {
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.settings-dialog-sidebar {
+		flex-direction: row;
+		gap: calc(var(--spacing) * 0.75);
+		width: auto;
+		overflow-x: auto;
+		overflow-y: hidden;
+		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+	}
+
+	.settings-dialog-group-header {
+		display: none;
+	}
+
+	.settings-dialog-tab-group {
+		display: contents;
+	}
+
+	.settings-dialog-tab-list {
+		flex-direction: row;
+	}
+
+	.settings-dialog-tab-item {
+		width: auto;
+		flex-shrink: 0;
+	}
+
+	.settings-dialog-tab-label {
+		overflow: visible;
+	}
+
+	.settings-dialog-panel {
+		padding: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
+	}
 }
