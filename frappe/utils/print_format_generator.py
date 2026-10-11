@@ -79,7 +79,13 @@ def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 		doc = fd.get("doc")
 		if not isinstance(doc, Document):
 			doc = frappe.get_doc(fd.doctype, fd.name)
-		generator = PrintFormatGenerator(pf, doc, fd.get("letterhead"), no_letterhead=fd.get("no_letterhead"))
+		generator = PrintFormatGenerator(
+			pf,
+			doc,
+			fd.get("letterhead"),
+			settings=frappe.parse_json(fd.get("settings")) if fd.get("settings") else None,
+			no_letterhead=fd.get("no_letterhead"),
+		)
 	return generator.render_typst_pdf(password=(options or {}).get("password"))
 
 
