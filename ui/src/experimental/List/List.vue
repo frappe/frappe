@@ -55,12 +55,12 @@
 				</div>
 			</ListHeader>
 
-			<div v-if="rows.length" ref="anchor" v-bind="wrapperProps" role="presentation">
+			<div v-if="rows.length" v-bind="wrapperProps" role="presentation">
 				<ListRow
 					v-for="{ data: row } in virtualRows"
 					:key="rowValue(row)"
 					:value="rowValue(row)"
-					:to="rowLink?.(row)"
+					:route="rowLink?.(row)"
 				>
 					<!-- The molecule's own `selectable` turns a row click into a toggle; the row must stay
 						a link, so the checkbox is drawn here (frappe/frappe-ui#1131). -->
@@ -126,7 +126,6 @@ import {
 	ListHeaderCell,
 	ListHeaderCellSort,
 	ListRow,
-	useVirtualRows,
 } from "frappe-ui/list";
 import { computed, getCurrentInstance, ref, toRef } from "vue";
 import type { Sort } from "../../components/SortBy/types";
@@ -134,6 +133,7 @@ import { columnTracks } from "./columnTracks";
 import { directionFor, nextSort } from "./headerSort";
 import { useColumnResize } from "./useColumnResize";
 import { useRowSelection } from "./useRowSelection";
+import { useVirtualRows } from "./useVirtualRows";
 import type { ColumnResize, ListColumn, ListProps, ListRowData } from "./types";
 
 const props = withDefaults(defineProps<ListProps>(), {
@@ -183,14 +183,9 @@ const sortable = computed(() => "onUpdate:sort" in (instance?.vnode.props ?? {})
 const rows = toRef(props, "rows");
 const columns = toRef(props, "columns");
 
-// `ListRows virtual` looks for its scroll container before the viewport reports one, so the
-// windowing takes the viewport directly (frappe/frappe-ui#1132).
-const {
-	rows: virtualRows,
-	wrapperProps,
-	anchor,
-} = useVirtualRows(rows, {
-	itemHeight: () => props.rowHeight,
+// The windowing takes the ScrollArea viewport directly.
+const { rows: virtualRows, wrapperProps } = useVirtualRows(rows, {
+	rowHeight: () => props.rowHeight,
 	scrollContainer: () => scroller.value?.viewportElement ?? null,
 });
 
