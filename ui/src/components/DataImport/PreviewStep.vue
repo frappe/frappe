@@ -72,7 +72,7 @@
 						</th>
 					</tr>
 				</thead>
-				<tbody class="bg-surface-base divide-y divide-surface-gray-2">
+				<tbody class="bg-surface-base divide-y divide-outline-gray-1">
 					<tr v-for="(row, rowIndex) in previewData" :key="rowIndex">
 						<td
 							v-for="column in previewColumns"
@@ -116,7 +116,7 @@
 							<th class="p-2 text-left text-sm text-ink-gray-5 w-[80%]">Message</th>
 						</tr>
 					</thead>
-					<tbody class="bg-surface-base divide-y divide-surface-gray-2">
+					<tbody class="bg-surface-base divide-y divide-outline-gray-1">
 						<tr v-for="(row, rowIndex) in filteredLogs" :key="rowIndex" class="group">
 							<td class="px-3 py-2 text-sm text-ink-gray-7 border-r">
 								<div class="flex items-center justify-center space-x-2">
