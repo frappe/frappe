@@ -22,7 +22,9 @@
 				type="text"
 				class="flex-1"
 			/>
-			<FormControl v-model="importStatus" type="select" :options="importOptions" />
+			<div class="w-44 shrink-0">
+				<FormControl v-model="importStatus" type="select" :options="importOptions" />
+			</div>
 		</div>
 
 		<div v-if="dataImports.data?.length" class="overflow-y-scroll">
