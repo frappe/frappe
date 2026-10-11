@@ -349,6 +349,7 @@ class PrintFormatGenerator:
 		self._header_absorbs_top_margin = False
 		self._logged_conditions = set()
 		self.letterhead = None
+		self.apply_classic_margin_defaults()
 
 		self.build_context()
 		self.layout = self.get_layout(self.print_format)
@@ -394,6 +395,18 @@ class PrintFormatGenerator:
 			settings.pdf_page_width, settings.pdf_page_height = height, width
 		if settings.get("print_font"):
 			self.print_format.font = settings.get("print_font")
+
+	def apply_classic_margin_defaults(self):
+		from frappe.printing.doctype.print_format.classic_converter import (
+			MARGIN_FIELDS,
+			is_classic_layout,
+			missing_numeric_defaults,
+		)
+
+		if not is_classic_layout(self.print_format.format_data):
+			return
+		defaults = missing_numeric_defaults(self.print_format)
+		self.print_format.update({field: defaults[field] for field in MARGIN_FIELDS if field in defaults})
 
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
