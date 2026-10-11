@@ -141,6 +141,7 @@ test.describe("List View — Column Widths", () => {
 		await expect
 			.poll(async () => Math.abs((await get_column_width(page, "module")) - 150))
 			.toBeLessThanOrEqual(15);
+		await expect(page.locator(".list-row-head .list-count")).not.toBeEmpty();
 
 		await page.reload();
 		await desk.ready();

@@ -975,11 +975,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	async reset_column_widths() {
+		if (this.list_filter?.get_active_layout()) {
+			frappe.show_alert({
+				message: __("Switch to the Default Layout to reset your column widths"),
+				indicator: "orange",
+			});
+			return;
+		}
 		await this.save_view_user_settings({ column_widths: {} });
 		this.column_max_widths = {};
 		// render_list keeps the widths it reads off the header, so drop the old header first
 		this.$result.find(".list-row-head").remove();
-		this.render();
+		this.last_args = null;
+		this.refresh();
 	}
 
 	before_render() {
