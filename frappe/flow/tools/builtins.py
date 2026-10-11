@@ -143,7 +143,7 @@ def read_records(
 	For a child table used by more than one DocType, pass the one you mean as `parent_doctype`.
 	"""
 	if frappe.get_meta(doctype).issingle:
-		return [_read_single(doctype, fields)]
+		return _read_single(doctype, filters, fields)
 	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
 	if parent_doctype := _parent_doctype(doctype, parent_doctype):
 		# frappe matches child rows to parents by name only
@@ -161,13 +161,15 @@ def read_records(
 	)
 
 
-def _read_single(doctype: str, fields: list[str] | None) -> dict[str, Any]:
-	"""A Single's values as its form shows them to this user."""
+def _read_single(doctype: str, filters: dict | None, fields: list[str] | None) -> list[dict[str, Any]]:
+	"""A Single's one record as its form shows it to this user, if it matches `filters`."""
 	doc = frappe.get_doc(doctype)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
 	values = doc.as_dict(no_nulls=True)
-	return {f: values.get(f) for f in fields} if fields else values
+	if filters and not frappe.utils.evaluate_filters(values, filters):
+		return []
+	return [{f: values.get(f) for f in fields} if fields else values]
 
 
 def _parent_doctype(doctype: str, given: str | None) -> str | None:

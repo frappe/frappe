@@ -142,6 +142,17 @@ class TestReadRecords(IntegrationTestCase):
 		self.assertEqual(rows, [{"time_zone": "Asia/Kolkata"}])
 		self.assertEqual((values["name"], values["time_zone"]), ("System Settings", "Asia/Kolkata"))
 
+	def test_single_is_returned_only_when_it_matches_the_filters(self):
+		frappe.db.set_single_value("System Settings", "time_zone", "Asia/Kolkata")
+
+		missed = read_records(doctype="System Settings", filters={"time_zone": "UTC"}, ctx=CTX)
+		matched = read_records(
+			doctype="System Settings", filters={"time_zone": "Asia/Kolkata"}, fields=["name"], ctx=CTX
+		)
+
+		self.assertEqual(missed, [])
+		self.assertEqual(matched, [{"name": "System Settings"}])
+
 	def test_single_needs_read_permission(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.PermissionError):
