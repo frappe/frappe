@@ -60,6 +60,7 @@ if typing.TYPE_CHECKING:
 	from collections.abc import Mapping
 
 	from PIL.ImageFile import ImageFile as PILImageFile
+	from werkzeug.wrappers import Request
 
 	T = TypeVar("T")
 
@@ -2022,7 +2023,7 @@ def get_url(
 	return urljoin(host_name, uri) if uri else host_name
 
 
-def get_request_host(request) -> str:
+def get_request_host(request: "Request") -> str:
 	return request.host or request.headers.get("Host", "")
 
 
