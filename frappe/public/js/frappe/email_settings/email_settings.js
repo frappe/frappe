@@ -909,7 +909,12 @@ function render_general(panel) {
 									args: {
 										doctype: "System Settings",
 										name: "System Settings",
-										fieldname: values,
+										fieldname: Object.fromEntries(
+											Object.keys(GENERAL_FIELDS).map((fieldname) => [
+												fieldname,
+												values[fieldname] ?? "",
+											])
+										),
 									},
 									freeze: true,
 								})
