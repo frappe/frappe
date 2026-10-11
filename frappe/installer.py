@@ -608,8 +608,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False
 
-	if not dry_run:
-		frappe.clear_cache()
+	frappe.clear_cache()
 
 
 def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
