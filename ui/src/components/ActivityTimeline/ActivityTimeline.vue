@@ -14,10 +14,7 @@
 			>
 				<LoadingIndicator class="size-5 text-ink-gray-5" />
 			</div>
-			<div
-				v-else-if="!activities.length"
-				class="flex flex-1 flex-col justify-center"
-			>
+			<div v-else-if="!activities.length" class="flex flex-1 flex-col justify-center">
 				<slot name="empty">
 					<div class="flex flex-col items-center justify-center gap-3 py-8">
 						<LucideActivity class="h-7 w-7 text-ink-gray-4" />
