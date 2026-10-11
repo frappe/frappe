@@ -16,7 +16,7 @@
 			</div>
 			<div
 				v-else-if="!activities.length"
-				class="flex flex-1 flex-col items-center justify-center"
+				class="flex flex-1 flex-col justify-center"
 			>
 				<slot name="empty">
 					<div class="flex flex-col items-center justify-center gap-3 py-8">
