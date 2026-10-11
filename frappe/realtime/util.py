@@ -40,11 +40,12 @@ def resolve_site_name(environ: dict, config: RealtimeConfig) -> str | None:
 def get_url(path: str, config: RealtimeConfig) -> str:
 	"""Build the URL of the Frappe web process to call, from config (default 127.0.0.1)."""
 	base = config.webserver_host or "127.0.0.1"
+	port = config.webserver_port
 	if "://" not in base:
 		base = f"http://{base}"
+		port = port or 8000
 	parts = urlsplit(base)
-	if parts.port is None:
-		base = f"{parts.scheme}://{parts.netloc}:{config.webserver_port or 8000}"
-	else:
-		base = f"{parts.scheme}://{parts.netloc}"
+	base = f"{parts.scheme}://{parts.netloc}"
+	if parts.port is None and port:
+		base = f"{base}:{port}"
 	return base + (path or "")

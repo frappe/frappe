@@ -369,6 +369,16 @@ class TestSharedHttpClient(unittest.IsolatedAsyncioTestCase):
 			(make_config(developer_mode=True, webserver_port=8006), "http://127.0.0.1:8006"),
 			(make_config(webserver_host="web", webserver_port=8000), "http://web:8000"),
 			(make_config(webserver_host="web"), "http://web:8000"),
+			(make_config(webserver_host="https://web.example.com"), "https://web.example.com"),
+			(make_config(webserver_host="http://web.example.com"), "http://web.example.com"),
+			(
+				make_config(webserver_host="https://web.example.com", webserver_port=8443),
+				"https://web.example.com:8443",
+			),
+			(
+				make_config(webserver_host="https://web.example.com:9443", webserver_port=8006),
+				"https://web.example.com:9443",
+			),
 			(make_config(webserver_host="https://web.example.com:443"), "https://web.example.com"),
 		]
 		for config, destination in configs:
