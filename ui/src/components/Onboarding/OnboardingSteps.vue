@@ -12,7 +12,7 @@
 		<div class="flex justify-between items-center py-0.5">
 			<Badge
 				:label="`${completedPercentage}% completed`"
-				:theme="completedPercentage == 100 ? 'green' : 'orange'"
+				:theme="completedPercentage == 100 ? 'green' : 'amber'"
 				size="lg"
 			/>
 			<div class="flex">
