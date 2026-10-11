@@ -368,12 +368,7 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
 
   /** Returns a friendly error string when the file is rejected, else null. */
   function validate(file: File): string | null {
-    const allowed = effectiveAllowedTypes();
-    if (
-      allowed.length &&
-      !matchesType(file, allowed) &&
-      !typelessPasses(file, allowed)
-    ) {
+    if (!isAllowedType(file, effectiveAllowedTypes())) {
       return `"${file.name}" was skipped — file type not allowed.`;
     }
     const max = restrictions.max_file_size;
@@ -381,21 +376,6 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
       return `"${file.name}" was skipped — exceeds ${formatBytes(max)}.`;
     }
     return null;
-  }
-
-  // OS-reported-typeless files (empty `file.type`) can't match a MIME rule, so a
-  // MIME-only restriction would wrongly skip them. Treat them as a best-effort
-  // pass when the only rules are MIME rules (the server re-validates the real
-  // type). Extension rules are still authoritative: if any are present they must
-  // match, so this never loosens extension-only restrictions.
-  function typelessPasses(file: File, allowed: string[]): boolean {
-    if (file.type) return false;
-    const rules = allowed.map((t) => t.trim()).filter(Boolean);
-    const hasExtensionRule = rules.some(
-      (t) => t[0] === "." && !t.includes("/")
-    );
-    const hasMimeRule = rules.some((t) => t.includes("/"));
-    return hasMimeRule && !hasExtensionRule;
   }
 
   function effectiveAllowedTypes(): string[] {
@@ -432,6 +412,28 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
     retry,
     commit,
   };
+}
+
+/** Whether `allowed` lets the file through; an empty list allows any file. */
+export function isAllowedType(file: File, allowed: string[]): boolean {
+  return (
+    !allowed.length ||
+    matchesType(file, allowed) ||
+    typelessPasses(file, allowed)
+  );
+}
+
+// OS-reported-typeless files (empty `file.type`) can't match a MIME rule, so a
+// MIME-only restriction would wrongly skip them. Treat them as a best-effort
+// pass when the only rules are MIME rules (the server re-validates the real
+// type). Extension rules are still authoritative: if any are present they must
+// match, so this never loosens extension-only restrictions.
+function typelessPasses(file: File, allowed: string[]): boolean {
+  if (file.type) return false;
+  const rules = allowed.map((t) => t.trim()).filter(Boolean);
+  const hasExtensionRule = rules.some((t) => t[0] === "." && !t.includes("/"));
+  const hasMimeRule = rules.some((t) => t.includes("/"));
+  return hasMimeRule && !hasExtensionRule;
 }
 
 /** Matches a file against an extension (".png") or MIME glob ("image/*"). */
