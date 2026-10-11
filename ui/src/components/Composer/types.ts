@@ -1,5 +1,5 @@
 import type { Extension } from "@tiptap/core";
-import type { UploadedFile as EditorUploadedFile } from "frappe-ui/editor";
+import type { UploadedMedia } from "frappe-ui/editor";
 
 export interface Recipient {
   email: string;
@@ -26,7 +26,7 @@ export interface MentionOption {
 }
 
 /** Inline-image upload handler passed to the editor; returns the editor's file shape. */
-export type UploadFunction = (file: File) => Promise<EditorUploadedFile>;
+export type UploadFunction = (file: File) => Promise<UploadedMedia>;
 
 // --- Editing core (ComposerEditor.vue, private) -----------------------------
 
