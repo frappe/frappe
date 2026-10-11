@@ -640,7 +640,7 @@ def _user_message_title(row: dict) -> str | None:
 	text = str(content).strip()
 	invocation = parse_skill_invocation(text)
 	if invocation is not None:
-		text = invocation.instructions or f"/skill:{invocation.name}"
+		text = invocation.instructions or f"/skill:{invocation.skills[0].name}"
 	first = text.split("\n")[0]
 	return first[:120] or None
 

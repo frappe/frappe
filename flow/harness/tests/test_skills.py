@@ -175,9 +175,82 @@ def test_skill_command_supports_multiline_instructions(tmp_path):
 	invocation = parse_skill_command("/skill:testing\n\nAdd parser tests", catalog.skills)
 
 	assert invocation is not None
-	assert invocation.content.startswith("# Instructions")
+	assert invocation.skills[0].content.startswith("# Instructions")
 	assert invocation.instructions == "Add parser tests"
 	assert parse_skill_command("ordinary prompt", catalog.skills) is None
+
+
+def test_skill_commands_later_in_a_message_stay_where_they_were_typed(tmp_path):
+	_skill(tmp_path, "testing")
+	_skill(tmp_path, "review", body="Review body")
+	catalog = discover_skills(str(tmp_path), home=str(tmp_path / "none"), extra_paths=[str(tmp_path)])
+
+	invocation = parse_skill_command(
+		"please /skill:testing then /skill:review and /skill:testing", catalog.skills
+	)
+
+	assert invocation is not None
+	assert [item.skill.name for item in invocation.skills] == ["testing", "review"]
+	text = format_skill_invocation(invocation)
+	assert text.endswith(
+		"Review body\n</skill>\n\nplease /skill:testing then /skill:review and /skill:testing"
+	)
+	parsed = parse_skill_invocation(text)
+	assert parsed is not None
+	assert [skill.name for skill in parsed.skills] == ["testing", "review"]
+	assert parsed.command == "please /skill:testing then /skill:review and /skill:testing"
+
+
+def test_a_leading_command_gives_way_to_its_skill_and_a_later_one_stays(tmp_path):
+	_skill(tmp_path, "testing")
+	_skill(tmp_path, "review")
+	catalog = discover_skills(str(tmp_path), home=str(tmp_path / "none"), extra_paths=[str(tmp_path)])
+
+	invocation = parse_skill_command("/skill:testing  fix it with /skill:review", catalog.skills)
+
+	assert invocation is not None
+	assert invocation.instructions == "fix it with /skill:review"
+	parsed = parse_skill_invocation(format_skill_invocation(invocation))
+	assert parsed is not None
+	assert parsed.command == "/skill:testing fix it with /skill:review"
+
+
+def test_a_skill_mentioned_in_a_quoted_line_starts_nothing(tmp_path):
+	_skill(tmp_path, "testing")
+	_skill(tmp_path, "review")
+	catalog = discover_skills(str(tmp_path), home=str(tmp_path / "none"), extra_paths=[str(tmp_path)])
+
+	assert parse_skill_command("what does this do?\n\n> Type /skill:testing to start", catalog.skills) is None
+	invocation = parse_skill_command(
+		"/skill:testing fix it\n\n> try /skill:review or /skill:testing", catalog.skills
+	)
+
+	assert invocation is not None
+	assert [item.skill.name for item in invocation.skills] == ["testing"]
+	parsed = parse_skill_invocation(format_skill_invocation(invocation))
+	assert parsed is not None
+	assert parsed.command == "/skill:testing fix it\n\n> try /skill:review or /skill:testing"
+
+
+def test_an_unknown_skill_later_in_a_message_is_plain_text(tmp_path):
+	_skill(tmp_path, "testing")
+	catalog = discover_skills(str(tmp_path), home=str(tmp_path / "none"), extra_paths=[str(tmp_path)])
+	looked_up = []
+
+	def resolve(name):
+		looked_up.append(name)
+
+	assert (
+		parse_skill_command(
+			"why does /skill:missing fail? see a/skill:testing", catalog.skills, resolve=resolve
+		)
+		is None
+	)
+	assert looked_up == ["missing"]
+	invocation = parse_skill_command("use /skill:missing and /skill:testing.", catalog.skills)
+	assert invocation is None
+	with pytest.raises(SkillError, match="unknown skill: missing"):
+		parse_skill_command("/skill:missing and /skill:testing", catalog.skills)
 
 
 async def test_explicit_invocation_is_ordinary_durable_user_text(tmp_path):
@@ -198,7 +271,7 @@ async def test_explicit_invocation_is_ordinary_durable_user_text(tmp_path):
 	assert message.text.endswith("add parser tests")
 	parsed = parse_skill_invocation(message.text)
 	assert parsed is not None
-	assert parsed.name == "testing"
+	assert [skill.name for skill in parsed.skills] == ["testing"]
 	assert parsed.instructions == "add parser tests"
 
 
@@ -370,7 +443,7 @@ def test_explicit_skill_invocation_keeps_attachments(tmp_path, monkeypatch):
 	assert "skill" not in entry
 	parsed = parse_skill_invocation(entry["content"][0]["text"])
 	assert parsed is not None
-	assert parsed.name == "testing"
+	assert [skill.name for skill in parsed.skills] == ["testing"]
 	assert parsed.instructions == "inspect this"
 
 

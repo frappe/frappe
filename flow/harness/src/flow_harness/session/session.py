@@ -633,7 +633,8 @@ class Session:
 			raise AttachmentError("a message cannot include the same attachment twice")
 		invocation = parse_skill_command(message, self.skill_catalog.skills, resolve=self._resolve_skill)
 		if invocation is not None:
-			self._adopt_skill(invocation.skill)
+			for item in invocation.skills:
+				self._adopt_skill(item.skill)
 		if not attachment_ids:
 			if invocation is not None:
 				return UserMessage(content=format_skill_invocation(invocation)), ()

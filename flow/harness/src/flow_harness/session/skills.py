@@ -24,6 +24,9 @@ _NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 _FRONTMATTER_RE = re.compile(r"\A---[ \t]*\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 _FRONTMATTER_BYTES_RE = re.compile(rb"\A---[ \t]*\r?\n.*?\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 _SKIP_DIRS = {"node_modules", "__pycache__", ".git", ".venv", "venv"}
+# a "/skill:<name>" word anywhere in a message
+_SKILL_TOKEN_RE = re.compile(r"(?<!\S)/skill:(\S+)")
+_SKILL_BLOCK_RE = re.compile(r'<skill name="([^"]+)" location="([^"]+)">\n([\s\S]*?)\n</skill>(?:\n\n|\Z)')
 
 
 class SkillError(ValueError):
@@ -62,24 +65,43 @@ class SkillCatalog(BaseModel):
 
 @dataclass(frozen=True)
 class SkillInvocation:
+	"""The skills a message uses and the message text."""
+
+	skills: tuple[InvokedSkill, ...]
+	instructions: str | None
+
+
+@dataclass(frozen=True)
+class InvokedSkill:
+	"""A skill a message uses, with the body read from its file."""
+
 	skill: Skill
 	content: str
-	instructions: str | None
 
 
 @dataclass(frozen=True)
 class ParsedSkillInvocation:
 	"""Presentation fields recovered from Flow's expanded message format."""
 
-	name: str
-	location: str
-	content: str
+	skills: tuple[ParsedSkill, ...]
 	instructions: str | None
 
 	@property
 	def command(self) -> str:
-		command = f"/skill:{self.name}"
-		return f"{command} {self.instructions}" if self.instructions else command
+		"""The message as the user typed it."""
+		name = self.skills[0].name
+		if self.instructions and name in _skill_commands(self.instructions):
+			return self.instructions
+		return f"/skill:{name} {self.instructions}" if self.instructions else f"/skill:{name}"
+
+
+@dataclass(frozen=True)
+class ParsedSkill:
+	"""One `<skill>` block of an expanded message."""
+
+	name: str
+	location: str
+	content: str
 
 
 def global_skills_root() -> str:
@@ -253,64 +275,81 @@ def parse_skill_command(
 	*,
 	resolve: Callable[[str], Skill | None] | None = None,
 ) -> SkillInvocation | None:
-	"""Expand `/skill:name [instructions]`; return None for ordinary messages.
+	"""Expand each `/skill:name` in a message; None if it names no skill.
 
 	`resolve` finds a skill added after the session was created."""
 	stripped = text.strip()
-	if not stripped.startswith("/skill:"):
-		return None
-	parts = stripped.split(maxsplit=1)
-	command = parts[0]
-	name = command.removeprefix("/skill:")
-	if not name:
-		raise SkillError("skill command must include a name")
-	skill = next((item for item in skills if item.name == name), None)
-	if skill is None:
-		skill = resolve(name) if resolve is not None else None
+	leading = stripped.startswith("/skill:")
+	names: list[str] = []
+	instructions = stripped
+	if leading:
+		parts = stripped.split(maxsplit=1)
+		names.append(parts[0].removeprefix("/skill:"))
+		if not names[0]:
+			raise SkillError("skill command must include a name")
+		instructions = parts[1].strip() if len(parts) > 1 else ""
+	names += [name for name in _skill_commands(instructions) if valid_skill_name(name)]
+	invoked: list[InvokedSkill] = []
+	for index, name in enumerate(dict.fromkeys(names)):
+		skill = next((item for item in skills if item.name == name), None)
+		if skill is None and resolve is not None:
+			skill = resolve(name)
 		if skill is None:
-			raise SkillError(f"unknown skill: {name}")
-	# Refuse a symlink swapped in since the skill was discovered, rather than reading
-	# a different file under the same name.
-	if canonical_path(skill.path) != skill.canonical_path:
-		raise SkillError(f"skill path changed: {name}")
-	raw = _read_bounded(skill.path, expected_path=skill.canonical_path)
-	_, body = _parse(raw)
-	instructions = parts[1].strip() if len(parts) > 1 and parts[1].strip() else None
-	invocation = SkillInvocation(skill=skill, content=body.strip(), instructions=instructions)
+			if leading and index == 0:
+				raise SkillError(f"unknown skill: {name}")
+			continue
+		invoked.append(InvokedSkill(skill=skill, content=_skill_body(skill)))
+	if not invoked:
+		return None
+	invocation = SkillInvocation(skills=tuple(invoked), instructions=instructions or None)
 	if len(format_skill_invocation(invocation).encode("utf-8")) > MAX_SKILL_INVOCATION_BYTES:
 		raise SkillError(f"expanded skill exceeds {MAX_SKILL_INVOCATION_BYTES // 1024} KB")
 	return invocation
 
 
+def _skill_commands(text: str) -> list[str]:
+	"""Skill names in `text`, skipping quoted lines."""
+	return [
+		name
+		for line in text.split("\n")
+		if not line.startswith(">")
+		for name in _SKILL_TOKEN_RE.findall(line)
+	]
+
+
+def _skill_body(skill: Skill) -> str:
+	# Refuse a symlink swapped in since the skill was discovered, rather than reading
+	# a different file under the same name.
+	if canonical_path(skill.path) != skill.canonical_path:
+		raise SkillError(f"skill path changed: {skill.name}")
+	raw = _read_bounded(skill.path, expected_path=skill.canonical_path)
+	_, body = _parse(raw)
+	return body.strip()
+
+
 def format_skill_invocation(invocation: SkillInvocation) -> str:
 	"""Render an invocation as ordinary provider-facing user text, like Pi and Tau."""
-	skill = invocation.skill
-	block = (
-		f'<skill name="{escape(skill.name, quote=True)}" '
-		f'location="{escape(skill.path, quote=True)}">\n'
-		f"References are relative to {skill.base_dir}.\n\n"
-		f"{invocation.content}\n"
+	blocks = [
+		f'<skill name="{escape(item.skill.name, quote=True)}" '
+		f'location="{escape(item.skill.path, quote=True)}">\n'
+		f"References are relative to {item.skill.base_dir}.\n\n"
+		f"{item.content}\n"
 		"</skill>"
-	)
-	return f"{block}\n\n{invocation.instructions}" if invocation.instructions else block
+		for item in invocation.skills
+	]
+	return "\n\n".join([*blocks, invocation.instructions] if invocation.instructions else blocks)
 
 
 def parse_skill_invocation(text: str) -> ParsedSkillInvocation | None:
 	"""Parse an expanded invocation for compact client display, as Pi and Tau do."""
-	match = re.fullmatch(
-		r'<skill name="([^"]+)" location="([^"]+)">\n([\s\S]*?)\n</skill>'
-		r"(?:\n\n([\s\S]+))?",
-		text,
-	)
-	if match is None:
+	skills: list[ParsedSkill] = []
+	end = 0
+	while match := _SKILL_BLOCK_RE.match(text, end):
+		skills.append(ParsedSkill(*match.groups()))
+		end = match.end()
+	if not skills:
 		return None
-	name, location, content, instructions = match.groups()
-	return ParsedSkillInvocation(
-		name=name,
-		location=location,
-		content=content,
-		instructions=instructions,
-	)
+	return ParsedSkillInvocation(skills=tuple(skills), instructions=text[end:] or None)
 
 
 def format_skills_for_prompt(skills: Iterable[Skill]) -> str:
