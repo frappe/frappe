@@ -393,10 +393,9 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 			frappe.get_attr(after_sync)()
 
 	except Exception:
-		# The app counts as installed from `add_to_installed_apps` on, so a failure after it would
-		# leave `install-app` reporting "already installed" and never finishing the install.
 		frappe.db.rollback()
-		remove_from_installed_apps(name)
+		if name not in installed_apps:
+			remove_from_installed_apps(name)
 		frappe.flags.in_install = False
 		raise
 
@@ -710,8 +709,10 @@ def set_all_patches_as_completed(app):
 	from frappe.modules.patch_handler import get_patches_from_app
 
 	patches = get_patches_from_app(app)
+	already_logged = set(frappe.get_all("Patch Log", filters={"patch": ("in", patches)}, pluck="patch"))
 	for patch in patches:
-		frappe.get_doc({"doctype": "Patch Log", "patch": patch}).insert(ignore_permissions=True)
+		if patch not in already_logged:
+			frappe.get_doc({"doctype": "Patch Log", "patch": patch}).insert(ignore_permissions=True)
 	frappe.db.commit()  # nosemgrep
 
 
@@ -891,7 +892,6 @@ def make_site_dirs():
 def add_module_defs(app, ignore_if_duplicate=False):
 	modules = frappe.get_module_list(app)
 	for module in modules:
-		# A retried install meets the rows its failed attempt already committed
 		if frappe.db.exists("Module Def", {"name": module, "app_name": app, "custom": 0}):
 			continue
 		rename_conflicting_custom_module(module, app)

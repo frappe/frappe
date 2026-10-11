@@ -109,6 +109,29 @@ class TestInstallAppOrdering(IntegrationTestCase):
 		self.assertIn(FAKE_APP, frappe.get_installed_apps())
 		self.assertEqual(self.stamped_fake_patches(), set(FAKE_PATCHES))
 
+	def test_failed_forced_reinstall_keeps_the_app_installed(self):
+		with install_fake_app(after_install=f"{__name__}.record_after_install"):
+			install_app(FAKE_APP)
+
+		with install_fake_app(after_install=f"{__name__}.fail_after_install"):
+			with self.assertRaises(AfterInstallFailure):
+				install_app(FAKE_APP, force=True)
+
+		self.assertIn(FAKE_APP, frappe.get_installed_apps())
+
+	def test_retry_after_patches_were_stamped_stamps_each_patch_once(self):
+		with install_fake_app(after_install=f"{__name__}.record_after_install"):
+			with patch("frappe.utils.fixtures.sync_fixtures", side_effect=RuntimeError):
+				with self.assertRaises(RuntimeError):
+					install_app(FAKE_APP)
+
+			install_app(FAKE_APP)
+
+		self.assertCountEqual(
+			frappe.get_all("Patch Log", filters={"patch": ["in", FAKE_PATCHES]}, pluck="patch"),
+			FAKE_PATCHES,
+		)
+
 
 class TestAddModuleDefs(IntegrationTestCase):
 	def test_skips_modules_the_app_already_has(self):
