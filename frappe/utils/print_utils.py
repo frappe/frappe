@@ -607,12 +607,14 @@ def convert_uom(
 			"to_in": unit_values["cm"] / unit_values["in"],
 		},
 	)
-	from_in = {
-		"to_in": 1,
-		"to_px": unit_values["in"] / unit_values["px"],
-		"to_mm": unit_values["in"] / unit_values["mm"],
-		"to_cm": unit_values["in"] / unit_values["cm"],
-	}
+	from_in = (
+		{
+			"to_in": 1,
+			"to_px": unit_values["in"] / unit_values["px"],
+			"to_mm": unit_values["in"] / unit_values["mm"],
+			"to_cm": unit_values["in"] / unit_values["cm"],
+		},
+	)
 	converstion_factor = ({"from_px": from_px, "from_mm": from_mm, "from_cm": from_cm, "from_in": from_in},)
 	if only_number:
 		return round(number * converstion_factor[0][f"from_{from_uom}"][0][f"to_{to_uom}"], 3)
