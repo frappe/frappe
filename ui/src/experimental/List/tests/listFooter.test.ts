@@ -40,6 +40,25 @@ describe("ListFooter counts", () => {
     await flush();
     expect(loadMore(root)).toBeUndefined();
   });
+
+  it("a capped total reads N of M+, and Load More follows hasNextPage over the counts", async () => {
+    const state = reactive({ hasNextPage: true });
+    const { root } = await mount(ListFooter, {
+      hasCounts: true,
+      rowCount: 1000,
+      totalCount: 1000,
+      totalCapped: true,
+      get hasNextPage() {
+        return state.hasNextPage;
+      },
+    });
+    expect(root.textContent).toContain("1000 of 1000+");
+    expect(loadMore(root)).toBeDefined();
+
+    state.hasNextPage = false;
+    await flush();
+    expect(loadMore(root)).toBeUndefined();
+  });
 });
 
 describe("ListFooter page size", () => {

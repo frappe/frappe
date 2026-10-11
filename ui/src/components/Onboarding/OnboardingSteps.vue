@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col justify-center items-center gap-1 mt-4 mb-7">
-		<component :is="logo" class="size-10 shrink-0 rounded mb-4" />
+		<component :is="logo" class="size-10 shrink-0 rounded-4 mb-4" />
 		<div class="text-base font-medium">
 			{{ "Welcome to " + title }}
 		</div>
@@ -34,7 +34,7 @@
 			<div
 				v-for="step in steps"
 				:key="step.title"
-				class="group w-full flex gap-2 justify-between items-center hover:bg-surface-gray-1 rounded px-2 py-1.5 cursor-pointer"
+				class="group w-full flex gap-2 justify-between items-center hover:bg-surface-gray-1 rounded-4 px-2 py-1.5 cursor-pointer"
 				@click.stop="() => !step.completed && !isDependent(step) && step.onClick?.()"
 			>
 				<component
