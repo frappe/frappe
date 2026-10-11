@@ -861,18 +861,50 @@ function rawUserText(entry) {
 
 export function skillCommand(entry) {
 	const invocation = parseSkillInvocation(rawUserText(entry))
-	if (!invocation) return null
-	return `/skill:${invocation.name}${invocation.instructions ? ` ${invocation.instructions}` : ""}`
+	return invocation && typedCommand(invocation.names[0], invocation.instructions)
 }
 
+// the skills a message brought in, or null when it brought in none
+export function invokedSkills(entry) {
+	return parseSkillInvocation(rawUserText(entry))?.names ?? null
+}
+
+// "/skill:<name>" as a word of its own, anywhere in a message; no lookbehind, which
+// Safari before 16.4 can't parse
+const SKILL_TOKEN = /(^|\s)\/skill:(\S+)/g
+const SKILL_BLOCK = /<skill name="([^"]+)" location="([^"]+)">\n[\s\S]*?\n<\/skill>(?:\n\n|$)/y
+
 // Pi and Tau persist skill expansions as ordinary user text and recover these
-// presentation fields from the fixed wrapper when rendering history.
+// presentation fields from the fixed wrapper when rendering history; one block per skill.
 export function parseSkillInvocation(text) {
-	const match = String(text ?? "").match(
-		/^<skill name="([^"]+)" location="([^"]+)">\n([\s\S]*?)\n<\/skill>(?:\n\n([\s\S]+))?$/,
-	)
-	if (!match) return null
-	return { name: match[1], location: match[2], content: match[3], instructions: match[4] ?? null }
+	const source = String(text ?? "")
+	const names = []
+	let end = 0
+	for (;;) {
+		SKILL_BLOCK.lastIndex = end
+		const match = SKILL_BLOCK.exec(source)
+		if (!match) break
+		names.push(match[1])
+		end = SKILL_BLOCK.lastIndex
+	}
+	return names.length ? { names, instructions: source.slice(end) || null } : null
+}
+
+// the message as typed: a leading command gave way to its skill, a later one stayed
+function typedCommand(name, instructions) {
+	if (instructions && skillTokens(instructions).some((token) => token.name === name)) return instructions
+	return `/skill:${name}${instructions ? ` ${instructions}` : ""}`
+}
+
+// the skill commands typed in `text`; a quoted line ("> …") starts nothing
+function skillTokens(text) {
+	const tokens = []
+	for (const match of text.matchAll(SKILL_TOKEN)) {
+		const start = match.index + match[1].length
+		if (text[text.lastIndexOf("\n", start - 1) + 1] === ">") continue
+		tokens.push({ start, end: match.index + match[0].length, name: match[2] })
+	}
+	return tokens
 }
 
 // Mirror the server's strip + split(maxsplit=1) normalization for optimistic
@@ -881,8 +913,21 @@ export function parseSkillInvocation(text) {
 export function normalizeSkillCommand(text) {
 	const match = String(text ?? "").trim().match(/^\/skill:([^\s]+)(?:\s+([\s\S]*))?$/)
 	if (!match) return null
-	const instructions = match[2]?.trim() || ""
-	return `/skill:${match[1]}${instructions ? ` ${instructions}` : ""}`
+	return typedCommand(match[1], match[2]?.trim() || "")
+}
+
+// text split around the skill commands among `names`, so they can show in blue
+export function skillSegments(text, names) {
+	const parts = []
+	let end = 0
+	for (const token of skillTokens(text)) {
+		if (!names.includes(token.name)) continue
+		if (token.start > end) parts.push({ text: text.slice(end, token.start), skill: false })
+		parts.push({ text: text.slice(token.start, token.end), skill: true })
+		end = token.end
+	}
+	if (end < text.length) parts.push({ text: text.slice(end), skill: false })
+	return parts
 }
 
 // a skill the user started shows as the command they typed, never its expansion

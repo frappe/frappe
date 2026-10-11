@@ -87,6 +87,49 @@ for (const disabled of [false, true]) {
 	})
 }
 
+test("mid-message, a slash offers skills only and puts the one picked where it was typed", async (t) => {
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10 },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
+			skills: [{ name: "review", description: "Review files" }], conversation: {}, draft: null,
+		}),
+		loadSkills() {},
+	}
+	const { vm, el } = mount(t, Composer, { commands: ["new"], mentions: false }, flow)
+	const box = el.querySelector("textarea")
+	vm.prefill("/")
+	await nextTick()
+	assert.ok(el.textContent.includes("start a fresh conversation"))
+	vm.prefill("fix this /")
+	await nextTick()
+	assert.ok(el.textContent.includes("/skill:review"))
+	assert.ok(!el.textContent.includes("start a fresh conversation"))
+	// a slash no skill matches, like a path, opens nothing
+	vm.prefill("see /usr")
+	await nextTick()
+	assert.ok(!el.querySelector("[data-palette-item]"))
+	assert.ok(!el.textContent.includes("No matching commands"))
+
+	vm.prefill("fix /re that")
+	await nextTick()
+	box.setSelectionRange(7, 7)
+	box.dispatchEvent(new window.Event("click"))
+	await nextTick()
+	rowButton(el, "/skill:review").click()
+	await nextTick()
+	assert.equal(box.value, "fix /skill:review that")
+	assert.equal(el.querySelector(".text-ink-blue-6").textContent, "/skill:review")
+
+	// Escape closes the list and keeps what was typed
+	vm.prefill("fix this /")
+	await nextTick()
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }))
+	await nextTick()
+	assert.ok(!el.querySelector("[data-palette-item]"))
+	assert.equal(box.value, "fix this /")
+})
+
 const ArgsView = {
 	props: ["arguments"],
 	setup: (props) => () => h("dl", { "data-test": "args" }, [
@@ -877,6 +920,23 @@ test("a skill the user started keeps its blue command prefix in the bubble", asy
 	assert.equal(el.querySelector(".text-ink-blue-6").textContent, "/skill:security-review")
 	assert.ok(el.textContent.includes("/skill:security-review check this branch"))
 	assert.ok(!el.textContent.includes("body"))
+})
+
+test("skill commands anywhere in a bubble stay blue", async (t) => {
+	const { createFlowStore } = await import("../src/store.js")
+	const UserBubble = await loadComponent("UserBubble")
+	const store = createFlowStore({}, { requireCwd: false, skillsEnabled: false })
+	const block = (name) => `<skill name="${name}" location="/skills/${name}/SKILL.md">\nbody\n</skill>`
+	const content = `${block("review")}\n\n${block("tests")}\n\ncheck /skill:review then /skill:tests`
+	const sent = mount(t, UserBubble, { entry: { type: "user_message", seq: 2, content } }, store)
+	assert.deepEqual([...sent.el.querySelectorAll(".text-ink-blue-6")].map((span) => span.textContent), [
+		"/skill:review",
+		"/skill:tests",
+	])
+	// a bubble still sending has no expansion yet, so the catalog decides
+	store.state.skills = [{ name: "review", description: "" }]
+	const sending = mount(t, UserBubble, { entry: { type: "user_message", content: "please /skill:review /skill:nope" } }, store)
+	assert.deepEqual([...sending.el.querySelectorAll(".text-ink-blue-6")].map((span) => span.textContent), ["/skill:review"])
 })
 
 function rowButton(el, text) {

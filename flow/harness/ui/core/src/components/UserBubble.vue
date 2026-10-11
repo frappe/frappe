@@ -41,7 +41,7 @@
 						v-for="(quote, i) in quotes"
 						:key="i"
 						class="border-l-2 border-outline-gray-2 pl-3 text-ink-gray-6"
-					>{{ quote }}</blockquote></div><span v-if="slash" class="text-ink-blue-6">{{ slash.prefix }}</span>{{ slash ? slash.rest : body }}</div>
+					>{{ quote }}</blockquote></div><span v-for="(part, i) in parts" :key="i" :class="{ 'text-ink-blue-6': part.skill }">{{ part.text }}</span></div>
 			<button
 				v-if="clampable"
 				class="mt-1.5 text-xs font-medium text-ink-gray-5 hover:text-ink-gray-8"
@@ -75,7 +75,16 @@ import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
-import { codeRefLabel, formatTime, splitCodeRefs, splitQuotes, userAttachments, userText } from "../transcript.js"
+import {
+	codeRefLabel,
+	formatTime,
+	invokedSkills,
+	skillSegments,
+	splitCodeRefs,
+	splitQuotes,
+	userAttachments,
+	userText,
+} from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 import ImageViewer from "./ImageViewer.vue"
 
@@ -89,10 +98,10 @@ const quoted = computed(() => splitQuotes(split.value.body))
 const body = computed(() => quoted.value.body)
 const quotes = computed(() => quoted.value.quotes)
 const hasText = computed(() => !!body.value || quotes.value.length > 0)
-// a skill command keeps the blue prefix it had in the composer
-const slash = computed(() => {
-	const match = body.value.match(/^\/skill:[^\s]+(?=\s|$)/)
-	return match ? { prefix: match[0], rest: body.value.slice(match[0].length) } : null
+// skill commands stay blue, as in the composer; a bubble still sending knows only the catalog
+const parts = computed(() => {
+	const sending = props.entry.seq == null ? (flow.state.skills ?? []).map((skill) => skill.name) : []
+	return skillSegments(body.value, invokedSkills(props.entry) ?? sending)
 })
 // images stage as full previews on their own row; code refs and files share one row of chips
 const imageTiles = computed(() => attachments.value.filter((item) => previews.value[item.id]))

@@ -189,12 +189,12 @@
 				<!-- 16px on phones: iPhone Safari zooms into smaller fields (the overlay mirrors the box) -->
 				<div class="relative">
 					<div
-						v-if="skillPrompt"
+						v-if="skillParts"
 						aria-hidden="true"
 						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed text-transparent max-sm:text-[16px]"
 					>
 						<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
-							<span class="text-ink-blue-6">{{ skillPrompt.prefix }}</span><span class="text-ink-gray-9">{{ skillPrompt.rest }}</span>
+							<span v-for="(part, i) in skillParts" :key="i" :class="part.skill ? 'text-ink-blue-6' : 'text-ink-gray-9'">{{ part.text }}</span>
 						</div>
 					</div>
 					<textarea
@@ -205,7 +205,7 @@
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
 						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[16px]"
-						:class="skillPrompt ? 'text-transparent' : 'text-ink-gray-9'"
+						:class="skillParts ? 'text-transparent' : 'text-ink-gray-9'"
 						@keydown="onKey"
 						@paste="onPaste"
 						@scroll="textScrollTop = $event.currentTarget.scrollTop"
@@ -320,6 +320,7 @@ import {
 	approvalToAnswer,
 	codeRefLabel,
 	quoteBlock,
+	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
 	subagentTitle,
@@ -493,19 +494,21 @@ function syncCaret() {
 	caretPos.value = box.value?.selectionStart ?? text.value.length
 }
 
-// an active @-mention: the nearest "@" at or before the caret that starts a word
-// (line/word start, or preceded by whitespace) with no whitespace between it and
-// the caret. Unlike `slash` below this isn't anchored to the start of the message.
-const mention = computed(() => {
-	if (!props.mentions) return null
+// the word being typed when it starts with `sigil`: the nearest one at or before the
+// caret that starts a word (line/word start, or preceded by whitespace) with no
+// whitespace between it and the caret
+function wordAtCaret(sigil) {
 	const head = text.value.slice(0, caretPos.value)
-	const at = head.lastIndexOf("@")
+	const at = head.lastIndexOf(sigil)
 	if (at === -1) return null
 	const query = head.slice(at + 1)
 	if (/\s/.test(query)) return null
 	if (at > 0 && !/\s/.test(head[at - 1])) return null
 	return { start: at, query }
-})
+}
+
+// an active @-mention
+const mention = computed(() => (props.mentions ? wordAtCaret("@") : null))
 const mentionActive = computed(() => !!mention.value && !mentionDismissed.value)
 // a fresh "@" re-arms the picker even if a previous one was dismissed with Escape
 watch(
@@ -544,7 +547,7 @@ const paletteView = ref(null) // null | "commands" | "models" | "thinking" | "pr
 
 function closePalettes() {
 	paletteView.value = null
-	if (text.value.startsWith("/")) text.value = ""
+	if (slash.value) slashDismissed.value = true
 	nextTick(() => box.value?.focus())
 }
 
@@ -556,9 +559,9 @@ function openCommands() {
 
 // typing a normal message dismisses a commands page left open by back-navigation
 watch(text, (value) => {
-	if (paletteView.value === "commands" && value && !value.startsWith("/")) paletteView.value = null
+	if (paletteView.value === "commands" && value && !slash.value) paletteView.value = null
 	// Load the invocable skills; without a session this previews without creating one.
-	if (skillsEnabled.value && value.startsWith("/")) void flow.loadSkills?.()
+	if (skillsEnabled.value && (slash.value || value.includes("/skill:"))) void flow.loadSkills?.()
 })
 
 // grow with content (wrapped lines included) up to the CSS max-height, then scroll
@@ -640,14 +643,14 @@ const skillCommands = computed(() =>
 		label: skill.name,
 		icon: "book-open",
 		hint: skill.description,
-		takesArg: true,
+		skill: true,
 	})),
 )
-const skillPrompt = computed(() => {
+// known skill commands show in blue wherever they sit
+const skillParts = computed(() => {
 	if (!skillsEnabled.value) return null
-	const match = text.value.match(/^\/skill:([^\s]+)(?=\s|$)/)
-	if (!match || !(flow.state.skills ?? []).some((skill) => skill.name === match[1])) return null
-	return { prefix: match[0], rest: text.value.slice(match[0].length) }
+	const parts = skillSegments(text.value, (flow.state.skills ?? []).map((skill) => skill.name))
+	return parts.some((part) => part.skill) ? parts : null
 })
 const running = computed(() => flow.state.conversation.running)
 const compacting = computed(() => flow.state.conversation.compacting)
@@ -713,29 +716,37 @@ const visionWarning = computed(
 		currentImageSupport.value === false,
 )
 
-// slash palette: active while the draft starts with "/" and has no space yet,
-// or when a sub-page navigated back to the commands root. A trailing space
-// ("/cwd ") means the user is past command selection — the menu closes so
+// slash palette: the "/word" being typed anywhere, or a sub-page navigated back
+// to the commands root. A space ("/cwd ") ends the word — the menu closes so
 // Enter submits the command instead of re-picking it forever.
-const slash = computed(() => {
-	if (!text.value.startsWith("/")) return null
-	const head = text.value.split("\n")[0]
-	const [cmd, ...restParts] = head.slice(1).split(" ")
-	return { query: cmd, arg: restParts.join(" "), picking: !head.includes(" ") }
-})
-const menuOpen = computed(
-	() => (!!slash.value && slash.value.picking) || paletteView.value === "commands",
+const slash = computed(() => wordAtCaret("/"))
+const slashDismissed = ref(false)
+// a fresh "/" re-arms the menu even if a previous one was dismissed with Escape
+watch(
+	() => slash.value?.start,
+	(start) => {
+		if (start !== undefined) slashDismissed.value = false
+	},
 )
-const menuItems = computed(() => {
-	if (!menuOpen.value) return []
+const atStart = (index) => !text.value.slice(0, index).trim()
+// mid-message only skills are offered: they are part of the message, commands act on the app
+const slashMidMessage = computed(() => !!slash.value && !atStart(slash.value.start))
+const matches = computed(() => {
 	const q = (slash.value?.query ?? "").toLowerCase()
-	const commands = enabledCommands.value.filter((c) => c.name.startsWith(q))
+	const commands = slashMidMessage.value ? [] : enabledCommands.value.filter((c) => c.name.startsWith(q))
 	// skills match with or without the "skill:" prefix, and sit in their own section
 	const skills = skillCommands.value.filter(
 		(c) => c.name.startsWith(q) || c.label.startsWith(q),
 	)
 	return [...commands, ...skills.map((c, i) => (i === 0 ? { ...c, section: "Skills" } : c))]
 })
+// mid-message, a "/" no skill matches (a path, a fraction) opens nothing
+const menuOpen = computed(
+	() =>
+		paletteView.value === "commands" ||
+		(!!slash.value && !slashDismissed.value && (!slashMidMessage.value || matches.value.length > 0)),
+)
+const menuItems = computed(() => (menuOpen.value ? matches.value : []))
 
 function onKey(e) {
 	if (e.key === "Enter" && !e.shiftKey) {
@@ -777,16 +788,38 @@ function onWindowKey(e) {
 }
 
 function pick(command) {
-	if (command.takesArg) {
+	// a skill goes into the message; a command opening it waits for its argument
+	if (command.skill || (command.takesArg && atStart(slashRange()[0]))) {
 		paletteView.value = null
-		text.value = `/${command.name} `
-		box.value?.focus()
+		replaceSlash(`/${command.name} `)
 		return
 	}
-	if (text.value.startsWith("/")) text.value = ""
+	if (slash.value) replaceSlash("")
 	// stacked commands swap to their sub-page (run assigns it); the rest close
 	if (!command.stacked) paletteView.value = null
 	command.run()
+}
+
+// the whole "/word" at the caret (like pickMention), or just the caret when the
+// list was reopened from a sub-page
+function slashRange() {
+	const s = slash.value
+	if (!s) return [caretPos.value, caretPos.value]
+	const queryEnd = s.start + 1 + s.query.length
+	return [s.start, queryEnd + text.value.slice(queryEnd).match(/^\S*/)[0].length]
+}
+
+// put `value` in that range as a word of its own, taking the space after it
+function replaceSlash(value) {
+	const [start, end] = slashRange()
+	const before = text.value.slice(0, start)
+	const head = before + (value && /\S$/.test(before) ? " " : "") + value
+	text.value = head + text.value.slice(end).replace(/^ /, "")
+	caretPos.value = head.length
+	nextTick(() => {
+		box.value?.focus()
+		box.value?.setSelectionRange(head.length, head.length)
+	})
 }
 
 async function submit() {
@@ -850,6 +883,7 @@ watch(
 		const { body, refs } = splitCodeRefs(typeof draft === "string" ? draft : draft.text)
 		const { body: plain, quotes: quoted } = splitQuotes(body)
 		text.value = plain
+		caretPos.value = plain.length
 		flow.clearCodeRefs()
 		flow.clearQuotes()
 		for (const ref of refs) flow.addCodeRef(ref.path, ref.start, ref.end)
@@ -892,6 +926,7 @@ function chooseMode(mode) {
 
 function prefill(value) {
 	text.value = value
+	caretPos.value = value.length
 	nextTick(() => box.value?.focus())
 }
 
