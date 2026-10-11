@@ -9,6 +9,7 @@ from time import sleep
 from urllib.parse import urlparse
 
 import requests
+from requests.adapters import Retry
 
 import frappe
 from frappe import _
@@ -204,6 +205,9 @@ def send_webhook_request(method, url, headers, data, timeout):
 		session = requests.Session()
 	else:
 		session = get_safe_request_session()
+		# Webhook retries are scheduled separately and recorded in the delivery log.
+		for adapter in session.adapters.values():
+			adapter.max_retries = Retry(total=0, read=False)
 
 	with session:
 		return session.request(
