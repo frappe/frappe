@@ -25,6 +25,10 @@
       "import": "./src/components/InviteUser/index.ts",
       "types": "./src/components/InviteUser/index.ts"
     },
+    "./experimental/List": {
+      "import": "./src/experimental/List/index.ts",
+      "types": "./src/experimental/List/index.ts"
+    },
     "./ListView": {
       "import": "./src/components/ListView/index.ts",
       "types": "./src/components/ListView/index.ts"
