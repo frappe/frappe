@@ -1025,7 +1025,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		$('<div class="close-sidebar">').hide().appendTo(sidebar_wrapper).fadeIn();
 		let scroll_container = $("html").css("overflow-y", "hidden");
 		const close_on_wide = () => {
-			if (!frappe.utils.is_xs() && !frappe.utils.is_sm()) this.close_sidebar();
+			if (!window.matchMedia("(max-width: 992px)").matches) this.close_sidebar();
 		};
 
 		sidebar_wrapper.find(".close-sidebar").on("click", (e) => this.close_sidebar(e));
