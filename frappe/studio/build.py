@@ -37,6 +37,7 @@ class StudioAppBuilder:
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
 		self.router_file: str | None = None
+		self.app_folder: str | None = None
 		self.icons: set[str] = set()
 		self.tailwind_content: list[str] = []
 		self.page_sources: list[str] = []
@@ -61,7 +62,8 @@ class StudioAppBuilder:
 			self.get_app_components_from_files()
 			self.get_page_scripts_from_files()
 			self.router_file = get_router_file(self.frappe_app, self.app_name)
-			self.tailwind_content = get_tailwind_content(self.get_app_folder())
+			self.app_folder = self.get_app_folder()
+			self.tailwind_content = get_tailwind_content(self.app_folder)
 			self._run_vite_build()
 		else:
 			self.get_app_components()
@@ -137,6 +139,9 @@ class StudioAppBuilder:
 
 		if self.icons:
 			command += f" --icons {','.join(sorted(self.icons))}"
+
+		if self.app_folder:
+			command += f" --app-folder {shlex.quote(self.app_folder)}"
 
 		for glob in self.tailwind_content:
 			command += f" --tailwind-content {shlex.quote(glob)}"

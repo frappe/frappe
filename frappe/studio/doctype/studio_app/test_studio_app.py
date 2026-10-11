@@ -437,6 +437,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 			builder.build()
 
 		app_folder = os.path.join(studio_folder, "folder_app")
+		self.assertIn(f" --app-folder {app_folder}", run.call_args.args[0])
 		self.assertIn(
 			f"--tailwind-content '{app_folder}/**/*.{{vue,js,ts,jsx,tsx,json}}'", run.call_args.args[0]
 		)

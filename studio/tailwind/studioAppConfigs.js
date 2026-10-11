@@ -8,10 +8,13 @@ const SUPPORTED_KEYS = ["content", "safelist"]
 /**
  * A studio app can ship `<frappe_app>/studio/<studio_app>/tailwind.config.js` (beside its tsconfig.json)
  * to add `content` globs and `safelist` entries, e.g. for components shared with its desk UI that
- * live outside the studio app folder. Pass `studioApp` to merge only that app's config.
+ * live outside the studio app folder.
  */
-export function mergeStudioAppConfigs(baseConfig, appsDir, studioApp) {
-	const appConfigs = findConfigPaths(appsDir, studioApp).map(loadStudioAppConfig)
+export function mergeStudioAppConfigs(baseConfig, appFolders) {
+	const appConfigs = appFolders
+		.map((folder) => path.join(folder, CONFIG_FILE))
+		.filter((configPath) => fs.existsSync(configPath))
+		.map(loadStudioAppConfig)
 	return {
 		...baseConfig,
 		content: [...baseConfig.content, ...appConfigs.flatMap((config) => config.content)],
@@ -19,13 +22,10 @@ export function mergeStudioAppConfigs(baseConfig, appsDir, studioApp) {
 	}
 }
 
-function findConfigPaths(appsDir, studioApp) {
+export function findStudioAppFolders(appsDir) {
 	return fs.readdirSync(appsDir).flatMap((frappeApp) => {
 		const studioDir = path.join(appsDir, frappeApp, "studio")
-		const studioAppFolders = studioApp ? [scrub(studioApp)] : listFolder(studioDir)
-		return studioAppFolders
-			.map((folder) => path.join(studioDir, folder, CONFIG_FILE))
-			.filter((configPath) => fs.existsSync(configPath))
+		return listFolder(studioDir).map((folder) => path.join(studioDir, folder))
 	})
 }
 
@@ -58,9 +58,4 @@ function warnUnsupportedKeys(configPath, config) {
 
 function listFolder(folder) {
 	return fs.existsSync(folder) ? fs.readdirSync(folder) : []
-}
-
-// Same as frappe.scrub, which names the studio app folder on export
-function scrub(name) {
-	return name.replaceAll(" ", "_").replaceAll("-", "_").toLowerCase()
 }
