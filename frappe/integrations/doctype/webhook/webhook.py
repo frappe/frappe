@@ -182,6 +182,7 @@ def enqueue_webhook(doc, webhook) -> None:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data)
 
+<<<<<<< HEAD
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
@@ -190,6 +191,115 @@ def enqueue_webhook(doc, webhook) -> None:
 				continue
 			if webhook.webhook_docevent == "workflow_transition":
 				raise e
+=======
+
+def send_webhook_request(method, url, headers, data, timeout):
+	from frappe.utils.safe_exec import get_safe_request_session
+
+	if frappe.get_common_site_config(cached=True).get("allow_internal_webhook_urls"):
+		session = requests.Session()
+	else:
+		session = get_safe_request_session()
+
+	with session:
+		return session.request(
+			method=method,
+			url=url,
+			data=frappe.as_json(data),
+			headers=headers,
+			timeout=timeout or 5,
+		)
+
+
+def get_next_retry(attempt: int):
+	delay = RETRY_SCHEDULE[min(attempt - 1, len(RETRY_SCHEDULE) - 1)]
+	return add_to_date(now_datetime(), seconds=delay)
+
+
+def retry_failed_webhooks():
+	"""Enqueue a delivery job for each webhook whose scheduled retry time has passed."""
+	due_logs = frappe.get_all(
+		"Webhook Request Log",
+		filters={"status": "Failed", "next_retry": ["<=", now_datetime()]},
+		fields=["name", "webhook"],
+		order_by="next_retry asc",
+		limit=RETRY_BATCH_SIZE,
+	)
+
+	queues = {}
+	for log in due_logs:
+		job_id = f"webhook_retry::{log.name}"
+		if is_job_enqueued(job_id):
+			continue
+
+		if log.webhook not in queues:
+			queues[log.webhook] = (
+				frappe.db.get_value("Webhook", log.webhook, "background_jobs_queue") or "default"
+			)
+
+		frappe.enqueue(
+			"frappe.integrations.doctype.webhook.webhook.retry_webhook_delivery",
+			log_name=log.name,
+			job_id=job_id,
+			queue=queues[log.webhook],
+			now=frappe.in_test,
+		)
+
+
+def retry_webhook_delivery(log_name: str):
+	log = frappe.get_doc("Webhook Request Log", log_name)
+	webhook = frappe.db.get_value(
+		"Webhook",
+		log.webhook,
+		["request_method", "timeout", "max_retries", "enabled"],
+		as_dict=True,
+	)
+	if not webhook or not webhook.enabled:
+		log.db_set({"status": "Exhausted", "next_retry": None})
+		return
+
+	attempt = cint(log.attempt) + 1
+	headers = json.loads(log.headers) if log.headers else {}
+	data = json.loads(log.data) if log.data else {}
+	res = None
+	try:
+		res = send_webhook_request(webhook.request_method, log.url, headers, data, webhook.timeout)
+		res.raise_for_status()
+		frappe.logger().debug({"webhook_success": res.text})
+		log.db_set(
+			{
+				"status": "Delivered",
+				"attempt": attempt,
+				"next_retry": None,
+				"response": res.text,
+				"error": None,
+			}
+		)
+
+	except Exception as e:
+		frappe.logger().debug({"webhook_retry_error": e, "attempt": attempt})
+		response = res.text if res is not None else None
+		if attempt - 1 < cint(webhook.max_retries):
+			log.db_set(
+				{
+					"status": "Failed",
+					"attempt": attempt,
+					"next_retry": get_next_retry(attempt),
+					"response": response,
+					"error": frappe.get_traceback(),
+				}
+			)
+		else:
+			log.db_set(
+				{
+					"status": "Exhausted",
+					"attempt": attempt,
+					"next_retry": None,
+					"response": response,
+					"error": frappe.get_traceback(),
+				}
+			)
+>>>>>>> a917cb3 (fix(webhook): use shared request session)
 
 
 def log_request(
