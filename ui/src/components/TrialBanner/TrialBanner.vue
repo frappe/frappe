@@ -18,7 +18,11 @@
 			</template>
 		</Button>
 	</div>
-	<Button v-else-if="isSidebarCollapsed && showBanner" @click="upgradePlan">
+	<Button
+		v-else-if="isSidebarCollapsed && showBanner"
+		aria-label="Upgrade plan"
+		@click="upgradePlan"
+	>
 		<LightningIcon class="h-4 my-0.5 shrink-0" />
 	</Button>
 </template>

@@ -6,6 +6,7 @@
 				:options="senderOptions"
 				variant="ghost"
 				class="from-select -ml-1 min-w-0"
+				aria-label="From"
 			/>
 		</Row>
 
@@ -13,6 +14,7 @@
 			<input
 				v-model="subject"
 				type="text"
+				aria-label="Subject"
 				class="flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-8 focus:ring-0"
 			/>
 		</Row>

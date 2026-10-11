@@ -47,7 +47,11 @@
 			</template>
 		</Button>
 	</div>
-	<Button v-else-if="stepsCompleted != totalSteps" @click="openOnboarding">
+	<Button
+		v-else-if="stepsCompleted != totalSteps"
+		aria-label="Getting started"
+		@click="openOnboarding"
+	>
 		<StepsIcon class="h-4 my-0.5 shrink-0" />
 	</Button>
 </template>
