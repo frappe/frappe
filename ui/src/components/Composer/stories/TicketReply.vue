@@ -1,5 +1,5 @@
 <template>
-	<div class="rounded-md border border-outline-gray-2 bg-surface-base">
+	<div class="rounded-5 border border-outline-gray-2 bg-surface-base">
 		<div class="flex items-center justify-between border-b border-outline-gray-2 px-4 py-3">
 			<div>
 				<div class="text-base font-medium text-ink-gray-9">

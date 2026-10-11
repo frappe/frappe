@@ -21,7 +21,7 @@
 		<div class="flex flex-col gap-1.5 overflow-y-auto">
 			<div v-for="a in parsedArticles" :key="a.title" class="flex flex-col gap-1.5">
 				<div
-					class="flex items-center justify-between p-1.5 hover:bg-surface-gray-1 rounded cursor-pointer"
+					class="flex items-center justify-between p-1.5 hover:bg-surface-gray-1 rounded-4 cursor-pointer"
 					@click="a.opened = !a.opened"
 				>
 					<div class="flex items-center gap-2">
@@ -36,7 +36,7 @@
 					<div
 						v-for="subArticle in a.subArticles"
 						:key="subArticle.name"
-						class="group flex items-center justify-between gap-2 p-1.5 hover:bg-surface-gray-1 rounded cursor-pointer"
+						class="group flex items-center justify-between gap-2 p-1.5 hover:bg-surface-gray-1 rounded-4 cursor-pointer"
 						@click="() => openDoc(subArticle.name)"
 					>
 						<div class="flex items-center gap-2">

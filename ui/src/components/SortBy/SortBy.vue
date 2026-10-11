@@ -32,14 +32,13 @@
 	</Combobox>
 
 	<!-- Non-empty: the sort popover (single-sort compact / multi-sort badge). -->
-	<Popover v-else placement="bottom-end">
-		<template #target="{ isOpen, togglePopover }">
+	<Popover v-else side="bottom" align="end">
+		<template #trigger="{ open }">
 			<Button
 				v-if="model.length > 1"
 				:label="'Sort'"
 				:icon="hideLabel ? 'lucide-arrow-up-down' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-arrow-up-down' : undefined"
-				@click="togglePopover"
 			>
 				<template #suffix>
 					<div
@@ -58,87 +57,80 @@
 				<Button
 					:label="firstSortLabel"
 					class="relative shrink-0 rounded-l-none [&_svg]:text-ink-gray-5 focus-visible:z-10"
-					:iconRight="isOpen ? 'lucide-chevron-up' : 'lucide-chevron-down'"
-					@click.stop="togglePopover"
+					:iconRight="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
 				/>
 			</div>
 		</template>
-		<template #body="{ close }">
-			<div
-				class="my-2 min-w-40 rounded-lg bg-surface-elevation-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
-			>
-				<div class="min-w-60 p-2">
-					<Draggable
-						v-if="model.length"
-						class="mb-3 flex flex-col gap-2"
-						:modelValue="model"
-						:item-key="(s) => s.fieldname"
-						handle=".sort-drag-handle"
-						tag="div"
-						@update:modelValue="reorder"
-					>
-						<template #item="{ element: sort, index: i }">
-							<div class="flex items-center gap-1">
-								<div
-									class="sort-drag-handle flex h-7 w-7 items-center justify-center"
-								>
-									<span
-										class="lucide-grip-vertical size-4 cursor-grab text-ink-gray-5"
-										aria-hidden="true"
-									/>
-								</div>
-								<div class="flex flex-1">
-									<Button
-										size="md"
-										class="relative rounded-r-none border-r focus-visible:z-10"
-										:icon="directionIcon(sort.direction)"
-										@click="toggleDirection(i)"
-									/>
-									<Combobox
-										class="relative flex-1 rounded-l-none focus-within:z-10"
-										trigger="button"
-										variant="subtle"
-										size="md"
-										:modelValue="sort.fieldname"
-										:options="optionsFor(sort.fieldname)"
-										placeholder="Select field"
-										@update:selectedOption="(o) => updateSort(o, i)"
-									/>
-								</div>
-								<Button variant="ghost" icon="lucide-x" @click="removeSort(i)" />
-							</div>
-						</template>
-					</Draggable>
-					<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
-						Empty - Choose a field to sort by
-					</div>
-					<div class="flex items-center justify-between gap-2">
-						<!-- A custom #trigger renders the same ghost Button as "Clear Sort"
-						     beside it (gray-5, `+` icon, no chevron). The label is static, so
-						     the old per-add remount (`:key`) and the placeholder / chevron CSS
-						     hacks are no longer needed. -->
-						<Combobox
-							:options="addableOptions"
-							:modelValue="null"
-							@update:selectedOption="addSort"
-						>
-							<template #trigger>
-								<Button
-									class="!text-ink-gray-5"
-									variant="ghost"
-									label="Add Sort"
-									iconLeft="lucide-plus"
+		<template #default="{ close }">
+			<div class="min-w-60 p-2">
+				<Draggable
+					v-if="model.length"
+					class="mb-3 flex flex-col gap-2"
+					:modelValue="model"
+					:item-key="(s) => s.fieldname"
+					handle=".sort-drag-handle"
+					tag="div"
+					@update:modelValue="reorder"
+				>
+					<template #item="{ element: sort, index: i }">
+						<div class="flex items-center gap-1">
+							<div class="sort-drag-handle flex h-7 w-7 items-center justify-center">
+								<span
+									class="lucide-grip-vertical size-4 cursor-grab text-ink-gray-5"
+									aria-hidden="true"
 								/>
-							</template>
-						</Combobox>
-						<Button
-							v-if="model.length"
-							class="!text-ink-gray-5"
-							variant="ghost"
-							:label="'Clear Sort'"
-							@click="clearSort(close)"
-						/>
-					</div>
+							</div>
+							<div class="flex flex-1">
+								<Button
+									size="md"
+									class="relative rounded-r-none border-r focus-visible:z-10"
+									:icon="directionIcon(sort.direction)"
+									@click="toggleDirection(i)"
+								/>
+								<Combobox
+									class="relative flex-1 rounded-l-none focus-within:z-10"
+									trigger="button"
+									variant="subtle"
+									size="md"
+									:modelValue="sort.fieldname"
+									:options="optionsFor(sort.fieldname)"
+									placeholder="Select field"
+									@update:selectedOption="(o) => updateSort(o, i)"
+								/>
+							</div>
+							<Button variant="ghost" icon="lucide-x" @click="removeSort(i)" />
+						</div>
+					</template>
+				</Draggable>
+				<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
+					Empty - Choose a field to sort by
+				</div>
+				<div class="flex items-center justify-between gap-2">
+					<!-- A custom #trigger renders the same ghost Button as "Clear Sort"
+					     beside it (gray-5, `+` icon, no chevron). The label is static, so
+					     the old per-add remount (`:key`) and the placeholder / chevron CSS
+					     hacks are no longer needed. -->
+					<Combobox
+						:options="addableOptions"
+						:modelValue="null"
+						@update:selectedOption="addSort"
+					>
+						<template #trigger>
+							<Button
+								class="!text-ink-gray-5"
+								variant="ghost"
+								label="Add Sort"
+								iconLeft="lucide-plus"
+							/>
+						</template>
+					</Combobox>
+					<Button
+						v-if="model.length"
+						class="!text-ink-gray-5"
+						variant="ghost"
+						:label="'Clear Sort'"
+						@click="clearSort(close)"
+					/>
 				</div>
 			</div>
 		</template>
