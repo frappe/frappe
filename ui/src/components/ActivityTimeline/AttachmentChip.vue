@@ -41,7 +41,12 @@
 				>
 					{{ textContent }}
 				</div>
-				<img v-else-if="preview === 'image'" :src="url" class="m-auto rounded-4 border" />
+				<img
+					v-else-if="preview === 'image'"
+					:src="url"
+					:alt="label"
+					class="m-auto rounded-4 border"
+				/>
 				<video
 					v-else-if="preview === 'video'"
 					:src="url"

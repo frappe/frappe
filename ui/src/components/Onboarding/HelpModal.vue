@@ -11,12 +11,16 @@
 			</div>
 			<div class="flex gap-1">
 				<Dropdown v-if="options.length" :options="options">
-					<Button variant="ghost" icon="lucide-ellipsis" />
+					<Button variant="ghost" icon="lucide-ellipsis" aria-label="More options" />
 				</Dropdown>
-				<Button @click="minimize = !minimize" variant="ghost">
+				<Button
+					@click="minimize = !minimize"
+					variant="ghost"
+					:aria-label="minimize ? 'Maximize' : 'Minimize'"
+				>
 					<component :is="minimize ? MaximizeIcon : MinimizeIcon" class="h-3.5" />
 				</Button>
-				<Button variant="ghost" @click="show = false">
+				<Button variant="ghost" aria-label="Close" @click="show = false">
 					<LucideX class="size-3.5" />
 				</Button>
 			</div>
