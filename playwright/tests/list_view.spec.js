@@ -178,6 +178,7 @@ test.describe("List View", () => {
 				}, selected_docname)
 			)
 			.toEqual({ length: 1, checked: true });
+		await expect(page.locator(".list-row-head .checkbox-actions")).toBeVisible();
 	});
 
 	test("preserves select-all across virtualized window rerenders", async ({ page, desk }) => {

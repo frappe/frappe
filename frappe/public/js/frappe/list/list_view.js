@@ -2489,10 +2489,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	on_row_checked() {
-		this.$list_head_subject =
-			this.$list_head_subject || this.$result.find("header .list-header-subject");
-		this.$checkbox_actions =
-			this.$checkbox_actions || this.$result.find("header .checkbox-actions");
+		this.$list_head_subject = this.$result.find("header .list-header-subject");
+		this.$checkbox_actions = this.$result.find("header .checkbox-actions");
 
 		// checked_docnames = full selection across all rows; $checks = only what's in the DOM right now.
 		const checked_count = this.checked_docnames.size;
