@@ -98,4 +98,20 @@ test.describe("Sidebar", () => {
 		await page.locator(".show-all-btn").click();
 		await expect(page.locator(".attachment-row")).toHaveCount(12);
 	});
+
+	test("toggles the sidebar across screen sizes", async ({ page, desk, api }) => {
+		const todo = await api.call("frappe.tests.ui_test_helpers.create_todo", {
+			description: "Sidebar Resize ToDo",
+		});
+		await page.goto(`/desk/todo/${todo.message.name}`);
+		await desk.ready();
+
+		await desk.click_menu_button("Toggle Sidebar");
+		await page.setViewportSize({ width: 800, height: 900 });
+		await desk.click_menu_button("Toggle Sidebar");
+		await expect(page.locator(".form-sidebar")).toBeInViewport();
+
+		await page.setViewportSize({ width: 1400, height: 900 });
+		await expect(page.locator(".close-sidebar")).toBeHidden();
+	});
 });
