@@ -5,7 +5,7 @@
 		ref="rootEl"
 		class="activity-timeline flex flex-col-reverse overflow-y-auto [overflow-anchor:none]"
 	>
-		<!-- min-h-full keeps short feeds at the top and centres the spinner and empty state; shrink-0 keeps the overflow -->
+		<!-- min-h-full keeps short feeds at the top; shrink-0 keeps the overflow -->
 		<div class="flex min-h-full shrink-0 flex-col">
 			<!-- spinner only on first load; cached data stays visible during revalidation -->
 			<div
