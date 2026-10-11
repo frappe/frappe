@@ -911,9 +911,13 @@ function skillTokens(text) {
 // steering reconciliation. Unlike durable-event detection, this operates only on
 // text the user explicitly entered as a slash command.
 export function normalizeSkillCommand(text) {
-	const match = String(text ?? "").trim().match(/^\/skill:([^\s]+)(?:\s+([\s\S]*))?$/)
+	const trimmed = String(text ?? "").trim()
+	const match = trimmed.match(/^\/skill:([^\s]+)(?:\s+([\s\S]*))?$/)
 	if (!match) return null
-	return typedCommand(match[1], match[2]?.trim() || "")
+	const rest = match[2]?.trim() || ""
+	// named again later, the server keeps the text as typed
+	if (skillTokens(rest).some((token) => token.name === match[1])) return trimmed
+	return `/skill:${match[1]}${rest ? ` ${rest}` : ""}`
 }
 
 // text split around the skill commands among `names`, so they can show in blue

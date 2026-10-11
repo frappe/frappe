@@ -288,7 +288,11 @@ def parse_skill_command(
 		if not names[0]:
 			raise SkillError("skill command must include a name")
 		instructions = parts[1].strip() if len(parts) > 1 else ""
-	names += [name for name in _skill_commands(instructions) if valid_skill_name(name)]
+	later = [name for name in _skill_commands(instructions) if valid_skill_name(name)]
+	# named again later: keep the text as typed, leading command included
+	if leading and names[0] in later:
+		instructions = stripped
+	names += later
 	invoked: list[InvokedSkill] = []
 	for index, name in enumerate(dict.fromkeys(names)):
 		skill = next((item for item in skills if item.name == name), None)

@@ -99,14 +99,17 @@ def expand_skill_command(agent: str, text: str) -> str:
 	stripped = text.strip()
 	leading = _SKILL_COMMAND_RE.match(stripped)
 	instructions = (leading.group(2) or "").strip() if leading else stripped
-	commands = [leading.group(1)] if leading else []
 	# skip quoted lines
-	commands += [
+	later = [
 		command
 		for line in instructions.split("\n")
 		if not line.startswith(">")
 		for command in _SKILL_TOKEN_RE.findall(line)
 	]
+	# named again later: keep the text as typed, leading command included
+	if leading and leading.group(1) in later:
+		instructions = stripped
+	commands = ([leading.group(1)] if leading else []) + later
 	if not commands:
 		return text
 	skills: dict[str, dict] = {}

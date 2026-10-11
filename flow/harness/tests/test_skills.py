@@ -213,6 +213,14 @@ def test_a_leading_command_gives_way_to_its_skill_and_a_later_one_stays(tmp_path
 	parsed = parse_skill_invocation(format_skill_invocation(invocation))
 	assert parsed is not None
 	assert parsed.command == "/skill:testing fix it with /skill:review"
+	# named again later, the text stays as typed
+	repeated = parse_skill_command("/skill:testing  do /skill:testing", catalog.skills)
+	assert repeated is not None
+	assert len(repeated.skills) == 1
+	assert repeated.instructions == "/skill:testing  do /skill:testing"
+	parsed = parse_skill_invocation(format_skill_invocation(repeated))
+	assert parsed is not None
+	assert parsed.command == "/skill:testing  do /skill:testing"
 
 
 def test_a_skill_mentioned_in_a_quoted_line_starts_nothing(tmp_path):

@@ -240,6 +240,12 @@ class TestSkillCommands(ServerCase):
 		self.assertTrue(sent.endswith(f"Check the receipt.\n</skill>\n\n{text}"))
 		self.assertEqual(run.input, text)
 
+	def test_a_leading_command_named_again_stays_in_the_text(self):
+		self.session.chat("/skill:expense-approval do /skill:expense-approval")
+		sent = self._sent()
+		self.assertEqual(sent.count("<skill "), 1)
+		self.assertTrue(sent.endswith("</skill>\n\n/skill:expense-approval do /skill:expense-approval"))
+
 	def test_a_command_in_a_quoted_line_is_plain_text(self):
 		text = "what does this do?\n\n> Type /skill:expense-approval to start it."
 		self.session.chat(text)

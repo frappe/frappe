@@ -108,6 +108,10 @@ test("skill commands later in a message render where they were typed", () => {
 	const leading = { type: "user_message", content: `${block("review")}\n\n${block("tests")}\n\nfix with /skill:tests` }
 	assert.equal(userText(leading), "/skill:review fix with /skill:tests")
 	assert.equal(normalizeSkillCommand("/skill:review\nfix with /skill:tests"), "/skill:review fix with /skill:tests")
+	// named again later, the server keeps the text as typed, leading command included
+	const repeated = { type: "user_message", content: `${block("review")}\n\n/skill:review do /skill:review` }
+	assert.equal(userText(repeated), "/skill:review do /skill:review")
+	assert.equal(normalizeSkillCommand(" /skill:review do /skill:review "), "/skill:review do /skill:review")
 	assert.equal(invokedSkills({ content: "plain" }), null)
 	assert.deepEqual(skillSegments("a /skill:review b/skill:review /skill:other", ["review"]), [
 		{ text: "a ", skill: false },
