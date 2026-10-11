@@ -25,10 +25,7 @@
 				class="h-[300px] flex items-center justify-center bg-surface-gray-1 border border-dashed border-outline-gray-3 rounded-5"
 			>
 				<div v-if="showFileSelector && !uploading" class="w-4/5 lg:w-2/5 text-center">
-					<FeatherIcon
-						name="upload-cloud"
-						class="size-6 stroke-1.5 text-ink-gray-6 mx-auto mb-2.5"
-					/>
+					<LucideCloudUpload class="size-6 stroke-1.5 text-ink-gray-6 mx-auto mb-2.5" />
 					<input
 						ref="fileInput"
 						type="file"
@@ -87,8 +84,7 @@
 							{{ convertToKB(importFile.file_size) }}
 						</div>
 					</div>
-					<FeatherIcon
-						name="trash-2"
+					<LucideTrash2
 						class="size-4 stroke-1.5 text-ink-red-6 cursor-pointer"
 						@click="deleteFile"
 					/>
@@ -100,11 +96,7 @@
 				class="flex flex-col h-[300px] p-4 border border-dashed border-outline-gray-3 rounded-5"
 			>
 				<div class="flex items-center space-x-2 text-ink-gray-7">
-					<FeatherIcon
-						name="chevron-left"
-						class="size-4 cursor-pointer"
-						@click="backToFileSelector"
-					/>
+					<LucideChevronLeft class="size-4 cursor-pointer" @click="backToFileSelector" />
 					<div>Google Sheet</div>
 				</div>
 				<div
@@ -148,12 +140,11 @@
 					<template v-slot="{ open }">
 						<Button variant="ghost">
 							<template #prefix>
-								<FeatherIcon name="download" class="size-4 stroke-1.5" />
+								<LucideDownload class="size-4 stroke-1.5" />
 							</template>
 							Download CSV Template
 							<template #suffix>
-								<FeatherIcon
-									name="chevron-down"
+								<LucideChevronDown
 									:class="[
 										'w-4 h-4 stroke-1.5 ml-1 transform transition-transform',
 										open ? 'rotate-180' : '',
@@ -177,7 +168,12 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { DataImports, DataImport, DocField, DocType } from "./types";
-import { Badge, Button, Dropdown, FeatherIcon, FileUploadHandler, toast } from "frappe-ui";
+import { Badge, Button, Dropdown, FileUploadHandler, toast } from "frappe-ui";
+import LucideChevronDown from "~icons/lucide/chevron-down";
+import LucideChevronLeft from "~icons/lucide/chevron-left";
+import LucideCloudUpload from "~icons/lucide/cloud-upload";
+import LucideDownload from "~icons/lucide/download";
+import LucideTrash2 from "~icons/lucide/trash-2";
 import { fieldsToIgnore, getChildTableName, getBadgeColor } from "./dataImport";
 import TemplateModal from "./TemplateModal.vue";
 

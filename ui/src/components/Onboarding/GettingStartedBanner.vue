@@ -22,9 +22,8 @@
 						{{ "You are all set" }}
 					</div>
 				</div>
-				<FeatherIcon
-					name="x"
-					class="h-4 cursor-pointer"
+				<LucideX
+					class="size-4 cursor-pointer"
 					@click="
 						() => {
 							showHelpCenter = true;
@@ -44,7 +43,7 @@
 			@click="openOnboarding"
 		>
 			<template #prefix>
-				<FeatherIcon name="chevrons-right" class="size-4" />
+				<LucideChevronsRight class="size-4" />
 			</template>
 		</Button>
 	</div>
@@ -53,7 +52,9 @@
 	</Button>
 </template>
 <script setup lang="ts">
-import { Button, FeatherIcon } from "frappe-ui";
+import { Button } from "frappe-ui";
+import LucideChevronsRight from "~icons/lucide/chevrons-right";
+import LucideX from "~icons/lucide/x";
 import { StepsIcon } from "frappe-ui/icons";
 import { useOnboarding } from "./onboarding";
 import { showHelpCenter } from "./helpCenter";
