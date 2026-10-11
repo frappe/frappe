@@ -25,6 +25,113 @@ test.describe("Grid", () => {
 			grid.refresh_edit_rows_button();
 		}, enabled);
 
+	test.describe("Touch selection", () => {
+		test.use({
+			hasTouch: true,
+			userAgent:
+				"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36",
+		});
+		test.beforeEach(({ browserName }) => {
+			test.skip(browserName !== "chromium", "Touch gestures use Chromium's input protocol");
+		});
+
+		const touch = (session, type, point) =>
+			session.send("Input.dispatchTouchEvent", { type, touchPoints: point ? [point] : [] });
+
+		test("selects rows on taps and cancels dragging on early movement", async ({ page }) => {
+			const table = get_table(page);
+			const checkbox = table.locator('.grid-row[data-idx="1"] .grid-row-check');
+			await checkbox.scrollIntoViewIfNeeded();
+			const box = await checkbox.boundingBox();
+			const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+			const session = await page.context().newCDPSession(page);
+			try {
+				for (const [duration, movement] of [
+					[100, 0],
+					[200, 1],
+					[300, 5],
+				]) {
+					const checked = await checkbox.isChecked();
+					await touch(session, "touchStart", point);
+					await touch(session, "touchMove", { x: point.x, y: point.y + movement });
+					await page.waitForTimeout(duration);
+					expect(await table.locator(".sortable-chosen").count()).toBe(0);
+					await touch(session, "touchEnd");
+					await expect(checkbox).toBeChecked({ checked: !checked });
+					await expect
+						.poll(() =>
+							page.evaluate(() => Boolean(cur_frm.doc.phone_nos[0].__checked))
+						)
+						.toBe(!checked);
+				}
+			} finally {
+				await session.detach();
+			}
+		});
+
+		test("keeps mouse dragging immediate", async ({ page }) => {
+			const rows = get_table(page).locator(".grid-body .grid-row");
+			const second_row_name = await rows.nth(1).getAttribute("data-name");
+			const handle = rows.first().locator(".row-index");
+			await handle.scrollIntoViewIfNeeded();
+			const box = await handle.boundingBox();
+			const target = await rows.nth(1).boundingBox();
+			await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+			await page.mouse.down();
+			try {
+				expect(await rows.first().getAttribute("class")).toContain("sortable-chosen");
+				await page.mouse.move(box.x + box.width / 2, target.y + target.height - 5, {
+					steps: 5,
+				});
+				await expect
+					.poll(() => rows.first().getAttribute("data-name"))
+					.toBe(second_row_name);
+			} finally {
+				await page.mouse.up();
+			}
+		});
+
+		test("drags from the checkbox after a hold when row numbers are hidden", async ({
+			page,
+		}) => {
+			const table = get_table(page);
+			await table.evaluate((element) => element.classList.add("form-column", "col-sm-6"));
+			const rows = table.locator(".grid-body .grid-row");
+			await expect(rows.first().locator(".row-index")).toBeHidden();
+			const checkbox = rows.first().locator(".grid-row-check");
+			await checkbox.scrollIntoViewIfNeeded();
+			const checked = await checkbox.isChecked();
+			const first_row_name = await rows.first().getAttribute("data-name");
+			const second_row_name = await rows.nth(1).getAttribute("data-name");
+			const box = await checkbox.boundingBox();
+			const target = await rows.nth(1).boundingBox();
+			const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+			const session = await page.context().newCDPSession(page);
+			try {
+				await touch(session, "touchStart", point);
+				await touch(session, "touchMove", { x: point.x, y: point.y + 1 });
+				await page.waitForTimeout(300);
+				await expect(rows.first()).toHaveClass(/sortable-chosen/);
+				for (const fraction of [0.25, 0.5, 0.75, 1]) {
+					await touch(session, "touchMove", {
+						x: point.x,
+						y: point.y + (target.y + target.height - 5 - point.y) * fraction,
+					});
+					await page.evaluate(() => new Promise(requestAnimationFrame));
+				}
+				await expect
+					.poll(() => rows.first().getAttribute("data-name"))
+					.toBe(second_row_name);
+				await touch(session, "touchEnd");
+				await expect(
+					table.locator(`.grid-row[data-name="${first_row_name}"] .grid-row-check`)
+				).toBeChecked({ checked });
+			} finally {
+				await session.detach();
+			}
+		});
+	});
+
 	test("update docfield property using update_docfield_property", async ({ page }) => {
 		const table = get_table(page);
 		const table_form = page.locator(".grid-row-open");
