@@ -43,6 +43,8 @@ interface BaseComposerProps {
   extensions?: Extension[];
   /** Maximum number of attachments. Defaults to 10. */
   maxAttachments?: number;
+  /** Attachment types, as extensions (".pdf") or MIME globs ("image/*"), like FileUpload's `allowed_file_types`. Empty allows any. */
+  allowedFileTypes?: string[];
   /** Host is performing the send: the submit button shows a spinner and ignores clicks. */
   submitting?: boolean;
 }

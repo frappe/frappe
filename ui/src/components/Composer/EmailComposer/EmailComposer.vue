@@ -6,6 +6,7 @@
 		:upload-function="uploadFunction"
 		:extensions="extensions"
 		:max-attachments="maxAttachments"
+		:allowed-file-types="allowedFileTypes"
 		:submitting="submitting"
 		v-model:body="body"
 		v-model:quoted="quoted"
