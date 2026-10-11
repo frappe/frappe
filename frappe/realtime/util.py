@@ -37,22 +37,14 @@ def resolve_site_name(environ: dict, config: RealtimeConfig) -> str | None:
 	return get_hostname(host)
 
 
-def get_url(origin: str | None, path: str, config: RealtimeConfig) -> str:
-	"""Build the web-process URL for a request. Port of realtime/utils.js get_url."""
-	if config.webserver_host and config.webserver_port:
-		base = config.webserver_host
-		if "://" not in base:
-			base = f"http://{base}"
-		parts = urlsplit(base)
-		if parts.port is None:
-			base = f"{parts.scheme}://{parts.netloc}:{config.webserver_port}"
-		else:
-			base = f"{parts.scheme}://{parts.netloc}"
-		return base + (path or "")
-	url = origin or ""
-	if config.developer_mode and config.webserver_port:
-		parts = url.split(":")
-		protocol = parts[0] if len(parts) > 0 else ""
-		host = parts[1] if len(parts) > 1 else ""
-		url = f"{protocol}:{host}:{config.webserver_port}"
-	return url + (path or "")
+def get_url(path: str, config: RealtimeConfig) -> str:
+	"""Build the URL of the Frappe web process to call, from config (default 127.0.0.1)."""
+	base = config.webserver_host or "127.0.0.1"
+	if "://" not in base:
+		base = f"http://{base}"
+	parts = urlsplit(base)
+	if parts.port is None:
+		base = f"{parts.scheme}://{parts.netloc}:{config.webserver_port or 8000}"
+	else:
+		base = f"{parts.scheme}://{parts.netloc}"
+	return base + (path or "")
