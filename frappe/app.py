@@ -212,6 +212,7 @@ def run_after_request_hooks(request, response):
 
 
 def init_request(request):
+<<<<<<< HEAD
 	frappe.local.request = request
 	frappe.local.request.after_response = CallbackManager()
 
@@ -219,6 +220,14 @@ def init_request(request):
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
 	frappe.init(site=site, sites_path=_sites_path, force=True)
+=======
+	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host or request.headers.get("Host", ""))
+	try:
+		frappe.init(site, sites_path=_sites_path, force=True, is_request=True)
+	finally:
+		frappe.local.request = request
+		request.after_response = CallbackManager()
+>>>>>>> b9a4ea5 (fix: resolve site from raw host header when werkzeug rejects it)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
