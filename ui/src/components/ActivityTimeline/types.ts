@@ -52,6 +52,8 @@ export interface BaseActivity<TType extends string, TData> {
   author?: UserInfo;
   /** lucide name or component; per-type default when absent */
   icon?: string | Component;
+  /** set by addPendingActivity: not confirmed by the server yet, rendered muted */
+  pending?: boolean;
   data: TData;
 }
 
@@ -170,6 +172,16 @@ export type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & {
   /** Omit for static lists; reorderable rows need a key for stable v-for/scroll. */
   key?: string;
 };
+
+/** e.g. ["email", "comment", { version: ["status", "priority"] }] */
+export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
+
+export interface PendingActivity {
+  /** tell the row which key the server gave it; it retires when that row arrives */
+  resolve: (key: string) => void;
+  /** take the row back, e.g. the request failed */
+  drop: () => void;
+}
 
 // —— Per-activity-row components (rendered by ActivityTimeline via its type slots) ——
 
