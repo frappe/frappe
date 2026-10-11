@@ -589,7 +589,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	if dry_run:
 		frappe.flags.in_uninstall = False
-		click.secho(f"Dry run complete, nothing was removed from Site {site}", fg="green")
+		click.secho(_("Dry run complete, nothing was removed from Site {0}").format(site), fg="green")
 		return
 
 	remove_from_installed_apps(app_name)

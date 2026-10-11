@@ -208,7 +208,7 @@ def create_desktop_icons_for_app(app_name=None):
 		print(f"Error creating desktop icons: {e}")
 
 
-def delete_desktop_icons_for_app(app_name, dry_run=False):
+def delete_desktop_icons_for_app(app_name):
 	"""Remove an uninstalled app's Desktop Icons."""
 
 	# Icons are named/labelled by the app's title (Desktop Icon autoname is `field:label`,
