@@ -32,8 +32,7 @@ export function findStudioAppFolders(appsDir) {
 function loadStudioAppConfig(configPath) {
 	const config = loadTailwindConfig(configPath)
 	warnUnsupportedKeys(configPath, config)
-	const content = Array.isArray(config.content) ? config.content : config.content?.files || []
-	const globs = content.map((entry) => resolveGlob(entry, path.dirname(configPath)))
+	const globs = (config.content || []).map((entry) => resolveGlob(entry, path.dirname(configPath)))
 	return {
 		content: [...globs, ...globs.map(excludeNodeModules).filter(Boolean)],
 		safelist: config.safelist || [],
