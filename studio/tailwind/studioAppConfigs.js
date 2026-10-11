@@ -33,8 +33,9 @@ function loadStudioAppConfig(configPath) {
 	const config = loadTailwindConfig(configPath)
 	warnUnsupportedKeys(configPath, config)
 	const content = Array.isArray(config.content) ? config.content : config.content?.files || []
+	const globs = content.map((entry) => resolveGlob(entry, path.dirname(configPath)))
 	return {
-		content: content.map((entry) => resolveGlob(entry, path.dirname(configPath))),
+		content: [...globs, ...globs.map(excludeNodeModules).filter(Boolean)],
 		safelist: config.safelist || [],
 	}
 }
@@ -45,6 +46,13 @@ function resolveGlob(entry, configDir) {
 	const negated = entry.startsWith("!")
 	const resolved = path.resolve(configDir, negated ? entry.slice(1) : entry)
 	return negated ? `!${resolved}` : resolved
+}
+
+// Shared folders often carry their own node_modules, which would slow every editor start
+function excludeNodeModules(glob) {
+	if (typeof glob !== "string" || glob.startsWith("!")) return null
+	const folder = glob.split(/[*?{[]/)[0].replace(/\/[^/]*$/, "")
+	return `!${folder}/**/node_modules/**`
 }
 
 function warnUnsupportedKeys(configPath, config) {
