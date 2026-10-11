@@ -85,9 +85,15 @@ def find_doctypes(
 
 
 @tool
-def describe(doctype: str, name: str | None = None, *, ctx: ToolContext) -> dict[str, Any]:
-	"""Inspect a DocType's fields and your permissions. Pass `name` to also get a record's available actions."""
-	if not frappe.has_permission(doctype, "read"):
+def describe(
+	doctype: str, name: str | None = None, parent_doctype: str | None = None, *, ctx: ToolContext
+) -> dict[str, Any]:
+	"""Inspect a DocType's fields and your permissions. Pass `name` to also get a record's available actions.
+
+	For a child table used by more than one DocType, pass the one you mean as `parent_doctype`.
+	"""
+	parent_doctype = _parent_doctype(doctype, parent_doctype)
+	if not frappe.has_permission(doctype, "read", parent_doctype=parent_doctype):
 		raise PermissionError(f"No permission to read {doctype}")
 
 	meta = frappe.get_meta(doctype)
@@ -102,7 +108,10 @@ def describe(doctype: str, name: str | None = None, *, ctx: ToolContext) -> dict
 		for f in meta.fields
 		if f.fieldtype not in LAYOUT_FIELDTYPES
 	]
-	permissions = {p: bool(frappe.has_permission(doctype, p)) for p in ("read", "write", "create", "delete")}
+	permissions = {
+		p: bool(frappe.has_permission(doctype, p, parent_doctype=parent_doctype))
+		for p in ("read", "write", "create", "delete")
+	}
 	result: dict[str, Any] = {"doctype": doctype, "fields": fields, "permissions": permissions}
 
 	if name:
@@ -122,6 +131,7 @@ def read_records(
 	fields: list[str] | None = None,
 	limit: int = 20,
 	order_by: str | None = None,
+	parent_doctype: str | None = None,
 	*,
 	ctx: ToolContext,
 ) -> list[dict]:
@@ -129,14 +139,54 @@ def read_records(
 
 	`filters` is a dict like {"status": "Open"} or {"qty": [">", 5]}. `fields` defaults
 	to the record name. Returns a list of matching records (capped at 200).
+	A single DocType returns its one record, with every field unless `fields` is given.
+	For a child table used by more than one DocType, pass the one you mean as `parent_doctype`.
 	"""
+	if frappe.get_meta(doctype).issingle:
+		return _read_single(doctype, filters, fields)
 	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
+	if parent_doctype := _parent_doctype(doctype, parent_doctype):
+		# frappe matches child rows to parents by name only
+		if isinstance(filters, list):
+			filters = [*filters, ["parenttype", "=", parent_doctype]]
+		else:
+			filters = {**(filters or {}), "parenttype": parent_doctype}
 	return frappe.get_list(
 		doctype,
 		filters=filters,
 		fields=fields or ["name"],
 		limit=limit,
 		order_by=order_by,
+		parent_doctype=parent_doctype,
+	)
+
+
+def _read_single(doctype: str, filters: dict | None, fields: list[str] | None) -> list[dict[str, Any]]:
+	"""A Single's one record as its form shows it to this user, if it matches `filters`."""
+	doc = frappe.get_doc(doctype)
+	doc.check_permission("read")
+	doc.apply_fieldlevel_read_permissions()
+	values = doc.as_dict(no_nulls=True)
+	if filters and not frappe.utils.evaluate_filters(values, filters):
+		return []
+	return [{f: values.get(f) for f in fields} if fields else values]
+
+
+def _parent_doctype(doctype: str, given: str | None) -> str | None:
+	"""The DocType a child table is read through: the one given, else its only parent."""
+	if not frappe.get_meta(doctype).istable:
+		return None
+	table = {"fieldtype": ["in", frappe.model.table_fields], "options": doctype}
+	parents = sorted(
+		set(frappe.get_all("DocField", filters=table, pluck="parent"))
+		| set(frappe.get_all("Custom Field", filters=table, pluck="dt"))
+	)
+	if given in parents:
+		return given
+	if not given and len(parents) == 1:
+		return parents[0]
+	raise ValueError(
+		f"{doctype} is a child table; pass parent_doctype, one of: {', '.join(parents) or 'none'}"
 	)
 
 
