@@ -12,6 +12,7 @@ export type {
 export {
   CommitKey,
   DocKey,
+  LinkTitlesKey,
   NO_COMMIT,
   ParentDocKey,
   UpdateKey,
