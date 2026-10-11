@@ -14,7 +14,9 @@ const DEPRECATED_RENDERERS = {
 	WeasyPrint: __(
 		"WeasyPrint is deprecated and will be removed in version 17. Switch this format to Chrome."
 	),
-	wkhtmltopdf: __("wkhtmltopdf is deprecated. Chrome is the supported PDF renderer."),
+	wkhtmltopdf: __(
+		"wkhtmltopdf is deprecated and will be removed in version 17. Switch this format to Chrome."
+	),
 };
 
 frappe.ui.form.on("Print Format", "onload", function (frm) {
