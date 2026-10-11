@@ -179,7 +179,7 @@ class TestLoadSession(ServerCase):
 
 
 class TestSkillCommands(ServerCase):
-	"""A message that starts with /skill:<command> reaches the server as that skill's instructions."""
+	"""A /skill:<command> in a message reaches the server as that skill's instructions."""
 
 	def setUp(self):
 		super().setUp()
@@ -227,6 +227,27 @@ class TestSkillCommands(ServerCase):
 	def test_other_messages_pass_untouched(self):
 		self.session.chat("skill:expense-approval is not a command")
 		self.assertEqual(self._sent(), "skill:expense-approval is not a command")
+
+	def test_commands_later_in_the_message_stay_where_they_were_typed(self):
+		self._skill("Receipt Check", user_invocable=1, instructions="Match the amounts.")
+		self.agent.append("skills", {"skill": "Receipt Check"})
+		self.agent.save()
+		text = "check /skill:receipt-check then /skill:expense-approval for /skill:receipt-check"
+		run = self.session.chat(text)
+		sent = self._sent()
+		self.assertTrue(sent.startswith('<skill name="receipt-check" location="Flow Skill/Receipt Check">'))
+		self.assertIn('Match the amounts.\n</skill>\n\n<skill name="expense-approval"', sent)
+		self.assertTrue(sent.endswith(f"Check the receipt.\n</skill>\n\n{text}"))
+		self.assertEqual(run.input, text)
+
+	def test_a_command_in_a_quoted_line_is_plain_text(self):
+		text = "what does this do?\n\n> Type /skill:expense-approval to start it."
+		self.session.chat(text)
+		self.assertEqual(self._sent(), text)
+
+	def test_an_unknown_command_later_in_the_message_is_plain_text(self):
+		self.session.chat("why can't I use /skill:model-only here?")
+		self.assertEqual(self._sent(), "why can't I use /skill:model-only here?")
 
 
 class TestLiveSession(LiveServerCase):
