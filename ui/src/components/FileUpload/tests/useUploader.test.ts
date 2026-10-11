@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { useUploader } from "../useUploader";
+import { isAllowedType, useUploader } from "../useUploader";
 import type { UploadTransport } from "../types";
 
 /** A fake transport that resolves with a deterministic url and reports progress. */
@@ -296,5 +296,33 @@ describe("useUploader", () => {
     expect(uploader.items[0].name).toBe("a-cropped.png");
     expect(uploader.items[0].size).toBe(60);
     expect(uploader.items[0].status).toBe("idle");
+  });
+});
+
+describe("isAllowedType", () => {
+  it("allows any file when the list is empty", () => {
+    expect(isAllowedType(makeFile("a.zip", 10, "application/zip"), [])).toBe(
+      true
+    );
+  });
+
+  it("matches extensions and MIME globs", () => {
+    expect(
+      isAllowedType(makeFile("a.PDF", 10, "application/pdf"), [".pdf"])
+    ).toBe(true);
+    expect(isAllowedType(makeFile("a.png", 10, "image/png"), ["image/*"])).toBe(
+      true
+    );
+    expect(
+      isAllowedType(makeFile("a.zip", 10, "application/zip"), [
+        ".pdf",
+        "image/*",
+      ])
+    ).toBe(false);
+  });
+
+  it("lets a typeless file through a MIME-only list, not an extension list", () => {
+    expect(isAllowedType(makeFile("photo", 10, ""), ["image/*"])).toBe(true);
+    expect(isAllowedType(makeFile("photo", 10, ""), [".pdf"])).toBe(false);
   });
 });

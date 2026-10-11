@@ -213,7 +213,7 @@ import {
 	InsertTable,
 } from "frappe-ui/editor";
 import { sanitizeHtml } from "../../utils/sanitize";
-import { matchesType } from "../FileUpload/useUploader";
+import { isAllowedType } from "../FileUpload/useUploader";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 const emailToolbar = [
@@ -398,7 +398,7 @@ async function onAttachPicked(event: Event) {
 	input.value = "";
 	if (!file || !props.uploadFunction) return;
 	// `accept` only filters the picker, which the user can switch to all files.
-	if (props.allowedFileTypes?.length && !matchesType(file, props.allowedFileTypes)) {
+	if (props.allowedFileTypes && !isAllowedType(file, props.allowedFileTypes)) {
 		toast.error(`"${file.name}" was skipped — file type not allowed.`);
 		return;
 	}

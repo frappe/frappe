@@ -62,6 +62,12 @@ export interface ComposerActionsSlotProps {
   setUploading: (value: boolean) => void;
 }
 
+/** What the `attachments` slot receives to render its own chips. */
+export interface ComposerAttachmentsSlotProps {
+  attachments: UploadedFile[];
+  remove: (file: UploadedFile) => void;
+}
+
 interface BaseComposerEmits<Payload> {
   /** Fires with the built payload; the host performs the send, then `reset()`. */
   submit: [payload: Payload];
@@ -100,6 +106,8 @@ export interface EmailComposerSlots {
   header?: () => any;
   /** Extra footer actions, beside the built-in attach button. */
   actions?: (props: ComposerActionsSlotProps) => any;
+  /** Replaces the built-in attachment chips. */
+  attachments?: (props: ComposerAttachmentsSlotProps) => any;
   /** Pinned between the body (and attachments) and the utilities row, for notices such as staged actions. */
   footer?: () => any;
 }
@@ -115,6 +123,8 @@ export type CommentComposerEmits = BaseComposerEmits<CommentPayload>;
 export interface CommentComposerSlots {
   /** Extra footer actions, beside the built-in attach button. */
   actions?: (props: ComposerActionsSlotProps) => any;
+  /** Replaces the built-in attachment chips. */
+  attachments?: (props: ComposerAttachmentsSlotProps) => any;
   /** Pinned between the body (and attachments) and the utilities row, for notices such as staged actions. */
   footer?: () => any;
 }
