@@ -442,6 +442,30 @@ class TestStudioAppBuilder(FrappeTestCase):
 			f"--tailwind-content '{app_folder}/**/*.{{vue,js,ts,jsx,tsx,json}}'", run.call_args.args[0]
 		)
 
+	def test_builds_css_for_the_app_tailwind_config(self):
+		"""Classes in files the app's tailwind.config.js points at, or safelists, reach the built
+		CSS; files outside the app that the config doesn't list stay out."""
+		page = {"blocks": [{"componentName": "Button", "children": []}]}
+		with (
+			mock_studio_app_files("tailwind-app", pages={"page": page}) as studio_folder,
+			patch("studio.build.get_studio_folder", return_value=studio_folder),
+		):
+			frappe_app = os.path.dirname(studio_folder)
+			write_file(os.path.join(frappe_app, "shared", "Shared.vue"), '<p class="tracking-[0.111em]" />')
+			write_file(os.path.join(frappe_app, "desk", "Desk.vue"), '<p class="tracking-[0.222em]" />')
+			write_file(
+				os.path.join(studio_folder, "tailwind_app", "tailwind.config.js"),
+				'export default { content: ["../../shared/**/*.vue"], safelist: ["tracking-[0.333em]"] }',
+			)
+			builder = StudioAppBuilder("tailwind-app", is_standard=True, frappe_app="studio")
+			builder.out_dir = tempfile.mkdtemp()
+			self.addCleanup(shutil.rmtree, builder.out_dir)
+			builder.build()
+
+		css = get_built_css(builder.out_dir)
+		built = {marker for marker in ("111", "222", "333") if rf"tracking-\[0\.{marker}em\]" in css}
+		self.assertEqual(built, {"111", "333"})
+
 	def test_passes_only_the_used_icons_to_the_build(self):
 		builder = StudioAppBuilder("icon-cli-app", is_standard=False)
 		builder.components = {"Button"}
@@ -632,6 +656,23 @@ def make_studio_page(studio_app, **kwargs):
 	)
 	page.insert()
 	return page
+
+
+def write_file(path: str, text: str) -> None:
+	os.makedirs(os.path.dirname(path), exist_ok=True)
+	with open(path, "w") as f:
+		f.write(text)
+
+
+def get_built_css(out_dir: str) -> str:
+	assets_dir = os.path.join(out_dir, "assets")
+	css_files = [
+		name
+		for name in os.listdir(assets_dir)
+		if name.startswith("studioRenderer-") and name.endswith(".css")
+	]
+	with open(os.path.join(assets_dir, css_files[0])) as f:
+		return f.read()
 
 
 def get_bundled_packages(out_dir: str) -> set[str]:
