@@ -15,6 +15,7 @@ from frappe.core.doctype.version.version import get_diff
 from frappe.locale import get_number_format
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
+from frappe.utils.caching import request_cache
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.data import escape_html
 from frappe.utils.html_utils import clean_html
@@ -2259,6 +2260,13 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 
 def get_df_for_column_header(doctype, header):
+	from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+	if get_import_provider(doctype):
+		# A provider's fields can depend on the user (e.g. their permissions) and on other
+		# DocTypes, so they can't be shared or cleared with this DocType's cache.
+		return _get_provider_fields_dict(doctype, frappe.session.user).get(header)
+
 	def build_fields_dict_for_doctype():
 		return build_fields_dict_for_column_matching(doctype)
 
@@ -2266,6 +2274,11 @@ def get_df_for_column_header(doctype, header):
 		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
 	)
 	return df_by_labels_and_fieldname.get(header)
+
+
+@request_cache
+def _get_provider_fields_dict(doctype, user):
+	return build_fields_dict_for_column_matching(doctype)
 
 
 # utilities

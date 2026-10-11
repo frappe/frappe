@@ -8,14 +8,14 @@
 		border-radius: 8px;
 		max-width: 8.3in;
 		min-height: 11.69in;
-		padding: 15mm;
+		padding: {{ page_margin }};
 		margin: auto;
 		color: var(--gray-900);
 	}
 
 	.print-format.landscape {
 		max-width: 11.69in;
-		padding: 15mm;
+		padding: {{ page_margin }};
 	}
 
 	.page-break {
