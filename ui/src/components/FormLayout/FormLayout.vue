@@ -147,13 +147,13 @@ provide(HasTabsKey, hasTabs);
 </script>
 
 <style scoped>
-/* Hide sections that render no fields. */
-.section:not(:has(.field)) {
+/* Hide sections that render no fields and no parts. */
+.section:not(:has(.field, .part)) {
 	display: none;
 }
 
-/* The first section with fields sits flush under the tab strip. */
-.section:has(.field):nth-child(1 of .section:has(.field)) {
+/* The first section with content sits flush under the tab strip. */
+.section:has(.field, .part):nth-child(1 of .section:has(.field, .part)) {
 	border-top: none;
 	margin-top: 0;
 	padding-top: 0;
