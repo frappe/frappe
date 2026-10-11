@@ -213,7 +213,7 @@ import {
 	InsertTable,
 } from "frappe-ui/editor";
 import { sanitizeHtml } from "../../utils/sanitize";
-import { isAllowedType } from "../FileUpload/useUploader";
+import { matchesType } from "../FileUpload/useUploader";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 const emailToolbar = [
@@ -391,6 +391,17 @@ const attachInput = useTemplateRef<HTMLInputElement>("attachInput");
 // Bumped by reset() so a late-arriving upload can't re-add a discarded file.
 let uploadEpoch = 0;
 
+// As FileUpload does: a file the OS reports without a type can't match a MIME rule,
+// so it passes a list of MIME rules only. An extension rule still has to match.
+function isAllowedType(file: File, allowed: string[]) {
+	if (matchesType(file, allowed)) return true;
+	return (
+		!file.type &&
+		allowed.some((type) => type.includes("/")) &&
+		!allowed.some((type) => type.trim().startsWith("."))
+	);
+}
+
 async function onAttachPicked(event: Event) {
 	const input = event.target as HTMLInputElement;
 	const file = input.files?.[0];
@@ -398,7 +409,7 @@ async function onAttachPicked(event: Event) {
 	input.value = "";
 	if (!file || !props.uploadFunction) return;
 	// `accept` only filters the picker, which the user can switch to all files.
-	if (props.allowedFileTypes && !isAllowedType(file, props.allowedFileTypes)) {
+	if (props.allowedFileTypes?.length && !isAllowedType(file, props.allowedFileTypes)) {
 		toast.error(`"${file.name}" was skipped — file type not allowed.`);
 		return;
 	}
