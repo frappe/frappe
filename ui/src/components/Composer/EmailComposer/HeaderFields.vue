@@ -1,5 +1,5 @@
 <template>
-	<div class="px-2.5">
+	<div class="pl-2.5 pr-1">
 		<Row v-if="showFrom" label="From" :items-center="true">
 			<Select
 				v-model="from"
@@ -65,7 +65,7 @@
 				@move="(recipient) => moveRecipient('bcc', recipient)"
 			/>
 		</Row>
-		<div class="border-b bg-surface-gray-1 mt-2"></div>
+		<div class="mr-1.5 mt-2 border-b bg-surface-gray-1"></div>
 	</div>
 </template>
 
