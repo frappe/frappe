@@ -117,11 +117,26 @@ export interface RawMetaField {
   filters?: Record<string, unknown>;
 }
 
+/** A component a host places in the form; `label` frames it, none draws it bare. */
+export interface FormPart {
+  name: string;
+  label?: string;
+  component: Component;
+  props?: Record<string, any>;
+}
+
+/** A part drawn as a cell of a column, before or after one of its fields. */
+export interface ColumnPart extends FormPart {
+  before?: string;
+  after?: string;
+}
+
 export interface Column {
   name?: string;
   label?: string;
   hideLabel?: boolean;
   fields: FieldNode[];
+  parts?: ColumnPart[];
 }
 
 export interface Section {
@@ -135,6 +150,8 @@ export interface Section {
   /** Conditional visibility; `resolveLayout` bakes it into `hidden`. */
   dependsOn?: string;
   columns: Column[];
+  /** Drawn in place of the columns: a full-width part between two sections. */
+  part?: FormPart;
 }
 
 /**
