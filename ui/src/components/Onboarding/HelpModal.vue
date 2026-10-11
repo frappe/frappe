@@ -121,7 +121,6 @@ function resetOnboardingSteps() {
 	showHelpCenter.value = false;
 }
 
-// Completion can flip after mount (status fetch, skip all), not just before it.
 watch(
 	isOnboardingStepsCompleted,
 	(completed) => {
