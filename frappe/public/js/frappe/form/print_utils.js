@@ -75,14 +75,12 @@ frappe.ui.get_print_settings = function (
 			onchange() {
 				const print_format = this.get_value();
 				if (!print_format) return this.layout.set_value("print_format_type", "");
-				frappe.db
-					.get_value("Print Format", print_format, "print_format_type")
-					.then((r) =>
-						this.layout.set_value(
-							"print_format_type",
-							r.message?.print_format_type || ""
-						)
-					);
+				frappe
+					.xcall("frappe.desk.query_report.get_print_format_data", { print_format })
+					.then((r) => {
+						if (this.get_value() !== print_format) return;
+						this.layout.set_value("print_format_type", r?.print_format_type || "");
+					});
 			},
 		});
 	}
