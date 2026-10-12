@@ -62,6 +62,70 @@ class DesktopPage {
 		$(this.page.body).empty();
 		$(frappe.render_template("desktop")).appendTo(this.page.body);
 		this.render();
+<<<<<<< HEAD
+=======
+	}
+	render() {
+		this.wrapper = this.page.body.find(".desktop-container");
+		this.render_app_icons();
+		this.setup();
+	}
+	render_app_icons() {
+		// the apps screen is powered entirely by the `add_to_apps_screen` hook,
+		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
+		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
+		// always trails. Ties keep installed-apps order since sort() is stable.
+		// The destination is the landing ladder (see app_landing_route).
+		//
+		// An app that resolves to none of the three keeps its icon. It used to be filtered out,
+		// which was tolerable while every app's rail was every module it owned. Now that a rail
+		// is exactly the record an app ships, a dock-less app would have had no rail and no icon,
+		// so no way in at all. The icon leads to the desk's root, which is somewhere rather than
+		// nowhere.
+		const apps = (frappe.boot.app_data || [])
+			.filter((app) => app.on_apps_screen)
+			.map((app) => ({
+				...app,
+				route: frappe.app.sidebar?.app_landing_route(app) || "/desk",
+			}))
+			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
+
+		const $container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
+		const columns = frappe.is_mobile() ? 3 : null;
+		const $grid = $(
+			`<div class="icons" style="display: grid;${
+				columns ? ` grid-template-columns: repeat(${columns}, 1fr);` : ""
+			}"></div>`
+		).appendTo($container);
+
+		apps.forEach((app) => {
+			const icon_data = {
+				label: app.app_title,
+				logo_url: app.app_logo_url,
+				// A route into the desk for an app whose own UI isn't the desk, declared as
+				// `desk_route` on its `add_to_apps_screen` hook. Empty for a desk-native app,
+				// which renders no subtitle.
+				desk_route: app.desk_route,
+			};
+			this.add_icon($grid, icon_data, app.route);
+		});
+	}
+	add_icon($grid, icon_data, route) {
+		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
+		// The tile is a <div> so the "Open in Desk" subtitle can be its own link; the logo and
+		// the title are the two anchors that lead to the app itself.
+		const $app_links = $icon.find(".icon-link, .icon-title");
+		if (route.startsWith("http")) {
+			$app_links.attr("target", "_blank");
+		}
+		$app_links.attr("href", route);
+		$grid.append($icon);
+	}
+	setup() {
+		$(document).trigger("desktop_screen", { desktop: this });
+		this.setup_avatar();
+		this.setup_notifications();
+>>>>>>> 21264d4 (fix: open a desk app from its dock's first entry)
 		this.setup_cloud_settings();
 	}
 
