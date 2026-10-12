@@ -29,13 +29,13 @@
   "apply_document_permissions",
   "section_break_5",
   "allow_multiple",
-  "allow_edit",
   "allow_delete",
-  "column_break_responses",
-  "allow_comments",
-  "show_attachments",
   "allow_print",
   "print_format",
+  "column_break_responses",
+  "allow_edit",
+  "allow_comments",
+  "show_attachments",
   "section_break_3",
   "show_list",
   "list_title",
@@ -120,6 +120,7 @@
   {
    "default": "0",
    "depends_on": "eval:!doc.anonymous",
+   "description": "Shows respondent permissions and list settings.",
    "fieldname": "login_required",
    "fieldtype": "Check",
    "label": "Login required"
@@ -338,7 +339,6 @@
    "label": "List Settings"
   },
   {
-   "description": "Choose what the page shows around the form.",
    "fieldname": "section_break_4",
    "fieldtype": "Section Break",
    "label": "Page Display"
@@ -358,7 +358,7 @@
   },
   {
    "collapsible": 1,
-   "description": "How this form appears in search results and link previews.",
+   "description": "Control how this form looks in search results and shared links.",
    "fieldname": "meta_section",
    "fieldtype": "Section Break",
    "label": "Meta"
@@ -380,7 +380,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Shown when the link is shared.",
    "fieldname": "meta_image",
    "fieldtype": "Attach Image",
    "label": "Meta image"
@@ -456,7 +455,7 @@
   },
   {
    "default": "0",
-   "description": "If enabled, the web form can only be used with a <i>Key</i> from a corresponding <b>Web Form Request</b>.",
+   "description": "If enabled, the web form can only be used with a Key from a corresponding <b>Web Form Request</b>.",
    "fieldname": "key_required",
    "fieldtype": "Check",
    "label": "Key required"
@@ -484,7 +483,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-10-08 19:10:00.000000",
+ "modified": "2026-10-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
