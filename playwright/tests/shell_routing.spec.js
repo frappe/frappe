@@ -269,6 +269,31 @@ test.describe("Desk URL shell segment", () => {
 		expect(await shell_from_url("Not A Real Shell")).toBe(null);
 	});
 
+	test("takes a shell the user cannot see off the URL, and writes in one they can", async ({
+		page,
+		desk,
+	}) => {
+		await open_desk(page, desk);
+		// A module this user has no shell for, read off the site rather than named.
+		const unseen = await page.evaluate(() => {
+			const router = frappe.router;
+			return Object.keys(frappe.boot.module_app)
+				.map((module) => router.shell_slug(module.replace(/_/g, " ")))
+				.find(
+					(slug) =>
+						!router.shell_routes[slug] &&
+						slug !== "private" &&
+						!router.segment_kind(slug)
+				);
+		});
+		if (!unseen) return;
+
+		await page.goto(`/desk/${unseen}/todo`);
+		await on_route(page, ["List", "ToDo", "List"]);
+		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
+		await expect_shell(page, "Build");
+	});
+
 	test("shows the shell the URL names", async ({ page }) => {
 		await page.goto("/desk/build/todo");
 		await expect_shell(page, "Build");
