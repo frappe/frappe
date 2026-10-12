@@ -24,7 +24,7 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 			print_view.frm = frappe.route_options.frm.doctype
 				? frappe.route_options.frm
 				: frappe.route_options.frm.frm;
-			frappe.route_options.frm = null;
+			delete frappe.route_options.frm;
 			let meta = print_view.frm.meta;
 			print_view.show(print_view.frm);
 		}
@@ -115,7 +115,7 @@ frappe.ui.form.PrintView = class {
 				return {
 					filters: {
 						doc_type: this.frm.doctype,
-						print_format_for: "DocType",
+						print_format_for: ["in", ["DocType", ""]],
 					},
 				};
 			},
@@ -123,7 +123,7 @@ frappe.ui.form.PrintView = class {
 		});
 		this.print_format_selector = this.print_format_field.$input;
 
-		this.language_selector = this.add_sidebar_item({
+		this.language_field = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "language",
 			label: __("Language"),
@@ -132,7 +132,8 @@ frappe.ui.form.PrintView = class {
 				this.set_user_lang();
 				this.preview();
 			},
-		}).$input;
+		});
+		this.language_selector = this.language_field.$input;
 
 		let description = "";
 		if (!cint(this.print_settings.repeat_header_footer)) {
@@ -224,7 +225,13 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_breadcrumbs() {
-		frappe.breadcrumbs.add(this.frm.meta.module, this.frm.doctype);
+		const items = frappe.ui.form.get_breadcrumbs(this.frm);
+		// the form is one page back from here, so the document stays a way to reach it
+		items[items.length - 1].href = `/desk/${frappe.router.slug(
+			this.frm.doctype
+		)}/${encodeURIComponent(this.frm.docname)}`;
+		items.push({ label: __("Print") });
+		this.page.set_breadcrumbs(items);
 	}
 
 	setup_additional_settings() {
@@ -354,6 +361,8 @@ frappe.ui.form.PrintView = class {
 				}
 				if (letter_head) {
 					this.letterhead_selector.val(letter_head);
+				} else if (letter_head === "") {
+					this.letterhead_selector.val("");
 				} else {
 					return this.set_default_letterhead();
 				}
@@ -444,14 +453,17 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_user_lang() {
-		this.lang_code = this.language_selector.val();
+		this.lang_code = this.language_field
+			? this.language_field.get_value()
+			: this.language_selector.val();
 	}
 
 	set_default_print_language() {
 		let print_format = this.get_print_format();
 		this.lang_code =
 			this.frm.doc.language || print_format.default_print_language || frappe.boot.lang;
-		this.language_selector.val(this.lang_code);
+		if (this.language_field) this.language_field.set_input(this.lang_code);
+		else this.language_selector.val(this.lang_code);
 	}
 
 	toggle_raw_printing() {
@@ -506,6 +518,9 @@ frappe.ui.form.PrintView = class {
 			name: this.frm.doc.name,
 			print_format: this.selected_format(),
 		});
+		if (this.lang_code) {
+			params.append("_lang", this.lang_code);
+		}
 		let letterhead = this.get_letterhead();
 		if (letterhead) {
 			params.append("letterhead", letterhead);
@@ -529,8 +544,8 @@ frappe.ui.form.PrintView = class {
 			.attr("dir", frappe.utils.is_rtl(this.lang_code) ? "rtl" : "ltr");
 		this.$print_format_body.find("html").attr("lang", this.lang_code);
 		this.$print_format_body.find("head").html(
-			`<style type="text/css">${out.style}</style>
-			<link href="${base_url}${print_css}" rel="stylesheet">`
+			`<link href="${base_url}${print_css}" rel="stylesheet">
+			<style type="text/css">${out.style}</style>`
 		);
 
 		this.$print_format_body
@@ -717,24 +732,6 @@ frappe.ui.form.PrintView = class {
 			},
 		});
 	}
-	async is_wkhtmltopdf_valid() {
-		const is_valid = await frappe.xcall("frappe.utils.pdf.is_wkhtmltopdf_valid");
-		// function returns true or false
-		if (is_valid) return;
-		frappe.msgprint({
-			title: __("Invalid wkhtmltopdf version"),
-			message:
-				__("PDF generation may not work as expected.") +
-				"<hr/>" +
-				__("Please contact your system manager to install correct version.") +
-				"<br/>" +
-				__("Correct version :") +
-				" <b><a href ='https://wkhtmltopdf.org/downloads.html'>" +
-				__("wkhtmltopdf 0.12.x (with patched qt).") +
-				"</a></b>",
-			indicator: "red",
-		});
-	}
 	render_pdf() {
 		let print_format = this.get_print_format();
 		if (this.renders_via_generator(print_format)) {
@@ -749,6 +746,9 @@ frappe.ui.form.PrintView = class {
 			if (this.additional_settings && Object.keys(this.additional_settings).length) {
 				params.append("settings", JSON.stringify(this.additional_settings));
 			}
+			if (this.lang_code) {
+				params.append("_lang", this.lang_code);
+			}
 			let w = window.open(
 				`/api/method/frappe.utils.print_format_generator.download_pdf?${params}`
 			);
@@ -757,10 +757,6 @@ frappe.ui.form.PrintView = class {
 				return;
 			}
 		} else {
-			let pdf_generator = this.get_pdf_generator(print_format?.pdf_generator);
-			if (pdf_generator === "wkhtmltopdf") {
-				this.is_wkhtmltopdf_valid();
-			}
 			this.render_page(
 				"/api/method/frappe.utils.print_format.download_pdf?",
 				false,
@@ -768,14 +764,7 @@ frappe.ui.form.PrintView = class {
 			);
 		}
 	}
-	get_pdf_generator(pdf_generator) {
-		if (!pdf_generator) {
-			pdf_generator = this.print_settings.pdf_generator || "wkhtmltopdf";
-		}
-		return pdf_generator;
-	}
 	render_page(method, printit = false, pdf_generator) {
-		pdf_generator = this.get_pdf_generator(pdf_generator);
 		let w = window.open(
 			frappe.urllib.get_full_url(
 				method +
@@ -794,7 +783,7 @@ frappe.ui.form.PrintView = class {
 					encodeURIComponent(JSON.stringify(this.additional_settings)) +
 					(this.lang_code ? "&_lang=" + this.lang_code : "") +
 					"&pdf_generator=" +
-					encodeURIComponent(pdf_generator)
+					encodeURIComponent(pdf_generator || "chrome")
 			)
 		);
 		if (!w) {

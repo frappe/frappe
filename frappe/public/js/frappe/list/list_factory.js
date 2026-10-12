@@ -17,6 +17,28 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			view_name = "File";
 		}
 
+		// each board picks its engine; the v2 bundle loads on demand
+		if (view_name === "Kanban") {
+			// may redirect to the last or first board, so route[3] is set before we pick the engine
+			if (frappe.views.KanbanView.load_last_view()) return;
+			frappe.views.get_kanban_engine(route[3]).then((use_v2) => {
+				frappe.provide("frappe.views.list_view." + doctype);
+				const build = (View) => {
+					frappe.views.list_view[me.page_name] = new View({
+						doctype,
+						parent: me.make_page(true, me.page_name, null),
+					});
+					me.set_cur_list();
+				};
+				if (use_v2) {
+					frappe.require("kanban.bundle.js", () => build(frappe.views.KanbanV2View));
+				} else {
+					build(frappe.views.KanbanView);
+				}
+			});
+			return;
+		}
+
 		let view_class = frappe.views[view_name + "View"];
 		if (!view_class) view_class = frappe.views.ListView;
 
@@ -41,8 +63,6 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		if (this.re_route_to_view()) {
 			return false;
 		}
-
-		this.set_module_breadcrumb();
 	}
 
 	on_show() {
@@ -75,20 +95,6 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		}
 	}
 
-	set_module_breadcrumb() {
-		if (frappe.route_history.length > 1) {
-			const prev_route = frappe.route_history[frappe.route_history.length - 2];
-			if (prev_route[0] === "modules") {
-				const doctype = this.route[1],
-					module = prev_route[1];
-				if (frappe.module_links[module] && frappe.module_links[module].includes(doctype)) {
-					// save the last page from the breadcrumb was accessed
-					frappe.breadcrumbs.set_doctype_module(doctype, module);
-				}
-			}
-		}
-	}
-
 	set_cur_list() {
 		cur_list = frappe.views.list_view[this.page_name];
 		if (cur_list && cur_list.doctype !== this.route[1]) {
@@ -96,4 +102,20 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			window.cur_list = null;
 		}
 	}
+};
+
+// board name -> uses Kanban v2. Primed by KanbanView.get_kanbans; the board form clears its entry on save.
+frappe.views._kanban_engine_cache = frappe.views._kanban_engine_cache || {};
+
+// true if the board uses Kanban v2; unknown boards get the classic engine
+frappe.views.get_kanban_engine = function (board) {
+	if (!board) return Promise.resolve(false);
+	if (board in frappe.views._kanban_engine_cache) {
+		return Promise.resolve(frappe.views._kanban_engine_cache[board]);
+	}
+	return frappe.db.get_value("Kanban Board", board, "use_kanban_v2").then((r) => {
+		const use_v2 = !!cint(r && r.message && r.message.use_kanban_v2);
+		frappe.views._kanban_engine_cache[board] = use_v2;
+		return use_v2;
+	});
 };

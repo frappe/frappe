@@ -10,6 +10,7 @@
  "creation": "2013-04-30 12:58:46",
  "doctype": "DocType",
  "document_type": "Other",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/website-settings",
  "engine": "InnoDB",
  "field_order": [
   "home_tab",
@@ -20,6 +21,7 @@
   "misc_section",
   "app_name",
   "disable_signup",
+  "max_signups_per_minute",
   "show_footer_on_login",
   "column_break_9",
   "app_logo",
@@ -37,7 +39,6 @@
   "top_bar",
   "top_bar_items",
   "hide_login",
-  "navbar_search",
   "show_language_picker",
   "navbar_template_section",
   "navbar_template",
@@ -158,12 +159,6 @@
    "fieldname": "top_bar",
    "fieldtype": "Section Break",
    "label": "Navbar"
-  },
-  {
-   "default": "0",
-   "fieldname": "navbar_search",
-   "fieldtype": "Check",
-   "label": "Include Search in Top Bar"
   },
   {
    "fieldname": "top_bar_items",
@@ -478,6 +473,13 @@
    "fieldname": "show_footer_on_login",
    "fieldtype": "Check",
    "label": "Show footer on login"
+  },
+  {
+   "default": "500",
+   "depends_on": "eval: !doc.disable_signup",
+   "fieldname": "max_signups_per_minute",
+   "fieldtype": "Int",
+   "label": "Max signups per minute"
   }
  ],
  "icon": "fa fa-cog",
@@ -485,7 +487,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-01 14:44:11.211127",
+ "modified": "2026-09-24 21:24:48.001117",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

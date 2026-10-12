@@ -3,13 +3,14 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.utils.data import cint
+from frappe.utils.data import cint, cstr
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
 
 class Browser:
 	def __init__(self, generator, print_format, html, options):
+		self.print_format = print_format
 		self.is_print_designer = frappe.get_cached_value("Print Format", print_format, "print_designer")
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 		self.browserID = frappe.utils.random_string(10)
@@ -17,7 +18,7 @@ class Browser:
 		try:
 			# sets soup from html
 			self.set_html(html)
-			# sets wkhtmltopdf options
+			# sets pdf options
 			self.set_options(options)
 			# start cdp connection and create browser context ( kind of like new window / incognito mode)
 			self.open(generator)
@@ -33,6 +34,7 @@ class Browser:
 			self.try_async_header_footer_pdf()
 			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
+			self.fit_body_to_page()
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
 			self.update_header_footer_page()
 
@@ -107,14 +109,33 @@ class Browser:
 
 		page = Page(self.session, self.browser_context_id, page_type)
 		page.is_print_designer = self.is_print_designer
+		page.block_external_requests = bool(self.options.get("block-external-requests"))
 
 		return page
 
 	def setup_body_page(self):
+		from frappe.utils.pdf import toggle_visible_pdf
+
+		toggle_visible_pdf(self.soup)
 		self.body_page = self.new_page("body")
+		if self.options.get("block-external-requests"):
+			self.body_page.send("Emulation.setScriptExecutionDisabled", {"value": True})
 		self.body_page.set_tab_url(get_host_url())
 		self.body_page.wait_for_navigate()
 		self.body_page.set_content(str(self.soup))
+
+	def fit_body_to_page(self):
+		if not self.options.get("shrink-to-fit"):
+			return
+		options = self.body_page.options
+		printable = 96 * (
+			options["paperWidth"] - options.get("marginLeft", 0) - options.get("marginRight", 0)
+		)
+		self.body_page.set_device_metrics(width=int(printable), height=1000)
+		result = self.body_page.evaluate("document.documentElement.scrollWidth")
+		content_width = (result or {}).get("result", {}).get("value") or 0
+		if content_width > printable:
+			options["scale"] = max(0.1, printable / content_width)
 
 	def close_page(self, type):
 		page = getattr(self, f"{type}_page")
@@ -142,6 +163,12 @@ class Browser:
 		# code is structured like this to improve performance by running commands in chrome as soon as possible.
 		soup = self.soup
 		options = self.options
+		if options.get("block-external-requests"):
+			for script in soup.find_all("script"):
+				script.decompose()
+			for tag in soup.find_all(True):
+				for attr in [attr for attr in tag.attrs if attr.lower().startswith("on")]:
+					del tag[attr]
 		# open header and footer pages
 		self._open_header_footer_pages()
 
@@ -174,7 +201,10 @@ class Browser:
 			self.header_height = self.header_page.get_element_height()
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
-		else:
+			if not self.header_height:
+				self.header_page.close()
+				self.header_page = None
+		if not self.header_page:
 			# Fallback only when the caller did not explicitly pass margin-top.
 			# If margin-top is already set (e.g. from PrintFormatGenerator), keep it.
 			if "margin-top" not in options:
@@ -185,7 +215,10 @@ class Browser:
 			self.footer_height = self.footer_page.get_element_height()
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
-		else:
+			if not self.footer_height:
+				self.footer_page.close()
+				self.footer_page = None
+		if not self.footer_page:
 			# Fallback only when the caller did not explicitly pass margin-bottom.
 			if "margin-bottom" not in options:
 				options["margin-bottom"] = "15mm"
@@ -219,7 +252,7 @@ class Browser:
 		from frappe.utils.pdf import get_print_format_styles
 
 		soup: BeautifulSoup = self.soup
-		options = {}
+		options = self._get_print_format_page_margins()
 		print_format_css = get_print_format_styles(soup)
 		attrs = (
 			"margin-top",
@@ -235,6 +268,17 @@ class Browser:
 		options |= {style.name: style.value for style in print_format_css if style.name in attrs}
 		self.options.update(options)
 
+	def _get_print_format_page_margins(self):
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+		from frappe.www.printview import get_page_rule_margins
+
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
+			return {}
+		print_format = frappe.get_cached_doc("Print Format", self.print_format)
+		if not print_format.css or uses_beta_renderer(print_format):
+			return {}
+		return get_page_rule_margins(print_format.css)
+
 	def _set_default_page_size(self):
 		options = self.options
 		pdf_page_size = (
@@ -242,12 +286,17 @@ class Browser:
 		)
 
 		if pdf_page_size == "Custom":
-			options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
-				"Print Settings", "pdf_page_height"
-			)
-			options["page-width"] = options.get("page-width") or frappe.db.get_single_value(
-				"Print Settings", "pdf_page_width"
-			)
+			options["page-size"] = pdf_page_size
+			# Print Settings stores these in mm; downstream expects px like the
+			# named-size branch in prepare_options_for_pdf.
+			for dimension, fieldname in (
+				("page-height", "pdf_page_height"),
+				("page-width", "pdf_page_width"),
+			):
+				if not options.get(dimension):
+					value = frappe.db.get_single_value("Print Settings", fieldname)
+					if value:
+						options[dimension] = convert_uom(value, "mm", "px", only_number=True)
 		else:
 			options["page-size"] = pdf_page_size
 
@@ -265,7 +314,6 @@ class Browser:
 			"marginBottom": 0,
 			"marginLeft": 0,
 			"marginRight": 0,
-			"landscape": options.get("orientation", "Portrait") == "Landscape",
 			"preferCSSPageSize": False,
 			"pageRanges": options.get("page-ranges", ""),
 			# Experimental
@@ -284,7 +332,7 @@ class Browser:
 		if not options.get("page-height") or not options.get("page-width"):
 			if not (page_size := self.options.get("page-size")):
 				raise frappe.ValidationError("Page size is required")
-			if page_size == "CUSTOM":
+			if page_size == "Custom":
 				raise frappe.ValidationError("Custom page size requires page-height and page-width")
 			size = PageSize.get(page_size)
 			if not size:
@@ -298,6 +346,12 @@ class Browser:
 
 		if isinstance(options["page-width"], str):
 			options["page-width"] = self._get_converted_num(options["page-width"])
+
+		if (
+			cstr(options.get("orientation")).lower() == "landscape"
+			and options["page-width"] < options["page-height"]
+		):
+			options["page-width"], options["page-height"] = options["page-height"], options["page-width"]
 
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
 
@@ -333,7 +387,14 @@ class Browser:
 
 		if self.header_page:
 			header_with_top_margin = self.header_height + (0 if header_owns_top_margin else margin_top)
-			header_spacing = options.get("header-spacing", 0)
+			# comes from print CSS as a string; unitless values are mm (wkhtmltopdf's
+			# --header-spacing unit) and must land in px like everything else here
+			header_spacing = options.get("header-spacing") or 0
+			if header_spacing:
+				parsed = parse_float_and_unit(header_spacing, default_unit="mm")
+				header_spacing = (
+					convert_uom(parsed["value"], parsed["unit"], "px", only_number=True) if parsed else 0
+				)
 			header_with_spacing_top_margin = header_with_top_margin + header_spacing
 			self.header_page.options["paperHeight"] = (
 				convert_uom(header_with_spacing_top_margin, "px", "in", only_number=True)
@@ -370,6 +431,13 @@ class Browser:
 		body_height = options.get("page-height") - (
 			header_with_spacing_top_margin + footer_with_bottom_margin
 		)
+
+		if body_height <= 0:
+			frappe.throw(
+				frappe._(
+					"Header, footer and margins leave no room for content on a {0}px tall page. Reduce their height or use a larger page size."
+				).format(options.get("page-height"))
+			)
 
 		"""
 		matching scale for some old formats is 1.46 #backwards-compatibility ( scale 1 is better in my opinion)
@@ -510,6 +578,11 @@ class PageSize:
 		"Letter": (216, 279),
 		"Tabloid": (279, 432),
 		"Ledger": (432, 279),
+		"C5E": (163, 229),
+		"Comm10E": (105, 241),
+		"DLE": (110, 220),
+		"Executive": (191, 254),
+		"Folio": (210, 330),
 		"ANSI C": (432, 559),
 		"ANSI A (letter)": (216, 279),
 		"ANSI B (ledger & tabloid)": (279, 432),

@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2019-06-14 00:08:37.255003",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/google_settings",
  "engine": "InnoDB",
  "field_order": [
   "enable",

@@ -4,16 +4,6 @@ frappe.ui.form.on("User", {
 			return {
 				filters: {
 					for_user: ["in", ["", frappe.session.user]],
-					title: ["!=", "Welcome Workspace"],
-				},
-			};
-		});
-
-		frm.set_query("workspace", "workspaces", () => {
-			return {
-				filters: {
-					public: 1,
-					title: ["!=", "Welcome Workspace"],
 				},
 			};
 		});
@@ -96,7 +86,7 @@ frappe.ui.form.on("User", {
 					frm.doc.role_profiles && frm.doc.role_profiles.length ? 1 : 0
 				);
 
-				if (frm.doc.user_type == "System User") {
+				if (frm.doc.user_type == "System User" && frm.doc.__onload?.all_modules) {
 					var module_area = $("<div>").appendTo(frm.fields_dict.modules_html.wrapper);
 					frm.module_editor = new frappe.ModuleEditor(
 						frm,
@@ -111,6 +101,11 @@ frappe.ui.form.on("User", {
 	},
 	refresh: function (frm) {
 		let doc = frm.doc;
+
+		frappe.scroll_to_user_roles_field = function () {
+			frappe.hide_msgprint(true);
+			frm.scroll_to_field("roles_html");
+		};
 
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];

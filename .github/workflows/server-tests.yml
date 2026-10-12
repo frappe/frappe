@@ -18,13 +18,23 @@ permissions:
 jobs:
   checkrun:
     name: Plan Tests
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') || contains(github.event.pull_request.labels.*.name, 'Run Server Tests') }}
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.check-build.outputs.build }}
       run_postgres: ${{ steps.check-build.outputs.run_postgres }}
+      tests: ${{ steps.check-build.outputs.tests }}
     steps:
       - name: Clone
         uses: actions/checkout@v7
+      - name: Restore test impact map
+        uses: actions/cache/restore@v6
+        with:
+          path: impact-map.json
+          # Scoped by branch: PRs can also restore caches from the default branch, and a
+          # develop map would silently mis-select tests for a hotfix branch.
+          key: impact-map-${{ github.base_ref || github.ref_name }}-${{ github.sha }}
+          restore-keys: impact-map-${{ github.base_ref || github.ref_name }}-
       - name: Check if unit tests should be run
         id: check-build
         run: |
@@ -100,12 +110,22 @@ jobs:
           BUILD_NUMBER: ${{ matrix.index }}
           TOTAL_BUILDS: 2
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
+          IMPACT_MAP_OUTFILE: ${{ github.event_name == 'schedule' && format('impact-map-{0}-{1}.json', matrix.db, matrix.index) || '' }}
+          # The impact map is built on mariadb only, so postgres always runs the full suite.
+          SELECTED_TESTS: ${{ matrix.db == 'mariadb' && needs.checkrun.outputs.tests || '' }}
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}
           path: ./sites/*coverage*.xml
+
+      - name: Upload test impact map
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: impact-map-${{ matrix.db }}-${{ matrix.index }}
+          path: ./sites/impact-map-*.json
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -243,6 +263,17 @@ jobs:
           fail_ci_if_error: true
           verbose: true
           flags: server
+
+      - name: Merge test impact maps
+        if: ${{ github.event_name == 'schedule' }}
+        run: python .github/helper/impact_map.py merge impact-map.json impact-map-*/impact-map-*.json
+
+      - name: Publish test impact map
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/cache/save@v6
+        with:
+          path: impact-map.json
+          key: impact-map-${{ github.ref_name }}-${{ github.sha }}
 
   # TIP: Require this single check in branch protection, e.g. Server / Success
   success:

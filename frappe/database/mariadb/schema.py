@@ -104,6 +104,8 @@ class MariaDBTable(DBTable):
 				col not in meta_columns
 				and col not in frappe.db.DEFAULT_COLUMNS
 				and col not in frappe.db.OPTIONAL_COLUMNS
+				# docfields never get generated columns, so the controller owns these
+				and not self.current_columns[col].is_generated
 			):
 				has_unique = frappe.db.get_column_index(self.table_name, col, unique=True)
 
@@ -142,6 +144,9 @@ class MariaDBTable(DBTable):
 			if index_constraint_changed and not col.set_index:
 				if index_record := frappe.db.get_column_index(self.table_name, col.fieldname, unique=False):
 					drop_index_query.append(f"DROP INDEX `{index_record.Key_name}`")
+
+		# drop each index only once
+		drop_index_query = list(dict.fromkeys(drop_index_query))
 
 		for col in self.change_nullability:
 			if col.not_nullable:

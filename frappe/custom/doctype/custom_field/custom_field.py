@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
+from frappe.database import savepoint
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
@@ -91,6 +92,7 @@ class CustomField(Document):
 		hide_days: DF.Check
 		hide_seconds: DF.Check
 		ignore_user_permissions: DF.Check
+		ignore_versioning: DF.Check
 		ignore_xss_filter: DF.Check
 		in_global_search: DF.Check
 		in_list_view: DF.Check
@@ -201,7 +203,9 @@ class CustomField(Document):
 			and not CustomizeForm.allow_fieldtype_change(old_fieldtype, self.fieldtype)
 		):
 			frappe.throw(
-				_("Fieldtype cannot be changed from {0} to {1}").format(old_fieldtype, self.fieldtype)
+				_("Fieldtype of {0} in {1} cannot be changed from {2} to {3}").format(
+					frappe.bold(self.fieldname), self.dt, old_fieldtype, self.fieldtype
+				)
 			)
 
 		if not self.fieldname:
@@ -260,9 +264,7 @@ class CustomField(Document):
 
 		if self.fieldname == self.insert_after:
 			frappe.throw(
-				_("Insert After cannot be set as {0}").format(
-					_(meta.get_label(self.insert_after), context=self.dt)
-				)
+				_("Insert After cannot be set as {0}").format(meta.get_translated_label(self.insert_after))
 			)
 
 	def get_permission_log_options(self, event=None):
@@ -363,14 +365,11 @@ def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True
 				for df in fields:
 					field = existing_custom_fields.get((doctype, df["fieldname"]))
 					if not field:
-						try:
+						with savepoint(catch=frappe.exceptions.DuplicateEntryError):
 							df = df.copy()
 							df["owner"] = "Administrator"
 							custom_field = create_custom_field(doctype, df, ignore_validate=ignore_validate)
 							process_field_update(custom_field)
-
-						except frappe.exceptions.DuplicateEntryError:
-							pass
 
 					elif update:
 						custom_field = frappe.get_doc({"doctype": "Custom Field", **field})

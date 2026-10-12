@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2016-05-25 09:43:44.767581",
@@ -16,11 +17,13 @@
    "label": "Description"
   }
  ],
+ "icon": "tag",
  "links": [],
  "modified": "2024-03-23 16:03:39.682626",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -47,6 +50,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []

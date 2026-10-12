@@ -1,15 +1,10 @@
 <template>
 	<div class="pfb-insp-body">
-		<!-- Zone label — footer only (matches original design; header has no zone label) -->
-		<div v-if="zone === 'footer'" class="pfb-lh-zone-label">
-			<span v-html="frappe.utils.icon('panel-bottom', 'xs')"></span>
-			{{ __("Letter Head Footer") }}
-		</div>
-
 		<!-- Based on toggle + letter head actions -->
 		<div class="pfb-insp-section">
 			<div class="pfb-insp-section-body" style="padding-top: 10px">
 				<SegmentedRow
+					v-if="letterhead"
 					:label="__('Based on')"
 					:model-value="zone_source"
 					:options="[
@@ -18,98 +13,69 @@
 					]"
 					@update:model-value="set_source"
 				/>
-				<!-- Letter head selection buttons — always visible for header zone -->
-				<template v-if="zone === 'header'">
-					<div v-if="letterhead" class="pfb-lh-actions" style="margin-top: 4px">
-						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
-							{{ __("Change Letter Head") }}
-						</button>
-					</div>
-					<div v-else class="pfb-lh-actions" style="margin-top: 4px">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("No letter head selected.") }}
-						</p>
-						<button class="es-button" data-size="xs" @click="lh_create_letterhead">
-							{{ __("Create Letter Head") }}
-						</button>
-						<button class="es-button" data-size="xs" @click="lh_change_letterhead">
-							{{ __("Select Letter Head") }}
-						</button>
-					</div>
-				</template>
+				<div v-if="letterhead" class="pfb-insp-hint text-muted">
+					{{
+						__(
+							"Letter head changes are saved right away and apply to every print format that uses it."
+						)
+					}}
+				</div>
 			</div>
 		</div>
 
 		<!-- HTML section -->
-		<InspectorSection v-if="zone_source === 'HTML'" :label="__('HTML')">
-			<template v-if="letterhead">
-				<div
-					class="pfb-html-preview"
-					v-if="letterhead[html_content_field]"
-					v-html="letterhead[html_content_field]"
-				></div>
-				<div v-else class="pfb-insp-hint text-muted">
-					{{ __("No HTML content yet.") }}
-				</div>
-				<button class="es-button" data-size="xs" @click="edit_html">
-					<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
-					{{ __("Edit HTML") }}
-				</button>
-			</template>
-			<template v-else>
-				<p class="pfb-insp-hint text-muted">
-					{{ __("No letter head selected.") }}
-				</p>
-			</template>
+		<InspectorSection v-if="letterhead && zone_source === 'HTML'" :label="__('HTML')">
+			<div
+				class="pfb-html-preview"
+				v-if="letterhead[html_content_field]"
+				v-html="letterhead[html_content_field]"
+			></div>
+			<div v-else class="pfb-insp-hint text-muted">
+				{{ __("No HTML content yet.") }}
+			</div>
+			<button class="es-button" data-size="xs" @click="edit_html">
+				<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
+				{{ __("Edit HTML") }}
+			</button>
 		</InspectorSection>
 
 		<!-- Image section -->
-		<InspectorSection v-if="zone_source === 'Image'" :label="__('Image')">
-			<template v-if="letterhead">
-				<!-- Alignment -->
-				<SegmentedRow
-					:label="__('Align')"
-					:model-value="zone_align"
-					:options="
-						['Left', 'Center', 'Right'].map((d) => ({
-							value: d,
-							label: __(d),
-						}))
-					"
-					@update:model-value="set_align"
-				/>
-				<!-- Size slider -->
-				<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="20"
-						:max="zone_size_max"
-						:value="zone_size"
-						@input="(e) => set_size(e.target.value)"
-					/>
-				</div>
-				<!-- Image source -->
-				<ImageUploadControl
-					:model-value="letterhead[image_field] || ''"
-					@update:model-value="set_image"
-				/>
-			</template>
-			<template v-else>
-				<p class="pfb-insp-hint text-muted">
-					{{ __("No letter head selected.") }}
-				</p>
-			</template>
+		<InspectorSection v-if="letterhead && zone_source === 'Image'" :label="__('Image')">
+			<!-- Alignment -->
+			<SegmentedRow
+				:label="__('Align')"
+				:model-value="zone_align"
+				:options="
+					['Left', 'Center', 'Right'].map((d) => ({
+						value: d,
+						label: __(d),
+					}))
+				"
+				@update:model-value="set_align"
+			/>
+			<SliderRow
+				v-if="letterhead[image_field]"
+				:label="__('Size')"
+				:max="zone_size_max"
+				:model-value="zone_size"
+				@update:model-value="set_size"
+			/>
+			<!-- Image source -->
+			<ImageUploadControl
+				:model-value="letterhead[image_field] || ''"
+				@update:model-value="set_image"
+			/>
 		</InspectorSection>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from "vue";
-import { useStore } from "../../stores";
-import { get_image_dimensions, render_jinja_html } from "../../utils";
+import { computed, inject, onMounted, ref, watch } from "vue";
+import { get_image_dimensions } from "../../utils";
+import { zone_fields } from "../letterhead/zone_fields";
+import { open_html_editor } from "../../composables/useHtmlEditorDialog";
 import SegmentedRow from "./SegmentedRow.vue";
+import SliderRow from "./SliderRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
 
@@ -118,20 +84,27 @@ const props = defineProps({
 });
 
 const store = inject("$store");
-const { letterhead } = useStore();
+const { letterhead } = store;
 
-const source_field = computed(() => (props.zone === "header" ? "source" : "footer_source"));
-const align_field = computed(() => (props.zone === "header" ? "align" : "footer_align"));
-const image_field = computed(() => (props.zone === "header" ? "image" : "footer_image"));
-const html_content_field = computed(() => (props.zone === "header" ? "content" : "footer"));
-const width_field = computed(() =>
-	props.zone === "header" ? "image_width" : "footer_image_width"
-);
-const height_field = computed(() =>
-	props.zone === "header" ? "image_height" : "footer_image_height"
-);
+const F = computed(() => zone_fields(props.zone));
+const source_field = computed(() => F.value.source);
+const align_field = computed(() => F.value.align);
+const image_field = computed(() => F.value.image);
+const html_content_field = computed(() => F.value.content);
+const width_field = computed(() => F.value.width);
+const height_field = computed(() => F.value.height);
 
-const zone_source = computed(() => letterhead.value?.[source_field.value] || "Image");
+const picked_source = ref(null);
+watch(letterhead, () => (picked_source.value = null));
+
+const zone_source = computed(() => {
+	const lh = letterhead.value;
+	if (!lh) return "Image";
+	if (picked_source.value) return picked_source.value;
+	if (lh[source_field.value] === "HTML") return "HTML";
+	if (!lh[image_field.value] && lh[html_content_field.value]) return "HTML";
+	return "Image";
+});
 const zone_align = computed(() => letterhead.value?.[align_field.value] ?? "Left");
 
 const aspect_ratio = ref(null);
@@ -140,10 +113,13 @@ const range_field = ref(null);
 onMounted(() => {
 	const img = letterhead.value?.[image_field.value];
 	if (img) {
-		get_image_dimensions(img).then(({ width, height }) => {
-			aspect_ratio.value = width / height;
-			range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
-		});
+		get_image_dimensions(img)
+			.then(({ width, height }) => {
+				aspect_ratio.value = width / height;
+				range_field.value =
+					aspect_ratio.value > 1 ? width_field.value : height_field.value;
+			})
+			.catch(() => {});
 	} else {
 		range_field.value = width_field.value;
 	}
@@ -161,6 +137,7 @@ const zone_size_max = computed(() => {
 
 function set_source(val) {
 	if (!letterhead.value) return;
+	picked_source.value = val;
 	letterhead.value[source_field.value] = val;
 	letterhead.value._dirty = true;
 }
@@ -183,133 +160,50 @@ function set_size(val) {
 	letterhead.value._dirty = true;
 }
 
+function is_generated_image_markup(content, image) {
+	const body = new DOMParser().parseFromString(content, "text/html").body;
+	const wrapper = body.children.length === 1 ? body.firstElementChild : null;
+	const img = wrapper?.children.length === 1 ? wrapper.firstElementChild : null;
+	return img?.tagName === "IMG" && img.getAttribute("src") === image && !body.textContent.trim();
+}
+
 function set_image(url) {
 	if (!letterhead.value) return;
 	if (!url) {
+		const old_image = letterhead.value[image_field.value];
+		const content = letterhead.value[html_content_field.value] || "";
 		letterhead.value[image_field.value] = "";
+		if (old_image && is_generated_image_markup(content, old_image)) {
+			letterhead.value[html_content_field.value] = "";
+		}
 		letterhead.value._dirty = true;
 		return;
 	}
-	get_image_dimensions(url).then(({ width, height }) => {
-		aspect_ratio.value = width / height;
-		range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
-		let new_width = width > 200 ? 200 : width;
-		let new_height = new_width / aspect_ratio.value;
-		if (new_height > 80) {
-			new_height = 80;
-			new_width = aspect_ratio.value * new_height;
-		}
-		letterhead.value[image_field.value] = url;
-		letterhead.value[width_field.value] = new_width;
-		letterhead.value[height_field.value] = new_height;
-		if (props.zone === "footer") {
-			letterhead.value[source_field.value] = "Image";
-		}
-		letterhead.value._dirty = true;
-	});
-}
-
-function open_html_split_dialog({ title, initial_html, on_save, doctype, docname }) {
-	let d = new frappe.ui.Dialog({
-		title,
-		size: "extra-large",
-		fields: [
-			{
-				fieldname: "split_layout",
-				fieldtype: "HTML",
-				options: `<style>
-					.pfb-lh-split{display:flex;height:480px;gap:0;overflow:hidden;margin:-15px}
-					.pfb-lh-split-pane{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
-					.pfb-lh-split-divider{width:1px;background:var(--border-color);flex-shrink:0}
-					.pfb-lh-split-label{font-size:11px;font-weight:700;color:var(--text-muted);padding:10px 12px 8px;border-bottom:1px solid var(--border-color);flex-shrink:0}
-					.pfb-lh-split-ctrl{flex:1;overflow:hidden}
-					.pfb-lh-split-ctrl .pfb-html-ctrl-host{height:100%}
-					.pfb-lh-preview-iframe{flex:1;width:100%;border:none;background:#fff}
-				</style>
-				<div class="pfb-lh-split">
-					<div class="pfb-lh-split-pane">
-						<div class="pfb-lh-split-label">${__("HTML")}</div>
-						<div class="pfb-lh-split-ctrl"><div class="pfb-html-ctrl-host"></div></div>
-					</div>
-					<div class="pfb-lh-split-divider"></div>
-					<div class="pfb-lh-split-pane">
-						<div class="pfb-lh-split-label">${__("Preview")}</div>
-						<iframe class="pfb-html-preview-content pfb-lh-preview-iframe" frameborder="0"></iframe>
-					</div>
-				</div>`,
-			},
-		],
-		primary_action_label: __("Save"),
-		primary_action: () => {
-			const val = d._html_ctrl?.get_value?.() ?? "";
-			on_save(frappe.dom.remove_script_and_style(val));
-			d.hide();
-		},
-	});
-	d.show();
-
-	const PREVIEW_CSS = `
-		* { box-sizing: border-box; }
-		body { margin: 0; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: #333; line-height: 1.5; }
-		img { max-width: 100%; height: auto; display: block; }
-		table { border-collapse: collapse; width: 100%; }
-		td, th { vertical-align: top; }
-	`;
-
-	function write_to_iframe(iframe, html) {
-		const doc = iframe.contentDocument || iframe.contentWindow?.document;
-		if (!doc) return;
-		doc.open();
-		doc.write(
-			`<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PREVIEW_CSS}</style></head><body>${html}</body></html>`
-		);
-		doc.close();
-	}
-
-	async function update_preview(iframe, html) {
-		if (!iframe) return;
-		write_to_iframe(
-			iframe,
-			(await render_jinja_html(html || "", doctype, docname)) ?? html ?? ""
-		);
-	}
-
-	setTimeout(() => {
-		const host = d.$wrapper.find(".pfb-html-ctrl-host")[0];
-		const preview = d.$wrapper.find(".pfb-html-preview-content")[0];
-		if (!host) return;
-
-		const ctrl = frappe.ui.form.make_control({
-			parent: host,
-			df: {
-				fieldtype: "Code",
-				fieldname: "html_code",
-				options: "HTML",
-				show_label: false,
-			},
-			render_input: true,
-		});
-		ctrl.set_value(initial_html || "");
-		d._html_ctrl = ctrl;
-
-		update_preview(preview, initial_html || "");
-
-		setTimeout(() => {
-			if (ctrl.editor) {
-				ctrl.editor.on(
-					"change",
-					frappe.utils.debounce(() => {
-						update_preview(preview, ctrl.editor.getValue());
-					}, 400)
-				);
-				ctrl.editor.refresh();
+	get_image_dimensions(url)
+		.then(({ width, height }) => {
+			aspect_ratio.value = width / height;
+			range_field.value = aspect_ratio.value > 1 ? width_field.value : height_field.value;
+			let new_width = width > 200 ? 200 : width;
+			let new_height = new_width / aspect_ratio.value;
+			if (new_height > 80) {
+				new_height = 80;
+				new_width = aspect_ratio.value * new_height;
 			}
-		}, 300);
-	}, 200);
+			letterhead.value[image_field.value] = url;
+			letterhead.value[width_field.value] = new_width;
+			letterhead.value[height_field.value] = new_height;
+			if (props.zone === "footer" && zone_source.value === "Image") {
+				letterhead.value[source_field.value] = "Image";
+			}
+			letterhead.value._dirty = true;
+		})
+		.catch(() => {
+			frappe.show_alert({ message: __("Could not load this image"), indicator: "orange" });
+		});
 }
 
 function edit_html() {
-	open_html_split_dialog({
+	open_html_editor({
 		title:
 			props.zone === "header" ? __("Edit Letter Head HTML") : __("Edit Letter Head Footer"),
 		initial_html: letterhead.value?.[html_content_field.value] || "",
@@ -317,65 +211,9 @@ function edit_html() {
 		docname: store.preview_doc_name.value,
 		on_save: (html) => {
 			letterhead.value[html_content_field.value] = html;
+			letterhead.value[source_field.value] = "HTML";
 			letterhead.value._dirty = true;
 		},
 	});
 }
-
-function lh_change_letterhead() {
-	let d = new frappe.ui.Dialog({
-		title: __("Change Letter Head"),
-		fields: [
-			{
-				label: __("Letter Head"),
-				fieldname: "letterhead",
-				fieldtype: "Link",
-				options: "Letter Head",
-			},
-		],
-		primary_action: ({ letterhead: lh }) => {
-			if (lh) store.change_letterhead(lh);
-			d.hide();
-		},
-	});
-	d.show();
-}
-
-function lh_create_letterhead() {
-	let d = new frappe.ui.Dialog({
-		title: __("Create Letter Head"),
-		fields: [{ label: __("Letter Head Name"), fieldname: "name", fieldtype: "Data" }],
-		primary_action: ({ name }) => {
-			return frappe.db
-				.insert({ doctype: "Letter Head", letter_head_name: name, source: "Image" })
-				.then((doc) => {
-					d.hide();
-					store.change_letterhead(doc.name);
-				});
-		},
-	});
-	d.show();
-}
 </script>
-
-<style scoped>
-.pfb-lh-zone-label {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	letter-spacing: 0;
-	color: var(--gray-600);
-	background: var(--gray-50);
-	border-bottom: 1px solid var(--gray-200);
-	padding: 7px 14px;
-	flex-shrink: 0;
-}
-
-.pfb-lh-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-</style>

@@ -17,6 +17,7 @@ from werkzeug.exceptions import NotFound
 
 import frappe
 from frappe import _, is_whitelisted, msgprint
+from frappe.automation_engine.dispatch import run_automations
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.database.utils import commit_after_response
@@ -225,7 +226,7 @@ def get_docs(
 		(df.fieldname, df.options) for df in meta.get_table_fields() if not is_virtual_doctype(df.options)
 	]
 	controller = get_controller(doctype)
-	for_update = for_update and frappe.db.db_type != "sqlite"
+	lock_rows = for_update and frappe.db.db_type != "sqlite"
 
 	iterator = _get_docs_generator(
 		doctype,
@@ -236,6 +237,7 @@ def get_docs(
 		limit_start=limit_start,
 		order_by=order_by,
 		for_update=for_update,
+		lock_rows=lock_rows,
 		distinct=distinct,
 	)
 
@@ -256,6 +258,7 @@ def _get_docs_generator(
 	limit_start,
 	order_by,
 	for_update,
+	lock_rows,
 	distinct,
 ) -> Generator["Document"]:
 	offset = limit_start
@@ -267,7 +270,7 @@ def _get_docs_generator(
 			order_by=order_by,
 			limit=chunk_size,
 			offset=offset,
-			for_update=for_update,
+			for_update=lock_rows,
 			child_tables=child_tables,
 			distinct=distinct,
 		)
@@ -562,7 +565,7 @@ class Document(BaseDocument):
 		return self
 
 	def mask_fields(self):
-		from frappe.model.db_query import mask_field_value
+		from frappe.model.utils.mask import mask_field_value
 
 		mask_fields = frappe.get_meta(self.doctype).get_masked_fields()
 
@@ -745,7 +748,7 @@ class Document(BaseDocument):
 
 		# parent
 		if getattr(self.meta, "issingle", 0):
-			self.update_single(self.get_valid_dict())
+			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
@@ -856,7 +859,7 @@ class Document(BaseDocument):
 
 		# parent
 		if self.meta.issingle:
-			self.update_single(self.get_valid_dict())
+			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_update()
 
@@ -1085,7 +1088,6 @@ class Document(BaseDocument):
 		self._validate_selects()
 		self._validate_non_negative()
 		self._validate_min_max_value()
-		self._validate_length()
 		self._fix_rating_value()
 		self._validate_code_fields()
 		self._sync_autoname_field()
@@ -1093,19 +1095,20 @@ class Document(BaseDocument):
 		self._sanitize_content()
 		self._save_passwords()
 		self.validate_workflow()
+		self._validate_length()
 
 		for d in self.get_all_children():
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
 			d._validate_min_max_value()
-			d._validate_length()
 			d._fix_rating_value()
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
+			d._validate_length()
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
@@ -1187,7 +1190,7 @@ class Document(BaseDocument):
 		"""Validate if the workflow transition is valid"""
 		if frappe.flags.in_install == "frappe":
 			return
-		workflow = self.meta.get_workflow()
+		workflow = self.meta.get_workflow(self)
 		if workflow:
 			validate_workflow(self)
 			if self._action != "save":
@@ -1214,7 +1217,7 @@ class Document(BaseDocument):
 				if fail:
 					frappe.throw(
 						_("Value cannot be changed for {0}").format(
-							frappe.bold(_(self.meta.get_label(field.fieldname), context=self.doctype))
+							frappe.bold(self.meta.get_translated_label(field.fieldname))
 						),
 						exc=frappe.CannotChangeConstantError,
 					)
@@ -1703,6 +1706,7 @@ class Document(BaseDocument):
 		self.run_notifications(method)
 		run_webhooks(self, method)
 		run_server_script_for_doc_event(self, method)
+		run_automations(self, method)
 
 		return out
 
@@ -1821,7 +1825,7 @@ class Document(BaseDocument):
 	@frappe.whitelist()
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
-		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
+		return self._rename(name=name, merge=merge, force=force)
 
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
 		"""Delete document."""
@@ -2127,7 +2131,7 @@ class Document(BaseDocument):
 		val2 = doc.cast(val2, df)
 
 		if not compare(val1, condition, val2):
-			label = _(doc.meta.get_label(fieldname), context=doc.doctype)
+			label = doc.meta.get_translated_label(fieldname)
 			if doc.get("parentfield"):
 				msg = _("Incorrect value in row {0}:").format(doc.idx)
 			else:
@@ -2150,7 +2154,7 @@ class Document(BaseDocument):
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
 		"""Raise exception if Table field is empty."""
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
-			label = _(self.meta.get_label(parentfield), context=self.doctype)
+			label = self.meta.get_translated_label(parentfield)
 			frappe.throw(
 				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
 			)
@@ -2390,8 +2394,8 @@ class Document(BaseDocument):
 			frappe.throw(
 				table_row
 				+ _("{0} must be after {1}").format(
-					frappe.bold(_(self.meta.get_label(to_date_field), context=self.doctype)),
-					frappe.bold(_(self.meta.get_label(from_date_field), context=self.doctype)),
+					frappe.bold(self.meta.get_translated_label(to_date_field)),
+					frappe.bold(self.meta.get_translated_label(from_date_field)),
 				),
 				frappe.exceptions.InvalidDates,
 			)
@@ -2426,7 +2430,9 @@ class Document(BaseDocument):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 
-		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+		tags = DocTags(self.doctype).get_tags(self.name)
+
+		return [tag for tag in tags.split(",") if tag]
 
 	def deferred_insert(self) -> None:
 		"""Push the document to redis temporarily and insert later.

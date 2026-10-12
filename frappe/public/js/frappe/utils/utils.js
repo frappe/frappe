@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import { CHART_PALETTE } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
@@ -1000,7 +1001,7 @@ Object.assign(frappe.utils, {
 		display_text = null,
 		query_params_obj = null
 	) {
-		display_text = display_text || name;
+		display_text = display_text || frappe.utils.escape_html(name);
 		name = encodeURIComponent(name);
 		let route = `/desk/${encodeURIComponent(
 			doctype.toLowerCase().replace(/ /g, "-")
@@ -1171,7 +1172,13 @@ Object.assign(frappe.utils, {
 		}
 	},
 	is_rtl(lang = null) {
-		return ["ar", "he", "fa", "ps"].includes(lang || frappe.boot.lang);
+		// Keep this list in sync with rtl_languages in the Python twin at
+		// frappe/utils/jinja_globals.py:is_rtl.
+		const rtl_languages = ["ar", "fa", "he", "ku", "ps", "ur"];
+		const code = lang || frappe.boot.lang || "";
+
+		if (rtl_languages.includes(code)) return true;
+		return rtl_languages.includes(code.split(/[-_]/)[0]);
 	},
 	bind_actions_with_object($el, object) {
 		// remove previously bound event
@@ -1402,6 +1409,39 @@ Object.assign(frappe.utils, {
 		icon_html.find("svg").css("color", stroke_color);
 		return icon_html.get(0).outerHTML;
 	},
+	// An app's mark and name, as `{ icon, title }`, or null when there is no app.
+	//
+	// An app that declares no logo gets a letter icon from its title, the same one the desktop
+	// apps screen draws for it. Both surfaces that stand in for the app on screen -- the dock's
+	// top slot and a dock-less sidebar's header -- resolve it here, so an app looks the same
+	// whichever of the two is up.
+	app_logo(app) {
+		if (!app) return null;
+		const title = app.app_title || app.app_name;
+		// `app_logo_url` is a list on an app that ships a light and a dark mark; the first is
+		// the one the rest of the desk uses.
+		const logo_url = Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url;
+		const icon = logo_url
+			? `<img src="${frappe.utils.escape_html(logo_url)}" alt="${frappe.utils.escape_html(
+					title
+			  )}" />`
+			: frappe.utils.desktop_icon(title, "gray", "sm");
+		return { icon, title };
+	},
+
+	// The boot entry for a module's own shell, or undefined.
+	//
+	// `frappe.boot.module_sidebars` is keyed by shell: a `Sidebar` document's name, or the module's
+	// name where the base was computed. A sidebar is named after its module unless it was renamed,
+	// so a module is its own key in almost every case, and the renamed ones are found by the
+	// `module` every entry carries. That is one pass over a payload already in memory. There is no
+	// module-to-shell index in the boot, because the naming rule answers this.
+	sidebar_for_module(module) {
+		if (!module) return undefined;
+		const all = frappe.boot.module_sidebars || {};
+		return all[module] || Object.values(all).find((entry) => entry.module === module);
+	},
+
 	// --- Desktop Icon grid -----------------------------------------------------------
 	// Used by the Desktop Icon grid (Desktop Settings -> Desktop Page = Desktop Icons).
 	// They read `frappe.boot.desktop_icons`, which only that mode puts in the boot payload.
@@ -1412,7 +1452,9 @@ Object.assign(frappe.utils, {
 		if (desktop_icon.link_type == "External" && desktop_icon.link) {
 			route = desktop_icon.link;
 		} else {
-			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+			let sidebar = frappe.utils.sidebar_for_module(
+				desktop_icon.module || desktop_icon.label
+			);
 			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
 				let first_link = sidebar.items.find((i) => i.type == "Link");
 				if (first_link) {
@@ -1441,17 +1483,18 @@ Object.assign(frappe.utils, {
 								route = "/desk/private/" + frappe.router.slug(workspaces.title);
 							}
 						}
-
-						if (first_link.route) {
-							route = first_link.route;
-						}
 					} else if (first_link.link_type === "URL") {
 						route = first_link.url;
-					} else if (first_link.link_type == "Page" && first_link.route_options) {
+					} else if (first_link.link_type == "Page") {
 						route = frappe.utils.generate_route({
 							type: first_link.link_type,
 							name: first_link.link_to,
-							route_options: JSON.parse(first_link.route_options),
+							route: first_link.route
+								? `${first_link.link_to}/${first_link.route}`
+								: undefined,
+							route_options: first_link.route_options
+								? JSON.parse(first_link.route_options)
+								: undefined,
 						});
 					} else {
 						route = frappe.utils.generate_route({
@@ -1563,9 +1606,13 @@ Object.assign(frappe.utils, {
 	},
 
 	make_chart(wrapper, custom_options = {}) {
+		// a chart that names no colours of its own gets Espresso's
+		if (!custom_options.colors?.length) {
+			custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
+		}
+
 		let chart_args = {
 			type: "bar",
-			colors: ["light-blue"],
 			axisOptions: {
 				xIsSeries: 1,
 				shortenYAxisNumbers: 1,
@@ -1583,6 +1630,15 @@ Object.assign(frappe.utils, {
 		}
 		frappe.utils.set_space_label_ratio(chart_args);
 		return new frappe.Chart(wrapper, chart_args);
+	},
+
+	// Espresso's chart colours (CHART_PALETTE) as the current theme defines them: frappe-charts
+	// lightens and blends colours from their literal values, which a CSS variable does not give it
+	get_chart_palette() {
+		const style = getComputedStyle(document.documentElement);
+		return CHART_PALETTE.map(
+			(color) => style.getPropertyValue(color.slice(4, -1)).trim() || color
+		);
 	},
 
 	format_chart_axis_number(label, country) {
@@ -1664,7 +1720,9 @@ Object.assign(frappe.utils, {
 				if (item.public) {
 					route = frappe.router.slug(item.name);
 				} else {
-					route = "private/" + frappe.router.slug(item.name);
+					// By title: a private page's name carries its owner's email, and the only
+					// person who can open the page is that owner. See `router.private_workspace`.
+					route = "private/" + frappe.router.slug(item.title || item.name);
 				}
 			}
 		} else {
@@ -1675,7 +1733,13 @@ Object.assign(frappe.utils, {
 			route +=
 				"?" +
 				$.map(item.route_options, function (value, key) {
-					return encodeURIComponent(key) + "=" + encodeURIComponent(value);
+					// An array is a filter: [operator, value]. Left to implicit string coercion it
+					// arrives as "like,%Admin%", one string, and the list view reads it as an
+					// equals against that whole text. JSON is what the decoder already expects:
+					// parse_filters_from_route_options() parses any value that looks like a JSON
+					// array and splits the pair back out.
+					const encoded = Array.isArray(value) ? JSON.stringify(value) : value;
+					return encodeURIComponent(key) + "=" + encodeURIComponent(encoded);
 				}).join("&");
 		}
 
@@ -1696,7 +1760,7 @@ Object.assign(frappe.utils, {
 		 */
 
 		// return empty for null, undefined, or empty string
-		if (!number || isNaN(number)) {
+		if (is_null(number) || isNaN(number)) {
 			return "";
 		}
 
@@ -1921,21 +1985,16 @@ Object.assign(frappe.utils, {
 		if (!doctype || !name) {
 			return;
 		}
-		try {
-			return frappe
-				.xcall("frappe.desk.search.get_link_title", {
-					doctype: doctype,
-					docname: name,
-				})
-				.then((title) => {
-					frappe.utils.add_link_title(doctype, name, title);
-					return title;
-				});
-		} catch (error) {
-			console.log("Error while fetching link title.");
-			console.log(error);
-			return Promise.resolve(name);
-		}
+		return frappe
+			.xcall("frappe.desk.search.get_link_title", {
+				doctype: doctype,
+				docname: name,
+			})
+			.then((title) => {
+				frappe.utils.add_link_title(doctype, name, title);
+				return title;
+			})
+			.catch(() => name);
 	},
 
 	only_allow_num_decimal(input) {

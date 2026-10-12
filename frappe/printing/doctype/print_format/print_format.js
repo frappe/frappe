@@ -12,6 +12,22 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 });
 
 frappe.ui.form.on("Print Format", {
+	before_save: function (frm) {
+		frm._created_this_save = frm.is_new();
+	},
+	after_save: function (frm) {
+		// A brand-new builder format has nothing to do on the form — take the
+		// user straight to the builder. Custom/Report formats stay here.
+		if (
+			frm._created_this_save &&
+			frm.doc.print_format_builder_beta &&
+			!frm.doc.custom_format &&
+			frm.doc.print_format_for !== "Report"
+		) {
+			frappe.set_route("print-format-builder", frm.doc.name);
+		}
+		frm._created_this_save = false;
+	},
 	refresh: function (frm) {
 		frm.toggle_enable(["html", "doc_type", "module"], false);
 		if (frappe.session.user === "Administrator" || frm.doc.standard === "No") {
@@ -30,7 +46,7 @@ frappe.ui.form.on("Print Format", {
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
 		if (!frm.is_new() && frm.doc.print_format_for === "DocType") {
-			if (!frm.doc.custom_format) {
+			if (!frm.doc.custom_format && !frm.doc.__onload?.renders_from_file) {
 				frm.add_custom_button(__("Edit Format"), function () {
 					if (!frm.doc.doc_type) {
 						frappe.msgprint(__("Please select DocType first"));
@@ -79,7 +95,8 @@ frappe.ui.form.on("Print Format", {
 	set_chrome_for_builder: function (frm) {
 		const is_builder = frm.doc.print_format_builder_beta;
 		const is_custom = frm.doc.custom_format;
-		const should_force_chrome = is_builder && (frm.is_new() || !is_custom);
+		const should_force_chrome =
+			is_builder && (frm.is_new() || !is_custom) && frm.doc.pdf_generator !== "Typst";
 		if (should_force_chrome) {
 			frm.set_value("pdf_generator", "chrome");
 		}

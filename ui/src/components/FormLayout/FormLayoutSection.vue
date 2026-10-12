@@ -7,7 +7,7 @@
 			<CollapsibleTrigger
 				v-if="showHeader"
 				as="div"
-				class="flex max-w-fit items-center gap-2 text-ink-gray-9"
+				class="section-header flex max-w-fit items-center gap-2 text-ink-gray-9"
 				:class="{ 'cursor-pointer': collapsible, 'px-3 sm:px-5': hasTabs }"
 			>
 				<span class="text-base-medium">{{ section.label }}</span>
@@ -28,8 +28,18 @@
 				force-mount
 				@animationend.self="animating = false"
 			>
-				<div class="flex sm:flex-row flex-col gap-4" :class="{ 'px-3 sm:px-5': hasTabs }">
+				<div
+					class="section-body flex sm:flex-row flex-col gap-4"
+					:class="{ 'px-3 sm:px-5': hasTabs }"
+				>
+					<FormLayoutPart
+						v-if="section.part"
+						:part="section.part"
+						:class="{ 'mt-6': showHeader }"
+						class="w-full"
+					/>
 					<FormLayoutColumn
+						v-else
 						v-for="(column, index) in section.columns"
 						:key="column.name ?? index"
 						:class="{ 'mt-6': showHeader }"
@@ -45,6 +55,7 @@
 import { computed, inject, ref, watch } from "vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import FormLayoutColumn from "./FormLayoutColumn.vue";
+import FormLayoutPart from "./FormLayoutPart.vue";
 import { HasTabsKey } from "./types";
 import type { Section } from "./types";
 

@@ -159,7 +159,7 @@ export default class Block {
 			{
 				label: "Delete",
 				title: "Delete Block",
-				icon: frappe.utils.icon("trash-2", "sm"),
+				icon: frappe.utils.icon("trash", "sm"),
 				action: () => this.api.blocks.delete(),
 			},
 			{

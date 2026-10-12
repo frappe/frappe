@@ -1,0 +1,13 @@
+/* App-authored CSS: document-level selectors an island would otherwise lose. */
+:root {
+	--panel-accent: #2a6df4;
+}
+
+html,
+body {
+	--panel-gap: 0.5rem;
+}
+
+.panel-accent {
+	color: var(--panel-accent);
+}

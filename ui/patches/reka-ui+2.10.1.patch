@@ -1,0 +1,264 @@
+diff --git a/node_modules/reka-ui/dist/DismissableLayer/utils.cjs b/node_modules/reka-ui/dist/DismissableLayer/utils.cjs
+index 20b3e5b..d6fcf4f 100644
+--- a/node_modules/reka-ui/dist/DismissableLayer/utils.cjs
++++ b/node_modules/reka-ui/dist/DismissableLayer/utils.cjs
+@@ -3,6 +3,44 @@ const require_shared_handleAndDispatchCustomEvent = require('../shared/handleAnd
+ const vue = require_rolldown_runtime.__toESM(require("vue"));
+ const __vueuse_shared = require_rolldown_runtime.__toESM(require("@vueuse/shared"));
+ 
++//#region shadow-DOM roots (@framework/ui patch — unovue/reka-ui#1667)
++/**
++ * A layer inside an island's shadow root is invisible to a document-wide
++ * query, and its events reach the document retargeted to the shadow host. So
++ * a layer stacked over another one — a popover over a dialog — read as
++ * outside it, and the click that opened the popover closed the dialog.
++ *
++ * The tree a layer lives in. `getRootNode()` answers the shadow root for a
++ * layer inside one, and the document for every other layer, so nothing
++ * changes outside an island.
++ */
++function layerRoot(element) {
++	return element?.getRootNode?.() ?? globalThis?.document;
++}
++/**
++ * Where a layer has to listen. A layer inside a shadow root hears its own
++ * tree's events with the real target; the same event reaches the document
++ * retargeted to the shadow host, which every check here reads as "outside".
++ * Listen on both, so a click on the page outside the island still dismisses.
++ */
++function layerRoots(element) {
++	const root = layerRoot(element);
++	const doc = element?.ownerDocument ?? globalThis?.document;
++	return root === doc ? [doc] : [root, doc];
++}
++/** The document's copy of an event the layer's own root already handled. */
++function isRetargeted(element, event) {
++	const root = layerRoot(element);
++	return Boolean(root && root.host && event.target === root.host);
++}
++function addLayerListener(roots, type, handler, options) {
++	for (const root of roots) root.addEventListener(type, handler, options);
++}
++function removeLayerListener(roots, type, handler) {
++	for (const root of roots) root.removeEventListener(type, handler);
++}
++//#endregion
++
+ //#region src/DismissableLayer/utils.ts
+ const POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside";
+ const FOCUS_OUTSIDE = "dismissableLayer.focusOutside";
+@@ -10,7 +48,7 @@ function isLayerExist(layerElement, targetElement) {
+ 	if (!(targetElement instanceof Element)) return false;
+ 	const targetLayer = targetElement.closest("[data-dismissable-layer]");
+ 	const mainLayer = layerElement.dataset.dismissableLayer === "" ? layerElement : layerElement.querySelector("[data-dismissable-layer]");
+-	const nodeList = Array.from(layerElement.ownerDocument.querySelectorAll("[data-dismissable-layer]"));
++	const nodeList = Array.from(layerRoot(layerElement).querySelectorAll("[data-dismissable-layer]"));
+ 	if (targetLayer && (mainLayer === targetLayer || nodeList.indexOf(mainLayer) < nodeList.indexOf(targetLayer))) return true;
+ 	else return false;
+ }
+@@ -20,14 +58,15 @@ function isLayerExist(layerElement, targetElement) {
+ * Returns props to pass to the node we want to check for outside events.
+ */
+ function usePointerDownOutside(onPointerDownOutside, element, enabled = true) {
+-	const ownerDocument = element?.value?.ownerDocument ?? globalThis?.document;
+ 	const isPointerInsideDOMTree = (0, vue.ref)(false);
+ 	const handleClickRef = (0, vue.ref)(() => {});
+ 	(0, vue.watchEffect)((cleanupFn) => {
+ 		if (!__vueuse_shared.isClient || !(0, vue.toValue)(enabled)) return;
++		const roots = layerRoots(element?.value);
+ 		const handlePointerDown = async (event) => {
+ 			const target = event.target;
+ 			if (!element?.value || !target) return;
++			if (isRetargeted(element.value, event)) return;
+ 			if (isLayerExist(element.value, target)) {
+ 				isPointerInsideDOMTree.value = false;
+ 				return;
+@@ -50,11 +89,11 @@ function usePointerDownOutside(onPointerDownOutside, element, enabled = true) {
+ 				* certain that it was raised, and therefore cleaned-up.
+ 				*/
+ 				if (event.pointerType === "touch") {
+-					ownerDocument.removeEventListener("click", handleClickRef.value);
++					removeLayerListener(roots, "click", handleClickRef.value);
+ 					handleClickRef.value = handleAndDispatchPointerDownOutsideEvent;
+-					ownerDocument.addEventListener("click", handleClickRef.value, { once: true });
++					addLayerListener(roots, "click", handleClickRef.value, { once: true });
+ 				} else handleAndDispatchPointerDownOutsideEvent();
+-			} else ownerDocument.removeEventListener("click", handleClickRef.value);
++			} else removeLayerListener(roots, "click", handleClickRef.value);
+ 			isPointerInsideDOMTree.value = false;
+ 		};
+ 		/**
+@@ -71,12 +110,12 @@ function usePointerDownOutside(onPointerDownOutside, element, enabled = true) {
+ 		* });
+ 		*/
+ 		const timerId = window.setTimeout(() => {
+-			ownerDocument.addEventListener("pointerdown", handlePointerDown);
++			addLayerListener(roots, "pointerdown", handlePointerDown);
+ 		}, 0);
+ 		cleanupFn(() => {
+ 			window.clearTimeout(timerId);
+-			ownerDocument.removeEventListener("pointerdown", handlePointerDown);
+-			ownerDocument.removeEventListener("click", handleClickRef.value);
++			removeLayerListener(roots, "pointerdown", handlePointerDown);
++			removeLayerListener(roots, "click", handleClickRef.value);
+ 		});
+ 	});
+ 	return { onPointerDownCapture: () => {
+@@ -89,12 +128,13 @@ function usePointerDownOutside(onPointerDownOutside, element, enabled = true) {
+ * Returns props to pass to the root (node) of the subtree we want to check.
+ */
+ function useFocusOutside(onFocusOutside, element, enabled = true) {
+-	const ownerDocument = element?.value?.ownerDocument ?? globalThis?.document;
+ 	const isFocusInsideDOMTree = (0, vue.ref)(false);
+ 	(0, vue.watchEffect)((cleanupFn) => {
+ 		if (!__vueuse_shared.isClient || !(0, vue.toValue)(enabled)) return;
++		const roots = layerRoots(element?.value);
+ 		const handleFocus = async (event) => {
+ 			if (!element?.value) return;
++			if (isRetargeted(element.value, event)) return;
+ 			await (0, vue.nextTick)();
+ 			await (0, vue.nextTick)();
+ 			const target = event.target;
+@@ -104,8 +144,8 @@ function useFocusOutside(onFocusOutside, element, enabled = true) {
+ 				require_shared_handleAndDispatchCustomEvent.handleAndDispatchCustomEvent(FOCUS_OUTSIDE, onFocusOutside, eventDetail);
+ 			}
+ 		};
+-		ownerDocument.addEventListener("focusin", handleFocus);
+-		cleanupFn(() => ownerDocument.removeEventListener("focusin", handleFocus));
++		addLayerListener(roots, "focusin", handleFocus);
++		cleanupFn(() => removeLayerListener(roots, "focusin", handleFocus));
+ 	});
+ 	return {
+ 		onFocusCapture: () => {
+diff --git a/node_modules/reka-ui/dist/DismissableLayer/utils.js b/node_modules/reka-ui/dist/DismissableLayer/utils.js
+index 12df254..b707d6c 100644
+--- a/node_modules/reka-ui/dist/DismissableLayer/utils.js
++++ b/node_modules/reka-ui/dist/DismissableLayer/utils.js
+@@ -2,6 +2,44 @@ import { handleAndDispatchCustomEvent } from "../shared/handleAndDispatchCustomE
+ import { nextTick, ref, toValue, watchEffect } from "vue";
+ import { isClient } from "@vueuse/shared";
+ 
++//#region shadow-DOM roots (@framework/ui patch — unovue/reka-ui#1667)
++/**
++ * A layer inside an island's shadow root is invisible to a document-wide
++ * query, and its events reach the document retargeted to the shadow host. So
++ * a layer stacked over another one — a popover over a dialog — read as
++ * outside it, and the click that opened the popover closed the dialog.
++ *
++ * The tree a layer lives in. `getRootNode()` answers the shadow root for a
++ * layer inside one, and the document for every other layer, so nothing
++ * changes outside an island.
++ */
++function layerRoot(element) {
++	return element?.getRootNode?.() ?? globalThis?.document;
++}
++/**
++ * Where a layer has to listen. A layer inside a shadow root hears its own
++ * tree's events with the real target; the same event reaches the document
++ * retargeted to the shadow host, which every check here reads as "outside".
++ * Listen on both, so a click on the page outside the island still dismisses.
++ */
++function layerRoots(element) {
++	const root = layerRoot(element);
++	const doc = element?.ownerDocument ?? globalThis?.document;
++	return root === doc ? [doc] : [root, doc];
++}
++/** The document's copy of an event the layer's own root already handled. */
++function isRetargeted(element, event) {
++	const root = layerRoot(element);
++	return Boolean(root && root.host && event.target === root.host);
++}
++function addLayerListener(roots, type, handler, options) {
++	for (const root of roots) root.addEventListener(type, handler, options);
++}
++function removeLayerListener(roots, type, handler) {
++	for (const root of roots) root.removeEventListener(type, handler);
++}
++//#endregion
++
+ //#region src/DismissableLayer/utils.ts
+ const POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside";
+ const FOCUS_OUTSIDE = "dismissableLayer.focusOutside";
+@@ -9,7 +47,7 @@ function isLayerExist(layerElement, targetElement) {
+ 	if (!(targetElement instanceof Element)) return false;
+ 	const targetLayer = targetElement.closest("[data-dismissable-layer]");
+ 	const mainLayer = layerElement.dataset.dismissableLayer === "" ? layerElement : layerElement.querySelector("[data-dismissable-layer]");
+-	const nodeList = Array.from(layerElement.ownerDocument.querySelectorAll("[data-dismissable-layer]"));
++	const nodeList = Array.from(layerRoot(layerElement).querySelectorAll("[data-dismissable-layer]"));
+ 	if (targetLayer && (mainLayer === targetLayer || nodeList.indexOf(mainLayer) < nodeList.indexOf(targetLayer))) return true;
+ 	else return false;
+ }
+@@ -19,14 +57,15 @@ function isLayerExist(layerElement, targetElement) {
+ * Returns props to pass to the node we want to check for outside events.
+ */
+ function usePointerDownOutside(onPointerDownOutside, element, enabled = true) {
+-	const ownerDocument = element?.value?.ownerDocument ?? globalThis?.document;
+ 	const isPointerInsideDOMTree = ref(false);
+ 	const handleClickRef = ref(() => {});
+ 	watchEffect((cleanupFn) => {
+ 		if (!isClient || !toValue(enabled)) return;
++		const roots = layerRoots(element?.value);
+ 		const handlePointerDown = async (event) => {
+ 			const target = event.target;
+ 			if (!element?.value || !target) return;
++			if (isRetargeted(element.value, event)) return;
+ 			if (isLayerExist(element.value, target)) {
+ 				isPointerInsideDOMTree.value = false;
+ 				return;
+@@ -49,11 +88,11 @@ function usePointerDownOutside(onPointerDownOutside, element, enabled = true) {
+ 				* certain that it was raised, and therefore cleaned-up.
+ 				*/
+ 				if (event.pointerType === "touch") {
+-					ownerDocument.removeEventListener("click", handleClickRef.value);
++					removeLayerListener(roots, "click", handleClickRef.value);
+ 					handleClickRef.value = handleAndDispatchPointerDownOutsideEvent;
+-					ownerDocument.addEventListener("click", handleClickRef.value, { once: true });
++					addLayerListener(roots, "click", handleClickRef.value, { once: true });
+ 				} else handleAndDispatchPointerDownOutsideEvent();
+-			} else ownerDocument.removeEventListener("click", handleClickRef.value);
++			} else removeLayerListener(roots, "click", handleClickRef.value);
+ 			isPointerInsideDOMTree.value = false;
+ 		};
+ 		/**
+@@ -70,12 +109,12 @@ function usePointerDownOutside(onPointerDownOutside, element, enabled = true) {
+ 		* });
+ 		*/
+ 		const timerId = window.setTimeout(() => {
+-			ownerDocument.addEventListener("pointerdown", handlePointerDown);
++			addLayerListener(roots, "pointerdown", handlePointerDown);
+ 		}, 0);
+ 		cleanupFn(() => {
+ 			window.clearTimeout(timerId);
+-			ownerDocument.removeEventListener("pointerdown", handlePointerDown);
+-			ownerDocument.removeEventListener("click", handleClickRef.value);
++			removeLayerListener(roots, "pointerdown", handlePointerDown);
++			removeLayerListener(roots, "click", handleClickRef.value);
+ 		});
+ 	});
+ 	return { onPointerDownCapture: () => {
+@@ -88,12 +127,13 @@ function usePointerDownOutside(onPointerDownOutside, element, enabled = true) {
+ * Returns props to pass to the root (node) of the subtree we want to check.
+ */
+ function useFocusOutside(onFocusOutside, element, enabled = true) {
+-	const ownerDocument = element?.value?.ownerDocument ?? globalThis?.document;
+ 	const isFocusInsideDOMTree = ref(false);
+ 	watchEffect((cleanupFn) => {
+ 		if (!isClient || !toValue(enabled)) return;
++		const roots = layerRoots(element?.value);
+ 		const handleFocus = async (event) => {
+ 			if (!element?.value) return;
++			if (isRetargeted(element.value, event)) return;
+ 			await nextTick();
+ 			await nextTick();
+ 			const target = event.target;
+@@ -103,8 +143,8 @@ function useFocusOutside(onFocusOutside, element, enabled = true) {
+ 				handleAndDispatchCustomEvent(FOCUS_OUTSIDE, onFocusOutside, eventDetail);
+ 			}
+ 		};
+-		ownerDocument.addEventListener("focusin", handleFocus);
+-		cleanupFn(() => ownerDocument.removeEventListener("focusin", handleFocus));
++		addLayerListener(roots, "focusin", handleFocus);
++		cleanupFn(() => removeLayerListener(roots, "focusin", handleFocus));
+ 	});
+ 	return {
+ 		onFocusCapture: () => {

@@ -1,17 +1,18 @@
 import inspect
+import sys
 from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass
 from types import EllipsisType
-from typing import ForwardRef, TypeVar, Union
-from unittest import mock
+from typing import TYPE_CHECKING, ForwardRef, Literal, TypeVar, Union, get_origin, get_type_hints
 
-from pydantic import ConfigDict, PydanticUserError
-from pydantic import TypeAdapter as PydanticTypeAdapter
-from pydantic import ValidationError as PydanticValidationError
+from annotationlib import Format
 
 import frappe
 from frappe.exceptions import FrappeTypeError
+
+if TYPE_CHECKING:
+	from pydantic import ConfigDict
 
 SLACK_DICT = {
 	bool: (int, bool, float),
@@ -20,7 +21,14 @@ T = TypeVar("T")
 ForwardRefOrStr = ForwardRef | str
 
 
-FrappePydanticConfig = ConfigDict(arbitrary_types_allowed=True)
+# ConfigDict is a TypedDict, so at runtime it's just a plain dict and TypeAdapter accepts
+# this literal. Calling ConfigDict() would drag pydantic (~6MB) into `import frappe`.
+FrappePydanticConfig: "ConfigDict" = {"arbitrary_types_allowed": True}
+
+
+def is_mock(value) -> bool:
+	mock = sys.modules.get("unittest.mock")
+	return mock is not None and isinstance(value, mock.Mock)
 
 
 def validate_argument_types(
@@ -91,6 +99,9 @@ def raise_type_error(
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
+	from pydantic import PydanticUserError
+	from pydantic import TypeAdapter as PydanticTypeAdapter
+
 	try:
 		return PydanticTypeAdapter(type_, config=FrappePydanticConfig)
 	except PydanticUserError as e:
@@ -101,13 +112,33 @@ def TypeAdapter(type_):
 		raise e
 
 
+@lru_cache(maxsize=2048)
+def get_resolved_annotations(func: Callable) -> dict:
+	"""Evaluate string annotations; unresolvable ones are kept as `ForwardRef`."""
+	try:
+		return get_type_hints(func, include_extras=True, format=Format.FORWARDREF)
+	except SyntaxError:
+		# a string annotation that isn't an expression, e.g. `x: "free text"`, is skipped
+		return func.__annotations__
+
+
+def has_forward_ref(annotation) -> bool:
+	"""Whether an unresolved forward ref appears anywhere in the annotation."""
+	if isinstance(annotation, ForwardRefOrStr):
+		return True
+	# `Literal` args are values, not forward refs
+	if get_origin(annotation) is Literal:
+		return False
+	return any(has_forward_ref(arg) for arg in getattr(annotation, "__args__", ()))
+
+
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_types=False):
 	"""
 	Validate the types of the arguments passed to a function with the type annotations
 	defined on the function.
 	"""
 
-	annotations = func.__annotations__
+	annotations = get_resolved_annotations(func)
 	func_params = frappe._get_cached_signature_params(func)[0]
 
 	if force_types:
@@ -131,6 +162,8 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 	):
 		return args, kwargs
 
+	from pydantic import ValidationError as PydanticValidationError
+
 	new_args, new_kwargs = list(args), kwargs
 
 	if args:
@@ -152,13 +185,11 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 
 		current_arg_value = prepared_args[current_arg]
 
-		# if the type is a ForwardRef or str, ignore it
-		if isinstance(current_arg_type, ForwardRefOrStr):
-			continue
-		elif any(isinstance(x, ForwardRefOrStr) for x in getattr(current_arg_type, "__args__", [])):
+		# types that can't be resolved (e.g. imported only for type checking) aren't validated
+		if has_forward_ref(current_arg_type):
 			continue
 		# ignore unittest.mock objects
-		elif isinstance(current_arg_value, mock.Mock):
+		elif is_mock(current_arg_value):
 			continue
 
 		# allow slack for Frappe types

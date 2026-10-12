@@ -108,3 +108,27 @@ class TestMonitor(IntegrationTestCase):
 		frappe.db.sql("select 1")
 		self.assertIn(get_trace_id(), str(frappe.db.last_query))
 		frappe.monitor.stop(response)
+
+	def test_trace_id_rejects_unsafe_header(self):
+		"""A request ID that doesn't match the expected format must be ignored."""
+		malformed = "*/ or sleep(0) -- "
+		set_request(method="GET", path="/api/method/frappe.ping", headers={"X-Frappe-Request-Id": malformed})
+		response = build_response("json")
+		frappe.monitor.start()
+		frappe.db.sql("select 1")
+
+		self.assertNotIn(malformed, str(frappe.db.last_query))
+		self.assertTrue(frappe.monitor.TRACE_ID_PATTERN.fullmatch(get_trace_id()))
+		frappe.monitor.stop(response)
+
+	def test_trace_id_accepts_valid_header(self):
+		"""A request ID matching the expected format is passed through as-is."""
+		request_id = "7f037421-6b54-4ee6-8c8a-e7698f67b7a5"
+		set_request(method="GET", path="/api/method/frappe.ping", headers={"X-Frappe-Request-Id": request_id})
+		response = build_response("json")
+		frappe.monitor.start()
+		frappe.db.sql("select 1")
+
+		self.assertEqual(get_trace_id(), request_id)
+		self.assertIn(request_id, str(frappe.db.last_query))
+		frappe.monitor.stop(response)

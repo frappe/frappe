@@ -534,4 +534,4 @@ function render_form_builder(frm) {
 	}
 }
 
-extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({ frm: cur_frm }));
+frappe.ui.form.set_controller("Customize Form", frappe.model.DocTypeController);

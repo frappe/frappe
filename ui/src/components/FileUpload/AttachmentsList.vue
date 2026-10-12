@@ -2,7 +2,7 @@
 	<div class="flex flex-col gap-2">
 		<div
 			v-if="modelValue.length"
-			class="flex flex-col divide-y divide-outline-gray-1 rounded-lg border border-outline-gray-1"
+			class="flex flex-col divide-y divide-outline-gray-1 rounded-6 border border-outline-gray-1"
 		>
 			<a
 				v-for="(attachment, index) in modelValue"
@@ -13,7 +13,7 @@
 				class="group flex items-center gap-3 px-3 py-2 hover:bg-surface-gray-1"
 			>
 				<span
-					class="grid size-9 shrink-0 place-items-center overflow-hidden rounded border border-outline-gray-1 bg-surface-gray-1"
+					class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-4 border border-outline-gray-1 bg-surface-gray-1"
 				>
 					<img
 						v-if="isImage(attachment.file_url)"
@@ -34,7 +34,7 @@
 				<button
 					type="button"
 					aria-label="Remove"
-					class="grid size-5 shrink-0 place-items-center rounded text-ink-gray-5 opacity-0 hover:bg-surface-gray-3 group-hover:opacity-100"
+					class="grid size-5 shrink-0 place-items-center rounded-4 text-ink-gray-5 opacity-0 hover:bg-surface-gray-3 group-hover:opacity-100"
 					@click.prevent="remove(index)"
 				>
 					<span class="lucide-x size-3.5" />
@@ -43,7 +43,7 @@
 		</div>
 		<div
 			v-else
-			class="rounded-lg border border-dashed border-outline-gray-2 p-4 text-center text-p-sm text-ink-gray-5"
+			class="rounded-6 border border-dashed border-outline-gray-2 p-4 text-center text-p-sm text-ink-gray-5"
 		>
 			No attachments yet.
 		</div>

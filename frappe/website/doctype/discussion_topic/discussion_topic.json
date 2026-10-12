@@ -3,6 +3,7 @@
  "autoname": "TOPIC.####",
  "creation": "2021-08-11 10:55:29.341674",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/discussions",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

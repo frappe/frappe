@@ -1,0 +1,27 @@
+{
+  "files": [
+    {
+      "path": "code_review.md",
+      "description": "What maintainers check in a frappe/frappe PR, in order: before reviewing, what to look for, verdict, how to write the review."
+    },
+    {
+      "path": "AGENTS.md",
+      "description": "Repository rules for agents: how to review, how code is written here, what is never accepted."
+    },
+    {
+      "path": "hooks.md",
+      "description": "Every hook the framework exposes; check a new hook against this list before accepting it.",
+      "scope": ["**/hooks.py"]
+    },
+    {
+      "path": "ui/PHILOSOPHY.md",
+      "description": "Design rules for the @framework/ui workspace; cite principles by id.",
+      "scope": ["ui/**"]
+    },
+    {
+      "path": "ui/CONTEXT.md",
+      "description": "Shared API vocabulary for @framework/ui components.",
+      "scope": ["ui/**"]
+    }
+  ]
+}

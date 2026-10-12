@@ -5,6 +5,7 @@
  "creation": "2013-01-08 15:50:01",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/erpnext/role-and-role-profile",
  "engine": "InnoDB",
  "field_order": [
   "role_name",
@@ -142,11 +143,11 @@
    "label": "Workspaces"
   }
  ],
- "icon": "fa fa-bookmark",
+ "icon": "shield-user",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-15 12:00:00.000000",
+ "modified": "2026-08-21 23:24:24.285309",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
@@ -163,6 +164,10 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "role": "Desk User",
+   "select": 1
   }
  ],
  "quick_entry": 1,

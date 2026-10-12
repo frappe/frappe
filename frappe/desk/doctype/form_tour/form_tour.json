@@ -3,6 +3,7 @@
  "autoname": "field:title",
  "creation": "2021-05-21 23:02:52.242721",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/form-tours",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

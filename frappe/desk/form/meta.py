@@ -1,21 +1,26 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
 from frappe.app_state import get_disabled_modules
-from frappe.build import scrub_html_template
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
+from frappe.model.workflow import get_workflow_names
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.utils import get_bench_path, get_html_format
 from frappe.utils.data import get_link_to_form
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
 
 ASSET_KEYS = (
 	"__js",
 	"__css",
 	"__list_js",
+	"__kanban_js",
 	"__calendar_js",
 	"__print_formats",
 	"__workflow_docs",
@@ -27,7 +32,6 @@ ASSET_KEYS = (
 	"__templates",
 	"__custom_js",
 	"__custom_list_js",
-	"__workspaces",
 )
 
 
@@ -67,7 +71,6 @@ class FormMeta(Meta):
 			self.load_templates()
 			self.load_dashboard()
 			self.load_kanban_meta()
-			self.load_workspaces()
 
 		self.set("__assets_loaded", True)
 
@@ -103,6 +106,7 @@ class FormMeta(Meta):
 		if system_country:
 			self._add_code(_get_path(os.path.join("regional", system_country + "_list.js")), "__list_js")
 
+		self._add_code(_get_path(self.name + "_kanban.js"), "__kanban_js")
 		self._add_code(_get_path(self.name + "_calendar.js"), "__calendar_js")
 		self._add_code(_get_path(self.name + "_tree.js"), "__tree_js")
 
@@ -112,6 +116,7 @@ class FormMeta(Meta):
 
 		self.add_code_via_hook("doctype_js", "__js")
 		self.add_code_via_hook("doctype_list_js", "__list_js")
+		self.add_code_via_hook("doctype_kanban_js", "__kanban_js")
 		self.add_code_via_hook("doctype_tree_js", "__tree_js")
 		self.add_code_via_hook("doctype_calendar_js", "__calendar_js")
 		self.add_html_templates(path)
@@ -128,6 +133,9 @@ class FormMeta(Meta):
 	def add_html_templates(self, path):
 		if self.custom:
 			return
+
+		from frappe.bundler import scrub_html_template
+
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
@@ -214,16 +222,11 @@ class FormMeta(Meta):
 		self.set("__print_formats", print_formats)
 
 	def load_workflows(self):
-		# get active workflow
-		workflow_name = self.get_workflow()
-		workflow_docs = []
+		"""Ship every active workflow of the doctype; the desk picks the one that fits each document."""
+		workflows = [frappe.get_doc("Workflow", name) for name in get_workflow_names(self.name)]
+		states = {state.state for workflow in workflows for state in workflow.get("states")}
 
-		if workflow_name and frappe.db.exists("Workflow", workflow_name):
-			workflow = frappe.get_doc("Workflow", workflow_name)
-			workflow_docs.append(workflow)
-
-			workflow_docs.extend(frappe.get_doc("Workflow State", d.state) for d in workflow.get("states"))
-		self.set("__workflow_docs", workflow_docs)
+		self.set("__workflow_docs", [*workflows, *get_workflow_state_docs(states)])
 
 	def load_templates(self):
 		if not self.custom:
@@ -238,37 +241,6 @@ class FormMeta(Meta):
 
 	def load_dashboard(self):
 		self.set("__dashboard", self.get_dashboard_data())
-
-	def load_workspaces(self):
-		Shortcut = frappe.qb.DocType("Workspace Shortcut")
-		Workspace = frappe.qb.DocType("Workspace")
-		shortcut = (
-			frappe.qb.from_(Shortcut)
-			.select(Shortcut.parent)
-			.inner_join(Workspace)
-			.on(Workspace.name == Shortcut.parent)
-			.where(Shortcut.link_to == self.name)
-			.where(Shortcut.type == "DocType")
-			.where(Workspace.public == 1)
-			.run()
-		)
-		if shortcut:
-			self.set("__workspaces", [shortcut[0][0]])
-		else:
-			Link = frappe.qb.DocType("Workspace Link")
-			link = (
-				frappe.qb.from_(Link)
-				.select(Link.parent)
-				.inner_join(Workspace)
-				.on(Workspace.name == Link.parent)
-				.where(Link.link_type == "DocType")
-				.where(Link.link_to == self.name)
-				.where(Workspace.public == 1)
-				.run()
-			)
-
-			if link:
-				self.set("__workspaces", [link[0][0]])
 
 	def load_kanban_meta(self):
 		self.load_kanban_column_fields()
@@ -285,6 +257,19 @@ class FormMeta(Meta):
 		except frappe.PermissionError:
 			# no access to kanban board
 			pass
+
+
+def get_workflow_state_docs(states: set[str]) -> list["Document"]:
+	"""The Workflow State masters the desk needs to colour the states it was given.
+
+	Read in one query but returned as Documents: the meta bundle is serialized through
+	Meta.as_dict, which walks __dict__ and cannot handle a plain dict.
+	"""
+	if not states:
+		return []
+
+	rows = frappe.get_all("Workflow State", filters={"name": ("in", sorted(states))}, fields=["*"])
+	return [frappe.get_doc({"doctype": "Workflow State", **row}) for row in rows]
 
 
 def get_code_files_via_hooks(hook, name):

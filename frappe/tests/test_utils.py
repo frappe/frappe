@@ -10,6 +10,7 @@ from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
 from mimetypes import guess_type
+from typing import Literal
 from unittest.mock import patch
 
 from hypothesis import given
@@ -49,8 +50,10 @@ from frappe.utils import (
 	validate_url,
 )
 from frappe.utils.change_log import (
+	check_for_update,
 	get_source_url,
 	parse_github_url,
+	parse_latest_non_beta_release,
 )
 from frappe.utils.data import (
 	add_to_date,
@@ -581,6 +584,75 @@ class TestHTMLUtils(IntegrationTestCase):
 		self.assertIn("ordered", clean)
 		self.assertNotIn("xyz", clean)
 
+		# content that happens to parse as JSON is still sanitized when it carries tags
+		self.assertNotIn("<script>", sanitize_html('"<script>alert(1)</script>"'))
+		self.assertNotIn("<script>", sanitize_html('["<script>alert(1)</script>"]'))
+		self.assertNotIn("<script>", sanitize_html('{"x": "<script>alert(1)</script>"}'))
+
+		# tag-free content (including JSON) is returned unchanged
+		self.assertEqual(sanitize_html('[["name", "=", "x"]]'), '[["name", "=", "x"]]')
+		self.assertEqual(sanitize_html("plain text"), "plain text")
+
+	def test_sanitize_html_payload(self):
+		import json
+
+		from frappe.utils.html_utils import sanitize_html, sanitize_html_payload
+
+		# a web form submission: the Text Editor value carries a quoted attribute, and
+		# sanitizing the serialized payload would rewrite that quote as `&quot;` and
+		# leave the JSON unparseable
+		payload = json.dumps({"requirement": '<div class="ql-editor read-mode"><p>Hi</p></div>'})
+		self.assertEqual(sanitize_html_payload(payload), payload)
+		self.assertEqual(json.loads(sanitize_html_payload(payload)), json.loads(payload))
+
+		# markup inside a payload is still sanitized, at every depth
+		for unsafe in (
+			'"<script>alert(1)</script>"',
+			'["<script>alert(1)</script>"]',
+			'{"x": "<script>alert(1)</script>"}',
+			'{"a": {"b": ["<img src=x onerror=alert(1)>"]}}',
+		):
+			clean = sanitize_html_payload(unsafe)
+			self.assertNotIn("<script>", clean)
+			self.assertNotIn("onerror", clean)
+
+		# a payload nested inside another payload is handled too
+		nested = json.dumps({"args": json.dumps({"desc": "<script>alert(1)</script>"})})
+		self.assertNotIn("<script>", sanitize_html_payload(nested))
+		self.assertEqual(json.loads(json.loads(sanitize_html_payload(nested))["args"])["desc"], "")
+
+		# tag-free content is returned unchanged
+		for untouched in ('[["name", "=", "x"]]', "plain text", "1-10", "", "null"):
+			self.assertEqual(sanitize_html_payload(untouched), untouched)
+
+		# content that is not JSON is sanitized exactly as before
+		html = "<script>alert(1)</script><p>hi</p>"
+		self.assertEqual(sanitize_html_payload(html), sanitize_html(html))
+
+		# non-strings are left alone
+		self.assertEqual(sanitize_html_payload(None), None)
+
+		# a guest can post arbitrarily nested JSON cheaply (two bytes a level), so the
+		# walk is bounded; past the bound it sanitizes the text as one blob instead of
+		# running the interpreter out of stack
+		self.assertEqual(sanitize_html_payload("[" * 5000 + "]" * 5000), "[" * 5000 + "]" * 5000)
+		buried = json.dumps(json.loads("[" * 800 + '"<script>alert(1)</script>"' + "]" * 800))
+		self.assertNotIn("<script>", sanitize_html_payload(buried))
+
+		# a payload at a realistic depth is still walked, not treated as one blob
+		nested_doc = json.dumps({"doc": {"items": [{"description": '<div class="x"><p>hi</p></div>'}]}})
+		self.assertEqual(sanitize_html_payload(nested_doc), nested_doc)
+
+	def test_sanitize_svg(self):
+		from frappe.utils.html_utils import sanitize_svg
+
+		clean = sanitize_svg('<svg onload="alert(1)"><script>alert(1)</script><circle r="4"/></svg>')
+		self.assertIn("<circle", clean)
+		self.assertNotIn("script", clean)
+		self.assertNotIn("onload", clean)
+
+		self.assertIsNone(sanitize_svg(None))
+
 
 class TestValidationUtils(IntegrationTestCase):
 	def test_valid_url(self):
@@ -809,6 +881,255 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(width, 500)
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
+
+	def test_optimize_pdf(self):
+		from pypdf import PdfReader
+
+		from frappe.utils.pdf import optimize_pdf
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path)
+
+		buf = io.BytesIO()
+		image.save(buf, format="PDF")
+		original_content = buf.getvalue()
+
+		optimized_content = optimize_pdf(original_content)
+
+		self.assertLess(len(optimized_content), len(original_content))
+		# still a valid, readable PDF with the image intact
+		reader = PdfReader(io.BytesIO(optimized_content))
+		images = list(reader.pages[0].images)
+		self.assertEqual(len(images), 1)
+
+	@staticmethod
+	def _count_image_objects(content: bytes) -> int:
+		"""Count distinct indirect objects with /Subtype /Image."""
+		from pypdf import PdfReader
+
+		reader = PdfReader(io.BytesIO(content))
+		count = 0
+		for i in range(1, reader.trailer["/Size"]):
+			obj = reader.get_object(i)
+			if obj is not None and hasattr(obj, "get") and obj.get("/Subtype") == "/Image":
+				count += 1
+		return count
+
+	def test_optimize_pdf_deduplicates_repeated_objects(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import optimize_pdf
+
+		image = Image.new("RGB", (800, 800), (20, 150, 90))
+		buf = io.BytesIO()
+		image.save(buf, format="PDF")
+		single_page_pdf = buf.getvalue()
+
+		writer = PdfWriter()
+		for _ in range(4):
+			writer.append(PdfReader(io.BytesIO(single_page_pdf)))
+		out = io.BytesIO()
+		writer.write(out)
+		duplicated_content = out.getvalue()
+
+		self.assertEqual(self._count_image_objects(duplicated_content), 4)
+
+		optimized_content = optimize_pdf(duplicated_content)
+
+		# the precise signal that dedup (not just quality recompression) ran:
+		# 4 duplicate image objects merged into 1 shared object
+		self.assertEqual(self._count_image_objects(optimized_content), 1)
+		self.assertLess(len(optimized_content), len(duplicated_content))
+		reader = PdfReader(io.BytesIO(optimized_content))
+		self.assertEqual(len(reader.pages), 4)
+		self.assertEqual(next(iter(reader.pages[0].images)).image.size, (800, 800))
+
+	def test_optimize_pdf_skips_unprocessable_image_but_optimizes_rest(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import optimize_pdf
+
+		# a 1-bit bilevel image (common for pure B&W text scans) is embedded via
+		# CCITT/TIFF, not JPEG, and raises ValueError when passed quality/optimize
+		# kwargs -- that must not abort optimizing the rest of the document
+		large_image = Image.new("RGB", (2200, 1600), (30, 90, 180))
+		rgb_buf = io.BytesIO()
+		large_image.save(rgb_buf, format="PDF")
+
+		bilevel_buf = io.BytesIO()
+		large_image.convert("1").save(bilevel_buf, format="PDF")
+
+		writer = PdfWriter()
+		writer.append(PdfReader(io.BytesIO(rgb_buf.getvalue())))
+		writer.append(PdfReader(io.BytesIO(bilevel_buf.getvalue())))
+		out = io.BytesIO()
+		writer.write(out)
+		mixed_content = out.getvalue()
+
+		optimized_content = optimize_pdf(mixed_content)
+
+		self.assertLess(len(optimized_content), len(mixed_content))
+		reader = PdfReader(io.BytesIO(optimized_content))
+		self.assertEqual(len(reader.pages), 2)
+
+		rgb_result = next(iter(reader.pages[0].images)).image
+		self.assertLessEqual(max(rgb_result.size), 1600)
+
+		bilevel_result = next(iter(reader.pages[1].images)).image
+		self.assertEqual(bilevel_result.size, (2200, 1600))
+		self.assertEqual(bilevel_result.mode, "1")
+
+	def test_optimize_pdf_skips_oversized_image(self):
+		from pypdf import PdfReader, PdfWriter
+		from pypdf.generic import NameObject, NumberObject
+
+		from frappe.utils.pdf import optimize_pdf
+
+		small_image = Image.new("RGB", (10, 10), (10, 90, 200))
+		buf = io.BytesIO()
+		small_image.save(buf, format="PDF")
+
+		reader = PdfReader(buf)
+		writer = PdfWriter(clone_from=reader)
+		xobjects = writer.pages[0]["/Resources"]["/XObject"]
+		for xobj in xobjects.values():
+			xobj = xobj.get_object()
+			if xobj.get("/Subtype") == "/Image":
+				xobj[NameObject("/Width")] = NumberObject(12000)
+				xobj[NameObject("/Height")] = NumberObject(12000)
+
+		out = io.BytesIO()
+		writer.write(out)
+		oversized_pdf = out.getvalue()
+
+		self.assertEqual(optimize_pdf(oversized_pdf), oversized_pdf)
+
+	def test_optimize_pdf_falls_back_on_failure(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		garbage_content = b"not a real pdf"
+
+		with patch("frappe.msgprint") as mock_msgprint:
+			result = optimize_pdf(garbage_content)
+
+		self.assertEqual(result, garbage_content)
+		mock_msgprint.assert_called_once()
+		self.assertIn("Failed to optimize PDF", mock_msgprint.call_args[0][0])
+
+	def test_optimize_pdf_does_not_log_expected_failures(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		# malformed/untrusted PDF content is a routine failure mode, not a bug --
+		# must not spam Error Log for every bad upload
+		with patch("frappe.log_error") as mock_log_error:
+			result = optimize_pdf(b"not a real pdf")
+
+		self.assertEqual(result, b"not a real pdf")
+		mock_log_error.assert_not_called()
+
+	def test_optimize_pdf_logs_unexpected_errors(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		buf = io.BytesIO()
+		Image.open(image_file_path).save(buf, format="PDF")
+		original_content = buf.getvalue()
+
+		with patch("pypdf.PdfWriter.compress_identical_objects", side_effect=TypeError("simulated bug")):
+			with patch("frappe.log_error") as mock_log_error:
+				result = optimize_pdf(original_content)
+
+		self.assertEqual(result, original_content)
+		mock_log_error.assert_called_once()
+
+	@staticmethod
+	def _build_signed_pdf() -> bytes:
+		"""Build a PDF with a structurally valid (cryptographically fake) signature field."""
+		from pypdf import PdfReader, PdfWriter
+		from pypdf.generic import ArrayObject, DictionaryObject, NameObject, NumberObject, TextStringObject
+
+		buf = io.BytesIO()
+		Image.new("RGB", (300, 300), (0, 120, 255)).save(buf, format="PDF")
+		reader = PdfReader(io.BytesIO(buf.getvalue()))
+		writer = PdfWriter(clone_from=reader)
+		page = writer.pages[0]
+
+		sig_dict = DictionaryObject()
+		sig_dict.update(
+			{
+				NameObject("/Type"): NameObject("/Sig"),
+				NameObject("/ByteRange"): ArrayObject(
+					[NumberObject(0), NumberObject(10), NumberObject(20), NumberObject(30)]
+				),
+				NameObject("/Contents"): TextStringObject("fakebytes"),
+			}
+		)
+		sig_ref = writer._add_object(sig_dict)
+
+		field = DictionaryObject()
+		field.update(
+			{
+				NameObject("/FT"): NameObject("/Sig"),
+				NameObject("/T"): TextStringObject("Signature1"),
+				NameObject("/V"): sig_ref,
+				NameObject("/Rect"): ArrayObject(
+					[NumberObject(0), NumberObject(0), NumberObject(100), NumberObject(20)]
+				),
+				NameObject("/Subtype"): NameObject("/Widget"),
+				NameObject("/Type"): NameObject("/Annot"),
+				NameObject("/P"): page.indirect_reference,
+			}
+		)
+		field_ref = writer._add_object(field)
+		page[NameObject("/Annots")] = ArrayObject([field_ref])
+
+		acroform = DictionaryObject()
+		acroform.update(
+			{NameObject("/Fields"): ArrayObject([field_ref]), NameObject("/SigFlags"): NumberObject(3)}
+		)
+		acroform_ref = writer._add_object(acroform)
+		writer._root_object[NameObject("/AcroForm")] = acroform_ref
+
+		out = io.BytesIO()
+		writer.write(out)
+		return out.getvalue()
+
+	def test_reader_has_signature(self):
+		from pypdf import PdfReader
+
+		from frappe.utils.pdf import _reader_has_signature
+
+		signed_pdf = self._build_signed_pdf()
+		self.assertTrue(_reader_has_signature(PdfReader(io.BytesIO(signed_pdf))))
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		unsigned_buf = io.BytesIO()
+		Image.open(image_file_path).save(unsigned_buf, format="PDF")
+		self.assertFalse(_reader_has_signature(PdfReader(io.BytesIO(unsigned_buf.getvalue()))))
+
+	def test_reader_has_signature_fails_safe_for_encrypted_pdf(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import _reader_has_signature
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		buf = io.BytesIO()
+		Image.open(image_file_path).save(buf, format="PDF")
+
+		reader = PdfReader(io.BytesIO(buf.getvalue()))
+		writer = PdfWriter(clone_from=reader)
+		writer.encrypt("secret123")
+		out = io.BytesIO()
+		writer.write(out)
+		encrypted_content = out.getvalue()
+		encrypted_reader = PdfReader(io.BytesIO(encrypted_content))
+		self.assertTrue(_reader_has_signature(encrypted_reader))
+
+	def test_optimize_pdf_skips_signed_pdf(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		signed_pdf = self._build_signed_pdf()
+		self.assertEqual(optimize_pdf(signed_pdf), signed_pdf)
 
 
 class TestPythonExpressions(IntegrationTestCase):
@@ -1157,6 +1478,107 @@ class TestXlsxUtils(IntegrationTestCase):
 		self.assertIn("html data >", val)
 		self.assertEqual("abc", handle_html("abc"))
 
+	def test_formula_like_strings_are_not_written_as_formulas(self):
+		"""A leading =, +, -, @ etc must not cause the cell to be written as a real formula."""
+		from openpyxl import load_workbook
+
+		from frappe.utils.xlsxutils import make_xlsx
+
+		data = [
+			["notes", "amount", "phone"],
+			["=1+1", 1500.5, "+1-555-0100"],
+			["+91-1234567890", -5, "555-1234"],
+			["normal text", 10, "@handle-as-text"],
+		]
+		xlsx_file = make_xlsx(data, "Test Sheet")
+		wb = load_workbook(xlsx_file, data_only=False)
+		ws = wb.active
+
+		rows = list(ws.iter_rows(values_only=False))
+
+		# formula-trigger strings must be forced to string type, value unchanged
+		for coord, expected_value in (
+			((1, 0), "=1+1"),
+			((1, 2), "+1-555-0100"),
+			((2, 0), "+91-1234567890"),
+			((2, 2), "555-1234"),
+			((3, 2), "@handle-as-text"),
+		):
+			row_idx, col_idx = coord
+			cell = rows[row_idx][col_idx]
+			self.assertEqual(cell.data_type, "s")
+			self.assertEqual(cell.value, expected_value)
+
+		# real numeric values must keep their native type, not get stringified
+		self.assertEqual(rows[1][1].data_type, "n")
+		self.assertEqual(rows[1][1].value, 1500.5)
+		self.assertEqual(rows[2][1].data_type, "n")
+		self.assertEqual(rows[2][1].value, -5)
+
+
+class TestCsvUtils(IntegrationTestCase):
+	def test_escape_formula_injection_prefixes_trigger_chars(self):
+		from frappe.utils.csvutils import FORMULA_TRIGGER_CHARS, escape_formula_injection
+
+		for char in FORMULA_TRIGGER_CHARS:
+			value = f"{char}1+1"
+			self.assertEqual(escape_formula_injection(value), "'" + value)
+
+	def test_escape_formula_injection_leaves_normal_values_untouched(self):
+		from frappe.utils.csvutils import escape_formula_injection
+
+		self.assertEqual(escape_formula_injection("normal text"), "normal text")
+		self.assertEqual(escape_formula_injection("555-1234"), "555-1234")
+		self.assertEqual(escape_formula_injection(100), 100)
+		self.assertEqual(escape_formula_injection(None), None)
+
+	def test_unescape_reverses_escape(self):
+		from frappe.utils.csvutils import (
+			FORMULA_TRIGGER_CHARS,
+			escape_formula_injection,
+			unescape_formula_injection,
+		)
+
+		for char in FORMULA_TRIGGER_CHARS:
+			original = f"{char}1+1"
+			self.assertEqual(unescape_formula_injection(escape_formula_injection(original)), original)
+
+	def test_unescape_does_not_strip_literal_leading_quote(self):
+		"""A user-typed apostrophe not followed by a trigger char must survive untouched."""
+		from frappe.utils.csvutils import unescape_formula_injection
+
+		self.assertEqual(unescape_formula_injection("'hello"), "'hello")
+		self.assertEqual(unescape_formula_injection("'"), "'")
+
+	def test_to_csv_escapes_formula_like_values(self):
+		from frappe.utils.csvutils import to_csv
+
+		out = to_csv([["notes", "amount"], ["=1+1", "10"]])
+		self.assertIn("'=1+1", out)
+		self.assertNotIn('"=1+1"', out)
+
+	def test_export_reimport_round_trip_preserves_legit_data(self):
+		"""Export followed by reimport must not corrupt values that start with trigger chars."""
+		from frappe.utils.csvutils import read_csv_content, to_csv
+
+		rows = [
+			["name", "notes", "phone", "qty_text"],
+			["REC-001", "=1+1", "+1-555-0100", "-5"],
+			["REC-002", "normal text", "555-1234", "10"],
+		]
+
+		exported = to_csv(rows)
+		# a formula-like value must round-trip through escape_formula_injection
+		self.assertIn("'=1+1", exported)
+
+		reimported = read_csv_content(exported)
+		self.assertEqual(reimported, rows)
+
+		# a second export/import cycle must not accumulate extra quote markers
+		reexported = to_csv(reimported)
+		self.assertEqual(reexported, exported)
+		self.assertEqual(read_csv_content(reexported), rows)
+
 
 class TestLinkTitle(IntegrationTestCase):
 	def test_link_title_doctypes_in_boot_info(self):
@@ -1243,6 +1665,71 @@ class TestLinkTitle(IntegrationTestCase):
 
 		self.assertTrue(f"{user.doctype}::{user.name}" in link_titles)
 		self.assertEqual(link_titles[f"{user.doctype}::{user.name}"], user.full_name)
+
+		todo.delete()
+		user.delete()
+		prop_setter.delete()
+
+	def test_link_title_of_missing_document(self):
+		"""
+		Test that a link value with no target returns the docname without raising
+		"""
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "User",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		from frappe.desk.search import get_link_title
+
+		frappe.clear_messages()
+		self.assertEqual(get_link_title("User", "meera.iyer@example.com"), "meera.iyer@example.com")
+		self.assertEqual(frappe.get_message_log(), [])
+
+		prop_setter.delete()
+
+	def test_link_title_without_read_permission(self):
+		"""
+		Test that a link to a document the user cannot read returns the docname without raising
+		"""
+		prop_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doc_type": "ToDo",
+				"property": "show_title_field_in_link",
+				"property_type": "Check",
+				"doctype_or_field": "DocType",
+				"value": "1",
+			}
+		).insert()
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"user_type": "Website User",
+				"email": "arjun.nair@example.com",
+				"send_welcome_email": 0,
+				"first_name": "Arjun",
+			}
+		).insert(ignore_permissions=True)
+
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Renew the Contoso support contract"}
+		).insert()
+
+		from frappe.desk.search import get_link_title
+
+		self.assertEqual(get_link_title("ToDo", todo.name), todo.description)
+
+		frappe.clear_messages()
+		with self.set_user(user.name):
+			self.assertEqual(get_link_title("ToDo", todo.name), todo.name)
+		self.assertEqual(frappe.get_message_log(), [])
 
 		todo.delete()
 		user.delete()
@@ -1495,7 +1982,7 @@ class TestTypingValidations(IntegrationTestCase):
 
 
 class TestTBSanitization(IntegrationTestCase):
-	def test_traceback_sanitzation(self):
+	def test_traceback_sanitization(self):
 		handle = io.BufferedWriter(io.BytesIO())
 		try:
 			password = "424242"  # noqa: F841
@@ -1503,7 +1990,8 @@ class TestTBSanitization(IntegrationTestCase):
 			args = frappe._dict(values)  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 		finally:
 			handle.close()
 
@@ -1512,6 +2000,88 @@ class TestTBSanitization(IntegrationTestCase):
 		self.assertIn("********", traceback)
 		self.assertIn("password =", traceback)
 		self.assertIn("safe_value", traceback)
+
+	def test_sanitization_catches_keys_not_matching_blocklist_exactly(self):
+		try:
+			headers = {"Authorization": "Token super-secret-value"}  # noqa: F841
+			config = frappe._dict({"stripe_secret_key": "sk_live_should_not_leak", "other": "val"})  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertNotIn("super-secret-value", traceback)
+		self.assertNotIn("sk_live_should_not_leak", traceback)
+		self.assertIn("val", traceback)  # the unrelated "other" key must survive
+
+	def test_sanitization_is_case_insensitive(self):
+		try:
+			PASSWORD = "should_be_masked_now"  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("Traceback with variables", traceback)  # with_context genuinely activated
+		self.assertNotIn("should_be_masked_now", traceback)
+
+	def test_sanitization_masks_session_id(self):
+		try:
+			sid = "super-secret-session-id"  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("Traceback with variables", traceback)  # with_context genuinely activated
+		self.assertNotIn("super-secret-session-id", traceback)
+
+	def test_sanitization_exact_match_rule_does_not_over_match(self):
+		try:
+			inside = "should_be_visible"  # noqa: F841
+			consider = "should_be_visible"  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("should_be_visible", traceback)
+
+	def test_sanitization_hides_object_attributes(self):
+		class Connection:
+			def __init__(self):
+				self.password = "should_not_leak"
+
+		try:
+			connection = Connection()  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("connection =", traceback)
+		self.assertNotIn("should_not_leak", traceback)
+
+	def test_get_traceback_with_context_only_active_in_developer_mode(self):
+		def boom():
+			marker = "visible-marker"  # noqa: F841
+			raise ValueError("boom")
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			try:
+				boom()
+			except ValueError:
+				traceback = frappe.get_traceback(with_context=True)
+		self.assertNotIn("visible-marker", traceback)
+		self.assertNotIn("Traceback with variables", traceback)
+
+		with patch.dict(frappe.conf, {"developer_mode": 1}):
+			try:
+				boom()
+			except ValueError:
+				traceback = frappe.get_traceback(with_context=True)
+		self.assertIn("visible-marker", traceback)
+		self.assertIn("Traceback with variables", traceback)
 
 
 class TestRounding(IntegrationTestCase):
@@ -1550,6 +2120,27 @@ class TestRounding(IntegrationTestCase):
 		self.assertEqual(flt(2.5, 0, rounding_method=method), 2)
 		self.assertEqual(flt(-0.5, 0, rounding_method=method), 0)
 		self.assertEqual(flt(2.675, 2, rounding_method=method), 2.68)
+
+	def test_rounding_does_not_inflate_exactly_representable_values(self):
+		self.assertEqual(flt(9750000.0, 9, rounding_method="Commercial Rounding"), 9750000.0)
+		self.assertEqual(flt(6500000.0, 9, rounding_method="Commercial Rounding"), 6500000.0)
+		self.assertEqual(flt(26509905246072.0, 2, rounding_method="Commercial Rounding"), 26509905246072.0)
+		self.assertEqual(flt(26509905246072.01, 2, rounding_method="Banker's Rounding"), 26509905246072.01)
+
+	def test_commercial_rounding_breaks_representable_ties_away_from_zero(self):
+		# Past 2**50 floats are spaced 0.25 apart, so a .5 tie is exactly representable.
+		method = "Commercial Rounding"
+		self.assertEqual(flt(2**50 + 0.5, 0, rounding_method=method), 2**50 + 1)
+		self.assertEqual(flt(-(2**50) - 0.5, 0, rounding_method=method), -(2**50) - 1)
+
+	@given(
+		st.sampled_from(["Commercial Rounding", "Banker's Rounding"]),
+		st.floats(min_value=-1e14, max_value=1e14, allow_nan=False, allow_infinity=False),
+		st.integers(min_value=0, max_value=9),
+	)
+	def test_rounding_is_idempotent(self, rounding_method, number, precision):
+		rounded_once = flt(number, precision, rounding_method=rounding_method)
+		self.assertEqual(flt(rounded_once, precision, rounding_method=rounding_method), rounded_once)
 
 	@IntegrationTestCase.change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	@given(
@@ -1646,8 +2237,79 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 		with self.assertRaises(FrappeTypeError):
 			test_mocks(1)
 
+	def test_validate_string_annotations(self):
+		@validate_argument_types
+		def test_strings(name: "str", count: "int | None" = None, other: "Undefined" = None):  # noqa: F821
+			return name, count, other
+
+		self.assertEqual(test_strings("a", "1"), ("a", 1, None))
+		with self.assertRaises(FrappeTypeError):
+			test_strings({"name": ("like", "%")})
+
+		# unresolvable forward refs are not validated
+		obj = object()
+		self.assertEqual(test_strings("a", other=obj), ("a", None, obj))
+
+		@validate_argument_types
+		def test_nested(docs: "str | list[dict | Undefined]"):  # noqa: F821
+			return docs
+
+		self.assertEqual(test_nested([obj]), [obj])
+
+	def test_skip_invalid_string_annotation(self):
+		@validate_argument_types
+		def test_invalid(name: "free text"):
+			return name
+
+		self.assertEqual(test_invalid({"a": 1}), {"a": 1})
+
+	def test_whitelisted_method_validates_string_annotations(self):
+		from frappe.handler import execute_cmd
+
+		# document_follow uses `from __future__ import annotations`, so its annotations are strings
+		form_dict = frappe._dict(doctype="ToDo", doc_name={"owner": "Administrator"})
+		with (
+			self.set_user("test@example.com"),
+			patch.object(frappe.local, "request", frappe._dict(method="POST"), create=True),
+			patch.object(frappe.local, "form_dict", form_dict),
+		):
+			self.assertRaises(
+				FrappeTypeError, execute_cmd, "frappe.desk.form.document_follow.follow_document"
+			)
+
+	def test_validate_literal(self):
+		@validate_argument_types
+		def test_literal(kind: Literal["a", "b"]):
+			return kind
+
+		self.assertEqual(test_literal("a"), "a")
+		with self.assertRaises(FrappeTypeError):
+			test_literal("c")
+
 
 class TestChangeLog(IntegrationTestCase):
+	def test_parse_latest_non_beta_release_skips_invalid_tags(self):
+		from semantic_version import Version
+
+		current_version = Version("16.28.0")
+		self.assertEqual(
+			parse_latest_non_beta_release(
+				[
+					{"tag_name": "v14-baseline"},
+					{"tag_name": "v16.29.0"},
+					{"tag_name": "v16.30.0", "prerelease": True},
+				],
+				current_version,
+			),
+			"16.29.0",
+		)
+		self.assertIsNone(parse_latest_non_beta_release([{"tag_name": "v14-baseline"}], current_version))
+		self.assertEqual(
+			parse_latest_non_beta_release([{"tag_name": "v16.29.0-dev"}], current_version),
+			"16.29.0-dev",
+		)
+		self.assertIsNone(parse_latest_non_beta_release([{"tag_name": "vv16.29.0"}], current_version))
+
 	def test_get_remote_url(self):
 		self.assertIsInstance(get_source_url("frappe"), str)
 
@@ -1670,6 +2332,28 @@ class TestChangeLog(IntegrationTestCase):
 		self.assertIsNone(repo)
 
 		self.assertRaises(ValueError, parse_github_url, remote_url=None)
+
+	def test_check_for_update_skips_develop_branch(self):
+		from semantic_version import Version
+
+		versions = {
+			"on_develop": {"title": "On Develop", "branch_version": "develop"},
+			"released": {"title": "Released", "version": "1.0.0"},
+		}
+		with (
+			patch("frappe.get_system_settings", return_value=0),
+			patch("frappe.is_setup_complete", return_value=True),
+			patch("frappe.utils.change_log.get_versions", return_value=versions),
+			patch("frappe.utils.change_log.get_source_url", return_value="https://github.com/frappe/app"),
+			patch(
+				"frappe.utils.change_log.check_release_on_github", return_value=(Version("2.0.0"), "frappe")
+			),
+			patch("frappe.utils.change_log.security_issues_count", return_value=0),
+			patch("frappe.utils.change_log.add_message_to_redis"),
+		):
+			updates = check_for_update()
+
+		self.assertEqual([u.app_name for u in updates.major], ["released"])
 
 
 class TestCrypto(IntegrationTestCase):

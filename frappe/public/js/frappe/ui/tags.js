@@ -123,11 +123,8 @@ frappe.ui.Tags = class {
 			title: label,
 		});
 
-		// wrap the label text so truncation can engage (a bare text node in a
-		// flex container can't ellipsize); also the onTagClick target
-		$tag.contents()
-			.filter((_, node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
-			.wrap('<span class="pill-label ellipsis"></span>');
+		// the badge's label span; also the onTagClick target
+		$tag.find(".es-badge__label").addClass("pill-label ellipsis");
 
 		// the ✕ is the only click target — the badge itself stays inert
 		const $remove = $tag.find(".es-badge__affix");

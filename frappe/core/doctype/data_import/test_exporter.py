@@ -2,10 +2,34 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.data_import.exporter import Exporter
+from frappe.core.doctype.data_import.import_provider import ImportProvider
+from frappe.core.doctype.data_import.importer import build_fields_dict_for_column_matching
 from frappe.core.doctype.data_import.test_importer import create_doctype_if_not_exists
+from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.tests import IntegrationTestCase
 
 doctype_name = "DocType for Export"
+
+
+class ContactImportProvider(ImportProvider):
+	def get_import_fields(self):
+		return {
+			"fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+			"child_tables": [
+				{
+					"fieldname": "contacts",
+					"label": "Contact",
+					"fields": [
+						{"fieldname": "email_id", "label": "Email", "fieldtype": "Data", "parent": "Contact"}
+					],
+				}
+			],
+		}
+
+
+class ContactExportProvider(ContactImportProvider):
+	def get_export_rows(self, names, tables):
+		return {name: {"contacts": [{"email_id": f"{i}@example.com"} for i in range(2)]} for name in names}
 
 
 class TestExporter(IntegrationTestCase):
@@ -98,3 +122,82 @@ class TestExporter(IntegrationTestCase):
 		self.assertTrue(frappe.response["result"])
 		self.assertEqual(frappe.response["doctype"], doctype_name)
 		self.assertEqual(frappe.response["type"], "csv")
+
+	def test_export_respects_child_field_permissions(self):
+		child_doctype = f"Child 1 of {doctype_name}"
+		test_doc = "_Test Permission Export"
+		frappe.delete_doc_if_exists(doctype_name, test_doc)
+		self.addCleanup(frappe.delete_doc_if_exists, doctype_name, test_doc)
+		self.addCleanup(reset, doctype_name)
+		self.addCleanup(frappe.clear_cache, doctype=child_doctype)
+		self.addCleanup(
+			frappe.db.set_value,
+			"DocField",
+			{"parent": child_doctype, "fieldname": "child_description"},
+			"permlevel",
+			0,
+		)
+		frappe.db.set_value(
+			"DocField",
+			{"parent": child_doctype, "fieldname": "child_description"},
+			"permlevel",
+			1,
+		)
+		add(doctype_name, "All", 0)
+		update(doctype_name, "All", 0, "read", 1)
+		update(doctype_name, "All", 0, "export", 1)
+		frappe.clear_cache(doctype=doctype_name)
+		frappe.clear_cache(doctype=child_doctype)
+
+		frappe.get_doc(
+			doctype=doctype_name,
+			title=test_doc,
+			table_field_1=[{"child_title": "Visible Value", "child_description": "Restricted Value"}],
+		).insert()
+
+		with self.set_user("test@example.com"):
+			exporter = Exporter(
+				doctype_name,
+				export_fields={
+					doctype_name: ["title"],
+					"table_field_1": ["child_title", "child_description"],
+				},
+				export_data=True,
+			)
+
+		export = exporter.get_csv_array()
+		self.assertIn("Child Title (Table Field 1)", export[0])
+		self.assertNotIn("Child Description (Table Field 1)", export[0])
+		self.assertNotIn("Restricted Value", str(export))
+
+	def test_template_includes_import_provider_tables(self):
+		test_doc = "_Test Provider Export"
+		frappe.delete_doc_if_exists(doctype_name, test_doc)
+		self.addCleanup(frappe.delete_doc_if_exists, doctype_name, test_doc)
+		self.addCleanup(reset, doctype_name)
+		add(doctype_name, "All", 0)
+		update(doctype_name, "All", 0, "read", 1)
+		update(doctype_name, "All", 0, "export", 1)
+		frappe.get_doc(doctype=doctype_name, title=test_doc).insert()
+
+		def export_with(provider):
+			hooks = {"data_import_providers": {doctype_name: [f"{__name__}.{provider}"]}}
+			with self.patch_hooks(hooks), self.set_user("test@example.com"):
+				export = Exporter(
+					doctype_name,
+					export_fields={doctype_name: ["title"], "contacts": ["email_id"]},
+					export_data=True,
+					export_filters={"name": test_doc},
+				).get_csv_array()
+				columns = build_fields_dict_for_column_matching(doctype_name)
+			self.assertEqual(export[0], ["Title", "Email (Contact)"])
+			self.assertIn("Email (Contact)", columns)
+			return export[1:]
+
+		# a provider that doesn't supply export rows leaves the column blank
+		self.assertEqual(export_with("ContactImportProvider"), [[test_doc, ""]])
+		# one that does fills a row per contact, the first beside the record
+		self.assertEqual(
+			export_with("ContactExportProvider"),
+			[[test_doc, "0@example.com"], ["", "1@example.com"]],
+		)

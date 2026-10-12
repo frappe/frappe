@@ -3,7 +3,6 @@ class PDFTransformer:
 		self.browser = browser
 		self.body_pdf = browser.body_pdf
 		self.is_print_designer = browser.is_print_designer
-		self.encrypt_password = self.browser.options.get("password", None)
 		self._set_header_pdf()
 		self._set_footer_pdf()
 		if not self.header_pdf and not self.footer_pdf:
@@ -31,8 +30,13 @@ class PDFTransformer:
 		footer = self.footer_pdf
 
 		if not header and not footer:
-			if self.encrypt_password:
-				return self._encrypt_raw(body)
+			if output:
+				from io import BytesIO
+
+				from pypdf import PdfReader
+
+				output.append_pages_from_reader(PdfReader(BytesIO(body)))
+				return output
 			return body
 
 		body_height = body.pages[0].mediabox.top
@@ -51,10 +55,11 @@ class PDFTransformer:
 		# footer and its mediabox restored to the full paper height
 		page_top = header_height + body_height + footer_height
 
-		# Static headers: pre-transform all pages once.
-		# Dynamic headers: transform each page inline (once per body page).
-		# This matches print_designer's pdf_merge.py exactly.
-		if header and not self.is_header_dynamic:
+		# Pre-transform every header page exactly once. A dynamic header can have
+		# fewer pages than the body (pagination rounding), so the merge below
+		# clamps the index like the footer path — transforming inline there would
+		# translate a clamped page multiple times.
+		if header:
 			for h in header.pages:
 				self._transform(h, page_top, header_transform)
 
@@ -63,7 +68,7 @@ class PDFTransformer:
 
 			if header:
 				if self.is_header_dynamic:
-					p.merge_page(self._transform(header.pages[p.page_number], page_top, header_transform))
+					p.merge_page(header.pages[min(p.page_number, len(header.pages) - 1)])
 				elif self.is_print_designer:
 					if p.page_number == 0:
 						p.merge_page(header.pages[0])
@@ -98,19 +103,7 @@ class PDFTransformer:
 
 		writer = PdfWriter()
 		writer.append_pages_from_reader(body)
-		if self.encrypt_password:
-			writer.encrypt(self.encrypt_password)
 
-		return self.get_file_data_from_writer(writer)
-
-	def _encrypt_raw(self, body):
-		from io import BytesIO
-
-		from pypdf import PdfReader, PdfWriter
-
-		writer = PdfWriter()
-		writer.append_pages_from_reader(PdfReader(BytesIO(body)))
-		writer.encrypt(self.encrypt_password)
 		return self.get_file_data_from_writer(writer)
 
 	def _transform(self, page, page_top, ty):

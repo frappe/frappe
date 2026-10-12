@@ -2,13 +2,27 @@
 // `add_menu_item()` without one lands after the built-ins but before Logout.
 const DEFAULT_MENU_ITEM_ORDER = 50;
 
+// One avatar-menu entry as a frappe.ui.Dropdown row.
+//
+// Rows apps contribute through `add_menu_item()` were written against the menu this one replaced,
+// so its key names are still accepted alongside the component's own: `onClick` for `onclick`,
+// `url` for `href`. Labels arrive untranslated here, as they always have.
+function menu_row(item) {
+	const row = { label: __(item.label), icon: item.icon, condition: item.condition };
+	const href = item.href || item.url;
+	if (href) row.href = href;
+	const onclick = item.onclick || item.onClick;
+	if (onclick) row.onclick = onclick;
+	return row;
+}
+
 frappe.pages["desktop"].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: "Desktop",
 		single_column: true,
 		hide_sidebar: true,
-		hide_workspace_dock: true,
+		hide_dock: true,
 	});
 
 	// Desktop Settings -> Desktop Page picks which grid renders here. `Desktop Icons` is the
@@ -41,6 +55,14 @@ class DesktopPage {
 		// re-running setup would stack another modal + handler and open duplicate
 		// dialogs on Ctrl+K. Keep this flag out of `make()` so it survives navigation.
 		this.awesomebar_setup = false;
+		// An app's title is cut to one line with an ellipsis; name it in full on hover, but only
+		// when it was actually cut. Delegated on the page body, which outlives every re-render in
+		// `make()`, so this is set up once.
+		frappe.ui.Tooltip.delegate(this.page.body, ".icon-title", {
+			only_on_overflow: true,
+			side: "bottom",
+			delay: 150,
+		});
 	}
 	update() {
 		this.make();
@@ -61,16 +83,20 @@ class DesktopPage {
 		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
 		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
 		// always trails. Ties keep installed-apps order since sort() is stable.
-		// An app that ships no workspaces declares no route either; it opens on its first module
-		// sidebar instead (see app_landing_route), so resolve the destination before filtering out
-		// the apps that have nowhere to go.
+		// The destination is the landing ladder: the route the app declares, then its first
+		// visible rail entry, then its first navigable module (see app_landing_route).
+		//
+		// An app that resolves to none of the three keeps its icon. It used to be filtered out,
+		// which was tolerable while every app's rail was every module it owned. Now that a rail
+		// is exactly the record an app ships, a dock-less app would have had no rail and no icon,
+		// so no way in at all. The icon leads to the desk's root, which is somewhere rather than
+		// nowhere.
 		const apps = (frappe.boot.app_data || [])
 			.filter((app) => app.on_apps_screen)
 			.map((app) => ({
 				...app,
-				route: frappe.app.sidebar?.app_landing_route(app) || app.app_route,
+				route: frappe.app.sidebar?.app_landing_route(app) || app.app_route || "/desk",
 			}))
-			.filter((app) => app.route)
 			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
 
 		const $container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
@@ -85,16 +111,24 @@ class DesktopPage {
 			const icon_data = {
 				label: app.app_title,
 				logo_url: app.app_logo_url,
+				// A route into the desk for an app whose own UI isn't the desk, declared as
+				// `desk_route` on its `add_to_apps_screen` hook. Empty for a desk-native app,
+				// which renders no subtitle.
+				desk_route: app.desk_route,
 			};
-			const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
-			if (app.route.startsWith("http")) {
-				$icon.attr("target", "_blank");
-			}
-			$icon.attr("href", app.route);
-			$grid.append($icon);
+			this.add_icon($grid, icon_data, app.route);
 		});
-
-		$('[data-toggle="tooltip"]').tooltip({ placement: "bottom" });
+	}
+	add_icon($grid, icon_data, route) {
+		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
+		// The tile is a <div> so the "Open in Desk" subtitle can be its own link; the logo and
+		// the title are the two anchors that lead to the app itself.
+		const $app_links = $icon.find(".icon-link, .icon-title");
+		if (route.startsWith("http")) {
+			$app_links.attr("target", "_blank");
+		}
+		$app_links.attr("href", route);
+		$grid.append($icon);
 	}
 	setup() {
 		$(document).trigger("desktop_screen", { desktop: this });
@@ -205,7 +239,7 @@ class DesktopPage {
 	setup_notifications() {
 		this.notifications = new frappe.ui.Notifications({
 			wrapper: $(".desktop-notifications"),
-			full_height: false,
+			popover: true,
 		});
 	}
 	setup_avatar() {
@@ -221,7 +255,7 @@ class DesktopPage {
 			{
 				icon: is_dark ? "sun" : "moon",
 				label: "Toggle Theme",
-				onClick: function () {
+				onclick: function () {
 					new frappe.ui.ThemeSwitcher().show();
 				},
 				order: 20,
@@ -229,7 +263,7 @@ class DesktopPage {
 			{
 				icon: "info",
 				label: "About",
-				onClick: function () {
+				onclick: function () {
 					return frappe.ui.toolbar.show_about();
 				},
 				order: 30,
@@ -237,7 +271,7 @@ class DesktopPage {
 			{
 				icon: "life-buoy",
 				label: "Frappe Support",
-				onClick: function () {
+				onclick: function () {
 					window.open("https://support.frappe.io/help", "_blank");
 				},
 				order: 40,
@@ -251,16 +285,16 @@ class DesktopPage {
 		menu_items.push({
 			icon: "log-out",
 			label: "Logout",
-			onClick: function () {
+			onclick: function () {
 				frappe.app.logout();
 			},
 		});
-		frappe.ui.create_menu({
-			parent: $(".desktop-avatar"),
-			menu_items: menu_items,
-			// If it's RTL, we want it to open on the right (false);
-			// if it's LTR, we want it to open on the left (true).
-			open_on_left: !frappe.utils.is_rtl(),
+		new frappe.ui.Dropdown({
+			trigger: $(".desktop-avatar"),
+			// The avatar sits at the end of the header, so the menu hangs back under it.
+			// "end" is the logical edge, which the component mirrors under RTL.
+			align: "end",
+			options: menu_items.map(menu_row),
 		});
 	}
 	// `item.order` is optional; lower sorts higher up the menu. Built-ins occupy
@@ -300,6 +334,9 @@ class DesktopPage {
 		}
 	}
 	handle_route_change() {
+		// setup() runs on every render, but one listener is enough
+		if (this.route_change_bound) return;
+		this.route_change_bound = true;
 		const me = this;
 		frappe.router.on("change", function () {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
@@ -310,3 +347,6 @@ class DesktopPage {
 		});
 	}
 }
+
+// The Desktop Icons grid in desktop_icons.bundle.js extends this page, so both modes share it.
+frappe.ui.DesktopPage = DesktopPage;

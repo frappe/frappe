@@ -14,6 +14,7 @@ from collections.abc import Iterator
 
 import frappe
 from frappe import _
+from frappe.core.doctype.user_permission.user_permission import clear_descendant_user_permissions
 from frappe.model.document import Document
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Coalesce, Max
@@ -48,6 +49,7 @@ def update_nsm(doc):
 	if hasattr(doc, "nsm_oldparent_field"):
 		old_parent_field = doc.nsm_oldparent_field
 
+	restore_nsm_fields(doc, old_parent_field)
 	parent, old_parent = doc.get(parent_field) or None, doc.get(old_parent_field) or None
 
 	# has parent changed (?) or parent is None (root)
@@ -60,8 +62,22 @@ def update_nsm(doc):
 	doc.set(old_parent_field, parent)
 	frappe.db.set_value(doc.doctype, doc.name, old_parent_field, parent or "", update_modified=False)
 	frappe.clear_document_cache(doc.doctype)
+	if old_parent != parent:
+		clear_descendant_user_permissions(doc.doctype)
 
 	doc.reload()
+
+
+def restore_nsm_fields(doc, old_parent_field):
+	"""Replace lft, rgt and old parent sent by the client with the saved values."""
+	if doc.flags.in_insert:
+		saved = frappe._dict(lft=0, rgt=0)
+	elif not (saved := doc.get_doc_before_save()):
+		return  # not a save, e.g. on_trash
+
+	doc.lft, doc.rgt = saved.lft, saved.rgt
+	doc.set(old_parent_field, saved.get(old_parent_field))
+	frappe.db.set_value(doc.doctype, doc.name, {"lft": doc.lft, "rgt": doc.rgt}, update_modified=False)
 
 
 def update_add_node(doc, parent, parent_field):
@@ -271,19 +287,6 @@ class NestedSet(Document):
 	def __setup__(self):
 		if self.meta.get("nsm_parent_field"):
 			self.nsm_parent_field = self.meta.nsm_parent_field
-
-	def after_insert(self):
-		if (
-			frappe.flags.in_import
-			or frappe.flags.in_patch
-			or frappe.flags.in_migrate
-			or frappe.flags.in_install
-		):
-			return
-
-		# Clear user permissions cache, otherwise user can't access the new document
-		if frappe.db.exists("User Permission", {"user": frappe.session.user, "allow": self.doctype}):
-			frappe.cache.hdel("user_permissions", frappe.session.user)
 
 	def on_update(self):
 		update_nsm(self)

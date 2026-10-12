@@ -21,7 +21,7 @@
 		</div>
 		<input
 			type="text"
-			class="pfb-insp-input"
+			class="form-control form-control-sm pfb-insp-input"
 			:placeholder="__('or image URL')"
 			:value="modelValue"
 			@change="$emit('update:modelValue', $event.target.value.trim())"

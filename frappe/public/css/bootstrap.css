@@ -191,7 +191,6 @@ th {
   *,
   *:before,
   *:after {
-    color: #000;
     background: transparent;
     text-shadow: none !important;
     -webkit-box-shadow: none !important;

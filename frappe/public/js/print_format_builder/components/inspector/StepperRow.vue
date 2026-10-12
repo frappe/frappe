@@ -1,6 +1,5 @@
 <template>
-	<div class="pfb-insp-row">
-		<span class="pfb-insp-label">{{ label }}</span>
+	<InspectorRow :label="label">
 		<Stepper
 			:value="modelValue ?? ''"
 			:placeholder="placeholder"
@@ -9,11 +8,12 @@
 			@increment="adjust(step)"
 			@input="on_input"
 		/>
-	</div>
+	</InspectorRow>
 </template>
 
 <script setup>
 import Stepper from "./Stepper.vue";
+import InspectorRow from "./InspectorRow.vue";
 
 const props = defineProps({
 	label: { type: String, required: true },

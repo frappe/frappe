@@ -6,12 +6,23 @@ from unittest.mock import patch
 
 import frappe
 import frappe.recorder
-from frappe.core.doctype.recorder.recorder import _optimize_query, serialize_request
+from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.recorder.recorder import (
+	_fetch_postgres_table_indexes,
+	_fetch_table_stats,
+	_get_column_cardinality,
+	_optimize_query,
+	serialize_request,
+)
 from frappe.query_builder.utils import db_type_is
 from frappe.recorder import get as get_recorder_data
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.test_query_builder import run_only_if, unimplemented_for
 from frappe.utils import set_request
+
+
+def sample_timeline_hook(doctype, docname):
+	return [{"x": 1}]
 
 
 class TestRecorder(IntegrationTestCase):
@@ -119,6 +130,26 @@ class TestRecorder(IntegrationTestCase):
 		request = frappe.get_doc("Recorder", frappe.get_all("Recorder")[0].name)
 		self.assertEqual(len(request.timeline), 0)
 
+	def test_timeline_records_hook_handlers(self):
+		from frappe.desk.form.load import get_additional_timeline_content
+
+		hooks = {"additional_timeline_content": {"*": [f"{__name__}.sample_timeline_hook"]}}
+		with patch.object(frappe, "get_hooks", return_value=hooks):
+			self.start_recoder()
+			frappe.db.rollback()
+			contents = get_additional_timeline_content("ToDo", "TODO-1")
+		self.stop_recorder()
+
+		del frappe.local._recorder
+		self.assertIs(frappe.get_attr(f"{__name__}.sample_timeline_hook"), sample_timeline_hook)
+		self.assertEqual(contents, [{"x": 1}])
+		request = frappe.get_doc("Recorder", frappe.get_all("Recorder")[0].name)
+		event = next(e for e in request.timeline if e.method == "additional_timeline_content")
+		self.assertEqual(event.ref_doctype, "ToDo")
+		self.assertEqual(event.ref_name, "TODO-1")
+		self.assertEqual(event.apps, "frappe")
+		self.assertEqual(event.handlers, f"{__name__}.sample_timeline_hook")
+
 	def test_timeline_attributes_server_scripts_and_webhooks(self):
 		# run_method also runs DocType Event server scripts and webhooks; both should be
 		# attributed in the timeline, not just app doc_events hooks.
@@ -203,17 +234,53 @@ class TestRecorder(IntegrationTestCase):
 
 
 class TestQueryOptimization(IntegrationTestCase):
-	@run_only_if(db_type_is.MARIADB)
+	@run_only_if(db_type_is.POSTGRES)
+	def test_expression_index_does_not_hide_column_candidate(self):
+		query = "select name from \"tabUser\" where email='xyz'"
+		self.assertEqual(_optimize_query(query).column, "email")
+		frappe.db.savepoint("recorder_expression_index")
+		try:
+			frappe.db.sql(
+				'CREATE INDEX "test_recorder_expression_index" ON "tabUser" (lower(first_name), email)'
+			)
+			indexes = _fetch_postgres_table_indexes("tabUser")
+			self.assertNotIn("test_recorder_expression_index", [index.name for index in indexes])
+			self.assertEqual(_optimize_query(query).column, "email")
+		finally:
+			frappe.db.rollback(save_point="recorder_expression_index")
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_cardinality_quotes_reserved_column(self):
+		doctype = "Test Recorder Cardinality"
+		frappe.delete_doc_if_exists("DocType", doctype, force=True)
+		try:
+			new_doctype(doctype, fields=[{"fieldname": "user", "label": "User", "fieldtype": "Data"}]).insert(
+				ignore_permissions=True
+			)
+			for value in range(5):
+				frappe.get_doc(doctype=doctype, user=f"user_{value}").insert(ignore_permissions=True)
+			table = frappe.qb.DocType(doctype)
+			_get_column_cardinality.clear_cache()
+			stats = _fetch_table_stats(doctype, ["user"])
+			user_column = next(column for column in stats["schema"] if column["column"] == "user")
+			self.assertEqual(user_column["cardinality"], 5)
+			query = frappe.qb.from_(table).select(table.name).where(table.user == "user_0")
+			self.assertEqual(_optimize_query(query.get_sql()).column, "user")
+		finally:
+			frappe.delete_doc_if_exists("DocType", doctype, force=True)
+
+	@unimplemented_for(db_type_is.SQLITE)
 	def test_query_optimizer(self):
-		suggested_index = _optimize_query(
-			"""select name from
-			`tabUser` u
-			join `tabHas Role` r
-			on r.parent = u.name
-			where email='xyz'
-			and creation > '2023'
-			and bio like '%xyz%'
-			"""
-		)
-		self.assertEqual(suggested_index.table, "tabUser")
-		self.assertEqual(suggested_index.column, "email")
+		for quote in ('"', "`"):
+			with self.subTest(quote=quote):
+				suggested_index = _optimize_query(
+					f"""select name from
+					{quote}tabUser{quote} u
+					join {quote}tabHas Role{quote} r
+					on r.parent = u.name
+					where email='xyz'
+					and bio like '%xyz%'
+					"""
+				)
+				self.assertEqual(suggested_index.table, "tabUser")
+				self.assertEqual(suggested_index.column, "email")

@@ -20,6 +20,18 @@ app.module.patch2
 app.module.patch3
 
 """
+FILLED_SECTIONS_WITH_POST_FIXTURE_SYNC = """
+[pre_model_sync]
+app.module.patch1
+app.module.patch2
+
+[post_model_sync]
+app.module.patch3
+
+[post_fixture_sync]
+app.module.patch4
+
+"""
 OLD_STYLE_PATCH_TXT = """
 app.module.patch1
 app.module.patch2
@@ -65,11 +77,14 @@ class TestPatches(IntegrationTestCase):
 	def test_get_patch_list(self):
 		pre = patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.pre_model_sync)
 		post = patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_model_sync)
+		post_fixture = patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_fixture_sync)
 		all_patches = patch_handler.get_patches_from_app("frappe")
 		self.assertGreater(len(pre), 0)
 		self.assertGreater(len(post), 0)
+		# frappe's own patches.txt doesn't (yet) use this optional section
+		self.assertEqual(post_fixture, [])
 
-		self.assertEqual(len(all_patches), len(pre) + len(post))
+		self.assertEqual(len(all_patches), len(pre) + len(post) + len(post_fixture))
 
 	def test_all_patches_are_marked_completed(self):
 		all_patches = patch_handler.get_patches_from_app("frappe")
@@ -78,31 +93,76 @@ class TestPatches(IntegrationTestCase):
 		self.assertGreaterEqual(finished_patches, len(all_patches))
 
 
+class TestNeverSkipPatches(IntegrationTestCase):
+	NEVER_SKIP = "app.module.critical_patch"
+
+	def run_all(self, patches):
+		"""run `patches` with --skip-failing, all of them failing
+
+		`self.skipped` holds the patches that were logged as skipped."""
+		self.skipped = skipped = []
+
+		with (
+			patch.object(patch_handler, "get_all_patches", return_value=patches),
+			patch.object(patch_handler, "run_single", side_effect=Exception("patch failed")),
+			patch.object(patch_handler, "update_patch_log", side_effect=lambda p, **kw: skipped.append(p)),
+			patch.object(frappe, "get_hooks", return_value=[self.NEVER_SKIP]),
+			patch.object(frappe, "get_all", return_value=[]),
+		):
+			patch_handler.run_all(skip_failing=True)
+
+	def test_failing_patch_is_skipped(self):
+		self.run_all(["app.module.patch1"])
+		self.assertEqual(self.skipped, ["app.module.patch1"])
+
+	def test_never_skip_patch_stops_migration(self):
+		with self.assertRaises(Exception):
+			self.run_all([self.NEVER_SKIP])
+
+		self.assertEqual(self.skipped, [])
+
+	def test_never_skip_patch_is_matched_with_prefix_and_arguments(self):
+		with self.assertRaises(Exception):
+			self.run_all([f"finally:{self.NEVER_SKIP} #2"])
+
+		self.assertEqual(self.skipped, [])
+
+	def test_migration_stops_at_the_never_skip_patch(self):
+		with self.assertRaises(Exception):
+			self.run_all(["app.module.patch1", self.NEVER_SKIP, "app.module.patch2"])
+
+		# patch1 was skipped, patch2 never got a chance to run
+		self.assertEqual(self.skipped, ["app.module.patch1"])
+
+
 class TestPatchReader(IntegrationTestCase):
 	def get_patches(self):
 		return (
 			patch_handler.get_patches_from_app("frappe"),
 			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.pre_model_sync),
 			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_model_sync),
+			patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_fixture_sync),
 		)
 
 	@patch("builtins.open", new_callable=mock_open, read_data=EMTPY_FILE)
 	def test_empty_file(self, _file):
-		all, pre, post = self.get_patches()
+		all, pre, post, post_fixture = self.get_patches()
 		self.assertEqual(all, [])
 		self.assertEqual(pre, [])
 		self.assertEqual(post, [])
+		self.assertEqual(post_fixture, [])
 
 	@patch("builtins.open", new_callable=mock_open, read_data=EMTPY_SECTION)
 	def test_empty_sections(self, _file):
-		all, pre, post = self.get_patches()
+		all, pre, post, post_fixture = self.get_patches()
 		self.assertEqual(all, [])
 		self.assertEqual(pre, [])
 		self.assertEqual(post, [])
+		self.assertEqual(post_fixture, [])
 
 	@patch("builtins.open", new_callable=mock_open, read_data=FILLED_SECTIONS)
 	def test_new_style(self, _file):
-		all, pre, post = self.get_patches()
+		all, pre, post, post_fixture = self.get_patches()
 		self.assertEqual(all, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2"])
 		self.assertEqual(
@@ -111,17 +171,31 @@ class TestPatchReader(IntegrationTestCase):
 				"app.module.patch3",
 			],
 		)
+		# section is optional and missing here, must not raise
+		self.assertEqual(post_fixture, [])
+
+	@patch("builtins.open", new_callable=mock_open, read_data=FILLED_SECTIONS_WITH_POST_FIXTURE_SYNC)
+	def test_new_style_with_post_fixture_sync(self, _file):
+		all, pre, post, post_fixture = self.get_patches()
+		self.assertEqual(
+			all,
+			["app.module.patch1", "app.module.patch2", "app.module.patch3", "app.module.patch4"],
+		)
+		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2"])
+		self.assertEqual(post, ["app.module.patch3"])
+		self.assertEqual(post_fixture, ["app.module.patch4"])
 
 	@patch("builtins.open", new_callable=mock_open, read_data=OLD_STYLE_PATCH_TXT)
 	def test_old_style(self, _file):
-		all, pre, post = self.get_patches()
+		all, pre, post, post_fixture = self.get_patches()
 		self.assertEqual(all, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(post, [])
+		self.assertEqual(post_fixture, [])
 
 	@patch("builtins.open", new_callable=mock_open, read_data=EDGE_CASES)
 	def test_new_style_edge_cases(self, _file):
-		_all, pre, _post = self.get_patches()
+		_all, pre, _post, _post_fixture = self.get_patches()
 		self.assertEqual(
 			pre,
 			[
@@ -134,7 +208,7 @@ class TestPatchReader(IntegrationTestCase):
 
 	@patch("builtins.open", new_callable=mock_open, read_data=COMMENTED_OUT)
 	def test_ignore_comments(self, _file):
-		_all, pre, _post = self.get_patches()
+		_all, pre, _post, _post_fixture = self.get_patches()
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch3"])
 
 	def test_verify_patch_txt(self):

@@ -4,8 +4,6 @@
 
 from urllib.parse import quote
 
-from googleapiclient.errors import HttpError
-
 import frappe
 from frappe import _
 from frappe.integrations.google_oauth import GoogleOAuth
@@ -14,6 +12,7 @@ from frappe.integrations.google_oauth import GoogleOAuth
 @frappe.whitelist(methods=["POST"])
 def authorize_access(reauthorize: bool = False, code: str | None = None):
 	"""If no Authorization code get it from Google and then request for Refresh Token."""
+	frappe.has_permission("Website Settings", "write", throw=True)
 
 	oauth_code = (
 		frappe.db.get_single_value("Website Settings", "indexing_authorization_code") if not code else code
@@ -48,6 +47,7 @@ def get_google_indexing_object():
 
 def publish_site(url, operation_type="URL_UPDATED"):
 	"""Send an update/remove url request."""
+	from googleapiclient.errors import HttpError
 
 	google_indexing = get_google_indexing_object()
 	body = {"url": url, "type": operation_type}

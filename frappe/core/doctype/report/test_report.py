@@ -3,6 +3,8 @@
 
 import json
 import os
+import threading
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
@@ -23,7 +25,8 @@ class TestReport(IntegrationTestCase):
 
 	def test_aggregate_column_field_info(self):
 		"""Aggregate column gets proper label and fieldtype"""
-		from frappe.core.doctype.report.report import get_group_by_column_field
+		from frappe.core.doctype.report.report import get_group_by_field
+		from frappe.desk.reportview import get_aggregate_field_info
 
 		cases = [
 			({"aggregate_function": "count"}, "Count", "Int"),
@@ -37,12 +40,44 @@ class TestReport(IntegrationTestCase):
 				"Average of Simultaneous Sessions",
 				"Float",
 			),
+			(
+				{"aggregate_function": "min", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+				"Minimum of Simultaneous Sessions",
+				"Int",
+			),
+			(
+				{"aggregate_function": "max", "aggregate_on": "`tabUser`.`last_active`"},
+				"Maximum of Last Active",
+				"Datetime",
+			),
+			(
+				{"aggregate_function": "max", "aggregate_on": "`tabUser`.`creation`"},
+				"Maximum of Created On",
+				"Datetime",
+			),
 		]
 
 		for args, expected_label, expected_fieldtype in cases:
 			with self.subTest(aggregate_function=args["aggregate_function"]):
-				info = get_group_by_column_field(args, "User")
+				info = get_aggregate_field_info(get_group_by_field(args), "User")
 				self.assertEqual(info["label"], expected_label)
+				self.assertEqual(info["fieldtype"], expected_fieldtype)
+
+	def test_aggregate_column_drops_currency_the_grouped_row_cannot_resolve(self):
+		from frappe.core.doctype.report.report import get_group_by_field
+		from frappe.desk.reportview import get_aggregate_field_info
+
+		grand_total = frappe._dict(fieldtype="Currency", options="currency", label="Grand Total")
+		for group_by, expected_fieldtype in (("customer", "Float"), ("currency", "Currency")):
+			with self.subTest(group_by=group_by):
+				with patch("frappe.desk.reportview._aggregate_field_df", return_value=grand_total):
+					info = get_aggregate_field_info(
+						get_group_by_field(
+							{"aggregate_function": "sum", "aggregate_on": "`tabSales Invoice`.`grand_total`"}
+						),
+						"Sales Invoice",
+						f"`tabSales Invoice`.`{group_by}`",
+					)
 				self.assertEqual(info["fieldtype"], expected_fieldtype)
 
 	def test_parse_aggregate_field(self):
@@ -93,12 +128,234 @@ class TestReport(IntegrationTestCase):
 		self.assertEqual(columns[1].get("label"), "User Type")
 		self.assertTrue("Administrator" in [d[0] for d in data])
 
+	def test_report_builder_multiple_group_by_and_aggregates(self):
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": frappe.generate_hash(),
+				"ref_doctype": "User",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"json": json.dumps(
+					{
+						"fields": [
+							["user_type", "User"],
+							["enabled", "User"],
+							["_aggregate_column", "User"],
+							["_aggregate_column_1", "User"],
+						],
+						"group_by": {
+							"group_by": ["`tabUser`.`user_type`", "`tabUser`.`enabled`"],
+							"aggregates": [
+								{"aggregate_function": "count"},
+								{
+									"aggregate_function": "sum",
+									"aggregate_on": "`tabUser`.`simultaneous_sessions`",
+								},
+							],
+						},
+					}
+				),
+			}
+		).insert()
+		self.addCleanup(report.delete)
+
+		columns, data = report.get_data()
+		self.assertEqual(
+			[c.fieldname for c in columns],
+			["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"],
+		)
+		self.assertEqual(columns[2].label, "Count")
+		self.assertEqual(columns[3].label, "Sum of Simultaneous Sessions")
+
+		from frappe.desk.reportview import get_field_info
+
+		export_info = get_field_info(
+			[
+				"`tabUser`.`user_type`",
+				{"COUNT": "*", "as": "_aggregate_column"},
+				{"SUM": "`tabUser`.`simultaneous_sessions`", "as": "_aggregate_column_1"},
+			],
+			"User",
+			"`tabUser`.`user_type`, `tabUser`.`enabled`",
+		)
+		self.assertEqual(
+			[i.get("fieldname") for i in export_info],
+			["user_type", "_aggregate_column", "_aggregate_column_1"],
+		)
+
+		expected = frappe.get_all(
+			"User",
+			fields=["user_type", "enabled", {"COUNT": "*", "as": "count"}],
+			group_by="user_type, enabled",
+			as_list=True,
+		)
+		self.assertEqual(
+			sorted((row[0], row[1], row[2]) for row in data), sorted(tuple(row) for row in expected)
+		)
+
+	def test_saved_report_with_multiple_group_by_runs_as_user(self):
+		user = create_user("test_report_group_by@example.com", "System Manager")
+
+		def save(name, group_by, fields):
+			settings = {
+				"filters": [],
+				"fields": [[fieldname, "User"] for fieldname in fields],
+				"order_by": "_aggregate_column desc",
+				"group_by": group_by,
+			}
+			return frappe.get_doc("Report", _save_report(name, "User", json.dumps(settings)))
+
+		with self.set_user(user.name):
+			report = save(
+				"Test Multi Group By",
+				{
+					"group_by": ["`tabUser`.`user_type`", "`tabUser`.`enabled`"],
+					"aggregates": [
+						{"aggregate_function": "count"},
+						{"aggregate_function": "avg", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+					],
+				},
+				["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"],
+			)
+			columns, data = report.get_data()
+			self.assertEqual(
+				[(c.fieldname, c.label) for c in columns],
+				[
+					("user_type", "User Type"),
+					("enabled", "Enabled"),
+					("_aggregate_column", "Count"),
+					("_aggregate_column_1", "Average of Simultaneous Sessions"),
+				],
+			)
+			expected = frappe.get_list(
+				"User",
+				fields=[
+					"user_type",
+					"enabled",
+					{"COUNT": "*", "as": "count"},
+					{"AVG": "simultaneous_sessions", "as": "average"},
+				],
+				group_by="user_type, enabled",
+				as_list=True,
+			)
+			self.assertEqual(sorted(map(tuple, data)), sorted(map(tuple, expected)))
+
+			legacy_report = save(
+				"Test Legacy Group By",
+				{
+					"group_by": "`tabUser`.`user_type`",
+					"aggregate_function": "sum",
+					"aggregate_on": "`tabUser`.`simultaneous_sessions`",
+				},
+				["user_type", "_aggregate_column"],
+			)
+			columns, data = legacy_report.get_data()
+			self.assertEqual(columns[-1].fieldname, "_aggregate_column")
+			self.assertEqual(columns[-1].label, "Sum of Simultaneous Sessions")
+			expected = frappe.get_list(
+				"User",
+				fields=["user_type", {"SUM": "simultaneous_sessions", "as": "total"}],
+				group_by="user_type",
+				as_list=True,
+			)
+			self.assertEqual(sorted((row[0], row[-1]) for row in data), sorted(map(tuple, expected)))
+
+			min_max_report = save(
+				"Test Min Max Group By",
+				{
+					"group_by": ["`tabUser`.`user_type`"],
+					"aggregates": [
+						{"aggregate_function": "min", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+						{"aggregate_function": "max", "aggregate_on": "`tabUser`.`last_active`"},
+					],
+				},
+				["user_type", "_aggregate_column", "_aggregate_column_1"],
+			)
+			columns, data = min_max_report.get_data()
+			self.assertEqual(
+				[(c.fieldname, c.label, c.fieldtype) for c in columns[1:]],
+				[
+					("_aggregate_column", "Minimum of Simultaneous Sessions", "Int"),
+					("_aggregate_column_1", "Maximum of Last Active", "Datetime"),
+				],
+			)
+			expected = frappe.get_list(
+				"User",
+				fields=[
+					"user_type",
+					{"MIN": "simultaneous_sessions", "as": "minimum"},
+					{"MAX": "last_active", "as": "maximum"},
+				],
+				group_by="user_type",
+				as_list=True,
+			)
+			self.assertEqual(sorted(map(tuple, data)), sorted(map(tuple, expected)))
+
+			for invalid in (
+				{"group_by": ["`tabUser`.`user_type`"], "aggregates": [{"aggregate_function": "median"}]},
+				{"group_by": ["`tabUser`.`no_such_field`"], "aggregates": [{"aggregate_function": "count"}]},
+				{
+					"group_by": ["`tabHas Role`.`role`"],
+					"aggregates": [
+						{"aggregate_function": "count"},
+						{"aggregate_function": "sum", "aggregate_on": "`tabBlock Module`.`idx`"},
+					],
+				},
+				{
+					"group_by": ["`tabUser`.`user_type`"],
+					"aggregates": [{"aggregate_function": "sum", "aggregate_on": "`tabHas Role`.`idx`"}],
+				},
+			):
+				with self.subTest(group_by=invalid), self.assertRaises(frappe.DataError):
+					save("Test Invalid Group By", invalid, ["user_type"])
+
+	def test_normalize_legacy_group_by_settings(self):
+		from frappe.desk.reportview import normalize_group_by_settings
+
+		self.assertEqual(
+			normalize_group_by_settings(
+				{
+					"group_by": "`tabUser`.`user_type`",
+					"aggregate_function": "sum",
+					"aggregate_on": "`tabUser`.`simultaneous_sessions`",
+				}
+			),
+			{
+				"group_by": ["`tabUser`.`user_type`"],
+				"aggregates": [
+					{"aggregate_function": "sum", "aggregate_on": "`tabUser`.`simultaneous_sessions`"}
+				],
+			},
+		)
+
 	def test_query_report(self):
 		report = frappe.get_doc("Report", "Permitted Documents For User")
 		columns, data = report.get_data(filters={"user": "Administrator", "doctype": "DocType"})
 		self.assertEqual(columns[0].get("label"), "Name")
 		self.assertEqual(columns[1].get("label"), "Module")
 		self.assertTrue("User" in [d.get("name") for d in data])
+
+	def test_failed_query_report_leaves_connection_writable(self):
+		"""A failing query must not strand the connection in the read only transaction."""
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": frappe.generate_hash(),
+				"ref_doctype": "ToDo",
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"query": "select * from `tabNoSuchTable`",
+			}
+		).insert()
+		self.addCleanup(report.delete)
+
+		with self.assertRaises(Exception):
+			report.execute_query_report({})
+
+		# the assertion: this insert raises InReadOnlyMode if the transaction is still open
+		todo = frappe.get_doc({"doctype": "ToDo", "description": frappe.generate_hash()}).insert()
+		self.addCleanup(todo.delete)
 
 	def test_save_or_delete_report(self):
 		"""Test for validations when editing / deleting report of type Report Builder"""
@@ -391,6 +648,28 @@ result = [
 		# check values
 		self.assertTrue("System User" in [d.get("type") for d in data[1]])
 
+	def test_prepared_report_automation_targets_the_report_that_ran(self):
+		"""A custom report auto-enables prepared report on itself, not on its reference report."""
+		reference_report = "Permitted Documents For User"
+		filters = {"user": "Administrator", "doctype": "User"}
+		custom_report = save_report(
+			reference_report, "Permitted Documents For User Prepared", "[]", json.dumps(filters)
+		)
+		frappe.cache.hdel("report_execution_time", [reference_report, custom_report])
+
+		def prepared_report_watcher_targets():
+			timer = MagicMock()
+			with patch.object(threading, "Timer", timer):
+				run(report_name=custom_report, filters=filters, are_default_filters=False)
+			return [call.kwargs["kwargs"]["report"] for call in timer.call_args_list]
+
+		self.assertEqual(prepared_report_watcher_targets(), [custom_report])
+		self.assertIsNotNone(frappe.cache.hget("report_execution_time", custom_report))
+		self.assertIsNone(frappe.cache.hget("report_execution_time", reference_report))
+
+		frappe.db.set_value("Report", custom_report, "disable_prepared_report_automation", 1)
+		self.assertEqual(prepared_report_watcher_targets(), [])
+
 	def test_toggle_disabled(self):
 		"""Make sure that authorization is respected."""
 		# Assuming that there will be reports in the system.
@@ -413,6 +692,53 @@ result = [
 
 		# Set user back to administrator
 		frappe.set_user("Administrator")
+
+	def test_default_print_format_accepts_jinja_and_js(self):
+		"""Report print formats may be authored in either templating language."""
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": "Test Default Print Format Report",
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"query": "select name from `tabUser` limit 1",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		for print_format_type in ("Jinja", "JS"):
+			with self.subTest(print_format_type):
+				print_format = frappe.get_doc(
+					{
+						"doctype": "Print Format",
+						"name": f"Test Default {print_format_type} Format",
+						"print_format_for": "Report",
+						"report": report.name,
+						"print_format_type": print_format_type,
+						"standard": "No",
+						"custom_format": 1,
+						"html": "<p>body</p>",
+					}
+				).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+				report.default_print_format = print_format.name
+				report.save(ignore_permissions=True)
+
+		other_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": "Test Default Print Format Other Report",
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"query": "select name from `tabUser` limit 1",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		other_report.default_print_format = "Test Default Jinja Format"
+		self.assertRaises(frappe.ValidationError, other_report.save, ignore_permissions=True)
+
+		frappe.db.rollback()
 
 	def test_add_total_row_for_tree_reports(self):
 		report_settings = {"tree": True, "parent_field": "parent_value"}
@@ -465,6 +791,92 @@ result = [
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
 
+	def test_add_total_row_skips_columns_with_disable_total(self):
+		columns = [
+			{"fieldname": "item", "label": "Item", "fieldtype": "Data"},
+			{"fieldname": "qty", "label": "Qty", "fieldtype": "Float", "disable_total": 1},
+			{"fieldname": "stock_qty", "label": "Stock Qty", "fieldtype": "Float"},
+		]
+		result = [
+			{"item": "Item A", "qty": 10, "stock_qty": 10},
+			{"item": "Item B", "qty": 2, "stock_qty": 24},
+		]
+
+		total_row = add_total_row(result, columns)[-1]
+		self.assertEqual(total_row, ["Total", "", 34])
+
+	def test_read_path_blocked_by_has_role(self):
+		"""has_permission hook raises PermissionError for unpermitted user on frappe.get_doc."""
+		role = "Test Read Path Role"
+		report_name = "Test Read Path Block Report"
+		try:
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_permissions=True)
+
+			frappe.get_doc(
+				{
+					"doctype": "Report",
+					"report_name": report_name,
+					"ref_doctype": "User",
+					"report_type": "Query Report",
+					"is_standard": "No",
+					"query": "select name from tabUser limit 1",
+					"roles": [{"role": role}],
+				}
+			).insert(ignore_permissions=True)
+
+			unpermitted = create_user("test_read_blocked@example.com", "Website Manager")
+			permitted = create_user("test_read_allowed@example.com", role)
+
+			with self.set_user(unpermitted.email):
+				with self.assertRaises(frappe.PermissionError):
+					frappe.get_doc("Report", report_name, check_permission=True)
+
+			with self.set_user(permitted.email):
+				doc = frappe.get_doc("Report", report_name, check_permission=True)
+				self.assertEqual(doc.name, report_name)
+
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.delete("Report", {"name": report_name})
+
+	def test_get_list_filtered_by_has_role(self):
+		"""get_permission_query_conditions excludes restricted reports from list for unpermitted users."""
+		role = "Test List Filter Role"
+		report_name = "Test List Filter Report"
+		try:
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_permissions=True)
+
+			frappe.get_doc(
+				{
+					"doctype": "Report",
+					"report_name": report_name,
+					"ref_doctype": "User",
+					"report_type": "Query Report",
+					"is_standard": "No",
+					"query": "select name from tabUser limit 1",
+					"roles": [{"role": role}],
+				}
+			).insert(ignore_permissions=True)
+
+			unpermitted = create_user("test_list_blocked@example.com", "Website Manager")
+			permitted = create_user("test_list_allowed@example.com", role)
+
+			with self.set_user(unpermitted.email):
+				results = frappe.get_list("Report", filters={"name": report_name}, fields=["name", "query"])
+				self.assertEqual(results, [])
+
+			with self.set_user(permitted.email):
+				results = frappe.get_list("Report", filters={"name": report_name}, fields=["name", "query"])
+				self.assertEqual(len(results), 1)
+				self.assertEqual(results[0].name, report_name)
+				self.assertEqual(results[0].query, "select name from tabUser limit 1")
+
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.delete("Report", {"name": report_name})
+
 	def test_report_cache_invalidation(self):
 		import frappe.sessions
 		from frappe.utils import set_request
@@ -482,14 +894,212 @@ result = [
 			)
 
 			cached_bootinfo = frappe.sessions.get()
-			self.assertIn(report_name, cached_bootinfo["user"]["all_reports"])
+			self.assertIn(report_name, cached_bootinfo["allowed_reports"])
 
 			doc = frappe.get_doc("Report", report_name)
 			delete_report(doc.name)
 
 			cached_bootinfo = frappe.sessions.get()
-			self.assertNotIn(report_name, cached_bootinfo["user"]["all_reports"])
+			self.assertNotIn(report_name, cached_bootinfo["allowed_reports"])
 
 		finally:
 			frappe.local.request = None
 			frappe.set_user("Administrator")
+
+	def test_save_report_group_by_validation(self):
+		"""save_report rejects invalid group_by settings and accepts valid ones"""
+
+		def _settings(group_by):
+			return json.dumps(
+				{
+					"filters": [],
+					"fields": [["user_type", "User"], ["_aggregate_column", "User"]],
+					"order_by": "_aggregate_column desc",
+					"group_by": group_by,
+				}
+			)
+
+		# invalid
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 1",
+				"User",
+				_settings(
+					{
+						"group_by": "`tabUser`.`user_type`",
+						"aggregate_function": "avg",
+						"aggregate_on": "length(name)",
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 2",
+				"User",
+				_settings(
+					{
+						"group_by": "length(name)",
+						"aggregate_function": "avg",
+						"aggregate_on": "`tabUser`.`name`",
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 3",
+				"User",
+				_settings(
+					{
+						"group_by": "`tabUser`.`user_type`",
+						"aggregate_function": "SLEEP(5)",
+						"aggregate_on": "`tabUser`.`name`",
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 4",
+				"User",
+				_settings(
+					{
+						"group_by": "`tabUser`.`user_type`",
+						"aggregate_function": "sum",
+						"aggregate_on": "`tabUser`.`nonexistent_field`",
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 5",
+				"User",
+				_settings(
+					{
+						"group_by": "`tabFakeDoctype`.`name`",
+						"aggregate_function": "count",
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 6",
+				"User",
+				_settings(
+					{
+						"group_by": "`tabUser`.`user_type`",
+						"aggregate_function": ["sum"],
+						"aggregate_on": "`tabUser`.`name`",
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 7",
+				"User",
+				_settings(
+					{
+						"group_by": "`tabUser`.`user_type`",
+						"aggregate_function": None,
+						"aggregate_on": "`tabUser`.`name`",
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 8",
+				"User",
+				_settings(
+					{
+						"group_by": ["`tabHas Role`.`role`", "`tabBlock Module`.`module`"],
+						"aggregates": [{"aggregate_function": "count"}],
+					}
+				),
+			)
+
+		with self.assertRaises(frappe.DataError):
+			_save_report(
+				"Test Invalid 9",
+				"User",
+				_settings(
+					{
+						"group_by": ["`tabUser`.`user_type`"],
+						"aggregates": [
+							{"aggregate_function": "count"},
+							{"aggregate_function": "sum", "aggregate_on": "length(name)"},
+						],
+					}
+				),
+			)
+
+		# valid cases
+
+		try:
+			report_name = _save_report(
+				"Test Valid 1",
+				"User",
+				_settings(
+					{
+						"group_by": "`tabUser`.`user_type`",
+						"aggregate_function": "avg",
+						"aggregate_on": "`tabUser`.`name`",
+					}
+				),
+			)
+			self.assertTrue(frappe.db.exists("Report", report_name))
+
+			_save_report(
+				report_name,
+				"User",
+				_settings(
+					{
+						"group_by": "`tabUser`.`user_type`",
+						"aggregate_function": "sum",
+						"aggregate_on": "`tabUser`.`name`",
+					}
+				),
+			)
+
+			_save_report(
+				report_name,
+				"User",
+				_settings(
+					{
+						"group_by": "`tabUser`.`user_type`",
+						"aggregate_function": "count",
+					}
+				),
+			)
+
+			_save_report(
+				report_name,
+				"User",
+				_settings(
+					{
+						"group_by": ["`tabUser`.`user_type`", "`tabHas Role`.`role`"],
+						"aggregates": [
+							{"aggregate_function": "count"},
+							{
+								"aggregate_function": "sum",
+								"aggregate_on": "`tabUser`.`simultaneous_sessions`",
+							},
+						],
+					}
+				),
+			)
+
+			list_report_name = _save_report(
+				"Test Valid 2",
+				"User",
+				json.dumps([{"fieldname": "email", "fieldtype": "Data", "label": "Email"}]),
+			)
+			self.assertTrue(frappe.db.exists("Report", list_report_name))
+
+		finally:
+			frappe.db.rollback()

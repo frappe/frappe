@@ -13,7 +13,6 @@ import frappe
 RENAMES = [
 	("Website", "website", "app-window"),
 	("Integrations", "integration", "cable"),
-	("Welcome Workspace", "image-view", "sparkles"),
 ]
 
 

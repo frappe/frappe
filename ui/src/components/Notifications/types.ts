@@ -19,6 +19,9 @@ export interface NotificationLog {
   from_user_image?: string;
   document_type?: string;
   document_name?: string;
+  /** record the notification came from, when that is not the document itself (e.g. a Comment) */
+  source_doctype?: string;
+  source_name?: string;
   link?: string;
   creation: string;
   // app-specific Custom Fields flow through untyped (the feed is fetched with `["*"]`)

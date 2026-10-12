@@ -147,7 +147,7 @@ def get_log_doctypes(doctype: str, txt: str, searchfield: str, start: int, page_
 
 	supported_doctypes = [(d,) for d in doctypes if _supports_log_clearing(d)]
 
-	return supported_doctypes[start:page_len]
+	return supported_doctypes[start : start + page_len]
 
 
 def clear_log_table(doctype, days=90):
@@ -176,7 +176,9 @@ def clear_log_table(doctype, days=90):
 	)
 
 	try:
-		if frappe.db.db_type == "postgres":
+		if frappe.db.db_type == "sqlite":
+			frappe.db.delete(doctype, {"creation": ("<=", cutoff)})
+		elif frappe.db.db_type == "postgres":
 			frappe.db.sql_ddl(f'CREATE TABLE "{temporary}" (LIKE "{original}" INCLUDING ALL)')
 
 			copy_recent_rows.run()
@@ -192,5 +194,7 @@ def clear_log_table(doctype, days=90):
 		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
 		raise
 	else:
-		frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
-		frappe.db.commit()
+		if frappe.db.db_type != "sqlite":
+			frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
+		# Each cleanup is a durable unit of progress and releases locks before the next log table.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit

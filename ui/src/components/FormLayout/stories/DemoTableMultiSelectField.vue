@@ -28,6 +28,7 @@
 import { computed } from "vue";
 import { TableMultiSelect } from "../../TableMultiSelect";
 import { useChildRowModel } from "../useChildRowModel";
+import { newRowValues } from "../newRowValues";
 import type { FieldComponentProps, FieldComponentEmits } from "../types";
 
 const props = defineProps<FieldComponentProps>();
@@ -39,7 +40,11 @@ const targetDoctype = computed(() => linkField.value?.options ?? "");
 const value = useChildRowModel(
 	() => props.modelValue,
 	() => linkField.value?.fieldname ?? "",
-	emit
+	emit,
+	// No `parentfield`: this demo has never signalled row changes (a story has no
+	// commit channel to signal onto). The seed is what it shares with the lib field.
+	undefined,
+	() => newRowValues(props.field.childFields ?? [])
 );
 
 function onCreate(query: string) {

@@ -12,6 +12,7 @@ from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.core.doctype.user.user import User
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.doctype.note.note import Note
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.model.document import Document, LazyChildTable, LazyDocument
@@ -74,17 +75,23 @@ class TestDocument(IntegrationTestCase):
 		return d
 
 	def test_submittable_insert(self):
-		dt = frappe.get_doc(
-			{
-				"doctype": "DocType",
-				"module": "Core",
-				"name": "Test Submittable Doctype",
-				"custom": 1,
-				"is_submittable": 1,
-				"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
-				"permissions": [{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}],
-			}
-		).insert(ignore_if_duplicate=True)
+		doctype_name = "Test Document Submittable"
+		if frappe.db.exists("DocType", doctype_name):
+			dt = frappe.get_doc("DocType", doctype_name)
+		else:
+			dt = frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"module": "Core",
+					"name": doctype_name,
+					"custom": 1,
+					"is_submittable": 1,
+					"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
+					"permissions": [
+						{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}
+					],
+				}
+			).insert()
 
 		d = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
 		return d
@@ -283,6 +290,47 @@ class TestDocument(IntegrationTestCase):
 		d.sender = "abcde" * 100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
 
+	def test_varchar_length_after_sanitization(self):
+		unclosed_tag = "<strong>"
+		value = "X" * (140 - len(unclosed_tag)) + unclosed_tag
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Note")
+			doc.title = value
+
+			with self.assertRaises(frappe.CharacterLengthExceededError):
+				doc._validate()
+
+		self.assertGreater(len(doc.title), 140)
+
+	def test_oversized_varchar_sanitized_within_limit(self):
+		value = "X" * 130 + "<script>1</script>"
+		self.assertGreater(len(value), 140)
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Note")
+			doc.title = value
+			doc._validate()
+
+		self.assertEqual(doc.title, "X" * 130)
+
+	def test_child_varchar_length_after_sanitization(self):
+		unclosed_tag = "<strong>"
+		value = "X" * (140 - len(unclosed_tag)) + unclosed_tag
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Workspace")
+			doc.update(
+				{"label": "Test Workspace", "module": "Core", "title": "Test Workspace", "type": "Workspace"}
+			)
+			doc.name = "Test Workspace"
+			doc.append("shortcuts", {"type": "URL", "label": value})
+
+			with self.assertRaises(frappe.CharacterLengthExceededError):
+				doc._validate()
+
+		self.assertGreater(len(doc.shortcuts[0].label), 140)
+
 	def test_xss_filter(self):
 		d = self.test_insert()
 		subject = d.subject
@@ -474,6 +522,36 @@ class TestDocument(IntegrationTestCase):
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
 			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
 
+	def test_virtual_fields_of_single_are_not_stored(self):
+		doctype = new_doctype(
+			issingle=1,
+			fields=[
+				{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+				{
+					"fieldname": "loud_title",
+					"fieldtype": "Data",
+					"label": "Loud Title",
+					"is_virtual": 1,
+					"options": "(doc.title or '').upper()",
+				},
+			],
+			permissions=[{"role": "_Test Role", "read": 1, "write": 1, "create": 1}],
+		).insert()
+		self.addCleanup(doctype.delete, force=True)
+		user = create_user("test_single_virtual_fields@example.com", "_Test Role")
+
+		def assert_virtual_field_not_stored(expected_value):
+			self.assertEqual(frappe.db.count("Singles", {"doctype": doctype.name, "field": "loud_title"}), 0)
+			self.assertEqual(frappe.get_doc(doctype.name).as_dict().loud_title, expected_value)
+
+		with self.set_user(user.name):
+			single = frappe.get_doc({"doctype": doctype.name, "title": "hello"}).insert()
+			assert_virtual_field_not_stored("HELLO")
+
+			single.title = "bye"
+			single.save()
+			assert_virtual_field_not_stored("BYE")
+
 	def test_run_method(self):
 		doc = frappe.get_last_doc("User")
 
@@ -598,6 +676,60 @@ class TestDocument(IntegrationTestCase):
 		doc.flags.skip_docstatus_validation = True
 		doc.save()
 		self.assertEqual(frappe.db.get_value("ToDo", doc.name, "docstatus"), 1)
+
+	def test_ignore_if_duplicate_on_a_unique_autoname_field(self):
+		"""A doctype named after a unique field breaks two indexes with one row.
+
+		`Role` is `autoname: field:role_name` and `role_name` is unique, so re-inserting the
+		same role violates the primary key AND the unique index. Which one the backend reports
+		is its own choice: MariaDB names PRIMARY, SQLite names the secondary index. Callers that
+		seed idempotently pass `ignore_if_duplicate` and must not have to know the difference.
+		"""
+		role = frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
+		self.addCleanup(role.delete)
+
+		frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert(ignore_if_duplicate=True)
+		self.assertEqual(frappe.db.count("Role", {"role_name": "_Test Duplicate Role"}), 1)
+
+		# A skipped row has to leave the transaction usable. Postgres aborts it on any failed
+		# statement, so a write here is what proves the row was skipped and not caught.
+		role.db_set("disabled", 1)
+		self.assertEqual(frappe.db.get_value("Role", role.name, "disabled"), 1)
+
+		# Without the flag it is still an error, whichever index the backend blames. The
+		# savepoint is for postgres: the failed insert aborts the transaction, so nothing
+		# after this test could read or write without it.
+		frappe.db.savepoint("test_ignore_if_duplicate")
+		expected_error = (
+			frappe.DuplicateEntryError
+			if frappe.db.db_type == "sqlite"
+			else (frappe.UniqueValidationError, frappe.DuplicateEntryError)
+		)
+		with self.assertRaises(expected_error):
+			frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
+		frappe.db.rollback(save_point="test_ignore_if_duplicate")
+
+	def test_ignore_if_duplicate_on_a_unique_field_that_is_not_the_name(self):
+		"""The clash can be on a unique index alone, with a name that is free.
+
+		The row still has to be skipped, and the transaction still has to work afterwards.
+		Postgres aborts a transaction on any failed statement, so there the row has to be
+		skipped by the database rather than caught in python.
+		"""
+		doctype = new_doctype(unique=True).insert()
+		self.addCleanup(doctype.delete, force=True)
+
+		first = frappe.get_doc(doctype=doctype.name, some_fieldname="_Test Unique Value").insert()
+		frappe.get_doc(doctype=doctype.name, some_fieldname="_Test Unique Value").insert(
+			ignore_if_duplicate=True
+		)
+		self.assertEqual(frappe.db.count(doctype.name, {"some_fieldname": "_Test Unique Value"}), 1)
+
+		# A write, not a read: this is what an aborted postgres transaction would fail on.
+		first.db_set("some_fieldname", "_Test Unique Value 2")
+		self.assertEqual(
+			frappe.db.get_value(doctype.name, first.name, "some_fieldname"), "_Test Unique Value 2"
+		)
 
 
 class TestDocumentWebView(IntegrationTestCase):

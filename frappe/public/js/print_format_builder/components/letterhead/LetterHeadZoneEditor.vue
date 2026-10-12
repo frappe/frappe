@@ -8,70 +8,46 @@
 			<div v-else-if="preview_doc" v-html="rendered_content ?? zone_content"></div>
 			<div v-else v-html="zone_content"></div>
 		</div>
-		<div v-else class="lh-zone-empty">
+		<div v-else-if="letterhead" class="lh-zone-empty">
 			<span v-html="frappe.utils.icon('image', 'sm')"></span>
 			<span>{{ empty_label }}</span>
 		</div>
+		<div v-else class="lh-zone-blank"></div>
 	</div>
 </template>
 
 <script setup>
-import { useStore } from "../../stores";
 import { render_jinja_html } from "../../utils";
+import { zone_fields } from "./zone_fields";
 import { ref, watch, onMounted, inject, computed } from "vue";
 
 const props = defineProps({
 	zone: { type: String, required: true }, // 'header' | 'footer'
 });
 
-let { letterhead, store, layout } = useStore();
-let raw_store = inject("$store");
+let store = inject("$store");
+let { letterhead, layout } = store;
 
-// ── Field name mapping ────────────────────────────────────
-const F = computed(() =>
-	props.zone === "header"
-		? {
-				source: "source",
-				content: "content",
-				image: "image",
-				align: "align",
-				height: "image_height",
-				width: "image_width",
-		  }
-		: {
-				source: "footer_source",
-				content: "footer",
-				image: "footer_image",
-				align: "footer_align",
-				height: "footer_image_height",
-				width: "footer_image_width",
-		  }
-);
+const F = computed(() => zone_fields(props.zone));
 
-let preview_doc = computed(() => raw_store.preview_doc.value);
+let preview_doc = computed(() => store.preview_doc.value);
 let rendered_content = ref(null);
 let render_failed = ref(false);
 let render_pending = ref(false);
 
 let zone_content = computed(() => letterhead.value?.[F.value.content] ?? "");
 let is_selected = computed(() =>
-	props.zone === "header"
-		? raw_store.selected_letterhead.value
-		: raw_store.selected_lh_footer.value
+	props.zone === "header" ? store.selected_letterhead.value : store.selected_lh_footer.value
 );
-let empty_label = computed(() => {
-	if (letterhead.value) {
-		return __("{0} is empty — click to add", [letterhead.value.name]);
-	}
-	return props.zone === "header"
-		? __("No Letter Head — click to add")
-		: __("No Letter Head Footer — click to add");
-});
+let empty_label = computed(() =>
+	letterhead.value ? __("{0} is empty — click to add", [letterhead.value.name]) : ""
+);
 
 function select_zone() {
-	raw_store.select_letterhead({ footer: props.zone !== "header" });
+	store.select_letterhead({ footer: props.zone !== "header" });
 }
 
+let render_again = false;
 async function refresh_rendered_content() {
 	const doc = preview_doc.value;
 	const content = zone_content.value;
@@ -80,17 +56,24 @@ async function refresh_rendered_content() {
 		render_failed.value = false;
 		return;
 	}
-	if (render_pending.value) return;
+	if (render_pending.value) {
+		render_again = true;
+		return;
+	}
 	render_pending.value = true;
 	try {
 		rendered_content.value = await render_jinja_html(
 			content,
-			raw_store.meta.value?.name,
-			raw_store.preview_doc_name.value
+			store.meta.value?.name,
+			store.preview_doc_name.value
 		);
 		render_failed.value = rendered_content.value === null;
 	} finally {
 		render_pending.value = false;
+		if (render_again) {
+			render_again = false;
+			refresh_rendered_content();
+		}
 	}
 }
 
@@ -101,11 +84,14 @@ function build_image_content() {
 	if (!letterhead.value) return;
 	const lh = letterhead.value;
 	const f = F.value;
+	if ((lh[f.source] || "Image") !== "Image") return;
 	if (!lh[f.image] || !lh[f.width] || !lh[f.height]) return;
 	const dim = lh[f.width] > lh[f.height] ? "width" : "height";
 	const dim_val = lh[f[dim]];
 	lh[f.content] = `<div style="text-align:${(lh[f.align] || "Left").toLowerCase()}">
-<img src="${lh[f.image]}" alt="${lh.name}" ${dim}="${dim_val}" style="${dim}:${dim_val}px">
+<img src="${lh[f.image]}" alt="${frappe.utils.escape_html(
+		lh.name
+	)}" ${dim}="${dim_val}" style="${dim}:${dim_val}px">
 </div>`;
 }
 
@@ -114,6 +100,7 @@ watch(
 		if (!letterhead.value) return null;
 		const f = F.value;
 		return [
+			letterhead.value[f.source],
 			letterhead.value[f.image],
 			letterhead.value[f.align],
 			letterhead.value[f.width],
@@ -125,9 +112,9 @@ watch(
 );
 
 onMounted(() => {
-	if (props.zone === "header" && !letterhead.value && !layout.value?.letter_head) {
+	if (props.zone === "header" && !letterhead.value && layout.value?.letter_head == null) {
 		const lh_name = frappe.boot.sysdefaults.letter_head;
-		if (lh_name) store.value.change_letterhead(lh_name, { keep_clean: true });
+		if (lh_name) store.change_letterhead(lh_name, { keep_clean: true });
 	}
 });
 </script>
@@ -135,19 +122,20 @@ onMounted(() => {
 <style scoped>
 .lh-zone {
 	position: relative;
-	border: 1px solid transparent;
 	border-radius: var(--radius);
-	padding: 1rem;
+	outline-offset: 2px;
 	cursor: pointer;
-	transition: border-color 0.15s;
-}
-
-.lh-zone--selected {
-	border-color: var(--gray-400);
+	transition: outline-color 0.15s;
 }
 
 .lh-zone:hover {
-	border-color: var(--gray-300);
+	outline: 1px solid var(--gray-300);
+}
+
+.lh-zone--selected,
+.lh-zone--selected:hover {
+	z-index: 1;
+	outline: var(--pfb-ring);
 }
 
 .lh-zone-empty {
@@ -157,6 +145,10 @@ onMounted(() => {
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 	padding: 0.5rem 0;
+}
+
+.lh-zone:has(.lh-zone-blank) {
+	padding: 0.25rem;
 }
 
 .lh-zone :deep(img) {

@@ -7,6 +7,16 @@ window.DataTable = DataTable;
 frappe.provide("frappe.views");
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
+	static load_last_view() {
+		const doctype = frappe.get_route()[1];
+		if (!frappe.model.can_get_report(doctype)) {
+			frappe.route_flags.replace_route = true;
+			frappe.set_route("list", frappe.router.doctype_layout || doctype, "list");
+			return true;
+		}
+		return super.load_last_view();
+	}
+
 	get view_name() {
 		return "Report";
 	}
@@ -25,8 +35,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.page_title = __("Report:") + " " + this.page_title;
 		}
 		this.view = "Report";
-
-		this.link_title_doctype_fields = [];
 
 		const route = frappe.get_route();
 		if (route.length === 4) {
@@ -48,7 +56,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.order_by = this.report_doc.json.order_by;
 				this.add_totals_row = this.report_doc.json.add_totals_row;
 				this.page_title = __(this.report_name);
-				this.page_length = this.report_doc.json.page_length || 20;
+				this.selected_page_count = this.page_length =
+					this.report_doc.json.page_length || 20;
 				this.order_by = this.report_doc.json.order_by || "creation desc";
 				this.chart_args = this.report_doc.json.chart_args;
 			});
@@ -120,6 +129,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const args = super.get_args();
 		delete args.group_by;
 		this.group_by_control.set_args(args);
+		args.with_link_titles = 1;
 
 		return args;
 	}
@@ -142,50 +152,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (!this.group_by) {
 			this.init_chart();
 		}
-
-		this.set_link_title_field_value();
-	}
-
-	set_link_title_field_value() {
-		let rows = this.datatable?.datamanager?.rows;
-		let link_col_indices = this.datatable?.datamanager?.columns
-			?.filter((c) => c.docfield?.fieldtype === "Link")
-			.map((c) => c.colIndex);
-
-		Object.keys(this.link_title_doctype_fields).forEach(async (key) => {
-			let link_title = await this.get_link_title_field_value(
-				this.link_title_doctype_fields[key],
-				key
-			);
-
-			if (link_title === undefined) return;
-
-			// update visible DOM elements and cell tooltip
-			document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
-				if (el.textContent === link_title) return;
-				el.textContent = link_title;
-
-				$(el).closest(".dt-cell__content").attr("title", link_title);
-			});
-
-			if (rows?.length && link_col_indices?.length) {
-				for (let row of rows) {
-					for (let ci of link_col_indices) {
-						let cell = row[ci];
-						if (cell?.content === key && cell.html) {
-							cell.html = null;
-						}
-					}
-				}
-			}
-		});
-	}
-
-	async get_link_title_field_value(doctype, value) {
-		return (
-			frappe.utils.get_link_title(doctype, value) ||
-			(await frappe.utils.fetch_link_title(doctype, value))
-		);
 	}
 
 	set_dirty_state_for_custom_report() {
@@ -207,7 +173,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			add_totals_row: this.report_doc.json.add_totals_row,
 			page_length: this.report_doc.json.page_length,
 			column_widths: this.report_doc.json.column_widths,
-			group_by: this.report_doc.json.group_by,
+			group_by:
+				this.report_doc.json.group_by &&
+				this.group_by_control.normalize_settings(this.report_doc.json.group_by),
 			chart_args: this.report_doc.json.chart_args,
 		};
 
@@ -442,6 +410,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 
 		this.setup_inline_filter_observer();
+		this.setup_link_side_panel();
+	}
+
+	// Preview Link cells in the side panel so filters, sort and scroll survive.
+	setup_link_side_panel() {
+		this.$datatable_wrapper
+			.off("click.side-panel")
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) => {
+				frappe.ui.handle_link_cell_click(e, this.datatable);
+			});
 	}
 
 	setup_inline_filter_observer() {
@@ -1073,13 +1051,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		);
 
 		// add status field derived from docstatus, if status is not a standard field
-		let has_status_values = false;
-
-		if (this.data) {
-			has_status_values = frappe.get_indicator(this.data[0], this.doctype);
-		}
-
-		if (!frappe.meta.has_field(this.doctype, "status") && has_status_values) {
+		if (!frappe.meta.has_field(this.doctype, "status") && frappe.has_indicator(this.doctype)) {
 			doctype_fields = [
 				{
 					label: __("Status"),
@@ -1192,8 +1164,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			} else {
 				// if status is not in fields append status column derived from docstatus
 				if (
-					!this.fields.includes(["status", this.doctype]) &&
-					!frappe.meta.has_field(this.doctype, "status")
+					!frappe.meta.has_field(this.doctype, "status") &&
+					frappe.has_indicator(this.doctype)
 				) {
 					column = this.build_column(["docstatus", this.doctype]);
 				}
@@ -1212,10 +1184,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	build_column(c) {
 		let [fieldname, doctype] = c;
 		let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
+		const is_aggregate_column = /^_aggregate_column(_[0-9]+)?$/.test(fieldname);
 
 		// group by column
-		if (fieldname === "_aggregate_column") {
-			docfield = this.group_by_control.get_group_by_docfield();
+		if (is_aggregate_column) {
+			docfield = this.group_by_control.get_group_by_docfield(fieldname);
 		}
 
 		// child table index column
@@ -1271,7 +1244,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let id = fieldname;
 
 		// child table column
-		if (doctype !== this.doctype && fieldname !== "_aggregate_column") {
+		if (doctype !== this.doctype && !is_aggregate_column) {
 			id = `${doctype}:${fieldname}`;
 		}
 
@@ -1304,19 +1277,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			editable,
 			align,
 			compareValue: compareFn,
+			sortValue: frappe.report_utils.get_link_sort_value(docfield),
 			format: (value, row, column, data) => {
 				let doc = null;
 				if (Array.isArray(row)) {
 					doc = row.reduce((acc, curr) => {
 						if (!curr.column.docfield) return acc;
-
-						if (
-							curr.column.docfield.fieldtype == "Link" &&
-							frappe.boot.link_title_doctypes.includes(curr.column.docfield.options)
-						) {
-							this.link_title_doctype_fields[curr.content] =
-								curr.column.docfield.options;
-						}
 						acc[curr.column.docfield.fieldname] = curr.content;
 						return acc;
 					}, {});
@@ -1472,7 +1438,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					if (r.message != this.report_name) {
 						// Rerender the reports dropdown,
 						// so that this report is included in the dropdown as well.
-						frappe.boot.user.all_reports[r.message] = {
+						frappe.boot.allowed_reports[r.message] = {
 							ref_doctype: this.doctype,
 							report_type: "Report Builder",
 							title: r.message,
@@ -1541,11 +1507,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				.map((f) => {
 					const [doctype, fieldname, condition, value] = f;
 					const docfield = frappe.meta.get_docfield(doctype, fieldname);
-					const label = `<b>${__(
-						frappe.meta.get_label(doctype, fieldname),
-						null,
-						doctype
-					)}</b>`;
+					const label = `<b>${frappe.meta.get_translated_label(doctype, fieldname)}</b>`;
 					switch (condition) {
 						case "=":
 							return __("{0} is equal to {1}", [
@@ -1632,6 +1594,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			}, 0);
 
 			row_totals[col.id] = totals;
+
+			// the total of group minimums / maximums is their minimum / maximum, not their sum
+			const aggregate_function = this.group_by_control.get_aggregate_function(col.id);
+			if (["min", "max"].includes(aggregate_function) && totals !== undefined) {
+				// groups without values (e.g. no child rows) have a null minimum / maximum
+				const values = data.map((d) => d[col.id]).filter((value) => value != null);
+				row_totals[col.id] = values.length
+					? Math[aggregate_function](...values.map((value) => flt(value)))
+					: undefined;
+			}
 		});
 
 		return row_totals;
@@ -1954,10 +1926,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let search_params = super.get_search_params();
 		let config = this.group_by_control.get_settings();
 		if (config) {
-			search_params.append(
-				"_group_by",
-				JSON.stringify([config.group_by, config.aggregate_on, config.aggregate_function])
-			);
+			search_params.append("_group_by", JSON.stringify(config));
 		}
 		return search_params;
 	}
@@ -1966,11 +1935,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (frappe.route_options?._group_by) {
 			try {
 				let config = JSON.parse(frappe.route_options._group_by);
-				this.group_by_control.apply_settings({
-					group_by: config[0],
-					aggregate_on: config[1],
-					aggregate_function: config[2],
-				});
+				if (Array.isArray(config)) {
+					config = {
+						group_by: config[0],
+						aggregate_on: config[1],
+						aggregate_function: config[2],
+					};
+				}
+				this.group_by_control.apply_settings(config);
 				delete frappe.route_options["_group_by"];
 			} catch (e) {
 				console.warn("Failed to parse group by from URL", e);

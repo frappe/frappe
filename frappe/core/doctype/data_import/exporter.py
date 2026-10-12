@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.model import display_fieldtypes, no_value_fields
+from frappe.model import display_fieldtypes, get_permitted_fields, no_value_fields
 from frappe.model import table_fields as table_fieldtypes
 from frappe.utils import flt, format_duration, groupby_metric
 from frappe.utils.csvutils import build_csv_response
@@ -40,6 +40,10 @@ class Exporter:
 		# this will contain the csv content
 		self.csv_array = []
 
+		# tables an import provider adds that are not child tables of the DocType (e.g. Contact)
+		self.provider = self.get_import_provider()
+		self.provider_tables = self.get_provider_tables()
+
 		# fields that get exported
 		self.exportable_fields = self.get_all_exportable_fields()
 		self.fields = self.serialize_exportable_fields()
@@ -51,8 +55,27 @@ class Exporter:
 			self.data = []
 		self.add_data()
 
+	def get_import_provider(self):
+		from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+		return get_import_provider(self.doctype)
+
+	def get_provider_tables(self):
+		schema = self.provider.get_import_fields() if self.provider else None
+		return {
+			table["fieldname"]: table
+			for table in (schema or {}).get("child_tables") or []
+			if not self.meta.get_field(table["fieldname"])
+		}
+
 	def get_all_exportable_fields(self):
-		child_table_fields = [df.fieldname for df in self.meta.fields if df.fieldtype in table_fieldtypes]
+		permitted_levels = set(self.meta.get_permlevel_access("read"))
+		child_table_fields = [
+			df.fieldname
+			for df in self.meta.fields
+			if df.fieldtype in table_fieldtypes
+			and (not self.meta.get_permissions() or df.permlevel in permitted_levels)
+		]
 
 		meta = frappe.get_meta(self.doctype)
 		exportable_fields = frappe._dict({})
@@ -68,6 +91,14 @@ class Exporter:
 				child_doctype = child_df.options
 				exportable_fields[key] = self.get_exportable_fields(child_doctype, fieldnames)
 
+			elif key in self.provider_tables:
+				exportable_fields[key] = [
+					frappe._dict(df)
+					for df in self.provider_tables[key]["fields"]
+					if df["fieldname"] in fieldnames
+					and df.get("fieldtype") not in (display_fieldtypes + no_value_fields)
+				]
+
 		return exportable_fields
 
 	def serialize_exportable_fields(self):
@@ -82,12 +113,17 @@ class Exporter:
 
 				df.is_child_table_field = key != self.doctype
 				if df.is_child_table_field:
-					df.child_table_df = self.meta.get_field(key)
+					df.child_table_df = self.meta.get_field(key) or frappe._dict(
+						fieldname=key, label=self.provider_tables[key].get("label")
+					)
 				fields.append(df)
 		return fields
 
 	def get_exportable_fields(self, doctype, fieldnames):
 		meta = frappe.get_meta(doctype)
+		permitted_fields = set(
+			get_permitted_fields(doctype, parenttype=self.doctype if meta.istable else None)
+		)
 
 		def is_exportable(df):
 			return df and df.fieldtype not in (display_fieldtypes + no_value_fields)
@@ -103,7 +139,7 @@ class Exporter:
 			}
 		)
 
-		fields = [meta.get_field(fieldname) for fieldname in fieldnames]
+		fields = [meta.get_field(fieldname) for fieldname in fieldnames if fieldname in permitted_fields]
 		fields = [df for df in fields if is_exportable(df)]
 
 		if "name" in fieldnames:
@@ -128,19 +164,17 @@ class Exporter:
 				)
 		for doc in data:
 			rows = []
-			rows = self.add_data_row(self.doctype, None, doc, rows, 0)
-			if table_fields:
-				# add child table data
-				for f in table_fields:
-					table_data = doc.get(f, []) or []
-					for i, child_row in enumerate(table_data):
-						table_df = self.meta.get_field(f)
-						child_doctype = table_df.options
-						rows = self.add_data_row(child_doctype, child_row.parentfield, child_row, rows, i)
+			rows = self.add_data_row(None, doc, rows, 0)
+			# add child table data
+			for f in table_fields:
+				for i, child_row in enumerate(doc.get(f) or []):
+					rows = self.add_data_row(f, child_row, rows, i)
 
 			yield from rows
 
-	def add_data_row(self, doctype, parentfield, doc, rows, row_idx):
+	def add_data_row(self, table_fieldname, doc, rows, row_idx):
+		"""Write ``doc`` into ``rows[row_idx]``: the parent when ``table_fieldname`` is None,
+		else a row of that table."""
 		if len(rows) < row_idx + 1:
 			rows.append([""] * len(self.fields))
 
@@ -148,17 +182,19 @@ class Exporter:
 		assert len(row) == len(self.fields), "each export row must have one cell per exportable field"
 
 		for i, df in enumerate(self.fields):
-			if df.parent == doctype:
-				if df.is_child_table_field and df.child_table_df.fieldname != parentfield:
+			if df.is_child_table_field:
+				if df.child_table_df.fieldname != table_fieldname:
 					continue
-				value = doc.get(df.fieldname, None)
+			elif table_fieldname:
+				continue
+			value = doc.get(df.fieldname, None)
 
-				if df.fieldtype == "Duration":
-					value = format_duration(flt(value), df.hide_days)
+			if df.fieldtype == "Duration":
+				value = format_duration(flt(value), df.hide_days)
 
-				if df.fieldtype == "Text Editor" and value:
-					value = frappe.core.utils.html2text(value)
-				row[i] = value
+			if df.fieldtype == "Text Editor" and value:
+				value = frappe.core.utils.html2text(value)
+			row[i] = value
 		return rows
 
 	def get_data_as_docs(self):
@@ -187,7 +223,8 @@ class Exporter:
 
 		child_data = {}
 		for key in self.exportable_fields:
-			if key == self.doctype:
+			# provider tables are not stored on the record; the provider supplies their rows below
+			if key == self.doctype or key in self.provider_tables:
 				continue
 			child_table_df = self.meta.get_field(key)
 			child_table_doctype = child_table_df.options
@@ -198,8 +235,9 @@ class Exporter:
 				"parentfield",
 				*list({format_column_name(df) for df in self.fields if df.parent == child_table_doctype}),
 			]
-			data = frappe.get_all(
+			data = frappe.get_list(
 				child_table_doctype,
+				parent_doctype=self.doctype,
 				filters={
 					"parent": ("in", parent_names),
 					"parentfield": child_table_df.fieldname,
@@ -213,9 +251,20 @@ class Exporter:
 
 		# Group children data by parent name
 		grouped_children_data = self.group_children_data_by_parent(child_data)
+		provider_rows = self.get_provider_rows(parent_names)
 		for doc in parent_data:
 			related_children_docs = grouped_children_data.get(str(doc.name), {})
-			yield {**doc, **related_children_docs}
+			yield {**doc, **related_children_docs, **provider_rows.get(doc.name, {})}
+
+	def get_provider_rows(self, parent_names):
+		tables = {
+			key: [df.fieldname for df in fields]
+			for key, fields in self.exportable_fields.items()
+			if key in self.provider_tables and fields
+		}
+		if not (parent_names and tables):
+			return {}
+		return self.provider.get_export_rows(parent_names, tables) or {}
 
 	def add_header(self):
 		header = []

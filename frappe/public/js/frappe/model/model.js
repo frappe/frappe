@@ -70,7 +70,6 @@ $.extend(frappe.model, {
 		"modified",
 		"modified_by",
 		"_user_tags",
-		"_comments",
 		"_assign",
 		"_liked_by",
 		"docstatus",
@@ -134,7 +133,6 @@ $.extend(frappe.model, {
 		},
 		{ fieldname: "_user_tags", fieldtype: "Data", label: __("Tags") },
 		{ fieldname: "_liked_by", fieldtype: "Data", label: __("Liked By") },
-		{ fieldname: "_comments", fieldtype: "Text", label: __("Comments") },
 		{ fieldname: "_assign", fieldtype: "Text", label: __("Assigned To") },
 		{ fieldname: "docstatus", fieldtype: "Int", label: __("Document Status") },
 	],
@@ -279,7 +277,13 @@ $.extend(frappe.model, {
 		}
 		// custom scripts run last so they can override the standard
 		// definitions for any view, calendar included (#37460)
-		for (const asset_key of ["__list_js", "__calendar_js", "__tree_js", "__custom_list_js"]) {
+		for (const asset_key of [
+			"__list_js",
+			"__calendar_js",
+			"__tree_js",
+			"__kanban_js",
+			"__custom_list_js",
+		]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}
@@ -290,17 +294,19 @@ $.extend(frappe.model, {
 		}
 	},
 
-	with_doc: function (doctype, name, callback) {
-		return new Promise((resolve) => {
+	with_doc: function (doctype, name, callback, error_callback) {
+		return new Promise((resolve, reject) => {
 			if (!name) name = doctype; // single type
-			if (
+			const use_cache =
+				!error_callback &&
 				locals[doctype] &&
 				locals[doctype][name] &&
-				frappe.model.get_docinfo(doctype, name)
-			) {
+				frappe.model.get_docinfo(doctype, name);
+			if (use_cache) {
 				callback && callback(name);
 				resolve(frappe.get_doc(doctype, name));
 			} else {
+				let permission_denied = false;
 				return frappe.call({
 					method: "frappe.desk.form.load.getdoc",
 					type: "GET",
@@ -311,6 +317,18 @@ $.extend(frappe.model, {
 					callback: function (r) {
 						callback && callback(name, r);
 						resolve(frappe.get_doc(doctype, name));
+					},
+					error_handlers: {
+						PermissionError: () => {
+							permission_denied = true;
+						},
+					},
+					error: function (r) {
+						if (permission_denied) {
+							frappe.model.remove_from_locals(doctype, name);
+						}
+						error_callback && error_callback(r, permission_denied);
+						reject(r);
 					},
 				});
 			}
@@ -843,10 +861,10 @@ $.extend(frappe.model, {
 			frappe.throw(
 				__("Please specify") +
 					": " +
-					__(
-						frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name),
-						null,
-						doc.doctype
+					frappe.meta.get_translated_label(
+						doc.doctype,
+						fieldname,
+						doc.parent || doc.name
 					)
 			);
 		}

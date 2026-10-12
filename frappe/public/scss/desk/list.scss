@@ -158,32 +158,53 @@
 .frappe-list {
 	margin: 0 var(--margin-md);
 
+	// --list-right-width (set by list_view.js) keeps the header's and the rows' right side equal
 	.result.has-assign-to {
 		.list-row .level-right {
-			flex: 0 0 180px;
-			width: 180px;
+			flex: 0 0 auto;
+			min-width: var(--list-right-width, 180px);
 		}
 
 		&.assign-to-length-1 {
 			.list-row .level-right {
-				flex: 0 0 165px;
-				width: 165px;
+				min-width: var(--list-right-width, 165px);
 			}
 		}
 
 		&.assign-to-length-3 {
 			.list-row .level-right {
-				flex: 0 0 200px;
-				width: 200px;
+				min-width: var(--list-right-width, 200px);
 			}
 		}
 	}
 
 	.result.no-assign-to {
 		.list-row .level-right {
-			flex: 0 0 130px;
-			width: 130px;
+			flex: 0 0 auto;
+			min-width: var(--list-right-width, 130px);
 		}
+	}
+
+	// Fixed-width slots for avatars and comment counts so rows don't shift sideways.
+	.result.has-assign-to .list-assignments-container {
+		flex: none;
+		width: 56px;
+	}
+
+	.result.assign-to-length-1 .list-assignments-container {
+		width: 38px;
+	}
+
+	.result.assign-to-length-3 .list-assignments-container {
+		width: 74px;
+	}
+
+	.result[data-comment-count-length="2"] .comment-count .count {
+		min-width: 1.4em;
+	}
+
+	.result[data-comment-count-length="3"] .comment-count .count {
+		min-width: 2.1em;
 	}
 }
 
@@ -233,6 +254,7 @@
 	.list-row-activity {
 		justify-content: flex-end;
 		// min-width: 120px;
+		font-variant-numeric: tabular-nums;
 
 		& > span {
 			display: inline-block;
@@ -240,11 +262,17 @@
 
 		.modified {
 			margin-right: var(--margin-sm);
-			min-width: 1.5rem;
+			min-width: 2.7em; // fits the widest short timestamp, "11 M"
+			text-align: right;
 		}
 
 		.comment-count {
 			min-width: 35px;
+			gap: var(--margin-xs);
+
+			.count {
+				min-width: 0.7em;
+			}
 		}
 
 		.frappe-timestamp {
@@ -252,7 +280,10 @@
 			white-space: nowrap;
 		}
 
-		.list-assignments,
+		.list-assignments {
+			margin-right: var(--margin-sm);
+		}
+
 		.list-actions {
 			margin-right: var(--margin-md);
 		}
@@ -405,6 +436,11 @@ $level-margin-right: 8px;
 	.list-paging-area,
 	.footnote-area {
 		padding: var(--padding-sm) 0;
+	}
+
+	// clear the home indicator where the page runs under it; 0 everywhere else
+	.list-paging-area {
+		padding-bottom: calc(var(--padding-sm) + env(safe-area-inset-bottom, 0px));
 	}
 }
 
@@ -654,6 +690,16 @@ input.list-header-checkbox {
 			&.standard-filters-visible .standard-filter-section {
 				display: flex;
 			}
+
+			// stacked, so the desktop gap between side-by-side fields only cuts them short
+			.standard-filter-section .form-group {
+				padding-right: 0;
+			}
+
+			// the ID box and the buttons carry different margins; centre them on one line
+			.filter-section {
+				align-items: center;
+			}
 		}
 	}
 }
@@ -861,9 +907,7 @@ input.list-header-checkbox {
 }
 
 @media screen and (max-width: 375px) {
-	.navbar-breadcrumbs li:last-child > a {
+	.navbar-breadcrumbs li:last-child .es-breadcrumbs__label {
 		max-width: 105px;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 }

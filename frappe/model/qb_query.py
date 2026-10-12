@@ -122,6 +122,16 @@ class DatabaseQuery:
 
 		# Handle virtual doctypes before any other processing
 		if is_virtual_doctype(self.doctype):
+			if not ignore_permissions:
+				ptype = "select" if frappe.only_has_select_perm(self.doctype, user=user) else "read"
+				frappe.has_permission(
+					self.doctype,
+					ptype=ptype,
+					parent_doctype=parent_doctype,
+					throw=True,
+					user=user,
+				)
+
 			return self._handle_virtual_doctype(
 				fields,
 				filters,
@@ -174,7 +184,7 @@ class DatabaseQuery:
 		from frappe.model.meta import get_table_columns
 
 		try:
-			get_table_columns(self.doctype)
+			columns = get_table_columns(self.doctype)
 		except frappe.db.TableMissingError:
 			if ignore_ddl:
 				return []
@@ -205,14 +215,18 @@ class DatabaseQuery:
 		if not run:
 			return query
 
+		with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
+		# selected after the permission check: never user-requestable, popped in _add_comment_count
+		if with_comment_count and not group_by and "_comments" in columns:
+			query = query.select(frappe.qb.DocType(self.doctype)._comments)
+
 		# Run the query
 		if pluck:
 			result = query.run(debug=debug, as_dict=True, pluck=pluck)
 		else:
 			result = query.run(debug=debug, as_dict=not as_list, update=update)
 
-		# Add comment count if requested and not as_list
-		if sbool(with_comment_count) and not as_list and self.doctype:
+		if with_comment_count:
 			self._add_comment_count(result)
 
 		# Save user settings if requested
@@ -239,13 +253,12 @@ class DatabaseQuery:
 			return
 
 		for row in result:
-			if isinstance(row, dict) and "_comments" in row:
-				try:
-					comments_data = json.loads(row["_comments"] or "[]")
-					row["_comment_count"] = len(comments_data) if isinstance(comments_data, list) else 0
-				except (json.JSONDecodeError, TypeError):
-					row["_comment_count"] = 0
-			elif isinstance(row, dict):
+			if not isinstance(row, dict):
+				continue
+			try:
+				comments_data = json.loads(row.pop("_comments", None) or "[]")
+				row["_comment_count"] = len(comments_data) if isinstance(comments_data, list) else 0
+			except (json.JSONDecodeError, TypeError):
 				row["_comment_count"] = 0
 
 	def _save_user_settings(

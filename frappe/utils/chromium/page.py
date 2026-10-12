@@ -34,6 +34,7 @@ class Page:
 		self.get_frame_id_on_demand()
 		self.set_media_emulation("print")
 		self.set_cookies()
+		self.block_external_requests = False
 
 	# TODO: make send to return future and don't wait for it by default.
 	def send(self, method, params=None, return_future=False):
@@ -73,6 +74,7 @@ class Page:
 				"value": frappe.session.sid,
 				"domain": domain,
 				"sameSite": "Strict",
+				"httpOnly": True,
 			}
 			_result, error = self.send("Network.enable")
 			if error:
@@ -199,6 +201,13 @@ class Page:
 							message=f"Blocked access to: {clean_path} \nResolved Path to: {final_system_path}",
 						)
 						return
+				elif self.block_external_requests:
+					self.session.send(
+						"Fetch.failRequest",
+						{"requestId": data["request_id"], "errorReason": "BlockedByClient"},
+						return_future=True,
+					)
+					return
 				self.session.send(
 					"Fetch.continueRequest",
 					{"requestId": data["request_id"]},
@@ -246,14 +255,15 @@ class Page:
 			# retry if error in 500ms for 3 times (just safe guard as i had few edge cases where it failed).
 			# waiting for network is still slower than this.
 			for _i in range(3):
-				print(f"Error evaluating expression: {error}. Retrying in 500ms")
 				time.sleep(0.5)
 				result, error = self.send(
 					"Runtime.evaluate", {"expression": expression, "awaitPromise": await_promise}
 				)
 				if not error:
 					break
-			raise RuntimeError(f"Error evaluating expression: {error}")
+			if error:
+				self.send("Runtime.disable")
+				raise RuntimeError(f"Error evaluating expression: {error}")
 
 		self.send("Runtime.disable")
 		return result
@@ -416,12 +426,16 @@ class Page:
 		return self.get_pdf_from_stream(result["stream"], raw)
 
 	def get_pdf_stream_id(self):
-		# wait for task to complete
+		# wait for the send task to complete; its result is the response future
 		self.session.wait_for_event(self.wait_for_pdf)
-		# wait for event to complete
-		task = self.wait_for_pdf.result()
-		future = task.result()
-		stream_id = future["result"]["stream"]
+		response_future = self.wait_for_pdf.result()
+		# the task resolves when the command is *sent*, so also wait for the
+		# Page.printToPDF response before reading the stream handle
+		self.session.wait_for_event(response_future, timeout=30)
+		if not response_future.done() or response_future.cancelled():
+			raise RuntimeError("Timed out waiting for the Page.printToPDF response")
+		response = response_future.result()
+		stream_id = response["result"]["stream"]
 		return stream_id
 
 	def get_pdf_from_stream(self, stream_id, raw=False):
@@ -429,21 +443,25 @@ class Page:
 
 		from pypdf import PdfReader
 
-		pdf_data = b""
+		chunks = []
 		offset = 0
 		while True:
-			chunk_result, error = self.send("IO.read", {"handle": stream_id, "offset": offset, "size": 4096})
+			chunk_result, error = self.send(
+				"IO.read", {"handle": stream_id, "offset": offset, "size": 1024 * 1024}
+			)
 			if error:
 				raise RuntimeError(f"Error reading PDF chunk: {error}")
 			chunk_data = chunk_result["data"]
 			# we don't use base64Encode option but added check anyway as it is one of the valid options.
 			if chunk_result.get("base64Encoded", False):
 				chunk_data = base64.b64decode(chunk_data)
-			pdf_data += chunk_data
+			chunks.append(chunk_data)
 			offset += len(chunk_data)
 			if chunk_result.get("eof", False):
 				break
 
+		pdf_data = b"".join(chunks)
+		chunks.clear()
 		_result, error = self.send("IO.close", {"handle": stream_id})
 		if error:
 			raise RuntimeError(f"Error closing PDF stream: {error}")

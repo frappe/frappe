@@ -426,7 +426,7 @@ class FormTimeline extends BaseTimeline {
 				  );
 
 			attachment_timeline_contents.push({
-				icon: is_file_upload ? "paperclip" : "trash-2",
+				icon: is_file_upload ? "paperclip" : "trash",
 				icon_size: "sm",
 				creation: attachment_log.creation,
 				content: timeline_content,
@@ -440,10 +440,9 @@ class FormTimeline extends BaseTimeline {
 		let milestone_timeline_contents = [];
 
 		(this.doc_info.milestones || []).forEach((milestone_log) => {
-			const field = __(
-				frappe.meta.get_label(this.frm.doctype, milestone_log.track_field),
-				null,
-				this.frm.doctype
+			const field = frappe.meta.get_translated_label(
+				this.frm.doctype,
+				milestone_log.track_field
 			);
 			const value = frappe.utils.bold(milestone_log.value);
 			const user_link = get_user_link(milestone_log.owner);

@@ -39,7 +39,7 @@ def get_context(context):
 
 	context.no_header = True
 	context.for_test = "login.html"
-	context["title"] = "Login"
+	context["title"] = _("Login")
 	context["hide_login"] = True  # dont show login link on login page again.
 	context["provider_logins"] = []
 	context["disable_signup"] = cint(frappe.get_website_settings("disable_signup"))
@@ -154,6 +154,7 @@ def send_login_link(email: str):
 			template="login_with_email_link",
 			args={"link": link, "minutes": expiry, "app_name": app_name},
 			with_container=True,
+			wrapper="templates/emails/auth_email.html",
 			now=True,
 		)
 	except frappe.DoesNotExistError:

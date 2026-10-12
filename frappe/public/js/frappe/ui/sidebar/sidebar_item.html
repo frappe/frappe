@@ -2,9 +2,6 @@
     class="sidebar-item-container {%= item.is_editable ? 'is-draggable' : '' %} {% if (item.type == 'Section Break') { %}section-item{% } %}"
     item-name="{{ item.label }}"
     data-id="{{ item.label }}"
-    title="{{ item.label }}"
-    data-toggle="tooltip"
-    data-placement="right"
 >
     <div
         class="standard-sidebar-item {%= item.indent ? 'indent' : '' %}">
@@ -26,7 +23,13 @@
                     target="{%= item.link_type === "URL" && item.open_in_new_tab ? "_blank" : "" %}"
                 {% } %}
                 class="item-anchor"
+                data-link-type="{{ item.link_type || "" }}"
             >
+                {% if (item.icon && !item.show_arrow && !hide_icon) { %}
+                    <span class="sidebar-item-icon" item-icon="{{ item.icon }}">
+                        {%= frappe.utils.icon(item.icon, "sm", "", "", "current-color", true) %}
+                    </span>
+                {% } %}
                 <span class="sidebar-item-label">{{ item.label }}</span>
                 {% if (item.suffix) { %}
                      <span class="sidebar-item-suffix">{{ item.suffix }}</span>

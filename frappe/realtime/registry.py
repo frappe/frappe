@@ -7,16 +7,21 @@ App authors register handlers declaratively::
     from frappe.realtime import Socket, realtime
 
 
-    @realtime.on("doc_subscribe", frappe_context=True)
-    def doc_subscribe(socket: Socket, doctype: str, docname: str) -> None: ...
+    @realtime.on("doc_subscribe")
+    async def doc_subscribe(socket: Socket, doctype: str, docname: str) -> None: ...
+
+A handler may be async (runs on the event loop) or plain (runs in a worker thread,
+with a blocking SyncSocket). frappe_context needs the thread, so those handlers
+must be plain.
 
 Each registration stores the callable, its frappe_context / allow_guest flags, and
-the owning app. Several apps may bind the same event; dispatch (task 9) runs each
-handler only if its app is installed on the connecting site. The owning app is
-taken from importing_app(), which the per-app discovery step wraps each import in;
-core handlers default to "frappe".
+the owning app. Several apps may bind the same event; dispatch runs each handler
+only if its app is installed on the connecting site. The owning app is taken from
+importing_app(), which the per-app discovery step wraps each import in; core
+handlers default to "frappe".
 """
 
+import inspect
 import logging
 from collections.abc import Callable, Iterable
 from contextlib import contextmanager
@@ -25,6 +30,17 @@ from dataclasses import dataclass
 logger = logging.getLogger("frappe.realtime")
 
 CORE_APP = "frappe"
+
+
+def is_async_callable(fn: Callable) -> bool:
+	"""True for coroutine functions and for objects whose __call__ is one.
+
+	iscoroutinefunction alone misses the latter, which would then run in a worker
+	thread with its coroutine dropped unawaited."""
+	if inspect.iscoroutinefunction(fn):
+		return True
+	call = getattr(fn, "__call__", None)  # noqa: B004
+	return call is not None and inspect.iscoroutinefunction(call)
 
 
 @dataclass(frozen=True)
@@ -45,6 +61,11 @@ class Registry:
 		"""Register a handler for an event. Returns the function unchanged."""
 
 		def decorator(fn: Callable) -> Callable:
+			if frappe_context and is_async_callable(fn):
+				raise TypeError(
+					f"{getattr(fn, '__name__', fn)!r}: frappe_context runs in a worker thread, so the handler "
+					f"must be a plain function, not 'async def'."
+				)
 			handler = Handler(
 				event=event,
 				fn=fn,

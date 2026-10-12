@@ -39,6 +39,12 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	setup_help() {
+		// Global Search (⌘G / Ctrl+G) is independent of the help/notifications UI,
+		// so its dialog is initialised before the early-return that skips help setup.
+		this.search = new frappe.search.SearchDialog();
+		frappe.provide("frappe.searchdialog");
+		frappe.searchdialog.search = this.search;
+
 		if (!frappe.boot.desk_settings.notifications) {
 			// hide the help section
 			$(".navbar .vertical-bar").removeClass("d-sm-block");
@@ -47,10 +53,6 @@ frappe.ui.toolbar.Toolbar = class {
 		}
 		frappe.provide("frappe.help");
 		frappe.help.show_results = show_results;
-
-		this.search = new frappe.search.SearchDialog();
-		frappe.provide("frappe.searchdialog");
-		frappe.searchdialog.search = this.search;
 
 		$(".dropdown-help .dropdown-toggle").on("click", function () {
 			$(".dropdown-help input").focus();

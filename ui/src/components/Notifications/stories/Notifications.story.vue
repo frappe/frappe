@@ -14,7 +14,7 @@
 			<Switch v-model="errored" label="Error" />
 		</div>
 
-		<div class="h-[480px] rounded-lg border border-outline-gray-2 overflow-hidden">
+		<div class="h-[480px] rounded-6 border border-outline-gray-2 overflow-hidden">
 			<NotificationPanel
 				v-bind="controller"
 				:tabs="withTabs ? tabs : undefined"

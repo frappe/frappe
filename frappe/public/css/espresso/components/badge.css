@@ -110,6 +110,13 @@
   color: var(--c-fg);
 }
 
+/* clip only sideways so the ellipsis works without cutting the bottom of g, y, p */
+.es-badge__label {
+  min-width: 0;
+  overflow-x: clip;
+  text-overflow: ellipsis;
+}
+
 /* ---- icons ----
  * One rule covers both framework idioms: React passes icons as direct <svg>
  * children; Vue wraps prefix/suffix slots in

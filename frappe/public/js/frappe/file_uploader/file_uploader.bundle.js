@@ -27,6 +27,7 @@ class FileUploader {
 		allow_toggle_private,
 		allow_toggle_optimize,
 		allow_google_drive,
+		keep_grid_form_open = false,
 	} = {}) {
 		frm?.attachments?.max_reached?.(true);
 
@@ -40,7 +41,7 @@ class FileUploader {
 		this.can_toggle_private = allow_toggle_private;
 
 		if (!wrapper) {
-			this.make_dialog(dialog_title);
+			this.make_dialog(dialog_title, keep_grid_form_open);
 		} else {
 			this.wrapper = wrapper.get ? wrapper.get(0) : wrapper;
 		}
@@ -147,9 +148,10 @@ class FileUploader {
 		return this.uploader.upload_files(this.dialog);
 	}
 
-	make_dialog(title) {
+	make_dialog(title, keep_grid_form_open) {
 		const dialog_opts = {
 			title: title || __("Upload"),
+			keep_grid_form_open,
 			primary_action_label: __("Upload"),
 			primary_action_loading_label: __("Uploading"),
 			primary_action: () => this.upload_files(),

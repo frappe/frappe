@@ -8,6 +8,7 @@ import json
 from urllib.parse import urlparse
 
 import requests
+from requests.adapters import Retry
 
 import frappe
 from frappe import _
@@ -204,13 +205,24 @@ def enqueue_webhook(doc, webhook) -> None:
 
 
 def send_webhook_request(method, url, headers, data, timeout):
-	return requests.request(
-		method=method,
-		url=url,
-		data=frappe.as_json(data),
-		headers=headers,
-		timeout=timeout or 5,
-	)
+	from frappe.utils.safe_exec import get_safe_request_session
+
+	if frappe.get_common_site_config(cached=True).get("allow_internal_webhook_urls"):
+		session = requests.Session()
+	else:
+		session = get_safe_request_session()
+		# Webhook retries are scheduled separately and recorded in the delivery log.
+		for adapter in session.adapters.values():
+			adapter.max_retries = Retry(total=0, read=False)
+
+	with session:
+		return session.request(
+			method=method,
+			url=url,
+			data=frappe.as_json(data),
+			headers=headers,
+			timeout=timeout or 5,
+		)
 
 
 def get_next_retry(attempt: int):

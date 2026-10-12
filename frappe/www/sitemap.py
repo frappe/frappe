@@ -16,10 +16,19 @@ base_template_path = "www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
+	disabled_controllers = {
+		controller
+		for controller, settings in {
+			"frappe.www.about": "About Us Settings",
+			"frappe.www.contact": "Contact Us Settings",
+		}.items()
+		if frappe.get_single_value(settings, "is_disabled")
+	}
+
 	links = [
 		{"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()}
 		for route, page in get_pages().items()
-		if page.sitemap
+		if page.sitemap and page.controller not in disabled_controllers
 	]
 
 	links.extend(
@@ -68,6 +77,9 @@ def get_public_pages_from_doctypes():
 				raise e
 
 		for r in res:
+			if not r.route or is_dynamic_route(r.route):
+				continue
+
 			if robot_parser_instance and not robot_parser_instance.can_fetch("*", f"/{r.route}"):
 				continue
 
@@ -78,3 +90,8 @@ def get_public_pages_from_doctypes():
 			}
 
 	return routes
+
+
+def is_dynamic_route(route: str) -> bool:
+	"""Check if route has dynamic segments like /project/<name> or /blog/:name."""
+	return "<" in route or any(part.startswith(":") for part in route.split("/"))

@@ -4,6 +4,7 @@ import json
 
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
@@ -14,6 +15,7 @@ from frappe.website.doctype.web_form.web_form import (
 	get_form_data,
 	get_link_options,
 	get_web_form_list,
+	process_link_field,
 )
 from frappe.website.serve import get_response_content
 
@@ -29,6 +31,236 @@ class TestWebForm(IntegrationTestCase):
 		frappe.local.request = None
 		frappe.set_user("Administrator")
 
+	def make_temp_web_form(self, **kwargs):
+		"""A throwaway Web Form on Event, so field tweaks don't leak into other tests."""
+		fields = kwargs.pop("web_form_fields", None) or [
+			{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+			{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
+		]
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "_Test Validation Web Form",
+				"route": "test-validation-web-form",
+				"doc_type": "Event",
+				"module": "Website",
+				"published": 1,
+				"login_required": 1,
+				"allow_multiple": 1,
+				"web_form_fields": fields,
+				**kwargs,
+			}
+		).insert(ignore_permissions=True)
+
+		self.addCleanup(frappe.delete_doc, "Web Form", web_form.name, force=True, ignore_permissions=True)
+		return web_form
+
+	def test_web_form_mandatory_is_enforced_on_server(self):
+		"""A field mandatory only on the Web Form must not pass just because the
+		browser was skipped."""
+		frappe.set_user("Administrator")
+
+		# `description` is optional on Event, mandatory only on this Web Form
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "reqd": 1},
+			]
+		)
+
+		doc = {
+			"doctype": "Event",
+			"subject": "_Test Event Without Description",
+			"starts_on": "2014-09-09",
+		}
+
+		self.assertRaises(frappe.ValidationError, accept, web_form=web_form.name, data=json.dumps(doc))
+		self.assertFalse(frappe.db.exists("Event", {"subject": "_Test Event Without Description"}))
+
+	def test_page_without_visible_fields_is_reported_not_blocked(self):
+		"""The portal skips such a page, so warn the author but still save the form."""
+		frappe.clear_messages()
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "details", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "", "fieldtype": "Section Break"},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "hidden": 1},
+			]
+		)
+		self.assertTrue(web_form.name, "the empty page must not block the save")
+
+		messages = frappe.get_message_log()
+		self.assertEqual(len(messages), 1)
+		# the label is what tells the author which page to fix, so pin that and not the sentence
+		self.assertIn("Details", messages[0]["message"])
+		self.assertEqual(messages[0]["title"], "Empty Page")
+
+	def test_page_with_visible_fields_is_not_reported(self):
+		"""Only an empty page is reported, or the warning becomes noise on every save."""
+		frappe.clear_messages()
+		self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "details", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
+			]
+		)
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_first_page_may_be_empty(self):
+		"""The portal always shows the first page, so only later pages are checked."""
+		frappe.clear_messages()
+		self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "", "fieldtype": "Page Break", "label": "More"},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
+			]
+		)
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_page_break_in_row_one_is_not_counted_as_a_page(self):
+		"""It names page 1, so the unnamed empty page after it is still page 2."""
+		frappe.clear_messages()
+		self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "", "fieldtype": "Page Break"},
+			]
+		)
+		messages = frappe.get_message_log()
+		self.assertEqual(len(messages), 1)
+		self.assertIn("Page 2", messages[0]["message"])
+
+	def test_web_form_data_field_options_are_enforced_on_server(self):
+		"""Email/Phone/URL set on a Web Form Field is not on the DocType, so the
+		document's own check never sees it."""
+		frappe.set_user("Administrator")
+
+		# Event.subject carries no data field options; the Web Form types it as an Email
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{
+					"fieldname": "subject",
+					"fieldtype": "Data",
+					"label": "Title",
+					"reqd": 1,
+					"options": "Email",
+				}
+			]
+		)
+
+		doc = {
+			"doctype": "Event",
+			"subject": "definitely not an email",
+			"starts_on": "2014-09-09",
+		}
+
+		self.assertRaises(
+			frappe.InvalidEmailAddressError, accept, web_form=web_form.name, data=json.dumps(doc)
+		)
+
+		accept(
+			web_form=web_form.name,
+			data=json.dumps({**doc, "subject": "someone@example.com"}),
+		)
+		self.assertTrue(frappe.db.exists("Event", {"subject": "someone@example.com"}))
+
+	def test_web_form_phone_fieldtype_is_enforced_on_server(self):
+		"""`Phone` as a Web Form fieldtype is invisible to Meta.get_phone_fields(), which
+		only sees the DocType's own fields."""
+		frappe.set_user("Administrator")
+
+		# Event.location is a plain Data field; the Web Form types it as a phone number
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "location", "fieldtype": "Phone", "label": "Phone"},
+			]
+		)
+
+		doc = {
+			"doctype": "Event",
+			"subject": "_Test Event Bad Phone",
+			"starts_on": "2014-09-09",
+			"location": "definitely not a phone!!",
+		}
+
+		self.assertRaises(
+			frappe.InvalidPhoneNumberError, accept, web_form=web_form.name, data=json.dumps(doc)
+		)
+
+		# same check a `Phone` field on the DocType would get: a country code is required
+		self.assertRaises(
+			frappe.InvalidPhoneNumberError,
+			accept,
+			web_form=web_form.name,
+			data=json.dumps({**doc, "location": "9876543210"}),
+		)
+
+		accept(web_form=web_form.name, data=json.dumps({**doc, "location": "+91-9876543210"}))
+		self.assertTrue(frappe.db.exists("Event", {"subject": "_Test Event Bad Phone"}))
+
+	def test_guest_cannot_skip_web_form_validation(self):
+		"""The reported case: an unauthenticated submission got a success page."""
+		web_form = self.make_temp_web_form(
+			login_required=0,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "reqd": 1},
+			],
+		)
+
+		frappe.set_user("Guest")
+
+		doc = {
+			"doctype": "Event",
+			"subject": "_Test Guest Event Without Description",
+			"starts_on": "2014-09-09",
+		}
+
+		self.assertRaises(frappe.ValidationError, accept, web_form=web_form.name, data=json.dumps(doc))
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Event", {"subject": "_Test Guest Event Without Description"}))
+
+	def test_allow_incomplete_still_skips_mandatory(self):
+		frappe.set_user("Administrator")
+
+		web_form = self.make_temp_web_form(
+			allow_incomplete=1,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "reqd": 1},
+			],
+		)
+
+		accept(
+			web_form=web_form.name,
+			data=json.dumps(
+				{"doctype": "Event", "subject": "_Test Incomplete Event", "starts_on": "2014-09-09"}
+			),
+		)
+		self.assertTrue(frappe.db.exists("Event", {"subject": "_Test Incomplete Event"}))
+
+	def test_mandatory_check_skips_fields_awaiting_upload(self):
+		"""An attach field is emptied while its file is written, so it must not read
+		as a missing mandatory value."""
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "reqd": 1},
+			]
+		)
+
+		doc = frappe.new_doc("Event")
+		doc.subject = "_Test Event Awaiting Upload"
+
+		self.assertRaises(frappe.ValidationError, web_form.validate_mandatory, doc)
+		# no exception once the field is declared as pending
+		web_form.validate_mandatory(doc, uploaded_fields={"description"})
+
 	def test_accept(self):
 		frappe.set_user("Administrator")
 
@@ -43,6 +275,55 @@ class TestWebForm(IntegrationTestCase):
 
 		self.event_name = frappe.db.get_value("Event", {"subject": "_Test Event Web Form"})
 		self.assertTrue(self.event_name)
+
+	def test_guest_payload_survives_form_dict_sanitisation(self):
+		"""A guest's arguments reach `form_dict` as JSON, and every string in it is
+		sanitized before the method runs. A Text Editor value carries a quoted
+		attribute, so sanitizing the serialized payload rewrote that quote as
+		`&quot;` and `data` stopped parsing."""
+		web_form = self.make_temp_web_form(
+			login_required=0,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{"fieldname": "description", "fieldtype": "Text Editor", "label": "Description"},
+			],
+		)
+		subject = "_Test Event Sanitised Payload"
+		description = '<div class="ql-editor read-mode"><p>Hi</p></div>'
+		data = json.dumps(
+			{
+				"doctype": "Event",
+				"subject": subject,
+				"description": description,
+				"starts_on": "2014-09-09",
+			}
+		)
+
+		frappe.set_user("Guest")
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
+		frappe.local.form_dict = frappe._dict(web_form=web_form.name, data=data)
+
+		frappe.is_whitelisted(accept)
+		self.assertEqual(frappe.form_dict.data, data)
+
+		event = accept(web_form=web_form.name, data=frappe.form_dict.data)
+		self.addCleanup(frappe.delete_doc, "Event", event.name, force=True, ignore_permissions=True)
+		self.assertIn("ql-editor", event.description)
+
+		# markup in the same payload is still sanitized
+		frappe.local.form_dict = frappe._dict(
+			web_form=web_form.name,
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": subject,
+					"description": "<script>alert(1)</script>",
+					"starts_on": "2014-09-09",
+				}
+			),
+		)
+		frappe.is_whitelisted(accept)
+		self.assertNotIn("<script>", frappe.form_dict.data)
 
 	def test_accept_and_delete_multiple_accept_native_payloads(self):
 		frappe.set_user("Administrator")
@@ -573,6 +854,45 @@ class TestWebForm(IntegrationTestCase):
 		self.assertNotIn("owner", reference_doc)
 		self.assertNotIn("creation", reference_doc)
 
+	def test_logged_in_key_holder_reference_doc_exposes_only_web_form_fields(self):
+		"""A logged-in key holder without document access is authorised by the key
+		alone, so reference_doc must be scoped the same way as it is for a Guest."""
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			allow_edit=1,
+			allow_multiple=0,
+		)
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Restricted Reference For User",
+				"starts_on": "2026-05-10",
+				"description": "_Test visible description",
+				"event_type": "Private",
+			}
+		).insert(ignore_permissions=True)
+		web_form_request = self.create_web_form_request(reference_docname=event.name)
+
+		frappe.set_user(self.create_website_user("_test_web_form_key_holder@example.com"))
+		frappe.local.path = f"manage-events/{event.name}/edit"
+		frappe.local.form_dict = frappe._dict(
+			name=event.name,
+			is_edit=1,
+			web_form_request_key=web_form_request.key,
+		)
+		context = frappe._dict()
+		frappe.get_doc("Web Form", "manage-events").get_context(context)
+
+		reference_doc = context.reference_doc
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		allowed_fields = {"name", "doctype", *(f.fieldname for f in web_form.web_form_fields)}
+
+		self.assertEqual(set(reference_doc.keys()), allowed_fields)
+		self.assertEqual(reference_doc["subject"], "_Test Restricted Reference For User")
+		self.assertNotIn("event_type", reference_doc)
+		self.assertNotIn("owner", reference_doc)
+
 	def test_guest_with_valid_key_can_render_bound_document_page(self):
 		"""A Guest holding a valid request key bound to a document must be able
 		to render the view/edit page instead of being redirected to /new."""
@@ -853,6 +1173,13 @@ class TestWebForm(IntegrationTestCase):
 			self.assertEqual(set(row.keys()), allowed_fields)
 			self.assertNotIn("description", row)
 
+	def test_child_table_fields_hide_name(self):
+		"""The same dfs back the editable Table grid, where name is not user settable."""
+		from frappe.website.doctype.web_form.web_form import get_in_list_view_fields
+
+		fields = {df["fieldname"]: df for df in get_in_list_view_fields("Contact Phone")}
+		self.assertTrue(fields["name"].get("hidden"))
+
 	def test_guest_still_requires_login_without_web_form_request(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.ValidationError):
@@ -984,6 +1311,63 @@ class TestWebForm(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			web_form.save()
 
+	def test_link_options_do_not_reload_web_form_per_field(self):
+		self.add_web_form_link_field()
+
+		def link_field():
+			return frappe._dict(
+				{"fieldname": "reference_doctype", "fieldtype": "Link", "options": "Salutation"}
+			)
+
+		process_link_field(link_field(), "manage-events")
+
+		with self.assertQueryCount(6):
+			for _ in range(5):
+				process_link_field(link_field(), "manage-events")
+
+	def test_link_field_options_respect_link_filters(self):
+		for doctype in ("Event", "Event Participants"):
+			property_setter = make_property_setter(
+				doctype,
+				"reference_doctype",
+				"link_filters",
+				json.dumps(
+					[
+						["DocType", "name", "in", ["Event", "ToDo"]],
+						["DocType", "module", "=", "eval:doc.module"],
+					]
+				),
+				"JSON",
+			)
+			self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+
+		web_form = self.make_temp_web_form(
+			login_required=0,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "reference_doctype",
+					"fieldtype": "Link",
+					"label": "Reference Document Type",
+					"options": "DocType",
+				},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+				},
+			],
+		)
+
+		frappe.set_user(self.create_website_user("_test_web_form_link_filters@example.com"))
+		result = get_form_data(doctype="Event", web_form_name=web_form.name)
+
+		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "reference_doctype")
+		child_link_field = next(f for f in result.event_participants if f["fieldname"] == "reference_doctype")
+		for options in (link_field.options, child_link_field["options"]):
+			self.assertEqual(sorted(option["value"] for option in options), ["Event", "ToDo"])
+
 	def test_get_link_options_blocked_for_unauthorized_link_on_guest_key_form(self):
 		self.set_web_form_settings(key_required=1, login_required=0)
 
@@ -1054,6 +1438,19 @@ class TestWebForm(IntegrationTestCase):
 		)
 		web_form.save(ignore_permissions=True)
 		frappe.clear_document_cache("Web Form", "manage-events")
+
+	def create_website_user(self, email):
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "Web Form Key Holder",
+					"user_type": "Website User",
+				}
+			).insert(ignore_permissions=True)
+
+		return email
 
 	def create_web_form_request(
 		self, web_form_values=None, doc_values=None, expires_on=None, reference_docname=None

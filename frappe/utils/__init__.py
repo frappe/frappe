@@ -21,10 +21,9 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, getaddresses, parseaddr
-from typing import Any, Generic, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, Any, Generic, TypeAlias, TypedDict
 
 import orjson
-from werkzeug.test import Client
 
 from frappe.deprecation_dumpster import (
 	get_gravatar,
@@ -37,7 +36,10 @@ from frappe.deprecation_dumpster import (
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from frappe.utils.html_utils import sanitize_html
+from frappe.utils.html_utils import sanitize_html, sanitize_html_payload
+
+if TYPE_CHECKING:
+	from werkzeug.test import Client
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
 EMAIL_STRING_PATTERN = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
@@ -331,6 +333,9 @@ def get_traceback(with_context: bool = False) -> str:
 	if not any([exc_type, exc_value, exc_tb]):
 		return ""
 
+	if with_context and not frappe.conf.developer_mode:
+		with_context = False
+
 	if with_context:
 		trace_list = iter_exc_lines(fmt=_get_traceback_sanitizer())
 		tb = "\n".join(trace_list)
@@ -344,24 +349,36 @@ def get_traceback(with_context: bool = False) -> str:
 
 @functools.lru_cache(maxsize=1)
 def _get_traceback_sanitizer():
+	import re
+
 	from traceback_with_variables import Format
 
 	blocklist = [
 		"password",
 		"passwd",
+		"pwd",
 		"secret",
 		"token",
 		"key",
-		"pwd",
+		"authorization",
+		"cookie",
 	]
+
+	exact_blocklist = ["sid"]
 
 	placeholder = "********"
 
+	name_pattern = re.compile("|".join(f"(?i:{re.escape(word)})" for word in blocklist))
+	exact_pattern = re.compile("|".join(f"(?i:^{re.escape(word)}$)" for word in exact_blocklist))
+
+	def is_sensitive_name(name) -> bool:
+		return isinstance(name, str) and bool(name_pattern.search(name) or exact_pattern.search(name))
+
 	def dict_printer(v: dict) -> str:
 		v = v.copy()
-		for key in blocklist:
-			if key in v:
-				v[key] = placeholder
+		for k in list(v):
+			if is_sensitive_name(k):
+				v[k] = placeholder
 
 		return str(v)
 
@@ -369,9 +386,10 @@ def _get_traceback_sanitizer():
 	# Reused under MIT license: https://github.com/andy-landy/traceback_with_variables/blob/master/LICENSE
 
 	return Format(
+		objects_details=0,
 		custom_var_printers=[
 			# redact variables
-			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
+			(lambda name, *a, **kw: is_sensitive_name(name), lambda *a, **kw: placeholder),
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
 			(["_secret", frappe._dict, lambda *a, **kw: False], dict_printer),
@@ -592,8 +610,10 @@ def touch_file(path):
 	return path
 
 
-def get_test_client(use_cookies=True) -> Client:
+def get_test_client(use_cookies=True) -> "Client":
 	"""Return an test instance of the Frappe WSGI."""
+	from werkzeug.test import Client
+
 	from frappe.app import application
 
 	return Client(application, use_cookies=use_cookies)
@@ -704,12 +724,16 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 
-def get_request_session(max_retries=5):
+DEFAULT_MAX_REDIRECTS = 5
+
+
+def get_request_session(max_retries=5, max_redirects=DEFAULT_MAX_REDIRECTS, adapter=None):
 	import requests
 	from requests.adapters import HTTPAdapter, Retry
 
 	session = requests.Session()
-	http_adapter = HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
+	session.max_redirects = max_redirects
+	http_adapter = adapter or HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
 
 	session.mount("http://", http_adapter)
 	session.mount("https://", http_adapter)
@@ -1153,6 +1177,25 @@ class CallbackManager:
 
 	def reset(self):
 		self._functions.clear()
+
+	def __len__(self) -> int:
+		return len(self._functions)
+
+	def __bool__(self) -> bool:
+		# stay truthy when empty; callers use `if callbacks:` as a None check
+		return True
+
+	def cut(self, count: int) -> list:
+		"""Detach and return the functions queued after the first `count`."""
+		detached = []
+		while len(self._functions) > count:
+			detached.append(self._functions.pop())
+		detached.reverse()
+		return detached
+
+	def truncate(self, count: int) -> None:
+		"""Drop functions queued after the first `count`."""
+		self.cut(count)
 
 
 def safe_eval(code, eval_globals=None, eval_locals=None):

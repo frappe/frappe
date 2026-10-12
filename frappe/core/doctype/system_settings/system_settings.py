@@ -163,7 +163,7 @@ class SystemSettings(Document):
 
 		if self.link_field_results_limit > 50:
 			self.link_field_results_limit = 50
-			label = _(self.meta.get_label("link_field_results_limit"), context=self.doctype)
+			label = self.meta.get_translated_label("link_field_results_limit")
 			frappe.msgprint(
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
 			)
@@ -250,12 +250,11 @@ def load():
 	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	all_defaults = frappe.db.get_defaults()
 	defaults = {}
 
 	for df in frappe.get_meta("System Settings").get("fields"):
 		if df.fieldtype in ("Select", "Data"):
-			defaults[df.fieldname] = all_defaults.get(df.fieldname)
+			defaults[df.fieldname] = get_system_settings(df.fieldname)
 
 	return {"timezones": get_all_timezones(), "defaults": defaults}
 

@@ -3,6 +3,7 @@
  "allow_import": 1,
  "creation": "2017-07-17 14:25:27.881871",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/user-permissions",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -35,7 +36,8 @@
    "in_standard_filter": 1,
    "label": "Allow",
    "options": "DocType",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "for_value",
@@ -90,7 +92,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-12-01 06:55:21.174845",
+ "modified": "2026-10-09 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Permission",

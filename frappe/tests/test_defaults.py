@@ -3,9 +3,7 @@
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.defaults import *
-from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if
 
 
 class TestDefaults(IntegrationTestCase):
@@ -70,28 +68,38 @@ class TestDefaults(IntegrationTestCase):
 		frappe.delete_doc("User Permission", perm_doc.name)
 		frappe.set_user(old_user)
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_user_permission_defaults(self):
-		# Create user permission
-		create_user("user_default_test@example.com", "Website Manager")
-		frappe.set_user("user_default_test@example.com")
-		set_global_default("Country", "")
-		clear_user_default("Country")
+		user = "user_default_test@example.com"
+		create_user(user, "Website Manager")
 
-		perm_doc = frappe.get_doc(
-			doctype="User Permission", user=frappe.session.user, allow="Country", for_value="India"
-		).insert(ignore_permissions=True)
+		with self.set_user(user):
+			set_global_default("country", "United States")
+			set_global_default("Country", "")
+			clear_user_default("Country")
+			clear_user_default("country")
 
-		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 1)
-		set_global_default("Country", "United States")
-		self.assertEqual(get_user_default("Country"), "India")
+			perm_doc = frappe.get_doc(
+				doctype="User Permission", user=user, allow="Country", for_value="India"
+			).insert(ignore_permissions=True)
 
-		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 0)
-		clear_user_default("Country")
-		self.assertEqual(get_user_default("Country"), None)
+			perm_doc.is_default = 1
+			perm_doc.save(ignore_permissions=True)
+			set_global_default("Country", "United States")
+			self.assertEqual(get_user_default("Country"), "India")
 
-		perm_doc = frappe.get_doc(
-			doctype="User Permission", user=frappe.session.user, allow="Country", for_value="United States"
-		).insert(ignore_permissions=True)
+			perm_doc.is_default = 0
+			perm_doc.save(ignore_permissions=True)
+			clear_user_default("Country")
+			self.assertEqual(get_user_default("Country"), None)
 
-		self.assertEqual(get_user_default("Country"), "United States")
+			frappe.get_doc(
+				doctype="User Permission", user=user, allow="Country", for_value="United States"
+			).insert(ignore_permissions=True)
+
+			self.assertEqual(get_user_default("Country"), "United States")
+
+			# a permitted default chosen by the user beats the User Permission default
+			perm_doc.is_default = 1
+			perm_doc.save(ignore_permissions=True)
+			set_user_default("country", "United States")
+			self.assertEqual(get_user_default("Country"), "United States")

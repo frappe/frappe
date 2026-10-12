@@ -15,7 +15,11 @@ from frappe.cache_manager import clear_controller_cache, clear_user_cache
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database import savepoint
-from frappe.database.schema import validate_column_length, validate_column_name
+from frappe.database.schema import (
+	validate_column_length,
+	validate_column_name,
+	validate_table_name_length,
+)
 from frappe.desk.notifications import delete_notification_count_for, get_filters_for
 from frappe.desk.utils import validate_route_conflict
 from frappe.model import (
@@ -128,10 +132,9 @@ class DocType(Document):
 		grid_page_length: DF.Int
 		has_web_view: DF.Check
 		hide_toolbar: DF.Check
-		icon: DF.Data | None
+		icon: DF.Icon | None
 		image_field: DF.Data | None
 		in_create: DF.Check
-		index_web_pages_for_search: DF.Check
 		is_calendar_and_gantt: DF.Check
 		is_published_field: DF.Data | None
 		is_submittable: DF.Check
@@ -183,7 +186,6 @@ class DocType(Document):
 		track_seen: DF.Check
 		track_views: DF.Check
 		translated_doctype: DF.Check
-		website_search_field: DF.Data | None
 	# end: auto-generated types
 
 	def validate(self):
@@ -282,6 +284,7 @@ class DocType(Document):
 	def set_defaults_for_single_and_table(self):
 		if self.issingle:
 			self.allow_import = 0
+			self.allow_rename = 0
 			self.is_submittable = 0
 			self.istable = 0
 
@@ -523,6 +526,12 @@ class DocType(Document):
 			if d.unique:
 				d.search_index = 0
 
+			# no-value fieldtypes have no column, so these column-only properties don't apply
+			if d.fieldtype in no_value_fields:
+				d.unique = 0
+				d.search_index = 0
+				d.not_nullable = 0
+
 	def get_permission_log_options(self, event=None):
 		if self.custom and event != "after_delete":
 			return {
@@ -702,9 +711,9 @@ class DocType(Document):
 		`doctype` property for Single type."""
 
 		if self.issingle:
-			frappe.db.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
+			frappe.db.sql("""update `tabSingles` set doctype=%s where doctype=%s""", (new, old))
 			frappe.db.sql(
-				"""update tabSingles set value=%s
+				"""update `tabSingles` set value=%s
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
@@ -718,6 +727,13 @@ class DocType(Document):
 				self.rename_files_and_folders(old, new)
 
 			clear_controller_cache(old)
+
+	def clear_cache(self):
+		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
+
+		# a module with no `Sidebar` has its sidebar computed from doctypes like this one
+		clear_computed_base_for(self)
+		return super().clear_cache()
 
 	def after_delete(self):
 		if not self.custom:
@@ -1088,15 +1104,7 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
-		# a Doctype name is the tablename created in database
-		# `tab<Doctype Name>` the length of tablename is limited to 64 characters
-		max_length = frappe.db.MAX_COLUMN_LENGTH - 3
-		if len(name) > max_length:
-			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
-			frappe.throw(
-				_("Doctype name is limited to {0} characters ({1})").format(max_length, name),
-				frappe.NameError,
-			)
+		validate_table_name_length(name)
 
 		# a DocType name should not start or end with an empty space
 		if WHITESPACE_PADDING_PATTERN.search(name):
@@ -1326,6 +1334,10 @@ def _test_connection_query(doctype, field, idx):
 	filters[field] = ""
 
 	try:
+		# SQLite treats unknown double-quoted identifiers as string literals, so an
+		# invalid link field can otherwise make this validation query appear valid.
+		if frappe.db.db_type == "sqlite" and field not in frappe.get_meta(doctype).get_valid_columns():
+			raise InvalidFieldNameError(field)
 		frappe.get_all(doctype, filters=filters, limit=1, distinct=True, ignore_ifnull=True)
 	except Exception as e:
 		frappe.clear_last_message()
@@ -1629,18 +1641,6 @@ def validate_fields(meta: Meta):
 		if meta.is_published_field not in fieldname_list:
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
-	def check_website_search_field(meta):
-		if not meta.get("website_search_field"):
-			return
-
-		if meta.website_search_field not in fieldname_list:
-			frappe.throw(_("Website Search Field must be a valid fieldname"), InvalidFieldNameError)
-
-		if "title" not in fieldname_list:
-			frappe.throw(
-				_('Field "title" is mandatory if "Website Search Field" is set.'), title=_("Missing Field")
-			)
-
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
 			return
@@ -1866,7 +1866,6 @@ def validate_fields(meta: Meta):
 		check_title_field(meta)
 		check_timeline_field(meta)
 		check_is_published_field(meta)
-		check_website_search_field(meta)
 		check_sort_field(meta)
 		check_image_field(meta)
 
@@ -2102,17 +2101,25 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		):
 			frappe.get_doc(doctype="Domain", domain=doc.restrict_to_domain).insert()
 
-		if "tabModule Def" in frappe.db.get_tables() and not frappe.db.exists("Module Def", doc.module):
-			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
-			if frappe.scrub(doc.module) in frappe.local.module_app:
-				m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
-			else:
-				m.app_name = "frappe"
-			m.flags.ignore_mandatory = m.flags.ignore_permissions = True
-			if frappe.flags.package:
-				m.package = frappe.flags.package.name
-				m.custom = 1
-			m.insert()
+		if "tabModule Def" in frappe.db.get_tables():
+			# A doctype arriving from an app brings its module with it. If the site holds that
+			# name with a custom module of its own, the app takes it and the site's module is
+			# renamed. Otherwise this does nothing, which is the case for every ordinary save.
+			from frappe.installer import reclaim_module_name_for_its_app
+
+			reclaim_module_name_for_its_app(doc.module)
+
+			if not frappe.db.exists("Module Def", doc.module):
+				m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
+				if frappe.scrub(doc.module) in frappe.local.module_app:
+					m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
+				else:
+					m.app_name = "frappe"
+				m.flags.ignore_mandatory = m.flags.ignore_permissions = True
+				if frappe.flags.package:
+					m.package = frappe.flags.package.name
+					m.custom = 1
+				m.insert()
 
 		roles = [p.role for p in doc.get("permissions") or []] + list(AUTOMATIC_ROLES)
 

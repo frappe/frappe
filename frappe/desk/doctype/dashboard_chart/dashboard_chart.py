@@ -12,6 +12,7 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
 from frappe.permissions import get_doctypes_with_read
+from frappe.query_builder.functions import Date, UnixTimestamp
 from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
 from frappe.utils.data import format_date
@@ -230,29 +231,22 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	doctype = chart.document_type
 	datefield = chart.based_on
 	year = cint(heatmap_year) if heatmap_year else getdate(nowdate()).year
-	year_start_date = datetime.date(year, 1, 1).strftime("%Y-%m-%d")
-	next_year_start_date = datetime.date(year + 1, 1, 1).strftime("%Y-%m-%d")
 
-	filters.append([doctype, datefield, ">", f"{year_start_date}"])
-	filters.append([doctype, datefield, "<", f"{next_year_start_date}"])
+	filters.append([doctype, datefield, ">=", f"{year}-01-01"])
+	filters.append([doctype, datefield, "<", f"{year + 1}-01-01"])
 
-	if frappe.db.db_type == "mariadb":
-		timestamp_field = f"unix_timestamp({datefield})"
-	else:
-		timestamp_field = f"extract(epoch from timestamp {datefield})"
-
+	day_timestamp = UnixTimestamp(Date(frappe.qb.DocType(doctype)[datefield]))
+	# by position: a GROUP BY alias loses to a column of the same name
 	data = dict(
-		frappe.get_all(
+		frappe.get_list(
 			doctype,
-			fields=[
-				timestamp_field,
-				{aggregate_function: value_field},
-			],
+			fields=[day_timestamp, {aggregate_function: value_field}],
 			filters=filters,
-			group_by=f"date({datefield})",
+			group_by="1",
 			as_list=1,
-			order_by=f"{datefield} asc",
+			order_by="1 asc",
 			ignore_ifnull=True,
+			parent_doctype=chart.parent_document_type,
 		)
 	)
 
@@ -361,6 +355,7 @@ class DashboardChart(Document):
 		custom_options: DF.Code | None
 		document_type: DF.Link | None
 		dynamic_filters_json: DF.Code | None
+		empty_state_message: DF.SmallText | None
 		filters_json: DF.Code
 		from_date: DF.Date | None
 		group_by_based_on: DF.Literal[None]
@@ -374,6 +369,7 @@ class DashboardChart(Document):
 		parent_document_type: DF.Link | None
 		report_name: DF.Link | None
 		roles: DF.Table[HasRole]
+		show_values_over_chart: DF.Check
 		source: DF.Link | None
 		time_interval: DF.Literal["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"]
 		timeseries: DF.Check

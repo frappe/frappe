@@ -28,6 +28,36 @@ class TestToDoExtension(BaseDocument):
 
 
 class TestBaseDocument(IntegrationTestCase):
+	def test_sanitize_content_skips_json_fieldtype(self):
+		"""JSON-fieldtype values must survive _sanitize_content untouched, even when
+		they contain HTML-like substrings, while ordinary text fields on the same
+		doctype are still sanitized."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		if not frappe.db.exists("DocType", "Test JSON Sanitize"):
+			new_doctype(
+				"Test JSON Sanitize",
+				fields=[
+					{"label": "Config", "fieldname": "config", "fieldtype": "JSON"},
+					{"label": "Description", "fieldname": "description", "fieldtype": "Text"},
+				],
+			).insert()
+
+		payload = '{"label": "<b onclick=\\"alert(1)\\">hi</b>"}'
+		doc = frappe.get_doc(
+			{
+				"doctype": "Test JSON Sanitize",
+				"config": payload,
+				"description": '<b onclick="alert(1)">hi</b>',
+			}
+		).insert()
+
+		# JSON field: unchanged, still contains the raw onclick attribute
+		self.assertEqual(doc.config, payload)
+
+		# Text field: sanitized, onclick attribute stripped
+		self.assertNotIn("onclick", doc.description)
+
 	def test_docstatus(self):
 		doc = BaseDocument({"docstatus": 0, "doctype": "ToDo"})
 		self.assertTrue(doc.docstatus.is_draft())
@@ -199,6 +229,38 @@ class TestBaseDocument(IntegrationTestCase):
 			# Test that original ToDo methods are still available
 			self.assertTrue(hasattr(unpickled_instance, "on_update"))
 			self.assertTrue(hasattr(unpickled_instance, "validate"))
+
+	def test_get_valid_dict_json_field_with_list(self):
+		"""Test that get_valid_dict properly handles and serializes JSON fields with list values."""
+		from frappe import _dict
+
+		doc = BaseDocument(
+			{"doctype": "DocField", "fieldname": "test_json_field", "link_filters": [{"key": "val"}]}
+		)
+		meta = _dict(
+			_fields={"link_filters": _dict(fieldname="link_filters", fieldtype="JSON", label="Link Filters")},
+			get_valid_fields=lambda: ["link_filters"],
+			get_table_fields=lambda **kwargs: (),
+		)
+		doc.meta = meta
+		doc.flags = _dict()
+		valid_dict = doc.get_valid_dict()
+		self.assertEqual(valid_dict["link_filters"], '[{"key":"val"}]')
+
+		# Non-JSON non-table fields should still reject list values
+		doc_invalid = BaseDocument(
+			{"doctype": "DocField", "label": "Invalid List", "description": ["item1", "item2"]}
+		)
+		doc_invalid.meta = _dict(
+			_fields={
+				"description": _dict(fieldname="description", fieldtype="Small Text", label="Description")
+			},
+			get_valid_fields=lambda: ["description"],
+			get_table_fields=lambda **kwargs: (),
+		)
+		doc_invalid.flags = _dict()
+		with self.assertRaises(frappe.ValidationError):
+			doc_invalid.get_valid_dict()
 
 
 def clear_todo_controller_cache():

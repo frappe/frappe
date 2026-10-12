@@ -48,7 +48,7 @@ class Version(Document):
 
 	def set_diff(self, old: Document, new: Document) -> bool:
 		"""Set the data property with the diff of the docs if present"""
-		diff = get_diff(old, new)
+		diff = get_diff(old, new, include_ignored_fields=False)
 		if diff:
 			self.set_impersonator(diff)
 			self.ref_doctype = new.doctype
@@ -101,7 +101,7 @@ class Version(Document):
 			self.set_onload("html_diffs", html_diffs)
 
 
-def get_diff(old, new, for_child=False, compare_cancelled=False):
+def get_diff(old, new, for_child=False, compare_cancelled=False, include_ignored_fields=True):
 	"""Get diff between 2 document objects
 
 	If there is a change, then returns a dict like:
@@ -116,8 +116,25 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 	                ],
 
 	        }"""
+
+	def get_row_data(row) -> dict:
+		"""
+		Row data for the version log, without fields set to `Ignore Versioning`.
+		"""
+		data = row.as_dict()
+
+		if include_ignored_fields:
+			return data
+
+		for fieldname in row.meta.ignore_versioning_fields:
+			data.pop(fieldname, None)
+
+		return data
+
 	if not new:
 		return None
+
+	ignored_fields = set() if include_ignored_fields else new.meta.ignore_versioning_fields
 
 	blacklisted_fields = ["Markdown Editor", "Text Editor", "Code", "HTML Editor"]
 
@@ -140,6 +157,9 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 	for df in new.meta.fields:
 		if df.fieldtype in FIELDTYPES_TO_IGNORE or getattr(df, "is_virtual", False):
+			continue
+
+		if df.fieldname in ignored_fields:
 			continue
 
 		old_value, new_value = old.get(df.fieldname), new.get(df.fieldname)
@@ -168,16 +188,21 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 				if old_row_name and old_row_name in old_rows_by_name:
 					found_rows.add(old_row_name)
 
-					diff = get_diff(old_rows_by_name[old_row_name], d, for_child=True)
+					diff = get_diff(
+						old_rows_by_name[old_row_name],
+						d,
+						for_child=True,
+						include_ignored_fields=include_ignored_fields,
+					)
 					if diff and diff.changed:
 						out.row_changed.append((df.fieldname, i, d.name, diff.changed))
 				else:
-					out.added.append([df.fieldname, d.as_dict()])
+					out.added.append([df.fieldname, get_row_data(d)])
 
 			# check for deletions
 			for d in old_value:
 				if d.name not in found_rows:
-					out.removed.append([df.fieldname, d.as_dict()])
+					out.removed.append([df.fieldname, get_row_data(d)])
 
 		elif old_value != new_value:
 			if df.fieldtype not in blacklisted_fields:

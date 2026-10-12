@@ -4,6 +4,8 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
+	get_applicable_for_doctype_list,
+	get_user_permission_list,
 	remove_applicable,
 )
 from frappe.permissions import add_permission, has_user_permission
@@ -71,6 +73,36 @@ class TestUserPermission(IntegrationTestCase):
 		param = get_params(user, "User", user.name)
 		is_created = add_user_permissions(param)
 		self.assertEqual(is_created, 1)
+
+	def test_get_user_permission_list(self):
+		"""get_user_permission_list returns joined rows for `allow`, searched and paged."""
+		user = create_user("test_user_perm1@example.com")
+		add_user_permissions(get_params(user, "User", user.name))
+
+		rows = get_user_permission_list("User", page_length=1000)
+		row = next((r for r in rows if r.get("user") == user.name), None)
+		self.assertIsNotNone(row, "created permission should be returned")
+		self.assertEqual(row.get("for_value"), user.name)
+		self.assertIn("full_name", row)
+		self.assertTrue(row.get("apply_to_all_doctypes"))
+
+		searched = get_user_permission_list("User", txt="test_user_perm1")
+		self.assertTrue(all(r["user"] == user.name for r in searched))
+		self.assertTrue(searched)
+
+		self.assertEqual(len(get_user_permission_list("User", page_length=1)), 1)
+		self.assertFalse(get_user_permission_list("User", txt="no-such-user-xyz"))
+
+	def test_get_applicable_for_doctype_list(self):
+		def applicable_for(start, page_len):
+			return get_applicable_for_doctype_list(
+				"DocType", "", "name", start, page_len, {"doctype": "User"}
+			)
+
+		with self.set_user("test@example.com"):
+			applicable = applicable_for(0, 1000)
+			self.assertEqual(len(applicable), len({doctype for (doctype,) in applicable}))
+			self.assertEqual(applicable_for(5, 5), applicable[5:10])
 
 	def test_for_apply_to_all_on_update_from_apply_all(self):
 		user = create_user("test_bulk_creation_update@example.com")
@@ -145,17 +177,8 @@ class TestUserPermission(IntegrationTestCase):
 
 	def test_user_perm_for_nested_doctype(self):
 		"""Test if descendants' visibility is controlled for a nested DocType."""
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
-
 		user = create_user("nested_doc_user@example.com", "Blogger")
-		if not frappe.db.exists("DocType", "Person"):
-			doc = new_doctype(
-				"Person",
-				fields=[{"label": "Person Name", "fieldname": "person_name", "fieldtype": "Data"}],
-				unique=0,
-			)
-			doc.is_tree = 1
-			doc.insert()
+		create_person_tree_doctype()
 
 		parent_record = frappe.get_doc({"doctype": "Person", "person_name": "Parent", "is_group": 1}).insert()
 
@@ -200,6 +223,32 @@ class TestUserPermission(IntegrationTestCase):
 		self.assertEqual(visible_names, ["Child", "Parent"])
 		self.assertEqual(visible_names_after_hide_descendants, ["Parent"])
 		frappe.set_user("Administrator")
+
+	def test_tree_change_refreshes_descendant_permissions(self):
+		user = create_user("nested_doc_user@example.com", "Blogger")
+		create_person_tree_doctype()
+		parent = frappe.get_doc({"doctype": "Person", "person_name": "Parent", "is_group": 1}).insert()
+		other = frappe.get_doc({"doctype": "Person", "person_name": "Other"}).insert()
+		add_user_permissions(get_params(user, "Person", parent.name))
+		add_permission("Person", "Blogger")
+
+		def permitted():
+			frappe.set_user(user.name)
+			names = set(frappe.get_list("Person", pluck="name"))
+			frappe.set_user("Administrator")
+			return names
+
+		self.assertEqual(permitted(), {parent.name})
+
+		child = frappe.get_doc(
+			{"doctype": "Person", "person_name": "Child", "parent_person": parent.name}
+		).insert()
+		self.assertEqual(permitted(), {parent.name, child.name})
+
+		other.parent_person = parent.name
+		other.save()
+
+		self.assertEqual(permitted(), {parent.name, child.name, other.name})
 
 	def test_user_perm_on_new_doc_with_field_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
@@ -284,6 +333,17 @@ class TestUserPermission(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		clear_session_defaults()
 		remove_applicable(["Assignment Rule"], "user_default_test@example.com", "DocType", "ToDo")
+
+
+def create_person_tree_doctype():
+	if not frappe.db.exists("DocType", "Person"):
+		doc = new_doctype(
+			"Person",
+			fields=[{"label": "Person Name", "fieldname": "person_name", "fieldtype": "Data"}],
+			unique=0,
+		)
+		doc.is_tree = 1
+		doc.insert()
 
 
 def create_user(email, *roles):

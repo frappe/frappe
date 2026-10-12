@@ -201,7 +201,7 @@ class AutoEmailReport(Document):
 		elif self.format == "PDF":
 			columns, data = make_links(columns, data)
 			columns = update_field_types(columns)
-			options = {}
+			options = {"shrink-to-fit": True}
 
 			if len(columns) > 8:
 				options["orientation"] = "landscape"

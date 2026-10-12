@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import re
 import typing
 from typing import Any
 from urllib.parse import quote
@@ -11,7 +12,9 @@ import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
+from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.desk.link_title import send_link_titles
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
@@ -127,7 +130,7 @@ def get_docinfo(
 			"shared": get_docshares(doc),
 			"views": get_view_logs(doc),
 			"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
-			"milestones": get_milestones(doc.doctype, doc.name),
+			"milestones": get_milestones(doc.doctype, doc.name, limit=0),
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
@@ -137,6 +140,9 @@ def get_docinfo(
 	update_user_info(docinfo, doc)
 
 	frappe.response["docinfo"] = docinfo
+
+
+ATTACHMENT_FIELDNAME_RE = re.compile(r"data-fieldname=['\"]([^'\"]*)['\"]")
 
 
 def add_comments(doc, docinfo):
@@ -149,11 +155,13 @@ def add_comments(doc, docinfo):
 	docinfo.like_logs = []
 	docinfo.workflow_logs = []
 
-	comments = frappe.get_all(
-		"Comment",
+	comments = get_document_comments(
+		doc.doctype,
+		doc.name,
 		fields=["name", "creation", "content", "owner", "comment_type", "published"],
-		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
+
+	restricted_fieldnames = None
 
 	for c in comments:
 		match c.comment_type:
@@ -165,6 +173,11 @@ def add_comments(doc, docinfo):
 			case "Assignment Completed" | "Assigned":
 				docinfo.assignment_logs.append(c)
 			case "Attachment" | "Attachment Removed":
+				if restricted_fieldnames is None:
+					restricted_fieldnames = get_permlevel_restricted_fieldnames(doc.doctype)
+				m = ATTACHMENT_FIELDNAME_RE.search(c.content or "")
+				if m and m.group(1) in restricted_fieldnames:
+					continue
 				docinfo.attachment_logs.append(c)
 			case "Info" | "Edit" | "Label":
 				docinfo.info_logs.append(c)
@@ -176,16 +189,21 @@ def add_comments(doc, docinfo):
 	return comments
 
 
-def get_milestones(doctype, name):
+def get_milestones(doctype, name, start=0, limit=20):
+	# Newest first and paged: a long-lived document accumulates these without end. The page runs
+	# larger than the one on versions because a milestone row is four short columns, not a JSON diff.
 	return frappe.get_all(
 		"Milestone",
-		fields=["creation", "owner", "track_field", "value"],
+		fields=["name", "creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=str(name)),
+		limit_start=start,
+		limit=limit,
+		order_by="creation desc",
 	)
 
 
 def get_attachments(dt, dn):
-	return frappe.get_all(
+	files = frappe.get_all(
 		"File",
 		fields=[
 			"name",
@@ -199,6 +217,40 @@ def get_attachments(dt, dn):
 		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
+	restricted = get_permlevel_restricted_fieldnames(dt)
+	if not restricted:
+		return files
+	return [f for f in files if f.attached_to_field not in restricted]
+
+
+def get_permlevel_restricted_fieldnames(dt) -> set:
+	"""Fieldnames (top-level and child table) whose permlevel the current user can't read."""
+	from frappe.desk.form.activity import readable_permlevels
+
+	if frappe.session.user == "Administrator":
+		return set()
+
+	meta = frappe.get_meta(dt)
+	all_fields = meta.fields.copy()
+	for table_field in meta.get_table_fields(include_computed=True):
+		all_fields += frappe.get_meta(table_field.options).fields or []
+
+	if all(df.permlevel == 0 for df in all_fields):
+		return set()
+
+	def restricted_fieldnames(field_meta, permitted):
+		if permitted is None:
+			return set()
+		return {df.fieldname for df in field_meta.fields or [] if df.permlevel not in permitted}
+
+	# a fieldname restricted in any table it appears in fails closed (dropped everywhere), since
+	# attached_to_field alone can't identify which table a given file's field actually came from
+	restricted = restricted_fieldnames(meta, readable_permlevels(meta))
+	for table_field in meta.get_table_fields(include_computed=True):
+		child_meta = frappe.get_meta(table_field.options)
+		restricted |= restricted_fieldnames(child_meta, readable_permlevels(child_meta, parenttype=dt))
+
+	return restricted
 
 
 @frappe.whitelist()
@@ -206,9 +258,12 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 	frappe.get_doc(dt, dn).check_permission("read")
 	filters = frappe.parse_json(filters)
 	if not isinstance(filters, list) or any(
-		not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in filters
+		not isinstance(filter_row, list)
+		or len(filter_row) != 4
+		or not all(isinstance(value, str) for value in filter_row[:3])
+		for filter_row in filters
 	):
-		frappe.throw(_("Filters must be a list of four-value filter rows."))
+		frappe.throw(_("Filters must be four-value rows with string doctypes, fields, and operators."))
 	if any(filter_row[0] != "File" for filter_row in filters):
 		frappe.throw(_("Attachment Gallery filters must target File."))
 
@@ -236,13 +291,17 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
-	return frappe.get_all(
+
+	from frappe.model.utils.mask import mask_version_data
+
+	versions = frappe.get_all(
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
 	)
+	return mask_version_data(versions, doc.doctype)
 
 
 @frappe.whitelist()
@@ -270,14 +329,11 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	else:
 		comment_types = [comment_type]
 
-	comments = frappe.get_all(
-		"Comment",
+	comments = get_document_comments(
+		doctype,
+		name,
 		fields=["name", "creation", "content", "owner", "comment_type"],
-		filters={
-			"reference_doctype": doctype,
-			"reference_name": name,
-			"comment_type": ["in", comment_types],
-		},
+		comment_types=comment_types,
 	)
 
 	# convert to markdown (legacy ?)
@@ -512,14 +568,6 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(value))
 
 	return link_titles
-
-
-def send_link_titles(link_titles):
-	"""Append link titles dict in `frappe.local.response`."""
-	if "_link_titles" not in frappe.local.response:
-		frappe.local.response["_link_titles"] = {}
-
-	frappe.local.response["_link_titles"].update(link_titles)
 
 
 def update_user_info(docinfo, doc=None):

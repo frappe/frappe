@@ -3,33 +3,6 @@
 		class="es-button"
 		data-size="xs"
 		data-variant="ghost"
-		data-icon-button="true"
-		:title="__('Copy section')"
-		@click.stop="store.copy_section(section)"
-		v-html="frappe.utils.icon('copy', size)"
-	></button>
-	<button
-		class="es-button"
-		data-size="xs"
-		data-variant="ghost"
-		data-icon-button="true"
-		:title="__('Duplicate section')"
-		@click.stop="store.duplicate_section(section)"
-		v-html="frappe.utils.icon('copy-plus', size)"
-	></button>
-	<button
-		class="es-button"
-		data-size="xs"
-		data-variant="ghost"
-		data-icon-button="true"
-		:title="__('Save as snippet')"
-		@click.stop="$emit('snippet')"
-		v-html="frappe.utils.icon('bookmark-plus', size)"
-	></button>
-	<button
-		class="es-button"
-		data-size="xs"
-		data-variant="ghost"
 		data-theme="red"
 		data-icon-button="true"
 		:title="__('Remove section')"
@@ -45,7 +18,7 @@ defineProps({
 	section: { type: Object, required: true },
 	size: { type: String, default: "sm" },
 });
-defineEmits(["snippet", "remove"]);
+defineEmits(["remove"]);
 
 const store = inject("$store");
 </script>

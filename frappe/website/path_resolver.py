@@ -1,6 +1,6 @@
+import os
 import re
 
-import click
 import werkzeug.routing.exceptions
 from werkzeug.routing import Rule
 
@@ -15,6 +15,16 @@ from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.page_renderers.web_form import WebFormPage
 from frappe.website.router import evaluate_dynamic_routes
 from frappe.website.utils import can_cache, check_if_webform_exists, get_home_page
+
+
+def _is_frappe_test_fixture(endpoint: str) -> bool:
+	if endpoint != "_test" and not endpoint.startswith("_test/"):
+		return False
+	www = os.path.join(frappe.get_app_path("frappe"), "www")
+	target = os.path.normpath(os.path.join(www, endpoint))
+	if os.path.commonpath((www, target)) != www:
+		return False
+	return any(os.path.exists(target + suffix) for suffix in ("", ".html", ".md", "/index.html", "/index.md"))
 
 
 class PathResolver:
@@ -53,6 +63,9 @@ class PathResolver:
 				frappe.flags.redirect_location = e.new_url
 				return frappe.flags.redirect_location, RedirectPage(e.new_url, e.code)
 
+		if not (frappe.conf.developer_mode or frappe.conf.allow_tests) and _is_frappe_test_fixture(endpoint):
+			return endpoint, NotFoundPage(endpoint)
+
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = [
 			*custom_renderers,
@@ -77,6 +90,8 @@ class PathResolver:
 
 	@staticmethod
 	def get_custom_page_renderers():
+		import click
+
 		custom_renderers = []
 		for renderer_path in frappe.get_hooks("page_renderer") or []:
 			try:

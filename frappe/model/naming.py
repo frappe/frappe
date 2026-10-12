@@ -224,7 +224,7 @@ def set_name_from_naming_options(autoname, doc):
 		# notify
 		if not doc.name:
 			fieldname = autoname[6:]
-			frappe.throw(_("{0} is required").format(_(doc.meta.get_label(fieldname), context=doc.doctype)))
+			frappe.throw(_("{0} is required").format(doc.meta.get_translated_label(fieldname)))
 
 	elif _autoname.startswith("naming_series:"):
 		set_name_by_naming_series(doc)
@@ -426,6 +426,15 @@ def determine_consecutive_week_number(datetime):
 
 
 def getseries(key, digits):
+	if frappe.db.db_type == "sqlite":
+		current = frappe.db.sql(
+			"""INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)
+			ON CONFLICT (`name`) DO UPDATE SET `current` = `current` + 1
+			RETURNING `current`""",
+			(key,),
+		)[0][0]
+		return ("%0" + str(digits) + "d") % current
+
 	# series created ?
 	# Using frappe.qb as frappe.get_values does not allow order_by=None
 	series = DocType("Series")

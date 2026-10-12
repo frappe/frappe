@@ -6,9 +6,13 @@ import requests
 
 import frappe
 from frappe.api import discovery
+from frappe.api.v2 import run_doc_method
 from frappe.installer import update_site_config
+from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
-from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
+from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+from frappe.utils import set_request
 
 authorization_token = None
 
@@ -41,6 +45,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 			frappe.delete_doc_if_exists(cls.DOCTYPE, name)
 		frappe.db.commit()
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_unauthorized_call_v2(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource(self.DOCTYPE))
@@ -254,6 +259,57 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200)
 
+	def test_run_doc_method_on_unsaved_doc_needs_create_v2(self):
+		self.addCleanup(frappe.clear_cache, doctype="Email Group")
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Email Group Creator"}).insert()
+		add_permission("Email Group", role.name, ptype="create")
+		update_permission_property("Email Group", role.name, 0, "read", 1)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "email-group-creator@example.com",
+				"first_name": "Creator",
+				"send_welcome_email": 0,
+			}
+		)
+		user.append_roles(role.name)
+		user.insert()
+
+		group = {"doctype": "Email Group", "welcome_url": "https://example.com"}
+		saved = frappe.get_doc({**group, "title": "Saved Group"}).insert()
+
+		with self.set_user(user.name), patch.object(frappe.local, "request", None, create=True):
+			set_request(method="POST")
+			unsaved = {**group, "title": "Unsaved Group", "__islocal": 1}
+			self.assertEqual(run_doc_method("preview_welcome_url", unsaved), "https://example.com")
+
+			# a saved doc still needs write, even when the client marks it as local
+			with self.assertRaises(frappe.PermissionError):
+				run_doc_method("preview_welcome_url", {**saved.as_dict(), "__islocal": 1})
+
+	def test_run_doc_method_on_single_needs_write_v2(self):
+		self.addCleanup(frappe.clear_cache, doctype="Document Naming Settings")
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Naming Settings Creator"}).insert()
+		add_permission("Document Naming Settings", role.name, ptype="create")
+		update_permission_property("Document Naming Settings", role.name, 0, "read", 1)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "naming-settings-creator@example.com",
+				"first_name": "Creator",
+				"send_welcome_email": 0,
+			}
+		)
+		user.append_roles(role.name)
+		user.insert()
+
+		with self.set_user(user.name), patch.object(frappe.local, "request", None, create=True):
+			set_request(method="POST")
+			# a Single exists whatever name the client sends
+			settings = {"doctype": "Document Naming Settings", "name": "not-the-single", "__islocal": 1}
+			with self.assertRaises(frappe.PermissionError):
+				run_doc_method("update_series", settings)
+
 	def test_logs_v2(self):
 		method = "frappe.tests.test_api.test"
 
@@ -301,6 +357,14 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 	def setUp(self) -> None:
 		self.post(self.method("login"), {"sid": self.sid})
 		return super().setUp()
+
+	def cleanup_docs(self, docs: list, job_id: str | None = None):
+		"""Delete `docs`, waiting for `job_id` first: the job touches these same rows."""
+		if job_id:
+			wait_for_job(job_id)
+		for doc in docs:
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
+		frappe.db.commit()  # nosemgrep
 
 	def test_bulk_delete_docs_single_doctype_v2(self):
 		# Create docs to delete
@@ -531,21 +595,20 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		]
 		frappe.db.commit()  # nosemgrep
 
-		try:
-			# Bulk delete > 20 docs
-			names = [doc.name for doc in docs]
-			response = self.post(
-				self.resource(self.DOCTYPE, "bulk_delete"),
-				{"names": names, "sid": self.sid},
-			)
+		# Late-bound on purpose: cleanup sees the job_id assigned below.
+		job_id = None
+		self.addCleanup(lambda: self.cleanup_docs(docs, job_id))
 
-			self.assertEqual(response.status_code, 202)
-			self.assertIn("job_id", response.json["data"])
-		finally:
-			# Clean up
-			for doc in docs:
-				frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
-			frappe.db.commit()  # nosemgrep
+		# Bulk delete > 20 docs
+		names = [doc.name for doc in docs]
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_delete"),
+			{"names": names, "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 202)
+		self.assertIn("job_id", response.json["data"])
+		job_id = response.json["data"]["job_id"]
 
 	def test_bulk_update_enqueue_v2(self):
 		# Create 25 docs
@@ -555,21 +618,20 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		]
 		frappe.db.commit()  # nosemgrep
 
-		try:
-			# Bulk update > 20 docs
-			updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
-			response = self.post(
-				self.resource(self.DOCTYPE, "bulk_update"),
-				{"docs": updates, "sid": self.sid},
-			)
+		# Late-bound on purpose: cleanup sees the job_id assigned below.
+		job_id = None
+		self.addCleanup(lambda: self.cleanup_docs(docs, job_id))
 
-			self.assertEqual(response.status_code, 202)
-			self.assertIn("job_id", response.json["data"])
-		finally:
-			# Clean up
-			for doc in docs:
-				frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
-			frappe.db.commit()  # nosemgrep
+		# Bulk update > 20 docs
+		updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_update"),
+			{"docs": updates, "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 202)
+		self.assertIn("job_id", response.json["data"])
+		job_id = response.json["data"]["job_id"]
 
 
 class TestDocTypeAPIV2(FrappeAPITestCase):

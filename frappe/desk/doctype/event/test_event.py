@@ -50,6 +50,28 @@ class TestEvent(IntegrationTestCase):
 		self.assertFalse("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
 
+	def test_get_events_includes_participant_events(self):
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Participant Event",
+				"event_type": "Private",
+				"starts_on": "2025-05-10 10:00:00",
+				"event_participants": [
+					{
+						"reference_doctype": "User",
+						"reference_docname": self.test_user,
+						"email": self.test_user,
+					}
+				],
+			}
+		).insert()
+
+		frappe.set_user(self.test_user)
+		events = get_events(start="2025-05-01", end="2025-05-31")
+
+		self.assertIn(event.name, [e.name for e in events])
+
 	def test_get_events_for_different_timezone(self):
 		frappe.set_user("Administrator")
 		frappe.get_doc(

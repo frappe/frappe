@@ -2,27 +2,29 @@
 	<iframe
 		ref="iframeRef"
 		:srcdoc="htmlContent"
+		title="Email content"
 		sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
 		referrerpolicy="no-referrer"
-		class="prose-f block h-10 w-full"
-		:class="{ 'email-clipped-fade': isClipped }"
+		class="prose-f email-fade block h-10 w-full"
 		:style="{ maxHeight: `${MAX_CONTENT_HEIGHT}px` }"
 	/>
 </template>
 <!-- sandboxed + CSP: scripts and external resources can't load -->
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { applyCssToIframe, stripEmailColors, useDataTheme } from "./utils";
+import { applyCssToIframe, bottomFade, stripEmailColors, useDataTheme } from "./utils";
 
 const props = defineProps<{
 	content: string;
 }>();
 
-const MAX_CONTENT_HEIGHT = 500; // in px; if the email content exceeds this, the bottom edge fades to indicate more content is clipped.
+const MAX_CONTENT_HEIGHT = 500; // in px; taller emails scroll inside the iframe, with the bottom edge faded while more remains.
 
 const iframeRef = ref<HTMLIFrameElement | null>(null);
-const isClipped = ref(false);
 const dataTheme = useDataTheme(); // needed for the iframe to inherit the host's theme (dark/light) so the email content matches the rest of the app.
+// Read once: a reactive theme in the srcdoc below would reload the iframe on every toggle.
+// Later changes go through the watch at the bottom, which sets the attribute in place.
+const initialTheme = dataTheme.value;
 
 // reactive to content: strip inline colors + fold reply quotes into a CSS-only collapse
 const processedContent = computed(() => collapseReplyQuotes(stripEmailColors(props.content)));
@@ -36,12 +38,23 @@ const REPLY_QUOTE_SELECTORS = [
 
 function collapseReplyQuotes(html: string): string {
 	const doc = new DOMParser().parseFromString(html, "text/html");
+	stripActiveContent(doc);
 	for (const { selector, forGmail } of REPLY_QUOTE_SELECTORS) {
 		if (!doc.querySelector(selector)) continue;
 		doc.querySelectorAll(selector).forEach((el) => collapseQuote(doc, el, forGmail));
 		break;
 	}
 	return doc.body.innerHTML;
+}
+
+// drop scripts + on* handlers at parse time; the sandbox/CSP stay as the runtime backstop
+function stripActiveContent(doc: Document) {
+	doc.querySelectorAll("script").forEach((el) => el.remove());
+	doc.querySelectorAll("*").forEach((el) => {
+		for (const attr of [...el.attributes]) {
+			if (attr.name.toLowerCase().startsWith("on")) el.removeAttribute(attr.name);
+		}
+	});
 }
 
 // wrap the quote in .replied-content: a label + checkbox reveal it via pure CSS, no JS
@@ -92,18 +105,27 @@ function collapseQuote(doc: Document, quote: Element, forGmail: boolean) {
 const htmlContent = computed(
 	() => `
   <!DOCTYPE html>
-  <html>
+  <html data-theme="${initialTheme}">
   <head>
     <meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none';" />
     <base target="_blank" />
     <style>
+      /* color-scheme paints the default canvas and text, so the very first frame is
+         already the right theme instead of the browser's white until the host CSS lands */
       :root {
+        color-scheme: light;
         --bg-surface-gray-3: #ededed;
         --bg-surface-gray-4: #e2e2e2;
       }
       [data-theme='dark'] {
+        color-scheme: dark;
         --bg-surface-gray-3: #343434;
         --bg-surface-gray-4: #424242;
+      }
+      /* the card behind is bg-surface-base; showing it through beats repainting it here */
+      html,
+      body {
+        background: transparent;
       }
       .replied-content .collapse {
         margin: 10px 0 10px 0;
@@ -135,6 +157,11 @@ const htmlContent = computed(
         margin: 0;
       }
       .email-content {
+        /* normalize with the 14px comment body; iframe otherwise falls back to browser defaults */
+        font-family: "Inter Variable", InterVar, ui-sans-serif, system-ui, -apple-system,
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
         word-break: break-word;
         /* flow-root contains child margins; padding-top adds breathing room that scrolls away */
         display: flow-root;
@@ -179,12 +206,16 @@ watch(iframeRef, (iframe) => {
 			if (!parent) return;
 			parent.setAttribute("data-theme", dataTheme.value);
 
-			// measure content → set iframe height; flag overflow so the edge fades
+			// fade the bottom edge only while there's more email below it
+			const syncMask = () => iframe.style.setProperty("--fade", bottomFade(parent));
+
+			// measure content → set iframe height; max-height caps it, so the rest scrolls
 			const syncHeight = () => {
-				const full = parent.offsetHeight + 1;
-				iframe.style.height = full + "px";
-				isClipped.value = full > MAX_CONTENT_HEIGHT;
+				iframe.style.height = `${parent.offsetHeight + 1}px`;
+				syncMask();
 			};
+
+			iframe.contentWindow?.addEventListener("scroll", syncMask, { passive: true });
 
 			// inherit host styles into the iframe; external sheets load async, so re-measure after
 			applyCssToIframe(iframe, syncHeight);
@@ -230,9 +261,8 @@ watch(dataTheme, (theme) => {
 </script>
 
 <style scoped>
-/* fade the clipped bottom edge (~18px) so a long email never hard-slices a line */
-.email-clipped-fade {
-	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
-	mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+/* at 0px the stop sits on the edge, so the mask is simply opaque */
+.email-fade {
+	mask-image: linear-gradient(to bottom, #000 calc(100% - var(--fade, 0px)), transparent);
 }
 </style>

@@ -1,6 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+"""The icon grid's rows: what a site sees when its desktop page is the grid.
+
+This is being retired. It goes with the icon-grid batch, on one of the two triggers listed in
+`frappe/desk/RETIRING.md`, not on a date and not on its own.
+"""
+
 import json
 import os
 import random
@@ -11,7 +17,7 @@ from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_ico
 from frappe.model.document import Document
 from frappe.modules.export_file import strip_default_fields
 from frappe.modules.import_file import import_file_by_path
-from frappe.modules.utils import create_directory_on_app_path, get_app_level_directory_path
+from frappe.modules.utils import create_directory_on_app_path, get_app_level_files
 
 
 class DesktopIcon(Document):
@@ -50,21 +56,24 @@ class DesktopIcon(Document):
 			self.label = self.module_name
 
 	def on_trash(self):
-		clear_desktop_icons_cache()
+		clear_every_users_desktop_icons()
 		if frappe.conf.developer_mode and self.standard and self.app:
 			delete_desktop_icon_file(self.app, self.label)
 
 	def check_for_restrict_removal(self):
+		"""Refuse to remove an icon the grid marks as fixed.
+
+		Nothing calls this, on purpose. `restrict_removal` still means what it always did: it
+		hides the remove control in the grid's edit mode. Calling this from deletion would make a
+		workspace that deletes fine today start throwing. It stays because it is still correct for
+		a caller that is genuinely removing an icon from the grid.
+		"""
 		if self.restrict_removal:
 			frappe.throw(_("Cannot delete Desktop Icon '{0}' as it is restricted").format(self.label))
 
 	def on_update(self):
 		self.export_desktop_icon()
-		if self.standard:
-			frappe.cache.delete_key("desktop_icons")
-			frappe.cache.delete_key("bootinfo")
-		else:
-			clear_desktop_icons_cache(user=self.owner)
+		clear_every_users_desktop_icons()
 
 	def after_rename(self, old, new, merge):
 		delete_desktop_icon_file(self.app, old)
@@ -102,9 +111,6 @@ class DesktopIcon(Document):
 	# 	if has_common(roles, allowed):
 	# 		return True
 
-	def after_insert(self):
-		clear_desktop_icons_cache()
-
 
 def delete_desktop_icon_file(app, label):
 	folder_path = create_directory_on_app_path("desktop_icon", app)
@@ -121,18 +127,19 @@ def get_workspace_names(workspaces):
 
 
 def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None) -> bool:
-	"""Whether `icon` belongs on this user's desktop.
+	"""Return whether `icon` belongs on this user's desktop.
 
-	Takes a plain icon row rather than a Document, along with the two related bits the check
-	needs -- the icon's `Has Role` rows and, for a workspace link, that workspace's module --
-	so `get_desktop_icons` can fetch both for the whole grid in one query each instead of
-	loading every icon just to reach them.
+	It takes a plain icon row rather than a Document, plus the two things the check needs: the
+	icon's `Has Role` rows and, for a workspace link, that workspace's module. That lets
+	`get_desktop_icons` fetch both for the whole grid in one query each instead of loading every
+	icon to reach them.
 	"""
+	from frappe.desk.doctype.sidebar.sidebar import sidebar_for_module
+	from frappe.utils.modules import is_module_visible
+
 	# module permission check
-	if icon_module:
-		blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
-		if icon_module in blocked_modules:
-			return False
+	if icon_module and not is_module_visible(icon_module):
+		return False
 
 	# perform a permission check based on roles table (desktop icons)
 	if roles and not set(roles).intersection(frappe.get_roles()):
@@ -143,22 +150,20 @@ def is_icon_permitted(icon, bootinfo, roles: list[str], icon_module: str | None)
 	elif icon.icon_type == "App":
 		return _has_app_permission(icon)
 	else:
-		try:
-			items = bootinfo.workspace_sidebar_item[icon.label.lower()]["items"]
-
-			if len(items) and all(item["type"] == "Section Break" for item in items):
-				return False
-			if len(items) == 0:
-				return False
-			return True
-		except KeyError:
-			return False
+		# Carrying the shell is the whole test: `resolve_sidebar` already applied the module gate
+		# and dropped a shell with nothing this user can open. Re-testing the items here would
+		# restate that rule and could drift from it.
+		#
+		# An icon names a module and the payload is keyed by shell, so the module has to be
+		# resolved to the shell it leads to. `sidebar_for_module` covers a renamed sidebar.
+		sidebar = sidebar_for_module(bootinfo.module_sidebars or {}, icon_module or icon.label)
+		return bool(sidebar)
 
 
 def _has_app_permission(icon) -> bool:
 	for a in frappe.get_active_apps():
-		# an app needn't declare `app_title`; asking for the hook by name returns [] instead
-		# of raising, so one such app can't abort the whole grid's permission check
+		# An app need not declare `app_title`. Asking for the hook by name returns [] instead of
+		# raising, so one such app cannot abort the whole grid's permission check.
 		app_title = (frappe.get_hooks("app_title", app_name=a) or [None])[0]
 		if app_title == icon.label or icon.app == a:
 			app_detail = frappe.get_hooks("add_to_apps_screen", app_name=a)
@@ -172,14 +177,14 @@ def _has_app_permission(icon) -> bool:
 				# App hooks.py doesn't have add_to_apps_screen
 				return True
 
-	# No installed app matches this icon's app/label (e.g. a leftover icon for an
-	# uninstalled app). Return an explicit bool rather than falling through to None,
-	# which is_icon_permitted would read the same way but is easy to misread as "unset".
+	# No installed app matches this icon's app or label, for example a leftover icon for an
+	# uninstalled app. Return an explicit bool rather than falling through to None, which
+	# is_icon_permitted would read the same way but is easy to misread as unset.
 	return False
 
 
 def get_roles_by_icon(icons: list[dict]) -> dict[str, list[str]]:
-	"""The `Has Role` rows of `icons`, as icon name -> the roles it is restricted to."""
+	"""Return the `Has Role` rows of `icons`, as icon name to the roles it is restricted to."""
 	if not icons:
 		return {}
 
@@ -195,11 +200,11 @@ def get_roles_by_icon(icons: list[dict]) -> dict[str, list[str]]:
 
 
 def get_linked_workspace_modules(icons: list[dict]) -> dict[str, str]:
-	"""The module of the workspace each icon links to, as icon name -> module.
+	"""Return the module of the workspace each icon links to, as icon name to module.
 
-	Only a `Link` icon resolves a workspace, so nothing else gets a module -- an icon of
-	another type whose `link_to` happens to name a workspace is left alone, as it was when
-	this was looked up per icon.
+	Only a `Link` icon resolves a workspace, so nothing else gets a module. An icon of another
+	type whose `link_to` happens to name a workspace is left alone, as it was when this was looked
+	up per icon.
 	"""
 	linked = {icon.name: icon.link_to for icon in icons if icon.icon_type == "Link" and icon.link_to}
 	if not linked:
@@ -215,6 +220,25 @@ def get_linked_workspace_modules(icons: list[dict]) -> dict[str, str]:
 	)
 
 	return {name: modules.get(workspace) for name, workspace in linked.items()}
+
+
+def is_shared_icon(icon, private_workspaces: set[str]) -> bool:
+	"""Whether a custom icon another user made can reach this user's grid.
+
+	A link is checked for permission like any other icon, so it is shared. A folder or an app icon
+	only arranges its maker's grid. A link to a private workspace stays with its owner, since the
+	permission check looks at the module, not at who the workspace belongs to.
+	"""
+	return icon.icon_type == "Link" and icon.link_to not in private_workspaces
+
+
+def get_private_workspaces(icons: list[dict]) -> set[str]:
+	"""The workspaces among `icons`' links that are not public."""
+	linked = {icon.link_to for icon in icons if icon.icon_type == "Link" and icon.link_to}
+	if not linked:
+		return set()
+
+	return set(frappe.get_all("Workspace", filters={"name": ("in", list(linked)), "public": 0}, pluck="name"))
 
 
 def get_desktop_icons(user=None, bootinfo=None):
@@ -244,22 +268,15 @@ def get_desktop_icons(user=None, bootinfo=None):
 			"icon_image",
 		]
 
-		from frappe.query_builder import DocType
-
-		DesktopIcon = DocType("Desktop Icon")
-
-		user_icons = (
-			frappe.qb.from_(DesktopIcon)
-			.select(*fields)
-			.where(
-				(DesktopIcon.standard == 1)
-				| (
-					(DesktopIcon.standard == 0)
-					& (DesktopIcon.owner.isin(["Administrator", frappe.session.user]))
-				)
-			)
-			.distinct()
-		).run(as_dict=True)
+		rows = frappe.get_all("Desktop Icon", fields=[*fields, "owner"])
+		private_workspaces = get_private_workspaces(rows)
+		user_icons = [
+			row
+			for row in rows
+			if row.standard or row.owner in ("Administrator", user) or is_shared_icon(row, private_workspaces)
+		]
+		for row in user_icons:
+			del row["owner"]
 
 		# sort by idx
 		user_icons.sort(key=lambda a: a.idx)
@@ -274,12 +291,16 @@ def get_desktop_icons(user=None, bootinfo=None):
 			modules_by_icon = get_linked_workspace_modules(user_icons)
 
 			for s in user_icons:
+				icon_module = modules_by_icon.get(s.name)
 				if is_icon_permitted(
 					s,
 					bootinfo,
 					roles=roles_by_icon.get(s.name, []),
-					icon_module=modules_by_icon.get(s.name),
+					icon_module=icon_module,
 				):
+					# carried into the payload so the client resolves the icon's route through
+					# the module-keyed sidebar payload instead of guessing from its label
+					s.module = icon_module
 					permitted_icons.append(s)
 
 					if not s.parent_icon:
@@ -298,11 +319,17 @@ def clear_desktop_icons_cache(user=None):
 	frappe.cache.hdel("bootinfo", user or frappe.session.user)
 
 
+def clear_every_users_desktop_icons():
+	"""An icon can reach any user, so changing one has to drop every user's cached grid."""
+	frappe.cache.delete_key("desktop_icons")
+	frappe.cache.delete_key("bootinfo")
+
+
 def create_desktop_icons_from_workspace():
 	workspaces = frappe.get_all(
 		"Workspace",
-		filters={"public": 1, "name": ["!=", "Welcome Workspace"]},
-		fields=["name", "icon", "app", "module"],
+		filters={"public": 1},
+		fields=["name", "icon", "module"],
 	)
 
 	for w in workspaces:
@@ -313,9 +340,15 @@ def create_desktop_icons_from_workspace():
 		icon.link_to = w.name
 		icon.icon = w.icon
 		if w.module:
-			app_name = w.app or frappe.db.get_value("Module Def", w.module, "app_name")
+			# The module is the only rung left: a workspace stopped carrying its own app when
+			# the module became the thing that has one, and asking for the dropped column made
+			# this whole loop raise on the first workspace it reached.
+			app_name = frappe.db.get_value("Module Def", w.module, "app_name")
 			if app_name in frappe.get_installed_apps():
-				icon.app_name = app_name
+				# `app`, which the doctype has a column for. `app_name` was silently dropped on
+				# save, so every generated row landed with no app and was invisible to anything
+				# asking an icon which app it came from.
+				icon.app = app_name
 				# App icons are labelled by `app_title`; an app that declares no such hook has
 				# none to parent this workspace icon to, and looking one up by a null label
 				# would match whatever unlabelled row happens to exist.
@@ -329,7 +362,7 @@ def create_desktop_icons_from_workspace():
 					icon.parent_icon = app_icon
 
 				# Resolve the parent App icon's link once. It can be missing (App icons don't
-				# always carry a link), so guard the `.startswith` checks below -- calling it on
+				# always carry a link), so guard the `.startswith` checks below: calling one on
 				# None raised AttributeError and aborted the whole seeding loop.
 				app_link = frappe.db.get_value("Desktop Icon", app_icon, "link") if app_icon else None
 
@@ -347,18 +380,27 @@ def create_desktop_icons_from_workspace():
 					if not frappe.db.exists(
 						"Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]
 					):
-						icon.insert(ignore_if_duplicate=True)
-				except Exception as e:
-					frappe.error_log(title="Creation of Desktop Icon Failed", message=e)
+						# `ignore_links`: `link_to` is a Dynamic Link typed off `link_type`, so
+						# it looks for a `Workspace Sidebar` document that no longer exists. The
+						# mis-declaration is knowingly retained under D14 and the column is
+						# inert, since the client routes the workspace through the sidebar
+						# payload, but validating it would refuse every icon the grid
+						# generates.
+						icon.insert(ignore_if_duplicate=True, ignore_links=True)
+				except Exception:
+					# `frappe.error_log` is the request's list of errors, not a function, and
+					# calling it turned one unseedable workspace into a TypeError that aborted
+					# the loop.
+					frappe.log_error("Creation of Desktop Icon Failed")
 
 
 def create_desktop_icons_from_installed_apps():
 	apps = frappe.get_installed_apps()
 	index = 0
 	for a in apps:
-		# the icon is named after `app_title` (autoname is `field:label`), so an app that
-		# declares no such hook has nothing to name one with -- skip it rather than let an
-		# IndexError abort the seeding loop and leave every later app without icons
+		# The icon is named after `app_title` (autoname is `field:label`), so an app that declares
+		# no such hook has nothing to name one with. Skip it rather than let an IndexError abort
+		# the seeding loop and leave every later app without icons.
 		app_title = (frappe.get_hooks("app_title", app_name=a) or [None])[0]
 		if not app_title:
 			continue
@@ -382,15 +424,31 @@ def create_desktop_icons_from_installed_apps():
 def create_desktop_icons():
 	"""Seed Desktop Icons for the Desktop Icon grid.
 
-	Guarded rather than the readers: a site whose desktop page is `Apps` draws that screen
-	from the `add_to_apps_screen` hook and never reads these rows, so generating them on
-	every app install would be pure accumulation.
+	The guard is here rather than in the readers: a site whose desktop page is `Apps` draws that
+	screen from the `add_to_apps_screen` hook and never reads these rows, so generating them on
+	every app install would only accumulate unused data.
 	"""
 	if not is_desktop_icons_page():
 		return
 
 	create_desktop_icons_from_installed_apps()
 	create_desktop_icons_from_workspace()
+
+
+def import_desktop_icon_fixtures(app: str | None = None, force: bool = False):
+	"""Import the icon rows `app`, or every installed app, ships in its `desktop_icon/`.
+
+	It carries the same guard as the generator, so an Apps-mode site holds no icon rows at all,
+	generated or shipped, and the retiring surface cannot contradict the module-first model.
+	Switching to the grid is what imports them.
+	"""
+	if not is_desktop_icons_page():
+		return
+
+	for app_name in [app] if app else frappe.get_installed_apps():
+		for doc_path in get_app_level_files("desktop_icon", app_name):
+			if import_file_by_path(doc_path, force=force, ignore_version=True):
+				frappe.db.commit(chain=True)  # nosemgrep
 
 
 def create_user_icons(user, data):
@@ -415,20 +473,19 @@ def create_user_icons(user, data):
 
 @frappe.whitelist()
 def add_workspace_to_desktop(workspace: str):
-	sidebar = frappe.new_doc("Workspace Sidebar")
-	sidebar_item = frappe.new_doc("Workspace Sidebar Item")
-	sidebar_item.label = workspace
-	sidebar_item.type = "Link"
-	sidebar_item.link_to = workspace
-	sidebar_item.link_type = "Workspace"
-	sidebar.title = workspace
-	sidebar.append("items", sidebar_item)
-	sidebar.save()
+	"""Give `workspace` an icon on the grid.
 
+	It used to also create a `Workspace Sidebar` to hold the link. That doctype is now an inert
+	archive that the sidebar migration reads as its source, so writing new rows to it would change
+	the conversion's input. The grid never needed one anyway: the icon resolves its route through
+	the module-keyed sidebar payload.
+	"""
 	new_icon = frappe.new_doc("Desktop Icon")
 	new_icon.label = workspace
 	new_icon.icon_type = "Link"
 	new_icon.link_to = workspace
 	new_icon.link_type = "Workspace Sidebar"
-	new_icon.insert()
+	# `ignore_links`: see `create_desktop_icons_from_workspace`. The sidebar link column is inert,
+	# and validating it would look for a document on the archived doctype.
+	new_icon.insert(ignore_links=True)
 	return {"icon": new_icon.as_dict()}

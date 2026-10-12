@@ -18,9 +18,7 @@ Example:
 import json
 import os
 import typing
-from datetime import datetime
-
-import click
+from datetime import datetime, timedelta
 
 import frappe
 from frappe import N_, _
@@ -44,7 +42,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.caching import site_cache
-from frappe.utils.data import add_to_date, get_datetime
+from frappe.utils.data import add_to_date, get_currency_precision, get_datetime
 
 ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
@@ -59,7 +57,6 @@ DEFAULT_FIELD_LABELS = {
 	"owner": N_("Created By"),
 	"_user_tags": N_("Tags"),
 	"_liked_by": N_("Liked By"),
-	"_comments": N_("Comments"),
 	"_assign": N_("Assigned To"),
 }
 
@@ -264,7 +261,8 @@ class Meta(Document):
 	def _valid_columns(self):
 		table_exists = frappe.db.table_exists(self.name)
 		if self.name in self.special_doctypes and table_exists:
-			valid_columns = get_table_columns(self.name)
+			# `_comments` is a cache column, never a readable field
+			valid_columns = [c for c in get_table_columns(self.name) if c != "_comments"]
 		else:
 			valid_columns = self.default_fields + [
 				df.fieldname
@@ -311,6 +309,10 @@ class Meta(Document):
 			return DEFAULT_FIELD_LABELS[fieldname]
 
 		return "No Label"
+
+	def get_translated_label(self, fieldname):
+		"""Return the translated label of the given fieldname."""
+		return _(self.get_label(fieldname), context=self.name)
 
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options
@@ -391,8 +393,8 @@ class Meta(Document):
 		if field := self.get_field(fieldname):
 			return field.translatable
 
-	def get_workflow(self):
-		return get_workflow_name(self.name)
+	def get_workflow(self, doc=None):
+		return get_workflow_name(self.name, doc)
 
 	def get_naming_series_options(self) -> list[str]:
 		"""Get list naming series options."""
@@ -513,8 +515,8 @@ class Meta(Document):
 			recent_change = frappe.db.sql(
 				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
 			)  # nosemgrep
-			if recent_change and get_datetime(recent_change[0][0]) > add_to_date(
-				None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD
+			if recent_change and get_datetime(recent_change[0][0]) > (
+				datetime.now() + timedelta(days=(-1 * LARGE_TABLE_RECENCY_THRESHOLD))
 			):
 				self.is_large_table = True
 
@@ -543,6 +545,10 @@ class Meta(Document):
 	@cached_property
 	def _non_computed_table_doctypes(self):
 		return {field.fieldname: field.options for field in self._non_computed_table_fields}
+
+	@cached_property
+	def ignore_versioning_fields(self) -> set[str]:
+		return {df.fieldname for df in self.fields if getattr(df, "ignore_versioning", False)}
 
 	def init_field_caches(self):
 		self._fields
@@ -718,7 +724,7 @@ class Meta(Document):
 			permission_type = "select" if frappe.only_has_select_perm(self.name, user=user) else "read"
 
 		if permission_type == "select":
-			return self.get_search_fields()
+			return self.get_select_fieldnames(with_virtual_fields)
 
 		if not self.get_permissions(parenttype=parenttype):
 			return self.get_fieldnames_with_value()
@@ -741,13 +747,26 @@ class Meta(Document):
 		)
 		return permitted_fieldnames
 
+	def get_select_fieldnames(self, with_virtual_fields=True):
+		"""Search fields, plus the link title when its field is permitted."""
+		fieldnames = self.get_search_fields()
+		title = (
+			self.get_field(self.title_field) if self.show_title_field_in_link and self.title_field else None
+		)
+		if not title:
+			return fieldnames
+		if title.permlevel or (title.is_virtual and not with_virtual_fields):
+			return [fieldname for fieldname in fieldnames if fieldname != title.fieldname]
+		if title.fieldname not in fieldnames:
+			fieldnames.append(title.fieldname)
+		return fieldnames
+
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
-		has_access_to = []
+		has_access_to = set()
 		roles = set(frappe.get_roles(user))
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
-				if perm.permlevel not in has_access_to:
-					has_access_to.append(perm.permlevel)
+				has_access_to.add(perm.permlevel)
 
 		return has_access_to
 
@@ -962,8 +981,10 @@ def get_field_precision(df, doc=None, currency=None):
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":
-		precision = cint(frappe.db.get_default("currency_precision"))
-		if not precision:
+		currency_precision = get_currency_precision()
+		if currency_precision is not None:
+			precision = currency_precision
+		else:
 			precision = get_precision_from_currency_format(currency or get_field_currency(df, doc))
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3
@@ -1004,6 +1025,8 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	as maintenance since removing a field in a DocType doesn't automatically
 	delete the db field.
 	"""
+	import click
+
 	UPDATED_TABLES = {}
 	filters = {"issingle": 0, "is_virtual": 0}
 	if doctype:
@@ -1029,20 +1052,26 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 def trim_table(doctype, dry_run=True):
 	key = f"table_columns::tab{doctype}"
-	frappe.cache.delete_value(key)
+	frappe.client_cache.delete_value(key)
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
+	# docfields never get generated columns, so the controller owns these
+	generated_columns = {
+		column.name
+		for column in frappe.db.get_table_columns_description(f"tab{doctype}")
+		if column.is_generated
+	}
 
 	def is_internal(field):
 		return field not in ignore_fields and not field.startswith("_")
 
-	columns_to_remove = [f for f in list(set(columns) - set(fields)) if is_internal(f)]
+	columns_to_remove = [f for f in list(set(columns) - set(fields) - generated_columns) if is_internal(f)]
 	DROPPED_COLUMNS = columns_to_remove[:]
 
 	if columns_to_remove and not dry_run:
-		columns_to_remove = ", ".join(f"DROP `{c}`" for c in columns_to_remove)
-		frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` {columns_to_remove}")
+		frappe.db.drop_columns(doctype, columns_to_remove)
+		frappe.client_cache.delete_value(key)
 
 	return DROPPED_COLUMNS
 

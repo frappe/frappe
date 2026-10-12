@@ -132,7 +132,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				action: () => this.set_route("list"),
 			},
 			Report: {
-				condition: true,
+				condition: frappe.model.can_get_report(this.doctype),
 				action: () => this.set_route("report"),
 			},
 			Dashboard: {
@@ -428,7 +428,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 
 		// Sort reports alphabetically
 		var reports =
-			Object.values(frappe.boot.user.all_reports).sort((a, b) =>
+			Object.values(frappe.boot.allowed_reports).sort((a, b) =>
 				a.title.localeCompare(b.title)
 			) || [];
 

@@ -207,7 +207,7 @@ def create_multiple_todo_records():
 
 @whitelist_for_tests()
 def ensure_todo_kanban_board():
-	"""Create the ToDo Kanban board used by cypress/integration/kanban.js."""
+	"""Create the ToDo Kanban board used by playwright/tests/kanban.spec.js."""
 	if frappe.db.exists("Kanban Board", "ToDo Kanban"):
 		return "ToDo Kanban"
 
@@ -227,7 +227,17 @@ def ensure_todo_kanban_board():
 		}
 	)
 	doc.insert(ignore_permissions=True)
+	# new boards are v2; this one covers the classic board
+	doc.db_set("use_kanban_v2", 0)
 	return doc.name
+
+
+@whitelist_for_tests()
+def db_set_values(doctype: str, name: str, values: str | dict):
+	"""Set fields without running validation, for UI test setup; callers reset what they change."""
+	values = frappe.parse_json(values)
+	frappe.db.set_value(doctype, name, values, update_modified=False)
+	return frappe.get_doc(doctype, name).as_dict()
 
 
 def insert_contact(first_name, phone_number):
@@ -354,22 +364,54 @@ def update_webform_to_multistep():
 		_doc.save()
 
 
+def _append_doctype_to_link_field(doc) -> bool:
+	if any(field.fieldname == "doctype_to_link" for field in doc.fields):
+		return False
+
+	doc.append(
+		"fields",
+		{
+			"fieldname": "doctype_to_link",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Doctype to Link",
+			"options": "Doctype to Link",
+		},
+	)
+	return True
+
+
 @whitelist_for_tests()
 def update_child_table(name: str | int):
 	doc = frappe.get_doc("DocType", name)
-	if len(doc.fields) == 1:
-		doc.append(
-			"fields",
-			{
-				"fieldname": "doctype_to_link",
-				"fieldtype": "Link",
-				"in_list_view": 1,
-				"label": "Doctype to Link",
-				"options": "Doctype to Link",
-			},
-		)
-
+	if _append_doctype_to_link_field(doc):
 		doc.save()
+
+
+@whitelist_for_tests()
+def add_link_field_and_dashboard_link(name: str | int):
+	"""Show `name` in the Connections tab of `Doctype to Link`, linked through a field on `name`.
+
+	Wired up here instead of in the fixtures because the two doctypes reference each other: the
+	Link field needs `Doctype to Link` to exist, and the Document Link row needs the field.
+	"""
+	doc = frappe.get_doc("DocType", name)
+	if _append_doctype_to_link_field(doc):
+		doc.save()
+
+	parent = frappe.get_doc("DocType", "Doctype to Link")
+	if any(link.link_doctype == name for link in parent.links):
+		return
+
+	parent.append(
+		"links",
+		{
+			"group": "Child Doctype",
+			"link_doctype": name,
+			"link_fieldname": "doctype_to_link",
+		},
+	)
+	parent.save()
 
 
 @whitelist_for_tests()
@@ -500,7 +542,11 @@ def setup_tree_doctype():
 	if not frappe.db.exists("Custom Tree", "All Trees"):
 		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees", "is_group": 1}).insert()
 
-	for parent, child, is_group in (("All Trees", "Parent Node", 1), ("Parent Node", "Child Node", 0)):
+	for parent, child, is_group in (
+		("All Trees", "Parent Node", 1),
+		("Parent Node", "Child Node", 0),
+		("All Trees", "Second Parent Node", 1),
+	):
 		if not frappe.db.exists("Custom Tree", child):
 			frappe.get_doc(
 				{"doctype": "Custom Tree", "tree": child, "parent_custom_tree": parent, "is_group": is_group}
@@ -709,18 +755,18 @@ def slow_task(duration, title, doctype, docname):
 		time.sleep(int(duration) / steps)
 
 
-LIST_LAYOUT_TEST_PREFIX = "_cypress_layout_"
+LIST_LAYOUT_TEST_PREFIX = "_test_layout_"
 
 
 @whitelist_for_tests()
 def clear_list_layout_test_layouts():
-	"""Remove saved layouts created by Cypress saved-layout tests."""
+	"""Remove saved layouts created by the saved-layout UI tests."""
 	frappe.db.delete("List Filter", {"filter_name": ["like", f"{LIST_LAYOUT_TEST_PREFIX}%"]})
 
 
 @whitelist_for_tests()
 def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
-	"""Clear saved layout preference so Cypress starts from Default Layout."""
+	"""Clear saved layout preference so UI tests start from Default Layout."""
 	import json
 
 	from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -743,7 +789,7 @@ def create_list_layout_test_layout(
 	sort_field: str = "modified",
 	sort_order: str = "desc",
 ):
-	"""Insert a saved list filter for Cypress tests."""
+	"""Insert a saved list filter for UI tests."""
 	import json
 
 	filter_name = filter_name or layout_name or f"{LIST_LAYOUT_TEST_PREFIX}open"
@@ -769,3 +815,87 @@ def create_list_layout_test_layout(
 		}
 	).insert(ignore_permissions=True)
 	return doc.name
+
+
+@whitelist_for_tests()
+def create_webform_with_child_table_dropdown():
+	"""Set up a Web Form that is long enough to scroll and has a child table with an
+	Autocomplete field, so tests can check where the dropdown is drawn."""
+	frappe.delete_doc_if_exists("Web Form", "test-grid-dropdown")
+	frappe.delete_doc_if_exists("DocType", "Test Grid Dropdown Parent")
+	frappe.delete_doc_if_exists("DocType", "Test Grid Dropdown Child")
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"name": "Test Grid Dropdown Child",
+			"module": "Custom",
+			"custom": 1,
+			"istable": 1,
+			"editable_grid": 1,
+			"fields": [
+				{
+					"fieldname": "item",
+					"label": "Item",
+					"fieldtype": "Autocomplete",
+					"options": "Almond\nBlueberry\nChocolate\nCinnamon",
+					"in_list_view": 1,
+					"columns": 4,
+				},
+				{"fieldname": "qty", "label": "Qty", "fieldtype": "Int", "in_list_view": 1, "columns": 2},
+			],
+		}
+	).insert()
+
+	# filler fields so the child table sits well below the fold
+	fields = [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}]
+	fields += [
+		{"fieldname": f"filler_{i}", "label": f"Filler {i}", "fieldtype": "Small Text"} for i in range(8)
+	]
+	fields.append(
+		{
+			"fieldname": "rows",
+			"label": "Rows",
+			"fieldtype": "Table",
+			"options": "Test Grid Dropdown Child",
+		}
+	)
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"name": "Test Grid Dropdown Parent",
+			"module": "Custom",
+			"custom": 1,
+			"naming_rule": "Expression",
+			"autoname": "format:TEST-GRID-DROPDOWN-{#####}",
+			"fields": fields,
+			"permissions": [
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+				{"role": "Guest", "read": 1, "write": 1, "create": 1},
+			],
+		}
+	).insert()
+
+	meta = frappe.get_meta("Test Grid Dropdown Parent")
+	frappe.get_doc(
+		{
+			"doctype": "Web Form",
+			"title": "Test Grid Dropdown",
+			"route": "test-grid-dropdown",
+			"doc_type": "Test Grid Dropdown Parent",
+			"module": "Custom",
+			"published": 1,
+			"login_required": 0,
+			"allow_multiple": 1,
+			"web_form_fields": [
+				{
+					"fieldname": df.fieldname,
+					"label": df.label,
+					"fieldtype": df.fieldtype,
+					"options": df.options,
+				}
+				for df in meta.fields
+			],
+		}
+	).insert()

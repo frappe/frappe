@@ -15,15 +15,34 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 		});
 	}
 
+	get_icon_sections() {
+		// Custom Icons live in the same sprite, so split them back out by name
+		let custom_names = new Set((frappe.boot.custom_icons || []).map((icon) => icon.name));
+		let custom = frappe.symbols.filter((icon) => custom_names.has(icon));
+		if (!custom.length) {
+			return [{ icons: frappe.symbols }];
+		}
+
+		return [
+			{ label: __("Custom"), icons: custom },
+			{
+				// the bundled set is named, not called "Icons", since every section holds icons
+				label: "Lucide",
+				icons: frappe.symbols.filter((icon) => !custom_names.has(icon)),
+			},
+		];
+	}
+
 	make_icon_input() {
 		let picker_wrapper = $("<div>");
 		this.picker = new Picker({
 			parent: picker_wrapper,
 			icon: this.get_icon(),
-			icons: frappe.symbols,
+			sections: this.get_icon_sections(),
 			include_emoji: this.df.options == "Emojis",
 		});
 
+		let namespace = `icon-popover-${frappe.dom.get_unique_id()}`;
 		this.$wrapper
 			.popover({
 				trigger: "manual",
@@ -45,8 +64,8 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 				}, 10);
 			})
 			.on("hidden.bs.popover", () => {
-				$("body").off("click.icon-popover");
-				$(window).off("hashchange.icon-popover");
+				$("body").off(`pointerdown.${namespace}`);
+				$(window).off(`hashchange.${namespace}`);
 			});
 
 		this.picker.on_change = (icon) => {
@@ -69,12 +88,15 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 					this.$input.val("");
 				}
 				e.stopPropagation();
-				$("body").on("click.icon-popover", (ev) => {
-					if (!$(ev.target).parents().is(".popover")) {
+				$("body").on(`pointerdown.${namespace}`, (ev) => {
+					if (
+						!$(ev.target).parents().is(".popover") &&
+						!this.$wrapper[0].contains(ev.target)
+					) {
 						this.$wrapper.popover("hide");
 					}
 				});
-				$(window).on("hashchange.icon-popover", () => {
+				$(window).on(`hashchange.${namespace}`, () => {
 					this.$wrapper.popover("hide");
 				});
 			});

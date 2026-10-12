@@ -31,7 +31,7 @@ from frappe.utils.scheduler import (
 	get_scheduler_status,
 	get_scheduler_tick,
 	is_dormant,
-	is_schduler_process_running,
+	is_scheduler_process_running,
 )
 
 
@@ -68,6 +68,24 @@ def health_check(step: str):
 		return wrapper
 
 	return suppress_exception
+
+
+def get_scheduler_health_status() -> str:
+	scheduler_enabled = get_scheduler_status().get("status") == "active"
+
+	try:
+		scheduler_process_running = is_scheduler_process_running()
+	except Exception:
+		# get_redis_conn raises Exception when redis_queue is not configured.
+		return "Redis Unavailable"
+
+	if not scheduler_process_running:
+		return "Process Not Found"
+	elif is_dormant():
+		return "Dormant"
+	elif scheduler_enabled:
+		return "Active"
+	return "Inactive"
 
 
 class SystemHealthReport(Document):
@@ -190,16 +208,7 @@ class SystemHealthReport(Document):
 
 	@health_check("Scheduler")
 	def fetch_scheduler(self):
-		scheduler_enabled = get_scheduler_status().get("status") == "active"
-
-		if not is_schduler_process_running():
-			self.scheduler_status = "Process Not Found"
-		elif is_dormant():
-			self.scheduler_status = "Dormant"
-		elif scheduler_enabled:
-			self.scheduler_status = "Active"
-		else:
-			self.scheduler_status = "Inactive"
+		self.scheduler_status = get_scheduler_health_status()
 
 		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
 		# Exclude "maybe" curently executing job

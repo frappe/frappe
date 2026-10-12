@@ -12,7 +12,7 @@ frappe.ui.form.on("Network Printer Settings", {
 		frm.trigger("connect_print_server");
 	},
 	connect_print_server(frm) {
-		if (frm.doc.server_ip && frm.doc.port) {
+		if (frm.doc.server_ip && frm.doc.port && frm.perm[0].write) {
 			frappe.call({
 				doc: frm.doc,
 				method: "get_printers_list",

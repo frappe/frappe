@@ -6,6 +6,7 @@
  "description": "Adds a custom client script to a DocType",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/scripting/client-script",
  "engine": "InnoDB",
  "field_order": [
   "dt",

@@ -1,7 +1,7 @@
 <template>
 	<div
 		v-show="show"
-		class="fixed z-50 right-0 w-80 h-[calc(100%_-_80px)] text-ink-gray-9 m-5 mt-[62px] p-3 flex gap-2 flex-col justify-between rounded-lg bg-surface-elevation-2 shadow-2xl"
+		class="fixed z-50 right-0 w-80 h-[calc(100%_-_80px)] text-ink-gray-9 m-5 mt-[62px] p-3 flex gap-2 flex-col justify-between rounded-6 bg-surface-elevation-2 shadow-2xl"
 		:class="{ 'top-[calc(100%_-_120px)] border': minimize }"
 		@click.stop
 	>
@@ -11,13 +11,17 @@
 			</div>
 			<div class="flex gap-1">
 				<Dropdown v-if="options.length" :options="options">
-					<Button variant="ghost" icon="more-horizontal" />
+					<Button variant="ghost" icon="lucide-ellipsis" aria-label="More options" />
 				</Dropdown>
-				<Button @click="minimize = !minimize" variant="ghost">
+				<Button
+					@click="minimize = !minimize"
+					variant="ghost"
+					:aria-label="minimize ? 'Maximize' : 'Minimize'"
+				>
 					<component :is="minimize ? MaximizeIcon : MinimizeIcon" class="h-3.5" />
 				</Button>
-				<Button variant="ghost" @click="show = false">
-					<FeatherIcon name="x" class="h-3.5" />
+				<Button variant="ghost" aria-label="Close" @click="show = false">
+					<LucideX class="size-3.5" />
 				</Button>
 			</div>
 		</div>
@@ -36,7 +40,7 @@
 		</div>
 		<div v-for="item in footerItems" class="flex flex-col gap-1.5">
 			<div
-				class="w-full flex gap-2 items-center hover:bg-surface-gray-1 text-ink-gray-8 rounded px-2 py-1.5 cursor-pointer"
+				class="w-full flex gap-2 items-center hover:bg-surface-gray-1 text-ink-gray-8 rounded-4 px-2 py-1.5 cursor-pointer"
 				@click="item.onClick"
 			>
 				<component :is="item.icon" class="h-4" />
@@ -46,14 +50,15 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, FeatherIcon } from "frappe-ui";
+import { Button, Dropdown } from "frappe-ui";
+import LucideX from "~icons/lucide/x";
 import { HelpIcon, MaximizeIcon, MinimizeIcon, StepsIcon } from "frappe-ui/icons";
 import OnboardingSteps from "./OnboardingSteps.vue";
 import HelpCenter from "./HelpCenter.vue";
 import { useOnboarding } from "./onboarding";
 import { showHelpCenter } from "./helpCenter";
 import { minimize } from "./help";
-import { onMounted, computed } from "vue";
+import { computed, watch } from "vue";
 import type { HelpArticle, HelpModalProps } from "./types";
 
 const props = withDefaults(defineProps<HelpModalProps>(), {
@@ -116,9 +121,11 @@ function resetOnboardingSteps() {
 	showHelpCenter.value = false;
 }
 
-onMounted(() => {
-	if (isOnboardingStepsCompleted.value) {
-		showHelpCenter.value = true;
-	}
-});
+watch(
+	isOnboardingStepsCompleted,
+	(completed) => {
+		if (completed) showHelpCenter.value = true;
+	},
+	{ immediate: true }
+);
 </script>

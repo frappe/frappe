@@ -4,8 +4,10 @@
 import frappe
 from frappe.core.doctype.rq_worker.rq_worker import RQWorker
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
 
+@requires_test_service(TestService.BACKGROUND_WORKER)
 class TestRQWorker(IntegrationTestCase):
 	def test_get_worker_list(self):
 		workers = RQWorker.get_list()

@@ -20,18 +20,40 @@ patches by using INI like file format:
 
 	[post_model_sync]
 	app.module.patch3
+
+
+	[post_fixture_sync]
+	app.module.patch4
 	```
 
 	When different sections are specified patches are executed in this order:
 		1. Run pre_model_sync patches
 		2. Reload/resync all doctype schema
 		3. Run post_model_sync patches
+		4. Sync fixtures and customizations (Custom Field, Property Setter, etc)
+		5. Run post_fixture_sync patches
 
 	Hence any patch that just needs to modify data but doesn't depend on
-	old schema should be added to post_model_sync section of file.
+	old schema should be added to post_model_sync section of file. Any
+	patch that depends on fields/doctypes added via fixtures or
+	customizations (which aren't available on the DocType until fixtures
+	are synced) should be added to the post_fixture_sync section instead.
+
 
 3. simple python commands can be added by starting line with `execute:`
 `execute:` example: `execute:print("hello world")`
+
+Failing patches:
+
+`bench migrate --skip-failing` logs a failing patch in Patch Log with `skipped`
+set and carries on with the remaining patches. Patches that must never be
+skipped this way can be listed by an app in its hooks.py:
+
+	```hooks.py
+	never_skip_patches = ["app.patches.v16_0.critical_data_fix"]
+	```
+
+Such a patch always stops the migration when it fails.
 """
 
 import configparser
@@ -49,11 +71,13 @@ class PatchError(Exception):
 class PatchType(Enum):
 	pre_model_sync = "pre_model_sync"
 	post_model_sync = "post_model_sync"
+	post_fixture_sync = "post_fixture_sync"
 
 
 def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
 	executed = set(frappe.get_all("Patch Log", filters={"skipped": 0}, fields="patch", pluck="patch"))
+	never_skip = set(frappe.get_hooks("never_skip_patches"))
 
 	frappe.flags.final_patches = []
 
@@ -64,6 +88,10 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 				raise PatchError(patch)
 		except Exception:
 			if not skip_failing:
+				raise
+
+			if should_never_skip(patch, never_skip):
+				print(patch + ": failed: patch cannot be skipped: STOPPED")
 				raise
 
 			print("Failed to execute patch")
@@ -126,9 +154,16 @@ def parse_as_configfile(patches_file: str, patch_type: PatchType | None = None) 
 		return []
 
 	if not patch_type:
-		return [patch for patch in parser[PatchType.pre_model_sync.value]] + [
-			patch for patch in parser[PatchType.post_model_sync.value]
-		]
+		patches = [patch for patch in parser[PatchType.pre_model_sync.value]]
+		patches += [patch for patch in parser[PatchType.post_model_sync.value]]
+		if PatchType.post_fixture_sync.value in parser.sections():
+			patches += [patch for patch in parser[PatchType.post_fixture_sync.value]]
+		return patches
+
+	# TODO: Since this is a new patch type, we should not throw an error if it is not found in the patches.txt file.
+	# Instead, we should return an empty list for existing apps and can be removed afterwards.
+	if patch_type == PatchType.post_fixture_sync and patch_type.value not in parser.sections():
+		return []
 
 	if patch_type.value in parser.sections():
 		return [patch for patch in parser[patch_type.value]]
@@ -204,6 +239,22 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 		print(f"Success: Done in {round(end_time - start_time, 3)}s")
 
 	return True
+
+
+def should_never_skip(patchmodule: str, never_skip: set[str]) -> bool:
+	"""return True if patch is listed in the `never_skip_patches` hook
+
+	Such patches stop the migration when they fail, even with `--skip-failing`."""
+	patchmodule = patchmodule.replace("finally:", "")
+
+	if patchmodule in never_skip:
+		return True
+
+	if patchmodule.startswith("execute:"):
+		return False
+
+	# patches.txt entries can have trailing arguments to force a re-run, e.g. `app.module.patch #2`
+	return patchmodule.split(maxsplit=1)[0] in never_skip
 
 
 def update_patch_log(patchmodule, skipped=False):

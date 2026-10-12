@@ -4,6 +4,7 @@
  "autoname": "hash",
  "creation": "2026-05-10 14:27:44.747226",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/portal-web-form/web-form-request",
  "engine": "InnoDB",
  "field_order": [
   "web_form",

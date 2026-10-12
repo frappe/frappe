@@ -4,6 +4,7 @@
  "autoname": "Prompt",
  "creation": "2019-02-16 17:37:27.918909",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/website-route-meta",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

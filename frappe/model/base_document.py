@@ -37,7 +37,7 @@ from frappe.utils import (
 	strip_html,
 )
 from frappe.utils.defaults import get_not_null_defaults
-from frappe.utils.html_utils import unescape_html
+from frappe.utils.html_utils import has_html_tags, unescape_html
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -587,7 +587,7 @@ class BaseDocument:
 					value = self.get_virtual_field_value(df)
 
 				fieldtype = df.fieldtype
-				if isinstance(value, list) and fieldtype not in table_fields:
+				if isinstance(value, list) and fieldtype not in table_fields and fieldtype != "JSON":
 					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label, context=df.parent)))
 
 				if fieldtype == "Check":
@@ -596,7 +596,7 @@ class BaseDocument:
 				elif fieldtype == "Int" and not isinstance(value, int):
 					value = cint(value)
 
-				elif fieldtype == "JSON" and isinstance(value, dict):
+				elif fieldtype == "JSON" and isinstance(value, (dict, list)):
 					value = json.dumps(value, separators=(",", ":"))
 
 				elif fieldtype in float_like_fields and not isinstance(value, float):
@@ -772,7 +772,7 @@ class BaseDocument:
 
 		args:
 		        ignore_if_duplicate: ignore primary key collision
-		                                        at database level (postgres)
+		                                        at database level (postgres, sqlite)
 		                                        in python (mariadb)
 		"""
 		if not self.name:
@@ -790,9 +790,17 @@ class BaseDocument:
 			and frappe.db.db_type == "postgres"
 			and (self.flags.retry_count or 0) < 5
 		):
-			conflict_handler = "on conflict (name) do nothing"
 			if self.meta.autoname == "hash":
+				# A hash name that collides has to be regenerated, so only `name` may be skipped.
+				conflict_handler = "on conflict (name) do nothing"
 				returning = "RETURNING name"
+			else:
+				# Any unique index, not only the primary key: a doctype named after a unique field
+				# breaks both with one row. Letting postgres skip the row keeps the transaction
+				# usable, which catching the error below would not.
+				conflict_handler = "on conflict do nothing"
+		elif ignore_if_duplicate and frappe.db.db_type == "sqlite":
+			conflict_handler = "on conflict (name) do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
@@ -837,8 +845,21 @@ class BaseDocument:
 					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 			elif frappe.db.is_unique_key_violation(e):
-				# unique constraint
-				self.show_unique_validation_message(e)
+				# A doctype named after a unique field breaks two indexes with one row, and which
+				# one the backend blames is its own choice: MariaDB says PRIMARY and is handled
+				# above, SQLite says the secondary index and arrives here. `ignore_if_duplicate`
+				# has to mean the same thing in both places.
+				if not ignore_if_duplicate:
+					if frappe.db.db_type == "sqlite" and frappe.db.exists(self.doctype, self.name):
+						frappe.msgprint(
+							_("{0} {1} already exists").format(_(self.doctype), frappe.bold(self.name)),
+							title=_("Duplicate Name"),
+							indicator="red",
+						)
+						raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+
+					# unique constraint
+					self.show_unique_validation_message(e)
 
 			else:
 				raise
@@ -1061,9 +1082,7 @@ class BaseDocument:
 				doctype = self.get(df.options)
 				if not doctype:
 					frappe.throw(
-						_("{0} must be set first").format(
-							_(self.meta.get_label(df.options), context=self.doctype)
-						)
+						_("{0} must be set first").format(self.meta.get_translated_label(df.options))
 					)
 				invalidate_distinct_link_doctypes(df.parent, df.options, doctype)
 
@@ -1193,7 +1212,7 @@ class BaseDocument:
 			if value not in options and not (frappe.in_test and value.startswith("_T-")):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
-				label = _(self.meta.get_label(df.fieldname), context=self.doctype)
+				label = self.meta.get_translated_label(df.fieldname)
 				comma_options = '", "'.join(_(each) for each in options)
 
 				frappe.throw(
@@ -1248,32 +1267,6 @@ class BaseDocument:
 			if data_field_options == "IBAN":
 				validate_iban(data, throw=True)
 
-	def _validate_constants(self):
-		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
-			return
-
-		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": ("=", 1)})]
-		if constants:
-			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
-
-		for fieldname in constants:
-			df = self.meta.get_field(fieldname)
-
-			# This conversion to string only when fieldtype is Date
-			if df.fieldtype == "Date" or df.fieldtype == "Datetime":
-				value = str(values.get(fieldname))
-
-			else:
-				value = values.get(fieldname)
-
-			if self.get(fieldname) != value:
-				frappe.throw(
-					_("Value cannot be changed for {0}").format(
-						_(self.meta.get_label(fieldname), context=self.doctype)
-					),
-					frappe.CannotChangeConstantError,
-				)
-
 	def _validate_length(self):
 		if frappe.flags.in_install:
 			return
@@ -1325,8 +1318,11 @@ class BaseDocument:
 		autoname = self.meta.autoname or ""
 		_empty, _field_specifier, fieldname = autoname.partition("field:")
 
-		if fieldname and self.name and self.name != self.get(fieldname):
-			self.set(fieldname, self.name)
+		if fieldname and self.name:
+			df = self.meta.get_field(fieldname)
+			name = self.cast(self.name, df) if df else self.name
+			if name != self.get(fieldname):
+				self.set(fieldname, name)
 
 	def throw_length_exceeded_error(self, df, max_length, value):
 		# check if parentfield exists (only applicable for child table doctype)
@@ -1385,8 +1381,6 @@ class BaseDocument:
 
 		- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
-		from bs4 import BeautifulSoup
-
 		if frappe.flags.in_install:
 			return
 
@@ -1400,7 +1394,7 @@ class BaseDocument:
 				# doesn't look like html so no need
 				continue
 
-			elif "<!-- markdown -->" in value and not bool(BeautifulSoup(value, "html.parser").find()):
+			elif "<!-- markdown -->" in value and not has_html_tags(value):
 				# should be handled separately via the markdown converter function
 				continue
 
@@ -1410,7 +1404,7 @@ class BaseDocument:
 			if df and (
 				df.get("ignore_xss_filter")
 				or (df.get("fieldtype") in ("Data", "Small Text", "Text") and df.get("options") == "Email")
-				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code")
+				or df.get("fieldtype") in ("Attach", "Attach Image", "Barcode", "Code", "JSON")
 				# cancelled and submit but not update after submit should be ignored
 				or self.docstatus.is_cancelled()
 				or (self.docstatus.is_submitted() and not df.get("allow_on_submit"))
@@ -1515,7 +1509,9 @@ class BaseDocument:
 		if not doc:
 			doc = getattr(self, "parent_doc", None) or self
 
-		if (absolute_value or doc.get("absolute_value")) and isinstance(val, int | float):
+		if (
+			absolute_value or (getattr(doc, "flags", None) and doc.flags.get("absolute_value"))
+		) and isinstance(val, int | float):
 			val = abs(self.get(fieldname))
 
 		return format_value(val, df=df, doc=doc, currency=currency, format=format)
@@ -1677,6 +1673,7 @@ RESERVED_KEYWORDS = frozenset(
 		"flags",
 		"_parent_doc",
 		"_doc_before_save",
+		"_action",
 		"dont_update_if_missing",
 		*CACHED_PROPERTIES,
 	)

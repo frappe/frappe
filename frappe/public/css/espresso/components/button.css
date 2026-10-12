@@ -83,14 +83,21 @@ a.es-button:focus {
 }
 
 /* subtle is the default; scope hover/active to default-or-explicit subtle so
-       they don't leak onto the other variants. */
-.es-button:not([data-variant]):hover,
-.es-button[data-variant="subtle"]:hover {
-    background: var(--bt-fill-bg-hover);
+       they don't leak onto the other variants. Hovers here and below apply only
+       with a real pointer: touch keeps :hover on the last button tapped. */
+@media (hover: hover) {
+    .es-button:not([data-variant]):hover,
+    .es-button[data-variant="subtle"]:hover {
+        background: var(--bt-fill-bg-hover);
+    }
 }
 
+/* an open menu or popover keeps its trigger pressed (Dropdown and Popover set
+   aria-haspopup; plain disclosure toggles only set aria-expanded) */
 .es-button:not([data-variant]):active,
-.es-button[data-variant="subtle"]:active {
+.es-button:not([data-variant])[aria-haspopup][aria-expanded="true"],
+.es-button[data-variant="subtle"]:active,
+.es-button[data-variant="subtle"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-fill-bg-active);
 }
 
@@ -144,11 +151,14 @@ a.es-button:focus {
     color: var(--bt-solid-fg);
 }
 
-.es-button[data-variant="solid"]:hover {
-    background: var(--bt-solid-bg-hover);
+@media (hover: hover) {
+    .es-button[data-variant="solid"]:hover {
+        background: var(--bt-solid-bg-hover);
+    }
 }
 
-.es-button[data-variant="solid"]:active {
+.es-button[data-variant="solid"]:active,
+.es-button[data-variant="solid"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-solid-bg-active);
 }
 
@@ -158,11 +168,14 @@ a.es-button:focus {
     border-color: var(--bt-border);
 }
 
-.es-button[data-variant="outline"]:hover {
-    border-color: var(--bt-border-hover);
+@media (hover: hover) {
+    .es-button[data-variant="outline"]:hover {
+        border-color: var(--bt-border-hover);
+    }
 }
 
-.es-button[data-variant="outline"]:active {
+.es-button[data-variant="outline"]:active,
+.es-button[data-variant="outline"][aria-haspopup][aria-expanded="true"] {
     border-color: var(--bt-border-hover);
     background: var(--bt-outline-bg-active);
 }
@@ -172,11 +185,14 @@ a.es-button:focus {
     color: var(--bt-fg);
 }
 
-.es-button[data-variant="ghost"]:hover {
-    background: var(--bt-fill-bg-hover);
+@media (hover: hover) {
+    .es-button[data-variant="ghost"]:hover {
+        background: var(--bt-fill-bg-hover);
+    }
 }
 
-.es-button[data-variant="ghost"]:active {
+.es-button[data-variant="ghost"]:active,
+.es-button[data-variant="ghost"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-fill-bg-active);
 }
 

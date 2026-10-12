@@ -10,7 +10,7 @@ import frappe.utils.scheduler
 from frappe.desk.form import assign_to
 from frappe.tests import IntegrationTestCase
 
-from .notification import trigger_notifications
+from .notification import get_comments_for_context, get_context, trigger_notifications
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Notification"]
 
@@ -138,6 +138,29 @@ class TestNotification(IntegrationTestCase):
 		)
 
 		self.assertEqual(frappe.db.get_value("Communication", communication.name, "subject"), "__testing__")
+
+	def test_comments_in_context(self):
+		todo = frappe.get_doc(doctype="ToDo", description="comments context").insert()
+		self.assertIsNone(get_comments_for_context(todo))
+
+		comment = todo.add_comment("Comment", "hello")
+		email = frappe.get_doc(
+			doctype="Communication",
+			content="reply",
+			sender="a@example.com",
+			reference_doctype="ToDo",
+			reference_name=todo.name,
+		).insert()
+		self.assertEqual(
+			get_comments_for_context(todo),
+			[
+				{"comment": "hello", "by": comment.comment_email, "name": comment.name},
+				{"comment": "reply", "by": "a@example.com", "name": email.name},
+			],
+		)
+
+		todo.add_comment("Comment", "x" * 150)
+		self.assertEqual(get_comments_for_context(todo)[-1]["comment"], "x" * 97 + "...")
 
 	def test_condition(self):
 		"""Check notification is triggered based on a condition."""
@@ -269,7 +292,7 @@ class TestNotification(IntegrationTestCase):
 
 		notification = {
 			"name": "Test App From Module",
-			"notification_title": "Test App From Module",
+			"subject": "Test App From Module",
 			"document_type": "Event",
 			"module": "Core",  # owned by the frappe app
 			"event": "Minutes Before",
@@ -281,9 +304,9 @@ class TestNotification(IntegrationTestCase):
 		}
 
 		with get_test_notification(notification) as n:
-			frappe.db.delete("Notification Log", {"title": n.notification_title})
+			frappe.db.delete("Notification Log", {"title": n.subject})
 			trigger_notifications(None, "offset")
-			app = frappe.db.get_value("Notification Log", {"title": n.notification_title}, "app")
+			app = frappe.db.get_value("Notification Log", {"title": n.subject}, "app")
 			self.assertEqual(app, "frappe")
 
 	def test_minutes_negative_offset(self):
@@ -513,6 +536,24 @@ class TestNotification(IntegrationTestCase):
 		recipients = [d.recipient for d in email_queue.recipients]
 		self.assertTrue("test2@example.com" in recipients)
 		self.assertTrue("test1@example.com" in recipients)
+
+	def test_notification_to_administrator_owner(self):
+		frappe.set_user("Administrator")
+
+		notification = {
+			"document_type": "ToDo",
+			"subject": "ToDo created by Administrator",
+			"event": "New",
+			"message": "New ToDo",
+			"recipients": [{"receiver_by_document_field": "owner"}],
+		}
+
+		with get_test_notification(notification) as n:
+			todo = frappe.get_doc(doctype="ToDo", description="Review the quarterly report").insert()
+
+			recipients, _, _ = n.get_list_of_recipients(todo, get_context(todo))
+			todo.delete()
+			self.assertEqual(recipients, [frappe.db.get_value("User", "Administrator", "email")])
 
 	def test_notification_value_change_casted_types(self):
 		"""Make sure value change event dont fire because of incorrect type comparisons."""
@@ -756,6 +797,101 @@ class TestNotification(IntegrationTestCase):
 		recipients = [d.recipient for d in email_queue.recipients]
 		self.assertTrue("test1@example.com" in recipients)
 		self.assertEqual(notification.enabled, 1)
+
+	def test_email_template_content_for_email_and_system_notification(self):
+		"""email_template should drive content for both the Email channel and the bell (Send System Notification)."""
+		frappe.delete_doc_if_exists("Email Template", "Test ToDo Email Template")
+		email_template = frappe.get_doc(
+			{
+				"doctype": "Email Template",
+				"name": "Test ToDo Email Template",
+				"subject": "ToDo update: {{ description }}",
+				"response": "<p>Status is now {{ status }}, no doc. prefix needed.</p>",
+			}
+		).insert()
+
+		frappe.delete_doc_if_exists("Notification", "Test Email Template Notification")
+		notification = frappe.get_doc(
+			{
+				"doctype": "Notification",
+				"name": "Test Email Template Notification",
+				"document_type": "ToDo",
+				"event": "Save",
+				"channel": "Email",
+				"email_template": email_template.name,
+				"send_system_notification": 1,
+				"recipients": [{"receiver_by_document_field": "owner"}],
+			}
+		).insert()
+
+		frappe.db.delete("Notification Log", {"subject": ["like", "ToDo update:%"]})
+
+		todo = frappe.new_doc("ToDo")
+		todo.description = "Checking email template content"
+		todo.status = "Open"
+		todo.save()
+
+		email_queue = frappe.get_doc(
+			"Email Queue", {"reference_doctype": "ToDo", "reference_name": todo.name}
+		)
+		self.assertIn("Checking email template content", email_queue.message)
+		self.assertIn("Status is now Open", email_queue.message)
+
+		notification_log = frappe.get_doc(
+			"Notification Log", {"subject": ["like", "ToDo update:%"], "for_user": frappe.session.user}
+		)
+		self.assertIn("Checking email template content", notification_log.subject)
+		self.assertIn("Status is now Open", notification_log.email_content)
+
+		todo.delete(ignore_permissions=True)
+		notification.delete()
+		email_template.delete()
+
+	def test_email_template_with_no_content_is_rejected_on_save(self):
+		"""A Notification pointing at an empty Email Template should fail at save, not silently fall back."""
+		frappe.delete_doc_if_exists("Email Template", "Test Empty Email Template")
+		email_template = frappe.get_doc(
+			{
+				"doctype": "Email Template",
+				"name": "Test Empty Email Template",
+				"subject": "x",
+				"response": "",
+			}
+		).insert()
+
+		notification = frappe.new_doc("Notification")
+		notification.document_type = "ToDo"
+		notification.event = "Save"
+		notification.channel = "Email"
+		notification.email_template = email_template.name
+		notification.append("recipients", {"receiver_by_document_field": "owner"})
+
+		self.assertRaises(frappe.ValidationError, notification.insert)
+
+		email_template.delete()
+
+	def test_email_template_rejected_for_non_email_channel(self):
+		"""email_template is only meaningful for the Email channel and should be rejected elsewhere."""
+		frappe.delete_doc_if_exists("Email Template", "Test ToDo Email Template Channel")
+		email_template = frappe.get_doc(
+			{
+				"doctype": "Email Template",
+				"name": "Test ToDo Email Template Channel",
+				"subject": "x",
+				"response": "y",
+			}
+		).insert()
+
+		notification = frappe.new_doc("Notification")
+		notification.document_type = "ToDo"
+		notification.event = "Save"
+		notification.channel = "System Notification"
+		notification.email_template = email_template.name
+		notification.append("recipients", {"receiver_by_document_field": "owner"})
+
+		self.assertRaises(frappe.ValidationError, notification.insert)
+
+		email_template.delete()
 
 
 # ruff: noqa: RUF001

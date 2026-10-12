@@ -31,7 +31,7 @@ frappe.ui.form.on("Dashboard Chart", {
 		}
 
 		if (!frm.is_new()) {
-			frm.add_custom_button("Add Chart to Dashboard", () => {
+			frm.add_custom_button(__("Add Chart to Dashboard"), () => {
 				const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
 					frm.doc.name,
 					"Dashboard Chart",
