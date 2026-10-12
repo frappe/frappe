@@ -308,8 +308,8 @@ login.login_handlers = (function () {
 						return v;
 					}
 				}) || []).join('<br>') || default_message;
-			} else if (data.exc_type === "AdminPasswordDisabled") {
-				message = {{ _("Password login is disabled for Administrator") | tojson }};
+			} else if (data.exc_type === "PasswordLoginDisabledError") {
+				message = {{ _("Passwords are disabled for Administrator") | tojson }};
 			}
 
 			login.set_invalid(message);

@@ -1,11 +1,20 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 from cryptography.fernet import Fernet
 
 import frappe
-from frappe.core.doctype.system_settings.system_settings import set_admin_password_login_setting
 from frappe.tests import IntegrationTestCase
-from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
+from frappe.tests.classes.context_managers import change_settings
+from frappe.utils.password import (
+	check_password,
+	decrypt,
+	encrypt,
+	passlibctx,
+	set_admin_password_login_setting,
+	update_password,
+)
 
 
 class TestPassword(IntegrationTestCase):
@@ -118,10 +127,29 @@ class TestPassword(IntegrationTestCase):
 		frappe.set_user("test@example.com")
 		self.addCleanup(frappe.set_user, "Administrator")
 
-		self.assertRaises(frappe.AdminPasswordDisabled, update_password, "Administrator", "new-admin-pwd")
+		self.assertRaises(
+			frappe.PasswordLoginDisabledError, update_password, "Administrator", "new-admin-pwd"
+		)
 		# other users are not affected
 		update_password("test@example.com", "new-test-pwd")
 		self.assertEqual(check_password("test@example.com", "new-test-pwd"), "test@example.com")
+
+	def test_bench_add_user_skips_password_while_login_disabled(self):
+		from frappe.commands.site import add_new_user
+
+		email = frappe.generate_hash() + "@example.com"
+		self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+
+		with (
+			change_settings("System Settings", disable_user_pass_login=1, login_with_email_link=1),
+			patch("frappe.utils.password.click.secho") as secho,
+		):
+			add_new_user(email, password="Eastern_43A1W", role=())
+
+		# user made, password skipped, warning shown
+		self.assertTrue(frappe.db.exists("User", email))
+		self.assertFalse(get_password_list(dict(doctype="User", name=email)))
+		secho.assert_called_once()
 
 	def test_custom_encryption_key(self):
 		text = "Frappe Framework"

@@ -185,7 +185,7 @@ class TestAuth(IntegrationTestCase):
 		self.addCleanup(frappe.form_dict.clear)
 
 		logs_before = frappe.db.count("Activity Log", {"user": "Administrator"})
-		with self.assertRaises(frappe.AdminPasswordDisabled):
+		with self.assertRaises(frappe.PasswordLoginDisabledError):
 			LoginManager()
 		# same answer for a wrong password, so nothing leaks about the real one
 		self.assertEqual(frappe.local.response.message, "Password login is disabled for Administrator")

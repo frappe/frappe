@@ -25,6 +25,10 @@ class ValidationError(Exception):
 	http_status_code = 417
 
 
+class PasswordLoginDisabledError(ValidationError):
+	pass
+
+
 class FrappeTypeError(TypeError):
 	http_status_code = 417
 
@@ -32,10 +36,6 @@ class FrappeTypeError(TypeError):
 class AuthenticationError(Exception):
 	http_status_code = 401
 	skip_error_log = True
-
-
-class AdminPasswordDisabled(AuthenticationError):
-	pass
 
 
 class SessionExpired(Exception):

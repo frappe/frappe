@@ -290,7 +290,7 @@ class LoginManager:
 			self.fail(
 				"Password login is disabled for Administrator",
 				user=user.name,
-				exc=frappe.AdminPasswordDisabled,
+				exc=frappe.PasswordLoginDisabledError,
 			)
 
 		# Current login flow uses cached credentials for authentication while checking OTP.

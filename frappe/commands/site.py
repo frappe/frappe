@@ -1206,43 +1206,39 @@ def move(dest_dir, site):
 @click.argument("user")
 @click.argument("password", required=False)
 @click.option("--logout-all-sessions", help="Log out from all sessions", is_flag=True, default=False)
-@click.option(
-	"--force",
-	help="Turn Administrator password login back on without asking",
-	is_flag=True,
-)
+@click.option("--yes", "-y", is_flag=True, help="Pass --yes to skip confirmation")
 @pass_context
-def set_password(context: CliCtxObj, user, password=None, logout_all_sessions=False, force=False):
+def set_password(context: CliCtxObj, user, password=None, logout_all_sessions=False, yes=False):
 	"Set password for a user on a site"
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
 	for site in context.sites:
-		set_user_password(site, user, password, logout_all_sessions, force)
+		set_user_password(site, user, password, logout_all_sessions, yes)
 
 
 @click.command("set-admin-password")
 @click.argument("admin-password", required=False)
 @click.option("--logout-all-sessions", help="Log out from all sessions", is_flag=True, default=False)
-@click.option(
-	"--force",
-	help="Turn Administrator password login back on without asking",
-	is_flag=True,
-)
+@click.option("--yes", "-y", is_flag=True, help="Pass --yes to skip confirmation")
 @pass_context
-def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessions=False, force=False):
+def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessions=False, yes=False):
 	"Set Administrator password for a site"
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
 	for site in context.sites:
-		set_user_password(site, "Administrator", admin_password, logout_all_sessions, force)
+		set_user_password(site, "Administrator", admin_password, logout_all_sessions, yes)
 
 
-def set_user_password(site, user, password, logout_all_sessions=False, force=False):
-	from frappe.core.doctype.system_settings.system_settings import set_admin_password_login_setting
-	from frappe.utils.install import warn_admin_password_login_enabled
-	from frappe.utils.password import is_admin_password_login_disabled, update_password
+def set_user_password(site, user, password, logout_all_sessions=False, yes=False):
+	from frappe.utils.password import (
+		is_admin_password_login_disabled,
+		set_admin_password_login_setting,
+		update_password,
+		warn_admin_password_login_enabled,
+		warn_password_not_set,
+	)
 
 	try:
 		frappe.init(site)
@@ -1252,31 +1248,29 @@ def set_user_password(site, user, password, logout_all_sessions=False, force=Fal
 			print(f"User {user} does not exist")
 			sys.exit(1)
 
-		enable_password_login = is_admin_password_login_disabled(user)
+		# update_password refuses every user while this is on, so stop before asking for a password
+		if frappe.get_system_settings("disable_user_pass_login"):
+			warn_password_not_set(user)
+			sys.exit(1)
 
-		if enable_password_login and not force:
-			click.confirm(
-				f"Administrator password login is disabled on {site}. Setting a password turns it back on. Do you want to continue?",
-				abort=True,
-			)
+		enable_admin_password_login = is_admin_password_login_disabled(user)
+		if enable_admin_password_login:
+			if not yes:
+				click.confirm(
+					f"Administrator password login is disabled on {site}. Setting a password turns it back on. Do you want to continue?",
+					abort=True,
+				)
+			# turn the setting off first, update_password refuses Administrator password write while it is on
+			set_admin_password_login_setting(0)
 
 		while not password:
 			password = getpass.getpass(f"{user}'s password for {site}: ")
 
-		# turn the setting off first, update_password refuses Administrator password write while it is on
-		if enable_password_login:
-			set_admin_password_login_setting(0)
-
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
-		if frappe.get_system_settings("disable_user_pass_login"):
-			# blocks Administrator too, so the brute force warning below would be wrong here
-			warn_admin_password_login_enabled(
-				f"Warning: username/password login is disabled on {site}, so this password cannot be used to log in "
-				"until 'Disable Username/Password Login' is turned off in System Settings."
-			)
-		elif enable_password_login:
-			warn_admin_password_login_enabled()
 		frappe.db.commit()
+
+		if enable_admin_password_login:
+			warn_admin_password_login_enabled()
 	finally:
 		frappe.destroy()
 
@@ -1359,6 +1353,17 @@ def browse(
 	user_for_audit: str | None = None,
 ):
 	"""Opens the site on web browser"""
+	browse_site(context, site, user, print_sid, session_end, user_for_audit)
+
+
+def browse_site(
+	context: CliCtxObj,
+	site,
+	user: str | None = None,
+	print_sid: bool = False,
+	session_end: str | None = None,
+	user_for_audit: str | None = None,
+):
 	from frappe.auth import CookieManager, LoginManager
 
 	site = get_site(context, raise_err=False) or site
@@ -1403,6 +1408,29 @@ def browse(
 		click.echo(f"Login URL: {url}")
 
 	click.launch(url)
+
+
+@click.command("login-as-admin")
+@click.argument("site", required=False)
+@click.option(
+	"--sid", "print_sid", is_flag=True, help="Print the generated session id instead of opening the browser"
+)
+@click.option(
+	"--session-end",
+	required=False,
+	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
+)
+@click.option("--user-for-audit", required=False, help="The user to mention in audit trail")
+@pass_context
+def login_as_admin(
+	context: CliCtxObj,
+	site,
+	print_sid: bool = False,
+	session_end: str | None = None,
+	user_for_audit: str | None = None,
+):
+	"""Opens the site on web browser as Administrator"""
+	browse_site(context, site, "Administrator", print_sid, session_end, user_for_audit)
 
 
 @click.command("start-recording")
@@ -1721,9 +1749,12 @@ def add_new_user(
 	user.insert()
 	user.add_roles(*role)
 	if password:
-		from frappe.utils.password import update_password
+		from frappe.utils.password import update_password, warn_password_not_set
 
-		update_password(user=user.name, pwd=password)
+		if frappe.get_system_settings("disable_user_pass_login"):
+			warn_password_not_set(user.name)
+		else:
+			update_password(user=user.name, pwd=password)
 
 
 def ensure_app_not_frappe(app: str) -> None:
@@ -1820,6 +1851,7 @@ commands = [
 	set_last_active_for_user,
 	publish_realtime,
 	browse,
+	login_as_admin,
 	start_recording,
 	stop_recording,
 	add_to_hosts,

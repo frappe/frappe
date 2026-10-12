@@ -418,9 +418,12 @@ def add_system_manager(
 	user.add_roles(*roles)
 
 	if password:
-		from frappe.utils.password import update_password
+		from frappe.utils.password import update_password, warn_password_not_set
 
-		update_password(user=user.name, pwd=password)
+		if frappe.get_system_settings("disable_user_pass_login"):
+			warn_password_not_set(user.name)
+		else:
+			update_password(user=user.name, pwd=password)
 	return user
 
 

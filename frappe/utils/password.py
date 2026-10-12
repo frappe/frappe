@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import click
 from cryptography.fernet import Fernet, InvalidToken
 from passlib.context import CryptContext
 from pypika.terms import Values
@@ -8,7 +9,7 @@ from pypika.terms import Values
 import frappe
 from frappe import _
 from frappe.query_builder import Table
-from frappe.utils import cstr, encode
+from frappe.utils import cint, cstr, encode
 
 Auth = Table("__Auth")
 
@@ -130,7 +131,8 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 	if delete_tracker_cache:
 		delete_login_failed_cache(user)
 
-	if passlibctx.needs_update(result[0].password):
+	# no rehash while password login is disabled
+	if passlibctx.needs_update(result[0].password) and not is_password_login_disabled(user, doctype):
 		update_password(user, pwd, doctype, fieldname)
 
 	return user
@@ -144,9 +146,48 @@ def is_admin_password_login_disabled(user):
 	return user == "Administrator" and bool(frappe.get_system_settings("disable_admin_password_login"))
 
 
-def is_password_login_disabled(user):
-	return bool(frappe.get_system_settings("disable_user_pass_login")) or is_admin_password_login_disabled(
-		user
+def is_password_login_disabled(user, doctype="User"):
+	return doctype == "User" and (
+		bool(frappe.get_system_settings("disable_user_pass_login")) or is_admin_password_login_disabled(user)
+	)
+
+
+def throw_password_login_disabled():
+	if "System Manager" in frappe.get_roles():
+		setting = (
+			_("Disable Username/Password Login")
+			if frappe.get_system_settings("disable_user_pass_login")
+			else _("Disable Administrator Password Login")
+		)
+		message = _(
+			"Password login is disabled. Turn off {0} in System Settings to use password actions."
+		).format(frappe.bold(setting))
+	else:
+		message = _("Password login and related actions are disabled on this site.")
+	frappe.throw(message, exc=frappe.PasswordLoginDisabledError)
+
+
+def set_admin_password_login_setting(value):
+	from frappe.core.doctype.system_settings.system_settings import clear_system_settings_cache
+
+	frappe.db.set_single_value("System Settings", "disable_admin_password_login", cint(value))
+	frappe.db.set_default("disable_admin_password_login", cint(value))
+	clear_system_settings_cache()
+
+
+def warn_admin_password_login_enabled():
+	click.secho(
+		"Warning: Administrator password login is enabled, so the account is open to brute force attacks.\n"
+		"Turn on 'Disable Administrator Password Login' in System Settings and open Administrator sessions from your site management tool instead.",
+		fg="yellow",
+	)
+
+
+def warn_password_not_set(user):
+	click.secho(
+		f"Warning: password for {user} is not set. 'Disable Username/Password Login' is on in System Settings, "
+		"so password login is disabled for this site.",
+		fg="yellow",
 	)
 
 
@@ -160,11 +201,8 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	:param fieldname: fieldname (in given doctype) (for encryption)
 	:param logout_all_session: delete all other session
 	"""
-	if doctype == "User" and is_admin_password_login_disabled(user):
-		frappe.throw(
-			_("Password login is disabled for Administrator"),
-			exc=frappe.AdminPasswordDisabled,
-		)
+	if is_password_login_disabled(user, doctype):
+		throw_password_login_disabled()
 
 	hashPwd = passlibctx.hash(pwd)
 

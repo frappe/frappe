@@ -7,7 +7,11 @@ from frappe.desk.doctype.notification_type.notification_type import install_noti
 from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
-from frappe.utils.password import update_password
+from frappe.utils.password import (
+	set_admin_password_login_setting,
+	update_password,
+	warn_admin_password_login_enabled,
+)
 
 
 def before_install():
@@ -134,24 +138,17 @@ def setup_admin_password():
 	so Administrator cannot log in with a password.
 	Password given: it is set and the setting is turned off.
 	"""
-	from frappe.core.doctype.system_settings.system_settings import set_admin_password_login_setting
-
 	password = frappe.conf.get("admin_password")
 	if not password:
+		click.secho(
+			f"Administrator password login is disabled on {frappe.local.site}. ",
+			fg="yellow",
+		)
 		return
 	# turn the setting off first, update_password refuses Administrator while it is on
 	set_admin_password_login_setting(0)
 	update_password("Administrator", password)
 	warn_admin_password_login_enabled()
-
-
-def warn_admin_password_login_enabled(message=None):
-	click.secho(
-		message
-		or "Warning: Administrator password login is enabled, so the account is open to brute force attacks.\n"
-		"Turn on 'Disable Administrator Password Login' in System Settings and open Administrator sessions from your site management tool instead.",
-		fg="yellow",
-	)
 
 
 def before_tests():

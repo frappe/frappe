@@ -280,12 +280,6 @@ def clear_system_settings_cache():
 	frappe.cache.delete_value("time_zone")
 
 
-def set_admin_password_login_setting(value):
-	frappe.db.set_single_value("System Settings", "disable_admin_password_login", cint(value))
-	frappe.db.set_default("disable_admin_password_login", cint(value))
-	clear_system_settings_cache()
-
-
 def sync_system_settings():
 	if frappe.db.get_single_value("System Settings", "currency") is None:
 		frappe.db.set_single_value("System Settings", "currency", frappe.defaults.get_defaults()["currency"])
