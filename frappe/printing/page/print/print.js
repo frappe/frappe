@@ -337,7 +337,6 @@ frappe.ui.form.PrintView = class {
 	}
 
 	print_style_label(name) {
-		if (name === "Redesign") return __("Default");
 		return STANDARD_PRINT_STYLES.includes(name) ? __(name) : name;
 	}
 
