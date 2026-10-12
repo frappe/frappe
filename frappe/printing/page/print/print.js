@@ -110,9 +110,13 @@ frappe.ui.form.PrintView = class {
 	setup_toolbar() {
 		this.page.set_primary_action(__("Print"), () => this.printit(), "printer");
 
-		this.page.add_button(__("PDF"), () => this.render_pdf(), { icon: "download" });
-
-		this.page.add_button(__("Email"), () => this.email_doc(), { icon: "mail" });
+		this.page.add_action_icon(
+			"download",
+			() => this.render_pdf(),
+			"btn-download-pdf",
+			__("Download PDF")
+		);
+		this.page.add_action_icon("mail", () => this.email_doc(), "", __("Email"));
 
 		if (frappe.is_mobile()) {
 			this.page.add_button(__("Form"), () => this.go_to_form_view(), {
