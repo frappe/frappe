@@ -837,14 +837,7 @@ function client_save(doc) {
 }
 
 function get_list(doctype, args) {
-	return new Promise((resolve, reject) => {
-		frappe.call({
-			method: "frappe.desk.reportview.get_list",
-			args: { doctype, ...args },
-			callback: (r) => resolve(r.message),
-			always: () => reject(),
-		});
-	});
+	return frappe.xcall("frappe.desk.reportview.get_list", { doctype, ...args });
 }
 
 function unique_parents(rows) {
