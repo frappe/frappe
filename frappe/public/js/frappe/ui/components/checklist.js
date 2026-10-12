@@ -30,6 +30,7 @@ frappe.provide("frappe.ui");
  * @property {(item:ChecklistItem, user:string|null)=>void|Promise} [on_assign] Makes the assignee editable; runs before the item changes, reject to keep the old one.
  * @property {(item:ChecklistItem, date:string|null)=>void|Promise} [on_due_date_change] Makes the due date editable, the same way.
  * @property {(item:ChecklistItem, status:string|null)=>void|Promise} [on_status_change] Makes an unfinished item's marker a menu to set it In Progress or Stuck, or clear that; finishing stays with the caller.
+ * @property {boolean} [row_click] The whole row runs its first action and ends in a chevron, in place of the action buttons.
  * @property {string} [css_class] Extra classes on the root.
  */
 
@@ -87,6 +88,8 @@ frappe.ui.Checklist = class Checklist {
 		this.head.addEventListener("click", () => this.set_expanded(!this.is_expanded()));
 		this.head.setAttribute("aria-expanded", "true");
 
+		this.el.toggleAttribute("data-row-click", Boolean(opts.row_click));
+
 		this.$el = $(this.el);
 		this.$el.data("es-checklist", this);
 		this.set_items(opts.items || []);
@@ -100,6 +103,13 @@ frappe.ui.Checklist = class Checklist {
 		this.make_progress();
 		this.update_head();
 		items.forEach((item) => this.update_row(item));
+	}
+
+	/** Switch row_click on or off and rebuild the rows. */
+	set_row_click(on) {
+		this.opts.row_click = Boolean(on);
+		this.el.toggleAttribute("data-row-click", this.opts.row_click);
+		this.set_items([...this.items.values()]);
 	}
 
 	/** Set an item In Progress or Stuck, or clear that with null. */
@@ -180,8 +190,36 @@ frappe.ui.Checklist = class Checklist {
 				frappe.ui.badge.html({ label: __("Optional"), size: "sm" })
 			);
 		}
+		if (this.opts.row_click) this.make_row_click(row, item);
 		this.rows.set(item, row);
 		return row;
+	}
+
+	// Clicks on the row's own controls (status, owner, date, menu) don't count as the row's.
+	make_row_click(row, item) {
+		const controls =
+			".es-checklist__marker, .es-checklist__owner, .es-checklist__due, .es-checklist__menu";
+		const run = () => row.hasAttribute("data-click") && item.actions[0].onclick?.(item, this);
+		row.addEventListener("click", (e) => !e.target.closest(controls) && run());
+		row.addEventListener("keydown", (e) => {
+			if (e.target === row && (e.key === "Enter" || e.key === " ")) {
+				e.preventDefault();
+				run();
+			}
+		});
+	}
+
+	update_row_click(item, row, locked) {
+		const action = item.actions?.[0];
+		const clickable = Boolean(action) && !locked && !item.skipped;
+		row.toggleAttribute("data-click", clickable);
+		if (clickable) {
+			row.tabIndex = 0;
+			row.setAttribute("aria-label", `${item.label}: ${action.label}`);
+		} else {
+			row.removeAttribute("tabindex");
+			row.removeAttribute("aria-label");
+		}
 	}
 
 	update_row(item) {
@@ -200,6 +238,7 @@ frappe.ui.Checklist = class Checklist {
 		row.querySelector(".es-checklist__actions").replaceChildren(
 			...this.make_actions(item, Boolean(reason))
 		);
+		if (this.opts.row_click) this.update_row_click(item, row, Boolean(reason));
 	}
 
 	make_marker(item, reason) {
@@ -351,6 +390,10 @@ frappe.ui.Checklist = class Checklist {
 		const buttons = [];
 		if (item.skippable && !item.done) buttons.push(this.make_menu(item));
 		if (item.skipped) return buttons.map(($button) => $button[0]);
+		if (this.opts.row_click) {
+			if (item.actions?.length) buttons.push($(this.make_chevron(item.actions[0].label)));
+			return buttons.map(($button) => $button[0]);
+		}
 		for (const { icon, icon_left, icon_right, ...action } of item.actions || []) {
 			buttons.push(
 				frappe.ui.button({
@@ -363,6 +406,14 @@ frappe.ui.Checklist = class Checklist {
 			);
 		}
 		return buttons.map(($button) => $button[0]);
+	}
+
+	make_chevron(label) {
+		const chevron = document.createElement("span");
+		chevron.className = "es-checklist__go";
+		chevron.innerHTML = frappe.utils.icon("chevron-right", "sm", "", "", "", true);
+		frappe.ui.tooltip(chevron, { text: label });
+		return chevron;
 	}
 
 	// Skip sits behind a click, so it isn't hit by accident; a skip can be undone.

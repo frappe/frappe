@@ -275,6 +275,7 @@
 .es-checklist__actions {
     grid-area: actions;
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: calc(var(--spacing) * 2);
 }
@@ -282,6 +283,47 @@
 .es-checklist__editor .frappe-control,
 .es-checklist__editor .form-group {
     margin-bottom: 0;
+}
+
+/* Row click: the row is the button, a chevron stands in for the actions. */
+.es-checklist[data-row-click] .es-checklist__item {
+    grid-template-columns:
+        auto minmax(0, 1fr) calc(var(--spacing) * 22) 28px calc(var(--spacing) * 24)
+        calc(28px + 16px + var(--spacing));
+}
+
+.es-checklist__item[data-click] {
+    cursor: pointer;
+    transition: background-color 120ms ease-out;
+}
+
+.es-checklist__item[data-click]:hover {
+    background-color: var(--surface-gray-2);
+}
+
+.es-checklist__item[data-click]:hover .es-button[data-variant="ghost"]:hover {
+    background: var(--surface-gray-3);
+}
+
+.es-checklist__item[data-click]:focus-visible {
+    outline: var(--focus-outline-default);
+}
+
+.es-checklist__go {
+    display: flex;
+    color: var(--ink-gray-5);
+}
+
+.es-checklist__go .icon {
+    margin: 0;
+}
+
+.es-checklist__item[data-click]:is(:hover, :focus-visible) .es-checklist__go {
+    color: var(--ink-gray-8);
+}
+
+.es-checklist__item:not([data-click]) .es-checklist__go {
+    color: var(--ink-gray-3);
 }
 
 /* Narrow cards keep owner and date beside the title and put the buttons under them: two lines per item. */
@@ -310,6 +352,13 @@
     .es-checklist__due,
     .es-checklist__actions {
         justify-self: end;
+    }
+
+    .es-checklist[data-row-click] .es-checklist__item {
+        grid-template-columns: auto minmax(0, 1fr) auto 28px auto auto;
+        grid-template-areas: "marker text status owner due actions";
+        align-items: center;
+        column-gap: calc(var(--spacing) * 2);
     }
 }
 
