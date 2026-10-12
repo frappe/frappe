@@ -298,7 +298,8 @@ class StudioAppBuilder:
 		if not componentName or not self.frappe_app:
 			return
 
-		for dirpath, _dirnames, filenames in os.walk(get_studio_folder(self.frappe_app)):
+		app_dir = self.get_app_folder()
+		for dirpath, _dirnames, filenames in os.walk(app_dir):
 			if f"{componentName}.vue" in filenames:
 				self.custom_vue_components[componentName] = os.path.join(dirpath, f"{componentName}.vue")
 				break
