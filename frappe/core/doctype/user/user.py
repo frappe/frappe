@@ -19,8 +19,14 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
+<<<<<<< HEAD
 from frappe.model.document import Document
 from frappe.query_builder import DocType
+=======
+from frappe.model.document import Document, get_controller
+from frappe.model.naming import append_number_if_name_exists
+from frappe.query_builder import DocType, Table
+>>>>>>> df2f2b4 (fix: give a new user a username when their first name is taken)
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions
 from frappe.utils import (
@@ -643,7 +649,9 @@ class User(Document):
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
-			self.username = frappe.scrub(self.first_name)
+			self.username = append_number_if_name_exists(
+				self.doctype, frappe.scrub(self.first_name), fieldname="username"
+			)
 
 		if not self.username:
 			return
