@@ -1,4 +1,3 @@
-```python
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
@@ -183,4 +182,3 @@ def fail_stale_extractions() -> None:
 		{"name": ("in", stale)},
 		{"status": "Failed", "error_message": _("Text extraction did not finish.")},
 	)
-```
