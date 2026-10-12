@@ -82,6 +82,23 @@ workflows are not interchangeable.
   be imported via `@app/...`. A custom Vue block needs a matching
   `<ComponentName>.vue` file somewhere under that folder for the builder to
   find it.
+- Tailwind only scans files inside the `studio/` app folder. If the app imports
+  code from outside that folder (for example a `shared/` package that the
+  Frappe app's frontend also uses), Tailwind classes used in that code will not
+  be in the built CSS. To fix this, add a `tailwind.config.js` next to
+  `tsconfig.json` and list the extra paths in `content`. Paths are relative to
+  the config file. `node_modules` is skipped automatically. Only `content`
+  (an array of globs) and `safelist` are used; `theme` and `plugins` are
+  ignored. The editor combines every app's config into one stylesheet, so
+  keep `safelist` short. Restart the Vite dev server after adding or changing
+  the file.
+
+  ```js
+  export default {
+  	content: ["../../shared/src/**/*.{vue,ts}"],
+  	safelist: ["prose-sm"],
+  }
+  ```
 
 ## Sync, run, and verify
 

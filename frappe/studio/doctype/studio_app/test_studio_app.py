@@ -110,7 +110,9 @@ class TestStudioApp(FrappeTestCase):
 		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
 		app.db_set({"is_standard": 1, "frappe_app": "studio"})
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			self.assertRaises(frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, "deployed-renamed")
+			self.assertRaises(
+				frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, "deployed-renamed"
+			)
 
 	def test_validate_app_name(self):
 		app = make_studio_app(app_title="Valid App", app_name="valid-app")
@@ -384,6 +386,86 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 		self.assertEqual(builder.icons, {"lucide-house", "lucide-bell"})
 
+	def test_passes_custom_app_pages_to_tailwind(self):
+		app = make_studio_app(app_title="Tailwind App", app_name="tailwind-app")
+		component = frappe.get_doc(
+			{
+				"doctype": "Studio Component",
+				"component_name": "TailwindWidget",
+				"block": json.dumps({"componentName": "Badge", "classes": ["bg-component-only"]}),
+			}
+		).insert()
+		blocks = json.dumps(
+			[
+				{
+					"componentName": "Button",
+					"classes": ["bg-page-only"],
+					"children": [
+						{"componentName": component.name, "isStudioComponent": True, "children": []}
+					],
+				}
+			]
+		)
+		make_studio_page(app.name, blocks=blocks, script="const tone = 'text-script-only'", published=1)
+
+		page_sources = {}
+
+		def read_content_file(command, **kwargs):
+			content_path = re.search(r" --tailwind-content (\S+)", command).group(1)
+			with open(content_path) as f:
+				page_sources["text"] = f.read()
+			return run.return_value
+
+		builder = StudioAppBuilder(app.name, is_standard=False)
+		with patch("studio.build.subprocess.run", side_effect=read_content_file) as run, patch(
+			"studio.build.os.makedirs"
+		):
+			run.return_value.returncode = 0
+			builder.build()
+
+		for css_class in ("bg-page-only", "bg-component-only", "text-script-only"):
+			self.assertIn(css_class, page_sources["text"])
+
+	def test_passes_the_app_folder_to_tailwind(self):
+		builder = StudioAppBuilder("folder-app", is_standard=True, frappe_app="studio")
+		with mock_studio_app_files(
+			"folder-app", pages={"page": {"blocks": [{"componentName": "Button"}]}}
+		) as studio_folder, patch("studio.build.get_studio_folder", return_value=studio_folder), patch(
+			"studio.build.subprocess.run"
+		) as run, patch("studio.build.os.makedirs"):
+			run.return_value.returncode = 0
+			builder.build()
+
+		app_folder = os.path.join(studio_folder, "folder_app")
+		self.assertIn(f" --app-folder {app_folder}", run.call_args.args[0])
+		self.assertIn(
+			f"--tailwind-content '{app_folder}/**/*.{{vue,js,ts,jsx,tsx,json}}'", run.call_args.args[0]
+		)
+
+	def test_builds_css_for_the_app_tailwind_config(self):
+		"""Classes in files the app's tailwind.config.js points at, or safelists, reach the built
+		CSS; files outside the app that the config doesn't list stay out."""
+		page = {"blocks": [{"componentName": "Button", "children": []}]}
+		with (
+			mock_studio_app_files("tailwind-app", pages={"page": page}) as studio_folder,
+			patch("studio.build.get_studio_folder", return_value=studio_folder),
+		):
+			frappe_app = os.path.dirname(studio_folder)
+			write_file(os.path.join(frappe_app, "shared", "Shared.vue"), '<p class="tracking-[0.111em]" />')
+			write_file(os.path.join(frappe_app, "desk", "Desk.vue"), '<p class="tracking-[0.222em]" />')
+			write_file(
+				os.path.join(studio_folder, "tailwind_app", "tailwind.config.js"),
+				'export default { content: ["../../shared/**/*.vue"], safelist: ["tracking-[0.333em]"] }',
+			)
+			builder = StudioAppBuilder("tailwind-app", is_standard=True, frappe_app="studio")
+			builder.out_dir = tempfile.mkdtemp()
+			self.addCleanup(shutil.rmtree, builder.out_dir)
+			builder.build()
+
+		css = get_built_css(builder.out_dir)
+		built = {marker for marker in ("111", "222", "333") if rf"tracking-\[0\.{marker}em\]" in css}
+		self.assertEqual(built, {"111", "333"})
+
 	def test_passes_only_the_used_icons_to_the_build(self):
 		builder = StudioAppBuilder("icon-cli-app", is_standard=False)
 		builder.components = {"Button"}
@@ -574,6 +656,23 @@ def make_studio_page(studio_app, **kwargs):
 	)
 	page.insert()
 	return page
+
+
+def write_file(path: str, text: str) -> None:
+	os.makedirs(os.path.dirname(path), exist_ok=True)
+	with open(path, "w") as f:
+		f.write(text)
+
+
+def get_built_css(out_dir: str) -> str:
+	assets_dir = os.path.join(out_dir, "assets")
+	css_files = [
+		name
+		for name in os.listdir(assets_dir)
+		if name.startswith("studioRenderer-") and name.endswith(".css")
+	]
+	with open(os.path.join(assets_dir, css_files[0])) as f:
+		return f.read()
 
 
 def get_bundled_packages(out_dir: str) -> set[str]:
