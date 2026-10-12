@@ -9,7 +9,7 @@
 							v-if="withStatus"
 							class="sticky top-0 whitespace-nowrap bg-surface-gray-1 px-3 py-1.5 font-medium text-ink-gray-5"
 						>
-							{{ humanize(statusLabel) }}
+							Name
 						</th>
 						<th
 							v-for="column in columns"
@@ -27,14 +27,8 @@
 								v-if="withStatus"
 								class="max-w-[240px] truncate px-3 py-1.5 align-top"
 							>
-								<span
-									v-if="row.status?.error"
-									class="text-ink-red-6"
-									:title="row.status.error"
-									>{{ row.status.error }}</span
-								>
 								<a
-									v-else-if="row.status?.name"
+									v-if="row.status?.name"
 									:href="deskUrl(doctype, row.status.name)"
 									target="_blank"
 									class="text-ink-gray-8 hover:underline"
@@ -126,9 +120,8 @@ import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import ValueView from "./ValueView.vue";
 import { cellText, columnsOf, deskUrl, humanize, isTable } from "./result.js";
 
-// Rows are { cells, status? }; the leading column appears only where a status has
-// something to say — the record a row created, or why it failed — and the view that
-// fills it names it. A child table stays a count in its cell; opened, it unfolds as a
+// Rows are { cells, status? }; the leading column appears only where a status names
+// the record a row created. A child table stays a count in its cell; opened, it unfolds as a
 // table of its own in a row beneath, spanning the width, and the cap on the height
 // lifts so nothing scrolls inside a scroll. Like a tool's dropdown, a row that unfolds
 // past the bottom edge is nudged into view. The table fills its panel edge to edge, so
@@ -138,7 +131,6 @@ const props = defineProps({
 	rows: { type: Array, required: true },
 	doctype: { type: String, default: "" },
 	linkColumn: { type: String, default: "" },
-	statusLabel: { type: String, default: "name" },
 	footer: { type: Object, default: null },
 	labels: { type: Object, default: null },
 });
@@ -148,7 +140,7 @@ const visibleCount = ref(PAGE_SIZE);
 const open = reactive(new Set());
 const unfolded = ref([]);
 
-const withStatus = computed(() => props.rows.some((row) => row.status?.name || row.status?.error));
+const withStatus = computed(() => props.rows.some((row) => row.status?.name));
 const span = computed(() => props.columns.length + (withStatus.value ? 1 : 0));
 const visible = computed(() => props.rows.slice(0, visibleCount.value));
 const hidden = computed(() => props.rows.length - visible.value.length);

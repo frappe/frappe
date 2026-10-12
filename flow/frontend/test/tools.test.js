@@ -57,22 +57,11 @@ test("create tables only the fields the records use, before and after the run", 
 	assert.deepEqual(texts(card, "tbody tr:first-child td"), ["Alpha", "10", ""]);
 	assert.deepEqual(texts(card, "tbody tr:last-child td"), ["Beta", "", "2 rows"]);
 
-	const step = mount(t, CreateView, {
-		arguments: createArgs,
-		result: json({
-			doctype: "Sales Invoice",
-			created: ["INV-001"],
-			failures: [{ row: 1, error: "Customer is required" }],
-		}),
-	});
+	const result = json({ doctype: "Sales Invoice", created: ["INV-001", "INV-002"] });
+	const step = mount(t, CreateView, { arguments: createArgs, result });
 	assert.equal(texts(step, "th")[0], "Name");
-	assert.deepEqual(hrefs(step), ["/app/sales-invoice/INV-001"]);
-	assert.ok(step.textContent.includes("Customer is required"));
-	assert.equal(
-		presentTool("create", createArgs, json({ created: ["INV-001"], failures: [{ row: 1 }] }))
-			.stat,
-		"1 created · 1 failed"
-	);
+	assert.deepEqual(hrefs(step), ["/app/sales-invoice/INV-001", "/app/sales-invoice/INV-002"]);
+	assert.equal(presentTool("create", createArgs, result).stat, "2 created");
 });
 
 test("read_records links each record to its Desk form, skipping fields nothing filled", (t) => {
@@ -144,16 +133,11 @@ test("delete links its targets until they are gone", (t) => {
 	assert.deepEqual(texts(card, "th"), ["Name"]);
 	assert.deepEqual(hrefs(card), ["/app/sales-invoice/INV-001", "/app/sales-invoice/INV-002"]);
 
-	const result = json({
-		doctype: "Sales Invoice",
-		deleted: ["INV-001"],
-		failures: [{ name: "INV-002", error: "Linked with Payment Entry" }],
-	});
+	const result = json({ doctype: "Sales Invoice", deleted: ["INV-001", "INV-002"] });
 	const step = mount(t, NamesView, { arguments: args, result });
 	assert.deepEqual(hrefs(step), []);
-	assert.deepEqual(texts(step, "th"), ["Error", "Name"]);
-	assert.ok(step.textContent.includes("Linked with Payment Entry"));
-	assert.equal(presentTool("delete", args, result).stat, "1 deleted · 1 failed");
+	assert.deepEqual(texts(step, "th"), ["Name"]);
+	assert.equal(presentTool("delete", args, result).stat, "2 deleted");
 });
 
 test("update shows the values it applies to its targets", (t) => {
@@ -288,16 +272,10 @@ async function childTable(el) {
 	return { columns: texts(table, "th"), cells: texts(table, "td") };
 }
 
-test("bulk targets and failures beyond the first page can be revealed", async (t) => {
+test("bulk targets beyond the first page can be revealed", async (t) => {
 	const names = Array.from({ length: 41 }, (_, i) => `INV-${i + 1}`);
 	const args = { doctype: "Sales Invoice", names };
-	for (const result of [
-		null,
-		json({
-			deleted: names.slice(0, 40),
-			failures: [{ name: "INV-41", error: "Still linked" }],
-		}),
-	]) {
+	for (const result of [null, json({ deleted: names })]) {
 		const el = mount(t, NamesView, { arguments: args, result });
 		assert.equal(el.querySelectorAll("tbody tr").length, 20);
 		for (const count of [40, 41]) {
@@ -308,7 +286,6 @@ test("bulk targets and failures beyond the first page can be revealed", async (t
 			assert.equal(el.querySelectorAll("tbody tr").length, count);
 		}
 		assert.ok(el.textContent.includes("INV-41"));
-		if (result) assert.ok(el.textContent.includes("Still linked"));
 		assert.equal(el.querySelector("button"), null);
 	}
 });

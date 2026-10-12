@@ -43,21 +43,21 @@ const TOOLS = {
 		label: "Creating Records",
 		view: CreateView,
 		asks: true,
-		stat: (result) => outcome(result.created, result.failures, "created"),
+		stat: (result) => outcome(result.created, "created"),
 	},
 	update: {
 		icon: "edit-3",
 		label: "Updating Records",
 		view: NamesView,
 		asks: true,
-		stat: (result) => outcome(result.updated, result.failures, "updated"),
+		stat: (result) => outcome(result.updated, "updated"),
 	},
 	delete: {
 		icon: "trash-2",
 		label: "Deleting Records",
 		view: NamesView,
 		asks: true,
-		stat: (result) => outcome(result.deleted, result.failures, "deleted"),
+		stat: (result) => outcome(result.deleted, "deleted"),
 	},
 	run_action: {
 		icon: "play",
@@ -65,9 +65,7 @@ const TOOLS = {
 		view: NamesView,
 		asks: true,
 		stat: (result) =>
-			result.action === "rename"
-				? "renamed"
-				: outcome(result.results, result.failures, "done"),
+			result.action === "rename" ? "renamed" : outcome(result.results, "done"),
 	},
 	execute: { icon: "code", label: "Running Code", view: CodeView, asks: true },
 	search_knowledge: {
@@ -143,7 +141,6 @@ function count(n, singular, plural = `${singular}s`) {
 	return `${n} ${n === 1 ? singular : plural}`;
 }
 
-function outcome(done, failures, verb) {
-	const ok = `${done?.length ?? 0} ${verb}`;
-	return failures?.length ? `${ok} · ${failures.length} failed` : ok;
+function outcome(done, verb) {
+	return `${done?.length ?? 0} ${verb}`;
 }
