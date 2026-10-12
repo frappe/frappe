@@ -78,6 +78,25 @@ test.describe("Where an app's icon leads", () => {
 		expect(route).toBe(EMAIL_LANDING);
 	});
 
+	test("passes over a sidebar whose first item leaves the desk", async ({ page }) => {
+		const route = await page.evaluate(
+			([url_row, dock]) => {
+				frappe.boot.module_sidebars["Outside"] = {
+					name: "Outside",
+					items: [{ type: "Link", ...url_row }],
+				};
+				return frappe.app.sidebar.app_landing_route({
+					app_name: "frappe-like",
+					app_route: "/desk/build",
+					dock,
+				});
+			},
+			[url_row, [sidebar_row("Outside"), sidebar_row("Email")]]
+		);
+
+		expect(route).toBe(EMAIL_LANDING);
+	});
+
 	test("falls back to the declared route when no entry opens a desk page", async ({ page }) => {
 		const route = await landing(page, {
 			app_name: "frappe-like",

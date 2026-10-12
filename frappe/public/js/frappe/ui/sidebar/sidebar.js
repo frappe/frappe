@@ -1023,7 +1023,7 @@ frappe.ui.Sidebar = class Sidebar {
 		for (const entry of this.collect_dock_entries(app)) {
 			if (entry.link_type === "URL") continue;
 			const route = this.dock_entry_route(entry);
-			if (route) return route;
+			if (route && this.is_desk_route(route)) return route;
 		}
 
 		return app.app_route || this.module_landing_route(this.first_navigable_module(app));
