@@ -39,7 +39,12 @@ frappe.ui.form.on("Web Form Request", {
 			return;
 		}
 
-		const { message } = await frappe.db.get_value("Web Form", frm.doc.web_form, "doc_type");
+		const web_form = frm.doc.web_form;
+		const { message } = await frappe.db.get_value("Web Form", web_form, "doc_type");
+		// web_form changed while waiting, a newer reply sets it
+		if (frm.doc.web_form !== web_form) {
+			return;
+		}
 		frm.reference_doctype = message.doc_type;
 		for (const row of frm.doc.references || []) {
 			if (row.link_doctype !== frm.reference_doctype) {
