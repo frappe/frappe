@@ -59,6 +59,24 @@ test.describe("Control Autocomplete", () => {
 		});
 	});
 
+	test("should keep typed text when the window loses focus", async ({ page, desk }) => {
+		const fieldname = "autocomplete_3";
+		await get_dialog_with_autocomplete(page, desk, fieldname, ["Option 1", "Option 2"]);
+
+		const input = page.locator(
+			`.control-input > .awesomplete > input[data-fieldname=${fieldname}]`
+		);
+		await input.pressSequentially("Opt");
+		await input.evaluate(async (el) => {
+			document.hasFocus = () => false;
+			el.dispatchEvent(new Event("change", { bubbles: true }));
+			el.dispatchEvent(new FocusEvent("blur"));
+			await new Promise((resolve) => setTimeout(resolve));
+		});
+
+		await expect(input).toHaveValue("Opt");
+	});
+
 	test("passes the form to a get_query function", async ({ page, desk }) => {
 		await desk.new_form("ToDo");
 		const form_passed = await page.evaluate(() => {
