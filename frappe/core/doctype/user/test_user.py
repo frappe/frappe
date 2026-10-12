@@ -137,12 +137,19 @@ class TestUser(IntegrationTestCase):
 		first_name = f"Tester {frappe.generate_hash(length=8)}"
 		base = frappe.scrub(first_name)
 		first = self.insert_user_as_manager(first_name)
-		self.insert_user_as_manager("Decoy", username=f"{base.replace('_', 'x')}-7")
 		self.insert_user_as_manager("Decoy", username=f"{base}-\u00b2")
 		second = self.insert_user_as_manager(first_name)
 
 		self.assertEqual(first.username, base)
 		self.assertEqual(second.username, f"{base}-1")
+
+	def test_username_from_a_first_name_taken_with_accents(self):
+		suffix = frappe.generate_hash(length=8)
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}")
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}-1")
+		user = self.insert_user_as_manager(f"Jose{suffix}")
+
+		self.assertTrue(user.username)
 
 	def test_username_taken_while_the_user_is_saved(self):
 		first_name = f"Tester {frappe.generate_hash(length=8)}"
