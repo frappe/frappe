@@ -319,16 +319,18 @@
 	.print-style-thumb--bold {
 		.thumb-label {
 			width: 100%;
-			height: 6px;
-			background: var(--thumb-ink);
+			height: 5px;
+			border-radius: 0;
+			background: none;
+			border-bottom: 2px solid var(--thumb-ink);
 		}
 
 		.thumb-table {
 			border: none;
 
 			i:first-child {
-				background: var(--thumb-ink);
-				border-radius: 2px;
+				background: none;
+				border-bottom: 2px solid var(--thumb-ink);
 			}
 		}
 	}

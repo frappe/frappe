@@ -10,8 +10,8 @@ STYLE_PRESETS = {
 		"table": {
 			"table_style": "lined",
 			"table_bordered": False,
-			"table_radius": 6,
-			"table_header_bg": "#171717",
+			"table_header": "plain",
+			"table_radius": 0,
 		},
 	},
 	"Striped": {
