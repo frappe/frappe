@@ -45,6 +45,11 @@ from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
 _result: Result | None = None
 TEST_SITE = "commands-site-O4PN2QK.test"  # added random string tag to avoid collisions
 CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
+uninstall_hook_calls = []
+
+
+def record_uninstall_hook(*args):
+	uninstall_hook_calls.append(args)
 
 
 def clean(value) -> str:
@@ -996,10 +1001,22 @@ class TestRemoveApp(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
 
 	def test_dry_run(self):
-		"""Check if dry run in not destructive."""
+		"""A dry run must not call uninstall hooks, which can't tell it from a real uninstall."""
+		real_get_hooks = frappe.get_hooks
+		recorder = [f"{__name__}.record_uninstall_hook"]
 
-		# nothing to assert, if this fails rest of the test suite will crumble.
-		remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+		def fake_get_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+			if hook in ("before_app_uninstall", "after_app_uninstall"):
+				return recorder
+			if app_name == "frappe" and not hook:
+				return frappe._dict(before_uninstall=recorder, after_uninstall=recorder)
+			return real_get_hooks(hook, default, app_name)
+
+		uninstall_hook_calls.clear()
+		with patch.object(frappe, "get_hooks", fake_get_hooks):
+			remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+
+		self.assertEqual(uninstall_hook_calls, [])
 
 
 class TestSiteMigration(BaseTestCommands):

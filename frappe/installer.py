@@ -576,21 +576,26 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	frappe.flags.in_uninstall = True
 
-	for before_uninstall in app_hooks.before_uninstall or []:
-		frappe.get_attr(before_uninstall)()
+	if not dry_run:
+		for before_uninstall in app_hooks.before_uninstall or []:
+			frappe.get_attr(before_uninstall)()
 
-	for fn in frappe.get_hooks("before_app_uninstall"):
-		frappe.get_attr(fn)(app_name)
+		for fn in frappe.get_hooks("before_app_uninstall"):
+			frappe.get_attr(fn)(app_name)
 
 	drop_doctypes = _delete_modules(get_app_owned_modules(app_name), dry_run=dry_run)
 	_delete_doctypes(drop_doctypes, dry_run=dry_run)
 	release_custom_module_placements(app_name, dry_run=dry_run)
 
-	if not dry_run:
-		remove_from_installed_apps(app_name)
-		frappe.get_single("Installed Applications").update_versions()
-		frappe.db.commit()
-		frappe.clear_cache()
+	if dry_run:
+		frappe.flags.in_uninstall = False
+		click.secho(_("Dry run complete, nothing was removed from Site {0}").format(site), fg="green")
+		return
+
+	remove_from_installed_apps(app_name)
+	frappe.get_single("Installed Applications").update_versions()
+	frappe.db.commit()
+	frappe.clear_cache()
 
 	for after_uninstall in app_hooks.after_uninstall or []:
 		frappe.get_attr(after_uninstall)()
@@ -603,8 +608,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False
 
-	if not dry_run:
-		frappe.clear_cache()
+	frappe.clear_cache()
 
 
 def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
