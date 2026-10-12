@@ -71,7 +71,7 @@ class TestUser(FrappeTestCase):
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
 
-	def insert_user_as_manager(self, first_name, **kwargs):
+	def insert_user_as_manager(self, first_name, username=None):
 		if frappe.session.user == "Administrator":
 			manager = frappe.get_doc(
 				doctype="User",
@@ -82,7 +82,10 @@ class TestUser(FrappeTestCase):
 			frappe.set_user(manager.name)
 
 		return frappe.get_doc(
-			doctype="User", email=f"{frappe.generate_hash()}@example.com", first_name=first_name, **kwargs
+			doctype="User",
+			email=f"{frappe.generate_hash()}@example.com",
+			first_name=first_name,
+			username=username,
 		).insert()
 
 	def test_username_from_a_taken_first_name(self):
@@ -90,6 +93,7 @@ class TestUser(FrappeTestCase):
 		base = frappe.scrub(first_name)
 		first = self.insert_user_as_manager(first_name)
 		self.insert_user_as_manager("Decoy", username=f"{base.replace('_', 'x')}-7")
+		self.insert_user_as_manager("Decoy", username=f"{base}-\u00b2")
 		second = self.insert_user_as_manager(first_name)
 
 		self.assertEqual(first.username, base)
