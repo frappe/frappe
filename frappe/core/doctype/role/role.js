@@ -582,23 +582,11 @@ class DocumentsTab extends RoleTab {
 
 class RoleAccessTab extends RoleTab {
 	get_data() {
-		return get_list("Has Role", {
-			filters: { role: this.role, parenttype: this.access_doctype },
-			fields: ["parent"],
-			limit: 0,
-			parent_doctype: this.access_doctype,
-		}).then((rows) => {
-			const names = unique_parents(rows);
-			return this.fetch_records(names);
-		});
-	}
-
-	fetch_records(names) {
-		if (!names.length) return [];
 		return get_list(this.access_doctype, {
-			filters: { name: ["in", names] },
+			filters: [["Has Role", "role", "=", this.role]],
 			fields: this.meta_fields,
 			order_by: "name asc",
+			distinct: true,
 			limit: 0,
 		});
 	}
