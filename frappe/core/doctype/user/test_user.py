@@ -117,6 +117,14 @@ class TestUser(IntegrationTestCase):
 		frappe.delete_doc("User", new_user.name)
 
 	def test_username_from_a_taken_first_name(self):
+		manager = frappe.get_doc(
+			doctype="User",
+			email=f"{frappe.generate_hash()}@example.com",
+			first_name="Manager",
+			roles=[{"role": "System Manager"}],
+		).insert()
+		frappe.set_user(manager.name)
+
 		first_name = f"Tester {frappe.generate_hash(length=8)}"
 		first, second = (
 			frappe.get_doc(
