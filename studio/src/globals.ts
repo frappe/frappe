@@ -78,17 +78,10 @@ import {
 } from "frappe-ui/list"
 
 import Container from "@/components/AppLayout/Container.vue"
-import FitContainer from "@/components/AppLayout/FitContainer.vue"
-import SplitView from "@/components/AppLayout/SplitView.vue"
 import Repeater from "@/components/AppLayout/Repeater.vue"
 import HTML from "@/components/AppLayout/HTML.vue"
-import CardList from "@/components/AppLayout/CardList.vue"
-import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
-import Audio from "@/components/AppLayout/Audio.vue"
 import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
-import AppHeader from "@/components/AppLayout/AppHeader.vue"
-import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
@@ -268,15 +261,8 @@ export function registerGlobalComponents(app: App) {
 
 	// studio components
 	app.component("Container", Container)
-	app.component("FitContainer", FitContainer)
-	app.component("SplitView", SplitView)
 	app.component("Repeater", Repeater)
 	app.component("HTML", HTML)
-	app.component("CardList", CardList)
-	app.component("AvatarCard", AvatarCard)
-	app.component("Audio", Audio)
 	app.component("ImageView", ImageView)
 	app.component("TextBlock", TextBlock)
-	app.component("AppHeader", AppHeader)
-	app.component("BottomTabs", BottomTabs)
 }

@@ -110,20 +110,7 @@ export const FRAMEWORK_UI_COMPONENTS = [
 	"AttachmentsList",
 	"UploadTray",
 ]
-export const STUDIO_COMPONENTS = [
-	"Container",
-	"FitContainer",
-	"Repeater",
-	"HTML",
-	"SplitView",
-	"AvatarCard",
-	"CardList",
-	"Audio",
-	"ImageView",
-	"TextBlock",
-	"AppHeader",
-	"BottomTabs",
-]
+export const STUDIO_COMPONENTS = ["Container", "Repeater", "HTML", "ImageView", "TextBlock"]
 
 // Matches strings that are entirely wrapped in double curly braces, e.g., "{{ expression }}" (allows whitespace inside)
 export const DYNAMIC_EXPRESSION_REGEX = /^\{\{[\s\S]*\}\}$/
