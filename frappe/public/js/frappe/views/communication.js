@@ -1408,7 +1408,7 @@ frappe.views.CommunicationComposer = class {
 			$(fields.select_print_format.input)
 				.empty()
 				.add_options(print_formats)
-				.val(print_formats[0]);
+				.val(this.print_format || print_formats[0]);
 			this.set_default_letterhead();
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
@@ -1418,8 +1418,11 @@ frappe.views.CommunicationComposer = class {
 
 	set_default_letterhead() {
 		const fields = this.dialog.fields_dict;
-		if (this.frm.doc?.letter_head) {
-			this.dialog.set_value("select_letter_head", this.frm.doc.letter_head);
+		const letter_head = this.letter_head ?? this.frm.doc?.letter_head;
+		if (letter_head || this.letter_head === "") {
+			this.dialog
+				.set_value("select_letter_head", letter_head)
+				.then(() => this.render_print_card_meta());
 			return;
 		}
 		frappe.db
@@ -1732,10 +1735,15 @@ frappe.views.CommunicationComposer = class {
 				email_template: form_values.email_template,
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
-				print_letterhead: me.is_print_letterhead_checked(),
+				print_letterhead: letterhead ? me.is_print_letterhead_checked() : 0,
 				letterhead: letterhead || null,
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
+				print_style: form_values.attach_document_print ? me.print_style : undefined,
+				print_settings:
+					form_values.attach_document_print && me.print_settings
+						? JSON.stringify(me.print_settings)
+						: undefined,
 				raw_html: form_values.use_html,
 				in_reply_to: (this.is_a_reply && this.last_email?.name) || null,
 			},

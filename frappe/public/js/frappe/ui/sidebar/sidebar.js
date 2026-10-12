@@ -535,7 +535,8 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// A drawer starts shut; on a desktop the viewer's last choice is kept in this browser.
 	load_expanded_state() {
-		this.sidebar_expanded = !this.panel_can_close() && !this.saved_collapsed_state();
+		this.sidebar_expanded =
+			!this.panel_can_close() && !this.saved_collapsed_state() && !this.folded_for_page;
 	}
 
 	// Storage can be missing or refuse, and then the panel opens whole.
@@ -753,6 +754,23 @@ frappe.ui.Sidebar = class Sidebar {
 	open() {
 		this.sidebar_expanded = true;
 		this.save_collapsed_state(false);
+		this.apply_expanded_state();
+		this.highlight_active_item();
+	}
+
+	fold_for_page() {
+		if (this.folded_for_page) return;
+		this.folded_for_page = true;
+		if (!this.sidebar_expanded) return;
+		this.sidebar_expanded = false;
+		if (this.wrapper) this.apply_expanded_state();
+	}
+
+	unfold_after_leaving_page() {
+		if (!this.folded_for_page) return;
+		this.folded_for_page = false;
+		this.load_expanded_state();
+		if (!this.sidebar_expanded || !this.wrapper) return;
 		this.apply_expanded_state();
 		this.highlight_active_item();
 	}
