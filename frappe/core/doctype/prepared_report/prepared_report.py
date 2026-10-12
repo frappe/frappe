@@ -263,21 +263,25 @@ def stop_prepared_report(report_name: str):
 		if job.get_status(refresh=True) == JobStatus.STARTED:
 			send_stop_job_command(connection=conn, job_id=job_id)
 
-	frappe.db.set_value(
-		"Prepared Report",
-		prepared_report.name,
-		{"status": "Cancelled"},
-	)
-	if tasks := frappe.db.get_all(
-		"Background Task",
-		{
-			"ref_doctype": "Prepared Report",
-			"ref_docname": report_name,
-			"status": ["in", ["Queued", "Running"]],
-		},
-		pluck="name",
-	):
-		frappe.db.set_value("Background Task", {"name": ["in", tasks]}, "status", "Cancelled")
+	if prepared_report.status != "Completed":
+		frappe.db.set_value(
+			"Prepared Report",
+			prepared_report.name,
+			{"status": "Cancelled"},
+		)
+		if tasks := frappe.db.get_all(
+			"Background Task",
+			{
+				"ref_doctype": "Prepared Report",
+				"ref_docname": report_name,
+				"status": ["in", ["Queued", "Running"]],
+			},
+			pluck="name",
+		):
+			frappe.db.set_value("Background Task", {"name": ["in", tasks]}, "status", "Cancelled")
+			for task in tasks:
+				task_doc = frappe.get_doc("Background Task", task)
+				task_doc._publish({"status": "Failed"})
 
 
 def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
