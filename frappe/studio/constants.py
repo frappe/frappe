@@ -64,5 +64,4 @@ STANDARD_COMPONENT_NAMES = {
 	"TextBlock",
 	"AppHeader",
 	"BottomTabs",
-	"MarkdownEditor",
 }

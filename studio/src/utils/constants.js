@@ -123,7 +123,6 @@ export const STUDIO_COMPONENTS = [
 	"TextBlock",
 	"AppHeader",
 	"BottomTabs",
-	"MarkdownEditor",
 ]
 
 // Matches strings that are entirely wrapped in double curly braces, e.g., "{{ expression }}" (allows whitespace inside)
