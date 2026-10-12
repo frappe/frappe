@@ -9,7 +9,7 @@ app_description = "Full stack web framework with Python, Javascript, MariaDB, Re
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 develop_version = "15.x.x-develop"
-app_home = "/app/build"
+app_home = "/desk/build"
 
 app_email = "developers@frappe.io"
 

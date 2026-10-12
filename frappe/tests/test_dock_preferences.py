@@ -1679,9 +1679,9 @@ class TestTheLandingFloor(IntegrationTestCase):
 		return next(app for app in get_app_data() if app["app_name"] == app_name)
 
 	def test_an_explicitly_declared_route_is_carried(self):
-		"""The top of the ladder: an app may have a front door outside its rail, or outside the
-		desk entirely, and this is the only way to have one."""
-		self.assertEqual(self.app_entry("frappe")["app_route"], "/app/build")
+		"""An app whose own UI is outside the desk needs a front door, and this is the only way to
+		have one. A desk app's rail wins over it, so for a desk app it is the fallback."""
+		self.assertEqual(self.app_entry("frappe")["app_route"], "/desk/build")
 
 	def test_the_derived_first_workspace_guess_is_gone(self):
 		"""It picked a workspace by `sequence_id`, which was always a guess, and a worse one under
