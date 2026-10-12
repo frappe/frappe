@@ -5,7 +5,7 @@ const JINJA_FORMAT = "Test Print Format Jinja";
 const JS_FORMAT = "Test Print Format JS";
 
 const jinja_method = "frappe.utils.print_format.render_report_jinja";
-const pdf_method = "frappe.utils.print_format.report_to_pdf";
+const pdf_method = "frappe.utils.print_format.download_report_pdf";
 
 const is_post_to = (method) => (req) =>
 	req.method() === "POST" && req.url().includes(`/api/method/${method}`);
@@ -117,12 +117,10 @@ test.describe("Report Print Formats", () => {
 		expect(jinja_calls).toHaveLength(0);
 	});
 
-	test("sends the jinja body to the pdf service", async ({ page }) => {
-		const jinja = page.waitForRequest(is_post_to(jinja_method));
+	test("downloads a jinja format pdf rendered on the server", async ({ page }) => {
 		const pdf = page.waitForRequest(is_post_to(pdf_method));
 		await download_pdf(page, JINJA_FORMAT);
 
-		await jinja;
-		await pdf;
+		expect((await pdf).postData()).toContain(JINJA_FORMAT);
 	});
 });
