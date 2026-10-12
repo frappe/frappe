@@ -40,6 +40,7 @@
   "show_list",
   "list_title",
   "list_columns",
+  "breadcrumbs",
   "condition_description",
   "condition_json",
   "dynamic_filters_label",
@@ -68,7 +69,6 @@
   "column_break_page",
   "show_sidebar",
   "website_sidebar",
-  "breadcrumbs",
   "section_break_6",
   "client_script",
   "custom_css"
@@ -332,7 +332,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "show_list",
-   "depends_on": "eval: !doc.anonymous && (doc.login_required || doc.key_required)",
+   "depends_on": "eval: doc.login_required || doc.key_required",
    "description": "Show respondents a list of their responses.",
    "fieldname": "section_break_3",
    "fieldtype": "Section Break",
