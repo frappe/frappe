@@ -992,16 +992,26 @@ frappe.ui.Sidebar = class Sidebar {
 		return ["link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
-	// Where an app's icon leads: its declared route, else its first rail entry, else its first
-	// navigable module.
+	// Where an app's icon leads. An app whose own UI is outside the desk goes to its declared route.
+	// A desk app goes to the first rail entry that opens a desk page, else its declared route, else
+	// its first navigable module.
 	app_landing_route(app) {
 		if (!app) return null;
-		if (app.app_route) return app.app_route;
+		if (app.app_route && !this.is_desk_route(app.app_route)) return app.app_route;
 
-		const [entry] = this.collect_dock_entries(app);
-		if (entry) return this.dock_entry_route(entry);
+		for (const entry of this.collect_dock_entries(app)) {
+			if (entry.link_type === "URL") continue;
+			const route = this.dock_entry_route(entry);
+			if (route) return route;
+		}
 
-		return this.module_landing_route(this.first_navigable_module(app));
+		return app.app_route || this.module_landing_route(this.first_navigable_module(app));
+	}
+
+	// `/app` is the desk's old prefix, which still redirects to `/desk`.
+	is_desk_route(route) {
+		const [root] = route.replace(/^\//, "").split("/");
+		return ["desk", "app"].includes(root);
 	}
 
 	// One definition, so the icon and the button cannot disagree.
