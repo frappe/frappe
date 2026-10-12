@@ -38,7 +38,7 @@ def get_context(context):
 				"standalone": False,
 				"no_action_banner": True,
 				"body": body,
-				"print_style": get_print_style(print_format=pf) + get_preview_page_css(pf),
+				"print_style": get_print_style(print_format=pf),
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
 				"title": doc.get_title() or doc.name,
@@ -46,15 +46,3 @@ def get_context(context):
 				"comment": None,
 			},
 		)
-
-
-def get_preview_page_css(print_format):
-	import frappe
-	from frappe.utils.print_format_generator import page_size_mm
-	from frappe.www.printview import get_page_margin
-
-	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
-	return frappe.render_template(
-		"templates/print_formats/preview_page.css",
-		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)},
-	)

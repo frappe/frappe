@@ -825,7 +825,11 @@ frappe.ui.form.PrintView = class {
 		if (!print_format.raw_printing) {
 			this.print_wrapper.find(".print-preview-wrapper").hide();
 			this.print_wrapper.find(".preview-beta-wrapper").show();
-			this.preview_beta();
+			if (this.renders_via_generator(print_format)) {
+				this.preview_beta();
+			} else {
+				this.preview_html();
+			}
 			return;
 		}
 
@@ -877,8 +881,50 @@ frappe.ui.form.PrintView = class {
 			params.append("style", this.get_print_style());
 		}
 		iframe.off("load").on("load", () => this.on_preview_load(iframe.get(0)));
+		iframe.removeAttr("srcdoc");
 		iframe.prop("src", `/printpreview?${params.toString()}`);
 		iframe.css("height", "calc(100vh - var(--page-head-height))");
+	}
+
+	preview_html() {
+		this.get_print_html((out) => {
+			const iframe = this.print_wrapper.find(".preview-beta-wrapper iframe");
+			iframe.off("load").on("load", () => {
+				this.render_barcodes(iframe.get(0).contentDocument);
+				this.on_preview_load(iframe.get(0));
+			});
+			iframe.prop("srcdoc", this.get_preview_document(out));
+			iframe.css("height", "calc(100vh - var(--page-head-height))");
+		});
+	}
+
+	get_preview_document(out) {
+		const is_rtl = frappe.utils.is_rtl(this.lang_code);
+		const print_css = frappe.assets.bundled_asset("print.bundle.css", is_rtl);
+		return `<!DOCTYPE html>
+			<html lang="${this.lang_code}" dir="${is_rtl ? "rtl" : "ltr"}">
+			<head>
+				<meta charset="utf-8">
+				<link href="${frappe.urllib.get_base_url()}${print_css}" rel="stylesheet">
+				<style>${out.style || ""}</style>
+				<style>${out.page_style || ""}</style>
+			</head>
+			<body>
+				<div class="print-format-gutter">
+					<div class="print-format">${out.html || this.get_no_preview_html()}</div>
+				</div>
+			</body>
+			</html>`;
+	}
+
+	render_barcodes(doc) {
+		doc.querySelectorAll("svg[data-barcode-value]").forEach((el) => {
+			const get_options = frappe.ui.form.ControlBarcode.prototype.get_options.bind({
+				df: { options: el.dataset.options },
+			});
+			JsBarcode(el, el.dataset.barcodeValue, get_options(el.dataset.barcodeValue));
+			el.setAttribute("width", "100%");
+		});
 	}
 
 	setup_print_format_dom(out, $print_format) {
@@ -900,14 +946,7 @@ frappe.ui.form.PrintView = class {
 		this.$print_format_body
 			.find("body")
 			.html(`<div class="print-format print-format-preview">${out.html}</div>`);
-		const iframeDoc = this.$print_format_body[0];
-		iframeDoc.querySelectorAll("svg[data-barcode-value]").forEach((el) => {
-			const get_options = frappe.ui.form.ControlBarcode.prototype.get_options.bind({
-				df: { options: el.dataset.options },
-			});
-			JsBarcode(el, el.dataset.barcodeValue, get_options(el.dataset.barcodeValue));
-			el.setAttribute("width", "100%");
-		});
+		this.render_barcodes(this.$print_format_body[0]);
 		this.show_footer();
 
 		this.$print_format_body.find(".print-format").css({

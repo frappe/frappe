@@ -3,22 +3,41 @@
 		background-color: var(--gray-200);
 	}
 	body {
+		display: flex;
+		flex-direction: column;
 		background-color: white;
 		box-shadow: var(--shadow-md);
-		margin: 2rem auto;
+		margin: calc(var(--spacing) * 8) auto;
 		width: {{ page_width }}mm;
 		min-height: {{ page_height }}mm;
 		padding: {{ page_margin }};
 	}
 	.print-format-gutter {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
 		background: none;
 		padding: 0;
 	}
 	.print-format {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
 		max-width: none;
 		min-height: 0;
 		margin: 0;
 		padding: 0;
 		border-radius: 0;
+	}
+	.print-format .page-break {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+	}
+	#footer-html {
+		display: block !important;
+		order: 1;
+		margin-top: auto;
+		padding-top: var(--padding-xl);
 	}
 }

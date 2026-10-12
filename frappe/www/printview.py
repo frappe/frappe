@@ -397,7 +397,21 @@ def get_html_and_style(
 			frappe.clear_last_message()
 			html = None
 
-	return {"html": html, "style": get_print_style(style=style, print_format=print_format)}
+	return {
+		"html": html,
+		"style": get_print_style(style=style, print_format=print_format),
+		"page_style": None if is_beta else get_preview_page_css(print_format),
+	}
+
+
+def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
+	from frappe.utils.print_format_generator import page_size_mm
+
+	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
+	return frappe.render_template(
+		"templates/print_formats/preview_page.css",
+		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)},
+	)
 
 
 @frappe.whitelist()
