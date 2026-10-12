@@ -1,4 +1,4 @@
-const STANDARD_PRINT_STYLES = ["Redesign", "Modern", "Classic", "Bold", "Striped", "Monochrome"];
+const STANDARD_PRINT_STYLES = ["Redesign", "Modern", "Classic", "Striped", "Monochrome"];
 
 frappe.pages["print"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({

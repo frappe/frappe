@@ -6,14 +6,6 @@ STYLE_PRESETS = {
 		"section": {"field_borders": 1, "cell_padding": 6, "radius": 0},
 		"table": {"table_style": "lined", "table_bordered": True, "table_radius": 0},
 	},
-	"Bold": {
-		"table": {
-			"table_style": "lined",
-			"table_bordered": False,
-			"table_header": "plain",
-			"table_radius": 0,
-		},
-	},
 	"Striped": {
 		"table": {
 			"table_style": "striped",
