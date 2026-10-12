@@ -8,6 +8,7 @@
 		:fit-view-options="fitViewOptions"
 		:nodes-draggable="!readonly"
 		:nodes-connectable="false"
+		:nodes-focusable="false"
 		:elements-selectable="!readonly"
 		:pan-on-drag="true"
 		@nodes-initialized="() => refitFlow()"
@@ -71,11 +72,11 @@
 							@pick="emit('pick-start', $event)"
 						>
 							<div
-								class="automation-canvas-node relative flex h-[87px] w-[212px] flex-col overflow-hidden rounded-[10px] border bg-surface-base shadow-sm transition-all"
+								class="automation-canvas-node relative flex h-[87px] w-[212px] flex-col overflow-hidden rounded-[10px] border bg-surface-base transition-all"
 								:class="[nodeClasses(id, data), { 'opacity-40': data.dimmed }]"
 								:tabindex="readonly ? -1 : 0"
 								:role="readonly ? undefined : 'button'"
-								:aria-label="`${data.kicker}: ${data.label}`"
+								:aria-label="nodeLabel(data)"
 								@click.stop="selectNode(id)"
 								@keydown.enter.prevent="pressNode"
 								@keydown.space.prevent="pressNode"
@@ -111,7 +112,7 @@
 										class="size-4 shrink-0"
 										:class="runMark(data)!.color"
 									/>
-									<Tooltip v-else-if="data.issue" :text="data.issue.message">
+									<Tooltip v-if="data.issue" :text="data.issue.message">
 										<Icon
 											:name="issueMark(data).icon"
 											class="size-4 shrink-0"
@@ -251,6 +252,13 @@ const RUN_STATES: Partial<Record<AutomationCanvasStatus, { icon: string; color: 
 	Failed: { icon: "lucide-circle-x", color: "text-ink-red-4" },
 	Waiting: { icon: "lucide-clock", color: "text-ink-amber-5" },
 };
+const RUN_LABELS: Record<AutomationCanvasStatus, string> = {
+	running: "Running",
+	Success: "Succeeded",
+	Skipped: "Skipped",
+	Failed: "Failed",
+	Waiting: "Waiting",
+};
 const ISSUES: Record<AutomationCanvasIssueLevel, { icon: string; color: string }> = {
 	error: { icon: "lucide-circle-alert", color: "text-ink-red-3" },
 	warning: { icon: "lucide-triangle-alert", color: "text-ink-amber-5" },
@@ -289,7 +297,6 @@ const flowEdges = computed(() =>
 		labelBgPadding: [14, 2] as [number, number],
 		labelBgBorderRadius: 6,
 		...edge,
-		style: { stroke: "#4E4E4E", strokeWidth: 1, ...edge.style },
 	}))
 );
 const outgoing = computed(() => new Set(props.edges.map((edge) => edge.source)));
@@ -370,7 +377,10 @@ function canvasRoot() {
 
 function rememberPosition({ node }: { node: { id: string; position: Point } }) {
 	const from = props.nodes.find((item) => item.id === node.id)?.position;
-	if (from) moved.value = { ...moved.value, [node.id]: { from, to: { ...node.position } } };
+	if (!from) return;
+	const to = { ...node.position };
+	moved.value = { ...moved.value, [node.id]: { from, to } };
+	emit("move", { nodeId: node.id, position: to });
 }
 
 /** A drag holds until the app moves the node itself, e.g. on undo or a new layout. */
@@ -405,9 +415,9 @@ function nodeClasses(id: string, data: AutomationCanvasNodeData) {
 // One surface per state: stacked border utilities would let stylesheet order pick the winner.
 function nodeSurface(id: string, data: AutomationCanvasNodeData) {
 	if (data.empty) return "border-dashed border-outline-gray-3 shadow-none";
-	if (data.run?.status === "Failed") return "border-outline-red-2 bg-surface-modal shadow-sm";
+	if (data.run?.status === "Failed") return "border-outline-red-2 shadow-sm";
 	if (data.run?.status === "running") return "border-outline-gray-5 shadow-md";
-	if (data.issue?.level === "error") return "border-outline-red-2 bg-surface-modal shadow-sm";
+	if (data.issue?.level === "error") return "border-outline-red-2 shadow-sm";
 	if (!props.readonly && props.selectedId === id) return "border-outline-gray-8 shadow-sm";
 	if (data.issue) return "border-outline-amber-2 shadow-md hover:border-outline-gray-8";
 	return "border-outline-gray-2 shadow-md hover:border-outline-gray-8";
@@ -415,6 +425,14 @@ function nodeSurface(id: string, data: AutomationCanvasNodeData) {
 
 function runMark(data: AutomationCanvasNodeData) {
 	return data.run ? RUN_STATES[data.run.status] : undefined;
+}
+
+/** The icons and tooltip are visual only, so the label carries the run result and issue too. */
+function nodeLabel(data: AutomationCanvasNodeData) {
+	const parts = [`${data.kicker}: ${data.label}`];
+	if (data.run) parts.push(translate(RUN_LABELS[data.run.status]));
+	if (data.issue) parts.push(data.issue.message);
+	return parts.join(". ");
 }
 
 function issueMark(data: AutomationCanvasNodeData) {
@@ -461,23 +479,6 @@ defineExpose<AutomationCanvasExposed>({ fitView: () => refitFlow() });
 	cursor: grabbing;
 }
 
-.automation-canvas .automation-canvas-node {
-	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.16);
-}
-
-/* A faint black shadow reads as nothing on the dark canvas. */
-:global([data-theme="dark"] .automation-canvas .automation-canvas-node) {
-	box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.6);
-}
-
-.automation-canvas .automation-canvas-node.shadow-none {
-	box-shadow: none;
-}
-
-.automation-canvas .automation-canvas-node.shadow-md {
-	box-shadow: var(--elevation-md);
-}
-
 .automation-canvas :deep(.automation-canvas-port) {
 	z-index: 20 !important;
 	top: calc(50% + 4px);
@@ -493,7 +494,7 @@ defineExpose<AutomationCanvasExposed>({ fitView: () => refitFlow() });
 }
 
 .automation-canvas :deep(.vue-flow__edge-path) {
-	stroke: var(--ink-gray-4);
+	stroke: var(--ink-gray-6);
 	stroke-width: 1;
 }
 

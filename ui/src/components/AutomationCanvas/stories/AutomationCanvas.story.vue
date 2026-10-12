@@ -23,6 +23,11 @@
 					}`
 				"
 				@run-branch="lastEvent = `Run ${$event.arm.key} of ${$event.nodeId}`"
+				@move="
+					lastEvent = `Moved ${$event.nodeId} to ${Math.round(
+						$event.position.x
+					)}, ${Math.round($event.position.y)}`
+				"
 			>
 				<template v-if="!activeSample.readonly" #toolbar="{ selectedId }">
 					<Button
@@ -229,6 +234,7 @@ function trialSample(): Sample {
 	const yes = node("qualified-email", COLUMN * 2, -BRANCH_OFFSET, {
 		...emailData("Send qualified email"),
 		run: { status: "Failed" },
+		issue: { level: "error", message: "The Welcome template no longer exists" },
 	});
 	const no = node("assign", COLUMN * 2, BRANCH_OFFSET, {
 		...assignData(),
