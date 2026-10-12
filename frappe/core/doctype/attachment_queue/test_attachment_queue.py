@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+from pathlib import Path
+
 import frappe
 from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_text
 from frappe.tests import IntegrationTestCase
@@ -45,10 +47,11 @@ class TestAttachmentQueue(IntegrationTestCase):
 		return frappe.get_doc({"doctype": "Attachment Queue", "source_file": file_url}).insert()
 
 	def delete_committed_queue(self, name: str):
+		# The row this removes was committed on purpose, so removing it has to be too.
 		frappe.db.rollback()
 		if frappe.db.exists("Attachment Queue", name):
 			frappe.delete_doc("Attachment Queue", name, force=True, ignore_permissions=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	def test_saving_a_pdf_queues_extraction_and_stores_its_text(self):
 		with self.set_user(TEST_USER):
@@ -69,12 +72,15 @@ class TestAttachmentQueue(IntegrationTestCase):
 
 	def test_a_failed_extraction_records_the_reason(self):
 		with self.set_user(TEST_USER):
-			file_doc = self.make_file(b"not a pdf at all", "broken.pdf")
+			file_doc = self.make_file(pdf_with_text("BROKEN"), "broken.pdf")
 			queue_doc = self.make_queue(file_doc.file_url)
+
+		# File parses every PDF it stores, so the file can only be damaged once stored.
+		Path(file_doc.get_full_path()).write_bytes(b"no longer a pdf")
 
 		# Extraction rolls back before recording the failure, so the row has to be
 		# committed first, the way it already is when a worker picks it up.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		self.addCleanup(self.delete_committed_queue, queue_doc.name)
 
 		with self.assertRaises(Exception):
