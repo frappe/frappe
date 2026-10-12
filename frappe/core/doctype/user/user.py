@@ -804,10 +804,11 @@ class User(Document):
 		if not self.username_exists(base):
 			return base
 
-		pattern = base.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-		taken = frappe.get_all("User", filters={"username": ("like", f"{pattern}-%")}, pluck="username")
-		numbers = (username[len(base) + 1 :] for username in taken)
-		return f"{base}-{max((int(n) for n in numbers if n.isdigit()), default=0) + 1}"
+		prefix = f"{base}-"
+		pattern = prefix.replace("\\", "_") + "%"
+		taken = frappe.get_all("User", filters={"username": ("like", pattern)}, pluck="username")
+		numbers = (u[len(prefix) :] for u in taken if u.lower().startswith(prefix))
+		return f"{prefix}{max((int(n) for n in numbers if n.isdecimal()), default=0) + 1}"
 
 	def db_insert(self, *args, **kwargs):
 		if not self.flags.username_from_first_name:
