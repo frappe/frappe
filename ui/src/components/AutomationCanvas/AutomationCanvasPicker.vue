@@ -10,9 +10,6 @@
 		<template #item-prefix="{ item }">
 			<AutomationCanvasIcon :icon="row(item).icon" :tone="row(item).tone" />
 		</template>
-		<template #item-label="{ item }">
-			<AutomationCanvasOption :item="row(item)" />
-		</template>
 		<template #trigger>
 			<slot />
 		</template>
@@ -22,7 +19,6 @@
 <script setup lang="ts">
 import { Combobox } from "frappe-ui";
 import AutomationCanvasIcon from "./AutomationCanvasIcon.vue";
-import AutomationCanvasOption from "./AutomationCanvasOption.vue";
 import type { AutomationCanvasOptionGroup, AutomationCanvasPickerOption } from "./types";
 
 withDefaults(

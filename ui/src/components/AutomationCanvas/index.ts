@@ -1,6 +1,5 @@
 export { default as AutomationCanvas } from "./AutomationCanvas.vue";
 export { default as AutomationCanvasIcon } from "./AutomationCanvasIcon.vue";
-export { default as AutomationCanvasOption } from "./AutomationCanvasOption.vue";
 export type {
   AutomationCanvasAddNodePayload,
   AutomationCanvasArm,
@@ -9,6 +8,7 @@ export type {
   AutomationCanvasExposed,
   AutomationCanvasIssue,
   AutomationCanvasIssueLevel,
+  AutomationCanvasMovePayload,
   AutomationCanvasNode,
   AutomationCanvasNodeData,
   AutomationCanvasOptionGroup,

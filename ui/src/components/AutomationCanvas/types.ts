@@ -111,6 +111,11 @@ export interface AutomationCanvasAddNodePayload {
   value: string;
 }
 
+export interface AutomationCanvasMovePayload {
+  nodeId: string;
+  position: { x: number; y: number };
+}
+
 export interface AutomationCanvasRunBranchPayload {
   nodeId: string;
   arm: AutomationCanvasArm;
@@ -121,4 +126,6 @@ export interface AutomationCanvasEmits {
   "pick-start": [value: string];
   "add-node": [payload: AutomationCanvasAddNodePayload];
   "run-branch": [payload: AutomationCanvasRunBranchPayload];
+  /** A node was dragged; store the position to keep it. */
+  move: [payload: AutomationCanvasMovePayload];
 }
