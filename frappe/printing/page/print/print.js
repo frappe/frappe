@@ -158,13 +158,9 @@ frappe.ui.form.PrintView = class {
 
 		let description = "";
 		if (!cint(this.print_settings.repeat_header_footer)) {
-			description =
-				"<div class='form-message yellow p-3 mt-3'>" +
-				__("Footer might not be visible as {0} option is disabled</div>", [
-					`<a href="/desk/print-settings/Print Settings">${__(
-						"Repeat Header and Footer"
-					)}</a>`,
-				]);
+			description = `${__(
+				"Footer prints on last page only."
+			)} <a href="/desk/print-settings/Print Settings">${__("Change")}</a>`;
 		}
 		const print_view = this;
 		this.letterhead_selector = this.add_sidebar_item({
