@@ -28,10 +28,11 @@
 					<span class="mb-0.5 leading-4 truncate">{{ option?.label || value }}</span>
 				</span>
 				<button
-					class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-4"
+					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-4"
+					aria-label="Remove recipient"
 					@click.stop="removeTag"
 				>
-					<FeatherIcon name="x" class="size-3" />
+					<LucideX class="size-3" />
 				</button>
 			</template>
 
@@ -54,7 +55,8 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue";
 import { computedAsync, useDebounceFn } from "@vueuse/core";
-import { Avatar, FeatherIcon, toast } from "frappe-ui";
+import { Avatar, toast } from "frappe-ui";
+import LucideX from "~icons/lucide/x";
 import { MultiEmailInput, type MultiEmailOption } from "frappe-ui/experimental";
 import type { Recipient, RecipientSearch } from "../types";
 

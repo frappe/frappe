@@ -1,5 +1,5 @@
 import type { Extension } from "@tiptap/core";
-import type { UploadedFile as EditorUploadedFile } from "frappe-ui/editor";
+import type { UploadedMedia } from "frappe-ui/editor";
 
 export interface Recipient {
   email: string;
@@ -26,7 +26,7 @@ export interface MentionOption {
 }
 
 /** Inline-image upload handler passed to the editor; returns the editor's file shape. */
-export type UploadFunction = (file: File) => Promise<EditorUploadedFile>;
+export type UploadFunction = (file: File) => Promise<UploadedMedia>;
 
 // --- Editing core (ComposerEditor.vue, private) -----------------------------
 
@@ -43,6 +43,8 @@ interface BaseComposerProps {
   extensions?: Extension[];
   /** Maximum number of attachments. Defaults to 10. */
   maxAttachments?: number;
+  /** Attachment types, as extensions (".pdf") or MIME globs ("image/*"), like FileUpload's `allowed_file_types`. Empty allows any. */
+  allowedFileTypes?: string[];
   /** Host is performing the send: the submit button shows a spinner and ignores clicks. */
   submitting?: boolean;
 }
@@ -58,6 +60,12 @@ export interface ComposerEditorProps extends BaseComposerProps {
 export interface ComposerActionsSlotProps {
   addAttachment: (file: UploadedFile) => void;
   setUploading: (value: boolean) => void;
+}
+
+/** What the `attachments` slot receives to render its own chips. */
+export interface ComposerAttachmentsSlotProps {
+  attachments: UploadedFile[];
+  remove: (file: UploadedFile) => void;
 }
 
 interface BaseComposerEmits<Payload> {
@@ -98,6 +106,8 @@ export interface EmailComposerSlots {
   header?: () => any;
   /** Extra footer actions, beside the built-in attach button. */
   actions?: (props: ComposerActionsSlotProps) => any;
+  /** Replaces the built-in attachment chips. */
+  attachments?: (props: ComposerAttachmentsSlotProps) => any;
   /** Pinned between the body (and attachments) and the utilities row, for notices such as staged actions. */
   footer?: () => any;
 }
@@ -113,6 +123,8 @@ export type CommentComposerEmits = BaseComposerEmits<CommentPayload>;
 export interface CommentComposerSlots {
   /** Extra footer actions, beside the built-in attach button. */
   actions?: (props: ComposerActionsSlotProps) => any;
+  /** Replaces the built-in attachment chips. */
+  attachments?: (props: ComposerAttachmentsSlotProps) => any;
   /** Pinned between the body (and attachments) and the utilities row, for notices such as staged actions. */
   footer?: () => any;
 }
