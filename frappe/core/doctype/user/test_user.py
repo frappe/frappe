@@ -71,25 +71,46 @@ class TestUser(FrappeTestCase):
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
 
-	def test_username_from_a_taken_first_name(self):
-		manager = frappe.get_doc(
-			doctype="User",
-			email=f"{frappe.generate_hash()}@example.com",
-			first_name="Manager",
-			roles=[{"role": "System Manager"}],
-		).insert()
-		frappe.set_user(manager.name)
-
-		first_name = f"Tester {frappe.generate_hash(length=8)}"
-		first, second = (
-			frappe.get_doc(
-				doctype="User", email=f"{frappe.generate_hash()}@example.com", first_name=first_name
+	def insert_user_as_manager(self, first_name, **kwargs):
+		if frappe.session.user == "Administrator":
+			manager = frappe.get_doc(
+				doctype="User",
+				email=f"{frappe.generate_hash()}@example.com",
+				first_name="Manager",
+				roles=[{"role": "System Manager"}],
 			).insert()
-			for _ in range(2)
-		)
+			frappe.set_user(manager.name)
 
-		self.assertEqual(first.username, frappe.scrub(first_name))
-		self.assertEqual(second.username, f"{frappe.scrub(first_name)}-1")
+		return frappe.get_doc(
+			doctype="User", email=f"{frappe.generate_hash()}@example.com", first_name=first_name, **kwargs
+		).insert()
+
+	def test_username_from_a_taken_first_name(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		first = self.insert_user_as_manager(first_name)
+		self.insert_user_as_manager("Decoy", username=f"{base.replace('_', 'x')}-7")
+		second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(first.username, base)
+		self.assertEqual(second.username, f"{base}-1")
+
+	def test_username_taken_while_the_user_is_saved(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		self.insert_user_as_manager(first_name)
+		other = self.insert_user_as_manager("Other")
+		validate_username = User.validate_username
+
+		def taken_meanwhile(user):
+			validate_username(user)
+			frappe.db.set_value("User", other.name, "username", user.username)
+
+		with patch.object(User, "validate_username", taken_meanwhile):
+			second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(second.username, f"{base}-2")
+		self.assertFalse([m for m in frappe.message_log if "unique" in str(m)])
 
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
