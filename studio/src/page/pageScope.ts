@@ -262,7 +262,9 @@ export function createPageScope(
 		// the common `name = {{ route.params.id }}` case resolves to the docname itself — no server lookup needed
 		const keys = Object.keys(filters)
 		if (keys.length === 1 && keys[0] === "name") {
-			return filters.name
+			const name = filters.name as unknown
+			if (typeof name === "string") return name
+			if (Array.isArray(name) && name[0] === "=") return name[1]
 		}
 		// other filters (e.g. category = tech) need a lookup for one matching doc's name
 		const doc = await call("frappe.client.get_value", {
