@@ -65,17 +65,7 @@ import {
 	ListView,
 	TextEditor,
 } from "frappe-ui/experimental"
-import {
-	AreaChart,
-	BarChart,
-	LineChart,
-	DonutChart,
-	FunnelChart,
-	HeatmapChart,
-	ScatterChart,
-	SankeyChart,
-	NumberCard,
-} from "frappe-ui/charts"
+import { FRAPPE_UI_CHARTS } from "@/utils/constants"
 import {
 	List,
 	ListRows,
@@ -145,16 +135,9 @@ export function registerGlobalComponents(app: App) {
 	app.component("Duration", Duration)
 	app.component("Spinner", Spinner)
 
-	// frappe-ui/charts
-	app.component("AreaChart", AreaChart)
-	app.component("BarChart", BarChart)
-	app.component("LineChart", LineChart)
-	app.component("DonutChart", DonutChart)
-	app.component("FunnelChart", FunnelChart)
-	app.component("HeatmapChart", HeatmapChart)
-	app.component("ScatterChart", ScatterChart)
-	app.component("SankeyChart", SankeyChart)
-	app.component("NumberCard", NumberCard)
+	for (const chart of FRAPPE_UI_CHARTS) {
+		app.component(chart, defineAsyncComponent(() => import("frappe-ui/charts").then((charts) => charts[chart])))
+	}
 
 	// List family (frappe-ui/list) — dropped as a tree via the `list` block template.
 	app.component("List", List)

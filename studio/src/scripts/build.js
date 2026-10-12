@@ -195,8 +195,6 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 		frappeUIExperimentalComponents.length > 0
 			? `import { ${frappeUIExperimentalComponents.join(",\n ")} } from "frappe-ui/experimental";`
 			: ""
-	const frappeUIChartImports =
-		frappeUICharts.length > 0 ? `import { ${frappeUICharts.join(",\n ")} } from "frappe-ui/charts";` : ""
 	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
 	const studioImports = studioComponents
 		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
@@ -210,7 +208,10 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 		...frappeUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...frappeUIMolecules.map((comp) => `app.component("${comp}", ${comp})`),
 		...frappeUIExperimentalComponents.map((comp) => `app.component("${comp}", ${comp})`),
-		...frappeUICharts.map((comp) => `app.component("${comp}", ${comp})`),
+		...frappeUICharts.map(
+			(comp) =>
+				`app.component("${comp}", defineAsyncComponent(() => import("frappe-ui/charts").then((charts) => charts.${comp})))`,
+		),
 		...frameworkUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
@@ -235,7 +236,7 @@ ${pageScripts
 	const routerConfig = routerFile ? "routerConfig" : ""
 
 	const rendererContent = `import "@/index.css"
-import { createApp } from "vue"
+import { createApp, defineAsyncComponent } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
 import { createAppRouter } from "@/router/app_router"
@@ -247,7 +248,6 @@ ${routerImport}
 ${frappeUIImports}
 ${frappeUIMoleculeImports}
 ${frappeUIExperimentalImports}
-${frappeUIChartImports}
 ${frameworkUIImports}
 ${studioImports}
 ${customImports}
