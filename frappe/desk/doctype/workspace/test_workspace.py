@@ -22,6 +22,25 @@ class TestWorkspace(FrappeTestCase):
 		with self.assertRaises(frappe.NameError):
 			workspace.insert()
 
+	def test_update_page_on_public_workspace_needs_workspace_manager(self):
+		from frappe.desk.doctype.workspace.workspace import update_page
+
+		workspace = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"label": "Test Public",
+				"title": "Test Public",
+				"public": 1,
+				"content": "[]",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True)
+
+		with self.set_user("test1@example.com"), self.assertRaises(frappe.PermissionError):
+			update_page(workspace.name, "Stolen", "", "", "", 0)
+
+		self.assertEqual(frappe.db.get_value("Workspace", workspace.name, "public"), 1)
+
 	# TODO: FIX ME - flaky test!!!
 	# def test_workspace_with_cards_specific_to_a_country(self):
 	# 	workspace = create_workspace()
