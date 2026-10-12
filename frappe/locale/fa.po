@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-09-27 09:36+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"POT-Creation-Date: 2026-10-04 11:07+0000\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -756,7 +756,7 @@ msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 msgid "<span class=\"h2\">Hi,</span>"
 msgstr "<span class=\"h2\">سلام،</span>"
 
-#: frappe/custom/doctype/custom_field/custom_field.js:39
+#: frappe/custom/doctype/custom_field/custom_field.js:35
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
 msgstr "<strong>هشدار:</strong> این فیلد سیستمی ایجاد شده است و ممکن است توسط یک به‌روزرسانی آینده بازنویسی شود. در عوض با استفاده از {0} آن را تغییر دهید."
 
@@ -791,7 +791,7 @@ msgstr "یک نمونه چارچوب Frappe می‌تواند به عنوان م
 msgid "A field with the name {0} already exists in {1}"
 msgstr "فیلدی با نام {0} از قبل در {1} وجود دارد"
 
-#: frappe/core/doctype/file/file.py:358
+#: frappe/core/doctype/file/file.py:365
 msgid "A file with same name {} already exists"
 msgstr "فایلی با همین نام {} از قبل وجود دارد"
 
@@ -1015,6 +1015,12 @@ msgstr "حدود {0} ثانیه باقی مانده است"
 msgid "Accept Invitation"
 msgstr "پذیرش دعوت نامه"
 
+#. Description of the 'Allow Unregistered Events' (Check) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Accept emit() calls for events no app registered through the automation_events hook."
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
@@ -1118,7 +1124,7 @@ msgstr "اقدام / مسیر"
 msgid "Action Complete"
 msgstr "اقدام کامل شد"
 
-#: frappe/model/document.py:2026
+#: frappe/model/document.py:2028
 msgid "Action Failed"
 msgstr "اقدام ناموفق بود"
 
@@ -1132,10 +1138,22 @@ msgstr "برچسب اقدام"
 msgid "Action Timeout (Seconds)"
 msgstr "زمان انتظار برای اقدام (ثانیه)"
 
+#. Label of the action_type (Select) field in DocType 'Automation Action'
+#. Label of the action_type (Data) field in DocType 'Automation Run Step'
 #. Label of the action_type (Select) field in DocType 'DocType Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/doctype_action/doctype_action.json
 msgid "Action Type"
 msgstr "نوع اقدام"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:163
+msgid "Action Type is required for action steps"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:499
+msgid "Action completed"
+msgstr ""
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:120
 msgid "Action {0} completed successfully on {1} {2}. View it {3}"
@@ -1145,10 +1163,14 @@ msgstr "عمل {0} در {1} {2} با موفقیت انجام شد. مشاهده 
 msgid "Action {0} failed on {1} {2}. View it {3}"
 msgstr "عمل {0} در {1} {2} ناموفق بود. مشاهده آن {3}"
 
+#. Label of the actions_section (Section Break) field in DocType 'Automation
+#. Flow'
+#. Label of the actions (Table) field in DocType 'Automation Flow'
 #. Label of the actions_section (Tab Break) field in DocType 'DocType'
 #. Label of the actions_section (Section Break) field in DocType 'User Session
 #. Display'
 #. Label of the actions (Table) field in DocType 'Customize Form'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/communication/communication.js:66
 #: frappe/core/doctype/communication/communication.js:74
 #: frappe/core/doctype/communication/communication.js:82
@@ -1177,6 +1199,11 @@ msgstr "عمل {0} در {1} {2} ناموفق بود. مشاهده آن {3}"
 #: frappe/public/js/frappe/views/reports/query_report.js:910
 msgid "Actions"
 msgstr "اقدامات"
+
+#. Label of the actions_snapshot (JSON) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Actions Snapshot"
+msgstr ""
 
 #. Label of the activate (Check) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
@@ -1334,7 +1361,7 @@ msgid "Add Gray Background"
 msgstr "افزودن پس‌زمینه خاکستری"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:236
-#: frappe/public/js/frappe/ui/group_by/group_by.js:430
+#: frappe/public/js/frappe/ui/group_by/group_by.js:441
 msgid "Add Group"
 msgstr "افزودن گروه"
 
@@ -1364,7 +1391,7 @@ msgstr "افزودن پارامترهای پرسمان"
 msgid "Add Reply-To header"
 msgstr "افزودن سرآیند Reply-To"
 
-#: frappe/core/doctype/user/user.py:870
+#: frappe/core/doctype/user/user.py:871
 msgid "Add Roles"
 msgstr "افزودن نقش‌ها"
 
@@ -1490,6 +1517,10 @@ msgstr "افزودن ستون"
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:48
 msgid "Add field"
 msgstr "افزودن فیلد"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:23
+msgid "Add field rules below, every rule must match before the flow can run"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:111
 msgid "Add multiple"
@@ -1704,11 +1735,11 @@ msgstr "یک فیلد سفارشی به DocType اضافه می‌کند"
 msgid "Administrator"
 msgstr "ادمین"
 
-#: frappe/core/doctype/user/user.py:1297
+#: frappe/core/doctype/user/user.py:1301
 msgid "Administrator Logged In"
 msgstr "مدیر وارد سیستم شد"
 
-#: frappe/core/doctype/user/user.py:1291
+#: frappe/core/doctype/user/user.py:1295
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "ادمین از طریق آدرس IP {2} به {0} در {1} دسترسی پیدا کرد."
 
@@ -1723,11 +1754,22 @@ msgstr "مدیر سیستم نمی‌تواند دنبال کند"
 msgid "Advanced"
 msgstr "پیشرفته"
 
+#. Label of the advanced_condition_section (Section Break) field in DocType
+#. 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Advanced Condition"
+msgstr ""
+
 #. Label of the advanced_control_section (Section Break) field in DocType 'User
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Advanced Control"
 msgstr "کنترل پیشرفته"
+
+#. Label of the condition (Code) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Advanced Expression using Python"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/link.js:533
 #: frappe/public/js/frappe/form/controls/link.js:535
@@ -1739,6 +1781,8 @@ msgstr "جستجوی پیشرفته"
 msgid "Advanced Settings"
 msgstr "تنظیمات پیشرفته"
 
+#. Option for the 'Date Direction' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/public/js/frappe/ui/filters/filter.js:64
 #: frappe/public/js/frappe/ui/filters/filter.js:70
 msgid "After"
@@ -1883,6 +1927,10 @@ msgstr "تمام تصاویر پیوست شده به نمایش اسلاید و�
 #: frappe/public/js/frappe/data_import/data_exporter.js:29
 msgid "All Records"
 msgstr "همه رکوردها"
+
+#: frappe/public/js/frappe/ui/toolbar/search.js:432
+msgid "All Results"
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:2336
 msgid "All Submissions"
@@ -2054,6 +2102,12 @@ msgstr "اجازه تأیید توسط خود شخص"
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Sending Usage Data for Improving Applications"
 msgstr "اجازه ارسال داده‌های استفاده برای بهبود برنامه‌ها"
+
+#. Label of the allow_unregistered_events (Check) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Allow Unregistered Events"
+msgstr ""
 
 #. Description of the 'Allow Self Approval' (Check) field in DocType 'Workflow
 #. Transition'
@@ -2308,7 +2362,7 @@ msgstr ""
 msgid "Allows users to enable the mask property for any field of the respective doctype."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1098
+#: frappe/core/doctype/user/user.py:1102
 msgid "Already Registered"
 msgstr "قبلا ثبت شده است"
 
@@ -2410,7 +2464,7 @@ msgstr "اصلاح کننده"
 msgid "Amendment Naming Override"
 msgstr "بازنویسی نام‌گذاری اصلاحیه"
 
-#: frappe/model/document.py:625
+#: frappe/model/document.py:626
 msgid "Amendment Not Allowed"
 msgstr "اصلاحیه مجاز نیست"
 
@@ -2921,10 +2975,18 @@ msgstr "اختصاص یافته به"
 msgid "Assigned To/Owner"
 msgstr "اختصاص داده شده به / مالک"
 
+#: frappe/automation_engine/actions/core.py:331
+msgid "Assigned to {0}"
+msgstr ""
+
 #. Label of the assignee (Table MultiSelect) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Assignee"
 msgstr "گیرنده تخصیص"
+
+#: frappe/automation_engine/actions/core.py:192
+msgid "Assignees"
+msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:384
 msgid "Assigning..."
@@ -2994,6 +3056,10 @@ msgstr "تکالیف"
 msgid "Asynchronous"
 msgstr "ناهمزمان"
 
+#: frappe/automation_engine/actions/core.py:316
+msgid "At least one assignee is required"
+msgstr ""
+
 #: frappe/public/js/frappe/form/grid_row.js:697
 msgid "At least one column is required to show in the grid."
 msgstr "حداقل یک ستون برای نمایش در شبکه مورد نیاز است."
@@ -3005,6 +3071,10 @@ msgstr "حداقل یک فیلد در جدول فیلدهای فرم وب مور
 #: frappe/core/doctype/data_export/data_export.js:44
 msgid "At least one field of Parent Document Type is mandatory"
 msgstr "حداقل یک فیلد از نوع سند والد اجباری است"
+
+#: frappe/automation_engine/actions/core.py:247
+msgid "At least one recipient is required"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3111,7 +3181,7 @@ msgstr "فیلترهای گالری پیوست باید فایل را هدف ق�
 msgid "Attachment Limit (MB)"
 msgstr "محدودیت پیوست (مگابایت)"
 
-#: frappe/core/doctype/file/file.py:427
+#: frappe/core/doctype/file/file.py:434
 #: frappe/public/js/frappe/form/sidebar/attachments.js:36
 msgid "Attachment Limit Reached"
 msgstr "به محدودیت پیوست رسید"
@@ -3141,6 +3211,11 @@ msgstr "تنظیمات پیوست"
 #: frappe/website/doctype/web_form/templates/web_form.html:123
 msgid "Attachments"
 msgstr "پیوست‌ها"
+
+#. Label of the attempt (Int) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Attempt"
+msgstr ""
 
 #: frappe/public/js/frappe/form/print_utils.js:160
 msgid "Attempting Connection to QZ Tray..."
@@ -3397,6 +3472,10 @@ msgstr "تکرار خودکار ناموفق بود. لطفاً پس از رفع
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:244
 msgid "Auto repeat skipped. The owner cannot access the reference document."
+msgstr "تکرار خودکار رد شد. مالک نمی‌تواند به سند مرجع دسترسی داشته باشد."
+
+#: frappe/automation_engine/runner.py:611
+msgid "Auto-disabled after {0} consecutive failures"
 msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
@@ -3461,6 +3540,80 @@ msgstr "حذف خودکار حساب ظرف (ساعت)"
 #: frappe/desktop_icon/automation.json frappe/workspace_sidebar/automation.json
 msgid "Automation"
 msgstr "اتوماسیون"
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Automation Action"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Automation Event Subscription"
+msgstr ""
+
+#. Name of a DocType
+#. Label of the automation (Link) field in DocType 'Automation Run'
+#. Label of the automation (Link) field in DocType 'Automation Trigger Queue'
+#. Label of a Workspace Sidebar Item
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+#: frappe/workspace_sidebar/automation.json
+msgid "Automation Flow"
+msgstr ""
+
+#. Label of the automation_title (Data) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Automation Flow Title"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:185
+msgid "Automation Flow cannot target a child table: {0}"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:637
+msgid "Automation Flow {0} was auto-disabled"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Automation Run"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Automation Run Step"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Automation Settings"
+msgstr ""
+
+#. Name of a DocType
+#. Label of a Workspace Sidebar Item
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+#: frappe/workspace_sidebar/automation.json
+msgid "Automation Trigger Queue"
+msgstr ""
+
+#. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
+#. Label of the automation_user (Link) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Automation User"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:134
+msgid "Automation User {0} is disabled or missing"
+msgstr ""
+
+#: frappe/automation_engine/events.py:251
+msgid "Automation event payload is too large"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:392
+msgid "Automation paused"
+msgstr ""
 
 #. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Group By Type' (Select) field in DocType 'Dashboard Chart'
@@ -3768,7 +3921,9 @@ msgstr "پایه"
 msgid "Basic Info"
 msgstr "اطلاعات پایه"
 
+#. Option for the 'Date Direction' (Select) field in DocType 'Automation Flow'
 #. Label of the before (Int) field in DocType 'Event Notifications'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 #: frappe/public/js/frappe/ui/filters/filter.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:69
@@ -3843,7 +3998,7 @@ msgstr "شروع با"
 msgid "Beta"
 msgstr "بتا"
 
-#: frappe/core/doctype/user/user.py:1314 frappe/utils/password_strength.py:73
+#: frappe/core/doctype/user/user.py:1318 frappe/utils/password_strength.py:73
 msgid "Better add a few more letters or another word"
 msgstr "بهتر است چند حرف یا کلمه دیگر اضافه کنید"
 
@@ -3892,6 +4047,11 @@ msgstr "بلوک ماژول"
 #: frappe/core/doctype/user/user.json
 msgid "Block Modules"
 msgstr "بلوک ماژول‌ها"
+
+#. Description of the 'Document Type' (Link) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Blocked for child tables (istable). Required for document and date-based triggers."
+msgstr ""
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -3954,6 +4114,15 @@ msgstr "پایین سمت راست"
 #: frappe/core/doctype/communication/communication.json
 msgid "Bounced"
 msgstr "برگشت خورده"
+
+#. Label of the branch (Select) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Branch"
+msgstr ""
+
+#: frappe/automation_engine/api.py:260
+msgid "Branch for step {0} must be If or Else"
+msgstr ""
 
 #. Label of the brand (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -4166,6 +4335,18 @@ msgstr "عبور از احراز هویت دو مرحله‌ای برای کار
 msgid "Bypass restricted IP Address check If Two Factor Auth Enabled"
 msgstr "عبور از بررسی آدرس IP محدود شده در صورت فعال بودن احراز هویت دو مرحله‌ای"
 
+#. Description of the 'Event Payload Limit' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Bytes an emitted event payload may carry."
+msgstr ""
+
+#. Description of the 'Step Output Limit' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Bytes of output a step may publish to later steps. Larger output is dropped, not failed."
+msgstr ""
+
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "C5E"
@@ -4365,11 +4546,14 @@ msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr "{0} سند لغو شود؟"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Event
+#. Subscription'
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #. Option for the 'Status' (Select) field in DocType 'Event'
 #. Option for the 'Status' (Select) field in DocType 'ToDo'
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/user_invitation/user_invitation.json
 #: frappe/desk/doctype/event/event.json frappe/desk/doctype/todo/todo.json
@@ -4413,7 +4597,7 @@ msgstr "نمی‌توان حذف کرد"
 msgid "Cannot Update After Submit"
 msgstr "پس از ارسال امکان به‌روزرسانی وجود ندارد"
 
-#: frappe/core/doctype/file/file.py:768 frappe/utils/file_manager.py:385
+#: frappe/core/doctype/file/file.py:775 frappe/utils/file_manager.py:385
 msgid "Cannot access file path {0}"
 msgstr "دسترسی به مسیر فایل {0} امکان پذیر نیست"
 
@@ -4433,11 +4617,11 @@ msgstr "قبل از ارسال نمی‌توان لغو کرد. انتقال {0}
 msgid "Cannot cancel {0}."
 msgstr "نمی‌توان {0} را لغو کرد."
 
-#: frappe/model/document.py:1137
+#: frappe/model/document.py:1138
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr "نمی‌توان وضعیت docstatus را از 0 (پیش‌نویس) به 2 (لغو) تغییر داد"
 
-#: frappe/model/document.py:1151
+#: frappe/model/document.py:1152
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "نمی‌توان وضعیت docstatus را از 1 (ارائه شده) به 0 (پیش‌نویس) تغییر داد"
 
@@ -4469,11 +4653,11 @@ msgstr "نمی‌توان یک {0} در برابر سند فرزند ایجاد 
 msgid "Cannot create private workspace of other users"
 msgstr "نمی‌توان محیط کار خصوصی از سایر کاربران ایجاد کرد"
 
-#: frappe/desk/doctype/desktop_icon/desktop_icon.py:56
+#: frappe/desk/doctype/desktop_icon/desktop_icon.py:57
 msgid "Cannot delete Desktop Icon '{0}' as it is restricted"
 msgstr "امکان حذف آیکون دسکتاپ '{0}' وجود ندارد زیرا محدود شده است"
 
-#: frappe/core/doctype/file/file.py:250
+#: frappe/core/doctype/file/file.py:257
 msgid "Cannot delete Home and Attachments folders"
 msgstr "نمی‌توان پوشه‌های Home و Attachments را حذف کرد"
 
@@ -4489,7 +4673,7 @@ msgstr "عملکرد استاندارد را نمی‌توان حذف کرد. ا
 msgid "Cannot delete standard document state."
 msgstr "نمی‌توان وضعیت سند استاندارد را حذف کرد."
 
-#: frappe/custom/doctype/customize_form/customize_form.js:344
+#: frappe/custom/doctype/customize_form/customize_form.js:343
 msgid "Cannot delete standard field <strong>{0}</strong>. You can hide it instead."
 msgstr "نمی‌توان فیلد استاندارد <strong>{0}</strong> را حذف کرد. در عوض می‌توانید آن را پنهان کنید."
 
@@ -4504,7 +4688,7 @@ msgstr "امکان حذف فیلد استاندارد وجود ندارد. در 
 msgid "Cannot delete standard link. You can hide it if you want"
 msgstr "پیوند استاندارد حذف نمی‌شود. اگر بخواهید می‌توانید آن را پنهان کنید"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:336
+#: frappe/custom/doctype/customize_form/customize_form.js:334
 msgid "Cannot delete system generated field <strong>{0}</strong>. You can hide it instead."
 msgstr "فیلد <strong>{0}</strong> ایجاد شده از سیستم را نمی‌توان حذف کرد. در عوض می‌توانید آن را پنهان کنید."
 
@@ -4520,7 +4704,7 @@ msgstr "نمی‌توان {0} را حذف کرد زیرا دارای گره‌ه
 msgid "Cannot edit Standard Dashboards"
 msgstr "نمی‌توان داشبوردهای استاندارد را ویرایش کرد"
 
-#: frappe/email/doctype/notification/notification.py:216
+#: frappe/email/doctype/notification/notification.py:232
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
 msgstr "نمی‌توان اعلان استاندارد را ویرایش کرد. برای ویرایش، لطفاً این را غیرفعال کنید و آن را کپی کنید"
 
@@ -4532,7 +4716,7 @@ msgstr "نمودارهای استاندارد را نمی‌توان ویرای�
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "نمی‌توان یک گزارش استاندارد را ویرایش کرد. لطفا کپی کنید و یک گزارش جدید ایجاد کنید"
 
-#: frappe/model/document.py:1157
+#: frappe/model/document.py:1158
 msgid "Cannot edit cancelled document"
 msgstr "نمی‌توان سند لغو شده را ویرایش کرد"
 
@@ -4553,11 +4737,11 @@ msgstr "نمی‌توان فیلدهای استاندارد را ویرایش ک
 msgid "Cannot enable {0} for a non-submittable doctype"
 msgstr "نمی‌توان {0} را برای یک نوع سند غیرقابل ارسال فعال کرد"
 
-#: frappe/core/doctype/file/file.py:353
+#: frappe/core/doctype/file/file.py:360
 msgid "Cannot find file {} on disk"
 msgstr "نمی‌توان فایل {} را روی دیسک پیدا کرد"
 
-#: frappe/core/doctype/file/file.py:706
+#: frappe/core/doctype/file/file.py:713
 msgid "Cannot get file contents of a Folder"
 msgstr "محتویات فایل یک پوشه را نمی‌توان دریافت کرد"
 
@@ -4569,7 +4753,7 @@ msgstr "نمی‌توان چندین چاپگر را به یک قالب چاپ �
 msgid "Cannot import table with more than 5000 rows."
 msgstr "نمی‌توان جدولی با بیش از ۵۰۰۰ ردیف را درون‌بُرد کرد."
 
-#: frappe/model/document.py:1225
+#: frappe/model/document.py:1226
 msgid "Cannot link cancelled document: {0}"
 msgstr "پیوند سند لغو شده امکان پذیر نیست: {0}"
 
@@ -4597,7 +4781,7 @@ msgstr "نمی‌توان فیلد ID را حذف کرد"
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
 msgstr "اگر مجوز «فقط در صورتی که سازنده» تنظیم شده باشد، نمی‌توان مجوز «گزارش» را تنظیم کرد"
 
-#: frappe/email/doctype/notification/notification.py:249
+#: frappe/email/doctype/notification/notification.py:265
 msgid "Cannot set Notification with event {0} on Document Type {1}"
 msgstr "امکان تنظیم اعلان با رویداد {0} بر روی نوع سند {1} وجود ندارد"
 
@@ -4614,11 +4798,11 @@ msgstr "نمی‌توان {0} را ارسال کرد."
 msgid "Cannot update {0}"
 msgstr "نمی‌توان {0} را به روز کرد"
 
-#: frappe/model/db_query.py:1246
+#: frappe/model/db_query.py:1244
 msgid "Cannot use sub-query here."
 msgstr "اینجا نمی‌توان از پرسمان فرعی استفاده کرد."
 
-#: frappe/model/db_query.py:1278
+#: frappe/model/db_query.py:1276
 msgid "Cannot use {0} in order/group by"
 msgstr "نمی‌توان از {0} به ترتیب/گروه بندی بر اساس استفاده کرد"
 
@@ -4741,6 +4925,10 @@ msgstr "تغییر در"
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Changed by"
 msgstr "تغییر توسط"
+
+#: frappe/automation_engine/actions/core.py:173
+msgid "Changed {0} by {1}"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
@@ -4931,6 +5119,10 @@ msgstr "یک بلوک را انتخاب کنید یا به تایپ کردن ا�
 #: frappe/public/js/frappe/form/controls/color.js:5
 msgid "Choose a color"
 msgstr "انتخاب یک رنگ"
+
+#: frappe/automation_engine/actions/core.py:159
+msgid "Choose a numeric field"
+msgstr ""
 
 #: frappe/public/js/form_builder/components/controls/DataControl.vue:21
 #: frappe/public/js/frappe/form/controls/icon.js:5
@@ -5187,6 +5379,10 @@ msgstr "URL‌های کلاینت"
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Client script"
 msgstr "اسکریپت کلاینت"
+
+#: frappe/automation_engine/api.py:165
+msgid "Client-supplied resolver methods are not allowed"
+msgstr ""
 
 #: frappe/core/doctype/communication/communication.js:39
 #: frappe/desk/doctype/todo/todo.js:23
@@ -5483,6 +5679,11 @@ msgstr "گرد کردن تجاری"
 msgid "Commit"
 msgstr "تأیید"
 
+#. Label of the commit_every (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Commit Every"
+msgstr ""
+
 #. Label of the committed (Check) field in DocType 'Console Log'
 #: frappe/desk/doctype/console_log/console_log.json
 msgid "Committed"
@@ -5565,7 +5766,7 @@ msgstr "مقایسه نسخه‌ها"
 msgid "Compilation warning"
 msgstr "هشدار تالیف"
 
-#: frappe/website/doctype/website_theme/website_theme.py:123
+#: frappe/website/doctype/website_theme/website_theme.py:139
 msgid "Compiled Successfully"
 msgstr "با موفقیت تدوین شد"
 
@@ -5579,7 +5780,7 @@ msgstr "کامل"
 msgid "Complete By"
 msgstr "تکمیل توسط"
 
-#: frappe/core/doctype/user/user.py:529
+#: frappe/core/doctype/user/user.py:530
 #: frappe/templates/emails/new_user.html:12
 msgid "Complete Registration"
 msgstr "ثبت نام کامل"
@@ -5632,6 +5833,7 @@ msgstr "نوشتن ایمیل"
 msgid "Compressed"
 msgstr "فشرده شده"
 
+#. Label of the condition (Code) field in DocType 'Automation Run Step'
 #. Label of the condition (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #. Label of the condition (Code) field in DocType 'Navbar Item'
@@ -5640,6 +5842,7 @@ msgstr "فشرده شده"
 #. Label of the condition (Data) field in DocType 'Notification Recipient'
 #. Label of the condition (Small Text) field in DocType 'Webhook'
 #. Label of the condition (Code) field in DocType 'Workflow Transition'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 #: frappe/core/doctype/navbar_item/navbar_item.json
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -5665,14 +5868,26 @@ msgstr "شرط JSON"
 msgid "Condition Type"
 msgstr "نوع شرط"
 
+#. Label of the condition_values (JSON) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Condition Values"
+msgstr ""
+
 #. Label of the condition_description (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Condition description"
 msgstr "توضیحات شرط"
 
+#: frappe/automation_engine/runner.py:282
+msgid "Condition took the {0} branch"
+msgstr ""
+
+#. Label of the conditions_section (Section Break) field in DocType 'Automation
+#. Flow'
 #. Label of the conditions (Table) field in DocType 'Document Naming Rule'
 #. Label of the conditions (Section Break) field in DocType 'Workflow
 #. Transition'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Conditions"
@@ -5827,6 +6042,12 @@ msgstr "اتصال قطع شد. برخی از ویژگی‌ها ممکن است 
 #: frappe/public/js/frappe/form/dashboard.js:54
 msgid "Connections"
 msgstr "اتصالات"
+
+#. Description of the 'Failure Threshold' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Consecutive failures after which a flow is auto-disabled and its owner notified."
+msgstr ""
 
 #. Label of the console (Code) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -5998,7 +6219,7 @@ msgstr "کنترل می‌کند که آیا کاربران جدید می‌تو
 msgid "Copied to clipboard."
 msgstr "در کلیپ بورد کپی شد."
 
-#: frappe/public/js/frappe/list/list_view.js:2572
+#: frappe/public/js/frappe/list/list_view.js:2570
 msgid "Copied {0} {1} to clipboard"
 msgstr "{0} {1} در کلیپ‌بورد کپی شد"
 
@@ -6050,17 +6271,27 @@ msgstr "ماژول‌های اصلی {0} را نمی‌توان در جستجو�
 msgid "Correct version :"
 msgstr "نسخه صحیح:"
 
+#. Label of the correlation_key (Data) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Correlation Key"
+msgstr ""
+
 #: frappe/email/smtp.py:80
 msgid "Could not connect to outgoing email server"
 msgstr "به سرور ایمیل خروجی متصل نشد"
 
-#: frappe/model/document.py:1221
+#: frappe/model/document.py:1222
 msgid "Could not find {0}"
 msgstr "{0} پیدا نشد"
 
 #: frappe/public/js/frappe/microtemplate.js:223
 msgid "Could not generate PDF"
 msgstr "امکان تولید PDF وجود ندارد"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:52
+msgid "Could not load the saved field rules"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:952
 msgid "Could not map column {0} to field {1}"
@@ -6073,6 +6304,10 @@ msgstr "تجزیه فیلد امکان‌پذیر نیست: {0}"
 #: frappe/integrations/frappe_providers/cloud_settings.py:62
 msgid "Could not reach your server: {0}"
 msgstr "دسترسی به سرور شما مقدور نیست: {0}"
+
+#: frappe/automation_engine/actions/core.py:519
+msgid "Could not resolve host: {0}"
+msgstr ""
 
 #: frappe/utils/pdf_generator/chrome_pdf_generator.py:175
 msgid "Could not start Chromium. Check logs for details."
@@ -6269,8 +6504,12 @@ msgstr "ایجاد یک سند جدید"
 #: frappe/public/js/frappe/form/controls/link.js:509
 #: frappe/public/js/frappe/form/controls/link.js:511
 #: frappe/public/js/frappe/form/link_selector.js:146
-#: frappe/public/js/frappe/list/list_view.js:547
 #: frappe/public/js/frappe/web_form/web_form_list.js:253
+msgid "Create a new {0}"
+msgstr "ایجاد یک {0} جدید"
+
+#: frappe/public/js/frappe/list/list_view.js:547
+msgctxt "Create a new document from list view"
 msgid "Create a new {0}"
 msgstr "ایجاد یک {0} جدید"
 
@@ -6282,7 +6521,8 @@ msgstr "ایجاد یا ویرایش قالب چاپ"
 msgid "Create or Edit Workflow"
 msgstr "ایجاد یا ویرایش گردش کار"
 
-#: frappe/public/js/frappe/list/list_view.js:550
+#: frappe/public/js/frappe/list/list_view.js:548
+msgctxt "Create a new document from list view"
 msgid "Create your first {0}"
 msgstr "اولین {0} خود را ایجاد کنید"
 
@@ -6328,6 +6568,10 @@ msgstr "فیلد سفارشی {0} در {1} ایجاد شد"
 msgid "Created On"
 msgstr "ایجاد شده در"
 
+#: frappe/automation_engine/actions/core.py:131
+msgid "Created {0} {1}"
+msgstr ""
+
 #: frappe/public/js/frappe/desk.js:529
 #: frappe/public/js/frappe/views/treeview.js:411
 msgid "Creating {0}"
@@ -6343,6 +6587,11 @@ msgstr "ایجاد این سند فقط در حالت توسعه دهنده مج
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Cron"
+msgstr ""
+
+#. Label of the cron_expression (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Cron Expression"
 msgstr ""
 
 #. Label of the cron_format (Data) field in DocType 'Scheduled Job Type'
@@ -6518,6 +6767,16 @@ msgstr "انواع سند سفارشی (مجوز انتخاب)"
 #: frappe/desk/desktop.py:448
 msgid "Custom Documents"
 msgstr "اسناد سفارشی"
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#. Label of the custom_event (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Custom Event"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:196
+msgid "Custom Event trigger requires an event name"
+msgstr ""
 
 #. Label of a Link in the Build Workspace
 #. Name of a DocType
@@ -6702,6 +6961,7 @@ msgstr "داشبورد را سفارشی کنید"
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:34
 #: frappe/core/doctype/doctype/doctype.js:61
 #: frappe/core/workspace/build/build.json
+#: frappe/custom/doctype/custom_field/custom_field.js:39
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
 #: frappe/workspace_sidebar/build.json
@@ -7040,6 +7300,25 @@ msgstr "نسخه پایگاه داده"
 msgid "Date"
 msgstr "تاریخ"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Date Based"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:194
+msgid "Date Based trigger requires a Date Field and a Date Direction"
+msgstr ""
+
+#. Label of the date_direction (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Date Direction"
+msgstr ""
+
+#. Label of the date_field (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Date Field"
+msgstr ""
+
 #. Label of the date_format (Select) field in DocType 'Language'
 #. Label of the date_format (Select) field in DocType 'System Settings'
 #. Label of the date_format (Data) field in DocType 'Country'
@@ -7048,6 +7327,11 @@ msgstr "تاریخ"
 #: frappe/geo/doctype/country/country.json
 msgid "Date Format"
 msgstr "قالب تاریخ"
+
+#. Label of the date_offset (Int) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Date Offset (Days)"
+msgstr ""
 
 #. Label of the section_break_dfrx (Section Break) field in DocType 'Audit
 #. Trail'
@@ -7067,7 +7351,7 @@ msgstr "تاریخی که پس از آن این security.txt باید منقضی
 msgid "Date and Number Format"
 msgstr "قالب تاریخ و اعداد"
 
-#: frappe/public/js/frappe/form/controls/date.js:253
+#: frappe/public/js/frappe/form/controls/date.js:257
 msgid "Date {0} must be in format: {1}"
 msgstr "تاریخ {0} باید در قالب باشد: {1}"
 
@@ -7130,6 +7414,12 @@ msgstr "روز قبل یا بعد"
 #: frappe/templates/emails/security_txt_expiry_alert.html:13
 msgid "Days Remaining"
 msgstr "روزهای باقی‌مانده"
+
+#. Description of the 'Queue Retention Days' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Days a Failed or Skipped queue row is kept before the nightly sweep removes it."
+msgstr ""
 
 #: frappe/public/js/frappe/request.js:250
 msgid "Deadlock Occurred"
@@ -7619,6 +7909,12 @@ msgstr "وضعیت تحویل"
 msgid "Delivery Status Notification Type"
 msgstr "نوع اعلان وضعیت تحویل"
 
+#. Description of the 'Automation Flow Title' (Data) field in DocType
+#. 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Denormalized so the run survives deletion of its Automation Flow."
+msgstr ""
+
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 #: frappe/templates/includes/oauth_confirmation.html:20
@@ -7791,6 +8087,11 @@ msgstr "چیدمان دسکتاپ"
 msgid "Desktop Settings"
 msgstr "تنظیمات دسکتاپ"
 
+#. Label of the detail (Long Text) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Detail"
+msgstr ""
+
 #. Label of the details_tab (Tab Break) field in DocType 'Module Def'
 #. Label of the details (Code) field in DocType 'Scheduled Job Log'
 #. Label of the details_tab (Tab Break) field in DocType 'Customize Form'
@@ -7862,6 +8163,12 @@ msgstr "غیرفعال کردن به‌روزرسانی خودکار"
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Automatic Recency Filters"
 msgstr "غیرفعال کردن فیلترهای اخیر خودکار"
+
+#. Label of the disable_automations (Check) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Disable Automations"
+msgstr ""
 
 #. Label of the disable_change_log_notification (Check) field in DocType
 #. 'System Settings'
@@ -7982,6 +8289,11 @@ msgstr "غیرفعال"
 msgid "Disabled Auto Reply"
 msgstr "پاسخ خودکار غیرفعال است"
 
+#. Label of the disabled_reason (Small Text) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Disabled Reason"
+msgstr ""
+
 #: frappe/desk/page/desktop/desktop.html:71
 #: frappe/public/js/frappe/form/toolbar.js:392
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:71
@@ -8091,6 +8403,21 @@ msgstr "آیا هنوز می‌خواهید ادامه دهید؟"
 msgid "Do you want to cancel all linked documents?"
 msgstr "آیا می‌خواهید همه اسناد پیوند شده را لغو کنید؟"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Cancelled"
+msgstr ""
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Created"
+msgstr ""
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Deleted"
+msgstr ""
+
 #. Label of the webhook_docevent (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Doc Event"
@@ -8105,6 +8432,16 @@ msgstr "رویدادهای سند"
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Doc Status"
 msgstr "وضعیت سند"
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Submitted"
+msgstr ""
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Updated"
+msgstr ""
 
 #. Label of the doc_values (Code) field in DocType 'Web Form Request'
 #: frappe/website/doctype/web_form_request/web_form_request.json
@@ -8426,7 +8763,12 @@ msgstr "شرایط قانون نام‌گذاری سند"
 msgid "Document Naming Settings"
 msgstr "تنظیمات نام‌گذاری سند"
 
-#: frappe/model/document.py:550
+#. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Document Owner"
+msgstr ""
+
+#: frappe/model/document.py:551
 msgid "Document Queued"
 msgstr "سند در صف قرار گرفت"
 
@@ -8495,6 +8837,7 @@ msgid "Document Title"
 msgstr "عنوان سند"
 
 #. Label of the document_type (Link) field in DocType 'Assignment Rule'
+#. Label of the document_type (Link) field in DocType 'Automation Flow'
 #. Label of the reference_type (Link) field in DocType 'Milestone'
 #. Label of the reminder_doctype (Link) field in DocType 'Reminder'
 #. Label of the reference_doctype (Link) field in DocType 'Data Import'
@@ -8519,6 +8862,7 @@ msgstr "عنوان سند"
 #. Step'
 #. Label of the document_type (Link) field in DocType 'Workflow'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/automation/doctype/milestone/milestone.json
 #: frappe/automation/doctype/reminder/reminder.json
 #: frappe/core/doctype/data_import/data_import.json
@@ -8588,7 +8932,7 @@ msgid "Document Types and Permissions"
 msgstr "انواع سند و مجوزها"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:2097
+#: frappe/model/document.py:2099
 msgid "Document Unlocked"
 msgstr "قفل سند باز شد"
 
@@ -8620,6 +8964,10 @@ msgstr "سند فقط توسط کاربران دارای نقش قابل ویر�
 msgid "Document not Relinked"
 msgstr "سند دوباره پیوند داده نشد"
 
+#: frappe/automation_engine/actions/core.py:191
+msgid "Document owner"
+msgstr ""
+
 #: frappe/model/rename_doc.py:218 frappe/public/js/frappe/form/toolbar.js:167
 msgid "Document renamed from {0} to {1}"
 msgstr "تغییر نام سند از {0} به {1}"
@@ -8639,6 +8987,10 @@ msgstr "سند {0} قبلاً بازیابی شده است"
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:206
 msgid "Document {0} has been set to state {1} by {2}"
 msgstr "سند {0} توسط {2} روی {1} تنظیم شده است"
+
+#: frappe/automation_engine/api.py:99 frappe/automation_engine/api.py:273
+msgid "Document-less automations do not accept a document name"
+msgstr ""
 
 #. Label of the documentation (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -8731,6 +9083,8 @@ msgstr "تگ‌های HTML مانند &lt;script&gt; یا کاراکترهایی
 msgid "Don't have an account?"
 msgstr "حساب کاربری ندارید؟"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/public/js/frappe/form/form_tour.js:16
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:300
 #: frappe/public/js/frappe/ui/messages.js:245
@@ -8843,6 +9197,11 @@ msgstr ""
 msgid "Drag to add state"
 msgstr "برای افزودن حالت بکشید"
 
+#. Label of the drain_seconds (Float) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Drain Seconds"
+msgstr ""
+
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:189
 msgid "Drop files here"
 msgstr "فایل‌ها را اینجا رها کنید"
@@ -8890,6 +9249,14 @@ msgstr "نام فیلتر تکراری"
 msgid "Duplicate Name"
 msgstr "نام تکراری"
 
+#: frappe/automation_engine/actions/base.py:130
+msgid "Duplicate automation action_type: {0}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:119
+msgid "Duplicate automation relationship name on {0}"
+msgstr ""
+
 #: frappe/public/js/frappe/form/form.js:211
 msgid "Duplicate current row"
 msgstr "ردیف فعلی تکراری"
@@ -8897,6 +9264,10 @@ msgstr "ردیف فعلی تکراری"
 #: frappe/public/js/form_builder/components/Field.vue:243
 msgid "Duplicate field"
 msgstr "تکرار فیلد"
+
+#: frappe/automation_engine/relationships.py:206
+msgid "Duplicate record alias: {0}"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:253
 msgid "Duplicate row"
@@ -8927,7 +9298,9 @@ msgstr "تکرار {0} ردیف"
 msgid "Duration"
 msgstr "مدت زمان"
 
+#. Label of the duration_ms (Int) field in DocType 'Automation Run Step'
 #. Label of the duration (Float) field in DocType 'Recorder Event'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/recorder_event/recorder_event.json
 msgid "Duration (ms)"
 msgstr "مدت زمان (میلی ثانیه)"
@@ -8990,6 +9363,10 @@ msgstr "قالب پویا"
 #: frappe/public/js/frappe/form/grid_row_form.js:72
 msgid "ESC"
 msgstr "خروج"
+
+#: frappe/automation_engine/relationships.py:204
+msgid "Each relationship needs an alias and relationship name"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -9225,6 +9602,11 @@ msgstr "کلید یا پرچم IP مورد نیاز است."
 msgid "Element Selector"
 msgstr "انتخابگر عنصر"
 
+#. Option for the 'Branch' (Select) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Else"
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #. Label of the email (Check) field in DocType 'Custom DocPerm'
 #. Label of the email (Check) field in DocType 'DocPerm'
@@ -9306,7 +9688,7 @@ msgstr "حساب ایمیل غیرفعال شد."
 msgid "Email Account Name"
 msgstr "نام حساب کاربری ایمیل"
 
-#: frappe/core/doctype/user/user.py:800
+#: frappe/core/doctype/user/user.py:801
 msgid "Email Account added multiple times"
 msgstr "حساب ایمیل چندین بار اضافه شده است"
 
@@ -9398,6 +9780,8 @@ msgstr "شناسه ایمیل"
 
 #. Label of the email_inbox (Section Break) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:328
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:329
 msgid "Email Inbox"
 msgstr "صندوق ورودی ایمیل"
 
@@ -9477,13 +9861,24 @@ msgstr "گزینه همگام‌سازی ایمیل"
 
 #. Label of the email_template (Link) field in DocType 'Communication'
 #. Name of a DocType
+#. Label of the email_template (Link) field in DocType 'Notification'
 #. Label of a Workspace Sidebar Item
 #: frappe/core/doctype/communication/communication.json
 #: frappe/email/doctype/email_template/email_template.json
+#: frappe/email/doctype/notification/notification.json
 #: frappe/public/js/frappe/views/communication.js:99
 #: frappe/workspace_sidebar/email.json
 msgid "Email Template"
 msgstr "الگوی ایمیل"
+
+#: frappe/email/doctype/notification/notification.py:192
+msgid "Email Template can only be used with the Email channel"
+msgstr ""
+
+#: frappe/email/doctype/notification/notification.py:197
+#: frappe/email/doctype/notification/notification.py:481
+msgid "Email Template {0} has no content to send"
+msgstr ""
 
 #. Label of the enable_email_threads_on_assigned_document (Check) field in
 #. DocType 'Notification Settings'
@@ -9553,6 +9948,10 @@ msgstr "حجم ایمیل {0:.2f} مگابایت از حداکثر حجم مجا
 msgid "Email undo window is over. Cannot undo email."
 msgstr "مهلت واگرد ایمیل به پایان رسیده است. امکان واگرد ایمیل وجود ندارد."
 
+#: frappe/automation_engine/actions/core.py:265
+msgid "Emailed {0}"
+msgstr ""
+
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -9579,6 +9978,12 @@ msgstr "ایمیل‌ها با اقدامات بعدی ممکن گردش کار 
 #: frappe/website/doctype/web_form/web_form.js:34
 msgid "Embed code copied"
 msgstr "کد جاسازی کپی شد"
+
+#. Description of the 'From Value' (Data) field in DocType 'Automation Flow'
+#. Description of the 'To Value' (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Empty = any value."
+msgstr ""
 
 #: frappe/database/query.py:2443
 msgid "Empty alias is not allowed"
@@ -9757,6 +10162,10 @@ msgstr "ردیابی بازدیدهای صفحه را فعال کنید"
 msgid "Enable Two Factor Auth"
 msgstr "احراز هویت دو عاملی را فعال کنید"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:77
+msgid "Enable an Automation Flow only after adding at least one action"
+msgstr ""
+
 #. Description of the 'Allow Bulk Edit' (Check) field in DocType 'Customize
 #. Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -9793,6 +10202,7 @@ msgstr "فعال‌سازی ردیابی وب‌سایت درون برنامه"
 msgid "Enable the notification type before emailing it to users."
 msgstr ""
 
+#. Label of the enabled (Check) field in DocType 'Automation Flow'
 #. Label of the enabled (Check) field in DocType 'Language'
 #. Label of the enabled (Check) field in DocType 'User'
 #. Label of the enabled (Check) field in DocType 'Client Script'
@@ -9804,6 +10214,7 @@ msgstr ""
 #. Label of the enabled (Check) field in DocType 'Webhook'
 #. Label of the enabled (Check) field in DocType 'Portal Menu Item'
 #. Label of the enabled (Check) field in DocType 'Workflow Transition Task'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/user/user.json
 #: frappe/custom/doctype/client_script/client_script.json
@@ -9843,6 +10254,11 @@ msgstr "فعال کردن پاسخ خودکار در یک حساب ایمیل و
 
 #: frappe/desk/doctype/notification_type/notification_type.py:103
 msgid "Enabling email for {0} across all users in the background."
+msgstr ""
+
+#. Description of the 'Enabled' (Check) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Enabling requires at least one action and a valid trigger."
 msgstr ""
 
 #. Description of a DocType
@@ -9902,8 +10318,10 @@ msgstr "تاریخ پایان نمی‌تواند قبل از تاریخ شرو�
 msgid "End Date cannot be today."
 msgstr "تاریخ پایان نمی‌تواند امروز باشد."
 
+#. Label of the ended_at (Datetime) field in DocType 'Automation Run'
 #. Label of the ended_at (Datetime) field in DocType 'RQ Job'
 #. Label of the ended_at (Datetime) field in DocType 'Submission Queue'
+#: frappe/automation/doctype/automation_run/automation_run.json
 #: frappe/core/doctype/rq_job/rq_job.json
 #: frappe/core/doctype/submission_queue/submission_queue.json
 msgid "Ended At"
@@ -10068,6 +10486,11 @@ msgstr "لاگ‌های خطا"
 msgid "Error Message"
 msgstr "پیام خطا"
 
+#. Label of the error_summary (Small Text) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Error Summary"
+msgstr ""
+
 #: frappe/public/js/frappe/form/print_utils.js:197
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "خطا در اتصال به برنامه QZ Tray...<br><br> برای استفاده از ویژگی Raw Print، باید برنامه QZ Tray را نصب و اجرا کنید.<br><br><a target=\"_blank\" href=\"https ://qz.io/download/\">برای دانلود و نصب QZ Tray</a> اینجا را کلیک کنید.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual /en/setting-up/print/raw-printing\">برای اطلاعات بیشتر در مورد چاپ خام اینجا را کلیک کنید</a>."
@@ -10096,9 +10519,9 @@ msgstr "خطا در اسکریپت کلاینت."
 msgid "Error in Header/Footer Script"
 msgstr "خطا در اسکریپت سربرگ/پاورقی"
 
-#: frappe/email/doctype/notification/notification.py:711
-#: frappe/email/doctype/notification/notification.py:865
-#: frappe/email/doctype/notification/notification.py:871
+#: frappe/email/doctype/notification/notification.py:763
+#: frappe/email/doctype/notification/notification.py:917
+#: frappe/email/doctype/notification/notification.py:923
 msgid "Error in Notification"
 msgstr "خطا در اعلان"
 
@@ -10122,7 +10545,7 @@ msgstr "خطا در اعتبارسنجی «نادیده گرفتن مجوزها�
 msgid "Error while connecting to email account {0}"
 msgstr "خطا هنگام اتصال به حساب ایمیل {0}"
 
-#: frappe/email/doctype/notification/notification.py:862
+#: frappe/email/doctype/notification/notification.py:914
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "خطا هنگام ارزیابی اعلان {0}. لطفا قالب خود را اصلاح کنید."
 
@@ -10172,6 +10595,12 @@ msgstr "دسته‌بندی رویداد"
 msgid "Event Frequency"
 msgstr "تکرار رویداد"
 
+#. Label of the event_name (Data) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Event Name"
+msgstr "نام رخداد"
+
 #. Name of a DocType
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Event Notifications"
@@ -10183,6 +10612,21 @@ msgstr ""
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Event Participants"
 msgstr "شرکت کنندگان رویداد"
+
+#. Label of the event_payload (JSON) field in DocType 'Automation Event
+#. Subscription'
+#. Label of the event_payload (JSON) field in DocType 'Automation Trigger
+#. Queue'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Event Payload"
+msgstr ""
+
+#. Label of the event_payload_limit (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Event Payload Limit"
+msgstr ""
 
 #. Label of the enable_email_event_reminders (Check) field in DocType
 #. 'Notification Settings'
@@ -10274,9 +10718,11 @@ msgstr "اکسل"
 msgid "Excellent"
 msgstr "عالی"
 
+#. Label of the exception (Data) field in DocType 'Automation Run Step'
 #. Label of the exception (Text) field in DocType 'Data Import Log'
 #. Label of the exc_info (Code) field in DocType 'RQ Job'
 #. Label of the exception (Long Text) field in DocType 'Submission Queue'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/data_import_log/data_import_log.json
 #: frappe/core/doctype/rq_job/rq_job.json
 #: frappe/core/doctype/submission_queue/submission_queue.json
@@ -10382,6 +10828,12 @@ msgstr "منقضی شده"
 msgid "Expires"
 msgstr "انقضا"
 
+#. Label of the expires_at (Datetime) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Expires At"
+msgstr ""
+
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
@@ -10439,7 +10891,7 @@ msgstr "برون‌بُرد داده‌ها"
 #: frappe/core/doctype/data_import/data_import.js:87
 #: frappe/public/js/frappe/data_import/import_preview.js:201
 msgid "Export Errored Rows"
-msgstr "برون‌بُرد ردیف‌های دارای خطا"
+msgstr "صادر کردن ردیف‌های خطا"
 
 #. Label of the export_from (Data) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
@@ -10563,10 +11015,16 @@ msgstr "فیسبوک"
 msgid "Fail"
 msgstr "شکست"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Scheduled Job Log'
 #. Option for the 'Status' (Select) field in DocType 'Submission Queue'
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 #: frappe/core/doctype/submission_queue/submission_queue.json
@@ -10646,7 +11104,7 @@ msgstr "حذف {0} سند ناموفق بود: {1}"
 msgid "Failed to enable scheduler: {0}"
 msgstr "زمان‌بندی فعال نشد: {0}"
 
-#: frappe/email/doctype/notification/notification.py:111
+#: frappe/email/doctype/notification/notification.py:112
 #: frappe/integrations/doctype/webhook/webhook.py:131
 msgid "Failed to evaluate conditions: {}"
 msgstr "شرایط ارزیابی نشد: {}"
@@ -10679,15 +11137,15 @@ msgstr "درون‌بُرد doctype مجازی {} انجام نشد، آیا ف�
 msgid "Failed to optimize image: {0}"
 msgstr "تصویر بهینه نشد: {0}"
 
-#: frappe/email/doctype/notification/notification.py:128
+#: frappe/email/doctype/notification/notification.py:133
 msgid "Failed to render message: {}"
 msgstr "رندر پیام ناموفق بود: {}"
 
-#: frappe/email/doctype/notification/notification.py:146
+#: frappe/email/doctype/notification/notification.py:154
 msgid "Failed to render subject: {}"
 msgstr "رندر موضوع ناموفق بود: {}"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:143
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:150
 msgid "Failed to request login to Frappe Cloud"
 msgstr "درخواست ورود به Frappe Cloud ناموفق بود"
 
@@ -10707,7 +11165,7 @@ msgstr "ایمیل اعلان ارسال نشد"
 msgid "Failed to update global settings"
 msgstr "تنظیمات سراسری به روز نشد"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:120
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:126
 msgid "Failed while calling API {0}"
 msgstr "هنگام فراخوان API {0} ناموفق بود"
 
@@ -10726,6 +11184,11 @@ msgstr "شکست"
 #: frappe/desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
 msgid "Failure Rate"
 msgstr "نرخ شکست"
+
+#. Label of the failure_threshold (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Failure Threshold"
+msgstr ""
 
 #. Label of the favicon (Attach) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -10856,6 +11319,19 @@ msgstr "قالب فیلد"
 msgid "Field Type"
 msgstr "نوع فیلد"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Field Value Changed"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:192
+msgid "Field Value Changed trigger requires a Trigger Field"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:154
+msgid "Field is required"
+msgstr ""
+
 #: frappe/desk/reportview.py:212
 msgid "Field not permitted in query"
 msgstr "فیلد در پرسمان مجاز نیست"
@@ -10890,7 +11366,7 @@ msgstr "فیلد {0} باید یک فیلد مجازی باشد تا از نوع
 msgid "Field {0} not found."
 msgstr "فیلد {0} یافت نشد."
 
-#: frappe/email/doctype/notification/notification.py:598
+#: frappe/email/doctype/notification/notification.py:650
 msgid "Field {0} on document {1} is neither a Mobile number field nor a Customer or User link"
 msgstr "فیلد {0} در سند {1} نه یک فیلد شماره موبایل است و نه یک پیوند مشتری یا کاربر"
 
@@ -10981,11 +11457,11 @@ msgstr "فیلدها"
 msgid "Fields Multicheck"
 msgstr "فیلدهای چندگزینه‌ای"
 
-#: frappe/core/doctype/file/file.py:521
+#: frappe/core/doctype/file/file.py:528
 msgid "Fields `file_name` or `file_url` must be set for File"
 msgstr "فیلدهای \"file_name\" یا \"file_url\" باید برای File تنظیم شوند"
 
-#: frappe/model/db_query.py:169
+#: frappe/model/db_query.py:167
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr "وقتی as_list فعال است، فیلدها باید یک لیست یا تاپل باشند"
 
@@ -11085,7 +11561,7 @@ msgstr "هنگام کپی کردن یک پیوست موجود، آدرس فای�
 msgid "File backup is ready"
 msgstr "پشتیبان گیری از فایل آماده است"
 
-#: frappe/core/doctype/file/file.py:771
+#: frappe/core/doctype/file/file.py:778
 msgid "File name cannot have {0}"
 msgstr "نام فایل نمی‌تواند دارای {0} باشد"
 
@@ -11093,7 +11569,7 @@ msgstr "نام فایل نمی‌تواند دارای {0} باشد"
 msgid "File not attached"
 msgstr "فایل پیوست نشده است"
 
-#: frappe/core/doctype/file/file.py:881 frappe/public/js/frappe/request.js:198
+#: frappe/core/doctype/file/file.py:888 frappe/public/js/frappe/request.js:198
 #: frappe/utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr "اندازه فایل از حداکثر اندازه مجاز {0} مگابایت بیشتر است"
@@ -11102,7 +11578,7 @@ msgstr "اندازه فایل از حداکثر اندازه مجاز {0} مگا
 msgid "File too big"
 msgstr "فایل خیلی بزرگ است"
 
-#: frappe/core/doctype/file/file.py:480
+#: frappe/core/doctype/file/file.py:487
 msgid "File type of {0} is not allowed"
 msgstr "نوع فایل {0} مجاز نیست"
 
@@ -11110,7 +11586,7 @@ msgstr "نوع فایل {0} مجاز نیست"
 msgid "File upload failed."
 msgstr "آپلود فایل ناموفق بود."
 
-#: frappe/core/doctype/file/file.py:466 frappe/core/doctype/file/file.py:538
+#: frappe/core/doctype/file/file.py:473 frappe/core/doctype/file/file.py:545
 msgid "File {0} does not exist"
 msgstr "فایل {0} وجود ندارد"
 
@@ -11199,6 +11675,11 @@ msgstr "فیلتر شده توسط \"{0}\""
 msgid "Filtered by: {0}."
 msgstr "فیلتر شده بر اساس: {0}."
 
+#: frappe/automation_engine/relationships.py:238
+msgid "Filtered relationship queries require one target DocType"
+msgstr ""
+
+#. Label of the filters (Code) field in DocType 'Automation Flow'
 #. Label of the filters (Code) field in DocType 'Access Log'
 #. Label of the link_filters (JSON) field in DocType 'DocField'
 #. Label of the filters_sb (Section Break) field in DocType 'Prepared Report'
@@ -11216,6 +11697,7 @@ msgstr "فیلتر شده بر اساس: {0}."
 #. Label of the filters (Code) field in DocType 'Notification'
 #. Option for the 'Condition Type' (Select) field in DocType 'Notification'
 #. Label of the filters_section (Section Break) field in DocType 'Notification'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/access_log/access_log.json
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -11291,7 +11773,7 @@ msgstr "فیلترها:"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:412
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:414
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:152
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:151
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:155
 msgid "Find {0} in {1}"
 msgstr "پیدا کردن {0} در {1}"
@@ -11431,7 +11913,7 @@ msgstr "نام پوشه"
 msgid "Folder name should not include '/' (slash)"
 msgstr "نام پوشه نباید شامل '/' (اسلش) باشد"
 
-#: frappe/core/doctype/file/file.py:584
+#: frappe/core/doctype/file/file.py:591
 msgid "Folder {0} is not empty"
 msgstr "پوشه {0} خالی نیست"
 
@@ -11714,6 +12196,10 @@ msgstr "اجبار کاربر به بازنشانی گذرواژه"
 msgid "Force Web Capture Mode for Uploads"
 msgstr "اجبار حالت ضبط وب برای بارگذاری‌ها"
 
+#: frappe/automation_engine/runner.py:281
+msgid "Forced the {0} branch"
+msgstr ""
+
 #: frappe/www/login.html:166
 msgid "Forgot Password?"
 msgstr "گذرواژه را فراموش کرده اید؟"
@@ -11957,6 +12443,11 @@ msgstr "از نام کامل"
 msgid "From User"
 msgstr "از کاربر"
 
+#. Label of the from_value (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "From Value"
+msgstr "از مقدار"
+
 #: frappe/public/js/frappe/utils/diffview.js:31
 msgid "From version"
 msgstr "از نسخه"
@@ -12065,6 +12556,9 @@ msgstr "جنسیت"
 msgid "Genderqueer"
 msgstr ""
 
+#. Label of the general_section (Section Break) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
 #: frappe/www/contact.html:29
 msgid "General"
 msgstr "عمومی"
@@ -12095,7 +12589,7 @@ msgstr "ایجاد URL پیگیری"
 
 #: frappe/public/js/frappe/microtemplate.js:247
 msgid "Generating PDF..."
-msgstr ""
+msgstr "درحال ایجاد فایل PDF..."
 
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
@@ -12541,7 +13035,7 @@ msgstr "کلاس شیء گروه"
 msgid "Group your custom doctypes under modules"
 msgstr "Doctype های سفارشی خود را در زیر ماژول‌ها گروه بندی کنید"
 
-#: frappe/public/js/frappe/ui/group_by/group_by.js:428
+#: frappe/public/js/frappe/ui/group_by/group_by.js:439
 msgid "Grouped by <span style='font-weight:600;'>{0}</b>"
 msgstr "گروه بندی بر اساس <span style='font-weight:600;'>{0}</b>"
 
@@ -13155,6 +13649,24 @@ msgctxt "Duration"
 msgid "Hours"
 msgstr "ساعت ها"
 
+#. Description of the 'Stale Running Minutes' (Int) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "How long a claimed row may stay Running before it is assumed crashed and requeued."
+msgstr ""
+
+#. Description of the 'Maximum Attempts' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "How many times a claimed row is retried when its run fails outside the flow's own steps, before the row is marked Failed."
+msgstr ""
+
+#. Description of the 'Maximum Recursion Depth' (Int) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "How many times an automation may trigger another before the chain is refused."
+msgstr ""
+
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "How should this currency be formatted? If not set, will use system defaults"
@@ -13306,6 +13818,11 @@ msgstr "جزئیات هویت"
 #. Label of the idx (Int) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Idx"
+msgstr ""
+
+#. Option for the 'Branch' (Select) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "If"
 msgstr ""
 
 #. Description of the 'Apply Strict User Permissions' (Check) field in DocType
@@ -13493,7 +14010,7 @@ msgstr "اگر این دستورالعمل‌ها مفید نبودند، لطف
 msgid "If this email is registered with us, a download link will be sent to it."
 msgstr "اگر این ایمیل نزد ما ثبت شده باشد، لینک دانلود به آن ارسال خواهد شد."
 
-#: frappe/core/doctype/user/user.py:1166
+#: frappe/core/doctype/user/user.py:1170
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
 msgstr "اگر این ایمیل نزد ما ثبت شده باشد، دستورالعمل بازنشانی گذرواژه به آن ارسال شده است. لطفاً صندوق ورودی خود را بررسی کنید."
 
@@ -13609,8 +14126,8 @@ msgstr "برنامه‌های نادیده گرفته شده"
 msgid "Illegal Document Status for {0}"
 msgstr "وضعیت سند غیرقانونی برای {0}"
 
-#: frappe/model/db_query.py:547 frappe/model/db_query.py:550
-#: frappe/model/db_query.py:1232
+#: frappe/model/db_query.py:545 frappe/model/db_query.py:548
+#: frappe/model/db_query.py:1230
 msgid "Illegal SQL Query"
 msgstr "پرسمان SQL غیر قانونی"
 
@@ -14042,11 +14559,11 @@ msgstr "کاربر یا گذرواژه نادرست"
 msgid "Incorrect Verification code"
 msgstr "کد تأیید نادرست"
 
-#: frappe/model/document.py:1686
+#: frappe/model/document.py:1688
 msgid "Incorrect value in row {0}:"
 msgstr "مقدار نادرست در ردیف {0}:"
 
-#: frappe/model/document.py:1688
+#: frappe/model/document.py:1690
 msgid "Incorrect value:"
 msgstr "مقدار نادرست:"
 
@@ -14070,7 +14587,7 @@ msgstr "شاخص"
 #. Label of the index_web_pages_for_search (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Index Web Pages for Search"
-msgstr "فهرست‌بندی صفحات وب برای جستجو"
+msgstr "فهرست صفحات وب برای جستجو"
 
 #: frappe/core/doctype/recorder/recorder.py:151
 msgid "Index created successfully on column {0} of doctype {1}"
@@ -14372,7 +14889,7 @@ msgstr "اقدام نامعتبر"
 msgid "Invalid CSV Format"
 msgstr "قالب CSV نامعتبر است"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:160
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:168
 msgid "Invalid Code. Please try again."
 msgstr "کد نامعتبر. لطفا دوباره امتحان کنید."
 
@@ -14414,7 +14931,7 @@ msgstr ""
 msgid "Invalid Fieldname"
 msgstr "نام فیلد نامعتبر است"
 
-#: frappe/core/doctype/file/file.py:303 frappe/core/doctype/file/file.py:310
+#: frappe/core/doctype/file/file.py:310 frappe/core/doctype/file/file.py:317
 msgid "Invalid File URL"
 msgstr "URL فایل نامعتبر است"
 
@@ -14520,7 +15037,7 @@ msgstr "نام فیلد جدول نامعتبر است"
 msgid "Invalid Transition"
 msgstr "انتقال نامعتبر است"
 
-#: frappe/core/doctype/file/file.py:321
+#: frappe/core/doctype/file/file.py:328
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:551
 #: frappe/public/js/frappe/widgets/widget_dialog.js:602
 #: frappe/utils/csvutils.py:258 frappe/utils/csvutils.py:279
@@ -14550,6 +15067,11 @@ msgstr ""
 msgid "Invalid Webhook Secret"
 msgstr "راز Webhook نامعتبر است"
 
+#: frappe/website/doctype/website_theme/website_theme.py:111
+#: frappe/website/doctype/website_theme/website_theme.py:121
+msgid "Invalid Website Theme Name"
+msgstr ""
+
 #: frappe/utils/legacy_gravatar_cleanup.py:82
 msgid "Invalid action"
 msgstr ""
@@ -14578,6 +15100,10 @@ msgstr "قالب آرگومان نامعتبر: {0}. فقط رشته‌های ن
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "نوع آرگومان نامعتبر: {0}. فقط رشته‌ها، اعداد، دیکشنری‌ها و None مجاز هستند."
 
+#: frappe/automation_engine/relationships.py:134
+msgid "Invalid automation relationship definition"
+msgstr ""
+
 #: frappe/utils/response.py:289
 msgid "Invalid backup path"
 msgstr "مسیر پشتیبان نامعتبر"
@@ -14598,11 +15124,15 @@ msgstr "نوع شرط نامعتبر در فیلترهای تودرتو: {0}"
 msgid "Invalid credentials, try again."
 msgstr ""
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:215
+msgid "Invalid cron expression: {0}"
+msgstr ""
+
 #: frappe/database/query.py:1372
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "جهت نامعتبر در مرتب‌سازی: {0}. باید 'ASC' یا 'DESC' باشد."
 
-#: frappe/model/document.py:1140 frappe/model/document.py:1154
+#: frappe/model/document.py:1141 frappe/model/document.py:1155
 msgid "Invalid docstatus"
 msgstr "docstatus نامعتبر است"
 
@@ -14640,7 +15170,7 @@ msgstr "نام فیلد \"{0}\" در نام خودکار نامعتبر است"
 
 #: frappe/utils/file_manager.py:237
 msgid "Invalid file name"
-msgstr ""
+msgstr "نام فایل نامعتبر"
 
 #: frappe/deprecation_dumpster.py:283
 msgid "Invalid file path: {0}"
@@ -16042,6 +16572,12 @@ msgstr "محدودیت"
 msgid "Limit must be a non-negative integer"
 msgstr "محدودیت باید یک عدد صحیح غیرمنفی باشد"
 
+#. Label of the limits_section (Section Break) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Limits"
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Line"
@@ -16776,6 +17312,11 @@ msgstr "فیلدهای اجباری مورد نیاز:"
 msgid "Mandatory:"
 msgstr "اجباری:"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Manual"
+msgstr ""
+
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Map"
@@ -16897,6 +17438,23 @@ msgstr "ماسک"
 msgid "Master"
 msgstr ""
 
+#. Label of the filters_editor (HTML) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.js:26
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Match Fields"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Matched"
+msgstr ""
+
+#. Description of the 'Custom Event' (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Matches the event name passed to emit()."
+msgstr ""
+
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Max 500 records at a time"
@@ -16965,9 +17523,19 @@ msgstr "حداکثر عرض برای نوع ارز 100 پیکسل در ردیف 
 msgid "Maximum"
 msgstr "حداکثر"
 
-#: frappe/core/doctype/file/file.py:421
+#: frappe/core/doctype/file/file.py:428
 msgid "Maximum Attachment Limit of {0} has been reached for {1} {2}."
 msgstr "حداکثر محدودیت پیوست {0} برای {1} {2} رسیده است."
+
+#. Label of the max_attempts (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Maximum Attempts"
+msgstr "حداکثر تلاش‌ها"
+
+#. Label of the max_depth (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Maximum Recursion Depth"
+msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/attachments.js:38
 msgid "Maximum attachment limit of {0} has been reached."
@@ -17057,6 +17625,7 @@ msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node
 msgstr "ادغام فقط بین گره گروه به گروه یا گره برگ به برگ امکان پذیر است"
 
 #. Label of the message (Text) field in DocType 'Auto Repeat'
+#. Label of the message (Small Text) field in DocType 'Automation Run Step'
 #. Label of the content (Text Editor) field in DocType 'Activity Log'
 #. Label of the content (Text Editor) field in DocType 'Communication'
 #. Label of the message (Small Text) field in DocType 'SMS Log'
@@ -17070,6 +17639,7 @@ msgstr "ادغام فقط بین گره گروه به گروه یا گره بر�
 #. Label of the message (Code) field in DocType 'Notification'
 #. Label of the message (Text) field in DocType 'Workflow Document State'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/data_import/data_import.js:516
@@ -17786,6 +18356,11 @@ msgstr "نام قالب چاپ جدید"
 msgid "Name of {0} cannot be {1}"
 msgstr "نام {0} نمی‌تواند {1} باشد"
 
+#. Description of the 'Target' (Data) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Named record alias this action operates on."
+msgstr ""
+
 #: frappe/utils/password_strength.py:174
 msgid "Names and surnames by themselves are easy to guess."
 msgstr "حدس زدن نام و نام خانوادگی به تنهایی آسان است."
@@ -17901,7 +18476,7 @@ msgstr "برای ویرایش محیط کار خصوصی سایر کاربران
 msgid "Need Workspace Manager role to edit public workspaces."
 msgstr ""
 
-#: frappe/model/document.py:879
+#: frappe/model/document.py:880
 msgid "Negative Value"
 msgstr "مقدار منفی"
 
@@ -18137,7 +18712,7 @@ msgstr "{0} جدید"
 msgid "New {0} Created"
 msgstr "{0} جدید ایجاد شد"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:386
+#: frappe/public/js/frappe/views/reports/query_report.js:385
 msgid "New {0} {1} added to Dashboard {2}"
 msgstr "{0} {1} جدید به داشبورد {2} اضافه شد"
 
@@ -18153,7 +18728,7 @@ msgstr "{0} جدید: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "نسخه‌های جدید {} برای برنامه‌های زیر در دسترس هستند"
 
-#: frappe/core/doctype/user/user.py:866
+#: frappe/core/doctype/user/user.py:867
 msgid "Newly created user {0} has no roles enabled."
 msgstr "کاربر تازه ایجاد شده {0} هیچ نقشی فعال ندارد."
 
@@ -18232,6 +18807,11 @@ msgstr "ماه آینده"
 msgid "Next Quarter"
 msgstr "سه‌ماهه آینده"
 
+#. Label of the next_run (Datetime) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Next Run"
+msgstr ""
+
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Next Schedule Date"
@@ -18285,8 +18865,8 @@ msgstr "بعدی با کلیک"
 #: frappe/core/doctype/page/page.json frappe/core/doctype/report/report.json
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
-#: frappe/email/doctype/notification/notification.py:106
-#: frappe/email/doctype/notification/notification.py:108
+#: frappe/email/doctype/notification/notification.py:107
+#: frappe/email/doctype/notification/notification.py:109
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 #: frappe/integrations/doctype/webhook/webhook.py:132
 #: frappe/printing/doctype/print_format/print_format.json
@@ -18435,7 +19015,7 @@ msgstr "هیچ نتیجه ای"
 msgid "No Results found"
 msgstr "نتیجه ای پیدا نشد"
 
-#: frappe/core/doctype/user/user.py:867
+#: frappe/core/doctype/user/user.py:868
 msgid "No Roles Specified"
 msgstr "هیچ نقشی مشخص نشده است"
 
@@ -18615,12 +19195,12 @@ msgstr ""
 msgid "No permission for {0}"
 msgstr "بدون مجوز برای {0}"
 
-#: frappe/public/js/frappe/form/form.js:1184
+#: frappe/public/js/frappe/form/form.js:1182
 msgctxt "{0} = verb, {1} = object"
 msgid "No permission to '{0}' {1}"
 msgstr "بدون مجوز برای \"{0}\" {1}"
 
-#: frappe/model/db_query.py:1049
+#: frappe/model/db_query.py:1047
 msgid "No permission to read {0}"
 msgstr "بدون اجازه خواندن {0}"
 
@@ -18630,6 +19210,10 @@ msgstr "بدون مجوز برای {0} {1} {2}"
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:718
 msgid "No pinned document types."
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:255
+msgid "No recipients to notify"
 msgstr ""
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:175
@@ -18662,6 +19246,7 @@ msgid "No rows selected"
 msgstr "هیچ ردیفی انتخاب نشده است"
 
 #: frappe/email/doctype/notification/notification.py:141
+#: frappe/email/doctype/notification/notification.py:149
 msgid "No subject"
 msgstr "بدون موضوع"
 
@@ -18686,7 +19271,7 @@ msgstr "نه {0}"
 msgid "No {0} found"
 msgstr "هیچ {0} یافت نشد"
 
-#: frappe/public/js/frappe/list/list_view.js:540
+#: frappe/public/js/frappe/list/list_view.js:539
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
 msgstr "هیچ {0} با فیلترهای منطبق پیدا نشد. برای دیدن همه {0} فیلترها را پاک کنید."
 
@@ -18746,7 +19331,7 @@ msgstr "نسخه‌های نرمال‌سازی شده"
 msgid "Normalized Query"
 msgstr "پرس‌و‌جوی نرمال‌سازی شده"
 
-#: frappe/core/doctype/user/user.py:1093 frappe/utils/oauth.py:320
+#: frappe/core/doctype/user/user.py:1097 frappe/utils/oauth.py:320
 #: frappe/website/doctype/web_form/web_form.py:895
 #: frappe/website/doctype/web_form/web_form.py:912
 msgid "Not Allowed"
@@ -18847,7 +19432,7 @@ msgstr ""
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "یک مقدار جدا شده با کاما معتبر نیست (فایل CSV)"
 
-#: frappe/core/doctype/user/user.py:315
+#: frappe/core/doctype/user/user.py:316
 msgid "Not a valid User Image."
 msgstr "تصویر کاربر معتبری نیست."
 
@@ -18863,7 +19448,7 @@ msgstr "غیرفعال"
 msgid "Not allowed for {0}: {1}"
 msgstr "برای {0} مجاز نیست: {1}"
 
-#: frappe/email/doctype/notification/notification.py:708
+#: frappe/email/doctype/notification/notification.py:760
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "مجاز به پیوست کردن سند {0} نیست، لطفاً Allow Print For {0} را در تنظیمات چاپ فعال کنید"
 
@@ -18922,6 +19507,8 @@ msgstr "مجاز نیست. {0}."
 #. Name of a DocType
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 #: frappe/desk/doctype/note/note.json
+#: frappe/public/js/frappe/form/controls/data.js:51
+#: frappe/public/js/frappe/form/workflow.js:49
 msgid "Note"
 msgstr "یادداشت"
 
@@ -19014,7 +19601,7 @@ msgstr "لاگ اعلان"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Message"
-msgstr ""
+msgstr "پیام اعلان"
 
 #. Name of a DocType
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -19037,7 +19624,7 @@ msgstr "سند ثبت شده اعلان"
 #. Label of the notification_title (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Title"
-msgstr ""
+msgstr "عنوان اعلان"
 
 #. Name of a DocType
 #. Label of the notification_type (Link) field in DocType 'Notification Type
@@ -19058,15 +19645,15 @@ msgstr ""
 msgid "Notification sent to"
 msgstr "اعلان ارسال شد به"
 
-#: frappe/email/doctype/notification/notification.py:595
+#: frappe/email/doctype/notification/notification.py:647
 msgid "Notification: customer {0} has no Mobile number set"
 msgstr "اعلان: مشتری {0} شماره موبایلی تنظیم نکرده است"
 
-#: frappe/email/doctype/notification/notification.py:581
+#: frappe/email/doctype/notification/notification.py:633
 msgid "Notification: document {0} has no {1} number set (field: {2})"
 msgstr "اعلان: سند {0} شماره {1} تنظیم نشده است (فیلد: {2})"
 
-#: frappe/email/doctype/notification/notification.py:590
+#: frappe/email/doctype/notification/notification.py:642
 msgid "Notification: user {0} has no Mobile number set"
 msgstr "اعلان: کاربر {0} شماره موبایلی تنظیم نکرده است"
 
@@ -19091,6 +19678,10 @@ msgstr "اعلان‌ها غیرفعال است"
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Notifications and bulk mails will be sent from this outgoing server."
 msgstr "اعلان‌ها و ایمیل‌های انبوه از این سرور خروجی ارسال خواهند شد."
+
+#: frappe/automation_engine/actions/core.py:295
+msgid "Notified {0}"
+msgstr ""
 
 #. Label of the notify_on_every_login (Check) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
@@ -19126,6 +19717,12 @@ msgstr "اطلاع‌رسانی به کاربران با پنجره بازشو �
 #: frappe/public/js/frappe/form/controls/time.js:37
 msgid "Now"
 msgstr "اکنون"
+
+#. Description of the 'Run After' (Datetime) field in DocType 'Automation
+#. Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Null = run as soon as possible. Used by waits and date/cron triggers."
+msgstr ""
 
 #. Label of the phone (Data) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
@@ -19552,13 +20149,17 @@ msgstr "فقط گزینه‌های مجاز برای فیلد داده عبار�
 msgid "Only Send Records Updated in Last X Hours"
 msgstr "فقط رکوردهای به روز شده در آخرین X ساعت را ارسال کنید"
 
-#: frappe/core/doctype/file/file.py:212
+#: frappe/core/doctype/file/file.py:219
 msgid "Only System Managers can make this file public."
 msgstr "فقط مدیران سیستم می‌توانند این فایل را عمومی کنند."
 
 #: frappe/desk/doctype/workspace/workspace.js:32
 msgid "Only Workspace Manager can edit public workspaces"
 msgstr "فقط Workspace Manager می‌تواند محیط کارهای عمومی را ویرایش کند"
+
+#: frappe/automation_engine/actions/core.py:467
+msgid "Only a System Manager can write a script step"
+msgstr ""
 
 #. Label of the only_allow_system_managers_to_upload_public_files (Check) field
 #. in DocType 'System Settings'
@@ -19570,7 +20171,11 @@ msgstr "فقط به مدیران سیستم اجازه دهید فایل‌ها�
 msgid "Only allowed to export customizations in developer mode"
 msgstr "فقط مجاز به صدور سفارشی‌سازی در حالت برنامه نویس است"
 
-#: frappe/model/document.py:1366
+#: frappe/automation_engine/actions/core.py:452
+msgid "Only an {0} Server Script can be run from a flow"
+msgstr ""
+
+#: frappe/model/document.py:1368
 msgid "Only draft documents can be discarded"
 msgstr "فقط پیش‌نویس اسناد را می‌توان دور انداخت"
 
@@ -19800,10 +20405,34 @@ msgstr "گزینه 3"
 msgid "Option {0} for field {1} is not a child table"
 msgstr "گزینه {0} برای فیلد {1} یک جدول فرزند نیست"
 
+#. Description of the 'Output Alias' (Data) field in DocType 'Automation
+#. Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Optional alias for the destination reference returned by this action."
+msgstr ""
+
 #. Description of the 'Notification Message' (Small Text) field in DocType
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Optional body of the in-app notification. Supports Jinja."
+msgstr ""
+
+#. Description of the 'Related Record Condition' (JSON) field in DocType
+#. 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Optional. Checked against a related record."
+msgstr ""
+
+#. Description of the 'Advanced Expression using Python' (Code) field in
+#. DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Optional. For logic the match fields cannot express, such as OR groups. The document is available as <code>doc</code>; the match fields and this expression must all be true."
+msgstr ""
+
+#. Description of the 'Step Condition' (Code) field in DocType 'Automation
+#. Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Optional. The step runs only if this expression is true."
 msgstr ""
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
@@ -19971,14 +20600,21 @@ msgstr "حساب ایمیل خروجی درست نیست"
 msgid "Outlook.com"
 msgstr "Outlook.com"
 
+#. Label of the output (JSON) field in DocType 'Automation Run Step'
 #. Label of the output (Code) field in DocType 'Permission Inspector'
 #. Label of the output (Code) field in DocType 'System Console'
 #. Label of the output (Code) field in DocType 'Integration Request'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 #: frappe/desk/doctype/system_console/system_console.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Output"
 msgstr "خروجی"
+
+#. Label of the output_alias (Data) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Output Alias"
+msgstr ""
 
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
 msgid "Overview"
@@ -19997,7 +20633,7 @@ msgstr "PATCH"
 msgid "PDF"
 msgstr "PDF"
 
-#: frappe/utils/print_format.py:150 frappe/utils/print_format.py:194
+#: frappe/utils/print_format.py:151 frappe/utils/print_format.py:195
 msgid "PDF Generation in Progress"
 msgstr "تولید PDF در حال انجام است"
 
@@ -20028,7 +20664,7 @@ msgstr "عرض صفحه PDF (به میلی‌متر)"
 msgid "PDF Settings"
 msgstr "تنظیمات PDF"
 
-#: frappe/utils/print_format.py:388
+#: frappe/utils/print_format.py:395
 msgid "PDF generation failed"
 msgstr "تولید PDF ناموفق بود"
 
@@ -20235,6 +20871,11 @@ msgstr "صفحه {0} از {1}"
 msgid "Parameter"
 msgstr "پارامتر"
 
+#. Label of the params (JSON) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Parameters"
+msgstr "مولفه های"
+
 #: frappe/public/js/frappe/model/model.js:144
 #: frappe/public/js/frappe/views/workspace/workspace.js:467
 msgid "Parent"
@@ -20296,6 +20937,11 @@ msgstr "والد جا افتاده است"
 msgid "Parent Page"
 msgstr "صفحه والد"
 
+#. Label of the parent_step (Int) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Parent Step"
+msgstr ""
+
 #: frappe/core/doctype/data_export/exporter.py:25
 msgid "Parent Table"
 msgstr "جدول والد"
@@ -20329,6 +20975,11 @@ msgstr "جزئی"
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Partial Success"
 msgstr "موفقیت جزئی"
+
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Partially Failed"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -20372,7 +21023,7 @@ msgstr "غیرفعال"
 msgid "Password"
 msgstr "گذرواژه"
 
-#: frappe/core/doctype/user/user.py:509 frappe/core/doctype/user/user.py:1169
+#: frappe/core/doctype/user/user.py:510 frappe/core/doctype/user/user.py:1173
 msgid "Password Reset"
 msgstr "بازنشانی گذرواژه"
 
@@ -20410,7 +21061,7 @@ msgstr "گذرواژه در حساب ایمیل جا افتاده است"
 msgid "Password not found for {0} {1} {2}"
 msgstr "گذرواژه برای {0} {1} {2} یافت نشد"
 
-#: frappe/core/doctype/user/user.py:1331
+#: frappe/core/doctype/user/user.py:1335
 msgid "Password requirements not met"
 msgstr "الزامات گذرواژه رعایت نشده است"
 
@@ -20422,7 +21073,7 @@ msgstr "تنظیم گذرواژه"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "اندازه گذرواژه از حداکثر اندازه مجاز بیشتر است"
 
-#: frappe/core/doctype/user/user.py:938
+#: frappe/core/doctype/user/user.py:939
 msgid "Password size exceeded the maximum allowed size."
 msgstr "اندازه گذرواژه از حداکثر اندازه مجاز بیشتر است."
 
@@ -20499,16 +21150,24 @@ msgstr "مسیر {0} یک مسیر معتبر نیست"
 msgid "Payload Count"
 msgstr "تعداد بارگذاری"
 
+#. Description of the 'Event Payload' (JSON) field in DocType 'Automation
+#. Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Payload for custom emit() events."
+msgstr ""
+
 #. Label of the peak_memory_usage (Int) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Peak Memory Usage"
 msgstr "اوج استفاده از حافظه"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #. Option for the 'Contribution Status' (Select) field in DocType 'Translation'
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Step'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/data_import/data_import.json
 #: frappe/core/doctype/translation/translation.json
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -20770,6 +21429,14 @@ msgstr "شماره تلفن {0} تنظیم شده در فیلد {1} معتبر �
 msgid "Pick Columns"
 msgstr "انتخاب ستون‌ها"
 
+#: frappe/automation_engine/actions/core.py:429
+msgid "Pick a Server Script or write one here, not both"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:461
+msgid "Pick a Server Script, or write one here"
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Pie"
@@ -20825,7 +21492,7 @@ msgstr "لطفاً OAuth را برای حساب کاربری ایمیل {0} مج
 msgid "Please Authorize OAuth for Email Account {}"
 msgstr "لطفاً OAuth را برای حساب ایمیل مجاز کنید {}"
 
-#: frappe/website/doctype/website_theme/website_theme.py:77
+#: frappe/website/doctype/website_theme/website_theme.py:78
 msgid "Please Duplicate this Website Theme to customize."
 msgstr "لطفاً این تم وب سایت را برای سفارشی‌سازی کپی کنید."
 
@@ -20857,7 +21524,7 @@ msgstr "لطفا حداقل یک سری نامگذاری اضافه کنید."
 msgid "Please adjust filters to include some data"
 msgstr "لطفاً فیلترها را تنظیم کنید تا داده‌هایی شامل شوند"
 
-#: frappe/core/doctype/user/user.py:1140
+#: frappe/core/doctype/user/user.py:1144
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "لطفاً از ادمین خود بخواهید ثبت نام شما را تأیید کند"
 
@@ -20885,7 +21552,7 @@ msgstr "لطفاً مقادیر فیلتر تنظیم شده برای نمودا
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "لطفاً مقدار تنظیم شده \"Fetch From\" را برای فیلد {0} بررسی کنید"
 
-#: frappe/core/doctype/user/user.py:1138
+#: frappe/core/doctype/user/user.py:1142
 msgid "Please check your email for verification"
 msgstr "لطفا ایمیل خود را برای تأیید بررسی کنید"
 
@@ -21048,7 +21715,7 @@ msgstr "لطفا برای ارسال نظر وارد شوید."
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr "لطفاً مطمئن شوید که اسناد ارتباطی مرجع به صورت دایره ای پیوند داده نشده اند."
 
-#: frappe/model/document.py:1112
+#: frappe/model/document.py:1113
 msgid "Please refresh to get the latest document."
 msgstr "لطفاً برای دریافت آخرین سند، بازخوانی کنید."
 
@@ -21132,7 +21799,7 @@ msgstr "لطفاً یک فیلتر تاریخ معتبر انتخاب کنید"
 msgid "Please select applicable Doctypes"
 msgstr "لطفاً Doctypes قابل اجرا را انتخاب کنید"
 
-#: frappe/model/db_query.py:1273
+#: frappe/model/db_query.py:1271
 msgid "Please select atleast 1 column from {0} to sort/group"
 msgstr "لطفاً حداقل 1 ستون از {0} برای مرتب‌سازی/گروه‌بندی انتخاب کنید"
 
@@ -21190,7 +21857,7 @@ msgstr "لطفاً SMS را قبل از تنظیم آن به عنوان یک ر�
 msgid "Please setup a message first"
 msgstr "لطفا ابتدا یک پیام تنظیم کنید"
 
-#: frappe/core/doctype/user/user.py:474
+#: frappe/core/doctype/user/user.py:475
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "لطفاً حساب ایمیل خروجی پیش‌فرض را از تنظیمات > حساب ایمیل تنظیم کنید"
 
@@ -21206,27 +21873,27 @@ msgstr "لطفا مشخص کنید"
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "لطفاً یک DocType والد معتبر برای {0} مشخص کنید"
 
-#: frappe/email/doctype/notification/notification.py:174
+#: frappe/email/doctype/notification/notification.py:182
 msgid "Please specify at least 10 minutes due to the trigger cadence of the scheduler"
 msgstr "لطفاً حداقل 10 دقیقه مشخص کنید به دلیل آهنگ اجرای زمان‌بند"
 
-#: frappe/email/doctype/notification/notification.py:181
+#: frappe/email/doctype/notification/notification.py:189
 msgid "Please specify the field from which to attach files"
 msgstr "لطفا فیلدی که فایل‌ها از آن پیوست می‌شوند را مشخص کنید"
 
-#: frappe/email/doctype/notification/notification.py:171
+#: frappe/email/doctype/notification/notification.py:179
 msgid "Please specify the minutes offset"
 msgstr "لطفاً مقدار جابه‌جایی دقیقه را مشخص کنید"
 
-#: frappe/email/doctype/notification/notification.py:165
+#: frappe/email/doctype/notification/notification.py:173
 msgid "Please specify which date field must be checked"
 msgstr "لطفاً مشخص کنید کدام قسمت تاریخ باید بررسی شود"
 
-#: frappe/email/doctype/notification/notification.py:169
+#: frappe/email/doctype/notification/notification.py:177
 msgid "Please specify which datetime field must be checked"
 msgstr "لطفاً مشخص کنید کدام فیلد تاریخ و زمان باید بررسی شود"
 
-#: frappe/email/doctype/notification/notification.py:178
+#: frappe/email/doctype/notification/notification.py:186
 msgid "Please specify which value field must be checked"
 msgstr "لطفاً مشخص کنید که کدام قسمت مقدار باید بررسی شود"
 
@@ -21779,7 +22446,7 @@ msgstr "نگاشت چاپگر تنظیم نشده است."
 msgid "Printing"
 msgstr "چاپ"
 
-#: frappe/utils/print_format.py:390
+#: frappe/utils/print_format.py:397
 msgid "Printing failed"
 msgstr "چاپ نشد"
 
@@ -21909,7 +22576,7 @@ msgstr "نوع ویژگی"
 msgid "Protect Attached Files"
 msgstr "محافظت از فایل های پیوست شده"
 
-#: frappe/core/doctype/file/file.py:613
+#: frappe/core/doctype/file/file.py:620
 msgid "Protected File"
 msgstr "فایل محافظت شده"
 
@@ -22174,6 +22841,12 @@ msgstr "صف"
 msgid "Queue Overloaded"
 msgstr "صف بیش از حد شلوغ است"
 
+#. Label of the queue_retention_days (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Queue Retention Days"
+msgstr ""
+
 #. Label of the queue_status (Table) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Queue Status"
@@ -22282,6 +22955,10 @@ msgstr "کار RQ"
 msgid "RQ Worker"
 msgstr "کارگر RQ"
 
+#: frappe/automation_engine/actions/core.py:487
+msgid "Ran script"
+msgstr ""
+
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
@@ -22360,6 +23037,12 @@ msgstr "تنظیمات چاپ خام"
 #: frappe/desk/doctype/console_log/console_log.js:6
 msgid "Re-Run in Console"
 msgstr "دوباره در کنسول اجرا کنید"
+
+#. Description of the 'Revalidate on Run' (Check) field in DocType 'Automation
+#. Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Re-check filters and condition in the worker before executing."
+msgstr ""
 
 #: frappe/email/doctype/email_account/email_account.py:829
 msgid "Re:"
@@ -22546,6 +23229,10 @@ msgstr "گیرنده لغو اشتراک کرده است"
 msgid "Recipients"
 msgstr "گیرندگان"
 
+#: frappe/automation_engine/relationships.py:83
+msgid "Record alias could not be resolved"
+msgstr ""
+
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
 #: frappe/core/doctype/recorder/recorder.json
@@ -22571,6 +23258,13 @@ msgstr "شاخص پیشنهادی ضبط‌کننده"
 #: frappe/core/doctype/user_permission/user_permission_help.html:2
 msgid "Records for following doctypes will be filtered"
 msgstr "رکوردها برای doctypes زیر فیلتر خواهد شد"
+
+#. Label of the depth (Int) field in DocType 'Automation Run'
+#. Label of the depth (Int) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Recursion Depth"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1667
 msgid "Recursive Fetch From"
@@ -22761,6 +23455,8 @@ msgid "Reference Document Name"
 msgstr "نام سند مرجع"
 
 #. Label of the reference_doctype (Link) field in DocType 'Auto Repeat'
+#. Label of the reference_doctype (Link) field in DocType 'Automation Run'
+#. Label of the ref_doctype (Data) field in DocType 'Automation Trigger Queue'
 #. Label of the reference_doctype (Link) field in DocType 'Activity Log'
 #. Label of the reference_doctype (Link) field in DocType 'Comment'
 #. Label of the reference_doctype (Link) field in DocType 'Communication'
@@ -22781,6 +23477,8 @@ msgstr "نام سند مرجع"
 #. Label of the reference_doctype (Link) field in DocType 'Portal Menu Item'
 #. Label of the reference_doctype (Link) field in DocType 'Workflow Action'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/communication/communication.json
@@ -22803,6 +23501,8 @@ msgstr "نام سند مرجع"
 msgid "Reference Document Type"
 msgstr "نوع سند مرجع"
 
+#. Label of the reference_name (Dynamic Link) field in DocType 'Automation Run'
+#. Label of the ref_name (Data) field in DocType 'Automation Trigger Queue'
 #. Label of the reference_name (Dynamic Link) field in DocType 'Activity Log'
 #. Label of the reference_name (Dynamic Link) field in DocType 'Comment'
 #. Label of the reference_name (Dynamic Link) field in DocType 'Communication'
@@ -22815,6 +23515,8 @@ msgstr "نوع سند مرجع"
 #. Unsubscribe'
 #. Label of the reference_name (Dynamic Link) field in DocType 'Workflow
 #. Action'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/communication/communication.js:152
@@ -22925,7 +23627,7 @@ msgstr "تازه کردن"
 msgid "Refreshing..."
 msgstr "تازه کردن..."
 
-#: frappe/core/doctype/user/user.py:1100
+#: frappe/core/doctype/user/user.py:1104
 msgid "Registered but disabled"
 msgstr "ثبت شده اما غیرفعال است"
 
@@ -22938,6 +23640,61 @@ msgstr "رد شده"
 
 #: frappe/email/receive.py:521
 msgid "Rejected malformed encoded address header with synthesized '@': {0}"
+msgstr ""
+
+#. Label of the related_condition (JSON) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Related Record Condition"
+msgstr ""
+
+#: frappe/automation_engine/conditions.py:112
+msgid "Related record condition must be a JSON object"
+msgstr ""
+
+#: frappe/automation_engine/conditions.py:117
+msgid "Related record condition needs a relationship"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:227
+msgid "Related record does not exist: {0} {1}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:225
+msgid "Relationship provider returned an invalid record reference"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:136
+msgid "Relationship source DocType does not match"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:189
+msgid "Relationship target DocType is not allowed"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:47
+msgid "Relationship {0} cannot be used as a single record alias"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:69
+msgid "Relationship {0} did not resolve to one record"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:65
+msgid "Relationship {0} returns multiple records"
+msgstr ""
+
+#. Label of the relationships (JSON) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Relationships"
+msgstr ""
+
+#. Label of the relationships (JSON) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Relationships Snapshot"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:198
+msgid "Relationships must be a JSON list"
 msgstr ""
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:30
@@ -22960,6 +23717,12 @@ msgstr "نسخه"
 #: frappe/core/doctype/package_release/package_release.json
 msgid "Release Notes"
 msgstr "یادداشت‌های انتشار"
+
+#. Label of the reliability_section (Section Break) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Reliability"
+msgstr ""
 
 #: frappe/core/doctype/communication/communication.js:48
 #: frappe/core/doctype/communication/communication.js:159
@@ -23545,6 +24308,10 @@ msgstr "درخواست به سرور شما ناموفق بود."
 msgid "Requested Numbers"
 msgstr "شماره های درخواستی"
 
+#: frappe/automation_engine/actions/core.py:528
+msgid "Requests to internal network addresses are not permitted"
+msgstr ""
+
 #. Label of the require_trusted_certificate (Select) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -23646,6 +24413,10 @@ msgstr "مجوزها برای {0} بازنشانی شوند؟"
 #: frappe/public/js/form_builder/components/Field.vue:110
 msgid "Reset To Default"
 msgstr "بازنشانی به حالت پیش‌فرض"
+
+#: frappe/templates/includes/login/login.js:280
+msgid "Reset link emailed"
+msgstr ""
 
 #: frappe/public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
@@ -23777,9 +24548,32 @@ msgstr "محدودیت‌ها"
 msgid "Result"
 msgstr "نتیجه"
 
+#. Label of the resume_from_idx (Int) field in DocType 'Automation Trigger
+#. Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Resume From Step"
+msgstr ""
+
+#. Label of the resume_queue (Link) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Resume Queue"
+msgstr ""
+
+#. Label of the resume_run (Data) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Resume Run"
+msgstr ""
+
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Resume Sending"
 msgstr "از سرگیری ارسال"
+
+#. Label of the retention_section (Section Break) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Retention"
+msgstr ""
 
 #. Label of the retry (Int) field in DocType 'Email Queue'
 #: frappe/core/doctype/data_import/data_import.js:111
@@ -23796,6 +24590,11 @@ msgstr "تلاش دوباره برای ارسال"
 #: frappe/www/qrcode.html:15
 msgid "Return to the Verification screen and enter the code displayed by your authentication app"
 msgstr "به صفحه تأیید بازگردید و کد نمایش داده شده توسط برنامه احراز هویت خود را وارد کنید"
+
+#. Label of the revalidate_on_run (Check) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Revalidate on Run"
+msgstr ""
 
 #: frappe/database/schema.py:165
 msgid "Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data."
@@ -23951,7 +24750,7 @@ msgstr "نمایه‌های نقش"
 msgid "Role and Level"
 msgstr "نقش و سطح"
 
-#: frappe/core/doctype/user/user.py:423
+#: frappe/core/doctype/user/user.py:424
 msgid "Role has been set as per the user type {0}"
 msgstr "نقش بر اساس نوع کاربری {0} تنظیم شده است"
 
@@ -24072,7 +24871,7 @@ msgstr "تغییر مسیرهای روت"
 msgid "Route: Example \"/desk\""
 msgstr "مسیر: مثال \"/desk\""
 
-#: frappe/model/base_document.py:993 frappe/model/document.py:864
+#: frappe/model/base_document.py:993 frappe/model/document.py:865
 msgid "Row"
 msgstr "ردیف"
 
@@ -24120,6 +24919,10 @@ msgstr "مقادیر ردیف تغییر کرد"
 msgid "Row {0}"
 msgstr "ردیف {0}"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:140
+msgid "Row {0}: Branch is only meaningful inside an If step"
+msgstr ""
+
 #: frappe/custom/doctype/customize_form/customize_form.py:359
 msgid "Row {0}: Not allowed to disable Mandatory for standard fields"
 msgstr "ردیف {0}: غیرفعال کردن الزامی برای فیلدهای استاندارد مجاز نیست"
@@ -24127,6 +24930,46 @@ msgstr "ردیف {0}: غیرفعال کردن الزامی برای فیلدها
 #: frappe/custom/doctype/customize_form/customize_form.py:348
 msgid "Row {0}: Not allowed to enable Allow on Submit for standard fields"
 msgstr "ردیف {0}: مجاز به فعال کردن Allow on Submit برای فیلدهای استاندارد نیست"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:143
+msgid "Row {0}: Parent Step must be an earlier row"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:145
+msgid "Row {0}: Parent Step {1} is not an If step"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:125
+msgid "Row {0}: Step Key must be unique"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:176
+msgid "Row {0}: Wait unit must be one of {1}"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:165
+msgid "Row {0}: an If step needs a Step Condition"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:147
+msgid "Row {0}: choose the If or Else branch"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:120
+msgid "Row {0}: duplicate output alias {1}"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:117
+msgid "Row {0}: unknown target alias {1}"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:161
+msgid "Row {0}: unsupported Step Type {1}"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:104
+msgid "Row {0}: {1}"
+msgstr "ردیف {0}: {1}"
 
 #. Label of the rows_added_section (Section Break) field in DocType 'Audit
 #. Trail'
@@ -24149,6 +24992,12 @@ msgstr "ردیف‌ها حذف شدند"
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Rows Threshold for Grid Search"
 msgstr "آستانه ردیف‌ها برای جستجوی Grid"
+
+#. Description of the 'Commit Every' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Rows a drain runs between commits."
+msgstr ""
 
 #. Label of the rule (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -24190,16 +25039,55 @@ msgstr "قوانین نحوه انتقال وضعیت‌ها، مانند وضع
 msgid "Rules with higher priority number will be applied first."
 msgstr "ابتدا قوانین با اولویت بالاتر اعمال می‌شود."
 
+#. Label of the run (Link) field in DocType 'Automation Event Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_flow/automation_flow.js:107
+msgid "Run"
+msgstr "اجرا"
+
+#. Label of the run_after (Datetime) field in DocType 'Automation Trigger
+#. Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Run After"
+msgstr ""
+
+#. Label of the run_as (Select) field in DocType 'Automation Flow'
+#. Label of the user (Link) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Run As"
+msgstr ""
+
 #. Label of the dormant_days (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run Jobs only Daily if Inactive For (Days)"
 msgstr "اجرای کارها فقط به صورت روزانه در صورت غیرفعال بودن برای (روزها)"
+
+#. Label of the run_state (JSON) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Run State"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:98
+msgid "Run against"
+msgstr ""
 
 #. Description of the 'Enable Scheduled Jobs' (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run scheduled jobs only if checked"
 msgstr "کارهای زمان‌بندی شده را فقط در صورت علامت زدن اجرا کنید"
+
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Running"
+msgstr "در حال اجرا"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:121
+msgid "Running…"
+msgstr ""
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:57
 msgid "Runtime in Minutes"
@@ -24499,8 +25387,12 @@ msgstr "زمان‌بندی"
 msgid "Schedule Send At"
 msgstr "زمان‌بندی ارسال در"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Scheduled Job Log'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 msgid "Scheduled"
@@ -24544,9 +25436,17 @@ msgstr "لاگ کارهای زمان‌بندی شده"
 msgid "Scheduled execution for script {0} has updated"
 msgstr "اجرای زمان‌بندی شده برای اسکریپت {0} به روز شده است"
 
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue_list.js:14
+msgid "Scheduled for {0}"
+msgstr ""
+
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:26
 msgid "Scheduled to send"
 msgstr "برای ارسال زمان‌بندی شده است"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:213
+msgid "Scheduled trigger requires a Cron Expression"
+msgstr ""
 
 #. Label of the scheduler_section (Section Break) field in DocType 'System
 #. Health Report'
@@ -24779,6 +25679,12 @@ msgctxt "Duration"
 msgid "Seconds"
 msgstr "ثانیه‌ها"
 
+#. Description of the 'Drain Seconds' (Float) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Seconds a drain may keep claiming batches. 0 derives it from the queue's own timeout."
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #: frappe/public/js/form_builder/components/Section.vue:263
 #: frappe/website/doctype/web_template/web_template.json
@@ -24819,11 +25725,11 @@ msgstr "عنوان بخش"
 msgid "Section must have at least one column"
 msgstr "بخش باید حداقل یک ستون داشته باشد"
 
-#: frappe/core/doctype/user/user.py:1490
+#: frappe/core/doctype/user/user.py:1494
 msgid "Security Alert: Your account is being impersonated"
 msgstr "هشدار امنیتی: حساب شما مورد جعل هویت قرار گرفته است"
 
-#: frappe/core/doctype/user/user.py:396
+#: frappe/core/doctype/user/user.py:397
 msgid "Security Alert: Your password has been changed."
 msgstr "هشدار امنیتی: گذرواژه شما تغییر کرده است."
 
@@ -25121,6 +26027,10 @@ msgstr "ابتدا تصویر برند را انتخاب کنید."
 msgid "Select a DocType to make a new format"
 msgstr "یک DocType را برای ایجاد یک قالب جدید انتخاب کنید"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.js:24
+msgid "Select a Document Type to add field rules."
+msgstr ""
+
 #: frappe/public/js/form_builder/components/Sidebar.vue:53
 msgid "Select a field to edit its properties."
 msgstr "یک فیلد را برای ویرایش ویژگی‌های آن انتخاب کنید."
@@ -25382,6 +26292,11 @@ msgstr "یک کپی برای من بفرست"
 msgid "Send only if there is any data"
 msgstr "ارسال فقط در صورت وجود داده‌ها"
 
+#. Description of the 'Email Template' (Link) field in DocType 'Notification'
+#: frappe/email/doctype/notification/notification.json
+msgid "Send this notification's content from an Email Template instead of Subject/Message. Also used for the bell if Send System Notification is checked. The template is looked up fresh on every send, so editing it later changes what gets sent here too."
+msgstr "محتوای این اعلان را به جای موضوع/پیام، از یک الگوی ایمیل ارسال کنید. همچنین در صورت علامت زدن گزینه ارسال اعلان سیستم، برای زنگوله نیز استفاده می‌شود. این الگو در هر ارسال به صورت جدید بررسی می‌شود، بنابراین ویرایش بعدی آن، آنچه در اینجا ارسال می‌شود را نیز تغییر می‌دهد."
+
 #. Label of the send_unsubscribe_message (Check) field in DocType 'Email
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -25546,6 +26461,10 @@ msgstr "آی‌پی سرور"
 #: frappe/core/workspace/build/build.json frappe/workspace_sidebar/build.json
 msgid "Server Script"
 msgstr "اسکریپت سرور"
+
+#: frappe/automation_engine/actions/core.py:433
+msgid "Server Scripts are disabled. Enable them from the bench configuration."
+msgstr ""
 
 #: frappe/utils/safe_exec.py:104
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
@@ -25746,6 +26665,10 @@ msgstr "تنظیم به عنوان پیش‌فرض"
 msgid "Set as Default Theme"
 msgstr "به عنوان تم پیش‌فرض تنظیم کنید"
 
+#: frappe/automation_engine/actions/core.py:63
+msgid "Set at least one field"
+msgstr ""
+
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
@@ -25845,6 +26768,10 @@ msgstr "مسیر یک تابع مجاز را تنظیم کنید که داده�
 "\t\"route\": [\"query-report\", \"Permitted Documents For User\"]\n"
 "}</code></pre>"
 
+#: frappe/automation_engine/actions/core.py:79
+msgid "Set {0}"
+msgstr ""
+
 #: frappe/public/js/frappe/views/workspace/blocks/block.js:201
 msgid "Setting"
 msgstr "تنظیمات"
@@ -25861,6 +26788,8 @@ msgstr "تنظیم اسناد جستجوی سراسری"
 msgid "Setting up your system"
 msgstr "راه‌اندازی سیستم شما"
 
+#. Label of the settings_section (Section Break) field in DocType 'Automation
+#. Flow'
 #. Label of the settings_tab (Tab Break) field in DocType 'DocType'
 #. Label of the settings_tab (Tab Break) field in DocType 'User'
 #. Group in User's connections
@@ -25868,6 +26797,7 @@ msgstr "راه‌اندازی سیستم شما"
 #. Label of the settings_tab (Tab Break) field in DocType 'Web Form'
 #. Label of the settings (Tab Break) field in DocType 'Web Page'
 #. Label of a Workspace Sidebar Item
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/user/user.json
 #: frappe/integrations/workspace/integrations/integrations.json
 #: frappe/public/js/frappe/form/templates/print_layout.html:25
@@ -26028,7 +26958,7 @@ msgstr "نمایش متادیتای سرور احراز هویت"
 
 #: frappe/desk/doctype/kanban_board/kanban_board.js:10
 msgid "Show Board"
-msgstr ""
+msgstr "نمایش تابلو"
 
 #: frappe/desk/doctype/calendar_view/calendar_view.js:10
 msgid "Show Calendar"
@@ -26400,7 +27330,7 @@ msgstr "ثبت‌نام"
 msgid "Sign Up and Confirmation"
 msgstr "ثبت‌نام و تأیید"
 
-#: frappe/core/doctype/user/user.py:1093
+#: frappe/core/doctype/user/user.py:1097
 msgid "Sign Up is disabled"
 msgstr "ثبت نام غیرفعال است"
 
@@ -26519,7 +27449,13 @@ msgstr "رد شدن از مجوز"
 msgid "Skip Step"
 msgstr "مرحله پرش"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
 #. Label of the skipped (Check) field in DocType 'Patch Log'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Skipped"
 msgstr "رد شده"
@@ -26613,6 +27549,11 @@ msgstr "نامک"
 msgid "Small Text"
 msgstr "متن کوتاه"
 
+#. Description of the 'Output' (JSON) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Small structured result returned by the action."
+msgstr ""
+
 #. Label of the smallest_currency_fraction_value (Currency) field in DocType
 #. 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -26624,6 +27565,12 @@ msgstr "کوچکترین مقدار کسری ارز"
 #: frappe/geo/doctype/currency/currency.json
 msgid "Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01"
 msgstr "کوچکترین واحد کسری در گردش (سکه). به عنوان مثال ۱ سنت برای USD و باید به صورت 0.01 وارد شود"
+
+#. Label of the snapshot_section (Section Break) field in DocType 'Automation
+#. Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Snapshot"
+msgstr ""
 
 #. Label of the snapshot_report (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -26866,6 +27813,12 @@ msgstr "ردیف"
 msgid "Stack Trace"
 msgstr "ردیابی پشته"
 
+#. Label of the stale_running_minutes (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Stale Running Minutes"
+msgstr ""
+
 #. Label of the standard (Select) field in DocType 'Page'
 #. Label of the standard (Check) field in DocType 'Desktop Icon'
 #. Label of the standard (Check) field in DocType 'Workspace Sidebar'
@@ -26883,6 +27836,12 @@ msgstr "ردیابی پشته"
 #: frappe/website/doctype/web_template/web_template.json
 msgid "Standard"
 msgstr "استاندارد"
+
+#. Description of the 'Cron Expression' (Data) field in DocType 'Automation
+#. Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Standard 5-field cron, for example <code>0 9 * * 1</code>."
+msgstr ""
 
 #: frappe/model/delete_doc.py:128
 msgid "Standard DocType can not be deleted."
@@ -27004,7 +27963,9 @@ msgstr "StartTLS"
 msgid "Started"
 msgstr "شروع شده"
 
+#. Label of the started_at (Datetime) field in DocType 'Automation Run'
 #. Label of the started_at (Datetime) field in DocType 'RQ Job'
+#: frappe/automation/doctype/automation_run/automation_run.json
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Started At"
 msgstr "شروع شده در"
@@ -27074,6 +28035,11 @@ msgid "Stats Time Interval"
 msgstr "فاصله زمانی آمار"
 
 #. Label of the status (Select) field in DocType 'Auto Repeat'
+#. Label of the status (Select) field in DocType 'Automation Event
+#. Subscription'
+#. Label of the status (Select) field in DocType 'Automation Run'
+#. Label of the status (Select) field in DocType 'Automation Run Step'
+#. Label of the status (Select) field in DocType 'Automation Trigger Queue'
 #. Label of the status (Select) field in DocType 'Contact'
 #. Label of the status (Select) field in DocType 'Activity Log'
 #. Label of the status_section (Section Break) field in DocType 'Communication'
@@ -27100,6 +28066,10 @@ msgstr "فاصله زمانی آمار"
 #. Label of the status (Select) field in DocType 'Personal Data Deletion Step'
 #. Label of the status (Select) field in DocType 'Workflow Action'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/communication/communication.json
@@ -27137,13 +28107,56 @@ msgstr "وضعیت به روز شد. ایمیل در اجرای زمان‌بن�
 msgid "Status: {0}"
 msgstr "وضعیت: {0}"
 
+#. Label of the step_idx (Int) field in DocType 'Automation Run Step'
 #. Label of the step (Link) field in DocType 'Onboarding Step Map'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/desk/doctype/onboarding_step_map/onboarding_step_map.json
 msgid "Step"
 msgstr "مرحله"
 
+#. Label of the step_condition (Code) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Step Condition"
+msgstr ""
+
+#. Label of the step_key (Data) field in DocType 'Automation Action'
+#. Label of the step_key (Data) field in DocType 'Automation Event
+#. Subscription'
+#. Label of the step_key (Data) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_action/automation_action.json
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Step Key"
+msgstr ""
+
+#. Label of the step_output_limit (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Step Output Limit"
+msgstr ""
+
+#. Label of the step_type (Data) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Step Type"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:407
+msgid "Step condition did not match"
+msgstr ""
+
+#. Description of the 'Run State' (JSON) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Step outputs, record aliases and branch choices a resumed run picks up."
+msgstr ""
+
+#: frappe/automation_engine/api.py:262
+msgid "Step {0} is not an If step"
+msgstr ""
+
+#. Label of the steps_section (Section Break) field in DocType 'Automation Run'
+#. Label of the steps (Table) field in DocType 'Automation Run'
 #. Label of the steps (Table) field in DocType 'Form Tour'
 #. Label of the steps (Table) field in DocType 'Module Onboarding'
+#: frappe/automation/doctype/automation_run/automation_run.json
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "Steps"
@@ -27163,6 +28176,17 @@ msgstr "چسبنده"
 #: frappe/core/doctype/recorder/recorder_list.js:87
 msgid "Stop"
 msgstr "متوقف کردن"
+
+#. Description of the 'Disable Automations' (Check) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Stop dispatching automations site-wide. Queued rows are left untouched."
+msgstr ""
+
+#. Label of the stop_on_error (Check) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Stop on Error"
+msgstr ""
 
 #. Label of the stopped (Check) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -27410,6 +28434,8 @@ msgstr "شرکت تابعه"
 msgid "Subtle"
 msgstr "ملایم"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #. Label of the success (Check) field in DocType 'Data Import Log'
@@ -27418,6 +28444,8 @@ msgstr "ملایم"
 #. Option for the 'Button Color' (Select) field in DocType 'Customize Form
 #. Field'
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/data_import/data_import.js:487
 #: frappe/core/doctype/data_import/data_import.json
@@ -27493,7 +28521,7 @@ msgstr "{0} رکورد از {1} رکورد با موفقیت درون‌بُرد
 msgid "Successfully reset onboarding status for all users."
 msgstr "وضعیت آشناسازی برای همه کاربران با موفقیت بازنشانی شد."
 
-#: frappe/core/doctype/user/user.py:1509
+#: frappe/core/doctype/user/user.py:1513
 msgid "Successfully signed out"
 msgstr "با موفقیت از سیستم خارج شد"
 
@@ -27518,7 +28546,7 @@ msgstr "پیشنهاد بهینه‌سازی"
 msgid "Suggested Indexes"
 msgstr "شاخص‌های پیشنهادی"
 
-#: frappe/core/doctype/user/user.py:784
+#: frappe/core/doctype/user/user.py:785
 msgid "Suggested Username: {0}"
 msgstr "نام کاربری پیشنهادی: {0}"
 
@@ -27747,6 +28775,11 @@ msgstr "لاگ‌های سیستم"
 #. Name of a role
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/automation/doctype/milestone/milestone.json
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
 #: frappe/contacts/doctype/address/address.json
@@ -28022,7 +29055,7 @@ msgstr "جدول بریده شده"
 msgid "Table updated"
 msgstr "جدول به روز شد"
 
-#: frappe/model/document.py:1709
+#: frappe/model/document.py:1711
 msgid "Table {0} cannot be empty"
 msgstr "جدول {0} نمی‌تواند خالی باشد"
 
@@ -28055,12 +29088,18 @@ msgstr "تگ‌ها"
 msgid "Take Photo"
 msgstr "عکس گرفتن"
 
+#. Label of the target (Data) field in DocType 'Automation Action'
 #. Label of the target (Data) field in DocType 'Portal Menu Item'
 #. Label of the target (Small Text) field in DocType 'Website Route Redirect'
+#: frappe/automation/doctype/automation_action/automation_action.json
 #: frappe/website/doctype/portal_menu_item/portal_menu_item.json
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 msgid "Target"
 msgstr "هدف"
+
+#: frappe/automation_engine/actions/core.py:115
+msgid "Target Document Type is required"
+msgstr ""
 
 #. Label of the task (Select) field in DocType 'Workflow Transition Task'
 #: frappe/desk/doctype/todo/todo_calendar.js:19
@@ -28139,7 +29178,7 @@ msgstr "هشدارهای قالب"
 msgid "Templates"
 msgstr "قالب ها"
 
-#: frappe/core/doctype/user/user.py:1106
+#: frappe/core/doctype/user/user.py:1110
 msgid "Temporarily Disabled"
 msgstr "موقتا غیرفعال می‌باشد"
 
@@ -28152,6 +29191,15 @@ msgstr "داده‌های آزمایشی"
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Test Job ID"
 msgstr "شناسه کار آزمایشی"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:86
+#: frappe/automation/doctype/automation_flow/automation_flow.js:94
+msgid "Test Run"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:129
+msgid "Test Run: {0}"
+msgstr ""
 
 #: frappe/core/doctype/translation/test_translation.py:53
 #: frappe/core/doctype/translation/test_translation.py:61
@@ -28229,6 +29277,10 @@ msgstr "ممنون از پیام شما"
 msgid "Thanks"
 msgstr "با تشکر"
 
+#: frappe/automation_engine/actions/core.py:456
+msgid "That Server Script is disabled"
+msgstr ""
+
 #: frappe/templates/emails/auto_repeat_fail.html:3
 msgid "The Auto Repeat for this document has been disabled."
 msgstr "تکرار خودکار برای این سند غیرفعال شده است."
@@ -28250,15 +29302,15 @@ msgstr "شناسه کلاینت به‌دست‌آمده از Google Cloud Conso
 "\"APIs &amp; Services\" &gt; \"Credentials\"\n"
 "</a>"
 
-#: frappe/email/doctype/notification/notification.py:233
+#: frappe/email/doctype/notification/notification.py:249
 msgid "The Condition '{0}' is invalid"
 msgstr "شرط \"{0}\" نامعتبر است"
 
-#: frappe/core/doctype/file/file.py:942
+#: frappe/core/doctype/file/file.py:949
 msgid "The File URL does not belong to this File record"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:303 frappe/core/doctype/file/file.py:309
+#: frappe/core/doctype/file/file.py:310 frappe/core/doctype/file/file.py:316
 msgid "The File URL you've entered is incorrect"
 msgstr "URL فایلی که وارد کرده اید نادرست است"
 
@@ -28363,6 +29415,16 @@ msgstr "فیلد {0} در {1} به {2} پیوند دارد و نه به {3}"
 msgid "The fieldname you've specified in Attached To Field is invalid"
 msgstr "نام فیلدی که در Attached To Field مشخص کرده اید نامعتبر است"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.js:102
+msgid "The flow runs for real against this document, then everything it did is rolled back."
+msgstr ""
+
+#. Description of the 'Actions Snapshot' (JSON) field in DocType 'Automation
+#. Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "The flow's steps as they were when the run started. A resumed run executes these, not the current flow."
+msgstr ""
+
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:62
 msgid "The following Assignment Days have been repeated: {0}"
 msgstr "روزهای تخصیص زیر تکرار شده است: {0}"
@@ -28429,7 +29491,7 @@ msgstr "شماره پروژه به‌دست‌آمده از Google Cloud Console
 
 #: frappe/public/js/frappe/microtemplate.js:209
 msgid "The report may be too large to render in a single request. Narrow the filters and try again, or use Print and save as PDF from your browser."
-msgstr ""
+msgstr "ممکن است گزارش برای رندر شدن در یک درخواست واحد خیلی بزرگ باشد. فیلترها را محدود کنید و دوباره امتحان کنید، یا از چاپ استفاده کنید و آن را به صورت PDF از مرورگر خود ذخیره کنید."
 
 #: frappe/desk/utils.py:112
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
@@ -28437,13 +29499,13 @@ msgstr "گزارش درخواستی شما ایجاد شد.<br><br>برای دا
 
 #: frappe/public/js/frappe/microtemplate.js:286
 msgid "The request could not be completed. Check your connection and try again."
-msgstr ""
+msgstr "درخواست تکمیل نشد. اتصال خود را بررسی کنید و دوباره امتحان کنید."
 
-#: frappe/core/doctype/user/user.py:1064
+#: frappe/core/doctype/user/user.py:1068
 msgid "The reset password link has been expired"
 msgstr "پیوند بازنشانی گذرواژه منقضی شده است"
 
-#: frappe/core/doctype/user/user.py:1066
+#: frappe/core/doctype/user/user.py:1070
 msgid "The reset password link has either been used before or is invalid"
 msgstr "پیوند بازنشانی گذرواژه یا قبلا استفاده شده است یا نامعتبر است"
 
@@ -28454,6 +29516,11 @@ msgstr "منبع مورد نظر شما در دسترس نیست"
 #: frappe/core/doctype/audit_trail/audit_trail.py:46
 msgid "The selected document {0} is not a {1}."
 msgstr "سند انتخاب شده {0} یک {1} نیست."
+
+#. Description of the 'Condition' (Code) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "The step condition that skipped this step."
+msgstr ""
 
 #: frappe/utils/response.py:366
 msgid "The system is being updated. Please refresh again after a few moments."
@@ -28536,6 +29603,11 @@ msgstr "پیکربندی قالب"
 msgid "Theme URL"
 msgstr "آدرس URL پوسته"
 
+#: frappe/website/doctype/website_theme/website_theme.py:110
+#: frappe/website/doctype/website_theme/website_theme.py:120
+msgid "Theme name cannot contain '/' or path separators"
+msgstr ""
+
 #: frappe/workflow/doctype/workflow/workflow.js:129
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
 msgstr "اسنادی وجود دارند که حالت های گردش کار دارند که در این گردش کار وجود ندارند. توصیه می‌شود قبل از حذف این حالت ها این حالت ها را به Workflow اضافه کنید و حالت های آنها را تغییر دهید."
@@ -28577,7 +29649,7 @@ msgstr "هیچ وظیفه‌ای با نام \"{}\" وجود ندارد"
 msgid "There is nothing new to show you right now."
 msgstr "در حال حاضر چیز جدیدی برای نشان دادن شما وجود ندارد."
 
-#: frappe/core/doctype/file/file.py:765 frappe/utils/file_manager.py:381
+#: frappe/core/doctype/file/file.py:772 frappe/utils/file_manager.py:381
 msgid "There is some problem with the file url: {0}"
 msgstr "آدرس فایل مشکلی دارد: {0}"
 
@@ -28658,7 +29730,7 @@ msgstr "این نمودار کانبان خصوصی خواهد بود"
 msgid "This Month"
 msgstr "این ماه"
 
-#: frappe/core/doctype/file/file.py:486
+#: frappe/core/doctype/file/file.py:493
 msgid "This PDF cannot be uploaded as it contains unsafe content."
 msgstr "این PDF به دلیل محتوای ناامن قابل آپلود نیست."
 
@@ -28682,6 +29754,10 @@ msgstr "این هفته"
 msgid "This Year"
 msgstr "امسال"
 
+#: frappe/automation_engine/api.py:159
+msgid "This action does not support the selected trigger"
+msgstr ""
+
 #: frappe/custom/doctype/customize_form/customize_form.js:233
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "این عمل برگشت‌ناپذیر است. آیا مایل هستید ادامه دهید؟"
@@ -28689,6 +29765,10 @@ msgstr "این عمل برگشت‌ناپذیر است. آیا مایل هستی
 #: frappe/__init__.py:566
 msgid "This action is only allowed for {}"
 msgstr "این عمل فقط برای {} مجاز است"
+
+#: frappe/automation_engine/api.py:157
+msgid "This action requires a Document Type"
+msgstr ""
 
 #: frappe/public/js/frappe/form/toolbar.js:130
 #: frappe/public/js/frappe/model/model.js:726
@@ -28738,7 +29818,7 @@ msgstr "این سند دارای تغییرات ذخیره‌نشده است ک�
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "این سند قبلاً اصلاح شده است، شما نمی‌توانید دوباره آن را اصلاح کنید"
 
-#: frappe/model/document.py:547
+#: frappe/model/document.py:548
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr "این سند در حال حاضر قفل شده و در صف اجرا قرار دارد. لطفا پس از مدتی دوباره امتحان کنید."
 
@@ -28768,7 +29848,7 @@ msgstr "این فیلد فقط در صورتی نمایش داده می‌شود
 "eval:doc.myfield=='My Value'\n"
 "eval:doc.age&gt;18"
 
-#: frappe/core/doctype/file/file.py:612
+#: frappe/core/doctype/file/file.py:619
 msgid "This file is attached to a protected document and cannot be deleted."
 msgstr "این فایل به یک سند محافظت شده پیوست شده است و قابل حذف نیست."
 
@@ -28779,6 +29859,10 @@ msgstr "این فایل عمومی است و هر کسی می‌تواند به 
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
 msgstr "این فایل عمومی است. بدون احراز هویت قابل دسترسی است."
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:131
+msgid "This flow has no steps to run."
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:1250
 msgid "This form has been modified after you have loaded it"
@@ -28933,7 +30017,7 @@ msgstr "با این کار این تور بازنشانی می‌شود و به 
 msgid "This will terminate the job immediately and might be dangerous, are you sure?"
 msgstr "این کار بلافاصله وظیفه را متوقف می‌کند و ممکن است خطرناک باشد، آیا مطمئن هستید؟"
 
-#: frappe/core/doctype/user/user.py:1340
+#: frappe/core/doctype/user/user.py:1344
 msgid "Throttled"
 msgstr "گاز گرفت"
 
@@ -29046,11 +30130,14 @@ msgstr "زمان بر حسب ثانیه برای حفظ تصویر کد QR رو�
 msgid "Time series based on is required to create a dashboard chart"
 msgstr "برای ایجاد نمودار داشبورد سری های زمانی بر اساس مورد نیاز است"
 
-#: frappe/public/js/frappe/form/controls/time.js:124
+#: frappe/public/js/frappe/form/controls/time.js:111
 msgid "Time {0} must be in format: {1}"
 msgstr "زمان {0} باید در قالب باشد: {1}"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Event
+#. Subscription'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Timed Out"
 msgstr "زمان منقضی شده"
@@ -29108,6 +30195,10 @@ msgstr "مهلت زمانی"
 msgid "Timeout (In Seconds)"
 msgstr "مهلت زمانی (بر حسب ثانیه)"
 
+#: frappe/automation_engine/actions/core.py:365
+msgid "Timeout must be between 1 and {0} seconds"
+msgstr ""
+
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
 msgid "Timeseries"
@@ -29124,10 +30215,17 @@ msgstr "مدت زمان"
 msgid "Timestamp"
 msgstr "مهر زمان"
 
+#. Label of the timing_section (Section Break) field in DocType 'Automation
+#. Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Timing"
+msgstr "زمان سنجی"
+
 #: frappe/desk/doctype/system_console/system_console.js:41
 msgid "Tip: Try the new dropdown console using"
 msgstr "نکته: کنسول کشویی جدید را امتحان کنید با استفاده از"
 
+#. Label of the title (Data) field in DocType 'Automation Flow'
 #. Label of the title (Data) field in DocType 'DocType State'
 #. Label of the method (Data) field in DocType 'Error Log'
 #. Label of the title (Data) field in DocType 'Page'
@@ -29151,6 +30249,7 @@ msgstr "نکته: کنسول کشویی جدید را امتحان کنید با
 #. Label of the meta_title (Data) field in DocType 'Web Page'
 #. Label of the title (Data) field in DocType 'Website Sidebar'
 #. Label of the title (Data) field in DocType 'Website Sidebar Item'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/doctype/boilerplate/controller_list.html:14
 #: frappe/core/doctype/doctype/boilerplate/controller_list.html:23
 #: frappe/core/doctype/doctype_state/doctype_state.json
@@ -29225,6 +30324,11 @@ msgstr "فیلد تا تاریخ"
 msgid "To Do"
 msgstr "لیست انجام کار"
 
+#. Label of the to_value (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "To Value"
+msgstr "بها دادن"
+
 #. Description of the 'Subject' (Data) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "To add dynamic subject, use jinja tags like\n\n"
@@ -29277,11 +30381,11 @@ msgstr "برای فعال کردن اسکریپت‌های سرور، {0} را �
 msgid "To export this step as JSON, link it in a Onboarding document and save the document."
 msgstr "برای صادر کردن این مرحله به عنوان JSON، آن را در یک سند آشناسازی پیوند دهید و سند را ذخیره کنید."
 
-#: frappe/email/doctype/email_account/email_account.js:126
+#: frappe/email/doctype/email_account/email_account.js:124
 msgid "To generate password click {0}"
 msgstr "برای ایجاد گذرواژه، روی {0} کلیک کنید"
 
-#: frappe/email/doctype/email_account/email_account.js:139
+#: frappe/email/doctype/email_account/email_account.js:138
 msgid "To know more click {0}"
 msgstr "برای اطلاعات بیشتر روی {0} کلیک کنید"
 
@@ -29324,7 +30428,7 @@ msgstr "به نسخه"
 msgid "ToDo"
 msgstr "لیست انجام کار"
 
-#: frappe/public/js/frappe/form/controls/date.js:59
+#: frappe/public/js/frappe/form/controls/date.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:746
 #: frappe/public/js/frappe/views/calendar/calendar.js:281
 msgid "Today"
@@ -29407,11 +30511,15 @@ msgstr "تغییرات بسیار زیادی در پایگاه داده در ی�
 msgid "Too many queued background jobs ({0}). Please retry after some time."
 msgstr "تعداد زیادی کار پس‌زمینه در صف انتظار ({0}). لطفاً پس از مدتی دوباره تلاش کنید."
 
+#: frappe/automation_engine/actions/core.py:550
+msgid "Too many redirects"
+msgstr ""
+
 #: frappe/templates/includes/login/login.js:330
 msgid "Too many requests. Please try again later."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1107
+#: frappe/core/doctype/user/user.py:1111
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "کاربران زیادی اخیرا ثبت نام کرده اند، بنابراین ثبت نام غیرفعال است. لطفا یک ساعت دیگر دوباره امتحان کنید"
 
@@ -29538,7 +30646,9 @@ msgstr "ردیف کل"
 msgid "Trace ID"
 msgstr "شناسه ردیابی"
 
+#. Label of the traceback (Code) field in DocType 'Automation Run Step'
 #. Label of the traceback (Code) field in DocType 'Patch Log'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Traceback"
 msgstr "ردیابی"
@@ -29700,10 +30810,31 @@ msgstr "ساختارهای درختی با استفاده از مجموعه تو
 msgid "Tree view is not available for {0}"
 msgstr "نمای درختی برای {0} در دسترس نیست"
 
+#. Label of the trigger_section (Section Break) field in DocType 'Automation
+#. Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Trigger"
+msgstr ""
+
+#. Label of the trigger_field (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Trigger Field"
+msgstr ""
+
 #. Label of the method (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Trigger Method"
 msgstr "روش فعال‌سازی"
+
+#. Label of the queue_row (Data) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Trigger Queue Row"
+msgstr ""
+
+#. Label of the trigger_type (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Trigger Type"
+msgstr ""
 
 #: frappe/tests/test_translate.py:72
 msgid "Trigger caching"
@@ -29718,9 +30849,31 @@ msgstr "فعال‌سازی بر روی متدهای معتبر مانند \"bef
 msgid "Trigger primary action"
 msgstr ""
 
+#. Label of the triggered_at (Datetime) field in DocType 'Automation Trigger
+#. Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Triggered At"
+msgstr ""
+
+#. Label of the triggered_by (Link) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Triggered By"
+msgstr ""
+
+#. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Triggering User"
+msgstr ""
+
 #: frappe/custom/doctype/customize_form/customize_form.js:153
 msgid "Trim Table"
 msgstr "اصلاح جدول"
+
+#. Description of the 'Detail' (Long Text) field in DocType 'Automation Run
+#. Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Truncated to 5k characters."
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:318
 msgid "Try Again"
@@ -29755,6 +30908,11 @@ msgstr "سعی کنید از الگوی صفحه کلید بلندتر با چر
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Tuesday"
 msgstr "سه‌شنبه"
+
+#. Description of a DocType
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Tuning for the automation engine: dispatch limits, drain behaviour, retention and payload limits."
+msgstr ""
 
 #. Label of the two_factor_auth (Check) field in DocType 'Role'
 #. Label of the two_factor_authentication (Section Break) field in DocType
@@ -29909,7 +31067,19 @@ msgstr "آدرس URL مخاطب باید با https:// شروع شود"
 msgid "URL for documentation or help"
 msgstr "نشانی اینترنتی برای مستندات یا راهنما"
 
-#: frappe/core/doctype/file/file.py:320
+#: frappe/automation_engine/actions/core.py:505
+msgid "URL has no host"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:357
+msgid "URL is required"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:503
+msgid "URL must be http or https"
+msgstr ""
+
+#: frappe/core/doctype/file/file.py:327
 msgid "URL must start with http:// or https://"
 msgstr "URL باید با http:// یا https:// شروع شود"
 
@@ -30016,7 +31186,7 @@ msgstr "به دلیل وجود حساب ایمیل از دست رفته امکا
 msgid "Unable to update event"
 msgstr "رویداد به‌روزرسانی نشد"
 
-#: frappe/core/doctype/file/file.py:576
+#: frappe/core/doctype/file/file.py:583
 msgid "Unable to write file format for {0}"
 msgstr "امکان نوشتن فرمت فایل برای {0} وجود ندارد"
 
@@ -30085,17 +31255,57 @@ msgstr "ناشناخته"
 msgid "Unknown Column: {0}"
 msgstr "ستون ناشناخته: {0}"
 
+#: frappe/automation_engine/actions/core.py:117
+msgid "Unknown DocType"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:249
+msgid "Unknown Email Template"
+msgstr ""
+
 #: frappe/utils/data.py:1256
 msgid "Unknown Rounding Method: {}"
 msgstr "روش گرد کردن نامشخص: {}"
+
+#: frappe/automation_engine/actions/core.py:445
+msgid "Unknown Server Script"
+msgstr ""
 
 #: frappe/auth.py:324
 msgid "Unknown User"
 msgstr "کاربر ناشناس"
 
+#: frappe/automation_engine/actions/base.py:140
+msgid "Unknown automation action: {0}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:128
+msgid "Unknown automation relationship: {0}"
+msgstr ""
+
+#: frappe/automation_engine/schema_relationships.py:259
+msgid "Unknown derived relationship: {0}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:162
+msgid "Unknown derived relationship: {0} on {1}"
+msgstr ""
+
 #: frappe/utils/csvutils.py:86
 msgid "Unknown file encoding. Tried to use: {0}"
 msgstr "رمزگذاری فایل ناشناخته. تلاش شده برای استفاده: {0}"
+
+#: frappe/automation_engine/api.py:84
+msgid "Unknown parameter: {0}"
+msgstr ""
+
+#: frappe/automation_engine/conditions.py:91
+msgid "Unknown related-condition source alias: {0}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:208
+msgid "Unknown relationship source alias: {0}"
+msgstr ""
 
 #: frappe/core/doctype/submission_queue/submission_queue.js:7
 msgid "Unlock Reference Document"
@@ -30121,6 +31331,10 @@ msgstr "خوانده نشده"
 #: frappe/core/doctype/communication/communication.json
 msgid "Unread Notification Sent"
 msgstr "اعلان خوانده‌نشده ارسال شد"
+
+#: frappe/automation_engine/events.py:135
+msgid "Unregistered automation event: {0}"
+msgstr ""
 
 #: frappe/utils/safe_exec.py:750 frappe/utils/safe_exec.py:763
 msgid "Unsafe SQL query"
@@ -30161,6 +31375,14 @@ msgstr "پارامترهای لغو اشتراک"
 msgid "Unsubscribed"
 msgstr "لغو اشتراک شده"
 
+#: frappe/automation_engine/actions/core.py:362
+msgid "Unsupported HTTP method"
+msgstr ""
+
+#: frappe/automation_engine/conditions.py:135
+msgid "Unsupported count comparison: {0}"
+msgstr ""
+
 #: frappe/desk/query_report.py:543
 msgid "Unsupported file format: {0}"
 msgstr ""
@@ -30168,6 +31390,10 @@ msgstr ""
 #: frappe/database/query.py:1184
 msgid "Unsupported function or operator: {0}"
 msgstr "تابع یا عملگر پشتیبانی نشده: {0}"
+
+#: frappe/automation_engine/conditions.py:115
+msgid "Unsupported related condition: {0}"
+msgstr ""
 
 #: frappe/database/query.py:2257
 msgid "Unsupported {0}: {1}"
@@ -30476,7 +31702,7 @@ msgstr "اگر تنظیمات پیش‌فرض به درستی داده‌های 
 msgid "Use minimum of 8 characters(case sensitive) with at least one number or special character."
 msgstr "حداقل از ۸ کاراکتر (حساس به حروف بزرگ و کوچک) و حداقل از یک عدد یا کاراکتر ویژه استفاده کنید."
 
-#: frappe/model/db_query.py:517
+#: frappe/model/db_query.py:515
 msgid "Use of sub-query or function is restricted"
 msgstr "استفاده از زیرپرسمان یا تابع محدود شده است"
 
@@ -30812,15 +32038,15 @@ msgstr "کاربری با آدرس ایمیل {0} وجود ندارد"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "کاربر با ایمیل: {0} در سیستم وجود ندارد. لطفاً از «ادمین سیستم» بخواهید که کاربر را برای شما ایجاد کند."
 
-#: frappe/core/doctype/user/user.py:589
+#: frappe/core/doctype/user/user.py:590
 msgid "User {0} cannot be deleted"
 msgstr "کاربر {0} قابل حذف نیست"
 
-#: frappe/core/doctype/user/user.py:372
+#: frappe/core/doctype/user/user.py:373
 msgid "User {0} cannot be disabled"
 msgstr "کاربر {0} را نمی‌توان غیرفعال کرد"
 
-#: frappe/core/doctype/user/user.py:662
+#: frappe/core/doctype/user/user.py:663
 msgid "User {0} cannot be renamed"
 msgstr "کاربر {0} را نمی‌توان تغییر نام داد"
 
@@ -30841,11 +32067,11 @@ msgstr "کاربر {0} مجوز ایجاد محیط کار را ندارد."
 msgid "User {0} has requested for data deletion"
 msgstr "کاربر {0} درخواست حذف داده‌ها را داده است"
 
-#: frappe/core/doctype/user/user.py:1484
+#: frappe/core/doctype/user/user.py:1488
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
 msgstr "کاربر {0} یک جلسه جعل هویت به عنوان شما شروع کرده است. <br><br><b>دلیل ارائه شده:</b> {1}"
 
-#: frappe/core/doctype/user/user.py:1467
+#: frappe/core/doctype/user/user.py:1471
 msgid "User {0} impersonated as {1}"
 msgstr "کاربر {0} به عنوان {1} جعل هویت کرد"
 
@@ -30874,7 +32100,7 @@ msgstr "URI اطلاعات کاربر"
 msgid "Username"
 msgstr "نام کاربری"
 
-#: frappe/core/doctype/user/user.py:751
+#: frappe/core/doctype/user/user.py:752
 msgid "Username {0} already exists"
 msgstr "نام کاربری {0} از قبل وجود دارد"
 
@@ -31012,15 +32238,15 @@ msgstr "مقداری که باید تنظیم شود"
 msgid "Value Too Long"
 msgstr "مقدار بیش از حد طولانی"
 
-#: frappe/model/base_document.py:1197 frappe/model/document.py:920
+#: frappe/model/base_document.py:1197 frappe/model/document.py:921
 msgid "Value cannot be changed for {0}"
 msgstr "مقدار برای {0} قابل تغییر نیست"
 
-#: frappe/model/document.py:866
+#: frappe/model/document.py:867
 msgid "Value cannot be negative for"
 msgstr "ارزش نمی‌تواند منفی باشد"
 
-#: frappe/model/document.py:870
+#: frappe/model/document.py:871
 msgid "Value cannot be negative for {0}: {1}"
 msgstr "مقدار نمی‌تواند برای {0} منفی باشد: {1}"
 
@@ -31316,9 +32542,61 @@ msgstr "به صفحه وب مراجعه کنید"
 msgid "Visitor ID"
 msgstr "شناسه بازدیدکننده"
 
+#. Label of the section_break_resume (Section Break) field in DocType
+#. 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Wait Resume"
+msgstr ""
+
+#: frappe/automation_engine/events.py:37
+msgid "Wait for Event correlation key rendered empty"
+msgstr ""
+
+#: frappe/automation_engine/events.py:141
+msgid "Wait for Event requires a correlation key"
+msgstr ""
+
+#: frappe/automation_engine/events.py:143
+msgid "Wait for Event requires a timeout"
+msgstr ""
+
+#: frappe/automation_engine/events.py:145
+msgid "Wait for Event timeout unit must be one of {0}"
+msgstr ""
+
 #: frappe/utils/synchronization.py:48
 msgid "Wait for it to finish. Deleting the lock file {} will not release the lock."
 msgstr "صبر کنید تا تمام شود. حذف فایل قفل {} قفل را آزاد نمی‌کند."
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:174
+msgid "Wait steps require a duration value and unit"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:324
+msgid "Waited for {0} (simulated)"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:309
+msgid "Waited {0} {1} (simulated)"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Automation Event
+#. Subscription'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Waiting"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:320
+msgid "Waiting for {0}"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:305
+msgid "Waiting {0} seconds"
+msgstr ""
 
 #: frappe/templates/discussions/reply_section.html:39
 msgid "Want to discuss?"
@@ -31350,7 +32628,7 @@ msgstr "هشدار: از دست دادن داده‌ها قریب‌الوقوع
 msgid "Warning: Naming is not set"
 msgstr "هشدار: نام‌گذاری تنظیم نشده است"
 
-#: frappe/public/js/frappe/model/meta.js:190
+#: frappe/public/js/frappe/model/meta.js:188
 msgid "Warning: Unable to find {0} in any table related to {1}"
 msgstr "هشدار: نمی‌توان {0} را در جدول مربوط به {1} پیدا کرد"
 
@@ -31616,7 +32894,7 @@ msgstr "اسکریپت وب سایت"
 #. Label of the website_search_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Website Search Field"
-msgstr "فیلد جستجوی وب‌سایت"
+msgstr "فیلد جستجوی وب سایت"
 
 #: frappe/core/doctype/doctype/doctype.py:1581
 msgid "Website Search Field must be a valid fieldname"
@@ -31796,7 +33074,7 @@ msgstr "URL خوش‌آمدگویی"
 msgid "Welcome Workspace"
 msgstr "محیط کار خوش آمدید"
 
-#: frappe/core/doctype/user/user.py:466
+#: frappe/core/doctype/user/user.py:467
 msgid "Welcome email sent"
 msgstr "ایمیل خوش آمدگویی ارسال شد"
 
@@ -31808,7 +33086,7 @@ msgstr "به Frappe خوش آمدید!"
 msgid "Welcome to the {0} workspace"
 msgstr "به محیط کار {0} خوش آمدید"
 
-#: frappe/core/doctype/user/user.py:527
+#: frappe/core/doctype/user/user.py:528
 msgid "Welcome to {0}"
 msgstr "به {0} خوش آمدید"
 
@@ -31816,6 +33094,12 @@ msgstr "به {0} خوش آمدید"
 #: frappe/www/login.html:195
 msgid "Welcome! Please sign in to continue."
 msgstr "خوش آمدید! برای ادامه لطفاً وارد شوید."
+
+#. Description of the 'Message' (Small Text) field in DocType 'Automation Run
+#. Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "What the action threw as a message, if it failed."
+msgstr ""
 
 #. Description of the 'Email' (Section Break) field in DocType 'Notification
 #. Log'
@@ -32143,9 +33427,13 @@ msgstr "آیا می‌خواهید این نظر را منتشر کنید؟ ای
 msgid "Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
 msgstr "آیا می‌خواهید انتشار این نظر را لغو کنید؟ این بدان معناست که دیگر برای کاربران وب‌سایت/پورتال قابل مشاهده نخواهد بود."
 
+#: frappe/automation_engine/actions/core.py:381
+msgid "Would {0} {1} (not sent)"
+msgstr ""
+
 #: frappe/desk/page/setup_wizard/setup_wizard.py:43
 msgid "Wrapping up"
-msgstr "جمع‌بندی"
+msgstr ""
 
 #. Label of the write (Check) field in DocType 'Custom DocPerm'
 #. Label of the write (Check) field in DocType 'DocPerm'
@@ -32257,9 +33545,9 @@ msgstr "زرد"
 #: frappe/core/doctype/page/page.json frappe/core/doctype/report/report.json
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
-#: frappe/email/doctype/notification/notification.py:101
-#: frappe/email/doctype/notification/notification.py:106
-#: frappe/email/doctype/notification/notification.py:108
+#: frappe/email/doctype/notification/notification.py:102
+#: frappe/email/doctype/notification/notification.py:107
+#: frappe/email/doctype/notification/notification.py:109
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 #: frappe/integrations/doctype/webhook/webhook.py:125
 #: frappe/integrations/doctype/webhook/webhook.py:132
@@ -32332,11 +33620,11 @@ msgstr "شما مجاز به ایجاد ستون نیستید"
 msgid "You are not allowed to delete Standard Report"
 msgstr "شما مجاز به حذف گزارش استاندارد نیستید"
 
-#: frappe/email/doctype/notification/notification.py:763
+#: frappe/email/doctype/notification/notification.py:815
 msgid "You are not allowed to delete a standard Notification. You can disable it instead."
 msgstr "شما مجاز به حذف یک اعلان استاندارد نیستید. به جای آن می‌توانید آن را غیرفعال کنید."
 
-#: frappe/website/doctype/website_theme/website_theme.py:73
+#: frappe/website/doctype/website_theme/website_theme.py:74
 msgid "You are not allowed to delete a standard Website Theme"
 msgstr "شما مجاز به حذف تم استاندارد وب سایت نیستید"
 
@@ -32444,7 +33732,7 @@ msgstr "پس از کاوش در این صفحه می‌توانید به آشن�
 msgid "You can disable this {0} instead of deleting it."
 msgstr "می‌توانید به جای حذف این {0} آن را غیرفعال کنید."
 
-#: frappe/core/doctype/file/file.py:883
+#: frappe/core/doctype/file/file.py:890
 msgid "You can increase the limit from System Settings."
 msgstr "می‌توانید از تنظیمات سیستم محدودیت را افزایش دهید."
 
@@ -32578,7 +33866,7 @@ msgstr "شما اجازه دسترسی به فیلد: {0} جدول فرزند ر
 msgid "You do not have permission to access field: {0}"
 msgstr "شما اجازه دسترسی به فیلد را ندارید: {0}"
 
-#: frappe/core/doctype/file/file.py:240
+#: frappe/core/doctype/file/file.py:247
 msgid "You do not have permission to access this file"
 msgstr ""
 
@@ -32697,7 +33985,7 @@ msgstr "برای استفاده از این فرم باید وارد سیستم 
 msgid "You must login to use this form"
 msgstr ""
 
-#: frappe/model/document.py:429
+#: frappe/model/document.py:430
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
 msgstr "برای انجام این کار به مجوز \"{0}\" در {1} {2} نیاز دارید."
 
@@ -32750,7 +34038,7 @@ msgstr "باید جاوا اسکریپت را فعال کنید تا برنام�
 msgid "You need to have \"Share\" permission"
 msgstr "شما باید مجوز \"اشتراک گذاری\" داشته باشید"
 
-#: frappe/utils/print_format.py:367
+#: frappe/utils/print_format.py:373
 msgid "You need to install pycups to use this feature!"
 msgstr "برای استفاده از این قابلیت باید pycups را نصب کنید!"
 
@@ -32936,7 +34224,7 @@ msgstr "گذرواژه قدیمی شما نادرست است."
 msgid "Your organization name and address for the email footer."
 msgstr "نام و آدرس سازمان شما برای پاورقی ایمیل."
 
-#: frappe/core/doctype/user/user.py:390
+#: frappe/core/doctype/user/user.py:391
 msgid "Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
 msgstr "گذرواژه شما تغییر کرده است و ممکن است از تمام سیستم‌ها خارج شده باشید.<br>لطفاً برای کمک بیشتر با مدیر سیستم تماس بگیرید."
 
@@ -32966,7 +34254,7 @@ msgstr "صفر"
 msgid "Zero means send records updated at anytime"
 msgstr "صفر به معنای ارسال رکوردهای به روز شده در هر زمان است"
 
-#: frappe/core/doctype/file/file.py:661 frappe/core/doctype/file/file.py:679
+#: frappe/core/doctype/file/file.py:668 frappe/core/doctype/file/file.py:686
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
 msgstr "حجم فایل زیپ استخراج شده بیش از حداکثر حجم مجاز {0} مگابایت است"
 
@@ -33208,9 +34496,14 @@ msgctxt "Comparison value is empty"
 msgid "empty"
 msgstr "خالی"
 
+#: frappe/automation_engine/runner.py:324
+msgid "event"
+msgstr "رویداد"
+
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
+#: frappe/public/js/frappe/views/reports/query_report.js:1094
 msgid "export"
 msgstr "خروجی"
 
@@ -33270,6 +34563,11 @@ msgstr "gzip در PATH یافت نشد! این برای تهیه نسخه پشت
 msgctxt "Hours (Field: Duration)"
 msgid "h"
 msgstr "ساعت"
+
+#: frappe/email/doctype/email_account/email_account.js:126
+#: frappe/email/doctype/email_account/email_account.js:139
+msgid "here"
+msgstr "اینجا"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:315
 msgid "hub"
@@ -33512,10 +34810,12 @@ msgid "results"
 msgstr "نتایج"
 
 #: frappe/public/js/frappe/form/grid.js:1224
+#: frappe/public/js/frappe/list/list_view.js:2572
 msgid "row"
 msgstr "ردیف"
 
 #: frappe/public/js/frappe/form/grid.js:1224
+#: frappe/public/js/frappe/list/list_view.js:2572
 msgid "rows"
 msgstr "ردیف‌ها"
 
@@ -33670,6 +34970,11 @@ msgstr ""
 msgid "use % as wildcard"
 msgstr "استفاده از % به عنوان نویسه جانشین"
 
+#: frappe/public/js/frappe/form/link_selector.js:24
+#: frappe/public/js/frappe/form/multi_select_dialog.js:81
+msgid "value"
+msgstr "مقدار"
+
 #: frappe/public/js/frappe/ui/filters/filter.js:362
 msgid "values separated by commas"
 msgstr "مقادیر جدا شده با کاما"
@@ -33697,7 +35002,7 @@ msgstr "از طریق درون‌بُرد داده"
 msgid "via Google Meet"
 msgstr "از طریق Google Meet"
 
-#: frappe/email/doctype/notification/notification.py:419
+#: frappe/email/doctype/notification/notification.py:435
 msgid "via Notification"
 msgstr "از طریق اطلاع رسانی"
 
@@ -33792,7 +35097,12 @@ msgstr "{0} ${skip_list ? \"\" : نوع}"
 msgid "{0} ${type}"
 msgstr "{0} ${type}"
 
-#: frappe/public/js/frappe/data_import/data_exporter.js:80
+#: frappe/automation_engine/schema_relationships.py:220
+msgid "{0} (by {1})"
+msgstr ""
+
+#: frappe/automation_engine/schema_relationships.py:186
+#: frappe/public/js/frappe/data_import/data_exporter.js:78
 #: frappe/public/js/frappe/views/gantt/gantt_view.js:54
 msgid "{0} ({1})"
 msgstr "{0} ({1})"
@@ -33955,7 +35265,7 @@ msgctxt "Form timeline"
 msgid "{0} cancelled this document {1}"
 msgstr "{0} این سند را لغو کرد {1}"
 
-#: frappe/model/document.py:622
+#: frappe/model/document.py:623
 msgid "{0} cannot be amended because it is not cancelled. Please cancel the document before creating an amendment."
 msgstr "{0} قابل اصلاح نیست زیرا لغو نشده است. لطفاً قبل از ایجاد اصلاحیه، سند را لغو کنید."
 
@@ -34038,6 +35348,10 @@ msgstr ""
 msgid "{0} does not exist in row {1}"
 msgstr "{0} در ردیف {1} وجود ندارد"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:156
+msgid "{0} does not support {1} triggers"
+msgstr ""
+
 #: frappe/public/js/frappe/form/controls/link.js:678
 msgid "{0} equals {1}"
 msgstr "{0} برابر است با {1}"
@@ -34074,6 +35388,10 @@ msgstr "{0} دارای نشانه‌گذاری بک‌تیک نامعتبر اس
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} مکالمه را در {1} {2} ترک کرده است"
 
+#: frappe/automation_engine/actions/core.py:70
+msgid "{0} has no field {1}"
+msgstr "{0} فیلد {1} ندارد"
+
 #: frappe/public/js/frappe/utils/pretty_date.js:56
 msgid "{0} hours ago"
 msgstr "{0} ساعت قبل"
@@ -34103,7 +35421,7 @@ msgstr "{0} یک فرزند از {1} است"
 msgid "{0} is a mandatory field"
 msgstr "{0} یک فیلد اجباری است"
 
-#: frappe/core/doctype/file/file.py:674
+#: frappe/core/doctype/file/file.py:681
 msgid "{0} is a not a valid zip file"
 msgstr "{0} یک فایل فشرده معتبر نیست"
 
@@ -34244,7 +35562,7 @@ msgstr "{0} یک فیلد والد معتبر برای {1} نیست"
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr "{0} قالب گزارش معتبری نیست. قالب گزارش باید یکی از موارد زیر باشد {1}"
 
-#: frappe/core/doctype/file/file.py:638
+#: frappe/core/doctype/file/file.py:645
 msgid "{0} is not a zip file"
 msgstr "{0} یک فایل فشرده نیست"
 
@@ -34326,7 +35644,7 @@ msgstr "{0} برابر است با {1}"
 msgid "{0} items selected"
 msgstr "{0} مورد انتخاب شده"
 
-#: frappe/core/doctype/user/user.py:1476
+#: frappe/core/doctype/user/user.py:1480
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} همین الان خود را جای شما جا زدند. آنها این دلیل را آوردند: {1}"
 
@@ -34366,23 +35684,27 @@ msgstr "{0} دقیقه قبل"
 msgid "{0} months ago"
 msgstr "{0} ماه پیش"
 
-#: frappe/model/document.py:1946
+#: frappe/automation_engine/actions/core.py:561
+msgid "{0} must be a JSON object"
+msgstr ""
+
+#: frappe/model/document.py:1948
 msgid "{0} must be after {1}"
 msgstr "{0} باید پس از {1} باشد"
 
-#: frappe/model/document.py:1695
+#: frappe/model/document.py:1697
 msgid "{0} must be beginning with '{1}'"
 msgstr "{0} باید با '{1}' شروع شود"
 
-#: frappe/model/document.py:1697
+#: frappe/model/document.py:1699
 msgid "{0} must be equal to '{1}'"
 msgstr "{0} باید برابر با '{1}' باشد"
 
-#: frappe/model/document.py:1693
+#: frappe/model/document.py:1695
 msgid "{0} must be none of {1}"
 msgstr "{0} نباید هیچ یک از {1} باشد"
 
-#: frappe/model/document.py:1691 frappe/utils/csvutils.py:193
+#: frappe/model/document.py:1693 frappe/utils/csvutils.py:193
 msgid "{0} must be one of {1}"
 msgstr "{0} باید یکی از {1} باشد"
 
@@ -34394,7 +35716,7 @@ msgstr "ابتدا باید {0} تنظیم شود"
 msgid "{0} must be unique"
 msgstr "{0} باید منحصر به فرد باشد"
 
-#: frappe/model/document.py:1699
+#: frappe/model/document.py:1701
 msgid "{0} must be {1} {2}"
 msgstr "{0} باید {1} {2} باشد"
 
@@ -34444,7 +35766,7 @@ msgstr "رکورد {0} حذف شد"
 msgid "{0} records are not automatically deleted."
 msgstr "رکوردهای {0} به طور خودکار حذف نمی‌شوند."
 
-#: frappe/public/js/frappe/logtypes.js:29
+#: frappe/public/js/frappe/logtypes.js:28
 msgid "{0} records are retained for {1} days."
 msgstr "رکوردهای {0} برای {1} روز حفظ می‌شوند."
 
@@ -34473,6 +35795,14 @@ msgstr "{0} تخصیص خود را حذف کرد."
 msgid "{0} removed {1} rows from {2}"
 msgstr "{0} {1} ردیف از {2} حذف کرد"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:154
+msgid "{0} requires a Document Type"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:32
+msgid "{0} requires a target document"
+msgstr ""
+
 #: frappe/public/js/frappe/form/linked_with.js:94
 msgid "{0} restricted document"
 msgstr "{0} سند محدود شده"
@@ -34489,7 +35819,7 @@ msgstr "{0} نتیجه یافت شد"
 msgid "{0} role does not have permission on any doctype"
 msgstr "نقش {0} اجازه هیچ نوع doctype را ندارد"
 
-#: frappe/model/document.py:1937
+#: frappe/model/document.py:1939
 msgid "{0} row #{1}:"
 msgstr "{0} ردیف #{1}:"
 
@@ -34554,6 +35884,10 @@ msgstr "{0} دریافت ایمیل هایی از این نوع را متوقف 
 #: frappe/public/js/frappe/form/formatters.js:240
 msgid "{0} to {1}"
 msgstr "{0} تا {1}"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:190
+msgid "{0} trigger requires a Document Type"
+msgstr ""
 
 #: frappe/core/doctype/docshare/docshare.py:89
 msgid "{0} un-shared this document with {1}"
@@ -34624,9 +35958,17 @@ msgstr "{0} {1} وجود ندارد، یک هدف جدید را برای ادغ�
 msgid "{0} {1} is linked with the following submitted documents: {2}"
 msgstr "{0} {1} با اسناد ارسالی زیر پیوند داده شده است: {2}"
 
-#: frappe/model/document.py:296 frappe/permissions.py:607
+#: frappe/model/document.py:297 frappe/permissions.py:607
 msgid "{0} {1} not found"
 msgstr "{0} {1} یافت نشد"
+
+#: frappe/automation_engine/actions/core.py:389
+msgid "{0} {1} returned {2}"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:386
+msgid "{0} {1} returned {2}: {3}"
+msgstr ""
 
 #: frappe/model/delete_doc.py:302
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
@@ -34645,7 +35987,7 @@ msgctxt "Money in words"
 msgid "{0}."
 msgstr "{0}."
 
-#: frappe/utils/print_format.py:151 frappe/utils/print_format.py:195
+#: frappe/utils/print_format.py:152 frappe/utils/print_format.py:196
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "{0}/{1} تکمیل شده | لطفاً این زبانه را تا پایان کار باز نگه دارید."
 
