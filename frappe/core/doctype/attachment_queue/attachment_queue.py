@@ -1,3 +1,4 @@
+```python
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
@@ -24,11 +25,7 @@ STALE_EXTRACTION_THRESHOLD = 6 * 60 * 60
 
 
 class AttachmentQueue(Document):
-	"""An uploaded file waiting for a person to read its text.
-
-	Extraction reads an embedded PDF text layer and nothing else. Images and scanned
-	PDFs are accepted and kept for preview, and finish with no text.
-	"""
+	"""A file waiting for text extraction."""
 
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -48,7 +45,6 @@ class AttachmentQueue(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		# Mandatory fields are checked after this runs, so the file can still be missing.
 		if not self.source_file:
 			return
 
@@ -63,8 +59,6 @@ class AttachmentQueue(Document):
 			)
 
 	def validate_source_file_access(self):
-		# Extraction opens the file directly, so the queue must not become a way to read a
-		# private file the user has no permission on.
 		file_name = frappe.db.get_value("File", {"file_url": self.source_file}, "name")
 		if not file_name:
 			frappe.throw(
@@ -84,7 +78,7 @@ class AttachmentQueue(Document):
 		if not self.has_value_changed("source_file"):
 			return
 
-		# A job that has not started yet reads source_file when it runs.
+		# A queued job will use the updated file.
 		if self.status == "Queued":
 			return
 
@@ -104,7 +98,7 @@ class AttachmentQueue(Document):
 		self.db_set({"status": "Queued", "task": task.name, "extraction_queued_on": now()})
 
 	def extract(self) -> tuple[str, str]:
-		"""Return the extracted text and the method that produced it."""
+		"""Return the extracted text and extraction method."""
 		file_path = get_file_path(self.source_file)
 		if not file_path:
 			frappe.throw(_("Could not find {0}.").format(self.source_file))
@@ -128,8 +122,7 @@ class AttachmentQueue(Document):
 
 
 def extract_attachment_text(attachment_queue: str) -> None:
-	# Every write here moves `modified`, so a form opened before extraction ran cannot be
-	# saved over the result.
+	# Updating modified prevents an older form from overwriting the result.
 	queue_doc = frappe.get_doc("Attachment Queue", attachment_queue)
 	queue_doc.db_set(
 		{
@@ -143,8 +136,7 @@ def extract_attachment_text(attachment_queue: str) -> None:
 	try:
 		extracted_text, extraction_method = queue_doc.extract()
 	except Exception as exc:
-		# The task wrapper rolls back before it records the failure, so the reason has to
-		# be committed here to survive.
+		# Save the failure before the task wrapper rolls back.
 		frappe.db.rollback()
 		frappe.db.set_value(
 			"Attachment Queue",
@@ -175,7 +167,7 @@ def get_file_extension(file_url: str) -> str:
 
 
 def fail_stale_extractions() -> None:
-	"""Fail rows whose extraction never reported back, so they stop reading as active work."""
+	"""Mark extractions that have been stuck for too long as failed."""
 	cutoff = add_to_date(now(), seconds=-STALE_EXTRACTION_THRESHOLD, as_datetime=True)
 	stale = frappe.get_all(
 		"Attachment Queue",
@@ -191,3 +183,4 @@ def fail_stale_extractions() -> None:
 		{"name": ("in", stale)},
 		{"status": "Failed", "error_message": _("Text extraction did not finish.")},
 	)
+```
