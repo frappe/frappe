@@ -64,10 +64,13 @@
 	border-left: 0px;
 
 	@include media-breakpoint-up(sm) {
+		flex: 0 0 18rem;
+		width: 18rem;
+		max-width: 18rem;
 		position: sticky;
 		top: var(--page-head-height);
 		align-self: flex-start;
-		max-height: calc(100vh - var(--page-head-height) - var(--navbar-height));
+		max-height: calc(100vh - var(--page-head-height));
 		overflow-y: auto;
 	}
 

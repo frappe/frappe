@@ -882,7 +882,7 @@ frappe.ui.form.PrintView = class {
 		}
 		iframe.off("load").on("load", () => this.on_preview_load(iframe.get(0)));
 		iframe.prop("src", `/printpreview?${params.toString()}`);
-		iframe.css("height", "calc(100vh - var(--page-head-height) - var(--navbar-height))");
+		iframe.css("height", "calc(100vh - var(--page-head-height))");
 	}
 
 	setup_print_format_dom(out, $print_format) {
