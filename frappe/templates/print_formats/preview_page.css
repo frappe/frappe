@@ -35,7 +35,6 @@
 		flex-direction: column;
 	}
 	#footer-html {
-		display: block !important;
 		order: 1;
 		margin-top: auto;
 		padding-top: var(--padding-xl);

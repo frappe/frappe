@@ -880,6 +880,7 @@ frappe.ui.form.PrintView = class {
 		if (this.get_print_style()) {
 			params.append("style", this.get_print_style());
 		}
+		this._req?.abort();
 		iframe.off("load").on("load", () => this.on_preview_load(iframe.get(0)));
 		iframe.removeAttr("srcdoc");
 		iframe.prop("src", `/printpreview?${params.toString()}`);
@@ -890,7 +891,11 @@ frappe.ui.form.PrintView = class {
 		this.get_print_html((out) => {
 			const iframe = this.print_wrapper.find(".preview-beta-wrapper iframe");
 			iframe.off("load").on("load", () => {
-				this.render_barcodes(iframe.get(0).contentDocument);
+				const doc = iframe.get(0).contentDocument;
+				const footer = doc.getElementById("footer-html");
+				footer?.classList.add("hidden-pdf");
+				footer?.classList.remove("visible-pdf");
+				this.render_barcodes(doc);
 				this.on_preview_load(iframe.get(0));
 			});
 			iframe.prop("srcdoc", this.get_preview_document(out));
