@@ -21,7 +21,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
-from frappe.model.naming import append_number_if_name_exists
 from frappe.query_builder import DocType, Table
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions, hash_sid
@@ -808,9 +807,8 @@ class User(Document):
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
-			self.username = append_number_if_name_exists(
-				self.doctype, frappe.scrub(self.first_name), fieldname="username"
-			)
+			self.username = self.free_username(frappe.scrub(self.first_name))
+			self.flags.username_from_first_name = True
 
 		if not self.username:
 			return
@@ -824,6 +822,35 @@ class User(Document):
 				self.suggest_username()
 
 			self.username = ""
+
+	def free_username(self, base):
+		if not self.username_exists(base):
+			return base
+
+		pattern = base.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+		taken = frappe.get_all("User", filters={"username": ("like", f"{pattern}-%")}, pluck="username")
+		numbers = (username[len(base) + 1 :] for username in taken)
+		return f"{base}-{max((int(n) for n in numbers if n.isdigit()), default=0) + 1}"
+
+	def db_insert(self, *args, **kwargs):
+		if not self.flags.username_from_first_name:
+			return super().db_insert(*args, **kwargs)
+
+		for attempt in range(5):
+			messages = len(frappe.message_log)
+			frappe.db.savepoint("user_username")
+			try:
+				super().db_insert(*args, **kwargs)
+			except frappe.UniqueValidationError as e:
+				if attempt == 4 or "username" not in str(e.args[-1]):
+					raise
+				frappe.db.rollback(save_point="user_username")
+				del frappe.message_log[messages:]
+				base, sep, number = self.username.rpartition("-")
+				self.username = f"{base}-{int(number) + 1}" if sep else f"{self.username}-1"
+			else:
+				frappe.db.release_savepoint("user_username")
+				return
 
 	def password_strength_test(self):
 		"""test password strength"""
