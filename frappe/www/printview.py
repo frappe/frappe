@@ -408,9 +408,8 @@ def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
 	from frappe.utils.print_format_generator import page_size_mm
 
 	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
-	return frappe.render_template(
-		"templates/print_formats/preview_page.css",
-		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)},
+	return frappe.get_template("templates/print_formats/preview_page.css").render(
+		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)}
 	)
 
 
