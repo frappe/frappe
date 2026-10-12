@@ -1870,6 +1870,20 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Clickable rows (row_click)"),
+					items: [
+						{
+							__code: "frappe.ui.checklist({ title, items, row_click: true })  // the row runs its first action; a chevron replaces the buttons",
+							title: "Onboarding",
+							items: get_onboarding_checklist_items(),
+							row_click: true,
+							on_assign: () => null,
+							on_due_date_change: () => null,
+							on_status_change: () => null,
+						},
+					],
+				},
+				{
 					title: __("Read-only owners (no on_assign)"),
 					items: [
 						{
