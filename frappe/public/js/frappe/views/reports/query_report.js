@@ -1759,6 +1759,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				visible_idx,
 				custom_columns: this.custom_columns,
 				applied_filters,
+				ignore_prepared_report: this.ignore_prepared_report ? 1 : 0,
 			},
 			this.get_pdf_filename()
 		);

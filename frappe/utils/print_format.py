@@ -548,6 +548,7 @@ def download_report_pdf(
 	visible_idx: str | list[int] | None = None,
 	custom_columns: str | list[dict] | None = None,
 	applied_filters: str | dict | None = None,
+	ignore_prepared_report: bool | int = False,
 ):
 	"""Run the report on the server and return it as a PDF.
 
@@ -562,28 +563,34 @@ def download_report_pdf(
 		frappe.throw(
 			_("Print Format {0} does not belong to report {1}").format(
 				frappe.bold(print_format), frappe.bold(_(report_name))
-			)
+			),
+			title=_("Invalid Print Format"),
 		)
-
-	data = frappe._dict(
-		run(
-			report_name,
-			filters,
-			custom_columns=frappe.parse_json(custom_columns),
-			are_default_filters=False,
-		)
-	)
-	if not data.columns:
-		frappe.throw(_("No data to export"))
 	ref_doctype = frappe.get_cached_value("Report", report_name, "ref_doctype")
 	if not frappe.has_permission(ref_doctype, "print"):
 		frappe.throw(
 			_("You don't have permission to print: {0}").format(_(ref_doctype)),
 			frappe.PermissionError,
 		)
+
+	data = frappe._dict(
+		run(
+			report_name,
+			filters,
+			ignore_prepared_report=ignore_prepared_report,
+			custom_columns=frappe.parse_json(custom_columns),
+			are_default_filters=False,
+		)
+	)
+	if not data.columns:
+		frappe.throw(_("No data to export"), title=_("No Data"))
 	make_access_log(report_name=report_name, filters=filters, file_type="PDF", method="Print")
 
 	report_columns = [get_column_as_dict(column) for column in data.columns]
+	masked_fields = {field.fieldname for field in frappe.get_meta(ref_doctype).get_masked_fields()}
+	for column in report_columns:
+		if column.fieldname in masked_fields:
+			column.update(fieldtype="Data", options=None)
 	total_row = data.result.pop() if cint(data.add_total_row) and data.result else None
 	rows = normalize_result(data.result or [], report_columns)
 
@@ -610,6 +617,14 @@ def download_report_pdf(
 		content, letter_head = rendered["body"], rendered["letter_head"]
 		printed_columns = report_columns
 	else:
+
+		def format_value(value, column, row):
+			# reports put labels and placeholders in typed columns, e.g. "Opening" in a date column
+			try:
+				return frappe.format(value, column, row)
+			except (frappe.ValidationError, ValueError, TypeError):
+				return value
+
 		columns = frappe.parse_json(columns)
 		printed_columns = (
 			[column for fieldname in columns for column in report_columns if column.fieldname == fieldname]
@@ -635,7 +650,8 @@ def download_report_pdf(
 				"rows": numbered_rows,
 				"first_row": numbered_rows[0][1] if numbered_rows else None,
 				"row_doc": frappe._dict,
-				"link_titles": get_report_link_titles(printed_columns, rows),
+				"format_value": format_value,
+				"link_titles": get_report_link_titles(printed_columns, [row for _, row in numbered_rows]),
 				"rows_per_table": REPORT_PDF_ROWS_PER_TABLE,
 				"numeric_fieldtypes": numeric_fieldtypes,
 			},

@@ -44,7 +44,7 @@
 						{% elif col.fieldtype == "Link" %}
 							{{ link_titles.get(col.options ~ "::" ~ value, value) | e }}
 						{% else %}
-							{% set formatted = frappe.format(value, col, format_doc) %}
+							{% set formatted = format_value(value, col, format_doc) %}
 							{{ frappe.sanitize_html(formatted) if formatted is string and "<" in formatted else formatted }}
 						{% endif %}
 					</span>
