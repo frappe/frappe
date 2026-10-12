@@ -8,13 +8,8 @@ app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
-<<<<<<< HEAD
 develop_version = "15.x.x-develop"
-app_home = "/app/build"
-=======
-develop_version = "17.x.x-develop"
 app_home = "/desk/build"
->>>>>>> 21264d4 (fix: open a desk app from its dock's first entry)
 
 app_email = "developers@frappe.io"
 
