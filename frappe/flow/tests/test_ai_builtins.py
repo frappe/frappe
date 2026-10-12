@@ -5,6 +5,7 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.todo.todo import ToDo
 from frappe.tests import IntegrationTestCase
 
 from flow import ToolContext
@@ -17,6 +18,7 @@ from flow.tools.builtins import (
 	execute,
 	find_doctypes,
 	read_records,
+	run_action,
 	run_report,
 	sync_builtin_tools,
 	update,
@@ -412,13 +414,22 @@ class TestCreate(IntegrationTestCase):
 		with self.assertRaises(PermissionError):
 			create(doctype="User", records=[{"email": "x@example.com"}], ctx=CTX)
 
-	def test_missing_required_field_reported_as_failure(self):
-		# ToDo.description is mandatory; the row fails validation and is reported, not raised.
-		result = create(doctype="ToDo", records=[{}], ctx=CTX)
+	def test_a_missing_required_field_fails_the_call(self):
+		# ToDo.description is mandatory
+		with self.assertRaisesRegex(ValueError, "Record 1 of 1"):
+			create(doctype="ToDo", records=[{}], ctx=CTX)
 
-		self.assertEqual(result["created"], [])
-		self.assertEqual(len(result["failures"]), 1)
-		self.assertEqual(result["failures"][0]["row"], 0)
+	def test_one_failed_record_creates_none(self):
+		records = [{"description": "ai create works"}, {"description": "ai create fails"}]
+		with (
+			_todo_hook_fails("after_insert", "ai create fails"),
+			self.assertRaisesRegex(ValueError, "Record 2 of 2: hook failed\nNothing was saved."),
+		):
+			create(doctype="ToDo", records=records, ctx=CTX)
+
+		self.assertFalse(
+			frappe.db.exists("ToDo", {"description": ["in", ["ai create works", "ai create fails"]]})
+		)
 
 
 class TestUpdate(IntegrationTestCase):
@@ -438,27 +449,43 @@ class TestUpdate(IntegrationTestCase):
 		self.assertEqual(result["updated"], [self.todo.name])
 		self.assertEqual(frappe.db.get_value("ToDo", self.todo.name, "status"), "Closed")
 
-	def test_invalid_value_reported_as_failure(self):
-		# Status is a Select field with a fixed set; an invalid value fails that row.
-		result = update(
-			doctype="ToDo", names=[self.todo.name], values={"status": "Not A Real Status"}, ctx=CTX
-		)
+	def test_an_invalid_value_fails_the_call(self):
+		# Status is a Select field with a fixed set
+		with self.assertRaisesRegex(ValueError, self.todo.name):
+			update(doctype="ToDo", names=[self.todo.name], values={"status": "Not A Real Status"}, ctx=CTX)
 
-		self.assertEqual(result["updated"], [])
-		self.assertEqual(len(result["failures"]), 1)
+	def test_a_missing_record_fails_the_call(self):
+		with self.assertRaisesRegex(ValueError, "does-not-exist"):
+			update(doctype="ToDo", names=["does-not-exist"], values={"status": "Closed"}, ctx=CTX)
 
-	def test_missing_record_reported_as_failure(self):
-		result = update(doctype="ToDo", names=["does-not-exist"], values={"status": "Closed"}, ctx=CTX)
-
-		self.assertEqual(result["updated"], [])
-		self.assertEqual(result["failures"][0]["name"], "does-not-exist")
-
-	def test_permission_denied_reported_as_failure(self):
+	def test_permission_denied_fails_the_call(self):
 		frappe.set_user("Guest")
-		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"}, ctx=CTX)
+		with self.assertRaisesRegex(ValueError, "No permission"):
+			update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"}, ctx=CTX)
 
-		self.assertEqual(result["updated"], [])
-		self.assertEqual(len(result["failures"]), 1)
+	def test_one_failed_record_changes_none(self):
+		failing = frappe.get_doc({"doctype": "ToDo", "description": "ai update fails"}).insert()
+		names = [self.todo.name, failing.name]
+		with (
+			_todo_hook_fails("on_update", "ai update fails"),
+			self.assertRaisesRegex(ValueError, f"{failing.name}: hook failed\nNothing was saved."),
+		):
+			update(doctype="ToDo", names=names, values={"status": "Closed"}, ctx=CTX)
+
+		self.assertEqual(frappe.get_all("ToDo", {"name": ["in", names]}, pluck="status"), ["Open", "Open"])
+
+	def test_a_lost_savepoint_is_reported(self):
+		def end_savepoint_then_fail(doc, *args, **kwargs):
+			frappe.db.release_savepoint("flow_batch")
+			raise frappe.ValidationError("after the savepoint")
+
+		with (
+			patch.object(ToDo, "on_update", end_savepoint_then_fail),
+			self.assertRaisesRegex(
+				ValueError, "after the savepoint\nSome earlier changes may already be committed"
+			),
+		):
+			update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"}, ctx=CTX)
 
 
 class TestDelete(IntegrationTestCase):
@@ -478,18 +505,44 @@ class TestDelete(IntegrationTestCase):
 		self.assertEqual(result["deleted"], [self.todo.name])
 		self.assertFalse(frappe.db.exists("ToDo", self.todo.name))
 
-	def test_missing_record_reported_as_failure(self):
-		result = delete(doctype="ToDo", names=["does-not-exist"], ctx=CTX)
+	def test_a_missing_record_fails_the_call(self):
+		with self.assertRaisesRegex(ValueError, "does-not-exist"):
+			delete(doctype="ToDo", names=["does-not-exist"], ctx=CTX)
 
-		self.assertEqual(result["deleted"], [])
-		self.assertEqual(result["failures"][0]["name"], "does-not-exist")
-
-	def test_permission_denied_reported_as_failure(self):
+	def test_permission_denied_fails_the_call(self):
 		frappe.set_user("Guest")
-		result = delete(doctype="ToDo", names=[self.todo.name], ctx=CTX)
+		with self.assertRaisesRegex(ValueError, "No permission"):
+			delete(doctype="ToDo", names=[self.todo.name], ctx=CTX)
 
-		self.assertEqual(result["deleted"], [])
-		self.assertEqual(len(result["failures"]), 1)
+	def test_one_failed_record_deletes_none(self):
+		failing = frappe.get_doc({"doctype": "ToDo", "description": "ai delete fails"}).insert()
+		names = [self.todo.name, failing.name]
+		with (
+			_todo_hook_fails("after_delete", "ai delete fails"),
+			self.assertRaisesRegex(ValueError, f"{failing.name}: hook failed"),
+		):
+			delete(doctype="ToDo", names=names, ctx=CTX)
+
+		self.assertEqual(frappe.db.count("ToDo", {"name": ["in", names]}), 2)
+
+
+class TestRunAction(IntegrationTestCase):
+	def setUp(self):
+		self.todo = frappe.get_doc({"doctype": "ToDo", "description": "ai action probe"}).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_one_failed_record_changes_none(self):
+		failing = frappe.get_doc({"doctype": "ToDo", "description": "ai action fails"}).insert()
+		names = [self.todo.name, failing.name]
+		with (
+			_todo_hook_fails("on_discard", "ai action fails"),
+			self.assertRaisesRegex(ValueError, f"{failing.name}: hook failed"),
+		):
+			run_action(doctype="ToDo", names=names, action="discard", ctx=CTX)
+
+		self.assertEqual(frappe.get_all("ToDo", {"name": ["in", names]}, pluck="docstatus"), [0, 0])
 
 
 class TestSyncBuiltinTools(IntegrationTestCase):
@@ -570,6 +623,16 @@ def _user(email: str) -> str:
 			{"doctype": "User", "email": email, "first_name": "Probe", "send_welcome_email": 0}
 		).insert(ignore_permissions=True)
 	return email
+
+
+def _todo_hook_fails(hook: str, description: str):
+	"""ToDo's `hook` raises for the ToDo with this description, after that record's write."""
+
+	def fail(doc, *args, **kwargs):
+		if doc.description == description:
+			raise frappe.ValidationError("hook failed")
+
+	return patch.object(ToDo, hook, fail, create=True)
 
 
 def _contact_with_phone(owner: str) -> str:

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Literal
+from typing import Any, Literal, NoReturn
 
 import frappe
 from frappe import _
@@ -17,6 +17,7 @@ MAX_READ_LIMIT = 200
 LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})
 _CONFIRM_STR_LIMIT = 120
 _ERROR_LIMIT = 300
+_BATCH_SAVEPOINT = "flow_batch"
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
 SOURCE_TOOL_SLUGS = frozenset({"read", "grep"})
 SUBAGENT_TOOL_SLUG = "subagent"
@@ -562,12 +563,15 @@ def _apply_action(doctype: str, name: str, action: str, args: dict[str, Any]) ->
 	),
 )
 def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> dict[str, Any]:
-	"""Create one or more records. `records` is a list of field-value dicts, each validated and inserted."""
+	"""Create one or more records. `records` is a list of field-value dicts, each validated and inserted.
+
+	If any record fails, none are created.
+	"""
 	if not frappe.has_permission(doctype, "create"):
 		raise PermissionError(f"No permission to create {doctype}")
 
 	created: list[str] = []
-	failures: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
 	for row, values in enumerate(records):
 		try:
 			doc = frappe.new_doc(doctype)
@@ -575,12 +579,8 @@ def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> 
 			doc.insert()
 			created.append(doc.name)
 		except Exception as e:
-			failures.append({"row": row, "error": _error_text(e)})
-
-	result: dict[str, Any] = {"doctype": doctype, "created": created}
-	if failures:
-		result["failures"] = failures
-	return result
+			_undo_batch(f"Record {row + 1} of {len(records)}", e)
+	return {"doctype": doctype, "created": created}
 
 
 @tool(
@@ -595,9 +595,12 @@ def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> 
 	),
 )
 def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolContext) -> dict[str, Any]:
-	"""Apply the same field values to one or more existing records. Runs full validation per record."""
+	"""Apply the same field values to one or more existing records. Runs full validation per record.
+
+	If any record fails, none are changed.
+	"""
 	updated: list[str] = []
-	failures: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
 	for name in names:
 		try:
 			if not frappe.has_permission(doctype, "write", name):
@@ -607,12 +610,8 @@ def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolC
 			doc.save()
 			updated.append(doc.name)
 		except Exception as e:
-			failures.append({"name": name, "error": _error_text(e)})
-
-	result: dict[str, Any] = {"doctype": doctype, "updated": updated}
-	if failures:
-		result["failures"] = failures
-	return result
+			_undo_batch(name, e)
+	return {"doctype": doctype, "updated": updated}
 
 
 @tool(
@@ -626,9 +625,12 @@ def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolC
 	),
 )
 def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any]:
-	"""Delete one or more records. Fails per record if another record links to it."""
+	"""Delete one or more records.
+
+	If any record can't be deleted, for example because another record links to it, none are.
+	"""
 	deleted: list[str] = []
-	failures: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
 	for name in names:
 		try:
 			if not frappe.has_permission(doctype, "delete", name):
@@ -636,12 +638,8 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 			frappe.delete_doc(doctype, name, ignore_missing=False)
 			deleted.append(name)
 		except Exception as e:
-			failures.append({"name": name, "error": _error_text(e)})
-
-	result: dict[str, Any] = {"doctype": doctype, "deleted": deleted}
-	if failures:
-		result["failures"] = failures
-	return result
+			_undo_batch(name, e)
+	return {"doctype": doctype, "deleted": deleted}
 
 
 @tool(
@@ -663,7 +661,10 @@ def run_action(
 	*,
 	ctx: ToolContext,
 ) -> dict[str, Any]:
-	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method."""
+	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method.
+
+	If it fails on any record, none are changed.
+	"""
 	args = args or {}
 
 	if action == "rename":
@@ -675,17 +676,24 @@ def run_action(
 		return {"action": "rename", "old": names[0], "new": frappe.rename_doc(doctype, names[0], new_name)}
 
 	results: list[dict[str, Any]] = []
-	failures: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
 	for name in names:
 		try:
 			results.append({"name": name, "result": _apply_action(doctype, name, action, args)})
 		except Exception as e:
-			failures.append({"name": name, "error": _error_text(e)})
+			_undo_batch(name, e)
+	return {"action": action, "results": results}
 
-	result: dict[str, Any] = {"action": action, "results": results}
-	if failures:
-		result["failures"] = failures
-	return result
+
+def _undo_batch(record: str, error: Exception) -> NoReturn:
+	"""Undo every write since the batch began, then fail naming the record that broke it."""
+	try:
+		frappe.db.rollback(save_point=_BATCH_SAVEPOINT)
+		undone = "Nothing was saved."
+	except Exception:  # a commit in the batch, such as before a schema change, took the savepoint
+		frappe.db.rollback()
+		undone = "Some earlier changes may already be committed; check the records before retrying."
+	raise ValueError(f"{record}: {_error_text(error)}\n{undone}") from error
 
 
 BUILTIN_TOOLS: list[Tool] = [
