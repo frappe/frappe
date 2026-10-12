@@ -94,7 +94,17 @@ class AttachmentQueue(Document):
 			attachment_queue=self.name,
 		)
 
-		self.db_set({"status": "Queued", "task": task.name, "extraction_queued_on": now()})
+		# Clear the previous result so it never sits next to a file it did not come from.
+		self.db_set(
+			{
+				"status": "Queued",
+				"task": task.name,
+				"extraction_queued_on": now(),
+				"extracted_text": None,
+				"extraction_method": None,
+				"error_message": None,
+			}
+		)
 
 	def extract(self) -> tuple[str, str]:
 		"""Return the extracted text and extraction method."""
