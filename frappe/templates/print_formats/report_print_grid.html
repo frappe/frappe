@@ -1,0 +1,57 @@
+{% if title %}
+<h2 class="text-center">{{ _(title) }}</h2>
+<hr>
+{% endif %}
+
+{% if applied_filters %}
+	{% for label, value in applied_filters.items() %}
+	<div class="filter-row">
+		<strong>{{ label | e }}:</strong> {{ frappe.sanitize_html(value) }}
+	</div>
+	{% endfor %}
+	<hr>
+{% endif %}
+
+{% for table_rows in rows | batch(rows_per_table) %}
+<table class="table table-bordered" {% if not loop.first %} style="page-break-before: always" {% endif %}>
+	<thead>
+		<tr>
+			<th> # </th>
+		{% for col in columns %}
+			<th {% if col.fieldtype in numeric_fieldtypes %} class="text-right" {% endif %}>
+				{{ _(col.label) }}</th>
+		{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for row_number, row in table_rows %}
+			<tr style="height: 30px">
+
+			<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
+				<span> {{ row_number or "" }} </span>
+			</td>
+
+			{% set format_doc = row_doc(first_row if row.is_total_row else row, doctype=title, name=row_number) %}
+			{% for col in columns %}
+				{% set value = row.get(col.fieldname) %}
+				<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %} {% if value is string and value.split(" ") | map("length") | max > 45 %} class="overflow-wrap-anywhere" {% endif %}>
+					<span {% if loop.first %} style="padding-left: {{ (row.indent | int) * 2 }}em" {% endif %}>
+						{% if row.is_total_row and loop.first %}
+							{{ _("Total") }}
+						{% elif col.fieldtype == "Check" %}
+							{{ "✓" if value == 1 else "✗" }}
+						{% elif value is none or value == "" %}
+						{% elif col.fieldtype == "Link" %}
+							{{ link_titles.get(col.options ~ "::" ~ value, value) | e }}
+						{% else %}
+							{% set formatted = frappe.format(value, col, format_doc) %}
+							{{ frappe.sanitize_html(formatted) if formatted is string and "<" in formatted else formatted }}
+						{% endif %}
+					</span>
+				</td>
+			{% endfor %}
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endfor %}

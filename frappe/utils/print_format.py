@@ -7,7 +7,15 @@ from io import BytesIO
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.desk.query_report import get_permitted_report_print_format
+from frappe.desk.link_title import get_report_link_titles
+from frappe.desk.query_report import (
+	add_total_row,
+	format_filter_value,
+	get_column_as_dict,
+	get_permitted_report_print_format,
+	normalize_result,
+	run,
+)
 from frappe.model.document import Document
 from frappe.translate import print_language
 from frappe.utils import cint
@@ -521,6 +529,138 @@ def render_report_jinja(
 	)
 
 	return {"body": body, "letter_head": letter_head}
+
+
+# Chrome fails to print a single table of tens of thousands of rows
+REPORT_PDF_ROWS_PER_TABLE = 1000
+
+
+@frappe.whitelist(methods=["POST"])
+@frappe.concurrent_limit()
+def download_report_pdf(
+	report_name: str,
+	filters: str | dict | None = None,
+	orientation: str = "Landscape",
+	print_format: str | None = None,
+	letterhead: str | None = None,
+	no_letterhead: bool | int = 0,
+	columns: str | list[str] | None = None,
+	visible_idx: str | list[int] | None = None,
+	custom_columns: str | list[dict] | None = None,
+	applied_filters: str | dict | None = None,
+):
+	"""Run the report on the server and return it as a PDF.
+
+	`columns` are the fieldnames to print in order, `visible_idx` the row indices to print in order.
+	"""
+	from frappe.model import numeric_fieldtypes
+	from frappe.www.printview import get_print_style
+
+	filters = frappe.parse_json(filters) or {}
+	visible_idx = frappe.parse_json(visible_idx) or []
+	if print_format and frappe.db.get_value("Print Format", print_format, "report") != report_name:
+		frappe.throw(
+			_("Print Format {0} does not belong to report {1}").format(
+				frappe.bold(print_format), frappe.bold(_(report_name))
+			)
+		)
+
+	data = frappe._dict(
+		run(
+			report_name,
+			filters,
+			custom_columns=frappe.parse_json(custom_columns),
+			are_default_filters=False,
+		)
+	)
+	if not data.columns:
+		frappe.throw(_("No data to export"))
+	ref_doctype = frappe.get_cached_value("Report", report_name, "ref_doctype")
+	if not frappe.has_permission(ref_doctype, "print"):
+		frappe.throw(
+			_("You don't have permission to print: {0}").format(_(ref_doctype)),
+			frappe.PermissionError,
+		)
+	make_access_log(report_name=report_name, filters=filters, file_type="PDF", method="Print")
+
+	report_columns = [get_column_as_dict(column) for column in data.columns]
+	total_row = data.result.pop() if cint(data.add_total_row) and data.result else None
+	rows = normalize_result(data.result or [], report_columns)
+
+	if visible_idx:
+		numbered_rows = [(index + 1, rows[index]) for index in visible_idx if 0 <= index < len(rows)]
+		if total_row:
+			total_row = numbered_rows and add_total_row([row for _, row in numbered_rows], report_columns)[-1]
+	else:
+		numbered_rows = list(enumerate(rows, start=1))
+
+	if total_row:
+		total_row = zip([column.fieldname for column in report_columns], total_row, strict=False)
+		numbered_rows.append((None, frappe._dict(total_row, is_total_row=True)))
+
+	if print_format:
+		rendered = render_report_jinja(
+			print_format,
+			data=[row for _, row in numbered_rows],
+			columns=report_columns,
+			filters=filters,
+			letterhead=letterhead,
+			no_letterhead=no_letterhead,
+		)
+		content, letter_head = rendered["body"], rendered["letter_head"]
+		printed_columns = report_columns
+	else:
+		columns = frappe.parse_json(columns)
+		printed_columns = (
+			[column for fieldname in columns for column in report_columns if column.fieldname == fieldname]
+			if columns
+			else [column for column in report_columns if not column.hidden]
+		)
+		letter_head = (
+			None
+			if cint(no_letterhead)
+			else render_letterhead_for_print(
+				letterhead,
+				filters | {"company": filters.get("company") or frappe.defaults.get_user_default("company")},
+			)
+		)
+		content = frappe.get_template("templates/print_formats/report_print_grid.html").render(
+			{
+				"title": report_name,
+				"applied_filters": {
+					label: format_filter_value(value)
+					for label, value in (frappe.parse_json(applied_filters) or {}).items()
+				},
+				"columns": printed_columns,
+				"rows": numbered_rows,
+				"first_row": numbered_rows[0][1] if numbered_rows else None,
+				"row_doc": frappe._dict,
+				"link_titles": get_report_link_titles(printed_columns, rows),
+				"rows_per_table": REPORT_PDF_ROWS_PER_TABLE,
+				"numeric_fieldtypes": numeric_fieldtypes,
+			},
+		)
+
+	print_settings = frappe.get_single("Print Settings")
+	html = frappe.get_template("templates/print_formats/report_print_template.html").render(
+		{
+			"title": _(report_name),
+			"lang": frappe.local.lang,
+			"landscape": orientation == "Landscape",
+			"print_css": get_print_style(print_settings.print_style or "Redesign", for_legacy=True),
+			"use_smaller_font": len(printed_columns) > 20
+			and (not print_format or frappe.get_cached_value("Report", report_name, "is_standard") != "Yes"),
+			"letter_head": letter_head,
+			"repeat_header_footer": print_settings.repeat_header_footer,
+			"content": content,
+		},
+	)
+
+	frappe.local.response.filename = f"{report_name}.pdf"
+	frappe.local.response.filecontent = get_pdf(
+		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+	)
+	frappe.local.response.type = "pdf"
 
 
 @frappe.whitelist()
