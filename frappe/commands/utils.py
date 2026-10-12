@@ -93,6 +93,31 @@ def build(
 			print("Compiling translations for", app)
 			compile_translations(app, force=force)
 
+		run_after_build_hook(apps)
+
+
+def run_after_build_hook(built_apps: list[str]):
+	"""Run build hooks after assets are built.
+
+	- `after_build`: self-referential - runs only for apps that were just built, called with no arguments.
+	- `after_app_build`: cross-app - runs for every app on the bench, called with the list of built apps,
+	  so an app can react to another app's build (e.g. compile frontends it owns for that app).
+	"""
+	from importlib import import_module
+
+	def _get_method(fn):
+		modulename = ".".join(fn.split(".")[:-1])
+		methodname = fn.split(".")[-1]
+		return getattr(import_module(modulename), methodname)
+
+	for app in built_apps:
+		for fn in frappe.get_hooks("after_build", app_name=app):
+			_get_method(fn)()
+
+	for app in frappe.get_all_apps():
+		for fn in frappe.get_hooks("after_app_build", app_name=app):
+			_get_method(fn)(built_apps)
+
 
 @click.command("watch")
 @click.option("--apps", help="Watch assets for specific apps")
