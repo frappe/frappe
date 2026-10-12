@@ -671,18 +671,18 @@ class User(Document):
 		prefix = f"{base}-"
 		pattern = prefix.replace("\\", "_") + "%"
 		taken = frappe.get_all("User", filters={"username": ("like", pattern)}, pluck="username")
-		numbers = (u[len(prefix) :] for u in taken if u.lower().startswith(prefix))
+		numbers = (username.rpartition("-")[2] for username in taken)
 		return f"{prefix}{max((int(n) for n in numbers if n.isdecimal()), default=0) + 1}"
 
-	def db_insert(self, *args, **kwargs):
+	def db_insert(self, ignore_if_duplicate=False):
 		if not self.flags.username_from_first_name:
-			return super().db_insert(*args, **kwargs)
+			return super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
 		for attempt in range(5):
 			messages = len(frappe.message_log)
 			frappe.db.savepoint("user_username")
 			try:
-				super().db_insert(*args, **kwargs)
+				super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
 			except frappe.UniqueValidationError as e:
 				if attempt == 4 or "username" not in str(e.args[-1]):
 					raise
