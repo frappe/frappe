@@ -992,9 +992,8 @@ frappe.ui.Sidebar = class Sidebar {
 		return ["link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
-	// Where an app's icon leads. An app whose own UI is outside the desk goes to its declared route.
-	// A desk app goes to the first rail entry that opens a desk page, else its declared route, else
-	// its first navigable module.
+	// An app's icon always leads into the app: an app with its own UI outside the desk opens that,
+	// and a desk app opens the first entry of the rail its user arranged that stays in the desk.
 	app_landing_route(app) {
 		if (!app) return null;
 		if (app.app_route && !this.is_desk_route(app.app_route)) return app.app_route;
