@@ -60,6 +60,7 @@
   "allow_events_in_timeline",
   "allow_auto_repeat",
   "make_attachments_public",
+  "enable_upload_first_workflow",
   "view_settings",
   "show_title_field_in_link",
   "translated_doctype",
@@ -605,6 +606,14 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.istable",
+   "description": "Documents of this type can be created from a file uploaded to the Attachment Queue.",
+   "fieldname": "enable_upload_first_workflow",
+   "fieldtype": "Check",
+   "label": "Allow document creation from an uploaded file"
+  },
+  {
+   "default": "0",
    "depends_on": "eval: doc.is_submittable",
    "description": "Enabling this will submit documents in background",
    "fieldname": "queue_in_background",
@@ -799,7 +808,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-09-29 19:26:17.998677",
+ "modified": "2026-10-13 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
