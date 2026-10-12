@@ -34,6 +34,7 @@ class AttachmentQueue(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		document_type: DF.Link
 		error_message: DF.SmallText | None
 		extracted_text: DF.LongText | None
 		extraction_method: DF.Data | None

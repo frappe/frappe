@@ -9,6 +9,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.file_manager import save_file
 
 TEST_USER = "test@example.com"
+TARGET_DOCTYPE = "ToDo"
 
 
 def pdf_with_text(text: str) -> bytes:
@@ -44,7 +45,13 @@ class TestAttachmentQueue(IntegrationTestCase):
 		return save_file(file_name, content, None, None, is_private=1)
 
 	def make_queue(self, file_url: str):
-		return frappe.get_doc({"doctype": "Attachment Queue", "source_file": file_url}).insert()
+		return frappe.get_doc(
+			{
+				"doctype": "Attachment Queue",
+				"source_file": file_url,
+				"document_type": TARGET_DOCTYPE,
+			}
+		).insert()
 
 	def delete_committed_queue(self, name: str):
 		# The row this removes was committed on purpose, so removing it has to be too.
@@ -116,5 +123,11 @@ class TestAttachmentQueue(IntegrationTestCase):
 		file_doc = self.make_file(pdf_with_text("CONFIDENTIAL"), "private.pdf")
 
 		with self.set_user(TEST_USER):
-			queue_doc = frappe.get_doc({"doctype": "Attachment Queue", "source_file": file_doc.file_url})
+			queue_doc = frappe.get_doc(
+				{
+					"doctype": "Attachment Queue",
+					"source_file": file_doc.file_url,
+					"document_type": TARGET_DOCTYPE,
+				}
+			)
 			self.assertRaises(frappe.PermissionError, queue_doc.insert)

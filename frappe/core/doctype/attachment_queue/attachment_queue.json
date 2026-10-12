@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "source_file",
+  "document_type",
   "extraction_method",
   "column_break_status",
   "status",
@@ -23,6 +24,16 @@
    "in_list_view": 1,
    "label": "Source File",
    "reqd": 1
+  },
+  {
+   "description": "The DocType this file is being read for.",
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Target Document Type",
+   "options": "DocType",
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "description": "How the text was read. Images and scanned PDFs are kept for preview and produce no text.",
@@ -87,7 +98,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-12 00:00:00.000000",
+ "modified": "2026-10-13 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Attachment Queue",
