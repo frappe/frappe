@@ -3,8 +3,8 @@ STYLE_PRESETS = {
 		"table": {"table_style": "lined", "table_bordered": False, "table_radius": 6},
 	},
 	"Classic": {
-		"section": {"field_borders": 1, "cell_padding": 6, "radius": 0},
-		"table": {"table_style": "lined", "table_bordered": True, "table_radius": 0},
+		"section": {"field_borders": 1, "cell_padding": 6, "radius": 6},
+		"table": {"table_style": "lined", "table_bordered": True, "table_radius": 6},
 	},
 	"Striped": {
 		"table": {
