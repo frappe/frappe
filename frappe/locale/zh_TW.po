@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-09-27 09:36+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"POT-Creation-Date: 2026-10-04 11:07+0000\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Traditional\n"
 "MIME-Version: 1.0\n"
@@ -757,7 +757,7 @@ msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 msgid "<span class=\"h2\">Hi,</span>"
 msgstr "<span class=\"h2\">您好，</span>"
 
-#: frappe/custom/doctype/custom_field/custom_field.js:39
+#: frappe/custom/doctype/custom_field/custom_field.js:35
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
 msgstr "<strong>警告：</strong>此欄位為系統產生，未來的更新可能會覆寫它。請改用 {0} 來修改它。"
 
@@ -792,7 +792,7 @@ msgstr "Frappe Framework 執行個體可作為 OAuth 用戶端、資源伺服器
 msgid "A field with the name {0} already exists in {1}"
 msgstr "{1} 中已存在名稱為 {0} 的欄位"
 
-#: frappe/core/doctype/file/file.py:358
+#: frappe/core/doctype/file/file.py:365
 msgid "A file with same name {} already exists"
 msgstr "已存在相同名稱的檔案 {}"
 
@@ -1016,6 +1016,12 @@ msgstr "約剩 {0} 秒"
 msgid "Accept Invitation"
 msgstr "接受邀請"
 
+#. Description of the 'Allow Unregistered Events' (Check) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Accept emit() calls for events no app registered through the automation_events hook."
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
@@ -1119,7 +1125,7 @@ msgstr "動作／路由"
 msgid "Action Complete"
 msgstr "動作完成"
 
-#: frappe/model/document.py:2026
+#: frappe/model/document.py:2028
 msgid "Action Failed"
 msgstr "動作失敗"
 
@@ -1133,10 +1139,22 @@ msgstr "動作標籤"
 msgid "Action Timeout (Seconds)"
 msgstr "動作逾時（秒）"
 
+#. Label of the action_type (Select) field in DocType 'Automation Action'
+#. Label of the action_type (Data) field in DocType 'Automation Run Step'
 #. Label of the action_type (Select) field in DocType 'DocType Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/doctype_action/doctype_action.json
 msgid "Action Type"
 msgstr "動作類型"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:163
+msgid "Action Type is required for action steps"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:499
+msgid "Action completed"
+msgstr ""
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:120
 msgid "Action {0} completed successfully on {1} {2}. View it {3}"
@@ -1146,10 +1164,14 @@ msgstr "動作 {0} 已在 {1} {2} 上成功完成。檢視 {3}"
 msgid "Action {0} failed on {1} {2}. View it {3}"
 msgstr "動作 {0} 在 {1} {2} 上失敗。檢視 {3}"
 
+#. Label of the actions_section (Section Break) field in DocType 'Automation
+#. Flow'
+#. Label of the actions (Table) field in DocType 'Automation Flow'
 #. Label of the actions_section (Tab Break) field in DocType 'DocType'
 #. Label of the actions_section (Section Break) field in DocType 'User Session
 #. Display'
 #. Label of the actions (Table) field in DocType 'Customize Form'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/communication/communication.js:66
 #: frappe/core/doctype/communication/communication.js:74
 #: frappe/core/doctype/communication/communication.js:82
@@ -1178,6 +1200,11 @@ msgstr "動作 {0} 在 {1} {2} 上失敗。檢視 {3}"
 #: frappe/public/js/frappe/views/reports/query_report.js:910
 msgid "Actions"
 msgstr "動作"
+
+#. Label of the actions_snapshot (JSON) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Actions Snapshot"
+msgstr ""
 
 #. Label of the activate (Check) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
@@ -1335,7 +1362,7 @@ msgid "Add Gray Background"
 msgstr "新增灰色背景"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:236
-#: frappe/public/js/frappe/ui/group_by/group_by.js:430
+#: frappe/public/js/frappe/ui/group_by/group_by.js:441
 msgid "Add Group"
 msgstr "新增群組"
 
@@ -1365,7 +1392,7 @@ msgstr "新增查詢參數"
 msgid "Add Reply-To header"
 msgstr "新增 Reply-To 標頭"
 
-#: frappe/core/doctype/user/user.py:870
+#: frappe/core/doctype/user/user.py:871
 msgid "Add Roles"
 msgstr "新增角色"
 
@@ -1491,6 +1518,10 @@ msgstr "新增欄"
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:48
 msgid "Add field"
 msgstr "新增欄位"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:23
+msgid "Add field rules below, every rule must match before the flow can run"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:111
 msgid "Add multiple"
@@ -1705,11 +1736,11 @@ msgstr "為 DocType 新增自訂欄位"
 msgid "Administrator"
 msgstr "系統管理員"
 
-#: frappe/core/doctype/user/user.py:1297
+#: frappe/core/doctype/user/user.py:1301
 msgid "Administrator Logged In"
 msgstr "系統管理員已登入"
 
-#: frappe/core/doctype/user/user.py:1291
+#: frappe/core/doctype/user/user.py:1295
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "系統管理員於 {1} 透過 IP 位址 {2} 存取了 {0}。"
 
@@ -1724,11 +1755,22 @@ msgstr "系統管理員無法追蹤"
 msgid "Advanced"
 msgstr "進階"
 
+#. Label of the advanced_condition_section (Section Break) field in DocType
+#. 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Advanced Condition"
+msgstr ""
+
 #. Label of the advanced_control_section (Section Break) field in DocType 'User
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Advanced Control"
 msgstr "進階控制項"
+
+#. Label of the condition (Code) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Advanced Expression using Python"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/link.js:533
 #: frappe/public/js/frappe/form/controls/link.js:535
@@ -1740,6 +1782,8 @@ msgstr "進階搜尋"
 msgid "Advanced Settings"
 msgstr "進階設定"
 
+#. Option for the 'Date Direction' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/public/js/frappe/ui/filters/filter.js:64
 #: frappe/public/js/frappe/ui/filters/filter.js:70
 msgid "After"
@@ -1884,6 +1928,10 @@ msgstr "附加至網站幻燈片秀的所有圖片皆須為公開"
 #: frappe/public/js/frappe/data_import/data_exporter.js:29
 msgid "All Records"
 msgstr "所有記錄"
+
+#: frappe/public/js/frappe/ui/toolbar/search.js:432
+msgid "All Results"
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:2336
 msgid "All Submissions"
@@ -2055,6 +2103,12 @@ msgstr "允許自我核准"
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Sending Usage Data for Improving Applications"
 msgstr "允許傳送使用資料以改善應用程式"
+
+#. Label of the allow_unregistered_events (Check) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Allow Unregistered Events"
+msgstr ""
 
 #. Description of the 'Allow Self Approval' (Check) field in DocType 'Workflow
 #. Transition'
@@ -2309,7 +2363,7 @@ msgstr "允許使用者檢視文件。"
 msgid "Allows users to enable the mask property for any field of the respective doctype."
 msgstr "允許使用者為對應 doctype 的任何欄位啟用遮罩屬性。"
 
-#: frappe/core/doctype/user/user.py:1098
+#: frappe/core/doctype/user/user.py:1102
 msgid "Already Registered"
 msgstr "已註冊"
 
@@ -2411,7 +2465,7 @@ msgstr "修訂中"
 msgid "Amendment Naming Override"
 msgstr "修訂命名覆寫"
 
-#: frappe/model/document.py:625
+#: frappe/model/document.py:626
 msgid "Amendment Not Allowed"
 msgstr "不允許修訂"
 
@@ -2922,9 +2976,17 @@ msgstr "分派給"
 msgid "Assigned To/Owner"
 msgstr "分派給／擁有者"
 
+#: frappe/automation_engine/actions/core.py:331
+msgid "Assigned to {0}"
+msgstr ""
+
 #. Label of the assignee (Table MultiSelect) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Assignee"
+msgstr "受指派人"
+
+#: frappe/automation_engine/actions/core.py:192
+msgid "Assignees"
 msgstr "受指派人"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:384
@@ -2995,6 +3057,10 @@ msgstr "分派"
 msgid "Asynchronous"
 msgstr "非同步"
 
+#: frappe/automation_engine/actions/core.py:316
+msgid "At least one assignee is required"
+msgstr ""
+
 #: frappe/public/js/frappe/form/grid_row.js:697
 msgid "At least one column is required to show in the grid."
 msgstr "格線中至少需顯示一欄。"
@@ -3006,6 +3072,10 @@ msgstr "網頁表單欄位資料表中至少需要一個欄位"
 #: frappe/core/doctype/data_export/data_export.js:44
 msgid "At least one field of Parent Document Type is mandatory"
 msgstr "上層文件類型至少需一個欄位為必填"
+
+#: frappe/automation_engine/actions/core.py:247
+msgid "At least one recipient is required"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3112,7 +3182,7 @@ msgstr "附件圖庫篩選條件必須以 File 為對象。"
 msgid "Attachment Limit (MB)"
 msgstr "附件上限（MB）"
 
-#: frappe/core/doctype/file/file.py:427
+#: frappe/core/doctype/file/file.py:434
 #: frappe/public/js/frappe/form/sidebar/attachments.js:36
 msgid "Attachment Limit Reached"
 msgstr "已達附件上限"
@@ -3142,6 +3212,11 @@ msgstr "附件設定"
 #: frappe/website/doctype/web_form/templates/web_form.html:123
 msgid "Attachments"
 msgstr "附件"
+
+#. Label of the attempt (Int) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Attempt"
+msgstr "嘗試"
 
 #: frappe/public/js/frappe/form/print_utils.js:160
 msgid "Attempting Connection to QZ Tray..."
@@ -3400,6 +3475,10 @@ msgstr "自動重複失敗。請於修正問題後再啟用自動重複。"
 msgid "Auto repeat skipped. The owner cannot access the reference document."
 msgstr "已略過自動重複。擁有者無法存取參照文件。"
 
+#: frappe/automation_engine/runner.py:611
+msgid "Auto-disabled after {0} consecutive failures"
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
@@ -3462,6 +3541,80 @@ msgstr "於下列時數內自動刪除帳號（小時）"
 #: frappe/desktop_icon/automation.json frappe/workspace_sidebar/automation.json
 msgid "Automation"
 msgstr "自動化"
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Automation Action"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Automation Event Subscription"
+msgstr ""
+
+#. Name of a DocType
+#. Label of the automation (Link) field in DocType 'Automation Run'
+#. Label of the automation (Link) field in DocType 'Automation Trigger Queue'
+#. Label of a Workspace Sidebar Item
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+#: frappe/workspace_sidebar/automation.json
+msgid "Automation Flow"
+msgstr ""
+
+#. Label of the automation_title (Data) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Automation Flow Title"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:185
+msgid "Automation Flow cannot target a child table: {0}"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:637
+msgid "Automation Flow {0} was auto-disabled"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Automation Run"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Automation Run Step"
+msgstr ""
+
+#. Name of a DocType
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Automation Settings"
+msgstr ""
+
+#. Name of a DocType
+#. Label of a Workspace Sidebar Item
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+#: frappe/workspace_sidebar/automation.json
+msgid "Automation Trigger Queue"
+msgstr ""
+
+#. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
+#. Label of the automation_user (Link) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Automation User"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:134
+msgid "Automation User {0} is disabled or missing"
+msgstr ""
+
+#: frappe/automation_engine/events.py:251
+msgid "Automation event payload is too large"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:392
+msgid "Automation paused"
+msgstr ""
 
 #. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Group By Type' (Select) field in DocType 'Dashboard Chart'
@@ -3769,7 +3922,9 @@ msgstr "基本"
 msgid "Basic Info"
 msgstr "基本資訊"
 
+#. Option for the 'Date Direction' (Select) field in DocType 'Automation Flow'
 #. Label of the before (Int) field in DocType 'Event Notifications'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 #: frappe/public/js/frappe/ui/filters/filter.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:69
@@ -3844,7 +3999,7 @@ msgstr "開頭為"
 msgid "Beta"
 msgstr "測試版"
 
-#: frappe/core/doctype/user/user.py:1314 frappe/utils/password_strength.py:73
+#: frappe/core/doctype/user/user.py:1318 frappe/utils/password_strength.py:73
 msgid "Better add a few more letters or another word"
 msgstr "最好再加幾個字母或另一個詞"
 
@@ -3893,6 +4048,11 @@ msgstr "封鎖模組"
 #: frappe/core/doctype/user/user.json
 msgid "Block Modules"
 msgstr "封鎖模組"
+
+#. Description of the 'Document Type' (Link) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Blocked for child tables (istable). Required for document and date-based triggers."
+msgstr ""
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -3955,6 +4115,15 @@ msgstr "右下"
 #: frappe/core/doctype/communication/communication.json
 msgid "Bounced"
 msgstr "已退信"
+
+#. Label of the branch (Select) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Branch"
+msgstr "分支機構（分公司）"
+
+#: frappe/automation_engine/api.py:260
+msgid "Branch for step {0} must be If or Else"
+msgstr ""
 
 #. Label of the brand (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -4167,6 +4336,18 @@ msgstr "對從受限 IP 位址登入的使用者略過雙重驗證"
 msgid "Bypass restricted IP Address check If Two Factor Auth Enabled"
 msgstr "啟用雙重驗證時略過受限 IP 位址檢查"
 
+#. Description of the 'Event Payload Limit' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Bytes an emitted event payload may carry."
+msgstr ""
+
+#. Description of the 'Step Output Limit' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Bytes of output a step may publish to later steps. Larger output is dropped, not failed."
+msgstr ""
+
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "C5E"
@@ -4366,11 +4547,14 @@ msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr "取消 {0} 份文件？"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Event
+#. Subscription'
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #. Option for the 'Status' (Select) field in DocType 'Event'
 #. Option for the 'Status' (Select) field in DocType 'ToDo'
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/user_invitation/user_invitation.json
 #: frappe/desk/doctype/event/event.json frappe/desk/doctype/todo/todo.json
@@ -4414,7 +4598,7 @@ msgstr "無法移除"
 msgid "Cannot Update After Submit"
 msgstr "送出後無法更新"
 
-#: frappe/core/doctype/file/file.py:768 frappe/utils/file_manager.py:385
+#: frappe/core/doctype/file/file.py:775 frappe/utils/file_manager.py:385
 msgid "Cannot access file path {0}"
 msgstr "無法存取檔案路徑 {0}"
 
@@ -4434,11 +4618,11 @@ msgstr "無法在送出前取消。請參閱轉換 {0}"
 msgid "Cannot cancel {0}."
 msgstr "無法取消 {0}。"
 
-#: frappe/model/document.py:1137
+#: frappe/model/document.py:1138
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr "無法將 docstatus 從 0（草稿）變更為 2（已取消）"
 
-#: frappe/model/document.py:1151
+#: frappe/model/document.py:1152
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "無法將 docstatus 從 1（已送出）變更為 0（草稿）"
 
@@ -4470,11 +4654,11 @@ msgstr "無法針對子文件建立 {0}：{1}"
 msgid "Cannot create private workspace of other users"
 msgstr "無法建立其他使用者的私人工作區"
 
-#: frappe/desk/doctype/desktop_icon/desktop_icon.py:56
+#: frappe/desk/doctype/desktop_icon/desktop_icon.py:57
 msgid "Cannot delete Desktop Icon '{0}' as it is restricted"
 msgstr "無法刪除桌面圖示「{0}」，因為它受到限制"
 
-#: frappe/core/doctype/file/file.py:250
+#: frappe/core/doctype/file/file.py:257
 msgid "Cannot delete Home and Attachments folders"
 msgstr "無法刪除「首頁」與「附件」資料夾"
 
@@ -4490,7 +4674,7 @@ msgstr "無法刪除標準動作。如有需要可將其隱藏"
 msgid "Cannot delete standard document state."
 msgstr "無法刪除標準文件狀態。"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:344
+#: frappe/custom/doctype/customize_form/customize_form.js:343
 msgid "Cannot delete standard field <strong>{0}</strong>. You can hide it instead."
 msgstr "無法刪除標準欄位 <strong>{0}</strong>。可改為將其隱藏。"
 
@@ -4505,7 +4689,7 @@ msgstr "無法刪除標準欄位。如有需要可將其隱藏"
 msgid "Cannot delete standard link. You can hide it if you want"
 msgstr "無法刪除標準連結。如有需要可將其隱藏"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:336
+#: frappe/custom/doctype/customize_form/customize_form.js:334
 msgid "Cannot delete system generated field <strong>{0}</strong>. You can hide it instead."
 msgstr "無法刪除系統產生的欄位 <strong>{0}</strong>。可改為將其隱藏。"
 
@@ -4521,7 +4705,7 @@ msgstr "無法刪除 {0}，因為其含有子節點"
 msgid "Cannot edit Standard Dashboards"
 msgstr "無法編輯標準儀表板"
 
-#: frappe/email/doctype/notification/notification.py:216
+#: frappe/email/doctype/notification/notification.py:232
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
 msgstr "無法編輯標準通知。若要編輯，請先停用並複製一份"
 
@@ -4533,7 +4717,7 @@ msgstr "無法編輯標準圖表"
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "無法編輯標準報表。請複製並建立新報表"
 
-#: frappe/model/document.py:1157
+#: frappe/model/document.py:1158
 msgid "Cannot edit cancelled document"
 msgstr "無法編輯已取消的文件"
 
@@ -4554,11 +4738,11 @@ msgstr "無法編輯標準欄位"
 msgid "Cannot enable {0} for a non-submittable doctype"
 msgstr "無法為不可送出的 doctype 啟用 {0}"
 
-#: frappe/core/doctype/file/file.py:353
+#: frappe/core/doctype/file/file.py:360
 msgid "Cannot find file {} on disk"
 msgstr "在磁碟上找不到檔案 {}"
 
-#: frappe/core/doctype/file/file.py:706
+#: frappe/core/doctype/file/file.py:713
 msgid "Cannot get file contents of a Folder"
 msgstr "無法取得資料夾的檔案內容"
 
@@ -4570,7 +4754,7 @@ msgstr "無法將多台印表機對應至同一個列印格式。"
 msgid "Cannot import table with more than 5000 rows."
 msgstr "無法匯入超過 5000 列的資料表。"
 
-#: frappe/model/document.py:1225
+#: frappe/model/document.py:1226
 msgid "Cannot link cancelled document: {0}"
 msgstr "無法連結已取消的文件：{0}"
 
@@ -4598,7 +4782,7 @@ msgstr "無法移除 ID 欄位"
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
 msgstr "若已設定「僅限建立者」權限，則無法設定「報表」權限"
 
-#: frappe/email/doctype/notification/notification.py:249
+#: frappe/email/doctype/notification/notification.py:265
 msgid "Cannot set Notification with event {0} on Document Type {1}"
 msgstr "無法在文件類型 {1} 上設定事件為 {0} 的通知"
 
@@ -4615,11 +4799,11 @@ msgstr "無法送出 {0}。"
 msgid "Cannot update {0}"
 msgstr "無法更新 {0}"
 
-#: frappe/model/db_query.py:1246
+#: frappe/model/db_query.py:1244
 msgid "Cannot use sub-query here."
 msgstr "此處無法使用子查詢。"
 
-#: frappe/model/db_query.py:1278
+#: frappe/model/db_query.py:1276
 msgid "Cannot use {0} in order/group by"
 msgstr "無法在 order／group by 中使用 {0}"
 
@@ -4742,6 +4926,10 @@ msgstr "變更時間"
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Changed by"
 msgstr "變更者"
+
+#: frappe/automation_engine/actions/core.py:173
+msgid "Changed {0} by {1}"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
@@ -4932,6 +5120,10 @@ msgstr "選擇區塊或繼續輸入"
 #: frappe/public/js/frappe/form/controls/color.js:5
 msgid "Choose a color"
 msgstr "選擇顏色"
+
+#: frappe/automation_engine/actions/core.py:159
+msgid "Choose a numeric field"
+msgstr ""
 
 #: frappe/public/js/form_builder/components/controls/DataControl.vue:21
 #: frappe/public/js/frappe/form/controls/icon.js:5
@@ -5188,6 +5380,10 @@ msgstr "用戶端網址"
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Client script"
 msgstr "用戶端指令碼"
+
+#: frappe/automation_engine/api.py:165
+msgid "Client-supplied resolver methods are not allowed"
+msgstr ""
 
 #: frappe/core/doctype/communication/communication.js:39
 #: frappe/desk/doctype/todo/todo.js:23
@@ -5484,6 +5680,11 @@ msgstr "商業捨入法"
 msgid "Commit"
 msgstr "提交"
 
+#. Label of the commit_every (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Commit Every"
+msgstr ""
+
 #. Label of the committed (Check) field in DocType 'Console Log'
 #: frappe/desk/doctype/console_log/console_log.json
 msgid "Committed"
@@ -5566,7 +5767,7 @@ msgstr "比較版本"
 msgid "Compilation warning"
 msgstr "編譯警告"
 
-#: frappe/website/doctype/website_theme/website_theme.py:123
+#: frappe/website/doctype/website_theme/website_theme.py:139
 msgid "Compiled Successfully"
 msgstr "編譯成功"
 
@@ -5580,7 +5781,7 @@ msgstr "完成"
 msgid "Complete By"
 msgstr "完成期限"
 
-#: frappe/core/doctype/user/user.py:529
+#: frappe/core/doctype/user/user.py:530
 #: frappe/templates/emails/new_user.html:12
 msgid "Complete Registration"
 msgstr "完成註冊"
@@ -5633,6 +5834,7 @@ msgstr "撰寫電子郵件"
 msgid "Compressed"
 msgstr "已壓縮"
 
+#. Label of the condition (Code) field in DocType 'Automation Run Step'
 #. Label of the condition (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #. Label of the condition (Code) field in DocType 'Navbar Item'
@@ -5641,6 +5843,7 @@ msgstr "已壓縮"
 #. Label of the condition (Data) field in DocType 'Notification Recipient'
 #. Label of the condition (Small Text) field in DocType 'Webhook'
 #. Label of the condition (Code) field in DocType 'Workflow Transition'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 #: frappe/core/doctype/navbar_item/navbar_item.json
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -5666,14 +5869,26 @@ msgstr "條件 JSON"
 msgid "Condition Type"
 msgstr "條件類型"
 
+#. Label of the condition_values (JSON) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Condition Values"
+msgstr ""
+
 #. Label of the condition_description (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Condition description"
 msgstr "條件說明"
 
+#: frappe/automation_engine/runner.py:282
+msgid "Condition took the {0} branch"
+msgstr ""
+
+#. Label of the conditions_section (Section Break) field in DocType 'Automation
+#. Flow'
 #. Label of the conditions (Table) field in DocType 'Document Naming Rule'
 #. Label of the conditions (Section Break) field in DocType 'Workflow
 #. Transition'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Conditions"
@@ -5828,6 +6043,12 @@ msgstr "連線中斷。部分功能可能無法使用。"
 #: frappe/public/js/frappe/form/dashboard.js:54
 msgid "Connections"
 msgstr "連線"
+
+#. Description of the 'Failure Threshold' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Consecutive failures after which a flow is auto-disabled and its owner notified."
+msgstr ""
 
 #. Label of the console (Code) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -5999,7 +6220,7 @@ msgstr "控制新使用者是否可使用此社群登入金鑰註冊。若未設
 msgid "Copied to clipboard."
 msgstr "已複製到剪貼簿。"
 
-#: frappe/public/js/frappe/list/list_view.js:2572
+#: frappe/public/js/frappe/list/list_view.js:2570
 msgid "Copied {0} {1} to clipboard"
 msgstr "已將 {0} {1} 複製到剪貼簿"
 
@@ -6051,17 +6272,27 @@ msgstr "核心模組 {0} 無法在全域搜尋中搜尋。"
 msgid "Correct version :"
 msgstr "正確版本："
 
+#. Label of the correlation_key (Data) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Correlation Key"
+msgstr ""
+
 #: frappe/email/smtp.py:80
 msgid "Could not connect to outgoing email server"
 msgstr "無法連線至寄件伺服器"
 
-#: frappe/model/document.py:1221
+#: frappe/model/document.py:1222
 msgid "Could not find {0}"
 msgstr "找不到 {0}"
 
 #: frappe/public/js/frappe/microtemplate.js:223
 msgid "Could not generate PDF"
 msgstr "無法產生 PDF"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:52
+msgid "Could not load the saved field rules"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:952
 msgid "Could not map column {0} to field {1}"
@@ -6074,6 +6305,10 @@ msgstr "無法剖析欄位：{0}"
 #: frappe/integrations/frappe_providers/cloud_settings.py:62
 msgid "Could not reach your server: {0}"
 msgstr "無法連線至您的伺服器： {0}"
+
+#: frappe/automation_engine/actions/core.py:519
+msgid "Could not resolve host: {0}"
+msgstr ""
 
 #: frappe/utils/pdf_generator/chrome_pdf_generator.py:175
 msgid "Could not start Chromium. Check logs for details."
@@ -6270,8 +6505,12 @@ msgstr "建立新文件"
 #: frappe/public/js/frappe/form/controls/link.js:509
 #: frappe/public/js/frappe/form/controls/link.js:511
 #: frappe/public/js/frappe/form/link_selector.js:146
-#: frappe/public/js/frappe/list/list_view.js:547
 #: frappe/public/js/frappe/web_form/web_form_list.js:253
+msgid "Create a new {0}"
+msgstr "建立新 {0}"
+
+#: frappe/public/js/frappe/list/list_view.js:547
+msgctxt "Create a new document from list view"
 msgid "Create a new {0}"
 msgstr "建立新 {0}"
 
@@ -6283,7 +6522,8 @@ msgstr "建立或編輯列印格式"
 msgid "Create or Edit Workflow"
 msgstr "建立或編輯工作流程"
 
-#: frappe/public/js/frappe/list/list_view.js:550
+#: frappe/public/js/frappe/list/list_view.js:548
+msgctxt "Create a new document from list view"
 msgid "Create your first {0}"
 msgstr "建立您的第一個 {0}"
 
@@ -6329,6 +6569,10 @@ msgstr "已在 {1} 中建立自訂欄位 {0}"
 msgid "Created On"
 msgstr "建立於"
 
+#: frappe/automation_engine/actions/core.py:131
+msgid "Created {0} {1}"
+msgstr ""
+
 #: frappe/public/js/frappe/desk.js:529
 #: frappe/public/js/frappe/views/treeview.js:411
 msgid "Creating {0}"
@@ -6345,6 +6589,11 @@ msgstr "此文件僅允許在開發者模式下建立。"
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Cron"
 msgstr "Cron"
+
+#. Label of the cron_expression (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Cron Expression"
+msgstr ""
 
 #. Label of the cron_format (Data) field in DocType 'Scheduled Job Type'
 #. Label of the cron_format (Data) field in DocType 'Server Script'
@@ -6519,6 +6768,16 @@ msgstr "自訂文件類型（選取權限）"
 #: frappe/desk/desktop.py:448
 msgid "Custom Documents"
 msgstr "自訂文件"
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#. Label of the custom_event (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Custom Event"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:196
+msgid "Custom Event trigger requires an event name"
+msgstr ""
 
 #. Label of a Link in the Build Workspace
 #. Name of a DocType
@@ -6703,6 +6962,7 @@ msgstr "自訂儀表板"
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:34
 #: frappe/core/doctype/doctype/doctype.js:61
 #: frappe/core/workspace/build/build.json
+#: frappe/custom/doctype/custom_field/custom_field.js:39
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
 #: frappe/workspace_sidebar/build.json
@@ -7041,6 +7301,25 @@ msgstr "資料庫版本"
 msgid "Date"
 msgstr "日期"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Date Based"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:194
+msgid "Date Based trigger requires a Date Field and a Date Direction"
+msgstr ""
+
+#. Label of the date_direction (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Date Direction"
+msgstr ""
+
+#. Label of the date_field (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Date Field"
+msgstr ""
+
 #. Label of the date_format (Select) field in DocType 'Language'
 #. Label of the date_format (Select) field in DocType 'System Settings'
 #. Label of the date_format (Data) field in DocType 'Country'
@@ -7049,6 +7328,11 @@ msgstr "日期"
 #: frappe/geo/doctype/country/country.json
 msgid "Date Format"
 msgstr "日期格式"
+
+#. Label of the date_offset (Int) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Date Offset (Days)"
+msgstr ""
 
 #. Label of the section_break_dfrx (Section Break) field in DocType 'Audit
 #. Trail'
@@ -7068,7 +7352,7 @@ msgstr "此 security.txt 於此日期之後應視為過期。到期時間戳記�
 msgid "Date and Number Format"
 msgstr "日期與數字格式"
 
-#: frappe/public/js/frappe/form/controls/date.js:253
+#: frappe/public/js/frappe/form/controls/date.js:257
 msgid "Date {0} must be in format: {1}"
 msgstr "日期 {0} 必須符合格式：{1}"
 
@@ -7131,6 +7415,12 @@ msgstr "之前或之後幾天"
 #: frappe/templates/emails/security_txt_expiry_alert.html:13
 msgid "Days Remaining"
 msgstr "剩餘天數"
+
+#. Description of the 'Queue Retention Days' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Days a Failed or Skipped queue row is kept before the nightly sweep removes it."
+msgstr ""
 
 #: frappe/public/js/frappe/request.js:250
 msgid "Deadlock Occurred"
@@ -7620,6 +7910,12 @@ msgstr "遞送狀態"
 msgid "Delivery Status Notification Type"
 msgstr "遞送狀態通知類型"
 
+#. Description of the 'Automation Flow Title' (Data) field in DocType
+#. 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Denormalized so the run survives deletion of its Automation Flow."
+msgstr ""
+
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 #: frappe/templates/includes/oauth_confirmation.html:20
@@ -7792,6 +8088,11 @@ msgstr "桌面版面配置"
 msgid "Desktop Settings"
 msgstr "桌面設定"
 
+#. Label of the detail (Long Text) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Detail"
+msgstr "詳情"
+
 #. Label of the details_tab (Tab Break) field in DocType 'Module Def'
 #. Label of the details (Code) field in DocType 'Scheduled Job Log'
 #. Label of the details_tab (Tab Break) field in DocType 'Customize Form'
@@ -7863,6 +8164,12 @@ msgstr "停用自動重新整理"
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Automatic Recency Filters"
 msgstr "停用自動近期篩選條件"
+
+#. Label of the disable_automations (Check) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Disable Automations"
+msgstr ""
 
 #. Label of the disable_change_log_notification (Check) field in DocType
 #. 'System Settings'
@@ -7983,6 +8290,11 @@ msgstr "已停用"
 msgid "Disabled Auto Reply"
 msgstr "已停用自動回覆"
 
+#. Label of the disabled_reason (Small Text) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Disabled Reason"
+msgstr ""
+
 #: frappe/desk/page/desktop/desktop.html:71
 #: frappe/public/js/frappe/form/toolbar.js:392
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:71
@@ -8092,6 +8404,21 @@ msgstr "您仍要繼續嗎？"
 msgid "Do you want to cancel all linked documents?"
 msgstr "您要取消所有連結的文件嗎？"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Cancelled"
+msgstr ""
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Created"
+msgstr ""
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Deleted"
+msgstr ""
+
 #. Label of the webhook_docevent (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Doc Event"
@@ -8106,6 +8433,16 @@ msgstr "文件事件"
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Doc Status"
 msgstr "文件狀態"
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Submitted"
+msgstr ""
+
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Doc Updated"
+msgstr ""
 
 #. Label of the doc_values (Code) field in DocType 'Web Form Request'
 #: frappe/website/doctype/web_form_request/web_form_request.json
@@ -8427,7 +8764,12 @@ msgstr "文件命名規則條件"
 msgid "Document Naming Settings"
 msgstr "文件命名設定"
 
-#: frappe/model/document.py:550
+#. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Document Owner"
+msgstr ""
+
+#: frappe/model/document.py:551
 msgid "Document Queued"
 msgstr "文件已排入佇列"
 
@@ -8496,6 +8838,7 @@ msgid "Document Title"
 msgstr "文件標題"
 
 #. Label of the document_type (Link) field in DocType 'Assignment Rule'
+#. Label of the document_type (Link) field in DocType 'Automation Flow'
 #. Label of the reference_type (Link) field in DocType 'Milestone'
 #. Label of the reminder_doctype (Link) field in DocType 'Reminder'
 #. Label of the reference_doctype (Link) field in DocType 'Data Import'
@@ -8520,6 +8863,7 @@ msgstr "文件標題"
 #. Step'
 #. Label of the document_type (Link) field in DocType 'Workflow'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/automation/doctype/milestone/milestone.json
 #: frappe/automation/doctype/reminder/reminder.json
 #: frappe/core/doctype/data_import/data_import.json
@@ -8589,7 +8933,7 @@ msgid "Document Types and Permissions"
 msgstr "文件類型與權限"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:2097
+#: frappe/model/document.py:2099
 msgid "Document Unlocked"
 msgstr "文件已解鎖"
 
@@ -8621,6 +8965,10 @@ msgstr "文件僅能由具有下列角色的使用者編輯"
 msgid "Document not Relinked"
 msgstr "文件未重新連結"
 
+#: frappe/automation_engine/actions/core.py:191
+msgid "Document owner"
+msgstr ""
+
 #: frappe/model/rename_doc.py:218 frappe/public/js/frappe/form/toolbar.js:167
 msgid "Document renamed from {0} to {1}"
 msgstr "文件已從 {0} 重新命名為 {1}"
@@ -8640,6 +8988,10 @@ msgstr "文件 {0} 已還原"
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:206
 msgid "Document {0} has been set to state {1} by {2}"
 msgstr "文件 {0} 已由 {2} 設定為狀態 {1}"
+
+#: frappe/automation_engine/api.py:99 frappe/automation_engine/api.py:273
+msgid "Document-less automations do not accept a document name"
+msgstr ""
 
 #. Label of the documentation (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -8732,6 +9084,8 @@ msgstr "請勿對 &lt;script&gt; 之類的 HTML 標籤或 &lt; 、&gt; 之類的
 msgid "Don't have an account?"
 msgstr "還沒有帳號嗎？"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/public/js/frappe/form/form_tour.js:16
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:300
 #: frappe/public/js/frappe/ui/messages.js:245
@@ -8844,6 +9198,11 @@ msgstr "從側邊欄拖曳元素以新增。將它們拖回垃圾桶以移除。
 msgid "Drag to add state"
 msgstr "拖曳以新增狀態"
 
+#. Label of the drain_seconds (Float) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Drain Seconds"
+msgstr ""
+
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:189
 msgid "Drop files here"
 msgstr "將檔案放置於此"
@@ -8891,6 +9250,14 @@ msgstr "重複的篩選條件名稱"
 msgid "Duplicate Name"
 msgstr "重複的名稱"
 
+#: frappe/automation_engine/actions/base.py:130
+msgid "Duplicate automation action_type: {0}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:119
+msgid "Duplicate automation relationship name on {0}"
+msgstr ""
+
 #: frappe/public/js/frappe/form/form.js:211
 msgid "Duplicate current row"
 msgstr "複製目前列"
@@ -8898,6 +9265,10 @@ msgstr "複製目前列"
 #: frappe/public/js/form_builder/components/Field.vue:243
 msgid "Duplicate field"
 msgstr "複製欄位"
+
+#: frappe/automation_engine/relationships.py:206
+msgid "Duplicate record alias: {0}"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:253
 msgid "Duplicate row"
@@ -8928,7 +9299,9 @@ msgstr "複製 {0} 列"
 msgid "Duration"
 msgstr "時間長度"
 
+#. Label of the duration_ms (Int) field in DocType 'Automation Run Step'
 #. Label of the duration (Float) field in DocType 'Recorder Event'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/recorder_event/recorder_event.json
 msgid "Duration (ms)"
 msgstr "持續時間 (ms)"
@@ -8991,6 +9364,10 @@ msgstr "動態範本"
 #: frappe/public/js/frappe/form/grid_row_form.js:72
 msgid "ESC"
 msgstr "ESC"
+
+#: frappe/automation_engine/relationships.py:204
+msgid "Each relationship needs an alias and relationship name"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -9226,6 +9603,11 @@ msgstr "金鑰或 IP 旗標至少需擇一。"
 msgid "Element Selector"
 msgstr "元素選擇器"
 
+#. Option for the 'Branch' (Select) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Else"
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #. Label of the email (Check) field in DocType 'Custom DocPerm'
 #. Label of the email (Check) field in DocType 'DocPerm'
@@ -9307,7 +9689,7 @@ msgstr "電子郵件帳號已停用。"
 msgid "Email Account Name"
 msgstr "電子郵件帳號名稱"
 
-#: frappe/core/doctype/user/user.py:800
+#: frappe/core/doctype/user/user.py:801
 msgid "Email Account added multiple times"
 msgstr "電子郵件帳號已重複新增"
 
@@ -9399,6 +9781,8 @@ msgstr "電子郵件"
 
 #. Label of the email_inbox (Section Break) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:328
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:329
 msgid "Email Inbox"
 msgstr "電子郵件收件匣"
 
@@ -9478,13 +9862,24 @@ msgstr "電子郵件同步選項"
 
 #. Label of the email_template (Link) field in DocType 'Communication'
 #. Name of a DocType
+#. Label of the email_template (Link) field in DocType 'Notification'
 #. Label of a Workspace Sidebar Item
 #: frappe/core/doctype/communication/communication.json
 #: frappe/email/doctype/email_template/email_template.json
+#: frappe/email/doctype/notification/notification.json
 #: frappe/public/js/frappe/views/communication.js:99
 #: frappe/workspace_sidebar/email.json
 msgid "Email Template"
 msgstr "電子郵件範本"
+
+#: frappe/email/doctype/notification/notification.py:192
+msgid "Email Template can only be used with the Email channel"
+msgstr ""
+
+#: frappe/email/doctype/notification/notification.py:197
+#: frappe/email/doctype/notification/notification.py:481
+msgid "Email Template {0} has no content to send"
+msgstr ""
 
 #. Label of the enable_email_threads_on_assigned_document (Check) field in
 #. DocType 'Notification Settings'
@@ -9554,6 +9949,10 @@ msgstr "電子郵件大小 {0:.2f} MB 超過允許的上限 {1:.2f} MB"
 msgid "Email undo window is over. Cannot undo email."
 msgstr "電子郵件的復原時間已過。無法復原電子郵件。"
 
+#: frappe/automation_engine/actions/core.py:265
+msgid "Emailed {0}"
+msgstr ""
+
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -9580,6 +9979,12 @@ msgstr "電子郵件將附上下一步可能的工作流程動作一併寄出"
 #: frappe/website/doctype/web_form/web_form.js:34
 msgid "Embed code copied"
 msgstr "已複製嵌入碼"
+
+#. Description of the 'From Value' (Data) field in DocType 'Automation Flow'
+#. Description of the 'To Value' (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Empty = any value."
+msgstr ""
 
 #: frappe/database/query.py:2443
 msgid "Empty alias is not allowed"
@@ -9758,6 +10163,10 @@ msgstr "啟用頁面瀏覽追蹤"
 msgid "Enable Two Factor Auth"
 msgstr "啟用雙重驗證"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:77
+msgid "Enable an Automation Flow only after adding at least one action"
+msgstr ""
+
 #. Description of the 'Allow Bulk Edit' (Check) field in DocType 'Customize
 #. Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -9793,6 +10202,7 @@ msgstr "啟用應用程式內網站追蹤"
 msgid "Enable the notification type before emailing it to users."
 msgstr "在以電子郵件寄送給使用者之前，請先啟用此通知類型。"
 
+#. Label of the enabled (Check) field in DocType 'Automation Flow'
 #. Label of the enabled (Check) field in DocType 'Language'
 #. Label of the enabled (Check) field in DocType 'User'
 #. Label of the enabled (Check) field in DocType 'Client Script'
@@ -9804,6 +10214,7 @@ msgstr "在以電子郵件寄送給使用者之前，請先啟用此通知類型
 #. Label of the enabled (Check) field in DocType 'Webhook'
 #. Label of the enabled (Check) field in DocType 'Portal Menu Item'
 #. Label of the enabled (Check) field in DocType 'Workflow Transition Task'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/user/user.json
 #: frappe/custom/doctype/client_script/client_script.json
@@ -9844,6 +10255,11 @@ msgstr "在收件電子郵件帳號上啟用自動回覆，將對所有已同步
 #: frappe/desk/doctype/notification_type/notification_type.py:103
 msgid "Enabling email for {0} across all users in the background."
 msgstr "正在背景為所有使用者啟用 {0} 的電子郵件。"
+
+#. Description of the 'Enabled' (Check) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Enabling requires at least one action and a valid trigger."
+msgstr ""
 
 #. Description of a DocType
 #. Description of the 'Relay Settings' (Section Break) field in DocType 'Push
@@ -9902,8 +10318,10 @@ msgstr "結束日期不得早於開始日期！"
 msgid "End Date cannot be today."
 msgstr "結束日期不得為今天。"
 
+#. Label of the ended_at (Datetime) field in DocType 'Automation Run'
 #. Label of the ended_at (Datetime) field in DocType 'RQ Job'
 #. Label of the ended_at (Datetime) field in DocType 'Submission Queue'
+#: frappe/automation/doctype/automation_run/automation_run.json
 #: frappe/core/doctype/rq_job/rq_job.json
 #: frappe/core/doctype/submission_queue/submission_queue.json
 msgid "Ended At"
@@ -10068,6 +10486,11 @@ msgstr "錯誤記錄"
 msgid "Error Message"
 msgstr "錯誤訊息"
 
+#. Label of the error_summary (Small Text) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Error Summary"
+msgstr ""
+
 #: frappe/public/js/frappe/form/print_utils.js:197
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "連線至 QZ Tray 應用程式時發生錯誤……<br><br> 若要使用原始列印功能，您必須已安裝並執行 QZ Tray 應用程式。<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">點此下載並安裝 QZ Tray</a>。<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">點此進一步了解原始列印</a>。"
@@ -10096,9 +10519,9 @@ msgstr "用戶端指令碼中發生錯誤。"
 msgid "Error in Header/Footer Script"
 msgstr "頁首 / 頁尾指令碼中發生錯誤"
 
-#: frappe/email/doctype/notification/notification.py:711
-#: frappe/email/doctype/notification/notification.py:865
-#: frappe/email/doctype/notification/notification.py:871
+#: frappe/email/doctype/notification/notification.py:763
+#: frappe/email/doctype/notification/notification.py:917
+#: frappe/email/doctype/notification/notification.py:923
 msgid "Error in Notification"
 msgstr "通知中發生錯誤"
 
@@ -10122,7 +10545,7 @@ msgstr "驗證「忽略使用者權限」時發生錯誤"
 msgid "Error while connecting to email account {0}"
 msgstr "連線至電子郵件帳號 {0} 時發生錯誤"
 
-#: frappe/email/doctype/notification/notification.py:862
+#: frappe/email/doctype/notification/notification.py:914
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "求值通知 {0} 時發生錯誤。請修正您的範本。"
 
@@ -10172,6 +10595,12 @@ msgstr "事件類別"
 msgid "Event Frequency"
 msgstr "事件頻率"
 
+#. Label of the event_name (Data) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Event Name"
+msgstr "活動名稱"
+
 #. Name of a DocType
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Event Notifications"
@@ -10183,6 +10612,21 @@ msgstr "事件通知"
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Event Participants"
 msgstr "事件參與者"
+
+#. Label of the event_payload (JSON) field in DocType 'Automation Event
+#. Subscription'
+#. Label of the event_payload (JSON) field in DocType 'Automation Trigger
+#. Queue'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Event Payload"
+msgstr ""
+
+#. Label of the event_payload_limit (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Event Payload Limit"
+msgstr ""
 
 #. Label of the enable_email_event_reminders (Check) field in DocType
 #. 'Notification Settings'
@@ -10274,9 +10718,11 @@ msgstr "Excel"
 msgid "Excellent"
 msgstr "極佳"
 
+#. Label of the exception (Data) field in DocType 'Automation Run Step'
 #. Label of the exception (Text) field in DocType 'Data Import Log'
 #. Label of the exc_info (Code) field in DocType 'RQ Job'
 #. Label of the exception (Long Text) field in DocType 'Submission Queue'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/data_import_log/data_import_log.json
 #: frappe/core/doctype/rq_job/rq_job.json
 #: frappe/core/doctype/submission_queue/submission_queue.json
@@ -10381,6 +10827,12 @@ msgstr "已到期"
 #: frappe/templates/emails/security_txt_expiry_alert.html:9
 msgid "Expires"
 msgstr "到期"
+
+#. Label of the expires_at (Datetime) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Expires At"
+msgstr ""
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
@@ -10563,10 +11015,16 @@ msgstr "Facebook"
 msgid "Fail"
 msgstr "失敗"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Scheduled Job Log'
 #. Option for the 'Status' (Select) field in DocType 'Submission Queue'
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 #: frappe/core/doctype/submission_queue/submission_queue.json
@@ -10646,7 +11104,7 @@ msgstr "刪除 {0} 份文件失敗：{1}"
 msgid "Failed to enable scheduler: {0}"
 msgstr "啟用排程器失敗：{0}"
 
-#: frappe/email/doctype/notification/notification.py:111
+#: frappe/email/doctype/notification/notification.py:112
 #: frappe/integrations/doctype/webhook/webhook.py:131
 msgid "Failed to evaluate conditions: {}"
 msgstr "求值條件失敗：{}"
@@ -10679,15 +11137,15 @@ msgstr "匯入虛擬 doctype {} 失敗，控制器檔案是否存在？"
 msgid "Failed to optimize image: {0}"
 msgstr "最佳化圖片失敗：{0}"
 
-#: frappe/email/doctype/notification/notification.py:128
+#: frappe/email/doctype/notification/notification.py:133
 msgid "Failed to render message: {}"
 msgstr "轉譯訊息失敗：{}"
 
-#: frappe/email/doctype/notification/notification.py:146
+#: frappe/email/doctype/notification/notification.py:154
 msgid "Failed to render subject: {}"
 msgstr "轉譯主旨失敗：{}"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:143
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:150
 msgid "Failed to request login to Frappe Cloud"
 msgstr "請求登入 Frappe Cloud 失敗"
 
@@ -10707,7 +11165,7 @@ msgstr "寄送通知電子郵件失敗"
 msgid "Failed to update global settings"
 msgstr "更新全域設定失敗"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:120
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:126
 msgid "Failed while calling API {0}"
 msgstr "呼叫 API {0} 時失敗"
 
@@ -10726,6 +11184,11 @@ msgstr "失敗"
 #: frappe/desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
 msgid "Failure Rate"
 msgstr "失敗率"
+
+#. Label of the failure_threshold (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Failure Threshold"
+msgstr ""
 
 #. Label of the favicon (Attach) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -10856,6 +11319,19 @@ msgstr "欄位範本"
 msgid "Field Type"
 msgstr "欄位類型"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Field Value Changed"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:192
+msgid "Field Value Changed trigger requires a Trigger Field"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:154
+msgid "Field is required"
+msgstr ""
+
 #: frappe/desk/reportview.py:212
 msgid "Field not permitted in query"
 msgstr "查詢中不允許此欄位"
@@ -10890,7 +11366,7 @@ msgstr "欄位 {0} 必須為虛擬欄位才能支援虛擬 doctype。"
 msgid "Field {0} not found."
 msgstr "找不到欄位 {0}。"
 
-#: frappe/email/doctype/notification/notification.py:598
+#: frappe/email/doctype/notification/notification.py:650
 msgid "Field {0} on document {1} is neither a Mobile number field nor a Customer or User link"
 msgstr "文件 {1} 上的欄位 {0} 既不是行動電話號碼欄位，也不是客戶或使用者連結"
 
@@ -10981,11 +11457,11 @@ msgstr "欄位"
 msgid "Fields Multicheck"
 msgstr "欄位多重勾選"
 
-#: frappe/core/doctype/file/file.py:521
+#: frappe/core/doctype/file/file.py:528
 msgid "Fields `file_name` or `file_url` must be set for File"
 msgstr "File 必須設定 `file_name` 或 `file_url` 欄位"
 
-#: frappe/model/db_query.py:169
+#: frappe/model/db_query.py:167
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr "啟用 as_list 時，fields 必須為 list 或 tuple"
 
@@ -11085,7 +11561,7 @@ msgstr "複製既有附件時，檔案網址為必填。"
 msgid "File backup is ready"
 msgstr "檔案備份已就緒"
 
-#: frappe/core/doctype/file/file.py:771
+#: frappe/core/doctype/file/file.py:778
 msgid "File name cannot have {0}"
 msgstr "檔案名稱不得包含 {0}"
 
@@ -11093,7 +11569,7 @@ msgstr "檔案名稱不得包含 {0}"
 msgid "File not attached"
 msgstr "未附加檔案"
 
-#: frappe/core/doctype/file/file.py:881 frappe/public/js/frappe/request.js:198
+#: frappe/core/doctype/file/file.py:888 frappe/public/js/frappe/request.js:198
 #: frappe/utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr "檔案大小超過允許的上限 {0} MB"
@@ -11102,7 +11578,7 @@ msgstr "檔案大小超過允許的上限 {0} MB"
 msgid "File too big"
 msgstr "檔案過大"
 
-#: frappe/core/doctype/file/file.py:480
+#: frappe/core/doctype/file/file.py:487
 msgid "File type of {0} is not allowed"
 msgstr "不允許 {0} 的檔案類型"
 
@@ -11110,7 +11586,7 @@ msgstr "不允許 {0} 的檔案類型"
 msgid "File upload failed."
 msgstr "檔案上傳失敗。"
 
-#: frappe/core/doctype/file/file.py:466 frappe/core/doctype/file/file.py:538
+#: frappe/core/doctype/file/file.py:473 frappe/core/doctype/file/file.py:545
 msgid "File {0} does not exist"
 msgstr "檔案 {0} 不存在"
 
@@ -11199,6 +11675,11 @@ msgstr "依「{0}」篩選"
 msgid "Filtered by: {0}."
 msgstr "篩選依據：{0}。"
 
+#: frappe/automation_engine/relationships.py:238
+msgid "Filtered relationship queries require one target DocType"
+msgstr ""
+
+#. Label of the filters (Code) field in DocType 'Automation Flow'
 #. Label of the filters (Code) field in DocType 'Access Log'
 #. Label of the link_filters (JSON) field in DocType 'DocField'
 #. Label of the filters_sb (Section Break) field in DocType 'Prepared Report'
@@ -11216,6 +11697,7 @@ msgstr "篩選依據：{0}。"
 #. Label of the filters (Code) field in DocType 'Notification'
 #. Option for the 'Condition Type' (Select) field in DocType 'Notification'
 #. Label of the filters_section (Section Break) field in DocType 'Notification'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/access_log/access_log.json
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -11291,7 +11773,7 @@ msgstr "篩選條件："
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:412
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:414
-#: frappe/public/js/frappe/ui/toolbar/search_utils.js:152
+#: frappe/public/js/frappe/ui/toolbar/search_utils.js:151
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:155
 msgid "Find {0} in {1}"
 msgstr "在 {1} 中尋找 {0}"
@@ -11431,7 +11913,7 @@ msgstr "資料夾名稱"
 msgid "Folder name should not include '/' (slash)"
 msgstr "資料夾名稱不得包含「/」（斜線）"
 
-#: frappe/core/doctype/file/file.py:584
+#: frappe/core/doctype/file/file.py:591
 msgid "Folder {0} is not empty"
 msgstr "資料夾 {0} 不是空的"
 
@@ -11714,6 +12196,10 @@ msgstr "強制使用者重設密碼"
 msgid "Force Web Capture Mode for Uploads"
 msgstr "上傳時強制使用網頁擷取模式"
 
+#: frappe/automation_engine/runner.py:281
+msgid "Forced the {0} branch"
+msgstr ""
+
 #: frappe/www/login.html:166
 msgid "Forgot Password?"
 msgstr "忘記密碼？"
@@ -11957,6 +12443,11 @@ msgstr "寄件者全名"
 msgid "From User"
 msgstr "來自使用者"
 
+#. Label of the from_value (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "From Value"
+msgstr "起始值"
+
 #: frappe/public/js/frappe/utils/diffview.js:31
 msgid "From version"
 msgstr "起始版本"
@@ -12065,6 +12556,9 @@ msgstr "性別"
 msgid "Genderqueer"
 msgstr "性別酷兒"
 
+#. Label of the general_section (Section Break) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
 #: frappe/www/contact.html:29
 msgid "General"
 msgstr "一般"
@@ -12541,7 +13035,7 @@ msgstr "群組物件類別"
 msgid "Group your custom doctypes under modules"
 msgstr "將您的自訂 doctype 分組於各模組下"
 
-#: frappe/public/js/frappe/ui/group_by/group_by.js:428
+#: frappe/public/js/frappe/ui/group_by/group_by.js:439
 msgid "Grouped by <span style='font-weight:600;'>{0}</b>"
 msgstr "依 <span style='font-weight:600;'>{0}</b> 分組"
 
@@ -13155,6 +13649,24 @@ msgctxt "Duration"
 msgid "Hours"
 msgstr "小時"
 
+#. Description of the 'Stale Running Minutes' (Int) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "How long a claimed row may stay Running before it is assumed crashed and requeued."
+msgstr ""
+
+#. Description of the 'Maximum Attempts' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "How many times a claimed row is retried when its run fails outside the flow's own steps, before the row is marked Failed."
+msgstr ""
+
+#. Description of the 'Maximum Recursion Depth' (Int) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "How many times an automation may trigger another before the chain is refused."
+msgstr ""
+
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "How should this currency be formatted? If not set, will use system defaults"
@@ -13307,6 +13819,11 @@ msgstr "身分詳細資訊"
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Idx"
 msgstr "Idx"
+
+#. Option for the 'Branch' (Select) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "If"
+msgstr ""
 
 #. Description of the 'Apply Strict User Permissions' (Check) field in DocType
 #. 'System Settings'
@@ -13493,7 +14010,7 @@ msgstr "若這些說明沒有幫助，請在 GitHub Issues 上提出您的建議
 msgid "If this email is registered with us, a download link will be sent to it."
 msgstr "如果此電子郵件已在我們這裡註冊，我們將會傳送下載連結至該信箱。"
 
-#: frappe/core/doctype/user/user.py:1166
+#: frappe/core/doctype/user/user.py:1170
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
 msgstr "若此電子郵件已在我們這裡註冊，我們已寄送密碼重設說明至該信箱。請檢查您的收件匣。"
 
@@ -13609,8 +14126,8 @@ msgstr "已忽略的應用程式"
 msgid "Illegal Document Status for {0}"
 msgstr "{0} 的文件狀態不合法"
 
-#: frappe/model/db_query.py:547 frappe/model/db_query.py:550
-#: frappe/model/db_query.py:1232
+#: frappe/model/db_query.py:545 frappe/model/db_query.py:548
+#: frappe/model/db_query.py:1230
 msgid "Illegal SQL Query"
 msgstr "不合法的 SQL 查詢"
 
@@ -14042,11 +14559,11 @@ msgstr "使用者或密碼不正確"
 msgid "Incorrect Verification code"
 msgstr "驗證碼不正確"
 
-#: frappe/model/document.py:1686
+#: frappe/model/document.py:1688
 msgid "Incorrect value in row {0}:"
 msgstr "第 {0} 列的值不正確："
 
-#: frappe/model/document.py:1688
+#: frappe/model/document.py:1690
 msgid "Incorrect value:"
 msgstr "不正確的值："
 
@@ -14372,7 +14889,7 @@ msgstr "無效的動作"
 msgid "Invalid CSV Format"
 msgstr "無效的 CSV 格式"
 
-#: frappe/integrations/frappe_providers/frappecloud_billing.py:160
+#: frappe/integrations/frappe_providers/frappecloud_billing.py:168
 msgid "Invalid Code. Please try again."
 msgstr "代碼無效。請重試。"
 
@@ -14414,7 +14931,7 @@ msgstr "無效的電子郵件。"
 msgid "Invalid Fieldname"
 msgstr "無效的欄位名稱"
 
-#: frappe/core/doctype/file/file.py:303 frappe/core/doctype/file/file.py:310
+#: frappe/core/doctype/file/file.py:310 frappe/core/doctype/file/file.py:317
 msgid "Invalid File URL"
 msgstr "無效的檔案網址"
 
@@ -14520,7 +15037,7 @@ msgstr "無效的資料表欄位名稱"
 msgid "Invalid Transition"
 msgstr "無效的轉換"
 
-#: frappe/core/doctype/file/file.py:321
+#: frappe/core/doctype/file/file.py:328
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:551
 #: frappe/public/js/frappe/widgets/widget_dialog.js:602
 #: frappe/utils/csvutils.py:258 frappe/utils/csvutils.py:279
@@ -14550,6 +15067,11 @@ msgstr "無效的網頁表單請求"
 msgid "Invalid Webhook Secret"
 msgstr "無效的 Webhook 密鑰"
 
+#: frappe/website/doctype/website_theme/website_theme.py:111
+#: frappe/website/doctype/website_theme/website_theme.py:121
+msgid "Invalid Website Theme Name"
+msgstr ""
+
 #: frappe/utils/legacy_gravatar_cleanup.py:82
 msgid "Invalid action"
 msgstr "無效的動作"
@@ -14578,6 +15100,10 @@ msgstr "無效的引數格式：{0}。僅允許加引號的字串常值或簡單
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "無效的引數型別：{0}。僅允許字串、數字、dict 與 None。"
 
+#: frappe/automation_engine/relationships.py:134
+msgid "Invalid automation relationship definition"
+msgstr ""
+
 #: frappe/utils/response.py:289
 msgid "Invalid backup path"
 msgstr "無效的備份路徑"
@@ -14598,11 +15124,15 @@ msgstr "巢狀篩選條件中的條件類型無效：{0}"
 msgid "Invalid credentials, try again."
 msgstr "認證無效，請重試。"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:215
+msgid "Invalid cron expression: {0}"
+msgstr ""
+
 #: frappe/database/query.py:1372
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "Order By 中的方向無效：{0}。必須為「ASC」或「DESC」。"
 
-#: frappe/model/document.py:1140 frappe/model/document.py:1154
+#: frappe/model/document.py:1141 frappe/model/document.py:1155
 msgid "Invalid docstatus"
 msgstr "無效的 docstatus"
 
@@ -16042,6 +16572,12 @@ msgstr "上限"
 msgid "Limit must be a non-negative integer"
 msgstr "上限必須為非負整數"
 
+#. Label of the limits_section (Section Break) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Limits"
+msgstr "額度"
+
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Line"
@@ -16776,6 +17312,11 @@ msgstr "需要下列必填欄位："
 msgid "Mandatory:"
 msgstr "必填："
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Manual"
+msgstr "手動"
+
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Map"
@@ -16897,6 +17438,23 @@ msgstr "遮罩"
 msgid "Master"
 msgstr "主檔"
 
+#. Label of the filters_editor (HTML) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.js:26
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Match Fields"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Matched"
+msgstr "已比對"
+
+#. Description of the 'Custom Event' (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Matches the event name passed to emit()."
+msgstr ""
+
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Max 500 records at a time"
@@ -16965,9 +17523,19 @@ msgstr "第 {0} 列中，幣別型別的寬度上限為 100px"
 msgid "Maximum"
 msgstr "最大"
 
-#: frappe/core/doctype/file/file.py:421
+#: frappe/core/doctype/file/file.py:428
 msgid "Maximum Attachment Limit of {0} has been reached for {1} {2}."
 msgstr "{1} {2} 已達附件上限 {0}。"
+
+#. Label of the max_attempts (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Maximum Attempts"
+msgstr "最多作答次數"
+
+#. Label of the max_depth (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Maximum Recursion Depth"
+msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/attachments.js:38
 msgid "Maximum attachment limit of {0} has been reached."
@@ -17057,6 +17625,7 @@ msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node
 msgstr "合併僅能在群組對群組，或葉節點對葉節點之間進行"
 
 #. Label of the message (Text) field in DocType 'Auto Repeat'
+#. Label of the message (Small Text) field in DocType 'Automation Run Step'
 #. Label of the content (Text Editor) field in DocType 'Activity Log'
 #. Label of the content (Text Editor) field in DocType 'Communication'
 #. Label of the message (Small Text) field in DocType 'SMS Log'
@@ -17070,6 +17639,7 @@ msgstr "合併僅能在群組對群組，或葉節點對葉節點之間進行"
 #. Label of the message (Code) field in DocType 'Notification'
 #. Label of the message (Text) field in DocType 'Workflow Document State'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/data_import/data_import.js:516
@@ -17786,6 +18356,11 @@ msgstr "新列印格式的名稱"
 msgid "Name of {0} cannot be {1}"
 msgstr "{0} 的名稱不得為 {1}"
 
+#. Description of the 'Target' (Data) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Named record alias this action operates on."
+msgstr ""
+
 #: frappe/utils/password_strength.py:174
 msgid "Names and surnames by themselves are easy to guess."
 msgstr "單獨的名字與姓氏容易被猜出。"
@@ -17901,7 +18476,7 @@ msgstr "需要「工作區管理員」角色才能編輯其他使用者的私人
 msgid "Need Workspace Manager role to edit public workspaces."
 msgstr "需要「工作區管理員」角色才能編輯公開工作區。"
 
-#: frappe/model/document.py:879
+#: frappe/model/document.py:880
 msgid "Negative Value"
 msgstr "負值"
 
@@ -18137,7 +18712,7 @@ msgstr "新 {0}"
 msgid "New {0} Created"
 msgstr "已建立新 {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:386
+#: frappe/public/js/frappe/views/reports/query_report.js:385
 msgid "New {0} {1} added to Dashboard {2}"
 msgstr "已將新的 {0} {1} 新增至儀表板 {2}"
 
@@ -18153,7 +18728,7 @@ msgstr "新 {0}：{1}"
 msgid "New {} releases for the following apps are available"
 msgstr "下列應用程式已有新的 {} 版本可供使用"
 
-#: frappe/core/doctype/user/user.py:866
+#: frappe/core/doctype/user/user.py:867
 msgid "Newly created user {0} has no roles enabled."
 msgstr "新建立的使用者 {0} 未啟用任何角色。"
 
@@ -18232,6 +18807,11 @@ msgstr "下個月"
 msgid "Next Quarter"
 msgstr "下一季"
 
+#. Label of the next_run (Datetime) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Next Run"
+msgstr ""
+
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Next Schedule Date"
@@ -18285,8 +18865,8 @@ msgstr "點選後前往下一步"
 #: frappe/core/doctype/page/page.json frappe/core/doctype/report/report.json
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
-#: frappe/email/doctype/notification/notification.py:106
-#: frappe/email/doctype/notification/notification.py:108
+#: frappe/email/doctype/notification/notification.py:107
+#: frappe/email/doctype/notification/notification.py:109
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 #: frappe/integrations/doctype/webhook/webhook.py:132
 #: frappe/printing/doctype/print_format/print_format.json
@@ -18435,7 +19015,7 @@ msgstr "沒有結果"
 msgid "No Results found"
 msgstr "找不到結果"
 
-#: frappe/core/doctype/user/user.py:867
+#: frappe/core/doctype/user/user.py:868
 msgid "No Roles Specified"
 msgstr "未指定角色"
 
@@ -18615,12 +19195,12 @@ msgstr "沒有其他文件類型。"
 msgid "No permission for {0}"
 msgstr "沒有 {0} 的權限"
 
-#: frappe/public/js/frappe/form/form.js:1184
+#: frappe/public/js/frappe/form/form.js:1182
 msgctxt "{0} = verb, {1} = object"
 msgid "No permission to '{0}' {1}"
 msgstr "沒有「{0}」{1} 的權限"
 
-#: frappe/model/db_query.py:1049
+#: frappe/model/db_query.py:1047
 msgid "No permission to read {0}"
 msgstr "沒有讀取 {0} 的權限"
 
@@ -18631,6 +19211,10 @@ msgstr "沒有{0} {1} {2} 的權限"
 #: frappe/public/js/frappe/ui/toolbar/search.js:718
 msgid "No pinned document types."
 msgstr "沒有已釘選的文件類型。"
+
+#: frappe/automation_engine/actions/core.py:255
+msgid "No recipients to notify"
+msgstr ""
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:175
 msgid "No records deleted"
@@ -18662,6 +19246,7 @@ msgid "No rows selected"
 msgstr "未選取任何列"
 
 #: frappe/email/doctype/notification/notification.py:141
+#: frappe/email/doctype/notification/notification.py:149
 msgid "No subject"
 msgstr "無主旨"
 
@@ -18686,7 +19271,7 @@ msgstr "沒有 {0}"
 msgid "No {0} found"
 msgstr "找不到 {0}"
 
-#: frappe/public/js/frappe/list/list_view.js:540
+#: frappe/public/js/frappe/list/list_view.js:539
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
 msgstr "找不到符合篩選條件的 {0}。清除篩選條件以查看所有 {0}。"
 
@@ -18746,7 +19331,7 @@ msgstr "正規化的副本"
 msgid "Normalized Query"
 msgstr "正規化的查詢"
 
-#: frappe/core/doctype/user/user.py:1093 frappe/utils/oauth.py:320
+#: frappe/core/doctype/user/user.py:1097 frappe/utils/oauth.py:320
 #: frappe/website/doctype/web_form/web_form.py:895
 #: frappe/website/doctype/web_form/web_form.py:912
 msgid "Not Allowed"
@@ -18847,7 +19432,7 @@ msgstr "未使用"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "不是有效的逗號分隔值（CSV 檔案）"
 
-#: frappe/core/doctype/user/user.py:315
+#: frappe/core/doctype/user/user.py:316
 msgid "Not a valid User Image."
 msgstr "不是有效的使用者圖片。"
 
@@ -18863,7 +19448,7 @@ msgstr "未啟用"
 msgid "Not allowed for {0}: {1}"
 msgstr "不允許 {0}：{1}"
 
-#: frappe/email/doctype/notification/notification.py:708
+#: frappe/email/doctype/notification/notification.py:760
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "不允許附加 {0} 文件，請在列印設定中啟用「允許列印 {0}」"
 
@@ -18922,6 +19507,8 @@ msgstr "不允許。{0}。"
 #. Name of a DocType
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 #: frappe/desk/doctype/note/note.json
+#: frappe/public/js/frappe/form/controls/data.js:51
+#: frappe/public/js/frappe/form/workflow.js:49
 msgid "Note"
 msgstr "備註"
 
@@ -19058,15 +19645,15 @@ msgstr "通知類型偏好設定"
 msgid "Notification sent to"
 msgstr "通知已寄送給"
 
-#: frappe/email/doctype/notification/notification.py:595
+#: frappe/email/doctype/notification/notification.py:647
 msgid "Notification: customer {0} has no Mobile number set"
 msgstr "通知：客戶 {0} 未設定行動電話號碼"
 
-#: frappe/email/doctype/notification/notification.py:581
+#: frappe/email/doctype/notification/notification.py:633
 msgid "Notification: document {0} has no {1} number set (field: {2})"
 msgstr "通知：文件 {0} 未設定 {1} 號碼（欄位：{2}）"
 
-#: frappe/email/doctype/notification/notification.py:590
+#: frappe/email/doctype/notification/notification.py:642
 msgid "Notification: user {0} has no Mobile number set"
 msgstr "通知：使用者 {0} 未設定行動電話號碼"
 
@@ -19091,6 +19678,10 @@ msgstr "已停用通知"
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Notifications and bulk mails will be sent from this outgoing server."
 msgstr "通知與大量郵件將由此寄件伺服器寄出。"
+
+#: frappe/automation_engine/actions/core.py:295
+msgid "Notified {0}"
+msgstr ""
 
 #. Label of the notify_on_every_login (Check) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
@@ -19126,6 +19717,12 @@ msgstr "使用者登入時以彈出視窗通知"
 #: frappe/public/js/frappe/form/controls/time.js:37
 msgid "Now"
 msgstr "現在"
+
+#. Description of the 'Run After' (Datetime) field in DocType 'Automation
+#. Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Null = run as soon as possible. Used by waits and date/cron triggers."
+msgstr ""
 
 #. Label of the phone (Data) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
@@ -19552,13 +20149,17 @@ msgstr "Data 欄位僅允許的選項為："
 msgid "Only Send Records Updated in Last X Hours"
 msgstr "僅寄送最近 X 小時內更新的記錄"
 
-#: frappe/core/doctype/file/file.py:212
+#: frappe/core/doctype/file/file.py:219
 msgid "Only System Managers can make this file public."
 msgstr "僅系統管理員可將此檔案設為公開。"
 
 #: frappe/desk/doctype/workspace/workspace.js:32
 msgid "Only Workspace Manager can edit public workspaces"
 msgstr "僅工作區管理員可編輯公開工作區"
+
+#: frappe/automation_engine/actions/core.py:467
+msgid "Only a System Manager can write a script step"
+msgstr ""
 
 #. Label of the only_allow_system_managers_to_upload_public_files (Check) field
 #. in DocType 'System Settings'
@@ -19570,7 +20171,11 @@ msgstr "僅允許系統管理員上傳公開檔案"
 msgid "Only allowed to export customizations in developer mode"
 msgstr "僅允許在開發者模式下匯出自訂項目"
 
-#: frappe/model/document.py:1366
+#: frappe/automation_engine/actions/core.py:452
+msgid "Only an {0} Server Script can be run from a flow"
+msgstr ""
+
+#: frappe/model/document.py:1368
 msgid "Only draft documents can be discarded"
 msgstr "僅草稿文件可捨棄"
 
@@ -19800,11 +20405,35 @@ msgstr "選項 3"
 msgid "Option {0} for field {1} is not a child table"
 msgstr "欄位 {1} 的選項 {0} 不是子資料表"
 
+#. Description of the 'Output Alias' (Data) field in DocType 'Automation
+#. Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Optional alias for the destination reference returned by this action."
+msgstr ""
+
 #. Description of the 'Notification Message' (Small Text) field in DocType
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Optional body of the in-app notification. Supports Jinja."
 msgstr "應用程式內通知的選填內文。支援 Jinja。"
+
+#. Description of the 'Related Record Condition' (JSON) field in DocType
+#. 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Optional. Checked against a related record."
+msgstr ""
+
+#. Description of the 'Advanced Expression using Python' (Code) field in
+#. DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Optional. For logic the match fields cannot express, such as OR groups. The document is available as <code>doc</code>; the match fields and this expression must all be true."
+msgstr ""
+
+#. Description of the 'Step Condition' (Code) field in DocType 'Automation
+#. Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Optional. The step runs only if this expression is true."
+msgstr ""
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -19971,14 +20600,21 @@ msgstr "寄件電子郵件帳號不正確"
 msgid "Outlook.com"
 msgstr "Outlook.com"
 
+#. Label of the output (JSON) field in DocType 'Automation Run Step'
 #. Label of the output (Code) field in DocType 'Permission Inspector'
 #. Label of the output (Code) field in DocType 'System Console'
 #. Label of the output (Code) field in DocType 'Integration Request'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 #: frappe/desk/doctype/system_console/system_console.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Output"
 msgstr "輸出"
+
+#. Label of the output_alias (Data) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Output Alias"
+msgstr ""
 
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
 msgid "Overview"
@@ -19997,7 +20633,7 @@ msgstr "PATCH"
 msgid "PDF"
 msgstr "PDF"
 
-#: frappe/utils/print_format.py:150 frappe/utils/print_format.py:194
+#: frappe/utils/print_format.py:151 frappe/utils/print_format.py:195
 msgid "PDF Generation in Progress"
 msgstr "PDF 產生中"
 
@@ -20028,7 +20664,7 @@ msgstr "PDF 頁面寬度（mm）"
 msgid "PDF Settings"
 msgstr "PDF 設定"
 
-#: frappe/utils/print_format.py:388
+#: frappe/utils/print_format.py:395
 msgid "PDF generation failed"
 msgstr "PDF 產生失敗"
 
@@ -20235,6 +20871,11 @@ msgstr "第 {0} 頁，共 {1} 頁"
 msgid "Parameter"
 msgstr "參數"
 
+#. Label of the params (JSON) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Parameters"
+msgstr "參數"
+
 #: frappe/public/js/frappe/model/model.js:144
 #: frappe/public/js/frappe/views/workspace/workspace.js:467
 msgid "Parent"
@@ -20296,6 +20937,11 @@ msgstr "缺少上層"
 msgid "Parent Page"
 msgstr "上層頁面"
 
+#. Label of the parent_step (Int) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Parent Step"
+msgstr ""
+
 #: frappe/core/doctype/data_export/exporter.py:25
 msgid "Parent Table"
 msgstr "上層資料表"
@@ -20329,6 +20975,11 @@ msgstr "部分"
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Partial Success"
 msgstr "部分成功"
+
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Partially Failed"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -20372,7 +21023,7 @@ msgstr "被動"
 msgid "Password"
 msgstr "密碼"
 
-#: frappe/core/doctype/user/user.py:509 frappe/core/doctype/user/user.py:1169
+#: frappe/core/doctype/user/user.py:510 frappe/core/doctype/user/user.py:1173
 msgid "Password Reset"
 msgstr "密碼重設"
 
@@ -20410,7 +21061,7 @@ msgstr "電子郵件帳號中缺少密碼"
 msgid "Password not found for {0} {1} {2}"
 msgstr "找不到 {0} {1} {2} 的密碼"
 
-#: frappe/core/doctype/user/user.py:1331
+#: frappe/core/doctype/user/user.py:1335
 msgid "Password requirements not met"
 msgstr "未符合密碼要求"
 
@@ -20422,7 +21073,7 @@ msgstr "已設定密碼"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "密碼長度超過允許的上限"
 
-#: frappe/core/doctype/user/user.py:938
+#: frappe/core/doctype/user/user.py:939
 msgid "Password size exceeded the maximum allowed size."
 msgstr "密碼長度超過允許的上限。"
 
@@ -20499,16 +21150,24 @@ msgstr "路徑 {0} 不是有效的路徑"
 msgid "Payload Count"
 msgstr "承載計數"
 
+#. Description of the 'Event Payload' (JSON) field in DocType 'Automation
+#. Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Payload for custom emit() events."
+msgstr ""
+
 #. Label of the peak_memory_usage (Int) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Peak Memory Usage"
 msgstr "尖峰記憶體使用量"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #. Option for the 'Contribution Status' (Select) field in DocType 'Translation'
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Step'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/data_import/data_import.json
 #: frappe/core/doctype/translation/translation.json
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -20770,6 +21429,14 @@ msgstr "欄位 {1} 中設定的電話號碼 {0} 無效。"
 msgid "Pick Columns"
 msgstr "選取欄"
 
+#: frappe/automation_engine/actions/core.py:429
+msgid "Pick a Server Script or write one here, not both"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:461
+msgid "Pick a Server Script, or write one here"
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Pie"
@@ -20825,7 +21492,7 @@ msgstr "請為電子郵件帳號 {0} 授權 OAuth"
 msgid "Please Authorize OAuth for Email Account {}"
 msgstr "請為電子郵件帳號 {} 授權 OAuth"
 
-#: frappe/website/doctype/website_theme/website_theme.py:77
+#: frappe/website/doctype/website_theme/website_theme.py:78
 msgid "Please Duplicate this Website Theme to customize."
 msgstr "請複製此網站主題以進行自訂。"
 
@@ -20857,7 +21524,7 @@ msgstr "請至少加入一個命名序列。"
 msgid "Please adjust filters to include some data"
 msgstr "請調整篩選條件以納入部分資料"
 
-#: frappe/core/doctype/user/user.py:1140
+#: frappe/core/doctype/user/user.py:1144
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "請要求您的系統管理員驗證您的註冊"
 
@@ -20885,7 +21552,7 @@ msgstr "請檢查為儀表板圖表所設定的篩選值：{}"
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "請檢查為欄位 {0} 所設定的「Fetch From」值"
 
-#: frappe/core/doctype/user/user.py:1138
+#: frappe/core/doctype/user/user.py:1142
 msgid "Please check your email for verification"
 msgstr "請檢查您的電子郵件以進行驗證"
 
@@ -21048,7 +21715,7 @@ msgstr "請登入以張貼留言。"
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr "請確認參照的通訊文件未形成循環連結。"
 
-#: frappe/model/document.py:1112
+#: frappe/model/document.py:1113
 msgid "Please refresh to get the latest document."
 msgstr "請重新整理以取得最新的文件。"
 
@@ -21132,7 +21799,7 @@ msgstr "請選取有效的日期篩選條件"
 msgid "Please select applicable Doctypes"
 msgstr "請選取適用的 doctype"
 
-#: frappe/model/db_query.py:1273
+#: frappe/model/db_query.py:1271
 msgid "Please select atleast 1 column from {0} to sort/group"
 msgstr "請從 {0} 至少選取 1 欄以進行排序／分組"
 
@@ -21190,7 +21857,7 @@ msgstr "在將簡訊設為驗證方法之前，請先透過簡訊設定完成簡
 msgid "Please setup a message first"
 msgstr "請先設定訊息"
 
-#: frappe/core/doctype/user/user.py:474
+#: frappe/core/doctype/user/user.py:475
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "請從「設定 > 電子郵件帳號」設定預設寄件電子郵件帳號"
 
@@ -21206,27 +21873,27 @@ msgstr "請指定"
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "請為 {0} 指定有效的上層 DocType"
 
-#: frappe/email/doctype/notification/notification.py:174
+#: frappe/email/doctype/notification/notification.py:182
 msgid "Please specify at least 10 minutes due to the trigger cadence of the scheduler"
 msgstr "由於排程器的觸發頻率，請至少指定 10 分鐘"
 
-#: frappe/email/doctype/notification/notification.py:181
+#: frappe/email/doctype/notification/notification.py:189
 msgid "Please specify the field from which to attach files"
 msgstr "請指定要從哪個欄位附加檔案"
 
-#: frappe/email/doctype/notification/notification.py:171
+#: frappe/email/doctype/notification/notification.py:179
 msgid "Please specify the minutes offset"
 msgstr "請指定分鐘偏移"
 
-#: frappe/email/doctype/notification/notification.py:165
+#: frappe/email/doctype/notification/notification.py:173
 msgid "Please specify which date field must be checked"
 msgstr "請指定必須檢查哪個日期欄位"
 
-#: frappe/email/doctype/notification/notification.py:169
+#: frappe/email/doctype/notification/notification.py:177
 msgid "Please specify which datetime field must be checked"
 msgstr "請指定必須檢查哪個日期時間欄位"
 
-#: frappe/email/doctype/notification/notification.py:178
+#: frappe/email/doctype/notification/notification.py:186
 msgid "Please specify which value field must be checked"
 msgstr "請指定必須檢查哪個值欄位"
 
@@ -21779,7 +22446,7 @@ msgstr "未設定印表機對應。"
 msgid "Printing"
 msgstr "列印中"
 
-#: frappe/utils/print_format.py:390
+#: frappe/utils/print_format.py:397
 msgid "Printing failed"
 msgstr "列印失敗"
 
@@ -21909,7 +22576,7 @@ msgstr "屬性類型"
 msgid "Protect Attached Files"
 msgstr "保護附加的檔案"
 
-#: frappe/core/doctype/file/file.py:613
+#: frappe/core/doctype/file/file.py:620
 msgid "Protected File"
 msgstr "受保護的檔案"
 
@@ -22174,6 +22841,12 @@ msgstr "佇列"
 msgid "Queue Overloaded"
 msgstr "佇列超載"
 
+#. Label of the queue_retention_days (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Queue Retention Days"
+msgstr ""
+
 #. Label of the queue_status (Table) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Queue Status"
@@ -22282,6 +22955,10 @@ msgstr "RQ 工作"
 msgid "RQ Worker"
 msgstr "RQ 工作程序"
 
+#: frappe/automation_engine/actions/core.py:487
+msgid "Ran script"
+msgstr ""
+
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
@@ -22360,6 +23037,12 @@ msgstr "原始列印設定"
 #: frappe/desk/doctype/console_log/console_log.js:6
 msgid "Re-Run in Console"
 msgstr "在主控台中重新執行"
+
+#. Description of the 'Revalidate on Run' (Check) field in DocType 'Automation
+#. Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Re-check filters and condition in the worker before executing."
+msgstr ""
 
 #: frappe/email/doctype/email_account/email_account.py:829
 msgid "Re:"
@@ -22546,6 +23229,10 @@ msgstr "收件者已取消訂閱"
 msgid "Recipients"
 msgstr "收件者"
 
+#: frappe/automation_engine/relationships.py:83
+msgid "Record alias could not be resolved"
+msgstr ""
+
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
 #: frappe/core/doctype/recorder/recorder.json
@@ -22571,6 +23258,13 @@ msgstr "記錄器建議索引"
 #: frappe/core/doctype/user_permission/user_permission_help.html:2
 msgid "Records for following doctypes will be filtered"
 msgstr "下列 doctype 的記錄將被篩選"
+
+#. Label of the depth (Int) field in DocType 'Automation Run'
+#. Label of the depth (Int) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Recursion Depth"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1667
 msgid "Recursive Fetch From"
@@ -22761,6 +23455,8 @@ msgid "Reference Document Name"
 msgstr "參照文件名稱"
 
 #. Label of the reference_doctype (Link) field in DocType 'Auto Repeat'
+#. Label of the reference_doctype (Link) field in DocType 'Automation Run'
+#. Label of the ref_doctype (Data) field in DocType 'Automation Trigger Queue'
 #. Label of the reference_doctype (Link) field in DocType 'Activity Log'
 #. Label of the reference_doctype (Link) field in DocType 'Comment'
 #. Label of the reference_doctype (Link) field in DocType 'Communication'
@@ -22781,6 +23477,8 @@ msgstr "參照文件名稱"
 #. Label of the reference_doctype (Link) field in DocType 'Portal Menu Item'
 #. Label of the reference_doctype (Link) field in DocType 'Workflow Action'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/communication/communication.json
@@ -22803,6 +23501,8 @@ msgstr "參照文件名稱"
 msgid "Reference Document Type"
 msgstr "參照文件類型"
 
+#. Label of the reference_name (Dynamic Link) field in DocType 'Automation Run'
+#. Label of the ref_name (Data) field in DocType 'Automation Trigger Queue'
 #. Label of the reference_name (Dynamic Link) field in DocType 'Activity Log'
 #. Label of the reference_name (Dynamic Link) field in DocType 'Comment'
 #. Label of the reference_name (Dynamic Link) field in DocType 'Communication'
@@ -22815,6 +23515,8 @@ msgstr "參照文件類型"
 #. Unsubscribe'
 #. Label of the reference_name (Dynamic Link) field in DocType 'Workflow
 #. Action'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/communication/communication.js:152
@@ -22925,7 +23627,7 @@ msgstr "重新整理中"
 msgid "Refreshing..."
 msgstr "重新整理中……"
 
-#: frappe/core/doctype/user/user.py:1100
+#: frappe/core/doctype/user/user.py:1104
 msgid "Registered but disabled"
 msgstr "已註冊但已停用"
 
@@ -22939,6 +23641,61 @@ msgstr "已拒絕"
 #: frappe/email/receive.py:521
 msgid "Rejected malformed encoded address header with synthesized '@': {0}"
 msgstr "已拒絕含合成「@」的格式錯誤編碼地址標頭：{0}"
+
+#. Label of the related_condition (JSON) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Related Record Condition"
+msgstr ""
+
+#: frappe/automation_engine/conditions.py:112
+msgid "Related record condition must be a JSON object"
+msgstr ""
+
+#: frappe/automation_engine/conditions.py:117
+msgid "Related record condition needs a relationship"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:227
+msgid "Related record does not exist: {0} {1}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:225
+msgid "Relationship provider returned an invalid record reference"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:136
+msgid "Relationship source DocType does not match"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:189
+msgid "Relationship target DocType is not allowed"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:47
+msgid "Relationship {0} cannot be used as a single record alias"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:69
+msgid "Relationship {0} did not resolve to one record"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:65
+msgid "Relationship {0} returns multiple records"
+msgstr ""
+
+#. Label of the relationships (JSON) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Relationships"
+msgstr ""
+
+#. Label of the relationships (JSON) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Relationships Snapshot"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:198
+msgid "Relationships must be a JSON list"
+msgstr ""
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:30
 msgid "Relay Server URL missing"
@@ -22960,6 +23717,12 @@ msgstr "發行"
 #: frappe/core/doctype/package_release/package_release.json
 msgid "Release Notes"
 msgstr "發行說明"
+
+#. Label of the reliability_section (Section Break) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Reliability"
+msgstr ""
 
 #: frappe/core/doctype/communication/communication.js:48
 #: frappe/core/doctype/communication/communication.js:159
@@ -23545,6 +24308,10 @@ msgstr "向您的伺服器發送的請求失敗。"
 msgid "Requested Numbers"
 msgstr "已請求的號碼"
 
+#: frappe/automation_engine/actions/core.py:528
+msgid "Requests to internal network addresses are not permitted"
+msgstr ""
+
 #. Label of the require_trusted_certificate (Select) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -23646,6 +24413,10 @@ msgstr "重設 {0} 的權限？"
 #: frappe/public/js/form_builder/components/Field.vue:110
 msgid "Reset To Default"
 msgstr "重設為預設"
+
+#: frappe/templates/includes/login/login.js:280
+msgid "Reset link emailed"
+msgstr ""
 
 #: frappe/public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
@@ -23777,9 +24548,32 @@ msgstr "限制"
 msgid "Result"
 msgstr "結果"
 
+#. Label of the resume_from_idx (Int) field in DocType 'Automation Trigger
+#. Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Resume From Step"
+msgstr ""
+
+#. Label of the resume_queue (Link) field in DocType 'Automation Event
+#. Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+msgid "Resume Queue"
+msgstr ""
+
+#. Label of the resume_run (Data) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Resume Run"
+msgstr ""
+
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Resume Sending"
 msgstr "恢復寄送"
+
+#. Label of the retention_section (Section Break) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Retention"
+msgstr ""
 
 #. Label of the retry (Int) field in DocType 'Email Queue'
 #: frappe/core/doctype/data_import/data_import.js:111
@@ -23796,6 +24590,11 @@ msgstr "重試寄送"
 #: frappe/www/qrcode.html:15
 msgid "Return to the Verification screen and enter the code displayed by your authentication app"
 msgstr "返回驗證畫面，並輸入您的驗證應用程式所顯示的代碼"
+
+#. Label of the revalidate_on_run (Check) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Revalidate on Run"
+msgstr ""
 
 #: frappe/database/schema.py:165
 msgid "Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data."
@@ -23951,7 +24750,7 @@ msgstr "角色設定檔"
 msgid "Role and Level"
 msgstr "角色與層級"
 
-#: frappe/core/doctype/user/user.py:423
+#: frappe/core/doctype/user/user.py:424
 msgid "Role has been set as per the user type {0}"
 msgstr "已依使用者類型 {0} 設定角色"
 
@@ -24072,7 +24871,7 @@ msgstr "路由重新導向"
 msgid "Route: Example \"/desk\""
 msgstr "路由：範例「/desk」"
 
-#: frappe/model/base_document.py:993 frappe/model/document.py:864
+#: frappe/model/base_document.py:993 frappe/model/document.py:865
 msgid "Row"
 msgstr "列"
 
@@ -24120,6 +24919,10 @@ msgstr "列值已變更"
 msgid "Row {0}"
 msgstr "第 {0} 列"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:140
+msgid "Row {0}: Branch is only meaningful inside an If step"
+msgstr ""
+
 #: frappe/custom/doctype/customize_form/customize_form.py:359
 msgid "Row {0}: Not allowed to disable Mandatory for standard fields"
 msgstr "第 {0} 列：不允許對標準欄位停用「必填」"
@@ -24127,6 +24930,46 @@ msgstr "第 {0} 列：不允許對標準欄位停用「必填」"
 #: frappe/custom/doctype/customize_form/customize_form.py:348
 msgid "Row {0}: Not allowed to enable Allow on Submit for standard fields"
 msgstr "第 {0} 列：不允許對標準欄位啟用「允許於送出時」"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:143
+msgid "Row {0}: Parent Step must be an earlier row"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:145
+msgid "Row {0}: Parent Step {1} is not an If step"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:125
+msgid "Row {0}: Step Key must be unique"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:176
+msgid "Row {0}: Wait unit must be one of {1}"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:165
+msgid "Row {0}: an If step needs a Step Condition"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:147
+msgid "Row {0}: choose the If or Else branch"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:120
+msgid "Row {0}: duplicate output alias {1}"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:117
+msgid "Row {0}: unknown target alias {1}"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:161
+msgid "Row {0}: unsupported Step Type {1}"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:104
+msgid "Row {0}: {1}"
+msgstr "第 {0} 列：{1}"
 
 #. Label of the rows_added_section (Section Break) field in DocType 'Audit
 #. Trail'
@@ -24149,6 +24992,12 @@ msgstr "已移除的列"
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Rows Threshold for Grid Search"
 msgstr "格線搜尋的列數門檻"
+
+#. Description of the 'Commit Every' (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Rows a drain runs between commits."
+msgstr ""
 
 #. Label of the rule (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -24190,16 +25039,55 @@ msgstr "有關狀態如何轉換的規則，例如下一個狀態，以及允許
 msgid "Rules with higher priority number will be applied first."
 msgstr "優先順序數字較高的規則會先套用。"
 
+#. Label of the run (Link) field in DocType 'Automation Event Subscription'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_flow/automation_flow.js:107
+msgid "Run"
+msgstr "執行"
+
+#. Label of the run_after (Datetime) field in DocType 'Automation Trigger
+#. Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Run After"
+msgstr ""
+
+#. Label of the run_as (Select) field in DocType 'Automation Flow'
+#. Label of the user (Link) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Run As"
+msgstr ""
+
 #. Label of the dormant_days (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run Jobs only Daily if Inactive For (Days)"
 msgstr "若閒置達下列天數則工作僅每日執行（天）"
+
+#. Label of the run_state (JSON) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Run State"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:98
+msgid "Run against"
+msgstr ""
 
 #. Description of the 'Enable Scheduled Jobs' (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run scheduled jobs only if checked"
 msgstr "僅在勾選時才執行排程工作"
+
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Running"
+msgstr "執行中"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:121
+msgid "Running…"
+msgstr ""
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:57
 msgid "Runtime in Minutes"
@@ -24499,8 +25387,12 @@ msgstr "排程"
 msgid "Schedule Send At"
 msgstr "排程寄送於"
 
+#. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Scheduled Job Log'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 msgid "Scheduled"
@@ -24544,9 +25436,17 @@ msgstr "排程工作記錄"
 msgid "Scheduled execution for script {0} has updated"
 msgstr "指令碼 {0} 的排程執行已更新"
 
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue_list.js:14
+msgid "Scheduled for {0}"
+msgstr ""
+
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:26
 msgid "Scheduled to send"
 msgstr "已排程寄送"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:213
+msgid "Scheduled trigger requires a Cron Expression"
+msgstr ""
 
 #. Label of the scheduler_section (Section Break) field in DocType 'System
 #. Health Report'
@@ -24779,6 +25679,12 @@ msgctxt "Duration"
 msgid "Seconds"
 msgstr "秒"
 
+#. Description of the 'Drain Seconds' (Float) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Seconds a drain may keep claiming batches. 0 derives it from the queue's own timeout."
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #: frappe/public/js/form_builder/components/Section.vue:263
 #: frappe/website/doctype/web_template/web_template.json
@@ -24819,11 +25725,11 @@ msgstr "區段標題"
 msgid "Section must have at least one column"
 msgstr "區段至少須有一欄"
 
-#: frappe/core/doctype/user/user.py:1490
+#: frappe/core/doctype/user/user.py:1494
 msgid "Security Alert: Your account is being impersonated"
 msgstr "安全性警示：您的帳號正被冒用"
 
-#: frappe/core/doctype/user/user.py:396
+#: frappe/core/doctype/user/user.py:397
 msgid "Security Alert: Your password has been changed."
 msgstr "安全性警示：您的密碼已變更。"
 
@@ -25121,6 +26027,10 @@ msgstr "請先選取品牌圖片。"
 msgid "Select a DocType to make a new format"
 msgstr "選取 DocType 以建立新格式"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.js:24
+msgid "Select a Document Type to add field rules."
+msgstr ""
+
 #: frappe/public/js/form_builder/components/Sidebar.vue:53
 msgid "Select a field to edit its properties."
 msgstr "選取欄位以編輯其屬性。"
@@ -25382,6 +26292,11 @@ msgstr "寄送副本給我"
 msgid "Send only if there is any data"
 msgstr "僅在有資料時才寄送"
 
+#. Description of the 'Email Template' (Link) field in DocType 'Notification'
+#: frappe/email/doctype/notification/notification.json
+msgid "Send this notification's content from an Email Template instead of Subject/Message. Also used for the bell if Send System Notification is checked. The template is looked up fresh on every send, so editing it later changes what gets sent here too."
+msgstr ""
+
 #. Label of the send_unsubscribe_message (Check) field in DocType 'Email
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -25546,6 +26461,10 @@ msgstr "伺服器 IP"
 #: frappe/core/workspace/build/build.json frappe/workspace_sidebar/build.json
 msgid "Server Script"
 msgstr "伺服器指令碼"
+
+#: frappe/automation_engine/actions/core.py:433
+msgid "Server Scripts are disabled. Enable them from the bench configuration."
+msgstr ""
 
 #: frappe/utils/safe_exec.py:104
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
@@ -25746,6 +26665,10 @@ msgstr "設為預設"
 msgid "Set as Default Theme"
 msgstr "設為預設主題"
 
+#: frappe/automation_engine/actions/core.py:63
+msgid "Set at least one field"
+msgstr ""
+
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
@@ -25845,6 +26768,10 @@ msgstr "設定指向已列入允許清單之函式的路徑，該函式將以下
 "\t\"route\": [\"query-report\", \"Permitted Documents For User\"]\n"
 "}</code></pre>"
 
+#: frappe/automation_engine/actions/core.py:79
+msgid "Set {0}"
+msgstr ""
+
 #: frappe/public/js/frappe/views/workspace/blocks/block.js:201
 msgid "Setting"
 msgstr "設定"
@@ -25861,6 +26788,8 @@ msgstr "設定全域搜尋文件中。"
 msgid "Setting up your system"
 msgstr "設定您的系統中"
 
+#. Label of the settings_section (Section Break) field in DocType 'Automation
+#. Flow'
 #. Label of the settings_tab (Tab Break) field in DocType 'DocType'
 #. Label of the settings_tab (Tab Break) field in DocType 'User'
 #. Group in User's connections
@@ -25868,6 +26797,7 @@ msgstr "設定您的系統中"
 #. Label of the settings_tab (Tab Break) field in DocType 'Web Form'
 #. Label of the settings (Tab Break) field in DocType 'Web Page'
 #. Label of a Workspace Sidebar Item
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/user/user.json
 #: frappe/integrations/workspace/integrations/integrations.json
 #: frappe/public/js/frappe/form/templates/print_layout.html:25
@@ -26400,7 +27330,7 @@ msgstr "註冊"
 msgid "Sign Up and Confirmation"
 msgstr "註冊與確認"
 
-#: frappe/core/doctype/user/user.py:1093
+#: frappe/core/doctype/user/user.py:1097
 msgid "Sign Up is disabled"
 msgstr "註冊已停用"
 
@@ -26519,7 +27449,13 @@ msgstr "略過授權"
 msgid "Skip Step"
 msgstr "略過步驟"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
+#. Option for the 'Status' (Select) field in DocType 'Automation Trigger Queue'
 #. Label of the skipped (Check) field in DocType 'Patch Log'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Skipped"
 msgstr "已略過"
@@ -26613,6 +27549,11 @@ msgstr "Slug"
 msgid "Small Text"
 msgstr "短文字"
 
+#. Description of the 'Output' (JSON) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Small structured result returned by the action."
+msgstr ""
+
 #. Label of the smallest_currency_fraction_value (Currency) field in DocType
 #. 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -26624,6 +27565,12 @@ msgstr "最小幣別輔幣值"
 #: frappe/geo/doctype/currency/currency.json
 msgid "Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01"
 msgstr "流通的最小輔幣單位（硬幣）。例如 USD 的 1 分，應輸入為 0.01"
+
+#. Label of the snapshot_section (Section Break) field in DocType 'Automation
+#. Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Snapshot"
+msgstr ""
 
 #. Label of the snapshot_report (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -26866,6 +27813,12 @@ msgstr "序號。"
 msgid "Stack Trace"
 msgstr "堆疊追蹤"
 
+#. Label of the stale_running_minutes (Int) field in DocType 'Automation
+#. Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Stale Running Minutes"
+msgstr ""
+
 #. Label of the standard (Select) field in DocType 'Page'
 #. Label of the standard (Check) field in DocType 'Desktop Icon'
 #. Label of the standard (Check) field in DocType 'Workspace Sidebar'
@@ -26883,6 +27836,12 @@ msgstr "堆疊追蹤"
 #: frappe/website/doctype/web_template/web_template.json
 msgid "Standard"
 msgstr "標準"
+
+#. Description of the 'Cron Expression' (Data) field in DocType 'Automation
+#. Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Standard 5-field cron, for example <code>0 9 * * 1</code>."
+msgstr ""
 
 #: frappe/model/delete_doc.py:128
 msgid "Standard DocType can not be deleted."
@@ -27004,7 +27963,9 @@ msgstr "StartTLS"
 msgid "Started"
 msgstr "已開始"
 
+#. Label of the started_at (Datetime) field in DocType 'Automation Run'
 #. Label of the started_at (Datetime) field in DocType 'RQ Job'
+#: frappe/automation/doctype/automation_run/automation_run.json
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Started At"
 msgstr "開始時間"
@@ -27074,6 +28035,11 @@ msgid "Stats Time Interval"
 msgstr "統計時間間隔"
 
 #. Label of the status (Select) field in DocType 'Auto Repeat'
+#. Label of the status (Select) field in DocType 'Automation Event
+#. Subscription'
+#. Label of the status (Select) field in DocType 'Automation Run'
+#. Label of the status (Select) field in DocType 'Automation Run Step'
+#. Label of the status (Select) field in DocType 'Automation Trigger Queue'
 #. Label of the status (Select) field in DocType 'Contact'
 #. Label of the status (Select) field in DocType 'Activity Log'
 #. Label of the status_section (Section Break) field in DocType 'Communication'
@@ -27100,6 +28066,10 @@ msgstr "統計時間間隔"
 #. Label of the status (Select) field in DocType 'Personal Data Deletion Step'
 #. Label of the status (Select) field in DocType 'Workflow Action'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/communication/communication.json
@@ -27137,13 +28107,56 @@ msgstr "狀態已更新。此電子郵件將於下次排程執行時取用。"
 msgid "Status: {0}"
 msgstr "狀態：{0}"
 
+#. Label of the step_idx (Int) field in DocType 'Automation Run Step'
 #. Label of the step (Link) field in DocType 'Onboarding Step Map'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/desk/doctype/onboarding_step_map/onboarding_step_map.json
 msgid "Step"
 msgstr "步驟"
 
+#. Label of the step_condition (Code) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Step Condition"
+msgstr ""
+
+#. Label of the step_key (Data) field in DocType 'Automation Action'
+#. Label of the step_key (Data) field in DocType 'Automation Event
+#. Subscription'
+#. Label of the step_key (Data) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_action/automation_action.json
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Step Key"
+msgstr ""
+
+#. Label of the step_output_limit (Int) field in DocType 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Step Output Limit"
+msgstr ""
+
+#. Label of the step_type (Data) field in DocType 'Automation Action'
+#: frappe/automation/doctype/automation_action/automation_action.json
+msgid "Step Type"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:407
+msgid "Step condition did not match"
+msgstr ""
+
+#. Description of the 'Run State' (JSON) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Step outputs, record aliases and branch choices a resumed run picks up."
+msgstr ""
+
+#: frappe/automation_engine/api.py:262
+msgid "Step {0} is not an If step"
+msgstr ""
+
+#. Label of the steps_section (Section Break) field in DocType 'Automation Run'
+#. Label of the steps (Table) field in DocType 'Automation Run'
 #. Label of the steps (Table) field in DocType 'Form Tour'
 #. Label of the steps (Table) field in DocType 'Module Onboarding'
+#: frappe/automation/doctype/automation_run/automation_run.json
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "Steps"
@@ -27163,6 +28176,17 @@ msgstr "固定"
 #: frappe/core/doctype/recorder/recorder_list.js:87
 msgid "Stop"
 msgstr "停止"
+
+#. Description of the 'Disable Automations' (Check) field in DocType
+#. 'Automation Settings'
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Stop dispatching automations site-wide. Queued rows are left untouched."
+msgstr ""
+
+#. Label of the stop_on_error (Check) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Stop on Error"
+msgstr ""
 
 #. Label of the stopped (Check) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -27410,6 +28434,8 @@ msgstr "子公司"
 msgid "Subtle"
 msgstr "淡雅"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #. Label of the success (Check) field in DocType 'Data Import Log'
@@ -27418,6 +28444,8 @@ msgstr "淡雅"
 #. Option for the 'Button Color' (Select) field in DocType 'Customize Form
 #. Field'
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/data_import/data_import.js:487
 #: frappe/core/doctype/data_import/data_import.json
@@ -27493,7 +28521,7 @@ msgstr "已成功匯入 {1} 筆記錄中的 {0} 筆。"
 msgid "Successfully reset onboarding status for all users."
 msgstr "已成功重設所有使用者的導引狀態。"
 
-#: frappe/core/doctype/user/user.py:1509
+#: frappe/core/doctype/user/user.py:1513
 msgid "Successfully signed out"
 msgstr "已成功登出"
 
@@ -27518,7 +28546,7 @@ msgstr "建議最佳化"
 msgid "Suggested Indexes"
 msgstr "建議的索引"
 
-#: frappe/core/doctype/user/user.py:784
+#: frappe/core/doctype/user/user.py:785
 msgid "Suggested Username: {0}"
 msgstr "建議的使用者名稱：{0}"
 
@@ -27747,6 +28775,11 @@ msgstr "系統記錄"
 #. Name of a role
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/automation/doctype/milestone/milestone.json
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
 #: frappe/contacts/doctype/address/address.json
@@ -28022,7 +29055,7 @@ msgstr "資料表已修剪"
 msgid "Table updated"
 msgstr "已更新資料表"
 
-#: frappe/model/document.py:1709
+#: frappe/model/document.py:1711
 msgid "Table {0} cannot be empty"
 msgstr "資料表 {0} 不得為空"
 
@@ -28055,12 +29088,18 @@ msgstr "標籤"
 msgid "Take Photo"
 msgstr "拍照"
 
+#. Label of the target (Data) field in DocType 'Automation Action'
 #. Label of the target (Data) field in DocType 'Portal Menu Item'
 #. Label of the target (Small Text) field in DocType 'Website Route Redirect'
+#: frappe/automation/doctype/automation_action/automation_action.json
 #: frappe/website/doctype/portal_menu_item/portal_menu_item.json
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 msgid "Target"
 msgstr "目標"
+
+#: frappe/automation_engine/actions/core.py:115
+msgid "Target Document Type is required"
+msgstr ""
 
 #. Label of the task (Select) field in DocType 'Workflow Transition Task'
 #: frappe/desk/doctype/todo/todo_calendar.js:19
@@ -28139,7 +29178,7 @@ msgstr "範本警告"
 msgid "Templates"
 msgstr "範本"
 
-#: frappe/core/doctype/user/user.py:1106
+#: frappe/core/doctype/user/user.py:1110
 msgid "Temporarily Disabled"
 msgstr "暫時停用"
 
@@ -28152,6 +29191,15 @@ msgstr "測試資料"
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Test Job ID"
 msgstr "測試工作 ID"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:86
+#: frappe/automation/doctype/automation_flow/automation_flow.js:94
+msgid "Test Run"
+msgstr ""
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:129
+msgid "Test Run: {0}"
+msgstr ""
 
 #: frappe/core/doctype/translation/test_translation.py:53
 #: frappe/core/doctype/translation/test_translation.py:61
@@ -28229,6 +29277,10 @@ msgstr "感謝您的訊息"
 msgid "Thanks"
 msgstr "謝謝"
 
+#: frappe/automation_engine/actions/core.py:456
+msgid "That Server Script is disabled"
+msgstr ""
+
 #: frappe/templates/emails/auto_repeat_fail.html:3
 msgid "The Auto Repeat for this document has been disabled."
 msgstr "此文件的自動重複已停用。"
@@ -28250,15 +29302,15 @@ msgstr "從 Google Cloud Console 的 <a href=\"https://console.cloud.google.com/
 "「APIs &amp; Services」&gt;「Credentials」\n"
 "</a> 下取得的用戶端 ID"
 
-#: frappe/email/doctype/notification/notification.py:233
+#: frappe/email/doctype/notification/notification.py:249
 msgid "The Condition '{0}' is invalid"
 msgstr "條件「{0}」無效"
 
-#: frappe/core/doctype/file/file.py:942
+#: frappe/core/doctype/file/file.py:949
 msgid "The File URL does not belong to this File record"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:303 frappe/core/doctype/file/file.py:309
+#: frappe/core/doctype/file/file.py:310 frappe/core/doctype/file/file.py:316
 msgid "The File URL you've entered is incorrect"
 msgstr "您輸入的檔案網址不正確"
 
@@ -28363,6 +29415,16 @@ msgstr "{1} 中的欄位 {0} 連結至 {2}，而非 {3}"
 msgid "The fieldname you've specified in Attached To Field is invalid"
 msgstr "您在「附加至欄位」中指定的欄位名稱無效"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.js:102
+msgid "The flow runs for real against this document, then everything it did is rolled back."
+msgstr ""
+
+#. Description of the 'Actions Snapshot' (JSON) field in DocType 'Automation
+#. Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "The flow's steps as they were when the run started. A resumed run executes these, not the current flow."
+msgstr ""
+
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:62
 msgid "The following Assignment Days have been repeated: {0}"
 msgstr "下列分派日已重複：{0}"
@@ -28439,11 +29501,11 @@ msgstr "您請求的報表已產生。<br><br>請點此下載：<br><a href='{0}
 msgid "The request could not be completed. Check your connection and try again."
 msgstr "無法完成此請求。請檢查您的連線後再試一次。"
 
-#: frappe/core/doctype/user/user.py:1064
+#: frappe/core/doctype/user/user.py:1068
 msgid "The reset password link has been expired"
 msgstr "密碼重設連結已過期"
 
-#: frappe/core/doctype/user/user.py:1066
+#: frappe/core/doctype/user/user.py:1070
 msgid "The reset password link has either been used before or is invalid"
 msgstr "密碼重設連結先前已使用過，或為無效"
 
@@ -28454,6 +29516,11 @@ msgstr "您要尋找的資源無法使用"
 #: frappe/core/doctype/audit_trail/audit_trail.py:46
 msgid "The selected document {0} is not a {1}."
 msgstr "所選文件 {0} 不是 {1}。"
+
+#. Description of the 'Condition' (Code) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "The step condition that skipped this step."
+msgstr ""
 
 #: frappe/utils/response.py:366
 msgid "The system is being updated. Please refresh again after a few moments."
@@ -28536,6 +29603,11 @@ msgstr "主題設定"
 msgid "Theme URL"
 msgstr "主題網址"
 
+#: frappe/website/doctype/website_theme/website_theme.py:110
+#: frappe/website/doctype/website_theme/website_theme.py:120
+msgid "Theme name cannot contain '/' or path separators"
+msgstr ""
+
 #: frappe/workflow/doctype/workflow/workflow.js:129
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
 msgstr "有些文件的工作流程狀態並不存在於此工作流程中。建議您先將這些狀態加入工作流程並變更其狀態，再移除這些狀態。"
@@ -28577,7 +29649,7 @@ msgstr "沒有名為「{}」的任務"
 msgid "There is nothing new to show you right now."
 msgstr "目前沒有新內容可顯示給您。"
 
-#: frappe/core/doctype/file/file.py:765 frappe/utils/file_manager.py:381
+#: frappe/core/doctype/file/file.py:772 frappe/utils/file_manager.py:381
 msgid "There is some problem with the file url: {0}"
 msgstr "檔案網址有問題：{0}"
 
@@ -28658,7 +29730,7 @@ msgstr "此看板將為私人"
 msgid "This Month"
 msgstr "本月"
 
-#: frappe/core/doctype/file/file.py:486
+#: frappe/core/doctype/file/file.py:493
 msgid "This PDF cannot be uploaded as it contains unsafe content."
 msgstr "此 PDF 因含有不安全的內容而無法上傳。"
 
@@ -28682,6 +29754,10 @@ msgstr "本週"
 msgid "This Year"
 msgstr "今年"
 
+#: frappe/automation_engine/api.py:159
+msgid "This action does not support the selected trigger"
+msgstr ""
+
 #: frappe/custom/doctype/customize_form/customize_form.js:233
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "此動作無法復原。您要繼續嗎？"
@@ -28689,6 +29765,10 @@ msgstr "此動作無法復原。您要繼續嗎？"
 #: frappe/__init__.py:566
 msgid "This action is only allowed for {}"
 msgstr "此動作僅允許 {} 執行"
+
+#: frappe/automation_engine/api.py:157
+msgid "This action requires a Document Type"
+msgstr ""
 
 #: frappe/public/js/frappe/form/toolbar.js:130
 #: frappe/public/js/frappe/model/model.js:726
@@ -28738,7 +29818,7 @@ msgstr "此文件有未儲存的變更，可能不會出現在最終 PDF 中。<
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "此文件已修訂過，您無法再次修訂"
 
-#: frappe/model/document.py:547
+#: frappe/model/document.py:548
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr "此文件目前已鎖定並排入執行佇列。請稍後再試。"
 
@@ -28768,7 +29848,7 @@ msgstr "唯有此處定義的欄位名稱具有值，或規則為真時，此欄
 "eval:doc.myfield=='My Value'\n"
 "eval:doc.age&gt;18"
 
-#: frappe/core/doctype/file/file.py:612
+#: frappe/core/doctype/file/file.py:619
 msgid "This file is attached to a protected document and cannot be deleted."
 msgstr "此檔案已附加至受保護的文件，無法刪除。"
 
@@ -28779,6 +29859,10 @@ msgstr "此檔案為公開檔案，任何人即使未登入也能存取。若要
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
 msgstr "此檔案為公開。無需驗證即可存取。"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.js:131
+msgid "This flow has no steps to run."
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:1250
 msgid "This form has been modified after you have loaded it"
@@ -28933,7 +30017,7 @@ msgstr "這將重設此導覽並向所有使用者顯示。您確定嗎？"
 msgid "This will terminate the job immediately and might be dangerous, are you sure?"
 msgstr "這會立即終止該工作，可能有風險，您確定嗎？"
 
-#: frappe/core/doctype/user/user.py:1340
+#: frappe/core/doctype/user/user.py:1344
 msgid "Throttled"
 msgstr "已限速"
 
@@ -29046,11 +30130,14 @@ msgstr "QR code 圖片保留在伺服器上的秒數。最少：<strong>240</str
 msgid "Time series based on is required to create a dashboard chart"
 msgstr "建立儀表板圖表需要時間序列依據"
 
-#: frappe/public/js/frappe/form/controls/time.js:124
+#: frappe/public/js/frappe/form/controls/time.js:111
 msgid "Time {0} must be in format: {1}"
 msgstr "時間 {0} 必須符合格式：{1}"
 
+#. Option for the 'Status' (Select) field in DocType 'Automation Event
+#. Subscription'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Timed Out"
 msgstr "已逾時"
@@ -29108,6 +30195,10 @@ msgstr "逾時"
 msgid "Timeout (In Seconds)"
 msgstr "逾時（秒）"
 
+#: frappe/automation_engine/actions/core.py:365
+msgid "Timeout must be between 1 and {0} seconds"
+msgstr ""
+
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
 msgid "Timeseries"
@@ -29124,10 +30215,17 @@ msgstr "時間範圍"
 msgid "Timestamp"
 msgstr "時間戳記"
 
+#. Label of the timing_section (Section Break) field in DocType 'Automation
+#. Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Timing"
+msgstr "時間"
+
 #: frappe/desk/doctype/system_console/system_console.js:41
 msgid "Tip: Try the new dropdown console using"
 msgstr "訣竅：試試使用以下方式開啟新的下拉式主控台"
 
+#. Label of the title (Data) field in DocType 'Automation Flow'
 #. Label of the title (Data) field in DocType 'DocType State'
 #. Label of the method (Data) field in DocType 'Error Log'
 #. Label of the title (Data) field in DocType 'Page'
@@ -29151,6 +30249,7 @@ msgstr "訣竅：試試使用以下方式開啟新的下拉式主控台"
 #. Label of the meta_title (Data) field in DocType 'Web Page'
 #. Label of the title (Data) field in DocType 'Website Sidebar'
 #. Label of the title (Data) field in DocType 'Website Sidebar Item'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
 #: frappe/core/doctype/doctype/boilerplate/controller_list.html:14
 #: frappe/core/doctype/doctype/boilerplate/controller_list.html:23
 #: frappe/core/doctype/doctype_state/doctype_state.json
@@ -29225,6 +30324,11 @@ msgstr "結束日期欄位"
 msgid "To Do"
 msgstr "待辦事項"
 
+#. Label of the to_value (Data) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "To Value"
+msgstr "截止值"
+
 #. Description of the 'Subject' (Data) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "To add dynamic subject, use jinja tags like\n\n"
@@ -29277,11 +30381,11 @@ msgstr "若要啟用伺服器指令碼，請閱讀 {0}。"
 msgid "To export this step as JSON, link it in a Onboarding document and save the document."
 msgstr "若要將此步驟匯出為 JSON，請在「導引流程」文件中連結它並儲存文件。"
 
-#: frappe/email/doctype/email_account/email_account.js:126
+#: frappe/email/doctype/email_account/email_account.js:124
 msgid "To generate password click {0}"
 msgstr "若要產生密碼，請點選 {0}"
 
-#: frappe/email/doctype/email_account/email_account.js:139
+#: frappe/email/doctype/email_account/email_account.js:138
 msgid "To know more click {0}"
 msgstr "若要了解更多，請點選 {0}"
 
@@ -29324,7 +30428,7 @@ msgstr "結束版本"
 msgid "ToDo"
 msgstr "待辦事項"
 
-#: frappe/public/js/frappe/form/controls/date.js:59
+#: frappe/public/js/frappe/form/controls/date.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:746
 #: frappe/public/js/frappe/views/calendar/calendar.js:281
 msgid "Today"
@@ -29407,11 +30511,15 @@ msgstr "單一動作對資料庫的變更過多。"
 msgid "Too many queued background jobs ({0}). Please retry after some time."
 msgstr "排入佇列的背景工作過多（{0}）。請稍後重試。"
 
+#: frappe/automation_engine/actions/core.py:550
+msgid "Too many redirects"
+msgstr ""
+
 #: frappe/templates/includes/login/login.js:330
 msgid "Too many requests. Please try again later."
 msgstr "請求過多。請稍後再試。"
 
-#: frappe/core/doctype/user/user.py:1107
+#: frappe/core/doctype/user/user.py:1111
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "近期註冊的使用者過多，因此註冊已停用。請於一小時後再試"
 
@@ -29538,7 +30646,9 @@ msgstr "合計列"
 msgid "Trace ID"
 msgstr "追蹤 ID"
 
+#. Label of the traceback (Code) field in DocType 'Automation Run Step'
 #. Label of the traceback (Code) field in DocType 'Patch Log'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Traceback"
 msgstr "Traceback"
@@ -29700,10 +30810,31 @@ msgstr "樹狀結構以巢狀集合實作"
 msgid "Tree view is not available for {0}"
 msgstr "{0} 無法使用樹狀檢視"
 
+#. Label of the trigger_section (Section Break) field in DocType 'Automation
+#. Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Trigger"
+msgstr ""
+
+#. Label of the trigger_field (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Trigger Field"
+msgstr ""
+
 #. Label of the method (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Trigger Method"
 msgstr "觸發方法"
+
+#. Label of the queue_row (Data) field in DocType 'Automation Run'
+#: frappe/automation/doctype/automation_run/automation_run.json
+msgid "Trigger Queue Row"
+msgstr ""
+
+#. Label of the trigger_type (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Trigger Type"
+msgstr ""
 
 #: frappe/tests/test_translate.py:72
 msgid "Trigger caching"
@@ -29718,9 +30849,31 @@ msgstr "在有效的方法上觸發，例如「before_insert」、「after_updat
 msgid "Trigger primary action"
 msgstr "觸發主要動作"
 
+#. Label of the triggered_at (Datetime) field in DocType 'Automation Trigger
+#. Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Triggered At"
+msgstr ""
+
+#. Label of the triggered_by (Link) field in DocType 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Triggered By"
+msgstr ""
+
+#. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
+#: frappe/automation/doctype/automation_flow/automation_flow.json
+msgid "Triggering User"
+msgstr ""
+
 #: frappe/custom/doctype/customize_form/customize_form.js:153
 msgid "Trim Table"
 msgstr "修剪資料表"
+
+#. Description of the 'Detail' (Long Text) field in DocType 'Automation Run
+#. Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Truncated to 5k characters."
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:318
 msgid "Try Again"
@@ -29755,6 +30908,11 @@ msgstr "請盡量使用更長、轉折更多的鍵盤模式"
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Tuesday"
 msgstr "星期二"
+
+#. Description of a DocType
+#: frappe/automation/doctype/automation_settings/automation_settings.json
+msgid "Tuning for the automation engine: dispatch limits, drain behaviour, retention and payload limits."
+msgstr ""
 
 #. Label of the two_factor_auth (Check) field in DocType 'Role'
 #. Label of the two_factor_authentication (Section Break) field in DocType
@@ -29909,7 +31067,19 @@ msgstr "網址聯絡方式必須以 https:// 開頭"
 msgid "URL for documentation or help"
 msgstr "說明文件或協助的網址"
 
-#: frappe/core/doctype/file/file.py:320
+#: frappe/automation_engine/actions/core.py:505
+msgid "URL has no host"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:357
+msgid "URL is required"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:503
+msgid "URL must be http or https"
+msgstr ""
+
+#: frappe/core/doctype/file/file.py:327
 msgid "URL must start with http:// or https://"
 msgstr "網址必須以 http:// 或 https:// 開頭"
 
@@ -30016,7 +31186,7 @@ msgstr "因缺少電子郵件帳號而無法寄送郵件。請從「設定 > 電
 msgid "Unable to update event"
 msgstr "無法更新事件"
 
-#: frappe/core/doctype/file/file.py:576
+#: frappe/core/doctype/file/file.py:583
 msgid "Unable to write file format for {0}"
 msgstr "無法寫入 {0} 的檔案格式"
 
@@ -30085,17 +31255,57 @@ msgstr "未知"
 msgid "Unknown Column: {0}"
 msgstr "未知的欄：{0}"
 
+#: frappe/automation_engine/actions/core.py:117
+msgid "Unknown DocType"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:249
+msgid "Unknown Email Template"
+msgstr ""
+
 #: frappe/utils/data.py:1256
 msgid "Unknown Rounding Method: {}"
 msgstr "未知的捨入方法：{}"
+
+#: frappe/automation_engine/actions/core.py:445
+msgid "Unknown Server Script"
+msgstr ""
 
 #: frappe/auth.py:324
 msgid "Unknown User"
 msgstr "未知的使用者"
 
+#: frappe/automation_engine/actions/base.py:140
+msgid "Unknown automation action: {0}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:128
+msgid "Unknown automation relationship: {0}"
+msgstr ""
+
+#: frappe/automation_engine/schema_relationships.py:259
+msgid "Unknown derived relationship: {0}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:162
+msgid "Unknown derived relationship: {0} on {1}"
+msgstr ""
+
 #: frappe/utils/csvutils.py:86
 msgid "Unknown file encoding. Tried to use: {0}"
 msgstr "未知的檔案編碼。已嘗試使用：{0}"
+
+#: frappe/automation_engine/api.py:84
+msgid "Unknown parameter: {0}"
+msgstr ""
+
+#: frappe/automation_engine/conditions.py:91
+msgid "Unknown related-condition source alias: {0}"
+msgstr ""
+
+#: frappe/automation_engine/relationships.py:208
+msgid "Unknown relationship source alias: {0}"
+msgstr ""
 
 #: frappe/core/doctype/submission_queue/submission_queue.js:7
 msgid "Unlock Reference Document"
@@ -30121,6 +31331,10 @@ msgstr "未讀"
 #: frappe/core/doctype/communication/communication.json
 msgid "Unread Notification Sent"
 msgstr "已寄送未讀通知"
+
+#: frappe/automation_engine/events.py:135
+msgid "Unregistered automation event: {0}"
+msgstr ""
 
 #: frappe/utils/safe_exec.py:750 frappe/utils/safe_exec.py:763
 msgid "Unsafe SQL query"
@@ -30161,6 +31375,14 @@ msgstr "取消訂閱參數"
 msgid "Unsubscribed"
 msgstr "已取消訂閱"
 
+#: frappe/automation_engine/actions/core.py:362
+msgid "Unsupported HTTP method"
+msgstr ""
+
+#: frappe/automation_engine/conditions.py:135
+msgid "Unsupported count comparison: {0}"
+msgstr ""
+
 #: frappe/desk/query_report.py:543
 msgid "Unsupported file format: {0}"
 msgstr "不支援的檔案格式：{0}"
@@ -30168,6 +31390,10 @@ msgstr "不支援的檔案格式：{0}"
 #: frappe/database/query.py:1184
 msgid "Unsupported function or operator: {0}"
 msgstr "不支援的函式或運算子：{0}"
+
+#: frappe/automation_engine/conditions.py:115
+msgid "Unsupported related condition: {0}"
+msgstr ""
 
 #: frappe/database/query.py:2257
 msgid "Unsupported {0}: {1}"
@@ -30476,7 +31702,7 @@ msgstr "若預設設定似乎無法正確偵測您的資料，請使用此項"
 msgid "Use minimum of 8 characters(case sensitive) with at least one number or special character."
 msgstr "請使用至少 8 個字元（區分大小寫），並包含至少一個數字或特殊字元。"
 
-#: frappe/model/db_query.py:517
+#: frappe/model/db_query.py:515
 msgid "Use of sub-query or function is restricted"
 msgstr "子查詢或函式的使用受限"
 
@@ -30812,15 +32038,15 @@ msgstr "電子郵件地址為 {0} 的使用者不存在"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "系統中不存在電子郵件為 {0} 的使用者。請要求「系統管理員」為您建立該使用者。"
 
-#: frappe/core/doctype/user/user.py:589
+#: frappe/core/doctype/user/user.py:590
 msgid "User {0} cannot be deleted"
 msgstr "使用者 {0} 無法刪除"
 
-#: frappe/core/doctype/user/user.py:372
+#: frappe/core/doctype/user/user.py:373
 msgid "User {0} cannot be disabled"
 msgstr "使用者 {0} 無法停用"
 
-#: frappe/core/doctype/user/user.py:662
+#: frappe/core/doctype/user/user.py:663
 msgid "User {0} cannot be renamed"
 msgstr "使用者 {0} 無法重新命名"
 
@@ -30841,11 +32067,11 @@ msgstr "使用者 {0} 沒有建立工作區的權限。"
 msgid "User {0} has requested for data deletion"
 msgstr "使用者 {0} 已請求刪除資料"
 
-#: frappe/core/doctype/user/user.py:1484
+#: frappe/core/doctype/user/user.py:1488
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
 msgstr "使用者 {0} 已以您的身分開始模擬工作階段。<br><br><b>所提供的原因：</b>{1}"
 
-#: frappe/core/doctype/user/user.py:1467
+#: frappe/core/doctype/user/user.py:1471
 msgid "User {0} impersonated as {1}"
 msgstr "使用者 {0} 已模擬為 {1}"
 
@@ -30874,7 +32100,7 @@ msgstr "Userinfo URI"
 msgid "Username"
 msgstr "使用者名稱"
 
-#: frappe/core/doctype/user/user.py:751
+#: frappe/core/doctype/user/user.py:752
 msgid "Username {0} already exists"
 msgstr "使用者名稱 {0} 已存在"
 
@@ -31012,15 +32238,15 @@ msgstr "要設定的值"
 msgid "Value Too Long"
 msgstr "值過長"
 
-#: frappe/model/base_document.py:1197 frappe/model/document.py:920
+#: frappe/model/base_document.py:1197 frappe/model/document.py:921
 msgid "Value cannot be changed for {0}"
 msgstr "{0} 的值無法變更"
 
-#: frappe/model/document.py:866
+#: frappe/model/document.py:867
 msgid "Value cannot be negative for"
 msgstr "值不得為負，欄位為"
 
-#: frappe/model/document.py:870
+#: frappe/model/document.py:871
 msgid "Value cannot be negative for {0}: {1}"
 msgstr "{0} 的值不得為負：{1}"
 
@@ -31316,9 +32542,61 @@ msgstr "造訪網頁"
 msgid "Visitor ID"
 msgstr "訪客 ID"
 
+#. Label of the section_break_resume (Section Break) field in DocType
+#. 'Automation Trigger Queue'
+#: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
+msgid "Wait Resume"
+msgstr ""
+
+#: frappe/automation_engine/events.py:37
+msgid "Wait for Event correlation key rendered empty"
+msgstr ""
+
+#: frappe/automation_engine/events.py:141
+msgid "Wait for Event requires a correlation key"
+msgstr ""
+
+#: frappe/automation_engine/events.py:143
+msgid "Wait for Event requires a timeout"
+msgstr ""
+
+#: frappe/automation_engine/events.py:145
+msgid "Wait for Event timeout unit must be one of {0}"
+msgstr ""
+
 #: frappe/utils/synchronization.py:48
 msgid "Wait for it to finish. Deleting the lock file {} will not release the lock."
 msgstr "請等待它完成。刪除鎖定檔 {} 並不會釋放該鎖定。"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:174
+msgid "Wait steps require a duration value and unit"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:324
+msgid "Waited for {0} (simulated)"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:309
+msgid "Waited {0} {1} (simulated)"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Automation Event
+#. Subscription'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run'
+#. Option for the 'Status' (Select) field in DocType 'Automation Run Step'
+#: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
+#: frappe/automation/doctype/automation_run/automation_run.json
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "Waiting"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:320
+msgid "Waiting for {0}"
+msgstr ""
+
+#: frappe/automation_engine/runner.py:305
+msgid "Waiting {0} seconds"
+msgstr ""
 
 #: frappe/templates/discussions/reply_section.html:39
 msgid "Want to discuss?"
@@ -31350,7 +32628,7 @@ msgstr "警告：資料即將遺失！繼續將從 doctype {0} 永久刪除下�
 msgid "Warning: Naming is not set"
 msgstr "警告：未設定命名"
 
-#: frappe/public/js/frappe/model/meta.js:190
+#: frappe/public/js/frappe/model/meta.js:188
 msgid "Warning: Unable to find {0} in any table related to {1}"
 msgstr "警告：在與 {1} 相關的任何資料表中都找不到 {0}"
 
@@ -31796,7 +33074,7 @@ msgstr "歡迎網址"
 msgid "Welcome Workspace"
 msgstr "歡迎工作區"
 
-#: frappe/core/doctype/user/user.py:466
+#: frappe/core/doctype/user/user.py:467
 msgid "Welcome email sent"
 msgstr "已寄送歡迎電子郵件"
 
@@ -31808,7 +33086,7 @@ msgstr "歡迎使用 Frappe！"
 msgid "Welcome to the {0} workspace"
 msgstr "歡迎使用 {0} 工作區"
 
-#: frappe/core/doctype/user/user.py:527
+#: frappe/core/doctype/user/user.py:528
 msgid "Welcome to {0}"
 msgstr "歡迎使用 {0}"
 
@@ -31816,6 +33094,12 @@ msgstr "歡迎使用 {0}"
 #: frappe/www/login.html:195
 msgid "Welcome! Please sign in to continue."
 msgstr "歡迎！請登入以繼續。"
+
+#. Description of the 'Message' (Small Text) field in DocType 'Automation Run
+#. Step'
+#: frappe/automation/doctype/automation_run_step/automation_run_step.json
+msgid "What the action threw as a message, if it failed."
+msgstr ""
 
 #. Description of the 'Email' (Section Break) field in DocType 'Notification
 #. Log'
@@ -32143,6 +33427,10 @@ msgstr "您要發佈此留言嗎？這表示網站／入口使用者將可看到
 msgid "Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
 msgstr "您要取消發佈此留言嗎？這表示網站／入口使用者將無法再看到它。"
 
+#: frappe/automation_engine/actions/core.py:381
+msgid "Would {0} {1} (not sent)"
+msgstr ""
+
 #: frappe/desk/page/setup_wizard/setup_wizard.py:43
 msgid "Wrapping up"
 msgstr "收尾中"
@@ -32257,9 +33545,9 @@ msgstr "黃色"
 #: frappe/core/doctype/page/page.json frappe/core/doctype/report/report.json
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
-#: frappe/email/doctype/notification/notification.py:101
-#: frappe/email/doctype/notification/notification.py:106
-#: frappe/email/doctype/notification/notification.py:108
+#: frappe/email/doctype/notification/notification.py:102
+#: frappe/email/doctype/notification/notification.py:107
+#: frappe/email/doctype/notification/notification.py:109
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 #: frappe/integrations/doctype/webhook/webhook.py:125
 #: frappe/integrations/doctype/webhook/webhook.py:132
@@ -32332,11 +33620,11 @@ msgstr "不允許您建立欄"
 msgid "You are not allowed to delete Standard Report"
 msgstr "不允許您刪除標準報表"
 
-#: frappe/email/doctype/notification/notification.py:763
+#: frappe/email/doctype/notification/notification.py:815
 msgid "You are not allowed to delete a standard Notification. You can disable it instead."
 msgstr "不允許您刪除標準通知。您可改為將其停用。"
 
-#: frappe/website/doctype/website_theme/website_theme.py:73
+#: frappe/website/doctype/website_theme/website_theme.py:74
 msgid "You are not allowed to delete a standard Website Theme"
 msgstr "不允許您刪除標準網站主題"
 
@@ -32444,7 +33732,7 @@ msgstr "您可在探索此頁面後繼續進行導引流程"
 msgid "You can disable this {0} instead of deleting it."
 msgstr "您可停用此 {0}，而非將其刪除。"
 
-#: frappe/core/doctype/file/file.py:883
+#: frappe/core/doctype/file/file.py:890
 msgid "You can increase the limit from System Settings."
 msgstr "您可從系統設定提高上限。"
 
@@ -32578,7 +33866,7 @@ msgstr "您沒有存取子資料表欄位的權限：{0}"
 msgid "You do not have permission to access field: {0}"
 msgstr "您沒有存取欄位的權限：{0}"
 
-#: frappe/core/doctype/file/file.py:240
+#: frappe/core/doctype/file/file.py:247
 msgid "You do not have permission to access this file"
 msgstr "您沒有存取此檔案的權限"
 
@@ -32697,7 +33985,7 @@ msgstr "您必須登入才能使用此表單。"
 msgid "You must login to use this form"
 msgstr "您必須登入才能使用此表單"
 
-#: frappe/model/document.py:429
+#: frappe/model/document.py:430
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
 msgstr "您需要 {1} {2} 上的「{0}」權限才能執行此動作。"
 
@@ -32750,7 +34038,7 @@ msgstr "您必須啟用 JavaScript，您的應用程式才能運作。"
 msgid "You need to have \"Share\" permission"
 msgstr "您必須具有「共用」權限"
 
-#: frappe/utils/print_format.py:367
+#: frappe/utils/print_format.py:373
 msgid "You need to install pycups to use this feature!"
 msgstr "您必須安裝 pycups 才能使用此功能！"
 
@@ -32936,7 +34224,7 @@ msgstr "您的舊密碼不正確。"
 msgid "Your organization name and address for the email footer."
 msgstr "供電子郵件頁尾使用的您的組織名稱與地址。"
 
-#: frappe/core/doctype/user/user.py:390
+#: frappe/core/doctype/user/user.py:391
 msgid "Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
 msgstr "您的密碼已變更，您可能已從所有系統登出。<br>如需進一步協助，請與系統管理員聯絡。"
 
@@ -32966,7 +34254,7 @@ msgstr "零"
 msgid "Zero means send records updated at anytime"
 msgstr "零代表寄送於任何時間更新的記錄"
 
-#: frappe/core/doctype/file/file.py:661 frappe/core/doctype/file/file.py:679
+#: frappe/core/doctype/file/file.py:668 frappe/core/doctype/file/file.py:686
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
 msgstr "壓縮檔案解壓縮後的大小超過了允許的最大大小 {0} MB"
 
@@ -33208,9 +34496,14 @@ msgctxt "Comparison value is empty"
 msgid "empty"
 msgstr "空白"
 
+#: frappe/automation_engine/runner.py:324
+msgid "event"
+msgstr "事件"
+
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
+#: frappe/public/js/frappe/views/reports/query_report.js:1094
 msgid "export"
 msgstr "匯出"
 
@@ -33270,6 +34563,11 @@ msgstr "在 PATH 中找不到 gzip！進行備份需要此工具。"
 msgctxt "Hours (Field: Duration)"
 msgid "h"
 msgstr "小時"
+
+#: frappe/email/doctype/email_account/email_account.js:126
+#: frappe/email/doctype/email_account/email_account.js:139
+msgid "here"
+msgstr "這裡"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:315
 msgid "hub"
@@ -33512,10 +34810,12 @@ msgid "results"
 msgstr "結果"
 
 #: frappe/public/js/frappe/form/grid.js:1224
+#: frappe/public/js/frappe/list/list_view.js:2572
 msgid "row"
 msgstr "列"
 
 #: frappe/public/js/frappe/form/grid.js:1224
+#: frappe/public/js/frappe/list/list_view.js:2572
 msgid "rows"
 msgstr "列"
 
@@ -33670,6 +34970,11 @@ msgstr "已更新 {0}"
 msgid "use % as wildcard"
 msgstr "以 % 作為萬用字元"
 
+#: frappe/public/js/frappe/form/link_selector.js:24
+#: frappe/public/js/frappe/form/multi_select_dialog.js:81
+msgid "value"
+msgstr "value"
+
 #: frappe/public/js/frappe/ui/filters/filter.js:362
 msgid "values separated by commas"
 msgstr "以逗號分隔的值"
@@ -33697,7 +35002,7 @@ msgstr "透過資料匯入"
 msgid "via Google Meet"
 msgstr "透過 Google Meet"
 
-#: frappe/email/doctype/notification/notification.py:419
+#: frappe/email/doctype/notification/notification.py:435
 msgid "via Notification"
 msgstr "透過通知"
 
@@ -33792,7 +35097,12 @@ msgstr "{0} ${skip_list ? \"\" : type}"
 msgid "{0} ${type}"
 msgstr "{0} ${type}"
 
-#: frappe/public/js/frappe/data_import/data_exporter.js:80
+#: frappe/automation_engine/schema_relationships.py:220
+msgid "{0} (by {1})"
+msgstr ""
+
+#: frappe/automation_engine/schema_relationships.py:186
+#: frappe/public/js/frappe/data_import/data_exporter.js:78
 #: frappe/public/js/frappe/views/gantt/gantt_view.js:54
 msgid "{0} ({1})"
 msgstr "{0}（{1}）"
@@ -33955,7 +35265,7 @@ msgctxt "Form timeline"
 msgid "{0} cancelled this document {1}"
 msgstr "{0} 已取消此文件 {1}"
 
-#: frappe/model/document.py:622
+#: frappe/model/document.py:623
 msgid "{0} cannot be amended because it is not cancelled. Please cancel the document before creating an amendment."
 msgstr "{0} 因未取消而無法修訂。請於建立修訂前先取消該文件。"
 
@@ -34038,6 +35348,10 @@ msgstr "{0} 不存在"
 msgid "{0} does not exist in row {1}"
 msgstr "{0} 不存在於第 {1} 列"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:156
+msgid "{0} does not support {1} triggers"
+msgstr ""
+
 #: frappe/public/js/frappe/form/controls/link.js:678
 msgid "{0} equals {1}"
 msgstr "{0} 等於 {1}"
@@ -34074,6 +35388,10 @@ msgstr "{0} 含有無效的反引號標記法：{1}"
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} 已在 {1} {2} 中離開對話"
 
+#: frappe/automation_engine/actions/core.py:70
+msgid "{0} has no field {1}"
+msgstr "{0} 沒有欄位 {1}"
+
 #: frappe/public/js/frappe/utils/pretty_date.js:56
 msgid "{0} hours ago"
 msgstr "{0} 小時前"
@@ -34103,7 +35421,7 @@ msgstr "{0} 是 {1} 的子孫項目"
 msgid "{0} is a mandatory field"
 msgstr "{0} 為必填欄位"
 
-#: frappe/core/doctype/file/file.py:674
+#: frappe/core/doctype/file/file.py:681
 msgid "{0} is a not a valid zip file"
 msgstr "{0} 不是有效的 zip 檔案"
 
@@ -34244,7 +35562,7 @@ msgstr "{0} 不是 {1} 的有效 parentfield"
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr "{0} 不是有效的報表格式。報表格式應為下列其中之一：{1}"
 
-#: frappe/core/doctype/file/file.py:638
+#: frappe/core/doctype/file/file.py:645
 msgid "{0} is not a zip file"
 msgstr "{0} 不是 zip 檔案"
 
@@ -34326,7 +35644,7 @@ msgstr "{0} 為 {1}"
 msgid "{0} items selected"
 msgstr "已選取 {0} 個項目"
 
-#: frappe/core/doctype/user/user.py:1476
+#: frappe/core/doctype/user/user.py:1480
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} 剛以您的身分進行模擬。所提供的原因為：{1}"
 
@@ -34366,23 +35684,27 @@ msgstr "{0} 分鐘前"
 msgid "{0} months ago"
 msgstr "{0} 個月前"
 
-#: frappe/model/document.py:1946
+#: frappe/automation_engine/actions/core.py:561
+msgid "{0} must be a JSON object"
+msgstr ""
+
+#: frappe/model/document.py:1948
 msgid "{0} must be after {1}"
 msgstr "{0} 必須晚於 {1}"
 
-#: frappe/model/document.py:1695
+#: frappe/model/document.py:1697
 msgid "{0} must be beginning with '{1}'"
 msgstr "{0} 必須以「{1}」開頭"
 
-#: frappe/model/document.py:1697
+#: frappe/model/document.py:1699
 msgid "{0} must be equal to '{1}'"
 msgstr "{0} 必須等於「{1}」"
 
-#: frappe/model/document.py:1693
+#: frappe/model/document.py:1695
 msgid "{0} must be none of {1}"
 msgstr "{0} 不可為 {1} 之任一"
 
-#: frappe/model/document.py:1691 frappe/utils/csvutils.py:193
+#: frappe/model/document.py:1693 frappe/utils/csvutils.py:193
 msgid "{0} must be one of {1}"
 msgstr "{0} 必須為 {1} 其中之一"
 
@@ -34394,7 +35716,7 @@ msgstr "{0} 必須先設定"
 msgid "{0} must be unique"
 msgstr "{0} 必須唯一"
 
-#: frappe/model/document.py:1699
+#: frappe/model/document.py:1701
 msgid "{0} must be {1} {2}"
 msgstr "{0} 必須是 {1} {2}"
 
@@ -34444,7 +35766,7 @@ msgstr "已刪除 {0} 筆記錄"
 msgid "{0} records are not automatically deleted."
 msgstr "{0} 筆記錄不會自動刪除。"
 
-#: frappe/public/js/frappe/logtypes.js:29
+#: frappe/public/js/frappe/logtypes.js:28
 msgid "{0} records are retained for {1} days."
 msgstr "{0} 筆記錄保留 {1} 天。"
 
@@ -34473,6 +35795,14 @@ msgstr "{0} 已移除其分派。"
 msgid "{0} removed {1} rows from {2}"
 msgstr "{0} 從 {2} 移除了 {1} 列"
 
+#: frappe/automation/doctype/automation_flow/automation_flow.py:154
+msgid "{0} requires a Document Type"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:32
+msgid "{0} requires a target document"
+msgstr ""
+
 #: frappe/public/js/frappe/form/linked_with.js:94
 msgid "{0} restricted document"
 msgstr "{0} 份受限文件"
@@ -34489,7 +35819,7 @@ msgstr "{0} 搜尋結果"
 msgid "{0} role does not have permission on any doctype"
 msgstr "{0} 角色對任何 doctype 皆無權限"
 
-#: frappe/model/document.py:1937
+#: frappe/model/document.py:1939
 msgid "{0} row #{1}:"
 msgstr "{0} 第 #{1} 列："
 
@@ -34554,6 +35884,10 @@ msgstr "請點選 {0} 以停止接收此類型的電子郵件"
 #: frappe/public/js/frappe/form/formatters.js:240
 msgid "{0} to {1}"
 msgstr "{0} 至 {1}"
+
+#: frappe/automation/doctype/automation_flow/automation_flow.py:190
+msgid "{0} trigger requires a Document Type"
+msgstr ""
 
 #: frappe/core/doctype/docshare/docshare.py:89
 msgid "{0} un-shared this document with {1}"
@@ -34624,9 +35958,17 @@ msgstr "{0} {1} 不存在，請選取新的合併目標"
 msgid "{0} {1} is linked with the following submitted documents: {2}"
 msgstr "{0} {1} 已與下列已送出的文件連結：{2}"
 
-#: frappe/model/document.py:296 frappe/permissions.py:607
+#: frappe/model/document.py:297 frappe/permissions.py:607
 msgid "{0} {1} not found"
 msgstr "找不到 {0} {1}"
+
+#: frappe/automation_engine/actions/core.py:389
+msgid "{0} {1} returned {2}"
+msgstr ""
+
+#: frappe/automation_engine/actions/core.py:386
+msgid "{0} {1} returned {2}: {3}"
+msgstr ""
 
 #: frappe/model/delete_doc.py:302
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
@@ -34645,7 +35987,7 @@ msgctxt "Money in words"
 msgid "{0}."
 msgstr "{0}。"
 
-#: frappe/utils/print_format.py:151 frappe/utils/print_format.py:195
+#: frappe/utils/print_format.py:152 frappe/utils/print_format.py:196
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "已完成 {0}/{1} | 請在完成前保持此分頁開啟。"
 
