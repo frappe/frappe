@@ -2,7 +2,6 @@ import { safe_href } from "../../ui/components/utils.js";
 
 frappe.provide("frappe.views");
 
-// system fields the Card/Preview pickers offer, like the classic board
 frappe.views.kanban_system_fields = ["owner", "creation", "modified", "modified_by"];
 
 // badge style per Select value (lowercase keys); unknown values get a guessed color
