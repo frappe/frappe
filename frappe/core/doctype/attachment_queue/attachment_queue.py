@@ -48,18 +48,31 @@ class AttachmentQueue(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		self.validate_source_file_type()
-
-	def validate_source_file_type(self):
 		# Mandatory fields are checked after this runs, so the file can still be missing.
 		if not self.source_file:
 			return
 
+		self.validate_source_file_type()
+		self.validate_source_file_access()
+
+	def validate_source_file_type(self):
 		if get_file_extension(self.source_file) not in SUPPORTED_EXTENSIONS:
 			frappe.throw(
 				_("Attach a PDF or an image. Other file types cannot be read."),
 				title=_("Unsupported File"),
 			)
+
+	def validate_source_file_access(self):
+		# Extraction opens the file directly, so the queue must not become a way to read a
+		# private file the user has no permission on.
+		file_name = frappe.db.get_value("File", {"file_url": self.source_file}, "name")
+		if not file_name:
+			frappe.throw(
+				_("{0} is not an uploaded file.").format(self.source_file),
+				title=_("Unknown File"),
+			)
+
+		frappe.get_doc("File", file_name).check_permission("read")
 
 	def after_insert(self):
 		self.enqueue_extraction()
@@ -88,10 +101,7 @@ class AttachmentQueue(Document):
 			attachment_queue=self.name,
 		)
 
-		self.db_set(
-			{"status": "Queued", "task": task.name, "extraction_queued_on": now()},
-			update_modified=False,
-		)
+		self.db_set({"status": "Queued", "task": task.name, "extraction_queued_on": now()})
 
 	def extract(self) -> tuple[str, str]:
 		"""Return the extracted text and the method that produced it."""
@@ -118,6 +128,8 @@ class AttachmentQueue(Document):
 
 
 def extract_attachment_text(attachment_queue: str) -> None:
+	# Every write here moves `modified`, so a form opened before extraction ran cannot be
+	# saved over the result.
 	queue_doc = frappe.get_doc("Attachment Queue", attachment_queue)
 	queue_doc.db_set(
 		{
@@ -125,8 +137,7 @@ def extract_attachment_text(attachment_queue: str) -> None:
 			"extracted_text": None,
 			"extraction_method": None,
 			"error_message": None,
-		},
-		update_modified=False,
+		}
 	)
 
 	try:
@@ -139,7 +150,6 @@ def extract_attachment_text(attachment_queue: str) -> None:
 			"Attachment Queue",
 			attachment_queue,
 			{"status": "Failed", "error_message": str(exc) or exc.__class__.__name__},
-			update_modified=False,
 		)
 		frappe.db.commit()
 		raise
@@ -149,8 +159,7 @@ def extract_attachment_text(attachment_queue: str) -> None:
 			"status": "Completed",
 			"extracted_text": extracted_text,
 			"extraction_method": extraction_method,
-		},
-		update_modified=False,
+		}
 	)
 
 
@@ -181,5 +190,4 @@ def fail_stale_extractions() -> None:
 		"Attachment Queue",
 		{"name": ("in", stale)},
 		{"status": "Failed", "error_message": _("Text extraction did not finish.")},
-		update_modified=False,
 	)
