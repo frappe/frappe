@@ -158,9 +158,14 @@ frappe.ui.form.PrintView = class {
 
 		let description = "";
 		if (!cint(this.print_settings.repeat_header_footer)) {
-			description = `${__(
-				"Footer prints on last page only."
-			)} <a href="/desk/print-settings/Print Settings">${__("Change")}</a>`;
+			description = __(
+				"Header and footer might not be visible on every page as {0} option is disabled",
+				[
+					`<a href="/desk/print-settings/Print Settings">${__(
+						"Repeat Header and Footer"
+					)}</a>`,
+				]
+			);
 		}
 		const print_view = this;
 		this.letterhead_selector = this.add_sidebar_item({
