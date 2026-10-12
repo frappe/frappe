@@ -91,7 +91,6 @@ class KanbanBoardSettings {
 						d.fieldtype !== "Password"
 				)
 				.map(to_opt)
-				// system fields (Created By/On, Modified By/On), like the classic board
 				.concat(
 					frappe.views.kanban_system_fields
 						.filter((fn) => !meta.fields.some((d) => d.fieldname === fn))
