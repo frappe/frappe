@@ -72,34 +72,16 @@ frappe.ui.get_print_settings = function (
 					disabled: 0,
 				},
 			}),
-			onchange() {
-				const print_format = this.get_value();
-				if (!print_format) return this.layout.set_value("print_format_type", "");
-				frappe
-					.xcall("frappe.desk.query_report.get_print_format_data", { print_format })
-					.then((r) => {
-						if (this.get_value() !== print_format) return;
-						this.layout.set_value("print_format_type", r?.print_format_type || "");
-					});
-			},
 		});
 	}
 
 	if (is_query_report) {
-		columns.push(
-			{
-				fieldtype: "Data",
-				fieldname: "print_format_type",
-				hidden: 1,
-			},
-			{
-				label: __("Include filters"),
-				fieldtype: "Check",
-				fieldname: "include_filters",
-				depends_on: "eval: doc.print_format_type !== 'Jinja'",
-				default: 1,
-			}
-		);
+		columns.push({
+			label: __("Include filters"),
+			fieldtype: "Check",
+			fieldname: "include_filters",
+			default: 1,
+		});
 	}
 
 	if (pick_columns) {
@@ -154,7 +136,6 @@ frappe.ui.get_print_settings = function (
 			if (settings.print_format) {
 				settings.print_format = null;
 			}
-			delete settings.print_format_type;
 		},
 		title ? __(title) : __("Print Settings")
 	);
