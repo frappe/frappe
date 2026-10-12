@@ -1346,9 +1346,11 @@ def browse(
 	user_for_audit: str | None = None,
 ):
 	"""Opens the site on web browser"""
+	import webbrowser
+
 	from frappe.auth import CookieManager, LoginManager
 
-	site = get_site(context, raise_err=False) or site
+	site = site or get_site(context, raise_err=False)
 
 	if not site:
 		raise SiteNotSpecifiedError
@@ -1373,9 +1375,12 @@ def browse(
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = frappe.session.sid
-			login_path = f"/app?sid={sid}"
+			login_path = f"{frappe.local.response.home_page}?sid={sid}"
 		else:
-			click.echo("Please enable developer mode to login as a user")
+			click.echo(
+				"You cannot login as a non-administrator user when developer mode is disabled", err=True
+			)
+			sys.exit(1)
 
 	if print_sid:
 		if not sid:
@@ -1384,12 +1389,12 @@ def browse(
 		click.echo(sid)
 		return
 
-	url = f"{frappe.utils.get_site_url(site)}{login_path}"
+	url = frappe.utils.get_url(login_path, allow_header_override=False)
 
-	if user == "Administrator":
-		click.echo(f"Login URL: {url}")
+	click.echo(f"URL: {url}")
 
-	click.launch(url)
+	if not os.environ.get("SSH_CONNECTION"):
+		webbrowser.open(url)
 
 
 @click.command("start-recording")
