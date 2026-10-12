@@ -23,6 +23,11 @@ function in_shell(path, shell) {
 	const slug = frappe.router.shell_slug(shell);
 	if (route === slug || route.startsWith(slug + "/")) return path;
 
+	// A shell whose slug is also a doctype cannot go in front: the router reads that segment as
+	// the doctype, so the rest of the path becomes a document name. `write_shell_into_url` leaves
+	// these URLs bare for the same reason.
+	if (frappe.router.segment_kind(slug) === "doctype") return path;
+
 	return "/desk/" + slug + "/" + route + rest;
 }
 
