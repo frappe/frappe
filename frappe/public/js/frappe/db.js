@@ -13,14 +13,15 @@ frappe.db = {
 		if (!("limit" in args)) {
 			args.limit = 20;
 		}
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			frappe.call({
 				method: "frappe.desk.reportview.get_list",
 				args: args,
-				type: "GET",
+				type: JSON.stringify(args).length > 2000 ? "POST" : "GET",
 				callback: function (r) {
 					resolve(r.message);
 				},
+				always: reject,
 			});
 		});
 	},
