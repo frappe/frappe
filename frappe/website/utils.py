@@ -178,19 +178,11 @@ def get_boot_data():
 		},
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
-<<<<<<< HEAD
-			"currency_precision": cint(frappe.get_system_settings("currency_precision")),
+			"currency_precision": cint(frappe.get_system_settings("currency_precision"), None),
 			"date_format": frappe.get_system_settings("date_format") or "yyyy-mm-dd",
 			"time_format": frappe.get_system_settings("time_format") or "HH:mm:ss",
 			"first_day_of_the_week": frappe.get_system_settings("first_day_of_the_week") or "Sunday",
 			"number_format": frappe.get_system_settings("number_format") or "#,###.##",
-=======
-			"currency_precision": cint(frappe.get_system_settings("currency_precision"), None),
-			"date_format": get_date_format(),
-			"time_format": get_time_format(),
-			"first_day_of_the_week": get_first_day_of_the_week(),
-			"number_format": get_number_format().string,
->>>>>>> 48803bd (fix(website): send a blank currency precision as unset instead of 0)
 			"rounding_method": frappe.get_system_settings("rounding_method"),
 			"currency": frappe.get_system_settings("currency"),
 		},
