@@ -1,7 +1,12 @@
 <template>
 	<div class="px-2.5">
 		<Row v-if="showFrom" label="From" :items-center="true">
-			<Select v-model="from" :options="senderOptions" variant="ghost" class="-ml-1" />
+			<Select
+				v-model="from"
+				:options="senderOptions"
+				variant="ghost"
+				class="from-select -ml-1 min-w-0"
+			/>
 		</Row>
 
 		<Row v-if="showSubject" label="Subject" :items-center="true">
@@ -13,7 +18,13 @@
 		</Row>
 
 		<Row v-if="showTo" label="To">
-			<RecipientSelect v-model="to" class="flex-1" :search="search" />
+			<RecipientSelect
+				v-model="to"
+				class="flex-1"
+				:search="search"
+				@show-cc-bcc="revealCcBcc"
+				@move="(recipient) => moveRecipient('to', recipient)"
+			/>
 			<div v-if="showCc || showBcc" class="flex shrink-0 items-center gap-1">
 				<Button
 					v-if="showCc"
@@ -35,10 +46,22 @@
 		</Row>
 
 		<Row v-if="showCc && openCc" label="CC">
-			<RecipientSelect v-model="cc" class="flex-1" :search="search" />
+			<RecipientSelect
+				v-model="cc"
+				class="flex-1"
+				:search="search"
+				@show-cc-bcc="revealCcBcc"
+				@move="(recipient) => moveRecipient('cc', recipient)"
+			/>
 		</Row>
 		<Row v-if="showBcc && openBcc" label="BCC">
-			<RecipientSelect v-model="bcc" class="flex-1" :search="search" />
+			<RecipientSelect
+				v-model="bcc"
+				class="flex-1"
+				:search="search"
+				@show-cc-bcc="revealCcBcc"
+				@move="(recipient) => moveRecipient('bcc', recipient)"
+			/>
 		</Row>
 		<div class="border-b bg-surface-gray-1 mt-2"></div>
 	</div>
@@ -116,4 +139,26 @@ function toggleBcc() {
 	openBcc.value = !openBcc.value;
 	if (!openBcc.value) bcc.value = [];
 }
+
+// a dragged chip lands in one row only, so clear it out of all three first
+function moveRecipient(target: "to" | "cc" | "bcc", recipient: Recipient) {
+	for (const row of [to, cc, bcc]) {
+		row.value = row.value.filter((existing) => existing.email !== recipient.email);
+	}
+	const landed = { to, cc, bcc }[target];
+	landed.value = [...landed.value, recipient];
+}
+
+// a chip being dragged needs the other rows open to have somewhere to land
+function revealCcBcc() {
+	if (props.showCc) openCc.value = true;
+	if (props.showBcc) openBcc.value = true;
+}
 </script>
+
+<style scoped>
+/* the sender name can be long, let the select shrink instead of pushing the row */
+:deep(.from-select .grid) {
+	grid-template-columns: minmax(0, 1fr);
+}
+</style>
