@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3361,11 +3361,11 @@ msgstr "Şifre Bekleniyor"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:200
 msgid "Awesome Work"
-msgstr "Mükemmel"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:358
 msgid "Awesome, now try making an entry yourself"
-msgstr "Harika, şimdi kendiniz bir giriş yapmayı deneyin"
+msgstr ""
 
 #: frappe/public/js/frappe/utils/number_systems.js:9
 msgctxt "Number system"
@@ -5003,7 +5003,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/communication.js:443
 msgid "Clear the email message and add the template"
-msgstr "E-posta mesajını temizleyin ve şablonu ekleyin"
+msgstr ""
 
 #: frappe/website/doctype/web_page/web_page.py:215
 msgid "Clearing end date, as it cannot be in the past for published pages."
@@ -8230,7 +8230,7 @@ msgstr "Belge Geri Yüklendi"
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:420
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Document Saved"
-msgstr "Belge Kaydedildi"
+msgstr ""
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
@@ -10370,7 +10370,7 @@ msgstr "Bildirim e-postası gönderilemedi"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:25
 msgid "Failed to update global settings"
-msgstr "Genel ayarlar güncellenemedi"
+msgstr ""
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:83
 msgid "Failed while calling API {0}"
@@ -10487,7 +10487,7 @@ msgstr "\"Rota\" alanı Web Görünümleri için zorunludur"
 
 #: frappe/core/doctype/doctype/doctype.py:1504
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
-msgstr "\"Web Sitesi Arama Alanı\" ayarlanmışsa \"başlık\" alanı zorunludur."
+msgstr ""
 
 #: frappe/desk/doctype/bulk_update/bulk_update.js:17
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
@@ -15176,7 +15176,7 @@ msgstr "Daha az veya eşit"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Let us continue with the onboarding"
-msgstr "Modül Tanıtımı ile devam edelim"
+msgstr ""
 
 #: frappe/public/js/frappe/views/workspace/blocks/onboarding.js:94
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:602
@@ -15194,7 +15194,7 @@ msgstr "Tekrarlanan kelimelerden ve karakterlerden kaçının"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:489
 msgid "Let's set up your account"
-msgstr "Hesabınızı kuralım"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:268
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:309
@@ -15641,7 +15641,7 @@ msgstr "Filtreler Yükleniyor..."
 
 #: frappe/core/doctype/data_import/data_import.js:262
 msgid "Loading import file..."
-msgstr "İçe aktarma dosyası yükleniyor..."
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:20
 msgid "Loading user profile"
@@ -15894,7 +15894,7 @@ msgstr "Uzun Metin"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:322
 msgid "Looks like you didn't change the value"
-msgstr "Değeri değiştirmemişsiniz gibi görünüyor"
+msgstr ""
 
 #: frappe/www/third_party_apps.html:57
 msgid "Looks like you haven’t added any third party apps."
@@ -16068,7 +16068,7 @@ msgstr "Harita"
 #: frappe/public/js/frappe/data_import/import_preview.js:196
 #: frappe/public/js/frappe/data_import/import_preview.js:308
 msgid "Map Columns"
-msgstr "Sütunları Eşleştir"
+msgstr ""
 
 #: frappe/public/js/frappe/list/base_list.js:210
 msgid "Map View"
@@ -16587,7 +16587,7 @@ msgstr "Eksik DocType"
 
 #: frappe/core/doctype/doctype/doctype.py:1504
 msgid "Missing Field"
-msgstr "Eksik Veri"
+msgstr ""
 
 #: frappe/public/js/frappe/form/save.js:261
 msgid "Missing Fields"
@@ -18669,7 +18669,7 @@ msgstr "Tanıtım Adımları Haritası"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:269
 msgid "Onboarding complete"
-msgstr "Tanıtım Tamamlandı"
+msgstr ""
 
 #. Description of the 'Is Submittable' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -20510,7 +20510,7 @@ msgstr "Rapor Hazırlama"
 
 #: frappe/public/js/frappe/views/communication.js:438
 msgid "Prepend the template to the email message"
-msgstr "Şablonu e-posta mesajının önüne ekleyin"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/keyboard.js:140
 msgid "Press Alt Key to trigger additional shortcuts in Menu and Sidebar"
@@ -30382,7 +30382,7 @@ msgstr "Web Sitesi Arama Alanı"
 
 #: frappe/core/doctype/doctype/doctype.py:1500
 msgid "Website Search Field must be a valid fieldname"
-msgstr "Web Sitesi Arama Alanı geçerli bir alan adı olmalıdır"
+msgstr ""
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
@@ -30632,7 +30632,7 @@ msgstr "URL'de kullanılacak (genellikle ilk isim)."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:500
 msgid "Will be your login ID"
-msgstr "Giriş kimliğiniz olacak"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:426
 msgid "Will only be shown if section headings are enabled"
@@ -30867,7 +30867,7 @@ msgstr "Bu yorumu yayından kaldırmak ister misiniz? Bu, web sitesi/portal kull
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:42
 msgid "Wrapping up"
-msgstr "Son dokunuşlar"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'

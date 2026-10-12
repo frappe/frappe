@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -548,7 +548,7 @@ msgstr "<h4>Przykład odpowiedzi E-mail</h4>\n\n"
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr "<h5 class=\"text-muted uppercase\">Lub</h5>"
+msgstr ""
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -589,9 +589,7 @@ msgstr ""
 msgid "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
 "<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
-msgstr "<p>Dla jednego doctype można utworzyć wiele formularzy internetowych. Dodaj filtry specyficzne dla tego formularza internetowego, aby wyświetlić prawidłowy rekord po przesłaniu.</p><p>Przykład:</p>\n"
-"<p>Jeśli co roku tworzysz oddzielny formularz internetowy do zbierania opinii od pracowników, dodaj\n"
-" pole o nazwie year w doctype i dodaj filtr <b>year = 2023</b></p>\n"
+msgstr ""
 
 #. Description of the 'Context Script' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1064,7 +1062,7 @@ msgstr "Akcja / Trasa"
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:310
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:381
 msgid "Action Complete"
-msgstr "Akcja ukończona"
+msgstr ""
 
 #: frappe/model/document.py:1737
 msgid "Action Failed"
@@ -15591,7 +15589,7 @@ msgstr "Ładowanie filtrów..."
 
 #: frappe/core/doctype/data_import/data_import.js:262
 msgid "Loading import file..."
-msgstr "Ładowanie pliku importu..."
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:20
 msgid "Loading user profile"

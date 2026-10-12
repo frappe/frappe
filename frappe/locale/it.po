@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -548,7 +548,7 @@ msgstr "<h4>Esempio di risposta via email</h4>\n\n"
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr "<h5 class=\"text-muted uppercase\">Oppure</h5>"
+msgstr ""
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -599,9 +599,7 @@ msgstr ""
 msgid "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
 "<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
-msgstr "<p>È possibile creare più moduli web per un singolo DocType. Aggiungi filtri specifici per questo modulo web per visualizzare il record corretto dopo l'invio.</p><p>Esempio:</p>\n"
-"<p>Se crei un modulo web separato ogni anno per raccogliere feedback dai dipendenti, aggiungi un\n"
-" campo denominato year nel DocType e aggiungi un filtro <b>year = 2023</b></p>\n"
+msgstr ""
 
 #. Description of the 'Context Script' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1074,7 +1072,7 @@ msgstr "Azione / Percorso"
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:310
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:381
 msgid "Action Complete"
-msgstr "Azione completata"
+msgstr ""
 
 #: frappe/model/document.py:1737
 msgid "Action Failed"
@@ -1363,7 +1361,7 @@ msgstr "Aggiungi tag"
 
 #: frappe/public/js/frappe/views/communication.js:437
 msgid "Add Template"
-msgstr "Aggiungi modello"
+msgstr ""
 
 #. Label of a Check field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -2054,7 +2052,7 @@ msgstr "Consenti il salvataggio anche se i campi obbligatori non sono compilati"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:432
 msgid "Allow sending usage data for improving applications"
-msgstr "Consenti l'invio di dati di utilizzo per migliorare le applicazioni"
+msgstr ""
 
 #. Description of the 'Login After' (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -3324,11 +3322,11 @@ msgstr "In attesa della password"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:200
 msgid "Awesome Work"
-msgstr "Ottimo lavoro"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:358
 msgid "Awesome, now try making an entry yourself"
-msgstr "Ottimo, ora prova a creare una voce tu stesso"
+msgstr ""
 
 #: frappe/public/js/frappe/utils/number_systems.js:9
 msgctxt "Number system"
@@ -4919,11 +4917,11 @@ msgstr "Cancella"
 
 #: frappe/public/js/frappe/views/communication.js:442
 msgid "Clear & Add Template"
-msgstr "Cancella e aggiungi modello"
+msgstr ""
 
 #: frappe/public/js/frappe/views/communication.js:111
 msgid "Clear & Add template"
-msgstr "Cancella e aggiungi modello"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:22
 msgid "Clear All"
@@ -4965,7 +4963,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/communication.js:443
 msgid "Clear the email message and add the template"
-msgstr "Cancella il messaggio email e aggiungi il modello"
+msgstr ""
 
 #: frappe/website/doctype/web_page/web_page.py:215
 msgid "Clearing end date, as it cannot be in the past for published pages."
@@ -5685,7 +5683,7 @@ msgstr "Confermato"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:530
 msgid "Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target=\"_blank\" href=\"{0}\">here</a>."
-msgstr "Congratulazioni per aver completato la configurazione del modulo. Se desideri saperne di più, puoi consultare la documentazione <a target=\"_blank\" href=\"{0}\">qui</a>."
+msgstr ""
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:20
 msgid "Connect to {}"
@@ -8192,7 +8190,7 @@ msgstr "Documento Ripristinato"
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:420
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Document Saved"
-msgstr "Documento Salvato"
+msgstr ""
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
@@ -10111,7 +10109,7 @@ msgstr "Esporta Dati"
 #: frappe/core/doctype/data_import/data_import.js:86
 #: frappe/public/js/frappe/data_import/import_preview.js:201
 msgid "Export Errored Rows"
-msgstr "Esporta righe con errori"
+msgstr ""
 
 #. Label of a Data field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
@@ -10258,7 +10256,7 @@ msgstr "Impossibile modificare la password."
 #: frappe/desk/page/setup_wizard/setup_wizard.js:239
 #: frappe/desk/page/setup_wizard/setup_wizard.py:43
 msgid "Failed to complete setup"
-msgstr "Impossibile completare la configurazione"
+msgstr ""
 
 #: frappe/integrations/doctype/webhook/webhook.py:151
 msgid "Failed to compute request body: {}"
@@ -10331,7 +10329,7 @@ msgstr "Invio dell'email di notifica non riuscito"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:25
 msgid "Failed to update global settings"
-msgstr "Aggiornamento delle impostazioni globali non riuscito"
+msgstr ""
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:83
 msgid "Failed while calling API {0}"
@@ -10448,7 +10446,7 @@ msgstr "Il campo \"route\" è obbligatorio per le viste Web"
 
 #: frappe/core/doctype/doctype/doctype.py:1504
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
-msgstr "Il campo \"title\" è obbligatorio se \"Website Search Field\" è impostato."
+msgstr ""
 
 #: frappe/desk/doctype/bulk_update/bulk_update.js:17
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
@@ -13498,7 +13496,7 @@ msgstr "Indice"
 #. Label of a Check field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Index Web Pages for Search"
-msgstr "Indicizza le pagine web per la ricerca"
+msgstr ""
 
 #: frappe/core/doctype/recorder/recorder.py:134
 msgid "Index created successfully on column {0} of doctype {1}"
@@ -15136,7 +15134,7 @@ msgstr "Minore O Uguale A"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Let us continue with the onboarding"
-msgstr "Proseguiamo con la configurazione iniziale"
+msgstr ""
 
 #: frappe/public/js/frappe/views/workspace/blocks/onboarding.js:94
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:602
@@ -15154,14 +15152,14 @@ msgstr "Evita parole e caratteri ripetuti"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:489
 msgid "Let's set up your account"
-msgstr "Configuriamo il tuo account"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:268
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:309
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:380
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:419
 msgid "Let's take you back to onboarding"
-msgstr "Torniamo alla configurazione iniziale"
+msgstr ""
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -15601,7 +15599,7 @@ msgstr "Caricamento filtri..."
 
 #: frappe/core/doctype/data_import/data_import.js:262
 msgid "Loading import file..."
-msgstr "Caricamento file di importazione..."
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:20
 msgid "Loading user profile"
@@ -15854,7 +15852,7 @@ msgstr "Testo lungo"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:322
 msgid "Looks like you didn't change the value"
-msgstr "Sembra che non sia stato modificato il valore"
+msgstr ""
 
 #: frappe/www/third_party_apps.html:57
 msgid "Looks like you haven’t added any third party apps."
@@ -16028,7 +16026,7 @@ msgstr "Mappa"
 #: frappe/public/js/frappe/data_import/import_preview.js:196
 #: frappe/public/js/frappe/data_import/import_preview.js:308
 msgid "Map Columns"
-msgstr "Mappa colonne"
+msgstr ""
 
 #: frappe/public/js/frappe/list/base_list.js:210
 msgid "Map View"
@@ -16036,7 +16034,7 @@ msgstr "Vista mappa"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:298
 msgid "Map columns from {0} to fields in {1}"
-msgstr "Mappa le colonne da {0} ai campi in {1}"
+msgstr ""
 
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -16546,7 +16544,7 @@ msgstr "DocType mancante"
 
 #: frappe/core/doctype/doctype/doctype.py:1504
 msgid "Missing Field"
-msgstr "Campo mancante"
+msgstr ""
 
 #: frappe/public/js/frappe/form/save.js:261
 msgid "Missing Fields"
@@ -17658,7 +17656,7 @@ msgstr "Nessun risultato"
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:51
 msgid "No Results found"
-msgstr "Nessun risultato trovato"
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:773
 msgid "No Roles Specified"
@@ -18626,7 +18624,7 @@ msgstr "Mappa delle fasi di configurazione iniziale"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:269
 msgid "Onboarding complete"
-msgstr "Configurazione iniziale completata"
+msgstr ""
 
 #. Description of the 'Is Submittable' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -20467,7 +20465,7 @@ msgstr "Preparazione del rapporto"
 
 #: frappe/public/js/frappe/views/communication.js:438
 msgid "Prepend the template to the email message"
-msgstr "Anteponi il modello al messaggio e-mail"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/keyboard.js:140
 msgid "Press Alt Key to trigger additional shortcuts in Menu and Sidebar"
@@ -25096,7 +25094,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Show Only Failed Logs"
-msgstr "Mostra Solo i Log con Errori"
+msgstr ""
 
 #. Label of a Check field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -25190,7 +25188,7 @@ msgstr "Mostra Valori sul Grafico"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:206
 msgid "Show Warnings"
-msgstr "Mostra avvisi"
+msgstr ""
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:185
 msgid "Show Weekends"
@@ -25267,7 +25265,7 @@ msgstr "Mostra il titolo nella finestra del browser come \"Prefisso - titolo\""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:150
 msgid "Show {0} List"
-msgstr "Mostra elenco {0}"
+msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:527
 msgid "Showing only Numeric fields from Report"
@@ -25275,7 +25273,7 @@ msgstr "Mostra solo Campi numerici dal Report"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:157
 msgid "Showing only first {0} rows out of {1}"
-msgstr "Visualizzazione delle prime {0} righe su {1}"
+msgstr ""
 
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -25822,7 +25820,7 @@ msgstr "Campo Data di inizio"
 
 #: frappe/core/doctype/data_import/data_import.js:110
 msgid "Start Import"
-msgstr "Avvia importazione"
+msgstr ""
 
 #: frappe/core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
@@ -30334,11 +30332,11 @@ msgstr "Script del sito web"
 #. Label of a Data field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Website Search Field"
-msgstr "Campo di ricerca del sito web"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1500
 msgid "Website Search Field must be a valid fieldname"
-msgstr "Il campo di ricerca del sito Web deve essere un nome campo valido"
+msgstr ""
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
@@ -30488,7 +30486,7 @@ msgstr "Distribuzione Ponderata"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:391
 msgid "Welcome"
-msgstr "Benvenuto"
+msgstr ""
 
 #. Label of a Link field in DocType 'System Settings'
 #. Label of a Link field in DocType 'Email Group'
@@ -30588,7 +30586,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:500
 msgid "Will be your login ID"
-msgstr "Sarà il tuo ID di accesso"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:426
 msgid "Will only be shown if section headings are enabled"
@@ -30823,7 +30821,7 @@ msgstr "Desideri annullare la pubblicazione di questo commento? Questo significa
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:42
 msgid "Wrapping up"
-msgstr "Completamento in corso"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -31455,7 +31453,7 @@ msgstr "Hai rimosso {0} righe da {1}"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:525
 msgid "You seem good to go!"
-msgstr "Sembra che sia tutto pronto!"
+msgstr ""
 
 #: frappe/templates/includes/contact.js:20
 msgid "You seem to have written your name instead of your email. Please enter a valid email address so that we can get back."
@@ -31501,7 +31499,7 @@ msgstr "Il tuo file CSV è in fase di generazione e apparirà nella sezione Alle
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:404
 msgid "Your Country"
-msgstr "Il tuo Paese"
+msgstr ""
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:396
 msgid "Your Language"

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -508,7 +508,17 @@ msgid "<h4>Email Reply Example</h4>\n\n"
 "<p>The fieldnames you can use in your email template are the fields in the document from which you are sending the email. You can find out the fields of any documents via Setup &gt; Customize Form View and selecting the document type (e.g. Sales Invoice)</p>\n\n"
 "<h4>Templating</h4>\n\n"
 "<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>\n"
-msgstr ""
+msgstr "<h4>Приклад листа-відповіді</h4>\n\n"
+"<pre>Order Overdue\n\n"
+"Transaction {{ name }} has exceeded Due Date. Please take necessary action.\n\n"
+"Details\n\n"
+"- Customer: {{ customer }}\n"
+"- Amount: {{ grand_total }}\n"
+"</pre>\n\n"
+"<h4>Де взяти імена полів</h4>\n\n"
+"<p>У шаблоні листа доступні поля того документа, з якого лист надсилається. Перелік полів будь-якого документа можна побачити в «Налаштування → Налаштування форми», вибравши потрібний тип документа (наприклад, «Рахунок-фактура (продаж)»)</p>\n\n"
+"<h4>Шаблонізація</h4>\n\n"
+"<p>Шаблони будуються за допомогою мови Jinja. Докладніше про Jinja — <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">у цій документації.</a></p>\n"
 
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -2591,7 +2601,7 @@ msgstr ""
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.js:16
 #: frappe/core/doctype/user_permission/user_permission_list.js:165
 msgid "Are you sure?"
-msgstr ""
+msgstr "Ви впевнені?"
 
 #. Label of a Code field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -2618,7 +2628,7 @@ msgstr ""
 #. Label of a Code field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assign Condition"
-msgstr ""
+msgstr "Умова призначення"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:182
 msgid "Assign To"
@@ -3497,7 +3507,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Bar"
-msgstr ""
+msgstr "Стовпчаста"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3859,7 +3869,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Brute Force Security"
-msgstr ""
+msgstr "Захист від перебору паролів"
 
 #. Label of a Data field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -3878,7 +3888,7 @@ msgstr ""
 #. Name of a Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Build"
-msgstr ""
+msgstr "Розробка"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -3974,7 +3984,7 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "By \"Naming Series\" field"
-msgstr ""
+msgstr "За полем «Серія нумерації»"
 
 #: frappe/website/doctype/web_page/web_page.js:111
 #: frappe/website/doctype/web_page/web_page.js:118
@@ -5552,7 +5562,7 @@ msgstr ""
 #. Description of a DocType
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Configure various aspects of how document naming works like naming series, current counter."
-msgstr ""
+msgstr "Налаштування нумерації документів: серії нумерації, поточний лічильник тощо."
 
 #: frappe/core/doctype/user/user.js:410 frappe/public/js/frappe/dom.js:355
 #: frappe/www/update-password.html:30
@@ -6214,7 +6224,7 @@ msgstr ""
 #. Label of a Select field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Currency Precision"
-msgstr ""
+msgstr "Точність валюти"
 
 #. Description of a DocType
 #: frappe/geo/doctype/currency/currency.json
@@ -7592,7 +7602,7 @@ msgstr ""
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Count"
-msgstr ""
+msgstr "Вимкнути лічильник"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -9098,7 +9108,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Email Status"
-msgstr ""
+msgstr "Статус листа"
 
 #. Label of a Select field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -9123,7 +9133,7 @@ msgstr ""
 #. Label of a Small Text field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Email To"
-msgstr ""
+msgstr "Кому (Email)"
 
 #. Name of a DocType
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json
@@ -9259,7 +9269,7 @@ msgstr ""
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Enable Onboarding"
-msgstr ""
+msgstr "Увімкнути початкове налаштування"
 
 #. Label of a Check field in DocType 'User Email'
 #. Label of a Check field in DocType 'Email Account'
@@ -9272,7 +9282,7 @@ msgstr ""
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Enable Password Policy"
-msgstr ""
+msgstr "Увімкнути політику паролів"
 
 #. Label of a Check field in DocType 'Role Permission for Page and Report'
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
@@ -9345,7 +9355,7 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/twofactor.py:440
 msgid "Enable Two Factor Auth"
-msgstr ""
+msgstr "Увімкнути двофакторну автентифікацію"
 
 #. Title of an Onboarding Step
 #: frappe/website/onboarding_step/enable_website_tracking/enable_website_tracking.json
@@ -9866,7 +9876,7 @@ msgstr ""
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Example: {{ subject }}"
-msgstr ""
+msgstr "Приклад: {{ subject }}"
 
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
@@ -11413,7 +11423,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "From Date Field"
-msgstr ""
+msgstr "Поле дати «З»"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1851
 msgid "From Document Type"
@@ -12889,7 +12899,7 @@ msgstr ""
 
 #: frappe/core/doctype/data_export/exporter.py:189
 msgid "If you are uploading new records, \"Naming Series\" becomes mandatory, if present."
-msgstr ""
+msgstr "Якщо ви завантажуєте нові записи, поле «Серія нумерації» стає обов’язковим, якщо воно є."
 
 #: frappe/core/doctype/data_export/exporter.py:187
 msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
@@ -13464,7 +13474,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Initial Sync Count"
-msgstr ""
+msgstr "Кількість листів для початкової синхронізації"
 
 #. Option for the 'Database Engine' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -13787,7 +13797,7 @@ msgstr ""
 
 #: frappe/model/naming.py:102
 msgid "Invalid Naming Series: {}"
-msgstr ""
+msgstr "Некоректна серія нумерації: {}"
 
 #: frappe/core/doctype/rq_job/rq_job.py:117
 #: frappe/core/doctype/rq_job/rq_job.py:126
@@ -13939,11 +13949,11 @@ msgstr ""
 
 #: frappe/model/naming.py:55
 msgid "Invalid naming series {}: dot (.) missing"
-msgstr ""
+msgstr "Некоректна серія нумерації {}: бракує крапки (.)"
 
 #: frappe/model/naming.py:69
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
-msgstr ""
+msgstr "Некоректна серія нумерації {}: перед цифровими підстановками бракує крапки (.). Використовуйте формат на кшталт <b>ABCD.#####</b>."
 
 #: frappe/core/doctype/data_import/importer.py:447
 msgid "Invalid or corrupted content for import"
@@ -16969,7 +16979,9 @@ msgstr ""
 msgid "Naming Options:\n"
 "<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
 "<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
-msgstr ""
+msgstr "Варіанти іменування:\n"
+"<ol><li><b>field:[fieldname]</b> — за полем</li><li><b>naming_series:</b> — за серією нумерації (потрібне поле naming_series)</li><li><b>Prompt</b> — запитати назву в користувача</li><li><b>[series]</b> — серія за префіксом (через крапку), наприклад PRE.#####</li>\n"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> — усі слова у фігурних дужках (імена полів, частини дати DD, MM, YY, серія) замінюються значеннями. Поза дужками можна писати будь-які символи.</li></ol>"
 
 #. Label of a Select field in DocType 'DocType'
 #. Label of a Select field in DocType 'Customize Form'
@@ -16981,11 +16993,11 @@ msgstr ""
 #. Label of a Tab Break field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Naming Series"
-msgstr ""
+msgstr "Серія нумерації"
 
 #: frappe/model/naming.py:252
 msgid "Naming Series mandatory"
-msgstr ""
+msgstr "Серія нумерації є обов’язковою"
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #. Label of a Section Break field in DocType 'Website Settings'
@@ -21293,7 +21305,7 @@ msgstr ""
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Raw Printing"
-msgstr ""
+msgstr "Прямий друк"
 
 #: frappe/printing/page/print/print.js:167
 msgid "Raw Printing Setting"
@@ -21377,7 +21389,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Read by Recipient"
-msgstr ""
+msgstr "Прочитано отримувачем"
 
 #. Label of a Datetime field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -21678,7 +21690,7 @@ msgstr ""
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json
 msgid "Reference Document"
-msgstr ""
+msgstr "Пов’язаний документ"
 
 #. Label of a Dynamic Link field in DocType 'Document Share Key'
 #. Label of a Dynamic Link field in DocType 'Integration Request'
@@ -21734,7 +21746,7 @@ msgstr ""
 #: frappe/website/doctype/portal_menu_item/portal_menu_item.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Reference Document Type"
-msgstr ""
+msgstr "Тип пов’язаного документа"
 
 #. Label of a Dynamic Link field in DocType 'Activity Log'
 #. Label of a Dynamic Link field in DocType 'Comment'
@@ -21850,7 +21862,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_view.js:542
 msgctxt "Document count in list view"
 msgid "Refreshing"
-msgstr ""
+msgstr "Оновлення"
 
 #: frappe/core/doctype/system_settings/system_settings.js:57
 #: frappe/core/doctype/user/user.js:376
@@ -22618,7 +22630,7 @@ msgstr ""
 #: frappe/desk/page/setup_wizard/setup_wizard.js:304
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Retry"
-msgstr ""
+msgstr "Повторна спроба"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
@@ -24557,7 +24569,7 @@ msgstr ""
 #. DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Set Naming Series options on your transactions."
-msgstr ""
+msgstr "Задайте варіанти серій нумерації для ваших документів."
 
 #. Label of a Password field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -25571,7 +25583,7 @@ msgstr ""
 
 #: frappe/model/naming.py:61
 msgid "Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}"
-msgstr ""
+msgstr "У серії нумерації {0} не дозволені спеціальні символи, крім «-», «#», «.», «/», «{{» і «}}»"
 
 #. Description of the 'Timeout (In Seconds)' (Int) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -27771,7 +27783,7 @@ msgstr "Поле стрічки подій"
 #. Label of a Table field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Timeline Links"
-msgstr ""
+msgstr "Посилання стрічки подій"
 
 #. Label of a Dynamic Link field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
@@ -27913,7 +27925,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "To Date Field"
-msgstr ""
+msgstr "Поле дати «До»"
 
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -27947,7 +27959,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "To and CC"
-msgstr ""
+msgstr "Кому та копія"
 
 #. Description of the 'Use First Day of Period' (Check) field in DocType 'Auto
 #. Email Report'
@@ -28456,7 +28468,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Try a Naming Series"
-msgstr ""
+msgstr "Спробувати серію нумерації"
 
 #: frappe/printing/page/print/print.js:193
 #: frappe/printing/page/print/print.js:199
@@ -28490,7 +28502,7 @@ msgstr ""
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Two Factor Authentication"
-msgstr ""
+msgstr "Двофакторна автентифікація"
 
 #. Label of a Select field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -28705,7 +28717,7 @@ msgstr ""
 #. Name of a DocType
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
 msgid "Unhandled Email"
-msgstr ""
+msgstr "Необроблені листи"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -28763,7 +28775,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Unread Notification Sent"
-msgstr ""
+msgstr "Сповіщення про непрочитане надіслано"
 
 #: frappe/utils/safe_exec.py:745 frappe/utils/safe_exec.py:758
 msgid "Unsafe SQL query"
@@ -28772,7 +28784,7 @@ msgstr ""
 #: frappe/public/js/frappe/data_import/data_exporter.js:163
 #: frappe/public/js/frappe/form/controls/multicheck.js:173
 msgid "Unselect All"
-msgstr ""
+msgstr "Скасувати вибір"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -28838,7 +28850,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/grid_row.js:412
 #: frappe/public/js/frappe/views/workspace/workspace.js:692
 msgid "Update"
-msgstr ""
+msgstr "Оновити"
 
 #. Label of a Button field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -28960,7 +28972,7 @@ msgstr ""
 
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
-msgstr ""
+msgstr "Оновлення варіантів серій нумерації"
 
 #: frappe/public/js/frappe/form/toolbar.js:146
 msgid "Updating related fields..."
@@ -29066,7 +29078,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Use Report Chart"
-msgstr ""
+msgstr "Використовувати діаграму звіту"
 
 #. Label of a Check field in DocType 'Email Account'
 #. Label of a Check field in DocType 'Email Domain'
@@ -30369,7 +30381,7 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Welcome Email Template"
-msgstr ""
+msgstr "Шаблон вітального листа"
 
 #. Label of a Data field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
@@ -32150,7 +32162,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:48
 msgid "just now"
-msgstr ""
+msgstr "щойно"
 
 #: frappe/desk/desktop.py:267 frappe/desk/query_report.py:368
 msgid "label"
@@ -32806,7 +32818,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:362
 msgid "use % as wildcard"
-msgstr ""
+msgstr "використовуйте % як символ підстановки"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -33012,7 +33024,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/chart_widget.js:318 frappe/www/list.html:4
 #: frappe/www/list.html:8
 msgid "{0} List"
-msgstr ""
+msgstr "Список {0}"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} M"
@@ -33039,7 +33051,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/utils.js:934
 #: frappe/public/js/frappe/widgets/chart_widget.js:326
 msgid "{0} Report"
-msgstr ""
+msgstr "Звіт: {0}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:913
 msgid "{0} Reports"
@@ -33526,7 +33538,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:52
 msgid "{0} minutes ago"
-msgstr ""
+msgstr "{0} хвилин тому"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:70
 msgid "{0} months ago"
@@ -33743,7 +33755,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:37
 msgid "{0} w"
-msgstr ""
+msgstr "{0} т"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:66
 msgid "{0} weeks ago"

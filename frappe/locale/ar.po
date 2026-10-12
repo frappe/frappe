@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -550,7 +550,7 @@ msgstr "<h4>مثال على الرد بالبريد الإلكتروني</h4>\n\
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr "<h5 class=\"text-muted uppercase\">أو</h5>"
+msgstr ""
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -30491,7 +30491,7 @@ msgstr "التوزيع الموزون"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:391
 msgid "Welcome"
-msgstr "مرحباً"
+msgstr ""
 
 #. Label of a Link field in DocType 'System Settings'
 #. Label of a Link field in DocType 'Email Group'
@@ -30826,7 +30826,7 @@ msgstr "هل ترغب في حذف هذا التعليق؟ هذا يعني أنه
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:42
 msgid "Wrapping up"
-msgstr "تغليف"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'

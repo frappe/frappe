@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -636,9 +636,7 @@ msgstr ""
 msgid "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
 "<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
-msgstr "<p>Plusieurs formulaires web peuvent être créés pour un seul doctype. Ajoutez des filtres spécifiques à ce formulaire web pour afficher le bon enregistrement après soumission.</p><p>Exemple :</p>\n"
-"<p>Si vous créez un formulaire web distinct chaque année pour recueillir les commentaires des employés, ajoutez un\n"
-" champ nommé year dans le doctype et ajoutez un filtre <b>year = 2023</b></p>\n"
+msgstr ""
 
 #. Description of the 'Context Script' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1400,7 +1398,7 @@ msgstr "Ajouter des balises"
 
 #: frappe/public/js/frappe/views/communication.js:437
 msgid "Add Template"
-msgstr "Ajouter un modèle"
+msgstr ""
 
 #. Label of a Check field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -3361,7 +3359,7 @@ msgstr "En attente Mot de Passe"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:200
 msgid "Awesome Work"
-msgstr "Excellent travail"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:358
 msgid "Awesome, now try making an entry yourself"
@@ -15174,7 +15172,7 @@ msgstr "Inférieur Ou Égal À"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Let us continue with the onboarding"
-msgstr "Continuons la mise en route"
+msgstr ""
 
 #: frappe/public/js/frappe/views/workspace/blocks/onboarding.js:94
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:602
@@ -30861,7 +30859,7 @@ msgstr "Souhaitez-vous dépublier ce commentaire ? Cela signifie qu'il ne sera p
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:42
 msgid "Wrapping up"
-msgstr "Finalisation"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'

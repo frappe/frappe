@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -548,7 +548,7 @@ msgstr "<h4>Exemplo de Resposta de E-Mail</h4>\n\n"
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr "<h5 class=\"text-muted uppercase\">Ou</h5>"
+msgstr ""
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -599,9 +599,7 @@ msgstr ""
 msgid "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
 "<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
-msgstr "<p>Múltiplos formulários web podem ser criados para um único doctype. Adicione filtros específicos para este formulário web para exibir o registro correto após o envio.</p><p>Exemplo:</p>\n"
-"<p>Se você criar um formulário web separado a cada ano para capturar feedback dos funcionários, adicione um\n"
-" campo chamado year no doctype e adicione um filtro <b>year = 2023</b></p>\n"
+msgstr ""
 
 #. Description of the 'Context Script' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1363,7 +1361,7 @@ msgstr "Adicionar etiquetas"
 
 #: frappe/public/js/frappe/views/communication.js:437
 msgid "Add Template"
-msgstr "Adicionar modelo"
+msgstr ""
 
 #. Label of a Check field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -13498,7 +13496,7 @@ msgstr "Índice"
 #. Label of a Check field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Index Web Pages for Search"
-msgstr "Indexar páginas web para pesquisa"
+msgstr ""
 
 #: frappe/core/doctype/recorder/recorder.py:134
 msgid "Index created successfully on column {0} of doctype {1}"
@@ -15601,7 +15599,7 @@ msgstr "Carregando filtros..."
 
 #: frappe/core/doctype/data_import/data_import.js:262
 msgid "Loading import file..."
-msgstr "Carregando arquivo de importação..."
+msgstr ""
 
 #: frappe/desk/page/user_profile/user_profile_controller.js:20
 msgid "Loading user profile"
@@ -30588,7 +30586,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:500
 msgid "Will be your login ID"
-msgstr "Será o seu ID de login"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:426
 msgid "Will only be shown if section headings are enabled"
@@ -30823,7 +30821,7 @@ msgstr "Deseja cancelar a publicação deste comentário? Isso significa que ele
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:42
 msgid "Wrapping up"
-msgstr "Finalizando"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'

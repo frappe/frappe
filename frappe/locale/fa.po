@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -18216,7 +18216,7 @@ msgstr "لاگ اعلان"
 #. Label of a Small Text field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Message"
-msgstr ""
+msgstr "پیام اعلان"
 
 #. Name of a DocType
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -18239,7 +18239,7 @@ msgstr "سند ثبت شده اعلان"
 #. Label of a Data field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Notification Title"
-msgstr ""
+msgstr "عنوان اعلان"
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'Notification Type Preference'
@@ -30827,7 +30827,7 @@ msgstr "آیا می‌خواهید انتشار این نظر را لغو کنی
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:42
 msgid "Wrapping up"
-msgstr "جمع‌بندی"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'

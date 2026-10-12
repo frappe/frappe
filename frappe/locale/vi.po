@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-10-05 04:24\n"
+"PO-Revision-Date: 2026-10-12 04:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -550,7 +550,7 @@ msgstr "<h4>Ví dụ Trả lời Email</h4>\n\n"
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr "<h5 class=\"text-muted uppercase\">Hoặc</h5>"
+msgstr ""
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -601,9 +601,7 @@ msgstr ""
 msgid "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
 "<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
-msgstr "<p>Có thể tạo nhiều webform cho một doctype đơn lẻ. Thêm bộ lọc cụ thể cho webform này để hiển thị đúng bản ghi sau khi gửi.</p><p>Ví dụ:</p>\n"
-"<p>Nếu Bạn tạo một webform riêng mỗi năm để thu thập phản hồi từ nhân viên, hãy thêm \n"
-" trường tên year trong doctype và thêm bộ lọc <b>year = 2023</b></p>\n"
+msgstr ""
 
 #. Description of the 'Context Script' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -13500,7 +13498,7 @@ msgstr "Chỉ mục"
 #. Label of a Check field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Index Web Pages for Search"
-msgstr "Lập chỉ mục trang web để tìm kiếm"
+msgstr ""
 
 #: frappe/core/doctype/recorder/recorder.py:134
 msgid "Index created successfully on column {0} of doctype {1}"
@@ -15138,7 +15136,7 @@ msgstr "Nhỏ hơn hoặc bằng"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Let us continue with the onboarding"
-msgstr "Chúng ta hãy tiếp tục với phần giới thiệu"
+msgstr ""
 
 #: frappe/public/js/frappe/views/workspace/blocks/onboarding.js:94
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:602
@@ -15156,7 +15154,7 @@ msgstr "Tránh sử dụng các từ và ký tự lặp lại"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:489
 msgid "Let's set up your account"
-msgstr "Hãy thiết lập tài khoản của bạn"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:268
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:309
@@ -16038,7 +16036,7 @@ msgstr "Xem bản đồ"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:298
 msgid "Map columns from {0} to fields in {1}"
-msgstr "Ánh xạ các cột từ {0} tới các trường trong {1}"
+msgstr ""
 
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -16548,7 +16546,7 @@ msgstr "Thiếu Loại tài liệu"
 
 #: frappe/core/doctype/doctype/doctype.py:1504
 msgid "Missing Field"
-msgstr "Trường bị thiếu"
+msgstr ""
 
 #: frappe/public/js/frappe/form/save.js:261
 msgid "Missing Fields"
@@ -17660,7 +17658,7 @@ msgstr "Không có kết quả"
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:51
 msgid "No Results found"
-msgstr "Không tìm thấy kết quả"
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:773
 msgid "No Roles Specified"
@@ -18628,7 +18626,7 @@ msgstr "Sơ đồ bước giới thiệu"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:269
 msgid "Onboarding complete"
-msgstr "Quá trình giới thiệu hoàn tất"
+msgstr ""
 
 #. Description of the 'Is Submittable' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -20469,7 +20467,7 @@ msgstr "Chuẩn bị báo cáo"
 
 #: frappe/public/js/frappe/views/communication.js:438
 msgid "Prepend the template to the email message"
-msgstr "Đặt mẫu trước tin nhắn email"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/keyboard.js:140
 msgid "Press Alt Key to trigger additional shortcuts in Menu and Sidebar"
@@ -25098,7 +25096,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Show Only Failed Logs"
-msgstr "Chỉ hiển thị nhật ký thất bại"
+msgstr ""
 
 #. Label of a Check field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -30336,11 +30334,11 @@ msgstr "Script Website"
 #. Label of a Data field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Website Search Field"
-msgstr "Trường Tìm kiếm Website"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1500
 msgid "Website Search Field must be a valid fieldname"
-msgstr "Trường Tìm kiếm Website phải là tên trường hợp lệ"
+msgstr ""
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
