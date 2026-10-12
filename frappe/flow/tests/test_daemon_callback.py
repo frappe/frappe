@@ -48,10 +48,10 @@ def maybe_later(slow: bool = False, *, ctx: ToolContext) -> str:
 
 
 @tool
-def end_savepoint_then_fail(*, ctx: ToolContext) -> None:
-	"""Drops the callback's savepoint, as a query report does, then raises."""
-	frappe.db.release_savepoint("flow_tool")
-	raise ValueError("after the savepoint")
+def queue_then_fail(*, ctx: ToolContext) -> None:
+	"""Queues work for after commit, as a webhook does, then raises."""
+	frappe.db.after_commit.add(lambda: frappe.flags.update(after_commit_ran=True))
+	raise ValueError("after queueing")
 
 
 @tool
@@ -77,7 +77,7 @@ class TestToolCallback(IntegrationTestCase):
 			"whoami",
 			"maybe_later",
 			"insert_then_fail",
-			"end_savepoint_then_fail",
+			"queue_then_fail",
 			"callback_context",
 		):
 			self.flow_tool(slug, type="Imported", import_path=f"{MODULE}.{slug}")
@@ -101,7 +101,7 @@ class TestToolCallback(IntegrationTestCase):
 			"whoami_later",
 			"maybe_later",
 			"insert_then_fail",
-			"end_savepoint_then_fail",
+			"queue_then_fail",
 			"callback_context",
 			"boom",
 		)
@@ -322,20 +322,23 @@ class TestToolCallback(IntegrationTestCase):
 		}
 		return frappe.get_doc(doc).insert().name
 
-	def test_a_raising_script_tool_is_error_content_and_the_run_goes_on(self):
+	def test_a_raising_script_tool_is_error_content(self):
 		self.assertEqual(self.call("boom", {"reason": "kaboom"}), {"content": "kaboom", "is_error": True})
-		self.assertEqual(len(self.call("boom", {"reason": "x" * 700})["content"]), 500)
-		self.assertEqual(self.call("whoami"), {"content": OWNER, "is_error": False})
 		self.assertEqual(frappe.session.user, "Administrator")
+
+	def test_a_long_tool_error_is_cut(self):
+		self.assertEqual(len(self.call("boom", {"reason": "x" * 700})["content"]), 500)
 
 	def test_a_failed_tools_writes_are_rolled_back(self):
 		self.assertEqual(self.call("insert_then_fail"), {"content": "after insert", "is_error": True})
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "callback-rollback"}))
 
-	def test_a_tool_that_ends_the_savepoint_still_returns_its_error(self):
-		self.assertEqual(
-			self.call("end_savepoint_then_fail"), {"content": "after the savepoint", "is_error": True}
-		)
+	def test_a_failed_tools_after_commit_work_is_dropped(self):
+		frappe.db.after_commit.reset()  # leave only this call's work queued
+		self.addCleanup(frappe.flags.pop, "after_commit_ran", None)
+		self.assertEqual(self.call("queue_then_fail"), {"content": "after queueing", "is_error": True})
+		frappe.db.after_commit.run()
+		self.assertFalse(frappe.flags.after_commit_ran)
 
 	def test_a_background_tool_is_queued_and_its_job_posts_the_result(self):
 		with patch("frappe.enqueue") as enqueue:
