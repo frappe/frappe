@@ -737,10 +737,94 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 
+<<<<<<< HEAD:frappe/tests/test_commands.py
 class TestRemoveApp(FrappeTestCase):
+=======
+@contextmanager
+def fake_app_without_hooks(app):
+	real_get_hooks = frappe.get_hooks
+
+	def get_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		if app_name == app:
+			return [] if hook else frappe._dict()
+		return real_get_hooks(hook, default, app_name)
+
+	with patch.object(frappe, "get_hooks", get_hooks):
+		yield
+
+
+@contextmanager
+def drop_table_times_out(on_attempt):
+	real_sql = frappe.db.sql
+	attempts = 0
+
+	def sql(query, *args, **kwargs):
+		nonlocal attempts
+		if isinstance(query, str) and query.startswith("DROP TABLE"):
+			attempts += 1
+			if attempts == on_attempt:
+				raise frappe.QueryTimeoutError
+		return real_sql(query, *args, **kwargs)
+
+	with patch.object(frappe.db, "sql", sql):
+		yield
+
+
+class TestRemoveApp(IntegrationTestCase):
+	def test_failed_uninstall_can_be_finished_by_running_it_again(self):
+		from frappe.installer import get_app_owned_modules
+
+		app = "abc_test_uninstall_app"
+		module = "Abc Test Uninstall Module"
+		doctypes = ["Abc Test Uninstall One", "Abc Test Uninstall Two"]
+		self.addCleanup(self.delete_uninstall_leftovers, module, doctypes)
+		self.make_app_module(app, module, doctypes)
+
+		with fake_app_without_hooks(app), self.set_user("test@example.com"):
+			with drop_table_times_out(on_attempt=2), self.assertRaises(frappe.QueryTimeoutError):
+				remove_app(app, yes=True, no_backup=True, force=True)
+			frappe.db.rollback()
+			frappe.flags.in_uninstall = False
+
+			self.assertEqual(get_app_owned_modules(app), [module])
+
+			remove_app(app, yes=True, no_backup=True, force=True)
+
+		for doctype in doctypes:
+			self.assertFalse(frappe.db.exists("DocType", doctype))
+			self.assertFalse(frappe.db.table_exists(doctype, cached=False))
+		self.assertFalse(frappe.db.exists("Module Def", module))
+
+	def make_app_module(self, app, module, doctypes):
+		# In developer mode a new Module Def gets a folder inside its app, and this app doesn't exist
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			frappe.get_doc({"doctype": "Module Def", "module_name": module, "app_name": app}).insert()
+
+		for doctype in doctypes:
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": doctype,
+					"module": module,
+					"custom": 1,
+					"fields": [{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+					"permissions": [{"role": "System Manager", "read": 1}],
+				}
+			).insert()
+
+	def delete_uninstall_leftovers(self, module, doctypes):
+		frappe.flags.in_uninstall = False
+		for doctype in doctypes:
+			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
+			frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True)
+		frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
+		frappe.db.commit()
+
+>>>>>>> d8b022b (fix(uninstall): let a failed uninstall be finished by running it again):frappe/commands/test_commands.py
 	def test_delete_modules(self):
 		from frappe.installer import (
 			_delete_doctypes,
+			_delete_module_defs,
 			_delete_modules,
 			_get_module_linked_doctype_field_map,
 		)
@@ -778,6 +862,7 @@ class TestRemoveApp(FrappeTestCase):
 		self.assertEqual(len(doctypes_to_delete), 1)
 
 		_delete_doctypes(doctypes_to_delete, dry_run=False)
+		_delete_module_defs([test_module.module_name], dry_run=False)
 		self.assertFalse(frappe.db.exists("Module Def", test_module.module_name))
 		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
 

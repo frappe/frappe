@@ -414,10 +414,19 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	for fn in frappe.get_hooks("before_app_uninstall"):
 		frappe.get_attr(fn)(app_name)
 
+<<<<<<< HEAD
 	modules = frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name")
 
 	drop_doctypes = _delete_modules(modules, dry_run=dry_run)
 	_delete_doctypes(drop_doctypes, dry_run=dry_run)
+=======
+	app_modules = get_app_owned_modules(app_name)
+	drop_doctypes = _delete_modules(app_modules, dry_run=dry_run)
+	_delete_doctypes(drop_doctypes, dry_run=dry_run)
+	# Last, because a re-run after a failure finds the app's remaining doctypes through these rows
+	_delete_module_defs(app_modules, dry_run=dry_run)
+	release_custom_module_placements(app_name, dry_run=dry_run)
+>>>>>>> d8b022b (fix(uninstall): let a failed uninstall be finished by running it again)
 
 	if not dry_run:
 		remove_from_installed_apps(app_name)
@@ -439,11 +448,15 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 
 def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
-	"""Delete modules belonging to the app and all related doctypes.
+	"""Delete the single doctypes in the app's modules and all records linked to the modules.
 
+<<<<<<< HEAD
 	Note: All record linked linked to Module Def are also deleted.
 
 	Returns: list of deleted doctypes."""
+=======
+	Return: list of doctypes whose tables still have to be dropped."""
+>>>>>>> d8b022b (fix(uninstall): let a failed uninstall be finished by running it again)
 	drop_doctypes = []
 
 	doctype_link_field_map = _get_module_linked_doctype_field_map()
@@ -464,11 +477,14 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 
 		_delete_linked_documents(module_name, doctype_link_field_map, dry_run=dry_run)
 
+	return drop_doctypes
+
+
+def _delete_module_defs(modules: list[str], dry_run: bool) -> None:
+	for module_name in modules:
 		print(f"* removing Module Def '{module_name}'...")
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name, ignore_on_trash=True, force=True)
-
-	return drop_doctypes
 
 
 def _delete_linked_documents(module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool) -> None:
@@ -513,8 +529,8 @@ def _delete_doctypes(doctypes: list[str], dry_run: bool) -> None:
 	for doctype in set(doctypes):
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
-			frappe.delete_doc("DocType", doctype, ignore_on_trash=True, force=True)
 			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
+			frappe.delete_doc("DocType", doctype, ignore_on_trash=True, force=True)
 
 
 def post_install(rebuild_website=False):
