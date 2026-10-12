@@ -1412,7 +1412,7 @@ def browse_site(
 			sid = frappe.session.sid
 			login_path = f"/app?sid={sid}"
 		else:
-			click.echo("You cannot login as a non-administrator user when developer mode is disabled")
+			click.echo("Please enable developer mode to login as a user")
 
 	if print_sid:
 		if not sid:
