@@ -299,6 +299,46 @@ class TestStudioAppBuilder(FrappeTestCase):
 			self.assertIn("TextEditor", builder.components)
 			self.assertIn("Dropdown", builder.components)
 
+	def test_get_app_components_from_files_extracts_h_function_components(self):
+		app_name = "file-h-func-app"
+		page_data = {
+			"blocks": [
+				{
+					"componentName": "ListView",
+					"children": [],
+					"componentProps": {
+						"columns": [{"prefix": "({ row }) => h(Avatar, { image: row.image })"}]
+					},
+				}
+			]
+		}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
+			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+				builder.get_app_components_from_files()
+
+			self.assertIn("Avatar", builder.components)
+
+	def test_custom_vue_components_resolve_across_the_frappe_app(self):
+		app_name = "shared-components-app"
+		page_data = {
+			"blocks": [{"componentName": "SharedCard", "isCustomVueComponent": True, "children": []}]
+		}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			sibling_components = os.path.join(studio_folder, "sibling_app", "components")
+			os.makedirs(sibling_components)
+			shared_card = os.path.join(sibling_components, "SharedCard.vue")
+			with open(shared_card, "w") as f:
+				f.write("<template><div /></template>")
+
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
+			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+				builder.get_app_components_from_files()
+
+			self.assertEqual(builder.custom_vue_components, {"SharedCard": shared_card})
+
 	def test_get_app_components_from_files_with_string_blocks(self):
 		"""Blocks stored as a JSON string (instead of list) should also be parsed."""
 		app_name = "str-blocks-app"
