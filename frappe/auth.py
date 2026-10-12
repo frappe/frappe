@@ -163,7 +163,8 @@ class LoginManager:
 
 		if self.force_user_to_reset_password():
 			doc = frappe.get_doc("User", self.user)
-			doc._reset_password(send_email=True, password_expired=True)
+			if not doc.has_valid_reset_password_key():
+				doc._reset_password(send_email=True, password_expired=True)
 			frappe.local.response["message"] = "Password Reset"
 			return False
 
