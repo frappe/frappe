@@ -147,6 +147,16 @@ class TestDownloadReportPdf(IntegrationTestCase):
 		self.assertIn("High", html)
 		self.assertNotIn("Renew the example.com domain", html)
 
+	def test_prints_a_value_that_does_not_fit_the_column_type(self):
+		report_run = {
+			"columns": [{"fieldname": "date", "fieldtype": "Date"}],
+			"result": [{"date": "Opening"}],
+		}
+		with patch("frappe.utils.print_format.run", return_value=report_run):
+			html = self.printed_html()
+
+		self.assertIn("Opening", html)
+
 	def test_jinja_format_renders_the_report_run(self):
 		html = self.printed_html(print_format=PF_TODO)
 
