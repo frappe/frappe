@@ -52,6 +52,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "description": "JSON values prefilled in the form. The respondent can edit them.",
    "fieldname": "web_form_values",
    "fieldtype": "Code",
    "label": "Web Form Values",
@@ -62,6 +63,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "description": "JSON values set on the document on submission. Never sent to the browser.",
    "fieldname": "doc_values",
    "fieldtype": "Code",
    "label": "Doc Values",
@@ -88,7 +90,7 @@
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2026-05-14 19:09:06.550774",
+ "modified": "2026-10-09 14:18:07.788948",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Request",
