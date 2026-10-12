@@ -826,7 +826,7 @@ frappe.ui.form.PrintView = class {
 	preview() {
 		this.toggle_style_picker();
 		let print_format = this.get_print_format();
-		if (this.renders_via_generator(print_format)) {
+		if (!print_format.raw_printing) {
 			this.print_wrapper.find(".print-preview-wrapper").hide();
 			this.print_wrapper.find(".preview-beta-wrapper").show();
 			this.preview_beta();
