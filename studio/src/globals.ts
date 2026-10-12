@@ -1,4 +1,4 @@
-import { App, defineAsyncComponent, shallowRef } from "vue"
+import { App, defineAsyncComponent } from "vue"
 import {
 	Alert,
 	Avatar,
@@ -65,17 +65,7 @@ import {
 	ListView,
 	TextEditor,
 } from "frappe-ui/experimental"
-import {
-	AreaChart,
-	BarChart,
-	LineChart,
-	DonutChart,
-	FunnelChart,
-	HeatmapChart,
-	ScatterChart,
-	SankeyChart,
-	NumberCard,
-} from "frappe-ui/charts"
+import { FRAPPE_UI_CHARTS } from "@/utils/constants"
 import {
 	List,
 	ListRows,
@@ -88,21 +78,10 @@ import {
 } from "frappe-ui/list"
 
 import Container from "@/components/AppLayout/Container.vue"
-import FitContainer from "@/components/AppLayout/FitContainer.vue"
-import SplitView from "@/components/AppLayout/SplitView.vue"
 import Repeater from "@/components/AppLayout/Repeater.vue"
 import HTML from "@/components/AppLayout/HTML.vue"
-import CardList from "@/components/AppLayout/CardList.vue"
-import AvatarCard from "@/components/AppLayout/AvatarCard.vue"
-import Audio from "@/components/AppLayout/Audio.vue"
 import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
-import AppHeader from "@/components/AppLayout/AppHeader.vue"
-import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
-import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
-
-import { vueComponents } from "@/data/vueComponents"
-import { CustomVueComponentMeta } from "@/types/vue"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
@@ -149,16 +128,9 @@ export function registerGlobalComponents(app: App) {
 	app.component("Duration", Duration)
 	app.component("Spinner", Spinner)
 
-	// frappe-ui/charts
-	app.component("AreaChart", AreaChart)
-	app.component("BarChart", BarChart)
-	app.component("LineChart", LineChart)
-	app.component("DonutChart", DonutChart)
-	app.component("FunnelChart", FunnelChart)
-	app.component("HeatmapChart", HeatmapChart)
-	app.component("ScatterChart", ScatterChart)
-	app.component("SankeyChart", SankeyChart)
-	app.component("NumberCard", NumberCard)
+	for (const chart of FRAPPE_UI_CHARTS) {
+		app.component(chart, defineAsyncComponent(() => import("frappe-ui/charts").then((charts) => charts[chart])))
+	}
 
 	// List family (frappe-ui/list) — dropped as a tree via the `list` block template.
 	app.component("List", List)
@@ -289,75 +261,8 @@ export function registerGlobalComponents(app: App) {
 
 	// studio components
 	app.component("Container", Container)
-	app.component("FitContainer", FitContainer)
-	app.component("SplitView", SplitView)
 	app.component("Repeater", Repeater)
 	app.component("HTML", HTML)
-	app.component("CardList", CardList)
-	app.component("AvatarCard", AvatarCard)
-	app.component("Audio", Audio)
 	app.component("ImageView", ImageView)
 	app.component("TextBlock", TextBlock)
-	app.component("AppHeader", AppHeader)
-	app.component("BottomTabs", BottomTabs)
-	app.component("MarkdownEditor", MarkdownEditor)
-}
-
-export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})
-/**
- * Dynamically register custom Vue components from a specific Frappe app into the custom components registry.
- * @param frappeApp - The Frappe app name to fetch components from
- */
-export async function registerCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
-	try {
-		if (!frappeApp) return []
-		const components: CustomVueComponentMeta[] = await vueComponents.reload({ frappe_app: frappeApp })
-
-		const registry = { ...customVueComponentsRegistry.value }
-		for (const comp of components) {
-			try {
-				const asyncComp = defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path))
-				registry[comp.component_name] = asyncComp
-				if (window.__APP_COMPONENTS__) {
-					window.__APP_COMPONENTS__[comp.component_name] = asyncComp
-				}
-			} catch (err) {
-				console.error(`Failed to load custom component ${comp.component_name}:`, err)
-			}
-		}
-		customVueComponentsRegistry.value = registry
-		return components
-	} catch (err) {
-		console.error("Failed to fetch custom Vue components:", err)
-		return []
-	}
-}
-
-/**
- * Unregister previously registered custom Vue components from the custom components registry.
- * Called when switching apps to clean up components from the previous app's frappe_app.
- */
-export function unregisterCustomVueComponents(components: CustomVueComponentMeta[]) {
-	const registry = { ...customVueComponentsRegistry.value }
-	for (const comp of components) {
-		delete registry[comp.component_name]
-		if (window.__APP_COMPONENTS__) {
-			delete window.__APP_COMPONENTS__[comp.component_name]
-		}
-	}
-	customVueComponentsRegistry.value = registry
-}
-
-// Re-sync the registry to the app's current custom components. register() only merges, so on its
-// own a removed component would linger; this also evicts any that no longer exist. Pass an empty
-// frappeApp to clear them all (e.g. a non-standard app). Shared by the editor and the preview.
-export async function reloadCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
-	const before = Object.keys(customVueComponentsRegistry.value)
-	const components = await registerCustomVueComponents(frappeApp)
-
-	const current = new Set(components.map((comp) => comp.component_name))
-	const removed = before.filter((name) => !current.has(name)).map((name) => ({ component_name: name }))
-	if (removed.length) unregisterCustomVueComponents(removed as CustomVueComponentMeta[])
-
-	return components
 }
