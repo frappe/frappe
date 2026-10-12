@@ -494,6 +494,118 @@ class TestUser(FrappeTestCase):
 			"The reset password link has been expired",
 		)
 
+<<<<<<< HEAD
+=======
+	def test_second_save_of_new_user_does_not_send_password_changed_alert(self):
+		"""Social login inserts the user through add_roles and saves it again in the same request."""
+		frappe.set_user("Guest")
+		user: User = frappe.new_doc(
+			"User",
+			email="oauth-signup@example.com",
+			first_name="OAuth",
+			user_type="Website User",
+			new_password=frappe.generate_hash(),
+		)
+		user.flags.ignore_permissions = True
+		user.flags.no_welcome_mail = True
+		try:
+			with patch.object(User, "set_new_password", autospec=True) as set_new_password:
+				user.add_roles("_Test Role")
+				user.save()
+
+			passwords = [call.args[1] for call in set_new_password.call_args_list]
+			self.assertEqual(passwords, [None])
+		finally:
+			frappe.set_user("Administrator")
+			user.delete(force=True, ignore_permissions=True)
+
+	def test_password_change_by_user_still_sends_password_changed_alert(self):
+		with test_user(roles=["_Test Role"]) as created:
+			frappe.set_user(created.name)
+			user: User = frappe.get_doc("User", created.name)
+			user.new_password = "Eastern_43A1W_changed"
+			with patch.object(User, "set_new_password", autospec=True) as set_new_password:
+				user.save()
+
+			set_new_password.assert_called_once_with(user, "Eastern_43A1W_changed")
+			frappe.set_user("Administrator")
+
+	def test_bulk_add_roles(self):
+		"""Roles are appended across the selection without disturbing existing ones."""
+		with (
+			test_user(roles=["_Test Role"]) as first,
+			test_user(roles=["Website Manager"]) as second,
+		):
+			bulk_add_roles([first.name, second.name], ["_Test Role 4", "_Test Role"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["_Test Role", "_Test Role 4"])
+			self.assertCountEqual(
+				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "_Test Role"]
+			)
+
+	def test_bulk_remove_roles(self):
+		"""Roles are stripped across the selection, leaving other roles intact."""
+		with (
+			test_user(roles=["_Test Role", "Website Manager"]) as first,
+			test_user(roles=["_Test Role"]) as second,
+		):
+			bulk_remove_roles([first.name, second.name], ["_Test Role", "_Test Role 4"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+			self.assertCountEqual([d.role for d in second.roles], [])
+
+			bulk_remove_roles([], ["Website Manager"])
+			bulk_remove_roles([first.name], [])
+
+			first.reload()
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+
+	def test_bulk_role_endpoints_enqueue_large_batches(self):
+		"""Over 20 users, each endpoint defers to its own background job."""
+		users = [f"bulk{i}@example.com" for i in range(21)]
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_add_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._assign_roles")
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_remove_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._unassign_roles")
+
+	def test_bulk_role_args_are_validated(self):
+		"""Parsed arguments must be lists of plain strings, within the batch cap."""
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([{"name": ["!=", ""]}], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles(["someone@example.com"], [{"role": ["!=", ""]}])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_remove_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+	def test_bulk_role_endpoints_require_write_permission(self):
+		with test_user(roles=["_Test Role 4"]) as actor, test_user(roles=["_Test Role 4"]) as target:
+			with self.set_user(actor.name):
+				with self.assertRaises(frappe.PermissionError):
+					bulk_add_roles([target.name], ["Website Manager"])
+
+				with self.assertRaises(frappe.PermissionError):
+					bulk_remove_roles([target.name], ["_Test Role 4"])
+
+>>>>>>> c4d13ad (fix(user): don't send password alert on second save of a new user)
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
