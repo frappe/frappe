@@ -8,6 +8,14 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		this.set_options();
 	}
 
+	bind_change_event() {
+		// Firefox fires change when the window loses focus
+		this.$input.on("change", (e) => {
+			if (e.originalEvent && !document.hasFocus()) e.stopImmediatePropagation();
+		});
+		super.bind_change_event();
+	}
+
 	set_options() {
 		if (this.df.options) {
 			let options = this.df.options || [];
@@ -110,6 +118,8 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		});
 
 		this.$input.on("blur", () => {
+			if (document.activeElement === this.input) return;
+
 			if (this.selected) {
 				this.selected = false;
 				return;
