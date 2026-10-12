@@ -892,9 +892,10 @@ frappe.ui.form.PrintView = class {
 			const iframe = this.print_wrapper.find(".preview-beta-wrapper iframe");
 			iframe.off("load").on("load", () => {
 				const doc = iframe.get(0).contentDocument;
-				const footer = doc.getElementById("footer-html");
-				footer?.classList.add("hidden-pdf");
-				footer?.classList.remove("visible-pdf");
+				doc.querySelectorAll('[id="footer-html"]').forEach((footer) => {
+					footer.classList.add("hidden-pdf");
+					footer.classList.remove("visible-pdf");
+				});
 				this.render_barcodes(doc);
 				this.on_preview_load(iframe.get(0));
 			});
