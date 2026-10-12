@@ -333,6 +333,13 @@ class Sidebar(Document, DeskViews):
 
 		rename_sidebar_rows(old_name, new_name)
 
+	def on_trash(self):
+		from frappe.desk.doctype.dock.dock import remove_sidebar_rows
+
+		# a dock row is a Dynamic Link, which no delete checks, so it would stay behind pointing at
+		# nothing
+		remove_sidebar_rows(self.name)
+
 	def validate_item_routes(self):
 		for item in self.items:
 			validate_item_route(item)
