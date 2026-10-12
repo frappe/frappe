@@ -50,10 +50,17 @@ jobs:
               gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/reviews/$REVIEW_ID" --input payload.json --jq '.html_url'
             else
               jq '.comments |= map(with_entries(select(.value != null)))' review.json > payload.json
-              gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
+              gh api --paginate "repos/${{ github.repository }}/pulls/$PR/reviews" --jq '.[] | select(.user.login == "frappe-pr-bot") | {id, state, body}' > posted-reviews.json
+              gh api --paginate "repos/${{ github.repository }}/pulls/$PR/comments" --jq '.[] | select(.user.login == "frappe-pr-bot") | {review: .pull_request_review_id, path, line: .original_line, body}' > posted-comments.json
+              if jq -e --slurpfile reviews posted-reviews.json --slurpfile comments posted-comments.json '. as $new | {COMMENT: "COMMENTED", REQUEST_CHANGES: "CHANGES_REQUESTED"}[$new.event] as $state | $reviews | any(. as $posted | .state == $state and .body == $new.body and ($new.comments | all(. as $c | $comments | any(.review == $posted.id and .path == $c.path and .line == $c.line and .body == $c.body))))' payload.json > /dev/null; then
+                echo "skipped the review: frappe-pr-bot already posted it" >&2
+              else
+                gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
+              fi
             fi
           fi
-          jq -c '(.replies // [])[] | {body, in_reply_to}' review.json | while read -r reply; do
+          gh api --paginate "repos/${{ github.repository }}/pulls/$PR/comments" --jq '.[] | select(.user.login == "frappe-pr-bot" and .in_reply_to_id != null) | {body, in_reply_to: .in_reply_to_id}' > posted-replies.json
+          jq -c --slurpfile posted posted-replies.json '(.replies // [])[] | {body, in_reply_to} | select(. as $reply | $posted | any(. == $reply) | not)' review.json | while read -r reply; do
             printf '%s' "$reply" > reply.json
             gh api -X POST "repos/${{ github.repository }}/pulls/$PR/comments" --input reply.json --jq '.html_url'
           done

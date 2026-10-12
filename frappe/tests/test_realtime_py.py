@@ -183,27 +183,29 @@ class TestAuthHelpers(unittest.TestCase):
 		env = make_environ(host="host.local", origin=None, site_header=None)
 		self.assertEqual(auth_mod.resolve_site_name(env, make_config()), "host.local")
 
-	def test_get_url_dev_mode_swaps_port(self):
+	def test_get_url_defaults_to_loopback(self):
+		# No webserver_host: never the client origin, always loopback + webserver_port.
+		cfg = make_config(webserver_port=8000)
+		self.assertEqual(auth_mod.get_url("/p", cfg), "http://127.0.0.1:8000/p")
+		# developer_mode changes nothing — origin is never consulted.
 		cfg = make_config(developer_mode=True, webserver_port=8000)
-		self.assertEqual(auth_mod.get_url("http://x.local:9000", "/p", cfg), "http://x.local:8000/p")
-		# non-dev leaves origin untouched
-		self.assertEqual(
-			auth_mod.get_url("http://x.local:9000", "/p", make_config()), "http://x.local:9000/p"
-		)
+		self.assertEqual(auth_mod.get_url("/p", cfg), "http://127.0.0.1:8000/p")
+		# webserver_port unset falls back to 8000, not the client origin.
+		self.assertEqual(auth_mod.get_url("/p", make_config()), "http://127.0.0.1:8000/p")
 
 	def test_get_url_webserver_host(self):
 		# bare host gets http:// scheme and the configured port
 		cfg = make_config(webserver_host="127.0.0.1", webserver_port=8000)
-		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "http://127.0.0.1:8000/p")
+		self.assertEqual(auth_mod.get_url("/p", cfg), "http://127.0.0.1:8000/p")
 		# scheme in the value is preserved, not double-prefixed
 		cfg = make_config(webserver_host="https://app.frappe.cloud", webserver_port=8000)
-		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "https://app.frappe.cloud:8000/p")
+		self.assertEqual(auth_mod.get_url("/p", cfg), "https://app.frappe.cloud:8000/p")
 		# explicit port in the value is not doubled
 		cfg = make_config(webserver_host="https://app.frappe.cloud:443", webserver_port=8000)
-		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "https://app.frappe.cloud:443/p")
+		self.assertEqual(auth_mod.get_url("/p", cfg), "https://app.frappe.cloud:443/p")
 		# bracketed IPv6 literal
 		cfg = make_config(webserver_host="[::1]", webserver_port=8000)
-		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "http://[::1]:8000/p")
+		self.assertEqual(auth_mod.get_url("/p", cfg), "http://[::1]:8000/p")
 
 
 class TestAuthenticate(unittest.IsolatedAsyncioTestCase):
@@ -359,6 +361,62 @@ class TestSharedHttpClient(unittest.IsolatedAsyncioTestCase):
 			"s1",
 			"shared-secret",
 		)
+
+	async def test_authentication_uses_trusted_destination(self):
+		configs = [
+			(make_config(), "http://127.0.0.1:8000"),
+			(make_config(webserver_port=8006), "http://127.0.0.1:8006"),
+			(make_config(developer_mode=True, webserver_port=8006), "http://127.0.0.1:8006"),
+			(make_config(webserver_host="web", webserver_port=8000), "http://web:8000"),
+			(make_config(webserver_host="web"), "http://web:8000"),
+			(make_config(webserver_host="https://web.example.com"), "https://web.example.com"),
+			(make_config(webserver_host="http://web.example.com"), "http://web.example.com"),
+			(
+				make_config(webserver_host="https://web.example.com", webserver_port=8443),
+				"https://web.example.com:8443",
+			),
+			(
+				make_config(webserver_host="https://web.example.com:9443", webserver_port=8006),
+				"https://web.example.com:9443",
+			),
+			(make_config(webserver_host="https://web.example.com:443"), "https://web.example.com"),
+		]
+		for config, destination in configs:
+			for credential in ({"cookie": "sid=test-session"}, {"authorization": "token test:secret"}):
+				with self.subTest(config=config, credential=next(iter(credential))):
+					sent = []
+
+					def handle(request):
+						sent.append(request)
+						return httpx.Response(
+							200, json={"message": {"user": "user@example.com", "installed_apps": ["frappe"]}}
+						)
+
+					self._client(handle)
+					environ = make_environ(
+						host="attacker.example.com",
+						origin="http://attacker.example.com:9999",
+						site_header="site.example.com",
+						**credential,
+					)
+					with patch.object(auth_mod, "get_socketio_secret", AsyncMock(return_value="test-secret")):
+						session = await auth_mod.authenticate(environ, "/site.example.com", config)
+					await session.has_permission("ToDo")
+
+					self.assertEqual(
+						[str(request.url) for request in sent],
+						[
+							f"{destination}/api/method/frappe.realtime.get_user_info",
+							f"{destination}/api/method/frappe.realtime.has_permission?doctype=ToDo&name=&ptype=read",
+						],
+					)
+					for request in sent:
+						self.assertEqual(request.headers["X-Frappe-Site-Name"], "site.example.com")
+						self.assertEqual(request.headers["X-Frappe-Socket-Secret"], "test-secret")
+						self.assertEqual(request.headers.get("Cookie"), credential.get("cookie"))
+						self.assertEqual(
+							request.headers.get("Authorization"), credential.get("authorization")
+						)
 
 	async def test_redirects_are_followed(self):
 		def handle(request: httpx.Request) -> httpx.Response:

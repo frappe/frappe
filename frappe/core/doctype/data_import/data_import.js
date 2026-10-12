@@ -2660,11 +2660,12 @@ frappe.ui.form.on("Data Import", {
 							log.docname,
 							true
 						)}</span>`;
-						html = `<div class="diw-import-log-message"><div class="diw-import-log-line flex items-center">${get_import_log_html(
+						// one flex item, or flex drops the space before the link
+						html = `<div class="diw-import-log-message"><div class="diw-import-log-line flex items-center"><span>${get_import_log_html(
 							frm.doc.import_type,
 							log.import_action,
 							doc_link
-						)}</div></div>`;
+						)}</span></div></div>`;
 					} else {
 						const messages = parse_messages(log);
 						// message is sanitized server-side (nh3); title is not, so escape it.

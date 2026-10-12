@@ -1,9 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import unicodedata
+
 import click
 from cryptography.fernet import Fernet, InvalidToken
 from passlib.context import CryptContext
+from passlib.exc import PasswordSizeError
 from pypika.terms import Values
 
 import frappe
@@ -19,6 +22,23 @@ passlibctx = CryptContext(
 		"argon2",
 	],
 )
+
+
+def normalize_password(pwd):
+	"""Same text typed as NFC or NFD must hash the same (RFC 8265)."""
+	return unicodedata.normalize("NFC", pwd)
+
+
+def verify_password(pwd, hashed):
+	normalized = normalize_password(pwd)
+	if passlibctx.verify(normalized, hashed):
+		return True, passlibctx.needs_update(hashed)
+
+	# hash saved before normalization, check raw input as before, rehash on match
+	if normalized != pwd and passlibctx.verify(pwd, hashed):
+		return True, True
+
+	return False, False
 
 
 def get_decrypted_password(doctype, name, fieldname="password", raise_exception=True):
@@ -100,7 +120,7 @@ def is_password_reused(user, pwd, doctype="User", fieldname="password"):
 		.run(as_dict=True)
 	)
 
-	return bool(result and passlibctx.verify(pwd, result[0].password))
+	return bool(result and verify_password(pwd, result[0].password)[0])
 
 
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
@@ -119,7 +139,8 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 		.run(as_dict=True)
 	)
 
-	if not result or not passlibctx.verify(pwd, result[0].password):
+	matched, needs_rehash = verify_password(pwd, result[0].password) if result else (False, False)
+	if not matched:
 		raise frappe.AuthenticationError(_("Incorrect User or Password"))
 
 	# lettercase agnostic
@@ -131,8 +152,7 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 	if delete_tracker_cache:
 		delete_login_failed_cache(user)
 
-	# no rehash while password login is disabled
-	if passlibctx.needs_update(result[0].password) and not is_password_login_disabled(user, doctype):
+	if needs_rehash and not is_password_login_disabled(user, doctype):
 		update_password(user, pwd, doctype, fieldname)
 
 	return user
@@ -204,7 +224,10 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	if is_password_login_disabled(user, doctype):
 		throw_password_login_disabled()
 
-	hashPwd = passlibctx.hash(pwd)
+	try:
+		hashPwd = passlibctx.hash(normalize_password(pwd))
+	except PasswordSizeError:
+		frappe.throw(_("Password size exceeded the maximum allowed size."))
 
 	query = frappe.qb.into(Auth).columns(
 		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted

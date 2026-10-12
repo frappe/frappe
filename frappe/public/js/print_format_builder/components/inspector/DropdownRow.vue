@@ -1,7 +1,7 @@
 <template>
 	<InspectorRow :label="label" :stacked="stacked">
 		<select
-			class="pfb-insp-select"
+			class="form-control form-control-sm pfb-insp-select"
 			:value="modelValue ?? ''"
 			@change="$emit('update:modelValue', $event.target.value)"
 		>

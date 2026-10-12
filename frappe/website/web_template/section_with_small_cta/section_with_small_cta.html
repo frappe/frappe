@@ -18,5 +18,5 @@
 			{%- endif -%}
 		</div>
 	</div>
-	{% if cta_url %}<a href="{{ cta_url }}" class="stretched-link"></a>{% endif %}
+	{% if cta_url %}<a href="{{ cta_url }}" class="stretched-link"{% if cta_label %} aria-label="{{ cta_label | e }}"{% elif title %} aria-label="{{ _(title) | e }}"{% else %} aria-label="{{ _('Learn more') }}"{% endif %}></a>{% endif %}
 </div>

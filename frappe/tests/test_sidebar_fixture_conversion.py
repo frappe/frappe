@@ -131,6 +131,30 @@ class TestSidebarFixtureConversion(IntegrationTestCase):
 		self.assertEqual([item.link_to for item in doc.items], ["User"])
 		self.assertEqual(doc.standard, 1)
 
+	def test_route_options_are_written_as_filters(self):
+		"""v16's `route_options` on a link are its filters. A Page keeps them, since there they are
+		the page's own query."""
+		filtered = {**link("ToDo"), "label": "Open Todos", "route_options": '{"status": "Open"}'}
+		page = {
+			"type": "Link",
+			"link_type": "Page",
+			"link_to": "permission-manager",
+			"label": "Permissions",
+			"route_options": '{"doctype": "ToDo"}',
+		}
+		fixtures = {"only": fixture("Conversion Filtered", MODULE, [link("ToDo"), filtered, page])}
+
+		with module_resolvable_on_disk(MODULE), old_fixtures(fixtures):
+			convert_app("frappe")
+			written = json.loads(open(export_path(MODULE, "Conversion Filtered")).read())
+
+		by_label = {item["label"]: item for item in written["items"]}
+		self.assertEqual(json.loads(by_label["Open Todos"]["filters"]), [["ToDo", "status", "=", "Open"]])
+		self.assertFalse(by_label["Open Todos"].get("route_options"))
+		self.assertFalse(by_label["ToDo"].get("filters"))
+		self.assertEqual(by_label["Permissions"]["route_options"], '{"doctype": "ToDo"}')
+		self.assertFalse(by_label["Permissions"].get("filters"))
+
 	def test_a_single_source_is_written_under_the_title_it_keeps(self):
 		"""A module with one source keeps that workspace's title, so `Loan Management` still reads
 		"Lending". A sidebar is named by its title, so that is what the record and the file are called.

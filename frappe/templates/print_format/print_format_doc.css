@@ -5,6 +5,8 @@
 .print-format-doc {
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
+	font-weight: 400;
+	letter-spacing: normal;
 }
 .print-format-doc .label {
 	border: none;

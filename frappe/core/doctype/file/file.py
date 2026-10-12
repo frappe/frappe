@@ -133,13 +133,16 @@ class File(Document):
 			return
 
 		if self.is_remote_file:
+			# a remote file has no local blob to hash
+			self.content_hash = None
 			self.validate_remote_file()
 		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
 			frappe.db.after_rollback.add(self.on_rollback)
 
-		self.validate_duplicate_entry()  # Hash is generated in save_file
+		if not self.is_remote_file:
+			self.validate_duplicate_entry()  # Hash is generated in save_file
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -174,6 +177,9 @@ class File(Document):
 				frappe.throw(_("A folder cannot have a File URL"))
 			return
 
+		if self.is_remote_file:
+			self.content_hash = None
+
 		self.validate_attachment_references()
 		self.enforce_public_file_restrictions()
 
@@ -199,6 +205,13 @@ class File(Document):
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
+
+		if self.flags.ignore_permissions or frappe.flags.in_install:
+			return
+
+		from frappe.handler import check_write_permission
+
+		check_write_permission(self.attached_to_doctype, self.attached_to_name)
 
 	def enforce_public_file_restrictions(self):
 		if not self.is_private and frappe.get_system_settings(
@@ -1061,20 +1074,27 @@ class File(Document):
 		content_type = mimetypes.guess_type(self.file_name)[0]
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
 		is_svg = content_type == "image/svg+xml"
+		is_local_pdf = content_type == "application/pdf" and self.file_size > 0
 
-		if not is_local_image:
-			raise NotImplementedError("Only local image files can be optimized")
+		if not (is_local_image or is_local_pdf):
+			raise NotImplementedError("Only local image or PDF files can be optimized")
 
 		if is_svg:
 			raise TypeError("Optimization of SVG images is not supported")
 
-		from frappe.utils.image import optimize_image
-
 		original_content = self.get_content()
-		optimized_content = optimize_image(
-			content=original_content,
-			content_type=content_type,
-		)
+
+		if is_local_pdf:
+			from frappe.utils.pdf import optimize_pdf
+
+			optimized_content = optimize_pdf(original_content)
+		else:
+			from frappe.utils.image import optimize_image
+
+			optimized_content = optimize_image(
+				content=original_content,
+				content_type=content_type,
+			)
 
 		if original_content == optimized_content:
 			# optimization failed, don't resave it

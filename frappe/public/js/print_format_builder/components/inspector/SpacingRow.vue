@@ -1,10 +1,11 @@
 <template>
-	<InspectorRow :label="label">
+	<InspectorRow :label="label" class="pfb-spacing-row">
 		<div class="pfb-spacing-sides">
 			<div v-for="side in sides" :key="side" class="pfb-spacing-side">
 				<input
 					type="number"
 					min="0"
+					step="any"
 					:value="modelValue?.[side] ?? 0"
 					:title="side_labels[side]"
 					@change="(e) => set_side(side, e.target.value)"
@@ -33,7 +34,7 @@ const side_labels = {
 };
 
 function set_side(side, v) {
-	const n = Math.max(0, parseInt(v) || 0);
+	const n = Math.max(0, parseFloat(v) || 0);
 	emit("update:modelValue", {
 		top: 0,
 		right: 0,
@@ -61,22 +62,32 @@ function set_side(side, v) {
 	min-width: 0;
 }
 
+.pfb-spacing-row {
+	align-items: start;
+}
+
+.pfb-spacing-row :deep(.pfb-insp-label) {
+	line-height: var(--input-height);
+}
+
 .pfb-spacing-side input {
+	box-sizing: border-box;
 	width: 100%;
 	min-width: 0;
+	height: var(--input-height);
 	padding: 4px 2px;
 	text-align: center;
 	font-size: var(--text-sm);
-	font-weight: 500;
-	border: 1px solid var(--border-color);
+	font-weight: var(--font-weight-medium);
+	border: 1px solid var(--outline-gray-1);
 	border-radius: var(--radius);
-	background: var(--subtle-accent);
-	color: var(--text-color);
+	background: var(--surface-gray-1);
+	color: var(--ink-gray-8);
 	outline: none;
 }
 
 .pfb-spacing-side input:focus {
-	background: var(--fg-color);
+	background: var(--surface-base);
 }
 
 .pfb-spacing-side input::-webkit-inner-spin-button,
@@ -86,6 +97,6 @@ function set_side(side, v) {
 
 .pfb-spacing-side span {
 	font-size: var(--text-tiny);
-	color: var(--text-muted);
+	color: var(--ink-gray-6);
 }
 </style>

@@ -1,8 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
-from frappe.automation_engine.dispatch import queue_trigger
+from frappe.automation_engine.dispatch import _pending_row, queue_trigger
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.tests import IntegrationTestCase
 
@@ -38,6 +40,16 @@ class TestOutbox(IntegrationTestCase):
 		second = queue_trigger(self.automation, "ToDo", "TODO-1")
 		self.assertEqual(first, second)
 		self.assertEqual(len(rows(self.automation, status="Pending")), 1)
+
+	def test_dedup_refreshes_a_row_queued_by_a_racing_save(self):
+		"""The racing save queues its row after this one looked, so the insert hits the unique index."""
+		name = queue_trigger(self.automation, "ToDo", "TODO-RACE")
+		missed_lookup = [None, _pending_row(self.automation, "ToDo", "TODO-RACE")]
+
+		with patch("frappe.automation_engine.dispatch._pending_row", side_effect=missed_lookup):
+			self.assertEqual(queue_trigger(self.automation, "ToDo", "TODO-RACE", depth=3), name)
+
+		self.assertEqual(frappe.db.get_value("Automation Trigger Queue", name, "depth"), 3)
 
 	def test_dedup_carries_the_latest_trigger_context(self):
 		"""The surviving row stands in for the newest trigger, not the one that created it."""

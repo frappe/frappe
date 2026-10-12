@@ -567,7 +567,7 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 						r.image = doc.get(meta.image_field)
 					if meta.title_field:
 						r.title = doc.get(meta.title_field)
-					if doc.has_permission():
+					if frappe.has_permission(r.doctype, doc=doc):
 						sorted_results.append(r)
 				except Exception:
 					frappe.clear_messages()

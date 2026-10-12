@@ -62,7 +62,6 @@ repos:
         exclude: |
             (?x)^(
                 frappe/public/dist/.*|
-                cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
                 frappe/www/website_script.js|

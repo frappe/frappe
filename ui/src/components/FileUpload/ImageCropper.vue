@@ -22,8 +22,20 @@
 					@click="setAspect(preset.label, preset.value)"
 				/>
 			</div>
-			<Button size="sm" variant="subtle" icon="lucide-rotate-ccw" @click="rotate(-90)" />
-			<Button size="sm" variant="subtle" icon="lucide-rotate-cw" @click="rotate(90)" />
+			<Button
+				size="sm"
+				variant="subtle"
+				icon="lucide-rotate-ccw"
+				aria-label="Rotate left"
+				@click="rotate(-90)"
+			/>
+			<Button
+				size="sm"
+				variant="subtle"
+				icon="lucide-rotate-cw"
+				aria-label="Rotate right"
+				@click="rotate(90)"
+			/>
 			<div class="ml-auto flex items-center gap-2">
 				<Button variant="subtle" label="Cancel" @click="emit('cancel')" />
 				<Button variant="solid" label="Apply" @click="apply" />

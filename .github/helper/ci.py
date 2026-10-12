@@ -128,6 +128,8 @@ if __name__ == "__main__":
 	site = os.environ.get("SITE") or "test_site"
 	with_coverage = json.loads(os.environ.get("CAPTURE_COVERAGE", "true").lower())
 	impact_map_outfile = os.environ.get("IMPACT_MAP_OUTFILE")
+	# Chosen by `roulette.py` from the impact map; empty runs the full suite.
+	selected_tests = set(os.environ.get("SELECTED_TESTS", "").split()) or None
 
 	# Parse build information from environment variables
 	build_number = int(os.environ.get("BUILD_NUMBER"))
@@ -137,5 +139,11 @@ if __name__ == "__main__":
 	with CodeCoverage(with_coverage=with_coverage, app=app, impact_map_outfile=impact_map_outfile):
 		from frappe.parallel_test_runner import ParallelTestRunner
 
-		runner = ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
+		runner = ParallelTestRunner(
+			app,
+			site=site,
+			build_number=build_number,
+			total_builds=total_builds,
+			selected_tests=selected_tests,
+		)
 		runner.setup_and_run()

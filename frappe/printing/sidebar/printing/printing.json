@@ -3,7 +3,7 @@
  "creation": "2026-08-03 19:24:16.735123",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "printer",
+ "header_icon": "printing-printer-duotone",
  "idx": 0,
  "items": [
   {
@@ -88,7 +88,7 @@
   }
  ],
  "merged_from": "[\"Printing\"]",
- "modified": "2026-08-12 16:08:08.689902",
+ "modified": "2026-10-01 02:17:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Printing",

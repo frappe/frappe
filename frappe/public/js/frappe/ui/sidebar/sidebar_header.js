@@ -169,7 +169,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		}
 
 		const items = [];
-		const modules = sidebar.app_modules(sidebar.get_sidebar_app());
+		const modules = sidebar.navigable_app_modules(sidebar.get_sidebar_app());
 
 		// Absent when the app has one module, following the rail's own refusal to draw a rail of
 		// one: an item permanently active with no alternatives is a switcher that cannot switch.
@@ -183,7 +183,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				submenu: modules.map((shell) => ({
 					name: `module-${shell}`,
 					label: __(frappe.boot.module_sidebars[shell]?.label || shell),
-					icon: frappe.boot.module_sidebars[shell]?.header_icon,
+					icon: frappe.get_module_icon(shell),
 					onclick: () => sidebar.open_module(shell),
 				})),
 			});
@@ -360,14 +360,12 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			this.sidebar.get_sidebar_app()?.app_title
 		);
 	}
-	// The module's own icon, used by the onboarding widget: an authored `header_icon`, otherwise a
-	// letter icon from its title, the same pair the rail uses. There is no app-logo fallback,
-	// because an app's logo was never this module's icon and the one used was whichever app
-	// happened to be installed first.
+	// The same icon as the module's dock tile, otherwise a letter icon from its title.
 	set_header_icon() {
 		const sidebar = this.sidebar.sidebar_data;
-		this.header_icon = sidebar?.header_icon
-			? frappe.utils.icon(sidebar.header_icon, "md")
+		const icon = frappe.get_module_icon(this.sidebar.current_module) || sidebar?.header_icon;
+		this.header_icon = icon
+			? frappe.utils.icon(icon, "md")
 			: frappe.utils.desktop_icon(this.title || "", "gray", "sm");
 	}
 
@@ -382,8 +380,8 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// the rail would have carried, which is the app's own logo. The module keeps the title, so
 	// between the two the header still says both.
 	//
-	// `header_icon` is left alone either way: it is the module's icon, and the onboarding widget
-	// reads it as one.
+	// `header_icon` is left alone either way: it stays the module's icon, whichever mark the header
+	// shows.
 	get_header_logo() {
 		if (this.sidebar.dock_enabled()) return this.header_icon;
 		const app = frappe.utils.app_logo(this.sidebar.get_sidebar_app());

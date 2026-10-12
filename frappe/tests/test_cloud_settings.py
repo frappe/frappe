@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from typing import ClassVar
 from unittest import TestCase
 from unittest.mock import patch
@@ -10,6 +11,7 @@ from frappe.integrations.frappe_providers.cloud_settings import (
 	get_domain_dns_records,
 	get_domains,
 	is_cloud_settings_enabled,
+	pilot_request,
 	remove_domain,
 	set_primary_domain,
 )
@@ -39,6 +41,82 @@ class _CloudTestCase(TestCase):
 
 	def configure_local(self):
 		pass
+
+
+class TestPilotRequest(_CloudTestCase):
+	def configure_local(self):
+		frappe.local.conf = frappe._dict(PILOT_CONF)
+		frappe.local.session = frappe._dict(user="Administrator")
+		frappe.local.site = "test.local"
+		frappe.local.flags = frappe._dict(mute_messages=True, print_messages=False)
+		frappe.local.message_log = []
+		self.roles = self.enterContext(patch("frappe.get_roles", return_value=["System Manager"]))
+		self.enterContext(patch("frappe.request", SimpleNamespace(method="POST")))
+		self.forward = self.enterContext(
+			patch(
+				"frappe.integrations.frappe_providers.cloud_settings.PilotClient._request",
+				return_value={"task_id": "test-task"},
+			)
+		)
+
+	def test_forwards_only_current_site(self):
+		pilot_request("GET", "monitoring?window=24h")
+		self.forward.assert_called_once_with("GET", "sites/test.local/monitoring?window=24h", None)
+
+	def test_preserves_method_and_path_normalization(self):
+		pilot_request("get", "/storage/")
+		self.forward.assert_called_once_with("GET", "sites/test.local/storage", None)
+
+	def test_rejects_payloads_outside_configuration(self):
+		with self.assertRaises(frappe.ValidationError):
+			pilot_request("GET", "storage", '{"site": "other.local"}')
+		self.forward.assert_not_called()
+
+	def test_rejects_non_manager(self):
+		self.roles.return_value = ["Desk User"]
+		with self.assertRaises(frappe.PermissionError):
+			pilot_request("GET", "storage")
+		self.forward.assert_not_called()
+
+	def test_rejects_cross_site_and_unknown_operations(self):
+		for path in [
+			"../other-site/storage",
+			"https://example.com/storage",
+			"configuration?secret=1",
+			"actions/drop",
+			"storage#fragment",
+			"backups/%2e%2e/download-links",
+		]:
+			with self.subTest(path=path), self.assertRaises(frappe.ValidationError):
+				pilot_request("GET", path)
+		self.forward.assert_not_called()
+
+	def test_rejects_mutation_over_get(self):
+		with (
+			patch("frappe.request", SimpleNamespace(method="GET")),
+			self.assertRaises(frappe.PermissionError),
+		):
+			pilot_request("POST", "actions/clear-cache")
+		self.forward.assert_not_called()
+
+	def test_validates_configuration_payload(self):
+		pilot_request("PATCH", "configuration", '{"maintenance_mode": 1}')
+		self.forward.assert_called_once_with(
+			"PATCH", "sites/test.local/configuration", {"maintenance_mode": 1}
+		)
+		with self.assertRaises(frappe.ValidationError):
+			pilot_request("PATCH", "configuration", '["invalid"]')
+
+	def test_rejects_invalid_time_window(self):
+		for query in [
+			"window=forever",
+			"window=24h&window=1h",
+			"window=24h&site=other.local",
+			"window=24h&unknown",
+		]:
+			with self.subTest(query=query), self.assertRaises(frappe.ValidationError):
+				pilot_request("GET", f"monitoring?{query}")
+		self.forward.assert_not_called()
 
 
 class TestCloudSettings(_CloudTestCase):
@@ -229,6 +307,26 @@ class TestCloudSettings(_CloudTestCase):
 		self.assertEqual(result["domains"][0]["domain"], "ravibakes.frappe.cloud")
 		self.assertTrue(result["domains"][0]["is_default"])
 		self.assertTrue(result["domains"][1]["is_primary"])
+
+	def test_get_domains_flattens_pilot_routes_without_duplicating_site(self):
+		routes = [
+			{"domain": "ravibakes.frappe.cloud", "is_site": True, "tls": False, "public_scheme": "http"},
+			{"domain": "shop.example.com", "tls": True, "public_scheme": "https"},
+		]
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch(
+				"requests.request", return_value=Response({"domains": routes, "primary": "shop.example.com"})
+			),
+		):
+			result = get_domains()
+		self.assertEqual(len(result["domains"]), 2)
+		self.assertTrue(result["domains"][0]["is_default"])
+		self.assertEqual(result["domains"][1]["domain"], "shop.example.com")
+		self.assertTrue(result["domains"][1]["is_primary"])
+		self.assertTrue(result["domains"][1]["tls"])
+		self.assertEqual(result["domains"][1]["public_scheme"], "https")
 
 	def test_add_domain_posts_to_pilot(self):
 		with (

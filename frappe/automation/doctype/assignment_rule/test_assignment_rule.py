@@ -83,6 +83,11 @@ class TestAutoAssign(IntegrationTestCase):
 			"test@example.com",
 		)
 
+	def test_round_robin_ignores_stale_last_user(self):
+		frappe.db.set_value("Assignment Rule", self.assignment_rule.name, "last_user", "test@example.com")
+
+		self.assertEqual(self.assignment_rule.get_user_round_robin(), "test1@example.com")
+
 	def test_load_balancing(self):
 		self.assignment_rule.rule = "Load Balancing"
 		self.assignment_rule.save()

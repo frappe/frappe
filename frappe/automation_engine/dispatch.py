@@ -6,6 +6,7 @@ from frappe.automation_engine import settings
 from frappe.automation_engine.conditions import evaluate_filter_tree
 from frappe.automation_engine.queue import DRAIN_QUEUE, QUEUE, WAITING_STATES, queue_status
 from frappe.automation_engine.registry import get_automations_for
+from frappe.database import savepoint
 from frappe.utils import cint, cstr, now
 
 METHOD_TRIGGER = {
@@ -125,12 +126,12 @@ def queue_trigger(automation, doctype, docname, run_after=None, payload=None, de
 			"depth": depth,
 		}
 	)
-	try:
+	with savepoint(catch=(frappe.UniqueValidationError, frappe.DuplicateEntryError)):
 		row.insert(ignore_permissions=True)
 		return row.name
-	except (frappe.UniqueValidationError, frappe.DuplicateEntryError):
-		existing = _pending_row(automation, doctype, docname)
-		return _touch_row(existing, run_after, payload, depth) if existing else None
+
+	existing = _pending_row(automation, doctype, docname)
+	return _touch_row(existing, run_after, payload, depth) if existing else None
 
 
 def _pending_row(automation, doctype, docname):

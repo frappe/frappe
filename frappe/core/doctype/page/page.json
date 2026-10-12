@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "system_page",
+  "shared_page",
   "page_html",
   "page_name",
   "title",
@@ -114,12 +115,19 @@
    "oldfieldname": "roles",
    "oldfieldtype": "Table",
    "options": "Has Role"
+  },
+  {
+   "default": "0",
+   "description": "Opens in whichever sidebar is on screen instead of switching to its module's. For pages that act on a document from anywhere, such as Print.",
+   "fieldname": "shared_page",
+   "fieldtype": "Check",
+   "label": "Shared Page"
   }
  ],
  "icon": "file",
  "idx": 1,
  "links": [],
- "modified": "2026-09-19 12:00:00.000000",
+ "modified": "2026-10-02 18:15:22.203364",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Page",

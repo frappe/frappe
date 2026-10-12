@@ -8,12 +8,7 @@ import frappe
 from frappe.automation_engine.actions.base import AutomationAction, get_action_registry
 from frappe.automation_engine.queue import clear_effects, effects_delivered
 from frappe.automation_engine.registry import clear_automation_cache
-from frappe.automation_engine.runner import (
-	TASK_METHOD,
-	_failure_key,
-	automation_task_name,
-	execute_automation,
-)
+from frappe.automation_engine.runner import RUN, _failure_key, execute_automation, run_steps
 from frappe.automation_engine.tests.test_actions import FakeResponse, public_dns
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
@@ -84,15 +79,12 @@ class AutomationRunnerTestCase(IntegrationTestCase):
 		return row.name
 
 	def run_status(self, automation):
-		return self.run_result(automation)["automation_status"]
+		return frappe.db.get_value(RUN, {"automation": automation}, "status")
 
 	def run_result(self, automation):
-		result = frappe.get_all(
-			"Background Task",
-			filters={"task_name": automation_task_name(automation), "method": TASK_METHOD},
-			pluck="result",
-		)[0]
-		return json.loads(result)
+		run = frappe.get_doc(RUN, {"automation": automation})
+		state = json.loads(run.run_state or "{}")
+		return {"steps": run_steps(run), "branches": state.get("branches")}
 
 
 class TestRunner(AutomationRunnerTestCase):
@@ -106,22 +98,8 @@ class TestRunner(AutomationRunnerTestCase):
 		self.assertEqual(self.run_status(auto), "Success")
 		result = self.run_result(auto)
 		self.assertEqual(result["steps"][0]["status"], "Success")
-		arguments = frappe.db.get_value(
-			"Background Task", {"task_name": automation_task_name(auto)}, "arguments"
-		)
-		self.assertEqual(json.loads(arguments)["actions_snapshot"][0]["action_type"], "SetFieldValue")
-
-	def test_run_is_announced_silently(self):
-		todo = make_todo()
-		auto = make_automation([set_field("priority", "High")])
-		name = self.queue_row(auto, todo.name)
-		with patch("frappe.publish_realtime") as publish:
-			execute_automation(name)
-		task_updates = [
-			c.kwargs["message"] for c in publish.call_args_list if c.kwargs.get("event") == "task_update"
-		]
-		self.assertTrue(task_updates)
-		self.assertTrue(all(message.get("silent") for message in task_updates))
+		snapshot = frappe.db.get_value(RUN, {"automation": auto}, "actions_snapshot")
+		self.assertEqual(json.loads(snapshot)[0]["action_type"], "SetFieldValue")
 
 	def test_missing_target_is_skipped(self):
 		auto = make_automation([set_field("priority", "High")])
@@ -239,7 +217,7 @@ class TestRunner(AutomationRunnerTestCase):
 		row = self.queue_row(auto, todo.name)
 		frappe.db.set_value(QUEUE, row, "triggered_by", user.name, update_modified=False)
 		execute_automation(row)
-		run_user = frappe.db.get_value("Background Task", {"task_name": automation_task_name(auto)}, "user")
+		run_user = frappe.db.get_value(RUN, {"automation": auto}, "user")
 		self.assertEqual(run_user, user.name)
 
 	def test_breaker_skips_pending_backlog(self):
@@ -373,26 +351,24 @@ class TestWaitResume(AutomationRunnerTestCase):
 		self.assertEqual(resume_from_idx, 2)
 		self.assertTrue(frappe.db.get_value(QUEUE, name, "run_after"))
 
-	def test_waiting_task_stays_running_until_it_resumes(self):
+	def test_waiting_run_stays_open_until_it_resumes(self):
 		todo = make_todo()
 		auto = self.wait_rule()
 		execute_automation(self.queue_row(auto, todo.name))
-		task = frappe.db.get_value(
-			"Background Task", {"task_name": automation_task_name(auto)}, ["status", "ended_at"]
-		)
-		self.assertEqual(task[0], "Running")
-		self.assertIsNone(task[1])
+		status, ended_at = frappe.db.get_value(RUN, {"automation": auto}, ["status", "ended_at"])
+		self.assertEqual(status, "Waiting")
+		self.assertIsNone(ended_at)
 
-	def test_resume_finishes_the_same_task(self):
+	def test_resume_finishes_the_same_run(self):
 		todo = make_todo()
 		auto = self.wait_rule()
 		execute_automation(self.queue_row(auto, todo.name))
-		before = frappe.get_all("Background Task", filters={"task_name": automation_task_name(auto)})
+		before = frappe.get_all(RUN, filters={"automation": auto})
 
 		# The drainer would pick this up once run_after passes; call it directly.
 		execute_automation(self.resume_row(auto)[0])
 
-		after = frappe.get_all("Background Task", filters={"task_name": automation_task_name(auto)})
+		after = frappe.get_all(RUN, filters={"automation": auto})
 		self.assertEqual(len(before), len(after))
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "status"), "Closed")
 		self.assertEqual(self.run_status(auto), "Success")

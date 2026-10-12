@@ -32,6 +32,7 @@ class Page(Document):
 		page_name: DF.Data
 		restrict_to_domain: DF.Link | None
 		roles: DF.Table[HasRole]
+		shared_page: DF.Check
 		standard: DF.Literal["Yes", "No"]
 		system_page: DF.Check
 		title: DF.Data | None
@@ -69,7 +70,16 @@ class Page(Document):
 		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
 
+		self.validate_shell()
 		self.validate_island()
+
+	def validate_shell(self):
+		if self.system_page and self.shared_page:
+			frappe.throw(
+				_(
+					"A page is either a System Page, which opens in no sidebar, or a Shared Page, which opens in any. It cannot be both."
+				)
+			)
 
 	def validate_island(self):
 		"""The two things a Frappe UI page needs before it can be built at all."""

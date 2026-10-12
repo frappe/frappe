@@ -257,6 +257,16 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		build_index(TestSQLiteSearch, force=True)
 		self.assertTrue(self.search.index_exists())
 
+	def test_a_fresh_build_tracks_progress_for_every_doctype(self):
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+		self.search._ensure_fts_table()
+
+		self.search._initialize_index_progress()
+
+		rows = self.search.sql("SELECT doctype FROM search_index_progress", read_only=True)
+		self.assertCountEqual([row["doctype"] for row in rows], list(self.search.doc_configs))
+
 	def test_index_lifecycle_and_status_methods(self):
 		"""Test index building, existence checking, and status validation."""
 		# Initially index should not exist

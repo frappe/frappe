@@ -4,6 +4,7 @@ import json
 
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
@@ -75,6 +76,63 @@ class TestWebForm(IntegrationTestCase):
 
 		self.assertRaises(frappe.ValidationError, accept, web_form=web_form.name, data=json.dumps(doc))
 		self.assertFalse(frappe.db.exists("Event", {"subject": "_Test Event Without Description"}))
+
+	def test_page_without_visible_fields_is_reported_not_blocked(self):
+		"""The portal skips such a page, so warn the author but still save the form."""
+		frappe.clear_messages()
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "details", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "", "fieldtype": "Section Break"},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description", "hidden": 1},
+			]
+		)
+		self.assertTrue(web_form.name, "the empty page must not block the save")
+
+		messages = frappe.get_message_log()
+		self.assertEqual(len(messages), 1)
+		# the label is what tells the author which page to fix, so pin that and not the sentence
+		self.assertIn("Details", messages[0]["message"])
+		self.assertEqual(messages[0]["title"], "Empty Page")
+
+	def test_page_with_visible_fields_is_not_reported(self):
+		"""Only an empty page is reported, or the warning becomes noise on every save."""
+		frappe.clear_messages()
+		self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "details", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
+			]
+		)
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_first_page_may_be_empty(self):
+		"""The portal always shows the first page, so only later pages are checked."""
+		frappe.clear_messages()
+		self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "", "fieldtype": "Page Break", "label": "More"},
+				{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
+			]
+		)
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_page_break_in_row_one_is_not_counted_as_a_page(self):
+		"""It names page 1, so the unnamed empty page after it is still page 2."""
+		frappe.clear_messages()
+		self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "", "fieldtype": "Page Break"},
+			]
+		)
+		messages = frappe.get_message_log()
+		self.assertEqual(len(messages), 1)
+		self.assertIn("Page 2", messages[0]["message"])
 
 	def test_web_form_data_field_options_are_enforced_on_server(self):
 		"""Email/Phone/URL set on a Web Form Field is not on the DocType, so the
@@ -1115,6 +1173,13 @@ class TestWebForm(IntegrationTestCase):
 			self.assertEqual(set(row.keys()), allowed_fields)
 			self.assertNotIn("description", row)
 
+	def test_child_table_fields_hide_name(self):
+		"""The same dfs back the editable Table grid, where name is not user settable."""
+		from frappe.website.doctype.web_form.web_form import get_in_list_view_fields
+
+		fields = {df["fieldname"]: df for df in get_in_list_view_fields("Contact Phone")}
+		self.assertTrue(fields["name"].get("hidden"))
+
 	def test_guest_still_requires_login_without_web_form_request(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.ValidationError):
@@ -1259,6 +1324,49 @@ class TestWebForm(IntegrationTestCase):
 		with self.assertQueryCount(6):
 			for _ in range(5):
 				process_link_field(link_field(), "manage-events")
+
+	def test_link_field_options_respect_link_filters(self):
+		for doctype in ("Event", "Event Participants"):
+			property_setter = make_property_setter(
+				doctype,
+				"reference_doctype",
+				"link_filters",
+				json.dumps(
+					[
+						["DocType", "name", "in", ["Event", "ToDo"]],
+						["DocType", "module", "=", "eval:doc.module"],
+					]
+				),
+				"JSON",
+			)
+			self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+
+		web_form = self.make_temp_web_form(
+			login_required=0,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "reference_doctype",
+					"fieldtype": "Link",
+					"label": "Reference Document Type",
+					"options": "DocType",
+				},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+				},
+			],
+		)
+
+		frappe.set_user(self.create_website_user("_test_web_form_link_filters@example.com"))
+		result = get_form_data(doctype="Event", web_form_name=web_form.name)
+
+		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "reference_doctype")
+		child_link_field = next(f for f in result.event_participants if f["fieldname"] == "reference_doctype")
+		for options in (link_field.options, child_link_field["options"]):
+			self.assertEqual(sorted(option["value"] for option in options), ["Event", "ToDo"])
 
 	def test_get_link_options_blocked_for_unauthorized_link_on_guest_key_form(self):
 		self.set_web_form_settings(key_required=1, login_required=0)

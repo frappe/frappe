@@ -1,4 +1,6 @@
-// TODO: Refactor for better UX
+// @deprecated Classic Kanban board renderer, superseded by views/kanban_v2/.
+// Used for boards with "Use Kanban v2" (Kanban Board.use_kanban_v2) off, which
+// are boards made before v2. Do not add features here; port them to kanban_v2.
 //
 // Kanban runs in two steps for speed:
 //
@@ -122,7 +124,7 @@ if (frappe.views.KanbanView) {
 				var board = store.board;
 				fetch_customization(doctype)
 					.then(function (doc) {
-						return modify_column_field_in_c11n(doc, board, col.title, action);
+						return modify_column_field_in_customization(doc, board, col.title, action);
 					})
 					.then(save_customization)
 					.then(function () {
@@ -421,8 +423,7 @@ if (frappe.views.KanbanView) {
 	// The store lives outside any Vue app, so it gets its own pinia instance.
 	var store = use_kanban_store(createPinia());
 
-	// vuex-style watch_store(); getters written as (state) => state.x keep
-	// working because pinia exposes state props directly on the store.
+	// Watch a store getter and run the callback on change.
 	function watch_store(getter, callback) {
 		return watch(() => getter(store), callback);
 	}
@@ -794,7 +795,7 @@ if (frappe.views.KanbanView) {
 			bind_options();
 
 			column_registry[column.title] = {
-				// Links memory cleanup (KanbanView) with what is on screen (virt_state).
+				// Per-column helpers used by KanbanView to render and trim cards.
 				/** Full saved-order index of the first card currently rendered in this column. */
 				get_dom_list_offset() {
 					return get_column_dom_list_offset(self.$kanban_cards);
@@ -1216,8 +1217,7 @@ if (frappe.views.KanbanView) {
 					move.from_order = orders.from_order;
 					move.to_order = orders.to_order;
 
-					// Wrapped in a native promise (as vuex dispatch did): the deferred's
-					// .done/.fail/.always are intentionally not exposed to the handlers below.
+					// Wrap in a promise; call sites still use .done/.fail/.always.
 					const request = Promise.resolve(store.update_order_for_single_card(move));
 					const affected_columns =
 						from_colname === to_colname ? [from_colname] : [from_colname, to_colname];
@@ -1311,8 +1311,7 @@ if (frappe.views.KanbanView) {
 						var card_title = $textarea.val();
 						$new_card_area.hide();
 						$textarea.val("");
-						// add_card returns undefined on the quick-entry path, so
-						// normalize to a promise (as vuex dispatch did).
+						// add_card may return undefined; normalize to a promise.
 						Promise.resolve(
 							store.add_card({
 								card_title,
@@ -1604,7 +1603,7 @@ if (frappe.views.KanbanView) {
 		});
 	}
 
-	function modify_column_field_in_c11n(doc, board, title, action) {
+	function modify_column_field_in_customization(doc, board, title, action) {
 		doc.fields.forEach(function (df) {
 			if (df.fieldname === board.field_name && df.fieldtype === "Select") {
 				if (!df.options) df.options = "";

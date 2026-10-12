@@ -33,7 +33,9 @@
 			<div v-if="has_selection" class="pfb-inspector-head">
 				<div class="pfb-inspector-title">
 					<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
-					<span class="pfb-inspector-name">{{ inspector_subtitle }}</span>
+					<span v-if="inspector_subtitle" class="pfb-inspector-name">{{
+						inspector_subtitle
+					}}</span>
 				</div>
 				<button
 					v-if="snippet_kind"
@@ -45,24 +47,6 @@
 					@click="store.prompt_snippet(selected_field || selected_section, snippet_kind)"
 					v-html="frappe.utils.icon('bookmark-plus', 'sm')"
 				></button>
-			</div>
-
-			<!-- Breadcrumb: navigate up to parent section when a field is selected -->
-			<div
-				v-if="selected_field && parent_section && !is_multi_select"
-				class="pfb-breadcrumb"
-			>
-				<button
-					class="pfb-breadcrumb-btn"
-					@click="select_parent_section"
-					:title="__('Select parent section (Esc)')"
-				>
-					<span v-html="frappe.utils.icon('arrow-up', 'xs')"></span>
-					<span class="pfb-breadcrumb-label">{{ __("Section:") }}</span>
-					<span class="pfb-breadcrumb-name">{{
-						parent_section.label || __("Untitled")
-					}}</span>
-				</button>
 			</div>
 
 			<!-- Nothing selected: canvas-wide print settings -->
@@ -99,7 +83,7 @@
 
 <script setup>
 import { computed, inject } from "vue";
-import { section_of } from "../../layout";
+import { zone_label } from "../../layout";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
 import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
@@ -172,23 +156,24 @@ let inspector_subtitle = computed(() => {
 	if (selected_letterhead.value) return letterhead.value?.name || "";
 	if (selected_field.value) {
 		const df = selected_field.value;
-		if (df.custom) return df.label || df.fieldname;
+		if (df.fieldtype === "Repeater") {
+			return (
+				df.label ||
+				(df.source ? frappe.meta.get_label(print_format.value.doc_type, df.source) : "")
+			);
+		}
+		if (df.custom) return df.label || __(df.fieldtype);
 		return frappe.meta.get_label(print_format.value.doc_type, df.fieldname);
 	}
-	if (selected_section.value) return selected_section.value.label || __("Untitled section");
+	if (selected_section.value) {
+		return (
+			selected_section.value.label ||
+			zone_label(layout.value, selected_section.value) ||
+			__("Untitled section")
+		);
+	}
 	return "";
 });
-
-let parent_section = computed(() =>
-	selected_field.value ? section_of(layout.value, selected_field.value) : null
-);
-
-function select_parent_section() {
-	if (parent_section.value) {
-		store.selected_section.value = parent_section.value;
-		store.selected_field.value = null;
-	}
-}
 </script>
 
 <style scoped>
@@ -210,13 +195,13 @@ function select_parent_section() {
 }
 
 .pfb-inspector-head {
-	height: 40px;
+	height: 44px;
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 8px 12px 8px 16px;
+	padding: 8px 16px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
 	min-height: 0;
@@ -250,43 +235,6 @@ function select_parent_section() {
 	content: "·";
 	margin-right: 6px;
 	opacity: 0.4;
-}
-
-/* ── Breadcrumb ──────────────────────────────────────────── */
-.pfb-breadcrumb {
-	padding: 4px 16px;
-	border-bottom: 1px solid var(--border-color);
-	background: var(--fg-color);
-}
-
-.pfb-breadcrumb-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	padding: 2px 6px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	border-radius: var(--radius);
-	color: var(--text-muted);
-	font-size: var(--text-xs);
-	transition: background 0.1s, color 0.1s;
-	max-width: 100%;
-}
-
-.pfb-breadcrumb-btn:hover {
-	background: var(--surface-gray-2);
-}
-
-.pfb-breadcrumb-label {
-	font-weight: 500;
-	flex-shrink: 0;
-}
-
-.pfb-breadcrumb-name {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 /* ── Canvas settings (nothing selected) ──────────────────── */

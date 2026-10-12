@@ -4,6 +4,7 @@
 from typing import Any
 
 import frappe
+from frappe.database.query import _cast_autoincrement_name
 from frappe.model import is_default_field
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Count
@@ -42,7 +43,7 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 		filtered_records = frappe.qb.get_query(
 			doctype,
 			filters=current_filters,
-			fields=["name"],
+			fields=[_cast_autoincrement_name(DocType(doctype).name, doctype)],
 			ignore_permissions=False,
 		)
 
@@ -54,6 +55,7 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 				(ToDo.status != "Cancelled")
 				& (ToDo.allocated_to == User.name)
 				& (User.user_type == "System User")
+				& (ToDo.reference_type == doctype)
 				& (ToDo.reference_name.isin(SubQuery(filtered_records)))
 			)
 			.groupby(ToDo.allocated_to)

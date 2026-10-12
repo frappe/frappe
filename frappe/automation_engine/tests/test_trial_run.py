@@ -9,7 +9,7 @@ import frappe
 from frappe.automation_engine.actions.base import get_action_registry
 from frappe.automation_engine.api import trial_run
 from frappe.automation_engine.registry import clear_automation_cache
-from frappe.automation_engine.runner import _failure_key, automation_task_name
+from frappe.automation_engine.runner import RUN, _failure_key
 from frappe.automation_engine.tests.test_actions import public_dns
 from frappe.automation_engine.tests.test_runner import (
 	AutomationRunnerTestCase,
@@ -53,7 +53,7 @@ class TestTrialRun(AutomationRunnerTestCase):
 		self.assertEqual(result["status"], "Success")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "Low")
 		self.assertFalse(frappe.db.exists(QUEUE, {"automation": auto}))
-		self.assertFalse(frappe.db.exists("Background Task", {"task_name": automation_task_name(auto)}))
+		self.assertFalse(frappe.db.exists(RUN, {"automation": auto}))
 
 	def test_failed_trial_does_not_touch_the_circuit_breaker(self):
 		# The breaker counter lives in Redis, so the savepoint rollback does not undo it.

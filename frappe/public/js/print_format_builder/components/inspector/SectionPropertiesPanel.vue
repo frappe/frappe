@@ -1,8 +1,7 @@
 <template>
 	<div class="pfb-insp-body">
-		<InspectorSection :label="__('Section')">
+		<InspectorSection v-if="!is_zone" :label="__('Label')">
 			<LabelField
-				v-if="!is_zone"
 				v-model="selected_section.label"
 				:label="__('Title')"
 				:placeholder="__('Untitled section')"
@@ -11,7 +10,9 @@
 				:show="selected_section.show_label"
 				@update:show="(v) => (selected_section.show_label = v)"
 			/>
+		</InspectorSection>
 
+		<InspectorSection :label="__('Layout')">
 			<SegmentedRow
 				:label="__('Columns')"
 				:model-value="selected_section.columns.length"
@@ -34,31 +35,25 @@
 				:model-value="selected_section.gap ?? 20"
 				:step="4"
 				:base="20"
-				unit="px"
 				@update:model-value="(v) => (selected_section.gap = v)"
 			/>
 		</InspectorSection>
 
 		<template v-if="!is_zone">
-			<InspectorSection :label="__('Background')" :init-open="false">
+			<InspectorSection :label="__('Style')">
 				<ColorField
-					:label="__('Color')"
+					:label="__('Background')"
 					:placeholder="__('Transparent')"
 					:model-value="selected_section.background || ''"
 					@update:model-value="(v) => set('background', v)"
 				/>
 				<StepperRow
-					v-if="selected_section.background || selected_section.field_borders"
 					:label="__('Radius')"
 					:model-value="selected_section.radius ?? null"
-					unit="px"
 					:placeholder="__('none')"
 					allow-empty
 					@update:model-value="(v) => set('radius', v)"
 				/>
-			</InspectorSection>
-
-			<InspectorSection :label="__('Spacing')" :init-open="false">
 				<SpacingRow
 					v-for="prop in spacing_props"
 					:key="prop.key"
@@ -86,7 +81,6 @@
 						:label="__('Cell padding')"
 						:model-value="selected_section.cell_padding ?? 8"
 						:base="8"
-						unit="px"
 						@update:model-value="(v) => (selected_section.cell_padding = v)"
 					/>
 					<ColorField
@@ -105,7 +99,7 @@
 				/>
 			</InspectorSection>
 
-			<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
+			<InspectorSection :label="__('Custom CSS')" :init-open="false" :padded="false">
 				<StyleSection v-model="selected_section.custom_style" />
 			</InspectorSection>
 

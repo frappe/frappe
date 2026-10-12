@@ -29,6 +29,7 @@
 				<a
 					class="dropdown-item"
 					:class="{ highlighted: k === slash.highlight }"
+					:title="f.label"
 					href="#"
 					@mousedown.prevent="pick(f)"
 					@click.prevent="pick(f)"
@@ -216,7 +217,13 @@ function remove(i) {
 	left: 0;
 	right: 0;
 	max-height: 200px;
+	overflow-x: hidden;
 	overflow-y: auto;
+}
+.pfb-tpl-menu .dropdown-item {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .pfb-tpl-menu .dropdown-item.highlighted {
 	background: var(--surface-gray-2);

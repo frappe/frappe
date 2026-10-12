@@ -51,6 +51,19 @@ class TestDB(IntegrationTestCase):
 		with self.assertQueryCount(1):
 			frappe.db.get_tables(cached=False)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_rollback_after_ddl_clears_schema_cache(self):
+		# postgres DDL is transactional: what was cached after it must not outlive a rollback
+		doctype = "Schema Cache Test"
+		frappe.db.sql('CREATE TABLE "tabSchema Cache Test" ("name" varchar(140))')
+		self.assertTrue(frappe.db.table_exists(doctype))
+		self.assertEqual(frappe.db.get_db_table_columns(f"tab{doctype}"), ["name"])
+
+		frappe.db.rollback()
+
+		self.assertFalse(frappe.db.table_exists(doctype))
+		self.assertEqual(frappe.db.get_db_table_columns(f"tab{doctype}"), [])
+
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_db_statement_execution_timeout(self):
 		frappe.db.set_execution_timeout(2)
@@ -563,6 +576,18 @@ class TestDB(IntegrationTestCase):
 			# recover transaction to continue other tests
 			raise Exception
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_unique_value_containing_pkey_is_not_a_primary_key_violation(self):
+		# the error message quotes the duplicate value, which must not decide the violated key
+		frappe.db.savepoint("unique_pkey_value")
+		self.addCleanup(frappe.db.rollback, save_point="unique_pkey_value")
+		frappe.db.set_value("User", "test1@example.com", "username", "ops_pkey")
+		user = frappe.get_doc("User", "test@example.com")
+		user.username = "ops_pkey"
+
+		with self.set_user("test@example.com"):
+			self.assertRaises(frappe.UniqueValidationError, user.db_update)
+
 	def test_read_only_errors(self):
 		frappe.db.rollback()
 		frappe.db.begin(read_only=True)
@@ -630,6 +655,21 @@ class TestDB(IntegrationTestCase):
 			)
 
 		frappe.db.delete("ToDo", {"description": test_body})
+
+	def test_bulk_insert_counts_a_write_per_chunk(self):
+		# postgres streams this through COPY instead of INSERT; both must count a chunk as one write
+		test_body = f"test_bulk_insert_writes - {random_string(10)}"
+		writes = frappe.db.transaction_writes
+
+		frappe.db.bulk_insert(
+			"ToDo",
+			["name", "description"],
+			[[f"{test_body} {i}", test_body] for i in range(27)],
+			chunk_size=10,
+		)
+
+		self.assertEqual(frappe.db.transaction_writes - writes, 3)
+		self.assertEqual(frappe.db.count("ToDo", {"description": test_body}), 27)
 
 	def test_bulk_update(self):
 		test_body = f"test_bulk_update - {random_string(10)}"
@@ -2056,6 +2096,18 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		frappe.db.rollback()
 		self.assertEqual(advisory_count(), before)
 
+	def test_advisory_lock_query_error_keeps_the_callers_savepoint(self) -> None:
+		from psycopg2.errors import UndefinedTable
+
+		frappe.db.sql(f'INSERT INTO "tab{self.test_table_name}" VALUES (1, %s)', ("before the lock",))
+		with savepoint(catch=UndefinedTable):
+			with frappe.db.advisory_lock("frappe-test-lock-savepoint"):
+				frappe.db.sql("SELECT * FROM tab_does_not_exist")
+
+		self.assertEqual(
+			frappe.db.sql(f'SELECT content FROM "tab{self.test_table_name}"'), (("before the lock",),)
+		)
+
 	def _indexdef(self, field: str, using: str) -> str:
 		from frappe.database.postgres.schema import get_qualified_index_name
 
@@ -2168,6 +2220,13 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			get_qualified_index_name(table, ["id"], include=["content"]),
 			get_qualified_index_name(table, ["id"]),
 		)
+
+	def test_long_non_ascii_index_names_fit_the_identifier_limit(self) -> None:
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		names = {get_qualified_index_name("tabToDo", ["custom_" + "é" * 24 + key]) for key in "ab"}
+		self.assertEqual(len(names), 2)
+		self.assertTrue(all(len(name.encode()) <= 63 for name in names), msg=names)
 
 	def test_add_index_rejects_unknown_method(self) -> None:
 		# `using` reaches the DDL string verbatim, so an unknown method must be refused, not run.
@@ -2659,6 +2718,22 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		with self.assertSqlException():
 			frappe.db.add_index(doctype="User", fields=("col_c",))
 
+	def test_add_trigram_index_outside_extension_schema(self) -> None:
+		# pg_trgm stays in public, off the search_path of a site on alt_schema
+		frappe.db.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+		self.addCleanup(frappe.db.connect)
+		with patch.dict(frappe.conf, {"db_schema": "alt_schema"}):
+			frappe.db.connect()  # sets the search_path to alt_schema
+			frappe.db.add_index(self.test_table_name, ["col_d"], using="gin_trgm")
+
+		self.assertTrue(
+			frappe.db.sql(
+				"""SELECT 1 FROM pg_indexes
+				WHERE schemaname = 'alt_schema' AND tablename = %s AND indexdef LIKE %s""",
+				(f"tab{self.test_table_name}", "%gin_trgm_ops%"),
+			)
+		)
+
 	# TODO: is there some method like remove_index:
 	# TODO: apps/frappe/frappe/patches/v14_0/drop_unused_indexes.py # def drop_index_if_exists()
 	# TODO: apps/frappe/frappe/database/postgres/schema.py # def alter()
@@ -2906,7 +2981,7 @@ class TestAdvisoryLockMariaDB(IntegrationTestCase):
 		# Exercises the MariaDB GET_LOCK / RELEASE_LOCK path (the Postgres test uses pg_locks).
 		import hashlib
 
-		name = hashlib.sha256(b"frappe-test-lock").hexdigest()
+		name = hashlib.sha256(f"{frappe.db.cur_db_name}:frappe-test-lock".encode()).hexdigest()
 
 		def held():
 			# IS_USED_LOCK returns the connection id holding the lock, or NULL when free.
@@ -2937,6 +3012,18 @@ class TestAdvisoryLockMariaDB(IntegrationTestCase):
 				pass
 
 		self.assertGreaterEqual(len(get_lock_calls), 3)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_is_scoped_to_the_database(self):
+		# GET_LOCK names are server-wide: the same key must block this site but not another one.
+		with frappe.db.advisory_lock("frappe-test-lock"), self.secondary_connection():
+			frappe.db.sql("SELECT 1")  # connect to this site's database before faking another name
+			with patch.object(frappe.db, "cur_db_name", "another_site"):
+				with frappe.db.advisory_lock("frappe-test-lock", timeout=0):
+					pass
+			with self.assertRaises(frappe.QueryTimeoutError):
+				with frappe.db.advisory_lock("frappe-test-lock", timeout=0):
+					pass
 
 
 class TestBulkInsertCopy(IntegrationTestCase):
@@ -2985,6 +3072,28 @@ class TestBulkInsertCopy(IntegrationTestCase):
 		got = dict(frappe.db.sql('SELECT "name", "flag" FROM "tabBulkFlagTest"'))
 		self.assertEqual(got["a"], 1)
 		self.assertEqual(got["b"], 0)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_matches_insert(self):
+		# COPY parses text strictly: floats in Check and text columns and bytes must store what INSERT does
+		title = f"test_bulk_insert_copy - {random_string(10)}"
+		fields = ["name", "title", "public", "content", "_user_tags"]
+		row = (title, 1.0, b"abc", 2.0)
+		frappe.db.bulk_insert("Note", fields, [(f"{title} copy", *row)])
+		frappe.db.sql(
+			"INSERT INTO `tabNote` (`name`, `title`, `public`, `content`, `_user_tags`) VALUES (%s, %s, %s, %s, %s)",
+			(f"{title} insert", *row),
+		)
+
+		copied, inserted = frappe.get_all(
+			"Note",
+			filters={"title": title},
+			fields=["public", "content", "_user_tags"],
+			order_by="name",
+			as_list=True,
+		)
+		self.assertEqual(copied, inserted)
+		self.assertRaises(TypeError, frappe.db.bulk_insert, "Note", fields, [(title, title, 0, ["a"], "")])
 
 
 class TestBacktickIdentifierConversion(UnitTestCase):

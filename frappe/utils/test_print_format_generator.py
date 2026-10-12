@@ -318,21 +318,74 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIsNone(_print_format_doc_or_none("Standard"))
 		self.assertIsNone(_print_format_doc_or_none(None))
 
-	def test_standard_print_follows_print_settings_pdf_generator(self):
-		"""Standard (no print format) must honour Print Settings, while a beta format
-		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
+	def test_empty_format_name_resolves_to_doctype_default(self):
+		"""With no print_format name, printview renders the doctype's default print format,
+		so the PDF engine must be picked for that format, not for Standard."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+
+		default = self._make_print_format()
+		with patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name):
+			self.assertEqual(_print_format_doc_or_none(None, "ToDo").name, default.name)
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none("", "ToDo")), "chrome")
+
+	def test_typst_default_format_prints_without_a_format_name(self):
+		"""get_print with no format name hands a Typst default format to the Typst hook."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		default = self._make_print_format(pdf_generator="Typst")
+		todo = self._make_todo()
+		with (
+			patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name),
+			patch.object(PrintFormatGenerator, "render_typst_pdf", return_value=b"%PDF-typst"),
+		):
+			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
+
+	def test_unknown_pdf_generator_renders_with_chrome(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+
+		jinja = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Jinja {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"standard": "No",
+				"html": "<p>{{ doc.description }}</p>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", jinja.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		for value in ("wkhtmltopdf", "no-such-engine"):
+			frappe.set_user("Administrator")
+			jinja.db_set("pdf_generator", value)
+			frappe.clear_document_cache("Print Format", jinja.name)
+			frappe.set_user("test@example.com")
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "pdf engine fallback"}).insert()
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "chrome")
+			self.assertEqual(resolve_pdf_generator(None, value), "chrome")
+			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+				frappe.get_print("ToDo", todo.name, print_format=jinja.name, as_pdf=True, pdf_generator=value)
+			self.assertEqual(chrome_pdf.call_args.kwargs["pdf_generator"], "chrome")
+
+		frappe.set_user("Administrator")
+		jinja.reload()
+		jinja.save()
+		self.assertEqual(jinja.pdf_generator, "chrome")
+
+	def test_standard_print_renders_with_chrome(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		beta = self._make_print_format()
-		original = frappe.db.get_single_value("Print Settings", "pdf_generator")
-		self.addCleanup(frappe.db.set_single_value, "Print Settings", "pdf_generator", original)
-
-		for setting in ("wkhtmltopdf", "chrome"):
-			frappe.db.set_single_value("Print Settings", "pdf_generator", setting)
-			self.assertEqual(resolve_pdf_generator(None), setting)
-			self.assertEqual(resolve_pdf_generator(beta), "chrome")
-
-		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None), "chrome")
+		self.assertEqual(resolve_pdf_generator(beta), "chrome")
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 
 	# ------------------------------------------------------------------ #
@@ -1308,6 +1361,26 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("LETTERHEAD_BOTTOM", gen.context.footer)
 		self.assertEqual(gen.context.chrome_layout_header, "")
 		self.assertEqual(gen.context.chrome_layout_footer, "")
+
+	def test_letterhead_left_open_by_jinja_keeps_the_body(self):
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		lh.content = (
+			'<div class="pfg-lh">{% if doc.priority == "High" %}<img src="/files/logo.png"></div>{% endif %}'
+		)
+		lh.save(ignore_permissions=True)
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			html = PrintFormatGenerator(pf.name, todo, lh.name)._build_html_for_chrome()
+
+		soup = BeautifulSoup(html, "html5lib")
+		soup.find(id="header-html").extract()
+		self.assertIn("Generator test task", str(soup))
 
 	def test_repeat_header_footer_off_renders_letterhead_once(self):
 		"""With repeat_header_footer disabled, the letterhead header renders inline once

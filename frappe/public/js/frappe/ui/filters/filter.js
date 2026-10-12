@@ -169,6 +169,8 @@ frappe.ui.Filter = class {
 
 		if (this.fieldname) {
 			this.fieldselect.set_value(this.doctype, this.fieldname);
+		} else {
+			this.fieldselect.clear();
 		}
 	}
 
@@ -176,6 +178,8 @@ frappe.ui.Filter = class {
 		this.filter_edit_area.find(".remove-filter").on("click", () => {
 			this.remove();
 			this.on_change();
+			// the removed button had focus, keep it in the popover
+			this.parent?.trigger("focus");
 		});
 
 		this.filter_edit_area.find(".remove-filter").on("keydown", (e) => {
@@ -215,9 +219,8 @@ frappe.ui.Filter = class {
 	}
 
 	setup() {
-		const fieldname = this.fieldname || "name";
-		// set the field
-		return this.set_values(this.doctype, fieldname, this.condition, this.value);
+		if (!this.fieldname) return;
+		return this.set_values(this.doctype, this.fieldname, this.condition, this.value);
 	}
 
 	setup_state(is_new) {

@@ -9,6 +9,36 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class PrintViewTest(IntegrationTestCase):
+	def test_print_filename_uses_docname_not_title_field(self):
+		from frappe.www.printview import get_context
+
+		doctype = new_doctype(
+			fields=[{"label": "Display Name", "fieldname": "display_name", "fieldtype": "Data"}],
+			title_field="display_name",
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name, display_name="A Human Readable Title").insert()
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type=doctype.name,
+			custom_format=1,
+			html="<div>{{ doc.display_name }}</div>",
+		).insert()
+
+		params = frappe._dict(doctype=doctype.name, name=doc.name, format=print_format.name)
+		with self.set_user("test@example.com"), patch.object(frappe.local, "form_dict", params):
+			context = get_context({})
+
+		self.assertFalse(context["standalone"])
+		self.assertEqual(context["title"], "A Human Readable Title")
+		self.assertEqual(context["print_filename"], doc.name)
+		self.assertNotEqual(context["print_filename"], context["title"])
+
+		html = frappe.render_template("frappe/www/printview.html", context)
+		self.assertIn(f'<meta name="frappe-print-filename" content="{doc.name}">', html)
+		self.assertIn("window.addEventListener('beforeprint'", html)
+		self.assertIn("window.addEventListener('afterprint'", html)
+
 	def test_print_preview_displays_link_titles(self):
 		from frappe.www.printpreview import get_context
 

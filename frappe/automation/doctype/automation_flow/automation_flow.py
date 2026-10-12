@@ -194,9 +194,28 @@ class AutomationFlow(Document):
 			frappe.throw(_("Date Based trigger requires a Date Field and a Date Direction"))
 		if self.trigger_type == "Custom Event" and not self.custom_event:
 			frappe.throw(_("Custom Event trigger requires an event name"))
+		if self.trigger_type == "Field Value Changed":
+			self.validate_field_exists("trigger_field")
+		if self.trigger_type == "Date Based":
+			self.validate_field_exists("date_field", fieldtypes=("Date", "Datetime"))
 		if self.trigger_type == "Scheduled":
 			self.validate_cron()
 		self.set_next_run()
+
+	def validate_field_exists(self, fieldname, fieldtypes=None):
+		"""A field left over from another Document Type never matches, and a missing date column
+		fails the hourly sweep for every Date Based flow."""
+		from frappe.model import std_fields
+
+		value = self.get(fieldname)
+		df = frappe.get_meta(self.document_type).get_field(value)
+		df = df or next((f for f in std_fields if f["fieldname"] == value), None)
+		if not df or (fieldtypes and df.get("fieldtype") not in fieldtypes):
+			frappe.throw(
+				_("{0}: {1} is not a valid field on {2}").format(
+					_(self.meta.get_label(fieldname)), value, self.document_type
+				)
+			)
 
 	def set_next_run(self):
 		from frappe.automation_engine.scheduler import next_fire
