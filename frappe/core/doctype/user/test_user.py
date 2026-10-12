@@ -762,19 +762,18 @@ class TestUser(IntegrationTestCase):
 
 			def competing_request(*args):
 				# a second request with the same key can neither take it nor wait for it
-				with self.assertRaises(frappe.QueryTimeoutError):
-					other.sql(
-						"select name from `tabUser` where reset_password_key = %s for update nowait",
-						hashed_key,
-					)
-				other.rollback()
+				with patch.object(frappe.local, "db", other):
+					with self.assertRaises(frappe.QueryTimeoutError):
+						frappe.db.get_value(
+							"User", {"reset_password_key": hashed_key}, for_update=True, wait=False
+						)
+					frappe.db.rollback()
 
 				# clearing sessions commits mid-request; the key must already be gone by then
 				frappe.db.commit()
-				self.assertFalse(
-					other.sql("select name from `tabUser` where reset_password_key = %s", hashed_key)
-				)
-				other.rollback()
+				with patch.object(frappe.local, "db", other):
+					self.assertFalse(frappe.db.exists("User", {"reset_password_key": hashed_key}))
+					frappe.db.rollback()
 				return False
 
 			with patch.object(user_module, "is_password_reused", side_effect=competing_request) as probe:
