@@ -32,7 +32,6 @@
 			:rows="rows"
 			:doctype="doctype"
 			:link-column="linked ? 'name' : ''"
-			status-label="error"
 		/>
 	</div>
 </template>
@@ -66,14 +65,8 @@ const rows = computed(() => {
 		return [{ cells: { name: result.old, renamed_to: result.new } }];
 	if (!result) return names.map((name) => ({ cells: { name } }));
 
-	const errors = new Map(
-		(result.failures ?? []).map((failure) => [failure.name, failure.error])
-	);
 	const outcomes = new Map((result.results ?? []).map((row) => [row.name, row.result]));
-	const done = new Set(result.updated ?? result.deleted ?? [...outcomes.keys()]);
 	return names.map((name) => {
-		if (errors.has(name)) return { cells: { name }, status: { error: errors.get(name) } };
-		if (!done.has(name)) return { cells: { name } };
 		const outcome = outcomes.get(name);
 		return { cells: { name, ...amended(outcome, name), ...returned(outcome) } };
 	});

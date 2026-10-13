@@ -1,10 +1,14 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow.utils.safe_exec import get_flow_safe_globals, safe_exec
+
+SENDMAIL = 'frappe.sendmail(recipients=["someone@example.com"], attachments=attachments)'
 
 
 class TestFlowSafeExecNamespace(IntegrationTestCase):
@@ -93,6 +97,26 @@ class TestFlowSafeExec(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			safe_exec(f'result = frappe.get_doc("ToDo", "{todo.name}")')
 
+	def test_get_doc_hides_fields_above_the_users_permlevel(self):
+		# desk users can read a public Note at permlevels 0 and 1; its seen_by table is permlevel 2
+		note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "flow permlevel",
+				"public": 1,
+				"seen_by": [{"user": "Administrator"}],
+			}
+		).insert()
+		frappe.set_user(self._desk_user())
+		for code in (
+			f'result = frappe.get_doc("Note", "{note.name}")',
+			'result = frappe.get_last_doc("Note", filters={"title": "flow permlevel"})',
+		):
+			with self.subTest(code):
+				result = self._run(code)
+				self.assertEqual(result["public"], 1)
+				self.assertEqual(result["seen_by"], [])
+
 	def test_create_enforces_create_permission(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(PermissionError):
@@ -121,3 +145,57 @@ class TestFlowSafeExec(IntegrationTestCase):
 	def test_render_template_is_unavailable(self):
 		with self.assertRaises(AttributeError):
 			safe_exec('result = frappe.render_template("{{ 1 }}", {})')
+
+	def test_sendmail_refuses_an_unreadable_print(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "secret"}).insert()
+		frappe.set_user("Guest")
+		attachments = [{"print_format_attachment": 1, "doctype": "ToDo", "name": todo.name}]
+		with patch("frappe.sendmail") as sendmail, self.assertRaises(frappe.PermissionError):
+			safe_exec(SENDMAIL, {"attachments": attachments})
+		sendmail.assert_not_called()
+
+	def test_sendmail_refuses_an_unreadable_file(self):
+		file = self._private_file()
+		frappe.set_user("Guest")
+		for attachment in ({"fid": file.name}, {"file_url": file.file_url}):
+			with self.subTest(attachment), patch("frappe.sendmail") as sendmail:
+				with self.assertRaises(frappe.PermissionError):
+					safe_exec(SENDMAIL, {"attachments": [attachment]})
+				sendmail.assert_not_called()
+
+	def test_sendmail_attaches_the_checked_file_and_record(self):
+		file = self._private_file()
+		print_ = {"print_format_attachment": 1, "doctype": "ToDo", "name": file.attached_to_name}
+		attachments = [{"file_url": file.file_url}, {**print_, "doc": {"doctype": "ToDo", "name": "other"}}]
+		with patch("frappe.sendmail") as sendmail:
+			safe_exec(SENDMAIL, {"attachments": attachments})
+		self.assertEqual(sendmail.call_args.kwargs["attachments"], [{"fid": file.name}, print_])
+
+	def _private_file(self):
+		"""A private file on an Administrator's ToDo."""
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "has a file"}).insert()
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "flow-sendmail-test.txt",
+				"content": b"private",
+				"is_private": 1,
+				"attached_to_doctype": "ToDo",
+				"attached_to_name": todo.name,
+			}
+		).insert()
+
+	def _desk_user(self):
+		"""A Flow User, which Frappe also gives Desk User."""
+		email = "flow-desk-user@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "Desk",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Flow User"}],
+				}
+			).insert(ignore_permissions=True)
+		return email

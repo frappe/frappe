@@ -141,6 +141,16 @@ async def test_grep_include_cannot_reach_hidden_files(tmp_path, engine):
 	assert "a.py" in result.content
 
 
+async def test_grep_reads_the_pattern_as_extended_regex(tmp_path, engine):
+	"""Plain grep's default basic regex reads `|` as a literal and finds nothing."""
+	(tmp_path / "a.txt").write_text("alpha\nbeta\ngamma\n")
+
+	result = await grep(pattern="alpha|beta", ctx=_ctx(tmp_path))
+
+	assert result.details["matches"] == 2
+	assert "gamma" not in result.content
+
+
 async def test_grep_finds_and_misses(tmp_path):
 	(tmp_path / "a.txt").write_text("needle here\nother line")
 	ctx = _ctx(tmp_path)

@@ -48,7 +48,7 @@ async def grep(
 			cmd.extend(("--glob=!.*", "--glob=!**/.*"))
 		cmd.extend(("--", pattern, target))
 	else:
-		cmd = ["grep", "-rnI"]
+		cmd = ["grep", "-rnIE"]
 		cmd.extend(f"--include={name}" for name in names)
 		if skip_node_modules:
 			cmd.append("--exclude-dir=node_modules")
