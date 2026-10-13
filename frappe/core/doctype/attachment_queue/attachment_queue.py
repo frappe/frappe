@@ -215,11 +215,7 @@ def fail_stale_extractions() -> None:
 
 
 def has_permission(doc, ptype="read", user=None):
-	"""A queued file is only as accessible as the DocType it was uploaded for.
-
-	A row whose target no longer exists has nothing to derive access from, so it is
-	refused. Administrator never reaches this hook.
-	"""
+	"""Check for access to the target DocType, not the queue row itself. The queue row is always readable."""
 	if not doc.document_type or not frappe.db.exists("DocType", doc.document_type):
 		return False
 
