@@ -54,7 +54,7 @@ jobs:
             case "$REACT_CONTENT" in eyes|+1|confused) ;; *) echo "react_content must be eyes, +1 or confused" >&2; exit 1 ;; esac
             gh api -X POST "repos/${{ github.repository }}/issues/comments/$REACT_COMMENT/reactions" -f content="$REACT_CONTENT" --jq '.content'
             if [ "$REACT_CONTENT" != "eyes" ]; then
-              gh api "repos/${{ github.repository }}/issues/comments/$REACT_COMMENT/reactions" --jq '.[] | select(.user.login == "frappe-pr-bot" and .content == "eyes") | .id' | while read -r id; do
+              gh api --paginate "repos/${{ github.repository }}/issues/comments/$REACT_COMMENT/reactions" --jq '.[] | select(.user.login == "frappe-pr-bot" and .content == "eyes") | .id' | while read -r id; do
                 gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$REACT_COMMENT/reactions/$id"
               done
             fi
