@@ -227,6 +227,7 @@ def attach_print(
 	print_letterhead=True,
 	password=None,
 	letterhead=None,
+	settings=None,
 ):
 	from frappe.translate import print_language
 	from frappe.utils import scrub_urls
@@ -240,6 +241,7 @@ def attach_print(
 		no_letterhead=not print_letterhead,
 		letterhead=letterhead,
 		password=password,
+		settings=settings,
 	)
 
 	frappe.local.flags.ignore_print_permissions = True
@@ -272,7 +274,13 @@ def attach_print(
 						)
 					else:
 						content = _render_builder_pdf(
-							pf_doc, doc_obj, letterhead_name, not print_letterhead, password
+							pf_doc,
+							doc_obj,
+							letterhead_name,
+							not print_letterhead,
+							password,
+							style=style,
+							settings=settings,
 						)
 				else:
 					kwargs["as_pdf"] = True
