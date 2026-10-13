@@ -1392,13 +1392,14 @@ export default class GridRow {
 
 		if (show === undefined) show = !open_row;
 
-		// static_rows grids (e.g. the frm-less document side panel) hide this surface's own
-		// toolbar (is_editable() is false), and its freeze backdrop's only close path —
-		// cur_frm.cur_grid — needs a live frm that a static-rows preview doesn't have either.
-		// Without either way to close it, the row would open and stay stuck open, so refuse to
-		// open it at all here. Editable frm-less tables (a Web Form, a Dialog) are unaffected:
-		// their toolbar and heading-click close both work regardless of frm.
-		if (show && this.grid.static_rows) {
+		// A frm-less static_rows grid (the document side panel) hides this surface's own
+		// toolbar (is_editable() is false) and has no cur_frm for its freeze backdrop's close
+		// path either, so the row would open with no way to close it again — refuse to open it
+		// at all here. Neither condition alone is enough to key off: only_sortable() also sets
+		// static_rows on live forms (Recorder, Portal Settings menu) where frm makes both close
+		// paths work fine, and a frm-less Dialog/Web Form table (not static_rows) closes fine
+		// too via its heading click.
+		if (show && this.grid.static_rows && !this.frm) {
 			callback && callback();
 			return this;
 		}

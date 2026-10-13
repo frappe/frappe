@@ -42,7 +42,9 @@ test.describe("Side Panel Grid Row", () => {
 		await expect(page.locator("#freeze")).toHaveCount(0);
 
 		await page.locator(".side-panel-row-dialog .btn-modal-close").click();
-		await expect(page.locator(".side-panel-row-dialog")).toHaveCount(0);
+		// hide() only hides the modal (bootstrap keeps the element around to reopen) — it
+		// never leaves the page, so toBeHidden() is the correct check, not toHaveCount(0).
+		await expect(page.locator(".side-panel-row-dialog")).toBeHidden();
 		// the panel underneath is still open and usable
 		await expect(page.locator(".side-panel")).toHaveClass(/is-open/);
 	});
