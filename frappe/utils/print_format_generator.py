@@ -628,7 +628,8 @@ class PrintFormatGenerator:
 
 		width, height = page_size_mm(self.print_settings)
 		html = (
-			"<!DOCTYPE html><html><head><style>@page{margin:0}html,body{margin:0}</style></head><body>"
+			"<!DOCTYPE html><html><head><style>@page{margin:0}html,body{margin:0}"
+			".print-format{margin-top:0mm;margin-bottom:0mm;margin-left:0mm;margin-right:0mm}</style></head><body>"
 			f'<div style="width:{width}mm;height:{height}mm;opacity:{background["opacity"] / 100};'
 			f"background:url('{background['url']}') center/100% 100% no-repeat\"></div></body></html>"
 		)
