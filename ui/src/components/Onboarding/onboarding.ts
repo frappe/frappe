@@ -2,6 +2,7 @@ import { call, createResource } from "frappe-ui";
 import { useStorage } from "@vueuse/core";
 import { computed, reactive } from "vue";
 import { minimize, showHelpModal } from "./help";
+import { showHelpCenter } from "./helpCenter";
 import { sessionUser } from "../../utils/session";
 import type {
   OnboardingBulkCallback,
@@ -159,6 +160,9 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
         }
       });
       isOnboardingStepsCompleted.value = _steps.every((step) => step.completed);
+      // the panel opens before the saved status loads; close it if there is nothing left to show
+      if (isOnboardingStepsCompleted.value && !showHelpCenter.value)
+        showHelpModal.value = false;
     } else {
       isOnboardingStepsCompleted.value = false;
     }
