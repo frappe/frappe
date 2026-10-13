@@ -34,10 +34,11 @@ vi.mock("../../Link", async () => {
   const { defineComponent, h } = await import("vue");
   return {
     Link: defineComponent({
-      props: ["modelValue", "disabled"],
+      props: ["modelValue", "disabled", "error"],
       setup: (props) => () =>
         h("input", {
           "data-fieldname": "reference_doctype",
+          "data-error": props.error,
           value: props.modelValue,
           disabled: props.disabled,
         }),
@@ -101,6 +102,9 @@ function fakeDataImport(initial: DataImportDoc, meta: DocType[] | null = null) {
     dirty: computed(
       () => isNew.value || JSON.stringify(doc.value) !== saved.value
     ),
+    hasImportFile: computed(
+      () => !!(doc.value.import_file || doc.value.google_sheets_url)
+    ),
     preview: ref(null),
     providerSchema: ref(null),
     doctypeMeta: ref(meta),
@@ -118,7 +122,7 @@ function fakeDataImport(initial: DataImportDoc, meta: DocType[] | null = null) {
 function render(
   initial: DataImportDoc,
   meta: DocType[] | null = null,
-  listeners: Record<string, unknown> = {}
+  props: Record<string, unknown> = {}
 ) {
   const dataImport = fakeDataImport(initial, meta);
   host = document.createElement("div");
@@ -127,7 +131,7 @@ function render(
     render: () =>
       h(ConfigStep, {
         dataImport: dataImport as unknown as UseDataImport,
-        ...listeners,
+        ...props,
       }),
   });
   app.mount(host);
@@ -308,6 +312,53 @@ describe("ConfigStep upload", () => {
     dataImport.doc.value = savedDoc({ name: "DI-2", import_file: null });
     await settle();
     expect(field("google_sheets_url")).toBeNull();
+  });
+
+  it("marks a missing Document Type inline once Next was pressed", () => {
+    render(
+      savedDoc({ name: undefined, reference_doctype: "", import_file: null }),
+      null,
+      { showErrors: true }
+    );
+    expect(field("reference_doctype")!.dataset.error).toBe(
+      "Select a Document Type"
+    );
+    // the file can't be attached yet, so it isn't marked too
+    expect(host!.querySelector("[data-slot='file-error']")).toBeNull();
+  });
+
+  it("marks a missing file inline once Next was pressed", () => {
+    render(savedDoc({ name: undefined, import_file: null }), null, {
+      showErrors: true,
+    });
+    expect(
+      host!.querySelector("[data-slot='file-error']")?.textContent?.trim()
+    ).toBe("Attach a CSV or Excel file to continue");
+    expect(host!.querySelector("[data-slot='dropzone']")!.className).toContain(
+      "border-outline-red-3"
+    );
+  });
+
+  it("shows no errors before Next is pressed", () => {
+    render(savedDoc({ name: undefined, import_file: null }));
+    expect(host!.querySelector("[data-slot='file-error']")).toBeNull();
+    expect(field("reference_doctype")!.dataset.error).toBeUndefined();
+  });
+
+  it("shows the upload area disabled until a Document Type is chosen", async () => {
+    render(
+      savedDoc({ name: undefined, reference_doctype: "", import_file: null })
+    );
+    const dropzone = host!.querySelector<HTMLElement>(
+      '[data-slot="dropzone"]'
+    )!;
+    expect(dropzone.textContent).toContain(
+      "Select a Document Type to upload a file"
+    );
+    const input = dropzone.querySelector<HTMLInputElement>("input[type=file]")!;
+    const click = vi.spyOn(input, "click");
+    dropzone.click();
+    expect(click).not.toHaveBeenCalled();
   });
 
   it("locks the file and CSV options after a finished import", () => {
