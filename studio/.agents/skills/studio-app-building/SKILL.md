@@ -79,9 +79,7 @@ workflows are not interchangeable.
   keep state in code rather than Studio variables. Never mix the two script
   forms.
 - Shared code for a standard app belongs under its Studio app folder and can
-  be imported via `@app/...`. A custom Vue block needs a matching
-  `<ComponentName>.vue` file somewhere under that folder for the builder to
-  find it.
+  be imported via `@app/...`.
 - Tailwind only scans files inside the `studio/` app folder. If the app imports
   code from outside that folder (for example a `shared/` package that the
   Frappe app's frontend also uses), Tailwind classes used in that code will not
@@ -99,6 +97,46 @@ workflows are not interchangeable.
   	safelist: ["prose-sm"],
   }
   ```
+
+## Custom Vue components
+
+Standard apps can use their own Vue components as blocks. Reach for one when
+built-in components and block compositions can't express the UI cleanly: a
+stateful widget (rating input, drag-and-drop board, canvas or SVG drawing), a
+third-party library, or markup a page would otherwise rebuild from dozens of
+blocks with heavy script glue. Don't use one to restyle something a built-in
+component already does. For reusable layouts made of ordinary blocks, use a
+Studio Component (`studio_components/*.json`) instead. Custom (database-only)
+apps can't use `.vue` files.
+
+- Put a single-file component at
+  `<frappe_app>/studio/<studio_app>/components/<ComponentName>.vue`. Studio
+  finds any `.vue` file under the Studio app folder, and the file name is the
+  block's `componentName`.
+- Write it like any vue single-file component. Style
+  with Tailwind classes and espresso tokens per [DESIGN.md](DESIGN.md), and
+  try to keep one root element (or bind `$attrs` onto it) so block styles apply.
+- Reference it from a block with `isCustomVueComponent: true` and no
+  `originalElement`. Props, `{{ }}` bindings, `{"$type": "variable"}` v-model
+  binds, `componentEvents` for its emits, and `componentSlots` for its named
+  slots all work as they do for built-in components:
+
+  ```json
+  {
+  	"componentId": "RatingInput-ab12cd",
+  	"componentName": "RatingInput",
+  	"isCustomVueComponent": true,
+  	"componentProps": {"max": 5, "modelValue": {"$type": "variable", "name": "rating"}},
+  	"componentEvents": {
+  		"change": {"action": "Run Script", "event": "change", "script": "saveRating()"}
+  	}
+  }
+  ```
+
+- With the Vite dev server running, adding, removing, or editing a `.vue`
+  file updates the editor's component panel and canvas without a restart. A
+  page `.ts` script may also import it directly
+  (`import Board from "@app/components/Board.vue"`) to render it with `h()`.
 
 ## Sync, run, and verify
 
