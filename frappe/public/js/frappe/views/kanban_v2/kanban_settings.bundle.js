@@ -90,7 +90,12 @@ class KanbanBoardSettings {
 						!d.hidden &&
 						d.fieldtype !== "Password"
 				)
-				.map(to_opt),
+				.map(to_opt)
+				.concat(
+					frappe.views.kanban_system_fields
+						.filter((fn) => !meta.fields.some((d) => d.fieldname === fn))
+						.map((fn) => to_opt(frappe.model.get_std_field(fn, true)))
+				),
 			group: meta.fields
 				.filter(
 					(d) =>

@@ -807,7 +807,8 @@ class User(Document):
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
-			self.username = frappe.scrub(self.first_name)
+			self.username = self.free_username(frappe.scrub(self.first_name))
+			self.flags.username_from_first_name = True
 
 		if not self.username:
 			return
@@ -821,6 +822,36 @@ class User(Document):
 				self.suggest_username()
 
 			self.username = ""
+
+	def free_username(self, base):
+		if not self.username_exists(base):
+			return base
+
+		prefix = f"{base}-"
+		pattern = prefix.replace("\\", "_") + "%"
+		taken = frappe.get_all("User", filters={"username": ("like", pattern)}, pluck="username")
+		numbers = (username.rpartition("-")[2] for username in taken)
+		return f"{prefix}{max((int(n) for n in numbers if n.isdecimal()), default=0) + 1}"
+
+	def db_insert(self, ignore_if_duplicate=False):
+		if not self.flags.username_from_first_name:
+			return super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
+
+		for attempt in range(5):
+			messages = len(frappe.message_log)
+			frappe.db.savepoint("user_username")
+			try:
+				super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
+			except frappe.UniqueValidationError as e:
+				if attempt == 4 or "username" not in str(e.args[-1]):
+					raise
+				frappe.db.rollback(save_point="user_username")
+				del frappe.message_log[messages:]
+				base, sep, number = self.username.rpartition("-")
+				self.username = f"{base}-{int(number) + 1}" if sep else f"{self.username}-1"
+			else:
+				frappe.db.release_savepoint("user_username")
+				return
 
 	def password_strength_test(self):
 		"""test password strength"""
@@ -1012,8 +1043,11 @@ def update_password(
 	    old_password (str, optional): Old password. Defaults to None.
 	"""
 
+	if old_password and len(old_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("Old password size exceeded the maximum allowed size."))
+
 	if len(new_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("Password size exceeded the maximum allowed size."))
+		frappe.throw(_("New password size exceeded the maximum allowed size."))
 
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
@@ -1137,7 +1171,10 @@ def _get_user_for_update_password(key, old_password):
 	if key:
 		hashed_key = sha256_hash(key)
 		user = frappe.db.get_value(
-			"User", {"reset_password_key": hashed_key}, ["name", "last_reset_password_key_generated_on"]
+			"User",
+			{"reset_password_key": hashed_key},
+			["name", "last_reset_password_key_generated_on"],
+			for_update=True,
 		)
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
@@ -1150,6 +1187,9 @@ def _get_user_for_update_password(key, old_password):
 				> last_reset_password_key_generated_on + timedelta(seconds=reset_password_link_expiry)
 			):
 				result.message = _("The reset password link has been expired")
+			else:
+				# consume the key while the row is locked; clearing sessions later commits and releases it
+				frappe.db.set_value("User", result.user, "reset_password_key", "", update_modified=False)
 		else:
 			result.message = _("The reset password link has either been used before or is invalid")
 	elif old_password:
@@ -1193,6 +1233,13 @@ def reset_user_data(user):
 
 @frappe.whitelist(methods=["POST"])
 def verify_password(password: str):
+	from frappe.deprecation_dumpster import deprecation_warning
+
+	deprecation_warning(
+		"2026-09-30",
+		"v17",
+		"`verify_password` is deprecated: the frontend no longer calls it, and it only gated the UI while the method in its callback could be called directly, bypassing the check.",
+	)
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 

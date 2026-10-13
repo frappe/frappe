@@ -183,6 +183,10 @@ class File(Document):
 		self.validate_attachment_references()
 		self.enforce_public_file_restrictions()
 
+		# must run before handle_is_private_changed, which legitimately rewrites file_url
+		if not self.is_new() and self.has_value_changed("file_url"):
+			self.validate_private_file_access()
+
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
 		# this case is handled inside handle_is_private_changed
 		if not self.is_new() and self.has_value_changed("is_private"):
@@ -227,30 +231,30 @@ class File(Document):
 		if not self.file_url:
 			return
 
-		existing_files = frappe.get_all(
-			"File",
-			filters={"file_url": self.file_url},
-			fields=["name", "owner", "is_private"],
-			limit=1,
-		)
+		filters = {"file_url": self.file_url, "is_private": 1}
+		if not self.is_new():
+			filters["name"] = ["!=", self.name]
 
-		if not existing_files:
+		private_files = frappe.get_all("File", filters=filters, fields=["name", "owner"])
+		if not private_files:
 			return
 
-		existing_file = existing_files[0]
+		user = frappe.session.user
+		if user == "Administrator":
+			return
 
-		if existing_file.is_private:
-			user = frappe.session.user
-
-			if user == existing_file.owner or user == "Administrator":
+		# a file can be attached to multiple documents; access to any one of them is enough
+		for private_file in private_files:
+			if user == private_file.owner:
 				return
 
-			existing_doc = frappe.get_doc("File", existing_file.name)
-			if not has_permission(existing_doc, "read", user=user):
-				frappe.throw(
-					_("You do not have permission to access this file"),
-					frappe.PermissionError,
-				)
+			if has_permission(frappe.get_doc("File", private_file.name), "read", user=user):
+				return
+
+		frappe.throw(
+			_("You do not have permission to access this file"),
+			frappe.PermissionError,
+		)
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():
@@ -1074,20 +1078,27 @@ class File(Document):
 		content_type = mimetypes.guess_type(self.file_name)[0]
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
 		is_svg = content_type == "image/svg+xml"
+		is_local_pdf = content_type == "application/pdf" and self.file_size > 0
 
-		if not is_local_image:
-			raise NotImplementedError("Only local image files can be optimized")
+		if not (is_local_image or is_local_pdf):
+			raise NotImplementedError("Only local image or PDF files can be optimized")
 
 		if is_svg:
 			raise TypeError("Optimization of SVG images is not supported")
 
-		from frappe.utils.image import optimize_image
-
 		original_content = self.get_content()
-		optimized_content = optimize_image(
-			content=original_content,
-			content_type=content_type,
-		)
+
+		if is_local_pdf:
+			from frappe.utils.pdf import optimize_pdf
+
+			optimized_content = optimize_pdf(original_content)
+		else:
+			from frappe.utils.image import optimize_image
+
+			optimized_content = optimize_image(
+				content=original_content,
+				content_type=content_type,
+			)
 
 		if original_content == optimized_content:
 			# optimization failed, don't resave it

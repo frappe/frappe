@@ -32,7 +32,6 @@
 				:label="__('Cell padding')"
 				:model-value="table_cell_padding"
 				:base="7"
-				unit="px"
 				:placeholder="__('auto')"
 				allow-empty
 				@update:model-value="set_cell_padding"
@@ -40,7 +39,6 @@
 			<StepperRow
 				:label="__('Radius')"
 				:model-value="table_radius"
-				unit="px"
 				:placeholder="__('none')"
 				allow-empty
 				@update:model-value="set_table_radius"
@@ -50,7 +48,6 @@
 				:model-value="table_min_height"
 				:base="100"
 				:step="10"
-				unit="px"
 				:placeholder="__('auto')"
 				allow-empty
 				@update:model-value="(v) => set_field_prop('table_min_height', v)"
@@ -186,7 +183,6 @@
 													sm
 													:min="16"
 													:value="col.image_size || 40"
-													unit="px"
 													@decrement="adjust_image_size(col, -4)"
 													@increment="adjust_image_size(col, 4)"
 													@input="(v) => set_image_size(col, v)"

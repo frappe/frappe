@@ -22,6 +22,7 @@ Copilot
 dafrose
 dankgarlic1
 dependabot[bot]
+FawazAlhafiz
 frappe-pr-bot
 gajjug004
 gavindsouza

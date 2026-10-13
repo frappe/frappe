@@ -45,11 +45,8 @@ frappe.ui.LinkPreview = class {
 		if (!(frappe.boot.link_preview_doctypes || []).includes(this.doctype)) {
 			return;
 		}
-		//If control field value is changed, new popover has to be created
-		this.element.on("change", () => {
-			this.new_popover = true;
-		});
-		if (!this.popover || this.new_popover) {
+
+		if (!this.popover || this.element.data("link-preview-key") !== this.get_doc_key()) {
 			this.data_timeout = setTimeout(() => {
 				this.create_popover(e);
 			}, 100);
@@ -64,28 +61,42 @@ frappe.ui.LinkPreview = class {
 	}
 
 	create_popover(e) {
-		this.new_popover = false;
 		if (this.element.is(":focus")) {
 			return;
 		}
 
+		// by the time the preview arrives, another link may be hovered or the
+		// field may hold another doc: drop it then, or it gets cached as theirs
+		const element = this.element;
+		const key = this.get_doc_key();
+		const is_current = () => element.is(this.element) && this.get_doc_key() === key;
+
 		this.get_preview_data().then((preview_data) => {
-			if (preview_data) {
+			if (preview_data && is_current()) {
 				if (this.popover_timeout) {
 					clearTimeout(this.popover_timeout);
 				}
 
 				this.popover_timeout = setTimeout(() => {
-					if (this.popover && this.popover.config) {
-						let new_content = this.get_popover_html(preview_data);
-						this.popover.config.content = new_content;
+					if (!is_current()) {
+						return;
+					}
+					const popover = element.data("bs.popover");
+					if (popover && popover.config) {
+						popover.config.content = this.get_popover_html(preview_data);
 					} else {
 						this.init_preview_popover(preview_data);
 					}
+					element.data("link-preview-key", key);
 					this.show_popover(e);
 				}, 1000);
 			}
 		});
+	}
+
+	get_doc_key() {
+		this.identify_doc();
+		return `${this.doctype}::${this.name}`;
 	}
 
 	show_popover(e) {

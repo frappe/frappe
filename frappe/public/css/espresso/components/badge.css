@@ -110,10 +110,10 @@
   color: var(--c-fg);
 }
 
-/* shrinks with an ellipsis when the badge is narrower than its label */
+/* clip only sideways so the ellipsis works without cutting the bottom of g, y, p */
 .es-badge__label {
   min-width: 0;
-  overflow: hidden;
+  overflow-x: clip;
   text-overflow: ellipsis;
 }
 

@@ -174,7 +174,7 @@ def install_db(
 		source_sql=source_sql,
 	)
 
-	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
+	frappe.conf.admin_password = admin_password or frappe.conf.admin_password
 
 	remove_missing_apps()
 
@@ -372,24 +372,32 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	add_to_installed_apps(name)
 
-	frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
+	try:
+		frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
 
-	for after_install in app_hooks.after_install or []:
-		frappe.get_attr(after_install)()
+		for after_install in app_hooks.after_install or []:
+			frappe.get_attr(after_install)()
 
-	if set_as_patched:
-		set_all_patches_as_completed(name)
+		if set_as_patched:
+			set_all_patches_as_completed(name)
 
-	for fn in frappe.get_hooks("after_app_install"):
-		frappe.get_attr(fn)(name)
+		for fn in frappe.get_hooks("after_app_install"):
+			frappe.get_attr(fn)(name)
 
-	sync_jobs()
-	sync_fixtures(name)
-	sync_customizations(name)
-	sync_dashboards(name)
+		sync_jobs()
+		sync_fixtures(name)
+		sync_customizations(name)
+		sync_dashboards(name)
 
-	for after_sync in app_hooks.after_sync or []:
-		frappe.get_attr(after_sync)()  #
+		for after_sync in app_hooks.after_sync or []:
+			frappe.get_attr(after_sync)()
+
+	except Exception:
+		frappe.db.rollback()
+		if name not in installed_apps:
+			remove_from_installed_apps(name)
+		frappe.flags.in_install = False
+		raise
 
 	frappe.clear_cache()
 	frappe.client_cache.erase_persistent_caches()
@@ -576,21 +584,29 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 
 	frappe.flags.in_uninstall = True
 
-	for before_uninstall in app_hooks.before_uninstall or []:
-		frappe.get_attr(before_uninstall)()
+	if not dry_run:
+		for before_uninstall in app_hooks.before_uninstall or []:
+			frappe.get_attr(before_uninstall)()
 
-	for fn in frappe.get_hooks("before_app_uninstall"):
-		frappe.get_attr(fn)(app_name)
+		for fn in frappe.get_hooks("before_app_uninstall"):
+			frappe.get_attr(fn)(app_name)
 
-	drop_doctypes = _delete_modules(get_app_owned_modules(app_name), dry_run=dry_run)
+	app_modules = get_app_owned_modules(app_name)
+	drop_doctypes = _delete_modules(app_modules, dry_run=dry_run)
 	_delete_doctypes(drop_doctypes, dry_run=dry_run)
+	# Last, because a re-run after a failure finds the app's remaining doctypes through these rows
+	_delete_module_defs(app_modules, dry_run=dry_run)
 	release_custom_module_placements(app_name, dry_run=dry_run)
 
-	if not dry_run:
-		remove_from_installed_apps(app_name)
-		frappe.get_single("Installed Applications").update_versions()
-		frappe.db.commit()
-		frappe.clear_cache()
+	if dry_run:
+		frappe.flags.in_uninstall = False
+		click.secho(_("Dry run complete, nothing was removed from Site {0}").format(site), fg="green")
+		return
+
+	remove_from_installed_apps(app_name)
+	frappe.get_single("Installed Applications").update_versions()
+	frappe.db.commit()
+	frappe.clear_cache()
 
 	for after_uninstall in app_hooks.after_uninstall or []:
 		frappe.get_attr(after_uninstall)()
@@ -603,16 +619,13 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	click.secho(f"Uninstalled App {app_name} from Site {site}", fg="green")
 	frappe.flags.in_uninstall = False
 
-	if not dry_run:
-		frappe.clear_cache()
+	frappe.clear_cache()
 
 
 def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
-	"""Delete modules belonging to the app and all related doctypes.
+	"""Delete the single doctypes in the app's modules and all records linked to the modules.
 
-	Note: All record linked linked to Module Def are also deleted.
-
-	Return: list of deleted doctypes."""
+	Return: list of doctypes whose tables still have to be dropped."""
 	drop_doctypes = []
 
 	doctype_link_field_map = _get_module_linked_doctype_field_map()
@@ -633,11 +646,14 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 
 		_delete_linked_documents(module_name, doctype_link_field_map, dry_run=dry_run)
 
+	return drop_doctypes
+
+
+def _delete_module_defs(modules: list[str], dry_run: bool) -> None:
+	for module_name in modules:
 		print(f"* removing Module Def '{module_name}'...")
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name, ignore_on_trash=True, force=True)
-
-	return drop_doctypes
 
 
 def _delete_linked_documents(module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool) -> None:
@@ -668,8 +684,10 @@ def _get_module_linked_doctype_field_map() -> dict[str, str]:
 		filters={"fieldtype": "Link", "options": "Module Def"},
 		fields=["parent", "fieldname"],
 	)
-	existing_linked_doctypes = [d for d in linked_doctypes if frappe.db.exists("DocType", d.parent)]
-
+	tables = frappe.db.get_tables(cached=False)
+	existing_linked_doctypes = [
+		d for d in linked_doctypes if frappe.db.exists("DocType", d.parent) and f"tab{d.parent}" in tables
+	]
 	for d in existing_linked_doctypes:
 		# DocType deletion is handled separately in the end
 		if d.parent not in doctype_to_field_map and d.parent != "DocType":
@@ -682,8 +700,8 @@ def _delete_doctypes(doctypes: list[str], dry_run: bool) -> None:
 	for doctype in set(doctypes):
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
-			frappe.delete_doc("DocType", doctype, ignore_on_trash=True, force=True)
 			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
+			frappe.delete_doc("DocType", doctype, ignore_on_trash=True, force=True)
 
 
 def post_install(rebuild_website=False):
@@ -701,8 +719,10 @@ def set_all_patches_as_completed(app):
 	from frappe.modules.patch_handler import get_patches_from_app
 
 	patches = get_patches_from_app(app)
+	already_logged = set(frappe.get_all("Patch Log", filters={"patch": ("in", patches)}, pluck="patch"))
 	for patch in patches:
-		frappe.get_doc({"doctype": "Patch Log", "patch": patch}).insert(ignore_permissions=True)
+		if patch not in already_logged:
+			frappe.get_doc({"doctype": "Patch Log", "patch": patch}).insert(ignore_permissions=True)
 	frappe.db.commit()  # nosemgrep
 
 
@@ -882,6 +902,8 @@ def make_site_dirs():
 def add_module_defs(app, ignore_if_duplicate=False):
 	modules = frappe.get_module_list(app)
 	for module in modules:
+		if frappe.db.exists("Module Def", {"name": module, "app_name": app, "custom": 0}):
+			continue
 		rename_conflicting_custom_module(module, app)
 
 		d = frappe.new_doc("Module Def")

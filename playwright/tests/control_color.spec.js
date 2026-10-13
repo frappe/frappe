@@ -26,26 +26,26 @@ test.describe("Control Color", () => {
 
 		await page.getByPlaceholder("Choose a color").click();
 
-		await page.locator('[style="background-color: rgb(79, 157, 217);"]').click();
-		await expect(color_map).toHaveCSS("color", "rgb(79, 157, 217)");
-		await expect(hue_map).toHaveCSS("color", "rgb(0, 145, 255)");
-		expect(await get_color()).toBe("#4F9DD9");
+		await page.locator('.swatch[data-color="#077ddf"]').click();
+		await expect(color_map).toHaveCSS("color", "rgb(7, 125, 223)");
+		await expect(hue_map).toHaveCSS("color", "rgb(0, 140, 255)");
+		expect(await get_color()).toBe("#077ddf");
 
-		await page.locator('[style="background-color: rgb(203, 41, 41);"]').click();
-		await expect(color_map).toHaveCSS("color", "rgb(203, 41, 41)");
+		await page.locator('.swatch[data-color="#ce2c2c"]').click();
+		await expect(color_map).toHaveCSS("color", "rgb(206, 44, 44)");
 		await expect(hue_map).toHaveCSS("color", "rgb(255, 0, 0)");
-		expect(await get_color()).toBe("#CB2929");
+		expect(await get_color()).toBe("#ce2c2c");
 
 		await click_at_offset(color_map.locator("> .color-selector"), 65, 87);
-		await expect(color_map).toHaveCSS("color", "rgb(56, 0, 0)");
-		expect(await get_color()).toBe("#380000");
+		await expect(color_map).toHaveCSS("color", "rgb(61, 0, 0)");
+		expect(await get_color()).toBe("#3d0000");
 
 		await click_at_offset(hue_map.locator("> .hue-selector"), 35, -1);
-		await expect(color_map).toHaveCSS("color", "rgb(56, 45, 0)");
-		await expect(hue_map).toHaveCSS("color", "rgb(255, 204, 0)");
+		await expect(color_map).toHaveCSS("color", "rgb(61, 46, 0)");
+		await expect(hue_map).toHaveCSS("color", "rgb(255, 191, 0)");
 		await click_at_offset(color_map.locator("> .color-selector"), 55, 12);
-		await expect(color_map).toHaveCSS("color", "rgb(46, 37, 0)");
-		expect(await get_color()).toBe("#2e2500");
+		await expect(color_map).toHaveCSS("color", "rgb(54, 40, 0)");
+		expect(await get_color()).toBe("#362800");
 
 		const input = desk.get_field("color", "Color");
 		await input.click();

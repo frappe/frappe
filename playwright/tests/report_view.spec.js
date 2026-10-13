@@ -92,3 +92,144 @@ test.describe("Report View without report permission", () => {
 		await expect(page.locator(TITLE)).toContainText("DocType Without Report Permission");
 	});
 });
+
+test.describe("Report View group by button", () => {
+	const test_user = "test_report_group_by@example.com";
+	const role = "Report Group By Test Role";
+	const doctype = "Report Group By Label";
+	const label = "Category <b>bold</b>";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc("Role", { role_name: role, desk_access: 1 }, true);
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: doctype,
+				custom: 1,
+				module: "Custom",
+				fields: [
+					{ fieldname: "category", fieldtype: "Data", label },
+					{ fieldname: "amount", fieldtype: "Float", label: "Amount" },
+				],
+				permissions: [{ role, read: 1, report: 1 }],
+			},
+			true
+		);
+		await admin.call("frappe.tests.ui_test_helpers.create_test_user", { username: test_user });
+		await admin.call("frappe.tests.ui_test_helpers.add_remove_role", {
+			action: "add",
+			user: test_user,
+			role,
+		});
+		await admin.insert_doc(doctype, { category: "A", amount: 10.25 });
+		await admin.insert_doc(doctype, { category: "B", amount: 20.25 });
+	});
+
+	test.beforeEach(async ({ desk, page }) => {
+		await desk.login(test_user);
+		await page.goto("/desk/report-group-by-label/view/report");
+		// group by is set up and the ungrouped first load is done once rows render
+		await expect(page.locator(".dt-row-0")).toBeVisible();
+	});
+
+	test("shows the group by field label as text", async ({ page }) => {
+		await page.evaluate(() =>
+			window.cur_list.group_by_control.apply_settings({
+				group_by: ["`tabReport Group By Label`.`category`"],
+				aggregates: [{ aggregate_function: "count" }],
+			})
+		);
+
+		const button_label = page.locator(".group-by-button .button-label");
+		await expect(button_label).toContainText(label);
+		await expect(button_label.locator("b")).toHaveCount(0);
+	});
+
+	test("keeps keyboard focus in the group by popover", async ({ page }) => {
+		const button = page.locator(".group-by-button");
+		const popover = page.locator(".group-by-popover");
+		const input = popover.locator(".group-by-field-select input").first();
+		await page.evaluate(() => window.cur_list.group_by_control.remove_group_by());
+
+		await button.click();
+		await expect(input).toBeFocused();
+		await expect(popover.locator("li", { hasText: "Category" })).toBeVisible();
+
+		// picking the first group by re-renders the popover, focus moves on to the row
+		await input.pressSequentially("Category");
+		await input.press("Enter");
+		await expect(popover.locator(".remove-group-by-row").first()).toBeFocused();
+
+		// reopening focuses the popover, Tab reaches the field and another Tab keeps it
+		await button.click();
+		await expect(popover).toBeHidden();
+		await button.click();
+		await expect(popover).toBeFocused();
+		await page.keyboard.press("Tab");
+		await expect(input).toBeFocused();
+		await page.keyboard.press("Tab");
+		await expect(input).toHaveValue(label);
+		expect(
+			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
+		).toEqual([{ doctype, fieldname: "category" }]);
+
+		// re-rendering for aggregate changes keeps focus on the changed or added control
+		const aggregate_function = popover.locator("select.aggregate-function");
+		await aggregate_function.first().focus();
+		await aggregate_function.first().selectOption("sum");
+		await expect(aggregate_function.first()).toBeFocused();
+		await popover.locator(".add-aggregate").focus();
+		await page.keyboard.press("Enter");
+		await expect(aggregate_function).toHaveCount(2);
+		await expect(aggregate_function.last()).toBeFocused();
+
+		// Escape outside a field closes the popover and returns focus to the button
+		await popover.locator(".remove-group-by-row").first().focus();
+		await page.keyboard.press("Escape");
+		await expect(popover).toBeHidden();
+		await expect(button).toBeFocused();
+
+		// so does Enter on the apply button
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await popover.locator(".apply-group-by").focus();
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeHidden();
+		await expect(button).toBeFocused();
+
+		// removing a row keeps focus in the popover, so Escape still closes it
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await popover.locator(".remove-group-by-row").first().focus();
+		await page.keyboard.press("Enter");
+		await expect(popover).toBeFocused();
+		await page.keyboard.press("Escape");
+		await expect(popover).toBeHidden();
+	});
+
+	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
+		await page.evaluate(() => {
+			const amount = "`tabReport Group By Label`.`amount`";
+			window.cur_list.add_totals_row = 1;
+			window.cur_list.group_by_control.apply_settings({
+				group_by: ["`tabReport Group By Label`.`category`"],
+				aggregates: [
+					{ aggregate_function: "min", aggregate_on: amount },
+					{ aggregate_function: "max", aggregate_on: amount },
+				],
+			});
+			// the group by controls may already have started this refresh, then refresh() resolves
+			// before the grouped rows arrive, so poll for them instead of awaiting it
+			window.cur_list.refresh();
+		});
+
+		await expect
+			.poll(() =>
+				page.evaluate(() => {
+					const totals = window.cur_list.get_columns_totals(window.cur_list.data);
+					return [totals._aggregate_column, totals._aggregate_column_1];
+				})
+			)
+			.toEqual([10.25, 20.25]);
+	});
+});

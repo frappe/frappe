@@ -2,6 +2,8 @@ import { safe_href } from "../../ui/components/utils.js";
 
 frappe.provide("frappe.views");
 
+frappe.views.kanban_system_fields = ["owner", "creation", "modified", "modified_by"];
+
 // badge style per Select value (lowercase keys); unknown values get a guessed color
 const SELECT_STYLES = {
 	low: { theme: "gray", icon: "signal-low" },
@@ -471,10 +473,25 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
+	/** True for a doctype field or a supported system field. */
+	field_exists(fieldname) {
+		return Boolean(this.field_df(fieldname));
+	}
+
+	/** Docfield for a fieldname, falling back to the standard field definition. */
+	field_df(fieldname) {
+		return (
+			frappe.meta.get_docfield(this.doctype, fieldname) ||
+			(frappe.views.kanban_system_fields.includes(fieldname)
+				? frappe.model.get_std_field(fieldname, true)
+				: null)
+		);
+	}
+
 	compute_card_fields(meta) {
 		const configured = (this.board_doc.card_fields || [])
 			.map((f) => f.fieldname)
-			.filter((fn) => fn && frappe.meta.has_field(this.doctype, fn));
+			.filter((fn) => fn && this.field_exists(fn));
 		const list = configured.length ? configured : this.default_card_fieldnames(meta);
 		// title, image and column field are shown elsewhere on the card
 		return list.filter(
@@ -529,7 +546,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	compute_preview_fields(meta) {
 		const configured = (this.board_doc.preview_fields || [])
 			.map((f) => f.fieldname)
-			.filter((fn) => fn && frappe.meta.has_field(this.doctype, fn));
+			.filter((fn) => fn && this.field_exists(fn));
 		const preview_api = this.default_preview_fieldnames(meta);
 		const list = configured.length
 			? configured
@@ -1194,7 +1211,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		rows.appendChild(this.title_row(card));
 
 		for (const fieldname of this.card_field_list) {
-			const df = frappe.meta.get_docfield(this.doctype, fieldname);
+			const df = this.field_df(fieldname);
 			if (df) rows.appendChild(this.field_row(card, df));
 		}
 		el.appendChild(rows);
@@ -1273,16 +1290,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			title: tag,
 		});
 		return $badge[0];
-	}
-
-	assignee_avatar(user, size = "md") {
-		const info = frappe.user_info(user);
-		return frappe.ui.avatar({
-			image: info.image || undefined,
-			label: info.fullname || user,
-			theme: this.hash_theme(user),
-			size,
-		})[0];
 	}
 
 	age_badge(card) {
@@ -1440,7 +1447,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			el.innerHTML = `${frappe.ui.avatar.html({
 				image: info.image || undefined,
 				label: info.fullname || val,
-				theme: this.hash_theme(val),
+				theme: "auto",
 				size: "xs",
 				css_class: "shrink-0",
 			})}<span class="truncate">${frappe.utils.escape_html(info.fullname || val)}</span>`;
@@ -1649,7 +1656,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 		// a rich-text preview field would repeat the description
 		const preview_has_rich_text = this.preview_field_list.some((fn) => {
-			const df = frappe.meta.get_docfield(this.doctype, fn);
+			const df = this.field_df(fn);
 			return df && this.is_rich_text(df.fieldtype);
 		});
 		if (this.desc_field && !preview_has_rich_text) {
@@ -1660,7 +1667,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const short_fields = [];
 		const rich_fields = [];
 		for (const fn of this.preview_field_list) {
-			const df = frappe.meta.get_docfield(this.doctype, fn);
+			const df = this.field_df(fn);
 			if (!df) continue;
 			if (this.is_rich_text(df.fieldtype)) {
 				rich_fields.push({ fn, df });
@@ -1870,43 +1877,25 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const users = this.parse_json_list(card._assign);
 		if (!interactive && !users.length) return null;
 
-		const group = document.createElement("div");
-		// overlap and ring live in .kn-assign-group
-		group.className = "kn-assign-group inline-flex items-center";
-		if (interactive) {
-			group.addEventListener("click", (e) => e.stopPropagation());
-		}
-
-		const shown = users.slice(0, 2);
-		const extra = users.slice(2);
-		shown.forEach((user) => {
-			const av = this.assignee_avatar(user, "md");
-			av.classList.add("kn-stack-av");
-			group.appendChild(av);
-			if (interactive) this.bind_assignee_hovercard(av, user, card);
+		const $group = frappe.ui.avatar_group({
+			avatars: users.map((user) => {
+				const info = frappe.user_info(user);
+				return { user, image: info.image || undefined, label: info.fullname || user };
+			}),
+			max: 2,
+			// the ring takes the card colour (kanban_v2.scss)
+			css_class: "kn-assign-group",
+			hover_card:
+				interactive &&
+				((avatar, hovercard) => this.assignee_hovercard(avatar.user, card, hovercard)),
+			add: interactive && {
+				title: users.length ? __("Add assignee") : __("Assign"),
+				onclick: () => this.open_assign(card),
+			},
 		});
-
-		if (extra.length) {
-			const more = frappe.ui.avatar({ size: "md", label: "" })[0];
-			more.classList.add("kn-stack-av");
-			more.querySelector(".es-avatar__fallback").textContent = `+${extra.length}`;
-			more.title = extra.map((u) => frappe.user_info(u).fullname || u).join(", ");
-			group.appendChild(more);
-		}
-
-		if (interactive) {
-			const add = frappe.ui.avatar({ size: "md", label: "" })[0];
-			add.querySelector(".es-avatar__fallback").innerHTML = frappe.utils.icon("plus", "sm");
-			add.classList.add("kn-stack-av", "kn-assign-add", "cursor-pointer");
-			add.title = users.length ? __("Add assignee") : __("Assign");
-			add.addEventListener("click", (e) => {
-				e.stopPropagation();
-				this.open_assign(card);
-			});
-			group.appendChild(add);
-		}
-
-		return group;
+		// clicks on the stack must not open the card
+		if (interactive) $group.on("click", (e) => e.stopPropagation());
+		return $group[0];
 	}
 
 	assign_button(card) {
@@ -1915,16 +1904,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	open_assign(card) {
 		this.bulk().assign([card.name], () => this.board.refresh());
-	}
-
-	bind_assignee_hovercard(el, user, card) {
-		const hovercard = new frappe.ui.HoverCard(el, {
-			side: "bottom",
-			align: "start",
-			css_class: "kn-assignee-popover",
-			// built on open, so `hovercard` is set by then
-			content: () => this.assignee_hovercard(user, card, hovercard),
-		});
 	}
 
 	assignee_hovercard(user, card, hovercard) {
@@ -1944,7 +1923,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		head.innerHTML = `${frappe.ui.avatar.html({
 			image: info.image || undefined,
 			label: fullname,
-			theme: this.hash_theme(user),
+			theme: "auto",
 			size: "lg",
 		})}
 			<div class="min-w-0">
@@ -2060,7 +2039,7 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 				.avatar({
 					image: info.image || undefined,
 					label: info.fullname || lane.value,
-					theme: this.page.hash_theme(lane.value),
+					theme: "auto",
 					size: "sm",
 				})
 				.insertAfter($head.find(".kn-swimlane-caret"));

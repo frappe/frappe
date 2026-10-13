@@ -32,6 +32,7 @@ import frappe.commands.scheduler
 import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
@@ -44,6 +45,11 @@ from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
 _result: Result | None = None
 TEST_SITE = "commands-site-O4PN2QK.test"  # added random string tag to avoid collisions
 CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
+uninstall_hook_calls = []
+
+
+def record_uninstall_hook(*args):
+	uninstall_hook_calls.append(args)
 
 
 def clean(value) -> str:
@@ -59,11 +65,11 @@ def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
 	"""Return list of missing doctypes in the backup.
 
 	Args:
-	        doctypes (list): List of DocTypes to be checked
-	        file (str): Path of the database file
+			doctypes (list): List of DocTypes to be checked
+			file (str): Path of the database file
 
 	Return:
-	        doctypes(list): doctypes that are missing in backup
+			doctypes(list): doctypes that are missing in backup
 	"""
 	predicate = 'COPY public."tab{}"' if frappe.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
 	with gzip.open(file, "rb") as f:
@@ -76,8 +82,8 @@ def exists_in_backup(doctypes: list, file: os.PathLike) -> bool:
 	"""Check if the list of doctypes exist in the database.sql.gz file supplied.
 
 	Args:
-	        doctypes (list): List of DocTypes to be checked
-	        file (str): Path of the database file
+			doctypes (list): List of DocTypes to be checked
+			file (str): Path of the database file
 
 	Return True if all tables exist.
 	"""
@@ -567,6 +573,44 @@ class TestCommands(BaseTestCommands):
 
 		self.assertEqual(conf[key], value)
 
+	def test_set_config_parse_accepts_lowercase_boolean(self):
+		"""ast.literal_eval only understands Python's capitalized True/False;
+		JSON/JS-style lowercase true/false is special-cased ahead of it so this
+		common input actually works, rather than erroring and telling the user
+		to capitalize it."""
+		key = "test_set_config_parse_value"
+
+		def cleanup():
+			from frappe.installer import get_site_config_path
+
+			path = get_site_config_path()
+			with open(path) as f:
+				conf = json.load(f)
+			conf.pop(key, None)
+			with open(path, "w") as f:
+				json.dump(conf, f, indent=1)
+				f.write("\n")
+
+		self.addCleanup(cleanup)
+
+		self.execute(f"bench --site {{site}} set-config --parse {key} false")
+		self.assertEqual(self.returncode, 0)
+		conf = frappe.get_site_config()
+		self.assertIs(conf[key], False)
+
+		self.execute(f"bench --site {{site}} set-config --parse {key} TRUE")
+		self.assertEqual(self.returncode, 0)
+		conf = frappe.get_site_config()
+		self.assertIs(conf[key], True)
+
+	def test_set_config_parse_rejects_unparseable_value(self):
+		self.execute("bench --site {site} set-config --parse test_set_config_parse_value disable")
+
+		self.assertEqual(self.returncode, 2)  # click.BadParameter's exit code
+		self.assertNotIn("Traceback", self.stdout)
+		self.assertNotIn("Traceback", self.stderr)
+		self.assertIn("not a valid Python literal", self.stdout + self.stderr)
+
 	@skipIf(
 		frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
@@ -912,10 +956,116 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 
+@contextmanager
+def fake_app_without_hooks(app):
+	real_get_hooks = frappe.get_hooks
+
+	def get_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		if app_name == app:
+			return [] if hook else frappe._dict()
+		return real_get_hooks(hook, default, app_name)
+
+	with patch.object(frappe, "get_hooks", get_hooks):
+		yield
+
+
+@contextmanager
+def drop_table_times_out(on_attempt):
+	real_sql = frappe.db.sql
+	attempts = 0
+
+	def sql(query, *args, **kwargs):
+		nonlocal attempts
+		if isinstance(query, str) and query.startswith("DROP TABLE"):
+			attempts += 1
+			if attempts == on_attempt:
+				raise frappe.QueryTimeoutError
+		return real_sql(query, *args, **kwargs)
+
+	with patch.object(frappe.db, "sql", sql):
+		yield
+
+
+@contextmanager
+def deleting_doctype_times_out(doctype):
+	real_delete_doc = frappe.delete_doc
+
+	def delete_doc(*args, **kwargs):
+		if args[:2] == ("DocType", doctype):
+			raise frappe.QueryTimeoutError
+		return real_delete_doc(*args, **kwargs)
+
+	with patch.object(frappe, "delete_doc", delete_doc):
+		yield
+
+
 class TestRemoveApp(IntegrationTestCase):
+	def test_uninstall_that_failed_on_a_drop_can_be_finished(self):
+		self.assert_failed_uninstall_can_be_finished(drop_table_times_out(on_attempt=2))
+
+	def test_uninstall_that_failed_after_a_drop_can_be_finished(self):
+		self.assert_failed_uninstall_can_be_finished(deleting_doctype_times_out("Abc Test Uninstall One"))
+
+	def assert_failed_uninstall_can_be_finished(self, failure):
+		from frappe.installer import get_app_owned_modules
+
+		app = "abc_test_uninstall_app"
+		module = "Abc Test Uninstall Module"
+		doctypes = ["Abc Test Uninstall One", "Abc Test Uninstall Two"]
+		self.addCleanup(self.delete_uninstall_leftovers, module, doctypes)
+		self.make_app_module(app, module, doctypes)
+
+		with fake_app_without_hooks(app), self.set_user("test@example.com"):
+			with failure, self.assertRaises(frappe.QueryTimeoutError):
+				remove_app(app, yes=True, no_backup=True, force=True)
+			frappe.db.rollback()
+			frappe.flags.in_uninstall = False
+
+			self.assertEqual(get_app_owned_modules(app), [module])
+
+			remove_app(app, yes=True, no_backup=True, force=True)
+
+		for doctype in doctypes:
+			self.assertFalse(frappe.db.exists("DocType", doctype))
+			self.assertFalse(frappe.db.table_exists(doctype, cached=False))
+		self.assertFalse(frappe.db.exists("Module Def", module))
+
+	def make_app_module(self, app, module, doctypes):
+		# In developer mode a new Module Def gets a folder inside its app, and this app doesn't exist
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			frappe.get_doc({"doctype": "Module Def", "module_name": module, "app_name": app}).insert()
+
+		for doctype in doctypes:
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": doctype,
+					"module": module,
+					"custom": 1,
+					"fields": [
+						{
+							"fieldname": "linked_module",
+							"fieldtype": "Link",
+							"options": "Module Def",
+							"label": "Linked Module",
+						}
+					],
+					"permissions": [{"role": "System Manager", "read": 1}],
+				}
+			).insert()
+
+	def delete_uninstall_leftovers(self, module, doctypes):
+		frappe.flags.in_uninstall = False
+		for doctype in doctypes:
+			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
+			frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True)
+		frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
+		frappe.db.commit()  # nosemgrep
+
 	def test_delete_modules(self):
 		from frappe.installer import (
 			_delete_doctypes,
+			_delete_module_defs,
 			_delete_modules,
 			_get_module_linked_doctype_field_map,
 		)
@@ -953,14 +1103,28 @@ class TestRemoveApp(IntegrationTestCase):
 		self.assertEqual(len(doctypes_to_delete), 1)
 
 		_delete_doctypes(doctypes_to_delete, dry_run=False)
+		_delete_module_defs([test_module.module_name], dry_run=False)
+		frappe.db.commit()  # nosemgrep
 		self.assertFalse(frappe.db.exists("Module Def", test_module.module_name))
 		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
 
 	def test_dry_run(self):
-		"""Check if dry run in not destructive."""
+		"""A dry run must not call uninstall hooks, which can't tell it from a real uninstall."""
+		real_get_hooks = frappe.get_hooks
+		recorder = [f"{__name__}.record_uninstall_hook"]
 
-		# nothing to assert, if this fails rest of the test suite will crumble.
-		remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+		def fake_get_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+			if hook in ("before_app_uninstall", "after_app_uninstall"):
+				return recorder
+			if app_name == "frappe" and not hook:
+				return frappe._dict(before_uninstall=recorder, after_uninstall=recorder)
+			return real_get_hooks(hook, default, app_name)
+
+		uninstall_hook_calls.clear()
+		with patch.object(frappe, "get_hooks", fake_get_hooks):
+			remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+
+		self.assertEqual(uninstall_hook_calls, [])
 
 
 class TestSiteMigration(BaseTestCommands):
@@ -1030,6 +1194,25 @@ class TestCommandUtils(IntegrationTestCase):
 		app_groups = get_app_groups()
 		self.assertIn("frappe", app_groups)
 		self.assertIsInstance(app_groups["frappe"], click.Group)
+
+
+class TestTrimDatabase(IntegrationTestCase):
+	def test_ghost_tables_include_deleted_doctype_tables(self):
+		doctype = new_doctype().insert().name
+		frappe.db.delete("DocType", {"name": doctype})
+
+		ghost_tables = frappe.commands.site.get_ghost_tables()
+
+		self.assertIn(f"tab{doctype}", ghost_tables)
+		self.assertNotIn("tabUser", ghost_tables)
+
+	def test_ghost_tables_skip_truncated_doctype_tables(self):
+		doctype = new_doctype("Test " + "x" * 56)
+		doctype.db_insert()
+		truncated_table = f"tab{doctype.name}"[: frappe.db.MAX_COLUMN_LENGTH]
+
+		with patch("frappe.commands.site.get_base_tables", return_value=[truncated_table]):
+			self.assertNotIn(truncated_table, frappe.commands.site.get_ghost_tables())
 
 
 class TestDBCli(BaseTestCommands):

@@ -38,6 +38,79 @@ test.describe("List filter", () => {
 			await expect.poll(() => box_value(page, "status")).toBe("Closed");
 		});
 
+		test("opens an empty row on its field picker, with every field listed", async ({
+			page,
+			desk,
+		}) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			await desk.open_list_filter();
+
+			const picker = page.locator(".es-combobox__panel[data-state='open']");
+			const search = picker.locator(".es-combobox__input");
+			const field = page.locator(".filter-popover .fieldname-select-area .es-combobox");
+			const field_value = () =>
+				page.evaluate(() =>
+					cur_list.filter_area.filter_list.filters[0].fieldselect.get_value()
+				);
+
+			await expect(search).toBeFocused();
+			await expect(search).toHaveValue("");
+			await expect(
+				picker.getByRole("option", { name: "Status", exact: true })
+			).toBeVisible();
+
+			await search.pressSequentially("Status");
+			await search.press("Enter");
+			await expect(picker).toHaveCount(0);
+			await expect(field).toContainText("Status");
+
+			// opened again, the picker marks the current field, and Tab keeps it
+			await field.click();
+			await expect(picker.locator("[data-highlighted]")).toHaveText("Status");
+			await search.press("Tab");
+			await expect(picker).toHaveCount(0);
+			expect(await field_value()).toBe("ToDo.status");
+		});
+
+		test("focuses the panel, not a saved filter, and keeps focus in it", async ({
+			page,
+			desk,
+		}) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			await page.evaluate(() =>
+				cur_list.filter_area.add([["ToDo", "owner", "like", "%example.com%"]])
+			);
+			await desk.open_list_filter();
+
+			const panel = page.locator(".filter-popover");
+			const field = panel.locator(".fieldname-select-area .es-combobox").first();
+			const button = page.locator(".filter-section .filter-button");
+			await expect(field).toContainText("Created By");
+			await expect(panel).toBeFocused();
+
+			// keyboard users reach the first field with Tab
+			await page.keyboard.press("Tab");
+			await expect(field).toBeFocused();
+
+			// Escape outside a field closes the panel and returns focus to the button
+			await panel.locator(".remove-filter").first().focus();
+			await page.keyboard.press("Escape");
+			await expect(panel).toHaveCount(0);
+			await expect(button).toBeFocused();
+			expect(await applied(page)).toEqual([["owner", "like", "%example.com%"]]);
+
+			// removing a row keeps focus in the panel, so Escape still closes it
+			await page.keyboard.press("Enter");
+			await expect(panel).toBeFocused();
+			await panel.locator(".remove-filter").first().focus();
+			await page.keyboard.press("Enter");
+			await expect(panel).toBeFocused();
+			await page.keyboard.press("Escape");
+			await expect(panel).toHaveCount(0);
+		});
+
 		test("keeps an edit to a toolbar filter's row when the panel closes", async ({
 			page,
 			desk,

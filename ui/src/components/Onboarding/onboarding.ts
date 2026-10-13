@@ -2,6 +2,7 @@ import { call, createResource } from "frappe-ui";
 import { useStorage } from "@vueuse/core";
 import { computed, reactive } from "vue";
 import { minimize, showHelpModal } from "./help";
+import { showHelpCenter } from "./helpCenter";
 import { sessionUser } from "../../utils/session";
 import type {
   OnboardingBulkCallback,
@@ -49,6 +50,9 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
       onSuccess: (data: Record<string, StoredStep[]>) => {
         onboardingStatus.value[userId] = data;
         syncStatus();
+        // the panel opens before this status loads; close it if onboarding is already done
+        if (isOnboardingStepsCompleted.value && !showHelpCenter.value)
+          showHelpModal.value = false;
       },
     });
   }

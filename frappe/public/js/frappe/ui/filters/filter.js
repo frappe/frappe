@@ -206,8 +206,11 @@ frappe.ui.Filter = class {
 			title: __("Remove filter"),
 			css_class: "remove-filter",
 			onclick: () => {
+				// the focused button goes with its row: keep focus in the panel, so Escape still closes it
+				const $panel = this.filter_edit_area.closest(".es-popover");
 				this.remove();
 				this.on_change();
+				$panel.trigger("focus");
 			},
 		});
 		this.filter_edit_area.find(".filter-remove").append($remove);

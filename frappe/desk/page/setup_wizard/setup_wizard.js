@@ -636,7 +636,6 @@ frappe.setup.slides_settings = [
 						: __("Update Password"),
 				fieldtype: "Password",
 				length: 512,
-				depends_on: "eval:!frappe.boot.is_fc_site",
 			},
 		],
 

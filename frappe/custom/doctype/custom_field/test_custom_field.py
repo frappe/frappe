@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from unittest import skipIf
+
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import (
 	create_custom_field,
@@ -266,3 +268,10 @@ class TestCustomField(IntegrationTestCase):
 		# 4
 		delete_custom_fields({doctype: [{"fieldname": fieldnames[3]}]}, bypass_hooks=True)
 		self.assertFalse(field_exists(fieldnames[3]))
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_fieldname_fits_postgres_identifier(self):
+		field = frappe.get_doc(
+			{"doctype": "Custom Field", "dt": "ToDo", "label": "é" * 40, "fieldtype": "Data"}
+		)
+		self.assertRaises(frappe.ValidationError, field.insert)
