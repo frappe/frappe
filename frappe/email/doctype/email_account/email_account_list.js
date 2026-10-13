@@ -10,11 +10,13 @@ frappe.listview_settings["Email Account"] = {
 		}
 		const url = new URL(window.location.href);
 		const result = url.searchParams.get("email_oauth");
-		if (result) {
+		const state = url.searchParams.get("email_oauth_state");
+		if (result || state) {
 			url.searchParams.delete("email_oauth");
+			url.searchParams.delete("email_oauth_state");
 			window.history.replaceState(null, "", url.pathname + url.search + url.hash);
 			frappe.require("email_settings.bundle.js", () =>
-				frappe.email_settings.show_microsoft_result(result)
+				frappe.email_settings.finish_microsoft_sign_in({ result, state })
 			);
 		}
 	},

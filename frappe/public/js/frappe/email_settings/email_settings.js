@@ -982,7 +982,21 @@ const MICROSOFT_RESULTS = {
 	failed: __("Could not connect the Microsoft mailbox. The Error Log has the details."),
 };
 
-frappe.email_settings.show_microsoft_result = function (result) {
+frappe.email_settings.finish_microsoft_sign_in = function ({ result, state }) {
+	if (!state) return show_microsoft_result(result);
+	return frappe
+		.call({
+			method: "frappe.integrations.frappe_providers.email_oauth.finish_mailbox_connect",
+			args: { state },
+			freeze: true,
+			freeze_message: __(
+				"Connecting your Microsoft mailbox. This can take up to 30 seconds..."
+			),
+		})
+		.then((r) => show_microsoft_result(r.message));
+};
+
+function show_microsoft_result(result) {
 	return frappe.email_settings.open({ tab: "accounts" }).then(() => {
 		if (result === "connected") {
 			frappe.ui.toast({ message: __("Microsoft mailbox connected"), type: "success" });
@@ -994,7 +1008,7 @@ frappe.email_settings.show_microsoft_result = function (result) {
 			indicator: result === "already_connected" ? "blue" : "red",
 		});
 	});
-};
+}
 
 frappe.email_settings.sign_in = function (email_account) {
 	return frappe

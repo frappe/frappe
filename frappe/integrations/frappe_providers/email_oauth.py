@@ -100,27 +100,35 @@ def callback(
 	key = get_note_key(state or "")
 	note = frappe.cache.get_value(key)
 	if not note or note.get("user") != frappe.session.user:
-		return redirect(DEFAULT_REDIRECT, "expired")
+		return redirect(DEFAULT_REDIRECT, {"email_oauth": "expired"})
+
+	note.update({"code": code, "error": error, "error_description": error_description})
+	frappe.cache.set_value(key, note, expires_in_sec=NOTE_TTL)
+	return redirect(note.get("redirect_to") or DEFAULT_REDIRECT, {"email_oauth_state": state})
+
+
+@frappe.whitelist(methods=["POST"])
+def finish_mailbox_connect(state: str) -> str:
+	key = get_note_key(state or "")
+	note = frappe.cache.get_value(key)
+	if not note or note.get("user") != frappe.session.user or not (note.get("code") or note.get("error")):
+		return "expired"
 	frappe.cache.delete_value(key)
 
-	if error:
-		result = get_error_result(error, error_description)
-	else:
-		try:
-			result = connect_mailbox(note, code)
-		except Exception:
-			frappe.db.rollback()
-			frappe.log_error(_("Sign in with Microsoft failed"))
-			result = "failed"
-
-	frappe.db.commit()
-	return redirect(note.get("redirect_to") or DEFAULT_REDIRECT, result)
+	if note.get("error"):
+		return get_error_result(note["error"], note.get("error_description"))
+	try:
+		return connect_mailbox(note, note["code"])
+	except Exception:
+		frappe.db.rollback()
+		frappe.log_error(_("Sign in with Microsoft failed"))
+		return "failed"
 
 
-def redirect(path: str, result: str | None = None):
+def redirect(path: str, params: dict | None = None):
 	location = sanitize_redirect(path) or DEFAULT_REDIRECT
-	if result:
-		location += ("&" if "?" in location else "?") + urlencode({"email_oauth": result})
+	if params:
+		location += ("&" if "?" in location else "?") + urlencode(params)
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = location
 
@@ -205,7 +213,6 @@ def connect_mailbox(note: dict, code: str | None) -> str:
 		frappe.delete_doc("Connected App", app.name, ignore_permissions=True, force=True)
 	if failed == "failed":
 		frappe.log_error(_("Sign in with Microsoft failed"), "\n".join(get_error_chain(error)))
-	frappe.db.commit()
 	return failed or "connected"
 
 
