@@ -270,6 +270,31 @@ describe("PreviewStep", () => {
     expect(el.querySelectorAll("col")).toHaveLength(4);
   });
 
+  it("resizes a column by dragging its header edge, and resets on double-click", async () => {
+    const el = await mount(fakeDataImport());
+    const col = () => el.querySelectorAll<HTMLElement>("col")[1].style.width;
+    const fitted = col();
+    const handle = el
+      .querySelectorAll("thead th")[1]
+      .querySelector<HTMLElement>("[data-slot='resize']")!;
+
+    handle.dispatchEvent(
+      new PointerEvent("pointerdown", { clientX: 0, bubbles: true })
+    );
+    window.dispatchEvent(new PointerEvent("pointermove", { clientX: 320 }));
+    window.dispatchEvent(new PointerEvent("pointerup", { clientX: 320 }));
+    await nextTick();
+    expect(col()).toBe("320px");
+
+    handle.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    await nextTick();
+    expect(col()).toBe(fitted);
+    // the row number column keeps its width
+    expect(
+      el.querySelectorAll("thead th")[0].querySelector("[data-slot='resize']")
+    ).toBeNull();
+  });
+
   it("writes column_to_date_format_map from the date format menu", async () => {
     const fake = fakeDataImport();
     const el = await mount(fake);

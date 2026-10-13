@@ -1,12 +1,15 @@
 <template>
 	<div class="flex w-full min-w-0 flex-col gap-3">
-		<div class="flex items-center justify-between gap-2">
-			<div v-if="!isSuccess" class="text-base text-ink-gray-6">
-				{{ t("Map each file column to a field.") }}
+		<div class="flex items-end justify-between gap-2">
+			<div class="flex min-w-0 flex-col gap-0.5">
+				<h2 class="text-base-semibold text-ink-gray-8">{{ t("Map columns") }}</h2>
+				<p v-if="!isSuccess" class="text-sm text-ink-gray-6">
+					{{ t("Map each file column to a field.") }}
+				</p>
 			</div>
 			<div
 				data-testid="row-count"
-				class="ms-auto whitespace-nowrap text-right text-base text-ink-gray-6"
+				class="ms-auto whitespace-nowrap text-right text-sm text-ink-gray-6"
 			>
 				{{ rowCountText }}
 			</div>
@@ -24,7 +27,7 @@
 						<col
 							v-for="(column, i) in columns"
 							:key="i"
-							:style="{ width: `${column.width}px` }"
+							:style="{ width: `${columnWidth(column)}px` }"
 						/>
 					</colgroup>
 					<thead>
@@ -34,8 +37,8 @@
 								:key="i"
 								:class="[
 									cellClass,
-									'bg-surface-base text-left font-normal',
-									i === 0 && stickyClass,
+									'group bg-surface-base text-left font-normal',
+									i === 0 ? stickyClass : 'relative',
 								]"
 							>
 								<span v-if="i === 0" class="text-ink-gray-5">{{ t("Sr") }}</span>
@@ -48,6 +51,18 @@
 									:disabled="!canEdit"
 									@update:model-value="(value) => remapColumn(i, value)"
 								/>
+								<span
+									v-if="i > 0"
+									data-slot="resize"
+									class="absolute inset-y-0 -right-1 z-[2] flex w-2 cursor-col-resize items-center justify-center"
+									@pointerdown.stop.prevent="startResize(resizeKey(i), $event)"
+									@dblclick.stop.prevent="resetColumn(resizeKey(i))"
+								>
+									<span
+										class="h-4 border-l border-outline-gray-3 opacity-0 transition-opacity group-hover:opacity-100"
+										:class="{ 'opacity-100': resizingFieldname === String(i) }"
+									/>
+								</span>
 							</th>
 						</tr>
 					</thead>
@@ -138,7 +153,8 @@
 
 <script setup lang="ts">
 import { Badge, Button, Combobox, Dropdown, Tooltip, TooltipProvider } from "frappe-ui";
-import { computed } from "vue";
+import { computed, reactive } from "vue";
+import { useColumnResize } from "../../../experimental/List/useColumnResize";
 import { parseJson, pickerColumns, tableFields } from "../dataImport";
 import { t } from "../translate";
 import type { DocType, ImportProviderSchema } from "../types";
@@ -196,7 +212,22 @@ const columns = computed(() =>
 	})
 );
 
-const tableWidth = computed(() => columns.value.reduce((sum, column) => sum + column.width, 0));
+// Dragged widths last while the page is open; a double-click goes back to the fitted width.
+const resizedWidths = reactive<Record<string, number>>({});
+const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize({
+	onResize: (key, width) => (resizedWidths[key] = parseInt(width)),
+	onReset: (key) => delete resizedWidths[key],
+});
+const resizeKey = (index: number) => ({ fieldname: String(index), label: "" });
+function columnWidth(column: { index: number; width: number }) {
+	const key = String(column.index);
+	if (drafts[key]) return parseInt(drafts[key]);
+	return resizedWidths[key] ?? column.width;
+}
+
+const tableWidth = computed(() =>
+	columns.value.reduce((sum, column) => sum + columnWidth(column), 0)
+);
 const skippedColumns = computed(() => columns.value.filter((column) => column.greyed));
 const rows = computed(() => preview.value?.data ?? []);
 
