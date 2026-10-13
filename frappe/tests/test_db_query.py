@@ -688,6 +688,9 @@ class TestDBQuery(IntegrationTestCase):
 				# the name under another alias, in either case, still maps rows to documents
 				rows = get_list("ToDo", fields=["name AS id"], **args)
 				self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				# postgres casts a qualified name, which must not hide its alias
+				rows = get_list("ToDo", fields=["`tabToDo`.`name` as id"], **args)
+				self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 				# an alias is not the document's name, so it must not split rows or get a count
 				rows = get_list("ToDo", fields=["description as name"], **args)
 				self.assertEqual(len(rows), 1)
