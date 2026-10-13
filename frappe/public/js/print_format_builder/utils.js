@@ -105,6 +105,9 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		if ((letterhead.footer || "").trim() && !footer_is_image)
 			add(__("Letterhead footer with HTML content"));
 	}
+	if (/^https?:\/\//.test(layout?.background?.image || "")) {
+		add(__("Background image loaded from a web address"));
+	}
 	for (const node of layout_nodes(layout)) {
 		if ((node.custom_style || "").trim()) {
 			let unknown = false;
