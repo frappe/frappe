@@ -800,14 +800,14 @@ def get_print_style(
 	if print_format and print_format.css:
 		css += "\n\n" + print_format.css
 
-	page_size = overrides.get("pdf_page_size")
-	if overrides.get("page_orientation") == "Landscape":
+	if overrides.get("pdf_page_size") or overrides.get("page_orientation") == "Landscape":
 		from frappe.utils.print_format_generator import page_size_mm
 
 		width, height = page_size_mm(print_settings.as_dict() | overrides)
-		css += f"\n.print-format {{ page-size: Custom; page-width: {height}mm; page-height: {width}mm; }}"
-	elif page_size and page_size != "Custom":
-		css += f"\n.print-format {{ page-size: {page_size}; }}"
+		if overrides.get("page_orientation") == "Landscape":
+			width, height = height, width
+		css += f"\n@page {{ size: {width}mm {height}mm; }}"
+		css += f"\n.print-format {{ page-size: Custom; page-width: {width}mm; page-height: {height}mm; }}"
 
 	return css
 
