@@ -403,7 +403,7 @@ function blockClasses(id: string, data: AutomationCanvasNodeData) {
 		{
 			"is-selected": !props.readonly && props.selectedId === id,
 			nodrag: picksStart(data),
-			"opacity-40": data.dimmed,
+			"opacity-[0.65]": data.dimmed,
 		},
 	];
 }
