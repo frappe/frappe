@@ -36,6 +36,22 @@ test("a resume after a pause continues the same run; a cancelled batch does not"
 	assert.deepEqual(cancelled[1], { startSeq: 6, endSeq: null, runIds: ["b"] });
 });
 
+test("a model or thinking change while paused keeps the resumed run on its turn", () => {
+	const rows = [
+		started(1, "a"),
+		user(2),
+		ended(4, "paused"),
+		{ type: "model_changed", seq: 5 },
+		started(6, "a2"),
+		ended(9),
+	];
+	const resumed = { name: "R1", daemon_run_id: "a2" };
+	assert.equal(runsByUserMessage(rows, [resumed]).get(2), resumed);
+	// nor does a spare unsynced run take the turn instead
+	const spare = { name: "R2", daemon_run_id: null };
+	assert.equal(runsByUserMessage(rows, [resumed, spare]).get(2), resumed);
+});
+
 test("synced rows match by their daemon run id, the rest by order", () => {
 	const spans = runSpans([
 		started(1, "a"),
@@ -131,4 +147,20 @@ test("a sub-agent's rows belong to its own thread, not to a run", async () => {
 	assert.equal(page.runForTurn("s", "turn:2").name, "R1");
 	assert.equal(page.runForTurn("s", "turn:4"), null);
 	assert.equal(page.runForTurn("s", "turn:11").name, "R2");
+});
+
+test("a chat opened just as its run ended syncs it, since its stream starts past that row", async () => {
+	const { createPage } = await import("../src/page.js");
+	const synced = [];
+	const page = createPage({ agents: [] }, { sync: (sid) => synced.push(sid) });
+	const rows = [started(1, "a"), user(2), ended(5)];
+	page.onSession({ name: "s", runs: [{ name: "R1", daemon_run_id: "a", status: "Running" }] });
+	page.onRows("s", rows, { replace: true });
+	assert.deepEqual(synced, ["s"]);
+	// a live row is the stream's to report; a run still going or settled needs nothing
+	page.onRows("s", [ended(6)], { replace: false });
+	page.onRows("s", rows.slice(0, 2), { replace: true });
+	page.onSession({ name: "s", runs: [{ name: "R1", daemon_run_id: "a", status: "Completed" }] });
+	page.onRows("s", rows, { replace: true });
+	assert.deepEqual(synced, ["s"]);
 });

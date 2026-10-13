@@ -146,7 +146,7 @@ async function save() {
 		const saved = await call(method, { doc: payload() });
 		adopt(saved);
 		page.changed(props.spec.doctype);
-		toast.success(isNew.value ? "Created" : "Saved");
+		toast.success(method === "frappe.client.insert" ? "Created" : "Saved");
 		emit("saved", saved);
 	} catch (err) {
 		error.value = err.message;

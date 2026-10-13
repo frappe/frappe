@@ -77,7 +77,7 @@ const fakes = {
 				])
 			}
 		}
-		export const toast = { success() {}, error() {} }
+		export const toast = { shown: [], success(message) { this.shown.push(message) }, error() {} }
 		export const dialog = { danger() {}, prompt() {} }
 		export function useColorScheme() {}
 	`),
@@ -115,6 +115,7 @@ const fakes = {
 	`),
 };
 export const transport = await import(fakes["../api/frappe.js"]);
+export const { toast } = await import(fakes["frappe-ui"]);
 
 const compiled = new Map();
 async function componentURL(url) {

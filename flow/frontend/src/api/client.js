@@ -109,7 +109,8 @@ export class FrappeClient {
 	async createSession(config = {}) {
 		const data = await this.transport.call("flow.api.create_session", {
 			agent: this.hooks.agent?.() ?? null,
-			model: config.model ?? null,
+			// a model the site no longer offers is left out, so the agent's is used
+			model: this.modelRows.some((m) => m.name === config.model) ? config.model : null,
 			auto_approve: config.auto_approve ? 1 : 0,
 		});
 		this.hooks.onSession?.(data);
@@ -146,9 +147,13 @@ export class FrappeClient {
 		});
 	}
 
+	// a run just ended and its own syncs may race this one: retry once, then stay quiet
 	async syncSession(sid) {
-		const data = await this.transport.call("flow.api.sync_session", { session: sid });
-		this.hooks.onSession?.(data);
+		const sync = () => this.transport.call("flow.api.sync_session", { session: sid });
+		const data = await sync()
+			.catch(sync)
+			.catch(() => null);
+		if (data) this.hooks.onSession?.(data);
 		return data;
 	}
 

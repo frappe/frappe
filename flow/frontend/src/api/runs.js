@@ -16,9 +16,9 @@ export function runSpans(rows) {
 			const span = spans[spans.length - 1];
 			if (span) span.endSeq = row.seq;
 			resumable = row.reason === "paused";
-		} else if (typeof row.seq === "number") {
-			// anything logged while paused (a cancelled batch's results) means the next
-			// run starts afresh
+		} else if (typeof row.seq === "number" && row.type !== "model_changed") {
+			// anything else logged while paused (a cancelled batch's results) means the next
+			// run starts afresh; a model change leaves the batch waiting
 			resumable = false;
 		}
 	}

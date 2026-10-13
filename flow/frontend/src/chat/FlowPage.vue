@@ -110,7 +110,10 @@ const MODES = [
 const props = defineProps({ boot: { type: Object, required: true } });
 
 // the store's model refresh is the boot call; the page asks for it when boot goes stale
-const page = createPage(props.boot, { refresh: () => store.refreshModels() });
+const page = createPage(props.boot, {
+	refresh: () => store.refreshModels(),
+	sync: (sid) => client.syncSession(sid),
+});
 const socket = connectSocket(props.boot);
 const client = new FrappeClient({
 	socket,
@@ -193,9 +196,9 @@ onMounted(async () => {
 	uninstallShortcuts = installShortcuts(store);
 	store.refreshModels();
 	await store.refreshSessions();
-	// the route watcher may have opened the URL's session while the list was loading
+	// the route watcher, a click or a first message may have moved on while the list loaded
+	if (store.state.sessionId || store.state.conversation.sending.length) return;
 	const wanted = route.params.session ?? store.state.prefs.lastSession;
-	if (wanted === store.state.sessionId) return;
 	if (
 		wanted &&
 		(route.params.session ||

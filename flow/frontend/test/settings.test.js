@@ -15,11 +15,11 @@ for (const name of [
 ])
 	globalThis[name] = dom.window[name];
 const { createApp, nextTick, reactive } = await import("vue");
-const { loadComponent, transport } = await import("./helpers/components.js");
+const { loadComponent, toast, transport } = await import("./helpers/components.js");
 const DocPanel = await loadComponent("settings/DocPanel.vue");
 const DocForm = await loadComponent("settings/DocForm.vue");
 const FieldControl = await loadComponent("settings/FieldControl.vue");
-const { SPECS } = await import("../src/settings/specs.js");
+const { SPECS, newDoc } = await import("../src/settings/specs.js");
 
 function mount(t, component, props) {
 	const el = document.createElement("div");
@@ -305,6 +305,25 @@ test("a JSON field the user filled in is saved as written", async (t) => {
 		"frappe.client.save": ({ doc }) => doc,
 	});
 	assert.equal(sent.filters, '{"status": "Open"}');
+});
+
+test("the toast says Created for a new record and Saved for an existing one", async (t) => {
+	toast.shown.length = 0;
+	await saveSource(t, null, {
+		"frappe.client.insert": ({ doc }) => ({ ...doc, name: "source-1" }),
+	});
+	await until(() => toast.shown.length === 1);
+	await saveSource(t, "source-1", {
+		"frappe.client.get": () => ({ name: "source-1", title: "Old" }),
+		"frappe.client.save": ({ doc }) => doc,
+	});
+	await until(() => toast.shown.length === 2);
+	assert.deepEqual(toast.shown, ["Created", "Saved"]);
+});
+
+test("a new record leaves read-only fields out, so the server fills their defaults", () => {
+	assert.equal("source" in newDoc(SPECS.memories), false);
+	assert.equal("status" in newDoc(SPECS.knowledge_sources), false);
 });
 
 test("a settings list and an opened record show the spinner until they load", async (t) => {

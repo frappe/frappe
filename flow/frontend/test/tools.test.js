@@ -238,6 +238,13 @@ test("a sub-agent row keeps the core's own look and opens nothing", () => {
 	assert.equal(presented.resultComponent, undefined);
 });
 
+test("the flow server's read and grep keep the core's own rows", () => {
+	const read = { content: "import frappe", details: { total_lines: 1 } };
+	assert.deepEqual(presentTool("read", { path: "flow/hooks.py" }, read), {});
+	const grep = { content: "flow/hooks.py:1:import frappe", details: { matches: 1 } };
+	assert.deepEqual(presentTool("grep", { pattern: "frappe" }, grep), {});
+});
+
 test("a custom tool always shows its output, unfolded", (t) => {
 	const presented = presentTool("send_email", { to: "a@b.c" }, json({ sent: true }));
 	assert.equal(presented.resultComponent, JsonView);

@@ -108,7 +108,11 @@ const SUBJECT_KEYS = [
 	"content",
 ];
 
+// the flow server's file tools keep the core's own rows, which fold a read's file text
+const FILE_TOOLS = new Set(["read", "grep"]);
+
 export function presentTool(name, args = {}, result = null) {
+	if (FILE_TOOLS.has(name)) return {};
 	const tool = TOOLS[name];
 	// a custom Imported or Script tool: its return is the point, so always show it
 	if (!tool) return { resultComponent: JsonView };

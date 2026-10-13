@@ -63,6 +63,17 @@ test("a new chat is created with the page's agent and reported back", async () =
 	assert.deepEqual(reported, ["S1"]);
 });
 
+test("a new chat leaves out a remembered model the site no longer offers", async () => {
+	const transport = fakeTransport({ "flow.api.create_session": session });
+	const client = new FrappeClient({ boot, transport });
+	await client.createSession({ model: "Retired" });
+	await client.createSession({ model: "Sonnet" });
+	assert.deepEqual(
+		transport.calls.map(([, args]) => args.model),
+		[null, "Sonnet"]
+	);
+});
+
 test("session details carry the model's context window and a config the store can patch", async () => {
 	const transport = fakeTransport({
 		"flow.api.session": session,
@@ -298,4 +309,34 @@ test("a resume names the batch it answers, so a sub-agent's can be told apart", 
 	assert.deepEqual(transport.calls, [
 		["flow.api.resume", { session: "S1", answers: { c9: "Approve" }, approval_seq: 8 }],
 	]);
+});
+
+test("a sync that fails after a run ends is retried once, then dropped quietly", async () => {
+	const { fakeSocket } = await import("./helpers/socket.js");
+	const reported = [];
+	let failures = 1;
+	const transport = fakeTransport({
+		"flow.api.entries": { entries: [{ type: "run_ended", seq: 1, reason: "done" }] },
+		"flow.api.sync_session": () => {
+			if (failures-- > 0) throw new Error("Internal Server Error");
+			return session;
+		},
+	});
+	const client = new FrappeClient({
+		socket: fakeSocket(),
+		boot,
+		transport,
+		hooks: { onSession: (data) => reported.push(data.name) },
+	});
+	const stream = client.stream("S1");
+	await stream[Symbol.asyncIterator]().next(); // the run_ended row
+	stream.close();
+	await new Promise((resolve) => setImmediate(resolve));
+	assert.deepEqual(reported, ["S1"]);
+	failures = 2;
+	assert.equal(await client.syncSession("S1"), null);
+	assert.equal(
+		transport.calls.filter(([method]) => method === "flow.api.sync_session").length,
+		4
+	);
 });
