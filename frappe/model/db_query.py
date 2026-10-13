@@ -1031,6 +1031,13 @@ from {tables}
 			if not columns:
 				continue
 
+			# `_comments` is a cache column, unreadable even inside an expression with permitted fields
+			if frappe.session.user != "Administrator" and any(
+				c.rsplit(".", 1)[-1].strip("`") == "_comments" for c in columns
+			):
+				self.remove_field(i)
+				continue
+
 			column = columns[0]
 			# handle * fields
 			if column == "*" and "*" in field:

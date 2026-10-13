@@ -409,6 +409,10 @@ class TestDBQuery(FrappeTestCase):
 				fields=["title"], with_comment_count=1, limit_page_length=1
 			)[0]
 			self.assertNotIn("_comments", row)
+			row = frappe.get_list(
+				"Blog Post", fields=["name", "ifnull(nullif(name, name), _comments) as leaked"], limit=1
+			)[0]
+			self.assertNotIn("leaked", row)
 			with self.assertRaises(frappe.PermissionError):
 				frappe.get_list("Blog Post", filters={"_comments": ("like", "%a%")})
 			# core doctypes permit every table column, so the cache column must not be one
