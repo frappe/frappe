@@ -256,10 +256,9 @@ async function save() {
 	}
 }
 
-// a cut-off list may not show it, so then the daemon is asked
+// the list may be cut off, or older than a skill made since, so the daemon is asked too
 async function skillExists({ scope, name, path }) {
 	if (rows.value.some((row) => row.scope === scope && row.name === name)) return true
-	if (!truncated.value.includes(scope)) return false
 	try {
 		await flow.client.readSkill(path, projectCwd.value)
 		return true

@@ -1898,11 +1898,11 @@ test("a new skill can't take the name of one already in its folder, listed or no
 	const flow = {
 		state: reactive({ settingsOpen: true, sessionId: null, session: null, sessions: [], prefs: {} }),
 		client: {
-			// the folder holds more than the daemon scans: "triage" exists but isn't listed
+			// "triage" was made after the list loaded (another tab, the agent), so it isn't listed
 			skillFiles: async () => ({
 				skills: [{ scope: "global", path: "/g/review/SKILL.md", name: "review", description: "Review", error: null }],
 				roots: { global: "/g" },
-				truncated: ["global"],
+				truncated: [],
 			}),
 			async readSkill(path) {
 				if (path === "/g/triage/SKILL.md") return { path, content: "---\nname: triage\n---\n" }
