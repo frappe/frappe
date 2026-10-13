@@ -552,8 +552,10 @@ def _get_module_linked_doctype_field_map() -> dict[str, str]:
 		filters={"fieldtype": "Link", "options": "Module Def"},
 		fields=["parent", "fieldname"],
 	)
-	existing_linked_doctypes = [d for d in linked_doctypes if frappe.db.exists("DocType", d.parent)]
-
+	tables = frappe.db.get_tables(cached=False)
+	existing_linked_doctypes = [
+		d for d in linked_doctypes if frappe.db.exists("DocType", d.parent) and f"tab{d.parent}" in tables
+	]
 	for d in existing_linked_doctypes:
 		# DocType deletion is handled separately in the end
 		if d.parent not in doctype_to_field_map and d.parent != "DocType":

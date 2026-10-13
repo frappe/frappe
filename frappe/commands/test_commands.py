@@ -61,11 +61,11 @@ def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
 	"""Return list of missing doctypes in the backup.
 
 	Args:
-	        doctypes (list): List of DocTypes to be checked
-	        file (str): Path of the database file
+			doctypes (list): List of DocTypes to be checked
+			file (str): Path of the database file
 
 	Return:
-	        doctypes(list): doctypes that are missing in backup
+			doctypes(list): doctypes that are missing in backup
 	"""
 	predicate = 'COPY public."tab{}"' if frappe.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
 	with gzip.open(file, "rb") as f:
@@ -78,8 +78,8 @@ def exists_in_backup(doctypes: list, file: os.PathLike) -> bool:
 	"""Check if the list of doctypes exist in the database.sql.gz file supplied.
 
 	Args:
-	        doctypes (list): List of DocTypes to be checked
-	        file (str): Path of the database file
+			doctypes (list): List of DocTypes to be checked
+			file (str): Path of the database file
 
 	Return True if all tables exist.
 	"""
@@ -899,8 +899,27 @@ def drop_table_times_out(on_attempt):
 		yield
 
 
+@contextmanager
+def deleting_doctype_times_out(doctype):
+	real_delete_doc = frappe.delete_doc
+
+	def delete_doc(*args, **kwargs):
+		if args[:2] == ("DocType", doctype):
+			raise frappe.QueryTimeoutError
+		return real_delete_doc(*args, **kwargs)
+
+	with patch.object(frappe, "delete_doc", delete_doc):
+		yield
+
+
 class TestRemoveApp(IntegrationTestCase):
-	def test_failed_uninstall_can_be_finished_by_running_it_again(self):
+	def test_uninstall_that_failed_on_a_drop_can_be_finished(self):
+		self.assert_failed_uninstall_can_be_finished(drop_table_times_out(on_attempt=2))
+
+	def test_uninstall_that_failed_after_a_drop_can_be_finished(self):
+		self.assert_failed_uninstall_can_be_finished(deleting_doctype_times_out("Abc Test Uninstall One"))
+
+	def assert_failed_uninstall_can_be_finished(self, failure):
 		from frappe.installer import get_app_owned_modules
 
 		app = "abc_test_uninstall_app"
@@ -910,7 +929,7 @@ class TestRemoveApp(IntegrationTestCase):
 		self.make_app_module(app, module, doctypes)
 
 		with fake_app_without_hooks(app), self.set_user("test@example.com"):
-			with drop_table_times_out(on_attempt=2), self.assertRaises(frappe.QueryTimeoutError):
+			with failure, self.assertRaises(frappe.QueryTimeoutError):
 				remove_app(app, yes=True, no_backup=True, force=True)
 			frappe.db.rollback()
 			frappe.flags.in_uninstall = False
@@ -936,7 +955,14 @@ class TestRemoveApp(IntegrationTestCase):
 					"name": doctype,
 					"module": module,
 					"custom": 1,
-					"fields": [{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+					"fields": [
+						{
+							"fieldname": "linked_module",
+							"fieldtype": "Link",
+							"options": "Module Def",
+							"label": "Linked Module",
+						}
+					],
 					"permissions": [{"role": "System Manager", "read": 1}],
 				}
 			).insert()
@@ -991,6 +1017,7 @@ class TestRemoveApp(IntegrationTestCase):
 
 		_delete_doctypes(doctypes_to_delete, dry_run=False)
 		_delete_module_defs([test_module.module_name], dry_run=False)
+		frappe.db.commit()
 		self.assertFalse(frappe.db.exists("Module Def", test_module.module_name))
 		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
 
