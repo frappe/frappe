@@ -11,7 +11,7 @@ from frappe.core.utils import find
 from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
 from frappe.model.document import Document
 from frappe.utils import add_days, get_datetime, get_fullname, now_datetime, time_diff_in_hours
-from frappe.utils.logging import get_log_db, is_log_doctype
+from frappe.utils.logging import connection_for, is_log_doctype
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 
@@ -179,11 +179,13 @@ class PersonalDataDeletionRequest(Document):
 
 	def delete_log_data(self, email):
 		"""Delete this user's rows from every log DocType in `user_data_fields`, and commit."""
-		log_db = get_log_db()
-
 		for ref in self.log_privacy_docs:
 			doctype = ref["doctype"]
 			meta = frappe.get_meta(doctype)
+
+			# Creates the table when nothing has been logged on this site yet, so a user
+			# cannot be left undeletable by the absence of the rows being deleted.
+			log_db = connection_for(doctype)
 
 			# A log DocType may record the user in `owner`, in `user`, or in both.
 			columns = [ref["filter_by"]] if ref.get("filter_by") else ["owner", "user"]

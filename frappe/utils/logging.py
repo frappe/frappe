@@ -207,8 +207,16 @@ def ensure_log_table(doctype: str) -> None:
 	for definition in definitions:
 		column = definition.split("`")[1]
 
-		if column not in existing:
+		if column in existing:
+			continue
+
+		try:
 			log_db.sql_ddl(f"ALTER TABLE `{table}` ADD COLUMN {definition}")
+		except Exception as e:
+			# Another worker can add the same column between the `PRAGMA` above and this
+			# statement. SQLite then reports a duplicate, which is the state we wanted.
+			if "duplicate column name" not in str(e).lower():
+				raise
 
 	for column in ["creation", *indexed]:
 		log_db.sql_ddl(f"CREATE INDEX IF NOT EXISTS `{table}_{column}_idx` ON `{table}` (`{column}`)")

@@ -42,6 +42,10 @@ class TestWebPageView(IntegrationTestCase):
 		"""Namespace a path to this test, so a real site's views cannot be mistaken for it."""
 		return f"{self.prefix}/{path}"
 
+	def _visitor(self, visitor_id):
+		"""Namespace a visitor id, for the same reason as `_path`."""
+		return f"{self.prefix}/{visitor_id}"
+
 	def _own_views(self):
 		"""Filters matching only the views this test created."""
 		return {"name": ("in", self.view_names or [""])}
@@ -69,7 +73,7 @@ class TestWebPageView(IntegrationTestCase):
 		self.assertTrue(is_log_doctype("Web Page View"))
 		self.assertTrue(frappe.get_meta("Web Page View").is_virtual)
 
-		view = self._add_view(path=self._path("pricing"), visitor_id="v1", is_unique=True)
+		view = self._add_view(path=self._path("pricing"), visitor_id=self._visitor("v1"), is_unique=True)
 
 		self.assertEqual(self.log_db.get_value("Web Page View", view.name, "path"), self._path("pricing"))
 		self.assertEqual(self.log_db.count("Web Page View", self._own_views()), 1)
@@ -93,20 +97,20 @@ class TestWebPageView(IntegrationTestCase):
 		lean on it to turn a row from `frappe.get_all` straight into a document. Comparing
 		the `name` column against a dict renders the dict into the SQL instead.
 		"""
-		view = self._add_view(path=self._path("pricing"), visitor_id="v1")
+		view = self._add_view(path=self._path("pricing"), visitor_id=self._visitor("v1"))
 
 		row = frappe.get_all("Web Page View", filters={"path": self._path("pricing")})[0]
 		self.assertIsInstance(row, dict)
 		self.assertEqual(frappe.get_doc("Web Page View", row).name, view.name)
 
 		# a filter on something other than `name` is the same contract
-		self.assertEqual(frappe.get_doc("Web Page View", {"visitor_id": "v1"}).name, view.name)
+		self.assertEqual(frappe.get_doc("Web Page View", {"visitor_id": self._visitor("v1")}).name, view.name)
 
 		# and a scalar name still takes the direct path
 		self.assertEqual(frappe.get_doc("Web Page View", view.name).name, view.name)
 
 		with self.assertRaises(frappe.DoesNotExistError):
-			frappe.get_doc("Web Page View", {"visitor_id": "no-such-visitor"})
+			frappe.get_doc("Web Page View", {"visitor_id": self._visitor("no-such-visitor")})
 
 	def test_list_view_reads_the_log_database(self):
 		self._add_view(path=self._path("pricing"))
@@ -152,7 +156,11 @@ class TestWebPageView(IntegrationTestCase):
 			# from what is already stored -- so the queue has to be drained between the two
 			# views for the second one to see the first, exactly as it is between two requests.
 			for _ in range(2):
-				make_view_log(referrer="https://example.com/post?utm=x", browser="chrome", visitor_id="v1")
+				make_view_log(
+					referrer="https://example.com/post?utm=x",
+					browser="chrome",
+					visitor_id=self._visitor("v1"),
+				)
 				save_to_db(doctype="Web Page View")
 
 		# `make_view_log` inserts through the deferred queue, so the rows are not created by
