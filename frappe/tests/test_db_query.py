@@ -434,6 +434,9 @@ class TestDBQuery(IntegrationTestCase):
 				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 				rows = get_list("ToDo", fields=["name as name"], **args)
 				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				# the name under another alias, in either case, still maps rows to documents
+				rows = get_list("ToDo", fields=["name AS id"], **args)
+				self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 				# an alias is not the document's name, so it must not split rows or get a count
 				rows = get_list("ToDo", fields=["description as name"], **args)
 				self.assertEqual(len(rows), 1)
@@ -444,9 +447,6 @@ class TestDBQuery(IntegrationTestCase):
 			# expressions carry no table, and must not hide a selected name
 			rows = frappe.get_list("ToDo", fields=[{"IFNULL": ["description", "'x'"]}, "name"], **args)
 			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
-			# the name under another alias still maps rows to documents
-			rows = frappe.get_list("ToDo", fields=["name as id"], **args)
-			self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 			# `*` carries the name, also when permissions leave it unexpanded
 			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
 				rows = get_list("ToDo", fields=["*"], ignore_permissions=True, **args)
@@ -465,16 +465,16 @@ class TestDBQuery(IntegrationTestCase):
 				frappe.get_doc(
 					doctype="File", file_name=f"comment count {i}.txt", content="x", folder=folder.name
 				).insert().add_comment("Comment", f"comment {i}")
-			rows = frappe.get_list(
-				"File",
-				fields=["folder.name"],
-				filters={"folder": folder.name},
-				distinct=True,
-				with_comment_count=1,
-			)
-			# the linked folder's name is not the row's own name, so files must not split the row
-			values = [tuple(v for k, v in row.items() if k != "_comment_count") for row in rows]
-			self.assertEqual(len(values), len(set(values)))
+			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
+				rows = get_list(
+					"File",
+					fields=["folder.name"],
+					filters={"folder": folder.name},
+					distinct=True,
+					with_comment_count=1,
+				)
+				# the linked folder's name is not the row's own name, so files must not split the row
+				self.assertEqual([tuple(row.values()) for row in rows], [(folder.name,)])
 			# same for a hand-built field on the folder join, which the engine aliases `tab_File_1`
 			folder_name = frappe.qb.DocType("File").as_("tab_File_1").name
 			rows = frappe.get_list(
