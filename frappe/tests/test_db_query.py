@@ -419,17 +419,17 @@ class TestDBQuery(IntegrationTestCase):
 				frappe.get_list("Module Def", filters={"_comments": ("like", "%a%")})
 
 	def test_comment_count_keeps_distinct(self):
-		todo = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
-		frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
-		todo.add_comment("Comment", "only on one")
-		args = dict(
-			fields=["description"],
-			filters={"description": "distinct comment count"},
-			distinct=True,
-			with_comment_count=1,
-		)
-		self.assertEqual(len(frappe.get_list("ToDo", **args)), 1)
-		self.assertEqual(len(DatabaseQuery("ToDo").execute(**args)), 1)
+		with setup_test_user(set_user=True):
+			commented = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
+			plain = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
+			commented.add_comment("Comment", "only on one")
+			args = dict(
+				filters={"name": ("in", [commented.name, plain.name])}, distinct=True, with_comment_count=1
+			)
+			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
+				self.assertEqual(len(get_list("ToDo", fields=["description"], **args)), 1)
+				rows = get_list("ToDo", fields=["name"], **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
