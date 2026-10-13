@@ -70,8 +70,8 @@ interface Sample {
 	readonly?: boolean;
 }
 
-const COLUMN = 300;
-const BRANCH_OFFSET = 108;
+const COLUMN = 320;
+const BRANCH_OFFSET = 132;
 
 const scenario = ref("empty");
 const width = ref("960px");
@@ -226,14 +226,14 @@ function rejoinSample(): Sample {
 function trialSample(): Sample {
 	const start = {
 		...startNode(),
-		data: { ...startNode().data, run: { status: "Success" as const } },
+		data: { ...startNode().data, run: { status: "Success" as const, durationMs: 8 } },
 	};
 	const condition = conditionNode({
 		run: { status: "Success", forced: true, retryArms: [{ key: "Else", label: "Otherwise" }] },
 	});
 	const yes = node("qualified-email", COLUMN * 2, -BRANCH_OFFSET, {
 		...emailData("Send qualified email"),
-		run: { status: "Failed" },
+		run: { status: "Failed", durationMs: 2400 },
 		issue: { level: "error", message: "The Welcome template no longer exists" },
 	});
 	const no = node("assign", COLUMN * 2, BRANCH_OFFSET, {
