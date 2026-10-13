@@ -10,6 +10,7 @@ from frappe.utils.file_manager import save_file
 
 TEST_USER = "test@example.com"
 TARGET_DOCTYPE = "ToDo"
+DISABLED_DOCTYPE = "Note"
 
 
 def pdf_with_text(text: str) -> bytes:
@@ -41,6 +42,14 @@ def pdf_with_text(text: str) -> bytes:
 
 
 class TestAttachmentQueue(IntegrationTestCase):
+	def setUp(self):
+		self.enable_upload_first(TARGET_DOCTYPE)
+
+	def enable_upload_first(self, doctype: str):
+		frappe.db.set_value("DocType", doctype, "enable_upload_first_workflow", 1)
+		frappe.clear_cache(doctype=doctype)
+		self.addCleanup(frappe.clear_cache, doctype=doctype)
+
 	def make_file(self, content: bytes, file_name: str):
 		return save_file(file_name, content, None, None, is_private=1)
 
@@ -53,12 +62,20 @@ class TestAttachmentQueue(IntegrationTestCase):
 			}
 		).insert()
 
-	def delete_committed_queue(self, name: str):
-		# The row this removes was committed on purpose, so removing it has to be too.
+	def delete_committed(self, queue_name: str, task_name: str, file_url: str):
+		# Everything this removes was committed on purpose, so removing it has to be too.
 		frappe.db.rollback()
-		if frappe.db.exists("Attachment Queue", name):
-			frappe.delete_doc("Attachment Queue", name, force=True, ignore_permissions=True)
+
+		for doctype, name in (("Attachment Queue", queue_name), ("Background Task", task_name)):
+			if name and frappe.db.exists(doctype, name):
+				frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+
+		for name in frappe.get_all("File", filters={"file_url": file_url}, pluck="name"):
+			frappe.delete_doc("File", name, force=True, ignore_permissions=True)
+
+		frappe.db.set_value("DocType", TARGET_DOCTYPE, "enable_upload_first_workflow", 0)
 		frappe.db.commit()  # nosemgrep
+		frappe.clear_cache(doctype=TARGET_DOCTYPE)
 
 	def test_saving_a_pdf_queues_extraction_and_stores_its_text(self):
 		with self.set_user(TEST_USER):
@@ -85,10 +102,14 @@ class TestAttachmentQueue(IntegrationTestCase):
 		# File parses every PDF it stores, so the file can only be damaged once stored.
 		Path(file_doc.get_full_path()).write_bytes(b"no longer a pdf")
 
+		# Cancelling before the commit stops enqueue_task from handing a real job to a
+		# worker, which would later run against the row this test removes.
+		frappe.db.set_value("Background Task", queue_doc.task, "status", "Cancelled")
+
 		# Extraction rolls back before recording the failure, so the row has to be
 		# committed first, the way it already is when a worker picks it up.
 		frappe.db.commit()  # nosemgrep
-		self.addCleanup(self.delete_committed_queue, queue_doc.name)
+		self.addCleanup(self.delete_committed, queue_doc.name, queue_doc.task, file_doc.file_url)
 
 		with self.assertRaises(Exception):
 			extract_attachment_text(queue_doc.name)
@@ -117,6 +138,22 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertNotEqual(queue_doc.task, first_task)
 			self.assertFalse(queue_doc.extracted_text)
 			self.assertFalse(queue_doc.extraction_method)
+
+	def test_a_doctype_without_the_workflow_enabled_is_rejected(self):
+		# The target is checked before the file is, so this needs no uploaded file.
+		with self.set_user(TEST_USER):
+			queue_doc = frappe.get_doc(
+				{
+					"doctype": "Attachment Queue",
+					"source_file": "/private/files/never-read.pdf",
+					"document_type": DISABLED_DOCTYPE,
+				}
+			)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"does not allow document creation",
+				queue_doc.insert,
+			)
 
 	def test_a_private_file_cannot_be_queued_without_read_permission(self):
 		# Owned by Administrator and attached to nothing, so File permission denies it.

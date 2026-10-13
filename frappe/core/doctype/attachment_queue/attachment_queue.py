@@ -45,11 +45,23 @@ class AttachmentQueue(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		if not self.source_file:
-			return
+		# Mandatory fields are checked after this runs, so either can still be empty.
+		if self.document_type:
+			self.validate_document_type()
 
-		self.validate_source_file_type()
-		self.validate_source_file_access()
+		if self.source_file:
+			self.validate_source_file_type()
+			self.validate_source_file_access()
+
+	def validate_document_type(self):
+		# Read through the meta so a per-DocType override from Customize Form counts.
+		if not frappe.get_meta(self.document_type).get("enable_upload_first_workflow"):
+			frappe.throw(
+				_("{0} does not allow document creation from an uploaded file.").format(
+					frappe.bold(_(self.document_type))
+				),
+				title=_("Not Enabled"),
+			)
 
 	def validate_source_file_type(self):
 		if get_file_extension(self.source_file) not in SUPPORTED_EXTENSIONS:
@@ -59,14 +71,20 @@ class AttachmentQueue(Document):
 			)
 
 	def validate_source_file_access(self):
-		file_name = frappe.db.get_value("File", {"file_url": self.source_file}, "name")
-		if not file_name:
+		# One file_url can belong to several File records that grant access to different
+		# users, so the file is readable as soon as any one of them is.
+		file_names = frappe.get_all("File", filters={"file_url": self.source_file}, pluck="name")
+		if not file_names:
 			frappe.throw(
 				_("{0} is not an uploaded file.").format(self.source_file),
 				title=_("Unknown File"),
 			)
 
-		frappe.get_doc("File", file_name).check_permission("read")
+		if not any(frappe.has_permission("File", doc=name) for name in file_names):
+			frappe.throw(
+				_("You are not permitted to read {0}.").format(self.source_file),
+				frappe.PermissionError,
+			)
 
 	def after_insert(self):
 		self.enqueue_extraction()
