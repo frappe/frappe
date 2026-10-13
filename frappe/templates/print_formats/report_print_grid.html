@@ -13,7 +13,7 @@
 {% endif %}
 
 {% for table_rows in rows | batch(rows_per_table) %}
-<table class="table table-bordered" {% if not loop.first %} style="page-break-before: always" {% endif %}>
+<table class="table table-bordered {% if not loop.last %} page-break {% endif %}">
 	<thead>
 		<tr>
 			<th> # </th>

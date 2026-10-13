@@ -549,7 +549,7 @@ def download_report_pdf(
 	custom_columns: str | list[dict] | None = None,
 	applied_filters: str | dict | None = None,
 	ignore_prepared_report: bool | int = False,
-):
+) -> None:
 	"""Run the report on the server and return it as a PDF.
 
 	`columns` are the fieldnames to print in order, `visible_idx` the row indices to print in order.
