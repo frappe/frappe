@@ -152,7 +152,7 @@ def typst_blockers(print_format, layout) -> list[str]:
 
 	background = layout.get("background")
 	if isinstance(background, dict) and str(background.get("image") or "").startswith(
-		("http://", "https://")
+		("http://", "https://", "//")
 	):
 		blockers.append(_("Background image loaded from a web address"))
 
@@ -624,9 +624,16 @@ class TypstEmitter:
 
 	def _page_background(self) -> str | None:
 		background = self.layout.get("background")
-		name = background and self._embed_image(background["image"])
-		if not name:
+		if not background:
 			return None
+		name = self._embed_image(background["image"])
+		if not name:
+			frappe.throw(
+				_("The Typst renderer cannot embed this background image: {0}").format(
+					frappe.bold(background["image"][:100])
+				),
+				title=_("Typst renderer unavailable"),
+			)
 		veil = round(255 * (100 - background["opacity"]) / 100)
 		return (
 			f'[#image("{name}", width: 100%, height: 100%, fit: "stretch")'
