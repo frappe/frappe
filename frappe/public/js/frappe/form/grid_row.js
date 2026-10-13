@@ -1392,11 +1392,13 @@ export default class GridRow {
 
 		if (show === undefined) show = !open_row;
 
-		// This editing surface needs a live frm: its toolbar actions and its freeze
-		// backdrop's only close path (cur_frm.cur_grid) both depend on one. Without it the
-		// row would open with no way to close it again, so a frm-less grid (e.g. a
-		// document preview) just doesn't open it.
-		if (show && !this.frm) {
+		// static_rows grids (e.g. the frm-less document side panel) hide this surface's own
+		// toolbar (is_editable() is false), and its freeze backdrop's only close path —
+		// cur_frm.cur_grid — needs a live frm that a static-rows preview doesn't have either.
+		// Without either way to close it, the row would open and stay stuck open, so refuse to
+		// open it at all here. Editable frm-less tables (a Web Form, a Dialog) are unaffected:
+		// their toolbar and heading-click close both work regardless of frm.
+		if (show && this.grid.static_rows) {
 			callback && callback();
 			return this;
 		}
