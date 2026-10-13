@@ -170,14 +170,16 @@ def get_provider_models(provider: str | None = None) -> list[str]:
 	if not provider or not frappe.has_permission("Flow Model", "write"):
 		return []
 	provider = provider.strip().lower()
+	prefix = f"{provider}/"
 	try:
-		models = _live_models(provider)
+		# litellm strips one prefix, so always add ours
+		return sorted({prefix + model for model in _live_models(provider)})
 	except Exception:
 		import litellm
 
-		models = litellm.models_by_provider.get(provider, set())
-	prefix = f"{provider}/"
-	return sorted({model if model.startswith(prefix) else prefix + model for model in models})
+		# the catalog's ids may carry the prefix already
+		catalog = litellm.models_by_provider.get(provider, set())
+		return sorted({model if model.startswith(prefix) else prefix + model for model in catalog})
 
 
 def _live_models(provider: str) -> list[str]:

@@ -196,7 +196,8 @@ class TestProviderModels(IntegrationTestCase):
 		with patch("requests.get", return_value=_response(body)) as get:
 			models = get_provider_models("groq")
 
-		self.assertEqual(models, ["groq/compound", "groq/llama-3.3-70b"])
+		# Groq's own groq/compound still gets the prefix: litellm strips one
+		self.assertEqual(models, ["groq/groq/compound", "groq/llama-3.3-70b"])
 		self.assertEqual(get.call_args.args[0], "https://api.groq.com/openai/v1/models")
 		self.assertEqual(get.call_args.kwargs["headers"], {"Authorization": "Bearer test-key"})
 
@@ -218,9 +219,10 @@ class TestProviderModels(IntegrationTestCase):
 		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq"}).insert()
 		with (
 			patch("requests.get", side_effect=requests.ConnectionError("down")),
-			patch.dict(litellm.models_by_provider, {"groq": {"llama-3.3-70b"}}),
+			patch.dict(litellm.models_by_provider, {"groq": {"llama-3.3-70b", "groq/llama-guard"}}),
 		):
-			self.assertEqual(get_provider_models("groq"), ["groq/llama-3.3-70b"])
+			# the catalog's own prefix is not doubled
+			self.assertEqual(get_provider_models("groq"), ["groq/llama-3.3-70b", "groq/llama-guard"])
 
 	def test_users_who_cannot_edit_models_get_nothing(self):
 		frappe.set_user("Guest")
