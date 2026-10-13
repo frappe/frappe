@@ -268,7 +268,7 @@
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf"
+   "options": "wkhtmltopdf\nindependent_documents"
   },
   {
    "default": "DocType",
@@ -292,8 +292,8 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2025-09-16 11:20:20.151669",
- "modified_by": "Administrator",
+ "modified": "2026-10-13 21:07:58.923420",
+ "modified_by": "nitesh@fxmed.co.nz",
  "module": "Printing",
  "name": "Print Format",
  "naming_rule": "Set by user",
@@ -315,7 +315,8 @@
    "select": 1
   }
  ],
-"sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

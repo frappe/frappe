@@ -37,10 +37,8 @@ class PrintFormat(Document):
 		margin_right: DF.Float
 		margin_top: DF.Float
 		module: DF.Link | None
-		page_number: DF.Literal[
-			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
-		]
-		pdf_generator: DF.Literal["wkhtmltopdf"]
+		page_number: DF.Literal["Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"]
+		pdf_generator: DF.Literal["wkhtmltopdf", "independent_documents"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -50,7 +48,6 @@ class PrintFormat(Document):
 		report: DF.Link | None
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
-
 	# end: auto-generated types
 
 	def onload(self):
