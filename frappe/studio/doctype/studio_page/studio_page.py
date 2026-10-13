@@ -351,13 +351,16 @@ class StudioPage(Document):
 		return self.modified
 
 	@frappe.whitelist()
-	def save_page_field(self, fieldname: str, value, known_modified: str | None = None):
-		"""Update an editor-owned field using the page's optimistic lock."""
+	def save_page_field(self, fieldname: str | dict, value=None, known_modified: str | None = None):
+		"""Update editor-owned fields using the page's optimistic lock. Pass a dict as `fieldname` to
+		save several fields at once, so they save together or not at all."""
 		FIELDS = ["page_title", "route", "script", "allow_guest"]
-		if fieldname not in FIELDS:
-			frappe.throw(_("Field {0} is not editable outside the Studio editor").format(fieldname))
+		values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
+		for field in values:
+			if field not in FIELDS:
+				frappe.throw(_("Field {0} is not editable outside the Studio editor").format(field))
 		self.reject_if_stale(known_modified)
-		self.set(fieldname, value)
+		self.update(values)
 		self._skip_validate = True
 		self.save()
 		return self.modified

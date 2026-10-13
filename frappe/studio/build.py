@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import subprocess
+import tempfile
 import traceback
 
 import click
@@ -36,7 +37,10 @@ class StudioAppBuilder:
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
 		self.router_file: str | None = None
+		self.app_folder: str | None = None
 		self.icons: set[str] = set()
+		self.tailwind_content: list[str] = []
+		self.page_sources: list[str] = []
 
 		if self.is_standard:
 			"""Build a standard (exported) studio app.
@@ -58,9 +62,21 @@ class StudioAppBuilder:
 			self.get_app_components_from_files()
 			self.get_page_scripts_from_files()
 			self.router_file = get_router_file(self.frappe_app, self.app_name)
+			self.app_folder = self.get_app_folder()
+			self.tailwind_content = get_tailwind_content(self.app_folder)
+			self._run_vite_build()
 		else:
 			self.get_app_components()
-		self._run_vite_build()
+			with self._write_page_sources() as page_sources:
+				self.tailwind_content = [page_sources.name]
+				self._run_vite_build()
+
+	def _write_page_sources(self):
+		"""DB pages aren't on disk, so write them to a file for Tailwind to scan."""
+		page_sources = tempfile.NamedTemporaryFile("w", suffix=".txt")
+		page_sources.write("\n".join(self.page_sources))
+		page_sources.flush()
+		return page_sources
 
 	def get_app_folder(self) -> str:
 		return os.path.join(get_studio_folder(self.frappe_app), frappe.scrub(self.app_name))
@@ -124,6 +140,12 @@ class StudioAppBuilder:
 		if self.icons:
 			command += f" --icons {','.join(sorted(self.icons))}"
 
+		if self.app_folder:
+			command += f" --app-folder {shlex.quote(self.app_folder)}"
+
+		for glob in self.tailwind_content:
+			command += f" --tailwind-content {shlex.quote(glob)}"
+
 		studio_app_path = frappe.get_app_source_path("studio")
 		result = subprocess.run(
 			command,
@@ -154,6 +176,8 @@ class StudioAppBuilder:
 
 		for page in pages:
 			self._add_icons(page.script)
+			self._add_page_source(page.script)
+			self._add_page_source(page.blocks)
 			blocks = page.blocks
 			if not blocks:
 				continue
@@ -190,6 +214,7 @@ class StudioAppBuilder:
 					page_text = f.read()
 				page_data = json.loads(page_text)
 				self._add_icons(page_text)
+				self._add_h_function_components(page_text)
 			except (json.JSONDecodeError, OSError) as e:
 				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
@@ -199,7 +224,6 @@ class StudioAppBuilder:
 				continue
 
 			if isinstance(blocks, str):
-				self._add_h_function_components(blocks)
 				blocks = json.loads(blocks)
 
 			if isinstance(blocks, list) and blocks:
@@ -233,9 +257,14 @@ class StudioAppBuilder:
 		else:
 			component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
 			self._add_icons(component_block if isinstance(component_block, str) else None)
+			self._add_page_source(component_block)
 			if isinstance(component_block, str):
 				component_block = frappe.parse_json(component_block)
 			self._add_block_components(component_block)
+
+	def _add_page_source(self, source) -> None:
+		if source:
+			self.page_sources.append(source if isinstance(source, str) else json.dumps(source))
 
 	def _load_studio_components_from_files(self, app_folder: str):
 		"""Load all studio component definitions from disk for recursive component resolution."""
@@ -355,6 +384,14 @@ def get_router_file(frappe_app: str, studio_app: str) -> str | None:
 	"""Path of the app's studio/<app>/router.ts, if it ships one."""
 	path = os.path.join(get_studio_folder(frappe_app), frappe.scrub(studio_app), "router.ts")
 	return path if os.path.exists(path) else None
+
+
+def get_tailwind_content(folder: str) -> list[str]:
+	"""Tailwind content globs for every source file in `folder`."""
+	return [
+		os.path.join(folder, "**", "*.{vue,js,ts,jsx,tsx,json}"),
+		"!" + os.path.join(folder, "**", "node_modules", "**"),
+	]
 
 
 def is_vue_component(component_name: str | None) -> bool:

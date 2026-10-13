@@ -259,7 +259,7 @@ class Block implements BlockOptions {
 	}
 
 	isContainer() {
-		return this.originalElement === "div" || this.originalElement === "header" || this.componentName === "FitContainer" || this.componentName === "Container";
+		return this.originalElement === "div" || this.originalElement === "header" || this.componentName === "Container";
 	}
 
 	// a library component studio no longer registers, e.g. one a frappe-ui release removed

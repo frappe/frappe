@@ -121,7 +121,7 @@ import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
 import StudioComponentEditorWrapper from "@/components/StudioComponentEditorWrapper.vue"
-import { customVueComponentsRegistry } from "@/globals"
+import { customVueComponentsRegistry } from "@/utils/customVueComponents"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"

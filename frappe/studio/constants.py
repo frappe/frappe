@@ -52,17 +52,9 @@ STANDARD_COMPONENT_NAMES = {
 	"Link",
 	# studio built-in
 	"Container",
-	"FitContainer",
 	"Repeater",
 	"HTML",
 	"Header",
-	"SplitView",
-	"AvatarCard",
-	"CardList",
-	"Audio",
 	"ImageView",
 	"TextBlock",
-	"AppHeader",
-	"BottomTabs",
-	"MarkdownEditor",
 }

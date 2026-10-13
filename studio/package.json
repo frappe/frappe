@@ -29,7 +29,6 @@
 		"@vitejs/plugin-vue": "^6.0.0",
 		"@vueuse/components": "^14.1.0",
 		"@vueuse/core": "^14.1.0",
-		"ace-builds": "^1.36.2",
 		"autoprefixer": "^10.4.2",
 		"codemirror": "^6.0.1",
 		"dompurify": "^3.4.0",

@@ -69,7 +69,7 @@ import type { DataResult } from "@/types/Studio/StudioResource"
 
 import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
 import SlotScopeProvider from "@/components/SlotScopeProvider.vue"
-import { customVueComponentsRegistry } from "@/globals"
+import { customVueComponentsRegistry } from "@/utils/customVueComponents"
 import MissingComponent from "@/components/MissingComponent.vue"
 
 const props = defineProps<{

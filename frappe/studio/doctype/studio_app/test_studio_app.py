@@ -54,6 +54,74 @@ class TestStudioApp(FrappeTestCase):
 			app.disable_app_export()
 			self.assertEqual(app.reload().router_script, ROUTER_SCRIPT)
 
+	def test_app_favicon(self):
+		app = make_studio_app(app_title="Favicon App", app_name="favicon-app")
+		self.assertIn('href="/assets/studio/frontend/favicon.png"', render_app_template(app))
+
+		app.favicon = "/files/favicon-app.png"
+		self.assertIn('href="/files/favicon-app.png"', render_app_template(app))
+
+	def test_rename_keeps_exported_files(self):
+		with exports_in_tempdir():
+			app, page = make_exported_app_with_files("rename-me")
+			old_folder = app.get_folder_path()
+
+			frappe.rename_doc("Studio App", app.name, "renamed-app")
+
+			app = frappe.get_doc("Studio App", "renamed-app")
+			page.reload()
+			self.assertEqual(app.app_name, "renamed-app")
+			self.assertFalse(os.path.exists(old_folder))
+			self.assert_exported_files_kept(app, page)
+			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "renamed_app.json")))
+			self.assertFalse(os.path.exists(os.path.join(app.get_folder_path(), "rename_me.json")))
+			exported_page = json.loads(frappe.read_file(page.get_folder_path(with_filename=True)))
+			self.assertEqual(exported_page["studio_app"], "renamed-app")
+
+	def test_changing_the_frappe_app_moves_the_export_folder(self):
+		with exports_in_tempdir():
+			app, page = make_exported_app_with_files("moving-app")
+			old_folder = app.get_folder_path()
+
+			app.enable_app_export("frappe")
+
+			page.reload()
+			self.assertFalse(os.path.exists(old_folder))
+			self.assert_exported_files_kept(app, page)
+
+	def assert_exported_files_kept(self, app, page):
+		self.assertEqual(frappe.read_file(app.get_router_file_path()), f"export default {ROUTER_SCRIPT}\n")
+		self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('kept')")
+		extra_file = os.path.join(app.get_folder_path(), "Extra.vue")
+		self.assertEqual(frappe.read_file(extra_file), "<template>kept</template>")
+
+	def test_rename_keeps_the_app_json_when_the_names_scrub_the_same(self):
+		with exports_in_tempdir():
+			app = make_studio_app(app_title="Dashed App", app_name="dashed-app")
+			app.enable_app_export("studio")
+
+			frappe.rename_doc("Studio App", app.name, "dashed_app")
+
+			app = frappe.get_doc("Studio App", "dashed_app")
+			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
+			StudioApp.remove_from_studio_apps_txt.assert_not_called()
+
+	def test_exported_apps_cannot_be_renamed_outside_developer_mode(self):
+		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
+		app.db_set({"is_standard": 1, "frappe_app": "studio"})
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			self.assertRaises(
+				frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, "deployed-renamed"
+			)
+
+	def test_validate_app_name(self):
+		app = make_studio_app(app_title="Valid App", app_name="valid-app")
+		for name in ("Has Space", "UPPER", "a/b"):
+			self.assertRaises(frappe.ValidationError, make_studio_app, app_title="Invalid", app_name=name)
+			self.assertRaises(frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, name)
+
+		self.assertEqual(make_studio_app(app_title="Café (v2)!", app_name=None).name, "café-v2")
+
 	def test_studio_app_boot(self):
 		app = unsaved_studio_app("boot-app")
 		with patch_boot_hook(app.name, f"{__name__}.boot_contribution"):
@@ -231,6 +299,27 @@ class TestStudioAppBuilder(FrappeTestCase):
 			self.assertIn("TextEditor", builder.components)
 			self.assertIn("Dropdown", builder.components)
 
+	def test_get_app_components_from_files_extracts_h_function_components(self):
+		app_name = "file-h-func-app"
+		page_data = {
+			"blocks": [
+				{
+					"componentName": "ListView",
+					"children": [],
+					"componentProps": {
+						"columns": [{"prefix": "({ row }) => h(Avatar, { image: row.image })"}]
+					},
+				}
+			]
+		}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
+			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+				builder.get_app_components_from_files()
+
+			self.assertIn("Avatar", builder.components)
+
 	def test_get_app_components_from_files_with_string_blocks(self):
 		"""Blocks stored as a JSON string (instead of list) should also be parsed."""
 		app_name = "str-blocks-app"
@@ -317,6 +406,86 @@ class TestStudioAppBuilder(FrappeTestCase):
 				builder.get_app_components_from_files()
 
 		self.assertEqual(builder.icons, {"lucide-house", "lucide-bell"})
+
+	def test_passes_custom_app_pages_to_tailwind(self):
+		app = make_studio_app(app_title="Tailwind App", app_name="tailwind-app")
+		component = frappe.get_doc(
+			{
+				"doctype": "Studio Component",
+				"component_name": "TailwindWidget",
+				"block": json.dumps({"componentName": "Badge", "classes": ["bg-component-only"]}),
+			}
+		).insert()
+		blocks = json.dumps(
+			[
+				{
+					"componentName": "Button",
+					"classes": ["bg-page-only"],
+					"children": [
+						{"componentName": component.name, "isStudioComponent": True, "children": []}
+					],
+				}
+			]
+		)
+		make_studio_page(app.name, blocks=blocks, script="const tone = 'text-script-only'", published=1)
+
+		page_sources = {}
+
+		def read_content_file(command, **kwargs):
+			content_path = re.search(r" --tailwind-content (\S+)", command).group(1)
+			with open(content_path) as f:
+				page_sources["text"] = f.read()
+			return run.return_value
+
+		builder = StudioAppBuilder(app.name, is_standard=False)
+		with patch("studio.build.subprocess.run", side_effect=read_content_file) as run, patch(
+			"studio.build.os.makedirs"
+		):
+			run.return_value.returncode = 0
+			builder.build()
+
+		for css_class in ("bg-page-only", "bg-component-only", "text-script-only"):
+			self.assertIn(css_class, page_sources["text"])
+
+	def test_passes_the_app_folder_to_tailwind(self):
+		builder = StudioAppBuilder("folder-app", is_standard=True, frappe_app="studio")
+		with mock_studio_app_files(
+			"folder-app", pages={"page": {"blocks": [{"componentName": "Button"}]}}
+		) as studio_folder, patch("studio.build.get_studio_folder", return_value=studio_folder), patch(
+			"studio.build.subprocess.run"
+		) as run, patch("studio.build.os.makedirs"):
+			run.return_value.returncode = 0
+			builder.build()
+
+		app_folder = os.path.join(studio_folder, "folder_app")
+		self.assertIn(f" --app-folder {app_folder}", run.call_args.args[0])
+		self.assertIn(
+			f"--tailwind-content '{app_folder}/**/*.{{vue,js,ts,jsx,tsx,json}}'", run.call_args.args[0]
+		)
+
+	def test_builds_css_for_the_app_tailwind_config(self):
+		"""Classes in files the app's tailwind.config.js points at, or safelists, reach the built
+		CSS; files outside the app that the config doesn't list stay out."""
+		page = {"blocks": [{"componentName": "Button", "children": []}]}
+		with (
+			mock_studio_app_files("tailwind-app", pages={"page": page}) as studio_folder,
+			patch("studio.build.get_studio_folder", return_value=studio_folder),
+		):
+			frappe_app = os.path.dirname(studio_folder)
+			write_file(os.path.join(frappe_app, "shared", "Shared.vue"), '<p class="tracking-[0.111em]" />')
+			write_file(os.path.join(frappe_app, "desk", "Desk.vue"), '<p class="tracking-[0.222em]" />')
+			write_file(
+				os.path.join(studio_folder, "tailwind_app", "tailwind.config.js"),
+				'export default { content: ["../../shared/**/*.vue"], safelist: ["tracking-[0.333em]"] }',
+			)
+			builder = StudioAppBuilder("tailwind-app", is_standard=True, frappe_app="studio")
+			builder.out_dir = tempfile.mkdtemp()
+			self.addCleanup(shutil.rmtree, builder.out_dir)
+			builder.build()
+
+		css = get_built_css(builder.out_dir)
+		built = {marker for marker in ("111", "222", "333") if rf"tracking-\[0\.{marker}em\]" in css}
+		self.assertEqual(built, {"111", "333"})
 
 	def test_passes_only_the_used_icons_to_the_build(self):
 		builder = StudioAppBuilder("icon-cli-app", is_standard=False)
@@ -420,6 +589,7 @@ def exports_in_tempdir():
 		),
 		patch.dict(frappe.conf, {"developer_mode": 1}),
 		patch.object(StudioApp, "add_to_studio_apps_txt"),
+		patch.object(StudioApp, "remove_from_studio_apps_txt"),
 	):
 		yield
 
@@ -430,6 +600,23 @@ def get_renderer_context(app):
 	with patch.object(frappe.db, "commit"):
 		app.get_context(context)
 	return context
+
+
+def make_exported_app_with_files(app_name):
+	"""An app exported to studio with a page script, router.ts and a file only the folder has."""
+	app = make_studio_app(app_title=app_name.title(), app_name=app_name)
+	page = make_studio_page(app.name, page_title=f"{app.app_title} Page", script="console.log('kept')")
+	app.reload()  # the first page becomes the app home
+	app.router_script = ROUTER_SCRIPT
+	app.save()
+	app.enable_app_export("studio")
+	with open(os.path.join(app.get_folder_path(), "Extra.vue"), "w") as f:
+		f.write("<template>kept</template>")
+	return app, page
+
+
+def render_app_template(app):
+	return frappe.render_template(StudioApp.website.template, get_renderer_context(app))
 
 
 def unsaved_studio_app(name):
@@ -490,6 +677,23 @@ def make_studio_page(studio_app, **kwargs):
 	)
 	page.insert()
 	return page
+
+
+def write_file(path: str, text: str) -> None:
+	os.makedirs(os.path.dirname(path), exist_ok=True)
+	with open(path, "w") as f:
+		f.write(text)
+
+
+def get_built_css(out_dir: str) -> str:
+	assets_dir = os.path.join(out_dir, "assets")
+	css_files = [
+		name
+		for name in os.listdir(assets_dir)
+		if name.startswith("studioRenderer-") and name.endswith(".css")
+	]
+	with open(os.path.join(assets_dir, css_files[0])) as f:
+		return f.read()
 
 
 def get_bundled_packages(out_dir: str) -> set[str]:
