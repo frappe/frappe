@@ -453,7 +453,7 @@ def get_allowed_print_settings_override(doc: "Document", settings: dict | None) 
 		elif (
 			(key == "pdf_page_size" and value in page_sizes)
 			or (key == "page_orientation" and value in ("", "Portrait", "Landscape"))
-			or (key == "print_font" and re.fullmatch(r"[A-Za-z0-9 ]*", cstr(value)))
+			or (key == "print_font" and isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9 ]*", value))
 		):
 			allowed[key] = value
 	return allowed
