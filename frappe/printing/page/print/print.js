@@ -665,7 +665,8 @@ frappe.ui.form.PrintView = class {
 			return start;
 		};
 		let start = 0;
-		doc.querySelectorAll(".section.page-break").forEach((section) => {
+		const breaks = ".section.page-break, .print-format > .page-break:not(:last-child)";
+		doc.querySelectorAll(breaks).forEach((section) => {
 			const end = bottom_of(section);
 			start = fill(start, end);
 			if (end < body.offsetHeight - 1) {
