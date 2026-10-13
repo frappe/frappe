@@ -726,6 +726,8 @@ class TestCustomSidebars(IntegrationTestCase):
 	HOST = "Test V16 Host Module"
 	CLASH = "Test V16 Clash Module"
 	REUSED = "V16 Reused"
+	STALE_PLACEMENT = "V16 Stale Placement"
+	REMOVED_APP = "v16_removed_app"
 	SHOWROOM = "V16 Showroom"
 	FILTERED = "V16 Filtered"
 	GATED = "V16 Gated"
@@ -749,6 +751,11 @@ class TestCustomSidebars(IntegrationTestCase):
 				).insert()
 				clear_computed_base_cache(module)
 			frappe.get_doc({"doctype": "Module Def", "module_name": cls.REUSED, "custom": 1}).insert()
+			# placed in an app since removed, as a module left from before placements were cleared
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": cls.STALE_PLACEMENT, "custom": 1}
+			).insert()
+			frappe.db.set_value("Module Def", cls.STALE_PLACEMENT, "app_name", cls.REMOVED_APP)
 
 		for user in (cls.USER, cls.OTHER_USER):
 			frappe.get_doc(
@@ -776,6 +783,7 @@ class TestCustomSidebars(IntegrationTestCase):
 		archive(cls.SHOWROOM, items, module=cls.HOST)
 		archive(cls.CLASH, items, module=cls.HOST)
 		archive(cls.REUSED, items, module=cls.HOST)
+		archive(cls.STALE_PLACEMENT, items, module=cls.HOST)
 		archive("??", items, module=cls.HOST)
 		archive(cls.FILTERED, [*items, link("ToDo", "Open Todos", route_options='{"status": "Open"}')])
 
@@ -926,6 +934,10 @@ class TestCustomSidebars(IntegrationTestCase):
 	def test_a_custom_module_without_a_sidebar_is_reused(self):
 		self.assertTrue(frappe.db.exists("Sidebar", {"module": self.REUSED}))
 		self.assertFalse(frappe.db.exists("Module Def", f"{self.REUSED} (Custom)"))
+
+	def test_one_placed_in_a_removed_app_goes_on_no_dock(self):
+		self.assertTrue(frappe.db.exists("Sidebar", {"module": self.STALE_PLACEMENT}))
+		self.assertFalse(frappe.db.exists("Dock", {"app": self.REMOVED_APP}))
 
 	def test_its_workspace_moves_with_it(self):
 		"""So the desktop icon linking to that workspace opens this sidebar, not the host's."""
