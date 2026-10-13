@@ -6,7 +6,7 @@ import frappe
 EXPORTED_REPORT_FOLDER_PATH = "Home/Exported Reports"
 
 
-def validate_route_conflict(doctype, name):
+def validate_route_conflict(doctype, name, old_name=None):
 	"""
 	Raises exception if name clashes with routes from other documents for /app routing
 	"""
@@ -20,7 +20,7 @@ def validate_route_conflict(doctype, name):
 			[
 				slug(d)
 				for d in frappe.get_all(_doctype, pluck="name")
-				if not (doctype == _doctype and d == name)
+				if not (doctype == _doctype and d in (name, old_name))
 			]
 		)
 

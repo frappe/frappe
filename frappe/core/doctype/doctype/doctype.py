@@ -1122,7 +1122,7 @@ class DocType(Document):
 				title="Invalid Name",
 			)
 
-		validate_route_conflict(self.doctype, self.name)
+		validate_route_conflict(self.doctype, name, self.name)
 
 	@frappe.whitelist()
 	def check_pending_migration(self) -> bool:

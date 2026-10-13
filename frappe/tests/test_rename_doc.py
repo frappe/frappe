@@ -226,6 +226,17 @@ class TestRenameDoc(IntegrationTestCase):
 		new_name = "ToDo"
 		self.assertEqual(new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True))
 
+	def test_rename_doctype_checks_route_conflict(self):
+		doctype = new_doctype().insert()
+
+		with self.set_user("test@example.com"):
+			self.assertRaises(
+				frappe.NameError, frappe.rename_doc, "DocType", doctype.name, "Permission Manager"
+			)
+
+			same_route = doctype.name.replace(" ", "-")
+			self.assertEqual(same_route, frappe.rename_doc("DocType", doctype.name, same_route))
+
 	def test_update_document_title_api(self):
 		test_doctype = "Module Def"
 		test_doc = frappe.get_doc(
