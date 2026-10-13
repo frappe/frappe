@@ -530,7 +530,7 @@ def _resolve_method(doc: Any, action: str) -> Any:
 
 
 def _apply_action(doctype: str, name: str, action: str, args: dict[str, Any]) -> Any:
-	doc = frappe.get_doc(doctype, name)
+	doc = frappe.get_doc(doctype, name, check_permission=True)
 	if action == "submit":
 		doc.submit()
 		return {"name": doc.name, "docstatus": int(doc.docstatus)}

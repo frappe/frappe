@@ -531,7 +531,17 @@ class TestRunAction(IntegrationTestCase):
 		self.todo = frappe.get_doc({"doctype": "ToDo", "description": "ai action probe"}).insert()
 
 	def tearDown(self):
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
+
+	def test_a_record_the_user_cant_read_is_refused(self):
+		# every user reads ToDo, but only the ones they own or are assigned
+		frappe.set_user(_user("flow-action-probe@example.com"))
+		args = {"comment_type": "Comment", "text": "unseen"}
+		with self.assertRaisesRegex(ValueError, f"{self.todo.name}: PermissionError"):
+			run_action(doctype="ToDo", names=[self.todo.name], action="add_comment", args=args, ctx=CTX)
+
+		self.assertFalse(frappe.db.exists("Comment", {"reference_name": self.todo.name}))
 
 	def test_one_failed_record_changes_none(self):
 		failing = frappe.get_doc({"doctype": "ToDo", "description": "ai action fails"}).insert()
