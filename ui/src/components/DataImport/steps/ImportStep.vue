@@ -1,29 +1,30 @@
 <template>
 	<div v-if="running" class="flex flex-col gap-4">
 		<div class="flex flex-col gap-2">
-			<div class="flex items-start justify-between gap-4">
-				<div class="flex min-w-0 flex-col gap-0.5">
-					<h3 class="text-base-medium text-ink-gray-8">
-						{{ t("Importing your data") }}
-					</h3>
-					<p class="text-sm text-ink-gray-6">
-						{{
-							t(
-								"You can continue other work while this runs. Progress updates will appear here."
-							)
-						}}
-					</p>
-				</div>
-				<span class="shrink-0 text-base-medium text-ink-gray-8">{{ percent }}%</span>
+			<div class="flex min-w-0 flex-col gap-0.5">
+				<h2 class="text-base-semibold text-ink-gray-8">
+					{{ t("Importing your data") }}
+				</h2>
+				<p class="text-sm text-ink-gray-6">
+					{{
+						t(
+							"You can continue other work while this runs. Progress updates will appear here."
+						)
+					}}
+				</p>
 			</div>
 			<Progress size="md" :value="percent" />
 			<div class="flex items-center justify-between gap-4 text-sm">
-				<span class="text-ink-gray-7">{{ rowProgress }}</span>
+				<span class="text-ink-gray-7">
+					{{ rowProgress }}
+					<template v-for="issue in runningIssues" :key="issue.label">
+						<span class="text-ink-gray-5"> · </span>
+						<span :class="issue.class">{{ issue.label }}</span>
+					</template>
+				</span>
 				<span class="text-ink-gray-6">{{ statusLine }}</span>
 			</div>
 		</div>
-
-		<StatCards :stats="statCards" :label="t('Progress summary')" />
 
 		<div class="flex flex-col gap-1">
 			<div class="flex items-center gap-1">
@@ -68,6 +69,18 @@
 
 	<div v-else-if="importStarted" class="flex flex-col gap-4">
 		<div class="flex flex-col gap-3">
+			<div class="flex items-center justify-between gap-4">
+				<h2 class="text-base-semibold text-ink-gray-8">{{ resultTitle }}</h2>
+				<Button
+					v-if="isFinished"
+					class="shrink-0"
+					variant="outline"
+					size="sm"
+					:label="t('Go to list')"
+					icon-right="lucide-arrow-up-right"
+					@click="emit('openList', doc.reference_doctype)"
+				/>
+			</div>
 			<StatCards :stats="resultStats" :label="t('Result')" />
 
 			<div class="flex items-center justify-between gap-4">
@@ -87,15 +100,6 @@
 						</dd>
 					</div>
 				</dl>
-				<Button
-					v-if="isFinished"
-					class="shrink-0"
-					variant="outline"
-					size="sm"
-					:label="t('Go to list')"
-					icon-right="lucide-arrow-up-right"
-					@click="emit('openList', doc.reference_doctype)"
-				/>
 			</div>
 		</div>
 
@@ -115,84 +119,92 @@
 			/>
 		</div>
 
-		<table v-if="logs.length" class="w-full">
-			<thead>
-				<tr class="text-left text-ink-gray-6">
-					<th class="w-[10%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold">
-						{{ t("Row") }}
-					</th>
-					<th class="w-[14%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold">
-						{{ t("Status") }}
-					</th>
-					<th class="w-[76%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold">
-						{{ t("Message") }}
-					</th>
-				</tr>
-			</thead>
-			<tbody class="text-ink-gray-8">
-				<tr v-for="(row, index) in logRows" :key="index">
-					<td
-						class="whitespace-nowrap border-b border-outline-gray-2 px-4 py-2 align-top text-sm"
-					>
-						{{ row.rowLabel }}
-					</td>
-					<td class="border-b border-outline-gray-2 px-4 py-2 align-top text-sm">
-						<Badge
-							:label="row.success ? t('Success') : t('Failure')"
-							:theme="row.success ? 'green' : 'red'"
-						/>
-					</td>
-					<td
-						class="break-words border-b border-outline-gray-2 px-4 py-2 align-top text-sm"
-					>
-						<div v-if="row.success">
-							<span>{{ row.successText[0] }}</span>
-							<button
-								type="button"
-								class="underline"
-								@click="emit('openRecord', doc.reference_doctype, row.docname)"
-							>
-								{{ row.docname }}
-							</button>
-							<span>{{ row.successText[1] }}</span>
-						</div>
-						<template v-else>
-							<div class="flex items-center justify-between gap-2">
-								<div v-if="row.summaryHtml" v-html="row.summaryHtml" />
-								<div v-else>{{ row.summaryText }}</div>
-								<Button
-									v-if="row.expandable"
-									variant="ghost"
-									size="sm"
-									:icon="
-										expanded.has(index)
-											? 'lucide-chevron-up'
-											: 'lucide-chevron-down'
-									"
-									:title="t('Toggle error details')"
-									:aria-label="t('Toggle error details')"
-									:aria-expanded="expanded.has(index)"
-									@click="toggle(index)"
-								/>
-							</div>
-							<div v-if="expanded.has(index)">
-								<div v-for="(detail, i) in row.details" :key="i">
-									<div v-if="detail.title">
-										<strong>{{ detail.title }}</strong>
-									</div>
-									<div v-if="detail.message" v-html="detail.message" />
-								</div>
-								<pre
-									v-if="row.traceback"
-									class="mt-2 overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-2 p-2 text-sm"
-									>{{ row.traceback }}</pre
+		<div v-if="logs.length" data-slot="scroll" class="max-h-96 overflow-y-auto">
+			<table class="w-full border-separate border-spacing-0">
+				<thead class="sticky top-0 z-[1] bg-surface-base">
+					<tr class="text-left text-ink-gray-6">
+						<th
+							class="w-[10%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
+						>
+							{{ t("Row") }}
+						</th>
+						<th
+							class="w-[14%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
+						>
+							{{ t("Status") }}
+						</th>
+						<th
+							class="w-[76%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
+						>
+							{{ t("Message") }}
+						</th>
+					</tr>
+				</thead>
+				<tbody class="text-ink-gray-8">
+					<tr v-for="(row, index) in logRows" :key="index">
+						<td
+							class="whitespace-nowrap border-b border-outline-gray-2 px-4 py-2 align-top text-sm"
+						>
+							{{ row.rowLabel }}
+						</td>
+						<td class="border-b border-outline-gray-2 px-4 py-2 align-top text-sm">
+							<Badge
+								:label="row.success ? t('Success') : t('Failure')"
+								:theme="row.success ? 'green' : 'red'"
+							/>
+						</td>
+						<td
+							class="break-words border-b border-outline-gray-2 px-4 py-2 align-top text-sm"
+						>
+							<div v-if="row.success">
+								<span>{{ row.successText[0] }}</span>
+								<button
+									type="button"
+									class="underline"
+									@click="emit('openRecord', doc.reference_doctype, row.docname)"
 								>
+									{{ row.docname }}
+								</button>
+								<span>{{ row.successText[1] }}</span>
 							</div>
-						</template>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+							<template v-else>
+								<div class="flex items-center justify-between gap-2">
+									<div v-if="row.summaryHtml" v-html="row.summaryHtml" />
+									<div v-else>{{ row.summaryText }}</div>
+									<Button
+										v-if="row.expandable"
+										variant="ghost"
+										size="sm"
+										:icon="
+											expanded.has(index)
+												? 'lucide-chevron-up'
+												: 'lucide-chevron-down'
+										"
+										:title="t('Toggle error details')"
+										:aria-label="t('Toggle error details')"
+										:aria-expanded="expanded.has(index)"
+										@click="toggle(index)"
+									/>
+								</div>
+								<div v-if="expanded.has(index)">
+									<div v-for="(detail, i) in row.details" :key="i">
+										<div v-if="detail.title">
+											<strong>{{ detail.title }}</strong>
+										</div>
+										<div v-if="detail.message" v-html="detail.message" />
+									</div>
+									<pre
+										v-if="row.traceback"
+										class="mt-2 overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-2 p-2 text-sm"
+										>{{ row.traceback }}</pre
+									>
+								</div>
+							</template>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 		<div
 			v-else
 			class="flex min-h-32 flex-col items-center justify-center gap-2 text-ink-gray-6"
@@ -264,17 +276,23 @@ const statusLine = computed(() => {
 	return current >= total ? t("Finishing up...") : etaMessage(eta);
 });
 
-const statCards = computed(() => {
-	const cards: Stat[] = [];
-	if (showInserted.value) cards.push({ label: t("Inserted"), value: progress.value.inserted });
-	if (showUpdated.value) cards.push({ label: t("Updated"), value: progress.value.updated });
-	cards.push({ label: t("Skipped"), value: skippedCount.value });
-	cards.push({
-		label: t("Failed"),
-		value: progress.value.failed,
-		class: progress.value.failed ? "text-ink-red-6" : undefined,
-	});
-	return cards;
+const resultTitle = computed(
+	() =>
+		({
+			Success: t("Import complete"),
+			"Partial Success": t("Import partly complete"),
+			Error: t("Import failed"),
+			"Timed Out": t("Import timed out"),
+		}[doc.value.status as string] ?? t("Import"))
+);
+
+const runningIssues = computed(() => {
+	const issues = [];
+	if (progress.value.failed)
+		issues.push({ label: t("{0} failed", [progress.value.failed]), class: "text-ink-red-6" });
+	if (skippedCount.value)
+		issues.push({ label: t("{0} skipped", [skippedCount.value]), class: "text-ink-gray-6" });
+	return issues;
 });
 
 function activityIcon(kind: string) {
