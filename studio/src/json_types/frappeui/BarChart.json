@@ -68,6 +68,9 @@
                   "area"
                 ]
               },
+              "format": {
+                "type": "object"
+              },
               "showDataLabels": {
                 "type": "boolean"
               },
