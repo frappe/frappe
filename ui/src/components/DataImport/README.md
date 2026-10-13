@@ -37,47 +37,20 @@ const dataImport = useDataImport(name, { doctype: "CRM Lead" });
   the first save.
 - There is no router inside. `@open-list` and `@open-record` ask the app to open
   the list or a record; ignore them if the app has no such page.
-- `@open-imports` comes from Config's "Review pending imports": show the
-  pending imports of that document type, for example a `DataImportList` built
-  with `useDataImportList({ doctype, status: "Pending" })`.
+- `@open-imports` comes from Config's "Review pending imports": show the app's
+  list of Data Import records, filtered to that document type and `Pending`.
 - `@new-import` is optional. When set, a failed import offers "Start new
   import" (and Retry steps back unless the run timed out); open a new import of
   that document type.
 - The wizard fills its parent's height, so it works in a page or a `Dialog`.
 
-## List of imports
-
-`useDataImportList` fetches past imports, newest first, with search, a status
-filter and Load More. `<DataImportList>` shows them. It has no title of its own;
-the app's page header shows one.
-
-```vue
-<script setup lang="ts">
-import { DataImportList, useDataImportList } from "@framework/ui";
-
-const list = useDataImportList({ doctype: "CRM Lead" });
-</script>
-
-<template>
-  <DataImportList
-    :list="list"
-    @open="(name) => router.push(`/data-import/${name}`)"
-    @new="() => router.push('/data-import/new')"
-  />
-</template>
-```
-
-- `doctype` shows only imports of that document type. Leave it out to show all.
-- `@open` gives the import's name; pass it to `useDataImport` to open it.
-- `@new` is the Import button. Open the wizard with `name` set to `null`; nothing
-  is saved until the user picks a file.
-- `list.reload()` fetches again, for example after the wizard closes in a
-  `Dialog`.
-
 ## Moving from DataImport
 
 The `DataImport` page is gone. It read the route itself and took a `doctypeMap`
 for its links; now the app owns the name and the links.
+
+Its list of past imports is gone too. Show Data Import records with the app's
+own list view, and open the wizard from a row or a create button.
 
 Before:
 
