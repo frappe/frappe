@@ -440,11 +440,32 @@ class TestDBQuery(IntegrationTestCase):
 			rows = frappe.get_list("ToDo", fields=[{"IFNULL": ["description", "'x'"]}, "name"], **args)
 			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 			# `*` carries the name, also when permissions leave it unexpanded
-			rows = DatabaseQuery("ToDo").execute(fields=["*"], ignore_permissions=True, **args)
-			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
-			self.assertNotIn("_comments", rows[0])
+			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
+				rows = get_list("ToDo", fields=["*"], ignore_permissions=True, **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				self.assertNotIn("_comments", rows[0])
 			# child tables have no comment cache
-			frappe.get_all("DocField", fields=["name"], distinct=True, with_comment_count=1, limit=1)
+			rows = frappe.get_all("DocField", fields=["name"], distinct=True, with_comment_count=1, limit=1)
+			self.assertEqual(rows[0]._comment_count, 0)
+
+	def test_comment_count_skips_self_link_name(self):
+		folder = frappe.get_doc(
+			doctype="File", file_name=frappe.generate_hash(length=8), is_folder=1
+		).insert()
+		for i in range(2):
+			frappe.get_doc(
+				doctype="File", file_name=f"comment count {i}.txt", content="x", folder=folder.name
+			).insert().add_comment("Comment", f"comment {i}")
+		rows = frappe.get_list(
+			"File",
+			fields=["folder.name"],
+			filters={"folder": folder.name},
+			distinct=True,
+			with_comment_count=1,
+		)
+		# the linked folder's name is not the row's own name, so files must not split the row
+		values = [tuple(v for k, v in row.items() if k != "_comment_count") for row in rows]
+		self.assertEqual(len(values), len(set(values)))
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")

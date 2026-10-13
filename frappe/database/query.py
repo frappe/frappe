@@ -372,6 +372,14 @@ class Engine:
 
 		self.query._child_queries = []
 		has_select_field = False
+<<<<<<< HEAD
+=======
+		has_child_queries = False
+		has_name_field = False
+		# the main table's own name, not a self-link join's: distinct rows then map to documents
+		selects_own_name = False
+
+>>>>>>> ed0a383 (fix(query): track the main table's own name in the engine for distinct comment counts)
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
 				self.query = field.apply_select(self.query, engine=self)
@@ -381,9 +389,28 @@ class Engine:
 			else:
 				self.query = self.query.select(field)
 				has_select_field = True
+<<<<<<< HEAD
 
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
+=======
+				is_source_name = getattr(field, "name", None) == "name"
+				alias = getattr(field, "alias", None)
+
+				if isinstance(field, Star) or (is_source_name and alias in (None, "name")):
+					has_name_field = True
+					selects_own_name = selects_own_name or getattr(field, "table", None) == self.table
+
+		if not has_select_field:
+			self.query = self.query.select(self.table.name)
+			has_name_field = selects_own_name = True
+
+		self.query._selects_own_name = selects_own_name
+
+		if has_child_queries and not has_name_field:
+			self.query = self.query.select(self.table.name)
+			self.query._name_field_injected = True
+>>>>>>> ed0a383 (fix(query): track the main table's own name in the engine for distinct comment counts)
 
 	def apply_filters(
 		self,
