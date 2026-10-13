@@ -947,6 +947,9 @@ export default class Grid {
 		this.grid_sortable = new Sortable($rows.get(0), {
 			group: { name: this.df.fieldname },
 			handle: ".sortable-handle",
+			delay: 250,
+			delayOnTouchOnly: true,
+			touchStartThreshold: 5,
 			draggable: ".grid-row",
 			animation: 100,
 			filter: (evt) => {
