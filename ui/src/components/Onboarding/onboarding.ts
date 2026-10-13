@@ -50,6 +50,9 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
       onSuccess: (data: Record<string, StoredStep[]>) => {
         onboardingStatus.value[userId] = data;
         syncStatus();
+        // the panel opens before this status loads; close it if onboarding is already done
+        if (isOnboardingStepsCompleted.value && !showHelpCenter.value)
+          showHelpModal.value = false;
       },
     });
   }
@@ -160,9 +163,6 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
         }
       });
       isOnboardingStepsCompleted.value = _steps.every((step) => step.completed);
-      // the panel opens before the saved status loads; close it if there is nothing left to show
-      if (isOnboardingStepsCompleted.value && !showHelpCenter.value)
-        showHelpModal.value = false;
     } else {
       isOnboardingStepsCompleted.value = false;
     }
