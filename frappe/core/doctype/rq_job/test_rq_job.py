@@ -96,7 +96,7 @@ class TestRQJob(FrappeTestCase):
 		with self.assertRaises(rq_exc.NoSuchJobError):
 			job.refresh()
 
-	@timeout
+	@timeout(seconds=60)
 	def test_multi_queue_burst_consumption(self):
 		for _ in range(3):
 			for q in ["default", "short"]:
@@ -105,7 +105,7 @@ class TestRQJob(FrappeTestCase):
 		_, stderr = execute_in_shell("bench worker --queue short,default --burst", check_exit_code=True)
 		self.assertIn("quitting", cstr(stderr))
 
-	@timeout
+	@timeout(seconds=60)
 	def test_multi_queue_burst_consumption_worker_pool(self):
 		for _ in range(3):
 			for q in ["default", "short"]:
