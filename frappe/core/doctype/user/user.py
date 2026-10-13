@@ -19,13 +19,8 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
-<<<<<<< HEAD
 from frappe.model.document import Document
 from frappe.query_builder import DocType
-=======
-from frappe.model.document import Document, get_controller
-from frappe.query_builder import DocType, Table
->>>>>>> df2f2b4 (fix: give a new user a username when their first name is taken)
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions
 from frappe.utils import (
