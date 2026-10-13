@@ -36,6 +36,30 @@
 			/>
 		</InspectorSection>
 
+		<InspectorSection :label="__('Page')">
+			<InspectorRow :label="__('Paper size')">
+				<select
+					class="form-control form-control-sm pfb-insp-select"
+					:value="layout.page?.size || ''"
+					@change="set_page('size', $event.target.value)"
+				>
+					<option v-for="p in paper_sizes" :key="p.value" :value="p.value">
+						{{ p.label }}
+					</option>
+				</select>
+			</InspectorRow>
+			<InspectorRow :label="__('Orientation')">
+				<select
+					class="form-control form-control-sm pfb-insp-select"
+					:value="layout.page?.orientation || 'Portrait'"
+					@change="set_page('orientation', $event.target.value)"
+				>
+					<option value="Portrait">{{ __("Portrait") }}</option>
+					<option value="Landscape">{{ __("Landscape") }}</option>
+				</select>
+			</InspectorRow>
+		</InspectorSection>
+
 		<InspectorSection :label="__('Spacing (mm)')">
 			<SpacingRow
 				:label="__('Margins')"
@@ -166,6 +190,19 @@ watch(
 	{ flush: "post" }
 );
 onUnmounted(() => hint_tooltip?.destroy());
+
+const paper_sizes = [
+	{ label: __("Default"), value: "" },
+	...["A4", "A5", "A3", "Letter", "Legal", "Tabloid"].map((s) => ({ label: s, value: s })),
+];
+
+function set_page(key, value) {
+	const page = { ...layout.value.page, [key]: value };
+	if (!page.size) delete page.size;
+	if (page.orientation !== "Landscape") delete page.orientation;
+	if (Object.keys(page).length) layout.value.page = page;
+	else delete layout.value.page;
+}
 
 function set_background_image(image) {
 	if (!image) {
