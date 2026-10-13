@@ -104,7 +104,7 @@ let background = computed(() => layout.value.background?.image && layout.value.b
 let background_style = computed(() => {
 	const [page_w, page_h] = page_mm.value;
 	return {
-		backgroundImage: `url("${background.value.image}")`,
+		backgroundImage: `url("${background.value.image.replaceAll('"', "%22")}")`,
 		backgroundSize: `${page_w}mm ${page_h}mm`,
 		opacity: (background.value.opacity ?? 100) / 100,
 	};

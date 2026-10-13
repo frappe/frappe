@@ -128,7 +128,7 @@ body::before {
 	z-index: -1;
 	pointer-events: none;
 	opacity: {{ layout.background.opacity / 100 }};
-	background: url("{{ layout.background.image }}") center top / {{ page_width }}mm {{ page_height }}mm repeat-y;
+	background: url("{{ layout.background.url }}") center top / {{ page_width }}mm {{ page_height }}mm repeat-y;
 }
 @media print {
 	body::before {
