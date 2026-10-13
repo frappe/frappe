@@ -81,8 +81,14 @@ def find_doctypes(
 		filters["module"] = module
 	if search:
 		filters["name"] = ["like", f"%{search}%"]
-	rows = frappe.get_all("DocType", filters=filters, fields=["name", "module"], order_by="name", limit=limit)
-	return [r for r in rows if frappe.has_permission(r["name"], "read")]
+	rows = frappe.get_all("DocType", filters=filters, fields=["name", "module"], order_by="name")
+	if frappe.session.user != "Administrator":
+		user = frappe.get_user()
+		if not user.can_read:
+			user.build_permissions()
+		readable = {*user.can_read, *user.all_read}
+		rows = [r for r in rows if r["name"] in readable]
+	return rows[:limit]
 
 
 @tool

@@ -47,6 +47,10 @@ REPORT_JS = """frappe.query_reports["Flow Report Probe"] = {
 
 
 class TestFindDoctypes(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
 	def test_search_matches_by_keyword(self):
 		names = {r["name"] for r in find_doctypes(search="ToDo", ctx=CTX)}
 		self.assertIn("ToDo", names)
@@ -72,6 +76,30 @@ class TestFindDoctypes(IntegrationTestCase):
 			self.assertNotIn("User", names)
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_the_limit_counts_only_doctypes_the_user_can_read(self):
+		# a Flow User reads some Flow DocTypes, not the ones in between, like Flow Agent Memory
+		user = _user("flow-find-probe@example.com")
+		frappe.get_doc("User", user).add_roles("Flow User")
+		frappe.set_user(user)
+		readable = [r["name"] for r in find_doctypes(search="Flow", limit=200, ctx=CTX)]
+		first = [r["name"] for r in find_doctypes(search="Flow", limit=4, ctx=CTX)]
+
+		self.assertEqual(first, readable[:4])
+		self.assertEqual(len(first), 4)
+
+	def test_administrator_lists_doctypes_no_role_can_read(self):
+		# as if no role could read anything
+		nothing = frappe._dict(can_read=[], all_read=[], build_permissions=lambda: None)
+		with patch("frappe.get_user", return_value=nothing):
+			names = {r["name"] for r in find_doctypes(search="ToDo", ctx=CTX)}
+		self.assertIn("ToDo", names)
+
+	def test_a_search_matching_system_health_report_still_answers(self):
+		# checking that Single's permission raises for anyone but a System Manager
+		frappe.set_user(_user("flow-find-probe@example.com"))
+		names = {r["name"] for r in find_doctypes(search="System Health", ctx=CTX)}
+		self.assertNotIn("System Health Report", names)
 
 
 class TestDescribe(IntegrationTestCase):
