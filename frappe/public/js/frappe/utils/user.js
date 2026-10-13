@@ -56,6 +56,11 @@ frappe.ui.show_change_password_dialog = function (user, on_success) {
 					dialog.hide();
 					frappe.show_alert({ message: __("Password changed"), indicator: "green" });
 					on_success?.();
+				})
+				.catch((error) => {
+					if (error?.responseJSON?.exc_type === "PasswordLoginDisabledError") {
+						dialog.hide();
+					}
 				});
 		},
 	});

@@ -633,6 +633,17 @@ class TestUser(IntegrationTestCase):
 			finally:
 				frappe.local.response = response
 
+	def test_signup_while_password_login_is_off(self):
+		# sign-up used to store a throwaway password, which the password guard refuses
+		email = frappe.mock("email")
+		self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+
+		with change_settings("System Settings", disable_user_pass_login=1, login_with_email_link=1):
+			sign_up(email, frappe.mock("name"), "")
+
+		self.assertTrue(frappe.db.exists("User", email))
+		self.assertFalse(frappe.db.sql("select 1 from `__Auth` where `doctype`='User' and `name`=%s", email))
+
 	@IntegrationTestCase.change_settings("System Settings", password_reset_limit=6)
 	def test_reset_password(self):
 		from frappe.auth import CookieManager, LoginManager
@@ -785,6 +796,29 @@ class TestUser(IntegrationTestCase):
 			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
+
+	def test_welcome_mail_points_at_login_when_password_login_is_off(self):
+		email = frappe.generate_hash() + "@example.com"
+		self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+
+		with (
+			change_settings("System Settings", disable_user_pass_login=1, login_with_email_link=1),
+			patch.object(user_module.frappe, "sendmail") as sendmail,
+		):
+			frappe.get_doc(
+				doctype="User", email=email, first_name="Welcome", enabled=1, send_welcome_email=1
+			).insert()
+
+		args = sendmail.call_args.kwargs["args"]
+		self.assertFalse(args["link"])
+		# a custom template prints {{ link }} as-is, so it must not come out as "None"
+		self.assertEqual(frappe.render_template("{{ link }}", args), "")
+		# no key written, nothing to redeem if the setting is turned off later
+		self.assertFalse(frappe.db.get_value("User", email, "reset_password_key"))
+
+		body = frappe.get_template("templates/emails/new_user.html").render(args)
+		self.assertIn(args["login_url"], body)
+		self.assertNotIn("update-password", body)
 
 	def test_bulk_add_roles(self):
 		"""Roles are appended across the selection without disturbing existing ones."""

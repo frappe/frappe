@@ -391,7 +391,6 @@ def get_user_record(user: str, data: dict, provider: str) -> "User":
 			"email": get_email(data),
 			"gender": gender,
 			"enabled": 1,
-			"new_password": frappe.generate_hash(),
 			"location": data.get("location"),
 			"user_type": "Website User",
 			"user_image": data.get("picture") or data.get("avatar_url"),

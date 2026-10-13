@@ -2,11 +2,13 @@
 # License: MIT. See LICENSE
 import datetime
 import time
+from unittest.mock import patch
 
 import pyotp
 
 import frappe
 from frappe.auth import HTTPRequest, get_login_attempt_tracker, validate_ip_address
+from frappe.core.doctype.system_settings.system_settings import clear_system_settings_cache
 from frappe.tests import IntegrationTestCase
 from frappe.twofactor import (
 	ExpiredLoginException,
@@ -19,6 +21,8 @@ from frappe.twofactor import (
 	get_otpsecret_for_,
 	get_verification_obj,
 	process_2fa_for_email,
+	reset_otp_secret,
+	set_default,
 	should_run_2fa,
 	two_factor_is_enabled_for_,
 )
@@ -290,3 +294,41 @@ def get_otp(user):
 	otp_secret = get_otpsecret_for_(user)
 	otp = pyotp.TOTP(otp_secret)
 	return otp.now()
+
+
+class TestResetOtpSecret(IntegrationTestCase):
+	def setUp(self):
+		enable_2fa()
+		self.addCleanup(disable_2fa)
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def set_single(self, doctype, field, value):
+		before = frappe.db.get_single_value(doctype, field, cache=False) or 0
+		self.addCleanup(clear_system_settings_cache)
+		self.addCleanup(frappe.db.set_single_value, doctype, field, before)
+		frappe.db.set_single_value(doctype, field, value)
+		clear_system_settings_cache()
+
+	def test_administrator_blocked_when_either_setting_is_on(self):
+		self.set_single("System Settings", "disable_admin_password_login", 1)
+		self.assertRaises(frappe.ValidationError, reset_otp_secret, "Administrator")
+
+		self.set_single("System Settings", "disable_admin_password_login", 0)
+		self.set_single("System Settings", "disable_user_pass_login", 1)
+		self.assertRaises(frappe.ValidationError, reset_otp_secret, "Administrator")
+
+	def test_user_blocked_without_ldap_when_user_pass_login_is_off(self):
+		self.set_single("System Settings", "disable_user_pass_login", 1)
+		self.set_single("LDAP Settings", "enabled", 0)
+		self.assertRaises(frappe.ValidationError, reset_otp_secret, "test@example.com")
+
+	def test_user_allowed_with_ldap_when_user_pass_login_is_off(self):
+		self.set_single("System Settings", "disable_user_pass_login", 1)
+		self.set_single("LDAP Settings", "enabled", 1)
+		set_default("test@example.com_otpsecret", "dummy")
+		# keep the mail job out of the test queue
+		with patch("frappe.twofactor.enqueue") as enqueue:
+			reset_otp_secret("test@example.com")
+		enqueue.assert_called_once()
+		self.assertIsNone(get_default("test@example.com_otpsecret"))

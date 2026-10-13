@@ -44,6 +44,7 @@ class SystemSettings(Document):
 		default_app: DF.Literal[None]
 		delete_background_exported_reports_after: DF.Int
 		deny_multiple_sessions: DF.Check
+		disable_admin_password_login: DF.Check
 		disable_change_log_notification: DF.Check
 		disable_document_sharing: DF.Check
 		disable_product_suggestion: DF.Check

@@ -166,29 +166,59 @@ frappe.ui.form.on("User", {
 				frm.toggle_display(["sb1", "sb3", "modules_access"], true);
 			}
 
-			if (cint(frm.doc.enabled) && frm.has_perm("write")) {
+			// site-wide setting hides the buttons, the Administrator one explains itself on click
+			const user_password_login_disabled = frappe.defaults.is_enabled(
+				"disable_user_pass_login"
+			);
+
+			if (cint(frm.doc.enabled) && frm.has_perm("write") && !user_password_login_disabled) {
 				frm.add_custom_button(
 					__("Change Password"),
-					() =>
-						frappe.ui.show_change_password_dialog(frm.doc.name, () =>
-							frm.reload_doc()
-						),
+					function () {
+						if (
+							frm.doc.name === "Administrator" &&
+							frappe.defaults.is_enabled("disable_admin_password_login")
+						) {
+							frappe.msgprint({
+								title: __("Password Login Disabled"),
+								message: frappe.user.has_role("System Manager")
+									? __(
+											"Password login is disabled. Turn off {0} in System Settings to use password actions.",
+											[
+												frappe.utils.bold(
+													__("Disable Administrator Password Login")
+												),
+											]
+									  )
+									: __(
+											"Password login and related actions are disabled on this site."
+									  ),
+								indicator: "orange",
+							});
+						} else {
+							frappe.ui.show_change_password_dialog(frm.doc.name, () =>
+								frm.reload_doc()
+							);
+						}
+					},
 					__("Password")
 				);
 			}
 
-			frm.add_custom_button(
-				__("Reset Password"),
-				function () {
-					frappe.call({
-						method: "frappe.core.doctype.user.user.reset_password",
-						args: {
-							user: frm.doc.name,
-						},
-					});
-				},
-				__("Password")
-			);
+			if (frm.doc.name !== "Administrator" && !user_password_login_disabled) {
+				frm.add_custom_button(
+					__("Reset Password"),
+					function () {
+						frappe.call({
+							method: "frappe.core.doctype.user.user.reset_password",
+							args: {
+								user: frm.doc.name,
+							},
+						});
+					},
+					__("Password")
+				);
+			}
 
 			if (frappe.user.has_role("System Manager")) {
 				frappe.db.get_single_value("LDAP Settings", "enabled").then((value) => {

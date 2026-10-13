@@ -38,6 +38,7 @@
   "column_break_txqh",
   "deny_multiple_sessions",
   "disable_user_pass_login",
+  "disable_admin_password_login",
   "max_signups_allowed_per_hour",
   "login_methods_section",
   "allow_login_using_mobile_number",
@@ -537,6 +538,14 @@
   },
   {
    "default": "1",
+   "description": "Administrator is a known username on every site, so password login invites brute force attacks. Disable it and open a session from your site management tool instead.",
+   "fieldname": "disable_admin_password_login",
+   "fieldtype": "Check",
+   "label": "Disable Administrator Password Login",
+   "permlevel": 1
+  },
+  {
+   "default": "1",
    "description": "Allow users to log in without a password, using a login link sent to their email",
    "fieldname": "login_with_email_link",
    "fieldtype": "Check",
@@ -856,7 +865,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-06 17:22:18.039321",
+ "modified": "2026-10-06 13:47:20.476601",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -867,6 +876,17 @@
    "read": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Administrator",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Administrator",
    "write": 1
   }
  ],
