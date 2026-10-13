@@ -7,37 +7,46 @@
 				class="flex min-w-0 flex-col gap-2"
 				:aria-current="index === current ? 'step' : undefined"
 			>
-				<div
-					class="flex min-w-0 items-center gap-1.5 text-base"
-					:class="
-						index === current
-							? 'font-medium text-ink-gray-8'
-							: step.completed
-							? 'text-ink-gray-7'
-							: 'text-ink-gray-5'
-					"
+				<button
+					type="button"
+					data-slot="step"
+					class="group flex w-full min-w-0 flex-col gap-2 rounded text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-default"
+					:disabled="step.locked || index === current"
+					@click="goTo(index)"
 				>
-					<span class="truncate">{{ step.label }}</span>
-				</div>
-				<div
-					class="h-1 rounded-7"
-					:class="
-						index === current || step.completed
-							? 'bg-surface-gray-10'
-							: 'bg-surface-gray-2'
-					"
-				/>
+					<span
+						class="flex min-w-0 items-center gap-1.5 text-base"
+						:class="
+							index === current
+								? 'font-medium text-ink-gray-8'
+								: step.completed
+								? 'text-ink-gray-7 group-enabled:group-hover:text-ink-gray-9'
+								: 'text-ink-gray-5 group-enabled:group-hover:text-ink-gray-7'
+						"
+					>
+						<span class="truncate">{{ step.label }}</span>
+					</span>
+					<span
+						class="block h-1 w-full rounded-7"
+						:class="
+							index === current || step.completed
+								? 'bg-surface-gray-10'
+								: 'bg-surface-gray-2'
+						"
+					/>
+				</button>
 			</li>
 		</ol>
 
 		<div
 			v-if="!(loading && isNew)"
-			class="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
+			class="flex min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 		>
 			<div class="min-h-0 w-full min-w-0 flex-1 overflow-auto px-5 py-4">
 				<component
 					:is="stepComponents[current]"
 					:dataImport="dataImport"
+					:showErrors="current === CONFIG ? showConfigErrors : undefined"
 					v-on="stepEvents[current] ?? {}"
 				/>
 			</div>
@@ -111,12 +120,6 @@
 				{ label: t('No'), onClick: ({ close }) => close() },
 			]"
 		/>
-		<Dialog
-			:open="!!notice"
-			:title="notice?.title"
-			:message="notice?.message"
-			@update:open="(open) => !open && (notice = null)"
-		/>
 	</div>
 </template>
 
@@ -179,7 +182,8 @@ const stepComponents = [ConfigStep, PreviewStep, FixIssuesStep, ImportStep];
 
 const current = ref(CONFIG);
 const confirmingStop = ref(false);
-const notice = ref<{ title: string; message: string } | null>(null);
+// Config marks what is missing once Next is pressed without it.
+const showConfigErrors = ref(false);
 
 const stepState = computed(() => ({
 	isNew: isNew.value,
@@ -188,7 +192,7 @@ const stepState = computed(() => ({
 }));
 
 const steps = computed(() =>
-	[t("Config"), t("Preview"), t("Fix issues"), t("Import")].map((label, index) => ({
+	[t("Config"), t("Map columns"), t("Fix issues"), t("Import")].map((label, index) => ({
 		label,
 		completed: isStepCompleted(index, current.value, doc.value, stepState.value),
 		locked: !canGoToStep(index, current.value, doc.value, stepState.value),
@@ -241,10 +245,6 @@ async function saveIfDirty() {
 	}
 }
 
-function showMessage(message: string, title = t("Message")) {
-	notice.value = { title, message };
-}
-
 /** Back moves freely; going forward saves first and checks the step can open. */
 async function goTo(target: number) {
 	const from = current.value;
@@ -253,12 +253,13 @@ async function goTo(target: number) {
 		return;
 	}
 	// Checked before saving, so a new import is never saved without a file.
-	if (!doc.value.reference_doctype || !doc.value.import_type) {
-		showMessage(t("Please select Document Type and Import Type."));
-		return;
-	}
-	if (from <= PREVIEW && !hasImportFile.value) {
-		showMessage(t("Please attach an import file or provide a Google Sheets URL."));
+	if (
+		!doc.value.reference_doctype ||
+		!doc.value.import_type ||
+		(from <= PREVIEW && !hasImportFile.value)
+	) {
+		showConfigErrors.value = true;
+		current.value = CONFIG;
 		return;
 	}
 	if (!(await saveIfDirty())) return;
@@ -268,7 +269,7 @@ async function goTo(target: number) {
 	if (hasImportFile.value && !previewReady.value) {
 		await props.dataImport.fetchPreview();
 		if (!previewReady.value) {
-			// The Preview step shows why the preview failed.
+			// The Map columns step shows why the preview failed.
 			current.value = PREVIEW;
 			return;
 		}

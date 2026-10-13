@@ -24,7 +24,16 @@ vi.mock("frappe-ui", async (importOriginal) => {
 // The shell is under test here; ConfigStep has its own tests and loads data on mount.
 vi.mock("../steps/ConfigStep.vue", async () => {
   const { defineComponent, h } = await import("vue");
-  return { default: defineComponent({ setup: () => () => h("div") }) };
+  return {
+    default: defineComponent({
+      props: { showErrors: Boolean },
+      setup: (props) => () =>
+        h("div", {
+          "data-slot": "config",
+          "data-show-errors": props.showErrors,
+        }),
+    }),
+  };
 });
 
 import DataImportWizard from "../DataImportWizard.vue";
@@ -152,11 +161,19 @@ async function settle() {
 const stepLabel = () =>
   host!.querySelector('[aria-current="step"]')?.textContent?.trim();
 
+// Step headings are buttons too; these helpers are about the footer.
+const FOOTER_BUTTON = "button:not([data-slot='step'])";
+
+const stepButton = (label: string) =>
+  [...host!.querySelectorAll<HTMLButtonElement>("[data-slot='step']")].find(
+    (b) => b.textContent?.trim() === label
+  )!;
+
 const buttons = () =>
-  [...host!.querySelectorAll("button")].map((b) => b.textContent?.trim());
+  [...host!.querySelectorAll(FOOTER_BUTTON)].map((b) => b.textContent?.trim());
 
 function click(label: string) {
-  const button = [...host!.querySelectorAll("button")].find(
+  const button = [...host!.querySelectorAll(FOOTER_BUTTON)].find(
     (b) => b.textContent?.trim() === label
   );
   if (!button) throw new Error(`no "${label}" button`);
@@ -169,7 +186,7 @@ describe("DataImportWizard step header", () => {
     const steps = [...host!.querySelectorAll('[data-slot="steps"] li')];
     expect(steps.map((li) => li.textContent?.trim())).toEqual([
       "Config",
-      "Preview",
+      "Map columns",
       "Fix issues",
       "Import",
     ]);
@@ -193,12 +210,12 @@ describe("DataImportWizard landing step", () => {
 
   it("opens an import with a file on Preview", () => {
     render(savedDoc());
-    expect(stepLabel()).toBe("Preview");
+    expect(stepLabel()).toBe("Map columns");
   });
 
   it("opens on Preview for a Google Sheet too", () => {
     render(savedDoc({ import_file: null, google_sheets_url: "https://sheet" }));
-    expect(stepLabel()).toBe("Preview");
+    expect(stepLabel()).toBe("Map columns");
   });
 
   it.each([
@@ -224,7 +241,7 @@ describe("DataImportWizard landing step", () => {
 
   it("ignores template warnings that are not valid JSON", () => {
     render(savedDoc({ template_warnings: "{oops" }));
-    expect(stepLabel()).toBe("Preview");
+    expect(stepLabel()).toBe("Map columns");
   });
 
   it.each(["In Progress", "Success", "Partial Success", "Error", "Timed Out"])(
@@ -262,7 +279,7 @@ describe("DataImportWizard footer", () => {
     expect(buttons()).toEqual(["Next"]);
   });
 
-  it("Preview: Back and Next", () => {
+  it("Map columns: Back and Next", () => {
     render(savedDoc());
     expect(buttons()).toEqual(["Back", "Next"]);
   });
@@ -313,7 +330,7 @@ describe("DataImportWizard footer", () => {
 
   it("after a timeout, Retry leads", () => {
     render(savedDoc({ status: "Timed Out" }), { onNewImport: vi.fn() });
-    const solid = [...host!.querySelectorAll("button")].filter((b) =>
+    const solid = [...host!.querySelectorAll(FOOTER_BUTTON)].filter((b) =>
       b.classList.contains("bg-surface-gray-10")
     );
     expect(solid.map((b) => b.textContent?.trim())).toEqual(["Retry"]);
@@ -393,6 +410,31 @@ describe("DataImportWizard footer", () => {
   });
 });
 
+function configShowsErrors() {
+  return (
+    document
+      .querySelector("[data-slot='config']")
+      ?.getAttribute("data-show-errors") === "true"
+  );
+}
+
+describe("DataImportWizard step headings", () => {
+  it("opens an earlier step when its heading is clicked", async () => {
+    render(savedDoc());
+    expect(stepLabel()).toBe("Map columns");
+    stepButton("Config").click();
+    await settle();
+    expect(stepLabel()).toBe("Config");
+  });
+
+  it("can't open a step that isn't ready, or the current one", () => {
+    render(savedDoc());
+    expect(stepButton("Import").disabled).toBe(true);
+    expect(stepButton("Map columns").disabled).toBe(true);
+    expect(stepButton("Fix issues").disabled).toBe(false);
+  });
+});
+
 describe("DataImportWizard locks", () => {
   it("can't leave Config without a file", async () => {
     const { dataImport } = render(savedDoc({ import_file: null }));
@@ -400,9 +442,8 @@ describe("DataImportWizard locks", () => {
     await settle();
     expect(stepLabel()).toBe("Config");
     expect(dataImport.save).not.toHaveBeenCalled();
-    expect(document.body.textContent).toContain(
-      "Please attach an import file or provide a Google Sheets URL."
-    );
+    expect(configShowsErrors()).toBe(true);
+    expect(document.querySelector("[role='dialog']")).toBeNull();
   });
 
   it("doesn't save a new import that has no file", async () => {
@@ -422,9 +463,8 @@ describe("DataImportWizard locks", () => {
     click("Next");
     await settle();
     expect(stepLabel()).toBe("Config");
-    expect(document.body.textContent).toContain(
-      "Please select Document Type and Import Type."
-    );
+    expect(configShowsErrors()).toBe(true);
+    expect(document.querySelector("[role='dialog']")).toBeNull();
   });
 
   it("opens Preview first, then waits for the preview", async () => {
@@ -442,8 +482,8 @@ describe("DataImportWizard locks", () => {
     click("Next");
     await settle();
     expect(dataImport.fetchPreview).toHaveBeenCalledOnce();
-    expect(labelWhileFetching).toBe("Preview");
-    expect(stepLabel()).toBe("Preview");
+    expect(labelWhileFetching).toBe("Map columns");
+    expect(stepLabel()).toBe("Map columns");
   });
 
   it("can't reach Fix issues while the preview failed", async () => {
@@ -452,8 +492,8 @@ describe("DataImportWizard locks", () => {
     dataImport.previewError.value = "Bad file";
     click("Next");
     await settle();
-    expect(stepLabel()).toBe("Preview");
-    // shown once, inside the Preview step, not again in a popup
+    expect(stepLabel()).toBe("Map columns");
+    // shown once, inside the Map columns step, not again in a popup
     expect(document.body.textContent!.split("Bad file").length - 1).toBe(1);
   });
 
