@@ -1126,6 +1126,23 @@ class TestRemoveApp(IntegrationTestCase):
 
 		self.assertEqual(uninstall_hook_calls, [])
 
+	def test_app_missing_from_bench_does_not_block_other_uninstalls(self):
+		from frappe.installer import remove_from_installed_apps
+
+		app = "abc_test_uninstall_app"
+		module = "Abc Test Uninstall Module"
+		doctypes = ["Abc Test Uninstall One", "Abc Test Uninstall Two"]
+		missing_app = "abc_test_missing_app"
+		self.addCleanup(self.delete_uninstall_leftovers, module, doctypes)
+		self.addCleanup(remove_from_installed_apps, missing_app)
+		self.make_app_module(app, module, doctypes)
+		add_to_installed_apps(missing_app)
+
+		with fake_app_without_hooks(app), self.set_user("test@example.com"):
+			remove_app(app, yes=True, no_backup=True, force=True)
+
+		self.assertFalse(frappe.db.exists("Module Def", module))
+
 
 class TestSiteMigration(BaseTestCommands):
 	def test_migrate_cli(self):

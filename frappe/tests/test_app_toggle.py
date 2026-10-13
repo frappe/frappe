@@ -282,3 +282,13 @@ class TestAppToggle(IntegrationTestCase):
 
 		frappe.db.rollback()
 		self.assertNotIn(FAKE_APP, read_disabled_apps())
+
+	def test_an_app_missing_from_the_bench_does_not_block_disabling_another(self):
+		installed = json.loads(self.installed_apps_before or "[]")
+		frappe.db.set_global("installed_apps", json.dumps([*installed, "abc_test_missing_app"]))
+		frappe.clear_cache()
+
+		with fake_app():
+			disable_app(FAKE_APP)
+
+		self.assertIn(FAKE_APP, read_disabled_apps())
