@@ -529,6 +529,40 @@ class TestSessionEndpoints(ApiCase):
 			self.assertEqual(api.run(name, "hi")["status"], "started")
 		self.assertEqual(self.daemon.calls[-1], ("run", name, "hi"))
 
+	def test_resume_syncs_again_when_a_concurrent_sync_commits_first(self):
+		self.daemon.answer = pause
+		name = self.create()
+		run = api.run(name, "delete it")["run"]
+		real_sync = FlowSession.sync
+		syncs = []
+
+		def sync(doc):
+			syncs.append(doc.name)
+			if len(syncs) == 1:
+				raise frappe.TimestampMismatchError
+			return real_sync(doc)
+
+		with patch.object(FlowSession, "sync", sync), patch.object(frappe.db, "rollback"):
+			self.assertEqual(api.resume(name, '{"c9": "Approve"}'), {"run": run, "status": "started"})
+		self.assertEqual(self.run_status(run), "Running")
+
+	def test_cancel_pending_syncs_again_when_a_concurrent_sync_commits_first(self):
+		self.daemon.answer = pause
+		name = self.create()
+		run = api.run(name, "delete it")["run"]
+		real_sync = FlowSession.sync
+		syncs = []
+
+		def sync(doc):
+			syncs.append(doc.name)
+			if len(syncs) == 1:
+				raise frappe.QueryDeadlockError
+			return real_sync(doc)
+
+		with patch.object(FlowSession, "sync", sync), patch.object(frappe.db, "rollback"):
+			self.assertEqual(api.cancel_pending(name), {"status": "cancelled"})
+		self.assertEqual(self.run_status(run), "Failed")
+
 	def test_run_takes_attachments_as_a_json_list(self):
 		file_doc = frappe.get_doc(
 			{"doctype": "File", "file_name": "notes.txt", "content": "the body", "is_private": 1}

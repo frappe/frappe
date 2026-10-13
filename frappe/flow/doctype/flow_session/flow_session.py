@@ -21,6 +21,7 @@ from flow.lib.session import (
 	call_on_complete,
 	fail_running,
 	flow_server,
+	sync_with_retry,
 )
 
 if TYPE_CHECKING:
@@ -219,7 +220,7 @@ class FlowSession(Document):
 		"""Answer the paused run's approval batch, keyed by tool call id; `approval_seq` names
 		a sub-agent's batch instead, which the run kept running through."""
 		self._assert_can_run()
-		self.sync()
+		sync_with_retry(self)
 		run = self._paused_run(approval_seq)
 		with flow_server() as client:
 			client.resume(self.name, answers, approval_seq=approval_seq or run.approval_seq)
@@ -237,7 +238,7 @@ class FlowSession(Document):
 		with flow_server() as client:
 			status = client.cancel_pending(self.name)["status"]
 		if status == "cancelled":
-			self.sync()
+			sync_with_retry(self)
 			call_on_complete(self)
 		return status
 
