@@ -238,6 +238,22 @@ test("a provider's models show without its prefix; a late answer for another is 
 	assert.equal(doc.model_id, "custom_openai/openai/gpt-6-sol");
 });
 
+test("a model id typed while the list loads stays when no list comes back", async (t) => {
+	const field = SPECS.models.fields.find((f) => f.name === "model_id");
+	let answer;
+	transport.answers["flow.flow.doctype.flow_model.flow_model.get_provider_models"] = () =>
+		new Promise((resolve) => (answer = resolve));
+	const doc = reactive({ doctype: "Flow Model", provider: "custom_openai", model_id: "" });
+	const el = mount(t, FieldControl, { field, doc });
+	await until(() => answer);
+	type(el, "acme/model-x");
+	answer([]);
+	await until(() => doc.model_id);
+	await nextTick();
+	assert.equal(doc.model_id, "acme/model-x");
+	assert.equal(el.querySelector("input").value, "acme/model-x");
+});
+
 // a Frappe JSON column carries a json_valid check, which an empty string fails
 const sourceSpec = {
 	doctype: "Flow Knowledge Source",

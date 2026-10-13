@@ -283,6 +283,8 @@ watch(
 			provider,
 		}).catch(() => []);
 		if (stale) return;
+		// no list means a plain input: keep what was typed meanwhile
+		if (!models.length && typed.value.trim()) pickModel(typed.value.trim());
 		known.value = models;
 		modelsLoading.value = false;
 	},
