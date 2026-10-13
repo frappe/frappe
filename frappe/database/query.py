@@ -399,6 +399,8 @@ class Engine:
 
 				if isinstance(field, Star) or (is_source_name and alias in (None, "name")):
 					has_name_field = True
+				# child queries need the `name` key; distinct rows only need the column, under any alias
+				if isinstance(field, Star) or is_source_name:
 					selects_own_name = selects_own_name or getattr(field, "table", None) == self.table
 
 		if not has_select_field:
