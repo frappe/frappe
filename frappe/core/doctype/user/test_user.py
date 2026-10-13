@@ -754,7 +754,8 @@ class TestUser(IntegrationTestCase):
 		with test_user(roles=[], commit=True) as user:
 			key = self.reset_password(user)
 			hashed_key = sha256_hash(key)
-			frappe.db.commit()
+			# the second connection only sees committed rows
+			frappe.db.commit()  # nosemgrep
 
 			set_request(path="/random")
 			frappe.local.cookie_manager = CookieManager()
@@ -770,7 +771,7 @@ class TestUser(IntegrationTestCase):
 					frappe.db.rollback()
 
 				# clearing sessions commits mid-request; the key must already be gone by then
-				frappe.db.commit()
+				frappe.db.commit()  # nosemgrep
 				with patch.object(frappe.local, "db", other):
 					self.assertFalse(frappe.db.exists("User", {"reset_password_key": hashed_key}))
 					frappe.db.rollback()
