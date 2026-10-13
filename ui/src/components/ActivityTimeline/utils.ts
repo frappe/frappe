@@ -200,3 +200,20 @@ export function applyCssToIframe(
     head.insertBefore(clone, anchor);
   });
 }
+
+// How much of an email's bottom edge to fade, in px. Only while there is more
+// below the fold: reaching the end (or content that never overflows) gives 0,
+// which collapses the gradient stop onto the edge and leaves the mask opaque.
+// The 1px tolerance matters — `scrollTop` goes fractional on HiDPI/zoom, so an
+// exact comparison never clears the fade at the end of the scroll.
+const EMAIL_FADE_LENGTH = 18;
+
+export function bottomFade(scroller: {
+  scrollTop: number;
+  clientHeight: number;
+  scrollHeight: number;
+}): string {
+  const { scrollTop, clientHeight, scrollHeight } = scroller;
+  const more = scrollTop + clientHeight < scrollHeight - 1;
+  return `${more ? EMAIL_FADE_LENGTH : 0}px`;
+}

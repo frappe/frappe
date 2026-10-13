@@ -125,17 +125,14 @@
 </template>
 
 <script setup lang="ts">
+import { Badge, Button, Dropdown, toast } from "frappe-ui";
 import {
-	Badge,
-	Button,
-	Dropdown,
 	ListView,
 	ListHeader,
 	ListRows,
 	ListSelectBanner,
 	ListFooter,
-	toast,
-} from "frappe-ui";
+} from "frappe-ui/experimental";
 import { computed, onMounted, watch } from "vue";
 import { ListViewShell } from "../index";
 import { useListView } from "../useListView";

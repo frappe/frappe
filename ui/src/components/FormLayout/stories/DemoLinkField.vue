@@ -16,6 +16,7 @@
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:disabled="field.readOnly"
+		:title="title"
 		creatable
 		redirectable
 		editable
@@ -26,12 +27,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { Link } from "../../Link";
+import { LinkTitlesKey } from "../types";
 import type { FieldComponentEmits, FieldComponentProps } from "../types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+
+// The host's known titles, as the shipped `LinkField` reads them.
+const titles = inject(LinkTitlesKey, null);
+const title = computed(() =>
+	props.modelValue ? titles?.value[`${props.field.options}::${props.modelValue}`] : undefined
+);
 
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,
