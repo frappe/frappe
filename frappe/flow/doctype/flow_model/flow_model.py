@@ -190,13 +190,16 @@ def _live_models(provider: str) -> list[str]:
 	api_key = doc.get_password("api_key", raise_exception=False) or ""
 	base = (doc.base_url or "").rstrip("/")
 	url = (base if base.endswith("/models") else f"{base}/models") if base else MODEL_ENDPOINTS[provider]
+	params = {}
 	if provider == "anthropic":
 		headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
+		params = {"limit": 1000}
 	elif provider == "gemini":
 		headers = {"x-goog-api-key": api_key}
+		params = {"pageSize": 1000}
 	else:
 		headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-	response = requests.get(url, headers=headers, timeout=10)
+	response = requests.get(url, headers=headers, params=params, timeout=10)
 	response.raise_for_status()
 	data = response.json()
 	ids = (row.get("id") or row.get("name") for row in data.get("data", data.get("models")))

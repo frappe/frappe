@@ -215,6 +215,21 @@ class TestProviderModels(IntegrationTestCase):
 		self.assertEqual(models, ["litellm_proxy/openai/gpt-6-sol"])
 		self.assertEqual(get.call_args.args[0], "https://gw.example.com/v1/models")
 
+	def test_anthropic_is_asked_for_every_model_on_one_page(self):
+		if not frappe.db.exists("Flow Provider", "anthropic"):
+			frappe.get_doc({"doctype": "Flow Provider", "provider": "anthropic"}).insert()
+		with patch("requests.get", return_value=_response({"data": [{"id": "claude-x"}]})) as get:
+			self.assertEqual(get_provider_models("anthropic"), ["anthropic/claude-x"])
+		self.assertEqual(get.call_args.kwargs["params"], {"limit": 1000})
+
+	def test_gemini_is_asked_for_every_model_on_one_page(self):
+		if not frappe.db.exists("Flow Provider", "gemini"):
+			frappe.get_doc({"doctype": "Flow Provider", "provider": "gemini"}).insert()
+		body = {"models": [{"name": "models/gemini-x"}]}
+		with patch("requests.get", return_value=_response(body)) as get:
+			self.assertEqual(get_provider_models("gemini"), ["gemini/gemini-x"])
+		self.assertEqual(get.call_args.kwargs["params"], {"pageSize": 1000})
+
 	def test_falls_back_to_litellms_catalog_when_the_provider_does_not_answer(self):
 		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq"}).insert()
 		with (
