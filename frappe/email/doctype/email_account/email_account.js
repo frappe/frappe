@@ -46,6 +46,13 @@ function with_email_settings(fn) {
 function oauth_access(frm) {
 	frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
 		const connected_app = frappe.get_doc("Connected App", frm.doc.connected_app);
+		if (
+			!frm.is_new() &&
+			connected_app.token_uri?.endsWith("press.api.email_oauth.relay_token")
+		) {
+			with_email_settings((email_settings) => email_settings.sign_in(frm.doc.name));
+			return;
+		}
 		return frappe.call({
 			doc: connected_app,
 			method: "initiate_web_application_flow",

@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 import frappe
 from frappe import _
 from frappe.integrations.doctype.connected_app.connected_app import has_token
+from frappe.integrations.frappe_providers import email_oauth
 from frappe.utils import cint, get_url, get_url_to_form, validate_email_address
 
 EMAIL_SERVICES = {
@@ -175,7 +176,11 @@ def get_email_setup() -> dict:
 			"redirect_uri": get_redirect_uri(name),
 		}
 
-	return {"accounts": accounts, "providers": providers}
+	return {
+		"accounts": accounts,
+		"providers": providers,
+		"frappe_cloud_microsoft": email_oauth.is_available(),
+	}
 
 
 def get_account_status(account) -> str:
@@ -390,6 +395,8 @@ def authorize(email_account: str) -> str:
 			),
 			title=_("Not Allowed"),
 		)
+	if email_oauth.is_broker_app(doc.connected_app):
+		return email_oauth.initiate_mailbox_connect(redirect_to=email_oauth.DEFAULT_REDIRECT)
 	app = frappe.get_doc("Connected App", doc.connected_app)
 	return app.initiate_web_application_flow(
 		user=frappe.session.user, success_uri=get_url_to_form("Email Account", doc.name) + "?email_setup=1"

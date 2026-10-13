@@ -8,6 +8,15 @@ frappe.listview_settings["Email Account"] = {
 		if (frappe.user.has_role("System Manager")) {
 			listview.page.add_inner_button(__("Email Settings"), () => open_email_settings());
 		}
+		const url = new URL(window.location.href);
+		const result = url.searchParams.get("email_oauth");
+		if (result) {
+			url.searchParams.delete("email_oauth");
+			window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+			frappe.require("email_settings.bundle.js", () =>
+				frappe.email_settings.show_microsoft_result(result)
+			);
+		}
 	},
 	get_indicator: function (doc) {
 		if (doc.default_incoming && doc.default_outgoing) {
