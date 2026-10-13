@@ -1929,3 +1929,381 @@ test("a quote queues once; clearing takes what was sent, or everything", () => {
 	flow.clearCodeRefs()
 	assert.deepEqual(flow.state.codeRefs, [])
 })
+
+test("a new chat's first message goes to the chat made for it, even after the user opens another", async () => {
+	const calls = []
+	const client = hostClient(calls)
+	client.createSession = async () => ({ session_id: "NEW", config: { model: "mock" } })
+	let release
+	const held = new Promise((resolve) => (release = resolve))
+	client.session = async (sid) => {
+		if (sid === "NEW") await held
+		return { session_id: sid, model: "mock", latest_seq: 0 }
+	}
+	client.run = async (sid, message) => {
+		calls.push(["run", sid, message])
+		return { status: "ok" }
+	}
+	const flow = createFlowStore(client, { requireCwd: false })
+
+	const sent = flow.send("hello for the new chat")
+	await settle() // the new chat exists and is loading
+	await flow.openSession("B")
+	release()
+	assert.equal(await sent, true)
+	assert.deepEqual(calls, [["run", "NEW", "hello for the new chat"]])
+	assert.equal(flow.state.sessionId, "B")
+	flow.detach()
+})
+
+test("a chat opened while the first message's chat is created stays open", async () => {
+	const calls = []
+	const client = hostClient(calls)
+	let created
+	client.createSession = () => new Promise((resolve) => (created = resolve))
+	client.run = async (sid, message) => {
+		calls.push(["run", sid, message])
+		return { status: "ok" }
+	}
+	const flow = createFlowStore(client, { requireCwd: false })
+
+	const sent = flow.send("hello")
+	await settle()
+	await flow.openSession("B")
+	created({ session_id: "NEW", config: { model: "mock" } })
+	assert.equal(await sent, true)
+	assert.equal(flow.state.sessionId, "B")
+	assert.deepEqual(calls, [["run", "NEW", "hello"]])
+	flow.detach()
+})
+
+test("a message from another new chat while the first one's chat is created gets a chat of its own", async () => {
+	const calls = []
+	const client = hostClient(calls)
+	const created = []
+	client.createSession = () => new Promise((resolve) => created.push(resolve))
+	client.run = async (sid, message) => {
+		calls.push(["run", sid, message])
+		return { status: "ok" }
+	}
+	const flow = createFlowStore(client, { requireCwd: false })
+
+	const first = flow.send("first")
+	await settle()
+	flow.startNewChat()
+	const second = flow.send("second")
+	await settle()
+	created[0]({ session_id: "A", config: { model: "mock" } })
+	assert.equal(await first, true)
+	created[1]?.({ session_id: "B", config: { model: "mock" } })
+	assert.equal(await second, true)
+	assert.deepEqual(calls, [
+		["run", "A", "first"],
+		["run", "B", "second"],
+	])
+	assert.equal(flow.state.sessionId, "B")
+	flow.detach()
+})
+
+test("opening a chat again while it loads shows its history once, on one stream", async () => {
+	const answers = []
+	const streams = []
+	const client = {
+		session: (sid) => new Promise((resolve) => answers.push(() => resolve({ session_id: sid, model: "m", latest_seq: 2 }))),
+		async entries() {
+			return {
+				entries: [
+					{ type: "user_message", seq: 1, content: "hi" },
+					{ type: "assistant_message", seq: 2, content: [{ type: "text", text: "hello" }] },
+				],
+				latest_seq: 2,
+			}
+		},
+		stream(sid) {
+			streams.push(sid)
+			return { close() {}, async *[Symbol.asyncIterator]() {} }
+		},
+	}
+	const flow = createFlowStore(client)
+
+	const opens = [flow.openSession("A"), flow.openSession("A")] // a double-click
+	for (const answer of answers) answer()
+	await Promise.all(opens)
+	assert.deepEqual(flow.state.conversation.entries.map((entry) => entry.seq), [1, 2])
+	assert.deepEqual(streams, ["A"])
+	flow.detach()
+})
+
+test("the first message keeps the file tabs opened before it", async () => {
+	const client = hostClient([])
+	client.readFile = async (cwd, path) => ({ path, content: "x" })
+	const flow = createFlowStore(client)
+	flow.setCwd("/proj")
+	await flow.openFile("/proj/a.py")
+
+	assert.equal(await flow.send("look at a.py"), true)
+	assert.equal(flow.state.sessionId, "s1")
+	assert.equal(flow.state.workspace.open, true)
+	assert.deepEqual(flow.state.workspace.tabs.map((tab) => tab.path), ["/proj/a.py"])
+	flow.detach()
+})
+
+test("a chat that fails to load leaves a blank chat, not one that can't send", async () => {
+	const client = hostClient([])
+	client.session = async () => {
+		throw new FlowAPIError(404, "session not found")
+	}
+	const flow = createFlowStore(client)
+
+	await flow.openSession("gone")
+	assert.equal(flow.state.sessionId, null)
+	assert.equal(flow.state.loading, false)
+	assert.equal(flow.state.toast.message, "session not found")
+	flow.detach()
+})
+
+test("a waiting message that fails to send after a chat switch waits again in its own chat", async () => {
+	const client = hostClient([])
+	client.entries = running
+	let fail
+	client.run = () => new Promise((resolve, reject) => (fail = reject))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	await flow.send("Also check this")
+
+	const steered = flow.sendQueued(flow.state.queued[0])
+	await settle()
+	await flow.openSession("s2")
+	fail(new Error("offline"))
+	await steered
+	assert.deepEqual(flow.state.queued, [])
+	await flow.openSession("s1")
+	assert.deepEqual(
+		flow.state.queued.map((item) => item.label),
+		["Also check this"],
+	)
+	flow.detach()
+})
+
+test("a steered message's echo clears its bubble whatever order or ids its files come back with", async () => {
+	// after a reload, /flow names an inlined file by name and lists it after the rest
+	const echo = step({
+		type: "user_message",
+		seq: 2,
+		content: [
+			{ type: "text", text: "Use these" },
+			{ type: "attachment", id: "D7", name: "shot.png", kind: "image" },
+			{ type: "attachment", id: "file:notes.txt", name: "notes.txt", kind: "file" },
+		],
+	})
+	const client = hostClient([])
+	client.entries = running
+	client.run = async () => ({ status: "steered" })
+	client.stream = () => pacedStream([echo])
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+	const files = [
+		{ id: "F1", name: "notes.txt", kind: "file" },
+		{ id: "F2", name: "shot.png", kind: "image" },
+	]
+
+	await flow.send("Use these", files)
+	await flow.sendQueued(flow.state.queued[0])
+	assert.equal(flow.state.conversation.steering.length, 1)
+	echo.open()
+	await echo.done
+	assert.deepEqual(flow.state.conversation.steering, [])
+	flow.detach()
+})
+
+test("an approval mode that lands after a chat switch leaves the new chat alone", async () => {
+	const resumes = []
+	let answer
+	const client = hostClient([])
+	client.session = async (sid) => ({ session_id: sid, model: "mock", latest_seq: 0, config: { cwd: `/${sid}` } })
+	client.patchConfig = () => new Promise((resolve) => (answer = resolve))
+	client.resume = async (sid, seq, answers) => {
+		resumes.push([sid, seq, answers])
+		return { status: "resumed" }
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("A")
+
+	const picked = flow.setMode("auto")
+	await flow.openSession("B")
+	flow.state.conversation.pendingApproval = { seq: 2, calls: [{ id: "x" }], answers: {} }
+	answer({ config: { auto_approve: true, cwd: "/A" } })
+	await picked
+	assert.deepEqual(resumes, [])
+	assert.equal(flow.state.session.config.cwd, "/B")
+	flow.detach()
+})
+
+test("auto-approve answers every sub-agent waiting, not just the oldest", async () => {
+	const resumes = []
+	const client = {
+		async patchConfig() {
+			return { config: { auto_approve: true } }
+		},
+		async resume(sessionId, seq, answers) {
+			resumes.push({ seq, answers })
+			return { status: "resumed" }
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "s1"
+	const conversation = flow.state.conversation
+	for (const event of subagentSeed()) applyEvent(conversation, event)
+	const ask = (id) => [{ id, name: "bash", args: { command: "ls" } }]
+	applyEvent(conversation, { type: "approval_required", seq: 6, calls: ask("a1"), subagent_id: "c1" })
+	applyEvent(conversation, { type: "run_started", seq: 7, run_id: "r3", subagent_id: "c9" })
+	applyEvent(conversation, { type: "approval_required", seq: 8, calls: ask("b1"), subagent_id: "c9" })
+
+	await flow.setMode("auto")
+	assert.deepEqual(resumes, [
+		{ seq: 6, answers: { a1: "Approve" } },
+		{ seq: 8, answers: { b1: "Approve" } },
+	])
+})
+
+test("a model or thinking level a running chat refuses doesn't become the default", async () => {
+	const client = hostClient([])
+	client.setModel = async () => {
+		throw new FlowAPIError(409, "a run is already active")
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	await flow.selectModel("other/model")
+	await flow.selectEffort("high")
+	assert.equal(flow.state.prefs.lastModel, null)
+	assert.equal(flow.state.prefs.lastEffort, null)
+	flow.detach()
+})
+
+test("a rewind that answers after a chat switch leaves the other chat's box alone", async () => {
+	let answer
+	const client = hostClient([])
+	client.entries = async () => ({
+		entries: [{ type: "user_message", seq: 2, parent_seq: 1, content: "fix it" }],
+		latest_seq: 2,
+	})
+	client.rewind = () => new Promise((resolve) => (answer = resolve))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	const rewound = flow.rewindLastUserMessage()
+	await flow.openSession("s2")
+	answer({ status: "rewound" })
+	assert.equal(await rewound, null)
+	assert.equal(flow.state.draft, null)
+	flow.detach()
+})
+
+test("a compaction takes steering away as soon as it's asked for; a refused one gives it back", async () => {
+	let refuse
+	const client = hostClient([])
+	client.compact = () => new Promise((resolve, reject) => (refuse = reject))
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	const asked = flow.compact()
+	assert.equal(flow.state.conversation.compacting, "manual")
+	refuse(new FlowAPIError(409, "a run is already active"))
+	await asked
+	assert.equal(flow.state.conversation.compacting, false)
+	flow.detach()
+})
+
+test("a search cleared before its answer lands leaves the full list", async () => {
+	const requests = []
+	const client = { sessions: (args) => new Promise((resolve) => requests.push({ ...args, resolve })) }
+	const flow = createFlowStore(client)
+	const all = { sessions: [{ session_id: "a" }, { session_id: "b" }], more: true }
+	const loaded = flow.refreshSessions()
+	requests[0].resolve(all)
+	await loaded
+
+	const searched = flow.searchSessions("alp")
+	const cleared = flow.searchSessions("")
+	for (const request of requests.slice(1))
+		request.resolve(request.query ? { sessions: [{ session_id: "a" }], more: false } : all)
+	await Promise.all([searched, cleared])
+	assert.deepEqual(
+		requests.map((request) => request.query),
+		["", "alp", ""],
+	)
+	assert.deepEqual(
+		flow.state.sessions.map((session) => session.session_id),
+		["a", "b"],
+	)
+	assert.equal(flow.state.sessionQuery, "")
+})
+
+test("closing the active tab loads the restored tab that comes forward", async () => {
+	const backing = new Map()
+	const previousStorage = globalThis.localStorage
+	globalThis.localStorage = {
+		getItem: (key) => backing.get(key) ?? null,
+		setItem: (key, value) => backing.set(key, value),
+	}
+	try {
+		const client = {
+			session: async () => ({ session_id: "s1", latest_seq: 0, config: { cwd: "/proj" }, model: "mock" }),
+			entries: async () => ({ entries: [], latest_seq: 0 }),
+			readFile: async (cwd, path) => ({ path, content: `text of ${path}` }),
+			stream: () => ({ close() {}, async *[Symbol.asyncIterator]() {} }),
+		}
+		const flow = createFlowStore(client)
+		await flow.openSession("s1")
+		await flow.openFile("/proj/a.py")
+		await flow.openFile("/proj/b.py")
+		flow.selectFile("/proj/a.py")
+
+		// a page refresh restores both tabs; only the active one has loaded
+		const restored = createFlowStore(client)
+		await restored.openSession("s1")
+		await settle()
+		restored.closeFile("/proj/a.py")
+		await settle()
+		assert.equal(restored.state.workspace.active, "/proj/b.py")
+		assert.equal(restored.state.workspace.tabs[0].content, "text of /proj/b.py")
+	} finally {
+		globalThis.localStorage = previousStorage
+	}
+})
+
+test("a preset saves where randomUUID is missing, as on plain http to a LAN address", () => {
+	const randomUUID = Object.getOwnPropertyDescriptor(crypto, "randomUUID")
+	Object.defineProperty(crypto, "randomUUID", { value: undefined, configurable: true })
+	try {
+		const flow = createFlowStore({})
+		const id = flow.savePreset({ name: "Review", tools: ["read"] })
+		assert.ok(id)
+		assert.deepEqual(
+			flow.state.presets.map((preset) => preset.id),
+			[id],
+		)
+	} finally {
+		if (randomUUID) Object.defineProperty(crypto, "randomUUID", randomUUID)
+		else delete crypto.randomUUID // the prototype's shows through again
+	}
+})
+
+test("a new chat's saved thinking level is set on the model the chat was made with", async () => {
+	const models = []
+	const client = hostClient([])
+	client.createSession = async () => ({ session_id: "s1", config: { model: "agent/default" } })
+	client.setModel = async (sid, body) => {
+		models.push(body.model)
+		return body
+	}
+	const flow = createFlowStore(client, { requireCwd: false })
+	// a model the host no longer offers, so it made the chat with its own
+	flow.state.prefs.lastModel = "retired/model"
+	flow.state.prefs.lastEffort = "high"
+
+	assert.equal(await flow.send("hello"), true)
+	assert.deepEqual(models, ["agent/default"])
+	flow.detach()
+})

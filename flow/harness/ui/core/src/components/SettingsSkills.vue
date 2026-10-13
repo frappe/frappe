@@ -234,6 +234,11 @@ async function save() {
 	if (draft.isNew) draft.path = `${roots.value[draft.scope]}/${draft.name}/SKILL.md`
 	saving.value = true
 	try {
+		// the daemon's write replaces whatever is there
+		if (draft.isNew && (await skillExists(draft))) {
+			draft.error = `A ${draft.scope} skill named “${draft.name}” already exists.`
+			return
+		}
 		await flow.client.writeSkill(draft.path, draft.content, projectCwd.value)
 		draft.saved = draft.content
 		draft.error = null
@@ -248,6 +253,19 @@ async function save() {
 		if (error.status !== 400) flow.notify(error.message, "error")
 	} finally {
 		saving.value = false
+	}
+}
+
+// a cut-off list may not show it, so then the daemon is asked
+async function skillExists({ scope, name, path }) {
+	if (rows.value.some((row) => row.scope === scope && row.name === name)) return true
+	if (!truncated.value.includes(scope)) return false
+	try {
+		await flow.client.readSkill(path, projectCwd.value)
+		return true
+	} catch (error) {
+		if (error.status === 404) return false
+		throw error
 	}
 }
 

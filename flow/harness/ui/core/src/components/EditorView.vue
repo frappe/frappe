@@ -89,7 +89,8 @@
 				<div v-show="showDiffHost" ref="diffEl" class="min-h-0 flex-1" />
 			</div>
 
-			<FilesBar :open="explorerOpen" :mode="barMode" />
+			<!-- shut with the panel too: its diff list polls while open -->
+			<FilesBar :open="explorerOpen && workspace.open" :mode="barMode" />
 		</div>
 	</div>
 </template>
@@ -125,19 +126,14 @@ const barMode = computed(() =>
 	(activeTab.value ? activeTab.value.diff : workspace.value.view === "diff") ? "diff" : "files",
 )
 
-// entering the files or diff view — from a menu or a restore — should present
-// the file bar without an extra click
+// another chat's workspace shuts the bar; a files or diff view (menu or restore) opens it
 watch(
-	() => [workspace.value.open, workspace.value.active, workspace.value.view],
-	([open, active, view]) => {
+	() => [workspace.value, workspace.value.open, workspace.value.active, workspace.value.view],
+	([ws, open, active, view], previous) => {
+		if (ws !== previous?.[0]) explorerOpen.value = false
 		if (open && !active && (view === "files" || view === "diff")) explorerOpen.value = true
 	},
 	{ immediate: true },
-)
-
-watch(
-	() => flow.state.sessionId,
-	() => (explorerOpen.value = false),
 )
 
 // Monaco objects stay out of Vue's reactivity: one editor, one model per tab.

@@ -67,6 +67,7 @@
 			     the batch answers one call at a time, so the next call takes the card over -->
 			<ApprovalCard
 				v-if="approval"
+				ref="card"
 				:key="approval.call.id"
 				:call="approval.call"
 				:position="approval.position"
@@ -472,11 +473,15 @@ function onFilesPicked(event) {
 }
 
 function onPaste(event) {
-	const images = [...(event.clipboardData?.items ?? [])]
+	const data = event.clipboardData
+	const images = [...(data?.items ?? [])]
 		.filter((item) => item.kind === "file" && item.type.startsWith("image/"))
 		.map((item) => item.getAsFile())
 		.filter(Boolean)
 	if (!images.length) return
+	// a spreadsheet or document range brings a picture of itself along: the text is what was
+	// copied. A copied file or web image has no text in its HTML.
+	if (data.getData("text/plain").trim() && data.getData("text/html").replace(/<[^>]*>/g, "").trim()) return
 	event.preventDefault()
 	addLocalFiles(images)
 }
@@ -667,6 +672,14 @@ const approval = computed(() => {
 		subagent: pending.subagentId ? (subagentTitle(conversation, pending.subagentId) ?? "") : null,
 	}
 })
+// an answered call takes its card away, and the keyboard focus inside it: the box gets that
+const card = ref(null)
+watch(
+	() => approval.value?.call.id,
+	() => {
+		if (card.value?.$el.contains(document.activeElement)) nextTick(() => box.value?.focus())
+	},
+)
 const codeRefs = computed(() => flow.state.codeRefs)
 const quotes = computed(() => flow.state.quotes)
 const quoteLabel = (quote) => quote.replace(/\s+/g, " ").slice(0, 120)
@@ -748,7 +761,12 @@ const menuOpen = computed(
 )
 const menuItems = computed(() => (menuOpen.value ? matches.value : []))
 
+// An IME's Enter picks a candidate and its Escape drops one; Safari sends the closing key
+// after compositionend, marked only by keyCode 229.
+const composing = (e) => e.isComposing || e.keyCode === 229
+
 function onKey(e) {
+	if (composing(e)) return
 	if (e.key === "Enter" && !e.shiftKey) {
 		e.preventDefault()
 		submit()
@@ -780,10 +798,12 @@ function anyMenuOpen() {
 }
 
 // Escape aborts even when focus is outside the textarea (reading, after a
-// click). Open panels and menus own Escape while they hold focus.
+// click). Open panels and menus own Escape while they hold focus, and so do
+// dialogs and other fields (a search box, a form, the editor).
 // e.repeat: a held key must not spam abort requests.
 function onWindowKey(e) {
-	if (e.key !== "Escape" || e.repeat || anyMenuOpen()) return
+	if (e.key !== "Escape" || e.repeat || e.defaultPrevented || composing(e) || anyMenuOpen()) return
+	if (e.target?.closest?.('input, textarea, select, [contenteditable], [role="dialog"], [role="menu"]')) return
 	if (running.value) flow.abort()
 }
 
@@ -851,17 +871,20 @@ async function submit() {
 		if (pending.length) await Promise.all(pending)
 		if (flow.state.sessionId !== sendingSessionId) return
 		if (selectedAttachments.some((item) => item.error || !attachments.value.includes(item))) return
-		// the box empties as the bubble appears; a send that never lands hands the
-		// text back rather than losing it. Attachments keep their own staging state,
-		// so they stay put until the send settles.
+		// the box and its chips empty as the bubble appears; a send that never lands hands
+		// them back rather than losing them. Only what went out: a ref or quote added
+		// meanwhile stays staged.
 		text.value = ""
+		attachments.value = attachments.value.filter((item) => !selectedAttachments.includes(item))
+		flow.clearCodeRefs(selectedCodeRefs)
+		flow.clearQuotes(selectedQuotes)
 		if (await flow.send(outgoing, selectedAttachments)) {
-			clearAttachments(false)
-			// only what went out: a ref or quote added meanwhile stays staged
-			flow.clearCodeRefs(selectedCodeRefs)
-			flow.clearQuotes(selectedQuotes)
+			for (const item of selectedAttachments) revokePreview(item)
 		} else {
 			text.value = draftText
+			attachments.value = [...selectedAttachments, ...attachments.value]
+			for (const ref of selectedCodeRefs) flow.addCodeRef(ref.path, ref.start, ref.end)
+			for (const quote of selectedQuotes) flow.addQuote(quote)
 		}
 	} finally {
 		submitting.value = false

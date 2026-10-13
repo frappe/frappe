@@ -138,14 +138,23 @@ onBeforeUnmount(() => {
 	for (const url of Object.values(previews.value)) URL.revokeObjectURL(url)
 })
 
-// show the toggle only when the 12-line clamp actually truncated
+// show the toggle only when the 12-line clamp actually truncated, measured again when the
+// thread narrows (a panel opening, a phone turning)
 const expanded = ref(false)
 const textEl = ref(null)
 const clampable = ref(false)
-onMounted(() => {
+let resizer = null
+function measure() {
 	const el = textEl.value
-	clampable.value = !!el && el.scrollHeight > el.clientHeight + 1
+	if (el && !expanded.value) clampable.value = el.scrollHeight > el.clientHeight + 1
+}
+onMounted(() => {
+	measure()
+	if (typeof ResizeObserver === "undefined" || !textEl.value) return
+	resizer = new ResizeObserver(measure)
+	resizer.observe(textEl.value)
 })
+onBeforeUnmount(() => resizer?.disconnect())
 
 function confirmRewind() {
 	dialog.confirm({

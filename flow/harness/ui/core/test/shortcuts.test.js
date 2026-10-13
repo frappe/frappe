@@ -33,3 +33,13 @@ test("modifiers must match exactly", () => {
 	assert.equal(findShortcut(event({ metaKey: true, shiftKey: true })), null)
 	assert.equal(findShortcut(event({ metaKey: true, code: "KeyA" })), null)
 })
+
+test("a combo follows the character typed, or the key's place when that isn't a plain one", () => {
+	// Dvorak: the B key types x, so Cmd+X stays cut, and the key that types b is the shortcut
+	assert.equal(findShortcut(event({ metaKey: true, key: "x" })), null)
+	assert.equal(findShortcut(event({ metaKey: true, code: "KeyN", key: "b" })), SHORTCUTS[0])
+	assert.equal(findShortcut(event({ ctrlKey: true, code: "KeyW", key: "," })), SHORTCUTS[2])
+	// Option+B types "∫" on a mac, and a Cyrillic layout types "и": the key's place decides
+	assert.equal(findShortcut(event({ metaKey: true, altKey: true, key: "∫" })), SHORTCUTS[1])
+	assert.equal(findShortcut(event({ ctrlKey: true, key: "и" })), SHORTCUTS[0])
+})

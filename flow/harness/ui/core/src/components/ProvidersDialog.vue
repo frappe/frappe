@@ -2,6 +2,7 @@
 	<PalettePanel
 		:title="selected?.name || 'Providers'"
 		back
+		:busy="!selected && query !== debouncedQuery"
 		@close="emit('close')"
 		@back="selected ? deselect() : emit('back')"
 	>
@@ -437,13 +438,15 @@ async function completeOAuth() {
 function startPolling() {
 	stopPolling()
 	const providerId = selected.value.id // pinned: navigation must not retarget the poll
-	pollTimer = setInterval(async () => {
+	const poll = (pollTimer = setInterval(async () => {
 		try {
-			applyStatus(await flow.client.oauthStatus(providerId))
+			const status = await flow.client.oauthStatus(providerId)
+			// a stopped poll's late answer is for a provider no longer shown
+			if (poll === pollTimer) applyStatus(status)
 		} catch {
-			stopPolling()
+			if (poll === pollTimer) stopPolling()
 		}
-	}, 1500)
+	}, 1500))
 }
 
 function applyStatus(status) {

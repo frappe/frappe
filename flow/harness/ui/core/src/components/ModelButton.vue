@@ -52,8 +52,9 @@ const menu = ref(false)
 const currentModel = computed(
 	() => flow.state.conversation.model ?? (flow.state.loading ? null : flow.state.prefs.lastModel),
 )
+// an open chat runs at its own level (none is the provider's default); a new chat at the last one picked
 const currentEffort = computed(
-	() => flow.state.conversation.reasoningEffort ?? flow.state.prefs.lastEffort ?? "default",
+	() => (flow.state.sessionId ? flow.state.conversation.reasoningEffort : flow.state.prefs.lastEffort) ?? "default",
 )
 // The button shows only the final model id; routed names can have multiple
 // namespace segments (for example openrouter/openai/gpt).
