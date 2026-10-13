@@ -97,10 +97,12 @@ frappe.ui.GroupBy = class {
 		});
 		field_select.$input.attr({ placeholder, "aria-label": placeholder });
 		field_select.set_value(doctype, fieldname);
+		$(parent).data("field_select", field_select);
 	}
 
+	// the field picker lists every field, so a keyboard user can pick one right away
 	focus_last_group_by() {
-		this.$group_by_area.find(".group-by-field-select input").last().trigger("focus");
+		this.$group_by_area.find(".group-by-field-select").last().data("field_select")?.open();
 	}
 
 	set_group_by_field(idx, doctype, fieldname) {

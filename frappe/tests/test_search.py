@@ -164,6 +164,32 @@ class TestSearch(IntegrationTestCase):
 		self.assertTrue(rows)
 		self.assertNotIn("image", rows[0])
 
+	def test_search_link_images_only_from_records_the_user_can_read(self):
+		from frappe.desk.search import add_images
+
+		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
+		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", None)
+
+		test_user = "test_search_image_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Test Search Image User",
+					"user_type": "System User",
+				}
+			).insert(ignore_permissions=True).add_roles("System Manager")
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+		add_user_permission("User", test_user, test_user)
+		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
+
+		# a Link field that ignores User Permissions can list Administrator, but not its image
+		rows = [{"value": "Administrator"}, {"value": test_user}]
+		with self.set_user(test_user):
+			add_images(rows, "User")
+		self.assertNotIn("image", rows[0])
+
 	def test_image_field_behind_a_permlevel_is_not_returned(self):
 		from frappe.desk.search import get_image_field
 
