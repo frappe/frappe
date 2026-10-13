@@ -132,7 +132,6 @@ function t(message: string): string {
 const importTypeOptions = [
 	{ label: t("Insert New Records"), value: "Insert New Records" },
 	{ label: t("Update Existing Records"), value: "Update Existing Records" },
-	{ label: t("Insert or Update Records"), value: "Insert or Update Records" },
 ];
 
 const importTypeDescription = computed(() => {
@@ -140,9 +139,6 @@ const importTypeDescription = computed(() => {
 		"Insert New Records": t("Add new records. Existing records are not changed."),
 		"Update Existing Records": t(
 			"Update records that already exist. Each row must include the record's ID (name)."
-		),
-		"Insert or Update Records": t(
-			"Add new records and update existing ones in the same import."
 		),
 	}[importType.value];
 });
