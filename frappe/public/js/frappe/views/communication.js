@@ -1284,6 +1284,8 @@ frappe.views.CommunicationComposer = class {
 			}
 		}
 
+		if (this.print_format) delete last_edited.select_print_format;
+		if (this.letter_head != null) delete last_edited.select_letter_head;
 		await this.dialog.set_values(last_edited);
 		this.content_set = true;
 	}
