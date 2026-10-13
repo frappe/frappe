@@ -232,8 +232,6 @@ class DatabaseQuery:
 		result = self.build_and_run()
 
 		if self.with_comment_count:
-			if self.distinct:
-				attach_comments_by_name(self.doctype, result)
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -329,8 +327,8 @@ from {tables}
 		if (
 			self.with_comment_count
 			and not self.group_by
-			and not self.distinct
 			and "_comments" in self.columns
+			and (not self.distinct or self.selects_own_name())
 		):
 			self.fields.append(f"`tab{self.doctype}`.`_comments`")
 
@@ -1308,6 +1306,11 @@ from {tables}
 			# perf: Avoid parsing _comments, this is just a "UX feature"
 			r._comment_count = comments.count('"name"') if comments else 0
 
+	def selects_own_name(self) -> bool:
+		"""Distinct rows stay one per document only when they carry the document's own name."""
+		table = f"`tab{self.doctype}`"
+		return any(f.strip() in {"name", f"{table}.`name`", f"{table}.name"} for f in self.fields)
+
 	def update_user_settings(self):
 		# update user settings if new search
 		if not self.save_user_settings_fields and not getattr(self, "user_settings", None):
@@ -1323,22 +1326,6 @@ from {tables}
 			user_settings["fields"] = self.user_settings_fields
 
 		update_user_settings(self.doctype, user_settings)
-
-
-def attach_comments_by_name(doctype: str, rows: list) -> None:
-	"""Fetch `_comments` for rows of a distinct query, which cannot select the cache column
-	without splitting rows that only differ in it. Rows without `name` get no cache."""
-	names = [r["name"] for r in rows if isinstance(r, dict) and r.get("name")]
-	if not names:
-		return
-
-	table = frappe.qb.DocType(doctype)
-	comments = dict(
-		frappe.qb.from_(table).select(table.name, table._comments).where(table.name.isin(names)).run()
-	)
-	for r in rows:
-		if isinstance(r, dict) and r.get("name"):
-			r["_comments"] = comments.get(r["name"])
 
 
 def cast_name(column: str) -> str:
