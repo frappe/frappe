@@ -314,7 +314,7 @@ let page_number_style = computed(() => {
 	z-index: -1;
 	pointer-events: none;
 	background-position: center top;
-	background-repeat: repeat-y;
+	background-repeat: no-repeat;
 }
 
 .print-format-main {
