@@ -432,11 +432,17 @@ class TestDBQuery(IntegrationTestCase):
 				self.assertNotIn("_comment_count", rows[0])
 				rows = get_list("ToDo", fields=["name"], **args)
 				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
-				# an alias is not the document's name, so it must not split rows either
-				self.assertEqual(len(get_list("ToDo", fields=["description as name"], **args)), 1)
+				# an alias is not the document's name, so it must not split rows or get a count
+				rows = get_list("ToDo", fields=["description as name"], **args)
+				self.assertEqual(len(rows), 1)
+				self.assertNotIn("_comment_count", rows[0])
 			# expressions carry no table, and must not hide a selected name
 			rows = frappe.get_list("ToDo", fields=[{"IFNULL": ["description", "'x'"]}, "name"], **args)
 			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# `*` carries the name, also when permissions leave it unexpanded
+			rows = DatabaseQuery("ToDo").execute(fields=["*"], ignore_permissions=True, **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			self.assertNotIn("_comments", rows[0])
 			# child tables have no comment cache
 			frappe.get_all("DocField", fields=["name"], distinct=True, with_comment_count=1, limit=1)
 

@@ -6,6 +6,7 @@ import copy
 import json
 from typing import Any
 
+from pypika.queries import QueryBuilder
 from pypika.terms import Field, Star
 
 import frappe
@@ -376,7 +377,7 @@ class DatabaseQuery:
 		return frappe.call(controller.get_list, args=kwargs, **kwargs)
 
 
-def selects_own_name(query, doctype: str) -> bool:
+def selects_own_name(query: QueryBuilder, doctype: str) -> bool:
 	"""Distinct rows stay one per document only when they carry the document's own name."""
 	table = f"tab{doctype}"
 	return any(

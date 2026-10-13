@@ -323,13 +323,11 @@ from {tables}
 		self.set_optional_columns()
 		self.build_conditions()
 		self.apply_fieldlevel_read_permissions()
+		if self.with_comment_count and self.distinct and not self.selects_own_name():
+			# a distinct row without the document's name can stand for several documents
+			self.with_comment_count = False
 		# selected after the permission check: never user-requestable, popped in add_comment_count
-		if (
-			self.with_comment_count
-			and not self.group_by
-			and "_comments" in self.columns
-			and (not self.distinct or self.selects_own_name())
-		):
+		if self.with_comment_count and not self.group_by and "_comments" in self.columns:
 			self.fields.append(f"`tab{self.doctype}`.`_comments`")
 
 		args = frappe._dict()
@@ -1309,7 +1307,8 @@ from {tables}
 	def selects_own_name(self) -> bool:
 		"""Distinct rows stay one per document only when they carry the document's own name."""
 		table = f"`tab{self.doctype}`"
-		return any(f.strip() in {"name", f"{table}.`name`", f"{table}.name"} for f in self.fields)
+		own = {"*", "name", f"{table}.*", f"{table}.`name`", f"{table}.name"}
+		return any(f.strip() in own for f in self.fields)
 
 	def update_user_settings(self):
 		# update user settings if new search
