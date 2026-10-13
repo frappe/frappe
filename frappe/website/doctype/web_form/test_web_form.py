@@ -114,12 +114,25 @@ class TestWebForm(IntegrationTestCase):
 		self.make_temp_web_form(
 			web_form_fields=[
 				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
-				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
 				{"fieldname": "", "fieldtype": "Page Break", "label": "More"},
 				{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
 			]
 		)
 		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_page_break_in_row_one_is_not_counted_as_a_page(self):
+		"""It names page 1, so the unnamed empty page after it is still page 2."""
+		frappe.clear_messages()
+		self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "", "fieldtype": "Page Break"},
+			]
+		)
+		messages = frappe.get_message_log()
+		self.assertEqual(len(messages), 1)
+		self.assertIn("Page 2", messages[0]["message"])
 
 	def test_web_form_data_field_options_are_enforced_on_server(self):
 		"""Email/Phone/URL set on a Web Form Field is not on the DocType, so the

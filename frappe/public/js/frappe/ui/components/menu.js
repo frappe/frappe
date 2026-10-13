@@ -1,4 +1,4 @@
-import { validated, safe_href, shortcut_keys } from "./utils.js";
+import { validated, safe_href, shortcut_keys, is_thenable, is_group, icon_html } from "./utils.js";
 import { place } from "./position.js";
 
 /**
@@ -59,10 +59,6 @@ import { place } from "./position.js";
 
 const THEMES = ["gray", "red"];
 
-function is_thenable(value) {
-	return !!value && typeof value.then === "function";
-}
-
 const SUBMENU_OFFSET = 4;
 const SUBMENU_OPEN_DELAY = 150;
 const EXIT_MS = 140;
@@ -86,10 +82,6 @@ function point_in_polygon(x, y, polygon) {
 		}
 	}
 	return inside;
-}
-
-function is_group(entry) {
-	return entry && typeof entry === "object" && "group" in entry && Array.isArray(entry.options);
 }
 
 // flatten the mixed list into explicit groups (loose items become unlabeled
@@ -129,15 +121,6 @@ export function normalize_options(options) {
 	return groups;
 }
 
-// icon names end up inside svg use hrefs, so only plain names pass
-function icon_html(name, svg_class, component) {
-	if (typeof name !== "string" || !/^[a-z0-9-]+$/i.test(name)) {
-		console.warn(`frappe.ui.${component}: icons take a lucide icon name, got "${name}"`);
-		return "";
-	}
-	return frappe.utils.icon(name, "sm", "", "", svg_class, true);
-}
-
 // Underline the first free a-z letter of the label so Alt+letter can activate
 // the row (skipping letters earlier rows in the same panel already took).
 // Built from text nodes + a span, never innerHTML, so labels still can't
@@ -161,7 +144,7 @@ function assign_mnemonic(label_el, text, taken) {
 	return null;
 }
 
-function build_item(item, { reserve_icon_space, component, taken }) {
+export function build_item(item, { reserve_icon_space, component, taken }) {
 	// a disabled row is always a real disabled <button>, never a link — a
 	// disabled <a> keeps a working href that a screen reader's link list or
 	// a script click would still follow, right past the disabled state

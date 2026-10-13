@@ -129,12 +129,14 @@ let uploaded = computed(() => {
 let is_image = computed(() => {
 	return props.file.file_obj.type.startsWith("image");
 });
+let is_pdf = computed(() => {
+	return props.file.file_obj.type == "application/pdf";
+});
 let allow_toggle_optimize = computed(() => {
 	let is_svg = props.file.file_obj.type == "image/svg+xml";
 	return (
 		props.allow_toggle_optimize &&
-		is_image.value &&
-		!is_svg &&
+		((is_image.value && !is_svg) || is_pdf.value) &&
 		!uploaded.value &&
 		!props.file.failed
 	);

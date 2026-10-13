@@ -111,6 +111,10 @@ class DBTable:
 
 	def validate(self):
 		"""Check if change in varchar length isn't truncating the columns"""
+		if self.meta.get("is_virtual"):
+			return
+
+		validate_table_name_length(self.doctype)
 		if self.is_new():
 			return
 
@@ -409,9 +413,20 @@ def validate_column_name(n):
 	return n
 
 
+def validate_table_name_length(doctype):
+	max_length = frappe.db.MAX_COLUMN_LENGTH - 3
+	if len(doctype) > max_length:
+		frappe.throw(
+			_("Doctype name is limited to {0} characters ({1})").format(max_length, doctype),
+			frappe.NameError,
+		)
+
+
 def validate_column_length(fieldname):
 	if len(fieldname) > frappe.db.MAX_COLUMN_LENGTH:
-		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
+		frappe.throw(
+			_("Fieldname is limited to {0} characters ({1})").format(frappe.db.MAX_COLUMN_LENGTH, fieldname)
+		)
 
 
 def get_definition(fieldtype, precision=None, length=None, *, options=None, duckdb=False):

@@ -1596,7 +1596,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.perm[0].submit &&
 			!this.is_dirty() &&
 			!this.is_new() &&
-			!frappe.model.has_workflow(this.doctype) && // show only if no workflow
+			!frappe.workflow.has_workflow(this.doc) && // show only if no workflow
 			this.doc.docstatus === 0
 		) {
 			this.dashboard.add_comment(__("Submit this document to confirm"), "blue", true);
@@ -1962,7 +1962,10 @@ frappe.ui.form.Form = class FrappeForm {
 	set_currency_labels(fields_list, currency, parentfield) {
 		// To set the currency in the label
 		// For example Total Cost(INR), Total Cost(USD)
-		if (!currency) return;
+		if (!currency) {
+			this.reset_currency_labels(fields_list, parentfield);
+			return;
+		}
 		var me = this;
 		var doctype = parentfield ? this.fields_dict[parentfield].grid.doctype : this.doc.doctype;
 		var field_label_map = {};

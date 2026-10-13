@@ -159,7 +159,8 @@ class WebForm(WebsiteGenerator):
 	def get_empty_pages(self):
 		"""Labels of the empty pages. The first page always shows, so it is not checked."""
 		pages = []
-		for df in self.web_form_fields:
+		# row 1 is page 1's own Page Break or one of its fields
+		for df in self.web_form_fields[1:]:
 			if df.fieldtype == "Page Break":
 				pages.append({"label": df.label, "has_fields": False})
 			elif pages and not df.hidden and df.fieldtype not in ("Section Break", "Column Break"):

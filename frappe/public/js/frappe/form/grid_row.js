@@ -1281,8 +1281,16 @@ export default class GridRow {
 							this.grid.set_focus_on_row();
 						}, 100);
 					} else {
-						this.grid.grid_rows[this.doc.idx].toggle_editable_row();
-						this.grid.set_focus_on_row(this.doc.idx);
+						const next_idx = this.doc.idx;
+						const next_row = this.grid.grid_rows[next_idx];
+						if (!next_row) {
+							return;
+						}
+
+						field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+							next_row.toggle_editable_row();
+							this.grid.set_focus_on_row(next_idx);
+						});
 						return false;
 					}
 				}
@@ -1307,7 +1315,20 @@ export default class GridRow {
 				if (is_first_column) {
 					const ri = this.grid.get_current_row(e.target);
 					if (ri == 0) return;
-					this.grid.grid_rows[ri - 1].toggle_editable_row(true);
+
+					const prev_row = this.grid.grid_rows[ri - 1];
+					if (!prev_row) {
+						return;
+					}
+
+					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+						prev_row.toggle_editable_row(true);
+						prev_row.row
+							.find('input[type="Text"],textarea,select')
+							.filter(":visible:last")
+							.focus();
+					});
+					return false;
 				}
 			}
 		});

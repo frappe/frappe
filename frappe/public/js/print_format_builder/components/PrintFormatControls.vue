@@ -211,13 +211,9 @@
 							></button>
 							<span
 								class="pfb-tree-icon"
-								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
+								v-html="frappe.utils.icon(section_icon(section), 'sm')"
 							></span>
-							<span class="pfb-tree-label">
-								{{
-									section.label || zone_label(section) || __("Untitled section")
-								}}
-							</span>
+							<span class="pfb-tree-label">{{ section_label(section) }}</span>
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
 							<div
@@ -372,7 +368,7 @@ import {
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
 import EmptyState from "./EmptyState.vue";
-import { column_of, zone_of, zones } from "../layout";
+import { column_of, zone_label as zone_label_of, zone_of, zones } from "../layout";
 import { field_menu_options, section_menu_options } from "../composables/useNodeMenu";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
@@ -656,7 +652,9 @@ const FIELD_ICONS = {
 	"Small Text": "file-text",
 	"Long Text": "file-text",
 	Text: "file-text",
-	Barcode: "square",
+	Barcode: "barcode",
+	Divider: "separator-horizontal",
+	Spacer: "minus",
 };
 function field_icon(f) {
 	return FIELD_ICONS[f.fieldtype] || "type";
@@ -678,8 +676,13 @@ function select_letterhead(section) {
 	store.select_letterhead({ footer: section === layout.value?.footer });
 }
 
-const ZONE_LABELS = { header: __("Header"), footer: __("Footer") };
-const zone_label = (section) => ZONE_LABELS[zone_of(layout.value, section)] || "";
+const zone_label = (section) => zone_label_of(layout.value, section);
+const section_icon = (section) =>
+	section.page_break ? "scissors-line-dashed" : "rectangle-horizontal";
+const section_label = (section) =>
+	section.label ||
+	zone_label(section) ||
+	(section.page_break ? __("Page Break") : __("Untitled section"));
 
 const { is_collapsed, toggle_collapse } = store;
 
@@ -719,8 +722,7 @@ function clone_section_block(block) {
 
 function add_section_block(block) {
 	if (!layout.value) return;
-	if (block.fieldname === "page_break") layout.value.sections.push(clone_as_section());
-	else store.insert_section(new_section());
+	store.insert_section(block.fieldname === "page_break" ? clone_as_section() : new_section());
 }
 
 // ── computed: field groups (by section break labels) ────────

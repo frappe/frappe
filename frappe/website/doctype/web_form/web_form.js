@@ -71,9 +71,7 @@ frappe.ui.form.on("Web Form", {
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 
 		// a field-less web form is allowed: it renders blank, and always has
-		const page_breaks =
-			frm.doc.web_form_fields?.filter((f) => f.fieldtype == "Page Break") ?? [];
-		validate_page_break_limit(page_breaks.length);
+		validate_page_limit(count_pages(frm));
 	},
 
 	add_publish_button(frm) {
@@ -397,9 +395,7 @@ frappe.ui.form.on("Web Form Field", {
 		let doc = frappe.get_doc(doctype, name);
 
 		if (doc.fieldtype == "Page Break") {
-			validate_page_break_limit(
-				frm.doc.web_form_fields.filter((f) => f.fieldtype == "Page Break").length
-			);
+			validate_page_limit(count_pages(frm));
 		}
 
 		if (["Section Break", "Column Break", "Page Break"].includes(doc.fieldtype)) {
@@ -642,16 +638,16 @@ class GetFieldsDialog {
 		const stale_rows = this.existing_rows.filter(
 			(d) => this.stale_fieldnames.has(d.fieldname) && selected.includes(d.fieldname)
 		);
-		return [...this.drop_empty_leading_pages(rows), ...stale_rows];
+		return [...this.trim_to_opening_page(rows), ...stale_rows];
 	}
 
-	// page 1 is implicit, so a leading Page Break (what a DocType's opening Tab Break
-	// becomes) leaves it blank and pushes every field onto page 2
-	drop_empty_leading_pages(rows) {
+	// only a Page Break in row 1 names page 1, so the last break before the first field
+	// has to open the form, or the pages before it are blank
+	trim_to_opening_page(rows) {
 		const first_field = rows.findIndex((d) => !is_layout_field(d));
-		// a Page Break past the first field divides the fields around it, so it stays
-		const leading = first_field === -1 ? rows.length : first_field;
-		return rows.filter((d, i) => i >= leading || d.fieldtype !== "Page Break");
+		const leading = rows.slice(0, first_field === -1 ? rows.length : first_field);
+		const last_break = leading.map((d) => d.fieldtype).lastIndexOf("Page Break");
+		return rows.slice(Math.max(last_break, 0));
 	}
 
 	add_row(df, fieldnames) {
@@ -734,11 +730,17 @@ function get_web_form_field_values(df, fieldnames) {
 	};
 }
 
-function validate_page_break_limit(page_break_count) {
-	if (page_break_count >= 10) {
+// a Page Break in row 1 names page 1, every other one opens a page
+function count_pages(frm) {
+	const rows = frm.doc.web_form_fields ?? [];
+	return 1 + rows.filter((d, i) => i > 0 && d.fieldtype == "Page Break").length;
+}
+
+function validate_page_limit(page_count) {
+	if (page_count > 10) {
 		frappe.throw({
 			title: __("Too Many Pages"),
-			message: __("There can be only 9 Page Break fields in a Web Form"),
+			message: __("There can be only 10 pages in a Web Form"),
 		});
 	}
 }
@@ -899,7 +901,7 @@ function render_form_builder(frm) {
 				tab_fieldname: "form_builder_tab",
 				get_source_field_values: get_web_form_field_values,
 				is_source_field: is_web_form_field,
-				validate_page_limit: validate_page_break_limit,
+				validate_page_limit,
 				force_read_only: is_builder_read_only(frm),
 			});
 			frappe.web_form_builder.docname = frm.doc.name;

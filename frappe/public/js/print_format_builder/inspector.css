@@ -374,7 +374,7 @@ body.pfb-dragging * {
 }
 
 .pfb-col-item {
-	border-bottom: 1px solid var(--gray-100);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .pfb-col-item:last-child {
@@ -402,7 +402,7 @@ body.pfb-dragging * {
 
 .pfb-col-add-row {
 	padding: 6px 16px 10px;
-	border-top: 1px solid var(--gray-100);
+	border-top: 1px solid var(--border-color);
 }
 
 .pfb-col-editor {

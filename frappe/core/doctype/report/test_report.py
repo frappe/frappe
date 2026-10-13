@@ -119,6 +119,27 @@ class TestReport(IntegrationTestCase):
 		self.assertEqual(columns[1].get("label"), "Module")
 		self.assertTrue("User" in [d.get("name") for d in data])
 
+	def test_failed_query_report_leaves_connection_writable(self):
+		"""A failing query must not strand the connection in the read only transaction."""
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": frappe.generate_hash(),
+				"ref_doctype": "ToDo",
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"query": "select * from `tabNoSuchTable`",
+			}
+		).insert()
+		self.addCleanup(report.delete)
+
+		with self.assertRaises(Exception):
+			report.execute_query_report({})
+
+		# the assertion: this insert raises InReadOnlyMode if the transaction is still open
+		todo = frappe.get_doc({"doctype": "ToDo", "description": frappe.generate_hash()}).insert()
+		self.addCleanup(todo.delete)
+
 	def test_save_or_delete_report(self):
 		"""Test for validations when editing / deleting report of type Report Builder"""
 
@@ -552,6 +573,20 @@ result = [
 		self.assertEqual(result[-1][0], "Total")
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
+
+	def test_add_total_row_skips_columns_with_disable_total(self):
+		columns = [
+			{"fieldname": "item", "label": "Item", "fieldtype": "Data"},
+			{"fieldname": "qty", "label": "Qty", "fieldtype": "Float", "disable_total": 1},
+			{"fieldname": "stock_qty", "label": "Stock Qty", "fieldtype": "Float"},
+		]
+		result = [
+			{"item": "Item A", "qty": 10, "stock_qty": 10},
+			{"item": "Item B", "qty": 2, "stock_qty": 24},
+		]
+
+		total_row = add_total_row(result, columns)[-1]
+		self.assertEqual(total_row, ["Total", "", 34])
 
 	def test_read_path_blocked_by_has_role(self):
 		"""has_permission hook raises PermissionError for unpermitted user on frappe.get_doc."""

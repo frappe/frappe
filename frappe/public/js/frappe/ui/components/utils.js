@@ -93,6 +93,48 @@ export function safe_attrs(attrs, component) {
 	return out;
 }
 
+/** What Tab can land on, for the focus bookkeeping in panels. */
+export const TABBABLE =
+	'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * A panel's body from a component's `content` option. Elements and
+ * element-returning functions (called with `arg`) are the rich channel;
+ * strings become text, never markup. Null when there's nothing to show.
+ */
+export function resolve_content(content, arg) {
+	if (typeof content === "function") content = content(arg);
+	if (typeof content === "string") {
+		const el = document.createElement("div");
+		el.textContent = content;
+		return el;
+	}
+	return (content && $(content)[0]) || null;
+}
+
+/** True for promises and other thenables (async options, submenus...). */
+export function is_thenable(value) {
+	return !!value && typeof value.then === "function";
+}
+
+/** A { group, options: [...] } section in a mixed options list. */
+export function is_group(entry) {
+	return entry && typeof entry === "object" && "group" in entry && Array.isArray(entry.options);
+}
+
+/**
+ * Lucide icon markup for a row or trigger. Icon names end up inside an svg
+ * `use` href, so only plain names pass; anything else warns and renders
+ * nothing.
+ */
+export function icon_html(name, svg_class, component) {
+	if (typeof name !== "string" || !/^[a-z0-9-]+$/i.test(name)) {
+		console.warn(`frappe.ui.${component}: icons take a lucide icon name, got "${name}"`);
+		return "";
+	}
+	return frappe.utils.icon(name, "sm", "", "", svg_class, true);
+}
+
 /**
  * Make a non-button element act like one: focusable, announced as a button,
  * and fired by Enter/Space as well as a click.

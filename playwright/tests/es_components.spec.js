@@ -302,6 +302,48 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("BottomSheet", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "BottomSheet");
+		});
+
+		test("opens as a dialog with focus inside, and Escape closes it back to the trigger", async ({
+			page,
+		}) => {
+			const trigger = explorer_group(page, "Picker (the current choice is checked")
+				.locator('[aria-haspopup="dialog"]')
+				.first();
+
+			await trigger.click();
+			await expect(page.locator(".es-bottom-sheet[role='dialog']")).toBeFocused();
+
+			await page.locator(".es-bottom-sheet").dispatchEvent("keydown", { key: "Escape" });
+			await expect(page.locator(".es-bottom-sheet-root[data-state='open']")).toHaveCount(0);
+			await expect(trigger).toBeFocused();
+		});
+
+		test("search narrows the rows, a pick pushes a step and Back returns", async ({
+			page,
+		}) => {
+			await explorer_group(page, "Steps inside one sheet")
+				.locator('[aria-haspopup="dialog"]')
+				.first()
+				.click();
+
+			await page.locator(".es-bottom-sheet__subheader input").fill("deliv");
+			const rows = page.locator(".es-bottom-sheet__option:visible");
+			await expect(rows).toHaveCount(1);
+			await expect(rows).toContainText("Delivery Date");
+			await rows.click();
+
+			await expect(page.locator(".es-bottom-sheet__title")).toHaveText("Condition");
+			await expect(page.locator(".es-bottom-sheet__subtitle")).toHaveText("Delivery Date");
+
+			await page.locator(".es-bottom-sheet__back").click();
+			await expect(page.locator(".es-bottom-sheet__title")).toHaveText("Choose field");
+		});
+	});
+
 	test.describe("Hover Card", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Hover Card");

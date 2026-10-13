@@ -98,11 +98,15 @@ let header_selected = computed(() => store.selected_sections.value.includes(layo
 
 let page_mm = ref([210, 297]);
 
-onMounted(() => {
+let page_size_seq = 0;
+function load_page_size() {
+	const seq = ++page_size_seq;
 	frappe
 		.call("frappe.utils.print_format_generator.get_page_size_mm")
-		.then((r) => r.message && (page_mm.value = r.message));
-});
+		.then((r) => seq === page_size_seq && r.message && (page_mm.value = r.message));
+}
+onMounted(load_page_size);
+watch(inject("print_settings_rev", ref(0)), load_page_size);
 
 const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
 watch(

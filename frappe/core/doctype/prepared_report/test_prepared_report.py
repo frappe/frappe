@@ -6,7 +6,7 @@ import unittest
 from contextlib import contextmanager
 
 import frappe
-from frappe.desk.query_report import generate_report_result, get_report_doc
+from frappe.desk.query_report import generate_report_result, get_prepared_report_result, get_report_doc
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
@@ -63,6 +63,19 @@ class TestPreparedReport(IntegrationTestCase):
 		self.assertEqual(len(prepared_data["columns"]), len(generated_data["columns"]))
 		self.assertEqual(len(prepared_data["result"]), len(generated_data["result"]))
 		self.assertEqual(len(prepared_data), len(generated_data))
+
+	def test_failed_report_is_surfaced(self):
+		with test_report(report_type="Query Report", query="select * from `tabNoSuchTable`") as report:
+			doc = self.create_prepared_report(report.name)
+			self.wait_for_status(doc, "Error")
+			self.assertTrue(doc.error_message)
+
+			result = get_prepared_report_result(get_report_doc(report.name), {}, dn=doc.name)
+			self.assertEqual("Error", result["doc"].status)
+			# the reader gets the message, the traceback stays on the document
+			self.assertIn("tabNoSuchTable", result["error"])
+			self.assertNotIn("Traceback", result["error"])
+			self.assertIsNone(result["doc"].error_message)
 
 	@unittest.skipIf(
 		frappe.conf.db_type == "sqlite",

@@ -15,7 +15,7 @@ export const DOCTYPE_PAGE = ".page-container[data-page-route='DocType']";
 
 export const ROUTE = "builder-note";
 
-// two pages: the Page Break is the boundary, page one is implicit and has no row.
+// two pages: the Page Break is the boundary, and an unnamed page one has no row.
 // "public" is left out so the add-field picker has something unplaced to offer
 export const SEEDED_FIELDS = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", reqd: 1 },
