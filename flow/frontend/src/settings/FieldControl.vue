@@ -152,9 +152,9 @@
 		@update:model-value="(value) => (doc[field.name] = value)"
 	/>
 
-	<!-- with a provider, its known models are offered; any other id can still be typed -->
+	<!-- with a provider, its models are offered; any other id can still be typed -->
 	<FormControl
-		v-else-if="field.type === 'model_id' && known.length"
+		v-else-if="field.type === 'model_id' && (modelsLoading || known.length)"
 		type="combobox"
 		variant="outline"
 		:label="field.label"
@@ -163,6 +163,7 @@
 		:placeholder="field.placeholder"
 		v-model:query="typed"
 		:filterable="false"
+		:loading="modelsLoading"
 		:options="modelOptions"
 		:model-value="doc[field.name] || null"
 		:disabled="disabled"
@@ -266,16 +267,24 @@ watch(
 	{ immediate: true }
 );
 
-// a linked provider's known models, offered in the model id dropdown
+// a linked provider's models (ids with its prefix), offered in the model id dropdown;
+// an answer for a provider no longer picked is dropped
 const known = ref([]);
+const modelsLoading = ref(false);
 watch(
-	() => (props.field.type === "model_id" ? props.doc.provider : null),
-	async (provider) => {
-		known.value = provider
-			? await call("flow.flow.doctype.flow_model.flow_model.get_provider_models", {
-					provider,
-			  }).catch(() => [])
-			: [];
+	() => (props.field.type === "model_id" && !props.disabled ? props.doc.provider : null),
+	async (provider, _, onCleanup) => {
+		let stale = false;
+		onCleanup(() => (stale = true));
+		known.value = [];
+		modelsLoading.value = !!provider;
+		if (!provider) return;
+		const models = await call("flow.flow.doctype.flow_model.flow_model.get_provider_models", {
+			provider,
+		}).catch(() => []);
+		if (stale) return;
+		known.value = models;
+		modelsLoading.value = false;
 	},
 	{ immediate: true }
 );
@@ -284,15 +293,17 @@ const typed = ref("");
 const debouncedTyped = useDebouncedValue(typed, 150);
 const modelOptions = computed(() => {
 	const q = debouncedTyped.value.trim().toLowerCase();
+	const prefix = `${props.doc.provider}/`;
 	return [
 		...known.value
-			.filter((model) => !q || model.toLowerCase().includes(q))
-			.map((model) => ({ label: model, value: model })),
+			.map((model) => ({ label: model.slice(prefix.length), value: model }))
+			.filter((option) => !q || option.label.toLowerCase().includes(q)),
 		{
 			type: "custom",
 			key: "typed",
 			label: "Use the typed id",
-			condition: ({ query }) => !!query.trim() && !known.value.includes(query.trim()),
+			condition: ({ query }) =>
+				!!query.trim() && !known.value.includes(prefix + query.trim()),
 			onClick: ({ query }) => pickModel(query.trim()),
 		},
 	];

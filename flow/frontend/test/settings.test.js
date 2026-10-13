@@ -14,7 +14,7 @@ for (const name of [
 	"Event",
 ])
 	globalThis[name] = dom.window[name];
-const { createApp, nextTick } = await import("vue");
+const { createApp, nextTick, reactive } = await import("vue");
 const { loadComponent, transport } = await import("./helpers/components.js");
 const DocPanel = await loadComponent("settings/DocPanel.vue");
 const DocForm = await loadComponent("settings/DocForm.vue");
@@ -211,6 +211,31 @@ test("a provider is picked from the list, and a saved one outside it still shows
 		doc: { doctype: "Flow Provider", provider: "azure" },
 	});
 	assert.equal(labels(saved).at(-1), "azure");
+});
+
+test("a provider's models show without its prefix; a late answer for another is dropped", async (t) => {
+	const field = SPECS.models.fields.find((f) => f.name === "model_id");
+	const pending = {};
+	transport.answers["flow.flow.doctype.flow_model.flow_model.get_provider_models"] = ({
+		provider,
+	}) => new Promise((resolve) => (pending[provider] = resolve));
+	const doc = reactive({ doctype: "Flow Model", provider: "openrouter", model_id: "" });
+	const el = mount(t, FieldControl, { field, doc });
+	await until(() => pending.openrouter);
+	doc.provider = "custom_openai";
+	await until(() => pending.custom_openai);
+	pending.custom_openai(["custom_openai/openai/gpt-6-sol"]);
+	await until(() => el.textContent.includes("gpt-6-sol"));
+	pending.openrouter(["openrouter/anthropic/claude-sonnet-4.6"]);
+	await new Promise((resolve) => setImmediate(resolve));
+
+	const options = [...el.querySelectorAll("button")];
+	assert.deepEqual(
+		options.map((b) => b.textContent),
+		["openai/gpt-6-sol", "Use the typed id"]
+	);
+	options[0].click();
+	assert.equal(doc.model_id, "custom_openai/openai/gpt-6-sol");
 });
 
 // a Frappe JSON column carries a json_valid check, which an empty string fails

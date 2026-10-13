@@ -2,12 +2,14 @@
 # See license.txt
 
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
+import litellm
+import requests
 from frappe.tests import IntegrationTestCase
 
-from flow.flow.doctype.flow_model.flow_model import _detect_context_window
+from flow.flow.doctype.flow_model.flow_model import _detect_context_window, get_provider_models
 
 
 def _model(**overrides: Any) -> dict:
@@ -181,3 +183,53 @@ class TestContextWindow(IntegrationTestCase):
 			doc.model_id = "anthropic/made-up-model-xyz"
 			doc.save()
 		self.assertEqual(doc.context_window, 128000)
+
+
+class TestProviderModels(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_lists_the_providers_own_models_with_its_prefix(self):
+		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq", "api_key": "test-key"}).insert()
+		body = {"data": [{"id": "llama-3.3-70b"}, {"id": "groq/compound"}, {"object": "list"}]}
+		with patch("requests.get", return_value=_response(body)) as get:
+			models = get_provider_models("groq")
+
+		self.assertEqual(models, ["groq/compound", "groq/llama-3.3-70b"])
+		self.assertEqual(get.call_args.args[0], "https://api.groq.com/openai/v1/models")
+		self.assertEqual(get.call_args.kwargs["headers"], {"Authorization": "Bearer test-key"})
+
+	def test_a_base_url_is_asked_for_its_models(self):
+		frappe.get_doc(
+			{
+				"doctype": "Flow Provider",
+				"provider": "litellm_proxy",
+				"base_url": "https://gw.example.com/v1/",
+			}
+		).insert()
+		with patch("requests.get", return_value=_response({"data": [{"id": "openai/gpt-6-sol"}]})) as get:
+			models = get_provider_models("litellm_proxy")
+
+		self.assertEqual(models, ["litellm_proxy/openai/gpt-6-sol"])
+		self.assertEqual(get.call_args.args[0], "https://gw.example.com/v1/models")
+
+	def test_falls_back_to_litellms_catalog_when_the_provider_does_not_answer(self):
+		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq"}).insert()
+		with (
+			patch("requests.get", side_effect=requests.ConnectionError("down")),
+			patch.dict(litellm.models_by_provider, {"groq": {"llama-3.3-70b"}}),
+		):
+			self.assertEqual(get_provider_models("groq"), ["groq/llama-3.3-70b"])
+
+	def test_users_who_cannot_edit_models_get_nothing(self):
+		frappe.set_user("Guest")
+		with patch("requests.get") as get:
+			self.assertEqual(get_provider_models("groq"), [])
+		get.assert_not_called()
+
+
+def _response(body: dict) -> Mock:
+	response = Mock()
+	response.json.return_value = body
+	return response

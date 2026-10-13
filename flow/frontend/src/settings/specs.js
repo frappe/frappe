@@ -79,7 +79,7 @@ export const SPECS = {
 				required: true,
 				placeholder: "claude-sonnet-4-6",
 				description:
-					"For example claude-sonnet-4-6. Without a provider, add its prefix: anthropic/claude-sonnet-4-6.",
+					"Pick one of the provider's models, or type any other id. Without a provider, add its prefix: anthropic/claude-sonnet-4-6.",
 			},
 			{
 				name: "context_window",
