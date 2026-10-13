@@ -13,8 +13,10 @@ from frappe.desk.form.load import add_comments, get_comments
 from frappe.permissions import add_permission, reset_perms
 from frappe.templates.includes.comments.comments import add_comment
 from frappe.tests.test_model_utils import set_user
-from frappe.tests.utils import FrappeTestCase, change_settings
+from frappe.tests.utils import FrappeTestCase, change_settings, patch_hooks
 from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
+
+test_dependencies = ["Web Page"]
 
 
 class TestComment(FrappeTestCase):
@@ -95,7 +97,6 @@ class TestComment(FrappeTestCase):
 
 		test_blog.delete()
 
-<<<<<<< HEAD
 	@change_settings("Blog Settings", {"allow_guest_to_comment": 0})
 	def test_guest_cannot_comment(self):
 		test_blog = make_test_blog()
@@ -111,7 +112,7 @@ class TestComment(FrappeTestCase):
 				),
 				None,
 			)
-=======
+
 	def test_guest_sees_published_website_comments(self):
 		"""Visibility here is the `published` flag, not desk read on the page."""
 		from frappe.website.utils import get_comment_list
@@ -132,7 +133,6 @@ class TestComment(FrappeTestCase):
 			visible = [c["name"] for c in get_comment_list("Web Page", web_page.name)]
 
 		self.assertIn(comment.name, visible)
->>>>>>> 488ba15 (fix(Comment): scope read access to the referenced document)
 
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
@@ -151,7 +151,7 @@ class TestComment(FrappeTestCase):
 			)
 
 
-class TestCommentPermissions(IntegrationTestCase):
+class TestCommentPermissions(FrappeTestCase):
 	"""Read on the Comment doctype must not be read on every comment in the site."""
 
 	def setUp(self):
@@ -306,7 +306,7 @@ def hide_the_discussion(doc, ptype=None, user=None, debug=False):
 HIDE = {"has_permission": {"Comment": ["frappe.core.doctype.comment.test_comment.hide_the_discussion"]}}
 
 
-class TestCommentReadersHonourHooks(IntegrationTestCase):
+class TestCommentReadersHonourHooks(FrappeTestCase):
 	"""The readers that fetch with permissions ignored must still run the Comment hooks."""
 
 	def setUp(self):
@@ -329,21 +329,21 @@ class TestCommentReadersHonourHooks(IntegrationTestCase):
 		self.assertEqual(len(get_comments("ToDo", self.todo.name)), 1)
 
 	def test_hook_reaches_docinfo(self):
-		with self.patch_hooks(HIDE):
+		with patch_hooks(HIDE):
 			comments, info_logs = self.docinfo()
 
 		self.assertEqual(comments, [])
 		self.assertEqual(info_logs, [self.info])
 
 	def test_hook_reaches_the_activity_timeline(self):
-		with self.patch_hooks(HIDE):
+		with patch_hooks(HIDE):
 			types = self.timeline_types()
 
 		self.assertNotIn("comment", types)
 		self.assertIn("log", types)
 
 	def test_hook_reaches_get_comments(self):
-		with self.patch_hooks(HIDE):
+		with patch_hooks(HIDE):
 			self.assertEqual(get_comments("ToDo", self.todo.name), [])
 			self.assertEqual(len(get_comments("ToDo", self.todo.name, "Info")), 1)
 
@@ -353,13 +353,13 @@ class TestCommentReadersHonourHooks(IntegrationTestCase):
 			self.todo.add_comment("Comment", f"hidden {i}")
 			self.todo.add_comment("Info", f"shown {i}")
 
-		with self.patch_hooks(HIDE):
+		with patch_hooks(HIDE):
 			rows = get_document_comments("ToDo", self.todo.name, fields=["name"], limit_page_length=5)
 
 		self.assertEqual(len(rows), 5)
 
 	def test_hook_reaches_a_read_composed_for_another_user(self):
-		with self.patch_hooks(HIDE):
+		with patch_hooks(HIDE):
 			permitted = get_document_comments("ToDo", self.todo.name, fields=["name"], user="Administrator")
 
 		self.assertEqual([c.name for c in permitted], [self.info])
