@@ -63,7 +63,7 @@
 				}"
 			>
 				<span
-					class="absolute bottom-full left-0 mb-1 inline-block text-nowrap rounded-1 px-1 text-xs text-ink-base dark:text-ink-gray-9"
+					class="absolute bottom-full left-0 mb-1 inline-block text-nowrap rounded-1 px-1 text-xs text-ink-base"
 					:class="isSlotSelected(slot.slotId) ? 'bg-surface-purple-6' : 'bg-surface-purple-6/65'"
 				>
 					#{{ slotName }}
@@ -188,8 +188,8 @@ const openComponentEditor = () => {
 const componentLabelClasses = computed(() => {
 	if (isBlockSelected.value) {
 		return props.block.isStudioComponent
-			? "bg-surface-purple-6 text-ink-base dark:text-ink-gray-9"
-			: "bg-surface-blue-6 text-ink-base dark:text-ink-gray-9"
+			? "bg-surface-purple-6 text-ink-base"
+			: "bg-surface-blue-6 text-ink-base"
 	} else {
 		return props.block.isStudioComponent ? "text-ink-purple-5" : "text-ink-blue-5"
 	}

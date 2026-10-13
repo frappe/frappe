@@ -1,7 +1,12 @@
 <template>
 	<div ref="canvasContainer" @click="handleClick">
 		<slot name="header"></slot>
-		<div class="overlay absolute" :class="{ 'pointer-events-none': isOverDropZone }" ref="overlay" />
+		<div
+			class="overlay absolute"
+			:class="{ 'pointer-events-none': isOverDropZone }"
+			data-theme="light"
+			ref="overlay"
+		/>
 		<DropIndicator />
 		<BlockSnapGuides />
 		<Transition name="fade">
