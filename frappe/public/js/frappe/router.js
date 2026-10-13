@@ -146,6 +146,14 @@ frappe.router = {
 		for (let shell of Object.keys(frappe.boot.module_sidebars || {})) {
 			this.shell_routes[this.shell_slug(shell)] = shell;
 		}
+		// A shell is named after its module unless it was renamed, and `module_app` holds every
+		// module the installed apps ship, so a link naming a shell this user cannot see is still
+		// read as one.
+		this.module_slugs = new Set(
+			Object.keys(frappe.boot.module_app || {}).map((module) =>
+				this.shell_slug(module.replace(/_/g, " "))
+			)
+		);
 
 		// `private` is the Private shell's slug and also the word that marks one of this user's
 		// own pages, and the two meanings are told apart by position: `/desk/private/<page>` is
@@ -853,7 +861,10 @@ frappe.router = {
 			return route;
 		}
 
-		this.current_shell = this.shell_routes[route[0]];
+		this.current_shell = this.shell_routes[route[0]] || null;
+		// A shell this user cannot see leaves the URL, and `write_shell_into_url` writes in one
+		// they can.
+		if (!this.current_shell) this.drop_shell_from_url();
 		return route.slice(1);
 	},
 
@@ -861,7 +872,8 @@ frappe.router = {
 	// `take_shell_from` describes. Asked separately by `get_route_from_arguments`, which has to
 	// drop a shell without adopting it.
 	begins_with_shell(route) {
-		if (route.length <= 1 || !this.shell_routes?.[route[0]]) return false;
+		if (route.length <= 1) return false;
+		if (!this.shell_routes?.[route[0]] && !this.module_slugs?.has(route[0])) return false;
 		if (this.segment_kind(route[0]) === "doctype") return false;
 		return this.route_names_something(route[1]);
 	},
@@ -936,6 +948,18 @@ frappe.router = {
 			history.state,
 			"",
 			path + window.location.search + window.location.hash
+		);
+	},
+
+	// `current_shell` is cleared with the segment, since `path_on_screen` strips one whenever it
+	// is set.
+	drop_shell_from_url() {
+		const rest = this.strip_prefix(window.location.pathname).split("/").slice(1).join("/");
+		this.current_shell = null;
+		history.replaceState(
+			history.state,
+			"",
+			"/desk/" + rest + window.location.search + window.location.hash
 		);
 	},
 
