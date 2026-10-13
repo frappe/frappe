@@ -252,7 +252,7 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_filters(self):
-		for row_idx in self.metadata.applied_filters_map.keys():
+		for row_idx in self.metadata.applied_filters_map:
 			# style only the label column (0th index)
 			self.style_cell(row_idx, 0, self.bold_style_id)
 		return self
