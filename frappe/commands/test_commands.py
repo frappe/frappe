@@ -973,7 +973,7 @@ class TestRemoveApp(IntegrationTestCase):
 			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
 			frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True)
 		frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	def test_delete_modules(self):
 		from frappe.installer import (
@@ -1017,7 +1017,7 @@ class TestRemoveApp(IntegrationTestCase):
 
 		_delete_doctypes(doctypes_to_delete, dry_run=False)
 		_delete_module_defs([test_module.module_name], dry_run=False)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		self.assertFalse(frappe.db.exists("Module Def", test_module.module_name))
 		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
 
