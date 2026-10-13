@@ -552,7 +552,7 @@ class Importer:
 			# name can only be set directly if autoname is prompt
 			new_doc.set("name", None)
 
-		if self._uses_tree_aliases and self._tree_parent_field:
+		if self._uses_tree_aliases and self._tree_parent_column:
 			self._resolve_tree_parent_link(doc)
 			new_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
