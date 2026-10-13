@@ -4,6 +4,7 @@
 		:disabled="disabled"
 		trigger="button"
 		:side="side"
+		align="center"
 		:placeholder="placeholder"
 		@update:model-value="pick"
 	>
