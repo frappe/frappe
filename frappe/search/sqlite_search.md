@@ -303,6 +303,13 @@ print(search_result["summary"]["corrected_words"])
 # Output: {"projetc": "project", "managment": "management"}
 ```
 
+Building the vocabulary this reads from costs about a third of a full build. An index that never calls `search()` — one used only to narrow another query — can skip that pass:
+
+```python
+class ItemSearch(SQLiteSearch):
+    BUILD_VOCABULARY = False
+```
+
 ### Content Processing
 
 HTML content is automatically cleaned and processed using BeautifulSoup:

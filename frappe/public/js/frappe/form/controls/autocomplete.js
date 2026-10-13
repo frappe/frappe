@@ -161,7 +161,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 
 		options = options.map((o) => {
 			if (typeof o !== "string") {
-				o.label = __(cstr(o.label));
+				o.label = __(cstr(o.label)) || cstr(o.value);
 				o.value = cstr(o.value);
 			}
 			return o;
@@ -209,7 +209,12 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			args.query = get_query;
 		} else {
 			// get_query by function
-			var q = get_query((this.frm && this.frm.doc) || this.doc, this.doctype, this.docname);
+			var q = get_query(
+				(this.frm && this.frm.doc) || this.doc,
+				this.doctype,
+				this.docname,
+				this.frm
+			);
 
 			if (typeof q === "string") {
 				// returns a string

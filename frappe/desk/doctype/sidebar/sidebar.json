@@ -4,6 +4,7 @@
  "autoname": "field:title",
  "creation": "2026-08-03 17:10:00",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/workspace",
  "engine": "InnoDB",
  "field_order": [
   "title",

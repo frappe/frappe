@@ -59,6 +59,7 @@ if typing.TYPE_CHECKING:
 	from collections.abc import Mapping
 
 	from PIL.ImageFile import ImageFile as PILImageFile
+	from werkzeug.wrappers import Request
 
 	T = TypeVar("T")
 
@@ -1418,6 +1419,12 @@ def parse_val(v):
 	return v
 
 
+def get_currency_precision() -> int | None:
+	"""Return the configured Currency Precision, or None if it isn't set."""
+	currency_precision = frappe.db.get_default("currency_precision")
+	return cint(currency_precision) if currency_precision not in (None, "") else None
+
+
 def fmt_money(
 	amount: str | float | int | None,
 	precision: int | None = None,
@@ -1428,7 +1435,7 @@ def fmt_money(
 	number_format = NumberFormat.from_string(format) if format else get_number_format()
 
 	if precision is None:
-		precision = cint(frappe.db.get_default("currency_precision")) or None
+		precision = get_currency_precision()
 
 	if precision is None:
 		precision = number_format.precision
@@ -2029,11 +2036,19 @@ def get_url(
 	return urljoin(host_name, uri) if uri else host_name
 
 
+def get_request_host(request: "Request") -> str:
+	return request.host or request.headers.get("Host", "")
+
+
 def get_host_name_from_request() -> str:
 	"""Return the hostname (`request.host`) from the request headers."""
-	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
+	if (
+		hasattr(frappe.local, "request")
+		and frappe.local.request
+		and (host := get_request_host(frappe.local.request))
+	):
 		protocol = "https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
-		return protocol + frappe.local.request.host
+		return protocol + host
 
 
 def url_contains_port(url: str) -> bool:
@@ -2645,6 +2660,11 @@ def sha256_hash(input: str | bytes) -> str:
 	if isinstance(input, str):
 		input = input.encode()
 	return hashlib.sha256(input).hexdigest()
+
+
+def is_sha256_hash(value: str) -> bool:
+	"""Return True if `value` has the shape of a sha256 hexdigest."""
+	return len(value) == 64 and all(character in "0123456789abcdef" for character in value.lower())
 
 
 def dict_with_keys(dict, keys):

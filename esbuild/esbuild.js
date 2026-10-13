@@ -513,6 +513,11 @@ async function write_assets_json(metafile) {
 			if (key.endsWith(".css") && asset_path.includes("/css-rtl/")) {
 				rtl = true;
 				key = `rtl_${key}`;
+			} else if (out[key]) {
+				log_warn(
+					`${key} is built from more than one entry point, only ${asset_path} is served ` +
+						`instead of ${out[key]}. Bundle names must be unique across apps.`
+				);
 			}
 			out[key] = asset_path;
 		}

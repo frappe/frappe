@@ -92,7 +92,7 @@ def has_permission(doc, user):
 
 
 def process_workflow_actions(doc, state):
-	workflow = get_workflow_name(doc.get("doctype"))
+	workflow = get_workflow_name(doc.get("doctype"), doc)
 	if not workflow:
 		return
 
@@ -222,7 +222,7 @@ def get_user_who_set_workflow_state(doc, doc_workflow_state):
 	"""Get the full name of the user who triggered the workflow action that set the document to the given state.
 	Falls back to None if no completed Workflow Action is found (e.g. state was set without workflow).
 	"""
-	workflow_name = get_workflow_name(doc.get("doctype"))
+	workflow_name = get_workflow_name(doc.get("doctype"), doc)
 	if not workflow_name:
 		return None
 
@@ -478,7 +478,7 @@ def clear_workflow_actions(doctype, name):
 
 
 def get_doc_workflow_state(doc):
-	workflow_name = get_workflow_name(doc.get("doctype"))
+	workflow_name = get_workflow_name(doc.get("doctype"), doc)
 	workflow_state_field = get_workflow_state_field(workflow_name)
 	return doc.get(workflow_state_field)
 
@@ -522,7 +522,7 @@ def get_common_email_args(doc):
 
 def get_email_template_from_workflow(doc):
 	"""Return next_action_email_template for workflow state (if available) based on doc current workflow state."""
-	workflow_name = get_workflow_name(doc.get("doctype"))
+	workflow_name = get_workflow_name(doc.get("doctype"), doc)
 	doc_state = get_doc_workflow_state(doc)
 	template_name = frappe.db.get_value(
 		"Workflow Document State",

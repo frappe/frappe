@@ -3,6 +3,7 @@
  "autoname": "Prompt",
  "creation": "2019-09-11 22:15:44.851526",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/notifications",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

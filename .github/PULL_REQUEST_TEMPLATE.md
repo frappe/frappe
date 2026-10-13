@@ -1,33 +1,18 @@
 <!--
+Your PR will be closed automatically if you're not in the list of vouched users: https://github.com/frappe/frappe/blob/develop/.github/VOUCHED.td
 
-Note: Your PR will be automatically closed if you're not in list of [vouched users](https://github.com/frappe/frappe/blob/develop/.github/VOUCHED.td).
-
-Some key notes before you open a PR:
-
- 1. Select which branch should this PR be merged in?
- 2. PR name follows [convention](https://www.conventionalcommits.org/en/v1.0.0/).
- 3. All tests pass locally, UI and Unit tests.
- 4. All business logic and validations must be on the server-side.
- 5. Update necessary documentation.
- 6. Put `closes #XXXX` in your comment to auto-close the issue that your PR fixes.
-
-
-Also, if you're new here
-
-- Documentation Guidelines => https://github.com/frappe/erpnext/wiki/Updating-Documentation
-- Contribution Guide => https://github.com/frappe/frappe/blob/develop/.github/CONTRIBUTING.md
-- Pull Request Checklist => https://github.com/frappe/erpnext/wiki/Pull-Request-Checklist
-
+Before you open it:
+- Target `develop`. The title follows Conventional Commits (fix:, feat:, refactor:, ...).
+- The bug reproduces on latest develop, and the fix is at its cause.
+- Your diff passes the checks in code_review.md: https://github.com/frappe/frappe/blob/develop/code_review.md
+- Keep it short. A reviewer should know in twenty seconds what changed and how to check it.
 -->
 
-> Please provide enough information so that others can review your pull request:
+<!-- One line: what was broken, as a user sees it. -->
 
-<!-- You can skip this if you're fixing a typo or updating existing documentation -->
+- <!-- What changed, as a user sees it. -->
+- <!-- How you tested it: the steps or the test you ran. Write "not run" if you did not. -->
 
-> Explain the **details** for making this change. What existing problem does the pull request solve?
+<!-- UI change: add a before and after screenshot or a short video. -->
 
-<!-- Example: When "Adding a function to do X", explain why it is necessary to have a way to do X. -->
-
-> Screenshots/GIFs
-
-<!-- Add images/recordings to better visualize the change: expected/current behavior -->
+Closes #

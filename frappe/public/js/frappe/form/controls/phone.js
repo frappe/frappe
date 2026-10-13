@@ -7,6 +7,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		super.make_input();
 		this.setup_country_code_picker();
 		this.input_events();
+		this.set_formatted_input(this.value);
 		this.set_default_country();
 	}
 
@@ -171,10 +172,8 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		this.$input.css("padding-left", 30);
 	}
 
-	async set_formatted_input(value) {
-		if (!this.country_codes) {
-			await this.setup_country_codes();
-		}
+	set_formatted_input(value) {
+		if (!this.selected_icon) return;
 		if (value && value.includes("-") && value.split("-").length == 2) {
 			if (!this.selected_icon.find("svg").hasClass("hide")) {
 				this.selected_icon.find("svg").toggleClass("hide");

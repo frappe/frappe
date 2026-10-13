@@ -1,108 +1,131 @@
-// Slim vertical rail left of the body sidebar listing the current app's workspaces as icons, with
-// the app logo pinned to the top corner. Rendered by frappe.ui.Dock and opt-in per app.
+// The dock: a floating tray of app-module icons, parked off the left edge of the window and
+// revealed by pushing the pointer into that edge. Rendered by frappe.ui.Dock and opt-in per app.
 //
-// Styles mirror the frappe-ui <Rail> / <RailItem> component so the dock renders identically to the
-// Vue rail. Values map straight across: 50px column on --surface-sidebar; 28px items; workspace
-// icons use the `tile` treatment (filled cell + left indicator bar when active) and the bell uses
-// the `ghost` treatment (transparent until hovered).
+// It is an overlay, not a column. The body sidebar holds the left edge of the window and is
+// permanent; the dock rides above it, vertically centred and clear of both ends, the way the macOS
+// Dock floats over the desktop rather than taking a strip of it. Nothing in the layout moves when
+// it arrives or leaves.
+//
+// Icons only. A label per row is what a 220px column is for, and this is 56px wide: the tile is the
+// whole row, and the name it would have carried is a tooltip (see Dock.sync_row_tooltips). That is
+// also why the tray can be centred at all -- sixteen modules at 28px of row each is a column, and
+// at 34px of tile each it is a strip half the screen's height.
+//
+// dock.js carries the reveal rules; what is here is the geometry.
+:root {
+	// The tray's own width: a 34px tile in 11px of padding either side, with a 22px glyph (icon-rail)
+	// in it, so the glyph sits with room around it instead of filling its cell.
+	--dock-tile: 34px;
+	--dock-width: 56px;
+
+	// The sidebar's surface, so the dock reads as part of the same shell.
+	--dock-bg: var(--desk-sidebar-bg);
+	// Idle tiles step back so the active one is the only full-strength mark in the column. A soft
+	// glyph draws in currentColor, so it steps with the ink.
+	--dock-ink: var(--ink-gray-5);
+	--dock-ink-hover: var(--ink-gray-7);
+	--dock-ink-active: var(--ink-gray-8);
+}
+
 .dock {
-	position: relative;
-	flex: 0 0 50px;
-	width: 50px;
-	height: 100vh;
-	z-index: 1020;
+	// Fixed to the window rather than placed in the shell's flex row, and centred on the window's
+	// own height. The two transforms are written together on this one element: the centring is
+	// permanent and the slide is the state, so they cannot be split across a wrapper without one
+	// overwriting the other.
+	position: fixed;
+	left: 8px;
+	top: 50%;
+	// Parked off screen: 150% of its own width clears the 8px inset with room to spare. Off rather
+	// than hidden, so there is something for the transform to animate from and the tray is never
+	// mid-paint when it lands.
+	transform: translate(-150%, -50%);
+	// Above the body sidebar's 1020: the dock covers whatever it is over.
+	z-index: 1030;
+
+	width: var(--dock-width);
+	transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+	// Tall enough for the modules it has and no taller. Sixteen tiles is already most of a laptop's
+	// height, so the tray scrolls rather than running off both ends of a short window.
+	max-height: calc(100vh - 32px);
+	overflow-y: auto;
+	// The tray is the scroll container, so its own bar would sit inside the rounded corner.
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	// items (28px) centre in the 50px column, so the rail's 11px side gutter falls out of centring
-	// with no explicit padding; no top padding keeps the logo aligned with the navbar band.
-	padding: 0 0 12px 0;
+	gap: var(--spacing);
+	padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.75) calc(var(--spacing) * 3);
 
-	background: var(--surface-sidebar);
-	border-right: 1px solid var(--outline-gray-1);
+	background: var(--dock-bg);
+	border-radius: 18px;
+	box-shadow: var(--shadow-2xl);
 
 	&.hidden {
 		display: none;
 	}
 
+	// The app's mark, pinned to the top of the tray in a band one page header tall, so the rule
+	// under it carries the header's bottom border across a pinned dock. The rule is the band's, not
+	// the tiles', because a pinned dock's tiles scroll and bleed past the column (below).
 	.dock-logo {
 		flex: 0 0 auto;
-		// match the navbar / sidebar-header band so the logo lines up with them
-		height: var(--navbar-height, 48px);
+		width: 100%;
+		height: calc(var(--page-head-height) + 1px);
+		margin-top: calc(var(--spacing) * -2);
+		border-bottom: 1px solid var(--outline-gray-1);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 
-		a {
+		.shell-header {
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			// sized like an item cell so the logo reads as part of the rail
-			width: 28px;
-			height: 28px;
-			border-radius: 7px;
-			overflow: hidden;
+
+			width: var(--dock-tile);
+			height: var(--dock-tile);
+			padding: 0;
+			border: none;
+			border-radius: var(--radius-4);
+			background: transparent;
+			cursor: pointer;
 		}
 
-		img {
-			width: 100%;
-			height: 100%;
-			object-fit: contain;
-		}
-
-		// A module standing in the slot (nothing placed it in an app) wears its own icon rather
-		// than a logo: an authored icon, or the letter tile desktop_icon() builds. Either fills the
-		// same 28px cell an app logo would.
-		.icon-container {
-			width: 100%;
-			height: 100%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-
-		svg {
-			width: 16px;
-			height: 16px;
-		}
-	}
-
-	.dock-divider {
-		flex: 0 0 auto;
-		width: 24px;
-		height: 1px;
-		margin: 8px 0;
-		background: var(--outline-gray-1);
-	}
-
-	// The divider right below the logo hugs the navbar-height band -- the logo is already centred in
-	// its 48px band, so no extra top margin is stacked on top of it; its 8px bottom margin then
-	// matches the gap on every other divider, keeping the rhythm even.
-	.dock-logo + .dock-divider {
-		margin-top: 0;
-	}
-
-	// Icon shortcuts (search, notifications) pinned under the logo, bracketed by a divider above and
-	// below. A centred icon column whose 8px gap matches the dividers' margins, so every gap in the
-	// top of the rail reads the same. Collapses to nothing when no shortcut is enabled.
-	.dock-shortcuts {
-		flex: 0 0 auto;
-		width: 100%;
-
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-
-		&:empty {
+		// Both are the column's width talking: a name and a chevron are what a 220px header has
+		// room for. The mark alone says which app this is, and the menu still opens from it.
+		.title-container,
+		.drop-icon {
 			display: none;
 		}
+
+		// Same for the app's mark, on the same reasoning as the tiles below it. An app whose mark is
+		// a real logo is an <img> and takes no notice of either token.
+		color: var(--dock-ink-active);
+		--icon-stroke: currentColor;
+
+		.header-logo {
+			// The header's chip showed around a logo image's corners.
+			img {
+				background: transparent;
+			}
+
+			// An app whose mark is a letter tile rather than a logo. Round it to the tile's own
+			// radius so it fills the slot instead of sitting in it as a swatch.
+			.icon-container {
+				border-radius: var(--radius-4);
+				overflow: hidden;
+			}
+		}
 	}
 
-	// with no shortcuts, drop the divider that would sit under them so two dividers don't stack up
-	.dock-shortcuts:empty + .dock-divider {
-		display: none;
+	.dock-logo + .dock-items {
+		margin-top: calc(var(--spacing) * -1);
+		padding-top: calc(var(--spacing) * 3);
 	}
 
 	.dock-items {
@@ -112,256 +135,248 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 12px;
+		gap: var(--spacing);
+	}
+}
 
+// One tile. The whole row, since there is no label beside it: a square with the module's glyph
+// centred in it, transparent until it is hovered or active. The ghost rail item's treatment: a gray
+// fill on hover, and the active tile raised the way the sidebar's active row is.
+.dock-item {
+	position: relative;
+	flex: 0 0 auto;
+
+	width: var(--dock-tile);
+	height: var(--dock-tile);
+	padding: 0;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	border: none;
+	border-radius: var(--radius-4);
+	background: transparent;
+	color: var(--dock-ink);
+	// A desk glyph is stroked from `--icon-stroke`, not from `color` (see common/icons.scss), and
+	// that token is set per surface -- `--gray-700` on the page, `--gray-300` in dark. Neither is
+	// answering this tray, which is why the glyphs came out near-black on the grey in light. Point
+	// the stroke at `currentColor` instead and the hover and active steps above carry the glyph
+	// with them for free.
+	--icon-stroke: currentColor;
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease;
+
+	// Animated icons play on hover. Only custom properties reach inside a `<use>`.
+	svg {
+		overflow: visible;
+	}
+
+	&:hover,
+	&:focus-visible {
+		--icon-motion: running;
+		--icon-motion-opacity: 1;
+	}
+
+	// No words in a 56px tray, and nothing that widens to make room for them. What names a tile is
+	// the label beside it (below), which is why this can go rather than fold.
+	.dock-item-label {
+		display: none;
+	}
+
+	// A module with no authored icon wears the letter tile desktop_icon() builds, which brings its
+	// own colour. Round it to the tile's radius so it fills the slot.
+	.icon-container {
+		border-radius: var(--radius-4);
+		overflow: hidden;
+	}
+
+	// A fill and nothing that moves. A tile that slid out of the tray on hover read as bouncing,
+	// and it dragged the tooltip's gap around with it -- the bubble is placed when the pointer
+	// arrives and the tile then travelled toward it.
+	// The sidebar rows' hover fill. Gray-3 would match the active fill in dark, where both are gray-600.
+	&:hover {
+		background: var(--surface-gray-2);
+		color: var(--dock-ink-hover);
+	}
+
+	&.active {
+		background: var(--surface-elevation-3);
+		box-shadow: var(--shadow-sm);
+		color: var(--dock-ink-active);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--outline-gray-4);
+		outline-offset: 2px;
+	}
+}
+
+// Out. One class on <body>, set by frappe.ui.Dock, so the arrival is one transform on one fixed
+// element and nothing underneath it moves. The centring half is carried through unchanged; only the
+// slide resolves.
+body.dock-open .dock {
+	transform: translate(0, -50%);
+}
+
+// Pinned: the same tray as an in-flow column left of the sidebar.
+body.dock-pinned .dock {
+	// +1px for the border, or the tiles lose a pixel and get clipped.
+	width: calc(var(--dock-width) + 1px);
+	position: relative;
+	top: auto;
+	left: auto;
+	transform: none;
+	transition: none;
+	flex: 0 0 auto;
+	height: 100vh; // fallback for engines without dvh
+	height: 100dvh;
+	max-height: none;
+	border-radius: 0;
+	box-shadow: none;
+	border-right: 1px solid var(--outline-gray-1);
+	padding-top: calc(var(--spacing) * 2);
+	// The tiles scroll, not the column, so the avatar stays in view.
+	overflow: hidden;
+
+	// A scroller clips on both axes, so a column only as wide as its tiles cut the active tile's
+	// shadow off at the sides. It bleeds into the tray's side padding to leave the shadow room.
+	.dock-items {
+		width: calc(100% + var(--spacing) * 5.5);
+		margin-inline: calc(var(--spacing) * -2.75);
+		padding-bottom: var(--spacing);
+		min-height: 0;
 		overflow-y: auto;
-		// hide the scrollbar -- the rail is too narrow to spare the width
 		scrollbar-width: none;
+
 		&::-webkit-scrollbar {
 			display: none;
 		}
 	}
 
-	.dock-user {
-		flex: 0 0 auto;
-		padding: 0;
-		border: none;
-		background: transparent;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		.avatar {
-			margin: 0;
-		}
-
-		&.user-menu-active {
-			box-shadow: 0 0 0 2px var(--surface-gray-4);
-		}
+	.dock-logo .header-logo {
+		width: 32px;
+		height: 32px;
 	}
+}
 
-	// Workspace icon — mirrors <RailItem variant="tile">: a filled 28px cell (7px radius) that darkens
-	// on active, with a left indicator bar sitting flush against the rail's edge.
-	.dock-item {
-		position: relative;
-		flex: 0 0 auto;
+// The user's avatar, shown only on a pinned dock.
+.dock-user {
+	display: none;
+	flex: 0 0 auto;
+	justify-content: center;
+	width: 100%;
+
+	body.dock-pinned & {
+		display: flex;
+	}
+}
+
+body.dock-pinned .dock .dock-user-button {
+	.avatar,
+	img {
 		width: 28px;
 		height: 28px;
-		padding: 0;
-
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		border: none;
-		border-radius: 7px;
-		background: var(--surface-gray-3);
-		color: var(--ink-gray-8);
-		cursor: pointer;
-		transition: background-color 0.15s ease;
-
-		svg,
-		img {
-			width: 16px;
-			height: 16px;
-		}
-
-		&.active {
-			background: var(--surface-gray-4);
-
-			// left indicator bar — the tile variant's active affordance
-			&::before {
-				content: "";
-				position: absolute;
-				left: -11px;
-				top: 50%;
-				transform: translateY(-50%);
-				width: 4px;
-				height: 28px;
-				border-top-right-radius: 4px;
-				border-bottom-right-radius: 4px;
-				background: var(--surface-gray-8);
-			}
-		}
-
-		// unread indicator — a small dot on the bell's top-right corner (mirrors <RailItemBadge> dot)
-		.notification-count {
-			position: absolute;
-			top: 5px;
-			right: 5px;
-			width: 8px;
-			height: 8px;
-			padding: 0;
-			border-radius: 50%;
-			border: 1px solid var(--surface-base);
-			background: var(--surface-blue-5);
-			// dot only — hide any count text the shared notifications view sets on it
-			font-size: 0;
-			color: transparent;
-			overflow: hidden;
-
-			&.hidden {
-				display: none;
-			}
-		}
 	}
 
-	// Search / notification shortcuts are not workspaces — mirror <RailItem variant="ghost">:
-	// transparent until hovered, 8px radius.
-	.dock-shortcuts .dock-item {
-		background: transparent;
-		border-radius: var(--radius-4);
-
-		&:hover {
-			background: var(--surface-gray-3);
-		}
-	}
-}
-
-// While the rail is on screen it carries the user button, search and notifications -- so the
-// sidebar's copies go. The whole standard-items band goes with them, which is what finally takes
-// background tasks off a docked app's sidebar: it was the one of the three that showed there,
-// while its sibling bell was hidden.
-body.dock-active .body-sidebar {
-	.dropdown-navbar-user,
-	.standard-items-band {
-		display: none;
-	}
-}
-
-// ...and the mirror of that: with no rail there is nothing to collapse *to*. Collapsing takes the
-// body sidebar off screen entirely (see .body-sidebar-container:not(.expanded)) and the way back
-// in is the rail's right-edge handle -- which a dock-less app does not have. So on a dock-less app
-// the collapse controls go: the chevron button, and the resize handle that is the same click by
-// another name.
-//
-// `.body-sidebar-container` is in the chain only to outweigh the expanded mixin, which sets
-// `display: flex` on the chevron from `.body-sidebar-container.expanded .body-sidebar
-// .collapse-sidebar-link` -- one class more specific than this rule would otherwise be.
-body:not(.dock-active) .body-sidebar-container .body-sidebar {
-	.collapse-sidebar-link,
-	.sidebar-resize-handle {
-		display: none;
-	}
-}
-
-// Leading icons on the sidebar's own rows. A docked app leaves iconography to the rail and keeps
-// a label-only sidebar next to it; a dock-less app has no rail, so the rows carry their icons
-// themselves -- which is also what gives the standard-items band (search, notifications,
-// background tasks) the icon-plus-label shape it is described as having.
-//
-// The template renders the span either way; the docked case hides it, so toggling the rail on or
-// off is a class flip rather than a re-render.
-//
-// The selector carries the whole `.standard-sidebar-item .item-anchor` chain only to outweigh the
-// rule that gives the span its `display: flex` in sidebar.scss -- two classes more specific than
-// `body.dock-active .body-sidebar .sidebar-item-icon` would be on its own.
-body.dock-active .body-sidebar .standard-sidebar-item .item-anchor .sidebar-item-icon {
-	display: none;
-}
-
-// The label's own left margin stands in for the icon when there isn't one. Where the icon is
-// drawn it already supplies that gap, so drop the margin rather than paying for it twice --
-// scoped by :has() so section breaks and icon-less rows keep theirs.
-body:not(.dock-active) .body-sidebar {
-	.item-anchor:has(.sidebar-item-icon) .sidebar-item-label {
-		margin-left: 0;
-	}
-}
-
-// The standard-items band: search, notifications and background tasks, directly under the header
-// and above the module's own items, behind a divider. Full-width rows in the sidebar's own
-// vocabulary rather than the rail's ghost-icon strip -- which is what makes search legible in a
-// 220px panel rather than merely present.
-//
-// The divider is drawn only when the band has something in it: each row hides itself until it has
-// something to say (background tasks until there is a task, notifications until they load), and a
-// rule under an empty band would read as a stray line.
-.body-sidebar .standard-items-band {
-	&:not(:empty) {
-		padding-bottom: 4px;
-		margin-bottom: 4px;
-		width: 100%;
-	}
-}
-
-// Right-edge handle that reopens the collapsed body sidebar -- the mirror of the sidebar's own
-// .sidebar-resize-handle. Only present while collapsed (body.sidebar-collapsed), so it doesn't
-// offer an expand affordance when the sidebar is already open.
-.dock-resize-handle {
-	position: absolute;
-	top: 0;
-	right: -4px;
-	width: 8px;
-	height: 100%;
-	z-index: 1022;
-	cursor: e-resize;
-	display: none;
-
-	&::after {
-		content: "";
-		position: absolute;
-		left: 50%;
-		top: 0;
-		transform: translateX(-50%);
-		width: 2px;
-		height: 100%;
-		background: transparent;
-		transition: background 0.15s ease;
-	}
-
-	&:hover::after {
-		background: var(--outline-gray-2);
-	}
-}
-
-body.sidebar-collapsed .dock-resize-handle {
-	display: block;
-}
-
-// The visible twin of the handle above, mirroring .body-sidebar .sidebar-toggle-btn so the expand
-// affordance lands in the same spot and looks the same as the collapse one it replaces.
-.dock-toggle-btn {
-	position: absolute;
-	right: -12px;
-	bottom: 80px;
-	width: 24px;
-	height: 24px;
-	border-radius: var(--radius-full);
-	border: 1px solid var(--outline-gray-1);
-	background: var(--surface-sidebar);
-	box-shadow: var(--shadow-sm);
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	padding: 0;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 0.15s ease, visibility 0.15s ease;
-	z-index: 1023;
-	display: none;
-
-	svg {
-		width: 12px;
-		height: 12px;
-	}
-
-	&:hover {
+	&.user-menu-active {
 		background: var(--surface-gray-2);
 	}
 }
 
-body.sidebar-collapsed .dock-toggle-btn {
-	display: flex;
+@include media-breakpoint-up(md) {
+	body.dock-pinned.dock-active .body-sidebar .dropdown-navbar-user {
+		display: none;
+	}
 }
 
-body.sidebar-collapsed .dock:hover .dock-toggle-btn {
-	opacity: 1;
-	visibility: visible;
+// The dock's active tile already shows the module's icon.
+@include media-breakpoint-up(md) {
+	body.dock-pinned.dock-active .body-sidebar-container.expanded .sidebar-header {
+		padding-left: 12px;
+
+		.header-logo {
+			display: none;
+		}
+	}
+
+	// Collapsed beside a pinned dock (Sidebar.hides_when_collapsed), the sidebar keeps its layout
+	// and slides shut. The edge and arrow move onto the dock's border to bring it back.
+	.body-sidebar-container.sidebar-hidden {
+		.body-sidebar {
+			width: 0;
+			border-right-width: 0;
+
+			// Fades out at once, and back in only once the width has made room (below).
+			> * {
+				opacity: 0;
+				transition-delay: 0s;
+			}
+		}
+
+		.sidebar-edge {
+			left: -4px;
+			cursor: e-resize;
+		}
+
+		.sidebar-collapse-arrow {
+			left: -12px;
+
+			svg {
+				transform: rotate(180deg);
+			}
+		}
+
+		.sidebar-panel {
+			left: 0;
+		}
+	}
+
+	// Set by Sidebar.refit_collapsed_sidebar, whose changes do not animate.
+	.body-sidebar-container.no-transition {
+		.body-sidebar,
+		.body-sidebar > *,
+		.sidebar-edge,
+		.sidebar-collapse-arrow {
+			transition: none !important;
+		}
+	}
+
+	// Going all the way to 0 is a longer trip than folding to a rail, so it is eased in and out slower.
+	body.dock-pinned.dock-active .body-sidebar-container {
+		--dock-sidebar-ease: 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+
+		.body-sidebar {
+			transition: background 0.2s ease, border-color 0.2s ease,
+				width var(--dock-sidebar-ease);
+
+			> * {
+				transition: transform var(--dock-sidebar-ease), opacity 0.3s ease 0.2s;
+			}
+		}
+
+		.sidebar-edge {
+			transition: left var(--dock-sidebar-ease);
+		}
+
+		.sidebar-collapse-arrow {
+			transition: opacity 0.15s ease, left var(--dock-sidebar-ease),
+				background-color 0.15s ease;
+		}
+	}
 }
 
-// mirror the body sidebar: the rail collapses away on mobile
+// The slide is the whole of the dock's arrival, so with motion turned down it simply is or is not
+// there. Both states stay reachable: the transform is what changes, not the class that drives it.
+@media (prefers-reduced-motion: reduce) {
+	.dock,
+	.dock-item {
+		transition: none;
+	}
+}
+
+// mirror the body sidebar: the dock goes away on mobile, where there is no pointer to push an edge
+// with and no room to float a tray over the page.
 @include media-breakpoint-down(sm) {
 	.dock {
 		display: none;

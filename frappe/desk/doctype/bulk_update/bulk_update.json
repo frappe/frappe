@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2016-07-15 05:51:29.224123",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/bulk-update",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

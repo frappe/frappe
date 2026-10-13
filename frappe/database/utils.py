@@ -31,6 +31,41 @@ QUERY_TYPE_PATTERN = re.compile(r"\s*([A-Za-z]*)")
 ORDER_BY_PREFIX_PATTERN = re.compile(r"^\s*order\s+by\s+", flags=re.IGNORECASE)
 ORDER_DIRECTION_PATTERN = re.compile(r"\s+(asc|desc)\s*$", flags=re.IGNORECASE)
 
+# Spans whose contents are data, not code. Only the backtick span is rewritten; the rest are
+# matched to be stepped over -- both so a backtick inside one survives, and so an apostrophe inside
+# one cannot pair with the next quote and swallow the identifiers between. Scanned left to right,
+# so a quote only opens a span when it is not already inside one. postgres' own literal forms
+# (E'...', $tag$...$tag$) need no branch: what reaches here is MySQL-dialect SQL.
+SKIPPED_SPAN_PATTERN = re.compile(
+	r"""
+	  '(?:[^']|'')*'                     # string literal (only '' escapes a quote)
+	| "(?:[^"]|"")*"                     # quoted identifier
+	| --[^\n]*                           # line comment
+	| /\*.*?\*/                          # block comment
+	| `(?:[^`]|``)*`                     # backtick identifier: the one span we rewrite
+	""",
+	re.DOTALL | re.VERBOSE,
+)
+
+
+def convert_backtick_identifiers(query: str) -> str:
+	"""Rewrite MySQL-style ```identifier``` quoting as ANSI ``"identifier"``.
+
+	Only backticks that open or close an identifier are translated; one inside any span
+	``SKIPPED_SPAN_PATTERN`` matches is content, and survives.
+	"""
+	if "`" not in query:
+		return query
+
+	def translate(match: re.Match) -> str:
+		span = match.group()
+		if not span.startswith("`"):
+			return span  # a literal, an already-ANSI identifier or a comment
+		name = span[1:-1].replace("``", "`")  # unescape MySQL's doubled backtick
+		return '"{}"'.format(name.replace('"', '""'))  # re-escape for ANSI
+
+	return SKIPPED_SPAN_PATTERN.sub(translate, query)
+
 
 def convert_to_value(o: FilterValue):
 	if isinstance(o, bool):
@@ -156,12 +191,16 @@ class LazyDecode(LazyString):
 class LazyMogrify(LazyString):
 	__slots__ = ()
 
-	def __init__(self, query, values) -> None:
+	def __init__(self, query, values, db=None) -> None:
 		self.query = query
 		self.values = values
+		# The connection that produced the query. Without it this falls back to `frappe.db`,
+		# which is only correct while the query came from the primary database -- a replica or
+		# the log database would otherwise be mogrified by the wrong driver.
+		self.db = db
 
 	def _setup(self) -> str:
-		return frappe.db.mogrify(self.query, self.values)
+		return (self.db or frappe.db).mogrify(self.query, self.values)
 
 
 def dangerously_reconnect_on_connection_abort(func):

@@ -108,6 +108,7 @@ def rate_limit(
 	methods: str | list = "ALL",
 	ip_based: bool = True,
 	endpoint: str | None = None,
+	user_based: bool = False,
 ):
 	"""Decorator to rate limit an endpoint.
 
@@ -122,6 +123,7 @@ def rate_limit(
 	        `ALL` is a wildcard that applies rate limit on all methods.
 	:type methods: string or list or tuple
 	:param ip_based: flag to allow ip based rate-limiting
+	:param user_based: flag to allow authenticated user based rate-limiting
 	:type ip_based: Boolean
 	:param endpoint: name of the counter, required when the decorated callable has no stable
 	        dotted path of its own, e.g. a `functools.partial`.
@@ -145,18 +147,28 @@ def rate_limit(
 			_limit = limit() if callable(limit) else limit
 
 			ip = frappe.local.request_ip if ip_based is True else None
+			user_key = frappe.form_dict.get(key, "") if key else None
 
-			user_key = frappe.form_dict.get(key, "")
+			if user_based:
+				user = frappe.session.user
+				if user and user != "Guest":
+					identity = user
+				elif ip:
+					identity = ip
+				else:
+					identity = getattr(frappe.local, "request_ip", None) or "Guest"
 
-			identity = None
+				if key and user_key:
+					identity = f"{identity}:{user_key}"
 
-			if key and ip_based:
-				identity = ":".join([ip, user_key])
-
-			identity = identity or ip or user_key
+			else:
+				identity = None
+				if key and ip_based:
+					identity = ":".join([ip, user_key])
+				identity = identity or ip or user_key
 
 			if not identity:
-				frappe.throw(_("Either key or IP flag is required."))
+				frappe.throw(_("Either key, IP flag, or User flag is required."))
 
 			cache_key = frappe.cache.make_key(f"rl:{counter}:{identity}")
 

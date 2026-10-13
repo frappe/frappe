@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "autoname": "Prompt",
  "creation": "2019-10-23 15:00:48.392374",
  "doctype": "DocType",
@@ -91,6 +92,7 @@
   }
  ],
  "grid_page_length": 50,
+ "icon": "list",
  "links": [],
  "modified": "2025-12-12 14:26:20.920434",
  "modified_by": "Administrator",

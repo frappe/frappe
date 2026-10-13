@@ -6,6 +6,8 @@
 		:upload-function="uploadFunction"
 		:extensions="extensions"
 		:max-attachments="maxAttachments"
+		:allowed-file-types="allowedFileTypes"
+		:submitting="submitting"
 		v-model:body="body"
 		v-model:quoted="quoted"
 		@submit="handleSubmit"
@@ -33,6 +35,12 @@
 
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />
+		</template>
+		<template v-if="$slots.attachments" #attachments="attachmentProps">
+			<slot name="attachments" v-bind="attachmentProps" />
+		</template>
+		<template v-if="$slots.footer" #footer>
+			<slot name="footer" />
 		</template>
 	</ComposerEditor>
 </template>

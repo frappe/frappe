@@ -79,10 +79,16 @@ class ModuleDef(Document):
 		to describe things that already exist, such as `backfill_workspace_module` creating one for
 		an existing workspace, so a page created then would be content nobody asked for under a
 		name someone else picked.
-		"""
-		from frappe.desk.doctype.workspace.workspace import make_module_workspace
 
-		if not self.custom:
+		`Private` is the exception: it is the module a user's own pages are filed under, and its
+		shell is built from the viewer's pages rather than from what the module holds, so it is
+		never empty for the person looking at it and needs nothing created. A page here would be a
+		shared one, which that shell refuses to show (`Workspace.validate_shared_page_has_a_module`),
+		so it would be a page nothing lists.
+		"""
+		from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, make_module_workspace
+
+		if not self.custom or self.name == PRIVATE_MODULE:
 			return
 		if frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.in_patch:
 			return

@@ -4,6 +4,7 @@
  "autoname": "field:dashboard_name",
  "creation": "2019-01-10 12:54:40.938705",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/dashboard",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -65,11 +66,13 @@
    "options": "Module Def"
   }
  ],
+ "icon": "layout-dashboard",
  "links": [],
  "modified": "2026-09-04 15:59:43.964062",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -107,6 +110,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

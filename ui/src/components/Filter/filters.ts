@@ -107,9 +107,11 @@ export function parseFilters(
  * becomes a `[fieldname, wireOperator, value]` triple (an `equals` uses `=`; a
  * Check `Yes`/`No` becomes a boolean). The list form — rather than CRM's
  * fieldname-keyed dict — lets the same field appear in more than one condition.
+ * A condition with no value yet is left out, so picking a field narrows nothing
+ * until the user gives it a value.
  */
 export function serializeFilters(conditions: Filter[]): WireFilters {
-  return conditions.map((c) => {
+  return conditions.filter(hasValue).map((c) => {
     if (c.operator === "equals") {
       const value =
         c.value === "Yes" ? true : c.value === "No" ? false : c.value;
@@ -121,4 +123,10 @@ export function serializeFilters(conditions: Filter[]): WireFilters {
       toWireValue(c.operator, c.value),
     ];
   });
+}
+
+function hasValue(condition: Filter): boolean {
+  const value = condition.value as FilterValue | null | undefined;
+  if (Array.isArray(value)) return value.length > 0;
+  return value !== "" && value != null;
 }

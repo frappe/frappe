@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { PhoneInput } from "frappe-ui";
+import { Phone } from "../index";
 </script>
 
 <template>
 	<div class="flex w-full max-w-sm flex-col gap-3">
-		<PhoneInput size="sm" placeholder="Small" />
-		<PhoneInput size="md" placeholder="Medium" />
-		<PhoneInput size="lg" placeholder="Large" />
-		<PhoneInput size="xl" placeholder="Extra large" />
+		<Phone size="sm" placeholder="Small" />
+		<Phone size="md" placeholder="Medium" />
+		<Phone size="lg" placeholder="Large" />
 	</div>
 </template>

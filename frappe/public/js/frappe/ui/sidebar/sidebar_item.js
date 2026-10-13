@@ -1,8 +1,66 @@
 frappe.provide("frappe.ui.sidebar_item");
 
+// Put the shell in front of a desk path, so a link in a sidebar names the shell it sits in.
+//
+// Without this the rendered href says `/desk/todo` while the URL it leads to says
+// `/desk/build/todo`, and `find_active_item` compares the two by string, so nothing is ever
+// highlighted. It also means clicking the link arrives already correct, instead of arriving bare
+// and being rewritten a moment later.
+//
+// A `URL` item is left alone: it points wherever its author said, which need not be the desk at
+// all. So is anything that is not a desk path.
+//
+// The rule has to be the one `write_shell_into_url` uses, character for character, because the
+// highlight is a string comparison between this href and the URL. That includes not saying the
+// shell twice: `/desk/build` is the Build workspace and its shell is Build, so the prefix would
+// add a segment and no information.
+function in_shell(path, shell) {
+	if (!shell || !path || !path.startsWith("/desk/")) return path;
+
+	// The query string is not part of what the shell goes in front of, and leaving it in would
+	// make `/desk/build?x=1` look unlike `/desk/build` and take a prefix it should not.
+	const [route, rest] = split_query(path.slice("/desk/".length));
+	const slug = frappe.router.shell_slug(shell);
+	if (route === slug || route.startsWith(slug + "/")) return path;
+
+	// A shell whose slug is also a doctype cannot go in front: the router reads that segment as
+	// the doctype, so the rest of the path becomes a document name. `write_shell_into_url` leaves
+	// these URLs bare for the same reason.
+	if (frappe.router.segment_kind(slug) === "doctype") return path;
+
+	return "/desk/" + slug + "/" + route + rest;
+}
+
+function split_query(path) {
+	const at = path.search(/[?#]/);
+	return at === -1 ? [path, ""] : [path.slice(0, at), path.slice(at)];
+}
+
+// An item's `filters` as the route options its link carries, or null when it has none.
+function filters_as_options(item) {
+	// get_filter_as_json() returns null for an empty filter array, so an item stored
+	// with `filters` of "[]" lands here with nothing to convert.
+	const filters_as_json = item.filters
+		? frappe.utils.get_filter_as_json(JSON.parse(item.filters))
+		: null;
+	if (!filters_as_json) return null;
+
+	const filters_json = JSON.parse(filters_as_json);
+	for (const [key, value] of Object.entries(filters_json)) {
+		if (Array.isArray(value)) {
+			filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
+		}
+	}
+	return filters_json;
+}
+
 // Resolve a sidebar item (from `bootinfo.module_sidebars`) to a navigable route.
 // Shared by the rendered sidebar links and the header workspace switcher.
-frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
+//
+// `shell` is the sidebar the item belongs to, and the caller says which: an item on screen belongs
+// to the sidebar showing it, while `module_landing_route` asks about a module that is not the one
+// on screen. Left out, the route carries no shell and the desk writes one in on arrival.
+frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = null) {
 	let path;
 	if (item.type !== "Link") return path;
 
@@ -21,26 +79,31 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 				return;
 			}
 		}
+		// a report reads its filters off the query string, so Stock Balance for one warehouse is a
+		// link of its own
+		args.route_options = filters_as_options(item);
 
 		path = frappe.utils.generate_route(args);
 	} else if (item.link_type == "Workspace") {
-		let workspaces = frappe.workspaces[frappe.router.slug(item.link_to)];
-		if (workspaces && workspaces.public) {
+		let workspace = frappe.workspaces[frappe.router.slug(item.link_to)];
+		if (workspace && workspace.public) {
 			path = "/desk/" + frappe.router.slug(item.link_to);
 		} else {
-			path = "/desk/private/" + frappe.router.slug(item.link_to);
-		}
-
-		if (item.route) {
-			path = item.route;
+			// A private page is spelled by its title. Its name carries the owner's email, and only
+			// the owner can open the page, so the email named something the reader already was.
+			// The title is read off the workspace rather than the item's label, which a
+			// customization may have changed.
+			const title = workspace ? workspace.title : item.link_to;
+			path = "/desk/private/" + frappe.router.slug(title);
 		}
 	} else if (item.link_type === "URL") {
 		path = item.url;
-	} else if (item.link_type == "Page" && item.route_options) {
+	} else if (item.link_type == "Page") {
 		path = frappe.utils.generate_route({
 			type: item.link_type,
 			name: item.link_to,
-			route_options: JSON.parse(item.route_options),
+			route: item.route ? `${item.link_to}/${item.route}` : undefined,
+			route_options: item.route_options ? JSON.parse(item.route_options) : undefined,
 		});
 	} else {
 		let args = {
@@ -48,18 +111,8 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 			name: item.link_to,
 			tab: item.tab,
 		};
-		// get_filter_as_json() returns null for an empty filter array, so an item stored
-		// with `filters` of "[]" lands here with nothing to convert.
-		const filters_as_json = item.filters
-			? frappe.utils.get_filter_as_json(JSON.parse(item.filters))
-			: null;
-		if (filters_as_json) {
-			let filters_json = JSON.parse(filters_as_json);
-			for (const [key, value] of Object.entries(filters_json)) {
-				if (Array.isArray(value)) {
-					filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
-				}
-			}
+		const filters_json = filters_as_options(item);
+		if (filters_json) {
 			if (item.link_type == "DocType") {
 				args.doc_view = "List";
 				args.route_options = filters_json;
@@ -78,12 +131,18 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 			);
 			if (layout_info) {
 				const doctype_slug = frappe.router.slug(item.link_to);
-				path = `/app/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
+				path = `/desk/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
 			}
 		}
 	}
 
-	return path;
+	// A system page opens in no shell, and the router takes one off its URL, so a link that named
+	// one would never match the URL it leads to.
+	if (item.link_type === "Page" && frappe.router.page_info_for([item.link_to])?.system_page) {
+		return path;
+	}
+
+	return in_shell(path, shell);
 };
 
 frappe.ui.sidebar_item.TypeLink = class SidebarItem {
@@ -103,7 +162,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.make();
 	}
 	get_path() {
-		return frappe.ui.sidebar_item.get_route(this.item);
+		return frappe.ui.sidebar_item.get_route(this.item, false, this.current_module);
 	}
 
 	prepare() {}
@@ -113,15 +172,19 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			return;
 		}
 		this.set_suffix();
-		// `parent` is only set on items find_nested_items() actually nested; a row can carry
+		// `parent` is only set on items nest_section_items() actually nested; a row can carry
 		// `child` without one (a Section Break, or a child with no section above it).
-		if (!this.item.icon && !(this.item.child && this.item.parent?.indent)) {
+		// Items nested under an indented section draw no icon, even one they set themselves.
+		// The item's own icon is left alone so the sidebar editor still sees and saves it.
+		const hide_icon = !!(this.item.child && this.item.parent?.indent);
+		if (!this.item.icon && !hide_icon) {
 			this.item.icon = "list";
 		}
 		this.wrapper = $(
 			frappe.render_template("sidebar_item", {
 				item: this.item,
 				path: this.path,
+				hide_icon,
 			})
 		);
 		$(this.container).append(this.wrapper);
@@ -196,12 +259,14 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		if (this.collapsed) {
 			this.$drop_icon
 				.attr("data-state", "closed")
+				.attr("aria-expanded", "false")
 				.find("use")
 				.attr("href", "#icon-chevron-right");
 			$(this.$nested_items).addClass("hidden");
 		} else {
 			this.$drop_icon
 				.attr("data-state", "opened")
+				.attr("aria-expanded", "true")
 				.find("use")
 				.attr("href", "#icon-chevron-down");
 			$(this.$nested_items).removeClass("hidden");
@@ -211,16 +276,14 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		this.old_state;
 		$(document).on("sidebar-expand", function (event, expand) {
+			// A heading keeps its row in the rail and loses only its text (see sidebar.scss), so
+			// groups stay apart by the gap they had rather than by a rule drawn for the occasion.
 			if (expand.sidebar_expand) {
-				$(me.wrapper.find(".section-break")).removeClass("hidden");
-				$(me.wrapper.find(".divider")).addClass("hidden");
 				if (me.old_state) {
 					me.collapsed = me.old_state;
 					me.toggle();
 				}
 			} else {
-				$(me.wrapper.find(".section-break")).addClass("hidden");
-				$(me.wrapper.find(".divider")).removeClass("hidden");
 				me.old_state = me.collapsed;
 				me.open();
 				if (me.item.indent) {
@@ -237,6 +300,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		if (item.collapsible) {
 			this.$drop_icon = $(`<button class="btn-reset drop-icon hidden">`)
 				.html(frappe.utils.icon("chevron-down", "sm", "", "", "", "", stroke_color))
+				.attr("aria-label", __("Toggle {0}", [item.label]))
+				.attr("aria-expanded", "true")
 				.appendTo(sidebar_control);
 
 			this.$drop_icon.removeClass("hidden");
@@ -245,6 +310,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			// toggle indicator here instead of selecting the now-absent [item-icon] span.
 			this.$drop_icon = $(`<button class="btn-reset drop-icon">`)
 				.html(frappe.utils.icon("chevron-right", "sm", "", "", "", "", stroke_color))
+				.attr("aria-label", __("Toggle {0}", [item.label]))
 				.prependTo(this.wrapper.find(".item-anchor").first());
 		}
 
@@ -281,6 +347,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			if (e.originalEvent.isTrusted) {
 				me.save_section_break_state();
 			}
+			// Docking the sidebar is how a collapsed one shows the group that was just
+			// expanded, since the group itself is off screen while collapsed.
 			if (!frappe.app.sidebar.sidebar_expanded) {
 				frappe.app.sidebar.open();
 				this.open();
@@ -295,6 +363,22 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.section_breaks_state[this.current_module][this.item.label] = this.collapsed;
 
 		localStorage.setItem("section-breaks-state", JSON.stringify(this.section_breaks_state));
+	}
+};
+
+// A spacer has no path, so TypeLink.make would skip it.
+frappe.ui.sidebar_item.TypeSpacer = class SpacerSidebarItem extends (
+	frappe.ui.sidebar_item.TypeLink
+) {
+	make() {
+		this.wrapper = $(
+			frappe.render_template("sidebar_item", {
+				item: this.item,
+				path: null,
+				hide_icon: true,
+			})
+		);
+		$(this.container).append(this.wrapper);
 	}
 };
 

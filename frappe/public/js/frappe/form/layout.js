@@ -484,13 +484,13 @@ frappe.ui.form.Layout = class Layout {
 		// Set active tab based on hash (for regular forms only)
 		const tab_from_hash = window.location.hash.replace("#", "");
 		const tab = this.tabs.find((tab) => tab.df.fieldname === tab_from_hash);
-		if (tab) {
+		if (tab && !tab.is_hidden()) {
 			tab.set_active();
 			return;
 		}
 
 		let frm_active_tab = this.frm?.get_active_tab?.();
-		if (frm_active_tab) {
+		if (frm_active_tab && !frm_active_tab.is_hidden()) {
 			frm_active_tab.set_active();
 		} else if (this.tabs.length) {
 			// set first tab as active when opening for first time, or new doc

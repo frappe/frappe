@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
+from contextlib import suppress
 from functools import wraps
 from os.path import join
 
@@ -65,9 +66,14 @@ def generate_and_cache_results(args, function, cache_key, chart):
 			raise
 
 	if not frappe.flags.read_only:
-		frappe.db.set_value(
-			"Dashboard Chart", args.chart_name, "last_synced_on", frappe.utils.now(), update_modified=False
-		)
+		with suppress(frappe.QueryDeadlockError):
+			frappe.db.set_value(
+				"Dashboard Chart",
+				args.chart_name,
+				"last_synced_on",
+				frappe.utils.now(),
+				update_modified=False,
+			)
 	return results
 
 

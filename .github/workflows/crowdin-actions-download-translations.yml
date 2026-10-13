@@ -30,7 +30,7 @@ jobs:
           persist-credentials: false
 
       - name: Download translations and open PR
-        uses: crowdin/github-action@e4a6c1338b4063c77d46a81875265f9e8bd76f95 # v3.0.0
+        uses: crowdin/github-action@9c23991700c0ec5256fd41089b9d9d7d540e424e # v3.3.0
         with:
           config: crowdin.yml
           upload_sources: false

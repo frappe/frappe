@@ -5,9 +5,11 @@
  * remaps the badge's local --c-* vars to the mapped theme's tokens.
  *
  *   orange / yellow      -> amber
- *   purple / pink        -> violet
- *   cyan / light-blue    -> blue
- *   grey / darkgrey      -> gray  (badge default; here for completeness) */
+ *   purple               -> violet
+ *   light-blue           -> blue, on the lighter surface
+ *   grey / darkgrey      -> gray  (badge default; here for completeness)
+ *
+ * cyan and pink have no badge theme to map to; they keep their own tokens. */
 
 .es-badge[data-theme="orange"],
 .es-badge[data-theme="yellow"] {
@@ -18,8 +20,7 @@
   --c-fg: var(--ink-amber-8);
 }
 
-.es-badge[data-theme="purple"],
-.es-badge[data-theme="pink"] {
+.es-badge[data-theme="purple"] {
   --c-solid-bg: var(--surface-violet-7);
   --c-solid-fg: var(--ink-violet-1);
   --c-fill: var(--surface-violet-2);
@@ -27,11 +28,26 @@
   --c-fg: var(--ink-violet-8);
 }
 
-.es-badge[data-theme="cyan"],
+.es-badge[data-theme="pink"] {
+  --c-solid-bg: var(--surface-pink-7);
+  --c-solid-fg: var(--ink-pink-1);
+  --c-fill: var(--surface-pink-2);
+  --c-line: var(--outline-pink-3);
+  --c-fg: var(--ink-pink-8);
+}
+
+.es-badge[data-theme="cyan"] {
+  --c-solid-bg: var(--surface-cyan-7);
+  --c-solid-fg: var(--ink-cyan-1);
+  --c-fill: var(--surface-cyan-2);
+  --c-line: var(--outline-cyan-3);
+  --c-fg: var(--ink-cyan-8);
+}
+
 .es-badge[data-theme="light-blue"] {
   --c-solid-bg: var(--surface-blue-7);
   --c-solid-fg: var(--ink-blue-1);
-  --c-fill: var(--surface-blue-2);
+  --c-fill: var(--surface-blue-1);
   --c-line: var(--outline-blue-3);
   --c-fg: var(--ink-blue-8);
 }

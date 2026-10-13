@@ -1,5 +1,19 @@
 {
-    "disabledLabels": [
-        "conflicts", "skip-greptile"
-    ]
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax"],
+  "autoReview": ["open", "push", "rebase"],
+  "triggerOnDrafts": false,
+  "disabledLabels": ["conflicts", "skip-greptile"],
+  "excludeAuthors": ["mergify[bot]", "dependabot[bot]", "github-actions[bot]"],
+  "ignoreKeywords": "WIP\n[skip review]",
+  "ignorePatterns": "yarn.lock\n**/yarn.lock\nfrappe/locale/*.po\nfrappe/locale/*.pot\n**/*.min.js\n**/*.min.css\nui/components.d.ts",
+  "statusCheck": true,
+  "shouldUpdateDescription": false,
+  "summarySection": {
+    "included": true,
+    "collapsible": true,
+    "defaultOpen": false
+  },
+  "issuesTableSection": { "included": false },
+  "sequenceDiagramSection": { "included": false }
 }

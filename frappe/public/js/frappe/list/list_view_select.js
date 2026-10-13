@@ -132,7 +132,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				action: () => this.set_route("list"),
 			},
 			Report: {
-				condition: true,
+				condition: frappe.model.can_get_report(this.doctype),
 				action: () => this.set_route("report"),
 			},
 			Dashboard: {

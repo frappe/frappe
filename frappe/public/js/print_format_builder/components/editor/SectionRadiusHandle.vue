@@ -2,7 +2,7 @@
 	<div
 		class="pfb-radius-handle"
 		:class="{ active }"
-		:style="pos"
+		:style="{ '--pfb-radius-inset': inset }"
 		:title="__('Drag to change corner radius')"
 		@pointerdown.stop.prevent="start"
 	>
@@ -14,16 +14,14 @@
 import { computed, ref } from "vue";
 import { canvas_zoom } from "../../utils";
 
-const props = defineProps(["section"]);
+const props = defineProps({
+	target: { type: Object, required: true },
+	prop: { type: String, default: "radius" },
+});
 const active = ref(false);
 
-const radius = computed(() => props.section.radius || 0);
-// sits on the rounded corner arc (top-left), never closer than a grabbable gap
-const pos = computed(() => {
-	const r = Math.max(radius.value, 10) + "px";
-	return { top: r, left: r };
-});
-
+const radius = computed(() => props.target[props.prop] || 0);
+const inset = computed(() => Math.max(10, radius.value - 6) + "px");
 function start(e) {
 	active.value = true;
 	const zoom = canvas_zoom(e.currentTarget);
@@ -34,7 +32,7 @@ function start(e) {
 	function move(ev) {
 		// dragging toward the section centre (down-right) grows the radius
 		const delta = (ev.clientX - ox + (ev.clientY - oy)) / 2 / zoom;
-		props.section.radius = Math.max(0, Math.round(start_val + delta));
+		props.target[props.prop] = Math.max(0, Math.round(start_val + delta));
 	}
 	function up() {
 		active.value = false;
@@ -49,9 +47,10 @@ function start(e) {
 <style scoped>
 .pfb-radius-handle {
 	position: absolute;
+	top: calc(var(--pfb-radius-top, 0px) + min(var(--pfb-radius-inset), calc(50% - 6px)));
+	left: min(var(--pfb-radius-inset), calc(50% - 6px));
 	width: 12px;
 	height: 12px;
-	transform: translate(-50%, -50%);
 	border-radius: 50%;
 	background: var(--fg-color);
 	border: 2px solid var(--pfb-accent);

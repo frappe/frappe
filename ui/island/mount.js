@@ -23,10 +23,6 @@ import { portalTargetKey } from "frappe-ui";
 import { hostKey } from "./context.js";
 import { currentTheme, onThemeChange } from "./theme.js";
 
-// Desk's modal tier, Bootstrap's `.modal`. It is level with a desk dialog and
-// above every page-level control: the icon rail at 1020, menus at 1030.
-const OVERLAY_Z_INDEX = "1050";
-
 // url -> Promise<CSSStyleSheet>. One sheet object per URL for the whole page,
 // adopted into every shadow root. The browser fetches and parses it once.
 const styleSheets = new Map();
@@ -62,6 +58,10 @@ export async function mountVueIsland(el, options) {
 	if (!el || !el.appendChild) {
 		throw new Error("mountVueIsland: mount target is not an element");
 	}
+	// showPopover() below needs a connected element
+	if (!el.isConnected) {
+		throw new Error("mountVueIsland: mount target is not in the document");
+	}
 
 	const shadowHost = document.createElement("div");
 	shadowHost.className = "frappe-island";
@@ -87,15 +87,30 @@ export async function mountVueIsland(el, options) {
 	// a selector string against the document.
 	const portal = document.createElement("div");
 	portal.className = "frappe-island-portal";
-	// A shadow root is not a stacking context, so an overlay inside it competes
-	// with desk's page-level controls directly. At `z-index: auto` the browser
-	// paints the icon rail and desk's menus over the overlay, although the
-	// overlay covers them for hit testing. The portal carries the tier, not the
-	// host, so the island's content stays in the page flow.
-	portal.style.position = "relative";
-	portal.style.zIndex = OVERLAY_Z_INDEX;
+	// The top layer escapes any ancestor stacking context (a workspace sits in
+	// Editor.js's `.codex-editor` at z-index 1, under desk's sidebar). A z-index
+	// cannot. Staying in the shadow root keeps the reka patch, the adopted sheet
+	// and the theme attribute; a second host on <body> would split reka's layers
+	// across two roots. Needs Safari 17 / Chrome 114, which `target: esnext`
+	// already assumes.
+	portal.setAttribute("popover", "manual");
+	// undo the UA popover box; the overlays inside are `position: fixed`, so the
+	// portal shrink-wraps to nothing and needs no pointer-events (a non-modal
+	// popover would inherit `none` and go dead)
+	Object.assign(portal.style, {
+		inset: "auto",
+		width: "auto",
+		height: "auto",
+		margin: "0",
+		padding: "0",
+		border: "0",
+		background: "none",
+		overflow: "visible",
+		color: "inherit",
+	});
 
 	shadowRoot.append(root, portal);
+	portal.showPopover();
 
 	const applyTheme = (theme) => {
 		root.setAttribute("data-theme", theme);

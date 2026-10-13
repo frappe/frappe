@@ -21,6 +21,7 @@ class IMAPFolder(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		sync_from_uid: DF.Int
 		uidnext: DF.Data | None
 		uidvalidity: DF.Data | None
 	# end: auto-generated types

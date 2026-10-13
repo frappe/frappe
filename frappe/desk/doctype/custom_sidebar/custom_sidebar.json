@@ -4,6 +4,7 @@
  "creation": "2026-08-11 21:30:00.000000",
  "description": "Sidebar intent for a module, at either of the two layers a site has. `user` is what tells them apart: blank is the site layer, curated by a Workspace Manager and applying to everyone; a user's name is that person's own arrangement, which is applied on top and wins. The `Custom *` prefix elsewhere in this repo means site-owned override of app-shipped content, and this doctype knowingly overloads it: with the layers structurally identical there is nothing to gain from a second doctype, and `user` makes the layer unambiguous at a glance. Do not \"fix\" this by splitting it.",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/workspace",
  "engine": "InnoDB",
  "field_order": [
   "module",

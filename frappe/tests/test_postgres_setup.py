@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, call
 
 from psycopg2 import sql
 
-from frappe.database.postgres.setup_db import _set_database_owner
+from frappe.database.postgres.setup_db import _drop_database, _set_database_owner
 from frappe.tests import UnitTestCase
 
 
@@ -80,4 +80,34 @@ class TestPostgresSetup(UnitTestCase):
 
 		root_conn.execute_query.assert_called_with(
 			sql.SQL("REVOKE {} FROM current_user").format(sql.Identifier("site_user"))
+		)
+
+	def test_drop_database_uses_temporary_owner_privileges(self):
+		root_conn = MagicMock()
+		root_conn.sql.side_effect = (["site_user"], [False], [])
+		db_name = 'site"database'
+
+		_drop_database(root_conn, db_name, 160000)
+
+		root_conn.sql.assert_any_call(
+			"SELECT pg_has_role(current_user, %s, %s)", ("site_user", "USAGE"), pluck=True
+		)
+		grant = sql.SQL("GRANT {} TO current_user").format(sql.Identifier("site_user"))
+		self.assertEqual(
+			root_conn.execute_query.call_args_list,
+			[
+				call(grant + sql.SQL(" WITH INHERIT TRUE")),
+				call(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(db_name))),
+				call(sql.SQL("REVOKE {} FROM current_user").format(sql.Identifier("site_user"))),
+			],
+		)
+
+	def test_drop_database_keeps_existing_owner_privileges(self):
+		root_conn = MagicMock()
+		root_conn.sql.side_effect = (["site_user"], [True])
+
+		_drop_database(root_conn, "site_database", 160000)
+
+		root_conn.execute_query.assert_called_once_with(
+			sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier("site_database"))
 		)

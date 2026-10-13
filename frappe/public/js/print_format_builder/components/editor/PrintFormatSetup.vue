@@ -105,7 +105,7 @@ const options = [
 
 .pfb-setup-option:hover {
 	border-color: var(--gray-500);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 }
 
 .pfb-setup-option-icon {

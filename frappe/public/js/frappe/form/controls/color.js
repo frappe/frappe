@@ -13,25 +13,26 @@ frappe.ui.form.ControlColor = class ControlColor extends frappe.ui.form.ControlD
 			parent: picker_wrapper[0],
 			color: this.get_color(),
 			swatches: [
-				"#449CF0",
-				"#ECAD4B",
-				"#29CD42",
-				"#761ACB",
-				"#CB2929",
-				"#ED6396",
-				"#29CD42",
-				"#4463F0",
-				"#EC864B",
-				"#4F9DD9",
-				"#39E4A5",
-				"#B4CD29",
+				"#171717",
+				"#7c7c7c",
+				"#ce2c2c",
+				"#d35a09",
+				"#ca7e0c",
+				"#ab790d",
+				"#268c5c",
+				"#0a857b",
+				"#1f8cad",
+				"#077ddf",
+				"#6e57d1",
+				"#8e49ca",
+				"#cf3a96",
 			],
 		});
 
 		this.$wrapper
 			.popover({
 				trigger: "manual",
-				offset: `${-this.$wrapper.width() / 4}, 5`,
+				offset: "0, 4",
 				boundary: "viewport",
 				placement: "bottom",
 				template: `
@@ -43,10 +44,10 @@ frappe.ui.form.ControlColor = class ControlColor extends frappe.ui.form.ControlD
 				content: () => picker_wrapper,
 				html: true,
 			})
-			.on("show.bs.popover", () => {
-				setTimeout(() => {
-					this.picker.refresh();
-				}, 10);
+			.on("shown.bs.popover", () => {
+				const color = this.get_color();
+				if (color) this.picker.set_color(color);
+				this.picker.refresh();
 			})
 			.on("hidden.bs.popover", () => {
 				$("body").off("click.color-popover");

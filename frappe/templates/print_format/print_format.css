@@ -7,7 +7,11 @@
 {% endmacro %}
 
 @page {
+	{%- if print_settings.pdf_page_size == "Custom" %}
+	size: {{ page_width }}mm {{ page_height }}mm;
+	{%- else %}
 	size: {{ print_settings.pdf_page_size or 'A4' }} portrait;
+	{%- endif %}
 	margin-top: {{ print_format.margin_top | int }}mm;
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;
@@ -41,7 +45,7 @@ body {
 		background-color: white;
 		box-shadow: var(--shadow-md);
 		margin: 2rem auto;
-		min-height: 297mm;
+		min-height: {{ page_height | int }}mm;
 		height: min-content;
 	{%- if not for_chrome %}
 		min-width: {{ page_width | int }}mm !important;
@@ -50,6 +54,19 @@ body {
 	{%- endif %}
 	}
 }
+
+{%- if (for_chrome and chrome_layout_footer) or not (for_chrome or repeat_frame) %}
+body {
+	display: flex;
+	flex-direction: column;
+{%- if for_chrome %}
+	min-height: 100vh;
+{%- endif %}
+}
+.print-footer-once {
+	margin-top: auto;
+}
+{%- endif %}
 
 {%- if repeat_frame %}
 .print-repeating-frame {

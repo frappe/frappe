@@ -66,9 +66,9 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 					frappe.db
 						.set_value("Notification", r.name, { enabled: r.enabled ? 0 : 1 })
 						.then(() => {
-							frappe.show_alert({
+							frappe.ui.toast({
 								message: r.enabled ? __("Disabled") : __("Enabled"),
-								indicator: "green",
+								type: "success",
 							});
 							list.reload();
 						}),
@@ -78,13 +78,13 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 			{ label: __("Edit"), icon: "pencil", onclick: () => open(r.name) },
 			{
 				label: __("Delete"),
-				icon: "trash-2",
+				icon: "trash",
 				danger: true,
 				// frappe.model.delete_doc handles the confirm prompt, delete sound and
 				// locals cleanup; the callback runs only on success.
 				onclick: (list) =>
 					frappe.model.delete_doc("Notification", r.name, () => {
-						frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+						frappe.ui.toast({ message: __("Deleted"), type: "success" });
 						list.reload();
 					}),
 			},

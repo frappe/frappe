@@ -76,6 +76,12 @@ frappe.ui.form.trigger = function (doctype, fieldname) {
 	cur_frm.script_manager.trigger(fieldname, doctype);
 };
 
+frappe.ui.form.controllers = {};
+
+frappe.ui.form.set_controller = function (doctype, ControllerClass) {
+	frappe.ui.form.controllers[doctype] = ControllerClass;
+};
+
 frappe.ui.form.ScriptManager = class ScriptManager {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -85,6 +91,13 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 			this.frm.cscript,
 			new ControllerClass({ frm: this.frm })
 		);
+	}
+	/** Binds the class set with `set_controller`, unless a form script already bound a subclass of it. */
+	bind_controller() {
+		const ControllerClass = frappe.ui.form.controllers[this.frm.doctype];
+		if (ControllerClass && !(this.frm.cscript instanceof ControllerClass)) {
+			this.make(ControllerClass);
+		}
 	}
 	trigger(event_name, doctype, name) {
 		// trigger all the form level events that
@@ -202,6 +215,8 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 				});
 			}
 		}
+
+		this.bind_controller();
 
 		function setup_add_fetch(df) {
 			let is_read_only_field =

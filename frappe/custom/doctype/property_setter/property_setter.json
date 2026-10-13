@@ -4,6 +4,7 @@
  "description": "Property Setter overrides a standard DocType or Field property",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize",
  "engine": "InnoDB",
  "field_order": [
   "is_system_generated",

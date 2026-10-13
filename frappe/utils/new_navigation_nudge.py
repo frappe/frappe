@@ -27,6 +27,7 @@ from frappe.desk.doctype.desktop_settings.desktop_settings import (
 	is_desktop_icons_page,
 )
 from frappe.utils import cint
+from frappe.utils.telemetry import capture
 
 SKIP_NEW_NAVIGATION_PROMPT = "skip_new_navigation_prompt"
 
@@ -73,6 +74,7 @@ def submit_new_navigation_prompt(action: str) -> str:
 		settings.desktop_page = APPS
 		settings.save(ignore_permissions=True)
 		skip_new_navigation_prompt()
+		capture("switched_to_apps_navigation", app="frappe")
 		return "switched"
 
 	frappe.throw(_("Invalid action"))

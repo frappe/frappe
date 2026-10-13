@@ -21,6 +21,10 @@ from frappe.tests.test_query_builder import run_only_if, unimplemented_for
 from frappe.utils import set_request
 
 
+def sample_timeline_hook(doctype, docname):
+	return [{"x": 1}]
+
+
 class TestRecorder(IntegrationTestCase):
 	def setUp(self):
 		self.start_recoder()
@@ -125,6 +129,26 @@ class TestRecorder(IntegrationTestCase):
 
 		request = frappe.get_doc("Recorder", frappe.get_all("Recorder")[0].name)
 		self.assertEqual(len(request.timeline), 0)
+
+	def test_timeline_records_hook_handlers(self):
+		from frappe.desk.form.load import get_additional_timeline_content
+
+		hooks = {"additional_timeline_content": {"*": [f"{__name__}.sample_timeline_hook"]}}
+		with patch.object(frappe, "get_hooks", return_value=hooks):
+			self.start_recoder()
+			frappe.db.rollback()
+			contents = get_additional_timeline_content("ToDo", "TODO-1")
+		self.stop_recorder()
+
+		del frappe.local._recorder
+		self.assertIs(frappe.get_attr(f"{__name__}.sample_timeline_hook"), sample_timeline_hook)
+		self.assertEqual(contents, [{"x": 1}])
+		request = frappe.get_doc("Recorder", frappe.get_all("Recorder")[0].name)
+		event = next(e for e in request.timeline if e.method == "additional_timeline_content")
+		self.assertEqual(event.ref_doctype, "ToDo")
+		self.assertEqual(event.ref_name, "TODO-1")
+		self.assertEqual(event.apps, "frappe")
+		self.assertEqual(event.handlers, f"{__name__}.sample_timeline_hook")
 
 	def test_timeline_attributes_server_scripts_and_webhooks(self):
 		# run_method also runs DocType Event server scripts and webhooks; both should be

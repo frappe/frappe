@@ -10,8 +10,9 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
-from frappe.utils import cint, escape_html, strip_html
+from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
+from frappe.utils.print_utils import resolve_pdf_generator
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
@@ -59,8 +60,6 @@ def get_context(context) -> PrintContext:
 	else:
 		doc = frappe.get_lazy_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 
-	set_link_titles(doc)
-
 	settings = frappe.parse_json(frappe.form_dict.settings)
 
 	letterhead = frappe.form_dict.letterhead or None
@@ -70,14 +69,13 @@ def get_context(context) -> PrintContext:
 	print_format, standalone = resolve_print_format(None, meta)
 
 	print_format_name = getattr(print_format, "name", "Standard")
-	pdf_generator = frappe.form_dict.get(
-		"pdf_generator", getattr(print_format, "pdf_generator", "wkhtmltopdf")
-	)
+	pdf_generator = resolve_pdf_generator(print_format, frappe.form_dict.get("pdf_generator"))
 
 	context = {
 		"standalone": standalone,
 		"comment": frappe.session.user,
 		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
+		"print_filename": get_print_filename(doc),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"doctype": frappe.form_dict.doctype,
@@ -87,6 +85,8 @@ def get_context(context) -> PrintContext:
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
 		"pdf_generator": pdf_generator,
+		"style": frappe.form_dict.style,
+		"settings": frappe.as_json(settings, indent=None) if settings else None,
 	}
 
 	if standalone:
@@ -134,6 +134,28 @@ def get_context(context) -> PrintContext:
 	return context
 
 
+def cast_client_values(document: "Document"):
+	"""A document posted from the form carries JSON types: dates as strings and
+	whole floats as ints. The PDF loads the same document from the database, so
+	the preview must see the same Python types or the two render differently."""
+	from frappe.model import table_fields
+	from frappe.utils.data import cast
+
+	rows = [document]
+	for df in document.meta.get_table_fields():
+		rows.extend(document.get(df.fieldname) or [])
+	for row in rows:
+		for df in row.meta.fields:
+			value = row.get(df.fieldname)
+			if value in (None, "") or df.fieldtype in table_fields:
+				continue
+			messages = len(frappe.local.message_log)
+			try:
+				row.set(df.fieldname, cast(df.fieldtype, value))
+			except (frappe.ValidationError, ValueError):
+				del frappe.local.message_log[messages:]
+
+
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
 	"""Return print format document."""
 	if not print_format_name:
@@ -168,6 +190,12 @@ def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple
 
 	print_format = get_print_format_doc(print_format_name, meta=meta) or get_default_print_format(meta.name)
 	return print_format, uses_beta_renderer(print_format)
+
+
+def get_print_filename(doc: "Document") -> str:
+	from frappe.core.doctype.file.utils import get_safe_file_name
+
+	return get_safe_file_name(doc.name)
 
 
 def get_rendered_template(
@@ -209,6 +237,8 @@ def get_rendered_template(
 			_("Pass a print format, or use frappe.get_print() for the default print."),
 			frappe.TemplateNotFoundError,
 		)
+
+	doc.flags.absolute_value = print_format.absolute_value
 
 	template = None
 	if hook_func := frappe.get_hooks("get_print_format_template"):
@@ -336,8 +366,8 @@ def get_html_and_style(
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
+		cast_client_values(document)
 
-	set_link_titles(document)
 	print_format, is_beta = resolve_print_format(print_format, document.meta)
 
 	if is_beta:
@@ -367,7 +397,20 @@ def get_html_and_style(
 			frappe.clear_last_message()
 			html = None
 
-	return {"html": html, "style": get_print_style(style=style, print_format=print_format)}
+	return {
+		"html": html,
+		"style": get_print_style(style=style, print_format=print_format),
+		"page_style": None if is_beta else get_preview_page_css(print_format),
+	}
+
+
+def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
+	from frappe.utils.print_format_generator import page_size_mm
+
+	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
+	return frappe.get_template("templates/print_formats/preview_page.css").render(
+		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)}
+	)
 
 
 @frappe.whitelist()
@@ -380,6 +423,7 @@ def get_rendered_raw_commands(
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
+		cast_client_values(document)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 
@@ -398,8 +442,21 @@ def get_allowed_print_settings_override(doc: "Document", settings: dict | None) 
 	never unrelated flags like allow_print_for_draft that the docstatus guard reads."""
 	if not settings:
 		return {}
-	allowed = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
-	return {key: value for key, value in settings.items() if key in allowed}
+	doc_settings = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
+	page_sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+	allowed = {}
+	for key, value in settings.items():
+		if key in doc_settings:
+			allowed[key] = cint(value)
+		elif key in ("pdf_page_height", "pdf_page_width"):
+			allowed[key] = flt(value)
+		elif (
+			(key == "pdf_page_size" and value in page_sizes)
+			or (key == "page_orientation" and value in ("", "Portrait", "Landscape"))
+			or (key == "print_font" and isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9 ]*", value))
+		):
+			allowed[key] = value
+	return allowed
 
 
 def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = None) -> None:
@@ -452,12 +509,13 @@ def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
 
 
 def run_before_print(doc: "Document", print_settings: dict) -> None:
-	"""Flag the document as printing and fire its ``before_print`` hook.
+	"""Prepare Link titles and fire the document's ``before_print`` hook.
 
 	Shared by the legacy template renderer and the builder generator so both
 	prepare the document the same way before rendering."""
 	doc.flags.in_print = True
 	doc.flags.print_settings = print_settings
+	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
 
 
@@ -553,7 +611,7 @@ def make_layout(doc: "Document", meta: "Meta") -> list:
 			page[-1]["columns"].append({"fields": []})
 
 	for df in meta.fields:
-		if df.fieldtype == "Section Break" or page == []:
+		if df.fieldtype in ("Section Break", "Tab Break") or page == []:
 			if len(page) > 1:
 				if not page[-1]["has_data"]:
 					# truncate last section if empty
@@ -643,12 +701,18 @@ def get_print_style(
 		"print_settings": print_settings,
 		"print_style": style,
 		"font": get_font(print_settings, print_format, for_legacy),
+		"page_margin": get_page_margin(print_format),
 	}
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 
-	if style and frappe.db.exists("Print Style", style):
-		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
+	style_css = style and frappe.db.get_value("Print Style", {"name": style, "disabled": 0}, "css")
+	if style_css:
+		css = css + "\n" + style_css
+
+	# after the Print Style, so a style that sets its own size does not win over the setting
+	if flt(print_settings.font_size):
+		css = css + f"\n.print-format {{ font-size: {flt(print_settings.font_size)}pt; }}"
 
 	# move @import to top
 	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
@@ -661,6 +725,48 @@ def get_print_style(
 		css += "\n\n" + print_format.css
 
 	return css
+
+
+def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
+	if not print_format or not print_format.css or resolve_pdf_generator(print_format) != "chrome":
+		return " ".join(["15mm"] * 4)
+
+	margins = get_page_rule_margins(print_format.css)
+	return " ".join(margins.get(side, "15mm") for side in PAGE_MARGIN_SIDES)
+
+
+PAGE_MARGIN_SIDES = ("margin-top", "margin-right", "margin-bottom", "margin-left")
+
+
+def get_page_rule_margins(css: str) -> dict[str, str]:
+	import cssutils
+
+	cssutils.log.setLog(frappe.logger("cssutils"))
+	margins = {}
+	important = set()
+	for rule in cssutils.parseString(css):
+		if not isinstance(rule, cssutils.css.CSSPageRule) or rule.selectorText:
+			continue
+		for prop in rule.style:
+			if prop.name == "margin" and (values := [v.cssText for v in prop.propertyValue]):
+				top = values[0]
+				right = values[1] if len(values) > 1 else top
+				bottom = values[2] if len(values) > 2 else top
+				left = values[3] if len(values) > 3 else right
+				updates = zip(PAGE_MARGIN_SIDES, (top, right, bottom, left), strict=True)
+			elif prop.name in PAGE_MARGIN_SIDES:
+				updates = [(prop.name, prop.value)]
+			else:
+				continue
+			for side, value in updates:
+				if not re.fullmatch(r"0|[+-]?(\d*\.)?\d+(px|mm|cm|in)", value.strip()):
+					continue
+				if prop.priority or side not in important:
+					margins[side] = value
+					if prop.priority:
+						important.add(side)
+
+	return margins
 
 
 def get_font(

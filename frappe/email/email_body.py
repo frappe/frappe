@@ -457,6 +457,7 @@ def get_email_html(
 	header: str | list | None = None,
 	with_container: str | int | bool = False,
 ):
+	frappe.only_for("System Manager")
 	with_container = cint(with_container)
 	args = frappe.parse_json(args)
 	if isinstance(header, str) and header.startswith("["):

@@ -241,7 +241,9 @@ def get_jinja_hooks():
 			if isinstance(obj, ModuleType):
 				functions = getmembers(obj, isfunction)
 				for function_name, function in functions:
-					out[function_name] = function
+					# skip functions merely imported into this module, not defined here
+					if function.__module__ == obj.__name__:
+						out[function_name] = function
 			elif isinstance(obj, FunctionType):
 				function_name = obj.__name__
 				out[function_name] = obj

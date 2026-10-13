@@ -20,11 +20,12 @@
 frappe.provide("frappe.dashboards");
 frappe.provide("frappe.dashboards.chart_sources");
 
-// Set on <body> while an island is on screen. `dashboard_view.scss` keys the
-// bounded page off this class. The comment there says why the island gets a
-// fixed box instead of the page scroll. The legacy renderer grows with its
-// widgets and keeps the page scroll, so the route alone cannot decide this.
-const ISLAND_PAGE_CLASS = "dashboard-view-island-page";
+// Set on <body> while an island is on screen. `island_page.scss` keys the
+// bounded page off this class, and says why the island gets a fixed box
+// instead of the page scroll. Every desk page an island draws shares it. The
+// legacy renderer grows with its widgets and keeps the page scroll, so the
+// route alone cannot decide this.
+const ISLAND_PAGE_CLASS = "island-page";
 
 frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
@@ -74,7 +75,10 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 	/** The missing state, for an unknown dashboard name. It needs only the name. */
 	function show_missing(name) {
-		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard" });
+		page.set_breadcrumbs([
+			{ label: __("Dashboard"), href: "/desk/dashboard" },
+			{ label: name },
+		]);
 		frappe.utils.set_title(__("Dashboard"));
 		content.append(
 			frappe.ui.empty_state({
@@ -123,20 +127,16 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	}
 
 	/**
-	 * The page head has no title slot of its own. `page.set_title` writes into the
-	 * `.title-text` crumb, which is the "Dashboard" list link, and the next
-	 * `breadcrumbs.update()` overwrites it. So the title goes to the last crumb,
-	 * where the legacy renderer puts the document name, and to the browser tab.
-	 * `Dashboard.show` below relies on the same fact.
+	 * The document is the last crumb, and also names the browser tab. An island may title a
+	 * document differently from its name, so the label is what it reported and the route
+	 * segment only reaches the document. `Dashboard.show` below does the same.
 	 */
 	function set_island_title(docname, title) {
 		const label = title || __("Dashboard");
-		frappe.breadcrumbs.add({
-			module: "Desk",
-			doctype: "Dashboard",
-			docname: docname,
-			label: label,
-		});
+		page.set_breadcrumbs([
+			{ label: __("Dashboard"), href: "/desk/dashboard" },
+			{ label: label },
+		]);
 		frappe.utils.set_title(label);
 	}
 
@@ -205,7 +205,10 @@ class Dashboard {
 	}
 
 	set_breadcrumbs(docname) {
-		frappe.breadcrumbs.add({ module: "Desk", doctype: "Dashboard", docname: docname });
+		this.page.set_breadcrumbs([
+			{ label: __("Dashboard"), href: "/desk/dashboard" },
+			{ label: docname },
+		]);
 	}
 
 	refresh() {

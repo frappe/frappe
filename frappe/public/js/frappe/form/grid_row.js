@@ -120,12 +120,9 @@ export default class GridRow {
 						console.trace(e);
 					});
 			} else {
-				let data = null;
-				if (this.grid.df.get_data) {
-					data = this.grid.df.get_data();
-				} else {
-					data = this.grid.df.data;
-				}
+				// the grid reads df.data, often a copy of df.get_data(), so edit that copy
+				const data = this.grid.get_data();
+				this.grid.df.data = data;
 
 				const index = data.findIndex((d) => d.name === this.doc.name);
 
@@ -478,7 +475,7 @@ export default class GridRow {
 				},
 			],
 			secondary_action_label: __("Select All"),
-			secondary_action: () => this.select_all_columns(docfields),
+			secondary_action: () => d.fields_dict.fields.select_all(),
 		});
 
 		d.set_primary_action(__("Add"), () => {
@@ -513,17 +510,6 @@ export default class GridRow {
 		});
 
 		d.show();
-	}
-
-	select_all_columns(docfields) {
-		docfields.forEach((docfield) => {
-			if (docfield.checked) {
-				return;
-			}
-			$(`.checkbox.unit-checkbox input[type="checkbox"][data-unit="${docfield.value}"]`)
-				.prop("checked", true)
-				.trigger("change");
-		});
 	}
 
 	prepare_columns_for_dialog(selected_fields) {
@@ -910,7 +896,7 @@ export default class GridRow {
 		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class = " sticky-grid-col";
-			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
+			add_style += `inset-inline-start: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
 		}
 
 		let $col = $(
@@ -970,41 +956,7 @@ export default class GridRow {
 		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
-			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
-		}
-
-		let grid;
-		let grid_container;
-		let input_in_focus = false;
-
-		// prevent random layout shifts caused by widgets and on click position elements inside view (UX).
-		function on_input_focus(el) {
-			input_in_focus = true;
-
-			let container_width = grid_container.getBoundingClientRect().width;
-			let container_left = grid_container.getBoundingClientRect().left;
-			let grid_left = parseFloat(grid.style.left);
-			let element_left = el.offset().left;
-			let fieldtype = el.data("fieldtype");
-
-			let offset_right = container_width - (element_left + el.width());
-			let offset_left = 0;
-			let element_screen_x = element_left - container_left;
-			let element_position_x = container_width - (element_left - container_left);
-
-			if (["Date", "Time", "Datetime"].includes(fieldtype)) {
-				offset_left = element_position_x - 220;
-			}
-			if (["Link", "Dynamic Link"].includes(fieldtype)) {
-				offset_left = element_position_x - 250;
-			}
-			if (element_screen_x < 0) {
-				grid.style.left = `${grid_left - element_screen_x}px`;
-			} else if (offset_left < 0) {
-				grid.style.left = `${grid_left + offset_left}px`;
-			} else if (offset_right < 0) {
-				grid.style.left = `${grid_left + offset_right}px`;
-			}
+			add_style += `inset-inline-start: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
 		}
 
 		// Delay date_picker widget to prevent temporary layout shift (UX).
@@ -1042,21 +994,35 @@ export default class GridRow {
 					let $grid_field = $dropdown.closest(".grid-field");
 
 					if ($grid_field.length) {
-						let $wrapper = $grid_field.find("div.awesomplete");
-						$wrapper = $(`<div class="awesomplete ${$dropdown.attr("id")}"></div>`);
+						// the cell clips the dropdown, so park it on the grid and place it
+						// by hand; $home is where it belongs once it closes again
+						let $home = $dropdown.parent();
+						let $wrapper = $(
+							`<div class="awesomplete ${$dropdown.attr("id")}"></div>`
+						);
 						$grid_field.append($wrapper);
 						$wrapper.append($dropdown);
 
 						let element_position = event.target.getBoundingClientRect();
+						// both rects are viewport relative; jQuery's offset() is document
+						// relative, and mixing the two shifts the dropdown by the page scroll
+						let grid_field_position = $grid_field[0].getBoundingClientRect();
 
-						let left_difference = element_position.left - $grid_field.offset().left;
-						let top_difference = element_position.top - $grid_field.offset().top + 30;
+						let left_difference = element_position.left - grid_field_position.left;
+						let top_difference = element_position.top - grid_field_position.top + 30;
 						$wrapper.css({
 							position: "absolute",
 							top: `${top_difference + 10}px`,
 							left: `${left_difference}px`,
 							minWidth: "250px",
 							width: `${element_position.width}px`,
+						});
+
+						$(event.target).one("awesomplete-close", () => {
+							$home.append($dropdown);
+							$wrapper.remove();
+							// let the next focus park and re-measure it
+							is_focused = false;
 						});
 					}
 				}
@@ -1080,10 +1046,6 @@ export default class GridRow {
 				!input_in_focus && trigger_focus(first_input_field, $(col).data("df"));
 
 				if (event.pointerType == "touch") {
-					first_input_field.length && on_input_focus(first_input_field);
-
-					first_input_field.one("blur", () => (input_in_focus = false));
-
 					first_input_field.data("fieldtype") == "Date" && handle_date_picker();
 				}
 
@@ -1146,6 +1108,9 @@ export default class GridRow {
 				this.make_control(column);
 				column.static_area.toggle(false);
 				column.field_area.toggle(true);
+				if (column.df.fieldtype === "Currency") {
+					this.update_currency_symbol_in_grid_input(column.field, column.df);
+				}
 			});
 
 			frappe.ui.form.editable_row = this;
@@ -1232,9 +1197,15 @@ export default class GridRow {
 				field.$input.attr("data-first-input", 1);
 			}
 			if (df.fieldtype === "Currency") {
-				this.update_currency_symbol_in_grid_input(field, df);
 				field.$input.off("input.grid-currency").on("input.grid-currency", () => {
-					this.update_currency_symbol_in_grid_input(field, df);
+					const $wrapper = field.$input.parent();
+					const has_value = /\d/.test(field.$input.val() || "");
+					if (
+						$wrapper.hasClass("grid-currency-input") &&
+						has_value !== $wrapper.hasClass("grid-currency-has-value")
+					) {
+						this.update_currency_symbol_in_grid_input(field, df);
+					}
 				});
 			}
 		}
@@ -1299,8 +1270,16 @@ export default class GridRow {
 							this.grid.set_focus_on_row();
 						}, 100);
 					} else {
-						this.grid.grid_rows[this.doc.idx].toggle_editable_row();
-						this.grid.set_focus_on_row(this.doc.idx);
+						const next_idx = this.doc.idx;
+						const next_row = this.grid.grid_rows[next_idx];
+						if (!next_row) {
+							return;
+						}
+
+						field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+							next_row.toggle_editable_row();
+							this.grid.set_focus_on_row(next_idx);
+						});
 						return false;
 					}
 				}
@@ -1325,7 +1304,20 @@ export default class GridRow {
 				if (is_first_column) {
 					const ri = this.grid.get_current_row(e.target);
 					if (ri == 0) return;
-					this.grid.grid_rows[ri - 1].toggle_editable_row(true);
+
+					const prev_row = this.grid.grid_rows[ri - 1];
+					if (!prev_row) {
+						return;
+					}
+
+					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+						prev_row.toggle_editable_row(true);
+						prev_row.row
+							.find('input[type="Text"],textarea,select')
+							.filter(":visible:last")
+							.focus();
+					});
+					return false;
 				}
 			}
 		});
@@ -1429,16 +1421,14 @@ export default class GridRow {
 		let cannot_add_rows =
 			this.grid.cannot_add_rows || (this.grid.df && this.grid.df.cannot_add_rows);
 		this.wrapper
-			.find(
-				".grid-insert-row-below, .grid-insert-row, .grid-duplicate-row, .grid-append-row"
-			)
+			.find(".grid-insert-row-below, .grid-insert-row, .grid-duplicate-row")
 			.toggle(!cannot_add_rows);
 
 		this.wrapper
 			.find(".grid-delete-row")
 			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
 
-		frappe.dom.freeze("", "dark grid-form");
+		frappe.dom.freeze("", "grid-form");
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		if (
@@ -1591,7 +1581,7 @@ export default class GridRow {
 		const symbol = window.get_currency_symbol(currency);
 
 		// skip if compound symbols like in case of EGP - "£ or ج."
-		if (symbol && (symbol.includes(" or ") || symbol.length > 3)) {
+		if (symbol && symbol.includes(" or ")) {
 			return;
 		}
 
@@ -1601,6 +1591,7 @@ export default class GridRow {
 		let $wrapper = field.$input.parent();
 		if (!$wrapper.hasClass("grid-currency-input")) {
 			field.$input.wrap('<div class="grid-currency-input"></div>');
+			$wrapper = field.$input.parent();
 		}
 
 		$wrapper.toggleClass("grid-currency-symbol-right", show_on_right);
@@ -1631,6 +1622,11 @@ export default class GridRow {
 
 		const has_value = /\d/.test(field.$input.val() || "");
 		$wrapper.toggleClass("grid-currency-has-value", has_value);
+		if (has_value && $wrapper.is(":visible")) {
+			const $symbol = show_on_right ? $suffix : $prefix;
+			const symbol_width = $symbol[0].getBoundingClientRect().width;
+			$wrapper.css("--grid-currency-symbol-width", `${symbol_width}px`);
+		}
 	}
 	get_field(fieldname) {
 		let field = this.on_grid_fields_dict[fieldname];

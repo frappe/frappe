@@ -4,16 +4,15 @@ import datetime
 import hashlib
 import hmac
 import re
-from urllib.parse import unquote_plus, urljoin, urlparse
+from urllib.parse import unquote_plus, urljoin
 
 from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
 
 import frappe
-from frappe.auth import LoginManager
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
-from frappe.utils.data import cstr, get_system_timezone, now_datetime
+from frappe.utils.data import cstr, get_system_timezone, get_url, now_datetime
 
 
 class OAuthWebRequestValidator(RequestValidator):
@@ -30,6 +29,9 @@ class OAuthWebRequestValidator(RequestValidator):
 			request.client = client.as_dict()
 			return True
 		return False
+
+	def is_pkce_required(self, client_id, request):
+		return frappe.db.get_value("OAuth Client", client_id, "token_endpoint_auth_method") == "None"
 
 	def validate_redirect_uri(self, client_id, redirect_uri, request, *args, **kwargs):
 		# Is the client allowed to use the supplied redirect_uri? i.e. has
@@ -168,6 +170,9 @@ class OAuthWebRequestValidator(RequestValidator):
 			raise ValueError("Malformed Basic credentials") from None
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
+		# Unreachable while `client_authentication_required` is oauthlib's default (always True):
+		# public clients are authenticated in `authenticate_client` instead. Kept correct because
+		# the base class raises NotImplementedError.
 		try:
 			client = frappe.get_cached_doc("OAuth Client", client_id)
 		except frappe.DoesNotExistError:
@@ -179,43 +184,31 @@ class OAuthWebRequestValidator(RequestValidator):
 		request.client = client.as_dict()
 		return True
 
+	def get_code_challenge(self, code, request):
+		return frappe.db.get_value("OAuth Authorization Code", code, "code_challenge")
+
+	def get_code_challenge_method(self, code, request):
+		method = frappe.db.get_value("OAuth Authorization Code", code, "code_challenge_method")
+		return "S256" if method == "s256" else method
+
 	def validate_code(self, client_id, code, client, request, *args, **kwargs):
 		# Validate the code belongs to the client. Add associated scopes,
 		# state and user to request.scopes and request.user.
+		# PKCE is validated by oauthlib via get_code_challenge / get_code_challenge_method.
 
 		code_details = frappe.db.get_value(
 			"OAuth Authorization Code",
 			{"name": code, "client": client_id, "validity": "Valid"},
-			("scopes", "user", "code_challenge_method", "code_challenge"),
+			("scopes", "user"),
 			as_dict=True,
 		)
 
-		if code_details:
-			request.scopes = code_details.scopes.split(get_url_delimiter())
-			request.user = code_details.user
-			code_challenge_method = code_details.code_challenge_method
-			code_challenge = code_details.code_challenge
+		if not code_details:
+			return False
 
-			if code_challenge and not request.code_verifier:
-				frappe.delete_doc("OAuth Authorization Code", code, ignore_permissions=True, force=True)
-				frappe.db.commit()
-				return False
-
-			if code_challenge_method == "s256":
-				m = hashlib.sha256()
-				m.update(bytes(request.code_verifier, "utf-8"))
-				code_verifier = base64.b64encode(m.digest()).decode("utf-8")
-				code_verifier = re.sub(r"\+", "-", code_verifier)
-				code_verifier = re.sub(r"\/", "_", code_verifier)
-				code_verifier = re.sub(r"=", "", code_verifier)
-				return code_challenge == code_verifier
-
-			elif code_challenge_method == "plain":
-				return code_challenge == request.code_verifier
-
-			return True
-
-		return False
+		request.scopes = code_details.scopes.split(get_url_delimiter())
+		request.user = code_details.user
+		return True
 
 	def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
 		client_redirects = frappe.get_cached_value(
@@ -233,7 +226,17 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
-		return grant_type in ["authorization_code", "refresh_token", "password"]
+		return grant_type in ["authorization_code", "refresh_token"]
+
+	def validate_user(self, username, password, client, request, *args, **kwargs):
+		"""Resource Owner Password Credentials Grant is not supported.
+
+		oauthlib's ResourceOwnerPasswordCredentialsGrant handler calls this
+		unconditionally regardless of validate_grant_type, so this must
+		exist and reject cleanly rather than fall through to the base
+		RequestValidator's NotImplementedError.
+		"""
+		return False
 
 	def save_bearer_token(self, token, request, *args, **kwargs):
 		# Remember to associate it with request.scopes, request.user and
@@ -255,7 +258,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		old_token_name = None
 		if incoming_refresh_token:
 			old_token_name = frappe.db.get_value(
-				"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(incoming_refresh_token)}, "name"
+				"OAuth Bearer Token",
+				{
+					"refresh_token": get_oauth_token_hash(incoming_refresh_token),
+					"client": request.client["name"],
+				},
+				"name",
 			)
 
 		otoken = frappe.new_doc("OAuth Bearer Token")
@@ -316,7 +324,11 @@ class OAuthWebRequestValidator(RequestValidator):
 		# access token if the client did not specify a scope during the
 		# request.
 		obearer_token = frappe.get_doc(
-			"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(refresh_token)}
+			"OAuth Bearer Token",
+			{
+				"refresh_token": get_oauth_token_hash(refresh_token),
+				"client": request.client["name"],
+			},
 		)
 		return obearer_token.scopes
 
@@ -330,27 +342,21 @@ class OAuthWebRequestValidator(RequestValidator):
 		Method is used by:
 		- Revocation Endpoint
 		"""
-		if token_type_hint == "access_token":
-			frappe.db.set_value(
+		token_fields = ["access_token", "refresh_token"]
+		if token_type_hint == "refresh_token":
+			token_fields.reverse()
+
+		token_hash = get_oauth_token_hash(token)
+		for token_field in token_fields:
+			token_name = frappe.db.get_value(
 				"OAuth Bearer Token",
-				{"access_token": get_oauth_token_hash(token)},
-				"status",
-				"Revoked",
+				{token_field: token_hash, "client": request.client["name"]},
+				"name",
 			)
-		elif token_type_hint == "refresh_token":
-			frappe.db.set_value(
-				"OAuth Bearer Token",
-				{"refresh_token": get_oauth_token_hash(token)},
-				"status",
-				"Revoked",
-			)
-		else:
-			frappe.db.set_value(
-				"OAuth Bearer Token",
-				{"access_token": get_oauth_token_hash(token)},
-				"status",
-				"Revoked",
-			)
+			if token_name:
+				frappe.db.set_value("OAuth Bearer Token", token_name, "status", "Revoked")
+				break
+
 		frappe.db.commit()
 
 	def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):
@@ -379,9 +385,11 @@ class OAuthWebRequestValidator(RequestValidator):
 			("user", "client"),
 			as_dict=True,
 		)
+
 		if not otoken or not client or otoken.client != client.client_id:
 			return False
 
+		# Set request.user to the user associated with the refresh token
 		request.user = otoken.user
 		return True
 
@@ -581,21 +589,6 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		return False
 
-	def validate_user(self, username, password, client, request, *args, **kwargs):
-		"""Ensure the username and password is valid.
-
-		Method is used by:
-		- Resource Owner Password Credentials Grant
-		"""
-		login_manager = LoginManager()
-		login_manager.authenticate(username, password)
-
-		if login_manager.user == "Guest":
-			return False
-
-		request.user = login_manager.user
-		return True
-
 
 def calculate_at_hash(access_token, hash_alg):
 	"""Helper method for calculating an access token
@@ -651,6 +644,7 @@ def get_userinfo(user):
 			"given_name": user.first_name,
 			"family_name": user.last_name,
 			"email": user.email,
+			"email_verified": True,
 			"picture": picture,
 			"roles": frappe.get_roles(user.name),
 			"iss": frappe_server_url,
@@ -678,6 +672,4 @@ def generate_json_error_response(e):
 
 
 def get_server_url():
-	request_url = urlparse(frappe.request.url)
-	request_url = f"{request_url.scheme}://{request_url.netloc}"
-	return frappe.get_value("Social Login Key", "frappe", "base_url") or request_url
+	return frappe.get_value("Social Login Key", "frappe", "base_url") or get_url()

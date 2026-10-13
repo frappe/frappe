@@ -41,8 +41,15 @@ export function findBenchRoot(from) {
 	}
 }
 
-/** Every path the build writes to or reads from, derived from one bench root. */
-export function benchPaths(benchRoot, app) {
+/**
+ * Every path the build writes to or reads from, derived from one bench root.
+ *
+ * `subdir` names the output directory under the app's dist. A build owns every
+ * assets.json key pointing into its own directory, so two builds that write for
+ * the same app need two directories or they drop each other's keys. The
+ * framework page-island build passes its own.
+ */
+export function benchPaths(benchRoot, app, subdir = ISLAND_DIST_SUBDIR) {
 	const sitesPath = path.join(benchRoot, "sites");
 	const assetsPath = path.join(sitesPath, "assets");
 	return {
@@ -50,8 +57,8 @@ export function benchPaths(benchRoot, app) {
 		sitesPath,
 		assetsPath,
 		assetsJsonPath: path.join(assetsPath, "assets.json"),
-		distDir: path.join(assetsPath, app, "dist", ISLAND_DIST_SUBDIR),
-		urlPrefix: path.posix.join("/", "assets", app, "dist", ISLAND_DIST_SUBDIR),
+		distDir: path.join(assetsPath, app, "dist", subdir),
+		urlPrefix: path.posix.join("/", "assets", app, "dist", subdir),
 	};
 }
 
@@ -73,6 +80,10 @@ export function readAssetsJson(assetsJsonPath) {
  * behind. This leaves the keys of other apps and of the legacy pipeline
  * untouched.
  *
+ * A key another build already owns is an error. An island's name is its key, so
+ * two builds writing one key are two islands claiming one name, and whichever
+ * ran last would draw for both.
+ *
  * @param {Object} paths        from `benchPaths`
  * @param {Object<string,string>} relMap  asset key → path relative to the app's
  *                                        island output directory
@@ -91,6 +102,14 @@ export async function writeIslandAssets(paths, relMap) {
 			path.posix.join(ownPrefix, rel.split(path.sep).join("/")),
 		])
 	);
+
+	const taken = Object.keys(written).filter((key) => key in kept);
+	if (taken.length)
+		throw new Error(
+			"island: a build elsewhere on this bench already registers " +
+				taken.map((key) => `"${key}" (${kept[key]})`).join(", ") +
+				".\nAn island name is one bench-wide namespace. Rename the entry."
+		);
 
 	await fs.promises.mkdir(path.dirname(paths.assetsJsonPath), {
 		recursive: true,
@@ -123,20 +142,23 @@ async function invalidateAssetsCache(paths) {
 		console.warn("[island] cannot reach redis_cache to invalidate assets_json");
 	} finally {
 		// Close the client. Vite exits on its own, unlike esbuild.js, which
-		// calls process.exit().
+		// calls process.exit(). A failed connect leaves the client open but
+		// not ready, where a QUIT never settles.
 		try {
-			await client?.quit();
+			if (client?.isReady) await client.quit();
+			else if (client?.isOpen) await client.disconnect();
 		} catch {
-			try {
-				await client?.disconnect();
-			} catch {
-				// never connected
-			}
+			// already closed
 		}
 	}
 }
 
-function loadFrappeBuildUtils(benchRoot) {
+/**
+ * Frappe's own node build helpers, from the bench this build runs in. They hold
+ * the redis connection details and the app list, both of which live in the site
+ * config. A tree without frappe, such as a test fixture, gets `null`.
+ */
+export function loadFrappeBuildUtils(benchRoot) {
 	const utilsPath = path.join(benchRoot, "apps/frappe/esbuild/utils.js");
 	if (!fs.existsSync(utilsPath)) return null;
 	try {
@@ -149,12 +171,45 @@ function loadFrappeBuildUtils(benchRoot) {
 /**
  * Announce a finished (re)build.
  *
- * TODO(hot_update): in watch mode, publish frappe's `build_event` on the
- * `events` Redis channel, with the payload `{ success: true, changed_files,
- * live_reload }`. Desk then busts its asset cache and re-mounts the island. This
- * needs the publisher the esbuild watcher uses. Until then, a rebuild is visible
- * only on reload. The changed URLs this function receives are the payload.
+ * Under watch this publishes frappe's `build_event` on the `events` Redis
+ * channel, the same message the esbuild watcher sends. Desk refetches
+ * assets.json and runs its `hot_update` callbacks, one of which re-mounts every
+ * island whose URL moved. A reload is not needed and not asked for:
+ * `live_reload` stays unset, or the page would reload out from under the island
+ * this exists to keep.
+ *
+ * A one-off build says nothing. The esbuild pipeline publishes for that run
+ * already, and a second message is a second toast for one build.
  */
-export function notifyRebuild(urls) {
+export async function notifyRebuild(paths, urls, watching) {
 	for (const [key, url] of Object.entries(urls)) console.log(`[island] ${key} → ${url}`);
+	if (!watching) return;
+
+	const utils = loadFrappeBuildUtils(paths.benchRoot);
+	if (!utils) return;
+
+	let client;
+	try {
+		client = utils.get_redis_subscriber("redis_queue");
+		await client.connect();
+		await client.publish(
+			"events",
+			JSON.stringify({
+				event: "build_event",
+				message: { success: true, changed_files: Object.values(urls) },
+			})
+		);
+	} catch {
+		console.warn("[island] cannot reach redis_queue to announce the rebuild");
+	} finally {
+		try {
+			await client?.quit();
+		} catch {
+			try {
+				await client?.disconnect();
+			} catch {
+				// never connected
+			}
+		}
+	}
 }

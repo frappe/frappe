@@ -155,18 +155,18 @@ class LoginManager:
 		frappe.clear_cache(user=frappe.form_dict.get("usr"))
 		user, pwd = get_cached_user_pass()
 		self.authenticate(user=user, pwd=pwd)
-		if self.force_user_to_reset_password():
-			doc = frappe.get_doc("User", self.user)
-			frappe.local.response["redirect_to"] = doc._reset_password(
-				send_email=False, password_expired=True
-			)
-			frappe.local.response["message"] = "Password Reset"
-			return False
 
 		if should_run_2fa(self.user):
 			authenticate_for_2factor(self.user)
 			if not confirm_otp_token(self):
 				return False
+
+		if self.force_user_to_reset_password():
+			doc = frappe.get_doc("User", self.user)
+			doc._reset_password(send_email=True, password_expired=True)
+			frappe.local.response["message"] = "Password Reset"
+			return False
+
 		frappe.form_dict.pop("pwd", None)
 		self.post_login()
 
@@ -417,12 +417,13 @@ class CookieManager:
 		max_age=None,
 		deduplicate=False,
 	):
-		if not secure and hasattr(frappe.local, "request"):
-			secure = frappe.local.request.scheme == "https"
+		request = getattr(frappe.local, "request", None)
+		if not secure and request is not None:
+			secure = request.scheme == "https"
 		if (
 			deduplicate
 			and not (expires or max_age)
-			and (request := getattr(frappe.local, "request", None))
+			and request is not None
 			and unquote(request.cookies.get(key, "")) == value
 		):
 			return
@@ -481,9 +482,8 @@ def validate_ip_address(user):
 	Certain methods called from our socketio backend need direct access, and so the IP is not
 	checked for those
 	"""
-	if hasattr(frappe.local, "request") and frappe.local.request.path.startswith(
-		"/api/method/frappe.realtime."
-	):
+	request = getattr(frappe.local, "request", None)
+	if request is not None and request.path.startswith("/api/method/frappe.realtime."):
 		return True
 
 	user_info = frappe.get_cached_doc("User", user)
@@ -644,8 +644,8 @@ def validate_auth():
 	Authenticate and sets user for the request.
 	"""
 	authorization_header = frappe.get_request_header("Authorization", "").split(" ")
-	oauth_client_auth = _is_oauth_client_auth(authorization_header)
 	user_before_auth = frappe.session.user
+	oauth_client_auth = _is_oauth_client_auth(authorization_header)
 
 	if len(authorization_header) == 2:
 		validate_oauth(authorization_header)
@@ -667,14 +667,24 @@ def validate_auth():
 		validate_ip_address(frappe.session.user)
 
 
-def _is_oauth_client_auth(authorization_header):
+def _is_oauth_client_auth(authorization_header) -> bool:
+	"""True if the request carries OAuth client credentials, which OAuthLib authenticates itself.
+
+	Matched on the resolved method name so that every route form is covered: `/api/method/<m>`,
+	`/api/v1/method/<m>`, `/api/v2/method/<m>`, each with an optional trailing slash, and the
+	deprecated `?cmd=<m>`. A false positive only leaves the session as Guest, never grants access.
+	"""
 	from frappe.integrations.oauth2 import ENDPOINTS
 
-	path = frappe.request.path.removesuffix("/")
-	return (
-		len(authorization_header) == 2
-		and authorization_header[0].lower() == "basic"
-		and path in {ENDPOINTS["token_endpoint"], ENDPOINTS["revocation_endpoint"]}
+	if len(authorization_header) != 2 or authorization_header[0].lower() != "basic":
+		return False
+
+	client_auth_methods = {
+		ENDPOINTS["token_endpoint"].rpartition("/")[2],
+		ENDPOINTS["revocation_endpoint"].rpartition("/")[2],
+	}
+	return bool(
+		client_auth_methods & {frappe.request.path.removesuffix("/").rpartition("/")[2], frappe.form_dict.cmd}
 	)
 
 

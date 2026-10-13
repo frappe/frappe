@@ -5,12 +5,15 @@ import contextlib
 # imports - standard imports
 import gzip
 import os
+import sqlite3
 import sys
+import tempfile
 from calendar import timegm
 from collections.abc import Callable
 from datetime import datetime
 from glob import glob
-from shutil import which
+from pathlib import Path
+from shutil import copyfileobj, which
 
 # imports - third party imports
 import click
@@ -29,6 +32,25 @@ _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
 
 BACKUP_ENCRYPTION_CONFIG_KEY = "backup_encryption_key"
+
+
+def backup_sqlite_database(database_path: str | os.PathLike, backup_path: str | os.PathLike) -> None:
+	"""Write a compressed, transactionally consistent snapshot of a live SQLite database."""
+	database_uri = f"{Path(database_path).resolve().as_uri()}?mode=ro"
+	with tempfile.TemporaryDirectory(prefix="frappe-sqlite-backup-") as temp_directory:
+		snapshot_path = Path(temp_directory) / "snapshot.db"
+		with (
+			contextlib.closing(sqlite3.connect(database_uri, uri=True, timeout=15)) as source,
+			contextlib.closing(sqlite3.connect(snapshot_path)) as snapshot,
+		):
+			source.backup(snapshot)
+
+		# This path is created inside our private temporary directory; it contains no user input.
+		with (
+			open(snapshot_path, "rb") as snapshot,  # nosemgrep: frappe-security-file-traversal
+			gzip.open(backup_path, "wb") as compressed_backup,
+		):
+			copyfileobj(snapshot, compressed_backup)
 
 
 class BackupGenerator:
@@ -125,8 +147,23 @@ class BackupGenerator:
 		"""Set self.backup_includes, self.backup_excludes based on include_doctypes, exclude_doctypes"""
 		self._set_existing_tables()
 
-		self.backup_includes = _get_tables(self.include_doctypes.strip().split(","), self._existing_tables)
+		requested_includes = [d.strip() for d in self.include_doctypes.split(",") if d.strip()]
+
+		self.backup_includes = _get_tables(requested_includes, self._existing_tables)
 		self.backup_excludes = _get_tables(self.exclude_doctypes.strip().split(","), self._existing_tables)
+
+		if requested_includes and not self.backup_includes:
+			# Every requested DocType is stored in the site's log database, which is
+			# deliberately outside the scope of a site backup. Leaving the list empty would
+			# read as "no subset was asked for" at `self.partial` below, and the generator
+			# would quietly dump the entire primary database instead of the requested subset.
+			frappe.throw(
+				_(
+					"Backup requested only for DocType(s) held in the log database: {0}. "
+					"Log DocTypes are not included in site backups, so there is nothing to back up."
+				).format(", ".join(requested_includes)),
+				exc=frappe.ValidationError,
+			)
 
 		self.set_backup_tables_from_config()
 		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
@@ -287,7 +324,8 @@ class BackupGenerator:
 			file_pattern = os.path.join(backup_path, file_pattern.format(self.site_slug))
 			file_list = glob(file_pattern)
 			if file_list:
-				return max(file_list, key=backup_time)
+				# names only carry seconds, so mtime breaks same-second ties
+				return max(file_list, key=lambda path: (backup_time(path), os.path.getmtime(path)))
 
 		def old_enough(file_path):
 			if file_path:
@@ -388,20 +426,12 @@ class BackupGenerator:
 
 	def take_dump(self):
 		if self.db_type == "sqlite":
-			from pathlib import Path
-
-			import frappe
-
 			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
-			command = f"gzip -k {db_path} -c > {self.backup_path_db}"
-
-			frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
-
+			backup_sqlite_database(db_path, self.backup_path_db)
 			return
 
 		import shlex
 
-		import frappe.utils
 		from frappe.utils.change_log import get_app_branch
 
 		gzip_exc: str = which("gzip")
@@ -559,12 +589,21 @@ def _get_tables(doctypes: list[str], existing_tables: list[str], strict: bool = 
 	        through as a full backup) and warn LOUDLY that a full backup
 	        is being taken as a fallback.
 	"""
+	from frappe.utils.logging import is_log_doctype
+
 	tables = []
 	missing = []
 	for doctype in doctypes:
 		doctype = (doctype or "").strip()
 		if not doctype:
 			continue
+		if is_log_doctype(doctype):
+			# A log DocType keeps its rows in the site's separate log database, so the
+			# database being dumped holds no table for it. It is neither included nor
+			# missing -- there is nothing here for a SQL dump to act on -- so drop it
+			# rather than reporting it as an unknown DocType and aborting the backup.
+			continue
+
 		table = frappe.utils.get_table_name(doctype)
 		if table in existing_tables:
 			tables.append(table)

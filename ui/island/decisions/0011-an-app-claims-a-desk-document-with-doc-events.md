@@ -4,7 +4,7 @@ Desk draws `Dashboard` and `Dashboard Chart` itself. An app that keeps its own d
 
 ## Decision
 
-The island that draws a document is carried in `__onload.island`, as `{"name", "props"}`. `name` is a name the app declared in `ui_islands`. `props` is the island's props object. When the key is absent, desk draws the document.
+The island that draws a document is carried in `__onload.island`, as `{"name", "props"}`. `name` is an island of the app's. `props` is the island's props object. When the key is absent, desk draws the document.
 
 The app sets the key from an `onload` handler it declares in `doc_events`:
 

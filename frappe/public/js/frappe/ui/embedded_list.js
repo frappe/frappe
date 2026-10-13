@@ -76,7 +76,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			  )}">`
 			: "";
 
-		if (!title && !description && !add) {
+		// Header shows when there's a title/description/Add, or a search box to offer.
+		if (!title && !description && !add && !this.show_search) {
 			this.$header.hide();
 			return;
 		}
@@ -115,6 +116,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		this.$no_result.hide();
 		this.$loading.show();
 
+		if (this.get_page) return this.load_page(0);
+
 		return this.get_data()
 			.then((data) => {
 				this._all_data = data || [];
@@ -122,18 +125,53 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 				this.before_render();
 				this._apply_filter();
 			})
-			.catch((e) => {
-				// eslint-disable-next-line no-console
-				console.error("EmbeddedList: failed to load data", e);
+			.catch((e) => this.show_error(e));
+	}
+
+	// Server paging: `get_page({ start, page_length, txt })` returns one page of rows. The
+	// search box queries the server, and Load More fetches the next page. One extra row is
+	// asked for to know whether there is more.
+	load_page(start) {
+		const txt = this.search_term();
+		// only the latest request may update the list; a slower older one is dropped
+		const request = (this._request = (this._request || 0) + 1);
+		return this.get_page({ start, page_length: this.page_size + 1, txt })
+			.then((rows) => {
+				if (request !== this._request) return;
+				rows = rows || [];
+				this.has_more = rows.length > this.page_size;
+				const page = rows.slice(0, this.page_size);
+				this._all_data = start ? [...this._all_data, ...page] : page;
+				this.data = [...this._all_data];
+				this.searched = Boolean(txt);
 				this.$loading.hide();
-				this.$error.text(this.error_message).show();
+				if (start) {
+					this.render_more();
+					return;
+				}
+				this.before_render();
+				this.render();
+				this.after_render();
+				this.toggle_result_area();
+			})
+			.catch((e) => {
+				if (request === this._request) this.show_error(e);
 			});
 	}
 
+	show_error(e) {
+		// eslint-disable-next-line no-console
+		console.error("EmbeddedList: failed to load data", e);
+		this.$loading.hide();
+		this.$error.text(this.error_message).show();
+	}
+
+	search_term() {
+		return (this.$wrapper.find("[data-action='search']").val() || "").trim();
+	}
+
 	_apply_filter() {
-		const term = (this.$wrapper.find("[data-action='search']").val() || "")
-			.trim()
-			.toLowerCase();
+		const term = this.search_term().toLowerCase();
 		this.data = term
 			? this._all_data.filter((row) =>
 					Object.values(row).some(
@@ -183,16 +221,16 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 
 	render_load_more() {
 		this.$result.find(".embedded-list-more").remove();
-		if (this.rendered_count >= this.data.length) return;
+		const more = this.get_page ? this.has_more : this.rendered_count < this.data.length;
+		if (!more) return;
 
-		const remaining = this.data.length - this.rendered_count;
-		const count = Math.min(remaining, this.page_size);
+		// with server paging the total is unknown
+		const count = this.get_page
+			? __("Showing {0}", [this.rendered_count])
+			: __("Showing {0} of {1}", [this.rendered_count, this.data.length]);
 		$(
 			`<div class="embedded-list-more">
-				<span class="embedded-list-count">${__("Showing {0} of {1}", [
-					this.rendered_count,
-					this.data.length,
-				])}</span>
+				<span class="embedded-list-count">${count}</span>
 				${frappe.ui.button.html({ label: __("Load More"), attrs: { "data-action": "load-more" } })}
 			</div>`
 		).appendTo(this.$result);
@@ -203,7 +241,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			.map((col) => {
 				const label = frappe.utils.escape_html(col.label || "");
 				const title = col.title ? ` title="${frappe.utils.escape_html(col.title)}"` : "";
-				const align = col.align === "center" ? ' class="text-center"' : "";
+				const align_class = { center: "text-center", right: "text-right" }[col.align];
+				const align = align_class ? ` class="${align_class}"` : "";
 				return `<th${align}${title}>${label}</th>`;
 			})
 			.join("");
@@ -225,11 +264,18 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 	}
 
 	build_cell_html(col, col_idx, row) {
-		const align = col.align === "center" ? ' class="text-center"' : "";
+		const align_class = { center: "text-center", right: "text-right" }[col.align];
+		const align = align_class ? ` class="${align_class}"` : "";
 		const clickable = typeof col.on_click === "function";
-		const col_attr = clickable
-			? ` data-col-idx="${col_idx}" class="embedded-list-clickable"`
-			: "";
+		// data-col-idx only — the class is merged below, since a second `class`
+		// attribute on the same <td> is dropped by the browser (losing the handler hook).
+		const col_attr = clickable ? ` data-col-idx="${col_idx}"` : "";
+		const td_class = (base) => {
+			const classes = [base, align_class, clickable && "embedded-list-clickable"].filter(
+				Boolean
+			);
+			return classes.length ? ` class="${classes.join(" ")}"` : "";
+		};
 
 		if (col.type === "actions") {
 			return `<td class="text-center embedded-list-actions" data-col-idx="${col_idx}">${this.build_actions_html(
@@ -238,21 +284,22 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		}
 
 		if (typeof col.render === "function") {
-			return `<td${align}${col_attr}>${col.render(row) ?? ""}</td>`;
+			return `<td${td_class()}${col_attr}>${col.render(row) ?? ""}</td>`;
 		}
 
 		const raw = col.fieldname ? row[col.fieldname] : "";
 
 		if (col.type === "check") {
-			return `<td class="text-center"${col_attr}>${
+			// Checks default to centered, but an explicit `align` wins (one alignment only).
+			return `<td${td_class(align_class ? "" : "text-center")}${col_attr}>${
 				raw ? frappe.utils.icon("check", "xs") : ""
 			}</td>`;
 		}
 
 		if (col.type === "badge") {
-			if (raw == null || raw === "") return `<td${align}${col_attr}></td>`;
+			if (raw == null || raw === "") return `<td${td_class()}${col_attr}></td>`;
 			const color = typeof col.color === "function" ? col.color(row) : col.color || "gray";
-			return `<td${align}${col_attr}>${frappe.ui.badge.html({
+			return `<td${td_class()}${col_attr}>${frappe.ui.badge.html({
 				label: raw,
 				theme: color,
 			})}</td>`;
@@ -273,7 +320,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			return `<td${align}><a href="#" data-route-link="${col_idx}">${text}</a></td>`;
 		}
 
-		return `<td${align}${col_attr}>${frappe.utils.escape_html(raw ?? "")}</td>`;
+		return `<td${td_class()}${col_attr}>${frappe.utils.escape_html(raw ?? "")}</td>`;
 	}
 
 	build_actions_html(col) {
@@ -300,10 +347,11 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		// (e.g. on every form refresh) does not stack duplicate handlers.
 		this.$wrapper.off(".embedded_list");
 
-		// Search
-		this.$wrapper.on("input.embedded_list", "[data-action='search']", () => {
-			this._apply_filter();
-		});
+		// Search: filters in memory, or asks the server when the list is paged
+		const search = this.get_page
+			? frappe.utils.debounce(() => this.refresh(), 300)
+			: () => this._apply_filter();
+		this.$wrapper.on("input.embedded_list", "[data-action='search']", search);
 
 		// Add row
 		this.$wrapper.on("click.embedded_list", "[data-action='add-row']", (e) => {
@@ -316,7 +364,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		// Load more
 		this.$wrapper.on("click.embedded_list", "[data-action='load-more']", (e) => {
 			e.preventDefault();
-			this.render_more();
+			this.get_page ? this.load_page(this._all_data.length) : this.render_more();
 		});
 
 		// Row actions
@@ -389,7 +437,9 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		if (!has_rows) {
 			// "no documents at all" vs "the search box filtered them all out"
 			// — records exist in _all_data only in the latter case
-			const searched = this._all_data && this._all_data.length > 0;
+			const searched = this.get_page
+				? this.searched
+				: this._all_data && this._all_data.length > 0;
 			const $empty = frappe.ui.empty_state(
 				searched
 					? { icon: this.no_match_icon, title: this.no_match_message }

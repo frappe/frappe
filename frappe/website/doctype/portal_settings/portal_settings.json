@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2016-03-30 01:40:20.001775",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/portal-pages",
  "engine": "InnoDB",
  "field_order": [
   "default_role",

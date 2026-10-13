@@ -1,16 +1,16 @@
 <template>
-	<div class="pfb-insp-row">
-		<span class="pfb-insp-label">{{ label }}</span>
+	<InspectorRow :label="label">
 		<Segmented
 			:model-value="modelValue"
 			:options="options"
 			@update:model-value="(v) => $emit('update:modelValue', v)"
 		/>
-	</div>
+	</InspectorRow>
 </template>
 
 <script setup>
 import Segmented from "./Segmented.vue";
+import InspectorRow from "./InspectorRow.vue";
 
 defineProps({
 	label: { type: String, required: true },

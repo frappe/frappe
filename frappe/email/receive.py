@@ -22,12 +22,14 @@ import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import get_random_filename
+from frappe.database import savepoint
 from frappe.email.oauth import Oauth
 from frappe.utils import (
 	add_days,
 	cint,
 	convert_utc_to_system_timezone,
 	cstr,
+	escape_html,
 	extract_email_id,
 	get_datetime,
 	get_string_between,
@@ -226,6 +228,10 @@ class EmailServer:
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
 		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
+		# Remove {"} quotes that are added to handle spaces in IMAP Folder names
+		if folder[0] == folder[-1] == '"':
+			folder = folder[1:-1]
+
 		if uid_validity is None:
 			frappe.flags.initial_sync = True
 
@@ -239,15 +245,18 @@ class EmailServer:
 				update_modified=False,
 			)
 
+			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
+			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
+
 			if self.settings.use_imap:
-				# Remove {"} quotes that are added to handle spaces in IMAP Folder names
-				if folder[0] == folder[-1] == '"':
-					folder = folder[1:-1]
+				folder_values = {"uidvalidity": current_uid_validity, "uidnext": uidnext}
+				if self.settings.sync_from_uid is not None:
+					folder_values["sync_from_uid"] = from_uid
 
 				frappe.db.set_value(
 					"IMAP Folder",
 					{"parent": self.settings.email_account_name, "folder_name": folder},
-					{"uidvalidity": current_uid_validity, "uidnext": uidnext},
+					folder_values,
 					update_modified=False,
 				)
 			else:
@@ -258,11 +267,22 @@ class EmailServer:
 					update_modified=False,
 				)
 
-			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
-			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			# sync last 100 email
 			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
+		elif self.settings.sync_from_uid == 0 and self.settings.email_sync_rule != "UNSEEN":
+			from frappe.email.doctype.email_account.email_account import get_max_email_uid
+
+			# the account-wide position can lie past this folder's own uids, where no search ever matches
+			sync_from_uid = min(get_max_email_uid(self.settings.email_account), uidnext)
+			frappe.db.set_value(
+				"IMAP Folder",
+				{"parent": self.settings.email_account_name, "folder_name": folder},
+				"sync_from_uid",
+				sync_from_uid,
+				update_modified=False,
+			)
+			self.settings.email_sync_rule = f"UID {sync_from_uid}:*"
 
 	def parse_imap_response(self, cmd, response):
 		pattern = rf"(?<={cmd} )[0-9]*"
@@ -674,10 +694,11 @@ class Email:
 class InboundMail(Email):
 	"""Class representation of incoming mail along with mail handlers."""
 
-	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None):
+	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None, imap_folder=None):
 		self.email_account = email_account
 		self.uid = uid or -1
 		self.append_to = append_to
+		self.imap_folder = imap_folder
 		self.seen_status = seen_status or 0
 		super().__init__(content)
 
@@ -745,7 +766,10 @@ class InboundMail(Email):
 
 		# save attachments
 		communication._attachments = self.save_attachments_in_doc(communication)
-		communication.content = sanitize_html(self.replace_inline_images(communication._attachments))
+		content = self.replace_inline_images(communication._attachments)
+		communication.content = (
+			sanitize_html(content) if self.content_type == "text/html" else escape_html(content)
+		)
 		communication.save()
 		return communication
 
@@ -931,12 +955,12 @@ class InboundMail(Email):
 
 		parent.flags.ignore_mandatory = True
 
-		try:
+		with savepoint(catch=frappe.DuplicateEntryError):
 			parent.insert(ignore_permissions=True)
 			return parent.name
-		except frappe.DuplicateEntryError:
-			# try and find matching parent
-			return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
+
+		# try and find matching parent
+		return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
 
 	@staticmethod
 	def get_doc(doctype, docname, ignore_error=False):

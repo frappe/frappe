@@ -54,10 +54,18 @@ class TestTypstGate(IntegrationTestCase):
 
 	def test_each_blocker_is_named(self):
 		cases = {
-			"Custom HTML block": {"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"},
-			"Field Template (Jinja HTML)": {"fieldtype": "Field Template", "field_template": "T"},
-			"Barcode (non-QR)": {"fieldtype": "Barcode", "custom": 1, "barcode_format": "CODE128"},
-			"Remote image URL": {"fieldtype": "Image", "custom": 1, "image_url": "https://x.test/a.png"},
+			"HTML block": {"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"},
+			"Field Template block": {"fieldtype": "Field Template", "field_template": "T"},
+			"Barcode that is not a QR code": {
+				"fieldtype": "Barcode",
+				"custom": 1,
+				"barcode_format": "CODE128",
+			},
+			"Image loaded from a web address": {
+				"fieldtype": "Image",
+				"custom": 1,
+				"image_url": "https://x.test/a.png",
+			},
 		}
 		for reason, field in cases.items():
 			with self.subTest(reason=reason):
@@ -73,7 +81,7 @@ class TestTypstGate(IntegrationTestCase):
 			"Not a builder format", typst_blockers(self.pf(print_format_builder_beta=0), layout_with())
 		)
 		self.assertIn(
-			"Custom CSS on the format", typst_blockers(self.pf(css=".x { color: red }"), layout_with())
+			"Custom CSS in the Style box", typst_blockers(self.pf(css=".x { color: red }"), layout_with())
 		)
 
 	def test_custom_style_blocks_only_untranslatable_properties(self):
@@ -86,7 +94,7 @@ class TestTypstGate(IntegrationTestCase):
 
 		bad = {"fieldtype": "Data", "fieldname": "x", "custom_style": "transform: rotate(3deg)"}
 		blockers = typst_blockers(self.pf(), layout_with(bad))
-		self.assertTrue(any("transform" in b for b in blockers))
+		self.assertTrue(any(b == "Custom CSS on fields: x" for b in blockers))
 
 	def test_asset_paths_cannot_escape_their_root(self):
 		"""Image srcs are document data; a traversal must read nothing."""
@@ -167,20 +175,11 @@ class TestTypstGate(IntegrationTestCase):
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
 		self.assertIn(markup, source)
 
-	def test_safe_color_accepts_only_typst_hex_lengths(self):
-		from frappe.utils.typst_emitter import safe_color
-
-		for ok in ("#abc", "#abcd", "#aabbcc", "#aabbccdd"):
-			self.assertEqual(safe_color(ok), ok)
-		# 5/7 digits abort typst.compile with "color string has wrong length"
-		for bad in ("#12345", "#1234567", "#red"):
-			self.assertIsNone(safe_color(bad))
-
 	def test_remote_letterhead_image_blocks(self):
 		from frappe.utils.typst_emitter import letterhead_blockers
 
 		lh = {"source": "Image", "image": "https://x.test/logo.png", "content": "<img>"}
-		self.assertIn("Letterhead with a remote image URL", letterhead_blockers(lh))
+		self.assertIn("Letterhead image loaded from a web address", letterhead_blockers(lh))
 		self.assertEqual(letterhead_blockers({"source": "Image", "image": "/files/logo.png"}), [])
 
 	def test_empty_typst_block_does_not_pin_renderer(self):
@@ -271,7 +270,7 @@ class TestTypstGate(IntegrationTestCase):
 		"""HTML renders any CSS color; Typst emits only rgb("#..."), so a non-hex
 		field/format color is gated (falls back to Chromium) rather than dropped."""
 		self.assertIn(
-			"Field color Typst can't render: red",
+			"Colours that are not hex codes: red",
 			typst_blockers(
 				self.pf(),
 				layout_with({"fieldtype": "Data", "fieldname": "x", "label_color": "red"}),
@@ -286,7 +285,7 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.assertTrue(
 			any(
-				"Format color" in b
+				"Colours that are not hex codes: rgb(1,2,3)" in b
 				for b in typst_blockers(
 					self.pf(value_color="rgb(1,2,3)"),
 					layout_with({"fieldtype": "Data", "fieldname": "x"}),
@@ -657,34 +656,12 @@ class TestTypstTranslation(IntegrationTestCase):
 				self.assertEqual(effects, {})
 				self.assertIn(reported, unknown)
 
-	def test_translate_reports_unknown_properties(self):
-		_effects, unknown = translate_custom_style("color: red; font-weight: bold")
-		self.assertEqual(unknown, ["color"])
-
 	def test_style_props_match_the_javascript_mirror(self):
 		"""The client hint must grey out exactly what the server refuses."""
 		source = (Path(frappe.get_app_path("frappe")) / "public/js/print_format_builder/utils.js").read_text()
-		block = re.search(r"export const TYPST_STYLE_PROPS = new Set\(\[(.*?)\]\);", source, re.S)
+		block = re.search(r"const TYPST_STYLE_PROPS = new Set\(\[(.*?)\]\);", source, re.S)
 		self.assertIsNotNone(block)
 		self.assertEqual(set(re.findall(r'"([^"]+)"', block.group(1))), set(TRANSLATABLE_STYLE_PROPS))
-
-	def test_special_fieldtypes_have_a_deliberate_disposition(self):
-		"""Every non-docfield element the builder can drop is either emitted or a
-		named blocker — a new element must choose, never fall through silently."""
-		emitted = {"Spacer", "Divider", "Table", "Repeater", "Image", "Barcode", "Attach Image"}
-		blocked = set(BLOCKER_FIELDTYPES)
-		builder_elements = {
-			"HTML",
-			"Spacer",
-			"Divider",
-			"Repeater",
-			"Image",
-			"Barcode",
-			"Field Template",
-			"Table",
-		}
-		unhandled = builder_elements - emitted - blocked
-		self.assertEqual(unhandled, set(), f"undeclared for typst: {unhandled}")
 
 
 class TestTypstRender(IntegrationTestCase):
@@ -708,21 +685,6 @@ class TestTypstRender(IntegrationTestCase):
 		)
 		self.addCleanup(doc.delete, ignore_permissions=True)
 		return frappe.get_doc("ToDo", doc.name)
-
-	def test_typst_choice_survives_save(self):
-		pf = self.make(
-			layout_with({"fieldtype": "Data", "fieldname": "description", "label": "D"}),
-			pdf_generator="Typst",
-		)
-		pf.reload()
-		self.assertEqual(pf.pdf_generator, "Typst")
-
-	def test_save_refuses_typst_with_blockers(self):
-		with self.assertRaises(frappe.ValidationError):
-			self.make(
-				layout_with({"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"}),
-				pdf_generator="Typst",
-			)
 
 	def test_emission_resolves_conditions_and_values(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator

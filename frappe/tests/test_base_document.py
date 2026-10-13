@@ -230,6 +230,38 @@ class TestBaseDocument(IntegrationTestCase):
 			self.assertTrue(hasattr(unpickled_instance, "on_update"))
 			self.assertTrue(hasattr(unpickled_instance, "validate"))
 
+	def test_get_valid_dict_json_field_with_list(self):
+		"""Test that get_valid_dict properly handles and serializes JSON fields with list values."""
+		from frappe import _dict
+
+		doc = BaseDocument(
+			{"doctype": "DocField", "fieldname": "test_json_field", "link_filters": [{"key": "val"}]}
+		)
+		meta = _dict(
+			_fields={"link_filters": _dict(fieldname="link_filters", fieldtype="JSON", label="Link Filters")},
+			get_valid_fields=lambda: ["link_filters"],
+			get_table_fields=lambda **kwargs: (),
+		)
+		doc.meta = meta
+		doc.flags = _dict()
+		valid_dict = doc.get_valid_dict()
+		self.assertEqual(valid_dict["link_filters"], '[{"key":"val"}]')
+
+		# Non-JSON non-table fields should still reject list values
+		doc_invalid = BaseDocument(
+			{"doctype": "DocField", "label": "Invalid List", "description": ["item1", "item2"]}
+		)
+		doc_invalid.meta = _dict(
+			_fields={
+				"description": _dict(fieldname="description", fieldtype="Small Text", label="Description")
+			},
+			get_valid_fields=lambda: ["description"],
+			get_table_fields=lambda **kwargs: (),
+		)
+		doc_invalid.flags = _dict()
+		with self.assertRaises(frappe.ValidationError):
+			doc_invalid.get_valid_dict()
+
 
 def clear_todo_controller_cache():
 	"""Helper method to clear controller cache for ToDo"""

@@ -1,7 +1,7 @@
 import datetime
 import json
 from typing import Literal, cast
-from urllib.parse import quote, urlencode, urlparse
+from urllib.parse import quote, urlencode
 
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from oauthlib.openid.connect.core.endpoints.pre_configured import Server as WebApplicationServer
@@ -513,9 +513,7 @@ def is_oauth_metadata_enabled(label: Literal["resource", "auth_server"]):
 
 
 def get_resource_url():
-	"""Uses request URL to reflect the resource URL"""
-	request_url = urlparse(frappe.request.url)
-	return f"{request_url.scheme}://{request_url.netloc}"
+	return frappe.utils.get_url()
 
 
 def _del_none_values(d: dict):

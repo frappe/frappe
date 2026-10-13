@@ -5,9 +5,53 @@
 // Loaded lazily by frappe/desk/page/desktop/desktop.js, because Page.load_assets reads exactly
 // one `<page_name>.js` per page, so a second file in that folder would never be served. Keeping
 // it out of desk.bundle also keeps about 1200 lines off every desk page load.
+//
+// The page extends the Apps screen, so both modes share one header, search, avatar menu and
+// stylesheet. Only the grid differs: this one draws the Desktop Icon rows, folders included.
 import "./frappe/ui/desktop_icons_item.html";
 
 frappe.desktop_utils = {};
+
+// A saved layout is an arrangement of the user's icons, not a copy of them. Its order, folders
+// and hidden flags are the user's, but what an icon opens and whether the user may see it are the
+// server's: each icon takes its `module` from the boot icon it matches, and one the server left
+// out is not drawn. A layout saved before icons carried a module would otherwise open by label,
+// and `Invoicing`, folded into Accounts, opens nothing.
+//
+// An icon is matched by name, or by label for one saved under a name it did not keep. A folder is
+// always drawn, as the server allows every folder. One left out is kept in the layout rather than
+// dropped from it, because saving an edit writes the whole layout back: dropped, it would be gone
+// for good, even once the module it opens is unblocked.
+// The icons a save just created. A quick-entry icon arrives as its name, the rest as the icon.
+// A new workspace's icon takes the module the server put the workspace in, or it opens nothing.
+frappe.desktop_utils.icons_created = function (new_icons, new_desktop_icons, workspace_modules) {
+	return (new_icons || [])
+		.map((icon) =>
+			typeof icon === "string"
+				? (new_desktop_icons || []).find((d_icon) => d_icon.name === icon)
+				: icon
+		)
+		.filter(Boolean)
+		.map(({ name, label, icon_type }) => ({
+			name,
+			label,
+			icon_type,
+			module: workspace_modules?.[label],
+		}));
+};
+
+frappe.desktop_utils.arrange_layout = function (layout, boot_icons) {
+	const by_name = new Map(boot_icons.map((icon) => [icon.name, icon]));
+	const by_label = new Map(boot_icons.map((icon) => [icon.label, icon]));
+	return layout.map((icon) => {
+		const match = by_name.get(icon.name) || by_label.get(icon.label);
+		return {
+			...icon,
+			module: match?.module,
+			not_permitted: !match && icon.icon_type !== "Folder",
+		};
+	});
+};
 frappe.desktop_grids = [];
 frappe.desktop_icons_objects = [];
 frappe.new_icons = [];
@@ -27,83 +71,18 @@ $.extend(frappe.desktop_utils, {
 		}
 	},
 });
-// The workspaces on an app's rail, read from the one list `app_data` carries. This is a
-// behaviour change: that list holds the workspaces the app's `Dock` record names, its own plus
-// the ones companions mount onto it, rather than every workspace whose module belongs to the app.
-// The icon grid is a retired surface an Apps-mode site never renders.
-function get_workspaces_from_app_name(app_name) {
-	const app = frappe.boot.app_data.filter((a) => {
-		return a.app_title === app_name;
-	});
-	if (app.length > 0)
-		return (app[0].dock || [])
-			.filter((row) => row.link_type === "Workspace")
-			.map((row) => row.link_to);
-}
-
 function get_route(desktop_icon) {
 	let route;
 	if (!desktop_icon) return;
-	let item = {};
 	if (desktop_icon.link_type == "External" && desktop_icon.link) {
 		route = window.location.origin + desktop_icon.link;
 		if (desktop_icon.link.startsWith("http") || desktop_icon.link.startsWith("https")) {
 			route = desktop_icon.link;
 		}
-	} else {
+	} else if (desktop_icon.link_type == "Workspace Sidebar") {
+		// The same landing the Apps screen and the dock open, in the `/desk/<shell>/...` grammar.
 		let sidebar = frappe.utils.sidebar_for_module(desktop_icon.module || desktop_icon.label);
-		if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
-			let first_link = sidebar.items.find((i) => i.type == "Link");
-			if (first_link) {
-				if (first_link.link_type === "Report") {
-					let args = {
-						type: first_link.link_type,
-						name: first_link.link_to,
-					};
-
-					// the body reads `first_link.report.*`, so a link whose report has been
-					// deleted (no `report` payload) has to skip it, not fall through to it
-					if (first_link.report) {
-						args.is_query_report =
-							first_link.report.report_type === "Query Report" ||
-							first_link.report.report_type == "Script Report";
-						args.report_ref_doctype = first_link.report.ref_doctype;
-					}
-
-					route = frappe.utils.generate_route(args);
-				} else if (first_link.link_type == "Workspace") {
-					let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
-					if (workspaces) {
-						let args = {
-							type: "workspace",
-							name: workspaces.title,
-							public: workspaces.public ? 1 : 0,
-							route_options: {
-								sidebar: desktop_icon.label,
-							},
-						};
-						route = frappe.utils.generate_route(args);
-					}
-				} else if (first_link.link_type === "URL") {
-					route = first_link.url;
-				} else if (first_link.link_type == "Page" && first_link.route_options) {
-					route = frappe.utils.generate_route({
-						type: first_link.link_type,
-						name: first_link.link_to,
-						route_options: JSON.parse(first_link.route_options),
-					});
-				} else {
-					route = frappe.utils.generate_route({
-						type: first_link.link_type,
-						name: first_link.link_to,
-						tab: first_link.tab,
-						route_options: {
-							sidebar: desktop_icon.label,
-						},
-					});
-				}
-			}
-		}
+		if (sidebar) route = frappe.app.sidebar?.module_landing_route(sidebar.name);
 	}
 	return route;
 }
@@ -125,10 +104,6 @@ function get_desktop_icon_by_label(title, filters, force) {
 	}
 }
 
-function get_desktop_icon_by_idx(idx, parent_icon) {
-	return frappe.boot.desktop_icons.find((f) => f.idx == idx && f.parent_icon == parent_icon);
-}
-
 function save_desktop(icons) {
 	// saving in localStorage;
 	frappe.pages["desktop"].desktop_page.save_layout(icons, frappe.new_icons);
@@ -140,12 +115,6 @@ function reset_to_default() {
 		callback: function (r) {
 			frappe.ui.toolbar.clear_cache();
 		},
-	});
-}
-
-function toggle_icons(icons) {
-	icons.forEach((i) => {
-		$(i).parent().parent().show();
 	});
 }
 
@@ -172,14 +141,28 @@ function add_icons_to_folder(folder_name, items) {
 	frappe.pages["desktop"].desktop_page.update();
 }
 
-class DesktopPage {
+class DesktopIconsPage extends frappe.ui.DesktopPage {
 	constructor(page) {
-		this.page = page;
+		super(page);
 		this.edit_mode = false;
-		this.desktop_menu_items = [];
-	}
-	update() {
-		this.make();
+		this.add_menu_item({
+			icon: "rotate-ccw",
+			label: "Reset Desktop Layout",
+			onclick: function () {
+				reset_to_default();
+				window.location.reload();
+			},
+		});
+		// Registered once here, alongside the Apps page's own listener for the navbar.
+		frappe.router.on("change", () => {
+			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") return;
+			frappe.desktop_utils.close_desktop_modal();
+			// stop edit mode if route changes and cleanup
+			this.edit_mode = false;
+			$(".desktop-icon").removeClass("edit-mode");
+			$(".desktop-wrapper").removeAttr("data-mode");
+			$(".desktop-edit").remove();
+		});
 	}
 	prepare() {
 		this.apps_icons = [];
@@ -188,6 +171,7 @@ class DesktopPage {
 		const icon_map = {};
 		let icons = this.edit_mode ? frappe.new_desktop_icons : frappe.desktop_icons;
 		const all_icons = icons.filter((icon) => {
+			if (icon.not_permitted) return false;
 			if (icon.hidden != 1) {
 				icon.child_icons = [];
 				icon_map[icon.label] = icon;
@@ -210,20 +194,17 @@ class DesktopPage {
 			}
 		});
 	}
-	get_saved_layout() {
-		let keywords = ["null", "undefined"];
-		if (keywords.includes(localStorage.getItem(`${frappe.session.user}:desktop`))) {
-			return null;
-		}
-		return JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
-	}
+
 	sync_layout() {
 		const me = this;
 		let saved_layout = JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
 		if (!this.data && saved_layout) {
 			this.save_layout(saved_layout);
 		} else if (Object.keys(this.data).length != 0) {
-			frappe.desktop_icons = this.data;
+			frappe.desktop_icons = frappe.desktop_utils.arrange_layout(
+				this.data,
+				frappe.boot.desktop_icons
+			);
 		} else {
 			frappe.desktop_icons = frappe.boot.desktop_icons;
 		}
@@ -234,94 +215,71 @@ class DesktopPage {
 			method: "frappe.desk.doctype.desktop_layout.desktop_layout.save_layout",
 			args: {
 				user: frappe.session.user,
-				layout: JSON.stringify(layout),
+				// what `arrange_layout` adds is the server's, worked out again on every load
+				layout: JSON.stringify(
+					(layout || []).map(({ module, not_permitted, ...icon }) => icon)
+				),
 				new_icons: JSON.stringify(new_icons),
 			},
 			callback: function (r) {
+				// The server's icons came at boot, before these existed. They are this user's
+				// own, which the server always sends, so the layout is matched against them too.
+				frappe.boot.desktop_icons.push(
+					...frappe.desktop_utils.icons_created(
+						new_icons,
+						frappe.new_desktop_icons,
+						r.message.workspace_modules
+					)
+				);
 				me.data = r.message.layout;
-				me.make(me.page);
-				me.setup();
+				me.make();
 				frappe.new_icons = [];
 			},
 		});
 	}
-	make() {
-		this.page.page_head.hide();
-		$(this.page.body).empty();
-		this.awesomebar_setup = false;
-		$(frappe.render_template("desktop_icons")).appendTo(this.page.body);
+	render_app_icons() {
 		if (!this.data) {
 			this.data = JSON.parse($("#desktop-layout").text());
 		}
 		this.sync_layout();
 		this.prepare();
-		this.wrapper = this.page.body.find(".desktop-container");
 		this.icon_grid = new DesktopIconGrid({
 			wrapper: this.wrapper,
 			icons_data: this.apps_icons,
-			// one page is one screenful of the `.icons` grid in desktop.css
-			page_size: {
-				columns: 6,
-				rows: 3,
-			},
 		});
 		this.setup_context_menu();
 		if (this.edit_mode) {
 			this.start_editing_layout();
 		}
-		this.setup();
 	}
-	setup() {
-		$(document).trigger("desktop_screen", { desktop: this });
-		this.setup_avatar();
-		this.setup_notifications();
-		this.setup_navbar();
-		this.setup_awesomebar();
-		this.handle_route_change();
-	}
-	setup_edit_button() {
-		if (this.edit_mode || frappe.is_mobile()) return;
-		const me = this;
-		$(".desktop-edit").remove();
-		this.$desktop_edit_button = $(
-			"<button class='btn btn-reset desktop-edit'></button>"
-		).appendTo(document.body);
-		this.$desktop_edit_button.html(
-			frappe.utils.icon("square-pen", "md", "", "", "", "", "white")
-		);
-		this.$desktop_edit_button.on("click", () => {
-			frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
-			me.start_editing_layout();
-		});
-	}
+
 	setup_context_menu() {
 		const me = this;
-		let menu_items = [
-			{
-				label: "Edit Layout",
-				icon: "edit",
-				condition: function () {
-					return !me.edit_mode;
+		new frappe.ui.ContextMenu({
+			target: this.wrapper,
+			options: [
+				{
+					label: __("Edit Layout"),
+					icon: "pencil",
+					condition: function () {
+						return !me.edit_mode;
+					},
+					onclick: function () {
+						frappe.new_desktop_icons = JSON.parse(
+							JSON.stringify(frappe.desktop_icons)
+						);
+						me.start_editing_layout();
+					},
 				},
-				onClick: function () {
-					me.$desktop_edit_button.hide();
-					frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
-					me.start_editing_layout();
+				{
+					label: __("Reset Layout"),
+					icon: "rotate-ccw",
+					onclick: function () {
+						reset_to_default();
+						me.update();
+					},
 				},
-			},
-			{
-				label: "Reset Layout",
-				icon: "rotate-ccw",
-				onClick: function () {
-					reset_to_default();
-					me.update();
-				},
-			},
-		];
-		frappe.ui.create_menu({
-			parent: this.wrapper,
-			menu_items: menu_items,
-			right_click: true,
+			],
 		});
 	}
 	stop_editing_layout(action) {
@@ -350,9 +308,7 @@ class DesktopPage {
 		});
 		frappe.desktop_grids.forEach((desktop_grid) => {
 			if (!desktop_grid.no_dragging) {
-				desktop_grid.grids.forEach((grid) => {
-					desktop_grid.setup_reordering(grid);
-				});
+				desktop_grid.setup_reordering(desktop_grid.grid);
 			}
 		});
 		this.add_new_icons_to_grid();
@@ -426,122 +382,8 @@ class DesktopPage {
 			me.stop_editing_layout("submit");
 		});
 	}
-	setup_notifications() {
-		this.notifications = new frappe.ui.Notifications({
-			wrapper: $(".desktop-notifications"),
-			popover: true,
-		});
-	}
-
 	delete_new_icons() {
 		frappe.new_icons = [];
-	}
-
-	setup_avatar() {
-		$(".desktop-avatar").html(frappe.avatar(frappe.session.user, "avatar-medium"));
-		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
-		let menu_items = [
-			{
-				icon: "pencil",
-				label: "Edit Profile",
-				url: `/desk/user/${frappe.session.user}`,
-			},
-			{
-				icon: is_dark ? "sun" : "moon",
-				label: "Toggle Theme",
-				onClick: function () {
-					new frappe.ui.ThemeSwitcher().show();
-				},
-			},
-			{
-				icon: "info",
-				label: "About",
-				onClick: function () {
-					return frappe.ui.toolbar.show_about();
-				},
-			},
-			{
-				icon: "life-buoy",
-				label: "Frappe Support",
-				onClick: function () {
-					window.open("https://support.frappe.io/help", "_blank");
-				},
-			},
-			{
-				icon: "rotate-ccw",
-				label: "Reset Desktop Layout",
-				onClick: function () {
-					reset_to_default();
-					window.location.reload();
-				},
-			},
-			{
-				icon: "log-out",
-				label: "Logout",
-				onClick: function () {
-					frappe.app.logout();
-				},
-			},
-		];
-		if (this.desktop_menu_items && this.desktop_menu_items.length)
-			menu_items = [...menu_items, ...this.desktop_menu_items];
-		frappe.ui.create_menu({
-			parent: $(".desktop-avatar"),
-			menu_items: menu_items,
-			// If it's RTL, we want it to open on the right (false);
-			// if it's LTR, we want it to open on the left (true).
-			open_on_left: !frappe.utils.is_rtl(),
-		});
-	}
-	add_menu_item(item) {
-		if (this.desktop_menu_items && this.desktop_menu_items.find((i) => i.label === item.label))
-			return;
-		this.desktop_menu_items.push(item);
-	}
-	setup_navbar() {
-		$(".sticky-top > .navbar").hide();
-	}
-
-	setup_awesomebar() {
-		if (!frappe.is_mobile()) {
-			$(".desktop-keyboard-shortcut").html("Ctrl+K");
-			if (frappe.utils.is_mac()) {
-				$(".desktop-keyboard-shortcut").html("⌘K");
-			}
-		}
-		if (this.awesomebar_setup) return;
-		this.awesomebar_setup = true;
-
-		if (frappe.boot.desk_settings.search_bar) {
-			let awesome_bar = new frappe.search.AwesomeBar();
-			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
-		}
-		// Only rebind Ctrl/Cmd+K to trigger the desktop-page Awesome Bar wrapper.
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+k",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
-	}
-	handle_route_change() {
-		const me = this;
-		frappe.router.on("change", function () {
-			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
-				me.setup_navbar();
-			} else {
-				$(".navbar").show();
-				frappe.desktop_utils.close_desktop_modal();
-				// stop edit mode if route changes and cleanup
-				me.edit_mode = false;
-				$(".desktop-icon").removeClass("edit-mode");
-				$(".desktop-wrapper").removeAttr("data-mode");
-				$(".desktop-edit").remove();
-			}
-		});
 	}
 }
 
@@ -554,18 +396,6 @@ class DesktopIconGrid {
 	init() {
 		this.icons = [];
 		this.icons_html = [];
-		// Only a grid given a `page_size` paginates: `.icons` is a fixed columns-by-rows CSS
-		// grid, so anything past one screenful has nowhere to go. The folder thumbnail, the
-		// folder modal and the hidden-icons pane pass none, each clipping or scrolling its own
-		// overflow, and stay on a single page. Mobile renders 3 columns (see make()), so the
-		// page size has to shrink with it or the last rows spill off screen.
-		if (this.page_size) {
-			this.icons_per_page =
-				(frappe.is_mobile() ? 3 : this.page_size.columns) * this.page_size.rows;
-		}
-		this.grids = [];
-		// re-created per render: update_grid() re-runs init() against a fresh DOM
-		this.sortables = [];
 		this.prepare();
 		this.make();
 		frappe.desktop_grids.push(this);
@@ -574,7 +404,7 @@ class DesktopIconGrid {
 		DesktopIconGrid.folder_count++;
 		let icon = frappe.model.get_new_doc("Desktop Icon");
 		icon.icon_type = "Folder";
-		icon.label = `Untitled ${DesktopIconGrid.folder_count}`;
+		icon.label = __("Untitled {0}", [DesktopIconGrid.folder_count]);
 		icon.idx = 100000;
 		frappe.new_desktop_icons.push(icon);
 		frappe.new_icons.push(icon);
@@ -587,150 +417,18 @@ class DesktopIconGrid {
 			}
 			return a.idx - b.idx; // sort by idx
 		});
-		this.icons_data_by_page = this.icons_per_page
-			? this.split_data(this.icons_data, this.icons_per_page)
-			: [this.icons_data];
-		// an empty grid still renders one (empty) page
-		this.total_pages = this.icons_data_by_page.length || 1;
 	}
 	make() {
-		const me = this;
 		this.icons_container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
 		if (this.compact) {
 			this.icons_container.css("margin-top", "0px");
 		}
-		for (let i = 0; i < this.total_pages; i++) {
-			let template = `<div class="icons"></div>`;
-
-			if (this.row_size) {
-				template = `<div class="icons" style="display: none; grid-template-columns: repeat(${this.row_size}, 1fr)"></div>`;
-			}
-			if (frappe.is_mobile()) {
-				template = `<div class="icons" style="display: none; grid-template-columns: repeat(3, 1fr)"></div>`;
-			}
-			this.grids.push($(template).appendTo(this.icons_container));
-			this.make_icons(this.icons_data_by_page[i] || [], this.grids[i]);
+		this.grid = $(`<div class="icons"></div>`).appendTo(this.icons_container);
+		const columns = frappe.is_mobile() ? 3 : this.row_size;
+		if (columns) {
+			this.grid.css("grid-template-columns", `repeat(${columns}, 1fr)`);
 		}
-		if (!this.in_folder && this.total_pages > 1) {
-			this.add_page_indicators();
-			this.setup_arrows();
-			this.setup_pagination();
-			this.setup_swipe_gesture();
-		} else {
-			this.grids[0] && this.grids[0].css("display", "grid");
-		}
-	}
-	setup_arrows() {
-		if (this.in_modal) {
-			const me = this;
-			this.wrapper
-				.parent()
-				.parent()
-				.parent()
-				.on("shown.bs.modal", function () {
-					me.add_arrows();
-				});
-		} else {
-			this.add_arrows(this.wrapper.find(".icons"));
-		}
-	}
-	setup_swipe_gesture() {
-		const me = this;
-		this.grids.forEach((grid) => {
-			$(grid).on("wheel", function (event) {
-				if (event.originalEvent) {
-					event = event.originalEvent; // for jQuery or wrapped events
-				}
-
-				if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
-					event.preventDefault();
-					if (event.deltaX > 0) {
-						if (me.current_page != me.total_pages - 1) me.current_page++;
-						me.change_to_page(me.current_page);
-					} else {
-						if (me.current_page != 0) me.current_page--;
-						me.change_to_page(me.current_page);
-					}
-				}
-			});
-		});
-	}
-	add_arrows(element) {
-		if (!element) element = this.wrapper;
-		const me = this;
-		let stroke_color = "black";
-		let horizontal_movement = 0;
-		if (this.in_modal) {
-			stroke_color = "white";
-			horizontal_movement = "-40px";
-		}
-		this.left_arrow = $(
-			frappe.utils.icon("chevron-left", "lg", "", "", "left-page-arrow", "", stroke_color)
-		);
-		this.right_arrow = $(
-			frappe.utils.icon("chevron-right", "lg", "", "", "right-page-arrow", "", stroke_color)
-		);
-
-		this.icons_container.before(this.left_arrow);
-		this.icons_container.after(this.right_arrow);
-
-		let wrapper_style = getComputedStyle(element.get(0));
-		let total_height = parseInt(wrapper_style.height) - 2 * parseInt(wrapper_style.paddingTop);
-
-		this.left_arrow.css("top", `${total_height / 2}px`);
-		this.right_arrow.css("top", `${total_height / 2}px`);
-		if (horizontal_movement) {
-			this.left_arrow.css("left", horizontal_movement);
-			this.right_arrow.css("right", horizontal_movement);
-			this.left_arrow.css("position", "absolute");
-			this.right_arrow.css("position", "absolute");
-		}
-		this.left_arrow.on("click", function () {
-			if (me.current_page != 0) me.current_page--;
-			me.change_to_page(me.current_page);
-		});
-		this.right_arrow.on("click", function () {
-			if (me.current_page != me.total_pages - 1) me.current_page++;
-			me.change_to_page(me.current_page);
-		});
-	}
-	add_page_indicators(tempplate) {
-		this.page_indicators = [];
-		if (this.total_pages > 1) {
-			this.pagination_indicator = $(`<div class='page-indicator-container'></div>`).appendTo(
-				this.icons_container
-			);
-			for (let i = 0; i < this.total_pages; i++) {
-				this.page_indicators.push(
-					$("<div class='page-indicator'></div>").appendTo(this.pagination_indicator)
-				);
-			}
-		}
-	}
-	setup_pagination() {
-		this.current_page = this.old_index = 0;
-		this.change_to_page(this.current_page);
-	}
-	change_to_page(index) {
-		this.grids.forEach((g) => $(g).css("display", "none"));
-		this.grids[index].css("display", "grid");
-
-		if (this.page_indicators.length) {
-			this.page_indicators[this.old_index].removeClass("active-page");
-			this.page_indicators[this.current_page].addClass("active-page");
-		}
-		this.current_page = index;
-		this.old_index = index;
-	}
-
-	split_data(icons, size) {
-		const result = [];
-
-		for (let i = 0; i < icons.length; i += size) {
-			result.push(icons.slice(i, i + size));
-		}
-
-		return result;
+		this.make_icons(this.icons_data, this.grid);
 	}
 	make_icons(icons_data, grid) {
 		icons_data.forEach((icon) => {
@@ -741,7 +439,6 @@ class DesktopIconGrid {
 			this.setup_actions_on_icon(icon_obj);
 			grid.append(icon_html);
 		});
-		this.setup_tooltip();
 	}
 	setup_actions_on_icon(icon) {
 		if (this.edit_mode) {
@@ -751,21 +448,11 @@ class DesktopIconGrid {
 			icon.in_pane = true;
 		}
 	}
-	setup_tooltip() {
-		$('[data-toggle="tooltip"]').tooltip({
-			placement: "bottom",
-		});
-	}
-	remove_label_tooltip() {
-		$('[data-toggle="tooltip"]').tooltip("disable");
-	}
 	setup_reordering(grid) {
 		const me = this;
 		this.hoverTarget = null;
 		this.hoverTimer = null;
 		if (!frappe.is_mobile()) {
-			// One Sortable per page, kept in `sortables`. `idx` is numbered across the whole
-			// grid, so a drop has to read every page's order, not just the page it landed on.
 			this.sortable = new Sortable($(grid).get(0), {
 				swapThreshold: 0.09,
 				desktop: true,
@@ -793,9 +480,9 @@ class DesktopIconGrid {
 					frappe.desktop_utils.dragged_item = evt.item;
 				},
 				setData: function (/** DataTransfer */ dataTransfer, /** HTMLElement*/ dragEl) {
-					let title = $(dragEl).find(".icon-title").text();
+					let label = $(dragEl).attr("data-id");
 					let icon = me.icons.find((d) => {
-						return d.icon_title === title;
+						return d.icon_title === label;
 					});
 					dataTransfer.setData("text/plain", JSON.stringify(icon.icon_data)); // `dataTransfer` object of HTML5 DragEvent
 				},
@@ -803,7 +490,7 @@ class DesktopIconGrid {
 					if (frappe.desktop_utils.in_folder_creation) return;
 					if (evt.oldIndex !== evt.newIndex) {
 						if (evt.to.parentElement == evt.from.parentElement) {
-							let reordered_icons = me.get_ordered_labels();
+							let reordered_icons = me.sortable.toArray();
 							let filters = {
 								parent_icon: me.parent_icon?.icon_data.label || "" || null,
 							};
@@ -812,14 +499,14 @@ class DesktopIconGrid {
 						} else {
 							let from = $(evt.from.parentElement);
 							let to = $(evt.to.parentElement);
-							let title = $(evt.item).find(".icon-title").text();
-							let selected_icon = get_desktop_icon_by_label(title);
+							let label = $(evt.item).attr("data-id");
+							let selected_icon = get_desktop_icon_by_label(label);
 							if ($(to.get(0).parentElement)) {
-								me.reorder_icons(me.get_ordered_labels());
+								me.reorder_icons(me.sortable.toArray());
 								me.reorder_icons(
 									frappe.pages[
 										"desktop"
-									].desktop_page.icon_grid.get_ordered_labels()
+									].desktop_page.icon_grid.sortable.toArray()
 								);
 								selected_icon.idx = evt.newIndex;
 								selected_icon.parent_icon = null;
@@ -829,14 +516,9 @@ class DesktopIconGrid {
 					// save_desktop();
 				},
 			});
-			this.sortables.push(this.sortable);
 		}
 	}
-	get_ordered_labels() {
-		// Every page's icon labels, in page order, which is what `reorder_icons` renumbers `idx`
-		// from.
-		return this.sortables.flatMap((sortable) => sortable.toArray());
-	}
+
 	update_grid(icons) {
 		this.wrapper.empty();
 		this.init();
@@ -895,7 +577,6 @@ class DesktopIcon {
 						if (this.in_folder) {
 							this.icon.removeClass("desktop-edit-mode");
 						}
-						this.grid.remove_label_tooltip();
 						this.setup_dragging();
 						this.setup_edit_menu();
 						this.setup_hide_button();
@@ -959,17 +640,16 @@ class DesktopIcon {
 		const me = frappe.pages["desktop"].desktop_page;
 		let icon_data = this.icon_data;
 		const icon = this;
-		frappe.ui.create_menu({
-			parent: this.icon,
-			right_click: true,
-			menu_items: [
+		new frappe.ui.ContextMenu({
+			target: this.icon,
+			options: [
 				{
-					label: "Edit",
-					icon: "edit",
+					label: __("Edit"),
+					icon: "pencil",
 					condition: function () {
 						return icon_data.standard != 1;
 					},
-					onClick: function () {
+					onclick: function () {
 						frappe.ui.form.make_quick_entry(
 							"Desktop Icon",
 							function (icon) {
@@ -996,27 +676,29 @@ class DesktopIcon {
 					},
 				},
 				{
-					label: "Create Folder",
+					label: __("Create Folder"),
 					icon: "folder",
-					onClick: function () {
+					onclick: function () {
 						let folder = me.icon_grid.add_folder();
 						add_icons_to_folder(folder.label, [icon_data.label]);
 					},
 				},
 				{
-					label: "Add To Folder",
+					label: __("Add To Folder"),
 					icon: "folder-open",
 					condition: function () {
 						return me.folders.length > 0;
 					},
-					items: me.folders.map((name) => {
-						return {
+					// Read at hover, so the list is the folders that exist when the menu is
+					// opened rather than the ones that existed when the icon was drawn.
+					// The folder each row adds to is the one it closes over: a row handler is
+					// called with no receiver, so the `this.label` this used to read was never
+					// the row.
+					submenu: () =>
+						me.folders.map((name) => ({
 							label: name,
-							onClick: function () {
-								add_icons_to_folder(this.label, [icon_data.label]);
-							},
-						};
-					}),
+							onclick: () => add_icons_to_folder(name, [icon_data.label]),
+						})),
 				},
 			],
 		});
@@ -1025,7 +707,8 @@ class DesktopIcon {
 	setup_click() {
 		const me = this;
 		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
-			$(this.icon).on("click", () => {
+			$(this.icon).on("click", (event) => {
+				event.preventDefault();
 				let modal = frappe.desktop_utils.create_desktop_modal(me);
 				modal.setup(me.icon_title, me.child_icons, 4);
 				let $title = modal.modal.find(".modal-title");
@@ -1074,7 +757,6 @@ class DesktopIcon {
 				wrapper: this.folder_wrapper,
 				icons_data: this.child_icons,
 				in_folder: true,
-				in_modal: false,
 				no_dragging: true,
 			});
 			if (this.icon_type == "App") {
@@ -1122,16 +804,13 @@ class DesktopModal {
 			icons_data: child_icons_data,
 			row_size: grid_row_size,
 			in_folder: false,
-			in_modal: true,
 			parent_icon: this.parent_icon_obj,
 			edit_mode: is_edit_mode, // Pass edit mode state
 		});
 
 		// If in edit mode, setup reordering for the modal icons
 		if (is_edit_mode) {
-			this.child_icon_grid.grids.forEach((grid) => {
-				this.child_icon_grid.setup_reordering(grid);
-			});
+			this.child_icon_grid.setup_reordering(this.child_icon_grid.grid);
 		}
 
 		this.modal.on("hidden.bs.modal", function () {
@@ -1148,6 +827,17 @@ class DesktopModal {
 			this.modal.find(".modal-dialog").attr("id", "desktop-modal");
 			this.modal.find(".modal-body").addClass("desktop-modal-body");
 			this.$child_icons_wrapper = this.modal.find(".desktop-modal-body");
+			// the modal sits outside the page body, so it needs the page's title tooltip of its own
+			frappe.ui.Tooltip.delegate(this.modal.get(0), ".icon-title", {
+				only_on_overflow: true,
+				side: "bottom",
+				delay: 150,
+			});
+			this.modal.find(".desktop-modal-heading").on("click", (e) => {
+				if (!$(e.target).closest(".modal-title").length) {
+					this.hide();
+				}
+			});
 		} else {
 			this.modal.find(".modal-title").text(icon_title);
 			$(this.modal.find(".modal-body")).empty();
@@ -1195,9 +885,7 @@ class IconsPane {
 			this.grid.update_grid();
 			return;
 		}
-		this.wrapper.append(
-			"<span style='margin-top: 10px; margin-bottom: 20px'>Removed Icons</span>"
-		);
+		this.wrapper.append(`<span class="removed-icons-heading">${__("Removed Icons")}</span>`);
 		this.grid = new DesktopIconGrid({
 			name: "hidden-icons-grid",
 			wrapper: this.wrapper,
@@ -1237,7 +925,7 @@ class InlineEditor {
 		this.container.html(`
 			<div class="title-widget">
 				<div class="title-input-label">
-					<span>${__(this.initialValue)}</span>
+					<span>${frappe.utils.escape_html(__(this.initialValue))}</span>
 				</div>
 				<div class="title-input-wrapper">
 					<input class="title-input">
@@ -1274,7 +962,4 @@ class InlineEditor {
 	}
 }
 
-// The page dispatcher constructs this; `DesktopPage` itself stays module-scoped so it
-// can't collide with the default apps-grid page class of the same name in desktop.js.
-frappe.provide("frappe.ui");
-frappe.ui.DesktopIconsPage = DesktopPage;
+frappe.ui.DesktopIconsPage = DesktopIconsPage;

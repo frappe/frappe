@@ -1,3 +1,5 @@
+import { safe_href } from "../ui/components/utils.js";
+
 frappe.provide("frappe.views");
 
 frappe.views.BaseList = class BaseList {
@@ -184,7 +186,10 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_title() {
-		this.page.set_title(this.page_title, null, true, "", this.meta?.description);
+		// the title is the last crumb, which set_breadcrumbs() has already written; this only
+		// names the browser tab, so the two cannot disagree about what the page is called
+		this.page.title = this.page_title;
+		frappe.utils.set_title(this.page_title);
 		this.set_deprecated_badge();
 	}
 
@@ -258,10 +263,27 @@ frappe.views.BaseList = class BaseList {
 					$item && $item.addClass(item.class);
 				}
 			});
+
+		// the DocType's docs, also linked from the list's empty state
+		const docs = safe_href(this.meta?.documentation, "list");
+		if (docs) {
+			this.page.add_dropdown_item({
+				label: __("Documentation"),
+				click: () => window.open(docs, "_blank"),
+				standard: true,
+				parent: this.page.menu,
+				icon_right: "external-link",
+			});
+		}
 	}
 
 	set_breadcrumbs() {
-		frappe.breadcrumbs.add(this.meta.module, this.doctype);
+		this.page.set_breadcrumbs(this.get_breadcrumbs());
+	}
+
+	/** The list is the page, so its one crumb is the title and carries no link. */
+	get_breadcrumbs() {
+		return [{ label: this.page_title, title: this.meta?.description }];
 	}
 
 	hide_sidebar() {
