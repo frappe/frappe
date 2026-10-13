@@ -160,13 +160,10 @@ describe("ImportStep while running", () => {
     });
     const page = text();
     expect(page).toContain("Importing your data");
-    expect(page).toContain("Importing row 25 of 100");
-    expect(page).toContain("25%");
+    expect(page).toContain("Importing row 25 of 100 · 5 failed · 1 skipped");
     expect(page).toContain("About 1 minute remaining");
-    expect(page).toContain("Inserted 20");
-    expect(page).not.toContain("Updated");
-    expect(page).toContain("Skipped 1");
-    expect(page).toContain("Failed 5");
+    expect(page).not.toContain("25%");
+    expect(page).not.toContain("Inserted 20");
     expect(page).toContain("Inserted TD-1");
     expect(page).toContain("Row 24");
     expect(host!.querySelector(".lucide-circle-check")).not.toBeNull();
@@ -193,14 +190,14 @@ describe("ImportStep while running", () => {
     expect(text()).toContain("Live activity updates will appear here.");
   });
 
-  it("shows Updated, not Inserted, for Update Existing Records", () => {
+  it("leaves out failed and skipped counts while they are zero", () => {
     mount(ImportStep, {
       running: true,
-      doc: { status: "In Progress", import_type: "Update Existing Records" },
-      progress: { current: 1, total: 10, updated: 1 },
+      doc: { status: "In Progress" },
+      progress: { current: 1, total: 10, inserted: 1 },
     });
-    expect(text()).toContain("Updated 1");
-    expect(text()).not.toContain("Inserted");
+    expect(text()).not.toContain("failed");
+    expect(text()).not.toContain("skipped");
   });
 });
 
@@ -208,6 +205,14 @@ describe("ImportStep result", () => {
   it("shows the result counts and details", () => {
     mount(ImportStep, { logs: [successLog(1, "TD-1")] });
     const page = text();
+    expect(host!.querySelector("h2")!.textContent).toBe(
+      "Import partly complete"
+    );
+    const scroll = host!
+      .querySelector("table")!
+      .closest("[data-slot='scroll']")!;
+    expect(scroll.className).toContain("max-h-96");
+    expect(host!.querySelector("thead")!.className).toContain("sticky");
     expect(page).toContain("Total rows 3");
     expect(page).toContain("Inserted 2");
     expect(page).toContain("Skipped 0");
