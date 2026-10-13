@@ -46,7 +46,7 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 	if (
 		frm.meta.image_field &&
 		!frm.fields_dict[frm.meta.image_field].df.read_only &&
-		frm.perm[0].write
+		frm.get_perm(0, "write")
 	) {
 		const upload_image = function () {
 			var field = frm.get_field(frm.meta.image_field);

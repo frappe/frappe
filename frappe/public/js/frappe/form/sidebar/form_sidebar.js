@@ -15,7 +15,7 @@ frappe.ui.form.Sidebar = class {
 			doctype: this.frm.doctype,
 			frm: this.frm,
 			can_write:
-				this.frm.perm[0].write &&
+				this.frm.get_perm(0, "write") &&
 				!this.frm.fields_dict[this.frm.meta.image_field]?.df.read_only,
 			image_field: this.frm.meta.image_field ?? false,
 		});
