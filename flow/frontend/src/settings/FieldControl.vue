@@ -122,6 +122,22 @@
 		@update:model-value="(value) => (doc[field.name] = value)"
 	/>
 
+	<!-- the menu opens under the input rather than over it -->
+	<FormControl
+		v-else-if="field.type === 'provider'"
+		type="select"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:required="field.required"
+		:options="providerOptions"
+		:model-value="doc[field.name] || null"
+		:disabled="disabled"
+		placeholder="Select…"
+		side="bottom"
+		@update:model-value="(value) => (doc[field.name] = value ?? '')"
+	/>
+
 	<FormControl
 		v-else-if="field.type === 'textarea'"
 		type="textarea"
@@ -136,9 +152,9 @@
 		@update:model-value="(value) => (doc[field.name] = value)"
 	/>
 
-	<!-- with a provider, its known models are offered; any other id can still be typed -->
+	<!-- with a provider, its models are offered; any other id can still be typed -->
 	<FormControl
-		v-else-if="field.type === 'model_id' && known.length"
+		v-else-if="field.type === 'model_id' && (modelsLoading || known.length)"
 		type="combobox"
 		variant="outline"
 		:label="field.label"
@@ -147,6 +163,7 @@
 		:placeholder="field.placeholder"
 		v-model:query="typed"
 		:filterable="false"
+		:loading="modelsLoading"
 		:options="modelOptions"
 		:model-value="doc[field.name] || null"
 		:disabled="disabled"
@@ -206,6 +223,15 @@ const inputValue = computed(() => {
 	return value ?? "";
 });
 
+// a saved provider the list leaves out still shows as itself
+const providerOptions = computed(() => {
+	const value = props.doc[props.field.name];
+	const options = props.field.options;
+	return !value || options.some((option) => option.value === value)
+		? options
+		: [...options, { label: value, value }];
+});
+
 // The current options stay while another query loads; selected values are always offered.
 const linkQuery = ref("");
 const debouncedLinkQuery = useDebouncedValue(linkQuery, 300);
@@ -241,16 +267,26 @@ watch(
 	{ immediate: true }
 );
 
-// a linked provider's known models, offered in the model id dropdown
+// a linked provider's models (ids with its prefix), offered in the model id dropdown;
+// an answer for a provider no longer picked is dropped
 const known = ref([]);
+const modelsLoading = ref(false);
 watch(
-	() => (props.field.type === "model_id" ? props.doc.provider : null),
-	async (provider) => {
-		known.value = provider
-			? await call("flow.flow.doctype.flow_model.flow_model.get_provider_models", {
-					provider,
-			  }).catch(() => [])
-			: [];
+	() => (props.field.type === "model_id" && !props.disabled ? props.doc.provider : null),
+	async (provider, _, onCleanup) => {
+		let stale = false;
+		onCleanup(() => (stale = true));
+		known.value = [];
+		modelsLoading.value = !!provider;
+		if (!provider) return;
+		const models = await call("flow.flow.doctype.flow_model.flow_model.get_provider_models", {
+			provider,
+		}).catch(() => []);
+		if (stale) return;
+		// no list means a plain input: keep what was typed meanwhile
+		if (!models.length && typed.value.trim()) pickModel(typed.value.trim());
+		known.value = models;
+		modelsLoading.value = false;
 	},
 	{ immediate: true }
 );
@@ -259,15 +295,17 @@ const typed = ref("");
 const debouncedTyped = useDebouncedValue(typed, 150);
 const modelOptions = computed(() => {
 	const q = debouncedTyped.value.trim().toLowerCase();
+	const prefix = `${props.doc.provider}/`;
 	return [
 		...known.value
-			.filter((model) => !q || model.toLowerCase().includes(q))
-			.map((model) => ({ label: model, value: model })),
+			.map((model) => ({ label: model.slice(prefix.length), value: model }))
+			.filter((option) => !q || option.label.toLowerCase().includes(q)),
 		{
 			type: "custom",
 			key: "typed",
 			label: "Use the typed id",
-			condition: ({ query }) => !!query.trim() && !known.value.includes(query.trim()),
+			condition: ({ query }) =>
+				!!query.trim() && !known.value.includes(prefix + query.trim()),
 			onClick: ({ query }) => pickModel(query.trim()),
 		},
 	];

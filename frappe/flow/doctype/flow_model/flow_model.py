@@ -6,10 +6,11 @@ from typing import Any
 from urllib.parse import urlparse
 
 import frappe
+import requests
 from frappe import _
 from frappe.model.document import Document
 
-MODEL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*\/[A-Za-z0-9][A-Za-z0-9_\-:.\/]*$")
+MODEL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*\/~?[A-Za-z0-9][A-Za-z0-9_\-:.\/]*$")
 
 
 class FlowModel(Document):
@@ -68,7 +69,7 @@ class FlowModel(Document):
 		if not MODEL_ID_PATTERN.match(self.model_id or ""):
 			frappe.throw(
 				_(
-					"Model ID must be in <code>provider/model</code> form (e.g. <code>anthropic/claude-sonnet-4-6</code>). Only lowercase provider names and alphanumerics, dashes, dots, colons or slashes in the model part are allowed."
+					"Model ID must be in <code>provider/model</code> form (e.g. <code>anthropic/claude-sonnet-4-6</code>). Only lowercase provider names and alphanumerics, dashes, dots, colons or slashes in the model part are allowed. The model part may start with ~."
 				),
 				title=_("Invalid Model ID"),
 			)
@@ -165,9 +166,41 @@ def _detect_context_window(model_id: str) -> int:
 
 @frappe.whitelist()
 def get_provider_models(provider: str | None = None) -> list[str]:
-	if not provider:
+	"""A provider's model IDs as they are saved: asked live, else from LiteLLM's catalog."""
+	if not provider or not frappe.has_permission("Flow Model", "write"):
 		return []
+	provider = provider.strip().lower()
+	prefix = f"{provider}/"
+	try:
+		# litellm strips one prefix, so always add ours
+		return sorted({prefix + model for model in _live_models(provider)})
+	except Exception:
+		import litellm
 
-	import litellm
+		# the catalog's ids may carry the prefix already
+		catalog = litellm.models_by_provider.get(provider, set())
+		return sorted({model if model.startswith(prefix) else prefix + model for model in catalog})
 
-	return sorted(litellm.models_by_provider.get(provider.strip().lower(), set()))
+
+def _live_models(provider: str) -> list[str]:
+	"""The provider's /models list for its key and Base URL, like the harness's model picker."""
+	from flow_harness.model.discovery import MODEL_ENDPOINTS
+
+	doc = frappe.get_doc("Flow Provider", provider)
+	api_key = doc.get_password("api_key", raise_exception=False) or ""
+	base = (doc.base_url or "").rstrip("/")
+	url = (base if base.endswith("/models") else f"{base}/models") if base else MODEL_ENDPOINTS[provider]
+	params = {}
+	if provider == "anthropic":
+		headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
+		params = {"limit": 1000}
+	elif provider == "gemini":
+		headers = {"x-goog-api-key": api_key}
+		params = {"pageSize": 1000}
+	else:
+		headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+	response = requests.get(url, headers=headers, params=params, timeout=10)
+	response.raise_for_status()
+	data = response.json()
+	ids = (row.get("id") or row.get("name") for row in data.get("data", data.get("models")))
+	return [str(model_id).removeprefix("models/") for model_id in ids if model_id]

@@ -14,11 +14,12 @@ for (const name of [
 	"Event",
 ])
 	globalThis[name] = dom.window[name];
-const { createApp, nextTick } = await import("vue");
+const { createApp, nextTick, reactive } = await import("vue");
 const { loadComponent, transport } = await import("./helpers/components.js");
 const DocPanel = await loadComponent("settings/DocPanel.vue");
 const DocForm = await loadComponent("settings/DocForm.vue");
 const FieldControl = await loadComponent("settings/FieldControl.vue");
+const { SPECS } = await import("../src/settings/specs.js");
 
 function mount(t, component, props) {
 	const el = document.createElement("div");
@@ -195,6 +196,63 @@ for (const typeName of ["link", "multilink"]) {
 		assert.ok(!el.textContent.includes("tool-1"));
 	});
 }
+
+test("a provider is picked from the list, and a saved one outside it still shows", (t) => {
+	const field = SPECS.providers.fields.find((f) => f.name === "provider");
+	const labels = (el) => [...el.querySelectorAll("button")].map((b) => b.textContent);
+	const doc = { doctype: "Flow Provider", provider: "" };
+	const el = mount(t, FieldControl, { field, doc });
+	assert.ok(labels(el).includes("LiteLLM proxy"));
+	[...el.querySelectorAll("button")].find((b) => b.textContent === "Anthropic").click();
+	assert.equal(doc.provider, "anthropic");
+
+	const saved = mount(t, FieldControl, {
+		field,
+		doc: { doctype: "Flow Provider", provider: "azure" },
+	});
+	assert.equal(labels(saved).at(-1), "azure");
+});
+
+test("a provider's models show without its prefix; a late answer for another is dropped", async (t) => {
+	const field = SPECS.models.fields.find((f) => f.name === "model_id");
+	const pending = {};
+	transport.answers["flow.flow.doctype.flow_model.flow_model.get_provider_models"] = ({
+		provider,
+	}) => new Promise((resolve) => (pending[provider] = resolve));
+	const doc = reactive({ doctype: "Flow Model", provider: "openrouter", model_id: "" });
+	const el = mount(t, FieldControl, { field, doc });
+	await until(() => pending.openrouter);
+	doc.provider = "custom_openai";
+	await until(() => pending.custom_openai);
+	pending.custom_openai(["custom_openai/openai/gpt-6-sol"]);
+	await until(() => el.textContent.includes("gpt-6-sol"));
+	pending.openrouter(["openrouter/anthropic/claude-sonnet-4.6"]);
+	await new Promise((resolve) => setImmediate(resolve));
+
+	const options = [...el.querySelectorAll("button")];
+	assert.deepEqual(
+		options.map((b) => b.textContent),
+		["openai/gpt-6-sol", "Use the typed id"]
+	);
+	options[0].click();
+	assert.equal(doc.model_id, "custom_openai/openai/gpt-6-sol");
+});
+
+test("a model id typed while the list loads stays when no list comes back", async (t) => {
+	const field = SPECS.models.fields.find((f) => f.name === "model_id");
+	let answer;
+	transport.answers["flow.flow.doctype.flow_model.flow_model.get_provider_models"] = () =>
+		new Promise((resolve) => (answer = resolve));
+	const doc = reactive({ doctype: "Flow Model", provider: "custom_openai", model_id: "" });
+	const el = mount(t, FieldControl, { field, doc });
+	await until(() => answer);
+	type(el, "acme/model-x");
+	answer([]);
+	await until(() => doc.model_id);
+	await nextTick();
+	assert.equal(doc.model_id, "acme/model-x");
+	assert.equal(el.querySelector("input").value, "acme/model-x");
+});
 
 // a Frappe JSON column carries a json_valid check, which an empty string fails
 const sourceSpec = {

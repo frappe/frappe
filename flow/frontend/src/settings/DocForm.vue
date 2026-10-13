@@ -1,16 +1,5 @@
 <template>
 	<SettingsPage :title="title" :description="description" :back="back" @back="emit('close')">
-		<template v-if="doc && enabledField" #actions>
-			<label class="flex items-center gap-2 text-sm text-ink-gray-7">
-				Enabled
-				<Switch
-					size="sm"
-					:model-value="!!doc.enabled"
-					:disabled="!canWrite || isLocked(enabledField)"
-					@update:model-value="(value) => (doc.enabled = value ? 1 : 0)"
-				/>
-			</label>
-		</template>
 		<slot />
 		<form v-if="doc" class="mt-2 flex flex-col gap-4" @submit.prevent="save">
 			<div
@@ -59,7 +48,7 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
-import { Button, ErrorMessage, Switch, dialog, toast } from "frappe-ui";
+import { Button, ErrorMessage, dialog, toast } from "frappe-ui";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
 
@@ -92,12 +81,8 @@ const canDelete = computed(
 	() => !isNew.value && !props.spec.single && page.can(props.spec.doctype, "delete")
 );
 const dirty = computed(() => JSON.stringify(doc.value) !== original.value);
-// the enabled flag sits beside the heading rather than among the fields
-const enabledField = computed(() => props.spec.fields.find((field) => field.name === "enabled"));
 const visibleFields = computed(() =>
-	props.spec.fields.filter(
-		(field) => field !== enabledField.value && (!field.when || field.when(doc.value))
-	)
+	props.spec.fields.filter((field) => !field.when || field.when(doc.value))
 );
 const actions = computed(() =>
 	(props.spec.actions ?? []).filter((action) => !action.when || action.when(doc.value))
