@@ -4,6 +4,7 @@
 import copy
 import re
 from typing import ClassVar
+from urllib.parse import quote
 
 import frappe
 from frappe import _
@@ -337,7 +338,7 @@ def page_size_mm(print_settings) -> tuple[float, float]:
 	return tuple(known) if known else (210, 297)
 
 
-BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\s\"'()\\<>]+")
+BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\r\n]+")
 
 
 def layout_page_settings(layout) -> dict:
@@ -617,7 +618,7 @@ class PrintFormatGenerator:
 		)
 		return self.underlay_background(pdf, background, password) if background else pdf
 
-	def underlay_background(self, pdf: bytes, background: dict, password=None) -> bytes:
+	def underlay_background(self, pdf: bytes, background: dict, password: str | None = None) -> bytes:
 		"""Draw the page background under every page of ``pdf``, edge to edge."""
 		from io import BytesIO
 
@@ -629,7 +630,7 @@ class PrintFormatGenerator:
 		html = (
 			"<!DOCTYPE html><html><head><style>@page{margin:0}html,body{margin:0}</style></head><body>"
 			f'<div style="width:{width}mm;height:{height}mm;opacity:{background["opacity"] / 100};'
-			f"background:url('{background['image']}') center/100% 100% no-repeat\"></div></body></html>"
+			f"background:url('{background['url']}') center/100% 100% no-repeat\"></div></body></html>"
 		)
 		options = {"margin-top": "0mm", "margin-bottom": "0mm", "margin-left": "0mm", "margin-right": "0mm"}
 		options.update(self.page_options())
@@ -961,7 +962,11 @@ class PrintFormatGenerator:
 		if not isinstance(image, str) or not BACKGROUND_IMAGE_URL.fullmatch(image):
 			return None
 		opacity = background.get("opacity")
-		return {"image": image, "opacity": 100 if opacity in (None, "") else max(0, min(100, cint(opacity)))}
+		return {
+			"image": image,
+			"url": quote(image, safe=":/?&=%#"),
+			"opacity": 100 if opacity in (None, "") else max(0, min(100, cint(opacity))),
+		}
 
 	@staticmethod
 	def has_field_access(doc, meta, fieldname, source_fieldname=None) -> bool:
