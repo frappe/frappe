@@ -100,7 +100,13 @@ def generator_from_print_context(print_format) -> "PrintFormatGenerator | None":
 	doc = ctx.get("doc")
 	if not isinstance(doc, Document):
 		doc = frappe.get_doc(ctx.doctype, ctx.name)
-	return PrintFormatGenerator(pf, doc, ctx.get("letterhead"), no_letterhead=ctx.get("no_letterhead"))
+	return PrintFormatGenerator(
+		pf,
+		doc,
+		ctx.get("letterhead"),
+		settings=frappe.parse_json(ctx.get("settings")) if ctx.get("settings") else None,
+		no_letterhead=ctx.get("no_letterhead"),
+	)
 
 
 def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
@@ -433,12 +439,20 @@ class PrintFormatGenerator:
 			return None
 		return frappe.get_doc("Letter Head", name)
 
+	def apply_page_orientation(self):
+		settings = self.print_settings
+		if settings.get("page_orientation") == "Landscape":
+			width, height = page_size_mm(settings)
+			settings.pdf_page_size = "Custom"
+			settings.pdf_page_width, settings.pdf_page_height = height, width
+
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
 		if self.settings_override:
 			from frappe.www.printview import get_allowed_print_settings_override
 
 			self.print_settings.update(get_allowed_print_settings_override(self.doc, self.settings_override))
+			self.apply_page_orientation()
 
 		from frappe.www.printview import run_before_print
 

@@ -380,6 +380,8 @@ def download_pdf(
 	language: str | None = None,
 	letterhead: str | None = None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"] | None = None,
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	if pdf_generator is None:
 		pdf_generator = "wkhtmltopdf"
@@ -397,6 +399,8 @@ def download_pdf(
 			letterhead=letterhead,
 			no_letterhead=no_letterhead,
 			pdf_generator=pdf_generator,
+			style=style,
+			settings=settings,
 		)
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))

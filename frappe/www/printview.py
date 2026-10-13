@@ -97,6 +97,8 @@ def get_context(context) -> PrintContext:
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
 		"pdf_generator": pdf_generator,
+		"style": frappe.form_dict.style,
+		"settings": frappe.as_json(settings, indent=None) if settings else None,
 	}
 
 	if legacy_weasyprint:
@@ -147,7 +149,11 @@ def get_context(context) -> PrintContext:
 	context.update(
 		{
 			"body": body,
-			"print_style": "" if standalone else get_print_style(frappe.form_dict.style, print_format),
+			"print_style": ""
+			if standalone
+			else get_print_style(
+				frappe.form_dict.style, print_format, font=get_print_font_override(doc, settings)
+			),
 		}
 	)
 	return context
@@ -449,7 +455,28 @@ def get_html_and_style(
 			frappe.clear_last_message()
 			html = None
 
-	return {"html": html, "style": get_print_style(style=style, print_format=print_format)}
+	return {
+		"html": html,
+		"style": get_print_style(
+			style=style,
+			print_format=print_format,
+			font=get_print_font_override(document, frappe.parse_json(settings)),
+		),
+		"page_style": None if is_beta else get_preview_page_css(print_format),
+	}
+
+
+def get_print_font_override(doc: "Document", settings: dict | None) -> str | None:
+	return get_allowed_print_settings_override(doc, settings).get("print_font") or None
+
+
+def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
+	from frappe.utils.print_format_generator import page_size_mm
+
+	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
+	return frappe.get_template("templates/print_formats/preview_page.css").render(
+		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)}
+	)
 
 
 @frappe.whitelist()
@@ -476,17 +503,26 @@ def get_rendered_raw_commands(
 	}
 
 
-PAGE_SIZE_SETTINGS = ("pdf_page_size", "pdf_page_height", "pdf_page_width")
-
-
 def get_allowed_print_settings_override(doc: "Document", settings: dict | None) -> dict:
 	"""Keep only the Print Settings a caller may override: the doctype's own print
 	toggles, never flags like allow_print_for_draft that the docstatus guard reads."""
 	if not settings:
 		return {}
-	allowed = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
-	allowed.update(PAGE_SIZE_SETTINGS)
-	return {key: value for key, value in settings.items() if key in allowed}
+	doc_settings = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
+	page_sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+	allowed = {}
+	for key, value in settings.items():
+		if key in doc_settings:
+			allowed[key] = cint(value)
+		elif key in ("pdf_page_height", "pdf_page_width"):
+			allowed[key] = flt(value)
+		elif (
+			(key == "pdf_page_size" and value in page_sizes)
+			or (key == "page_orientation" and value in ("", "Portrait", "Landscape"))
+			or (key == "print_font" and re.fullmatch(r"[A-Za-z0-9 ]*", cstr(value)))
+		):
+			allowed[key] = value
+	return allowed
 
 
 def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = None) -> None:
@@ -722,7 +758,10 @@ def has_value(df: "DocField", doc: "Document") -> bool:
 
 
 def get_print_style(
-	style: str | None = None, print_format: "PrintFormat" | None = None, for_legacy: bool = False
+	style: str | None = None,
+	print_format: "PrintFormat" | None = None,
+	for_legacy: bool = False,
+	font: str | None = None,
 ) -> str:
 	print_settings = frappe.get_doc("Print Settings")
 
@@ -741,6 +780,11 @@ def get_print_style(
 	style_css = style and frappe.db.get_value("Print Style", {"name": style, "disabled": 0}, "css")
 	if style_css:
 		css = css + "\n" + style_css
+
+	if font:
+		font_url = f"https://fonts.googleapis.com/css?family={font.replace(' ', '+')}:400,500,600,700"
+		css += f'\n@import url("{font_url}");'
+		css += f"\n.print-format, .print-format :is(div, span, td, th, h1, h2, h3, h4) {{ font-family: {font}, sans-serif; }}"
 
 	if flt(print_settings.font_size):
 		css = css + f"\n.print-format {{ font-size: {flt(print_settings.font_size)}pt; }}"
