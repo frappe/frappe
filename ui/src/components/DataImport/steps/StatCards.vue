@@ -12,7 +12,9 @@
 			role="listitem"
 		>
 			<div class="flex h-5 items-center justify-between gap-1">
-				<span class="truncate text-sm-medium text-ink-gray-5">{{ stat.label }}</span>
+				<slot name="label" :stat="stat">
+					<span class="truncate text-sm-medium text-ink-gray-5">{{ stat.label }}</span>
+				</slot>
 				<Button
 					v-if="stat.download"
 					class="-me-1.5 shrink-0"
