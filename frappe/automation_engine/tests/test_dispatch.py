@@ -6,6 +6,7 @@ from frappe.automation_engine.conditions import evaluate_filter_tree
 from frappe.automation_engine.dispatch import run_automations
 from frappe.automation_engine.registry import clear_automation_cache, get_automations_for
 from frappe.tests import IntegrationTestCase
+from frappe.utils.logging import get_log_db
 
 
 def make_automation(trigger_type="Doc Created", **kwargs):
@@ -95,7 +96,7 @@ class TestDispatch(IntegrationTestCase):
 		make_todo()
 		self.assertEqual(len(pending(rule.name)), 0)
 		self.assertTrue(
-			frappe.db.exists("Error Log", {"method": f"Automation Flow match failed: {rule.name}"})
+			get_log_db().exists("Error Log", {"method": f"Automation Flow match failed: {rule.name}"})
 		)
 
 	def test_skip_automations_flag(self):
@@ -116,12 +117,14 @@ class TestDispatch(IntegrationTestCase):
 		finally:
 			frappe.flags.automation_depth = original_depth
 		self.assertEqual(len(pending(rule.name)), 0)
-		self.assertTrue(frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"}))
+		self.assertTrue(get_log_db().exists("Error Log", {"method": "Automation Flow depth limit reached"}))
 
 	def test_no_refusal_log_for_unautomated_doctype_at_max_depth(self):
 		# A deep automation context must not log a depth refusal for unrelated saves
 		# (doctypes that have no automations of their own).
-		frappe.db.delete("Error Log", {"method": "Automation Flow depth limit reached"})
+		log_db = get_log_db()
+		log_db.delete("Error Log", {"method": "Automation Flow depth limit reached"})
+		log_db.commit()
 		self.assertEqual(get_automations_for("User"), [])
 		original_depth = frappe.flags.get("automation_depth")
 		frappe.flags.automation_depth = 3
@@ -129,7 +132,7 @@ class TestDispatch(IntegrationTestCase):
 			run_automations(frappe.get_doc("User", "Administrator"), "on_update")
 		finally:
 			frappe.flags.automation_depth = original_depth
-		self.assertFalse(frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"}))
+		self.assertFalse(get_log_db().exists("Error Log", {"method": "Automation Flow depth limit reached"}))
 
 	def test_zero_overhead_for_unautomated_doctype(self):
 		# Warm the (empty) cache so the no-op path is a local dict hit.
