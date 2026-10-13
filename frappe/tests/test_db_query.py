@@ -683,6 +683,9 @@ class TestDBQuery(IntegrationTestCase):
 				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 				# an alias is not the document's name, so it must not split rows either
 				self.assertEqual(len(get_list("ToDo", fields=["description as name"], **args)), 1)
+			# expressions carry no table, and must not hide a selected name
+			rows = frappe.get_list("ToDo", fields=[{"IFNULL": ["description", "'x'"]}, "name"], **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 			# child tables have no comment cache
 			frappe.get_all("DocField", fields=["name"], distinct=True, with_comment_count=1, limit=1)
 

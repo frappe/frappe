@@ -379,10 +379,10 @@ def selects_own_name(query, doctype: str) -> bool:
 	"""Distinct rows stay one per document only when they carry the document's own name."""
 	table = f"tab{doctype}"
 	return any(
-		getattr(term.table, "_table_name", None) == table
-		and (
+		(
 			isinstance(term, Star)
 			or (isinstance(term, Field) and term.name == "name" and term.alias in (None, "name"))
 		)
+		and getattr(term.table, "_table_name", None) == table
 		for term in query._selects
 	)
