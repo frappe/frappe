@@ -17,6 +17,7 @@ class FormBuilder {
 		is_source_field,
 		validate_page_limit,
 		force_read_only,
+		creates_fields,
 	}) {
 		this.$wrapper = $(wrapper);
 		this.frm = frm;
@@ -36,6 +37,8 @@ class FormBuilder {
 		// host's standing read-only answer, unlike `read_only` below, which tracks the preview toggle
 		this.force_read_only = force_read_only || false;
 		this.read_only = false;
+		// web forms: the picker offers fieldtypes, since the form designs its own doctype
+		this.creates_fields = creates_fields || false;
 
 		this.init();
 	}
@@ -109,6 +112,7 @@ class FormBuilder {
 		this.store.is_source_field = this.is_source_field;
 		this.store.validate_page_limit = this.validate_page_limit;
 		this.store.force_read_only = this.force_read_only;
+		this.store.creates_fields = this.creates_fields;
 		this.store.read_only = this.force_read_only || this.store.read_only;
 		this.store.page = this.page;
 		this.store.frm = this.frm;
