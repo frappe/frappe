@@ -79,7 +79,7 @@ class TestUser(FrappeTestCase):
 				first_name="Manager",
 				roles=[{"role": "System Manager"}],
 			).insert()
-			self.addCleanup(frappe.delete_doc, "User", manager.name, force=True, ignore_permissions=True)
+			self.addCleanup(delete_user, manager.name)
 			frappe.set_user(manager.name)
 
 		user = frappe.get_doc(
@@ -88,7 +88,7 @@ class TestUser(FrappeTestCase):
 			first_name=first_name,
 			username=username,
 		).insert()
-		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_permissions=True)
+		self.addCleanup(delete_user, user.name)
 		return user
 
 	def test_username_from_a_taken_first_name(self):
@@ -582,6 +582,13 @@ def test_user(
 	finally:
 		user.delete(force=True, ignore_permissions=True)
 		commit and frappe.db.commit()
+
+
+def delete_user(user):
+	frappe.delete_doc("User", user, force=True, ignore_permissions=True)
+	# a user that outlives the class rollback keeps counting against throttle_user_creation
+	# for every module that runs later
+	frappe.db.commit()  # nosemgrep
 
 
 def delete_contact(user):
