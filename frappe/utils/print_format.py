@@ -512,6 +512,8 @@ def print_by_server(
 	doc: Document | None = None,
 	no_letterhead: bool | int = 0,
 	file_path: str | None = None,  # backward compatibility
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -526,7 +528,15 @@ def print_by_server(
 		conn = cups.Connection()
 		output = PdfWriter()
 		output = frappe.get_print(
-			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
+			doctype,
+			name,
+			print_format,
+			style=style,
+			doc=doc,
+			no_letterhead=no_letterhead,
+			as_pdf=True,
+			output=output,
+			settings=settings,
 		)
 		with tempfile.NamedTemporaryFile(prefix="frappe-pdf-", suffix=".pdf", delete=False) as f:
 			file_path = f.name
