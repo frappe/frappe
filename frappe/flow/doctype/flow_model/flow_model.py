@@ -10,7 +10,7 @@ import requests
 from frappe import _
 from frappe.model.document import Document
 
-MODEL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*\/[A-Za-z0-9][A-Za-z0-9_\-:.\/]*$")
+MODEL_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*\/~?[A-Za-z0-9][A-Za-z0-9_\-:.\/]*$")
 
 
 class FlowModel(Document):
@@ -69,7 +69,7 @@ class FlowModel(Document):
 		if not MODEL_ID_PATTERN.match(self.model_id or ""):
 			frappe.throw(
 				_(
-					"Model ID must be in <code>provider/model</code> form (e.g. <code>anthropic/claude-sonnet-4-6</code>). Only lowercase provider names and alphanumerics, dashes, dots, colons or slashes in the model part are allowed."
+					"Model ID must be in <code>provider/model</code> form (e.g. <code>anthropic/claude-sonnet-4-6</code>). Only lowercase provider names and alphanumerics, dashes, dots, colons or slashes in the model part are allowed. The model part may start with ~."
 				),
 				title=_("Invalid Model ID"),
 			)

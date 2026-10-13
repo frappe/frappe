@@ -44,9 +44,14 @@ class TestFlowModelValidation(IntegrationTestCase):
 		self.assertEqual(doc.model_id, "openai/gpt-4o-mini")
 		self.assertEqual(doc.base_url, "https://api.example.com")
 
+	def test_openrouter_latest_alias_inserts(self):
+		doc = frappe.get_doc(_model(model_id="openrouter/~anthropic/claude-sonnet-latest")).insert()
+
+		self.assertEqual(doc.model_id, "openrouter/~anthropic/claude-sonnet-latest")
+
 	def test_invalid_model_id_format_rejected(self):
 		# Format validation runs first and rejects these before reaching the provider check.
-		for bad in ("missing-slash", "Uppercase/model", "openai/", "/no-provider"):
+		for bad in ("missing-slash", "Uppercase/model", "openai/", "/no-provider", "openai/~"):
 			with self.subTest(model_id=bad):
 				doc = frappe.get_doc(_model(model_id=bad))
 				with self.assertRaisesRegex(frappe.ValidationError, "Model ID"):
