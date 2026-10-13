@@ -57,7 +57,11 @@
 		<template #node-automation="{ id, data }">
 			<div class="relative">
 				<div class="flex items-center">
-					<div class="relative w-[212px] shrink-0">
+					<div
+						class="automation-canvas-block relative w-[252px] shrink-0"
+						:class="blockClasses(id, data)"
+						:style="hueVars(data.tone)"
+					>
 						<Handle
 							v-if="!data.start"
 							id="input"
@@ -72,8 +76,7 @@
 							@pick="emit('pick-start', $event)"
 						>
 							<div
-								class="automation-canvas-node relative flex h-[87px] w-[212px] flex-col overflow-hidden rounded-[10px] border bg-surface-base transition-all"
-								:class="[nodeClasses(id, data), { 'opacity-40': data.dimmed }]"
+								class="w-[252px] text-left focus-visible:outline-none"
 								:tabindex="readonly ? -1 : 0"
 								:role="readonly ? undefined : 'button'"
 								:aria-label="nodeLabel(data)"
@@ -81,55 +84,51 @@
 								@keydown.enter.prevent="pressNode"
 								@keydown.space.prevent="pressNode"
 							>
-								<div
-									class="flex h-[47px] shrink-0 items-center gap-1.5 border-b border-outline-gray-3 px-2"
-								>
-									<AutomationCanvasIcon
-										v-if="!data.empty"
-										:icon="data.icon"
-										:tone="data.tone"
-									/>
-									<div
-										class="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-9"
-										:class="{ 'text-center': data.empty }"
-									>
-										{{ data.label }}
-									</div>
-									<Badge
-										v-if="data.run?.forced"
-										:label="translate('Forced')"
-										theme="amber"
-										variant="subtle"
-									/>
-									<Spinner
-										v-if="data.run?.status === 'running'"
-										size="sm"
-										class="shrink-0 text-ink-gray-7"
-									/>
+								<div class="automation-canvas-tab">
+									<span class="automation-canvas-hair" />
 									<Icon
-										v-else-if="runMark(data)"
-										:name="runMark(data)!.icon"
-										class="size-4 shrink-0"
-										:class="runMark(data)!.color"
+										v-if="data.icon"
+										:icon="data.icon"
+										class="size-3 shrink-0"
 									/>
-									<Tooltip v-if="data.issue" :text="data.issue.message">
-										<Icon
-											:name="issueMark(data).icon"
-											class="size-4 shrink-0"
-											:class="issueMark(data).color"
-										/>
-									</Tooltip>
+									<span class="truncate">{{ data.kicker }}</span>
 								</div>
-								<div class="flex min-h-0 flex-1 items-end gap-2 px-2 py-[7px]">
-									<div
-										class="line-clamp-2 min-w-0 flex-1 text-[10px] leading-3 text-ink-gray-7"
-									>
-										{{ data.detail }}
+								<div class="automation-canvas-card">
+									<div class="px-3 py-2.5">
+										<div
+											class="truncate text-[14px] font-semibold leading-5 text-ink-gray-9"
+										>
+											{{ data.label }}
+										</div>
+										<div class="truncate text-xs leading-4 text-ink-gray-5">
+											{{ data.detail || "\u00a0" }}
+										</div>
 									</div>
-									<div
-										class="shrink-0 text-[10px] font-medium leading-3 text-ink-gray-8"
-									>
-										{{ data.kicker }}
+									<div class="automation-canvas-foot">
+										<Tooltip
+											:text="data.issue?.message || ''"
+											:disabled="!data.issue"
+										>
+											<span class="flex items-center gap-1.5">
+												<span
+													:key="nodeState(data).key"
+													class="automation-canvas-dot"
+												/>
+												<span class="automation-canvas-status">
+													{{ translate(nodeState(data).label) }}
+												</span>
+											</span>
+										</Tooltip>
+										<Badge
+											v-if="data.run?.forced"
+											:label="translate('Forced')"
+											theme="amber"
+											variant="subtle"
+											size="sm"
+										/>
+										<span v-else class="tabular-nums text-ink-gray-4">
+											{{ formatDuration(data.run?.durationMs) }}
+										</span>
 									</div>
 								</div>
 							</div>
@@ -144,7 +143,7 @@
 					</div>
 					<div
 						v-if="showAdd(data)"
-						class="automation-canvas-add nodrag flex items-center"
+						class="automation-canvas-add nodrag flex translate-y-[10.5px] items-center"
 						@click.stop
 					>
 						<span class="h-px w-5 bg-outline-gray-3" />
@@ -179,7 +178,7 @@
 				</div>
 				<div
 					v-if="(data.arms?.length || data.canContinue) && !readonly"
-					class="automation-canvas-add nodrag absolute left-[calc(100%+12px)] top-1/2 flex -translate-y-1/2 flex-col gap-1.5"
+					class="automation-canvas-add nodrag absolute left-[calc(100%+12px)] top-[calc(50%+10.5px)] flex -translate-y-1/2 flex-col gap-1.5"
 					@click.stop
 				>
 					<AutomationCanvasPicker
@@ -221,17 +220,16 @@ import "@vue-flow/core/dist/theme-default.css";
 import { Background } from "@vue-flow/background";
 import { Handle, Panel, Position, VueFlow, useVueFlow } from "@vue-flow/core";
 import { useDebounceFn, useResizeObserver } from "@vueuse/core";
-import { Badge, Button, Icon, Spinner, Tooltip } from "frappe-ui";
+import { Badge, Button, Icon, Tooltip } from "frappe-ui";
 import { computed, getCurrentInstance, nextTick, ref, watch } from "vue";
-import AutomationCanvasIcon from "./AutomationCanvasIcon.vue";
 import AutomationCanvasPicker from "./AutomationCanvasPicker.vue";
 import type {
 	AutomationCanvasEmits,
 	AutomationCanvasExposed,
-	AutomationCanvasIssueLevel,
 	AutomationCanvasNodeData,
 	AutomationCanvasProps,
 	AutomationCanvasStatus,
+	AutomationCanvasTone,
 } from "./types";
 
 const props = withDefaults(defineProps<AutomationCanvasProps>(), {
@@ -246,22 +244,13 @@ defineSlots<{
 	toolbar?(props: { selectedId: string }): unknown;
 }>();
 
-const RUN_STATES: Partial<Record<AutomationCanvasStatus, { icon: string; color: string }>> = {
-	Success: { icon: "lucide-circle-check", color: "text-ink-green-4" },
-	Skipped: { icon: "lucide-circle-minus", color: "text-ink-gray-4" },
-	Failed: { icon: "lucide-circle-x", color: "text-ink-red-4" },
-	Waiting: { icon: "lucide-clock", color: "text-ink-amber-5" },
-};
-const RUN_LABELS: Record<AutomationCanvasStatus, string> = {
-	running: "Running",
-	Success: "Succeeded",
-	Skipped: "Skipped",
-	Failed: "Failed",
-	Waiting: "Waiting",
-};
-const ISSUES: Record<AutomationCanvasIssueLevel, { icon: string; color: string }> = {
-	error: { icon: "lucide-circle-alert", color: "text-ink-red-3" },
-	warning: { icon: "lucide-triangle-alert", color: "text-ink-amber-5" },
+// A trial run's outcome wins over how the node is set up.
+const RUN_STATES: Record<AutomationCanvasStatus, [string, string]> = {
+	running: ["running", "Running"],
+	Success: ["done", "Done"],
+	Skipped: ["skipped", "Skipped"],
+	Failed: ["failed", "Failed"],
+	Waiting: ["waiting", "Waiting"],
 };
 const EDGE_PADDING = 48;
 
@@ -408,35 +397,49 @@ function picksStart(data: AutomationCanvasNodeData) {
 }
 
 /** `nodrag` because dragging swallows the click that opens the start picker. */
-function nodeClasses(id: string, data: AutomationCanvasNodeData) {
-	return [picksStart(data) ? "nodrag" : "", nodeSurface(id, data)];
+function blockClasses(id: string, data: AutomationCanvasNodeData) {
+	return [
+		`is-${nodeState(data).key}`,
+		{
+			"is-selected": !props.readonly && props.selectedId === id,
+			nodrag: picksStart(data),
+			"opacity-40": data.dimmed,
+		},
+	];
 }
 
-// One surface per state: stacked border utilities would let stylesheet order pick the winner.
-function nodeSurface(id: string, data: AutomationCanvasNodeData) {
-	if (data.empty) return "border-dashed border-outline-gray-3 shadow-none";
-	if (data.run?.status === "Failed") return "border-outline-red-2 shadow-sm";
-	if (data.run?.status === "running") return "border-outline-gray-5 shadow-md";
-	if (data.issue?.level === "error") return "border-outline-red-2 shadow-sm";
-	if (!props.readonly && props.selectedId === id) return "border-outline-gray-8 shadow-sm";
-	if (data.issue) return "border-outline-amber-2 shadow-md hover:border-outline-gray-8";
-	return "border-outline-gray-2 shadow-md hover:border-outline-gray-8";
+function nodeState(data: AutomationCanvasNodeData) {
+	const [key, label] = data.run ? RUN_STATES[data.run.status] : setupState(data);
+	return { key, label };
 }
 
-function runMark(data: AutomationCanvasNodeData) {
-	return data.run ? RUN_STATES[data.run.status] : undefined;
+function setupState(data: AutomationCanvasNodeData): [string, string] {
+	if (data.empty) return ["empty", "Not set"];
+	if (data.issue?.level === "error") return ["error", "Has errors"];
+	if (data.issue) return ["incomplete", "Needs setup"];
+	return ["ready", "Ready"];
 }
 
-/** The icons and tooltip are visual only, so the label carries the run result and issue too. */
+/** The CSS vars a block reads its identity colour from. */
+function hueVars(tone: AutomationCanvasTone = "gray") {
+	return {
+		"--hue-line": `var(--outline-${tone}-3)`,
+		"--hue-ink": `var(--ink-${tone}-7)`,
+		"--hue-dot": `var(--ink-${tone}-6)`,
+	};
+}
+
+function formatDuration(ms?: number) {
+	if (ms === undefined || ms === null) return "";
+	return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`;
+}
+
+/** The status dot and tooltip are visual only, so the label carries the run result and issue too. */
 function nodeLabel(data: AutomationCanvasNodeData) {
 	const parts = [`${data.kicker}: ${data.label}`];
-	if (data.run) parts.push(translate(RUN_LABELS[data.run.status]));
+	if (data.run) parts.push(translate(RUN_STATES[data.run.status][1]));
 	if (data.issue) parts.push(data.issue.message);
 	return parts.join(". ");
-}
-
-function issueMark(data: AutomationCanvasNodeData) {
-	return ISSUES[data.issue?.level || "warning"];
 }
 
 function showAdd(data: AutomationCanvasNodeData) {
@@ -479,18 +482,255 @@ defineExpose<AutomationCanvasExposed>({ fitView: () => refitFlow() });
 	cursor: grabbing;
 }
 
+.automation-canvas :deep(.automation-canvas-block) {
+	--line: var(--outline-gray-2);
+	--fill: var(--surface-gray-1);
+	filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.12)) drop-shadow(0 4px 8px rgb(0 0 0 / 0.06));
+	transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 180ms, opacity 180ms;
+}
+
+.automation-canvas :deep(.automation-canvas-block:hover) {
+	--line: var(--outline-gray-3);
+	transform: translateY(-1px);
+}
+
+.automation-canvas :deep(.automation-canvas-block:has(:focus-visible)) {
+	--line: var(--hue-line);
+}
+
+.automation-canvas :deep(.automation-canvas-tab) {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	width: fit-content;
+	max-width: calc(100% - 40px);
+	align-items: center;
+	gap: 5px;
+	height: 22px;
+	margin: 0 0 -1px 20px;
+	padding: 0 9px;
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--hue-ink);
+	background: var(--fill);
+	border: 1px solid var(--line);
+	border-bottom: 0;
+	border-radius: 7px 7px 0 0;
+	transition: border-color 150ms;
+}
+
+.automation-canvas :deep(.automation-canvas-tab::before),
+.automation-canvas :deep(.automation-canvas-tab::after) {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	width: 10px;
+	height: 10px;
+}
+
+/* Concave corners where the tab flows into the card's top edge. */
+.automation-canvas :deep(.automation-canvas-tab::before) {
+	left: -10px;
+	background: radial-gradient(
+		circle at 0 0,
+		transparent 8.6px,
+		var(--line) 9px,
+		var(--line) 9.6px,
+		var(--fill) 10px
+	);
+}
+
+.automation-canvas :deep(.automation-canvas-tab::after) {
+	right: -10px;
+	background: radial-gradient(
+		circle at 100% 0,
+		transparent 8.6px,
+		var(--line) 9px,
+		var(--line) 9.6px,
+		var(--fill) 10px
+	);
+}
+
+.automation-canvas :deep(.automation-canvas-hair) {
+	position: absolute;
+	top: -1px;
+	left: 6px;
+	right: 6px;
+	height: 2px;
+	border-radius: 0 0 2px 2px;
+	background: var(--hue-dot);
+}
+
+.automation-canvas :deep(.automation-canvas-card) {
+	position: relative;
+	border-radius: 10px;
+	background: var(--fill);
+	border: 1px solid var(--line);
+	transition: border-color 150ms;
+}
+
+.automation-canvas :deep(.automation-canvas-foot) {
+	position: relative;
+	display: flex;
+	height: 29px;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 12px;
+	border-top: 1px dashed var(--outline-gray-2);
+	font-size: 11px;
+	color: var(--ink-gray-6);
+}
+
+.automation-canvas :deep(.automation-canvas-dot) {
+	width: 6px;
+	height: 6px;
+	border-radius: 99px;
+	background: var(--ink-gray-4);
+	animation: automation-canvas-pop 320ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.automation-canvas :deep(.is-done .automation-canvas-dot) {
+	background: var(--ink-green-6);
+}
+
+.automation-canvas :deep(.is-failed .automation-canvas-dot),
+.automation-canvas :deep(.is-error .automation-canvas-dot) {
+	background: var(--ink-red-6);
+}
+
+.automation-canvas :deep(.is-waiting .automation-canvas-dot) {
+	background: var(--ink-amber-6);
+}
+
+.automation-canvas :deep(.automation-canvas-block.is-failed),
+.automation-canvas :deep(.automation-canvas-block.is-error) {
+	--line: var(--outline-red-2);
+}
+
+.automation-canvas :deep(.automation-canvas-block.is-selected) {
+	--line: var(--hue-line);
+	filter: drop-shadow(0 0 0.5px var(--hue-line))
+		drop-shadow(0 2px 5px color-mix(in oklch, var(--hue-dot) 14%, transparent));
+}
+
+.automation-canvas :deep(.automation-canvas-block.is-empty) {
+	--line: var(--outline-gray-3);
+	filter: none;
+}
+
+.automation-canvas :deep(.is-empty .automation-canvas-card),
+.automation-canvas :deep(.is-incomplete .automation-canvas-card) {
+	border-style: dashed;
+}
+
+.automation-canvas :deep(.automation-canvas-block.is-incomplete) {
+	--line: var(--outline-amber-3);
+}
+
+.automation-canvas :deep(.is-incomplete .automation-canvas-dot) {
+	background: var(--ink-amber-6);
+	animation: automation-canvas-breathe 2.4s ease-in-out infinite;
+}
+
+.automation-canvas :deep(.is-running .automation-canvas-dot) {
+	background: var(--hue-dot);
+	animation: automation-canvas-ping 1.4s ease-out infinite;
+}
+
+.automation-canvas :deep(.is-running .automation-canvas-foot::before) {
+	content: "";
+	position: absolute;
+	top: -1px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, var(--hue-dot), transparent) no-repeat;
+	background-size: 35% 100%;
+	animation: automation-canvas-sweep 1.8s ease-in-out infinite;
+}
+
+.automation-canvas :deep(.is-running .automation-canvas-status) {
+	color: transparent;
+	background: linear-gradient(
+		90deg,
+		var(--ink-gray-6) 30%,
+		var(--ink-gray-9) 50%,
+		var(--ink-gray-6) 70%
+	);
+	background-size: 250% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	animation: automation-canvas-shimmer 1.8s linear infinite;
+}
+
+/* vue-flow positions handles with transform, so grow them by size instead. */
 .automation-canvas :deep(.automation-canvas-port) {
 	z-index: 20 !important;
-	top: calc(50% + 4px);
-	width: 6px !important;
-	min-width: 6px !important;
-	height: 6px !important;
-	min-height: 6px !important;
-	border: 0 !important;
-	background: var(--ink-gray-5) !important;
-	box-shadow: none;
+	top: calc(50% + 10.5px);
+	width: 9px !important;
+	min-width: 0 !important;
+	height: 9px !important;
+	min-height: 0 !important;
+	border-radius: 99px;
+	border: 1.5px solid var(--outline-gray-4) !important;
+	background: var(--surface-base) !important;
 	opacity: 1 !important;
 	visibility: visible !important;
+	transition: width 150ms, height 150ms, border-color 150ms;
+}
+
+.automation-canvas :deep(.automation-canvas-block:hover .automation-canvas-port),
+.automation-canvas :deep(.automation-canvas-block.is-selected .automation-canvas-port) {
+	width: 11px !important;
+	height: 11px !important;
+	border-color: var(--hue-dot) !important;
+}
+
+@keyframes automation-canvas-pop {
+	from {
+		transform: scale(0.2);
+	}
+}
+
+@keyframes automation-canvas-ping {
+	from {
+		box-shadow: 0 0 0 0 var(--hue-line);
+	}
+	to {
+		box-shadow: 0 0 0 5px transparent;
+	}
+}
+
+@keyframes automation-canvas-sweep {
+	from {
+		background-position: -50% 0;
+	}
+	to {
+		background-position: 150% 0;
+	}
+}
+
+@keyframes automation-canvas-shimmer {
+	from {
+		background-position: 100% 0;
+	}
+	to {
+		background-position: -100% 0;
+	}
+}
+
+@keyframes automation-canvas-breathe {
+	50% {
+		opacity: 0.35;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.automation-canvas :deep(.automation-canvas-block),
+	.automation-canvas :deep(.automation-canvas-block *) {
+		animation: none !important;
+		transition: none !important;
+	}
 }
 
 .automation-canvas :deep(.vue-flow__edge-path) {
@@ -508,5 +748,12 @@ defineExpose<AutomationCanvasExposed>({ fitView: () => refitFlow() });
 	fill: var(--ink-gray-6);
 	font-size: 10px;
 	font-weight: 500;
+}
+</style>
+
+<style>
+/* A faint black shadow reads as nothing on the dark canvas. */
+[data-theme="dark"] .automation-canvas .automation-canvas-block:not(.is-selected, .is-empty) {
+	filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.5)) drop-shadow(0 6px 12px rgb(0 0 0 / 0.35));
 }
 </style>
