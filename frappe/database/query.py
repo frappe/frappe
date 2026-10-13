@@ -372,6 +372,9 @@ class Engine:
 
 		self.query._child_queries = []
 		has_select_field = False
+		# the main table's own name under any alias, not a joined table's: distinct rows map to documents
+		selects_own_name = False
+
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
 				self.query = field.apply_select(self.query, engine=self)
@@ -381,9 +384,15 @@ class Engine:
 			else:
 				self.query = self.query.select(field)
 				has_select_field = True
+				if isinstance(field, Star) or getattr(field, "name", None) == "name":
+					# an unbound name is the main table's: with a join, SQL rejects it as ambiguous
+					selects_own_name = selects_own_name or getattr(field, "table", None) in (None, self.table)
 
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
+			selects_own_name = True
+
+		self.query._selects_own_name = selects_own_name
 
 	def apply_filters(
 		self,
