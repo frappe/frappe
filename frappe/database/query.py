@@ -397,10 +397,9 @@ class Engine:
 				is_source_name = getattr(field, "name", None) == "name"
 				alias = getattr(field, "alias", None)
 
-				if isinstance(field, Star) or is_source_name:
+				if isinstance(field, Star) or (is_source_name and alias in (None, "name")):
+					has_name_field = True
 					selects_own_name = selects_own_name or getattr(field, "table", None) == self.table
-					if isinstance(field, Star) or alias in (None, "name"):
-						has_name_field = True
 
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)

@@ -323,8 +323,7 @@ from {tables}
 		self.set_optional_columns()
 		self.build_conditions()
 		self.apply_fieldlevel_read_permissions()
-		self._selects_own_name = self.selects_own_name()
-		if self.with_comment_count and self.distinct and not self._selects_own_name:
+		if self.with_comment_count and self.distinct and not self.selects_own_name():
 			# a distinct row without the document's name can stand for several documents
 			self.with_comment_count = False
 		# selected after the permission check: never user-requestable, popped in add_comment_count
@@ -1299,7 +1298,7 @@ from {tables}
 	def add_comment_count(self, result):
 		for r in result:
 			comments = r.pop("_comments", None)
-			if not r.get("name") and not (self.distinct and self._selects_own_name):
+			if not r.name:
 				continue
 
 			# perf: Avoid parsing _comments, this is just a "UX feature"
@@ -1307,15 +1306,9 @@ from {tables}
 
 	def selects_own_name(self) -> bool:
 		"""Distinct rows stay one per document only when they carry the document's own name."""
-		table = f"tab{self.doctype}"
-		for field in self.fields:
-			if not field:
-				continue
-			source = re.split(r"\s+as\s+", field.strip(), maxsplit=1, flags=re.IGNORECASE)[0]
-			source = source.replace("`", "")
-			if source in {"name", "*", f"{table}.name", f"{table}.*"}:
-				return True
-		return False
+		table = f"`tab{self.doctype}`"
+		own = {"*", "name", "`name`", f"{table}.*", f"{table}.`name`", f"{table}.name"}
+		return any(f.strip() in own for f in self.fields)
 
 	def update_user_settings(self):
 		# update user settings if new search
