@@ -16,7 +16,7 @@
               "children": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/alias-1375191242-160-601-1375191242-0-4958"
+                  "$ref": "#/definitions/alias-1375191242-160-601-1375191242-0-5060"
                 }
               }
             },
@@ -58,7 +58,7 @@
       ],
       "additionalProperties": false
     },
-    "alias-1375191242-160-601-1375191242-0-4958": {
+    "alias-1375191242-160-601-1375191242-0-5060": {
       "type": "object",
       "properties": {
         "label": {
@@ -67,7 +67,7 @@
         "children": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/alias-1375191242-160-601-1375191242-0-4958"
+            "$ref": "#/definitions/alias-1375191242-160-601-1375191242-0-5060"
           }
         }
       },

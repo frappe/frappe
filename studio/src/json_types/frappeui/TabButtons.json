@@ -81,11 +81,11 @@
         "vertical": {
           "type": "boolean"
         },
-        "side": {
+        "edge": {
           "type": "string",
           "enum": [
-            "left",
-            "right"
+            "start",
+            "end"
           ]
         },
         "fluid": {
