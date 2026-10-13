@@ -359,7 +359,7 @@ def layout_page_settings(layout: dict | list | None) -> dict:
 def get_page_size_mm(page: dict | str | None = None) -> tuple[float, float]:
 	"""Paper size the builder canvas should draw, in mm."""
 	settings = frappe.get_cached_doc("Print Settings").as_dict()
-	settings.update(layout_page_settings({"page": frappe.parse_json(page)}))
+	settings.update(layout_page_settings({"page": frappe.parse_json(page) if page else None}))
 	width, height = page_size_mm(settings)
 	return (height, width) if settings.get("page_orientation") == "Landscape" else (width, height)
 
