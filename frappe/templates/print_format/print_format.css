@@ -247,6 +247,39 @@ body {
 
 {% include "templates/print_format/print_format_doc.css" %}
 
+{%- if layout.background %}
+body {
+	--pfb-cell-bg: transparent;
+}
+{%- if for_chrome %}
+html,
+body {
+	background: transparent;
+}
+{%- else %}
+body {
+	position: relative;
+	isolation: isolate;
+}
+body::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	opacity: {{ layout.background.opacity / 100 }};
+	background: url("{{ layout.background.image }}") center top / {{ page_width }}mm {{ page_height }}mm repeat-y;
+}
+@media print {
+	body::before {
+		position: fixed;
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+	}
+}
+{%- endif %}
+{%- endif %}
+
 {%- if print_format.label_color %}
 .print-format-doc .field .label,
 .print-format-doc .field.left-right .label,

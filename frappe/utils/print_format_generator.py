@@ -2,6 +2,7 @@
 # MIT License. See LICENSE
 
 import copy
+import re
 from typing import ClassVar
 
 import frappe
@@ -336,6 +337,9 @@ def page_size_mm(print_settings) -> tuple[float, float]:
 	return tuple(known) if known else (210, 297)
 
 
+BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\s\"'()\\<>]+")
+
+
 @frappe.whitelist()
 def get_page_size_mm():
 	"""Paper size the builder canvas should draw, in mm."""
@@ -568,13 +572,50 @@ class PrintFormatGenerator:
 		if password:
 			options["password"] = password
 		options.update(self.page_options())
-		return get_chrome_pdf(
+		background = self.layout.get("background")
+		if background:
+			options.pop("password", None)
+		pdf = get_chrome_pdf(
 			print_format=pf.name,
 			html=html,
 			options=options,
 			output=None,
 			pdf_generator="chrome",
 		)
+		return self.underlay_background(pdf, background, password) if background else pdf
+
+	def underlay_background(self, pdf: bytes, background: dict, password=None) -> bytes:
+		"""Draw the page background under every page of ``pdf``, edge to edge."""
+		from io import BytesIO
+
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import get_chrome_pdf
+
+		width, height = page_size_mm(self.print_settings)
+		html = (
+			"<!DOCTYPE html><html><head><style>@page{margin:0}html,body{margin:0}</style></head><body>"
+			f'<div style="width:{width}mm;height:{height}mm;opacity:{background["opacity"] / 100};'
+			f"background:url('{background['image']}') center/100% 100% no-repeat\"></div></body></html>"
+		)
+		options = {"margin-top": "0mm", "margin-bottom": "0mm", "margin-left": "0mm", "margin-right": "0mm"}
+		options.update(self.page_options())
+		background_pdf = get_chrome_pdf(
+			print_format=self.print_format.name,
+			html=html,
+			options=options,
+			output=None,
+			pdf_generator="chrome",
+		)
+		background_page = PdfReader(BytesIO(background_pdf)).pages[0]
+		writer = PdfWriter(clone_from=BytesIO(pdf))
+		for page in writer.pages:
+			page.merge_page(background_page, over=False)
+		if password:
+			writer.encrypt(password)
+		out = BytesIO()
+		writer.write(out)
+		return out.getvalue()
 
 	def page_options(self) -> dict:
 		from frappe.utils.print_utils import convert_uom
@@ -876,7 +917,18 @@ class PrintFormatGenerator:
 		)
 		for zone in ("header", "footer"):
 			layout[zone] = clean_zone(layout.get(zone))
+		layout["background"] = self.clean_background(layout.get("background"))
 		return layout
+
+	@staticmethod
+	def clean_background(background):
+		if not isinstance(background, dict):
+			return None
+		image = background.get("image")
+		if not isinstance(image, str) or not BACKGROUND_IMAGE_URL.fullmatch(image):
+			return None
+		opacity = background.get("opacity")
+		return {"image": image, "opacity": 100 if opacity in (None, "") else max(0, min(100, cint(opacity)))}
 
 	@staticmethod
 	def has_field_access(doc, meta, fieldname, source_fieldname=None) -> bool:
