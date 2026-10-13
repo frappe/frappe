@@ -20,15 +20,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
-<<<<<<< HEAD
-<<<<<<< HEAD
 from frappe.query_builder import DocType
-=======
-from frappe.model.naming import append_number_if_name_exists
-=======
->>>>>>> eb839c8 (fix: find a free username without a regex and retry when it is taken on insert)
-from frappe.query_builder import DocType, Table
->>>>>>> df2f2b4 (fix: give a new user a username when their first name is taken)
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions
 from frappe.twofactor import should_run_2fa
