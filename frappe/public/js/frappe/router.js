@@ -925,6 +925,18 @@ frappe.router = {
 		);
 	},
 
+	// `current_shell` is cleared with the segment, since `path_on_screen` strips one whenever it
+	// is set.
+	drop_shell_from_url() {
+		const rest = this.strip_prefix(window.location.pathname).split("/").slice(1).join("/");
+		this.current_shell = null;
+		history.replaceState(
+			history.state,
+			"",
+			"/desk/" + rest + window.location.search + window.location.hash
+		);
+	},
+
 	// Whether a segment names something the desk can route to on its own, which is what a shell
 	// has to be followed by before it may be taken off the front of a route.
 	route_names_something(segment) {
