@@ -1,10 +1,14 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow.utils.safe_exec import get_flow_safe_globals, safe_exec
+
+SENDMAIL = 'frappe.sendmail(recipients=["someone@example.com"], attachments=attachments)'
 
 
 class TestFlowSafeExecNamespace(IntegrationTestCase):
@@ -121,3 +125,42 @@ class TestFlowSafeExec(IntegrationTestCase):
 	def test_render_template_is_unavailable(self):
 		with self.assertRaises(AttributeError):
 			safe_exec('result = frappe.render_template("{{ 1 }}", {})')
+
+	def test_sendmail_refuses_an_unreadable_print(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "secret"}).insert()
+		frappe.set_user("Guest")
+		attachments = [{"print_format_attachment": 1, "doctype": "ToDo", "name": todo.name}]
+		with patch("frappe.sendmail") as sendmail, self.assertRaises(frappe.PermissionError):
+			safe_exec(SENDMAIL, {"attachments": attachments})
+		sendmail.assert_not_called()
+
+	def test_sendmail_refuses_an_unreadable_file(self):
+		file = self._private_file()
+		frappe.set_user("Guest")
+		for attachment in ({"fid": file.name}, {"file_url": file.file_url}):
+			with self.subTest(attachment), patch("frappe.sendmail") as sendmail:
+				with self.assertRaises(frappe.PermissionError):
+					safe_exec(SENDMAIL, {"attachments": [attachment]})
+				sendmail.assert_not_called()
+
+	def test_sendmail_attaches_the_checked_file_and_record(self):
+		file = self._private_file()
+		print_ = {"print_format_attachment": 1, "doctype": "ToDo", "name": file.attached_to_name}
+		attachments = [{"file_url": file.file_url}, {**print_, "doc": {"doctype": "ToDo", "name": "other"}}]
+		with patch("frappe.sendmail") as sendmail:
+			safe_exec(SENDMAIL, {"attachments": attachments})
+		self.assertEqual(sendmail.call_args.kwargs["attachments"], [{"fid": file.name}, print_])
+
+	def _private_file(self):
+		"""A private file on an Administrator's ToDo."""
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "has a file"}).insert()
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "flow-sendmail-test.txt",
+				"content": b"private",
+				"is_private": 1,
+				"attached_to_doctype": "ToDo",
+				"attached_to_name": todo.name,
+			}
+		).insert()
