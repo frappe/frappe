@@ -48,11 +48,28 @@ class WebFormRequest(Document):
 		for row in self.references:
 			row.link_doctype = web_form.doc_type
 
+		self.validate_single_reference(web_form)
+
 		if self.web_form_values:
 			validate_web_form_values(web_form, parse_json_object(self.web_form_values))
 
 		if self.doc_values:
 			validate_doc_values(web_form.doc_type, parse_json_object(self.doc_values))
+
+	def validate_single_reference(self, web_form):
+		if web_form.allow_multiple or len(self.references) <= 1:
+			return
+
+		# rows added while the form took multiple responses stay valid
+		before = self.get_doc_before_save()
+		if before and len(before.references) >= len(self.references):
+			return
+
+		frappe.throw(
+			_("{0} does not allow multiple responses, so the request can have only one reference").format(
+				frappe.bold(web_form.title or web_form.name)
+			)
+		)
 
 	def validate_key(self, *, allow_used=False):
 		if self.first_used_on and not allow_used:
