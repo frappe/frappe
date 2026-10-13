@@ -4,7 +4,6 @@
 import smtplib
 import ssl
 from contextlib import suppress
-from functools import partial
 
 import frappe
 from frappe import _
@@ -80,17 +79,27 @@ class SMTPServer:
 		if self.is_session_active():
 			return self._session
 
-		# `context` is only accepted by SMTP_SSL; plain SMTP has no such argument.
-		SMTP = partial(smtplib.SMTP_SSL, context=self._ssl_context()) if self.use_ssl else smtplib.SMTP
-
 		try:
-			_session = SMTP(self.server, self.port, timeout=self.timeout)
+			if self.use_ssl:
+				_session = smtplib.SMTP_SSL(
+					self.server,
+					self.port,
+					timeout=self.timeout,
+					context=self._ssl_context(),
+				)
+			else:
+				_session = smtplib.SMTP(self.server, self.port, timeout=self.timeout)
 			if not _session:
 				frappe.msgprint(
 					_("Could not connect to outgoing email server"), raise_exception=frappe.OutgoingEmailError
 				)
 
-			self.secure_session(_session)
+			try:
+				self.secure_session(_session)
+			except Exception:
+				with suppress(Exception):
+					_session.close()
+				raise
 
 			if self.use_oauth:
 				Oauth(_session, self.email_account, self.login, self.access_token).connect()
