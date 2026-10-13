@@ -1,0 +1,14 @@
+{
+ "creation": "2026-10-13 12:00:00.000000",
+ "css": ".print-format .data-field {\n\tmargin-top: 3px;\n\tmargin-bottom: 3px;\n}\n\n.print-format .section-break h4 {\n\tfont-size: 1em;\n\tfont-weight: 600;\n\tpadding-bottom: 4px;\n\tmargin-bottom: 8px;\n\tborder-bottom: 1px solid #171717;\n}\n\n.print-format .table-bordered {\n\tborder: none;\n}\n\n.print-format .table-bordered > thead > tr > th,\n.print-format .table-bordered > tbody > tr > td {\n\tborder-left: none !important;\n\tborder-right: none !important;\n\tborder-top: none !important;\n}\n\n.print-format .table > thead > tr > th {\n\tbackground-color: transparent !important;\n\tborder-bottom: 1.5px solid #171717 !important;\n}\n\n.print-format .table > tbody > tr > td {\n\tborder-bottom: none !important;\n}\n\n.print-format .table > tbody > tr:nth-child(even) > td {\n\tbackground-color: #f3f3f3 !important;\n\t-webkit-print-color-adjust: exact;\n\tprint-color-adjust: exact;\n}\n",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Print Style",
+ "idx": 0,
+ "modified": "2026-10-13 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Striped",
+ "owner": "Administrator",
+ "print_style_name": "Striped",
+ "standard": 1
+}
