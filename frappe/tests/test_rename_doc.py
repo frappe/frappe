@@ -228,13 +228,15 @@ class TestRenameDoc(IntegrationTestCase):
 
 	def test_rename_doctype_checks_route_conflict(self):
 		doctype = new_doctype().insert()
+		same_route = doctype.name.replace(" ", "-")
+		for name in (doctype.name, same_route):
+			self.addCleanup(frappe.db.sql_ddl, f"drop table if exists `tab{name}`")
+			self.addCleanup(frappe.delete_doc_if_exists, "DocType", name)
 
 		with self.set_user("test@example.com"):
 			self.assertRaises(
 				frappe.NameError, frappe.rename_doc, "DocType", doctype.name, "Permission Manager"
 			)
-
-			same_route = doctype.name.replace(" ", "-")
 			self.assertEqual(same_route, frappe.rename_doc("DocType", doctype.name, same_route))
 
 	def test_update_document_title_api(self):
