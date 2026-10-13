@@ -15,6 +15,15 @@ function stubURL(name) {
 	return stubs.get(name)
 }
 const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([]); export const dialog = {}`)
+// monaco can't run under jsdom: the editor's lazy import gets the test's fake instead
+const monaco = moduleURL("export const monaco = globalThis.monaco")
+// the web app's one import of the core package, minus the .vue files Node can't load
+const uiCore = moduleURL(`
+	export { DaemonClient } from ${JSON.stringify(new URL("../../src/client.js", import.meta.url).href)}
+	export { createFlowStore } from ${JSON.stringify(new URL("../../src/store.js", import.meta.url).href)}
+	export { default as FlowChat } from ${JSON.stringify(stubURL("FlowChat"))}
+	export { default as LoadingState } from ${JSON.stringify(stubURL("LoadingState"))}
+`)
 // frappe-ui's settings pieces as slot-rendering stubs that keep their tab value
 const settingsPieces = moduleURL(`
 	import { h } from ${JSON.stringify(vue)}
@@ -67,12 +76,13 @@ const widgets = moduleURL(`
 			return h("button", { disabled: this.disabled }, this.label)
 		},
 	}
-	export const Select = text("select")
+	export const Select = { ...text("select"), props: ["modelValue", "options"] }
 `)
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue", "PopMenu.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 	"SubagentView.vue", "TranscriptDialog.vue", "WorkspacePanel.vue", "FilesBar.vue", "FileTree.vue", "LoadingState.vue", "AddToChat.vue",
+	"EditorView.vue",
 ])
 const compiled = new Map()
 
@@ -96,17 +106,19 @@ async function componentURL(url) {
 			resolved = settingsPieces
 		} else if (specifier.startsWith("frappe-ui/src/components/")) {
 			resolved = widgets
+		} else if (specifier === "@flow/ui-core") {
+			resolved = uiCore
 		} else {
 			resolved = specifier.startsWith(".") ? new URL(specifier, url).href : import.meta.resolve(specifier)
 		}
 		content = content.slice(0, match.index) + `from ${JSON.stringify(resolved)}` + content.slice(match.index + match[0].length)
 	}
+	content = content.replaceAll('import("../monaco.js")', `import(${JSON.stringify(monaco)})`)
 	const result = moduleURL(content)
 	compiled.set(url.href, result)
 	return result
 }
 
-export async function loadComponent(name) {
-	const url = new URL(`../../src/components/${name}.vue`, import.meta.url)
+export async function loadComponent(name, url = new URL(`../../src/components/${name}.vue`, import.meta.url)) {
 	return (await import(await componentURL(url))).default
 }

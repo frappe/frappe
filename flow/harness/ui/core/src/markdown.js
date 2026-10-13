@@ -16,17 +16,36 @@ marked.use({
 	},
 })
 
+// only the renderer's own class: the model's could pull in the app's styles (a fixed overlay)
+DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+	if (data.attrName === "class") data.keepAttr = data.attrValue === "flow-md-table"
+})
+
 DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+	// an image loads as soon as it renders, sending whatever its URL carries: it becomes a link
+	const src = node.tagName === "IMG" ? node.getAttribute("src") : null
+	if (src && !/^data:/i.test(src)) {
+		const label = node.getAttribute("alt") || src
+		// links don't nest: inside one, the image leaves just its label
+		if (node.closest("a")) return node.replaceWith(label)
+		const link = node.ownerDocument.createElement("a")
+		link.setAttribute("href", src)
+		link.textContent = label
+		node.replaceWith(link)
+		node = link
+	}
 	if (node.tagName === "A") {
 		node.setAttribute("target", "_blank")
 		node.setAttribute("rel", "noopener noreferrer")
 	}
 })
 
+// model text can carry injected HTML: nothing in it may restyle the page or fetch on render
 function sanitize(html) {
 	return DOMPurify.sanitize(html, {
 		USE_PROFILES: { html: true },
-		FORBID_TAGS: ["style", "form", "input", "button"],
+		FORBID_TAGS: ["style", "form", "input", "button", "video", "audio", "source", "track", "picture"],
+		FORBID_ATTR: ["style", "srcset", "background"],
 	})
 }
 

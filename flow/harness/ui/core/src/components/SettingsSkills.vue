@@ -234,6 +234,11 @@ async function save() {
 	if (draft.isNew) draft.path = `${roots.value[draft.scope]}/${draft.name}/SKILL.md`
 	saving.value = true
 	try {
+		// the daemon's write replaces whatever is there
+		if (draft.isNew && (await skillExists(draft))) {
+			draft.error = `A ${draft.scope} skill named “${draft.name}” already exists.`
+			return
+		}
 		await flow.client.writeSkill(draft.path, draft.content, projectCwd.value)
 		draft.saved = draft.content
 		draft.error = null
@@ -248,6 +253,18 @@ async function save() {
 		if (error.status !== 400) flow.notify(error.message, "error")
 	} finally {
 		saving.value = false
+	}
+}
+
+// the list may be cut off, or older than a skill made since, so the daemon is asked too
+async function skillExists({ scope, name, path }) {
+	if (rows.value.some((row) => row.scope === scope && row.name === name)) return true
+	try {
+		await flow.client.readSkill(path, projectCwd.value)
+		return true
+	} catch (error) {
+		if (error.status === 404) return false
+		throw error
 	}
 }
 

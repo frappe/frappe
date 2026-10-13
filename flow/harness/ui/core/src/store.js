@@ -10,6 +10,7 @@ import {
 	normalizeSkillCommand,
 	skillCommand,
 	subagentTitle,
+	waitingApprovals,
 } from "./transcript.js"
 
 // mirrors MAX_ATTACHMENTS_PER_MESSAGE on the daemon; the client has no endpoint to
@@ -18,6 +19,16 @@ export const MAX_ATTACHMENTS = 10
 
 function sameArray(left, right) {
 	return left.length === right.length && left.every((value, index) => value === right[index])
+}
+
+// the same files in any order: a host's echo can list inlined files after the rest
+function sameFiles(left, right) {
+	return sameArray([...left].sort(), [...right].sort())
+}
+
+function attachmentNames(content) {
+	const blocks = Array.isArray(content) ? content : []
+	return blocks.filter((block) => block.type === "attachment").map((block) => block.name)
 }
 
 // A run that ended on its own hands the queue its next turn; a pause, a stop, a failure
@@ -132,7 +143,8 @@ export function createFlowStore(client, options = {}) {
 
 	let stream = null
 	let streamTask = null
-	let creating = null // in-flight lazy session creation; a double-send shares it
+	let opening = 0 // keys the newest openSession: an older load of the same chat gives way
+	let creating = null // { blank, session }: in-flight lazy session creation; a double-send shares it
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
 	let queueCount = 0 // keys the queue's rows
 	let lastRunEnd = null // the open session's latest run_ended reason
@@ -204,8 +216,10 @@ export function createFlowStore(client, options = {}) {
 	// query, `more` appends the page past the last row shown, a new query starts over. A
 	// host that lists everything at once reports no more. Only the newest request lands.
 	let listRequest = 0
-	async function refreshSessions({ query = state.sessionQuery, more = false } = {}) {
+	let listQuery = "" // the newest request's query: the box's, even before its answer lands
+	async function refreshSessions({ query = listQuery, more = false } = {}) {
 		const own = ++listRequest
+		listQuery = query
 		const before = more ? state.sessions.at(-1)?.modified : undefined
 		state.sessionsLoading = true
 		let data
@@ -243,8 +257,8 @@ export function createFlowStore(client, options = {}) {
 	// Typing filters the loaded rows, which is exact only while every session is loaded;
 	// past a full page the host searches instead, and clearing the box reloads the list.
 	function searchSessions(query) {
-		if (query === state.sessionQuery) return
-		if (!state.sessionQuery && !state.sessionsMore) return
+		if (query === listQuery) return
+		if (!listQuery && !state.sessionsMore) return
 		return refreshSessions({ query })
 	}
 
@@ -341,13 +355,16 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function openSession(sid, { sending = [], config = null } = {}) {
+		const own = ++opening
 		closeStream()
-		// a same-session reload (rewind) keeps the open file tabs as they are
-		const switching = state.sessionId !== sid
+		// a same-session reload (rewind) keeps the open file tabs as they are, and a chat
+		// just created (`config`) keeps the ones opened before its first message
+		const switching = state.sessionId !== sid && !config
 		if (switching) resetWorkspace()
 		swapQueue(sid)
 		state.sessionId = sid
 		if (switching) restoreWorkspace(sid)
+		else if (config) persistWorkspace()
 		// seed cwd/title from the session list so the header doesn't flash empty
 		// while the full session loads; no session_id, so a list refresh doesn't take
 		// the seed's display title for the session's own
@@ -373,22 +390,16 @@ export function createFlowStore(client, options = {}) {
 				? guard(() => client.skills(sid))
 				: Promise.resolve({ skills: [] }),
 		])
-		if (state.sessionId !== sid) return
-		if (!info) {
-			state.session = null // drop the list seed — the load failed
-			state.loading = false
-			return
-		}
+		if (state.sessionId !== sid || own !== opening) return
+		// a chat that failed to load (gone, or not this user's) leaves a blank chat, not one
+		// that can't send
+		if (!info) return startNewChat()
 		// Seed from the active branch, not a raw-log replay: the log also holds
 		// rewind markers and abandoned rows, which must never enter the
 		// transcript (a replayed rewind would trigger an endless reload loop).
 		const seed = await guard(() => client.entries(sid))
-		if (state.sessionId !== sid) return
-		if (!seed) {
-			state.session = null // drop the list seed — the load failed
-			state.loading = false
-			return
-		}
+		if (state.sessionId !== sid || own !== opening) return
+		if (!seed) return startNewChat()
 		if (seed.latest_seq > info.latest_seq) info.latest_seq = seed.latest_seq
 		state.session = info
 		// hydrate the restored active tab now that the session's cwd is known
@@ -466,8 +477,12 @@ export function createFlowStore(client, options = {}) {
 			const attachmentIds = blocks
 				.filter((block) => block.type === "attachment")
 				.map((block) => block.id)
+			// by name too: after a reload, /flow's echo can't name the File a message was sent as
 			const steered = state.conversation.steering.findIndex(
-				(item) => item.text === text && sameArray(item.attachmentIds, attachmentIds),
+				(item) =>
+					item.text === text &&
+					(sameFiles(item.attachmentIds, attachmentIds) ||
+						sameFiles(attachmentNames(item.entry.content), attachmentNames(blocks))),
 			)
 			if (steered !== -1) state.conversation.steering.splice(steered, 1)
 			rememberTitle(sid)
@@ -530,6 +545,7 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function newSession({ cwd = null, model = null, sending = [] } = {}) {
+		const blank = state.conversation // the chat this one is created from
 		await toolsLoading // the Default preset's picks need the tool list to build on
 		const preset = activePreset()
 		const picked = preset ?? defaultPreset()
@@ -558,13 +574,15 @@ export function createFlowStore(client, options = {}) {
 		if (effort) {
 			await guard(() =>
 				client.setModel(data.session_id, {
-					model: useModel ?? data.config.model,
+					// the model the chat was made with: a host may refuse one it no longer offers
+					model: data.config.model ?? useModel,
 					reasoning_effort: effort === "default" ? null : effort,
 				}),
 			)
 		}
 		await refreshSessions()
-		await openSession(data.session_id, { sending, config: data.config })
+		// a user who opened another chat meanwhile stays there
+		if (state.conversation === blank) await openSession(data.session_id, { sending, config: data.config })
 		return data.session_id
 	}
 
@@ -672,7 +690,7 @@ export function createFlowStore(client, options = {}) {
 		const pending = { key: `sending:${++sendCount}`, entry: steered.entry }
 		if (await deliver(item.message, item.attachments, pending, steered)) return
 		unsteer(steered)
-		if (state.sessionId === sid) state.queued.splice(at, 0, item)
+		requeue(sid, item, at)
 	}
 
 	// a waiting message opens a turn of its own; one that fails to send waits again
@@ -680,8 +698,13 @@ export function createFlowStore(client, options = {}) {
 		const sid = state.sessionId
 		const at = state.queued.indexOf(item)
 		unqueue(item)
-		if (!(await sendNow(item.message, item.attachments)) && state.sessionId === sid)
-			state.queued.splice(at, 0, item)
+		if (!(await sendNow(item.message, item.attachments))) requeue(sid, item, at)
+	}
+
+	// back where it waited, in its own session's queue even if another is open now
+	function requeue(sid, item, at) {
+		if (state.sessionId === sid) state.queued.splice(at, 0, item)
+		else heldBySession.set(sid, (heldBySession.get(sid) ?? []).toSpliced(at, 0, waitingRecord(item)))
 	}
 
 	// A waiting message taken back drops what was staged for it; the server keeps any file
@@ -757,19 +780,25 @@ export function createFlowStore(client, options = {}) {
 
 	// the round trips the bubble hides: the session, the attachments, the run
 	async function deliver(message, attachments, pending, steered) {
-		if (!state.sessionId) {
+		let sid = state.sessionId
+		const created = !sid
+		if (created) {
 			if (options.requireCwd && !state.prefs.cwd) {
 				notify("Choose a project folder before sending a message.", "error")
 				return false
 			}
-			creating ??= newSession({ sending: state.conversation.sending })
+			// only from the same blank chat: one opened since makes a chat of its own
+			if (creating?.blank !== state.conversation)
+				creating = { blank: state.conversation, session: newSession({ sending: state.conversation.sending }) }
+			const own = creating
 			try {
-				if (!(await creating)) return false
+				// the chat created for it, even if the user has opened another since
+				sid = await own.session
+				if (!sid) return false
 			} finally {
-				creating = null
+				if (creating === own) creating = null
 			}
 		}
-		const sid = state.sessionId
 		const staged = await stageAttachments(sid, attachments)
 		if (!staged) return false
 		const attachmentIds = staged.attachments.map((item) => item.id)
@@ -782,7 +811,11 @@ export function createFlowStore(client, options = {}) {
 			const result = await guard(() => client.run(sid, message, attachmentIds))
 			if (!result) return false
 			admitted = true
-			if (state.sessionId !== sid) return true
+			if (state.sessionId !== sid) {
+				// the user left the chat this message created before it ran: list it for them
+				if (created) void refreshSessions()
+				return true
+			}
 			// the server decides which it was; a client that guessed wrong moves it now
 			if (result.status === "steered") {
 				// it waits below the turn, unless the turn took it while this call answered
@@ -835,8 +868,7 @@ export function createFlowStore(client, options = {}) {
 	// undecided call in the batch has an answer (the server validates exactness).
 	// A deny stops the run, so it settles the batch: undecided calls deny with it
 	// (explicit answers stand, matching the server's approve-then-halt order).
-	async function answerApproval(callId, answer) {
-		const pending = approvalToAnswer(state.conversation)
+	async function answerApproval(callId, answer, pending = approvalToAnswer(state.conversation)) {
 		if (!pending) return
 		pending.answers[callId] = answer
 		if (answer === "Deny") {
@@ -866,7 +898,12 @@ export function createFlowStore(client, options = {}) {
 
 	async function compact() {
 		if (!state.sessionId) return
-		await guard(() => client.compact(state.sessionId))
+		// a compaction takes no steering, and its run starts before the compaction does; while
+		// a run goes the server refuses one, so nothing changes until it says so
+		const conversation = state.conversation
+		if (!conversation.running) conversation.compacting = "manual"
+		const result = await guard(() => client.compact(state.sessionId))
+		if (result === null && conversation.compacting === "manual") conversation.compacting = false
 	}
 
 	async function reloadExtensions() {
@@ -889,8 +926,10 @@ export function createFlowStore(client, options = {}) {
 		// branch from the entry before the message's run_started; the message's
 		// parent chain makes parent_seq the correct anchor
 		const target = (entry.parent_seq ?? 1) - 1
-		const ok = await guard(() => client.rewind(state.sessionId, Math.max(target, 0)))
-		if (ok === null) return null
+		const sid = state.sessionId
+		const ok = await guard(() => client.rewind(sid, Math.max(target, 0)))
+		// the draft belongs in this chat's box, not one the user opened meanwhile
+		if (ok === null || state.sessionId !== sid) return null
 		const content = Array.isArray(entry.content) ? entry.content : []
 		const expandedText = Array.isArray(entry.content)
 			? content.filter((block) => block.type === "text").map((block) => block.text).join("")
@@ -946,10 +985,11 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function selectModel(model) {
-		state.prefs.lastModel = model
-		savePrefs()
 		const sid = state.sessionId
-		if (!sid) return
+		if (!sid) {
+			state.prefs.lastModel = model
+			return savePrefs()
+		}
 		const data = await guard(() =>
 			client.setModel(sid, {
 				model,
@@ -957,7 +997,10 @@ export function createFlowStore(client, options = {}) {
 					state.prefs.lastEffort && state.prefs.lastEffort !== "default" ? state.prefs.lastEffort : null,
 			}),
 		)
+		// a chat refuses a change while it runs: only one it took becomes the default
 		if (!data) return
+		state.prefs.lastModel = model
+		savePrefs()
 		// the list's copy is what this chat shows while it reopens
 		const listed = state.sessions.find((s) => s.session_id === sid)
 		if (listed) listed.model = data.model
@@ -972,10 +1015,11 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function selectEffort(effort) {
-		state.prefs.lastEffort = effort
-		savePrefs()
 		const sid = state.sessionId
-		if (!sid) return
+		if (!sid) {
+			state.prefs.lastEffort = effort
+			return savePrefs()
+		}
 		const model = state.conversation.model ?? state.session?.model
 		if (!model) return
 		const data = await guard(() =>
@@ -984,7 +1028,11 @@ export function createFlowStore(client, options = {}) {
 				reasoning_effort: effort === "default" ? null : effort,
 			}),
 		)
-		if (!data || state.sessionId !== sid) return // failed, or the user moved to another chat meanwhile
+		// a chat refuses a change while it runs: only one it took becomes the default
+		if (!data) return
+		state.prefs.lastEffort = effort
+		savePrefs()
+		if (state.sessionId !== sid) return // the user moved to another chat meanwhile
 		state.conversation.reasoningEffort = effort === "default" ? null : effort
 	}
 
@@ -993,18 +1041,19 @@ export function createFlowStore(client, options = {}) {
 	async function setMode(mode) {
 		state.prefs.mode = mode
 		savePrefs()
-		if (!state.sessionId) return
-		const data = await guard(() =>
-			client.patchConfig(state.sessionId, { auto_approve: mode === "auto" }),
-		)
-		if (!data) return // the server never switched; don't act on the new mode
+		const sid = state.sessionId
+		if (!sid) return
+		const data = await guard(() => client.patchConfig(sid, { auto_approve: mode === "auto" }))
+		// the server never switched, or the user moved to another chat meanwhile: don't act on it here
+		if (!data || state.sessionId !== sid) return
 		if (state.session) state.session.config = data.config
-		// a batch already waiting at the gate is covered by the new mode: approve
+		if (mode !== "auto") return
+		// the batches already waiting at the gate are covered by the new mode: approve
 		// whatever the user hasn't decided yet (their explicit answers stand)
-		const pending = approvalToAnswer(state.conversation)
-		if (mode === "auto" && pending) {
+		for (const pending of waitingApprovals(state.conversation)) {
 			for (const call of pending.calls) {
-				if (!(call.id in pending.answers)) await answerApproval(call.id, "Approve")
+				if (state.sessionId !== sid) return
+				if (!(call.id in pending.answers)) await answerApproval(call.id, "Approve", pending)
 			}
 		}
 	}
@@ -1229,8 +1278,8 @@ export function createFlowStore(client, options = {}) {
 		if (!write) return false
 		const data = await guard(write)
 		if (!data || stale()) return false
+		// dirty is the editor's call: only it knows of keys typed while this was in flight
 		tab.content = content
-		tab.dirty = false
 		tab.error = null
 		return true
 	}
@@ -1245,7 +1294,11 @@ export function createFlowStore(client, options = {}) {
 		const index = ws.tabs.findIndex((t) => t.path === path)
 		if (index === -1) return
 		ws.tabs.splice(index, 1)
-		if (ws.active === path) ws.active = ws.tabs[Math.min(index, ws.tabs.length - 1)]?.path ?? null
+		if (ws.active === path) {
+			ws.active = ws.tabs[Math.min(index, ws.tabs.length - 1)]?.path ?? null
+			// a tab restored after a reload loads its file when it first comes forward
+			if (ws.active) selectFile(ws.active)
+		}
 		if (!ws.tabs.length) {
 			ws.open = false
 			ws.maximized = false // a maximized panel must not outlive its last tab
@@ -1317,7 +1370,8 @@ export function createFlowStore(client, options = {}) {
 
 	// create (no id) or update; returns the id
 	function savePreset(preset) {
-		const id = preset.id ?? crypto.randomUUID()
+		// randomUUID needs a secure context, which a LAN address over plain http is not
+		const id = preset.id ?? crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 		const row = { ...preset, id }
 		const index = state.presets.findIndex((p) => p.id === id)
 		if (index === -1) state.presets.push(row)

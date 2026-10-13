@@ -22,6 +22,7 @@ globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0)
 const { createApp, h, nextTick, reactive } = await import("vue")
 const { loadComponent } = await import("./helpers/components.js")
 const { applyEvent, initialConversation } = await import("../src/transcript.js")
+const { FlowAPIError } = await import("../src/client.js")
 const Composer = await loadComponent("Composer")
 const ApprovalCard = await loadComponent("ApprovalCard")
 const ToolGroup = await loadComponent("ToolGroup")
@@ -32,6 +33,7 @@ const SettingsPage = await loadComponent("SettingsPage")
 const SubagentView = await loadComponent("SubagentView")
 const TranscriptDialog = await loadComponent("TranscriptDialog")
 const WorkspacePanel = await loadComponent("WorkspacePanel")
+const EditorView = await loadComponent("EditorView")
 const FilesBar = await loadComponent("FilesBar")
 const SessionSidebar = await loadComponent("SessionSidebar")
 const ModelPalette = await loadComponent("ModelPalette")
@@ -558,9 +560,9 @@ test("the composer empties at once and spins the send button until sending succe
 	el.querySelector("button[title='Send']").click()
 	await nextTick()
 
-	// the message is already a bubble in the thread; its attachment stays staged here
+	// the message is already a bubble in the thread: its attachment leaves the box with the text
 	assert.equal(el.querySelector("textarea").value, "")
-	assert.ok(el.textContent.includes("notes.pdf"))
+	assert.ok(!el.textContent.includes("notes.pdf"))
 	assert.equal(el.querySelector('[role="status"]'), null)
 	const sendButton = el.querySelector("button[title='Send']")
 	assert.equal(sendButton.disabled, true)
@@ -1361,6 +1363,239 @@ test("a closed workspace panel is inert, so its hidden buttons can't take focus"
 
 const settle = () => new Promise((resolve) => setImmediate(resolve))
 
+// monaco can't run under jsdom: a fake of what the editor view calls, keeping its
+// models by uri like monaco does (one per uri, gone once disposed)
+const monacoModels = new Map()
+let anonymousModels = 0
+function fakeEditor() {
+	let model = null
+	return {
+		addCommand() {},
+		onDidChangeCursorSelection() {},
+		addContentWidget() {},
+		getModel: () => model,
+		setModel: (next) => (model = next),
+		updateOptions() {},
+		dispose() {},
+	}
+}
+globalThis.monaco = {
+	KeyMod: { CtrlCmd: 2048 },
+	KeyCode: { KeyS: 49 },
+	Uri: { file: (path) => `file://${path}` },
+	editor: {
+		create: fakeEditor,
+		createDiffEditor: () => ({ ...fakeEditor(), getModifiedEditor: fakeEditor }),
+		createModel(value, language, uri = `inmemory://${++anonymousModels}`) {
+			assert.ok(!monacoModels.has(uri), `a second model for ${uri}`)
+			let version = 1
+			const listeners = []
+			const model = {
+				getValue: () => value,
+				// typing and a refetch both land here
+				setValue(text) {
+					value = text
+					version++
+					for (const listener of listeners) listener()
+				},
+				getAlternativeVersionId: () => version,
+				getLanguageId: () => language ?? "plaintext",
+				onDidChangeContent: (listener) => listeners.push(listener),
+				dispose: () => monacoModels.delete(uri),
+			}
+			monacoModels.set(uri, model)
+			return model
+		},
+		defineTheme() {},
+		setTheme() {},
+	},
+}
+
+// the harness app's panel and file view on the real store, browsing /proj
+async function editorPanel(t, client = {}) {
+	const { createFlowStore } = await import("../src/store.js")
+	globalThis.localStorage = { getItem: () => null, setItem() {} }
+	globalThis.MutationObserver = window.MutationObserver
+	globalThis.getComputedStyle = (el) => window.getComputedStyle(el)
+	const daemon = { readFile: async (cwd, path) => ({ path, content: "v0" }), ...client }
+	const store = createFlowStore(daemon, { requireCwd: false, skillsEnabled: false })
+	store.setCwd("/proj")
+	const panel = { render: () => h(WorkspacePanel, null, { view: () => h(EditorView) }) }
+	const { el } = mount(t, panel, {}, store)
+	// after the unmount: an editor still loading then finds no element and stops
+	t.after(() => {
+		delete globalThis.localStorage
+		delete globalThis.MutationObserver
+		delete globalThis.getComputedStyle
+	})
+	return { el, store }
+}
+
+test("unsaved edits outlive a sub-agent's tab and a panel closed from the Files view", async (t) => {
+	const { el, store } = await editorPanel(t)
+	await store.openFile("/proj/a.txt")
+	await settle()
+	const model = (path) => monacoModels.get(`file://${path}`)
+	const tab = store.state.workspace.tabs[0]
+	model("/proj/a.txt").setValue("v0 edited")
+	assert.equal(tab.dirty, true)
+
+	store.openSubagent("c1")
+	await settle()
+	assert.ok(el.textContent.includes("Starting…")) // the sub-agent's tab is the one showing
+	store.selectFile("/proj/a.txt")
+	await settle()
+	assert.equal(model("/proj/a.txt").getValue(), "v0 edited")
+
+	store.showFilesView()
+	store.setWorkspaceOpen(false)
+	await settle()
+	store.setWorkspaceOpen(true)
+	await settle()
+	assert.equal(store.state.workspace.active, "/proj/a.txt")
+	assert.equal(model("/proj/a.txt").getValue(), "v0 edited")
+	assert.equal(tab.dirty, true)
+
+	// a tab closed behind a sub-agent's, or a chat left, still frees its model
+	await store.openFile("/proj/b.txt")
+	await settle()
+	model("/proj/b.txt").setValue("v0 too")
+	store.selectFile("c1")
+	store.closeFile("/proj/b.txt")
+	await settle()
+	assert.equal(model("/proj/b.txt"), undefined)
+	store.startNewChat()
+	await settle()
+	assert.equal(model("/proj/a.txt"), undefined)
+})
+
+test("keys typed while a save is in flight stay, and the tab stays unsaved", async (t) => {
+	const writes = []
+	let finish
+	const { el, store } = await editorPanel(t, {
+		writeFsFile(cwd, path, content) {
+			writes.push(content)
+			return new Promise((resolve) => (finish = () => resolve({ path })))
+		},
+	})
+	await store.openFile("/proj/a.txt")
+	await settle()
+	const model = monacoModels.get("file:///proj/a.txt")
+	const tab = store.state.workspace.tabs[0]
+	const save = () => el.querySelector("[title='Save (⌘S)']").click()
+	model.setValue("v0A")
+	await nextTick()
+	save()
+	model.setValue("v0AB") // typed before the write returns
+	finish()
+	await settle()
+	assert.equal(model.getValue(), "v0AB")
+	assert.equal(tab.content, "v0A")
+	assert.equal(tab.dirty, true)
+
+	save() // nothing typed this time: the tab ends clean
+	finish()
+	await settle()
+	assert.deepEqual(writes, ["v0A", "v0AB"])
+	assert.equal(tab.content, "v0AB")
+	assert.equal(tab.dirty, false)
+})
+
+test("the changed-files list stops polling once the panel closes", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	let polls = 0
+	const { el, store } = await editorPanel(t, {
+		gitFileDiff: async (cwd, path) => ({ path, original: "old", modified: "new" }),
+		gitChanges: async () => (polls++, { root: "/proj", files: [] }),
+	})
+	await store.openDiffFile("/proj/a.txt")
+	await settle()
+	el.querySelector("[title='Show files']").click()
+	await settle()
+	t.mock.timers.tick(3000)
+	await settle()
+	assert.equal(polls, 2)
+
+	store.setWorkspaceOpen(false)
+	await settle()
+	for (let i = 0; i < 3; i++) {
+		t.mock.timers.tick(3000)
+		await settle()
+	}
+	assert.equal(polls, 2)
+})
+
+test("the files bar opens for a chat restored to its Files view, and only another chat's workspace closes it", async (t) => {
+	const { el, store } = await editorPanel(t)
+	await store.openFile("/proj/a.txt")
+	await settle()
+	const barOpen = () => el.querySelector("[title='Hide files']") !== null
+	const workspace = (fields) => ({ open: false, maximized: false, tabs: [], active: null, view: null, ...fields })
+	assert.equal(barOpen(), false)
+
+	// a chat switch, as the store does it: a fresh workspace, then the next chat's restored one
+	store.state.workspace = workspace()
+	store.state.sessionId = "s2"
+	store.state.session = { config: { cwd: "/proj" } }
+	store.state.workspace = workspace({ open: true, view: "files" })
+	await nextTick()
+	assert.equal(barOpen(), true)
+
+	// a new chat's first send opens the chat on the workspace it was browsing
+	store.startNewChat()
+	await nextTick()
+	store.showFilesView()
+	await nextTick()
+	await store.openFile("/proj/c.txt") // picked from the bar, which stays open
+	await settle()
+	assert.equal(barOpen(), true)
+	store.state.sessionId = "s3"
+	store.state.session = { config: { cwd: "/proj" } }
+	await nextTick()
+	assert.equal(barOpen(), true)
+
+	const tab = { kind: "editor", path: "/proj/b.txt", name: "b.txt", content: "b", original: null, error: null, loading: false, dirty: false, diff: false }
+	store.state.workspace = workspace({ open: true, tabs: [tab], active: tab.path })
+	store.state.sessionId = "s4"
+	await nextTick()
+	assert.equal(barOpen(), false)
+})
+
+test("each sub-agent's tab keeps its own place in its thread", async (t) => {
+	const conversation = subagentConversation()
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 6,
+		ts: 12,
+		content: [{ type: "tool_call", id: "c2", name: "subagent", arguments: { task: "weigh", description: "weigh beans" } }],
+	})
+	applyEvent(conversation, { type: "run_started", seq: 7, ts: 12, subagent_id: "c2" })
+	applyEvent(conversation, { type: "user_message", seq: 8, ts: 12, content: "weigh", subagent_id: "c2" })
+	const workspace = reactive({
+		open: true, maximized: false, view: null, active: "c1",
+		tabs: [{ kind: "subagent", path: "c1", name: "Sub-agent: count" }, { kind: "subagent", path: "c2", name: "Sub-agent: weigh" }],
+	})
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation, workspace, prefs: {} }) }
+	const { el } = mount(t, WorkspacePanel, {}, flow)
+	await nextTick()
+	const list = el.querySelector(".flow-thread").parentElement
+	let top = 1500
+	Object.defineProperty(list, "clientHeight", { get: () => 500 })
+	Object.defineProperty(list, "scrollHeight", { get: () => 2000 })
+	Object.defineProperty(list, "scrollTop", { get: () => top, set: (value) => (top = value) })
+	list.dispatchEvent(new window.Event("scroll"))
+	list.scrollTop = 300 // read up the first thread
+	list.dispatchEvent(new window.Event("scroll"))
+	await nextTick()
+	assert.ok(el.querySelector("button[title='Scroll to bottom']"))
+
+	workspace.active = "c2"
+	await nextTick()
+	assert.ok(el.textContent.includes("weigh"))
+	assert.equal(el.querySelector("button[title='Scroll to bottom']"), null) // follows its own live end
+	assert.notEqual(el.querySelector(".flow-thread").parentElement, list)
+})
+
 // types into the files bar's search box, short of the debounce
 async function typeQuery(el, query) {
 	const input = el.querySelector("input")
@@ -1611,6 +1846,38 @@ test("the providers list says it is loading until it arrives", async (t) => {
 	assert.ok(el.textContent.includes("OpenAI"))
 })
 
+test("a sign-in check still in flight never lands on the provider opened next", async (t) => {
+	t.mock.timers.enable({ apis: ["setInterval"] })
+	t.mock.method(window, "open", () => null)
+	let answer
+	const oauth = (id, name) => ({ id, name, auth_methods: ["oauth"], configured: false })
+	const flow = {
+		client: {
+			providers: async () => ({ providers: [oauth("alpha", "Alpha"), oauth("beta", "Beta")] }),
+			oauthStart: async () => ({ authorize_url: "https://sign.in", status: "pending" }),
+			oauthStatus: () => new Promise((resolve) => (answer = resolve)),
+		},
+	}
+	const { el } = mount(t, ProvidersDialog, {}, flow)
+	await settle()
+	const button = (label) => [...el.querySelectorAll("button")].find((b) => b.textContent.trim() === label)
+	button("Alpha").click()
+	await nextTick()
+	button("Sign in").click()
+	await settle()
+	assert.ok(el.textContent.includes("Waiting for sign-in"))
+	t.mock.timers.tick(1500) // the poll asks about Alpha
+
+	el.querySelector("[data-stub='PalettePanel']").dispatchEvent(new window.Event("back"))
+	await nextTick()
+	button("Beta").click()
+	await nextTick()
+	answer({ status: "pending" })
+	await settle()
+	assert.ok(button("Sign in"))
+	assert.ok(!el.textContent.includes("Waiting for sign-in"))
+})
+
 test("the skills settings say they are loading until the skill folders are read", async (t) => {
 	let answer
 	const flow = {
@@ -1624,6 +1891,50 @@ test("the skills settings say they are loading until the skill folders are read"
 	await settle()
 	assert.ok(!el.textContent.includes("Loading"))
 	assert.ok(el.textContent.includes("No global skills yet"))
+})
+
+test("a new skill can't take the name of one already in its folder, listed or not", async (t) => {
+	const writes = []
+	const flow = {
+		state: reactive({ settingsOpen: true, sessionId: null, session: null, sessions: [], prefs: {} }),
+		client: {
+			// "triage" was made after the list loaded (another tab, the agent), so it isn't listed
+			skillFiles: async () => ({
+				skills: [{ scope: "global", path: "/g/review/SKILL.md", name: "review", description: "Review", error: null }],
+				roots: { global: "/g" },
+				truncated: [],
+			}),
+			async readSkill(path) {
+				if (path === "/g/triage/SKILL.md") return { path, content: "---\nname: triage\n---\n" }
+				throw new FlowAPIError(404, "file not found")
+			},
+			async writeSkill(path) {
+				writes.push(path)
+				return { path }
+			},
+		},
+		notify() {},
+	}
+	const { el } = mount(t, SettingsSkills, {}, flow)
+	await settle()
+	const button = (label) => [...el.querySelectorAll("button")].find((b) => b.textContent === label)
+	const saveAs = async (name) => {
+		const input = el.querySelector("input")
+		input.value = name
+		input.dispatchEvent(new window.Event("input"))
+		await nextTick()
+		button("Save").click()
+		await settle()
+	}
+	button("New skill").click()
+	await nextTick()
+	await saveAs("review")
+	assert.ok(el.textContent.includes("A global skill named “review” already exists."))
+	await saveAs("triage")
+	assert.ok(el.textContent.includes("A global skill named “triage” already exists."))
+	assert.deepEqual(writes, [])
+	await saveAs("fresh")
+	assert.deepEqual(writes, ["/g/fresh/SKILL.md"])
 })
 
 test("a sub-agent's tab says it is loading while its session loads, not that it is starting", async (t) => {
@@ -1680,4 +1991,221 @@ test("a file search in flight shows the spinner with its own word", async (t) =>
 	await typeSearch(t, el, "app")
 	assert.ok(el.textContent.includes("Searching…"))
 	assert.ok(el.querySelector("[data-stub=Spinner]"))
+})
+
+function composerFlow(over = {}) {
+	return {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], quotes: [], queued: [],
+			skills: [], conversation: { running: true }, draft: null,
+		}),
+		clearCodeRefs() {},
+		clearQuotes() {},
+		notify() {},
+		...over,
+	}
+}
+
+const keydown = (target, init) =>
+	target.dispatchEvent(new window.KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init }))
+
+test("Escape stops the run from the page, but not from a field, a dialog or a menu", async (t) => {
+	let aborts = 0
+	mount(t, Composer, { commands: [], mentions: false }, composerFlow({ abort: () => aborts++ }))
+	const outside = document.createElement("div")
+	outside.innerHTML =
+		'<input placeholder="Search chats"><div role="dialog"><button>Close</button></div><div role="menu"><button>Rename</button></div>'
+	document.body.append(outside)
+	t.after(() => outside.remove())
+
+	for (const target of outside.querySelectorAll("input, button")) keydown(target, { key: "Escape" })
+	keydown(document.body, { key: "Escape", isComposing: true })
+	assert.equal(aborts, 0)
+	keydown(document.body, { key: "Escape" })
+	assert.equal(aborts, 1)
+})
+
+test("an IME's Enter and Escape stay with the IME: nothing is sent and the run goes on", async (t) => {
+	let sends = 0
+	let aborts = 0
+	const flow = composerFlow({ send: async () => !!++sends, abort: () => aborts++ })
+	const { el, vm } = mount(t, Composer, { commands: [], mentions: false }, flow)
+	vm.prefill("今日は")
+	await nextTick()
+	const box = el.querySelector("textarea")
+
+	keydown(box, { key: "Enter", isComposing: true })
+	keydown(box, { key: "Enter", keyCode: 229 }) // Safari's, after compositionend
+	keydown(box, { key: "Escape", isComposing: true })
+	await settle()
+	assert.equal(sends, 0)
+	assert.equal(aborts, 0)
+	assert.equal(box.value, "今日は")
+	keydown(box, { key: "Enter" })
+	await settle()
+	assert.equal(sends, 1)
+})
+
+test("the ask-for-changes field leaves an IME's Enter and Escape to it", async (t) => {
+	const answers = []
+	const flow = { options: {}, answerApproval: (...answer) => answers.push(answer) }
+	const { el } = mount(t, ApprovalCard, { call: { id: "c1", name: "bash", args: { command: "pwd" } } }, flow)
+	;[...el.querySelectorAll("button")].find((b) => b.textContent === "Ask for changes").click()
+	await nextTick()
+	const field = el.querySelector("textarea")
+	field.value = "use 日本"
+	field.dispatchEvent(new window.Event("input"))
+
+	keydown(field, { key: "Enter", isComposing: true })
+	keydown(field, { key: "Escape", keyCode: 229 })
+	await nextTick()
+	assert.deepEqual(answers, [])
+	assert.ok(el.querySelector("textarea"))
+	keydown(field, { key: "Enter" })
+	assert.deepEqual(answers, [["c1", "use 日本"]])
+})
+
+test("answering a call hands the keyboard to the box, not the page", async (t) => {
+	const pending = { seq: 4, calls: [{ id: "c1", name: "bash", args: { command: "pwd" } }], answers: {} }
+	const flow = composerFlow({
+		answerApproval: (id, answer) => (flow.state.conversation.pendingApproval.answers[id] = answer),
+	})
+	flow.state.conversation = { pendingApproval: pending }
+	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
+	const approve = [...el.querySelectorAll("button")].find((button) => button.textContent === "Approve")
+	approve.focus()
+	approve.click()
+	await nextTick()
+	await nextTick()
+	assert.equal(document.activeElement, el.querySelector("textarea"))
+})
+
+test("a spreadsheet range pastes as its text, a screenshot as a picture", async (t) => {
+	const createObjectURL = URL.createObjectURL
+	URL.createObjectURL = () => "blob:shot"
+	t.after(() => (URL.createObjectURL = createObjectURL))
+	const { el } = mount(t, Composer, { commands: [], mentions: false }, composerFlow())
+	const paste = (data) => {
+		const event = new window.Event("paste", { bubbles: true, cancelable: true })
+		const png = new window.File(["png"], "image.png", { type: "image/png" })
+		event.clipboardData = {
+			items: [{ kind: "file", type: "image/png", getAsFile: () => png }],
+			getData: (type) => data[type] ?? "",
+		}
+		el.querySelector("textarea").dispatchEvent(event)
+		return event.defaultPrevented
+	}
+
+	// Excel and LibreOffice put a picture of the cells beside their text and HTML
+	assert.equal(paste({ "text/plain": "Item\tQty\nA\t2", "text/html": "<table><tr><td>Item</td></tr></table>" }), false)
+	await nextTick()
+	assert.equal(el.querySelector("img"), null)
+	// a screenshot, or an image copied from a page, has no text of its own
+	assert.equal(paste({}), true)
+	assert.equal(paste({ "text/plain": "https://e.x/a.png", "text/html": '<meta charset="utf-8"><img src="https://e.x/a.png">' }), true)
+})
+
+test("an Enter pressed while a palette's rows lag its search picks from the rows that answer it", async (t) => {
+	const PalettePanel = await loadComponent("PalettePanel")
+	globalThis.MutationObserver = dom.window.MutationObserver
+	t.after(() => delete globalThis.MutationObserver)
+	const picked = []
+	const list = reactive({ busy: false, rows: ["openai/gpt-5"] })
+	const row = (name) => h("button", { key: name, "data-palette-item": "", onClick: () => picked.push(name) }, name)
+	const Host = { render: () => h(PalettePanel, { title: "Models", busy: list.busy }, () => list.rows.map(row)) }
+	mount(t, Host, {}, {})
+	await settle()
+
+	keydown(document.body, { key: "Enter", isComposing: true }) // an IME's, picking its candidate
+	list.busy = true // "opus" typed, its rows not in yet
+	await nextTick()
+	keydown(document.body, { key: "Enter" })
+	assert.deepEqual(picked, [])
+	list.rows = ["anthropic/claude-opus"]
+	list.busy = false
+	await settle()
+	assert.deepEqual(picked, ["anthropic/claude-opus"])
+})
+
+test("an open chat's thinking label shows its own level; a new chat's, the last one picked", async (t) => {
+	const conversation = reactive(initialConversation())
+	conversation.model = "openai/gpt-6" // runs at the provider's default
+	const flow = { state: reactive({ loading: false, sessionId: "s1", conversation, prefs: { lastEffort: "high" } }) }
+	const { el } = mount(t, ModelButton, {}, flow)
+	assert.ok(!el.textContent.includes("High"))
+	flow.state.sessionId = null
+	await nextTick()
+	assert.ok(el.textContent.includes("High"))
+})
+
+test("a message that overflows once the thread narrows gets its Show more", async (t) => {
+	const UserBubble = await loadComponent("UserBubble")
+	let resized = null
+	globalThis.ResizeObserver = class {
+		constructor(callback) {
+			resized = callback
+		}
+		observe() {}
+		disconnect() {}
+	}
+	t.after(() => delete globalThis.ResizeObserver)
+	// jsdom has no layout: the text's full height against the 12-line clamp's
+	let full = 200
+	const proto = dom.window.HTMLElement.prototype
+	Object.defineProperty(proto, "scrollHeight", { configurable: true, get: () => full })
+	Object.defineProperty(proto, "clientHeight", { configurable: true, get: () => 240 })
+	t.after(() => {
+		delete proto.scrollHeight
+		delete proto.clientHeight
+	})
+	const flow = { options: {}, capabilities: {}, state: reactive({ sessionId: "s1", skills: [] }) }
+	const { el } = mount(t, UserBubble, { entry: { type: "user_message", seq: 1, content: "a long message" } }, flow)
+	assert.ok(!el.textContent.includes("Show more"))
+
+	full = 300 // a panel opened beside the thread
+	resized()
+	await nextTick()
+	assert.ok(el.textContent.includes("Show more"))
+})
+
+test("Copy says Copied only once the text reached the clipboard", async (t) => {
+	const CopyButton = await loadComponent("CopyButton")
+	const { el } = mount(t, CopyButton, { text: "hello" }, {})
+	const button = el.querySelector("button")
+	// plain http has no Clipboard API, and the copy command can fail too
+	document.execCommand = () => false
+	t.after(() => delete document.execCommand)
+	button.click()
+	await settle()
+	assert.equal(button.title, "Copy")
+	document.execCommand = (command) => command === "copy"
+	button.click()
+	await settle()
+	assert.equal(button.title, "Copied")
+})
+
+test("the web app shows its connect form when the daemon refuses the token, and connects with the right one", async (t) => {
+	const App = await loadComponent("App", new URL("../../app/src/App.vue", import.meta.url))
+	const saved = { "flow.ui.connection": JSON.stringify({ baseUrl: "", token: "rotated" }) }
+	globalThis.localStorage = { getItem: (key) => saved[key] ?? null, setItem: (key, value) => (saved[key] = value) }
+	t.after(() => delete globalThis.localStorage)
+	// like a daemon run with FLOW_AUTH_TOKEN: /healthz answers anyone, the API only the token
+	t.mock.method(globalThis, "fetch", async (url, init) => {
+		if (new URL(url).pathname === "/healthz") return Response.json({ ok: true })
+		if (init.headers.Authorization !== "Bearer s3cret") return Response.json({ detail: "unauthorized" }, { status: 401 })
+		return Response.json({ sessions: [] })
+	})
+	const { el } = mount(t, App, {}, null)
+	await settle()
+	assert.equal(el.querySelector("[data-stub='FlowChat']"), null)
+	assert.ok(el.textContent.includes("The daemon refused the auth token."))
+
+	const token = el.querySelector("input[type='password']")
+	token.value = "s3cret"
+	token.dispatchEvent(new window.Event("input"))
+	el.querySelector("form").dispatchEvent(new window.Event("submit"))
+	await settle()
+	assert.ok(el.querySelector("[data-stub='FlowChat']"))
+	assert.equal(JSON.parse(saved["flow.ui.connection"]).token, "s3cret")
 })

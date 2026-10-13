@@ -326,3 +326,79 @@ test("a chat picked in the sidebar shows its agent and model before it loads", a
 	assert.ok(el.querySelector("button[title^='Sonnet']"));
 	answer({ ...session, name: "listed" });
 });
+
+test("a chat opened just as its run ended syncs that run", async (t) => {
+	await router.replace("/s/ended");
+	transport.calls.length = 0;
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	const runs = (status) => ({ ...session, name: "ended", runs: [{ name: "R1", status }] });
+	Object.assign(transport.answers, {
+		"flow.api.session": runs("Running"),
+		"flow.api.entries": {
+			entries: [
+				{ type: "run_started", seq: 1, run_id: "a" },
+				{ type: "run_ended", seq: 2, reason: "done" },
+			],
+			latest_seq: 2,
+			preview: [],
+		},
+		"flow.api.sync_session": runs("Completed"),
+	});
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(FlowPage, { boot }).use(router);
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	await until(() => called("flow.api.sync_session"));
+	assert.deepEqual(args("flow.api.sync_session"), { session: "ended" });
+});
+
+test("a first message sent while the chat list loads keeps the page on its new chat", async (t) => {
+	await router.replace("/");
+	transport.calls.length = 0;
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	const prefs = "flow.page.tester@example.com.prefs";
+	localStorage.setItem(prefs, JSON.stringify({ lastSession: "OLD" }));
+	t.after(() => localStorage.removeItem(prefs));
+	// the page's own first list call is slow; the new chat's refresh is not
+	let listed;
+	let first = true;
+	transport.answers["flow.api.list_sessions"] = () => {
+		if (!first) return [{ name: "OLD", title: "Old chat" }];
+		first = false;
+		return new Promise((resolve) => (listed = resolve));
+	};
+	let created;
+	transport.answers["flow.api.create_session"] = () =>
+		new Promise((resolve) => (created = resolve));
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(FlowPage, { boot }).use(router);
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	await until(() => called("flow.api.list_sessions"));
+
+	const textarea = el.querySelector("textarea");
+	textarea.value = "hi";
+	textarea.dispatchEvent(new Event("input"));
+	await nextTick();
+	el.querySelector("button[title='Send']").click();
+	// the list lands while the new chat is still being made
+	await until(() => called("flow.api.create_session"));
+	listed([{ name: "OLD", title: "Old chat" }]);
+	await new Promise((resolve) => setTimeout(resolve, 30));
+	created(session);
+	await until(() => called("flow.api.run"));
+	assert.equal(router.currentRoute.value.path, "/s/S1");
+	assert.ok(
+		!transport.calls.some(([name, a]) => name === "flow.api.session" && a.session === "OLD")
+	);
+});

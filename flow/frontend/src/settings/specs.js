@@ -610,7 +610,8 @@ export function newDoc(spec) {
 		else if (field.type === "multilink") doc[field.name] = [];
 		else if (field.type === "select") doc[field.name] = field.options[0];
 		else if (field.type === "int") doc[field.name] = 0;
-		else doc[field.name] = "";
+		// a read-only field is left out: Frappe fills its default only for a missing value
+		else if (field.type !== "readonly") doc[field.name] = "";
 	}
 	if (spec.doctype === "Flow Agent") {
 		doc.max_iterations = 100;

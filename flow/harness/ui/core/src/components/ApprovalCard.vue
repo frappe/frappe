@@ -48,8 +48,7 @@
 				rows="2"
 				placeholder="Describe what you want instead…"
 				class="w-full resize-none rounded-6 border border-outline-gray-2 bg-surface-base px-2.5 py-2 text-xs leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
-				@keydown.enter.exact.prevent="sendAsk"
-				@keydown.esc="cancelAsk"
+				@keydown="onAskKey"
 			/>
 			<div class="mt-2 flex items-center gap-2">
 				<span class="min-w-0 flex-1 truncate text-2xs text-ink-gray-4">⏎ send · esc cancel</span>
@@ -143,5 +142,14 @@ function sendAsk() {
 function cancelAsk() {
 	asking.value = false
 	askText.value = ""
+}
+
+// an IME's Enter and Escape pick or drop a candidate (Safari marks its closing key by keyCode 229)
+function onAskKey(e) {
+	if (e.isComposing || e.keyCode === 229) return
+	if (e.key === "Escape") return cancelAsk()
+	if (e.key !== "Enter" || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return
+	e.preventDefault()
+	sendAsk()
 }
 </script>

@@ -106,11 +106,14 @@
 
 		<!-- kind-specific body: a sub-agent's thread, or the host's view of any other tab -->
 		<SubagentView v-if="activeTab?.kind === 'subagent'" :id="activeTab.path" />
-		<slot v-else-if="viewActive" name="view" :tab="activeTab" />
+		<!-- kept mounted, hidden, while it has tabs: it holds their unsaved edits -->
+		<div v-if="showView || keepView" v-show="showView" class="flex min-h-0 flex-1 flex-col">
+			<slot name="view" :tab="activeTab" />
+		</div>
 
 		<!-- nothing open and no view picked: the host's empty state (no tab strip, but the
 		     panel's window controls stay reachable) -->
-		<div v-else class="relative flex flex-1 flex-col items-center justify-center gap-3 px-6">
+		<div v-if="!viewActive" class="relative flex flex-1 flex-col items-center justify-center gap-3 px-6">
 			<span class="absolute right-1 top-1 flex">
 				<button
 					class="flow-icon-btn"
@@ -142,6 +145,9 @@ const activeTab = computed(
 )
 // a view (a tab, files, or diffs) is showing; false means the view picker
 const viewActive = computed(() => !!activeTab.value || ["files", "diff"].includes(workspace.value.view))
+// the host's view is on screen: not a sub-agent's thread, not the picker
+const showView = computed(() => viewActive.value && activeTab.value?.kind !== "subagent")
+const keepView = computed(() => workspace.value.tabs.some((tab) => tab.kind !== "subagent"))
 // label of the stand-in tab shown while the view has no file open yet
 const transientTab = computed(() =>
 	activeTab.value ? null : ({ files: "Files", diff: "Diffs" }[workspace.value.view] ?? null),

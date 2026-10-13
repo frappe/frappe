@@ -1,5 +1,5 @@
 <template>
-	<PalettePanel title="Models" back @close="emit('close')" @back="emit('back')">
+	<PalettePanel title="Models" back :busy="query !== debounced" @close="emit('close')" @back="emit('back')">
 		<template #actions>
 			<button
 				class="flex h-7 w-7 items-center justify-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-2"

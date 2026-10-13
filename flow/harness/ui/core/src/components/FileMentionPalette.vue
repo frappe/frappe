@@ -1,5 +1,5 @@
 <template>
-	<PalettePanel :title="title" :autofocus="false" @close="emit('close')">
+	<PalettePanel :title="title" :autofocus="false" :busy="loading || query !== debouncedQuery" @close="emit('close')">
 		<div class="overflow-y-auto p-1.5">
 			<button
 				v-if="!searchActive && dir"
@@ -54,6 +54,7 @@ const flow = inject("flow")
 const dir = ref("") // cwd-relative directory being browsed while not searching
 const rows = ref(null) // null until the first listing or search answers
 const truncated = ref(false)
+const loading = ref(true) // the rows answer an older query or folder
 
 const debouncedQuery = useDebouncedValue(toRef(props, "query"), 150)
 const searchActive = computed(() => debouncedQuery.value.trim() !== "")
@@ -74,6 +75,7 @@ async function load() {
 	const query = debouncedQuery.value.trim()
 	const at = dir.value
 	const cwd = flow.explorerCwd()
+	loading.value = true
 	// the previous rows stay rendered while the request is in flight — blanking
 	// the list between keystrokes is what makes it flicker
 	const data = query ? await flow.searchFiles(query) : await flow.listFiles(at)
@@ -87,6 +89,7 @@ async function load() {
 				dir: entry.type === "dir",
 			}))
 	truncated.value = !!query && !!data?.truncated
+	loading.value = false
 }
 
 watch([debouncedQuery, dir, () => flow.explorerCwd()], load, { immediate: true })

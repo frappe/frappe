@@ -47,8 +47,9 @@ const DESCRIPTIONS = {
 // order and ids come from the wire-level list, so a new effort needs only a description
 const LEVELS = EFFORTS.map((id) => ({ id, label: EFFORT_LABELS[id], desc: DESCRIPTIONS[id] }))
 
+// an open chat runs at its own level (none is the provider's default); a new chat at the last one picked
 const currentEffort = computed(
-	() => flow.state.conversation.reasoningEffort ?? flow.state.prefs.lastEffort ?? "default",
+	() => (flow.state.sessionId ? flow.state.conversation.reasoningEffort : flow.state.prefs.lastEffort) ?? "default",
 )
 
 function choose(id) {

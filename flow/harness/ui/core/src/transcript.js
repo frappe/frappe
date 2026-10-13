@@ -40,7 +40,7 @@ export function initialConversation() {
 		// deltas. The terminal assistant_message atomically replaces this preview.
 		partial: [],
 		running: false,
-		compacting: false,
+		compacting: false, // or why: "manual", "threshold" or "overflow"
 		pendingApproval: null, // { seq, calls: [PendingCall], answers: {id: string}, subagentId? }
 		// the sub-agents this conversation started, by id: each a conversation of its own
 		subagents: {},
@@ -94,11 +94,17 @@ function applySubagentEvent(s, e) {
 // the batch to answer: the session's own, else the oldest a sub-agent waits on while
 // the session runs (the session's run ending takes its children's questions with it)
 export function approvalToAnswer(conversation) {
-	if (conversation.pendingApproval || !conversation.running) return conversation.pendingApproval ?? null
+	return waitingApprovals(conversation)[0] ?? null
+}
+
+// every batch waiting on the user, in the order they are answered
+export function waitingApprovals(conversation) {
+	if (conversation.pendingApproval || !conversation.running)
+		return conversation.pendingApproval ? [conversation.pendingApproval] : []
 	const asked = Object.values(conversation.subagents ?? {})
 		.map((child) => child.pendingApproval)
 		.filter(Boolean)
-	return asked.sort((a, b) => a.seq - b.seq)[0] ?? null
+	return asked.sort((a, b) => a.seq - b.seq)
 }
 
 function foldEvent(s, e) {
@@ -226,18 +232,19 @@ function foldEvent(s, e) {
 				// the boundary where a failed attempt's deltas must be discarded.
 				// liveLabel resets too: "Retrying" must not stick through the new attempt.
 				s.partial = []
-				s.liveLabel = null
+				s.liveLabel = s.compacting ? "Compacting context" : "Working"
 			} else if (e.status === "scheduled") {
 				s.liveLabel = "Retrying"
 			}
 			break
 		case "compaction_started":
-			s.compacting = true
+			s.compacting = e.reason ?? true
 			s.liveLabel = "Compacting context"
 			break
 		case "compaction_ended":
 			s.compacting = false
-			s.liveLabel = null
+			// a run that compacted to make room goes on working; a /compact ends here
+			s.liveLabel = s.running && e.reason !== "manual" ? "Working" : null
 			break
 	}
 	return s
@@ -473,10 +480,12 @@ function deriveTurns(entries, steeredSeqs = []) {
 
 		if (!current) continue
 		turnByEntry.set(entry, current.key)
-		if (Number.isFinite(entry.ts)) {
+		// a compaction joins the turn before it, but a later /compact is no time it worked
+		if (Number.isFinite(entry.ts) && entry.type !== "compaction") {
 			current.endedAt = current.endedAt == null ? entry.ts : Math.max(current.endedAt, entry.ts)
 		}
-		if (entry.type === "assistant_message") current.terminalAssistant = entry
+		// a closing message with no text and no tool call says nothing: the answer before it stands
+		if (entry.type === "assistant_message" && saysSomething(entry)) current.terminalAssistant = entry
 		if (entry.type === "run_ended" && entry.reason === "aborted") current.interrupted = true
 		// a user-terminated turn (abort/deny) has no terminal response: its last
 		// text folds with the work instead of standing as the answer
@@ -485,6 +494,12 @@ function deriveTurns(entries, steeredSeqs = []) {
 	}
 
 	return { turns, turnByEntry, latestTurnKey: [...turns.keys()].at(-1) ?? null }
+}
+
+function saysSomething(entry) {
+	return (entry.content ?? []).some(
+		(block) => (block.type === "text" && block.text?.trim()) || block.type === "tool_call",
+	)
 }
 
 // Files touched by a turn's settled edit/write calls, keyed by turn, aggregated
@@ -660,7 +675,11 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	// settles the one before it right away: its run_started lands before the server's copy
 	// of the message, and reading that as the old turn resuming unfolds a finished turn.
 	const opensNewTurn = (conversation.sending ?? []).length > 0
-	const unsettledTurnKey = !opensNewTurn && (conversation.running || pending) ? latestTurnKey : null
+	// a /compact runs after the latest turn ended: that turn stays settled while it does
+	const unsettledTurnKey =
+		!opensNewTurn && (conversation.running || pending) && conversation.compacting !== "manual"
+			? latestTurnKey
+			: null
 
 	// Only the terminal assistant message is the response. Earlier assistant
 	// text is commentary and belongs inside the completed-work fold.

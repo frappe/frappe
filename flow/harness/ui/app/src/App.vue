@@ -69,12 +69,16 @@ async function tryConnect(config, { silent = false } = {}) {
 	error.value = ""
 	const client = new DaemonClient(config)
 	try {
-		await client.health()
+		// /healthz answers without a token; this checks the token too
+		await client.sessions()
 		if (own !== attempt) return
 		localStorage.setItem(CONNECTION_KEY, JSON.stringify(config))
 		store.value = createFlowStore(client)
 	} catch (err) {
-		if (own === attempt && !silent) error.value = err?.message ?? "Could not reach the daemon."
+		if (own !== attempt) return
+		// a refused token shows even on the silent check: only the form can fix it
+		if (err?.status === 401) error.value = "The daemon refused the auth token."
+		else if (!silent) error.value = err?.message ?? "Could not reach the daemon."
 	} finally {
 		if (own === attempt) checking.value = false
 	}

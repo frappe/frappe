@@ -7,8 +7,9 @@ const BOOT_DOCTYPES = new Set(["Flow Model", "Flow Agent"]);
 
 // What the page keeps beside the chat store: the boot data, the agent a new chat starts
 // with, the settings tab to open, and each session's Flow Runs and run log (for per-turn
-// feedback). `refresh` re-fetches boot when a record it lists changes.
-export function createPage(boot, { refresh = () => {} } = {}) {
+// feedback). `refresh` re-fetches boot when a record it lists changes; `sync` re-reads a
+// session's runs.
+export function createPage(boot, { refresh = () => {}, sync = () => {} } = {}) {
 	const runIndexes = new Map();
 	const state = reactive({
 		boot,
@@ -40,6 +41,13 @@ export function createPage(boot, { refresh = () => {} } = {}) {
 			.filter((row) => typeof row.seq === "number" && !row.subagent_id)
 			.map(({ type, seq, run_id, reason }) => ({ type, seq, run_id, reason }));
 		state.log[sid] = replace ? slim : [...(state.log[sid] ?? []), ...slim];
+		// a chat opened as its run ended: the stream starts past that run_ended, so sync here
+		if (
+			replace &&
+			slim.at(-1)?.type === "run_ended" &&
+			state.runs[sid]?.some((run) => run.status === "Running")
+		)
+			sync(sid);
 	}
 
 	// turn keys are "turn:<seq of the user message>"

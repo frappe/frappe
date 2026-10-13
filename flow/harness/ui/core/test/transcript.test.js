@@ -1514,3 +1514,76 @@ test("a sub-agent call shows what its own run spent", () => {
 	assert.equal(second.usage.input_tokens, 5000) // still running: what it has spent so far
 	assert.ok(rows.every((row) => row.kind === "tool" || !row.usage)) // never the session's own rows
 })
+
+test("an empty closing message leaves the answer before it standing", () => {
+	for (const closing of [[], [{ type: "text", text: "\n" }], [{ type: "thinking", thinking: "Done." }]]) {
+		const conversation = initialConversation()
+		for (const event of [
+			{ type: "run_started", seq: 1, ts: 10 },
+			{ type: "user_message", seq: 2, ts: 10, content: "Make the invoice" },
+			{
+				type: "assistant_message",
+				seq: 3,
+				ts: 12,
+				content: [
+					{ type: "text", text: "Created invoice INV-1." },
+					{ type: "tool_call", id: "call-1", name: "update_memory", arguments: { note: "INV-1" } },
+				],
+				stop_reason: "tool_use",
+			},
+			{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "saved" },
+			{ type: "assistant_message", seq: 5, ts: 14, content: closing, stop_reason: "stop" },
+			{ type: "run_ended", seq: 6, ts: 14, reason: "done" },
+		])
+			applyEvent(conversation, event)
+
+		const items = buildItems(conversation)
+		assert.deepEqual(items.map((item) => item.kind), ["user", "text", "turn-fold", "turn-copy"])
+		assert.equal(items[3].text, "Created invoice INV-1.")
+	}
+})
+
+function settledTurnThenCompact() {
+	const conversation = initialConversation()
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 10 },
+		{ type: "user_message", seq: 2, ts: 10, content: "Fix it" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			ts: 12,
+			content: [{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } }],
+			stop_reason: "tool_use",
+		},
+		{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "ok" },
+		{ type: "assistant_message", seq: 5, ts: 15, content: [{ type: "text", text: "Done." }], stop_reason: "stop" },
+		{ type: "run_ended", seq: 6, ts: 15, reason: "done" },
+		{ type: "run_started", seq: 7, ts: 3600 },
+		{ type: "compaction_started", reason: "manual" },
+	])
+		applyEvent(conversation, event)
+	return conversation
+}
+
+test("a /compact leaves the turn before it folded while it runs, and adds no time to it", () => {
+	const conversation = settledTurnThenCompact()
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
+
+	applyEvent(conversation, { type: "compaction_ended", reason: "manual" })
+	assert.equal(conversation.liveLabel, null)
+	applyEvent(conversation, { type: "compaction", seq: 8, ts: 3700, reason: "manual", summary: "Fixed it.", compact_up_to_seq: 6 })
+	applyEvent(conversation, { type: "run_ended", seq: 9, ts: 3700, reason: "done" })
+	assert.equal(buildItems(conversation)[1].label, "Worked for 5s")
+})
+
+test("the status line comes back once a compaction or a retry hands the run back", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started", seq: 1 })
+	applyEvent(conversation, { type: "compaction_started", reason: "threshold" })
+	assert.equal(conversation.liveLabel, "Compacting context")
+	applyEvent(conversation, { type: "compaction_ended", reason: "threshold" })
+	assert.equal(conversation.liveLabel, "Working")
+	applyEvent(conversation, { type: "retry", status: "scheduled" })
+	applyEvent(conversation, { type: "retry", status: "started" })
+	assert.equal(conversation.liveLabel, "Working")
+})
