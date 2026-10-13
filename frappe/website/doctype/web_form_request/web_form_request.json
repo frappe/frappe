@@ -63,7 +63,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "JSON object of values set on the document on submission, keyed by fieldname. Never sent to the browser. Example: <code>{\"status\": \"Open\"}</code>",
+   "description": "JSON object of values set on the document on submission, keyed by fieldname. Not prefilled in the form. Returned with the saved document. Example: <code>{\"status\": \"Open\"}</code>",
    "fieldname": "doc_values",
    "fieldtype": "Code",
    "label": "Doc Values",
