@@ -419,6 +419,7 @@ class DatabaseQuery:
 			} | self.__dict__
 			return controller.get_list(kwargs)
 
+		self.with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
 		self.columns = self.get_table_columns()
 
 		# no table & ignore_ddl, return
@@ -427,7 +428,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if sbool(with_comment_count) and not as_list and self.doctype:
+		if self.with_comment_count:
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -508,6 +509,9 @@ from {tables}
 		self.set_optional_columns()
 		self.build_conditions()
 		self.apply_fieldlevel_read_permissions()
+		# selected after the permission check: never user-requestable, popped in add_comment_count
+		if self.with_comment_count and not self.group_by and "_comments" in self.columns:
+			self.fields.append(f"`tab{self.doctype}`.`_comments`")
 
 		args = frappe._dict()
 
@@ -1027,6 +1031,13 @@ from {tables}
 			if not columns:
 				continue
 
+			# `_comments` is a cache column, unreadable even inside an expression with permitted fields
+			if frappe.session.user != "Administrator" and any(
+				c.rsplit(".", 1)[-1].strip("`") == "_comments" for c in columns
+			):
+				self.remove_field(i)
+				continue
+
 			column = columns[0]
 			# handle * fields
 			if column == "*" and "*" in field:
@@ -1097,6 +1108,14 @@ from {tables}
 
 		additional_filters_config = get_additional_filters_from_hooks()
 		f = get_filter(self.doctype, f, additional_filters_config)
+
+		# `_comments` is a cache column, never a filterable field
+		if (
+			f.fieldname == "_comments"
+			and not self.flags.ignore_permissions
+			and frappe.session.user != "Administrator"
+		):
+			raise frappe.PermissionError(f.fieldname)
 
 		tname = "`tab" + f.doctype + "`"
 		if tname not in self.tables:
@@ -1618,12 +1637,12 @@ from {tables}
 
 	def add_comment_count(self, result):
 		for r in result:
+			comments = r.pop("_comments", None)
 			if not r.name:
 				continue
 
-			r._comment_count = 0
-			if "_comments" in r:
-				r._comment_count = len(json.loads(r._comments or "[]"))
+			# perf: Avoid parsing _comments, this is just a "UX feature"
+			r._comment_count = comments.count('"name"') if comments else 0
 
 	def update_user_settings(self):
 		# update user settings if new search
