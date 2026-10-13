@@ -277,6 +277,8 @@
 /* There is room below, so a long label wraps instead of being cut off. */
 .es-stepper__item > .es-stepper__step > .es-stepper__label {
     white-space: normal;
+    /* a clickable step is a <button>, which centres its text */
+    text-align: start;
 }
 
 /* Every step stays readable here, since its content is open below it. */
