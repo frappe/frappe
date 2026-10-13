@@ -361,9 +361,24 @@ export default class Grid {
 				if (!this.frm) {
 					this.df.data = this.get_data();
 					this.df.data = this.df.data.filter((row) => row.idx != doc.idx);
+					this.grid_rows_by_docname[doc.name]?.remove();
+					dirty = true;
+					return;
 				}
-				this.grid_rows_by_docname[doc.name]?.remove();
-				dirty = true;
+				if (!this.is_editable()) return;
+				return this.frm.script_manager
+					.trigger("before_" + this.df.fieldname + "_remove", doc.doctype, doc.name)
+					.then(() => {
+						frappe.model.clear_doc(doc.doctype, doc.name);
+						dirty = true;
+						this.frm.script_manager.trigger(
+							this.df.fieldname + "_remove",
+							doc.doctype,
+							doc.name
+						);
+						this.frm.dirty();
+					})
+					.catch((e) => console.trace(e));
 			});
 			tasks.push(() => frappe.timeout(0.1));
 		});
