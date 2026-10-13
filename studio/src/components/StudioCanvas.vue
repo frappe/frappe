@@ -1,7 +1,12 @@
 <template>
 	<div ref="canvasContainer" @click="handleClick">
 		<slot name="header"></slot>
-		<div class="overlay absolute" :class="{ 'pointer-events-none': isOverDropZone }" ref="overlay" />
+		<div
+			class="overlay absolute"
+			:class="{ 'pointer-events-none': isOverDropZone }"
+			data-theme="light"
+			ref="overlay"
+		/>
 		<DropIndicator />
 		<BlockSnapGuides />
 		<Transition name="fade">
@@ -21,7 +26,20 @@
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,
 			}"
 		>
-			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-5 bg-surface-base px-3">
+			<div class="absolute right-0 top-[-60px] flex rounded-5 bg-surface-base px-3">
+				<Tooltip text="Toggle Canvas Theme" :hoverDelay="600">
+					<div
+						v-show="!canvasProps.scaling && !canvasProps.panning"
+						class="w-auto cursor-pointer p-2"
+						@click.stop="store.isCanvasDark = !store.isCanvasDark"
+					>
+						<span
+							class="h-8 w-6 text-ink-gray-6"
+							:class="store.isCanvasDark ? 'lucide-sun' : 'lucide-moon'"
+						/>
+					</div>
+				</Tooltip>
+				<div v-show="!canvasProps.scaling && !canvasProps.panning" class="m-2 my-3 w-px bg-surface-gray-3" />
 				<div
 					v-show="!canvasProps.scaling && !canvasProps.panning"
 					class="w-auto cursor-pointer p-2"
@@ -34,8 +52,8 @@
 						:class="[
 							breakpoint.icon,
 							{
-								'dark:text-zinc-50 text-ink-gray-6': breakpoint.visible,
-								'dark:text-zinc-500 text-ink-gray-2': !breakpoint.visible,
+								'text-ink-gray-6': breakpoint.visible,
+								'text-ink-gray-2': !breakpoint.visible,
 							},
 						]"
 					/>
@@ -44,17 +62,18 @@
 			<div class="flex gap-40">
 				<div
 					class="canvas relative flex bg-surface-base shadow-2xl contain-layout"
+					:data-theme="store.isCanvasDark ? 'dark' : 'light'"
 					v-for="breakpoint in visibleBreakpoints"
 					:key="breakpoint.device"
 					:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 					:style="{
 						...canvasStyles,
-						background: canvasProps.background,
 						width: `${breakpoint.width}px`,
 					}"
 				>
 					<div
-						class="cursor dark:text-zinc-300 absolute left-0 select-none text-4xl text-ink-gray-6"
+						class="cursor absolute left-0 select-none text-4xl text-ink-gray-6"
+						:data-theme="store.isDark ? 'dark' : 'light'"
 						:style="{
 							fontSize: `calc(${12}px * 1/${canvasProps.scale})`,
 							top: `calc(${-20}px * 1/${canvasProps.scale})`,
@@ -104,7 +123,7 @@
 
 <script setup lang="ts">
 import { Ref, ref, watch, reactive, computed, onMounted, provide } from "vue"
-import { LoadingIndicator } from "frappe-ui"
+import { LoadingIndicator, Tooltip } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 import DraggablePopup from "@/components/DraggablePopup.vue"
@@ -145,7 +164,6 @@ const showBlocks = ref(false)
 
 const canvasProps = reactive({
 	overlayElement: null,
-	background: "#fff",
 	scale: 1,
 	translateX: 0,
 	translateY: 0,
@@ -420,10 +438,10 @@ defineExpose({
 
 <style>
 .hovered-block {
-	@apply border-outline-blue-3 text-ink-gray-6 dark:border-outline-blue-9 dark:text-ink-gray-4;
+	@apply border-outline-blue-3 text-ink-gray-6;
 }
 .block-selected {
-	@apply border-outline-blue-4 text-ink-gray-8 dark:border-outline-blue-7 dark:text-ink-gray-1;
+	@apply border-outline-blue-4 text-ink-gray-8;
 }
 .slot-selected {
 	@apply border-outline-purple-4 text-ink-gray-8;

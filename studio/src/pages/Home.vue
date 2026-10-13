@@ -3,7 +3,16 @@
 		<div
 			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between border-b border-outline-gray-2 bg-surface-base px-3 py-2"
 		>
-			<Dropdown :options="[{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }]">
+			<Dropdown
+				:options="[
+					{
+						label: 'Toggle Theme',
+						icon: store.isDark ? 'lucide-sun' : 'lucide-moon',
+						onClick: () => store.toggleTheme(),
+					},
+					{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() },
+				]"
+			>
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-2">
 						<StudioLogo class="h-7 w-7"></StudioLogo>

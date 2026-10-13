@@ -33,7 +33,7 @@
 				/>
 			</div>
 			<div
-				class="grid-col-3 dark:bg-zinc-800 grid h-16 w-16 grid-rows-3 gap-1 self-center justify-self-center rounded-4 bg-surface-gray-1 p-2"
+				class="grid-col-3 grid h-16 w-16 grid-rows-3 gap-1 self-center justify-self-center rounded-4 bg-surface-gray-1 p-2"
 			>
 				<div
 					class="col-span-3 row-start-1 h-2 w-[2px] self-center justify-self-center rounded-4 bg-surface-gray-2"

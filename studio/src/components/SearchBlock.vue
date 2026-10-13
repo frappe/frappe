@@ -31,12 +31,12 @@
 						label="Filters"
 						:class="[
 							'flex items-center gap-2 text-sm',
-							selectedFiltersCount > 0 ? 'border-ink-gray-6 bg-ink-gray-1' : '',
+							selectedFiltersCount > 0 ? 'border-outline-gray-4 bg-surface-gray-3' : '',
 						]"
 					>
 						<span
 							v-if="selectedFiltersCount > 0"
-							class="bg-ink-gray-7 ml-1 rounded-full px-2 py-0.5 text-xs text-ink-base"
+							class="ml-1 rounded-full bg-surface-gray-7 px-2 py-0.5 text-xs text-ink-base"
 						>
 							{{ selectedFiltersCount }}
 						</span>
@@ -60,7 +60,7 @@
 								<span>{{ filter.name }}</span>
 							</label>
 						</div>
-						<div class="border-surface-gray-3 mt-1 border-t px-2 pt-2">
+						<div class="mt-1 border-t border-outline-gray-2 px-2 pt-2">
 							<Button @click="clearAllFilters" variant="subtle" class="w-full">Clear all filters</Button>
 						</div>
 					</div>

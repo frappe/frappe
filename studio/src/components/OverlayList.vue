@@ -9,7 +9,7 @@
 			@click="editOverlay(block)"
 		>
 			<div
-				class="bg-surface-white flex h-7 w-7 shrink-0 items-center justify-center rounded-4"
+				class="flex h-7 w-7 shrink-0 items-center justify-center rounded-4 bg-surface-base"
 				:class="block.isStudioComponent ? 'text-ink-purple-6' : 'text-ink-blue-5'"
 			>
 				<component :is="block.getIcon()" class="h-3.5 w-3.5" />
