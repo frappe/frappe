@@ -57,11 +57,7 @@
 		<template #node-automation="{ id, data }">
 			<div class="relative">
 				<div class="flex items-center">
-					<div
-						class="automation-canvas-block relative w-[252px] shrink-0"
-						:class="blockClasses(id, data)"
-						:style="hueVars(data.tone)"
-					>
+					<div :class="blockClasses(id, data)" :style="hueVars(data.tone)">
 						<Handle
 							v-if="!data.start"
 							id="input"
@@ -76,7 +72,11 @@
 							@pick="emit('pick-start', $event)"
 						>
 							<div
-								class="w-[252px] text-left focus-visible:outline-none"
+								:class="
+									data.empty
+										? 'relative flex h-[87px] w-[212px] flex-col overflow-hidden rounded-[10px] border border-dashed border-outline-gray-3 bg-surface-base shadow-none transition-all'
+										: 'w-[252px] text-left focus-visible:outline-none'
+								"
 								:tabindex="readonly ? -1 : 0"
 								:role="readonly ? undefined : 'button'"
 								:aria-label="nodeLabel(data)"
@@ -84,53 +84,80 @@
 								@keydown.enter.prevent="pressNode"
 								@keydown.space.prevent="pressNode"
 							>
-								<div class="automation-canvas-tab">
-									<span class="automation-canvas-hair" />
-									<Icon
-										v-if="data.icon"
-										:icon="data.icon"
-										class="size-3 shrink-0"
-									/>
-									<span class="truncate">{{ data.kicker }}</span>
-								</div>
-								<div class="automation-canvas-card">
-									<div class="px-3 py-2.5">
+								<template v-if="data.empty">
+									<div
+										class="flex h-[47px] shrink-0 items-center gap-1.5 border-b border-outline-gray-3 px-2"
+									>
 										<div
-											class="truncate text-[14px] font-semibold leading-5 text-ink-gray-9"
+											class="min-w-0 flex-1 truncate text-center text-base font-medium text-ink-gray-9"
 										>
 											{{ data.label }}
 										</div>
-										<div class="truncate text-xs leading-4 text-ink-gray-5">
-											{{ data.detail || "\u00a0" }}
+									</div>
+									<div class="flex min-h-0 flex-1 items-end gap-2 px-2 py-[7px]">
+										<div
+											class="line-clamp-2 min-w-0 flex-1 text-[10px] leading-3 text-ink-gray-7"
+										>
+											{{ data.detail }}
+										</div>
+										<div
+											class="shrink-0 text-[10px] font-medium leading-3 text-ink-gray-8"
+										>
+											{{ data.kicker }}
 										</div>
 									</div>
-									<div class="automation-canvas-foot">
-										<Tooltip
-											:text="data.issue?.message || ''"
-											:disabled="!data.issue"
-										>
-											<span class="flex items-center gap-1.5">
-												<span
-													:key="nodeState(data).key"
-													class="automation-canvas-dot"
-												/>
-												<span class="automation-canvas-status">
-													{{ translate(nodeState(data).label) }}
-												</span>
-											</span>
-										</Tooltip>
-										<Badge
-											v-if="data.run?.forced"
-											:label="translate('Forced')"
-											theme="amber"
-											variant="subtle"
-											size="sm"
+								</template>
+								<template v-else>
+									<div class="automation-canvas-tab">
+										<span class="automation-canvas-hair" />
+										<Icon
+											v-if="data.icon"
+											:icon="data.icon"
+											class="size-3 shrink-0"
 										/>
-										<span v-else class="tabular-nums text-ink-gray-4">
-											{{ formatDuration(data.run?.durationMs) }}
-										</span>
+										<span class="truncate">{{ data.kicker }}</span>
 									</div>
-								</div>
+									<div class="automation-canvas-card">
+										<div class="px-3 py-2.5">
+											<div
+												class="truncate text-[14px] font-semibold leading-5 text-ink-gray-9"
+											>
+												{{ data.label }}
+											</div>
+											<div
+												class="truncate text-xs leading-4 text-ink-gray-5"
+											>
+												{{ data.detail || "\u00a0" }}
+											</div>
+										</div>
+										<div class="automation-canvas-foot">
+											<Tooltip
+												:text="data.issue?.message || ''"
+												:disabled="!data.issue"
+											>
+												<span class="flex items-center gap-1.5">
+													<span
+														:key="nodeState(data).key"
+														class="automation-canvas-dot"
+													/>
+													<span class="automation-canvas-status">
+														{{ translate(nodeState(data).label) }}
+													</span>
+												</span>
+											</Tooltip>
+											<Badge
+												v-if="data.run?.forced"
+												:label="translate('Forced')"
+												theme="amber"
+												variant="subtle"
+												size="sm"
+											/>
+											<span v-else class="tabular-nums text-ink-gray-4">
+												{{ formatDuration(data.run?.durationMs) }}
+											</span>
+										</div>
+									</div>
+								</template>
 							</div>
 						</AutomationCanvasPicker>
 						<Handle
@@ -399,7 +426,9 @@ function picksStart(data: AutomationCanvasNodeData) {
 
 /** `nodrag` because dragging swallows the click that opens the start picker. */
 function blockClasses(id: string, data: AutomationCanvasNodeData) {
+	if (data.empty) return ["relative w-[212px] shrink-0", { nodrag: picksStart(data) }];
 	return [
+		"automation-canvas-block relative w-[252px] shrink-0",
 		`is-${nodeState(data).key}`,
 		{
 			"is-selected": !props.readonly && props.selectedId === id,
@@ -415,7 +444,6 @@ function nodeState(data: AutomationCanvasNodeData) {
 }
 
 function setupState(data: AutomationCanvasNodeData): [string, string] {
-	if (data.empty) return ["empty", "Not set"];
 	if (data.issue?.level === "error") return ["error", "Has errors"];
 	if (data.issue) return ["incomplete", "Needs setup"];
 	return ["ready", "Ready"];
@@ -622,12 +650,6 @@ defineExpose<AutomationCanvasExposed>({ fitView: () => refitFlow() });
 		drop-shadow(0 2px 5px color-mix(in oklch, var(--hue-dot) 14%, transparent));
 }
 
-.automation-canvas :deep(.automation-canvas-block.is-empty) {
-	--line: var(--outline-gray-3);
-	filter: none;
-}
-
-.automation-canvas :deep(.is-empty .automation-canvas-card),
 .automation-canvas :deep(.is-incomplete .automation-canvas-card) {
 	border-style: dashed;
 }
@@ -762,7 +784,7 @@ defineExpose<AutomationCanvasExposed>({ fitView: () => refitFlow() });
 
 <style>
 /* A faint black shadow reads as nothing on the dark canvas. */
-[data-theme="dark"] .automation-canvas .automation-canvas-block:not(.is-selected, .is-empty) {
+[data-theme="dark"] .automation-canvas .automation-canvas-block:not(.is-selected) {
 	filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.5)) drop-shadow(0 6px 12px rgb(0 0 0 / 0.35));
 }
 </style>
