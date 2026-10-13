@@ -114,11 +114,14 @@ let page_size_seq = 0;
 function load_page_size() {
 	const seq = ++page_size_seq;
 	frappe
-		.call("frappe.utils.print_format_generator.get_page_size_mm")
+		.call("frappe.utils.print_format_generator.get_page_size_mm", {
+			page: layout.value.page || null,
+		})
 		.then((r) => seq === page_size_seq && r.message && (page_mm.value = r.message));
 }
 onMounted(load_page_size);
 watch(inject("print_settings_rev", ref(0)), load_page_size);
+watch(() => JSON.stringify(layout.value.page || null), load_page_size);
 
 const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
 watch(

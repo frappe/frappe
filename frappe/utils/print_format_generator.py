@@ -340,10 +340,27 @@ def page_size_mm(print_settings) -> tuple[float, float]:
 BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\s\"'()\\<>]+")
 
 
+def layout_page_settings(layout) -> dict:
+	"""The paper size and orientation a builder layout saves, as Print Settings keys."""
+	page = layout.get("page") if isinstance(layout, dict) else None
+	if not isinstance(page, dict):
+		return {}
+	settings = {}
+	sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+	if page.get("size") in sizes and page.get("size") != "Custom":
+		settings["pdf_page_size"] = page["size"]
+	if page.get("orientation") in ("Portrait", "Landscape"):
+		settings["page_orientation"] = page["orientation"]
+	return settings
+
+
 @frappe.whitelist()
-def get_page_size_mm():
+def get_page_size_mm(page: dict | str | None = None):
 	"""Paper size the builder canvas should draw, in mm."""
-	return page_size_mm(frappe.get_cached_doc("Print Settings"))
+	settings = frappe.get_cached_doc("Print Settings").as_dict()
+	settings.update(layout_page_settings({"page": frappe.parse_json(page)}))
+	width, height = page_size_mm(settings)
+	return (height, width) if settings.get("page_orientation") == "Landscape" else (width, height)
 
 
 MAX_CONDITIONS = 200
@@ -437,12 +454,28 @@ class PrintFormatGenerator:
 			return None
 		return frappe.get_doc("Letter Head", name)
 
+	def format_page_settings(self) -> dict:
+		try:
+			layout = frappe.parse_json(self.print_format.format_data)
+		except Exception:
+			return {}
+		return layout_page_settings(layout)
+
+	def apply_page_orientation(self):
+		settings = self.print_settings
+		if settings.get("page_orientation") == "Landscape":
+			width, height = page_size_mm(settings)
+			settings.pdf_page_size = "Custom"
+			settings.pdf_page_width, settings.pdf_page_height = height, width
+
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
+		self.print_settings.update(self.format_page_settings())
 		if self.settings_override:
 			from frappe.www.printview import get_allowed_print_settings_override
 
 			self.print_settings.update(get_allowed_print_settings_override(self.doc, self.settings_override))
+		self.apply_page_orientation()
 
 		from frappe.www.printview import run_before_print
 
