@@ -124,5 +124,6 @@ def validate_show_for_module(field, doctype: str | None = None) -> None:
 
 	if module not in get_business_module_names():
 		frappe.throw(
-			_("{0} is not a registered business module (field {1}).").format(frappe.bold(module), where)
+			_("{0} is not a registered business module (field {1}).").format(frappe.bold(module), where),
+			title=_("Invalid Module"),
 		)
