@@ -9,8 +9,8 @@ frappe.provide("frappe.ui");
  * Profile are pages of their own (desk/page/search, notifications, profile), for phones only.
  *
  * The tabs are the same everywhere. Where you are lives in the page header instead: tapping
- * the page title opens a sheet with the dock across the top and the sidebar under it
- * (see open_navigation). New opens a sheet too; both are a frappe.ui.BottomSheet.
+ * the page title opens a frappe.ui.BottomSheet with the dock across the top and the
+ * sidebar under it (see open_navigation).
  *
  * It is always in the DOM once built; mobile_nav.scss shows it below the md breakpoint
  * only, so rotating or resizing past 768px needs no JS. It is built when
@@ -60,12 +60,6 @@ frappe.ui.MobileNav = class MobileNav {
 				icon: "search",
 				to: "/desk/search",
 			},
-			{
-				name: "new",
-				label: __("New"),
-				icon: "plus",
-				on_click: () => this.open_new(),
-			},
 			notifications && {
 				name: "notifications",
 				label: __("Notifications"),
@@ -84,15 +78,8 @@ frappe.ui.MobileNav = class MobileNav {
 	make_tab(tab) {
 		const item = document.createElement("frappe-mobile-nav-item");
 		item.setAttribute("label", tab.label);
-		// with `to` the item is a link Desk's router picks up; without, a button
-		if (tab.to) item.setAttribute("to", tab.to);
+		item.setAttribute("to", tab.to);
 		item.innerHTML = frappe.utils.icon(tab.icon, "md");
-		if (tab.on_click) {
-			item.addEventListener("click", (e) => {
-				// the element also re-emits its Vue `click` as a CustomEvent; act once
-				if (e instanceof MouseEvent) tab.on_click(e);
-			});
-		}
 		this.nav.appendChild(item);
 		return { ...tab, el: item };
 	}
@@ -123,7 +110,6 @@ frappe.ui.MobileNav = class MobileNav {
 		frappe.set_route(doctype ? ["List", doctype] : "/desk");
 	}
 
-	// Every tab but New is a place; New opens a sheet over the page.
 	set_active() {
 		const route = frappe.get_route() || [];
 		// /desk (the app launcher) routes as [""]
@@ -243,35 +229,6 @@ frappe.ui.MobileNav = class MobileNav {
 	module_label(module) {
 		const label = frappe.boot.module_sidebars?.[module]?.label || module;
 		return label ? __(label) : __("Apps");
-	}
-
-	// A new document of any doctype the sidebar on screen lists and the user can create.
-	open_new() {
-		const sidebar = frappe.app.sidebar;
-		const seen = new Set();
-		const items = (sidebar?.sidebar_data?.items || []).filter((item) => {
-			const doctype = item.type === "Link" && item.link_type === "DocType" && item.link_to;
-			if (!doctype || seen.has(doctype) || !frappe.model.can_create(doctype)) return false;
-			seen.add(doctype);
-			return true;
-		});
-
-		this.open_sheet(__("New"), () =>
-			items.length
-				? {
-						options: items.map((item) => ({
-							// the doctype, not the row's label: rows are often views such as "All"
-							label: __(item.link_to),
-							icon: item.icon || "file",
-							onclick: () => frappe.new_doc(item.link_to),
-						})),
-				  }
-				: {
-						content: __("Nothing to create in {0}", [
-							this.module_label(sidebar?.current_module),
-						]),
-				  }
-		);
 	}
 };
 
