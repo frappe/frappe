@@ -383,6 +383,7 @@ class Session:
 			# the branch point the target resolved to: a marker never anchors a chain
 			self._commit(Rewind(target_seq=candidate.leaf_seq))
 			self.transcript = candidate
+			self._discard_steering()
 
 	async def set_model(
 		self,
@@ -430,8 +431,9 @@ class Session:
 
 	async def cancel_pending(self) -> bool:
 		"""Abandon a paused run's approval batch: answer every undecided call with a
-		cancellation so the transcript closes and the session returns to idle. While the
-		session runs, this abandons the batches its sub-agents wait on instead."""
+		cancellation so the transcript closes and the session returns to idle, dropping any
+		steering that waited on it. While the session runs, this abandons the batches its
+		sub-agents wait on instead."""
 		async with self._operation_lock:
 			if self.state is SessionState.RUNNING:
 				if self._subagent_runner.cancel_pending():
@@ -444,6 +446,7 @@ class Session:
 				self._commit(
 					ToolResult(tool_call_id=call.id, name=call.name, content=CANCELLED, is_error=True)
 				)
+			self._discard_steering()
 			return True
 
 	def report_run_end(self) -> None:
@@ -687,6 +690,8 @@ class Session:
 				partial.observe(event)
 				if isinstance(event, AssistantMessage) and event.stop_reason == "aborted":
 					aborted_terminal = True
+				if isinstance(event, RunEnded) and event.reason != "paused":
+					self._discard_steering()
 				self._commit(event)
 		except (ModelCancelled, asyncio.CancelledError) as cancelled:
 			self._settle(

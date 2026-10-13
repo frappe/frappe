@@ -474,7 +474,7 @@ export function createFlowStore(client, options = {}) {
 		}
 		// the server discards steering it never consumed, and no echo will clear it; the
 		// messages still waiting stay for the user to send or take back
-		if (event.type === "run_ended" && ["aborted", "error"].includes(event.reason))
+		if (event.type === "run_ended" && event.reason !== "paused")
 			state.conversation.steering = []
 		if (event.type === "run_ended") lastRunEnd = event.reason
 		// a run that ran its course hands the next waiting message a turn of its own

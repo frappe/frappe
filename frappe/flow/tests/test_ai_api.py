@@ -529,6 +529,40 @@ class TestSessionEndpoints(ApiCase):
 			self.assertEqual(api.run(name, "hi")["status"], "started")
 		self.assertEqual(self.daemon.calls[-1], ("run", name, "hi"))
 
+	def test_resume_syncs_again_when_a_concurrent_sync_commits_first(self):
+		self.daemon.answer = pause
+		name = self.create()
+		run = api.run(name, "delete it")["run"]
+		real_sync = FlowSession.sync
+		syncs = []
+
+		def sync(doc):
+			syncs.append(doc.name)
+			if len(syncs) == 1:
+				raise frappe.TimestampMismatchError
+			return real_sync(doc)
+
+		with patch.object(FlowSession, "sync", sync), patch.object(frappe.db, "rollback"):
+			self.assertEqual(api.resume(name, '{"c9": "Approve"}'), {"run": run, "status": "started"})
+		self.assertEqual(self.run_status(run), "Running")
+
+	def test_cancel_pending_syncs_again_when_a_concurrent_sync_commits_first(self):
+		self.daemon.answer = pause
+		name = self.create()
+		run = api.run(name, "delete it")["run"]
+		real_sync = FlowSession.sync
+		syncs = []
+
+		def sync(doc):
+			syncs.append(doc.name)
+			if len(syncs) == 1:
+				raise frappe.QueryDeadlockError
+			return real_sync(doc)
+
+		with patch.object(FlowSession, "sync", sync), patch.object(frappe.db, "rollback"):
+			self.assertEqual(api.cancel_pending(name), {"status": "cancelled"})
+		self.assertEqual(self.run_status(run), "Failed")
+
 	def test_run_takes_attachments_as_a_json_list(self):
 		file_doc = frappe.get_doc(
 			{"doctype": "File", "file_name": "notes.txt", "content": "the body", "is_private": 1}
@@ -539,6 +573,14 @@ class TestSessionEndpoints(ApiCase):
 			self.daemon.calls[-1], ("run", name, 'read\n<file name="notes.txt">\nthe body\n</file>')
 		)
 		self.assertEqual(frappe.db.count("Flow Session Attachment", {"parent": name}), 1)
+
+	def test_run_sends_a_file_without_a_message(self):
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "notes.txt", "content": "the body", "is_private": 1}
+		).insert()
+		name = self.create()
+		self.assertEqual(api.run(name, "", attachments=json.dumps([file_doc.name]))["status"], "started")
+		self.assertEqual(self.daemon.calls[-1], ("run", name, '\n<file name="notes.txt">\nthe body\n</file>'))
 
 	def test_run_refuses_a_malformed_attachment_list(self):
 		name = self.create()

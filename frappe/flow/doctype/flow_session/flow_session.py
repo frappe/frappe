@@ -21,6 +21,7 @@ from flow.lib.session import (
 	call_on_complete,
 	fail_running,
 	flow_server,
+	sync_with_retry,
 )
 
 if TYPE_CHECKING:
@@ -156,8 +157,9 @@ class FlowSession(Document):
 		on_complete: str | None = None,
 	) -> FlowRun:
 		"""Start a turn and return its Running Flow Run, or the active run it joined.
-		`attachments` are File names whose content travels with this turn. Once the run
-		ends, Flow calls the function at the dotted path `on_complete` with it."""
+		`attachments` are File names whose content travels with this turn; with them, `input`
+		may be empty. Once the run ends, Flow calls the function at the dotted path
+		`on_complete` with it."""
 		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import (
 			build_turn,
 			cleanup_indexed_files,
@@ -165,7 +167,7 @@ class FlowSession(Document):
 		from flow.flow.doctype.flow_skill.flow_skill import expand_skill_command
 		from flow.memory.memory import memory_block
 
-		if not (input or "").strip():
+		if not (input or "").strip() and not attachments:
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
 		self._assert_can_run()
 		self.sync()
@@ -219,7 +221,7 @@ class FlowSession(Document):
 		"""Answer the paused run's approval batch, keyed by tool call id; `approval_seq` names
 		a sub-agent's batch instead, which the run kept running through."""
 		self._assert_can_run()
-		self.sync()
+		sync_with_retry(self)
 		run = self._paused_run(approval_seq)
 		with flow_server() as client:
 			client.resume(self.name, answers, approval_seq=approval_seq or run.approval_seq)
@@ -237,7 +239,7 @@ class FlowSession(Document):
 		with flow_server() as client:
 			status = client.cancel_pending(self.name)["status"]
 		if status == "cancelled":
-			self.sync()
+			sync_with_retry(self)
 			call_on_complete(self)
 		return status
 
