@@ -79,14 +79,17 @@ class TestUser(FrappeTestCase):
 				first_name="Manager",
 				roles=[{"role": "System Manager"}],
 			).insert()
+			self.addCleanup(frappe.delete_doc, "User", manager.name, force=True, ignore_permissions=True)
 			frappe.set_user(manager.name)
 
-		return frappe.get_doc(
+		user = frappe.get_doc(
 			doctype="User",
 			email=f"{frappe.generate_hash()}@example.com",
 			first_name=first_name,
 			username=username,
 		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True, ignore_permissions=True)
+		return user
 
 	def test_username_from_a_taken_first_name(self):
 		first_name = f"Tester {frappe.generate_hash(length=8)}"
