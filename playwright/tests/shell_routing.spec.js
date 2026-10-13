@@ -124,6 +124,34 @@ test.describe("Desk URL shell segment", () => {
 		}
 	});
 
+	test("keeps a private page made in a module in that module's shell", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const name = `Test Module Private Page-${TEST_USER}`;
+		await api.remove_doc("Workspace", name, true);
+
+		try {
+			await page.goto("/desk/build");
+			await desk.ready();
+			await expect_shell(page, "Build");
+
+			await page.locator('.page-icon-group button[aria-haspopup="menu"]').click();
+			await page.getByRole("menuitem", { name: "New", exact: true }).click();
+			await desk.fill_field("title", "Test Module Private Page");
+			await desk.click_modal_primary_button("Create");
+
+			await expect
+				.poll(() => pathname(page))
+				.toBe("/desk/build/private/test-module-private-page");
+			await expect.poll(() => current_module(page)).toBe("Build");
+			await expect_shell(page, "Build");
+		} finally {
+			await api.remove_doc("Workspace", name, true);
+		}
+	});
+
 	test("opens the Private shell on the first item of its sidebar, page or not", async ({
 		page,
 		api,
