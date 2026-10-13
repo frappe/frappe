@@ -462,6 +462,7 @@ async def test_a_steer_waiting_through_an_approval_reaches_the_resumed_run(tmp_p
 	[
 		({"confirm_tools": ["read"]}, "deny", ["paused", "denied"]),
 		({"confirm_tools": ["read"]}, "cancel", ["paused"]),
+		({"confirm_tools": ["read"]}, "rewind", ["paused"]),
 		({"max_turns": 1}, None, ["max_turns"]),
 		({"token_budget": 5}, None, ["budget"]),
 	],
@@ -474,6 +475,8 @@ async def test_a_steer_still_waiting_when_the_run_ends_is_dropped(tmp_path, conf
 		await _resume(session, {"c1": "Deny"})
 	elif ending == "cancel":
 		assert await session.cancel_pending() is True
+	elif ending == "rewind":
+		await session.rewind(0)
 	assert [e["reason"] for e in _of(events, "run_ended")] == ends
 
 	await _run(session, "next", model=MockModel(replies=[AssistantMessage(content="ok")]))

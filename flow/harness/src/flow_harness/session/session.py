@@ -383,6 +383,7 @@ class Session:
 			# the branch point the target resolved to: a marker never anchors a chain
 			self._commit(Rewind(target_seq=candidate.leaf_seq))
 			self.transcript = candidate
+			self._discard_steering()
 
 	async def set_model(
 		self,
