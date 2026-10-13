@@ -89,7 +89,7 @@ login.bind_events = function () {
 			return false;
 		}
 		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner .es-alert__title").then(() => {
-			$("section:visible .login-success-banner").removeClass("hidden");
+			login.show_success_banner();
 			$("section:visible .resend-link").removeClass("hidden");
 			login.set_status({{ _("Sent") | tojson }});
 			$("section:visible .btn-login-with-email-link").prop("disabled", true);
@@ -260,11 +260,15 @@ login.show_field_error = function (input_id, message) {
 };
 
 login.show_error_banner = function (message) {
-	$("section:visible .login-error-banner").removeClass("hidden").find(".es-alert__title").text(message);
+	$("section:visible .login-success-banner").addClass("hidden");
+	const $banner =$("section:visible .login-error-banner").removeClass("hidden");
+	if (message) $banner.find(".es-alert__title").text(message);
 };
 
 login.show_success_banner = function (message) {
-	$("section:visible .login-success-banner").removeClass("hidden").find(".es-alert__title").text(message);
+	$("section:visible .login-error-banner").addClass("hidden");
+	const $banner = $("section:visible .login-success-banner").removeClass("hidden");
+	if (message) $banner.find(".es-alert__title").text(message);
 };
 
 login.set_invalid = function (message) {
@@ -347,15 +351,13 @@ login.login_handlers = (function () {
 				// Always show the same message regardless of whether the account
 				// exists or not, to prevent username enumeration (CWE-204).
 				login.set_status({{ _("Sent") | tojson }}, 'green');
-				$("section:visible .login-success-banner").removeClass("hidden");
+				login.show_success_banner();
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.hide_loading();
-					$("section:visible .login-success-banner").addClass("hidden");
 					login.show_error_banner(data.message[1]);
 				} else {
 					login.set_status({{ _("Success") | tojson }}, 'green');
-					$("section:visible .login-error-banner").addClass("hidden");
 					login.show_success_banner(data.message[1]);
 				}
 			}
