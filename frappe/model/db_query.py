@@ -323,7 +323,9 @@ from {tables}
 		self.set_optional_columns()
 		self.build_conditions()
 		self.apply_fieldlevel_read_permissions()
-		if self.with_comment_count and self.distinct and not self.selects_own_name():
+		# read now: table prefixes and postgres casts below rewrite the fields
+		self.has_own_name = self.selects_own_name()
+		if self.with_comment_count and self.distinct and not self.has_own_name:
 			# a distinct row without the document's name can stand for several documents
 			self.with_comment_count = False
 		# selected after the permission check: never user-requestable, popped in add_comment_count
@@ -1296,11 +1298,10 @@ from {tables}
 			return ""
 
 	def add_comment_count(self, result):
-		# the own name under any alias, like `name as id`, makes every row one document
-		selects_own_name = self.selects_own_name()
 		for r in result:
 			comments = r.pop("_comments", None)
-			if not (selects_own_name or r.name):
+			# the own name under any alias, like `name as id`, makes every row one document
+			if not (self.has_own_name or r.name):
 				continue
 
 			# perf: Avoid parsing _comments, this is just a "UX feature"
