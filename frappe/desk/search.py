@@ -119,8 +119,9 @@ def add_images(rows: list[LinkSearchResults], doctype: str) -> None:
 	image_field = get_image_field(doctype)
 	if not image_field or not rows:
 		return
+	# a Link field may list records outside the user's permissions; their images stay hidden
 	images = dict(
-		frappe.get_all(
+		frappe.get_list(
 			doctype,
 			filters={"name": ["in", [r["value"] for r in rows]]},
 			fields=["name", image_field],
