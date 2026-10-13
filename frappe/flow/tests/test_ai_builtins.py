@@ -419,6 +419,20 @@ class TestExecute(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			execute(code="import os\nresult = os.getcwd()", description="Get working directory", ctx=CTX)
 
+	def test_a_caught_write_failure_still_fails_the_call(self):
+		code = """
+try:
+	create("ToDo", [{"description": "ai execute works"}, {"description": "ai execute fails"}])
+except Exception:
+	pass
+result = "done"
+"""
+		with (
+			_todo_hook_fails("after_insert", "ai execute fails"),
+			self.assertRaisesRegex(ValueError, "Record 2 of 2: hook failed"),
+		):
+			execute(code=code, description="Create two ToDos", ctx=CTX)
+
 
 class TestCreate(IntegrationTestCase):
 	def tearDown(self):

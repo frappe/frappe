@@ -464,7 +464,12 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 
 	The user approves each call before it runs.
 	"""
+	frappe.flags.flow_undone_batch = None
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
+	if frappe.flags.flow_undone_batch:
+		raise ValueError(
+			f"{frappe.flags.flow_undone_batch}\nA failed write fails the whole call, even when caught."
+		)
 	return exec_globals.get("result")
 
 
@@ -699,7 +704,8 @@ def _undo_batch(record: str, error: Exception) -> NoReturn:
 	except Exception:  # a commit in the batch, such as before a schema change, took the savepoint
 		frappe.db.rollback()
 		undone = "Some earlier changes may already be committed; check the records before retrying."
-	raise ValueError(f"{record}: {_error_text(error)}\n{undone}") from error
+	frappe.flags.flow_undone_batch = message = f"{record}: {_error_text(error)}\n{undone}"
+	raise ValueError(message) from error
 
 
 BUILTIN_TOOLS: list[Tool] = [
