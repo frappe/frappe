@@ -449,23 +449,24 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertEqual(rows[0]._comment_count, 0)
 
 	def test_comment_count_skips_self_link_name(self):
-		folder = frappe.get_doc(
-			doctype="File", file_name=frappe.generate_hash(length=8), is_folder=1
-		).insert()
-		for i in range(2):
-			frappe.get_doc(
-				doctype="File", file_name=f"comment count {i}.txt", content="x", folder=folder.name
-			).insert().add_comment("Comment", f"comment {i}")
-		rows = frappe.get_list(
-			"File",
-			fields=["folder.name"],
-			filters={"folder": folder.name},
-			distinct=True,
-			with_comment_count=1,
-		)
-		# the linked folder's name is not the row's own name, so files must not split the row
-		values = [tuple(v for k, v in row.items() if k != "_comment_count") for row in rows]
-		self.assertEqual(len(values), len(set(values)))
+		with setup_test_user(set_user=True):
+			folder = frappe.get_doc(
+				doctype="File", file_name=frappe.generate_hash(length=8), is_folder=1
+			).insert()
+			for i in range(2):
+				frappe.get_doc(
+					doctype="File", file_name=f"comment count {i}.txt", content="x", folder=folder.name
+				).insert().add_comment("Comment", f"comment {i}")
+			rows = frappe.get_list(
+				"File",
+				fields=["folder.name"],
+				filters={"folder": folder.name},
+				distinct=True,
+				with_comment_count=1,
+			)
+			# the linked folder's name is not the row's own name, so files must not split the row
+			values = [tuple(v for k, v in row.items() if k != "_comment_count") for row in rows]
+			self.assertEqual(len(values), len(set(values)))
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
