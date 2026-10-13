@@ -19,8 +19,8 @@ from pathlib import Path
 import frappe
 from frappe.database.sqlite.database import SQLiteDatabase
 
-#: Basename of the log database, stored as `<site>/logs/<LOG_DB_NAME>.db`.
-LOG_DB_NAME = "logs"
+#: Basename of the log database, stored as `<site>/private/files/<LOG_DB_NAME>.db`.
+LOG_DB_NAME = "sqlite"
 
 
 class LogDatabase(SQLiteDatabase):
@@ -29,14 +29,14 @@ class LogDatabase(SQLiteDatabase):
 	Differs from :class:`~frappe.database.sqlite.database.SQLiteDatabase` in two ways.
 
 	Where the file lives: the base class keeps site databases in `<site>/db/`, while log
-	data belongs in `<site>/logs/` next to the site's other log output.
+	data lives in `<site>/private/files/`.
 
 	And how it treats transactions. The base class wraps work in a transaction and opens a
 	fresh one after every commit, which is right for a site's primary database, where a
 	request is one atomic unit. A log database is the opposite: each record is independent
 	and has to be durable the moment it is written -- an Error Log describing a failure is
 	worthless if it rolls back with the failure. Grouping log writes into a transaction also
-	makes them share a lock, so a single write that never reaches its commit holds `logs.db`
+	makes them share a lock, so a single write that never reaches its commit holds `sqlite.db`
 	against every other process for the life of the connection. Running in autocommit
 	removes both problems: every statement is its own transaction, and no lock outlives the
 	statement that took it.
@@ -46,8 +46,8 @@ class LogDatabase(SQLiteDatabase):
 		super().__init__(cur_db_name=LOG_DB_NAME)
 
 	def get_db_path(self) -> Path:
-		"""Return `<site>/logs/logs.db`."""
-		return Path(frappe.get_site_path()) / "logs" / f"{self.cur_db_name}.db"
+		"""Return `<site>/private/files/sqlite.db`."""
+		return Path(frappe.get_site_path("private", "files")) / f"{self.cur_db_name}.db"
 
 	def connect(self):
 		# sqlite3 creates the database file on connect, but not its parent directory.

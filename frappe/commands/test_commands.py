@@ -788,7 +788,7 @@ class TestBackups(BaseTestCommands):
 	def test_clear_log_table(self):
 		# Error Log rows live in the site's log database, so the command has no table in the
 		# primary database to back up, copy or swap -- it should delete the aged-out rows
-		# from `logs.db` and leave the primary database's tables untouched.
+		# from `sqlite.db` and leave the primary database's tables untouched.
 		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
 		d.db_set("creation", "2010-01-01", update_modified=False)
 		frappe.db.commit()
