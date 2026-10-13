@@ -602,6 +602,23 @@ describe("useDataImport: start and stop", () => {
     });
   });
 
+  it("with waitForProgress, counts as running only once progress arrives", async () => {
+    responders.form_start_import = () => true;
+    const di = mount(ref("DI-1"));
+    await settle();
+
+    expect(await di.start({ waitForProgress: true })).toBe(true);
+    expect(di.running.value).toBe(false);
+    expect(di.progress.value).toBeNull();
+
+    live.fire("data_import_progress", {
+      data_import: "DI-1",
+      current: 1,
+      total: 10,
+    });
+    expect(di.running.value).toBe(true);
+  });
+
   it("stops the job and reloads", async () => {
     responders.stop_data_import = () => ({
       status: "not_running",

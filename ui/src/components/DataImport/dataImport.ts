@@ -11,6 +11,19 @@ import type {
 export const isImportComplete = (status: DataImportStatus) =>
   status === "Success" || status === "Partial Success";
 
+/** Rows the file check warned about, saved or from the latest preview, in order. */
+export function errorRowNumbers(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined
+): number[] {
+  const saved = parseJson<{ row?: unknown }[]>(doc.template_warnings, []);
+  const rows = new Set<number>();
+  for (const warning of saved.concat(preview?.warnings ?? [])) {
+    if (warning.row) rows.add(Number(warning.row));
+  }
+  return [...rows].sort((a, b) => a - b);
+}
+
 /** A row's cells, from the first rows shown or from the warned rows past them. */
 export function previewRowCells(
   preview: DataImportPreview | null | undefined,
