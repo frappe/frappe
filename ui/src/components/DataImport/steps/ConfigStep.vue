@@ -23,6 +23,11 @@
 						:label="t('Document Type')"
 						required
 						:disabled="!isNew"
+						:error="
+							showErrors && !doc.reference_doctype
+								? t('Select a Document Type')
+								: undefined
+						"
 					/>
 					<Select
 						v-model="doc.import_type"
@@ -30,6 +35,9 @@
 						:options="importTypeOptions"
 						required
 						:disabled="!isNew"
+						:error="
+							showErrors && !doc.import_type ? t('Select an Import Type') : undefined
+						"
 					/>
 				</div>
 				<div class="flex min-w-0 flex-col gap-4">
@@ -97,148 +105,159 @@
 				/>
 			</div>
 
-			<div v-if="!hasSettings" class="py-6 text-base text-ink-gray-6">
-				{{ t("Select a Document Type to upload a file or Google Sheet.") }}
-			</div>
-			<template v-else>
-				<Tabs v-if="showTabs" v-model="source">
-					<TabList>
-						<TabTrigger
-							value="file_upload"
-							:label="t('File upload')"
-							icon-left="lucide-upload"
-						/>
-						<TabTrigger
-							value="google_sheet"
-							:label="t('Google Sheet')"
-							icon-left="lucide-link"
-						/>
-					</TabList>
-				</Tabs>
+			<Tabs v-if="showTabs" v-model="source">
+				<TabList>
+					<TabTrigger
+						value="file_upload"
+						:label="t('File upload')"
+						icon-left="lucide-upload"
+					/>
+					<TabTrigger
+						value="google_sheet"
+						:label="t('Google Sheet')"
+						icon-left="lucide-link"
+					/>
+				</TabList>
+			</Tabs>
 
-				<template v-if="pane === 'file_upload'">
-					<div
-						v-if="doc.import_file"
-						data-slot="file-card"
-						class="flex w-full items-center justify-between gap-3 rounded-6 border border-outline-gray-2 bg-surface-base px-4 py-3 text-base"
-					>
-						<div class="flex min-w-0 flex-1 items-center gap-2">
-							<div
-								class="flex size-10 shrink-0 items-center justify-center rounded-4 bg-surface-gray-2 text-ink-gray-7"
-							>
-								<span class="lucide-file-spreadsheet size-5" />
-							</div>
-							<div class="min-w-0">
-								<a
-									class="block truncate text-base-semibold text-ink-gray-9 hover:underline"
-									:href="doc.import_file"
-									target="_blank"
-									rel="noopener noreferrer"
-									:title="fileName"
-								>
-									{{ fileName }}
-								</a>
-								<div class="text-base text-ink-gray-6">{{ fileMeta }}</div>
-							</div>
-						</div>
-						<Button
-							v-if="!importFinished"
-							variant="outline"
-							:label="t('Clear')"
-							@click="confirmingClear = true"
-						/>
-					</div>
-					<div
-						v-else
-						data-slot="dropzone"
-						class="flex min-h-48 flex-col items-center justify-center gap-1 rounded-6 border border-dashed p-5 text-center"
-						:class="
-							importFinished
-								? 'border-outline-gray-2'
-								: dragging
-								? 'cursor-pointer border-outline-gray-4 bg-surface-gray-2'
-								: 'cursor-pointer border-outline-gray-2 bg-surface-base hover:border-outline-gray-4 hover:bg-surface-gray-2'
-						"
-						@click="browse"
-						@dragover.prevent="dragging = !importFinished"
-						@dragleave="dragging = false"
-						@drop.prevent="onDrop"
-					>
-						<input
-							ref="fileInput"
-							type="file"
-							class="hidden"
-							:accept="ALLOWED_FILE_TYPES.join(',')"
-							@change="onPick"
-						/>
-						<Progress
-							v-if="uploader.state.uploading"
-							data-slot="upload-progress"
-							class="w-full max-w-sm text-start"
-							:value="uploader.state.progress"
-							:label="uploadingFile"
+			<template v-if="pane === 'file_upload'">
+				<div
+					v-if="doc.import_file"
+					data-slot="file-card"
+					class="flex w-full items-center justify-between gap-3 rounded-6 border border-outline-gray-2 bg-surface-base px-4 py-3 text-base"
+				>
+					<div class="flex min-w-0 flex-1 items-center gap-2">
+						<div
+							class="flex size-10 shrink-0 items-center justify-center rounded-4 bg-surface-gray-2 text-ink-gray-7"
 						>
-							<template #hint>
-								<span class="shrink-0 text-base text-ink-gray-5">
-									{{ `${t("Uploading")} ${uploader.state.progress}%` }}
-								</span>
-							</template>
-						</Progress>
-						<template v-else>
-							<span class="lucide-cloud-upload size-5 text-ink-gray-6" />
-							<div class="max-w-sm text-base text-ink-gray-6">
-								{{ t("Drag a CSV or Excel file here, or click to browse") }}
-							</div>
-							<div v-if="maxFileSizeMb" class="text-sm text-ink-gray-5">
-								{{ t(".csv, .xlsx up to {0} MB", [maxFileSizeMb]) }}
-							</div>
-						</template>
-					</div>
-				</template>
-
-				<div v-else class="flex flex-col gap-3">
-					<div
-						v-if="sheetLocked"
-						data-slot="sheet-card"
-						class="flex w-full items-center justify-between gap-2 rounded-4 bg-surface-gray-2 p-2 text-base"
-					>
-						<div class="flex min-w-0 flex-1 items-center gap-2">
-							<span class="lucide-link size-4 shrink-0 text-ink-gray-6" />
+							<span class="lucide-file-spreadsheet size-5" />
+						</div>
+						<div class="min-w-0">
 							<a
-								class="min-w-0 truncate text-ink-gray-8 hover:underline"
-								:href="doc.google_sheets_url!"
+								class="block truncate text-base-semibold text-ink-gray-9 hover:underline"
+								:href="doc.import_file"
 								target="_blank"
 								rel="noopener noreferrer"
-								:title="doc.google_sheets_url!"
+								:title="fileName"
 							>
-								{{ doc.google_sheets_url }}
+								{{ fileName }}
 							</a>
+							<div class="text-base text-ink-gray-6">{{ fileMeta }}</div>
 						</div>
-						<Button
-							v-if="!importFinished"
-							size="xs"
-							variant="outline"
-							:label="t('Clear')"
-							@click="clearGoogleSheet"
-						/>
 					</div>
-					<TextInput
-						v-else
-						data-fieldname="google_sheets_url"
-						:modelValue="doc.google_sheets_url || ''"
-						:label="t('Import from Google Sheets')"
-						:description="t('Must be a publicly accessible Google Sheets URL')"
-						:disabled="importFinished"
-						@update:modelValue="(value) => (doc.google_sheets_url = String(value))"
-					/>
 					<Button
-						v-if="doc.google_sheets_url && !dirty"
-						class="self-start"
-						:label="t('Refresh Google Sheet')"
-						@click="dataImport.refreshGoogleSheet()"
+						v-if="!importFinished"
+						variant="outline"
+						:label="t('Clear')"
+						@click="confirmingClear = true"
 					/>
 				</div>
+				<div
+					v-else
+					data-slot="dropzone"
+					class="flex min-h-48 flex-col items-center justify-center gap-1 rounded-6 border border-dashed p-5 text-center"
+					:class="
+						uploadLocked
+							? 'border-outline-gray-2'
+							: fileMissing
+							? 'cursor-pointer border-outline-red-3 bg-surface-base hover:bg-surface-gray-2'
+							: dragging
+							? 'cursor-pointer border-outline-gray-4 bg-surface-gray-2'
+							: 'cursor-pointer border-outline-gray-2 bg-surface-base hover:border-outline-gray-4 hover:bg-surface-gray-2'
+					"
+					@click="browse"
+					@dragover.prevent="dragging = !uploadLocked"
+					@dragleave="dragging = false"
+					@drop.prevent="onDrop"
+				>
+					<input
+						ref="fileInput"
+						type="file"
+						class="hidden"
+						:accept="ALLOWED_FILE_TYPES.join(',')"
+						@change="onPick"
+					/>
+					<Progress
+						v-if="uploader.state.uploading"
+						data-slot="upload-progress"
+						class="w-full max-w-sm text-start"
+						:value="uploader.state.progress"
+						:label="uploadingFile"
+					>
+						<template #hint>
+							<span class="shrink-0 text-base text-ink-gray-5">
+								{{ `${t("Uploading")} ${uploader.state.progress}%` }}
+							</span>
+						</template>
+					</Progress>
+					<template v-else>
+						<span
+							class="lucide-cloud-upload size-5"
+							:class="hasSettings ? 'text-ink-gray-6' : 'text-ink-gray-4'"
+						/>
+						<div
+							class="max-w-sm text-base"
+							:class="hasSettings ? 'text-ink-gray-6' : 'text-ink-gray-4'"
+						>
+							{{
+								hasSettings
+									? t("Drag a CSV or Excel file here, or click to browse")
+									: t("Select a Document Type to upload a file")
+							}}
+						</div>
+						<div v-if="hasSettings && maxFileSizeMb" class="text-sm text-ink-gray-5">
+							{{ t(".csv, .xlsx up to {0} MB", [maxFileSizeMb]) }}
+						</div>
+					</template>
+				</div>
+				<p v-if="fileMissing" data-slot="file-error" class="text-p-sm text-ink-red-5">
+					{{ t("Attach a CSV or Excel file to continue") }}
+				</p>
 			</template>
+
+			<div v-else class="flex flex-col gap-3">
+				<div
+					v-if="sheetLocked"
+					data-slot="sheet-card"
+					class="flex w-full items-center justify-between gap-2 rounded-4 bg-surface-gray-2 p-2 text-base"
+				>
+					<div class="flex min-w-0 flex-1 items-center gap-2">
+						<span class="lucide-link size-4 shrink-0 text-ink-gray-6" />
+						<a
+							class="min-w-0 truncate text-ink-gray-8 hover:underline"
+							:href="doc.google_sheets_url!"
+							target="_blank"
+							rel="noopener noreferrer"
+							:title="doc.google_sheets_url!"
+						>
+							{{ doc.google_sheets_url }}
+						</a>
+					</div>
+					<Button
+						v-if="!importFinished"
+						size="xs"
+						variant="outline"
+						:label="t('Clear')"
+						@click="clearGoogleSheet"
+					/>
+				</div>
+				<TextInput
+					v-else
+					data-fieldname="google_sheets_url"
+					:modelValue="doc.google_sheets_url || ''"
+					:label="t('Import from Google Sheets')"
+					:description="t('Must be a publicly accessible Google Sheets URL')"
+					:disabled="uploadLocked"
+					:error="fileMissing ? t('Enter a Google Sheets URL to continue') : undefined"
+					@update:modelValue="(value) => (doc.google_sheets_url = String(value))"
+				/>
+				<Button
+					v-if="doc.google_sheets_url && !dirty"
+					class="self-start"
+					:label="t('Refresh Google Sheet')"
+					@click="dataImport.refreshGoogleSheet()"
+				/>
+			</div>
 		</section>
 
 		<TemplateModal
@@ -290,10 +309,11 @@ const ALLOWED_FILE_TYPES = [".csv", ".xls", ".xlsx"];
 
 type CheckField = "mute_emails" | "submit_after_import" | "custom_delimiters" | "use_csv_sniffer";
 
-const props = defineProps<{ dataImport: UseDataImport }>();
+const props = defineProps<{ dataImport: UseDataImport; showErrors?: boolean }>();
 const emit = defineEmits<{ openImports: [doctype: string] }>();
 
-const { doc, isNew, dirty, saving, preview, providerSchema, doctypeMeta } = props.dataImport;
+const { doc, isNew, dirty, saving, preview, providerSchema, doctypeMeta, hasImportFile } =
+	props.dataImport;
 
 const initialSource = () => (doc.value.google_sheets_url ? "google_sheet" : "file_upload");
 const source = ref<"file_upload" | "google_sheet">(initialSource());
@@ -313,6 +333,10 @@ const importTypeOptions = computed(() =>
 
 const hasSettings = computed(() => !!(doc.value.reference_doctype && doc.value.import_type));
 const importFinished = computed(() => isImportComplete(doc.value.status));
+const uploadLocked = computed(() => importFinished.value || !hasSettings.value);
+const fileMissing = computed(
+	() => !!props.showErrors && hasSettings.value && !hasImportFile.value
+);
 const isSubmittable = computed(
 	() =>
 		!!doctypeMeta.value?.find((meta) => meta.name === doc.value.reference_doctype)
@@ -427,13 +451,13 @@ async function uploadFile(file: File | undefined) {
 }
 
 function browse() {
-	if (importFinished.value || uploader.state.uploading) return;
+	if (uploadLocked.value || uploader.state.uploading) return;
 	fileInput.value?.click();
 }
 
 function onDrop(event: DragEvent) {
 	dragging.value = false;
-	if (importFinished.value || uploader.state.uploading) return;
+	if (uploadLocked.value || uploader.state.uploading) return;
 	uploadFile(event.dataTransfer?.files?.[0]);
 }
 
