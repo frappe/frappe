@@ -97,6 +97,26 @@ class TestFlowSafeExec(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			safe_exec(f'result = frappe.get_doc("ToDo", "{todo.name}")')
 
+	def test_get_doc_hides_fields_above_the_users_permlevel(self):
+		# desk users can read a public Note at permlevels 0 and 1; its seen_by table is permlevel 2
+		note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "flow permlevel",
+				"public": 1,
+				"seen_by": [{"user": "Administrator"}],
+			}
+		).insert()
+		frappe.set_user(self._desk_user())
+		for code in (
+			f'result = frappe.get_doc("Note", "{note.name}")',
+			'result = frappe.get_last_doc("Note", filters={"title": "flow permlevel"})',
+		):
+			with self.subTest(code):
+				result = self._run(code)
+				self.assertEqual(result["public"], 1)
+				self.assertEqual(result["seen_by"], [])
+
 	def test_create_enforces_create_permission(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(PermissionError):
@@ -164,3 +184,18 @@ class TestFlowSafeExec(IntegrationTestCase):
 				"attached_to_name": todo.name,
 			}
 		).insert()
+
+	def _desk_user(self):
+		"""A Flow User, which Frappe also gives Desk User."""
+		email = "flow-desk-user@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "Desk",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Flow User"}],
+				}
+			).insert(ignore_permissions=True)
+		return email

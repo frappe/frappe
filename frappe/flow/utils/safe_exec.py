@@ -72,12 +72,14 @@ def safe_exec(
 def _gated_get_doc(*args: Any, **kwargs: Any) -> dict:
 	doc = frappe.get_doc(*args, **kwargs)
 	doc.check_permission("read")
+	doc.apply_fieldlevel_read_permissions()
 	return doc.as_dict()
 
 
 def _gated_get_last_doc(*args: Any, **kwargs: Any) -> dict:
 	doc = frappe.get_last_doc(*args, **kwargs)
 	doc.check_permission("read")
+	doc.apply_fieldlevel_read_permissions()
 	return doc.as_dict()
 
 
