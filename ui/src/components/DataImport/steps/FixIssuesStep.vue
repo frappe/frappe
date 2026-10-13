@@ -14,34 +14,35 @@
 		<Skeleton v-for="i in 3" :key="i" class="h-9 w-full rounded" />
 	</div>
 
-	<div
-		v-else-if="!hasIssues"
-		class="flex min-h-96 flex-col items-center justify-center gap-2 text-center"
-	>
-		<span class="lucide-list-checks size-6 text-ink-gray-5" />
-		<div class="text-lg-semibold text-ink-gray-8">{{ t("No issues to fix") }}</div>
-		<div class="text-base text-ink-gray-6">{{ emptyDescription }}</div>
-		<div
-			v-if="hasImportFile"
-			class="flex w-full max-w-4xl pt-4"
-			role="list"
-			:aria-label="t('Fix issues summary')"
-		>
-			<div
-				v-for="stat in stats"
-				:key="stat.label"
-				class="flex flex-1 flex-col items-center justify-center gap-1"
-				role="listitem"
-			>
-				<div class="text-2xl-semibold text-ink-gray-8">{{ stat.value }}</div>
-				<div class="text-center text-sm text-ink-gray-6">{{ stat.label }}</div>
-			</div>
+	<div v-else-if="!hasIssues" class="flex flex-col gap-4">
+		<div class="flex min-w-0 flex-col gap-0.5">
+			<h2 class="text-base-semibold text-ink-gray-8">{{ t("No issues to fix") }}</h2>
+			<p class="text-sm text-ink-gray-6">{{ emptyDescription }}</p>
 		</div>
+		<StatCards v-if="hasImportFile" :stats="stats" :label="t('Fix issues summary')">
+			<template #label="{ stat }">
+				<SkippedColumns
+					v-if="stat.label === columnsSkippedLabel && skippedColumns.length"
+					:columns="skippedColumns"
+				>
+					<button
+						type="button"
+						data-slot="skipped-columns"
+						class="truncate text-sm-medium text-ink-gray-5 underline decoration-dotted underline-offset-2 hover:text-ink-gray-7"
+					>
+						{{ stat.label }}
+					</button>
+				</SkippedColumns>
+				<span v-else class="truncate text-sm-medium text-ink-gray-5">{{
+					stat.label
+				}}</span>
+			</template>
+		</StatCards>
 	</div>
 
 	<div v-else class="flex w-full flex-col divide-y divide-outline-gray-2 text-base">
 		<section v-if="rowErrors.length" class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
-			<div class="text-base-semibold text-ink-gray-9">{{ t("Row errors") }}</div>
+			<h2 class="text-base-semibold text-ink-gray-8">{{ t("Row errors") }}</h2>
 			<div data-slot="scroll" class="flex max-h-72 flex-col gap-3 overflow-y-auto">
 				<div
 					v-for="{ row, lines } in rowErrors"
@@ -110,7 +111,7 @@
 		</section>
 
 		<section v-if="showMappingSection" class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
-			<div class="text-base-semibold text-ink-gray-9">{{ t("Mapping warnings") }}</div>
+			<h2 class="text-base-semibold text-ink-gray-8">{{ t("Mapping warnings") }}</h2>
 			<div
 				v-if="mappingColumnsHtml"
 				class="leading-normal text-ink-gray-7"
@@ -265,36 +266,11 @@
 					<div class="min-w-0 text-ink-gray-8" v-html="warning.message" />
 				</li>
 			</ul>
-			<HoverCard v-if="skippedColumns.length" :hover-delay="250" :leave-delay="150">
-				<template #trigger>
-					<button
-						type="button"
-						data-slot="skipped-columns"
-						class="flex items-center gap-1.5 self-start text-sm text-ink-gray-6 hover:text-ink-gray-8"
-					>
-						<span class="lucide-columns-3 size-4 shrink-0" />
-						<span class="underline decoration-dotted underline-offset-2">
-							{{
-								skippedColumns.length === 1
-									? t("1 column skipped")
-									: t("{0} columns skipped", [skippedColumns.length])
-							}}
-						</span>
-					</button>
-				</template>
-				<div class="flex max-w-sm flex-wrap gap-1.5 p-2">
-					<Badge
-						v-for="column in skippedColumns"
-						:key="column.col"
-						:label="column.label"
-						theme="gray"
-					/>
-				</div>
-			</HoverCard>
+			<SkippedColumns v-if="skippedColumns.length" :columns="skippedColumns" />
 		</section>
 
 		<section v-if="otherWarnings.length" class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
-			<div class="text-base-semibold text-ink-gray-9">{{ t("Issues") }}</div>
+			<h2 class="text-base-semibold text-ink-gray-8">{{ t("Issues") }}</h2>
 			<div data-slot="scroll" class="flex max-h-48 flex-col gap-3 overflow-y-auto">
 				<div
 					v-for="(warning, index) in otherWarnings"
@@ -326,13 +302,15 @@
 </template>
 
 <script setup lang="ts">
-import { Badge, Button, Checkbox, HoverCard, Select, Skeleton, TextInput } from "frappe-ui";
+import { Button, Checkbox, HoverCard, Select, Skeleton, TextInput } from "frappe-ui";
 import { computed } from "vue";
 import { Link } from "../../Link";
-import { escapeHtml, isImportComplete, parseJson } from "../dataImport";
+import { escapeHtml, isImportComplete, parseJson, previewRowCells, skipRows } from "../dataImport";
 import { t } from "../translate";
 import type { DataImportValueMapping } from "../types";
 import type { UseDataImport } from "../useDataImport";
+import SkippedColumns from "./SkippedColumns.vue";
+import StatCards, { type Stat } from "./StatCards.vue";
 
 type Warning = Record<string, any>;
 
@@ -353,7 +331,7 @@ const warnings = computed(() => {
 const hasIssues = computed(
 	() =>
 		!isComplete.value &&
-		(warnings.value.length > 0 ||
+		(warnings.value.some((w) => !(isColumnWarning(w) && isSkippedColumn(w))) ||
 			doc.value.value_mappings.length > 0 ||
 			doc.value.skipped_rows.length > 0)
 );
@@ -378,13 +356,12 @@ const rowErrors = computed(() => {
 const mappingWarnings = computed(() =>
 	warnings.value.filter((w) => !w.row && w.col && w.type === "value_mapping")
 );
-// Columns the server drops (duplicate, "Don't Import", untitled) need no action,
-// so they collapse into one line; an unmatched header can still be mapped.
+// A column the server leaves out needs the same fix whatever the reason: map it in
+// the Map columns step. So they share one line, and the warnings left are the ones to act on.
 const isSkippedColumn = (w: Warning) =>
-	!!columns.value[w.col]?.skip_import && w.code !== "unknown_column";
-const allColumnWarnings = computed(() =>
-	warnings.value.filter((w) => !w.row && w.col && w.type !== "value_mapping")
-);
+	w.code === "unknown_column" || !!columns.value[w.col]?.skip_import;
+const isColumnWarning = (w: Warning) => !w.row && !!w.col && w.type !== "value_mapping";
+const allColumnWarnings = computed(() => warnings.value.filter(isColumnWarning));
 const columnWarnings = computed(() => allColumnWarnings.value.filter((w) => !isSkippedColumn(w)));
 const skippedColumns = computed(() =>
 	allColumnWarnings.value.filter(isSkippedColumn).map((w) => ({
@@ -392,6 +369,7 @@ const skippedColumns = computed(() =>
 		label: columns.value[w.col]?.header_title || t("Column {0}", [w.col]),
 	}))
 );
+
 const otherWarnings = computed(() => warnings.value.filter((w) => !w.row && !w.col));
 
 const showMappingSection = computed(
@@ -418,7 +396,8 @@ const emptyDescription = computed(() => {
 	return t("No warnings or mapping issues were found. You can continue to import.");
 });
 
-const stats = computed(() => {
+const columnsSkippedLabel = t("Columns skipped");
+const stats = computed((): Stat[] => {
 	const data = previewData.value;
 	const rowsChecked =
 		data?.total_number_of_rows || data?.data?.length || doc.value.payload_count || 0;
@@ -428,6 +407,7 @@ const stats = computed(() => {
 	return [
 		{ value: rowsChecked, label: t("Rows checked") },
 		{ value: columnsMatched, label: t("Columns matched") },
+		{ value: skippedColumns.value.length, label: columnsSkippedLabel },
 		{ value: doc.value.skipped_rows.length, label: t("Rows skipped") },
 	];
 });
@@ -441,8 +421,7 @@ function rowWarningLine(warning: Warning) {
 }
 
 function previewRow(row: number) {
-	const { data = [], warning_rows = [] } = previewData.value ?? {};
-	return [...data, ...warning_rows].find((r) => Number(r[0]) === row);
+	return previewRowCells(previewData.value, row);
 }
 
 function cellText(value: unknown) {
@@ -512,14 +491,7 @@ function toggleSkipRows(rows: number[]) {
 		);
 		return;
 	}
-	for (const row of numbers) {
-		if (skippedRows.value.has(row)) continue;
-		const cells = previewRow(row);
-		doc.value.skipped_rows.push({
-			row_number: row,
-			row_data: JSON.stringify(cells ? cells.slice(1) : []),
-		});
-	}
+	skipRows(doc.value, previewData.value, numbers);
 }
 
 function isSrNoColumn(col: Record<string, any>) {

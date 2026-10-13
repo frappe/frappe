@@ -165,7 +165,7 @@ function button(host: HTMLElement, label: string) {
 }
 
 function groupTitles(host: HTMLElement) {
-  return [...host.querySelectorAll("section > div:first-child")].map(text);
+  return [...host.querySelectorAll("section > h2")].map(text);
 }
 
 const statusMapping = {
@@ -223,21 +223,21 @@ describe("FixIssuesStep", () => {
     expect(host.textContent).toContain("Something is off");
   });
 
-  it("collapses skipped columns into one line and keeps the ones to act on", () => {
+  it("shows No issues to fix with a skipped line when only columns are skipped", () => {
     const { host } = mount({
       preview: makePreview([
         { col: 1, code: "unknown_column", message: "does not match any field" },
         { col: 3, message: "Skipping column Extra", type: "info" },
       ]),
     });
-    expect(childTexts(host.querySelector("[data-col='1']")!)).toBe(
-      "Column 1 does not match any field"
-    );
+    expect(host.querySelector("[data-col='1']")).toBeNull();
+    expect(host.textContent).not.toContain("does not match any field");
     expect(host.querySelector("[data-col='3']")).toBeNull();
     expect(host.textContent).not.toContain("Skipping column Extra");
     expect(text(host.querySelector("[data-slot='skipped-columns']")!)).toBe(
-      "1 column skipped"
+      "Columns skipped"
     );
+    expect(host.textContent).toContain("No issues to fix");
   });
 
   it("uses the cells of a warned row past the preview, and caps each section's height", async () => {
@@ -427,9 +427,10 @@ describe("FixIssuesStep", () => {
       childTexts
     );
     expect(stats).toEqual([
-      "3 Rows checked",
-      "2 Columns matched",
-      "0 Rows skipped",
+      "Rows checked 3",
+      "Columns matched 2",
+      "Columns skipped 0",
+      "Rows skipped 0",
     ]);
   });
 

@@ -1,9 +1,43 @@
 import { t } from "./translate";
-import type { DataImportStatus, DocField, DocType } from "./types";
+import type {
+  DataImportDoc,
+  DataImportPreview,
+  DataImportStatus,
+  DocField,
+  DocType,
+} from "./types";
 
 /** Desk's is_import_complete: the records are in, so the import can't be edited. */
 export const isImportComplete = (status: DataImportStatus) =>
   status === "Success" || status === "Partial Success";
+
+/** A row's cells, from the first rows shown or from the warned rows past them. */
+export function previewRowCells(
+  preview: DataImportPreview | null | undefined,
+  row: number
+): unknown[] | undefined {
+  const { data = [], warning_rows = [] } = preview ?? {};
+  return [...data, ...warning_rows].find((cells) => Number(cells[0]) === row);
+}
+
+/** Adds the rows to `skipped_rows`, keeping their cells for the skipped rows export. */
+export function skipRows(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined,
+  rows: number[]
+) {
+  const skipped = new Set(
+    doc.skipped_rows.map((row) => Number(row.row_number))
+  );
+  for (const row of rows) {
+    if (skipped.has(row)) continue;
+    const cells = previewRowCells(preview, row);
+    doc.skipped_rows.push({
+      row_number: row,
+      row_data: JSON.stringify(cells ? cells.slice(1) : []),
+    });
+  }
+}
 
 /** Like Desk's cint, but keeps `fallback` for anything that isn't a number. */
 export const cint = (value: unknown, fallback = 0) =>
