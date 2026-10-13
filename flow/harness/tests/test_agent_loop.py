@@ -447,6 +447,64 @@ async def test_steering_joins_the_active_run_as_a_new_turn(tmp_path):
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
 
+async def test_a_steer_waiting_through_an_approval_reaches_the_resumed_run(tmp_path):
+	(tmp_path / "a.txt").write_text("x")
+	session, events = _session(tmp_path, confirm_tools=["read"])
+	await _steer_into_a_tool_turn(session)
+
+	await _resume(session, {"c1": "Approve"}, model=MockModel(replies=[AssistantMessage(content="ok")]))
+
+	assert [e["content"] for e in _of(events, "user_message")] == ["start", "steer me"]
+
+
+@pytest.mark.parametrize(
+	("config", "ending", "ends"),
+	[
+		({"confirm_tools": ["read"]}, "deny", ["paused", "denied"]),
+		({"confirm_tools": ["read"]}, "cancel", ["paused"]),
+		({"max_turns": 1}, None, ["max_turns"]),
+		({"token_budget": 5}, None, ["budget"]),
+	],
+)
+async def test_a_steer_still_waiting_when_the_run_ends_is_dropped(tmp_path, config, ending, ends):
+	(tmp_path / "a.txt").write_text("x")
+	session, events = _session(tmp_path, **config)
+	await _steer_into_a_tool_turn(session)
+	if ending == "deny":
+		await _resume(session, {"c1": "Deny"})
+	elif ending == "cancel":
+		assert await session.cancel_pending() is True
+	assert [e["reason"] for e in _of(events, "run_ended")] == ends
+
+	await _run(session, "next", model=MockModel(replies=[AssistantMessage(content="ok")]))
+
+	assert [e["content"] for e in _of(events, "user_message")] == ["start", "next"]
+
+
+async def _steer_into_a_tool_turn(session):
+	"""Start a run, steer it while its model is busy, then let the model ask to read a.txt."""
+	model = _SlowReader()
+	handle = await session.run("start", model=model)
+	await model.started.wait()
+	assert (await session.run("steer me")).status == "steered"
+	model.release.set()
+	await handle.task
+
+
+class _SlowReader(Model):
+	name = "slow-reader"
+
+	def __init__(self):
+		self.started = asyncio.Event()
+		self.release = asyncio.Event()
+
+	async def run(self, request: ModelRequest):
+		self.started.set()
+		await self.release.wait()
+		yield _read_call()
+		yield Usage(output_tokens=10)
+
+
 async def test_non_streaming_run(tmp_path):
 	session, events = _session(tmp_path, stream=False)
 	await _run(session, "hi", model=MockModel(replies=[AssistantMessage(content="hi there friend")]))
