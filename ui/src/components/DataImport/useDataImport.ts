@@ -83,10 +83,10 @@ export function useDataImport(
   const hasImportFile = computed(
     () => !!(doc.value.import_file || doc.value.google_sheets_url)
   );
+  // Started from this tab: counts as running before the server says so, even
+  // when a retry still shows the last run's Error until the job picks it up.
   const running = computed(
-    () =>
-      doc.value.status === "In Progress" ||
-      (startedHere.value && doc.value.status === "Pending")
+    () => doc.value.status === "In Progress" || startedHere.value
   );
   const importStarted = computed(
     () => running.value || doc.value.status !== "Pending"
@@ -181,7 +181,10 @@ export function useDataImport(
 
   // Desk's form `refresh`: what to fetch depends on where the import stands.
   function afterLoad() {
-    startedHere.value = running.value;
+    // A reload mid-run keeps a start that is still queued; any other status is a result.
+    startedHere.value =
+      doc.value.status === "In Progress" ||
+      (startedHere.value && doc.value.status === "Pending");
     if (running.value) {
       progress.value ??= emptyProgress();
       refreshProgressCounts();
@@ -294,13 +297,18 @@ export function useDataImport(
     return fetchPreview({ force: true });
   }
 
-  /** Resolves true when the job was queued, false when it was already queued or failed. */
-  async function start(): Promise<boolean> {
+  /**
+   * Resolves true when the job was queued, false when it was already queued or failed.
+   * `running` turns true at once, or with `waitForProgress` only when the run reports progress.
+   */
+  async function start({ waitForProgress = false } = {}): Promise<boolean> {
     const docname = name.value;
     if (!docname) return false;
     blocked.value = false;
-    startedHere.value = true;
-    progress.value = emptyProgress();
+    if (!waitForProgress) {
+      startedHere.value = true;
+      progress.value = emptyProgress();
+    }
     try {
       const started = await call<boolean>(`${METHODS}.form_start_import`, {
         data_import: docname,

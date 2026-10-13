@@ -124,8 +124,8 @@ function fakeDataImport(initial: DataImportDoc) {
       return doc.value;
     }),
     fetchPreview: vi.fn(async () => null),
-    start: vi.fn(async () => {
-      startedHere.value = true;
+    start: vi.fn(async ({ waitForProgress = false } = {}) => {
+      if (!waitForProgress) startedHere.value = true;
       return true;
     }),
     stop: vi.fn(async () => ({ status: "success", message: "" })),
@@ -360,6 +360,65 @@ describe("DataImportWizard footer", () => {
     click("Retry");
     await settle();
     expect(dataImport.start).toHaveBeenCalledOnce();
+  });
+
+  it("Retry shows Retrying... while it saves", async () => {
+    const { dataImport, isDirty } = render(savedDoc({ status: "Error" }));
+    isDirty.value = true;
+    dataImport.save.mockImplementation(() => new Promise(() => {}));
+    await nextTick();
+    click("Retry");
+    await settle();
+    expect(buttons()).toContain("Retrying...");
+    expect(dataImport.start).not.toHaveBeenCalled();
+  });
+
+  it("Retry stays on the result until the import reloads with the new run", async () => {
+    const { dataImport } = render(
+      savedDoc({ status: "Error", modified: "2026-10-14 10:00:00" })
+    );
+    click("Retry");
+    await settle();
+    expect(dataImport.start).toHaveBeenCalledWith({ waitForProgress: true });
+    expect(buttons()).toEqual(["Back", "Retrying..."]);
+
+    dataImport.doc.value = {
+      ...dataImport.doc.value,
+      modified: "2026-10-14 10:05:00",
+    };
+    await settle();
+    expect(buttons()).toEqual(["Back", "Retry"]);
+  });
+
+  it("Import becomes Skip all and import while row errors aren't skipped", async () => {
+    const { dataImport } = render(
+      savedDoc({
+        template_warnings: JSON.stringify([
+          { row: 4, message: "bad" },
+          { row: 3, message: "bad" },
+          { row: 4, message: "also bad" },
+        ]),
+        skipped_rows: [{ row_number: 4, row_data: "[]" }],
+      })
+    );
+    expect(buttons()).toContain("Skip all and import");
+    click("Skip all and import");
+    await settle();
+    expect(
+      dataImport.doc.value.skipped_rows.map((row) => row.row_number)
+    ).toEqual([4, 3]);
+    expect(dataImport.start).toHaveBeenCalledOnce();
+  });
+
+  it("Import keeps its label once every row error is skipped", () => {
+    render(
+      savedDoc({
+        template_warnings: JSON.stringify([{ row: 3, message: "bad" }]),
+        skipped_rows: [{ row_number: 3, row_data: "[]" }],
+      })
+    );
+    expect(buttons()).toContain("Import");
+    expect(buttons()).not.toContain("Skip all and import");
   });
 
   it("Import saves unsaved fixes first, then starts the run", async () => {

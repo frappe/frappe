@@ -76,10 +76,10 @@
 					<Button
 						v-if="showImport"
 						variant="solid"
-						:label="t('Import')"
-						:loading="saving || previewLoading"
-						:loading-text="saving ? t('Saving...') : t('Loading preview...')"
-						@click="beginImport"
+						:label="rowsToSkip.length ? t('Skip all and import') : t('Import')"
+						:loading="starting || saving || previewLoading"
+						:loading-text="previewLoading ? t('Loading preview...') : t('Starting...')"
+						@click="skipErrorRowsAndImport"
 					/>
 					<template v-if="current === IMPORT">
 						<Button
@@ -94,7 +94,9 @@
 								:variant="retryFirst ? 'solid' : 'outline'"
 								:label="t('Retry')"
 								icon-left="lucide-refresh-cw"
-								@click="beginImport"
+								:loading="retrying"
+								:loading-text="t('Retrying...')"
+								@click="retryImport"
 							/>
 							<Button
 								v-if="onNewImport"
@@ -127,6 +129,7 @@
 import { Button, Dialog, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 import ImportStatus from "./ImportStatus.vue";
+import { errorRowNumbers, skipRows } from "./dataImport";
 import ConfigStep from "./steps/ConfigStep.vue";
 import FixIssuesStep from "./steps/FixIssuesStep.vue";
 import ImportStep from "./steps/ImportStep.vue";
@@ -171,6 +174,7 @@ const {
 	loading,
 	saving,
 	hasImportFile,
+	preview,
 	previewReady,
 	previewLoading,
 	running,
@@ -182,6 +186,8 @@ const stepComponents = [ConfigStep, PreviewStep, FixIssuesStep, ImportStep];
 
 const current = ref(CONFIG);
 const confirmingStop = ref(false);
+// Saving and asking the server to start; on a developer site the whole run happens in that request.
+const starting = ref(false);
 // Config marks what is missing once Next is pressed without it.
 const showConfigErrors = ref(false);
 
@@ -281,11 +287,51 @@ async function goTo(target: number) {
 	current.value = target;
 }
 
+// A row error that isn't skipped stops the whole run on the server, so Import skips them.
+const rowsToSkip = computed(() => {
+	const skipped = new Set(doc.value.skipped_rows.map((row) => Number(row.row_number)));
+	const shown = previewReady.value ? preview.value : null;
+	return errorRowNumbers(doc.value, shown).filter((row) => !skipped.has(row));
+});
+
+function skipErrorRowsAndImport() {
+	skipRows(doc.value, previewReady.value ? preview.value : null, rowsToSkip.value);
+	beginImport();
+}
+
+// Retry stays on the result until the run reports progress or the import reloads with
+// its new result; on a developer site the run finishes inside the start request.
+const retrying = ref(false);
+// The saved import's `modified` when the run was asked for; null until then.
+let retriedFrom: string | null = null;
+
+async function retryImport() {
+	retrying.value = true;
+	if (!(await saveIfDirty())) return stopRetrying();
+	retriedFrom = doc.value.modified ?? "";
+	if (!(await props.dataImport.start({ waitForProgress: true }))) stopRetrying();
+}
+
+function stopRetrying() {
+	retrying.value = false;
+	retriedFrom = null;
+}
+
+watch([running, blocked, () => doc.value.modified], ([isRunning, isBlocked, modified]) => {
+	if (retriedFrom === null) return;
+	if (isRunning || isBlocked || (modified ?? "") !== retriedFrom) stopRetrying();
+});
+
 /** The run reads the saved import, so unsaved fixes are saved first. */
 async function beginImport() {
-	if (!(await saveIfDirty())) return;
-	current.value = IMPORT;
-	props.dataImport.start();
+	starting.value = true;
+	try {
+		if (!(await saveIfDirty())) return;
+		current.value = IMPORT;
+		await props.dataImport.start();
+	} finally {
+		starting.value = false;
+	}
 }
 
 async function stopImport({ close }: { close: () => void }) {
