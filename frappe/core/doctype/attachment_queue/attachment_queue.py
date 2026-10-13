@@ -6,6 +6,7 @@ from pathlib import Path
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.permissions import get_doctypes_with_read
 from frappe.utils import add_to_date, cint, now
 from frappe.utils.file_manager import get_file_path
 from frappe.utils.task_queue import enqueue_task
@@ -211,3 +212,28 @@ def fail_stale_extractions() -> None:
 		{"name": ("in", stale)},
 		{"status": "Failed", "error_message": _("Text extraction did not finish.")},
 	)
+
+
+def has_permission(doc, ptype="read", user=None):
+	"""A queued file is only as accessible as the DocType it was uploaded for.
+
+	A row whose target no longer exists has nothing to derive access from, so it is
+	refused. Administrator never reaches this hook.
+	"""
+	if not doc.document_type or not frappe.db.exists("DocType", doc.document_type):
+		return False
+
+	return frappe.has_permission(doc.document_type, ptype=ptype, user=user)
+
+
+def get_permission_query_conditions(user: str | None = None):
+	"""Keep list queries to the rows whose target DocType the user can read."""
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return None
+
+	readable_doctypes = get_doctypes_with_read(user)
+	if not readable_doctypes:
+		return "1 = 0"
+
+	return frappe.qb.DocType("Attachment Queue").document_type.isin(readable_doctypes)
