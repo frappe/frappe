@@ -670,6 +670,14 @@ frappe.ui.SidePanel = class SidePanel {
 					if ($(e.target).closest("a, button, input").length) return;
 					this.open_row_dialog(child_doctype, row.doc);
 				});
+
+				// GridRow also adds its own "open row" pencil button, bound to the *parent* of
+				// this element and returning false — which stops the click from ever bubbling to
+				// the handler above. Intercept it here instead, before that happens.
+				row.open_form_button?.on("click", (e) => {
+					e.stopPropagation();
+					this.open_row_dialog(child_doctype, row.doc);
+				});
 			}
 		}
 	}

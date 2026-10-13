@@ -1392,6 +1392,15 @@ export default class GridRow {
 
 		if (show === undefined) show = !open_row;
 
+		// This editing surface needs a live frm: its toolbar actions and its freeze
+		// backdrop's only close path (cur_frm.cur_grid) both depend on one. Without it the
+		// row would open with no way to close it again, so a frm-less grid (e.g. a
+		// document preview) just doesn't open it.
+		if (show && !this.frm) {
+			callback && callback();
+			return this;
+		}
+
 		// call blur
 		document.activeElement && document.activeElement.blur();
 
