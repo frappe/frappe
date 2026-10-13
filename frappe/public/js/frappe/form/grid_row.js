@@ -478,7 +478,7 @@ export default class GridRow {
 				},
 			],
 			secondary_action_label: __("Select All"),
-			secondary_action: () => this.select_all_columns(docfields),
+			secondary_action: () => d.fields_dict.fields.select_all(),
 		});
 
 		d.set_primary_action(__("Add"), () => {
@@ -513,17 +513,6 @@ export default class GridRow {
 		});
 
 		d.show();
-	}
-
-	select_all_columns(docfields) {
-		docfields.forEach((docfield) => {
-			if (docfield.checked) {
-				return;
-			}
-			$(`.checkbox.unit-checkbox input[type="checkbox"][data-unit="${docfield.value}"]`)
-				.prop("checked", true)
-				.trigger("change");
-		});
 	}
 
 	prepare_columns_for_dialog(selected_fields) {
