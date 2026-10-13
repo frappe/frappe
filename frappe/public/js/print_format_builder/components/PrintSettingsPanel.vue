@@ -44,6 +44,25 @@
 			/>
 		</InspectorSection>
 
+		<InspectorSection :label="__('Page background')">
+			<ImageUploadControl
+				:model-value="layout.background?.image || ''"
+				@update:model-value="set_background_image"
+			/>
+			<SliderRow
+				v-if="layout.background?.image"
+				:label="__('Opacity')"
+				:min="0"
+				:max="100"
+				:model-value="layout.background.opacity ?? 100"
+				@update:model-value="(v) => (layout.background.opacity = v)"
+			>
+				<span class="pfb-insp-hint text-muted"
+					>{{ layout.background.opacity ?? 100 }}%</span
+				>
+			</SliderRow>
+		</InspectorSection>
+
 		<InspectorSection :label="__('Document')">
 			<InspectorRow :label="__('PDF renderer')">
 				<template #label>
@@ -119,9 +138,11 @@ import SpacingRow from "./inspector/SpacingRow.vue";
 import InspectorSection from "./inspector/InspectorSection.vue";
 import ColorInput from "./inspector/ColorInput.vue";
 import DeskControl from "./DeskControl.vue";
+import ImageUploadControl from "./inspector/ImageUploadControl.vue";
+import SliderRow from "./inspector/SliderRow.vue";
 
 let store = inject("$store");
-let { print_format, letterhead } = store;
+let { print_format, letterhead, layout } = store;
 let { typst_blockers, legacy_blockers, has_typst_block } = store;
 
 let google_fonts = ref([]);
@@ -166,6 +187,14 @@ watch(
 	{ flush: "post" }
 );
 onUnmounted(() => hint_tooltip?.destroy());
+
+function set_background_image(image) {
+	if (!image) {
+		delete layout.value.background;
+		return;
+	}
+	layout.value.background = { opacity: 100, ...layout.value.background, image };
+}
 
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
