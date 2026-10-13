@@ -376,7 +376,7 @@ class Engine:
 =======
 		has_child_queries = False
 		has_name_field = False
-		# the main table's own name, not a self-link join's: distinct rows then map to documents
+		# the main table's name under any alias; link and child table fields never set it
 		selects_own_name = False
 
 >>>>>>> ed0a383 (fix(query): track the main table's own name in the engine for distinct comment counts)
@@ -401,7 +401,7 @@ class Engine:
 					has_name_field = True
 				# child queries need the `name` key; distinct rows only need the column, under any alias
 				if isinstance(field, Star) or is_source_name:
-					selects_own_name = selects_own_name or getattr(field, "table", None) == self.table
+					selects_own_name = True
 
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
