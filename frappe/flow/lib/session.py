@@ -221,7 +221,6 @@ def sync_with_retry(session: FlowSession) -> None:
 		session.sync()
 	except (frappe.TimestampMismatchError, frappe.QueryDeadlockError):
 		frappe.db.rollback()  # our reads predate its commit
-		session.reload()
 		session.sync()
 
 

@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -273,8 +273,8 @@ class TestSync(IntegrationTestCase):
 			with self.subTest(error=error.__name__), patch.object(frappe.db, "rollback") as rollback:
 				sessions.sync_with_retry(session)
 				rollback.assert_called_once_with()
-				session.reload.assert_called_once_with()
-				self.assertEqual(session.sync.call_count, 2)
+				# no reload: sync must take the lock before anything is read
+				self.assertEqual(session.method_calls, [call.sync(), call.sync()])
 
 	def test_a_sync_is_retried_only_once(self):
 		session = Mock(**{"sync.side_effect": frappe.TimestampMismatchError})
