@@ -22,13 +22,29 @@ class TestWebPageView(IntegrationTestCase):
 		super().setUp()
 		ensure_log_table("Web Page View")
 		self.log_db = get_log_db()
-		self._clear_views()
-		self.addCleanup(self._clear_views)
+
+		# A view is committed to the log database as it is written, so it outlives the test
+		# transaction: clearing the table would take a real site's page views with it. Every
+		# row this test creates is recorded and removed by name instead, and paths are
+		# prefixed per test so the reads cannot pick up views that were already there.
+		self.prefix = f"_test-{frappe.generate_hash(length=10)}"
+		self.view_names = []
+
+		self.addCleanup(self._remove_own_views)
 		self.addCleanup(get_page_view_count.clear_cache)
 
-	def _clear_views(self):
-		self.log_db.sql("DELETE FROM `tabWeb Page View`")
-		self.log_db.commit()
+	def _remove_own_views(self):
+		if self.view_names:
+			self.log_db.delete("Web Page View", {"name": ("in", self.view_names)})
+			self.log_db.commit()
+
+	def _path(self, path):
+		"""Namespace a path to this test, so a real site's views cannot be mistaken for it."""
+		return f"{self.prefix}/{path}"
+
+	def _own_views(self):
+		"""Filters matching only the views this test created."""
+		return {"name": ("in", self.view_names or [""])}
 
 	def _add_view(self, creation=None, **kwargs):
 		"""Record a view, optionally backdated.
@@ -38,6 +54,7 @@ class TestWebPageView(IntegrationTestCase):
 		insert itself on the same path a real view takes.
 		"""
 		view = frappe.get_doc(doctype="Web Page View", **kwargs).insert(ignore_permissions=True)
+		self.view_names.append(view.name)
 
 		if creation:
 			self.log_db.sql(
@@ -52,16 +69,16 @@ class TestWebPageView(IntegrationTestCase):
 		self.assertTrue(is_log_doctype("Web Page View"))
 		self.assertTrue(frappe.get_meta("Web Page View").is_virtual)
 
-		view = self._add_view(path="pricing", visitor_id="v1", is_unique=True)
+		view = self._add_view(path=self._path("pricing"), visitor_id="v1", is_unique=True)
 
-		self.assertEqual(self.log_db.get_value("Web Page View", view.name, "path"), "pricing")
-		self.assertEqual(self.log_db.count("Web Page View"), 1)
+		self.assertEqual(self.log_db.get_value("Web Page View", view.name, "path"), self._path("pricing"))
+		self.assertEqual(self.log_db.count("Web Page View", self._own_views()), 1)
 
 	def test_document_roundtrip_through_the_log_database(self):
-		view = self._add_view(path="pricing", browser="chrome")
+		view = self._add_view(path=self._path("pricing"), browser="chrome")
 
 		reloaded = frappe.get_doc("Web Page View", view.name)
-		self.assertEqual(reloaded.path, "pricing")
+		self.assertEqual(reloaded.path, self._path("pricing"))
 
 		reloaded.db_set("browser", "firefox", update_modified=False)
 		self.assertEqual(self.log_db.get_value("Web Page View", view.name, "browser"), "firefox")
@@ -76,9 +93,9 @@ class TestWebPageView(IntegrationTestCase):
 		lean on it to turn a row from `frappe.get_all` straight into a document. Comparing
 		the `name` column against a dict renders the dict into the SQL instead.
 		"""
-		view = self._add_view(path="pricing", visitor_id="v1")
+		view = self._add_view(path=self._path("pricing"), visitor_id="v1")
 
-		row = frappe.get_all("Web Page View", filters={"path": "pricing"})[0]
+		row = frappe.get_all("Web Page View", filters={"path": self._path("pricing")})[0]
 		self.assertIsInstance(row, dict)
 		self.assertEqual(frappe.get_doc("Web Page View", row).name, view.name)
 
@@ -92,36 +109,39 @@ class TestWebPageView(IntegrationTestCase):
 			frappe.get_doc("Web Page View", {"visitor_id": "no-such-visitor"})
 
 	def test_list_view_reads_the_log_database(self):
-		self._add_view(path="pricing")
-		self._add_view(path="about")
+		self._add_view(path=self._path("pricing"))
+		self._add_view(path=self._path("about"))
 
-		paths = {d.path for d in frappe.get_all("Web Page View", fields=["path"])}
-		self.assertEqual(paths, {"pricing", "about"})
+		paths = {d.path for d in frappe.get_all("Web Page View", fields=["path"], filters=self._own_views())}
+		self.assertEqual(paths, {self._path("pricing"), self._path("about")})
 
-		self.assertEqual(len(frappe.get_all("Web Page View", pluck="name")), 2)
-		self.assertEqual(len(frappe.get_all("Web Page View", filters={"path": "about"})), 1)
-		self.assertEqual(WebPageView.get_count("Web Page View"), 2)
+		self.assertEqual(len(frappe.get_all("Web Page View", pluck="name", filters=self._own_views())), 2)
+		self.assertEqual(len(frappe.get_all("Web Page View", filters={"path": self._path("about")})), 1)
+		self.assertEqual(WebPageView.get_count("Web Page View", self._own_views()), 2)
 
 	def test_page_view_count(self):
-		self._add_view(path="pricing")
-		self._add_view(path="pricing")
-		self._add_view(path="about")
+		self._add_view(path=self._path("pricing"))
+		self._add_view(path=self._path("pricing"))
+		self._add_view(path=self._path("about"))
 
 		get_page_view_count.clear_cache()
-		self.assertEqual(get_page_view_count("pricing"), 2)
+		self.assertEqual(get_page_view_count(self._path("pricing")), 2)
 
 	def test_clear_old_logs(self):
-		self._add_view(path="stale", creation="2020-01-01 00:00:00.000000")
-		self._add_view(path="fresh")
+		self._add_view(path=self._path("stale"), creation="2020-01-01 00:00:00.000000")
+		self._add_view(path=self._path("fresh"))
 
 		WebPageView.clear_old_logs(days=30)
 
-		self.assertEqual(frappe.get_all("Web Page View", pluck="path"), ["fresh"])
+		self.assertEqual(
+			frappe.get_all("Web Page View", pluck="path", filters=self._own_views()),
+			[self._path("fresh")],
+		)
 
 	def test_make_view_log_tracks_a_visitor_once(self):
 		builder = EnvironBuilder(
 			base_url=get_url(),
-			headers={"Referer": get_url("/contact?utm=x"), "User-Agent": "test-agent"},
+			headers={"Referer": get_url(f"/{self._path('contact')}?utm=x"), "User-Agent": "test-agent"},
 		)
 		previous_request = getattr(frappe.local, "request", None)
 		self.addCleanup(setattr, frappe.local, "request", previous_request)
@@ -135,29 +155,37 @@ class TestWebPageView(IntegrationTestCase):
 				make_view_log(referrer="https://example.com/post?utm=x", browser="chrome", visitor_id="v1")
 				save_to_db(doctype="Web Page View")
 
+		# `make_view_log` inserts through the deferred queue, so the rows are not created by
+		# `_add_view` and have to be collected here for the cleanup to find them.
 		views = frappe.get_all(
 			"Web Page View",
-			fields=["path", "referrer", "user_agent", "is_unique"],
+			fields=["name", "path", "referrer", "user_agent", "is_unique"],
+			filters={"path": self._path("contact")},
 			order_by="creation asc",
 		)
+		self.view_names.extend(v.name for v in views)
 
-		self.assertEqual([v.path for v in views], ["contact", "contact"])
+		self.assertEqual([v.path for v in views], [self._path("contact")] * 2)
 		self.assertEqual(views[0].referrer, "https://example.com/post")
 		self.assertEqual(views[0].user_agent, "test-agent")
 		# The uniqueness check has to find the first view, which only the log database holds.
 		self.assertEqual([v.is_unique for v in views], ["1", "0"])
 
 	def test_analytics_report_groups_and_charts_log_rows(self):
-		# A Tuesday and a Wednesday in the same week, then one the week after.
-		self._add_view(path="pricing", is_unique=True, creation="2026-09-01 10:00:00.000000")
-		self._add_view(path="pricing", is_unique=False, creation="2026-09-02 10:00:00.000000")
-		self._add_view(path="about", is_unique=True, creation="2026-09-08 10:00:00.000000")
+		# The report filters on `creation` alone -- it takes no path filter -- so the reporting
+		# window is the only thing that can keep a real site's views out of these totals. A
+		# window far enough back that nothing else occupies it does that; the rows below are
+		# backdated into it anyway, so the dates are free. Weekday shape is what matters: a
+		# Tuesday and a Wednesday in the same week, then one the week after.
+		self._add_view(path=self._path("pricing"), is_unique=True, creation="1990-01-02 10:00:00.000000")
+		self._add_view(path=self._path("pricing"), is_unique=False, creation="1990-01-03 10:00:00.000000")
+		self._add_view(path=self._path("about"), is_unique=True, creation="1990-01-09 10:00:00.000000")
 
-		filters = {"from_date": "2026-08-25", "to_date": "2026-09-10", "group_by": "path"}
+		filters = {"from_date": "1989-12-26", "to_date": "1990-01-11", "group_by": "path"}
 
 		_, data, _, _, summary = website_analytics({**filters, "range": "Daily"})
 
-		self.assertEqual(data, [("pricing", 2, 1), ("about", 1, 1)])
+		self.assertEqual(data, [(self._path("pricing"), 2, 1), (self._path("about"), 1, 1)])
 		self.assertEqual([s["value"] for s in summary], [3, 2])
 
 		# Every bucket the chart produces has to land on one of the labels it is plotted

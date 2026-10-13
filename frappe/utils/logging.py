@@ -197,6 +197,19 @@ def ensure_log_table(doctype: str) -> None:
 	# would overwrite the primary's cached table list.
 	log_db.sql_ddl("CREATE TABLE IF NOT EXISTS `{}` ({})".format(table, ", ".join(definitions)))
 
+	# `CREATE TABLE IF NOT EXISTS` does nothing to a table that already exists, so a column
+	# added to the DocType afterwards -- a Custom Field, or a new field in a Frappe upgrade --
+	# would be in the meta but not in the table, and every insert would fail on it. Nothing
+	# else closes that gap: `DBTable.sync`, which alters the primary database, skips virtual
+	# DocTypes.
+	existing = {row[1] for row in log_db.sql(f"PRAGMA table_info(`{table}`)")}
+
+	for definition in definitions:
+		column = definition.split("`")[1]
+
+		if column not in existing:
+			log_db.sql_ddl(f"ALTER TABLE `{table}` ADD COLUMN {definition}")
+
 	for column in ["creation", *indexed]:
 		log_db.sql_ddl(f"CREATE INDEX IF NOT EXISTS `{table}_{column}_idx` ON `{table}` (`{column}`)")
 

@@ -221,6 +221,7 @@ class SQLiteLogDocument(Document):
 	def get_list(
 		doctype: str,
 		filters=None,
+		or_filters=None,
 		fields=None,
 		order_by=None,
 		group_by=None,
@@ -259,6 +260,7 @@ class SQLiteLogDocument(Document):
 			table=doctype,
 			fields=fields or ["name"],
 			filters=filters,
+			or_filters=or_filters,
 			order_by=order_by,
 			group_by=group_by,
 			limit=page or None,
@@ -272,11 +274,23 @@ class SQLiteLogDocument(Document):
 		return db.sql(query, as_dict=not (as_list or pluck), pluck=bool(pluck))
 
 	@staticmethod
-	def get_count(doctype: str, filters=None, **kwargs) -> int:
+	def get_count(doctype: str, filters=None, or_filters=None, **kwargs) -> int:
 		"""Return the total number of matching log rows."""
 		ensure_log_table(doctype)
+		db = get_log_db()
 
-		return frappe.utils.cint(get_log_db().count(doctype, filters))
+		if not or_filters:
+			return frappe.utils.cint(db.count(doctype, filters))
+
+		# `Database.count` takes no `or_filters`, so build the aggregate here rather than
+		# drop the condition and report a count for the wrong set of rows.
+		from frappe.query_builder.functions import Count
+
+		query = db._get_query(table=doctype, fields=Count("*"), filters=filters, or_filters=or_filters)
+
+		result = db.sql(query)
+
+		return frappe.utils.cint(result[0][0]) if result else 0
 
 	@staticmethod
 	def get_stats(**kwargs):
