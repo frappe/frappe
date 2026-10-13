@@ -1,18 +1,6 @@
 import { t } from "./translate";
 import type { DataImportStatus, DocField, DocType } from "./types";
 
-export const getBadgeColor = (status: DataImportStatus) => {
-  const colorMap = {
-    Pending: "amber",
-    "In Progress": "amber",
-    Success: "green",
-    "Partial Success": "amber",
-    Error: "red",
-    "Timed Out": "amber",
-  } as const;
-  return colorMap[status as DataImportStatus] || "gray";
-};
-
 /** Desk's is_import_complete: the records are in, so the import can't be edited. */
 export const isImportComplete = (status: DataImportStatus) =>
   status === "Success" || status === "Partial Success";
