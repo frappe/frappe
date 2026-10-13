@@ -6,9 +6,6 @@ import copy
 import json
 from typing import Any
 
-from pypika.queries import QueryBuilder
-from pypika.terms import Field, Star
-
 import frappe
 from frappe.database.utils import DefaultOrderBy, FilterValue
 from frappe.deprecation_dumpster import deprecation_warning
@@ -223,7 +220,7 @@ class DatabaseQuery:
 			and not as_list
 			and bool(self.doctype)
 			# a distinct row without the document's name can stand for several documents
-			and (not distinct or selects_own_name(query, self.doctype))
+			and (not distinct or getattr(query, "_selects_own_name", False))
 		)
 		# selected after the permission check: never user-requestable, popped in _add_comment_count
 		if with_comment_count and not group_by and "_comments" in columns:
@@ -375,16 +372,3 @@ class DatabaseQuery:
 
 		# Use frappe.call to filter kwargs and call controller
 		return frappe.call(controller.get_list, args=kwargs, **kwargs)
-
-
-def selects_own_name(query: QueryBuilder, doctype: str) -> bool:
-	"""Distinct rows stay one per document only when they carry the document's own name."""
-	table = f"tab{doctype}"
-	return any(
-		(
-			isinstance(term, Star)
-			or (isinstance(term, Field) and term.name == "name" and term.alias in (None, "name"))
-		)
-		and getattr(term.table, "_table_name", None) == table
-		for term in query._selects
-	)

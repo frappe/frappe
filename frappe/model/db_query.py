@@ -1445,7 +1445,7 @@ from {tables}
 	def selects_own_name(self) -> bool:
 		"""Distinct rows stay one per document only when they carry the document's own name."""
 		table = f"`tab{self.doctype}`"
-		own = {"*", "name", f"{table}.*", f"{table}.`name`", f"{table}.name"}
+		own = {"*", "name", "`name`", f"{table}.*", f"{table}.`name`", f"{table}.name"}
 		return any(f.strip() in own for f in self.fields)
 
 	def update_user_settings(self):
