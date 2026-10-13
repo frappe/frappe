@@ -70,6 +70,7 @@ frappe.ui.form.on("Web Form", {
 		frm.set_value(frm.doc.is_new_doctype ? "doc_type" : "new_doctype_name", "");
 		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
+		render_form_builder(frm);
 
 		// Explain the "New DocType Name" field in a one-off dialog instead of a
 		// permanent description under the field, which would shift the layout
@@ -95,7 +96,7 @@ frappe.ui.form.on("Web Form", {
 		// Web Form created, so new fields can keep being added from here.
 		// Any other DocType (even one that's Custom) keeps the original
 		// pick-from-existing-fields behaviour.
-		let editable = frm.doc.is_new_doctype || frm.doc.created_new_doctype;
+		let editable = designs_own_doctype(frm);
 		frm.fields_dict.web_form_fields.grid.update_docfield_property(
 			"fieldname",
 			"fieldtype",
@@ -909,17 +910,23 @@ function is_builder_read_only(frm) {
 	return (frm.doc.is_standard && !frappe.boot.developer_mode) || !frm.has_perm("write");
 }
 
+// such a form adds fields of its own, every other one picks from its doctype
+function designs_own_doctype(frm) {
+	return Boolean(frm.doc.is_new_doctype || frm.doc.created_new_doctype);
+}
+
 function render_form_builder(frm) {
 	const builder = frappe.web_form_builder;
 	const mounted_here = !!get_form_builder(frm);
 
 	// a mounted builder falls through, so clearing doc_type blanks its field picker
-	if (!frm.doc.doc_type && !mounted_here) return;
+	if (!frm.doc.doc_type && !frm.doc.is_new_doctype && !mounted_here) return;
 
 	if (mounted_here) {
 		builder.docname = frm.doc.name;
 		builder.doctype = frm.doc.doc_type;
 		builder.force_read_only = is_builder_read_only(frm);
+		builder.creates_fields = designs_own_doctype(frm);
 		builder.update_store();
 		builder.setup_page_actions();
 		builder.store.fetch();
@@ -942,6 +949,7 @@ function render_form_builder(frm) {
 		builder.doctype = frm.doc.doc_type;
 		builder.is_web_form = true;
 		builder.force_read_only = is_builder_read_only(frm);
+		builder.creates_fields = designs_own_doctype(frm);
 		builder.init(true);
 		builder.store.fetch();
 		return;
@@ -965,6 +973,7 @@ function render_form_builder(frm) {
 				is_source_field: is_web_form_field,
 				validate_page_limit,
 				force_read_only: is_builder_read_only(frm),
+				creates_fields: designs_own_doctype(frm),
 			});
 			frappe.web_form_builder.docname = frm.doc.name;
 		})

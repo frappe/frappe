@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 from typing import TYPE_CHECKING
 
 import frappe
@@ -11,6 +12,7 @@ from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefaultError
 from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
+from frappe.model import child_table_fields, default_fields
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
@@ -26,6 +28,8 @@ from frappe.website.website_generator import WebsiteGenerator
 
 if TYPE_CHECKING:
 	from frappe.website.doctype.web_form_request.web_form_request import WebFormRequest
+
+LAYOUT_FIELDTYPES = ("Section Break", "Column Break", "Page Break")
 
 
 class WebForm(WebsiteGenerator):
@@ -91,8 +95,17 @@ class WebForm(WebsiteGenerator):
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
+		if self.is_new_doctype or self.created_new_doctype:
+			self.set_missing_fieldnames()
+
 		if self.is_new_doctype:
 			self.create_new_doctype()
+
+		if not self.doc_type:
+			frappe.throw(
+				_("Select a DocType, or tick Create New DocType to make one from this form's fields."),
+				title=_("Missing DocType"),
+			)
 
 		super().validate()
 
@@ -155,16 +168,37 @@ class WebForm(WebsiteGenerator):
 		self.is_new_doctype = 0
 		self.created_new_doctype = 1
 
+	def set_missing_fieldnames(self):
+		"""Name each field after its label. The form builder adds a field from a fieldtype,
+		so the field has no name until the first save."""
+		taken = {d.fieldname for d in self.web_form_fields if d.fieldname}
+		taken.update(default_fields, child_table_fields)
+
+		for d in self.web_form_fields:
+			if d.fieldname or d.fieldtype in LAYOUT_FIELDTYPES:
+				continue
+
+			base = re.sub(r"\W+", "_", cstr(d.label or d.fieldtype).lower()).strip("_")
+			fieldname, suffix = base, 1
+			while fieldname in taken:
+				suffix += 1
+				fieldname = f"{base}_{suffix}"
+
+			d.fieldname = fieldname
+			taken.add(fieldname)
+
 	def get_fields_for_new_doctype(self):
 		"""Map Web Form Field rows to DocField dicts for `create_new_doctype`."""
 		return [self.as_docfield(d) for d in self.web_form_fields]
 
 	def as_docfield(self, web_form_field):
 		"""Map a single Web Form Field row to a DocField dict."""
+		# a DocType calls a page a tab
+		fieldtype = web_form_field.fieldtype.replace("Page Break", "Tab Break")
 		return {
 			"fieldname": web_form_field.fieldname,
 			"label": web_form_field.label,
-			"fieldtype": web_form_field.fieldtype,
+			"fieldtype": fieldtype,
 			"options": web_form_field.options,
 			"reqd": web_form_field.reqd,
 			"default": web_form_field.default,
