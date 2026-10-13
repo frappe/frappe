@@ -438,6 +438,9 @@ class TestDBQuery(IntegrationTestCase):
 				rows = get_list("ToDo", fields=["description as name"], **args)
 				self.assertEqual(len(rows), 1)
 				self.assertNotIn("_comment_count", rows[0])
+			# a hand-built name without a table is the main table's
+			rows = frappe.get_list("ToDo", fields=[frappe.qb.Field("name")], **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 			# expressions carry no table, and must not hide a selected name
 			rows = frappe.get_list("ToDo", fields=[{"IFNULL": ["description", "'x'"]}, "name"], **args)
 			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
