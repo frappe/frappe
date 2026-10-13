@@ -255,7 +255,7 @@ frappe.ui.form.PrintView = class {
 
 	get_print_settings_param() {
 		const settings = Object.assign({}, this.additional_settings);
-		if (this.renders_via_generator(this.get_print_format())) {
+		if (!this.get_print_format().raw_printing) {
 			Object.assign(settings, this.page_overrides);
 		}
 		if (this.selected_format() === "Standard") {
@@ -341,7 +341,7 @@ frappe.ui.form.PrintView = class {
 		this.style_picker?.toggle(
 			this.selected_format() === "Standard" && !!(this.print_styles || []).length
 		);
-		this.page_settings?.toggle(this.renders_via_generator(this.get_print_format()));
+		this.page_settings?.toggle(!this.get_print_format().raw_printing);
 	}
 
 	get_print_style() {

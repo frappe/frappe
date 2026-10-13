@@ -152,7 +152,9 @@ def get_context(context) -> PrintContext:
 			"print_style": ""
 			if standalone
 			else get_print_style(
-				frappe.form_dict.style, print_format, font=get_print_font_override(doc, settings)
+				frappe.form_dict.style,
+				print_format,
+				overrides=get_allowed_print_settings_override(doc, settings),
 			),
 		}
 	)
@@ -455,25 +457,22 @@ def get_html_and_style(
 			frappe.clear_last_message()
 			html = None
 
+	overrides = get_allowed_print_settings_override(document, frappe.parse_json(settings))
 	return {
 		"html": html,
-		"style": get_print_style(
-			style=style,
-			print_format=print_format,
-			font=get_print_font_override(document, frappe.parse_json(settings)),
-		),
-		"page_style": None if is_beta else get_preview_page_css(print_format),
+		"style": get_print_style(style=style, print_format=print_format, overrides=overrides),
+		"page_style": None if is_beta else get_preview_page_css(print_format, overrides),
 	}
 
 
-def get_print_font_override(doc: "Document", settings: dict | None) -> str | None:
-	return get_allowed_print_settings_override(doc, settings).get("print_font") or None
-
-
-def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
+def get_preview_page_css(print_format: "PrintFormat" | None = None, overrides: dict | None = None) -> str:
 	from frappe.utils.print_format_generator import page_size_mm
 
-	page_width, page_height = page_size_mm(frappe.get_cached_doc("Print Settings"))
+	print_settings = frappe.get_cached_doc("Print Settings").as_dict()
+	print_settings.update(overrides or {})
+	page_width, page_height = page_size_mm(print_settings)
+	if print_settings.get("page_orientation") == "Landscape":
+		page_width, page_height = page_height, page_width
 	return frappe.get_template("templates/print_formats/preview_page.css").render(
 		{"page_width": page_width, "page_height": page_height, "page_margin": get_page_margin(print_format)}
 	)
@@ -761,9 +760,11 @@ def get_print_style(
 	style: str | None = None,
 	print_format: "PrintFormat" | None = None,
 	for_legacy: bool = False,
-	font: str | None = None,
+	overrides: dict | None = None,
 ) -> str:
 	print_settings = frappe.get_doc("Print Settings")
+	overrides = overrides or {}
+	font = overrides.get("print_font")
 
 	if not style:
 		style = print_settings.print_style or ""
@@ -798,6 +799,15 @@ def get_print_style(
 
 	if print_format and print_format.css:
 		css += "\n\n" + print_format.css
+
+	page_size = overrides.get("pdf_page_size")
+	if overrides.get("page_orientation") == "Landscape":
+		from frappe.utils.print_format_generator import page_size_mm
+
+		width, height = page_size_mm(print_settings.as_dict() | overrides)
+		css += f"\n.print-format {{ page-size: Custom; page-width: {height}mm; page-height: {width}mm; }}"
+	elif page_size and page_size != "Custom":
+		css += f"\n.print-format {{ page-size: {page_size}; }}"
 
 	return css
 
