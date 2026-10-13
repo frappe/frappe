@@ -442,7 +442,8 @@ class Engine:
 					has_name_field = True
 				# child queries need the `name` key; distinct rows only need the column, under any alias
 				if isinstance(field, Star) or is_source_name:
-					selects_own_name = selects_own_name or getattr(field, "table", None) == self.table
+					# an unbound name is the main table's: with a join, SQL rejects it as ambiguous
+					selects_own_name = selects_own_name or getattr(field, "table", None) in (None, self.table)
 
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
