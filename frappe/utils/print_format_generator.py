@@ -300,7 +300,7 @@ def page_size_mm(print_settings) -> tuple[float, float]:
 BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\r\n]+")
 
 
-def layout_page_settings(layout) -> dict:
+def layout_page_settings(layout: dict | list | None) -> dict:
 	"""The paper size and orientation a builder layout saves, as Print Settings keys."""
 	page = layout.get("page") if isinstance(layout, dict) else None
 	if not isinstance(page, dict):
@@ -315,7 +315,7 @@ def layout_page_settings(layout) -> dict:
 
 
 @frappe.whitelist()
-def get_page_size_mm(page: dict | str | None = None):
+def get_page_size_mm(page: dict | str | None = None) -> tuple[float, float]:
 	"""Paper size the builder canvas should draw, in mm."""
 	settings = frappe.get_cached_doc("Print Settings").as_dict()
 	settings.update(layout_page_settings({"page": frappe.parse_json(page)}))
@@ -418,7 +418,7 @@ class PrintFormatGenerator:
 	def format_page_settings(self) -> dict:
 		try:
 			layout = frappe.parse_json(self.print_format.format_data)
-		except Exception:
+		except ValueError:
 			return {}
 		return layout_page_settings(layout)
 
