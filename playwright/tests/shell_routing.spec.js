@@ -23,6 +23,10 @@ function current_shell(page) {
 	return page.evaluate(() => window.frappe?.router?.current_shell);
 }
 
+async function on_route(page, route) {
+	await expect.poll(() => page.evaluate(() => window.frappe?.get_route?.())).toEqual(route);
+}
+
 test.describe("Desk URL shell segment", () => {
 	test("reads a shell off a route only when what follows names something", async ({
 		page,
