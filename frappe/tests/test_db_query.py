@@ -683,6 +683,8 @@ class TestDBQuery(IntegrationTestCase):
 				self.assertNotIn("_comment_count", rows[0])
 				rows = get_list("ToDo", fields=["name"], **args)
 				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				rows = get_list("ToDo", fields=["name as name"], **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 				# an alias is not the document's name, so it must not split rows or get a count
 				rows = get_list("ToDo", fields=["description as name"], **args)
 				self.assertEqual(len(rows), 1)
@@ -690,6 +692,9 @@ class TestDBQuery(IntegrationTestCase):
 			# expressions carry no table, and must not hide a selected name
 			rows = frappe.get_list("ToDo", fields=[{"IFNULL": ["description", "'x'"]}, "name"], **args)
 			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# the name under another alias still maps rows to documents
+			rows = frappe.get_list("ToDo", fields=["name as id"], **args)
+			self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
 			# `*` carries the name, also when permissions leave it unexpanded
 			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
 				rows = get_list("ToDo", fields=["*"], ignore_permissions=True, **args)

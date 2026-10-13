@@ -1446,7 +1446,7 @@ from {tables}
 		"""Distinct rows stay one per document only when they carry the document's own name."""
 		table = f"`tab{self.doctype}`"
 		own = {"*", "name", "`name`", f"{table}.*", f"{table}.`name`", f"{table}.name"}
-		return any(f.strip() in own for f in self.fields)
+		return any(strip_alias(f).strip() in own for f in self.fields)
 
 	def update_user_settings(self):
 		# update user settings if new search
