@@ -57,11 +57,15 @@ def is_item_allowed(name, item_type, ctx):
 		return True
 
 	if item_type == "doctype":
-		return (
-			name in (ctx.can_read or [])
-			and name in (ctx.restricted_doctypes or [])
-			and frappe.has_permission(name)
-		)
+		try:
+			return (
+				name in (ctx.can_read or [])
+				and name in (ctx.restricted_doctypes or [])
+				and frappe.has_permission(name)
+			)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			return False
 	if item_type == "page":
 		# `restricted_pages` is None while a patch, install or migrate is running, the same as
 		# `restricted_doctypes` above, so it is coalesced rather than iterated blindly.
