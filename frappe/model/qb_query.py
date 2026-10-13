@@ -6,6 +6,8 @@ import copy
 import json
 from typing import Any
 
+from pypika.terms import Field, Star
+
 import frappe
 from frappe.database.utils import DefaultOrderBy, FilterValue
 from frappe.deprecation_dumpster import deprecation_warning
@@ -217,7 +219,12 @@ class DatabaseQuery:
 
 		with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
 		# selected after the permission check: never user-requestable, popped in _add_comment_count
-		if with_comment_count and not group_by and not distinct and "_comments" in columns:
+		if (
+			with_comment_count
+			and not group_by
+			and "_comments" in columns
+			and (not distinct or selects_own_name(query, self.doctype))
+		):
 			query = query.select(frappe.qb.DocType(self.doctype)._comments)
 
 		# Run the query
@@ -227,10 +234,6 @@ class DatabaseQuery:
 			result = query.run(debug=debug, as_dict=not as_list, update=update)
 
 		if with_comment_count:
-			if distinct:
-				from frappe.model.db_query import attach_comments_by_name
-
-				attach_comments_by_name(self.doctype, result)
 			self._add_comment_count(result)
 
 		# Save user settings if requested
@@ -370,3 +373,16 @@ class DatabaseQuery:
 
 		# Use frappe.call to filter kwargs and call controller
 		return frappe.call(controller.get_list, args=kwargs, **kwargs)
+
+
+def selects_own_name(query, doctype: str) -> bool:
+	"""Distinct rows stay one per document only when they carry the document's own name."""
+	table = f"tab{doctype}"
+	return any(
+		getattr(term.table, "_table_name", None) == table
+		and (
+			isinstance(term, Star)
+			or (isinstance(term, Field) and term.name == "name" and term.alias in (None, "name"))
+		)
+		for term in query._selects
+	)
