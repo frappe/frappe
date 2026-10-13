@@ -1359,6 +1359,31 @@ test("a steered message leaves the queue for a bubble below the turn until the t
 	flow.detach()
 })
 
+test("a steer the turn never took goes when the turn ends; a pause keeps it for the resumed turn", async () => {
+	for (const [reason, left] of [
+		["denied", 0],
+		["budget", 0],
+		["max_turns", 0],
+		["paused", 1],
+	]) {
+		const ended = step({ type: "run_ended", seq: 2, reason })
+		const client = hostClient([])
+		client.entries = running
+		client.run = async () => ({ status: "steered" })
+		client.stream = () => pacedStream([ended])
+		const flow = createFlowStore(client)
+		await flow.openSession("s1")
+
+		await flow.send("Also check this")
+		await flow.sendQueued(flow.state.queued[0])
+		assert.equal(flow.state.conversation.steering.length, 1, reason)
+		ended.open()
+		await ended.done
+		assert.equal(flow.state.conversation.steering.length, left, reason)
+		flow.detach()
+	}
+})
+
 test("a steer the server turned into a turn of its own gets its bubble", async () => {
 	const client = hostClient([])
 	client.entries = running
