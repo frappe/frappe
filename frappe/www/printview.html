@@ -17,17 +17,7 @@
 	{% endif %}
 </head>
 <body>
-	{%- if not no_action_banner %}
-	<div class="action-banner print-hide">
-		<a class="p-2" href="#" onclick="window.print(); return false;">
-			{{ _("Print") }}
-		</a>
-		<a class="p-2"
-			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&format={{print_format|e}}{% if letterhead %}&letterhead={{letterhead|e}}{% endif %}{% if no_letterhead %}&no_letterhead={{no_letterhead|e}}{% endif %}{% if lang %}&_lang={{lang|e}}{% endif %}{% if key %}&key={{key|e}}{% endif %}{% if pdf_generator %}&pdf_generator={{pdf_generator|e}}{% endif %}{% if style %}&style={{style|urlencode}}{% endif %}{% if settings %}&settings={{settings|urlencode}}{% endif %}">
-			{{ _('Get PDF') }}
-		</a>
-	</div>
-	{%- endif %}
+	{%- if not no_action_banner %}{% include "templates/print_formats/print_action_banner.html" %}{% endif %}
 	<div class="print-format-gutter">
 		<div class="print-format">
 			{{ body }}
