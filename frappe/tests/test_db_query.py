@@ -472,6 +472,16 @@ class TestDBQuery(IntegrationTestCase):
 			# the linked folder's name is not the row's own name, so files must not split the row
 			values = [tuple(v for k, v in row.items() if k != "_comment_count") for row in rows]
 			self.assertEqual(len(values), len(set(values)))
+			# same for a hand-built field on the folder join, which the engine aliases `tab_File_1`
+			folder_name = frappe.qb.DocType("File").as_("tab_File_1").name
+			rows = frappe.get_list(
+				"File",
+				fields=[folder_name],
+				filters={"folder.name": folder.name},
+				distinct=True,
+				with_comment_count=1,
+			)
+			self.assertEqual(rows, [{"name": folder.name}])
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
