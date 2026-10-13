@@ -120,6 +120,18 @@
 	height: 38px;
 }
 
+.grid-static-col .grid-cell-action {
+	position: absolute;
+	top: 0;
+	inset-inline-end: var(--padding-sm);
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
 .form-grid .data-row {
 	// padding: 10px 15px;
 

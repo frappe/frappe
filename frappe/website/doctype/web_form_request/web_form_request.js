@@ -2,27 +2,19 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Web Form Request", {
+	setup(frm) {
+		$(frm.wrapper).on("grid-row-render", (e, grid_row) => {
+			add_copy_link_button(frm, grid_row);
+		});
+	},
+
 	refresh(frm) {
 		// the server always sets it to the Web Form's doctype
 		frm.fields_dict.references.grid.update_docfield_property("link_doctype", "read_only", 1);
 		frm.trigger("set_reference_doctype");
 
-		if (frm.is_new() || !frm.doc.key || !frm.doc.web_form) {
-			return;
-		}
-
-		const references = (frm.doc.references || []).filter(
-			(row) => row.link_name && !row.__islocal
-		);
-		if (!references.length) {
-			frm.add_custom_button(__("Copy Link"), () => copy_link(frm));
-			return;
-		}
-
-		frm.add_custom_button(__("New Response"), () => copy_link(frm), __("Copy Link"));
-		for (const row of references) {
-			const name = row.link_name;
-			frm.add_custom_button(name, () => copy_link(frm, name), __("Copy Link"));
+		if (can_copy_link(frm)) {
+			frm.add_custom_button(__("Copy New Response Link"), () => copy_link(frm));
 		}
 	},
 
@@ -61,6 +53,38 @@ frappe.ui.form.on("Dynamic Link", {
 		frappe.model.set_value(cdt, cdn, "link_doctype", frm.reference_doctype);
 	},
 });
+
+function can_copy_link(frm) {
+	return !frm.is_new() && frm.doc.key && frm.doc.web_form;
+}
+
+function add_copy_link_button(frm, grid_row) {
+	const column = grid_row.columns.link_name;
+	if (!column) {
+		return;
+	}
+
+	// the grid reuses the cell on every render
+	column.find(".copy-reference-link").remove();
+	const row = grid_row.doc;
+	if (!can_copy_link(frm) || !row.link_name || row.__islocal) {
+		return;
+	}
+
+	const icon = frappe.utils.icon("link", "sm");
+	$(`<button type="button" class="copy-reference-link grid-cell-action">${icon}</button>`)
+		.attr({ title: __("Copy Link"), "aria-label": __("Copy Link") })
+		.appendTo(column)
+		.on("click", () => {
+			if (frm.is_dirty()) {
+				frappe.show_alert(__("Save the document to copy the link"));
+			} else {
+				copy_link(frm, row.link_name);
+			}
+			// the cell's own click opens the row for editing
+			return false;
+		});
+}
 
 function copy_link(frm, docname) {
 	const fields = ["route", "allow_edit"];
