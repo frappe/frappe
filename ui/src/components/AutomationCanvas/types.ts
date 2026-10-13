@@ -1,6 +1,6 @@
 import type { Component } from "vue";
 
-/** Colour of a node's bare glyph. */
+/** A node's identity colour: its tab, hairline and selection. */
 export type AutomationCanvasTone =
   | "blue"
   | "green"
@@ -24,7 +24,7 @@ export type AutomationCanvasStatus =
 
 export type AutomationCanvasIssueLevel = "error" | "warning";
 
-/** Something wrong with a node, shown as a coloured border and an icon with this message. */
+/** Something wrong with a node: a warning reads "Needs setup", an error "Has errors"; the message shows on hover. */
 export interface AutomationCanvasIssue {
   level: AutomationCanvasIssueLevel;
   message: string;
@@ -61,6 +61,8 @@ export interface AutomationCanvasRun {
   forced?: boolean;
   /** Arms the run skipped and can still run. */
   retryArms?: AutomationCanvasArm[];
+  /** How long the node took, shown in its footer. */
+  durationMs?: number;
 }
 
 export interface AutomationCanvasNode {
