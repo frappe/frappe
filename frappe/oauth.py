@@ -373,13 +373,13 @@ class OAuthWebRequestValidator(RequestValidator):
 		if not refresh_token:
 			return False
 
-		try:
-			otoken = frappe.get_doc(
-				"OAuth Bearer Token",
-				{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
-			)
-		except frappe.DoesNotExistError:
-			frappe.clear_last_message()
+		otoken = frappe.db.get_value(
+			"OAuth Bearer Token",
+			{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
+			("user", "client"),
+			as_dict=True,
+		)
+		if not otoken or not client or otoken.client != client.client_id:
 			return False
 
 		request.user = otoken.user
