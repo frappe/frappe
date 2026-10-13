@@ -178,7 +178,8 @@
 				</div>
 				<div
 					v-if="(data.arms?.length || data.canContinue) && !readonly"
-					class="automation-canvas-add nodrag absolute left-[calc(100%+12px)] top-[calc(50%+10.5px)] flex -translate-y-1/2 flex-col gap-1.5"
+					class="automation-canvas-add nodrag absolute left-[calc(100%+12px)] flex -translate-y-1/2 flex-col gap-1.5"
+					:class="armsPosition(data)"
 					@click.stop
 				>
 					<AutomationCanvasPicker
@@ -440,6 +441,14 @@ function nodeLabel(data: AutomationCanvasNodeData) {
 	if (data.run) parts.push(translate(RUN_STATES[data.run.status][1]));
 	if (data.issue) parts.push(data.issue.message);
 	return parts.join(". ");
+}
+
+/** A lone open arm steps off the port, so it never sits on the filled arm's edge. */
+function armsPosition(data: AutomationCanvasNodeData) {
+	const lone = data.arms?.length === 1 && !data.canContinue ? data.arms[0].key : null;
+	if (lone === "Else") return "top-[calc(50%+34.5px)]";
+	if (lone) return "top-[calc(50%-13.5px)]";
+	return "top-[calc(50%+10.5px)]";
 }
 
 function showAdd(data: AutomationCanvasNodeData) {
