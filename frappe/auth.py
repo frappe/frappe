@@ -23,7 +23,7 @@ from frappe.twofactor import (
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, get_datetime, today
-from frappe.utils.password import check_password, get_decrypted_password
+from frappe.utils.password import check_password, get_decrypted_password, validate_password_size
 from frappe.website.utils import get_home_page
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
@@ -274,8 +274,7 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_("Incomplete login details"), user=user)
 
-		if len(pwd) > MAX_PASSWORD_SIZE:
-			self.fail(_("Password size exceeded the maximum allowed size"), user=user)
+		validate_password_size(pwd)
 
 		_raw_user_name = user
 		user = User.find_by_credentials(user, pwd)

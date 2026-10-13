@@ -28,7 +28,7 @@ login.bind_events = function () {
 			hasError = true;
 		}
 		if (hasError) return false;
-		login.call(args, null, "/api/method/login");
+		login.call(args, null, "/api/method/login", "section:visible .login-error-banner .es-alert__title");
 		return false;
 	});
 
