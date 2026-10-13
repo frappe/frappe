@@ -399,6 +399,13 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 			self.session.chat("   ")
 		self.assertEqual(self.calls("run"), [])
 
+	def test_chat_sends_an_image_without_a_message(self):
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "pic.png", "content": png_bytes(), "is_private": 1}
+		).insert()
+		self.session.chat("", attachments=[file_doc.name])
+		self.assertEqual(self.daemon.calls[-1], ("run", self.session.name, "", ["a0"]))
+
 	def test_chat_refuses_an_existing_session_when_its_agent_is_disabled(self):
 		self.agent.db_set("enabled", 0)
 		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):

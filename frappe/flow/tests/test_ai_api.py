@@ -574,6 +574,14 @@ class TestSessionEndpoints(ApiCase):
 		)
 		self.assertEqual(frappe.db.count("Flow Session Attachment", {"parent": name}), 1)
 
+	def test_run_sends_a_file_without_a_message(self):
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "notes.txt", "content": "the body", "is_private": 1}
+		).insert()
+		name = self.create()
+		self.assertEqual(api.run(name, "", attachments=json.dumps([file_doc.name]))["status"], "started")
+		self.assertEqual(self.daemon.calls[-1], ("run", name, '\n<file name="notes.txt">\nthe body\n</file>'))
+
 	def test_run_refuses_a_malformed_attachment_list(self):
 		name = self.create()
 		for bad in ("not json", json.dumps([1]), json.dumps({"a": 1}), json.dumps([""])):

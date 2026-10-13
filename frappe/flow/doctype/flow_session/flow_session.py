@@ -157,8 +157,9 @@ class FlowSession(Document):
 		on_complete: str | None = None,
 	) -> FlowRun:
 		"""Start a turn and return its Running Flow Run, or the active run it joined.
-		`attachments` are File names whose content travels with this turn. Once the run
-		ends, Flow calls the function at the dotted path `on_complete` with it."""
+		`attachments` are File names whose content travels with this turn; with them, `input`
+		may be empty. Once the run ends, Flow calls the function at the dotted path
+		`on_complete` with it."""
 		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import (
 			build_turn,
 			cleanup_indexed_files,
@@ -166,7 +167,7 @@ class FlowSession(Document):
 		from flow.flow.doctype.flow_skill.flow_skill import expand_skill_command
 		from flow.memory.memory import memory_block
 
-		if not (input or "").strip():
+		if not (input or "").strip() and not attachments:
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
 		self._assert_can_run()
 		self.sync()
