@@ -122,6 +122,22 @@
 		@update:model-value="(value) => (doc[field.name] = value)"
 	/>
 
+	<!-- the menu opens under the input rather than over it -->
+	<FormControl
+		v-else-if="field.type === 'provider'"
+		type="select"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:required="field.required"
+		:options="providerOptions"
+		:model-value="doc[field.name] || null"
+		:disabled="disabled"
+		placeholder="Select…"
+		side="bottom"
+		@update:model-value="(value) => (doc[field.name] = value ?? '')"
+	/>
+
 	<FormControl
 		v-else-if="field.type === 'textarea'"
 		type="textarea"
@@ -204,6 +220,15 @@ const inputValue = computed(() => {
 	const value = props.doc[props.field.name];
 	if (props.field.type === "int" && props.field.placeholder && !value) return "";
 	return value ?? "";
+});
+
+// a saved provider the list leaves out still shows as itself
+const providerOptions = computed(() => {
+	const value = props.doc[props.field.name];
+	const options = props.field.options;
+	return !value || options.some((option) => option.value === value)
+		? options
+		: [...options, { label: value, value }];
 });
 
 // The current options stay while another query loads; selected values are always offered.

@@ -3,6 +3,20 @@
 const enabled = { name: "enabled", label: "Enabled", type: "check" };
 const system = (doc) => !!doc.is_system_generated;
 const saved = (doc) => !!doc.name;
+// the harness's /providers list, then two ways to reach any other endpoint
+const PROVIDERS = [
+	{ label: "OpenAI", value: "openai" },
+	{ label: "Anthropic", value: "anthropic" },
+	{ label: "Google Gemini", value: "gemini" },
+	{ label: "OpenRouter", value: "openrouter" },
+	{ label: "xAI", value: "xai" },
+	{ label: "Groq", value: "groq" },
+	{ label: "DeepSeek", value: "deepseek" },
+	{ label: "Mistral", value: "mistral" },
+	{ label: "Cerebras", value: "cerebras" },
+	{ label: "OpenAI-compatible endpoint", value: "custom_openai" },
+	{ label: "LiteLLM proxy", value: "litellm_proxy" },
+];
 
 export const SPECS = {
 	providers: {
@@ -17,10 +31,11 @@ export const SPECS = {
 			{
 				name: "provider",
 				label: "Provider",
-				type: "text",
+				type: "provider",
+				options: PROVIDERS,
 				required: true,
-				placeholder: "anthropic",
-				description: "For example openai, anthropic, gemini, openrouter or ollama.",
+				description:
+					"For anything else, like Ollama, LM Studio or a gateway, pick OpenAI-compatible endpoint or LiteLLM proxy and set its Base URL.",
 				locked: saved,
 			},
 			enabled,

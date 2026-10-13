@@ -19,6 +19,7 @@ const { loadComponent, transport } = await import("./helpers/components.js");
 const DocPanel = await loadComponent("settings/DocPanel.vue");
 const DocForm = await loadComponent("settings/DocForm.vue");
 const FieldControl = await loadComponent("settings/FieldControl.vue");
+const { SPECS } = await import("../src/settings/specs.js");
 
 function mount(t, component, props) {
 	const el = document.createElement("div");
@@ -195,6 +196,22 @@ for (const typeName of ["link", "multilink"]) {
 		assert.ok(!el.textContent.includes("tool-1"));
 	});
 }
+
+test("a provider is picked from the list, and a saved one outside it still shows", (t) => {
+	const field = SPECS.providers.fields.find((f) => f.name === "provider");
+	const labels = (el) => [...el.querySelectorAll("button")].map((b) => b.textContent);
+	const doc = { doctype: "Flow Provider", provider: "" };
+	const el = mount(t, FieldControl, { field, doc });
+	assert.ok(labels(el).includes("LiteLLM proxy"));
+	[...el.querySelectorAll("button")].find((b) => b.textContent === "Anthropic").click();
+	assert.equal(doc.provider, "anthropic");
+
+	const saved = mount(t, FieldControl, {
+		field,
+		doc: { doctype: "Flow Provider", provider: "azure" },
+	});
+	assert.equal(labels(saved).at(-1), "azure");
+});
 
 // a Frappe JSON column carries a json_valid check, which an empty string fails
 const sourceSpec = {
