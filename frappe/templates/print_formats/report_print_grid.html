@@ -13,7 +13,7 @@
 {% endif %}
 
 {% for table_rows in rows | batch(rows_per_table) %}
-<table class="table table-bordered {% if not loop.last %} page-break {% endif %}">
+<table class="table table-bordered print-grid {% if not loop.last %} page-break {% endif %}">
 	<thead>
 		<tr>
 			<th> # </th>
@@ -25,16 +25,16 @@
 	</thead>
 	<tbody>
 		{% for row_number, row in table_rows %}
-			<tr style="height: 30px">
+			<tr {% if row.bold == 1 %} class="bold" {% endif %}>
 
-			<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
+			<td>
 				<span> {{ row_number or "" }} </span>
 			</td>
 
 			{% set format_doc = row_doc(first_row if row.is_total_row else row, doctype=title, name=row_number) %}
 			{% for col in columns %}
 				{% set value = row.get(col.fieldname) %}
-				<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %} {% if value is string and value.split(" ") | map("length") | max > 45 %} class="overflow-wrap-anywhere" {% endif %}>
+				<td {% if value is string and value.split(" ") | map("length") | max > 45 %} class="overflow-wrap-anywhere" {% endif %}>
 					<span {% if loop.first %} style="padding-left: {{ (row.indent | int) * 2 }}em" {% endif %}>
 						{% if row.is_total_row and loop.first %}
 							{{ _("Total") }}

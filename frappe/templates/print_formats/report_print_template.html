@@ -11,11 +11,7 @@
 </head>
 <body>
 	<div class="print-format-gutter">
-		<div class="print-format {% if landscape %}landscape{% endif %}"
-				{% if use_smaller_font %}
-					style="font-size: 4.0pt"
-				{% endif %}
-			>
+		<div class="print-format {% if landscape %}landscape{% endif %} {% if use_smaller_font %}smaller-font{% endif %}">
 			{% if letter_head and letter_head.header %}
 			<div {% if repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
 				<div class="letter-head">{{ letter_head.header }}</div>
