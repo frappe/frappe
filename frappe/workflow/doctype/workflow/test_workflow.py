@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import socket
 from unittest.mock import patch
 
 import responses
@@ -285,7 +286,7 @@ class TestWorkflow(IntegrationTestCase):
 
 		self.responses.add(
 			responses.POST,
-			"https://workflowtasks.org/post",
+			"https://example.com/post",
 			status=200,
 			json={},
 		)
@@ -294,15 +295,23 @@ class TestWorkflow(IntegrationTestCase):
 		domain.domain = random_string(length=10)
 		domain.save()
 
-		with self.patch_hooks(
-			{
-				"workflow_methods": [
-					{
-						"name": "Create Note",
-						"method": "frappe.workflow.doctype.workflow.test_workflow.create_new_note",
-					}
-				]
-			}
+		with (
+			self.patch_hooks(
+				{
+					"workflow_methods": [
+						{
+							"name": "Create Note",
+							"method": "frappe.workflow.doctype.workflow.test_workflow.create_new_note",
+						}
+					]
+				}
+			),
+			patch(
+				"socket.getaddrinfo",
+				return_value=[
+					(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("93.184.216.34", 443))
+				],
+			),
 		):
 			apply_workflow(domain, "Approve")
 
@@ -311,7 +320,7 @@ class TestWorkflow(IntegrationTestCase):
 			frappe.db.exists("Note", {"title": "workflow - " + domain.name, "content": "workflow test"})
 		)
 		self.assertTrue(frappe.db.exists("Domain", {"name": "workflow - " + domain.name}))
-		self.assertTrue(frappe.db.exists("Webhook Request Log", {"url": "https://workflowtasks.org/post"}))
+		self.assertTrue(frappe.db.exists("Webhook Request Log", {"url": "https://example.com/post"}))
 
 		# for webhooks
 		self.responses.stop()
@@ -528,7 +537,7 @@ def create_new_webhook():
 	webhook.webhook_docevent = "workflow_transition"
 	webhook.webhook_doctype = "Domain"
 	webhook.request_method = "POST"
-	webhook.request_url = "https://workflowtasks.org/post"
+	webhook.request_url = "https://example.com/post"
 	webhook.save()
 
 	return webhook

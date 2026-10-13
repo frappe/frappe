@@ -42,7 +42,9 @@
 				{% for column in columns %}
 				{# Column's own field is always the implicit primary line; merged_fields holds the extra fields. #}
 				{%- set _merged = ([{"fieldname": column.fieldname, "fieldtype": column.fieldtype, "style": "primary", "date_format": column.date_format}] + column.merged_fields) if column.merged_fields else None -%}
-				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
+				{%- set _words = ((row.get(column.fieldname) or "")|string|striptags).split() -%}
+				{%- set _td_style = _cell_style ~ (";overflow-wrap:anywhere" if _words and (_words|map("length")|max) > 20 else "") -%}
+				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _td_style %} style="{{ _td_style|e }}"{% endif %} {{ field_attributes(column) }}>
 					{%- if _merged -%}
 						{# Merged cell: an image field (if any) floats left, the rest stack as text lines (first = primary). #}
 						{%- set ns = namespace(img_fn=None, first_txt="") -%}

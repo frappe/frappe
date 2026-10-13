@@ -18,7 +18,7 @@ export interface FirstPageResponse {
 
 export function createPagedSources(): PagedSources {
   return {
-    hasMoreEmails: ref(true),
+    hasMoreEmails: ref(false),
     hasMoreMilestones: ref(false),
     milestoneStart: ref(0),
   };

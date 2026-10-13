@@ -7,7 +7,11 @@
 {% endmacro %}
 
 @page {
+	{%- if print_settings.pdf_page_size == "Custom" %}
+	size: {{ page_width }}mm {{ page_height }}mm;
+	{%- else %}
 	size: {{ print_settings.pdf_page_size or 'A4' }} portrait;
+	{%- endif %}
 	margin-top: {{ print_format.margin_top | int }}mm;
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;

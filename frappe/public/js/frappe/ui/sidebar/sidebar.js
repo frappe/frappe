@@ -535,7 +535,8 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// A drawer starts shut; on a desktop the viewer's last choice is kept in this browser.
 	load_expanded_state() {
-		this.sidebar_expanded = !this.panel_can_close() && !this.saved_collapsed_state();
+		this.sidebar_expanded =
+			!this.panel_can_close() && !this.saved_collapsed_state() && !this.folded_for_page;
 	}
 
 	// Storage can be missing or refuse, and then the panel opens whole.
@@ -753,6 +754,23 @@ frappe.ui.Sidebar = class Sidebar {
 	open() {
 		this.sidebar_expanded = true;
 		this.save_collapsed_state(false);
+		this.apply_expanded_state();
+		this.highlight_active_item();
+	}
+
+	fold_for_page() {
+		if (this.folded_for_page) return;
+		this.folded_for_page = true;
+		if (!this.sidebar_expanded) return;
+		this.sidebar_expanded = false;
+		if (this.wrapper) this.apply_expanded_state();
+	}
+
+	unfold_after_leaving_page() {
+		if (!this.folded_for_page) return;
+		this.folded_for_page = false;
+		this.load_expanded_state();
+		if (!this.sidebar_expanded || !this.wrapper) return;
 		this.apply_expanded_state();
 		this.highlight_active_item();
 	}
@@ -992,16 +1010,25 @@ frappe.ui.Sidebar = class Sidebar {
 		return ["link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
-	// Where an app's icon leads: its declared route, else its first rail entry, else its first
-	// navigable module.
+	// An app's icon always leads into the app: an app with its own UI outside the desk opens that,
+	// and a desk app opens the first entry of the rail its user arranged that stays in the desk.
 	app_landing_route(app) {
 		if (!app) return null;
-		if (app.app_route) return app.app_route;
+		if (app.app_route && !this.is_desk_route(app.app_route)) return app.app_route;
 
-		const [entry] = this.collect_dock_entries(app);
-		if (entry) return this.dock_entry_route(entry);
+		for (const entry of this.collect_dock_entries(app)) {
+			if (entry.link_type === "URL") continue;
+			const route = this.dock_entry_route(entry);
+			if (route && this.is_desk_route(route)) return route;
+		}
 
-		return this.module_landing_route(this.first_navigable_module(app));
+		return app.app_route || this.module_landing_route(this.first_navigable_module(app));
+	}
+
+	// `/app` is the desk's old prefix, which still redirects to `/desk`.
+	is_desk_route(route) {
+		const [root] = route.replace(/^\//, "").split("/");
+		return ["desk", "app"].includes(root);
 	}
 
 	// One definition, so the icon and the button cannot disagree.
