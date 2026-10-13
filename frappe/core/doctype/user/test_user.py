@@ -16,6 +16,7 @@ from frappe.core.doctype.user.user import (
 	User,
 	bulk_add_roles,
 	bulk_remove_roles,
+	change_password,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -32,7 +33,7 @@ from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, get_url, now_datetime
+from frappe.utils import add_days, add_to_date, get_url, getdate, now_datetime, today
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -725,6 +726,15 @@ class TestUser(IntegrationTestCase):
 		frappe.clear_messages()
 		self.assertIsNone(reset_password(user="random"))
 		self.assertEqual(frappe.message_log[0].get("message"), _GENERIC_MSG)
+
+	def test_change_password_sets_last_password_reset_date(self):
+		user = "testpassword@example.com"
+		frappe.db.set_value("User", user, "last_password_reset_date", add_days(today(), -2))
+
+		frappe.set_user(user)
+		change_password(user, "Eastern_43A1W")
+
+		self.assertEqual(frappe.db.get_value("User", user, "last_password_reset_date"), getdate())
 
 	def test_user_onload_modules(self):
 		"""The editor lists custom modules, and keeps a blocked module even after it is deleted"""
