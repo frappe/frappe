@@ -217,14 +217,15 @@ class DatabaseQuery:
 		if not run:
 			return query
 
-		with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
-		# selected after the permission check: never user-requestable, popped in _add_comment_count
-		if (
-			with_comment_count
-			and not group_by
-			and "_comments" in columns
+		with_comment_count = (
+			sbool(with_comment_count)
+			and not as_list
+			and bool(self.doctype)
+			# a distinct row without the document's name can stand for several documents
 			and (not distinct or selects_own_name(query, self.doctype))
-		):
+		)
+		# selected after the permission check: never user-requestable, popped in _add_comment_count
+		if with_comment_count and not group_by and "_comments" in columns:
 			query = query.select(frappe.qb.DocType(self.doctype)._comments)
 
 		# Run the query
