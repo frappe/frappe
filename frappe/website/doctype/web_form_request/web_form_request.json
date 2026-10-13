@@ -52,7 +52,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "JSON values prefilled in the form. The respondent can edit them.",
+   "description": "JSON object of values prefilled in the form, keyed by fieldname. The respondent can edit them. Example: <code>{\"first_name\": \"Jane\"}</code>",
    "fieldname": "web_form_values",
    "fieldtype": "Code",
    "label": "Web Form Values",
@@ -63,7 +63,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "JSON values set on the document on submission. Never sent to the browser.",
+   "description": "JSON object of values set on the document on submission, keyed by fieldname. Never sent to the browser. Example: <code>{\"status\": \"Open\"}</code>",
    "fieldname": "doc_values",
    "fieldtype": "Code",
    "label": "Doc Values",
