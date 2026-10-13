@@ -227,6 +227,10 @@ class DatabaseQuery:
 			result = query.run(debug=debug, as_dict=not as_list, update=update)
 
 		if with_comment_count:
+			if distinct:
+				from frappe.model.db_query import attach_comments_by_name
+
+				attach_comments_by_name(self.doctype, result)
 			self._add_comment_count(result)
 
 		# Save user settings if requested
