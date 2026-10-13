@@ -324,7 +324,12 @@ from {tables}
 		self.build_conditions()
 		self.apply_fieldlevel_read_permissions()
 		# selected after the permission check: never user-requestable, popped in add_comment_count
-		if self.with_comment_count and not self.group_by and "_comments" in self.columns:
+		if (
+			self.with_comment_count
+			and not self.group_by
+			and not self.distinct
+			and "_comments" in self.columns
+		):
 			self.fields.append(f"`tab{self.doctype}`.`_comments`")
 
 		args = frappe._dict()
