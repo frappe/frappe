@@ -24,15 +24,17 @@ from frappe.core.doctype.user.user import (
 	update_password,
 	verify_password,
 )
+from frappe.database import get_db
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, get_url, now_datetime
+from frappe.utils import add_to_date, get_url, now_datetime, sha256_hash
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -785,6 +787,52 @@ class TestUser(IntegrationTestCase):
 			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		other = get_db(
+			socket=frappe.db.socket,
+			host=frappe.db.host,
+			user=frappe.db.user,
+			password=frappe.db.password,
+			port=frappe.db.port,
+			cur_db_name=frappe.db.cur_db_name,
+		)
+		self.addCleanup(other.close)
+
+		with test_user(roles=[], commit=True) as user:
+			key = self.reset_password(user)
+			hashed_key = sha256_hash(key)
+			# the second connection only sees committed rows
+			frappe.db.commit()  # nosemgrep
+
+			set_request(path="/random")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+
+			def competing_request(*args):
+				# a second request with the same key can neither take it nor wait for it
+				with patch.object(frappe.local, "db", other):
+					with self.assertRaises(frappe.QueryTimeoutError):
+						frappe.db.get_value(
+							"User", {"reset_password_key": hashed_key}, for_update=True, wait=False
+						)
+					frappe.db.rollback()
+
+				# clearing sessions commits mid-request; the key must already be gone by then
+				frappe.db.commit()  # nosemgrep
+				with patch.object(frappe.local, "db", other):
+					self.assertFalse(frappe.db.exists("User", {"reset_password_key": hashed_key}))
+					frappe.db.rollback()
+				return False
+
+			with patch.object(user_module, "is_password_reused", side_effect=competing_request) as probe:
+				self.assertEqual(update_password("Eastern_43A1W", key=key), "me")
+			probe.assert_called_once()
+			frappe.set_user("Administrator")
 
 	def test_bulk_add_roles(self):
 		"""Roles are appended across the selection without disturbing existing ones."""

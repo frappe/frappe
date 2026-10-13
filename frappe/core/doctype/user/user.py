@@ -1171,7 +1171,10 @@ def _get_user_for_update_password(key, old_password):
 	if key:
 		hashed_key = sha256_hash(key)
 		user = frappe.db.get_value(
-			"User", {"reset_password_key": hashed_key}, ["name", "last_reset_password_key_generated_on"]
+			"User",
+			{"reset_password_key": hashed_key},
+			["name", "last_reset_password_key_generated_on"],
+			for_update=True,
 		)
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
@@ -1184,6 +1187,9 @@ def _get_user_for_update_password(key, old_password):
 				> last_reset_password_key_generated_on + timedelta(seconds=reset_password_link_expiry)
 			):
 				result.message = _("The reset password link has been expired")
+			else:
+				# consume the key while the row is locked; clearing sessions later commits and releases it
+				frappe.db.set_value("User", result.user, "reset_password_key", "", update_modified=False)
 		else:
 			result.message = _("The reset password link has either been used before or is invalid")
 	elif old_password:
