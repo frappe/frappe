@@ -21,11 +21,8 @@ frappe.ui.form.on("Web Form Request", {
 
 		frm.add_custom_button(__("New Response"), () => copy_link(frm), __("Copy Link"));
 		for (const row of references) {
-			frm.add_custom_button(
-				row.link_name,
-				() => copy_link(frm, row.link_name),
-				__("Copy Link")
-			);
+			const name = row.link_name;
+			frm.add_custom_button(name, () => copy_link(frm, name), __("Copy Link"));
 		}
 	},
 
