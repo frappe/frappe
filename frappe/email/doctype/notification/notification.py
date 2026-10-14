@@ -12,7 +12,7 @@ from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.core.doctype.sms_settings.sms_settings import _send_sms as send_via_sms_gateway
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.integrations.doctype.notification_webhook_url.notification_webhook_url import (
-	WebhookDeliveryError,
+	NotificationWebhookURL,
 )
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
@@ -608,17 +608,19 @@ def get_context(context):
 		)
 
 	def send_webhook_message(self, doc, context):
-		webhook = frappe.get_doc("Notification Webhook URL", self.notification_webhook_url)
-		message = frappe.render_template(self.message, context, restrict_globals=True)
-		try:
-			webhook.send(
-				message=message,
-				reference_doctype=get_reference_doctype(doc),
-				reference_name=get_reference_name(doc),
-			)
-		except WebhookDeliveryError:
-			# A failed external delivery must not prevent an additional system notification.
-			self.log_error(title=_("Failed to send Notification"), message=frappe.get_traceback())
+		if not self.notification_webhook_url:
+			return
+		webhook: NotificationWebhookURL = frappe.get_doc(  # type: ignore[assignment]
+			"Notification Webhook URL",
+			self.notification_webhook_url,
+		)
+		message: str = frappe.render_template(self.message, context, restrict_globals=True)  # type: ignore[assignment]
+		webhook.send(
+			message=message,
+			reference_doctype=get_reference_doctype(doc),
+			reference_name=get_reference_name(doc),
+			throw=False,  # A failed external delivery must not prevent an additional system notification.
+		)
 
 	def send_sms(self, doc, context):
 		send_via_sms_gateway(

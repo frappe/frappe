@@ -195,14 +195,40 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 				patch("requests.post", return_value=Mock(ok=False, status_code=404, text="Not Found")),
 				self.assertRaisesRegex(WebhookDeliveryError, expected),
 			):
-				self._make_webhook(service).send("Test", "User", REFERENCE_NAME)
+				self._make_webhook(service).send("Test", "User", REFERENCE_NAME, throw=True)
 
 	def test_unknown_http_error(self):
 		with (
 			patch("requests.post", return_value=Mock(ok=False, status_code=502, text="Bad Gateway")),
 			self.assertRaisesRegex(WebhookDeliveryError, "502: Bad Gateway"),
 		):
-			self._make_webhook().send("Test", "User", REFERENCE_NAME)
+			self._make_webhook().send("Test", "User", REFERENCE_NAME, throw=True)
+
+	def test_send_errors_do_not_display_message_by_default(self):
+		for service in ("Slack", "Ntfy", "Matrix (Hookshot)"):
+			for result in (
+				Mock(ok=False, status_code=502, text="Bad Gateway"),
+				requests.Timeout("Timed out"),
+			):
+				with (
+					self.subTest(service=service, result=result),
+					set_user(self.user_name),
+					patch("requests.post") as post,
+					patch.object(frappe, "throw", wraps=frappe.throw) as throw,
+					patch.object(frappe, "log_error") as log_error,
+				):
+					if isinstance(result, requests.RequestException):
+						post.side_effect = result
+					else:
+						post.return_value = result
+					params = self._make_webhook(service)
+					self.assertIsNone(params.send("Test", "User", REFERENCE_NAME))
+				post.assert_called_once()
+				throw.assert_not_called()
+				log_error.assert_called_once()
+				self.assertIn("WebhookDeliveryError", log_error.call_args.kwargs["message"])
+				self.assertEqual(log_error.call_args.kwargs["reference_doctype"], "User")
+				self.assertEqual(log_error.call_args.kwargs["reference_name"], REFERENCE_NAME)
 
 	def test_transport_errors_are_wrapped(self):
 		for service in ("Slack", "Ntfy", "Matrix (Hookshot)"):
@@ -216,7 +242,8 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 						WebhookDeliveryError, "Unable to deliver the webhook notification."
 					) as raised,
 				):
-					self._make_webhook(service).send("Test", "User", REFERENCE_NAME)
+					params = self._make_webhook(service)
+					SERVICE_CLASSES[service](params, "Test", "User", REFERENCE_NAME).send()
 				self.assertIs(raised.exception.__cause__, error)
 				self.assertIsInstance(raised.exception, frappe.ValidationError)
 
@@ -294,9 +321,16 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 		with (
 			set_user(self.user_name),
 			patch("requests.post", return_value=Mock(ok=False, status_code=404, text="Not Found")),
+			patch.object(frappe, "throw", wraps=frappe.throw) as throw,
+			patch.object(frappe, "log_error") as log_error,
 			self.assertRaisesRegex(WebhookDeliveryError, "404: Channel not found"),
 		):
 			params.send_test_message("Test", "User", self.user_name)
+		throw.assert_called_once_with("404: Channel not found", exc=WebhookDeliveryError)
+		log_error.assert_called_once()
+		self.assertIn("WebhookDeliveryError", log_error.call_args.kwargs["message"])
+		self.assertEqual(log_error.call_args.kwargs["reference_doctype"], "User")
+		self.assertEqual(log_error.call_args.kwargs["reference_name"], self.user_name)
 
 	def test_notification_sends_rendered_message_without_recipients(self):
 		params = self._make_webhook(show_document_link=0).insert()
@@ -319,7 +353,7 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 					self.subTest(service=service, error_message=error_message),
 					set_user(self.user_name),
 					patch("requests.post") as post,
-					patch.object(notification, "log_error") as log_error,
+					patch.object(frappe, "log_error") as log_error,
 					patch.object(notification, "create_system_notification") as system_notification,
 				):
 					if isinstance(result, requests.RequestException):
@@ -329,9 +363,14 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 					notification.send(self.user)
 				post.assert_called_once()
 				log_error.assert_called_once()
-				self.assertEqual(log_error.call_args.kwargs["title"], "Failed to send Notification")
+				self.assertEqual(
+					log_error.call_args.kwargs["title"],
+					"Unable to deliver the webhook notification.",
+				)
 				self.assertIn("WebhookDeliveryError", log_error.call_args.kwargs["message"])
 				self.assertIn(error_message, log_error.call_args.kwargs["message"])
+				self.assertEqual(log_error.call_args.kwargs["reference_doctype"], "User")
+				self.assertEqual(log_error.call_args.kwargs["reference_name"], self.user_name)
 				system_notification.assert_called_once()
 
 	def test_notification_missing_webhook_is_not_swallowed(self):
