@@ -113,6 +113,13 @@ export function isCompleteAggregate(aggregate: Aggregate): boolean {
   return aggregate.function === "count" || Boolean(aggregate.fieldname);
 }
 
+/** The key a column's width is saved under: the fieldname for a grouped field, and
+ *  function plus field for an aggregate, so removing one column keeps the others'. */
+export function columnWidthKey(column: string | Aggregate): string {
+  if (typeof column === "string") return column;
+  return `${column.function}:${column.fieldname ?? ""}`;
+}
+
 /** The row key an aggregate's value comes back under. */
 export function aggregateKey(index: number): string {
   return `_aggregate_${index}`;
@@ -155,6 +162,14 @@ function isAggregate(value: unknown): value is Aggregate {
   );
 }
 
+function parseWidths(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const widths = Object.fromEntries(
+    Object.entries(raw).filter(([, width]) => typeof width === "string")
+  ) as Record<string, string>;
+  return Object.keys(widths).length ? widths : undefined;
+}
+
 /** Read a stored grouping back, from JSON text or a parsed object. Anything
  *  malformed is dropped, and a grouping with no fields left reads as `null`. */
 export function parseGroupBy(raw: unknown): GroupBySettings | null {
@@ -174,8 +189,11 @@ export function parseGroupBy(raw: unknown): GroupBySettings | null {
     ? fields.filter((f): f is string => typeof f === "string" && f !== "")
     : [];
   if (!groupFields.length) return null;
-  return {
+  const parsed: GroupBySettings = {
     fields: groupFields,
     aggregates: Array.isArray(aggregates) ? aggregates.filter(isAggregate) : [],
   };
+  const widths = parseWidths((value as { widths?: unknown }).widths);
+  if (widths) parsed.widths = widths;
+  return parsed;
 }
