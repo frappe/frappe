@@ -26,14 +26,22 @@ export const canRetryImport = (status: DataImportStatus) =>
 export const isImportFinished = (status: DataImportStatus) =>
   status === "Success" || canRetryImport(status);
 
+/** The warnings saved by a blocked import and the latest preview's, without repeats. */
+export function importWarnings(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined
+): DataImportWarning[] {
+  const saved = parseJson<DataImportWarning[]>(doc.template_warnings, []);
+  return dedupeWarnings(saved.concat(preview?.warnings ?? []));
+}
+
 /** Rows the file check warned about, saved or from the latest preview, in order. */
 export function errorRowNumbers(
   doc: DataImportDoc,
   preview: DataImportPreview | null | undefined
 ): number[] {
-  const saved = parseJson<DataImportWarning[]>(doc.template_warnings, []);
   const rows = new Set<number>();
-  for (const warning of saved.concat(preview?.warnings ?? [])) {
+  for (const warning of importWarnings(doc, preview)) {
     if (warning.row) rows.add(Number(warning.row));
   }
   return [...rows].sort((a, b) => a - b);
@@ -144,3 +152,38 @@ export const pickerColumns = (
       !df.is_virtual
   ),
 ];
+
+/** One warning per column (the longer message usually lists the rows); exact repeats dropped. */
+function dedupeWarnings(list: DataImportWarning[]) {
+  const rows: DataImportWarning[] = [];
+  const seenRows = new Set<string>();
+  const byColumn = new Map<unknown, DataImportWarning>();
+  const others = new Map<string, DataImportWarning>();
+  for (const warning of list) {
+    if (warning.row) {
+      const key = `${warning.row}|${warning.field?.fieldname}|${warning.message}`;
+      if (seenRows.has(key)) continue;
+      seenRows.add(key);
+      rows.push(warning);
+    } else if (warning.col) {
+      const previous = byColumn.get(warning.col);
+      if (
+        !previous ||
+        (warning.message || "").length > (previous.message || "").length
+      )
+        byColumn.set(warning.col, warning);
+    } else {
+      const key = `${warning.code || ""}|${warning.title || ""}|${
+        warning.message || ""
+      }`;
+      const existing = others.get(key);
+      if (!existing || (warning.type && !existing.type))
+        others.set(key, warning);
+    }
+  }
+  // Desk keeps columns in a plain object, so they come out in column order.
+  const columnWarnings = [...byColumn.entries()]
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([, warning]) => warning);
+  return [...rows, ...columnWarnings, ...others.values()];
+}
