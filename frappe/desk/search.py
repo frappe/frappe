@@ -333,7 +333,7 @@ def search_widget(
 	return values
 
 
-def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype) -> bool:
+def validate_ignore_user_permissions(form_doctype: str, link_fieldname: str, link_doctype: str) -> bool:
 	"""Return whether the search may ignore user permissions; throw if the field does not allow it."""
 
 	def _throw(message):
@@ -367,6 +367,8 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 		matched_child_field = child_field
 
 	link_field = meta.get_field(link_fieldname)
+	if link_field and link_field.fieldtype not in ("Link", "Dynamic Link", "Table MultiSelect"):
+		link_field = None  # e.g. a Float named "value", which bulk edit's field name collides with
 	field_doctype = form_doctype
 
 	if locked_child_field and not (link_field and link_field.ignore_user_permissions):

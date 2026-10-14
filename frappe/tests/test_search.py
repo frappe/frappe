@@ -709,7 +709,12 @@ class TestSearch(IntegrationTestCase):
 		make_doctype(child, [link_to_target("member"), link_to_target("linked", read_only=1)], istable=1)
 		make_doctype(
 			form,
-			[link_to_target("linked"), link_to_target("amended_from", read_only=1), rows("rows")],
+			[
+				link_to_target("linked"),
+				link_to_target("amended_from", read_only=1),
+				rows("rows"),
+				{"label": "Value", "fieldname": "value", "fieldtype": "Float"},
+			],
 			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
 		)
 		make_doctype(
@@ -728,7 +733,12 @@ class TestSearch(IntegrationTestCase):
 			).insert(ignore_permissions=True).add_roles("System Manager")
 			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
 		add_user_permission(target, allowed.name, test_user)
-		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
+		self.addCleanup(
+			lambda: [
+				frappe.delete_doc("User Permission", name, force=True)
+				for name in frappe.get_all("User Permission", {"user": test_user}, pluck="name")
+			]
+		)
 
 		def values(reference_doctype, link_fieldname):
 			with self.set_user(test_user):
@@ -743,16 +753,15 @@ class TestSearch(IntegrationTestCase):
 					)
 				]
 
-		# fields the user can type in still search past user permissions
 		self.assertIn(restricted.name, values(form, "linked"))
 		self.assertIn(restricted.name, values(form, "member"))
 		self.assertIn(restricted.name, values(child, "member"))
+		# bulk edit sends "value", which here is also a Float field of the form
+		self.assertIn(restricted.name, values(form, "value"))
 
-		# read-only fields, and fields in a read-only table, keep them
 		self.assertEqual(values(form, "amended_from"), [allowed.name])
 		self.assertEqual(values(child, "linked"), [allowed.name])
 		self.assertEqual(values(locked_form, "member"), [allowed.name])
-		# a plain parent field of the same name as a locked child field does not raise either
 		self.assertEqual(values(locked_form, "linked"), [allowed.name])
 
 	def test_search_link_ignore_user_permissions_dangling_child_table(self):
