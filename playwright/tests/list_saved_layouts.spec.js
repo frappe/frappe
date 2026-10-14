@@ -264,4 +264,40 @@ test.describe("List View — Saved Layouts", () => {
 		await desk.ready();
 		await assert_active_layout(page, "_test_layout_open_b");
 	});
+
+	test("keeps a filter added to a layout when the list is opened again", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		await create_test_layout(api, {
+			layout_name: "_test_layout_open",
+			filters: JSON.stringify([["ToDo", "status", "=", "Open"]]),
+		});
+
+		await page.goto(LIST_URL);
+		await desk.ready();
+		await desk.clear_filters();
+
+		await select_layout(page, "_test_layout_open");
+		await assert_active_layout(page, "_test_layout_open");
+		await page.evaluate(() => cur_list.filter_area.add([["ToDo", "priority", "=", "High"]]));
+
+		await page.evaluate(() => frappe.set_route("desktop"));
+		await expect.poll(() => page.evaluate(() => frappe.get_route_str())).toBe("desktop");
+
+		const list_filter = await page.evaluateHandle(() => cur_list.list_filter);
+		await page.evaluate(() => frappe.set_route("List", "ToDo"));
+		await page.waitForFunction(
+			(previous) =>
+				cur_list.list_filter !== previous && cur_list.list_filter._initial_layout_restored,
+			list_filter
+		);
+
+		await assert_active_layout(page, "_test_layout_open");
+		const filters = await page.evaluate(() =>
+			cur_list.filter_area.get().map((f) => f.slice(0, 4))
+		);
+		expect(filters).toContainEqual(["ToDo", "priority", "=", "High"]);
+	});
 });
