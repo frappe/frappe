@@ -180,29 +180,17 @@ import type { DropdownOption, TreeNode } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 import { cint, isImportComplete } from "../dataImport";
 import { t } from "../translate";
+import type { DataImportTreeNode } from "../types";
 import type { UseDataImport } from "../useDataImport";
-
-/** One node of `tree_preview.nodes` from `get_preview_from_template`. */
-type TreeNodeData = {
-	id: string;
-	label: string;
-	parent: string | null;
-	row_number: number;
-	is_group: number;
-	orig_parent: string | null;
-	orig_is_group: number;
-	orphan?: boolean;
-	warnings?: string[];
-};
 
 const props = defineProps<{ dataImport: UseDataImport }>();
 const emit = defineEmits<{ select: [rowNumber: number] }>();
 const { doc, preview, saving } = props.dataImport;
 
-const info = (node: TreeNode) => node.data as TreeNodeData;
+const info = (node: TreeNode) => node.data as DataImportTreeNode;
 
 const treePreview = computed(() => preview.value?.tree_preview);
-const nodes = computed<TreeNodeData[]>(() => treePreview.value?.nodes ?? []);
+const nodes = computed<DataImportTreeNode[]>(() => treePreview.value?.nodes ?? []);
 const totalNodes = computed(() => treePreview.value?.total_nodes ?? nodes.value.length);
 const editable = computed(() => Boolean(treePreview.value?.editable));
 const isGroupEditable = computed(() => Boolean(treePreview.value?.is_group_editable));
@@ -217,8 +205,8 @@ const warningCount = computed(() =>
 /** Nodes in a parent cycle can't be reached from the roots, so they show at the top as unlinked. */
 const tree = computed(() => {
 	const byId = new Map(nodes.value.map((node) => [node.id, node]));
-	const childrenOf = new Map<string, TreeNodeData[]>();
-	const roots: TreeNodeData[] = [];
+	const childrenOf = new Map<string, DataImportTreeNode[]>();
+	const roots: DataImportTreeNode[] = [];
 	for (const node of nodes.value) {
 		if (node.orphan || !node.parent || !byId.has(node.parent)) roots.push(node);
 		else childrenOf.set(node.parent, [...(childrenOf.get(node.parent) ?? []), node]);
@@ -250,7 +238,7 @@ const tree = computed(() => {
 
 const branchKeys = computed(() => {
 	const keys = new Set<number>();
-	const walk = (list: TreeNodeData[]) => {
+	const walk = (list: DataImportTreeNode[]) => {
 		for (const node of list) {
 			const children = tree.value.childrenOf.get(node.id) ?? [];
 			if (children.length) {
@@ -287,7 +275,7 @@ const allExpanded = computed(
 const allCollapsed = computed(() => branchKeys.value.size > 0 && openBranchCount.value === 0);
 
 /** Matches the label or the file's row number; ancestors of a match stay visible. */
-function matches(node: TreeNodeData, q: string) {
+function matches(node: DataImportTreeNode, q: string) {
 	const rowQuery = q.replace(/^#/, "");
 	return (
 		(node.label || "").toLowerCase().includes(q) ||
@@ -297,7 +285,7 @@ function matches(node: TreeNodeData, q: string) {
 
 const treeNodes = computed(() => {
 	const q = query.value.trim().toLowerCase();
-	const build = (node: TreeNodeData): TreeNode | null => {
+	const build = (node: DataImportTreeNode): TreeNode | null => {
 		const all = tree.value.childrenOf.get(node.id) ?? [];
 		const children = all.map(build).filter((child): child is TreeNode => !!child);
 		if (q && !matches(node, q) && !children.length) return null;
@@ -334,11 +322,11 @@ function select(rowNumber: number) {
 	emit("select", rowNumber);
 }
 
-function warningText(node: TreeNodeData) {
+function warningText(node: DataImportTreeNode) {
 	return (node.warnings ?? []).map((warning) => warning.replace(/<[^>]*>/g, "")).join(" ");
 }
 
-function isEdited(node: TreeNodeData) {
+function isEdited(node: DataImportTreeNode) {
 	return (
 		(node.parent || null) !== (node.orig_parent || null) ||
 		cint(node.is_group) !== cint(node.orig_is_group)
@@ -346,10 +334,10 @@ function isEdited(node: TreeNodeData) {
 }
 
 const hasEditedNodes = computed(() => nodes.value.some(isEdited));
-const hasChildren = (node: TreeNodeData) => nodes.value.some((n) => n.parent === node.id);
+const hasChildren = (node: DataImportTreeNode) => nodes.value.some((n) => n.parent === node.id);
 
 /** The node and everything under it; moving a node under any of these would make a cycle. */
-function descendantIds(node: TreeNodeData) {
+function descendantIds(node: DataImportTreeNode) {
 	const ids = new Set([node.id]);
 	let frontier = [node.id];
 	while (frontier.length) {
@@ -365,7 +353,7 @@ function descendantIds(node: TreeNodeData) {
 	return ids;
 }
 
-function moveTargets(node: TreeNodeData): DropdownOption[] {
+function moveTargets(node: DataImportTreeNode): DropdownOption[] {
 	const descendants = descendantIds(node);
 	const targets: DropdownOption[] = nodes.value
 		.filter(
@@ -396,7 +384,7 @@ function moveTargets(node: TreeNodeData): DropdownOption[] {
 	return items.length ? items : [{ label: t("No available parents"), disabled: true }];
 }
 
-function menuItems(node: TreeNodeData) {
+function menuItems(node: DataImportTreeNode) {
 	const items: DropdownOption[] = [];
 	if (editable.value)
 		items.push({
@@ -427,24 +415,24 @@ function menuItems(node: TreeNodeData) {
 }
 
 // Edits change the nodes in place so the tree redraws at once, then save the overrides.
-function moveTo(node: TreeNodeData, parentId: string) {
+function moveTo(node: DataImportTreeNode, parentId: string) {
 	node.parent = parentId || null;
 	node.orphan = false;
 	persist();
 }
 
-function setGroup(node: TreeNodeData, isGroup: number) {
+function setGroup(node: DataImportTreeNode, isGroup: number) {
 	node.is_group = isGroup;
 	persist();
 }
 
-function restore(node: TreeNodeData) {
+function restore(node: DataImportTreeNode) {
 	node.parent = node.orig_parent || null;
 	node.is_group = cint(node.orig_is_group);
 	node.orphan = false;
 }
 
-function resetNode(node: TreeNodeData) {
+function resetNode(node: DataImportTreeNode) {
 	restore(node);
 	persist();
 }

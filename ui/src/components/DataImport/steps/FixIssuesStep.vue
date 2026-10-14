@@ -307,12 +307,12 @@ import { computed } from "vue";
 import { Link } from "../../Link";
 import { escapeHtml, isImportComplete, parseJson, previewRowCells, skipRows } from "../dataImport";
 import { t } from "../translate";
-import type { DataImportValueMapping } from "../types";
+import type { DataImportColumn, DataImportValueMapping, DataImportWarning } from "../types";
 import type { UseDataImport } from "../useDataImport";
 import SkippedColumns from "./SkippedColumns.vue";
 import StatCards, { type Stat } from "./StatCards.vue";
 
-type Warning = Record<string, any>;
+type ColumnWarning = DataImportWarning & { col: number };
 
 const props = defineProps<{ dataImport: UseDataImport }>();
 
@@ -324,7 +324,7 @@ const checking = computed(() => hasImportFile.value && !previewReady.value && !p
 const isComplete = computed(() => isImportComplete(doc.value.status));
 
 const warnings = computed(() => {
-	const saved = parseJson<Warning[]>(doc.value.template_warnings, []);
+	const saved = parseJson<DataImportWarning[]>(doc.value.template_warnings, []);
 	return dedupeWarnings(saved.concat(previewData.value?.warnings ?? []));
 });
 
@@ -353,14 +353,15 @@ const rowErrors = computed(() => {
 	return [...byRow.entries()].sort(([a], [b]) => a - b).map(([row, lines]) => ({ row, lines }));
 });
 
-const mappingWarnings = computed(() =>
-	warnings.value.filter((w) => !w.row && w.col && w.type === "value_mapping")
-);
+const isMappingWarning = (w: DataImportWarning): w is ColumnWarning =>
+	!w.row && !!w.col && w.type === "value_mapping";
+const mappingWarnings = computed(() => warnings.value.filter(isMappingWarning));
 // A column the server leaves out needs the same fix whatever the reason: map it in
 // the Map columns step. So they share one line, and the warnings left are the ones to act on.
-const isSkippedColumn = (w: Warning) =>
+const isSkippedColumn = (w: ColumnWarning) =>
 	w.code === "unknown_column" || !!columns.value[w.col]?.skip_import;
-const isColumnWarning = (w: Warning) => !w.row && !!w.col && w.type !== "value_mapping";
+const isColumnWarning = (w: DataImportWarning): w is ColumnWarning =>
+	!w.row && !!w.col && w.type !== "value_mapping";
 const allColumnWarnings = computed(() => warnings.value.filter(isColumnWarning));
 const columnWarnings = computed(() => allColumnWarnings.value.filter((w) => !isSkippedColumn(w)));
 const skippedColumns = computed(() =>
@@ -413,7 +414,7 @@ const stats = computed((): Stat[] => {
 });
 
 // The message is cleaned on the server; the field's label and parent are not.
-function rowWarningLine(warning: Warning) {
+function rowWarningLine(warning: DataImportWarning) {
 	if (!warning.field) return warning.message;
 	const { label, parent } = warning.field;
 	const table = parent !== doc.value.reference_doctype ? ` (${escapeHtml(String(parent))})` : "";
@@ -474,11 +475,13 @@ function canMap(mapping: DataImportValueMapping) {
 	return !(rows.length && allSkipped(rows));
 }
 
-function isDuplicateId(warning: Warning) {
-	return warning.type === "duplicate_id" && warning.rows?.length > 1;
+function isDuplicateId(
+	warning: DataImportWarning
+): warning is DataImportWarning & { rows: number[] } {
+	return warning.type === "duplicate_id" && (warning.rows?.length ?? 0) > 1;
 }
 
-function duplicateSkipped(warning: Warning) {
+function duplicateSkipped(warning: DataImportWarning) {
 	return isDuplicateId(warning) && allSkipped(warning.rows.slice(1));
 }
 
@@ -494,16 +497,16 @@ function toggleSkipRows(rows: number[]) {
 	skipRows(doc.value, previewData.value, numbers);
 }
 
-function isSrNoColumn(col: Record<string, any>) {
+function isSrNoColumn(col: DataImportColumn) {
 	return col.header_title === "Sr. No" || col.header_title === t("Sr. No");
 }
 
 /** One warning per column (the longer message usually lists the rows); exact repeats dropped. */
-function dedupeWarnings(list: Warning[]) {
-	const rows: Warning[] = [];
+function dedupeWarnings(list: DataImportWarning[]) {
+	const rows: DataImportWarning[] = [];
 	const seenRows = new Set<string>();
-	const byColumn = new Map<unknown, Warning>();
-	const others = new Map<string, Warning>();
+	const byColumn = new Map<unknown, DataImportWarning>();
+	const others = new Map<string, DataImportWarning>();
 	for (const warning of list) {
 		if (warning.row) {
 			const key = `${warning.row}|${warning.field?.fieldname}|${warning.message}`;
