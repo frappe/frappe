@@ -288,7 +288,7 @@ class TestAppToggle(IntegrationTestCase):
 		frappe.db.set_global("installed_apps", json.dumps([*installed, "abc_test_missing_app"]))
 		frappe.clear_cache()
 
-		with fake_app():
+		with fake_app(), self.set_user("test@example.com"):
 			disable_app(FAKE_APP)
 
 		self.assertIn(FAKE_APP, read_disabled_apps())
