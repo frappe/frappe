@@ -195,6 +195,28 @@ describe("parseGroupBy", () => {
       })
     ).toEqual({ fields: ["status"], aggregates: [{ function: "count" }] });
   });
+
+  it("keeps one of an aggregate saved twice", () => {
+    expect(
+      parseGroupBy({
+        fields: ["status"],
+        aggregates: [
+          { function: "count" },
+          { function: "sum", fieldname: "grand_total" },
+          { function: "count" },
+          { function: "avg", fieldname: "grand_total" },
+          { function: "sum", fieldname: "grand_total" },
+        ],
+      })
+    ).toEqual({
+      fields: ["status"],
+      aggregates: [
+        { function: "count" },
+        { function: "sum", fieldname: "grand_total" },
+        { function: "avg", fieldname: "grand_total" },
+      ],
+    });
+  });
 });
 
 describe("columnId", () => {
