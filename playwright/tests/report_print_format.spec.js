@@ -123,4 +123,26 @@ test.describe("Report Print Formats", () => {
 
 		expect((await pdf).postData()).toContain(JINJA_FORMAT);
 	});
+
+	test("downloads the rows in the order on screen", async ({ page }) => {
+		const visible_rows = () =>
+			page.evaluate(() => frappe.query_report.datatable.bodyRenderer.visibleRowIndices);
+		const report_order = await visible_rows();
+
+		await page.evaluate(() => frappe.query_report.datatable.sortColumn(1, "desc"));
+		await expect.poll(visible_rows).not.toEqual(report_order);
+		// every ToDo status has an "e", so the filter keeps all rows
+		await page.locator(".dt-row-filter .dt-cell--col-2 .dt-filter").pressSequentially("e");
+		await expect.poll(visible_rows).toEqual(report_order);
+
+		const on_screen = await page.evaluate(() =>
+			[...document.querySelectorAll(".dt-scrollable .dt-row")].map((row) =>
+				Number(row.dataset.rowIndex)
+			)
+		);
+		const pdf = page.waitForRequest(is_post_to(pdf_method));
+		await download_pdf(page);
+
+		expect((await pdf).postData()).toContain(JSON.stringify(on_screen));
+	});
 });
