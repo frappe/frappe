@@ -140,7 +140,7 @@ frappe.ui.Dock = class Dock {
 			$(`<button class="dock-item ${css_class}" aria-label="${frappe.utils.escape_html(
 				label
 			)}">
-			<span class="dock-item-icon">${frappe.utils.icon(icon, "md")}</span>
+			<span class="dock-item-icon">${frappe.utils.icon(icon, "sm")}</span>
 			${badge}
 		</button>`);
 		this.name_tile($item, label, this.utility_tooltips);
