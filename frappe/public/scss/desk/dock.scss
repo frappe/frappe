@@ -128,12 +128,13 @@
 		padding-top: calc(var(--spacing) * 3);
 	}
 
+	// The column's own gap is taken back, so each rule sits 12px from the cells either side of it.
 	.dock-logo + .dock-utilities:not(:empty) {
 		margin-top: calc(var(--spacing) * -1);
-		padding-top: calc(var(--spacing) * 2);
+		padding-top: calc(var(--spacing) * 3);
 	}
 
-	// Search and notifications, kept apart from the module tiles by a rule.
+	// Search and notifications, as ghost rail items: 28px cells with a 16px glyph.
 	.dock-utilities {
 		flex: 0 0 auto;
 		width: 100%;
@@ -141,19 +142,27 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: var(--spacing);
+		gap: calc(var(--spacing) * 0.5);
 
 		&:not(:empty) {
-			padding-bottom: calc(var(--spacing) * 2);
-			margin-bottom: var(--spacing);
+			padding-bottom: calc(var(--spacing) * 3);
+			margin-bottom: calc(var(--spacing) * 2);
 			border-bottom: 1px solid var(--outline-gray-1);
 		}
 
 		.dock-item {
-			color: var(--dock-ink-hover);
+			width: calc(var(--spacing) * 7);
+			height: calc(var(--spacing) * 7);
+			color: var(--ink-gray-8);
 
 			&:hover {
-				color: var(--dock-ink-active);
+				background: var(--surface-gray-3);
+				color: var(--ink-gray-8);
+			}
+
+			&[aria-expanded="true"] {
+				background: var(--surface-elevation-3);
+				box-shadow: var(--shadow-sm);
 			}
 		}
 	}
@@ -241,22 +250,17 @@
 		outline-offset: 2px;
 	}
 
-	&[aria-expanded="true"] {
-		background: var(--surface-gray-2);
-		color: var(--dock-ink-active);
-	}
-
 	// Unread notifications, as a dot on the bell's corner. notifications.js writes the count into
 	// it, so the text is hidden.
 	.dock-item-dot {
 		position: absolute;
-		top: 8px;
-		right: 8px;
-		width: 7px;
-		height: 7px;
+		top: -2px;
+		right: -2px;
+		width: calc(var(--spacing) * 2);
+		height: calc(var(--spacing) * 2);
 		border-radius: 50%;
-		border: 1px solid var(--dock-bg);
-		background: var(--ink-gray-8);
+		border: 1px solid var(--surface-base);
+		background: var(--surface-red-6);
 		font-size: 0;
 		overflow: hidden;
 	}
