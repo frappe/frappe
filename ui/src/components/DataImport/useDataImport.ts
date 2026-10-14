@@ -69,6 +69,7 @@ export function useDataImport(
   const progress = ref<DataImportProgress | null>(null);
   const importStatus = ref<DataImportStatusSummary | null>(null);
   const blocked = ref(false);
+  const startError = ref<string | null>(null);
 
   const logFilter = ref<DataImportLogFilter>("all");
   const logs = ref<DataImportLog[]>([]);
@@ -147,6 +148,7 @@ export function useDataImport(
     progress.value = null;
     importStatus.value = null;
     blocked.value = false;
+    startError.value = null;
     logFilter.value = "all";
     logs.value = [];
     joinRoom(next);
@@ -291,7 +293,10 @@ export function useDataImport(
         preview.value = null;
         previewSource.value = null;
         previewFailedSource = source;
-        previewError.value = previewErrorMessage(error);
+        previewError.value = serverErrorMessage(
+          error,
+          t("Failed to load import file")
+        );
         return null;
       })
       .finally(() => {
@@ -318,11 +323,13 @@ export function useDataImport(
   /**
    * Resolves true when the job was queued, false when it was already queued or failed.
    * `running` turns true at once, or with `waitForProgress` only when the run reports progress.
+   * A server error, such as an inactive scheduler, is kept in `startError`.
    */
   async function start({ waitForProgress = false } = {}): Promise<boolean> {
     const docname = name.value;
     if (!docname) return false;
     blocked.value = false;
+    startError.value = null;
     if (!waitForProgress) {
       startedHere.value = true;
       progress.value = emptyProgress();
@@ -332,10 +339,14 @@ export function useDataImport(
         data_import: docname,
       });
       return started === true;
-    } catch {
+    } catch (error) {
       if (name.value === docname) {
         startedHere.value = false;
         progress.value = null;
+        startError.value = serverErrorMessage(
+          error,
+          t("Import could not start")
+        );
       }
       return false;
     }
@@ -510,6 +521,7 @@ export function useDataImport(
     progress,
     importStatus,
     blocked,
+    startError,
     start,
     stop,
 
@@ -599,12 +611,12 @@ function nextProgress(
   };
 }
 
-function previewErrorMessage(error: unknown): string {
+function serverErrorMessage(error: unknown, fallback: string): string {
   const { messages, message } = (error ?? {}) as {
     messages?: string[];
     message?: string;
   };
   if (messages?.length) return messages.join(" ");
   if (typeof message === "string" && message) return message;
-  return t("Failed to load import file");
+  return fallback;
 }

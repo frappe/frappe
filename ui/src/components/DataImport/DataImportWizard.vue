@@ -43,6 +43,13 @@
 			class="flex min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 		>
 			<div class="min-h-0 w-full min-w-0 flex-1 overflow-auto px-5 py-4">
+				<Alert
+					v-if="startError"
+					class="mb-4"
+					theme="red"
+					:title="t('Import could not start')"
+					:description="startError"
+				/>
 				<component
 					:is="stepComponents[current]"
 					:dataImport="dataImport"
@@ -126,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Dialog, toast } from "frappe-ui";
+import { Alert, Button, Dialog, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 import ImportStatus from "./ImportStatus.vue";
 import { canRetryImport, errorRowNumbers, isImportFinished, skipRows } from "./dataImport";
@@ -187,6 +194,7 @@ const {
 	running,
 	importStarted,
 	blocked,
+	startError,
 } = props.dataImport;
 
 const stepComponents = [ConfigStep, PreviewStep, FixIssuesStep, ImportStep];
@@ -333,6 +341,7 @@ async function beginImport() {
 		if (!(await saveIfDirty())) return;
 		current.value = IMPORT;
 		await props.dataImport.start();
+		if (startError.value) current.value = FIX_ISSUES;
 	} finally {
 		starting.value = false;
 	}

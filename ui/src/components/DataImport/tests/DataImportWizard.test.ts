@@ -87,6 +87,7 @@ function fakeDataImport(initial: DataImportDoc) {
   const previewError = ref<string | null>(null);
   const startedHere = ref(false);
   const blocked = ref(false);
+  const startError = ref<string | null>(null);
   const isNew = computed(() => !doc.value.name);
   const running = computed(
     () =>
@@ -113,6 +114,7 @@ function fakeDataImport(initial: DataImportDoc) {
       () => running.value || doc.value.status !== "Pending"
     ),
     blocked,
+    startError,
     progress: ref(null),
     importStatus: ref(null),
     logFilter: ref("all"),
@@ -451,6 +453,23 @@ describe("DataImportWizard footer", () => {
     await settle();
     expect(dataImport.start).not.toHaveBeenCalled();
     expect(stepLabel()).toBe("Fix issues");
+  });
+
+  it("Import goes back to Fix issues and shows why when the run can't start", async () => {
+    const { dataImport } = render(savedDoc({ template_warnings: '["x"]' }));
+    dataImport.start.mockImplementationOnce(async () => {
+      dataImport.startError.value =
+        "Scheduler is inactive. Cannot import data.";
+      return false;
+    });
+    click("Import");
+    await settle();
+    expect(stepLabel()).toBe("Fix issues");
+    expect(host!.textContent).toContain("Import could not start");
+    expect(host!.textContent).toContain(
+      "Scheduler is inactive. Cannot import data."
+    );
+    expect(buttons()).toContain("Import");
   });
 
   it("Cancel Import asks first, then stops", async () => {
