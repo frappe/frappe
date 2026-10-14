@@ -63,6 +63,17 @@ describe("getGroupByFields", () => {
       )
     ).toEqual(["region", "owner", "modified_by", "_user_tags", "docstatus"]);
   });
+
+  it("leaves out excluded fields, standard ones included", () => {
+    expect(names(getGroupByFields(FIELDS, ["sales_person", "owner"]))).toEqual([
+      "status",
+      "close_date",
+      "secret",
+      "modified_by",
+      "_user_tags",
+      "docstatus",
+    ]);
+  });
 });
 
 describe("getAggregateFields", () => {
@@ -104,6 +115,15 @@ describe("getAggregateFields", () => {
         )
       )
     ).toEqual(["cost"]);
+  });
+
+  it("leaves out excluded fields, standard ones included", () => {
+    expect(names(getAggregateFields(FIELDS, "sum", ["probability"]))).toEqual([
+      "grand_total",
+    ]);
+    expect(
+      names(getAggregateFields(FIELDS, "max", ["close_date", "modified"]))
+    ).toEqual(["grand_total", "probability", "creation"]);
   });
 
   it("also offers dates and the standard timestamps to min and max", () => {
