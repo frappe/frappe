@@ -48,6 +48,11 @@ export interface UseGroupByData {
 /** Most group keys fetched to count the groups; past it the total is a floor. */
 const COUNT_CAP = 1000;
 
+// The totals row is on and there are aggregates to total.
+function wantsTotals(settings: GroupBySettings | null): boolean {
+  return Boolean(settings?.showTotals && serializeGroupByTotals(settings));
+}
+
 export function useGroupByData(
   doctype: MaybeRefOrGetter<string>,
   groupBy: MaybeRefOrGetter<GroupBySettings | null>,
@@ -110,7 +115,7 @@ export function useGroupByData(
     limit.value = pageLength.value;
     groups.fetch();
     groupKeys.fetch();
-    if (settings.showTotals && serializeGroupByTotals(settings)) totals.fetch();
+    if (wantsTotals(settings)) totals.fetch();
   }
 
   function loadMore() {
@@ -143,10 +148,8 @@ export function useGroupByData(
   return {
     rows,
     totals: computed(() => {
-      const settings = toValue(groupBy);
-      // Without aggregates there's nothing to total, whatever an earlier fetch left.
-      if (!settings?.showTotals || !serializeGroupByTotals(settings))
-        return null;
+      // Totals off, or nothing to total: none, whatever an earlier fetch left.
+      if (!wantsTotals(toValue(groupBy))) return null;
       return (totals.data as Record<string, unknown>[] | null)?.[0] ?? null;
     }),
     loading: computed(() => Boolean(groups.loading)),
