@@ -1038,6 +1038,9 @@ def delete_bulk(doctype, items, error_logs=None):
 				if message.raise_exception
 			]
 			del frappe.message_log[message_count:]
+			if frappe.flags.error_message:
+				reasons.append(frappe.flags.error_message)
+				frappe.flags.error_message = None
 			frappe.db.rollback()
 			link_error = e.__context__ if isinstance(e.__context__, frappe.LinkExistsError) else e
 			if isinstance(link_error, frappe.LinkExistsError) and link_error.linked_with:
@@ -1067,10 +1070,10 @@ def delete_bulk(doctype, items, error_logs=None):
 				documents_by_reason.setdefault(reason, []).append(name)
 
 		links = {name: clean_html(get_link_to_form(doctype, name)) for name in undeleted_items}
-		named = set(linked_with)
+		already_shown = set(linked_with)
 		for name, reasons in undeleted_items.items():
 			if any(links[name] in reason for reason in reasons):
-				named.add(name)
+				already_shown.add(name)
 
 		message = []
 		if linked_with:
@@ -1080,7 +1083,7 @@ def delete_bulk(doctype, items, error_logs=None):
 				+ f"<ul>{documents}</ul>"
 			)
 		for reason, names in sorted(documents_by_reason.items(), key=lambda item: len(item[1])):
-			documents = "".join(f"<li>{links[name]}</li>" for name in names if name not in named)
+			documents = "".join(f"<li>{links[name]}</li>" for name in names if name not in already_shown)
 			message.append(f"{reason}<ul>{documents}</ul>" if documents else reason)
 
 		frappe.msgprint(
