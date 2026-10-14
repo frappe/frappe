@@ -27,9 +27,9 @@ async function on_route(page, route) {
 	await expect.poll(() => page.evaluate(() => window.frappe?.get_route?.())).toEqual(route);
 }
 
-async function pick_todo_in_awesomebar(page) {
+async function pick_todo_in_awesomebar(page, desk) {
 	const search = page.locator("#navbar-search");
-	await page.locator(".body-sidebar .navbar-modal-search-mobile").click();
+	await desk.open_search();
 	await search.pressSequentially("todo");
 	// Through the input, since the list view under the dialog has dropdowns of its own.
 	const listbox = search
@@ -375,11 +375,12 @@ test.describe("Desk URL shell segment", () => {
 
 	test("leaves the shell you are standing in when the awesomebar opens something it does not list", async ({
 		page,
+		desk,
 	}) => {
 		await page.goto("/desk/users/user");
 		await expect_shell(page, "Users");
 
-		await pick_todo_in_awesomebar(page);
+		await pick_todo_in_awesomebar(page, desk);
 
 		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
 		await expect_shell(page, "Build");
@@ -387,11 +388,12 @@ test.describe("Desk URL shell segment", () => {
 
 	test("chooses the shell again when the awesomebar opens what is already on screen", async ({
 		page,
+		desk,
 	}) => {
 		await page.goto("/desk/users/todo");
 		await expect_shell(page, "Users");
 
-		await pick_todo_in_awesomebar(page);
+		await pick_todo_in_awesomebar(page, desk);
 
 		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
 		await expect_shell(page, "Build");
@@ -734,4 +736,21 @@ test.describe("Desk URL shell segment", () => {
 			expect(result.focus_handed_back, "focus handed back").toBe(true);
 		}
 	);
+
+	test("keeps a collapsed sidebar collapsed when a dock tile is clicked", async ({
+		page,
+		desk,
+	}) => {
+		await open_desk(page, desk);
+		await page.evaluate(() => frappe.app.sidebar.close());
+		const from = pathname(page);
+
+		await page.locator(".dock-items .dock-item:not(.active)").first().click();
+
+		await expect.poll(() => pathname(page)).not.toBe(from);
+		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
+		await page.reload();
+		await desk.ready();
+		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
+	});
 });
