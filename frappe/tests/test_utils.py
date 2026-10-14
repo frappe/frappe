@@ -2011,6 +2011,7 @@ class TestDataUtils(UnitTestCase):
 	def test_comma_and(self):
 		self.assertEqual(comma_and(["a", "b", "c"]), "'a', 'b', and 'c'")
 		self.assertEqual(comma_and(["a", "b", "c"], add_quotes=False), "a, b, and c")
+		self.assertEqual(comma_and(["a", "b"]), "'a' and 'b'")
 
 		frappe.local.lang = "pt-BR"
 
@@ -2020,6 +2021,7 @@ class TestDataUtils(UnitTestCase):
 	def test_comma_or(self):
 		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b', or 'c'")
 		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b, or c")
+		self.assertEqual(comma_or(["a", "b"]), "'a' or 'b'")
 
 		frappe.local.lang = "pt-BR"
 
