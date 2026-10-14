@@ -18,6 +18,7 @@ from frappe.desk.reportview import (
 	get_stats,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils.logging import get_log_db
 
 
 class TestReportview(IntegrationTestCase):
@@ -396,11 +397,18 @@ class TestReportview(IntegrationTestCase):
 		):
 			delete_bulk("User", ["test@example.com"])
 
-		error_log = frappe.db.get_value("Error Log", {"reference_name": "test@example.com"})
-		self.assertIn(error_log, frappe.message_log[-1].message[0])
+		error_log = get_log_db().get_value(
+			"Error Log",
+			{"reference_name": "test@example.com"},
+			["name", "fingerprint"],
+			as_dict=True,
+			order_by="creation desc",
+		)
+		self.assertIn(error_log.name, frappe.message_log[-1].message[0])
+		self.assertTrue(error_log.fingerprint)
 
 	def test_delete_bulk_logs_unexpected_error_once(self):
-		logged_before = frappe.db.count("Error Log", {"reference_name": "test1@example.com"})
+		logged_before = get_log_db().count("Error Log", {"reference_name": "test1@example.com"})
 		with (
 			patch.object(frappe.db, "commit"),
 			patch.object(frappe.db, "rollback"),
@@ -411,7 +419,7 @@ class TestReportview(IntegrationTestCase):
 			delete_bulk("User", ["test@example.com", "test1@example.com"])
 
 		self.assertEqual(
-			frappe.db.count("Error Log", {"reference_name": "test1@example.com"}), logged_before + 1
+			get_log_db().count("Error Log", {"reference_name": "test1@example.com"}), logged_before + 1
 		)
 
 	def test_delete_bulk_hides_error_log_link_without_permission(self):
