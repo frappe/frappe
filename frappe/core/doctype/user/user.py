@@ -611,7 +611,6 @@ class User(Document):
 			with_container=True,
 			wrapper=wrapper,
 			delayed=(not now) if now is not None else self.flags.delay_emails,
-			retry=3,
 			redact_message_after_send=True,
 		)
 
