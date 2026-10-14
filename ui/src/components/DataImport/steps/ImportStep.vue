@@ -446,28 +446,30 @@ const logRows = computed(() =>
 			expandable: false,
 		};
 		if (log.success) return { ...base, successText: successText(log) };
-
-		const messages = parseJson<{ title?: string; message?: string }[]>(log.messages, []);
-		const first = messages[0];
-		const summary = normalize(first?.message || first?.title || t("Import failed"));
-		const details = messages.filter((m) => {
-			const text = normalize(m.message || m.title);
-			return text && text !== summary;
-		});
-		// A readable message already says what to fix; the traceback only helps
-		// with unexpected failures. It stays in the exported import log.
-		const traceback = first ? "" : (log.exception || "").trim();
-		return {
-			...base,
-			// message is cleaned on the server; title is not, so it goes in as text
-			summaryHtml: first?.message || "",
-			summaryText: first?.title || t("Import failed"),
-			details,
-			traceback,
-			expandable: !!(details.length || traceback),
-		};
+		return { ...base, ...failedLogRow(log) };
 	})
 );
+
+function failedLogRow(log: DataImportLog) {
+	const messages = parseJson<{ title?: string; message?: string }[]>(log.messages, []);
+	const first = messages[0];
+	const summary = normalize(first?.message || first?.title || t("Import failed"));
+	const details = messages.filter((m) => {
+		const text = normalize(m.message || m.title);
+		return text && text !== summary;
+	});
+	// A readable message already says what to fix; the traceback only helps
+	// with unexpected failures. It stays in the exported import log.
+	const traceback = first ? "" : (log.exception || "").trim();
+	return {
+		// message is cleaned on the server; title is not, so it goes in as text
+		summaryHtml: first?.message || "",
+		summaryText: first?.title || t("Import failed"),
+		details,
+		traceback,
+		expandable: !!(details.length || traceback),
+	};
+}
 
 const expanded = ref(new Set<number>());
 watch(logs, () => (expanded.value = new Set()));
