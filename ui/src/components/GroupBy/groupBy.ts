@@ -30,6 +30,7 @@ const GROUPABLE_FIELDTYPES = new Set([
   "Check",
   "Int",
   "Date",
+  "Rating",
 ]);
 
 /** Desk's `frappe.model.numeric_fieldtypes`, the ones sum and average take. */
@@ -117,19 +118,21 @@ export function getGroupByFields(fields: RawMetaField[]): GroupByField[] {
 }
 
 /** The fields an aggregate can run on. Sum and average need numbers; min and
- *  max also take dates and times, including the standard timestamps. Count needs
- *  no field. */
+ *  max also take dates and times, including the standard timestamps. A rating can
+ *  be averaged or ranged but not summed. Count needs no field. */
 export function getAggregateFields(
   fields: RawMetaField[],
   fn: AggregateFunction
 ): GroupByField[] {
   if (fn === "count") return [];
   const allowsTimes = fn === "min" || fn === "max";
+  const allowsRating = fn !== "sum";
   const metaFields = fields
     .filter(
       (f) =>
         isQueryable(f) &&
         (NUMERIC_FIELDTYPES.has(f.fieldtype) ||
+          (allowsRating && f.fieldtype === "Rating") ||
           (allowsTimes && TIME_FIELDTYPES.has(f.fieldtype)))
     )
     .map(toField);
@@ -314,4 +317,15 @@ export function parseGroupBy(raw: unknown): GroupBySettings | null {
   if (sort) parsed.sort = sort;
   if (extras.showTotals === true) parsed.showTotals = true;
   return parsed;
+}
+
+const ratingFormat = new Intl.NumberFormat(undefined, {
+  maximumFractionDigits: 1,
+});
+
+/** A Rating is stored as a fraction of its stars (0.6 of 5 is 3 stars); show it on
+ *  the field's own scale, as "3 / 5". `options` holds the star count, 5 when unset. */
+export function formatRating(value: number, options?: string): string {
+  const stars = Number(options) || 5;
+  return `${ratingFormat.format(value * stars)} / ${stars}`;
 }

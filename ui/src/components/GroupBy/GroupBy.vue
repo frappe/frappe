@@ -190,11 +190,16 @@ const groupedLabels = computed(() =>
 		.join(", ")
 );
 
+// Fields the host asked to leave out, e.g. ones its app never fills in.
+const offered = (f: GroupByField) => !props.exclude?.includes(f.fieldname);
+
 // A field already grouped on isn't offered again, except in its own row.
 function groupOptions(current: string) {
 	return toOptions(
 		getGroupByFields(metaFields.value).filter(
-			(f) => f.fieldname === current || !draft.value.fields.includes(f.fieldname)
+			(f) =>
+				offered(f) &&
+				(f.fieldname === current || !draft.value.fields.includes(f.fieldname))
 		)
 	);
 }
@@ -215,7 +220,7 @@ function functionOptions(i: number) {
 function aggregateOptions(i: number, fn: AggregateFunction) {
 	return toOptions(
 		getAggregateFields(metaFields.value, fn).filter(
-			(f) => !isTaken(i, { function: fn, fieldname: f.fieldname })
+			(f) => offered(f) && !isTaken(i, { function: fn, fieldname: f.fieldname })
 		)
 	);
 }
