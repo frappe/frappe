@@ -53,6 +53,11 @@ frappe-mobile-nav.desk-mobile-nav {
 	body.mobile-nav-title .page-head .navbar-breadcrumbs li:last-child {
 		cursor: pointer;
 
+		// inside the button: the title area's clip cuts off a ring drawn outside it
+		.es-breadcrumbs__item:focus-visible {
+			outline-offset: -2px;
+		}
+
 		// lucide's chevron-down as a mask, so it stays inside its own box: the title area
 		// clips overflow for its ellipsis
 		&::after {

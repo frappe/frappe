@@ -38,13 +38,12 @@ frappe.ui.MobileNav = class MobileNav {
 		});
 		this.set_active();
 
-		// The title is the trail's last crumb (Page.set_title), redrawn on every paint, so
-		// the tap is delegated. Pages inside dialogs draw no trail and are left out.
-		$(document).on("click", ".page-head .navbar-breadcrumbs li:last-child", () => {
-			if (frappe.is_mobile() && document.body.classList.contains("mobile-nav-title")) {
-				this.open_navigation();
-			}
-		});
+		// The title is the trail's last crumb (Page.set_title). Given an action, it renders as
+		// a button, so a keyboard reaches it too. Pages inside dialogs draw no trail.
+		frappe.ui.Page.title_action = () =>
+			frappe.is_mobile() && document.body.classList.contains("mobile-nav-title")
+				? () => this.open_navigation()
+				: null;
 
 		// A form on a phone has a back button in place of the tab bar (see apply_page_visibility).
 		$(document).on("click", ".page-head .page-back-button", () => this.go_back());
@@ -98,6 +97,7 @@ frappe.ui.MobileNav = class MobileNav {
 		// A system page opens in no shell, so it has no sidebar for its title to open.
 		const system_page = frappe.router.page_info_for(route)?.system_page;
 		document.body.classList.toggle("mobile-nav-title", shown && !system_page);
+		page?.render_breadcrumbs?.();
 	}
 
 	// Back to where the form was opened from, or to its list when it was opened directly.
