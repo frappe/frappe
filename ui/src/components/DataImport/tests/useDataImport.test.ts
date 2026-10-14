@@ -303,6 +303,72 @@ describe("useDataImport: an existing import", () => {
     expect(di.dirty.value).toBe(false);
   });
 
+  it("ticks create on a new import with one insert and one save", async () => {
+    responders["frappe.client.insert"] = (args) =>
+      serverDoc({
+        ...args.doc,
+        name: "DI-NEW",
+        value_mappings: [{ ...orgMapping, can_create: 1, create_new: 0 }],
+      });
+    responders["frappe.client.save"] = (args) => serverDoc(args.doc);
+    const name = ref<string | null>(null);
+    const di = mount(name, { doctype: "ToDo" });
+    di.doc.value.import_file = "/private/files/todo.csv";
+
+    await di.save();
+    await settle();
+
+    expect(
+      calls
+        .map((c) => c.method)
+        .filter((method) => method.startsWith("frappe.client."))
+    ).toEqual(["frappe.client.insert", "frappe.client.save"]);
+    expect(
+      callsTo("frappe.client.save")[0].args.doc.value_mappings[0].create_new
+    ).toBe(1);
+    expect(name.value).toBe("DI-NEW");
+    expect(di.doc.value.value_mappings[0].create_new).toBe(1);
+    expect(di.dirty.value).toBe(false);
+    expect(callsTo("frappe.client.get")).toHaveLength(0);
+    expect(callsTo("get_preview_from_template")).toHaveLength(1);
+  });
+
+  it("keeps the create ticks as an unsaved change when the second save fails", async () => {
+    let failNext = false;
+    responders["frappe.client.save"] = (args) => {
+      if (failNext) {
+        failNext = false;
+        throw new Error("save failed");
+      }
+      if (args.doc.value_mappings.length > 0) return serverDoc(args.doc);
+      failNext = true;
+      return serverDoc({
+        ...args.doc,
+        value_mappings: [{ ...orgMapping, can_create: 1, create_new: 0 }],
+      });
+    };
+    const di = mount(ref("DI-1"));
+    await settle();
+    const previewsBefore = callsTo("get_preview_from_template").length;
+
+    await expect(di.save()).rejects.toThrow("save failed");
+    await settle();
+
+    expect(callsTo("frappe.client.save")).toHaveLength(2);
+    expect(di.doc.value.value_mappings[0].create_new).toBe(1);
+    expect(di.dirty.value).toBe(true);
+    expect(di.saving.value).toBe(false);
+    expect(callsTo("get_preview_from_template")).toHaveLength(previewsBefore);
+
+    await di.save();
+    await settle();
+
+    const saves = callsTo("frappe.client.save");
+    expect(saves).toHaveLength(3);
+    expect(saves[2].args.doc.value_mappings[0].create_new).toBe(1);
+    expect(di.dirty.value).toBe(false);
+  });
+
   it("marks edits dirty, saves the whole doc, takes the server's copy and refetches the preview", async () => {
     responders["frappe.client.get"] = () =>
       serverDoc({
