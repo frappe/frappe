@@ -107,9 +107,11 @@ def create_missing_link_records(data_import) -> None:
 	"""Insert the Link records the user chose to create, before any row is imported.
 
 	A record that fails to insert is left out; its rows then fail with the usual link error.
+	A record whose rows are all skipped is not made.
 	"""
+	skipped_rows = get_skipped_row_numbers(data_import)
 	for row in data_import.get("value_mappings") or []:
-		if not wants_new_record(row):
+		if not wants_new_record(row) or all_rows_skipped(row, skipped_rows):
 			continue
 		value = normalize_source_value(row.source_value)
 		fieldname = get_create_field(row.link_doctype)
@@ -125,6 +127,11 @@ def create_missing_link_records(data_import) -> None:
 				f"Data Import {data_import.name}: could not create {row.link_doctype} {value}",
 				exc_info=True,
 			)
+
+
+def all_rows_skipped(row, skipped_rows: set[int]) -> bool:
+	row_numbers = {cint(n) for n in frappe.parse_json(row.row_numbers or "[]")}
+	return bool(row_numbers) and row_numbers <= skipped_rows
 
 
 def get_skipped_row_numbers(data_import) -> set[int]:
