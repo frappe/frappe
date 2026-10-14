@@ -6,19 +6,22 @@
 		class="activity-timeline flex flex-col-reverse overflow-y-auto [overflow-anchor:none]"
 	>
 		<!-- min-h-full keeps short feeds at the top; shrink-0 keeps the overflow -->
-		<div class="min-h-full shrink-0">
+		<div class="flex min-h-full shrink-0 flex-col">
 			<!-- spinner only on first load; cached data stays visible during revalidation -->
-			<div v-if="loading && !activities.length" class="flex justify-center py-8">
+			<div
+				v-if="loading && !activities.length"
+				class="flex flex-1 items-center justify-center py-8"
+			>
 				<LoadingIndicator class="size-5 text-ink-gray-5" />
 			</div>
-			<template v-else-if="!activities.length">
+			<div v-else-if="!activities.length" class="flex flex-1 flex-col justify-center">
 				<slot name="empty">
 					<div class="flex flex-col items-center justify-center gap-3 py-8">
 						<LucideActivity class="h-7 w-7 text-ink-gray-4" />
 						<span class="text-md font-medium text-ink-gray-8">No activity yet</span>
 					</div>
 				</slot>
-			</template>
+			</div>
 			<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
 				<!-- LoadMore for Pagination -->
 				<div

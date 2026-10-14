@@ -30,8 +30,9 @@
   }
  ],
  "in_create": 1,
+ "is_virtual": 1,
  "links": [],
- "modified": "2024-03-23 16:03:37.217673",
+ "modified": "2026-10-06 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Route History",

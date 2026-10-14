@@ -10,6 +10,7 @@ from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
 from mimetypes import guess_type
+from typing import Literal
 from unittest.mock import patch
 
 from hypothesis import given
@@ -2235,6 +2236,55 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 			self.assertEqual(test_mocks(obj_instance), obj_instance)
 		with self.assertRaises(FrappeTypeError):
 			test_mocks(1)
+
+	def test_validate_string_annotations(self):
+		@validate_argument_types
+		def test_strings(name: "str", count: "int | None" = None, other: "Undefined" = None):  # noqa: F821
+			return name, count, other
+
+		self.assertEqual(test_strings("a", "1"), ("a", 1, None))
+		with self.assertRaises(FrappeTypeError):
+			test_strings({"name": ("like", "%")})
+
+		# unresolvable forward refs are not validated
+		obj = object()
+		self.assertEqual(test_strings("a", other=obj), ("a", None, obj))
+
+		@validate_argument_types
+		def test_nested(docs: "str | list[dict | Undefined]"):  # noqa: F821
+			return docs
+
+		self.assertEqual(test_nested([obj]), [obj])
+
+	def test_skip_invalid_string_annotation(self):
+		@validate_argument_types
+		def test_invalid(name: "free text"):
+			return name
+
+		self.assertEqual(test_invalid({"a": 1}), {"a": 1})
+
+	def test_whitelisted_method_validates_string_annotations(self):
+		from frappe.handler import execute_cmd
+
+		# document_follow uses `from __future__ import annotations`, so its annotations are strings
+		form_dict = frappe._dict(doctype="ToDo", doc_name={"owner": "Administrator"})
+		with (
+			self.set_user("test@example.com"),
+			patch.object(frappe.local, "request", frappe._dict(method="POST"), create=True),
+			patch.object(frappe.local, "form_dict", form_dict),
+		):
+			self.assertRaises(
+				FrappeTypeError, execute_cmd, "frappe.desk.form.document_follow.follow_document"
+			)
+
+	def test_validate_literal(self):
+		@validate_argument_types
+		def test_literal(kind: Literal["a", "b"]):
+			return kind
+
+		self.assertEqual(test_literal("a"), "a")
+		with self.assertRaises(FrappeTypeError):
+			test_literal("c")
 
 
 class TestChangeLog(IntegrationTestCase):

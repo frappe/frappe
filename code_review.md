@@ -105,7 +105,7 @@ Check these first. Ask for the missing piece before reading the code.
 - Presentation-only changes — spacing, colour, an icon, a label — take a before and after screenshot, not a test: pinning pixels, class names or wording breaks on the next design change and proves nothing.
 - Text and markup a caller or a user depends on is behaviour, not presentation. A response message, a permission error, the semantics of rendered HTML: still test it.
 - Test through public interfaces as a real user, not Administrator. Permission tests use `get_list`, not `get_all`. Fixtures use `example.com`.
-- Flaky tests are fixed, not disabled. Changed behaviour updates the existing tests.
+- Flaky tests are fixed, not disabled. Changed behaviour updates the existing tests. A deleted test, a loosened assertion or a case moved from rejected to accepted needs a reason in the description.
 
 ## Verdict
 

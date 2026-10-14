@@ -68,15 +68,7 @@
     display: flex;
     align-items: center;
     gap: calc(var(--spacing) * 2);
-    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-    white-space: nowrap;
-    font-size: var(--text-sm);
-    background: var(--surface-elevation-2);
-    border: 1px solid var(--outline-elevation-2);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--elevation-xl);
     opacity: 0;
-    pointer-events: none;
     transition: opacity 120ms ease;
 }
 
@@ -87,11 +79,6 @@
 .es-donut__tip-label {
     margin-right: calc(var(--spacing) * 3);
     color: var(--ink-gray-7);
-}
-
-.es-donut__tip b {
-    font-weight: var(--font-weight-semibold);
-    color: var(--ink-gray-8);
 }
 
 .es-donut__center {

@@ -130,10 +130,7 @@ class DBTable:
 		columns += self.columns.values()
 
 		for col in columns:
-			if len(col.fieldname) >= 64:
-				frappe.throw(
-					_("Fieldname is limited to 64 characters ({0})").format(frappe.bold(col.fieldname))
-				)
+			validate_column_length(col.fieldname, 63)
 
 			if "varchar" in frappe.db.type_map.get(col.fieldtype, ()):
 				# validate length range
@@ -422,11 +419,12 @@ def validate_table_name_length(doctype):
 		)
 
 
-def validate_column_length(fieldname):
-	if len(fieldname) > frappe.db.MAX_COLUMN_LENGTH:
-		frappe.throw(
-			_("Fieldname is limited to {0} characters ({1})").format(frappe.db.MAX_COLUMN_LENGTH, fieldname)
-		)
+def validate_column_length(fieldname, max_length=None):
+	max_length = max_length or frappe.db.MAX_COLUMN_LENGTH
+	if frappe.db.db_type == "postgres" and len(fieldname.encode()) > max_length:
+		frappe.throw(_("Fieldname is limited to {0} bytes ({1})").format(max_length, fieldname))
+	if len(fieldname) > max_length:
+		frappe.throw(_("Fieldname is limited to {0} characters ({1})").format(max_length, fieldname))
 
 
 def get_definition(fieldtype, precision=None, length=None, *, options=None, duckdb=False):

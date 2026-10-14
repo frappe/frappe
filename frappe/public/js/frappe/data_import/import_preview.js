@@ -4,7 +4,7 @@ import DataTable from "frappe-datatable";
 function is_sr_no_column(col) {
 	return col?.header_title === "Sr. No" || col?.header_title === __("Sr. No");
 }
-import { get_columns_for_picker } from "./data_exporter";
+import { get_columns_for_picker, with_id_field } from "./data_exporter";
 
 frappe.provide("frappe.data_import");
 
@@ -774,7 +774,7 @@ function get_column_map_for_preview(doctype, provider_schema = null) {
 	}
 
 	let out = {};
-	out[doctype] = provider_schema.fields || [];
+	out[doctype] = with_id_field(provider_schema.fields || []);
 	(provider_schema.child_tables || []).forEach((ct) => {
 		out[ct.fieldname] = ct.fields || [];
 	});

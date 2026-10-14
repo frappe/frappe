@@ -6,6 +6,7 @@ from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
 from frappe.desk.doctype.sidebar.test_sidebar import developer_mode
 from frappe.tests import IntegrationTestCase
+from frappe.utils.logging import get_log_db
 
 
 class TestBootData(IntegrationTestCase):
@@ -109,14 +110,14 @@ class TestBootData(IntegrationTestCase):
 
 		frappe.set_user("test@example.com")
 		frappe.clear_messages()
-		error_logs = frappe.db.count("Error Log")
+		error_logs = get_log_db().count("Error Log")
 
 		allowed_reports = DeskViews.get_allowed_reports()
 
 		self.assertNotIn(orphan, allowed_reports)
 		self.assertIn(enabled, allowed_reports)
 		self.assertEqual(frappe.get_message_log(), [])
-		self.assertEqual(frappe.db.count("Error Log"), error_logs)
+		self.assertEqual(get_log_db().count("Error Log"), error_logs)
 
 	def _make_report(self, report_name, disabled=0):
 		return (

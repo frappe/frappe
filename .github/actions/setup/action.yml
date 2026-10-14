@@ -78,12 +78,6 @@ runs:
         **/pyproject.toml
         **/requirements*.txt
 
-  - name: Cache wkhtmltopdf
-    uses: actions/cache@v4
-    with:
-      path: /tmp/wkhtmltox.deb
-      key: wkhtmltox-0.12.6.1-2-jammy-amd64
-
   - shell: bash -e {0}
     run: |
       # Install System Dependencies (apt) in the background while installing the
@@ -101,11 +95,6 @@ runs:
         sudo apt -qq remove -y postgresql-client postgresql-client-16 postgresql-client-common
         sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
         echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
-
-        if [ ! -f /tmp/wkhtmltox.deb ]; then
-          wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-        fi
-        sudo apt install /tmp/wkhtmltox.deb
       }
 
       install_system_deps &> ${GITHUB_WORKSPACE}/system_deps.log &
@@ -167,6 +156,20 @@ runs:
 
       end_time=$(date +%s)
       echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
+
+  - name: Cache Chromium
+    uses: actions/cache@v4
+    with:
+      path: ${{ github.workspace }}/chromium
+      key: chromium-${{ runner.os }}-${{ hashFiles('frappe-src/frappe/utils/chromium/download.py') }}
+
+  - shell: bash -e {0}
+    run: |
+      # Set up the Chromium build that renders PDFs
+      start_time=$(date +%s)
+      bench setup-chrome
+      end_time=$(date +%s)
+      echo -e "\033[33mSetup Chromium: $((end_time - start_time)) seconds\033[0m"
 
   - shell: bash -e {0}
     run: |
