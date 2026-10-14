@@ -35,6 +35,28 @@ class PrintViewTest(IntegrationTestCase):
 		# cancelled doc can't be printed by default
 		self.assertRaises(frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name)
 
+	def test_report_pdf_allows_domains_added_with_ssl_certificate(self):
+		from frappe.utils.print_format import report_to_pdf
+
+		domains = [
+			"plain.example.com",
+			{
+				"domain": "secure.example.com",
+				"ssl_certificate": "/etc/ssl/secure.crt",
+				"ssl_certificate_key": "/etc/ssl/secure.key",
+			},
+		]
+		with (
+			patch.dict(frappe.conf, {"domains": domains}),
+			patch("frappe.utils.print_format.get_pdf", return_value=b"pdf") as get_pdf,
+			patch.object(frappe.local, "response", frappe._dict()),
+		):
+			report_to_pdf("<p>Report</p>")
+
+		bypass_hosts = get_pdf.call_args.args[1]["bypass-proxy-for"]
+		self.assertIn("plain.example.com", bypass_hosts)
+		self.assertIn("secure.example.com", bypass_hosts)
+
 	def test_preview_from_form_values_sees_native_types(self):
 		doctype = new_doctype(
 			fields=[
