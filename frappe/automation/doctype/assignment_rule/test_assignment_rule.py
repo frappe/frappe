@@ -4,14 +4,9 @@
 from unittest.mock import patch
 
 import frappe
-<<<<<<< HEAD
+from frappe.automation.doctype.assignment_rule.assignment_rule import reopen_closed_assignment
 from frappe.test_runner import make_test_records
 from frappe.tests.utils import FrappeTestCase
-=======
-from frappe.automation.doctype.assignment_rule.assignment_rule import reopen_closed_assignment
-from frappe.tests import IntegrationTestCase
-from frappe.tests.utils import make_test_records
->>>>>>> aca4a12 (test(assignment_rule): closed assignments are looked up once per save)
 
 TEST_DOCTYPE = "Assignment Test"
 
