@@ -89,7 +89,8 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
-	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
+	if (!print_format?.print_format_builder_beta)
+		return [__("Not made in the Print Format Editor")];
 	if ((print_format?.css || "").trim()) add(__("Custom CSS in the Style box"));
 	const colors = new Set();
 	for (const key of ["label_color", "value_color"]) {
