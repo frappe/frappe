@@ -383,14 +383,27 @@ class TestReportview(IntegrationTestCase):
 		self.assertEqual(sorted(map(tuple, result["values"])), sorted(map(tuple, expected)))
 
 	def test_delete_bulk_reports_reason_per_document(self):
-		with patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
-			undeleted = delete_bulk("User", ["Guest"])
+		email_queue = frappe.get_doc(
+			doctype="Email Queue", sender="test@example.com", message="Your report is ready"
+		).insert()
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+		with self.set_user(user.name), patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+			undeleted = delete_bulk("Email Queue", [email_queue.name])
 
-		self.assertEqual(undeleted, ["Guest"])
-		self.assertIn("User Guest cannot be deleted", frappe.message_log[-1].message[0])
+		self.assertEqual(undeleted, [email_queue.name])
+		self.assertIn("Only Administrator can delete Email Queue", frappe.message_log[-1].message[0])
+
+	def test_delete_bulk_reports_missing_permission(self):
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+		with self.set_user(user.name), patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+			delete_bulk("User", ["Guest"])
+
+		self.assertIn("You need the 'delete' permission", frappe.message_log[-1].message[0])
 
 	def test_delete_bulk_logs_unexpected_error(self):
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
 		with (
+			self.set_user(user.name),
 			patch.object(frappe.db, "commit"),
 			patch.object(frappe.db, "rollback"),
 			patch("frappe.delete_doc", side_effect=frappe.QueryTimeoutError),
@@ -409,7 +422,9 @@ class TestReportview(IntegrationTestCase):
 
 	def test_delete_bulk_logs_unexpected_error_once(self):
 		logged_before = get_log_db().count("Error Log", {"reference_name": "test1@example.com"})
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
 		with (
+			self.set_user(user.name),
 			patch.object(frappe.db, "commit"),
 			patch.object(frappe.db, "rollback"),
 			patch(
@@ -437,8 +452,9 @@ class TestReportview(IntegrationTestCase):
 	def test_delete_bulk_lists_what_each_document_is_linked_with(self):
 		salutation = frappe.get_doc(doctype="Salutation", salutation="Professor").insert()
 		contact = frappe.get_doc(doctype="Contact", first_name="Priya", salutation=salutation.name).insert()
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
 
-		with patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+		with self.set_user(user.name), patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
 			delete_bulk("Salutation", [salutation.name])
 
 		self.assertIn(contact.name, frappe.message_log[-1].message[0])
