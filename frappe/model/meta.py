@@ -52,7 +52,6 @@ DEFAULT_FIELD_LABELS = {
 	"owner": _lt("Created By"),
 	"_user_tags": _lt("Tags"),
 	"_liked_by": _lt("Liked By"),
-	"_comments": _lt("Comments"),
 	"_assign": _lt("Assigned To"),
 }
 
@@ -226,7 +225,8 @@ class Meta(Document):
 		if not hasattr(self, "_valid_columns"):
 			table_exists = frappe.db.table_exists(self.name)
 			if self.name in self.special_doctypes and table_exists:
-				self._valid_columns = get_table_columns(self.name)
+				# `_comments` is a cache column, never a readable field
+				self._valid_columns = [c for c in get_table_columns(self.name) if c != "_comments"]
 			else:
 				self._valid_columns = self.default_fields + [
 					df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes

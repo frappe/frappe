@@ -1030,8 +1030,11 @@ class BaseDocument:
 		autoname = self.meta.autoname or ""
 		_empty, _field_specifier, fieldname = autoname.partition("field:")
 
-		if fieldname and self.name and self.name != self.get(fieldname):
-			self.set(fieldname, self.name)
+		if fieldname and self.name:
+			df = self.meta.get_field(fieldname)
+			name = self.cast(self.name, df) if df else self.name
+			if name != self.get(fieldname):
+				self.set(fieldname, name)
 
 	def throw_length_exceeded_error(self, df, max_length, value):
 		# check if parentfield exists (only applicable for child table doctype)

@@ -14,6 +14,7 @@ from frappe.integrations.google_oauth import GoogleOAuth
 @frappe.whitelist(methods=["POST"])
 def authorize_access(reauthorize: bool = False, code: str | None = None):
 	"""If no Authorization code get it from Google and then request for Refresh Token."""
+	frappe.has_permission("Website Settings", "write", throw=True)
 
 	oauth_code = (
 		frappe.db.get_single_value("Website Settings", "indexing_authorization_code") if not code else code

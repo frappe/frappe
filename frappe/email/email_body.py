@@ -425,6 +425,7 @@ def get_email_html(
 	header: str | list | None = None,
 	with_container: str | int | bool = False,
 ):
+	frappe.only_for("System Manager")
 	import json
 
 	with_container = cint(with_container)
