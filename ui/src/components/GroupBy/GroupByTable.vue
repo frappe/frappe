@@ -128,7 +128,6 @@ import {
 	columnId,
 	effectiveSort,
 	findGroupByField,
-	isCompleteAggregate,
 } from "./groupBy";
 import { directionFor, nextSort } from "../../experimental/List/headerSort";
 import { useColumnResize } from "../../experimental/List/useColumnResize";
@@ -170,16 +169,17 @@ const columns = computed<GroupByColumn[]>(() => [
 			options: field?.options,
 		};
 	}),
-	...props.groupBy.aggregates.filter(isCompleteAggregate).map((a, i) => {
+	...props.groupBy.aggregates.map((a, i) => {
 		const fn = AGGREGATE_FUNCTIONS.find((f) => f.value === a.function)?.label ?? "";
-		const field = a.fieldname ? findGroupByField(metaFields.value, a.fieldname) : undefined;
+		const field =
+			a.function === "count" ? undefined : findGroupByField(metaFields.value, a.fieldname);
 		return {
 			key: aggregateKey(i),
 			id: columnId(a),
 			label:
 				a.function === "count"
 					? __("Count")
-					: __("{0} of {1}", [__(fn), __(field?.label ?? a.fieldname ?? "")]),
+					: __("{0} of {1}", [__(fn), __(field?.label ?? a.fieldname)]),
 			align: "right" as const,
 			fieldtype: a.function === "count" ? "Int" : field?.fieldtype,
 			options: field?.options,
