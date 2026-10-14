@@ -47,7 +47,7 @@ describe("useGroupByData", () => {
         filters: { docstatus: 1 },
         fields: ["status", { COUNT: "name", as: "_aggregate_0" }],
         group_by: "status",
-        order_by: "_aggregate_0 desc",
+        order_by: "_aggregate_0 desc, status asc",
         limit_page_length: 20,
       },
     ]);

@@ -204,25 +204,29 @@ export function effectiveSort(groupBy: GroupBySettings): Sort[] {
     : [];
 }
 
-// The effective sort in the wire form: a grouped field by name, an aggregate by alias.
-function orderBy(groupBy: GroupBySettings) {
+// The effective sort on the wire, then the group fields so ties keep their place as loadMore pages.
+function orderBy(groupBy: GroupBySettings): string {
   const [sort] = effectiveSort(groupBy);
-  if (!sort) return undefined;
+  const tieBreakers = groupBy.fields
+    .filter((f) => f !== sort?.fieldname)
+    .map((f) => `${f} asc`);
+  if (!sort) return tieBreakers.join(", ");
   const index = groupBy.aggregates.findIndex(
     (a) => columnId(a) === sort.fieldname
   );
   const column = index >= 0 ? aggregateKey(index) : sort.fieldname;
-  return `${column} ${sort.direction}`;
+  return [`${column} ${sort.direction}`, ...tieBreakers].join(", ");
 }
 
 /** The arguments for `frappe.client.get_list` that fetch one row per group: the
  *  group fields, one aliased aggregate per Aggregate, the `group_by`
- *  clause, and the `order_by` of the chosen sort. Count runs on `name`, as desk's
- *  report view does, so `export_query` can label it too. */
+ *  clause, and the `order_by` of the chosen sort, tie-broken by the group fields.
+ *  Count runs on `name`, as desk's report view does, so `export_query` can label
+ *  it too. */
 export function serializeGroupBy(groupBy: GroupBySettings): {
   fields: (string | Record<string, string>)[];
   group_by: string;
-  order_by?: string;
+  order_by: string;
 } {
   return {
     fields: [...groupBy.fields, ...aggregateFields(groupBy.aggregates)],
