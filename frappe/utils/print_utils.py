@@ -70,6 +70,7 @@ def get_print(
 	pdf_options=None,
 	letterhead=None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"] | None = None,
+	settings=None,
 ):
 	"""Get Print Format for given document.
 	:param doctype: DocType of document.
@@ -98,6 +99,10 @@ def get_print(
 	if not generator or (uses_beta_renderer(pf_doc) and generator not in GENERATOR_ENGINES):
 		generator = resolve_pdf_generator(pf_doc, pdf_generator)
 
+	settings = settings or local.form_dict.get("settings")
+	if as_pdf and generator == "wkhtmltopdf" and settings:
+		settings = {key: value for key, value in frappe.parse_json(settings).items() if key != "print_font"}
+
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
 		local.form_dict.pdf_generator = generator
@@ -108,6 +113,7 @@ def get_print(
 		local.form_dict.doc = doc
 		local.form_dict.no_letterhead = no_letterhead
 		local.form_dict.letterhead = letterhead
+		local.form_dict.settings = settings
 
 		pdf_options = pdf_options or {}
 		if password:
@@ -120,7 +126,7 @@ def get_print(
 
 			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
 			validate_print(doc_obj)
-			pdf = _render_builder_pdf(pf_doc, doc_obj, letterhead, no_letterhead, password, style)
+			pdf = _render_builder_pdf(pf_doc, doc_obj, letterhead, no_letterhead, password, style, settings)
 			make_access_log(
 				doctype=doc_obj.doctype,
 				document=doc_obj.name,
@@ -151,6 +157,7 @@ def get_print(
 				doc=doc,
 				letterhead=letterhead,
 				no_letterhead=no_letterhead,
+				settings=settings,
 				generator=None,
 			)
 			try:
@@ -191,11 +198,20 @@ def get_print(
 		local.form_dict = original_form_dict
 
 
-def _render_builder_pdf(print_format, doc, letterhead, no_letterhead, password=None, style=None):
+def _render_builder_pdf(
+	print_format, doc, letterhead, no_letterhead, password=None, style=None, settings=None
+):
 	"""PDF of a builder format through its own renderer, which applies the format's margins."""
 	from frappe.utils.print_format_generator import PrintFormatGenerator
 
-	generator = PrintFormatGenerator(print_format, doc, letterhead, style=style, no_letterhead=no_letterhead)
+	generator = PrintFormatGenerator(
+		print_format,
+		doc,
+		letterhead,
+		style=style,
+		settings=frappe.parse_json(settings) if settings else None,
+		no_letterhead=no_letterhead,
+	)
 	return generator.render_pdf(password=password)
 
 
@@ -211,6 +227,7 @@ def attach_print(
 	print_letterhead=True,
 	password=None,
 	letterhead=None,
+	settings=None,
 ):
 	from frappe.translate import print_language
 	from frappe.utils import scrub_urls
@@ -224,6 +241,7 @@ def attach_print(
 		no_letterhead=not print_letterhead,
 		letterhead=letterhead,
 		password=password,
+		settings=settings,
 	)
 
 	frappe.local.flags.ignore_print_permissions = True
@@ -256,7 +274,13 @@ def attach_print(
 						)
 					else:
 						content = _render_builder_pdf(
-							pf_doc, doc_obj, letterhead_name, not print_letterhead, password
+							pf_doc,
+							doc_obj,
+							letterhead_name,
+							not print_letterhead,
+							password,
+							style=style,
+							settings=settings,
 						)
 				else:
 					kwargs["as_pdf"] = True

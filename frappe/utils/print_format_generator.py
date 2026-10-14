@@ -102,7 +102,13 @@ def generator_from_print_context(print_format) -> "PrintFormatGenerator | None":
 	doc = ctx.get("doc")
 	if not isinstance(doc, Document):
 		doc = frappe.get_doc(ctx.doctype, ctx.name)
-	return PrintFormatGenerator(pf, doc, ctx.get("letterhead"), no_letterhead=ctx.get("no_letterhead"))
+	return PrintFormatGenerator(
+		pf,
+		doc,
+		ctx.get("letterhead"),
+		settings=frappe.parse_json(ctx.get("settings")) if ctx.get("settings") else None,
+		no_letterhead=ctx.get("no_letterhead"),
+	)
 
 
 def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
