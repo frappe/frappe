@@ -1,7 +1,7 @@
 // GroupBy — the controlled, meta-driven group-by control, the table that shows one
-// row per group, and their pure helpers. The host owns fetching: it passes the
-// control's model through `serializeGroupBy` to `frappe.client.get_list` and hands
-// the rows to `GroupByTable`. Field Options are derived from doctype Meta.
+// row per group, and their pure helpers. The control and table never fetch: a host
+// either opts into `useGroupByData` for the rows and paging, or runs the control's
+// model through `serializeGroupBy` itself. Field Options are derived from Meta.
 export { default as GroupBy } from "./GroupBy.vue";
 export { default as GroupByTable } from "./GroupByTable.vue";
 export {
@@ -14,6 +14,8 @@ export {
   parseGroupBy,
   serializeGroupBy,
 } from "./groupBy";
+export { useGroupByData } from "./useGroupByData";
+export type { UseGroupByData } from "./useGroupByData";
 export type {
   Aggregate,
   AggregateFunction,
