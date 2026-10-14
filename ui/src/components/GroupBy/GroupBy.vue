@@ -59,7 +59,7 @@
 						/>
 					</div>
 					<Button
-						class="self-start"
+						class="-ml-2 self-start"
 						variant="ghost"
 						iconLeft="lucide-plus"
 						:label="__('Add Group By')"
@@ -96,7 +96,7 @@
 						/>
 					</div>
 					<Button
-						class="self-start"
+						class="-ml-2 self-start"
 						variant="ghost"
 						iconLeft="lucide-plus"
 						:label="__('Add Aggregate')"
