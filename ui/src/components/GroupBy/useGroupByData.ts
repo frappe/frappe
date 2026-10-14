@@ -96,13 +96,16 @@ export function useGroupByData(
     groups.fetch();
   }
 
+  // Only what reaches the query refetches: column widths live on the grouping too,
+  // and a resize must not reset the loaded pages.
+  const query = computed(() => {
+    const settings = toValue(groupBy);
+    if (!settings) return null;
+    return JSON.stringify([serializeGroupBy(settings), settings.showTotals]);
+  });
+
   watch(
-    [
-      () => toValue(doctype),
-      () => toValue(groupBy),
-      () => toValue(filters),
-      pageLength,
-    ],
+    [() => toValue(doctype), query, () => toValue(filters), pageLength],
     reload,
     { immediate: true, deep: true }
   );

@@ -27,8 +27,9 @@
 		<template v-if="groupBy">
 			<GroupByTable
 				:doctype="doctype"
-				:groupBy="groupBy"
+				v-model:groupBy="groupBy"
 				:rows="groups.rows.value"
+				:totals="groups.totals.value"
 				:loading="groups.loading.value"
 			/>
 			<ListFooter
