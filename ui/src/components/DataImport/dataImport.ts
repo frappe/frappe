@@ -174,18 +174,20 @@ function dedupeRowWarnings(list: DataImportWarning[]) {
 
 /** The longer message usually lists the rows. */
 function longestPerColumn(list: DataImportWarning[]) {
-  const byColumn = new Map<unknown, DataImportWarning>();
+  const byColumn = new Map<number, DataImportWarning>();
   for (const warning of list) {
-    const previous = byColumn.get(warning.col);
+    const col = warning.col;
+    if (col === undefined) continue;
+    const previous = byColumn.get(col);
     if (
       !previous ||
       (warning.message || "").length > (previous.message || "").length
     )
-      byColumn.set(warning.col, warning);
+      byColumn.set(col, warning);
   }
   // Desk keeps columns in a plain object, so they come out in column order.
   return [...byColumn.entries()]
-    .sort(([a], [b]) => Number(a) - Number(b))
+    .sort(([a], [b]) => a - b)
     .map(([, warning]) => warning);
 }
 
