@@ -107,22 +107,27 @@ function isQueryable(f: RawMetaField): boolean {
 }
 
 /** The fields a list can be grouped by: labelled fields of a groupable fieldtype,
- *  then the standard fields. */
-export function getGroupByFields(fields: RawMetaField[]): GroupByField[] {
+ *  then the standard fields, less any fieldnames in `exclude`. */
+export function getGroupByFields(
+  fields: RawMetaField[],
+  exclude: string[] = []
+): GroupByField[] {
   return [
     ...fields
       .filter((f) => isQueryable(f) && GROUPABLE_FIELDTYPES.has(f.fieldtype))
       .map(toField),
     ...STANDARD_GROUP_FIELDS,
-  ];
+  ].filter((f) => !exclude.includes(f.fieldname));
 }
 
 /** The fields an aggregate can run on. Sum and average need numbers; min and
  *  max also take dates and times, including the standard timestamps. A rating can
- *  be averaged or ranged but not summed. Count needs no field. */
+ *  be averaged or ranged but not summed. Count needs no field. Fieldnames in
+ *  `exclude` are left out. */
 export function getAggregateFields(
   fields: RawMetaField[],
-  fn: AggregateFunction
+  fn: AggregateFunction,
+  exclude: string[] = []
 ): GroupByField[] {
   if (fn === "count") return [];
   const allowsTimes = fn === "min" || fn === "max";
@@ -136,7 +141,9 @@ export function getAggregateFields(
           (allowsTimes && TIME_FIELDTYPES.has(f.fieldtype)))
     )
     .map(toField);
-  return allowsTimes ? [...metaFields, ...STANDARD_TIME_FIELDS] : metaFields;
+  return (
+    allowsTimes ? [...metaFields, ...STANDARD_TIME_FIELDS] : metaFields
+  ).filter((f) => !exclude.includes(f.fieldname));
 }
 
 /** Field lookup for labels and formatting, covering the standard fields. */
