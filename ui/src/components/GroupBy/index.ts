@@ -17,8 +17,8 @@ export {
   serializeGroupBy,
   serializeGroupByTotals,
 } from "./groupBy";
-export { GROUP_BY_DATA_DEFAULTS, useGroupByData } from "./useGroupByData";
-export type { UseGroupByData, UseGroupByDataOptions } from "./useGroupByData";
+export { useGroupByData } from "./useGroupByData";
+export type { UseGroupByData } from "./useGroupByData";
 export type {
   Aggregate,
   AggregateDraft,

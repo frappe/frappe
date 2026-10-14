@@ -164,18 +164,15 @@ describe("useGroupByData", () => {
     });
   });
 
-  it("counts up to the cap, then keeps paging while pages come back full", () => {
-    const data = useGroupByData(
-      "Sales Order",
-      BY_STATUS,
-      {},
-      { countCap: 3, pageLength: 2 }
-    );
+  it("counts up to the cap, then keeps paging while pages come back full", async () => {
+    const data = useGroupByData("Sales Order", BY_STATUS, {});
     const [groups, keys] = h.resources;
-    expect(keys.calls[0].limit_page_length).toBe(3);
-    expect(groups.calls[0].limit_page_length).toBe(2);
+    data.pageLength.value = 2;
+    await nextTick();
+    expect(keys.calls.at(-1).limit_page_length).toBe(1000);
+    expect(groups.calls.at(-1).limit_page_length).toBe(2);
 
-    keys.data = [{ status: 1 }, { status: 2 }, { status: 3 }];
+    keys.data = Array.from({ length: 1000 }, (_, status) => ({ status }));
     groups.data = [{ status: 1 }, { status: 2 }];
     expect(data.totalCapped.value).toBe(true);
     expect(data.hasNextPage.value).toBe(true);
