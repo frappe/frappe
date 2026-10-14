@@ -217,9 +217,13 @@ class TestKeywordRetrieval(MemoryCase):
 
 	def test_a_search_failure_is_logged_and_sends_nothing(self):
 		save_memory(self.agent.name, content=ACME, scope="agent")
+		# Error Logs outlive the test's rollback on newer Frappe, so count the new one
+		logged = len(frappe.get_all("Error Log", {"method": "Agent memory search failed"}))
 		with patch("flow.memory.store.search", side_effect=RuntimeError("index broken")):
 			self.assertEqual(self.block("Where do we bill Acme?"), "")
-		self.assertTrue(frappe.db.exists("Error Log", {"method": "Agent memory search failed"}))
+		self.assertEqual(
+			len(frappe.get_all("Error Log", {"method": "Agent memory search failed"})), logged + 1
+		)
 
 	def test_configuring_embeddings_later_rebuilds_the_index(self):
 		added = save_memory(self.agent.name, content=ACME, scope="agent")
