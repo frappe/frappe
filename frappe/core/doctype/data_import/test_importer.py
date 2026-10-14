@@ -225,6 +225,26 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(preview.data), 4)
 		self.assertEqual(len(preview.columns), 16)
 
+	def test_file_with_no_column_for_the_record_itself_still_saves(self):
+		# like a Zoho export whose only known heading belongs to a child table
+		import_file = frappe.get_doc(
+			doctype="File",
+			file_name="only_child_columns.csv",
+			content="Child Title (Table Field 1),Not A Field\nchild title,x",
+			is_private=1,
+		).insert()
+		_register_file_cleanup(self, import_file)
+		frappe.clear_messages()
+
+		data_import = self.get_importer(doctype_name, import_file)
+
+		self.assertEqual(data_import.payload_count, 1)
+		messages = [frappe.parse_json(message) for message in frappe.message_log]
+		self.assertTrue(
+			any("None of the columns in your file match" in message.message for message in messages)
+		)
+		self.assertTrue(all(message.alert for message in messages))
+
 	# ignored on postgres because myisam doesn't exist on pg
 	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
 	def test_data_import_without_mandatory_values(self):
