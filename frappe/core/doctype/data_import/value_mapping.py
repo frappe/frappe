@@ -48,7 +48,7 @@ def build_lookup_from_mappings(
 		# Resolve DocType: explicit on row, else caller default, else child-table parenttype.
 		ref = row.reference_doctype or reference_doctype or row.parenttype
 		source, target = normalize_source_value(row.source_value), (row.target_value or "").strip()
-		if not target and cint(row.create_new) and cint(row.can_create):
+		if wants_new_record(row):
 			# created under its own name when the import runs
 			target = source
 		# Ignore incomplete mappings — they must not block or remap anything.
@@ -86,12 +86,21 @@ def get_create_field(doctype: str) -> str | None:
 		return None
 	fieldname = meta.autoname[len("field:") :].strip()
 	for df in meta.fields:
-		if df.reqd and df.fieldname != fieldname and df.default in INVALID_VALUES:
-			if df.fieldtype not in no_value_fields:
-				return None
+		if (
+			df.reqd
+			and df.fieldname != fieldname
+			and df.default in INVALID_VALUES
+			and df.fieldtype not in no_value_fields
+		):
+			return None
 	if not frappe.has_permission(doctype, "create"):
 		return None
 	return fieldname
+
+
+def wants_new_record(row) -> bool:
+	"""The user chose to create the missing Link record and mapped the value to nothing else."""
+	return not (row.target_value or "").strip() and bool(cint(row.create_new) and cint(row.can_create))
 
 
 def create_missing_link_records(data_import) -> None:
@@ -100,7 +109,7 @@ def create_missing_link_records(data_import) -> None:
 	A record that fails to insert is left out; its rows then fail with the usual link error.
 	"""
 	for row in data_import.get("value_mappings") or []:
-		if (row.target_value or "").strip() or not (cint(row.create_new) and cint(row.can_create)):
+		if not wants_new_record(row):
 			continue
 		value = normalize_source_value(row.source_value)
 		fieldname = get_create_field(row.link_doctype)
