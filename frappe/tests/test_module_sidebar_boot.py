@@ -965,6 +965,30 @@ class TestAClaimOnAnAbsentEntityIsInert(IntegrationTestCase):
 		)
 		self.assertEqual(build_entity_module_map({self.MODULE: {"items": filtered}}), {"ToDo": self.MODULE})
 
+	def test_a_link_whose_module_is_missing_is_dropped(self):
+		"""A DocType can stay on a site after its app's module is gone, and loading its controller then
+		throws while the boot filters the sidebar. The row is dropped instead, so users can still log in.
+		"""
+		make_user(self.USER, ["System Manager"])
+		frappe.set_user(self.USER)
+		frappe.clear_messages()
+		has_permission = frappe.has_permission
+
+		def module_not_found(doctype, *args, **kwargs):
+			if doctype == "ToDo":
+				frappe.throw(f"Module {self.MODULE} not found", frappe.DoesNotExistError)
+			return has_permission(doctype, *args, **kwargs)
+
+		rows = [
+			frappe._dict(type="Link", link_type="DocType", link_to=doctype, label=doctype)
+			for doctype in ("ToDo", "Event")
+		]
+		with patch("frappe.has_permission", module_not_found):
+			filtered = filter_sidebar_items(rows, frappe.new_doc("Workspace"))
+
+		self.assertEqual([item["link_to"] for item in filtered], ["Event"])
+		self.assertFalse(frappe.local.message_log, "the error is not shown to the user")
+
 
 class TestTwoAppsClaimTheSameEntity(IntegrationTestCase):
 	"""The claim comparator: highest install index, then module name ascending.
