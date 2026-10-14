@@ -69,6 +69,9 @@ export interface GroupByColumn {
   /** The id its width and sort are saved under, stable when other columns come and go. */
   id: string;
   label: string;
+  /** A grouped field, or an aggregate's value. */
+  kind: "group" | "aggregate";
+  /** Follows `kind`: grouped values read from the left, aggregates from the right. */
   align: "left" | "right";
   /** The grouped field's fieldtype, or the aggregated field's. */
   fieldtype?: string;
