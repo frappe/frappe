@@ -18,7 +18,7 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 		return {
 			"supportedVersions": list(protocol.SUPPORTED_VERSIONS),
 			"capabilities": {"tools": {}},
-			"serverInfo": protocol.server_info(),
+			**server_configuration(),
 			"ttlMs": 3600000,
 			"cacheScope": "private",
 		}
@@ -44,8 +44,15 @@ def initialize(params: dict[str, Any]) -> dict:
 	return {
 		"protocolVersion": protocol.LEGACY_VERSION,
 		"capabilities": {"tools": {"listChanged": False}},
-		"serverInfo": protocol.server_info(),
+		**server_configuration(),
 	}
+
+
+def server_configuration() -> dict:
+	result = {"serverInfo": protocol.server_info()}
+	if instructions := protocol.server_instructions():
+		result["instructions"] = instructions
+	return result
 
 
 def valid_identity(value: Any) -> bool:

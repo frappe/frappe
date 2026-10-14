@@ -33,7 +33,15 @@ class McpError(Exception):
 
 
 def server_info() -> dict[str, str]:
-	return {"name": "frappe", "version": frappe.__version__}
+	settings = frappe.get_cached_doc("MCP Settings")
+	info = {"name": (settings.server_name or "").strip() or frappe.local.site, "version": frappe.__version__}
+	if description := (settings.server_description or "").strip():
+		info["description"] = description
+	return info
+
+
+def server_instructions() -> str:
+	return (frappe.get_cached_doc("MCP Settings").agent_instructions or "").strip()
 
 
 def result_envelope(request_id: str | int, result: dict, version: str) -> dict[str, Any]:

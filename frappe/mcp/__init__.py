@@ -8,7 +8,7 @@ import frappe
 
 
 def handle():
-	if frappe.conf.get("disable_mcp_server"):
+	if frappe.conf.get("disable_mcp_server") or not frappe.get_cached_doc("MCP Settings").enable_mcp:
 		raise NotFound
 
 	from frappe.mcp.transport import handle_request

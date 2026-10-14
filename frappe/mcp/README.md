@@ -95,13 +95,14 @@ Whitelisted RPC methods remain responsible for their own permission checks.
 
 ## Configuration and troubleshooting
 
-To disable the endpoint for one site:
+Open **MCP Settings** as a System Manager to set the server name and description for this site.
+The name defaults to the resolved site name when empty. These settings appear in server information and `get_site_info`.
+**Enable MCP** is checked by default. Uncheck it to disable the endpoint for this site.
+Use **Agent Instructions** for site-specific guidance. Clients receive it during initialization or server discovery,
+and through `get_site_info`. Instructions do not change permissions.
 
-```bash
-bench --site your-site.example.com set-config disable_mcp_server 1
-```
+The existing `disable_mcp_server` site config also forces the endpoint off, regardless of the checkbox.
 
-Set the value to `0` to enable it again.
 Restart backend processes after installing Python changes. An asset build is not needed for this endpoint.
 
 | Response | Check |

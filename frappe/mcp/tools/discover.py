@@ -9,6 +9,7 @@ from pydantic import Field
 import frappe
 from frappe import _
 from frappe.api import discovery
+from frappe.mcp import protocol
 from frappe.mcp.tools import Tool, ToolArguments
 from frappe.model import NO_VALUE_FIELDS
 
@@ -50,6 +51,8 @@ def site_summary() -> dict:
 	modules = sorted({row.module for row in doctypes if row.module})
 	return {
 		"type": "site",
+		"server_info": protocol.server_info(),
+		"instructions": protocol.server_instructions(),
 		"site": frappe.local.site,
 		"user": frappe.session.user,
 		"roles": sorted(frappe.get_roles()),
