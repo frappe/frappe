@@ -153,37 +153,50 @@ export const pickerColumns = (
   ),
 ];
 
-/** One warning per column (the longer message usually lists the rows); exact repeats dropped. */
+/** One warning per column and no exact repeats, rows first, then columns, then the rest. */
 function dedupeWarnings(list: DataImportWarning[]) {
-  const rows: DataImportWarning[] = [];
-  const seenRows = new Set<string>();
+  return [
+    ...dedupeRowWarnings(list.filter((w) => w.row)),
+    ...longestPerColumn(list.filter((w) => !w.row && w.col)),
+    ...dedupeOtherWarnings(list.filter((w) => !w.row && !w.col)),
+  ];
+}
+
+function dedupeRowWarnings(list: DataImportWarning[]) {
+  const seen = new Set<string>();
+  return list.filter((warning) => {
+    const key = `${warning.row}|${warning.field?.fieldname}|${warning.message}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/** The longer message usually lists the rows. */
+function longestPerColumn(list: DataImportWarning[]) {
   const byColumn = new Map<unknown, DataImportWarning>();
-  const others = new Map<string, DataImportWarning>();
   for (const warning of list) {
-    if (warning.row) {
-      const key = `${warning.row}|${warning.field?.fieldname}|${warning.message}`;
-      if (seenRows.has(key)) continue;
-      seenRows.add(key);
-      rows.push(warning);
-    } else if (warning.col) {
-      const previous = byColumn.get(warning.col);
-      if (
-        !previous ||
-        (warning.message || "").length > (previous.message || "").length
-      )
-        byColumn.set(warning.col, warning);
-    } else {
-      const key = `${warning.code || ""}|${warning.title || ""}|${
-        warning.message || ""
-      }`;
-      const existing = others.get(key);
-      if (!existing || (warning.type && !existing.type))
-        others.set(key, warning);
-    }
+    const previous = byColumn.get(warning.col);
+    if (
+      !previous ||
+      (warning.message || "").length > (previous.message || "").length
+    )
+      byColumn.set(warning.col, warning);
   }
   // Desk keeps columns in a plain object, so they come out in column order.
-  const columnWarnings = [...byColumn.entries()]
+  return [...byColumn.entries()]
     .sort(([a], [b]) => Number(a) - Number(b))
     .map(([, warning]) => warning);
-  return [...rows, ...columnWarnings, ...others.values()];
+}
+
+function dedupeOtherWarnings(list: DataImportWarning[]) {
+  const byKey = new Map<string, DataImportWarning>();
+  for (const warning of list) {
+    const key = `${warning.code || ""}|${warning.title || ""}|${
+      warning.message || ""
+    }`;
+    const existing = byKey.get(key);
+    if (!existing || (warning.type && !existing.type)) byKey.set(key, warning);
+  }
+  return [...byKey.values()];
 }
