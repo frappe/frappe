@@ -134,7 +134,6 @@
 		padding-top: calc(var(--spacing) * 3);
 	}
 
-	// Search and notifications, as ghost rail items: 28px cells with a 16px glyph.
 	.dock-utilities {
 		flex: 0 0 auto;
 		width: 100%;
@@ -254,11 +253,11 @@
 	// it, so the text is hidden.
 	.dock-item-dot {
 		position: absolute;
-		top: -2px;
-		right: -2px;
+		top: calc(var(--spacing) * -0.5);
+		right: calc(var(--spacing) * -0.5);
 		width: calc(var(--spacing) * 2);
 		height: calc(var(--spacing) * 2);
-		border-radius: 50%;
+		border-radius: var(--radius-full);
 		border: 1px solid var(--surface-base);
 		background: var(--surface-red-6);
 		font-size: 0;
@@ -344,9 +343,8 @@ body.dock-pinned .dock .dock-user-button {
 	}
 }
 
-// The dock carries search and notifications, so the sidebar's rows for them go.
-@include media-breakpoint-up(md) {
-	body.dock-active .body-sidebar .standard-items-band {
+@mixin dock-owns-search-and-notifications {
+	.body-sidebar .standard-items-band {
 		> .navbar-modal-search-mobile,
 		> .sidebar-notification {
 			display: none;
@@ -355,6 +353,20 @@ body.dock-pinned .dock .dock-user-button {
 		&:not(:has(> :not(.hidden, .navbar-modal-search-mobile, .sidebar-notification))) {
 			padding-top: 0;
 			margin-bottom: 0;
+		}
+	}
+}
+
+// A floating dock opens only from a pointer at the window's edge (Dock.pointer_can_reveal), so on
+// a touch screen the sidebar keeps its own rows.
+@include media-breakpoint-up(md) {
+	body.dock-active.dock-pinned {
+		@include dock-owns-search-and-notifications;
+	}
+
+	@media (any-hover: hover) {
+		body.dock-active {
+			@include dock-owns-search-and-notifications;
 		}
 	}
 }
