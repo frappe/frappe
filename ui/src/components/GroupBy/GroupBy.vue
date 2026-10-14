@@ -59,7 +59,7 @@
 						/>
 					</div>
 					<Button
-						class="-ml-2 self-start"
+						class="self-start"
 						variant="subtle"
 						size="sm"
 						iconLeft="lucide-plus"
@@ -97,7 +97,7 @@
 						/>
 					</div>
 					<Button
-						class="-ml-2 self-start"
+						class="self-start"
 						variant="subtle"
 						size="sm"
 						iconLeft="lucide-plus"
