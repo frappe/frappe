@@ -586,7 +586,7 @@ VERSION_KEY = "print_format_version"
 
 
 def _record_version(doc, snapshot_type: str, fields: dict, label: str | None = None):
-	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the builder draft")
+	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the editor draft")
 	frappe.get_doc(
 		{
 			"doctype": "Version",

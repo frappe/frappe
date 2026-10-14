@@ -84,5 +84,9 @@ frappe.help.help_links["print-format-builder"] = [
 	},
 ];
 
-frappe.help.help_links["print-format-builder-beta"] =
-	frappe.help.help_links["print-format-builder"];
+frappe.help.help_links["print-format-builder-beta"] = [
+	{
+		label: "Print Format Editor",
+		url: "https://docs.frappe.io/framework/user/en/printing/print-format-editor",
+	},
+];
