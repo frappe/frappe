@@ -12,6 +12,7 @@
   "status",
   "task",
   "extraction_queued_on",
+  "created_document",
   "extracted_text_section",
   "extracted_text",
   "error_section",
@@ -74,6 +75,14 @@
    "search_index": 1
   },
   {
+   "description": "The document this file was filed against.",
+   "fieldname": "created_document",
+   "fieldtype": "Dynamic Link",
+   "label": "Created Document",
+   "options": "document_type",
+   "read_only": 1
+  },
+  {
    "fieldname": "extracted_text_section",
    "fieldtype": "Section Break",
    "label": "Extracted Text"
@@ -98,7 +107,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-13 00:00:00.000000",
+ "modified": "2026-10-15 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Attachment Queue",

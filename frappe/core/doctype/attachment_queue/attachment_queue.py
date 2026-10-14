@@ -40,6 +40,7 @@ class AttachmentQueue(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		created_document: DF.DynamicLink | None
 		document_type: DF.Link
 		error_message: DF.SmallText | None
 		extracted_text: DF.LongText | None
@@ -136,6 +137,70 @@ class AttachmentQueue(Document):
 			}
 		)
 
+	@frappe.whitelist()
+	def link_to_document(self, document_type: str, document_name: str) -> str:
+		"""File this entry against the document it produced and return that document.
+
+		Calling it again with the same document reports the same result without attaching
+		the file a second time. A different document is refused: the entry has been used.
+		"""
+		# The Attachment Queue permission hook turns this into write on document_type.
+		self.check_permission("write")
+
+		if document_type != self.document_type:
+			frappe.throw(
+				_("{0} is queued for {1}, not {2}.").format(
+					frappe.bold(self.name),
+					frappe.bold(_(self.document_type)),
+					frappe.bold(_(document_type)),
+				)
+			)
+
+		# Hold the row for the rest of the transaction so two callers cannot both claim it.
+		claimed = frappe.db.get_value("Attachment Queue", self.name, "created_document", for_update=True)
+		if claimed:
+			if claimed == document_name:
+				return claimed
+
+			frappe.throw(
+				_("{0} has already produced {1} {2}.").format(
+					frappe.bold(self.name),
+					frappe.bold(_(self.document_type)),
+					frappe.bold(claimed),
+				)
+			)
+
+		if not frappe.db.exists(document_type, document_name):
+			frappe.throw(
+				_("{0} {1} does not exist.").format(frappe.bold(_(document_type)), frappe.bold(document_name))
+			)
+
+		target_doc = frappe.get_doc(document_type, document_name)
+		target_doc.check_permission("write")
+		self.attach_source_file_to(target_doc)
+
+		# Written last, so the entry only reads as filed once its file is in place.
+		self.db_set("created_document", document_name)
+		return document_name
+
+	def attach_source_file_to(self, target_doc: Document) -> None:
+		"""Give the target its own File record for the same stored file."""
+		file_name = frappe.db.get_value(
+			"File",
+			{
+				"file_url": self.source_file,
+				"attached_to_doctype": self.doctype,
+				"attached_to_name": self.name,
+			},
+		)
+		if not file_name:
+			frappe.throw(_("The file for {0} is no longer available.").format(frappe.bold(self.name)))
+
+		frappe.get_doc("File", file_name).create_attachment_copy(
+			attached_to_doctype=target_doc.doctype,
+			attached_to_name=target_doc.name,
+		)
+
 	def extract(self) -> tuple[str, str]:
 		"""Return the extracted text and extraction method."""
 		file_path = get_file_path(self.source_file)
@@ -216,12 +281,9 @@ def get_file_extension(file_url: str) -> str:
 
 
 def fail_stale_extractions() -> None:
-	"""Mark extractions that can no longer finish as failed.
+	"""Mark extractions that can no longer finish as failed."""
 
-	Each update carries its own condition rather than a list of names read earlier, so a
-	row re-enqueued in the meantime is never failed on behalf of the attempt it replaced.
-	Cancelled rows are handled first, which takes them out of the timed-out condition.
-	"""
+	# someone cancelled the associated Background Task.
 	cancelled_tasks = frappe.get_all(
 		"Background Task",
 		filters={"ref_doctype": "Attachment Queue", "status": CANCELLED_TASK_STATUS},

@@ -274,6 +274,145 @@ class TestAttachmentQueue(IntegrationTestCase):
 		self.assertEqual(queue_doc.status, "Queued")
 		self.assertFalse(queue_doc.error_message)
 
+	def make_target_document(self):
+		target = frappe.get_doc({"doctype": TARGET_DOCTYPE, "description": f"AQ {uuid4().hex[:8]}"})
+		return target.insert(ignore_permissions=True)
+
+	def attachments_of(self, target_doc) -> list[str]:
+		return frappe.get_all(
+			"File",
+			filters={"attached_to_doctype": target_doc.doctype, "attached_to_name": target_doc.name},
+			pluck="file_url",
+		)
+
+	def test_linking_files_the_source_file_against_the_document(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("LINKED", "linked.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+			target = self.make_target_document()
+
+			linked = queue_doc.link_to_document(TARGET_DOCTYPE, target.name)
+			queue_doc.reload()
+
+			self.assertEqual(linked, target.name)
+			self.assertEqual(queue_doc.created_document, target.name)
+			self.assertIn(file_doc.file_url, self.attachments_of(target))
+			# The entry keeps its own copy, so its preview and cleanup still work.
+			self.assertIn(file_doc.file_url, self.attachments_of(queue_doc))
+
+	def test_linking_does_not_disturb_the_extraction_state(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("UNTOUCHED", "untouched.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+			self.addCleanup(self.forget_committed, queue_doc.name, file_doc.file_url)
+
+			extract_attachment_text(queue_doc.name)
+			queue_doc.reload()
+
+			target = self.make_target_document()
+			queue_doc.link_to_document(TARGET_DOCTYPE, target.name)
+			queue_doc.reload()
+
+			self.assertEqual(queue_doc.created_document, target.name)
+			self.assertEqual(queue_doc.status, "Completed")
+			self.assertIn("UNTOUCHED", queue_doc.extracted_text)
+
+	def test_linking_rejects_a_document_of_another_doctype(self):
+		with self.set_user(TEST_USER):
+			queue_doc = self.make_queue(self.make_file("MISMATCH", "mismatch.pdf").file_url)
+
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"is queued for",
+				queue_doc.link_to_document,
+				DISABLED_DOCTYPE,
+				"whatever",
+			)
+			queue_doc.reload()
+			self.assertFalse(queue_doc.created_document)
+
+	def test_linking_rejects_a_document_that_does_not_exist(self):
+		with self.set_user(TEST_USER):
+			queue_doc = self.make_queue(self.make_file("MISSING", "missing.pdf").file_url)
+
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"does not exist",
+				queue_doc.link_to_document,
+				TARGET_DOCTYPE,
+				f"no-such-{uuid4().hex[:8]}",
+			)
+			queue_doc.reload()
+			self.assertFalse(queue_doc.created_document)
+
+	def test_linking_needs_write_permission_on_the_target_doctype(self):
+		unreadable_target = self.make_unreadable_target()
+		queue_doc = self.make_committed_queue("DENIED", "denied.pdf", unreadable_target)
+		target = frappe.get_doc({"doctype": unreadable_target}).insert(ignore_permissions=True)
+
+		with self.set_user(TEST_USER):
+			self.assertRaises(
+				frappe.PermissionError,
+				queue_doc.link_to_document,
+				unreadable_target,
+				target.name,
+			)
+
+		queue_doc.reload()
+		self.assertFalse(queue_doc.created_document)
+
+	def test_linking_twice_to_the_same_document_is_a_no_op(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("RETRIED", "retried.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+			target = self.make_target_document()
+
+			queue_doc.link_to_document(TARGET_DOCTYPE, target.name)
+			again = queue_doc.link_to_document(TARGET_DOCTYPE, target.name)
+
+			self.assertEqual(again, target.name)
+			# Retrying must not give the document a second copy of the same file.
+			self.assertEqual(self.attachments_of(target), [file_doc.file_url])
+
+	def test_a_linked_entry_cannot_produce_a_second_document(self):
+		with self.set_user(TEST_USER):
+			queue_doc = self.make_queue(self.make_file("CLAIMED", "claimed.pdf").file_url)
+			first = self.make_target_document()
+			second = self.make_target_document()
+
+			queue_doc.link_to_document(TARGET_DOCTYPE, first.name)
+
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"has already produced",
+				queue_doc.link_to_document,
+				TARGET_DOCTYPE,
+				second.name,
+			)
+			queue_doc.reload()
+			self.assertEqual(queue_doc.created_document, first.name)
+			self.assertFalse(self.attachments_of(second))
+
+	def test_a_failed_link_leaves_the_entry_unclaimed(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("ORPHANED", "orphaned.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+			target = self.make_target_document()
+
+			# The file is gone, so attaching it cannot succeed.
+			frappe.delete_doc("File", file_doc.name, force=True, ignore_permissions=True)
+
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"no longer available",
+				queue_doc.link_to_document,
+				TARGET_DOCTYPE,
+				target.name,
+			)
+			queue_doc.reload()
+			self.assertFalse(queue_doc.created_document)
+			self.assertFalse(self.attachments_of(target))
+
 	def test_a_row_is_readable_only_when_its_target_doctype_is(self):
 		unreadable_target = self.make_unreadable_target()
 		readable = self.make_committed_queue("READABLE", "readable.pdf")

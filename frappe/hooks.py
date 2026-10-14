@@ -465,6 +465,7 @@ override_whitelisted_methods = {
 }
 
 ignore_links_on_delete = [
+	"Attachment Queue",
 	"Communication",
 	"ToDo",
 	"DocShare",
