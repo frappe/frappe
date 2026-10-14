@@ -10,7 +10,12 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.flow.doctype.flow_skill.flow_skill import MAX_GLOBAL_SKILLS, skill_command, sync_skills
+from flow.flow.doctype.flow_skill.flow_skill import (
+	MAX_GLOBAL_SKILLS,
+	skill_command,
+	skill_file,
+	sync_skills,
+)
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -203,8 +208,8 @@ class TestAppSkills(IntegrationTestCase):
 
 		doc = frappe.get_doc("Flow Skill", "close-todos")
 		self.assertEqual(
-			(doc.description, doc.instructions, doc.is_system_generated),
-			("Close overdue ToDos.", "Close each one.", 1),
+			(doc.app, doc.description, doc.instructions, doc.is_system_generated),
+			("flow", "Close overdue ToDos.", "Close each one.", 1),
 		)
 		self.assertEqual((doc.enabled, doc.is_global, doc.user_invocable), (1, 0, 0))
 
@@ -294,3 +299,78 @@ class TestAppSkills(IntegrationTestCase):
 			sync_skills()
 
 		self.assertTrue(frappe.db.exists("Flow Skill", "close-todos"))
+
+	def test_a_file_in_the_skill_folder_is_read_by_its_path(self):
+		folder = self.skills.write("close-todos")
+		os.makedirs(os.path.join(folder, "references"))
+		with open(os.path.join(folder, "references", "forms.md"), "w") as file:
+			file.write("Form fields.")
+		sync_skills()
+
+		self.assertEqual(skill_file("close-todos", "references/forms.md"), "Form fields.")
+
+	def test_a_folder_lists_its_files_as_paths_to_load(self):
+		folder = self.skills.write("close-todos")
+		other = self.skills.write("other-skill")
+		os.makedirs(os.path.join(folder, "examples", "tabs", ".cache"))
+		for path in (
+			"examples/notes.md",
+			"examples/tabs/block.json",
+			"examples/tabs/.env",
+			"examples/tabs/.cache/a.md",
+		):
+			with open(os.path.join(folder, path), "w") as file:
+				file.write("Example.")
+		os.symlink(os.path.join(other, "SKILL.md"), os.path.join(folder, "examples", "link.md"))
+		sync_skills()
+
+		self.assertEqual(
+			skill_file("close-todos", "examples/"), "examples/notes.md\nexamples/tabs/block.json"
+		)
+		self.assertEqual(skill_file("close-todos", "examples/tabs/block.json"), "Example.")
+
+	def test_only_files_inside_the_skill_folder_are_read(self):
+		folder = self.skills.write("close-todos")
+		other = self.skills.write("other-skill")
+		with open(os.path.join(other, "notes.md"), "w") as file:
+			file.write("Not this skill's.")
+		with open(os.path.join(folder, ".env"), "w") as file:
+			file.write("SECRET=1")
+		os.symlink(os.path.join(other, "notes.md"), os.path.join(folder, "link.md"))
+		sync_skills()
+
+		for path in (
+			"../other-skill/notes.md",
+			os.path.join(other, "notes.md"),
+			".env",
+			"link.md",
+			"missing.md",
+		):
+			with self.subTest(path=path), self.assertRaisesRegex(frappe.ValidationError, "has no file"):
+				skill_file("close-todos", path)
+
+	def test_a_skill_made_in_the_desk_has_no_files(self):
+		frappe.get_doc(_skill()).insert()
+
+		with self.assertRaisesRegex(frappe.ValidationError, "has no files"):
+			skill_file("Expense Approval", "forms.md")
+
+	def test_a_hand_written_row_cannot_point_outside_an_apps_skills(self):
+		for title, app in (("..", "flow"), ("close-todos", "os")):
+			frappe.get_doc(_skill(title=title, app=app)).insert()
+			with self.subTest(title=title), self.assertRaisesRegex(frappe.ValidationError, "has no files"):
+				skill_file(title, "hooks.py")
+
+	def test_only_small_text_files_are_read(self):
+		folder = self.skills.write("close-todos")
+		with open(os.path.join(folder, "logo.png"), "wb") as file:
+			file.write(b"\x89PNG\xff\xfe")
+		sync_skills()
+
+		with self.assertRaisesRegex(frappe.ValidationError, "not a text file"):
+			skill_file("close-todos", "logo.png")
+		with (
+			patch("flow.flow.doctype.flow_skill.flow_skill.MAX_SKILL_FILE_BYTES", 4),
+			self.assertRaisesRegex(frappe.ValidationError, "larger than"),
+		):
+			skill_file("close-todos", "SKILL.md")
