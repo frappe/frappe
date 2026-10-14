@@ -228,13 +228,18 @@ class Report(Document):
 		as_dict=False,
 		ignore_prepared_report=False,
 		are_default_filters=True,
+		with_total_row=True,
 	):
 		if self.report_type in ("Query Report", "Script Report", "Custom Report"):
 			columns, result = self.run_query_report(
-				filters, user, ignore_prepared_report, are_default_filters
+				filters,
+				user,
+				ignore_prepared_report,
+				are_default_filters,
+				with_total_row=with_total_row,
 			)
 		else:
-			columns, result = self.run_standard_report(filters, limit, user)
+			columns, result = self.run_standard_report(filters, limit, user, with_total_row=with_total_row)
 
 		if as_dict:
 			result = self.build_data_dict(result, columns)
@@ -242,7 +247,12 @@ class Report(Document):
 		return columns, result
 
 	def run_query_report(
-		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
+		self,
+		filters=None,
+		user=None,
+		ignore_prepared_report=False,
+		are_default_filters=True,
+		with_total_row=True,
 	):
 		columns, result = [], []
 		data = _run(
@@ -251,6 +261,7 @@ class Report(Document):
 			user=user,
 			ignore_prepared_report=ignore_prepared_report,
 			are_default_filters=are_default_filters,
+			with_total_row=with_total_row,
 		)
 
 		for d in data.get("columns"):
@@ -276,7 +287,7 @@ class Report(Document):
 
 		return columns, result
 
-	def run_standard_report(self, filters, limit, user):
+	def run_standard_report(self, filters, limit, user, with_total_row=True):
 		params = json.loads(self.json)
 		columns = self.get_standard_report_columns(params)
 		result = []
@@ -302,7 +313,7 @@ class Report(Document):
 
 		result = result + [list(d) for d in _result]
 
-		if params.get("add_totals_row"):
+		if params.get("add_totals_row") and with_total_row:
 			result = append_totals_row(result)
 
 		return columns, result
