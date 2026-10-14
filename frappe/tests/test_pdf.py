@@ -266,12 +266,17 @@ class TestPdf(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		header = "".join(f"<th>Column{i:02d}</th>" for i in range(1, 31))
-		html = f"<table><tr>{header}</tr></table><script>document.body.append('script ran')</script>"
+		html = (
+			"<div id='header-html'><b>Report Header</b>"
+			"<script>document.currentScript.parentNode.append('header script ran')</script></div>"
+			f"<table><tr>{header}</tr></table><script>document.body.append('script ran')</script>"
+		)
 		print_format.report_to_pdf(html, orientation="Landscape")
 
 		text = PdfReader(io.BytesIO(frappe.local.response.filecontent)).pages[0].extract_text()
 		self.assertIn("Column01", text)
 		self.assertIn("Column30", text)
+		self.assertIn("Report Header", text)
 		self.assertNotIn("script ran", text)
 
 	def test_report_pdf_blocks_external_requests(self):

@@ -53,7 +53,7 @@ frappe.ui.Donut = class Donut {
 		}
 		this.render_ring();
 		this.render_center();
-		this.$tip = $('<div class="es-donut__tip">').appendTo(this.$chart);
+		this.$tip = $('<div class="es-donut__tip es-chart-tip">').appendTo(this.$chart);
 		this.render_legend();
 
 		this.$chart.on("mouseleave", () => this.clear());

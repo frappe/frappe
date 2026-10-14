@@ -4,9 +4,10 @@
 from datetime import datetime
 
 import frappe
-from frappe.query_builder.functions import Coalesce, Count
-from frappe.utils import getdate
+from frappe.query_builder.functions import Coalesce, Count, Function
+from frappe.utils import get_start_of_week_index, getdate
 from frappe.utils.dateutils import get_dates_from_timegrain
+from frappe.utils.logging import get_log_db, log_table
 
 
 def execute(filters=None):
@@ -54,82 +55,66 @@ class WebsiteAnalytics:
 		]
 
 	def get_data(self):
-		WebPageView = frappe.qb.DocType("Web Page View")
+		qb, table = log_table("Web Page View")
 		count_all = Count("*").as_("count")
-		case = frappe.qb.terms.Case().when(WebPageView.is_unique == "1", "1")
+		case = qb.terms.Case().when(table.is_unique == "1", "1")
 		count_is_unique = Count(case).as_("unique_count")
 
-		return (
-			frappe.qb.from_(WebPageView)
+		return get_log_db().sql(
+			qb.from_(table)
 			.select(self.group_by, count_all, count_is_unique)
-			.where(
-				Coalesce(WebPageView.creation, "0001-01-01")[self.filters.from_date : self.filters.to_date]
-			)
+			.where(Coalesce(table.creation, "0001-01-01")[self.filters.from_date : self.filters.to_date])
 			.groupby(self.group_by)
-			.orderby("count", order=frappe.qb.desc)
-		).run()
+			.orderby("count", order=qb.desc)
+		)
 
-	def _get_query_for_mariadb(self):
-		filters_range = self.filters.range
-		field = "creation"
-		date_format = "%Y-%m-%d"
+	def _creation_bucket(self, table):
+		"""Return the expression that buckets `creation` into one point on the chart.
 
-		if filters_range == "Weekly":
-			field = "ADDDATE(creation, INTERVAL 1-DAYOFWEEK(creation) DAY)"
+		Written as SQLite date functions because Web Page View keeps its rows in the site's log
+		database, which is always SQLite -- the earlier MariaDB and Postgres variants of this
+		query have nothing left to run against.
 
-		elif filters_range == "Monthly":
-			date_format = "%Y-%m-01"
+		Each bucket is the value `prepare_chart_data` looks up, so it has to be the same day
+		`get_dates_from_timegrain` puts on the x-axis: the day itself, the *last* day of the
+		week, the first of the month. `date(creation, 'weekday N')` moves forward to the next
+		weekday N, staying put if `creation` already is one, so naming the day the week ends on
+		lands exactly on that week's label. `Weekday` numbers days the way SQLite does -- Sunday
+		is 0 -- so the setting can be passed straight through, and a site that starts its week
+		on a Monday buckets to Sundays like its labels do.
 
-		query = f"""
-				SELECT
-					DATE_FORMAT({field}, %s) as date,
-					COUNT(*) as count,
-					COUNT(CASE WHEN is_unique = 1 THEN 1 END) as unique_count
-				FROM `tabWeb Page View`
-				WHERE creation BETWEEN %s AND %s
-				GROUP BY DATE_FORMAT({field}, %s)
-				ORDER BY creation
-			"""
+		The week grain used to be `ADDDATE(creation, INTERVAL 1-DAYOFWEEK(creation) DAY)`, the
+		week *start*, hardcoded to Sunday. It never matched a label, so every Weekly chart read
+		as a flat zero line.
+		"""
+		if self.filters.range == "Weekly":
+			end_of_week = (get_start_of_week_index() + 6) % 7
+			return Function("DATE", table.creation, f"weekday {end_of_week}")
 
-		values = (date_format, self.filters.from_date, self.filters.to_date, date_format)
+		if self.filters.range == "Monthly":
+			return Function("STRFTIME", "%Y-%m-01", table.creation)
 
-		return query, values
-
-	def _get_query_for_postgres(self):
-		filters_range = self.filters.range
-		field = "creation"
-		granularity = "day"
-
-		if filters_range == "Weekly":
-			granularity = "week"
-
-		elif filters_range == "Monthly":
-			granularity = "day"
-
-		query = f"""
-				SELECT
-					DATE_TRUNC(%s, {field}) as date,
-					COUNT(*) as count,
-					COUNT(CASE WHEN CAST(is_unique as Integer) = 1 THEN 1 END) as unique_count
-				FROM "tabWeb Page View"
-				WHERE  coalesce("tabWeb Page View".{field}, '0001-01-01') BETWEEN %s AND %s
-				GROUP BY date_trunc(%s, {field})
-				ORDER BY date
-			"""
-
-		values = (granularity, self.filters.from_date, self.filters.to_date, granularity)
-
-		return query, values
+		return Function("DATE", table.creation)
 
 	def get_chart_data(self):
-		current_dialect = frappe.db.db_type or "mariadb"
+		qb, table = log_table("Web Page View")
+		bucket = self._creation_bucket(table)
+		case = qb.terms.Case().when(table.is_unique == "1", "1")
 
-		if current_dialect == "mariadb":
-			query, values = self._get_query_for_mariadb()
-		else:
-			query, values = self._get_query_for_postgres()
-
-		self.chart_data = frappe.db.sql(query, values=values, as_dict=1)
+		# `as_` copies the term rather than renaming it in place, so grouping and ordering
+		# still happen on the expression itself and not on its alias.
+		self.chart_data = get_log_db().sql(
+			qb.from_(table)
+			.select(
+				bucket.as_("date"),
+				Count("*").as_("count"),
+				Count(case).as_("unique_count"),
+			)
+			.where(table.creation[self.filters.from_date : self.filters.to_date])
+			.groupby(bucket)
+			.orderby(bucket),
+			as_dict=True,
+		)
 
 		return self.prepare_chart_data(self.chart_data)
 

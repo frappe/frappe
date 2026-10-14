@@ -1,12 +1,15 @@
 """Helpers for the patches that turn v16 sidebars into v17 ones.
 
 v16 kept every sidebar as a `Workspace Sidebar` row. These rows are now read only during the
-upgrade, by four patches that each handle one kind of row:
+upgrade, by five patches that each handle one kind of row:
 
 	convert_sidebars                 an app's sidebar that the app no longer ships
 	convert_custom_sidebars          a sidebar the site made, which becomes a custom module
 	move_custom_sidebar_workspaces   that sidebar's workspace, which moves into the new module
 	convert_personal_sidebars        a user's personal copy, which becomes their `Custom Sidebar`
+	remove_modules_made_from_generated_sidebars
+	                                 the custom modules an earlier run made from rows v16 had
+	                                 generated from app workspaces
 
 This file is not a patch, so it is not listed in `patches.txt`.
 """
@@ -59,7 +62,10 @@ def site_rows() -> list[frappe._dict]:
 		row.rows = archive_items(row.name)
 		# the archive has no `sequence_id`; the `creation` order stands in for it
 		row.sequence_id = 0
-		row.module = row.module or majority_module_of(row.rows)
+		# a row v16 generated from a workspace carries no module of its own: it belongs where the
+		# workspace does, not where most of its links point
+		workspace = app_workspace_of(row)
+		row.module = (workspace and workspace.module) or row.module or majority_module_of(row.rows)
 		if row.rows:
 			converted.append(row)
 
@@ -70,9 +76,44 @@ def is_custom(row) -> bool:
 	"""Whether the site made this sidebar itself.
 
 	When v16 imported a sidebar from an app, it set `standard` and `app` on the row. A row with
-	neither was made on the site.
+	neither was made on the site, unless v16 generated it from an app's workspace.
 	"""
-	return not row.standard and not row.app
+	return not row.standard and not row.app and not generated_from_app_workspace(row)
+
+
+def generated_from_app_workspace(row) -> bool:
+	"""Whether v16 built this row from an app's workspace rather than a person writing it.
+
+	v16 made a `Workspace Sidebar` for every public workspace that had none, on install and in
+	`auto_generate_desktop_icon_and_sidebar`: titled after the workspace, opening with a `Home` link
+	to it, with neither `standard` nor `app` set. One built from an app's workspace is that app's
+	content under another name, so it belongs in the app's module like any other app row, not in a
+	custom module of its own.
+	"""
+	return app_workspace_of(row) is not None
+
+
+def app_workspace_of(row) -> frappe._dict | None:
+	"""The app's workspace v16 generated `row` from, with its module, or None.
+
+	The row is named after the workspace, and its first item is the link to it. Only the first:
+	a person's own sidebar may well link to a workspace somewhere down the list, and treating it as
+	the app's would drop what they wrote.
+	"""
+	first = next(iter(row.rows or ()), None)
+	if not first or first.get("link_type") != "Workspace" or first.get("link_to") != row.name:
+		return None
+	return app_workspace(row.name)
+
+
+def app_workspace(title: str) -> frappe._dict | None:
+	"""The app's workspace named `title`, with its module, or None when the site made it or
+	there is none. By name, so the lookup is cached across the patches that each ask this of
+	every row."""
+	workspace = frappe.db.get_value(
+		"Workspace", title, ["name", "module", "standard"], as_dict=True, cache=True
+	)
+	return workspace if workspace and workspace.standard else None
 
 
 def converted_module_of(title: str) -> str | None:
@@ -124,9 +165,15 @@ def module_holding(title: str) -> str | None:
 
 	That is the module it was converted into, or else the module of the app's sidebar with the
 	same title. The second covers an app that moved a sidebar: if `Books` was under `Library` in
-	v16 and the app now ships it under `Catalog`, this returns `Catalog`.
+	v16 and the app now ships it under `Catalog`, this returns `Catalog`. A row v16 generated
+	from an app's workspace may have become neither, when the app ships its sidebar under another
+	title; it lives where the workspace does.
 	"""
-	return converted_module_of(title) or frappe.db.get_value("Sidebar", title, "module")
+	return (
+		converted_module_of(title)
+		or frappe.db.get_value("Sidebar", title, "module")
+		or ((workspace := app_workspace(title)) and workspace.module)
+	)
 
 
 def is_private_container(sidebar) -> bool:

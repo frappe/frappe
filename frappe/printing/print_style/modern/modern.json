@@ -1,11 +1,11 @@
 {
  "creation": "2017-08-17 02:16:58.060374",
- "css": ".print-heading {\n\ttext-align: right;\n\ttext-transform: uppercase;\n\tcolor: #666;\n\tpadding-bottom: 20px;\n\tmargin-bottom: 20px;\n\tborder-bottom: 1px solid #d1d8dd;\n}\n\n.print-heading h2 {\n\tfont-size: 24px;\n}\n\n.print-format th {\n\tbackground-color: #eee !important;\n\tborder-bottom: 0px !important;\n}\n\n.print-format .primary.compact-item {\n    font-weight: bold;\n}\n\n/* modern format: for-test */",
+ "css": ".print-heading {\n\ttext-align: right;\n\ttext-transform: uppercase;\n\tcolor: #666;\n\tpadding-bottom: 20px;\n\tmargin-bottom: 20px;\n\tborder-bottom: 1px solid #d1d8dd;\n}\n\n.print-heading h2 {\n\tfont-size: 24px;\n}\n\n.print-format th {\n\tbackground-color: #eee !important;\n\tborder-bottom: 0px !important;\n}\n\n.print-format .primary.compact-item {\n    font-weight: bold;\n}\n\n/* modern format: for-test */\n\n.print-format-doc.print-format-doc--standard .section-label {\n\tfont-size: 0.85em;\n\tfont-weight: 600;\n\tcolor: var(--gray-600);\n\tborder-bottom: none;\n\tpadding-bottom: 0;\n\tmargin-bottom: 0.75em;\n}\n.print-format-doc.print-format-doc--standard .print-heading {\n\ttext-align: left;\n\ttext-transform: none;\n\tcolor: inherit;\n\tpadding-bottom: 5px;\n\tmargin-bottom: 10px;\n}\n.print-format-doc.print-format-doc--standard .print-heading h2 {\n\tfont-size: 24px;\n}\n",
  "disabled": 0,
  "docstatus": 0,
  "doctype": "Print Style",
  "idx": 1,
- "modified": "2020-11-10 13:59:09.976381",
+ "modified": "2026-10-10 12:00:00.000000",
  "modified_by": "Administrator",
  "name": "Modern",
  "owner": "Administrator",

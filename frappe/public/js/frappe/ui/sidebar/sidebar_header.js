@@ -211,9 +211,13 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 								: app.app_logo_url,
 							onclick: () => {
 								const route = sidebar.app_landing_route(app) || "/desk";
-								route.startsWith("http")
-									? window.open(route, "_blank")
-									: frappe.set_route(route);
+								if (route.startsWith("http")) {
+									window.open(route, "_blank");
+								} else if (sidebar.is_desk_route(route)) {
+									frappe.set_route(route);
+								} else {
+									window.location.href = route;
+								}
 							},
 						})),
 				},

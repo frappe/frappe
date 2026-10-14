@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import socket
 from unittest.mock import patch
 
 import responses
@@ -202,6 +203,26 @@ class TestWorkflow(IntegrationTestCase):
 		workflow.states[1].doc_status = 0
 		workflow.save()
 
+	def test_queued_workflow_action_returns_doc(self):
+		dt = create_new_submittable_doctype()
+		workflow = create_submittable_workflow(dt.name)
+		workflow._update_state_docstatus = True
+		workflow.states[1].doc_status = 1
+		workflow.save()
+		doc = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
+
+		with (
+			patch.object(doc.meta, "queue_in_background", 1),
+			patch("frappe.utils.scheduler.is_scheduler_inactive", return_value=False),
+		):
+			queued_doc = apply_workflow(doc, "Approve")
+
+		self.assertEqual(queued_doc.name, doc.name)
+		self.assertEqual(queued_doc.workflow_state, "Approved")
+		self.assertTrue(
+			frappe.db.exists("Submission Queue", {"ref_doctype": dt.name, "ref_docname": doc.name})
+		)
+
 	def test_syntax_error_in_transition_rule(self):
 		self.workflow.transitions[0].condition = 'doc.status =! "Closed"'
 
@@ -285,7 +306,7 @@ class TestWorkflow(IntegrationTestCase):
 
 		self.responses.add(
 			responses.POST,
-			"https://workflowtasks.org/post",
+			"https://example.com/post",
 			status=200,
 			json={},
 		)
@@ -294,15 +315,23 @@ class TestWorkflow(IntegrationTestCase):
 		domain.domain = random_string(length=10)
 		domain.save()
 
-		with self.patch_hooks(
-			{
-				"workflow_methods": [
-					{
-						"name": "Create Note",
-						"method": "frappe.workflow.doctype.workflow.test_workflow.create_new_note",
-					}
-				]
-			}
+		with (
+			self.patch_hooks(
+				{
+					"workflow_methods": [
+						{
+							"name": "Create Note",
+							"method": "frappe.workflow.doctype.workflow.test_workflow.create_new_note",
+						}
+					]
+				}
+			),
+			patch(
+				"socket.getaddrinfo",
+				return_value=[
+					(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("93.184.216.34", 443))
+				],
+			),
 		):
 			apply_workflow(domain, "Approve")
 
@@ -311,7 +340,7 @@ class TestWorkflow(IntegrationTestCase):
 			frappe.db.exists("Note", {"title": "workflow - " + domain.name, "content": "workflow test"})
 		)
 		self.assertTrue(frappe.db.exists("Domain", {"name": "workflow - " + domain.name}))
-		self.assertTrue(frappe.db.exists("Webhook Request Log", {"url": "https://workflowtasks.org/post"}))
+		self.assertTrue(frappe.db.exists("Webhook Request Log", {"url": "https://example.com/post"}))
 
 		# for webhooks
 		self.responses.stop()
@@ -450,6 +479,9 @@ def create_new_todo(priority=None, **kwargs):
 
 
 def create_new_submittable_doctype():
+	if frappe.db.exists("DocType", "Test Submittable Doc"):
+		return frappe.get_doc("DocType", "Test Submittable Doc")
+
 	return frappe.get_doc(
 		{
 			"doctype": "DocType",
@@ -472,6 +504,9 @@ def create_new_submittable_doctype():
 
 
 def create_submittable_workflow(doctype):
+	if frappe.db.exists("Workflow", "Submittable Workflow"):
+		return frappe.get_doc("Workflow", "Submittable Workflow")
+
 	workflow = frappe.get_doc(
 		{
 			"doctype": "Workflow",
@@ -528,7 +563,7 @@ def create_new_webhook():
 	webhook.webhook_docevent = "workflow_transition"
 	webhook.webhook_doctype = "Domain"
 	webhook.request_method = "POST"
-	webhook.request_url = "https://workflowtasks.org/post"
+	webhook.request_url = "https://example.com/post"
 	webhook.save()
 
 	return webhook

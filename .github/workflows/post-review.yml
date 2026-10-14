@@ -9,8 +9,19 @@ on:
         type: number
       review:
         description: base64 of a review JSON ({event, body, comments, replies, discussion, resolve}); event must be COMMENT or REQUEST_CHANGES; replies are [{in_reply_to, body}] posted into existing threads; discussion is [body] posted as conversation comments; resolve is [thread node id] and only the bot's own unresolved threads on this PR are closed
-        required: true
+        required: false
         type: string
+        default: ""
+      react_comment:
+        description: Issue comment id to react to as frappe-pr-bot
+        required: false
+        type: string
+        default: ""
+      react_content:
+        description: Reaction to add, one of eyes, +1, confused
+        required: false
+        type: string
+        default: eyes
       review_id:
         description: Existing review id to update; only its body is replaced
         required: false
@@ -25,7 +36,6 @@ concurrency:
 
 jobs:
   post:
-    if: github.actor == 'iamejaaz'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -35,7 +45,20 @@ jobs:
           PR: ${{ inputs.pr }}
           REVIEW_B64: ${{ inputs.review }}
           REVIEW_ID: ${{ inputs.review_id }}
+          REACT_COMMENT: ${{ inputs.react_comment }}
+          REACT_CONTENT: ${{ inputs.react_content }}
         run: |
+          if [ -n "$REACT_COMMENT" ]; then
+            [[ "$REACT_COMMENT" =~ ^[0-9]+$ ]] || { echo "react_comment must be a comment id" >&2; exit 1; }
+            case "$REACT_CONTENT" in eyes|+1|confused) ;; *) echo "react_content must be eyes, +1 or confused" >&2; exit 1 ;; esac
+            gh api -X POST "repos/${{ github.repository }}/issues/comments/$REACT_COMMENT/reactions" -f content="$REACT_CONTENT" --jq '.content'
+            if [ "$REACT_CONTENT" != "eyes" ]; then
+              gh api --paginate "repos/${{ github.repository }}/issues/comments/$REACT_COMMENT/reactions" --jq '.[] | select(.user.login == "frappe-pr-bot" and .content == "eyes") | .id' | while read -r id; do
+                gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$REACT_COMMENT/reactions/$id"
+              done
+            fi
+          fi
+          [ -n "$REVIEW_B64" ] || exit 0
           printf '%s' "$REVIEW_B64" | base64 -d > review.json
           jq -e '(.event == "COMMENT" or .event == "REQUEST_CHANGES") and (.body | type == "string") and (.comments | type == "array") and ((.replies // []) | type == "array") and ((.resolve // []) | type == "array")' review.json > /dev/null
           jq -e '(.replies // []) | all((.in_reply_to | type == "number") and (.body | type == "string") and (.body | length > 0))' review.json > /dev/null

@@ -163,6 +163,12 @@ class Browser:
 		# code is structured like this to improve performance by running commands in chrome as soon as possible.
 		soup = self.soup
 		options = self.options
+		if options.get("block-external-requests"):
+			for script in soup.find_all("script"):
+				script.decompose()
+			for tag in soup.find_all(True):
+				for attr in [attr for attr in tag.attrs if attr.lower().startswith("on")]:
+					del tag[attr]
 		# open header and footer pages
 		self._open_header_footer_pages()
 
@@ -180,14 +186,18 @@ class Browser:
 		if self.header_page:
 			self.header_page.wait_for_navigate()
 			self.header_page.set_content(
-				self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[]),
+				self.with_layout_classes(
+					self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[])
+				),
 				wait_for=header_footer_wait,
 			)
 
 		if self.footer_page:
 			self.footer_page.wait_for_navigate()
 			self.footer_page.set_content(
-				self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[]),
+				self.with_layout_classes(
+					self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[])
+				),
 				wait_for=header_footer_wait,
 			)
 		if self.header_page:
@@ -458,6 +468,15 @@ class Browser:
 			css=css,
 			path="templates/print_formats/chrome_pdf_header_footer.html",
 		)
+
+	def with_layout_classes(self, html):
+		body_class = self.soup.body.get("class") if self.soup.body else None
+		if not body_class:
+			return html
+		rendered = BeautifulSoup(html, "html5lib")
+		if wrapper := rendered.select_one(".wrapper.print-format-doc"):
+			wrapper["class"] = list(dict.fromkeys(wrapper["class"] + body_class))
+		return str(rendered)
 
 	def update_header_footer_page(self):
 		if not self.header_page and not self.footer_page:

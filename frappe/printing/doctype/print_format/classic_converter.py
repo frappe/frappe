@@ -403,6 +403,7 @@ def get_default_print_format(doctype: str):
 	pf.print_format_builder_beta = 1
 	pf.pdf_generator = "chrome"
 	pf.format_data = json.dumps(create_default_layout(frappe.get_meta(doctype)))
+	pf.flags.is_default_layout = True
 	return pf
 
 

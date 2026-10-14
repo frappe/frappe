@@ -37,6 +37,11 @@ def get():
 
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
+		# The non-virtual branch below goes through `DatabaseQuery`, which applies read
+		# permissions itself. Dispatching straight to a controller skips that, so check here:
+		# a controller receives no `ignore_permissions` (`frappe.call` strips it) and cannot
+		# tell an internal caller from a request.
+		frappe.has_permission(args.doctype, "read", throw=True)
 		controller = get_controller(args.doctype)
 		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
@@ -68,6 +73,7 @@ def get_list():
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
+		frappe.has_permission(args.doctype, "read", throw=True)
 		controller = get_controller(args.doctype)
 		data = frappe.call(controller.get_list, args=args, **args)
 	else:
@@ -85,6 +91,7 @@ def get_count() -> int | None:
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
+		frappe.has_permission(args.doctype, "read", throw=True)
 		controller = get_controller(args.doctype)
 		return frappe.call(controller.get_count, args=args, **args)
 

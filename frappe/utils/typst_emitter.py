@@ -541,17 +541,11 @@ class TypstEmitter:
 		return _aligned(body, (lh.get(f"{prefix}align") or "Left").lower())
 
 	def _page_size_mm(self) -> tuple[float, float]:
-		"""(width, height) in mm for the site's configured paper, mirroring the
-		Chromium path's PageSize map so both renderers agree on geometry. Custom
-		sizes fall back to A4 — their cross-renderer unit contract is ambiguous."""
-		from frappe.utils.pdf_generator.browser import PageSize
+		from frappe.utils.print_format_generator import page_size_mm
 
-		ps = getattr(self.generator, "print_settings", None)
-		size = (ps and ps.get("pdf_page_size")) or frappe.db.get_single_value(
-			"Print Settings", "pdf_page_size"
+		return page_size_mm(
+			getattr(self.generator, "print_settings", None) or frappe.get_cached_doc("Print Settings")
 		)
-		dims = PageSize.get(size) if size and size != "Custom" else None
-		return (dims["width"], dims["height"]) if dims else (210, 297)
 
 	def measure_source(self) -> str:
 		"""A document whose only output is the measured height of each zone, read
