@@ -246,19 +246,24 @@ class TestDashboardConnections(IntegrationTestCase):
 			],
 		)
 
-		with (
-			self.set_user("test@example.com"),
-			patch.object(todo.meta, "get_dashboard_data", return_value=dashboard),
-		):
-			connections = get_open_count("ToDo", todo.name)["count"]
+		# an internal link with no rows falls back to counting the external links
+		for internal_and_external_links in ({}, {"Test Doctype D": ["child_table", "doclink"]}):
+			dashboard.internal_and_external_links = internal_and_external_links
 
-		self.assertEqual(
-			connections["external_links_found"],
-			[
-				{"doctype": "Test Doctype D", "fieldname": "doclink", "open_count": 0, "count": 1},
-				{"doctype": "Test Doctype D", "fieldname": "follow_up", "open_count": 0, "count": 0},
-			],
-		)
+			with (
+				self.subTest(internal_and_external_links=internal_and_external_links),
+				self.set_user("test@example.com"),
+				patch.object(todo.meta, "get_dashboard_data", return_value=dashboard),
+			):
+				connections = get_open_count("ToDo", todo.name)["count"]
+
+				self.assertEqual(
+					connections["external_links_found"],
+					[
+						{"doctype": "Test Doctype D", "fieldname": "doclink", "open_count": 0, "count": 1},
+						{"doctype": "Test Doctype D", "fieldname": "follow_up", "open_count": 0, "count": 0},
+					],
+				)
 
 	def test_open_count_restores_the_execution_timeout(self):
 		execution_timeout = frappe.db.get_execution_timeout()
