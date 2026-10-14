@@ -200,14 +200,15 @@ describe("serializeGroupBy", () => {
         { SUM: "grand_total", as: "_aggregate_1" },
       ],
       group_by: "status, sales_person",
-      order_by: "_aggregate_0 desc",
+      order_by: "_aggregate_0 desc, status asc, sales_person asc",
     });
   });
 
-  it("leaves the order alone when there is nothing to aggregate", () => {
+  it("orders by the group fields when there is nothing to aggregate", () => {
     expect(
-      serializeGroupBy({ fields: ["status"], aggregates: [] }).order_by
-    ).toBeUndefined();
+      serializeGroupBy({ fields: ["status", "sales_person"], aggregates: [] })
+        .order_by
+    ).toBe("status asc, sales_person asc");
   });
 });
 
@@ -307,13 +308,14 @@ describe("serializeGroupBy sort", () => {
     ],
   };
 
-  it("orders by a grouped field", () => {
+  it("orders by a grouped field, then the other group fields", () => {
     expect(
       serializeGroupBy({
         ...groupBy,
-        sort: [{ fieldname: "status", direction: "asc" }],
+        fields: ["status", "sales_person"],
+        sort: [{ fieldname: "sales_person", direction: "desc" }],
       }).order_by
-    ).toBe("status asc");
+    ).toBe("sales_person desc, status asc");
   });
 
   it("orders by an aggregate through its column id", () => {
@@ -322,7 +324,7 @@ describe("serializeGroupBy sort", () => {
         ...groupBy,
         sort: [{ fieldname: "sum:grand_total", direction: "asc" }],
       }).order_by
-    ).toBe("_aggregate_1 asc");
+    ).toBe("_aggregate_1 asc, status asc");
   });
 
   it("falls back to the first aggregate when the sorted column is gone", () => {
@@ -331,7 +333,7 @@ describe("serializeGroupBy sort", () => {
         ...groupBy,
         sort: [{ fieldname: "avg:probability", direction: "asc" }],
       }).order_by
-    ).toBe("_aggregate_0 desc");
+    ).toBe("_aggregate_0 desc, status asc");
   });
 });
 
