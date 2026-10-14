@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 from pathlib import Path
+from unittest.mock import patch
 from uuid import uuid4
 
 import frappe
@@ -200,6 +201,31 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertNotEqual(queue_doc.task, first_task)
 			self.assertFalse(queue_doc.extracted_text)
 			self.assertFalse(queue_doc.extraction_method)
+
+	def test_an_attempt_whose_file_was_replaced_records_nothing(self):
+		with self.set_user(TEST_USER):
+			first_file = self.make_file("STALE TEXT", "stale.pdf")
+			queue_doc = self.make_queue(first_file.file_url)
+			self.addCleanup(self.forget_committed, queue_doc.name, first_file.file_url)
+
+			second_file = self.make_file("CURRENT TEXT", "current.pdf")
+			self.addCleanup(self.forget_committed, queue_doc.name, second_file.file_url)
+
+			def replace_the_file_mid_parse(file_path):
+				frappe.db.set_value("Attachment Queue", queue_doc.name, "source_file", second_file.file_url)
+				return "STALE TEXT"
+
+			# Stand in for the user saving a replacement while this attempt is parsing.
+			with patch(
+				"frappe.core.doctype.attachment_queue.attachment_queue.extract_pdf_text",
+				side_effect=replace_the_file_mid_parse,
+			):
+				extract_attachment_text(queue_doc.name)
+
+			queue_doc.reload()
+			self.assertEqual(queue_doc.source_file, second_file.file_url)
+			self.assertNotEqual(queue_doc.status, "Completed")
+			self.assertFalse(queue_doc.extracted_text)
 
 	def test_replacing_the_file_after_a_cancelled_job_queues_a_new_one(self):
 		with self.set_user(TEST_USER):

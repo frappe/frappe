@@ -121,8 +121,6 @@ class AttachmentQueue(Document):
 			task_name=_("Extract text from {0}").format(Path(self.source_file).name),
 			ref_doctype=self.doctype,
 			ref_docname=self.name,
-			job_id=f"attachment-queue-extract::{self.name}",
-			deduplicate=True,
 			attachment_queue=self.name,
 		)
 
@@ -163,15 +161,20 @@ class AttachmentQueue(Document):
 
 
 def extract_attachment_text(attachment_queue: str) -> None:
-	# Updating modified prevents an older form from overwriting the result.
 	queue_doc = frappe.get_doc("Attachment Queue", attachment_queue)
-	queue_doc.db_set(
+
+	# protects attachment queue ace condition where a user replaces a file while its extraction is running.
+	attempt = {"name": attachment_queue, "source_file": queue_doc.source_file}
+
+	frappe.db.set_value(
+		"Attachment Queue",
+		attempt,
 		{
 			"status": "Processing",
 			"extracted_text": None,
 			"extraction_method": None,
 			"error_message": None,
-		}
+		},
 	)
 	# Commit before extraction so the Processing status is visible and
 	# its database lock is released before the slow operation begins.
@@ -184,18 +187,20 @@ def extract_attachment_text(attachment_queue: str) -> None:
 		frappe.db.rollback()
 		frappe.db.set_value(
 			"Attachment Queue",
-			attachment_queue,
+			attempt,
 			{"status": "Failed", "error_message": str(exc) or exc.__class__.__name__},
 		)
 		frappe.db.commit()
 		raise
 
-	queue_doc.db_set(
+	frappe.db.set_value(
+		"Attachment Queue",
+		attempt,
 		{
 			"status": "Completed",
 			"extracted_text": extracted_text,
 			"extraction_method": extraction_method,
-		}
+		},
 	)
 
 
@@ -213,46 +218,32 @@ def get_file_extension(file_url: str) -> str:
 def fail_stale_extractions() -> None:
 	"""Mark extractions that can no longer finish as failed.
 
-	Both checks read the row's current task and queue time, so an attempt that has since
-	been re-enqueued is never failed on behalf of the one it replaced.
+	Each update carries its own condition rather than a list of names read earlier, so a
+	row re-enqueued in the meantime is never failed on behalf of the attempt it replaced.
+	Cancelled rows are handled first, which takes them out of the timed-out condition.
 	"""
-	cancelled = _cancelled_extractions()
-	_fail_extractions(cancelled, _("Text extraction was cancelled."))
-
-	cutoff = add_to_date(now(), seconds=-STALE_EXTRACTION_THRESHOLD, as_datetime=True)
-	timed_out = frappe.get_all(
-		"Attachment Queue",
-		filters={"status": ("in", PENDING_STATUSES), "extraction_queued_on": ("<", cutoff)},
+	cancelled_tasks = frappe.get_all(
+		"Background Task",
+		filters={"ref_doctype": "Attachment Queue", "status": CANCELLED_TASK_STATUS},
 		pluck="name",
 	)
+	if cancelled_tasks:
+		_fail_extractions(
+			{"status": ("in", PENDING_STATUSES), "task": ("in", cancelled_tasks)},
+			_("Text extraction was cancelled."),
+		)
+
+	cutoff = add_to_date(now(), seconds=-STALE_EXTRACTION_THRESHOLD, as_datetime=True)
 	_fail_extractions(
-		[name for name in timed_out if name not in set(cancelled)],
+		{"status": ("in", PENDING_STATUSES), "extraction_queued_on": ("<", cutoff)},
 		_("Text extraction did not finish."),
 	)
 
 
-def _cancelled_extractions() -> list[str]:
-	"""Rows still waiting on a Background Task the user has cancelled."""
-	queue = frappe.qb.DocType("Attachment Queue")
-	task = frappe.qb.DocType("Background Task")
-
-	return (
-		frappe.qb.from_(queue)
-		.inner_join(task)
-		.on(task.name == queue.task)
-		.select(queue.name)
-		.where(queue.status.isin(PENDING_STATUSES))
-		.where(task.status == CANCELLED_TASK_STATUS)
-	).run(pluck=True)
-
-
-def _fail_extractions(names: list[str], error_message: str) -> None:
-	if not names:
-		return
-
+def _fail_extractions(filters: dict, error_message: str) -> None:
 	frappe.db.set_value(
 		"Attachment Queue",
-		{"name": ("in", names)},
+		filters,
 		{"status": "Failed", "error_message": error_message},
 	)
 
