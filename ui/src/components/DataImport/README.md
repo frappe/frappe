@@ -1,7 +1,7 @@
 # DataImport
 
 The Data Import screen from Desk, as Vue components. An import goes through four
-steps: Config, Preview, Fix issues and Import.
+steps: Config, Map columns, Fix issues and Import.
 
 `useDataImport` loads and saves the import, fetches the preview, starts and stops
 the run and listens for its progress. `<DataImportWizard>` only shows it. Use the
@@ -39,7 +39,7 @@ const dataImport = useDataImport(name, { doctype: "CRM Lead" });
   the list or a record; ignore them if the app has no such page.
 - `@open-imports` comes from Config's "Review pending imports": show the app's
   list of Data Import records, filtered to that document type and `Pending`.
-- `@new-import` is optional. When set, a failed import offers "Start new
+- `@new-import` is optional. When set, a finished import offers "Start new
   import" (and Retry steps back unless the run timed out); open a new import of
   that document type.
 - The wizard fills its parent's height, so it works in a page or a `Dialog`.
