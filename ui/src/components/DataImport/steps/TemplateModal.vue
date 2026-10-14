@@ -83,12 +83,17 @@ import { Button, Checkbox, Dialog, Select, TextInput, Tooltip, call } from "frap
 import { computed, ref, watch } from "vue";
 import { Filter, serializeFilters } from "../../Filter";
 import type { FilterCondition } from "../../Filter";
-import { pickerColumns, postDownload, tableFields, type PickerField } from "../dataImport";
+import {
+	METHODS,
+	pickerColumns,
+	postDownload,
+	tableFields,
+	type PickerField,
+} from "../dataImport";
 import { t } from "../translate";
 import type { DataImportType, DocType, ImportProviderSchema } from "../types";
 
-const DOWNLOAD_TEMPLATE_URL =
-	"/api/method/frappe.core.doctype.data_import.data_import.download_template";
+const DOWNLOAD_TEMPLATE_URL = `/api/method/${METHODS}.download_template`;
 
 type ExportRecords = "all" | "by_filter" | "5_records" | "blank_template";
 

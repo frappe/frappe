@@ -219,7 +219,7 @@
 import { Badge, Button, Progress, Skeleton, TabButtons, call } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 import { dateFormat } from "../../ActivityTimeline/utils";
-import { cint, parseJson, postDownload } from "../dataImport";
+import { METHODS, cint, isImportFinished, parseJson, postDownload } from "../dataImport";
 import {
 	etaMessage,
 	hasProgressCounts,
@@ -232,7 +232,6 @@ import type { DataImportLog } from "../types";
 import { emptyProgress, type UseDataImport } from "../useDataImport";
 
 const LOG_LIMIT = 1000;
-const METHODS = "frappe.core.doctype.data_import.data_import";
 const UPSERT = "Insert or Update Records";
 
 const props = defineProps<{ dataImport: UseDataImport }>();
@@ -245,11 +244,7 @@ const emit = defineEmits<{
 const { doc, running, importStarted, importStatus, logFilter, logs } = props.dataImport;
 
 // Finished either way, so the way back to the records is always there.
-const isFinished = computed(
-	() =>
-		!running.value &&
-		["Success", "Partial Success", "Error", "Timed Out"].includes(doc.value.status)
-);
+const isFinished = computed(() => !running.value && isImportFinished(doc.value.status));
 
 const progress = computed(() => props.dataImport.progress.value ?? emptyProgress());
 
