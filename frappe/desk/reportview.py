@@ -1006,7 +1006,7 @@ def delete_items():
 	return delete_bulk(doctype, items)
 
 
-def delete_bulk(doctype, items, error_logs: dict | None = None):
+def delete_bulk(doctype, items, error_logs=None):
 	"""Delete documents one by one. Returns names that could not be deleted."""
 	if error_logs is None:
 		error_logs = {}
