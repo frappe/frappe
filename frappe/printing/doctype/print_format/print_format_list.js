@@ -63,10 +63,10 @@ frappe.listview_settings["Print Format"] = {
 				label: __("Start with"),
 				fieldname: "start_with",
 				fieldtype: "Select",
-				options: "Builder\nHTML",
-				default: "Builder",
+				options: "Print Format Editor\nHTML",
+				default: "Print Format Editor",
 				depends_on: 'eval:doc.print_format_for !== "Report"',
-				description: __("Builder is visual. HTML is hand-written."),
+				description: __("The Print Format Editor is visual. HTML is hand-written."),
 			},
 			{
 				label: __("Templating"),
