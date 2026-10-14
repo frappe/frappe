@@ -187,18 +187,22 @@ const canApply = computed(() => draft.value.fields.some(Boolean));
 
 // The draft is reactive, so hand the model a plain copy the host can clone or store.
 function apply(close: () => void) {
+	// Widths the user dragged carry over; one for a column that's gone is just unused.
 	model.value = copy({
 		fields: draft.value.fields.filter(Boolean),
 		aggregates: draft.value.aggregates.filter(isCompleteAggregate),
+		widths: model.value?.widths,
 	});
 	close();
 }
 
 function copy(groupBy: GroupBySettings): GroupBySettings {
-	return {
+	const copied: GroupBySettings = {
 		fields: [...groupBy.fields],
 		aggregates: groupBy.aggregates.map((a) => ({ ...a })),
 	};
+	if (groupBy.widths) copied.widths = { ...groupBy.widths };
+	return copied;
 }
 
 function clear(close: () => void) {

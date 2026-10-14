@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aggregateKey,
+  columnWidthKey,
   findGroupByField,
   getAggregateFields,
   getGroupByFields,
@@ -157,5 +158,37 @@ describe("parseGroupBy", () => {
         ],
       })
     ).toEqual({ fields: ["status"], aggregates: [{ function: "count" }] });
+  });
+});
+
+describe("columnWidthKey", () => {
+  it("keys a grouped field by name and an aggregate by function and field", () => {
+    expect(columnWidthKey("status")).toBe("status");
+    expect(columnWidthKey({ function: "count" })).toBe("count:");
+    expect(columnWidthKey({ function: "sum", fieldname: "deal_value" })).toBe(
+      "sum:deal_value"
+    );
+  });
+});
+
+describe("parseGroupBy widths", () => {
+  it("keeps dragged widths and drops anything that isn't one", () => {
+    expect(
+      parseGroupBy({
+        fields: ["status"],
+        aggregates: [],
+        widths: { status: "240px", "count:": 5, bad: null },
+      })
+    ).toEqual({
+      fields: ["status"],
+      aggregates: [],
+      widths: { status: "240px" },
+    });
+  });
+
+  it("leaves widths out when none survive", () => {
+    expect(
+      parseGroupBy({ fields: ["status"], aggregates: [], widths: ["240px"] })
+    ).toEqual({ fields: ["status"], aggregates: [] });
   });
 });

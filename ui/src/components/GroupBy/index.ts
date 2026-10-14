@@ -7,6 +7,7 @@ export { default as GroupByTable } from "./GroupByTable.vue";
 export {
   AGGREGATE_FUNCTIONS,
   aggregateKey,
+  columnWidthKey,
   findGroupByField,
   getAggregateFields,
   getGroupByFields,
