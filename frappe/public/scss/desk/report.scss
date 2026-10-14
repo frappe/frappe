@@ -148,7 +148,7 @@
 	}
 }
 
-.group-by-button {
+.group-by-selector .btn-group {
 	margin: 5px;
 }
 
@@ -209,18 +209,44 @@
 	@include get_textstyle("base", "regular");
 
 	.group-by-box {
-		padding: var(--margin-xs) var(--margin-md) var(--margin-xs) 0;
+		padding: var(--padding-xs) 0;
 
-		.remove-group-by {
-			line-height: 2em;
-			cursor: pointer;
+		.group-by-section + .group-by-section {
+			margin-top: var(--margin-md);
 		}
 
-		.select-icon .icon {
-			position: absolute;
-			top: 7px;
-			right: 12px;
-			pointer-events: none;
+		.group-by-section-label {
+			margin-bottom: var(--margin-xs);
+			color: var(--text-muted);
+			@include get_textstyle("sm", "medium");
+		}
+
+		.group-by-row {
+			display: flex;
+			align-items: center;
+			gap: var(--margin-sm);
+			margin-bottom: var(--margin-xs);
+
+			.group-by-field-select,
+			.aggregate-on-field-select {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.aggregate-function {
+				flex: 0 0 120px;
+			}
+		}
+
+		.divider {
+			margin: var(--margin-sm) 0;
+			background-color: var(--border-color);
+		}
+
+		.group-by-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: var(--margin-xs);
 		}
 	}
 }
@@ -349,11 +375,6 @@
 
 // for sm and above
 @include media-breakpoint-up(xs) {
-	.group-by-box .row > div[class*="col-sm-"] {
-		padding-right: 0px;
-		margin-bottom: 0;
-	}
-
 	.frappe-control {
 		position: relative;
 	}
@@ -363,17 +384,6 @@
 	.group-by-popover {
 		min-width: 100%;
 		margin-left: -5px;
-
-		.group-by-box {
-			.remove-group-by {
-				color: var(--primary);
-				@include get_textstyle("sm", "regular");
-			}
-		}
-	}
-
-	.group-by-box .row > div[class*="col-sm-"] {
-		margin-bottom: 5px;
 	}
 }
 

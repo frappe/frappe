@@ -1533,6 +1533,18 @@ class TestChildTableAttachments(IntegrationTestCase):
 
 		self.assertFalse(frappe.has_permission("File", doc=reloaded_victim, ptype="read"))
 
+	def test_file_url_change_permission(self):
+		frappe.set_user("test@example.com")
+		file = self.make_unattached_file(b"url-change-bytes", is_private=1)
+
+		frappe.set_user("test4@example.com")
+		other = frappe.get_doc(
+			doctype="File", file_url="https://example.com/x.pdf", file_name="x.pdf", is_private=1
+		).insert()
+
+		other.file_url = file.file_url
+		self.assertRaises(frappe.PermissionError, other.save)
+
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
 		doc = self.make_parent_doc(cards=[{"image": file.file_url}])

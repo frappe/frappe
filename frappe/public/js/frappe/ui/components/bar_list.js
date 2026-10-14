@@ -1,3 +1,4 @@
+import { place } from "./position.js";
 import { CHART_PALETTE, make_activatable } from "./utils.js";
 
 frappe.provide("frappe.ui");
@@ -15,6 +16,8 @@ frappe.provide("frappe.ui");
  * @property {number} [max] Minimum axis maximum; expands to fit the largest value.
  * @property {function} [format] (value) -> string, for the end labels and axis ticks.
  * @property {string} [color] Bar colour: any CSS colour or token, e.g. var(--green-600). Defaults to the first chart colour.
+ * @property {string} [name] Series name shown in the hover tooltip, e.g. "Outstanding".
+ * @property {function} [tooltip_format] (value) -> string, for the hover tooltip; defaults to the item's `formatted`, then `format`.
  * @property {number} [label_width=96] Width of the label gutter, in px.
  * @property {boolean} [values_on_hover=false] Hide clickable row values until hovered or focused; static rows keep values visible.
  * @property {function} [onclick] (item) -> void. Makes each row a button.
@@ -39,6 +42,8 @@ frappe.ui.bar_list = function ({
 	max,
 	format,
 	color,
+	name,
+	tooltip_format,
 	label_width,
 	values_on_hover,
 	onclick,
@@ -52,6 +57,7 @@ frappe.ui.bar_list = function ({
 	}
 
 	format = format || ((v) => String(v));
+	color = color || CHART_PALETTE[0];
 	const values = items.map((it) => Math.max(flt(it.value), 0));
 	const data_max = Math.max(flt(max), 0, ...values);
 	const { nice_max, ticks } = axis_ticks(data_max, 6);
@@ -67,6 +73,7 @@ frappe.ui.bar_list = function ({
 
 	const $rows = $('<div class="es-bar-list__rows">').appendTo($plot);
 	items.forEach((it) => $rows.append(build_row(it, { at, format, color, onclick })));
+	bind_tooltip($rows, { color, name, format, tooltip_format });
 
 	const $axis = $('<div class="es-bar-list__axis">').appendTo($plot);
 	ticks.forEach((t) => {
@@ -80,7 +87,7 @@ frappe.ui.bar_list = function ({
 };
 
 function build_row(item, { at, format, color, onclick }) {
-	const $row = $('<div class="es-bar-list__row">');
+	const $row = $('<div class="es-bar-list__row">').data("item", item);
 	if (onclick) {
 		make_activatable($row.addClass("es-bar-list__row--clickable"), () => onclick(item));
 	}
@@ -88,13 +95,73 @@ function build_row(item, { at, format, color, onclick }) {
 		.text(item.label)
 		.attr("title", item.label)
 		.appendTo($row);
-	const $bar = $('<div class="es-bar-list__bar">').css("width", at(item.value)).appendTo($row);
-	$bar.css("background-color", color || CHART_PALETTE[0]);
+	$('<div class="es-bar-list__bar">')
+		.css({ width: at(item.value), "background-color": color })
+		.appendTo($row);
 	$('<div class="es-bar-list__value">')
 		.css("inset-inline-start", at(item.value))
 		.text(item.formatted != null ? item.formatted : format(item.value))
 		.appendTo($row);
 	return $row;
+}
+
+function bind_tooltip($rows, opts) {
+	let open = null;
+	const hide = () => {
+		if (!open) return;
+		open.observer.disconnect();
+		window.removeEventListener("resize", hide);
+		document.removeEventListener("scroll", hide, { capture: true });
+		open.$tip.remove();
+		open = null;
+	};
+	const show = (row) => {
+		hide();
+		const $tip = build_tip($(row).data("item"), opts).appendTo(document.body);
+		place_tip($tip[0], row);
+		const observer = new MutationObserver(() => row.isConnected || hide());
+		observer.observe(document.body, { childList: true, subtree: true });
+		window.addEventListener("resize", hide);
+		document.addEventListener("scroll", hide, { capture: true, passive: true });
+		open = { row, $tip, observer };
+	};
+	$rows
+		.on("mouseenter", ".es-bar-list__row", function () {
+			if (open?.row !== this) show(this);
+		})
+		.on("focusin", ".es-bar-list__row", function () {
+			if (open?.row !== this && this.matches(":focus-visible")) show(this);
+		})
+		.on("pointerdown", ".es-bar-list__row", hide)
+		.on("mouseleave", ".es-bar-list__row", function () {
+			if (!this.contains(document.activeElement)) hide();
+		})
+		.on("focusout", ".es-bar-list__row", function () {
+			if (!this.matches(":hover")) hide();
+		});
+}
+
+function build_tip(item, { color, name, format, tooltip_format }) {
+	const value = tooltip_format
+		? tooltip_format(item.value)
+		: item.formatted ?? format(item.value);
+	return $('<div class="es-bar-list__tip es-chart-tip" role="tooltip">')
+		.append($('<div class="es-bar-list__tip-title">').text(item.label))
+		.append(
+			$('<div class="es-bar-list__tip-row">')
+				.append($('<span class="es-bar-list__tip-dot">').css("background-color", color))
+				.append(name ? $('<span class="es-bar-list__tip-name">').text(name) : null)
+				.append($("<b>").text(value))
+		);
+}
+
+function place_tip(tip, row) {
+	const rtl = frappe.utils.is_rtl();
+	const row_rect = row.getBoundingClientRect();
+	const bar = row.querySelector(".es-bar-list__bar").getBoundingClientRect();
+	const end = rtl ? bar.left : bar.right;
+	const anchor = new DOMRect(end, row_rect.top, 0, row_rect.height);
+	place(tip, anchor, rtl ? "left" : "right", "center", 12);
 }
 
 /* A "nice" number near `range` (1, 2 or 5 × 10^n) so ticks land on round values. */

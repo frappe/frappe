@@ -135,25 +135,17 @@ class Importer:
 		self._tree_alias_field = getattr(header, "tree_alias_field", None)
 		self._id_fieldname = getattr(header, "id_fieldname", None) or get_id_field(self.doctype).fieldname
 		self._uses_tree_aliases = bool(self._tree_alias_field)
+		self._tree_parent_column = _get_tree_columns(self.import_file)[1] if self._tree_parent_field else None
 		self._prime_inserted_name_map_from_db()
 
 	def _prime_inserted_name_map_from_db(self):
 		"""Pre-fetch DB name mappings for parent links not defined as rows in this file."""
-		if not self._tree_parent_field:
+		if not self._tree_parent_column:
 			return
 
-		parent_column = next(
-			(
-				col
-				for col in self.import_file.header.columns
-				if col.df and col.df.fieldname == self._tree_parent_field and not col.skip_import
-			),
-			None,
-		)
-		if not parent_column:
-			return
-
-		parent_values = {cstr(v).strip() for v in parent_column.column_values if v not in INVALID_VALUES}
+		parent_values = {
+			cstr(v).strip() for v in self._tree_parent_column.column_values if v not in INVALID_VALUES
+		}
 		header = self.import_file.header
 		in_file_refs = (header.import_ids or set()) | (header.import_aliases or set())
 		if self.import_type == UPDATE:
@@ -560,7 +552,7 @@ class Importer:
 			# name can only be set directly if autoname is prompt
 			new_doc.set("name", None)
 
-		if self._uses_tree_aliases and self._tree_parent_field:
+		if self._uses_tree_aliases and self._tree_parent_column:
 			self._resolve_tree_parent_link(doc)
 			new_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
@@ -606,7 +598,7 @@ class Importer:
 
 		updated_doc.update(doc)
 
-		if self._uses_tree_aliases and self._tree_parent_field:
+		if self._uses_tree_aliases and self._tree_parent_column:
 			self._resolve_tree_parent_link(doc)
 			updated_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
@@ -2110,7 +2102,6 @@ def _build_fields_dict_from_schema(parent_doctype, schema):
 	return out
 
 
-@request_cache
 def build_fields_dict_for_column_matching(parent_doctype):
 	"""
 	Build a dict with various keys to match with column headers and value as docfield
@@ -2261,7 +2252,13 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 
 def get_df_for_column_header(doctype, header):
-	return build_fields_dict_for_column_matching(doctype).get(header)
+	return _get_fields_dict(doctype, frappe.session.user).get(header)
+
+
+@request_cache
+def _get_fields_dict(doctype, user):
+	# A provider's fields can depend on the user (e.g. their permissions)
+	return build_fields_dict_for_column_matching(doctype)
 
 
 # utilities

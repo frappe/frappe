@@ -24,15 +24,17 @@ from frappe.core.doctype.user.user import (
 	update_password,
 	verify_password,
 )
+from frappe.database import get_db
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, get_url, now_datetime
+from frappe.utils import add_to_date, get_url, now_datetime, sha256_hash
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -121,6 +123,58 @@ class TestUser(IntegrationTestCase):
 
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
+
+	def insert_user_as_manager(self, first_name, username=None):
+		if frappe.session.user == "Administrator":
+			manager = frappe.get_doc(
+				doctype="User",
+				email=f"{frappe.generate_hash()}@example.com",
+				first_name="Manager",
+				roles=[{"role": "System Manager"}],
+			).insert()
+			frappe.set_user(manager.name)
+
+		return frappe.get_doc(
+			doctype="User",
+			email=f"{frappe.generate_hash()}@example.com",
+			first_name=first_name,
+			username=username,
+		).insert()
+
+	def test_username_from_a_taken_first_name(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		first = self.insert_user_as_manager(first_name)
+		self.insert_user_as_manager("Decoy", username=f"{base}-\u00b2")
+		second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(first.username, base)
+		self.assertEqual(second.username, f"{base}-1")
+
+	def test_username_from_a_first_name_taken_with_accents(self):
+		suffix = frappe.generate_hash(length=8)
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}")
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}-1")
+		user = self.insert_user_as_manager(f"Jose{suffix}")
+
+		self.assertTrue(user.username)
+
+	def test_username_taken_while_the_user_is_saved(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		self.insert_user_as_manager(first_name)
+		other = self.insert_user_as_manager("Other")
+		validate_username = User.validate_username
+
+		def taken_meanwhile(user):
+			validate_username(user)
+			frappe.db.set_value("User", other.name, "username", user.username)
+
+		with patch.object(User, "validate_username", taken_meanwhile):
+			second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(second.username, f"{base}-2")
+		self.assertFalse([m for m in frappe.message_log if "unique" in str(m)])
 
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
@@ -733,6 +787,52 @@ class TestUser(IntegrationTestCase):
 			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		other = get_db(
+			socket=frappe.db.socket,
+			host=frappe.db.host,
+			user=frappe.db.user,
+			password=frappe.db.password,
+			port=frappe.db.port,
+			cur_db_name=frappe.db.cur_db_name,
+		)
+		self.addCleanup(other.close)
+
+		with test_user(roles=[], commit=True) as user:
+			key = self.reset_password(user)
+			hashed_key = sha256_hash(key)
+			# the second connection only sees committed rows
+			frappe.db.commit()  # nosemgrep
+
+			set_request(path="/random")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+
+			def competing_request(*args):
+				# a second request with the same key can neither take it nor wait for it
+				with patch.object(frappe.local, "db", other):
+					with self.assertRaises(frappe.QueryTimeoutError):
+						frappe.db.get_value(
+							"User", {"reset_password_key": hashed_key}, for_update=True, wait=False
+						)
+					frappe.db.rollback()
+
+				# clearing sessions commits mid-request; the key must already be gone by then
+				frappe.db.commit()  # nosemgrep
+				with patch.object(frappe.local, "db", other):
+					self.assertFalse(frappe.db.exists("User", {"reset_password_key": hashed_key}))
+					frappe.db.rollback()
+				return False
+
+			with patch.object(user_module, "is_password_reused", side_effect=competing_request) as probe:
+				self.assertEqual(update_password("Eastern_43A1W", key=key), "me")
+			probe.assert_called_once()
+			frappe.set_user("Administrator")
 
 	def test_bulk_add_roles(self):
 		"""Roles are appended across the selection without disturbing existing ones."""

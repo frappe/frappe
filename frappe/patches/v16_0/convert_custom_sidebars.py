@@ -68,7 +68,8 @@ def add_to_site_dock(module: str) -> None:
 
 	The site's dock layer is the whole rail, so it is saved with every entry already on it, the
 	same as "Manage Dock" does for everyone. A companion app has no rail of its own, so its
-	modules go on the rail of the app it mounts on. A module with no app has no dock to go on.
+	modules go on the rail of the app it mounts on. A module with no app, or placed in an app the
+	site no longer has, has no dock to go on.
 	"""
 	app = get_module_placement(module)
 	sidebar = frappe.db.get_value("Sidebar", {"module": module}, ["name", "header_icon"], as_dict=True)
@@ -76,6 +77,8 @@ def add_to_site_dock(module: str) -> None:
 		return
 
 	app = mounted_apps().get(app, app)
+	if app not in frappe.get_active_apps():
+		return
 	rail = resolve_app_dock(app, upto="site", gated=False)
 	if any(entry.get("link_type") == "Sidebar" and entry.get("link_to") == sidebar.name for entry in rail):
 		return

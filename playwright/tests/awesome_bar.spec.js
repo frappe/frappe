@@ -42,7 +42,7 @@ test.describe("Awesome Bar", () => {
 		const { page } = shared;
 		await page.keyboard.press("Escape");
 		await expect(page.locator(".modal:visible")).toHaveCount(0);
-		await page.locator(".body-sidebar .navbar-modal-search-mobile").click();
+		await shared.desk.open_search();
 		await expect(page.locator("#navbar-search")).toBeFocused();
 		await page.locator("#navbar-search").press("ControlOrMeta+a");
 	});
@@ -106,7 +106,7 @@ test.describe("Awesome Bar", () => {
 		);
 		await desk.hide_dialog();
 
-		await page.locator(".body-sidebar .navbar-modal-search-mobile").click();
+		await shared.desk.open_search();
 		await page.evaluate(() => {
 			frappe.boot.sysdefaults.number_format = "#.###,##";
 		});

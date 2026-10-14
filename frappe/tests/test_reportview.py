@@ -4,8 +4,10 @@
 import json
 
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import (
 	_reorder_by_visible_names,
+	append_totals_row,
 	export_query,
 	extract_fieldnames,
 	get,
@@ -84,6 +86,19 @@ class TestReportview(IntegrationTestCase):
 		export_query()
 		self.assertTrue(frappe.response["filename"].endswith(".csv"))
 		self.assertEqual(frappe.response["type"], "binary")
+
+	def test_append_totals_row_uses_min_and_max_for_min_and_max_aggregates(self):
+		fields = [
+			"`tabToDo`.`status`",
+			{"SUM": "`tabToDo`.`idx`", "as": "_aggregate_column"},
+			{"MIN": "`tabToDo`.`idx`", "as": "_aggregate_column_1"},
+			"max(`tabToDo`.`idx`) as _aggregate_column_2",
+		]
+		data = [("Open", 10, 3, 10), ("Closed", 20, 1, 20), ("Cancelled", None, None, None)]
+
+		totals = append_totals_row(data, fields)[-1]
+
+		self.assertEqual(totals, ["Total", 30, 1, 20])
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
@@ -333,3 +348,33 @@ class TestReportview(IntegrationTestCase):
 			allocated_to=frappe.session.user,
 			assigned_by=frappe.session.user,
 		).insert()
+
+	def test_get_with_multiple_group_by_and_aggregates(self):
+		user = create_user("test_reportview_group_by@example.com", "System Manager")
+		with self.set_user(user.name):
+			frappe.local.form_dict = frappe._dict(
+				doctype="User",
+				fields=[
+					"`tabUser`.`user_type`",
+					"`tabUser`.`enabled`",
+					{"COUNT": "`tabUser`.`name`", "as": "_aggregate_column"},
+					{"SUM": "`tabUser`.`simultaneous_sessions`", "as": "_aggregate_column_1"},
+				],
+				group_by="`tabUser`.`user_type`, `tabUser`.`enabled`",
+				order_by="_aggregate_column desc",
+			)
+			result = get()
+			expected = frappe.get_list(
+				"User",
+				fields=[
+					"user_type",
+					"enabled",
+					{"COUNT": "*", "as": "count"},
+					{"SUM": "simultaneous_sessions", "as": "total"},
+				],
+				group_by="user_type, enabled",
+				as_list=True,
+			)
+
+		self.assertEqual(result["keys"], ["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"])
+		self.assertEqual(sorted(map(tuple, result["values"])), sorted(map(tuple, expected)))

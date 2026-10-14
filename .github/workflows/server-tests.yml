@@ -18,6 +18,7 @@ permissions:
 jobs:
   checkrun:
     name: Plan Tests
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') || contains(github.event.pull_request.labels.*.name, 'Run Server Tests') }}
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.check-build.outputs.build }}
