@@ -123,10 +123,14 @@
 		}
 	}
 
-	.dock-logo + .dock-utilities:not(:empty),
 	.dock-logo + .dock-utilities:empty + .dock-items {
 		margin-top: calc(var(--spacing) * -1);
 		padding-top: calc(var(--spacing) * 3);
+	}
+
+	.dock-logo + .dock-utilities:not(:empty) {
+		margin-top: calc(var(--spacing) * -1);
+		padding-top: calc(var(--spacing) * 2);
 	}
 
 	// Search and notifications, kept apart from the module tiles by a rule.
