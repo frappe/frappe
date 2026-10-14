@@ -292,7 +292,8 @@ def _get_linked_document_counts(doctype: str, name: str, items=None):
 				# pairs can be linked from either side, e.g. a Sales Invoice made
 				# from a Delivery Note (internal) vs one a Delivery Note was made
 				# from (external), so probe the other direction too
-				out["external_links_found"].append(get_external_links(d, name, links))
+				for fieldname in get_external_link_fieldnames(d, links):
+					out["external_links_found"].append(get_external_links(d, name, links, fieldname))
 			else:
 				out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
 		else:
