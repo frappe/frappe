@@ -36,6 +36,7 @@
 				v-model:pageSize="groups.pageLength.value"
 				:rowCount="groups.rowCount.value"
 				:totalCount="groups.totalCount.value"
+				:totalCapped="groups.totalCapped.value"
 				:hasCounts="groups.hasCounts.value"
 				@load-more="groups.loadMore"
 			/>

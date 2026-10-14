@@ -15,18 +15,18 @@
 					:icon="hideLabel ? 'lucide-folder' : undefined"
 					:iconLeft="hideLabel ? undefined : 'lucide-folder'"
 					:class="model ? 'rounded-r-none' : ''"
-					:tooltip="model ? `Grouped by ${groupedLabels}` : undefined"
-					aria-label="Group"
+					:tooltip="model ? __('Grouped by {0}', [groupedLabels]) : undefined"
+					:aria-label="__('Group')"
 				>
 					<span v-if="!hideLabel" class="block max-w-60 truncate">
-						{{ model ? `Grouped by ${groupedLabels}` : "Group" }}
+						{{ model ? __("Grouped by {0}", [groupedLabels]) : __("Group") }}
 					</span>
 				</Button>
 				<Button
 					v-if="model"
 					class="rounded-l-none border-l"
 					icon="lucide-x"
-					aria-label="Clear grouping"
+					:aria-label="__('Clear grouping')"
 					@click.stop="model = null"
 				/>
 			</div>
@@ -38,7 +38,7 @@
 				class="flex w-[min(26rem,calc(100vw-2rem))] flex-col gap-4 p-2 outline-none"
 			>
 				<div class="flex flex-col gap-2">
-					<div class="text-p-sm text-ink-gray-5">Group By</div>
+					<div class="text-p-sm text-ink-gray-5">{{ __("Group By") }}</div>
 					<div
 						v-for="(fieldname, i) in draft.fields"
 						:key="i"
@@ -48,13 +48,13 @@
 							class="flex-1"
 							:modelValue="fieldname || null"
 							:options="groupOptions(fieldname)"
-							placeholder="Select field"
+							:placeholder="__('Select field')"
 							@update:modelValue="(v: string) => (draft.fields[i] = v)"
 						/>
 						<Button
 							icon="lucide-x"
 							variant="ghost"
-							aria-label="Remove"
+							:aria-label="__('Remove')"
 							@click="draft.fields.splice(i, 1)"
 						/>
 					</div>
@@ -62,12 +62,12 @@
 						class="self-start"
 						variant="ghost"
 						iconLeft="lucide-plus"
-						label="Add Group By"
+						:label="__('Add Group By')"
 						@click="draft.fields.push('')"
 					/>
 				</div>
 				<div class="flex flex-col gap-2">
-					<div class="text-p-sm text-ink-gray-5">Aggregate</div>
+					<div class="text-p-sm text-ink-gray-5">{{ __("Aggregate") }}</div>
 					<div
 						v-for="(aggregate, i) in draft.aggregates"
 						:key="i"
@@ -84,14 +84,14 @@
 							class="flex-1"
 							:modelValue="aggregate.fieldname || null"
 							:options="aggregateOptions(aggregate.function)"
-							placeholder="Select field"
+							:placeholder="__('Select field')"
 							@update:modelValue="(v: string) => (aggregate.fieldname = v)"
 						/>
 						<div v-else class="flex-1" />
 						<Button
 							icon="lucide-x"
 							variant="ghost"
-							aria-label="Remove"
+							:aria-label="__('Remove')"
 							@click="draft.aggregates.splice(i, 1)"
 						/>
 					</div>
@@ -99,19 +99,19 @@
 						class="self-start"
 						variant="ghost"
 						iconLeft="lucide-plus"
-						label="Add Aggregate"
+						:label="__('Add Aggregate')"
 						@click="draft.aggregates.push({ function: 'count' })"
 					/>
 				</div>
 				<div
 					class="flex items-center justify-between gap-2 border-t border-outline-gray-1 pt-3"
 				>
-					<Switch v-model="draft.showTotals" label="Show totals" />
+					<Switch v-model="draft.showTotals" :label="__('Show totals')" />
 					<div class="flex gap-2">
-						<Button label="Clear Grouping" @click="clear(close)" />
+						<Button :label="__('Clear Grouping')" @click="clear(close)" />
 						<Button
 							variant="solid"
-							label="Apply"
+							:label="__('Apply')"
 							:disabled="!canApply"
 							@click="apply(close)"
 						/>
@@ -126,6 +126,7 @@
 import { Button, Combobox, Popover, Select, Switch } from "frappe-ui";
 import { computed, nextTick, ref, watch } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
+import { translate as __ } from "./translate";
 import {
 	AGGREGATE_FUNCTIONS,
 	columnId,
@@ -164,17 +165,17 @@ watch(open, async (isOpen) => {
 
 const metaFields = computed(() => meta.value?.fields ?? []);
 
-const functionOptions = AGGREGATE_FUNCTIONS.map((f) => ({ label: f.label, value: f.value }));
+const functionOptions = AGGREGATE_FUNCTIONS.map((f) => ({ label: __(f.label), value: f.value }));
 
 // Pickers list fields alphabetically, as desk's report view does.
 const toOptions = (fields: GroupByField[]) =>
 	fields
-		.map((f) => ({ label: f.label, value: f.fieldname }))
+		.map((f) => ({ label: __(f.label), value: f.fieldname }))
 		.sort((a, b) => a.label.localeCompare(b.label));
 
 const groupedLabels = computed(() =>
 	(model.value?.fields ?? [])
-		.map((f) => findGroupByField(metaFields.value, f)?.label ?? f)
+		.map((f) => __(findGroupByField(metaFields.value, f)?.label ?? f))
 		.join(", ")
 );
 

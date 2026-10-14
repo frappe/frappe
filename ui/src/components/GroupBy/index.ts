@@ -16,7 +16,7 @@ export {
   serializeGroupBy,
   serializeGroupByTotals,
 } from "./groupBy";
-export { useGroupByData } from "./useGroupByData";
+export { GROUP_COUNT_CAP, useGroupByData } from "./useGroupByData";
 export type { UseGroupByData } from "./useGroupByData";
 export type {
   Aggregate,

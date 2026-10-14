@@ -24,7 +24,7 @@ vi.mock("frappe-ui", async () => {
   };
 });
 
-import { useGroupByData } from "../useGroupByData";
+import { GROUP_COUNT_CAP, useGroupByData } from "../useGroupByData";
 import type { GroupBySettings } from "../types";
 
 const BY_STATUS: GroupBySettings = {
@@ -57,7 +57,7 @@ describe("useGroupByData", () => {
         filters: { converted: 0 },
         fields: ["status"],
         group_by: "status",
-        limit_page_length: 0,
+        limit_page_length: 1000,
       },
     ]);
   });
@@ -150,5 +150,15 @@ describe("useGroupByData", () => {
       order_by: "status asc",
       limit_page_length: 20,
     });
+  });
+
+  it("marks the total as a floor when the group keys hit the cap", () => {
+    const data = useGroupByData("CRM Deal", BY_STATUS, {});
+    const keys = h.resources[1];
+    keys.data = Array.from({ length: GROUP_COUNT_CAP }, (_, i) => ({
+      status: i,
+    }));
+    expect(data.totalCount.value).toBe(GROUP_COUNT_CAP);
+    expect(data.totalCapped.value).toBe(true);
   });
 });
