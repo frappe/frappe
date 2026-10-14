@@ -13,7 +13,7 @@ import type { GroupBySettings } from "./types";
  *
  * It fetches one row per group through `frappe.client.get_list`, plus the group keys
  * alone for the footer's "of N" (there's no count of distinct groups to ask for),
- * capped at `GROUP_COUNT_CAP` so a field with many values can't pull the whole list.
+ * capped at `countCap` so a field with many values can't pull the whole list.
  * Any change to the doctype, grouping, filters or page length refetches from the
  * first page; `loadMore` grows the page by one page length. With `showTotals`, a
  * third ungrouped query gives the totals row.
@@ -34,6 +34,9 @@ export interface UseGroupByData {
   totalCapped: ComputedRef<boolean>;
   /** False until the total lands — the footer's `hasCounts`. */
   hasCounts: ComputedRef<boolean>;
+  /** Whether more groups can be loaded, even past a capped total — the footer's
+   *  `hasNextPage`. */
+  hasNextPage: ComputedRef<boolean>;
   /** The page length; ListFooter `v-model`s this and a change refetches. */
   pageLength: Ref<number>;
   /** Show one more page of groups. */
@@ -42,15 +45,31 @@ export interface UseGroupByData {
   reload: () => void;
 }
 
-export const GROUP_COUNT_CAP = 1000;
+/** Defaults a host can override through `UseGroupByDataOptions`. */
+export const GROUP_BY_DATA_DEFAULTS = {
+  /** Groups per page, the same as the List module's footer starts at. */
+  pageLength: 20,
+  /** Most group keys fetched to count the groups; past it the total is a floor. */
+  countCap: 1000,
+};
+
+export interface UseGroupByDataOptions {
+  pageLength?: number;
+  countCap?: number;
+}
 
 export function useGroupByData(
   doctype: MaybeRefOrGetter<string>,
   groupBy: MaybeRefOrGetter<GroupBySettings | null>,
-  filters: MaybeRefOrGetter<WireFilters | Record<string, unknown>>
+  filters: MaybeRefOrGetter<WireFilters | Record<string, unknown>>,
+  options: UseGroupByDataOptions = {}
 ): UseGroupByData {
-  const pageLength = ref(20);
-  const limit = ref(20);
+  const { pageLength: initialPageLength, countCap } = {
+    ...GROUP_BY_DATA_DEFAULTS,
+    ...options,
+  };
+  const pageLength = ref(initialPageLength);
+  const limit = ref(initialPageLength);
 
   const groups = createResource({
     url: "frappe.client.get_list",
@@ -71,7 +90,7 @@ export function useGroupByData(
         filters: toValue(filters),
         fields,
         group_by: fields.join(", "),
-        limit_page_length: GROUP_COUNT_CAP,
+        limit_page_length: countCap,
       };
     },
   });
@@ -119,6 +138,9 @@ export function useGroupByData(
     toValue(groupBy) ? groups.data ?? [] : []
   );
 
+  const totalCount = computed<number>(() => groupKeys.data?.length ?? 0);
+  const totalCapped = computed(() => totalCount.value >= countCap);
+
   return {
     rows,
     totals: computed(() => {
@@ -128,11 +150,15 @@ export function useGroupByData(
     }),
     loading: computed(() => Boolean(groups.loading)),
     rowCount: computed(() => rows.value.length),
-    totalCount: computed(() => groupKeys.data?.length ?? 0),
-    totalCapped: computed(
-      () => (groupKeys.data?.length ?? 0) >= GROUP_COUNT_CAP
-    ),
+    totalCount,
+    totalCapped,
     hasCounts: computed(() => Boolean(groupKeys.data)),
+    // Past a capped total, a full page is the only sign more groups exist.
+    hasNextPage: computed(() =>
+      totalCapped.value
+        ? rows.value.length >= limit.value
+        : rows.value.length < totalCount.value
+    ),
     pageLength,
     loadMore,
     reload,

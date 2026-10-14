@@ -15,12 +15,12 @@ import type { RawMetaField } from "../../FormLayout/types";
 const FIELDS: RawMetaField[] = [
   { fieldname: "status", fieldtype: "Select", label: "Status" },
   {
-    fieldname: "deal_owner",
+    fieldname: "sales_person",
     fieldtype: "Link",
-    label: "Deal Owner",
+    label: "Sales Person",
     options: "User",
   },
-  { fieldname: "deal_value", fieldtype: "Currency", label: "Deal Value" },
+  { fieldname: "grand_total", fieldtype: "Currency", label: "Grand Total" },
   { fieldname: "probability", fieldtype: "Percent", label: "Probability" },
   { fieldname: "close_date", fieldtype: "Date", label: "Close Date" },
   { fieldname: "notes", fieldtype: "Text Editor", label: "Notes" },
@@ -35,7 +35,7 @@ describe("getGroupByFields", () => {
   it("offers visible, labelled fields of a groupable fieldtype, then the user fields", () => {
     expect(names(getGroupByFields(FIELDS))).toEqual([
       "status",
-      "deal_owner",
+      "sales_person",
       "close_date",
       "owner",
       "modified_by",
@@ -50,18 +50,18 @@ describe("getAggregateFields", () => {
 
   it("offers only numbers to sum and average", () => {
     expect(names(getAggregateFields(FIELDS, "sum"))).toEqual([
-      "deal_value",
+      "grand_total",
       "probability",
     ]);
     expect(names(getAggregateFields(FIELDS, "avg"))).toEqual([
-      "deal_value",
+      "grand_total",
       "probability",
     ]);
   });
 
   it("also offers dates and the standard timestamps to min and max", () => {
     expect(names(getAggregateFields(FIELDS, "max"))).toEqual([
-      "deal_value",
+      "grand_total",
       "probability",
       "close_date",
       "creation",
@@ -83,7 +83,7 @@ describe("isCompleteAggregate", () => {
     expect(isCompleteAggregate({ function: "count" })).toBe(true);
     expect(isCompleteAggregate({ function: "sum" })).toBe(false);
     expect(
-      isCompleteAggregate({ function: "sum", fieldname: "deal_value" })
+      isCompleteAggregate({ function: "sum", fieldname: "grand_total" })
     ).toBe(true);
   });
 });
@@ -92,20 +92,20 @@ describe("serializeGroupBy", () => {
   it("builds the grouped get_list arguments", () => {
     expect(
       serializeGroupBy({
-        fields: ["status", "deal_owner"],
+        fields: ["status", "sales_person"],
         aggregates: [
           { function: "count" },
-          { function: "sum", fieldname: "deal_value" },
+          { function: "sum", fieldname: "grand_total" },
         ],
       })
     ).toEqual({
       fields: [
         "status",
-        "deal_owner",
+        "sales_person",
         { COUNT: "name", as: "_aggregate_0" },
-        { SUM: "deal_value", as: "_aggregate_1" },
+        { SUM: "grand_total", as: "_aggregate_1" },
       ],
-      group_by: "status, deal_owner",
+      group_by: "status, sales_person",
       order_by: "_aggregate_0 desc",
     });
   });
@@ -134,7 +134,7 @@ describe("serializeGroupBy", () => {
 describe("parseGroupBy", () => {
   const stored = {
     fields: ["status"],
-    aggregates: [{ function: "sum", fieldname: "deal_value" }],
+    aggregates: [{ function: "sum", fieldname: "grand_total" }],
   };
 
   it("reads a grouping from JSON text or an object", () => {
@@ -155,7 +155,7 @@ describe("parseGroupBy", () => {
         fields: ["status", "", 3],
         aggregates: [
           { function: "count" },
-          { function: "median", fieldname: "deal_value" },
+          { function: "median", fieldname: "grand_total" },
           { function: "sum" },
           "count",
         ],
@@ -168,8 +168,8 @@ describe("columnId", () => {
   it("keys a grouped field by name and an aggregate by function and field", () => {
     expect(columnId("status")).toBe("status");
     expect(columnId({ function: "count" })).toBe("count:");
-    expect(columnId({ function: "sum", fieldname: "deal_value" })).toBe(
-      "sum:deal_value"
+    expect(columnId({ function: "sum", fieldname: "grand_total" })).toBe(
+      "sum:grand_total"
     );
   });
 });
@@ -201,7 +201,7 @@ describe("serializeGroupBy sort", () => {
     fields: ["status"],
     aggregates: [
       { function: "count" as const },
-      { function: "sum" as const, fieldname: "deal_value" },
+      { function: "sum" as const, fieldname: "grand_total" },
     ],
   };
 
@@ -218,7 +218,7 @@ describe("serializeGroupBy sort", () => {
     expect(
       serializeGroupBy({
         ...groupBy,
-        sort: [{ fieldname: "sum:deal_value", direction: "asc" }],
+        sort: [{ fieldname: "sum:grand_total", direction: "asc" }],
       }).order_by
     ).toBe("_aggregate_1 asc");
   });
@@ -238,9 +238,9 @@ describe("serializeGroupByTotals", () => {
     expect(
       serializeGroupByTotals({
         fields: ["status"],
-        aggregates: [{ function: "avg", fieldname: "deal_value" }],
+        aggregates: [{ function: "avg", fieldname: "grand_total" }],
       })
-    ).toEqual({ fields: [{ AVG: "deal_value", as: "_aggregate_0" }] });
+    ).toEqual({ fields: [{ AVG: "grand_total", as: "_aggregate_0" }] });
   });
 
   it("has nothing to total without aggregates", () => {
