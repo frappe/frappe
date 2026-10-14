@@ -92,6 +92,16 @@ bench build-studio-app <app-name>   # build an app for production
 bench --site <site-name> watch-studio # long running watcher to sync app/page/component JSON edited in files to DB
 ```
 
+### Using with AI Agents
+
+Install the Studio app building skill in your coding agent (Claude Code, Codex, Cursor and similar tools):
+
+```sh
+npx skills add https://github.com/frappe/studio/tree/develop/skills/studio-app-building
+```
+
+The skill teaches the agent how to build and edit Studio apps: block trees, data bindings, page scripts, routing and design.
+
 <h2></h2>
 
 <br>
