@@ -1003,6 +1003,7 @@ def delete_bulk(doctype, items):
 	"""Delete documents one by one. Returns names that could not be deleted."""
 	undeleted_items = {}
 	linked_with = {}
+	tracebacks = {}
 	for i, d in enumerate(items):
 		message_count = len(frappe.message_log)
 		try:
@@ -1035,23 +1036,27 @@ def delete_bulk(doctype, items):
 				linked_with[d] = link_error.linked_with
 				reasons = [] if link_error is e else [str(e)]
 			elif not reasons:
-				error_log = frappe.log_error(
-					title=f"Failed to delete {doctype} {d}", reference_doctype=doctype, reference_name=d
-				)
-				# the next failed delete rolls back, which would take this log with it
-				frappe.db.commit()
-				reasons = [
-					_("Check the Error Log for more information: {0}").format(
-						get_link_to_form("Error Log", error_log.name)
-					)
-					if frappe.has_permission("Error Log")
-					else _("An unexpected error occurred. Please contact your System Manager.")
-				]
+				tracebacks[d] = frappe.get_traceback(with_context=True)
 			undeleted_items[d] = reasons
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
 		return delete_bulk(doctype, list(undeleted_items))
 	elif undeleted_items:
+		for name, traceback in tracebacks.items():
+			error_log = frappe.log_error(
+				title=f"Failed to delete {doctype} {name}",
+				message=traceback,
+				reference_doctype=doctype,
+				reference_name=name,
+			)
+			undeleted_items[name] = [
+				_("Check the Error Log for more information: {0}").format(
+					get_link_to_form("Error Log", error_log.name)
+				)
+				if frappe.has_permission("Error Log")
+				else _("An unexpected error occurred. Please contact your System Manager.")
+			]
+
 		documents_by_reason = {}
 		for name, reasons in undeleted_items.items():
 			for reason in reasons:
