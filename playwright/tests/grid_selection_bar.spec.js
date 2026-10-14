@@ -47,9 +47,9 @@ test.describe("Grid Selection Bar", () => {
 		const bar = get_bar(page);
 
 		await select_page(page);
-		await bar.getByRole("button", { name: "Select all" }).click();
+		await bar.getByRole("button", { name: "Select All" }).click();
 		await expect(bar).toContainText("1000 rows selected");
-		await expect(bar.getByRole("button", { name: "Select all" })).toBeDisabled();
+		await expect(bar.getByRole("button", { name: "Select All" })).toBeDisabled();
 
 		await bar.getByRole("button", { name: "Clear selection" }).click();
 		await expect(bar).toBeHidden();

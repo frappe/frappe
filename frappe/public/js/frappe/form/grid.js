@@ -397,7 +397,8 @@ export default class Grid {
 	}
 
 	scroll_to_top() {
-		frappe.utils.scroll_to(this.wrapper);
+		if (frappe.flags.disable_auto_scroll) return;
+		this.wrapper.get(0).scrollIntoView({ behavior: "smooth", block: "start" });
 	}
 
 	select_row(name) {
