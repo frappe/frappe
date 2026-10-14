@@ -165,6 +165,22 @@ export function columnId(column: string | Aggregate): string {
     : `${column.function}:${column.fieldname}`;
 }
 
+/** Whether a row other than `index` already has `candidate`: one Count, and each
+ *  function on a field once. A row with no field yet is never a duplicate. */
+export function isAggregateTaken(
+  aggregates: AggregateDraft[],
+  index: number,
+  candidate: AggregateDraft
+): boolean {
+  return aggregates.some(
+    (a, i) =>
+      i !== index &&
+      a.function === candidate.function &&
+      (a.function === "count" ||
+        (!!a.fieldname && a.fieldname === candidate.fieldname))
+  );
+}
+
 /** The row key an aggregate's value comes back under. */
 export function aggregateKey(index: number): string {
   return `_aggregate_${index}`;

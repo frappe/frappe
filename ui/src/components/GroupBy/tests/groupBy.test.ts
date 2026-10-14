@@ -5,12 +5,14 @@ import {
   findGroupByField,
   getAggregateFields,
   getGroupByFields,
+  isAggregateTaken,
   isCompleteAggregate,
   parseGroupBy,
   serializeGroupBy,
   serializeGroupByTotals,
 } from "../groupBy";
 import type { RawMetaField } from "../../FormLayout/types";
+import type { AggregateDraft } from "../types";
 
 const FIELDS: RawMetaField[] = [
   { fieldname: "status", fieldtype: "Select", label: "Status" },
@@ -132,6 +134,51 @@ describe("isCompleteAggregate", () => {
     expect(
       isCompleteAggregate({ function: "sum", fieldname: "grand_total" })
     ).toBe(true);
+  });
+});
+
+describe("isAggregateTaken", () => {
+  const aggregates: AggregateDraft[] = [
+    { function: "count" },
+    { function: "sum", fieldname: "grand_total" },
+    { function: "avg" },
+  ];
+
+  it("takes a second count", () => {
+    expect(isAggregateTaken(aggregates, 2, { function: "count" })).toBe(true);
+  });
+
+  it("takes the same function on the same field", () => {
+    expect(
+      isAggregateTaken(aggregates, 2, {
+        function: "sum",
+        fieldname: "grand_total",
+      })
+    ).toBe(true);
+  });
+
+  it("allows the same field under another function", () => {
+    expect(
+      isAggregateTaken(aggregates, 2, {
+        function: "avg",
+        fieldname: "grand_total",
+      })
+    ).toBe(false);
+  });
+
+  it("never takes a row with no field yet", () => {
+    expect(isAggregateTaken(aggregates, 1, { function: "avg" })).toBe(false);
+    expect(isAggregateTaken(aggregates, 2, { function: "sum" })).toBe(false);
+  });
+
+  it("ignores the row's own index", () => {
+    expect(isAggregateTaken(aggregates, 0, { function: "count" })).toBe(false);
+    expect(
+      isAggregateTaken(aggregates, 1, {
+        function: "sum",
+        fieldname: "grand_total",
+      })
+    ).toBe(false);
   });
 });
 
