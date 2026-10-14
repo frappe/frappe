@@ -30,6 +30,7 @@ const GROUPABLE_FIELDTYPES = new Set([
   "Check",
   "Int",
   "Date",
+  "Rating",
 ]);
 
 /** Desk's `frappe.model.numeric_fieldtypes`, the ones sum and average take. */
@@ -106,34 +107,43 @@ function isQueryable(f: RawMetaField): boolean {
 }
 
 /** The fields a list can be grouped by: labelled fields of a groupable fieldtype,
- *  then the standard fields. */
-export function getGroupByFields(fields: RawMetaField[]): GroupByField[] {
+ *  then the standard fields, less any fieldnames in `exclude`. */
+export function getGroupByFields(
+  fields: RawMetaField[],
+  exclude: string[] = []
+): GroupByField[] {
   return [
     ...fields
       .filter((f) => isQueryable(f) && GROUPABLE_FIELDTYPES.has(f.fieldtype))
       .map(toField),
     ...STANDARD_GROUP_FIELDS,
-  ];
+  ].filter((f) => !exclude.includes(f.fieldname));
 }
 
 /** The fields an aggregate can run on. Sum and average need numbers; min and
- *  max also take dates and times, including the standard timestamps. Count needs
- *  no field. */
+ *  max also take dates and times, including the standard timestamps. A rating can
+ *  be averaged or ranged but not summed. Count needs no field. Fieldnames in
+ *  `exclude` are left out. */
 export function getAggregateFields(
   fields: RawMetaField[],
-  fn: AggregateFunction
+  fn: AggregateFunction,
+  exclude: string[] = []
 ): GroupByField[] {
   if (fn === "count") return [];
   const allowsTimes = fn === "min" || fn === "max";
+  const allowsRating = fn !== "sum";
   const metaFields = fields
     .filter(
       (f) =>
         isQueryable(f) &&
         (NUMERIC_FIELDTYPES.has(f.fieldtype) ||
+          (allowsRating && f.fieldtype === "Rating") ||
           (allowsTimes && TIME_FIELDTYPES.has(f.fieldtype)))
     )
     .map(toField);
-  return allowsTimes ? [...metaFields, ...STANDARD_TIME_FIELDS] : metaFields;
+  return (
+    allowsTimes ? [...metaFields, ...STANDARD_TIME_FIELDS] : metaFields
+  ).filter((f) => !exclude.includes(f.fieldname));
 }
 
 /** Field lookup for labels and formatting, covering the standard fields. */
@@ -314,4 +324,15 @@ export function parseGroupBy(raw: unknown): GroupBySettings | null {
   if (sort) parsed.sort = sort;
   if (extras.showTotals === true) parsed.showTotals = true;
   return parsed;
+}
+
+const ratingFormat = new Intl.NumberFormat(undefined, {
+  maximumFractionDigits: 1,
+});
+
+/** A Rating is stored as a fraction of its stars (0.6 of 5 is 3 stars); show it on
+ *  the field's own scale, as "3 / 5". `options` holds the star count, 5 when unset. */
+export function formatRating(value: number, options?: string): string {
+  const stars = Number(options) || 5;
+  return `${ratingFormat.format(value * stars)} / ${stars}`;
 }
