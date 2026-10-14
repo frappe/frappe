@@ -1,8 +1,9 @@
 <!--
   GroupBy demo — the control and the table against a live doctype, wired the way a
   host does it: `useGroupByData` fetches the groups for the control's model, and the
-  rows go to `GroupByTable`, with the List module's footer paging through them. Story chrome uses frappe-ui components per the
-  workspace convention.
+  rows go to `GroupByTable`, with the List module's footer paging through them. The
+  doctype picker lists the site's own doctypes. Story chrome uses frappe-ui
+  components per the workspace convention.
 -->
 <template>
 	<div class="flex h-[40rem] flex-col gap-4 p-6">
@@ -16,6 +17,7 @@
 				<Switch v-model="hideLabel" />
 			</div>
 			<GroupBy
+				v-if="doctype"
 				:key="doctype"
 				v-model="groupBy"
 				:doctype="doctype"
@@ -24,7 +26,7 @@
 			/>
 		</div>
 
-		<template v-if="groupBy">
+		<template v-if="doctype && groupBy">
 			<GroupByTable
 				:doctype="doctype"
 				v-model:groupBy="groupBy"
@@ -38,6 +40,7 @@
 				:totalCount="groups.totalCount.value"
 				:totalCapped="groups.totalCapped.value"
 				:hasCounts="groups.hasCounts.value"
+				:hasNextPage="groups.hasNextPage.value"
 				@load-more="groups.loadMore"
 			/>
 		</template>
@@ -51,13 +54,28 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { Select, Switch } from "frappe-ui";
+import { Select, Switch, createResource } from "frappe-ui";
 import { ListFooter } from "../../../experimental/List";
 import { GroupBy, GroupByTable, serializeGroupBy, useGroupByData } from "../index";
 import type { GroupBySettings } from "../types";
 
-const doctypeOptions = ["CRM Lead", "CRM Deal", "CRM Task", "ToDo"];
-const doctype = ref("CRM Deal");
+// The site's own listable doctypes, so the story assumes no particular app.
+const doctype = ref("");
+const doctypeOptions = ref<string[]>([]);
+createResource({
+	url: "frappe.client.get_list",
+	params: {
+		doctype: "DocType",
+		filters: { istable: 0, issingle: 0 },
+		order_by: "name asc",
+		limit_page_length: 0,
+	},
+	auto: true,
+	onSuccess(rows: { name: string }[]) {
+		doctypeOptions.value = rows.map((row) => row.name);
+		doctype.value = doctypeOptions.value[0] ?? "";
+	},
+});
 const groupBy = ref<GroupBySettings | null>(null);
 const hideLabel = ref(false);
 
