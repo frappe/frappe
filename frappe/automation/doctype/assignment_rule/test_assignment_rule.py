@@ -1,9 +1,17 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
+<<<<<<< HEAD
 from frappe.test_runner import make_test_records
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.automation.doctype.assignment_rule.assignment_rule import reopen_closed_assignment
+from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_records
+>>>>>>> aca4a12 (test(assignment_rule): closed assignments are looked up once per save)
 
 TEST_DOCTYPE = "Assignment Test"
 
@@ -223,6 +231,18 @@ class TestAutoAssign(FrappeTestCase):
 		self.assertEqual(todo.status, "Closed")
 		# check if closed todo retained assignment
 		self.assertEqual(todo.allocated_to, "test@example.com")
+
+	def test_closed_assignments_looked_up_once_per_save(self):
+		frappe.set_user("test@example.com")
+		note = _make_test_record(public=1, content="valid")
+
+		with patch(
+			"frappe.automation.doctype.assignment_rule.assignment_rule.reopen_closed_assignment",
+			wraps=reopen_closed_assignment,
+		) as lookup:
+			note.save()
+
+		self.assertEqual(lookup.call_count, 1)
 
 	def check_multiple_rules(self):
 		note = _make_test_record(public=1, notify_on_login=1)
