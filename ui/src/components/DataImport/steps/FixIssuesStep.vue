@@ -441,7 +441,6 @@ function allSkipped(rows: number[]) {
 	return rows.every((row) => skippedRows.value.has(Number(row)));
 }
 
-// A value whose rows are all skipped needs no mapping.
 function mapTo(mapping: DataImportValueMapping, value: string | null | undefined) {
 	mapping.target_value = value || "";
 	mapping.create_new = 0;
@@ -473,6 +472,7 @@ function toggleSkipAll() {
 	toggleSkipRows([...new Set(skippableMappings.value.flatMap(rowNumbers))]);
 }
 
+// A value whose rows are all skipped needs no mapping.
 function canMap(mapping: DataImportValueMapping) {
 	if (running.value) return false;
 	const rows = rowNumbers(mapping);
