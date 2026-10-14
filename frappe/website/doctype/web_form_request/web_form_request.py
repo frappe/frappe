@@ -8,7 +8,7 @@ from urllib.parse import quote
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_datetime, now_datetime
+from frappe.utils import get_datetime, get_url, now_datetime
 
 
 class InvalidFieldsInValuesError(frappe.ValidationError):
@@ -58,7 +58,7 @@ class WebFormRequest(Document):
 		if self.first_used_on and not allow_used:
 			frappe.throw(_("This Web Form Request has already been used"), frappe.exceptions.LinkExpired)
 
-		if self.expires_on and get_datetime(self.expires_on) < now_datetime():
+		if is_expired(self.expires_on):
 			frappe.throw(_("This Web Form Request has expired"), frappe.exceptions.LinkExpired)
 
 	def get_web_form_values(self):
@@ -72,6 +72,89 @@ class WebFormRequest(Document):
 
 	def find_reference(self, link_name: str | int):
 		return next((row for row in self.references if row.link_name == str(link_name)), None)
+
+
+def get_request_web_forms() -> dict[str, dict]:
+	"""Published Web Forms whose links can edit an existing record with a key, by name"""
+	from frappe.website.doctype.web_form.web_form import get_published_web_forms
+
+	return {d.name: d for d in get_published_web_forms() if d.key_required and d.allow_edit}
+
+
+def get_request_forms_by_doctype() -> dict[str, list[dict]]:
+	if not frappe.has_permission("Web Form Request", "create"):
+		return {}
+
+	forms = {}
+	for name, form in sorted(get_request_web_forms().items()):
+		forms.setdefault(form.doc_type, []).append({"value": name, "label": form.title or name})
+	return forms
+
+
+def get_edit_url(route: str, docname: str, key: str) -> str:
+	name = quote(str(docname), safe="")
+	return get_url(f"/{route}/{name}/edit{get_web_form_request_query(key)}")
+
+
+def is_expired(expires_on) -> bool:
+	return bool(expires_on) and get_datetime(expires_on) < now_datetime()
+
+
+def get_status(request) -> str:
+	if request.first_used_on:
+		return "Used"
+	if is_expired(request.expires_on):
+		return "Expired"
+	return "Not Used"
+
+
+@frappe.whitelist(methods=["POST"])
+def create_for_document(web_form: str, docname: str, expires_on: str | None = None) -> str:
+	"""Create a request that lets the key holder edit `docname`, return its link"""
+	frappe.has_permission("Web Form Request", "create", throw=True)
+
+	form = get_request_web_forms().get(web_form)
+	if not form:
+		frappe.throw(
+			_("Web Form {0} must be published, require a key and allow editing").format(web_form),
+			title=_("Web Form Not Allowed"),
+		)
+
+	frappe.get_doc(form.doc_type, docname).check_permission("write")
+
+	request = frappe.get_doc(
+		{
+			"doctype": "Web Form Request",
+			"web_form": web_form,
+			"expires_on": expires_on,
+			"references": [{"link_doctype": form.doc_type, "link_name": docname}],
+		}
+	).insert()
+
+	return get_edit_url(form.route, docname, request.key)
+
+
+@frappe.whitelist(methods=["GET"])
+def get_requests_for_document(doctype: str, docname: str) -> list[dict]:
+	forms = get_request_web_forms()
+	requests = frappe.get_list(
+		"Web Form Request",
+		filters=[
+			["Dynamic Link", "link_doctype", "=", doctype],
+			["Dynamic Link", "link_name", "=", docname],
+		],
+		fields=["name", "web_form", "key", "expires_on", "first_used_on"],
+		order_by="creation desc",
+	)
+
+	for row in requests:
+		row.status = get_status(row)
+		key = row.pop("key")
+		form = forms.get(row.web_form)
+		if form and row.status != "Expired":
+			row.url = get_edit_url(form.route, docname, key)
+
+	return requests
 
 
 def parse_json_object(json_string: str | None):

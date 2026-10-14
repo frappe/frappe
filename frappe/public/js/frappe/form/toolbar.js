@@ -5,6 +5,7 @@ import "./form_viewers";
 import "./template_manager";
 import { safe_href } from "../ui/components/utils.js";
 import { ReminderManager } from "./reminders";
+import { WebFormRequestDialog } from "./web_form_request";
 
 frappe.ui.form.Toolbar = class Toolbar {
 	constructor(opts) {
@@ -381,6 +382,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.add_delete();
 		this.add_duplicate();
 		this.add_new();
+		this.add_web_form_request();
 		this.page.add_divider();
 		this.add_audit_trail();
 		this.add_jump_to_field();
@@ -427,6 +429,18 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+	}
+
+	add_web_form_request() {
+		if (this.frm.is_new() || !frappe.boot.web_form_request_forms[this.frm.doctype]) {
+			return;
+		}
+
+		this.page.add_menu_item(
+			__("Request via Web Form"),
+			() => new WebFormRequestDialog({ frm: this.frm }).show(),
+			true
+		);
 	}
 
 	add_jump_to_field() {
