@@ -71,25 +71,37 @@ export function useGroupByData(
   const pageLength = ref(initialPageLength);
   const limit = ref(initialPageLength);
 
+  // The grouping the queries run on. Only `reload` and `loadMore` fetch, and both
+  // stop first when the list is ungrouped.
+  function grouping(): GroupBySettings {
+    const settings = toValue(groupBy);
+    if (!settings) throw new Error("useGroupByData fetched an ungrouped list");
+    return settings;
+  }
+
   const groups = createResource({
     url: "frappe.client.get_list",
     makeParams: () => ({
       doctype: toValue(doctype),
       filters: toValue(filters),
-      ...serializeGroupBy(toValue(groupBy) as GroupBySettings),
+      ...serializeGroupBy(grouping()),
       limit_page_length: limit.value,
     }),
   });
 
+  // The group fields alone, one row per group, to count them.
   const groupKeys = createResource({
     url: "frappe.client.get_list",
     makeParams: () => {
-      const fields = (toValue(groupBy) as GroupBySettings).fields;
+      const { fields, group_by } = serializeGroupBy({
+        ...grouping(),
+        aggregates: [],
+      });
       return {
         doctype: toValue(doctype),
         filters: toValue(filters),
         fields,
-        group_by: fields.join(", "),
+        group_by,
         limit_page_length: countCap,
       };
     },
@@ -100,7 +112,7 @@ export function useGroupByData(
     makeParams: () => ({
       doctype: toValue(doctype),
       filters: toValue(filters),
-      ...serializeGroupByTotals(toValue(groupBy) as GroupBySettings),
+      ...serializeGroupByTotals(grouping()),
       limit_page_length: 1,
     }),
   });
