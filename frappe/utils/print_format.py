@@ -602,8 +602,10 @@ def download_report_pdf(
 		numbered_rows = list(enumerate(rows, start=1))
 
 	if total_row:
-		total_row = zip([column.fieldname for column in report_columns], total_row, strict=False)
-		numbered_rows.append((None, frappe._dict(total_row, is_total_row=True)))
+		fieldnames = [column.fieldname for column in report_columns]
+		numbered_rows.append(
+			(None, frappe._dict(zip(fieldnames, total_row, strict=False), is_total_row=True))
+		)
 
 	if print_format:
 		rendered = render_report_jinja(
