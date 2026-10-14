@@ -155,7 +155,7 @@ def generate_report_result(
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
 	if isinstance(filters, dict) and filters.get("translate_data"):
-		total_row = cint(report.add_total_row) and result and not skip_total_row
+		total_row = cint(report.add_total_row) and result and not skip_total_row and with_total_row
 		result = translate_report_data(result, total_row)
 
 	return_dict = {
