@@ -10,11 +10,11 @@ from typing_extensions import NotRequired  # not required in 3.11+
 import frappe
 
 # Backward compatbility
-from frappe import _, is_whitelisted, validate_and_sanitize_search_inputs
+from frappe import _, bold, is_whitelisted, validate_and_sanitize_search_inputs
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
-from frappe.utils import cint, cstr, unique
+from frappe.utils import cint, cstr, escape_html, unique
 from frappe.utils.data import make_filter_tuple
 
 PAGE_LENGTH_FOR_LINK_VALIDATION = 25_000
@@ -45,6 +45,7 @@ def search_link(
 	searchfield: str | None = None,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
+	link_fieldname: str | None = None,
 ) -> list[LinkSearchResults]:
 	results = search_widget(
 		doctype,
@@ -55,6 +56,7 @@ def search_link(
 		filters=filters,
 		reference_doctype=reference_doctype,
 		ignore_user_permissions=ignore_user_permissions,
+		link_fieldname=link_fieldname,
 	)
 	return build_for_autosuggest(results, doctype=doctype)
 
@@ -73,7 +75,21 @@ def search_widget(
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
+	link_fieldname: str | None = None,
 ):
+	if ignore_user_permissions:
+		if reference_doctype and link_fieldname:
+			try:
+				ignore_user_permissions = validate_ignore_user_permissions(
+					reference_doctype, link_fieldname, doctype
+				)
+			except frappe.ValidationError:
+				# v15 never raised for this flag, so keep user permissions instead
+				frappe.clear_last_message()
+				ignore_user_permissions = False
+		else:
+			ignore_user_permissions = False
+
 	start = cint(start)
 	page_length = cint(page_length)
 
@@ -254,6 +270,116 @@ def search_widget(
 			values = [r[:-1] for r in values]
 
 	return values
+
+
+def validate_ignore_user_permissions(form_doctype: str, link_fieldname: str, link_doctype: str) -> bool:
+	"""Return whether the search may ignore user permissions; throw if the field does not allow it."""
+
+	def _throw(message):
+		frappe.throw(message, title=_('Error validating "Ignore User Permissions"'))
+
+	def can_search(*fields):
+		# a read-only or hidden field has no search box, so only a crafted request names it
+		return not any(field.read_only or field.hidden for field in fields)
+
+	meta = frappe.get_meta(form_doctype)
+	matched_child_field = None
+	locked_child_field = False
+	for table_field in meta.get_table_fields():
+		if not frappe.db.exists("DocType", table_field.options):
+			continue
+
+		child_field = frappe.get_meta(table_field.options).get_field(link_fieldname)
+		if not child_field or child_field.fieldtype not in ("Link", "Dynamic Link"):
+			continue
+
+		if child_field.fieldtype == "Link" and child_field.options != link_doctype:
+			continue
+
+		if child_field.ignore_user_permissions:
+			if can_search(table_field, child_field):
+				return True
+			# keep looking, a parent field of the same name may still allow it
+			locked_child_field = True
+			continue
+
+		matched_child_field = child_field
+
+	link_field = meta.get_field(link_fieldname)
+	if link_field and link_field.fieldtype not in ("Link", "Dynamic Link", "Table MultiSelect"):
+		link_field = None  # e.g. a Float named "value", which bulk edit's field name collides with
+	field_doctype = form_doctype
+
+	if locked_child_field and not (link_field and link_field.ignore_user_permissions):
+		return False
+
+	if not link_field and matched_child_field:
+		link_field = matched_child_field
+		field_doctype = matched_child_field.parent
+
+	if not link_field:
+		# bulk edit names its value field "value" instead of the field being set
+		if any(
+			field.fieldtype == "Link"
+			and field.options == link_doctype
+			and field.ignore_user_permissions
+			and can_search(field)
+			for field in meta.fields
+		):
+			return True
+
+		_throw(
+			_("Field <code>{0}</code> not found in {1}").format(
+				escape_html(link_fieldname), bold(_(form_doctype))
+			)
+		)
+
+	if not can_search(link_field):
+		return False
+
+	ignore_user_permissions = link_field.ignore_user_permissions
+	found_doctype = None
+
+	if link_field.fieldtype == "Table MultiSelect":
+		child_meta = frappe.get_meta(link_field.options)
+		child_link_field = next((field for field in child_meta.fields if field.fieldtype == "Link"), None)
+		if not child_link_field:
+			_throw(
+				_(
+					"Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
+				).format(bold(_(link_field.options)))
+			)
+
+		found_doctype = child_link_field.options
+		if not ignore_user_permissions:
+			# ignore user permissions should be set in parent table field
+			# or in child table link field
+			ignore_user_permissions = child_link_field.ignore_user_permissions
+
+	if not ignore_user_permissions:
+		_throw(
+			_("The field {0} in {1} does not allow ignoring user permissions").format(
+				bold(_(link_field.label or link_fieldname, context=field_doctype)), bold(_(field_doctype))
+			)
+		)
+
+	if link_field.fieldtype == "Dynamic Link":
+		return True  # skip doctype check for Dynamic Link fields
+
+	if link_field.fieldtype == "Link":
+		found_doctype = link_field.options
+
+	if found_doctype != link_doctype:
+		_throw(
+			_("The field {0} in {1} links to {2} and not {3}").format(
+				bold(_(link_field.label or link_fieldname, context=field_doctype)),
+				bold(_(field_doctype)),
+				bold(_(found_doctype)),
+				bold(escape_html(link_doctype)),
+			)
+		)
+
+	return True
 
 
 def get_std_fields_list(meta, key):
