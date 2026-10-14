@@ -204,3 +204,61 @@ class TestVirtualDoctypes(IntegrationTestCase):
 
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
 		self.assertNotIn(doc.name, listed_docs)
+
+
+class TestVirtualDoctypeValidation(IntegrationTestCase):
+	"""`validate_controller` judges a controller by what it actually implements.
+
+	A controller may inherit the virtual-DocType contract from an intermediate base shared by
+	a family of doctypes -- Frappe's own log doctypes do exactly this. Such a controller
+	overrides nothing itself, and an earlier version of the check compared each method against
+	`controller.mro()[1]`, which saw only one level up and reported it as incomplete. The
+	baseline is `Document`, so inheriting a real implementation counts as implementing it.
+	"""
+
+	@staticmethod
+	def _warnings_for(controller) -> list:
+		"""Run the validator against `controller` and return the warnings it raised."""
+		with (
+			patch("frappe.model.virtual_doctype.get_controller", return_value=controller),
+			patch("frappe.msgprint") as msgprint,
+		):
+			validate_controller("Some Virtual DocType")
+
+		return msgprint.call_args_list
+
+	def test_controller_inheriting_its_implementation_is_accepted(self):
+		class IntermediateBase(Document):
+			@staticmethod
+			def get_list(**kwargs):
+				return []
+
+			@staticmethod
+			def get_count(**kwargs):
+				return 0
+
+			@staticmethod
+			def get_stats(**kwargs):
+				return {}
+
+			def db_insert(self, *args, **kwargs): ...
+
+			def db_update(self, *args, **kwargs): ...
+
+			def load_from_db(self): ...
+
+			def delete(self, *args, **kwargs): ...
+
+		class InheritingController(IntermediateBase):
+			"""Declares nothing; every requirement is satisfied by the base."""
+
+		self.assertEqual(self._warnings_for(InheritingController), [])
+
+	def test_controller_implementing_nothing_is_still_rejected(self):
+		"""The relaxed baseline must not let a controller that implements nothing through."""
+
+		class BareController(Document):
+			pass
+
+		# three static methods plus four instance methods, none of them provided
+		self.assertEqual(len(self._warnings_for(BareController)), 7)

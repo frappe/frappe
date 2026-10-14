@@ -191,12 +191,16 @@ class LazyDecode(LazyString):
 class LazyMogrify(LazyString):
 	__slots__ = ()
 
-	def __init__(self, query, values) -> None:
+	def __init__(self, query, values, db=None) -> None:
 		self.query = query
 		self.values = values
+		# The connection that produced the query. Without it this falls back to `frappe.db`,
+		# which is only correct while the query came from the primary database -- a replica or
+		# the log database would otherwise be mogrified by the wrong driver.
+		self.db = db
 
 	def _setup(self) -> str:
-		return frappe.db.mogrify(self.query, self.values)
+		return (self.db or frappe.db).mogrify(self.query, self.values)
 
 
 def dangerously_reconnect_on_connection_abort(func):
