@@ -1053,9 +1053,12 @@ test.describe("Print Format form — renderer notice", () => {
 		await api.set_value("Print Format", PF_NAME, { pdf_generator: "" });
 
 		await page.goto(`/desk/print-format/${encodeURIComponent(PF_NAME)}`);
-		const notice = page.locator(".form-message:visible");
-		await expect(notice).toContainText("classic builder will be removed");
-		await expect(notice).toContainText("wkhtmltopdf is deprecated");
+		await expect(page.locator(".form-message:visible")).toContainText(
+			"classic builder will be removed"
+		);
+		await expect(
+			page.locator('[data-fieldname="pdf_generator"] .help-box:visible')
+		).toContainText("removed in version 17");
 	});
 });
 
