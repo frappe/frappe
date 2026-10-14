@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 
 import rq
 from sentry_sdk import capture_message as sentry_capture_message
@@ -56,7 +56,10 @@ def set_scope(scope):
 			transaction_name = kwargs.get("kwargs", {}).get("job_type", "")
 			context.scheduled = True
 
-		waitdiff = datetime.utcnow() - job.enqueued_at
+		enqueued_at = job.enqueued_at
+		if enqueued_at.tzinfo is None:
+			enqueued_at = enqueued_at.replace(tzinfo=UTC)
+		waitdiff = datetime.now(UTC) - enqueued_at
 		context.uuid = job.id
 		context.wait = waitdiff.total_seconds()
 		context.kwargs = kwargs

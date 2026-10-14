@@ -84,9 +84,12 @@ def get_email_templates(
 	searchfield: str,
 	start: int,
 	page_len: int,
-	filters: dict,
+	filters: dict | str | None = None,
 ):
 	"""Search for Email Templates scoped to a DocType or with no DocType assigned."""
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
 	reference_doctype = (filters or {}).get("reference_doctype", "")
 
 	return frappe.get_all(

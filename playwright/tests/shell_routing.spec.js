@@ -23,6 +23,10 @@ function current_shell(page) {
 	return page.evaluate(() => window.frappe?.router?.current_shell);
 }
 
+async function on_route(page, route) {
+	await expect.poll(() => page.evaluate(() => window.frappe?.get_route?.())).toEqual(route);
+}
+
 test.describe("Desk URL shell segment", () => {
 	test("reads a shell off a route only when what follows names something", async ({
 		page,
@@ -121,6 +125,34 @@ test.describe("Desk URL shell segment", () => {
 			await expect.poll(() => current_module(page)).toBe("Build");
 		} finally {
 			await api.call("frappe.client.delete", { doctype: "Workspace", name });
+		}
+	});
+
+	test("keeps a private page made in a module in that module's shell", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const name = `Test Module Private Page-${TEST_USER}`;
+		await api.remove_doc("Workspace", name, true);
+
+		try {
+			await page.goto("/desk/build");
+			await desk.ready();
+			await expect_shell(page, "Build");
+
+			await page.locator('.page-icon-group button[aria-haspopup="menu"]').click();
+			await page.getByRole("menuitem", { name: "New", exact: true }).click();
+			await desk.fill_field("title", "Test Module Private Page");
+			await desk.click_modal_primary_button("Create");
+
+			await expect
+				.poll(() => pathname(page))
+				.toBe("/desk/build/private/test-module-private-page");
+			await expect.poll(() => current_module(page)).toBe("Build");
+			await expect_shell(page, "Build");
+		} finally {
+			await api.remove_doc("Workspace", name, true);
 		}
 	});
 
@@ -250,6 +282,29 @@ test.describe("Desk URL shell segment", () => {
 		expect(await shell_from_url("Build")).toBe("Build");
 		expect(await shell_from_url("Users")).toBe("Users");
 		expect(await shell_from_url("Not A Real Shell")).toBe(null);
+	});
+
+	test("takes a shell the user cannot see off the URL, and writes in one they can", async ({
+		page,
+		desk,
+		admin,
+	}) => {
+		const { block_modules } = (await admin.get_doc("User", TEST_USER)).data;
+		await admin.update_doc("User", TEST_USER, {
+			block_modules: [...block_modules, { module: "Website" }],
+		});
+		try {
+			await open_desk(page, desk);
+			const hidden = await page.evaluate(() => !("website" in frappe.router.shell_routes));
+			expect(hidden, "the Website shell is hidden from the test user").toBe(true);
+
+			await page.goto("/desk/website/todo");
+			await on_route(page, ["List", "ToDo", "List"]);
+			await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
+			await expect_shell(page, "Build");
+		} finally {
+			await admin.update_doc("User", TEST_USER, { block_modules });
+		}
 	});
 
 	test("shows the shell the URL names", async ({ page }) => {

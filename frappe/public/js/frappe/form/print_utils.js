@@ -61,11 +61,6 @@ frappe.ui.get_print_settings = function (
 					disabled: 0,
 				},
 			}),
-			onchange: function () {
-				dialog.set_value("include_filters", this.get_value() ? 0 : 1);
-				dialog.set_value("pick_columns", 0);
-				dialog.fields_dict.columns?.select_all(true);
-			},
 		});
 	}
 
@@ -90,7 +85,7 @@ frappe.ui.get_print_settings = function (
 				label: __("Select Columns"),
 				fieldtype: "MultiCheck",
 				fieldname: "columns",
-				depends_on: "eval: doc.pick_columns && !doc.print_format",
+				depends_on: "pick_columns",
 				columns: 2,
 				select_all: true,
 				options: pick_columns.map((df) => ({
@@ -101,7 +96,7 @@ frappe.ui.get_print_settings = function (
 		);
 	}
 
-	const dialog = frappe.prompt(
+	return frappe.prompt(
 		columns,
 		function (settings) {
 			settings = $.extend(print_settings, settings);
@@ -122,10 +117,6 @@ frappe.ui.get_print_settings = function (
 
 			if (settings.print_format) {
 				settings.pick_columns = 0;
-				settings.include_filters = 0;
-			}
-
-			if (!settings.pick_columns) {
 				settings.columns = null;
 			}
 
@@ -137,8 +128,6 @@ frappe.ui.get_print_settings = function (
 		},
 		title ? __(title) : __("Print Settings")
 	);
-
-	return dialog;
 };
 
 // qz tray connection wrapper

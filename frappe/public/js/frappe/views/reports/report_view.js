@@ -415,9 +415,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_link_side_panel() {
 		this.$datatable_wrapper
 			.off("click.side-panel")
-			.on("click.side-panel", "a[data-doctype][data-name]", (e) =>
-				frappe.ui.handle_link_cell_click(e, this.datatable)
-			);
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) => {
+				frappe.ui.handle_link_cell_click(e, this.datatable);
+			});
 	}
 
 	setup_inline_filter_observer() {

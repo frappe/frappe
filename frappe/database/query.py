@@ -11,7 +11,7 @@ from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, Va
 import frappe
 from frappe import _
 from frappe.boot import get_additional_filters_from_hooks
-from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
+from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP, func_is
 from frappe.database.utils import (
 	DefaultOrderBy,
 	FilterValue,
@@ -20,7 +20,7 @@ from frappe.database.utils import (
 	get_doctype_sort_info,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -38,6 +38,16 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 		"Series",
 	)
 )
+
+
+# What MariaDB coerces `''` to in `is set`; postgres rejects `''` for these columns.
+# No real date equals MariaDB's zero date, so only NULL is empty for dates.
+IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
+	**dict.fromkeys((*numeric_fieldtypes, "Rating", "Duration"), 0),
+	"Time": "00:00:00",
+	"Date": None,
+	"Datetime": None,
+}
 
 
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
@@ -343,6 +353,16 @@ class Engine:
 			self.query._parent_doctype = self.parent_doctype
 			self.query._fields_list = getattr(self, "fields", [])
 
+		if getattr(self.query, "_name_field_injected", False) and (
+			distinct
+			or group_by
+			or any(getattr(f, "is_aggregate", False) for f in getattr(self, "fields", []))
+		):
+			frappe.throw(
+				_("Child table fields need 'name' in `fields` when using distinct or aggregate queries."),
+				exc=frappe.ValidationError,
+			)
+
 		self.query.immutable = True
 		return self.query
 
@@ -361,19 +381,41 @@ class Engine:
 			self.fields = [self.table.name]
 
 		self.query._child_queries = []
+		self.query._name_field_injected = False
 		has_select_field = False
+		has_child_queries = False
+		has_name_field = False
+		# the main table's own name under any alias, not a joined table's: distinct rows map to documents
+		selects_own_name = False
+
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
 				self.query = field.apply_select(self.query, engine=self)
 				has_select_field = True
 			elif isinstance(field, ChildQuery):
 				self.query._child_queries.append(field)
+				has_child_queries = True
 			else:
 				self.query = self.query.select(field)
 				has_select_field = True
+				is_source_name = getattr(field, "name", None) == "name"
+				alias = getattr(field, "alias", None)
+
+				if isinstance(field, Star) or (is_source_name and alias in (None, "name")):
+					has_name_field = True
+
+				if isinstance(field, Star) or is_source_name:
+					selects_own_name = selects_own_name or getattr(field, "table", None) in (None, self.table)
 
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
+			has_name_field = selects_own_name = True
+
+		self.query._selects_own_name = selects_own_name
+
+		if has_child_queries and not has_name_field:
+			self.query = self.query.select(self.table.name)
+			self.query._name_field_injected = True
 
 	def apply_filters(
 		self,
@@ -647,6 +689,10 @@ class Engine:
 				else OPERATOR_MAP["in"]
 			)
 			return operator_fn(_field, nodes or ("",))
+
+		if _operator.casefold() == "is" and isinstance(_field, Field):
+			filter_doctype = self._get_field_doctype(_field, doctype or self.doctype)
+			return func_is(_field, _value, self._get_is_set_empty_value(filter_doctype, _field.name))
 
 		if (
 			self.is_postgres and _operator.casefold() == "like"
@@ -1773,6 +1819,25 @@ class Engine:
 				conditions.append(c.get_sql(with_namespace=True, quote_char=quote_char))
 		finally:
 			self.apply_permissions = original_apply_permissions
+
+	def _get_field_doctype(self, field: Term, default: str) -> str:
+		"""The doctype a parsed field's table belongs to; a joined table is not the query's own."""
+		table = getattr(field, "table", None)
+		if table is None:
+			return default
+		try:
+			return get_doctype_name(getattr(table, "_table_name", None) or table.get_sql())
+		except Exception:
+			return default
+
+	def _get_is_set_empty_value(self, doctype: str, fieldname: str) -> int | str | None:
+		from frappe.model.meta import get_default_df
+
+		try:
+			docfield = get_default_df(fieldname) or frappe.get_meta(doctype).get_field(fieldname)
+		except frappe.DoesNotExistError:
+			return ""
+		return IS_SET_EMPTY_VALUES.get(docfield.fieldtype, "") if docfield else ""
 
 	def _is_field_nullable(self, doctype: str, fieldname: str) -> bool:
 		"""Check if a field can contain NULL values."""

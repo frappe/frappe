@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+import json
 from unittest.mock import patch
 
 import frappe
@@ -20,7 +21,12 @@ from frappe.automation_engine.queue import (
 	mark_effects_delivered,
 	queue_status,
 )
+from frappe.automation_engine.registry import clear_automation_cache
+from frappe.automation_engine.runner import RUN, execute_automation
+from frappe.automation_engine.tests.test_relationships import PROVIDER as RELATIONSHIP_PROVIDER
+from frappe.database import get_db
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 
 
 def make_automation():
@@ -451,3 +457,103 @@ class TestDrainer(IntegrationTestCase):
 				self.assertEqual(drainer._lock_clause(), "FOR UPDATE")
 		finally:
 			frappe.db.db_type = original_db_type
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_run_sees_an_edit_committed_mid_drain(self):
+		self.addCleanup(delete_runs, self.automation)
+		todo = self.committed_doc({"doctype": "ToDo", "description": "edited mid drain"})
+		self.add_row(todo.name)
+		drain(executor=edit_then_execute(todo))
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "priority"), "Low")
+		self.assertEqual(frappe.db.get_value(RUN, {"automation": self.automation}, "status"), "Success")
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_related_record_edited_mid_drain_is_updated(self):
+		self.addCleanup(delete_runs, self.automation)
+		with self.patch_hooks({"automation_relationships": [RELATIONSHIP_PROVIDER]}):
+			clear_automation_cache()
+			note = self.committed_doc({"doctype": "Note", "title": "before", "public": 1})
+			todo = self.committed_doc(
+				{
+					"doctype": "ToDo",
+					"description": "linked",
+					"reference_type": "Note",
+					"reference_name": note.name,
+				}
+			)
+			self.target_related_note()
+			self.add_row(todo.name)
+			drain(executor=edit_then_execute(note))
+		self.assertEqual(frappe.db.get_value("Note", note.name, "title"), "after")
+		self.assertEqual(frappe.db.get_value(RUN, {"automation": self.automation}, "status"), "Success")
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_drain_restores_the_session_isolation_level(self):
+		before = drainer._session_isolation()
+		self.add_row("T0")
+		during = []
+		drain(executor=lambda name: during.append(drainer._session_isolation()))
+		self.assertEqual(during, ["READ COMMITTED"])
+		self.assertEqual(drainer._session_isolation(), before)
+
+	def committed_doc(self, values):
+		previous = frappe.flags.skip_automations
+		frappe.flags.skip_automations = True
+		try:
+			doc = frappe.get_doc(values).insert(ignore_permissions=True)
+		finally:
+			frappe.flags.skip_automations = previous
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(delete_committed, doc.doctype, doc.name)
+		return doc
+
+	def target_related_note(self):
+		flow = frappe.get_doc("Automation Flow", self.automation)
+		flow.relationships = json.dumps([{"alias": "note", "relationship": "reference"}])
+		flow.actions[0].target = "note"
+		flow.actions[0].params = '{"field": "title", "value": "after"}'
+		flow.save()
+		frappe.db.commit()  # nosemgrep
+
+
+def delete_runs(automation):
+	for name in frappe.get_all(RUN, filters={"automation": automation}, pluck="name"):
+		frappe.delete_doc(RUN, name, force=True, ignore_permissions=True)
+	frappe.db.commit()  # nosemgrep
+
+
+def delete_committed(doctype, name):
+	frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+	frappe.db.commit()  # nosemgrep
+
+
+def edit_then_execute(doc):
+	"""An executor that commits a newer `modified` for `doc` from another connection, then runs."""
+
+	def executor(name):
+		# Read first, so a repeatable-read snapshot would predate the other connection's commit.
+		frappe.db.sql(f"select name from `tab{doc.doctype}` where name = %s", doc.name)
+		other = connect_again()
+		try:
+			newer = frappe.utils.add_to_date(frappe.utils.now(), seconds=5)
+			other.sql(f"update `tab{doc.doctype}` set modified = %s where name = %s", (newer, doc.name))
+			other.commit()
+		finally:
+			other.close()
+		execute_automation(name)
+
+	return executor
+
+
+def connect_again():
+	conf = frappe.conf
+	db = get_db(
+		socket=conf.db_socket,
+		host=conf.db_host,
+		port=conf.db_port,
+		user=conf.db_user or conf.db_name,
+		password=conf.db_password,
+		cur_db_name=conf.db_name,
+	)
+	db.connect()
+	return db

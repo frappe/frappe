@@ -68,8 +68,6 @@ class Notification(Document):
 		method: DF.Data | None
 		minutes_offset: DF.Int
 		module: DF.Link | None
-		notification_message: DF.SmallText | None
-		notification_title: DF.Data | None
 		notification_type: DF.Link | None
 		print_format: DF.Link | None
 		property_value: DF.Data | None
@@ -91,8 +89,7 @@ class Notification(Document):
 
 	def autoname(self):
 		if not self.name:
-			# Subject is optional for System Notification rules; fall back to the headline.
-			self.name = self.subject or self.notification_title
+			self.name = self.subject
 
 	# START: PreviewRenderer API
 
@@ -120,9 +117,7 @@ class Notification(Document):
 				msg = template_content["message"]
 			else:
 				context = get_context(doc)
-				context.update({"alert": self, "comments": None})
-				if doc.get("_comments"):
-					context["comments"] = json.loads(doc.get("_comments"))
+				context.update({"alert": self, "comments": get_comments_for_context(doc)})
 				if self.is_standard:
 					self.load_standard_properties(context)
 				msg = frappe.render_template(self.message, context)
@@ -140,9 +135,7 @@ class Notification(Document):
 			if template_content:
 				return template_content["subject"] or _("No subject")
 			context = get_context(doc)
-			context.update({"alert": self, "comments": None})
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
+			context.update({"alert": self, "comments": get_comments_for_context(doc)})
 			if self.is_standard:
 				self.load_standard_properties(context)
 			if not self.subject:
@@ -163,11 +156,6 @@ class Notification(Document):
 			validate_template(self.subject)
 
 		validate_template(self.message)
-
-		if self.notification_title:
-			validate_template(self.notification_title)
-		if self.notification_message:
-			validate_template(self.notification_message)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
 			frappe.throw(_("Please specify which date field must be checked"))
@@ -404,9 +392,7 @@ def get_context(context):
 		"""Build recipients and send Notification"""
 
 		context = get_context(doc)
-		context.update({"alert": self, "comments": None})
-		if doc.get("_comments"):
-			context["comments"] = json.loads(doc.get("_comments"))
+		context.update({"alert": self, "comments": get_comments_for_context(doc)})
 
 		if self.is_standard:
 			self.load_standard_properties(context)
@@ -484,9 +470,8 @@ def get_context(context):
 
 	def create_system_notification(self, doc, context, template_content=None):
 		def _render(template):
-			# Templates (subject / notification_title / notification_message) come from the
-			# System Notification rule, authored by System Managers — the same trusted source as
-			# the other render_template calls in this controller.
+			# Subject and Message come from the rule, authored by System Managers — the same
+			# trusted source as the other render_template calls in this controller.
 			if not (template and "{" in template):
 				return template
 			return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
@@ -501,14 +486,6 @@ def get_context(context):
 		else:
 			subject = _render(self.subject)
 			email_content = _render(self.message)
-
-		# Title falls back to the email Subject so existing rules keep their headline.
-		# Description, however, comes ONLY from the dedicated Notification Message — we do not
-		# fall back to the email Message, whose default placeholder ("Add your message here")
-		# would otherwise leak into the panel. This matches the older behaviour where the bell
-		# showed just the headline when there was no body.
-		title = _render(self.notification_title) or subject
-		description = _render(self.notification_message)
 
 		attachments = self.get_attachment(doc)
 
@@ -527,13 +504,8 @@ def get_context(context):
 			# even when the reference document belongs to a different app (or there is none).
 			# Falls through to NotificationLog.before_insert's document_type derivation when unset.
 			"app": frappe.db.get_value("Module Def", self.module, "app_name") if self.module else None,
-			"title": title,
+			"title": subject,
 			"subject": subject,
-			"description": description,
-			# Email body comes from the rule's Message field (or its Email Template), not the
-			# in-app Description: a non-skip notification_type can make the log email itself
-			# (NotificationLog.after_insert), and a blank Notification Message must not produce a
-			# body-less email. This restores the pre-split behaviour (email_content <- self.message).
 			"email_content": email_content,
 			"from_user": doc.modified_by or doc.owner,
 			"attached_file": json.dumps(attachments) if attachments else None,
@@ -921,6 +893,37 @@ def evaluate_alert(doc: Document, alert, event=None):
 		frappe.log_error(title=title, message=message)
 		msg = f"<details><summary>{title}</summary>{message}</details>"
 		frappe.throw(msg, title=_("Error in Notification"))
+
+
+def get_comments_for_context(doc):
+	"""`{{ comments }}` for notification templates, in the shape the `_comments` cache had."""
+	if not doc.get("name"):
+		return None
+
+	reference = {"reference_doctype": doc.doctype, "reference_name": doc.name}
+	comments = frappe.get_all(
+		"Comment",
+		fields=["name", "content", "comment_email as by", "owner", "creation"],
+		filters=reference | {"comment_type": "Comment"},
+		order_by="creation desc",
+		limit=100,
+	) + frappe.get_all(
+		"Communication",
+		fields=["name", "content", "sender as by", "owner", "creation"],
+		filters=reference,
+		order_by="creation desc",
+		limit=100,
+	)
+	comments.sort(key=lambda c: c.creation)
+	return [
+		{"comment": truncate(c.content), "by": c.by or c.owner, "name": c.name} for c in comments[-100:]
+	] or None
+
+
+def truncate(content):
+	"""Preview length the `_comments` cache used to hand templates."""
+	content = content or ""
+	return (content[:97] + "...") if len(content) > 100 else content
 
 
 def get_context(doc):

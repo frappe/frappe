@@ -77,6 +77,12 @@ frappe.router = {
 	// writes the shell into a URL yet, so `current_shell` is only ever set by a hand-typed one.
 	shell_routes: {},
 	current_shell: null,
+
+	// Whether the route being resolved was asked for from outside the sidebar, by setting
+	// `frappe.route_flags.jump` before `set_route`. The awesomebar does: what it opens was picked
+	// from the whole desk, not from the shell on screen, so that shell is only kept when it lists
+	// what was picked (see `sidebar.shell_for_route`).
+	is_jump: false,
 	factory_views: ["form", "list", "report", "tree", "print", "dashboard"],
 	list_views: [
 		"list",
@@ -140,6 +146,14 @@ frappe.router = {
 		for (let shell of Object.keys(frappe.boot.module_sidebars || {})) {
 			this.shell_routes[this.shell_slug(shell)] = shell;
 		}
+		// A shell is named after its module unless it was renamed, and `module_app` holds every
+		// module the installed apps ship, so a link naming a shell this user cannot see is still
+		// read as one.
+		this.module_slugs = new Set(
+			Object.keys(frappe.boot.module_app || {}).map((module) =>
+				this.shell_slug(module.replace(/_/g, " "))
+			)
+		);
 
 		// `private` is the Private shell's slug and also the word that marks one of this user's
 		// own pages, and the two meanings are told apart by position: `/desk/private/<page>` is
@@ -170,6 +184,10 @@ frappe.router = {
 			frappe.set_route(["setup-wizard"]);
 		}
 		if (this.re_route(sub_path)) return;
+
+		// Read before the parse, which may wait on a doctype, by which time `set_route` has
+		// already cleared the flags.
+		this.is_jump = !!frappe.route_flags.jump;
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
@@ -699,7 +717,23 @@ frappe.router = {
 
 			// now process the route
 			this.route();
+		} else if (frappe.route_flags.jump) {
+			this.choose_shell_again(path + query_params);
 		}
+	},
+
+	// A jump to the route already on screen. There is nothing to render, but the shell was chosen
+	// by whatever brought the user here, and a jump chooses it afresh: ToDo opened from Users and
+	// then picked in the awesomebar belongs in Build.
+	//
+	// The shell is taken out of the URL first, the same as a jump from anywhere else arrives
+	// without one, so the shell that was there cannot answer for itself.
+	choose_shell_again(url) {
+		history.replaceState(history.state, "", url + window.location.hash);
+		this.current_shell = null;
+		this.is_jump = true;
+		this.write_shell_into_url();
+		this.trigger("change", this);
 	},
 
 	// The path on screen, spelled the way `make_url` would have spelled it: without the shell.
@@ -827,7 +861,10 @@ frappe.router = {
 			return route;
 		}
 
-		this.current_shell = this.shell_routes[route[0]];
+		this.current_shell = this.shell_routes[route[0]] || null;
+		// A shell this user cannot see leaves the URL, and `write_shell_into_url` writes in one
+		// they can.
+		if (!this.current_shell) this.drop_shell_from_url();
 		return route.slice(1);
 	},
 
@@ -835,7 +872,8 @@ frappe.router = {
 	// `take_shell_from` describes. Asked separately by `get_route_from_arguments`, which has to
 	// drop a shell without adopting it.
 	begins_with_shell(route) {
-		if (route.length <= 1 || !this.shell_routes?.[route[0]]) return false;
+		if (route.length <= 1) return false;
+		if (!this.shell_routes?.[route[0]] && !this.module_slugs?.has(route[0])) return false;
 		if (this.segment_kind(route[0]) === "doctype") return false;
 		return this.route_names_something(route[1]);
 	},
@@ -910,6 +948,18 @@ frappe.router = {
 			history.state,
 			"",
 			path + window.location.search + window.location.hash
+		);
+	},
+
+	// `current_shell` is cleared with the segment, since `path_on_screen` strips one whenever it
+	// is set.
+	drop_shell_from_url() {
+		const rest = this.strip_prefix(window.location.pathname).split("/").slice(1).join("/");
+		this.current_shell = null;
+		history.replaceState(
+			history.state,
+			"",
+			"/desk/" + rest + window.location.search + window.location.hash
 		);
 	},
 

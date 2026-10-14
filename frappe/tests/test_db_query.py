@@ -11,6 +11,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.database.utils import DefaultOrderBy
 from frappe.desk.reportview import get_filters_cond
 from frappe.handler import execute_cmd
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Field
@@ -394,6 +395,88 @@ class TestDBQuery(IntegrationTestCase):
 		end = "2022-01-02 12:23:43"
 		cond = get_between_date_filter([start, end], datetime_df)
 		self.assertQueryEqual(cond, f"'{start}.000000' AND '{end}.000000'")
+
+	def test_comments_blob_not_readable(self):
+		with setup_test_user(set_user=True):
+			row = frappe.get_list(
+				"Test Blog Post", fields=["name", "_comments"], with_comment_count=1, limit=1
+			)[0]
+			self.assertNotIn("_comments", row)
+			self.assertIn("_comment_count", row)
+			# legacy engine, row without name
+			row = DatabaseQuery("Test Blog Post").execute(
+				fields=["title"], with_comment_count=1, limit_page_length=1
+			)[0]
+			self.assertNotIn("_comments", row)
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list("Test Blog Post", filters={"_comments": ("like", "%a%")})
+			# core doctypes permit every table column, so the cache column must not be one
+			self.assertNotIn("_comments", get_permitted_fields("Module Def"))
+			self.assertNotIn(
+				"_comments", frappe.get_list("Module Def", fields=["name", "_comments"], limit=1)[0]
+			)
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list("Module Def", filters={"_comments": ("like", "%a%")})
+
+	def test_comment_count_keeps_distinct(self):
+		with setup_test_user(set_user=True):
+			commented = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
+			plain = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
+			commented.add_comment("Comment", "only on one")
+			args = dict(
+				filters={"name": ("in", [commented.name, plain.name])}, distinct=True, with_comment_count=1
+			)
+			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
+				rows = get_list("ToDo", fields=["description"], **args)
+				self.assertEqual(len(rows), 1)
+				self.assertNotIn("_comment_count", rows[0])
+				rows = get_list("ToDo", fields=["name"], **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				rows = get_list("ToDo", fields=["name as name"], **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				# the name under another alias, in either case, still maps rows to documents
+				rows = get_list("ToDo", fields=["name AS id"], **args)
+				self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				# postgres casts a qualified name, which must not hide its alias
+				rows = get_list("ToDo", fields=["`tabToDo`.`name` as id"], **args)
+				self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				# an alias is not the document's name, so it must not split rows or get a count
+				rows = get_list("ToDo", fields=["description as name"], **args)
+				self.assertEqual(len(rows), 1)
+				self.assertNotIn("_comment_count", rows[0])
+			# a hand-built name without a table is the main table's
+			rows = frappe.get_list("ToDo", fields=[frappe.qb.Field("name")], **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# expressions carry no table, and must not hide a selected name
+			rows = frappe.get_list("ToDo", fields=[{"IFNULL": ["description", "'x'"]}, "name"], **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# `*` carries the name, also when permissions leave it unexpanded
+			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
+				rows = get_list("ToDo", fields=["*"], ignore_permissions=True, **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				self.assertNotIn("_comments", rows[0])
+			# child tables have no comment cache
+			rows = frappe.get_all("DocField", fields=["name"], distinct=True, with_comment_count=1, limit=1)
+			self.assertEqual(rows[0]._comment_count, 0)
+
+	def test_comment_count_skips_self_link_name(self):
+		with setup_test_user(set_user=True):
+			folder = frappe.get_doc(
+				doctype="File", file_name=frappe.generate_hash(length=8), is_folder=1
+			).insert()
+			for i in range(2):
+				frappe.get_doc(
+					doctype="File", file_name=f"comment count {i}.txt", content="x", folder=folder.name
+				).insert().add_comment("Comment", f"comment {i}")
+			# legacy engine only: v16's query builder selects the main table for self-link fields
+			rows = DatabaseQuery("File").execute(
+				fields=["folder.name"],
+				filters={"folder": folder.name},
+				distinct=True,
+				with_comment_count=1,
+			)
+			# the linked folder's name is not the row's own name, so files must not split the row
+			self.assertEqual([tuple(row.values()) for row in rows], [(folder.name,)])
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
@@ -1319,6 +1402,54 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn("''", query)
 		self.assertNotIn("0", query)
 		self.assertNotIn("ifnull", query)
+
+	def test_child_query_without_explicit_name_field(self):
+		q = frappe.qb.get_query(
+			"User",
+			fields=["first_name", {"roles": ["role"]}],
+			filters={"name": "Administrator"},
+		)
+		result = q.run(as_dict=True)
+
+		self.assertEqual(len(result), 1)
+		self.assertIn("roles", result[0], "Child table data is missing when parent name is omitted")
+		self.assertTrue(len(result[0]["roles"]) > 0, "Child table is empty")
+		self.assertNotIn("name", result[0], "Injected 'name' field leaked into the final output")
+
+	def test_distinct_with_injected_name_raises(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.qb.get_query(
+				"User",
+				fields=["first_name", {"roles": ["role"]}],
+				distinct=True,
+			).run(as_dict=True)
+
+	def test_group_by_with_injected_name_raises(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.qb.get_query(
+				"User",
+				fields=["first_name", {"roles": ["role"]}],
+				group_by="first_name",
+			).run(as_dict=True)
+
+	def test_distinct_with_explicit_name_does_not_raise(self):
+		result = frappe.qb.get_query(
+			"User",
+			fields=["name", "first_name", {"roles": ["role"]}],
+			distinct=True,
+			filters={"name": "Administrator"},
+		).run(as_dict=True)
+		self.assertTrue(result)
+
+	def test_child_query_with_aliased_name_still_injects(self):
+		result = frappe.qb.get_query(
+			"User",
+			fields=["name as pk", "first_name", {"roles": ["role"]}],
+			filters={"name": "Administrator"},
+		).run(as_dict=True)
+		self.assertIn("pk", result[0])
+		self.assertIn("roles", result[0])
+		self.assertTrue(result[0]["roles"])
 
 
 class TestReportView(IntegrationTestCase):

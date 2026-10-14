@@ -184,14 +184,12 @@ class RoleProfilesTab extends RoleTab {
 	}
 
 	get_data() {
-		return frappe.db
-			.get_list("Has Role", {
-				filters: { role: this.role, parenttype: "Role Profile" },
-				fields: ["parent"],
-				limit: 0,
-				parent_doctype: "Role Profile",
-			})
-			.then((rows) => unique_parents(rows).map((parent) => ({ name: parent })));
+		return get_list("Has Role", {
+			filters: { role: this.role, parenttype: "Role Profile" },
+			fields: ["parent"],
+			limit: 0,
+			parent_doctype: "Role Profile",
+		}).then((rows) => unique_parents(rows).map((parent) => ({ name: parent })));
 	}
 }
 
@@ -231,19 +229,17 @@ class UsersTab extends RoleTab {
 	}
 
 	get_data() {
-		return frappe.db
-			.get_list("Has Role", {
-				filters: { role: this.role, parenttype: "User" },
-				fields: ["parent"],
-				limit: 0,
-				parent_doctype: "User",
-			})
-			.then((rows) => this.fetch_users(unique_parents(rows)));
+		return get_list("Has Role", {
+			filters: { role: this.role, parenttype: "User" },
+			fields: ["parent"],
+			limit: 0,
+			parent_doctype: "User",
+		}).then((rows) => this.fetch_users(unique_parents(rows)));
 	}
 
 	fetch_users(names) {
 		if (!names.length) return [];
-		return frappe.db.get_list("User", {
+		return get_list("User", {
 			filters: { name: ["in", names], enabled: 1 },
 			fields: ["name", "full_name", "email"],
 			order_by: "full_name asc",
@@ -586,22 +582,20 @@ class DocumentsTab extends RoleTab {
 
 class RoleAccessTab extends RoleTab {
 	get_data() {
-		return frappe.db
-			.get_list("Has Role", {
-				filters: { role: this.role, parenttype: this.access_doctype },
-				fields: ["parent"],
-				limit: 0,
-				parent_doctype: this.access_doctype,
-			})
-			.then((rows) => {
-				const names = unique_parents(rows);
-				return this.fetch_records(names);
-			});
+		return get_list("Has Role", {
+			filters: { role: this.role, parenttype: this.access_doctype },
+			fields: ["parent"],
+			limit: 0,
+			parent_doctype: this.access_doctype,
+		}).then((rows) => {
+			const names = unique_parents(rows);
+			return this.fetch_records(names);
+		});
 	}
 
 	fetch_records(names) {
 		if (!names.length) return [];
-		return frappe.db.get_list(this.access_doctype, {
+		return get_list(this.access_doctype, {
 			filters: { name: ["in", names] },
 			fields: this.meta_fields,
 			order_by: "name asc",
@@ -840,6 +834,12 @@ class ReplicateRoleDialog {
 
 function client_save(doc) {
 	return frappe.call({ method: "frappe.client.save", args: { doc } });
+}
+
+function get_list(doctype, args) {
+	return frappe
+		.call({ method: "frappe.desk.reportview.get_list", args: { doctype, ...args } })
+		.then((r) => r.message);
 }
 
 function unique_parents(rows) {

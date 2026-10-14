@@ -1251,6 +1251,39 @@ class TestQuery(IntegrationTestCase):
 		result = frappe.qb.get_query("DocType", filters={"autoname": ["is", "set"]}).run(as_dict=1)
 		self.assertFalse(any(d.name == "Property Setter" for d in result))
 
+	def test_is_set_is_not_set_on_non_text_fields(self):
+		values = {
+			"Int": 1,
+			"Float": 1.5,
+			"Check": 1,
+			"Rating": 0.6,
+			"Duration": 3600,
+			"Date": "2026-09-29",
+			"Datetime": "2026-09-29 10:00:00",
+			"Time": "10:00:00",
+		}
+		fieldnames = {fieldtype: f"{frappe.scrub(fieldtype)}_field" for fieldtype in values}
+		doctype = new_doctype(
+			fields=[{"fieldname": fieldnames[fieldtype], "fieldtype": fieldtype} for fieldtype in values]
+		).insert()
+		filled = frappe.get_doc(
+			{"doctype": doctype.name, **{fieldnames[fieldtype]: value for fieldtype, value in values.items()}}
+		).insert()
+		empty = frappe.get_doc({"doctype": doctype.name}).insert()
+
+		for fieldname in fieldnames.values():
+			for value, expected in (("set", filled.name), ("not set", empty.name)):
+				with self.subTest(fieldname=fieldname, value=value):
+					query = frappe.qb.get_query(doctype.name, filters={fieldname: ["is", value]})
+					self.assertEqual(query.run(pluck="name"), [expected])
+
+		self.assertFalse(frappe.qb.get_query(doctype.name, filters={"docstatus": ["is", "set"]}).run())
+		self.assertFalse(frappe.qb.get_query(doctype.name, filters={"modified": ["is", "not set"]}).run())
+
+		qualified_date = f"`tab{doctype.name}`.`{fieldnames['Date']}`"
+		query = frappe.qb.get_query(doctype.name, filters={qualified_date: ["is", "set"]})
+		self.assertEqual(query.run(pluck="name"), [filled.name])
+
 	def test_permission_query_condition(self):
 		"""Test permission query condition being applied from hooks and server script"""
 		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings

@@ -171,8 +171,7 @@ class DesktopPage {
 		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
 		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
 		// always trails. Ties keep installed-apps order since sort() is stable.
-		// The destination is the landing ladder: the route the app declares, then its first
-		// visible rail entry, then its first navigable module (see app_landing_route).
+		// The destination is the landing ladder (see app_landing_route).
 		//
 		// An app that resolves to none of the three keeps its icon. It used to be filtered out,
 		// which was tolerable while every app's rail was every module it owned. Now that a rail
@@ -183,7 +182,7 @@ class DesktopPage {
 			.filter((app) => app.on_apps_screen)
 			.map((app) => ({
 				...app,
-				route: frappe.app.sidebar?.app_landing_route(app) || app.app_route || "/desk",
+				route: frappe.app.sidebar?.app_landing_route(app) || "/desk",
 			}))
 			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
 

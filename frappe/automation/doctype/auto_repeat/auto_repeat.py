@@ -17,9 +17,7 @@ from frappe.desk.form.assign_to import add as assign_to
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
-	cstr,
-	get_first_day,
-	get_last_day,
+	date_diff,
 	getdate,
 	month_diff,
 	split_emails,
@@ -30,6 +28,7 @@ from frappe.utils.jinja import validate_template
 from frappe.utils.user import get_system_managers
 
 month_map = {"Monthly": 1, "Quarterly": 3, "Half-yearly": 6, "Yearly": 12}
+day_map = {"Daily": 1, "Weekly": 7, "Fortnightly": 14}
 week_map = {
 	"Monday": 0,
 	"Tuesday": 1,
@@ -319,7 +318,7 @@ class AutoRepeat(Document):
 			if data.fieldtype == "Date" and data.reqd:
 				new_doc.set(data.fieldname, self.next_schedule_date)
 
-		self.set_auto_repeat_period(new_doc)
+		self.set_auto_repeat_period(new_doc, reference_doc)
 
 		auto_repeat_doc = frappe.get_doc("Auto Repeat", self.name)
 
@@ -327,34 +326,23 @@ class AutoRepeat(Document):
 		# on recurring method of that doctype is triggered
 		new_doc.run_method("on_recurring", reference_doc=reference_doc, auto_repeat_doc=auto_repeat_doc)
 
-	def set_auto_repeat_period(self, new_doc):
-		mcount = month_map.get(self.frequency)
-		if mcount and new_doc.meta.get_field("from_date") and new_doc.meta.get_field("to_date"):
-			last_ref_doc = frappe.get_all(
-				doctype=self.reference_doctype,
-				fields=["name", "from_date", "to_date"],
-				filters=[
-					["auto_repeat", "=", self.name],
-					["docstatus", "<", 2],
-				],
-				order_by="creation desc",
-				limit=1,
-			)
+	def set_auto_repeat_period(self, new_doc, reference_doc=None):
+		"""Set the invoice period of the new document, counted from the period of the reference document."""
+		reference_doc = reference_doc or frappe.get_doc(self.reference_doctype, self.reference_document)
+		anchor = reference_doc.get("from_date")
+		if not (anchor and new_doc.meta.get_field("to_date")):
+			return
 
-			if not last_ref_doc:
-				return
+		# the reference document is period 0, the document scheduled n steps after `start_date` is period n
+		schedule_date = getdate(self.next_schedule_date)
+		if mcount := month_map.get(self.frequency):
+			n = (month_diff(schedule_date, self.start_date) - 1) // mcount
+		else:
+			n = date_diff(schedule_date, self.start_date) // day_map[self.frequency]
 
-			from_date = get_next_date(last_ref_doc[0].from_date, mcount)
-
-			if (cstr(get_first_day(last_ref_doc[0].from_date)) == cstr(last_ref_doc[0].from_date)) and (
-				cstr(get_last_day(last_ref_doc[0].to_date)) == cstr(last_ref_doc[0].to_date)
-			):
-				to_date = get_last_day(get_next_date(last_ref_doc[0].to_date, mcount))
-			else:
-				to_date = get_next_date(last_ref_doc[0].to_date, mcount)
-
-			new_doc.set("from_date", from_date)
-			new_doc.set("to_date", to_date)
+		from_date, to_date = get_auto_repeat_period(anchor, self.frequency, n)
+		new_doc.set("from_date", from_date)
+		new_doc.set("to_date", to_date)
 
 	def get_next_schedule_date(self, schedule_date, for_full_schedule=False):
 		"""
@@ -515,6 +503,19 @@ def get_next_date(dt, mcount, day=None):
 	dt = getdate(dt)
 	dt += relativedelta(months=mcount, day=day)
 	return dt
+
+
+def get_auto_repeat_period(anchor, frequency, n):
+	"""Return period n as `[anchor + n * frequency, anchor + (n + 1) * frequency - 1 day]`.
+
+	Always counted from the anchor, so month-end dates do not drift (31 Jan -> 28 Feb -> 31 Mar).
+	"""
+	if mcount := month_map.get(frequency):
+		return get_next_date(anchor, n * mcount), add_days(get_next_date(anchor, (n + 1) * mcount), -1)
+
+	days = day_map[frequency]
+	from_date = add_days(getdate(anchor), n * days)
+	return from_date, add_days(from_date, days - 1)
 
 
 def get_next_weekday(current_schedule_day, weekdays):

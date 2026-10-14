@@ -20,7 +20,6 @@
 				>
 					<slot name="top" />
 
-					<EditorBubbleMenu :items="commentToolbar" />
 					<EditorTableMenu />
 
 					<div
@@ -42,7 +41,7 @@
 							@toggle="onQuoteToggle"
 						>
 							<summary
-								class="w-fit cursor-pointer select-none rounded px-1 text-sm font-bold leading-[1.15] text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
+								class="w-fit cursor-pointer select-none rounded-4 px-1 text-sm font-bold leading-[1.15] text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
 							>
 								•••
 							</summary>
@@ -56,29 +55,34 @@
 					</div>
 
 					<div class="mt-auto">
-						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2 px-2.5">
-							<Button
-								v-for="attachment in attachments"
-								:key="attachment.file_url"
-								theme="gray"
-								variant="subtle"
-								:label="attachment.file_name"
-								:title="attachment.file_name"
-								class="min-w-0 max-w-36"
+						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2">
+							<slot
+								name="attachments"
+								v-bind="{ attachments, remove: removeAttachment }"
 							>
-								<template #prefix>
-									<component
-										:is="attachmentIcon(attachment)"
-										class="size-3.5 shrink-0"
-									/>
-								</template>
-								<template #suffix>
-									<span
-										class="lucide-x size-3.5 cursor-pointer shrink-0"
-										@click.self.stop="removeAttachment(attachment)"
-									/>
-								</template>
-							</Button>
+								<Button
+									v-for="attachment in attachments"
+									:key="attachment.file_url"
+									theme="gray"
+									variant="outline"
+									:label="attachment.file_name"
+									:title="attachment.file_name"
+									class="min-w-0 max-w-36"
+								>
+									<template #prefix>
+										<component
+											:is="attachmentIcon(attachment)"
+											class="size-3.5 shrink-0"
+										/>
+									</template>
+									<template #suffix>
+										<span
+											class="lucide-x size-3.5 cursor-pointer shrink-0"
+											@click.self.stop="removeAttachment(attachment)"
+										/>
+									</template>
+								</Button>
+							</slot>
 						</div>
 
 						<!-- Host content pinned above the utilities row, e.g. actions staged for send. -->
@@ -92,7 +96,7 @@
 								<!-- p-0.5 keeps button focus rings from being clipped by overflow-x-auto. -->
 								<div
 									ref="toolbarScroller"
-									class="ml-1 flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+									class="ml-[3px] flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 								>
 									<Button
 										v-if="uploadFunction"
@@ -109,6 +113,7 @@
 										ref="attachInput"
 										type="file"
 										class="hidden"
+										:accept="allowedFileTypes?.join(',')"
 										@change="onAttachPicked"
 									/>
 									<slot
@@ -146,7 +151,7 @@
 									"
 								/>
 							</div>
-							<div class="flex shrink-0 items-center gap-2">
+							<div class="-mr-2 flex shrink-0 items-center gap-2">
 								<Button v-if="!isEmpty" label="Discard" @click="reset" />
 								<!-- The spinner trails the label; Button's own `loading` would lead it. -->
 								<Button
@@ -183,11 +188,9 @@ import LucidePaperclip from "~icons/lucide/paperclip";
 import {
 	Editor,
 	EditorContent,
-	EditorBubbleMenu,
 	EditorFixedMenu,
 	EditorTableMenu,
 	RichTextKit,
-	commentToolbar,
 	Paragraph,
 	H2,
 	H3,
@@ -210,6 +213,7 @@ import {
 	InsertTable,
 } from "frappe-ui/editor";
 import { sanitizeHtml } from "../../utils/sanitize";
+import { isAllowedType } from "../FileUpload/useUploader";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 const emailToolbar = [
@@ -259,7 +263,7 @@ const { arrivedState: toolbarArrived } = useScroll(toolbarScroller);
 
 const mentionItems = computed(() =>
 	(props.mentions ?? []).map((option) => ({
-		id: option.value,
+		value: option.value,
 		label: option.label,
 	}))
 );
@@ -393,6 +397,11 @@ async function onAttachPicked(event: Event) {
 	// Reset so picking the same file again still fires `change`.
 	input.value = "";
 	if (!file || !props.uploadFunction) return;
+	// `accept` only filters the picker, which the user can switch to all files.
+	if (props.allowedFileTypes && !isAllowedType(file, props.allowedFileTypes)) {
+		toast.error(`"${file.name}" was skipped — file type not allowed.`);
+		return;
+	}
 	const epoch = uploadEpoch;
 	isUploading.value = true;
 	try {

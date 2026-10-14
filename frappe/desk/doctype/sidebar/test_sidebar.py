@@ -624,6 +624,25 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 
 		self.assertEqual(frappe.get_doc("Dock", layer.name).items[0].link_to, self.RENAMED)
 
+	def test_deleting_the_sidebar_drops_the_dock_rows_naming_it(self):
+		"""`Dock Item.link_to` is a Dynamic Link, which no delete checks, so without `on_trash` the
+		row would stay behind pointing at a sidebar that is gone."""
+		doc = make_sidebar(self.MODULE)
+		frappe.db.delete("Dock", {"app": "frappe", "user": "test@example.com"})
+		layer = frappe.get_doc(
+			{
+				"doctype": "Dock",
+				"app": "frappe",
+				"user": "test@example.com",
+				"items": [{"link_type": "Sidebar", "link_to": self.MODULE}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Dock", layer.name, force=True, ignore_permissions=True)
+
+		frappe.delete_doc("Sidebar", doc.name, force=True, ignore_permissions=True)
+
+		self.assertEqual(frappe.get_doc("Dock", layer.name).items, [])
+
 	def test_deleting_the_module_deletes_every_sidebar_it_owns(self):
 		"""Deleting by name reached exactly one, which was every one of them while a module
 		could only have one."""
@@ -885,6 +904,20 @@ class TestCanonicalShell(IntegrationTestCase):
 		)
 
 		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Selling")
+
+	def test_a_row_in_the_private_shell_claims_nothing(self):
+		"""A user who keeps a shortcut to `Job Offer` in their own shell has not moved it there.
+		`Private` sorts ahead of `Recruitment`, so counted as a claim it would win.
+		"""
+		index = shell_payload(
+			{
+				"HR": {},
+				"Private": {"lists": [("DocType", "Job Offer")]},
+				"Recruitment": {"lists": [("DocType", "Job Offer")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Job Offer", "HR"), "Recruitment")
 
 	def test_the_module_answers_last_when_no_shell_lists_the_entity(self):
 		index = shell_payload({"Stock": {}, "Selling": {"lists": [("DocType", "Customer")]}})

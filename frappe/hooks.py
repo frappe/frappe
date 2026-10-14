@@ -9,7 +9,7 @@ app_description = "Full stack web framework with Python, Javascript, MariaDB, Re
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 develop_version = "15.x.x-develop"
-app_home = "/app/build"
+app_home = "/desk/build"
 
 app_email = "developers@frappe.io"
 
@@ -127,6 +127,7 @@ permission_query_conditions = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
+	"Comment": "frappe.core.doctype.comment.comment.get_permission_query_conditions",
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
@@ -148,6 +149,7 @@ has_permission = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.has_permission",
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
+	"Comment": "frappe.core.doctype.comment.comment.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission",
 	"File": "frappe.core.doctype.file.file.has_permission",

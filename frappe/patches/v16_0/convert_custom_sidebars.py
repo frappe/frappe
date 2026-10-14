@@ -62,6 +62,8 @@ def add_to_site_dock(module: str) -> None:
 		return
 
 	app = mounted_apps().get(app, app)
+	if app not in frappe.get_installed_apps():
+		return
 	rail = resolve_app_dock(app, upto="site", gated=False)
 	if any(entry.get("link_type") == "Sidebar" and entry.get("link_to") == sidebar.name for entry in rail):
 		return

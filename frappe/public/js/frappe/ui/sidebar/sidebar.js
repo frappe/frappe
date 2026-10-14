@@ -844,8 +844,8 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// A shell can show a route if it lists the entity, or belongs to the same app as the entity's
-	// own shell.
-	shell_can_show(shell, route) {
+	// own shell. `listed_only` drops the second half.
+	shell_can_show(shell, route, { listed_only = false } = {}) {
 		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
 
 		const entity = this.entity_from_route(route);
@@ -853,6 +853,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 		const kind = this.link_type_from_route(route);
 		if (this.get_modules_linking(entity, kind).includes(shell)) return true;
+		if (listed_only) return false;
 
 		const canonical = this.canonical_shell_for(route, entity);
 		return !!canonical && !this.crosses_app(shell, canonical);
@@ -883,8 +884,14 @@ frappe.ui.Sidebar = class Sidebar {
 		const stated = this.shell_from_url(route);
 		if (stated) return stated;
 
-		const on_screen = this.current_module;
-		if (on_screen && this.shell_can_show(on_screen, route)) return on_screen;
+		// A jump was not made from the shell on screen, so sharing an app is not enough to stay.
+		// Nor is a row in the Private shell, which is a shortcut and not where the entity belongs.
+		const listed_only = frappe.router.is_jump;
+		const on_screen =
+			listed_only && this.current_module === frappe.ui.PRIVATE_SHELL
+				? null
+				: this.current_module;
+		if (on_screen && this.shell_can_show(on_screen, route, { listed_only })) return on_screen;
 
 		return this.canonical_shell_for(route);
 	}
@@ -1013,16 +1020,25 @@ frappe.ui.Sidebar = class Sidebar {
 		return ["link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
-	// Where an app's icon leads: its declared route, else its first rail entry, else its first
-	// navigable module.
+	// An app's icon always leads into the app: an app with its own UI outside the desk opens that,
+	// and a desk app opens the first entry of the rail its user arranged that stays in the desk.
 	app_landing_route(app) {
 		if (!app) return null;
-		if (app.app_route) return app.app_route;
+		if (app.app_route && !this.is_desk_route(app.app_route)) return app.app_route;
 
-		const [entry] = this.collect_dock_entries(app);
-		if (entry) return this.dock_entry_route(entry);
+		for (const entry of this.collect_dock_entries(app)) {
+			if (entry.link_type === "URL") continue;
+			const route = this.dock_entry_route(entry);
+			if (route && this.is_desk_route(route)) return route;
+		}
 
-		return this.module_landing_route(this.first_navigable_module(app));
+		return app.app_route || this.module_landing_route(this.first_navigable_module(app));
+	}
+
+	// `/app` is the desk's old prefix, which still redirects to `/desk`.
+	is_desk_route(route) {
+		const [root] = route.replace(/^\//, "").split("/");
+		return ["desk", "app"].includes(root);
 	}
 
 	// One definition, so the icon and the button cannot disagree.

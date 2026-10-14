@@ -733,6 +733,7 @@ def get_print_style(
 		"print_settings": print_settings,
 		"print_style": style,
 		"font": get_font(print_settings, print_format, for_legacy),
+		"page_margin": get_page_margin(print_format),
 	}
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
@@ -755,6 +756,48 @@ def get_print_style(
 		css += "\n\n" + print_format.css
 
 	return css
+
+
+def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
+	if not print_format or not print_format.css or print_format.pdf_generator != "chrome":
+		return " ".join(["15mm"] * 4)
+
+	margins = get_page_rule_margins(print_format.css)
+	return " ".join(margins.get(side, "15mm") for side in PAGE_MARGIN_SIDES)
+
+
+PAGE_MARGIN_SIDES = ("margin-top", "margin-right", "margin-bottom", "margin-left")
+
+
+def get_page_rule_margins(css: str) -> dict[str, str]:
+	import cssutils
+
+	cssutils.log.setLog(frappe.logger("cssutils"))
+	margins = {}
+	important = set()
+	for rule in cssutils.parseString(css):
+		if not isinstance(rule, cssutils.css.CSSPageRule) or rule.selectorText:
+			continue
+		for prop in rule.style:
+			if prop.name == "margin" and (values := [v.cssText for v in prop.propertyValue]):
+				top = values[0]
+				right = values[1] if len(values) > 1 else top
+				bottom = values[2] if len(values) > 2 else top
+				left = values[3] if len(values) > 3 else right
+				updates = zip(PAGE_MARGIN_SIDES, (top, right, bottom, left), strict=True)
+			elif prop.name in PAGE_MARGIN_SIDES:
+				updates = [(prop.name, prop.value)]
+			else:
+				continue
+			for side, value in updates:
+				if not re.fullmatch(r"0|[+-]?(\d*\.)?\d+(px|mm|cm|in)", value.strip()):
+					continue
+				if prop.priority or side not in important:
+					margins[side] = value
+					if prop.priority:
+						important.add(side)
+
+	return margins
 
 
 def get_font(

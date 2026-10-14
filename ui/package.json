@@ -25,6 +25,14 @@
       "import": "./src/components/InviteUser/index.ts",
       "types": "./src/components/InviteUser/index.ts"
     },
+    "./experimental/List": {
+      "import": "./src/experimental/List/index.ts",
+      "types": "./src/experimental/List/index.ts"
+    },
+    "./AutomationCanvas": {
+      "import": "./src/components/AutomationCanvas/index.ts",
+      "types": "./src/components/AutomationCanvas/index.ts"
+    },
     "./ListView": {
       "import": "./src/components/ListView/index.ts",
       "types": "./src/components/ListView/index.ts"
@@ -75,17 +83,68 @@
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
   "dependencies": {
-    "dompurify": "^3.4.0",
+    "@vue-flow/background": "^1.3.2",
+    "@vue-flow/core": "^1.48.2",
     "cropperjs": "^2.1.1",
+    "dompurify": "^3.4.0",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
     "leaflet.locatecontrol": "^0.89.0",
+    "marked": "^15.0.12",
     "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
+    "@codemirror/lang-css": "^6.0.0",
+    "@codemirror/lang-html": "^6.0.0",
+    "@codemirror/lang-javascript": "^6.0.0",
+    "@codemirror/lang-json": "^6.0.0",
+    "@codemirror/lang-markdown": "^6.0.0",
+    "@codemirror/lang-python": "^6.0.0",
+    "@codemirror/lang-sass": "^6.0.0",
+    "@codemirror/lang-sql": "^6.0.0",
+    "@codemirror/lang-xml": "^6.0.0",
+    "@codemirror/lang-yaml": "^6.0.0",
+    "@codemirror/lint": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
     "@vueuse/core": ">=10.4.1",
-    "frappe-ui": ">=1.0.0-beta.16",
+    "frappe-ui": ">=1.0.0-rc.1",
     "vue": ">=3.3.0",
     "vue-router": "^4.1.5"
+  },
+  "peerDependenciesMeta": {
+    "@codemirror/lang-css": {
+      "optional": true
+    },
+    "@codemirror/lang-html": {
+      "optional": true
+    },
+    "@codemirror/lang-javascript": {
+      "optional": true
+    },
+    "@codemirror/lang-json": {
+      "optional": true
+    },
+    "@codemirror/lang-markdown": {
+      "optional": true
+    },
+    "@codemirror/lang-python": {
+      "optional": true
+    },
+    "@codemirror/lang-sass": {
+      "optional": true
+    },
+    "@codemirror/lang-sql": {
+      "optional": true
+    },
+    "@codemirror/lang-xml": {
+      "optional": true
+    },
+    "@codemirror/lang-yaml": {
+      "optional": true
+    },
+    "@codemirror/lint": {
+      "optional": true
+    }
   }
 }

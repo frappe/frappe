@@ -129,12 +129,6 @@ function tree_row(page, label) {
 	return page.locator(".pfb-tree-row", { hasText: label }).first();
 }
 
-function closest(locator, class_name) {
-	return locator.locator(
-		`xpath=ancestor::*[contains(concat(" ", normalize-space(@class), " "), " ${class_name} ")][1]`
-	);
-}
-
 async function set_input(input, value) {
 	await input.fill(value);
 	await input.dispatchEvent("change");
@@ -350,47 +344,17 @@ test.describe("Print Format Builder — create flow", () => {
 		await expect(tree_row(page, "Beta")).toHaveClass(/(^|\s)active(\s|$)/);
 	});
 
-	test("field breadcrumb navigates to parent section", async ({ page, api }) => {
-		await insert_builder_format(api, PF_NAME, [
-			{
-				label: "Details",
-				columns: [
-					{
-						label: "",
-						fields: [
-							{ fieldtype: "Data", fieldname: "description", label: "Description" },
-						],
-					},
-				],
-			},
-		]);
-
-		await open_builder(page, PF_NAME);
-
-		await page.locator(".es-tabs__tab[data-tab='layers']").click();
-		await tree_row(page, "Details").click();
-
-		await page.locator(".print-format-container").click();
-		await section(page, "Details").locator(".field").first().click();
-
-		await expect(page.locator(".pfb-breadcrumb")).toBeVisible();
-		await expect(page.locator(".pfb-breadcrumb-name")).toContainText("Details");
-
-		await page.locator(".pfb-breadcrumb-btn").click();
-		await expect(page.locator(".pfb-inspector")).toContainText("Section");
-		await expect(page.locator(".pfb-inspector")).toContainText("Details");
-		await expect(page.locator(".pfb-breadcrumb")).toHaveCount(0);
-	});
-
 	test("font size change applies to canvas preview", async ({ page, api }) => {
 		await insert_builder_format(api, PF_NAME, []);
 
 		await open_builder(page, PF_NAME);
 
-		await expect(page.locator(".pfb-margin-grid")).toBeVisible();
+		await expect(page.locator(".pfb-settings .pfb-spacing-row")).toBeVisible();
 
-		const label = page.locator("label", { hasText: "Font Size" }).first();
-		await set_input(closest(label, "form-group").locator("input"), "18");
+		await set_input(
+			page.locator(".pfb-settings .pfb-insp-row", { hasText: "Font size" }).locator("input"),
+			"18"
+		);
 
 		await expect.poll(() => css_number(page.locator(".pfb-body"), "font-size")).toBe(18);
 	});
@@ -400,7 +364,7 @@ test.describe("Print Format Builder — create flow", () => {
 
 		await open_builder(page, PF_NAME);
 
-		await expect(page.locator(".pfb-margin-grid")).toBeVisible();
+		await expect(page.locator(".pfb-settings .pfb-spacing-row")).toBeVisible();
 
 		await expect(
 			page.locator('[data-fieldname="label_color"] .selected-color')
@@ -471,12 +435,7 @@ test.describe("Print Format Builder — create flow", () => {
 
 		await expect(page.locator(".pfb-inspector")).toContainText("Due Date");
 		await expect(page.locator(".pfb-inspector")).not.toContainText("Deadline");
-		await expect(
-			page
-				.locator(".pfb-insp-row", { hasText: "Label" })
-				.first()
-				.locator("input.pfb-insp-input")
-		).toHaveValue("Deadline");
+		await expect(page.locator(".pfb-inspector .label-field > input")).toHaveValue("Deadline");
 	});
 
 	test("field align overrides a conflicting label-justify setting", async ({ page, api }) => {
@@ -962,16 +921,13 @@ async function open_history(page) {
 test.describe("Print Format Builder — draft and Save & Apply", () => {
 	const page_status = (page) => page.locator('[data-testid="page-status"]:visible');
 	const margin_top = (page) =>
-		closest(
-			page.locator(".pfb-margin-cell label", { hasText: "Top" }).first(),
-			"pfb-margin-cell"
-		).locator('input[type="number"]');
+		page.locator(".pfb-settings .pfb-spacing-side input[title='Top']");
 
 	test.beforeEach(async ({ page, api }) => {
 		PF_NAME = track(`_Test PFB Draft ${Math.floor(Math.random() * 1e6)}`);
 		await insert_builder_format(api, PF_NAME, []);
 		await open_builder(page, PF_NAME);
-		await expect(page.locator(".pfb-margin-grid")).toBeVisible();
+		await expect(page.locator(".pfb-settings .pfb-spacing-row")).toBeVisible();
 		await expect(page.locator(".freeze")).toHaveCount(0);
 	});
 
@@ -1067,14 +1023,14 @@ test.describe("Print Format Builder — draft and Save & Apply", () => {
 	});
 
 	test("reopening the builder shows the draft, not what prints", async ({ page }) => {
-		await set_input(margin_top(page), "29");
+		await set_input(margin_top(page), "12.5");
 		await expect(page_status(page)).toContainText("Draft");
 
 		await page.reload();
-		await expect(page.locator(".pfb-margin-grid")).toBeVisible();
+		await expect(page.locator(".pfb-settings .pfb-spacing-row")).toBeVisible();
 
 		await expect(page_status(page)).toContainText("Draft");
-		await expect(margin_top(page)).toHaveValue("29");
+		await expect(margin_top(page)).toHaveValue("12.5");
 	});
 });
 

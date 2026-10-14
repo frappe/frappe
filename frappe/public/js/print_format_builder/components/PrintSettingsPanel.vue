@@ -1,126 +1,111 @@
 <template>
 	<div class="pfb-settings">
-		<InspectorSection :label="__('Document')">
-			<div class="form-group">
-				<div class="pfb-label-with-hint">
-					<label class="control-label">{{ __("PDF Renderer") }}</label>
-					<span
-						v-if="renderer_hint"
-						ref="hint_icon"
-						class="pfb-hint-icon"
-						v-html="frappe.utils.icon('info', 'xs')"
-					></span>
-				</div>
-				<select
-					class="form-control form-control-sm"
-					:value="renderer"
-					@change="set_renderer($event.target.value)"
-				>
-					<option value="chrome" :disabled="has_typst_block">
-						{{ __("Chromium") }}
-					</option>
-					<option value="Typst" :disabled="typst_blockers.length > 0">
-						{{ __("Typst (fast)") }}
-					</option>
-					<option v-if="renderer === 'WeasyPrint'" value="WeasyPrint" disabled>
-						{{ __("WeasyPrint") }}
-					</option>
-				</select>
-				<div v-if="deprecation_notice" class="pfb-renderer-note">
-					{{ deprecation_notice.short }}
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Letter Head") }}</label>
-				<DeskControl
-					:df="letterhead_df"
-					:model-value="letterhead?.name || ''"
-					@update:model-value="set_letterhead"
-				/>
-			</div>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Text')">
-			<div class="form-group">
-				<label class="control-label">{{ __("Google Font") }}</label>
+		<InspectorSection :label="__('Typography')">
+			<InspectorRow :label="__('Font')">
 				<Autocomplete
 					:options="font_options"
 					:model-value="print_format.font || ''"
 					:placeholder="__('Default')"
 					@select="(o) => (print_format.font = o.value)"
 				/>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Font Size (px)") }}</label>
+			</InspectorRow>
+			<InspectorRow :label="__('Font size')">
 				<input
 					type="number"
-					class="form-control form-control-sm"
-					placeholder="12, 13, 14"
+					class="form-control form-control-sm pfb-insp-input"
+					placeholder="14"
 					:value="print_format.font_size"
 					@change="(e) => (print_format.font_size = parseFloat(e.target.value) || 14)"
 				/>
-			</div>
-			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
-				<label class="control-label">{{ c.label }}</label>
+			</InspectorRow>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Style')">
+			<InspectorRow v-for="c in color_settings" :key="c.fieldname" :label="c.label">
 				<ColorInput
 					:fieldname="c.fieldname"
 					:model-value="print_format[c.fieldname] || ''"
-					:placeholder="c.label"
+					:placeholder="__('Default')"
 					@update:model-value="(v) => (print_format[c.fieldname] = v || null)"
 				/>
-			</div>
-			<div class="form-group">
-				<ToggleRow
-					:label="__('Colon after labels')"
-					:model-value="!!print_format.show_label_colon"
-					@update:model-value="(v) => (print_format.show_label_colon = v ? 1 : 0)"
-				/>
-			</div>
+			</InspectorRow>
+			<ToggleRow
+				:label="__('Colon after labels')"
+				:model-value="!!print_format.show_label_colon"
+				@update:model-value="(v) => (print_format.show_label_colon = v ? 1 : 0)"
+			/>
 		</InspectorSection>
 
-		<InspectorSection :label="__('Page')">
-			<div class="form-group">
-				<label class="control-label">{{ __("Margins (mm)") }}</label>
-				<div class="pfb-margin-grid">
-					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
-						<label class="pfb-margin-label control-label">{{ df.label }}</label>
-						<input
-							type="number"
-							class="form-control form-control-sm"
-							:value="print_format[df.fieldname]"
-							min="0"
-							@change="(e) => update_margin(df.fieldname, e.target.value)"
-						/>
+		<InspectorSection :label="__('Spacing (mm)')">
+			<SpacingRow
+				:label="__('Margins')"
+				:model-value="page_margins"
+				@update:model-value="set_margins"
+			/>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Document')">
+			<InspectorRow :label="__('PDF renderer')">
+				<template #label>
+					<span class="pfb-label-with-hint">
+						{{ __("PDF renderer") }}
+						<span
+							v-if="renderer_hint"
+							ref="hint_icon"
+							class="pfb-hint-icon"
+							v-html="frappe.utils.icon('info', 'xs')"
+						></span>
+					</span>
+				</template>
+				<div>
+					<select
+						class="form-control form-control-sm pfb-insp-select"
+						:value="renderer"
+						@change="set_renderer($event.target.value)"
+					>
+						<option value="chrome" :disabled="has_typst_block">
+							{{ __("Chromium") }}
+						</option>
+						<option value="Typst" :disabled="typst_blockers.length > 0">
+							{{ __("Typst (fast)") }}
+						</option>
+						<option v-if="renderer === 'WeasyPrint'" value="WeasyPrint" disabled>
+							{{ __("WeasyPrint") }}
+						</option>
+					</select>
+					<div v-if="deprecation_notice" class="pfb-renderer-note">
+						{{ deprecation_notice.short }}
 					</div>
 				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label">{{ __("Page Number") }}</label>
-				<select class="form-control form-control-sm" v-model="print_format.page_number">
+			</InspectorRow>
+			<InspectorRow :label="__('Letter head')">
+				<DeskControl
+					:df="letterhead_df"
+					:model-value="letterhead?.name || ''"
+					@update:model-value="set_letterhead"
+				/>
+			</InspectorRow>
+			<InspectorRow :label="__('Page numbers')">
+				<select
+					class="form-control form-control-sm pfb-insp-select"
+					v-model="print_format.page_number"
+				>
 					<option v-for="p in page_number_positions" :value="p.value">
 						{{ p.label }}
 					</option>
 				</select>
-			</div>
+			</InspectorRow>
 		</InspectorSection>
 
-		<InspectorSection :label="__('Style')" :init-open="false">
-			<div class="form-group">
-				<ToggleRow
-					:label="__('Custom CSS')"
-					:model-value="css_enabled"
-					@update:model-value="toggle_css"
-				/>
-				<textarea
-					v-if="css_enabled"
-					class="form-control form-control-sm pfb-css-input"
-					:placeholder="__('.print-format p { margin: 0; }')"
-					spellcheck="false"
-					rows="8"
-					:value="print_format.css || ''"
-					@input="(e) => (print_format.css = e.target.value)"
-				></textarea>
-			</div>
+		<InspectorSection :label="__('Custom CSS')" :init-open="false">
+			<textarea
+				class="form-control form-control-sm pfb-css-input"
+				:placeholder="__('.print-format p { margin: 0; }')"
+				spellcheck="false"
+				rows="8"
+				:value="print_format.css || ''"
+				@input="(e) => (print_format.css = e.target.value)"
+			></textarea>
 		</InspectorSection>
 	</div>
 </template>
@@ -129,6 +114,8 @@
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import ToggleRow from "./inspector/ToggleRow.vue";
+import InspectorRow from "./inspector/InspectorRow.vue";
+import SpacingRow from "./inspector/SpacingRow.vue";
 import InspectorSection from "./inspector/InspectorSection.vue";
 import ColorInput from "./inspector/ColorInput.vue";
 import DeskControl from "./DeskControl.vue";
@@ -136,42 +123,6 @@ import DeskControl from "./DeskControl.vue";
 let store = inject("$store");
 let { print_format, letterhead } = store;
 let { typst_blockers, legacy_blockers, has_typst_block } = store;
-
-// ── custom css ─────────────────────────────────────────────
-let css_enabled = ref(!!print_format.value.css);
-// a discarded draft or re-fetch replaces the doc — the toggle follows it,
-// except a toggle the user opened themselves stays open through a doc swap
-// (a save with an empty box must not close the panel under them)
-let css_manual = false;
-watch(
-	() => print_format.value,
-	(pf) => {
-		if (pf?.css) css_enabled.value = true;
-		else if (!css_manual) css_enabled.value = false;
-	}
-);
-watch(
-	() => print_format.value?.css,
-	(v) => {
-		if (v) css_enabled.value = true;
-	}
-);
-// turning the toggle off clears the css from the format, but keep what was
-// typed so flipping it back on restores it while this panel stays mounted
-let stashed_css = "";
-
-function toggle_css(on) {
-	css_manual = on;
-	css_enabled.value = on;
-	if (on) {
-		if (stashed_css && !print_format.value.css) {
-			print_format.value.css = stashed_css;
-		}
-	} else {
-		stashed_css = print_format.value.css || "";
-		print_format.value.css = "";
-	}
-}
 
 let google_fonts = ref([]);
 
@@ -225,12 +176,22 @@ let font_options = computed(() => [
 	...google_fonts.value.map((f) => ({ label: f, value: f })),
 ]);
 
-let margins = computed(() => [
-	{ label: __("Top"), fieldname: "margin_top" },
-	{ label: __("Bottom"), fieldname: "margin_bottom" },
-	{ label: __("Left", null, "alignment"), fieldname: "margin_left" },
-	{ label: __("Right", null, "alignment"), fieldname: "margin_right" },
-]);
+const MARGIN_FIELDS = {
+	top: "margin_top",
+	right: "margin_right",
+	bottom: "margin_bottom",
+	left: "margin_left",
+};
+let page_margins = computed(() =>
+	Object.fromEntries(
+		Object.entries(MARGIN_FIELDS).map(([side, f]) => [side, print_format.value[f] ?? 0])
+	)
+);
+function set_margins(sides) {
+	for (const [side, f] of Object.entries(MARGIN_FIELDS)) {
+		print_format.value[f] = Math.max(0, parseFloat(sides[side]) || 0);
+	}
+}
 
 let page_number_positions = computed(() => [
 	{ label: __("Hide"), value: "Hide" },
@@ -242,14 +203,10 @@ let page_number_positions = computed(() => [
 	{ label: __("Bottom Right"), value: "Bottom Right" },
 ]);
 
-function update_margin(fieldname, value) {
-	print_format.value[fieldname] = Math.max(0, parseFloat(value) || 0);
-}
-
 // ── colors ─────────────────────────────────────────────────
 const color_settings = [
-	{ fieldname: "label_color", label: __("Label Color") },
-	{ fieldname: "value_color", label: __("Value Color") },
+	{ fieldname: "label_color", label: __("Label") },
+	{ fieldname: "value_color", label: __("Value") },
 ];
 const letterhead_df = {
 	fieldname: "letter_head",
@@ -276,57 +233,36 @@ onMounted(() => {
 
 <style scoped>
 .pfb-label-with-hint {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	margin-bottom: 6px;
-}
-
-.pfb-label-with-hint .control-label {
-	margin: 0;
 }
 
 .pfb-hint-icon {
 	display: inline-flex;
-	color: var(--text-muted);
+	color: var(--ink-gray-6);
 }
 
 .pfb-renderer-note {
 	margin-top: 4px;
 	font-size: var(--text-sm);
-	color: var(--text-muted);
+	color: var(--ink-gray-6);
 }
 
-.pfb-settings .form-group {
-	margin-bottom: 0;
+.pfb-settings :deep(.pfb-insp-row:not(.pfb-insp-row--toggle)) {
+	grid-template-columns: 104px 1fr;
 }
 
 .pfb-settings :deep(.frappe-control) {
 	margin-bottom: 0;
 }
 
-.pfb-margin-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 6px;
-}
-
-.pfb-margin-cell {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-}
-
-.pfb-margin-label {
-	font-size: var(--text-tiny);
-}
-
 .pfb-css-input {
-	margin-top: 6px;
-	font-family: monospace;
+	font-family: var(--font-family-monospace);
 	font-size: var(--text-xs);
 	line-height: 1.5;
 	resize: vertical;
 	min-height: 120px;
+	height: auto;
 }
 </style>

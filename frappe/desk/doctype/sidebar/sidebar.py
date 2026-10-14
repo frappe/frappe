@@ -328,6 +328,13 @@ class Sidebar(Document, DeskViews):
 
 		rename_sidebar_rows(old_name, new_name)
 
+	def on_trash(self):
+		from frappe.desk.doctype.dock.dock import remove_sidebar_rows
+
+		# a dock row is a Dynamic Link, which no delete checks, so it would stay behind pointing at
+		# nothing
+		remove_sidebar_rows(self.name)
+
 	def clear_stored_keys(self):
 		"""Blank the `key` column on every item.
 
@@ -2460,7 +2467,9 @@ class ShellIndex:
 
 	def resolve(self, kind: str, entity: str, module: str | None) -> str | None:
 		"""The ladder itself, from `module+listed` down. The `owned` step is above this."""
-		listed = self.listed_in(kind, entity)
+		# A row in the Private shell is a shortcut one person kept, not a claim on where the entity
+		# belongs. Counted as one, pinning `Job Offer` there moved it out of `Recruitment`.
+		listed = [shell for shell in self.listed_in(kind, entity) if shell != PRIVATE_MODULE]
 		own = self.shell_of(module)
 
 		if own and own in listed:

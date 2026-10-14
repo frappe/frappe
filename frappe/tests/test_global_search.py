@@ -64,6 +64,19 @@ class TestGlobalSearch(IntegrationTestCase):
 			in results[0].content
 		)
 
+	def test_search_drops_unreadable_hit_without_message(self):
+		frappe.get_doc(
+			doctype="Event", subject="Board meeting agenda", event_type="Private", starts_on=now_datetime()
+		).insert()
+		global_search.sync_global_search()
+		frappe.clear_messages()
+
+		with self.set_user("test@example.com"):
+			results = global_search.search("agenda")
+
+		self.assertEqual(results, [])
+		self.assertEqual(frappe.get_message_log(), [])
+
 	def test_update_doc(self):
 		self.insert_test_events()
 		test_subject = "testing global search"

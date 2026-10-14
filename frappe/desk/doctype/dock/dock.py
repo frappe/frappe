@@ -537,6 +537,23 @@ def rename_sidebar_rows(old_name: str, new_name: str) -> None:
 		drop_dock_caches(layer.user)
 
 
+def remove_sidebar_rows(name: str) -> None:
+	"""Drop every dock row naming the sidebar `name`, and the caches those rows are read from.
+
+	For `Sidebar.on_trash`. The rows are removed in place for the same reason `rename_sidebar_rows`
+	updates them in place: re-saving each layer would re-run its validation and export.
+	"""
+	named = {"parenttype": "Dock", "link_type": "Sidebar", "link_to": name}
+	layers = frappe.get_all("Dock Item", filters=named, pluck="parent", distinct=True)
+	if not layers:
+		return
+
+	frappe.db.delete("Dock Item", named)
+	for layer in frappe.get_all("Dock", filters={"name": ["in", layers]}, fields=["name", "user"]):
+		frappe.clear_document_cache("Dock", layer.name)
+		drop_dock_caches(layer.user)
+
+
 def drop_dock_caches(user: str | None) -> None:
 	"""Drop the caches a dock layer is read from, for the user who holds it.
 
