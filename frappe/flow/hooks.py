@@ -76,7 +76,12 @@ after_migrate = [
 	"flow.lib.agent.sync_tools",
 	"flow.daemon.lifecycle.after_migrate",
 ]
-after_app_install = ["flow.lib.agent.sync_agents", "flow.lib.agent.sync_tools"]
+after_app_install = [
+	"flow.assistant.sync_assistant_skills",
+	"flow.lib.agent.sync_agents",
+	"flow.lib.agent.sync_tools",
+]
+after_app_uninstall = ["flow.assistant.sync_assistant_skills"]
 before_uninstall = ["flow.daemon.lifecycle.remove_site"]
 
 extend_bootinfo = "flow.boot.boot_session"

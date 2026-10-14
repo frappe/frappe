@@ -393,7 +393,7 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual((run.status, run.on_complete), ("Completed", None))
 		self.assertIsNone(frappe.db.get_value("Flow Session", self.session.name, "title"))
 		self.assertTrue(
-			frappe.db.exists("Error Log", {"reference_doctype": "Flow Run", "reference_name": run.name})
+			frappe.get_all("Error Log", {"reference_doctype": "Flow Run", "reference_name": run.name})
 		)
 
 	def test_chat_gives_its_run_the_on_complete(self):

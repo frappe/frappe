@@ -99,6 +99,19 @@ agent.run("Draft a reply to ticket 42", on_complete="myapp.ai.save_draft")
 flow_tools = ["myapp.ai.get_open_todos"]
 ```
 
+### Ship skills with your app
+
+Add `skills/<name>/SKILL.md` at the root of your app; the built-in assistant gets it.
+
+```markdown
+---
+name: close-todos
+description: Close overdue ToDos.
+---
+
+Close each open ToDo dated before today.
+```
+
 ### Manage sessions
 
 ```python

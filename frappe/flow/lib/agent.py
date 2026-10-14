@@ -63,6 +63,7 @@ class Agent:
 	disable them and switch the agent's model, nothing else. Tools must be module-level
 	functions in an installed app, since the flow server calls them back by import path.
 	`sub_agents` are Agents this one may hand a task to; they are synced before it.
+	`skills` are Flow Skill names.
 	"""
 
 	def __init__(
@@ -74,6 +75,7 @@ class Agent:
 		description: str = "",
 		tools: list[Tool] | None = None,
 		knowledge: Knowledge | list[Knowledge] | None = None,
+		skills: list[str] | None = None,
 		sub_agents: list[Agent] | None = None,
 		max_iterations: int = DEFAULT_MAX_ITERATIONS,
 		auto_approve: bool = False,
@@ -86,6 +88,7 @@ class Agent:
 		self.description = description
 		self.tools = list(tools or [])
 		self.knowledge = list(knowledge or [])
+		self.skills = list(skills or [])
 		self.sub_agents = list(sub_agents or [])
 		self.max_iterations = max_iterations
 		self.auto_approve = auto_approve
@@ -112,6 +115,7 @@ class Agent:
 		doc.is_system_generated = 1
 		doc.set("tools", [{"tool": _ensure_tool(tool)} for tool in self.tools])
 		doc.set("knowledge_bases", [{"knowledge_base": kb.name} for kb in self.knowledge])
+		doc.set("skills", [{"skill": name} for name in self.skills])
 		doc.set("sub_agents", [{"agent": child.name} for child in self.sub_agents])
 		doc.save(ignore_permissions=True)
 
