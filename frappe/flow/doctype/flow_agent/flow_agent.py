@@ -23,6 +23,7 @@ DEFAULT_MAX_ITERATIONS = 100
 
 # Skills bound to this agent; global ones add MAX_GLOBAL_SKILLS more. The index rides in
 # every session's prompt, so both caps together bound it however the skills are written.
+# Agents defined in code are not capped: the Assistant gets every installed app's skills.
 MAX_SKILLS = 30
 
 SKILL_INDEX_LEAD = (
@@ -112,7 +113,7 @@ class FlowAgent(Document):
 			frappe.throw(_("Token Budget cannot be negative."), title=_("Invalid Token Budget"))
 
 	def _validate_skills(self):
-		if len(self.skills) > MAX_SKILLS:
+		if len(self.skills) > MAX_SKILLS and not self.is_system_generated:
 			frappe.throw(
 				_("An agent can bind at most {0} skills.").format(MAX_SKILLS),
 				title=_("Too Many Skills"),

@@ -20,6 +20,8 @@ MAX_GLOBAL_SKILLS = 10
 _SKILL_COMMAND_RE = re.compile(r"/skill:(\S+)(?:\s+(.*))?$", re.DOTALL)
 # a "/skill:<command>" word anywhere in a message
 _SKILL_TOKEN_RE = re.compile(r"(?<!\S)/skill:(\S+)")
+# the frontmatter that opens a SKILL.md, matched as the harness matches it
+_FRONTMATTER_RE = re.compile(r"\A---[ \t]*\r?\n.*?\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 
 # Rides inside the wrapper, unseen by the user: the agent's index still says to load skills.
 SKILL_LOADED_NOTE = "This is the full skill, already loaded. Follow it; do not call load_skill for it."
@@ -138,3 +140,53 @@ def skill_command(title: str) -> str:
 	"""What a user types after `/skill:` to start the skill: the title lowercased, each run of
 	other characters as one hyphen."""
 	return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+
+
+def sync_skills() -> list[str]:
+	"""Write each installed app's skills/<name>/SKILL.md as a locked Flow Skill and delete the app
+	skills gone from disk. Returns their names."""
+	from flow_harness.session.skills import list_skill_files, load_skill
+
+	shipped: dict[str, tuple[str, str, str]] = {}
+	for app in frappe.get_installed_apps(_ensure_on_bench=True):
+		for path in list_skill_files(frappe.get_app_source_path(app, "skills"))[0]:
+			try:
+				skill = load_skill(path)
+				with open(path, encoding="utf-8") as file:
+					instructions = _FRONTMATTER_RE.sub("", file.read(), count=1).strip()
+			except ValueError as e:  # a SkillError, or a body that is not UTF-8
+				frappe.throw(_("Invalid skill {0}: {1}").format(path, e), title=_("Invalid Skill"))
+			if skill.name in shipped:
+				frappe.throw(
+					_("Skill {0} is shipped by both {1} and {2}.").format(
+						skill.name, shipped[skill.name][0], app
+					),
+					title=_("Skill Conflict"),
+				)
+			shipped[skill.name] = (app, skill.description, instructions)
+	for name, (_app, description, instructions) in shipped.items():
+		_ensure_skill(name, description, instructions)
+	for name in set(frappe.get_all("Flow Skill", {"is_system_generated": 1}, pluck="name")) - shipped.keys():
+		# unlink first: delete_doc refuses a skill an agent still uses
+		frappe.db.delete("Flow Agent Skill", {"skill": name})
+		frappe.delete_doc("Flow Skill", name, ignore_permissions=True)
+	return sorted(shipped)
+
+
+def _ensure_skill(name: str, description: str, instructions: str) -> None:
+	"""Create or update the locked Flow Skill for one app skill."""
+	definition = {"description": description, "instructions": instructions, "is_system_generated": 1}
+	row = frappe.db.get_value("Flow Skill", name, list(definition), as_dict=True)
+	if row and not row.is_system_generated:
+		frappe.throw(
+			_("Flow Skill {0} already exists and is not owned by an app.").format(name),
+			title=_("Skill Conflict"),
+		)
+	if row and all(row[key] == value for key, value in definition.items()):
+		return
+	if row:
+		doc = frappe.get_doc("Flow Skill", name)
+	else:
+		doc = frappe.get_doc({"doctype": "Flow Skill", "title": name})
+	doc.update(definition)
+	doc.save(ignore_permissions=True)

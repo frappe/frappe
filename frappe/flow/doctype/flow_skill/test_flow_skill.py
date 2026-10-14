@@ -1,12 +1,16 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # See license.txt
 
+import os
+import shutil
+import tempfile
 from typing import Any
+from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.flow.doctype.flow_skill.flow_skill import MAX_GLOBAL_SKILLS, skill_command
+from flow.flow.doctype.flow_skill.flow_skill import MAX_GLOBAL_SKILLS, skill_command, sync_skills
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -154,3 +158,126 @@ class TestFlowSkillGlobalLimit(IntegrationTestCase):
 		for i in range(MAX_GLOBAL_SKILLS + 5):
 			frappe.get_doc(_skill(title=f"Bound {i:03d}")).insert()
 		self.assertEqual(frappe.db.count("Flow Skill", {"is_global": 0}), MAX_GLOBAL_SKILLS + 5)
+
+
+class AppSkills:
+	"""Stands in for every installed app's skills folder, in a scratch directory."""
+
+	def __init__(self, test: IntegrationTestCase):
+		self.root = test.enterContext(tempfile.TemporaryDirectory())
+		get_app_source_path = frappe.get_app_source_path
+
+		def source_path(app: str, *joins: str) -> str:
+			return os.path.join(self.root, app) if joins == ("skills",) else get_app_source_path(app, *joins)
+
+		test.enterContext(patch("frappe.get_app_source_path", side_effect=source_path))
+
+	def write(
+		self,
+		name: str,
+		*,
+		app: str = "flow",
+		description: str = "Close overdue ToDos.",
+		body: str = "Close each one.",
+		text: str | None = None,
+	) -> str:
+		"""Write the app's skills/<name>/SKILL.md and return its folder."""
+		folder = os.path.join(self.root, app, name)
+		os.makedirs(folder, exist_ok=True)
+		with open(os.path.join(folder, "SKILL.md"), "w") as file:
+			file.write(text or f"---\nname: {name}\ndescription: {description}\n---\n\n{body}\n")
+		return folder
+
+
+class TestAppSkills(IntegrationTestCase):
+	def setUp(self):
+		self.skills = AppSkills(self)
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_an_app_skill_becomes_a_locked_flow_skill(self):
+		self.skills.write("close-todos")
+
+		self.assertEqual(sync_skills(), ["close-todos"])
+
+		doc = frappe.get_doc("Flow Skill", "close-todos")
+		self.assertEqual(
+			(doc.description, doc.instructions, doc.is_system_generated),
+			("Close overdue ToDos.", "Close each one.", 1),
+		)
+		self.assertEqual((doc.enabled, doc.is_global, doc.user_invocable), (1, 0, 0))
+
+	def test_a_resync_follows_the_file_but_keeps_site_choices(self):
+		self.skills.write("close-todos")
+		sync_skills()
+		frappe.db.set_value("Flow Skill", "close-todos", {"enabled": 0, "user_invocable": 1})
+		self.skills.write("close-todos", description="Changed.", body="New body.")
+
+		sync_skills()
+
+		doc = frappe.get_doc("Flow Skill", "close-todos")
+		self.assertEqual(
+			(doc.description, doc.instructions, doc.enabled, doc.user_invocable),
+			("Changed.", "New body.", 0, 1),
+		)
+
+	def test_an_unchanged_skill_is_not_saved_again(self):
+		self.skills.write("close-todos")
+		sync_skills()
+		modified = frappe.db.get_value("Flow Skill", "close-todos", "modified")
+
+		sync_skills()
+
+		self.assertEqual(frappe.db.get_value("Flow Skill", "close-todos", "modified"), modified)
+
+	def test_a_skill_gone_from_disk_is_deleted_and_unlinked(self):
+		folder = self.skills.write("close-todos")
+		sync_skills()
+		model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "App Skill Model",
+				"model_id": "openai/gpt-4o-mini",
+				"enabled": 1,
+			}
+		).insert()
+		agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "App Skill Agent",
+				"model": model.name,
+				"instructions": "Help with todos.",
+				"skills": [{"skill": "close-todos"}],
+			}
+		).insert()
+		shutil.rmtree(folder)
+
+		self.assertEqual(sync_skills(), [])
+
+		self.assertFalse(frappe.db.exists("Flow Skill", "close-todos"))
+		self.assertEqual(frappe.get_all("Flow Agent Skill", {"parent": agent.name}, pluck="skill"), [])
+
+	def test_a_desk_skill_with_the_same_name_is_left_alone(self):
+		frappe.get_doc(_skill(title="close-todos")).insert()
+		self.skills.write("close-todos")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "not owned by an app"):
+			sync_skills()
+
+		self.assertEqual(frappe.db.get_value("Flow Skill", "close-todos", "is_system_generated"), 0)
+
+	def test_two_apps_cannot_ship_the_same_skill(self):
+		self.skills.write("close-todos", app="frappe")
+		self.skills.write("close-todos", app="flow")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "shipped by both frappe and flow"):
+			sync_skills()
+
+		self.assertFalse(frappe.db.exists("Flow Skill", "close-todos"))
+
+	def test_a_skill_named_unlike_its_folder_is_refused_with_its_path(self):
+		self.skills.write("close-todos", text="---\nname: other\ndescription: Wrong name.\n---\nBody\n")
+
+		with self.assertRaisesRegex(frappe.ValidationError, "close-todos/SKILL.md: skill name 'other'"):
+			sync_skills()
