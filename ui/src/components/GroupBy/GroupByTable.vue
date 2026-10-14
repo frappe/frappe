@@ -195,9 +195,11 @@ const handleColumn = (column: GroupByColumn) => ({
 	label: column.label,
 });
 
-// The sort the headers show: the chosen one, else the first aggregate, largest first.
+// The sort the headers show, matching `serializeGroupBy`: the chosen one while its
+// column is still shown, else the first aggregate, largest first.
 const sort = computed<Sort[]>(() => {
-	if (props.groupBy.sort?.length) return props.groupBy.sort;
+	const chosen = props.groupBy.sort?.[0];
+	if (chosen && columns.value.some((c) => c.id === chosen.fieldname)) return [chosen];
 	const first = columns.value.find((c) => c.align === "right");
 	return first ? [{ fieldname: first.id, direction: "desc" }] : [];
 });
