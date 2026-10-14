@@ -173,6 +173,7 @@ view.filters; // UseFilters    — { conditions: Ref<FilterCondition[]>, wire }
 view.sort; // UseSort       — { by: Ref<Sort[]>, orderBy }
 view.quickFilter; // UseQuickFilter— { fields, customizing, canCustomize }
 view.columns; // UseColumns    — { shown, isCustomized, reset, wire, setWidth, resetWidth }
+view.groupBy; // Ref<GroupBySettings | null> — the GroupBy control's model, `null` when ungrouped
 
 view.snapshot; // ComputedRef<ListViewSnapshot>  (the whole view as one JSON object)
 view.restore(snapshot); // seed from a (possibly partial) snapshot
@@ -185,7 +186,7 @@ list and `order_by` string you query with. The controls bind the _state_ members
 ### Saving changes — read this first
 
 **You do not save controls individually.** There is no "save the Filter", "save the
-SortBy", or "save the Columns". All four controls write into one object,
+SortBy", or "save the Columns". All the controls write into one object,
 `view.snapshot`, and **any** change replaces it with a new value. So you wire **one**
 watcher and it persists everything:
 
@@ -195,14 +196,15 @@ watch(view.snapshot, (snap) => saveView(snap)); // saves ALL of the below
 
 Every one of these triggers that single watcher — there is nothing else to wire:
 
-| The user…                           | …mutates                           | …so `view.snapshot` changes and your watcher saves |
-| ----------------------------------- | ---------------------------------- | -------------------------------------------------- |
-| edits a **Filter**                  | `view.filters.conditions`          | ✅                                                 |
-| reorders/changes **SortBy**         | `view.sort.by`                     | ✅                                                 |
-| **adds / removes** a column         | `view.columns.shown`               | ✅                                                 |
-| **resizes** a column (drag header)  | `view.columns.shown` (width)       | ✅                                                 |
-| edits a **Quick Filter** value      | `view.filters.conditions` (shared) | ✅                                                 |
-| customizes which quick filters show | `view.quickFilter.fields`          | ✅                                                 |
+| The user…                                     | …mutates                           | …so `view.snapshot` changes and your watcher saves |
+| --------------------------------------------- | ---------------------------------- | -------------------------------------------------- |
+| edits a **Filter**                            | `view.filters.conditions`          | ✅                                                 |
+| reorders/changes **SortBy**                   | `view.sort.by`                     | ✅                                                 |
+| **adds / removes** a column                   | `view.columns.shown`               | ✅                                                 |
+| **resizes** a column (drag header)            | `view.columns.shown` (width)       | ✅                                                 |
+| groups, sorts or resizes a **Group By** table | `view.groupBy`                     | ✅                                                 |
+| edits a **Quick Filter** value                | `view.filters.conditions` (shared) | ✅                                                 |
+| customizes which quick filters show           | `view.quickFilter.fields`          | ✅                                                 |
 
 > `snapshot` is a fresh object **only when a control's state actually changes**, so
 > the watcher fires once per real edit — no `deep: true`, no spurious saves. Resize
