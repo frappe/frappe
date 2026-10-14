@@ -331,6 +331,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 	assignments = get_assignments(doc)
 
 	if assignments:
+		closed_assignments_checked = False
 		for assignment_rule in assignment_rule_docs:
 			if assignment_rule.is_rule_not_applicable_today():
 				continue
@@ -356,7 +357,8 @@ def apply(doc=None, method=None, doctype=None, name=None):
 						_todo.save(ignore_permissions=True)
 					break
 
-				else:
+				elif not closed_assignments_checked:
+					closed_assignments_checked = True
 					reopened = reopen_closed_assignment(doc)
 					if reopened:
 						break
