@@ -59,7 +59,7 @@ frappe.views.BaseList = class BaseList {
 		this.fields = [];
 		this.filters = [];
 		this.sort_by = this.meta.sort_field || "creation";
-		this.sort_order = this.meta.sort_order || "desc";
+		this.sort_order = (this.meta.sort_order || "desc").toLowerCase();
 
 		// Setup buttons
 		this.primary_action = null;
