@@ -34,7 +34,7 @@
 			{% set format_doc = row_doc(first_row if row.is_total_row else row, doctype=title, name=row_number) %}
 			{% for col in columns %}
 				{% set value = row.get(col.fieldname) %}
-				<td {% if value is string and value.split(" ") | map("length") | max > 45 %} class="overflow-wrap-anywhere" {% endif %}>
+				<td {% if col.fieldtype in numeric_fieldtypes %} class="text-right" {% elif value is string and value.split(" ") | map("length") | max > 45 %} class="overflow-wrap-anywhere" {% endif %}>
 					<span {% if loop.first %} style="padding-left: {{ (row.indent | int) * 2 }}em" {% endif %}>
 						{% if row.is_total_row and loop.first %}
 							{{ _("Total") }}
