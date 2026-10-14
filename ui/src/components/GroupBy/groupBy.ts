@@ -31,13 +31,13 @@ const GROUPABLE_FIELDTYPES = new Set([
   "Date",
 ]);
 
+/** Desk's `frappe.model.numeric_fieldtypes`, the ones sum and average take. */
 const NUMERIC_FIELDTYPES = new Set([
   "Int",
   "Float",
   "Currency",
   "Percent",
   "Duration",
-  "Rating",
 ]);
 
 const TIME_FIELDTYPES = new Set(["Date", "Datetime", "Time"]);
@@ -58,7 +58,8 @@ const STANDARD_TIME_FIELDS: ReadonlyArray<GroupByField> = [
   },
 ];
 
-/** Standard fields every doctype can be grouped by, after the Meta fields. */
+/** Standard fields every doctype can be grouped by, after the Meta fields: desk's
+ *  standard fields of a groupable fieldtype, less `name` and `idx`. */
 const STANDARD_GROUP_FIELDS: ReadonlyArray<GroupByField> = [
   {
     label: "Created By",
@@ -74,6 +75,18 @@ const STANDARD_GROUP_FIELDS: ReadonlyArray<GroupByField> = [
     fieldtype: "Link",
     options: "User",
   },
+  {
+    label: "Tags",
+    value: "_user_tags",
+    fieldname: "_user_tags",
+    fieldtype: "Data",
+  },
+  {
+    label: "Document Status",
+    value: "docstatus",
+    fieldname: "docstatus",
+    fieldtype: "Int",
+  },
 ];
 
 function toField(f: RawMetaField): GroupByField {
@@ -86,16 +99,17 @@ function toField(f: RawMetaField): GroupByField {
   };
 }
 
-function isShown(f: RawMetaField): boolean {
-  return Boolean(f.label && f.fieldname) && !f.hidden;
+// Hidden fields are offered, as desk does; a virtual field has no column to query.
+function isQueryable(f: RawMetaField): boolean {
+  return Boolean(f.label && f.fieldname) && !f.is_virtual;
 }
 
-/** The fields a list can be grouped by: labelled, visible fields of a groupable
- *  fieldtype, then the standard user fields. */
+/** The fields a list can be grouped by: labelled fields of a groupable fieldtype,
+ *  then the standard fields. */
 export function getGroupByFields(fields: RawMetaField[]): GroupByField[] {
   return [
     ...fields
-      .filter((f) => isShown(f) && GROUPABLE_FIELDTYPES.has(f.fieldtype))
+      .filter((f) => isQueryable(f) && GROUPABLE_FIELDTYPES.has(f.fieldtype))
       .map(toField),
     ...STANDARD_GROUP_FIELDS,
   ];
@@ -113,7 +127,7 @@ export function getAggregateFields(
   const metaFields = fields
     .filter(
       (f) =>
-        isShown(f) &&
+        isQueryable(f) &&
         (NUMERIC_FIELDTYPES.has(f.fieldtype) ||
           (allowsTimes && TIME_FIELDTYPES.has(f.fieldtype)))
     )
@@ -121,7 +135,7 @@ export function getAggregateFields(
   return allowsTimes ? [...metaFields, ...STANDARD_TIME_FIELDS] : metaFields;
 }
 
-/** Field lookup for labels and formatting, covering the standard user fields. */
+/** Field lookup for labels and formatting, covering the standard fields. */
 export function findGroupByField(
   fields: RawMetaField[],
   fieldname: string
