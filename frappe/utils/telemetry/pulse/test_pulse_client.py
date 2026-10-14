@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils.telemetry.pulse.client import EventQueue, capture, is_enabled
+from frappe.utils.telemetry.pulse.client import EventQueue, boot_config, capture, is_enabled
 from frappe.utils.telemetry.pulse.utils import anonymize_user, parse_interval
 
 
@@ -302,6 +302,38 @@ class TestCapture(TestPulseClient):
 		# User should be anonymized
 		self.assertNotEqual(events[0]["user"], test_user)
 		self.assertTrue(events[0]["user"].startswith("anon_"))
+
+
+class TestBootConfig(TestPulseClient):
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled", return_value=False)
+	def test_boot_config_when_disabled(self, mock_enabled):
+		"""Test that the guest endpoint hands out nothing when disabled"""
+		with patch.dict(frappe.conf, {"pulse_api_key": "k"}):
+			self.assertEqual(boot_config(), {"enabled": False})
+
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled", return_value=True)
+	def test_boot_config_when_enabled(self, mock_enabled):
+		"""Test the config frappe-ui apps load the pulse client with"""
+		conf = {"pulse_api_key": "k", "pulse_host": "pulse.example.com/", "fc_team": "team_x"}
+		with patch.dict(frappe.conf, conf):
+			config = boot_config()
+
+		self.assertTrue(config["enabled"])
+		self.assertEqual(config["host"], "https://pulse.example.com")
+		self.assertEqual(config["client_url"], "https://pulse.example.com/assets/pulse/js/pulse_client.js")
+		self.assertEqual(config["key"], "k")
+		self.assertEqual(config["site"], frappe.local.site)
+		self.assertEqual(config["team"], "team_x")
+		self.assertGreaterEqual(config["site_age"], 1)
+
+	@patch("frappe.utils.telemetry.pulse.client.is_enabled", return_value=True)
+	def test_boot_config_user(self, mock_enabled):
+		"""Test that guests get no user and other users an anonymized one"""
+		with self.set_user("Guest"):
+			self.assertIsNone(boot_config()["user"])
+
+		with self.set_user("test@example.com"):
+			self.assertEqual(boot_config()["user"], anonymize_user("test@example.com"))
 
 
 class TestUtils(TestPulseClient):
