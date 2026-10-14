@@ -130,6 +130,17 @@ describe("useGroupByData", () => {
     expect(data.totals.value).toEqual({ _aggregate_0: 690 });
   });
 
+  it("drops the totals once the last aggregate is removed", async () => {
+    const groupBy = ref<GroupBySettings>({ ...BY_STATUS, showTotals: true });
+    const data = useGroupByData("Sales Order", groupBy, {});
+    h.resources[2].data = [{ _aggregate_0: 690 }];
+    expect(data.totals.value).toEqual({ _aggregate_0: 690 });
+
+    groupBy.value = { ...groupBy.value, aggregates: [] };
+    await nextTick();
+    expect(data.totals.value).toBeNull();
+  });
+
   it("keeps the loaded pages when only a column width changes", async () => {
     const groupBy = ref<GroupBySettings>({ ...BY_STATUS });
     const data = useGroupByData("Sales Order", groupBy, {});

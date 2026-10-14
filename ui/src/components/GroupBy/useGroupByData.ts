@@ -145,7 +145,9 @@ export function useGroupByData(
     rows,
     totals: computed(() => {
       const settings = toValue(groupBy);
-      if (!settings?.showTotals) return null;
+      // Without aggregates there's nothing to total, whatever an earlier fetch left.
+      if (!settings?.showTotals || !serializeGroupByTotals(settings))
+        return null;
       return (totals.data as Record<string, unknown>[] | null)?.[0] ?? null;
     }),
     loading: computed(() => Boolean(groups.loading)),
