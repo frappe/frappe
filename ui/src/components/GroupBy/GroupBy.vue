@@ -59,8 +59,8 @@
 						/>
 					</div>
 					<Button
-						class="-ml-2 self-start"
-						variant="ghost"
+						class="self-start"
+						variant="outline"
 						iconLeft="lucide-plus"
 						:label="__('Add Group By')"
 						@click="draft.fields.push('')"
@@ -96,8 +96,8 @@
 						/>
 					</div>
 					<Button
-						class="-ml-2 self-start"
-						variant="ghost"
+						class="self-start"
+						variant="outline"
 						iconLeft="lucide-plus"
 						:label="__('Add Aggregate')"
 						@click="addAggregate"
