@@ -1021,7 +1021,7 @@ frappe.ui.Page = class Page {
 			this.$breadcrumbs = $("<ol>").appendTo($nav);
 		}
 		// a page inside a dialog has a head of its own but no business drawing a trail in it
-		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs();
+		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs().slice();
 		// the title (last crumb) becomes a button when something sets an action for it
 		const title_action = items.length && frappe.ui.Page.title_action?.();
 		if (title_action) items.push({ ...items.pop(), onclick: title_action });

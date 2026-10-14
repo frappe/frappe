@@ -39,11 +39,17 @@ frappe.ui.MobileNav = class MobileNav {
 		this.set_active();
 
 		// The title is the trail's last crumb (Page.set_title). Given an action, it renders as
-		// a button, so a keyboard reaches it too. Pages inside dialogs draw no trail.
+		// a button, so a keyboard reaches it too. Pages inside dialogs draw no trail. Same
+		// breakpoint as mobile_nav.scss; crossing it redraws the title, which is a button only
+		// below it.
+		const phone = window.matchMedia("(max-width: 767.98px)");
 		frappe.ui.Page.title_action = () =>
-			frappe.is_mobile() && document.body.classList.contains("mobile-nav-title")
+			phone.matches && document.body.classList.contains("mobile-nav-title")
 				? () => this.open_navigation()
 				: null;
+		phone.addEventListener("change", () =>
+			frappe.container?.page?.page?.render_breadcrumbs?.()
+		);
 
 		// A form on a phone has a back button in place of the tab bar (see apply_page_visibility).
 		$(document).on("click", ".page-head .page-back-button", () => this.go_back());
