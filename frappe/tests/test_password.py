@@ -5,14 +5,14 @@ import unicodedata
 from cryptography.fernet import Fernet
 
 import frappe
-from frappe.auth import MAX_PASSWORD_SIZE, LoginManager
+from frappe.auth import LoginManager
 from frappe.tests import IntegrationTestCase
 from frappe.utils.password import (
+	MAX_PASSWORD_SIZE,
 	Auth,
 	check_password,
 	decrypt,
 	encrypt,
-	is_password_reused,
 	passlibctx,
 	update_password,
 )
@@ -111,7 +111,13 @@ class TestPassword(IntegrationTestCase):
 		# check paths: same error, not an AuthenticationError the login manager would swallow
 		self.assertRaises(frappe.ValidationError, check_password, user, too_long)
 		self.assertRaises(frappe.ValidationError, check_password, user, "a" * 5000)
-		self.assertRaises(frappe.ValidationError, is_password_reused, user, too_long)
+
+		from frappe.core.doctype.user.user import update_password as update_password_api
+
+		with self.assertRaisesRegex(frappe.ValidationError, "^New Password size"):
+			update_password_api(new_password=too_long, old_password="Eastern_43A1W")
+		with self.assertRaisesRegex(frappe.ValidationError, "^Old Password size"):
+			update_password_api(new_password="Eastern_43A1W", old_password=too_long)
 
 		# login: same error whether or not the account exists, so no enumeration
 		login_manager = object.__new__(LoginManager)  # skip __init__, it needs a request

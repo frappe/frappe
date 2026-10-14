@@ -13,6 +13,7 @@ from frappe.query_builder import Table
 from frappe.utils import cstr, encode
 
 Auth = Table("__Auth")
+MAX_PASSWORD_SIZE = 512
 
 passlibctx = CryptContext(
 	schemes=[
@@ -27,15 +28,12 @@ def normalize_password(pwd):
 	return unicodedata.normalize("NFC", pwd)
 
 
-def validate_password_size(pwd):
-	from frappe.auth import MAX_PASSWORD_SIZE
-
+def validate_password_size(pwd, label=None):
 	if len(pwd) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("Password size exceeded the maximum allowed size."))
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(label or _("Password")))
 
 
 def verify_password(pwd, hashed):
-	validate_password_size(pwd)
 	normalized = normalize_password(pwd)
 	if passlibctx.verify(normalized, hashed):
 		return True, passlibctx.needs_update(hashed)
@@ -131,6 +129,8 @@ def is_password_reused(user, pwd, doctype="User", fieldname="password"):
 
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
+
+	validate_password_size(pwd)
 
 	result = (
 		frappe.qb.from_(Auth)

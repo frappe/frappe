@@ -1010,6 +1010,11 @@ def update_password(
 	    key (str, optional): Password reset key. Defaults to None.
 	    old_password (str, optional): Old password. Defaults to None.
 	"""
+	from frappe.utils.password import validate_password_size
+
+	if old_password:
+		validate_password_size(old_password, _("Old Password"))
+	validate_password_size(new_password, _("New Password"))
 
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
