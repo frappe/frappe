@@ -13,7 +13,7 @@ import type { GroupBySettings } from "./types";
  *
  * It fetches one row per group through `frappe.client.get_list`, plus the group keys
  * alone for the footer's "of N" (there's no count of distinct groups to ask for),
- * capped at `countCap` so a field with many values can't pull the whole list.
+ * capped at `COUNT_CAP` so a field with many values can't pull the whole list.
  * Any change to the doctype, grouping, filters or page length refetches from the
  * first page; `loadMore` grows the page by one page length. With `showTotals`, a
  * third ungrouped query gives the totals row.
@@ -45,31 +45,17 @@ export interface UseGroupByData {
   reload: () => void;
 }
 
-/** Defaults a host can override through `UseGroupByDataOptions`. */
-export const GROUP_BY_DATA_DEFAULTS = {
-  /** Groups per page, the same as the List module's footer starts at. */
-  pageLength: 20,
-  /** Most group keys fetched to count the groups; past it the total is a floor. */
-  countCap: 1000,
-};
-
-export interface UseGroupByDataOptions {
-  pageLength?: number;
-  countCap?: number;
-}
+/** Most group keys fetched to count the groups; past it the total is a floor. */
+const COUNT_CAP = 1000;
 
 export function useGroupByData(
   doctype: MaybeRefOrGetter<string>,
   groupBy: MaybeRefOrGetter<GroupBySettings | null>,
-  filters: MaybeRefOrGetter<WireFilters | Record<string, unknown>>,
-  options: UseGroupByDataOptions = {}
+  filters: MaybeRefOrGetter<WireFilters | Record<string, unknown>>
 ): UseGroupByData {
-  const { pageLength: initialPageLength, countCap } = {
-    ...GROUP_BY_DATA_DEFAULTS,
-    ...options,
-  };
-  const pageLength = ref(initialPageLength);
-  const limit = ref(initialPageLength);
+  // Groups per page, the same as the List module's footer starts at.
+  const pageLength = ref(20);
+  const limit = ref(pageLength.value);
 
   // The grouping the queries run on. Only `reload` and `loadMore` fetch, and both
   // stop first when the list is ungrouped.
@@ -102,7 +88,7 @@ export function useGroupByData(
         filters: toValue(filters),
         fields,
         group_by,
-        limit_page_length: countCap,
+        limit_page_length: COUNT_CAP,
       };
     },
   });
@@ -152,7 +138,7 @@ export function useGroupByData(
   );
 
   const totalCount = computed<number>(() => groupKeys.data?.length ?? 0);
-  const totalCapped = computed(() => totalCount.value >= countCap);
+  const totalCapped = computed(() => totalCount.value >= COUNT_CAP);
 
   return {
     rows,
