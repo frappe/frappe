@@ -1350,10 +1350,7 @@ def browse(
 
 	from frappe.auth import CookieManager, LoginManager
 
-	site = site or get_site(context, raise_err=False)
-
-	if not site:
-		raise SiteNotSpecifiedError
+	site = site or get_site(context)
 
 	if site not in frappe.utils.get_sites():
 		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
@@ -1378,7 +1375,7 @@ def browse(
 			login_path = f"{frappe.local.response.home_page}?sid={sid}"
 		else:
 			click.echo(
-				"You cannot login as a non-administrator user when developer mode is disabled", err=True
+				"Only browsing as Administrator is supported outside development environments.", err=True
 			)
 			sys.exit(1)
 
