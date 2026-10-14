@@ -741,6 +741,26 @@ describe("useDataImport: start and stop", () => {
     expect(di.running.value).toBe(true);
   });
 
+  it("keeps the server's error when the run can't start and clears it on the next start", async () => {
+    responders.form_start_import = () => {
+      throw Object.assign(new Error("x"), {
+        messages: ["Scheduler is inactive. Cannot import data."],
+      });
+    };
+    const di = mount(ref("DI-1"));
+    await settle();
+
+    expect(await di.start()).toBe(false);
+    expect(di.running.value).toBe(false);
+    expect(di.startError.value).toBe(
+      "Scheduler is inactive. Cannot import data."
+    );
+
+    responders.form_start_import = () => true;
+    expect(await di.start()).toBe(true);
+    expect(di.startError.value).toBeNull();
+  });
+
   it("stops the job and reloads", async () => {
     responders.stop_data_import = () => ({
       status: "not_running",
