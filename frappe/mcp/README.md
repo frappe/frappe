@@ -1,6 +1,6 @@
 # Built-in MCP server
 
-Frappe exposes four tools at `/api/v2/mcp` for agents to inspect schemas, read and change documents, and call existing methods.
+Frappe exposes 15 tools at `/api/v2/mcp` for agents to inspect schemas, read and change documents, and call existing methods.
 The endpoint is enabled by default and uses the authenticated site user's permissions.
 It supports Streamable HTTP with JSON responses and protocol versions `2025-11-25` and `2026-07-28`.
 
@@ -27,7 +27,7 @@ Launch the client from the terminal where you set `FRAPPE_MCP_AUTH`.
 
 For multiple sites, configure one connection per site with a descriptive name, such as `frappe_accounts` or `frappe_support`.
 Tool descriptions identify the resolved site. Successful and failed tool results include its identity and the authenticated user.
-Call `discover` without arguments to inspect the connected site before choosing an operation.
+Call `get_site_info` without arguments to inspect the connected site before choosing an operation.
 
 ### MCP Inspector
 
@@ -66,18 +66,25 @@ Examples show tool arguments, which the client sends through `tools/call`.
 
 | Tool | Purpose | Example arguments |
 | --- | --- | --- |
-| `discover` | Inspect site metadata, DocType schemas, and permitted method contracts. | `{"doctype":"ToDo"}` |
-| `get_documents` | Read a document, list matches, or count matches. | `{"doctype":"ToDo","filters":{"status":"Open"},"fields":["name","description"],"limit":20}` |
-| `write_document` | Create, update, or delete one document. | `{"action":"create","doctype":"ToDo","data":{"description":"Check MCP"}}` |
-| `call_method` | Call a whitelisted API or document method. | `{"method":"frappe.auth.get_logged_user"}` |
+| `get_site_info` | Identify the site, user, roles, and modules. | `{}` |
+| `search_doctypes` | Find DocTypes by name or module. | `{"query":"ToDo"}` |
+| `get_doctype_schema` | Inspect fields and permissions. | `{"doctype":"ToDo"}` |
+| `search_methods` | Find whitelisted methods. | `{"query":"get_count"}` |
+| `get_method_schema` | Inspect an API function's arguments. | `{"method":"frappe.client.get_count"}` |
+| `list_document_methods` | List whitelisted instance methods. | `{"doctype":"ToDo"}` |
+| `get_document_method_schema` | Inspect an instance method's arguments. | `{"doctype":"ToDo","method":"add_comment"}` |
+| `list_documents` | List matching documents with pagination. | `{"doctype":"ToDo","filters":{"status":"Open"},"fields":["name","description"],"limit":20}` |
+| `get_document` | Read one document and its permitted child rows. | `{"doctype":"ToDo","name":"TODO-00001"}` |
+| `count_documents` | Count matching documents. | `{"doctype":"ToDo","filters":{"status":"Open"}}` |
+| `create_document` | Create one document. | `{"doctype":"ToDo","data":{"description":"Check MCP"}}` |
+| `update_document` | Update one document. | `{"doctype":"ToDo","name":"TODO-00001","data":{"status":"Closed"}}` |
+| `delete_document` | Delete one document. | `{"doctype":"ToDo","name":"TODO-00001"}` |
+| `call_method` | Call a whitelisted API function. | `{"method":"frappe.auth.get_logged_user"}` |
+| `call_document_method` | Call a whitelisted instance method on one document. | `{"doctype":"ToDo","name":"TODO-00001","method":"add_comment","args":{"text":"Checked"}}` |
 
-- `discover`: use no arguments for a site overview, `query` to search, or `doctype` to inspect a schema.
-  Use `method` to inspect a method. Do not combine `query` with the other arguments.
-- `get_documents` accepts `name` for one document or `count_only: true` for a count.
-  Lists default to `start: 0`, `limit: 20`, and the `name` field. Use `has_next_page` to continue paging.
-- `write_document` requires `data` for create and update, and `name` for update and delete.
-  Submit and cancel use `call_method` with `doctype`, `name`, and `method`.
-- `call_method` accepts an `args` object. Add `doctype` for a controller module function and `name` for a stored document method.
+Lists default to `start: 0`, `limit: 20`, and the `name` field. Use `has_next_page` to continue paging.
+Method calls accept an `args` object. Controller module functions use their full dotted path with `call_method`.
+Submit and cancel use `call_document_method` with `doctype`, `name`, and `method`.
 
 ### Permissions
 

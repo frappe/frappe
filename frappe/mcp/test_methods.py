@@ -31,13 +31,13 @@ class TestCallMethod(McpTestCase):
 		finally:
 			super().tearDown()
 
-	def invoke(self, **arguments):
+	def invoke(self, *, tool="call_method", **arguments):
 		return self.request(
 			{
 				"jsonrpc": "2.0",
 				"id": 1,
 				"method": "tools/call",
-				"params": {"name": "call_method", "arguments": arguments},
+				"params": {"name": tool, "arguments": arguments},
 			}
 		)
 
@@ -59,7 +59,9 @@ class TestCallMethod(McpTestCase):
 
 	def test_controller_module_function(self):
 		description = f"MCP module call {self.own}"
-		result = self.result(doctype="ToDo", method="new_todo", args={"description": description})
+		result = self.result(
+			method="frappe.desk.doctype.todo.todo.new_todo", args={"description": description}
+		)
 		self.assertIsNone(result["result"])
 		name = frappe.db.get_value("ToDo", {"description": description, "owner": self.user}, "name")
 		self.assertIsNotNone(name)
@@ -68,7 +70,11 @@ class TestCallMethod(McpTestCase):
 
 	def test_document_method(self):
 		result = self.result(
-			doctype="ToDo", name=self.own, method="add_comment", args={"text": "MCP comment"}
+			tool="call_document_method",
+			doctype="ToDo",
+			name=self.own,
+			method="add_comment",
+			args={"text": "MCP comment"},
 		)
 		self.assertEqual(result["document"]["name"], self.own)
 		self.assertEqual(result["result"]["reference_name"], self.own)
@@ -76,7 +82,11 @@ class TestCallMethod(McpTestCase):
 
 	def test_private_document_method_is_denied(self):
 		response = self.invoke(
-			doctype="ToDo", name=self.private, method="add_comment", args={"text": "Forbidden"}
+			tool="call_document_method",
+			doctype="ToDo",
+			name=self.private,
+			method="add_comment",
+			args={"text": "Forbidden"},
 		)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertFalse(
@@ -87,7 +97,7 @@ class TestCallMethod(McpTestCase):
 		for arguments in (
 			{"method": "frappe.get_all", "args": {"doctype": "User"}},
 			{"method": "missing_app.api.method"},
-			{"doctype": "ToDo", "name": self.own, "method": "save"},
+			{"tool": "call_document_method", "doctype": "ToDo", "name": self.own, "method": "save"},
 		):
 			with self.subTest(arguments=arguments):
 				self.assertTrue(self.invoke(**arguments).json["result"]["isError"])
@@ -100,7 +110,7 @@ class TestCallMethod(McpTestCase):
 				{"method": ["frappe.ping"]},
 				{"method": "frappe.ping", "args": []},
 				{"method": "frappe.ping", "args": None},
-				{"method": "add_comment", "name": self.own},
+				{"tool": "call_document_method", "method": "add_comment", "name": self.own},
 				{"method": "frappe.ping", "ignore_permissions": True},
 			):
 				with self.subTest(arguments=arguments):
@@ -125,11 +135,17 @@ class TestCallMethod(McpTestCase):
 	def test_get_only_document_method_uses_read_permission(self):
 		frappe.share.add("ToDo", self.private, user=self.user, read=1, write=0, notify=0)
 		with patch.object(ToDo, "mcp_read", get_document_method, create=True):
-			result = self.result(doctype="ToDo", name=self.private, method="mcp_read")
+			result = self.result(
+				tool="call_document_method", doctype="ToDo", name=self.private, method="mcp_read"
+			)
 		self.assertEqual(result["result"], "GET")
 		self.assertEqual(result["document"]["name"], self.private)
 		response = self.invoke(
-			doctype="ToDo", name=self.private, method="add_comment", args={"text": "No write access"}
+			tool="call_document_method",
+			doctype="ToDo",
+			name=self.private,
+			method="add_comment",
+			args={"text": "No write access"},
 		)
 		self.assertTrue(response.json["result"]["isError"])
 
@@ -190,12 +206,14 @@ class TestCallMethod(McpTestCase):
 
 	def test_document_fields_are_filtered(self):
 		with patch.object(User, "mcp_read", get_document_method, create=True):
-			result = self.result(doctype="User", name=self.user, method="mcp_read")
+			result = self.result(
+				tool="call_document_method", doctype="User", name=self.user, method="mcp_read"
+			)
 		self.assertIsNone(result["document"].get("api_key"))
 		self.assertIsNone(result["document"].get("api_secret"))
 
 	def test_submit_retains_operation_permissions(self):
-		response = self.invoke(doctype="ToDo", name=self.own, method="submit")
+		response = self.invoke(tool="call_document_method", doctype="ToDo", name=self.own, method="submit")
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "docstatus"), 0)
 

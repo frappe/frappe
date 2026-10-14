@@ -47,11 +47,42 @@ class Tool:
 
 
 def registry() -> tuple[Tool, ...]:
-	from frappe.mcp.tools.discover import TOOL
-	from frappe.mcp.tools.documents import GET_DOCUMENTS, WRITE_DOCUMENT
-	from frappe.mcp.tools.methods import CALL_METHOD
+	from frappe.mcp.tools.discover import (
+		GET_DOCTYPE_SCHEMA,
+		GET_DOCUMENT_METHOD_SCHEMA,
+		GET_METHOD_SCHEMA,
+		GET_SITE_INFO,
+		LIST_DOCUMENT_METHODS,
+		SEARCH_DOCTYPES,
+		SEARCH_METHODS,
+	)
+	from frappe.mcp.tools.documents import (
+		COUNT_DOCUMENTS,
+		CREATE_DOCUMENT,
+		DELETE_DOCUMENT,
+		GET_DOCUMENT,
+		LIST_DOCUMENTS,
+		UPDATE_DOCUMENT,
+	)
+	from frappe.mcp.tools.methods import CALL_DOCUMENT_METHOD, CALL_METHOD
 
-	return (TOOL, GET_DOCUMENTS, WRITE_DOCUMENT, CALL_METHOD)
+	return (
+		GET_SITE_INFO,
+		SEARCH_DOCTYPES,
+		GET_DOCTYPE_SCHEMA,
+		SEARCH_METHODS,
+		GET_METHOD_SCHEMA,
+		LIST_DOCUMENT_METHODS,
+		GET_DOCUMENT_METHOD_SCHEMA,
+		LIST_DOCUMENTS,
+		GET_DOCUMENT,
+		COUNT_DOCUMENTS,
+		CREATE_DOCUMENT,
+		UPDATE_DOCUMENT,
+		DELETE_DOCUMENT,
+		CALL_METHOD,
+		CALL_DOCUMENT_METHOD,
+	)
 
 
 def definitions() -> list[dict]:

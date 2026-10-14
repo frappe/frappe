@@ -2,70 +2,61 @@
 # License: MIT. See LICENSE
 """Document tools reuse REST API v2 permissions and controller hooks."""
 
-from typing import Any, Literal, Self
+from typing import Any
 
-from pydantic import Field, model_validator
+from pydantic import Field
 
 import frappe
-from frappe import _
 from frappe.api import v2
 from frappe.mcp.tools import Tool, ToolArguments, form_dict
 
 
-class GetDocumentsArguments(ToolArguments):
-	doctype: str = Field(min_length=1, description="DocType to read.")
-	name: str | None = Field(default=None, min_length=1, description="Read one complete document.")
+class DoctypeArguments(ToolArguments):
+	doctype: str = Field(min_length=1, description="DocType to read or change.")
+
+
+class DocumentArguments(DoctypeArguments):
+	name: str = Field(min_length=1, description="Stored document name.")
+
+
+class CountDocumentsArguments(DoctypeArguments):
 	filters: dict[str, Any] | list[Any] | None = Field(
 		default=None, description="Equality filters or Frappe operator filters."
 	)
+
+
+class ListDocumentsArguments(CountDocumentsArguments):
 	fields: list[str] | None = Field(default=None, description="List fields; defaults to name only.")
 	order_by: str | None = Field(default=None, description="List order, such as creation desc.")
 	start: int = Field(default=0, ge=0, description="List offset.")
 	limit: int = Field(default=20, ge=1, description="List page size.")
-	count_only: bool = Field(default=False, description="Count permitted matches instead of listing.")
-
-	@model_validator(mode="after")
-	def check_mode(self) -> Self:
-		if self.name is not None and self.count_only:
-			raise ValueError(_("Use name to read one document, or count_only to count matches"))
-		return self
 
 
-class WriteDocumentArguments(ToolArguments):
-	action: Literal["create", "update", "delete"]
-	doctype: str = Field(min_length=1, description="DocType to change.")
-	name: str | None = Field(default=None, min_length=1, description="Document to update or delete.")
-	data: dict[str, Any] | None = Field(default=None, description="Field values for create or update.")
-
-	@model_validator(mode="after")
-	def check_action(self) -> Self:
-		if self.action in ("update", "delete") and self.name is None:
-			raise ValueError(_("name is required for update or delete"))
-		if self.action in ("create", "update") and self.data is None:
-			raise ValueError(_("data is required for create or update"))
-		if self.action == "create" and self.name is not None:
-			raise ValueError(_("For create, specify a document name inside data"))
-		if self.action == "delete" and self.data is not None:
-			raise ValueError(_("Delete accepts a document name, not data"))
-		return self
+class CreateDocumentArguments(DoctypeArguments):
+	data: dict[str, Any] = Field(description="Field values. Put a custom document name inside data.")
 
 
-def get_documents(
+class UpdateDocumentArguments(DocumentArguments):
+	data: dict[str, Any] = Field(description="Field values to update.")
+
+
+def get_document(doctype: str, name: str) -> dict:
+	return {"document": v2.read_doc(doctype, name)}
+
+
+def count_documents(doctype: str, filters: dict[str, Any] | list[Any] | None = None) -> dict:
+	with form_dict({"filters": filters}):
+		return {"doctype": doctype, "count": v2.count(doctype)}
+
+
+def list_documents(
 	doctype: str,
-	name: str | None = None,
 	filters: dict[str, Any] | list[Any] | None = None,
 	fields: list[str] | None = None,
 	order_by: str | None = None,
 	start: int = 0,
 	limit: int = 20,
-	count_only: bool = False,
 ) -> dict:
-	if name is not None:
-		return {"document": v2.read_doc(doctype, name)}
-	if count_only:
-		with form_dict({"filters": filters}):
-			return {"doctype": doctype, "count": v2.count(doctype)}
-
 	arguments = {"filters": filters, "fields": fields, "order_by": order_by, "start": start, "limit": limit}
 	with form_dict({key: value for key, value in arguments.items() if value is not None}):
 		documents = v2.document_list(doctype)
@@ -80,50 +71,73 @@ def get_documents(
 	}
 
 
-def write_document(
-	action: Literal["create", "update", "delete"],
-	doctype: str,
-	name: str | None = None,
-	data: dict[str, Any] | None = None,
-) -> dict:
-	with form_dict(data or {}):
-		if action == "create":
-			return {"action": action, "document": v2.create_doc(doctype)}
-		if action == "update":
-			return {"action": action, "document": v2.update_doc(doctype, name)}
-		v2.delete_doc(doctype, name)
-		return {"action": action, "doctype": doctype, "name": name}
+def create_document(doctype: str, data: dict[str, Any]) -> dict:
+	with form_dict(data):
+		return {"action": "create", "document": v2.create_doc(doctype)}
 
 
-GET_DOCUMENTS = Tool(
-	name="get_documents",
+def update_document(doctype: str, name: str, data: dict[str, Any]) -> dict:
+	with form_dict(data):
+		return {"action": "update", "document": v2.update_doc(doctype, name)}
+
+
+def delete_document(doctype: str, name: str) -> dict:
+	v2.delete_doc(doctype, name)
+	return {"action": "delete", "doctype": doctype, "name": name}
+
+
+LIST_DOCUMENTS = Tool(
+	name="list_documents",
 	description=(
-		"Read documents using your Frappe permissions. Supply name to read one complete document; "
-		"otherwise list matches using filters, fields, order_by, start and limit. "
-		"List fields default to name only, start to 0 and limit to 20. "
-		"Use has_next_page to continue paging. Set count_only to count filtered matches; "
-		"list field selection, ordering and pagination do not apply to counts or named reads. "
+		"List documents matching filters using your Frappe permissions. Fields default to name only. "
+		"Start defaults to 0 and limit to 20. Use has_next_page to continue paging. "
 		'Filters accept an object or operator lists such as [["status", "in", ["Open"]]]. '
-		"Use discover first to find DocTypes and fields."
+		"Use get_doctype_schema to inspect fields."
 	),
-	arguments=GetDocumentsArguments,
-	handler=get_documents,
+	arguments=ListDocumentsArguments,
+	handler=list_documents,
 	annotations={"readOnlyHint": True},
 )
 
+GET_DOCUMENT = Tool(
+	name="get_document",
+	description="Read one complete document, including permitted fields and child rows, using your Frappe permissions.",
+	arguments=DocumentArguments,
+	handler=get_document,
+	annotations={"readOnlyHint": True},
+)
 
-WRITE_DOCUMENT = Tool(
-	name="write_document",
+COUNT_DOCUMENTS = Tool(
+	name="count_documents",
+	description="Count documents matching filters using your Frappe permissions, without fetching their contents.",
+	arguments=CountDocumentsArguments,
+	handler=count_documents,
+	annotations={"readOnlyHint": True},
+)
+
+CREATE_DOCUMENT = Tool(
+	name="create_document",
 	description=(
-		"Create, update or delete one document using your Frappe permissions. "
-		"For create supply action, doctype and data; put a custom document name inside data. "
-		"For update supply action, doctype, name and data. For delete supply action, doctype and name. "
-		"Frappe validates document fields and runs the normal controller hooks. "
-		"A failed operation rolls back its database changes and runs its rollback cleanup. "
-		"Use discover to inspect fields and requirements before writing. "
-		"Submit and cancel are lifecycle methods for call_method, not write actions."
+		"Create one document using your Frappe permissions and normal validation and controller hooks. "
+		"Put a custom document name inside data. Use get_doctype_schema to inspect required fields."
 	),
-	arguments=WriteDocumentArguments,
-	handler=write_document,
+	arguments=CreateDocumentArguments,
+	handler=create_document,
+	annotations={"destructiveHint": False, "idempotentHint": False},
+)
+
+UPDATE_DOCUMENT = Tool(
+	name="update_document",
+	description="Update one document using your Frappe permissions and normal validation and controller hooks.",
+	arguments=UpdateDocumentArguments,
+	handler=update_document,
+	annotations={"destructiveHint": True, "idempotentHint": False},
+)
+
+DELETE_DOCUMENT = Tool(
+	name="delete_document",
+	description="Delete one document using your Frappe permissions and normal link checks and controller hooks.",
+	arguments=DocumentArguments,
+	handler=delete_document,
 	annotations={"destructiveHint": True, "idempotentHint": False},
 )

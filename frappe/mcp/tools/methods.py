@@ -4,60 +4,55 @@
 
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from typing import Any, Self
+from typing import Any
 
-from pydantic import Field, model_validator
+from pydantic import Field
 
 import frappe
-from frappe import _
 from frappe.api import v2
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.mcp.tools import Tool, ToolArguments, form_dict
-from frappe.modules.utils import load_doctype_module
 
 
 class CallMethodArguments(ToolArguments):
-	method: str = Field(min_length=1, description="Dotted API path or a controller method name.")
-	doctype: str | None = Field(default=None, min_length=1, description="Controller's DocType.")
-	name: str | None = Field(default=None, min_length=1, description="Stored document to call the method on.")
+	method: str = Field(min_length=1, description="Full dotted API path or API Server Script name.")
 	args: dict[str, Any] = Field(default_factory=dict, description="Arguments passed to the method.")
 
-	@model_validator(mode="after")
-	def check_document(self) -> Self:
-		if self.name is not None and self.doctype is None:
-			raise ValueError(_("doctype is required when name is supplied"))
-		return self
+
+class CallDocumentMethodArguments(CallMethodArguments):
+	doctype: str = Field(min_length=1, description="Document's DocType.")
+	name: str = Field(min_length=1, description="Stored document to call the method on.")
+	method: str = Field(min_length=1, description="Whitelisted document instance method name.")
 
 
-def call_method(
-	method: str, doctype: str | None = None, name: str | None = None, args: dict[str, Any] | None = None
-) -> dict:
-	with form_dict(args or {}):
-		if name is not None:
-			doc = frappe.get_doc(doctype, name)
-			doc.is_whitelisted(method)
-			with method_request(getattr(doc, method)):
-				result = v2.execute_doc_method(doctype, name, method)
-			return {
-				"doctype": doctype,
-				"name": name,
-				"method": method,
-				"result": result,
-				"document": frappe.response.docs[-1],
-			}
-
-		path = f"{load_doctype_module(doctype).__name__}.{method}" if doctype else method
-		overridden = frappe.override_whitelisted_method(path)
+def call_method(method: str, args: dict[str, Any]) -> dict:
+	with form_dict(args):
+		overridden = frappe.override_whitelisted_method(method)
 		if get_server_script_map().get("_api", {}).get(overridden):
-			result = v2.handle_rpc_call(path)
+			result = v2.handle_rpc_call(method)
 		else:
 			fn = frappe.get_attr(overridden)
 			frappe.is_whitelisted(fn)
 			with method_request(fn):
-				result = v2.handle_rpc_call(path)
+				result = v2.handle_rpc_call(method)
 		if result is None:
 			result = frappe.response.get("message", frappe.response.get("data"))
 		return {"method": method, "result": result}
+
+
+def call_document_method(doctype: str, name: str, method: str, args: dict[str, Any]) -> dict:
+	with form_dict(args):
+		doc = frappe.get_doc(doctype, name)
+		doc.is_whitelisted(method)
+		with method_request(getattr(doc, method)):
+			result = v2.execute_doc_method(doctype, name, method)
+		return {
+			"doctype": doctype,
+			"name": name,
+			"method": method,
+			"result": result,
+			"document": frappe.response.docs[-1],
+		}
 
 
 @contextmanager
@@ -83,16 +78,25 @@ def method_request(fn: Callable) -> Iterator[None]:
 CALL_METHOD = Tool(
 	name="call_method",
 	description=(
-		"Call an existing whitelisted Frappe API with args. Supply a dotted method path for an API, "
-		"doctype and method for a controller module function, or doctype, name and method for a "
-		"stored document method, including submit or cancel. Frappe validates method arguments. "
-		"GET-only document methods require read access; methods allowing POST require write access "
-		"and their own operation permissions. Other HTTP-only methods are unsupported. "
-		"Whitelisting does not grant document access or replace the API's permission checks. "
-		"Database changes roll back on failure unless the method commits explicitly; immediate "
-		"external effects cannot be undone. Method discovery requires System Manager access."
+		"Call a whitelisted Frappe API function by full dotted path, or an API Server Script by name. "
+		"Controller module functions also use their full dotted path. Frappe validates args. "
+		"Whitelisting does not replace the API's permission checks. GET and POST methods are supported. "
+		"Explicit commits and immediate external effects cannot be undone after failure."
 	),
 	arguments=CallMethodArguments,
 	handler=call_method,
+	annotations={"destructiveHint": True, "idempotentHint": False},
+)
+
+CALL_DOCUMENT_METHOD = Tool(
+	name="call_document_method",
+	description=(
+		"Call a whitelisted instance method on one stored document, including submit or cancel. "
+		"Frappe validates args. GET-only methods require read access; methods allowing POST require "
+		"write access and their own operation permissions. Other HTTP-only methods are unsupported. "
+		"Explicit commits and immediate external effects cannot be undone after failure."
+	),
+	arguments=CallDocumentMethodArguments,
+	handler=call_document_method,
 	annotations={"destructiveHint": True, "idempotentHint": False},
 )

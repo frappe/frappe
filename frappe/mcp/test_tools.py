@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from dataclasses import replace
 from datetime import date
 from unittest.mock import Mock, patch
 
@@ -62,6 +63,54 @@ class TestToolExecution(McpTestCase):
 					"params": {"name": name, "arguments": arguments},
 				}
 			)
+
+	def test_each_tool_rejects_arguments_from_other_operations(self):
+		cases = (
+			("get_site_info", {"doctype": "ToDo"}),
+			("search_doctypes", {"method": "frappe.ping"}),
+			("get_doctype_schema", {"doctype": "ToDo", "query": "ToDo"}),
+			("search_methods", {"query": "ping", "doctype": "ToDo"}),
+			("get_method_schema", {"method": "frappe.ping", "doctype": "ToDo"}),
+			("list_document_methods", {"doctype": "ToDo", "name": "missing"}),
+			("get_document_method_schema", {"doctype": "ToDo", "method": "add_comment", "args": {}}),
+			("list_documents", {"doctype": "ToDo", "name": "missing"}),
+			("get_document", {"doctype": "ToDo", "name": "missing", "filters": {}}),
+			("count_documents", {"doctype": "ToDo", "limit": 20}),
+			("create_document", {"doctype": "ToDo", "data": {}, "name": "missing"}),
+			("update_document", {"doctype": "ToDo", "data": {}}),
+			("delete_document", {"doctype": "ToDo", "name": "missing", "data": {}}),
+			("call_method", {"method": "add_comment", "doctype": "ToDo", "name": "missing"}),
+			("call_document_method", {"method": "add_comment", "doctype": "ToDo"}),
+		)
+		for name, arguments in cases:
+			with self.subTest(tool=name):
+				handler = Mock()
+				tool = next(tool for tool in tools.registry() if tool.name == name)
+				with patch("frappe.mcp.tools.registry", return_value=(replace(tool, handler=handler),)):
+					response = self.request(
+						{
+							"jsonrpc": "2.0",
+							"id": 1,
+							"method": "tools/call",
+							"params": {"name": name, "arguments": arguments},
+						}
+					)
+				self.assertTrue(response.json["result"]["isError"])
+				self.assert_identity(response.json["result"])
+				handler.assert_not_called()
+
+	def test_old_combined_tool_names_are_not_registered(self):
+		for name in ("discover", "get_documents", "write_document"):
+			with self.subTest(tool=name):
+				response = self.request(
+					{
+						"jsonrpc": "2.0",
+						"id": 1,
+						"method": "tools/call",
+						"params": {"name": name, "arguments": {}},
+					}
+				)
+				self.assertEqual(response.json["error"]["code"], protocol.METHOD_NOT_FOUND)
 
 	def test_invalid_arguments_do_not_execute(self):
 		cases = (

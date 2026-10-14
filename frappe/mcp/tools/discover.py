@@ -2,9 +2,9 @@
 # License: MIT. See LICENSE
 """Discover site metadata through Frappe's existing API discovery handlers."""
 
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 
-from pydantic import Field, model_validator
+from pydantic import Field
 
 import frappe
 from frappe import _
@@ -20,32 +20,29 @@ PERMISSION_TYPES = ("read", "write", "create", "delete", "submit", "cancel", "am
 SEARCH_LIMIT = 50
 
 
-class DiscoverArguments(ToolArguments):
-	query: str | None = Field(default=None, min_length=1, description="Search DocType names and API methods.")
-	doctype: str | None = Field(default=None, min_length=1, description="DocType whose schema to inspect.")
-	method: str | None = Field(
-		default=None,
-		min_length=1,
-		description="RPC method path, or controller method name when doctype is provided.",
-	)
-
-	@model_validator(mode="after")
-	def check_subject(self) -> Self:
-		if self.query is not None and (self.doctype is not None or self.method is not None):
-			raise ValueError(_("Use query alone, or select a DocType or method"))
-		return self
+class SiteInfoArguments(ToolArguments):
+	pass
 
 
-def handle(query: str | None = None, doctype: str | None = None, method: str | None = None) -> dict:
-	if doctype and method:
-		return discovery.doctype_method(doctype, method)
-	if doctype:
-		return doctype_schema(doctype)
-	if method:
-		return discovery.method(method)
-	if query:
-		return search(query)
-	return site_summary()
+class SearchDoctypesArguments(ToolArguments):
+	query: str | None = Field(default=None, min_length=1, description="Search DocType names.")
+	module: str | None = Field(default=None, min_length=1, description="Filter by module.")
+
+
+class DoctypeArguments(ToolArguments):
+	doctype: str = Field(min_length=1, description="DocType to inspect.")
+
+
+class SearchMethodsArguments(ToolArguments):
+	query: str = Field(min_length=1, description="Search whitelisted methods by keyword or path.")
+
+
+class MethodSchemaArguments(ToolArguments):
+	method: str = Field(min_length=1, description="Full dotted path or API Server Script name.")
+
+
+class DocumentMethodSchemaArguments(DoctypeArguments):
+	method: str = Field(min_length=1, description="Whitelisted document instance method name.")
 
 
 def site_summary() -> dict:
@@ -58,30 +55,31 @@ def site_summary() -> dict:
 		"roles": sorted(frappe.get_roles()),
 		"counts": {"doctypes": len(doctypes), "modules": len(modules)},
 		"modules": modules,
-		"next": _("Use query to search, or doctype to inspect a schema."),
+		"next": _("Use search_doctypes to find DocTypes, then get_doctype_schema to inspect fields."),
 	}
 
 
-def search(query: str) -> dict:
-	result = {
+def search_doctypes(query: str | None = None, module: str | None = None) -> dict:
+	filters = {"istable": 0}
+	if query is not None:
+		filters["name"] = ("like", f"%{query}%")
+	if module is not None:
+		filters["module"] = module
+	return {
 		"type": "search",
 		"query": query,
 		"doctypes": frappe.get_all(
 			"DocType",
-			filters={"name": ("like", f"%{query}%"), "istable": 0},
+			filters=filters,
 			fields=["name", "module", "issingle", "is_submittable"],
 			order_by="name",
 			limit=SEARCH_LIMIT,
 		),
 	}
-	try:
-		result["methods"] = discovery.search(query)["results"]
-	except frappe.PermissionError:
-		result["methods_unavailable"] = _("Method discovery needs the System Manager role.")
-	except discovery.DiscoveryCacheUnavailable as error:
-		# DocType results remain useful while the existing API index is being built.
-		result["methods_unavailable"] = str(error)
-	return result
+
+
+def search_methods(query: str) -> dict:
+	return discovery.search(query)
 
 
 def doctype_schema(doctype: str) -> dict:
@@ -100,14 +98,6 @@ def doctype_schema(doctype: str) -> dict:
 			for permission in PERMISSION_TYPES
 		},
 	}
-	if meta.istable:
-		# Child rows have no independent permissions or document methods.
-		result["methods"] = []
-	else:
-		try:
-			result["methods"] = discovery.doctype_methods(doctype)["methods"]
-		except frappe.PermissionError:
-			result["methods_unavailable"] = _("Method discovery needs the System Manager role.")
 	return result
 
 
@@ -124,17 +114,62 @@ def field_schema(field: "DocField") -> dict:
 	return {key: value for key, value in result.items() if value is not None}
 
 
-TOOL = Tool(
-	name="discover",
+GET_SITE_INFO = Tool(
+	name="get_site_info",
+	description="Identify the connected site, authenticated user, roles and available modules.",
+	arguments=SiteInfoArguments,
+	handler=site_summary,
+	annotations={"readOnlyHint": True},
+)
+
+SEARCH_DOCTYPES = Tool(
+	name="search_doctypes",
+	description="Find DocTypes by name or module. Returns up to 50 names in alphabetical order, excluding child tables.",
+	arguments=SearchDoctypesArguments,
+	handler=search_doctypes,
+	annotations={"readOnlyHint": True},
+)
+
+GET_DOCTYPE_SCHEMA = Tool(
+	name="get_doctype_schema",
 	description=(
-		"Inspect this site's metadata before choosing DocType names, fields or methods. "
-		"No arguments returns the site summary; query searches; doctype returns a schema; "
-		"method returns an RPC contract; doctype with method returns a controller method contract. "
-		"Schema discovery is broad, but document access remains permission-controlled. "
-		"Permission flags describe DocType access, not access to every document or field. "
-		"Child rows use their parent's permissions. Method discovery requires System Manager."
+		"Inspect DocType fields and permissions before reading or writing. Schema discovery is broad. "
+		"Permission flags do not guarantee access to every document or field. Child rows use parent permissions. "
+		"Use list_document_methods separately to discover instance methods."
 	),
-	arguments=DiscoverArguments,
-	handler=handle,
+	arguments=DoctypeArguments,
+	handler=doctype_schema,
+	annotations={"readOnlyHint": True},
+)
+
+SEARCH_METHODS = Tool(
+	name="search_methods",
+	description="Find whitelisted API functions and document methods by keyword or path. Requires System Manager.",
+	arguments=SearchMethodsArguments,
+	handler=search_methods,
+	annotations={"readOnlyHint": True},
+)
+
+GET_METHOD_SCHEMA = Tool(
+	name="get_method_schema",
+	description="Inspect a whitelisted API function's arguments and documentation. Requires System Manager.",
+	arguments=MethodSchemaArguments,
+	handler=discovery.method,
+	annotations={"readOnlyHint": True},
+)
+
+LIST_DOCUMENT_METHODS = Tool(
+	name="list_document_methods",
+	description="List whitelisted instance methods for a DocType. Requires System Manager.",
+	arguments=DoctypeArguments,
+	handler=discovery.doctype_methods,
+	annotations={"readOnlyHint": True},
+)
+
+GET_DOCUMENT_METHOD_SCHEMA = Tool(
+	name="get_document_method_schema",
+	description="Inspect a whitelisted document instance method's arguments and documentation. Requires System Manager.",
+	arguments=DocumentMethodSchemaArguments,
+	handler=discovery.doctype_method,
 	annotations={"readOnlyHint": True},
 )
