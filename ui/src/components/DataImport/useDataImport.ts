@@ -104,6 +104,10 @@ export function useDataImport(
   const previewReady = computed(
     () => !!preview.value && previewSource.value === sourceKey.value
   );
+  // A preview of a file that has since changed is not shown.
+  const readyPreview = computed(() =>
+    previewReady.value ? preview.value : null
+  );
 
   // Bumped whenever another import is opened, so late answers for the old one are dropped.
   let generation = 0;
@@ -495,6 +499,7 @@ export function useDataImport(
 
     preview,
     previewReady,
+    readyPreview,
     previewLoading,
     previewError,
     fetchPreview,

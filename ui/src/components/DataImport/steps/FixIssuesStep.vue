@@ -323,14 +323,13 @@ type ColumnWarning = DataImportWarning & { col: number };
 
 const props = defineProps<{ dataImport: UseDataImport }>();
 
-const { doc, hasImportFile, preview, previewReady, previewError, running, importStarted } =
+const { doc, hasImportFile, previewReady, readyPreview, previewError, running, importStarted } =
 	props.dataImport;
 
-const previewData = computed(() => (previewReady.value ? preview.value : null));
 const checking = computed(() => hasImportFile.value && !previewReady.value && !previewError.value);
 const isComplete = computed(() => isImportComplete(doc.value.status));
 
-const warnings = computed(() => importWarnings(doc.value, previewData.value));
+const warnings = computed(() => importWarnings(doc.value, readyPreview.value));
 
 const hasIssues = computed(
 	() =>
@@ -344,7 +343,7 @@ const skippedRows = computed(
 	() => new Set(doc.value.skipped_rows.map((row) => Number(row.row_number)))
 );
 
-const columns = computed(() => previewData.value?.columns ?? []);
+const columns = computed(() => readyPreview.value?.columns ?? []);
 
 const rowErrors = computed(() => {
 	const byRow = new Map<number, string[]>();
@@ -403,7 +402,7 @@ const emptyDescription = computed(() => {
 
 const columnsSkippedLabel = t("Columns skipped");
 const stats = computed((): Stat[] => {
-	const data = previewData.value;
+	const data = readyPreview.value;
 	const rowsChecked =
 		data?.total_number_of_rows || data?.data?.length || doc.value.payload_count || 0;
 	const columnsMatched = columns.value.filter(
@@ -426,7 +425,7 @@ function rowWarningLine(warning: DataImportWarning) {
 }
 
 function previewRow(row: number) {
-	return previewRowCells(previewData.value, row);
+	return previewRowCells(readyPreview.value, row);
 }
 
 function cellText(value: unknown) {
@@ -498,7 +497,7 @@ function toggleSkipRows(rows: number[]) {
 		);
 		return;
 	}
-	skipRows(doc.value, previewData.value, numbers);
+	skipRows(doc.value, readyPreview.value, numbers);
 }
 
 function isSrNoColumn(col: DataImportColumn) {

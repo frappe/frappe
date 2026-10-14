@@ -136,6 +136,7 @@ function mount(
     hasImportFile: computed(() => !!doc.value.import_file),
     preview,
     previewReady,
+    readyPreview: computed(() => (previewReady.value ? preview.value : null)),
     previewError: ref<string | null>(null),
     running,
     importStarted: computed(

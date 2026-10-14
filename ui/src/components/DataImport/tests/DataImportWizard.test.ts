@@ -81,6 +81,7 @@ function fakeDataImport(initial: DataImportDoc) {
   const loading = ref(false);
   const saving = ref(false);
   const isDirty = ref(false);
+  const preview = ref(null);
   const previewReady = ref(true);
   const previewLoading = ref(false);
   const previewError = ref<string | null>(null);
@@ -102,8 +103,9 @@ function fakeDataImport(initial: DataImportDoc) {
     hasImportFile: computed(
       () => !!(doc.value.import_file || doc.value.google_sheets_url)
     ),
-    preview: ref(null),
+    preview,
     previewReady,
+    readyPreview: computed(() => (previewReady.value ? preview.value : null)),
     previewLoading,
     previewError,
     running,
