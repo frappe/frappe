@@ -144,6 +144,12 @@ class AttachmentQueue(Document):
 		Calling it again with the same document reports the same result without attaching
 		the file a second time. A different document is refused: the entry has been used.
 		"""
+		# Hold the row for the rest of the transaction so two callers cannot both claim it,
+		# then work from what it actually holds: another save may have changed its target
+		# or its file since this document was loaded.
+		claimed = frappe.db.get_value("Attachment Queue", self.name, "created_document", for_update=True)
+		self.reload()
+
 		# The Attachment Queue permission hook turns this into write on document_type.
 		self.check_permission("write")
 
@@ -156,8 +162,6 @@ class AttachmentQueue(Document):
 				)
 			)
 
-		# Hold the row for the rest of the transaction so two callers cannot both claim it.
-		claimed = frappe.db.get_value("Attachment Queue", self.name, "created_document", for_update=True)
 		if claimed:
 			if claimed == document_name:
 				return claimed
