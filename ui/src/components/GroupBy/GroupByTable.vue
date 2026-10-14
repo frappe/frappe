@@ -121,7 +121,7 @@ import {
 } from "frappe-ui/list";
 import { computed } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
-import { translate as __ } from "./translate";
+import { translate as __ } from "../../utils/translate";
 import {
 	AGGREGATE_FUNCTIONS,
 	aggregateKey,

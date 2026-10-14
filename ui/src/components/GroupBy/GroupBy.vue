@@ -126,7 +126,7 @@
 import { Button, Combobox, Popover, Select, Switch } from "frappe-ui";
 import { computed, nextTick, ref, watch } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
-import { translate as __ } from "./translate";
+import { translate as __ } from "../../utils/translate";
 import {
 	AGGREGATE_FUNCTIONS,
 	columnId,
