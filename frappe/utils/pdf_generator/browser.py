@@ -495,6 +495,11 @@ class PageSize:
 		"ANSI B (ledger & tabloid)": (279, 432),
 		"ANSI E": (864, 1118),
 		"ANSI D": (559, 864),
+		"C5E": (163, 229),
+		"Comm10E": (105, 241),
+		"DLE": (110, 220),
+		"Executive": (191, 254),
+		"Folio": (210, 330),
 	}
 
 	@classmethod
