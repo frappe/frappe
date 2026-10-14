@@ -144,6 +144,14 @@
 			margin-bottom: var(--spacing);
 			border-bottom: 1px solid var(--outline-gray-1);
 		}
+
+		.dock-item {
+			color: var(--dock-ink-hover);
+
+			&:hover {
+				color: var(--dock-ink-active);
+			}
+		}
 	}
 
 	.dock-items {
