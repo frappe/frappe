@@ -11,6 +11,7 @@ export {
   getAggregateFields,
   getGroupByFields,
   isCompleteAggregate,
+  parseGroupBy,
   serializeGroupBy,
 } from "./groupBy";
 export type {

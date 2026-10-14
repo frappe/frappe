@@ -5,6 +5,7 @@ import {
   getAggregateFields,
   getGroupByFields,
   isCompleteAggregate,
+  parseGroupBy,
   serializeGroupBy,
 } from "../groupBy";
 import type { RawMetaField } from "../../FormLayout/types";
@@ -97,7 +98,7 @@ describe("serializeGroupBy", () => {
       fields: [
         "status",
         "deal_owner",
-        { COUNT: "*", as: "_aggregate_0" },
+        { COUNT: "name", as: "_aggregate_0" },
         { SUM: "deal_value", as: "_aggregate_1" },
       ],
       group_by: "status, deal_owner",
@@ -123,5 +124,38 @@ describe("serializeGroupBy", () => {
     expect(
       serializeGroupBy({ fields: ["status"], aggregates: [] }).order_by
     ).toBeUndefined();
+  });
+});
+
+describe("parseGroupBy", () => {
+  const stored = {
+    fields: ["status"],
+    aggregates: [{ function: "sum", fieldname: "deal_value" }],
+  };
+
+  it("reads a grouping from JSON text or an object", () => {
+    expect(parseGroupBy(JSON.stringify(stored))).toEqual(stored);
+    expect(parseGroupBy(stored)).toEqual(stored);
+  });
+
+  it("reads nothing, bad JSON or a grouping without fields as ungrouped", () => {
+    expect(parseGroupBy(null)).toBeNull();
+    expect(parseGroupBy("")).toBeNull();
+    expect(parseGroupBy("{not json")).toBeNull();
+    expect(parseGroupBy({ fields: [], aggregates: [] })).toBeNull();
+  });
+
+  it("drops malformed fields and aggregates", () => {
+    expect(
+      parseGroupBy({
+        fields: ["status", "", 3],
+        aggregates: [
+          { function: "count" },
+          { function: "median", fieldname: "deal_value" },
+          { function: "sum" },
+          "count",
+        ],
+      })
+    ).toEqual({ fields: ["status"], aggregates: [{ function: "count" }] });
   });
 });
