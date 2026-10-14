@@ -12,7 +12,6 @@ export {
   findGroupByField,
   getAggregateFields,
   getGroupByFields,
-  isCompleteAggregate,
   parseGroupBy,
   serializeGroupBy,
   serializeGroupByTotals,
@@ -21,7 +20,6 @@ export { useGroupByData } from "./useGroupByData";
 export type { UseGroupByData } from "./useGroupByData";
 export type {
   Aggregate,
-  AggregateDraft,
   AggregateFunction,
   GroupByColumn,
   GroupByField,
