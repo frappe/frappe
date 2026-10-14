@@ -10,8 +10,13 @@ from frappe.mcp.test_utils import McpTestCase
 
 class TestMcpTransport(McpTestCase):
 	def test_authenticated_ping(self):
-		for path in ("/api/mcp", "/api/mcp/"):
+		for path in ("/api/v2/mcp", "/api/v2/mcp/"):
 			self.assertEqual(self.ping(path=path).json, {"jsonrpc": "2.0", "id": 1, "result": {}})
+
+	def test_mcp_is_only_available_under_v2(self):
+		for path in ("/api/mcp", "/api/v1/mcp"):
+			with self.subTest(path=path):
+				self.assertEqual(self.ping(path=path).status_code, 404)
 
 	def test_http_checks(self):
 		self.assertEqual(self.ping(auth=False).status_code, 401)

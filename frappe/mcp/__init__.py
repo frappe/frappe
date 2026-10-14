@@ -3,7 +3,6 @@
 """The MCP endpoint built into each site."""
 
 from werkzeug.exceptions import NotFound
-from werkzeug.routing import Rule
 
 import frappe
 
@@ -15,6 +14,3 @@ def handle():
 	from frappe.mcp.transport import handle_request
 
 	return handle_request(frappe.request)
-
-
-url_rules = [Rule("/mcp", methods=["POST", "GET", "DELETE"], endpoint=handle)]

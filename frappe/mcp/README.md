@@ -1,6 +1,6 @@
 # Built-in MCP server
 
-Frappe exposes four tools at `/api/mcp` for agents to inspect schemas, read and change documents, and call existing methods.
+Frappe exposes four tools at `/api/v2/mcp` for agents to inspect schemas, read and change documents, and call existing methods.
 The endpoint is enabled by default and uses the authenticated site user's permissions.
 It supports Streamable HTTP with JSON responses and protocol versions `2025-11-25` and `2026-07-28`.
 
@@ -13,7 +13,7 @@ It supports Streamable HTTP with JSON responses and protocol versions `2025-11-2
 Set these variables before launching your client:
 
 ```bash
-export FRAPPE_MCP_URL='https://your-site.example.com/api/mcp'
+export FRAPPE_MCP_URL='https://your-site.example.com/api/v2/mcp'
 export FRAPPE_MCP_AUTH='token YOUR_API_KEY:YOUR_API_SECRET'
 ```
 
@@ -41,7 +41,7 @@ Add this entry to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.frappe]
-url = "https://your-site.example.com/api/mcp"
+url = "https://your-site.example.com/api/v2/mcp"
 env_http_headers = { Authorization = "FRAPPE_MCP_AUTH" }
 ```
 
@@ -49,7 +49,7 @@ env_http_headers = { Authorization = "FRAPPE_MCP_AUTH" }
 
 ```bash
 claude mcp add-json --scope user frappe \
-  '{"type":"http","url":"https://your-site.example.com/api/mcp","headers":{"Authorization":"${FRAPPE_MCP_AUTH}"}}'
+  '{"type":"http","url":"https://your-site.example.com/api/v2/mcp","headers":{"Authorization":"${FRAPPE_MCP_AUTH}"}}'
 ```
 
 Run `/mcp` in Claude Code to inspect the connection.

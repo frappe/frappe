@@ -23,7 +23,7 @@ class McpTestCase(IntegrationTestCase):
 		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
 		self.site = frappe.local.site
 
-	def request(self, payload=None, *, method="POST", headers=None, body=None, path="/api/mcp", auth=True):
+	def request(self, payload=None, *, method="POST", headers=None, body=None, path="/api/v2/mcp", auth=True):
 		request_headers = {"Content-Type": "application/json", "Accept": "application/json"}
 		if auth:
 			request_headers["Authorization"] = self.authorization
