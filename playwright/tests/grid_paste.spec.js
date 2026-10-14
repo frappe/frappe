@@ -15,7 +15,7 @@ test.describe("Grid paste", () => {
 
 		const prevented = await input.evaluate((el) => {
 			const clipboardData = new DataTransfer();
-			clipboardData.setData("text/plain", "a@example.com\nb@example.com\n");
+			clipboardData.setData("text/plain", "a@example.com\n\nc@example.com\n");
 			const event = new ClipboardEvent("paste", {
 				clipboardData,
 				bubbles: true,
@@ -27,7 +27,9 @@ test.describe("Grid paste", () => {
 
 		expect(prevented).toBe(true);
 		await expect
-			.poll(() => page.evaluate(() => cur_frm.doc.email_ids.map((row) => row.email_id)))
-			.toEqual(["a@example.com", "b@example.com"]);
+			.poll(() =>
+				page.evaluate(() => cur_frm.doc.email_ids.map((row) => row.email_id || ""))
+			)
+			.toEqual(["a@example.com", "", "c@example.com"]);
 	});
 });
