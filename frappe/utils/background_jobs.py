@@ -14,7 +14,7 @@ from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
-from rq import Callback, Queue, Worker
+from rq import Callback, Queue, Retry, Worker
 from rq.defaults import DEFAULT_WORKER_TTL
 from rq.exceptions import InvalidJobOperation, NoSuchJobError
 from rq.job import Job, JobStatus
@@ -142,7 +142,7 @@ def enqueue(
 	job_id: str | None = None,
 	deduplicate=False,
 	at_front_when_starved=False,
-	retry=None,
+	rq_retry: Retry | None = None,
 	**kwargs,
 ) -> Job | Any:
 	"""
@@ -166,6 +166,7 @@ def enqueue(
 	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
 	:param at_front_when_starved: If the queue appears to be starved then new jobs are
 	automatically inserted in LIFO fashion.
+	:param rq_retry: rq.Retry for re-running the job when it fails
 	"""
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
@@ -255,7 +256,7 @@ def enqueue(
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 			job_id=job_id,
-			retry=retry,
+			retry=rq_retry,
 		)
 
 	if enqueue_after_commit:

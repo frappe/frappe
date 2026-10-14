@@ -4,12 +4,13 @@ from contextlib import contextmanager
 from contextvars import copy_context
 from unittest.mock import patch
 
-from rq import Queue
+from rq import Queue, Retry
 from werkzeug.local import Local
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
 from frappe.core.doctype.rq_worker.rq_worker import RQWorker
+from frappe.deprecation_dumpster import FrappeDeprecationWarning
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.background_jobs import (
@@ -90,6 +91,21 @@ class TestBackgroundJobs(IntegrationTestCase):
 
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
+
+	def test_enqueue_passes_retry_kwarg_to_method(self):
+		job = frappe.enqueue("frappe.tests.test_background_jobs.echo_retry", queue="short", retry=3)
+		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
+		self.assertIsNone(job.retries_left)
+
+	def test_enqueue_rq_retry(self):
+		method = "frappe.tests.test_background_jobs.echo_retry"
+		job = frappe.enqueue(method, queue="short", rq_retry=Retry(max=2))
+		self.assertEqual(job.retries_left, 2)
+
+		with self.assertWarns(FrappeDeprecationWarning):
+			job = frappe.enqueue(method, queue="short", retry=Retry(max=2))
+		self.assertEqual(job.retries_left, 2)
+		self.assertNotIn("retry", job.kwargs["kwargs"])
 
 	def test_job_translation_resolves_user_language(self):
 		real_get_cached_value = frappe.get_cached_value
@@ -251,6 +267,10 @@ class TestBackgroundJobs(IntegrationTestCase):
 			is_async=False,
 			retry=1,
 		)
+
+
+def echo_retry(retry=None):
+	return retry
 
 
 def fail_function():
