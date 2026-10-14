@@ -309,6 +309,26 @@ class TestAppSkills(IntegrationTestCase):
 
 		self.assertEqual(skill_file("close-todos", "references/forms.md"), "Form fields.")
 
+	def test_a_folder_lists_its_files_as_paths_to_load(self):
+		folder = self.skills.write("close-todos")
+		other = self.skills.write("other-skill")
+		os.makedirs(os.path.join(folder, "examples", "tabs", ".cache"))
+		for path in (
+			"examples/notes.md",
+			"examples/tabs/block.json",
+			"examples/tabs/.env",
+			"examples/tabs/.cache/a.md",
+		):
+			with open(os.path.join(folder, path), "w") as file:
+				file.write("Example.")
+		os.symlink(os.path.join(other, "SKILL.md"), os.path.join(folder, "examples", "link.md"))
+		sync_skills()
+
+		self.assertEqual(
+			skill_file("close-todos", "examples/"), "examples/notes.md\nexamples/tabs/block.json"
+		)
+		self.assertEqual(skill_file("close-todos", "examples/tabs/block.json"), "Example.")
+
 	def test_only_files_inside_the_skill_folder_are_read(self):
 		folder = self.skills.write("close-todos")
 		other = self.skills.write("other-skill")

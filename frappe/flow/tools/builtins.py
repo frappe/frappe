@@ -401,7 +401,7 @@ The skills you can load are listed in the <available_skills> block of your instr
 a description of when it applies. When a task matches one, call this with that exact name before \
 starting the task, and treat what you get back as authoritative for it. When the instructions \
 mention a file, such as references/forms.md, call this again with the same name and that path as \
-`file` to read it."""
+`file` to read it; a folder path lists the files in it."""
 
 
 def bind_load_skill(agent: str | None) -> Tool:

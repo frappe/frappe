@@ -28,9 +28,7 @@ _SKILL_TOKEN_RE = re.compile(r"(?<!\S)/skill:(\S+)")
 _FRONTMATTER_RE = re.compile(r"\A---[ \t]*\r?\n.*?\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 
 # Rides inside the wrapper, unseen by the user: the agent's index still says to load skills.
-SKILL_LOADED_NOTE = (
-	"This is the full skill, already loaded. Follow it; call load_skill only to read a file it mentions."
-)
+SKILL_LOADED_NOTE = "This is the full skill, already loaded. Follow it; call load_skill only to read a file or folder it mentions."
 
 
 class FlowSkill(Document):
@@ -213,7 +211,8 @@ def _ensure_skill(name: str, app: str, description: str, instructions: str) -> N
 
 
 def skill_file(name: str, file: str) -> str:
-	"""A text file from the folder of an app's skill, by its path inside that folder."""
+	"""A text file from the folder of an app's skill, by its path inside that folder. A folder
+	gives the files in it."""
 	from flow_harness.session.skills import valid_skill_name
 
 	app = frappe.db.get_value("Flow Skill", name, "app")
@@ -223,8 +222,10 @@ def skill_file(name: str, file: str) -> str:
 	folder = Path(frappe.get_app_source_path(app, "skills"), name).resolve()
 	path = (folder / file).resolve()
 	hidden = any(part.startswith(".") for part in Path(file).parts)
-	if hidden or not path.is_relative_to(folder) or not path.is_file():
+	if hidden or not path.is_relative_to(folder) or not (path.is_file() or path.is_dir()):
 		frappe.throw(_("Skill {0} has no file {1}.").format(name, file), title=_("Unknown File"))
+	if path.is_dir():
+		return _list_files(folder, path)
 	if path.stat().st_size > MAX_SKILL_FILE_BYTES:
 		frappe.throw(
 			_("{0} is larger than {1} KB.").format(file, MAX_SKILL_FILE_BYTES // 1024),
@@ -234,3 +235,14 @@ def skill_file(name: str, file: str) -> str:
 		return path.read_text(encoding="utf-8")
 	except UnicodeDecodeError:
 		frappe.throw(_("{0} is not a text file.").format(file), title=_("Not a Text File"))
+
+
+def _list_files(folder: Path, path: Path) -> str:
+	"""The files under `path`, one per line, as paths inside the skill folder."""
+	files = []
+	for entry in path.rglob("*"):
+		relative = entry.relative_to(folder)
+		hidden = any(part.startswith(".") for part in relative.parts)
+		if not hidden and entry.is_file() and entry.resolve().is_relative_to(folder):
+			files.append(relative.as_posix())
+	return "\n".join(sorted(files))
