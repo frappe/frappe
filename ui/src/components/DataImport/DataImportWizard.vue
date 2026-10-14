@@ -129,7 +129,7 @@
 import { Button, Dialog, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
 import ImportStatus from "./ImportStatus.vue";
-import { errorRowNumbers, skipRows } from "./dataImport";
+import { canRetryImport, errorRowNumbers, isImportFinished, skipRows } from "./dataImport";
 import ConfigStep from "./steps/ConfigStep.vue";
 import FixIssuesStep from "./steps/FixIssuesStep.vue";
 import ImportStep from "./steps/ImportStep.vue";
@@ -224,10 +224,8 @@ const showNext = computed(
 const showImport = computed(
 	() => current.value === FIX_ISSUES && canImport.value && !importStarted.value
 );
-const canRetry = computed(() =>
-	["Error", "Partial Success", "Timed Out"].includes(doc.value.status)
-);
-const isFinished = computed(() => canRetry.value || doc.value.status === "Success");
+const canRetry = computed(() => canRetryImport(doc.value.status));
+const isFinished = computed(() => isImportFinished(doc.value.status));
 // A timeout may pass on a second try; failed rows fail again until the file is fixed.
 const retryFirst = computed(() => doc.value.status === "Timed Out" || !props.onNewImport);
 const newImportFirst = computed(() => !canRetry.value || !retryFirst.value);

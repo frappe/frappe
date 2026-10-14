@@ -9,7 +9,7 @@ import {
   type Ref,
 } from "vue";
 import { getSocketInstance, subscribeToDoc } from "../../socket";
-import { cint } from "./dataImport";
+import { METHODS, cint } from "./dataImport";
 import { t } from "./translate";
 import type {
   DataImportDoc,
@@ -23,7 +23,6 @@ import type {
 } from "./types";
 
 const DOCTYPE = "Data Import";
-const METHODS = "frappe.core.doctype.data_import.data_import";
 const PROGRESS_COUNTS_MIN_INTERVAL_MS = 2000;
 const RECENT_ACTIVITY_LIMIT = 5;
 

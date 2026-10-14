@@ -8,9 +8,23 @@ import type {
   DocType,
 } from "./types";
 
+export const METHODS = "frappe.core.doctype.data_import.data_import";
+
 /** Desk's is_import_complete: the records are in, so the import can't be edited. */
 export const isImportComplete = (status: DataImportStatus) =>
   status === "Success" || status === "Partial Success";
+
+const RETRYABLE_STATUSES: DataImportStatus[] = [
+  "Error",
+  "Partial Success",
+  "Timed Out",
+];
+
+export const canRetryImport = (status: DataImportStatus) =>
+  RETRYABLE_STATUSES.includes(status);
+
+export const isImportFinished = (status: DataImportStatus) =>
+  status === "Success" || canRetryImport(status);
 
 /** Rows the file check warned about, saved or from the latest preview, in order. */
 export function errorRowNumbers(
