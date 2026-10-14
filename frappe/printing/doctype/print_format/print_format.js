@@ -123,10 +123,16 @@ frappe.ui.form.on("Print Format", {
 	},
 	show_renderer_notice: function (frm) {
 		frm.dashboard.clear_headline();
+		const generator = effective_pdf_generator(frm);
+		const deprecated = DEPRECATED_RENDERERS.includes(generator);
 		if (is_classic_format(frm.doc)) {
 			frm.dashboard.set_headline(CLASSIC_BUILDER_NOTICE, "orange");
+		} else if (deprecated && frm.get_field("pdf_generator").df.hidden) {
+			frm.dashboard.set_headline(
+				__("{0} will be removed in version 17. Switch to Chrome.", [generator]),
+				"orange"
+			);
 		}
-		const deprecated = DEPRECATED_RENDERERS.includes(effective_pdf_generator(frm));
 		frm.set_df_property(
 			"pdf_generator",
 			"description",
