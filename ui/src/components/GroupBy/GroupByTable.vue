@@ -93,7 +93,7 @@
 				</ListRow>
 			</template>
 			<template v-else-if="loading">
-				<ListRow v-for="index in 8" :key="index">
+				<ListRow v-for="index in SKELETON_ROW_COUNT" :key="index">
 					<ListCell v-for="column in columns" :key="column.key">
 						<Skeleton class="h-3 w-full rounded-1" />
 					</ListCell>
@@ -140,6 +140,15 @@ const props = withDefaults(defineProps<GroupByTableProps>(), {
 	rowHeight: 40,
 });
 
+// Track defaults: a grouped field takes its value's width within a range, a number
+// column is narrow, and a last track takes the rest. A dragged width beats them all.
+const GROUP_COLUMN_TRACK = "minmax(10rem, 18rem)";
+const COUNT_MIN_WIDTH = "6rem";
+const AMOUNT_MIN_WIDTH = "11rem";
+const HEADER_ROOM = "2rem"; // the sort glyph and the gap beside the label
+const FILL_TRACK = "minmax(0, 1fr)";
+const SKELETON_ROW_COUNT = 8;
+
 const emit = defineEmits<{ "update:groupBy": [groupBy: GroupBySettings] }>();
 
 const { meta } = useDoctypeMeta(() => props.doctype);
@@ -184,9 +193,9 @@ const tracks = computed(() => [
 		(c) =>
 			drafts[c.id] ??
 			props.groupBy.widths?.[c.id] ??
-			(c.align === "left" ? "minmax(10rem, 18rem)" : aggregateTrack(c))
+			(c.align === "left" ? GROUP_COLUMN_TRACK : aggregateTrack(c))
 	),
-	"minmax(0, 1fr)",
+	FILL_TRACK,
 ]);
 
 const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize({
@@ -231,9 +240,10 @@ function totalText(column: GroupByColumn, index: number): string {
 	return index === 0 ? __("Total") : "";
 }
 
+// Wide enough for its header (`ch` follows the font) and for its kind of number.
 function aggregateTrack(column: GroupByColumn): string {
-	const fit = Math.ceil(column.label.length * 0.5 + 1.5);
-	return `${Math.max(column.fieldtype === "Int" ? 6 : 11, fit)}rem`;
+	const min = column.fieldtype === "Int" ? COUNT_MIN_WIDTH : AMOUNT_MIN_WIDTH;
+	return `max(${min}, calc(${column.label.length}ch + ${HEADER_ROOM}))`;
 }
 
 const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
