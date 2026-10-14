@@ -338,6 +338,16 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	}
 
 	refresh_ui() {
+		// Upload tabs are decided at render time; bring them back once the file or sheet is cleared.
+		if (
+			this.current_step === 0 &&
+			this._panel_rendered &&
+			!this.upload_tabs &&
+			!this.frm.doc.google_sheets_url &&
+			this.should_show_upload_tabs()
+		) {
+			this.render_panel();
+		}
 		this.render_stepper();
 		this.render_footer();
 		this.render_status();
@@ -476,6 +486,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		}
 
 		if (!this.has_import_settings()) {
+			this.upload_tabs = null;
 			$upload.append(
 				`<div class="text-sm text-ink-gray-6 py-6">${__(
 					"Select a Document Type to upload a file or Google Sheet."
@@ -1147,24 +1158,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 						onclick: () => frm.events.cancel_import(frm),
 					})
 				);
-			} else if (status === "Error") {
-				this.$footer_right.append(
-					frappe.ui.button({
-						label: __("Report Error"),
-						variant: "outline",
-						icon_left: "triangle-alert",
-						onclick: () => frm.events.report_error_now(frm),
-					})
-				);
-				this.$footer_right.append(
-					frappe.ui.button({
-						label: __("Retry"),
-						variant: "solid",
-						icon_left: "refresh-cw",
-						onclick: () => frm.events.begin_import(frm),
-					})
-				);
-			} else if (status === "Partial Success" || status === "Timed Out") {
+			} else if (["Error", "Partial Success", "Timed Out"].includes(status)) {
 				this.$footer_right.append(
 					frappe.ui.button({
 						label: __("Retry"),
