@@ -399,6 +399,21 @@ class TestReportview(IntegrationTestCase):
 		error_log = frappe.db.get_value("Error Log", {"reference_name": "test@example.com"})
 		self.assertIn(error_log, frappe.message_log[-1].message[0])
 
+	def test_delete_bulk_logs_unexpected_error_once(self):
+		logged_before = frappe.db.count("Error Log", {"reference_name": "test1@example.com"})
+		with (
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch(
+				"frappe.delete_doc", side_effect=[None, frappe.QueryTimeoutError, frappe.QueryTimeoutError]
+			),
+		):
+			delete_bulk("User", ["test@example.com", "test1@example.com"])
+
+		self.assertEqual(
+			frappe.db.count("Error Log", {"reference_name": "test1@example.com"}), logged_before + 1
+		)
+
 	def test_delete_bulk_hides_error_log_link_without_permission(self):
 		user = create_user("test_reportview_bulk_delete@example.com", "Website Manager")
 		with (
