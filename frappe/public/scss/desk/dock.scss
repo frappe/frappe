@@ -253,13 +253,13 @@
 	// it, so the text is hidden.
 	.dock-item-dot {
 		position: absolute;
-		top: calc(var(--spacing) * -0.5);
-		right: calc(var(--spacing) * -0.5);
-		width: calc(var(--spacing) * 2);
-		height: calc(var(--spacing) * 2);
+		top: calc(var(--spacing) * 1.25);
+		right: calc(var(--spacing) * 1.25);
+		width: calc(var(--spacing) * 1.75);
+		height: calc(var(--spacing) * 1.75);
 		border-radius: var(--radius-full);
-		border: 1px solid var(--surface-base);
-		background: var(--surface-red-6);
+		border: 1px solid var(--dock-bg);
+		background: var(--ink-gray-8);
 		font-size: 0;
 		overflow: hidden;
 	}
