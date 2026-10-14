@@ -104,6 +104,7 @@ class TestDashboardConnections(IntegrationTestCase):
 				"external_links_found": [
 					{
 						"doctype": "Test Doctype B With Child Table With Link To Doctype A",
+						"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
 						"open_count": 0,
 						"count": 1,
 					}
@@ -154,6 +155,7 @@ class TestDashboardConnections(IntegrationTestCase):
 			[
 				{
 					"doctype": "Test Doctype C With Duplicate Link To Doctype A",
+					"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
 					"open_count": 0,
 					"count": 1,
 					"names": ["Voyager"],
@@ -226,6 +228,62 @@ class TestDashboardConnections(IntegrationTestCase):
 		todo.links = todo.links[:-2]
 		todo.run_method("save_customization")
 
+<<<<<<< HEAD
+=======
+	def test_external_link_count_per_link_fieldname(self):
+		todo = frappe.get_doc(doctype="ToDo", description="test", allocated_to="test@example.com").insert()
+		frappe.get_doc(doctype="Test Doctype D", title="d-001", doclink=todo.name).insert()
+
+		dashboard = frappe._dict(
+			non_standard_fieldnames={"Test Doctype D": "follow_up"},
+			transactions=[
+				{"label": "Linked", "items": ["Test Doctype D"], "fieldnames": {"Test Doctype D": "doclink"}},
+				{
+					"label": "Follow Up",
+					"items": ["Test Doctype D"],
+					"fieldnames": {"Test Doctype D": "follow_up"},
+				},
+			],
+		)
+
+		with (
+			self.set_user("test@example.com"),
+			patch.object(todo.meta, "get_dashboard_data", return_value=dashboard),
+		):
+			connections = get_open_count("ToDo", todo.name)["count"]
+
+		self.assertEqual(
+			connections["external_links_found"],
+			[
+				{"doctype": "Test Doctype D", "fieldname": "doclink", "open_count": 0, "count": 1},
+				{"doctype": "Test Doctype D", "fieldname": "follow_up", "open_count": 0, "count": 0},
+			],
+		)
+
+	def test_open_count_restores_the_execution_timeout(self):
+		execution_timeout = frappe.db.get_execution_timeout()
+
+		get_open_count("User", "Administrator")
+
+		self.assertEqual(frappe.db.get_execution_timeout(), execution_timeout)
+
+
+class TestLinkedDocumentCount(IntegrationTestCase):
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_timed_out_count_keeps_the_transaction_usable(self):
+		execution_timeout = frappe.db.get_execution_timeout()
+
+		with frappe.db.execution_timeout(0.1), patch.object(frappe, "get_all", sleep_past_the_timeout):
+			self.assertEqual(get_doc_count("ToDo", {}), "?")
+			self.assertEqual(get_doc_count("ToDo", {}), "?")
+
+		self.assertEqual(frappe.db.get_execution_timeout(), execution_timeout)
+
+
+def sleep_past_the_timeout(*args, **kwargs):
+	frappe.db.multisql({"mariadb": "select sleep(1)", "postgres": "select pg_sleep(1)"})
+
+>>>>>>> d6014b6 (test: cover connection counts for a doctype linked through two fields)
 
 def create_test_data():
 	create_test_child_table_with_link_to_doctype_a()
@@ -432,6 +490,12 @@ def create_linked_doctypes():
 				"fieldname": "doclink",
 				"fieldtype": "Link",
 				"label": "DocLink",
+				"options": "ToDo",
+			},
+			{
+				"fieldname": "follow_up",
+				"fieldtype": "Link",
+				"label": "Follow Up",
 				"options": "ToDo",
 			},
 		],
