@@ -1,5 +1,5 @@
-import { computed } from "vue";
-import type { ComputedRef } from "vue";
+import { computed, ref } from "vue";
+import type { ComputedRef, Ref } from "vue";
 import { useFilters } from "../Filter/useFilters";
 import type { UseFilters } from "../Filter/useFilters";
 import { useSort } from "../SortBy/useSort";
@@ -14,6 +14,7 @@ import type {
 import type { FilterCondition, FilterField } from "../Filter/types";
 import type { Sort } from "../SortBy/types";
 import type { Column } from "../ColumnSettings/types";
+import type { GroupBySettings } from "../GroupBy/types";
 
 /**
  * A persistable snapshot of the whole view's customizable state — the single
@@ -36,6 +37,8 @@ export interface ListViewSnapshot {
   columns: Column[];
   /** The QuickFilter strip's surfaced fields, in display order. */
   quickFilterFields: FilterField[];
+  /** The grouping, or `null` for an ungrouped list. */
+  groupBy: GroupBySettings | null;
 }
 
 export interface UseListView {
@@ -51,6 +54,8 @@ export interface UseListView {
    *  render columns (`wire`), customization state (`isCustomized` / `reset`), and the
    *  resize writes (`setWidth` / `resetWidth`). */
   columns: UseColumns;
+  /** The GroupBy control's model: the grouping, or `null` for an ungrouped list. */
+  groupBy: Ref<GroupBySettings | null>;
   /** The whole view's customizable state as one reactive, persistable object —
    *  the save half of the layout-persistence seam. The library owns no saving: a
    *  host persists by watching this (`watch(view.snapshot, save)`) and decides
@@ -90,6 +95,7 @@ export function useListView(
   const sort = useSort();
   const quickFilter = useQuickFilter(doctype);
   const columns = useColumns(doctype, { synthetic: options.synthetic });
+  const groupBy = ref<GroupBySettings | null>(null);
 
   // Reads the *effective* state off each control (the writable computeds resolve
   // custom-or-default), capturing live references — safe because every control
@@ -100,6 +106,7 @@ export function useListView(
     sort: sort.by.value,
     columns: columns.shown.value,
     quickFilterFields: quickFilter.fields.value,
+    groupBy: groupBy.value,
   }));
 
   // Applies only the members present, each over its own control's ref — a partial
@@ -110,7 +117,9 @@ export function useListView(
     if (snapshot.columns) columns.shown.value = snapshot.columns;
     if (snapshot.quickFilterFields)
       quickFilter.fields.value = snapshot.quickFilterFields;
+    // `null` is a real value here (ungrouped), so test for the key, not truthiness.
+    if ("groupBy" in snapshot) groupBy.value = snapshot.groupBy ?? null;
   };
 
-  return { filters, sort, quickFilter, columns, snapshot, restore };
+  return { filters, sort, quickFilter, columns, groupBy, snapshot, restore };
 }

@@ -68,7 +68,7 @@ _Avoid_: connected component, smart component.
 
 **View Snapshot**:
 The serialized, persist-able capture of a List View's state — its **Filter**s,
-**Sort**s, **Column**s, and surfaced **Quick Filter** fields. The unit a host's
+**Sort**s, **Column**s, surfaced **Quick Filter** fields, and **Group By**. The unit a host's
 persistence layer is handed. It carries **no identity, ownership, or named-View
 concept** — whether this is a "standard", public, pinned, or named **View**, and
 who owns it, belongs entirely to the consuming app. The library tops out here and

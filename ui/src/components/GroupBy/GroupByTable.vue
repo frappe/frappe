@@ -5,7 +5,8 @@
   a grouped list reads like the list it summarizes.
 
   The `#cell` slot gets `{ row, column, value }` so a host can draw what the library
-  can't know, like user avatars or a currency symbol.
+  can't know, like user avatars or a currency symbol. Rows are not clickable:
+  a group has no record to open, as in desk's report view.
 -->
 <template>
 	<ScrollArea orientation="both" class="min-h-0 flex-1">
@@ -83,6 +84,7 @@ const props = withDefaults(defineProps<GroupByTableProps>(), {
 });
 
 const { meta } = useDoctypeMeta(() => props.doctype);
+
 const metaFields = computed(() => meta.value?.fields ?? []);
 
 const columns = computed<GroupByColumn[]>(() => [
@@ -110,13 +112,17 @@ const columns = computed<GroupByColumn[]>(() => [
 ]);
 
 // Group columns size to their values within a range; aggregates stay narrow so each
-// number sits next to its label, and a last flexible track takes the leftover width.
+// number sits next to its label, wide enough for their header, and a last flexible
+// track takes the leftover width. Tracks must be fixed: rows don't share a grid.
 const tracks = computed(() => [
-	...columns.value.map((c) =>
-		c.align === "left" ? "minmax(10rem, 18rem)" : c.fieldtype === "Int" ? "6rem" : "11rem"
-	),
+	...columns.value.map((c) => (c.align === "left" ? "minmax(10rem, 18rem)" : aggregateTrack(c))),
 	"minmax(0, 1fr)",
 ]);
+
+function aggregateTrack(column: GroupByColumn): string {
+	const fit = Math.ceil(column.label.length * 0.5 + 1.5);
+	return `${Math.max(column.fieldtype === "Int" ? 6 : 11, fit)}rem`;
+}
 
 const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
 

@@ -120,7 +120,8 @@ export function aggregateKey(index: number): string {
 
 /** The arguments for `frappe.client.get_list` that fetch one row per group: the
  *  group fields, one aliased aggregate per complete Aggregate, the `group_by`
- *  clause, and an `order_by` on the first aggregate, largest first. */
+ *  clause, and an `order_by` on the first aggregate, largest first. Count runs on
+ *  `name`, as desk's report view does, so `export_query` can label it too. */
 export function serializeGroupBy(groupBy: GroupBySettings): {
   fields: (string | Record<string, string>)[];
   group_by: string;
@@ -132,11 +133,49 @@ export function serializeGroupBy(groupBy: GroupBySettings): {
       ...groupBy.fields,
       ...aggregates.map((a, i) => ({
         [a.function.toUpperCase()]:
-          a.function === "count" ? "*" : (a.fieldname as string),
+          a.function === "count" ? "name" : (a.fieldname as string),
         as: aggregateKey(i),
       })),
     ],
     group_by: groupBy.fields.join(", "),
     order_by: aggregates.length ? `${aggregateKey(0)} desc` : undefined,
+  };
+}
+
+const FUNCTIONS = new Set(AGGREGATE_FUNCTIONS.map((f) => f.value));
+
+function isAggregate(value: unknown): value is Aggregate {
+  if (!value || typeof value !== "object") return false;
+  const aggregate = value as Aggregate;
+  return (
+    FUNCTIONS.has(aggregate.function) &&
+    (aggregate.fieldname === undefined ||
+      typeof aggregate.fieldname === "string") &&
+    isCompleteAggregate(aggregate)
+  );
+}
+
+/** Read a stored grouping back, from JSON text or a parsed object. Anything
+ *  malformed is dropped, and a grouping with no fields left reads as `null`. */
+export function parseGroupBy(raw: unknown): GroupBySettings | null {
+  let value = raw;
+  if (typeof raw === "string") {
+    try {
+      value = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  if (!value || typeof value !== "object") return null;
+  const { fields, aggregates } = value as Partial<
+    Record<keyof GroupBySettings, unknown>
+  >;
+  const groupFields = Array.isArray(fields)
+    ? fields.filter((f): f is string => typeof f === "string" && f !== "")
+    : [];
+  if (!groupFields.length) return null;
+  return {
+    fields: groupFields,
+    aggregates: Array.isArray(aggregates) ? aggregates.filter(isAggregate) : [],
   };
 }
