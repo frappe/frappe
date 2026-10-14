@@ -132,6 +132,7 @@ import {
 	findGroupByField,
 	getAggregateFields,
 	getGroupByFields,
+	isAggregateTaken,
 	isCompleteAggregate,
 } from "./groupBy";
 import type {
@@ -198,15 +199,8 @@ function groupOptions(current: string) {
 	);
 }
 
-// Whether a row other than `i` already has this aggregate: one Count, and each
-// function on a field once.
 function isTaken(i: number, aggregate: AggregateDraft) {
-	return draft.value.aggregates.some(
-		(a, j) =>
-			j !== i &&
-			a.function === aggregate.function &&
-			(a.function === "count" || (!!a.fieldname && a.fieldname === aggregate.fieldname))
-	);
+	return isAggregateTaken(draft.value.aggregates, i, aggregate);
 }
 
 // An aggregate already added isn't offered again, except in its own row.
@@ -228,7 +222,7 @@ function aggregateOptions(i: number, fn: AggregateFunction) {
 
 // A new row starts as Count, or as a Sum with no field yet once there's a Count.
 function addAggregate() {
-	const hasCount = draft.value.aggregates.some((a) => a.function === "count");
+	const hasCount = isTaken(-1, { function: "count" });
 	draft.value.aggregates.push({ function: hasCount ? "sum" : "count" });
 }
 
