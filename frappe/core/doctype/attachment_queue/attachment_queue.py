@@ -21,6 +21,11 @@ EXTRACTION_METHOD_PREVIEW_ONLY = "Preview Only"
 PENDING_STATUSES = ("Queued", "Processing")
 FINISHED_STATUSES = ("Completed", "Failed")
 
+# Background Task statuses from which a job can still run and report back. Its rows are
+# cleared after a week, so a missing task is not live either.
+LIVE_TASK_STATUSES = ("Queued", "Running")
+CANCELLED_TASK_STATUS = "Cancelled"
+
 STALE_EXTRACTION_THRESHOLD = 6 * 60 * 60
 
 
@@ -46,7 +51,6 @@ class AttachmentQueue(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		# Mandatory fields are checked after this runs, so either can still be empty.
 		if self.document_type:
 			self.validate_document_type()
 
@@ -55,7 +59,6 @@ class AttachmentQueue(Document):
 			self.validate_source_file_access()
 
 	def validate_document_type(self):
-		# Read through the meta so a per-DocType override from Customize Form counts.
 		if not frappe.get_meta(self.document_type).get("enable_upload_first_workflow"):
 			frappe.throw(
 				_("{0} does not allow document creation from an uploaded file.").format(
@@ -97,11 +100,20 @@ class AttachmentQueue(Document):
 		if not self.has_value_changed("source_file"):
 			return
 
-		# A queued job will use the updated file.
-		if self.status == "Queued":
+		# A queued job will use the updated file, but only while it can still run. A
+		# cancelled one never will, so the replacement needs a job of its own.
+		if self.status == "Queued" and self.has_live_task():
 			return
 
 		self.enqueue_extraction()
+
+	def has_live_task(self) -> bool:
+		"""Whether this row's Background Task can still run and report back."""
+		if not self.task:
+			return False
+
+		status = frappe.db.get_value("Background Task", self.task, "status")
+		return status in LIVE_TASK_STATUSES
 
 	def enqueue_extraction(self):
 		task = enqueue_task(
@@ -161,6 +173,9 @@ def extract_attachment_text(attachment_queue: str) -> None:
 			"error_message": None,
 		}
 	)
+	# Commit before extraction so the Processing status is visible and
+	# its database lock is released before the slow operation begins.
+	frappe.db.commit()  # nosemgrep
 
 	try:
 		extracted_text, extraction_method = queue_doc.extract()
@@ -196,21 +211,49 @@ def get_file_extension(file_url: str) -> str:
 
 
 def fail_stale_extractions() -> None:
-	"""Mark extractions that have been stuck for too long as failed."""
+	"""Mark extractions that can no longer finish as failed.
+
+	Both checks read the row's current task and queue time, so an attempt that has since
+	been re-enqueued is never failed on behalf of the one it replaced.
+	"""
+	cancelled = _cancelled_extractions()
+	_fail_extractions(cancelled, _("Text extraction was cancelled."))
+
 	cutoff = add_to_date(now(), seconds=-STALE_EXTRACTION_THRESHOLD, as_datetime=True)
-	stale = frappe.get_all(
+	timed_out = frappe.get_all(
 		"Attachment Queue",
 		filters={"status": ("in", PENDING_STATUSES), "extraction_queued_on": ("<", cutoff)},
 		pluck="name",
 	)
+	_fail_extractions(
+		[name for name in timed_out if name not in set(cancelled)],
+		_("Text extraction did not finish."),
+	)
 
-	if not stale:
+
+def _cancelled_extractions() -> list[str]:
+	"""Rows still waiting on a Background Task the user has cancelled."""
+	queue = frappe.qb.DocType("Attachment Queue")
+	task = frappe.qb.DocType("Background Task")
+
+	return (
+		frappe.qb.from_(queue)
+		.inner_join(task)
+		.on(task.name == queue.task)
+		.select(queue.name)
+		.where(queue.status.isin(PENDING_STATUSES))
+		.where(task.status == CANCELLED_TASK_STATUS)
+	).run(pluck=True)
+
+
+def _fail_extractions(names: list[str], error_message: str) -> None:
+	if not names:
 		return
 
 	frappe.db.set_value(
 		"Attachment Queue",
-		{"name": ("in", stale)},
-		{"status": "Failed", "error_message": _("Text extraction did not finish.")},
+		{"name": ("in", names)},
+		{"status": "Failed", "error_message": error_message},
 	)
 
 

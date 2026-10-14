@@ -5,7 +5,10 @@ from pathlib import Path
 from uuid import uuid4
 
 import frappe
-from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_text
+from frappe.core.doctype.attachment_queue.attachment_queue import (
+	extract_attachment_text,
+	fail_stale_extractions,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.utils.file_manager import save_file
 
@@ -64,7 +67,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		"""A row created alongside a schema change, so it needs removing explicitly."""
 		file_doc = self.make_file(marker, file_name)
 		queue_doc = self.make_queue(file_doc.file_url, document_type=document_type)
-		self.addCleanup(self.forget_committed, queue_doc.name, queue_doc.task, file_doc.file_url)
+		self.addCleanup(self.forget_committed, queue_doc.name, file_doc.file_url)
 		return queue_doc
 
 	def make_unreadable_target(self):
@@ -109,16 +112,24 @@ class TestAttachmentQueue(IntegrationTestCase):
 			}
 		).insert()
 
-	def forget_committed(self, queue_name: str, task_name: str, file_url: str):
+	def forget_committed(self, queue_name: str, *file_urls: str):
 		"""Remove a row an explicit commit or a schema change made permanent."""
 		frappe.db.rollback()
 
-		for doctype, name in (("Attachment Queue", queue_name), ("Background Task", task_name)):
-			if name and frappe.db.exists(doctype, name):
-				frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+		tasks = frappe.get_all(
+			"Background Task",
+			filters={"ref_doctype": "Attachment Queue", "ref_docname": queue_name},
+			pluck="name",
+		)
+		for name in tasks:
+			frappe.delete_doc("Background Task", name, force=True, ignore_permissions=True)
 
-		for name in frappe.get_all("File", filters={"file_url": file_url}, pluck="name"):
-			frappe.delete_doc("File", name, force=True, ignore_permissions=True)
+		if frappe.db.exists("Attachment Queue", queue_name):
+			frappe.delete_doc("Attachment Queue", queue_name, force=True, ignore_permissions=True)
+
+		for file_url in file_urls:
+			for name in frappe.get_all("File", filters={"file_url": file_url}, pluck="name"):
+				frappe.delete_doc("File", name, force=True, ignore_permissions=True)
 
 		frappe.db.commit()  # nosemgrep
 
@@ -126,6 +137,8 @@ class TestAttachmentQueue(IntegrationTestCase):
 		with self.set_user(TEST_USER):
 			file_doc = self.make_file("INV-2026-0042", "invoice.pdf")
 			queue_doc = self.make_queue(file_doc.file_url)
+			# extraction commits its Processing status, so the row outlives the rollback.
+			self.addCleanup(self.forget_committed, queue_doc.name, file_doc.file_url)
 
 			self.assertEqual(queue_doc.status, "Queued")
 			self.assertTrue(queue_doc.task)
@@ -154,7 +167,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		# Extraction rolls back before recording the failure, so the row has to be
 		# committed first, the way it already is when a worker picks it up.
 		frappe.db.commit()  # nosemgrep
-		self.addCleanup(self.forget_committed, queue_doc.name, queue_doc.task, file_doc.file_url)
+		self.addCleanup(self.forget_committed, queue_doc.name, file_doc.file_url)
 
 		with self.assertRaises(Exception):
 			extract_attachment_text(queue_doc.name)
@@ -168,6 +181,8 @@ class TestAttachmentQueue(IntegrationTestCase):
 		with self.set_user(TEST_USER):
 			first_file = self.make_file("FIRST FILE", "first.pdf")
 			queue_doc = self.make_queue(first_file.file_url)
+			# extraction commits its Processing status, so the row outlives the rollback.
+			self.addCleanup(self.forget_committed, queue_doc.name, first_file.file_url)
 
 			extract_attachment_text(queue_doc.name)
 			queue_doc.reload()
@@ -175,6 +190,8 @@ class TestAttachmentQueue(IntegrationTestCase):
 			first_task = queue_doc.task
 
 			second_file = self.make_file("SECOND FILE", "second.pdf")
+			self.addCleanup(self.forget_committed, queue_doc.name, second_file.file_url)
+
 			queue_doc.source_file = second_file.file_url
 			queue_doc.save()
 			queue_doc.reload()
@@ -183,6 +200,53 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertNotEqual(queue_doc.task, first_task)
 			self.assertFalse(queue_doc.extracted_text)
 			self.assertFalse(queue_doc.extraction_method)
+
+	def test_replacing_the_file_after_a_cancelled_job_queues_a_new_one(self):
+		with self.set_user(TEST_USER):
+			first_file = self.make_file("CANCELLED", "cancelled.pdf")
+			queue_doc = self.make_queue(first_file.file_url)
+			first_task = queue_doc.task
+
+			frappe.db.set_value("Background Task", first_task, "status", "Cancelled")
+			self.assertFalse(queue_doc.has_live_task())
+
+			second_file = self.make_file("REPLACEMENT", "replacement.pdf")
+			queue_doc.source_file = second_file.file_url
+			queue_doc.save()
+			queue_doc.reload()
+
+			self.assertEqual(queue_doc.status, "Queued")
+			self.assertNotEqual(queue_doc.task, first_task)
+			self.assertTrue(queue_doc.has_live_task())
+
+	def test_the_sweeper_fails_a_cancelled_extraction_without_waiting(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("SWEPT", "swept.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+
+		# Freshly queued, so only the cancellation can account for it being failed.
+		frappe.db.set_value("Background Task", queue_doc.task, "status", "Cancelled")
+		fail_stale_extractions()
+		queue_doc.reload()
+
+		self.assertEqual(queue_doc.status, "Failed")
+		self.assertIn("cancelled", queue_doc.error_message.lower())
+
+	def test_a_cancelled_task_does_not_fail_the_attempt_that_replaced_it(self):
+		with self.set_user(TEST_USER):
+			first_file = self.make_file("SUPERSEDED", "superseded.pdf")
+			queue_doc = self.make_queue(first_file.file_url)
+			frappe.db.set_value("Background Task", queue_doc.task, "status", "Cancelled")
+
+			second_file = self.make_file("CURRENT", "current.pdf")
+			queue_doc.source_file = second_file.file_url
+			queue_doc.save()
+
+		fail_stale_extractions()
+		queue_doc.reload()
+
+		self.assertEqual(queue_doc.status, "Queued")
+		self.assertFalse(queue_doc.error_message)
 
 	def test_a_row_is_readable_only_when_its_target_doctype_is(self):
 		unreadable_target = self.make_unreadable_target()
