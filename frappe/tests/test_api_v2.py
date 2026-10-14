@@ -653,11 +653,13 @@ class TestDocTypeAPIV2(FrappeAPITestCase):
 
 class TestDiscoveryAPIV2(FrappeAPITestCase):
 	version = "v2"
-	TEST_USER = "api-discovery-user@example.com"
+	DESK_USER = "api-discovery-desk-user@example.com"
+	WEBSITE_USER = "api-discovery-website-user@example.com"
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.delete_doc_if_exists("User", cls.TEST_USER, force=True)
+		for user in (cls.DESK_USER, cls.WEBSITE_USER):
+			frappe.delete_doc_if_exists("User", user, force=True)
 		frappe.db.commit()
 		super().tearDownClass()
 
@@ -670,28 +672,38 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 	def discovery_path(self, *parts):
 		return self.get_path("discovery", *parts)
 
-	def non_developer_sid(self) -> str:
+	def user_sid(self, email: str, *roles: str) -> str:
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
-		if not frappe.db.exists("User", self.TEST_USER):
+		if not frappe.db.exists("User", email):
 			user = frappe.get_doc(
 				{
 					"doctype": "User",
-					"email": self.TEST_USER,
+					"email": email,
 					"first_name": "API Discovery User",
 					"send_welcome_email": 0,
 				}
 			)
-			user.append_roles("Website Manager")
+			user.append_roles(*roles)
 			user.insert(ignore_permissions=True)
 			frappe.db.commit()
 
 		set_request(path="/")
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as(self.TEST_USER)
+		frappe.local.login_manager.login_as(email)
 		return frappe.session.sid
+
+	def discovery_paths(self):
+		return (
+			self.discovery_path(),
+			self.discovery_path("search"),
+			self.discovery_path("method"),
+			self.discovery_path("method", "frappe.tests.test_api.test"),
+			self.discovery_path("doctype", "User"),
+			self.discovery_path("doctype", "User", "method", "add_comment"),
+		)
 
 	def test_search_v2(self):
 		response = self.get(
@@ -887,17 +899,16 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		self.assertNotIn("Retry-After", response.headers)
 		log_error.assert_not_called()
 
-	def test_discovery_requires_developer_role_v2(self):
-		sid = self.non_developer_sid()
-		paths = (
-			self.discovery_path(),
-			self.discovery_path("search"),
-			self.discovery_path("method"),
-			self.discovery_path("method", "frappe.tests.test_api.test"),
-			self.discovery_path("doctype", "User"),
-			self.discovery_path("doctype", "User", "method", "add_comment"),
-		)
-		for path in paths:
+	def test_discovery_allows_desk_user_v2(self):
+		sid = self.user_sid(self.DESK_USER, "Website Manager")
+		for path in self.discovery_paths():
+			with self.subTest(path=path):
+				response = self.get(path, {"sid": sid})
+				self.assertEqual(response.status_code, 200)
+
+	def test_discovery_rejects_website_user_v2(self):
+		sid = self.user_sid(self.WEBSITE_USER)
+		for path in self.discovery_paths():
 			with self.subTest(path=path):
 				with suppress_stdout():
 					response = self.get(path, {"sid": sid})
