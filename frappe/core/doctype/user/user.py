@@ -404,7 +404,14 @@ class User(Document):
 		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
-			self.db_set("last_password_reset_date", today())
+			self.last_password_reset_date = today()
+			frappe.db.set_value(
+				"User",
+				self.name,
+				"last_password_reset_date",
+				self.last_password_reset_date,
+				update_modified=False,
+			)
 			outgoing_email_exists = frappe.db.exists(
 				"Email Account", {"default_outgoing": 1, "awaiting_password": 0}
 			)
