@@ -12,7 +12,8 @@ import type { GroupBySettings } from "./types";
  * `serializeGroupBy` itself.
  *
  * It fetches one row per group through `frappe.client.get_list`, plus the group keys
- * alone for the footer's "of N" (there's no count of distinct groups to ask for).
+ * alone for the footer's "of N" (there's no count of distinct groups to ask for),
+ * capped at `GROUP_COUNT_CAP` so a field with many values can't pull the whole list.
  * Any change to the doctype, grouping, filters or page length refetches from the
  * first page; `loadMore` grows the page by one page length. With `showTotals`, a
  * third ungrouped query gives the totals row.
@@ -29,6 +30,8 @@ export interface UseGroupByData {
   rowCount: ComputedRef<number>;
   /** Groups matching the filters — the footer's `totalCount`. */
   totalCount: ComputedRef<number>;
+  /** The total hit the cap and is a floor — the footer's `totalCapped`. */
+  totalCapped: ComputedRef<boolean>;
   /** False until the total lands — the footer's `hasCounts`. */
   hasCounts: ComputedRef<boolean>;
   /** The page length; ListFooter `v-model`s this and a change refetches. */
@@ -38,6 +41,8 @@ export interface UseGroupByData {
   /** Refetch from the first page. */
   reload: () => void;
 }
+
+export const GROUP_COUNT_CAP = 1000;
 
 export function useGroupByData(
   doctype: MaybeRefOrGetter<string>,
@@ -66,7 +71,7 @@ export function useGroupByData(
         filters: toValue(filters),
         fields,
         group_by: fields.join(", "),
-        limit_page_length: 0,
+        limit_page_length: GROUP_COUNT_CAP,
       };
     },
   });
@@ -124,6 +129,9 @@ export function useGroupByData(
     loading: computed(() => Boolean(groups.loading)),
     rowCount: computed(() => rows.value.length),
     totalCount: computed(() => groupKeys.data?.length ?? 0),
+    totalCapped: computed(
+      () => (groupKeys.data?.length ?? 0) >= GROUP_COUNT_CAP
+    ),
     hasCounts: computed(() => Boolean(groupKeys.data)),
     pageLength,
     loadMore,
