@@ -2,7 +2,8 @@
   GroupBy demo — the control and the table against a live doctype, wired the way a
   host does it: `useGroupByData` fetches the groups for the control's model, and the
   rows go to `GroupByTable`, with the List module's footer paging through them. The
-  doctype picker lists the site's own doctypes. Story chrome uses frappe-ui
+  doctype is typed in, so the story fetches nothing up front and names no app's
+  doctypes. Story chrome uses frappe-ui
   components per the workspace convention.
 -->
 <template>
@@ -10,7 +11,12 @@
 		<div class="flex items-center gap-4">
 			<div class="flex items-center gap-2">
 				<span class="text-p-sm text-ink-gray-6">Doctype</span>
-				<Select v-model="doctype" :options="doctypeOptions" class="w-56" />
+				<TextInput
+					v-model="typed"
+					class="w-56"
+					placeholder="Any doctype you can read"
+					@change="doctype = typed.trim()"
+				/>
 			</div>
 			<div class="flex items-center gap-2">
 				<span class="text-p-sm text-ink-gray-6">Hide label</span>
@@ -54,28 +60,14 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { Select, Switch, createResource } from "frappe-ui";
+import { Switch, TextInput } from "frappe-ui";
 import { ListFooter } from "../../../experimental/List";
 import { GroupBy, GroupByTable, serializeGroupBy, useGroupByData } from "../index";
 import type { GroupBySettings } from "../types";
 
-// The site's own listable doctypes, so the story assumes no particular app.
+// Applied on change, not per keystroke, so half-typed names aren't fetched.
+const typed = ref("");
 const doctype = ref("");
-const doctypeOptions = ref<string[]>([]);
-createResource({
-	url: "frappe.client.get_list",
-	params: {
-		doctype: "DocType",
-		filters: { istable: 0, issingle: 0 },
-		order_by: "name asc",
-		limit_page_length: 0,
-	},
-	auto: true,
-	onSuccess(rows: { name: string }[]) {
-		doctypeOptions.value = rows.map((row) => row.name);
-		doctype.value = doctypeOptions.value[0] ?? "";
-	},
-});
 const groupBy = ref<GroupBySettings | null>(null);
 const hideLabel = ref(false);
 
