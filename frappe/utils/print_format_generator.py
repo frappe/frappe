@@ -297,7 +297,7 @@ def page_size_mm(print_settings) -> tuple[float, float]:
 	return tuple(known) if known else (210, 297)
 
 
-BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\r\n]+")
+BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\r\n]+|data:image/[\w.+-]+;base64,[A-Za-z0-9+/=]+")
 
 
 def layout_page_settings(layout: dict | list | None) -> dict:
@@ -950,7 +950,7 @@ class PrintFormatGenerator:
 		opacity = background.get("opacity")
 		return {
 			"image": image,
-			"url": quote(image, safe=":/?&=%#"),
+			"url": image if image.startswith("data:") else quote(image, safe=":/?&=%#"),
 			"opacity": 100 if opacity in (None, "") else max(0, min(100, cint(opacity))),
 		}
 
