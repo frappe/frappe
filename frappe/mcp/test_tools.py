@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
 from datetime import date
 from unittest.mock import Mock, patch
 
@@ -21,7 +22,7 @@ class ExampleArguments(tools.ToolArguments):
 class TestToolSchema(UnitTestCase):
 	def test_schema_matches_validation(self):
 		tool = tools.Tool("example", "Example", ExampleArguments, Mock())
-		schema = tool.definition()["inputSchema"]
+		schema = tool.input_schema
 		self.assertEqual(schema["required"], ["doctype"])
 		self.assertFalse(schema["additionalProperties"])
 		self.assertEqual(schema["properties"]["limit"]["default"], 20)
@@ -31,8 +32,25 @@ class TestToolSchema(UnitTestCase):
 		args = {"custom": ["value"], "flag": "1"}
 		self.assertEqual(ExampleArguments(doctype="ToDo", args=args).args, args)
 
+	def test_definitions_follow_current_site_without_caching_identity(self):
+		for site in ("accounts.example.com", "support.example.com", "accounts.example.com"):
+			with self.subTest(site=site), patch.object(frappe.local, "site", site, create=True):
+				for tool in tools.registry():
+					definition = tool.definition()
+					self.assertTrue(definition["description"].startswith(f"Site: {site}. "))
+					self.assertEqual(definition["name"], tool.name)
+					self.assertIs(definition["inputSchema"], tool.input_schema)
+
 
 class TestToolExecution(McpTestCase):
+	def assert_identity(self, result):
+		self.assertEqual(result["structuredContent"]["site"], self.site)
+		self.assertEqual(result["structuredContent"]["user"], self.user)
+		text = result["content"][-1 if result["isError"] else 0]["text"]
+		context = json.loads(text)
+		self.assertEqual(context["site"], self.site)
+		self.assertEqual(context["user"], self.user)
+
 	def call(self, arguments, handler, *, name="example"):
 		tool = tools.Tool("example", "Example", ExampleArguments, handler)
 		with patch("frappe.mcp.tools.registry", return_value=(tool,)):
@@ -54,6 +72,8 @@ class TestToolExecution(McpTestCase):
 			{"doctype": "ToDo", "limt": 20},
 			{"doctype": "ToDo", "limit": 0},
 			{"doctype": "ToDo", "args": []},
+			{"doctype": "ToDo", "site": "other.example.com"},
+			{"doctype": "ToDo", "user": "Administrator"},
 			None,
 			[],
 		)
@@ -64,6 +84,7 @@ class TestToolExecution(McpTestCase):
 				self.assertEqual(response.status_code, 200)
 				self.assertTrue(response.json["result"]["isError"])
 				self.assertIn("Invalid tool arguments", response.json["result"]["content"][0]["text"])
+				self.assert_identity(response.json["result"])
 				handler.assert_not_called()
 
 	def test_success_and_default_arguments(self):
@@ -71,12 +92,57 @@ class TestToolExecution(McpTestCase):
 		response = self.call({"doctype": "ToDo"}, handler)
 		result = response.json["result"]
 		self.assertFalse(result["isError"])
-		self.assertEqual(result["structuredContent"], {"date": "2026-01-01"})
+		self.assertEqual(
+			result["structuredContent"], {"date": "2026-01-01", "site": self.site, "user": self.user}
+		)
+		self.assert_identity(result)
+		self.assertEqual(json.loads(result["content"][0]["text"]), result["structuredContent"])
 		handler.assert_called_once_with(doctype="ToDo", limit=20, args={})
 
 	def test_non_object_result(self):
 		response = self.call({"doctype": "ToDo"}, Mock(return_value=[1, 2]))
-		self.assertEqual(response.json["result"]["structuredContent"], {"result": [1, 2]})
+		self.assertEqual(
+			response.json["result"]["structuredContent"],
+			{"result": [1, 2], "site": self.site, "user": self.user},
+		)
+
+	def test_handler_cannot_replace_connection_identity(self):
+		value = {"site": "other.example.com", "user": "Administrator", "ok": True}
+		response = self.call({"doctype": "ToDo"}, Mock(return_value=value))
+		self.assert_identity(response.json["result"])
+		self.assertEqual(value["site"], "other.example.com")
+
+	def test_identity_is_captured_before_method_changes_user(self):
+		def handler(**kwargs):
+			frappe.set_user("Administrator")
+			return {"ok": True}
+
+		response = self.call({"doctype": "ToDo"}, handler)
+		self.assert_identity(response.json["result"])
+
+	def test_result_identity_follows_current_request(self):
+		tool = tools.Tool("example", "Example", ExampleArguments, Mock(return_value={"ok": True}))
+		with self.set_user(self.user):
+			for site in ("accounts.example.com", "support.example.com", "accounts.example.com"):
+				with self.subTest(site=site), patch.object(frappe.local, "site", site):
+					with patch("frappe.mcp.tools.registry", return_value=(tool,)):
+						result = tools.call({"name": "example", "arguments": {"doctype": "ToDo"}})
+					self.assertEqual(result["structuredContent"]["site"], site)
+					self.assertEqual(result["structuredContent"]["user"], self.user)
+
+	def test_identity_uses_resolved_site_instead_of_host_header(self):
+		tool = tools.Tool("example", "Example", ExampleArguments, Mock(return_value={"ok": True}))
+		with patch("frappe.mcp.tools.registry", return_value=(tool,)):
+			response = self.request(
+				{
+					"jsonrpc": "2.0",
+					"id": 1,
+					"method": "tools/call",
+					"params": {"name": "example", "arguments": {"doctype": "ToDo"}},
+				},
+				headers={"Host": "other.example.com"},
+			)
+		self.assert_identity(response.json["result"])
 
 	def test_unknown_or_missing_tool(self):
 		response = self.call({}, Mock(), name="missing")
@@ -98,6 +164,7 @@ class TestToolExecution(McpTestCase):
 		response = self.call({"doctype": "ToDo"}, handler)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertEqual(response.json["result"]["content"][0]["text"], "Tool failed")
+		self.assert_identity(response.json["result"])
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "MCP failed tool fixture"}))
 
 	def test_serialization_failure_rolls_back_write(self):
@@ -108,6 +175,7 @@ class TestToolExecution(McpTestCase):
 		response = self.call({"doctype": "ToDo"}, handler)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "MCP serialization fixture"}))
+		self.assert_identity(response.json["result"])
 
 	def test_permission_failure_is_tool_error(self):
 		def handler(**kwargs):
@@ -116,6 +184,7 @@ class TestToolExecution(McpTestCase):
 
 		response = self.call({"doctype": "ToDo"}, handler)
 		self.assertTrue(response.json["result"]["isError"])
+		self.assert_identity(response.json["result"])
 
 	def test_request_state_is_restored(self):
 		original_arguments = frappe.local.form_dict
@@ -175,5 +244,8 @@ class TestToolExecution(McpTestCase):
 				},
 			)
 		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json["result"]["structuredContent"], {"ok": True})
+		self.assertEqual(
+			response.json["result"]["structuredContent"], {"ok": True, "site": self.site, "user": self.user}
+		)
+		self.assert_identity(response.json["result"])
 		self.assertEqual(response.json["result"]["resultType"], "complete")

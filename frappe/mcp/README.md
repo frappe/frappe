@@ -25,6 +25,10 @@ Regenerating keys replaces the secret. Keep credentials out of version control.
 
 Launch the client from the terminal where you set `FRAPPE_MCP_AUTH`.
 
+For multiple sites, configure one connection per site with a descriptive name, such as `frappe_accounts` or `frappe_support`.
+Tool descriptions identify the resolved site. Successful and failed tool results include its identity and the authenticated user.
+Call `discover` without arguments to inspect the connected site before choosing an operation.
+
 ### MCP Inspector
 
 With Node.js installed, list the tools:

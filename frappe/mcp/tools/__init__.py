@@ -40,7 +40,7 @@ class Tool:
 	def definition(self) -> dict:
 		return {
 			"name": self.name,
-			"description": _(self.description),
+			"description": _("Site: {0}. {1}").format(frappe.local.site, _(self.description)),
 			"inputSchema": self.input_schema,
 			"annotations": self.annotations,
 		}
@@ -67,18 +67,19 @@ def call(params: dict) -> dict:
 		raise McpError(METHOD_NOT_FOUND, _("Unknown MCP tool: {0}").format(name), status=404)
 
 	add_data_to_monitor(mcp_tool=name)
+	identity = {"site": frappe.local.site, "user": frappe.session.user}
 	try:
 		arguments = tool.arguments.model_validate(params.get("arguments", {}))
 	except ValidationError as error:
-		return error_result(validation_message(error))
+		return error_result(validation_message(error), identity)
 
 	try:
 		with form_dict(arguments.model_dump()):
-			result = success_result(tool.handler(**frappe.form_dict))
+			result = success_result(tool.handler(**frappe.form_dict), identity)
 	except Exception as error:
 		# Tool errors are returned as results; roll back before the POST request can commit.
 		frappe.db.rollback()
-		result = error_result(str(error) or type(error).__name__)
+		result = error_result(str(error) or type(error).__name__, identity)
 	return result
 
 
@@ -96,8 +97,9 @@ def form_dict(arguments: dict) -> Iterator[dict]:
 		frappe.local.response = original_response
 
 
-def success_result(value: Any) -> dict:
+def success_result(value: Any, identity: dict[str, str]) -> dict:
 	structured = value if isinstance(value, dict) else {"result": value}
+	structured = {**structured, **identity}
 	# Normalize dates and other Frappe values before the request commits.
 	text = json.dumps(structured, default=json_handler, allow_nan=False)
 	return {
@@ -115,6 +117,11 @@ def validation_message(error: ValidationError) -> str:
 	return _("Invalid tool arguments: {0}").format("; ".join(issues))
 
 
-def error_result(message: str) -> dict:
+def error_result(message: str, identity: dict[str, str]) -> dict:
 	frappe.clear_messages()
-	return {"content": [{"type": "text", "text": strip_html(message).strip()}], "isError": True}
+	message = strip_html(message).strip()
+	return {
+		"content": [{"type": "text", "text": message}, {"type": "text", "text": json.dumps(identity)}],
+		"structuredContent": {**identity, "error": message},
+		"isError": True,
+	}

@@ -65,7 +65,10 @@ class TestWriteDocument(McpTestCase):
 
 	def test_delete(self):
 		result = self.result(action="delete", doctype="ToDo", name=self.own)
-		self.assertEqual(result, {"action": "delete", "doctype": "ToDo", "name": self.own})
+		self.assertEqual(
+			result,
+			{"action": "delete", "doctype": "ToDo", "name": self.own, "site": self.site, "user": self.user},
+		)
 		self.assertFalse(frappe.db.exists("ToDo", self.own))
 
 	def test_unauthorized_update_and_delete(self):
