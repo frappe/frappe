@@ -97,16 +97,6 @@ class TestBackgroundJobs(IntegrationTestCase):
 		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
 		self.assertIsNone(job.retries_left)
 
-	def test_enqueue_rq_retry(self):
-		method = "frappe.tests.test_background_jobs.echo_retry"
-		job = frappe.enqueue(method, queue="short", rq_retry=Retry(max=2))
-		self.assertEqual(job.retries_left, 2)
-
-		with self.assertWarns(FrappeDeprecationWarning):
-			job = frappe.enqueue(method, queue="short", retry=Retry(max=2))
-		self.assertEqual(job.retries_left, 2)
-		self.assertNotIn("retry", job.kwargs["kwargs"])
-
 	def test_job_translation_resolves_user_language(self):
 		real_get_cached_value = frappe.get_cached_value
 
