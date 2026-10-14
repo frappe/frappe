@@ -123,9 +123,27 @@
 		}
 	}
 
-	.dock-logo + .dock-items {
+	.dock-logo + .dock-utilities:not(:empty),
+	.dock-logo + .dock-utilities:empty + .dock-items {
 		margin-top: calc(var(--spacing) * -1);
 		padding-top: calc(var(--spacing) * 3);
+	}
+
+	// Search and notifications, kept apart from the module tiles by a rule.
+	.dock-utilities {
+		flex: 0 0 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing);
+
+		&:not(:empty) {
+			padding-bottom: calc(var(--spacing) * 2);
+			margin-bottom: var(--spacing);
+			border-bottom: 1px solid var(--outline-gray-1);
+		}
 	}
 
 	.dock-items {
@@ -210,6 +228,26 @@
 		outline: 2px solid var(--outline-gray-4);
 		outline-offset: 2px;
 	}
+
+	&[aria-expanded="true"] {
+		background: var(--surface-gray-2);
+		color: var(--dock-ink-active);
+	}
+
+	// Unread notifications, as a dot on the bell's corner. notifications.js writes the count into
+	// it, so the text is hidden.
+	.dock-item-dot {
+		position: absolute;
+		top: 7px;
+		right: 7px;
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		border: 1px solid var(--dock-bg);
+		background: var(--ink-gray-8);
+		font-size: 0;
+		overflow: hidden;
+	}
 }
 
 // Out. One class on <body>, set by frappe.ui.Dock, so the arrival is one transform on one fixed
@@ -287,6 +325,21 @@ body.dock-pinned .dock .dock-user-button {
 @include media-breakpoint-up(md) {
 	body.dock-pinned.dock-active .body-sidebar .dropdown-navbar-user {
 		display: none;
+	}
+}
+
+// The dock carries search and notifications, so the sidebar's rows for them go.
+@include media-breakpoint-up(md) {
+	body.dock-active .body-sidebar .standard-items-band {
+		> .navbar-modal-search-mobile,
+		> .sidebar-notification {
+			display: none;
+		}
+
+		&:not(:has(> :not(.hidden, .navbar-modal-search-mobile, .sidebar-notification))) {
+			padding-top: 0;
+			margin-bottom: 0;
+		}
 	}
 }
 
