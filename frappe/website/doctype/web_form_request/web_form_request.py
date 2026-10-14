@@ -68,7 +68,8 @@ class WebFormRequest(Document):
 		frappe.throw(
 			_("{0} does not allow multiple responses, so the request can have only one reference").format(
 				frappe.bold(web_form.title or web_form.name)
-			)
+			),
+			title=_("Too Many References"),
 		)
 
 	def validate_key(self, *, allow_used=False):
