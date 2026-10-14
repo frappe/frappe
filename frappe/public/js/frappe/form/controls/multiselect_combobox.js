@@ -161,6 +161,7 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 				if (--this.sync_pending) return;
 				// show what was saved: a value that failed validation drops out
 				this.set_formatted_input(this._get_rows());
+				this.$input.trigger("awesomplete-selectcomplete");
 			});
 	}
 
@@ -331,7 +332,10 @@ frappe.ui.form.ControlMultiSelectPillsCombobox = class ControlMultiSelectPillsCo
 
 	on_pick_values(values) {
 		this.rows = values;
-		this.validate_and_set_in_model(this.model_value(values));
+		// dialogs refresh depends_on on this event; "change" would set the value twice
+		this.validate_and_set_in_model(this.model_value(values)).then(() =>
+			this.$input.trigger("awesomplete-selectcomplete")
+		);
 	}
 
 	model_value(values) {

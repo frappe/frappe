@@ -30,15 +30,15 @@
     color: var(--ink-gray-4);
 }
 
-/* the trigger owns the look; !important beats the desk's .form-control rules */
+/* the trigger owns the look */
 input.es-combobox__value {
     /* never editable, so never a caret */
     caret-color: transparent;
     height: 100%;
     padding: 0;
     margin: 0;
-    box-shadow: none !important;
-    background: transparent !important;
+    box-shadow: none;
+    background: transparent;
     color: inherit;
     font: inherit;
     line-height: inherit;
