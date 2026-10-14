@@ -32,14 +32,33 @@ const names = (fields: { fieldname: string }[]) =>
   fields.map((f) => f.fieldname);
 
 describe("getGroupByFields", () => {
-  it("offers visible, labelled fields of a groupable fieldtype, then the user fields", () => {
+  it("offers labelled fields of a groupable fieldtype, hidden ones too, then the standard fields", () => {
     expect(names(getGroupByFields(FIELDS))).toEqual([
       "status",
       "sales_person",
       "close_date",
+      "secret",
       "owner",
       "modified_by",
+      "_user_tags",
+      "docstatus",
     ]);
+  });
+
+  it("leaves out virtual fields, which have no column to group on", () => {
+    expect(
+      names(
+        getGroupByFields([
+          { fieldname: "region", fieldtype: "Data", label: "Region" },
+          {
+            fieldname: "age",
+            fieldtype: "Int",
+            label: "Age",
+            is_virtual: 1,
+          },
+        ])
+      )
+    ).toEqual(["region", "owner", "modified_by", "_user_tags", "docstatus"]);
   });
 });
 
@@ -59,6 +78,31 @@ describe("getAggregateFields", () => {
     ]);
   });
 
+  it("offers hidden numbers, but not virtual ones or ratings", () => {
+    expect(
+      names(
+        getAggregateFields(
+          [
+            {
+              fieldname: "cost",
+              fieldtype: "Currency",
+              label: "Cost",
+              hidden: 1,
+            },
+            {
+              fieldname: "margin",
+              fieldtype: "Float",
+              label: "Margin",
+              is_virtual: 1,
+            },
+            { fieldname: "stars", fieldtype: "Rating", label: "Stars" },
+          ],
+          "sum"
+        )
+      )
+    ).toEqual(["cost"]);
+  });
+
   it("also offers dates and the standard timestamps to min and max", () => {
     expect(names(getAggregateFields(FIELDS, "max"))).toEqual([
       "grand_total",
@@ -71,9 +115,12 @@ describe("getAggregateFields", () => {
 });
 
 describe("findGroupByField", () => {
-  it("finds a Meta field, or a standard user field", () => {
+  it("finds a Meta field, or a standard field", () => {
     expect(findGroupByField(FIELDS, "status")?.label).toBe("Status");
     expect(findGroupByField(FIELDS, "owner")?.label).toBe("Created By");
+    expect(findGroupByField(FIELDS, "docstatus")?.label).toBe(
+      "Document Status"
+    );
     expect(findGroupByField(FIELDS, "missing")).toBeUndefined();
   });
 });
@@ -259,7 +306,14 @@ describe("getGroupByFields fieldtypes", () => {
           { fieldname: "city", fieldtype: "Autocomplete", label: "City" },
         ])
       )
-    ).toEqual(["ref", "city", "owner", "modified_by"]);
+    ).toEqual([
+      "ref",
+      "city",
+      "owner",
+      "modified_by",
+      "_user_tags",
+      "docstatus",
+    ]);
   });
 });
 
