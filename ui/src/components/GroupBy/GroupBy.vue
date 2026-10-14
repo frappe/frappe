@@ -76,14 +76,14 @@
 						<Select
 							class="w-32"
 							:modelValue="aggregate.function"
-							:options="functionOptions"
+							:options="functionOptions(i)"
 							@update:modelValue="(fn: AggregateFunction) => setFunction(i, fn)"
 						/>
 						<Combobox
 							v-if="aggregate.function !== 'count'"
 							class="flex-1"
 							:modelValue="aggregate.fieldname || null"
-							:options="aggregateOptions(aggregate.function)"
+							:options="aggregateOptions(i, aggregate.function)"
 							:placeholder="__('Select field')"
 							@update:modelValue="(v: string) => (aggregate.fieldname = v)"
 						/>
@@ -100,7 +100,7 @@
 						variant="ghost"
 						iconLeft="lucide-plus"
 						:label="__('Add Aggregate')"
-						@click="draft.aggregates.push({ function: 'count' })"
+						@click="addAggregate"
 					/>
 				</div>
 				<div
@@ -177,8 +177,6 @@ watch(open, async (isOpen) => {
 
 const metaFields = computed(() => meta.value?.fields ?? []);
 
-const functionOptions = AGGREGATE_FUNCTIONS.map((f) => ({ label: __(f.label), value: f.value }));
-
 // Pickers list fields alphabetically, as desk's report view does.
 const toOptions = (fields: GroupByField[]) =>
 	fields
@@ -200,14 +198,44 @@ function groupOptions(current: string) {
 	);
 }
 
-function aggregateOptions(fn: AggregateFunction) {
-	return toOptions(getAggregateFields(metaFields.value, fn));
+// Whether a row other than `i` already has this aggregate: one Count, and each
+// function on a field once.
+function isTaken(i: number, aggregate: AggregateDraft) {
+	return draft.value.aggregates.some(
+		(a, j) =>
+			j !== i &&
+			a.function === aggregate.function &&
+			(a.function === "count" || (!!a.fieldname && a.fieldname === aggregate.fieldname))
+	);
+}
+
+// An aggregate already added isn't offered again, except in its own row.
+function functionOptions(i: number) {
+	return AGGREGATE_FUNCTIONS.map((f) => ({
+		label: __(f.label),
+		value: f.value,
+		disabled: f.value === "count" && isTaken(i, { function: "count" }),
+	}));
+}
+
+function aggregateOptions(i: number, fn: AggregateFunction) {
+	return toOptions(
+		getAggregateFields(metaFields.value, fn).filter(
+			(f) => !isTaken(i, { function: fn, fieldname: f.fieldname })
+		)
+	);
+}
+
+// A new row starts as Count, or as a Sum with no field yet once there's a Count.
+function addAggregate() {
+	const hasCount = draft.value.aggregates.some((a) => a.function === "count");
+	draft.value.aggregates.push({ function: hasCount ? "sum" : "count" });
 }
 
 // Switching function keeps the field only when the new function can still use it.
 function setFunction(i: number, fn: AggregateFunction) {
 	const aggregate = draft.value.aggregates[i];
-	const keepsField = aggregateOptions(fn).some((o) => o.value === aggregate.fieldname);
+	const keepsField = aggregateOptions(i, fn).some((o) => o.value === aggregate.fieldname);
 	draft.value.aggregates[i] = keepsField ? { ...aggregate, function: fn } : { function: fn };
 }
 

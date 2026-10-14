@@ -278,9 +278,12 @@ export function parseGroupBy(raw: unknown): GroupBySettings | null {
     ? fields.filter((f): f is string => typeof f === "string" && f !== "")
     : [];
   if (!groupFields.length) return null;
+  // An aggregate saved twice reads once, as the control only lets it be added once.
+  const valid = Array.isArray(aggregates) ? aggregates.filter(isAggregate) : [];
+  const ids = valid.map(columnId);
   const parsed: GroupBySettings = {
     fields: groupFields,
-    aggregates: Array.isArray(aggregates) ? aggregates.filter(isAggregate) : [],
+    aggregates: valid.filter((a, i) => ids.indexOf(columnId(a)) === i),
   };
   const extras = value as {
     widths?: unknown;
