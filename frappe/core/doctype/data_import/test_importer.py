@@ -620,6 +620,17 @@ class TestImporter(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Gender", gender))
 		self.assertEqual(contact[1], gender)
 
+	def test_import_does_not_create_link_records_for_skipped_rows(self):
+		gender = "Data Import Test Gender Skipped"
+		data_import = self._contact_import_creating_gender(gender, "Zed Skipped Test")
+		data_import.append("skipped_rows", {"row_number": 2, "row_data": "[]"})
+		data_import.save()
+		frappe.db.commit()  # nosemgrep
+
+		data_import.start_import()
+		self.assertFalse(frappe.db.exists("Gender", gender))
+		self.assertFalse(frappe.db.exists("Contact", {"first_name": "Zed Skipped Test"}))
+
 	def test_user_with_create_permission_creates_missing_link_records(self):
 		gender = "Data Import Test Gender Allowed"
 		data_import = self._contact_import_creating_gender(gender, "Zed Allowed Test")
