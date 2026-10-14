@@ -1006,11 +1006,12 @@ def delete_items():
 	return delete_bulk(doctype, items)
 
 
-def delete_bulk(doctype, items):
+def delete_bulk(doctype, items, error_logs: dict | None = None):
 	"""Delete documents one by one. Returns names that could not be deleted."""
+	if error_logs is None:
+		error_logs = {}
 	undeleted_items = {}
 	linked_with = {}
-	tracebacks = {}
 	for i, d in enumerate(items):
 		message_count = len(frappe.message_log)
 		try:
@@ -1043,27 +1044,23 @@ def delete_bulk(doctype, items):
 				linked_with[d] = link_error.linked_with
 				reasons = [] if link_error is e else [str(e)]
 			elif not reasons:
-				tracebacks[d] = frappe.get_traceback(with_context=True)
+				if d not in error_logs:
+					error_logs[d] = frappe.log_error(
+						title=f"Failed to delete {doctype} {d}", reference_doctype=doctype, reference_name=d
+					)
+				can_read_error_log = frappe.has_permission("Error Log")
+				reasons = [
+					_("Check the Error Log for more information: {0}").format(
+						get_link_to_form("Error Log", error_logs[d].name)
+					)
+					if error_logs[d] and can_read_error_log
+					else _("An unexpected error occurred. Please contact your System Manager.")
+				]
 			undeleted_items[d] = reasons
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
-		return delete_bulk(doctype, list(undeleted_items))
+		return delete_bulk(doctype, list(undeleted_items), error_logs)
 	elif undeleted_items:
-		for name, traceback in tracebacks.items():
-			error_log = frappe.log_error(
-				title=f"Failed to delete {doctype} {name}",
-				message=traceback,
-				reference_doctype=doctype,
-				reference_name=name,
-			)
-			undeleted_items[name] = [
-				_("Check the Error Log for more information: {0}").format(
-					get_link_to_form("Error Log", error_log.name)
-				)
-				if frappe.has_permission("Error Log")
-				else _("An unexpected error occurred. Please contact your System Manager.")
-			]
-
 		documents_by_reason = {}
 		for name, reasons in undeleted_items.items():
 			for reason in reasons:
