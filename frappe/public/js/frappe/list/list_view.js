@@ -786,6 +786,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_refresh() {
 		let route_promise = Promise.resolve();
+		let has_route_filters = false;
 
 		if (frappe.route_options && this.filter_area) {
 			if (frappe.route_options.reset_filters) {
@@ -803,6 +804,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				frappe.route_options = null;
 
 				if (this.filters.length > 0) {
+					has_route_filters = true;
 					route_promise = this.filter_area
 						.clear(false)
 						.then(() => this.filter_area.set(this.filters));
@@ -815,6 +817,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if (this.list_filter && !this.list_filter._initial_layout_restored) {
 					return this.list_filter.restore_layout_from_route_signature({
 						refresh: false,
+						has_route_filters,
 					});
 				}
 			})

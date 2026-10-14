@@ -213,4 +213,55 @@ test.describe("List View — Saved Layouts", () => {
 		await expect.poll(() => fetch_fields(page)).not.toContain("role");
 		expect(await fetch_fields(page)).toContain("priority");
 	});
+
+	test("keeps the Default Layout when its remembered filters match a saved layout", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		await page.goto(LIST_URL);
+		await desk.ready();
+		await desk.clear_filters();
+
+		const filters_saved = page.waitForResponse((res) =>
+			res.url().includes("/api/method/frappe.model.utils.user_settings.save")
+		);
+		await page.goto(`${LIST_URL}?status=Open`);
+		await desk.ready();
+		await filters_saved;
+
+		await create_test_layout(api, {
+			layout_name: "_test_layout_open",
+			filters: JSON.stringify([["ToDo", "status", "=", "Open"]]),
+		});
+
+		await page.goto(LIST_URL);
+		await desk.ready();
+		await assert_active_layout(page, "Default Layout");
+
+		await page.reload();
+		await desk.ready();
+		await assert_active_layout(page, "Default Layout");
+	});
+
+	test("reopens the chosen layout when another layout has the same filters", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const filters = JSON.stringify([["ToDo", "status", "=", "Open"]]);
+		await create_test_layout(api, { layout_name: "_test_layout_open_a", filters });
+		await create_test_layout(api, { layout_name: "_test_layout_open_b", filters });
+
+		await page.goto(LIST_URL);
+		await desk.ready();
+		await desk.clear_filters();
+
+		await select_layout(page, "_test_layout_open_b");
+		await assert_active_layout(page, "_test_layout_open_b");
+
+		await page.reload();
+		await desk.ready();
+		await assert_active_layout(page, "_test_layout_open_b");
+	});
 });
