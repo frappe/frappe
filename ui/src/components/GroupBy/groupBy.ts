@@ -165,19 +165,17 @@ export function columnId(column: string | Aggregate): string {
     : `${column.function}:${column.fieldname}`;
 }
 
-/** Whether a row other than `index` already has `candidate`: one Count, and each
- *  function on a field once. A row with no field yet is never a duplicate. */
+/** Whether a row other than `index` already has `candidate`, by `columnId`, which
+ *  `parseGroupBy` also dedups on. A row with no field yet is never a duplicate. */
 export function isAggregateTaken(
   aggregates: AggregateDraft[],
   index: number,
   candidate: AggregateDraft
 ): boolean {
+  if (!isCompleteAggregate(candidate)) return false;
+  const id = columnId(candidate);
   return aggregates.some(
-    (a, i) =>
-      i !== index &&
-      a.function === candidate.function &&
-      (a.function === "count" ||
-        (!!a.fieldname && a.fieldname === candidate.fieldname))
+    (a, i) => i !== index && isCompleteAggregate(a) && columnId(a) === id
   );
 }
 
