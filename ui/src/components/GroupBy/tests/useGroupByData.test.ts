@@ -129,4 +129,26 @@ describe("useGroupByData", () => {
     totals.data = [{ _aggregate_0: 690 }];
     expect(data.totals.value).toEqual({ _aggregate_0: 690 });
   });
+
+  it("keeps the loaded pages when only a column width changes", async () => {
+    const groupBy = ref<GroupBySettings>({ ...BY_STATUS });
+    const data = useGroupByData("CRM Deal", groupBy, {});
+    const [groups] = h.resources;
+    data.loadMore();
+    const calls = groups.calls.length;
+
+    groupBy.value = { ...groupBy.value, widths: { status: "300px" } };
+    await nextTick();
+    expect(groups.calls.length).toBe(calls);
+
+    groupBy.value = {
+      ...groupBy.value,
+      sort: [{ fieldname: "status", direction: "asc" }],
+    };
+    await nextTick();
+    expect(groups.calls.at(-1)).toMatchObject({
+      order_by: "status asc",
+      limit_page_length: 20,
+    });
+  });
 });
