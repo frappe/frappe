@@ -208,43 +208,99 @@ describe("useDataImport: an existing import", () => {
     expect(di.previewReady.value).toBe(true);
   });
 
-  it("defaults values the server can create to being created, as an unsaved edit", async () => {
-    const mapping = {
-      column: 2,
-      fieldname: "organization",
-      fieldtype: "Link" as const,
-      link_doctype: "CRM Organization",
-      source_value: "Northwind",
-      target_value: "",
+  const orgMapping = {
+    column: 2,
+    fieldname: "organization",
+    fieldtype: "Link" as const,
+    link_doctype: "CRM Organization",
+    source_value: "Northwind",
+    target_value: "",
+  };
+
+  it("ticks create on values the server just found and saves that before the preview", async () => {
+    responders["frappe.client.save"] = (args) => {
+      const known = args.doc.value_mappings.length > 0;
+      return serverDoc({
+        ...args.doc,
+        value_mappings: known
+          ? args.doc.value_mappings
+          : [
+              { ...orgMapping, can_create: 1, create_new: 0 },
+              {
+                ...orgMapping,
+                source_value: "Mapped",
+                can_create: 1,
+                target_value: "Acme",
+                create_new: 0,
+              },
+              {
+                ...orgMapping,
+                source_value: "Nope",
+                link_doctype: "User",
+                can_create: 0,
+                create_new: 0,
+              },
+            ],
+      });
     };
+    const di = mount(ref("DI-1"));
+    await settle();
+    const previewsBefore = callsTo("get_preview_from_template").length;
+
+    await di.save();
+    await settle();
+
+    const saves = callsTo("frappe.client.save");
+    expect(saves).toHaveLength(2);
+    expect(
+      saves[1].args.doc.value_mappings.map((m: any) => m.create_new)
+    ).toEqual([1, 0, 0]);
+    expect(di.doc.value.value_mappings.map((m) => m.create_new)).toEqual([
+      1, 0, 0,
+    ]);
+    expect(di.dirty.value).toBe(false);
+    expect(callsTo("get_preview_from_template")).toHaveLength(
+      previewsBefore + 1
+    );
+  });
+
+  it("keeps create unticked on a value that was already saved", async () => {
+    const saved = [
+      { ...orgMapping, can_create: 1 as const, create_new: 0 as const },
+    ];
     responders["frappe.client.get"] = (args) =>
+      serverDoc({ name: args.name, value_mappings: saved });
+    responders["frappe.client.save"] = (args) => serverDoc(args.doc);
+    const di = mount(ref("DI-1"));
+    await settle();
+    expect(di.doc.value.value_mappings[0].create_new).toBe(0);
+    expect(di.dirty.value).toBe(false);
+
+    await di.save();
+    await di.reload();
+    await settle();
+
+    expect(callsTo("frappe.client.save")).toHaveLength(1);
+    expect(di.doc.value.value_mappings[0].create_new).toBe(0);
+  });
+
+  it("saves once when no new value can be created", async () => {
+    responders["frappe.client.save"] = (args) =>
       serverDoc({
-        name: args.name,
+        ...args.doc,
         value_mappings: [
-          { ...mapping, can_create: 1, create_new: 0 },
-          {
-            ...mapping,
-            source_value: "Mapped",
-            can_create: 1,
-            target_value: "Acme",
-          },
-          {
-            ...mapping,
-            source_value: "Nope",
-            link_doctype: "User",
-            can_create: 0,
-          },
+          { ...orgMapping, can_create: 1, target_value: "Acme", create_new: 0 },
         ],
       });
     const di = mount(ref("DI-1"));
     await settle();
 
-    expect(di.doc.value.value_mappings.map((m) => m.create_new)).toEqual([
-      1,
-      undefined,
-      undefined,
-    ]);
-    expect(di.dirty.value).toBe(true);
+    await di.save();
+    await settle();
+
+    expect(callsTo("frappe.client.save")).toHaveLength(1);
+    expect(di.doc.value.value_mappings[0].create_new).toBe(0);
+    expect(di.dirty.value).toBe(false);
   });
 
   it("marks edits dirty, saves the whole doc, takes the server's copy and refetches the preview", async () => {
