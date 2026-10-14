@@ -4,13 +4,12 @@ from contextlib import contextmanager
 from contextvars import copy_context
 from unittest.mock import patch
 
-from rq import Queue, Retry
+from rq import Queue
 from werkzeug.local import Local
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
 from frappe.core.doctype.rq_worker.rq_worker import RQWorker
-from frappe.deprecation_dumpster import FrappeDeprecationWarning
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.background_jobs import (
