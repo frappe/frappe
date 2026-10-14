@@ -18,7 +18,8 @@ export interface GroupBySettings {
   aggregates: Aggregate[];
   /** Column widths the user dragged, by `columnId`; absent means auto. */
   widths?: Record<string, string>;
-  /** The header sort, by `columnId`; absent means the first aggregate, largest first. */
+  /** The header sort, by `columnId`. Absent, or for a column no longer shown, the
+   *  groups sort by the first aggregate, largest first (see `effectiveSort`). */
   sort?: Sort[];
   /** Whether a totals row shows under the groups. */
   showTotals?: boolean;

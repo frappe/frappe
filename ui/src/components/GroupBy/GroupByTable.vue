@@ -126,12 +126,12 @@ import {
 	AGGREGATE_FUNCTIONS,
 	aggregateKey,
 	columnId,
+	effectiveSort,
 	findGroupByField,
 	isCompleteAggregate,
 } from "./groupBy";
 import { directionFor, nextSort } from "../../experimental/List/headerSort";
 import { useColumnResize } from "../../experimental/List/useColumnResize";
-import type { Sort } from "../SortBy/types";
 import type { GroupByColumn, GroupBySettings, GroupByTableProps } from "./types";
 
 const props = withDefaults(defineProps<GroupByTableProps>(), {
@@ -212,14 +212,8 @@ const handleColumn = (column: GroupByColumn) => ({
 	label: column.label,
 });
 
-// The sort the headers show, matching `serializeGroupBy`: the chosen one while its
-// column is still shown, else the first aggregate, largest first.
-const sort = computed<Sort[]>(() => {
-	const chosen = props.groupBy.sort?.[0];
-	if (chosen && columns.value.some((c) => c.id === chosen.fieldname)) return [chosen];
-	const first = columns.value.find((c) => c.align === "right");
-	return first ? [{ fieldname: first.id, direction: "desc" }] : [];
-});
+// The sort the headers show, the same one `serializeGroupBy` orders the query by.
+const sort = computed(() => effectiveSort(props.groupBy));
 
 function setWidth(key: string, width: string | undefined) {
 	const widths = { ...props.groupBy.widths };

@@ -173,17 +173,26 @@ function aggregateFields(aggregates: Aggregate[]): Record<string, string>[] {
   }));
 }
 
-// The chosen column sort, else the first aggregate largest first, as desk does.
+/** The sort the groups come back in, by column id: the chosen header sort while
+ *  its column is still shown, else the first aggregate, largest first, as desk
+ *  does. Empty when there's nothing to sort by. */
+export function effectiveSort(groupBy: GroupBySettings): Sort[] {
+  const aggregates = groupBy.aggregates.filter(isCompleteAggregate);
+  const chosen = groupBy.sort?.[0];
+  const ids = [...groupBy.fields, ...aggregates.map(columnId)];
+  if (chosen && ids.includes(chosen.fieldname)) return [chosen];
+  return aggregates.length
+    ? [{ fieldname: columnId(aggregates[0]), direction: "desc" }]
+    : [];
+}
+
+// The effective sort in the wire form: a grouped field by name, an aggregate by alias.
 function orderBy(groupBy: GroupBySettings, aggregates: Aggregate[]) {
-  const sort = groupBy.sort?.[0];
-  if (sort && groupBy.fields.includes(sort.fieldname)) {
-    return `${sort.fieldname} ${sort.direction}`;
-  }
-  const index = sort
-    ? aggregates.findIndex((a) => columnId(a) === sort.fieldname)
-    : -1;
-  if (sort && index >= 0) return `${aggregateKey(index)} ${sort.direction}`;
-  return aggregates.length ? `${aggregateKey(0)} desc` : undefined;
+  const [sort] = effectiveSort(groupBy);
+  if (!sort) return undefined;
+  const index = aggregates.findIndex((a) => columnId(a) === sort.fieldname);
+  const column = index >= 0 ? aggregateKey(index) : sort.fieldname;
+  return `${column} ${sort.direction}`;
 }
 
 /** The arguments for `frappe.client.get_list` that fetch one row per group: the

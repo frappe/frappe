@@ -129,7 +129,6 @@ import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { translate as __ } from "../../utils/translate";
 import {
 	AGGREGATE_FUNCTIONS,
-	columnId,
 	findGroupByField,
 	getAggregateFields,
 	getGroupByFields,
@@ -208,20 +207,10 @@ function apply(close: () => void) {
 		fields: draft.value.fields.filter(Boolean),
 		aggregates: draft.value.aggregates.filter(isCompleteAggregate),
 		widths: model.value?.widths,
-		sort: keptSort(),
+		sort: model.value?.sort,
 		showTotals: draft.value.showTotals || undefined,
 	});
 	close();
-}
-
-// A header sort survives Apply only while its column is still in the grouping.
-function keptSort() {
-	const ids = [
-		...draft.value.fields,
-		...draft.value.aggregates.filter(isCompleteAggregate).map(columnId),
-	];
-	const kept = model.value?.sort?.filter((s) => ids.includes(s.fieldname));
-	return kept?.length ? kept : undefined;
 }
 
 function copy(groupBy: GroupBySettings): GroupBySettings {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   aggregateKey,
   columnId,
+  effectiveSort,
   findGroupByField,
   getAggregateFields,
   getGroupByFields,
@@ -277,6 +278,29 @@ describe("serializeGroupBy sort", () => {
         sort: [{ fieldname: "avg:probability", direction: "asc" }],
       }).order_by
     ).toBe("_aggregate_0 desc");
+  });
+});
+
+describe("effectiveSort", () => {
+  const groupBy = {
+    fields: ["status"],
+    aggregates: [
+      { function: "count" as const },
+      { function: "sum" as const, fieldname: "grand_total" },
+    ],
+  };
+
+  it("keeps the chosen sort while its column is shown", () => {
+    const sort = [{ fieldname: "sum:grand_total", direction: "asc" as const }];
+    expect(effectiveSort({ ...groupBy, sort })).toEqual(sort);
+  });
+
+  it("falls back to the first aggregate, largest first, then to nothing", () => {
+    const sort = [{ fieldname: "region", direction: "asc" as const }];
+    expect(effectiveSort({ ...groupBy, sort })).toEqual([
+      { fieldname: "count:", direction: "desc" },
+    ]);
+    expect(effectiveSort({ fields: ["status"], aggregates: [] })).toEqual([]);
   });
 });
 
