@@ -1,8 +1,7 @@
 <!--
   GroupBy demo — the control and the table against a live doctype, wired the way a
-  host does it: the control's model goes through `serializeGroupBy` into
-  `frappe.client.get_list`, and the rows go to `GroupByTable`, with the List module's
-  footer paging through the groups. Story chrome uses frappe-ui components per the
+  host does it: `useGroupByData` fetches the groups for the control's model, and the
+  rows go to `GroupByTable`, with the List module's footer paging through them. Story chrome uses frappe-ui components per the
   workspace convention.
 -->
 <template>
@@ -29,15 +28,15 @@
 			<GroupByTable
 				:doctype="doctype"
 				:groupBy="groupBy"
-				:rows="groups.data ?? []"
-				:loading="groups.loading"
+				:rows="groups.rows.value"
+				:loading="groups.loading.value"
 			/>
 			<ListFooter
-				v-model:pageSize="pageSize"
-				:rowCount="groups.data?.length ?? 0"
-				:totalCount="groupCount.data?.length ?? 0"
-				:hasCounts="Boolean(groupCount.data)"
-				@load-more="limit += pageSize"
+				v-model:pageSize="groups.pageLength.value"
+				:rowCount="groups.rowCount.value"
+				:totalCount="groups.totalCount.value"
+				:hasCounts="groups.hasCounts.value"
+				@load-more="groups.loadMore"
 			/>
 		</template>
 
@@ -50,43 +49,17 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { Select, Switch, createResource } from "frappe-ui";
+import { Select, Switch } from "frappe-ui";
 import { ListFooter } from "../../../experimental/List";
-import { GroupBy, GroupByTable, serializeGroupBy } from "../index";
+import { GroupBy, GroupByTable, serializeGroupBy, useGroupByData } from "../index";
 import type { GroupBySettings } from "../types";
 
 const doctypeOptions = ["CRM Lead", "CRM Deal", "CRM Task", "ToDo"];
 const doctype = ref("CRM Deal");
 const groupBy = ref<GroupBySettings | null>(null);
 const hideLabel = ref(false);
-const pageSize = ref(20);
-const limit = ref(20);
 
-const groups = createResource({
-	url: "frappe.client.get_list",
-	makeParams: () => ({
-		doctype: doctype.value,
-		...serializeGroupBy(groupBy.value as GroupBySettings),
-		limit_page_length: limit.value,
-	}),
-});
-
-// The footer's total is the number of groups, so fetch just the group keys.
-const groupCount = createResource({
-	url: "frappe.client.get_list",
-	makeParams: () => ({
-		doctype: doctype.value,
-		fields: groupBy.value?.fields,
-		group_by: groupBy.value?.fields.join(", "),
-		limit_page_length: 0,
-	}),
-});
+const groups = useGroupByData(doctype, groupBy, []);
 
 watch(doctype, () => (groupBy.value = null));
-watch(pageSize, (size) => (limit.value = size));
-watch(groupBy, () => {
-	limit.value = pageSize.value;
-	if (groupBy.value) groupCount.reload();
-});
-watch([groupBy, limit], () => groupBy.value && groups.reload(), { deep: true });
 </script>
