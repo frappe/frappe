@@ -11,6 +11,7 @@
   "is_global",
   "user_invocable",
   "is_system_generated",
+  "app",
   "section_break_description",
   "description",
   "section_break_instructions",
@@ -58,6 +59,13 @@
    "read_only": 1
   },
   {
+   "description": "The app that ships this skill in its skills folder.",
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "label": "App",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_description",
    "fieldtype": "Section Break"
   },
@@ -87,7 +95,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-17 12:00:00.000000",
+ "modified": "2026-10-14 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Skill",

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 from html import escape
+from pathlib import Path
 
 import frappe
 from frappe import _
@@ -17,6 +18,9 @@ MAX_DESCRIPTION_LENGTH = 1024
 # A global skill lands in every agent's prompt, so it is capped tighter than a bound one.
 MAX_GLOBAL_SKILLS = 10
 
+# The largest file load_skill reads from a skill's folder.
+MAX_SKILL_FILE_BYTES = 256 * 1024
+
 _SKILL_COMMAND_RE = re.compile(r"/skill:(\S+)(?:\s+(.*))?$", re.DOTALL)
 # a "/skill:<command>" word anywhere in a message
 _SKILL_TOKEN_RE = re.compile(r"(?<!\S)/skill:(\S+)")
@@ -24,7 +28,9 @@ _SKILL_TOKEN_RE = re.compile(r"(?<!\S)/skill:(\S+)")
 _FRONTMATTER_RE = re.compile(r"\A---[ \t]*\r?\n.*?\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 
 # Rides inside the wrapper, unseen by the user: the agent's index still says to load skills.
-SKILL_LOADED_NOTE = "This is the full skill, already loaded. Follow it; do not call load_skill for it."
+SKILL_LOADED_NOTE = (
+	"This is the full skill, already loaded. Follow it; call load_skill only to read a file it mentions."
+)
 
 
 class FlowSkill(Document):
@@ -36,6 +42,7 @@ class FlowSkill(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		app: DF.Data | None
 		description: DF.SmallText
 		enabled: DF.Check
 		instructions: DF.LongText
@@ -172,8 +179,8 @@ def sync_skills() -> list[str]:
 					title=_("Skill Conflict"),
 				)
 			shipped[skill.name] = (app, skill.description, instructions)
-	for name, (_app, description, instructions) in shipped.items():
-		_ensure_skill(name, description, instructions)
+	for name, (app, description, instructions) in shipped.items():
+		_ensure_skill(name, app, description, instructions)
 	for name in set(frappe.get_all("Flow Skill", {"is_system_generated": 1}, pluck="name")) - shipped.keys():
 		# unlink first: delete_doc refuses a skill an agent still uses
 		frappe.db.delete("Flow Agent Skill", {"skill": name})
@@ -181,9 +188,14 @@ def sync_skills() -> list[str]:
 	return sorted(shipped)
 
 
-def _ensure_skill(name: str, description: str, instructions: str) -> None:
+def _ensure_skill(name: str, app: str, description: str, instructions: str) -> None:
 	"""Create or update the locked Flow Skill for one app skill."""
-	definition = {"description": description, "instructions": instructions, "is_system_generated": 1}
+	definition = {
+		"app": app,
+		"description": description,
+		"instructions": instructions,
+		"is_system_generated": 1,
+	}
 	row = frappe.db.get_value("Flow Skill", name, list(definition), as_dict=True)
 	if row and not row.is_system_generated:
 		frappe.throw(
@@ -198,3 +210,27 @@ def _ensure_skill(name: str, description: str, instructions: str) -> None:
 		doc = frappe.get_doc({"doctype": "Flow Skill", "title": name})
 	doc.update(definition)
 	doc.save(ignore_permissions=True)
+
+
+def skill_file(name: str, file: str) -> str:
+	"""A text file from the folder of an app's skill, by its path inside that folder."""
+	from flow_harness.session.skills import valid_skill_name
+
+	app = frappe.db.get_value("Flow Skill", name, "app")
+	# rows can be written by hand, so trust only an installed app and a plain folder name
+	if app not in frappe.get_installed_apps() or not valid_skill_name(name):
+		frappe.throw(_("Skill {0} has no files.").format(name), title=_("Unknown File"))
+	folder = Path(frappe.get_app_source_path(app, "skills"), name).resolve()
+	path = (folder / file).resolve()
+	hidden = any(part.startswith(".") for part in Path(file).parts)
+	if hidden or not path.is_relative_to(folder) or not path.is_file():
+		frappe.throw(_("Skill {0} has no file {1}.").format(name, file), title=_("Unknown File"))
+	if path.stat().st_size > MAX_SKILL_FILE_BYTES:
+		frappe.throw(
+			_("{0} is larger than {1} KB.").format(file, MAX_SKILL_FILE_BYTES // 1024),
+			title=_("File Too Large"),
+		)
+	try:
+		return path.read_text(encoding="utf-8")
+	except UnicodeDecodeError:
+		frappe.throw(_("{0} is not a text file.").format(file), title=_("Not a Text File"))

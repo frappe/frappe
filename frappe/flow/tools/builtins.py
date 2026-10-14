@@ -399,13 +399,17 @@ _LOAD_SKILL_DESCRIPTION = """Load a skill's full instructions by name, then foll
 
 The skills you can load are listed in the <available_skills> block of your instructions, each with \
 a description of when it applies. When a task matches one, call this with that exact name before \
-starting the task, and treat what you get back as authoritative for it."""
+starting the task, and treat what you get back as authoritative for it. When the instructions \
+mention a file, such as references/forms.md, call this again with the same name and that path as \
+`file` to read it."""
 
 
 def bind_load_skill(agent: str | None) -> Tool:
 	"""A `load_skill` tool scoped to `agent`'s skills. Unbound (None), it refuses."""
 
-	def load_skill(name: str, *, ctx: ToolContext) -> str:
+	def load_skill(name: str, file: str | None = None, *, ctx: ToolContext) -> str:
+		from flow.flow.doctype.flow_skill.flow_skill import skill_file
+
 		if not agent:
 			frappe.throw(_("Skills are not configured for this agent."), title=_("Skill Unavailable"))
 		available = {row.name for row in frappe.get_doc("Flow Agent", agent).visible_skills()}
@@ -414,6 +418,8 @@ def bind_load_skill(agent: str | None) -> Tool:
 				_("No skill named {0}. Available: {1}").format(name, ", ".join(sorted(available)) or "none"),
 				title=_("Unknown Skill"),
 			)
+		if file:
+			return skill_file(name, file)
 		return frappe.db.get_value("Flow Skill", name, "instructions")
 
 	return tool(load_skill, description=_LOAD_SKILL_DESCRIPTION)

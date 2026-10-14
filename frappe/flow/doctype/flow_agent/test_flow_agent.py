@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # See license.txt
 
+import os
 from typing import Any
 from unittest.mock import patch
 
@@ -12,6 +13,8 @@ from flow import ToolContext
 from flow.assistant.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
+from flow.flow.doctype.flow_skill.flow_skill import sync_skills
+from flow.flow.doctype.flow_skill.test_flow_skill import AppSkills
 from flow.tests.test_fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 
@@ -701,8 +704,17 @@ class TestFlowAgentLoadSkill(IntegrationTestCase):
 		_skill_row("Expense Approval")
 		self._bind("Expense Approval")
 		tool = self._tool()
-		self.assertEqual(set(tool.parameters["properties"]), {"name"})
+		self.assertEqual(set(tool.parameters["properties"]), {"name", "file"})
 		self.assertEqual(tool(name="Expense Approval", ctx=CTX), "Body of Expense Approval.")
+
+	def test_a_bound_app_skill_reads_a_file_it_mentions(self):
+		folder = AppSkills(self).write("close-todos")
+		with open(os.path.join(folder, "forms.md"), "w") as file:
+			file.write("Form fields.")
+		sync_skills()
+		self._bind("close-todos")
+
+		self.assertEqual(self._tool()(name="close-todos", file="forms.md", ctx=CTX), "Form fields.")
 
 	def test_a_global_skill_is_loadable_by_an_agent_carrying_the_builtin(self):
 		_skill_row("House Style", is_global=1)

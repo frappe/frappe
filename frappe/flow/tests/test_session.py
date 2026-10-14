@@ -208,7 +208,7 @@ class TestSkillCommands(ServerCase):
 		self.assertEqual(
 			self._sent(),
 			'<skill name="expense-approval" location="Flow Skill/Expense Approval">\n'
-			"This is the full skill, already loaded. Follow it; do not call load_skill for it.\n\n"
+			"This is the full skill, already loaded. Follow it; call load_skill only to read a file it mentions.\n\n"
 			"Check the receipt.\n</skill>\n\nclaim 42",
 		)
 		self.assertEqual(run.input, "/skill:expense-approval  claim 42 ")
