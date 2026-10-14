@@ -227,16 +227,17 @@ class TestImporter(IntegrationTestCase):
 
 	def test_file_with_no_column_for_the_record_itself_still_saves(self):
 		# like a Zoho export whose only known heading belongs to a child table
-		import_file = frappe.get_doc(
-			doctype="File",
-			file_name="only_child_columns.csv",
-			content="Child Title (Table Field 1),Not A Field\nchild title,x",
-			is_private=1,
-		).insert()
-		_register_file_cleanup(self, import_file)
-		frappe.clear_messages()
+		with self.set_user("test@example.com"):
+			import_file = frappe.get_doc(
+				doctype="File",
+				file_name="only_child_columns.csv",
+				content="Child Title (Table Field 1),Not A Field\nchild title,x",
+				is_private=1,
+			).insert()
+			_register_file_cleanup(self, import_file)
+			frappe.clear_messages()
 
-		data_import = self.get_importer(doctype_name, import_file)
+			data_import = self.get_importer(doctype_name, import_file)
 
 		self.assertEqual(data_import.payload_count, 1)
 		messages = [frappe.parse_json(message) for message in frappe.message_log]
