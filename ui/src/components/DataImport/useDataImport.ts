@@ -18,6 +18,7 @@ import type {
   DataImportPreview,
   DataImportProgress,
   DataImportStatusSummary,
+  DataImportValueMapping,
   DocType,
   ImportProviderSchema,
 } from "./types";
@@ -123,13 +124,6 @@ export function useDataImport(
   function applyServerDoc(serverDoc: DataImportDoc) {
     savedDoc.value = JSON.stringify(serverDoc);
     doc.value = serverDoc;
-    if (serverDoc.status !== "Pending") return;
-    // Missing records that can be made from the file's value default to being
-    // created; it is an unsaved edit, so Save sends it.
-    for (const mapping of doc.value.value_mappings) {
-      if (mapping.can_create && !mapping.target_value && !mapping.create_new)
-        mapping.create_new = 1;
-    }
   }
 
   function open(next: string | null) {
@@ -207,7 +201,8 @@ export function useDataImport(
     const isCurrent = track();
     saving.value = true;
     try {
-      const serverDoc = await call<DataImportDoc>(
+      const rowsBefore = new Set(doc.value.value_mappings.map(mappingRowKey));
+      let serverDoc = await call<DataImportDoc>(
         wasNew ? "frappe.client.insert" : "frappe.client.save",
         { doc: doc.value }
       );
@@ -215,12 +210,32 @@ export function useDataImport(
       // The server rebuilds value_mappings and may clear template_warnings, so take its copy.
       applyServerDoc(serverDoc);
       if (wasNew) name.value = serverDoc.name!;
+      if (tickCreateOnNewRows(rowsBefore)) {
+        serverDoc = await call<DataImportDoc>("frappe.client.save", {
+          doc: doc.value,
+        });
+        if (!isCurrent()) return serverDoc;
+        applyServerDoc(serverDoc);
+      }
       if (hasImportFile.value && !importStarted.value)
         fetchPreview({ force: true });
       return serverDoc;
     } finally {
       if (isCurrent()) saving.value = false;
     }
+  }
+
+  // Values the server just found that it can create default to being created.
+  // Only new rows get it, so a later untick stays unticked.
+  function tickCreateOnNewRows(rowsBefore: Set<string>) {
+    const newRows = doc.value.value_mappings.filter(
+      (mapping) =>
+        !rowsBefore.has(mappingRowKey(mapping)) &&
+        mapping.can_create &&
+        !mapping.target_value
+    );
+    for (const mapping of newRows) mapping.create_new = 1;
+    return newRows.length > 0;
   }
 
   /**
@@ -520,6 +535,12 @@ function newDoc(doctype: string | undefined): DataImportDoc {
     value_mappings: [],
     skipped_rows: [],
   };
+}
+
+// matches mapping_row_key in value_mapping.py
+function mappingRowKey(mapping: DataImportValueMapping) {
+  const { column, fieldname, parent_field, source_value } = mapping;
+  return `${column}|${fieldname}|${parent_field || ""}|${source_value}`;
 }
 
 export function emptyProgress(): DataImportProgress {
