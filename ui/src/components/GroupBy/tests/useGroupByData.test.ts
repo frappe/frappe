@@ -106,4 +106,27 @@ describe("useGroupByData", () => {
     await nextTick();
     expect(groups.calls.at(-1).limit_page_length).toBe(50);
   });
+
+  it("fetches the totals over every record only when totals are on", () => {
+    useGroupByData("CRM Deal", BY_STATUS, {});
+    expect(h.resources[2].calls).toEqual([]);
+
+    h.resources.length = 0;
+    const data = useGroupByData(
+      "CRM Deal",
+      { ...BY_STATUS, showTotals: true },
+      { converted: 0 }
+    );
+    const totals = h.resources[2];
+    expect(totals.calls).toEqual([
+      {
+        doctype: "CRM Deal",
+        filters: { converted: 0 },
+        fields: [{ COUNT: "name", as: "_aggregate_0" }],
+        limit_page_length: 1,
+      },
+    ]);
+    totals.data = [{ _aggregate_0: 690 }];
+    expect(data.totals.value).toEqual({ _aggregate_0: 690 });
+  });
 });

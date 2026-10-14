@@ -1,3 +1,5 @@
+import type { Sort } from "../SortBy/types";
+
 /** The SQL aggregate an **Aggregate** applies to each group. */
 export type AggregateFunction = "count" | "sum" | "avg" | "min" | "max";
 
@@ -14,8 +16,12 @@ export interface Aggregate {
 export interface GroupBySettings {
   fields: string[];
   aggregates: Aggregate[];
-  /** Column widths the user dragged, by `columnWidthKey`; absent means auto. */
+  /** Column widths the user dragged, by `columnId`; absent means auto. */
   widths?: Record<string, string>;
+  /** The header sort, by `columnId`; absent means the first aggregate, largest first. */
+  sort?: Sort[];
+  /** Whether a totals row shows under the groups. */
+  showTotals?: boolean;
 }
 
 /** A field the control offers for grouping or aggregating, derived from Meta. */
@@ -43,6 +49,8 @@ export interface GroupByTableProps {
   groupBy: GroupBySettings;
   /** The grouped query's result rows, as `frappe.client.get_list` returns them. */
   rows: Record<string, unknown>[];
+  /** The totals row, aggregate values by `aggregateKey`; shown when `showTotals` is on. */
+  totals?: Record<string, unknown> | null;
   loading?: boolean;
   /** Fixed row height in px. Defaults to 40, the List module's own. */
   rowHeight?: number;
@@ -52,8 +60,8 @@ export interface GroupByTableProps {
 export interface GroupByColumn {
   /** The row key: a fieldname, or an aggregate's `aggregateKey`. */
   key: string;
-  /** The key its width is saved under, stable when other columns come and go. */
-  widthKey: string;
+  /** The id its width and sort are saved under, stable when other columns come and go. */
+  id: string;
   label: string;
   align: "left" | "right";
   /** The grouped field's fieldtype, or the aggregated field's. */
