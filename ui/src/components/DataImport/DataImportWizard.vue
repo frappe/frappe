@@ -181,8 +181,8 @@ const {
 	loading,
 	saving,
 	hasImportFile,
-	preview,
 	previewReady,
+	readyPreview,
 	previewLoading,
 	running,
 	importStarted,
@@ -292,15 +292,14 @@ async function goTo(target: number) {
 	current.value = target;
 }
 
-const shownPreview = computed(() => (previewReady.value ? preview.value : null));
 // A row error that isn't skipped stops the whole run on the server, so Import skips them.
 const rowsToSkip = computed(() => {
 	const skipped = new Set(doc.value.skipped_rows.map((row) => Number(row.row_number)));
-	return errorRowNumbers(doc.value, shownPreview.value).filter((row) => !skipped.has(row));
+	return errorRowNumbers(doc.value, readyPreview.value).filter((row) => !skipped.has(row));
 });
 
 function skipErrorRowsAndImport() {
-	skipRows(doc.value, shownPreview.value, rowsToSkip.value);
+	skipRows(doc.value, readyPreview.value, rowsToSkip.value);
 	beginImport();
 }
 
