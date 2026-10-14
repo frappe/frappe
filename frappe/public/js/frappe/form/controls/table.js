@@ -15,12 +15,9 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 		if (this.frm) {
 			this.frm.grids[this.frm.grids.length] = this;
 		}
-		const me = this;
 		this.$wrapper.on("paste", ":text", async (e) => {
 			const table_field = this.df.fieldname;
 			const grid = this.grid;
-			const grid_pagination = grid.grid_pagination;
-			const grid_rows = grid.grid_rows;
 			const doctype = grid.doctype;
 			const row_docname = $(e.target).closest(".grid-row").data("name");
 			const in_grid_form = $(e.target).closest(".form-in-grid").length;
@@ -34,11 +31,17 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 
 			let pasted_data = frappe.utils.get_clipboard_data(e);
 
-			if (!pasted_data || in_grid_form) return;
+			if (!pasted_data || in_grid_form || !this.frm || !row_docname) return;
 
 			let data = frappe.utils.csv_to_array(pasted_data, "\t");
+			// drop blank lines (Excel adds a trailing newline to every copy)
+			data = data.filter((row) => row.filter(Boolean).length);
+			if (!data.length) return;
 
 			if (data.length === 1 && data[0].length === 1) return;
+
+			// an async handler's `return false` does not cancel the native paste
+			e.preventDefault();
 
 			let fieldnames = [];
 			let fieldtypes = [];
@@ -73,15 +76,12 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			let data_length = data.length;
 			const total_rows_needed = row_idx - 1 + data.length;
 			while (this.frm.doc[table_field].length < total_rows_needed) {
+				const before = this.frm.doc[table_field].length;
 				this.grid.add_new_row();
+				if (this.frm.doc[table_field].length === before) break; // cannot_add_rows
 			}
 			for (let i = 0; i < data_length; i++) {
 				const row = data[i];
-				if (!row.filter(Boolean).length) {
-					row_idx++;
-					continue;
-				}
-
 				const doc = this.frm.doc[table_field][row_idx - 1];
 				if (doc) {
 					let row_values = {};
@@ -105,7 +105,6 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 				row_idx++;
 			}
 			this.grid.refresh();
-			return false; // Prevent the default handler from running.
 		});
 	}
 	get_field(field_name) {
