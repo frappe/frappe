@@ -146,6 +146,9 @@ const GROUP_COLUMN_TRACK = "minmax(10rem, 18rem)";
 const COUNT_MIN_WIDTH = "6rem";
 const AMOUNT_MIN_WIDTH = "11rem";
 const HEADER_ROOM = "2rem"; // the sort glyph and the gap beside the label
+// Header rows and body rows each lay out their own grid in their own font size, so a
+// track sized in `ch` would differ between them; a rem per header character doesn't.
+const HEADER_CHAR_WIDTH = "0.5rem";
 const FILL_TRACK = "minmax(0, 1fr)";
 const SKELETON_ROW_COUNT = 8;
 
@@ -240,10 +243,11 @@ function totalText(column: GroupByColumn, index: number): string {
 	return index === 0 ? __("Total") : "";
 }
 
-// Wide enough for its header (`ch` follows the font) and for its kind of number.
+// Wide enough for its header label and for its kind of number.
 function aggregateTrack(column: GroupByColumn): string {
 	const min = column.fieldtype === "Int" ? COUNT_MIN_WIDTH : AMOUNT_MIN_WIDTH;
-	return `max(${min}, calc(${column.label.length}ch + ${HEADER_ROOM}))`;
+	const label = `${column.label.length} * ${HEADER_CHAR_WIDTH}`;
+	return `max(${min}, calc(${label} + ${HEADER_ROOM}))`;
 }
 
 const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
