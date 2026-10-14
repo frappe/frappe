@@ -62,7 +62,7 @@
 						>
 							<div
 								class="truncate text-base text-ink-gray-8"
-								:class="column.align === 'right' ? 'tabular-nums' : ''"
+								:class="column.kind === 'aggregate' ? 'tabular-nums' : ''"
 							>
 								{{ cellText(row, column) }}
 							</div>
@@ -84,7 +84,7 @@
 						>
 							<div
 								class="truncate text-base text-ink-gray-9"
-								:class="column.align === 'right' ? 'tabular-nums' : ''"
+								:class="column.kind === 'aggregate' ? 'tabular-nums' : ''"
 							>
 								{{ totalText(column, i) }}
 							</div>
@@ -150,6 +150,8 @@ const HEADER_ROOM = "2rem"; // the sort glyph and the gap beside the label
 const HEADER_CHAR_WIDTH = "0.5rem";
 const FILL_TRACK = "minmax(0, 1fr)";
 const SKELETON_ROW_COUNT = 8;
+// A column lines up by its kind: grouped values left, aggregates right.
+const ALIGN = { group: "left", aggregate: "right" } as const;
 
 const emit = defineEmits<{ "update:groupBy": [groupBy: GroupBySettings] }>();
 
@@ -164,7 +166,8 @@ const columns = computed<GroupByColumn[]>(() => [
 			key: fieldname,
 			id: columnId(fieldname),
 			label: __(field?.label ?? fieldname),
-			align: "left" as const,
+			kind: "group" as const,
+			align: ALIGN.group,
 			fieldtype: field?.fieldtype,
 			options: field?.options,
 		};
@@ -180,7 +183,8 @@ const columns = computed<GroupByColumn[]>(() => [
 				a.function === "count"
 					? __("Count")
 					: __("{0} of {1}", [__(fn), __(field?.label ?? a.fieldname)]),
-			align: "right" as const,
+			kind: "aggregate" as const,
+			align: ALIGN.aggregate,
 			fieldtype: a.function === "count" ? "Int" : field?.fieldtype,
 			options: field?.options,
 		};
@@ -196,7 +200,7 @@ const tracks = computed(() => [
 		(c) =>
 			drafts[c.id] ??
 			props.groupBy.widths?.[c.id] ??
-			(c.align === "left" ? GROUP_COLUMN_TRACK : aggregateTrack(c))
+			(c.kind === "group" ? GROUP_COLUMN_TRACK : aggregateTrack(c))
 	),
 	FILL_TRACK,
 ]);
@@ -233,7 +237,7 @@ function update(patch: Partial<GroupBySettings>) {
 
 // The totals row labels its first column and leaves the other grouped columns blank.
 function totalText(column: GroupByColumn, index: number): string {
-	if (column.align === "right") return cellText(props.totals ?? {}, column);
+	if (column.kind === "aggregate") return cellText(props.totals ?? {}, column);
 	return index === 0 ? __("Total") : "";
 }
 
@@ -248,7 +252,7 @@ const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2
 
 function cellText(row: Record<string, unknown>, column: GroupByColumn): string {
 	const value = row[column.key];
-	if (column.align === "right") {
+	if (column.kind === "aggregate") {
 		if (value === null || value === undefined) return "—";
 		return typeof value === "number" ? numberFormat.format(value) : String(value);
 	}
