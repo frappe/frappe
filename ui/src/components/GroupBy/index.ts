@@ -7,13 +7,14 @@ export { default as GroupByTable } from "./GroupByTable.vue";
 export {
   AGGREGATE_FUNCTIONS,
   aggregateKey,
-  columnWidthKey,
+  columnId,
   findGroupByField,
   getAggregateFields,
   getGroupByFields,
   isCompleteAggregate,
   parseGroupBy,
   serializeGroupBy,
+  serializeGroupByTotals,
 } from "./groupBy";
 export { useGroupByData } from "./useGroupByData";
 export type { UseGroupByData } from "./useGroupByData";

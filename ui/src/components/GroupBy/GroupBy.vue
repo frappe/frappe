@@ -12,19 +12,15 @@
 		<template #trigger>
 			<div class="flex items-center">
 				<Button
-					:label="hideLabel ? undefined : model ? 'Grouped' : 'Group'"
 					:icon="hideLabel ? 'lucide-folder' : undefined"
 					:iconLeft="hideLabel ? undefined : 'lucide-folder'"
 					:class="model ? 'rounded-r-none' : ''"
+					:tooltip="model ? `Grouped by ${groupedLabels}` : undefined"
 					aria-label="Group"
 				>
-					<template v-if="model && !hideLabel" #suffix>
-						<div
-							class="flex h-5 w-5 items-center justify-center rounded-[5px] bg-surface-base pt-px text-xs-medium text-ink-gray-8 shadow-sm"
-						>
-							{{ model.fields.length }}
-						</div>
-					</template>
+					<span v-if="!hideLabel" class="block max-w-60 truncate">
+						{{ model ? `Grouped by ${groupedLabels}` : "Group" }}
+					</span>
 				</Button>
 				<Button
 					v-if="model"
@@ -107,14 +103,19 @@
 						@click="draft.aggregates.push({ function: 'count' })"
 					/>
 				</div>
-				<div class="flex justify-end gap-2 border-t border-outline-gray-1 pt-3">
-					<Button label="Clear Grouping" @click="clear(close)" />
-					<Button
-						variant="solid"
-						label="Apply"
-						:disabled="!canApply"
-						@click="apply(close)"
-					/>
+				<div
+					class="flex items-center justify-between gap-2 border-t border-outline-gray-1 pt-3"
+				>
+					<Switch v-model="draft.showTotals" label="Show totals" />
+					<div class="flex gap-2">
+						<Button label="Clear Grouping" @click="clear(close)" />
+						<Button
+							variant="solid"
+							label="Apply"
+							:disabled="!canApply"
+							@click="apply(close)"
+						/>
+					</div>
 				</div>
 			</div>
 		</template>
@@ -122,11 +123,12 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Combobox, Popover, Select } from "frappe-ui";
+import { Button, Combobox, Popover, Select, Switch } from "frappe-ui";
 import { computed, nextTick, ref, watch } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import {
 	AGGREGATE_FUNCTIONS,
+	findGroupByField,
 	getAggregateFields,
 	getGroupByFields,
 	isCompleteAggregate,
@@ -163,17 +165,29 @@ const metaFields = computed(() => meta.value?.fields ?? []);
 
 const functionOptions = AGGREGATE_FUNCTIONS.map((f) => ({ label: f.label, value: f.value }));
 
-const toOption = (f: GroupByField) => ({ label: f.label, value: f.fieldname });
+// Pickers list fields alphabetically, as desk's report view does.
+const toOptions = (fields: GroupByField[]) =>
+	fields
+		.map((f) => ({ label: f.label, value: f.fieldname }))
+		.sort((a, b) => a.label.localeCompare(b.label));
+
+const groupedLabels = computed(() =>
+	(model.value?.fields ?? [])
+		.map((f) => findGroupByField(metaFields.value, f)?.label ?? f)
+		.join(", ")
+);
 
 // A field already grouped on isn't offered again, except in its own row.
 function groupOptions(current: string) {
-	return getGroupByFields(metaFields.value)
-		.filter((f) => f.fieldname === current || !draft.value.fields.includes(f.fieldname))
-		.map(toOption);
+	return toOptions(
+		getGroupByFields(metaFields.value).filter(
+			(f) => f.fieldname === current || !draft.value.fields.includes(f.fieldname)
+		)
+	);
 }
 
 function aggregateOptions(fn: AggregateFunction) {
-	return getAggregateFields(metaFields.value, fn).map(toOption);
+	return toOptions(getAggregateFields(metaFields.value, fn));
 }
 
 // Switching function keeps the field only when the new function can still use it.
@@ -187,11 +201,13 @@ const canApply = computed(() => draft.value.fields.some(Boolean));
 
 // The draft is reactive, so hand the model a plain copy the host can clone or store.
 function apply(close: () => void) {
-	// Widths the user dragged carry over; one for a column that's gone is just unused.
+	// Dragged widths and the header sort carry over; one for a column that's gone is unused.
 	model.value = copy({
 		fields: draft.value.fields.filter(Boolean),
 		aggregates: draft.value.aggregates.filter(isCompleteAggregate),
 		widths: model.value?.widths,
+		sort: model.value?.sort,
+		showTotals: draft.value.showTotals || undefined,
 	});
 	close();
 }
@@ -202,6 +218,8 @@ function copy(groupBy: GroupBySettings): GroupBySettings {
 		aggregates: groupBy.aggregates.map((a) => ({ ...a })),
 	};
 	if (groupBy.widths) copied.widths = { ...groupBy.widths };
+	if (groupBy.sort) copied.sort = groupBy.sort.map((sort) => ({ ...sort }));
+	if (groupBy.showTotals) copied.showTotals = true;
 	return copied;
 }
 

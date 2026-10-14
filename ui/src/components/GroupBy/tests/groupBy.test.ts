@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   aggregateKey,
-  columnWidthKey,
+  columnId,
   findGroupByField,
   getAggregateFields,
   getGroupByFields,
   isCompleteAggregate,
   parseGroupBy,
   serializeGroupBy,
+  serializeGroupByTotals,
 } from "../groupBy";
 import type { RawMetaField } from "../../FormLayout/types";
 
@@ -58,11 +59,13 @@ describe("getAggregateFields", () => {
     ]);
   });
 
-  it("also offers dates to min and max", () => {
+  it("also offers dates and the standard timestamps to min and max", () => {
     expect(names(getAggregateFields(FIELDS, "max"))).toEqual([
       "deal_value",
       "probability",
       "close_date",
+      "creation",
+      "modified",
     ]);
   });
 });
@@ -161,11 +164,11 @@ describe("parseGroupBy", () => {
   });
 });
 
-describe("columnWidthKey", () => {
+describe("columnId", () => {
   it("keys a grouped field by name and an aggregate by function and field", () => {
-    expect(columnWidthKey("status")).toBe("status");
-    expect(columnWidthKey({ function: "count" })).toBe("count:");
-    expect(columnWidthKey({ function: "sum", fieldname: "deal_value" })).toBe(
+    expect(columnId("status")).toBe("status");
+    expect(columnId({ function: "count" })).toBe("count:");
+    expect(columnId({ function: "sum", fieldname: "deal_value" })).toBe(
       "sum:deal_value"
     );
   });
@@ -189,6 +192,102 @@ describe("parseGroupBy widths", () => {
   it("leaves widths out when none survive", () => {
     expect(
       parseGroupBy({ fields: ["status"], aggregates: [], widths: ["240px"] })
+    ).toEqual({ fields: ["status"], aggregates: [] });
+  });
+});
+
+describe("serializeGroupBy sort", () => {
+  const groupBy = {
+    fields: ["status"],
+    aggregates: [
+      { function: "count" as const },
+      { function: "sum" as const, fieldname: "deal_value" },
+    ],
+  };
+
+  it("orders by a grouped field", () => {
+    expect(
+      serializeGroupBy({
+        ...groupBy,
+        sort: [{ fieldname: "status", direction: "asc" }],
+      }).order_by
+    ).toBe("status asc");
+  });
+
+  it("orders by an aggregate through its column id", () => {
+    expect(
+      serializeGroupBy({
+        ...groupBy,
+        sort: [{ fieldname: "sum:deal_value", direction: "asc" }],
+      }).order_by
+    ).toBe("_aggregate_1 asc");
+  });
+
+  it("falls back to the first aggregate when the sorted column is gone", () => {
+    expect(
+      serializeGroupBy({
+        ...groupBy,
+        sort: [{ fieldname: "avg:probability", direction: "asc" }],
+      }).order_by
+    ).toBe("_aggregate_0 desc");
+  });
+});
+
+describe("serializeGroupByTotals", () => {
+  it("runs the aggregates ungrouped", () => {
+    expect(
+      serializeGroupByTotals({
+        fields: ["status"],
+        aggregates: [{ function: "avg", fieldname: "deal_value" }],
+      })
+    ).toEqual({ fields: [{ AVG: "deal_value", as: "_aggregate_0" }] });
+  });
+
+  it("has nothing to total without aggregates", () => {
+    expect(
+      serializeGroupByTotals({ fields: ["status"], aggregates: [] })
+    ).toBeNull();
+  });
+});
+
+describe("getGroupByFields fieldtypes", () => {
+  it("offers Dynamic Link and Autocomplete fields, as desk does", () => {
+    expect(
+      names(
+        getGroupByFields([
+          { fieldname: "ref", fieldtype: "Dynamic Link", label: "Reference" },
+          { fieldname: "city", fieldtype: "Autocomplete", label: "City" },
+        ])
+      )
+    ).toEqual(["ref", "city", "owner", "modified_by"]);
+  });
+});
+
+describe("parseGroupBy sort and totals", () => {
+  it("keeps a valid sort and the totals flag", () => {
+    expect(
+      parseGroupBy({
+        fields: ["status"],
+        aggregates: [],
+        sort: [{ fieldname: "status", direction: "asc" }],
+        showTotals: true,
+      })
+    ).toEqual({
+      fields: ["status"],
+      aggregates: [],
+      sort: [{ fieldname: "status", direction: "asc" }],
+      showTotals: true,
+    });
+  });
+
+  it("drops a malformed sort", () => {
+    expect(
+      parseGroupBy({
+        fields: ["status"],
+        aggregates: [],
+        sort: [{ fieldname: "status", direction: "sideways" }],
+        showTotals: "yes",
+      })
     ).toEqual({ fields: ["status"], aggregates: [] });
   });
 });

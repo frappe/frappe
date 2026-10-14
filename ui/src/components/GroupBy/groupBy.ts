@@ -1,4 +1,5 @@
 import type { RawMetaField } from "../FormLayout/types";
+import type { Sort } from "../SortBy/types";
 import type {
   Aggregate,
   AggregateFunction,
@@ -17,11 +18,14 @@ export const AGGREGATE_FUNCTIONS: ReadonlyArray<{
   { label: "Max", value: "max" },
 ];
 
-/** Fieldtypes whose values make sensible groups; free text and long text don't. */
+/** Fieldtypes whose values make sensible groups, as desk's report view offers them;
+ *  free text and long text don't. */
 const GROUPABLE_FIELDTYPES = new Set([
   "Select",
   "Link",
+  "Dynamic Link",
   "Data",
+  "Autocomplete",
   "Check",
   "Int",
   "Date",
@@ -33,9 +37,26 @@ const NUMERIC_FIELDTYPES = new Set([
   "Currency",
   "Percent",
   "Duration",
+  "Rating",
 ]);
 
-const DATE_FIELDTYPES = new Set(["Date", "Datetime"]);
+const TIME_FIELDTYPES = new Set(["Date", "Datetime", "Time"]);
+
+/** Standard timestamps every doctype has, which min and max can run on. */
+const STANDARD_TIME_FIELDS: ReadonlyArray<GroupByField> = [
+  {
+    label: "Created On",
+    value: "creation",
+    fieldname: "creation",
+    fieldtype: "Datetime",
+  },
+  {
+    label: "Last Modified",
+    value: "modified",
+    fieldname: "modified",
+    fieldtype: "Datetime",
+  },
+];
 
 /** Standard fields every doctype can be grouped by, after the Meta fields. */
 const STANDARD_GROUP_FIELDS: ReadonlyArray<GroupByField> = [
@@ -81,21 +102,23 @@ export function getGroupByFields(fields: RawMetaField[]): GroupByField[] {
 }
 
 /** The fields an aggregate can run on. Sum and average need numbers; min and
- *  max also take dates. Count needs no field. */
+ *  max also take dates and times, including the standard timestamps. Count needs
+ *  no field. */
 export function getAggregateFields(
   fields: RawMetaField[],
   fn: AggregateFunction
 ): GroupByField[] {
   if (fn === "count") return [];
-  const allowsDates = fn === "min" || fn === "max";
-  return fields
+  const allowsTimes = fn === "min" || fn === "max";
+  const metaFields = fields
     .filter(
       (f) =>
         isShown(f) &&
         (NUMERIC_FIELDTYPES.has(f.fieldtype) ||
-          (allowsDates && DATE_FIELDTYPES.has(f.fieldtype)))
+          (allowsTimes && TIME_FIELDTYPES.has(f.fieldtype)))
     )
     .map(toField);
+  return allowsTimes ? [...metaFields, ...STANDARD_TIME_FIELDS] : metaFields;
 }
 
 /** Field lookup for labels and formatting, covering the standard user fields. */
@@ -105,7 +128,9 @@ export function findGroupByField(
 ): GroupByField | undefined {
   const meta = fields.find((f) => f.fieldname === fieldname);
   if (meta) return toField(meta);
-  return STANDARD_GROUP_FIELDS.find((f) => f.fieldname === fieldname);
+  return [...STANDARD_GROUP_FIELDS, ...STANDARD_TIME_FIELDS].find(
+    (f) => f.fieldname === fieldname
+  );
 }
 
 /** Whether an aggregate has everything its function needs. */
@@ -113,9 +138,10 @@ export function isCompleteAggregate(aggregate: Aggregate): boolean {
   return aggregate.function === "count" || Boolean(aggregate.fieldname);
 }
 
-/** The key a column's width is saved under: the fieldname for a grouped field, and
- *  function plus field for an aggregate, so removing one column keeps the others'. */
-export function columnWidthKey(column: string | Aggregate): string {
+/** A column's id, which its saved width and sort refer to: the fieldname for a
+ *  grouped field, and function plus field for an aggregate, so removing one column
+ *  leaves the others' settings alone. */
+export function columnId(column: string | Aggregate): string {
   if (typeof column === "string") return column;
   return `${column.function}:${column.fieldname ?? ""}`;
 }
@@ -125,10 +151,31 @@ export function aggregateKey(index: number): string {
   return `_aggregate_${index}`;
 }
 
+function aggregateFields(aggregates: Aggregate[]): Record<string, string>[] {
+  return aggregates.map((a, i) => ({
+    [a.function.toUpperCase()]:
+      a.function === "count" ? "name" : (a.fieldname as string),
+    as: aggregateKey(i),
+  }));
+}
+
+// The chosen column sort, else the first aggregate largest first, as desk does.
+function orderBy(groupBy: GroupBySettings, aggregates: Aggregate[]) {
+  const sort = groupBy.sort?.[0];
+  if (sort && groupBy.fields.includes(sort.fieldname)) {
+    return `${sort.fieldname} ${sort.direction}`;
+  }
+  const index = sort
+    ? aggregates.findIndex((a) => columnId(a) === sort.fieldname)
+    : -1;
+  if (sort && index >= 0) return `${aggregateKey(index)} ${sort.direction}`;
+  return aggregates.length ? `${aggregateKey(0)} desc` : undefined;
+}
+
 /** The arguments for `frappe.client.get_list` that fetch one row per group: the
  *  group fields, one aliased aggregate per complete Aggregate, the `group_by`
- *  clause, and an `order_by` on the first aggregate, largest first. Count runs on
- *  `name`, as desk's report view does, so `export_query` can label it too. */
+ *  clause, and the `order_by` of the chosen sort. Count runs on `name`, as desk's
+ *  report view does, so `export_query` can label it too. */
 export function serializeGroupBy(groupBy: GroupBySettings): {
   fields: (string | Record<string, string>)[];
   group_by: string;
@@ -136,17 +183,20 @@ export function serializeGroupBy(groupBy: GroupBySettings): {
 } {
   const aggregates = groupBy.aggregates.filter(isCompleteAggregate);
   return {
-    fields: [
-      ...groupBy.fields,
-      ...aggregates.map((a, i) => ({
-        [a.function.toUpperCase()]:
-          a.function === "count" ? "name" : (a.fieldname as string),
-        as: aggregateKey(i),
-      })),
-    ],
+    fields: [...groupBy.fields, ...aggregateFields(aggregates)],
     group_by: groupBy.fields.join(", "),
-    order_by: aggregates.length ? `${aggregateKey(0)} desc` : undefined,
+    order_by: orderBy(groupBy, aggregates),
   };
+}
+
+/** The `frappe.client.get_list` fields for the totals row: the same aggregates over
+ *  every matching record, ungrouped, so an average or a max is the true one rather
+ *  than a sum of the groups'. `null` when there's nothing to total. */
+export function serializeGroupByTotals(
+  groupBy: GroupBySettings
+): { fields: Record<string, string>[] } | null {
+  const aggregates = groupBy.aggregates.filter(isCompleteAggregate);
+  return aggregates.length ? { fields: aggregateFields(aggregates) } : null;
 }
 
 const FUNCTIONS = new Set(AGGREGATE_FUNCTIONS.map((f) => f.value));
@@ -160,6 +210,17 @@ function isAggregate(value: unknown): value is Aggregate {
       typeof aggregate.fieldname === "string") &&
     isCompleteAggregate(aggregate)
   );
+}
+
+function parseSort(raw: unknown): Sort[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const sort = raw.filter(
+    (s): s is Sort =>
+      Boolean(s) &&
+      typeof s.fieldname === "string" &&
+      (s.direction === "asc" || s.direction === "desc")
+  );
+  return sort.length ? [{ ...sort[0] }] : undefined;
 }
 
 function parseWidths(raw: unknown): Record<string, string> | undefined {
@@ -193,7 +254,15 @@ export function parseGroupBy(raw: unknown): GroupBySettings | null {
     fields: groupFields,
     aggregates: Array.isArray(aggregates) ? aggregates.filter(isAggregate) : [],
   };
-  const widths = parseWidths((value as { widths?: unknown }).widths);
+  const extras = value as {
+    widths?: unknown;
+    sort?: unknown;
+    showTotals?: unknown;
+  };
+  const widths = parseWidths(extras.widths);
   if (widths) parsed.widths = widths;
+  const sort = parseSort(extras.sort);
+  if (sort) parsed.sort = sort;
+  if (extras.showTotals === true) parsed.showTotals = true;
   return parsed;
 }

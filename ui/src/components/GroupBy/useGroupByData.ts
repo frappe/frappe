@@ -2,7 +2,7 @@ import { computed, ref, toValue, watch } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
 import { createResource } from "frappe-ui";
 import type { WireFilters } from "../Filter/filters";
-import { serializeGroupBy } from "./groupBy";
+import { serializeGroupBy, serializeGroupByTotals } from "./groupBy";
 import type { GroupBySettings } from "./types";
 
 /**
@@ -14,11 +14,15 @@ import type { GroupBySettings } from "./types";
  * It fetches one row per group through `frappe.client.get_list`, plus the group keys
  * alone for the footer's "of N" (there's no count of distinct groups to ask for).
  * Any change to the doctype, grouping, filters or page length refetches from the
- * first page; `loadMore` grows the page by one page length.
+ * first page; `loadMore` grows the page by one page length. With `showTotals`, a
+ * third ungrouped query gives the totals row.
  */
 export interface UseGroupByData {
   /** One row per group, as `GroupByTable`'s `rows`. */
   rows: ComputedRef<Record<string, unknown>[]>;
+  /** The aggregates over every matching record, as `GroupByTable`'s `totals`;
+   *  fetched only while the grouping's `showTotals` is on. */
+  totals: ComputedRef<Record<string, unknown> | null>;
   /** Whether the groups are being fetched. */
   loading: ComputedRef<boolean>;
   /** Groups currently loaded — the footer's `rowCount`. */
@@ -67,12 +71,24 @@ export function useGroupByData(
     },
   });
 
+  const totals = createResource({
+    url: "frappe.client.get_list",
+    makeParams: () => ({
+      doctype: toValue(doctype),
+      filters: toValue(filters),
+      ...serializeGroupByTotals(toValue(groupBy) as GroupBySettings),
+      limit_page_length: 1,
+    }),
+  });
+
   // An ungrouped list fetches nothing; the host shows its records instead.
   function reload() {
-    if (!toValue(groupBy)) return;
+    const settings = toValue(groupBy);
+    if (!settings) return;
     limit.value = pageLength.value;
     groups.fetch();
     groupKeys.fetch();
+    if (settings.showTotals && serializeGroupByTotals(settings)) totals.fetch();
   }
 
   function loadMore() {
@@ -97,6 +113,11 @@ export function useGroupByData(
 
   return {
     rows,
+    totals: computed(() => {
+      const settings = toValue(groupBy);
+      if (!settings?.showTotals) return null;
+      return (totals.data as Record<string, unknown>[] | null)?.[0] ?? null;
+    }),
     loading: computed(() => Boolean(groups.loading)),
     rowCount: computed(() => rows.value.length),
     totalCount: computed(() => groupKeys.data?.length ?? 0),

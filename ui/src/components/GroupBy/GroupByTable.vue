@@ -6,8 +6,10 @@
 
   The `#cell` slot gets `{ row, column, value }` so a host can draw what the library
   can't know, like user avatars or a currency symbol. Rows are not clickable:
-  a group has no record to open, as in desk's report view. Columns resize like the
-  List module's; a drag emits `update:groupBy` with the new width in `widths`.
+  a group has no record to open, as in desk's report view. Headers sort and columns
+  resize like the List module's; either emits `update:groupBy` with the new `sort` or
+  `widths`. With `showTotals`, a last row shows the host's `totals`,
+  through the same `#cell` slot with `total: true`.
 -->
 <template>
 	<ScrollArea orientation="both" class="min-h-0 flex-1">
@@ -25,7 +27,14 @@
 					class="relative flex min-w-0"
 					:class="column.align === 'right' ? 'justify-end' : ''"
 				>
-					<ListHeaderCell class="min-w-0">{{ column.label }}</ListHeaderCell>
+					<ListHeaderCellSort
+						class="min-w-0"
+						:direction="directionFor(sort, column.id)"
+						:align="column.align === 'right' ? 'end' : 'start'"
+						@click="update({ sort: nextSort(sort, column.id) })"
+					>
+						{{ column.label }}
+					</ListHeaderCellSort>
 					<!-- The same drag handle as the List module: drag to resize, double-click to reset. -->
 					<span
 						class="absolute inset-y-0 -right-2 flex w-2 cursor-col-resize items-center justify-center"
@@ -34,7 +43,7 @@
 					>
 						<span
 							class="h-4 border-l border-outline-gray-2 opacity-0 transition-opacity group-hover:opacity-100"
-							:class="{ 'opacity-100': resizingFieldname === column.widthKey }"
+							:class="{ 'opacity-100': resizingFieldname === column.id }"
 						/>
 					</span>
 				</div>
@@ -61,6 +70,28 @@
 						</slot>
 					</ListCell>
 				</ListRow>
+				<ListRow v-if="groupBy.showTotals && totals" data-totals class="font-medium">
+					<ListCell
+						v-for="(column, i) in columns"
+						:key="column.key"
+						:class="column.align === 'right' ? 'justify-end' : ''"
+					>
+						<slot
+							name="cell"
+							:row="totals"
+							:column="column"
+							:value="totalText(column, i)"
+							:total="true"
+						>
+							<div
+								class="truncate text-base text-ink-gray-9"
+								:class="column.align === 'right' ? 'tabular-nums' : ''"
+							>
+								{{ totalText(column, i) }}
+							</div>
+						</slot>
+					</ListCell>
+				</ListRow>
 			</template>
 			<template v-else-if="loading">
 				<ListRow v-for="index in 8" :key="index">
@@ -80,20 +111,29 @@
 
 <script setup lang="ts">
 import { ScrollArea, Skeleton } from "frappe-ui";
-import { List as FrappeList, ListCell, ListHeader, ListHeaderCell, ListRow } from "frappe-ui/list";
+import {
+	List as FrappeList,
+	ListCell,
+	ListHeader,
+	ListHeaderCellSort,
+	ListRow,
+} from "frappe-ui/list";
 import { computed } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import {
 	AGGREGATE_FUNCTIONS,
 	aggregateKey,
-	columnWidthKey,
+	columnId,
 	findGroupByField,
 	isCompleteAggregate,
 } from "./groupBy";
+import { directionFor, nextSort } from "../../experimental/List/headerSort";
 import { useColumnResize } from "../../experimental/List/useColumnResize";
+import type { Sort } from "../SortBy/types";
 import type { GroupByColumn, GroupBySettings, GroupByTableProps } from "./types";
 
 const props = withDefaults(defineProps<GroupByTableProps>(), {
+	totals: null,
 	loading: false,
 	rowHeight: 40,
 });
@@ -109,7 +149,7 @@ const columns = computed<GroupByColumn[]>(() => [
 		const field = findGroupByField(metaFields.value, fieldname);
 		return {
 			key: fieldname,
-			widthKey: columnWidthKey(fieldname),
+			id: columnId(fieldname),
 			label: field?.label ?? fieldname,
 			align: "left" as const,
 			fieldtype: field?.fieldtype,
@@ -121,7 +161,7 @@ const columns = computed<GroupByColumn[]>(() => [
 		const field = a.fieldname ? findGroupByField(metaFields.value, a.fieldname) : undefined;
 		return {
 			key: aggregateKey(i),
-			widthKey: columnWidthKey(a),
+			id: columnId(a),
 			label: a.function === "count" ? "Count" : `${fn} of ${field?.label ?? a.fieldname}`,
 			align: "right" as const,
 			fieldtype: a.function === "count" ? "Int" : field?.fieldtype,
@@ -137,8 +177,8 @@ const columns = computed<GroupByColumn[]>(() => [
 const tracks = computed(() => [
 	...columns.value.map(
 		(c) =>
-			drafts[c.widthKey] ??
-			props.groupBy.widths?.[c.widthKey] ??
+			drafts[c.id] ??
+			props.groupBy.widths?.[c.id] ??
 			(c.align === "left" ? "minmax(10rem, 18rem)" : aggregateTrack(c))
 	),
 	"minmax(0, 1fr)",
@@ -151,16 +191,37 @@ const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize(
 
 // useColumnResize speaks in fieldnames; a column's width key stands in for one.
 const handleColumn = (column: GroupByColumn) => ({
-	fieldname: column.widthKey,
+	fieldname: column.id,
 	label: column.label,
+});
+
+// The sort the headers show: the chosen one, else the first aggregate, largest first.
+const sort = computed<Sort[]>(() => {
+	if (props.groupBy.sort?.length) return props.groupBy.sort;
+	const first = columns.value.find((c) => c.align === "right");
+	return first ? [{ fieldname: first.id, direction: "desc" }] : [];
 });
 
 function setWidth(key: string, width: string | undefined) {
 	const widths = { ...props.groupBy.widths };
 	if (width) widths[key] = width;
 	else delete widths[key];
-	const { widths: _, ...rest } = props.groupBy;
-	emit("update:groupBy", Object.keys(widths).length ? { ...rest, widths } : rest);
+	update({ widths: Object.keys(widths).length ? widths : undefined });
+}
+
+// Header edits (sort, widths) go back to the host as a whole new grouping.
+function update(patch: Partial<GroupBySettings>) {
+	const next = { ...props.groupBy, ...patch };
+	for (const key of Object.keys(patch) as (keyof GroupBySettings)[]) {
+		if (next[key] === undefined) delete next[key];
+	}
+	emit("update:groupBy", next);
+}
+
+// The totals row labels its first column and leaves the other grouped columns blank.
+function totalText(column: GroupByColumn, index: number): string {
+	if (column.align === "right") return cellText(props.totals ?? {}, column);
+	return index === 0 ? "Total" : "";
 }
 
 function aggregateTrack(column: GroupByColumn): string {
