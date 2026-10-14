@@ -206,6 +206,47 @@ class TestCallMethod(McpTestCase):
 		self.assertEqual(result["result"], "Response value")
 		callback.assert_called_once_with()
 
+	def test_explicit_commit_succeeds(self):
+		callback = Mock()
+		with patch(f"{__name__}.commit_callback", callback):
+			result = self.result(method=f"{__name__}.transaction_method", args={"name": self.own})
+		self.assertEqual(result["result"], "commit")
+		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "Explicit transaction")
+		callback.assert_called_once_with()
+
+	def test_explicit_rollback_succeeds(self):
+		callback = Mock()
+		with patch(f"{__name__}.commit_callback", callback):
+			result = self.result(
+				method=f"{__name__}.transaction_method", args={"name": self.own, "operation": "rollback"}
+			)
+		self.assertEqual(result["result"], "rollback")
+		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "MCP method fixture")
+		callback.assert_not_called()
+
+	def test_failure_after_commit_rolls_back_pending_work(self):
+		callback = Mock()
+		with patch(f"{__name__}.commit_callback", callback):
+			response = self.invoke(
+				method=f"{__name__}.transaction_method", args={"name": self.own, "fail": True}
+			)
+		self.assertTrue(response.json["result"]["isError"])
+		self.assertEqual(response.json["result"]["content"][0]["text"], "Failure after transaction")
+		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "Explicit transaction")
+		callback.assert_called_once_with()
+
+	def test_failure_after_rollback_rolls_back_pending_work(self):
+		callback = Mock()
+		with patch(f"{__name__}.commit_callback", callback):
+			response = self.invoke(
+				method=f"{__name__}.transaction_method",
+				args={"name": self.own, "operation": "rollback", "fail": True},
+			)
+		self.assertTrue(response.json["result"]["isError"])
+		self.assertEqual(response.json["result"]["content"][0]["text"], "Failure after transaction")
+		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "MCP method fixture")
+		callback.assert_not_called()
+
 
 @whitelist_for_tests(methods=["POST"])
 def typed_method(value: int):
@@ -253,3 +294,22 @@ def response_method(value: str):
 	frappe.response.message = value
 	frappe.response.http_status_code = 202
 	frappe.db.after_commit.add(commit_callback)
+
+
+@whitelist_for_tests(methods=["POST"])
+def transaction_method(name: str, operation: str = "commit", fail: bool = False):
+	doc = frappe.get_doc("ToDo", name)
+	doc.description = "Explicit transaction"
+	doc.save()
+	frappe.db.after_commit.add(commit_callback)
+	if operation == "commit":
+		frappe.db.commit()  # nosemgrep
+	else:
+		frappe.db.rollback()
+	if fail:
+		doc.reload()
+		doc.description = "Pending after transaction"
+		doc.save()
+		frappe.db.after_commit.add(commit_callback)
+		frappe.throw("Failure after transaction")
+	return operation

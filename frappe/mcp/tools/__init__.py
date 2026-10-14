@@ -14,7 +14,6 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 import frappe
 from frappe import _
 from frappe.mcp.protocol import INVALID_PARAMS, METHOD_NOT_FOUND, McpError
-from frappe.mcp.transaction import tool_savepoint
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import strip_html
 from frappe.utils.response import json_handler
@@ -74,9 +73,11 @@ def call(params: dict) -> dict:
 		return error_result(validation_message(error))
 
 	try:
-		with tool_savepoint(), form_dict(arguments.model_dump()):
+		with form_dict(arguments.model_dump()):
 			result = success_result(tool.handler(**frappe.form_dict))
 	except Exception as error:
+		# Tool errors are returned as results; roll back before the POST request can commit.
+		frappe.db.rollback()
 		result = error_result(str(error) or type(error).__name__)
 	return result
 
@@ -97,7 +98,7 @@ def form_dict(arguments: dict) -> Iterator[dict]:
 
 def success_result(value: Any) -> dict:
 	structured = value if isinstance(value, dict) else {"result": value}
-	# Normalize dates and other Frappe values before the savepoint is released.
+	# Normalize dates and other Frappe values before the request commits.
 	text = json.dumps(structured, default=json_handler, allow_nan=False)
 	return {
 		"content": [{"type": "text", "text": text}],
