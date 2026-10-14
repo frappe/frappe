@@ -305,7 +305,14 @@
 import { Button, Checkbox, HoverCard, Select, Skeleton, TextInput } from "frappe-ui";
 import { computed } from "vue";
 import { Link } from "../../Link";
-import { escapeHtml, isImportComplete, parseJson, previewRowCells, skipRows } from "../dataImport";
+import {
+	escapeHtml,
+	importWarnings,
+	isImportComplete,
+	parseJson,
+	previewRowCells,
+	skipRows,
+} from "../dataImport";
 import { t } from "../translate";
 import type { DataImportColumn, DataImportValueMapping, DataImportWarning } from "../types";
 import type { UseDataImport } from "../useDataImport";
@@ -323,10 +330,7 @@ const previewData = computed(() => (previewReady.value ? preview.value : null));
 const checking = computed(() => hasImportFile.value && !previewReady.value && !previewError.value);
 const isComplete = computed(() => isImportComplete(doc.value.status));
 
-const warnings = computed(() => {
-	const saved = parseJson<DataImportWarning[]>(doc.value.template_warnings, []);
-	return dedupeWarnings(saved.concat(previewData.value?.warnings ?? []));
-});
+const warnings = computed(() => importWarnings(doc.value, previewData.value));
 
 const hasIssues = computed(
 	() =>
@@ -499,34 +503,5 @@ function toggleSkipRows(rows: number[]) {
 
 function isSrNoColumn(col: DataImportColumn) {
 	return col.header_title === "Sr. No" || col.header_title === t("Sr. No");
-}
-
-/** One warning per column (the longer message usually lists the rows); exact repeats dropped. */
-function dedupeWarnings(list: DataImportWarning[]) {
-	const rows: DataImportWarning[] = [];
-	const seenRows = new Set<string>();
-	const byColumn = new Map<unknown, DataImportWarning>();
-	const others = new Map<string, DataImportWarning>();
-	for (const warning of list) {
-		if (warning.row) {
-			const key = `${warning.row}|${warning.field?.fieldname}|${warning.message}`;
-			if (seenRows.has(key)) continue;
-			seenRows.add(key);
-			rows.push(warning);
-		} else if (warning.col) {
-			const previous = byColumn.get(warning.col);
-			if (!previous || (warning.message || "").length > (previous.message || "").length)
-				byColumn.set(warning.col, warning);
-		} else {
-			const key = `${warning.code || ""}|${warning.title || ""}|${warning.message || ""}`;
-			const existing = others.get(key);
-			if (!existing || (warning.type && !existing.type)) others.set(key, warning);
-		}
-	}
-	// Desk keeps columns in a plain object, so they come out in column order.
-	const columnWarnings = [...byColumn.entries()]
-		.sort(([a], [b]) => Number(a) - Number(b))
-		.map(([, warning]) => warning);
-	return [...rows, ...columnWarnings, ...others.values()];
 }
 </script>
