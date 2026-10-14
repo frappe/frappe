@@ -223,8 +223,7 @@ export function useDataImport(
         if (!isCurrent()) return serverDoc;
         applyServerDoc(serverDoc);
       }
-      if (hasImportFile.value && !importStarted.value)
-        fetchPreview({ force: true });
+      if (hasImportFile.value && !running.value) fetchPreview({ force: true });
       return serverDoc;
     } finally {
       if (isCurrent()) saving.value = false;

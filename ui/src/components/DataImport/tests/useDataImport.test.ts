@@ -405,8 +405,9 @@ describe("useDataImport: an existing import", () => {
     expect(callsTo("get_preview_from_template")).toHaveLength(2);
   });
 
-  it("does not refetch the preview after saving an import that has started", async () => {
-    responders["frappe.client.get"] = () => serverDoc({ status: "Success" });
+  it("does not refetch the preview after saving an import that is running", async () => {
+    responders["frappe.client.get"] = () =>
+      serverDoc({ status: "In Progress" });
     responders["frappe.client.save"] = (args) => serverDoc(args.doc);
     const di = mount(ref("DI-1"));
     await settle();
@@ -416,6 +417,20 @@ describe("useDataImport: an existing import", () => {
     await settle();
 
     expect(callsTo("get_preview_from_template")).toHaveLength(before);
+  });
+
+  it("refetches the preview after saving fixes to a failed import, so a retry sees them", async () => {
+    responders["frappe.client.get"] = () => serverDoc({ status: "Error" });
+    responders["frappe.client.save"] = (args) => serverDoc(args.doc);
+    const di = mount(ref("DI-1"));
+    await settle();
+    const before = callsTo("get_preview_from_template").length;
+
+    di.doc.value.template_options = '{"column_to_field_map": {"1": "date"}}';
+    await di.save();
+    await settle();
+
+    expect(callsTo("get_preview_from_template")).toHaveLength(before + 1);
   });
 
   it("exposes a failed preview's message and does not fetch it again on reload", async () => {
