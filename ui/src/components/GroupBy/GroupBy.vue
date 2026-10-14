@@ -8,7 +8,7 @@
   so a half-built grouping never refetches the list. Field Options come from Meta.
 -->
 <template>
-	<Popover v-model:open="open" side="bottom" :align="align">
+	<Popover v-model:open="open" side="bottom" :align="align" :autoFocus="false">
 		<template #trigger>
 			<div class="flex items-center">
 				<Button
@@ -36,7 +36,11 @@
 			</div>
 		</template>
 		<template #default="{ close }">
-			<div class="flex w-[26rem] flex-col gap-4 p-2">
+			<div
+				ref="panel"
+				tabindex="-1"
+				class="flex w-[min(26rem,calc(100vw-2rem))] flex-col gap-4 p-2 outline-none"
+			>
 				<div class="flex flex-col gap-2">
 					<div class="text-p-sm text-ink-gray-5">Group By</div>
 					<div
@@ -119,7 +123,7 @@
 
 <script setup lang="ts">
 import { Button, Combobox, Popover, Select } from "frappe-ui";
-import { computed, ref, toRaw, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import {
 	AGGREGATE_FUNCTIONS,
@@ -139,6 +143,7 @@ const model = defineModel<GroupBySettings | null>({ default: null });
 const { meta } = useDoctypeMeta(() => props.doctype);
 
 const open = ref(false);
+const panel = ref<HTMLElement | null>(null);
 const draft = ref<GroupBySettings>(emptyDraft());
 
 function emptyDraft(): GroupBySettings {
@@ -146,9 +151,12 @@ function emptyDraft(): GroupBySettings {
 }
 
 // Reopening starts from the applied grouping, so closing without Apply discards edits.
-watch(open, (isOpen) => {
+// Focus lands on the panel, not the first field, which would select its text.
+watch(open, async (isOpen) => {
 	if (!isOpen) return;
-	draft.value = model.value ? structuredClone(toRaw(model.value)) : emptyDraft();
+	draft.value = model.value ? copy(model.value) : emptyDraft();
+	await nextTick();
+	panel.value?.focus({ preventScroll: true });
 });
 
 const metaFields = computed(() => meta.value?.fields ?? []);
@@ -177,12 +185,20 @@ function setFunction(i: number, fn: AggregateFunction) {
 
 const canApply = computed(() => draft.value.fields.some(Boolean));
 
+// The draft is reactive, so hand the model a plain copy the host can clone or store.
 function apply(close: () => void) {
-	model.value = {
+	model.value = copy({
 		fields: draft.value.fields.filter(Boolean),
 		aggregates: draft.value.aggregates.filter(isCompleteAggregate),
-	};
+	});
 	close();
+}
+
+function copy(groupBy: GroupBySettings): GroupBySettings {
+	return {
+		fields: [...groupBy.fields],
+		aggregates: groupBy.aggregates.map((a) => ({ ...a })),
+	};
 }
 
 function clear(close: () => void) {

@@ -12,7 +12,17 @@
 				<span class="text-p-sm text-ink-gray-6">Doctype</span>
 				<Select v-model="doctype" :options="doctypeOptions" class="w-56" />
 			</div>
-			<GroupBy :key="doctype" v-model="groupBy" :doctype="doctype" align="start" />
+			<div class="flex items-center gap-2">
+				<span class="text-p-sm text-ink-gray-6">Hide label</span>
+				<Switch v-model="hideLabel" />
+			</div>
+			<GroupBy
+				:key="doctype"
+				v-model="groupBy"
+				:doctype="doctype"
+				:hideLabel="hideLabel"
+				align="start"
+			/>
 		</div>
 
 		<template v-if="groupBy">
@@ -40,7 +50,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { Select, createResource } from "frappe-ui";
+import { Select, Switch, createResource } from "frappe-ui";
 import { ListFooter } from "../../../experimental/List";
 import { GroupBy, GroupByTable, serializeGroupBy } from "../index";
 import type { GroupBySettings } from "../types";
@@ -48,6 +58,7 @@ import type { GroupBySettings } from "../types";
 const doctypeOptions = ["CRM Lead", "CRM Deal", "CRM Task", "ToDo"];
 const doctype = ref("CRM Deal");
 const groupBy = ref<GroupBySettings | null>(null);
+const hideLabel = ref(false);
 const pageSize = ref(20);
 const limit = ref(20);
 
