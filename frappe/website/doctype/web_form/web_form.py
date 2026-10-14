@@ -66,7 +66,6 @@ class WebForm(WebsiteGenerator):
 		hide_footer: DF.Check
 		hide_navbar: DF.Check
 		introduction_text: DF.TextEditor | None
-		is_new_doctype: DF.Check
 		is_standard: DF.Check
 		key_required: DF.Check
 		list_columns: DF.Table[WebFormListColumn]
@@ -77,7 +76,6 @@ class WebForm(WebsiteGenerator):
 		meta_image: DF.AttachImage | None
 		meta_title: DF.Data | None
 		module: DF.Link | None
-		new_doctype_name: DF.Data | None
 		print_format: DF.Link | None
 		published: DF.Check
 		route: DF.Data | None
@@ -95,17 +93,12 @@ class WebForm(WebsiteGenerator):
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
-		if self.is_new_doctype or self.created_new_doctype:
+		if not self.doc_type or self.created_new_doctype:
 			self.set_missing_fieldnames()
 
-		if self.is_new_doctype:
-			self.create_new_doctype()
-
+		# no DocType picked, so the form makes its own
 		if not self.doc_type:
-			frappe.throw(
-				_("Select a DocType, or tick Create New DocType to make one from this form's fields."),
-				title=_("Missing DocType"),
-			)
+			self.create_new_doctype()
 
 		super().validate()
 
@@ -134,17 +127,16 @@ class WebForm(WebsiteGenerator):
 	def create_new_doctype(self):
 		"""Create the target DocType from this Web Form's fields instead of
 		requiring the user to pick an existing DocType."""
-		if not self.new_doctype_name:
-			self.new_doctype_name = f"webform-{self.name}"
+		doctype_name = f"webform-{self.name}"
 
-		if frappe.db.exists("DocType", self.new_doctype_name):
-			frappe.throw(_("DocType {0} already exists").format(self.new_doctype_name))
+		if frappe.db.exists("DocType", doctype_name):
+			frappe.throw(_("DocType {0} already exists").format(doctype_name))
 
 		new_doctype = frappe.get_doc(
 			{
 				"doctype": "DocType",
-				"name": self.new_doctype_name,
-				"module": self.module,
+				"name": doctype_name,
+				"module": self.module or "Custom",
 				"custom": 1,
 				"fields": self.get_fields_for_new_doctype(),
 				"permissions": [
@@ -165,7 +157,6 @@ class WebForm(WebsiteGenerator):
 		).insert()
 
 		self.doc_type = new_doctype.name
-		self.is_new_doctype = 0
 		self.created_new_doctype = 1
 
 	def set_missing_fieldnames(self):

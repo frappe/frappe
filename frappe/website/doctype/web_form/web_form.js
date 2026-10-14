@@ -64,31 +64,6 @@ frappe.ui.form.on("Web Form", {
 		}
 	},
 
-	is_new_doctype: function (frm) {
-		// doc_type and new_doctype_name are mutually exclusive ways of
-		// pointing to the DocType this Web Form is built on.
-		frm.set_value(frm.doc.is_new_doctype ? "doc_type" : "new_doctype_name", "");
-		frm.trigger("toggle_new_doctype_fields");
-		frm.trigger("set_fields");
-		render_form_builder(frm);
-
-		// Explain the "New DocType Name" field in a one-off dialog instead of a
-		// permanent description under the field, which would shift the layout
-		// every time this checkbox is toggled.
-		if (frm.doc.is_new_doctype) {
-			frappe.msgprint({
-				title: __("Creating a New DocType"),
-				message:
-					__("A new DocType will be created using the fields added below.") +
-					"<br>" +
-					__('If you leave "New DocType Name" blank, it will default to "webform-{0}".', [
-						frm.doc.name,
-					]),
-				indicator: "blue",
-			});
-		}
-	},
-
 	toggle_new_doctype_fields(frm) {
 		// "Field Name" stays freely editable (existing fields shown as
 		// suggestions) while a DocType is still being designed: during
@@ -205,6 +180,7 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	doc_type: function (frm) {
+		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
 		// so the add-field picker offers the new doctype's fields
 		render_form_builder(frm);
@@ -459,7 +435,7 @@ frappe.ui.form.on("Web Form Field", {
 		// Auto-suggest a fieldname while designing a DocType's fields (new,
 		// or the DocType this Web Form itself created, being extended),
 		// same as how "Field Name" is derived from "Label" on the DocType form.
-		if (!frm.doc.is_new_doctype && !frm.doc.created_new_doctype) return;
+		if (!designs_own_doctype(frm)) return;
 
 		let doc = frappe.get_doc(doctype, name);
 		if (doc.label && !doc.fieldname) {
@@ -468,7 +444,7 @@ frappe.ui.form.on("Web Form Field", {
 		}
 	},
 	fieldname: function (frm, doctype, name) {
-		if (frm.doc.is_new_doctype) return;
+		if (!frm.doc.doc_type) return;
 
 		let doc = frappe.get_doc(doctype, name);
 		let df = frappe.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
@@ -912,15 +888,12 @@ function is_builder_read_only(frm) {
 
 // such a form adds fields of its own, every other one picks from its doctype
 function designs_own_doctype(frm) {
-	return Boolean(frm.doc.is_new_doctype || frm.doc.created_new_doctype);
+	return Boolean(!frm.doc.doc_type || frm.doc.created_new_doctype);
 }
 
 function render_form_builder(frm) {
 	const builder = frappe.web_form_builder;
 	const mounted_here = !!get_form_builder(frm);
-
-	// a mounted builder falls through, so clearing doc_type blanks its field picker
-	if (!frm.doc.doc_type && !frm.doc.is_new_doctype && !mounted_here) return;
 
 	if (mounted_here) {
 		builder.docname = frm.doc.name;
