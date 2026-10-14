@@ -38,7 +38,7 @@ class NotificationWebhookParametersBase:
 			data["text"] = f"{self.message}\n<{self.doc_url}|{_('Document link')}>"
 		return data
 
-	def send(self) -> requests.Response:
+	def send(self) -> None:
 		data = self.build_data()
 		try:
 			response = requests.post(self.params.webhook_url, json=data, timeout=10)
@@ -46,8 +46,7 @@ class NotificationWebhookParametersBase:
 			raise WebhookDeliveryError(_("Unable to deliver the webhook notification.")) from exc
 		if not response.ok:
 			message = self.get_error_messages().get(response.status_code)
-			frappe.throw(message or f"{response.status_code}: {response.text}", exc=WebhookDeliveryError)
-		return response
+			raise WebhookDeliveryError(message or f"{response.status_code}: {response.text}")
 
 	def get_error_messages(self) -> dict[int, str]:
 		return {}
@@ -147,7 +146,7 @@ class DiscordParameters(NotificationWebhookParametersBase):
 
 
 class NtfyParameters(NotificationWebhookParametersBase):
-	def send(self) -> requests.Response:
+	def send(self) -> None:
 		headers = {"Click": self.doc_url} if self.params.show_document_link else {}
 		data = self.message.encode("utf-8")
 		try:
@@ -155,8 +154,7 @@ class NtfyParameters(NotificationWebhookParametersBase):
 		except requests.RequestException as exc:
 			raise WebhookDeliveryError(_("Unable to deliver the webhook notification.")) from exc
 		if not response.ok:
-			frappe.throw(f"{response.status_code}: {response.text}", exc=WebhookDeliveryError)
-		return response
+			raise WebhookDeliveryError(f"{response.status_code}: {response.text}")
 
 
 SERVICE_CLASSES: dict[str, type[NotificationWebhookParametersBase]] = {
@@ -207,15 +205,28 @@ class NotificationWebhookURL(Document):
 			if not urlparse(self.webhook_url).netloc:
 				frappe.throw(_("'{0}' is not a valid URL").format(frappe.bold(self.webhook_url)))
 
-	def send(self, message: str, reference_doctype: str, reference_name: str) -> str:
-		"""Send a rendered message and raise on delivery failure."""
+	def send(
+		self, message: str, reference_doctype: str, reference_name: str, throw: bool = False
+	) -> str | None:
+		"""Return success on delivery, or log failure and optionally raise."""
 		service = SERVICE_CLASSES[self.service](self, message, reference_doctype, reference_name)
-		service.send()
+		try:
+			service.send()
+		except WebhookDeliveryError as exc:
+			frappe.log_error(
+				title=_("Unable to deliver the webhook notification."),
+				message=frappe.get_traceback(),
+				reference_doctype=reference_doctype,
+				reference_name=reference_name,
+			)
+			if throw:
+				frappe.throw(str(exc), exc=WebhookDeliveryError)
+			return None
 		return "success"
 
 	@frappe.whitelist()
-	def send_test_message(self, message: str, reference_doctype: str, reference_name: str) -> str:
+	def send_test_message(self, message: str, reference_doctype: str, reference_name: str) -> str | None:
 		"""Send a test message using a webhook managed by the current user."""
 		frappe.only_for("System Manager")
 		self.check_permission("write")
-		return self.send(message, reference_doctype, reference_name)
+		return self.send(message, reference_doctype, reference_name, throw=True)
