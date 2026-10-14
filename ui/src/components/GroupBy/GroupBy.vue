@@ -35,7 +35,7 @@
 			<div
 				ref="panel"
 				tabindex="-1"
-				class="flex w-[min(26rem,calc(100vw-2rem))] flex-col gap-4 px-3 pt-2 pb-3 outline-none"
+				class="flex w-[min(26rem,calc(100vw-2rem))] flex-col gap-4 px-4 pt-3 pb-4 outline-none"
 			>
 				<div class="flex flex-col gap-2">
 					<div class="text-p-sm text-ink-gray-5">{{ __("Group By") }}</div>
