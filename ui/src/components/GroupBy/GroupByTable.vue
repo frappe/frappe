@@ -17,8 +17,7 @@
 			divider="full"
 			:columns="tracks"
 			:rowHeight="rowHeight"
-			:style="{ '--list-row-padding-x': '0.5rem' }"
-			class="flex w-max min-w-full flex-col"
+			class="flex w-max min-w-full flex-col [--list-row-padding-x:theme(spacing.2)]"
 		>
 			<ListHeader class="group sticky top-0 z-10 bg-surface-base">
 				<div
@@ -102,7 +101,9 @@
 			</template>
 			<slot v-else name="empty">
 				<div class="flex flex-col items-center gap-1 py-16 text-center">
-					<span class="text-base font-medium text-ink-gray-7">No records</span>
+					<span class="text-base font-medium text-ink-gray-7">{{
+						__("No records")
+					}}</span>
 				</div>
 			</slot>
 		</FrappeList>
@@ -120,6 +121,7 @@ import {
 } from "frappe-ui/list";
 import { computed } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
+import { translate as __ } from "./translate";
 import {
 	AGGREGATE_FUNCTIONS,
 	aggregateKey,
@@ -150,7 +152,7 @@ const columns = computed<GroupByColumn[]>(() => [
 		return {
 			key: fieldname,
 			id: columnId(fieldname),
-			label: field?.label ?? fieldname,
+			label: __(field?.label ?? fieldname),
 			align: "left" as const,
 			fieldtype: field?.fieldtype,
 			options: field?.options,
@@ -162,7 +164,10 @@ const columns = computed<GroupByColumn[]>(() => [
 		return {
 			key: aggregateKey(i),
 			id: columnId(a),
-			label: a.function === "count" ? "Count" : `${fn} of ${field?.label ?? a.fieldname}`,
+			label:
+				a.function === "count"
+					? __("Count")
+					: __("{0} of {1}", [__(fn), __(field?.label ?? a.fieldname ?? "")]),
 			align: "right" as const,
 			fieldtype: a.function === "count" ? "Int" : field?.fieldtype,
 			options: field?.options,
@@ -223,7 +228,7 @@ function update(patch: Partial<GroupBySettings>) {
 // The totals row labels its first column and leaves the other grouped columns blank.
 function totalText(column: GroupByColumn, index: number): string {
 	if (column.align === "right") return cellText(props.totals ?? {}, column);
-	return index === 0 ? "Total" : "";
+	return index === 0 ? __("Total") : "";
 }
 
 function aggregateTrack(column: GroupByColumn): string {
@@ -239,8 +244,8 @@ function cellText(row: Record<string, unknown>, column: GroupByColumn): string {
 		if (value === null || value === undefined) return "—";
 		return typeof value === "number" ? numberFormat.format(value) : String(value);
 	}
-	if (value === null || value === undefined || value === "") return "Not Set";
-	if (column.fieldtype === "Check") return value ? "Yes" : "No";
+	if (value === null || value === undefined || value === "") return __("Not Set");
+	if (column.fieldtype === "Check") return value ? __("Yes") : __("No");
 	return String(value);
 }
 </script>
