@@ -2,6 +2,7 @@ import type { RawMetaField } from "../FormLayout/types";
 import type { Sort } from "../SortBy/types";
 import type {
   Aggregate,
+  AggregateDraft,
   AggregateFunction,
   GroupByField,
   GroupBySettings,
@@ -148,7 +149,9 @@ export function findGroupByField(
 }
 
 /** Whether an aggregate has everything its function needs. */
-export function isCompleteAggregate(aggregate: Aggregate): boolean {
+export function isCompleteAggregate(
+  aggregate: AggregateDraft
+): aggregate is Aggregate {
   return aggregate.function === "count" || Boolean(aggregate.fieldname);
 }
 
@@ -157,7 +160,9 @@ export function isCompleteAggregate(aggregate: Aggregate): boolean {
  *  leaves the others' settings alone. */
 export function columnId(column: string | Aggregate): string {
   if (typeof column === "string") return column;
-  return `${column.function}:${column.fieldname ?? ""}`;
+  return column.function === "count"
+    ? "count:"
+    : `${column.function}:${column.fieldname}`;
 }
 
 /** The row key an aggregate's value comes back under. */
@@ -167,8 +172,7 @@ export function aggregateKey(index: number): string {
 
 function aggregateFields(aggregates: Aggregate[]): Record<string, string>[] {
   return aggregates.map((a, i) => ({
-    [a.function.toUpperCase()]:
-      a.function === "count" ? "name" : (a.fieldname as string),
+    [a.function.toUpperCase()]: a.function === "count" ? "name" : a.fieldname,
     as: aggregateKey(i),
   }));
 }
@@ -177,7 +181,7 @@ function aggregateFields(aggregates: Aggregate[]): Record<string, string>[] {
  *  its column is still shown, else the first aggregate, largest first, as desk
  *  does. Empty when there's nothing to sort by. */
 export function effectiveSort(groupBy: GroupBySettings): Sort[] {
-  const aggregates = groupBy.aggregates.filter(isCompleteAggregate);
+  const { aggregates } = groupBy;
   const chosen = groupBy.sort?.[0];
   const ids = [...groupBy.fields, ...aggregates.map(columnId)];
   if (chosen && ids.includes(chosen.fieldname)) return [chosen];
@@ -187,16 +191,18 @@ export function effectiveSort(groupBy: GroupBySettings): Sort[] {
 }
 
 // The effective sort in the wire form: a grouped field by name, an aggregate by alias.
-function orderBy(groupBy: GroupBySettings, aggregates: Aggregate[]) {
+function orderBy(groupBy: GroupBySettings) {
   const [sort] = effectiveSort(groupBy);
   if (!sort) return undefined;
-  const index = aggregates.findIndex((a) => columnId(a) === sort.fieldname);
+  const index = groupBy.aggregates.findIndex(
+    (a) => columnId(a) === sort.fieldname
+  );
   const column = index >= 0 ? aggregateKey(index) : sort.fieldname;
   return `${column} ${sort.direction}`;
 }
 
 /** The arguments for `frappe.client.get_list` that fetch one row per group: the
- *  group fields, one aliased aggregate per complete Aggregate, the `group_by`
+ *  group fields, one aliased aggregate per Aggregate, the `group_by`
  *  clause, and the `order_by` of the chosen sort. Count runs on `name`, as desk's
  *  report view does, so `export_query` can label it too. */
 export function serializeGroupBy(groupBy: GroupBySettings): {
@@ -204,11 +210,10 @@ export function serializeGroupBy(groupBy: GroupBySettings): {
   group_by: string;
   order_by?: string;
 } {
-  const aggregates = groupBy.aggregates.filter(isCompleteAggregate);
   return {
-    fields: [...groupBy.fields, ...aggregateFields(aggregates)],
+    fields: [...groupBy.fields, ...aggregateFields(groupBy.aggregates)],
     group_by: groupBy.fields.join(", "),
-    order_by: orderBy(groupBy, aggregates),
+    order_by: orderBy(groupBy),
   };
 }
 
@@ -218,7 +223,7 @@ export function serializeGroupBy(groupBy: GroupBySettings): {
 export function serializeGroupByTotals(
   groupBy: GroupBySettings
 ): { fields: Record<string, string>[] } | null {
-  const aggregates = groupBy.aggregates.filter(isCompleteAggregate);
+  const { aggregates } = groupBy;
   return aggregates.length ? { fields: aggregateFields(aggregates) } : null;
 }
 
@@ -226,7 +231,7 @@ const FUNCTIONS = new Set(AGGREGATE_FUNCTIONS.map((f) => f.value));
 
 function isAggregate(value: unknown): value is Aggregate {
   if (!value || typeof value !== "object") return false;
-  const aggregate = value as Aggregate;
+  const aggregate = value as AggregateDraft;
   return (
     FUNCTIONS.has(aggregate.function) &&
     (aggregate.fieldname === undefined ||

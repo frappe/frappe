@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  aggregateKey,
   columnId,
   effectiveSort,
   findGroupByField,
@@ -156,20 +155,6 @@ describe("serializeGroupBy", () => {
       group_by: "status, sales_person",
       order_by: "_aggregate_0 desc",
     });
-  });
-
-  it("skips an aggregate that has no field yet, keeping the keys contiguous", () => {
-    const { fields } = serializeGroupBy({
-      fields: ["status"],
-      aggregates: [
-        { function: "avg" },
-        { function: "max", fieldname: "close_date" },
-      ],
-    });
-    expect(fields).toEqual([
-      "status",
-      { MAX: "close_date", as: aggregateKey(0) },
-    ]);
   });
 
   it("leaves the order alone when there is nothing to aggregate", () => {

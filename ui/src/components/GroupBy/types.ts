@@ -5,7 +5,12 @@ export type AggregateFunction = "count" | "sum" | "avg" | "min" | "max";
 
 /** One summary column of a grouped list: a function, and for all but `count`
  *  the field it runs on. See CONTEXT.md ("Aggregate"). */
-export interface Aggregate {
+export type Aggregate =
+  | { function: "count" }
+  | { function: Exclude<AggregateFunction, "count">; fieldname: string };
+
+/** An aggregate as the control's panel edits it, which may have no field yet. */
+export interface AggregateDraft {
   function: AggregateFunction;
   fieldname?: string;
 }
