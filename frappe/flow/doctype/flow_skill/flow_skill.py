@@ -145,11 +145,19 @@ def skill_command(title: str) -> str:
 def sync_skills() -> list[str]:
 	"""Write each installed app's skills/<name>/SKILL.md as a locked Flow Skill and delete the app
 	skills gone from disk. Returns their names."""
-	from flow_harness.session.skills import list_skill_files, load_skill
+	from flow_harness.session.skills import MAX_SKILL_DIRECTORY_ENTRIES, list_skill_files, load_skill
 
 	shipped: dict[str, tuple[str, str, str]] = {}
 	for app in frappe.get_installed_apps(_ensure_on_bench=True):
-		for path in list_skill_files(frappe.get_app_source_path(app, "skills"))[0]:
+		folder = frappe.get_app_source_path(app, "skills")
+		paths, truncated = list_skill_files(folder)
+		# a cut-off scan would delete the skills it missed
+		if truncated:
+			frappe.throw(
+				_("Skills folder {0} has more than {1} entries.").format(folder, MAX_SKILL_DIRECTORY_ENTRIES),
+				title=_("Too Many Skills"),
+			)
+		for path in paths:
 			try:
 				skill = load_skill(path)
 				with open(path, encoding="utf-8") as file:

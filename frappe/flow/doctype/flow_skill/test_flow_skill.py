@@ -281,3 +281,16 @@ class TestAppSkills(IntegrationTestCase):
 
 		with self.assertRaisesRegex(frappe.ValidationError, "close-todos/SKILL.md: skill name 'other'"):
 			sync_skills()
+
+	def test_a_cut_off_scan_stops_before_deleting_anything(self):
+		self.skills.write("close-todos")
+		sync_skills()
+		self.skills.write("open-todos")
+
+		with (
+			patch("flow_harness.session.skills.MAX_SKILL_DIRECTORY_ENTRIES", 1),
+			self.assertRaisesRegex(frappe.ValidationError, "has more than 1 entries"),
+		):
+			sync_skills()
+
+		self.assertTrue(frappe.db.exists("Flow Skill", "close-todos"))
