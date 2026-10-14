@@ -8,6 +8,7 @@ export {
   AGGREGATE_FUNCTIONS,
   aggregateKey,
   columnId,
+  effectiveSort,
   findGroupByField,
   getAggregateFields,
   getGroupByFields,
