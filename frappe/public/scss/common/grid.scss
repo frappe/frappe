@@ -7,6 +7,7 @@
 // so it has to be the containing block the offsets are resolved against
 .grid-field {
 	position: relative;
+	scroll-margin-top: var(--page-head-height);
 }
 
 .form-grid {
@@ -772,7 +773,7 @@
 	align-items: center;
 	gap: calc(var(--spacing) * 2);
 	width: min(100%, calc(var(--spacing) * 144));
-	margin: calc(var(--spacing) * 2) auto 0;
+	margin: calc(var(--spacing) * 2) auto calc(var(--spacing) * 4);
 	padding: calc(var(--spacing) * 1.5);
 	padding-left: calc(var(--spacing) * 3);
 	background: var(--surface-elevation-2);
@@ -785,7 +786,22 @@
 }
 
 .grid-selection-label {
+	min-width: 0;
 	margin-right: auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+@include media-breakpoint-down(sm) {
+	.grid-selection-bar {
+		gap: calc(var(--spacing) * 1);
+	}
+
+	.grid-selection-check,
+	.grid-selection-divider,
+	.grid-selection-select-all {
+		display: none;
+	}
 }
 
 .grid-selection-pager {
@@ -797,10 +813,6 @@
 
 .grid-selection-page {
 	font-variant-numeric: tabular-nums;
-
-	span {
-		color: var(--ink-gray-5);
-	}
 }
 
 .grid-has-selection {
