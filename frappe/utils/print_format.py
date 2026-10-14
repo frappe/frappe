@@ -439,7 +439,10 @@ def _pdf_bypass_proxy_hosts() -> list[str]:
 	limited to these, so genuinely external resources stay blocked.
 	"""
 	hosts = {_hostname(frappe.utils.get_url(allow_header_override=False))}
-	hosts.update(_hostname(domain) for domain in (frappe.conf.domains or []))
+	hosts.update(
+		_hostname(domain["domain"] if isinstance(domain, dict) else domain)
+		for domain in (frappe.conf.domains or [])
+	)
 	hosts.discard(None)
 	return sorted(hosts)
 
