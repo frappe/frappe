@@ -1734,7 +1734,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			filters.prepared_report_name = this.prepared_report_name;
 		}
 
-		let visible_idx = this.get_validated_visible_indexes();
+		const visible = new Set(this.get_validated_visible_indexes());
+		let visible_idx = this.datatable.datamanager.rowViewOrder.filter((idx) =>
+			visible.has(idx)
+		);
 		const total_rows = this.data.length - (this.raw_data.add_total_row ? 1 : 0);
 		if (visible_idx.length === total_rows && visible_idx.every((idx, i) => idx === i)) {
 			visible_idx = [];
