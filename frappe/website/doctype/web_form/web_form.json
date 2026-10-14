@@ -11,13 +11,11 @@
   "title",
   "route",
   "banner_image",
-  "is_standard",
   "published",
   "column_break_vdhm",
   "doc_type",
-  "new_doctype_name",
   "module",
-  "is_new_doctype",
+  "is_standard",
   "created_new_doctype",
   "section_break_1",
   "introduction_text",
@@ -106,7 +104,6 @@
    "label": "Published"
   },
   {
-   "depends_on": "eval:!doc.is_new_doctype",
    "fieldname": "doc_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -115,23 +112,11 @@
    "options": "DocType"
   },
   {
-   "depends_on": "eval:doc.is_new_doctype",
-   "fieldname": "new_doctype_name",
-   "fieldtype": "Data",
-   "label": "New DocType Name"
-  },
-  {
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
-   "mandatory_depends_on": "eval:doc.is_new_doctype",
+   "mandatory_depends_on": "eval:doc.is_standard",
    "options": "Module Def"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_new_doctype",
-   "fieldtype": "Check",
-   "label": "Create New DocType"
   },
   {
    "default": "0",
@@ -509,7 +494,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-10-12 12:00:00.000000",
+ "modified": "2026-10-13 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
