@@ -128,6 +128,7 @@ export function useGroupByData(
   }
 
   function loadMore() {
+    if (!toValue(groupBy)) return;
     limit.value += pageLength.value;
     groups.fetch();
   }

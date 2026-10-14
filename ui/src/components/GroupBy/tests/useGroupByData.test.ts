@@ -64,6 +64,7 @@ describe("useGroupByData", () => {
 
   it("fetches nothing for an ungrouped list", () => {
     const data = useGroupByData("Sales Order", null, {});
+    data.loadMore();
     expect(h.resources.every((r) => r.calls.length === 0)).toBe(true);
     expect(data.rows.value).toEqual([]);
   });
