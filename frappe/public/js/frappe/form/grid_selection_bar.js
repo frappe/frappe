@@ -87,7 +87,17 @@ export default class GridSelectionBar {
 		const visible = Object.entries(built_in)
 			.filter(([name, item]) => item && !this.hidden_actions.has(name))
 			.map(([, item]) => item);
-		return [...visible, ...this.custom_actions.values()];
+		return [
+			...visible,
+			...this.custom_actions.values(),
+			{
+				label: __("Select All"),
+				icon: "list-checks",
+				condition: () =>
+					frappe.is_mobile() && grid.get_selected_children().length < grid.data.length,
+				onclick: () => this.select_all(true),
+			},
+		];
 	}
 
 	refresh_pager() {
@@ -95,21 +105,22 @@ export default class GridSelectionBar {
 		const total_pages = Math.ceil(this.grid.data.length / page_length);
 
 		this.$pager.toggle(total_pages > 1);
-		this.$page.empty().append(page_index, " ", $("<span>").text(__("of")), " ", total_pages);
+		this.$page.text(__("{0} of {1}", [page_index, total_pages]));
 		this.$prev.prop("disabled", page_index <= 1);
 		this.$next.prop("disabled", page_index >= total_pages);
 	}
 
 	make() {
-		this.$label = $(`<span class="grid-selection-label"></span>`);
+		this.$label = $(`<span class="grid-selection-label" dir="auto"></span>`);
 		this.$select_all = this.make_button({
-			label: __("Select all"),
+			label: __("Select All"),
+			css_class: "grid-selection-select-all",
 			onclick: () => this.select_all(true),
 		});
 
 		this.$wrapper = $(`<div class="grid-selection-bar"></div>`)
 			.append(
-				$(`<input type="checkbox" checked disabled>`),
+				$(`<input type="checkbox" class="grid-selection-check" checked disabled>`),
 				this.$label,
 				this.make_pager(),
 				frappe.ui.dropdown({
@@ -118,7 +129,11 @@ export default class GridSelectionBar {
 					side: "top",
 					align: "start",
 				}),
-				frappe.ui.divider({ orientation: "vertical", flex_item: true }),
+				frappe.ui.divider({
+					orientation: "vertical",
+					flex_item: true,
+					css_class: "grid-selection-divider",
+				}),
 				this.$select_all,
 				this.make_button({
 					icon: "x",
@@ -130,14 +145,15 @@ export default class GridSelectionBar {
 	}
 
 	make_pager() {
+		const rtl = frappe.utils.is_rtl();
 		this.$page = $(`<span class="grid-selection-page"></span>`);
 		this.$prev = this.make_button({
-			icon: "chevron-left",
+			icon: rtl ? "chevron-right" : "chevron-left",
 			title: __("Previous page"),
 			onclick: () => this.go_to_page(-1),
 		});
 		this.$next = this.make_button({
-			icon: "chevron-right",
+			icon: rtl ? "chevron-left" : "chevron-right",
 			title: __("Next page"),
 			onclick: () => this.go_to_page(1),
 		});
