@@ -134,7 +134,13 @@ import {
 	getGroupByFields,
 	isCompleteAggregate,
 } from "./groupBy";
-import type { AggregateFunction, GroupByField, GroupByProps, GroupBySettings } from "./types";
+import type {
+	AggregateDraft,
+	AggregateFunction,
+	GroupByField,
+	GroupByProps,
+	GroupBySettings,
+} from "./types";
 
 const props = withDefaults(defineProps<GroupByProps>(), {
 	hideLabel: false,
@@ -147,9 +153,16 @@ const { meta } = useDoctypeMeta(() => props.doctype);
 
 const open = ref(false);
 const panel = ref<HTMLElement | null>(null);
-const draft = ref<GroupBySettings>(emptyDraft());
+// The panel's working copy, whose rows can be blank until Apply drops them.
+interface GroupByDraft {
+	fields: string[];
+	aggregates: AggregateDraft[];
+	showTotals?: boolean;
+}
 
-function emptyDraft(): GroupBySettings {
+const draft = ref<GroupByDraft>(emptyDraft());
+
+function emptyDraft(): GroupByDraft {
 	return { fields: [""], aggregates: [{ function: "count" }] };
 }
 
