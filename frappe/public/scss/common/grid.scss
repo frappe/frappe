@@ -764,6 +764,62 @@
 	}
 }
 
+.grid-selection-bar {
+	display: none;
+	position: sticky;
+	bottom: calc(var(--spacing) * 4);
+	z-index: 3;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	width: min(100%, calc(var(--spacing) * 144));
+	margin: calc(var(--spacing) * 2) auto 0;
+	padding: calc(var(--spacing) * 1.5);
+	padding-left: calc(var(--spacing) * 3);
+	background: var(--surface-elevation-2);
+	border: 1px solid var(--outline-elevation-2);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--elevation-xl);
+	font-size: var(--text-base);
+	color: var(--ink-gray-8);
+	white-space: nowrap;
+}
+
+.grid-selection-label {
+	margin-right: auto;
+}
+
+.grid-selection-pager {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+	margin-inline: auto;
+}
+
+.grid-selection-page {
+	font-variant-numeric: tabular-nums;
+
+	span {
+		color: var(--ink-gray-5);
+	}
+}
+
+.grid-has-selection {
+	> .grid-selection-bar {
+		display: flex;
+	}
+
+	> .grid-footer {
+		.grid-pagination,
+		.grid-bulk-actions {
+			display: none;
+		}
+
+		&:not(:has(.btn-custom:not(.hidden))) {
+			display: none;
+		}
+	}
+}
+
 .page-text {
 	display: inline-block;
 	cursor: default;
