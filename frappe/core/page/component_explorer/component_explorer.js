@@ -1551,46 +1551,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
-		Donut: {
-			helper: "frappe.ui.donut",
-			groups: [
-				{
-					title: __("Centre value + legend"),
-					items: [
-						{
-							segments: [
-								{ label: "Paid", value: 70 },
-								{ label: "Unpaid", value: 20 },
-								{ label: "Overdue", value: 10 },
-							],
-							center: { value: "70%", label: "paid" },
-						},
-					],
-				},
-				{
-					title: __("Custom colours + format"),
-					items: [
-						{
-							segments: [
-								{ label: "Used", value: 55000, color: "var(--blue-600)" },
-								{
-									label: "Available",
-									value: 45000,
-									color: "var(--blue-400)",
-								},
-							],
-							center: { value: "55%", label: "used" },
-							format: (value) => format_currency(value),
-							size: 180,
-						},
-					],
-				},
-				{
-					title: __("Empty"),
-					items: [{ segments: [], size: 180 }],
-				},
-			],
-		},
 		"Empty State": {
 			helper: "frappe.ui.empty_state",
 			stacked: true,
@@ -2347,7 +2307,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	let selected_component;
 	async function render_component(name) {
 		selected_component = name;
-		if (["Stat Card", "Bar List", "Donut"].includes(name)) {
+		if (["Stat Card", "Bar List"].includes(name)) {
 			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
 			if (selected_component !== name) return;
 		}
