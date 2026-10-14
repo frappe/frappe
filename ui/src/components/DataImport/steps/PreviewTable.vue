@@ -155,9 +155,9 @@
 import { Badge, Button, Combobox, Dropdown, Tooltip, TooltipProvider } from "frappe-ui";
 import { computed, reactive } from "vue";
 import { useColumnResize } from "../../../experimental/List/useColumnResize";
-import { parseJson, pickerColumns, tableFields } from "../dataImport";
+import { parseJson, pickerColumns, tableFields, type PickerField } from "../dataImport";
 import { t } from "../translate";
-import type { DocType, ImportProviderSchema } from "../types";
+import type { DataImportColumn, DocType, ImportProviderSchema } from "../types";
 import type { UseDataImport } from "../useDataImport";
 
 // The server checks for this exact value, so it is not translated.
@@ -257,13 +257,13 @@ const fieldOptions = computed(() => [
 	...fieldsAsOptions(doc.value.reference_doctype, providerSchema.value, doctypeMeta.value),
 ]);
 
-function mappedField(column: Record<string, any>, i: number): string {
+function mappedField(column: DataImportColumn, i: number): string {
 	const picked = templateOptions.value.column_to_field_map?.[i - 1];
 	if (picked) return picked;
 	if (column.skip_import || !column.df) return DONT_IMPORT;
 	if (column.map_to_field) return column.map_to_field;
 	if (column.is_child_table_field)
-		return `${column.child_table_df.fieldname}.${column.df.fieldname}`;
+		return `${column.child_table_df!.fieldname}.${column.df.fieldname}`;
 	return column.df.fieldname;
 }
 
@@ -334,8 +334,6 @@ function dateFormatOptions(fieldtype?: string) {
 	}));
 }
 
-type PickerField = { label: string; fieldname: string; parent?: string };
-
 /** The parent's fields, then each child table's as `table.field`, each with an ID first. */
 function fieldsAsOptions(
 	doctype: string,
@@ -354,14 +352,14 @@ function fieldsAsOptions(
 	} else if (meta) {
 		const parent = meta.find((d) => d.name === doctype);
 		if (!parent) return [];
-		groups.push({ key: doctype, fields: pickerColumns(parent) as PickerField[] });
+		groups.push({ key: doctype, fields: pickerColumns(parent) });
 		for (const table of tableFields(parent)) {
 			const child = meta.find((d) => d.name === table.options);
 			if (child)
 				groups.push({
 					key: table.fieldname,
 					tableLabel: table.label,
-					fields: pickerColumns(child) as PickerField[],
+					fields: pickerColumns(child),
 				});
 		}
 	}
@@ -369,9 +367,10 @@ function fieldsAsOptions(
 		fields.map((df) => {
 			const isChild = key !== doctype;
 			const value = isChild ? `${key}.${df.fieldname}` : df.fieldname;
+			const fieldLabel = t(df.label!);
 			const label = isChild
-				? `${t(df.label)} (${t(tableLabel || df.parent || key)})`
-				: t(df.label);
+				? `${fieldLabel} (${t(tableLabel || df.parent || key)})`
+				: fieldLabel;
 			return { label, value, description: value };
 		})
 	);

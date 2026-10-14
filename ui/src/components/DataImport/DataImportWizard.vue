@@ -162,7 +162,14 @@ const openList = (doctype: string) => emit("openList", doctype);
 const openRecord = (doctype: string, name: string) => emit("openRecord", doctype, name);
 const openImports = (doctype: string) => emit("openImports", doctype);
 // Only the Config and Import steps link back to the app.
-const stepEvents: Record<number, Record<string, (...args: any[]) => void>> = {
+const stepEvents: Record<
+	number,
+	Partial<{
+		openImports: typeof openImports;
+		openList: typeof openList;
+		openRecord: typeof openRecord;
+	}>
+> = {
 	[CONFIG]: { openImports },
 	[IMPORT]: { openList, openRecord },
 };

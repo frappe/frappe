@@ -68,18 +68,67 @@ export interface DataImportDoc {
   modified?: string;
 }
 
+/** A file check warning, from the preview or saved in `template_warnings`. */
+export interface DataImportWarning {
+  message: string;
+  /** set when the problem is in one row */
+  row?: number;
+  /** set when the problem is in one column */
+  col?: number;
+  field?: Partial<DocField>;
+  type?: string;
+  code?: string;
+  title?: string;
+  /** every row that has the same ID, for a `duplicate_id` warning */
+  rows?: number[];
+}
+
+/** A column of the file; the preview's first column holds the row numbers. */
+export interface DataImportColumn {
+  header_title?: string;
+  df?: DocField | null;
+  skip_import?: boolean;
+  map_to_field?: string | null;
+  date_format?: string | null;
+  is_child_table_field?: boolean;
+  child_table_df?: DocField;
+}
+
+/** One node of `tree_preview.nodes`. */
+export interface DataImportTreeNode {
+  id: string;
+  label: string;
+  parent: string | null;
+  row_number: number;
+  is_group: number;
+  orig_parent: string | null;
+  orig_is_group: number;
+  orphan?: boolean;
+  warnings?: string[];
+}
+
+/** Sent for a tree DocType, such as Account. */
+export interface DataImportTreePreview {
+  nodes: DataImportTreeNode[];
+  tree_warnings: DataImportWarning[];
+  total_nodes: number;
+  editable: boolean;
+  is_group_editable: boolean;
+  parent_field?: string;
+}
+
 /** `get_preview_from_template`; at most 10 rows of `data` come back. */
 export interface DataImportPreview {
-  columns: Record<string, any>[];
+  columns: DataImportColumn[];
   data: unknown[][];
-  warnings: Record<string, any>[];
+  warnings: DataImportWarning[];
   import_log: { row_indexes: string; success: 0 | 1 }[];
   total_number_of_rows: number;
   max_rows_exceeded?: boolean;
   max_rows_in_preview?: number;
   /** cells of warned rows that fall past the preview's first rows */
   warning_rows?: unknown[][];
-  tree_preview?: Record<string, any>;
+  tree_preview?: DataImportTreePreview;
 }
 
 /** `get_import_status` */
@@ -131,11 +180,11 @@ export interface DataImportProgress {
 
 /** A provider's own field list, used instead of the DocType's meta when set. */
 export interface ImportProviderSchema {
-  fields: Record<string, any>[];
+  fields: Partial<DocField>[];
   child_tables?: {
     fieldname: string;
     label: string;
-    fields: Record<string, any>[];
+    fields: Partial<DocField>[];
   }[];
 }
 

@@ -3,6 +3,7 @@ import type {
   DataImportDoc,
   DataImportPreview,
   DataImportStatus,
+  DataImportWarning,
   DocField,
   DocType,
 } from "./types";
@@ -16,7 +17,7 @@ export function errorRowNumbers(
   doc: DataImportDoc,
   preview: DataImportPreview | null | undefined
 ): number[] {
-  const saved = parseJson<{ row?: unknown }[]>(doc.template_warnings, []);
+  const saved = parseJson<DataImportWarning[]>(doc.template_warnings, []);
   const rows = new Set<number>();
   for (const warning of saved.concat(preview?.warnings ?? [])) {
     if (warning.row) rows.add(Number(warning.row));
