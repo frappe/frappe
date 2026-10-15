@@ -152,7 +152,7 @@ def get_requests_for_document(
 			["Dynamic Link", "link_name", "=", docname],
 		],
 		fields=["name", "web_form", "key", "expires_on", "first_used_on"],
-		order_by="creation desc",
+		order_by="creation desc, name desc",
 		limit_start=start,
 		limit_page_length=page_length,
 	)
