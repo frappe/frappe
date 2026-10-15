@@ -64,6 +64,28 @@ def _run_print_pdf_hooks(doctype, name, print_format):
 		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
 
+def run_after_print(doc: Document, pdf: bytes, password: str | None = None, output=None):
+	hooks = frappe.get_doc_hooks()
+	for path in hooks.get(doc.doctype, {}).get("after_print", []) + hooks.get("*", {}).get("after_print", []):
+		pdf = frappe.call(path, doc, "after_print", pdf) or pdf
+
+	if password and output is None:
+		from frappe.utils.pdf import encrypt_pdf
+
+		pdf = encrypt_pdf(pdf, password)
+
+	if output is None:
+		return pdf
+
+	from io import BytesIO
+
+	from pypdf import PdfReader
+
+	for page in PdfReader(BytesIO(pdf)).pages:
+		output.add_page(page)
+	return output
+
+
 def get_print(
 	doctype=None,
 	name=None,
@@ -154,7 +176,7 @@ def get_print(
 				method="Print",
 				page=f"Print Format: {render_format.name}",
 			)
-			if output:
+			if output and not password:
 				from io import BytesIO
 
 				from pypdf import PdfReader
@@ -173,6 +195,7 @@ def get_print(
 		_run_print_pdf_hooks(doctype, name, print_format)
 
 		hook_func = frappe.get_hooks("pdf_generator")
+		password = pdf_options.pop("password", None)
 		for hook in hook_func:
 			"""
 			check pdf_generator value in your hook function.
@@ -184,14 +207,15 @@ def get_print(
 				print_format=print_format,
 				html=html,
 				options=pdf_options,
-				output=output,
+				output=None,
 				pdf_generator=generator,
 			)
 			# if hook returns a value, assume it was the correct pdf_generator and return it
-			if pdf:
-				return _finalize_pdf(doctype, name, pdf, output, doc=doc)
+			if isinstance(pdf, bytes):
+				return run_after_print(doc=doc, pdf=pdf, password=password, output=output)
 
-		return _finalize_pdf(doctype, name, get_pdf(html, options=pdf_options, output=output, print_format=print_format), output, doc=doc)
+		pdf = get_pdf(html, options=pdf_options, output=None, print_format=print_format)
+		return run_after_print(doc=doc, pdf=pdf, password=password, output=output)
 	finally:
 		local.form_dict = original_form_dict
 
@@ -258,12 +282,9 @@ def attach_print(
 			if cint(print_settings.send_print_as_pdf):
 				ext = ".pdf"
 				if html:
-					content = run_after_print_hook(
-						doctype,
-						name,
-						get_pdf(html, options={"password": password} if password else None),
-						doc=doc,
-					)
+					doc_obj = doc or frappe.get_doc(doctype, name)
+					pdf = get_pdf(html)
+					content = run_after_print(doc=doc_obj, pdf=pdf, password=password)
 				elif render_via_generator:
 					from frappe.www.printview import validate_print_for_docstatus
 
@@ -355,38 +376,3 @@ def convert_uom(
 	if only_number:
 		return round(number * converstion_factor[0][f"from_{from_uom}"][0][f"to_{to_uom}"], 3)
 	return f"{round(number * converstion_factor[0][f'from_{from_uom}'][0][f'to_{to_uom}'], 3)}{to_uom}"
-
-
-def _finalize_pdf(doctype: str, name: str, pdf, output=None, doc: Document | None = None):
-	"""When output is provided, append the after_print-hook PDF-pages to output"""
-	from io import BytesIO
-
-	from pypdf import PdfReader, PdfWriter
-
-	from frappe.exceptions import PrintFormatError
-	from frappe.utils.pdf import get_file_data_from_writer
-
-	if isinstance(pdf, PdfWriter):
-		pdf = get_file_data_from_writer(pdf)
-
-	pdf = run_after_print_hook(doctype, name, pdf, doc=doc)
-
-	if output and isinstance(pdf, bytes):
-		reader = PdfReader(BytesIO(pdf))
-		if isinstance(output, PdfWriter):
-			if reader.is_encrypted:
-				frappe.throw(
-					_("Cannot append an encrypted PDF to a merged print"),
-					PrintFormatError,
-				)
-		for page in reader.pages:
-			output.add_page(page)
-		return output
-	return pdf
-
-
-def run_after_print_hook(doctype: str, name: str, pdf: bytes, doc: Document | None = None) -> bytes:
-	"""run the after_print hook for a document after its pdf is generated"""
-	if doc is None:
-		doc = frappe.get_cached_doc(doctype, name)
-	return doc.run_method("after_print", pdf=pdf) or pdf

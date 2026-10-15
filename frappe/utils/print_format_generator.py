@@ -10,7 +10,7 @@ from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
 from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
-from frappe.utils.print_utils import run_after_print_hook
+from frappe.utils.print_utils import run_after_print
 
 
 @frappe.whitelist()
@@ -512,12 +512,15 @@ class PrintFormatGenerator:
 						hook,
 						print_format=pf.name,
 						html=None,
-						options={"password": password} if password else {},
+						options={},
 						output=None,
 						pdf_generator=generator_name,
 					)
 					if pdf:
-						return run_after_print_hook(self.doc.doctype, self.doc.name, pdf, doc=self.doc)
+						if isinstance(pdf, bytes):
+							pdf = run_after_print(self.doc, pdf, password=password)
+						return pdf
+
 			finally:
 				frappe.local.print_format_generator = previous
 		from frappe.utils.typst_emitter import has_typst_blocks
@@ -538,8 +541,6 @@ class PrintFormatGenerator:
 		}
 		if self._header_absorbs_top_margin:
 			options["header-includes-top-margin"] = True
-		if password:
-			options["password"] = password
 		options.update(self.page_options())
 		pdf = get_chrome_pdf(
 			print_format=pf.name,
@@ -548,7 +549,8 @@ class PrintFormatGenerator:
 			output=None,
 			pdf_generator="chrome",
 		)
-		return run_after_print_hook(self.doc.doctype, self.doc.name, pdf, doc=self.doc)
+		pdf = run_after_print(self.doc, pdf, password=password)
+		return pdf
 
 	def page_options(self) -> dict:
 		"""The page size as the Chrome renderer takes it, from the settings this
