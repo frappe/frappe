@@ -126,8 +126,8 @@ class V1CompatTestCase(IntegrationTestCase):
 class TestV1BlobCompatShim(V1CompatTestCase):
 	"""Blob-backed rows read and written through FileV1."""
 
-	def test_insert_from_f_url_relinks_blob(self):
-		# an amend or attachment copy carries only the /f/ file_url; FileV1
+	def test_insert_from_blob_url_relinks_blob(self):
+		# an amend or attachment copy carries only the blob file_url; FileV1
 		# must relink the blob instead of failing URL validation
 		with fake():
 			original = self.blob_backed_file(label="relink")
@@ -159,7 +159,9 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 				self.delete_later("File", file.name)
 
 				self.assertEqual(file.blob, blob.name)
-				self.assertEqual(file.file_url, f"/f/{blob.name}/handed-over.png")
+				# the URL names the blob's key, which kept the first upload's name
+				self.assertEqual(file.file_url, f"/private/files/{blob.name}/{original.file_name}")
+				self.assertEqual(file.file_name, "handed-over.png")
 
 	def test_get_content_reads_through_driver(self):
 		content = unique_png()
@@ -214,7 +216,7 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 				self.assertNotEqual(fresh.blob, old_blob)
 				new_blob = frappe.get_doc("File Blob", fresh.blob)
 				self.assertEqual(new_blob.is_private, 1)
-				self.assertEqual(fresh.file_url, f"/f/{new_blob.name}/{fresh.file_name}")
+				self.assertEqual(fresh.file_url, f"/private/files/{new_blob.name}/{fresh.file_name}")
 				self.assertTrue(store.exists(new_blob.key, is_private=True))
 				# blobs are immutable; the old one is left for garbage collection
 				self.assertTrue(frappe.db.exists("File Blob", old_blob))

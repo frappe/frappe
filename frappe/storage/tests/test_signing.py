@@ -77,23 +77,32 @@ class TestSigning(IntegrationTestCase):
 		with patch("frappe.storage.url.time.time", return_value=float(expires + 1)):
 			self.assertFalse(verify_signature(blob.name, "a.txt", expires, sig))
 
-	def test_signed_url_falls_back_to_f_path(self):
-		# MemoryDriver.download_url returns None, so signed_url must build /f/
+	def test_signed_url_falls_back_to_a_signed_private_files_path(self):
+		# MemoryDriver.download_url returns None, so signed_url builds the path
 		blob = self.make_blob()
 		file = frappe._dict(blob=blob.name, file_name="hello world.txt")
 
 		url = signed_url(file)
 
-		self.assertTrue(url.startswith(f"/f/{blob.name}/hello%20world.txt?"))
+		self.assertTrue(url.startswith(f"/private/files/{blob.name}/hello%20world.txt?"))
 		query = parse_qs(urlparse(url).query)
 		self.assertTrue(verify_signature(blob.name, "hello world.txt", query["e"][0], query["s"][0]))
+
+	def test_signed_url_keeps_the_filename_in_one_path_segment(self):
+		blob = self.make_blob()
+
+		url = signed_url_for_blob(blob, "reports/q1 #final?.pdf")
+
+		self.assertTrue(url.startswith(f"/private/files/{blob.name}/reports_q1%20_final_.pdf?"))
+		query = parse_qs(urlparse(url).query)
+		self.assertTrue(verify_signature(blob.name, "reports_q1 _final_.pdf", query["e"][0], query["s"][0]))
 
 	def test_signed_url_for_blob_accepts_name_or_document(self):
 		blob = self.make_blob()
 
 		for blob_arg in (blob.name, blob):
 			url = signed_url_for_blob(blob_arg, "node name.txt")
-			self.assertTrue(url.startswith(f"/f/{blob.name}/node%20name.txt?"))
+			self.assertTrue(url.startswith(f"/private/files/{blob.name}/node%20name.txt?"))
 			query = parse_qs(urlparse(url).query)
 			self.assertTrue(verify_signature(blob.name, "node name.txt", query["e"][0], query["s"][0]))
 
@@ -111,8 +120,8 @@ class TestSigning(IntegrationTestCase):
 		mocked.assert_called_once_with(
 			blob.key, "a.txt", 900, is_private=True, mime_type=blob.mime_type, as_attachment=False
 		)
-		# without a native URL the same file falls back to /f/
-		self.assertTrue(signed_url(file).startswith("/f/"))
+		# without a native URL the same file falls back to a signed path
+		self.assertTrue(signed_url(file).startswith(f"/private/files/{blob.name}/a.txt?"))
 
 	def test_signed_url_for_blob_prefers_native_url(self):
 		blob = self.make_blob(b"native blob url content")

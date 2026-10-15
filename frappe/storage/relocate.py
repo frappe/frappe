@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import frappe
-from frappe.storage.blob import make_key
+from frappe.storage.blob import key_basename, make_key
 from frappe.storage.driver import StorageDriver, get_driver
 from frappe.utils import cint
 
@@ -15,9 +15,11 @@ BATCH_SIZE = 100
 
 
 def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = None) -> dict:
-	"""Move blobs to a driver's canonical content-addressed keys.
+	"""Move blobs to a driver's canonical ``<blob>/<filename>`` keys.
 
-	The configured storage driver is the default target. Rows are scanned in
+	The configured storage driver is the default target. ``File.file_url``
+	never changes: a blob URL keeps its blob name and filename, and a v1 URL
+	of a backfilled blob is served from the blob wherever it now lives. Rows are scanned in
 	bounded, keyset-paginated batches, so a stopped run can safely be started
 	again. The blob name never changes. Source objects are deleted only from an
 	``after_commit`` callback once the row points at the copied object.
@@ -86,7 +88,7 @@ def get_relocation_batch(limit: int, after_name: str) -> list[dict]:
 
 def relocate_blob(row, target: StorageDriver, stats: dict, logger) -> int | None:
 	"""Prepare one row move, returning its byte count or ``None`` when skipped."""
-	target_key = make_key(row.checksum)
+	target_key = make_key(target, row.name, key_basename(row.key))
 	if row.driver == target.name and row.key == target_key:
 		return None
 
@@ -95,6 +97,9 @@ def relocate_blob(row, target: StorageDriver, stats: dict, logger) -> int | None
 	if not target.exists(target_key, is_private=is_private):
 		with source.read(row.key, is_private=is_private) as stream:
 			target.write(target_key, stream, is_private=is_private)
+	# the source is deleted after commit, so the copy must be in place first
+	if not target.exists(target_key, is_private=is_private):
+		raise RuntimeError(f"copied object {target_key} is missing")
 
 	savepoint = f"relocate_{frappe.generate_hash(length=10)}"
 	frappe.db.savepoint(savepoint)

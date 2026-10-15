@@ -1,5 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+import hashlib
 import importlib.util
 import io
 import sys
@@ -12,12 +13,15 @@ from frappe.storage.blob import put_blob
 from frappe.storage.driver import get_driver_classes
 from frappe.storage.memory_driver import MemoryDriver
 from frappe.storage.s3_driver import UPLOAD_TARGET_TTL, S3Driver
-from frappe.storage.serve import serve_file
+from frappe.storage.serve import serve_public_file
+from frappe.storage.upload import upload_key
 from frappe.storage.url import signed_url_for_blob
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
 HAS_BOTO3 = importlib.util.find_spec("boto3") is not None
+
+TEST_DB_NAME = "s3_test_site_db"
 
 TEST_CONFIG = {
 	"bucket": "test-bucket",
@@ -38,7 +42,9 @@ class StubClientError(Exception):
 
 def site_config(**config):
 	"""Patch frappe.conf with a storage_driver_config."""
-	return patch.object(frappe, "conf", frappe._dict(storage_driver_config=frappe._dict(config)))
+	return patch.object(
+		frappe, "conf", frappe._dict(db_name=TEST_DB_NAME, storage_driver_config=frappe._dict(config))
+	)
 
 
 @contextmanager
@@ -116,6 +122,45 @@ class TestS3DriverConfig(IntegrationTestCase):
 		self.assertNotIn("endpoint_url", kwargs)
 
 
+class TestS3SitePrefix(IntegrationTestCase):
+	"""Sites sharing one bucket keep their objects under their own prefix."""
+
+	def test_prefix_defaults_to_a_hash_of_the_database_name(self):
+		expected = hashlib.sha256(TEST_DB_NAME.encode()).hexdigest()[:12] + "/"
+		self.assertEqual(make_driver(**TEST_CONFIG).key_prefix, expected)
+
+	def test_prefix_can_be_configured(self):
+		self.assertEqual(make_driver(**TEST_CONFIG, prefix="tenant-a.v2").key_prefix, "tenant-a.v2/")
+		self.assertEqual(make_driver(**TEST_CONFIG, prefix="/tenant-a/").key_prefix, "tenant-a/")
+		for invalid in ("tenant a", "tenant/a", "../tenant"):
+			with self.subTest(prefix=invalid), self.assertRaises(frappe.ValidationError):
+				make_driver(**TEST_CONFIG, prefix=invalid)
+
+	def test_new_keys_start_with_the_prefix_and_delete_stays_inside_it(self):
+		driver = make_driver(**TEST_CONFIG, prefix="tenant-a")
+		client = driver.test_client
+		frappe.local.storage_driver_override = driver
+		self.addCleanup(setattr, frappe.local, "storage_driver_override", None)
+		self.addCleanup(frappe.db.rollback)
+
+		blob = put_blob(io.BytesIO(b"prefixed bytes"), is_private=True, filename="report.pdf")
+		self.assertEqual(blob.key, f"tenant-a/{blob.name}/report.pdf")
+		client.upload_fileobj.assert_called_once()
+		self.assertEqual(client.upload_fileobj.call_args.args[2], f"private/tenant-a/{blob.name}/report.pdf")
+		self.assertEqual(upload_key("upload123"), "tenant-a/uploads/upload123")
+
+		driver.delete(blob.key, is_private=True)
+		client.delete_object.assert_called_once_with(
+			Bucket="test-bucket", Key=f"private/tenant-a/{blob.name}/report.pdf"
+		)
+
+		# another site's object, such as one a restored backup points at
+		client.delete_object.reset_mock()
+		driver.delete(f"tenant-b/{blob.name}/report.pdf", is_private=True)
+		driver.delete("legacy/report.pdf")
+		client.delete_object.assert_not_called()
+
+
 class TestS3DriverBehavior(IntegrationTestCase):
 	"""Behavior tests against a stubbed boto3 client. Run without boto3."""
 
@@ -123,7 +168,7 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		super().setUp()
 		self.driver = make_driver(**TEST_CONFIG)
 		self.client = self.driver.test_client
-		self.key = "ab/cd/abcdef0123456789"
+		self.key = f"{self.driver.key_prefix}abcdef0123/report.pdf"
 
 	def test_write_streams_via_upload_fileobj(self):
 		stream = io.BytesIO(b"hello")
@@ -324,11 +369,11 @@ class TestS3DriverWithRealBoto3(IntegrationTestCase):
 
 
 class TestS3ServesLikeLocal(IntegrationTestCase):
-	"""A file shows inline or downloads the same way from S3 as from ``/f/``.
+	"""A file shows inline or downloads the same way from S3 as from Frappe.
 
 	Blobs are stored through the stubbed S3 driver, so the presigned URL the
-	serve route redirects to can be inspected. The ``/f/`` side streams the
-	same bytes from memory."""
+	serve route redirects to can be inspected. The other side streams the
+	same bytes from memory through the same ``/files/`` route."""
 
 	PDF = b"%PDF-1.4\n1 0 obj << >> endobj\ntrailer << >>\n%%EOF\n"
 	CASES = (
@@ -355,13 +400,16 @@ class TestS3ServesLikeLocal(IntegrationTestCase):
 		super().tearDown()
 
 	def s3_served(self, blob, filename: str, **query) -> tuple[str, str]:
-		"""Serve through ``/f/`` and read what the S3 redirect target will send."""
-		path = f"/f/{blob.name}/{filename}"
+		"""Serve through ``/files/`` and read what the S3 redirect target will send."""
+		path = f"/files/{blob.name}/{filename}"
 		set_request(method="GET", path=path)
 		frappe.local.form_dict = frappe._dict(query)
-		response = serve_file(path)
+		response = serve_public_file(path)
 		self.assertEqual(response.status_code, 302)
 		self.assertEqual(response.headers["Location"], "https://signed.example.com/x")
+		# a public redirect is cached for half the presigned URL's hour
+		self.assertEqual(response.headers["Cache-Control"], "public, max-age=1800")
+		self.assertEqual(self.driver.test_client.generate_presigned_url.call_args.kwargs["ExpiresIn"], 3600)
 		params = self.driver.test_client.generate_presigned_url.call_args.kwargs["Params"]
 		return params["ResponseContentType"], params["ResponseContentDisposition"].split(";")[0]
 
@@ -375,13 +423,13 @@ class TestS3ServesLikeLocal(IntegrationTestCase):
 			frappe.local.storage_driver_override = self.driver
 
 	def local_served(self, content: bytes, filename: str, **query) -> tuple[str, str]:
-		"""Serve the same bytes through ``/f/`` from a driver with no native URL."""
+		"""Serve the same bytes through ``/files/`` from a driver with no native URL."""
 		with self.in_memory():
 			blob = put_blob(io.BytesIO(content))
-			path = f"/f/{blob.name}/{filename}"
+			path = f"/files/{blob.name}/{filename}"
 			set_request(method="GET", path=path)
 			frappe.local.form_dict = frappe._dict(query)
-			response = serve_file(path)
+			response = serve_public_file(path)
 		self.assertEqual(response.status_code, 200)
 		return response.mimetype, response.headers["Content-Disposition"].split(";")[0]
 
@@ -409,7 +457,7 @@ class TestS3ServesLikeLocal(IntegrationTestCase):
 		signed_url_for_blob(blob, "report.pdf", as_attachment=True)
 		self.assertTrue(params()["ResponseContentDisposition"].startswith("attachment; "))
 
-		# without a native URL the same request falls back to a /f/ URL that downloads
+		# without a native URL the same request falls back to a signed path that downloads
 		with self.in_memory():
 			local = put_blob(io.BytesIO(self.PDF), is_private=True)
 			self.assertIn("&download=1", signed_url_for_blob(local, "report.pdf", as_attachment=True))

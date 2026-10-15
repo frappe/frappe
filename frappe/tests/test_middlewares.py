@@ -33,6 +33,8 @@ class StaticDataMiddlewareTest(unittest.TestCase):
 				stream, _, _ = opener()
 				with stream:
 					self.assertEqual(stream.read(), b"public image")
-				for path in ("outside.png", "../../../private.txt", str(secret), "missing.png"):
+				for path in ("outside.png", "../../../private.txt", str(secret)):
 					with self.subTest(path=path), self.assertRaises(NotFound):
 						loader(path)
+				# a file that is not on disk passes through to the app, like nginx's try_files
+				self.assertEqual(loader("missing.png"), (None, None))

@@ -21,12 +21,16 @@ class StorageDriver(ABC):
 	"""Read, write, delete and check bytes by key.
 
 	Every byte access in Storage v2 goes through a driver. Keys are
-	content-addressed (see ``frappe.storage.blob.make_key``) and carry no
+	``<blob>/<filename>`` (see ``frappe.storage.blob.make_key``) and carry no
 	privacy information, so each method takes ``is_private`` to pick the
 	public or private namespace.
 	"""
 
 	name: str
+
+	# Prepended to every new key. A driver shared by several sites (such as
+	# one S3 bucket) sets it to keep each site's objects apart.
+	key_prefix: str = ""
 
 	@abstractmethod
 	def write(self, key: str, stream: IO[bytes], *, is_private: bool = False) -> None: ...
@@ -70,7 +74,7 @@ class StorageDriver(ABC):
 		*mime_type* is the blob's stored type. A driver that returns a URL
 		must serve the type and disposition that
 		``frappe.storage.blob.served_type`` gives, so a file shows inline or
-		downloads the same way as from ``/f/``.
+		downloads the same way as when Frappe serves it.
 
 		None means: the framework serves the bytes itself."""
 		return None

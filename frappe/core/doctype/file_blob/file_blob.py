@@ -39,8 +39,8 @@ def on_doctype_update():
 	# the Error Log doctype exists.
 	try:
 		# the dedup invariant: one blob per content per privacy namespace
-		# per driver. The key derives from the checksum (plus a filename
-		# extension), so it cannot carry the unique constraint itself.
+		# per driver. The key is the blob name and a filename, so it cannot
+		# carry the unique constraint itself.
 		frappe.db.add_unique(
 			"File Blob", ["checksum", "is_private", "driver"], constraint_name="unique_file_blob_checksum"
 		)

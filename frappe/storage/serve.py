@@ -1,13 +1,22 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-"""Serve route for Storage v2 blobs: ``GET /f/<blob>/<filename>``.
+"""Serve ``/files/`` and ``/private/files/`` URLs through Storage v2.
 
-Access is granted by any one of:
+A blob URL is ``/files/<blob>/<filename>`` or
+``/private/files/<blob>/<filename>`` (see ``frappe/storage/url.py``). The
+filename in the URL is the download name. Any other path under these
+prefixes is a v1 URL.
 
-- a valid signature (``?e=<epoch>&s=<sig>``, see ``frappe/storage/url.py``),
-- the blob being public,
-- a non-Guest session where some File row linked to the blob is downloadable
-  (mirrors ``find_file_by_url``'s any-row rule).
+``/files/``: nginx serves a file it finds on disk, so Python sees only the
+rest: a public blob on another driver, or a v1 URL whose bytes moved into a
+blob (relocation keeps ``File.file_url``). Both are public; nothing is
+checked.
+
+``/private/files/``: a private blob is granted by a valid signature
+(``?e=<epoch>&s=<sig>``), or by a non-Guest session that can download some
+File row linked to the blob (mirrors ``find_file_by_url``'s any-row rule).
+A v1 URL goes through ``download_private_file``, which reads a linked blob
+the same way.
 
 A file shows inline unless it is active content (see
 ``frappe.storage.blob.served_type``) or the URL asks for ``?download=1``.
@@ -32,7 +41,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.storage.blob import served_type
 from frappe.storage.driver import get_driver
-from frappe.storage.url import verify_signature
+from frappe.storage.url import parse_blob_url, verify_signature
 from frappe.utils import cint
 
 if TYPE_CHECKING:
@@ -40,56 +49,78 @@ if TYPE_CHECKING:
 
 NATIVE_URL_TTL = 60
 
+# A public file's native URL is cacheable. The redirect is cached for half
+# the URL's lifetime, so a cached redirect never points at an expired URL.
+PUBLIC_NATIVE_URL_TTL = 3600
 
-def serve_file(path: str) -> Response:
-	"""Handle ``GET /f/<blob>/<filename>``."""
-	blob_name, filename = parse_path(path)
-	blob = get_blob(blob_name)
 
+def serve_public_file(path: str) -> Response:
+	"""Handle a ``GET /files/...`` request that nginx did not find on disk."""
+	if parsed := find_blob(path, is_private=False):
+		blob, filename = parsed
+	elif row := frappe.db.get_value(
+		"File", {"file_url": path, "is_private": 0, "blob": ("is", "set")}, ["blob", "file_name"]
+	):
+		blob, filename = frappe.get_doc("File Blob", row[0]), row[1] or os.path.basename(path)
+	else:
+		raise NotFound
+
+	return blob_response(blob, filename)
+
+
+def serve_private_file(path: str) -> Response:
+	"""Handle ``GET /private/files/...``: a private blob, else a v1 URL.
+
+	An unknown blob falls through to the v1 lookup, which answers 403 like
+	a failed permission check, so a caller cannot probe for blob names."""
+	parsed = find_blob(path, is_private=True)
+	if not parsed:
+		return frappe.utils.response.download_private_file(path)
+
+	blob, filename = parsed
 	if not can_access(blob, filename):
 		raise Forbidden(_("You don't have permission to access this file"))
 
-	if blob.is_private:
-		make_access_log(
-			doctype="File Blob",
-			document=blob.name,
-			file_type=os.path.splitext(filename)[1].lstrip("."),
-		)
+	make_access_log(
+		doctype="File Blob",
+		document=blob.name,
+		file_type=os.path.splitext(filename)[1].lstrip("."),
+	)
 
-	# a download is only ever more restrictive than inline, so ?download=1
-	# needs no signature of its own
+	return blob_response(blob, filename)
+
+
+def blob_response(blob: "str | FileBlob", filename: str) -> Response:
+	"""Serve an authorized blob: a native URL redirect, else the bytes.
+
+	A download is only ever more restrictive than inline, so ``?download=1``
+	needs no signature of its own."""
+	if isinstance(blob, str):
+		blob = frappe.get_doc("File Blob", blob)
 	as_attachment = bool(cint(frappe.form_dict.get("download")))
 	if response := _native_url_response(blob, filename, as_attachment=as_attachment):
+		if not blob.is_private:
+			response.headers["Cache-Control"] = f"public, max-age={PUBLIC_NATIVE_URL_TTL // 2}"
 		return response
-
 	return stream_blob(blob, filename, as_attachment=as_attachment)
 
 
-def parse_path(path: str) -> tuple[str, str]:
-	"""Split ``/f/<blob>/<filename>`` into (blob_name, filename)."""
-	parts = path[len("/f/") :].split("/", 1) if path.startswith("/f/") else []
-	blob_name = parts[0] if parts else ""
-	if not blob_name:
-		raise NotFound
-	filename = parts[1] if len(parts) > 1 and parts[1] else blob_name
-	return blob_name, filename
-
-
-def get_blob(blob_name: str) -> "FileBlob":
-	if not frappe.db.table_exists("File Blob") or not frappe.db.exists("File Blob", blob_name):
-		# same response as a failed permission check, so an unauthenticated
-		# caller cannot probe which blob names exist
-		raise Forbidden(_("You don't have permission to access this file"))
-	return frappe.get_doc("File Blob", blob_name)
+def find_blob(path: str, *, is_private: bool) -> "tuple[FileBlob, str] | None":
+	"""Return ``(blob, filename)`` when ``path`` is the URL of an existing
+	blob with the privacy its prefix implies, else None."""
+	parsed = parse_blob_url(path)
+	if not parsed or parsed[0] != is_private or not frappe.db.table_exists("File Blob"):
+		return None
+	_is_private, blob_name, filename = parsed
+	if not frappe.db.exists("File Blob", {"name": blob_name, "is_private": cint(is_private)}):
+		return None
+	return frappe.get_doc("File Blob", blob_name), filename
 
 
 def can_access(blob: "FileBlob", filename: str) -> bool:
 	expires = frappe.form_dict.get("e")
 	signature = frappe.form_dict.get("s")
 	if (expires or signature) and verify_signature(blob.name, filename, expires, signature):
-		return True
-
-	if not blob.is_private:
 		return True
 
 	return frappe.session.user != "Guest" and has_file_permission(blob.name)
@@ -116,7 +147,7 @@ def stream_blob(
 ) -> Response:
 	"""Serve a blob after the caller has authorized the read.
 
-	Unlike :func:`serve_file`, this function performs no permission lookup and
+	Unlike :func:`serve_private_file`, this function performs no permission lookup and
 	writes no File access log. Non-local drivers are streamed directly so Range
 	requests work without requiring a seekable driver stream. WebDAV's optional
 	native redirect remains controlled by ``drive_webdav_s3_redirect``.
@@ -129,15 +160,15 @@ def stream_blob(
 	is_private = bool(blob.is_private)
 
 	# Some DAV clients cannot follow cross-host redirects, so an authorized
-	# stream redirects only when the deployment explicitly opts in. /f/ keeps
-	# its established native redirect in serve_file above.
+	# stream redirects only when the deployment explicitly opts in. The
+	# /files/ routes keep their native redirect above.
 	if frappe.conf.get("drive_webdav_s3_redirect"):
 		if response := _native_url_response(blob, filename, as_attachment=as_attachment):
 			return response
 
 	# keyed on the effective Content-Type, not only on the caller-supplied
-	# filename: /f/<blob>/x.txt naming an HTML blob must not render inline on
-	# the site origin
+	# filename: /files/<blob>/x.txt naming an HTML blob must not render inline
+	# on the site origin
 	mime_type, as_attachment = served_type(filename, blob.mime_type, as_attachment=as_attachment)
 
 	etag = blob.checksum
@@ -146,17 +177,20 @@ def stream_blob(
 		response.set_etag(etag)
 		return response
 
-	if blob.driver == "local" and request.headers.get("X-Use-X-Accel-Redirect"):
-		response = x_accel_response(blob, filename, mime_type, as_attachment)
-		if etag:
-			response.set_etag(etag)
-		return response
-
 	if local_path := getattr(driver, "get_path", None):
-		# real file on disk: send_file gets size + mtime, so Range works
 		filepath = local_path(blob.key, is_private)
 		if not os.path.exists(filepath):
+			# checked before X-Accel too: nginx would pass a missing public
+			# file back to Python, which would redirect to it again
 			raise NotFound
+
+		if request.headers.get("X-Use-X-Accel-Redirect"):
+			response = x_accel_response(blob, filename, mime_type, as_attachment)
+			if etag:
+				response.set_etag(etag)
+			return response
+
+		# real file on disk: send_file gets size + mtime, so Range works
 		return werkzeug.utils.send_file(
 			filepath,
 			environ=request.environ,
@@ -170,19 +204,12 @@ def stream_blob(
 	return _stream_driver_response(blob, filename, request, mime_type=mime_type, as_attachment=as_attachment)
 
 
-def build_response(blob: "FileBlob", filename: str) -> Response:
-	"""Compatibility wrapper for the original internal response builder."""
-	if response := _native_url_response(blob, filename):
-		return response
-	return stream_blob(blob, filename)
-
-
 def _native_url_response(blob: "FileBlob", filename: str, *, as_attachment: bool = False) -> Response | None:
 	driver = get_driver(blob.driver)
 	native = driver.download_url(
 		blob.key,
 		filename,
-		NATIVE_URL_TTL,
+		NATIVE_URL_TTL if blob.is_private else PUBLIC_NATIVE_URL_TTL,
 		is_private=bool(blob.is_private),
 		mime_type=blob.mime_type,
 		as_attachment=as_attachment,
@@ -247,9 +274,9 @@ def x_accel_response(blob: "FileBlob", filename: str, mime_type: str, as_attachm
 	"""Let nginx send the bytes. Mirrors ``send_private_file``'s X-Accel branch."""
 	if blob.is_private:
 		private_path = frappe.local.conf.get("private_path", "private")
-		accel_path = "/protected/" + os.path.join(private_path, "files", "blobs", blob.key)
+		accel_path = "/protected/" + os.path.join(private_path, "files", blob.key)
 	else:
-		accel_path = "/files/blobs/" + blob.key
+		accel_path = "/files/" + blob.key
 
 	response = Response()
 	response.headers["X-Accel-Redirect"] = quote(frappe.utils.encode(accel_path))

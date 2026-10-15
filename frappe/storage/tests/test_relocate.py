@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.storage import gc, relocate
-from frappe.storage.blob import make_key
 from frappe.storage.memory_driver import MemoryDriver
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
@@ -30,13 +29,24 @@ class TestRelocateBlobs(IntegrationTestCase):
 		frappe.db.delete("File Blob", {"name": ("like", self.prefix + "%")})
 		super().tearDown()
 
-	def insert_blob(self, content: bytes, *, suffix: str = "", key: str | None = None, driver=None):
+	def blob_name(self, suffix: str = "") -> str:
+		return self.prefix + suffix + frappe.generate_hash(length=6)
+
+	def insert_blob(
+		self,
+		content: bytes,
+		*,
+		suffix: str = "",
+		key: str | None = None,
+		driver=None,
+		name: str | None = None,
+	):
 		driver = driver or self.source
 		checksum = hashlib.sha256(content).hexdigest()
 		key = key or f"legacy/{self.prefix}{suffix}"
 		driver.write(key, io.BytesIO(content))
 		blob = frappe.new_doc("File Blob")
-		blob.name = self.prefix + suffix + frappe.generate_hash(length=6)
+		blob.name = name or self.blob_name(suffix)
 		blob.update(
 			{
 				"key": key,
@@ -80,12 +90,15 @@ class TestRelocateBlobs(IntegrationTestCase):
 
 	def test_moves_bytes_to_configured_driver_and_deletes_source_after_commit(self):
 		content = b"relocation-configured-driver"
-		blob = self.insert_blob(content)
+		blob = self.insert_blob(content, key=f"legacy/{self.prefix}/report.pdf")
 		old_key = blob.key
+		file_doc = self.insert_file(blob, "/files/legacy/report.pdf")
+		# a driver shared by several sites puts each site's keys under a prefix
+		self.target.key_prefix = "site-a/"
 
 		stats = self.run_relocation()
 
-		canonical_key = make_key(blob.checksum)
+		canonical_key = f"site-a/{blob.name}/report.pdf"
 		self.assertEqual(stats, {"moved": 1, "bytes": len(content), "skipped": 0, "errors": 0})
 		self.assertEqual(
 			frappe.db.get_value("File Blob", blob.name, ["driver", "key"], as_dict=True),
@@ -93,20 +106,51 @@ class TestRelocateBlobs(IntegrationTestCase):
 		)
 		self.assertEqual(self.target.read(canonical_key).read(), content)
 		self.assertFalse(self.source.exists(old_key))
+		# the v1 URL stays; it is served from the blob wherever it lives
+		self.assertEqual(frappe.db.get_value("File", file_doc.name, "file_url"), "/files/legacy/report.pdf")
+
+	def insert_file(self, blob, file_url: str):
+		file_doc = frappe.new_doc("File")
+		file_doc.name = self.prefix + "-file" + frappe.generate_hash(length=6)
+		file_doc.update(
+			{
+				"file_name": file_url.rsplit("/", 1)[-1],
+				"file_url": file_url,
+				"blob": blob.name,
+				"is_folder": 0,
+			}
+		)
+		file_doc.db_insert()
+		return file_doc
 
 	def test_moves_local_in_place_key_on_same_driver(self):
 		self.source.name = "local"
 		self.target = self.source
 		content = b"same-driver-in-place"
-		blob = self.insert_blob(content, key=f"../{self.prefix}.txt")
+		blob = self.insert_blob(content, key=f"{self.prefix}.txt")
 		old_key = blob.key
 
 		stats = self.run_relocation(target_driver="local")
 
+		canonical_key = f"{blob.name}/{self.prefix}.txt"
 		self.assertEqual(stats["moved"], 1)
-		self.assertEqual(frappe.db.get_value("File Blob", blob.name, "key"), make_key(blob.checksum))
-		self.assertEqual(self.target.read(make_key(blob.checksum)).read(), content)
+		self.assertEqual(frappe.db.get_value("File Blob", blob.name, "key"), canonical_key)
+		self.assertEqual(self.target.read(canonical_key).read(), content)
 		self.assertFalse(self.source.exists(old_key))
+
+	def test_copy_that_did_not_land_keeps_the_source(self):
+		content = b"relocation-lost-copy"
+		blob = self.insert_blob(content)
+
+		with patch.object(self.target, "write"):
+			stats = self.run_relocation()
+
+		self.assertEqual(stats["errors"], 1)
+		self.assertEqual(
+			frappe.db.get_value("File Blob", blob.name, ["driver", "key"], as_dict=True),
+			{"driver": self.source.name, "key": blob.key},
+		)
+		self.assertTrue(self.source.exists(blob.key))
 
 	def test_interrupted_batch_resumes_and_moves_the_rest(self):
 		first = self.insert_blob(b"resume-first", suffix="-a-")
@@ -139,8 +183,8 @@ class TestRelocateBlobs(IntegrationTestCase):
 
 	def test_blob_at_canonical_target_is_untouched(self):
 		content = b"already-canonical"
-		checksum = hashlib.sha256(content).hexdigest()
-		blob = self.insert_blob(content, key=make_key(checksum), driver=self.target)
+		name = self.blob_name()
+		blob = self.insert_blob(content, key=f"{name}/canonical.txt", driver=self.target, name=name)
 
 		with (
 			patch.object(self.target, "write", wraps=self.target.write) as write,
@@ -155,8 +199,9 @@ class TestRelocateBlobs(IntegrationTestCase):
 
 	def test_existing_target_object_is_reused_without_a_duplicate_blob(self):
 		content = b"existing-target-object"
-		blob = self.insert_blob(content)
-		canonical_key = make_key(blob.checksum)
+		name = self.blob_name()
+		blob = self.insert_blob(content, key="legacy/existing.txt", name=name)
+		canonical_key = f"{name}/existing.txt"
 		self.target.write(canonical_key, io.BytesIO(content))
 
 		with patch.object(self.target, "write", wraps=self.target.write) as write:

@@ -188,7 +188,7 @@ class EMail:
 		# convert to text well
 		if not self.html_set:
 			if text_content:
-				# Storage v2: private /f/ URLs in an explicit text part must be
+				# Storage v2: private blob URLs in an explicit text part must be
 				# signed too; the HTML part is signed in get_formatted_html
 				text_content = rewrite_text_urls_for_email(text_content)
 				self.set_text(expand_relative_urls(text_content))
@@ -446,7 +446,7 @@ def get_formatted_html(
 		rendered_email = frappe.get_template(wrapper).render(params)
 
 	html = scrub_urls(rendered_email)
-	# Storage v2: sign private /f/ blob URLs at egress (no-op when flag is off,
+	# Storage v2: sign private blob URLs at egress (no-op when flag is off,
 	# never raises; see frappe/storage/email.py)
 	html = rewrite_urls_for_email(html)
 

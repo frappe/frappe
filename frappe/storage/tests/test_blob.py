@@ -11,9 +11,8 @@ from frappe.storage import put_blob
 from frappe.storage.blob import (
 	SPOOL_MAX_MEMORY,
 	delete_bytes_on_rollback,
-	make_key,
+	key_filename,
 	revive_blob,
-	sanitized_extension,
 	sha256_of,
 	sniff_mime,
 	spool_to_tempfile,
@@ -63,8 +62,8 @@ def unique_content(prefix=b"storage-v2-blob-test-"):
 
 
 class TestPutBlob(IntegrationTestCase):
-	def put(self, content: bytes, is_private: bool = False):
-		blob = put_blob(io.BytesIO(content), is_private=is_private)
+	def put(self, content: bytes, is_private: bool = False, filename: str | None = None):
+		blob = put_blob(io.BytesIO(content), is_private=is_private, filename=filename)
 		self.addCleanup(
 			frappe.delete_doc, "File Blob", blob.name, force=1, ignore_permissions=True, ignore_missing=True
 		)
@@ -86,8 +85,9 @@ class TestPutBlob(IntegrationTestCase):
 			private = self.put(content, is_private=True)
 
 			self.assertNotEqual(public.name, private.name)
-			# key derives from content alone, so both rows share it
-			self.assertEqual(public.key, private.key)
+			# each blob has its own key, under its own name
+			self.assertEqual(public.key, f"{public.name}/file")
+			self.assertEqual(private.key, f"{private.name}/file")
 			self.assertEqual(public.is_private, 0)
 			self.assertEqual(private.is_private, 1)
 			self.assertTrue(store.exists(public.key, is_private=False))
@@ -107,13 +107,31 @@ class TestPutBlob(IntegrationTestCase):
 			self.assertEqual(self.put(png).mime_type, "image/png")
 			self.assertEqual(self.put(text).mime_type, "application/octet-stream")
 
-	def test_key_layout(self):
+	def test_key_is_blob_name_and_safe_filename(self):
+		with fake():
+			plain = self.put(unique_content(), filename="Report Q1.PDF")
+			unsafe = self.put(unique_content(), filename="../a/b\\c?d#e%f.png")
+			control = self.put(unique_content(), filename="bell\x07\nname.txt")
+			unnamed = self.put(unique_content())
+			dotted = self.put(unique_content(), filename="...")
+
+		self.assertEqual(plain.key, f"{plain.name}/Report Q1.PDF")
+		# path separators and URL delimiters cannot split the key or the URL
+		self.assertEqual(unsafe.key, f"{unsafe.name}/_a_b_c_d_e_f.png")
+		self.assertEqual(control.key, f"{control.name}/bellname.txt")
+		self.assertEqual(unnamed.key, f"{unnamed.name}/file")
+		self.assertEqual(dotted.key, f"{dotted.name}/file")
+		# a long name is cut to 200 characters and keeps its extension
+		self.assertEqual(key_filename("x" * 300 + ".tar.gz"), "x" * 197 + ".gz")
+
+	def test_dedup_keeps_the_first_filename(self):
 		content = unique_content()
 		with fake():
-			blob = self.put(content)
-		checksum = blob.checksum
-		self.assertEqual(blob.key, f"{checksum[:2]}/{checksum[2:4]}/{checksum}")
-		self.assertEqual(blob.key, make_key(checksum))
+			first = self.put(content, filename="first.txt")
+			second = self.put(content, filename="second.txt")
+
+		self.assertEqual(second.name, first.name)
+		self.assertEqual(second.key, f"{first.name}/first.txt")
 
 	def test_blob_row_fields(self):
 		content = unique_content()
@@ -199,32 +217,6 @@ class TestBlobHelpers(IntegrationTestCase):
 		self.assertEqual(sniff_mime(stream), "image/png")
 		self.assertEqual(stream.tell(), 0)
 
-	def test_sanitized_extension_drops_unusable_extensions(self):
-		self.assertEqual(sanitized_extension("report.PDF"), "pdf")
-		self.assertEqual(sanitized_extension("archive.tar.gz"), "gz")
-		# nothing that looks like an extension
-		self.assertEqual(sanitized_extension("README"), "")
-		self.assertEqual(sanitized_extension(None), "")
-		# unusable: empty, too long, non-ascii, not alphanumeric
-		self.assertEqual(sanitized_extension("trailing."), "")
-		self.assertEqual(sanitized_extension("a.extensiontoolong"), "")
-		self.assertEqual(sanitized_extension("a.pñg"), "")
-		self.assertEqual(sanitized_extension("a.p g"), "")
-
-	def test_key_ignores_an_unusable_extension(self):
-		content = unique_content(b"bad-extension-")
-		with fake():
-			blob = put_blob(io.BytesIO(content), filename="evil.p g")
-			self.addCleanup(
-				frappe.delete_doc,
-				"File Blob",
-				blob.name,
-				force=1,
-				ignore_permissions=True,
-				ignore_missing=True,
-			)
-		self.assertEqual(blob.key, make_key(blob.checksum))
-
 
 class TestReviveBlob(IntegrationTestCase):
 	"""revive_blob: the lock taken on a deduped blob before it is relinked."""
@@ -283,7 +275,7 @@ class TestRollbackCleanup(IntegrationTestCase):
 
 		driver = BrokenDriver()
 		# no File Blob row owns this key, so the callback tries to delete it
-		key = make_key(frappe.generate_hash(length=64))
+		key = f"{frappe.generate_hash(length=10)}/orphan.txt"
 
 		with patch("frappe.logger") as logger:
 			delete_bytes_on_rollback(driver, key, False)()

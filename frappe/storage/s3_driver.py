@@ -1,5 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+import hashlib
+import re
 from typing import IO
 from urllib.parse import quote
 
@@ -11,8 +13,24 @@ from frappe.storage.driver import StorageDriver
 # TTL for presigned POST upload targets, in seconds.
 UPLOAD_TARGET_TTL = 600
 
+SITE_PREFIX_PATTERN = re.compile(r"[A-Za-z0-9._-]+")
+
 # head_object / get_object error codes that mean "no such object".
 MISSING_KEY_CODES = ("404", "NoSuchKey", "NotFound")
+
+
+def get_site_prefix(config: dict) -> str:
+	"""The site's folder in the bucket: ``storage_driver_config.prefix``, or
+	12 hex characters of the SHA-256 of the database name.
+
+	A database name is set once and is unique on a server, and a hash keeps
+	it out of the presigned URLs users see."""
+	prefix = (config.get("prefix") or "").strip("/")
+	if not prefix:
+		return hashlib.sha256(frappe.conf.db_name.encode()).hexdigest()[:12]
+	if not SITE_PREFIX_PATTERN.fullmatch(prefix):
+		frappe.throw(_("The S3 storage prefix may only contain letters, digits, '-', '_' and '.'"))
+	return prefix
 
 
 class S3Driver(StorageDriver):
@@ -28,8 +46,14 @@ class S3Driver(StorageDriver):
 	- ``access_key_id`` / ``secret_access_key``: static credentials.
 	  When absent, the default boto3 credential chain applies.
 
+	- ``prefix``: the site's folder in the bucket. Defaults to a hash of
+	  the site's database name, so sites can share a bucket.
+
 	Object keys are the blob key under a ``private/`` or ``public/``
-	prefix, picked by the ``is_private`` kwarg."""
+	prefix, picked by the ``is_private`` kwarg. New blob keys start with
+	the site prefix, and the driver deletes only keys under it. A site
+	restored from another site's backup can still read the other site's
+	objects, but never deletes them."""
 
 	name = "s3"
 
@@ -67,6 +91,7 @@ class S3Driver(StorageDriver):
 				client_kwargs[boto_arg] = value
 
 		self.client = boto3.client("s3", config=Config(signature_version="s3v4"), **client_kwargs)
+		self.key_prefix = f"{get_site_prefix(config)}/"
 
 	def object_key(self, key: str, is_private: bool = False) -> str:
 		return f"{'private' if is_private else 'public'}/{key}"
@@ -90,6 +115,10 @@ class S3Driver(StorageDriver):
 			raise
 
 	def delete(self, key: str, *, is_private: bool = False) -> None:
+		if not key.startswith(self.key_prefix):
+			# another site's object, such as one a restored backup points at
+			frappe.logger("storage").info(f"storage: kept {key}, it is outside this site's prefix")
+			return
 		# delete_object is idempotent; a missing key is not an error
 		self.client.delete_object(Bucket=self.bucket, Key=self.object_key(key, is_private))
 
@@ -112,7 +141,7 @@ class S3Driver(StorageDriver):
 		mime_type: str | None = None,
 		as_attachment: bool = False,
 	) -> str | None:
-		"""Presigned GET that serves the blob the way ``/f/`` would.
+		"""Presigned GET that serves the blob the way Frappe would.
 
 		S3 answers with the Content-Type and Content-Disposition the URL
 		carries, so a PDF shows in an ``<iframe>`` and active content still

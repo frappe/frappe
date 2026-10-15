@@ -22,7 +22,7 @@ from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.storage.blob import put_blob
 from frappe.storage.local_driver import LocalDriver
 from frappe.storage.memory_driver import MemoryDriver
-from frappe.storage.serve import serve_file, stream_blob
+from frappe.storage.serve import serve_private_file, serve_public_file, stream_blob
 from frappe.storage.tests import reset_file_controller
 from frappe.storage.upload import (
 	BLOB_SESSION,
@@ -97,23 +97,14 @@ class NativeUrlDriver(MemoryDriver):
 		return f"https://cdn.example/{key}?name={filename}&ttl={expires_in}"
 
 
-class XAccelDriver(MemoryDriver):
-	"""Bytes in memory, registered under the local driver name.
-
-	Lets the X-Accel-Redirect branch run without site files: that branch
-	returns before any byte is read."""
-
-	name = "local"
-
-
 class TempLocalDriver(LocalDriver):
 	"""LocalDriver rooted in a temp dir, so get_path never touches the site."""
 
 	def __init__(self, root):
 		self.root = root
 
-	def get_blobs_dir(self, is_private: bool = False) -> str:
-		path = os.path.join(self.root, "private" if is_private else "public", "files", "blobs")
+	def get_files_dir(self, is_private: bool = False) -> str:
+		path = os.path.join(self.root, "private" if is_private else "public", "files")
 		os.makedirs(path, exist_ok=True)
 		return path
 
@@ -145,7 +136,7 @@ def response_body(response) -> bytes:
 
 
 class TestServeUpload(IntegrationTestCase):
-	"""GET /f/ serve route and the three-step upload flow.
+	"""GET /files/ and /private/files/ serve routes and the three-step upload flow.
 
 	Uses fake() (MemoryDriver), so no blob bytes touch the site dirs.
 	Upload session files land in private/files/.uploads and are removed
@@ -169,20 +160,16 @@ class TestServeUpload(IntegrationTestCase):
 	# ---- helpers ----
 
 	def serve(self, path: str, **query):
-		set_request(method="GET", path=path)
-		frappe.local.form_dict = frappe._dict(query)
-		try:
-			return serve_file(path)
-		finally:
-			frappe.local.form_dict = frappe._dict()
-			if hasattr(frappe.local, "request"):
-				del frappe.local.request
+		return self.serve_with_headers(path, {}, **query)
 
 	def serve_with_headers(self, path: str, headers: dict, **query):
+		"""Route ``path`` the way ``frappe.app.application`` does."""
 		set_request(method="GET", path=path, headers=headers)
 		frappe.local.form_dict = frappe._dict(query)
 		try:
-			return serve_file(path)
+			if path.startswith("/private/files/"):
+				return serve_private_file(path)
+			return serve_public_file(path)
 		finally:
 			frappe.local.form_dict = frappe._dict()
 			if hasattr(frappe.local, "request"):
@@ -225,7 +212,7 @@ class TestServeUpload(IntegrationTestCase):
 			sig = make_signature(blob.name, "a.txt", expires)
 
 			frappe.set_user("Guest")
-			response = self.serve(f"/f/{blob.name}/a.txt", e=str(expires), s=sig)
+			response = self.serve(f"/private/files/{blob.name}/a.txt", e=str(expires), s=sig)
 
 			self.assertEqual(response.status_code, 200)
 			self.assertEqual(response_body(response), b"private signed content")
@@ -238,28 +225,28 @@ class TestServeUpload(IntegrationTestCase):
 			expired = int(time.time()) - 1
 			sig = make_signature(blob.name, "a.txt", expired)
 			with self.assertRaises(Forbidden):
-				self.serve(f"/f/{blob.name}/a.txt", e=str(expired), s=sig)
+				self.serve(f"/private/files/{blob.name}/a.txt", e=str(expired), s=sig)
 
 			expires = int(time.time()) + 60
 			sig = make_signature(blob.name, "a.txt", expires)
 			tampered = sig[:-1] + ("0" if sig[-1] != "0" else "1")
 			with self.assertRaises(Forbidden):
-				self.serve(f"/f/{blob.name}/a.txt", e=str(expires), s=tampered)
+				self.serve(f"/private/files/{blob.name}/a.txt", e=str(expires), s=tampered)
 
 			# signature for one filename must not open another
 			with self.assertRaises(Forbidden):
-				self.serve(f"/f/{blob.name}/b.txt", e=str(expires), s=sig)
+				self.serve(f"/private/files/{blob.name}/b.txt", e=str(expires), s=sig)
 
 			# no signature at all: private blob, Guest session
 			with self.assertRaises(Forbidden):
-				self.serve(f"/f/{blob.name}/a.txt")
+				self.serve(f"/private/files/{blob.name}/a.txt")
 
 	def test_public_blob_served_unsigned(self):
 		with flag_on(), frappe.storage.fake():
 			blob = put_blob(io.BytesIO(b"public content"), is_private=False)
 
 			frappe.set_user("Guest")
-			response = self.serve(f"/f/{blob.name}/pub.txt")
+			response = self.serve(f"/files/{blob.name}/pub.txt")
 
 			self.assertEqual(response.status_code, 200)
 			self.assertEqual(response_body(response), b"public content")
@@ -273,7 +260,7 @@ class TestServeUpload(IntegrationTestCase):
 			self.assertEqual(file.blob, blob.name)
 
 			# Administrator session, no signature: File-row permission applies
-			response = self.serve(f"/f/{blob.name}/attached.txt")
+			response = self.serve(f"/private/files/{blob.name}/attached.txt")
 
 			self.assertEqual(response.status_code, 200)
 			self.assertEqual(response_body(response), b"attached content")
@@ -284,13 +271,13 @@ class TestServeUpload(IntegrationTestCase):
 			blob = put_blob(io.BytesIO(b"unlinked content"), is_private=True)
 
 			with self.assertRaises(Forbidden):
-				self.serve(f"/f/{blob.name}/secret.txt")
+				self.serve(f"/private/files/{blob.name}/secret.txt")
 
 	def test_unknown_blob_forbidden_like_denied_access(self):
 		# same response as a permission failure: no blob-existence oracle
 		with flag_on(), frappe.storage.fake():
 			with self.assertRaises(Forbidden):
-				self.serve("/f/does-not-exist/a.txt")
+				self.serve("/private/files/nosuchblob/a.txt")
 
 	def test_svg_forced_attachment(self):
 		svg = b'<svg xmlns="http://www.w3.org/2000/svg"></svg>'
@@ -298,7 +285,7 @@ class TestServeUpload(IntegrationTestCase):
 			blob = put_blob(io.BytesIO(svg), is_private=False)
 
 			frappe.set_user("Guest")
-			response = self.serve(f"/f/{blob.name}/image.svg")
+			response = self.serve(f"/files/{blob.name}/image.svg")
 
 			self.assertEqual(response.status_code, 200)
 			disposition = response.headers.get("Content-Disposition") or ""
@@ -313,7 +300,7 @@ class TestServeUpload(IntegrationTestCase):
 			self.assertEqual(blob.mime_type, "text/html")
 
 			frappe.set_user("Guest")
-			response = self.serve(f"/f/{blob.name}/innocent.txt")
+			response = self.serve(f"/files/{blob.name}/innocent.txt")
 
 			self.assertEqual(response.status_code, 200)
 			disposition = response.headers.get("Content-Disposition") or ""
@@ -899,25 +886,120 @@ class TestServeUpload(IntegrationTestCase):
 
 	# ---- serve route: response modes ----
 
-	def test_path_without_a_blob_name_is_not_found(self):
+	def test_public_files_route_serves_only_public_blobs_and_moved_v1_files(self):
 		with flag_on(), frappe.storage.fake():
+			public = put_blob(io.BytesIO(b"public bytes " + frappe.generate_hash(length=16).encode()))
+			private = put_blob(
+				io.BytesIO(b"private bytes " + frappe.generate_hash(length=16).encode()), is_private=True
+			)
+			# a v1 public URL whose bytes moved into a blob on another driver
+			moved_content = b"moved v1 bytes " + frappe.generate_hash(length=16).encode()
+			moved = put_blob(io.BytesIO(moved_content), filename="logo.png")
+			v1_url = f"/files/storage-v2-moved-{frappe.generate_hash(length=10)}.png"
+			self.insert_file_row(v1_url, moved.name, file_name="logo.png", is_private=0)
+
+			frappe.set_user("Guest")
+			response = self.serve(v1_url)
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response_body(response), moved_content)
+
+			for path in (
+				"/files/",
+				"/files/some.txt",
+				"/files/nosuchblob/a.txt",
+				f"/files/{public.name}/a/b.txt",
+				# a private blob is never served under /files/, not even its own URL
+				f"/files/{private.name}/file",
+			):
+				with self.subTest(path=path), self.assertRaises(NotFound):
+					self.serve(path)
+
+			frappe.set_user("Administrator")
 			with self.assertRaises(NotFound):
-				self.serve("/f/")
-			with self.assertRaises(NotFound):
-				self.serve("/files/some.txt")
+				self.serve(f"/files/{private.name}/file")
+
+	def test_private_files_route_needs_a_signature_or_permission(self):
+		from frappe.core.doctype.file.file_v2 import create_file_from_blob
+
+		with flag_on(), frappe.storage.fake():
+			content = b"private route " + frappe.generate_hash(length=16).encode()
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="report.txt")
+			url = f"/private/files/{blob.name}/report.txt"
+
+			# no File row: nobody passes the permission check, not even Administrator
+			with self.assertRaises(Forbidden):
+				self.serve(url)
+
+			create_file_from_blob(blob, "report.txt", is_private=True)
+			response = self.serve(url)
+			self.assertEqual(response_body(response), content)
+			self.assertTrue(
+				frappe.db.exists("Access Log", {"reference_document": blob.name, "export_from": "File Blob"})
+			)
+
+			frappe.set_user("Guest")
+			with self.assertRaises(Forbidden):
+				self.serve(url)
+			expires = int(time.time()) + 60
+			response = self.serve(url, e=str(expires), s=make_signature(blob.name, "report.txt", expires))
+			self.assertEqual(response_body(response), content)
+
+	def test_private_v1_url_of_a_moved_file_is_served_from_its_blob(self):
+		with flag_on(), frappe.storage.fake():
+			content = b"moved private " + frappe.generate_hash(length=16).encode()
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="contract.pdf")
+			v1_url = f"/private/files/storage-v2-moved-{frappe.generate_hash(length=10)}.pdf"
+			self.insert_file_row(v1_url, blob.name, file_name="contract.pdf", is_private=1)
+
+			response = self.serve(v1_url)
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response_body(response), content)
+
+			frappe.set_user("Guest")
+			with self.assertRaises(Forbidden):
+				self.serve(v1_url)
+
+	def insert_file_row(self, file_url: str, blob_name: str, *, file_name: str, is_private: int):
+		"""A File row as relocation leaves it: a v1 URL linked to a blob."""
+		file = frappe.new_doc("File")
+		file.name = frappe.generate_hash(length=10)
+		file.update(
+			{
+				"file_name": file_name,
+				"file_url": file_url,
+				"blob": blob_name,
+				"is_private": is_private,
+				"is_folder": 0,
+			}
+		)
+		file.db_insert()
+		return file
 
 	def test_driver_native_url_redirects(self):
 		with flag_on(), use_driver(NativeUrlDriver()):
-			blob = put_blob(io.BytesIO(b"native " + frappe.generate_hash(length=16).encode()))
+			public = put_blob(io.BytesIO(b"native " + frappe.generate_hash(length=16).encode()))
+			private = put_blob(
+				io.BytesIO(b"native " + frappe.generate_hash(length=16).encode()), is_private=True
+			)
 
 			frappe.set_user("Guest")
-			response = self.serve(f"/f/{blob.name}/n.txt")
+			response = self.serve(f"/files/{public.name}/n.txt")
 
 			self.assertEqual(response.status_code, 302)
-			location = response.headers["Location"]
-			self.assertIn(blob.key, location)
-			self.assertIn("name=n.txt", location)
-			self.assertIn("ttl=60", location)
+			self.assertEqual(
+				response.headers["Location"], f"https://cdn.example/{public.name}/file?name=n.txt&ttl=3600"
+			)
+			self.assertEqual(response.headers["Cache-Control"], "public, max-age=1800")
+
+			expires = int(time.time()) + 60
+			sig = make_signature(private.name, "n.txt", expires)
+			response = self.serve(f"/private/files/{private.name}/n.txt", e=str(expires), s=sig)
+
+			self.assertEqual(response.status_code, 302)
+			self.assertEqual(
+				response.headers["Location"], f"https://cdn.example/{private.name}/file?name=n.txt&ttl=60"
+			)
+			self.assertNotIn("public", response.headers.get("Cache-Control") or "")
 
 	def test_authorized_stream_uses_native_url_only_when_enabled(self):
 		with flag_on(), use_driver(NativeUrlDriver()):
@@ -942,13 +1024,16 @@ class TestServeUpload(IntegrationTestCase):
 			store.delete(blob.key, is_private=False)
 
 			with self.assertRaises(NotFound):
-				self.serve(f"/f/{blob.name}/gone.txt")
+				self.serve(f"/files/{blob.name}/gone.txt")
 
 	def test_x_accel_redirect_for_private_blob(self):
-		with flag_on(), use_driver(XAccelDriver()):
+		root = tempfile.TemporaryDirectory()
+		self.addCleanup(root.cleanup)
+		with flag_on(), use_driver(TempLocalDriver(root.name)):
 			blob = put_blob(
 				io.BytesIO(b"accel private " + frappe.generate_hash(length=16).encode()),
 				is_private=True,
+				filename="report.pdf",
 			)
 			self.assertEqual(blob.driver, "local")
 			expires = int(time.time()) + 60
@@ -956,7 +1041,7 @@ class TestServeUpload(IntegrationTestCase):
 
 			frappe.set_user("Guest")
 			response = self.serve_with_headers(
-				f"/f/{blob.name}/report.pdf",
+				f"/private/files/{blob.name}/report.pdf",
 				{"X-Use-X-Accel-Redirect": "1"},
 				e=str(expires),
 				s=sig,
@@ -965,7 +1050,7 @@ class TestServeUpload(IntegrationTestCase):
 			private_path = frappe.local.conf.get("private_path", "private")
 			self.assertEqual(
 				response.headers["X-Accel-Redirect"],
-				"/protected/" + os.path.join(private_path, "files", "blobs", blob.key),
+				f"/protected/{private_path}/files/{blob.name}/report.pdf",
 			)
 			self.assertEqual(response.headers["Accept-Ranges"], "bytes")
 			self.assertEqual(response.headers["Content-Type"], "application/pdf")
@@ -977,13 +1062,17 @@ class TestServeUpload(IntegrationTestCase):
 		svg = (
 			b'<svg xmlns="http://www.w3.org/2000/svg"><!--' + frappe.generate_hash(16).encode() + b"--></svg>"
 		)
-		with flag_on(), use_driver(XAccelDriver()):
+		root = tempfile.TemporaryDirectory()
+		self.addCleanup(root.cleanup)
+		with flag_on(), use_driver(TempLocalDriver(root.name)):
 			blob = put_blob(io.BytesIO(svg), is_private=False, filename="logo.svg")
 
 			frappe.set_user("Guest")
-			response = self.serve_with_headers(f"/f/{blob.name}/logo.svg", {"X-Use-X-Accel-Redirect": "1"})
+			response = self.serve_with_headers(
+				f"/files/{blob.name}/logo.svg", {"X-Use-X-Accel-Redirect": "1"}
+			)
 
-			self.assertEqual(response.headers["X-Accel-Redirect"], "/files/blobs/" + blob.key)
+			self.assertEqual(response.headers["X-Accel-Redirect"], f"/files/{blob.name}/logo.svg")
 			self.assertEqual(response.headers["Content-Type"], "image/svg+xml")
 			self.assertEqual(
 				response.headers["Content-Disposition"],
@@ -998,7 +1087,7 @@ class TestServeUpload(IntegrationTestCase):
 			blob = put_blob(io.BytesIO(content), is_private=False, filename="data.bin")
 
 			frappe.set_user("Guest")
-			response = self.serve_with_headers(f"/f/{blob.name}/data.bin", {"Range": "bytes=5-14"})
+			response = self.serve_with_headers(f"/files/{blob.name}/data.bin", {"Range": "bytes=5-14"})
 
 			self.assertEqual(response.status_code, 206)
 			self.assertEqual(response.headers["Content-Range"], f"bytes 5-14/{len(content)}")
@@ -1086,7 +1175,7 @@ class TestServeUpload(IntegrationTestCase):
 
 			frappe.set_user("Guest")
 			with self.assertRaises(NotFound):
-				self.serve(f"/f/{blob.name}/data.bin")
+				self.serve(f"/files/{blob.name}/data.bin")
 
 	# ---- upload sessions: guards ----
 

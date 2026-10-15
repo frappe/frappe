@@ -99,7 +99,7 @@ def _create_upload(
 
 	upload_id = frappe.generate_hash(length=20)
 
-	native = get_driver().upload_target(f"uploads/{upload_id}", size, is_private=bool(cint(is_private)))
+	native = get_driver().upload_target(upload_key(upload_id), size, is_private=bool(cint(is_private)))
 	mode = "direct" if native else "chunked"
 
 	save_session_meta(
@@ -280,7 +280,7 @@ def _finish_upload_to_blob(
 	direct = meta.get("mode") == "direct"
 	temp_is_private = bool(cint(meta.get("is_private")))
 	if direct:
-		if not get_driver().exists(f"uploads/{upload_id}", is_private=temp_is_private):
+		if not get_driver().exists(upload_key(upload_id), is_private=temp_is_private):
 			frappe.throw(_("Upload session has no data"))
 	elif session_size(part_path) == 0:
 		frappe.throw(_("Upload session has no data"))
@@ -312,13 +312,13 @@ def _finish_upload_to_blob(
 def store_direct_upload(upload_id: str, temp_is_private: bool, *, is_private: bool, filename: str | None):
 	"""Spool a driver-native direct upload (browser -> bucket) into a blob.
 
-	The client sent the bytes to ``uploads/<upload_id>`` in the namespace
+	The client sent the bytes to ``upload_key(upload_id)`` in the namespace
 	declared at ``create_upload``; the temporary object is deleted once the
 	blob is stored."""
 	from frappe.storage.blob import put_blob
 
 	driver = get_driver()
-	temp_key = f"uploads/{upload_id}"
+	temp_key = upload_key(upload_id)
 	try:
 		stream = driver.read(temp_key, is_private=temp_is_private)
 	except FileNotFoundError:
@@ -341,7 +341,7 @@ def expire_stale_upload_sessions(max_age_hours: int = 24) -> int:
 
 	Sweeps every session artifact (``.meta``, ``.part``, claimed
 	``.meta.finishing``) and, for direct sessions, the driver-side
-	``uploads/<upload_id>`` temporary object."""
+	``upload_key(upload_id)`` temporary object."""
 	uploads_dir = frappe.get_site_path("private", "files", UPLOADS_DIR)
 	if not os.path.isdir(uploads_dir):
 		return 0
@@ -381,11 +381,16 @@ def delete_stale_driver_upload(upload_id: str, paths: list[str]) -> None:
 	if not meta or meta.get("mode") != "direct":
 		return
 	try:
-		get_driver().delete(f"uploads/{upload_id}", is_private=bool(cint(meta.get("is_private"))))
+		get_driver().delete(upload_key(upload_id), is_private=bool(cint(meta.get("is_private"))))
 	except Exception:
 		frappe.logger("storage").warning(
-			f"storage: could not delete stale direct upload uploads/{upload_id}", exc_info=True
+			f"storage: could not delete stale direct upload {upload_key(upload_id)}", exc_info=True
 		)
+
+
+def upload_key(upload_id: str) -> str:
+	"""Driver key of a direct upload's temporary object, under the site prefix."""
+	return f"{get_driver().key_prefix}uploads/{upload_id}"
 
 
 def check_enabled():

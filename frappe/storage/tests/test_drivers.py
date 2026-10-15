@@ -22,7 +22,7 @@ class DriverContractTests:
 	def setUp(self):
 		super().setUp()
 		self.driver = self.make_driver()
-		self.key = "ab/cd/" + frappe.generate_hash(length=40)
+		self.key = frappe.generate_hash(length=10) + "/driver-test.txt"
 		self.content = b"storage-v2-driver-test-" + frappe.generate_hash(length=20).encode()
 
 	def test_write_read_roundtrip(self):
@@ -116,8 +116,8 @@ class TestLocalDriverContract(DriverContractTests, IntegrationTestCase):
 
 		driver = LocalDriver()
 		# keep tests off the real site's files; path-safety logic is unchanged
-		driver.get_blobs_dir = lambda is_private=False: os.path.join(
-			tmpdir, "private" if is_private else "public", "files", "blobs"
+		driver.get_files_dir = lambda is_private=False: os.path.join(
+			tmpdir, "private" if is_private else "public", "files"
 		)
 		return driver
 
@@ -126,6 +126,17 @@ class TestLocalDriverContract(DriverContractTests, IntegrationTestCase):
 		path = self.driver.get_path(self.key)
 		self.assertTrue(path.startswith(os.path.realpath(self.tmpdir)))
 		self.assertTrue(os.path.isfile(path))
+
+	def test_files_sit_at_their_key_and_delete_removes_the_empty_folder(self):
+		self.driver.write(self.key, io.BytesIO(self.content))
+		path = os.path.join(self.tmpdir, "public", "files", *self.key.split("/"))
+		with open(path, "rb") as file:
+			self.assertEqual(file.read(), self.content)
+
+		self.driver.delete(self.key)
+
+		self.assertFalse(os.path.exists(os.path.dirname(path)))
+		self.assertTrue(os.path.isdir(os.path.join(self.tmpdir, "public", "files")))
 
 	def test_path_traversal_keys_rejected(self):
 		bad_keys = (
@@ -145,12 +156,12 @@ class TestLocalDriverContract(DriverContractTests, IntegrationTestCase):
 				self.assertRaises(ValueError, operation, key)
 
 	def test_symlink_escape_rejected(self):
-		# a key resolving through a symlink out of the blobs dir must be rejected
-		blobs_dir = self.driver.get_blobs_dir()
-		os.makedirs(blobs_dir, exist_ok=True)
+		# a key resolving through a symlink out of the files dir must be rejected
+		files_dir = self.driver.get_files_dir()
+		os.makedirs(files_dir, exist_ok=True)
 		outside = tempfile.mkdtemp(prefix="frappe-storage-outside-")
 		self.addCleanup(shutil.rmtree, outside, ignore_errors=True)
-		os.symlink(outside, os.path.join(blobs_dir, "link"))
+		os.symlink(outside, os.path.join(files_dir, "link"))
 		self.assertRaises(ValueError, self.driver.get_path, "link/escape")
 
 

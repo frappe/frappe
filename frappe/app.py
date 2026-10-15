@@ -137,13 +137,14 @@ def application(request: Request):
 		elif request.path.startswith("/backups"):
 			response = frappe.utils.response.download_backup(request.path)
 
+		# not gated on storage_v2: blob URLs stored while the flag was on must
+		# keep working after it is turned off
 		elif request.path.startswith("/private/files/"):
-			response = frappe.utils.response.download_private_file(request.path)
+			response = frappe.storage.serve.serve_private_file(request.path)
 
-		elif request.path.startswith("/f/"):
-			# not gated on storage_v2: /f/ URLs stored while the flag was on
-			# must keep working after it is turned off
-			response = frappe.storage.serve.serve_file(request.path)
+		elif request.path.startswith("/files/"):
+			# nginx serves files found on disk; this is everything else
+			response = frappe.storage.serve.serve_public_file(request.path)
 
 		elif request.path == "/.well-known/security.txt" and request.method == "GET":
 			if request.scheme != "https":

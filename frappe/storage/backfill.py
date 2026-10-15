@@ -12,10 +12,9 @@ existing blobs are reused through the ``(checksum, is_private, driver)``
 dedup lookup.
 
 Legacy keys: ``LocalDriver`` resolves keys relative to
-``{public,private}/files/blobs/``, so a legacy path under the files root
-is stored with a ``../`` prefix, e.g. ``../logo.png`` for
-``public/files/logo.png``. The driver confines resolved paths to the
-files root, so these keys stay inside the site.
+``{public,private}/files/``, so a legacy blob's key is its path there,
+e.g. ``logo.png`` for ``public/files/logo.png``. The driver confines
+resolved paths to the files root, so these keys stay inside the site.
 """
 
 import os
@@ -145,7 +144,7 @@ def find_or_create_blob(rel_path: str, is_private: bool, row, stats: dict, logge
 	blob = frappe.new_doc("File Blob")
 	blob.update(
 		{
-			"key": f"../{rel_path}",
+			"key": rel_path,
 			"checksum": checksum,
 			"file_size": file_size,
 			"mime_type": mime_type,

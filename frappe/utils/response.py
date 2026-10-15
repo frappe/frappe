@@ -305,6 +305,11 @@ def download_private_file(path: str) -> Response:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])
+	if file.get("blob"):
+		# a v1 URL whose bytes are in a blob, which relocation may have moved
+		from frappe.storage.serve import blob_response
+
+		return blob_response(file.blob, file.file_name or os.path.basename(path))
 	return send_private_file(path.split("/private", 1)[1], filename=file.file_name)
 
 

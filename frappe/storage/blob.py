@@ -3,6 +3,7 @@
 import hashlib
 import mimetypes
 import os
+import posixpath
 import tempfile
 from typing import IO, TYPE_CHECKING
 
@@ -15,6 +16,7 @@ from frappe.utils import cint, now
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
+	from frappe.storage.driver import StorageDriver
 
 CHUNK_SIZE = 64 * 1024
 SPOOL_MAX_MEMORY = 1024 * 1024  # spill to disk beyond 1 MiB
@@ -56,7 +58,7 @@ _HTML_MARKERS = (b"<!doctype html", b"<html", b"<head", b"<body", b"<script", b"
 def served_type(filename: str, mime_type: str | None, *, as_attachment: bool = False) -> tuple[str, bool]:
 	"""Return the Content-Type to serve a blob with, and whether it must download.
 
-	Every byte path asks this: the ``/f/`` stream, nginx, and a driver's
+	Every byte path asks this: the Python stream, nginx, and a driver's
 	native signed URL. So a file shows inline or downloads the same way on
 	every driver. A blob stored as ``application/octet-stream`` takes the type
 	its filename suggests, because magic-number sniffing cannot recognise text
@@ -71,19 +73,39 @@ def served_type(filename: str, mime_type: str | None, *, as_attachment: bool = F
 	return mime_type, must_download
 
 
-def make_key(checksum: str) -> str:
-	"""Content-addressed object key: ``ab/cd/<sha256>``."""
-	return f"{checksum[:2]}/{checksum[2:4]}/{checksum}"
+# A key holds the blob name and filename, so a long legacy path or name
+# must still fit the File Blob ``key`` column.
+MAX_KEY_FILENAME_LENGTH = 200
 
 
-def sanitized_extension(filename: str | None) -> str:
-	"""Lowercase alnum extension from filename, or empty string."""
-	if not filename or "." not in filename:
-		return ""
-	ext = filename.rsplit(".", 1)[1].lower()
-	if ext and len(ext) <= 10 and ext.isascii() and ext.isalnum():
-		return ext
-	return ""
+def key_filename(filename: str | None) -> str:
+	"""Filename as it appears in a blob key and URL.
+
+	Path separators and URL delimiters are replaced, and a long name is cut
+	while its extension is kept."""
+	from frappe.core.doctype.file.utils import get_safe_file_name
+
+	name = "".join(char for char in (filename or "") if char.isprintable())
+	name = get_safe_file_name(name).strip().strip(".") or "file"
+	if len(name) <= MAX_KEY_FILENAME_LENGTH:
+		return name
+	stem, extension = os.path.splitext(name)
+	if len(extension) > 20:
+		extension = ""
+	return stem[: MAX_KEY_FILENAME_LENGTH - len(extension)] + extension
+
+
+def make_key(driver: "StorageDriver", blob_name: str, filename: str | None) -> str:
+	"""Object key for a blob: ``[<site prefix>/]<blob>/<filename>``.
+
+	The local driver stores the file at this path under ``public/files`` or
+	``private/files``, so the file's URL and its path on disk match."""
+	return f"{driver.key_prefix}{blob_name}/{key_filename(filename)}"
+
+
+def key_basename(key: str) -> str:
+	"""Filename part of a blob key, also for backfilled legacy keys."""
+	return posixpath.basename(key)
 
 
 def _sniff_active_text(head: bytes) -> str | None:
@@ -163,12 +185,11 @@ def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | Non
 	"""Store the stream through the active driver. Return its File Blob.
 
 	Deduplicates on ``(checksum, is_private, driver)``: identical content
-	returns the existing blob with no write, even if its key carries a
-	different extension. Blobs are immutable.
+	returns the existing blob with no write, keeping the existing blob's
+	filename. Blobs are immutable.
 
-	``filename`` only contributes a sanitized lowercase extension to the
-	key, so public local blobs stay nginx-servable with a correct
-	Content-Type."""
+	The key is ``<blob>/<filename>`` (see ``make_key``), so a public local
+	blob sits on disk at its URL path and nginx serves it."""
 	driver = get_driver()
 	spool, size = spool_to_tempfile(stream)
 	with spool:
@@ -182,14 +203,11 @@ def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | Non
 		if existing and revive_blob(existing):
 			return frappe.get_doc("File Blob", existing)
 
-		key = make_key(checksum)
-		if ext := sanitized_extension(filename):
-			key = f"{key}.{ext}"
-
 		blob = frappe.new_doc("File Blob")
+		blob.set_new_name()
 		blob.update(
 			{
-				"key": key,
+				"key": make_key(driver, blob.name, filename),
 				"checksum": checksum,
 				"file_size": size,
 				"mime_type": mime_type,
@@ -198,9 +216,12 @@ def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | Non
 				"status": "Ready",
 			}
 		)
+		# registered before the write: a failed insert (such as a concurrent
+		# upload of the same content winning the unique index) rolls back
+		# and removes these bytes, which no other blob shares
+		frappe.db.after_rollback.add(delete_bytes_on_rollback(driver, blob.key, bool(is_private)))
 		driver.write(blob.key, spool, is_private=bool(is_private))
 		blob.insert(ignore_permissions=True)
-		frappe.db.after_rollback.add(delete_bytes_on_rollback(driver, blob.key, bool(is_private)))
 	return blob
 
 

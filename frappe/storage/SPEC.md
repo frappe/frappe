@@ -61,22 +61,35 @@ HTTP                       signed URLs, serve route, direct upload
 - The blob has no refcount column. Reference count = count of `File`
   rows that link to it. Counting at GC time cannot drift.
 
-Key layout is content-addressed:
+Key layout is the blob name and the first upload's filename:
 
 ```python
-def make_key(checksum: str) -> str:
-    return f"{checksum[:2]}/{checksum[2:4]}/{checksum}"
+def make_key(driver, blob_name: str, filename: str) -> str:
+    return f"{driver.key_prefix}{blob_name}/{key_filename(filename)}"
 ```
 
-The filename is not part of the key. `Content-Disposition` supplies it
-at download time. This fixes the guessable `/files/invoice.pdf` problem
-for v2 files.
+`put_blob` names the blob before writing, so the key is known up front.
+Dedup finds identical content through the `checksum` index, not the key.
+A deduplicated upload gets the existing blob, and with it the first
+upload's filename in its URL.
 
-Public v2 blobs are exposed at their plain nginx path:
-`file_url = /files/blobs/ab/cd/<hash>.<ext>`. nginx serves them with no
-Python, as today, and the hash makes the URL non-guessable. The `/f/`
-route is for private blobs and for named downloads of public ones.
-Trade-off: a public URL cannot be revoked without deleting the blob.
+URLs keep v1's prefixes, and with them v1's meaning: `/files/` is public
+and `/private/files/` is private.
+
+| Blob | `file_url` | Served by |
+|---|---|---|
+| Public, local | `/files/<blob>/<filename>` | nginx, from `public/files/<blob>/<filename>` |
+| Public, other driver | `/files/<blob>/<filename>` | Python: redirect to the driver's URL |
+| Private | `/private/files/<blob>/<filename>` | Python: permission check, then X-Accel or redirect |
+| Backfilled v1 file | unchanged `/files/x`, `/private/files/x` | disk, or the blob once relocated |
+
+A public local blob sits on disk at its URL path, so nginx serves it with
+no Python and no config change. The random 10-character blob name keeps
+the URL hard to guess, which fixes the guessable `/files/invoice.pdf`
+problem for v2 files. A v1 URL is flat (`/files/logo.png`); a blob URL
+always has two parts, the first a blob name, so the two cannot collide.
+Trade-off: a public URL cannot be revoked without deleting the blob, and
+a privacy change gives the file a new URL, as in v1.
 
 ### Changes to `File`
 
@@ -153,8 +166,16 @@ storage_drivers = {"s3": "myapp.storage.s3.S3Driver"}
 ```
 
 Core ships `local` (default) and `s3` (boto3, optional dependency).
-The local driver writes under `private/files/blobs/` and
-`public/files/blobs/`.
+The local driver writes under `private/files/` and `public/files/`.
+
+Site prefix: a driver shared by several sites, such as one S3 bucket,
+starts every new key with the site's folder. For S3 it is
+`storage_driver_config.prefix`, or by default 12 hex characters of the
+SHA-256 of the database name (set once, unique on a server, and not shown
+in presigned URLs). The prefix is stored in each key, not added at read
+time, and the driver deletes only keys under the current prefix. A
+staging site restored from production can still read production's
+objects, but its garbage collection never deletes them.
 
 Rule: **every** byte access goes through the driver. Today
 `get_content`, `get_full_path`, thumbnails, `unzip`, and the privacy
@@ -213,14 +234,14 @@ def signed_url(file: "File", expires_in: int = 3600) -> str:
 	expires = now_epoch() + expires_in
 	payload = f"{blob.name}:{file.file_name}:{expires}"
 	sig = hmac_sha256(site_secret(), payload)
-	return f"/f/{blob.name}/{quote(file.file_name)}?e={expires}&s={sig}"
+	return f"/private/files/{blob.name}/{quote(file.file_name)}?e={expires}&s={sig}"
 ```
 
 - A valid signature grants access with **no session and no DB
   permission query**. That is the point: a private file becomes
   shareable, and nginx-level caching becomes possible.
-- Session-authenticated access to `/f/...` without a signature still
-  works and runs the existing permission delegation.
+- Session-authenticated access to `/private/files/<blob>/...` without a
+  signature still works and runs the existing permission delegation.
 - Nothing like this exists today. `unique_url`'s `?fid=` is a lookup
   hint, not a token.
 
@@ -230,13 +251,12 @@ Stored content always holds a **stable, unsigned URL**. A signed URL is
 never stored, because content outlives any TTL. Signing happens at
 egress.
 
-- `<img src>` / Attach fields, public blob: the plain nginx path
-  (`/files/blobs/...`).
-- `<img src>` / Attach fields, private blob: `/f/<blob>/<filename>`
-  with no signature. Desk, portal, and web-form rendering authenticate
-  it with the session cookie and the existing permission delegation,
-  like `/private/files/` today.
-- Email send: outgoing HTML is rewritten at send time. Private `/f/`
+- `<img src>` / Attach fields, public blob: `/files/<blob>/<filename>`.
+- `<img src>` / Attach fields, private blob:
+  `/private/files/<blob>/<filename>` with no signature. Desk, portal, and
+  web-form rendering authenticate it with the session cookie and the
+  existing permission delegation, like v1 private files.
+- Email send: outgoing HTML is rewritten at send time. Private blob
   URLs become signed URLs with a long TTL (default 30 days, site
   configurable), or are inlined as `cid:` attachments. Today external
   recipients of private images get a login redirect.
@@ -244,12 +264,23 @@ egress.
   render time. This replaces the current special-cased direct disk
   reads in the chromium path.
 
-### Serve route `/f/<blob>/<filename>`
+### Serving `/files/` and `/private/files/`
+
+nginx serves any file it finds on disk and passes the rest to Python
+(`try_files ... @webserver`). Python then handles:
+
+- `/files/<blob>/<filename>`: a public blob on another driver. No check;
+  a 302 to the driver's URL, cacheable for half the URL's lifetime.
+- `/private/files/<blob>/<filename>`: a private blob. A valid signature
+  or session permission, then a redirect or the bytes.
+- Any other path is a v1 URL. A File row with that `file_url` and a blob
+  is served from the blob. This keeps v1 URLs working after relocation
+  moves their bytes, so stored content never needs rewriting.
 
 ```python
-def serve(blob_name, filename):
+def serve_private_file(path):
+	blob, filename = find_blob(path, is_private=True) or legacy(path)
 	verify_signature_or_permission()
-	blob = get_blob(blob_name)
 	native = driver.download_url(blob.key, filename, 60)
 	if native:
 		return redirect(native)                 # cloud driver: 302
@@ -258,7 +289,8 @@ def serve(blob_name, filename):
 	return send_file(driver.read(blob.key), conditional=True)  # Range support
 ```
 
-Redirect mode and proxy mode, like Rails. The X-Accel path and the
+The filename in the URL is the download name. Redirect mode and proxy
+mode, like Rails. The X-Accel path and the
 `conditional=True` Range handling already exist in
 `response.py:325-356` and are reused.
 
@@ -368,7 +400,7 @@ Laravel's `Storage::fake()`.
 
 1. Driver interface, local driver, `File Blob`, `put_blob`, dual-path
    reads. Flag off by default.
-2. Signed URLs and the `/f/` serve route.
+2. Signed URLs and the blob serve routes.
 3. Upload sessions: direct upload, resumable chunks, sniff validation.
 4. GC job, backfill patch, storage fake.
 5. S3 driver. Then default-on for new sites.
@@ -383,10 +415,12 @@ Each stage is independently shippable and revertible by the flag.
    (email send, PDF render). See "Embedded URLs" above. Signed URL
    default TTL 1 hour; email variant 30 days, site configurable.
 3. `attach_file` requires write permission under the flag. Approved.
-4. Public v2 files: plain nginx URLs at `/files/blobs/<key>`. Zero
-   Python per request, non-guessable by hash. No human filename in the
-   URL, not revocable without deleting the blob. Named downloads of
-   public files can use `/f/`. Matches Laravel's public disk and
-   Rails' `public: true` services. Approved.
+4. URLs reuse v1's prefixes: `/files/<blob>/<filename>` and
+   `/private/files/<blob>/<filename>`. No new URL prefix, and code that
+   reads privacy from the prefix stays correct. Public local files are
+   on disk at their URL path, so nginx serves them with zero Python.
+   Not revocable without deleting the blob. Approved.
+5. Site prefix: stored in each key, defaulting to a hash of the database
+   name; deletes only under the site's own prefix. Approved.
 
 No open questions. The spec is ready for implementation planning.

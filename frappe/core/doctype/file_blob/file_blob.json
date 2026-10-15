@@ -20,6 +20,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Key",
+   "length": 512,
    "read_only": 1,
    "reqd": 1,
    "search_index": 1
@@ -78,7 +79,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-09-07 10:00:00.000000",
+ "modified": "2026-10-16 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File Blob",

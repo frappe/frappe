@@ -19,7 +19,7 @@ from frappe.storage.url import verify_signature
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_url
 
-SIGNED_F_URL = re.compile(r"""(?:href|src)=["'](?P<url>[^"']*/f/[^"']+)["']""")
+SIGNED_BLOB_URL = re.compile(r"""(?:href|src)=["'](?P<url>[^"']*/private/files/[^"']+)["']""")
 
 
 @contextmanager
@@ -65,28 +65,28 @@ class TestEmailRewrite(IntegrationTestCase):
 
 	@staticmethod
 	def parse_signed(url: str):
-		"""Split a signed /f/ URL into (blob, filename, e, s)."""
+		"""Split a signed private blob URL into (blob, filename, e, s)."""
 		import html as html_lib
 
 		# serializers may escape & as &amp; inside attributes
 		parsed = urlparse(html_lib.unescape(url))
-		blob, filename = parsed.path[len("/f/") :].split("/", 1)
+		blob, filename = parsed.path[len("/private/files/") :].split("/", 1)
 		params = parse_qs(parsed.query)
 		return blob, unquote(filename), params["e"][0], params["s"][0]
 
 	def test_unsigned_url_becomes_signed_absolute(self):
 		blob = self.make_blob()
-		html = f'<p><a href="/f/{blob.name}/report.pdf">report</a></p>'
+		html = f'<p><a href="/private/files/{blob.name}/report.pdf">report</a></p>'
 
 		with storage_v2_enabled():
 			before = int(time.time())
 			rewritten = rewrite_urls_for_email(html)
 
 		self.assertNotEqual(rewritten, html)
-		match = SIGNED_F_URL.search(rewritten)
+		match = SIGNED_BLOB_URL.search(rewritten)
 		self.assertIsNotNone(match)
 		url = match.group("url")
-		self.assertTrue(url.startswith(get_url().rstrip("/") + "/f/"))
+		self.assertTrue(url.startswith(get_url().rstrip("/") + f"/private/files/{blob.name}/"))
 
 		blob_name, filename, expires, signature = self.parse_signed(url)
 		self.assertEqual(blob_name, blob.name)
@@ -98,13 +98,13 @@ class TestEmailRewrite(IntegrationTestCase):
 
 	def test_configured_ttl_respected(self):
 		blob = self.make_blob()
-		html = f'<img src="/f/{blob.name}/photo.png">'
+		html = f'<img src="/private/files/{blob.name}/photo.png">'
 
 		with storage_v2_enabled(), email_url_ttl(3600):
 			before = int(time.time())
 			rewritten = rewrite_urls_for_email(html)
 
-		url = SIGNED_F_URL.search(rewritten).group("url")
+		url = SIGNED_BLOB_URL.search(rewritten).group("url")
 		blob_name, filename, expires, signature = self.parse_signed(url)
 		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
 		self.assertGreaterEqual(int(expires), before + 3600)
@@ -113,42 +113,46 @@ class TestEmailRewrite(IntegrationTestCase):
 	def test_absolute_site_url_also_signed(self):
 		blob = self.make_blob()
 		site_url = get_url().rstrip("/")
-		html = f'<a href="{site_url}/f/{blob.name}/a.txt">a</a>'
+		html = f'<a href="{site_url}/private/files/{blob.name}/a.txt">a</a>'
 
 		with storage_v2_enabled():
 			rewritten = rewrite_urls_for_email(html)
 
 		self.assertNotEqual(rewritten, html)
 		blob_name, filename, expires, signature = self.parse_signed(
-			SIGNED_F_URL.search(rewritten).group("url")
+			SIGNED_BLOB_URL.search(rewritten).group("url")
 		)
 		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
 
 	def test_already_signed_url_untouched(self):
 		blob = self.make_blob()
-		html = f'<a href="/f/{blob.name}/a.txt?e=1234567890&s=deadbeef">a</a>'
+		html = f'<a href="/private/files/{blob.name}/a.txt?e=1234567890&s=deadbeef">a</a>'
 
 		with storage_v2_enabled():
 			self.assertEqual(rewrite_urls_for_email(html), html)
 
-	def test_non_f_urls_untouched(self):
+	def test_other_urls_untouched(self):
+		public = self.make_blob(b"email rewrite public content", is_private=False)
+		private = self.make_blob()
 		html = (
 			'<a href="/files/plain.pdf">old</a>'
 			'<img src="/private/files/x.png">'
-			'<a href="https://example.com/f/looks-like/a-blob.txt">foreign</a>'
+			'<img src="/private/files/folder/inner/x.png">'
+			f'<img src="/files/{public.name}/logo.png">'
+			f'<a href="https://example.com/private/files/{private.name}/a.txt">foreign</a>'
 			'<a href="mailto:someone@example.com">mail</a>'
 		)
 		with storage_v2_enabled():
 			self.assertEqual(rewrite_urls_for_email(html), html)
 
 	def test_unknown_blob_left_alone(self):
-		html = '<a href="/f/no-such-blob-000/a.txt">a</a>'
+		html = '<a href="/private/files/nosuchblob/a.txt">a</a>'
 		with storage_v2_enabled():
 			self.assertEqual(rewrite_urls_for_email(html), html)
 
 	def test_flag_off_is_noop(self):
 		blob = self.make_blob()
-		html = f'<a href="/f/{blob.name}/a.txt">a</a>'
+		html = f'<a href="/private/files/{blob.name}/a.txt">a</a>'
 		frappe.conf.pop("storage_v2", None)
 		self.assertEqual(rewrite_urls_for_email(html), html)
 
@@ -159,7 +163,7 @@ class TestEmailRewrite(IntegrationTestCase):
 
 	def test_failure_returns_original_html(self):
 		blob = self.make_blob()
-		html = f'<a href="/f/{blob.name}/a.txt">a</a>'
+		html = f'<a href="/private/files/{blob.name}/a.txt">a</a>'
 		with (
 			storage_v2_enabled(),
 			patch("frappe.storage.url.make_signature", side_effect=Exception("boom")),
@@ -171,7 +175,7 @@ class TestEmailRewrite(IntegrationTestCase):
 		from frappe.email.email_body import get_formatted_html
 
 		blob = self.make_blob()
-		message = f'<p>see <a href="/f/{blob.name}/invoice.pdf">the invoice</a></p>'
+		message = f'<p>see <a href="/private/files/{blob.name}/invoice.pdf">the invoice</a></p>'
 
 		with storage_v2_enabled():
 			# stub account: the test site has no outgoing Email Account
@@ -183,7 +187,7 @@ class TestEmailRewrite(IntegrationTestCase):
 				add_css=False,
 			)
 
-		match = SIGNED_F_URL.search(html)
+		match = SIGNED_BLOB_URL.search(html)
 		self.assertIsNotNone(match)
 		blob_name, filename, expires, signature = self.parse_signed(match.group("url"))
 		self.assertEqual(blob_name, blob.name)
@@ -191,15 +195,15 @@ class TestEmailRewrite(IntegrationTestCase):
 		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
 
 	def test_text_urls_signed(self):
-		"""Bare /f/ URLs in a plain-text body are signed too."""
+		"""Bare private blob URLs in a plain-text body are signed too."""
 		blob = self.make_blob()
-		text = f"Download here: /f/{blob.name}/invoice.pdf\nThanks"
+		text = f"Download here: /private/files/{blob.name}/invoice.pdf\nThanks"
 
 		with storage_v2_enabled():
 			rewritten = rewrite_text_urls_for_email(text)
 
 		self.assertNotEqual(rewritten, text)
-		match = re.search(r"(?P<url>\S*/f/\S+)", rewritten)
+		match = re.search(r"(?P<url>\S*/private/files/\S+)", rewritten)
 		blob_name, filename, expires, signature = self.parse_signed(match.group("url"))
 		self.assertEqual(blob_name, blob.name)
 		self.assertEqual(filename, "invoice.pdf")
@@ -214,8 +218,8 @@ class TestEmailRewrite(IntegrationTestCase):
 		from frappe.email.email_body import get_email
 
 		blob = self.make_blob()
-		message = f'<p><a href="/f/{blob.name}/invoice.pdf">the invoice</a></p>'
-		text = f"see /f/{blob.name}/invoice.pdf"
+		message = f'<p><a href="/private/files/{blob.name}/invoice.pdf">the invoice</a></p>'
+		text = f"see /private/files/{blob.name}/invoice.pdf"
 
 		with storage_v2_enabled():
 			emailobj = get_email(
@@ -234,7 +238,7 @@ class TestEmailRewrite(IntegrationTestCase):
 			for part in msg.walk()
 			if part.get_content_type() == "text/plain"
 		)
-		match = re.search(r"(?P<url>\S*/f/\S+)", text_part)
+		match = re.search(r"(?P<url>\S*/private/files/\S+)", text_part)
 		self.assertIsNotNone(match)
 		blob_name, filename, expires, signature = self.parse_signed(match.group("url"))
 		self.assertEqual(blob_name, blob.name)
@@ -245,7 +249,7 @@ class TestEmailRewrite(IntegrationTestCase):
 		from frappe.email.email_body import get_email
 
 		blob = self.make_blob()
-		message = f'<p><a href="/f/{blob.name}/invoice.pdf">the invoice</a></p>'
+		message = f'<p><a href="/private/files/{blob.name}/invoice.pdf">the invoice</a></p>'
 
 		with storage_v2_enabled():
 			# builds the message only; nothing is sent
@@ -266,7 +270,7 @@ class TestEmailRewrite(IntegrationTestCase):
 			for part in msg.walk()
 			if part.get_content_type() == "text/html"
 		)
-		match = SIGNED_F_URL.search(html_part)
+		match = SIGNED_BLOB_URL.search(html_part)
 		self.assertIsNotNone(match)
 		blob_name, filename, expires, signature = self.parse_signed(match.group("url"))
 		self.assertEqual(blob_name, blob.name)
@@ -275,7 +279,7 @@ class TestEmailRewrite(IntegrationTestCase):
 	def test_rewriter_setup_failure_returns_original_html(self):
 		"""A failure before any match (site URL lookup) never blocks sending."""
 		blob = self.make_blob()
-		html = f'<a href="/f/{blob.name}/a.txt">a</a>'
+		html = f'<a href="/private/files/{blob.name}/a.txt">a</a>'
 
 		with (
 			storage_v2_enabled(),
@@ -286,7 +290,7 @@ class TestEmailRewrite(IntegrationTestCase):
 	def test_rewriter_setup_failure_returns_original_text(self):
 		"""Same guard on the plain-text body."""
 		blob = self.make_blob()
-		text = f"see /f/{blob.name}/a.txt"
+		text = f"see /private/files/{blob.name}/a.txt"
 
 		with (
 			storage_v2_enabled(),
@@ -297,7 +301,7 @@ class TestEmailRewrite(IntegrationTestCase):
 	def test_text_match_failure_leaves_that_url_unsigned(self):
 		"""A per-match failure keeps the original URL, the rest of the text sends."""
 		blob = self.make_blob()
-		text = f"see /f/{blob.name}/a.txt now"
+		text = f"see /private/files/{blob.name}/a.txt now"
 
 		with (
 			storage_v2_enabled(),

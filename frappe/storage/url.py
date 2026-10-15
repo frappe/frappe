@@ -1,18 +1,26 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-"""Signed, expiring URLs for private blobs.
+"""URLs of Storage v2 blobs.
 
-URL shape: ``/f/<blob>/<filename>?e=<epoch>&s=<sig>``. A valid signature
-grants access with no session and no permission query. Signing key is
-derived from the site ``encryption_key``."""
+A blob's URL is ``/files/<blob>/<filename>`` when it is public and
+``/private/files/<blob>/<filename>`` when it is private, the same prefixes
+as v1. The stored URL uses the filename in the blob key, so nginx finds a
+public local blob on disk. A URL served by Python may carry any filename;
+it becomes the download name.
+
+A signed URL adds ``?e=<epoch>&s=<sig>`` to a private URL. A valid
+signature grants access with no session and no permission query. The
+signing key is derived from the site ``encryption_key``."""
 
 import hashlib
 import hmac
+import re
 import time
 from typing import TYPE_CHECKING
 from urllib.parse import quote
 
 import frappe
+from frappe.storage.blob import key_basename, key_filename
 from frappe.storage.driver import get_driver
 
 if TYPE_CHECKING:
@@ -20,6 +28,35 @@ if TYPE_CHECKING:
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
 
 KEY_CONTEXT = b"frappe-storage-v2-url"
+
+PUBLIC_PREFIX = "/files/"
+PRIVATE_PREFIX = "/private/files/"
+
+# File Blob names are random 10-character hashes (autoname: hash)
+BLOB_NAME_PATTERN = re.compile(r"[0-9a-z]{10}")
+
+
+def blob_url(blob: "FileBlob") -> str:
+	"""Stable, unsigned URL of a blob. It is stored in ``File.file_url``."""
+	prefix = PRIVATE_PREFIX if blob.is_private else PUBLIC_PREFIX
+	return f"{prefix}{blob.name}/{key_basename(blob.key)}"
+
+
+def parse_blob_url(url: str) -> tuple[bool, str, str] | None:
+	"""Split a blob URL into ``(is_private, blob_name, filename)``.
+
+	Returns None for any other URL, such as a v1 ``/files/logo.png``. Only
+	the shape is checked; the blob may not exist."""
+	if url.startswith(PRIVATE_PREFIX):
+		is_private, path = True, url[len(PRIVATE_PREFIX) :]
+	elif url.startswith(PUBLIC_PREFIX):
+		is_private, path = False, url[len(PUBLIC_PREFIX) :]
+	else:
+		return None
+	blob_name, _, filename = path.partition("/")
+	if not BLOB_NAME_PATTERN.fullmatch(blob_name) or not filename or "/" in filename:
+		return None
+	return is_private, blob_name, filename
 
 
 def get_signing_key() -> bytes:
@@ -71,10 +108,13 @@ def signed_url_for_blob(
 	if native:
 		return native
 
+	# a "/" in the name would split the URL path
+	filename = key_filename(filename)
 	expires = int(time.time()) + expires_in
 	sig = make_signature(blob.name, filename, expires)
 	download = "&download=1" if as_attachment else ""
-	return f"/f/{blob.name}/{quote(filename)}?e={expires}&s={sig}{download}"
+	prefix = PRIVATE_PREFIX if blob.is_private else PUBLIC_PREFIX
+	return f"{prefix}{blob.name}/{quote(filename, safe='')}?e={expires}&s={sig}{download}"
 
 
 def signed_url(file: "File", expires_in: int = 3600) -> str:

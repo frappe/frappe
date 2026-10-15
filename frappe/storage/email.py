@@ -2,10 +2,11 @@
 # License: MIT. See LICENSE
 """Signing at email egress.
 
-Stored content holds stable, unsigned ``/f/<blob>/<filename>`` URLs (see the
-spec section "Embedded URLs"). Outgoing email HTML is rewritten at send time:
-each unsigned private-blob URL becomes an absolute signed URL with a long TTL,
-so external recipients can open the file without a session.
+Stored content holds stable, unsigned ``/private/files/<blob>/<filename>``
+URLs (see the spec section "Embedded URLs"). Outgoing email HTML is rewritten
+at send time: each unsigned private-blob URL becomes an absolute signed URL
+with a long TTL, so external recipients can open the file without a session.
+v1 private URLs are left as they are.
 
 TTL comes from the ``storage_email_url_ttl`` site config (seconds), default
 30 days. A failed rewrite never blocks sending: the original HTML is returned.
@@ -20,20 +21,20 @@ from frappe.utils import get_url
 
 DEFAULT_EMAIL_URL_TTL = 30 * 24 * 60 * 60  # 30 days, in seconds
 
-# href/src attributes holding a relative or absolute /f/<blob>/<filename> URL
-F_URL_PATTERN = re.compile(
+# href/src attributes holding a relative or absolute private blob URL
+BLOB_URL_PATTERN = re.compile(
 	r"""(?P<attr>href|src)\s*=\s*(?P<q>["'])"""
 	r"""(?P<prefix>https?://[^"'\s]*?)?"""
-	r"""/f/(?P<blob>[^/"'?#\s]+)/(?P<filename>[^"'?#\s]+)"""
+	r"""/private/files/(?P<blob>[0-9a-z]{10})/(?P<filename>[^/"'?#\s]+)"""
 	r"""(?P<query>\?[^"'\s]*)?"""
 	r"""(?P=q)""",
 	re.IGNORECASE,
 )
 
-# bare /f/<blob>/<filename> URLs in a plain-text body
-TEXT_F_URL_PATTERN = re.compile(
+# bare private blob URLs in a plain-text body
+TEXT_BLOB_URL_PATTERN = re.compile(
 	r"""(?P<prefix>https?://[^\s"'<>]*?)?"""
-	r"""/f/(?P<blob>[^/\s"'?#<>]+)/(?P<filename>[^\s"'?#<>]+)"""
+	r"""/private/files/(?P<blob>[0-9a-z]{10})/(?P<filename>[^/\s"'?#<>]+)"""
 	r"""(?P<query>\?[^\s"'<>]*)?""",
 	re.IGNORECASE,
 )
@@ -46,7 +47,7 @@ def get_email_url_ttl() -> int:
 
 
 def rewrite_urls_for_email(html: str) -> str:
-	"""Replace unsigned ``/f/`` URLs in href/src with absolute signed URLs.
+	"""Replace unsigned private blob URLs in href/src with absolute signed URLs.
 
 	No-op when storage v2 is off or ``html`` is falsy. Already-signed URLs
 	(``e=`` and ``s=`` present) and unknown blob names pass through untouched.
@@ -58,14 +59,14 @@ def rewrite_urls_for_email(html: str) -> str:
 
 	try:
 		rewriter = _Rewriter()
-		return F_URL_PATTERN.sub(rewriter.rewrite_match, html)
+		return BLOB_URL_PATTERN.sub(rewriter.rewrite_match, html)
 	except Exception:
 		frappe.logger("storage").exception("Failed to sign storage URLs for email")
 		return html
 
 
 def rewrite_text_urls_for_email(text: str) -> str:
-	"""Sign bare ``/f/`` URLs in an explicit plain-text email body.
+	"""Sign bare private blob URLs in an explicit plain-text email body.
 
 	Same behavior as ``rewrite_urls_for_email``, for text parts that never
 	pass through the HTML formatter."""
@@ -76,7 +77,7 @@ def rewrite_text_urls_for_email(text: str) -> str:
 
 	try:
 		rewriter = _Rewriter()
-		return TEXT_F_URL_PATTERN.sub(rewriter.rewrite_text_match, text)
+		return TEXT_BLOB_URL_PATTERN.sub(rewriter.rewrite_text_match, text)
 	except Exception:
 		frappe.logger("storage").exception("Failed to sign storage URLs for email text")
 		return text
@@ -111,7 +112,7 @@ class _Rewriter:
 			return match.group(0)
 
 	def _signed_url(self, match: re.Match) -> str | None:
-		"""Signed absolute URL for a matched /f/ reference, or None to keep it."""
+		"""Signed absolute URL for a matched blob URL, or None to keep it."""
 		from frappe.storage.url import make_signature
 
 		query = match.group("query") or ""
@@ -120,7 +121,7 @@ class _Rewriter:
 
 		prefix = match.group("prefix")
 		if prefix and prefix.rstrip("/") != self.site_url:
-			# /f/ URL on a foreign host: not ours to sign
+			# a URL on a foreign host: not ours to sign
 			return None
 
 		blob_name = match.group("blob")
@@ -131,11 +132,13 @@ class _Rewriter:
 		expires = int(time.time()) + self.ttl
 		# serve.py verifies against the URL-decoded filename
 		signature = make_signature(blob_name, unquote(filename), expires)
-		return f"{self.site_url}/f/{blob_name}/{filename}?e={expires}&s={signature}"
+		return f"{self.site_url}/private/files/{blob_name}/{filename}?e={expires}&s={signature}"
 
 	def blob_exists(self, blob_name: str) -> bool:
 		if blob_name not in self._known_blobs:
-			self._known_blobs[blob_name] = bool(frappe.db.exists("File Blob", blob_name))
+			self._known_blobs[blob_name] = bool(
+				frappe.db.exists("File Blob", {"name": blob_name, "is_private": 1})
+			)
 		return self._known_blobs[blob_name]
 
 

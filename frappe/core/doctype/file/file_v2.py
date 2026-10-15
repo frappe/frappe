@@ -7,8 +7,9 @@ Design (see ``frappe-file-storage-v2-spec.md``):
 - A File row links to an immutable, content-addressed ``File Blob``;
   ``put_blob`` owns dedup on ``(checksum, is_private, driver)``.
 - Every byte access goes through the storage driver.
-- ``file_url`` derives from the blob: the plain nginx path for public
-  local blobs, the ``/f/<blob>/<filename>`` route for everything else.
+- ``file_url`` derives from the blob: ``/files/<blob>/<filename>`` or
+  ``/private/files/<blob>/<filename>``. A public local blob sits on disk
+  at that path, so nginx serves it.
 - A privacy flip re-puts the bytes into the other namespace and repoints
   the row; bytes are never moved or rewritten in place.
 - Deleting a File row never deletes bytes synchronously. Garbage
@@ -21,7 +22,6 @@ still unbackfilled (``blob`` is NULL). Those rows are read through
 """
 
 import io
-from urllib.parse import quote
 
 import frappe
 import frappe.storage
@@ -34,9 +34,9 @@ from .file_v1 import FileV1
 
 class FileV2(File):
 	def _ingest_new_content(self):
-		if not self.get("blob") and not self.content and self.file_url and self.file_url.startswith("/f/"):
-			# a copied row (amend, attachment copy) carries only a v2 file_url;
-			# relink the blob instead of failing URL validation
+		if not self.get("blob") and not self.content and self.file_url:
+			# a copied row (amend, attachment copy) carries only a blob URL;
+			# relink the blob instead of writing the bytes again
 			self.adopt_blob_from_file_url()
 
 		if self.flags.from_existing_blob:
@@ -125,28 +125,34 @@ class FileV2(File):
 		self.set_blob_file_url(new_blob)
 
 	def adopt_blob_from_file_url(self):
-		"""Set ``blob`` from a ``/f/<blob>/<filename>`` file_url.
+		"""Set ``blob`` from a blob URL in file_url.
 
 		Rows rebuilt from a bare file_url (amend of a submittable doc,
-		attachment copies) reference an existing blob; no bytes to write."""
-		parts = self.file_url.split("/")
-		blob_name = parts[2] if len(parts) > 2 else None
-		if blob_name and frappe.db.exists("File Blob", blob_name):
-			self.blob = blob_name
-			self.flags.from_existing_blob = True
+		attachment copies) reference an existing blob; no bytes to write.
+		A private blob is adopted only when the user can already download
+		it, so knowing a URL does not grant access to the file."""
+		from frappe.storage.serve import has_file_permission
+		from frappe.storage.url import parse_blob_url
+
+		parsed = parse_blob_url(self.file_url)
+		if not parsed:
+			return
+		is_private, blob_name, _filename = parsed
+		if not frappe.db.exists("File Blob", {"name": blob_name, "is_private": cint(is_private)}):
+			return
+		if is_private and not self.flags.ignore_permissions and not has_file_permission(blob_name):
+			frappe.throw(_("You don't have permission to access this file"), frappe.PermissionError)
+		self.blob = blob_name
+		self.is_private = cint(is_private)
+		self.flags.from_existing_blob = True
 
 	def set_blob_file_url(self, blob=None):
-		"""Regenerate file_url from the linked blob. Stable and unsigned.
+		"""Regenerate file_url from the linked blob. Stable and unsigned."""
+		from frappe.storage.url import blob_url
 
-		The plain nginx path applies only to public blobs whose bytes are on
-		the site's disk (local driver); every other driver serves through
-		the ``/f/`` route."""
 		if blob is None:
 			blob = frappe.get_doc("File Blob", self.blob)
-		if not cint(blob.is_private) and blob.driver == "local":
-			self.file_url = f"/files/blobs/{blob.key}"
-		else:
-			self.file_url = f"/f/{blob.name}/{quote(self.file_name or blob.name)}"
+		self.file_url = blob_url(blob)
 
 	def validate_file_path(self):
 		if self.is_remote_file:
@@ -154,7 +160,7 @@ class FileV2(File):
 
 		if self.get("blob"):
 			# the path derives from the blob key; the driver rejects keys
-			# that escape the blobs directory
+			# that escape the files directory
 			return
 
 		FileV1.validate_file_path(self)  # compat shim: unbackfilled legacy row
@@ -167,9 +173,8 @@ class FileV2(File):
 			FileV1.validate_file_url(self)  # compat shim: unbackfilled legacy row
 			return
 
-		# native v2 rows use /files/blobs/ or /f/; backfilled rows keep
-		# their legacy /files/ or /private/files/ URL
-		if not self.file_url.startswith(("/f/", "/files/", "/private/files/")):
+		# blob URLs and backfilled legacy URLs share these two prefixes
+		if not self.file_url.startswith(("/files/", "/private/files/")):
 			frappe.throw(
 				_("The File URL you've entered is incorrect"),
 				title=_("Invalid File URL"),

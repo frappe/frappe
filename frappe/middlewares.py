@@ -36,8 +36,11 @@ class StaticDataMiddleware(SharedDataMiddleware):
 			files_path = (Path(directory) / site / "public" / "files").resolve()
 			requested_path = Path(cstr(path))
 			path = (files_path / requested_path).resolve()
-			if not path.is_relative_to(files_path) or not path.is_file():
+			if not path.is_relative_to(files_path):
 				raise NotFound
+			if not path.is_file():
+				# like nginx's try_files: the app serves what is not on disk
+				return None, None
 
 			return path.name, self._opener(path)
 

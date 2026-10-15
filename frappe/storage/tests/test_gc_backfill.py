@@ -86,7 +86,7 @@ class TestCollectGarbage(IntegrationTestCase):
 			blob = self.put()
 			file_row = insert_file_row(
 				file_name="gc-ref.txt",
-				file_url=f"/files/blobs/{blob.key}",
+				file_url=f"/files/{blob.name}/file",
 				blob=blob.name,
 			)
 			self.addCleanup(frappe.db.delete, "File", {"name": file_row.name})
@@ -230,9 +230,7 @@ class TestCollectGarbage(IntegrationTestCase):
 			reference = frappe.get_doc({"doctype": "ToDo", "description": "storage gc reference"}).insert()
 			self.addCleanup(frappe.db.delete, "ToDo", {"name": reference.name})
 			frappe.db.set_value("ToDo", reference.name, "allocated_to", blob.name, update_modified=False)
-			columns = self.reference_columns(
-				{"doctype": "ToDo", "fieldname": "allocated_to", "issingle": 0}
-			)
+			columns = self.reference_columns({"doctype": "ToDo", "fieldname": "allocated_to", "issingle": 0})
 
 			with patch.object(gc, "blob_reference_columns", return_value=columns):
 				stats = collect_garbage()
@@ -475,7 +473,7 @@ class TestBackfill(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.delete("File", {"name": ("like", self.prefix + "%")})
-		frappe.db.delete("File Blob", {"key": ("like", f"../{self.prefix}%")})
+		frappe.db.delete("File Blob", {"key": ("like", f"{self.prefix}%")})
 		super().tearDown()
 
 	def filters(self):
@@ -531,7 +529,7 @@ class TestBackfill(IntegrationTestCase):
 		self.assertTrue(row.blob)
 		self.assertEqual(row.file_url, public.file_url)  # file_url untouched
 		blob = frappe.get_doc("File Blob", row.blob)
-		self.assertEqual(blob.key, f"../{public.file_name}")
+		self.assertEqual(blob.key, public.file_name)
 		self.assertEqual(blob.checksum, hashlib.sha256(content).hexdigest())
 		self.assertEqual(blob.driver, "local")
 		self.assertEqual(blob.status, "Ready")
@@ -540,7 +538,7 @@ class TestBackfill(IntegrationTestCase):
 
 		private_blob = frappe.get_doc("File Blob", self.reload(private).blob)
 		self.assertEqual(private_blob.is_private, 1)
-		self.assertEqual(private_blob.key, f"../{private.file_name}")
+		self.assertEqual(private_blob.key, private.file_name)
 
 	def test_bytes_stay_at_legacy_path_and_driver_resolves_them(self):
 		content = unique_content(b"backfill-bytes-")
@@ -618,7 +616,7 @@ class TestBackfill(IntegrationTestCase):
 		self.assertEqual(second["linked"], 0)
 		self.assertEqual(second["blobs_created"], 0)
 		self.assertEqual(self.reload(legacy).blob, blob_name)
-		self.assertEqual(frappe.db.count("File Blob", {"key": ("like", f"../{self.prefix}%")}), 1)
+		self.assertEqual(frappe.db.count("File Blob", {"key": ("like", f"{self.prefix}%")}), 1)
 
 	def test_locate_rejects_remote_and_escaping_urls(self):
 		self.assertIsNone(backfill.locate("https://cdn.example.com/logo.png"))
