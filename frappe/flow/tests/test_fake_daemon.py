@@ -62,6 +62,16 @@ def resumed(seq, run_id):
 	]
 
 
+def compaction(seq, run_id):
+	"""A manual compaction, a run of its own that summarizes all before it: four rows from `seq`."""
+	return [
+		row(seq, "run_started", run_id=run_id),
+		row(seq + 1, "compaction", reason="manual", summary="So far: hi.", compact_up_to_seq=seq - 1),
+		row(seq + 2, "usage", input_tokens=40, output_tokens=6, cost=0.1),
+		row(seq + 3, "run_ended", reason="done"),
+	]
+
+
 def child_pause(seq, run_id, message="look it up"):
 	"""A turn whose sub-agent stops at a confirmation-gated call while the turn runs on: nine rows from `seq`."""
 	child = {"subagent_id": "c1"}
@@ -187,6 +197,18 @@ class FakeDaemon:
 			raise DaemonError(409, "run is paused for approval; resolve it before rewinding")
 		self.rows.append(row(self.next_seq(), "rewind", target_seq=target_seq))
 		return {"status": "rewound"}
+
+	def compact(self, sid):
+		self.calls.append(("compact", sid))
+		if self.running:
+			raise DaemonError(409, "a run is already active")
+		if self.paused:
+			raise DaemonError(409, "run is paused for approval; resolve it before compacting")
+		if not self.rows:
+			raise DaemonError(409, "nothing to compact")
+		self.turns += 1
+		self.rows += compaction(self.next_seq(), f"r{self.turns}")
+		return {"status": "started"}
 
 	def tool_waiting(self, sid, token):
 		self.calls.append(("tool_waiting", sid, token))
