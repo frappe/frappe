@@ -41,6 +41,7 @@ frappe.ui.form.Sidebar = class {
 		this.make_like();
 		this.setup_print();
 		this.setup_editable_title();
+		this.setup_sidebar_toggle();
 		this.refresh();
 	}
 
@@ -235,6 +236,44 @@ frappe.ui.form.Sidebar = class {
 			frm: this.frm,
 			parent: this.sidebar.find(".form-shared"),
 		});
+	}
+
+	setup_sidebar_toggle() {
+		let $side_section = this.page.sidebar;
+
+		this.$toggle_btn = $(`<button class="sidebar-toggle-btn" title="${__("Toggle Sidebar")}">
+			<svg class="icon icon-sm"><use href="#icon-panel-right-close"></use></svg>
+		</button>`).appendTo(this.sidebar);
+
+		this.$expand_btn = $(`<button class="sidebar-expand-btn" title="${__("Expand Sidebar")}">
+			<svg class="icon icon-sm"><use href="#icon-panel-right-open"></use></svg>
+		</button>`).appendTo($side_section);
+
+		this.$toggle_btn.on("click", () => {
+			this.set_sidebar_collapsed(true);
+		});
+
+		this.$expand_btn.on("click", () => {
+			this.set_sidebar_collapsed(false);
+		});
+
+		if (localStorage.getItem("form_sidebar_collapsed") === "1") {
+			this.set_sidebar_collapsed(true, false);
+		}
+	}
+
+	set_sidebar_collapsed(collapsed, animate = true) {
+		let $side_section = this.page.sidebar;
+
+		if (!animate) {
+			$side_section.css("transition", "none");
+			requestAnimationFrame(() => {
+				$side_section.css("transition", "");
+			});
+		}
+
+		$side_section.toggleClass("sidebar-collapsed", collapsed);
+		localStorage.setItem("form_sidebar_collapsed", collapsed ? "1" : "0");
 	}
 
 	add_user_action(label, click) {
