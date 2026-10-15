@@ -317,9 +317,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				}
 			},
 		});
-		// 'Apply Filter' breaks since the filers are not in a popover
-		// Hence keeping it hidden
-		this.filter_group.wrapper.find(".apply-filters").hide();
 	}
 
 	get_custom_filters() {

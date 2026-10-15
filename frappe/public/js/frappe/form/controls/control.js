@@ -12,6 +12,8 @@ import "./date_range";
 import "./select";
 import "./link";
 import "./dynamic_link";
+import "./link_combobox";
+import "./dynamic_link_combobox";
 import "./text";
 import "./code";
 import "./text_editor";
@@ -32,12 +34,14 @@ import "./markdown_editor";
 import "./html_editor";
 import "./heading";
 import "./autocomplete";
+import "./autocomplete_combobox";
 import "./barcode";
 import "./geolocation";
 import "./multiselect";
 import "./multicheck";
 import "./table_multiselect";
 import "./multiselect_pills";
+import "./multiselect_combobox";
 import "./multiselect_list";
 import "./rating";
 import "./duration";
@@ -45,8 +49,21 @@ import "./icon";
 import "./phone";
 import "./json";
 
+// fieldtypes with a combobox variant behind the System Settings toggle
+const COMBOBOX_FIELDTYPES = new Set([
+	"Link",
+	"Dynamic Link",
+	"Autocomplete",
+	"Table MultiSelect",
+	"MultiSelectPills",
+	"MultiSelect",
+]);
+
 frappe.ui.form.make_control = function (opts) {
 	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");
+	if (COMBOBOX_FIELDTYPES.has(opts.df.fieldtype) && frappe.ui.form.is_combobox_link_enabled()) {
+		control_class_name += "Combobox";
+	}
 	if (frappe.ui.form[control_class_name]) {
 		return new frappe.ui.form[control_class_name](opts);
 	} else {

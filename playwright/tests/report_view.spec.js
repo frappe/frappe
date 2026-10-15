@@ -148,16 +148,22 @@ test.describe("Report View group by button", () => {
 	test("keeps keyboard focus in the group by popover", async ({ page }) => {
 		const button = page.locator(".group-by-button");
 		const popover = page.locator(".group-by-popover");
-		const input = popover.locator(".group-by-field-select input").first();
+		const field = popover.locator(".group-by-field-select .es-combobox").first();
+		// the field picker's list opens in <body>
+		const picker = page.locator(".es-combobox__panel[data-state='open']");
 		await page.evaluate(() => window.cur_list.group_by_control.remove_group_by());
 
+		// the picker opens on every field, with the keyboard in it
 		await button.click();
-		await expect(input).toBeFocused();
-		await expect(popover.locator("li", { hasText: "Category" })).toBeVisible();
+		await expect(picker.getByRole("option", { name: label })).toBeVisible();
+		await expect
+			.poll(() =>
+				page.evaluate(() => !!document.activeElement.closest(".es-combobox__panel"))
+			)
+			.toBe(true);
 
 		// picking the first group by re-renders the popover, focus moves on to the row
-		await input.pressSequentially("Category");
-		await input.press("Enter");
+		await page.keyboard.press("Enter");
 		await expect(popover.locator(".remove-group-by-row").first()).toBeFocused();
 
 		// reopening focuses the popover, Tab reaches the field and another Tab keeps it
@@ -166,9 +172,9 @@ test.describe("Report View group by button", () => {
 		await button.click();
 		await expect(popover).toBeFocused();
 		await page.keyboard.press("Tab");
-		await expect(input).toBeFocused();
+		await expect(field).toBeFocused();
 		await page.keyboard.press("Tab");
-		await expect(input).toHaveValue(label);
+		await expect(field).toContainText(label);
 		expect(
 			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
 		).toEqual([{ doctype, fieldname: "category" }]);

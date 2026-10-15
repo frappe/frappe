@@ -650,22 +650,8 @@ input.list-header-checkbox {
 		margin-top: 3px;
 	}
 
-	.filter-selector .btn-group {
+	.filter-selector {
 		margin: var(--margin-xs);
-
-		.filter-label {
-			display: inline-block;
-			font-weight: 600;
-			color: var(--text-color);
-			background-color: var(--control-bg);
-			min-width: 21px;
-			border-radius: 22px;
-			margin-left: 6px;
-		}
-	}
-
-	.filter-button.btn-primary-light {
-		z-index: 1;
 	}
 
 	.sort-selector {
@@ -709,7 +695,7 @@ input.list-header-checkbox {
 		justify-content: space-between;
 
 		.filter-selector {
-			margin: 0 0 0 auto;
+			margin: var(--margin-xs) 0 var(--margin-xs) auto;
 		}
 	}
 }

@@ -785,9 +785,11 @@ frappe.views.CommunicationComposer = class {
 
 	setup_multiselect_queries() {
 		["recipients", "cc", "bcc"].forEach((field) => {
-			this.dialog.fields_dict[field].get_data = () => {
+			let latest = 0;
+			// the combobox field passes the typed text; the classic one leaves it in the input
+			this.dialog.fields_dict[field].get_data = (txt) => {
 				const control = this.dialog.fields_dict[field];
-				const txt = (control.$input?.val() || "").trim();
+				if (txt == null) txt = (control.$input?.val() || "").trim();
 				const args = { txt };
 
 				if (this.frm?.events.get_email_recipient_filters) {
@@ -797,10 +799,13 @@ frappe.views.CommunicationComposer = class {
 					);
 				}
 
+				// replies can arrive out of order: keep only the newest search's rows
+				const request = ++latest;
 				frappe.call({
 					method: "frappe.email.get_contact_list",
 					args: args,
 					callback: (r) => {
+						if (request !== latest) return;
 						const added = new Set(
 							["recipients", "cc", "bcc"].flatMap((name) =>
 								(this.dialog.fields_dict[name].rows || []).map((row) =>
