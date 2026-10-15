@@ -139,7 +139,9 @@ def create_for_document(web_form: str, docname: str, expires_on: str | None = No
 
 
 @frappe.whitelist(methods=["GET"])
-def get_requests_for_document(doctype: str, docname: str) -> list[dict]:
+def get_requests_for_document(
+	doctype: str, docname: str, start: int = 0, page_length: int = 20
+) -> list[dict]:
 	frappe.has_permission(doctype, "write", docname, throw=True)
 
 	forms = get_request_web_forms()
@@ -151,13 +153,15 @@ def get_requests_for_document(doctype: str, docname: str) -> list[dict]:
 		],
 		fields=["name", "web_form", "key", "expires_on", "first_used_on"],
 		order_by="creation desc",
+		limit_start=start,
+		limit_page_length=page_length,
 	)
 
 	for row in requests:
 		row.status = get_status(row)
 		key = row.pop("key")
 		form = forms.get(row.web_form)
-		if form and row.status != "Expired":
+		if form and not is_expired(row.expires_on):
 			row.url = get_edit_url(form.route, docname, key)
 
 	return requests

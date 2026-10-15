@@ -5,7 +5,6 @@ import "./form_viewers";
 import "./template_manager";
 import { safe_href } from "../ui/components/utils.js";
 import { ReminderManager } from "./reminders";
-import { WebFormRequestDialog } from "./web_form_request";
 
 frappe.ui.form.Toolbar = class Toolbar {
 	constructor(opts) {
@@ -442,7 +441,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 		this.page.add_menu_item(
 			__("Request via Web Form"),
-			() => new WebFormRequestDialog({ frm: this.frm }).show(),
+			() =>
+				frappe.require("web_form_request.bundle.js", () =>
+					new frappe.ui.form.WebFormRequestDialog({ frm: this.frm }).show()
+				),
 			true
 		);
 	}

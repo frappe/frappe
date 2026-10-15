@@ -75,21 +75,30 @@ export class WebFormRequestDialog {
 	}
 
 	load_requests() {
-		Promise.all([
-			frappe.xcall(
-				`${METHOD}.get_requests_for_document`,
-				{ doctype: this.frm.doctype, docname: this.frm.docname },
-				"GET"
-			),
-			frappe.require("embedded_list.bundle.js"),
-		]).then(([requests]) => {
-			if (!requests.length) return;
-			this.dialog.set_df_property("requests_section", "hidden", 0);
+		frappe.require("embedded_list.bundle.js").then(() => {
 			const $wrapper = this.dialog.get_field("requests_html").$wrapper;
 			new frappe.ui.EmbeddedList({
 				wrapper: $('<div class="web-form-request-list"></div>').appendTo($wrapper.empty()),
 				show_search: false,
-				get_data: () => Promise.resolve(requests),
+				page_size: 20,
+				get_page: ({ start, page_length }) =>
+					frappe
+						.xcall(
+							`${METHOD}.get_requests_for_document`,
+							{
+								doctype: this.frm.doctype,
+								docname: this.frm.docname,
+								start,
+								page_length,
+							},
+							"GET"
+						)
+						.then((requests) => {
+							if (requests.length) {
+								this.dialog.set_df_property("requests_section", "hidden", 0);
+							}
+							return requests;
+						}),
 				columns: this.get_columns(),
 			}).refresh();
 			$wrapper.on("click", "[data-url]", (e) => {

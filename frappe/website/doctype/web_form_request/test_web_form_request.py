@@ -144,17 +144,37 @@ class TestWebFormRequest(IntegrationTestCase):
 		frappe.get_last_doc("Web Form Request", {"web_form": "manage-events"}).db_set(
 			"first_used_on", frappe.utils.now_datetime()
 		)
+		create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		frappe.get_last_doc("Web Form Request", {"web_form": "manage-events"}).db_set(
+			{"first_used_on": frappe.utils.now_datetime(), "expires_on": "2000-01-01 00:00:00"}
+		)
 
 		requests = get_requests_for_document("Event", event.name)
 
-		self.assertEqual(sorted(r.status for r in requests), ["Expired", "Not Used", "Used"])
+		self.assertEqual(sorted(r.status for r in requests), ["Expired", "Not Used", "Used", "Used"])
 		self.assertTrue(all("key" not in r for r in requests))
 		not_used = next(r for r in requests if r.status == "Not Used")
 		self.assertIn("web_form_request_key=", not_used.url)
-		used = next(r for r in requests if r.status == "Used")
+		used = next(r for r in requests if r.status == "Used" and r.expires_on.year == 2099)
 		self.assertIn("web_form_request_key=", used.url)
+		used_and_expired = next(r for r in requests if r.status == "Used" and r.expires_on.year == 2000)
+		self.assertIsNone(used_and_expired.get("url"))
 		expired = next(r for r in requests if r.status == "Expired")
 		self.assertIsNone(expired.get("url"))
+
+	def test_requests_for_document_are_paged(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		frappe.set_user(self.user)
+		event = self.create_event()
+		for _ in range(3):
+			create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		newest_first = [r.name for r in get_requests_for_document("Event", event.name)]
+
+		first = get_requests_for_document("Event", event.name, start=0, page_length=2)
+		second = get_requests_for_document("Event", event.name, start=2, page_length=2)
+
+		self.assertEqual([r.name for r in first + second], newest_first)
+		self.assertEqual(len(first), 2)
 
 	def set_web_form_settings(self, **settings):
 		current = frappe.db.get_value("Web Form", "manage-events", list(settings), as_dict=True)
