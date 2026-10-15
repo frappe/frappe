@@ -291,6 +291,14 @@ class NestedSet(Document):
 	def on_update(self):
 		update_nsm(self)
 		self.validate_ledger()
+		parent_field = self.nsm_parent_field or "parent_" + frappe.scrub(self.doctype)
+		parent = self.get(parent_field)
+		if parent and self.meta.has_field("is_group"):
+			if not frappe.db.get_value(self.doctype, parent, "is_group"):
+				frappe.throw(
+					_("{0} {1} must be a group node").format(_(self.doctype), parent),
+					title=_("Invalid Parent"),
+				)
 
 	def on_trash(self, allow_root_deletion=False):
 		"""
