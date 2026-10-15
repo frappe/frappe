@@ -224,7 +224,7 @@ describe("FixIssuesStep", () => {
     expect(host.textContent).toContain("Something is off");
   });
 
-  it("shows No issues to fix with a skipped line when only columns are skipped", () => {
+  it("shows No issues to fix, with skipped columns in the summary, when only columns are skipped", () => {
     const { host } = mount({
       preview: makePreview([
         { col: 1, code: "unknown_column", message: "does not match any field" },
@@ -239,6 +239,24 @@ describe("FixIssuesStep", () => {
       "Columns skipped"
     );
     expect(host.textContent).toContain("No issues to fix");
+  });
+
+  it("keeps the summary above the issues, with skipped columns only in it", () => {
+    const { host } = mount({
+      preview: makePreview([
+        { row: 2, message: "Bad date" },
+        { col: 3, message: "Skipping column Extra", type: "info" },
+      ]),
+    });
+    expect(
+      host.querySelector("[aria-label='Fix issues summary']")
+    ).not.toBeNull();
+    expect(host.querySelectorAll("[data-slot='skipped-columns']")).toHaveLength(
+      1
+    );
+    expect(host.textContent).toContain("Bad date");
+    expect(host.textContent).not.toContain("No issues to fix");
+    expect(host.textContent).not.toContain("columns skipped");
   });
 
   it("uses the cells of a warned row past the preview, and caps each section's height", async () => {
