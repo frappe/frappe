@@ -625,10 +625,12 @@ class TestSessionEndpoints(ApiCase):
 		api.run(name, "hi")
 		self.assertEqual(api.rewind(name, "0"), {"status": "rewound"})
 		self.assertEqual(frappe.get_doc("Flow Session", name).messages, [])
-		for bad in ("abc", "-1", ""):
+		for bad in ("abc", "-1", "", "²"):
 			with self.assertRaisesRegex(frappe.ValidationError, "whole number"):
 				api.rewind(name, bad)
 		self.assertEqual([c for c in self.daemon.calls if c[0] == "rewind"], [("rewind", name, 0)])
+		# a link on another site can't rewind a chat: GET skips Frappe's CSRF check
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.rewind], ("POST",))
 
 	def test_abort_cancel_and_entries_pass_through(self):
 		name = self.create()
