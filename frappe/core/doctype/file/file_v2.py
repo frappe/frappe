@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 """Blob-native (storage v2) File implementation.
 
-Design (see ``frappe-file-storage-v2-spec.md``):
+Design (see ``frappe/storage/SPEC.md``):
 
 - A File row links to an immutable, content-addressed ``File Blob``;
   ``put_blob`` owns dedup on ``(checksum, is_private, driver)``.

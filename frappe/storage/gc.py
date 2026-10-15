@@ -12,6 +12,7 @@ swept through ``frappe.storage.upload.expire_stale_upload_sessions``.
 import frappe
 import frappe.storage
 from frappe.model.rename_doc import get_link_fields
+from frappe.storage.upload import expire_stale_upload_sessions
 from frappe.utils import add_to_date, get_datetime, now_datetime
 
 BATCH_SIZE = 500
@@ -78,9 +79,7 @@ def blob_reference_columns() -> list[dict]:
 		if key in seen:
 			continue
 		seen.add(key)
-		columns.append(
-			{"doctype": key[0], "fieldname": key[1], "issingle": int(field.get("issingle") or 0)}
-		)
+		columns.append({"doctype": key[0], "fieldname": key[1], "issingle": int(field.get("issingle") or 0)})
 	return columns
 
 
@@ -110,9 +109,7 @@ def _orphan_predicate(columns: list[dict], blob_alias: str = "b") -> str:
 		else:
 			table = _quote_identifier(f"tab{doctype}")
 			field = _quote_identifier(fieldname)
-			predicates.append(
-				f"not exists (select 1 from {table} ref where ref.{field} = {blob}.`name`)"
-			)
+			predicates.append(f"not exists (select 1 from {table} ref where ref.{field} = {blob}.`name`)")
 	return "\n  and ".join(predicates) or "1 = 1"
 
 
@@ -218,11 +215,7 @@ def is_still_orphan(blob_name: str, cutoff, *, predicate: str | None = None):
 
 
 def expire_upload_sessions(logger) -> int:
-	"""Sweep stale upload sessions. Guarded: the upload module is optional."""
-	try:
-		from frappe.storage.upload import expire_stale_upload_sessions
-	except ImportError:
-		return 0
+	"""Sweep stale upload sessions. A failed sweep is logged, not raised."""
 	try:
 		return expire_stale_upload_sessions() or 0
 	except Exception:

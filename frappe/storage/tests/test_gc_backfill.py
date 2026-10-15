@@ -452,14 +452,8 @@ class TestExpireUploadSessions(IntegrationTestCase):
 	def logger(self):
 		return frappe.logger("storage")
 
-	def test_missing_upload_module_returns_zero(self):
-		with patch.dict(sys.modules, {"frappe.storage.upload": None}):
-			self.assertEqual(gc.expire_upload_sessions(self.logger()), 0)
-
 	def test_failing_sweep_is_logged_and_returns_zero(self):
-		with patch(
-			"frappe.storage.upload.expire_stale_upload_sessions", side_effect=Exception("disk gone")
-		) as sweep:
+		with patch.object(gc, "expire_stale_upload_sessions", side_effect=Exception("disk gone")) as sweep:
 			self.assertEqual(gc.expire_upload_sessions(self.logger()), 0)
 		sweep.assert_called_once()
 

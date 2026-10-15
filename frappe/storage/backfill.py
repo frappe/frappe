@@ -21,10 +21,8 @@ import os
 
 import frappe
 from frappe.storage.blob import sha256_of, sniff_mime
+from frappe.storage.url import PRIVATE_PREFIX, PUBLIC_PREFIX
 from frappe.utils import cint, get_files_path
-
-PUBLIC_PREFIX = "/files/"
-PRIVATE_PREFIX = "/private/files/"
 
 
 def run(batch_size: int = 500, filters: dict | None = None) -> dict:
