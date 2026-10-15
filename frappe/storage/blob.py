@@ -184,9 +184,10 @@ def sha256_of(stream: IO[bytes]) -> str:
 def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | None = None) -> "FileBlob":
 	"""Store the stream through the active driver. Return its File Blob.
 
-	Deduplicates on ``(checksum, is_private, driver)``: identical content
-	returns the existing blob with no write, keeping the existing blob's
-	filename. Blobs are immutable.
+	Deduplicates on ``(checksum, is_private, driver)`` as a best effort:
+	identical content usually returns the existing blob with no write,
+	keeping the existing blob's filename. Concurrent identical uploads may
+	each store their own blob; duplicates are allowed. Blobs are immutable.
 
 	The key is ``<blob>/<filename>`` (see ``make_key``), so a public local
 	blob sits on disk at its URL path and nginx serves it."""
@@ -216,9 +217,8 @@ def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | Non
 				"status": "Ready",
 			}
 		)
-		# registered before the write: a failed insert (such as a concurrent
-		# upload of the same content winning the unique index) rolls back
-		# and removes these bytes, which no other blob shares
+		# registered before the write: a rolled-back insert removes these
+		# bytes, which no other blob shares
 		frappe.db.after_rollback.add(delete_bytes_on_rollback(driver, blob.key, bool(is_private)))
 		driver.write(blob.key, spool, is_private=bool(is_private))
 		blob.insert(ignore_permissions=True)

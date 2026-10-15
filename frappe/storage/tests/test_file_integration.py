@@ -796,15 +796,3 @@ class TestFileStorageIntegration(IntegrationTestCase):
 					},
 				)
 			)
-
-	# --- File Blob schema hook ---
-
-	def test_file_blob_on_doctype_update(self):
-		from frappe.core.doctype.file_blob.file_blob import on_doctype_update
-
-		# the unique index already exists on a migrated site; add_unique is a no-op
-		on_doctype_update()
-
-		# a backend that cannot build the index must not break migrate
-		with patch.object(type(frappe.local.db), "add_unique", side_effect=Exception("no unique index here")):
-			on_doctype_update()

@@ -133,6 +133,27 @@ class TestPutBlob(IntegrationTestCase):
 		self.assertEqual(second.name, first.name)
 		self.assertEqual(second.key, f"{first.name}/first.txt")
 
+	def test_concurrent_identical_uploads_both_succeed(self):
+		# another request stored the same content after this one's dedup lookup
+		content = unique_content(b"race-")
+		real_get_value = frappe.db.get_value
+
+		def lookup_misses(doctype, filters=None, *args, **kwargs):
+			if doctype == "File Blob" and isinstance(filters, dict) and "checksum" in filters:
+				return None
+			return real_get_value(doctype, filters, *args, **kwargs)
+
+		with fake() as store:
+			first = self.put(content, filename="first.txt")
+			with patch.object(frappe.db, "get_value", side_effect=lookup_misses):
+				second = self.put(content, filename="second.txt")
+
+			self.assertNotEqual(second.name, first.name)
+			self.assertEqual(frappe.db.count("File Blob", {"checksum": first.checksum}), 2)
+			for blob in (first, second):
+				with store.read(blob.key) as stream:
+					self.assertEqual(stream.read(), content)
+
 	def test_blob_row_fields(self):
 		content = unique_content()
 		with fake() as store:

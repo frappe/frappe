@@ -212,6 +212,22 @@ class TestRelocateBlobs(IntegrationTestCase):
 		self.assertEqual(frappe.db.count("File Blob", {"checksum": blob.checksum}), 1)
 		self.assertEqual(frappe.db.get_value("File Blob", blob.name, "driver"), self.target.name)
 
+	def test_moves_a_blob_whose_content_the_target_already_holds(self):
+		content = b"same-content-on-both-drivers"
+		twin_name = self.blob_name("t")
+		on_target = self.insert_blob(content, key=f"{twin_name}/same.txt", driver=self.target, name=twin_name)
+		blob = self.insert_blob(content, suffix="s", key="legacy/same.txt")
+
+		stats = self.run_relocation(target_driver=self.target.name)
+
+		self.assertEqual(stats["errors"], 0)
+		moved = frappe.db.get_value("File Blob", blob.name, ["driver", "key"], as_dict=True)
+		self.assertEqual(moved, {"driver": self.target.name, "key": f"{blob.name}/same.txt"})
+		self.assertEqual(self.target.read(moved.key).read(), content)
+		# the twin already on the target is left as it was
+		self.assertEqual(self.target.read(on_target.key).read(), content)
+		self.assertFalse(self.source.exists("legacy/same.txt"))
+
 	def test_driver_error_is_logged_and_next_blob_continues(self):
 		bad = self.insert_blob(b"driver-error", suffix="-a-")
 		good_content = b"driver-continues"

@@ -43,22 +43,13 @@ class TestFileBlob(IntegrationTestCase):
 		self.assertEqual(saved.is_private, 1)
 		self.assertEqual(saved.status, "Ready")
 
-	def test_unique_key_enforced(self):
-		make_blob_doc().insert()
+	def test_same_content_may_have_several_blobs(self):
+		# dedup is a best-effort lookup; concurrent uploads may store twins
+		first = make_blob_doc(key="first").insert()
+		second = make_blob_doc(key="second").insert()
 
-		# same (key, is_private, driver) must hit the unique index
-		self.assertRaises(frappe.UniqueValidationError, make_blob_doc().insert)
-
-	def test_unique_index_is_scoped_by_privacy_and_driver(self):
-		make_blob_doc().insert()
-
-		# the key derives from content alone; the same key may exist once
-		# per is_private and per driver
-		public_twin = make_blob_doc(is_private=0).insert()
-		other_driver_twin = make_blob_doc(driver="local").insert()
-
-		self.assertTrue(public_twin.name)
-		self.assertTrue(other_driver_twin.name)
+		self.assertNotEqual(first.name, second.name)
+		self.assertEqual(frappe.db.count("File Blob", {"checksum": TEST_CHECKSUM}), 2)
 
 	def test_non_system_manager_cannot_create(self):
 		frappe.set_user("Guest")

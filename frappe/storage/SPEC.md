@@ -55,8 +55,11 @@ HTTP                       signed URLs, serve route, direct upload
 | `is_private` | Check | decides local dir and URL policy |
 | `status` | Select | `Pending` (upload in flight) / `Ready` |
 
-- Unique index on `(checksum, is_private, driver)`. This replaces the
-  current dedup-by-shared-`file_url` trick with a real entity.
+- No unique index on content. Dedup is a best-effort lookup on the
+  `checksum` index, scoped by `is_private` and `driver`. Two concurrent
+  identical uploads may each get a blob, and relocation may move a blob
+  to a driver that already holds the same content. A rare duplicate copy
+  is accepted.
 - No `attached_to_*`, no folder, no filename. Those belong to `File`.
 - The blob has no refcount column. Reference count = count of `File`
   rows that link to it. Counting at GC time cannot drift.
