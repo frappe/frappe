@@ -134,7 +134,7 @@
 							class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
 							title="Remove attachment"
 							:aria-label="`Remove ${item.name}`"
-							:disabled="submitting"
+							:disabled="locked"
 							@click="removeAttachment(i)"
 						>
 							<FeatherIcon name="x" class="h-3 w-3" />
@@ -153,14 +153,14 @@
 					>
 						<span :class="chipIconClass"><FeatherIcon name="code" class="h-3.5 w-3.5" /></span>
 						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
-						<button :class="chipRemoveClass" title="Remove reference" :disabled="submitting" @click="flow.removeCodeRef(i)">
+						<button :class="chipRemoveClass" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)">
 							<FeatherIcon name="x" class="h-3 w-3" />
 						</button>
 					</span>
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
 						<span :class="chipIconClass"><FeatherIcon name="align-left" class="h-3.5 w-3.5" /></span>
 						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
-						<button :class="chipRemoveClass" title="Remove quote" :disabled="submitting" @click="flow.removeQuote(i)">
+						<button :class="chipRemoveClass" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)">
 							<FeatherIcon name="x" class="h-3 w-3" />
 						</button>
 					</span>
@@ -176,7 +176,7 @@
 							:class="chipRemoveClass"
 							title="Remove attachment"
 							:aria-label="`Remove ${item.name}`"
-							:disabled="submitting"
+							:disabled="locked"
 							@click="removeAttachment(i)"
 						>
 							<FeatherIcon name="x" class="h-3 w-3" />
@@ -185,7 +185,7 @@
 				</div>
 				<div v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="px-1 text-xs text-ink-red-6">
 					Could not prepare {{ item.name }}: {{ item.error }}
-					<button class="underline" :disabled="submitting" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
+					<button class="underline" :disabled="locked" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
 				</div>
 				<!-- 16px on phones: iPhone Safari zooms into smaller fields (the overlay mirrors the box) -->
 				<div class="relative">
@@ -202,7 +202,7 @@
 						ref="box"
 						v-model="text"
 						rows="1"
-						:disabled="submitting"
+						:disabled="locked"
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
 						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[16px]"
@@ -232,7 +232,7 @@
 					<button
 						class="grid h-7 w-7 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9"
 						:title="imagesOnly ? 'Attach images' : 'Attach files'"
-						:disabled="submitting"
+						:disabled="locked"
 						@click="openFilePicker"
 					>
 						<FeatherIcon name="plus" class="h-4 w-4" />
@@ -358,6 +358,7 @@ const fileInput = ref(null)
 const attachments = ref([])
 const viewer = ref(null)
 const submitting = ref(false)
+const locked = ref(false) // the box still holds the message going out
 const textScrollTop = ref(0)
 const caretPos = ref(0)
 const mentionDismissed = ref(false)
@@ -588,12 +589,13 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
 	window.removeEventListener("keydown", onWindowKey)
-	clearAttachments(!submitting.value)
+	clearAttachments(!locked.value)
 })
 watch(
 	() => flow.state.sessionId,
 	() => {
-		if (!submitting.value) {
+		// a chat just created by a send opens with that message still on its way: not a switch
+		if (!flow.state.conversation.sending.length) {
 			clearAttachments()
 			flow.clearCodeRefs()
 			flow.clearQuotes()
@@ -866,6 +868,7 @@ async function submit() {
 	const selectedAttachments = [...attachments.value]
 	const sendingSessionId = flow.state.sessionId
 	submitting.value = true
+	locked.value = true
 	try {
 		const pending = selectedAttachments.map((item) => preparations.get(item.key)).filter(Boolean)
 		if (pending.length) await Promise.all(pending)
@@ -878,19 +881,26 @@ async function submit() {
 		attachments.value = attachments.value.filter((item) => !selectedAttachments.includes(item))
 		flow.clearCodeRefs(selectedCodeRefs)
 		flow.clearQuotes(selectedQuotes)
+		unlock() // the next message can be typed while this one goes out
 		if (await flow.send(outgoing, selectedAttachments)) {
 			for (const item of selectedAttachments) revokePreview(item)
 		} else {
-			text.value = draftText
+			text.value = text.value ? `${draftText}\n\n${text.value}` : draftText // ahead of anything typed meanwhile
 			attachments.value = [...selectedAttachments, ...attachments.value]
 			for (const ref of selectedCodeRefs) flow.addCodeRef(ref.path, ref.start, ref.end)
 			for (const quote of selectedQuotes) flow.addQuote(quote)
 		}
 	} finally {
 		submitting.value = false
-		// re-enabling the disabled textarea does not restore focus on its own
-		nextTick(() => box.value?.focus())
+		unlock()
 	}
+}
+
+function unlock() {
+	if (!locked.value) return
+	locked.value = false
+	// re-enabling the disabled textarea does not restore focus on its own
+	nextTick(() => box.value?.focus())
 }
 
 // rewinds prefill via the store's draft channel (also fed by per-bubble rewind)

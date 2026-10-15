@@ -581,6 +581,90 @@ test("the composer empties at once and spins the send button until sending succe
 	assert.ok(el.querySelector("button[title='Stop']"))
 })
 
+test("the box takes the next message while one is still out, and one that fails comes back ahead of it", async (t) => {
+	let finishSend
+	const flow = composerFlow({ send: () => new Promise((resolve) => (finishSend = resolve)) })
+	flow.state.conversation = { running: false }
+	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
+	vm.prefill("first")
+	await nextTick()
+	const send = el.querySelector("button[title='Send']")
+	send.focus()
+	send.click()
+	await nextTick()
+	await nextTick()
+
+	const box = el.querySelector("textarea")
+	assert.equal(box.disabled, false)
+	assert.equal(document.activeElement, box)
+	assert.equal(el.querySelector("button[title='Attach files']").disabled, false)
+	box.value = "second"
+	box.dispatchEvent(new window.Event("input"))
+	finishSend(false)
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.equal(box.value, "first\n\nsecond")
+})
+
+test("a file attached while a message is still out is discarded if the composer goes away", async (t) => {
+	const discarded = []
+	const flow = composerFlow({
+		send: () => new Promise(() => {}),
+		prepareAttachment: async (file) => ({ id: "F1", name: file.name, kind: "file" }),
+		discardAttachments: async (ids) => discarded.push(...ids),
+	})
+	flow.state.conversation = { running: false }
+	const view = reactive({ open: true })
+	const host = { render: () => (view.open ? h(Composer, { commands: [], mentions: false, imagesOnly: false }) : null) }
+	const { el } = mount(t, host, {}, flow)
+	const box = el.querySelector("textarea")
+	box.value = "first"
+	box.dispatchEvent(new window.Event("input"))
+	await nextTick()
+	el.querySelector("button[title='Send']").click()
+	await nextTick()
+
+	const input = el.querySelector("input[type=file]")
+	Object.defineProperty(input, "files", { value: [new window.File(["document"], "notes.pdf", { type: "application/pdf" })] })
+	input.dispatchEvent(new window.Event("change"))
+	await new Promise((resolve) => setImmediate(resolve))
+	view.open = false
+	await nextTick()
+	assert.deepEqual(discarded, ["F1"])
+})
+
+test("a file attached while a first message is out stays in the chat it creates, and a switch drops it", async (t) => {
+	const discarded = []
+	const flow = composerFlow({
+		send: () => new Promise(() => {}),
+		prepareAttachment: async (file) => ({ id: "F1", name: file.name, kind: "file" }),
+		discardAttachments: async (ids) => discarded.push(...ids),
+	})
+	flow.state.sessionId = null
+	flow.state.conversation = { running: false, sending: [] }
+	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
+	vm.prefill("first")
+	await nextTick()
+	el.querySelector("button[title='Send']").click()
+	await nextTick()
+	const input = el.querySelector("input[type=file]")
+	Object.defineProperty(input, "files", { value: [new window.File(["document"], "notes.pdf", { type: "application/pdf" })] })
+	input.dispatchEvent(new window.Event("change"))
+	await new Promise((resolve) => setImmediate(resolve))
+
+	// the store opens the chat the message created with the message still on its way
+	flow.state.conversation = { running: false, sending: [{ key: "sending:1" }] }
+	flow.state.sessionId = "new"
+	await nextTick()
+	assert.ok(el.textContent.includes("notes.pdf"))
+	assert.deepEqual(discarded, [])
+
+	flow.state.conversation = { running: false, sending: [] }
+	flow.state.sessionId = "other"
+	await nextTick()
+	assert.ok(!el.textContent.includes("notes.pdf"))
+	assert.deepEqual(discarded, ["F1"])
+})
+
 test("the composer retains an attachment draft when sending fails", async (t) => {
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
@@ -684,7 +768,7 @@ function preparingComposer(t) {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
 			prefs: { mode: "ask", lastModel: "GPT" }, sessionId: null, session: null, models: [], codeRefs: [],
-			quotes: [], queued: [], skills: [], conversation: { running: false }, draft: null,
+			quotes: [], queued: [], skills: [], conversation: { running: false, sending: [] }, draft: null,
 		}),
 		prepareAttachment(file, model) {
 			return new Promise((resolve, reject) => requests.push({ file, model, resolve, reject }))
@@ -716,6 +800,7 @@ test("attaching starts preparation before a session exists, and send waits for i
 	await nextTick()
 	assert.equal(sent.length, 0)
 	assert.equal(el.querySelector("textarea").value, "Read this")
+	assert.ok(el.querySelector("textarea").disabled) // it still holds the message going out
 	assert.ok(el.querySelector("button[title='Send'] .animate-spin"))
 	requests[0].resolve({ id: "F1", name: "notes.pdf", kind: "file" })
 	await new Promise((resolve) => setImmediate(resolve))
@@ -776,6 +861,7 @@ test("switching sessions while send waits for preparation does not send to the n
 	await new Promise((resolve) => setImmediate(resolve))
 	assert.equal(sent.length, 0)
 	assert.equal(el.querySelector("textarea").value, "Read this")
+	assert.ok(!el.textContent.includes("notes.pdf")) // a switch drops staged files, send or not
 })
 
 test("the message list's empty state is a slot", (t) => {
