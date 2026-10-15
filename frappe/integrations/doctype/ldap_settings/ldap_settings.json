@@ -3,6 +3,7 @@
  "creation": "2016-09-22 04:16:48.829658",
  "doctype": "DocType",
  "document_type": "System",
+ "documentation": "https://docs.frappe.io/framework/user/en/integration/ldap-integration",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

@@ -920,7 +920,9 @@ class TestServeUpload(IntegrationTestCase):
 
 	def test_private_files_route_needs_a_signature_or_permission(self):
 		from frappe.core.doctype.file.file_v2 import create_file_from_blob
+		from frappe.utils.logging import ensure_log_table, get_log_db
 
+		ensure_log_table("Access Log")
 		with flag_on(), frappe.storage.fake():
 			content = b"private route " + frappe.generate_hash(length=16).encode()
 			blob = put_blob(io.BytesIO(content), is_private=True, filename="report.txt")
@@ -933,8 +935,11 @@ class TestServeUpload(IntegrationTestCase):
 			create_file_from_blob(blob, "report.txt", is_private=True)
 			response = self.serve(url)
 			self.assertEqual(response_body(response), content)
+			# Access Log rows live in the site's SQLite log database
 			self.assertTrue(
-				frappe.db.exists("Access Log", {"reference_document": blob.name, "export_from": "File Blob"})
+				get_log_db().exists(
+					"Access Log", {"reference_document": blob.name, "export_from": "File Blob"}
+				)
 			)
 
 			frappe.set_user("Guest")

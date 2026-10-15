@@ -12,6 +12,7 @@ import frappe
 from frappe import _, bold, is_whitelisted
 from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, sbool, unique
@@ -129,6 +130,11 @@ def search_widget(
 			ignore_user_permissions = False
 
 	start = cint(start)
+	page_length = cint(page_length)
+
+	# get_link_options() sends 0 to mean "no limit", but `LIMIT 0` and values[0:0] below mean nothing
+	if page_length <= 0:
+		page_length = PAGE_LENGTH_FOR_LINK_VALIDATION
 
 	if isinstance(filters, str):
 		filters = json.loads(filters)
@@ -149,10 +155,11 @@ def search_widget(
 
 	if query:  # Query = custom search query i.e. python function
 		meta = frappe.get_meta(doctype)
-		# For translated doctypes, pass empty txt and a large page_length so the custom query
-		# returns all records without SQL-level text filtering; Python-level filtering against
-		# translated values is applied below.
+		# For translated doctypes, pass empty txt, no offset and a large page_length so the custom
+		# query returns all records without SQL-level text filtering or paging; Python-level
+		# filtering against translated values and paging are applied below.
 		query_txt = "" if meta.translated_doctype else txt
+		query_start = 0 if meta.translated_doctype else start
 		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
 
 		if sbool(query_filters_as_dict) and isinstance(filters, list):
@@ -163,12 +170,14 @@ def search_widget(
 
 		try:
 			is_whitelisted(frappe.get_attr(query))
+			# guarded by is_whitelisted above
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 			values = frappe.call(
 				query,
 				doctype,
 				query_txt,
 				searchfield,
-				start,
+				query_start,
 				query_page_length,
 				filters,
 				as_dict=as_dict,
@@ -193,8 +202,9 @@ def search_widget(
 		if not for_link_validation:
 			if meta.translated_doctype:
 				values = filter_translated(values, txt, as_dict)
-				values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-				values = values[:page_length]
+				if txt:
+					values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+				values = values[start : start + page_length]
 
 		return values
 
@@ -288,7 +298,8 @@ def search_widget(
 		filters=filters,
 		fields=formatted_fields,
 		or_filters=or_filters,
-		limit_start=start,
+		# translated doctypes are matched and paged in Python below, so the whole set is fetched
+		limit_start=0 if meta.translated_doctype else start,
 		limit_page_length=None if meta.translated_doctype else page_length,
 		order_by=order_by,
 		ignore_permissions=doctype == "DocType",
@@ -305,7 +316,11 @@ def search_widget(
 		# Sorting the values array so that relevant results always come first
 		# This will first bring elements on top in which query is a prefix of element
 		# Then it will bring the rest of the elements and sort them in lexicographical order
-		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+		if txt:
+			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+
+		if meta.translated_doctype:
+			values = values[start : start + page_length]
 
 		# remove _relevance from results
 		if add_relevance:
@@ -438,6 +453,7 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 		for item in res:
 			item = list(item)
 			if len(item) == 1:
+				title_value = None
 				title_field = meta.title_field
 				docfield = meta.get_field(title_field)
 				if docfield and docfield.is_virtual:
@@ -489,8 +505,16 @@ def filter_translated(values, txt: str, as_dict: bool) -> list:
 	]
 
 
+MAX_MENTIONS_PAGE_LENGTH = 20
+
+
 @frappe.whitelist()
-def get_names_for_mentions(search_term: str):
+def get_names_for_mentions(search_term: str, page_length: int = 10):
+	if not search_term or not search_term.strip():
+		return []
+
+	page_length = min(max(cint(page_length), 1), MAX_MENTIONS_PAGE_LENGTH)
+
 	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
 	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
 
@@ -505,7 +529,7 @@ def get_names_for_mentions(search_term: str):
 
 		filtered_mentions.append(mention_data)
 
-	return sorted(filtered_mentions, key=lambda d: d["value"])
+	return sorted(filtered_mentions, key=lambda d: d["value"])[:page_length]
 
 
 def get_users_for_mentions():
@@ -599,8 +623,9 @@ def get_link_title(doctype: str, docname: str | int):
 	if meta.show_title_field_in_link:
 		try:
 			doc = frappe.get_lazy_doc(doctype, docname)
-			doc.check_permission()
-			return doc.get(meta.title_field)
+			is_title_permitted = meta.title_field in get_permitted_fields(doctype)
+			if is_title_permitted and has_permission(doctype, "select", doc, print_logs=False):
+				return doc.get(meta.title_field)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 

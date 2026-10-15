@@ -55,7 +55,10 @@ export function subscribeToDoc(
   // Doctypes and docnames both allow spaces, so a delimited key is ambiguous.
   const key = JSON.stringify([doctype, docname]);
   const room = rooms.get(key) ?? { doctype, docname, holders: 0 };
-  if (room.holders === 0) socket.emit("doc_subscribe", doctype, docname);
+  if (room.holders === 0) {
+    watchReconnect(socket);
+    socket.emit("doc_subscribe", doctype, docname);
+  }
   room.holders += 1;
   rooms.set(key, room);
 
@@ -68,6 +71,16 @@ export function subscribeToDoc(
     rooms.delete(key);
     socket.emit("doc_unsubscribe", doctype, docname);
   };
+}
+
+// The rooms are this module's, so rejoining them is too: one listener for the table,
+// rather than one per consumer each rejoining every room in it. `connect` also fires on
+// the first connect, where re-joining a room we are already in costs nothing.
+let watchingReconnect = false;
+function watchReconnect(socket: RealtimeSocket) {
+  if (watchingReconnect) return;
+  watchingReconnect = true;
+  socket.on("connect", () => resubscribeHeldDocs(socket));
 }
 
 /** Rejoins every held room, for a reconnect that dropped the server's membership. */

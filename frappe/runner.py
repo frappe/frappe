@@ -338,6 +338,18 @@ class ThreadedWorker(FrappeWorkerNoFork):
 		pass
 
 
+def close_inherited_fds() -> None:
+	"""Close the descriptors of this generation, except the standard streams.
+
+	An exec keeps every descriptor that does not have the close-on-exec flag, and
+	some libraries open a file without it: the import of ctypes leaves one on the
+	interpreter itself. The runner execs on each restart, so those descriptors add
+	up until the process reaches its limit. The supervisor owns the standard
+	streams, thus they stay.
+	"""
+	os.closerange(3, os.sysconf("SC_OPEN_MAX"))
+
+
 class Runner:
 	"""Starts, stops, and restarts the web app, realtime, and the jobs together."""
 
@@ -375,6 +387,7 @@ class Runner:
 			# Use orig_argv and not argv: "-m frappe.runner" must come back in the same
 			# form. The path of this file puts the frappe directory on sys.path.
 			logger.info("re-exec")
+			close_inherited_fds()
 			os.execv(sys.executable, sys.orig_argv)
 
 	def drain(self, sig, frame=None) -> None:

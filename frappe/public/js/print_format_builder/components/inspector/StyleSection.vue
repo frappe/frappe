@@ -2,16 +2,13 @@
 	<div class="pfb-style-body">
 		<span v-if="label" class="pfb-style-label">{{ label }}</span>
 		<textarea
-			class="pfb-insp-input pfb-style-input"
+			class="form-control form-control-sm pfb-style-input"
 			rows="4"
 			spellcheck="false"
 			:placeholder="'border: 1px solid #e5e7eb;\npadding: 6px;'"
 			:value="modelValue"
 			@input="$emit('update:modelValue', $event.target.value)"
 		></textarea>
-		<p class="pfb-insp-hint text-muted">
-			{{ __("CSS declarations applied inline, e.g.") }} <code>color: #1a5fb4;</code>
-		</p>
 	</div>
 </template>
 
@@ -25,7 +22,7 @@ defineEmits(["update:modelValue"]);
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	padding: 4px 14px 12px;
+	padding: 4px 16px 16px;
 }
 
 .pfb-style-label {
@@ -34,9 +31,8 @@ defineEmits(["update:modelValue"]);
 }
 
 .pfb-style-input {
-	width: 100%;
-	font-family: var(--monospace-font-family, monospace);
-	font-size: var(--text-sm);
+	height: auto;
+	font-family: var(--font-family-monospace);
 	line-height: 1.5;
 	resize: vertical;
 	min-height: 60px;

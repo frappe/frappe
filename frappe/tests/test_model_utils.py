@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-from random import choice
 
 import frappe
 from frappe.model import core_doctypes_list, get_permitted_fields, is_default_field
@@ -39,12 +38,15 @@ class TestModelUtils(IntegrationTestCase):
 			guest_permitted_fields = get_permitted_fields("ToDo")
 			self.assertNotIn("description", guest_permitted_fields)
 
-		# everyone should have access to all fields of core doctypes
+		# everyone should have access to all fields of core doctypes, except User
 		with set_user("Guest"):
-			picked_doctype = choice(core_doctypes_list)
-			core_permitted_fields = get_permitted_fields(picked_doctype)
-			picked_doctype_all_columns = frappe.get_meta(picked_doctype).get_valid_columns()
-			self.assertSequenceEqual(core_permitted_fields, picked_doctype_all_columns)
+			for doctype in core_doctypes_list:
+				if doctype == "User":
+					continue
+				with self.subTest(doctype=doctype):
+					all_columns = frappe.get_meta(doctype).get_valid_columns()
+					self.assertSequenceEqual(get_permitted_fields(doctype), all_columns)
+			self.assertNotIn("email", get_permitted_fields("User"))
 
 		# access to child tables' fields is restricted to no fields unless parent is passed & permitted
 		with set_user("Administrator"):

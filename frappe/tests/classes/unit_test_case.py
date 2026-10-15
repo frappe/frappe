@@ -105,7 +105,7 @@ class UnitTestCase(unittest.TestCase, BaseTestCase):
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
-		if frappe.db.db_type == "postgres":
+		if frappe.db.db_type in {"postgres", "sqlite"}:
 			query = query.replace("`", '"')
 		return sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True)
 

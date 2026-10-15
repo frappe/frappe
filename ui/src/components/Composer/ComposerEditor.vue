@@ -20,11 +20,10 @@
 				>
 					<slot name="top" />
 
-					<EditorBubbleMenu :items="commentToolbar" />
 					<EditorTableMenu />
 
 					<div
-						class="flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
+						class="composer-body flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
 					>
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-4 [&_p.reply-to-content]:hidden"
@@ -42,7 +41,7 @@
 							@toggle="onQuoteToggle"
 						>
 							<summary
-								class="w-fit cursor-pointer select-none rounded px-1 text-sm font-bold leading-[1.15] text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
+								class="w-fit cursor-pointer select-none rounded-4 px-1 text-sm font-bold leading-[1.15] text-ink-gray-5 bg-surface-gray-2 list-none [&::-webkit-details-marker]:hidden"
 							>
 								•••
 							</summary>
@@ -56,37 +55,48 @@
 					</div>
 
 					<div class="mt-auto">
-						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2 px-2.5">
-							<Button
-								v-for="attachment in attachments"
-								:key="attachment.file_url"
-								theme="gray"
-								variant="subtle"
-								:label="attachment.file_name"
-								:title="attachment.file_name"
-								class="min-w-0 max-w-36"
+						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2">
+							<slot
+								name="attachments"
+								v-bind="{ attachments, remove: removeAttachment }"
 							>
-								<template #prefix>
-									<component
-										:is="attachmentIcon(attachment)"
-										class="size-3.5 shrink-0"
-									/>
-								</template>
-								<template #suffix>
-									<span
-										class="lucide-x size-3.5 cursor-pointer shrink-0"
-										@click.self.stop="removeAttachment(attachment)"
-									/>
-								</template>
-							</Button>
+								<Button
+									v-for="attachment in attachments"
+									:key="attachment.file_url"
+									theme="gray"
+									variant="outline"
+									:label="attachment.file_name"
+									:title="attachment.file_name"
+									class="min-w-0 max-w-36"
+								>
+									<template #prefix>
+										<component
+											:is="attachmentIcon(attachment)"
+											class="size-3.5 shrink-0"
+										/>
+									</template>
+									<template #suffix>
+										<span
+											class="lucide-x size-3.5 cursor-pointer shrink-0"
+											@click.self.stop="removeAttachment(attachment)"
+										/>
+									</template>
+								</Button>
+							</slot>
 						</div>
 
+						<!-- Host content pinned above the utilities row, e.g. actions staged for send. -->
+						<slot name="footer" />
+
 						<div class="flex items-center justify-between gap-2 px-2.5 pb-2.5">
-							<div class="relative -ml-1.5 overflow-hidden" style="max-width: 70%">
+							<!-- Starts 8px into the gutter: 6px is the sm icon inset, which puts
+							     the first glyph's box on the body text edge, and 2px absorb the
+							     glyph's own side bearing so its ink lines up with the text ink. -->
+							<div class="relative -ml-3.5 overflow-hidden" style="max-width: 70%">
 								<!-- p-0.5 keeps button focus rings from being clipped by overflow-x-auto. -->
 								<div
 									ref="toolbarScroller"
-									class="ml-1 flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+									class="ml-[3px] flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 								>
 									<Button
 										v-if="uploadFunction"
@@ -95,15 +105,15 @@
 										:icon="LucidePaperclip"
 										aria-label="Attach file"
 										class="shrink-0"
-										:disabled="
-											isUploading || attachments.length >= maxAttachments
-										"
+										:loading="isUploading"
+										:disabled="attachments.length >= maxAttachments"
 										@click="attachInput?.click()"
 									/>
 									<input
 										ref="attachInput"
 										type="file"
 										class="hidden"
+										:accept="allowedFileTypes?.join(',')"
 										@change="onAttachPicked"
 									/>
 									<slot
@@ -141,12 +151,16 @@
 									"
 								/>
 							</div>
-							<div class="flex shrink-0 items-center gap-2">
+							<div class="-mr-2 flex shrink-0 items-center gap-2">
 								<Button v-if="!isEmpty" label="Discard" @click="reset" />
+								<!-- The spinner trails the label; Button's own `loading` would lead it. -->
 								<Button
 									variant="solid"
 									:label="submitLabel"
 									:disabled="isDisabled"
+									:icon-right="submitting ? Spinner : undefined"
+									:class="{ 'pointer-events-none': submitting }"
+									:aria-busy="submitting || undefined"
 									@click="submit"
 								/>
 							</div>
@@ -161,7 +175,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useScroll } from "@vueuse/core";
-import { Button, toast } from "frappe-ui";
+import { Button, Spinner, toast } from "frappe-ui";
 import LucideFile from "~icons/lucide/file";
 import LucideFileArchive from "~icons/lucide/file-archive";
 import LucideFileAudio from "~icons/lucide/file-audio";
@@ -174,11 +188,9 @@ import LucidePaperclip from "~icons/lucide/paperclip";
 import {
 	Editor,
 	EditorContent,
-	EditorBubbleMenu,
 	EditorFixedMenu,
 	EditorTableMenu,
 	RichTextKit,
-	commentToolbar,
 	Paragraph,
 	H2,
 	H3,
@@ -201,6 +213,7 @@ import {
 	InsertTable,
 } from "frappe-ui/editor";
 import { sanitizeHtml } from "../../utils/sanitize";
+import { isAllowedType } from "../FileUpload/useUploader";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
 
 const emailToolbar = [
@@ -250,7 +263,7 @@ const { arrivedState: toolbarArrived } = useScroll(toolbarScroller);
 
 const mentionItems = computed(() =>
 	(props.mentions ?? []).map((option) => ({
-		id: option.value,
+		value: option.value,
 		label: option.label,
 	}))
 );
@@ -384,6 +397,11 @@ async function onAttachPicked(event: Event) {
 	// Reset so picking the same file again still fires `change`.
 	input.value = "";
 	if (!file || !props.uploadFunction) return;
+	// `accept` only filters the picker, which the user can switch to all files.
+	if (props.allowedFileTypes && !isAllowedType(file, props.allowedFileTypes)) {
+		toast.error(`"${file.name}" was skipped — file type not allowed.`);
+		return;
+	}
 	const epoch = uploadEpoch;
 	isUploading.value = true;
 	try {
@@ -428,8 +446,10 @@ function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
 }
 
+// The shortcut reaches here directly, so the in-flight guard has to live here
+// too, not only on the button.
 function submit() {
-	if (isDisabled.value) return;
+	if (isDisabled.value || props.submitting) return;
 	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
@@ -450,3 +470,13 @@ function reset() {
 
 defineExpose({ editor, focus, reset, submit });
 </script>
+
+<style scoped>
+/* The body scrolls straight into the toolbar with no separator, so a scrolled
+   line would be sliced at the toolbar edge. Fade the bottom 18px instead; the
+   body's own bottom padding keeps the last line clear of it at the scroll end. */
+.composer-body {
+	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+}
+</style>

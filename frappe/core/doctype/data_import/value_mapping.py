@@ -40,17 +40,17 @@ def normalize_source_value(value) -> str:
 def build_lookup_from_mappings(
 	mappings: list, reference_doctype: str | None = None
 ) -> dict[str, dict[str, str]]:
-	"""Build nested lookup ``{field_key: {source_value: target_value}}`` from child-table rows.
-
-	Used at import time for O(1) per-cell remapping. Rows with empty source or target are skipped.
-	Later rows for the same field + source overwrite earlier ones.
-	"""
+	"""Build nested lookup {field_key: {source_value: target_value}}; skip empty source/target.
+	Later rows for the same field + source overwrite earlier ones."""
 	lookup: dict[str, dict[str, str]] = {}
 	for row in mappings:
 		row = frappe._dict(row)
 		# Resolve DocType: explicit on row, else caller default, else child-table parenttype.
 		ref = row.reference_doctype or reference_doctype or row.parenttype
 		source, target = normalize_source_value(row.source_value), (row.target_value or "").strip()
+		if wants_new_record(row):
+			# created under its own name when the import runs
+			target = source
 		# Ignore incomplete mappings — they must not block or remap anything.
 		if not (ref and row.fieldname and source and target):
 			continue
@@ -68,9 +68,70 @@ def build_lookup_for_data_import(
 	rows = frappe.get_all(
 		"Data Import Value Mapping",
 		filters={"parent": data_import_name},
-		fields=["fieldname", "parent_field", "source_value", "target_value"],
+		fields=["fieldname", "parent_field", "source_value", "target_value", "create_new", "can_create"],
 	)
 	return build_lookup_from_mappings(rows, reference_doctype)
+
+
+def get_create_field(doctype: str) -> str | None:
+	"""Field a ``doctype`` record is named by when one can be made from a file value alone, else None.
+
+	Only doctypes named by a field, with no other required field lacking a default,
+	that the user may create.
+	"""
+	from frappe.model import no_value_fields
+
+	meta = frappe.get_meta(doctype)
+	if meta.issingle or meta.istable or not (meta.autoname or "").startswith("field:"):
+		return None
+	fieldname = meta.autoname[len("field:") :].strip()
+	for df in meta.fields:
+		if (
+			df.reqd
+			and df.fieldname != fieldname
+			and df.default in INVALID_VALUES
+			and df.fieldtype not in no_value_fields
+		):
+			return None
+	if not frappe.has_permission(doctype, "create"):
+		return None
+	return fieldname
+
+
+def wants_new_record(row) -> bool:
+	"""The user chose to create the missing Link record and mapped the value to nothing else."""
+	return not (row.target_value or "").strip() and bool(cint(row.create_new) and cint(row.can_create))
+
+
+def create_missing_link_records(data_import) -> None:
+	"""Insert the Link records the user chose to create, before any row is imported.
+
+	A record that fails to insert is left out; its rows then fail with the usual link error.
+	A record whose rows are all skipped is not made.
+	"""
+	skipped_rows = get_skipped_row_numbers(data_import)
+	for row in data_import.get("value_mappings") or []:
+		if not wants_new_record(row) or all_rows_skipped(row, skipped_rows):
+			continue
+		value = normalize_source_value(row.source_value)
+		fieldname = get_create_field(row.link_doctype)
+		if not fieldname or frappe.db.exists(row.link_doctype, value):
+			continue
+		try:
+			frappe.get_doc({"doctype": row.link_doctype, fieldname: value}).insert()
+			frappe.db.commit()
+		except Exception:
+			frappe.db.rollback()
+			frappe.clear_messages()
+			frappe.logger("data_import").error(
+				f"Data Import {data_import.name}: could not create {row.link_doctype} {value}",
+				exc_info=True,
+			)
+
+
+def all_rows_skipped(row, skipped_rows: set[int]) -> bool:
+	row_numbers = {cint(n) for n in frappe.parse_json(row.row_numbers or "[]")}
+	return bool(row_numbers) and row_numbers <= skipped_rows
 
 
 def get_skipped_row_numbers(data_import) -> set[int]:
@@ -170,12 +231,7 @@ def get_unmapped_invalid_values_for_column(
 
 
 def get_blocking_warnings(warnings: list, import_file, data_import=None) -> list:
-	"""Filter template warnings to those that should prevent import from starting.
-
-	Info warnings are ignored. ``value_mapping`` warnings stay only while unmapped invalid values
-	remain; fully mapped columns keep their warning for display but no longer block import.
-	Row warnings for user-skipped rows are ignored.
-	"""
+	"""Filter template warnings to those that should block the import."""
 	cols = {c.column_number: c for c in import_file.header.columns}
 	skipped_rows = get_skipped_row_numbers(data_import)
 	blocking = []
@@ -191,6 +247,11 @@ def get_blocking_warnings(warnings: list, import_file, data_import=None) -> list
 			):
 				blocking.append(warning)
 			continue
+		# Duplicate IDs are non-blocking when every duplicate but the first is skipped.
+		if warning.get("type") == "duplicate_id" and skipped_rows:
+			rows = warning.get("rows") or []
+			if len(rows) > 1 and all(cint(row) in skipped_rows for row in rows[1:]):
+				continue
 		blocking.append(warning)
 	return blocking
 
@@ -214,6 +275,7 @@ def get_mapping_hints(import_file, reference_doctype: str, lookup: dict) -> dict
 		field_map = get_field_map(col, lookup, reference_doctype)
 		parent_field = get_parent_field(col.df) or ""
 		select_options = get_select_options(col.df) if col.df.fieldtype == "Select" else []
+		can_create = col.df.fieldtype == "Link" and bool(get_create_field(col.df.options))
 
 		hints[cstr(col.column_number)] = [
 			{
@@ -223,6 +285,7 @@ def get_mapping_hints(import_file, reference_doctype: str, lookup: dict) -> dict
 				"fieldtype": col.df.fieldtype,
 				"link_doctype": col.df.options if col.df.fieldtype == "Link" else None,
 				"select_options": select_options,
+				"can_create": can_create,
 				"source_value": item["source"],
 				"rows": item["rows"],
 				"target_value": field_map.get(normalize_source_value(item["source"])),
@@ -264,8 +327,9 @@ def warn_invalid_link_select_values(col) -> None:
 		lines.append(line)
 
 	if col.df.fieldtype == "Select" and options_string and lines:
+		# Put 'Allowed:' on its own line so it doesn't run into the row list.
 		allowed = _("Allowed: {0}").format(frappe.bold(options_string))
-		lines[-1] = f"{lines[-1]} · {allowed}"
+		lines[-1] = f"{lines[-1]}<br><span class='text-muted'>{allowed}</span>"
 
 	message = "<br>".join(lines)
 	col.warnings.append({"col": col.column_number, "message": message, "type": "value_mapping"})
@@ -276,7 +340,7 @@ def mapping_row_key(row) -> str:
 	return f"{row.get('column')}|{row.get('fieldname')}|{row.get('parent_field') or ''}|{row.get('source_value')}"
 
 
-def no_of_rows_count(rows: list) -> str:
+def row_count_label(rows: list) -> str:
 	"""Row count for the Value Mappings grid (actual row numbers live in ``row_numbers``)."""
 	if not rows:
 		return ""
@@ -300,10 +364,12 @@ def child_row_from_hint(item: dict, columns: dict) -> dict:
 		"fieldtype": item.fieldtype,
 		"link_doctype": item.link_doctype,
 		"select_options": "\n".join(select_options) if select_options else "",
+		"can_create": 1 if item.can_create else 0,
+		"create_new": 0,
 		"source_value": item.source_value,
 		"target_value": item.target_value or "",
 		"row_numbers": json.dumps(rows),
-		"no_of_rows": no_of_rows_count(rows),
+		"no_of_rows": row_count_label(rows),
 	}
 
 
@@ -322,15 +388,15 @@ def sync_value_mappings(doc, import_file, lookup: dict | None = None) -> bool:
 			return True
 		return False
 
-	existing_targets = {
-		mapping_row_key(row): (row.target_value or "").strip() for row in (doc.get("value_mappings") or [])
-	}
+	existing = {mapping_row_key(row): row for row in (doc.get("value_mappings") or [])}
 	new_rows = []
 	for item in items:
 		key = mapping_row_key(item)
 		data = child_row_from_hint(item, columns)
-		target_value = existing_targets.get(key) or (item.get("target_value") or "")
-		data["target_value"] = target_value
+		row = existing.get(key)
+		if row:
+			data["target_value"] = (row.target_value or "").strip()
+			data["create_new"] = cint(row.create_new) if data["can_create"] else 0
 		new_rows.append(data)
 
 	current_rows = [
@@ -343,6 +409,8 @@ def sync_value_mappings(doc, import_file, lookup: dict | None = None) -> bool:
 			"fieldtype": row.fieldtype,
 			"link_doctype": row.link_doctype,
 			"select_options": row.select_options,
+			"can_create": cint(row.can_create),
+			"create_new": cint(row.create_new),
 			"target_value": row.target_value or "",
 			"row_numbers": row.row_numbers,
 			"no_of_rows": row.no_of_rows,

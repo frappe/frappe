@@ -9,7 +9,13 @@ from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
 from frappe.desk.query_report import _run
-from frappe.desk.reportview import DEFAULT_AGGREGATE_FIELDNAME, append_totals_row, get_aggregate_field_info
+from frappe.desk.reportview import (
+	DEFAULT_AGGREGATE_FIELDNAME,
+	append_totals_row,
+	get_aggregate_field_info,
+	get_aggregate_fieldname,
+	normalize_group_by_settings,
+)
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
@@ -146,7 +152,7 @@ class Report(Document):
 				roles = [{"role": d.role} for d in meta.permissions if d.permlevel == 0]
 				self.set("roles", roles)
 
-	def is_permitted(self):
+	def is_permitted(self, user=None):
 		"""Return True if `Has Role` is not set or the user is allowed."""
 		from frappe.utils import has_common
 
@@ -160,7 +166,7 @@ class Report(Document):
 		if not allowed:
 			return True
 
-		if has_common(frappe.get_roles(), allowed):
+		if has_common(frappe.get_roles(user), allowed):
 			return True
 
 	def update_report_json(self):
@@ -188,9 +194,12 @@ class Report(Document):
 		check_safe_sql_query(self.query)
 
 		frappe.db.begin(read_only=True)
-		result = [list(t) for t in frappe.db.sql(self.query, filters)]
-		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
-		frappe.db.rollback()
+		try:
+			result = [list(t) for t in frappe.db.sql(self.query, filters)]
+			columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		finally:
+			# a raised query would leave the transaction open, blocking every later write
+			frappe.db.rollback()
 
 		return [columns, result]
 
@@ -198,13 +207,15 @@ class Report(Document):
 		# save the timestamp to automatically set to prepared
 		threshold = 15
 
+		executed_report = self.get("custom_report") or self.name
+
 		start_time = datetime.datetime.now()
 		prepared_report_watcher = None
 		if not self.prepared_report and not self.disable_prepared_report_automation:
 			prepared_report_watcher = threading.Timer(
 				interval=threshold,
 				function=enable_prepared_report,
-				kwargs={"report": self.name, "site": frappe.local.site},
+				kwargs={"report": executed_report, "site": frappe.local.site},
 			)
 			prepared_report_watcher.start()
 
@@ -222,7 +233,7 @@ class Report(Document):
 
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 
-		frappe.cache.hset("report_execution_time", self.name, execution_time)
+		frappe.cache.hset("report_execution_time", executed_report, execution_time)
 
 		return res
 
@@ -314,16 +325,15 @@ class Report(Document):
 		params = json.loads(self.json)
 		columns = self.get_standard_report_columns(params)
 		result = []
-		order_by, group_by, group_by_args = self.get_standard_report_order_by(params)
+		order_by, group_by, aggregate_fields = self.get_standard_report_order_by(params)
 
+		fields = [
+			aggregate_fields.get(fieldname) or Report._format([doctype, fieldname])
+			for fieldname, doctype in columns
+		]
 		_result = frappe.get_list(
 			self.ref_doctype,
-			fields=[
-				get_group_by_field(group_by_args)
-				if fieldname == DEFAULT_AGGREGATE_FIELDNAME and group_by_args
-				else Report._format([doctype, fieldname])
-				for fieldname, doctype in columns
-			],
+			fields=fields,
 			filters=self.get_standard_report_filters(params, filters),
 			order_by=order_by,
 			group_by=group_by,
@@ -332,12 +342,12 @@ class Report(Document):
 			user=user,
 		)
 
-		columns = self.build_standard_report_columns(columns, group_by_args)
+		columns = self.build_standard_report_columns(columns, aggregate_fields, group_by)
 
 		result = result + [list(d) for d in _result]
 
 		if params.get("add_totals_row"):
-			result = append_totals_row(result)
+			result = append_totals_row(result, fields)
 
 		return columns, result
 
@@ -376,7 +386,7 @@ class Report(Document):
 		return _filters
 
 	def get_standard_report_order_by(self, params):
-		group_by_args = None
+		aggregate_fields = {}
 		if params.get("sort_by"):
 			order_by = Report._format(params.get("sort_by").split(".")) + " " + params.get("sort_order")
 
@@ -395,13 +405,17 @@ class Report(Document):
 
 		group_by = None
 		if params.get("group_by"):
-			group_by_args = frappe._dict(params["group_by"])
-			group_by = group_by_args["group_by"]
+			group_by_settings = normalize_group_by_settings(params["group_by"])
+			group_by = ", ".join(group_by_settings["group_by"])
+			aggregate_fields = {
+				get_aggregate_fieldname(i): get_group_by_field(aggregate, get_aggregate_fieldname(i))
+				for i, aggregate in enumerate(group_by_settings["aggregates"])
+			}
 			order_by = f"{DEFAULT_AGGREGATE_FIELDNAME} desc"
 
-		return order_by, group_by, group_by_args
+		return order_by, group_by, aggregate_fields
 
-	def build_standard_report_columns(self, columns, group_by_args):
+	def build_standard_report_columns(self, columns, aggregate_fields, group_by):
 		from frappe.model.meta import get_default_df
 
 		report_columns = []
@@ -422,8 +436,8 @@ class Report(Document):
 					column.fieldtype = "Link"
 					column.options = doctype
 			else:
-				if fieldname == DEFAULT_AGGREGATE_FIELDNAME:
-					column = get_group_by_column_field(group_by_args, doctype)
+				if fieldname in aggregate_fields:
+					column = get_aggregate_field_info(aggregate_fields[fieldname], doctype, group_by)
 				else:
 					column = frappe._dict(
 						fieldname=fieldname,
@@ -460,17 +474,11 @@ class Report(Document):
 		pf = frappe.db.get_value(
 			"Print Format",
 			self.default_print_format,
-			["report", "print_format_for", "print_format_type", "disabled"],
+			["report", "print_format_for", "disabled"],
 			as_dict=True,
 		)
 
-		if (
-			not pf
-			or pf.report != self.name
-			or pf.print_format_for != "Report"
-			or pf.print_format_type != "JS"
-			or pf.disabled
-		):
+		if not pf or pf.report != self.name or pf.print_format_for != "Report" or pf.disabled:
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
 	def validate_default_letter_head(self):
@@ -532,23 +540,14 @@ def get_report_module_dotted_path(module, report_name):
 	)
 
 
-def get_group_by_field(group_by_args: dict) -> dict:
+def get_group_by_field(group_by_args: dict, fieldname: str = DEFAULT_AGGREGATE_FIELDNAME) -> dict:
 	"""
 	Build the group by field based on the aggregate function and aggregate on field.
 	"""
 	func_name = group_by_args["aggregate_function"].upper()
 	aggregate_on = "*" if func_name == "COUNT" else group_by_args["aggregate_on"]
 
-	return {func_name: aggregate_on, "as": DEFAULT_AGGREGATE_FIELDNAME}
-
-
-def get_group_by_column_field(group_by_args: dict, parent_doctype: str) -> dict:
-	"""
-	Build full field info (fieldname, label, fieldtype, options) for the aggregate column.
-	"""
-	field = get_group_by_field(group_by_args)
-
-	return get_aggregate_field_info(field, parent_doctype)
+	return {func_name: aggregate_on, "as": fieldname}
 
 
 def enable_prepared_report(report: str, site: str):
@@ -560,19 +559,69 @@ def enable_prepared_report(report: str, site: str):
 
 
 def get_permission_query_conditions(user=None):
-	"""Hide Postgres-only diagnostic reports (named with a "Postgres " prefix) from the report
-	list on other database backends, where they raise instead of running."""
+	"""Hide reports whose Has Role table is set but does not include any role held by the
+	current user — mirroring the gate applied on the run path by get_report_doc()."""
+	user = user or frappe.session.user
+	user_roles = frappe.get_roles(user)
+	escaped_roles = ", ".join(frappe.db.escape(r) for r in user_roles)
+
 	if frappe.db.db_type == "postgres":
-		return None
-	# substr comparison, not LIKE 'Postgres %': a literal % in a permission condition is read as a
-	# printf placeholder when the list query is parameterized, raising "not enough arguments".
-	return "substr(`tabReport`.`name`, 1, 9) != 'Postgres '"
+		role_condition = f"""(
+			EXISTS (
+				SELECT 1 FROM "tabCustom Role" cr
+				JOIN "tabHas Role" hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+				WHERE cr.report = "tabReport"."name" AND hr.role IN ({escaped_roles})
+			)
+			OR (
+				NOT EXISTS (
+					SELECT 1 FROM "tabCustom Role" cr
+					JOIN "tabHas Role" hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+					WHERE cr.report = "tabReport"."name"
+				)
+				AND (
+					NOT EXISTS (
+						SELECT 1 FROM "tabHas Role"
+						WHERE "parenttype" = 'Report' AND "parent" = "tabReport"."name"
+					)
+					OR EXISTS (
+						SELECT 1 FROM "tabHas Role"
+						WHERE "parenttype" = 'Report' AND "parent" = "tabReport"."name"
+						AND "role" IN ({escaped_roles})
+					)
+				)
+			)
+		)"""
+		return role_condition
+
+	role_condition = f"""(
+		EXISTS (
+			SELECT 1 FROM `tabCustom Role` cr
+			JOIN `tabHas Role` hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+			WHERE cr.report = `tabReport`.`name` AND hr.role IN ({escaped_roles})
+		)
+		OR (
+			NOT EXISTS (
+				SELECT 1 FROM `tabCustom Role` cr
+				JOIN `tabHas Role` hr ON hr.parent = cr.name AND hr.parenttype = 'Custom Role'
+				WHERE cr.report = `tabReport`.`name`
+			)
+			AND (
+				NOT EXISTS (
+					SELECT 1 FROM `tabHas Role`
+					WHERE `parenttype` = 'Report' AND `parent` = `tabReport`.`name`
+				)
+				OR EXISTS (
+					SELECT 1 FROM `tabHas Role`
+					WHERE `parenttype` = 'Report' AND `parent` = `tabReport`.`name`
+					AND `role` IN ({escaped_roles})
+				)
+			)
+		)
+	)"""
+	return role_condition
 
 
 def has_permission(doc, ptype=None, user=None, debug=False):
-	"""Deny document-level access to a Postgres-only report on other backends. Running the report
-	is separately guarded by its execute() raising on non-Postgres. Case-insensitive to match the
-	report list's SQL filter under MariaDB's case-insensitive collation."""
-	if frappe.db.db_type != "postgres" and doc.name and doc.name.lower().startswith("postgres "):
+	if ptype in ("read", "report") and not doc.is_permitted(user):
 		return False
 	return True

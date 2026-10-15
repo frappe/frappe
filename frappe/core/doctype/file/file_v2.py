@@ -71,6 +71,7 @@ class FileV2(File):
 		# standard write path too, not only in finish_upload
 		validate_upload(blob, self.file_name)
 		self.blob = blob.name
+		self.flags.stored_blob = blob.name
 		self.file_size = blob.file_size
 		self.set_blob_file_url(blob)
 		return {"file_name": self.file_name, "file_url": self.file_url}
@@ -81,10 +82,15 @@ class FileV2(File):
 		self.flags.pop("new_file", None)
 
 	def before_save(self):
-		# A File subclass may override validate() without calling super()
-		# for existing rows (Drive's override does). Re-assert the blob
-		# privacy invariant here: a blob-backed File must point at a blob
-		# in its own privacy namespace.
+		super().before_save()
+		self.enforce_blob_privacy()
+
+	def enforce_blob_privacy(self):
+		"""Point a blob-backed File at a blob in its own privacy namespace.
+
+		A File subclass may override validate() without calling super()
+		for existing rows (Drive's override does), so this runs from
+		before_save."""
 		if self.is_folder or self.is_new() or not self.get("blob"):
 			return
 		blob_is_private = frappe.db.get_value("File Blob", self.blob, "is_private")
@@ -122,6 +128,7 @@ class FileV2(File):
 				filename=self.file_name,
 			)
 		self.blob = new_blob.name
+		self.flags.stored_blob = new_blob.name
 		self.set_blob_file_url(new_blob)
 
 	def adopt_blob_from_file_url(self):
@@ -159,8 +166,10 @@ class FileV2(File):
 			return
 
 		if self.get("blob"):
-			# the path derives from the blob key; the driver rejects keys
-			# that escape the files directory
+			# the bytes come from the blob key, which the driver confines to
+			# the files directory; file_url is still served and looked up
+			if self.file_url and ".." in self.file_url.split("/"):
+				frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
 			return
 
 		FileV1.validate_file_path(self)  # compat shim: unbackfilled legacy row

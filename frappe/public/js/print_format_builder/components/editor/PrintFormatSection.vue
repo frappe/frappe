@@ -1,32 +1,22 @@
 <template>
 	<div
+		ref="root"
 		class="print-format-section-container"
+		:title="hidden_reason"
 		data-pfb-section
 		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
-			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'section-container--condition-hidden':
+				preview_doc && (!is_section_visible || !has_content),
 			'pfb-section-active': is_selected,
 			'pfb-layer-hover': store.hovered_node.value === section,
+			'section--preview': !!preview_doc,
 		}"
 		@click.stop="select_section"
-		@contextmenu="on_context_menu"
 		@mouseenter="store.hovered_section.value = section"
 		@mouseleave="store.hovered_section.value = null"
 	>
-		<!-- Top-right actions pill shown on hover in clean-preview (toolbar is hidden) -->
-		<div v-if="!is_header" class="section-preview-actions">
-			<div
-				class="drag-handle section-drag-handle"
-				v-html="frappe.utils.icon('grip', 'xs')"
-			></div>
-			<SectionActions
-				:section="section"
-				size="xs"
-				@snippet="save_as_snippet"
-				@remove="remove_section"
-			/>
-		</div>
 		<div
 			class="print-format-section"
 			:class="{
@@ -64,7 +54,6 @@
 						v-if="!is_header"
 						:section="section"
 						size="sm"
-						@snippet="save_as_snippet"
 						@remove="remove_section"
 					/>
 				</div>
@@ -143,7 +132,7 @@
 		<div v-if="show_spacing_handles" class="pfb-section-chrome" :style="section_chrome_style">
 			<SectionSpacingHandles :section="section" type="margin" />
 			<SectionSpacingHandles :section="section" type="padding" />
-			<SectionRadiusHandle :section="section" />
+			<SectionRadiusHandle :target="section" />
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
@@ -167,17 +156,18 @@ import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
 import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
-import { computed, inject } from "vue";
+import { computed, inject, onMounted, onUnmounted, provide, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
+import { section_menu_options } from "../../composables/useNodeMenu";
+import { always_has_content } from "../../fieldtypes";
+import { linked_target } from "../../composables/linkedValues";
 import {
 	DRAG_OPTIONS,
 	JUSTIFY_CLASSES,
-	evaluate_visible_if,
 	parse_inline_style,
 	setDragging,
 	field_uid,
 } from "../../utils";
-import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
@@ -204,9 +194,15 @@ let section_chrome_style = computed(() => {
 	};
 });
 let preview_doc = computed(() => store.preview_doc.value);
-let is_section_visible = computed(() =>
-	evaluate_visible_if(props.section.visible_if, preview_doc.value)
-);
+let is_section_visible = computed(() => store.is_visible(props.section.visible_if));
+
+let hidden_reason = computed(() => {
+	if (!preview_doc.value) return null;
+	if (!is_section_visible.value) return __("Hidden by its visibility condition");
+	if (!has_content.value) return __("Not printed: no values for this record");
+	return null;
+});
+provide("section_hidden_reason", hidden_reason);
 
 let is_grid = computed(() => !!props.section.field_borders);
 
@@ -233,6 +229,7 @@ let columns_gap_style = computed(() => {
 });
 
 let handle_offset = computed(() => {
+	if (is_grid.value) return "-4px";
 	if (preview_doc.value) return `${-((props.section.gap ?? 20) / 2 + 4)}px`;
 	const gap = props.section.columns.length > 1 && props.section.gap ? props.section.gap : 0;
 	return `${-(gap + 12.5)}px`;
@@ -258,10 +255,31 @@ function start_col_width_resize(e, i) {
 	start_column_resize(handle, "col-width-handle--active", on_move);
 }
 
+function field_has_content(f) {
+	if (f.remove) return false;
+	const doc = preview_doc.value;
+	if (!doc) return true;
+	if (!store.is_visible(f.visible_if)) return false;
+	if (always_has_content(f)) return true;
+	if (f.fieldtype === "Static Text") return !!f.text?.trim();
+	if (f.fieldtype === "Typst") return !!f.typst?.trim();
+	if (f.fieldtype === "Linked Field") {
+		const value = store.linked_values.value[linked_target(f, store.meta.value, doc)?.key];
+		return value != null && value !== "";
+	}
+	if (f.fieldtype === "Repeater") return !!(f.source && doc[f.source]?.length);
+	if (f.fieldtype === "Table") return !!(doc[f.fieldname]?.length && f.table_columns?.length);
+	return !!doc[f.fieldname];
+}
 let has_visible_fields = computed(
 	() =>
 		!props.section.label ||
 		props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+);
+let has_content = computed(
+	() =>
+		!props.section.label ||
+		props.section.columns.some((col) => col.fields.some(field_has_content))
 );
 
 let section_inline_style = computed(() => {
@@ -276,6 +294,7 @@ let section_inline_style = computed(() => {
 	// border wrap the padded box. Non-grid sections keep real padding.
 	if (is_grid.value) {
 		style["--pfb-cell-pad"] = `${props.section.cell_padding ?? 8}px`;
+		if (props.section.border_color) style["--pfb-grid-border"] = props.section.border_color;
 		const pad = props.section.padding;
 		if (pad) {
 			style["--pfb-pad-top"] = `${pad.top || 0}px`;
@@ -288,8 +307,6 @@ let section_inline_style = computed(() => {
 	}
 	if (props.section.radius != null) {
 		style.borderRadius = `${props.section.radius}px`;
-		// clip content to the rounded corners (non-grid sections are overflow:visible)
-		style.overflow = "hidden";
 	}
 	return { ...style, ...parse_inline_style(props.section.custom_style) };
 });
@@ -331,64 +348,18 @@ function remove_section() {
 	store.remove_section(props.section);
 }
 
-const { open: open_context_menu } = useContextMenu();
-
-function on_context_menu(e) {
-	select_section();
-	open_context_menu(e, [
-		!props.is_header && {
-			label: __("Copy section"),
-			icon: "copy",
-			action: () => store.copy_section(props.section),
-		},
-		!props.is_header && {
-			label: __("Duplicate section"),
-			icon: "copy-plus",
-			action: () => store.duplicate_section(props.section),
-		},
-		!props.is_header && {
-			label: __("Save as snippet"),
-			icon: "bookmark-plus",
-			action: save_as_snippet,
-		},
-		store.clipboard.value && {
-			label: __("Paste"),
-			icon: "clipboard-paste",
-			action: () => store.paste_clipboard(),
-		},
-		!props.is_header && { divider: true },
-		!props.is_header && {
-			label: __("Delete section"),
-			icon: "trash",
-			danger: true,
-			action: remove_section,
-		},
-	]);
-}
-
-function save_as_snippet() {
-	frappe.prompt(
-		{
-			label: __("Snippet name"),
-			fieldname: "name",
-			fieldtype: "Data",
-			reqd: 1,
-			default: props.section.label || "",
-		},
-		({ name }) => {
-			store.save_snippet(name, props.section, "Section").then(
-				() =>
-					frappe.show_alert(
-						{ message: __("Section saved as snippet"), indicator: "green" },
-						3
-					),
-				() => {}
-			);
-		},
-		__("Save Section as Snippet"),
-		__("Save")
-	);
-}
+const root = ref(null);
+let context_menu = null;
+onMounted(() => {
+	context_menu = new frappe.ui.ContextMenu({
+		target: root.value,
+		options: () =>
+			section_menu_options(store, props.section, { condition: () => !props.is_header }),
+		empty_text: __("Nothing to paste"),
+		on_open: () => select_section(),
+	});
+});
+onUnmounted(() => context_menu?.destroy());
 
 function remove_column(index) {
 	if (props.section.columns.length <= 1) return;
@@ -398,10 +369,12 @@ function remove_column(index) {
 
 <style scoped>
 .print-format-section-container {
+	--pfb-section-toolbar-h: calc(var(--spacing) * 10);
 	position: relative;
 	/* flow-root keeps the section's own margin inside this box, so the spacing
 	   handles can be positioned against it */
 	display: flow-root;
+	scroll-margin-top: 4rem;
 }
 
 .print-format-section-container:not(:last-child) {
@@ -411,11 +384,11 @@ function remove_column(index) {
 /* One ring for every active section state — selected, hover (canvas), and
    layer-hover all look identical. The :has() guard keeps hover on the innermost
    element: when a field inside is hovered, the field's ring shows, not this.
-   Drawn on the container with no offset: square corners (an outline always
-   follows the element's own radius) and flush against the section's border. */
-.print-format-section-container.pfb-section-active,
-.print-format-section-container.pfb-layer-hover,
-.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover)) {
+   Drawn on the section itself so it follows the section's radius. */
+.print-format-section-container.pfb-section-active > .print-format-section,
+.print-format-section-container.pfb-layer-hover > .print-format-section,
+.print-format-section-container:hover:not(:has(.field--preview:hover, .field--chip:hover))
+	> .print-format-section {
 	outline: var(--pfb-ring);
 }
 
@@ -440,7 +413,12 @@ function remove_column(index) {
 	z-index: 3;
 }
 
+.print-format-section-container:not(.section--preview) > .pfb-section-chrome {
+	--pfb-radius-top: var(--pfb-section-toolbar-h);
+}
+
 .section-toolbar {
+	height: var(--pfb-section-toolbar-h);
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -607,7 +585,7 @@ function remove_column(index) {
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	pointer-events: none;
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	transition: border-color 0.15s, background 0.15s;
 }
 
@@ -645,24 +623,6 @@ function remove_column(index) {
 	border-top: 1px dashed var(--gray-300);
 	border-bottom: 1px dashed var(--gray-300);
 	margin: 0.25rem 0;
-}
-
-/* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
-.section-preview-actions {
-	display: none; /* shown via .pfb-clean-preview :deep() override */
-	position: absolute;
-	bottom: calc(100% + 2px);
-	right: 4px;
-	z-index: 2;
-	gap: 2px;
-	padding: 1px 2px;
-	background: var(--fg-color);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	box-shadow: var(--shadow-xs);
-	align-items: center;
-	opacity: 0;
-	transition: opacity 0.12s;
 }
 
 /* ── Table layout (field borders) ───────────────────────── */
@@ -727,5 +687,37 @@ function remove_column(index) {
 }
 .section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
+}
+
+/* ── Preview with a live record: editor chrome off, spacing matches the PDF ── */
+.section--preview .section-toolbar {
+	display: none;
+}
+
+.section--preview .print-format-section:not(.section--grid) {
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	overflow: visible;
+	transition: border-color 0.1s;
+}
+
+.print-format-section-container.section--preview {
+	margin-bottom: 0;
+}
+
+.section--preview .section-columns {
+	padding: 0;
+}
+
+.section--preview .drag-container {
+	min-height: 0;
+}
+
+.section--preview .drag-container:not(.section--grid *) {
+	gap: 0;
+}
+
+.section--preview .section-title-display {
+	display: block;
 }
 </style>

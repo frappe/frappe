@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "creation": "2013-01-29 10:47:14",
  "default_view": "List",
@@ -368,7 +369,7 @@
    "label": "Send After"
   }
  ],
- "icon": "fa fa-comment",
+ "icon": "messages-square",
  "idx": 1,
  "links": [],
  "make_attachments_public": 1,

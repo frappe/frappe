@@ -1,5 +1,5 @@
 <template>
-	<div class="rounded-md border border-outline-gray-2 p-4">
+	<div class="rounded-5 border border-outline-gray-2 p-4">
 		<p v-if="lastSent" class="mb-3 text-p-sm text-ink-gray-5">Sent “{{ lastSent }}” ✓</p>
 		<!-- FloatingWindow brings dock, float, and minimize; the draft rides along. -->
 		<FloatingWindow title="New message">

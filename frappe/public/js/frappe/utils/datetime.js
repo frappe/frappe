@@ -280,7 +280,16 @@ $.extend(frappe.datetime, {
 	validate: function (d) {
 		return moment(
 			d,
-			[frappe.defaultDateFormat, frappe.defaultDatetimeFormat, frappe.defaultTimeFormat],
+			[
+				frappe.defaultDateFormat,
+				frappe.defaultDatetimeFormat,
+				`${frappe.defaultDatetimeFormat}.SSSSSS`,
+				frappe.defaultTimeFormat,
+				`${frappe.defaultTimeFormat}.SSSSSS`,
+				"H:mm:ss",
+				"H:mm:ss.SSSSSS",
+				"H:mm:s.SSSSSS",
+			],
 			true
 		).isValid();
 	},

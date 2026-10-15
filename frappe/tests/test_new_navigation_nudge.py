@@ -9,6 +9,7 @@ already on Apps, so it is never asked at all, which is why this needs no patch.
 """
 
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.desktop_settings.desktop_settings import APPS, DESKTOP_ICONS
@@ -93,6 +94,18 @@ class TestNewNavigationNudge(IntegrationTestCase):
 
 			self.assertEqual(frappe.db.get_single_value("Desktop Settings", "desktop_page"), APPS)
 			self.assertFalse(should_show_new_navigation_prompt())
+
+	def test_accepting_is_counted(self):
+		with unasked(), as_user(MANAGER), patch("frappe.utils.new_navigation_nudge.capture") as capture:
+			submit_new_navigation_prompt("try_new_navigation")
+
+		capture.assert_called_once_with("switched_to_apps_navigation", app="frappe")
+
+	def test_declining_is_not_counted(self):
+		with unasked(), as_user(MANAGER), patch("frappe.utils.new_navigation_nudge.capture") as capture:
+			submit_new_navigation_prompt("keep_icon_grid")
+
+		capture.assert_not_called()
 
 	def test_accepting_deletes_no_icons(self):
 		"""What makes "try it" honest: switching back from Desktop Settings finds the grid

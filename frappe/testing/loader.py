@@ -6,6 +6,7 @@ from pathlib import Path
 import frappe
 from frappe.modules.utils import get_module_name
 from frappe.testing.config import TestParameters
+from frappe.tests.utils.test_capabilities import apply_test_service_skips, requires_selected_test_service
 
 
 class FrappeTestLoader(unittest.TestLoader):
@@ -18,6 +19,9 @@ class FrappeTestLoader(unittest.TestLoader):
 					if isinstance(elem, unittest.TestSuite):
 						suites_queue.append(elem)
 					elif isinstance(elem, unittest.TestCase):
+						if not requires_selected_test_service(elem, self.params.test_service):
+							continue
+						apply_test_service_skips(elem)
 						if self.params.tests:
 							if elem._testMethodName in self.params.tests:
 								self.testsuite.addTest(elem)

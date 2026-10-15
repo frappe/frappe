@@ -311,7 +311,6 @@ def init(
 			"currently_saving": [],
 			"redirect_location": "",
 			"in_install_db": False,
-			"in_install_app": False,
 			"in_import": False,
 			"in_test": in_test,
 			"mute_messages": False,
@@ -628,7 +627,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 
 
 def is_whitelisted(method):
-	from frappe.utils import sanitize_html
+	from frappe.utils import sanitize_html_payload
 
 	app_name = (method.__module__ or "").split(".", 1)[0]
 	from frappe.apps import get_disabled_apps
@@ -649,9 +648,11 @@ def is_whitelisted(method):
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
 		# escapes html characters like <> except for predefined tags like a, b, ul etc.
+		# an argument that arrived as JSON is sanitized inside the payload, so the
+		# payload still parses on the other side
 		for key, value in form_dict.items():
 			if isinstance(value, str):
-				form_dict[key] = sanitize_html(value)
+				form_dict[key] = sanitize_html_payload(value)
 
 
 def read_only():
@@ -1026,10 +1027,6 @@ def _load_app_hooks(app_name: str | None = None):
 		try:
 			app_hooks = get_module(f"{app}.hooks")
 		except ImportError as e:
-			if local.flags.in_install_app:
-				# if app is not installed while restoring
-				# ignore it
-				pass
 			print(f'Could not find app "{app}": \n{e}')
 			raise
 

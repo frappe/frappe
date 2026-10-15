@@ -9,7 +9,14 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.search import awesomebar_search, get_names_for_mentions, search_link, search_widget
+from frappe.desk.link_title import get_report_link_titles
+from frappe.desk.search import (
+	awesomebar_search,
+	get_link_title,
+	get_names_for_mentions,
+	search_link,
+	search_widget,
+)
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -63,7 +70,9 @@ class TestSearch(IntegrationTestCase):
 				"System Manager",
 			)
 
-		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		names_for_mention = [
+			user.get("id") for user in get_names_for_mentions("test_disabled_user_in_mentions")
+		]
 		self.assertNotIn(email, names_for_mention)
 
 	def test_allowed_in_mentions_cache_invalidation(self):
@@ -83,14 +92,14 @@ class TestSearch(IntegrationTestCase):
 		user.add_roles("System Manager")
 
 		# Populate the users_for_mentions cache.
-		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("test_allowed_in_mentions")]
 		self.assertIn(email, names_for_mention)
 
 		# Changing Allowed In Mentions should invalidate the cache.
 		user.allowed_in_mentions = False
 		user.save()
 
-		names_for_mention = [user.get("id") for user in get_names_for_mentions("")]
+		names_for_mention = [user.get("id") for user in get_names_for_mentions("test_allowed_in_mentions")]
 		self.assertNotIn(email, names_for_mention)
 
 		frappe.delete_doc("User", email)
@@ -147,6 +156,72 @@ class TestSearch(IntegrationTestCase):
 				do_search("nutzer"),
 				"Search results for 'nutzer' in German should include 'User' ('Nutzer')",
 			)
+
+	def test_translated_doctype_search_pagination(self):
+		doctype = "Test Translated Search Paging"
+		if frappe.db.exists("DocType", doctype):
+			frappe.delete_doc("DocType", doctype, force=True)
+		new_doctype(
+			name=doctype,
+			translated_doctype=1,
+			autoname="field:title",
+			sort_field="sequence",
+			sort_order="ASC",
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Sequence", "fieldname": "sequence", "fieldtype": "Int"},
+			],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True))
+
+		# non matching records are stored first, so an offset applied before the translated
+		# filtering would eat into them instead of into the matches
+		titles = [f"Harbour Freight Terminal {i:02d}" for i in range(1, 7)]
+		titles += [f"Northwind Depot {i:02d}" for i in range(1, 10)]
+		for sequence, title in enumerate(titles, start=1):
+			frappe.get_doc({"doctype": doctype, "title": title, "sequence": sequence}).insert()
+
+		expected = [title for title in titles if "Depot" in title]
+
+		for query in (None, "frappe.tests.test_search.paginated_query"):
+			with self.subTest(query=query):
+				pages = [
+					[
+						result[0]
+						for result in search_widget(
+							doctype=doctype, txt="Depot", query=query, start=start, page_length=3
+						)
+					]
+					for start in (0, 3, 6, 9)
+				]
+
+				self.assertEqual(pages, [expected[0:3], expected[3:6], expected[6:9], []])
+
+	def test_page_length_zero_returns_all_options(self):
+		# `frappe.db.get_link_options()` (MultiSelectList filters) sends page_length=0 for "no limit"
+		titles = [f"Search Option {i:02d}" for i in range(1, 13)]
+
+		for translated_doctype in (0, 1):
+			doctype = f"Test Search No Limit {translated_doctype}"
+			if frappe.db.exists("DocType", doctype):
+				frappe.delete_doc("DocType", doctype, force=True)
+			new_doctype(
+				name=doctype,
+				translated_doctype=translated_doctype,
+				autoname="field:title",
+				fields=[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			).insert()
+			self.addCleanup(partial(frappe.delete_doc, "DocType", doctype, force=True, ignore_missing=True))
+
+			# creating the doctype implicitly commits, so rows can outlive a previous run
+			frappe.db.delete(doctype)
+			for title in titles:
+				frappe.get_doc({"doctype": doctype, "title": title}).insert()
+
+			for query in (None, "frappe.tests.test_search.limited_query"):
+				with self.subTest(translated_doctype=translated_doctype, query=query):
+					results = search_widget(doctype=doctype, txt="", query=query, page_length=0)
+					self.assertEqual(len(results), len(titles))
 
 	def test_validate_and_sanitize_search_inputs(self):
 		# should raise error if searchfield is injectable
@@ -241,6 +316,44 @@ class TestSearch(IntegrationTestCase):
 
 		# page_length=1 leaves the python relevance_sorter no second row to reorder
 		self.assertEqual("es", search_link("Language", "", page_length=1)[0]["value"])
+
+	def test_empty_search_keeps_doctype_sort_order(self):
+		titles = ["Web Form", "Phone", "Email"]
+		role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		self.addCleanup(partial(frappe.delete_doc, "Role", role, force=True))
+		user = frappe.get_doc(
+			doctype="User",
+			email=f"sort-order-{frappe.generate_hash(length=8)}@example.com",
+			first_name="Sort Order",
+			send_welcome_email=0,
+			roles=[{"role": role}],
+		).insert()
+		self.addCleanup(partial(frappe.delete_doc, "User", user.name, force=True))
+
+		for translated_doctype in (0, 1):
+			doctype = new_doctype(
+				translated_doctype=translated_doctype,
+				autoname="field:title",
+				sort_field="sequence",
+				sort_order="ASC",
+				fields=[
+					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+					{"label": "Sequence", "fieldname": "sequence", "fieldtype": "Int"},
+				],
+				permissions=[{"role": role, "read": 1}],
+			).insert()
+			self.addCleanup(partial(frappe.delete_doc, "DocType", doctype.name, force=True))
+
+			for sequence, title in enumerate(titles, start=1):
+				frappe.get_doc({"doctype": doctype.name, "title": title, "sequence": sequence * 10}).insert()
+
+			for query in (None, "frappe.tests.test_search.paginated_query"):
+				with (
+					self.subTest(translated_doctype=translated_doctype, query=query),
+					self.set_user(user.name),
+				):
+					results = search_link(doctype.name, "", query=query, page_length=10)
+					self.assertEqual([r["value"] for r in results], titles)
 
 	def test_search_with_paren(self):
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
@@ -631,6 +744,75 @@ class TestSearch(IntegrationTestCase):
 				link_fieldname="nonexistent_field",
 			)
 
+	def test_select_permission_shows_link_titles(self):
+		doctype, name, user = self.make_select_only_titled_doc()
+
+		with self.set_user(user):
+			self.assertFalse(frappe.has_permission(doctype, "read", name))
+			self.assertEqual(get_link_title(doctype, name), "Selectable Title")
+			self.assertEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
+			self.assertEqual(
+				self.get_report_titles(doctype, name), {f"{doctype}::{name}": "Selectable Title"}
+			)
+
+	def test_select_permission_hides_restricted_link_titles(self):
+		doctype, name, user = self.make_select_only_titled_doc(permlevel=1)
+
+		with self.set_user(user):
+			self.assertEqual(get_link_title(doctype, name), name)
+			self.assertNotEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
+			self.assertEqual(self.get_report_titles(doctype, name), {})
+
+	def test_select_permission_hides_restricted_link_titles_in_search_fields(self):
+		doctype, name, user = self.make_select_only_titled_doc(permlevel=1, search_fields="title")
+
+		with self.set_user(user):
+			self.assertEqual(get_link_title(doctype, name), name)
+			self.assertNotEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
+			self.assertEqual(self.get_report_titles(doctype, name), {})
+
+	def test_select_permission_skips_virtual_link_titles_in_reports(self):
+		doctype, name, user = self.make_select_only_titled_doc(is_virtual=1, options="'Virtual Title'")
+
+		with self.set_user(user):
+			self.assertEqual(self.get_report_titles(doctype, name), {})
+
+	def test_select_permission_skips_virtual_search_link_titles_in_reports(self):
+		doctype, name, user = self.make_select_only_titled_doc(
+			is_virtual=1, options="'Virtual Title'", search_fields="title"
+		)
+
+		with self.set_user(user):
+			self.assertEqual(self.get_report_titles(doctype, name), {})
+
+	def get_report_titles(self, doctype, name):
+		return get_report_link_titles(
+			[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
+		)
+
+	def make_select_only_titled_doc(self, *, search_fields=None, **title_properties):
+		with self.set_user("Administrator"):
+			role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+			doctype = new_doctype(
+				fields=[
+					{"fieldname": "code", "fieldtype": "Data", "label": "Code"},
+					{"fieldname": "title", "fieldtype": "Data", "label": "Title", **title_properties},
+				],
+				title_field="title",
+				search_fields=search_fields,
+				show_title_field_in_link=1,
+				permissions=[{"role": role, "select": 1, "read": 0}],
+			).insert()
+			name = frappe.get_doc(doctype=doctype.name, title="Selectable Title").insert().name
+			user = frappe.get_doc(
+				doctype="User",
+				email=f"select-{frappe.generate_hash(length=8)}@example.com",
+				first_name="Select Only",
+				send_welcome_email=0,
+				roles=[{"role": role}],
+			).insert()
+			return doctype.name, name, user.name
+
 	def test_awesomebar_search_hook(self):
 		real_get_hooks = frappe.get_hooks
 
@@ -772,6 +954,42 @@ def query_by_title(
 	filters: str | list | dict[str, Any],
 ):
 	return frappe.get_list(doctype, filters={"title": ("like", f"%{txt}%")}, as_list=True)
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def paginated_query(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	return frappe.get_all(
+		doctype,
+		fields=["name"],
+		filters={"name": ["like", f"%{txt}%"]} if txt else None,
+		order_by="sequence asc",
+		limit_start=start,
+		limit_page_length=page_len,
+		as_list=True,
+	)
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def limited_query(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+):
+	# app level link queries push page_len straight into the SQL limit, where 0 means "no rows"
+	table = frappe.qb.DocType(doctype)
+	return frappe.qb.from_(table).select(table.name).offset(start).limit(page_len).run()
 
 
 def setup_test_link_field_order(TestCase):

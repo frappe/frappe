@@ -3,7 +3,7 @@
  "creation": "2026-08-03 19:24:16.901608",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "globe",
+ "header_icon": "website-browser-duotone",
  "idx": 0,
  "items": [
   {
@@ -135,7 +135,7 @@
   }
  ],
  "merged_from": "[\"Website\"]",
- "modified": "2026-08-12 16:08:08.656928",
+ "modified": "2026-10-01 01:05:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",

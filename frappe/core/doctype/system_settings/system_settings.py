@@ -250,12 +250,11 @@ def load():
 	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	all_defaults = frappe.db.get_defaults()
 	defaults = {}
 
 	for df in frappe.get_meta("System Settings").get("fields"):
 		if df.fieldtype in ("Select", "Data"):
-			defaults[df.fieldname] = all_defaults.get(df.fieldname)
+			defaults[df.fieldname] = get_system_settings(df.fieldname)
 
 	return {"timezones": get_all_timezones(), "defaults": defaults}
 

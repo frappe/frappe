@@ -240,11 +240,11 @@ frappe.ui.keys.add_shortcut({
 });
 
 frappe.ui.keys.on("escape", function (e) {
-	handle_escape_key();
+	handle_escape_key(e);
 });
 
 frappe.ui.keys.on("esc", function (e) {
-	handle_escape_key();
+	handle_escape_key(e);
 });
 
 frappe.ui.keys.on("enter", function (e) {
@@ -324,8 +324,8 @@ frappe.ui.keyCode = {
 	BACKSPACE: 8,
 };
 
-function handle_escape_key() {
-	close_grid_and_dialog();
+function handle_escape_key(e) {
+	if (!e.isDefaultPrevented()) close_grid_and_dialog();
 	document.activeElement?.blur();
 	$(document).trigger("escape");
 }

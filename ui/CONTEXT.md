@@ -7,8 +7,8 @@ into `@framework/ui`: the toolbar controls a user manipulates to shape a list
 ## Language
 
 **List View Controls**:
-The four toolbar pieces a user manipulates to shape a doctype list — **SortBy**,
-**Filter**, **Column Settings**, and **Quick Filter**. Each is an independent,
+The toolbar pieces a user manipulates to shape a doctype list — **SortBy**,
+**Filter**, **Column Settings**, **Quick Filter**, and **Group By**. Each is an independent,
 controlled component that owns one slice of view state.
 _Avoid_: "view controls" (CRM's name; it carries the CRM-specific Views concept).
 
@@ -31,6 +31,17 @@ A pre-chosen field surfaced inline in the toolbar for one-tap narrowing. A
 convenience projection over **Filter**s — a Quick Filter and its matching
 **Filter** describe the same underlying condition and stay in sync.
 _Avoid_: inline filter.
+
+**Group By**:
+The fields a list is grouped by, in order, plus its **Aggregate**s. Grouped, the list
+shows one summary row per distinct combination of those fields' values instead of its
+records — desk's report view group by. `null` means ungrouped.
+_Avoid_: group by view (CRM's name for a list whose records sit under group headings).
+
+**Aggregate**:
+A summary column of a grouped list: a function (`count`, `sum`, `avg`, `min`, `max`)
+and, for all but `count`, the field it runs on.
+_Avoid_: total, rollup.
 
 **Column**:
 One shown column in the list: a `fieldname`, a (user-overridable) `label`, and an
@@ -57,7 +68,7 @@ _Avoid_: connected component, smart component.
 
 **View Snapshot**:
 The serialized, persist-able capture of a List View's state — its **Filter**s,
-**Sort**s, **Column**s, and surfaced **Quick Filter** fields. The unit a host's
+**Sort**s, **Column**s, surfaced **Quick Filter** fields, and **Group By**. The unit a host's
 persistence layer is handed. It carries **no identity, ownership, or named-View
 concept** — whether this is a "standard", public, pinned, or named **View**, and
 who owns it, belongs entirely to the consuming app. The library tops out here and
@@ -66,14 +77,23 @@ never owns a saved **View** entity; the host wires _when_ and _where_ to save it
 _Avoid_: view, saved view, view settings (all carry CRM's Views concept).
 
 **Composite List View**:
-The shared module that assembles the controls (and, later, the table, footer,
-selection banner, and a `useListView` state composable) into a full list view.
-The home of the integration "shell" story used to chase pixel parity with CRM.
+The shared module (`ListView/`) that assembles the controls into a full list view
+behind a `useListView` state composable. The home of the integration "shell" story
+used to chase pixel parity with CRM. Kept for now; the desk list page composes the
+**List module** and the controls directly instead.
 
 **Shell story**:
 The combined story in the Composite List View module that mounts the controls
 together against a real doctype to verify pixel parity with CRM's list view.
 Distinct from each control's own isolated story.
+
+**List module**:
+The experimental module (`experimental/List/`, subpath `./experimental/List`) that holds
+the table (`List`), the footer (`ListFooter`) and the selection bar (`ListBulkBar`) a
+doctype list page composes beside the controls. Experimental: its API can change with
+no deprecation window until the desk list page has settled it. The
+host lays them out, fetches the rows, and binds the same **Column**s and **Sort**s the
+controls edit; the table itself fetches and stores nothing.
 
 ## Example dialogue
 

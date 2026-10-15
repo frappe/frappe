@@ -34,7 +34,7 @@
 		<div
 			v-if="fieldsError"
 			data-slot="condition-fields-error"
-			class="mb-4 flex items-center gap-2 rounded-md bg-surface-red-2 p-2 text-p-sm text-ink-red-6"
+			class="mb-4 flex items-center gap-2 rounded-5 bg-surface-red-2 p-2 text-p-sm text-ink-red-6"
 		>
 			<span :id="fieldsErrorId" class="min-w-0 flex-1">{{ labels.fieldsError }}</span>
 			<Button
@@ -54,7 +54,7 @@
 			data-slot="condition-empty"
 			:type="readonly ? undefined : 'button'"
 			:tabindex="readonly ? -1 : undefined"
-			class="flex w-full items-center justify-center gap-2 rounded-md border border-outline-gray-2 p-4 text-p-sm text-ink-gray-5"
+			class="flex w-full items-center justify-center gap-2 rounded-5 border border-outline-gray-2 p-4 text-p-sm text-ink-gray-5"
 			:class="!readonly && 'cursor-pointer'"
 			@click="onEmptyClick"
 		>
@@ -67,7 +67,7 @@
 		<div
 			v-else
 			class="flex w-full flex-col gap-4"
-			:class="bordered !== 'none' && 'rounded-lg border border-outline-gray-2 p-3'"
+			:class="bordered !== 'none' && 'rounded-6 border border-outline-gray-2 p-3'"
 		>
 			<ConditionGroup :group="tree" :path="[]">
 				<template v-if="$slots.condition" #condition="slotProps">

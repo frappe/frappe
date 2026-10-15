@@ -77,7 +77,7 @@ def update_document_title(
 
 			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue, timeout=36000)
 		else:
-			doc.rename(updated_name, merge=merge)
+			doc._rename(updated_name, merge=merge)
 
 	if title_updated:
 		if action_enqueued and name_updated:
@@ -344,6 +344,9 @@ def validate_rename(
 	save_point=False,
 	old_doc: Document | None = None,
 ) -> str:
+	if meta.issingle:
+		frappe.throw(_("Single DocTypes cannot be renamed"))
+
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
 	if save_point:
 		_SAVE_POINT = f"validate_rename_{frappe.generate_hash(length=8)}"

@@ -1,9 +1,11 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2021-09-04 11:54:35.155687",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/guides/deployment/packages",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -37,6 +39,7 @@
    "label": "License"
   }
  ],
+ "icon": "boxes",
  "index_web_pages_for_search": 1,
  "links": [
   {
@@ -70,6 +73,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

@@ -1,4 +1,4 @@
-import { validated, safe_href, shortcut_keys } from "./utils.js";
+import { validated, safe_href, shortcut_keys, is_thenable, is_group, icon_html } from "./utils.js";
 import { place } from "./position.js";
 
 /**
@@ -35,6 +35,8 @@ import { place } from "./position.js";
  * @typedef {Object} MenuItem
  * @property {string} label Row text. Rendered as text, never HTML.
  * @property {string} [icon] Lucide icon name shown before the label.
+ * @property {string} [icon_right] Lucide icon name shown at the end of the row, e.g. "external-link" on a row that opens a new tab. Submenu rows end in their chevron instead.
+ * @property {string} [image] Image URL shown before the label, for a mark no lucide icon can stand in for (an app's logo). Ignored when `icon` is set; refused on code-running schemes, like `href`.
  * @property {string} [description] Smaller second line under the label.
  * @property {"gray"|"red"} [theme="gray"] "red" for destructive rows.
  * @property {boolean} [selected] Marks the current choice (visual only).
@@ -42,6 +44,7 @@ import { place } from "./position.js";
  * @property {string|string[]} [shortcut] Keyboard hint, display only — pass the raw combo ("ctrl+p") and each key becomes its OS form (⌘P on Mac, Ctrl+P elsewhere), or an array of already-formatted keys. Binding the keys stays the caller's job (frappe.ui.keys.add_shortcut).
  * @property {function} [onclick] Called with the click event. The menu closes after.
  * @property {string} [href] Renders the row as a link. Code-running schemes are refused.
+ * @property {string} [target] Browsing context for an `href` row, e.g. "_blank" to open in a new tab. Ignored without `href`.
  * @property {function} [condition] Checked on every open; return false to hide the row.
  * @property {string} [css_class] Extra classes on the row element (responsive visibility hooks like visible-xs).
  * @property {MenuItem[]|function} [submenu] Nested rows — the row opens a side panel instead of acting. A function runs at hover-start (once per menu open, result cached) and may return the rows or a Promise of them; the panel shows a loading state until it settles.
@@ -55,10 +58,6 @@ import { place } from "./position.js";
  */
 
 const THEMES = ["gray", "red"];
-
-function is_thenable(value) {
-	return !!value && typeof value.then === "function";
-}
 
 const SUBMENU_OFFSET = 4;
 const SUBMENU_OPEN_DELAY = 150;
@@ -83,10 +82,6 @@ function point_in_polygon(x, y, polygon) {
 		}
 	}
 	return inside;
-}
-
-function is_group(entry) {
-	return entry && typeof entry === "object" && "group" in entry && Array.isArray(entry.options);
 }
 
 // flatten the mixed list into explicit groups (loose items become unlabeled
@@ -126,15 +121,6 @@ export function normalize_options(options) {
 	return groups;
 }
 
-// icon names end up inside svg use hrefs, so only plain names pass
-function icon_html(name, svg_class, component) {
-	if (typeof name !== "string" || !/^[a-z0-9-]+$/i.test(name)) {
-		console.warn(`frappe.ui.${component}: icons take a lucide icon name, got "${name}"`);
-		return "";
-	}
-	return frappe.utils.icon(name, "sm", "", "", svg_class, true);
-}
-
 // Underline the first free a-z letter of the label so Alt+letter can activate
 // the row (skipping letters earlier rows in the same panel already took).
 // Built from text nodes + a span, never innerHTML, so labels still can't
@@ -158,7 +144,7 @@ function assign_mnemonic(label_el, text, taken) {
 	return null;
 }
 
-function build_item(item, { reserve_icon_space, component, taken }) {
+export function build_item(item, { reserve_icon_space, component, taken }) {
 	// a disabled row is always a real disabled <button>, never a link — a
 	// disabled <a> keeps a working href that a screen reader's link list or
 	// a script click would still follow, right past the disabled state
@@ -170,6 +156,11 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 	el.setAttribute("tabindex", "-1");
 	if (href) el.href = href;
 	else el.type = "button";
+	if (href && item.target) {
+		el.target = item.target;
+		// a new context must not get a handle back to the page that opened it
+		if (item.target === "_blank") el.rel = "noopener noreferrer";
+	}
 
 	if (item.disabled) {
 		el.setAttribute("data-disabled", "");
@@ -181,8 +172,17 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 		el.setAttribute("data-theme", "red");
 	}
 
+	// an icon wins over an image when a row carries both
+	const image = safe_href(item.image, component);
 	if (item.icon) {
 		el.insertAdjacentHTML("beforeend", icon_html(item.icon, "", component));
+	} else if (image) {
+		const img = document.createElement("img");
+		img.className = "es-menu__image";
+		img.src = image;
+		// the label right beside it already names the thing, so the mark is decorative
+		img.alt = "";
+		el.appendChild(img);
 	} else if (reserve_icon_space) {
 		const space = document.createElement("span");
 		space.className = "es-menu__icon-space";
@@ -215,11 +215,21 @@ function build_item(item, { reserve_icon_space, component, taken }) {
 		shortcut.className = "es-menu__shortcut";
 		shortcut.setAttribute("aria-hidden", "true");
 		for (const key of shortcut_keys(item.shortcut)) {
+			if (shortcut.childNodes.length && !frappe.utils.is_mac()) {
+				shortcut.append("+");
+			}
 			const kbd = document.createElement("kbd");
 			kbd.textContent = key;
 			shortcut.appendChild(kbd);
 		}
 		el.appendChild(shortcut);
+	}
+
+	if (item.icon_right && !item.submenu) {
+		el.insertAdjacentHTML(
+			"beforeend",
+			icon_html(item.icon_right, "es-menu__icon-right", component)
+		);
 	}
 
 	if (item.submenu) {
@@ -265,7 +275,7 @@ function render_content(panel, groups, { empty_text, component }) {
 
 		// when any row in a group has an icon, iconless rows reserve the
 		// same space so the labels line up
-		const reserve_icon_space = group.options.some((item) => item.icon);
+		const reserve_icon_space = group.options.some((item) => item.icon || item.image);
 
 		for (const item of group.options) {
 			const { el, mnemonic } = build_item(item, {
@@ -319,7 +329,7 @@ function build_panel(groups, { empty_text, component }) {
  * One open menu: the root panel plus any open submenu panels.
  * The owner (Dropdown/ContextMenu) creates a MenuTree per open and gets an
  * on_close(reason) callback; reasons are "activate", "escape", "outside",
- * "tab" and "owner" (closed programmatically).
+ * "tab", "navigate" and "owner" (closed programmatically).
  */
 export class MenuTree {
 	constructor({ options, empty_text, component, anchor, ignore, on_close, lock_scroll }) {
@@ -411,6 +421,8 @@ export class MenuTree {
 		// don't get stuck on
 		this.onblur = () => this.show_mnemonics(false);
 		window.addEventListener("blur", this.onblur);
+
+		frappe.router.once("change", () => this.close("navigate"));
 
 		// keyboard opens land on a row right away (ArrowDown = first,
 		// ArrowUp = last); mouse opens just focus the panel so keys work

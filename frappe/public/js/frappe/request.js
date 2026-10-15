@@ -48,14 +48,14 @@ frappe.xcall = function (method, params, type, opts = {}) {
 // generic server call (call page, object)
 frappe.call = function (opts) {
 	if (!frappe.is_online()) {
-		frappe.show_alert(
-			{
-				indicator: "orange",
-				message: __("Connection Lost"),
-				subtitle: __("You are not connected to Internet. Retry after sometime."),
-			},
-			3
-		);
+		// the same toast as the offline event in dom.js, so calls made while offline don't stack copies
+		frappe.ui.toast({
+			id: "connection-status",
+			type: "warning",
+			message: __("Connection Lost"),
+			description: __("You are not connected to Internet. Retry after sometime."),
+			duration: 3000,
+		});
 	}
 	if (typeof arguments[0] === "string") {
 		opts = {
@@ -153,12 +153,17 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
-			frappe.msgprint({
-				title: __("Not found"),
-				indicator: "red",
-				message: __("The resource you are looking for is not available"),
-				re_route: true,
-			});
+			if (xhr.responseJSON?._server_messages && frappe.msg_dialog?.msg_area.html()) {
+				// cleanup has already shown the server's messages
+				frappe.re_route_on_msgprint_hide();
+			} else {
+				frappe.msgprint({
+					title: __("Not found"),
+					indicator: "red",
+					message: __("The resource you are looking for is not available"),
+					re_route: true,
+				});
+			}
 			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {

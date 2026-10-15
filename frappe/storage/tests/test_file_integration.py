@@ -341,6 +341,55 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.delete_later("File", trusted.name)
 			self.assertEqual(trusted.blob, original.blob)
 
+	def test_relinking_a_row_to_a_private_blob_needs_permission_on_it(self):
+		# the blob link grants /private/files/<blob>/ access, so it is checked like file_url
+		with storage_flag(), fake(), file_permissions_enforced():
+			secret = self.make_file(unique_png(), "secret.png", is_private=1)
+			with self.set_user("test@example.com"):
+				own = self.make_file(unique_png(), "own.png", is_private=0)
+
+				# the user's own privacy flip writes a new blob, which is trusted
+				own.is_private = 1
+				own.save()
+				self.delete_later("File Blob", own.blob)
+				self.assertTrue(own.file_url.startswith(f"/private/files/{own.blob}/"))
+
+				own.blob = secret.blob
+				self.assertRaises(frappe.PermissionError, own.save)
+			self.assertNotEqual(frappe.db.get_value("File", own.name, "blob"), secret.blob)
+
+	def test_optimize_repoints_the_attach_field(self):
+		from PIL import Image
+
+		buffer = io.BytesIO()
+		Image.effect_noise((1200, 900), 100).convert("RGB").save(buffer, format="JPEG", quality=100)
+		with storage_flag(), fake():
+			user = frappe.get_doc("User", "test@example.com")
+			file = self.make_file(
+				buffer.getvalue(),
+				"optimize.jpg",
+				attached_to_doctype="User",
+				attached_to_name=user.name,
+				attached_to_field="user_image",
+			)
+			old_image = user.user_image
+			self.addCleanup(frappe.db.set_value, "User", user.name, "user_image", old_image)
+			frappe.db.set_value("User", user.name, "user_image", file.file_url)
+			old_blob = file.blob
+
+			file.optimize_file()
+			self.delete_later("File Blob", file.blob)
+
+			self.assertNotEqual(file.blob, old_blob)
+			self.assertEqual(frappe.db.get_value("User", user.name, "user_image"), file.file_url)
+
+	def test_blob_row_rejects_parent_directory_in_file_url(self):
+		with storage_flag(), fake():
+			file = self.make_file(unique_png(), "traversal.png", is_private=1)
+
+			file.file_url = f"/files/../../private/files/{file.blob}/traversal.png"
+			self.assertRaises(frappe.ValidationError, file.validate_file_path)
+
 	def test_backfilled_row_saves_with_legacy_url(self):
 		import os
 

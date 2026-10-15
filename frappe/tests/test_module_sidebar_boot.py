@@ -703,14 +703,18 @@ class TestCodeOnlyModuleHeirs(IntegrationTestCase):
 		self.assertEqual(boot.get("code_only_module_heirs"), get_code_only_module_heirs())
 
 
-class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
-	"""D3: a private workspace's sidebar link is not stored anywhere.
+class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
+	"""A private workspace's sidebar link belongs to its owner, and to nobody else.
 
-	The workspace already carries its module, owner, title and icon, so the sidebar appends the
-	user's private workspaces in that module on read. That removes the layer pollution: the shared
-	document used to accumulate a row per private page, so an admin curating the site's sidebar found
-	other users' pages in the document they were editing, and each of those rows was a second copy of
-	four columns that could change underneath it.
+	It used to be stored nowhere at all: the page carries its module, owner, title and icon, so the
+	sidebar appended the user's private pages on read. That was aimed at the layer pollution, where
+	the shared document accumulated a row per private page and an admin curating the site's sidebar
+	found other users' pages in the document they were editing.
+
+	A page now stores its place, in the one layer that may hold it: its owner's. The pollution the
+	old rule was protecting against is still refused, by `drop_private_workspaces` rather than by
+	storing nothing, and a page made before rows were written still reaches its owner derived on
+	read. Both are asserted below.
 
 	"""
 
@@ -758,9 +762,10 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 
 		self.assertIn(workspace.name, links)
 
-	def test_creating_one_stores_no_row_anywhere(self):
-		"""The write path branches on public, and the private branch writes nothing, so there is no
-		customization holding the link and no item row naming it in any document.
+	def test_creating_one_stores_a_row_in_its_owners_layer_and_nowhere_else(self):
+		"""The write path branches on public, and the private branch writes into the owner's own
+		layer: the page's place is a stored fact, so they can arrange it, while the document the
+		whole site shares is left alone.
 		"""
 		from frappe.desk.doctype.workspace.workspace import new_page
 
@@ -790,14 +795,21 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 
 		frappe.set_user("Administrator")
 		self.assertFalse(
-			frappe.db.exists("Custom Sidebar", {"module": self.module}),
-			"a private page must not open a customization on the module",
+			frappe.db.exists("Custom Sidebar", {"module": self.module, "user": ["in", ["", None]]}),
+			"a private page must not open a customization the whole site shares",
 		)
-		self.assertFalse(
-			frappe.db.exists("Sidebar Item", {"link_type": "Workspace", "link_to": name}),
-			"no item row anywhere may name a private page",
-		)
-		# and the derived one is there all the same
+
+		holders = {
+			frappe.db.get_value("Custom Sidebar", row.parent, "user")
+			for row in frappe.get_all(
+				"Sidebar Item",
+				filters={"parenttype": "Custom Sidebar", "link_type": "Workspace", "link_to": name},
+				fields=["parent"],
+			)
+		}
+		self.assertEqual(holders, {self.OWNER}, "only its owner's layers may name a private page")
+
+		# and it is in their sidebar, which is what the row is for
 		self.assertIn(name, [item["link_to"] for item in self.items_for(self.OWNER)])
 
 	def test_nobody_else_sees_it(self):
@@ -829,14 +841,27 @@ class TestPrivateWorkspacesAreDerived(IntegrationTestCase):
 		self.as_user(self.STRANGER)
 		return get_module_sidebars()
 
-	def test_the_link_says_it_is_derived(self):
-		"""What the desk needs in order not to offer it as something to arrange: no document holds it,
-		so no arrangement can name it.
+	def test_a_stored_link_is_offered_as_something_to_arrange(self):
+		"""The desk marks an item `derived` to say no document holds it, so no arrangement can name
+		it. A page that wrote its own row is held by one, and its owner may arrange it.
 		"""
 		self.make_private_workspace("Test Marked Private Page", self.OWNER)
 
 		item = next(i for i in self.items_for(self.OWNER) if i["link_type"] == "Workspace")
 
+		self.assertNotIn("derived", item)
+		self.assertEqual(item["added"], 1)
+
+	def test_a_page_with_no_row_still_reaches_its_owner(self):
+		"""Every page made before rows were written is in this state, and nothing backfills them, so
+		the derivation stays as the fallback and still marks what it adds.
+		"""
+		workspace = self.make_private_workspace("Test Underived Private Page", self.OWNER)
+		from frappe.desk.doctype.custom_sidebar.custom_sidebar import remove_workspace_rows
+
+		remove_workspace_rows(workspace.name)
+
+		item = next(i for i in self.items_for(self.OWNER) if i.get("link_to") == workspace.name)
 		self.assertEqual(item["derived"], 1)
 
 	def test_a_row_stored_before_the_derivation_is_not_rendered_twice(self):

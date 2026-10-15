@@ -295,6 +295,8 @@ class TestTranslate(IntegrationTestCase):
 			_(not_a_string, context="wat")
 			_lt("Communication")
 			N_("Created On")
+			_("Anxious Anaximander", lang="de")
+			_("OK")
 		"""
 		)
 		expected_output = [
@@ -306,6 +308,8 @@ class TestTranslate(IntegrationTestCase):
 			(10, "broken on separate line", None),
 			(15, "Communication", None),
 			(16, "Created On", None),
+			(17, "Anxious Anaximander", None),
+			(18, "OK", None),
 		]
 
 		output = extract_messages_from_python_code(code)

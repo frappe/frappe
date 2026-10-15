@@ -20,6 +20,8 @@ frappe.ui.Tree = class {
 		// markers — without actions, menus, or hover cards. For read-only
 		// embedded previews (CoA importer, setup wizard).
 		row_style = false,
+		// "default" (server order), "asc" or "desc" by visible label
+		sort_order = "default",
 
 		args,
 		method,
@@ -29,6 +31,8 @@ frappe.ui.Tree = class {
 		on_node_render,
 	}) {
 		$.extend(this, arguments[0]);
+		// $.extend skips undefined, so the default would never land
+		this.sort_order = sort_order;
 		if (root_value == null) {
 			this.root_value = label;
 		}
@@ -127,6 +131,31 @@ frappe.ui.Tree = class {
 
 	refresh() {
 		this.selected_node.parent_node && this.load_children(this.selected_node.parent_node, true);
+	}
+
+	set_sort_order(sort_order) {
+		this.sort_order = sort_order;
+		Object.values(this.nodes).forEach((node) => this.sort_children(node));
+	}
+
+	sort_children(node) {
+		const $items = node.$ul.children("li.tree-node");
+		if ($items.length < 2) return;
+
+		const collator = new Intl.Collator(undefined, {
+			numeric: true,
+			sensitivity: "base",
+		});
+		const direction = { asc: 1, desc: -1 }[this.sort_order];
+		const items = $items.get().map((li) => ({
+			li,
+			index: $(li).data("tree-index"),
+			label: $(li).children(".tree-link").find(".tree-label").text(),
+		}));
+		items.sort((a, b) =>
+			direction ? direction * collator.compare(a.label, b.label) : a.index - b.index
+		);
+		node.$ul.append(items.map((item) => item.li));
 	}
 
 	/**
@@ -262,19 +291,12 @@ frappe.ui.Tree = class {
 				.then((r) => {
 					const data = r.message;
 					const meta = frappe.get_meta(this.args.doctype);
-					const extra_fields =
-						data &&
-						Object.keys(data).filter(
-							(key) => !["preview_image", "preview_title", "name"].includes(key)
-						);
+					const rows = data ? this.get_preview_rows(data) : [];
 					const has_value_column =
 						node.parent && node.parent.children(".balance-area").length;
 
 					// nothing worth showing — no card
-					if (
-						!data ||
-						(!meta?.image_field && !extra_fields.length && !has_value_column)
-					) {
+					if (!data || (!meta?.image_field && !rows.length && !has_value_column)) {
 						node.preview_empty = true;
 						node.hover_card && node.hover_card.destroy();
 						return null;
@@ -290,14 +312,31 @@ frappe.ui.Tree = class {
 		return node.preview_promise;
 	}
 
+	/**
+	 * Preview fields worth a row in the hover card: everything the server
+	 * sent except the head fields and the tree's own parent field — in a
+	 * tree the parent is the row right above, so repeating it adds nothing.
+	 */
+	get_preview_rows(data) {
+		const doctype = this.args.doctype;
+		const parent_field =
+			frappe.get_meta(doctype)?.nsm_parent_field || `parent_${frappe.scrub(doctype)}`;
+		const parent_label = frappe.meta.get_docfield(doctype, parent_field)?.label;
+		return Object.entries(data).filter(
+			([key, value]) =>
+				!["preview_image", "preview_title", "name"].includes(key) &&
+				key !== parent_label &&
+				value != null
+		);
+	}
+
 	render_node_hover_card(node, data) {
 		const doctype = this.args.doctype;
 		const meta = frappe.get_meta(doctype);
 		const title = data.preview_title || data.name;
-		const subtitle =
-			data.preview_title && data.preview_title !== data.name
-				? `${__(doctype)} · ${data.name}`
-				: __(doctype);
+		// the doctype is already obvious from the page — only add a
+		// subtitle when the docname differs from the title
+		const subtitle = data.preview_title && data.preview_title !== data.name ? data.name : "";
 
 		const $content = $("<div></div>");
 		const $head = $(
@@ -319,9 +358,11 @@ frappe.ui.Tree = class {
 		$('<div class="text-base-semibold text-ink-gray-8 truncate"></div>')
 			.text(title)
 			.appendTo($titles);
-		$('<div class="text-sm text-ink-gray-6 truncate mt-0.5"></div>')
-			.text(subtitle)
-			.appendTo($titles);
+		if (subtitle) {
+			$('<div class="text-sm text-ink-gray-6 truncate mt-0.5"></div>')
+				.text(subtitle)
+				.appendTo($titles);
+		}
 
 		$(
 			frappe.ui.button({
@@ -339,10 +380,7 @@ frappe.ui.Tree = class {
 				.appendTo($content);
 		}
 
-		const rows = Object.entries(data).filter(
-			([key, value]) =>
-				!["preview_image", "preview_title", "name"].includes(key) && value != null
-		);
+		const rows = this.get_preview_rows(data);
 		const $balance = node.parent && node.parent.children(".balance-area").first();
 		if (rows.length || ($balance && $balance.length)) {
 			$('<div class="border-t my-2.5"></div>').appendTo($content);
@@ -353,7 +391,17 @@ frappe.ui.Tree = class {
 				$('<div class="text-sm text-ink-gray-6 shrink-0"></div>')
 					.text(label)
 					.appendTo($row);
-				$value.addClass("value text-sm text-ink-gray-7 truncate").appendTo($row);
+				// values truncate in the narrow card — keep the full text reachable.
+				// The tooltip is plain text, so turn the line breaks of formatted
+				// values (<br>, block ends) into newlines instead of gluing lines
+				const plain_text = $("<div></div>")
+					.html($value.html().replace(/<br\s*\/?>|<\/(p|div)>/gi, "\n"))
+					.text()
+					.trim();
+				$value
+					.addClass("value text-sm text-ink-gray-7 truncate")
+					.attr("title", plain_text)
+					.appendTo($row);
 			};
 			rows.forEach(([label, value]) => {
 				// server-side frappe.format output (escaped/translated there)
@@ -502,7 +550,9 @@ frappe.ui.Tree = class {
 			$.each(data_set, (i, data) => {
 				var child_node = this.add_node(node, data);
 				child_node.$tree_link.data("node-data", data).data("node", child_node);
+				child_node.parent.data("tree-index", i);
 			});
+			if (this.sort_order !== "default") this.sort_children(node);
 		}
 
 		node.expanded = false;

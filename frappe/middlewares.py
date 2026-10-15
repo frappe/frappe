@@ -3,7 +3,6 @@
 
 from pathlib import Path
 
-from werkzeug.exceptions import NotFound
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 import frappe
@@ -36,10 +35,9 @@ class StaticDataMiddleware(SharedDataMiddleware):
 			files_path = (Path(directory) / site / "public" / "files").resolve()
 			requested_path = Path(cstr(path))
 			path = (files_path / requested_path).resolve()
-			if not path.is_relative_to(files_path):
-				raise NotFound
-			if not path.is_file():
-				# like nginx's try_files: the app serves what is not on disk
+			# like nginx's try_files: the app answers what is not on disk,
+			# 404 included (raising here would escape as a 500)
+			if not path.is_relative_to(files_path) or not path.is_file():
 				return None, None
 
 			return path.name, self._opener(path)

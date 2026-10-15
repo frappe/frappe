@@ -197,10 +197,12 @@ def get_doc_files(files, start_path, doctypes=None):
 	if not general_walk:
 		return files
 
-	# DocType Layouts: doctype/{document_type}/doctype_layout/{name}.json
-	for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", "doctype_layout", "*.json")):
-		if doc_path not in files:
-			files.append(doc_path)
+	# DocType Layouts, List Filters and Kanban Boards:
+	# doctype/{document_type}/{doctype_layout,list_filter,kanban_board}/{name}.json
+	for folder in ("doctype_layout", "list_filter", "kanban_board"):
+		for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", folder, "*.json")):
+			if doc_path not in files:
+				files.append(doc_path)
 
 	# DocType Settings Maps: doctype_settings_map/{name}.json
 	for doc_path in glob.glob(os.path.join(start_path, "doctype_settings_map", "*.json")):
@@ -242,7 +244,17 @@ def remove_orphan_doctypes():
 # deleted. `Workspace Sidebar` has left this list, because the archive's files are going away with
 # this release, so keeping it here would delete the rows the conversion reads. Icon fixtures
 # stay: their files are staying, and an icon has no computed base to absorb the loss.
-ORPHANABLE_ENTITIES = ["Workspace", "Dashboard", "Page", "Report", "Notification", "Sidebar", "Dock"]
+ORPHANABLE_ENTITIES = [
+	"Workspace",
+	"Dashboard",
+	"Page",
+	"Report",
+	"Notification",
+	"Sidebar",
+	"Dock",
+	"List Filter",
+	"Kanban Board",
+]
 # Retiring with the icon-grid batch, together with the fixture import it mirrors; see
 # `frappe/desk/RETIRING.md`.
 APP_LEVEL_ENTITIES = ["Desktop Icon"]
@@ -267,6 +279,9 @@ def remove_orphan_entities(entity_types=None):
 		# the same rule one table down: the app's own dock is the file-backed layer, and the
 		# site's arrangement and every person's own are never candidates
 		"Dock": {"standard": 1},
+		# a user's own or a site-wide layout is never backed by a file
+		"List Filter": {"is_standard": 1},
+		"Kanban Board": {"is_standard": "Yes"},
 	}
 	if entity_types:
 		entities = entity_types if isinstance(entity_types, list) else [entity_types]

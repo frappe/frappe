@@ -1,0 +1,188 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "autoname": "hash",
+ "creation": "2026-09-29 14:15:19.900864",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "automation",
+  "automation_title",
+  "status",
+  "column_break_head",
+  "reference_doctype",
+  "reference_name",
+  "user",
+  "depth",
+  "queue_row",
+  "timing_section",
+  "started_at",
+  "ended_at",
+  "column_break_timing",
+  "error_summary",
+  "steps_section",
+  "steps",
+  "snapshot_section",
+  "actions_snapshot",
+  "relationships",
+  "run_state"
+ ],
+ "fields": [
+  {
+   "fieldname": "automation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Automation Flow",
+   "options": "Automation Flow"
+  },
+  {
+   "description": "Denormalized so the run survives deletion of its Automation Flow.",
+   "fieldname": "automation_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Automation Flow Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Running\nWaiting\nSuccess\nPartially Failed\nFailed\nSkipped"
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Run As",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "depth",
+   "fieldtype": "Int",
+   "label": "Recursion Depth",
+   "read_only": 1
+  },
+  {
+   "fieldname": "queue_row",
+   "fieldtype": "Data",
+   "label": "Trigger Queue Row",
+   "read_only": 1
+  },
+  {
+   "fieldname": "timing_section",
+   "fieldtype": "Section Break",
+   "label": "Timing"
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ended_at",
+   "fieldtype": "Datetime",
+   "label": "Ended At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_timing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "error_summary",
+   "fieldtype": "Small Text",
+   "label": "Error Summary",
+   "read_only": 1
+  },
+  {
+   "fieldname": "steps_section",
+   "fieldtype": "Section Break",
+   "label": "Steps"
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Automation Run Step",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "snapshot_section",
+   "fieldtype": "Section Break",
+   "label": "Snapshot"
+  },
+  {
+   "description": "The flow's steps as they were when the run started. A resumed run executes these, not the current flow.",
+   "fieldname": "actions_snapshot",
+   "fieldtype": "JSON",
+   "label": "Actions Snapshot",
+   "read_only": 1
+  },
+  {
+   "fieldname": "relationships",
+   "fieldtype": "JSON",
+   "label": "Relationships Snapshot",
+   "read_only": 1
+  },
+  {
+   "description": "Step outputs, record aliases and branch choices a resumed run picks up.",
+   "fieldname": "run_state",
+   "fieldtype": "JSON",
+   "label": "Run State",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-29 15:08:27.766045",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Automation Run",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "automation_title"
+}

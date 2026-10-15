@@ -4,6 +4,7 @@
  "creation": "2019-04-17 09:36:41.774774",
  "description": "Track milestones for any document",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/milestone-tracker",
  "engine": "InnoDB",
  "field_order": [
   "document_type",

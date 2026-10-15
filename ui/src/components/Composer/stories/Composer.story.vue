@@ -23,7 +23,7 @@
 			</p>
 			<TicketReply />
 			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+				class="mt-3 overflow-auto rounded-6 bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
 			><code>{{ ticketSnippet }}</code></pre>
 		</section>
 
@@ -37,7 +37,7 @@
 			</p>
 			<DockedCompose />
 			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+				class="mt-3 overflow-auto rounded-6 bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
 			><code>{{ dockedSnippet }}</code></pre>
 		</section>
 
@@ -50,7 +50,7 @@
 			</p>
 			<CommentThread />
 			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+				class="mt-3 overflow-auto rounded-6 bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
 			><code>{{ commentSnippet }}</code></pre>
 		</section>
 
@@ -63,7 +63,7 @@
 			</p>
 			<QuickReply />
 			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+				class="mt-3 overflow-auto rounded-6 bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
 			><code>{{ quickSnippet }}</code></pre>
 		</section>
 
@@ -75,7 +75,7 @@
 			</p>
 			<CustomUtility />
 			<pre
-				class="mt-3 overflow-auto rounded-lg bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
+				class="mt-3 overflow-auto rounded-6 bg-surface-gray-2 p-3 text-xs text-ink-gray-8"
 			><code>{{ utilitySnippet }}</code></pre>
 		</section>
 	</div>

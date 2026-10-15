@@ -2,7 +2,7 @@
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
 			<div class="page-title">
-				<button class="btn-reset sidebar-toggle-btn navbar-brand">
+				<button class="btn-reset sidebar-toggle-btn navbar-brand" aria-label="{{ __("Toggle Sidebar") }}">
 					<svg class="icon icon-md sidebar-toggle-placeholder">
 						<use href="#icon-menu"></use>
 					</svg>
@@ -14,7 +14,7 @@
 					</span>
 				</button>
 				<div class="flex title-area ellipsis">
-					<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis {{frappe.is_mobile() ? "mobile-no-divider" : ""}}  "></ul>
+					<nav class="es-breadcrumbs navbar-breadcrumbs {{frappe.is_mobile() ? "mobile-no-divider" : ""}}" aria-label="{{ __("Breadcrumb") }}"><ol></ol></nav>
 					<button class="btn btn-default more-button hide">
 						<svg class="icon icon-sm">
 							<use href="#icon-ellipsis">

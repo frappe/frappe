@@ -17,6 +17,11 @@ describe("getDefaultOperator", () => {
     expect(getDefaultOperator("Int")).toBe("equals");
   });
 
+  it("defaults a Link field to equals, and a Dynamic Link to like", () => {
+    expect(getDefaultOperator("Link")).toBe("equals");
+    expect(getDefaultOperator("Dynamic Link")).toBe("like");
+  });
+
   it("defaults Date fields to between", () => {
     expect(getDefaultOperator("Datetime")).toBe("between");
   });

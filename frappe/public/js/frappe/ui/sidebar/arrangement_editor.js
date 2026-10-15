@@ -141,17 +141,23 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.hidden = new Set();
 		this.can_curate_site = frappe.user.has_role("Workspace Manager");
 		this.prepare();
-		// Which layer the editor opens on: the site's, for users who may curate it, since
-		// arranging for everyone is what that permission is for. A curator who meant only their
-		// own layer has the switch in the header. Everyone else has one layer and opens on it.
+		// Which layer the editor opens on: the app's wherever it is offered, which is developer
+		// mode and nowhere else. A developer's site is where an app's navigation is authored, so
+		// that is the layer they came to edit, and opening anywhere else means switching every
+		// time. The other two stay in the switch for the times they meant one site or themselves.
 		//
-		// Never the app's layer: authoring what an app ships should be deliberate, not what
-		// happens by opening the manager on a developer's site.
+		// Everyone else opens on the site's layer if they may curate it, since arranging for
+		// everyone is what that permission is for, and on their own if not.
 		//
 		// Read after `prepare`, because that is where a surface settles what the permission means
 		// for it. Opening on a layer this user cannot write would fail on Save instead of never
-		// being offered.
-		this.layer = this.can_curate_site ? "site" : "user";
+		// being offered, so this picks among the layers actually on offer.
+		const offered = new Set(this.offered_layers.map(([name]) => name));
+		if (offered.has("app")) {
+			this.layer = "app";
+		} else {
+			this.layer = this.can_curate_site ? "site" : "user";
+		}
 
 		this.dialog = new frappe.ui.Dialog({
 			title: this.title(),

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import re
 import typing
 from typing import Any
 from urllib.parse import quote
@@ -11,7 +12,9 @@ import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
+from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.desk.link_title import send_link_titles
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
@@ -139,6 +142,9 @@ def get_docinfo(
 	frappe.response["docinfo"] = docinfo
 
 
+ATTACHMENT_FIELDNAME_RE = re.compile(r"data-fieldname=['\"]([^'\"]*)['\"]")
+
+
 def add_comments(doc, docinfo):
 	# divide comments into separate lists
 	docinfo.comments = []
@@ -149,11 +155,13 @@ def add_comments(doc, docinfo):
 	docinfo.like_logs = []
 	docinfo.workflow_logs = []
 
-	comments = frappe.get_all(
-		"Comment",
+	comments = get_document_comments(
+		doc.doctype,
+		doc.name,
 		fields=["name", "creation", "content", "owner", "comment_type", "published"],
-		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
+
+	restricted_fieldnames = None
 
 	for c in comments:
 		match c.comment_type:
@@ -165,6 +173,11 @@ def add_comments(doc, docinfo):
 			case "Assignment Completed" | "Assigned":
 				docinfo.assignment_logs.append(c)
 			case "Attachment" | "Attachment Removed":
+				if restricted_fieldnames is None:
+					restricted_fieldnames = get_permlevel_restricted_fieldnames(doc.doctype)
+				m = ATTACHMENT_FIELDNAME_RE.search(c.content or "")
+				if m and m.group(1) in restricted_fieldnames:
+					continue
 				docinfo.attachment_logs.append(c)
 			case "Info" | "Edit" | "Label":
 				docinfo.info_logs.append(c)
@@ -316,14 +329,11 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	else:
 		comment_types = [comment_type]
 
-	comments = frappe.get_all(
-		"Comment",
+	comments = get_document_comments(
+		doctype,
+		name,
 		fields=["name", "creation", "content", "owner", "comment_type"],
-		filters={
-			"reference_doctype": doctype,
-			"reference_name": name,
-			"comment_type": ["in", comment_types],
-		},
+		comment_types=comment_types,
 	)
 
 	# convert to markdown (legacy ?)
@@ -558,14 +568,6 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(value))
 
 	return link_titles
-
-
-def send_link_titles(link_titles):
-	"""Append link titles dict in `frappe.local.response`."""
-	if "_link_titles" not in frappe.local.response:
-		frappe.local.response["_link_titles"] = {}
-
-	frappe.local.response["_link_titles"].update(link_titles)
 
 
 def update_user_info(docinfo, doc=None):

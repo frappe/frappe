@@ -2,15 +2,16 @@
 # License: MIT. See LICENSE
 import json
 import time
+import unittest
 from contextlib import contextmanager
 
 import frappe
-from frappe.desk.query_report import generate_report_result, get_report_doc
-from frappe.query_builder.utils import db_type_is
+from frappe.desk.query_report import generate_report_result, get_prepared_report_result, get_report_doc
 from frappe.tests import IntegrationTestCase, timeout
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
 
+@requires_test_service(TestService.BACKGROUND_WORKER)
 class TestPreparedReport(IntegrationTestCase):
 	@classmethod
 	def tearDownClass(cls):
@@ -63,6 +64,23 @@ class TestPreparedReport(IntegrationTestCase):
 		self.assertEqual(len(prepared_data["result"]), len(generated_data["result"]))
 		self.assertEqual(len(prepared_data), len(generated_data))
 
+	def test_failed_report_is_surfaced(self):
+		with test_report(report_type="Query Report", query="select * from `tabNoSuchTable`") as report:
+			doc = self.create_prepared_report(report.name)
+			self.wait_for_status(doc, "Error")
+			self.assertTrue(doc.error_message)
+
+			result = get_prepared_report_result(get_report_doc(report.name), {}, dn=doc.name)
+			self.assertEqual("Error", result["doc"].status)
+			# the reader gets the message, the traceback stays on the document
+			self.assertIn("tabNoSuchTable", result["error"])
+			self.assertNotIn("Traceback", result["error"])
+			self.assertIsNone(result["doc"].error_message)
+
+	@unittest.skipIf(
+		frappe.conf.db_type == "sqlite",
+		"This test needs a database sleep function, which SQLite does not provide.",
+	)
 	def test_start_status_and_kill_jobs(self):
 		if frappe.db.db_type == "postgres":
 			query = "select pg_sleep(5)"

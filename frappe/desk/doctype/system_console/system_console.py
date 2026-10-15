@@ -76,7 +76,8 @@ def _show_processlist():
 				state AS "State",
 				query AS "Info",
 				wait_event AS "Progress"
-			FROM pg_stat_activity""",
+			FROM pg_stat_activity
+			WHERE datname = current_database()""",
 			"mariadb": "show full processlist",
 		},
 		as_dict=True,

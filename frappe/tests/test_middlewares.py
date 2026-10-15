@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from werkzeug.exceptions import NotFound
+from werkzeug.test import Client
 
 import frappe.app
 from frappe.middlewares import StaticDataMiddleware
@@ -33,8 +33,26 @@ class StaticDataMiddlewareTest(unittest.TestCase):
 				stream, _, _ = opener()
 				with stream:
 					self.assertEqual(stream.read(), b"public image")
-				for path in ("outside.png", "../../../private.txt", str(secret)):
-					with self.subTest(path=path), self.assertRaises(NotFound):
-						loader(path)
-				# a file that is not on disk passes through to the app, like nginx's try_files
-				self.assertEqual(loader("missing.png"), (None, None))
+				# what is outside the root or not on disk passes through to the
+				# app, like nginx's try_files; the app answers 404
+				for path in ("outside.png", "../../../private.txt", str(secret), "missing.png"):
+					with self.subTest(path=path):
+						self.assertEqual(loader(path), (None, None))
+
+	def test_files_the_middleware_does_not_serve_reach_the_app_route(self):
+		with tempfile.TemporaryDirectory() as directory:
+			sites = Path(directory)
+			(sites / "rehearsal.localhost" / "public" / "files").mkdir(parents=True)
+			(sites / "private.txt").write_bytes(b"private bytes")
+
+			def app(environ, start_response):
+				start_response("404 NOT FOUND", [])
+				return [b"from app"]
+
+			client = Client(StaticDataMiddleware(app, {"/files": str(sites)}))
+			with patch.object(frappe.app, "_site", "rehearsal.localhost"):
+				for path in ("/files/missing.png", "/files/../../private.txt"):
+					with self.subTest(path=path):
+						response = client.get(path)
+						self.assertEqual(response.status_code, 404)
+						self.assertEqual(response.data, b"from app")

@@ -1,9 +1,11 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "autoname": "field:language_code",
  "creation": "2014-08-22 16:12:17.249590",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/framework/user/en/python-api/language",
  "engine": "InnoDB",
  "field_order": [
   "enabled",
@@ -81,7 +83,7 @@
    "options": "\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
   }
  ],
- "icon": "fa fa-globe",
+ "icon": "languages",
  "in_create": 1,
  "links": [],
  "modified": "2024-07-21 08:25:25.130166",
@@ -103,6 +105,7 @@
    "role": "All"
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "language_name",
  "show_title_field_in_link": 1,
  "sort_field": "creation",

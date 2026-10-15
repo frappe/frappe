@@ -537,6 +537,23 @@ def rename_sidebar_rows(old_name: str, new_name: str) -> None:
 		drop_dock_caches(layer.user)
 
 
+def remove_sidebar_rows(name: str) -> None:
+	"""Drop every dock row naming the sidebar `name`, and the caches those rows are read from.
+
+	For `Sidebar.on_trash`. The rows are removed in place for the same reason `rename_sidebar_rows`
+	updates them in place: re-saving each layer would re-run its validation and export.
+	"""
+	named = {"parenttype": "Dock", "link_type": "Sidebar", "link_to": name}
+	layers = frappe.get_all("Dock Item", filters=named, pluck="parent", distinct=True)
+	if not layers:
+		return
+
+	frappe.db.delete("Dock Item", named)
+	for layer in frappe.get_all("Dock", filters={"name": ["in", layers]}, fields=["name", "user"]):
+		frappe.clear_document_cache("Dock", layer.name)
+		drop_dock_caches(layer.user)
+
+
 def drop_dock_caches(user: str | None) -> None:
 	"""Drop the caches a dock layer is read from, for the user who holds it.
 
@@ -962,6 +979,7 @@ def rail_entry(entry) -> dict:
 	return {
 		**{field: entry.get(field) for field in DESTINATION_FIELDS},
 		**{field: entry.get(field) for field in REFERENCE_FIELDS},
+		"title": _(entry["title"]) if entry.get("title") else entry.get("title"),
 	}
 
 
@@ -1160,7 +1178,7 @@ def entries_below(app: str, user: str | None) -> dict[str, dict]:
 	With the reach filter on, a Workspace Manager saving the site's rail with one module blocked
 	for them personally would turn that module's row into an add.
 	"""
-	below = resolve_app_dock(app, upto="user" if user else "site", gated=False)
+	below = resolve_app_dock(app, upto="site" if user else "app", gated=False)
 	return {dock_key(entry): entry for entry in below}
 
 

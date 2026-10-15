@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 @frappe.whitelist()
-def update_follow(doctype: str, doc_name: str, following: bool | str):
+def update_follow(doctype: str, doc_name: str | int, following: bool | str):
 	following = frappe.utils.sbool(following)
 	if following:
 		is_following = follow_document(doctype, doc_name)
@@ -27,7 +27,7 @@ def update_follow(doctype: str, doc_name: str, following: bool | str):
 
 
 @frappe.whitelist()
-def follow_document(doctype: str, doc_name: str) -> Document | bool:
+def follow_document(doctype: str, doc_name: str | int) -> Document | bool:
 	return _follow_document(doctype, doc_name, frappe.session.user)
 
 
@@ -86,7 +86,7 @@ def _follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
 
 
 @frappe.whitelist()
-def unfollow_document(doctype: str, doc_name: str) -> bool:
+def unfollow_document(doctype: str, doc_name: str | int) -> bool:
 	return _unfollow_document(doctype, doc_name, frappe.session.user)
 
 
@@ -238,17 +238,18 @@ def get_version(doctype, doc_name, frequency, user):
 
 
 def get_comments(doctype, doc_name, frequency, user):
+	# circular with frappe.model.document
+	from frappe.core.doctype.comment.comment import get_document_comments
 	from frappe.core.utils import html2text
 
 	timeline = []
-	comments = frappe.get_all(
-		"Comment",
-		filters=[
-			["reference_doctype", "=", doctype],
-			["reference_name", "=", doc_name],
-			*_get_filters(frequency, user),
-		],
+	# runs as the scheduler, so evaluate as the recipient
+	comments = get_document_comments(
+		doctype,
+		doc_name,
 		fields=["content", "modified", "modified_by", "comment_type"],
+		extra_filters=_get_filters(frequency, user),
+		user=user,
 	)
 	for comment in comments:
 		if comment.comment_type == "Like":

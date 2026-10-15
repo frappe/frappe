@@ -53,14 +53,16 @@ class FileV1(File):
 			return
 
 		if self.is_remote_file:
+			# a remote file has no local blob to hash
+			self.content_hash = None
 			self.validate_remote_file()
 		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
 			frappe.db.after_rollback.add(self.on_rollback)
 
-		if not self.get("blob"):
-			# blob rows dedup inside put_blob; the disk-based duplicate check does not apply
+		# blob rows dedup inside put_blob; the disk-based duplicate check does not apply
+		if not self.is_remote_file and not self.get("blob"):
 			self.validate_duplicate_entry()  # Hash is generated in save_file
 
 	def on_rollback(self):
@@ -99,12 +101,13 @@ class FileV1(File):
 			pop_rollback_flags()
 
 	def before_save(self):
+		super().before_save()
 		if self.get("blob"):
 			# compat shim: re-assert the blob privacy invariant for
 			# subclasses that override validate() without calling super()
 			from .file_v2 import FileV2
 
-			FileV2.before_save(self)
+			FileV2.enforce_blob_privacy(self)
 
 	def validate_file_path(self):
 		if self.is_remote_file:
@@ -114,8 +117,12 @@ class FileV1(File):
 			# compat shim: the path derives from the blob key
 			return
 
+		if self.file_url and ".." in self.file_url.split("/"):
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
 		base_path = os.path.realpath(get_files_path(is_private=self.is_private))
-		if not os.path.realpath(self.get_full_path()).startswith(base_path):
+		file_path = os.path.realpath(self.get_full_path())
+		if os.path.commonpath((base_path, file_path)) != base_path:
 			frappe.throw(
 				_("The File URL you've entered is incorrect"),
 				title=_("Invalid File URL"),

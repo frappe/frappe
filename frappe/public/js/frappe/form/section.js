@@ -124,6 +124,7 @@ export default class Section {
 		}
 
 		this.body.toggleClass("hide", hide);
+		this.description_wrapper && this.description_wrapper.toggleClass("hide", hide);
 		this.head && this.head.toggleClass("collapsed", hide);
 
 		this.set_icon(hide);
@@ -149,10 +150,13 @@ export default class Section {
 	}
 
 	has_missing_mandatory() {
+		// a dialog has no doc; its values are the doc
+		const doc =
+			this.layout.doc || (this.layout.get_values && this.layout.get_values(true)) || {};
 		let missing_mandatory = false;
 		for (let j = 0, l = this.fields_list.length; j < l; j++) {
 			const section_df = this.fields_list[j].df;
-			if (section_df.reqd && this.layout.doc[section_df.fieldname] == null) {
+			if (section_df.reqd && doc[section_df.fieldname] == null) {
 				missing_mandatory = true;
 				break;
 			}

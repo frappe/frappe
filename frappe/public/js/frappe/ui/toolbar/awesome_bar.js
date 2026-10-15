@@ -247,6 +247,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
 				}
+				frappe.route_flags.jump = true;
 				frappe.set_route(item.route);
 			}
 			$input.val("");
@@ -557,6 +558,7 @@ function navigate_in_app_path(path, event) {
 		if (event.ctrlKey || event.metaKey) {
 			frappe.open_in_new_tab = true;
 		}
+		frappe.route_flags.jump = true;
 		frappe.set_route(path);
 	} else if (event.ctrlKey || event.metaKey) {
 		window.open(path, "_blank");

@@ -15,7 +15,7 @@
 			<Switch v-model="withSlots" label="Slots" />
 		</div>
 
-		<div class="rounded-lg border border-outline-gray-2 p-4">
+		<div class="rounded-6 border border-outline-gray-2 p-4">
 			<ActivityTimeline
 				:activities="activities"
 				:loading="loading"
@@ -39,7 +39,7 @@
 						<template v-if="withSlots" #actions>
 							<Button
 								variant="ghost"
-								icon="trash-2"
+								icon="lucide-trash-2"
 								@click="log('delete', activity.data.name)"
 							/>
 						</template>
@@ -48,7 +48,7 @@
 
 				<!-- a consumer-defined type, rendered entirely through its slot -->
 				<template #item-feedback="{ activity }">
-					<div class="rounded-md bg-surface-gray-2 px-3 py-2 text-p-sm text-ink-gray-7">
+					<div class="rounded-5 bg-surface-gray-2 px-3 py-2 text-p-sm text-ink-gray-7">
 						Feedback — ★ {{ asFeedback(activity).rating }}/5 ·
 						{{ asFeedback(activity).message }}
 					</div>

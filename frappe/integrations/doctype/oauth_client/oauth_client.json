@@ -3,6 +3,7 @@
  "creation": "2016-08-24 14:07:21.955052",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/framework/oauth2",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

@@ -1,8 +1,11 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.desk.doctype.system_console.system_console import execute_code
+from frappe.database import get_db
+from frappe.desk.doctype.system_console.system_console import _show_processlist, execute_code
+from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import run_only_if
 
 
 class TestSystemConsole(IntegrationTestCase):
@@ -47,3 +50,21 @@ class TestSystemConsole(IntegrationTestCase):
 		doc = {"doctype": "System Console", "console": 'log("hello")', "type": "Python"}
 		result = execute_code(doc)
 		self.assertEqual(result.get("output"), "hello")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_processlist_shows_only_current_database(self):
+		other_database = get_db(
+			socket=frappe.db.socket,
+			host=frappe.db.host,
+			user=frappe.db.user,
+			password=frappe.db.password,
+			port=frappe.db.port,
+			cur_db_name="postgres",
+		)
+		other_database.connect()
+		self.addCleanup(other_database.close)
+
+		process_ids = {row.Id for row in _show_processlist()}
+
+		self.assertIn(frappe.db.sql("SELECT pg_backend_pid()")[0][0], process_ids)
+		self.assertNotIn(other_database.sql("SELECT pg_backend_pid()")[0][0], process_ids)

@@ -42,7 +42,7 @@ export default class KanbanSettings {
 			],
 		});
 		this.dialog.set_values(this.settings);
-		this.dialog.set_primary_action(__("Save"), () => {
+		this.dialog.set_primary_action(__("Save"), (values) => {
 			frappe.show_alert({
 				message: __("Saving"),
 				indicator: "green",
@@ -52,7 +52,7 @@ export default class KanbanSettings {
 				method: "frappe.desk.doctype.kanban_board.kanban_board.save_settings",
 				args: {
 					board_name: this.settings.name,
-					settings: this.dialog.get_values(),
+					settings: values,
 				},
 				callback: (r) => {
 					this.kanbanview.board = r.message;
@@ -186,8 +186,8 @@ export default class KanbanSettings {
 				},
 			],
 		});
-		dialog.set_primary_action(__("Save"), () => {
-			this.fields = dialog.get_values().fields || [];
+		dialog.set_primary_action(__("Save"), (values) => {
+			this.fields = values.fields || [];
 			this.dialog.set_value("fields", JSON.stringify(this.fields));
 			this.refresh();
 			dialog.hide();

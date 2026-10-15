@@ -9,6 +9,7 @@ export const ListFilterAPI = {
 					"name",
 					"filter_name",
 					"for_user",
+					"is_standard",
 					"filters",
 					"columns",
 					"sort_field",
@@ -20,7 +21,8 @@ export const ListFilterAPI = {
 					["for_user", "=", frappe.session.user],
 					["for_user", "=", ""],
 				],
-				order_by: "filter_name asc",
+				// standard layouts in the order their app ships them, then the rest by name
+				order_by: "is_standard desc, layout_order asc, filter_name asc",
 				limit: 200,
 			})
 			.then((filters) => {
@@ -69,9 +71,16 @@ export const ListFilterAPI = {
 		}
 	},
 
+	/** Standard layouts ship with an app, so their names are translated; users' own are shown as written. */
+	get_layout_label(layout) {
+		return layout.is_standard ? __(layout.filter_name) : layout.filter_name;
+	},
+
 	/** Whether current user can update this layout record. */
 	can_edit_layout(layout) {
 		if (!layout) return false;
+		// shipped with an app, so it only changes where it gets exported
+		if (layout.is_standard && !frappe.boot.developer_mode) return false;
 		if (!layout.for_user) {
 			return frappe.user.has_role(["System Manager", "Administrator"]);
 		}
@@ -82,6 +91,8 @@ export const ListFilterAPI = {
 	create_layout_from_dialog({
 		filter_name,
 		is_global,
+		is_standard,
+		module,
 		filters,
 		columns,
 		sort_field,
@@ -93,7 +104,9 @@ export const ListFilterAPI = {
 				doctype: "List Filter",
 				reference_doctype: this.list_view.doctype,
 				filter_name,
-				for_user: is_global ? "" : frappe.session.user,
+				for_user: is_global || is_standard ? "" : frappe.session.user,
+				is_standard: is_standard ? 1 : 0,
+				module: is_standard ? module : "",
 				filters: JSON.stringify(filters || []),
 				columns: JSON.stringify(columns || []),
 				sort_field,

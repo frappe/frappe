@@ -43,8 +43,16 @@
     text-align: center;
     /* even out the lines when the text wraps */
     text-wrap: balance;
+    /* a label may carry its own line breaks */
+    white-space: pre-line;
     pointer-events: none;
     user-select: none;
+}
+
+/* ---- a label that lists things reads from one left edge ---- */
+.es-tooltip--text-start {
+    text-align: left;
+    text-wrap: initial;
 }
 
 /* ---- keyboard hint: one <kbd> per key after the label ----
@@ -70,6 +78,16 @@
     letter-spacing: normal;
     color: var(--ink-gray-4);
     box-shadow: none;
+}
+
+/* ---- plain: a bubble with no arrow ----
+   For triggers where an arrow adds nothing but clutter: a run of same-sized
+   tiles whose labels all appear in the same place, where the bubble's own
+   position already says which tile it belongs to. The owner omits the arrow
+   node as well (see tooltip.js), so this only has to cover a bubble built
+   elsewhere. */
+.es-tooltip--plain .es-tooltip__arrow {
+    display: none;
 }
 
 /* ---- arrow: an 8x4 triangle on the edge facing the trigger ----
