@@ -144,6 +144,19 @@ class TestNestedSet(IntegrationTestCase):
 		self.assertRaises(NestedSetRecursionError, leaf_node.save)
 		leaf_node.reload()
 
+	def test_merge_into_descendant(self):
+		child = frappe.get_doc(
+			doctype=TEST_DOCTYPE,
+			some_fieldname="Child Group",
+			parent_test_tree_doctype="Parent 1",
+			is_group=1,
+		).insert()
+		with self.assertRaises(NestedSetInvalidMergeError):
+			frappe.rename_doc(TEST_DOCTYPE, "Parent 1", child.name, merge=True)
+		self.assertEqual(
+			frappe.db.get_value(TEST_DOCTYPE, child.name, "parent_test_tree_doctype"), "Parent 1"
+		)
+
 	def test_rebuild_tree(self):
 		rebuild_tree(TEST_DOCTYPE)
 		self.test_basic_tree()
