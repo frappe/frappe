@@ -833,7 +833,7 @@ class TestUser(IntegrationTestCase):
 				self.assertEqual(update_password("Eastern_43A1W", key=key), "me")
 			probe.assert_called_once()
 			frappe.set_user("Administrator")
-  
+
 	@contextmanager
 	def outgoing_email_account(self):
 		exists = frappe.db.exists
