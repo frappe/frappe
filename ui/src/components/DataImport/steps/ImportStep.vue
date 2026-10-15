@@ -72,13 +72,13 @@
 			<div class="flex items-center justify-between gap-4">
 				<h2 class="text-base-semibold text-ink-gray-8">{{ resultTitle }}</h2>
 				<Button
-					v-if="isFinished"
+					v-if="isFinished && onOpenList"
 					class="shrink-0"
 					variant="outline"
 					size="sm"
 					:label="t('Go to list')"
 					icon-right="lucide-arrow-up-right"
-					@click="emit('openList', doc.reference_doctype)"
+					@click="onOpenList(doc.reference_doctype)"
 				/>
 			</div>
 			<StatCards :stats="resultStats" :label="t('Result')" />
@@ -234,16 +234,18 @@ import { emptyProgress, type UseDataImport } from "../useDataImport";
 const LOG_LIMIT = 1000;
 const UPSERT = "Insert or Update Records";
 
-const props = defineProps<{ dataImport: UseDataImport }>();
+const props = defineProps<{
+	dataImport: UseDataImport;
+	onOpenList?: (doctype: string) => void;
+}>();
 
 const emit = defineEmits<{
-	openList: [doctype: string];
 	openRecord: [doctype: string, name: string];
 }>();
 
 const { doc, running, importStarted, importStatus, logFilter, logs } = props.dataImport;
 
-// Finished either way, so the way back to the records is always there.
+// Any finished run, success or not, offers the way back to the records.
 const isFinished = computed(() => !running.value && isImportFinished(doc.value.status));
 
 const progress = computed(() => props.dataImport.progress.value ?? emptyProgress());
