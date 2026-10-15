@@ -27,6 +27,8 @@ from flow.lib.session import (
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_run.flow_run import FlowRun
 
+COMPACT_INPUT = "/compact"  # a compaction's run has no message of its own
+
 
 class FlowSession(Document):
 	# begin: auto-generated types
@@ -248,6 +250,23 @@ class FlowSession(Document):
 			status = client.rewind(self.name, target_seq)["status"]
 		sync_with_retry(self)
 		return status
+
+	def compact(self) -> FlowRun:
+		"""Summarize the conversation so far into a shorter context; the summary call is a run."""
+		self._assert_can_run()
+		# the sync locks this session, so the run-end callback can't record the run before its row exists
+		sync_with_retry(self)
+		with flow_server() as client:
+			client.compact(self.name)
+		return frappe.get_doc(
+			{
+				"doctype": "Flow Run",
+				"session": self.name,
+				"source": "Manual",
+				"input": COMPACT_INPUT,
+				"status": "Running",
+			}
+		).insert(ignore_permissions=True)
 
 	def _assert_can_run(self) -> None:
 		"""Enforce current agent and model access before the daemon uses its stored config."""

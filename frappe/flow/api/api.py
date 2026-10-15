@@ -194,6 +194,13 @@ def rewind(session: str, target_seq: int | str) -> dict[str, str]:
 	return {"status": _load_session(session, "write").rewind(int(target_seq))}
 
 
+@frappe.whitelist(methods=["POST"])
+def compact(session: str) -> dict[str, Any]:
+	"""Summarize the chat so far to free up context; answers at once with the run doing it."""
+	run = _load_session(session, "write").compact()
+	return {"run": run.name, "status": "started"}
+
+
 @frappe.whitelist()
 def entries(session: str, since: int | str = 0, path: str = "active") -> dict[str, Any]:
 	if path not in ("active", "all"):

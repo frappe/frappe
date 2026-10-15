@@ -156,6 +156,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"abort": {"session": session.name},
 			"cancel_pending": {"session": session.name},
 			"rewind": {"session": session.name, "target_seq": 0},
+			"compact": {"session": session.name},
 			"entries": {"session": session.name},
 			"set_model": {"session": session.name, "model": "m"},
 			"set_title": {"session": session.name, "title": "t"},

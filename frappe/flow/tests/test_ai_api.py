@@ -431,6 +431,7 @@ class TestSessionEndpoints(ApiCase):
 			lambda: api.abort(fired),
 			lambda: api.cancel_pending(fired),
 			lambda: api.rewind(fired, 0),
+			lambda: api.compact(fired),
 			lambda: api.set_model(fired, self.model.name),
 			lambda: api.set_title(fired, "x"),
 			lambda: api.set_auto_approve(fired, 1),
@@ -632,6 +633,36 @@ class TestSessionEndpoints(ApiCase):
 		# a link on another site can't rewind a chat: GET skips Frappe's CSRF check
 		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.rewind], ("POST",))
 
+	def test_compact_runs_as_a_run_of_its_own_labelled_with_the_command(self):
+		name = self.create()
+		api.run(name, "hi")
+		api.sync_session(name)
+		started = api.compact(name)
+		self.assertEqual((started["status"], self.run_status(started["run"])), ("started", "Running"))
+
+		api.sync_session(name)
+		run = frappe.get_doc("Flow Run", started["run"])
+		self.assertEqual((run.input, run.status, run.daemon_run_id), ("/compact", "Completed", "r2"))
+		self.assertEqual(json.loads(run.usage)["input_tokens"], 40)
+		self.assertEqual(len(frappe.get_doc("Flow Session", name).messages), 4)  # the summary adds none
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.compact], ("POST",))
+
+	def test_a_compaction_is_a_manual_run_even_in_a_trigger_session(self):
+		name = new_session(self.agent.name, source="Trigger").name
+		api.run(name, "hi")
+		run = api.compact(name)["run"]
+		self.assertEqual(frappe.db.get_value("Flow Run", run, "source"), "Manual")
+
+	def test_a_refused_compaction_leaves_no_run_behind(self):
+		name = self.create()
+		with self.assertRaisesRegex(frappe.ValidationError, "nothing to compact"):
+			api.compact(name)
+		api.run(name, "hi")
+		self.daemon.running = True
+		with self.assertRaisesRegex(frappe.ValidationError, "a run is already active"):
+			api.compact(name)
+		self.assertFalse(frappe.db.exists("Flow Run", {"session": name, "input": "/compact"}))
+
 	def test_abort_cancel_and_entries_pass_through(self):
 		name = self.create()
 		self.assertEqual(api.abort(name), {"status": "idle"})
@@ -755,5 +786,29 @@ class TestLiveEndpoints(LiveServerCase):
 				("assistant", "Mock reply to: one"),
 				("user", "three"),
 				("assistant", "Mock reply to: three"),
+			],
+		)
+
+	def test_a_manual_compaction_summarizes_the_chat_and_the_next_turn_goes_on(self):
+		name = api.create_session(self.agent.name)["name"]
+		frappe.call("flow.api.run", session=name, message="one")
+		self.wait_idle(name)
+		compacting = api.compact(name)["run"]
+		self.wait_idle(name)
+		frappe.call("flow.api.run", session=name, message="two")
+		self.wait_idle(name)
+		data = api.sync_session(name)
+
+		self.assertEqual([run.status for run in data["runs"]], ["Completed"] * 3)
+		self.assertEqual(data["runs"][1].name, compacting)
+		self.assertEqual(frappe.db.get_value("Flow Run", compacting, "input"), "/compact")
+		self.assertIn("compaction", [row["type"] for row in api.entries(name)["entries"]])
+		self.assertEqual(
+			[(m.role, m.content) for m in frappe.get_doc("Flow Session", name).messages],
+			[
+				("user", "one"),
+				("assistant", "Mock reply to: one"),
+				("user", "two"),
+				("assistant", "Mock reply to: two"),
 			],
 		)

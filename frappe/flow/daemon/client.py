@@ -104,6 +104,10 @@ class DaemonClient:
 	def rewind(self, sid: str, target_seq: int) -> dict:
 		return self._call("POST", f"/sessions/{sid}/rewind", json={"target_seq": target_seq})
 
+	def compact(self, sid: str) -> dict:
+		"""Start summarizing the conversation; it runs as a turn of its own."""
+		return self._call("POST", f"/sessions/{sid}/compact")
+
 	def tool_waiting(self, sid: str, token: str) -> dict:
 		return self._call("POST", f"/sessions/{sid}/tool_waiting", json={"token": token})
 

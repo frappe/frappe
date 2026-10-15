@@ -182,6 +182,10 @@ export class FrappeClient {
 		return this.transport.call("flow.api.rewind", { session: sid, target_seq: targetSeq });
 	}
 
+	compact(sid) {
+		return this.transport.call("flow.api.compact", { session: sid });
+	}
+
 	async setModel(sid, { model, reasoning_effort = null }) {
 		const data = await this.transport.call("flow.api.set_model", {
 			session: sid,

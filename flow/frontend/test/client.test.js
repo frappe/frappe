@@ -327,6 +327,13 @@ test("a rewind names the entry to branch from, and a chat the user can only view
 	assert.equal((await client.session("S2")).read_only, true);
 });
 
+test("a compaction is asked of the session it shortens", async () => {
+	const transport = fakeTransport({ "flow.api.compact": { run: "R2", status: "started" } });
+	const client = new FrappeClient({ boot, transport });
+	assert.deepEqual(await client.compact("S1"), { run: "R2", status: "started" });
+	assert.deepEqual(transport.calls, [["flow.api.compact", { session: "S1" }]]);
+});
+
 test("a sync that fails after a run ends is retried once, then dropped quietly", async () => {
 	const { fakeSocket } = await import("./helpers/socket.js");
 	const reported = [];
