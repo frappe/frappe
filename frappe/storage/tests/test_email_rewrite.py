@@ -17,7 +17,7 @@ from frappe.storage.email import (
 from frappe.storage.tests import reset_file_controller
 from frappe.storage.url import verify_signature
 from frappe.tests import IntegrationTestCase
-from frappe.utils import get_url
+from frappe.utils import cint, get_url
 
 SIGNED_BLOB_URL = re.compile(r"""(?:href|src)=["'](?P<url>[^"']*/private/files/[^"']+)["']""")
 
@@ -60,8 +60,15 @@ class TestEmailRewrite(IntegrationTestCase):
 
 	@staticmethod
 	def make_blob(content: bytes = b"email rewrite test content", is_private: bool = True):
+		"""A blob with one unattached File row owned by the session user."""
 		with frappe.storage.fake():
-			return frappe.storage.put_blob(io.BytesIO(content), is_private=is_private)
+			blob = frappe.storage.put_blob(io.BytesIO(content), is_private=is_private)
+		file = frappe.new_doc("File")
+		file.update({"file_name": "email.txt", "blob": blob.name, "is_private": cint(is_private)})
+		file.name = frappe.generate_hash(length=10)
+		file.owner = frappe.session.user
+		file.db_insert()
+		return blob
 
 	@staticmethod
 	def parse_signed(url: str):
@@ -144,6 +151,22 @@ class TestEmailRewrite(IntegrationTestCase):
 		)
 		with storage_v2_enabled():
 			self.assertEqual(rewrite_urls_for_email(html), html)
+
+	def test_blob_the_sender_cannot_download_left_unsigned(self):
+		# a copied private URL must not become a signed link through email
+		from frappe.storage.tests.test_file_integration import file_permissions_enforced
+
+		secret = self.make_blob(b"email rewrite secret content")
+		html = f'<a href="/private/files/{secret.name}/a.txt">a</a>'
+		text = f"see /private/files/{secret.name}/a.txt"
+		with storage_v2_enabled(), file_permissions_enforced(), self.set_user("test@example.com"):
+			self.assertEqual(rewrite_urls_for_email(html), html)
+			self.assertEqual(rewrite_text_urls_for_email(text), text)
+
+			own = self.make_blob(b"email rewrite own content")
+			own_html = f'<a href="/private/files/{own.name}/a.txt">a</a>'
+			self.assertIsNotNone(SIGNED_BLOB_URL.search(rewrite_urls_for_email(own_html)))
+			self.assertIn("&s=", rewrite_text_urls_for_email(f"see /private/files/{own.name}/a.txt"))
 
 	def test_unknown_blob_left_alone(self):
 		html = '<a href="/private/files/nosuchblob/a.txt">a</a>'

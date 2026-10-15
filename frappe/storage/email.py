@@ -6,7 +6,8 @@ Stored content holds stable, unsigned ``/private/files/<blob>/<filename>``
 URLs (see the spec section "Embedded URLs"). Outgoing email HTML is rewritten
 at send time: each unsigned private-blob URL becomes an absolute signed URL
 with a long TTL, so external recipients can open the file without a session.
-v1 private URLs are left as they are.
+Only blobs the sending user can download are signed; formatting runs in the
+sender's request. v1 private URLs are left as they are.
 
 TTL comes from the ``storage_email_url_ttl`` site config (seconds), default
 30 days. A failed rewrite never blocks sending: the original HTML is returned.
@@ -50,7 +51,8 @@ def rewrite_urls_for_email(html: str) -> str:
 	"""Replace unsigned private blob URLs in href/src with absolute signed URLs.
 
 	No-op when storage v2 is off or ``html`` is falsy. Already-signed URLs
-	(``e=`` and ``s=`` present) and unknown blob names pass through untouched.
+	(``e=`` and ``s=`` present), unknown blob names and blobs the session user
+	cannot download pass through untouched.
 	Never raises: on any failure the original HTML is returned."""
 	import frappe.storage
 
@@ -84,12 +86,12 @@ def rewrite_text_urls_for_email(text: str) -> str:
 
 
 class _Rewriter:
-	"""Per-call rewrite state: site URL, TTL, and a blob-existence cache."""
+	"""Per-call rewrite state: site URL, TTL, and a can-sign cache per blob."""
 
 	def __init__(self):
 		self.site_url = get_url().rstrip("/")
 		self.ttl = get_email_url_ttl()
-		self._known_blobs: dict[str, bool] = {}
+		self._signable_blobs: dict[str, bool] = {}
 
 	def rewrite_match(self, match: re.Match) -> str:
 		try:
@@ -125,7 +127,7 @@ class _Rewriter:
 			return None
 
 		blob_name = match.group("blob")
-		if not self.blob_exists(blob_name):
+		if not self.can_sign(blob_name):
 			return None
 
 		filename = match.group("filename")
@@ -134,12 +136,15 @@ class _Rewriter:
 		signature = make_signature(blob_name, unquote(filename), expires)
 		return f"{self.site_url}/private/files/{blob_name}/{filename}?e={expires}&s={signature}"
 
-	def blob_exists(self, blob_name: str) -> bool:
-		if blob_name not in self._known_blobs:
-			self._known_blobs[blob_name] = bool(
+	def can_sign(self, blob_name: str) -> bool:
+		"""True for an existing private blob the session user can download."""
+		from frappe.storage.serve import has_file_permission
+
+		if blob_name not in self._signable_blobs:
+			self._signable_blobs[blob_name] = bool(
 				frappe.db.exists("File Blob", {"name": blob_name, "is_private": 1})
-			)
-		return self._known_blobs[blob_name]
+			) and has_file_permission(blob_name)
+		return self._signable_blobs[blob_name]
 
 
 def is_signed_query(query: str) -> bool:
