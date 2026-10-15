@@ -230,6 +230,8 @@ class User(Document):
 
 	def validate(self):
 		if self.new_password:
+			if self.name not in STANDARD_USERS:
+				self.validate_ldap_password_change()
 			self.__new_password = self.new_password
 		self.new_password = ""
 
@@ -852,6 +854,29 @@ class User(Document):
 			else:
 				frappe.db.release_savepoint("user_username")
 				return
+
+	def validate_ldap_password_change(self):
+		if not cint(frappe.db.get_single_value("LDAP Settings", "enabled")):
+			return
+
+		from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+
+		ldap = frappe.get_cached_doc("LDAP Settings")
+		try:
+			conn = ldap.connect_to_ldap(ldap.base_dn, ldap.get_password(raise_exception=False))
+			username = frappe.db.get_value("User", self.name, "username") or self.name
+			user_filter = ldap.ldap_search_string.format(username)
+			if conn.search(
+				search_base=ldap.ldap_search_path_user,
+				search_filter=user_filter,
+				attributes=ldap.get_ldap_attributes(),
+			) and conn.entries:
+				frappe.throw(
+					_("Password for LDAP users cannot be changed locally. Please contact your LDAP administrator."),
+					title=_("LDAP User"),
+				)
+		except Exception:
+			pass
 
 	def password_strength_test(self):
 		"""test password strength"""

@@ -154,6 +154,7 @@ class LoginManager:
 		# clear cache
 		frappe.clear_cache(user=frappe.form_dict.get("usr"))
 		user, pwd = get_cached_user_pass()
+		self.check_ldap_user(user)
 		self.authenticate(user=user, pwd=pwd)
 
 		if should_run_2fa(self.user):
@@ -265,6 +266,34 @@ class LoginManager:
 			keep_current=True,
 			force=frappe.session.user != "Administrator",
 		)
+
+	def check_ldap_user(self, user):
+		if not user or user == "Administrator":
+			return
+
+		if not cint(frappe.db.get_single_value("LDAP Settings", "enabled")):
+			return
+
+		from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+
+		try:
+			ldap = frappe.get_cached_doc("LDAP Settings")
+			conn = ldap.connect_to_ldap(ldap.base_dn, ldap.get_password(raise_exception=False))
+			username = frappe.db.get_value("User", user, "username") or user
+			user_filter = ldap.ldap_search_string.format(username)
+			if conn.search(
+				search_base=ldap.ldap_search_path_user,
+				search_filter=user_filter,
+				attributes=ldap.get_ldap_attributes(),
+			) and conn.entries:
+				frappe.throw(
+					_("Please use LDAP authentication to log in."),
+					frappe.AuthenticationError,
+				)
+		except frappe.AuthenticationError:
+			raise
+		except Exception:
+			pass
 
 	def authenticate(self, user: str | None = None, pwd: str | None = None):
 		from frappe.core.doctype.user.user import User
