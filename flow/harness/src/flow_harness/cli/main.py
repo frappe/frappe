@@ -245,20 +245,20 @@ def _serve(args) -> None:
 	except ValueError as e:
 		raise DaemonError(str(e)) from None
 	auth_token = _resolve_auth_token()
-	tenants = []
-	if config.TENANTS_FILE:
+	tenants = None
+	if config.TENANTS:
 		if auth_token:
-			raise DaemonError("set either FLOW_AUTH_TOKEN(_FILE) or FLOW_TENANTS_FILE, not both")
+			raise DaemonError("set either FLOW_AUTH_TOKEN(_FILE) or FLOW_TENANTS, not both")
 		try:
-			tenants = load_tenants(config.TENANTS_FILE)
-		except (OSError, ValueError) as e:
-			raise DaemonError(f"cannot load FLOW_TENANTS_FILE: {e}") from None
-	if policy.require_auth and not auth_token and not tenants:
+			tenants = load_tenants(config.TENANTS)
+		except ValueError as e:
+			raise DaemonError(f"cannot load FLOW_TENANTS: {e}") from None
+	if policy.require_auth and not auth_token and tenants is None:
 		raise AuthError(
 			f"the {policy.profile!r} profile requires auth: set FLOW_AUTH_TOKEN, "
-			"FLOW_AUTH_TOKEN_FILE, or FLOW_TENANTS_FILE."
+			"FLOW_AUTH_TOKEN_FILE, or FLOW_TENANTS."
 		)
-	if not args.uds and not _is_loopback(args.host) and not auth_token and not tenants:
+	if not args.uds and not _is_loopback(args.host) and not auth_token and tenants is None:
 		raise AuthError(
 			"Refusing to expose an unauthenticated daemon. Set FLOW_AUTH_TOKEN or bind to a loopback host."
 		)
@@ -298,7 +298,6 @@ def _serve(args) -> None:
 		store,
 		auth_token=auth_token,
 		tenants=tenants,
-		tenants_file=config.TENANTS_FILE or None,
 		policy=policy,
 		lifespan=sink.lifespan if sink else None,
 	)
@@ -307,7 +306,7 @@ def _serve(args) -> None:
 
 		watch_parent_stdin()
 	rinfo = " · redis" if sink else ""
-	ainfo = f" · auth: {len(tenants)} sites" if tenants else (" · auth: bearer" if auth_token else "")
+	ainfo = " · auth: per site" if tenants else (" · auth: bearer" if auth_token else "")
 	pinfo = f" · profile: {policy.profile}" if policy.profile != "local" else ""
 
 	def banner(address: str) -> None:

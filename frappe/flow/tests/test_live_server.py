@@ -3,6 +3,7 @@
 
 """A real flow server with the mock model, for tests that round-trip through it."""
 
+import json
 import time
 import unittest
 from pathlib import Path
@@ -29,13 +30,16 @@ class LiveServerCase(IntegrationTestCase):
 		tmp = TemporaryDirectory()
 		cls.addClassCleanup(tmp.cleanup)
 		root = Path(tmp.name)
+		site = root / "sites" / frappe.local.site
 		cls.enterClassContext(patch.object(lifecycle, "state_dir", return_value=root / "state"))
-		cls.enterClassContext(patch.object(lifecycle, "site_data_dir", return_value=root / "site"))
+		cls.enterClassContext(patch.object(lifecycle, "_sites_dir", return_value=root / "sites"))
+		cls.enterClassContext(patch.object(lifecycle, "session_root", return_value=site / "public" / "files"))
 		cls.enterClassContext(patch.object(lifecycle, "runtime_dir", return_value=root))
 		cls.enterClassContext(patch.object(lifecycle, "log_path", return_value=root / "flow-server.log"))
 		cls.enterClassContext(patch.object(lifecycle, "_redis_url", return_value=None))
 		cls.enterClassContext(patch.dict(frappe.local.conf, {"flow_server_secret": TOKEN}))
-		lifecycle.provision_site()
+		site.mkdir(parents=True)
+		(site / "site_config.json").write_text(json.dumps({"flow_server_secret": TOKEN}))
 		lifecycle.start()
 		cls.addClassCleanup(lifecycle.stop)
 

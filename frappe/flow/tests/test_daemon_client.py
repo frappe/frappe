@@ -34,7 +34,6 @@ class TestDaemonClient(UnitTestCase):
 	def test_every_verb_hits_its_route_with_the_bearer(self):
 		calls = [
 			(lambda: self.client.healthz(), "GET", "/healthz", None),
-			(lambda: self.client.reload_tenants(), "POST", "/tenants/reload", None),
 			(lambda: self.client.create_session({"model": "mock"}), "POST", "/sessions", {"model": "mock"}),
 			(lambda: self.client.get_session("s1"), "GET", "/sessions/s1", None),
 			(lambda: self.client.delete_session("s1"), "DELETE", "/sessions/s1", None),
@@ -177,6 +176,12 @@ class TestDaemonClient(UnitTestCase):
 			with self.assertRaisesRegex(DaemonError, "not provisioned"):
 				DaemonClient.for_site()
 
+	def test_a_sites_client_names_its_site(self):
+		with patch.dict(frappe.local.conf, {"flow_server_secret": TOKEN}), DaemonClient.for_site() as client:
+			self.assertEqual(client._http.headers["X-Flow-Site"], frappe.local.site)
+			self.assertEqual(client._http.headers["Authorization"], f"Bearer {TOKEN}")
+		self.assertNotIn("X-Flow-Site", self.client._http.headers)
+
 
 class TestLiveDaemon(IntegrationTestCase):
 	"""Every verb against a real daemon in the deployed profile, started and stopped through
@@ -190,21 +195,21 @@ class TestLiveDaemon(IntegrationTestCase):
 		tmp = TemporaryDirectory()
 		cls.addClassCleanup(tmp.cleanup)
 		root = Path(tmp.name)
+		sites = root / "sites"
 		cls.enterClassContext(patch.object(lifecycle, "state_dir", return_value=root / "state"))
-		cls.enterClassContext(patch.object(lifecycle, "site_data_dir", return_value=root / "site"))
+		cls.enterClassContext(patch.object(lifecycle, "_sites_dir", return_value=sites))
+		site_files = sites / frappe.local.site / "public" / "files"
+		cls.enterClassContext(patch.object(lifecycle, "session_root", return_value=site_files))
 		cls.enterClassContext(patch.object(lifecycle, "runtime_dir", return_value=root))
 		cls.enterClassContext(patch.object(lifecycle, "log_path", return_value=root / "flow-server.log"))
 		cls.enterClassContext(patch.object(lifecycle, "_redis_url", return_value=None))
 		cls.enterClassContext(patch.dict(frappe.local.conf, {"flow_server_secret": TOKEN}))
-		lifecycle.provision_site()
-		lifecycle._edit_tenants(
-			lambda tenants: tenants.__setitem__(
-				"other.localhost", {"token": "other-token", "allowed_roots": [tmp.name], "callback_hosts": []}
-			)
-		)
+		for site, secret in ((frappe.local.site, TOKEN), ("other.localhost", "other-token")):
+			(sites / site).mkdir(parents=True)
+			(sites / site / "site_config.json").write_text(json.dumps({"flow_server_secret": secret}))
 		lifecycle.start()
 		cls.addClassCleanup(lifecycle.stop)
-		cls.other = DaemonClient(str(lifecycle.socket_path()), "other-token")
+		cls.other = DaemonClient(str(lifecycle.socket_path()), "other-token", site="other.localhost")
 		cls.addClassCleanup(cls.other.close)
 
 	def setUp(self):
@@ -249,10 +254,11 @@ class TestLiveDaemon(IntegrationTestCase):
 		self.assertIn("other.localhost", lifecycle.status())
 
 	def test_a_wrong_token_is_401(self):
-		with DaemonClient(str(lifecycle.socket_path()), "wrong") as stranger:
-			with self.assertRaises(DaemonError) as caught:
-				stranger.get_session("nothing")
-		self.assertEqual(caught.exception.status, 401)
+		for token, site in (("wrong", frappe.local.site), (TOKEN, None), ("other-token", frappe.local.site)):
+			with DaemonClient(str(lifecycle.socket_path()), token, site=site) as stranger:
+				with self.subTest(site=site), self.assertRaises(DaemonError) as caught:
+					stranger.get_session("nothing")
+			self.assertEqual(caught.exception.status, 401)
 
 	def test_the_daemons_own_tools_are_refused_by_policy(self):
 		for tools in (["bash"], ["write"]):

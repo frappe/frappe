@@ -173,7 +173,7 @@ def test_cli_wires_redis_to_the_server_lifespan(tmp_path, monkeypatch, command):
 	monkeypatch.setattr(cli, "_resolve_auth_token", lambda: None)
 	monkeypatch.setattr(cli, "_webui_dist", lambda: str(tmp_path))
 	monkeypatch.setattr(config, "REDIS_URL", "redis://unused")
-	monkeypatch.setattr(config, "TENANTS_FILE", None)
+	monkeypatch.setattr(config, "TENANTS", None)
 	monkeypatch.setattr(config, "POLICY", None)
 	monkeypatch.setattr(config, "ALLOWED_ROOTS", [])
 	monkeypatch.setattr(config, "CREDENTIALS_PATH", str(tmp_path / "credentials.json"))

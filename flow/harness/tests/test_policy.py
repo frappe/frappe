@@ -250,7 +250,7 @@ def test_serve_refuses_deployed_without_token(tmp_path, monkeypatch):
 
 	monkeypatch.setattr(config, "AUTH_TOKEN", None)
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
-	monkeypatch.setattr(config, "TENANTS_FILE", None)
+	monkeypatch.setattr(config, "TENANTS", None)
 	args = Namespace(
 		host="127.0.0.1",
 		port=0,

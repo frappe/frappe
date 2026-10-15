@@ -10,7 +10,7 @@ from flow_harness.model.credentials import CredentialStore
 from flow_harness.server import create_app
 from flow_harness.server.policy import DEPLOYED, ServerPolicy
 from flow_harness.server.request_limits import REFUSAL
-from flow_harness.server.tenants import Tenant
+from flow_harness.server.tenants import TenantTemplate
 from flow_harness.session.store import SessionStore
 
 
@@ -54,12 +54,17 @@ def test_audit_log_records_sensitive_calls(tmp_path):
 
 
 def test_audit_log_records_the_site(tmp_path):
-	site_root = tmp_path / "site-root"
-	site_root.mkdir()
+	site_root = tmp_path / "sites" / "alpha"
+	site_root.mkdir(parents=True)
+	(site_root / "site.json").write_text('{"token": "alpha-token"}')
 	store = _store(tmp_path)
-	tenant = Tenant(site="alpha", token="alpha-token", allowed_roots=(str(site_root),))
-	app = create_app(store, tenants=[tenant], policy=ServerPolicy(audit_log=True))
-	client = TestClient(app, headers={"Authorization": "Bearer alpha-token"})
+	tenants = TenantTemplate(
+		token_file=str(tmp_path / "sites" / "{site}" / "site.json"),
+		token_key="token",
+		allowed_roots=(str(tmp_path / "sites" / "{site}"),),
+	)
+	app = create_app(store, tenants=tenants, policy=ServerPolicy(audit_log=True))
+	client = TestClient(app, headers={"Authorization": "Bearer alpha-token", "X-Flow-Site": "alpha"})
 	assert client.post("/sessions", json={"cwd": str(site_root)}).status_code == 200
 	rows = [json.loads(line) for line in open(os.path.join(store.data_dir, "audit.jsonl"))]
 	assert rows[0]["site"] == "alpha"
@@ -74,7 +79,7 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 	cli_main = importlib.import_module("flow_harness.cli.main")
 	monkeypatch.setattr(config, "AUTH_TOKEN", "tok")
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
-	monkeypatch.setattr(config, "TENANTS_FILE", None)
+	monkeypatch.setattr(config, "TENANTS", None)
 	monkeypatch.setattr(config, "REDIS_URL", None)
 	monkeypatch.setattr(config, "CALLBACK_HOSTS", [])
 	monkeypatch.setattr(config, "POLICY", None)
@@ -120,8 +125,8 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 
 
 def test_spawn_private_scrubs_daemon_env(tmp_path, monkeypatch):
-	"""Stray FLOW_POLICY/FLOW_TENANTS_FILE in the shell must not reach the TUI's own
-	daemon — a tenants file would even refuse startup beside the injected token."""
+	"""Stray FLOW_POLICY/FLOW_TENANTS in the shell must not reach the TUI's own
+	daemon — a tenants template would even refuse startup beside the injected token."""
 	from flow_harness.cli import daemon as cli_daemon
 
 	captured: dict = {}
@@ -131,10 +136,10 @@ def test_spawn_private_scrubs_daemon_env(tmp_path, monkeypatch):
 		return object()
 
 	monkeypatch.setenv("FLOW_POLICY", '{"skills_api": false}')
-	monkeypatch.setenv("FLOW_TENANTS_FILE", str(tmp_path / "tenants.json"))
+	monkeypatch.setenv("FLOW_TENANTS", '{"token_file": "/s/{site}/t.json", "allowed_roots": ["/s"]}')
 	monkeypatch.setattr(cli_daemon.subprocess, "Popen", fake_popen)
 	monkeypatch.setattr(cli_daemon, "_wait_healthz", lambda *args, **kwargs: None)
 	spawned = cli_daemon.spawn_private(str(tmp_path))
 	assert "FLOW_POLICY" not in captured["env"]
-	assert "FLOW_TENANTS_FILE" not in captured["env"]
+	assert "FLOW_TENANTS" not in captured["env"]
 	assert captured["env"]["FLOW_AUTH_TOKEN"] == spawned.token
