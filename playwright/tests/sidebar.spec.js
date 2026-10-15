@@ -107,11 +107,42 @@ test.describe("Sidebar", () => {
 		await page.locator(".layout-side-section:visible").evaluate((el) => el.scrollTo(0, 0));
 		await expect(page.locator(".add-attachment-btn")).toBeHidden();
 
-		// three attachments show, then "N more" shows the rest
-		await expect(page.locator(".attachment-row")).toHaveCount(3);
+		const first_row = page.locator(".form-attachments .attachment-row").first();
+		const file_name = (await first_row.locator(".attachment-file-label").innerText()).trim();
+		await first_row.locator(".attachment-actions").click();
+		await page.locator(".es-menu__item", { hasText: "Make public" }).click();
+		await expect(page.getByText(/is now public/)).toBeVisible();
+		await expect(
+			page
+				.locator(".form-attachments .attachment-row", { hasText: file_name })
+				.locator(".attachment-icon")
+		).toHaveAttribute("title", "Public");
+		const files = await api.get_list(
+			"File",
+			["is_private"],
+			[
+				["attached_to_name", "=", todo.message.name],
+				["file_name", "=", file_name],
+			]
+		);
+		expect(files.data.map((f) => f.is_private)).toEqual([0]);
+
+		await expect(page.locator(".form-attachments .attachment-row")).toHaveCount(3);
 		await expect(page.locator(".show-all-btn")).toContainText("9 more");
 		await page.locator(".show-all-btn").click();
-		await expect(page.locator(".attachment-row")).toHaveCount(12);
+		const list = page.locator(".attachments-dialog-list .attachment-row");
+		await expect(list).toHaveCount(12);
+		await page
+			.locator(".attachments-dialog input[data-fieldname='search']")
+			.fill("attachment-1");
+		await expect(list).toHaveCount(3);
+
+		await page.locator(".attachments-select-all input").check();
+		await expect(page.locator(".attachments-selection-label")).toHaveText("3 selected");
+		await page.locator(".attachments-delete-selected").click();
+		await desk.get_open_dialog().getByRole("button", { name: "Yes", exact: true }).click();
+		await page.locator(".attachments-dialog input[data-fieldname='search']").fill("");
+		await expect(list).toHaveCount(9);
 	});
 
 	test("A reader who can't edit a document gets no attach, tag or share buttons", async ({
