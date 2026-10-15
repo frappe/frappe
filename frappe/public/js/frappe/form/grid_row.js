@@ -480,8 +480,8 @@ export default class GridRow {
 			secondary_action: () => this.select_all_columns(docfields),
 		});
 
-		d.set_primary_action(__("Add"), () => {
-			let selected_fields = d.get_values().fields;
+		d.set_primary_action(__("Add"), (values) => {
+			let selected_fields = values.fields;
 			const existing_settings = {};
 			this.selected_columns_for_grid.forEach((col) => {
 				existing_settings[col.fieldname] = col;
