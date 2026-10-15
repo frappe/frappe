@@ -1795,7 +1795,7 @@ Object.assign(frappe.utils, {
 			}
 		}
 
-		return number.toFixed(max_no_of_decimals);
+		return String(flt(number, max_no_of_decimals));
 	},
 
 	get_number_of_decimals: function (number) {
