@@ -189,8 +189,12 @@ class TestReportview(IntegrationTestCase):
 			export_query()
 			self.assertEqual(len(self.exported_rows()[0]), 3)
 
-			# a group mixes owners, so there is no row to check
-			self.assertRaises(frappe.PermissionError, self.export_grouped_status, [todo.name])
+			others = [self.make_todo(f"Own grouped export {i}") for i in range(2)]
+			frappe.db.set_value("ToDo", others[0].name, "status", "Closed")
+			self.export_grouped_status([todo.name, *(other.name for other in others)])
+			header, *rows = self.exported_rows()
+			self.assertEqual(len(header), 3)
+			self.assertEqual({row[1]: int(row[2]) for row in rows}, {"Closed": 1, "Open": 2})
 
 	def test_reorder_by_visible_names(self):
 		fields = ["`tabDocType`.`name`", "`tabDocType`.`module`"]

@@ -555,9 +555,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	doctype = form_params.pop("doctype")
 	check_owner = not frappe.permissions.can_export(doctype)
-	if check_owner and (
-		form_params.get("group_by") or not frappe.permissions.can_export(doctype, is_owner=True)
-	):
+	if check_owner and not frappe.permissions.can_export(doctype, is_owner=True):
 		raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
 	if check_owner:
 		owner_field = f"`tab{doctype}`.`owner`"
@@ -565,6 +563,9 @@ def _export_query(form_params, csv_params, populate_response=True):
 			form_params["fields"].append(owner_field)
 		elif isinstance(form_params["fields"], tuple):
 			form_params["fields"] = form_params["fields"] + (owner_field,)
+		# such a user only reads their own rows, so grouping by owner splits no group
+		if form_params.get("group_by"):
+			form_params["group_by"] += f", {owner_field}"
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
 	add_totals_row = cint(form_params.pop("add_totals_row", 0))
