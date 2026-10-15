@@ -211,6 +211,12 @@ class TestDocument(IntegrationTestCase):
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
 
+	def test_save_after_insert_on_a_whole_second(self):
+		with self.freeze_time("2026-10-15 10:33:29"):
+			event = self.test_insert()
+
+		event.save()
+
 	def test_conflict_validation_single(self):
 		d1 = frappe.get_doc("Website Settings", "Website Settings")
 		d1.home_page = "test-web-page-1"
