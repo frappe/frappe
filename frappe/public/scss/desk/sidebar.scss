@@ -650,9 +650,6 @@
 	}
 }
 
-// The sidebar keeps everything it owns. The dock used to carry the header's menu, the user button,
-// search and notifications, and the sidebar's own copies were switched off to stop the pair saying
-// the same thing twice down one edge. That traded on the dock being the surface that is always
-// there. It is not -- it is a push at the edge away -- so a sidebar stripped to bare labels would be
-// a permanent surface missing its furniture for the sake of a hidden one, and nothing is taken off
-// it here. Nor does `dock-active` change where the sidebar starts: the dock floats over it.
+// The sidebar keeps its header menu and user button beside a dock. Search and notifications move
+// onto the dock (see dock.scss). `dock-active` does not change where the sidebar starts: the dock
+// floats over it.

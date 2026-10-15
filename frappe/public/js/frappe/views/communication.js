@@ -1284,6 +1284,8 @@ frappe.views.CommunicationComposer = class {
 			}
 		}
 
+		if (this.print_format) delete last_edited.select_print_format;
+		if (this.letter_head != null) delete last_edited.select_letter_head;
 		await this.dialog.set_values(last_edited);
 		this.content_set = true;
 	}
@@ -1716,6 +1718,8 @@ frappe.views.CommunicationComposer = class {
 			return;
 		}
 
+		const same_print_format = print_format && print_format === me.print_format;
+
 		return frappe.call({
 			method: "frappe.core.doctype.communication.email.make",
 			args: {
@@ -1739,9 +1743,9 @@ frappe.views.CommunicationComposer = class {
 				letterhead: letterhead || null,
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
-				print_style: form_values.attach_document_print ? me.print_style : undefined,
+				print_style: same_print_format ? me.print_style : undefined,
 				print_settings:
-					form_values.attach_document_print && me.print_settings
+					same_print_format && me.print_settings
 						? JSON.stringify(me.print_settings)
 						: undefined,
 				raw_html: form_values.use_html,

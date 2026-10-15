@@ -142,6 +142,7 @@ class DatabaseQuery:
 				page_length,
 				limit,
 				limit_page_length,
+				group_by,
 				order_by,
 				as_list,
 				with_comment_count,
@@ -215,7 +216,13 @@ class DatabaseQuery:
 		if not run:
 			return query
 
-		with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
+		with_comment_count = (
+			sbool(with_comment_count)
+			and not as_list
+			and bool(self.doctype)
+			# a distinct row without the document's name can stand for several documents
+			and (not distinct or getattr(query, "_selects_own_name", False))
+		)
 		# selected after the permission check: never user-requestable, popped in _add_comment_count
 		if with_comment_count and not group_by and "_comments" in columns:
 			query = query.select(frappe.qb.DocType(self.doctype)._comments)
@@ -310,6 +317,7 @@ class DatabaseQuery:
 		page_length: int | None,
 		limit: int | None,
 		limit_page_length: int | None,
+		group_by: str | None,
 		order_by: str,
 		as_list: bool,
 		with_comment_count: bool,
@@ -346,6 +354,11 @@ class DatabaseQuery:
 		if not isinstance(or_filters, Filters):
 			or_filters = Filters(or_filters, doctype=self.doctype)
 
+		# A virtual controller receives this as a page length, and several of them use it
+		# directly as a slice bound -- `RQJob`, `Recorder` and `RQWorker` all do
+		# `rows[start : start + page_length]`. Passing Frappe's "no limit" 0 through would hand
+		# them an empty slice, so the default page is kept even when the caller asked for
+		# everything. Controllers that can return every row take an explicit limit.
 		_page_length = page_length or limit or limit_page_length or 20
 		kwargs = {
 			"fields": fields,
@@ -354,6 +367,10 @@ class DatabaseQuery:
 			"start": start or offset or limit_start or 0,
 			"page_length": _page_length,
 			"limit_page_length": _page_length,
+			# Without this a controller cannot aggregate: a dashboard chart asks for
+			# `{"COUNT": "*"}` grouped by its date field, and dropping the grouping here
+			# hands it ungrouped rows that it then misreads as (date, value) pairs.
+			"group_by": group_by,
 			"order_by": order_by,
 			"as_list": as_list,
 			"with_comment_count": with_comment_count,

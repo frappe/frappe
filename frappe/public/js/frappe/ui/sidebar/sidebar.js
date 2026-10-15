@@ -999,7 +999,6 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// Select the shell first, so the sidebar is right when the route lands.
 		if (entry.module) this.select_shell(entry.module);
-		this.open();
 
 		const route = this.dock_entry_route(entry);
 		if (route) frappe.set_route(route);

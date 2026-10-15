@@ -1301,6 +1301,45 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Vertical (each step with its content)"),
+					items: [
+						{
+							orientation: "vertical",
+							current: 1,
+							steps: [
+								{
+									label: __("Chart of Accounts"),
+									content: () =>
+										$(`<p class="text-p-sm text-ink-gray-6 m-0"></p>`).text(
+											__("Kept the chart made during setup.")
+										),
+								},
+								{
+									label: __("Opening balances"),
+									content: () =>
+										$(`<div class="flex flex-col gap-2 items-start"></div>`)
+											.append(
+												$(
+													`<p class="text-p-sm text-ink-gray-6 m-0"></p>`
+												).text(
+													__(
+														"Bring the closing balances from your old books."
+													)
+												)
+											)
+											.append(
+												frappe.ui.button({
+													label: __("Open"),
+													variant: "solid",
+												})
+											),
+								},
+								{ label: __("Go Live") },
+							],
+						},
+					],
+				},
+				{
 					title: __("Compact (narrow layouts)"),
 					items: [
 						{
@@ -1509,46 +1548,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				{
 					title: __("Empty"),
 					items: [{ items: [] }],
-				},
-			],
-		},
-		Donut: {
-			helper: "frappe.ui.donut",
-			groups: [
-				{
-					title: __("Centre value + legend"),
-					items: [
-						{
-							segments: [
-								{ label: "Paid", value: 70 },
-								{ label: "Unpaid", value: 20 },
-								{ label: "Overdue", value: 10 },
-							],
-							center: { value: "70%", label: "paid" },
-						},
-					],
-				},
-				{
-					title: __("Custom colours + format"),
-					items: [
-						{
-							segments: [
-								{ label: "Used", value: 55000, color: "var(--blue-600)" },
-								{
-									label: "Available",
-									value: 45000,
-									color: "var(--blue-400)",
-								},
-							],
-							center: { value: "55%", label: "used" },
-							format: (value) => format_currency(value),
-							size: 180,
-						},
-					],
-				},
-				{
-					title: __("Empty"),
-					items: [{ segments: [], size: 180 }],
 				},
 			],
 		},
@@ -2308,7 +2307,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	let selected_component;
 	async function render_component(name) {
 		selected_component = name;
-		if (["Stat Card", "Bar List", "Donut"].includes(name)) {
+		if (["Stat Card", "Bar List"].includes(name)) {
 			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
 			if (selected_component !== name) return;
 		}

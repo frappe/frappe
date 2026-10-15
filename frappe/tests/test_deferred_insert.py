@@ -4,6 +4,18 @@ import frappe
 from frappe.core.doctype.error_log.error_log import flush_error_logs, get_queued_error_log_count
 from frappe.deferred_insert import deferred_insert, queue_prefix, save_to_db
 from frappe.tests import IntegrationTestCase
+from frappe.utils.logging import ensure_log_table, get_log_db
+
+
+def _route_history_exists(record: dict) -> bool:
+	"""Return True if `record` reached the log database.
+
+	Route History is a virtual DocType backed by the site's SQLite log database, so
+	`frappe.db.exists` would look in the site database, which holds no table for it.
+	"""
+	ensure_log_table("Route History")
+
+	return bool(get_log_db().exists("Route History", record))
 
 
 class TestDeferredInsert(IntegrationTestCase):
@@ -16,13 +28,13 @@ class TestDeferredInsert(IntegrationTestCase):
 		deferred_insert("Route History", [route_history])
 
 		save_to_db()
-		self.assertTrue(frappe.db.exists("Route History", route_history))
+		self.assertTrue(_route_history_exists(route_history))
 
 		route_history = {"route": frappe.generate_hash(), "user": "Administrator"}
 		deferred_insert("Route History", [route_history])
 		frappe.clear_cache()  # deferred_insert cache keys are supposed to be persistent
 		save_to_db()
-		self.assertTrue(frappe.db.exists("Route History", route_history))
+		self.assertTrue(_route_history_exists(route_history))
 
 	def test_save_to_db_for_single_doctype(self):
 		route_history = {"route": frappe.generate_hash(), "user": "Administrator"}
@@ -33,7 +45,7 @@ class TestDeferredInsert(IntegrationTestCase):
 		self.assertEqual(get_queued_error_log_count(), 1)
 		flush_error_logs()
 
-		self.assertTrue(frappe.db.exists("Error Log", {"method": "Deferred error"}))
+		self.assertTrue(get_log_db().exists("Error Log", {"method": "Deferred error"}))
 		self.assertEqual(get_queued_error_log_count(), 0)
 		self.assertEqual(frappe.cache.llen(f"{queue_prefix}Route History"), 1)
 
@@ -55,4 +67,4 @@ class TestDeferredInsert(IntegrationTestCase):
 		self.assertEqual(frappe.cache.llen(f"{queue_prefix}Route History"), 1)
 		save_to_db(doctype="Route History")
 		for record in records:
-			self.assertTrue(frappe.db.exists("Route History", record))
+			self.assertTrue(_route_history_exists(record))

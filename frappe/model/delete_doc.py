@@ -18,6 +18,7 @@ from frappe.query_builder import DocType
 from frappe.utils.data import get_link_to_form
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
+from frappe.utils.logging import connection_for
 from frappe.utils.password import delete_all_passwords_for
 
 
@@ -565,7 +566,9 @@ def delete_references(
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
 ):
-	frappe.db.delete(
+	# `connection_for` rather than `frappe.db`: this list mixes ordinary DocTypes with log
+	# DocTypes, whose rows live in the site's SQLite log database.
+	connection_for(doctype).delete(
 		doctype, {reference_doctype_field: reference_doctype, reference_name_field: reference_name}
 	)
 
@@ -577,7 +580,10 @@ def clear_references(
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
 ):
-	frappe.db.sql(
+	# Activity Log is a log DocType, so this runs on the log database; Communication is not,
+	# so it runs on the site database. The statement is identical on both -- backtick-quoted
+	# identifiers and `%s` placeholders mean the same thing to each backend.
+	connection_for(doctype).sql(
 		f"""update
 			`tab{doctype}`
 		set
