@@ -181,12 +181,12 @@ def _resolve_controller(class_):
 	The result is cached per site by `get_controller`."""
 	if resolve := getattr(class_, "resolve_controller", None):
 		resolved = resolve()
-		if isinstance(resolved, type) and issubclass(resolved, class_):
-			return resolved
-		frappe.logger().warning(
-			f"{class_.__name__}.resolve_controller returned {resolved!r}, "
-			f"which is not a subclass of {class_.__name__}; ignoring it"
-		)
+		if not (isinstance(resolved, type) and issubclass(resolved, class_)):
+			raise ImportError(
+				f"{class_.__name__}.resolve_controller returned {resolved!r}, "
+				f"which is not a subclass of {class_.__name__}"
+			)
+		return resolved
 	return class_
 
 

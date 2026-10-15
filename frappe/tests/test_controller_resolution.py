@@ -55,10 +55,10 @@ class TestControllerResolution(IntegrationTestCase):
 		self.assertIs(_resolve_controller(SelfResolver), SelfResolver)
 
 	def test_foreign_class_is_rejected(self):
-		self.assertIs(_resolve_controller(BadResolver), BadResolver)
+		self.assertRaises(ImportError, _resolve_controller, BadResolver)
 
 	def test_non_class_result_is_rejected(self):
-		self.assertIs(_resolve_controller(NonClassResolver), NonClassResolver)
+		self.assertRaises(ImportError, _resolve_controller, NonClassResolver)
 
 	def test_import_controller_wires_resolution(self):
 		"""import_controller must call resolve_controller on the final class."""
