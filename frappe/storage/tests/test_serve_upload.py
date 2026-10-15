@@ -1024,8 +1024,7 @@ class TestServeUpload(IntegrationTestCase):
 			self.assertEqual(response_body(response), content)
 			response.close()
 
-			with patch.dict(frappe.conf, {"drive_webdav_s3_redirect": 1}):
-				response = stream_blob(blob, "n.txt")
+			response = stream_blob(blob, "n.txt", allow_native_redirect=True)
 
 			self.assertEqual(response.status_code, 302)
 			self.assertIn(blob.key, response.headers["Location"])

@@ -144,14 +144,17 @@ def stream_blob(
 	*,
 	as_attachment: bool = False,
 	environ: dict | None = None,
+	allow_native_redirect: bool = False,
 ) -> Response:
 	"""Serve a blob after the caller has authorized the read.
 
 	Unlike :func:`serve_private_file`, this function performs no permission lookup and
 	writes no File access log. Non-local drivers are streamed directly so Range
-	requests work without requiring a seekable driver stream. WebDAV's optional
-	native redirect remains controlled by ``drive_webdav_s3_redirect``.
-	"""
+	requests work without requiring a seekable driver stream.
+
+	``allow_native_redirect`` lets the response redirect to the driver's
+	native URL. It is off by default because some clients, such as WebDAV
+	clients, cannot follow cross-host redirects."""
 	if isinstance(blob, str):
 		blob = frappe.get_doc("File Blob", blob)
 
@@ -159,10 +162,7 @@ def stream_blob(
 	driver = get_driver(blob.driver)
 	is_private = bool(blob.is_private)
 
-	# Some DAV clients cannot follow cross-host redirects, so an authorized
-	# stream redirects only when the deployment explicitly opts in. The
-	# /files/ routes keep their native redirect above.
-	if frappe.conf.get("drive_webdav_s3_redirect"):
+	if allow_native_redirect:
 		if response := _native_url_response(blob, filename, as_attachment=as_attachment):
 			return response
 
