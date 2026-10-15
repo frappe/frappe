@@ -338,6 +338,30 @@ describe("DataImportWizard footer", () => {
     await settle();
   });
 
+  it("Back during the save stays on Config once the save finishes", async () => {
+    const { dataImport, isDirty } = render(savedDoc());
+    click("Back");
+    await settle();
+    let finishSave = () => {};
+    dataImport.save.mockImplementationOnce(async () => {
+      dataImport.saving.value = true;
+      await new Promise<void>((resolve) => (finishSave = resolve));
+      dataImport.saving.value = false;
+      return dataImport.doc.value;
+    });
+    isDirty.value = true;
+    await nextTick();
+    click("Next");
+    await settle();
+    expect(stepLabel()).toBe("Map columns");
+    click("Back");
+    await settle();
+    expect(stepLabel()).toBe("Config");
+    finishSave();
+    await settle();
+    expect(stepLabel()).toBe("Config");
+  });
+
   it("Next on Config goes back to Config when the save fails", async () => {
     const { dataImport, isDirty } = render(savedDoc());
     click("Back");

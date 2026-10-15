@@ -277,8 +277,13 @@ async function saveIfDirty() {
 	}
 }
 
+// Bumped on every step change, so a slow save or preview can't undo a later Back.
+let navigation = 0;
+
 /** Back moves freely; going forward saves first and checks the step can open. */
 async function goTo(target: number) {
+	const move = ++navigation;
+	const isLatest = () => move === navigation;
 	const from = current.value;
 	if (target <= from) {
 		current.value = target;
@@ -296,13 +301,16 @@ async function goTo(target: number) {
 	}
 	// Map columns shows a skeleton while the file is saved and read, so open it first.
 	if (from === CONFIG && target === PREVIEW) current.value = PREVIEW;
-	if (!(await saveIfDirty())) {
+	const saved = await saveIfDirty();
+	if (!isLatest()) return;
+	if (!saved) {
 		current.value = from;
 		return;
 	}
 
 	if (hasImportFile.value && !previewReady.value) {
 		await props.dataImport.fetchPreview();
+		if (!isLatest()) return;
 		if (!previewReady.value) {
 			// The Map columns step shows why the preview failed.
 			current.value = PREVIEW;
