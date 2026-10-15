@@ -73,6 +73,34 @@ test.describe("Grid Selection Bar", () => {
 		await expect(get_bar(page)).toBeHidden();
 	});
 
+	test("runs row remove events when every row is deleted", async ({ page }) => {
+		const table = page.locator('.frappe-control[data-fieldname="email_ids"]');
+
+		await page.waitForFunction(() => window.cur_frm?.get_field("email_ids"));
+		await page.evaluate(() => {
+			cur_frm.doc.email_ids = [];
+			["one@example.com", "two@example.com"].forEach((email_id) =>
+				cur_frm.add_child("email_ids", { email_id })
+			);
+			cur_frm.refresh_field("email_ids");
+			window.removed_rows = 0;
+			frappe.ui.form.on("Contact Email", {
+				email_ids_remove: () => window.removed_rows++,
+			});
+		});
+
+		await table.locator(".grid-heading-row .grid-row-check").click();
+		await table
+			.locator(".grid-selection-bar")
+			.getByRole("button", { name: "Actions" })
+			.click();
+		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
+		await page.locator(".modal-dialog:visible").getByRole("button", { name: "Yes" }).click();
+
+		await expect.poll(() => page.evaluate(() => cur_frm.doc.email_ids.length)).toBe(0);
+		expect(await page.evaluate(() => window.removed_rows)).toBe(2);
+	});
+
 	test("scripts add custom actions and hide built-in ones", async ({ page }) => {
 		const table = get_table(page);
 		const menu_item = (label) =>

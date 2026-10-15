@@ -98,6 +98,7 @@ export default class Grid {
 				<span class="help"></span>
 				<p class="text-muted small grid-description"></p>
 				<div class="grid-custom-buttons"></div>
+				<div class="grid-selection-scope">
 				<div class="form-grid-container">
 					<div class="form-grid">
 						<div class="grid-heading-row"></div>
@@ -108,6 +109,7 @@ export default class Grid {
 							</div>
 						</div>
 					</div>
+				</div>
 				</div>
 				<div class="small form-clickable-section grid-footer">
 					<div class="flex justify-between">
