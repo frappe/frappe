@@ -131,6 +131,15 @@ class TestWebFormRequest(IntegrationTestCase):
 		frappe.set_user("Guest")
 		self.assertEqual(get_request_forms_by_doctype(), {})
 
+	def test_saving_or_deleting_web_form_clears_bootinfo(self):
+		web_form = frappe.get_doc(
+			{"doctype": "Web Form", "title": "Boot Cache Form", "doc_type": "Event", "published": 1}
+		)
+		for action in (web_form.insert, web_form.delete):
+			frappe.cache.hset("bootinfo", self.user, {"cached": 1})
+			action()
+			self.assertIsNone(frappe.cache.hget("bootinfo", self.user))
+
 	def test_requests_for_document_report_status(self):
 		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
 		frappe.set_user(self.user)

@@ -225,6 +225,10 @@ def get_context(context):
 """
 					)
 
+	def clear_cache(self):
+		frappe.cache.delete_key("bootinfo")
+		return super().clear_cache()
+
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
 		context.in_edit_mode = False
