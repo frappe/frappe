@@ -25,24 +25,32 @@ class DaemonError(Exception):
 
 class DaemonClient:
 	def __init__(
-		self, socket_path: str, token: str | None = None, *, transport: httpx.BaseTransport | None = None
+		self,
+		socket_path: str,
+		token: str | None = None,
+		*,
+		site: str | None = None,
+		transport: httpx.BaseTransport | None = None,
 	):
+		headers = {"Authorization": f"Bearer {token}"} if token else {}
+		if site:
+			headers["X-Flow-Site"] = site
 		self._http = httpx.Client(
 			transport=transport or httpx.HTTPTransport(uds=socket_path),
 			base_url="http://flow-server",
-			headers={"Authorization": f"Bearer {token}"} if token else {},
+			headers=headers,
 		)
 
 	@classmethod
 	def for_site(cls) -> DaemonClient:
-		"""This site's client: the bench daemon's socket and the site's own secret."""
+		"""This site's client: the bench daemon's socket, the site's name and secret."""
 		import frappe
 
 		from flow.daemon import lifecycle
 
 		if not frappe.conf.flow_server_secret:
 			raise DaemonError(None, "this site is not provisioned; run `bench flow-server setup`")
-		return cls(str(lifecycle.socket_path()), frappe.conf.flow_server_secret)
+		return cls(str(lifecycle.socket_path()), frappe.conf.flow_server_secret, site=frappe.local.site)
 
 	def __enter__(self) -> DaemonClient:
 		return self
@@ -66,9 +74,6 @@ class DaemonClient:
 
 	def healthz(self) -> dict:
 		return self._call("GET", "/healthz")
-
-	def reload_tenants(self) -> dict:
-		return self._call("POST", "/tenants/reload")
 
 	# --- sessions -------------------------------------------------------
 

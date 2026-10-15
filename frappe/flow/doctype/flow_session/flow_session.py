@@ -133,7 +133,6 @@ class FlowSession(Document):
 			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
 			"auto_compact": True,
 			"callback_url": lifecycle.callback_url(),
-			"callback_headers": lifecycle.callback_headers(),
 			"callback_token": frappe.conf.flow_server_secret,
 			"notify_run_ended": True,
 			"user_context": context,

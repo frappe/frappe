@@ -9,9 +9,10 @@ from __future__ import annotations
 import logging
 import os
 import secrets
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, nullcontext
 from dataclasses import replace
+from functools import partial
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -32,7 +33,7 @@ from flow_harness.server.routes.providers import create_providers_router
 from flow_harness.server.routes.sessions import create_sessions_router
 from flow_harness.server.routes.skills import create_skills_router
 from flow_harness.server.routes.tools import create_tools_router
-from flow_harness.server.tenants import Tenant, load_tenants
+from flow_harness.server.tenants import SITE_HEADER, Tenant, TenantTemplate
 from flow_harness.server.utils.provider_auth import OAuthCoordinator
 from flow_harness.session.attachments import AttachmentError
 from flow_harness.session.session import ResumeError, RewindError, SessionConflict
@@ -44,8 +45,7 @@ def create_app(
 	store: SessionStore,
 	*,
 	auth_token: str | None = None,
-	tenants: Sequence[Tenant] = (),
-	tenants_file: str | None = None,
+	tenants: TenantTemplate | None = None,
 	cors_origins: list[str] | None = None,
 	webui_dir: str | None = None,
 	system_append: str | None = None,
@@ -55,21 +55,24 @@ def create_app(
 	"""`system_append` is text the operator adds to every session's system prompt
 	(`flow web --append-system-prompt`); it lands after whatever the client sends.
 	`policy` gates tools and route groups; None means the permissive local default.
-	`tenants` turns on multi-tenant mode: each tenant token authenticates as its
-	site, and the request then acts on that site's own partition of `store`.
-	`tenants_file` is where those tenants came from. It is re-read on an unknown
-	token (a new site) and on `POST /tenants/reload` (an edited or removed one), so
-	the file can change without a restart."""
+	`tenants` turns on multi-tenant mode: a request names its site in `X-Flow-Site`
+	and acts on that site's own partition of `store`."""
 	policy = policy or ServerPolicy()
-	if policy.require_auth and not auth_token and not tenants:
+	if policy.require_auth and not auth_token and tenants is None:
 		raise ValueError("this server policy requires auth; pass auth_token or tenants")
 
 	@asynccontextmanager
 	async def serve_lifespan(app: FastAPI) -> AsyncIterator[Any]:
 		async with lifespan(app) if lifespan else nullcontext() as state:
 			# the last daemon may have stopped before a client confirmed a run's end
-			for partition in (store, *session_store_by_tenant.values()):
-				partition.report_unconfirmed_run_ends()
+			store.report_unconfirmed_run_ends()
+			if tenants is not None:
+				for site in tenants.sites():
+					try:
+						if (tenant := tenants.lookup(site)) is not None:
+							partition_for(tenant)
+					except (OSError, ValueError) as error:  # one broken site must not stop the rest
+						logging.getLogger("flow").warning("cannot open site %s: %s", site, error)
 			yield state
 
 	# docs off: those routes would be reachable without a bearer beside the web UI
@@ -119,66 +122,31 @@ def create_app(
 	# path prefixes of all API routes, e.g. "/sessions"
 	api_roots: set[str] = set()
 
-	def site_store(tenant: Tenant) -> SessionStore:
-		return store.for_site(
-			tenant.site,
-			tenant.allowed_roots,
-			tenant.callback_hosts,
-			ignore_hidden_files=tenant.ignore_hidden_files,
-			data_dir=tenant.data_dir,
-			extensions=tenant.extensions,
-		)
-
 	# one isolated store per site; a request only ever sees its own site's store
-	session_store_by_tenant = {tenant.site: site_store(tenant) for tenant in tenants}
+	partitions: dict[str, SessionStore] = {}
+
+	def partition_for(tenant: Tenant) -> SessionStore:
+		"""The site's partition, made on first use."""
+		partition = partitions.get(tenant.site)
+		if partition is None:
+			partition = partitions[tenant.site] = store.for_site(
+				tenant.site,
+				tenant.allowed_roots,
+				tenant.callback_hosts,
+				ignore_hidden_files=tenant.ignore_hidden_files,
+				data_dir=tenant.data_dir,
+				extensions=tenant.extensions,
+				callback_headers=tenant.callback_headers,
+				relocate=partial(tenants.path_for_site, tenant.site) if tenants is not None else None,
+			)
+			partition.report_unconfirmed_run_ends()
+		return partition
 
 	def resolve_store(request: Request) -> SessionStore:
 		site = getattr(request.state, "site", None)
-		return session_store_by_tenant[site] if site else store
+		return partitions[site] if site else store
 
-	tenants = list(tenants)
-	tenants_mtime = _stat_mtime(tenants_file)
-
-	def refresh_tenants(force: bool = False) -> str | None:
-		"""Re-read the tenants file if it changed; `force` re-reads either way. A site
-		whose fences, data_dir or extensions changed, or that is gone, loses its partition. Returns the error
-		if the file cannot be read, leaving the last good list in place."""
-		nonlocal tenants, tenants_mtime
-		if tenants_file is None:
-			return None
-		mtime = _stat_mtime(tenants_file)
-		if not force and (mtime is None or mtime == tenants_mtime):
-			return None
-		try:
-			fresh = load_tenants(tenants_file)
-		except (OSError, ValueError) as error:
-			logging.getLogger("flow").warning(
-				"tenants file reload failed, keeping the last good list: %s", error
-			)
-			return str(error)
-		fresh_by_site = {tenant.site: tenant for tenant in fresh}
-		for old in tenants:
-			new = fresh_by_site.get(old.site)
-			if (
-				new is None
-				or new.allowed_roots != old.allowed_roots
-				or new.ignore_hidden_files != old.ignore_hidden_files
-				or new.callback_hosts != old.callback_hosts
-				or new.data_dir != old.data_dir
-				or new.extensions != old.extensions
-			):
-				session_store_by_tenant.pop(old.site, None)  # rebuilt on next match, if any
-		tenants = fresh
-		tenants_mtime = mtime
-		return None
-
-	if auth_token or tenants:
-
-		def match_tenant(supplied: str) -> Tenant | None:
-			for tenant in tenants:
-				if secrets.compare_digest(supplied.encode(), tenant.token.encode()):
-					return tenant
-			return None
+	if auth_token or tenants is not None:
 
 		@app.middleware("http")
 		async def authenticate(request: Request, call_next):
@@ -197,14 +165,9 @@ def create_app(
 			if scheme.lower() == "bearer":
 				if auth_token and secrets.compare_digest(supplied.encode(), auth_token.encode()):
 					return await call_next(request)
-				tenant = match_tenant(supplied)
-				if tenant is None and tenants_file:
-					refresh_tenants()
-					tenant = match_tenant(supplied)
-				if tenant is not None:
-					if tenant.site not in session_store_by_tenant:
-						# a site added after startup gets its partition on first use
-						session_store_by_tenant[tenant.site] = site_store(tenant)
+				tenant = tenants.lookup(request.headers.get(SITE_HEADER, "")) if tenants is not None else None
+				if tenant is not None and secrets.compare_digest(supplied.encode(), tenant.token.encode()):
+					partition_for(tenant)
 					request.state.site = tenant.site  # scopes this request to the site
 					return await call_next(request)
 			return JSONResponse({"detail": "unauthorized"}, status_code=401)
@@ -247,17 +210,8 @@ def create_app(
 	async def healthz():
 		return {"ok": True}
 
-	@app.post("/tenants/reload")
-	async def reload_tenants():
-		"""Called by the tenants file's writer after editing or removing a site; a file
-		it cannot read is the caller's 400."""
-		error = refresh_tenants(force=True)
-		if error:
-			return JSONResponse({"detail": error}, status_code=400)
-		return {"sites": len(tenants)}
-
 	# the credential store is daemon-wide, so no site token may manage it
-	providers_policy = replace(policy, providers_api=False) if tenants else policy
+	providers_policy = replace(policy, providers_api=False) if tenants is not None else policy
 	routers = (
 		create_providers_router(store.credential_store, oauth, policy=providers_policy),
 		create_fs_router(resolve_store, policy=policy),
@@ -276,12 +230,3 @@ def create_app(
 		app.mount("/", StaticFiles(directory=webui_dir, html=True), name="webui")
 
 	return app
-
-
-def _stat_mtime(path: str | None) -> int | None:
-	if not path:
-		return None
-	try:
-		return os.stat(path).st_mtime_ns
-	except OSError:
-		return None

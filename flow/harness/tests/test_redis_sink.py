@@ -9,7 +9,7 @@ from flow_harness.model.credentials import CredentialStore
 from flow_harness.server import create_app
 from flow_harness.server.policy import DEPLOYED
 from flow_harness.server.redis_sink import RedisEventSink
-from flow_harness.server.tenants import Tenant
+from flow_harness.server.tenants import TenantTemplate
 from flow_harness.session.store import SessionStore
 
 
@@ -553,15 +553,20 @@ def test_server_lifespan_publishes_tenant_events_and_closes_redis(tmp_path):
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
 		tool_allowlist=DEPLOYED.tool_allowlist,
 	)
+	for site, token in (("one", "first"), ("two", "second")):
+		(tmp_path / "sites" / site).mkdir(parents=True)
+		(tmp_path / "sites" / site / "site.json").write_text(json.dumps({"token": token}))
 	app = create_app(
 		store,
 		policy=DEPLOYED,
-		tenants=[Tenant(site="one", token="first"), Tenant(site="two", token="second")],
+		tenants=TenantTemplate(
+			token_file=str(tmp_path / "sites" / "{site}" / "site.json"), token_key="token"
+		),
 		lifespan=sink.lifespan,
 	)
 	with TestClient(app) as client:
-		for token in ("first", "second"):
-			headers = {"Authorization": f"Bearer {token}"}
+		for site, token in (("one", "first"), ("two", "second")):
+			headers = {"Authorization": f"Bearer {token}", "X-Flow-Site": site}
 			assert (
 				client.post(
 					"/sessions",

@@ -1,9 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""Keeps the flow server provisioned for every site and running.
+"""Gives each site its flow server secret and keeps the server running.
 
-Bench-wide state: <bench>/sites/flow-server/. Each site's sessions: <site>/private/flow/.
+Bench-wide state: <bench>/sites/flow-server/. Each site's secret: <site>/site_config.json.
+Each site's sessions: <site>/private/flow/.
 Extensions an admin adds by hand: <site>/private/flow/extensions/, loaded for that site at start.
 Runtime files: <bench>/flow-server/. Logs: the bench's logs directory.
 """
@@ -19,7 +20,6 @@ import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
-from tempfile import mkstemp
 from urllib.parse import urlsplit
 
 import click
@@ -34,7 +34,6 @@ from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
 START_TIMEOUT = 30
 EXTENSIONS_DIR = "extensions"
 STOP_TIMEOUT = 5
-SITE_POLL = 5  # seconds serve waits between checks for a site with Flow
 UMASK = 0o077  # session transcripts and the socket are the bench user's alone
 LOCK = "flow_server"
 # The daemon inherits only these names: no bench credentials or stray FLOW_* switches.
@@ -98,44 +97,15 @@ def _run_or_warn(step: Callable[[], object]) -> None:
 
 
 def provision_site() -> None:
-	"""Give this site its secret and tenants entry, then tell the daemon."""
+	"""Give this site its flow server secret."""
 	if not frappe.conf.flow_server_secret:
 		update_site_config("flow_server_secret", frappe.generate_hash(length=48))
-	entry = {
-		"token": frappe.conf.flow_server_secret,
-		"allowed_roots": [str(root) for root in allowed_roots()],
-		"ignore_hidden_files": True,
-		"callback_hosts": [callback_host()],
-		"data_dir": str(site_data_dir()),
-		"extensions": [str(site_extensions_dir())],
-	}
-	_edit_tenants(lambda tenants: tenants.__setitem__(frappe.local.site, entry))
-	reload_tenants(frappe.conf.flow_server_secret)
 
 
 def remove_site() -> None:
-	"""before_uninstall: drop the tenants entry and everything the daemon kept for the site."""
-	site = frappe.local.site
-	remaining = _edit_tenants(lambda tenants: tenants.pop(site, None))
-	if remaining:
-		if not reload_tenants(frappe.conf.flow_server_secret):
-			restart()
-	else:
-		stop()
+	"""before_uninstall: drop the site's secret and the flow server's data for it."""
+	update_site_config("flow_server_secret", "None")
 	shutil.rmtree(site_data_dir(), ignore_errors=True)
-
-
-def reload_tenants(token: str) -> bool:
-	"""Ask a running daemon to re-read the tenants file; a stopped one reads it at start."""
-	if not healthy():
-		return False
-	try:
-		with DaemonClient(str(socket_path()), token) as client:
-			client.reload_tenants()
-	except DaemonError as exc:
-		click.secho(f"flow server did not reload its tenants: {exc.detail}", fg="yellow")
-		return False
-	return True
 
 
 def session_root() -> Path:
@@ -151,11 +121,6 @@ def site_extensions_dir() -> Path:
 def site_data_dir() -> Path:
 	"""The daemon's sessions for this site, kept inside the site so a deploy moves them too."""
 	return Path(frappe.get_site_path("private", "flow")).resolve()
-
-
-def allowed_roots() -> tuple[Path, Path]:
-	"""The site's files plus bench's apps folder."""
-	return (session_root(), Path(get_bench_path()).resolve() / "apps")
 
 
 def app_source_prompt(tools: list[str]) -> str:
@@ -177,39 +142,15 @@ def app_sources() -> list[tuple[str, Path]]:
 	]
 
 
-def callback_host() -> str:
-	return urlsplit(callback_url()).netloc
-
-
 def callback_url() -> str:
-	"""The site's own web server on loopback, or flow_server_url from site config."""
-	local = f"http://127.0.0.1:{frappe.conf.webserver_port or 8000}"
-	base = (frappe.conf.flow_server_url or local).rstrip("/")
-	return f"{base}/api/method/flow.daemon.callback.callback"
+	"""The bench's web server on loopback, or flow_server_url from common_site_config.json."""
+	return f"{_callback_base()}/api/method/flow.daemon.callback.callback"
 
 
-def callback_headers() -> dict[str, str]:
-	"""Frappe serves the site this header names, whatever host the request came to."""
-	return {"X-Frappe-Site-Name": frappe.local.site}
-
-
-def _edit_tenants(change: Callable[[dict], object]) -> dict:
-	"""Apply `change` to the tenants mapping under the bench-wide lock; the file is
-	written atomically and stays 0600 because it holds every site's token."""
-	state_dir().mkdir(parents=True, exist_ok=True)
-	with filelock(LOCK, is_global=True):
-		tenants = _read_tenants()
-		change(tenants)
-		fd, tmp = mkstemp(prefix=".tenants.", dir=state_dir())
-		try:
-			with os.fdopen(fd, "w", encoding="utf-8") as file:
-				file.write(json.dumps(tenants, indent=1, sort_keys=True))
-			os.chmod(tmp, 0o600)
-			os.replace(tmp, tenants_file())
-		except BaseException:
-			os.unlink(tmp)
-			raise
-	return tenants
+def _callback_base() -> str:
+	conf = frappe.get_common_site_config()
+	local = f"http://127.0.0.1:{conf.get('webserver_port') or 8000}"
+	return (conf.get("flow_server_url") or local).rstrip("/")
 
 
 # --- daemon lifecycle ---------------------------------------------------
@@ -250,15 +191,9 @@ def serve() -> None:
 	if not supervised():
 		raise RuntimeError("set flow_server_manager to supervisor in common_site_config.json before serving")
 	runtime_dir().mkdir(parents=True, exist_ok=True)
-	tenants = _read_tenants()
-	if not tenants:
-		click.echo("flow server waits for a site with Flow installed")
-	while not tenants:  # exiting would make supervisor give up
-		time.sleep(SITE_POLL)
-		tenants = _read_tenants()
 	with filelock(LOCK, is_global=True):
 		_stop()
-		command, env = _prepare(tenants)
+		command, env = _prepare()
 		pid_file().write_text(str(os.getpid()))
 	os.chdir(runtime_dir())
 	os.umask(UMASK)
@@ -276,10 +211,7 @@ def _restart() -> None:
 
 
 def _start() -> None:
-	tenants = _read_tenants()
-	if not tenants:
-		raise RuntimeError("no site is provisioned yet; run `bench flow-server setup`")
-	command, env = _prepare(tenants)
+	command, env = _prepare()
 	log = log_path()
 	with log.open("ab") as out:
 		process = subprocess.Popen(
@@ -306,7 +238,7 @@ def _start() -> None:
 		raise
 
 
-def _prepare(tenants: dict) -> tuple[list[str], dict[str, str]]:
+def _prepare() -> tuple[list[str], dict[str, str]]:
 	"""The daemon's command line and scrubbed environment, once no other daemon answers."""
 	if not _flow_bin().exists():
 		raise RuntimeError("flow server is missing from the bench environment; reinstall the Flow app")
@@ -314,9 +246,9 @@ def _prepare(tenants: dict) -> tuple[list[str], dict[str, str]]:
 		raise RuntimeError(f"a flow server already answers on {socket_path()}; stop it by hand")
 	runtime_dir().mkdir(parents=True, exist_ok=True)
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
-	env["FLOW_TENANTS_FILE"] = str(tenants_file())
+	env["FLOW_TENANTS"] = json.dumps(tenant_template())
 	allowed = ["read", "grep", "subagent"]
-	for folder in _extension_folders(tenants):
+	for folder in _extension_folders():
 		for row in extension_tools([folder]):
 			if row["name"] not in allowed:
 				allowed.append(row["name"])
@@ -331,6 +263,22 @@ def _prepare(tenants: dict) -> tuple[list[str], dict[str, str]]:
 		*("--profile", "deployed"),
 	]
 	return command, env
+
+
+def tenant_template() -> dict:
+	"""The daemon's settings for every site; {site} stands for the site name."""
+	site = _sites_dir() / "{site}"
+	return {
+		"token_file": str(site / "site_config.json"),
+		"token_key": "flow_server_secret",
+		"allowed_roots": [str(site / "public" / "files"), str(Path(get_bench_path()).resolve() / "apps")],
+		"ignore_hidden_files": True,
+		"callback_hosts": [urlsplit(_callback_base()).netloc],
+		# Frappe serves the site this header names
+		"callback_headers": {"X-Frappe-Site-Name": "{site}"},
+		"data_dir": str(site / "private" / "flow"),
+		"extensions": [str(site / "private" / "flow" / EXTENSIONS_DIR)],
+	}
 
 
 def _wait_for_supervisor() -> None:
@@ -378,8 +326,20 @@ def _terminate_process(process: subprocess.Popen) -> None:
 
 def status() -> str:
 	state = f"running on {socket_path()}" if healthy() else "not running"
-	sites = ", ".join(_read_tenants()) or "none"
+	sites = ", ".join(flow_sites()) or "none"
 	return f"flow server {state} · sites: {sites}"
+
+
+def flow_sites() -> list[str]:
+	"""Sites on this bench with a flow server secret."""
+	sites = []
+	for config in sorted(_sites_dir().glob("*/site_config.json")):
+		try:
+			if json.loads(config.read_text(encoding="utf-8")).get("flow_server_secret"):
+				sites.append(config.parent.name)
+		except (OSError, ValueError):
+			continue
+	return sites
 
 
 def healthy() -> bool:
@@ -423,21 +383,9 @@ def extension_tools(folders: list[Path]) -> list[dict]:
 	return json.loads(proc.stdout)["tools"]
 
 
-def _extension_folders(tenants: dict) -> list[Path]:
+def _extension_folders() -> list[Path]:
 	"""Every site's extensions folder that exists."""
-	folders = []
-	for entry in tenants.values():
-		for path in entry.get("extensions", ()):
-			if Path(path).is_dir():
-				folders.append(Path(path))
-	return folders
-
-
-def _read_tenants() -> dict:
-	try:
-		return json.loads(tenants_file().read_text(encoding="utf-8"))
-	except FileNotFoundError:
-		return {}
+	return sorted(path for path in _sites_dir().glob(f"*/private/flow/{EXTENSIONS_DIR}") if path.is_dir())
 
 
 def _is_daemon(pid: int) -> bool:
@@ -477,8 +425,8 @@ def log_path() -> Path:
 	return Path(get_bench_path()) / "logs" / "flow-server.log"
 
 
-def tenants_file() -> Path:
-	return state_dir() / "tenants.json"
+def _sites_dir() -> Path:
+	return Path(get_bench_path(), "sites").resolve()
 
 
 def _flow_bin() -> Path:

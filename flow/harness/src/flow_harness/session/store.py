@@ -12,7 +12,7 @@ import logging
 import os
 import re
 import uuid
-from collections.abc import Callable, Collection, Iterator
+from collections.abc import Callable, Collection, Iterator, Mapping
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -97,6 +97,8 @@ class SessionStore:
 		extensions_enabled: bool = False,
 		tool_allowlist: Collection[str] | None = None,
 		callback_hosts: Collection[str] | None = None,
+		callback_headers: Mapping[str, str] | None = None,
+		relocate: Callable[[str], str] | None = None,
 		session_cache: SessionCache | None = None,
 	):
 		self.data_dir = data_dir
@@ -111,6 +113,9 @@ class SessionStore:
 		self.tool_allowlist = frozenset(tool_allowlist) if tool_allowlist is not None else None
 		# (ServerPolicy.callback_hosts). None = any host.
 		self.callback_hosts = frozenset(callback_hosts) if callback_hosts is not None else None
+		# (Tenant.callback_headers), over each session's own
+		self.callback_headers = dict(callback_headers or {})
+		self._relocate = relocate
 		self.credential_store = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self._extension_paths = tuple(extension_paths or ())
 		self._extensions_enabled = extensions_enabled
@@ -149,6 +154,8 @@ class SessionStore:
 		ignore_hidden_files: bool | None = None,
 		data_dir: str | None = None,
 		extensions: Collection[str] = (),
+		callback_headers: Mapping[str, str] | None = None,
+		relocate: Callable[[str], str] | None = None,
 	) -> SessionStore:
 		"""One site's partition: its own sessions, credentials, fences and extensions
 		under `data_dir` (default `<daemon data dir>/tenants/<site>`)."""
@@ -174,6 +181,8 @@ class SessionStore:
 			extensions_enabled=self._extensions_enabled,
 			tool_allowlist=self.tool_allowlist,
 			callback_hosts=callback_hosts if callback_hosts is not None else self.callback_hosts,
+			callback_headers=callback_headers,
+			relocate=relocate,
 			session_cache=self._session_cache,
 		)
 		partition.closing = self.closing
@@ -291,7 +300,8 @@ class SessionStore:
 					config,
 					skills=skill_catalog.skills,
 					tools=tuple(server_tools.values()),
-				)
+				),
+				"callback_headers": {**config.callback_headers, **self.callback_headers},
 			}
 		)
 		sid = config.session_id or uuid.uuid4().hex[:16]
@@ -328,7 +338,7 @@ class SessionStore:
 		if paths is None:
 			raise KeyError(sid)
 		with open(paths.meta, encoding="utf-8") as f:
-			config = SessionConfig.model_validate(json.load(f))
+			config = self._apply_site_settings(SessionConfig.model_validate(json.load(f)))
 		self._validate_cwd(config.cwd)
 		self._validate_skill_paths(config)
 		self._validate_callback(config)  # a stored session must not outlive a tightened fence
@@ -341,6 +351,15 @@ class SessionStore:
 		)
 		self._cache.put(session)
 		return session
+
+	def _apply_site_settings(self, config: SessionConfig) -> SessionConfig:
+		"""A stored session with its cwd in the site's current folder and the site's callback headers."""
+		update: dict[str, object] = {}
+		if self._relocate is not None:
+			update["cwd"] = self._relocate(config.cwd)
+		if self.callback_headers:
+			update["callback_headers"] = {**config.callback_headers, **self.callback_headers}
+		return config.model_copy(update=update) if update else config
 
 	def exists(self, sid: str) -> bool:
 		return sid in self._cache or self._locate(sid) is not None
