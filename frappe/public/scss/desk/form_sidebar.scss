@@ -313,6 +313,10 @@ body[data-route^="Form"] {
 		top: var(--page-head-height);
 		transition: min-width 200ms ease, width 200ms ease;
 
+		&.no-transition {
+			transition: none;
+		}
+
 		.form-sidebar {
 			width: var(--form-sidebar-width);
 		}
@@ -321,34 +325,36 @@ body[data-route^="Form"] {
 			display: none;
 		}
 
-		&.sidebar-collapsed {
-			min-width: 36px;
-			width: 36px;
-			overflow: hidden;
+		@media (min-width: 992px) {
+			&.sidebar-collapsed {
+				min-width: 36px;
+				width: 36px;
+				overflow: hidden;
 
-			.form-sidebar {
-				opacity: 0;
-				pointer-events: none;
-				position: absolute;
-			}
+				.form-sidebar {
+					visibility: hidden;
+					pointer-events: none;
+					position: absolute;
+				}
 
-			.sidebar-expand-btn {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				width: 100%;
-				height: 36px;
-				margin-top: var(--padding-sm);
-				background: none;
-				border: none;
-				cursor: pointer;
-				color: var(--text-muted);
-				padding: 0;
-				border-radius: var(--radius-md);
+				.sidebar-expand-btn {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					width: 100%;
+					height: 36px;
+					margin-top: var(--padding-sm);
+					background: none;
+					border: none;
+					cursor: pointer;
+					color: var(--text-muted);
+					padding: 0;
+					border-radius: var(--radius-md);
 
-				&:hover {
-					background: var(--subtle-fg);
-					color: var(--text-color);
+					&:hover {
+						background: var(--subtle-fg);
+						color: var(--text-color);
+					}
 				}
 			}
 		}
