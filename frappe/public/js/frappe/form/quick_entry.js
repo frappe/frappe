@@ -158,72 +158,19 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	register_primary_action() {
 		var me = this;
-<<<<<<< HEAD
-		this.dialog.set_primary_action(__("Save"), function () {
-			if (me.dialog.working) {
-				return;
-			}
-			var data = me.dialog.get_values();
-
-			if (data) {
-				me.dialog.working = true;
-				me.dialog.set_message(__("Saving..."));
-				me.insert().then(() => {
-					me.dialog.clear_message();
-=======
-		this.set_primary_action(__("Save"), function (values) {
+		this.dialog.set_primary_action(__("Save"), function (values) {
 			if (me.dialog.working) {
 				return;
 			}
 			me.dialog.working = true;
-			if (me.skip_insert) {
-				// Skip insert mode - just update the doc and trigger callbacks
-				me.update_doc(values);
-				me.dialog.animation_speed = "slow";
-				me.dialog.hide();
-				me.handle_after_callbacks();
-			} else {
-				// Normal insert mode
-				me.insert(values).then(() => {
-					let messagetxt = __("{1} saved", [__(me.doctype), me.doc.name.bold()]);
-					me.dialog.animation_speed = "slow";
-					me.dialog.hide();
-					if (frappe.route_hooks.after_save) {
-						let route_callback = frappe.route_hooks.after_save;
-						delete frappe.route_hooks.after_save;
-
-						route_callback(me);
-					}
-
-					setTimeout(function () {
-						frappe.show_alert(
-							{
-								message: messagetxt,
-								indicator: "green",
-							},
-							3
-						);
-					}, 500);
->>>>>>> fb33b43 (fix: use values passed to dialog primary actions (#44527))
-				});
-			}
+			me.dialog.set_message(__("Saving..."));
+			me.insert(values).then(() => {
+				me.dialog.clear_message();
+			});
 		});
 	}
 
-<<<<<<< HEAD
-	insert() {
-=======
-	handle_after_callbacks() {
-		// Handle callbacks when skip_insert is true
-		if (frappe._from_link) {
-			frappe.ui.form.update_calling_link(this.doc);
-		} else if (this.after_insert) {
-			this.after_insert(this.doc);
-		}
-	}
-
 	insert(values) {
->>>>>>> fb33b43 (fix: use values passed to dialog primary actions (#44527))
 		let me = this;
 		return new Promise((resolve) => {
 			me.update_doc(values);
@@ -311,12 +258,8 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		}
 	}
 
-	update_doc(data = this.get_values(true)) {
+	update_doc(data = this.dialog.get_values(true)) {
 		var me = this;
-<<<<<<< HEAD
-		var data = this.dialog.get_values(true);
-=======
->>>>>>> fb33b43 (fix: use values passed to dialog primary actions (#44527))
 		$.each(data, function (key, value) {
 			if (!is_null(value)) {
 				me.dialog.doc[key] = value;

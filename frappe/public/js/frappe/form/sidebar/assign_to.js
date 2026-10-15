@@ -98,19 +98,11 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 			title: __("Add to ToDo"),
 			fields: me.get_fields(),
 			primary_action_label: __("Add"),
-<<<<<<< HEAD
-			primary_action: function () {
-				let args = me.dialog.get_values();
-
-				if (args && args.assign_to) {
+			primary_action: function (args) {
+				if (args.assign_to) {
 					me.dialog.set_message("Assigning...");
 
 					frappe.call({
-=======
-			primary_action: function (args) {
-				if (args.assign_to) {
-					return frappe.call({
->>>>>>> fb33b43 (fix: use values passed to dialog primary actions (#44527))
 						method: me.method,
 						args: $.extend(args, {
 							doctype: me.doctype,
