@@ -157,6 +157,44 @@ def form_start_import(data_import: str):
 	return di.start_import()
 
 
+<<<<<<< HEAD
+=======
+@frappe.whitelist()
+def stop_data_import(doc_name: str):
+	"""Stop a running Data Import job."""
+	data_import = frappe.get_doc("Data Import", doc_name)
+	data_import.check_permission("write")
+
+	rq_job_id = f"{frappe.local.site}||data_import||{doc_name}"
+	job_id = rq_job_id.replace(":", "|")  # patching the change in job id format (for timestamp part)
+	job_was_running = True
+	try:
+		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
+	except (InvalidJobOperation, NoSuchJobError):
+		# The job already finished or the worker died, so there is nothing to stop.
+		job_was_running = False
+
+	# A killed worker may never write a status; only In Progress is ours to overwrite.
+	frappe.db.set_value(
+		"Data Import",
+		{"name": data_import.name, "status": "In Progress"},
+		{"status": "Error"},
+	)
+
+	frappe.publish_realtime(
+		"data_import_refresh",
+		{"data_import": data_import.name},
+		doctype="Data Import",
+		docname=data_import.name,
+		after_commit=True,
+	)
+
+	if not job_was_running:
+		return {"status": "not_running", "message": _("Job was not running; status updated.")}
+	return {"status": "success", "message": _("Job stopped successfully")}
+
+
+>>>>>>> 585a71c (fix: send the import refresh after its status is saved)
 def start_import(data_import):
 	"""This method runs in background job"""
 	data_import = frappe.get_doc("Data Import", data_import)
@@ -173,7 +211,37 @@ def start_import(data_import):
 	finally:
 		frappe.flags.in_import = False
 
+<<<<<<< HEAD
 	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+=======
+	# A blocked run already sent `data_import_blocked`; a refresh too would reload twice.
+	if not (i and i.blocked_by_warnings):
+		# After the commit, so a reload reads the final status and not In Progress.
+		frappe.publish_realtime(
+			"data_import_refresh",
+			{"data_import": data_import.name},
+			doctype="Data Import",
+			docname=data_import.name,
+			after_commit=True,
+		)
+
+		# list_update is muted while in_import, so send one for the list once the import ends.
+		if data_import.reference_doctype and data_import.status in ("Success", "Partial Success"):
+			data = {"doctype": data_import.reference_doctype, "name": None, "user": frappe.session.user}
+			frappe.publish_realtime("list_update", data, after_commit=True)  # nosemgrep
+
+
+@frappe.whitelist()
+def get_import_fields(doctype: str):
+	"""The provider's ``get_import_fields`` schema for the field picker, or None to use meta."""
+	if not doctype:
+		return None
+	frappe.has_permission(doctype, "read", throw=True)
+	from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+	provider = get_import_provider(doctype)
+	return provider.get_import_fields() if provider else None
+>>>>>>> 585a71c (fix: send the import refresh after its status is saved)
 
 
 @frappe.whitelist()
