@@ -22,6 +22,7 @@ frappe.ui.form.SidebarConnections = class SidebarConnections {
 	refresh() {
 		const dashboard = this.frm.dashboard;
 		this.wrapper.addClass("hidden").empty();
+		this.frm.sidebar?.refresh_actions?.();
 		if (!dashboard?.has_connections()) return;
 
 		const request = (this.request = {});
@@ -100,6 +101,7 @@ frappe.ui.form.SidebarConnections = class SidebarConnections {
 				${rows.length ? `<div class="form-connections-list">${rows.join("")}</div>` : ""}`
 			)
 			.removeClass("hidden");
+		this.frm.sidebar?.refresh_actions?.();
 	}
 
 	open_dialog(doctype) {

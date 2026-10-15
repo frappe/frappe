@@ -18,10 +18,10 @@
 		border: none;
 		border-radius: var(--radius);
 		background: transparent;
-		color: var(--ink-gray-7);
+		color: var(--ink-gray-6);
 		text-align: start;
 		cursor: pointer;
-		--icon-stroke: var(--ink-gray-6);
+		--icon-stroke: currentColor;
 
 		&:hover {
 			background-color: var(--surface-gray-2);
