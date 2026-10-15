@@ -248,13 +248,23 @@ class FileV1(File):
 						"attached_to_name": self.attached_to_name,
 					}
 				)
-			duplicate_file = frappe.db.get_value("File", filters, ["name", "file_url"], as_dict=1)
+			duplicate_file = frappe.db.get_value("File", filters, ["name", "file_url", "blob"], as_dict=1)
 
 			if duplicate_file:
 				duplicate_file_doc = frappe.get_cached_doc("File", duplicate_file.name)
 				if duplicate_file_doc.exists_on_disk():
 					# just use the url, to avoid uploading a duplicate
-					self.file_url = duplicate_file.file_url
+					self.share_stored_file(duplicate_file)
+
+	def share_stored_file(self, duplicate_file):
+		"""Point this row at ``duplicate_file``'s bytes, linking its blob if it has one.
+
+		Garbage collection keeps a blob's bytes only while a File links it.
+		Matching content proves the uploader holds the bytes, so the link
+		needs no permission check, as with ``put_blob`` dedup."""
+		self.file_url = duplicate_file.file_url
+		if duplicate_file.blob:
+			self.blob = duplicate_file.blob
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.is_remote_file:
@@ -390,7 +400,7 @@ class FileV1(File):
 			duplicate_file = frappe.get_value(
 				"File",
 				{"content_hash": self.content_hash, "is_private": self.is_private},
-				["file_url", "name"],
+				["file_url", "name", "blob"],
 				as_dict=True,
 			)
 
@@ -399,9 +409,9 @@ class FileV1(File):
 			if file_doc.exists_on_disk():
 				if self.exists_on_disk():
 					if not self.file_url:
-						self.file_url = duplicate_file.file_url
+						self.share_stored_file(duplicate_file)
 				else:
-					self.file_url = duplicate_file.file_url
+					self.share_stored_file(duplicate_file)
 				file_exists = True
 
 		if not file_exists:

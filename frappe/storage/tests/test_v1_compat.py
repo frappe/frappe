@@ -274,6 +274,29 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 			self.assertTrue(frappe.db.exists("File Blob", blob.name))
 			self.assertTrue(store.exists(blob.key, is_private=True))
 
+	def test_dedup_onto_a_blob_links_the_blob(self):
+		# identical bytes uploaded with the flag off must keep the blob
+		# referenced, or garbage collection deletes them with the first row
+		from frappe.storage.gc import collect_garbage
+		from frappe.storage.tests.test_gc_backfill import backdate
+
+		content = unique_png()
+		with fake():
+			first = self.blob_backed_file(content, label="dedup-first")
+
+			with flag_off():
+				second = frappe.get_doc(
+					{"doctype": "File", "file_name": "dedup-second.png", "content": content, "is_private": 1}
+				).insert()
+				self.delete_later("File", second.name)
+				first.delete()
+
+			backdate(first.blob)
+			collect_garbage()
+
+			self.assertEqual(second.blob, first.blob)
+			self.assertEqual(frappe.get_doc("File", second.name).get_content(), content)
+
 
 class TestV1LegacyDiskPaths(V1CompatTestCase):
 	"""Disk-only behaviour that FileV1 keeps."""
