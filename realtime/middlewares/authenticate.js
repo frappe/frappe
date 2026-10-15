@@ -39,7 +39,7 @@ function authenticate_with_frappe(socket, next) {
 	if (authorization_header) {
 		auth_req = auth_req.set("Authorization", authorization_header);
 	} else if (cookies.sid) {
-		auth_req = auth_req.query({ sid: cookies.sid });
+		auth_req = auth_req.set("Cookie", `sid=${cookies.sid}`);
 	}
 
 	auth_req
