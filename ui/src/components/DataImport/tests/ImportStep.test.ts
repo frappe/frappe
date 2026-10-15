@@ -174,6 +174,32 @@ describe("ImportStep while running", () => {
     expect(host!.querySelector(".lucide-circle-alert")).not.toBeNull();
   });
 
+  it("keeps the progress up, full, until the finished run's result loads", async () => {
+    const { fake } = mount(ImportStep, {
+      running: true,
+      doc: { status: "In Progress" },
+      progress: { current: 25, total: 100 },
+      importStatus: null,
+    });
+    fake.progress.value = null;
+    fake.doc.value.status = "Success";
+    fake.running.value = false;
+    await nextTick();
+    expect(text()).toContain("Importing row 25 of 100");
+    expect(text()).toContain("Finishing up...");
+    expect(text()).not.toContain("Import complete");
+
+    fake.importStatus.value = {
+      status: "Success",
+      total_records: 3,
+      success: 3,
+      failed: 0,
+    };
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(text()).toContain("Import complete");
+    expect(text()).not.toContain("Finishing up...");
+  });
+
   it("says Finishing up once every row is done", () => {
     mount(ImportStep, {
       running: true,
