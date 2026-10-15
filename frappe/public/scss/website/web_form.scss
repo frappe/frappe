@@ -113,7 +113,7 @@
 					}
 
 					.web-form-stepper {
-						margin: 0.5rem 0;
+						margin: var(--margin-sm) 0 var(--margin-lg);
 
 						&:empty {
 							display: none;
