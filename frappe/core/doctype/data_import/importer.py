@@ -1009,6 +1009,9 @@ class ImportFile:
 					child_doc = row.parse_doc(doctype, parent_doc, table_df)
 					if child_doc is None:
 						continue
+					if parent_doc is None:
+						# no column of the file is for the record itself, so it starts empty
+						parent_doc = row._parse_doc(self.doctype, [], [])
 					parent_doc[table_df.fieldname] = parent_doc.get(table_df.fieldname, [])
 					parent_doc[table_df.fieldname].append(child_doc)
 
