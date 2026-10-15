@@ -266,6 +266,18 @@ class TestGlobalSearch(IntegrationTestCase):
 		)
 		self.assertTrue(results == [])
 
+	def test_web_search_bounds(self):
+		from unittest.mock import patch
+
+		with patch.object(frappe.db, "multisql", return_value=[]) as m:
+			global_search.web_search("&".join(["a"] * 50), limit=10**6)
+			self.assertEqual(m.call_count, 1)
+			self.assertLessEqual(m.call_args.kwargs["values"]["limit"], 100)
+
+			m.reset_mock()
+			global_search.web_search("&".join(f"a{i}" for i in range(50)))
+			self.assertLessEqual(m.call_count, 5)
+
 	@unittest.skipUnless(frappe.conf.db_type == "sqlite", "SQLite FTS5-specific behavior")
 	def test_web_search_uses_sqlite_fts5_safely(self):
 		global_search.sync_values(
