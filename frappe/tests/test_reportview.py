@@ -126,6 +126,66 @@ class TestReportview(IntegrationTestCase):
 						self.assertEqual(int(row["Is Single"]), 1)
 						self.assertEqual(row["Module"], "Core")
 
+	def exported_rows(self):
+		from csv import reader
+		from io import StringIO
+
+		return list(reader(StringIO(frappe.response["filecontent"].decode("utf-8"))))
+
+	def test_export_has_only_the_requested_columns(self):
+		frappe.local.form_dict = frappe._dict(
+			doctype="DocType",
+			file_format_type="CSV",
+			fields=("name", "module"),
+			filters={"issingle": 1, "module": "Core"},
+		)
+		export_query()
+		self.assertEqual(len(self.exported_rows()[0]), 3)
+
+	def test_grouped_export_has_no_owner_column(self):
+		todos = [self.make_todo(f"Grouped export {i}") for i in range(3)]
+		frappe.db.set_value("ToDo", todos[0].name, "status", "Closed")
+		frappe.local.form_dict = frappe._dict(
+			doctype="ToDo",
+			file_format_type="CSV",
+			fields=json.dumps(["status", {"COUNT": "name", "as": "count"}]),
+			filters=json.dumps([["name", "in", [todo.name for todo in todos]]]),
+			group_by="status",
+			order_by="status asc",
+		)
+		export_query()
+		header, *rows = self.exported_rows()
+		self.assertEqual(len(header), 3)
+		self.assertEqual({row[1]: int(row[2]) for row in rows}, {"Closed": 1, "Open": 2})
+
+	def test_owner_only_export_checks_rows_but_leaves_out_the_owner(self):
+		from frappe.permissions import update_permission_property
+
+		update_permission_property("ToDo", "All", 0, "export", 1)
+		update_permission_property("ToDo", "All", 0, "if_owner", 1)
+		frappe.clear_cache(doctype="ToDo")
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		frappe.get_doc(doctype="Role", role_name="_Test Own Exporter").insert(ignore_if_duplicate=True)
+		user = create_user("export-own@example.com", "_Test Own Exporter").name
+
+		with self.set_user(user):
+			self.assertFalse(frappe.permissions.can_export("ToDo"))
+			todo = self.make_todo("Own export")
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo",
+				file_format_type="CSV",
+				fields=json.dumps(["name", "description"]),
+				filters=json.dumps([["name", "=", todo.name]]),
+			)
+			export_query()
+			self.assertEqual(len(self.exported_rows()[0]), 3)
+
+			# a group mixes owners, so there is no row to check
+			frappe.local.form_dict.update(
+				fields=json.dumps(["status", {"COUNT": "name", "as": "count"}]), group_by="status"
+			)
+			self.assertRaises(frappe.PermissionError, export_query)
+
 	def test_reorder_by_visible_names(self):
 		fields = ["`tabDocType`.`name`", "`tabDocType`.`module`"]
 		ret = [
