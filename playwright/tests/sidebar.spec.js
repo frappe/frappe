@@ -150,4 +150,42 @@ test.describe("Sidebar", () => {
 		}
 		await context.close();
 	});
+
+	test("Add a tag from the combobox and remove it", async ({ page, api }) => {
+		const todo = await api.call("frappe.tests.ui_test_helpers.create_todo", {
+			description: "Sidebar Tag ToDo",
+		});
+		await page.goto(`/desk/todo/${todo.message.name}`);
+		// a new name each run, so the combobox offers to create it
+		const name = `pw-tag-${Date.now()}`;
+		const tags = page.locator(".form-tags");
+		const tag = tags.locator(".es-tag", { hasText: name });
+
+		await expect(tags).toBeHidden();
+		await page.locator('.form-sidebar-action[data-action="tags"]').click();
+		const input = page.locator(".es-combobox [role='combobox']");
+		await expect(input).toBeFocused();
+		await input.fill(name);
+		await expect(page.locator(".es-combobox [role='option']").last()).toHaveText(
+			`Create tag "${name}"`
+		);
+		await input.press("Enter");
+		await expect(tag).toBeVisible();
+		await page.reload();
+		await expect(tag).toBeVisible();
+
+		// the same tag in other letter case is not offered again
+		await page.locator(".form-tags .add-tags-btn").click();
+		await input.fill(name.toUpperCase());
+		await expect(page.locator(".es-combobox [role='option']")).toHaveCount(0);
+		await input.press("Escape");
+
+		await tag.getByRole("button", { name: `Remove ${name}` }).click();
+		await expect(tag).toHaveCount(0);
+		await expect(tags).toBeHidden();
+
+		await page.reload();
+		await expect(page.locator('.form-sidebar-action[data-action="tags"]')).toBeEnabled();
+		await expect(tag).toHaveCount(0);
+	});
 });

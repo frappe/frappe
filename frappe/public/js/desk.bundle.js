@@ -10,6 +10,7 @@ import "./frappe/ui/messages.js";
 
 import "./frappe/ui/components/button.js";
 import "./frappe/ui/components/badge.js";
+import "./frappe/ui/components/tag.js";
 import "./frappe/ui/components/skeleton.js";
 import "./frappe/ui/components/divider.js";
 import "./frappe/ui/components/avatar.js";
@@ -21,6 +22,7 @@ import "./frappe/ui/components/dropdown.js";
 import "./frappe/ui/components/context_menu.js";
 import "./frappe/ui/components/tooltip.js";
 import "./frappe/ui/components/popover.js";
+import "./frappe/ui/components/combobox.js";
 import "./frappe/ui/components/hover_card.js";
 import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";

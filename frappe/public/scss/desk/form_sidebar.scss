@@ -526,21 +526,6 @@ body[data-route^="Form"] {
 
 	.form-tag {
 		max-width: 150px;
-
-		.pill-label {
-			min-width: 0;
-		}
-
-		// the remove ✕ — the only click target on the tag
-		.es-badge__affix {
-			cursor: pointer;
-			opacity: 0.7;
-
-			&:hover,
-			&:focus-visible {
-				opacity: 1;
-			}
-		}
 	}
 }
 
@@ -857,7 +842,7 @@ body[data-route^="Form"] .attachment-preview {
 			color: var(--ink-gray-6);
 		}
 
-		.form-tags.read-only .form-tag .es-badge__affix {
+		.form-tags.read-only .form-tag .es-tag__remove {
 			display: none;
 		}
 

@@ -2,8 +2,19 @@
 // MIT License. See license.txt
 
 frappe.ui.Tags = class {
-	constructor({ parent, placeholder, tagsList, onTagAdd, onTagRemove, onTagClick, onChange }) {
+	constructor({
+		parent,
+		placeholder,
+		tagsList,
+		onTagAdd,
+		onTagRemove,
+		onTagClick,
+		onChange,
+		get_options,
+	}) {
 		this.tagsList = tagsList || [];
+		// (txt) => tags to pick from, in a frappe.ui.Combobox instead of the inline input
+		this.get_options = get_options;
 		this.onTagAdd = onTagAdd;
 		this.onTagRemove = onTagRemove;
 		this.onTagClick = onTagClick;
@@ -32,10 +43,14 @@ frappe.ui.Tags = class {
 	}
 
 	bind() {
+		if (this.get_options) {
+			this.make_picker(this.$placeholder);
+			return;
+		}
+
 		const me = this;
 		const select_tag = function () {
-			const tagValue = frappe.utils.xss_sanitise(me.$input.val());
-			me.addTag(tagValue);
+			me.select(me.$input.val());
 			me.$input.val("");
 		};
 
@@ -68,6 +83,28 @@ frappe.ui.Tags = class {
 
 	boot() {
 		this.addTags(this.tagsList);
+	}
+
+	select(label) {
+		if (!this.has_tag(label)) this.addTag(frappe.utils.xss_sanitise(label));
+	}
+
+	has_tag(label) {
+		const key = frappe.utils.xss_sanitise(label).toLowerCase();
+		return this.tagsList.some((tag) => tag.toLowerCase() === key);
+	}
+
+	make_picker($trigger) {
+		return new frappe.ui.Combobox({
+			trigger: $trigger,
+			placeholder: __("Add a tag"),
+			allow_create: (txt) => !this.has_tag(txt),
+			create_label: (txt) => __('Create tag "{0}"', [txt]),
+			empty_text: __("No tags yet"),
+			options: async (txt) =>
+				(await this.get_options(txt)).filter((tag) => !this.has_tag(tag)),
+			on_select: (tag) => this.select(tag),
+		});
 	}
 
 	activate() {
@@ -114,32 +151,20 @@ frappe.ui.Tags = class {
 	}
 
 	get_tag(label) {
-		let $tag = frappe.ui.badge({
+		let $tag = frappe.ui.tag({
 			label: label,
 			theme: this.get_tag_theme(label),
-			size: "lg",
-			icon_right: "x",
+			removable: true,
 			css_class: "form-tag",
 			title: label,
 		});
 
-		// the badge's label span; also the onTagClick target
-		$tag.find(".es-badge__label").addClass("pill-label ellipsis");
+		$tag.find(".es-tag__label").addClass("pill-label");
 
-		// the ✕ is the only click target — the badge itself stays inert
-		const $remove = $tag.find(".es-badge__affix");
-		$remove
-			.attr({ role: "button", tabindex: 0, "aria-label": __("Remove") })
-			.on("click", () => {
-				this.removeTag(label);
-				$tag.closest(".form-tag-row").remove();
-			})
-			.on("keydown", (e) => {
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault();
-					$remove.trigger("click");
-				}
-			});
+		$tag.find(".es-tag__remove").on("click", () => {
+			this.removeTag(label);
+			$tag.closest(".form-tag-row").remove();
+		});
 
 		if (this.onTagClick) {
 			$tag.on("click", ".pill-label", () => {
@@ -150,7 +175,7 @@ frappe.ui.Tags = class {
 	}
 
 	get_tag_theme(label) {
-		// same tag → same color, spread over the badge's curated themes
+		// same tag → same color, spread over the tag's themes
 		const themes = ["blue", "green", "amber", "red", "violet"];
 		let hash = 0;
 		for (let i = 0; i < label.length; i++) {

@@ -127,8 +127,8 @@ frappe.ui.form.Sidebar = class {
 				section: ".form-tags",
 				add_button: ".add-tags-btn",
 				allowed: () => this.frm.has_perm("write"),
-				has_items: () => this.tags_open || Boolean(this.frm.tags.tags?.tagsList.length),
-				click: () => this.open_tags(),
+				has_items: () => Boolean(this.frm.tags.tags?.tagsList.length),
+				picker: true,
 			},
 			{
 				key: "share",
@@ -156,6 +156,7 @@ frappe.ui.form.Sidebar = class {
 					onclick: action.click,
 				})
 				.appendTo(this.$actions);
+			if (action.picker) this.frm.tags?.tags?.make_picker(action.$button);
 		}
 
 		$(this.frm.wrapper)
@@ -192,19 +193,8 @@ frappe.ui.form.Sidebar = class {
 			.text(this.frm.attachments.get_attachments().length || "");
 	}
 
-	open_tags() {
-		const tags = this.frm.tags.tags;
-		this.tags_open = true;
-		this.refresh_actions();
-		tags.activate();
-		tags.$input.focus();
-		tags.$input.one("blur", () => {
-			// after the tag (if any) was added on focusout
-			setTimeout(() => {
-				this.tags_open = false;
-				this.refresh_actions();
-			});
-		});
+	get_user_tags() {
+		return cstr(this.frm.doc._user_tags).split(",").filter(Boolean);
 	}
 
 	setup_copy_event() {
@@ -383,6 +373,7 @@ frappe.ui.form.Sidebar = class {
 			parent: tags_parent,
 			add_button: tags_parent.find(".add-tags-btn"),
 			frm: this.frm,
+			picker: true,
 			on_change: (user_tags) => {
 				this.frm.tags && this.frm.tags.refresh(user_tags);
 				this.refresh_actions();

@@ -618,6 +618,57 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Combobox: {
+			helper: "new frappe.ui.Combobox",
+			make: (opts) => {
+				const $trigger = frappe.ui.button({
+					label: opts.__trigger || __("Add a tag"),
+					icon: "tag",
+					size: "sm",
+					variant: "outline",
+				});
+				new frappe.ui.Combobox({ ...opts, trigger: $trigger });
+				return $trigger;
+			},
+			groups: [
+				{
+					title: __("Pick from a list, or add what you typed"),
+					items: [
+						{
+							__code: 'new frappe.ui.Combobox({\n  trigger: tag_button,\n  placeholder: "Add a tag",\n  allow_create: true,\n  options: (txt) => fetch_tags(txt),  // an array, or a promise of one\n  on_select: (tag, { created }) => add_tag(tag),\n})',
+							placeholder: __("Add a tag"),
+							allow_create: true,
+							create_label: (txt) => __('Create tag "{0}"', [txt]),
+							options: (txt) =>
+								["Urgent", "Follow up", "Key account", "Respond in 24h"].filter(
+									(tag) => tag.toLowerCase().includes(txt.toLowerCase())
+								),
+							on_select: (tag, { created }) =>
+								frappe.ui.toast({
+									message: created
+										? __("Created {0}", [tag])
+										: __("Picked {0}", [tag]),
+								}),
+						},
+					],
+				},
+				{
+					title: __("Pick only (nothing new)"),
+					items: [
+						{
+							__code: 'new frappe.ui.Combobox({ trigger: el, options: (txt) => filter_priorities(txt), on_select })',
+							__trigger: __("Priority"),
+							placeholder: __("Search priorities"),
+							options: (txt) =>
+								["Low", "Medium", "High"].filter((p) =>
+									p.toLowerCase().includes(txt.toLowerCase())
+								),
+							on_select: (value) => frappe.ui.toast({ message: value }),
+						},
+					],
+				},
+			],
+		},
 		BottomSheet: {
 			helper: "frappe.ui.bottom_sheet",
 			groups: [
@@ -2133,6 +2184,28 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								},
 							],
 						},
+					],
+				},
+			],
+		},
+		Tag: {
+			helper: "frappe.ui.tag",
+			html: (opts) => frappe.ui.tag.html(opts),
+			groups: [
+				{
+					title: __("Sizes"),
+					items: [
+						{ label: "Respond in 24h", size: "sm" },
+						{ label: "Respond in 24h" },
+						{ label: "Respond in 24h", size: "lg" },
+					],
+				},
+				{
+					title: __("Removable (the ✕ is a button; bind to .es-tag__remove)"),
+					items: [
+						{ label: "Respond in 24h", size: "sm", removable: true },
+						{ label: "Respond in 24h", removable: true },
+						{ label: "Respond in 24h", size: "lg", removable: true },
 					],
 				},
 			],

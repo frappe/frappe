@@ -1,0 +1,26 @@
+/* Espresso Combobox — a search field over menu rows (menu.css), on the popover shell.
+ *
+ *   <div class="es-popover es-combobox" data-state="open">
+ *     <input class="form-control es-combobox__input" role="combobox">
+ *     <div class="es-combobox__list" role="listbox">
+ *       <div class="es-menu__item" role="option" data-highlighted>…</div>
+ *     </div>
+ *   </div>
+ */
+
+.es-popover.es-combobox {
+    width: calc(var(--spacing) * 56);
+    padding: calc(var(--spacing) * 1.5);
+}
+
+.es-combobox__input {
+    margin-bottom: calc(var(--spacing) * 1);
+}
+
+.es-combobox__list {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 0.5);
+    max-height: calc(var(--spacing) * 64);
+    overflow-y: auto;
+}
