@@ -139,14 +139,6 @@ class AttachmentQueue(Document):
 
 	@frappe.whitelist()
 	def link_to_document(self, document_type: str, document_name: str) -> str:
-		"""File this entry against the document it produced and return that document.
-
-		Calling it again with the same document reports the same result without attaching
-		the file a second time. A different document is refused: the entry has been used.
-		"""
-		# Hold the row for the rest of the transaction so two callers cannot both claim it,
-		# then work from what it actually holds: another save may have changed its target
-		# or its file since this document was loaded.
 		claimed = frappe.db.get_value("Attachment Queue", self.name, "created_document", for_update=True)
 		self.reload()
 
