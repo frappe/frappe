@@ -18,7 +18,7 @@ from frappe.desk.doctype.todo.todo import ToDo
 from frappe.model.document import Document, LazyChildTable, LazyDocument
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
-from frappe.utils import cint, now_datetime, set_request
+from frappe.utils import cint, get_datetime, now_datetime, set_request
 from frappe.website.serve import get_response
 
 
@@ -215,7 +215,23 @@ class TestDocument(IntegrationTestCase):
 		with self.freeze_time("2026-10-15 10:33:29"):
 			event = self.test_insert()
 
+		event.subject = "saved after a whole-second insert"
 		event.save()
+
+		saved = frappe.db.get_value("Event", event.name, ["subject", "creation"], as_dict=True)
+		self.assertEqual(saved.subject, "saved after a whole-second insert")
+		self.assertEqual(saved.creation, get_datetime("2026-10-15 10:33:29"))
+
+	def test_first_save_of_a_single(self):
+		doctype = new_doctype(
+			issingle=1, fields=[{"fieldname": "note", "fieldtype": "Data", "label": "Note"}]
+		).insert()
+
+		single = frappe.get_doc(doctype.name)
+		single.note = "first save"
+		single.save()
+
+		self.assertEqual(frappe.db.get_single_value(doctype.name, "note"), "first save")
 
 	def test_conflict_validation_single(self):
 		d1 = frappe.get_doc("Website Settings", "Website Settings")
