@@ -96,7 +96,11 @@ function fakeDataImport(state: FakeState = {}) {
   };
 }
 
-function mount(component: unknown, state: FakeState = {}) {
+function mount(
+  component: unknown,
+  state: FakeState = {},
+  { withOpenList = true } = {}
+) {
   const fake = fakeDataImport(state);
   const onOpenList = vi.fn();
   const onOpenRecord = vi.fn();
@@ -106,7 +110,7 @@ function mount(component: unknown, state: FakeState = {}) {
     render: () =>
       h(component as any, {
         dataImport: fake as unknown as UseDataImport,
-        onOpenList,
+        ...(withOpenList && { onOpenList }),
         onOpenRecord,
       }),
   });
@@ -321,6 +325,16 @@ describe("ImportStep result", () => {
     );
   });
 
+  it("hides Go to list when the app does not handle it", () => {
+    mount(
+      ImportStep,
+      { logs: [successLog(1, "TD-1")] },
+      { withOpenList: false }
+    );
+    expect(text()).toContain("Successfully imported TD-1");
+    expect(text()).not.toContain("Go to list");
+  });
+
   it("Go to list and a record name emit the events", () => {
     const { onOpenList, onOpenRecord } = mount(ImportStep, {
       logs: [successLog(1, "TD-1")],
@@ -421,7 +435,7 @@ describe("ImportStatus", () => {
 });
 
 describe("DataImportWizard with the Import step", () => {
-  function mountWizard(state: FakeState) {
+  function mountWizard(state: FakeState, { withOpenList = true } = {}) {
     const fake = fakeDataImport(state);
     const wizardFake = {
       ...fake,
@@ -443,7 +457,7 @@ describe("DataImportWizard with the Import step", () => {
       render: () =>
         h(DataImportWizard, {
           dataImport: wizardFake as unknown as UseDataImport,
-          onOpenList,
+          ...(withOpenList && { onOpenList }),
           onOpenRecord,
         }),
     });
@@ -460,6 +474,12 @@ describe("DataImportWizard with the Import step", () => {
     button("TD-1").click();
     expect(onOpenList).toHaveBeenCalledWith("ToDo");
     expect(onOpenRecord).toHaveBeenCalledWith("ToDo", "TD-1");
+  });
+
+  it("hides Go to list when the app passes no open-list handler", () => {
+    mountWizard({ logs: [successLog(1, "TD-1")] }, { withOpenList: false });
+    expect(text()).toContain("Successfully imported 2 out of 3 records.");
+    expect(text()).not.toContain("Go to list");
   });
 
   it("hides the status line on the Import step while running", () => {

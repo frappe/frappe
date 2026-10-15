@@ -35,8 +35,10 @@ const dataImport = useDataImport(name, { doctype: "CRM Lead" });
   page stays mounted while `name` goes back to `null` for another new import.
 - Change `name` to open another import. Watch it to keep your URL in step after
   the first save.
-- There is no router inside. `@open-list` and `@open-record` ask the app to open
-  the list or a record; ignore them if the app has no such page.
+- There is no router inside. `@open-record` asks the app to open a record;
+  ignore it if the app has no such page.
+- `@open-list` is optional. When set, a finished import offers "Go to list";
+  open the app's list of that document type.
 - `@open-imports` comes from Config's "Review pending imports": show the app's
   list of Data Import records, filtered to that document type and `Pending`.
 - `@new-import` is optional. When set, a finished import offers "Start new

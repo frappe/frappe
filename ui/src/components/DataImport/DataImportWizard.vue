@@ -155,17 +155,16 @@ import {
 
 const props = defineProps<{
 	dataImport: UseDataImport;
-	// A prop, not an emit, so "Start new import" only shows when the app handles it.
+	// Props, not emits, so "Go to list" and "Start new import" only show when the app handles them.
+	onOpenList?: (doctype: string) => void;
 	onNewImport?: (doctype: string) => void;
 }>();
 
 const emit = defineEmits<{
-	openList: [doctype: string];
 	openRecord: [doctype: string, name: string];
 	openImports: [doctype: string];
 }>();
 
-const openList = (doctype: string) => emit("openList", doctype);
 const openRecord = (doctype: string, name: string) => emit("openRecord", doctype, name);
 const openImports = (doctype: string) => emit("openImports", doctype);
 // Only the Config and Import steps link back to the app.
@@ -173,12 +172,12 @@ const stepEvents: Record<
 	number,
 	Partial<{
 		openImports: typeof openImports;
-		openList: typeof openList;
+		openList: (doctype: string) => void;
 		openRecord: typeof openRecord;
 	}>
 > = {
 	[CONFIG]: { openImports },
-	[IMPORT]: { openList, openRecord },
+	[IMPORT]: { openRecord, ...(props.onOpenList && { openList: props.onOpenList }) },
 };
 
 const {
