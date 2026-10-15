@@ -668,6 +668,198 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
+<<<<<<< HEAD
+=======
+	def test_password_change_by_another_user_notifies_target(self):
+		from frappe.utils import get_fullname
+
+		user = frappe.get_doc(
+			doctype="User",
+			email="pwd_change_notify@example.com",
+			first_name="Pwd Target",
+			send_welcome_email=0,
+			roles=[],
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		with self.set_user("Administrator"):
+			target = frappe.get_doc("User", user.name)
+			target.new_password = "Str0ng!Pwd#2026"
+			target.save()
+
+		subject = frappe.db.get_value("Notification Log", {"for_user": user.name, "type": "Alert"}, "subject")
+		self.assertEqual(
+			subject, frappe._("Your password was changed by {0}").format(get_fullname("Administrator"))
+		)
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		other = get_db(
+			socket=frappe.db.socket,
+			host=frappe.db.host,
+			user=frappe.db.user,
+			password=frappe.db.password,
+			port=frappe.db.port,
+			cur_db_name=frappe.db.cur_db_name,
+		)
+		self.addCleanup(other.close)
+
+		with test_user(roles=[], commit=True) as user:
+			key = self.reset_password(user)
+			hashed_key = sha256_hash(key)
+			# the second connection only sees committed rows
+			frappe.db.commit()  # nosemgrep
+
+			set_request(path="/random")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+
+			def competing_request(*args):
+				# a second request with the same key can neither take it nor wait for it
+				with patch.object(frappe.local, "db", other):
+					with self.assertRaises(frappe.QueryTimeoutError):
+						frappe.db.get_value(
+							"User", {"reset_password_key": hashed_key}, for_update=True, wait=False
+						)
+					frappe.db.rollback()
+
+				# clearing sessions commits mid-request; the key must already be gone by then
+				frappe.db.commit()  # nosemgrep
+				with patch.object(frappe.local, "db", other):
+					self.assertFalse(frappe.db.exists("User", {"reset_password_key": hashed_key}))
+					frappe.db.rollback()
+				return False
+
+			with patch.object(user_module, "is_password_reused", side_effect=competing_request) as probe:
+				self.assertEqual(update_password("Eastern_43A1W", key=key), "me")
+			probe.assert_called_once()
+			frappe.set_user("Administrator")
+
+	@contextmanager
+	def outgoing_email_account(self):
+		exists = frappe.db.exists
+
+		def exists_with_outgoing_account(doctype, *args, **kwargs):
+			if doctype == "Email Account":
+				return "Test Outgoing Account"
+			return exists(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "exists", side_effect=exists_with_outgoing_account):
+			yield
+
+	def test_second_save_of_new_user_does_not_send_password_changed_alert(self):
+		"""Social login inserts the user through add_roles and saves it again in the same request."""
+		frappe.set_user("Guest")
+		user: User = frappe.new_doc(
+			"User",
+			email="oauth-signup@example.com",
+			first_name="OAuth",
+			user_type="Website User",
+			new_password=frappe.generate_hash(),
+		)
+		user.flags.ignore_permissions = True
+		user.flags.no_welcome_mail = True
+		try:
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.add_roles("_Test Role")
+				user.save()
+
+			sendmail.assert_not_called()
+		finally:
+			frappe.set_user("Administrator")
+			user.delete(force=True, ignore_permissions=True)
+
+	def test_password_change_by_user_still_sends_password_changed_alert(self):
+		with test_user(roles=["_Test Role"]) as created:
+			frappe.set_user(created.name)
+			user: User = frappe.get_doc("User", created.name)
+			user.new_password = "Eastern_43A1W_changed"
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.save()
+
+			sendmail.assert_called_once()
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
+			frappe.set_user("Administrator")
+
+	def test_bulk_add_roles(self):
+		"""Roles are appended across the selection without disturbing existing ones."""
+		with (
+			test_user(roles=["_Test Role"]) as first,
+			test_user(roles=["Website Manager"]) as second,
+		):
+			bulk_add_roles([first.name, second.name], ["_Test Role 4", "_Test Role"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["_Test Role", "_Test Role 4"])
+			self.assertCountEqual(
+				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "_Test Role"]
+			)
+
+	def test_bulk_remove_roles(self):
+		"""Roles are stripped across the selection, leaving other roles intact."""
+		with (
+			test_user(roles=["_Test Role", "Website Manager"]) as first,
+			test_user(roles=["_Test Role"]) as second,
+		):
+			bulk_remove_roles([first.name, second.name], ["_Test Role", "_Test Role 4"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+			self.assertCountEqual([d.role for d in second.roles], [])
+
+			bulk_remove_roles([], ["Website Manager"])
+			bulk_remove_roles([first.name], [])
+
+			first.reload()
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+
+	def test_bulk_role_endpoints_enqueue_large_batches(self):
+		"""Over 20 users, each endpoint defers to its own background job."""
+		users = [f"bulk{i}@example.com" for i in range(21)]
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_add_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._assign_roles")
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_remove_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._unassign_roles")
+
+	def test_bulk_role_args_are_validated(self):
+		"""Parsed arguments must be lists of plain strings, within the batch cap."""
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([{"name": ["!=", ""]}], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles(["someone@example.com"], [{"role": ["!=", ""]}])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_remove_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+	def test_bulk_role_endpoints_require_write_permission(self):
+		with test_user(roles=["_Test Role 4"]) as actor, test_user(roles=["_Test Role 4"]) as target:
+			with self.set_user(actor.name):
+				with self.assertRaises(frappe.PermissionError):
+					bulk_add_roles([target.name], ["Website Manager"])
+
+				with self.assertRaises(frappe.PermissionError):
+					bulk_remove_roles([target.name], ["_Test Role 4"])
+
+>>>>>>> 5993b16 (feat(user): notify a user when someone else changes their password)
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
