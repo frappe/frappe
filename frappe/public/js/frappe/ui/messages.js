@@ -117,11 +117,7 @@ frappe.prompt = function (fields, callback, title, primary_label) {
 	});
 	d.set_primary_action(
 		primary_label || __("Submit", null, "Primary action of prompt dialog"),
-		function () {
-			var values = d.get_values();
-			if (!values) {
-				return;
-			}
+		function (values) {
 			d.hide();
 			callback(values);
 		}
