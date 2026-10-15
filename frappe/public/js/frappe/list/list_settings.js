@@ -33,8 +33,23 @@ export default class ListSettings {
 			fields: list_view_settings.fields,
 		});
 		me.dialog.set_values(me.settings);
+<<<<<<< HEAD
 		me.dialog.set_primary_action(__("Save"), () => {
 			let values = me.dialog.get_values();
+=======
+
+		// Collapse the unlabelled section that wraps fields_html — it adds
+		// an empty section-head + default section-body margins with no content.
+		const $fields_section = me.dialog.$wrapper.find('[data-fieldname="section_break_evqq"]');
+		$fields_section.find(".section-head").hide();
+		$fields_section.find("> .section-body").css({ "margin-top": 0, "padding-top": 0 });
+
+		me.dialog.set_primary_action(__("Save"), (values) => {
+			me.update_fields();
+			// update_fields() populates me.fields synchronously but set_value() is async,
+			// so bypass the dialog model and use me.fields directly.
+			values.fields = JSON.stringify(me.fields);
+>>>>>>> fb33b43 (fix: use values passed to dialog primary actions (#44527))
 
 			frappe.show_alert({
 				message: __("Saving"),
@@ -244,8 +259,8 @@ export default class ListSettings {
 				},
 			],
 		});
-		d.set_primary_action(__("Save"), () => {
-			let values = d.get_values().fields;
+		d.set_primary_action(__("Save"), (dialog_values) => {
+			let values = dialog_values.fields;
 
 			me.set_removed_fields(
 				me.get_removed_listview_fields(

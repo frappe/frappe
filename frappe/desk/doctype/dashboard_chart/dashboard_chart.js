@@ -380,21 +380,18 @@ frappe.ui.form.on("Dashboard Chart", {
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Filters"),
 				fields: fields.filter((f) => !is_dynamic_filter(f)),
-				primary_action: function () {
-					let values = this.get_values();
-					if (values) {
-						this.hide();
-						if (is_document_type) {
-							let filters = frm.filter_group.get_filters();
-							frm.set_value("filters_json", JSON.stringify(filters));
-						} else {
-							frm.set_value("filters_json", JSON.stringify(values));
-						}
+				primary_action: function (values) {
+					this.hide();
+					if (is_document_type) {
+						let filters = frm.filter_group.get_filters();
+						frm.set_value("filters_json", JSON.stringify(filters));
+					} else {
+						frm.set_value("filters_json", JSON.stringify(values));
+					}
 
-						frm.trigger("show_filters");
-						if (frm.doc.chart_type == "Report") {
-							frm.trigger("set_chart_report_filters");
-						}
+					frm.trigger("show_filters");
+					if (frm.doc.chart_type == "Report") {
+						frm.trigger("set_chart_report_filters");
 					}
 				},
 				primary_action_label: __("Set"),
@@ -466,8 +463,7 @@ frappe.ui.form.on("Dashboard Chart", {
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Dynamic Filters"),
 				fields: fields,
-				primary_action: () => {
-					let values = dialog.get_values();
+				primary_action: (values) => {
 					dialog.hide();
 					let dynamic_filters = [];
 					for (let key of Object.keys(values)) {

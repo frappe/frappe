@@ -524,11 +524,7 @@ frappe.PermissionEngine = class PermissionEngine {
 					d.get_input("role").prop("disabled", true);
 				}
 				d.set_value("permlevel", "0");
-				d.set_primary_action(__("Add"), () => {
-					let args = d.get_values();
-					if (!args) {
-						return;
-					}
+				d.set_primary_action(__("Add"), (args) => {
 					frappe.call({
 						module: "frappe.core",
 						page: "permission_manager",
