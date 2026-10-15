@@ -210,7 +210,7 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 			with flag_off():
 				fresh = frappe.get_doc("File", file.name)
 				fresh.is_private = 1
-				fresh.handle_is_private_changed()
+				fresh.save()
 				self.delete_later("File Blob", fresh.blob)
 
 				self.assertNotEqual(fresh.blob, old_blob)

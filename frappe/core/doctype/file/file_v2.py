@@ -101,7 +101,9 @@ class FileV2(File):
 		self.update_attached_to_field(old_file_url)
 
 	def handle_is_private_changed(self):
-		if self.is_remote_file:
+		# enforce_blob_privacy repoints a blob-backed row in before_save,
+		# after its blob link is authorized
+		if self.is_remote_file or self.get("blob"):
 			return
 
 		# validate() also lands here for docs rebuilt from a dict, where
@@ -279,6 +281,8 @@ def create_file_from_blob(
 		}
 	)
 	file.flags.from_existing_blob = True
+	# the caller supplied these bytes, like a fresh upload
+	file.flags.stored_blob = blob.name
 	for hook in frappe.get_hooks("after_file_upload"):
 		file = frappe.call(hook, doc=file)
 	file.insert(ignore_permissions=ignore_permissions)

@@ -149,10 +149,8 @@ class FileV1(File):
 			return
 
 		if self.get("blob"):
-			# compat shim: blobs are immutable; repoint instead of moving bytes
-			from .file_v2 import FileV2
-
-			return FileV2.handle_is_private_changed(self)
+			# compat shim: enforce_blob_privacy repoints the blob in before_save
+			return
 
 		from pathlib import Path
 

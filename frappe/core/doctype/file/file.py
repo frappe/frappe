@@ -173,6 +173,8 @@ class File(Document):
 		self.set_file_type()
 		self.validate_file_extension()
 		self.validate_private_file_access()
+		# before ingestion, which may read the linked blob's bytes
+		self.validate_blob_reference()
 
 		if self.is_folder:
 			if self.file_url:
@@ -305,7 +307,19 @@ class File(Document):
 
 	def before_save(self):
 		# here, not in validate(): a File subclass may skip super().validate()
-		if not self.is_new() and self.has_value_changed("blob"):
+		if not self.is_new():
+			self.validate_blob_reference()
+
+	def validate_blob_reference(self):
+		"""Reject a ``blob`` link this row cannot hold.
+
+		Runs before anything reads the linked blob's bytes: ingestion on
+		insert, and the privacy flip in ``before_save``."""
+		if not self.get("blob"):
+			return
+		if self.file_url and self.file_url.startswith(URL_PREFIXES):
+			frappe.throw(_("A remote file cannot link a stored blob"))
+		if self.is_new() or self.has_value_changed("blob"):
 			self.validate_blob_access()
 
 	def validate_blob_access(self):
@@ -835,6 +849,7 @@ class File(Document):
 			raise TypeError("Folders cannot be optimized")
 
 		self.validate_file_url_matches_record()
+		self.validate_blob_access()
 
 		content_type = mimetypes.guess_type(self.file_name)[0]
 		is_local_image = content_type.startswith("image/") and self.file_size > 0

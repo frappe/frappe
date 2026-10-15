@@ -358,6 +358,43 @@ class TestFileStorageIntegration(IntegrationTestCase):
 				self.assertRaises(frappe.PermissionError, own.save)
 			self.assertNotEqual(frappe.db.get_value("File", own.name, "blob"), secret.blob)
 
+	def test_new_row_cannot_link_a_private_blob_the_user_cannot_open(self):
+		# the blob link grants /private/files/<blob>/, so a new row is checked
+		# before ingestion reads the linked bytes, under either storage version
+		for flag in (1, 0):
+			with self.subTest(storage_v2=flag), storage_flag(flag), fake(), file_permissions_enforced():
+				with storage_flag(1):
+					secret = self.make_file(unique_png(), "secret.png", is_private=1)
+				rows = (
+					({"file_url": "/private/files/stolen.png"}, frappe.PermissionError),
+					({}, frappe.PermissionError),
+					({"file_url": "https://example.com/a.txt"}, frappe.ValidationError),
+				)
+				with self.set_user("test@example.com"):
+					for fields, error in rows:
+						row = frappe.get_doc(
+							doctype="File", file_name="stolen.png", is_private=1, blob=secret.blob, **fields
+						)
+						self.assertRaises(error, row.insert)
+				self.assertEqual(frappe.db.count("File", {"blob": secret.blob}), 1)
+
+	def test_privacy_flip_cannot_read_an_unauthorized_blob(self):
+		with storage_flag(), fake(), file_permissions_enforced():
+			secret = self.make_file(unique_png(), "secret.png", is_private=1)
+			with self.set_user("test@example.com"):
+				own = self.make_file(unique_png(), "own.png", is_private=0)
+				own_blob = own.blob
+				own.blob = secret.blob
+				own.is_private = 1
+				self.assertRaises(frappe.PermissionError, own.save)
+
+				# optimize_file reads the blob a client-supplied doc names
+				own.reload()
+				own.blob = secret.blob
+				self.assertRaises(frappe.PermissionError, own.optimize_file)
+			self.assertEqual(frappe.db.get_value("File", own.name, "blob"), own_blob)
+			self.assertEqual(frappe.db.count("File", {"blob": secret.blob}), 1)
+
 	def test_optimize_repoints_the_attach_field(self):
 		from PIL import Image
 
