@@ -85,8 +85,8 @@
 						v-if="showNext"
 						:label="t('Next')"
 						icon-right="lucide-arrow-right"
-						:loading="previewLoading"
-						:loading-text="t('Loading preview...')"
+						:loading="saving || previewLoading"
+						:loading-text="saving ? t('Saving...') : t('Loading preview...')"
 						@click="goTo(current + 1)"
 					/>
 					<Button
@@ -294,9 +294,12 @@ async function goTo(target: number) {
 		current.value = CONFIG;
 		return;
 	}
-	if (!(await saveIfDirty())) return;
-	// The preview step shows its own loading state, so open it before the fetch.
+	// Map columns shows a skeleton while the file is saved and read, so open it first.
 	if (from === CONFIG && target === PREVIEW) current.value = PREVIEW;
+	if (!(await saveIfDirty())) {
+		current.value = from;
+		return;
+	}
 
 	if (hasImportFile.value && !previewReady.value) {
 		await props.dataImport.fetchPreview();

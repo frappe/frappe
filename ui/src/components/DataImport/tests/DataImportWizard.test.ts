@@ -311,6 +311,45 @@ describe("DataImportWizard footer", () => {
     expect(buttons()).toEqual(["Back", "Loading preview..."]);
   });
 
+  it("Next on Config opens Map columns with a skeleton while it saves", async () => {
+    const { dataImport, isDirty } = render(savedDoc());
+    click("Back");
+    await settle();
+    let finishSave = () => {};
+    dataImport.save.mockImplementationOnce(async () => {
+      dataImport.saving.value = true;
+      await new Promise<void>((resolve) => (finishSave = resolve));
+      dataImport.saving.value = false;
+      return dataImport.doc.value;
+    });
+    dataImport.previewReady.value = false;
+    isDirty.value = true;
+    await nextTick();
+    click("Next");
+    await settle();
+    // the new step comes in once the old one has faded out
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(stepLabel()).toBe("Map columns");
+    expect(
+      host!.querySelector("[role='status'][aria-busy='true']")
+    ).not.toBeNull();
+    expect(buttons()).toEqual(["Back", "Saving..."]);
+    finishSave();
+    await settle();
+  });
+
+  it("Next on Config goes back to Config when the save fails", async () => {
+    const { dataImport, isDirty } = render(savedDoc());
+    click("Back");
+    await settle();
+    dataImport.save.mockRejectedValueOnce(new Error("nope"));
+    isDirty.value = true;
+    await nextTick();
+    click("Next");
+    await settle();
+    expect(stepLabel()).toBe("Config");
+  });
+
   it("Import while running: Cancel Import", () => {
     render(savedDoc({ status: "In Progress" }));
     expect(buttons()).toEqual(["Back", "Cancel Import"]);
