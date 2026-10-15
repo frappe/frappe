@@ -1,17 +1,27 @@
 <template>
-	<div v-if="headline.length || running" class="flex flex-col gap-3 px-5 pb-4">
-		<Alert v-if="headline.length" data-slot="import-status" theme="blue" :title="headline[0]">
-			<template v-if="headline.length > 1" #description>
-				<div class="flex flex-col gap-1">
-					<div v-for="line in headline.slice(1)" :key="line">{{ line }}</div>
-				</div>
-			</template>
-		</Alert>
-		<div v-if="running" class="flex flex-col gap-2">
-			<Progress size="md" :value="percent" :label="t('Import Progress')" />
-			<p class="text-sm text-ink-gray-6">{{ message }}</p>
+	<Transition
+		enter-active-class="duration-200 ease-out motion-reduce:duration-0"
+		enter-from-class="opacity-0"
+	>
+		<div v-if="headline.length || running" class="flex flex-col gap-3 px-5 pb-4">
+			<Alert
+				v-if="headline.length"
+				data-slot="import-status"
+				theme="blue"
+				:title="headline[0]"
+			>
+				<template v-if="headline.length > 1" #description>
+					<div class="flex flex-col gap-1">
+						<div v-for="line in headline.slice(1)" :key="line">{{ line }}</div>
+					</div>
+				</template>
+			</Alert>
+			<div v-if="running" class="flex flex-col gap-2">
+				<Progress size="md" :value="percent" :label="t('Import Progress')" />
+				<p class="text-sm text-ink-gray-6">{{ message }}</p>
+			</div>
 		</div>
-	</div>
+	</Transition>
 </template>
 
 <script setup lang="ts">
