@@ -375,6 +375,12 @@ class FileV1(File):
 			self.flags.original_content = self.get_content()
 
 	def _store_content(self, ignore_existing_file_check=False, overwrite=False):
+		if self.get("blob"):
+			from .file_v2 import FileV2
+
+			# compat shim: blobs are immutable; new content gets a new blob
+			return FileV2._store_content(self, ignore_existing_file_check, overwrite)
+
 		file_exists = False
 		duplicate_file = None
 

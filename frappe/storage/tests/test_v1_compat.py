@@ -221,6 +221,30 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 				# blobs are immutable; the old one is left for garbage collection
 				self.assertTrue(frappe.db.exists("File Blob", old_blob))
 
+	def test_content_update_writes_a_new_blob(self):
+		# optimize_file and other in-place updates must not rewrite a shared blob
+		content = unique_png()
+		with fake() as store:
+			file = self.blob_backed_file(content, label="update")
+			sibling = self.blob_backed_file(content, label="sibling")
+			self.assertEqual(sibling.blob, file.blob)
+
+			with flag_off():
+				fresh = frappe.get_doc("File", file.name)
+				new_content = unique_png()
+				fresh.save_file(content=new_content, overwrite=True)
+				self.delete_later("File Blob", fresh.blob)
+
+			def stored(blob_name):
+				blob = frappe.get_doc("File Blob", blob_name)
+				with store.read(blob.key, is_private=bool(blob.is_private)) as stream:
+					return stream.read()
+
+			self.assertNotEqual(fresh.blob, file.blob)
+			self.assertTrue(fresh.file_url.startswith(f"/private/files/{fresh.blob}/"))
+			self.assertEqual(stored(fresh.blob), new_content)
+			self.assertEqual(stored(sibling.blob), content)
+
 	def test_before_save_reasserts_blob_privacy(self):
 		# a File subclass may override validate() without calling super(),
 		# so handle_is_private_changed never runs; before_save is the backstop
