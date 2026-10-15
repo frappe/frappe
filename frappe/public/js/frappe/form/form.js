@@ -1681,6 +1681,11 @@ frappe.ui.form.Form = class FrappeForm {
 		delete this.opendocs[old];
 		this.opendocs[name] = true;
 
+		if (this.active_tab_map?.[old]) {
+			this.active_tab_map[name] = this.active_tab_map[old];
+			delete this.active_tab_map[old];
+		}
+
 		if (this.meta.in_dialog || !this.in_form) {
 			return;
 		}
