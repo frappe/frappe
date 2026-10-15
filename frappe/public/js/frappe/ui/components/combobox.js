@@ -51,6 +51,7 @@ frappe.provide("frappe.ui");
  * @property {boolean} [open_on_focus=false] With `value_input`: focus opens the panel.
  * @property {boolean} [arrow_keys_open=true] Arrow keys open the closed trigger.
  * @property {Array<{icon: string, title: string, href?: string, css_class?: string, onclick?: function, shortcut?: "ctrl+enter"}>} [actions] Extra trigger buttons (`action_els`).
+ * @property {Element|JQuery} [trigger] Open the panel from this element (a button of the host's) instead of a field of its own. It shows no value, clear button or chevron, and keeps no value: every pick reaches on_change.
  * @property {function} [before_open] Called with the instance before the panel is built; return false to keep it closed.
  * @property {function} [on_change] Called with (value, option).
  * @property {function} [on_open]
@@ -219,6 +220,10 @@ frappe.ui.Combobox = class Combobox {
 	// ---- trigger ----
 
 	make_trigger() {
+		if (this.opts.trigger) {
+			this.adopt_trigger();
+			return;
+		}
 		this.trigger_el = document.createElement("div");
 		this.trigger_el.className =
 			"es-combobox w-full flex items-center gap-2 ps-2 pe-1.5 cursor-pointer text-ink-gray-8";
@@ -338,18 +343,7 @@ frappe.ui.Combobox = class Combobox {
 			if (this.disabled || e.isComposing || e.keyCode === 229) return;
 			if (this.run_shortcut(e)) return;
 			if (this.is_open) {
-				// field has focus while open: send arrow keys to the panel
-				if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
-					e.preventDefault();
-					(this.input || this.panel).focus({ preventScroll: true });
-					if (e.key !== "Enter") this.step(e.key === "ArrowDown" ? 1 : -1);
-				} else if (e.key === "Escape") {
-					e.preventDefault();
-					e.stopPropagation();
-					this.close("escape");
-				} else if (e.key === "Tab") {
-					this.close("tab");
-				}
+				this.handle_open_trigger_key(e);
 				return;
 			}
 			const arrow = e.key === "ArrowDown" || e.key === "ArrowUp";
@@ -383,6 +377,65 @@ frappe.ui.Combobox = class Combobox {
 		t.addEventListener("pointerdown", this.onpointerdown);
 		t.addEventListener("click", this.onclick);
 		t.addEventListener("keydown", this.onaltarrow, true);
+		t.addEventListener("keydown", this.onkeydown);
+	}
+
+	// the trigger has focus while the panel is open: arrows go to the panel, Escape and Tab close it
+	handle_open_trigger_key(e) {
+		if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
+			e.preventDefault();
+			(this.input || this.panel).focus({ preventScroll: true });
+			if (e.key !== "Enter") this.step(e.key === "ArrowDown" ? 1 : -1);
+		} else if (e.key === "Escape") {
+			e.preventDefault();
+			e.stopPropagation();
+			this.close("escape");
+		} else if (e.key === "Tab") {
+			this.close("tab");
+		}
+	}
+
+	// the host's own button opens the panel; there is no field, so nothing shows a value
+	adopt_trigger() {
+		const t = (this.trigger_el = $(this.opts.trigger)[0]);
+		this.$trigger = $(t);
+		t.setAttribute("aria-haspopup", "listbox");
+		t.setAttribute("aria-expanded", "false");
+		this.action_els = [];
+		this.set_disabled(!!this.opts.disabled);
+
+		this.last_pointerdown = 0;
+		this.onpointerdown = () => (this.last_pointerdown = Date.now());
+		this.onclick = (e) => {
+			e.preventDefault();
+			if (this.disabled) return;
+			if (this.is_open) this.close("owner");
+			else
+				this.open({
+					motion:
+						Date.now() - this.last_pointerdown < CLICK_AFTER_PRESS_MS
+							? "animated"
+							: "instant",
+				});
+		};
+		this.onkeydown = (e) => {
+			if (this.disabled || e.isComposing || e.keyCode === 229) return;
+			if (this.is_open) {
+				this.handle_open_trigger_key(e);
+				return;
+			}
+			// Enter and Space click the button; arrows and typing open it as on a field
+			const arrow = e.key === "ArrowDown" || e.key === "ArrowUp";
+			if (arrow && this.opts.arrow_keys_open !== false) {
+				e.preventDefault();
+				this.open({ motion: "instant" });
+			} else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+				e.preventDefault();
+				this.open({ motion: "instant", query: e.key });
+			}
+		};
+		t.addEventListener("pointerdown", this.onpointerdown);
+		t.addEventListener("click", this.onclick);
 		t.addEventListener("keydown", this.onkeydown);
 	}
 
@@ -435,12 +488,19 @@ frappe.ui.Combobox = class Combobox {
 
 	// callers may also disable the value input itself (prepared reports, Data Import)
 	get disabled() {
-		return this.is_disabled || !!(this.input_el && this.input_el.disabled);
+		if (this.is_disabled) return true;
+		if (this.opts.trigger) return !!this.trigger_el.disabled;
+		return !!(this.input_el && this.input_el.disabled);
 	}
 
 	set_disabled(disabled) {
 		this.is_disabled = !!disabled;
 		const t = this.trigger_el;
+		if (this.opts.trigger) {
+			// the host's button keeps its own disabled look and tab order
+			if (this.is_disabled) this.close("disabled");
+			return;
+		}
 		if (this.is_disabled) {
 			t.setAttribute("aria-disabled", "true");
 			t.setAttribute("data-disabled", "");
@@ -469,6 +529,8 @@ frappe.ui.Combobox = class Combobox {
 	}
 
 	set_display() {
+		// a host's button shows no value
+		if (!this.value_el) return;
 		const option = this.selected;
 		const text = option ? option.label : this.value == null ? null : String(this.value);
 		if (this.input_el) {
@@ -1368,6 +1430,12 @@ frappe.ui.Combobox = class Combobox {
 	}
 
 	select(option) {
+		if (this.opts.trigger) {
+			// a host's button keeps no value: every pick is a change
+			this.close("select");
+			this.opts.on_change && this.opts.on_change(option.value, option);
+			return;
+		}
 		// after a clear any pick is a change
 		const changed = option.value !== this.value || this.pending_clear;
 		this.pending_clear = false;

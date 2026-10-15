@@ -69,6 +69,11 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		Combobox: {
 			helper: "frappe.ui.combobox",
 			stacked: true,
+			// each example gets a button of its own to open from
+			make: (opts) =>
+				frappe.ui.combobox(
+					opts.__trigger ? { ...opts, trigger: frappe.ui.button(opts.__trigger) } : opts
+				),
 			groups: [
 				{
 					title: __("Basic"),
@@ -300,6 +305,36 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 										);
 									}, 600)
 								),
+						},
+					],
+				},
+				{
+					title: __("On a button of your own"),
+					items: [
+						{
+							__code: 'new frappe.ui.Combobox({\n  trigger: add_tag_button,  // opens the panel; the button keeps no value\n  search_placeholder: "Add a tag",\n  options: (query) => fetch_tags(query),\n  footer: [{\n    type: "custom",\n    icon: "plus",\n    label: ({ query }) => `Create tag "${query}"`,\n    condition: ({ query }) => Boolean(query.trim()),\n    onclick: ({ query }) => add_tag(query),\n  }],\n  on_change: (tag) => add_tag(tag),\n})',
+							__trigger: {
+								label: __("Add tag"),
+								icon: "plus",
+								size: "sm",
+								variant: "outline",
+							},
+							search_placeholder: __("Add a tag"),
+							options: ["Urgent", "Follow up", "Key account", "Respond in 24h"],
+							footer: [
+								{
+									type: "custom",
+									icon: "plus",
+									label: ({ query }) => __('Create tag "{0}"', [query.trim()]),
+									condition: ({ query }) => Boolean(query.trim()),
+									onclick: ({ query }) =>
+										frappe.ui.toast({
+											message: __("Created {0}", [query.trim()]),
+										}),
+								},
+							],
+							on_change: (tag) =>
+								frappe.ui.toast({ message: __("Added {0}", [tag]) }),
 						},
 					],
 				},
@@ -2657,6 +2692,28 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								},
 							],
 						},
+					],
+				},
+			],
+		},
+		Tag: {
+			helper: "frappe.ui.tag",
+			html: (opts) => frappe.ui.tag.html(opts),
+			groups: [
+				{
+					title: __("Sizes"),
+					items: [
+						{ label: "Respond in 24h", size: "sm" },
+						{ label: "Respond in 24h" },
+						{ label: "Respond in 24h", size: "lg" },
+					],
+				},
+				{
+					title: __("Removable (the ✕ is a button; bind to .es-tag__remove)"),
+					items: [
+						{ label: "Respond in 24h", size: "sm", removable: true },
+						{ label: "Respond in 24h", removable: true },
+						{ label: "Respond in 24h", size: "lg", removable: true },
 					],
 				},
 			],

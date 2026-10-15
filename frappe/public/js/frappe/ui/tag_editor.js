@@ -7,6 +7,7 @@ frappe.ui.TagEditor = class TagEditor {
 		- user_tags
 		- doctype
 		- docname
+		- picker: add tags from a combobox instead of the inline input
 		*/
 		$.extend(this, opts);
 
@@ -38,6 +39,13 @@ frappe.ui.TagEditor = class TagEditor {
 		this.tags = new frappe.ui.Tags({
 			parent: this.wrapper,
 			placeholder: frappe.utils.icon("plus", "sm"),
+			get_options:
+				this.picker &&
+				((txt) =>
+					frappe.xcall("frappe.desk.doctype.tag.tag.get_tags", {
+						doctype: this.frm.doctype,
+						txt,
+					})),
 			onTagAdd: (tag) => {
 				if (me.initialized && !me.refreshing) {
 					return frappe.call({
@@ -65,7 +73,7 @@ frappe.ui.TagEditor = class TagEditor {
 				}
 			},
 		});
-		this.setup_awesomplete();
+		if (!this.picker) this.setup_awesomplete();
 		this.setup_complete = true;
 	}
 	setup_awesomplete() {
