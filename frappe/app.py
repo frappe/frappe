@@ -248,7 +248,7 @@ def init_request(request):
 		frappe.local.form_dict = frappe._dict(args)
 		# Keep query handling consistent with make_form_dict without reading the body.
 		frappe.local.form_dict.pop("_", None)
-	elif request.path.startswith("/api/method/upload_file"):
+	elif canonical_path.startswith("/api/method/upload_file"):
 		from frappe.core.api.file import get_max_file_size
 
 		request.max_content_length = get_max_file_size()

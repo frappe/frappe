@@ -260,3 +260,13 @@ class TestStreamingRequestPaths(FrappeAPITestCase):
 		self.assertEqual(streamed.status_code, 200)
 		self.assertEqual(streamed.json["message"]["body"], "123456789")
 		self.assertEqual(buffered.status_code, 413)
+
+	def test_upload_file_size_cap_applies_on_every_api_mount(self):
+		for path in ("/api/method/upload_file", "/api/v1/method/upload_file", "/api/v2/method/upload_file"):
+			with self.subTest(path=path), patch("frappe.core.api.file.get_max_file_size", return_value=8):
+				response: TestResponse = make_request(
+					target=self.TEST_CLIENT.post,
+					args=(path,),
+					kwargs={"data": {"filedata": "x" * 64, "filename": "big.txt"}},
+				)
+				self.assertEqual(response.status_code, 413, response.get_data(as_text=True)[:200])
