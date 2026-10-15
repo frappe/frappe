@@ -943,7 +943,11 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function rewindLastUserMessage() {
-		const last = [...state.conversation.entries].reverse().find((e) => e.type === "user_message")
+		// a message steered into a run has no rewind point, so the run's own message stands in
+		const steered = state.conversation.steeredSeqs
+		const last = [...state.conversation.entries]
+			.reverse()
+			.find((e) => e.type === "user_message" && !steered.includes(e.seq))
 		if (!last) return null
 		return rewindToMessage(last)
 	}
