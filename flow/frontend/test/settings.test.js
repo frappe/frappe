@@ -197,6 +197,27 @@ for (const typeName of ["link", "multilink"]) {
 	});
 }
 
+test("a read-only multilink still opens, showing only its picks and nothing to change", async (t) => {
+	transport.answers["frappe.desk.search.search_link"] = () => [
+		{ value: "tool-1", label: "Tool One" },
+		{ value: "tool-2", label: "Tool Two" },
+	];
+	const el = mount(t, FieldControl, {
+		field: { name: "tools", type: "multilink", label: "Tools", link: "Flow Tool" },
+		doc: { doctype: "Flow Agent", tools: ["selected", "tool-1"] },
+		disabled: true,
+	});
+	await until(() => el.textContent.includes("Tool One"));
+	const control = el.querySelector("[data-control=Tools]").__vueParentComponent;
+	assert.equal(control.attrs.disabled, undefined);
+	assert.deepEqual(control.props.options, [
+		{ value: "selected", label: "selected", disabled: true },
+		{ value: "tool-1", label: "Tool One", disabled: true },
+	]);
+	// an empty footer in place of Clear All / Select All
+	assert.ok(control.slots.footer);
+});
+
 test("a provider is picked from the list, and a saved one outside it still shows", (t) => {
 	const field = SPECS.providers.fields.find((f) => f.name === "provider");
 	const labels = (el) => [...el.querySelectorAll("button")].map((b) => b.textContent);
