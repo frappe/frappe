@@ -92,22 +92,25 @@
 		@update:model-value="(value) => (doc[field.name] = value ?? '')"
 	/>
 
+	<!-- read-only, it still opens to show what is picked, with nothing to change -->
 	<FormControl
 		v-else-if="field.type === 'multilink'"
 		type="multiselect"
 		variant="outline"
 		:label="field.label"
 		:description="field.description"
-		:options="options"
+		:options="disabled ? picked : options"
 		v-model:query="linkQuery"
 		:filterable="false"
+		:hide-search="disabled"
 		:loading="linksLoading"
 		:error="linksError"
 		:model-value="doc[field.name] ?? []"
-		:disabled="disabled"
 		placeholder="Select…"
 		@update:model-value="(value) => (doc[field.name] = value ?? [])"
-	/>
+	>
+		<template v-if="disabled" #footer />
+	</FormControl>
 
 	<FormControl
 		v-else-if="field.type === 'select'"
@@ -248,6 +251,13 @@ const options = computed(() => {
 			.map((name) => ({ value: name, label: name })),
 	];
 });
+// a read-only multi-link lists only its picks, each disabled
+const picked = computed(() =>
+	(props.doc[props.field.name] ?? []).map((name) => ({
+		...options.value.find((option) => option.value === name),
+		disabled: true,
+	}))
+);
 watch(
 	[() => props.field.link, debouncedLinkQuery],
 	async ([doctype, query], _, onCleanup) => {
