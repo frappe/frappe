@@ -5,6 +5,7 @@
 
 import json
 import re
+from collections import deque
 from functools import lru_cache
 from typing import Any
 
@@ -602,6 +603,11 @@ def _reorder_by_visible_names(ret, fields, doctype, visible_names):
 	`visible_names` are dropped. If the primary key column can't be located in
 	`fields`, `ret` is returned unchanged (server-order fallback).
 
+	A child-table column makes several rows share one primary key, so rows are
+	grouped per name and consumed in order: each occurrence of a name in
+	`visible_names` takes that name's next unused row, instead of collapsing the
+	group to a single row.
+
 	Only the primary doctype's `name` column is a valid match.
 	Using linked doctype's `name` as the reorder key
 	would silently rebuild the export against the wrong identifier."""
@@ -615,8 +621,17 @@ def _reorder_by_visible_names(ret, fields, doctype, visible_names):
 			break
 	if name_idx is None:
 		return ret
-	ret_by_name = {row[name_idx]: row for row in ret}
-	return [ret_by_name[n] for n in visible_names if n in ret_by_name]
+
+	rows_by_name = {}
+	for row in ret:
+		rows_by_name.setdefault(row[name_idx], deque()).append(row)
+
+	reordered = []
+	for name in visible_names:
+		group = rows_by_name.get(name)
+		if group:
+			reordered.append(group.popleft())
+	return reordered
 
 
 def append_totals_row(data):
