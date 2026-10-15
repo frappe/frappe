@@ -14,11 +14,7 @@
 		<Skeleton v-for="i in 3" :key="i" class="h-9 w-full rounded" />
 	</div>
 
-	<div v-else-if="!hasIssues" class="flex flex-col gap-4">
-		<div class="flex min-w-0 flex-col gap-0.5">
-			<h2 class="text-base-semibold text-ink-gray-8">{{ t("No issues to fix") }}</h2>
-			<p class="text-sm text-ink-gray-6">{{ emptyDescription }}</p>
-		</div>
+	<div v-else class="flex w-full flex-col gap-4">
 		<StatCards v-if="hasImportFile" :stats="stats" :label="t('Fix issues summary')">
 			<template #label="{ stat }">
 				<SkippedColumns
@@ -38,266 +34,275 @@
 				}}</span>
 			</template>
 		</StatCards>
-	</div>
-
-	<div v-else class="flex w-full flex-col divide-y divide-outline-gray-2 text-base">
-		<section v-if="rowErrors.length" class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
-			<h2 class="text-base-semibold text-ink-gray-8">{{ t("Row errors") }}</h2>
-			<div data-slot="scroll" class="flex max-h-72 flex-col gap-3 overflow-y-auto">
-				<div
-					v-for="{ row, lines } in rowErrors"
-					:key="row"
-					class="flex flex-col gap-1"
-					:data-row="row"
-				>
-					<div class="flex items-center justify-between gap-3">
-						<HoverCard :hover-delay="250" :leave-delay="150">
-							<template #trigger>
-								<button
-									type="button"
-									class="text-base-semibold text-ink-gray-9 underline underline-offset-2"
-								>
-									{{ t("Row {0}", [row]) }}
-								</button>
-							</template>
-							<div class="max-w-[min(90vw,56rem)] overflow-x-auto p-2">
-								<table v-if="previewRow(row)" class="border-collapse text-sm">
-									<thead>
-										<tr>
-											<th
-												v-for="(label, i) in previewHeaders"
-												:key="i"
-												class="whitespace-nowrap border border-outline-gray-1 bg-surface-gray-2 px-2.5 py-1.5 text-left font-semibold text-ink-gray-9"
-											>
-												{{ label }}
-											</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr>
-											<td
-												v-for="(_, i) in previewHeaders"
-												:key="i"
-												:title="cellText(previewRow(row)![i])"
-												class="whitespace-nowrap border border-outline-gray-1 px-2.5 py-1.5 text-left"
-											>
-												{{ cellText(previewRow(row)![i]) }}
-											</td>
-										</tr>
-									</tbody>
-								</table>
-								<div v-else class="text-sm text-ink-gray-6">
-									{{ t("No preview data for this row") }}
+		<div v-if="!hasIssues" class="flex min-w-0 flex-col gap-0.5">
+			<h2 class="text-base-semibold text-ink-gray-8">{{ t("No issues to fix") }}</h2>
+			<p class="text-sm text-ink-gray-6">{{ emptyDescription }}</p>
+		</div>
+		<div v-else class="flex w-full flex-col divide-y divide-outline-gray-2 text-base">
+			<section v-if="rowErrors.length" class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
+				<h2 class="text-base-semibold text-ink-gray-8">{{ t("Row errors") }}</h2>
+				<div data-slot="scroll" class="flex max-h-72 flex-col gap-3 overflow-y-auto">
+					<div
+						v-for="{ row, lines } in rowErrors"
+						:key="row"
+						class="flex flex-col gap-1"
+						:data-row="row"
+					>
+						<div class="flex items-center justify-between gap-3">
+							<HoverCard :hover-delay="250" :leave-delay="150">
+								<template #trigger>
+									<button
+										type="button"
+										class="text-base-semibold text-ink-gray-9 underline underline-offset-2"
+									>
+										{{ t("Row {0}", [row]) }}
+									</button>
+								</template>
+								<div class="max-w-[min(90vw,56rem)] overflow-x-auto p-2">
+									<table v-if="previewRow(row)" class="border-collapse text-sm">
+										<thead>
+											<tr>
+												<th
+													v-for="(label, i) in previewHeaders"
+													:key="i"
+													class="whitespace-nowrap border border-outline-gray-1 bg-surface-gray-2 px-2.5 py-1.5 text-left font-semibold text-ink-gray-9"
+												>
+													{{ label }}
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td
+													v-for="(_, i) in previewHeaders"
+													:key="i"
+													:title="cellText(previewRow(row)![i])"
+													class="whitespace-nowrap border border-outline-gray-1 px-2.5 py-1.5 text-left"
+												>
+													{{ cellText(previewRow(row)![i]) }}
+												</td>
+											</tr>
+										</tbody>
+									</table>
+									<div v-else class="text-sm text-ink-gray-6">
+										{{ t("No preview data for this row") }}
+									</div>
 								</div>
-							</div>
-						</HoverCard>
+							</HoverCard>
+							<Button
+								size="xs"
+								variant="outline"
+								class="shrink-0"
+								:label="skippedRows.has(row) ? t('Undo Skip') : t('Skip Row')"
+								:disabled="running"
+								@click="toggleSkipRows([row])"
+							/>
+						</div>
+						<ul
+							class="flex flex-col gap-1 leading-normal text-ink-gray-8"
+							:class="{ 'opacity-60': skippedRows.has(row) }"
+						>
+							<li v-for="(line, i) in lines" :key="i" v-html="line" />
+						</ul>
+					</div>
+				</div>
+			</section>
+
+			<section
+				v-if="showMappingSection"
+				class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0"
+			>
+				<h2 class="text-base-semibold text-ink-gray-8">{{ t("Mapping warnings") }}</h2>
+				<div
+					v-if="mappingColumnsHtml"
+					class="leading-normal text-ink-gray-7"
+					v-html="
+						t(
+							'Some columns have invalid values. Map them to valid values below, or skip the rows that have them. Affected columns: {0}.',
+							[mappingColumnsHtml]
+						)
+					"
+				/>
+				<div
+					v-if="doc.value_mappings.length"
+					data-slot="scroll"
+					class="max-h-96 overflow-auto rounded-5 border border-outline-gray-1"
+				>
+					<table class="w-full min-w-[44rem] table-fixed border-collapse text-base">
+						<thead
+							class="sticky top-0 z-[1] bg-surface-gray-2 text-left text-ink-gray-7"
+						>
+							<tr>
+								<th class="w-16 whitespace-nowrap px-3 py-2 font-medium">
+									{{ t("No.") }}
+								</th>
+								<th class="w-40 whitespace-nowrap px-3 py-2 font-medium">
+									{{ t("Column") }}
+								</th>
+								<th class="whitespace-nowrap px-3 py-2 font-medium">
+									{{ t("Value in File") }}
+								</th>
+								<th class="w-28 whitespace-nowrap px-3 py-2 font-medium">
+									{{ t("No. of Rows") }}
+								</th>
+								<th class="w-64 whitespace-nowrap px-3 py-2 font-medium">
+									{{ t("Map To") }}
+								</th>
+								<th class="w-24 px-3 py-2 font-medium">
+									<div class="flex items-center justify-center gap-2">
+										<span>{{ t("Skip") }}</span>
+										<Checkbox
+											data-slot="skip-all"
+											:aria-label="t('Skip all')"
+											:modelValue="allValuesSkipped"
+											:indeterminate="!allValuesSkipped && someValuesSkipped"
+											:disabled="!skippableMappings.length"
+											@update:modelValue="toggleSkipAll"
+										/>
+									</div>
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								v-for="(mapping, index) in doc.value_mappings"
+								:key="mapping.name ?? index"
+								class="border-t border-outline-gray-1"
+								:class="
+									isValueSkipped(mapping) ? 'text-ink-gray-5' : 'text-ink-gray-8'
+								"
+							>
+								<td class="px-3 py-1.5 text-ink-gray-5">{{ index + 1 }}</td>
+								<td class="truncate px-3 py-1.5" :title="mapping.column_label">
+									{{ mapping.column_label }}
+								</td>
+								<td class="truncate px-3 py-1.5" :title="mapping.source_value">
+									{{ mapping.source_value }}
+								</td>
+								<td class="px-3 py-1.5">{{ mapping.no_of_rows }}</td>
+								<td class="px-3 py-1.5">
+									<Link
+										v-if="mapping.fieldtype === 'Link' && mapping.link_doctype"
+										data-slot="map-to-link"
+										class="w-full"
+										:class="
+											mapping.create_new &&
+											'[&_input]:placeholder:text-ink-gray-8'
+										"
+										:modelValue="mapping.target_value"
+										:doctype="mapping.link_doctype"
+										:placeholder="
+											mapping.create_new
+												? t('Create {0}', [mapping.source_value])
+												: undefined
+										"
+										:disabled="!canMap(mapping)"
+										:creatable="!!mapping.can_create"
+										@update:modelValue="(value) => mapTo(mapping, value)"
+										@create="createOnImport(mapping)"
+									>
+										<template v-if="mapping.create_new" #prefix>
+											<span
+												class="lucide-plus size-4 shrink-0 text-ink-gray-7"
+											/>
+										</template>
+										<template #item-create>
+											<span class="truncate">
+												{{ t("Create {0}", [mapping.source_value]) }}
+											</span>
+										</template>
+									</Link>
+									<Select
+										v-else-if="
+											mapping.fieldtype === 'Select' &&
+											mapping.select_options
+										"
+										class="w-full"
+										v-model="mapping.target_value"
+										:options="mapping.select_options.split('\n')"
+										:disabled="!canMap(mapping)"
+									/>
+									<TextInput
+										v-else
+										class="w-full"
+										:modelValue="mapping.target_value || ''"
+										:disabled="!canMap(mapping)"
+										@update:modelValue="
+											(value) => (mapping.target_value = String(value))
+										"
+									/>
+								</td>
+								<td class="px-3 py-1.5">
+									<div class="flex justify-center">
+										<Checkbox
+											data-slot="skip-value"
+											:aria-label="t('Skip')"
+											:modelValue="isValueSkipped(mapping)"
+											:disabled="!canSkipValue(mapping)"
+											@update:modelValue="
+												toggleSkipRows(rowNumbers(mapping))
+											"
+										/>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section
+				v-if="columnWarnings.length"
+				class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0"
+			>
+				<ul data-slot="scroll" class="flex max-h-48 flex-col gap-2 overflow-y-auto">
+					<li
+						v-for="warning in columnWarnings"
+						:key="warning.col"
+						class="flex items-baseline gap-3"
+						:data-col="warning.col"
+					>
+						<span class="w-20 shrink-0 text-sm text-ink-gray-5">
+							{{ t("Column {0}", [warning.col]) }}
+						</span>
+						<div class="min-w-0 text-ink-gray-8" v-html="warning.message" />
+					</li>
+				</ul>
+			</section>
+
+			<section
+				v-if="otherWarnings.length"
+				class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0"
+			>
+				<h2 class="text-base-semibold text-ink-gray-8">{{ t("Issues") }}</h2>
+				<div data-slot="scroll" class="flex max-h-48 flex-col gap-3 overflow-y-auto">
+					<div
+						v-for="(warning, index) in otherWarnings"
+						:key="index"
+						class="flex items-start justify-between gap-3"
+					>
+						<div
+							class="leading-normal text-ink-gray-8"
+							:class="{ 'opacity-60': duplicateSkipped(warning) }"
+							v-html="warning.message"
+						/>
 						<Button
+							v-if="isDuplicateId(warning)"
 							size="xs"
 							variant="outline"
 							class="shrink-0"
-							:label="skippedRows.has(row) ? t('Undo Skip') : t('Skip Row')"
+							:label="
+								duplicateSkipped(warning)
+									? t('Undo Skip Duplicates')
+									: t('Keep Row {0}, Skip Rest', [warning.rows[0]])
+							"
 							:disabled="running"
-							@click="toggleSkipRows([row])"
+							@click="toggleSkipRows(warning.rows.slice(1))"
 						/>
 					</div>
-					<ul
-						class="flex flex-col gap-1 leading-normal text-ink-gray-8"
-						:class="{ 'opacity-60': skippedRows.has(row) }"
-					>
-						<li v-for="(line, i) in lines" :key="i" v-html="line" />
-					</ul>
 				</div>
-			</div>
-		</section>
-
-		<section v-if="showMappingSection" class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
-			<h2 class="text-base-semibold text-ink-gray-8">{{ t("Mapping warnings") }}</h2>
-			<div
-				v-if="mappingColumnsHtml"
-				class="leading-normal text-ink-gray-7"
-				v-html="
-					t(
-						'Some columns have invalid values. Map them to valid values below, or skip the rows that have them. Affected columns: {0}.',
-						[mappingColumnsHtml]
-					)
-				"
-			/>
-			<div
-				v-if="doc.value_mappings.length"
-				data-slot="scroll"
-				class="max-h-96 overflow-auto rounded-5 border border-outline-gray-1"
-			>
-				<table class="w-full min-w-[44rem] table-fixed border-collapse text-base">
-					<thead class="sticky top-0 z-[1] bg-surface-gray-2 text-left text-ink-gray-7">
-						<tr>
-							<th class="w-16 whitespace-nowrap px-3 py-2 font-medium">
-								{{ t("No.") }}
-							</th>
-							<th class="w-40 whitespace-nowrap px-3 py-2 font-medium">
-								{{ t("Column") }}
-							</th>
-							<th class="whitespace-nowrap px-3 py-2 font-medium">
-								{{ t("Value in File") }}
-							</th>
-							<th class="w-28 whitespace-nowrap px-3 py-2 font-medium">
-								{{ t("No. of Rows") }}
-							</th>
-							<th class="w-64 whitespace-nowrap px-3 py-2 font-medium">
-								{{ t("Map To") }}
-							</th>
-							<th class="w-24 px-3 py-2 font-medium">
-								<div class="flex items-center justify-center gap-2">
-									<span>{{ t("Skip") }}</span>
-									<Checkbox
-										data-slot="skip-all"
-										:aria-label="t('Skip all')"
-										:modelValue="allValuesSkipped"
-										:indeterminate="!allValuesSkipped && someValuesSkipped"
-										:disabled="!skippableMappings.length"
-										@update:modelValue="toggleSkipAll"
-									/>
-								</div>
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr
-							v-for="(mapping, index) in doc.value_mappings"
-							:key="mapping.name ?? index"
-							class="border-t border-outline-gray-1"
-							:class="
-								isValueSkipped(mapping) ? 'text-ink-gray-5' : 'text-ink-gray-8'
-							"
-						>
-							<td class="px-3 py-1.5 text-ink-gray-5">{{ index + 1 }}</td>
-							<td class="truncate px-3 py-1.5" :title="mapping.column_label">
-								{{ mapping.column_label }}
-							</td>
-							<td class="truncate px-3 py-1.5" :title="mapping.source_value">
-								{{ mapping.source_value }}
-							</td>
-							<td class="px-3 py-1.5">{{ mapping.no_of_rows }}</td>
-							<td class="px-3 py-1.5">
-								<Link
-									v-if="mapping.fieldtype === 'Link' && mapping.link_doctype"
-									data-slot="map-to-link"
-									class="w-full"
-									:class="
-										mapping.create_new &&
-										'[&_input]:placeholder:text-ink-gray-8'
-									"
-									:modelValue="mapping.target_value"
-									:doctype="mapping.link_doctype"
-									:placeholder="
-										mapping.create_new
-											? t('Create {0}', [mapping.source_value])
-											: undefined
-									"
-									:disabled="!canMap(mapping)"
-									:creatable="!!mapping.can_create"
-									@update:modelValue="(value) => mapTo(mapping, value)"
-									@create="createOnImport(mapping)"
-								>
-									<template v-if="mapping.create_new" #prefix>
-										<span
-											class="lucide-plus size-4 shrink-0 text-ink-gray-7"
-										/>
-									</template>
-									<template #item-create>
-										<span class="truncate">
-											{{ t("Create {0}", [mapping.source_value]) }}
-										</span>
-									</template>
-								</Link>
-								<Select
-									v-else-if="
-										mapping.fieldtype === 'Select' && mapping.select_options
-									"
-									class="w-full"
-									v-model="mapping.target_value"
-									:options="mapping.select_options.split('\n')"
-									:disabled="!canMap(mapping)"
-								/>
-								<TextInput
-									v-else
-									class="w-full"
-									:modelValue="mapping.target_value || ''"
-									:disabled="!canMap(mapping)"
-									@update:modelValue="
-										(value) => (mapping.target_value = String(value))
-									"
-								/>
-							</td>
-							<td class="px-3 py-1.5">
-								<div class="flex justify-center">
-									<Checkbox
-										data-slot="skip-value"
-										:aria-label="t('Skip')"
-										:modelValue="isValueSkipped(mapping)"
-										:disabled="!canSkipValue(mapping)"
-										@update:modelValue="toggleSkipRows(rowNumbers(mapping))"
-									/>
-								</div>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-		</section>
-
-		<section
-			v-if="columnWarnings.length || skippedColumns.length"
-			class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0"
-		>
-			<ul
-				v-if="columnWarnings.length"
-				data-slot="scroll"
-				class="flex max-h-48 flex-col gap-2 overflow-y-auto"
-			>
-				<li
-					v-for="warning in columnWarnings"
-					:key="warning.col"
-					class="flex items-baseline gap-3"
-					:data-col="warning.col"
-				>
-					<span class="w-20 shrink-0 text-sm text-ink-gray-5">
-						{{ t("Column {0}", [warning.col]) }}
-					</span>
-					<div class="min-w-0 text-ink-gray-8" v-html="warning.message" />
-				</li>
-			</ul>
-			<SkippedColumns v-if="skippedColumns.length" :columns="skippedColumns" />
-		</section>
-
-		<section v-if="otherWarnings.length" class="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
-			<h2 class="text-base-semibold text-ink-gray-8">{{ t("Issues") }}</h2>
-			<div data-slot="scroll" class="flex max-h-48 flex-col gap-3 overflow-y-auto">
-				<div
-					v-for="(warning, index) in otherWarnings"
-					:key="index"
-					class="flex items-start justify-between gap-3"
-				>
-					<div
-						class="leading-normal text-ink-gray-8"
-						:class="{ 'opacity-60': duplicateSkipped(warning) }"
-						v-html="warning.message"
-					/>
-					<Button
-						v-if="isDuplicateId(warning)"
-						size="xs"
-						variant="outline"
-						class="shrink-0"
-						:label="
-							duplicateSkipped(warning)
-								? t('Undo Skip Duplicates')
-								: t('Keep Row {0}, Skip Rest', [warning.rows[0]])
-						"
-						:disabled="running"
-						@click="toggleSkipRows(warning.rows.slice(1))"
-					/>
-				</div>
-			</div>
-		</section>
+			</section>
+		</div>
 	</div>
 </template>
 
