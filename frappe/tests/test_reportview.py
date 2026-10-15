@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import _reorder_by_visible_names, export_query, extract_fieldnames, get
 from frappe.tests import IntegrationTestCase
 
