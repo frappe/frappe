@@ -783,11 +783,29 @@
 	font-size: var(--text-base);
 	color: var(--ink-gray-8);
 	white-space: nowrap;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.grid-selection-summary,
+.grid-selection-actions {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+	min-width: 0;
+}
+
+.grid-selection-summary {
+	grid-column: 1;
+	gap: calc(var(--spacing) * 2);
+}
+
+.grid-selection-actions {
+	grid-column: 3;
+	justify-content: flex-end;
 }
 
 .grid-selection-label {
 	min-width: 0;
-	margin-right: auto;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
@@ -795,6 +813,7 @@
 @include media-breakpoint-down(sm) {
 	.grid-selection-bar {
 		gap: calc(var(--spacing) * 1);
+		grid-template-columns: minmax(0, 1fr) auto auto;
 	}
 
 	.grid-selection-check,
@@ -808,7 +827,6 @@
 	display: flex;
 	align-items: center;
 	gap: calc(var(--spacing) * 1);
-	margin-inline: auto;
 }
 
 .grid-selection-page {
@@ -816,8 +834,8 @@
 }
 
 .grid-has-selection {
-	> .grid-selection-bar {
-		display: flex;
+	> .grid-selection-scope > .grid-selection-bar {
+		display: grid;
 	}
 
 	> .grid-footer {

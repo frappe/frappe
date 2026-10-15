@@ -48,16 +48,10 @@ export default class GridSelectionBar {
 	}
 
 	delete_rows() {
-		const { grid } = this;
-		const count = grid.get_selected_children().length;
-
-		if (grid.frm && count === grid.data.length) {
-			grid.delete_all_rows();
-		} else {
-			frappe.confirm(__("Are you sure you want to delete {0} rows?", [count]), () =>
-				grid.delete_rows()
-			);
-		}
+		const count = this.grid.get_selected_children().length;
+		frappe.confirm(__("Are you sure you want to delete {0} rows?", [count]), () =>
+			this.grid.delete_rows()
+		);
 	}
 
 	get_actions() {
@@ -120,28 +114,32 @@ export default class GridSelectionBar {
 
 		this.$wrapper = $(`<div class="grid-selection-bar"></div>`)
 			.append(
-				$(`<input type="checkbox" class="grid-selection-check" checked disabled>`),
-				this.$label,
+				$(`<div class="grid-selection-summary"></div>`).append(
+					$(`<input type="checkbox" class="grid-selection-check" checked disabled>`),
+					this.$label
+				),
 				this.make_pager(),
-				frappe.ui.dropdown({
-					button: { icon: "ellipsis", variant: "ghost", title: __("Actions") },
-					options: () => this.get_actions(),
-					side: "top",
-					align: "start",
-				}),
-				frappe.ui.divider({
-					orientation: "vertical",
-					flex_item: true,
-					css_class: "grid-selection-divider",
-				}),
-				this.$select_all,
-				this.make_button({
-					icon: "x",
-					title: __("Clear selection"),
-					onclick: () => this.select_all(false),
-				})
+				$(`<div class="grid-selection-actions"></div>`).append(
+					frappe.ui.dropdown({
+						button: { icon: "ellipsis", variant: "ghost", title: __("Actions") },
+						options: () => this.get_actions(),
+						side: "top",
+						align: "start",
+					}),
+					frappe.ui.divider({
+						orientation: "vertical",
+						flex_item: true,
+						css_class: "grid-selection-divider",
+					}),
+					this.$select_all,
+					this.make_button({
+						icon: "x",
+						title: __("Clear selection"),
+						onclick: () => this.select_all(false),
+					})
+				)
 			)
-			.insertAfter(this.grid.wrapper.find(".grid-footer"));
+			.appendTo(this.grid.wrapper.find(".grid-selection-scope"));
 	}
 
 	make_pager() {
