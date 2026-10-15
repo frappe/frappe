@@ -109,12 +109,26 @@ def signed_url_for_blob(
 		return native
 
 	# a "/" in the name would split the URL path
-	filename = key_filename(filename)
-	expires = int(time.time()) + expires_in
-	sig = make_signature(blob.name, filename, expires)
+	return signed_path(
+		blob.name,
+		key_filename(filename),
+		int(time.time()) + expires_in,
+		is_private=bool(blob.is_private),
+		as_attachment=as_attachment,
+	)
+
+
+def signed_path(
+	blob_name: str, filename: str, expires: int, *, is_private: bool, as_attachment: bool = False
+) -> str:
+	"""Site-relative blob URL signed until ``expires`` (epoch seconds).
+
+	``filename`` is the unquoted download name; it is signed as given and
+	quoted in the path."""
+	signature = make_signature(blob_name, filename, expires)
 	download = "&download=1" if as_attachment else ""
-	prefix = PRIVATE_PREFIX if blob.is_private else PUBLIC_PREFIX
-	return f"{prefix}{blob.name}/{quote(filename, safe='')}?e={expires}&s={sig}{download}"
+	prefix = PRIVATE_PREFIX if is_private else PUBLIC_PREFIX
+	return f"{prefix}{blob_name}/{quote(filename, safe='')}?e={expires}&s={signature}{download}"
 
 
 def signed_url(file: "File", expires_in: int = 3600) -> str:

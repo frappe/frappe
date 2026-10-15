@@ -18,6 +18,7 @@ import time
 from urllib.parse import parse_qs, unquote
 
 import frappe
+from frappe.storage.url import BLOB_NAME_PATTERN, PRIVATE_PREFIX, signed_path
 from frappe.utils import get_url
 
 DEFAULT_EMAIL_URL_TTL = 30 * 24 * 60 * 60  # 30 days, in seconds
@@ -26,7 +27,7 @@ DEFAULT_EMAIL_URL_TTL = 30 * 24 * 60 * 60  # 30 days, in seconds
 BLOB_URL_PATTERN = re.compile(
 	r"""(?P<attr>href|src)\s*=\s*(?P<q>["'])"""
 	r"""(?P<prefix>https?://[^"'\s]*?)?"""
-	r"""/private/files/(?P<blob>[0-9a-z]{10})/(?P<filename>[^/"'?#\s]+)"""
+	rf"""{re.escape(PRIVATE_PREFIX)}(?P<blob>{BLOB_NAME_PATTERN.pattern})/(?P<filename>[^/"'?#\s]+)"""
 	r"""(?P<query>\?[^"'\s]*)?"""
 	r"""(?P=q)""",
 	re.IGNORECASE,
@@ -35,7 +36,7 @@ BLOB_URL_PATTERN = re.compile(
 # bare private blob URLs in a plain-text body
 TEXT_BLOB_URL_PATTERN = re.compile(
 	r"""(?P<prefix>https?://[^\s"'<>]*?)?"""
-	r"""/private/files/(?P<blob>[0-9a-z]{10})/(?P<filename>[^/\s"'?#<>]+)"""
+	rf"""{re.escape(PRIVATE_PREFIX)}(?P<blob>{BLOB_NAME_PATTERN.pattern})/(?P<filename>[^/\s"'?#<>]+)"""
 	r"""(?P<query>\?[^\s"'<>]*)?""",
 	re.IGNORECASE,
 )
@@ -115,8 +116,6 @@ class _Rewriter:
 
 	def _signed_url(self, match: re.Match) -> str | None:
 		"""Signed absolute URL for a matched blob URL, or None to keep it."""
-		from frappe.storage.url import make_signature
-
 		query = match.group("query") or ""
 		if is_signed_query(query):
 			return None
@@ -130,11 +129,10 @@ class _Rewriter:
 		if not self.can_sign(blob_name):
 			return None
 
-		filename = match.group("filename")
-		expires = int(time.time()) + self.ttl
 		# serve.py verifies against the URL-decoded filename
-		signature = make_signature(blob_name, unquote(filename), expires)
-		return f"{self.site_url}/private/files/{blob_name}/{filename}?e={expires}&s={signature}"
+		filename = unquote(match.group("filename"))
+		expires = int(time.time()) + self.ttl
+		return self.site_url + signed_path(blob_name, filename, expires, is_private=True)
 
 	def can_sign(self, blob_name: str) -> bool:
 		"""True for an existing private blob the session user can download."""
