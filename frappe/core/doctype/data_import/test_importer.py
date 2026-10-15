@@ -625,6 +625,157 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(data_import.value_mappings[0].fieldname, "status")
 		self.assertEqual(data_import.value_mappings[0].source_value, "Opn")
 
+	def test_create_field_only_for_records_named_by_one_field(self):
+		from frappe.core.doctype.data_import.value_mapping import get_create_field
+
+		self.assertEqual(get_create_field("Gender"), "gender")
+		self.assertIsNone(get_create_field("User"))
+
+	def test_create_new_mapping_counts_as_mapped(self):
+		from frappe.core.doctype.data_import.value_mapping import build_lookup_from_mappings
+
+		row = {
+			"reference_doctype": "Contact",
+			"fieldname": "gender",
+			"source_value": " Zorblax ",
+			"target_value": "",
+			"create_new": 1,
+			"can_create": 1,
+		}
+		self.assertEqual(build_lookup_from_mappings([row]), {"Contact.gender": {"Zorblax": "Zorblax"}})
+		self.assertEqual(build_lookup_from_mappings([{**row, "can_create": 0}]), {})
+
+	def test_create_field_needs_create_permission(self):
+		from frappe.core.doctype.data_import.value_mapping import get_create_field
+
+		with self.set_user(self._user_without_gender_create()):
+			self.assertIsNone(get_create_field("Gender"))
+		with self.set_user("test@example.com"):
+			self.assertEqual(get_create_field("Gender"), "gender")
+
+	def test_import_creates_missing_link_records_marked_create_new(self):
+		gender = "Data Import Test Gender"
+		data_import = self._contact_import_creating_gender(gender, "Zed Create Test")
+
+		data_import.start_import()
+		contact = frappe.db.get_value("Contact", {"first_name": "Zed Create Test"}, ["name", "gender"])
+		if contact:
+			self.addCleanup(_delete_doctype_records, "Contact", [contact[0]])
+		self.assertEqual(data_import.reload().status, "Success")
+		self.assertTrue(frappe.db.exists("Gender", gender))
+		self.assertEqual(contact[1], gender)
+
+	def test_import_does_not_create_link_records_for_skipped_rows(self):
+		gender = "Data Import Test Gender Skipped"
+		data_import = self._contact_import_creating_gender(gender, "Zed Skipped Test")
+		data_import.append("skipped_rows", {"row_number": 2, "row_data": "[]"})
+		data_import.save()
+		frappe.db.commit()  # nosemgrep
+
+		data_import.start_import()
+		self.assertFalse(frappe.db.exists("Gender", gender))
+		self.assertFalse(frappe.db.exists("Contact", {"first_name": "Zed Skipped Test"}))
+
+	def test_user_with_create_permission_creates_missing_link_records(self):
+		gender = "Data Import Test Gender Allowed"
+		data_import = self._contact_import_creating_gender(gender, "Zed Allowed Test")
+
+		with self.set_user("test@example.com"):
+			data_import.start_import()
+		contact = frappe.db.get_value("Contact", {"first_name": "Zed Allowed Test"}, ["name", "gender"])
+		if contact:
+			self.addCleanup(_delete_doctype_records, "Contact", [contact[0]])
+		self.assertEqual(data_import.reload().status, "Success")
+		self.assertEqual(frappe.db.get_value("Gender", gender, "owner"), "test@example.com")
+		self.assertEqual(contact[1], gender)
+
+	def test_user_without_create_permission_gets_the_link_error(self):
+		gender = "Data Import Test Gender Denied"
+		data_import = self._contact_import_creating_gender(gender, "Zed Denied Test")
+
+		with self.set_user(self._user_without_gender_create()):
+			data_import.start_import()
+		self.assertEqual(data_import.reload().status, "Error")
+		self.assertFalse(frappe.db.exists("Gender", gender))
+		self.assertFalse(frappe.db.exists("Contact", {"first_name": "Zed Denied Test"}))
+		log = frappe.get_all(
+			"Data Import Log",
+			fields=["success", "messages"],
+			filters={"data_import": data_import.name},
+		)
+		self.assertEqual(len(log), 1)
+		self.assertFalse(log[0].success)
+		messages = [frappe.parse_json(m)["message"] for m in frappe.parse_json(log[0].messages)]
+		self.assertIn(f"Could not find Gender: {gender}", messages)
+
+	def _contact_import_creating_gender(self, gender, first_name):
+		"""A saved Contact import whose missing Gender is marked to be created when the import runs."""
+		self.addCleanup(_delete_doctype_records, "Gender", [gender])
+		import_file = frappe.get_doc(
+			doctype="File",
+			content=f"First Name,Gender\n{first_name},{gender}\n",
+			file_name="data_import_create_gender.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+		_register_file_cleanup(self, import_file)
+
+		data_import = self.get_importer("Contact", import_file)
+		mapping = data_import.value_mappings[0]
+		self.assertEqual((mapping.fieldname, mapping.can_create, mapping.create_new), ("gender", 1, 0))
+
+		mapping.create_new = 1
+		data_import.save()
+		self.assertEqual(data_import.value_mappings[0].create_new, 1)
+		frappe.db.commit()  # nosemgrep
+		return data_import
+
+	def _user_without_gender_create(self):
+		"""Can create Contacts but not Genders."""
+		email = "data-import-sales-user@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "Data Import Sales User",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Sales User"}],
+				}
+			).insert(ignore_permissions=True)
+			frappe.db.commit()  # nosemgrep
+			self.addCleanup(_delete_doctype_records, "User", [email])
+		return email
+
+	def _contact_import_with_late_bad_row(self):
+		rows = [f"Late Row Test {i},Open" for i in range(12)] + ["Late Row Zed,Open,extra"]
+		import_file = frappe.get_doc(
+			doctype="File",
+			content="First Name,Status\n" + "\n".join(rows) + "\n",
+			file_name="data_import_late_bad_row.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+		_register_file_cleanup(self, import_file)
+		return self.get_importer("Contact", import_file)
+
+	def test_preview_carries_warned_rows_past_the_preview(self):
+		data_import = self._contact_import_with_late_bad_row()
+		out = Importer("Contact", data_import=data_import).get_data_for_import_preview()
+
+		self.assertTrue(out.max_rows_exceeded)
+		self.assertIn(14, [w.get("row") for w in out.warnings])
+		self.assertEqual([row[0] for row in out.warning_rows], [14])
+		self.assertEqual(out.warning_rows[0][1], "Late Row Zed")
+
+	def test_skipped_rows_export_reads_cells_from_the_file(self):
+		data_import = self._contact_import_with_late_bad_row()
+		data_import.append("skipped_rows", {"row_number": 14, "row_data": "[]"})
+		data_import.save()
+
+		Importer("Contact", data_import=data_import).export_skipped_rows()
+		self.assertIn("Late Row Zed", frappe.response["result"])
+
 	def test_source_value_strip_applied_during_import_resolve(self):
 		from frappe.core.doctype.data_import.value_mapping import (
 			build_lookup_from_mappings,
