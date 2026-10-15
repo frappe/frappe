@@ -1109,7 +1109,9 @@ class Document(BaseDocument):
 			self.check_docstatus_transition(0)
 			return
 
-		if get_datetime(previous.modified) != get_datetime(self._original_modified):
+		previous_modified = get_datetime(previous.modified) if previous.modified else None
+		original_modified = get_datetime(self._original_modified) if self._original_modified else None
+		if previous_modified != original_modified:
 			frappe.msgprint(
 				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
