@@ -5,6 +5,22 @@
 		:title="t('Could not load import file')"
 		:description="previewError"
 	/>
+	<div
+		v-else-if="!previewReady && (saving || previewLoading)"
+		class="flex w-full flex-col gap-2"
+		role="status"
+		aria-busy="true"
+		:aria-label="t('Loading import preview...')"
+	>
+		<div class="flex items-center justify-between gap-2">
+			<Skeleton class="h-[30px] w-32 rounded" />
+			<Skeleton class="h-4 w-[170px] rounded" />
+		</div>
+		<div class="flex flex-col gap-2 overflow-hidden rounded border border-outline-gray-2 p-2">
+			<Skeleton class="h-7 w-full rounded" />
+			<Skeleton v-for="i in 8" :key="i" class="h-8 w-full rounded" />
+		</div>
+	</div>
 	<Tabs v-else-if="preview?.tree_preview" v-model="previewTab" :tabs="previewTabs">
 		<template #tab-panel="{ tab }">
 			<TreePreview
@@ -22,22 +38,6 @@
 		</template>
 	</Tabs>
 	<PreviewTable v-else-if="preview" :dataImport="dataImport" />
-	<div
-		v-else-if="previewLoading"
-		class="flex w-full flex-col gap-2"
-		role="status"
-		aria-busy="true"
-		:aria-label="t('Loading import preview...')"
-	>
-		<div class="flex items-center justify-between gap-2">
-			<Skeleton class="h-[30px] w-32 rounded" />
-			<Skeleton class="h-4 w-[170px] rounded" />
-		</div>
-		<div class="flex flex-col gap-2 overflow-hidden rounded border border-outline-gray-2 p-2">
-			<Skeleton class="h-7 w-full rounded" />
-			<Skeleton v-for="i in 8" :key="i" class="h-8 w-full rounded" />
-		</div>
-	</div>
 </template>
 
 <script setup lang="ts">
@@ -49,7 +49,7 @@ import PreviewTable from "./PreviewTable.vue";
 import TreePreview from "./TreePreview.vue";
 
 const props = defineProps<{ dataImport: UseDataImport }>();
-const { preview, previewLoading, previewError } = props.dataImport;
+const { preview, previewReady, previewLoading, previewError, saving } = props.dataImport;
 
 const previewTab = ref("tree");
 const previewTabs = computed(() => [
