@@ -152,6 +152,32 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(daemon.calls[-1], ("entries", self.session.name, 8, "all"))
 		self.assertEqual(self.session.last_synced_seq, 16)
 
+	def test_a_rewind_drops_the_messages_after_its_target_and_the_next_turn_follows_on(self):
+		self.placeholder()
+		daemon = self.sync(FakeDaemon(turn(1, "r1")))
+		second = self.placeholder(message="again")
+		daemon.rows += turn(9, "r2", message="again")
+		self.sync(daemon)
+		third = self.placeholder(message="instead")
+		daemon.rows += [row(17, "rewind", target_seq=8), *turn(18, "r3", message="instead")]
+		self.sync(daemon)
+		second.reload()
+		third.reload()
+		self.assertEqual(
+			[(m.seq, m.content) for m in self.session.messages],
+			[
+				(2, "hi"),
+				(3, "Reading."),
+				(5, "[]"),
+				(6, "done"),
+				(19, "instead"),
+				(20, "Reading."),
+				(22, "[]"),
+				(23, "done"),
+			],
+		)
+		self.assertEqual((second.status, third.daemon_run_id, third.status), ("Completed", "r3", "Completed"))
+
 	def test_a_pause_keeps_the_batch_and_a_resume_continues_the_same_run(self):
 		run = self.placeholder(message="delete it")
 		daemon = self.sync(FakeDaemon(pause(1, "r1")))
@@ -424,6 +450,16 @@ class TestSync(IntegrationTestCase):
 		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_COMPLETE) as on_complete:
 			self.session.cancel_pending()
 		self.assertEqual(on_complete.call_args.args[0].status, "Failed")
+
+	def test_a_rewind_is_refused_while_a_run_waits_for_approval(self):
+		run = self.placeholder(message="delete it")
+		daemon = self.sync(FakeDaemon(pause(1, "r1")))
+		with patch.object(DaemonClient, "for_site", return_value=daemon):
+			with self.assertRaisesRegex(frappe.ValidationError, "Approve or deny"):
+				self.session.rewind(0)
+		run.reload()
+		self.assertEqual(run.status, "Paused")
+		self.assertNotIn("rewind", [c[0] for c in daemon.calls])
 
 	def test_a_steered_message_gives_a_run_its_first_on_complete_only(self):
 		run = self.placeholder()

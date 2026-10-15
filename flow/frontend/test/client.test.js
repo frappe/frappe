@@ -311,6 +311,22 @@ test("a resume names the batch it answers, so a sub-agent's can be told apart", 
 	]);
 });
 
+test("a rewind names the entry to branch from, and a chat the user can only view says so", async () => {
+	const transport = fakeTransport({
+		"flow.api.rewind": { status: "rewound" },
+		"flow.api.session": ({ session: name }) => ({
+			...session,
+			name,
+			read_only: name === "S2",
+		}),
+	});
+	const client = new FrappeClient({ boot, transport });
+	assert.deepEqual(await client.rewind("S1", 4), { status: "rewound" });
+	assert.deepEqual(transport.calls, [["flow.api.rewind", { session: "S1", target_seq: 4 }]]);
+	assert.equal((await client.session("S1")).read_only, false);
+	assert.equal((await client.session("S2")).read_only, true);
+});
+
 test("a sync that fails after a run ends is retried once, then dropped quietly", async () => {
 	const { fakeSocket } = await import("./helpers/socket.js");
 	const reported = [];

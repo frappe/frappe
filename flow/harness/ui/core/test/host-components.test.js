@@ -912,6 +912,15 @@ test("rewind controls follow the host client's capability", async (t) => {
 	}
 })
 
+test("a chat the host reports read-only offers no rewind on its messages", async (t) => {
+	const { createFlowStore } = await import("../src/store.js")
+	const UserBubble = await loadComponent("UserBubble")
+	const store = createFlowStore({ rewind() {} }, { requireCwd: false, skillsEnabled: false })
+	store.state.session = { read_only: true }
+	const { el } = mount(t, UserBubble, { entry: { type: "user_message", seq: 2, content: "hello" } }, store)
+	assert.equal(el.querySelector('button[title="Rewind to this message"]'), null)
+})
+
 test("a skill the user started keeps its blue command prefix in the bubble", async (t) => {
 	const { createFlowStore } = await import("../src/store.js")
 	const UserBubble = await loadComponent("UserBubble")

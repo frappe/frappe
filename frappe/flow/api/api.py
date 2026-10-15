@@ -186,6 +186,15 @@ def cancel_pending(session: str) -> dict[str, str]:
 
 
 @frappe.whitelist()
+def rewind(session: str, target_seq: int | str) -> dict[str, str]:
+	"""Branch the chat from entry `target_seq`; what came after it leaves the conversation."""
+	# strict, not cint: a malformed target must not read as 0, the start of the chat
+	if not str(target_seq).isdigit():
+		frappe.throw(_("Rewind target must be a whole number."), title=_("Invalid Target"))
+	return {"status": _load_session(session, "write").rewind(int(target_seq))}
+
+
+@frappe.whitelist()
 def entries(session: str, since: int | str = 0, path: str = "active") -> dict[str, Any]:
 	if path not in ("active", "all"):
 		frappe.throw(_("Path must be active or all."), title=_("Invalid Path"))

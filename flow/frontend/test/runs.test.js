@@ -164,3 +164,14 @@ test("a chat opened just as its run ended syncs it, since its stream starts past
 	page.onRows("s", rows, { replace: true });
 	assert.deepEqual(synced, ["s"]);
 });
+
+test("a run rewound off the branch never takes a turn that is not synced yet", () => {
+	// "b" ran, then the chat went back to before it and "c" started; only R3 is unsynced
+	const rows = [started(1, "a"), user(2), ended(3), started(6, "c"), user(7)];
+	const runs = [
+		{ name: "R1", daemon_run_id: "a" },
+		{ name: "R2", daemon_run_id: "b" },
+		{ name: "R3", daemon_run_id: null },
+	];
+	assert.equal(runsByUserMessage(rows, runs).get(7), runs[2]);
+});
