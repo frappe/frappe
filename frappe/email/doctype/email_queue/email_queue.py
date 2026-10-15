@@ -839,8 +839,7 @@ class QueueBuilder:
 			).name
 			for r in final_recipients
 		]
-		if not frappe.flags.in_test:
-			frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 		smtp_server_instance = None
 		for name in queue_names:
