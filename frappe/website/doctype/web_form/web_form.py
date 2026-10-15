@@ -227,6 +227,8 @@ def get_context(context):
 
 	def clear_cache(self):
 		frappe.cache.delete_key("bootinfo")
+		frappe.db.after_commit.add(lambda: frappe.cache.delete_key("bootinfo"))
+		frappe.db.after_rollback.add(lambda: frappe.cache.delete_key("bootinfo"))
 		return super().clear_cache()
 
 	def get_context(self, context):
