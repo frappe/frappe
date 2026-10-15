@@ -27,7 +27,7 @@
 						<span class="truncate">{{ step.label }}</span>
 					</span>
 					<span
-						class="block h-1 w-full rounded-7"
+						class="block h-1 w-full rounded-7 transition-colors duration-300 motion-reduce:transition-none"
 						:class="
 							index === current || step.completed
 								? 'bg-surface-gray-10'
@@ -50,12 +50,21 @@
 					:title="t('Import could not start')"
 					:description="startError"
 				/>
-				<component
-					:is="stepComponents[current]"
-					:dataImport="dataImport"
-					:showErrors="current === CONFIG ? showConfigErrors : undefined"
-					v-on="stepEvents[current] ?? {}"
-				/>
+				<Transition
+					mode="out-in"
+					enter-active-class="duration-200 ease-out motion-reduce:duration-0"
+					:enter-from-class="`opacity-0 ${forward ? 'translate-x-2' : '-translate-x-2'}`"
+					leave-active-class="duration-100 ease-in motion-reduce:duration-0"
+					:leave-to-class="`opacity-0 ${forward ? '-translate-x-2' : 'translate-x-2'}`"
+				>
+					<component
+						:is="stepComponents[current]"
+						:key="current"
+						:dataImport="dataImport"
+						:showErrors="current === CONFIG ? showConfigErrors : undefined"
+						v-on="stepEvents[current] ?? {}"
+					/>
+				</Transition>
 			</div>
 
 			<ImportStatus v-if="!(current === IMPORT && running)" :dataImport="dataImport" />
@@ -199,6 +208,11 @@ const {
 const stepComponents = [ConfigStep, PreviewStep, FixIssuesStep, ImportStep];
 
 const current = ref(CONFIG);
+// Steps slide in from the side they are on.
+const forward = ref(true);
+watch(current, (next, previous) => {
+	forward.value = next > previous;
+});
 const confirmingStop = ref(false);
 // Saving and asking the server to start; on a developer site the whole run happens in that request.
 const starting = ref(false);
