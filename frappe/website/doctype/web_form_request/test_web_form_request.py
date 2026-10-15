@@ -132,6 +132,7 @@ class TestWebFormRequest(IntegrationTestCase):
 		self.assertEqual(get_request_forms_by_doctype(), {})
 
 	def test_saving_or_deleting_web_form_clears_bootinfo(self):
+		frappe.set_user(self.user)
 		web_form = frappe.get_doc(
 			{"doctype": "Web Form", "title": "Boot Cache Form", "doc_type": "Event", "published": 1}
 		)
