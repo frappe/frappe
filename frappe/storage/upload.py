@@ -550,13 +550,8 @@ def open_session_part(part_path: str, *, write: bool = False):
 
 
 def require_session_policy(meta: dict, expected: str) -> None:
-	"""Reject a session created for the other server-owned finish policy.
-
-	Sessions from before this field was added are normal File sessions, which
-	keeps in-flight public uploads compatible across an update.
-	"""
-	policy = meta.get("session_policy", FILE_SESSION)
-	if policy != expected:
+	"""Reject a session created for the other server-owned finish policy."""
+	if meta.get("session_policy") != expected:
 		frappe.throw(_("Upload session cannot be used by this endpoint"))
 
 

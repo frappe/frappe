@@ -500,6 +500,13 @@ class TestServeUpload(IntegrationTestCase):
 			with self.assertRaises(TypeError):
 				create_upload("bypass.html", 4, restrict_mimetypes=False)
 
+	def test_session_without_a_policy_is_rejected(self):
+		from frappe.storage.upload import FILE_SESSION, require_session_policy
+
+		for expected in (FILE_SESSION, BLOB_SESSION):
+			with self.subTest(expected=expected), self.assertRaises(frappe.ValidationError):
+				require_session_policy({}, expected)
+
 	def test_cumulative_size_violation_kills_session(self):
 		with flag_on(), frappe.storage.fake():
 			upload_id = self.open_session("small.txt", 10)
