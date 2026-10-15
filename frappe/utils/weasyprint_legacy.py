@@ -31,7 +31,7 @@ def legacy_blockers(print_format, layout) -> list[str]:
 	if print_format.get("custom_format"):
 		return [_("Custom HTML format")]
 	if not print_format.get("print_format_builder_beta"):
-		return [_("Not a builder format")]
+		return [_("Not made in the Print Format Editor")]
 	blockers = []
 
 	def add(reason):

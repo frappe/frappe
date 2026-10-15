@@ -132,7 +132,7 @@ def typst_blockers(print_format, layout) -> list[str]:
 		blockers.append(_("Custom HTML format"))
 		return blockers
 	if not print_format.get("print_format_builder_beta"):
-		blockers.append(_("Not a builder format"))
+		blockers.append(_("Not made in the Print Format Editor"))
 		return blockers
 	if (print_format.get("css") or "").strip():
 		blockers.append(_("Custom CSS in the Style box"))
