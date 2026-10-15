@@ -202,7 +202,8 @@ def search_widget(
 		if not for_link_validation:
 			if meta.translated_doctype:
 				values = filter_translated(values, txt, as_dict)
-				values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+				if txt:
+					values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 				values = values[start : start + page_length]
 
 		return values
@@ -315,7 +316,8 @@ def search_widget(
 		# Sorting the values array so that relevant results always come first
 		# This will first bring elements on top in which query is a prefix of element
 		# Then it will bring the rest of the elements and sort them in lexicographical order
-		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+		if txt:
+			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
 		if meta.translated_doctype:
 			values = values[start : start + page_length]

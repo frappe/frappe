@@ -317,6 +317,44 @@ class TestSearch(IntegrationTestCase):
 		# page_length=1 leaves the python relevance_sorter no second row to reorder
 		self.assertEqual("es", search_link("Language", "", page_length=1)[0]["value"])
 
+	def test_empty_search_keeps_doctype_sort_order(self):
+		titles = ["Web Form", "Phone", "Email"]
+		role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		self.addCleanup(partial(frappe.delete_doc, "Role", role, force=True))
+		user = frappe.get_doc(
+			doctype="User",
+			email=f"sort-order-{frappe.generate_hash(length=8)}@example.com",
+			first_name="Sort Order",
+			send_welcome_email=0,
+			roles=[{"role": role}],
+		).insert()
+		self.addCleanup(partial(frappe.delete_doc, "User", user.name, force=True))
+
+		for translated_doctype in (0, 1):
+			doctype = new_doctype(
+				translated_doctype=translated_doctype,
+				autoname="field:title",
+				sort_field="sequence",
+				sort_order="ASC",
+				fields=[
+					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+					{"label": "Sequence", "fieldname": "sequence", "fieldtype": "Int"},
+				],
+				permissions=[{"role": role, "read": 1}],
+			).insert()
+			self.addCleanup(partial(frappe.delete_doc, "DocType", doctype.name, force=True))
+
+			for sequence, title in enumerate(titles, start=1):
+				frappe.get_doc({"doctype": doctype.name, "title": title, "sequence": sequence * 10}).insert()
+
+			for query in (None, "frappe.tests.test_search.paginated_query"):
+				with (
+					self.subTest(translated_doctype=translated_doctype, query=query),
+					self.set_user(user.name),
+				):
+					results = search_link(doctype.name, "", query=query, page_length=10)
+					self.assertEqual([r["value"] for r in results], titles)
+
 	def test_search_with_paren(self):
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		result = search(txt="(txt)")
