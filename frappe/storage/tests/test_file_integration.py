@@ -466,6 +466,37 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			linked.save()
 			self.assertEqual(linked.file_url, f"/private/files/{filename}")
 
+	def test_copied_row_adopts_the_blob_behind_a_relocated_v1_url(self):
+		# amend rebuilds attachments from the v1 file_url, whose disk file is gone
+		from frappe.storage import backfill
+
+		content = unique_png()
+		name, path = self.make_legacy_row(content)
+		file_url = frappe.db.get_value("File", name, "file_url")
+		with storage_flag(), fake() as store, file_permissions_enforced():
+			backfill.run(filters={"name": name})
+			blob = frappe.db.get_value("File", name, "blob")
+			self.delete_later("File Blob", blob)
+			# what relocation does: bytes move to another driver, the v1 file goes
+			store.write(f"{blob}/moved.png", io.BytesIO(content), is_private=True)
+			frappe.db.set_value("File Blob", blob, {"driver": store.name, "key": f"{blob}/moved.png"})
+			os.remove(path)
+
+			def copy():
+				return frappe.get_doc(
+					{"doctype": "File", "file_url": file_url, "file_name": "copy.png", "is_private": 1}
+				)
+
+			with self.set_user("test@example.com"):
+				self.assertRaises(frappe.PermissionError, copy().insert)
+
+			for flag in (1, 0):
+				with self.subTest(storage_v2=flag), storage_flag(flag):
+					copied = copy().insert()
+					self.delete_later("File", copied.name)
+					self.assertEqual((copied.blob, copied.file_url), (blob, file_url))
+					self.assertEqual(frappe.get_doc("File", copied.name).get_content(), content)
+
 	def test_file_manager_save_file_creates_blob(self):
 		from frappe.utils.file_manager import save_file
 

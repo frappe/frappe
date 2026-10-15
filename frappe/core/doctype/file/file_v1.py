@@ -43,13 +43,14 @@ from .utils import (
 class FileV1(File):
 	def _ingest_new_content(self):
 		if not self.get("blob") and not self.content and self.file_url:
-			# compat shim: a copied row (amend, attachment copy) made under
-			# storage v2 carries only a blob URL; relink the blob
+			# compat shim: a copied row (amend, attachment copy) of a
+			# blob-backed row carries only its URL; relink the blob
 			self.adopt_blob_from_file_url()
 
 		if self.flags.from_existing_blob:
 			# compat shim: the row points at an already stored blob
-			self.set_blob_file_url()
+			if not self.file_url:
+				self.set_blob_file_url()
 			return
 
 		if self.is_remote_file:

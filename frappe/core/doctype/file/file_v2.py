@@ -35,13 +35,14 @@ from .file_v1 import FileV1
 class FileV2(File):
 	def _ingest_new_content(self):
 		if not self.get("blob") and not self.content and self.file_url:
-			# a copied row (amend, attachment copy) carries only a blob URL;
+			# a copied row (amend, attachment copy) carries only its file_url;
 			# relink the blob instead of writing the bytes again
 			self.adopt_blob_from_file_url()
 
 		if self.flags.from_existing_blob:
 			# the row points at an already stored blob; no bytes to write
-			self.set_blob_file_url()
+			if not self.file_url:
+				self.set_blob_file_url()
 			return
 
 		if self.is_remote_file:
@@ -134,26 +135,37 @@ class FileV2(File):
 		self.set_blob_file_url(new_blob)
 
 	def adopt_blob_from_file_url(self):
-		"""Set ``blob`` from a blob URL in file_url.
+		"""Set ``blob`` from the blob behind file_url.
 
 		Rows rebuilt from a bare file_url (amend of a submittable doc,
 		attachment copies) reference an existing blob; no bytes to write.
-		A private blob is adopted only when the user can already download
-		it, so knowing a URL does not grant access to the file."""
+		The URL is a blob URL, or a v1 URL whose bytes moved into a blob,
+		which keeps its v1 URL. A private blob is adopted only when the
+		user can already download it, so knowing a URL does not grant
+		access to the file."""
 		from frappe.storage.serve import has_file_permission
-		from frappe.storage.url import parse_blob_url
+		from frappe.storage.url import PRIVATE_PREFIX, parse_blob_url
 
-		parsed = parse_blob_url(self.file_url)
-		if not parsed:
-			return
-		is_private, blob_name, _filename = parsed
-		if not frappe.db.exists("File Blob", {"name": blob_name, "is_private": cint(is_private)}):
+		if parsed := parse_blob_url(self.file_url):
+			is_private, blob_name, _filename = parsed
+		else:
+			is_private = self.file_url.startswith(PRIVATE_PREFIX)
+			blob_name = frappe.db.get_value(
+				"File",
+				{"file_url": self.file_url, "is_private": cint(is_private), "blob": ("is", "set")},
+				"blob",
+			)
+		if not blob_name or not frappe.db.exists(
+			"File Blob", {"name": blob_name, "is_private": cint(is_private)}
+		):
 			return
 		if is_private and not self.flags.ignore_permissions and not has_file_permission(blob_name):
 			frappe.throw(_("You don't have permission to access this file"), frappe.PermissionError)
 		self.blob = blob_name
 		self.is_private = cint(is_private)
 		self.flags.from_existing_blob = True
+		if parsed:
+			self.set_blob_file_url()
 
 	def set_blob_file_url(self, blob=None):
 		"""Regenerate file_url from the linked blob. Stable and unsigned."""
