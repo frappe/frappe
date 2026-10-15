@@ -788,6 +788,28 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
+	def test_password_change_by_another_user_notifies_target(self):
+		from frappe.utils import get_fullname
+
+		user = frappe.get_doc(
+			doctype="User",
+			email="pwd_change_notify@example.com",
+			first_name="Pwd Target",
+			send_welcome_email=0,
+			roles=[],
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		with self.set_user("Administrator"):
+			target = frappe.get_doc("User", user.name)
+			target.new_password = "Str0ng!Pwd#2026"
+			target.save()
+
+		subject = frappe.db.get_value("Notification Log", {"for_user": user.name, "type": "Alert"}, "subject")
+		self.assertEqual(
+			subject, frappe._("Your password was changed by {0}").format(get_fullname("Administrator"))
+		)
+
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
 		from frappe.auth import CookieManager, LoginManager
