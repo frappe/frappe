@@ -75,6 +75,18 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 		--border-color: var(--gray-800);
 	}
 
+	.modal-backdrop {
+		background-color: var(--black);
+
+		&.show {
+			opacity: 0.6;
+		}
+	}
+
+	#freeze.grid-form {
+		background-color: var(--black);
+	}
+
 	.print-format {
 		--text-color: var(--gray-900);
 		--border-color: var(--gray-100);
