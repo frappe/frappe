@@ -1097,8 +1097,8 @@ frappe.ui.form.PrintView = class {
 								options: r.message,
 							},
 						],
-						primary_action: function () {
-							localStorage.setItem("network_printer", d.get_values().printer);
+						primary_action: function (values) {
+							localStorage.setItem("network_printer", values.printer);
 							if (typeof callback == "function") {
 								callback();
 							}
@@ -1375,8 +1375,8 @@ frappe.ui.form.PrintView = class {
 						],
 					},
 				],
-				primary_action: () => {
-					let printer_mapping = dialog.get_values()["printer_mapping"];
+				primary_action: (values) => {
+					let printer_mapping = values["printer_mapping"];
 					if (printer_mapping && printer_mapping.length) {
 						let print_format_list = printer_mapping.map((a) => a.print_format);
 						let has_duplicate = print_format_list.some(
