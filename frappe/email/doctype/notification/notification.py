@@ -112,7 +112,6 @@ class Notification(Document):
 	def preview_message(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
-<<<<<<< HEAD
 			template_content = self.get_email_template_content(doc)
 			if template_content:
 				msg = template_content["message"]
@@ -121,16 +120,7 @@ class Notification(Document):
 				context.update({"alert": self, "comments": get_comments_for_context(doc)})
 				if self.is_standard:
 					self.load_standard_properties(context)
-				msg = frappe.render_template(self.message, context)
-=======
-			context = get_context(doc)
-			context.update({"alert": self, "comments": None})
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
-			if self.is_standard:
-				self.load_standard_properties(context)
-			msg = frappe.render_template(self.message, context, restrict_globals=True)
->>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
+				msg = frappe.render_template(self.message, context, restrict_globals=True)
 			if self.channel == "SMS":
 				return frappe.utils.strip_html_tags(msg)
 			return msg
@@ -457,7 +447,6 @@ def get_context(context):
 		except Exception:
 			self.log_error("Failed to send Notification")
 
-<<<<<<< HEAD
 	def get_email_template_content(self, doc):
 		"""Return {"subject", "message"} from `email_template`, or None.
 
@@ -486,7 +475,7 @@ def get_context(context):
 			if not (template and "{" in template):
 				return template
 			return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-				template, context
+				template, context, restrict_globals=True
 			)
 
 		if template_content is None:
@@ -497,12 +486,6 @@ def get_context(context):
 		else:
 			subject = _render(self.subject)
 			email_content = _render(self.message)
-=======
-	def create_system_notification(self, doc, context):
-		subject = self.subject
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context, restrict_globals=True)
->>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
 
 		attachments = self.get_attachment(doc)
 
@@ -525,10 +508,6 @@ def get_context(context):
 			"subject": subject,
 			"email_content": email_content,
 			"from_user": doc.modified_by or doc.owner,
-<<<<<<< HEAD
-=======
-			"email_content": frappe.render_template(self.message, context, restrict_globals=True),
->>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
 			"attached_file": json.dumps(attachments) if attachments else None,
 		}
 		enqueue_create_notification(users, notification_doc)
@@ -538,7 +517,6 @@ def get_context(context):
 
 		from frappe.core.doctype.communication.email import _make as make_communication
 
-<<<<<<< HEAD
 		if template_content is None:
 			template_content = self.get_email_template_content(doc)
 		if template_content:
@@ -546,13 +524,8 @@ def get_context(context):
 		else:
 			subject = self.subject
 			if "{" in subject:
-				subject = frappe.render_template(self.subject, context)
-			message = frappe.render_template(self.message, context)
-=======
-		subject = self.subject
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context, restrict_globals=True)
->>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
+				subject = frappe.render_template(self.subject, context, restrict_globals=True)
+			message = frappe.render_template(self.message, context, restrict_globals=True)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -560,10 +533,6 @@ def get_context(context):
 			return
 
 		sender = None
-<<<<<<< HEAD
-=======
-		message = frappe.render_template(self.message, context, restrict_globals=True)
->>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 
