@@ -98,6 +98,29 @@ class TestWebFormRequest(IntegrationTestCase):
 			with self.assertRaises(frappe.PermissionError):
 				create_for_document("manage-events", name)
 
+	def test_create_for_document_rejects_past_expiry(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		frappe.set_user(self.user)
+		event = self.create_event()
+
+		with self.assertRaises(frappe.ValidationError):
+			create_for_document("manage-events", event.name, expires_on="2000-01-01 00:00:00")
+
+	def test_requests_for_document_need_write_permission_on_record(self):
+		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
+		event = self.create_event(
+			event_type="Private",
+			event_participants=[
+				{"reference_doctype": "User", "reference_docname": self.user, "email": self.user}
+			],
+		)
+		create_for_document("manage-events", event.name)
+
+		frappe.set_user(self.user)
+		self.assertTrue(frappe.has_permission("Event", "read", event.name))
+		with self.assertRaises(frappe.PermissionError):
+			get_requests_for_document("Event", event.name)
+
 	def test_request_forms_need_create_permission(self):
 		self.set_web_form_settings(published=1, key_required=1, allow_edit=1)
 
@@ -113,14 +136,23 @@ class TestWebFormRequest(IntegrationTestCase):
 		frappe.set_user(self.user)
 		event = self.create_event()
 		create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
-		create_for_document("manage-events", event.name, expires_on="2000-01-01 00:00:00")
+		create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		frappe.get_last_doc("Web Form Request", {"web_form": "manage-events"}).db_set(
+			"expires_on", "2000-01-01 00:00:00"
+		)
+		create_for_document("manage-events", event.name, expires_on="2099-01-01 00:00:00")
+		frappe.get_last_doc("Web Form Request", {"web_form": "manage-events"}).db_set(
+			"first_used_on", frappe.utils.now_datetime()
+		)
 
 		requests = get_requests_for_document("Event", event.name)
 
-		self.assertEqual(sorted(r.status for r in requests), ["Expired", "Not Used"])
+		self.assertEqual(sorted(r.status for r in requests), ["Expired", "Not Used", "Used"])
 		self.assertTrue(all("key" not in r for r in requests))
 		not_used = next(r for r in requests if r.status == "Not Used")
 		self.assertIn("web_form_request_key=", not_used.url)
+		used = next(r for r in requests if r.status == "Used")
+		self.assertIn("web_form_request_key=", used.url)
 		expired = next(r for r in requests if r.status == "Expired")
 		self.assertIsNone(expired.get("url"))
 

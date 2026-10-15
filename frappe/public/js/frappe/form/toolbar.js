@@ -432,7 +432,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	add_web_form_request() {
-		if (this.frm.is_new() || !frappe.boot.web_form_request_forms[this.frm.doctype]) {
+		if (
+			this.frm.is_new() ||
+			!this.frm.perm[0].write ||
+			!frappe.boot.web_form_request_forms[this.frm.doctype]
+		) {
 			return;
 		}
 

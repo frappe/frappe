@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import json
+from datetime import datetime
 from secrets import token_urlsafe
 from urllib.parse import quote
 
@@ -47,6 +48,9 @@ class WebFormRequest(Document):
 
 		for row in self.references:
 			row.link_doctype = web_form.doc_type
+
+		if self.has_value_changed("expires_on") and is_expired(self.expires_on):
+			frappe.throw(_("Expires On must be in the future"), title=_("Invalid Expiry"))
 
 		if self.web_form_values:
 			validate_web_form_values(web_form, parse_json_object(self.web_form_values))
@@ -96,11 +100,11 @@ def get_edit_url(route: str, docname: str, key: str) -> str:
 	return get_url(f"/{route}/{name}/edit{get_web_form_request_query(key)}")
 
 
-def is_expired(expires_on) -> bool:
+def is_expired(expires_on: str | datetime | None) -> bool:
 	return bool(expires_on) and get_datetime(expires_on) < now_datetime()
 
 
-def get_status(request) -> str:
+def get_status(request: frappe._dict) -> str:
 	if request.first_used_on:
 		return "Used"
 	if is_expired(request.expires_on):
@@ -136,6 +140,8 @@ def create_for_document(web_form: str, docname: str, expires_on: str | None = No
 
 @frappe.whitelist(methods=["GET"])
 def get_requests_for_document(doctype: str, docname: str) -> list[dict]:
+	frappe.has_permission(doctype, "write", docname, throw=True)
+
 	forms = get_request_web_forms()
 	requests = frappe.get_list(
 		"Web Form Request",
