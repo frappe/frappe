@@ -327,6 +327,17 @@ class NestedSet(Document):
 			)
 
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
+		if merge:
+			left = frappe.db.get_value(self.doctype, newdn, "lft")
+			if left is None:
+				return
+			if self.lft < left < self.rgt:
+				frappe.throw(
+					_("Cannot merge a node into its own descendants"),
+					NestedSetInvalidMergeError,
+					title=_("Cannot Merge"),
+				)
+
 		if merge and hasattr(self, group_fname):
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
 			if self.get(group_fname) != is_group:
