@@ -10,8 +10,8 @@ Check these first. Ask for the missing piece before reading the code.
 
 - UI changes have before/after screenshots or a video. Ask again after every UI push.
 - The bug reproduces on latest develop with the steps in the PR. If there are no steps, ask for a traceback or a minimal repro. If it cannot be reproduced, close for now.
-- Branch is rebased with no merge commits or unrelated commits.
-- Title and commits follow Conventional Commits.
+- Branch has no unrelated commits. Allow merge commits that only bring in the target branch. Do not require a rebase for these commits.
+- Title and authored commits follow Conventional Commits. Generated messages for target-branch merge commits are exempt.
 - Description says what was broken, why, what changed and how to test, and matches the final diff.
 - Read the other reviewers' comments and the linked issue before writing your own.
 
@@ -105,7 +105,7 @@ Check these first. Ask for the missing piece before reading the code.
 - Presentation-only changes — spacing, colour, an icon, a label — take a before and after screenshot, not a test: pinning pixels, class names or wording breaks on the next design change and proves nothing.
 - Text and markup a caller or a user depends on is behaviour, not presentation. A response message, a permission error, the semantics of rendered HTML: still test it.
 - Test through public interfaces as a real user, not Administrator. Permission tests use `get_list`, not `get_all`. Fixtures use `example.com`.
-- Flaky tests are fixed, not disabled. Changed behaviour updates the existing tests.
+- Flaky tests are fixed, not disabled. Changed behaviour updates the existing tests. A deleted test, a loosened assertion or a case moved from rejected to accepted needs a reason in the description.
 
 ## Verdict
 

@@ -535,7 +535,8 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// A drawer starts shut; on a desktop the viewer's last choice is kept in this browser.
 	load_expanded_state() {
-		this.sidebar_expanded = !this.panel_can_close() && !this.saved_collapsed_state();
+		this.sidebar_expanded =
+			!this.panel_can_close() && !this.saved_collapsed_state() && !this.folded_for_page;
 	}
 
 	// Storage can be missing or refuse, and then the panel opens whole.
@@ -757,6 +758,23 @@ frappe.ui.Sidebar = class Sidebar {
 		this.highlight_active_item();
 	}
 
+	fold_for_page() {
+		if (this.folded_for_page) return;
+		this.folded_for_page = true;
+		if (!this.sidebar_expanded) return;
+		this.sidebar_expanded = false;
+		if (this.wrapper) this.apply_expanded_state();
+	}
+
+	unfold_after_leaving_page() {
+		if (!this.folded_for_page) return;
+		this.folded_for_page = false;
+		this.load_expanded_state();
+		if (!this.sidebar_expanded || !this.wrapper) return;
+		this.apply_expanded_state();
+		this.highlight_active_item();
+	}
+
 	set_height() {
 		$(".body-sidebar").css("height", window.innerHeight + "px");
 		$(".overlay").css("height", window.innerHeight + "px");
@@ -812,6 +830,9 @@ frappe.ui.Sidebar = class Sidebar {
 	shell_can_show(shell, route, { listed_only = false } = {}) {
 		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
 
+		// A shared page counts as listed in every shell.
+		if (frappe.router.page_info_for(route)?.shared_page) return true;
+
 		const entity = this.entity_from_route(route);
 		if (!entity) return false;
 
@@ -826,6 +847,9 @@ frappe.ui.Sidebar = class Sidebar {
 	// The shell a URL for this route should name: the URL's own if it can show the route, then the
 	// one on screen, then the server's map.
 	shell_for_route(route) {
+		// A system page opens in no shell, so the sidebar on screen is left as it is.
+		if (frappe.router.page_info_for(route)?.system_page) return null;
+
 		// A private page's shell is its owner's, whatever module it is filed under.
 		if (route[0] === "Workspaces" && route[1] === "private") {
 			const name = route[2];
@@ -850,11 +874,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// A jump was not made from the shell on screen, so sharing an app is not enough to stay.
 		// Nor is a row in the Private shell, which is a shortcut and not where the entity belongs.
+		// A shared page belongs in every shell, Private included, so it stays there too.
 		const listed_only = frappe.router.is_jump;
-		const on_screen =
-			listed_only && this.current_module === frappe.ui.PRIVATE_SHELL
-				? null
-				: this.current_module;
+		const leaves_private =
+			listed_only &&
+			this.current_module === frappe.ui.PRIVATE_SHELL &&
+			!frappe.router.page_info_for(route)?.shared_page;
+		const on_screen = leaves_private ? null : this.current_module;
 		if (on_screen && this.shell_can_show(on_screen, route, { listed_only })) return on_screen;
 
 		return this.canonical_shell_for(route);
@@ -973,7 +999,6 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// Select the shell first, so the sidebar is right when the route lands.
 		if (entry.module) this.select_shell(entry.module);
-		this.open();
 
 		const route = this.dock_entry_route(entry);
 		if (route) frappe.set_route(route);
@@ -984,16 +1009,25 @@ frappe.ui.Sidebar = class Sidebar {
 		return ["link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
-	// Where an app's icon leads: its declared route, else its first rail entry, else its first
-	// navigable module.
+	// An app's icon always leads into the app: an app with its own UI outside the desk opens that,
+	// and a desk app opens the first entry of the rail its user arranged that stays in the desk.
 	app_landing_route(app) {
 		if (!app) return null;
-		if (app.app_route) return app.app_route;
+		if (app.app_route && !this.is_desk_route(app.app_route)) return app.app_route;
 
-		const [entry] = this.collect_dock_entries(app);
-		if (entry) return this.dock_entry_route(entry);
+		for (const entry of this.collect_dock_entries(app)) {
+			if (entry.link_type === "URL") continue;
+			const route = this.dock_entry_route(entry);
+			if (route && this.is_desk_route(route)) return route;
+		}
 
-		return this.module_landing_route(this.first_navigable_module(app));
+		return app.app_route || this.module_landing_route(this.first_navigable_module(app));
+	}
+
+	// `/app` is the desk's old prefix, which still redirects to `/desk`.
+	is_desk_route(route) {
+		const [root] = route.replace(/^\//, "").split("/");
+		return ["desk", "app"].includes(root);
 	}
 
 	// One definition, so the icon and the button cannot disagree.
@@ -1057,7 +1091,9 @@ frappe.ui.Sidebar = class Sidebar {
 			canonical: this.canonical_shell_for(route),
 			resolved: this.shell_for_route(route),
 		};
-		info.reason = !info.resolved
+		info.reason = frappe.router.page_info_for(route)?.system_page
+			? "a system page opens in no shell"
+			: !info.resolved
 			? "the route names no entity, so nothing decides a shell"
 			: info.resolved === info.shell_in_url
 			? `the URL names "${info.shell_in_url}" and it can show this route`

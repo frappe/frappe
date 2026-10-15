@@ -946,7 +946,6 @@ repos:
         exclude: |
             (?x)^(
                 {app_name}/public/dist/.*|
-                cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
                 {app_name}/templates/includes/.*|
@@ -996,6 +995,7 @@ jobs:
 
   deps-vulnerable-check:
     name: 'Vulnerable Dependency Check'
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') }}
     runs-on: ubuntu-latest
 
     steps:

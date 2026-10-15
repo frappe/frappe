@@ -138,6 +138,14 @@ frappe.router = {
 		for (let shell of Object.keys(frappe.boot.module_sidebars || {})) {
 			this.shell_routes[this.shell_slug(shell)] = shell;
 		}
+		// A shell is named after its module unless it was renamed, and `module_app` holds every
+		// module the installed apps ship, so a link naming a shell this user cannot see is still
+		// read as one.
+		this.module_slugs = new Set(
+			Object.keys(frappe.boot.module_app || {}).map((module) =>
+				this.shell_slug(module.replace(/_/g, " "))
+			)
+		);
 
 		// `private` is the Private shell's slug and also the word that marks one of this user's
 		// own pages, and the two meanings are told apart by position: `/desk/private/<page>` is
@@ -526,9 +534,10 @@ frappe.router = {
 		let route = Array.from(arguments);
 
 		return new Promise((resolve) => {
-			route = this.get_route_from_arguments(route);
+			let shell;
+			({ route, shell } = this.read_route_arguments(route));
 			route = this.convert_from_standard_route(route);
-			let sub_path = this.make_url(route);
+			let sub_path = this.keep_shell_moved_into(this.make_url(route), shell);
 			sub_path += frappe.route_hash || "";
 			frappe.route_hash = null;
 			if (frappe.open_in_new_tab) {
@@ -563,7 +572,28 @@ frappe.router = {
 		}).finally(() => (frappe.route_flags = {}));
 	},
 
+	// A route naming another shell than the one on screen is a move into that shell: a desktop
+	// icon opens `/desk/people-ops/employee` from a page with no shell at all. Dropped, the shell
+	// would be chosen again by `write_shell_into_url`, which knows only the shell on screen and the
+	// entity's own, so Employee would open in HR Setup. A route naming the shell on screen stays
+	// without it, which keeps a self-link a self-link.
+	//
+	// The sidebar on screen counts only off a system page: the desktop opens in no shell, and the
+	// sidebar still remembers whichever page came before it.
+	keep_shell_moved_into(path, shell) {
+		if (!shell || shell === this.current_shell) return path;
+		const on_system_page = this.page_info_for(this.current_route || [])?.system_page;
+		if (!on_system_page && shell === frappe.app?.sidebar?.current_module) return path;
+
+		return "/desk/" + this.shell_slug(shell) + path.slice("/desk".length);
+	},
+
 	get_route_from_arguments(route) {
+		return this.read_route_arguments(route).route;
+	},
+
+	// The route, and the shell it named in front, if any, which is taken off.
+	read_route_arguments(route) {
 		if (route.length === 1 && $.isArray(route[0])) {
 			// called as frappe.set_route(['a', 'b', 'c']);
 			route = route[0];
@@ -603,8 +633,12 @@ frappe.router = {
 		// Left in, `push_state` compares a path with a shell against `path_on_screen()`, which
 		// has none, reads every self-link as a move, and re-renders the page under it -- throwing
 		// away whatever the render was holding. The form sidebar lost its "Show All" this way.
+		//
+		// It is handed back, though, for `set_route` to keep when it names another shell than the
+		// one on screen (see `keep_shell_moved_into`).
+		let shell = null;
 		if (this.begins_with_shell(route)) {
-			route.shift();
+			shell = this.shell_routes[route.shift()];
 		}
 
 		// Handle cases where "/" is part of the name
@@ -612,7 +646,7 @@ frappe.router = {
 			route = [route[0], route[1], route.slice(2).join("/")];
 		}
 
-		return route;
+		return { route, shell };
 	},
 
 	convert_from_standard_route(route) {
@@ -850,7 +884,10 @@ frappe.router = {
 			return route;
 		}
 
-		this.current_shell = this.shell_routes[route[0]];
+		this.current_shell = this.shell_routes[route[0]] || null;
+		// A shell this user cannot see leaves the URL, and `write_shell_into_url` writes in one
+		// they can.
+		if (!this.current_shell) this.drop_shell_from_url();
 		return route.slice(1);
 	},
 
@@ -858,7 +895,8 @@ frappe.router = {
 	// `take_shell_from` describes. Asked separately by `get_route_from_arguments`, which has to
 	// drop a shell without adopting it.
 	begins_with_shell(route) {
-		if (route.length <= 1 || !this.shell_routes?.[route[0]]) return false;
+		if (route.length <= 1) return false;
+		if (!this.shell_routes?.[route[0]] && !this.module_slugs?.has(route[0])) return false;
 		if (this.segment_kind(route[0]) === "doctype") return false;
 		return this.route_names_something(route[1]);
 	},
@@ -890,6 +928,13 @@ frappe.router = {
 	// spelling it arrived with.
 	write_shell_into_url() {
 		if (!this.current_route?.length) return;
+
+		// A system page opens in no shell, so one typed in front of it leaves the address bar.
+		// Asked before the sidebar is, which a cold load does not have yet.
+		if (this.page_info_for(this.current_route)?.system_page) {
+			if (this.current_shell) this.drop_shell_from_url();
+			return;
+		}
 
 		const shell = this.shell_for_route(this.current_route);
 		if (!shell || shell === this.current_shell) return;
@@ -933,6 +978,24 @@ frappe.router = {
 			history.state,
 			"",
 			path + window.location.search + window.location.hash
+		);
+	},
+
+	// The Page a route opens, as the boot describes it, or null when it opens something else.
+	// `system_page` and `shared_page` on it are what the shell rules read.
+	page_info_for(route) {
+		return (route?.[0] && frappe.boot.page_info?.[route[0]]) || null;
+	},
+
+	// `current_shell` is cleared with the segment, since `path_on_screen` strips one whenever it
+	// is set.
+	drop_shell_from_url() {
+		const rest = this.strip_prefix(window.location.pathname).split("/").slice(1).join("/");
+		this.current_shell = null;
+		history.replaceState(
+			history.state,
+			"",
+			"/desk/" + rest + window.location.search + window.location.hash
 		);
 	},
 

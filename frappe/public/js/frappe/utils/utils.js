@@ -1760,7 +1760,7 @@ Object.assign(frappe.utils, {
 		 */
 
 		// return empty for null, undefined, or empty string
-		if (!number || isNaN(number)) {
+		if (is_null(number) || isNaN(number)) {
 			return "";
 		}
 

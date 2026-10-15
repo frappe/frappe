@@ -85,7 +85,12 @@ class PrintFormatBuilder {
 
 	has_unsaved_changes() {
 		const draft = this.$component?.$store.draft;
-		return !!draft && (this.$component.$store.dirty.value || draft.save_failed.value);
+		return (
+			!!draft &&
+			(this.$component.$store.dirty.value ||
+				draft.save_failed.value ||
+				draft.letterhead_unsaved.value)
+		);
 	}
 
 	flush() {
@@ -116,7 +121,7 @@ class PrintFormatBuilder {
 						this.print_format.bold(),
 					]) + (message ? `<br><br>${message}` : ""),
 				primary_action: {
-					label: __("Back to the builder"),
+					label: __("Back to the editor"),
 					action: () => {
 						frappe.hide_msgprint();
 						frappe.set_route("print-format-builder", this.print_format);

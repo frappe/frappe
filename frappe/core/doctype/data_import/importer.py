@@ -15,6 +15,7 @@ from frappe.core.doctype.version.version import get_diff
 from frappe.locale import get_number_format
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
+from frappe.utils.caching import request_cache
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.data import escape_html
 from frappe.utils.html_utils import clean_html
@@ -134,25 +135,17 @@ class Importer:
 		self._tree_alias_field = getattr(header, "tree_alias_field", None)
 		self._id_fieldname = getattr(header, "id_fieldname", None) or get_id_field(self.doctype).fieldname
 		self._uses_tree_aliases = bool(self._tree_alias_field)
+		self._tree_parent_column = _get_tree_columns(self.import_file)[1] if self._tree_parent_field else None
 		self._prime_inserted_name_map_from_db()
 
 	def _prime_inserted_name_map_from_db(self):
 		"""Pre-fetch DB name mappings for parent links not defined as rows in this file."""
-		if not self._tree_parent_field:
+		if not self._tree_parent_column:
 			return
 
-		parent_column = next(
-			(
-				col
-				for col in self.import_file.header.columns
-				if col.df and col.df.fieldname == self._tree_parent_field and not col.skip_import
-			),
-			None,
-		)
-		if not parent_column:
-			return
-
-		parent_values = {cstr(v).strip() for v in parent_column.column_values if v not in INVALID_VALUES}
+		parent_values = {
+			cstr(v).strip() for v in self._tree_parent_column.column_values if v not in INVALID_VALUES
+		}
 		header = self.import_file.header
 		in_file_refs = (header.import_ids or set()) | (header.import_aliases or set())
 		if self.import_type == UPDATE:
@@ -171,7 +164,9 @@ class Importer:
 
 		# parse docs from rows
 		payloads = self.import_file.get_payloads_for_import()
-		if self.data_import.name:
+		self.data_import.payload_count = len(payloads)
+		# Subclasses such as Bank Statement Import pass a doc without this column.
+		if self.data_import.name and self.data_import.meta.has_field("payload_count"):
 			self.data_import.db_set("payload_count", len(payloads))
 
 		# dont import if there are non-ignorable warnings
@@ -557,7 +552,7 @@ class Importer:
 			# name can only be set directly if autoname is prompt
 			new_doc.set("name", None)
 
-		if self._uses_tree_aliases and self._tree_parent_field:
+		if self._uses_tree_aliases and self._tree_parent_column:
 			self._resolve_tree_parent_link(doc)
 			new_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
@@ -603,7 +598,7 @@ class Importer:
 
 		updated_doc.update(doc)
 
-		if self._uses_tree_aliases and self._tree_parent_field:
+		if self._uses_tree_aliases and self._tree_parent_column:
 			self._resolve_tree_parent_link(doc)
 			updated_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
@@ -1010,6 +1005,9 @@ class ImportFile:
 					child_doc = row.parse_doc(doctype, parent_doc, table_df)
 					if child_doc is None:
 						continue
+					if parent_doc is None:
+						# no column of the file is for the record itself, so it starts empty
+						parent_doc = row._parse_doc(self.doctype, [], [])
 					parent_doc[table_df.fieldname] = parent_doc.get(table_df.fieldname, [])
 					parent_doc[table_df.fieldname].append(child_doc)
 
@@ -2257,6 +2255,13 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 
 def get_df_for_column_header(doctype, header):
+	from frappe.core.doctype.data_import.import_provider import get_import_provider
+
+	if get_import_provider(doctype):
+		# A provider's fields can depend on the user (e.g. their permissions) and on other
+		# DocTypes, so they can't be shared or cleared with this DocType's cache.
+		return _get_provider_fields_dict(doctype, frappe.session.user).get(header)
+
 	def build_fields_dict_for_doctype():
 		return build_fields_dict_for_column_matching(doctype)
 
@@ -2264,6 +2269,11 @@ def get_df_for_column_header(doctype, header):
 		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
 	)
 	return df_by_labels_and_fieldname.get(header)
+
+
+@request_cache
+def _get_provider_fields_dict(doctype, user):
+	return build_fields_dict_for_column_matching(doctype)
 
 
 # utilities

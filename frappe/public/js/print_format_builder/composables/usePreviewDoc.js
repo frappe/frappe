@@ -5,6 +5,7 @@ export function usePreviewDoc(print_format, print_format_name) {
 	const preview_doc_name = ref(null);
 	const preview_values = ref({});
 	const preview_child_values = ref({});
+	const linked_values = ref({});
 	let preview_load_seq = 0;
 
 	const preview_doc_ls_key = `pfb:preview_doc:${print_format_name}`;
@@ -13,6 +14,7 @@ export function usePreviewDoc(print_format, print_format_name) {
 	}
 	function load_preview_doc(name) {
 		const seq = ++preview_load_seq;
+		linked_values.value = {};
 		if (!name) {
 			preview_doc.value = null;
 			preview_doc_name.value = null;
@@ -44,6 +46,7 @@ export function usePreviewDoc(print_format, print_format_name) {
 		preview_doc_name,
 		preview_values,
 		preview_child_values,
+		linked_values,
 		load_preview_doc,
 		persisted_preview_doc_name,
 	};

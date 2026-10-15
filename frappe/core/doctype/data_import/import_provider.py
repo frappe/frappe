@@ -30,6 +30,14 @@ class ImportProvider:
 		``doc`` is the parent dict with child rows under each table's fieldname."""
 		raise NotImplementedError
 
+	def get_export_rows(self, names: list[str], tables: dict[str, list[str]]) -> dict[str, dict[str, list]]:
+		"""Rows of the extra ``child_tables`` for the records being exported, or {} to leave them blank.
+
+		``tables`` maps each exported extra table to its exported fieldnames. Return
+		``{record_name: {table_fieldname: [row_dict, ...]}}``. The exporter does not check
+		permissions on these rows, so fetch them with ``frappe.get_list``."""
+		return {}
+
 
 def get_import_provider(doctype: str) -> ImportProvider | None:
 	"""Resolve the registered provider for ``doctype``, or ``None``."""

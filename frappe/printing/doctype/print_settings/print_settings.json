@@ -9,7 +9,6 @@
   "pdf_settings",
   "send_print_as_pdf",
   "repeat_header_footer",
-  "pdf_generator",
   "max_bulk_print_docs",
   "max_concurrent_bulk_exports",
   "column_break_4",
@@ -176,14 +175,6 @@
    "label": "PDF Page Width (in mm)"
   },
   {
-   "default": "wkhtmltopdf",
-   "description": "wkhtmltopdf cannot render multi-column layouts and is no longer maintained. Use chrome unless you depend on a wkhtmltopdf-specific print format.",
-   "fieldname": "pdf_generator",
-   "fieldtype": "Select",
-   "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome"
-  },
-  {
    "default": "100",
    "description": "Maximum number of documents that can be combined into a single bulk PDF export.",
    "fieldname": "max_bulk_print_docs",
@@ -204,7 +195,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-18 18:08:56.317806",
+ "modified": "2026-10-10 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",

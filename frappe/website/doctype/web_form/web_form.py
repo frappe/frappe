@@ -159,7 +159,8 @@ class WebForm(WebsiteGenerator):
 	def get_empty_pages(self):
 		"""Labels of the empty pages. The first page always shows, so it is not checked."""
 		pages = []
-		for df in self.web_form_fields:
+		# row 1 is page 1's own Page Break or one of its fields
+		for df in self.web_form_fields[1:]:
 			if df.fieldtype == "Page Break":
 				pages.append({"label": df.label, "has_fields": False})
 			elif pages and not df.hidden and df.fieldtype not in ("Section Break", "Column Break"):
@@ -1327,10 +1328,11 @@ def get_link_options(
 			frappe.PermissionError,
 		)
 
+	# a web form field can link a different doctype than the docfield whose filters it inherits
 	filters = [
 		link_filter
 		for link_filter in json.loads(link_filters or "[]")
-		if not frappe.cstr(link_filter[3]).startswith("eval:")
+		if link_filter[0] == doctype and not frappe.cstr(link_filter[3]).startswith("eval:")
 	]
 	if web_form.login_required and not allow_read_on_all_link_options:
 		filters.append(["owner", "=", frappe.session.user])

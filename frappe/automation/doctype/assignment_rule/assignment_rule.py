@@ -132,13 +132,16 @@ class AssignmentRule(Document):
 		Get next user based on round robin
 		"""
 
+		# self.last_user can be stale: cached doc, or a snapshot older than another assignment
+		last_user = frappe.db.get_value("Assignment Rule", self.name, "last_user", for_update=True)
+
 		# first time, or last in list, pick the first
-		if not self.last_user or self.last_user == self.users[-1].user:
+		if not last_user or last_user == self.users[-1].user:
 			return self.users[0].user
 
 		# find out the next user in the list
 		for i, d in enumerate(self.users):
-			if self.last_user == d.user:
+			if last_user == d.user:
 				return self.users[i + 1].user
 
 		# bad last user, assign to the first one
@@ -333,6 +336,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 	assignments = get_assignments(doc)
 
 	if assignments:
+		closed_assignments_checked = False
 		for assignment_rule in assignment_rule_docs:
 			if assignment_rule.is_rule_not_applicable_today():
 				continue
@@ -358,7 +362,8 @@ def apply(doc=None, method=None, doctype=None, name=None):
 						_todo.save(ignore_permissions=True)
 					break
 
-				else:
+				elif not closed_assignments_checked:
+					closed_assignments_checked = True
 					reopened = reopen_closed_assignment(doc)
 					if reopened:
 						break

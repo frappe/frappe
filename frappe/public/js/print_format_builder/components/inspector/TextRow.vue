@@ -2,7 +2,7 @@
 	<InspectorRow :label="label" :stacked="stacked">
 		<input
 			type="text"
-			class="pfb-insp-input"
+			class="form-control form-control-sm pfb-insp-input"
 			:placeholder="placeholder"
 			:value="modelValue ?? ''"
 			@change="$emit('update:modelValue', $event.target.value)"

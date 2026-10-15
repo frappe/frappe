@@ -42,6 +42,7 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 			include_emoji: this.df.options == "Emojis",
 		});
 
+		let namespace = `icon-popover-${frappe.dom.get_unique_id()}`;
 		this.$wrapper
 			.popover({
 				trigger: "manual",
@@ -63,8 +64,8 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 				}, 10);
 			})
 			.on("hidden.bs.popover", () => {
-				$("body").off("click.icon-popover");
-				$(window).off("hashchange.icon-popover");
+				$("body").off(`pointerdown.${namespace}`);
+				$(window).off(`hashchange.${namespace}`);
 			});
 
 		this.picker.on_change = (icon) => {
@@ -87,12 +88,15 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 					this.$input.val("");
 				}
 				e.stopPropagation();
-				$("body").on("click.icon-popover", (ev) => {
-					if (!$(ev.target).parents().is(".popover")) {
+				$("body").on(`pointerdown.${namespace}`, (ev) => {
+					if (
+						!$(ev.target).parents().is(".popover") &&
+						!this.$wrapper[0].contains(ev.target)
+					) {
 						this.$wrapper.popover("hide");
 					}
 				});
-				$(window).on("hashchange.icon-popover", () => {
+				$(window).on(`hashchange.${namespace}`, () => {
 					this.$wrapper.popover("hide");
 				});
 			});

@@ -4,8 +4,7 @@
     "build": "node esbuild",
     "production": "node esbuild --production",
     "watch": "node esbuild --watch",
-    "update-icons": "node esbuild/update_icons.js",
-    "coverage:report": "npx nyc report --reporter=clover"
+    "update-icons": "node esbuild/update_icons.js"
   },
   "repository": {
     "type": "git",
@@ -49,8 +48,8 @@
     "esbuild-plugin-vue3": "^0.3.0",
     "fast-deep-equal": "^2.0.1",
     "fast-glob": "^3.2.5",
-    "frappe-charts": "2.0.0-rc27",
-    "frappe-datatable": "1.21.2",
+    "frappe-charts": "2.0.0-rc29",
+    "frappe-datatable": "1.21.3",
     "frappe-gantt": "^1.2.1",
     "frappe-quill-image-resize": "^3.0.9",
     "highlight.js": "^10.4.1",
@@ -82,9 +81,6 @@
     "vue": "^3.3.0",
     "vuedraggable": "^4.1.0",
     "yargs": "^17.5.1"
-  },
-  "nyc": {
-    "report-dir": ".cypress-coverage"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",

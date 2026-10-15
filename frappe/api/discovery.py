@@ -10,6 +10,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.model.base_document import get_controller
+from frappe.permissions import SYSTEM_USER_ROLE
 
 CACHE_TTL = 60 * 60
 DISCOVERY_CACHE_PREFIX = "api:v2:discovery"
@@ -26,7 +27,7 @@ class DiscoveryCacheUnavailable(frappe.ValidationError):
 
 
 def root() -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	method_index = _method_index()
 	doctype_method_index = _doctype_method_index()
 	return {
@@ -44,7 +45,7 @@ def root() -> dict[str, Any]:
 
 
 def search(q: str | None = None) -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	query = (q or "").strip().lower()
 	index = _search_index()
 	entries = [entry for entry, _haystack in index]
@@ -61,12 +62,12 @@ def search(q: str | None = None) -> dict[str, Any]:
 
 
 def methods() -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	return {"type": "method_index", "methods": _method_index()}
 
 
 def method(method: str) -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	method = frappe.override_whitelisted_method(method)
 	server_script = {
 		path: script
@@ -96,7 +97,7 @@ def method(method: str) -> dict[str, Any]:
 
 
 def doctype_methods(doctype: str) -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	methods = [
 		_doctype_method_summary(doctype, name, fn)
 		for name, fn, _defining_class in _get_doctype_methods(doctype)
@@ -105,7 +106,7 @@ def doctype_methods(doctype: str) -> dict[str, Any]:
 
 
 def doctype_method(doctype: str, method: str) -> dict[str, Any]:
-	frappe.only_for("System Manager")
+	frappe.only_for(SYSTEM_USER_ROLE)
 	for name, fn, defining_class in _get_doctype_methods(doctype):
 		if name == method:
 			return _doctype_method_document(doctype, name, fn, defining_class)

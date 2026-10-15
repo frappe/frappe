@@ -210,9 +210,9 @@ onMounted(() => store.versions.load());
 	font-size: var(--text-xs);
 }
 .pfb-history-action {
-	visibility: hidden;
+	display: none;
 }
 .pfb-history-row:hover .pfb-history-action {
-	visibility: visible;
+	display: inline-flex;
 }
 </style>

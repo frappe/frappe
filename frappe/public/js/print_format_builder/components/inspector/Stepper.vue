@@ -1,44 +1,47 @@
 <template>
 	<div class="pfb-stepper" :class="{ 'pfb-stepper--sm': sm }">
-		<button
-			type="button"
-			class="es-button"
-			data-variant="subtle"
-			data-size="sm"
-			data-icon-button="true"
-			:aria-label="__('Decrease')"
-			@click="$emit('decrement')"
-			v-html="frappe.utils.icon('minus', 'sm')"
-		></button>
-		<span class="pfb-stepper-value">
-			<input
-				class="pfb-stepper-input"
-				type="number"
-				:min="min"
-				:value="value"
-				:placeholder="placeholder"
-				:style="{ width: input_width }"
-				@change="(e) => $emit('input', e.target.value)"
-			/>
+		<input
+			class="form-control form-control-sm pfb-stepper-input"
+			type="number"
+			:min="min"
+			:value="value"
+			:placeholder="placeholder"
+			@change="(e) => $emit('input', e.target.value)"
+			@keydown.up.prevent="(e) => step(e, 'increment')"
+			@keydown.down.prevent="(e) => step(e, 'decrement')"
+		/>
+		<span class="pfb-stepper-suffix">
 			<span v-if="unit && value !== '' && value != null" class="pfb-stepper-unit">{{
 				unit
 			}}</span>
+			<button
+				type="button"
+				class="es-button"
+				data-variant="ghost"
+				data-size="xs"
+				data-icon-button="true"
+				tabindex="-1"
+				:aria-label="__('Decrease')"
+				@click="$emit('decrement')"
+				v-html="frappe.utils.icon('minus', 'xs')"
+			></button>
+			<button
+				type="button"
+				class="es-button"
+				data-variant="ghost"
+				data-size="xs"
+				data-icon-button="true"
+				tabindex="-1"
+				:aria-label="__('Increase')"
+				@click="$emit('increment')"
+				v-html="frappe.utils.icon('plus', 'xs')"
+			></button>
 		</span>
-		<button
-			type="button"
-			class="es-button"
-			data-variant="subtle"
-			data-size="sm"
-			data-icon-button="true"
-			:aria-label="__('Increase')"
-			@click="$emit('increment')"
-			v-html="frappe.utils.icon('plus', 'sm')"
-		></button>
 	</div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { nextTick } from "vue";
 
 const props = defineProps({
 	value: { type: [Number, String], default: "" },
@@ -47,45 +50,36 @@ const props = defineProps({
 	placeholder: { type: String, default: "" },
 	sm: { type: Boolean, default: false },
 });
-defineEmits(["decrement", "increment", "input"]);
+const emit = defineEmits(["decrement", "increment", "input"]);
 
-const input_width = computed(() => {
-	const shown =
-		props.value === "" || props.value == null ? props.placeholder : String(props.value);
-	return Math.max(shown.length, 1) + "ch";
-});
+async function step(e, direction) {
+	if (e.target.value !== String(props.value ?? "")) {
+		emit("input", e.target.value);
+		await nextTick();
+	}
+	emit(direction);
+}
 </script>
 
 <style scoped>
 .pfb-stepper {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	justify-self: end;
-	margin-left: auto;
+	position: relative;
+	width: 100%;
 }
 
-.pfb-stepper-value {
-	width: 48px;
-	display: flex;
-	align-items: baseline;
-	justify-content: center;
-	gap: 3px;
-	font-size: var(--text-sm);
-	color: var(--text-color);
+.pfb-stepper--sm {
+	width: 96px;
 }
 
 .pfb-stepper-input {
-	min-width: 0;
-	text-align: right;
-	font-size: var(--text-sm);
+	width: 100%;
+	padding-right: calc(var(--spacing) * 18);
 	font-variant-numeric: tabular-nums;
-	border: none;
-	background: transparent;
-	color: inherit;
-	padding: 0;
-	outline: none;
 	-moz-appearance: textfield;
+}
+
+.pfb-stepper--sm .pfb-stepper-input {
+	padding-right: calc(var(--spacing) * 16);
 }
 
 .pfb-stepper-input::-webkit-inner-spin-button,
@@ -93,7 +87,27 @@ const input_width = computed(() => {
 	-webkit-appearance: none;
 }
 
+.pfb-stepper-suffix {
+	position: absolute;
+	top: 0;
+	right: 2px;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	gap: 0;
+}
+
 .pfb-stepper-unit {
-	color: var(--text-muted);
+	margin-right: calc(var(--spacing) * 1);
+	font-size: var(--text-sm);
+	color: var(--ink-gray-5);
+}
+
+.pfb-stepper-suffix .es-button {
+	color: var(--ink-gray-5);
+}
+
+.pfb-stepper-suffix .es-button:hover {
+	color: var(--ink-gray-8);
 }
 </style>

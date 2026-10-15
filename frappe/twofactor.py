@@ -362,7 +362,6 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 			with_container=True,
 			wrapper="templates/emails/auth_email.html",
 			delayed=False,
-			retry=3,
 		)
 	)
 
@@ -458,7 +457,6 @@ def reset_otp_secret(user: str):
 			"<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
 		).format(otp_issuer),
 		"delayed": False,
-		"retry": 3,
 	}
 
 	enqueue(

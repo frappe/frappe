@@ -86,7 +86,7 @@ frappe.ui.form.on("User", {
 					frm.doc.role_profiles && frm.doc.role_profiles.length ? 1 : 0
 				);
 
-				if (frm.doc.user_type == "System User") {
+				if (frm.doc.user_type == "System User" && frm.doc.__onload?.all_modules) {
 					var module_area = $("<div>").appendTo(frm.fields_dict.modules_html.wrapper);
 					frm.module_editor = new frappe.ModuleEditor(
 						frm,

@@ -311,7 +311,6 @@ def init(
 			"currently_saving": [],
 			"redirect_location": "",
 			"in_install_db": False,
-			"in_install_app": False,
 			"in_import": False,
 			"in_test": in_test,
 			"mute_messages": False,
@@ -1028,10 +1027,6 @@ def _load_app_hooks(app_name: str | None = None):
 		try:
 			app_hooks = get_module(f"{app}.hooks")
 		except ImportError as e:
-			if local.flags.in_install_app:
-				# if app is not installed while restoring
-				# ignore it
-				pass
 			print(f'Could not find app "{app}": \n{e}')
 			raise
 
