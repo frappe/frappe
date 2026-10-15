@@ -374,6 +374,8 @@ class Session:
 		async with self._operation_lock:
 			if self.state is SessionState.RUNNING:
 				raise SessionConflict("a run is already active")
+			if self.state is SessionState.PAUSED:
+				raise SessionConflict("run is paused for approval; resolve it before rewinding")
 			try:
 				candidate = Transcript.replay(self.log, leaf_seq=target_seq)
 			except ValueError as error:
@@ -383,7 +385,6 @@ class Session:
 			# the branch point the target resolved to: a marker never anchors a chain
 			self._commit(Rewind(target_seq=candidate.leaf_seq))
 			self.transcript = candidate
-			self._discard_steering()
 
 	async def set_model(
 		self,

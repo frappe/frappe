@@ -666,7 +666,7 @@ async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
 	handle = await session.run("read", model=model)
 	assert handle.task is not None
 	await handle.task
-	assert session.state is SessionState.PAUSED
+	assert await session.cancel_pending() is True  # a paused session refuses every rewind
 	assistant_seq = next(r["seq"] for r in session.log.read_since(0) if r["type"] == "assistant_message")
 
 	with pytest.raises(RewindError, match="unanswered"):
@@ -675,8 +675,8 @@ async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
 		await session.rewind(999)
 
 
-async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
-	from flow_harness.session.session import ResumeError
+async def test_rewind_while_paused_is_a_conflict(tmp_path):
+	from flow_harness.session.session import SessionConflict
 
 	(tmp_path / "a.txt").write_text("x")
 	store = SessionStore(str(tmp_path))
@@ -689,15 +689,11 @@ async def test_rewind_while_paused_abandons_the_approval_batch(tmp_path):
 	await handle.task
 	assert session.state is SessionState.PAUSED
 
-	await session.rewind(1)
+	with pytest.raises(SessionConflict, match="paused for approval"):
+		await session.rewind(1)
 
-	assert session.state is SessionState.IDLE
-	with pytest.raises(ResumeError):  # the batch is on the dead branch
-		await session.resume({"c1": "Approve"})
-	# a reload does not repair the dead branch
-	reloaded = SessionStore(str(tmp_path)).get(session.id)
-	assert reloaded.log.latest_seq == session.log.latest_seq
-	assert reloaded.state is SessionState.IDLE
+	assert session.state is SessionState.PAUSED  # the batch still waits for an answer
+	assert "rewind" not in [r["type"] for r in session.log.read_since(0)]
 
 
 async def test_rewind_to_zero_replaces_the_first_run(tmp_path):

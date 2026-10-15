@@ -245,11 +245,6 @@ class FlowSession(Document):
 	def rewind(self, target_seq: int) -> str:
 		"""Branch the conversation from entry `target_seq`; refused while a run waits for approval."""
 		with flow_server() as client:
-			if client.get_session(self.name)["state"] == "paused":
-				frappe.throw(
-					_("Approve or deny the waiting tool call before rewinding."),
-					title=_("Waiting for Approval"),
-				)
 			status = client.rewind(self.name, target_seq)["status"]
 		sync_with_retry(self)
 		return status

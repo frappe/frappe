@@ -183,8 +183,9 @@ class FakeDaemon:
 		self.calls.append(("rewind", sid, target_seq))
 		if self.running:
 			raise DaemonError(409, "a run is already active")
+		if self.paused:
+			raise DaemonError(409, "run is paused for approval; resolve it before rewinding")
 		self.rows.append(row(self.next_seq(), "rewind", target_seq=target_seq))
-		self.paused = False
 		return {"status": "rewound"}
 
 	def tool_waiting(self, sid, token):
