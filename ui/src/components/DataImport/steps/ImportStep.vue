@@ -1,218 +1,237 @@
 <template>
-	<div v-if="running" class="flex flex-col gap-4">
-		<div class="flex flex-col gap-2">
-			<div class="flex min-w-0 flex-col gap-0.5">
-				<h2 class="text-base-semibold text-ink-gray-8">
-					{{ t("Importing your data") }}
-				</h2>
-				<p class="text-sm text-ink-gray-6">
-					{{
-						t(
-							"You can continue other work while this runs. Progress updates will appear here."
-						)
-					}}
-				</p>
-			</div>
-			<Progress size="md" :value="percent" />
-			<div class="flex items-center justify-between gap-4 text-sm">
-				<span class="text-ink-gray-7">
-					{{ rowProgress }}
-					<template v-for="issue in runningIssues" :key="issue.label">
-						<span class="text-ink-gray-5"> · </span>
-						<span :class="issue.class">{{ issue.label }}</span>
-					</template>
-				</span>
-				<span class="text-ink-gray-6">{{ statusLine }}</span>
-			</div>
-		</div>
-
-		<div class="flex flex-col gap-1">
-			<div class="flex items-center gap-1">
-				<span class="text-sm-semibold text-ink-gray-7">{{ t("Recent activity") }}</span>
-				<span class="lucide-dot size-4 text-ink-green-8" />
-			</div>
-			<ul class="flex flex-col">
-				<li
-					v-for="(item, index) in progress.recentActivity"
-					:key="index"
-					class="flex items-center gap-2 py-1"
-					:class="{ 'border-t border-outline-gray-1': index > 0 }"
-				>
-					<span class="size-4 shrink-0" :class="activityIcon(item.kind)" />
-					<span
-						v-if="item.isHtml"
-						class="min-w-0 flex-1 truncate text-sm text-ink-gray-7"
-						v-html="item.text"
-					/>
-					<span v-else class="min-w-0 flex-1 truncate text-sm text-ink-gray-7">{{
-						item.text
-					}}</span>
-					<span
-						v-if="item.row"
-						class="shrink-0 whitespace-nowrap text-sm text-ink-gray-6"
-					>
-						{{ t("Row {0}", [item.row]) }}
+	<Transition
+		mode="out-in"
+		enter-active-class="duration-200 ease-out motion-reduce:duration-0"
+		enter-from-class="opacity-0"
+		leave-active-class="duration-150 ease-in motion-reduce:duration-0"
+		leave-to-class="opacity-0"
+	>
+		<div v-if="running || finishing" class="flex flex-col gap-4">
+			<div class="flex flex-col gap-2">
+				<div class="flex min-w-0 flex-col gap-0.5">
+					<h2 class="text-base-semibold text-ink-gray-8">
+						{{ t("Importing your data") }}
+					</h2>
+					<p class="text-sm text-ink-gray-6">
+						{{
+							t(
+								"You can continue other work while this runs. Progress updates will appear here."
+							)
+						}}
+					</p>
+				</div>
+				<Progress size="md" :value="percent" />
+				<div class="flex items-center justify-between gap-4 text-sm">
+					<span class="text-ink-gray-7">
+						{{ rowProgress }}
+						<template v-for="issue in runningIssues" :key="issue.label">
+							<span class="text-ink-gray-5"> · </span>
+							<span :class="issue.class">{{ issue.label }}</span>
+						</template>
 					</span>
-				</li>
-				<li v-if="!progress.recentActivity.length" class="py-1 text-sm text-ink-gray-6">
-					{{ t("Live activity updates will appear here.") }}
-				</li>
-			</ul>
-		</div>
-	</div>
-
-	<div v-else-if="importStarted && !importStatus" class="flex flex-col gap-3" aria-busy="true">
-		<Skeleton class="h-24 w-full rounded-5" />
-		<Skeleton class="h-7 w-60 rounded-full" />
-		<Skeleton class="h-40 w-full rounded-5" />
-	</div>
-
-	<div v-else-if="importStarted" class="flex flex-col gap-4">
-		<div class="flex flex-col gap-3">
-			<div class="flex items-center justify-between gap-4">
-				<h2 class="text-base-semibold text-ink-gray-8">{{ resultTitle }}</h2>
-				<Button
-					v-if="isFinished && onOpenList"
-					class="shrink-0"
-					variant="outline"
-					size="sm"
-					:label="t('Go to list')"
-					icon-right="lucide-arrow-up-right"
-					@click="onOpenList(doc.reference_doctype)"
-				/>
+					<span class="text-ink-gray-6">{{ statusLine }}</span>
+				</div>
 			</div>
-			<StatCards :stats="resultStats" :label="t('Result')" />
 
-			<div class="flex items-center justify-between gap-4">
-				<dl class="flex min-w-0 flex-wrap gap-x-6 gap-y-1 text-sm text-ink-gray-6">
-					<div v-for="row in detailRows" :key="row.label" class="flex gap-1">
-						<dt>{{ row.label }}</dt>
-						<dd class="flex gap-1">
-							<button
-								type="button"
-								class="text-ink-gray-7 hover:underline"
-								@click="emit('openRecord', 'User', row.user)"
-							>
-								{{ fullNames[row.user] || row.user }}
-							</button>
-							<span>·</span>
-							<span>{{ row.date }}</span>
-						</dd>
-					</div>
-				</dl>
+			<div class="flex flex-col gap-1">
+				<div class="flex items-center gap-1">
+					<span class="text-sm-semibold text-ink-gray-7">{{
+						t("Recent activity")
+					}}</span>
+					<span class="lucide-dot size-4 text-ink-green-8" />
+				</div>
+				<ul class="flex flex-col">
+					<li
+						v-for="(item, index) in progress.recentActivity"
+						:key="index"
+						class="flex items-center gap-2 py-1"
+						:class="{ 'border-t border-outline-gray-1': index > 0 }"
+					>
+						<span class="size-4 shrink-0" :class="activityIcon(item.kind)" />
+						<span
+							v-if="item.isHtml"
+							class="min-w-0 flex-1 truncate text-sm text-ink-gray-7"
+							v-html="item.text"
+						/>
+						<span v-else class="min-w-0 flex-1 truncate text-sm text-ink-gray-7">{{
+							item.text
+						}}</span>
+						<span
+							v-if="item.row"
+							class="shrink-0 whitespace-nowrap text-sm text-ink-gray-6"
+						>
+							{{ t("Row {0}", [item.row]) }}
+						</span>
+					</li>
+					<li
+						v-if="!progress.recentActivity.length"
+						class="py-1 text-sm text-ink-gray-6"
+					>
+						{{ t("Live activity updates will appear here.") }}
+					</li>
+				</ul>
 			</div>
 		</div>
 
-		<div class="flex items-center justify-between gap-2">
-			<TabButtons
-				v-model="logFilter"
-				:options="filterOptions"
-				:aria-label="t('Filter import log')"
-			/>
-			<Button
-				v-if="showExport"
-				variant="outline"
-				size="sm"
-				:label="t('Export Import Log')"
-				icon-left="lucide-download"
-				@click="download('download_import_log')"
-			/>
+		<div
+			v-else-if="importStarted && !importStatus"
+			class="flex flex-col gap-3"
+			aria-busy="true"
+		>
+			<Skeleton class="h-24 w-full rounded-5" />
+			<Skeleton class="h-7 w-60 rounded-full" />
+			<Skeleton class="h-40 w-full rounded-5" />
 		</div>
 
-		<div v-if="logs.length" data-slot="scroll" class="max-h-96 overflow-y-auto">
-			<table class="w-full border-separate border-spacing-0">
-				<thead class="sticky top-0 z-[1] bg-surface-base">
-					<tr class="text-left text-ink-gray-6">
-						<th
-							class="w-[10%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
-						>
-							{{ t("Row") }}
-						</th>
-						<th
-							class="w-[14%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
-						>
-							{{ t("Status") }}
-						</th>
-						<th
-							class="w-[76%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
-						>
-							{{ t("Message") }}
-						</th>
-					</tr>
-				</thead>
-				<tbody class="text-ink-gray-8">
-					<tr v-for="(row, index) in logRows" :key="index">
-						<td
-							class="whitespace-nowrap border-b border-outline-gray-2 px-4 py-2 align-top text-sm"
-						>
-							{{ row.rowLabel }}
-						</td>
-						<td class="border-b border-outline-gray-2 px-4 py-2 align-top text-sm">
-							<Badge
-								:label="row.success ? t('Success') : t('Failure')"
-								:theme="row.success ? 'green' : 'red'"
-							/>
-						</td>
-						<td
-							class="break-words border-b border-outline-gray-2 px-4 py-2 align-top text-sm"
-						>
-							<div v-if="row.success">
-								<span>{{ row.successText[0] }}</span>
+		<div v-else-if="importStarted" class="flex flex-col gap-4">
+			<div class="flex flex-col gap-3">
+				<div class="flex items-center justify-between gap-4">
+					<h2 class="text-base-semibold text-ink-gray-8">{{ resultTitle }}</h2>
+					<Button
+						v-if="isFinished && onOpenList"
+						class="shrink-0"
+						variant="outline"
+						size="sm"
+						:label="t('Go to list')"
+						icon-right="lucide-arrow-up-right"
+						@click="onOpenList(doc.reference_doctype)"
+					/>
+				</div>
+				<StatCards :stats="resultStats" :label="t('Result')" />
+
+				<div class="flex items-center justify-between gap-4">
+					<dl class="flex min-w-0 flex-wrap gap-x-6 gap-y-1 text-sm text-ink-gray-6">
+						<div v-for="row in detailRows" :key="row.label" class="flex gap-1">
+							<dt>{{ row.label }}</dt>
+							<dd class="flex gap-1">
 								<button
 									type="button"
-									class="underline"
-									@click="emit('openRecord', doc.reference_doctype, row.docname)"
+									class="text-ink-gray-7 hover:underline"
+									@click="emit('openRecord', 'User', row.user)"
 								>
-									{{ row.docname }}
+									{{ fullNames[row.user] || row.user }}
 								</button>
-								<span>{{ row.successText[1] }}</span>
-							</div>
-							<template v-else>
-								<div class="flex items-center justify-between gap-2">
-									<div v-if="row.summaryHtml" v-html="row.summaryHtml" />
-									<div v-else>{{ row.summaryText }}</div>
-									<Button
-										v-if="row.expandable"
-										variant="ghost"
-										size="sm"
-										:icon="
-											expanded.has(index)
-												? 'lucide-chevron-up'
-												: 'lucide-chevron-down'
+								<span>·</span>
+								<span>{{ row.date }}</span>
+							</dd>
+						</div>
+					</dl>
+				</div>
+			</div>
+
+			<div class="flex items-center justify-between gap-2">
+				<TabButtons
+					v-model="logFilter"
+					:options="filterOptions"
+					:aria-label="t('Filter import log')"
+				/>
+				<Button
+					v-if="showExport"
+					variant="outline"
+					size="sm"
+					:label="t('Export Import Log')"
+					icon-left="lucide-download"
+					@click="download('download_import_log')"
+				/>
+			</div>
+
+			<div v-if="logs.length" data-slot="scroll" class="max-h-96 overflow-y-auto">
+				<table class="w-full border-separate border-spacing-0">
+					<thead class="sticky top-0 z-[1] bg-surface-base">
+						<tr class="text-left text-ink-gray-6">
+							<th
+								class="w-[10%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
+							>
+								{{ t("Row") }}
+							</th>
+							<th
+								class="w-[14%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
+							>
+								{{ t("Status") }}
+							</th>
+							<th
+								class="w-[76%] border-b border-outline-gray-2 px-4 py-2 text-sm-semibold"
+							>
+								{{ t("Message") }}
+							</th>
+						</tr>
+					</thead>
+					<tbody class="text-ink-gray-8">
+						<tr v-for="(row, index) in logRows" :key="index">
+							<td
+								class="whitespace-nowrap border-b border-outline-gray-2 px-4 py-2 align-top text-sm"
+							>
+								{{ row.rowLabel }}
+							</td>
+							<td class="border-b border-outline-gray-2 px-4 py-2 align-top text-sm">
+								<Badge
+									:label="row.success ? t('Success') : t('Failure')"
+									:theme="row.success ? 'green' : 'red'"
+								/>
+							</td>
+							<td
+								class="break-words border-b border-outline-gray-2 px-4 py-2 align-top text-sm"
+							>
+								<div v-if="row.success">
+									<span>{{ row.successText[0] }}</span>
+									<button
+										type="button"
+										class="underline"
+										@click="
+											emit('openRecord', doc.reference_doctype, row.docname)
 										"
-										:title="t('Toggle error details')"
-										:aria-label="t('Toggle error details')"
-										:aria-expanded="expanded.has(index)"
-										@click="toggle(index)"
-									/>
-								</div>
-								<div v-if="expanded.has(index)">
-									<div v-for="(detail, i) in row.details" :key="i">
-										<div v-if="detail.title">
-											<strong>{{ detail.title }}</strong>
-										</div>
-										<div v-if="detail.message" v-html="detail.message" />
-									</div>
-									<pre
-										v-if="row.traceback"
-										class="mt-2 overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-2 p-2 text-sm"
-										>{{ row.traceback }}</pre
 									>
+										{{ row.docname }}
+									</button>
+									<span>{{ row.successText[1] }}</span>
 								</div>
-							</template>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+								<template v-else>
+									<div class="flex items-center justify-between gap-2">
+										<div v-if="row.summaryHtml" v-html="row.summaryHtml" />
+										<div v-else>{{ row.summaryText }}</div>
+										<Button
+											v-if="row.expandable"
+											variant="ghost"
+											size="sm"
+											:icon="
+												expanded.has(index)
+													? 'lucide-chevron-up'
+													: 'lucide-chevron-down'
+											"
+											:title="t('Toggle error details')"
+											:aria-label="t('Toggle error details')"
+											:aria-expanded="expanded.has(index)"
+											@click="toggle(index)"
+										/>
+									</div>
+									<div v-if="expanded.has(index)">
+										<div v-for="(detail, i) in row.details" :key="i">
+											<div v-if="detail.title">
+												<strong>{{ detail.title }}</strong>
+											</div>
+											<div v-if="detail.message" v-html="detail.message" />
+										</div>
+										<pre
+											v-if="row.traceback"
+											class="mt-2 overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-2 p-2 text-sm"
+											>{{ row.traceback }}</pre
+										>
+									</div>
+								</template>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div
+				v-else
+				class="flex min-h-32 flex-col items-center justify-center gap-2 text-ink-gray-6"
+			>
+				<span class="lucide-inbox size-6" />
+				<span class="text-base">{{ emptyMessage }}</span>
+			</div>
 		</div>
-		<div
-			v-else
-			class="flex min-h-32 flex-col items-center justify-center gap-2 text-ink-gray-6"
-		>
-			<span class="lucide-inbox size-6" />
-			<span class="text-base">{{ emptyMessage }}</span>
-		</div>
-	</div>
+	</Transition>
 </template>
 
 <script setup lang="ts">
@@ -248,7 +267,22 @@ const { doc, running, importStarted, importStatus, logFilter, logs } = props.dat
 // Any finished run, success or not, offers the way back to the records.
 const isFinished = computed(() => !running.value && isImportFinished(doc.value.status));
 
-const progress = computed(() => props.dataImport.progress.value ?? emptyProgress());
+// When a run ends, its progress stays on screen, full, until the result has loaded.
+const lastProgress = ref(emptyProgress());
+watch(
+	props.dataImport.progress,
+	(value) => {
+		if (value) lastProgress.value = value;
+	},
+	{ immediate: true }
+);
+const runEnded = ref(false);
+watch(running, (isRunning, wasRunning) => {
+	runEnded.value = wasRunning && !isRunning;
+});
+const finishing = computed(() => runEnded.value && importStarted.value && !importStatus.value);
+
+const progress = computed(() => props.dataImport.progress.value ?? lastProgress.value);
 
 const showInserted = computed(() =>
 	[UPSERT, "Insert New Records"].includes(doc.value.import_type)
@@ -258,7 +292,7 @@ const showUpdated = computed(() =>
 );
 const skippedCount = computed(() => (doc.value.skipped_rows || []).length);
 
-const percent = computed(() => progressPercent(progress.value));
+const percent = computed(() => (finishing.value ? 100 : progressPercent(progress.value)));
 const rowProgress = computed(() =>
 	hasProgressCounts(progress.value)
 		? t("Importing row {0} of {1}", [progress.value.current, progress.value.total])
@@ -266,6 +300,7 @@ const rowProgress = computed(() =>
 );
 const statusLine = computed(() => {
 	const { current, total, eta } = progress.value;
+	if (finishing.value) return t("Finishing up...");
 	if (!hasProgressCounts(progress.value))
 		return doc.value.status === "Pending"
 			? t("Preparing import...")

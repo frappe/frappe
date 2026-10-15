@@ -171,6 +171,9 @@ export function useDataImport(
         name: docname,
       });
       if (!isCurrent()) return;
+      // counts fetched mid-run would show as the result until the final ones load
+      if (running.value && serverDoc.status !== "In Progress")
+        importStatus.value = null;
       applyServerDoc(serverDoc);
       afterLoad();
     } finally {
@@ -438,11 +441,17 @@ export function useDataImport(
     !!name.value &&
     (payload as { data_import?: string } | null)?.data_import === name.value;
 
+  // The reload decides whether the run is over, so a late read never resets the progress.
   function onRefresh(payload: unknown) {
     if (!forThisImport(payload)) return;
-    startedHere.value = false;
-    progress.value = null;
-    reload().catch(() => {});
+    const isCurrent = track();
+    reload()
+      .then(() => {
+        // stopped before the job picked it up
+        if (isCurrent() && doc.value.status === "Pending")
+          startedHere.value = false;
+      })
+      .catch(() => {});
   }
 
   function onBlocked(payload: unknown) {

@@ -628,6 +628,38 @@ describe("useDataImport: realtime", () => {
     expect(callsTo("get_import_logs")).toHaveLength(1);
   });
 
+  it("keeps the progress when a refresh still reads the run as going", async () => {
+    responders["frappe.client.get"] = () =>
+      serverDoc({ status: "In Progress" });
+    const di = mount(ref("DI-1"));
+    await settle();
+    live.fire("data_import_progress", {
+      data_import: "DI-1",
+      current: 9,
+      total: 9,
+    });
+
+    live.fire("data_import_refresh", { data_import: "DI-1" });
+    await settle();
+    expect(di.running.value).toBe(true);
+    expect(di.progress.value?.current).toBe(9);
+  });
+
+  it("stops a run that a refresh finds still Pending", async () => {
+    const di = mount(ref("DI-1"));
+    await settle();
+    live.fire("data_import_progress", {
+      data_import: "DI-1",
+      current: 1,
+      total: 9,
+    });
+    expect(di.running.value).toBe(true);
+
+    live.fire("data_import_refresh", { data_import: "DI-1" });
+    await settle();
+    expect(di.running.value).toBe(false);
+  });
+
   it("reloads on blocked for this import only, then raises the blocked signal", async () => {
     const di = mount(ref("DI-1"));
     await settle();
