@@ -554,11 +554,18 @@ def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.utils.xlsxutils import get_default_xlsx_styles, handle_html, make_xlsx
 
 	doctype = form_params.pop("doctype")
-	owner_field = f"`tab{doctype}`.`owner`"
-	if isinstance(form_params["fields"], list):
-		form_params["fields"].append(owner_field)
-	elif isinstance(form_params["fields"], tuple):
-		form_params["fields"] = form_params["fields"] + (owner_field,)
+	check_owner = not frappe.permissions.can_export(doctype)
+	if check_owner and not frappe.permissions.can_export(doctype, is_owner=True):
+		raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+	if check_owner:
+		owner_field = f"`tab{doctype}`.`owner`"
+		if isinstance(form_params["fields"], list):
+			form_params["fields"].append(owner_field)
+		elif isinstance(form_params["fields"], tuple):
+			form_params["fields"] = form_params["fields"] + (owner_field,)
+		# such a user only reads their own rows, so grouping by owner splits no group
+		if form_params.get("group_by"):
+			form_params["group_by"] += f", {owner_field}"
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
 	add_totals_row = cint(form_params.pop("add_totals_row", 0))
@@ -597,15 +604,12 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if visible_names:
 		ret = _reorder_by_visible_names(ret, form_params.get("fields", []), doctype, visible_names)
 
-	if not frappe.permissions.can_export(doctype):
-		if frappe.permissions.can_export(doctype, is_owner=True):
-			for row in ret:
-				if row[-1] != frappe.session.user:
-					raise frappe.PermissionError(
-						_("You are not allowed to export {} doctype").format(doctype)
-					)
-		else:
-			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+	if check_owner:
+		for row in ret:
+			if row[-1] != frappe.session.user:
+				raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+		ret = [row[:-1] for row in ret]
+		db_query.fields = db_query.fields[:-1]
 
 	if add_totals_row:
 		ret = append_totals_row(ret, db_query.fields)
