@@ -82,7 +82,70 @@ def is_ci(file):
 
 
 def is_frontend_code(file):
+<<<<<<< HEAD
 	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html"))
+=======
+	"""Check if the file is frontend code."""
+	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
+		return True
+	return file.lower().endswith(
+		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html", ".svg")
+	)
+
+
+def matches_postgres_filenames(files_list):
+	"""Check if any changed files suggest database involvement."""
+	db_keywords = ["database", "query", "schema", "postgres"]
+	return any(any(word in f.lower() for word in db_keywords) for f in files_list)
+
+
+def select_tests(files_list):
+	"""Test modules a pull request needs, according to the impact map. See #42028.
+
+	Returns None for "run the full suite" and prints why; [] when nothing server-side changed.
+	"""
+	try:
+		with open(IMPACT_MAP_FILE) as f:
+			loaded_map = json.load(f)
+	except (OSError, ValueError) as exc:
+		print(f"Running full suite, no usable impact map ({exc})")
+		return None
+
+	# JSON outside the `frappe` package -- `ui/package.json` and the like -- is not schema.
+	relevant_files = [
+		f
+		for f in files_list
+		if f.endswith((".py", ".po")) or (f.endswith(".json") and f.startswith("frappe/"))
+	]
+	# Coverage cannot see dependency bumps and the like, so those force the full suite. Frontend code
+	# is safe to ignore, except `.html`: that is mostly Jinja rendered on the server.
+	ignorable_files = [
+		f for f in files_list if is_docs(f) or (is_frontend_code(f) and not f.endswith(".html"))
+	]
+	other_files = [f for f in files_list if f not in relevant_files and f not in ignorable_files]
+	# A test module's content can only break its own tests and those of modules importing it.
+	core_files = [f for f in relevant_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
+
+	if other_files:
+		print(f"Running full suite, changes coverage cannot see: {other_files}")
+	elif schema_files := [f for f in relevant_files if not f.endswith(".py")]:
+		print(f"Running full suite, schema/translation changes: {schema_files}")
+	elif core_files:
+		print(f"Running full suite, core changes: {core_files}")
+	elif impact_map.is_stale(loaded_map):
+		print(f"Running full suite, map from {loaded_map['generated_at']} is stale")
+	elif unmapped := impact_map.unmapped(loaded_map, relevant_files):
+		print(f"Running full suite, no tests attributed to: {unmapped}")
+	else:
+		selected = impact_map.select(loaded_map, relevant_files)
+		total = len(impact_map.all_tests(loaded_map))
+		print(f"Running {len(selected)}/{total} test modules for {relevant_files}:")
+		for test_file in selected:
+			print(f"  {test_file}")
+		return selected
+
+	return None
+>>>>>>> 4e05ac6 (ci: skip server tests when only js dependencies change)
 
 
 def is_docs(file):
