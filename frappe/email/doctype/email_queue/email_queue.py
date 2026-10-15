@@ -832,10 +832,19 @@ class QueueBuilder:
 		"""
 		# This is used to bulk send emails from same sender to multiple recipients separately
 		# This re-uses smtp server instance to minimize the cost of new session creation
+		queue_names = [
+			EmailQueue.new(
+				{**queue_data, **{"recipients": list(set([r, *self.final_cc(), *self.final_bcc()]))}},
+				ignore_permissions=True,
+			).name
+			for r in final_recipients
+		]
+		if not frappe.flags.in_test:
+			frappe.db.commit()
+
 		smtp_server_instance = None
-		for r in final_recipients:
-			recipients = list(set([r, *self.final_cc(), *self.final_bcc()]))
-			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
+		for name in queue_names:
+			q = frappe.get_doc("Email Queue", name, for_update=True)
 			if not smtp_server_instance:
 				email_account = q.get_email_account(raise_error=True)
 				smtp_server_instance = email_account.get_smtp_server()
