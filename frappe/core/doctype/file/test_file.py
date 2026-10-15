@@ -1272,6 +1272,30 @@ class TestFileUtils(IntegrationTestCase):
 		folder = create_new_folder("test_folder", "Home")
 		self.assertTrue(folder.is_folder)
 
+<<<<<<< HEAD
+=======
+	def test_get_web_image_follows_redirect_to_allowed_address(self):
+		from io import BytesIO
+
+		from PIL import Image as PILImage
+
+		buf = BytesIO()
+		PILImage.new("RGB", (2, 2)).save(buf, format="JPEG")
+		image_bytes = buf.getvalue()
+
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://8.8.4.4/final.jpg"})
+		final_response = MagicMock(is_redirect=False, content=image_bytes)
+		final_response.raise_for_status.return_value = None
+
+		session = MagicMock()
+		session.get.side_effect = [redirect_response, final_response]
+		with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
+			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
+
+		self.assertEqual(session.get.call_count, 2)
+		self.assertEqual(extn, "jpg")
+
+>>>>>>> 4cd347d (fix(utils): fetch web images through the guarded request session)
 	def test_resolved_file_path_stays_within_files_directory(self):
 		from frappe.utils.file_manager import get_file_path
 
@@ -1329,6 +1353,37 @@ class TestFileUtils(IntegrationTestCase):
 			normal.delete()
 			shutil.rmtree(sibling_dir)
 
+<<<<<<< HEAD
+=======
+	def test_get_web_image_rejects_redirect_to_restricted_address(self):
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
+
+		session = MagicMock()
+		session.get.side_effect = [redirect_response]
+		with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
+			self.assertRaisesRegex(
+				ValidationError,
+				"restricted address",
+				get_web_image,
+				"http://8.8.8.8/initial.jpg",
+			)
+
+		session.get.assert_called_once()
+
+	def test_get_web_image_uses_guarded_session_for_external_urls(self):
+		with self.assertRaises(ValidationError):
+			get_web_image("http://127.0.0.1:6379/x.jpg")
+
+		with patch("requests.get") as plain_get:
+			session = MagicMock()
+			session.get.return_value = MagicMock(is_redirect=False, content=b"not an image")
+			with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
+				with self.assertRaises(Exception):
+					get_web_image("http://8.8.8.8/x.jpg")
+			session.get.assert_called_once()
+			plain_get.assert_not_called()
+
+>>>>>>> 4cd347d (fix(utils): fetch web images through the guarded request session)
 
 class TestFileOptimization(IntegrationTestCase):
 	def test_optimize_file(self):
