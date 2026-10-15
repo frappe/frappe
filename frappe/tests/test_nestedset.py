@@ -59,8 +59,15 @@ class NestedSetTestUtil:
 	def setup_test_doctype(self):
 		frappe.db.delete("DocType", TEST_DOCTYPE)
 		frappe.db.sql_ddl(f"drop table if exists `tab{TEST_DOCTYPE}`")
+		frappe.db.get_tables(cached=False)
 
-		self.tree_doctype = new_doctype(TEST_DOCTYPE, is_tree=True, autoname="field:some_fieldname")
+		self.tree_doctype = new_doctype(
+			TEST_DOCTYPE,
+			is_tree=True,
+			autoname="field:some_fieldname",
+			allow_rename=True,
+			permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+		)
 		self.tree_doctype.insert()
 
 		for record in records:
@@ -88,6 +95,14 @@ class TestNestedSet(IntegrationTestCase):
 	def setUpClass(cls) -> None:
 		cls.nsu = NestedSetTestUtil()
 		cls.nsu.setup_test_doctype()
+		if not frappe.db.exists("User", "tree-manager@example.com"):
+			frappe.get_doc(
+				doctype="User",
+				email="tree-manager@example.com",
+				first_name="Tree Manager",
+				send_welcome_email=0,
+				roles=[{"role": "System Manager"}],
+			).insert()
 		super().setUpClass()
 
 	@classmethod
@@ -143,6 +158,25 @@ class TestNestedSet(IntegrationTestCase):
 		leaf_node.parent_test_tree_doctype = "Child 3"
 		self.assertRaises(NestedSetRecursionError, leaf_node.save)
 		leaf_node.reload()
+
+	def test_merge_into_descendant(self):
+		with self.set_user("tree-manager@example.com"):
+			child = frappe.get_doc(
+				doctype=TEST_DOCTYPE,
+				some_fieldname="Child Group",
+				parent_test_tree_doctype="Parent 1",
+				is_group=1,
+			).insert()
+			with self.assertRaises(NestedSetInvalidMergeError):
+				frappe.rename_doc(TEST_DOCTYPE, "Parent 1", child.name, merge=True)
+			self.assertEqual(
+				frappe.db.get_value(TEST_DOCTYPE, child.name, "parent_test_tree_doctype"), "Parent 1"
+			)
+
+	def test_merge_into_missing_target(self):
+		with self.set_user("tree-manager@example.com"):
+			with self.assertRaisesRegex(frappe.ValidationError, "select a new target to merge"):
+				frappe.rename_doc(TEST_DOCTYPE, "Parent 1", "Missing Group", merge=True)
 
 	def test_rebuild_tree(self):
 		rebuild_tree(TEST_DOCTYPE)
