@@ -692,7 +692,7 @@ $.extend(frappe.model, {
 		}
 		let meta = frappe.get_meta(doc.doctype);
 		if (meta.title_field) {
-			return this.get_title_from_title_field(doc, meta);
+			return this.get_title_from_title_field(doc, meta) || String(doc.name);
 		} else {
 			return String(doc.name);
 		}
