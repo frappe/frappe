@@ -132,43 +132,52 @@ class TestReportview(IntegrationTestCase):
 
 		return list(reader(StringIO(frappe.response["filecontent"].decode("utf-8"))))
 
-	def test_export_has_only_the_requested_columns(self):
-		frappe.local.form_dict = frappe._dict(
-			doctype="DocType",
-			file_format_type="CSV",
-			fields=("name", "module"),
-			filters={"issingle": 1, "module": "Core"},
-		)
-		export_query()
-		self.assertEqual(len(self.exported_rows()[0]), 3)
+	def make_exporter(self, if_owner=0):
+		"""A user whose only export permission on ToDo comes from a test role."""
+		from frappe.permissions import update_permission_property
 
-	def test_grouped_export_has_no_owner_column(self):
-		todos = [self.make_todo(f"Grouped export {i}") for i in range(3)]
-		frappe.db.set_value("ToDo", todos[0].name, "status", "Closed")
+		update_permission_property("ToDo", "All", 0, "export", 1)
+		update_permission_property("ToDo", "All", 0, "if_owner", if_owner)
+		frappe.clear_cache(doctype="ToDo")
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		frappe.get_doc(doctype="Role", role_name="_Test Exporter").insert(ignore_if_duplicate=True)
+		return create_user("exporter@example.com", "_Test Exporter").name
+
+	def export_grouped_status(self, names):
 		frappe.local.form_dict = frappe._dict(
 			doctype="ToDo",
 			file_format_type="CSV",
 			fields=json.dumps(["status", {"COUNT": "name", "as": "count"}]),
-			filters=json.dumps([["name", "in", [todo.name for todo in todos]]]),
+			filters=json.dumps([["name", "in", names]]),
 			group_by="status",
 			order_by="status asc",
 		)
 		export_query()
-		header, *rows = self.exported_rows()
-		self.assertEqual(len(header), 3)
-		self.assertEqual({row[1]: int(row[2]) for row in rows}, {"Closed": 1, "Open": 2})
+
+	def test_export_has_only_the_requested_columns(self):
+		with self.set_user(self.make_exporter()):
+			self.assertTrue(frappe.permissions.can_export("ToDo"))
+			todo = self.make_todo("Plain export")
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo",
+				file_format_type="CSV",
+				fields=json.dumps(["name", "description"]),
+				filters=json.dumps([["name", "=", todo.name]]),
+			)
+			export_query()
+			self.assertEqual(len(self.exported_rows()[0]), 3)
+
+	def test_grouped_export_has_no_owner_column(self):
+		with self.set_user(self.make_exporter()):
+			todos = [self.make_todo(f"Grouped export {i}") for i in range(3)]
+			frappe.db.set_value("ToDo", todos[0].name, "status", "Closed")
+			self.export_grouped_status([todo.name for todo in todos])
+			header, *rows = self.exported_rows()
+			self.assertEqual(len(header), 3)
+			self.assertEqual({row[1]: int(row[2]) for row in rows}, {"Closed": 1, "Open": 2})
 
 	def test_owner_only_export_checks_rows_but_leaves_out_the_owner(self):
-		from frappe.permissions import update_permission_property
-
-		update_permission_property("ToDo", "All", 0, "export", 1)
-		update_permission_property("ToDo", "All", 0, "if_owner", 1)
-		frappe.clear_cache(doctype="ToDo")
-		self.addCleanup(frappe.clear_cache, doctype="ToDo")
-		frappe.get_doc(doctype="Role", role_name="_Test Own Exporter").insert(ignore_if_duplicate=True)
-		user = create_user("export-own@example.com", "_Test Own Exporter").name
-
-		with self.set_user(user):
+		with self.set_user(self.make_exporter(if_owner=1)):
 			self.assertFalse(frappe.permissions.can_export("ToDo"))
 			todo = self.make_todo("Own export")
 			frappe.local.form_dict = frappe._dict(
@@ -181,10 +190,7 @@ class TestReportview(IntegrationTestCase):
 			self.assertEqual(len(self.exported_rows()[0]), 3)
 
 			# a group mixes owners, so there is no row to check
-			frappe.local.form_dict.update(
-				fields=json.dumps(["status", {"COUNT": "name", "as": "count"}]), group_by="status"
-			)
-			self.assertRaises(frappe.PermissionError, export_query)
+			self.assertRaises(frappe.PermissionError, self.export_grouped_status, [todo.name])
 
 	def test_reorder_by_visible_names(self):
 		fields = ["`tabDocType`.`name`", "`tabDocType`.`module`"]

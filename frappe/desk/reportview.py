@@ -554,7 +554,6 @@ def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.utils.xlsxutils import get_default_xlsx_styles, handle_html, make_xlsx
 
 	doctype = form_params.pop("doctype")
-	# a user who may export only their own records gets each row's owner fetched to check, then dropped
 	check_owner = not frappe.permissions.can_export(doctype)
 	if check_owner and (
 		form_params.get("group_by") or not frappe.permissions.can_export(doctype, is_owner=True)
