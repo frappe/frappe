@@ -512,6 +512,7 @@ body[data-route^="Form"] {
 		.attachment-file-label {
 			display: block;
 			text-align: left;
+			text-decoration: none;
 		}
 
 		.attachment-icon {
@@ -808,6 +809,39 @@ body[data-route^="Form"] .attachment-preview {
 	margin-bottom: 10px;
 }
 
+// shared by the sidebar and the all-attachments dialog
+@mixin attachment-row-hover {
+	.data-pill {
+		border-radius: var(--radius);
+
+		&:hover,
+		&:focus-within {
+			background-color: var(--surface-gray-2);
+		}
+
+		cursor: pointer;
+
+		// sits 2px inside the row
+		.attachment-actions {
+			opacity: 0;
+			margin-inline-end: calc(var(--spacing) * -1);
+			border-radius: var(--radius-3);
+		}
+
+		&:hover .attachment-actions,
+		&:focus-within .attachment-actions,
+		.attachment-actions[aria-expanded="true"] {
+			opacity: 1;
+		}
+
+		@media (hover: none) {
+			.attachment-actions {
+				opacity: 1;
+			}
+		}
+	}
+}
+
 .form-sidebar {
 	--form-sidebar-bg: var(--bg-color);
 	display: flex;
@@ -891,29 +925,7 @@ body[data-route^="Form"] .attachment-preview {
 		}
 
 		.attachment-row {
-			.data-pill {
-				border-radius: var(--radius);
-
-				&:hover,
-				&:focus-within {
-					background-color: var(--surface-gray-2);
-				}
-
-				.remove-btn {
-					opacity: 0;
-				}
-
-				&:hover .remove-btn,
-				&:focus-within .remove-btn {
-					opacity: 1;
-				}
-
-				@media (hover: none) {
-					.remove-btn {
-						opacity: 1;
-					}
-				}
-			}
+			@include attachment-row-hover;
 		}
 
 		> .sidebar-section {
@@ -986,5 +998,75 @@ body[data-route^="Form"] .attachment-preview {
 
 	&[data-icon-button] {
 		margin-inline-end: calc(var(--spacing) * -1.5);
+	}
+}
+
+.attachments-dialog {
+	// the search field has no label; don't keep room for one
+	.control-label:empty {
+		display: none;
+	}
+}
+
+.attachments-selection-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: calc(var(--spacing) * 7);
+	margin-bottom: var(--spacing);
+
+	.attachments-select-all {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--spacing) * 2);
+		margin: 0;
+		@include get_textstyle("sm", "regular");
+		color: var(--ink-gray-6);
+		cursor: pointer;
+
+		input {
+			margin: 0;
+		}
+	}
+}
+
+.attachments-dialog-list {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 0.5);
+	margin: 0 calc(var(--spacing) * -1.5);
+	max-height: 60vh;
+	overflow-y: auto;
+
+	.attachment-row {
+		margin: 0;
+		@include attachment-row-hover;
+
+		a {
+			color: var(--ink-gray-6);
+		}
+
+		.data-pill {
+			gap: calc(var(--spacing) * 2);
+
+			> div {
+				flex: 1;
+				min-width: 0;
+				gap: calc(var(--spacing) * 2);
+			}
+		}
+
+		.attachment-select {
+			flex-shrink: 0;
+			margin: 0;
+		}
+
+		.ellipsis-width {
+			max-width: none;
+		}
+	}
+
+	.attachments-dialog-empty {
+		padding: var(--padding-sm) calc(var(--spacing) * 1.5);
 	}
 }

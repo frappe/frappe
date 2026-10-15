@@ -1,5 +1,7 @@
 // TODO: change icon to Espresso
 $check-icon: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+// some but not all ticked (a select-all box)
+$dash-icon: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1.5 3.5H6.5' stroke='white' stroke-width='1.5' stroke-linecap='round'/></svg>");
 
 input[type="checkbox"] {
 	position: relative;
@@ -27,6 +29,14 @@ input[type="checkbox"] {
 	&:checked {
 		background-color: var(--primary);
 		background-image: $check-icon, var(--checkbox-gradient);
+		background-size: 57%, 100%;
+		box-shadow: none;
+		border: none;
+	}
+
+	&:indeterminate:not(:checked) {
+		background-color: var(--primary);
+		background-image: $dash-icon, var(--checkbox-gradient);
 		background-size: 57%, 100%;
 		box-shadow: none;
 		border: none;
