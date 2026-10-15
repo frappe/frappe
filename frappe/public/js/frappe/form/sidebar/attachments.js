@@ -4,7 +4,7 @@ frappe.ui.form.Attachments = class Attachments {
 	constructor(opts) {
 		$.extend(this, opts);
 
-		this.attachments_page_length = 10; // show n attachments initially
+		this.attachments_page_length = 3; // show n attachments initially
 		this.show_all_attachments = false;
 		this.attachment_preview_width_key = "form_attachment_preview_width";
 		this.max_csv_preview_size = 5 * 1024 * 1024;
@@ -83,7 +83,10 @@ frappe.ui.form.Attachments = class Attachments {
 			return;
 		}
 
-		show_all_btn.removeClass("hidden");
+		show_all_btn
+			.removeClass("hidden")
+			.find(".pill-label")
+			.text(__("{0} more", [attachments.length - this.attachments_page_length]));
 		show_all_btn.click(() => {
 			show_all_btn.addClass("hidden");
 			this.show_all_attachments = true;
@@ -160,7 +163,7 @@ frappe.ui.form.Attachments = class Attachments {
 		}
 
 		const icon = `<a href="/desk/file/${fileid}" class="attachment-icon">
-				${frappe.utils.icon(attachment.is_private ? "lock" : "lock-open", "sm ml-0")}
+				${frappe.utils.icon(attachment.is_private ? "lock" : "globe", "sm ml-0")}
 			</a>`;
 
 		let $attachment_row = $(`<div class="attachment-row"></div>`)

@@ -21,10 +21,19 @@ async function drop_files(page, target, files) {
 	await target.dispatchEvent("drop", { dataTransfer: data_transfer });
 }
 
+async function open_attach(page) {
+	const icon = page.locator('.form-sidebar-action[data-action="attachments"]');
+	if (await icon.isDisabled()) {
+		await page.locator(".add-attachment-btn").click();
+	} else {
+		await icon.click();
+	}
+}
+
 async function verify_attachment_visibility(page, desk, document, is_private) {
 	await page.goto(`/desk/${document}`);
 
-	await page.locator(".add-attachment-btn").click();
+	await open_attach(page);
 	await drop_files(page, desk.get_open_dialog().locator(".file-upload-area"), [
 		fixture("sample_image.jpg"),
 	]);
@@ -49,7 +58,7 @@ async function attach_file(page, desk, file, no_of_files = 1) {
 		);
 	}
 
-	await page.locator(".add-attachment-btn").click();
+	await open_attach(page);
 	await drop_files(page, desk.get_open_dialog().locator(".file-upload-area"), files);
 	await desk.get_open_dialog().getByRole("button", { name: "Upload", exact: true }).click();
 }
@@ -83,7 +92,11 @@ test.describe("Sidebar", () => {
 		);
 		await page.goto(`/desk/todo/${todo.message.name}`);
 
+		await expect(page.locator(".form-attachments")).toBeHidden();
 		await attach_file(page, desk, fixture("sample_image.jpg"));
+		await expect(
+			page.locator('.form-sidebar-action[data-action="attachments"]')
+		).toBeDisabled();
 		await expect(page.locator(".explore-link")).toBeVisible();
 		await expect(page.locator(".show-all-btn")).toBeHidden();
 
@@ -94,8 +107,47 @@ test.describe("Sidebar", () => {
 		await page.locator(".layout-side-section:visible").evaluate((el) => el.scrollTo(0, 0));
 		await expect(page.locator(".add-attachment-btn")).toBeHidden();
 
-		await expect(page.locator(".attachment-row")).toHaveCount(10);
+		// three attachments show, then "N more" shows the rest
+		await expect(page.locator(".attachment-row")).toHaveCount(3);
+		await expect(page.locator(".show-all-btn")).toContainText("9 more");
 		await page.locator(".show-all-btn").click();
 		await expect(page.locator(".attachment-row")).toHaveCount(12);
+	});
+
+	test("A reader who can't edit a document gets no attach, tag or share buttons", async ({
+		browser,
+		admin,
+		baseURL,
+	}) => {
+		const reader = "sidebar-reader@example.com";
+		const password = "Sidebar Reader 7#qT";
+		await admin.insert_doc(
+			"User",
+			{
+				email: reader,
+				first_name: "Sidebar Reader",
+				new_password: password,
+				send_welcome_email: 0,
+				roles: [{ role: "Blogger" }],
+			},
+			true
+		);
+		// Desk Users read public Notes but edit only their own
+		const note = await admin.insert_doc("Note", { title: "Sidebar reader note", public: 1 });
+
+		const context = await browser.newContext({ baseURL, storageState: undefined });
+		const page = await context.newPage();
+		const res = await page.request.post("/api/method/login", {
+			data: { usr: reader, pwd: password },
+		});
+		expect(res.status()).toBe(200);
+		await page.goto(`/desk/note/${note.name}`);
+
+		const action = (key) => page.locator(`.form-sidebar-action[data-action="${key}"]`);
+		await expect(action("assign")).toBeVisible();
+		for (const key of ["attachments", "tags", "share"]) {
+			await expect(action(key)).toBeHidden();
+		}
+		await context.close();
 	});
 });

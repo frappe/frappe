@@ -19,11 +19,12 @@
 	<div class="align-items-baseline flex form-stats-likes">
 		<div class="form-title-edit"></div>
 		<div class="form-print"></div>
-		<span class="liked-by like-action d-flex align-items-center">
-			<svg class="icon icon-sm like-icon pointer">
+		<button type="button" class="es-button liked-by like-action" data-variant="ghost" data-icon-button="true"
+			title="{%= __("Like") %}" aria-label="{%= __("Like") %}">
+			<svg class="icon icon-sm like-icon">
 				<use href="#icon-heart"></use>
 			</svg>
-		</span>
+		</button>
 	</div>
 	{% endif %}
 </div>
@@ -63,15 +64,17 @@
 		<div class="align-items-baseline flex form-stats-likes">
 			<div class="form-title-edit"></div>
 			<div class="form-print"></div>
-			<span class="liked-by like-action d-flex align-items-center">
-				<svg class="icon icon-sm like-icon pointer">
+			<button type="button" class="es-button liked-by like-action" data-variant="ghost" data-icon-button="true"
+				title="{%= __("Like") %}" aria-label="{%= __("Like") %}">
+				<svg class="icon icon-sm like-icon">
 					<use href="#icon-heart"></use>
 				</svg>
-			</span>
+			</button>
 		</div>
 		{% endif %}
 	</div>
 </div>
+<div class="sidebar-section form-sidebar-actions"></div>
 <div class="sidebar-section sidebar-rating hide border-bottom">
 	<div style="position: relative;">
 		<a class="strong badge-hover">
@@ -96,85 +99,78 @@
 	</div>
 	<div class="user-actions-list"></div>
 </div>
-<div class="sidebar-section form-assignments">
-	<div>
-		<span class="form-sidebar-items">
-			<span class="add-assignment-label form-sidebar-label">
-				{%= frappe.utils.icon("users") %}
-				<span class="ellipsis">{%= __("Assign") %}</span>
+<div class="form-sidebar-sections border-bottom">
+	<div class="sidebar-section form-assignments">
+		<div>
+			<span class="form-sidebar-items">
+				<span class="add-assignment-label form-sidebar-label">
+					<span class="ellipsis">{%= __("Assigned to") %}</span>
+				</span>
+				{%= frappe.ui.button.html({
+					icon: "plus",
+					variant: "ghost",
+					title: __("Assign"),
+					css_class: "add-assignment-btn",
+				}) %}
 			</span>
-			{%= frappe.ui.button.html({
-				icon: "plus",
-				variant: "ghost",
-				title: __("Assign"),
-				css_class: "add-assignment-btn",
-			}) %}
-		</span>
-		<div class="assignments"></div>
+			<div class="assignments"></div>
+		</div>
 	</div>
-</div>
-<div class="sidebar-section form-attachments">
-	<div class="attachments-actions">
-		<span class="form-sidebar-items">
-			<span>
-				<a class="pill-label ellipsis form-sidebar-label explore-link">
-					{%= frappe.utils.icon("paperclip") %}
-					{%= __("Attachments") %}
-				</a>
+	<div class="sidebar-section form-attachments">
+		<div class="attachments-actions">
+			<span class="form-sidebar-items">
+				<span>
+					<a class="pill-label ellipsis form-sidebar-label explore-link">
+						{%= __("Attachments") %}
+						<span class="form-sidebar-section-count"></span>
+					</a>
+				</span>
+				{%= frappe.ui.button.html({
+					icon: "plus",
+					variant: "ghost",
+					title: __("Add attachment"),
+					css_class: "add-attachment-btn",
+				}) %}
 			</span>
-			{%= frappe.ui.button.html({
-				icon: "plus",
-				variant: "ghost",
-				title: __("Add attachment"),
-				css_class: "add-attachment-btn",
-			}) %}
-		</span>
+		</div>
+		<a class="show-all-btn hidden" href="">
+			<span class="pill-label ellipsis"></span>
+		</a>
 	</div>
-	<a class="show-all-btn hidden" href="">
-		<span class="pill-label ellipsis">
-			{%= __("Show All") %}
-		</span>
-	</a>
-</div>
-<div class="sidebar-section form-tags">
-	<div>
-		<span class="form-sidebar-items">
-			<div class="form-sidebar-label">
-				{%= frappe.utils.icon("tag") %}
-				<span class="tags-label ellipsis">{%= __("Tags") %}</span>
-			</div>
-		</span>
-	</div>
-</div>
-<div class="sidebar-section form-shared border-bottom">
-	<div>
-		<span class="form-sidebar-items">
-			<span class="share-label form-sidebar-label">
-				{%= frappe.utils.icon("share-2") %}
-				<span class="ellipsis">{%= __("Share") %}</span>
+	<div class="sidebar-section form-tags">
+		<div>
+			<span class="form-sidebar-items">
+				<div class="form-sidebar-label">
+					<span class="tags-label ellipsis">{%= __("Tags") %}</span>
+				</div>
 			</span>
-			{%= frappe.ui.button.html({
-				icon: "plus",
-				variant: "ghost",
-				title: __("Share"),
-				css_class: "share-doc-btn",
-			}) %}
-		</span>
-		<div class="shares"></div>
+		</div>
+	</div>
+	<div class="sidebar-section form-shared">
+		<div>
+			<span class="form-sidebar-items">
+				<span class="share-label form-sidebar-label">
+					<span class="ellipsis">{%= __("Shared with") %}</span>
+				</span>
+				{%= frappe.ui.button.html({
+					icon: "plus",
+					variant: "ghost",
+					title: __("Share"),
+					css_class: "share-doc-btn",
+				}) %}
+			</span>
+			<div class="shares"></div>
+		</div>
 	</div>
 </div>
 <div class="sidebar-section form-connections hidden"></div>
 <div class="sidebar-section hidden">
 	<a><li class="indicator blue auto-repeat-status" style="display: none;"></li></a>
 </div>
-<div class="sidebar-section text-muted pt-3">
-	<ul class="list-unstyled sidebar-menu text-muted">
-		<li class="modified-by"></li>
-		<li class="created-by"></li>
-		<li class="pageview-count"></li>
-	</ul>
-</div>
-
 {% if(frappe.get_form_sidebar_extension) { %}
 	{{ frappe.get_form_sidebar_extension() }}
 {% } %}
+<div class="sidebar-section form-sidebar-activity">
+	<div class="form-sidebar-activity-users"></div>
+	<div class="pageview-count text-muted hidden"></div>
+</div>
