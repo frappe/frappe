@@ -4,6 +4,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.client import bulk_update
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.treeview import get_children
 from frappe.query_builder import Field
@@ -180,6 +181,33 @@ class TestNestedSet(IntegrationTestCase):
 
 	def test_rebuild_tree(self):
 		rebuild_tree(TEST_DOCTYPE)
+		self.test_basic_tree()
+
+	def test_insert_under_leaf(self):
+		with self.set_user("tree-manager@example.com"):
+			child = frappe.get_doc(
+				doctype=TEST_DOCTYPE, some_fieldname="Invalid Child", parent_test_tree_doctype="Child 1"
+			)
+			with self.assertRaises(frappe.ValidationError):
+				child.insert()
+			self.assertFalse(frappe.db.exists(TEST_DOCTYPE, "Invalid Child"))
+
+	def test_move_under_leaf(self):
+		with self.set_user("tree-manager@example.com"):
+			child = frappe.get_doc(TEST_DOCTYPE, "Child 2")
+			child.parent_test_tree_doctype = "Child 1"
+			with self.assertRaises(frappe.ValidationError):
+				child.save()
+
+	def test_bulk_update_cannot_move_under_leaf(self):
+		with self.set_user("tree-manager@example.com"):
+			result = bulk_update(
+				[{"doctype": TEST_DOCTYPE, "docname": "Child 2", "parent_test_tree_doctype": "Child 1"}]
+			)
+			self.assertEqual(len(result["failed_docs"]), 1)
+			self.assertEqual(
+				frappe.db.get_value(TEST_DOCTYPE, "Child 2", "parent_test_tree_doctype"), "Parent 1"
+			)
 		self.test_basic_tree()
 
 	def test_move_group_into_another(self):
