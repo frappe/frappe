@@ -177,7 +177,7 @@ frappe.ui.form.on("User", {
 					function () {
 						if (
 							frm.doc.name === "Administrator" &&
-							frappe.defaults.is_enabled("disable_admin_password_login")
+							frappe.defaults.is_enabled("disable_admin_pass_login")
 						) {
 							frappe.msgprint({
 								title: __("Password Login Disabled"),

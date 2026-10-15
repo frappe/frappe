@@ -163,7 +163,7 @@ def delete_login_failed_cache(user):
 
 
 def is_admin_password_login_disabled(user):
-	return user == "Administrator" and bool(frappe.get_system_settings("disable_admin_password_login"))
+	return user == "Administrator" and bool(frappe.get_system_settings("disable_admin_pass_login"))
 
 
 def is_password_login_disabled(user, doctype="User"):
@@ -190,8 +190,8 @@ def throw_password_login_disabled():
 def set_admin_password_login_setting(value):
 	from frappe.core.doctype.system_settings.system_settings import clear_system_settings_cache
 
-	frappe.db.set_single_value("System Settings", "disable_admin_password_login", cint(value))
-	frappe.db.set_default("disable_admin_password_login", cint(value))
+	frappe.db.set_single_value("System Settings", "disable_admin_pass_login", cint(value))
+	frappe.db.set_default("disable_admin_pass_login", cint(value))
 	clear_system_settings_cache()
 
 

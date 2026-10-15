@@ -168,13 +168,13 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
-	def test_disable_admin_password_login(self):
+	def test_disable_admin_pass_login(self):
 		from frappe.auth import LoginManager
 		from frappe.utils import set_request
 
-		before = frappe.get_system_settings("disable_admin_password_login")
-		self.set_system_settings("disable_admin_password_login", 1)
-		self.addCleanup(self.set_system_settings, "disable_admin_password_login", before)
+		before = frappe.get_system_settings("disable_admin_pass_login")
+		self.set_system_settings("disable_admin_pass_login", 1)
+		self.addCleanup(self.set_system_settings, "disable_admin_pass_login", before)
 
 		set_request(method="POST", path="/api/method/login")
 		frappe.form_dict.usr = "Administrator"

@@ -12,16 +12,16 @@ class TestSystemSettings(IntegrationTestCase):
 		# System Manager can save the doc, but permlevel 1 silently resets the field
 		frappe.set_user("test@example.com")
 		settings = frappe.get_doc("System Settings")
-		before = settings.disable_admin_password_login
-		settings.disable_admin_password_login = not settings.disable_admin_password_login
+		before = settings.disable_admin_pass_login
+		settings.disable_admin_pass_login = not settings.disable_admin_pass_login
 		settings.save()
-		self.assertEqual(settings.disable_admin_password_login, before)
+		self.assertEqual(settings.disable_admin_pass_login, before)
 
 		# without System Manager role, write on the doctype throws a permission error
 		frappe.set_user("test1@example.com")
 		self.assertNotIn("System Manager", frappe.get_roles())
 		settings = frappe.get_doc("System Settings")
-		settings.disable_admin_password_login = not settings.disable_admin_password_login
+		settings.disable_admin_pass_login = not settings.disable_admin_pass_login
 		with self.assertRaises(frappe.PermissionError):
 			settings.save()
 

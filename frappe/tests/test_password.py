@@ -141,7 +141,7 @@ class TestPassword(IntegrationTestCase):
 		self.assertEqual(doc.get_password(raise_exception=False), None)
 
 	def test_no_administrator_password_while_disabled(self):
-		before = frappe.get_system_settings("disable_admin_password_login")
+		before = frappe.get_system_settings("disable_admin_pass_login")
 		set_admin_password_login_setting(1)
 		self.addCleanup(set_admin_password_login_setting, before)
 

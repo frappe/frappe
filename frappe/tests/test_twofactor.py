@@ -311,10 +311,10 @@ class TestResetOtpSecret(IntegrationTestCase):
 		clear_system_settings_cache()
 
 	def test_administrator_blocked_when_either_setting_is_on(self):
-		self.set_single("System Settings", "disable_admin_password_login", 1)
+		self.set_single("System Settings", "disable_admin_pass_login", 1)
 		self.assertRaises(frappe.ValidationError, reset_otp_secret, "Administrator")
 
-		self.set_single("System Settings", "disable_admin_password_login", 0)
+		self.set_single("System Settings", "disable_admin_pass_login", 0)
 		self.set_single("System Settings", "disable_user_pass_login", 1)
 		self.assertRaises(frappe.ValidationError, reset_otp_secret, "Administrator")
 

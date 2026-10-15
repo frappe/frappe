@@ -10,7 +10,7 @@ no_cache = 1
 
 def get_context(context):
 	if is_password_login_disabled(frappe.session.user):
-		frappe.throw(_("Password login is disabled, so you cannot set a password."), frappe.PermissionError)
+		frappe.throw(_("Password login is disabled on this site."), frappe.PermissionError)
 
 	context.no_breadcrumbs = True
 	context.parents = [{"name": "me", "title": _("My Account")}]

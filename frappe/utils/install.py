@@ -134,7 +134,7 @@ def install_basic_docs():
 def setup_admin_password():
 	"""Set the Administrator password on a new site, only if given via --admin-password or common_site_config.
 
-	No password: nothing is inserted in __Auth and `disable_admin_password_login` stays on (default),
+	No password: nothing is inserted in __Auth and `disable_admin_pass_login` stays on (default),
 	so Administrator cannot log in with a password.
 	Password given: it is set and the setting is turned off.
 	"""
