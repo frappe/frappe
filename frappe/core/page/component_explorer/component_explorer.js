@@ -1498,59 +1498,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
-		"Bar List": {
-			helper: "frappe.ui.bar_list",
-			stacked: true,
-			groups: [
-				{
-					title: __("Basic"),
-					items: [
-						{
-							items: [
-								{ label: "Not due", value: 42000 },
-								{ label: "1–30 days", value: 18000 },
-								{ label: "31–60 days", value: 9500 },
-								{ label: "60+ days", value: 3000 },
-							],
-						},
-					],
-				},
-				{
-					title: __("Formatted, coloured, values on hover"),
-					items: [
-						{
-							items: [
-								{ label: "Laptops", value: 120 },
-								{ label: "Monitors", value: 84 },
-								{ label: "Keyboards", value: 51 },
-							],
-							format: (value) => value + " units",
-							color: "var(--green-600)",
-							name: __("In stock"),
-							tooltip_format: (value) => __("{0} units in the warehouse", [value]),
-							values_on_hover: true,
-						},
-					],
-				},
-				{
-					title: __("Wide labels + clickable rows"),
-					items: [
-						{
-							items: [
-								{ label: "Kaveri Industrial Supplies", value: 540000 },
-								{ label: "Northwind Traders", value: 320000 },
-							],
-							label_width: 180,
-							onclick: (item) => frappe.ui.toast({ message: item.label }),
-						},
-					],
-				},
-				{
-					title: __("Empty"),
-					items: [{ items: [] }],
-				},
-			],
-		},
 		"Empty State": {
 			helper: "frappe.ui.empty_state",
 			stacked: true,
@@ -2307,7 +2254,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	let selected_component;
 	async function render_component(name) {
 		selected_component = name;
-		if (["Stat Card", "Bar List"].includes(name)) {
+		if (name === "Stat Card") {
 			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
 			if (selected_component !== name) return;
 		}
