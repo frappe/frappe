@@ -126,9 +126,9 @@ def create_app(
 	partitions: dict[str, SessionStore] = {}
 
 	def partition_for(tenant: Tenant) -> SessionStore:
-		"""The site's partition, made on first use."""
+		"""The site's partition, made on first use and again if a reinstall deleted its folder."""
 		partition = partitions.get(tenant.site)
-		if partition is None:
+		if partition is None or not os.path.isdir(partition.sessions_dir):
 			partition = partitions[tenant.site] = store.for_site(
 				tenant.site,
 				tenant.allowed_roots,

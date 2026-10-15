@@ -3,6 +3,7 @@
 import importlib
 import json
 import os
+import shutil
 from argparse import Namespace
 from contextlib import asynccontextmanager
 
@@ -372,6 +373,18 @@ def test_a_site_whose_token_is_gone_is_refused(tmp_path):
 	_site(tmp_path, "site2.localhost", "")  # Flow uninstalled: its secret removed
 	assert c.get("/sessions", headers=TWO).status_code == 401
 	assert c.get("/sessions", headers=ONE).status_code == 200
+
+
+def test_a_reinstalled_site_works_without_a_restart(tmp_path):
+	cwd = _site(tmp_path, "site1.localhost", "token-one")
+	data_dir = str(tmp_path / "sites" / "{site}" / "flow")
+	c = TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path, data_dir=data_dir)))
+	assert c.post("/sessions", json={"cwd": cwd}, headers=ONE).status_code == 200
+	shutil.rmtree(os.path.join(cwd, "flow"))  # uninstall deletes the site's data
+	_site(tmp_path, "site1.localhost", "token-new")  # reinstall makes a new secret
+	again = _auth("site1.localhost", "token-new")
+	assert c.get("/sessions", headers=again).json()["sessions"] == []
+	assert c.post("/sessions", json={"cwd": cwd}, headers=again).status_code == 200
 
 
 def _renaming_bench(tmp_path) -> TenantTemplate:
