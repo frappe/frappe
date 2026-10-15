@@ -51,6 +51,7 @@ class TestDaemonClient(UnitTestCase):
 			),
 			(lambda: self.client.abort("s1"), "POST", "/sessions/s1/abort", None),
 			(lambda: self.client.cancel_pending("s1"), "POST", "/sessions/s1/cancel_pending", None),
+			(lambda: self.client.rewind("s1", 3), "POST", "/sessions/s1/rewind", {"target_seq": 3}),
 			(
 				lambda: self.client.set_model("s1", "openai/gpt-5", api_key="k", api_base="https://b"),
 				"POST",

@@ -242,6 +242,13 @@ class FlowSession(Document):
 			call_on_complete(self)
 		return status
 
+	def rewind(self, target_seq: int) -> str:
+		"""Branch the conversation from entry `target_seq`; refused while a run waits for approval."""
+		with flow_server() as client:
+			status = client.rewind(self.name, target_seq)["status"]
+		sync_with_retry(self)
+		return status
+
 	def _assert_can_run(self) -> None:
 		"""Enforce current agent and model access before the daemon uses its stored config."""
 		from flow.lib.model import model_config

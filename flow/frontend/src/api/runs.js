@@ -1,7 +1,8 @@
 // Which Flow Run a transcript turn belongs to. The log's runs and the session's Flow Run
 // rows are created in the same order; a run resumed after an approval pause continues
 // its row, so the resumed segment joins the span of the run it continues. Synced rows
-// name their latest segment (daemon_run_id), which pins the match exactly.
+// name their latest segment (daemon_run_id), which pins the match exactly. A synced row
+// no span names was rewound off the branch, so only unsynced rows are matched by order.
 export function runSpans(rows) {
 	const spans = [];
 	let resumable = false;
@@ -32,7 +33,7 @@ export function matchRuns(spans, runs) {
 		(span) => span.runIds.map((id) => byId.get(id)).find(Boolean) ?? null
 	);
 	const taken = new Set(matched.filter(Boolean).map((run) => run.name));
-	const spare = runs.filter((run) => !taken.has(run.name));
+	const spare = runs.filter((run) => !taken.has(run.name) && !run.daemon_run_id);
 	let next = 0;
 	return matched.map((run) => run ?? spare[next++] ?? null);
 }

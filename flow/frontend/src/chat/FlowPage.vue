@@ -95,6 +95,7 @@ const COMMANDS = [
 	"settings",
 	"transcript",
 	"new",
+	"rewind",
 	"abort",
 ];
 // the approval modes in Flow's terms: its tools act on documents, not files

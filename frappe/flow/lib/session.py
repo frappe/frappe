@@ -131,11 +131,13 @@ class LogRecorder:
 			if kind == "run_started":
 				self.start_run(row["run_id"])
 			elif kind == "user_message":
-				self.add_user_message(_extract_text(row["content"]))
+				self.add_user_message(_extract_text(row["content"]), row["seq"])
 			elif kind == "assistant_message":
-				self.add_assistant_message(*_assistant_text_and_tool_calls(row["content"]))
+				self.add_assistant_message(*_assistant_text_and_tool_calls(row["content"]), row["seq"])
 			elif kind == "tool_result":
-				self.add_message("tool", row["content"], tool_call_id=row["tool_call_id"])
+				self.add_message("tool", row["content"], seq=row["seq"], tool_call_id=row["tool_call_id"])
+			elif kind == "rewind":
+				self.rewind(row["target_seq"])
 			elif kind == "usage" and self.run:
 				self.run.usage = _dump(_add_usage(_load(self.run.usage) or {}, row))
 			elif kind == "approval_required" and self.run:
@@ -181,19 +183,26 @@ class LogRecorder:
 			}
 		).insert(ignore_permissions=True)
 
-	def add_user_message(self, text: str) -> None:
+	def add_user_message(self, text: str, seq: int) -> None:
 		if self.run and not self.run.input:
 			self.run.input = text
-		self.add_message("user", text)
+		self.add_message("user", text, seq=seq)
 
-	def add_assistant_message(self, text: str, calls: list[dict]) -> None:
+	def add_assistant_message(self, text: str, calls: list[dict], seq: int) -> None:
 		if self.run:
 			self.run.iterations = (self.run.iterations or 0) + 1
 			self.run.output = text or self.run.output
 			self.run.tool_calls = _dump((_load(self.run.tool_calls) or []) + calls)
 		self.add_message(
-			"assistant", text or None, tool_calls=_dump(_to_openai_tool_calls(calls)) if calls else None
+			"assistant",
+			text or None,
+			seq=seq,
+			tool_calls=_dump(_to_openai_tool_calls(calls)) if calls else None,
 		)
+
+	def rewind(self, target_seq: int) -> None:
+		"""Drop the transcript rows logged after the entry the conversation went back to."""
+		self.session.set("messages", [row for row in self.session.messages if row.seq <= target_seq])
 
 	def end_run(self, reason: str) -> None:
 		run = self.run

@@ -49,7 +49,10 @@ filesystem must change, so it can reuse the components instead of copying them:
   list can lag a model change).
 
 The store exposes `capabilities.rewind` when its client implements `rewind`.
-Both the message action and composer command follow that capability.
+Both the message action and composer command follow that capability. A session
+whose info sets `read_only` shows no message action, and neither does a message
+not in the log yet or one steered into a running turn; for a steered one, `/rewind`
+takes that run's own message.
 
 A client can implement `prepareAttachment(file)` returning `{ id, name, kind }`
 and `discardAttachments(ids)` to prepare uploads before a session exists.

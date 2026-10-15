@@ -430,6 +430,7 @@ class TestSessionEndpoints(ApiCase):
 			lambda: api.resume(fired, "{}"),
 			lambda: api.abort(fired),
 			lambda: api.cancel_pending(fired),
+			lambda: api.rewind(fired, 0),
 			lambda: api.set_model(fired, self.model.name),
 			lambda: api.set_title(fired, "x"),
 			lambda: api.set_auto_approve(fired, 1),
@@ -619,6 +620,18 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(self.daemon.calls[-1], ("resume", name, {"c9": "Approve"}, 8))
 		self.assertEqual(self.run_status(run), "Running")
 
+	def test_rewind_branches_the_chat_and_never_reads_a_bad_target_as_the_start(self):
+		name = self.create()
+		api.run(name, "hi")
+		self.assertEqual(api.rewind(name, "0"), {"status": "rewound"})
+		self.assertEqual(frappe.get_doc("Flow Session", name).messages, [])
+		for bad in ("abc", "-1", "", "²"):
+			with self.assertRaisesRegex(frappe.ValidationError, "whole number"):
+				api.rewind(name, bad)
+		self.assertEqual([c for c in self.daemon.calls if c[0] == "rewind"], [("rewind", name, 0)])
+		# a link on another site can't rewind a chat: GET skips Frappe's CSRF check
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.rewind], ("POST",))
+
 	def test_abort_cancel_and_entries_pass_through(self):
 		name = self.create()
 		self.assertEqual(api.abort(name), {"status": "idle"})
@@ -716,4 +729,31 @@ class TestLiveEndpoints(LiveServerCase):
 		self.assertEqual(api.entries(name)["entries"][-1]["type"], "run_ended")
 		self.assertEqual(
 			frappe.db.get_value("Flow Run", started["run"], "output"), "Mock reply to: hello there"
+		)
+
+	def test_a_rewind_takes_the_chat_back_to_before_a_message_and_the_next_turn_branches_there(self):
+		name = api.create_session(self.agent.name)["name"]
+		for message in ("one", "two"):
+			frappe.call("flow.api.run", session=name, message=message)
+			self.wait_idle(name)
+		two = next(row for row in api.entries(name)["entries"] if row.get("content") == "two")
+		# the page's target: the entry before the message's run_started
+		self.assertEqual(api.rewind(name, two["parent_seq"] - 1), {"status": "rewound"})
+		frappe.call("flow.api.run", session=name, message="three")
+		self.wait_idle(name)
+		data = api.sync_session(name)
+
+		self.assertEqual([run.status for run in data["runs"]], ["Completed"] * 3)
+		self.assertEqual(
+			[row["content"] for row in api.entries(name)["entries"] if row["type"] == "user_message"],
+			["one", "three"],
+		)
+		self.assertEqual(
+			[(m.role, m.content) for m in frappe.get_doc("Flow Session", name).messages],
+			[
+				("user", "one"),
+				("assistant", "Mock reply to: one"),
+				("user", "three"),
+				("assistant", "Mock reply to: three"),
+			],
 		)

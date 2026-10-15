@@ -2200,6 +2200,34 @@ test("a rewind that answers after a chat switch leaves the other chat's box alon
 	flow.detach()
 })
 
+test("/rewind passes over a message steered into a run and takes the run's own message", async () => {
+	const rewinds = []
+	const client = hostClient([])
+	const text = (value) => [{ type: "text", text: value }]
+	client.entries = async () => ({
+		entries: [
+			{ type: "run_started", seq: 1, parent_seq: 0, run_id: "r1" },
+			{ type: "user_message", seq: 2, parent_seq: 1, content: "start" },
+			{ type: "assistant_message", seq: 3, parent_seq: 2, content: text("reply-1") },
+			{ type: "user_message", seq: 4, parent_seq: 3, content: "steer me" },
+			{ type: "assistant_message", seq: 5, parent_seq: 4, content: text("reply-2") },
+			{ type: "run_ended", seq: 6, parent_seq: 5, reason: "done" },
+		],
+		latest_seq: 6,
+	})
+	client.rewind = async (sid, target) => {
+		rewinds.push([sid, target])
+		return { status: "rewound" }
+	}
+	const flow = createFlowStore(client)
+	await flow.openSession("s1")
+
+	assert.deepEqual(flow.state.conversation.steeredSeqs, [4])
+	assert.equal(await flow.rewindLastUserMessage(), "start")
+	assert.deepEqual(rewinds, [["s1", 0]])
+	flow.detach()
+})
+
 test("a compaction takes steering away as soon as it's asked for; a refused one gives it back", async () => {
 	let refuse
 	const client = hostClient([])

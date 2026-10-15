@@ -102,6 +102,7 @@ export class FrappeClient {
 			model: data.model,
 			latest_seq: 0,
 			context_window: this.contextWindows.get(data.model) ?? null,
+			read_only: Boolean(data.read_only),
 			config,
 		};
 	}
@@ -175,6 +176,10 @@ export class FrappeClient {
 
 	cancelPending(sid) {
 		return this.transport.call("flow.api.cancel_pending", { session: sid });
+	}
+
+	rewind(sid, targetSeq) {
+		return this.transport.call("flow.api.rewind", { session: sid, target_seq: targetSeq });
 	}
 
 	async setModel(sid, { model, reasoning_effort = null }) {
