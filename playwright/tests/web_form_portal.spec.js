@@ -211,6 +211,32 @@ test.describe("Web Form Pages", () => {
 		// a Section Break on the page keeps its heading
 		await expect(headings).toHaveText(["Extras"]);
 	});
+
+	test("Keeps the page name as a heading when there is no stepper", async ({ page, admin }) => {
+		const SINGLE_PAGE_ROUTE = "single-named-page-note";
+
+		await seed_web_form(
+			admin,
+			[
+				{ fieldtype: "Page Break", label: "About You" },
+				{ fieldname: "title", fieldtype: "Data", label: "Title" },
+			],
+			{
+				title: SINGLE_PAGE_ROUTE,
+				route: SINGLE_PAGE_ROUTE,
+				doc_type: web_form_source_doctype.name,
+				published: 1,
+				login_required: 0,
+			}
+		);
+
+		await page.goto(`/${SINGLE_PAGE_ROUTE}/new`);
+		await expect(
+			page.locator('.web-form .frappe-control[data-fieldname="title"]')
+		).toBeVisible();
+		await expect(page.locator(".web-form-stepper .es-progress")).toHaveCount(0);
+		await expect(page.locator(".web-form .section-head:visible")).toHaveText(["About You"]);
+	});
 });
 
 test.describe("Web Form Table", () => {
