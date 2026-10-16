@@ -80,6 +80,12 @@ frappe.ui.Dock = class Dock {
 			$("body").toggleClass("dock-pinned", pinned);
 			pinned ? this.open() : this.close();
 		}
+		// The sidebar keeps search and notifications, unless the dock is pinned or the page has no
+		// sidebar to keep them in.
+		this.$dock.toggleClass(
+			"dock-owns-utilities",
+			this.is_pinned || !this.sidebar.page_allows_sidebar()
+		);
 		// A collapsed sidebar hides beside a pinned dock and folds to its rail otherwise.
 		this.sidebar.refit_collapsed_sidebar();
 	}
@@ -103,8 +109,7 @@ frappe.ui.Dock = class Dock {
 		});
 	}
 
-	// Search and notifications lead a pinned tray, and the sidebar drops its own rows for them
-	// (see dock.scss). A floating tray hides them and the sidebar keeps its rows. The classes are
+	// Search and notifications lead the tray when it owns them (see apply_pin). The classes are
 	// what the search modal and the notifications panel already listen on.
 	render_utilities() {
 		if (frappe.session.user === "Guest") return;
