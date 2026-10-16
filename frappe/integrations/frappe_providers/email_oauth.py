@@ -5,6 +5,7 @@ through its own Pilot, and keeps the PKCE verifier and, after the callback, the 
 """
 
 import secrets
+from typing import Literal
 from urllib.parse import urlencode
 
 import jwt
@@ -22,8 +23,10 @@ CALLBACK_PATH = "/api/method/frappe.integrations.frappe_providers.email_oauth.ca
 # through relay_refresh
 FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:"
 DEFAULT_LANDING = "/desk/email-account"
+# PROVIDERS' keys; frappe checks whitelisted arguments against this type
+Provider = Literal["microsoft", "google"]
 # Mail settings per provider, keyed like Central's PROVIDERS; Central sends the OAuth side (scopes)
-PROVIDERS = {
+PROVIDERS: dict[Provider, dict] = {
 	"microsoft": {
 		"label": "Microsoft",
 		"service": "Outlook.com",  # the only Microsoft option, also for work accounts
@@ -42,12 +45,10 @@ PROVIDERS = {
 
 @frappe.whitelist(methods=["POST"])
 def initiate_mailbox_connect(
-	provider: str, redirect_to: str = DEFAULT_LANDING, target_doctype: str | None = None
+	provider: Provider, redirect_to: str = DEFAULT_LANDING, target_doctype: str | None = None
 ) -> str:
 	"""Start a mailbox Connect; returns the provider's sign-in link."""
 	frappe.has_permission("Email Account", "create", throw=True)
-	if provider not in PROVIDERS:
-		frappe.throw(_("Unknown mail provider: {0}").format(provider))
 	if not is_v2_site():
 		frappe.throw(
 			_("Sign in with {0} is only available on Frappe Cloud").format(PROVIDERS[provider]["label"])
