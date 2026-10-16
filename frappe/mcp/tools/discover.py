@@ -149,7 +149,7 @@ GET_DOCTYPE_SCHEMA = Tool(
 
 SEARCH_METHODS = Tool(
 	name="search_methods",
-	description="Find whitelisted API functions and document methods by keyword or path. Requires System Manager.",
+	description="Find whitelisted API functions and document methods by keyword or path.",
 	arguments=SearchMethodsArguments,
 	handler=search_methods,
 	annotations={"readOnlyHint": True},
@@ -157,7 +157,7 @@ SEARCH_METHODS = Tool(
 
 GET_METHOD_SCHEMA = Tool(
 	name="get_method_schema",
-	description="Inspect a whitelisted API function's arguments and documentation. Requires System Manager.",
+	description="Inspect a whitelisted API function's arguments and documentation.",
 	arguments=MethodSchemaArguments,
 	handler=discovery.method,
 	annotations={"readOnlyHint": True},
@@ -165,7 +165,7 @@ GET_METHOD_SCHEMA = Tool(
 
 LIST_DOCUMENT_METHODS = Tool(
 	name="list_document_methods",
-	description="List whitelisted instance methods for a DocType. Requires System Manager.",
+	description="List whitelisted instance methods for a DocType.",
 	arguments=DoctypeArguments,
 	handler=discovery.doctype_methods,
 	annotations={"readOnlyHint": True},
@@ -173,7 +173,7 @@ LIST_DOCUMENT_METHODS = Tool(
 
 GET_DOCUMENT_METHOD_SCHEMA = Tool(
 	name="get_document_method_schema",
-	description="Inspect a whitelisted document instance method's arguments and documentation. Requires System Manager.",
+	description="Inspect a whitelisted document instance method's arguments and documentation.",
 	arguments=DocumentMethodSchemaArguments,
 	handler=discovery.doctype_method,
 	annotations={"readOnlyHint": True},

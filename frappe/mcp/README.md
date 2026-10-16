@@ -88,9 +88,8 @@ Submit and cancel use `call_document_method` with `doctype`, `name`, and `method
 
 ### Permissions
 
-Authenticated users can inspect DocType schemas, including those they cannot read.
+Desk users can inspect DocType schemas and discover methods, including those they cannot read or call.
 Document reads and writes still require Frappe permissions.
-Method discovery requires System Manager access, but calling a known method does not require that role.
 Whitelisted RPC methods remain responsible for their own permission checks.
 
 ## Configuration and troubleshooting
