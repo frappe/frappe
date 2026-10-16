@@ -337,11 +337,6 @@ def set_authenticate_headers(response: Response):
 
 
 def make_form_dict(request: Request):
-	if request.path.rstrip("/") == "/api/v2/mcp":
-		# MCP owns its JSON-RPC body, including parse errors. Never treat it as an API command.
-		frappe.local.form_dict = frappe._dict()
-		return
-
 	request_data = request.get_data(as_text=True)
 	if request_data and request.is_json:
 		try:
