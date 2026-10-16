@@ -517,9 +517,12 @@ class TestSessionEndpoints(ApiCase):
 		disabled = _ensure_user("api-share-disabled@example.com")
 		frappe.db.set_value("User", disabled, "enabled", 0)
 		desk = _desk_user("api-share-desk@example.com")
-		for user in ("api-share-nobody@example.com", "Guest", disabled, desk, ["like", "%"]):
+		for user in ("api-share-nobody@example.com", "Guest", disabled, desk):
 			with self.subTest(user), self.assertRaises(frappe.ValidationError):
 				api.share_session(name, user)
+		# a filter in place of a user: newer Frappe refuses it by type, before our own check
+		with self.assertRaises((frappe.ValidationError, frappe.FrappeTypeError)):
+			api.share_session(name, ["like", "%"])
 		self.assertEqual(api.list_shares(name), [])
 		# a System Manager may use Flow without the Flow User role
 		manager = _ensure_manager()
