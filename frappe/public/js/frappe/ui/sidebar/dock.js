@@ -103,9 +103,9 @@ frappe.ui.Dock = class Dock {
 		});
 	}
 
-	// Search and notifications lead the tray, and the sidebar drops its own rows for them while
-	// the dock is active (see dock.scss). The classes are what the search modal and the
-	// notifications panel already listen on.
+	// Search and notifications lead a pinned tray, and the sidebar drops its own rows for them
+	// (see dock.scss). A floating tray hides them and the sidebar keeps its rows. The classes are
+	// what the search modal and the notifications panel already listen on.
 	render_utilities() {
 		if (frappe.session.user === "Guest") return;
 		const $utilities = this.$dock.find(".dock-utilities");
