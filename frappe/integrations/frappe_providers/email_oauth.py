@@ -1,41 +1,27 @@
-"""Connect a Microsoft mailbox in one click on Frappe Cloud.
+"""Connect a mailbox in one click on Frappe Cloud.
 
-Frappe Cloud (press.api.email_oauth) holds the Microsoft app and its secret; this site keeps
-the PKCE verifier and, after the callback, the tokens.
+Central (central.api.email_oauth) holds each provider's app and its secret; this site reaches it
+through its own Pilot, and keeps the PKCE verifier and, after the callback, the tokens.
 """
 
 import secrets
 from urllib.parse import urlencode
 
 import jwt
-from oauthlib.oauth2 import InvalidGrantError, WebApplicationClient
-from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import WebApplicationClient
 
 import frappe
 from frappe import _
 from frappe.integrations.frappe_providers.cloud_settings import PilotClient, is_v2_site
-from frappe.integrations.frappe_providers.frappecloud_billing import get_base_url, get_site_name
 from frappe.utils.data import get_host_name_from_request
 from frappe.www.login import sanitize_redirect
 
 NOTE_TTL = 10 * 60
 CALLBACK_PATH = "/api/method/frappe.integrations.frappe_providers.email_oauth.callback"
-RELAY_TOKEN_PATH = "/api/method/press.api.email_oauth.relay_token"
 # Token URI of a mailbox connected here is this + its provider key; Connected App refreshes it
 # through relay_refresh
 FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:"
 DEFAULT_LANDING = "/desk/email-account"
-SCOPES = (
-	"offline_access",
-	"https://outlook.office.com/IMAP.AccessAsUser.All",
-	"https://outlook.office.com/SMTP.Send",
-	"openid",
-	"email",
-	"profile",
-)
-PERSONAL_ACCOUNTS_TENANT = "9188040d-6c67-4c5b-b112-36a304b66dad"
-OUTLOOK_COM = {"email_server": "imap-mail.outlook.com", "smtp_server": "smtp-mail.outlook.com"}
-OFFICE_365 = {"email_server": "outlook.office365.com", "smtp_server": "smtp.office365.com"}
 # Mail settings per provider, keyed like Central's PROVIDERS; Central sends the OAuth side (scopes)
 PROVIDERS = {
 	"microsoft": {
@@ -108,7 +94,7 @@ def callback(
 	error_description: str | None = None,
 ):
 	"""
-	Microsoft sends the admin back here (through Press) with a code; connect the mailbox.
+	The provider sends the admin back here (through Central) with a code; connect the mailbox.
 	Creates Connected App and Mailbox records based on the OAuth response.
 	"""
 
@@ -136,44 +122,41 @@ def connect(note: dict, code: str | None, error: str | None, error_description: 
 			return "admin_approval"
 		if error == "access_denied":
 			return "cancelled"
-		if error == "not_team_member":  # from Press: this browser isn't logged in to the site's team
+		if error == "not_team_member":  # from Central: this browser isn't logged in to the site's team
 			return "not_team_member"
 		frappe.log_error("Email OAuth sign-in failed", f"{error}: {error_description}")
 		return "failed"
 
-	# sets OAUTHLIB_INSECURE_TRANSPORT (developer mode) and OAUTHLIB_RELAX_TOKEN_SCOPE
-	from frappe.integrations.doctype.connected_app import connected_app
-
-	client_secret = f"{get_site_name()}:{frappe.conf.get('fc_communication_secret')}"
-	token_url = get_base_url() + RELAY_TOKEN_PATH
+	provider = note["provider"]
 	try:
-		token = OAuth2Session(note["client_id"]).fetch_token(
-			token_url,
+		token = relay(
+			"relay_token",
+			provider=provider,
+			grant_type="authorization_code",
 			code=code,
 			code_verifier=note["verifier"],
-			client_secret=client_secret,
-			include_client_id=True,
-			timeout=30,
 		)
-	except InvalidGrantError:
+	except frappe.ValidationError as e:
+		if str(e) != "invalid_grant":  # Central passes on the provider's error code as the message
+			raise
 		return "expired"
 
 	# straight from the token endpoint over TLS, so no signature check (OIDC Core 3.1.3.7)
 	claims = jwt.decode(token["id_token"], options={"verify_signature": False})
 	email = claims.get("email") or claims["preferred_username"]
-	personal = claims.get("tid") == PERSONAL_ACCOUNTS_TENANT
+	config = PROVIDERS[provider]
+	personal = "personal_tenant" in config and claims.get("tid") == config["personal_tenant"]
 	if frappe.db.exists("Email Account", {"email_id": email}):
 		return "already_connected"
 
 	app = frappe.get_doc(
 		{
 			"doctype": "Connected App",
-			"provider_name": f"Microsoft ({email})",
+			"provider_name": f"{config['label']} ({email})",
 			"client_id": note["client_id"],
-			"authorization_uri": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-			"client_secret": client_secret,
-			"token_uri": token_url,
-			"scopes": [{"scope": scope} for scope in SCOPES],
+			"authorization_uri": note["authorization_uri"],
+			"token_uri": FRAPPE_CLOUD_RELAY + provider,
+			"scopes": [{"scope": scope} for scope in note["scopes"]],
 		}
 	).insert(ignore_permissions=True)
 	token_cache = frappe.get_doc(
@@ -201,8 +184,8 @@ def connect(note: dict, code: str | None, error: str | None, error_description: 
 				"create_contact": 1,
 				"track_email_status": 1,
 				"imap_folder": [{"folder_name": "INBOX", "append_to": note["target_doctype"]}],
-				"service": "Outlook.com",  # the only Microsoft option, also for work accounts
-				**(OUTLOOK_COM if personal else OFFICE_365),
+				"service": config["service"],
+				**(config["personal_servers"] if personal else config["servers"]),
 			}
 		).insert()
 	except Exception as e:
