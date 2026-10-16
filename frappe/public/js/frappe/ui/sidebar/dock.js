@@ -77,8 +77,6 @@ frappe.ui.Dock = class Dock {
 			$("body").toggleClass("dock-pinned", pinned);
 			pinned ? this.open() : this.close();
 		}
-		// The sidebar keeps search and notifications, unless the dock is pinned or the page has no
-		// sidebar to keep them in.
 		this.$dock.toggleClass(
 			"dock-owns-utilities",
 			this.is_pinned || !this.sidebar.page_allows_sidebar()
