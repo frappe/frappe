@@ -219,7 +219,7 @@ const emit = defineEmits(["title", "actions"]);
 
 The island is named `<app>.page.<page name>`, derived from the Page on both sides, so `<Island name="insights.page.sales-dashboard">` hosts the same page inside a frappe-ui app.
 
-**What a page island may import.** Framework builds these, one build for every page on the bench, rooted at `vite/island/toolchain/`. So a page island compiles against `frappe-ui`, `@framework/ui`, `vue` and what those bring, and nothing of the app's own. See [decision 0013](island/decisions/0013-framework-builds-page-islands.md).
+**What a page island may import.** Framework builds these, one build for every page on the bench, rooted at `apps/frappe/island-toolchain/`. So a page island compiles against `frappe-ui`, `@framework/ui`, `vue` and what those bring, and nothing of the app's own. See [decision 0013](island/decisions/0013-framework-builds-page-islands.md).
 
 **A page the app draws itself.** A page that needs the app's own components names one of the app's islands instead, in the Page's `island` field:
 
@@ -232,7 +232,7 @@ Framework then builds nothing for the page and scaffolds nothing beside its json
 **One setup step, once per bench.** The toolchain's dependencies are not in any lockfile a bench installs:
 
 ```bash
-yarn install --cwd apps/frappe/ui/vite/island/toolchain
+yarn install --cwd apps/frappe/island-toolchain
 ```
 
 A bench with no Frappe UI page never needs it. Without it, the build says so and names this command, and every Frappe UI page shows an unbuilt state that says the same.
