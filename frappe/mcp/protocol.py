@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 """Supported revisions and JSON-RPC response envelopes."""
 
+import re
 from typing import Any
 
 import frappe
@@ -35,8 +36,12 @@ class McpError(Exception):
 
 
 def server_info() -> dict[str, str]:
-	settings = frappe.get_cached_doc("MCP Settings")
-	return {"name": (settings.server_name or "").strip() or frappe.local.site, "version": frappe.__version__}
+	name = (frappe.get_cached_doc("MCP Settings").server_name or "").strip()
+	return {"name": name or default_server_name(), "version": frappe.__version__}
+
+
+def default_server_name() -> str:
+	return re.sub(r"[^a-z0-9]+", "_", get_host_name().lower()).strip("_")
 
 
 def server_instructions() -> str:

@@ -76,10 +76,11 @@ class TestMCPSettings(McpTestCase):
 		)
 		self.assertFalse(instructions.endswith("\n"))
 
-	def test_empty_settings_use_site_identity(self):
+	def test_empty_server_name_uses_scrubbed_host_name(self):
 		with self.settings(server_name="", enable_mcp=1):
-			result = self.initialize()
-		self.assertEqual(result["serverInfo"], {"name": self.site, "version": frappe.__version__})
+			result = self.initialize(headers={"Host": "ERP-1.example.com:8443"})
+		self.assertEqual(result["serverInfo"]["name"], "erp_1_example_com_8443")
+		self.assertEqual(result["serverInfo"]["version"], frappe.__version__)
 
 	def test_server_information_uses_site_settings(self):
 		with self.settings(
