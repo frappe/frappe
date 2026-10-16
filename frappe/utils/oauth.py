@@ -153,17 +153,19 @@ OAUTH_LOGIN_FLOW_CACHE_PREFIX = "frappe_oauth_login"
 OAUTH_LOGIN_BINDING_COOKIE = "oauth_login_binding"
 
 
-def _set_oauth_binding_cookie(binding_secret: str) -> None:
+def _set_oauth_binding_cookie(binding_secret: str, cross_site: bool = False) -> None:
 	frappe.local.cookie_manager.set_cookie(
 		OAUTH_LOGIN_BINDING_COOKIE,
 		binding_secret,
 		max_age=600,
 		httponly=True,
-		samesite="Lax",
+		# a form_post callback is a cross-site POST, which a Lax cookie is not sent on;
+		# SameSite=None is only accepted by browsers together with Secure
+		samesite="None" if cross_site and frappe.local.request.scheme == "https" else "Lax",
 	)
 
 
-def _get_or_create_oauth_binding_secret() -> str:
+def _get_or_create_oauth_binding_secret(cross_site: bool = False) -> str:
 	"""Return the browser-binding secret for this login attempt, minting one if needed.
 
 	Reuses an already-issued secret rather than replacing it, so that concurrent login
@@ -175,20 +177,22 @@ def _get_or_create_oauth_binding_secret() -> str:
 	- one the browser already holds: re-rendering `/login` (a refresh, a second tab)
 	  would otherwise orphan the states from the earlier render.
 	"""
-	if pending := frappe.local.cookie_manager.cookies.get(OAUTH_LOGIN_BINDING_COOKIE):
+	pending = frappe.local.cookie_manager.cookies.get(OAUTH_LOGIN_BINDING_COOKIE)
+	if pending and not cross_site:
 		return pending["value"]
 
-	if existing := frappe.local.request.cookies.get(OAUTH_LOGIN_BINDING_COOKIE):
-		# Re-set it so the cookie keeps outliving the states minted against it.
-		_set_oauth_binding_cookie(existing)
-		return existing
-
-	binding_secret = frappe.generate_hash(length=32)
-	_set_oauth_binding_cookie(binding_secret)
+	# Re-set a held cookie so it keeps outliving the states minted against it. A provider
+	# that needs it cross-site upgrades one already queued by another button on this page.
+	binding_secret = (
+		pending["value"]
+		if pending
+		else frappe.local.request.cookies.get(OAUTH_LOGIN_BINDING_COOKIE) or frappe.generate_hash(length=32)
+	)
+	_set_oauth_binding_cookie(binding_secret, cross_site)
 	return binding_secret
 
 
-def create_oauth_state(redirect_to: str | None) -> str:
+def create_oauth_state(redirect_to: str | None, cross_site: bool = False) -> str:
 	"""Create a single-use token referencing this login attempt's `redirect_to`.
 
 	The returned token is what gets sent to the OAuth provider as `state`. This request's
@@ -197,7 +201,7 @@ def create_oauth_state(redirect_to: str | None) -> str:
 	completing the callback is the same one that started this login attempt.
 	"""
 	state = frappe.generate_hash(length=32)
-	binding_hash = frappe.utils.sha256_hash(_get_or_create_oauth_binding_secret())
+	binding_hash = frappe.utils.sha256_hash(_get_or_create_oauth_binding_secret(cross_site))
 
 	frappe.cache.set_value(
 		f"{OAUTH_LOGIN_FLOW_CACHE_PREFIX}:{state}",
@@ -242,17 +246,18 @@ def consume_oauth_state(state: str) -> str | None:
 def get_oauth2_authorize_url(provider: str, redirect_to: str) -> str:
 	flow = get_oauth2_flow(provider)
 
-	state = create_oauth_state(redirect_to)
+	oauth2_providers = get_oauth2_providers()
+	auth_url_data = oauth2_providers[provider].get("auth_url_data", {})
+
+	state = create_oauth_state(redirect_to, cross_site=auth_url_data.get("response_mode") == "form_post")
 
 	data = {
 		"redirect_uri": get_redirect_uri(provider),
 		"state": state,
 	}
 
-	oauth2_providers = get_oauth2_providers()
-
 	# additional data if any
-	data.update(oauth2_providers[provider].get("auth_url_data", {}))
+	data.update(auth_url_data)
 
 	return flow.get_authorize_url(**data)
 

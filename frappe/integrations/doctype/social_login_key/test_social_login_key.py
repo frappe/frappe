@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import json
 from unittest.mock import MagicMock, patch
+from urllib.parse import parse_qs, urlparse
 
 import jwt
 from cryptography.hazmat.primitives import serialization
@@ -19,6 +20,7 @@ from frappe.utils.oauth import (
 	create_oauth_state,
 	enforce_office_365_tenant,
 	get_info_via_oauth,
+	get_oauth2_authorize_url,
 	get_verified_office_365_claims,
 	login_via_oauth2,
 )
@@ -158,6 +160,48 @@ class TestSocialLoginKey(IntegrationTestCase):
 		# Flow B, still pending in that same browser, must remain redeemable.
 		simulate_new_request(None if browser_dropped_cookie else issued_secret)
 		self.assertEqual(consume_oauth_state(flow_b), "/app/flow-b")
+
+	def test_form_post_provider_gets_a_cross_site_binding_cookie(self):
+		"""A form_post callback is a cross-site POST, which a Lax cookie is not sent on."""
+		github_social_login_setup()
+
+		def binding_samesite(*cross_site_flags, scheme="https"):
+			set_request(path="/login", base_url=f"{scheme}://example.com")
+			frappe.local.cookie_manager = CookieManager()
+			for cross_site in cross_site_flags:
+				create_oauth_state(None, cross_site=cross_site)
+			return frappe.local.cookie_manager.cookies[OAUTH_LOGIN_BINDING_COOKIE]["samesite"]
+
+		self.assertEqual(binding_samesite(False), "Lax")
+		self.assertEqual(binding_samesite(True), "None")
+		# either order on one page: the form_post button's cookie wins
+		self.assertEqual(binding_samesite(False, True), "None")
+		self.assertEqual(binding_samesite(True, False), "None")
+		# browsers drop SameSite=None without Secure, which would break every provider
+		self.assertEqual(binding_samesite(True, scheme="http"), "Lax")
+
+	def test_form_post_callback_is_still_bound_to_the_browser(self):
+		"""Relaxing SameSite for form_post must not relax the binding itself."""
+		github_social_login_setup()
+		frappe.db.set_value(
+			"Social Login Key", "github", "auth_url_data", json.dumps({"response_mode": "form_post"})
+		)
+
+		set_request(path="/login", base_url="https://example.com")
+		frappe.local.cookie_manager = CookieManager()
+
+		def state_from_authorize_url():
+			return parse_qs(urlparse(get_oauth2_authorize_url("github", "/app")).query)["state"][0]
+
+		matching_state, mismatched_state = state_from_authorize_url(), state_from_authorize_url()
+		cookie = frappe.local.cookie_manager.cookies[OAUTH_LOGIN_BINDING_COOKIE]
+		self.assertEqual(cookie["samesite"], "None")
+
+		simulate_new_request("another-browsers-secret")
+		self.assertIsNone(consume_oauth_state(mismatched_state))
+
+		simulate_new_request(cookie["value"])
+		self.assertEqual(consume_oauth_state(matching_state), "/app")
 
 	def test_forged_oauth_state_is_rejected_end_to_end(self):
 		"""A state value that wasn't issued via create_oauth_state() must not log anyone in
