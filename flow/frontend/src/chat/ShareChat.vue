@@ -172,8 +172,9 @@ async function remove(user) {
 
 async function setAccess(value) {
 	if (value === access.value) return;
-	const set = await attempt(() => flow.client.setGeneralAccess(chat, value));
-	if (set) page.state.generalAccess[chat] = set;
+	const id = chat; // the reply is this chat's, even if another one opens meanwhile
+	const set = await attempt(() => flow.client.setGeneralAccess(id, value));
+	if (set) page.state.generalAccess[id] = set;
 }
 
 // every request returns the whole list; it lands only if newer than the one on show

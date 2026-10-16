@@ -455,18 +455,18 @@ test("the share dialog acts only on the chat it opened for, and a late list neve
 
 test("the share dialog shows who else may view, and its owner opens the chat to every Flow user", async (t) => {
 	const set = [];
-	const pageState = reactive({ boot, generalAccess: { S1: "Restricted" } });
+	const state = reactive({ sessionId: "S1", session: { title: "Q3 plan" } });
+	const pageState = reactive({ boot, generalAccess: { S1: "Restricted", S2: "Everyone" } });
 	const { el, vm } = shareDialog(
 		t,
 		{
 			shares: async () => [],
 			findUsers: async () => [],
-			setGeneralAccess: async (sid, access) => {
-				set.push([sid, access]);
-				return access;
-			},
+			// each reply waits for the test to send it
+			setGeneralAccess: (sid, access) =>
+				new Promise((resolve) => set.push([sid, access, () => resolve(access)])),
 		},
-		{ page: pageState }
+		{ state, page: pageState }
 	);
 	vm.show();
 	await until(() => el.querySelector("[role=dialog]"));
@@ -478,9 +478,26 @@ test("the share dialog shows who else may view, and its owner opens the chat to 
 		["Only people you add", "Every Flow user"]
 	);
 	choices()[1].click();
+	set[0][2]();
 	await until(() => access().dataset.value === "Everyone");
-	assert.deepEqual(set, [["S1", "Everyone"]]);
-	assert.equal(pageState.generalAccess.S1, "Everyone");
+
+	// a reply that comes back after another chat's dialog opened changes only its own chat
+	choices()[0].click();
+	state.sessionId = "S2";
+	await nextTick();
+	vm.show();
+	await until(() => el.querySelector("[role=dialog]"));
+	set[1][2]();
+	await new Promise((resolve) => setTimeout(resolve, 20));
+	assert.deepEqual(
+		set.map(([sid, value]) => [sid, value]),
+		[
+			["S1", "Everyone"],
+			["S1", "Restricted"],
+		]
+	);
+	assert.deepEqual(pageState.generalAccess, { S1: "Restricted", S2: "Everyone" });
+	assert.equal(access().dataset.value, "Everyone");
 });
 
 test("the thumbs show under a finished run, but not in a chat the user may only view", async (t) => {
