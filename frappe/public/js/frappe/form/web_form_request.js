@@ -48,7 +48,7 @@ export class WebFormRequestDialog {
 		this.dialog.add_custom_action(__("Email Link"), () => {
 			const values = this.dialog.get_values();
 			if (!values) return;
-			this.create(values).then((url) => {
+			return this.create(values).then((url) => {
 				this.dialog.hide();
 				this.email(url, values.web_form);
 			});
