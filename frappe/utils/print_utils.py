@@ -216,8 +216,10 @@ def get_print(
 				pdf_generator=generator,
 			)
 			# if hook returns a value, assume it was the correct pdf_generator and return it
-			if isinstance(pdf, bytes):
-				return run_after_print(doc=doc, pdf=pdf, password=password, output=output)
+			if pdf:
+				if isinstance(pdf, bytes):
+					return run_after_print(doc=doc, pdf=pdf, password=password, output=output)
+				return pdf
 
 		pdf = get_pdf(html, options=pdf_options, output=None, print_format=print_format)
 		return run_after_print(doc=doc, pdf=pdf, password=password, output=output)
