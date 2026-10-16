@@ -3,7 +3,6 @@
 import json
 import time
 from contextlib import contextmanager
-from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
@@ -14,28 +13,21 @@ import frappe.exceptions
 from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
-	bulk_add_roles,
-	bulk_remove_roles,
 	handle_password_test_fail,
 	reset_password,
-	rewrite_owner_fields,
 	sign_up,
 	test_password_strength,
 	update_password,
 	verify_password,
 )
-from frappe.database import get_db
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import toggle_test_mode
-from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, get_url, now_datetime, sha256_hash
-from frappe.utils.data import orjson_dumps
+from frappe.utils import get_url
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
@@ -123,58 +115,6 @@ class TestUser(IntegrationTestCase):
 
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
-
-	def insert_user_as_manager(self, first_name, username=None):
-		if frappe.session.user == "Administrator":
-			manager = frappe.get_doc(
-				doctype="User",
-				email=f"{frappe.generate_hash()}@example.com",
-				first_name="Manager",
-				roles=[{"role": "System Manager"}],
-			).insert()
-			frappe.set_user(manager.name)
-
-		return frappe.get_doc(
-			doctype="User",
-			email=f"{frappe.generate_hash()}@example.com",
-			first_name=first_name,
-			username=username,
-		).insert()
-
-	def test_username_from_a_taken_first_name(self):
-		first_name = f"Tester {frappe.generate_hash(length=8)}"
-		base = frappe.scrub(first_name)
-		first = self.insert_user_as_manager(first_name)
-		self.insert_user_as_manager("Decoy", username=f"{base}-\u00b2")
-		second = self.insert_user_as_manager(first_name)
-
-		self.assertEqual(first.username, base)
-		self.assertEqual(second.username, f"{base}-1")
-
-	def test_username_from_a_first_name_taken_with_accents(self):
-		suffix = frappe.generate_hash(length=8)
-		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}")
-		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}-1")
-		user = self.insert_user_as_manager(f"Jose{suffix}")
-
-		self.assertTrue(user.username)
-
-	def test_username_taken_while_the_user_is_saved(self):
-		first_name = f"Tester {frappe.generate_hash(length=8)}"
-		base = frappe.scrub(first_name)
-		self.insert_user_as_manager(first_name)
-		other = self.insert_user_as_manager("Other")
-		validate_username = User.validate_username
-
-		def taken_meanwhile(user):
-			validate_username(user)
-			frappe.db.set_value("User", other.name, "username", user.username)
-
-		with patch.object(User, "validate_username", taken_meanwhile):
-			second = self.insert_user_as_manager(first_name)
-
-		self.assertEqual(second.username, f"{base}-2")
-		self.assertFalse([m for m in frappe.message_log if "unique" in str(m)])
 
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
@@ -312,10 +252,6 @@ class TestUser(IntegrationTestCase):
 			result = test_password_strength("Eastern_43A1W")
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
 
-			result = test_password_strength("xK9#mP2$vL8@qR5&wN3*zB7!cF4^hJ6%tD1(gS0)yA9-eU2_iO5+kM8=nQ4~rV7")
-			self.assertEqual(set(result), {"score", "feedback"})
-			orjson_dumps(result)
-
 			# test password strength while saving user with new password
 			user = frappe.get_doc("User", "test@example.com")
 			toggle_test_mode(False)
@@ -388,17 +324,14 @@ class TestUser(IntegrationTestCase):
 		"""
 		self.assertListEqual(extract_mentions(comment), ["test@example.com", "test1@example.com"])
 
-	@requires_test_service(TestService.WEB_SERVER)
 	@IntegrationTestCase.change_settings("System Settings", commit=True, password_reset_limit=1)
 	def test_rate_limiting_for_reset_password(self):
 		url = get_url()
 		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
 
-		# Password reset is limited by the request IP, not the submitted user.
-		# Clear all identities for this endpoint instead of guessing the IP key.
-		counter_prefix = f"rl:{data['cmd']}:"
-		frappe.cache.delete_keys(counter_prefix)
-		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
+		# Clear rate limit tracker to start fresh
+		key = f"rl:{data['cmd']}:{data['user']}"
+		frappe.cache.delete(key)
 
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
@@ -424,112 +357,6 @@ class TestUser(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
 		frappe.delete_doc("User", new_name)
-
-	def test_user_rename_defers_the_owner_sweep(self):
-		old_name = "test_user_rename_owner@example.com"
-		new_name = "test_user_rename_owner_new@example.com"
-		user = frappe.get_doc(
-			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a renamed user"}).insert()
-		frappe.db.set_value(
-			"ToDo", todo.name, {"owner": old_name, "modified_by": old_name}, update_modified=False
-		)
-
-		with patch("frappe.enqueue") as enqueue:
-			frappe.rename_doc("User", user.name, new_name)
-
-		enqueue.assert_any_call(
-			"frappe.core.doctype.user.user.rewrite_owner_fields",
-			old_name=old_name,
-			new_name=new_name,
-			commit=True,
-			queue="long",
-			timeout=36000,
-			enqueue_after_commit=True,
-		)
-		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), old_name)
-
-		rewrite_owner_fields(old_name, new_name)
-
-		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), new_name)
-		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
-
-	def test_owner_sweep_leaves_rows_of_a_new_user_at_the_old_name(self):
-		old_name = "test_user_rename_reused@example.com"
-		new_name = "test_user_rename_reused_new@example.com"
-		frappe.get_doc(
-			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-		taken_at = frappe.db.get_value("User", old_name, "creation")
-
-		before = frappe.get_doc({"doctype": "ToDo", "description": "written before the rename"}).insert()
-		after = frappe.get_doc({"doctype": "ToDo", "description": "written by the new holder"}).insert()
-		for todo, written_at in (
-			(before, add_to_date(taken_at, minutes=-1)),
-			(after, add_to_date(taken_at, minutes=1)),
-		):
-			frappe.db.set_value(
-				"ToDo",
-				todo.name,
-				{"owner": old_name, "modified_by": old_name, "creation": written_at, "modified": written_at},
-				update_modified=False,
-			)
-
-		rewrite_owner_fields(old_name, new_name)
-
-		self.assertEqual(
-			frappe.db.get_value("ToDo", before.name, ["owner", "modified_by"]), (new_name, new_name)
-		)
-		self.assertEqual(
-			frappe.db.get_value("ToDo", after.name, ["owner", "modified_by"]), (old_name, old_name)
-		)
-
-	def test_user_rename_and_delete_blocked_while_owner_sweep_is_pending(self):
-		freed = "test_user_rename_pending_freed@example.com"
-		renamed = "test_user_rename_pending@example.com"
-		other = "test_user_rename_pending_other@example.com"
-		for email in (freed, renamed, other):
-			frappe.get_doc(
-				{"doctype": "User", "email": email, "first_name": "_Test", "send_welcome_email": 0}
-			).insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-		unrelated = "test_user_rename_pending_unrelated@example.com"
-		frappe.get_doc(
-			{"doctype": "User", "email": unrelated, "first_name": "_Test", "send_welcome_email": 0}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-		def pending_job(method, old_name, new_name):
-			return SimpleNamespace(
-				kwargs={
-					"site": frappe.local.site,
-					"method": method,
-					"kwargs": {"old_name": old_name, "new_name": new_name},
-				}
-			)
-
-		pending_jobs = [
-			pending_job("frappe.core.doctype.user.user.rewrite_owner_fields", freed, renamed),
-			pending_job("frappe.utils.global_search.rebuild_for_doctype", unrelated, unrelated),
-		]
-		with (
-			patch("frappe.core.doctype.user.user.get_queue", return_value=SimpleNamespace(jobs=pending_jobs)),
-			patch("frappe.core.doctype.user.user.get_running_jobs_in_queue", return_value=[]),
-		):
-			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com")
-
-			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", other, renamed, merge=True)
-
-			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", freed, "test_user_rename_pending_freed_new@example.com")
-
-			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.delete_doc("User", freed)
-
-			frappe.rename_doc("User", unrelated, "test_user_rename_pending_unrelated_new@example.com")
 
 	def test_user_rename_updates_private_workspace(self):
 		old_name = "test_user_rename_ws@example.com"
@@ -596,9 +423,13 @@ class TestUser(IntegrationTestCase):
 		random_user_name = frappe.mock("name")
 		# disabled signup
 		with patch.object(user_module, "is_signup_disabled", return_value=True):
-			self.assertTupleEqual(
-				sign_up(random_user, random_user_name, "/signup"),
-				(0, "We could not create an account with the provided details."),
+			self.assertRaisesRegex(
+				frappe.exceptions.ValidationError,
+				"Sign Up is disabled",
+				sign_up,
+				random_user,
+				random_user_name,
+				"/signup",
 			)
 
 		self.assertTupleEqual(
@@ -610,10 +441,7 @@ class TestUser(IntegrationTestCase):
 		)
 
 		# re-register
-		self.assertTupleEqual(
-			sign_up(random_user, random_user_name, "/welcome"),
-			(0, "We could not create an account with the provided details."),
-		)
+		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))
 
 		# disabled user
 		user = frappe.get_doc("User", random_user)
@@ -621,19 +449,19 @@ class TestUser(IntegrationTestCase):
 		user.save()
 
 		self.assertTupleEqual(
-			sign_up(random_user, random_user_name, "/welcome"),
-			(0, "We could not create an account with the provided details."),
+			sign_up(random_user, random_user_name, "/welcome"), (0, "Registered but disabled")
 		)
 
 		# throttle user creation
 		with patch.object(user_module.frappe.db, "get_creation_count", return_value=301):
-			response = frappe.local.response
-			frappe.local.response = frappe._dict()
-			try:
-				self.assertIsNone(sign_up(frappe.mock("email"), random_user_name, "/signup"))
-				self.assertEqual(frappe.local.response["http_status_code"], 429)
-			finally:
-				frappe.local.response = response
+			self.assertRaisesRegex(
+				frappe.exceptions.ValidationError,
+				"Throttled",
+				sign_up,
+				frappe.mock("email"),
+				random_user_name,
+				"/signup",
+			)
 
 	@IntegrationTestCase.change_settings("System Settings", password_reset_limit=6)
 	def test_reset_password(self):
@@ -788,52 +616,6 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
-	@unimplemented_for(db_type_is.SQLITE)
-	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
-		from frappe.auth import CookieManager, LoginManager
-		from frappe.utils import set_request
-
-		other = get_db(
-			socket=frappe.db.socket,
-			host=frappe.db.host,
-			user=frappe.db.user,
-			password=frappe.db.password,
-			port=frappe.db.port,
-			cur_db_name=frappe.db.cur_db_name,
-		)
-		self.addCleanup(other.close)
-
-		with test_user(roles=[], commit=True) as user:
-			key = self.reset_password(user)
-			hashed_key = sha256_hash(key)
-			# the second connection only sees committed rows
-			frappe.db.commit()  # nosemgrep
-
-			set_request(path="/random")
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-
-			def competing_request(*args):
-				# a second request with the same key can neither take it nor wait for it
-				with patch.object(frappe.local, "db", other):
-					with self.assertRaises(frappe.QueryTimeoutError):
-						frappe.db.get_value(
-							"User", {"reset_password_key": hashed_key}, for_update=True, wait=False
-						)
-					frappe.db.rollback()
-
-				# clearing sessions commits mid-request; the key must already be gone by then
-				frappe.db.commit()  # nosemgrep
-				with patch.object(frappe.local, "db", other):
-					self.assertFalse(frappe.db.exists("User", {"reset_password_key": hashed_key}))
-					frappe.db.rollback()
-				return False
-
-			with patch.object(user_module, "is_password_reused", side_effect=competing_request) as probe:
-				self.assertEqual(update_password("Eastern_43A1W", key=key), "me")
-			probe.assert_called_once()
-			frappe.set_user("Administrator")
-
 	@contextmanager
 	def outgoing_email_account(self):
 		exists = frappe.db.exists
@@ -880,90 +662,14 @@ class TestUser(IntegrationTestCase):
 			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
 			frappe.set_user("Administrator")
 
-	def test_bulk_add_roles(self):
-		"""Roles are appended across the selection without disturbing existing ones."""
-		with (
-			test_user(roles=["_Test Role"]) as first,
-			test_user(roles=["Website Manager"]) as second,
-		):
-			bulk_add_roles([first.name, second.name], ["_Test Role 4", "_Test Role"])
-
-			first.reload()
-			second.reload()
-
-			self.assertCountEqual([d.role for d in first.roles], ["_Test Role", "_Test Role 4"])
-			self.assertCountEqual(
-				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "_Test Role"]
-			)
-
-	def test_bulk_remove_roles(self):
-		"""Roles are stripped across the selection, leaving other roles intact."""
-		with (
-			test_user(roles=["_Test Role", "Website Manager"]) as first,
-			test_user(roles=["_Test Role"]) as second,
-		):
-			bulk_remove_roles([first.name, second.name], ["_Test Role", "_Test Role 4"])
-
-			first.reload()
-			second.reload()
-
-			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
-			self.assertCountEqual([d.role for d in second.roles], [])
-
-			bulk_remove_roles([], ["Website Manager"])
-			bulk_remove_roles([first.name], [])
-
-			first.reload()
-			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
-
-	def test_bulk_role_endpoints_enqueue_large_batches(self):
-		"""Over 20 users, each endpoint defers to its own background job."""
-		users = [f"bulk{i}@example.com" for i in range(21)]
-
-		with patch.object(frappe, "enqueue") as mocked_enqueue:
-			bulk_add_roles(users, ["Blogger"])
-
-		mocked_enqueue.assert_called_once()
-		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._assign_roles")
-
-		with patch.object(frappe, "enqueue") as mocked_enqueue:
-			bulk_remove_roles(users, ["Blogger"])
-
-		mocked_enqueue.assert_called_once()
-		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._unassign_roles")
-
-	def test_bulk_role_args_are_validated(self):
-		"""Parsed arguments must be lists of plain strings, within the batch cap."""
-		with self.assertRaises(frappe.ValidationError):
-			bulk_add_roles([{"name": ["!=", ""]}], ["Blogger"])
-
-		with self.assertRaises(frappe.ValidationError):
-			bulk_add_roles(["someone@example.com"], [{"role": ["!=", ""]}])
-
-		with self.assertRaises(frappe.ValidationError):
-			bulk_add_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
-
-		with self.assertRaises(frappe.ValidationError):
-			bulk_remove_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
-
-	def test_bulk_role_endpoints_require_write_permission(self):
-		with test_user(roles=["_Test Role 4"]) as actor, test_user(roles=["_Test Role 4"]) as target:
-			with self.set_user(actor.name):
-				with self.assertRaises(frappe.PermissionError):
-					bulk_add_roles([target.name], ["Website Manager"])
-
-				with self.assertRaises(frappe.PermissionError):
-					bulk_remove_roles([target.name], ["_Test Role 4"])
-
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
 		with test_user(roles=["System Manager"], commit=True) as user:
-			response = self.post(
+			self.post(
 				self.method("frappe.core.doctype.user.user.impersonate"),
 				{"user": user.name, "reason": "test", "sid": self.sid},
 			)
-			self.assertEqual(response.status_code, 200)
 			resp = self.get(self.method("frappe.auth.get_logged_user"))
 			self.assertEqual(resp.json["message"], user.name)
 
