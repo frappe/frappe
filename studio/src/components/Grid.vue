@@ -1,14 +1,14 @@
 <template>
-	<div class="flex flex-col">
+	<div class="flex flex-col gap-1.5">
 		<FormInputLabel v-if="label" :label="label">{{ label }}</FormInputLabel>
 
-		<div class="rounded-4 border border-outline-gray-2">
+		<div class="overflow-hidden rounded-4 border border-outline-gray-2">
 			<!-- Header -->
 			<div
-				class="grid items-center rounded-t-1 bg-surface-gray-2"
+				class="grid items-center divide-x divide-outline-gray-2 bg-surface-gray-2"
 				:style="{ gridTemplateColumns: gridTemplateColumns }"
 			>
-				<div class="border-r p-1 text-center">
+				<div class="p-1 text-center">
 					<Checkbox
 						size="sm"
 						class="cursor-pointer duration-300"
@@ -16,11 +16,9 @@
 						@click.stop="toggleSelectAllRows($event.target.checked)"
 					/>
 				</div>
-				<div class="inline-flex h-full items-center justify-center border-r p-1 text-base text-ink-gray-7">
-					No.
-				</div>
+				<div class="inline-flex h-full items-center justify-center p-1 text-base text-ink-gray-7">No.</div>
 				<div
-					class="inline-flex h-full items-center border-r p-1 text-base text-ink-gray-7"
+					class="inline-flex h-full items-center p-1 text-base text-ink-gray-7"
 					v-for="column in columns"
 					:key="column.fieldname"
 				>
@@ -33,10 +31,10 @@
 				<Draggable class="w-full" v-model="rows" group="rows" item-key="name">
 					<template #item="{ element: row, index }">
 						<div
-							class="grid-row grid cursor-pointer items-center border-b border-outline-gray-2 bg-surface-base last:rounded-b-4 last:border-b-0"
+							class="grid-row grid cursor-pointer items-center divide-x divide-outline-gray-2 border-b border-outline-gray-2 bg-surface-base last:border-b-0"
 							:style="{ gridTemplateColumns: gridTemplateColumns }"
 						>
-							<div class="flex h-full items-center justify-center border-r">
+							<div class="flex h-full items-center justify-center">
 								<Checkbox
 									size="sm"
 									class="cursor-pointer duration-300"
@@ -44,10 +42,10 @@
 									@click.stop="toggleSelectRow(row)"
 								/>
 							</div>
-							<div class="flex h-full items-center justify-center border-r p-1 text-sm text-ink-gray-7">
+							<div class="flex h-full items-center justify-center p-1 text-sm text-ink-gray-7">
 								{{ index + 1 }}
 							</div>
-							<div class="border-r border-outline-gray-2" v-for="column in columns" :key="column.fieldname">
+							<div class="grid h-full items-center" v-for="column in columns" :key="column.fieldname">
 								<Link
 									v-if="column.fieldtype === 'Link'"
 									:doctype="row.link_type"
@@ -84,10 +82,10 @@
 				</Draggable>
 			</template>
 
-			<div v-else class="flex flex-col items-center rounded-4 p-5 text-sm text-ink-gray-5">No Data</div>
+			<div v-else class="flex flex-col items-center p-5 text-sm text-ink-gray-5">No Data</div>
 		</div>
 
-		<div class="mt-2 flex flex-row gap-2">
+		<div class="flex flex-row gap-2">
 			<Button size="sm" variant="solid" theme="red" label="Delete" v-if="showDeleteBtn" @click="deleteRows" />
 			<Button size="sm" label="Add Row" @click="addRow" />
 		</div>
