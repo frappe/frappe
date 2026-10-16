@@ -57,6 +57,7 @@ class StudioPage(Document):
 		route: DF.Data | None
 		script: DF.Code | None
 		studio_app: DF.Link | None
+		tab_title: DF.Data | None
 		variables: DF.Table[StudioPageVariable]
 	# end: auto-generated types
 
@@ -152,6 +153,7 @@ class StudioPage(Document):
 		return {
 			**self.get_dependencies(blocks, script),
 			"page_title": self.page_title,
+			"tab_title": self.tab_title,
 			"allow_guest": self.allow_guest,
 			"resources": [pick(row, PAGE_RESOURCE_FIELDS) for row in self.resources],
 			"variables": [pick(row, PAGE_VARIABLE_FIELDS) for row in self.variables],
@@ -354,7 +356,7 @@ class StudioPage(Document):
 	def save_page_field(self, fieldname: str | dict, value=None, known_modified: str | None = None):
 		"""Update editor-owned fields using the page's optimistic lock. Pass a dict as `fieldname` to
 		save several fields at once, so they save together or not at all."""
-		FIELDS = ["page_title", "route", "script", "allow_guest"]
+		FIELDS = ["page_title", "tab_title", "route", "script", "allow_guest"]
 		values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
 		for field in values:
 			if field not in FIELDS:
@@ -477,6 +479,7 @@ def get_page(app_name: str, page_name: str, preview: bool = False) -> dict:
 	return {
 		"name": page.name,
 		"page_title": page.page_title,
+		"tab_title": page.tab_title,
 		"route": page.route,
 		"studio_app": page.studio_app,
 		"is_standard": page.is_standard,

@@ -28,7 +28,12 @@
 			@blur="syncToParent"
 		/>
 
-		<span class="text-p-xs text-ink-gray-6" v-show="description" v-html="description"></span>
+		<span
+			class="text-p-sm text-ink-gray-6"
+			data-slot="description"
+			v-show="description"
+			v-html="description"
+		></span>
 		<Button
 			v-if="showSaveButton"
 			variant="solid"
@@ -78,6 +83,7 @@ const props = withDefaults(
 		autofocus?: boolean
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
+		lineWrapping?: boolean
 		completions?: CompletionSource | CompletionSource[] | null
 		// when set, `completions` replaces ALL built-in sources (language snippets, window scope)
 		overrideCompletions?: boolean
@@ -237,7 +243,7 @@ const extensions = computed(() => {
 		closeBrackets(),
 		indentationMarkers(),
 		getAutocompletionOptions(),
-		props.showLineNumbers ? EditorView.lineWrapping : [],
+		props.showLineNumbers || props.lineWrapping ? EditorView.lineWrapping : [],
 		isObjectLiteral.value ? customIndent : [],
 		store.isDark ? tomorrowNight : tomorrow,
 		EditorView.theme({

@@ -161,6 +161,8 @@ def parse_dict_list(value, label: str) -> list[dict]:
 def validate_page_copy(copy: dict):
 	if copy.get("page_title") is not None and not isinstance(copy["page_title"], str):
 		frappe.throw(_("Invalid page title in copied content."))
+	if copy.get("tab_title") is not None and not isinstance(copy["tab_title"], str):
+		frappe.throw(_("Invalid tab title in copied content."))
 	if copy.get("script") is not None and not isinstance(copy["script"], str):
 		frappe.throw(_("Invalid script in copied content."))
 	if copy.get("allow_guest") not in (None, 0, 1, False, True):
@@ -352,6 +354,7 @@ def new_page_from_copy(app, copy: dict):
 		doctype="Studio Page",
 		studio_app=app.name,
 		page_title=title,
+		tab_title=copy.get("tab_title"),
 		allow_guest=cint(copy.get("allow_guest")),
 		is_standard=app.is_standard,
 		frappe_app=app.frappe_app,

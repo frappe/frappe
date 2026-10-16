@@ -26,6 +26,9 @@
 .cm-scroller {
 	@apply !font-mono !leading-6 !text-ink-gray-5;
 }
+.cm-editor:not(.cm-focused) .cm-matchingBracket {
+	border-bottom: none !important;
+}
 .cm-matchingBracket {
 	font-weight: 500 !important;
 	background: none !important;

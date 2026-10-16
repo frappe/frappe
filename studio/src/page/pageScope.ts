@@ -12,6 +12,7 @@ import * as globalUtils from "@/utils/globalUtils"
 import { useSocket } from "@/socket"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
+import { DYNAMIC_EXPRESSION_CONTENT_REGEX } from "@/utils/constants"
 import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
 import type {
 	Filters,
@@ -563,7 +564,7 @@ export function createPageScope(
 		}
 
 		// Find all dynamic expressions in the prop value
-		const matches = value.matchAll(/\{\{(.*?)\}\}/g)
+		const matches = value.matchAll(DYNAMIC_EXPRESSION_CONTENT_REGEX)
 
 		// Evaluate each dynamic expression and add it to the result
 		for (const match of matches) {
@@ -578,7 +579,7 @@ export function createPageScope(
 
 			// If the whole value is a single dynamic expression, return the normalized evaluated value
 			// e.g. value === "{{ showTooltip }}" should return boolean true/false if appropriate
-			if (value.trim().match(/^\{\{.*\}\}$/)) {
+			if (match[0] === value.trim()) {
 				return normalizeDynamicValue(dynamicValue)
 			}
 

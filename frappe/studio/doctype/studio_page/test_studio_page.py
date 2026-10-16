@@ -50,6 +50,7 @@ def make_page_with_data(app_name: str):
 	page.append("resources", TODO_RESOURCE)
 	page.append("variables", {"variable_name": "count", "variable_type": "Number"})
 	page.script = PAGE_SCRIPT
+	page.tab_title = "{{ todos.data?.length }} todos"
 	page.save()
 	return page
 
@@ -147,6 +148,7 @@ class TestStudioPage(IntegrationTestCase):
 		copy = duplicate_page(page.name, app.name)
 
 		self.assertEqual(copy.page_title, "Board Copy")
+		self.assertEqual(copy.tab_title, "{{ todos.data?.length }} todos")
 		self.assertNotEqual(copy.route, page.route)
 		self.assertFalse(copy.published)
 		self.assertEqual([r.resource_name for r in copy.resources], ["todos"])
@@ -421,6 +423,7 @@ class TestGuestRendering(IntegrationTestCase):
 			cls.app.name,
 			page_title="Public Page",
 			route="/public",
+			tab_title="{{ count > 1 ? 'Items' : 'Item' }}",
 			allow_guest=1,
 			blocks=frappe.as_json([{"componentName": "div", "children": [component_ref(cls.hero)]}]),
 		)
@@ -456,6 +459,7 @@ class TestGuestRendering(IntegrationTestCase):
 		self.as_guest()
 		page = get_page(self.app.name, self.public_page.name)
 		self.assertEqual(page["name"], self.public_page.name)
+		self.assertEqual(page["tab_title"], "{{ count > 1 ? 'Items' : 'Item' }}")
 
 	def test_guest_gets_404_for_anything_not_public(self):
 		self.as_guest()

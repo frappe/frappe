@@ -1,5 +1,5 @@
 <template>
-	<span class="text-p-sm-medium block text-ink-gray-7">
+	<span class="block text-sm leading-tighter text-ink-gray-6">
 		<slot />
 	</span>
 </template>

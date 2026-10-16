@@ -105,7 +105,14 @@
 		</div>
 
 		<div>
-			<Popover v-model:open="store.showPageOptions" side="bottom" align="center" :offset="20" bare>
+			<Popover
+				v-model:open="store.showPageOptions"
+				:arrow="true"
+				side="bottom"
+				align="center"
+				:offset="20"
+				bare
+			>
 				<template #trigger>
 					<div class="flex cursor-pointer items-center gap-2 p-2">
 						<div class="flex h-6 items-center text-base text-ink-gray-7" v-if="!store.activePage">
@@ -138,7 +145,12 @@
 						class="flex w-96 flex-col gap-3 rounded-4 bg-surface-base p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
-						<PageOptions v-if="store.activePage" :page="store.activePage" :app="store.activeApp" />
+						<PageOptions
+							v-if="store.activePage"
+							:key="store.activePage.name"
+							:page="store.activePage"
+							:app="store.activeApp"
+						/>
 					</div>
 				</template>
 			</Popover>

@@ -34,6 +34,9 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 	try {
 		await scope.setPageVariables(page, page.variables)
 		await scope.setPageResources(page, false, page.resources)
+		if (navigation !== latestNavigation) return scope.teardownPage()
+		// before the script, so a usePageMeta call in it can replace the title
+		document.title = page.page_title || ""
 		await scope.setPageScript(page, Boolean(page.is_standard))
 		if (navigation !== latestNavigation) return scope.teardownPage()
 		const root = getBlockInstance(JSON.parse(page.blocks)[0])

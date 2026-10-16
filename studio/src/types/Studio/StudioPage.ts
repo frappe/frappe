@@ -27,6 +27,8 @@ export interface StudioPage {
 	script?: string
 	/**	Title : Data	*/
 	page_title?: string
+	/**	Tab Title : Data	*/
+	tab_title?: string
 	components?: StudioComponent[]
 	[key: string]: any
 }

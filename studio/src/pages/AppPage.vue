@@ -22,5 +22,6 @@ onUnmounted(onPageScriptHotUpdate((name, setup) => scope.applyPageScriptHotUpdat
 
 useAppStore().activePage = page
 useComponentStore().setComponents(page.components || [])
-usePageMeta(() => ({ title: page.page_title }))
+const tabTitle = page.tab_title
+if (tabTitle) usePageMeta(() => ({ title: scope.evaluateDynamicValues(tabTitle) || page.page_title }))
 </script>
