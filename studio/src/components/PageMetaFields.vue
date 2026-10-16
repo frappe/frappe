@@ -1,6 +1,15 @@
 <template>
 	<div class="flex w-full flex-col gap-4">
-		<Input label="Page Title" type="text" variant="outline" class="w-full" v-model="title" />
+		<Input
+			label="Page Title"
+			type="text"
+			variant="outline"
+			class="w-full"
+			:hideClearButton="true"
+			v-model="title"
+		/>
+
+		<slot />
 
 		<div class="relative flex w-full items-stretch">
 			<Input
@@ -20,8 +29,6 @@
 				<span class="flex h-[1.6rem] items-center text-nowrap px-2 py-0 text-base">{{ `${appRoute}/` }}</span>
 			</div>
 		</div>
-
-		<slot />
 
 		<Switch
 			size="sm"

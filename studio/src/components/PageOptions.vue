@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div class="[&_[data-slot=description]]:text-ink-gray-5">
 		<div class="flex flex-row flex-wrap gap-4">
 			<PageMetaFields
 				:appRoute="app?.route"
@@ -11,6 +11,8 @@
 				@update:allowGuest="(value: boolean) => store.updateActivePage('allow_guest', value ? 1 : 0)"
 			>
 				<Code
+					v-if="showTabTitle"
+					:autofocus="!page.tab_title"
 					v-model="tabTitle"
 					label="Tab Title"
 					isFormInput
@@ -24,13 +26,21 @@
 					:completions="dynamicValueCompletions"
 					:overrideCompletions="true"
 				/>
+				<button
+					v-else
+					class="-mt-2 flex items-center gap-1 self-start text-sm text-ink-gray-5 hover:text-ink-gray-7"
+					@click="showTabTitle = true"
+				>
+					<span class="lucide-plus h-3 w-3" />
+					Use a different tab title
+				</button>
 			</PageMetaFields>
 
 			<!-- Dynamic Route Variables: design-time test values for params like /articles/:category -->
 			<CollapsibleSection
 				v-if="routeVariableNames.length"
 				sectionName="Route Variables"
-				class="w-full [&>div>div]:!mb-0 [&>div>h3]:!text-base [&>div>h3]:!text-ink-gray-5"
+				class="w-full [&>div>div]:!mb-0 [&>div>h3]:!text-sm [&>div>h3]:!text-ink-gray-7"
 			>
 				<div v-for="name in routeVariableNames" :key="name" class="w-full">
 					<Input
@@ -38,6 +48,7 @@
 						type="text"
 						variant="outline"
 						class="w-full"
+						:hideClearButton="true"
 						:placeholder="`Test value for :${name}`"
 						:modelValue="store.routeVariables[name] || ''"
 						@update:modelValue="(val: string) => store.setRouteVariable(name, val)"
@@ -73,6 +84,7 @@ const getDynamicValueCompletions = useDynamicValueCompletions()
 const dynamicValueCompletions = getDynamicValueCompletions()
 // saved while typing: closing the popover unmounts the editor before it blurs
 const tabTitle = ref(props.page.tab_title || "")
+const showTabTitle = ref(Boolean(props.page.tab_title))
 const pageName = props.page.name
 watchDebounced(
 	tabTitle,

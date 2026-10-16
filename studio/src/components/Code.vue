@@ -28,7 +28,12 @@
 			@blur="syncToParent"
 		/>
 
-		<span class="text-p-xs text-ink-gray-6" v-show="description" v-html="description"></span>
+		<span
+			class="text-p-sm text-ink-gray-6"
+			data-slot="description"
+			v-show="description"
+			v-html="description"
+		></span>
 		<Button
 			v-if="showSaveButton"
 			variant="solid"
