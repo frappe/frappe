@@ -123,11 +123,62 @@
 		}
 	}
 
+<<<<<<< HEAD
 	.dock-logo + .dock-items {
+=======
+	.dock-logo + .dock-utilities:empty + .dock-items,
+	body:not(.dock-pinned) & .dock-logo + .dock-utilities + .dock-items {
+>>>>>>> cb24f18 (fix(dock): keep search and notifications in the sidebar while the dock floats)
 		margin-top: calc(var(--spacing) * -1);
 		padding-top: calc(var(--spacing) * 3);
 	}
 
+<<<<<<< HEAD
+=======
+	// The column's own gap is taken back, so each rule sits 12px from the cells either side of it.
+	.dock-logo + .dock-utilities:not(:empty) {
+		margin-top: calc(var(--spacing) * -1);
+		padding-top: calc(var(--spacing) * 3);
+	}
+
+	.dock-utilities {
+		flex: 0 0 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: calc(var(--spacing) * 0.5);
+
+		// A floating dock leaves search and notifications to the sidebar.
+		body:not(.dock-pinned) & {
+			display: none;
+		}
+
+		&:not(:empty) {
+			padding-bottom: calc(var(--spacing) * 3);
+			margin-bottom: calc(var(--spacing) * 2);
+			border-bottom: 1px solid var(--outline-gray-1);
+		}
+
+		.dock-item {
+			width: calc(var(--spacing) * 7);
+			height: calc(var(--spacing) * 7);
+			color: var(--ink-gray-8);
+
+			&:hover {
+				background: var(--surface-gray-3);
+				color: var(--ink-gray-8);
+			}
+
+			&[aria-expanded="true"] {
+				background: var(--surface-elevation-3);
+				box-shadow: var(--shadow-sm);
+			}
+		}
+	}
+
+>>>>>>> cb24f18 (fix(dock): keep search and notifications in the sidebar while the dock floats)
 	.dock-items {
 		flex: 1 1 auto;
 		width: 100%;
@@ -290,6 +341,31 @@ body.dock-pinned .dock .dock-user-button {
 	}
 }
 
+<<<<<<< HEAD
+=======
+@mixin dock-owns-search-and-notifications {
+	.body-sidebar .standard-items-band {
+		> .navbar-modal-search-mobile,
+		> .sidebar-notification {
+			display: none;
+		}
+
+		&:not(:has(> :not(.hidden, .navbar-modal-search-mobile, .sidebar-notification))) {
+			padding-top: 0;
+			margin-bottom: 0;
+		}
+	}
+}
+
+// Only a pinned dock takes them over. A floating one is off screen until the pointer reaches the
+// window's edge, so the sidebar keeps its own rows.
+@include media-breakpoint-up(md) {
+	body.dock-active.dock-pinned {
+		@include dock-owns-search-and-notifications;
+	}
+}
+
+>>>>>>> cb24f18 (fix(dock): keep search and notifications in the sidebar while the dock floats)
 // The dock's active tile already shows the module's icon.
 @include media-breakpoint-up(md) {
 	body.dock-pinned.dock-active .body-sidebar-container.expanded .sidebar-header {
