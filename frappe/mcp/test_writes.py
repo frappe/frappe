@@ -46,29 +46,26 @@ class TestWriteDocument(McpTestCase):
 		self.assertFalse(response.json["result"]["isError"], response.json["result"])
 		result = response.json["result"]["structuredContent"]
 		if arguments.get("tool", "create_document") == "create_document":
-			self.names.append(result["document"]["name"])
+			self.names.append(result["name"])
 		return result
 
 	def test_create(self):
 		result = self.result(
 			tool="create_document", doctype="ToDo", data={"description": "Created through MCP"}
 		)
-		self.assertEqual(result["action"], "create")
-		self.assertEqual(result["document"]["owner"], self.user)
-		self.assertEqual(
-			frappe.db.get_value("ToDo", result["document"]["name"], "description"), "Created through MCP"
-		)
+		self.assertEqual(result["owner"], self.user)
+		self.assertEqual(frappe.db.get_value("ToDo", result["name"], "description"), "Created through MCP")
 
 	def test_update(self):
 		result = self.result(
 			tool="update_document", doctype="ToDo", name=self.own, data={"description": "Updated through MCP"}
 		)
-		self.assertEqual(result["document"]["name"], self.own)
+		self.assertEqual(result["name"], self.own)
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "Updated through MCP")
 
 	def test_delete(self):
 		result = self.result(tool="delete_document", doctype="ToDo", name=self.own)
-		self.assertEqual(result, {"action": "delete", "doctype": "ToDo", "name": self.own})
+		self.assertEqual(result, {"result": None})
 		self.assertFalse(frappe.db.exists("ToDo", self.own))
 
 	def test_unauthorized_update_and_delete(self):
@@ -211,18 +208,18 @@ class TestWriteDocument(McpTestCase):
 		result = self.result(
 			tool="create_document", doctype="ToDo", data={"description": "MCP parity fixture"}
 		)
-		mcp_name = result["document"]["name"]
+		mcp_name = result["name"]
 		response = self.request(
 			{"description": "REST parity fixture"}, method="POST", path="/api/v2/document/ToDo"
 		)
 		self.assertEqual(response.status_code, 200)
 		rest_name = response.json["data"]["name"]
 		self.names.append(rest_name)
-		self.assertEqual(response.json["data"]["owner"], result["document"]["owner"])
+		self.assertEqual(response.json["data"]["owner"], result["owner"])
 		result = self.result(tool="update_document", doctype="ToDo", name=mcp_name, data={"status": "Closed"})
 		response = self.request({"status": "Closed"}, method="PUT", path=f"/api/v2/document/ToDo/{rest_name}")
 		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json["data"]["status"], result["document"]["status"])
+		self.assertEqual(response.json["data"]["status"], result["status"])
 		self.result(tool="delete_document", doctype="ToDo", name=mcp_name)
 		response = self.request({}, method="DELETE", path=f"/api/v2/document/ToDo/{rest_name}")
 		self.assertEqual(response.status_code, 202)
@@ -250,11 +247,11 @@ class TestWriteDocument(McpTestCase):
 			doctype="ToDo",
 			data={"doctype": "User", "description": "MCP target fixture"},
 		)
-		self.assertEqual(result["document"]["doctype"], "ToDo")
+		self.assertEqual(result["doctype"], "ToDo")
 
 	def test_custom_name_on_create(self):
 		name = f"mcp-write-{self.own}"
 		result = self.result(
 			tool="create_document", doctype="ToDo", data={"name": name, "description": "MCP named fixture"}
 		)
-		self.assertEqual(result["document"]["name"], name)
+		self.assertEqual(result["name"], name)

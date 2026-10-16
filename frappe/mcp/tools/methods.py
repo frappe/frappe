@@ -37,7 +37,7 @@ def call_method(method: str, args: dict[str, Any]) -> dict:
 				result = v2.handle_rpc_call(method)
 		if result is None:
 			result = frappe.response.get("message", frappe.response.get("data"))
-		return {"method": method, "result": result}
+		return {"result": result}
 
 
 def call_document_method(doctype: str, name: str, method: str, args: dict[str, Any]) -> dict:
@@ -46,13 +46,7 @@ def call_document_method(doctype: str, name: str, method: str, args: dict[str, A
 		doc.is_whitelisted(method)
 		with method_request(getattr(doc, method)):
 			result = v2.execute_doc_method(doctype, name, method)
-		return {
-			"doctype": doctype,
-			"name": name,
-			"method": method,
-			"result": result,
-			"document": frappe.response.docs[-1],
-		}
+		return {"result": result, "document": frappe.response.docs[-1]}
 
 
 @contextmanager

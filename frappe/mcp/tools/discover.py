@@ -40,34 +40,42 @@ class DocumentMethodSchemaArguments(DoctypeArguments):
 	method: str = Field(min_length=1)
 
 
-def search_doctypes(query: str | None = None, module: str | None = None) -> dict:
+def search_doctypes(query: str | None = None, module: str | None = None) -> list[dict]:
 	filters = {"istable": 0}
 	if query is not None:
 		filters["name"] = ("like", f"%{query}%")
 	if module is not None:
 		filters["module"] = module
-	return {
-		"type": "search",
-		"query": query,
-		"doctypes": frappe.get_all(
-			"DocType",
-			filters=filters,
-			fields=["name", "module", "issingle", "is_submittable"],
-			order_by="name",
-			limit=SEARCH_LIMIT,
-		),
-	}
+	return frappe.get_all(
+		"DocType",
+		filters=filters,
+		fields=["name", "module", "issingle", "is_submittable"],
+		order_by="name",
+		limit=SEARCH_LIMIT,
+	)
 
 
-def search_methods(query: str) -> dict:
-	return discovery.search(query)
+def search_methods(query: str) -> list[dict]:
+	return [without(entry, "type") for entry in discovery.search(query)["results"]]
+
+
+def method_schema(method: str) -> dict:
+	return without(discovery.method(method), "type", "kind")
+
+
+def document_methods(doctype: str) -> list[dict]:
+	return [
+		without(entry, "type", "kind", "doctype") for entry in discovery.doctype_methods(doctype)["methods"]
+	]
+
+
+def document_method_schema(doctype: str, method: str) -> dict:
+	return without(discovery.doctype_method(doctype, method), "type", "kind", "doctype", "method")
 
 
 def doctype_schema(doctype: str) -> dict:
 	meta = frappe.get_meta(doctype)
 	result = {
-		"type": "doctype",
-		"doctype": meta.name,
 		"module": meta.module,
 		"is_submittable": bool(meta.is_submittable),
 		"is_single": bool(meta.issingle),
@@ -95,6 +103,10 @@ def field_schema(field: "DocField") -> dict:
 		"permlevel": field.permlevel or 0,
 	}
 	return {key: value for key, value in result.items() if value is not None}
+
+
+def without(data: dict, *keys: str) -> dict:
+	return {key: value for key, value in data.items() if key not in keys}
 
 
 SEARCH_DOCTYPES = Tool(
@@ -125,7 +137,7 @@ GET_METHOD_SCHEMA = Tool(
 	name="get_method_schema",
 	description="Get arguments and docstring of a whitelisted method.",
 	arguments=MethodSchemaArguments,
-	handler=discovery.method,
+	handler=method_schema,
 	annotations={"readOnlyHint": True},
 )
 
@@ -133,7 +145,7 @@ LIST_DOCUMENT_METHODS = Tool(
 	name="list_document_methods",
 	description="List whitelisted document methods of a DocType.",
 	arguments=DoctypeArguments,
-	handler=discovery.doctype_methods,
+	handler=document_methods,
 	annotations={"readOnlyHint": True},
 )
 
@@ -141,6 +153,6 @@ GET_DOCUMENT_METHOD_SCHEMA = Tool(
 	name="get_document_method_schema",
 	description="Get arguments and docstring of a whitelisted document method.",
 	arguments=DocumentMethodSchemaArguments,
-	handler=discovery.doctype_method,
+	handler=document_method_schema,
 	annotations={"readOnlyHint": True},
 )

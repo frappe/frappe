@@ -49,8 +49,8 @@ class TestGetDocuments(McpTestCase):
 
 	def test_named_read(self):
 		result = self.result(tool="get_document", doctype="ToDo", name=self.names[0])
-		self.assertEqual(result["document"]["name"], self.names[0])
-		self.assertEqual(result["document"]["description"], "MCP read fixture 0")
+		self.assertEqual(result["name"], self.names[0])
+		self.assertEqual(result["description"], "MCP read fixture 0")
 
 	def test_named_read_denies_other_users_document(self):
 		response = self.read(tool="get_document", doctype="ToDo", name=self.names[3])
@@ -61,13 +61,11 @@ class TestGetDocuments(McpTestCase):
 		result = self.result(doctype="ToDo", filters=self.filters)
 		self.assertEqual({row["name"] for row in result["documents"]}, set(self.names[:3]))
 		self.assertEqual(
-			self.result(doctype="ToDo", filters=self.filters, tool="count_documents")["count"], 3
+			self.result(doctype="ToDo", filters=self.filters, tool="count_documents")["result"], 3
 		)
 
 	def test_default_page_and_fields(self):
 		result = self.result(doctype="ToDo", filters=self.filters)
-		self.assertEqual(result["start"], 0)
-		self.assertEqual(result["limit"], 20)
 		self.assertFalse(result["has_next_page"])
 		self.assertEqual(set(result["documents"][0]), {"name"})
 
@@ -92,7 +90,7 @@ class TestGetDocuments(McpTestCase):
 		self.assertEqual({row["name"] for row in result["documents"]}, set(self.names[:2]))
 		self.assertEqual(
 			self.result(doctype="ToDo", filters=[["name", "in", self.names[:2]]], tool="count_documents")[
-				"count"
+				"result"
 			],
 			2,
 		)
@@ -102,11 +100,10 @@ class TestGetDocuments(McpTestCase):
 		result = self.result(doctype="ToDo", filters=filters)
 		self.assertEqual(result["documents"], [])
 		self.assertFalse(result["has_next_page"])
-		self.assertEqual(self.result(doctype="ToDo", filters=filters, tool="count_documents")["count"], 0)
+		self.assertEqual(self.result(doctype="ToDo", filters=filters, tool="count_documents")["result"], 0)
 
 	def test_no_mcp_page_size_cap(self):
 		result = self.result(doctype="ToDo", filters=self.filters, limit=101)
-		self.assertEqual(result["limit"], 101)
 		self.assertEqual(len(result["documents"]), 3)
 
 	def test_missing_document_and_doctype(self):
@@ -125,7 +122,7 @@ class TestGetDocuments(McpTestCase):
 				self.assertNotIn("structuredContent", response.json["result"])
 
 	def test_field_permissions_on_named_read(self):
-		result = self.result(tool="get_document", doctype="User", name=self.user)["document"]
+		result = self.result(tool="get_document", doctype="User", name=self.user)
 		self.assertEqual(result["name"], self.user)
 		self.assertIsNone(result.get("api_key"))
 		self.assertIsNone(result.get("api_secret"))
@@ -181,7 +178,7 @@ class TestGetDocuments(McpTestCase):
 		mcp = self.result(doctype="ToDo", filters=self.filters, tool="count_documents")
 		rest = self.request({"filters": self.filters}, method="GET", path="/api/v2/doctype/ToDo/count")
 		self.assertEqual(rest.status_code, 200)
-		self.assertEqual(mcp["count"], rest.json["data"])
+		self.assertEqual(mcp["result"], rest.json["data"])
 
 	def test_field_permissions_on_lists(self):
 		response = self.read(doctype="User", filters={"name": self.user}, fields=["name", "api_key"])

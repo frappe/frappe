@@ -39,12 +39,12 @@ class UpdateDocumentArguments(DocumentArguments):
 
 
 def get_document(doctype: str, name: str) -> dict:
-	return {"document": v2.read_doc(doctype, name)}
+	return v2.read_doc(doctype, name)
 
 
-def count_documents(doctype: str, filters: dict[str, Any] | list[Any] | None = None) -> dict:
+def count_documents(doctype: str, filters: dict[str, Any] | list[Any] | None = None) -> int:
 	with form_dict({"filters": filters}):
-		return {"doctype": doctype, "count": v2.count(doctype)}
+		return v2.count(doctype)
 
 
 def list_documents(
@@ -60,28 +60,21 @@ def list_documents(
 		documents = v2.document_list(doctype)
 		# The REST handler's pagination metadata belongs to its temporary response.
 		has_next_page = bool(frappe.response.get("has_next_page"))
-	return {
-		"doctype": doctype,
-		"documents": documents,
-		"start": start,
-		"limit": limit,
-		"has_next_page": has_next_page,
-	}
+	return {"documents": documents, "has_next_page": has_next_page}
 
 
 def create_document(doctype: str, data: dict[str, Any]) -> dict:
 	with form_dict(data):
-		return {"action": "create", "document": v2.create_doc(doctype)}
+		return v2.create_doc(doctype)
 
 
 def update_document(doctype: str, name: str, data: dict[str, Any]) -> dict:
 	with form_dict(data):
-		return {"action": "update", "document": v2.update_doc(doctype, name)}
+		return v2.update_doc(doctype, name)
 
 
-def delete_document(doctype: str, name: str) -> dict:
+def delete_document(doctype: str, name: str) -> None:
 	v2.delete_doc(doctype, name)
-	return {"action": "delete", "doctype": doctype, "name": name}
 
 
 LIST_DOCUMENTS = Tool(

@@ -63,14 +63,13 @@ class TestDiscover(McpTestCase):
 	def test_doctype_search_does_not_search_methods(self):
 		with patch("frappe.api.discovery.search") as methods:
 			result = self.result("search_doctypes", {"query": "ToDo"})
-		self.assertIn("ToDo", [row["name"] for row in result["doctypes"]])
-		self.assertNotIn("methods", result)
+		self.assertIn("ToDo", [row["name"] for row in result["result"]])
 		methods.assert_not_called()
 
 	def test_search_filters_module(self):
 		result = self.result("search_doctypes", {"module": "Desk"})
-		self.assertTrue(result["doctypes"])
-		self.assertTrue(all(row["module"] == "Desk" for row in result["doctypes"]))
+		self.assertTrue(result["result"])
+		self.assertTrue(all(row["module"] == "Desk" for row in result["result"]))
 
 	def test_schema_fields_and_permissions(self):
 		result = self.result("get_doctype_schema", {"doctype": "ToDo"})
@@ -119,14 +118,14 @@ class TestDiscover(McpTestCase):
 				"source" in result, any(frappe.get_hooks("expose_discovery_source", app_name="frappe"))
 			)
 			result = self.result("search_methods", {"query": "get_count"})
-			self.assertIn("frappe.client.get_count", [method["path"] for method in result["results"]])
+			self.assertIn("frappe.client.get_count", [method["path"] for method in result["result"]])
 
 	def test_manager_document_contract_and_list(self):
 		with self.manager():
 			result = self.result("get_document_method_schema", {"doctype": "ToDo", "method": "add_comment"})
-			self.assertEqual(result["method"], "add_comment")
+			self.assertIn("text", [param["name"] for param in result["params"]])
 			result = self.result("list_document_methods", {"doctype": "ToDo"})
-			self.assertIn("add_comment", [method["method"] for method in result["methods"]])
+			self.assertIn("add_comment", [method["method"] for method in result["result"]])
 
 	def test_invalid_arguments_and_unknown_doctype(self):
 		for tool, arguments in (
@@ -175,7 +174,7 @@ class TestDiscover(McpTestCase):
 		):
 			self.assertTrue(self.discover("search_methods", {"query": "ToDo"}).json["result"]["isError"])
 			result = self.result("search_doctypes", {"query": "ToDo"})
-		self.assertIn("ToDo", [row["name"] for row in result["doctypes"]])
+		self.assertIn("ToDo", [row["name"] for row in result["result"]])
 
 	def test_manager_cannot_discover_nonwhitelisted_methods(self):
 		with self.manager(), self.method_cache():
@@ -199,7 +198,7 @@ class TestDiscover(McpTestCase):
 
 	def test_search_is_bounded_and_sorted(self):
 		result = self.result("search_doctypes", {"query": "%"})
-		names = [row["name"] for row in result["doctypes"]]
+		names = [row["name"] for row in result["result"]]
 		self.assertLessEqual(len(names), 50)
 		# Database collation can sort mixed-case names differently from Python.
 		expected = frappe.get_all(
