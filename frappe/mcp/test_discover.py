@@ -11,7 +11,7 @@ from frappe.mcp.tools.discover import LAYOUT_FIELDTYPES, PERMISSION_TYPES
 
 
 class TestDiscover(McpTestCase):
-	def discover(self, tool="get_site_info", arguments=None):
+	def discover(self, tool, arguments=None):
 		return self.request(
 			{
 				"jsonrpc": "2.0",
@@ -21,7 +21,7 @@ class TestDiscover(McpTestCase):
 			}
 		)
 
-	def result(self, tool="get_site_info", arguments=None):
+	def result(self, tool, arguments=None):
 		response = self.discover(tool, arguments)
 		self.assertEqual(response.status_code, 200)
 		self.assertFalse(response.json["result"]["isError"], response.json["result"])
@@ -59,15 +59,6 @@ class TestDiscover(McpTestCase):
 					frappe.cache.delete_value(key)
 				else:
 					frappe.cache.set_value(key, value, expires_in_sec=discovery.CACHE_TTL)
-
-	def test_site_summary(self):
-		result = self.result()
-		self.assertEqual(result["type"], "site")
-		self.assertEqual(result["site"], self.site)
-		self.assertEqual(result["user"], self.user)
-		self.assertNotIn("System Manager", result["roles"])
-		self.assertEqual(result["counts"]["modules"], len(result["modules"]))
-		self.assertIn("Desk", result["modules"])
 
 	def test_doctype_search_does_not_search_methods(self):
 		with patch("frappe.api.discovery.search") as methods:
@@ -139,7 +130,6 @@ class TestDiscover(McpTestCase):
 
 	def test_invalid_arguments_and_unknown_doctype(self):
 		for tool, arguments in (
-			("get_site_info", {"query": "ToDo"}),
 			("search_doctypes", {"query": []}),
 			("search_doctypes", {"query": "ToDo", "doctype": "ToDo"}),
 			("get_doctype_schema", {}),
@@ -158,7 +148,6 @@ class TestDiscover(McpTestCase):
 	def test_schema_listed_by_transport(self):
 		response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
 		definitions = {tool["name"]: tool for tool in response.json["result"]["tools"]}
-		self.assertEqual(definitions["get_site_info"]["inputSchema"]["properties"], {})
 		self.assertEqual(
 			set(definitions["search_doctypes"]["inputSchema"]["properties"]), {"query", "module"}
 		)
@@ -166,7 +155,6 @@ class TestDiscover(McpTestCase):
 			definitions["get_document_method_schema"]["inputSchema"]["required"], ["doctype", "method"]
 		)
 		for name in (
-			"get_site_info",
 			"search_doctypes",
 			"get_doctype_schema",
 			"search_methods",

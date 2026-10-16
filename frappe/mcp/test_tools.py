@@ -69,7 +69,6 @@ class TestToolExecution(McpTestCase):
 
 	def test_each_tool_rejects_arguments_from_other_operations(self):
 		cases = (
-			("get_site_info", {"doctype": "ToDo"}),
 			("search_doctypes", {"method": "frappe.ping"}),
 			("get_doctype_schema", {"doctype": "ToDo", "query": "ToDo"}),
 			("search_methods", {"query": "ping", "doctype": "ToDo"}),

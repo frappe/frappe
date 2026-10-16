@@ -1,6 +1,6 @@
 # Built-in MCP server
 
-Frappe exposes 15 tools at `/api/v2/mcp` for agents to inspect schemas, read and change documents, and call existing methods.
+Frappe exposes 14 tools at `/api/v2/mcp` for agents to inspect schemas, read and change documents, and call existing methods.
 The endpoint is enabled by default and uses the authenticated site user's permissions.
 It supports Streamable HTTP with JSON responses and protocol versions `2025-11-25` and `2026-07-28`.
 
@@ -27,7 +27,6 @@ Launch the client from the terminal where you set `FRAPPE_MCP_AUTH`.
 
 For multiple sites, configure one connection per site with a descriptive name, such as `frappe_accounts` or `frappe_support`.
 Tool descriptions identify the resolved site. Successful and failed tool results include its identity and the authenticated user.
-Call `get_site_info` without arguments to inspect the connected site before choosing an operation.
 
 ### MCP Inspector
 
@@ -66,7 +65,6 @@ Examples show tool arguments, which the client sends through `tools/call`.
 
 | Tool | Purpose | Example arguments |
 | --- | --- | --- |
-| `get_site_info` | Identify the site, user, roles, and modules. | `{}` |
 | `search_doctypes` | Find DocTypes by name or module. | `{"query":"ToDo"}` |
 | `get_doctype_schema` | Inspect fields and permissions. | `{"doctype":"ToDo"}` |
 | `search_methods` | Find whitelisted methods. | `{"query":"get_count"}` |
@@ -95,7 +93,7 @@ Whitelisted RPC methods remain responsible for their own permission checks.
 ## Configuration and troubleshooting
 
 Open **MCP Settings** as a System Manager to set the server name and description for this site.
-The name defaults to the resolved site name when empty. These settings appear in server information and `get_site_info`.
+The name defaults to the resolved site name when empty. These settings appear in server information.
 **Enable MCP** is checked by default. Uncheck it to disable the endpoint for this site.
 Clients receive instructions during initialization or server discovery.
 They give the site URL, the authenticated user, and the active apps with their descriptions.

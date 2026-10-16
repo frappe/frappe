@@ -51,7 +51,6 @@ def registry() -> tuple[Tool, ...]:
 		GET_DOCTYPE_SCHEMA,
 		GET_DOCUMENT_METHOD_SCHEMA,
 		GET_METHOD_SCHEMA,
-		GET_SITE_INFO,
 		LIST_DOCUMENT_METHODS,
 		SEARCH_DOCTYPES,
 		SEARCH_METHODS,
@@ -67,7 +66,6 @@ def registry() -> tuple[Tool, ...]:
 	from frappe.mcp.tools.methods import CALL_DOCUMENT_METHOD, CALL_METHOD
 
 	return (
-		GET_SITE_INFO,
 		SEARCH_DOCTYPES,
 		GET_DOCTYPE_SCHEMA,
 		SEARCH_METHODS,

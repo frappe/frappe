@@ -95,7 +95,6 @@ class TestMcpTransport(McpTestCase):
 		self.assertEqual(
 			[tool["name"] for tool in response.json["result"]["tools"]],
 			[
-				"get_site_info",
 				"search_doctypes",
 				"get_doctype_schema",
 				"search_methods",

@@ -7,9 +7,7 @@ from typing import TYPE_CHECKING
 from pydantic import Field
 
 import frappe
-from frappe import _
 from frappe.api import discovery
-from frappe.mcp import protocol
 from frappe.mcp.tools import Tool, ToolArguments
 from frappe.model import NO_VALUE_FIELDS
 
@@ -19,10 +17,6 @@ if TYPE_CHECKING:
 LAYOUT_FIELDTYPES = NO_VALUE_FIELDS - {"Table", "Table MultiSelect"}
 PERMISSION_TYPES = ("read", "write", "create", "delete", "submit", "cancel", "amend")
 SEARCH_LIMIT = 50
-
-
-class SiteInfoArguments(ToolArguments):
-	pass
 
 
 class SearchDoctypesArguments(ToolArguments):
@@ -44,22 +38,6 @@ class MethodSchemaArguments(ToolArguments):
 
 class DocumentMethodSchemaArguments(DoctypeArguments):
 	method: str = Field(min_length=1, description="Whitelisted document instance method name.")
-
-
-def site_summary() -> dict:
-	doctypes = frappe.get_all("DocType", fields=["module"], filters={"istable": 0})
-	modules = sorted({row.module for row in doctypes if row.module})
-	return {
-		"type": "site",
-		"server_info": protocol.server_info(),
-		"instructions": protocol.server_instructions(),
-		"site": frappe.local.site,
-		"user": frappe.session.user,
-		"roles": sorted(frappe.get_roles()),
-		"counts": {"doctypes": len(doctypes), "modules": len(modules)},
-		"modules": modules,
-		"next": _("Use search_doctypes to find DocTypes, then get_doctype_schema to inspect fields."),
-	}
 
 
 def search_doctypes(query: str | None = None, module: str | None = None) -> dict:
@@ -118,14 +96,6 @@ def field_schema(field: "DocField") -> dict:
 	}
 	return {key: value for key, value in result.items() if value is not None}
 
-
-GET_SITE_INFO = Tool(
-	name="get_site_info",
-	description="Identify the connected site, authenticated user, roles and available modules.",
-	arguments=SiteInfoArguments,
-	handler=site_summary,
-	annotations={"readOnlyHint": True},
-)
 
 SEARCH_DOCTYPES = Tool(
 	name="search_doctypes",
