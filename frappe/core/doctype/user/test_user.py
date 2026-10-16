@@ -494,6 +494,52 @@ class TestUser(FrappeTestCase):
 			"The reset password link has been expired",
 		)
 
+	@contextmanager
+	def outgoing_email_account(self):
+		exists = frappe.db.exists
+
+		def exists_with_outgoing_account(doctype, *args, **kwargs):
+			if doctype == "Email Account":
+				return "Test Outgoing Account"
+			return exists(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "exists", side_effect=exists_with_outgoing_account):
+			yield
+
+	def test_second_save_of_new_user_does_not_send_password_changed_alert(self):
+		"""Social login inserts the user through add_roles and saves it again in the same request."""
+		frappe.set_user("Guest")
+		user: User = frappe.new_doc(
+			"User",
+			email="oauth-signup@example.com",
+			first_name="OAuth",
+			user_type="Website User",
+			new_password=frappe.generate_hash(),
+		)
+		user.flags.ignore_permissions = True
+		user.flags.no_welcome_mail = True
+		try:
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.add_roles("_Test Role")
+				user.save()
+
+			sendmail.assert_not_called()
+		finally:
+			frappe.set_user("Administrator")
+			user.delete(force=True, ignore_permissions=True)
+
+	def test_password_change_by_user_still_sends_password_changed_alert(self):
+		with test_user(roles=["_Test Role"]) as created:
+			frappe.set_user(created.name)
+			user: User = frappe.get_doc("User", created.name)
+			user.new_password = "Eastern_43A1W_changed"
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.save()
+
+			sendmail.assert_called_once()
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
+			frappe.set_user("Administrator")
+
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
