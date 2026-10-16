@@ -135,7 +135,7 @@
 				</template>
 				<template #default>
 					<div
-						class="flex w-96 flex-col gap-3 rounded-4 bg-surface-base p-4 shadow-lg"
+						class="flex w-[28rem] flex-col gap-3 rounded-4 bg-surface-base p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
 						<PageOptions v-if="store.activePage" :page="store.activePage" :app="store.activeApp" />

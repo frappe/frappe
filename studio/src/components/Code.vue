@@ -78,6 +78,7 @@ const props = withDefaults(
 		autofocus?: boolean
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
+		lineWrapping?: boolean
 		completions?: CompletionSource | CompletionSource[] | null
 		// when set, `completions` replaces ALL built-in sources (language snippets, window scope)
 		overrideCompletions?: boolean
@@ -237,7 +238,7 @@ const extensions = computed(() => {
 		closeBrackets(),
 		indentationMarkers(),
 		getAutocompletionOptions(),
-		props.showLineNumbers ? EditorView.lineWrapping : [],
+		props.showLineNumbers || props.lineWrapping ? EditorView.lineWrapping : [],
 		isObjectLiteral.value ? customIndent : [],
 		store.isDark ? tomorrowNight : tomorrow,
 		EditorView.theme({

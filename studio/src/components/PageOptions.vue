@@ -9,26 +9,28 @@
 				@update:title="(value: string) => store.updateActivePage('page_title', value)"
 				@update:route="(value: string) => store.updateActivePage('route', value)"
 				@update:allowGuest="(value: boolean) => store.updateActivePage('allow_guest', value ? 1 : 0)"
-			/>
-
-			<Code
-				v-model="tabTitle"
-				label="Tab Title"
-				isFormInput
-				valueMode="text"
-				:emitOnChange="true"
-				:showLineNumbers="false"
-				:placeholder="page.page_title"
-				description="Shown in the browser tab. Use {{ }} to show dynamic data"
-				:completions="dynamicValueCompletions"
-				:overrideCompletions="true"
-			/>
+			>
+				<Code
+					v-model="tabTitle"
+					label="Tab Title"
+					isFormInput
+					valueMode="text"
+					:emitOnChange="true"
+					:showLineNumbers="false"
+					:lineWrapping="true"
+					class="inline-expression"
+					:placeholder="page.page_title"
+					description="Shown in the browser tab. Use {{ }} to show dynamic data"
+					:completions="dynamicValueCompletions"
+					:overrideCompletions="true"
+				/>
+			</PageMetaFields>
 
 			<!-- Dynamic Route Variables: design-time test values for params like /articles/:category -->
 			<CollapsibleSection
 				v-if="routeVariableNames.length"
 				sectionName="Route Variables"
-				class="mt-2 w-full [&>div>h3]:!text-base [&>div>h3]:!text-ink-gray-5"
+				class="w-full [&>div>div]:!mb-0 [&>div>h3]:!text-base [&>div>h3]:!text-ink-gray-5"
 			>
 				<div v-for="name in routeVariableNames" :key="name" class="w-full">
 					<Input

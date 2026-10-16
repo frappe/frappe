@@ -21,6 +21,8 @@
 			</div>
 		</div>
 
+		<slot />
+
 		<Switch
 			size="sm"
 			class="w-full"
