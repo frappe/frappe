@@ -7,19 +7,14 @@
  "field_order": [
   "enable_mcp",
   "server_name",
-  "server_description",
   "agent_instructions"
  ],
  "fields": [
   {
+   "description": "Name shown to AI clients. Defaults to the site's host name.",
    "fieldname": "server_name",
    "fieldtype": "Data",
    "label": "Server Name"
-  },
-  {
-   "fieldname": "server_description",
-   "fieldtype": "Small Text",
-   "label": "Server Description"
   },
   {
    "default": "1",
@@ -37,7 +32,7 @@
  "grid_page_length": 50,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-14 23:20:52.401399",
+ "modified": "2026-10-16 12:10:26.653723",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MCP Settings",

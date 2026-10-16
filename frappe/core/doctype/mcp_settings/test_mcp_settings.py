@@ -13,10 +13,7 @@ class TestMCPSettings(McpTestCase):
 	@contextmanager
 	def settings(self, **values):
 		doc = frappe.get_doc("MCP Settings")
-		original = {
-			field: doc.get(field)
-			for field in ("enable_mcp", "server_name", "server_description", "agent_instructions")
-		}
+		original = {field: doc.get(field) for field in ("enable_mcp", "server_name", "agent_instructions")}
 		try:
 			doc.update(values)
 			doc.save()
@@ -64,7 +61,7 @@ class TestMCPSettings(McpTestCase):
 		meta = frappe.get_meta("MCP Settings")
 		self.assertEqual(
 			[field.fieldname for field in meta.fields],
-			["enable_mcp", "server_name", "server_description", "agent_instructions"],
+			["enable_mcp", "server_name", "agent_instructions"],
 		)
 		self.assertEqual(frappe.new_doc("MCP Settings").enable_mcp, 1)
 
@@ -80,24 +77,19 @@ class TestMCPSettings(McpTestCase):
 		self.assertFalse(instructions.endswith("\n"))
 
 	def test_empty_settings_use_site_identity(self):
-		with self.settings(server_name="", server_description="", enable_mcp=1):
+		with self.settings(server_name="", enable_mcp=1):
 			result = self.initialize()
 		self.assertEqual(result["serverInfo"], {"name": self.site, "version": frappe.__version__})
 
 	def test_server_information_uses_site_settings(self):
 		with self.settings(
 			server_name="Example Accounting",
-			server_description="Invoices for Example India",
 			enable_mcp=1,
 			agent_instructions="Search for existing customers before creating one.",
 		):
 			legacy = self.initialize()
 			modern = self.discover()
-		server_info = {
-			"name": "Example Accounting",
-			"version": frappe.__version__,
-			"description": "Invoices for Example India",
-		}
+		server_info = {"name": "Example Accounting", "version": frappe.__version__}
 		self.assertEqual(legacy["serverInfo"], server_info)
 		self.assertEqual(modern["serverInfo"], server_info)
 		self.assertEqual(modern["instructions"], legacy["instructions"])

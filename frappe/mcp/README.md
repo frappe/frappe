@@ -92,7 +92,7 @@ Whitelisted RPC methods remain responsible for their own permission checks.
 
 ## Configuration and troubleshooting
 
-Open **MCP Settings** as a System Manager to set the server name and description for this site.
+Open **MCP Settings** as a System Manager to set the server name for this site.
 The name defaults to the resolved site name when empty. These settings appear in server information.
 **Enable MCP** is checked by default. Uncheck it to disable the endpoint for this site.
 Clients receive instructions during initialization or server discovery.

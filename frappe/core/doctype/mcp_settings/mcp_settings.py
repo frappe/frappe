@@ -15,7 +15,6 @@ class MCPSettings(Document):
 
 		agent_instructions: DF.LongText | None
 		enable_mcp: DF.Check
-		server_description: DF.SmallText | None
 		server_name: DF.Data | None
 	# end: auto-generated types
 
