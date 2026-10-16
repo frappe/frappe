@@ -57,7 +57,7 @@ test.describe("Grid Selection Bar", () => {
 		await expect(get_table(page).locator(".grid-add-row")).toBeVisible();
 	});
 
-	test("asks before deleting selected rows", async ({ page }) => {
+	test("deletes some selected rows without asking", async ({ page }) => {
 		const table = get_table(page);
 
 		await table.locator('.grid-row[data-idx="1"] .grid-row-check').click();
@@ -65,11 +65,8 @@ test.describe("Grid Selection Bar", () => {
 		await get_bar(page).getByRole("button", { name: "Actions" }).click();
 		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
 
-		const dialog = page.locator(".modal-dialog:visible");
-		await expect(dialog).toContainText("Are you sure you want to delete 2 rows?");
-		await dialog.getByRole("button", { name: "Yes" }).click();
-
 		await expect.poll(() => page.evaluate(() => cur_frm.doc.phone_nos.length)).toBe(998);
+		await expect(page.locator(".modal-dialog:visible")).toHaveCount(0);
 		await expect(get_bar(page)).toBeHidden();
 	});
 
@@ -95,7 +92,9 @@ test.describe("Grid Selection Bar", () => {
 			.getByRole("button", { name: "Actions" })
 			.click();
 		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
-		await page.locator(".modal-dialog:visible").getByRole("button", { name: "Yes" }).click();
+		const dialog = page.locator(".modal-dialog:visible");
+		await expect(dialog).toContainText("Are you sure you want to delete all 2 rows?");
+		await dialog.getByRole("button", { name: "Yes" }).click();
 
 		await expect.poll(() => page.evaluate(() => cur_frm.doc.email_ids.length)).toBe(0);
 		expect(await page.evaluate(() => window.removed_rows)).toBe(2);

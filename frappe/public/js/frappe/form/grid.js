@@ -384,20 +384,6 @@ export default class Grid {
 		}
 	}
 
-	delete_all_rows() {
-		const num_rows = this.data.length;
-		frappe.confirm(__("Are you sure you want to delete all {0} rows?", [num_rows]), () => {
-			this.frm.doc[this.df.fieldname] = [];
-			$(this.parent).find(".rows").empty();
-			this.grid_rows = [];
-			this.refresh();
-			this.frm &&
-				this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
-			this.frm && this.frm.dirty();
-			this.scroll_to_top();
-		});
-	}
-
 	scroll_to_top() {
 		if (frappe.flags.disable_auto_scroll) return;
 		this.wrapper.get(0).scrollIntoView({ behavior: "smooth", block: "start" });
