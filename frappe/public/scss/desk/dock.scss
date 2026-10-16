@@ -150,7 +150,6 @@
 		align-items: center;
 		gap: calc(var(--spacing) * 0.5);
 
-		// A floating dock leaves search and notifications to the sidebar.
 		body:not(.dock-pinned) & {
 			display: none;
 		}

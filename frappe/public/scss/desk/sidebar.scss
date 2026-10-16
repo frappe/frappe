@@ -185,7 +185,7 @@
 			cursor: pointer;
 			// `ml-2` from the glyph; `flex: 1` above is what pushes a suffix to the row's far end
 			margin-left: 8px;
-			padding-right: 8px;
+			padding-right: calc(var(--spacing) * 2);
 		}
 
 		// A group's heading is `text-base`, one step up from the rows it names. It is set here
@@ -606,11 +606,10 @@
 .indent + .nested-container {
 	margin-left: calc(var(--spacing) * 4 - 1px);
 	border-left: 1px solid var(--outline-gray-1);
-	// A gap between the rule and the rows, so a hovered or active row's fill does not sit on it.
-	// The anchor gives the same amount back, which keeps the text where it was.
+	// Keeps a hovered or active row's fill off the rule; the anchor gives the gap back to the text.
 	padding-left: calc(var(--spacing) * 1.5);
 
-	.item-anchor {
+	.standard-sidebar-item .item-anchor {
 		padding-left: calc(var(--spacing) * 0.5);
 	}
 }
