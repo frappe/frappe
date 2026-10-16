@@ -162,3 +162,78 @@ test.describe("List View — Column Widths", () => {
 		await dialog.locator(".btn-modal-close").click();
 	});
 });
+
+test.describe("List View — Column resize handle without System Manager", () => {
+	const test_user = "test_list_col_width@example.com";
+	const own_layout = "_test_layout_col_width_own";
+	const global_layout = "_test_layout_col_width_global";
+	const HANDLE = ".list-row-head .list-col-resize-handle";
+	const VIEW_SWITCHER = ".custom-btn-group.view-switcher button:visible";
+	const layout_columns = JSON.stringify([
+		{ fieldname: "description", label: "Description" },
+		{ fieldname: "priority", label: "Priority", width: 150 },
+	]);
+
+	async function select_layout(page, label) {
+		await page.locator(VIEW_SWITCHER).click();
+		await page.locator(".es-menu__item", { hasText: "List View" }).first().hover();
+		await page.locator(".es-menu__item", { hasText: label }).first().click();
+	}
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.create_test_user", { username: test_user });
+		await admin.call("frappe.tests.ui_test_helpers.add_remove_role", {
+			action: "remove",
+			user: test_user,
+			role: "System Manager",
+		});
+		await admin.call("frappe.tests.ui_test_helpers.create_list_layout_test_layout", {
+			filter_name: own_layout,
+			for_user: test_user,
+			columns: layout_columns,
+		});
+		await admin.call("frappe.tests.ui_test_helpers.create_list_layout_test_layout", {
+			filter_name: global_layout,
+			for_user: "",
+			columns: layout_columns,
+		});
+	});
+
+	test.afterAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.clear_list_layout_test_layouts");
+	});
+
+	test.beforeEach(async ({ page, desk, api }) => {
+		await desk.login(test_user);
+		await api.call("frappe.tests.ui_test_helpers.reset_list_layout_test_user_settings");
+		await page.goto("/desk/todo/view/list");
+		await desk.ready();
+		await expect(page.locator(".list-row-head")).toBeVisible();
+	});
+
+	test("hides the handle on the default layout", async ({ page }) => {
+		await expect(page.locator(HANDLE)).toHaveCount(0);
+	});
+
+	test("hides the handle on a layout the user cannot edit", async ({ page }) => {
+		await select_layout(page, global_layout);
+		await expect(page.locator(".list-row-head")).toBeVisible();
+		await expect(page.locator(HANDLE)).toHaveCount(0);
+	});
+
+	test("shows the handle on the user's own layout", async ({ page }) => {
+		await select_layout(page, own_layout);
+		await expect(page.locator(HANDLE).first()).toBeAttached();
+	});
+});
+
+test.describe("List View — Column resize handle for System Manager", () => {
+	test("shows the handle on the default layout", async ({ page, desk, api }) => {
+		await api.call("frappe.tests.ui_test_helpers.reset_list_layout_test_user_settings");
+		await page.goto("/desk/todo/view/list");
+		await desk.ready();
+		await expect(
+			page.locator(".list-row-head .list-col-resize-handle").first()
+		).toBeAttached();
+	});
+});
