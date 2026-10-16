@@ -353,15 +353,91 @@ frappe.ui.Checklist = class Checklist {
 
 		const trigger = this.make_control(face, user ? user.fullname : __("Assign"));
 		trigger.setAttribute("data-icon-button", "true");
-		this.attach_editor(trigger, item, {
-			fieldtype: "Link",
-			options: "User",
-			label: __("Assigned To"),
-			value: item.assignee,
-			save: (value) => this.opts.on_assign(item, value),
-			field: "assignee",
-		});
+		this.attach_user_picker(trigger, item);
 		return trigger;
+	}
+
+	// The list view's searchable dropdown: the users Assign To offers, filtered by
+	// frappe.utils.setup_search as the user types.
+	attach_user_picker(trigger, item) {
+		const assign = (user) => {
+			popover.close();
+			this.save_field(item, "assignee", user, this.opts.on_assign);
+		};
+		const popover = new frappe.ui.Popover({
+			trigger,
+			align: "end",
+			css_class: "es-checklist__picker",
+			content: () => {
+				const picker = document.createElement("div");
+				picker.innerHTML = `
+					<input type="text" data-element="search" class="form-control es-checklist__search">
+					<div class="es-checklist__options"></div>`;
+				picker.querySelector("input").placeholder = __("Search");
+				return picker;
+			},
+			on_open: () =>
+				this.get_users().then((users) => {
+					const $picker = $(popover.panel);
+					$picker
+						.find(".es-checklist__options")
+						.empty()
+						.append(this.make_user_options(users, item, assign));
+					frappe.utils.setup_search(
+						$picker,
+						".es-checklist__option:not([data-unassign])",
+						".es-checklist__option-label",
+						"data-name"
+					);
+				}),
+		});
+	}
+
+	get_users() {
+		this.users ??= frappe.db.get_link_options("User", "", {
+			user_type: "System User",
+			enabled: 1,
+		});
+		return this.users;
+	}
+
+	make_user_options(users, item, assign) {
+		const rows = users.map(({ value, description }) => {
+			const name = description || value;
+			const row = this.make_option(name, description ? value : "", () => assign(value));
+			row.querySelector(".es-checklist__option-label").setAttribute("data-name", value);
+			row.prepend(
+				frappe.ui.avatar({
+					label: name,
+					image: frappe.user_info(value).image,
+					size: "sm",
+					theme: "auto",
+				})[0]
+			);
+			row.toggleAttribute("data-selected", value === item.assignee);
+			return row;
+		});
+		if (item.assignee) {
+			const unassign = this.make_option(__("Unassign"), "", () => assign(null));
+			unassign.prepend($(frappe.utils.icon("user-x", "sm", "", "", "", true))[0]);
+			unassign.setAttribute("data-unassign", "");
+			rows.push(unassign);
+		}
+		return rows;
+	}
+
+	make_option(label, description, onclick) {
+		const row = document.createElement("button");
+		row.type = "button";
+		row.className = "es-checklist__option";
+		row.innerHTML = `<span class="es-checklist__option-text">
+			<span class="es-checklist__option-label"></span>
+			<span class="es-checklist__option-description"></span>
+		</span>`;
+		row.querySelector(".es-checklist__option-label").textContent = label;
+		row.querySelector(".es-checklist__option-description").textContent = description;
+		row.addEventListener("click", onclick);
+		return row;
 	}
 
 	make_due(item) {
@@ -374,13 +450,7 @@ frappe.ui.Checklist = class Checklist {
 
 		const trigger = this.make_control($("<span></span>").text(text), __("Due date"));
 		trigger.toggleAttribute("data-empty", !item.due_date);
-		this.attach_editor(trigger, item, {
-			fieldtype: "Date",
-			label: __("Due Date"),
-			value: item.due_date,
-			save: (value) => this.opts.on_due_date_change(item, value),
-			field: "due_date",
-		});
+		this.attach_date_picker(trigger, item);
 		return trigger;
 	}
 
@@ -405,36 +475,48 @@ frappe.ui.Checklist = class Checklist {
 		return control;
 	}
 
-	// One field in a popover; a change saves through the caller, then updates the row.
-	attach_editor(trigger, item, editor) {
+	// The calendar alone in a popover: picking a day saves it, Clear removes it.
+	attach_date_picker(trigger, item) {
 		const popover = new frappe.ui.Popover({
 			trigger,
 			align: "end",
+			css_class: "es-checklist__calendar",
 			content: () => {
-				const body = document.createElement("div");
-				body.className = "es-checklist__editor";
-				const control = frappe.ui.form.make_control({
-					parent: body,
-					df: {
-						fieldtype: editor.fieldtype,
-						options: editor.options,
-						label: editor.label,
-						fieldname: editor.field,
-						onchange: () => {
-							const value = control.get_value() || null;
-							if (value === (editor.value || null)) return;
-							Promise.resolve(editor.save(value)).then(() => {
-								popover.close();
-								this.update_item(item.id, { [editor.field]: value });
-							});
+				const calendar = document.createElement("div");
+				const today = frappe.datetime.str_to_obj(frappe.datetime.get_today());
+				const lang = frappe.boot.user?.language;
+				const due = item.due_date && frappe.datetime.str_to_obj(item.due_date);
+				let ready = false;
+				const picker = $(calendar)
+					.datepicker({
+						language: $.fn.datepicker.language[lang] ? lang : "en",
+						firstDay: frappe.datetime.get_first_day_of_the_week_index(),
+						todayButton: today,
+						clearButton: Boolean(due),
+						startDate: due || today,
+						onSelect: (_, date) => {
+							if (!ready) return;
+							const value = date ? frappe.datetime.obj_to_str(date) : null;
+							popover.close();
+							this.save_field(item, "due_date", value, this.opts.on_due_date_change);
 						},
-					},
-					render_input: true,
-				});
-				control.set_value(editor.value || "");
-				return body;
+					})
+					.data("datepicker");
+				if (due) picker.selectDate(due);
+				ready = true;
+				$(calendar).find('[data-action="today"]').text(__("Today"));
+				$(calendar).find('[data-action="clear"]').text(__("Clear"));
+				return calendar;
 			},
 		});
+	}
+
+	// Saves through the caller, then updates the row; a rejected save leaves the row as it was.
+	save_field(item, field, value, save) {
+		if (value === (item[field] || null)) return;
+		return Promise.resolve(save(item, value)).then(() =>
+			this.update_item(item.id, { [field]: value })
+		);
 	}
 
 	// A skipped row offers only Undo skip, so skipping can't stand in for unlocking it.

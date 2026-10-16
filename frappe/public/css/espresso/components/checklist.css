@@ -386,9 +386,88 @@
     gap: calc(var(--spacing) * 2);
 }
 
-.es-checklist__editor .frappe-control,
-.es-checklist__editor .form-group {
-    margin-bottom: 0;
+/* User picker: the list view's searchable dropdown, in a popover. */
+.es-checklist__picker {
+    width: calc(var(--spacing) * 64);
+}
+
+.es-checklist__search {
+    margin-bottom: var(--spacing);
+}
+
+.es-checklist__options {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(var(--spacing) * 64);
+    overflow-y: auto;
+}
+
+.es-checklist__option {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    width: 100%;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    border: 0;
+    border-radius: var(--radius);
+    background: none;
+    font: inherit;
+    text-align: start;
+    color: var(--ink-gray-8);
+    cursor: pointer;
+}
+
+.es-checklist__option:hover,
+.es-checklist__option:focus-visible {
+    background: var(--surface-gray-2);
+    outline: none;
+}
+
+.es-checklist__option[data-selected] .es-checklist__option-label {
+    font-weight: var(--font-weight-medium);
+}
+
+.es-checklist__option[data-unassign] {
+    margin-top: var(--spacing);
+    color: var(--ink-gray-6);
+}
+
+.es-checklist__option .icon,
+.es-checklist__option .es-avatar {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.es-checklist__option-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.es-checklist__option-label,
+.es-checklist__option-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.es-checklist__option-label {
+    font-size: var(--text-base);
+}
+
+.es-checklist__option-description {
+    font-size: var(--text-p-xs);
+    color: var(--ink-gray-5);
+}
+
+.es-checklist__option-description:empty {
+    display: none;
+}
+
+/* The popover is the calendar's frame, so the inline calendar drops its own. */
+.es-checklist__calendar .datepicker-inline .datepicker {
+    border: 0;
+    box-shadow: none;
 }
 
 /* Narrow cards let the badge, owner and date take only the room they need. */
