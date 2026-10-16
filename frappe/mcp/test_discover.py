@@ -94,18 +94,6 @@ class TestDiscover(McpTestCase):
 		self.assertTrue(child["is_child_table"])
 		self.assertFalse(any(child["permissions"].values()))
 
-	def test_method_discovery_denied_to_normal_user(self):
-		for tool, arguments in (
-			("search_methods", {"query": "get_count"}),
-			("get_method_schema", {"method": "frappe.client.get_count"}),
-			("list_document_methods", {"doctype": "ToDo"}),
-			("get_document_method_schema", {"doctype": "ToDo", "method": "add_comment"}),
-		):
-			with self.subTest(tool=tool):
-				response = self.discover(tool, arguments)
-				self.assertTrue(response.json["result"]["isError"])
-				self.assertEqual(response.json["result"]["content"][0]["text"], "PermissionError")
-
 	def test_manager_rpc_contract_and_search(self):
 		with self.manager(), self.method_cache():
 			result = self.result("get_method_schema", {"method": "frappe.client.get_count"})

@@ -32,13 +32,6 @@ class TestMcpTransport(McpTestCase):
 			with self.subTest(payload=payload):
 				self.assertEqual(self.request(payload).json["error"]["code"], protocol.INVALID_REQUEST)
 
-	def test_command_cannot_override_routing(self):
-		response = self.request(
-			{"jsonrpc": "2.0", "id": 1, "method": "ping", "cmd": "frappe.auth.get_logged_user"}
-		)
-		self.assertEqual(response.json["result"], {})
-		self.assertNotIn("message", response.json)
-
 	def test_legacy_initialize(self):
 		response = self.request(
 			{

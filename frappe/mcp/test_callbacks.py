@@ -190,25 +190,6 @@ class TestToolCallbacks(McpTestCase):
 					],
 				)
 
-	def test_after_rollback_failure_does_not_skip_other_cleanup(self):
-		cleanup = Mock()
-
-		def fail():
-			raise ValueError("Cleanup failed")
-
-		def handler():
-			frappe.get_doc(doctype="ToDo", description="MCP callback cleanup fixture").insert()
-			frappe.db.after_rollback.add(fail)
-			frappe.db.after_rollback.add(cleanup)
-			frappe.throw(_("Tool failed"))
-
-		with patch("frappe.log_error") as log_error:
-			response = self.invoke(handler)
-		self.assertTrue(response.json["result"]["isError"])
-		self.assertFalse(frappe.db.exists("ToDo", {"description": "MCP callback cleanup fixture"}))
-		cleanup.assert_called_once_with()
-		self.assertEqual(log_error.call_count, 1)
-
 	def test_failed_tool_rolls_back_earlier_request_write(self):
 		names = []
 

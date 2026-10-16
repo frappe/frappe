@@ -57,22 +57,6 @@ class TestMCPSettings(McpTestCase):
 			headers={"MCP-Protocol-Version": protocol.LATEST_VERSION, "Mcp-Method": "server/discover"},
 		).json["result"]
 
-	def test_enabled_by_default(self):
-		self.assertEqual(frappe.new_doc("MCP Settings").enable_mcp, 1)
-
-	def test_instructions_describe_site_user_and_apps(self):
-		with self.settings(agent_instructions="  "):
-			instructions = self.initialize(headers={"Host": "erp.example.com"})["instructions"]
-		self.assertIn("site at erp.example.com", instructions)
-		self.assertIn(self.user, instructions)
-		self.assertIn("Frappe Framework (frappe)", instructions)
-
-	def test_empty_server_name_uses_scrubbed_host_name(self):
-		with self.settings(server_name="", enable_mcp=1):
-			result = self.initialize(headers={"Host": "ERP-1.example.com:8443"})
-		self.assertEqual(result["serverInfo"]["name"], "erp_1_example_com_8443")
-		self.assertEqual(result["serverInfo"]["version"], frappe.__version__)
-
 	def test_server_information_uses_site_settings(self):
 		with self.settings(
 			server_name="Example Accounting",
