@@ -124,3 +124,25 @@ class TestPrintUtils(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		reader.decrypt("s3cret")
 		self.assertEqual(len(reader.pages), 2)
+
+	def test_print_methods_encrypt_when_password_is_set(self):
+		"""print methods encrypt the PDF when a password is set.
+		On get_print, attach_print, and _download_multi_pdf, the PDF can be encrypted.
+		"""
+
+		password = "s3cret"
+		todo = self._make_todo()
+		other = self._make_todo()
+
+		def assert_encrypted(pdf):
+			reader = PdfReader(io.BytesIO(pdf))
+			self.assertTrue(reader.is_encrypted)
+			reader.decrypt(password)
+
+		assert_encrypted(frappe.get_print("ToDo", todo.name, as_pdf=True, password=password))
+		assert_encrypted(frappe.attach_print("ToDo", todo.name, password=password)["fcontent"])
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		_download_multi_pdf("ToDo", [todo.name, other.name], options={"password": password})
+		assert_encrypted(frappe.local.response.filecontent)
