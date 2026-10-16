@@ -130,19 +130,25 @@ function nameOf(user) {
 	return user.full_name || user.name;
 }
 
+let chat = null; // the chat the dialog opened for
+let asked = 0; // member lists asked for
+let shown = 0; // the one on show: an older reply never replaces it
+
 // a fresh start each time: the chat may have changed since the last opening
 async function show() {
+	chat = sid.value;
+	shown = asked;
 	query.value = "";
 	viewers.value = [];
 	loading.value = true;
-	const loaded = attempt(() => flow.client.shares(sid.value)).then((list) => {
-		viewers.value = list ?? [];
-		loading.value = false;
-	});
+	const loaded = update(() => flow.client.shares(chat)).then(() => (loading.value = false));
 	// open with the members in, so the dialog keeps its size; a slow list opens it anyway
 	await Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, 300))]);
-	open.value = true;
+	if (chat === sid.value) open.value = true;
 }
+
+// another chat opening closes the dialog, so it never acts on the wrong one
+watch(sid, () => (open.value = false));
 
 // only the newest search lands
 watch([open, debouncedQuery], async ([isOpen, text], _, onCleanup) => {
@@ -161,13 +167,21 @@ async function add(user) {
 	// the combobox writes the pick's name into the box after this; empty it for the next
 	await nextTick();
 	query.value = "";
-	const list = await attempt(() => flow.client.share(sid.value, user));
-	if (list) viewers.value = list;
+	await update(() => flow.client.share(chat, user));
 }
 
 async function remove(user) {
-	const list = await attempt(() => flow.client.unshare(sid.value, user));
-	if (list) viewers.value = list;
+	await update(() => flow.client.unshare(chat, user));
+}
+
+// every request returns the whole list; it lands only if newer than the one on show
+async function update(work) {
+	const request = ++asked;
+	const list = await attempt(work);
+	if (list && request > shown) {
+		shown = request;
+		viewers.value = list;
+	}
 }
 
 async function attempt(work) {

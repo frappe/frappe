@@ -410,6 +410,91 @@ test("the share dialog opens with its members in, so it keeps its size; a slow l
 	assert.ok(slow.textContent.includes("Loading…"));
 });
 
+test("the share dialog acts only on the chat it opened for, and a slow reply can't undo a newer one", async (t) => {
+	const ShareChat = await loadComponent("chat/ShareChat.vue");
+	const ann = { name: "ann@example.com", full_name: "Ann", user_image: null };
+	const bob = { name: "bob@example.com", full_name: "Bob", user_image: null };
+	const lists = [];
+	const shared = [];
+	const state = reactive({ sessionId: "S1", session: { title: "Q3 plan" } });
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(ShareChat).use(router);
+	app.provide("flow", {
+		state,
+		client: {
+			shares: (sid) => new Promise((resolve) => lists.push({ sid, resolve })),
+			findUsers: async () => [bob],
+			share: async (sid, user) => {
+				shared.push([sid, user]);
+				return [ann, bob];
+			},
+		},
+	});
+	app.provide("flowPage", { state: { boot } });
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	const dialog = () => el.querySelector("[role=dialog]");
+	const shareButton = () => el.querySelector("button[title='Share this chat']");
+	const pause = () => new Promise((resolve) => setTimeout(resolve, 20));
+
+	// another chat opening closes the dialog, and the first chat's late list stays out
+	shareButton().click();
+	await until(dialog);
+	state.sessionId = "S2";
+	await nextTick();
+	assert.equal(dialog(), null, "it closes with its chat");
+	shareButton().click();
+	await until(() => lists.length === 2);
+	lists[1].resolve([ann]);
+	await until(dialog);
+	lists[0].resolve([bob]);
+	await pause();
+	assert.ok(el.textContent.includes("ann@example.com"));
+	assert.ok(!el.textContent.includes("bob@example.com"), "not the other chat's list");
+
+	// adding asks for this chat
+	await until(() => el.querySelector("[data-control=combobox] button"));
+	el.querySelector("[data-control=combobox] button").click();
+	await until(() => el.textContent.includes("bob@example.com"));
+	assert.deepEqual(shared, [["S2", "bob@example.com"]]);
+});
+
+test("a slow member list can't undo a change made after it", async (t) => {
+	const ShareChat = await loadComponent("chat/ShareChat.vue");
+	const ann = { name: "ann@example.com", full_name: "Ann", user_image: null };
+	const bob = { name: "bob@example.com", full_name: "Bob", user_image: null };
+	let answer;
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(ShareChat).use(router);
+	app.provide("flow", {
+		state: reactive({ sessionId: "S1", session: { title: "Q3 plan" } }),
+		client: {
+			shares: () => new Promise((resolve) => (answer = resolve)),
+			findUsers: async () => [bob],
+			share: async () => [ann, bob],
+		},
+	});
+	app.provide("flowPage", { state: { boot } });
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	el.querySelector("button[title='Share this chat']").click();
+	await until(() => el.querySelector("[data-control=combobox] button"));
+	el.querySelector("[data-control=combobox] button").click();
+	await until(() => el.textContent.includes("bob@example.com"));
+	// the list asked for on opening arrives last, from before Bob was added
+	answer([ann]);
+	await new Promise((resolve) => setTimeout(resolve, 20));
+	assert.ok(el.textContent.includes("bob@example.com"), "Bob stays");
+});
+
 test("the thumbs show under a finished run, but not in a chat the user may only view", async (t) => {
 	const FeedbackBar = await loadComponent("chat/FeedbackBar.vue");
 	for (const [readOnly, buttons] of [
