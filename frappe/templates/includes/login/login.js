@@ -296,7 +296,6 @@ login.set_invalid = function (message) {
 login.login_handlers = (function () {
 	const get_server_message = function (data) {
 		return $.map(JSON.parse(data._server_messages || '[]'), function (v) {
-			// temp fix for messages sent as dict
 			try {
 				return JSON.parse(v).message;
 			} catch (e) {
