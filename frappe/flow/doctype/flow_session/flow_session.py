@@ -8,10 +8,12 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, Any
 
 import frappe
+import redis
 from frappe import _
 from frappe.model.document import Document
 
 from flow.daemon.client import DaemonClient, DaemonError
+from flow.daemon.lifecycle import _redis_url
 from flow.lib.session import (
 	ABANDONED,
 	GONE,
@@ -385,6 +387,22 @@ class FlowSession(Document):
 		if not name:
 			frappe.throw(_("This session has no paused run."), title=_("Nothing to Resume"))
 		return frappe.get_doc("Flow Run", name)
+
+
+def on_share_removed(share, method=None):
+	"""A view of a chat taken back: once saved, the realtime relay re-checks who follows it live."""
+	if share.share_doctype == "Flow Session":
+		session = share.share_name
+		frappe.db.after_commit.add(lambda: _recheck_live_access(session))
+
+
+def _recheck_live_access(session: str) -> None:
+	if not (url := _redis_url()):
+		return
+	# with Redis down the relay isn't relaying either
+	with suppress(redis.RedisError):
+		message = json.dumps({"session": session})
+		redis.Redis.from_url(url).publish(f"flow-access:{frappe.local.site}", message)
 
 
 def _delete_server_session(name: str) -> None:

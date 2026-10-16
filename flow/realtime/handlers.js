@@ -14,12 +14,13 @@ const EVENT = "flow:event";
 const RESYNC = "flow:resync";
 const RESYNC_ALL = "harness-resync:all";
 const RESYNC_SITE = "harness-resync:site:";
+const ACCESS_SITE = "flow-access:";
 const SESSION_NAME = /^[\w.-]{1,140}$/;
 
 // channel -> { site, session, nsp, sockets, ready }; the socket.io room is the channel
 const subscriptions = new Map();
-// site -> promise of its resync channels being subscribed
-const resyncWatches = new Map();
+// site -> promise of its resync and access channels being subscribed
+const siteWatches = new Map();
 let connecting = null;
 
 function flow_handlers(socket) {
@@ -58,7 +59,7 @@ async function subscribe(socket, session) {
 		});
 		subscriptions.set(channel, entry);
 	}
-	entry.sockets.add(socket.id);
+	entry.sockets.add(socket);
 	socket.flow_sessions.add(session);
 	socket.join(channel);
 	try {
@@ -71,11 +72,15 @@ async function subscribe(socket, session) {
 }
 
 // Asked with the caller's own credentials on the site the socket authenticated against.
-async function can_stream(socket, session) {
-	const response = await socket.frappe_request("/api/method/frappe.realtime.has_permission", {
+function ask(socket, session) {
+	return socket.frappe_request("/api/method/frappe.realtime.has_permission", {
 		doctype: "Flow Session",
 		name: session,
 	});
+}
+
+async function can_stream(socket, session) {
+	const response = await ask(socket, session);
 	if (!response.ok) return false;
 	const { message } = await response.json();
 	return message === true;
@@ -84,7 +89,7 @@ async function can_stream(socket, session) {
 async function listen(channel, site) {
 	const client = await connect();
 	await client.subscribe(channel, deliver);
-	await watch_resync(site);
+	await watch_site(site);
 }
 
 function deliver(message, channel) {
@@ -93,23 +98,40 @@ function deliver(message, channel) {
 	if (entry && event) entry.nsp.to(channel).emit(EVENT, event);
 }
 
-// The daemon asks for a resync when it had to drop events, naming the sessions if it can.
-function watch_resync(site) {
-	if (!resyncWatches.has(site)) {
+// The daemon asks for a resync when it had to drop events, naming the sessions if it can;
+// the site says when someone may have lost access to a session.
+function watch_site(site) {
+	if (!siteWatches.has(site)) {
 		const watch = connect()
 			.then((client) =>
 				Promise.all([
 					client.subscribe(RESYNC_SITE + site, resync),
 					client.subscribe(RESYNC_ALL, resync),
+					client.subscribe(ACCESS_SITE + site, recheck),
 				])
 			)
 			.catch((err) => {
-				resyncWatches.delete(site);
+				siteWatches.delete(site);
 				throw err;
 			});
-		resyncWatches.set(site, watch);
+		siteWatches.set(site, watch);
 	}
-	return resyncWatches.get(site);
+	return siteWatches.get(site);
+}
+
+// Every socket on the session is asked again. Only a clear no (403) makes one leave, so a
+// site that can't answer never cuts off the owner.
+async function recheck(message, channel) {
+	const notice = parse(message);
+	if (!notice || !valid_name(notice.session)) return;
+	const site = channel.slice(ACCESS_SITE.length);
+	for (const entry of [...subscriptions.values()]) {
+		if (entry.site !== site || entry.session !== notice.session) continue;
+		for (const socket of [...entry.sockets]) {
+			const response = await ask(socket, notice.session).catch(() => null);
+			if (response?.status === 403) release(socket, notice.session);
+		}
+	}
 }
 
 function resync(message, channel) {
@@ -129,7 +151,7 @@ function release(socket, session) {
 	socket.leave(channel);
 	const entry = subscriptions.get(channel);
 	if (!entry) return;
-	entry.sockets.delete(socket.id);
+	entry.sockets.delete(socket);
 	if (entry.sockets.size) return;
 	subscriptions.delete(channel);
 	// queued behind a subscribe still in flight

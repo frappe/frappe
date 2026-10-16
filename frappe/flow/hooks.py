@@ -27,7 +27,9 @@ doc_events = {
 		"on_submit": "flow.triggers.dispatch",
 		"on_cancel": "flow.triggers.dispatch",
 		"on_trash": "flow.triggers.dispatch",
-	}
+	},
+	# a viewer taken off a chat stops following it live
+	"DocShare": {"on_trash": "flow.flow.doctype.flow_session.flow_session.on_share_removed"},
 }
 
 # a session's tools run as its owner, so its content is theirs alone

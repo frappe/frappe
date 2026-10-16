@@ -494,6 +494,25 @@ class TestSessionEndpoints(ApiCase):
 		with self.assertRaises(frappe.PermissionError):
 			api.session(name)
 
+	def test_taking_a_view_back_has_the_live_relay_recheck_who_follows_the_chat(self):
+		owner, viewer = _ensure_user(SHARER), _ensure_user(OTHER)
+		frappe.set_user(owner)
+		name = self.create()
+		api.share_session(name, viewer)
+		frappe.db.after_commit.reset()  # leave only the removal's work queued
+		with (
+			patch("flow.flow.doctype.flow_session.flow_session._redis_url", return_value="redis://relay"),
+			patch("redis.Redis.from_url") as connect,
+		):
+			api.unshare_session(name, viewer)
+			# the relay asks the site again, so only once the removal is saved
+			connect.return_value.publish.assert_not_called()
+			frappe.db.after_commit.run()
+		connect.assert_called_once_with("redis://relay")
+		connect.return_value.publish.assert_called_once_with(
+			f"flow-access:{frappe.local.site}", json.dumps({"session": name})
+		)
+
 	def test_a_shared_chat_notifies_each_viewer_once_with_a_link_to_it(self):
 		viewer = _ensure_user(OTHER)
 		# Administrator's name is not its email, which is how Frappe finds a recipient
