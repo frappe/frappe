@@ -4,7 +4,7 @@ An island builds on the app's own tooling ([0005](0005-the-preset-resolves-its-t
 
 ## Decision
 
-One build, run by framework, for every Frappe UI page on the bench. Its vite root is `ui/vite/island/toolchain/`, a directory whose only content is the build's own dependencies.
+One build, run by framework, for every Frappe UI page on the bench. Its vite root is `island-toolchain/`, a directory beside `ui/` whose only content is the build's own dependencies.
 
 This amends 0005 rather than reversing it. The preset still resolves its tooling from its root. For this one build that root is framework's, and an app's own islands are untouched.
 
@@ -29,6 +29,8 @@ It works only for an app that already has a frontend, which is the minority and 
 The simpler-looking version of the same idea: put the dependencies in `@framework/ui` itself and root the build there.
 
 A bench links `@framework/ui` into every consuming app by symlink, and node resolves from a module's real path. A `vue` and a `frappe-ui` sitting in `ui/node_modules` are a second copy for every app that links the package. The README calls that out as the thing that breaks provide/inject and doubles vue. A sibling directory is never on the walk up from `ui/src`.
+
+The same holds for a toolchain anywhere inside `ui/`, which is where it first lived, at `ui/vite/island/toolchain/`. Its own link to `@framework/ui` pointed at a folder that contained the link, so any copy that followed symlinks looped, and every app that links the package carried the toolchain's `node_modules` with it.
 
 ## Rejected: framework hosts a frontend of its own
 
