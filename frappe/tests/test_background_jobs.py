@@ -91,6 +91,11 @@ class TestBackgroundJobs(IntegrationTestCase):
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
 
+	def test_enqueue_passes_retry_kwarg_to_method(self):
+		job = frappe.enqueue("frappe.tests.test_background_jobs.echo_retry", queue="short", retry=3)
+		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
+		self.assertIsNone(job.retries_left)
+
 	def test_job_translation_resolves_user_language(self):
 		real_get_cached_value = frappe.get_cached_value
 
@@ -251,6 +256,10 @@ class TestBackgroundJobs(IntegrationTestCase):
 			is_async=False,
 			retry=1,
 		)
+
+
+def echo_retry(retry=None):
+	return retry
 
 
 def fail_function():
