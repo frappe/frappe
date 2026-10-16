@@ -147,6 +147,8 @@
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
 		margin-bottom: 2px;
+		-webkit-user-select: none;
+		user-select: none;
 
 		.sidebar-item-control {
 			.drop-icon {
