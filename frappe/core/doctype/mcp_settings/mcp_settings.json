@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
+ "beta": 1,
  "creation": "2026-10-14 17:58:54.000181",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -32,7 +33,7 @@
  "grid_page_length": 50,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-16 12:10:26.653723",
+ "modified": "2026-10-16 21:48:26.316802",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "MCP Settings",
