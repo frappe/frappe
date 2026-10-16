@@ -40,7 +40,7 @@ class Tool:
 	def definition(self) -> dict:
 		return {
 			"name": self.name,
-			"description": _("Site: {0}. {1}").format(frappe.local.site, _(self.description)),
+			"description": self.description,
 			"inputSchema": self.input_schema,
 			"annotations": self.annotations,
 		}
