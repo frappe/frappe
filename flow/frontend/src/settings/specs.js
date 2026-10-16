@@ -264,7 +264,7 @@ export const SPECS = {
 				name: "type",
 				label: "Type",
 				type: "select",
-				options: ["Imported", "Script", "Server"],
+				options: ["Script", "Imported", "Server"],
 				locked: (doc) => system(doc) || saved(doc),
 			},
 			enabled,
