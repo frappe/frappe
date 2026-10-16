@@ -787,6 +787,32 @@ test.describe("Espresso components", () => {
 			await expect(read_only.locator(".es-checklist__due button")).toHaveCount(0);
 		});
 
+		test("the owner opens a searchable user list and the date opens a calendar, with no field between", async ({
+			page,
+		}) => {
+			const employee = row(onboarding(page), "Create Employee");
+
+			await employee.locator(".es-checklist__owner button").click();
+			const picker = page.locator(".es-checklist__picker");
+			const users = picker.locator(".es-checklist__option:visible");
+			await expect(picker.locator("[data-element='search']")).toBeFocused();
+			await expect(users.first()).toBeVisible();
+			await page.keyboard.type("administrator");
+			await expect(users).toHaveCount(1);
+			await users.first().click();
+			await expect(picker).toHaveCount(0);
+
+			await employee.locator(".es-checklist__due button").click();
+			const calendar = page.locator(".es-checklist__calendar");
+			await expect(calendar.locator(".datepicker")).toBeVisible();
+			await expect(calendar.locator("input")).toHaveCount(0);
+			await calendar
+				.locator(".datepicker--cell-day:not(.-other-month-)", { hasText: /^25$/ })
+				.click();
+			await expect(calendar).toHaveCount(0);
+			await expect(employee.locator(".es-checklist__due")).toContainText("25-");
+		});
+
 		test("the marker sets an unfinished row In Progress or Stuck, shown as a badge", async ({
 			page,
 		}) => {
