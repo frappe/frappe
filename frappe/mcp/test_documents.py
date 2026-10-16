@@ -55,7 +55,7 @@ class TestGetDocuments(McpTestCase):
 	def test_named_read_denies_other_users_document(self):
 		response = self.read(tool="get_document", doctype="ToDo", name=self.names[3])
 		self.assertTrue(response.json["result"]["isError"])
-		self.assertEqual(set(response.json["result"]["structuredContent"]), {"site", "user", "error"})
+		self.assertNotIn("structuredContent", response.json["result"])
 
 	def test_list_and_count_hide_other_users_document(self):
 		result = self.result(doctype="ToDo", filters=self.filters)
@@ -122,7 +122,7 @@ class TestGetDocuments(McpTestCase):
 			with self.subTest(tool=tool):
 				response = self.read(doctype="OAuth Bearer Token", tool=tool)
 				self.assertTrue(response.json["result"]["isError"])
-				self.assertEqual(set(response.json["result"]["structuredContent"]), {"site", "user", "error"})
+				self.assertNotIn("structuredContent", response.json["result"])
 
 	def test_field_permissions_on_named_read(self):
 		result = self.result(tool="get_document", doctype="User", name=self.user)["document"]
