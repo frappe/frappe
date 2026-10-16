@@ -275,6 +275,7 @@ function back() {
 	}
 	dialog.confirm({
 		title: "Discard changes?",
+		size: "lg",
 		message: "Your edits to this skill have not been saved.",
 		actions: [
 			{ label: "Keep editing", variant: "outline" },
@@ -287,6 +288,7 @@ function confirmDelete() {
 	const { path, name } = editing.value
 	dialog.confirm({
 		title: "Delete skill?",
+		size: "lg",
 		message: `“${name}” will be removed from disk.`,
 		actions: [
 			{ label: "Cancel", variant: "outline" },

@@ -313,6 +313,7 @@ function sessionActions(s) {
 function promptRename(s) {
 	dialog.prompt({
 		title: "Rename chat",
+		size: "lg",
 		fields: [{ name: "title", label: "Name", defaultValue: flow.sessionTitle(s), required: true }],
 		confirmLabel: "Rename",
 		// fire-and-forget (outcome lands as a toast): returning the promise would
@@ -328,6 +329,7 @@ function promptRename(s) {
 function confirmDelete(s) {
 	dialog.confirm({
 		title: "Delete chat?",
+		size: "lg",
 		message: `“${flow.sessionTitle(s)}” and its full history will be permanently removed.`,
 		actions: [
 			{ label: "Cancel", variant: "outline" },

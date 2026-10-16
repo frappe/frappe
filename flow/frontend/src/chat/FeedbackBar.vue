@@ -44,6 +44,7 @@ const rating = computed(() => run.value?.feedback_rating || null);
 function askWhy() {
 	dialog.prompt({
 		title: "What went wrong?",
+		size: "lg",
 		fields: [
 			{
 				name: "comment",

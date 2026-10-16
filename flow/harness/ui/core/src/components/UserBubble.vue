@@ -167,6 +167,7 @@ onBeforeUnmount(() => resizer?.disconnect())
 function confirmRewind() {
 	dialog.confirm({
 		title: "Rewind to this message?",
+		size: "lg",
 		message:
 			"Everything after this point is removed from the conversation, and the message returns to the composer so you can edit and resend it.",
 		actions: [
