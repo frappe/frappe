@@ -192,6 +192,14 @@ test("execute keeps the code and pretty-prints what it returned", (t) => {
 	);
 });
 
+test("a result saved before its tool's return changed shows as text, without a count", () => {
+	const saved = json([{ name: "A" }, { name: "B" }]);
+	const read = presentTool("read_records", {}, saved);
+	assert.equal(read.stat, "");
+	assert.equal(read.resultComponent, JsonView);
+	assert.equal(presentTool("find_doctypes", {}, saved).stat, "");
+});
+
 test("a cut result shows as text, except under execute's code", () => {
 	const cut = {
 		content: '[{"name": "A"}, {"na\n\n[Cut to the first 50 KB of 2.0 MB.]',
