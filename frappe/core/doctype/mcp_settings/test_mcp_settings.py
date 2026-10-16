@@ -47,11 +47,11 @@ class TestMCPSettings(McpTestCase):
 		)
 		self.assertEqual(frappe.new_doc("MCP Settings").enable_mcp, 1)
 
-	def test_empty_instructions_are_omitted_from_connection_information(self):
+	def test_empty_instructions_send_only_default_instructions(self):
 		from frappe.mcp.server import server_configuration
 
 		with self.settings(agent_instructions="  "):
-			self.assertNotIn("instructions", server_configuration())
+			self.assertEqual(server_configuration()["instructions"], protocol.DEFAULT_INSTRUCTIONS)
 
 	def test_empty_settings_use_site_identity(self):
 		with self.settings(server_name="", server_description="", enable_mcp=1, agent_instructions=""):
@@ -101,7 +101,10 @@ class TestMCPSettings(McpTestCase):
 		self.assertEqual(modern.json["result"]["serverInfo"], result["server_info"])
 		self.assertEqual(response.json["result"]["instructions"], result["instructions"])
 		self.assertEqual(modern.json["result"]["instructions"], result["instructions"])
-		self.assertEqual(result["instructions"], "Search for existing customers before creating one.")
+		self.assertTrue(result["instructions"].startswith(protocol.DEFAULT_INSTRUCTIONS))
+		self.assertTrue(
+			result["instructions"].endswith("\nSearch for existing customers before creating one.")
+		)
 
 	def test_settings_changes_invalidate_cached_server_information(self):
 		with self.settings(server_name="First Site", enable_mcp=1):

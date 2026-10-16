@@ -49,10 +49,7 @@ def initialize(params: dict[str, Any]) -> dict:
 
 
 def server_configuration() -> dict:
-	result = {"serverInfo": protocol.server_info()}
-	if instructions := protocol.server_instructions():
-		result["instructions"] = instructions
-	return result
+	return {"serverInfo": protocol.server_info(), "instructions": protocol.server_instructions()}
 
 
 def valid_identity(value: Any) -> bool:

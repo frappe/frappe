@@ -97,8 +97,10 @@ Whitelisted RPC methods remain responsible for their own permission checks.
 Open **MCP Settings** as a System Manager to set the server name and description for this site.
 The name defaults to the resolved site name when empty. These settings appear in server information and `get_site_info`.
 **Enable MCP** is checked by default. Uncheck it to disable the endpoint for this site.
-Use **Agent Instructions** for site-specific guidance. Clients receive it during initialization or server discovery,
-and through `get_site_info`. Instructions do not change permissions.
+Clients receive default instructions during initialization or server discovery, and through `get_site_info`.
+They tell agents to inspect schemas before they write, to avoid duplicates, and to confirm changes with the user.
+Use **Agent Instructions** for site-specific guidance. Frappe appends it after the default instructions.
+Instructions do not change permissions.
 
 The existing `disable_mcp_server` site config also forces the endpoint off, regardless of the checkbox.
 
