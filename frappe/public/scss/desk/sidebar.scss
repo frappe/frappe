@@ -183,6 +183,7 @@
 			cursor: pointer;
 			// `ml-2` from the glyph; `flex: 1` above is what pushes a suffix to the row's far end
 			margin-left: 8px;
+			padding-right: 8px;
 		}
 
 		// A group's heading is `text-base`, one step up from the rows it names. It is set here
