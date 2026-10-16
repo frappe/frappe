@@ -2,14 +2,12 @@
 # License: MIT. See LICENSE
 
 import io
-from unittest.mock import MagicMock, patch
 
 from pypdf import PdfReader, PdfWriter
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.print_format_generator import PrintFormatGenerator
-from frappe.utils.print_utils import _finalize_pdf, get_print, run_after_print_hook
+from frappe.utils.print_utils import run_after_print
 
 
 def blank_pdf(page_count=1) -> bytes:
@@ -21,11 +19,18 @@ def blank_pdf(page_count=1) -> bytes:
 	return stream.getvalue()
 
 
-def pdf_writer(page_count=1) -> PdfWriter:
-	writer = PdfWriter()
-	for _ in range(page_count):
-		writer.add_blank_page(width=72, height=72)
-	return writer
+def add_blank_page(doc, method, pdf):
+	frappe.flags.after_print_pages.append(len(PdfReader(io.BytesIO(pdf)).pages))
+	writer = PdfWriter(clone_from=PdfReader(io.BytesIO(pdf)))
+	writer.add_blank_page(width=72, height=72)
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def return_pdf(doc, method, pdf):
+	frappe.flags.after_print_pages.append(len(PdfReader(io.BytesIO(pdf)).pages))
+	return pdf
 
 
 def mark_before_print(doc, method, print_settings=None):
@@ -35,7 +40,6 @@ def mark_before_print(doc, method, print_settings=None):
 def replace_pdf_after_print(doc, method, pdf=None):
 	frappe.flags.print_hook = {
 		"marker": doc.flags.get("prepared_for_print"),
-		"doc_id": id(doc),
 	}
 	if doc.flags.get("prepared_for_print") != doc.name:
 		return pdf
@@ -49,39 +53,38 @@ class TestPrintUtils(IntegrationTestCase):
 		self.addCleanup(doc.delete, ignore_permissions=True)
 		return doc
 
-	def test_finalize_pdf_accepts_pdfwriter(self):
-		"""PdfWriter input is converted to bytes before the after_print hook runs."""
+	def test_after_print_handlers_see_the_previous_result(self):
+		"""When two apps both handle after_print, each handler gets the latest PDF,
+		so the first app's change is not silently lost."""
 		todo = self._make_todo()
-		writer = pdf_writer()
+		frappe.flags.after_print_pages = []
+		self.addCleanup(lambda: setattr(frappe.local, "doc_events_hooks", None))
 
-		with patch(
-			"frappe.utils.print_utils.run_after_print_hook",
-			side_effect=lambda _d, _n, pdf, **_: pdf,
-		) as hook:
-			result = _finalize_pdf(todo.doctype, todo.name, writer)
+		with self.patch_hooks(
+			{
+				"doc_events": {
+					"ToDo": {
+						"after_print": [
+							"frappe.utils.test_print_utils.add_blank_page",
+							"frappe.utils.test_print_utils.return_pdf",
+						]
+					}
+				}
+			}
+		):
+			frappe.local.doc_events_hooks = None
+			pdf = run_after_print(todo, blank_pdf())
 
-		self.assertIsInstance(result, bytes)
-		self.assertEqual(len(PdfReader(io.BytesIO(result)).pages), 1)
-		hook.assert_called_once()
-		self.assertIsInstance(hook.call_args.args[2], bytes)
+		self.assertEqual(frappe.flags.after_print_pages, [1, 2])
+		self.assertEqual(len(PdfReader(io.BytesIO(pdf)).pages), 2)
 
-	def test_finalize_pdf_appends_to_output(self):
-		"""When output=PdfWriter is given, hook-processed pages are appended."""
-		todo = self._make_todo()
-		output = PdfWriter()
-		output.add_blank_page(width=72, height=72)
-
-		hook_pdf = blank_pdf(page_count=2)
-		with patch("frappe.utils.print_utils.run_after_print_hook", return_value=hook_pdf):
-			result = _finalize_pdf(todo.doctype, todo.name, blank_pdf(), output=output)
-
-		self.assertIs(result, output)
-		self.assertEqual(len(result.pages), 3)
-
-	def test_before_and_after_print_share_the_doc(self):
+	def test_print_and_attachment_use_the_loaded_doc(self):
+		"""A print and a mail attachment run before_print and after_print on the document they load."""
 		todo = self._make_todo()
 		frappe.flags.print_hook = {}
+		self.addCleanup(frappe.set_user, "Administrator")
 		self.addCleanup(lambda: setattr(frappe.local, "doc_events_hooks", None))
+		frappe.set_user("test@example.com")
 
 		with self.patch_hooks(
 			{
@@ -94,69 +97,30 @@ class TestPrintUtils(IntegrationTestCase):
 			}
 		):
 			frappe.local.doc_events_hooks = None
-			from frappe.www.printview import run_before_print
 
-			run_before_print(todo, {})
-
-			# doc= skips print_doc; the passed object already carries the marker
-			with_doc = run_after_print_hook(todo.doctype, todo.name, blank_pdf(), doc=todo)
+			pdf = frappe.get_print("ToDo", todo.name, as_pdf=True)
 			self.assertEqual(frappe.flags.print_hook["marker"], todo.name)
-			self.assertEqual(frappe.flags.print_hook["doc_id"], id(todo))
-			self.assertEqual(len(PdfReader(io.BytesIO(with_doc)).pages), 3)
+			self.assertEqual(len(PdfReader(io.BytesIO(pdf)).pages), 3)
 
-			# no doc: get_cached_doc has no marker, so the PDF stays 1 page
-			from_cache = run_after_print_hook(todo.doctype, todo.name, blank_pdf())
-			self.assertIsNone(frappe.flags.print_hook["marker"])
-			self.assertNotEqual(frappe.flags.print_hook["doc_id"], id(todo))
-			self.assertEqual(len(PdfReader(io.BytesIO(from_cache)).pages), 1)
+			frappe.flags.print_hook = {}
+			attachment = frappe.attach_print("ToDo", todo.name)
+			self.assertEqual(frappe.flags.print_hook["marker"], todo.name)
+			self.assertEqual(len(PdfReader(io.BytesIO(attachment["fcontent"])).pages), 3)
 
-	def test_after_print_runs_for_all_pdf_backends(self):
-		"""after_print must run on wkhtmltopdf, Chrome, and Typst paths."""
-
+	def test_after_print_runs_before_encryption(self):
+		"""A handler sees the plain PDF, and the encrypted result contains its change."""
 		todo = self._make_todo()
-		pdf = blank_pdf()
+		frappe.flags.after_print_pages = []
+		self.addCleanup(lambda: setattr(frappe.local, "doc_events_hooks", None))
 
-		mock_hook = MagicMock(side_effect=lambda _d, _n, p, **_: p)
-		with (
-			patch("frappe.utils.print_utils.run_after_print_hook", mock_hook),
-			patch("frappe.utils.print_format_generator.run_after_print_hook", mock_hook),
+		with self.patch_hooks(
+			{"doc_events": {"ToDo": {"after_print": "frappe.utils.test_print_utils.add_blank_page"}}}
 		):
-			with (
-				patch(
-					"frappe.website.serve.get_response_without_exception_handling",
-					return_value=type("R", (), {"data": b"<html></html>"})(),
-				),
-				patch("frappe.utils.pdf.get_pdf", return_value=pdf),
-			):
-				get_print(todo.doctype, todo.name, as_pdf=True, pdf_generator="wkhtmltopdf")
+			frappe.local.doc_events_hooks = None
+			pdf = run_after_print(todo, blank_pdf(), password="s3cret")
 
-			passed = mock_hook.call_args.kwargs["doc"]
-			self.assertEqual((passed.doctype, passed.name), (todo.doctype, todo.name))
-
-			self.assertEqual(mock_hook.call_count, 1)
-
-			pf = frappe.get_doc(
-				{
-					"doctype": "Print Format",
-					"name": f"_Test {frappe.generate_hash(length=6)}",
-					"doc_type": "ToDo",
-					"print_format_builder_beta": 1,
-					"format_data": '{"sections": [], "header": {"columns": []}, "footer": {"columns": []}}',
-				}
-			).insert(ignore_permissions=True)
-			self.addCleanup(pf.delete, ignore_permissions=True)
-
-			generator = PrintFormatGenerator(pf, todo)
-			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=pdf):
-				generator.render_pdf()
-			mock_hook.assert_called_with(todo.doctype, todo.name, pdf, doc=todo)
-
-			self.assertEqual(mock_hook.call_count, 2)
-
-			pf.db_set("pdf_generator", "Typst")
-			generator = PrintFormatGenerator(pf, todo)
-			with patch.object(generator, "render_typst_pdf", return_value=pdf):
-				generator.render_pdf()
-			mock_hook.assert_called_with(todo.doctype, todo.name, pdf, doc=todo)
-
-			self.assertEqual(mock_hook.call_count, 3)
+		self.assertEqual(frappe.flags.after_print_pages, [1])
+		reader = PdfReader(io.BytesIO(pdf))
+		self.assertTrue(reader.is_encrypted)
+		reader.decrypt("s3cret")
+		self.assertEqual(len(reader.pages), 2)
