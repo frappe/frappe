@@ -8,7 +8,6 @@ from frappe import _
 from frappe.core.doctype.user.user import User
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.mcp.test_utils import McpTestCase
-from frappe.mcp.tools.methods import method_request
 from frappe.tests.utils import whitelist_for_tests
 
 
@@ -125,22 +124,19 @@ class TestCallMethod(McpTestCase):
 				response = self.invoke(method=f"{__name__}.typed_method", args=args)
 				self.assertTrue(response.json["result"]["isError"])
 
-	def test_get_only_rpc(self):
-		result = self.result(method=f"{__name__}.get_method")
-		self.assertEqual(result["result"], {"http_method": "GET", "user": self.user})
-
-	def test_other_http_only_methods_are_denied(self):
-		response = self.invoke(method=f"{__name__}.delete_method")
-		self.assertTrue(response.json["result"]["isError"])
-
-	def test_get_only_document_method_uses_read_permission(self):
-		frappe.share.add("ToDo", self.private, user=self.user, read=1, write=0, notify=0)
-		with patch.object(ToDo, "mcp_read", get_document_method, create=True):
-			result = self.result(
-				tool="call_document_method", doctype="ToDo", name=self.private, method="mcp_read"
+	def test_non_post_methods_are_denied(self):
+		for method in ("get_method", "delete_method"):
+			with self.subTest(method=method):
+				response = self.invoke(method=f"{__name__}.{method}")
+				self.assertEqual(response.json["result"]["content"][0]["text"], "Not permitted")
+		with patch.object(ToDo, "mcp_get", get_document_method, create=True):
+			response = self.invoke(
+				tool="call_document_method", doctype="ToDo", name=self.own, method="mcp_get"
 			)
-		self.assertEqual(result["result"], "GET")
-		self.assertEqual(result["document"]["name"], self.private)
+		self.assertEqual(response.json["result"]["content"][0]["text"], "Not permitted")
+
+	def test_document_method_needs_write_permission(self):
+		frappe.share.add("ToDo", self.private, user=self.user, read=1, write=0, notify=0)
 		response = self.invoke(
 			tool="call_document_method",
 			doctype="ToDo",
@@ -155,12 +151,12 @@ class TestCallMethod(McpTestCase):
 		with patch("frappe.get_hooks", wraps=original) as hooks:
 			# Only replace the override hook; permission and document hooks stay real.
 			hooks.side_effect = lambda hook=None, *a, **kw: (
-				{"frappe.ping": [f"{__name__}.get_method"]}
+				{"frappe.ping": [f"{__name__}.post_method"]}
 				if hook == "override_whitelisted_methods"
 				else original(hook, *a, **kw)
 			)
 			result = self.result(method="frappe.ping")
-		self.assertEqual(result["result"]["http_method"], "GET")
+		self.assertEqual(result["result"]["user"], self.user)
 
 	def test_failed_method_rolls_back_and_discards_callback(self):
 		callback = Mock()
@@ -177,22 +173,6 @@ class TestCallMethod(McpTestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(result["result"], response.json["data"])
 
-	def test_method_request_is_restored_after_error(self):
-		request = frappe._dict(method="POST")
-		missing = object()
-		original_request = getattr(frappe.local, "request", missing)
-		frappe.local.request = request
-		try:
-			with self.assertRaises(frappe.ValidationError), method_request(get_method):
-				self.assertEqual(request.method, "GET")
-				raise frappe.ValidationError("Failed GET-only call")
-		finally:
-			if original_request is missing:
-				del frappe.local.request
-			else:
-				frappe.local.request = original_request
-		self.assertEqual(request.method, "POST")
-
 	def test_server_script_response_and_dispatch(self):
 		def run_script(script):
 			self.assertEqual(script, "MCP test script")
@@ -201,7 +181,6 @@ class TestCallMethod(McpTestCase):
 
 		mapping = {"_api": {"mcp_test_script": "MCP test script"}}
 		with (
-			patch("frappe.mcp.tools.methods.get_server_script_map", return_value=mapping),
 			patch("frappe.api.v2.get_server_script_map", return_value=mapping),
 			patch("frappe.api.v2.run_server_script", side_effect=run_script),
 		):
@@ -214,9 +193,10 @@ class TestCallMethod(McpTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "MCP method fixture")
 
 	def test_document_fields_are_filtered(self):
-		with patch.object(User, "mcp_read", get_document_method, create=True):
+		frappe.share.add("User", self.user, user=self.user, read=1, write=1, notify=0)
+		with patch.object(User, "mcp_post", post_document_method, create=True):
 			result = self.result(
-				tool="call_document_method", doctype="User", name=self.user, method="mcp_read"
+				tool="call_document_method", doctype="User", name=self.user, method="mcp_post"
 			)
 		self.assertIsNone(result["document"].get("api_key"))
 		self.assertIsNone(result["document"].get("api_secret"))
@@ -280,9 +260,14 @@ def typed_method(value: int):
 	return value
 
 
+@whitelist_for_tests(methods=["POST"])
+def post_method():
+	return {"user": frappe.session.user}
+
+
 @whitelist_for_tests(methods=["GET"])
 def get_method():
-	return {"http_method": frappe.request.method, "user": frappe.session.user}
+	raise AssertionError("GET-only method must never run")
 
 
 @whitelist_for_tests(methods=["DELETE"])
@@ -292,6 +277,11 @@ def delete_method():
 
 @whitelist_for_tests(methods=["GET"])
 def get_document_method(self):
+	raise AssertionError("GET-only document method must never run")
+
+
+@whitelist_for_tests(methods=["POST"])
+def post_document_method(self):
 	return frappe.request.method
 
 
