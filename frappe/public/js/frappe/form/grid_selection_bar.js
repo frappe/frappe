@@ -121,7 +121,7 @@ export default class GridSelectionBar {
 				this.make_pager(),
 				$(`<div class="grid-selection-actions"></div>`).append(
 					frappe.ui.dropdown({
-						button: { icon: "ellipsis", variant: "ghost", title: __("Actions") },
+						button: { icon: "ellipsis", variant: "ghost", tooltip: __("Actions") },
 						options: () => this.get_actions(),
 						side: "top",
 						align: "start",
@@ -134,7 +134,7 @@ export default class GridSelectionBar {
 					this.$select_all,
 					this.make_button({
 						icon: "x",
-						title: __("Clear selection"),
+						tooltip: __("Clear selection"),
 						onclick: () => this.select_all(false),
 					})
 				)
@@ -147,12 +147,12 @@ export default class GridSelectionBar {
 		this.$page = $(`<span class="grid-selection-page"></span>`);
 		this.$prev = this.make_button({
 			icon: rtl ? "chevron-right" : "chevron-left",
-			title: __("Previous page"),
+			tooltip: __("Previous page"),
 			onclick: () => this.go_to_page(-1),
 		});
 		this.$next = this.make_button({
 			icon: rtl ? "chevron-left" : "chevron-right",
-			title: __("Next page"),
+			tooltip: __("Next page"),
 			onclick: () => this.go_to_page(1),
 		});
 
