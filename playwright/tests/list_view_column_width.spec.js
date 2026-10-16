@@ -173,11 +173,15 @@ test.describe("List View — Column resize handle without System Manager", () =>
 		{ fieldname: "description", label: "Description" },
 		{ fieldname: "priority", label: "Priority", width: 150 },
 	]);
+	let todo;
 
 	async function select_layout(page, label) {
 		await page.locator(VIEW_SWITCHER).click();
 		await page.locator(".es-menu__item", { hasText: "List View" }).first().hover();
 		await page.locator(".es-menu__item", { hasText: label }).first().click();
+		await expect(page.locator(VIEW_SWITCHER)).toContainText(label);
+		await expect(page.locator('.list-row-head [data-fieldname="date"]')).toHaveCount(0);
+		await expect(page.locator('.list-row-head [data-fieldname="priority"]')).toBeVisible();
 	}
 
 	test.beforeAll(async ({ admin }) => {
@@ -186,6 +190,10 @@ test.describe("List View — Column resize handle without System Manager", () =>
 			action: "remove",
 			user: test_user,
 			role: "System Manager",
+		});
+		todo = await admin.insert_doc("ToDo", {
+			description: "Column resize handle test",
+			allocated_to: test_user,
 		});
 		await admin.call("frappe.tests.ui_test_helpers.create_list_layout_test_layout", {
 			filter_name: own_layout,
@@ -201,6 +209,7 @@ test.describe("List View — Column resize handle without System Manager", () =>
 
 	test.afterAll(async ({ admin }) => {
 		await admin.call("frappe.tests.ui_test_helpers.clear_list_layout_test_layouts");
+		await admin.remove_doc("ToDo", todo.name, true);
 	});
 
 	test.beforeEach(async ({ page, desk, api }) => {
@@ -217,7 +226,6 @@ test.describe("List View — Column resize handle without System Manager", () =>
 
 	test("hides the handle on a layout the user cannot edit", async ({ page }) => {
 		await select_layout(page, global_layout);
-		await expect(page.locator(".list-row-head")).toBeVisible();
 		await expect(page.locator(HANDLE)).toHaveCount(0);
 	});
 
