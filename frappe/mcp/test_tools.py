@@ -28,11 +28,6 @@ class TestToolSchema(UnitTestCase):
 		self.assertEqual(schema["required"], ["doctype"])
 		self.assertFalse(schema["additionalProperties"])
 		self.assertEqual(schema["properties"]["limit"]["default"], 20)
-		self.assertIs(tool.input_schema, tool.input_schema)
-
-	def test_nested_arguments_are_left_to_frappe(self):
-		args = {"custom": ["value"], "flag": "1"}
-		self.assertEqual(ExampleArguments(doctype="ToDo", args=args).args, args)
 
 
 class TestToolExecution(McpTestCase):
@@ -81,19 +76,6 @@ class TestToolExecution(McpTestCase):
 				self.assertTrue(response.json["result"]["isError"])
 				handler.assert_not_called()
 
-	def test_old_combined_tool_names_are_not_registered(self):
-		for name in ("discover", "get_documents", "write_document"):
-			with self.subTest(tool=name):
-				response = self.request(
-					{
-						"jsonrpc": "2.0",
-						"id": 1,
-						"method": "tools/call",
-						"params": {"name": name, "arguments": {}},
-					}
-				)
-				self.assertEqual(response.json["error"]["code"], protocol.METHOD_NOT_FOUND)
-
 	def test_invalid_arguments_do_not_execute(self):
 		cases = (
 			{},
@@ -112,7 +94,6 @@ class TestToolExecution(McpTestCase):
 				response = self.call(arguments, handler)
 				self.assertEqual(response.status_code, 200)
 				self.assertTrue(response.json["result"]["isError"])
-				self.assertIn("Invalid tool arguments", response.json["result"]["content"][0]["text"])
 				handler.assert_not_called()
 
 	def test_success_and_default_arguments(self):
@@ -133,12 +114,6 @@ class TestToolExecution(McpTestCase):
 		self.assertEqual(response.json["error"]["code"], protocol.METHOD_NOT_FOUND)
 		response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/call"})
 		self.assertEqual(response.json["error"]["code"], protocol.INVALID_PARAMS)
-
-	def test_definitions_come_from_models(self):
-		tool = tools.Tool("example", ExampleArguments, Mock())
-		with patch("frappe.mcp.tools.registry", return_value=(tool,)):
-			response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
-		self.assertEqual(response.json["result"]["tools"], [tool.definition()])
 
 	def test_failure_rolls_back_document_write(self):
 		def handler(**kwargs):

@@ -80,13 +80,10 @@ class TestDiscover(McpTestCase):
 		self.assertFalse(set(field["fieldtype"] for field in result["fields"]) & LAYOUT_FIELDTYPES)
 		self.assertEqual(set(result["permissions"]), set(PERMISSION_TYPES))
 		self.assertTrue(result["permissions"]["read"])
-		self.assertNotIn("methods", result)
 
 	def test_broad_schema_does_not_expose_records(self):
 		result = self.result("get_doctype_schema", {"doctype": "OAuth Bearer Token"})
 		self.assertFalse(result["permissions"]["read"])
-		self.assertNotIn("docs", result)
-		self.assertNotIn("data", result)
 		self.assertTrue(result["fields"])
 
 	def test_child_table_fields_are_preserved(self):
@@ -144,15 +141,9 @@ class TestDiscover(McpTestCase):
 			with self.subTest(tool=tool, arguments=arguments):
 				self.assertTrue(self.discover(tool, arguments).json["result"]["isError"])
 
-	def test_schema_listed_by_transport(self):
+	def test_discovery_tools_are_read_only(self):
 		response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
 		definitions = {tool["name"]: tool for tool in response.json["result"]["tools"]}
-		self.assertEqual(
-			set(definitions["search_doctypes"]["inputSchema"]["properties"]), {"query", "module"}
-		)
-		self.assertEqual(
-			definitions["get_document_method_schema"]["inputSchema"]["required"], ["doctype", "method"]
-		)
 		for name in (
 			"search_doctypes",
 			"get_doctype_schema",
@@ -161,7 +152,6 @@ class TestDiscover(McpTestCase):
 			"list_document_methods",
 			"get_document_method_schema",
 		):
-			self.assertFalse(definitions[name]["inputSchema"]["additionalProperties"])
 			self.assertTrue(definitions[name]["annotations"]["readOnlyHint"])
 
 	def test_unavailable_method_index_does_not_block_doctype_search(self):

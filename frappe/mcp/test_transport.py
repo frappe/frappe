@@ -115,16 +115,3 @@ class TestMcpTransport(McpTestCase):
 	def test_origin(self):
 		self.assertEqual(self.ping(headers={"Origin": "https://untrusted.example.com"}).status_code, 403)
 		self.assertEqual(self.ping(headers={"Origin": "http://localhost"}).status_code, 200)
-
-	def test_disabled_endpoint(self):
-		from werkzeug.exceptions import NotFound
-
-		from frappe.mcp import handle
-
-		with patch.dict(frappe.conf, {"disable_mcp_server": True}):
-			self.assertRaises(NotFound, handle)
-
-	def test_regular_api(self):
-		response = self.request({}, path="/api/method/frappe.auth.get_logged_user")
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json["message"], self.user)

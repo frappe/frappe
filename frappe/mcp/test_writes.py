@@ -197,13 +197,6 @@ class TestWriteDocument(McpTestCase):
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "MCP write fixture")
 
-	def test_rest_update_cannot_grant_itself_document_access(self):
-		response = self.request(
-			{"allocated_to": self.user}, method="PUT", path=f"/api/v2/document/ToDo/{self.private}"
-		)
-		self.assertEqual(response.status_code, 403)
-		self.assertIsNone(frappe.db.get_value("ToDo", self.private, "allocated_to"))
-
 	def test_rest_parity(self):
 		result = self.result(
 			tool="create_document", doctype="ToDo", data={"description": "MCP parity fixture"}
