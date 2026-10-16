@@ -29,15 +29,36 @@ class TestMCPSettings(McpTestCase):
 			doc.save()
 			frappe.db.commit()  # nosemgrep
 
-	def site_info(self):
+	def initialize(self, headers=None):
 		return self.request(
 			{
 				"jsonrpc": "2.0",
 				"id": 1,
-				"method": "tools/call",
-				"params": {"name": "get_site_info", "arguments": {}},
-			}
-		)
+				"method": "initialize",
+				"params": {
+					"protocolVersion": protocol.LEGACY_VERSION,
+					"capabilities": {},
+					"clientInfo": {"name": "test", "version": "1"},
+				},
+			},
+			headers=headers,
+		).json["result"]
+
+	def discover(self):
+		return self.request(
+			{
+				"jsonrpc": "2.0",
+				"id": 1,
+				"method": "server/discover",
+				"params": {
+					"_meta": {
+						protocol.META_VERSION: protocol.LATEST_VERSION,
+						protocol.META_CAPABILITIES: {},
+					}
+				},
+			},
+			headers={"MCP-Protocol-Version": protocol.LATEST_VERSION, "Mcp-Method": "server/discover"},
+		).json["result"]
 
 	def test_field_order_and_enabled_default(self):
 		meta = frappe.get_meta("MCP Settings")
@@ -47,18 +68,21 @@ class TestMCPSettings(McpTestCase):
 		)
 		self.assertEqual(frappe.new_doc("MCP Settings").enable_mcp, 1)
 
-	def test_empty_instructions_send_only_default_instructions(self):
-		from frappe.mcp.server import server_configuration
-
+	def test_instructions_describe_site_user_and_apps(self):
 		with self.settings(agent_instructions="  "):
-			self.assertEqual(server_configuration()["instructions"], protocol.DEFAULT_INSTRUCTIONS)
+			instructions = self.initialize(headers={"Host": "erp.example.com"})["instructions"]
+		self.assertIn("site at erp.example.com", instructions)
+		self.assertIn(self.user, instructions)
+		self.assertIn(
+			"- Frappe Framework (frappe): " + frappe.get_hooks("app_description", app_name="frappe")[0],
+			instructions,
+		)
+		self.assertFalse(instructions.endswith("\n"))
 
 	def test_empty_settings_use_site_identity(self):
-		with self.settings(server_name="", server_description="", enable_mcp=1, agent_instructions=""):
-			result = self.site_info().json["result"]["structuredContent"]
-		self.assertEqual(result["server_info"], {"name": self.site, "version": frappe.__version__})
-		self.assertEqual(result["site"], self.site)
-		self.assertEqual(result["user"], self.user)
+		with self.settings(server_name="", server_description="", enable_mcp=1):
+			result = self.initialize()
+		self.assertEqual(result["serverInfo"], {"name": self.site, "version": frappe.__version__})
 
 	def test_server_information_uses_site_settings(self):
 		with self.settings(
@@ -67,54 +91,25 @@ class TestMCPSettings(McpTestCase):
 			enable_mcp=1,
 			agent_instructions="Search for existing customers before creating one.",
 		):
-			result = self.site_info().json["result"]["structuredContent"]
-			response = self.request(
-				{
-					"jsonrpc": "2.0",
-					"id": 1,
-					"method": "initialize",
-					"params": {
-						"protocolVersion": protocol.LEGACY_VERSION,
-						"capabilities": {},
-						"clientInfo": {"name": "test", "version": "1"},
-					},
-				}
-			)
-			modern = self.request(
-				{
-					"jsonrpc": "2.0",
-					"id": 1,
-					"method": "server/discover",
-					"params": {
-						"_meta": {
-							protocol.META_VERSION: protocol.LATEST_VERSION,
-							protocol.META_CAPABILITIES: {},
-						}
-					},
-				},
-				headers={"MCP-Protocol-Version": protocol.LATEST_VERSION, "Mcp-Method": "server/discover"},
-			)
-		self.assertEqual(result["server_info"]["name"], "Example Accounting")
-		self.assertEqual(result["server_info"]["description"], "Invoices for Example India")
-		self.assertEqual(result["site"], self.site)
-		self.assertEqual(response.json["result"]["serverInfo"], result["server_info"])
-		self.assertEqual(modern.json["result"]["serverInfo"], result["server_info"])
-		self.assertEqual(response.json["result"]["instructions"], result["instructions"])
-		self.assertEqual(modern.json["result"]["instructions"], result["instructions"])
-		self.assertTrue(result["instructions"].startswith(protocol.DEFAULT_INSTRUCTIONS))
+			legacy = self.initialize()
+			modern = self.discover()
+		server_info = {
+			"name": "Example Accounting",
+			"version": frappe.__version__,
+			"description": "Invoices for Example India",
+		}
+		self.assertEqual(legacy["serverInfo"], server_info)
+		self.assertEqual(modern["serverInfo"], server_info)
+		self.assertEqual(modern["instructions"], legacy["instructions"])
 		self.assertTrue(
-			result["instructions"].endswith("\nSearch for existing customers before creating one.")
+			legacy["instructions"].endswith("\n\nSearch for existing customers before creating one.")
 		)
 
 	def test_settings_changes_invalidate_cached_server_information(self):
 		with self.settings(server_name="First Site", enable_mcp=1):
-			self.assertEqual(
-				self.site_info().json["result"]["structuredContent"]["server_info"]["name"], "First Site"
-			)
+			self.assertEqual(self.initialize()["serverInfo"]["name"], "First Site")
 			with self.settings(server_name="Second Site"):
-				self.assertEqual(
-					self.site_info().json["result"]["structuredContent"]["server_info"]["name"], "Second Site"
-				)
+				self.assertEqual(self.initialize()["serverInfo"]["name"], "Second Site")
 
 	def test_unchecking_checkbox_disables_endpoint_and_checking_enables_it(self):
 		with self.settings(enable_mcp=0):
