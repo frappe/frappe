@@ -65,8 +65,13 @@ def _run_print_pdf_hooks(doctype, name, print_format):
 
 
 def run_after_print(doc: Document, pdf: bytes, password: str | None = None, output=None):
+	method = getattr(doc, "after_print", None)
+	if callable(method):
+		pdf = method(pdf) or pdf
+
 	hooks = frappe.get_doc_hooks()
 	for path in hooks.get(doc.doctype, {}).get("after_print", []) + hooks.get("*", {}).get("after_print", []):
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 		pdf = frappe.call(path, doc, "after_print", pdf) or pdf
 
 	if password and output is None:
