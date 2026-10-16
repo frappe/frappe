@@ -14,6 +14,7 @@ import frappe
 from frappe import _
 from frappe.mcp import protocol, server
 from frappe.mcp.protocol import McpError
+from frappe.permissions import SYSTEM_USER_ROLE
 
 
 def handle_request(request: Request) -> Response:
@@ -25,6 +26,8 @@ def handle_request(request: Request) -> Response:
 		check_origin(request)
 		if frappe.session.user == "Guest":
 			raise McpError(protocol.INVALID_REQUEST, _("Authentication required"), status=401)
+		if SYSTEM_USER_ROLE not in frappe.get_roles():
+			raise McpError(protocol.INVALID_REQUEST, _("MCP is only available to desk users"), status=403)
 		if not request.is_json:
 			raise McpError(protocol.INVALID_REQUEST, _("Content-Type must be application/json"), status=415)
 		if not request.accept_mimetypes["application/json"]:

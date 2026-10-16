@@ -110,5 +110,5 @@ Restart backend processes after installing Python changes. An asset build is not
 | `405` | Send MCP requests through POST. Opening the URL in a browser sends GET. |
 | `404` | Check the site URL, installed code, and `disable_mcp_server`. |
 | `401` | Check the credentials and Authorization header. |
-| `403` | Check permissions and the site's Origin policy. |
+| `403` | Check that the user is a System User, then check permissions and the site's Origin policy. |
 | `406` / `415` | Allow `application/json` in Accept and send `Content-Type: application/json`. |
