@@ -296,7 +296,7 @@ def _run(
 	parent_field: str | None = None,
 	are_default_filters: bool = True,
 	js_filters: str | list | None = None,
-	with_total_row=True,
+	with_total_row: bool = True,
 ) -> dict:
 	if not user:
 		user = frappe.session.user
