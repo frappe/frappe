@@ -243,6 +243,11 @@ export class FrappeClient {
 		return this.transport.call("flow.api.find_users", { query });
 	}
 
+	// "Restricted" or "Everyone" (any Flow user may view); answers with it
+	setGeneralAccess(sid, access) {
+		return this.transport.call("flow.api.set_general_access", { session: sid, access });
+	}
+
 	// --- attachments -----------------------------------------------------------
 
 	async prepareAttachment(file, model) {

@@ -341,17 +341,20 @@ test("sharing finds Flow users and adds or removes viewers", async () => {
 		"flow.api.list_shares": viewers,
 		"flow.api.share_session": viewers,
 		"flow.api.unshare_session": [],
+		"flow.api.set_general_access": "Everyone",
 	});
 	const client = new FrappeClient({ boot, transport });
 	assert.deepEqual(await client.findUsers("an"), viewers);
 	assert.deepEqual(await client.shares("S1"), viewers);
 	assert.deepEqual(await client.share("S1", "ann@example.com"), viewers);
 	assert.deepEqual(await client.unshare("S1", "ann@example.com"), []);
+	assert.equal(await client.setGeneralAccess("S1", "Everyone"), "Everyone");
 	assert.deepEqual(transport.calls, [
 		["flow.api.find_users", { query: "an" }],
 		["flow.api.list_shares", { session: "S1" }],
 		["flow.api.share_session", { session: "S1", user: "ann@example.com" }],
 		["flow.api.unshare_session", { session: "S1", user: "ann@example.com" }],
+		["flow.api.set_general_access", { session: "S1", access: "Everyone" }],
 	]);
 });
 

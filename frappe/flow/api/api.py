@@ -277,6 +277,24 @@ def unshare_session(session: str, user: str) -> list[dict[str, Any]]:
 	return _shares(doc)
 
 
+@frappe.whitelist(methods=["POST"])
+def set_general_access(session: str, access: str) -> str:
+	"""Open this chat to view by every Flow user, or keep it to the people added."""
+	from flow.flow.doctype.flow_session.flow_session import recheck_live_access
+
+	doc = _load_session(session, "share")
+	if access not in frappe.get_meta("Flow Session").get_options("general_access").split("\n"):
+		frappe.throw(
+			_('General access must be "Restricted" (only the people added) or "Everyone" (every Flow user).'),
+			title=_("Invalid Access"),
+		)
+	if doc.general_access != access:
+		doc.db_set("general_access", access)
+		if access == "Restricted":
+			recheck_live_access(doc.name)
+	return access
+
+
 @frappe.whitelist()
 def find_users(query: str | None = None) -> list[dict[str, Any]]:
 	"""People a chat can be shared with: active Flow users, by name or email."""
@@ -389,6 +407,7 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"source": doc.source,
 		"owner": doc.owner,
 		"owner_name": get_fullname(doc.owner),
+		"general_access": doc.general_access,
 		"auto_approve": bool(doc.auto_approve),
 		"read_only": not frappe.has_permission("Flow Session", "write", doc),
 		"runs": frappe.get_all(

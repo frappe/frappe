@@ -72,6 +72,12 @@ class FlowSession(Document):
 		"""Shared to view only: whoever writes to a session acts as its owner, and only they share it."""
 		if docshare.write or docshare.share:
 			frappe.throw(_("A chat can only be shared to view."), title=_("View Only"))
+		# Frappe's everyone reaches portal users too; General access keeps it to Flow users
+		if docshare.everyone and docshare.read:
+			frappe.throw(
+				_("To share a chat with everyone, use General access in its Share dialog."),
+				title=_("Not Allowed"),
+			)
 
 	def _validate_model_enabled(self):
 		if not self.model:
@@ -390,17 +396,22 @@ class FlowSession(Document):
 
 
 def on_share_removed(share, method=None):
-	"""A view of a chat taken back: once saved, the realtime relay re-checks who follows it live."""
+	"""A view of a chat taken back: the realtime relay re-checks who follows it live."""
 	if share.share_doctype == "Flow Session":
-		notice = {
-			"session": share.share_name,
-			"user": share.user,  # none for an everyone share
-			"owner": frappe.db.get_value("Flow Session", share.share_name, "owner"),
-		}
-		frappe.db.after_commit.add(lambda: _recheck_live_access(notice))
+		recheck_live_access(share.share_name, share.user)  # no user for an everyone share
 
 
-def _recheck_live_access(notice: dict[str, Any]) -> None:
+def recheck_live_access(session: str, user: str | None = None) -> None:
+	"""Once saved, have the relay ask `user` again, or with no user everyone but the owner."""
+	notice = {
+		"session": session,
+		"user": user,
+		"owner": frappe.db.get_value("Flow Session", session, "owner"),
+	}
+	frappe.db.after_commit.add(lambda: _publish_access_notice(notice))
+
+
+def _publish_access_notice(notice: dict[str, Any]) -> None:
 	if not (url := _redis_url()):
 		return
 	# with Redis down the relay isn't relaying either

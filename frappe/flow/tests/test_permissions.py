@@ -117,6 +117,13 @@ class TestFlowAccess(IntegrationTestCase):
 						user=user,
 					)
 				)
+		# Trigger sessions are for System Managers, not every Flow User
+		self.assertFalse(frappe.has_permission("Flow Session", "read", fired, user=member))
+		self.assertFalse(frappe.get_list("Flow Session", filters={"name": fired.name}, user=member))
+		# unless their owner opens them to every Flow user, to read
+		fired.db_set("general_access", "Everyone")
+		self.assertTrue(frappe.has_permission("Flow Session", "read", fired, user=member))
+		self.assertFalse(frappe.has_permission("Flow Session", "write", fired, user=member))
 		for doc in (chat, run, memory):
 			with self.subTest(doc.doctype):
 				self.assertFalse(frappe.get_list(doc.doctype, filters={"name": doc.name}, user=manager))
@@ -166,6 +173,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"share_session": {"session": session.name, "user": "Administrator"},
 			"unshare_session": {"session": session.name, "user": "Administrator"},
 			"find_users": {"query": "a"},
+			"set_general_access": {"session": session.name, "access": "Everyone"},
 			"sync_session": {"session": session.name},
 			"submit_feedback": {"run_name": run.name, "rating": "Up"},
 			"attach_file": {"file": "x"},

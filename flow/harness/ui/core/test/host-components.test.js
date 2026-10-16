@@ -20,7 +20,7 @@ Object.defineProperty(dom.window.HTMLElement.prototype, "inert", {
 })
 globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0)
 const { createApp, h, nextTick, reactive } = await import("vue")
-const { loadComponent } = await import("./helpers/components.js")
+const { dialog, loadComponent } = await import("./helpers/components.js")
 const { applyEvent, initialConversation } = await import("../src/transcript.js")
 const { FlowAPIError } = await import("../src/client.js")
 const Composer = await loadComponent("Composer")
@@ -2107,14 +2107,48 @@ test("the header says nothing while a chat loads, not that it is a new chat", as
 	assert.ok(el.textContent.includes("Quarterly report"))
 })
 
-test("a host adds its own header actions", (t) => {
+test("the header's menu renames or deletes the open chat, under the host's own items", async (t) => {
+	const asked = []
+	dialog.prompt = dialog.confirm = (options) => asked.push(options)
+	t.after(() => {
+		delete dialog.prompt
+		delete dialog.confirm
+	})
+	const done = []
 	const flow = {
 		state: reactive({
-			loading: false, sessionId: "s1", session: null, conversation: initialConversation(), prefs: {}, workspace: {},
+			loading: false, sessionId: null, session: null, conversation: initialConversation(), prefs: {}, workspace: {},
 		}),
+		renameSession: (sid, title) => done.push(["rename", sid, title]),
+		deleteSession: (sid) => done.push(["delete", sid]),
 	}
-	const { el } = mount(t, { render: () => h(ChatHeader, null, { actions: () => h("button", "Share") }) }, {}, flow)
-	assert.ok([...el.querySelectorAll("header button")].some((button) => button.textContent === "Share"))
+	const { el } = mount(t, ChatHeader, { actions: [{ label: "Share" }] }, flow)
+	const menu = () => el.querySelector("button[title='Chat options']")
+	const items = () => [...el.querySelectorAll("[role=menuitem]")]
+	assert.equal(menu(), null, "a new chat has nothing to act on")
+
+	flow.state.sessionId = "s1"
+	flow.state.session = { title: "Quarterly report" }
+	await nextTick()
+	menu().click()
+	await nextTick()
+	assert.deepEqual(items().map((item) => item.textContent), ["Share", "Rename", "Delete"])
+	items()[1].click()
+	items()[2].click()
+	assert.equal(asked[0].fields[0].defaultValue, "Quarterly report")
+	assert.ok(asked[1].message.includes("Quarterly report"))
+	// another chat opening meanwhile: each dialog still acts on the chat it was opened for
+	flow.state.sessionId = "s2"
+	flow.state.session = { title: "Notes" }
+	await nextTick()
+	asked[0].onConfirm({ values: { title: " Q3 report " } })
+	asked[1].actions.at(-1).onClick()
+	assert.deepEqual(done, [["rename", "s1", "Q3 report"], ["delete", "s1"]])
+
+	// a chat the user may only view has no menu
+	flow.state.session = { title: "Their report", read_only: true }
+	await nextTick()
+	assert.equal(menu(), null)
 })
 
 test("the model button never shows the last model picked while a chat loads", async (t) => {

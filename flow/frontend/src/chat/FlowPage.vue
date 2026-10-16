@@ -6,12 +6,9 @@
 			<ChatHeader
 				:sidebar-open="sidebarOpen"
 				:workspace="false"
+				:actions="chatActions"
 				@open-sidebar="store.setSidebarOpen(true)"
-			>
-				<template #actions>
-					<ShareChat v-if="canShare" />
-				</template>
-			</ChatHeader>
+			/>
 			<MessageList>
 				<template #empty>
 					<SetupState v-if="needsSetup" />
@@ -60,6 +57,7 @@
 		<ToastProvider />
 		<FlowSettings />
 		<TranscriptDialog />
+		<ShareChat v-if="canShare" ref="share" />
 	</div>
 </template>
 
@@ -163,6 +161,13 @@ const canShare = computed(() => {
 	const owner = page.state.owner[store.state.sessionId]?.name;
 	return Boolean(owner) && owner === page.state.boot.user?.name;
 });
+// the owner's chat menu leads with Share
+const share = ref(null);
+const chatActions = computed(() =>
+	canShare.value
+		? [{ label: "Share", icon: "lucide-share-2", onClick: () => share.value.show() }]
+		: []
+);
 // a viewer learns whose chat it is
 const readOnlyNote = computed(() => {
 	const owner = page.state.owner[store.state.sessionId]?.full_name;

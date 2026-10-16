@@ -29,7 +29,7 @@
 
 		<span class="min-w-2 flex-1" />
 
-		<span class="flex flex-none items-center gap-6">
+		<span class="flex flex-none items-center gap-4">
 			<!-- the readout opens the transcript: the same totals, step by step -->
 			<button
 				v-if="contextTokens > 0 || spent > 0"
@@ -65,7 +65,11 @@
 			>
 				<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
 			</button>
-			<slot name="actions" />
+			<ChatMenu v-if="menu" :session-id="flow.state.sessionId" :title="title" :actions="actions">
+				<button class="flow-icon-btn" title="Chat options">
+					<FeatherIcon name="more-horizontal" class="h-3.5 w-3.5" />
+				</button>
+			</ChatMenu>
 		</span>
 	</header>
 </template>
@@ -75,13 +79,18 @@ import { computed, inject } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { conversationTitle, formatTokens } from "../transcript.js"
+import ChatMenu from "./ChatMenu.vue"
 
 defineProps({
 	sidebarOpen: { type: Boolean, default: true },
 	workspace: { type: Boolean, default: true }, // false: the host mounts no file panel
+	actions: { type: Array, default: () => [] }, // the host's items atop the chat menu
 })
 const emit = defineEmits(["open-sidebar"])
 const flow = inject("flow")
+
+// the open chat's menu, once it has loaded; a chat the user may only view has none
+const menu = computed(() => Boolean(flow.state.sessionId && flow.state.session && !flow.state.session.read_only))
 
 // "." is the daemon-side default, not a path worth rendering. Before the first
 // message there is no session yet — show the folder new chats will start in.

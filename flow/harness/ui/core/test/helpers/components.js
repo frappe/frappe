@@ -15,6 +15,23 @@ function stubURL(name) {
 	return stubs.get(name)
 }
 const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([]); export const dialog = {}`)
+// a test sets the dialog.* calls it expects
+export const { dialog } = await import(dialogs)
+// frappe-ui's Dropdown as its trigger, and its options once it is clicked or held open
+const dropdown = moduleURL(`
+	import { h, ref } from ${JSON.stringify(vue)}
+	export default {
+		props: ["options", "open"],
+		setup(props, { slots }) {
+			const shown = ref(false)
+			return () => h("div", { "data-stub": "Dropdown" }, [
+				h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
+				...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
+					h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+			])
+		},
+	}
+`)
 // monaco can't run under jsdom: the editor's lazy import gets the test's fake instead
 const monaco = moduleURL("export const monaco = globalThis.monaco")
 // the web app's one import of the core package, minus the .vue files Node can't load
@@ -82,7 +99,7 @@ const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue", "PopMenu.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 	"SubagentView.vue", "TranscriptDialog.vue", "WorkspacePanel.vue", "FilesBar.vue", "FileTree.vue", "LoadingState.vue", "AddToChat.vue",
-	"EditorView.vue",
+	"EditorView.vue", "ChatMenu.vue",
 ])
 const compiled = new Map()
 
@@ -97,7 +114,9 @@ async function componentURL(url) {
 	for (const match of imports.reverse()) {
 		const specifier = match[1]
 		let resolved
-		if (specifier.endsWith(".vue")) {
+		if (specifier === "frappe-ui/src/components/Dropdown/Dropdown.vue") {
+			resolved = dropdown
+		} else if (specifier.endsWith(".vue")) {
 			const name = specifier.split("/").pop()
 			resolved = components.has(name) ? await componentURL(new URL(specifier, url)) : stubURL(name.slice(0, -4))
 		} else if (specifier === "frappe-ui/src/utils/dialog") {

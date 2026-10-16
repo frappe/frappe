@@ -1,19 +1,14 @@
 <template>
-	<button
-		class="flex items-center gap-1.5 whitespace-nowrap rounded-4 px-1.5 py-1 text-xs text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-		title="Share this chat"
-		@click="show"
-	>
-		<FeatherIcon name="share-2" class="h-3.5 w-3.5" />
-		<span class="hidden sm:inline">Share</span>
-	</button>
 	<Dialog v-model:open="open" :title="heading">
-		<!-- sized like the settings dialog; the grid lets a long title truncate -->
-		<template #title>
-			<div class="grid grid-cols-[minmax(0,1fr)] pr-3">
-				<h3 class="truncate text-base font-semibold text-ink-gray-9">{{ heading }}</h3>
-			</div>
-		</template>
+		<div class="mb-5 flex flex-col items-start border-b border-outline-gray-1 pb-5">
+			<h4 class="mb-2 text-xs text-ink-gray-5">General access</h4>
+			<Select
+				:model-value="access"
+				:options="ACCESS"
+				variant="outline"
+				@update:model-value="setAccess"
+			/>
+		</div>
 		<h4 class="mb-2 text-xs text-ink-gray-5">Members</h4>
 		<FormControl
 			v-model:query="query"
@@ -35,7 +30,7 @@
 		</FormControl>
 		<ul class="mt-5 flex max-h-64 flex-col gap-3 overflow-y-auto">
 			<li v-for="user in members" :key="user.name" class="flex items-center gap-2.5">
-				<Avatar :image="user.user_image" :label="nameOf(user)" size="md" />
+				<Avatar :image="user.user_image" :label="nameOf(user)" size="xl" />
 				<div class="min-w-0 flex-1">
 					<p class="truncate text-sm font-medium text-ink-gray-9">{{ nameOf(user) }}</p>
 					<p
@@ -48,21 +43,14 @@
 				<span v-if="user.name === me.name" class="flex-none text-sm text-ink-gray-5">
 					Owner (you)
 				</span>
-				<Dropdown
+				<button
 					v-else
-					:options="[
-						{ label: 'Remove access', theme: 'red', onClick: () => remove(user.name) },
-					]"
-					align="end"
+					class="flow-icon-btn"
+					:title="`Remove ${nameOf(user)}'s access`"
+					@click="remove(user.name)"
 				>
-					<button
-						class="flex flex-none items-center gap-1 rounded-4 px-1.5 py-1 text-sm text-ink-gray-7 hover:bg-surface-gray-2"
-						:title="`Change access for ${nameOf(user)}`"
-					>
-						Can view
-						<FeatherIcon name="chevron-down" class="h-3 w-3" />
-					</button>
-				</Dropdown>
+					<FeatherIcon name="x" class="h-3.5 w-3.5" />
+				</button>
 			</li>
 			<li v-if="loading"><LoadingState class="py-1 text-xs text-ink-gray-5" /></li>
 		</ul>
@@ -82,13 +70,13 @@
 <script setup>
 import { computed, inject, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Avatar, Dialog, Dropdown, FormControl, toast } from "frappe-ui";
+import { Avatar, Dialog, FormControl, Select, toast } from "frappe-ui";
 import CopyButton from "@flow/ui-core/components/CopyButton.vue";
 import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 
-// The header's Share button and its dialog, for the chat's owner: whoever is added may
+// The Share dialog, which the chat's owner opens from its menu: whoever is added may
 // view the chat, never write to it, since its tools run as the owner.
 const flow = inject("flow");
 const page = inject("flowPage");
@@ -108,6 +96,12 @@ const heading = computed(() => {
 	const title = flow.state.session?.title;
 	return title ? `Sharing "${title}"` : "Share chat";
 });
+// who else may view: the people added, or every Flow user
+const ACCESS = [
+	{ value: "Restricted", label: "Only people you add", icon: "lucide-lock" },
+	{ value: "Everyone", label: "Every Flow user", icon: "lucide-users" },
+];
+const access = computed(() => page.state.generalAccess?.[sid.value] ?? "Restricted");
 // the owner first, then whoever may view
 const me = computed(() => page.state.boot.user ?? {});
 const members = computed(() => [
@@ -147,6 +141,8 @@ async function show() {
 	if (chat === sid.value) open.value = true;
 }
 
+defineExpose({ show });
+
 // another chat opening closes the dialog, so it never acts on the wrong one
 watch(sid, () => (open.value = false));
 
@@ -172,6 +168,12 @@ async function add(user) {
 
 async function remove(user) {
 	await update(() => flow.client.unshare(chat, user));
+}
+
+async function setAccess(value) {
+	if (value === access.value) return;
+	const set = await attempt(() => flow.client.setGeneralAccess(chat, value));
+	if (set) page.state.generalAccess[chat] = set;
 }
 
 // every request returns the whole list; it lands only if newer than the one on show

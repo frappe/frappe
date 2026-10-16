@@ -139,30 +139,28 @@
 				>
 					{{ flow.sessionTitle(s) }}
 				</span>
-				<Dropdown
-					align="end"
-					:options="sessionActions(s)"
+				<ChatMenu
+					:session-id="s.session_id"
+					:title="flow.sessionTitle(s)"
 					:open="menuFor === s.session_id"
 					@update:open="(open) => (menuFor = open ? s.session_id : null)"
 				>
-					<template #trigger>
-						<button
-							class="absolute right-1 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-5 text-ink-gray-5 transition-[color,background-color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:bg-surface-gray-4 focus-visible:opacity-100"
-							:class="
-								menuFor === s.session_id
-									? 'bg-surface-gray-4 text-ink-gray-8 opacity-100'
-									: 'bg-transparent opacity-0 group-hover:opacity-100'
-							"
-							title="Session options"
-							@click.stop
-							@pointerdown.stop
-							@keydown.enter.stop
-							@keydown.space.stop
-						>
-							<FeatherIcon name="more-horizontal" class="h-[13px] w-[13px]" />
-						</button>
-					</template>
-				</Dropdown>
+					<button
+						class="absolute right-1 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-5 text-ink-gray-5 transition-[color,background-color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:bg-surface-gray-4 focus-visible:opacity-100"
+						:class="
+							menuFor === s.session_id
+								? 'bg-surface-gray-4 text-ink-gray-8 opacity-100'
+								: 'bg-transparent opacity-0 group-hover:opacity-100'
+						"
+						title="Session options"
+						@click.stop
+						@pointerdown.stop
+						@keydown.enter.stop
+						@keydown.space.stop
+					>
+						<FeatherIcon name="more-horizontal" class="h-[13px] w-[13px]" />
+					</button>
+				</ChatMenu>
 			</div>
 			<LoadingState
 				v-if="filtered.length === 0 && flow.state.sessionsLoading"
@@ -204,14 +202,12 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import FeatherIcon from "./FeatherIcon.vue"
-
-import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
 import { sidebarIsDrawer } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
+import ChatMenu from "./ChatMenu.vue"
 import LoadingState from "./LoadingState.vue"
 import PopMenu from "./PopMenu.vue"
 
@@ -302,48 +298,6 @@ watch(projects, (available) => {
 		selectedProject.value = null
 	}
 })
-
-function sessionActions(s) {
-	return [
-		{ label: "Rename", icon: "lucide-pen", onClick: () => promptRename(s) },
-		{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: () => confirmDelete(s) },
-	]
-}
-
-function promptRename(s) {
-	dialog.prompt({
-		title: "Rename chat",
-		size: "lg",
-		fields: [{ name: "title", label: "Name", defaultValue: flow.sessionTitle(s), required: true }],
-		confirmLabel: "Rename",
-		// fire-and-forget (outcome lands as a toast): returning the promise would
-		// flash the button's loading state for ~20ms and jolt the action row
-		onConfirm: ({ values }) => {
-			void flow.renameSession(s.session_id, values.title.trim())
-		},
-	})
-}
-
-// dialog.confirm, not dialog.danger: danger's red theme injects a header
-// icon; the destructive styling lives on the action button instead
-function confirmDelete(s) {
-	dialog.confirm({
-		title: "Delete chat?",
-		size: "lg",
-		message: `“${flow.sessionTitle(s)}” and its full history will be permanently removed.`,
-		actions: [
-			{ label: "Cancel", variant: "outline" },
-			{
-				label: "Delete",
-				variant: "solid",
-				theme: "red",
-				onClick: () => {
-					void flow.deleteSession(s.session_id)
-				},
-			},
-		],
-	})
-}
 
 const DEFAULT_WIDTH = 288
 const clampWidth = (w) => Math.min(420, Math.max(224, w))

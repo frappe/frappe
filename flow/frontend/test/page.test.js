@@ -28,6 +28,7 @@ const { createApp, nextTick, reactive } = await import("vue");
 const { router } = await import("../src/router.js");
 const { loadComponent, transport } = await import("./helpers/components.js");
 const FlowPage = await loadComponent("chat/FlowPage.vue");
+const ShareChat = await loadComponent("chat/ShareChat.vue");
 
 const boot = {
 	csrf_token: "token",
@@ -71,12 +72,35 @@ Object.assign(transport.answers, {
 
 const called = (method) => transport.calls.some(([name]) => name === method);
 const args = (method) => transport.calls.find(([name]) => name === method)[1];
+const chatMenu = (el) => el.querySelector("header button[title='Chat options']");
+const menuItems = (el) =>
+	[...el.querySelectorAll("header [role=menuitem]")].map((item) => item.textContent);
 async function until(check) {
 	for (let attempt = 0; attempt < 100; attempt++) {
 		if (check()) return;
 		await new Promise((resolve) => setTimeout(resolve, 5));
 	}
 	throw new Error("timed out");
+}
+
+const ann = { name: "ann@example.com", full_name: "Ann", user_image: null };
+const bob = { name: "bob@example.com", full_name: "Bob", user_image: null };
+// the share dialog on its own, for chat S1 unless the test passes the chat's state
+function shareDialog(t, client, { state, page = { boot } } = {}) {
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(ShareChat).use(router);
+	app.provide("flow", {
+		state: state ?? reactive({ sessionId: "S1", session: { title: "Q3 plan" } }),
+		client,
+	});
+	app.provide("flowPage", { state: page });
+	const vm = app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	return { el, vm };
 }
 
 test("the agent is picked in a palette, before the model, and a new chat starts with it", async (t) => {
@@ -248,7 +272,7 @@ test("a chat the user may only view shows no composer", async (t) => {
 	// and says whose chat it is
 	await until(() => el.textContent.includes("Only Olive Owner can send messages in this chat."));
 	assert.equal(el.querySelector("textarea"), null);
-	assert.equal(el.querySelector("[data-stub=ShareChat]"), null, "only its owner shares a chat");
+	assert.equal(chatMenu(el), null, "nor a menu to share, rename or delete it");
 });
 
 test("a chat someone else owns offers no Share, even to a user who may write to it", async (t) => {
@@ -271,11 +295,18 @@ test("a chat someone else owns offers no Share, even to a user who may write to 
 	// the title shows once the session has loaded, and with it who owns it
 	await until(() => el.querySelector("header")?.textContent.includes("Ann's chat"));
 	assert.ok(el.querySelector("textarea"));
-	assert.equal(el.querySelector("[data-stub=ShareChat]"), null);
+	chatMenu(el).click();
+	await nextTick();
+	assert.deepEqual(menuItems(el), ["Rename", "Delete"]);
 });
 
-test("the owner's chat offers Share in its header", async (t) => {
+test("the owner's chat menu leads with Share, which opens the share dialog", async (t) => {
 	await router.replace("/s/S1");
+	Object.assign(transport.answers, { "flow.api.list_shares": [], "flow.api.find_users": [] });
+	t.after(() => {
+		delete transport.answers["flow.api.list_shares"];
+		delete transport.answers["flow.api.find_users"];
+	});
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(FlowPage, { boot }).use(router);
@@ -284,61 +315,50 @@ test("the owner's chat offers Share in its header", async (t) => {
 		app.unmount();
 		el.remove();
 	});
-	await until(() => el.querySelector("header [data-stub=ShareChat]"));
+	await until(() => chatMenu(el));
+	chatMenu(el).click();
+	await nextTick();
+	assert.deepEqual(menuItems(el), ["Share", "Rename", "Delete"]);
+	[...el.querySelectorAll("header [role=menuitem]")][0].click();
+	await until(() => el.querySelector("[role=dialog]"));
+	assert.deepEqual(args("flow.api.list_shares"), { session: "S1" });
 });
 
-test("the share dialog lists the owner and who may view, adds people found and takes a view back", async (t) => {
-	const ShareChat = await loadComponent("chat/ShareChat.vue");
+test("the share dialog lists the owner and who may view, adds people found and removes them", async (t) => {
 	const calls = [];
-	let viewers = [{ name: "ann@example.com", full_name: "Ann", user_image: null }];
-	const client = {
+	let viewers = [ann];
+	const { el, vm } = shareDialog(t, {
 		async shares(sid) {
 			calls.push(["shares", sid]);
 			return viewers;
 		},
 		async findUsers(query) {
 			calls.push(["find", query]);
-			return [
-				{ name: "tester@example.com", full_name: "Tester" },
-				{ name: "ann@example.com", full_name: "Ann" },
-				{ name: "bob@example.com", full_name: "Bob" },
-			];
+			return [{ name: "tester@example.com", full_name: "Tester" }, ann, bob];
 		},
 		async share(sid, user) {
 			calls.push(["share", sid, user]);
-			return (viewers = [...viewers, { name: user, full_name: "Bob", user_image: null }]);
+			return (viewers = [...viewers, bob]);
 		},
 		async unshare(sid, user) {
 			calls.push(["unshare", sid, user]);
 			return (viewers = viewers.filter((viewer) => viewer.name !== user));
 		},
-	};
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(ShareChat).use(router);
-	app.provide("flow", {
-		state: reactive({ sessionId: "S1", session: { title: "Q3 plan" } }),
-		client,
-	});
-	app.provide("flowPage", { state: { boot } });
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
 	});
 	assert.equal(el.querySelector("[role=dialog]"), null);
 
-	el.querySelector("button[title='Share this chat']").click();
+	vm.show();
 	await until(() => el.textContent.includes("ann@example.com"));
 	assert.equal(
 		el.querySelector("[role=dialog]").getAttribute("aria-label"),
 		'Sharing "Q3 plan"'
 	);
-	// the owner leads the list, and each person added may view
+	// the owner leads the list and stays; each person added has a remove (×) button
 	const row = (who) => [...el.querySelectorAll("li")].find((li) => li.textContent.includes(who));
 	assert.equal(el.querySelectorAll("li").length, 2);
 	assert.ok(row("tester@example.com").textContent.includes("Owner (you)"));
-	assert.ok(row("ann@example.com").textContent.includes("Can view"));
+	assert.equal(row("tester@example.com").querySelector("button"), null);
+	assert.equal(row("ann@example.com").querySelector("button").title, "Remove Ann's access");
 	// the link is the chat's own page, which opens only for the people it is shared with
 	const copy = el.querySelector("[data-stub=CopyButton]");
 	assert.equal(copy.getAttribute("text"), "http://localhost/flow/s/S1");
@@ -356,14 +376,10 @@ test("the share dialog lists the owner and who may view, adds people found and t
 	await until(() => el.textContent.includes("bob@example.com"));
 	assert.deepEqual(options(), []);
 
-	const removeAccess = (who) =>
-		[...row(who).querySelectorAll("button")]
-			.find((button) => button.textContent === "Remove access")
-			.click();
-	removeAccess("ann@example.com");
-	await until(() => !el.textContent.includes("ann@example.com"));
-	removeAccess("bob@example.com");
-	await until(() => !el.textContent.includes("bob@example.com"));
+	for (const who of ["ann@example.com", "bob@example.com"]) {
+		row(who).querySelector("button").click();
+		await until(() => !el.textContent.includes(who));
+	}
 	assert.equal(el.querySelectorAll("li").length, 1, "the owner stays");
 	assert.deepEqual(
 		calls.filter(([kind]) => kind !== "find"),
@@ -377,29 +393,16 @@ test("the share dialog lists the owner and who may view, adds people found and t
 });
 
 test("the share dialog opens with its members in, so it keeps its size; a slow list opens it anyway", async (t) => {
-	const ShareChat = await loadComponent("chat/ShareChat.vue");
 	const share = (shares) => {
-		const el = document.createElement("div");
-		document.body.append(el);
-		const app = createApp(ShareChat).use(router);
-		app.provide("flow", {
-			state: reactive({ sessionId: "S1", session: { title: "Q3 plan" } }),
-			client: { shares, findUsers: async () => [] },
-		});
-		app.provide("flowPage", { state: { boot } });
-		app.mount(el);
-		t.after(() => {
-			app.unmount();
-			el.remove();
-		});
-		el.querySelector("button[title='Share this chat']").click();
+		const { el, vm } = shareDialog(t, { shares, findUsers: async () => [] });
+		vm.show();
 		return el;
 	};
 	let answer;
 	const el = share(() => new Promise((resolve) => (answer = resolve)));
 	await nextTick();
 	assert.equal(el.querySelector("[role=dialog]"), null, "not before its members are in");
-	answer([{ name: "ann@example.com", full_name: "Ann", user_image: null }]);
+	answer([ann]);
 	await until(() => el.querySelector("[role=dialog]"));
 	assert.equal(el.querySelectorAll("li").length, 2, "the owner and Ann, no loading row");
 	assert.ok(el.textContent.includes("ann@example.com"));
@@ -410,89 +413,74 @@ test("the share dialog opens with its members in, so it keeps its size; a slow l
 	assert.ok(slow.textContent.includes("Loading…"));
 });
 
-test("the share dialog acts only on the chat it opened for, and a slow reply can't undo a newer one", async (t) => {
-	const ShareChat = await loadComponent("chat/ShareChat.vue");
-	const ann = { name: "ann@example.com", full_name: "Ann", user_image: null };
-	const bob = { name: "bob@example.com", full_name: "Bob", user_image: null };
+test("the share dialog acts only on the chat it opened for, and a late list never undoes a newer one", async (t) => {
 	const lists = [];
 	const shared = [];
 	const state = reactive({ sessionId: "S1", session: { title: "Q3 plan" } });
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(ShareChat).use(router);
-	app.provide("flow", {
-		state,
-		client: {
-			shares: (sid) => new Promise((resolve) => lists.push({ sid, resolve })),
+	const { el, vm } = shareDialog(
+		t,
+		{
+			shares: () => new Promise((resolve) => lists.push(resolve)),
 			findUsers: async () => [bob],
 			share: async (sid, user) => {
 				shared.push([sid, user]);
 				return [ann, bob];
 			},
 		},
-	});
-	app.provide("flowPage", { state: { boot } });
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
+		{ state }
+	);
 	const dialog = () => el.querySelector("[role=dialog]");
-	const shareButton = () => el.querySelector("button[title='Share this chat']");
-	const pause = () => new Promise((resolve) => setTimeout(resolve, 20));
 
-	// another chat opening closes the dialog, and the first chat's late list stays out
-	shareButton().click();
+	// another chat opening closes the dialog
+	vm.show();
 	await until(dialog);
 	state.sessionId = "S2";
 	await nextTick();
 	assert.equal(dialog(), null, "it closes with its chat");
-	shareButton().click();
-	await until(() => lists.length === 2);
-	lists[1].resolve([ann]);
-	await until(dialog);
-	lists[0].resolve([bob]);
-	await pause();
-	assert.ok(el.textContent.includes("ann@example.com"));
-	assert.ok(!el.textContent.includes("bob@example.com"), "not the other chat's list");
 
-	// adding asks for this chat
+	// reopened there, the first chat's late list stays out, and adding asks for this chat
+	vm.show();
+	lists[0]([{ name: "carol@example.com", full_name: "Carol", user_image: null }]);
 	await until(() => el.querySelector("[data-control=combobox] button"));
+	assert.ok(!el.textContent.includes("carol@example.com"), "not the other chat's list");
 	el.querySelector("[data-control=combobox] button").click();
 	await until(() => el.textContent.includes("bob@example.com"));
 	assert.deepEqual(shared, [["S2", "bob@example.com"]]);
-});
 
-test("a slow member list can't undo a change made after it", async (t) => {
-	const ShareChat = await loadComponent("chat/ShareChat.vue");
-	const ann = { name: "ann@example.com", full_name: "Ann", user_image: null };
-	const bob = { name: "bob@example.com", full_name: "Bob", user_image: null };
-	let answer;
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(ShareChat).use(router);
-	app.provide("flow", {
-		state: reactive({ sessionId: "S1", session: { title: "Q3 plan" } }),
-		client: {
-			shares: () => new Promise((resolve) => (answer = resolve)),
-			findUsers: async () => [bob],
-			share: async () => [ann, bob],
-		},
-	});
-	app.provide("flowPage", { state: { boot } });
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
-	el.querySelector("button[title='Share this chat']").click();
-	await until(() => el.querySelector("[data-control=combobox] button"));
-	el.querySelector("[data-control=combobox] button").click();
-	await until(() => el.textContent.includes("bob@example.com"));
-	// the list asked for on opening arrives last, from before Bob was added
-	answer([ann]);
+	// this chat's own list, asked for before Bob was added, arrives last: Bob stays
+	lists[1]([ann]);
 	await new Promise((resolve) => setTimeout(resolve, 20));
 	assert.ok(el.textContent.includes("bob@example.com"), "Bob stays");
+});
+
+test("the share dialog shows who else may view, and its owner opens the chat to every Flow user", async (t) => {
+	const set = [];
+	const pageState = reactive({ boot, generalAccess: { S1: "Restricted" } });
+	const { el, vm } = shareDialog(
+		t,
+		{
+			shares: async () => [],
+			findUsers: async () => [],
+			setGeneralAccess: async (sid, access) => {
+				set.push([sid, access]);
+				return access;
+			},
+		},
+		{ page: pageState }
+	);
+	vm.show();
+	await until(() => el.querySelector("[role=dialog]"));
+	const access = () => el.querySelector("[data-control=select]");
+	const choices = () => [...access().querySelectorAll("button")];
+	assert.equal(access().dataset.value, "Restricted");
+	assert.deepEqual(
+		choices().map((button) => button.textContent),
+		["Only people you add", "Every Flow user"]
+	);
+	choices()[1].click();
+	await until(() => access().dataset.value === "Everyone");
+	assert.deepEqual(set, [["S1", "Everyone"]]);
+	assert.equal(pageState.generalAccess.S1, "Everyone");
 });
 
 test("the thumbs show under a finished run, but not in a chat the user may only view", async (t) => {
