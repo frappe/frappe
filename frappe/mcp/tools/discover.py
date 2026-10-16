@@ -97,6 +97,8 @@ def doctype_schema(doctype: str) -> dict:
 		"title_field": meta.title_field,
 		"fields": [field_schema(field) for field in meta.fields if field.fieldtype not in LAYOUT_FIELDTYPES],
 		"permissions": {
+			# The return value is exposed as metadata, not used to authorize an operation.
+			# nosemgrep: frappe-semgrep-rules.rules.unchecked-frappe-permission-call
 			permission: False if meta.istable else frappe.has_permission(doctype, permission)
 			for permission in PERMISSION_TYPES
 		},

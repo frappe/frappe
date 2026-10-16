@@ -746,7 +746,8 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			)
 			user.append_roles(*roles)
 			user.insert(ignore_permissions=True)
-			frappe.db.commit()
+			# HTTP requests use another connection and must see this user.
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		set_request(path="/")
 		frappe.local.cookie_manager = CookieManager()
