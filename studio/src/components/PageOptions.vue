@@ -73,5 +73,13 @@ const getDynamicValueCompletions = useDynamicValueCompletions()
 const dynamicValueCompletions = getDynamicValueCompletions()
 // saved while typing: closing the popover unmounts the editor before it blurs
 const tabTitle = ref(props.page.tab_title || "")
-watchDebounced(tabTitle, (value) => store.updateActivePage("tab_title", value), { debounce: 500 })
+const pageName = props.page.name
+watchDebounced(
+	tabTitle,
+	(value) => {
+		// a save that fires after another page opened must not land on it
+		if (store.activePage?.name === pageName) store.updateActivePage("tab_title", value)
+	},
+	{ debounce: 500 },
+)
 </script>

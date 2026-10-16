@@ -138,7 +138,12 @@
 						class="flex w-[28rem] flex-col gap-3 rounded-4 bg-surface-base p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
-						<PageOptions v-if="store.activePage" :page="store.activePage" :app="store.activeApp" />
+						<PageOptions
+							v-if="store.activePage"
+							:key="store.activePage.name"
+							:page="store.activePage"
+							:app="store.activeApp"
+						/>
 					</div>
 				</template>
 			</Popover>
