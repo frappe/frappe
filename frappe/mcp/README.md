@@ -65,9 +65,8 @@ Examples show tool arguments, which the client sends through `tools/call`.
 | `search_doctypes` | Find DocTypes by name or module. | `{"query":"ToDo"}` |
 | `get_doctype_schema` | Inspect fields and permissions. | `{"doctype":"ToDo"}` |
 | `search_methods` | Find whitelisted methods. | `{"query":"get_count"}` |
-| `get_method_schema` | Inspect an API function's arguments. | `{"method":"frappe.client.get_count"}` |
+| `get_method_schema` | Inspect an API function's or document method's arguments. | `{"method":"frappe.client.get_count"}` |
 | `list_document_methods` | List whitelisted instance methods. | `{"doctype":"ToDo"}` |
-| `get_document_method_schema` | Inspect an instance method's arguments. | `{"doctype":"ToDo","method":"add_comment"}` |
 | `list_documents` | List matching documents with pagination. | `{"doctype":"ToDo","filters":{"status":"Open"},"fields":["name","description"],"limit":20}` |
 | `get_document` | Read one document and its permitted child rows. | `{"doctype":"ToDo","name":"TODO-00001"}` |
 | `count_documents` | Count matching documents. | `{"doctype":"ToDo","filters":{"status":"Open"}}` |
@@ -78,6 +77,7 @@ Examples show tool arguments, which the client sends through `tools/call`.
 | `call_document_method` | Call a whitelisted instance method on one document. | `{"doctype":"ToDo","name":"TODO-00001","method":"add_comment","args":{"text":"Checked"}}` |
 
 Lists default to `start: 0`, `limit: 20`, and the `name` field. Use `has_next_page` to continue paging.
+For document method schemas, pass `{"doctype":"ToDo","method":"add_comment"}` to `get_method_schema`.
 Method calls accept an `args` object. Controller module functions use their full dotted path with `call_method`.
 Submit and cancel use `call_document_method` with `doctype`, `name`, and `method`.
 

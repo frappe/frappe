@@ -84,7 +84,6 @@ class Tool:
 def registry() -> tuple[Tool, ...]:
 	from frappe.mcp.tools.discover import (
 		GET_DOCTYPE_SCHEMA,
-		GET_DOCUMENT_METHOD_SCHEMA,
 		GET_METHOD_SCHEMA,
 		LIST_DOCUMENT_METHODS,
 		SEARCH_DOCTYPES,
@@ -106,7 +105,6 @@ def registry() -> tuple[Tool, ...]:
 		SEARCH_METHODS,
 		GET_METHOD_SCHEMA,
 		LIST_DOCUMENT_METHODS,
-		GET_DOCUMENT_METHOD_SCHEMA,
 		LIST_DOCUMENTS,
 		GET_DOCUMENT,
 		COUNT_DOCUMENTS,
