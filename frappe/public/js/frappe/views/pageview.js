@@ -164,6 +164,15 @@ frappe.views.Page = class Page {
 			return;
 		}
 
+		// The island's own bundle loads first, which on a slow network leaves an empty page.
+		// A failed load replaces the skeleton with its error (show_island_error).
+		const $skeleton = $(
+			`<div class="island-page-skeleton" aria-busy="true">
+				<span class="sr-only">${frappe.utils.escape_html(__("Loading..."))}</span>
+				${"<div></div>".repeat(6)}
+			</div>`
+		).appendTo(this.island_container);
+
 		this.island = frappe.ui.mount_island(this.pagedoc.island, this.island_container[0], {
 			...props,
 			onTitle: (title) => {
@@ -176,7 +185,9 @@ frappe.views.Page = class Page {
 			},
 		});
 
-		this.island.ready.catch((error) => this.show_island_error(error));
+		this.island.ready
+			.then(() => $skeleton.remove())
+			.catch((error) => this.show_island_error(error));
 	}
 
 	/**

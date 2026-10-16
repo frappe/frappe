@@ -29,6 +29,7 @@ import "./frappe/ui/components/stepper.js";
 import "./frappe/ui/components/empty_state.js";
 import "./frappe/ui/components/panel_header.js";
 import "./frappe/ui/sidebar/sidebar_panel.js";
+import "./frappe/ui/mobile_nav_loader.js";
 import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
 import "./frappe/ui/sidebar/sidebar_header.js";
