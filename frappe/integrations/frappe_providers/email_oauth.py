@@ -87,6 +87,17 @@ def relay(method: str, **data) -> dict:
 	return client.post(client.site_path(f"central/central.api.email_oauth.{method}"), data)
 
 
+def relay_refresh(app, token_cache) -> dict:
+	"""Refresh for a Connected App whose Token URI starts with FRAPPE_CLOUD_RELAY; Central adds the secret."""
+	return relay(
+		"relay_token",
+		provider=app.token_uri.removeprefix(FRAPPE_CLOUD_RELAY),
+		grant_type="refresh_token",
+		refresh_token=token_cache.get_password("refresh_token"),
+		scope=" ".join(app.get_scopes()),
+	)
+
+
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
 def callback(
 	state: str | None = None,

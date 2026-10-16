@@ -9,6 +9,7 @@ from requests_oauthlib import OAuth2Session
 
 import frappe
 from frappe import _
+from frappe.integrations.frappe_providers.email_oauth import FRAPPE_CLOUD_RELAY, relay_refresh
 from frappe.integrations.utils import make_get_request
 from frappe.model.document import Document
 from frappe.utils.synchronization import filelock
@@ -156,11 +157,14 @@ class ConnectedApp(Document):
 					if not token_cache.is_expired():
 						return token_cache
 
-					oauth_session = self.get_oauth2_session(user)
-					token = oauth_session.refresh_token(
-						body=f"redirect_uri={self.redirect_uri}",
-						token_url=self.token_uri,
-					)
+					if (self.token_uri or "").startswith(FRAPPE_CLOUD_RELAY):
+						token = relay_refresh(self, token_cache)
+					else:
+						oauth_session = self.get_oauth2_session(user)
+						token = oauth_session.refresh_token(
+							body=f"redirect_uri={self.redirect_uri}",
+							token_url=self.token_uri,
+						)
 					token_cache.update_data(token)
 			except Exception:
 				self.log_error("Token Refresh Error")

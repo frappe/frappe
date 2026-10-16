@@ -191,6 +191,8 @@ frappe.ui.form.on("Email Account", {
 		if (frm.doc.__islocal) {
 			frm.add_child("imap_folder", { folder_name: "INBOX" });
 			frm.refresh_field("imap_folder");
+			// service prefilled (e.g. from the list's Add dialog): apply its server defaults
+			if (frm.doc.service) frm.trigger("service");
 		}
 		set_default_max_attachment_size(frm);
 	},
