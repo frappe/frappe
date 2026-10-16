@@ -10,6 +10,7 @@ from functools import cached_property
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic.json_schema import GenerateJsonSchema
 
 import frappe
 from frappe import _
@@ -17,6 +18,39 @@ from frappe.mcp.protocol import INVALID_PARAMS, METHOD_NOT_FOUND, McpError
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import strip_html
 from frappe.utils.response import json_handler
+
+
+class CompactJsonSchema(GenerateJsonSchema):
+	"""Leave out schema keywords that cost model context without adding meaning."""
+
+	def generate(self, schema, mode="validation"):
+		json_schema = super().generate(schema, mode)
+		json_schema.pop("title", None)
+		return json_schema
+
+	def field_title_should_be_set(self, schema) -> bool:
+		return False
+
+	def nullable_schema(self, schema):
+		return self.generate_inner(schema["schema"])
+
+	def default_schema(self, schema):
+		json_schema = super().default_schema(schema)
+		if json_schema.get("default", ...) is None:
+			del json_schema["default"]
+		return json_schema
+
+	def list_schema(self, schema):
+		json_schema = super().list_schema(schema)
+		if json_schema.get("items") == {}:
+			del json_schema["items"]
+		return json_schema
+
+	def dict_schema(self, schema):
+		json_schema = super().dict_schema(schema)
+		if json_schema.get("additionalProperties") is True:
+			del json_schema["additionalProperties"]
+		return json_schema
 
 
 class ToolArguments(BaseModel):
@@ -35,7 +69,7 @@ class Tool:
 
 	@cached_property
 	def input_schema(self) -> dict:
-		return self.arguments.model_json_schema()
+		return self.arguments.model_json_schema(schema_generator=CompactJsonSchema)
 
 	def definition(self) -> dict:
 		return {
