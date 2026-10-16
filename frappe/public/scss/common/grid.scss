@@ -838,7 +838,7 @@
 		display: grid;
 	}
 
-	> .grid-footer {
+	> .grid-selection-scope > .grid-footer {
 		.grid-pagination,
 		.grid-bulk-actions {
 			display: none;
