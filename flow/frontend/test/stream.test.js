@@ -94,7 +94,7 @@ test("the room is joined before the log is fetched, and live events are deduplic
 	assert.equal(socket.has("flow:event"), false);
 });
 
-test("a seq gap, a resync notice, a reconnect and a new stream id each re-fetch the log", async () => {
+test("a seq gap, a resync notice, a reconnect, a relay drop and a new stream id each re-fetch the log", async () => {
 	const socket = fakeSocket();
 	const fetches = [];
 	let rows = [];
@@ -131,18 +131,23 @@ test("a seq gap, a resync notice, a reconnect and a new stream id each re-fetch 
 	socket.fire("connect");
 	assert.equal((await iterator.next()).value.seq, 5);
 	assert.equal(subscribes(), 2);
+	// dropped by the relay on an access check: the same
+	rows = [...rows, { type: "user_message", seq: 6 }];
+	socket.fire("flow:resubscribe", { session: "s1" });
+	assert.equal((await iterator.next()).value.seq, 6);
+	assert.equal(subscribes(), 3);
 	// a restarted daemon publishes under a new stream id
-	rows = [...rows, { type: "user_message", seq: 6 }, { type: "user_message", seq: 7 }];
+	rows = [...rows, { type: "user_message", seq: 7 }, { type: "user_message", seq: 8 }];
 	socket.fire("flow:event", {
 		type: "user_message",
-		seq: 7,
+		seq: 8,
 		session_id: "s1",
 		stream_id: "b",
 		revision: 1,
 	});
-	assert.equal((await iterator.next()).value.seq, 6);
 	assert.equal((await iterator.next()).value.seq, 7);
-	assert.deepEqual(fetches, [0, 1, 3, 4, 5]);
+	assert.equal((await iterator.next()).value.seq, 8);
+	assert.deepEqual(fetches, [0, 1, 3, 4, 5, 6]);
 	stream.close();
 });
 
@@ -203,6 +208,21 @@ test("a refused subscription ends the stream with an error, and releases the roo
 		socket.emitted.some(([name]) => name === "flow:unsubscribe"),
 		false
 	);
+
+	// dropped by the relay and refused on asking again, as a removed viewer is: the same error
+	const dropped = fakeSocket();
+	const viewing = collect(
+		new SessionStream({
+			socket: dropped,
+			session: "s1",
+			fetchEntries: async () => ({ entries: [] }),
+		}),
+		1
+	);
+	await new Promise((resolve) => setTimeout(resolve, 0));
+	dropped.subscribed = false;
+	dropped.fire("flow:resubscribe", { session: "s1" });
+	await assert.rejects(viewing, /Live updates are unavailable/);
 
 	// closed before the ack arrives: the room is left as soon as it is joined
 	const late = fakeSocket();

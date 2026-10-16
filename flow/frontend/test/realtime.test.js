@@ -75,13 +75,15 @@ test("Redis recovery resyncs all subscribed rooms even when no further event arr
 	);
 });
 
-test("a view taken back: the owner is left alone, and whoever may have lost it stays only on a clear yes", async () => {
+test("a view taken back: the owner is left alone, whoever may have lost it stays only on a clear yes, and one who leaves is told", async () => {
 	const { redis, socket } = relay();
 	const join = async (site, user) => {
 		const s = socket(site, `${site}/${user}`);
 		s.user = user;
 		await new Promise((resolve) => s.emit("flow:subscribe", "s1", resolve));
 		s.asked = 0;
+		s.told = [];
+		s.on("flow:resubscribe", (notice) => s.told.push(notice.session));
 		return s;
 	};
 	const ann = await join("site-a", "ann"); // the owner
@@ -109,6 +111,8 @@ test("a view taken back: the owner is left alone, and whoever may have lost it s
 	);
 	assert.deepEqual([...bob.flow_sessions], [], "Bob left");
 	assert.deepEqual([...cara.flow_sessions, ...elsewhere.flow_sessions], ["s1", "s1"]);
+	// so his page asks again: it resumes if he still may read, or says live updates stopped
+	assert.deepEqual([ann.told, bob.told, cara.told, elsewhere.told], [[], ["s1"], [], []]);
 
 	// an everyone share taken back names no one: all but the owner are asked
 	await notice({ session: "s1", user: null, owner: "ann" });

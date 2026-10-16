@@ -12,6 +12,7 @@ const node_utils = require(path.join(bench, "apps", "frappe", "node_utils"));
 
 const EVENT = "flow:event";
 const RESYNC = "flow:resync";
+const RESUBSCRIBE = "flow:resubscribe";
 const RESYNC_ALL = "harness-resync:all";
 const RESYNC_SITE = "harness-resync:site:";
 const ACCESS_SITE = "flow-access:";
@@ -116,7 +117,8 @@ function watch_site(site) {
 }
 
 // The site names who lost a view (no one, for an everyone share) and the session's owner. The
-// owner is never asked; anyone who may have lost access stays only if the site says yes.
+// owner is never asked; anyone who may have lost access stays only if the site says yes. One
+// who leaves is told, so their page asks again: it resumes, or says live updates stopped.
 async function recheck(message, channel) {
 	const notice = parse(message);
 	if (!notice || !valid_name(notice.session)) return;
@@ -127,7 +129,9 @@ async function recheck(message, channel) {
 			if (socket.user === notice.owner) continue;
 			if (notice.user && socket.user !== notice.user) continue;
 			const allowed = await can_stream(socket, notice.session).catch(() => false);
-			if (!allowed) release(socket, notice.session);
+			if (allowed) continue;
+			release(socket, notice.session);
+			socket.emit(RESUBSCRIBE, { session: notice.session });
 		}
 	}
 }
