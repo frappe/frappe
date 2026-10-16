@@ -22,6 +22,7 @@ const DATA_SOURCE_DOCTYPE = "Studio Page Resource"
 
 export interface PageCopy {
 	page_title?: string
+	tab_title?: string
 	allow_guest?: 0 | 1
 	resources: Record<string, any>[]
 	variables: Record<string, any>[]

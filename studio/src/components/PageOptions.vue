@@ -11,6 +11,19 @@
 				@update:allowGuest="(value: boolean) => store.updateActivePage('allow_guest', value ? 1 : 0)"
 			/>
 
+			<Code
+				v-model="tabTitle"
+				label="Tab Title"
+				isFormInput
+				valueMode="text"
+				:emitOnChange="true"
+				:showLineNumbers="false"
+				:placeholder="page.page_title"
+				description="Shown in the browser tab. Use {{ }} to show dynamic data"
+				:completions="dynamicValueCompletions"
+				:overrideCompletions="true"
+			/>
+
 			<!-- Dynamic Route Variables: design-time test values for params like /articles/:category -->
 			<CollapsibleSection
 				v-if="routeVariableNames.length"
@@ -34,14 +47,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
+import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import Input from "@/components/Input.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import PageMetaFields from "@/components/PageMetaFields.vue"
+import Code from "@/components/Code.vue"
 import { getRouteVariables } from "@/utils/helpers"
+import { useDynamicValueCompletions } from "@/utils/completions/useStudioCompletions"
 
 const store = useStudioStore()
 const props = defineProps<{
@@ -50,4 +66,10 @@ const props = defineProps<{
 }>()
 
 const routeVariableNames = computed(() => getRouteVariables(props.page.route || ""))
+
+const getDynamicValueCompletions = useDynamicValueCompletions()
+const dynamicValueCompletions = getDynamicValueCompletions()
+// saved while typing: closing the popover unmounts the editor before it blurs
+const tabTitle = ref(props.page.tab_title || "")
+watchDebounced(tabTitle, (value) => store.updateActivePage("tab_title", value), { debounce: 500 })
 </script>

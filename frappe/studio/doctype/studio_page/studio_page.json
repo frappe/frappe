@@ -9,6 +9,7 @@
   "studio_app",
   "page_name",
   "page_title",
+  "tab_title",
   "route",
   "column_break_zpqw",
   "published",
@@ -38,6 +39,13 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Title"
+  },
+  {
+   "description": "Shown in the browser tab. Supports {{ }} expressions. Uses the title when empty.",
+   "fieldname": "tab_title",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "label": "Tab Title"
   },
   {
    "fieldname": "column_break_zpqw",
@@ -145,7 +153,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-27 12:49:34.370901",
+ "modified": "2026-10-16 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",

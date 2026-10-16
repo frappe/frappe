@@ -668,6 +668,7 @@ def make_studio_page(studio_app, **kwargs):
 		{
 			"studio_app": studio_app,
 			"page_title": kwargs.get("page_title", "Test Page"),
+			"tab_title": kwargs.get("tab_title"),
 			"route": kwargs.get("route", "/test-page"),
 			"blocks": kwargs.get("blocks", "[]"),
 			"script": kwargs.get("script"),

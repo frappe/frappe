@@ -34,7 +34,7 @@ import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
 
-type PageFields = Partial<Pick<StudioPage, "page_title" | "route" | "script" | "allow_guest">>
+type PageFields = Partial<Pick<StudioPage, "page_title" | "tab_title" | "route" | "script" | "allow_guest">>
 
 const PAGE_CHANGED_MESSAGE = "This page was changed outside the editor. Refresh to load the latest version."
 
