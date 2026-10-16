@@ -8,8 +8,15 @@ frappe.ui.form.on("MCP Settings", {
 			[
 				__("Connect MCP clients to {0}.", [`<code>${url}</code>`]),
 				__(
-					"To authenticate, open the agent's User, select API Access > Generate Keys, and send the header {0}.",
-					["<code>Authorization: token API_KEY:API_SECRET</code>"]
+					"Clients sign in with OAuth: they open this site's login and ask you to allow access. Configure this in {0}.",
+					[
+						frappe.utils.get_form_link(
+							"OAuth Settings",
+							"OAuth Settings",
+							true,
+							__("OAuth Settings")
+						),
+					]
 				),
 			].join("<br>")
 		);
