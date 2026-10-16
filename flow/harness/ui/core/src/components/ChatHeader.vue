@@ -67,7 +67,7 @@
 			</button>
 			<ChatMenu v-if="menu" :session-id="flow.state.sessionId" :title="title" :actions="actions">
 				<button class="flow-icon-btn -ml-1 mr-1" title="Chat options">
-					<FeatherIcon name="more-horizontal" class="h-3.5 w-3.5" />
+					<FeatherIcon name="more-horizontal" class="h-4 w-4" />
 				</button>
 			</ChatMenu>
 		</span>
