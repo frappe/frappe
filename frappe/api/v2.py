@@ -20,6 +20,7 @@ from frappe.api import discovery
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
+from frappe.mcp import handle as handle_mcp
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -224,6 +225,7 @@ def update_doc(doctype: str, name: str):
 	data = frappe.form_dict
 
 	doc = frappe.get_doc(doctype, name, for_update=True)
+	doc.check_permission("write")
 	data.pop("flags", None)
 	doc.update(data)
 	doc.save()
@@ -613,6 +615,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 
 url_rules = [
+	Rule("/mcp", methods=["POST", "GET", "DELETE"], endpoint=handle_mcp),
 	# Discovery APIs
 	Rule("/discovery", methods=["GET"], endpoint=discovery.root),
 	Rule(

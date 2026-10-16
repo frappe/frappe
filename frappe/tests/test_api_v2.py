@@ -7,12 +7,13 @@ import requests
 import frappe
 from frappe.api import discovery
 from frappe.api.v2 import run_doc_method
+from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
 from frappe.permissions import add_permission, update_permission_property
-from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import set_request
+from frappe.utils import get_test_client, set_request
 
 authorization_token = None
 
@@ -177,6 +178,64 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.json["errors"][0]["type"], "DoesNotExistError")
 		# 404s dont return exceptions
 		self.assertFalse(response.json["errors"][0].get("exception"))
+
+
+class TestApiV2UpdatePermissions(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.user = "api.permissions@example.com"
+		self.created_user = not frappe.db.exists("User", self.user)
+		if self.created_user:
+			frappe.get_doc(
+				doctype="User", email=self.user, first_name="API Permissions", send_welcome_email=0
+			).insert()
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		self.names = []
+		for allocated_to in (self.user, None):
+			doc = frappe.get_doc(
+				doctype="ToDo", description="API v2 permission fixture", allocated_to=allocated_to
+			).insert()
+			self.names.append(doc.name)
+		# Requests use a separate connection and must see these fixtures.
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			for name in self.names:
+				frappe.delete_doc_if_exists("ToDo", name)
+			if self.created_user:
+				frappe.delete_doc("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def update_document(self, name, data):
+		return make_request(
+			get_test_client(use_cookies=False).put,
+			args=(self.resource("ToDo", name),),
+			kwargs={"json": data, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+
+	def test_update_cannot_grant_access_using_payload(self):
+		name = self.names[1]
+		for field in ("allocated_to", "assigned_by", "owner"):
+			with self.subTest(field=field):
+				before = frappe.db.get_value("ToDo", name, field)
+				response = self.update_document(name, {field: self.user})
+				self.assertEqual(response.status_code, 403)
+				self.assertEqual(frappe.db.get_value("ToDo", name, field), before)
+
+	def test_permitted_update_still_succeeds(self):
+		name = self.names[0]
+		response = self.update_document(name, {"description": "Permitted API update"})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "Permitted API update")
 
 
 class TestMethodAPIV2(FrappeAPITestCase):
@@ -687,7 +746,8 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			)
 			user.append_roles(*roles)
 			user.insert(ignore_permissions=True)
-			frappe.db.commit()
+			# HTTP requests use another connection and must see this user.
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		set_request(path="/")
 		frappe.local.cookie_manager = CookieManager()
