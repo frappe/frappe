@@ -124,11 +124,20 @@
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	.dock-logo + .dock-items {
 =======
 	.dock-logo + .dock-utilities:empty + .dock-items,
 	body:not(.dock-pinned) & .dock-logo + .dock-utilities + .dock-items {
 >>>>>>> cb24f18 (fix(dock): keep search and notifications in the sidebar while the dock floats)
+=======
+	&:not(.dock-owns-utilities) .dock-utilities {
+		display: none;
+	}
+
+	.dock-logo + .dock-utilities:empty + .dock-items,
+	&:not(.dock-owns-utilities) .dock-logo + .dock-utilities + .dock-items {
+>>>>>>> a953879 (fix(dock): keep search and notifications on the dock when the page has no sidebar)
 		margin-top: calc(var(--spacing) * -1);
 		padding-top: calc(var(--spacing) * 3);
 	}
@@ -149,10 +158,6 @@
 		flex-direction: column;
 		align-items: center;
 		gap: calc(var(--spacing) * 0.5);
-
-		body:not(.dock-pinned) & {
-			display: none;
-		}
 
 		&:not(:empty) {
 			padding-bottom: calc(var(--spacing) * 3);
