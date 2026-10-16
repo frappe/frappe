@@ -34,10 +34,7 @@ class SearchMethodsArguments(ToolArguments):
 
 class MethodSchemaArguments(ToolArguments):
 	method: str = Field(min_length=1)
-
-
-class DocumentMethodSchemaArguments(DoctypeArguments):
-	method: str = Field(min_length=1)
+	doctype: str | None = Field(default=None, min_length=1)
 
 
 def search_doctypes(query: str | None = None, module: str | None = None) -> list[dict]:
@@ -59,7 +56,9 @@ def search_methods(query: str) -> list[dict]:
 	return [without(entry, "type") for entry in discovery.search(query)["results"]]
 
 
-def method_schema(method: str) -> dict:
+def method_schema(method: str, doctype: str | None = None) -> dict:
+	if doctype is not None:
+		return without(discovery.doctype_method(doctype, method), "type", "kind", "doctype", "method")
 	return without(discovery.method(method), "type", "kind")
 
 
@@ -67,10 +66,6 @@ def document_methods(doctype: str) -> list[dict]:
 	return [
 		without(entry, "type", "kind", "doctype") for entry in discovery.doctype_methods(doctype)["methods"]
 	]
-
-
-def document_method_schema(doctype: str, method: str) -> dict:
-	return without(discovery.doctype_method(doctype, method), "type", "kind", "doctype", "method")
 
 
 def doctype_schema(doctype: str) -> dict:
@@ -135,7 +130,9 @@ SEARCH_METHODS = Tool(
 
 GET_METHOD_SCHEMA = Tool(
 	name="get_method_schema",
-	description="Get arguments and docstring of a whitelisted method.",
+	description=(
+		"Get arguments and docstring of a whitelisted method by dotted path, or by method name with doctype."
+	),
 	arguments=MethodSchemaArguments,
 	handler=method_schema,
 	annotations={"readOnlyHint": True},
@@ -146,13 +143,5 @@ LIST_DOCUMENT_METHODS = Tool(
 	description="List whitelisted document methods of a DocType.",
 	arguments=DoctypeArguments,
 	handler=document_methods,
-	annotations={"readOnlyHint": True},
-)
-
-GET_DOCUMENT_METHOD_SCHEMA = Tool(
-	name="get_document_method_schema",
-	description="Get arguments and docstring of a whitelisted document method.",
-	arguments=DocumentMethodSchemaArguments,
-	handler=document_method_schema,
 	annotations={"readOnlyHint": True},
 )
