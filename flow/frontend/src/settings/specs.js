@@ -264,7 +264,7 @@ export const SPECS = {
 				name: "type",
 				label: "Type",
 				type: "select",
-				options: ["Imported", "Script", "Server"],
+				options: ["Script", "Imported", "Server"],
 				locked: (doc) => system(doc) || saved(doc),
 			},
 			enabled,
@@ -385,7 +385,8 @@ export const SPECS = {
 				label: "Condition",
 				type: "code",
 				language: "python",
-				description: 'Only run when this is true, for example doc.status == "Open".',
+				description:
+					'Only run when this is true, for example doc.status == "Open". A multi-line condition must set result to True or False.',
 			},
 			{
 				name: "prompt_template",
