@@ -16,7 +16,7 @@ const TOOLS = {
 	find_doctypes: {
 		icon: "search",
 		label: "Finding DocTypes",
-		stat: (result) => count(result.length, "match", "matches"),
+		stat: (result) => countOf(result.doctypes.length, result.total, "match", "matches"),
 	},
 	describe: {
 		icon: "layers",
@@ -27,16 +27,13 @@ const TOOLS = {
 		icon: "database",
 		label: "Reading Records",
 		view: ReadView,
-		stat: (result) => count(result.length, "record"),
+		stat: (result) => countOf(result.records.length, result.total, "record"),
 	},
 	run_report: {
 		icon: "bar-chart-2",
 		label: "Running Report",
 		view: ReportView,
-		stat: (result) =>
-			result.rows.length < result.row_count
-				? `${result.rows.length} of ${count(result.row_count, "row")}`
-				: count(result.row_count, "row"),
+		stat: (result) => countOf(result.rows.length, result.row_count, "row"),
 	},
 	create: {
 		icon: "file-plus",
@@ -117,17 +114,29 @@ export function presentTool(name, args = {}, result = null) {
 	// a custom Imported or Script tool: its return is the point, so always show it
 	if (!tool) return { resultComponent: JsonView };
 	const parsed = tool.stat ? parseResult(result) : null;
-	// a cut result is no longer JSON, so show its text; execute's view already does
-	const cut = result?.details?.truncation?.truncated && tool.view !== CodeView;
+	const stat = parsed ? readStat(tool, parsed) : "";
+	// a cut result is no longer JSON, and an older one may not fit the view, so show
+	// their text; execute's view already does
+	const plain =
+		(result?.details?.truncation?.truncated || stat === null) && tool.view !== CodeView;
 	return {
 		icon: tool.icon,
 		label: typeof tool.label === "function" ? tool.label(args) : tool.label,
 		subject: subject(args),
-		stat: parsed ? tool.stat(parsed) : "",
+		stat: stat ?? "",
 		expandable: tool.view ? undefined : false,
 		argsComponent: tool.asks ? tool.view : undefined,
-		resultComponent: cut ? JsonView : tool.view,
+		resultComponent: plain ? JsonView : tool.view,
 	};
+}
+
+// null for a result saved before its tool's return changed
+function readStat(tool, parsed) {
+	try {
+		return tool.stat(parsed);
+	} catch {
+		return null;
+	}
 }
 
 function subject(args) {
@@ -143,6 +152,11 @@ function subject(args) {
 
 function count(n, singular, plural = `${singular}s`) {
 	return `${n} ${n === 1 ? singular : plural}`;
+}
+
+function countOf(shown, total, singular, plural) {
+	const all = count(total, singular, plural);
+	return shown < total ? `${shown} of ${all}` : all;
 }
 
 function outcome(done, verb) {

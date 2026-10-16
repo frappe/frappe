@@ -5,6 +5,7 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.core.doctype.rq_worker.rq_worker import RQWorker
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.tests import IntegrationTestCase
 
@@ -52,27 +53,27 @@ class TestFindDoctypes(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_search_matches_by_keyword(self):
-		names = {r["name"] for r in find_doctypes(search="ToDo", ctx=CTX)}
+		names = {r["name"] for r in find_doctypes(search="ToDo", ctx=CTX)["doctypes"]}
 		self.assertIn("ToDo", names)
 
 	def test_filters_by_module(self):
-		rows = find_doctypes(module="Core", limit=200, ctx=CTX)
+		rows = find_doctypes(module="Core", limit=200, ctx=CTX)["doctypes"]
 		self.assertTrue(rows)
 		self.assertTrue(all(r["module"] == "Core" for r in rows))
 
 	def test_excludes_child_tables(self):
-		names = {r["name"] for r in find_doctypes(search="Role", limit=200, ctx=CTX)}
+		names = {r["name"] for r in find_doctypes(search="Role", limit=200, ctx=CTX)["doctypes"]}
 		self.assertIn("Role", names)
 		self.assertNotIn("Has Role", names)  # a child table that also matches "Role"
 
 	def test_includes_single_doctypes(self):
-		names = {r["name"] for r in find_doctypes(search="System Settings", limit=200, ctx=CTX)}
+		names = {r["name"] for r in find_doctypes(search="System Settings", limit=200, ctx=CTX)["doctypes"]}
 		self.assertIn("System Settings", names)  # a single DocType
 
 	def test_respects_read_permission(self):
 		frappe.set_user("Guest")
 		try:
-			names = {r["name"] for r in find_doctypes(search="User", limit=200, ctx=CTX)}
+			names = {r["name"] for r in find_doctypes(search="User", limit=200, ctx=CTX)["doctypes"]}
 			self.assertNotIn("User", names)
 		finally:
 			frappe.set_user("Administrator")
@@ -82,23 +83,30 @@ class TestFindDoctypes(IntegrationTestCase):
 		user = _user("flow-find-probe@example.com")
 		frappe.get_doc("User", user).add_roles("Flow User")
 		frappe.set_user(user)
-		readable = [r["name"] for r in find_doctypes(search="Flow", limit=200, ctx=CTX)]
-		first = [r["name"] for r in find_doctypes(search="Flow", limit=4, ctx=CTX)]
+		readable = [r["name"] for r in find_doctypes(search="Flow", limit=200, ctx=CTX)["doctypes"]]
+		first = [r["name"] for r in find_doctypes(search="Flow", limit=4, ctx=CTX)["doctypes"]]
 
 		self.assertEqual(first, readable[:4])
 		self.assertEqual(len(first), 4)
+
+	def test_reports_the_total_beyond_the_limit(self):
+		everything = find_doctypes(search="Flow", limit=200, ctx=CTX)["doctypes"]
+
+		result = find_doctypes(search="Flow", limit=2, ctx=CTX)
+
+		self.assertEqual(result, {"total": len(everything), "doctypes": everything[:2]})
 
 	def test_administrator_lists_doctypes_no_role_can_read(self):
 		# as if no role could read anything
 		nothing = frappe._dict(can_read=[], all_read=[], build_permissions=lambda: None)
 		with patch("frappe.get_user", return_value=nothing):
-			names = {r["name"] for r in find_doctypes(search="ToDo", ctx=CTX)}
+			names = {r["name"] for r in find_doctypes(search="ToDo", ctx=CTX)["doctypes"]}
 		self.assertIn("ToDo", names)
 
 	def test_a_search_matching_system_health_report_still_answers(self):
 		# checking that Single's permission raises for anyone but a System Manager
 		frappe.set_user(_user("flow-find-probe@example.com"))
-		names = {r["name"] for r in find_doctypes(search="System Health", ctx=CTX)}
+		names = {r["name"] for r in find_doctypes(search="System Health", ctx=CTX)["doctypes"]}
 		self.assertNotIn("System Health Report", names)
 
 
@@ -144,13 +152,58 @@ class TestReadRecords(IntegrationTestCase):
 	def test_reads_matching_records(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "ai builtin read probe"}).insert()
 
-		rows = read_records(doctype="ToDo", filters={"description": "ai builtin read probe"}, ctx=CTX)
+		result = read_records(doctype="ToDo", filters={"description": "ai builtin read probe"}, ctx=CTX)
 
-		self.assertEqual([r["name"] for r in rows], [todo.name])
+		self.assertEqual(result, {"total": 1, "records": [{"name": todo.name}]})
 
 	def test_limit_is_capped(self):
-		rows = read_records(doctype="DocType", limit=10_000, ctx=CTX)
+		rows = read_records(doctype="DocType", limit=10_000, ctx=CTX)["records"]
 		self.assertLessEqual(len(rows), 200)
+
+	def test_reports_the_total_when_more_match_than_the_limit(self):
+		for _ in range(4):
+			frappe.get_doc({"doctype": "ToDo", "description": "total probe"}).insert()
+
+		result = read_records(doctype="ToDo", filters={"description": "total probe"}, limit=2, ctx=CTX)
+
+		self.assertEqual(result["total"], 4)
+		self.assertEqual(len(result["records"]), 2)
+
+	def test_the_total_counts_only_rows_the_user_can_read(self):
+		user = _user("flow-total-probe@example.com")  # reads only the Contacts they own
+		for _ in range(4):
+			_contact_with_phone(owner=user)
+		_contact_with_phone(owner="Administrator")
+		frappe.set_user(user)
+
+		result = read_records(doctype="Contact Phone", fields=["parent"], limit=2, ctx=CTX)
+
+		self.assertEqual(result["total"], 4)
+		self.assertEqual(len(result["records"]), 2)
+
+	def test_reads_newest_first_unless_ordered(self):
+		# by name, the older one comes first
+		older = frappe.get_doc({"doctype": "ToDo", "description": "order probe"}).insert(
+			set_name="flow-order-a"
+		)
+		newer = frappe.get_doc({"doctype": "ToDo", "description": "order probe"}).insert(
+			set_name="flow-order-b"
+		)
+		frappe.db.set_value("ToDo", older.name, "creation", "2020-01-01", update_modified=False)
+
+		result = read_records(doctype="ToDo", filters={"description": "order probe"}, limit=1, ctx=CTX)
+
+		self.assertEqual(result["records"], [{"name": newer.name}])
+
+	def test_a_virtual_doctype_is_counted_by_its_controller(self):
+		workers = [{"name": f"worker-{i}"} for i in range(3)]
+		with (
+			patch.object(RQWorker, "get_list", return_value=workers),
+			patch.object(RQWorker, "get_count", return_value=7),
+		):
+			result = read_records(doctype="RQ Worker", limit=2, ctx=CTX)
+
+		self.assertEqual(result, {"total": 7, "records": workers[:2]})
 
 	def test_returns_requested_fields(self):
 		frappe.get_doc({"doctype": "ToDo", "description": "fields probe"}).insert()
@@ -159,17 +212,17 @@ class TestReadRecords(IntegrationTestCase):
 			filters={"description": "fields probe"},
 			fields=["name", "description"],
 			ctx=CTX,
-		)
+		)["records"]
 		self.assertEqual(rows[0]["description"], "fields probe")
 
 	def test_reads_a_single(self):
 		# CI's site skips the setup wizard, which sets the time zone
 		frappe.db.set_single_value("System Settings", "time_zone", "Asia/Kolkata")
 
-		rows = read_records(doctype="System Settings", fields=["time_zone"], ctx=CTX)
-		[values] = read_records(doctype="System Settings", ctx=CTX)
+		result = read_records(doctype="System Settings", fields=["time_zone"], ctx=CTX)
+		[values] = read_records(doctype="System Settings", ctx=CTX)["records"]
 
-		self.assertEqual(rows, [{"time_zone": "Asia/Kolkata"}])
+		self.assertEqual(result, {"total": 1, "records": [{"time_zone": "Asia/Kolkata"}]})
 		self.assertEqual((values["name"], values["time_zone"]), ("System Settings", "Asia/Kolkata"))
 
 	def test_single_is_returned_only_when_it_matches_the_filters(self):
@@ -180,8 +233,8 @@ class TestReadRecords(IntegrationTestCase):
 			doctype="System Settings", filters={"time_zone": "Asia/Kolkata"}, fields=["name"], ctx=CTX
 		)
 
-		self.assertEqual(missed, [])
-		self.assertEqual(matched, [{"name": "System Settings"}])
+		self.assertEqual(missed, {"total": 0, "records": []})
+		self.assertEqual(matched, {"total": 1, "records": [{"name": "System Settings"}]})
 
 	def test_single_needs_read_permission(self):
 		frappe.set_user("Guest")
@@ -194,7 +247,7 @@ class TestReadRecords(IntegrationTestCase):
 		_contact_with_phone(owner="Administrator")
 		frappe.set_user(user)
 
-		rows = read_records(doctype="Contact Phone", fields=["parent"], ctx=CTX)
+		rows = read_records(doctype="Contact Phone", fields=["parent"], ctx=CTX)["records"]
 
 		self.assertEqual({r["parent"] for r in rows}, {mine})
 
@@ -225,7 +278,7 @@ class TestReadRecords(IntegrationTestCase):
 			fields=["parenttype"],
 			parent_doctype="User",
 			ctx=CTX,
-		)
+		)["records"]
 		# execute's sandbox calls the function unchecked, where filters can be a list
 		listed = read_records.func(
 			doctype="Has Role",
@@ -233,7 +286,7 @@ class TestReadRecords(IntegrationTestCase):
 			fields=["parenttype"],
 			parent_doctype="User",
 			ctx=CTX,
-		)
+		)["records"]
 
 		self.assertEqual({r["parenttype"] for r in rows}, {"User"})
 		self.assertEqual({r["parenttype"] for r in listed}, {"User"})
