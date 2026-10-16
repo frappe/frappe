@@ -107,8 +107,10 @@ class TestDiscover(McpTestCase):
 
 	def test_manager_document_contract_and_list(self):
 		with self.manager():
-			result = self.result("get_document_method_schema", {"doctype": "ToDo", "method": "add_comment"})
+			result = self.result("get_method_schema", {"doctype": "ToDo", "method": "add_comment"})
 			self.assertIn("text", [param["name"] for param in result["params"]])
+			self.assertEqual(result["endpoint"], "/api/v2/document/ToDo/{name}/method/add_comment")
+			self.assertEqual(result["permission"], {"GET": "read", "POST": "write"})
 			result = self.result("list_document_methods", {"doctype": "ToDo"})
 			self.assertIn("add_comment", [method["method"] for method in result["result"]])
 
@@ -124,7 +126,10 @@ class TestDiscover(McpTestCase):
 			("search_methods", {}),
 			("get_method_schema", {}),
 			("list_document_methods", {}),
-			("get_document_method_schema", {"doctype": "ToDo"}),
+			("get_method_schema", {"doctype": "ToDo"}),
+			("get_method_schema", {"doctype": "", "method": "add_comment"}),
+			("get_method_schema", {"doctype": 1, "method": "add_comment"}),
+			("get_method_schema", {"doctype": "ToDo", "method": ""}),
 		):
 			with self.subTest(tool=tool, arguments=arguments):
 				self.assertTrue(self.discover(tool, arguments).json["result"]["isError"])
@@ -138,7 +143,6 @@ class TestDiscover(McpTestCase):
 			"search_methods",
 			"get_method_schema",
 			"list_document_methods",
-			"get_document_method_schema",
 		):
 			self.assertTrue(definitions[name]["annotations"]["readOnlyHint"])
 
@@ -156,11 +160,14 @@ class TestDiscover(McpTestCase):
 
 	def test_manager_cannot_discover_nonwhitelisted_methods(self):
 		with self.manager(), self.method_cache():
-			for method in ("frappe.get_roles", "frappe.mcp.nonexistent"):
-				with self.subTest(method=method):
-					self.assertTrue(
-						self.discover("get_method_schema", {"method": method}).json["result"]["isError"]
-					)
+			for arguments in (
+				{"method": "frappe.get_roles"},
+				{"method": "frappe.mcp.nonexistent"},
+				{"doctype": "ToDo", "method": "save"},
+				{"doctype": "ToDo", "method": "frappe.client.get_count"},
+			):
+				with self.subTest(arguments=arguments):
+					self.assertTrue(self.discover("get_method_schema", arguments).json["result"]["isError"])
 
 	def test_method_source_respects_app_opt_out(self):
 		original_get_hooks = frappe.get_hooks
