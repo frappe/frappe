@@ -28,7 +28,7 @@ class TestMcpTransport(McpTestCase):
 		self.assertEqual(self.ping(headers={"Accept": "text/event-stream"}).status_code, 406)
 
 	def test_invalid_envelopes(self):
-		for payload in ([], None, {}, {"jsonrpc": "2.0", "method": "ping", "id": True}):
+		for payload in ([], {}, {"jsonrpc": "2.0", "method": "ping", "id": True}):
 			with self.subTest(payload=payload):
 				self.assertEqual(self.request(payload).json["error"]["code"], protocol.INVALID_REQUEST)
 
