@@ -9,6 +9,7 @@ from typing import Any, Literal, NoReturn
 
 import frappe
 from frappe import _
+from frappe.database.utils import DefaultOrderBy
 from frappe.model.base_document import get_controller
 from frappe.query_builder.functions import Count
 
@@ -166,7 +167,7 @@ def read_records(
 		else:
 			filters = {**(filters or {}), "parenttype": parent_doctype}
 	query = {"filters": filters, "fields": fields or ["name"], "parent_doctype": parent_doctype}
-	records = frappe.get_list(doctype, **query, limit=limit + 1, order_by=order_by)
+	records = frappe.get_list(doctype, **query, limit=limit + 1, order_by=order_by or DefaultOrderBy)
 	total = _count(doctype, query) if len(records) > limit else len(records)
 	return {"total": total, "records": records[:limit]}
 

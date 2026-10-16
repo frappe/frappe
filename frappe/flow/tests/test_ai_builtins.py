@@ -181,6 +181,20 @@ class TestReadRecords(IntegrationTestCase):
 		self.assertEqual(result["total"], 4)
 		self.assertEqual(len(result["records"]), 2)
 
+	def test_reads_newest_first_unless_ordered(self):
+		# by name, the older one comes first
+		older = frappe.get_doc({"doctype": "ToDo", "description": "order probe"}).insert(
+			set_name="flow-order-a"
+		)
+		newer = frappe.get_doc({"doctype": "ToDo", "description": "order probe"}).insert(
+			set_name="flow-order-b"
+		)
+		frappe.db.set_value("ToDo", older.name, "creation", "2020-01-01", update_modified=False)
+
+		result = read_records(doctype="ToDo", filters={"description": "order probe"}, limit=1, ctx=CTX)
+
+		self.assertEqual(result["records"], [{"name": newer.name}])
+
 	def test_a_virtual_doctype_is_counted_by_its_controller(self):
 		workers = [{"name": f"worker-{i}"} for i in range(3)]
 		with (
