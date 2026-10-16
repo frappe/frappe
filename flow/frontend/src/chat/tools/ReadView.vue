@@ -14,10 +14,7 @@ const props = defineProps({
 });
 
 const doctype = computed(() => props.arguments.doctype ?? "");
-const records = computed(() => {
-	const parsed = parseResult(props.result);
-	return Array.isArray(parsed) ? parsed : [];
-});
+const records = computed(() => parseResult(props.result)?.records ?? []);
 const columns = computed(() => columnsOf(records.value));
 const rows = computed(() => records.value.map((cells) => ({ cells })));
 </script>

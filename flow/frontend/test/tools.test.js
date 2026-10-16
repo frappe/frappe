@@ -69,10 +69,15 @@ test("read_records links each record to its Desk form, skipping fields nothing f
 		{ name: "INV-001", status: "Paid", remarks: "", customer: "" },
 		{ name: "INV-002", status: "Paid", remarks: "", customer: "Alpha" },
 	];
-	const el = mount(t, ReadView, { arguments: { doctype: "Sales Invoice" }, result: json(rows) });
+	const result = json({ total: 2, records: rows });
+	const el = mount(t, ReadView, { arguments: { doctype: "Sales Invoice" }, result });
 	assert.deepEqual(texts(el, "th"), ["Name", "Status", "Customer"]);
 	assert.deepEqual(hrefs(el), ["/app/sales-invoice/INV-001", "/app/sales-invoice/INV-002"]);
-	assert.equal(presentTool("read_records", {}, json(rows)).stat, "2 records");
+	assert.equal(presentTool("read_records", {}, result).stat, "2 records");
+	assert.equal(
+		presentTool("read_records", {}, json({ total: 134, records: rows })).stat,
+		"2 of 134 records"
+	);
 });
 
 test("run_report tables rows under the report's labels, its total pinned below", (t) => {
@@ -213,7 +218,16 @@ test("search hits group under the source they came from", (t) => {
 
 test("lookups report a count and open nothing", () => {
 	const cases = [
-		["find_doctypes", json([{ name: "A" }, { name: "B" }]), "2 matches"],
+		[
+			"find_doctypes",
+			json({ total: 2, doctypes: [{ name: "A" }, { name: "B" }] }),
+			"2 matches",
+		],
+		[
+			"find_doctypes",
+			json({ total: 52, doctypes: [{ name: "A" }, { name: "B" }] }),
+			"2 of 52 matches",
+		],
 		["describe", json({ fields: [1, 2, 3] }), "3 fields"],
 		["update_memory", json({ memory_id: "m1", action: "added" }), "added"],
 		["load_skill", { content: "do the thing" }, ""],

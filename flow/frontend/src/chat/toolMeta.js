@@ -16,7 +16,7 @@ const TOOLS = {
 	find_doctypes: {
 		icon: "search",
 		label: "Finding DocTypes",
-		stat: (result) => count(result.length, "match", "matches"),
+		stat: (result) => countOf(result.doctypes.length, result.total, "match", "matches"),
 	},
 	describe: {
 		icon: "layers",
@@ -27,16 +27,13 @@ const TOOLS = {
 		icon: "database",
 		label: "Reading Records",
 		view: ReadView,
-		stat: (result) => count(result.length, "record"),
+		stat: (result) => countOf(result.records.length, result.total, "record"),
 	},
 	run_report: {
 		icon: "bar-chart-2",
 		label: "Running Report",
 		view: ReportView,
-		stat: (result) =>
-			result.rows.length < result.row_count
-				? `${result.rows.length} of ${count(result.row_count, "row")}`
-				: count(result.row_count, "row"),
+		stat: (result) => countOf(result.rows.length, result.row_count, "row"),
 	},
 	create: {
 		icon: "file-plus",
@@ -143,6 +140,11 @@ function subject(args) {
 
 function count(n, singular, plural = `${singular}s`) {
 	return `${n} ${n === 1 ? singular : plural}`;
+}
+
+function countOf(shown, total, singular, plural) {
+	const all = count(total, singular, plural);
+	return shown < total ? `${shown} of ${all}` : all;
 }
 
 function outcome(done, verb) {
