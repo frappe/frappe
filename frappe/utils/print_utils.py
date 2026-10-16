@@ -1,10 +1,13 @@
 import re
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils.data import cint, cstr
+
+if TYPE_CHECKING:
+	from pypdf import PdfWriter
 
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
@@ -64,7 +67,9 @@ def _run_print_pdf_hooks(doctype, name, print_format):
 		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
 
-def run_after_print(doc: Document, pdf: bytes, password: str | None = None, output=None):
+def run_after_print(
+	doc: Document, pdf: bytes, password: str | None = None, output: "PdfWriter" | None = None
+) -> "bytes | PdfWriter":
 	method = getattr(doc, "after_print", None)
 	if callable(method):
 		pdf = method(pdf) or pdf
