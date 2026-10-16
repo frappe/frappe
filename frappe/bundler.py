@@ -265,6 +265,16 @@ def generate_assets_map():
 	return symlinks
 
 
+def remove_stale_island_toolchain():
+	"""Remove the page-island toolchain an older build installed inside `ui/`.
+
+	Its link to `@framework/ui` makes `ui/` contain itself, so copying the assets
+	of any app that links the package never ends.
+	"""
+	stale = os.path.join(frappe.get_app_source_path("frappe"), "ui", "vite", "island", "toolchain")
+	shutil.rmtree(stale, ignore_errors=True)
+
+
 def setup_assets_dirs():
 	for dir_path in (os.path.join(assets_path, x) for x in ("js", "css")):
 		os.makedirs(dir_path, exist_ok=True)
@@ -294,6 +304,7 @@ def unstrip(message: str) -> str:
 
 
 def make_asset_dirs(hard_link=False, verbose=True):
+	remove_stale_island_toolchain()
 	setup_assets_dirs()
 	clear_broken_symlinks()
 	symlinks = generate_assets_map()

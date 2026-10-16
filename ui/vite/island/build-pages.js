@@ -28,9 +28,6 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../../island-toolchain");
 const benchRoot = findBenchRoot(root);
 
-// The toolchain used to be installed inside `ui/`, which links back to itself.
-fs.rmSync(path.join(here, "toolchain"), { recursive: true, force: true });
-
 const utils = loadFrappeBuildUtils(benchRoot);
 if (!utils) {
 	console.error(`[island] no frappe at ${benchRoot}/apps/frappe, so no apps to read pages from`);

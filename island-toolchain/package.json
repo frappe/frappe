@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Build tooling for the framework page-island build. See README.md beside this file.",
+  "description": "Build tooling for the framework page-island build. See ../ui/README.md.",
   "devDependencies": {
     "@codemirror/lang-css": "^6.0.0",
     "@codemirror/lang-html": "^6.0.0",
