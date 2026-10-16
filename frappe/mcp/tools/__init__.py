@@ -7,9 +7,9 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, ValidationError
 from pydantic.json_schema import GenerateJsonSchema
 
 import frappe
@@ -57,6 +57,10 @@ class ToolArguments(BaseModel):
 	"""Reject coercion and unknown arguments at the tool boundary."""
 
 	model_config = ConfigDict(strict=True, extra="forbid")
+
+
+# Autoincrement names are listed as integers. Handlers get strings, as REST URLs give them.
+DocumentName = Annotated[Annotated[str, Field(min_length=1)] | int, AfterValidator(str)]
 
 
 @dataclass(frozen=True)

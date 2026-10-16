@@ -11,7 +11,7 @@ from pydantic import Field
 import frappe
 from frappe.api import v2
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.mcp.tools import Tool, ToolArguments, form_dict
+from frappe.mcp.tools import DocumentName, Tool, ToolArguments, form_dict
 
 
 class CallMethodArguments(ToolArguments):
@@ -21,7 +21,7 @@ class CallMethodArguments(ToolArguments):
 
 class CallDocumentMethodArguments(CallMethodArguments):
 	doctype: str = Field(min_length=1)
-	name: str = Field(min_length=1)
+	name: DocumentName
 	method: str = Field(min_length=1)
 
 

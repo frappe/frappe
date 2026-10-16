@@ -8,7 +8,7 @@ from pydantic import Field
 
 import frappe
 from frappe.api import v2
-from frappe.mcp.tools import Tool, ToolArguments, form_dict
+from frappe.mcp.tools import DocumentName, Tool, ToolArguments, form_dict
 
 
 class DoctypeArguments(ToolArguments):
@@ -16,7 +16,7 @@ class DoctypeArguments(ToolArguments):
 
 
 class DocumentArguments(DoctypeArguments):
-	name: str = Field(min_length=1)
+	name: DocumentName
 
 
 class CountDocumentsArguments(DoctypeArguments):
