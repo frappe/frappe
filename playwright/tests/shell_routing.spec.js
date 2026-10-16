@@ -408,7 +408,7 @@ test.describe("Desk URL shell segment", () => {
 		await expect_shell(page, "Build");
 	});
 
-	test("goes back past a new document once it is saved", async ({ page, desk }) => {
+	test("goes back past a new document once it is saved", async ({ page, desk, api }) => {
 		await page.goto("/desk/build/todo");
 		await on_route(page, ["List", "ToDo", "List"]);
 		await page.evaluate(() =>
@@ -423,17 +423,22 @@ test.describe("Desk URL shell segment", () => {
 		await page.evaluate(() => cur_frm.set_value("description", "go back past me"));
 		await desk.save();
 		const saved = await page.evaluate(() => cur_frm.doc.name);
-		await expect.poll(() => pathname(page)).toBe(`/desk/build/todo/${saved}`);
 
-		await page.evaluate(() => frappe.set_route("List", "User"));
-		await on_route(page, ["List", "User", "List"]);
+		try {
+			await expect.poll(() => pathname(page)).toBe(`/desk/build/todo/${saved}`);
 
-		await page.goBack();
-		await on_route(page, ["Form", "ToDo", saved]);
+			await page.evaluate(() => frappe.set_route("List", "User"));
+			await on_route(page, ["List", "User", "List"]);
 
-		await page.goBack();
-		await on_route(page, ["List", "ToDo", "List"]);
-		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
+			await page.goBack();
+			await on_route(page, ["Form", "ToDo", saved]);
+
+			await page.goBack();
+			await on_route(page, ["List", "ToDo", "List"]);
+			await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
+		} finally {
+			await api.remove_doc("ToDo", saved, true);
+		}
 	});
 
 	test("opens a system page in no shell", async ({ page }) => {
