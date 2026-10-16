@@ -392,17 +392,20 @@ class FlowSession(Document):
 def on_share_removed(share, method=None):
 	"""A view of a chat taken back: once saved, the realtime relay re-checks who follows it live."""
 	if share.share_doctype == "Flow Session":
-		session = share.share_name
-		frappe.db.after_commit.add(lambda: _recheck_live_access(session))
+		notice = {
+			"session": share.share_name,
+			"user": share.user,  # none for an everyone share
+			"owner": frappe.db.get_value("Flow Session", share.share_name, "owner"),
+		}
+		frappe.db.after_commit.add(lambda: _recheck_live_access(notice))
 
 
-def _recheck_live_access(session: str) -> None:
+def _recheck_live_access(notice: dict[str, Any]) -> None:
 	if not (url := _redis_url()):
 		return
 	# with Redis down the relay isn't relaying either
 	with suppress(redis.RedisError):
-		message = json.dumps({"session": session})
-		redis.Redis.from_url(url).publish(f"flow-access:{frappe.local.site}", message)
+		redis.Redis.from_url(url).publish(f"flow-access:{frappe.local.site}", json.dumps(notice))
 
 
 def _delete_server_session(name: str) -> None:

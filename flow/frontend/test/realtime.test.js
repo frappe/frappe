@@ -75,23 +75,47 @@ test("Redis recovery resyncs all subscribed rooms even when no further event arr
 	);
 });
 
-test("when the site says access to a session changed, its sockets are asked again and refused ones leave", async () => {
+test("a view taken back: the owner is left alone, and whoever may have lost it stays only on a clear yes", async () => {
 	const { redis, socket } = relay();
-	const owner = socket("site-a", "owner");
-	const viewer = socket("site-a", "viewer");
-	const elsewhere = socket("site-b", "elsewhere");
-	const subscribe = (s, session) =>
-		new Promise((resolve) => s.emit("flow:subscribe", session, resolve));
-	for (const s of [owner, viewer, elsewhere]) await subscribe(s, "s1");
-	const refused = async () => ({ ok: false, status: 403 });
-	viewer.frappe_request = refused;
-	elsewhere.frappe_request = refused;
-	// the site can't answer for the owner just then
-	owner.frappe_request = async () => ({ ok: false, status: 502 });
+	const join = async (site, user) => {
+		const s = socket(site, `${site}/${user}`);
+		s.user = user;
+		await new Promise((resolve) => s.emit("flow:subscribe", "s1", resolve));
+		s.asked = 0;
+		return s;
+	};
+	const ann = await join("site-a", "ann"); // the owner
+	const bob = await join("site-a", "bob");
+	const cara = await join("site-a", "cara");
+	const elsewhere = await join("site-b", "bob");
+	// from here on each one answers with this status, counting the times it is asked
+	const answer = (s, status) =>
+		(s.frappe_request = async () => {
+			s.asked++;
+			return { ok: status === 200, status, json: async () => ({ message: status === 200 }) };
+		});
+	answer(ann, 502);
+	answer(bob, 502); // the site can't answer for Bob just then: he leaves anyway
+	answer(cara, 200);
+	answer(elsewhere, 403);
+	const notice = (body) =>
+		redis.channels.get("flow-access:site-a")(JSON.stringify(body), "flow-access:site-a");
 
-	const notice = redis.channels.get("flow-access:site-a");
-	await notice(JSON.stringify({ session: "s1" }), "flow-access:site-a");
-	assert.deepEqual([...owner.flow_sessions], ["s1"], "a hiccup cuts no one off");
-	assert.deepEqual([...viewer.flow_sessions], [], "the removed viewer left");
-	assert.deepEqual([...elsewhere.flow_sessions], ["s1"], "another site's session is not asked");
+	await notice({ session: "s1", user: "bob", owner: "ann" });
+	assert.deepEqual(
+		[ann.asked, bob.asked, cara.asked, elsewhere.asked],
+		[0, 1, 0, 0],
+		"only Bob is asked"
+	);
+	assert.deepEqual([...bob.flow_sessions], [], "Bob left");
+	assert.deepEqual([...cara.flow_sessions, ...elsewhere.flow_sessions], ["s1", "s1"]);
+
+	// an everyone share taken back names no one: all but the owner are asked
+	await notice({ session: "s1", user: null, owner: "ann" });
+	assert.deepEqual([ann.asked, cara.asked, elsewhere.asked], [0, 1, 0]);
+	assert.deepEqual(
+		[...ann.flow_sessions, ...cara.flow_sessions],
+		["s1", "s1"],
+		"the owner and Cara stay"
+	);
 });

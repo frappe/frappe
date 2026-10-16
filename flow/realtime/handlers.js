@@ -72,15 +72,11 @@ async function subscribe(socket, session) {
 }
 
 // Asked with the caller's own credentials on the site the socket authenticated against.
-function ask(socket, session) {
-	return socket.frappe_request("/api/method/frappe.realtime.has_permission", {
+async function can_stream(socket, session) {
+	const response = await socket.frappe_request("/api/method/frappe.realtime.has_permission", {
 		doctype: "Flow Session",
 		name: session,
 	});
-}
-
-async function can_stream(socket, session) {
-	const response = await ask(socket, session);
 	if (!response.ok) return false;
 	const { message } = await response.json();
 	return message === true;
@@ -119,8 +115,8 @@ function watch_site(site) {
 	return siteWatches.get(site);
 }
 
-// Every socket on the session is asked again. Only a clear no (403) makes one leave, so a
-// site that can't answer never cuts off the owner.
+// The site names who lost a view (no one, for an everyone share) and the session's owner. The
+// owner is never asked; anyone who may have lost access stays only if the site says yes.
 async function recheck(message, channel) {
 	const notice = parse(message);
 	if (!notice || !valid_name(notice.session)) return;
@@ -128,8 +124,10 @@ async function recheck(message, channel) {
 	for (const entry of [...subscriptions.values()]) {
 		if (entry.site !== site || entry.session !== notice.session) continue;
 		for (const socket of [...entry.sockets]) {
-			const response = await ask(socket, notice.session).catch(() => null);
-			if (response?.status === 403) release(socket, notice.session);
+			if (socket.user === notice.owner) continue;
+			if (notice.user && socket.user !== notice.user) continue;
+			const allowed = await can_stream(socket, notice.session).catch(() => false);
+			if (!allowed) release(socket, notice.session);
 		}
 	}
 }

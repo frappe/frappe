@@ -499,18 +499,28 @@ class TestSessionEndpoints(ApiCase):
 		frappe.set_user(owner)
 		name = self.create()
 		api.share_session(name, viewer)
-		frappe.db.after_commit.reset()  # leave only the removal's work queued
+		frappe.share.add("Flow Session", name, everyone=1)
+		frappe.db.after_commit.reset()  # leave only the removals' work queued
 		with (
 			patch("flow.flow.doctype.flow_session.flow_session._redis_url", return_value="redis://relay"),
 			patch("redis.Redis.from_url") as connect,
 		):
 			api.unshare_session(name, viewer)
+			frappe.share.set_permission("Flow Session", name, None, "read", 0, everyone=1)
 			# the relay asks the site again, so only once the removal is saved
 			connect.return_value.publish.assert_not_called()
 			frappe.db.after_commit.run()
-		connect.assert_called_once_with("redis://relay")
-		connect.return_value.publish.assert_called_once_with(
-			f"flow-access:{frappe.local.site}", json.dumps({"session": name})
+		publish = connect.return_value.publish
+		self.assertEqual(
+			{call.args[0] for call in publish.call_args_list}, {f"flow-access:{frappe.local.site}"}
+		)
+		# it names who lost the view, or no one for an everyone share, and the owner it leaves alone
+		self.assertEqual(
+			[json.loads(call.args[1]) for call in publish.call_args_list],
+			[
+				{"session": name, "user": viewer, "owner": owner},
+				{"session": name, "user": None, "owner": owner},
+			],
 		)
 
 	def test_a_shared_chat_notifies_each_viewer_once_with_a_link_to_it(self):
