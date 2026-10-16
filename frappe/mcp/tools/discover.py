@@ -20,24 +20,24 @@ SEARCH_LIMIT = 50
 
 
 class SearchDoctypesArguments(ToolArguments):
-	query: str | None = Field(default=None, min_length=1, description="Search DocType names.")
-	module: str | None = Field(default=None, min_length=1, description="Filter by module.")
+	query: str | None = Field(default=None, min_length=1)
+	module: str | None = Field(default=None, min_length=1)
 
 
 class DoctypeArguments(ToolArguments):
-	doctype: str = Field(min_length=1, description="DocType to inspect.")
+	doctype: str = Field(min_length=1)
 
 
 class SearchMethodsArguments(ToolArguments):
-	query: str = Field(min_length=1, description="Search whitelisted methods by keyword or path.")
+	query: str = Field(min_length=1)
 
 
 class MethodSchemaArguments(ToolArguments):
-	method: str = Field(min_length=1, description="Full dotted path or API Server Script name.")
+	method: str = Field(min_length=1)
 
 
 class DocumentMethodSchemaArguments(DoctypeArguments):
-	method: str = Field(min_length=1, description="Whitelisted document instance method name.")
+	method: str = Field(min_length=1)
 
 
 def search_doctypes(query: str | None = None, module: str | None = None) -> dict:
@@ -99,7 +99,7 @@ def field_schema(field: "DocField") -> dict:
 
 SEARCH_DOCTYPES = Tool(
 	name="search_doctypes",
-	description="Find DocTypes by name or module. Returns up to 50 names in alphabetical order, excluding child tables.",
+	description="Search DocTypes by name or module. Returns up to 50, without child tables.",
 	arguments=SearchDoctypesArguments,
 	handler=search_doctypes,
 	annotations={"readOnlyHint": True},
@@ -107,11 +107,7 @@ SEARCH_DOCTYPES = Tool(
 
 GET_DOCTYPE_SCHEMA = Tool(
 	name="get_doctype_schema",
-	description=(
-		"Inspect DocType fields and permissions before reading or writing. Schema discovery is broad. "
-		"Permission flags do not guarantee access to every document or field. Child rows use parent permissions. "
-		"Use list_document_methods separately to discover instance methods."
-	),
+	description="Get fields and permissions of a DocType.",
 	arguments=DoctypeArguments,
 	handler=doctype_schema,
 	annotations={"readOnlyHint": True},
@@ -119,7 +115,7 @@ GET_DOCTYPE_SCHEMA = Tool(
 
 SEARCH_METHODS = Tool(
 	name="search_methods",
-	description="Find whitelisted API functions and document methods by keyword or path.",
+	description="Search whitelisted methods and document methods.",
 	arguments=SearchMethodsArguments,
 	handler=search_methods,
 	annotations={"readOnlyHint": True},
@@ -127,7 +123,7 @@ SEARCH_METHODS = Tool(
 
 GET_METHOD_SCHEMA = Tool(
 	name="get_method_schema",
-	description="Inspect a whitelisted API function's arguments and documentation.",
+	description="Get arguments and docstring of a whitelisted method.",
 	arguments=MethodSchemaArguments,
 	handler=discovery.method,
 	annotations={"readOnlyHint": True},
@@ -135,7 +131,7 @@ GET_METHOD_SCHEMA = Tool(
 
 LIST_DOCUMENT_METHODS = Tool(
 	name="list_document_methods",
-	description="List whitelisted instance methods for a DocType.",
+	description="List whitelisted document methods of a DocType.",
 	arguments=DoctypeArguments,
 	handler=discovery.doctype_methods,
 	annotations={"readOnlyHint": True},
@@ -143,7 +139,7 @@ LIST_DOCUMENT_METHODS = Tool(
 
 GET_DOCUMENT_METHOD_SCHEMA = Tool(
 	name="get_document_method_schema",
-	description="Inspect a whitelisted document instance method's arguments and documentation.",
+	description="Get arguments and docstring of a whitelisted document method.",
 	arguments=DocumentMethodSchemaArguments,
 	handler=discovery.doctype_method,
 	annotations={"readOnlyHint": True},

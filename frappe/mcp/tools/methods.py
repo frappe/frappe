@@ -15,14 +15,14 @@ from frappe.mcp.tools import Tool, ToolArguments, form_dict
 
 
 class CallMethodArguments(ToolArguments):
-	method: str = Field(min_length=1, description="Full dotted API path or API Server Script name.")
-	args: dict[str, Any] = Field(default_factory=dict, description="Arguments passed to the method.")
+	method: str = Field(min_length=1)
+	args: dict[str, Any] = Field(default_factory=dict)
 
 
 class CallDocumentMethodArguments(CallMethodArguments):
-	doctype: str = Field(min_length=1, description="Document's DocType.")
-	name: str = Field(min_length=1, description="Stored document to call the method on.")
-	method: str = Field(min_length=1, description="Whitelisted document instance method name.")
+	doctype: str = Field(min_length=1)
+	name: str = Field(min_length=1)
+	method: str = Field(min_length=1)
 
 
 def call_method(method: str, args: dict[str, Any]) -> dict:
@@ -77,26 +77,16 @@ def method_request(fn: Callable) -> Iterator[None]:
 
 CALL_METHOD = Tool(
 	name="call_method",
-	description=(
-		"Call a whitelisted Frappe API function by full dotted path, or an API Server Script by name. "
-		"Controller module functions also use their full dotted path. Frappe validates args. "
-		"Whitelisting does not replace the API's permission checks. GET and POST methods are supported. "
-		"Explicit commits and immediate external effects cannot be undone after failure."
-	),
+	description="Call a whitelisted method by dotted path, or an API Server Script by name.",
 	arguments=CallMethodArguments,
 	handler=call_method,
-	annotations={"destructiveHint": True, "idempotentHint": False},
+	annotations={"destructiveHint": True},
 )
 
 CALL_DOCUMENT_METHOD = Tool(
 	name="call_document_method",
-	description=(
-		"Call a whitelisted instance method on one stored document, including submit or cancel. "
-		"Frappe validates args. GET-only methods require read access; methods allowing POST require "
-		"write access and their own operation permissions. Other HTTP-only methods are unsupported. "
-		"Explicit commits and immediate external effects cannot be undone after failure."
-	),
+	description="Call a whitelisted method of one document, such as submit or cancel.",
 	arguments=CallDocumentMethodArguments,
 	handler=call_document_method,
-	annotations={"destructiveHint": True, "idempotentHint": False},
+	annotations={"destructiveHint": True},
 )
