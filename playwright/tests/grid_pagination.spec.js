@@ -48,7 +48,6 @@ test.describe("Grid Pagination", () => {
 			.getByRole("button", { name: "Actions" })
 			.click();
 		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
-		await page.locator(".modal-dialog:visible").getByRole("button", { name: "Yes" }).click();
 		await expect(table.locator(".grid-body .row-index").last()).toContainText("1000");
 		await expect(table.locator(".current-page-number")).toHaveValue("20");
 		await expect(table.locator(".total-page-number")).toContainText("20");
@@ -69,7 +68,6 @@ test.describe("Grid Pagination", () => {
 		await expect(bar.locator(".grid-selection-page")).toHaveText("1 of 20");
 		await bar.getByRole("button", { name: "Actions" }).click();
 		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
-		await page.locator(".modal-dialog:visible").getByRole("button", { name: "Yes" }).click();
 		await expect
 			.poll(() =>
 				page.evaluate(
