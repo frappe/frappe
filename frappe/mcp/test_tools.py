@@ -23,7 +23,7 @@ class ExampleArguments(tools.ToolArguments):
 
 class TestToolSchema(UnitTestCase):
 	def test_schema_matches_validation(self):
-		tool = tools.Tool("example", "Example", ExampleArguments, Mock())
+		tool = tools.Tool("example", ExampleArguments, Mock())
 		schema = tool.input_schema
 		self.assertEqual(schema["required"], ["doctype"])
 		self.assertFalse(schema["additionalProperties"])
@@ -37,7 +37,7 @@ class TestToolSchema(UnitTestCase):
 
 class TestToolExecution(McpTestCase):
 	def call(self, arguments, handler, *, name="example"):
-		tool = tools.Tool("example", "Example", ExampleArguments, handler)
+		tool = tools.Tool("example", ExampleArguments, handler)
 		with patch("frappe.mcp.tools.registry", return_value=(tool,)):
 			return self.request(
 				{
@@ -135,7 +135,7 @@ class TestToolExecution(McpTestCase):
 		self.assertEqual(response.json["error"]["code"], protocol.INVALID_PARAMS)
 
 	def test_definitions_come_from_models(self):
-		tool = tools.Tool("example", "Example", ExampleArguments, Mock())
+		tool = tools.Tool("example", ExampleArguments, Mock())
 		with patch("frappe.mcp.tools.registry", return_value=(tool,)):
 			response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
 		self.assertEqual(response.json["result"]["tools"], [tool.definition()])
@@ -202,7 +202,7 @@ class TestToolExecution(McpTestCase):
 			frappe.db.commit()  # nosemgrep
 
 	def test_modern_tool_call(self):
-		tool = tools.Tool("example", "Example", ExampleArguments, Mock(return_value={"ok": True}))
+		tool = tools.Tool("example", ExampleArguments, Mock(return_value={"ok": True}))
 		with patch("frappe.mcp.tools.registry", return_value=(tool,)):
 			response = self.request(
 				{

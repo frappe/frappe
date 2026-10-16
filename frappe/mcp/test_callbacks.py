@@ -17,7 +17,7 @@ class CallbackArguments(tools.ToolArguments):
 
 class TestToolCallbacks(McpTestCase):
 	def invoke(self, handler, prepare=None, inspect=None):
-		tool = tools.Tool("callback_test", "Callback test", CallbackArguments, handler)
+		tool = tools.Tool("callback_test", CallbackArguments, handler)
 		original_call = tools.call
 
 		def call(params):

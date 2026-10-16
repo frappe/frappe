@@ -66,9 +66,9 @@ DocumentName = Annotated[Annotated[str, Field(min_length=1)] | int, AfterValidat
 @dataclass(frozen=True)
 class Tool:
 	name: str
-	description: str
 	arguments: type[ToolArguments]
 	handler: Callable[..., Any]
+	description: str | None = None
 	annotations: dict[str, Any] = field(default_factory=dict)
 
 	@cached_property
@@ -76,12 +76,10 @@ class Tool:
 		return self.arguments.model_json_schema(schema_generator=CompactJsonSchema)
 
 	def definition(self) -> dict:
-		return {
-			"name": self.name,
-			"description": self.description,
-			"inputSchema": self.input_schema,
-			"annotations": self.annotations,
-		}
+		definition = {"name": self.name, "inputSchema": self.input_schema, "annotations": self.annotations}
+		if self.description:
+			definition["description"] = self.description
+		return definition
 
 
 def registry() -> tuple[Tool, ...]:

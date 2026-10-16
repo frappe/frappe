@@ -95,7 +95,6 @@ GET_DOCUMENT = Tool(
 
 COUNT_DOCUMENTS = Tool(
 	name="count_documents",
-	description="Count documents matching filters.",
 	arguments=CountDocumentsArguments,
 	handler=count_documents,
 	annotations={"readOnlyHint": True},
@@ -103,7 +102,6 @@ COUNT_DOCUMENTS = Tool(
 
 CREATE_DOCUMENT = Tool(
 	name="create_document",
-	description="Insert one document.",
 	arguments=CreateDocumentArguments,
 	handler=create_document,
 	annotations={"destructiveHint": False},
@@ -111,7 +109,6 @@ CREATE_DOCUMENT = Tool(
 
 UPDATE_DOCUMENT = Tool(
 	name="update_document",
-	description="Update fields of one document.",
 	arguments=UpdateDocumentArguments,
 	handler=update_document,
 	annotations={"destructiveHint": True},
@@ -119,7 +116,6 @@ UPDATE_DOCUMENT = Tool(
 
 DELETE_DOCUMENT = Tool(
 	name="delete_document",
-	description="Delete one document.",
 	arguments=DocumentArguments,
 	handler=delete_document,
 	annotations={"destructiveHint": True},
