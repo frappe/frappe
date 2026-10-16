@@ -27,6 +27,6 @@
     "vue-router": "^4.6.4"
   },
   "dependencies": {
-    "@framework/ui": "link:../../.."
+    "@framework/ui": "link:../ui"
   }
 }

@@ -9,10 +9,11 @@
 // runs once instead of once per app. See
 // ../../island/decisions/0013-framework-builds-page-islands.md.
 //
-// The vite root is `toolchain/`, which exists only to hold the build's own
-// dependencies. A page island therefore compiles against framework's frappe-ui
-// and nothing of the app's. An island that needs the app's own code has
-// outgrown this build and belongs in the app's frontend, as a normal island.
+// The vite root is `island-toolchain/` beside `ui/`, which exists only to hold
+// the build's own dependencies. A page island therefore compiles against
+// framework's frappe-ui and nothing of the app's. An island that needs the
+// app's own code has outgrown this build and belongs in the app's frontend, as
+// a normal island.
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -24,8 +25,11 @@ import { buildIslands } from "./index.js";
 import { PAGE_ISLAND_SUBDIR, discoverPageIslands, pageIslandResolver } from "./pages.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.join(here, "toolchain");
+const root = path.resolve(here, "../../../island-toolchain");
 const benchRoot = findBenchRoot(root);
+
+// The toolchain used to be installed inside `ui/`, which links back to itself.
+fs.rmSync(path.join(here, "toolchain"), { recursive: true, force: true });
 
 const utils = loadFrappeBuildUtils(benchRoot);
 if (!utils) {

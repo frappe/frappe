@@ -4,7 +4,7 @@ An island builds on the app's own tooling ([0005](0005-the-preset-resolves-its-t
 
 ## Decision
 
-One build, run by framework, for every Frappe UI page on the bench. Its vite root is `ui/vite/island/toolchain/`, a directory whose only content is the build's own dependencies.
+One build, run by framework, for every Frappe UI page on the bench. Its vite root is `island-toolchain/`, a directory beside `ui/` whose only content is the build's own dependencies. It sits outside `ui/` because a bench links `ui/` into every consuming app: a toolchain inside it is copied into each app that dereferences the link, and its own link back to `@framework/ui` becomes a symlink cycle.
 
 This amends 0005 rather than reversing it. The preset still resolves its tooling from its root. For this one build that root is framework's, and an app's own islands are untouched.
 
