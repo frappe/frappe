@@ -219,6 +219,18 @@ class TestSubmitFeedback(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			submit_feedback(run, "Up")
 
+	def test_a_viewer_who_recorded_a_run_still_cannot_rate_it(self):
+		viewer = _ensure_user("feedback-viewer@example.com")
+		session = frappe.db.get_value("Flow Run", self._run(), "session")
+		frappe.share.add("Flow Session", session, viewer)
+		frappe.set_user(viewer)
+		# a viewer's sync records a run the site had no row for, so they own that row
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": session, "source": "Manual", "status": "Completed"}
+		).insert(ignore_permissions=True)
+		with self.assertRaises(frappe.PermissionError):
+			submit_feedback(run.name, "Down", comment="Not my chat.")
+
 	def test_down_comment_saved_as_memory(self):
 		run = self._run()
 		result = submit_feedback(run, "Down", comment="Widget A maps to WGT-001.")

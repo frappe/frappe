@@ -313,8 +313,8 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 
 	run = frappe.get_doc("Flow Run", run_name.strip())
 	frappe.has_permission("Flow Run", "read", run, throw=True)
-	if run.owner != frappe.session.user:
-		frappe.has_permission("Flow Run", "write", run, throw=True)
+	# whoever recorded the run, only someone who may write to its chat rates it
+	frappe.has_permission("Flow Session", "write", run.session, throw=True)
 	if run.status not in ("Completed", "Denied", "Failed"):
 		frappe.throw(
 			_("Feedback applies to finished runs only (this run is {0}).").format(run.status),
