@@ -49,7 +49,11 @@ export default class GridSelectionBar {
 
 	delete_rows() {
 		const count = this.grid.get_selected_children().length;
-		frappe.confirm(__("Are you sure you want to delete {0} rows?", [count]), () =>
+		if (count < this.grid.data.length) {
+			this.grid.delete_rows();
+			return;
+		}
+		frappe.confirm(__("Are you sure you want to delete all {0} rows?", [count]), () =>
 			this.grid.delete_rows()
 		);
 	}
