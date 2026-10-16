@@ -311,7 +311,7 @@ login.login_handlers = (function () {
 				data = xhr.responseJSON;
 			}
 
-			var message = get_server_message(data) || default_message;
+			var message = get_server_message(data) || data.message || default_message;
 			login.set_invalid(message);
 			if (message !== default_message) {
 				login.reset_sections(false);
