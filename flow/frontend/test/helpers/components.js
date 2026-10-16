@@ -43,7 +43,7 @@ function stubURL(name) {
 				import { h } from ${JSON.stringify(vue)}
 				export default { render() { return h("div", { "data-stub": ${JSON.stringify(
 					name
-				)} }, this.$slots.default?.()) } }
+				)} }, this.$slots.default?.({})) } }
 			`)
 		);
 	return stubs.get(name);
@@ -60,6 +60,15 @@ const fakes = {
 		export const FileUploader = stub("FileUploader")
 		export const Switch = stub("Switch")
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
+		export const Avatar = stub("Avatar")
+		export const Dropdown = {
+			props: ["options"],
+			render() { return h("div", { "data-stub": "Dropdown" }, [this.$slots.default?.(), ...(this.options || []).map(o => h("button", { onClick: o.onClick }, o.label))]) }
+		}
+		export const Dialog = {
+			props: ["open", "title"],
+			render() { return this.open ? h("div", { role: "dialog", "aria-label": this.title }, [this.$slots.default?.(), this.$slots.actions?.()]) : null }
+		}
 		export const Button = {
 			props: ["label", "loading"],
 			render() { return h("button", { disabled: this.loading }, this.label) }

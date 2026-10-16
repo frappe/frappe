@@ -141,7 +141,8 @@
 	>
 		<FeatherIcon name="arrow-down" class="h-4 w-4" />
 	</button>
-	<AddToChat :within="scroller" />
+	<!-- a read-only chat has no composer to quote into -->
+	<AddToChat v-if="!flow.state.session?.read_only" :within="scroller" />
 	</div>
 </template>
 

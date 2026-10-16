@@ -5,7 +5,8 @@
 		:style="copied ? { opacity: 1 } : undefined"
 		@click.stop="copy"
 	>
-		<FeatherIcon :name="copied ? 'check' : 'copy'" class="h-3.5 w-3.5" />
+		<FeatherIcon :name="copied ? 'check' : icon" class="h-3.5 w-3.5" />
+		<slot :copied="copied" />
 	</button>
 </template>
 
@@ -16,6 +17,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 const props = defineProps({
 	text: { type: String, required: true },
 	title: { type: String, default: "Copy" },
+	icon: { type: String, default: "copy" },
 })
 
 const copied = ref(false)

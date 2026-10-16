@@ -66,6 +66,11 @@ class FlowSession(Document):
 		frappe.db.delete("Flow Run", {"session": self.name})
 		_purge_attachment_chunks(self.name)
 
+	def validate_share(self, docshare):
+		"""Shared to view only: whoever writes to a session acts as its owner, and only they share it."""
+		if docshare.write or docshare.share:
+			frappe.throw(_("A chat can only be shared to view."), title=_("View Only"))
+
 	def _validate_model_enabled(self):
 		if not self.model:
 			return
@@ -102,6 +107,14 @@ class FlowSession(Document):
 			frappe.db.delete("Flow Session Message", {"parent": ["in", batch]})
 			_delete_attachment_files(batch)
 			frappe.db.delete("Flow Session Attachment", {"parent": ["in", batch]})
+			frappe.db.delete("DocShare", {"share_doctype": "Flow Session", "share_name": ["in", batch]})
+			# what sharing leaves on a session: its Shared / Unshared comments and notifications
+			frappe.db.delete(
+				"Comment", {"reference_doctype": "Flow Session", "reference_name": ["in", batch]}
+			)
+			frappe.db.delete(
+				"Notification Log", {"document_type": "Flow Session", "document_name": ["in", batch]}
+			)
 			frappe.db.delete("Flow Session", {"name": ["in", batch]})
 			_purge_attachment_chunks(batch)
 

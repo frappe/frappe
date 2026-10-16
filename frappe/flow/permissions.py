@@ -4,7 +4,7 @@
 """Who may use Flow. Three checks, each answering one question:
 
 - Base access: Flow Users use Flow within their own records; System Managers administer its
-  setup. Deliberate Frappe shares may delegate an individual record.
+  setup. An owner may share a session, to view only.
 - Doctype permissions: which agents and models. User Permissions narrow them per user; checked
   when a session starts and on every turn.
 - Ownership: sessions, runs and personal memories are private to their owner, since a session's

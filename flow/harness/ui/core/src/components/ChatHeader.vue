@@ -65,6 +65,7 @@
 			>
 				<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
 			</button>
+			<slot name="actions" />
 		</span>
 	</header>
 </template>

@@ -511,6 +511,29 @@ test("selecting text in the thread shows Add to chat, which quotes it for the co
 	assert.equal(pill(), null)
 })
 
+test("a chat the host reports read-only offers no Add to chat: it has no composer to quote into", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	measure(t, { element: box(0, 0, 800, 600), range: box(100, 200, 300, 220) })
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, { type: "user_message", seq: 1, ts: 10, content: "the daemon pins the list" })
+	const flow = {
+		options: {},
+		state: reactive({ sessionId: "s1", session: { read_only: true }, loading: false, conversation }),
+		addQuote() {},
+	}
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	const range = document.createRange()
+	range.selectNodeContents(el.querySelector("[data-prompt-key] .whitespace-pre-wrap"))
+	document.getSelection().removeAllRanges()
+	document.getSelection().addRange(range)
+	t.after(() => document.getSelection().removeAllRanges())
+	t.mock.timers.tick(150)
+	t.mock.timers.tick(150)
+	await nextTick()
+	assert.equal(el.querySelector(".flow-add-to-chat"), null)
+})
+
 test("a message's quotes show as quotes above its text", async (t) => {
 	const conversation = reactive(initialConversation())
 	applyEvent(conversation, {
@@ -2084,6 +2107,16 @@ test("the header says nothing while a chat loads, not that it is a new chat", as
 	assert.ok(el.textContent.includes("Quarterly report"))
 })
 
+test("a host adds its own header actions", (t) => {
+	const flow = {
+		state: reactive({
+			loading: false, sessionId: "s1", session: null, conversation: initialConversation(), prefs: {}, workspace: {},
+		}),
+	}
+	const { el } = mount(t, { render: () => h(ChatHeader, null, { actions: () => h("button", "Share") }) }, {}, flow)
+	assert.ok([...el.querySelectorAll("header button")].some((button) => button.textContent === "Share"))
+})
+
 test("the model button never shows the last model picked while a chat loads", async (t) => {
 	const conversation = reactive(initialConversation())
 	const flow = { state: reactive({ loading: true, conversation, prefs: { lastModel: "openai/gpt-old" } }) }
@@ -2299,6 +2332,20 @@ test("Copy says Copied only once the text reached the clipboard", async (t) => {
 	button.click()
 	await settle()
 	assert.equal(button.title, "Copied")
+})
+
+test("a copy button carries a host's label and icon, and tells the label once it copied", async (t) => {
+	const CopyButton = await loadComponent("CopyButton")
+	const label = ({ copied }) => (copied ? "Copied" : "Copy link")
+	const { el } = mount(t, { render: () => h(CopyButton, { text: "http://site/flow/s/1", icon: "link" }, label) }, {}, {})
+	const button = el.querySelector("button")
+	assert.equal(button.textContent.trim(), "Copy link")
+	assert.equal(el.querySelector("[data-stub=FeatherIcon]").getAttribute("name"), "link")
+	document.execCommand = (command) => command === "copy"
+	t.after(() => delete document.execCommand)
+	button.click()
+	await settle()
+	assert.equal(button.textContent.trim(), "Copied")
 })
 
 test("the web app shows its connect form when the daemon refuses the token, and connects with the right one", async (t) => {

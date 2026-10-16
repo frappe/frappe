@@ -1,0 +1,181 @@
+<template>
+	<button
+		class="flex items-center gap-1.5 whitespace-nowrap rounded-4 px-1.5 py-1 text-xs text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+		title="Share this chat"
+		@click="show"
+	>
+		<FeatherIcon name="share-2" class="h-3.5 w-3.5" />
+		<span class="hidden sm:inline">Share</span>
+	</button>
+	<Dialog v-model:open="open" :title="heading">
+		<!-- sized like the settings dialog; the grid lets a long title truncate -->
+		<template #title>
+			<div class="grid grid-cols-[minmax(0,1fr)] pr-3">
+				<h3 class="truncate text-base font-semibold text-ink-gray-9">{{ heading }}</h3>
+			</div>
+		</template>
+		<h4 class="mb-2 text-xs text-ink-gray-5">Members</h4>
+		<FormControl
+			v-model:query="query"
+			type="combobox"
+			variant="outline"
+			placeholder="Add people…"
+			autofocus
+			:options="options"
+			:filterable="false"
+			:loading="searching"
+			:model-value="null"
+			@update:model-value="add"
+		>
+			<!-- a box to type names into, not a select: no chevron (an empty slot would show it) -->
+			<template #suffix><span /></template>
+			<template #item-prefix="{ item }">
+				<Avatar :image="item.image" :label="item.label" size="sm" />
+			</template>
+		</FormControl>
+		<ul class="mt-5 flex max-h-64 flex-col gap-3 overflow-y-auto">
+			<li v-for="user in members" :key="user.name" class="flex items-center gap-2.5">
+				<Avatar :image="user.user_image" :label="nameOf(user)" size="md" />
+				<div class="min-w-0 flex-1">
+					<p class="truncate text-sm font-medium text-ink-gray-9">{{ nameOf(user) }}</p>
+					<p
+						v-if="nameOf(user) !== user.name"
+						class="mt-1 truncate text-2xs text-ink-gray-5"
+					>
+						{{ user.name }}
+					</p>
+				</div>
+				<span v-if="user.name === me.name" class="flex-none text-sm text-ink-gray-5">
+					Owner (you)
+				</span>
+				<Dropdown
+					v-else
+					:options="[
+						{ label: 'Remove access', theme: 'red', onClick: () => remove(user.name) },
+					]"
+					align="end"
+				>
+					<button
+						class="flex flex-none items-center gap-1 rounded-4 px-1.5 py-1 text-sm text-ink-gray-7 hover:bg-surface-gray-2"
+						:title="`Change access for ${nameOf(user)}`"
+					>
+						Can view
+						<FeatherIcon name="chevron-down" class="h-3 w-3" />
+					</button>
+				</Dropdown>
+			</li>
+			<li v-if="loading"><LoadingState class="py-1 text-xs text-ink-gray-5" /></li>
+		</ul>
+		<div class="mt-5 flex justify-end">
+			<CopyButton
+				:text="link"
+				icon="link"
+				title="Copy link"
+				class="flex h-7 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base px-2 text-base text-ink-gray-8 hover:border-outline-gray-3 active:bg-surface-gray-4"
+			>
+				<template #default="{ copied }">{{ copied ? "Copied" : "Copy link" }}</template>
+			</CopyButton>
+		</div>
+	</Dialog>
+</template>
+
+<script setup>
+import { computed, inject, nextTick, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { Avatar, Dialog, Dropdown, FormControl, toast } from "frappe-ui";
+import CopyButton from "@flow/ui-core/components/CopyButton.vue";
+import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
+import LoadingState from "@flow/ui-core/components/LoadingState.vue";
+import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+
+// The header's Share button and its dialog, for the chat's owner: whoever is added may
+// view the chat, never write to it, since its tools run as the owner.
+const flow = inject("flow");
+const page = inject("flowPage");
+const open = ref(false);
+const viewers = ref([]);
+const loading = ref(false);
+const query = ref("");
+const debouncedQuery = useDebouncedValue(query, 300);
+const found = ref([]);
+const searching = ref(false);
+
+const sid = computed(() => flow.state.sessionId);
+const router = useRouter();
+// the chat's own address, which opens only for its owner and the people it is shared with
+const link = computed(() => new URL(router.resolve(`/s/${sid.value}`).href, location.origin).href);
+const heading = computed(() => {
+	const title = flow.state.session?.title;
+	return title ? `Sharing "${title}"` : "Share chat";
+});
+// the owner first, then whoever may view
+const me = computed(() => page.state.boot.user ?? {});
+const members = computed(() => [
+	me.value,
+	...viewers.value.filter((user) => user.name !== me.value.name),
+]);
+// the people found who are not on the list yet
+const options = computed(() =>
+	found.value
+		.filter((user) => !members.value.some((member) => member.name === user.name))
+		.map((user) => ({
+			value: user.name,
+			label: nameOf(user),
+			description: user.full_name ? user.name : undefined,
+			image: user.user_image,
+		}))
+);
+
+function nameOf(user) {
+	return user.full_name || user.name;
+}
+
+// a fresh start each time: the chat may have changed since the last opening
+async function show() {
+	query.value = "";
+	viewers.value = [];
+	loading.value = true;
+	const loaded = attempt(() => flow.client.shares(sid.value)).then((list) => {
+		viewers.value = list ?? [];
+		loading.value = false;
+	});
+	// open with the members in, so the dialog keeps its size; a slow list opens it anyway
+	await Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, 300))]);
+	open.value = true;
+}
+
+// only the newest search lands
+watch([open, debouncedQuery], async ([isOpen, text], _, onCleanup) => {
+	if (!isOpen) return;
+	let stale = false;
+	onCleanup(() => (stale = true));
+	searching.value = true;
+	const users = await attempt(() => flow.client.findUsers(text));
+	if (stale) return;
+	found.value = users ?? [];
+	searching.value = false;
+});
+
+async function add(user) {
+	if (!user) return;
+	// the combobox writes the pick's name into the box after this; empty it for the next
+	await nextTick();
+	query.value = "";
+	const list = await attempt(() => flow.client.share(sid.value, user));
+	if (list) viewers.value = list;
+}
+
+async function remove(user) {
+	const list = await attempt(() => flow.client.unshare(sid.value, user));
+	if (list) viewers.value = list;
+}
+
+async function attempt(work) {
+	try {
+		return await work();
+	} catch (error) {
+		toast.error(error?.message ?? "Request failed");
+		return null;
+	}
+}
+</script>

@@ -107,7 +107,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-10-08 12:00:00",
+ "modified": "2026-10-15 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",
@@ -134,6 +134,7 @@
    "if_owner": 1,
    "read": 1,
    "role": "Flow User",
+   "share": 1,
    "write": 1
   }
  ],

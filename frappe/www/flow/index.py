@@ -4,6 +4,8 @@
 """The /flow page: the built Vite entry (index.html, copied here by `yarn build`) with the
 signed-in user's boot data rendered into it."""
 
+from urllib.parse import urlencode
+
 import frappe
 from frappe import _
 
@@ -12,7 +14,8 @@ no_cache = 1
 
 def get_context(context):
 	if frappe.session.user == "Guest":
-		frappe.local.flags.redirect_location = "/login?redirect-to=/flow"
+		# back to the page asked for, such as a chat someone shared
+		frappe.local.flags.redirect_location = f"/login?{urlencode({'redirect-to': frappe.request.path})}"
 		raise frappe.Redirect
 	context.boot = get_boot()
 	return context

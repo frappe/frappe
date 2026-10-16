@@ -334,6 +334,27 @@ test("a compaction is asked of the session it shortens", async () => {
 	assert.deepEqual(transport.calls, [["flow.api.compact", { session: "S1" }]]);
 });
 
+test("sharing finds Flow users and adds or removes viewers", async () => {
+	const viewers = [{ name: "ann@example.com", full_name: "Ann", user_image: null }];
+	const transport = fakeTransport({
+		"flow.api.find_users": viewers,
+		"flow.api.list_shares": viewers,
+		"flow.api.share_session": viewers,
+		"flow.api.unshare_session": [],
+	});
+	const client = new FrappeClient({ boot, transport });
+	assert.deepEqual(await client.findUsers("an"), viewers);
+	assert.deepEqual(await client.shares("S1"), viewers);
+	assert.deepEqual(await client.share("S1", "ann@example.com"), viewers);
+	assert.deepEqual(await client.unshare("S1", "ann@example.com"), []);
+	assert.deepEqual(transport.calls, [
+		["flow.api.find_users", { query: "an" }],
+		["flow.api.list_shares", { session: "S1" }],
+		["flow.api.share_session", { session: "S1", user: "ann@example.com" }],
+		["flow.api.unshare_session", { session: "S1", user: "ann@example.com" }],
+	]);
+});
+
 test("a sync that fails after a run ends is retried once, then dropped quietly", async () => {
 	const { fakeSocket } = await import("./helpers/socket.js");
 	const reported = [];

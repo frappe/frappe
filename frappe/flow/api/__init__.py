@@ -9,7 +9,9 @@ from flow.api.api import (
 	create_session,
 	delete_session,
 	entries,
+	find_users,
 	list_sessions,
+	list_shares,
 	resume,
 	rewind,
 	run,
@@ -17,9 +19,11 @@ from flow.api.api import (
 	set_auto_approve,
 	set_model,
 	set_title,
+	share_session,
 	skills,
 	submit_feedback,
 	sync_session,
+	unshare_session,
 )
 
 __all__ = [
@@ -32,7 +36,9 @@ __all__ = [
 	"create_session",
 	"delete_session",
 	"entries",
+	"find_users",
 	"list_sessions",
+	"list_shares",
 	"resume",
 	"rewind",
 	"run",
@@ -40,7 +46,9 @@ __all__ = [
 	"set_auto_approve",
 	"set_model",
 	"set_title",
+	"share_session",
 	"skills",
 	"submit_feedback",
 	"sync_session",
+	"unshare_session",
 ]
