@@ -41,6 +41,10 @@ export class SessionStream {
 			connect: () => {
 				if (this.subscribed) this.push({ kind: "reconnect" });
 			},
+			// the relay dropped this room on an access check: join again, as after a reconnect
+			"flow:resubscribe": (notice) => {
+				if (notice?.session === this.session) this.push({ kind: "reconnect" });
+			},
 		};
 	}
 

@@ -15,6 +15,8 @@ const real = new Set([
 	"AgentPalette.vue",
 	"SessionSidebar.vue",
 	"ChatHeader.vue",
+	"ChatMenu.vue",
+	"ShareChat.vue",
 	"MessageList.vue",
 	"LoadingState.vue",
 	"Composer.vue",
@@ -43,7 +45,7 @@ function stubURL(name) {
 				import { h } from ${JSON.stringify(vue)}
 				export default { render() { return h("div", { "data-stub": ${JSON.stringify(
 					name
-				)} }, this.$slots.default?.()) } }
+				)} }, this.$slots.default?.({})) } }
 			`)
 		);
 	return stubs.get(name);
@@ -60,6 +62,16 @@ const fakes = {
 		export const FileUploader = stub("FileUploader")
 		export const Switch = stub("Switch")
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
+		export const Avatar = stub("Avatar")
+		export const Dialog = {
+			props: ["open", "title"],
+			render() { return this.open ? h("div", { role: "dialog", "aria-label": this.title }, [this.$slots.default?.(), this.$slots.actions?.()]) : null }
+		}
+		export const Select = {
+			props: ["modelValue", "options"],
+			emits: ["update:modelValue"],
+			render() { return h("div", { "data-control": "select", "data-value": this.modelValue }, (this.options || []).map(o => h("button", { onClick: () => this.$emit("update:modelValue", o.value) }, o.label))) }
+		}
 		export const Button = {
 			props: ["label", "loading"],
 			render() { return h("button", { disabled: this.loading }, this.label) }
@@ -80,6 +92,21 @@ const fakes = {
 		export const toast = { shown: [], success(message) { this.shown.push(message) }, error() {} }
 		export const dialog = { danger() {}, prompt() {} }
 		export function useColorScheme() {}
+	`),
+	// the core's menus: the trigger, and the options once it is clicked or held open
+	"frappe-ui/src/components/Dropdown/Dropdown.vue": moduleURL(`
+		import { h, ref } from ${JSON.stringify(vue)}
+		export default {
+			props: ["options", "open"],
+			setup(props, { slots }) {
+				const shown = ref(false)
+				return () => h("div", { "data-stub": "Dropdown" }, [
+					h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
+					...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
+						h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
+				])
+			},
+		}
 	`),
 	"frappe-ui/code-editor": moduleURL(`
 		export const CodeEditor = { render() { return null } }

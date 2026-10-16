@@ -12,14 +12,16 @@ const node_utils = require(path.join(bench, "apps", "frappe", "node_utils"));
 
 const EVENT = "flow:event";
 const RESYNC = "flow:resync";
+const RESUBSCRIBE = "flow:resubscribe";
 const RESYNC_ALL = "harness-resync:all";
 const RESYNC_SITE = "harness-resync:site:";
+const ACCESS_SITE = "flow-access:";
 const SESSION_NAME = /^[\w.-]{1,140}$/;
 
 // channel -> { site, session, nsp, sockets, ready }; the socket.io room is the channel
 const subscriptions = new Map();
-// site -> promise of its resync channels being subscribed
-const resyncWatches = new Map();
+// site -> promise of its resync and access channels being subscribed
+const siteWatches = new Map();
 let connecting = null;
 
 function flow_handlers(socket) {
@@ -58,7 +60,7 @@ async function subscribe(socket, session) {
 		});
 		subscriptions.set(channel, entry);
 	}
-	entry.sockets.add(socket.id);
+	entry.sockets.add(socket);
 	socket.flow_sessions.add(session);
 	socket.join(channel);
 	try {
@@ -84,7 +86,7 @@ async function can_stream(socket, session) {
 async function listen(channel, site) {
 	const client = await connect();
 	await client.subscribe(channel, deliver);
-	await watch_resync(site);
+	await watch_site(site);
 }
 
 function deliver(message, channel) {
@@ -93,23 +95,45 @@ function deliver(message, channel) {
 	if (entry && event) entry.nsp.to(channel).emit(EVENT, event);
 }
 
-// The daemon asks for a resync when it had to drop events, naming the sessions if it can.
-function watch_resync(site) {
-	if (!resyncWatches.has(site)) {
+// The daemon asks for a resync when it had to drop events, naming the sessions if it can;
+// the site says when someone may have lost access to a session.
+function watch_site(site) {
+	if (!siteWatches.has(site)) {
 		const watch = connect()
 			.then((client) =>
 				Promise.all([
 					client.subscribe(RESYNC_SITE + site, resync),
 					client.subscribe(RESYNC_ALL, resync),
+					client.subscribe(ACCESS_SITE + site, recheck),
 				])
 			)
 			.catch((err) => {
-				resyncWatches.delete(site);
+				siteWatches.delete(site);
 				throw err;
 			});
-		resyncWatches.set(site, watch);
+		siteWatches.set(site, watch);
 	}
-	return resyncWatches.get(site);
+	return siteWatches.get(site);
+}
+
+// The site names who lost a view (no one, for an everyone share) and the session's owner. The
+// owner is never asked; anyone who may have lost access stays only if the site says yes. One
+// who leaves is told, so their page asks again: it resumes, or says live updates stopped.
+async function recheck(message, channel) {
+	const notice = parse(message);
+	if (!notice || !valid_name(notice.session)) return;
+	const site = channel.slice(ACCESS_SITE.length);
+	for (const entry of [...subscriptions.values()]) {
+		if (entry.site !== site || entry.session !== notice.session) continue;
+		for (const socket of [...entry.sockets]) {
+			if (socket.user === notice.owner) continue;
+			if (notice.user && socket.user !== notice.user) continue;
+			const allowed = await can_stream(socket, notice.session).catch(() => false);
+			if (allowed) continue;
+			release(socket, notice.session);
+			socket.emit(RESUBSCRIBE, { session: notice.session });
+		}
+	}
 }
 
 function resync(message, channel) {
@@ -129,7 +153,7 @@ function release(socket, session) {
 	socket.leave(channel);
 	const entry = subscriptions.get(channel);
 	if (!entry) return;
-	entry.sockets.delete(socket.id);
+	entry.sockets.delete(socket);
 	if (entry.sockets.size) return;
 	subscriptions.delete(channel);
 	// queued behind a subscribe still in flight

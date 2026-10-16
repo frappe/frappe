@@ -223,6 +223,31 @@ export class FrappeClient {
 		return this.transport.call("flow.api.delete_session", { session: sid });
 	}
 
+	// --- sharing ---------------------------------------------------------------
+
+	// each answers with who may view the chat now: { name, full_name, user_image }
+	shares(sid) {
+		return this.transport.call("flow.api.list_shares", { session: sid });
+	}
+
+	share(sid, user) {
+		return this.transport.call("flow.api.share_session", { session: sid, user });
+	}
+
+	unshare(sid, user) {
+		return this.transport.call("flow.api.unshare_session", { session: sid, user });
+	}
+
+	// Flow users to share with, by name or email, in the same shape
+	findUsers(query) {
+		return this.transport.call("flow.api.find_users", { query });
+	}
+
+	// "Restricted" or "Everyone" (any Flow user may view); answers with it
+	setGeneralAccess(sid, access) {
+		return this.transport.call("flow.api.set_general_access", { session: sid, access });
+	}
+
 	// --- attachments -----------------------------------------------------------
 
 	async prepareAttachment(file, model) {

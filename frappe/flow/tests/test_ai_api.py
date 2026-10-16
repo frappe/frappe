@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_url
 
 from flow import api
 from flow.api import attach_file, cleanup_attachments, submit_feedback
@@ -22,6 +23,7 @@ from flow.tools.builtins import sync_builtin_tools
 
 OTHER = "api-other-user@example.com"
 MANAGER = "api-manager@example.com"
+SHARER = "api-share-owner@example.com"
 
 
 def _model_doc(**overrides: Any) -> dict:
@@ -130,6 +132,31 @@ def _ensure_manager() -> str:
 	return user.name
 
 
+def _portal_user(email: str) -> str:
+	"""A website user, such as a customer."""
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"user_type": "Website User",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+	return email
+
+
+def _desk_user(email: str) -> str:
+	"""A desk user without Flow's roles."""
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": email.split("@")[0], "send_welcome_email": 0}
+		).insert(ignore_permissions=True)
+	frappe.db.set_value("User", email, "user_type", "System User")
+	return email
+
+
 class TestSubmitFeedback(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -206,6 +233,18 @@ class TestSubmitFeedback(IntegrationTestCase):
 		frappe.set_user(other)
 		with self.assertRaises(frappe.PermissionError):
 			submit_feedback(run, "Up")
+
+	def test_a_viewer_who_recorded_a_run_still_cannot_rate_it(self):
+		viewer = _ensure_user("feedback-viewer@example.com")
+		session = frappe.db.get_value("Flow Run", self._run(), "session")
+		frappe.share.add("Flow Session", session, viewer)
+		frappe.set_user(viewer)
+		# a viewer's sync records a run the site had no row for, so they own that row
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": session, "source": "Manual", "status": "Completed"}
+		).insert(ignore_permissions=True)
+		with self.assertRaises(frappe.PermissionError):
+			submit_feedback(run.name, "Down", comment="Not my chat.")
 
 	def test_down_comment_saved_as_memory(self):
 		run = self._run()
@@ -445,6 +484,158 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(api.run(own, "hi")["status"], "started")
 		with self.assertRaises(frappe.PermissionError):
 			api.delete_session(chat)
+
+	def test_an_owner_shares_a_chat_to_view_only_and_takes_it_back(self):
+		owner, viewer = _ensure_user(SHARER), _ensure_user(OTHER)
+		frappe.set_user(owner)
+		name = self.create(title="Q3 plan")
+		for grant in ({"write": 1}, {"share": 1}):
+			with (
+				self.subTest(grant),
+				self.assertRaisesRegex(frappe.ValidationError, "only be shared to view"),
+			):
+				frappe.share.add("Flow Session", name, viewer, **grant)
+		# Desk's "Everyone" would reach portal users too: General access opens a chat instead
+		with self.assertRaisesRegex(frappe.ValidationError, "General access"):
+			frappe.share.add("Flow Session", name, everyone=1)
+		self.assertEqual([row.name for row in api.share_session(name, viewer)], [viewer])
+		self.assertEqual([row.name for row in api.list_shares(name)], [viewer])
+		frappe.set_user(viewer)
+
+		data = api.session(name)
+		self.assertTrue(data["read_only"])
+		self.assertEqual(data["owner_name"], frappe.db.get_value("User", owner, "full_name"))
+		api.entries(name)
+		self.assertNotIn(name, [row.name for row in api.list_sessions()])
+		for call in (
+			lambda: api.run(name, "hi"),
+			lambda: api.set_title(name, "x"),
+			lambda: api.delete_session(name),
+			lambda: api.list_shares(name),
+			lambda: api.share_session(name, viewer),
+			lambda: api.unshare_session(name, viewer),
+		):
+			with self.assertRaises(frappe.PermissionError):
+				call()
+
+		frappe.set_user(owner)
+		self.assertEqual(api.unshare_session(name, viewer), [])
+		frappe.set_user(viewer)
+		with self.assertRaises(frappe.PermissionError):
+			api.session(name)
+
+	def test_taking_a_view_back_has_the_live_relay_recheck_who_follows_the_chat(self):
+		owner, viewer = _ensure_user(SHARER), _ensure_user(OTHER)
+		frappe.set_user(owner)
+		name = self.create()
+		api.share_session(name, viewer)
+		api.set_general_access(name, "Everyone")
+		frappe.db.after_commit.reset()  # leave only the removals' work queued
+		with (
+			patch("flow.flow.doctype.flow_session.flow_session._redis_url", return_value="redis://relay"),
+			patch("redis.Redis.from_url") as connect,
+		):
+			api.unshare_session(name, viewer)
+			api.set_general_access(name, "Restricted")
+			# the relay asks the site again, so only once the removal is saved
+			connect.return_value.publish.assert_not_called()
+			frappe.db.after_commit.run()
+		publish = connect.return_value.publish
+		self.assertEqual(
+			{call.args[0] for call in publish.call_args_list}, {f"flow-access:{frappe.local.site}"}
+		)
+		# it names who lost the view, or no one when general access closes, and the owner it leaves alone
+		self.assertEqual(
+			[json.loads(call.args[1]) for call in publish.call_args_list],
+			[
+				{"session": name, "user": viewer, "owner": owner},
+				{"session": name, "user": None, "owner": owner},
+			],
+		)
+
+	def test_an_owner_opens_a_chat_to_every_flow_user_to_view(self):
+		owner, member = _ensure_user(SHARER), _ensure_user(OTHER)
+		desk, portal = _desk_user("api-open-desk@example.com"), _portal_user("api-open-portal@example.com")
+		frappe.set_user(owner)
+		name = self.create(title="Q3 plan")
+		self.assertEqual(api.session(name)["general_access"], "Restricted")
+		with self.assertRaises(frappe.ValidationError):
+			api.set_general_access(name, "Public")
+		self.assertEqual(api.set_general_access(name, "Everyone"), "Everyone")
+		self.assertEqual(api.session(name)["general_access"], "Everyone")
+
+		frappe.set_user(member)
+		self.assertTrue(api.session(name)["read_only"])
+		api.entries(name)
+		# opened by its link, not listed among their own chats
+		self.assertNotIn(name, [row.name for row in api.list_sessions()])
+		for call in (
+			lambda: api.run(name, "hi"),
+			lambda: api.list_shares(name),
+			lambda: api.set_general_access(name, "Restricted"),
+		):
+			with self.assertRaises(frappe.PermissionError):
+				call()
+		# not people without Flow: Frappe's own check refuses them, so its REST API does too
+		frappe.set_user("Administrator")
+		for user in (desk, portal):
+			with self.subTest(user):
+				self.assertFalse(frappe.has_permission("Flow Session", "read", name, user=user))
+		# a System Manager may read it like any Flow user, but not delete it
+		manager = _ensure_manager()
+		self.assertTrue(frappe.has_permission("Flow Session", "read", name, user=manager))
+		self.assertFalse(frappe.has_permission("Flow Session", "delete", name, user=manager))
+
+		frappe.set_user(owner)
+		api.set_general_access(name, "Restricted")
+		frappe.set_user(member)
+		with self.assertRaises(frappe.PermissionError):
+			api.session(name)
+
+	def test_a_shared_chat_notifies_each_viewer_once_with_a_link_to_it(self):
+		viewer = _ensure_user(OTHER)
+		# Administrator's name is not its email, which is how Frappe finds a recipient
+		frappe.get_doc("User", "Administrator").add_roles(FLOW_USER_ROLE)
+		frappe.set_user(_ensure_user(SHARER))
+		name = self.create(title="<b>Q3</b>")
+		for user in (viewer, viewer, "Administrator"):
+			api.share_session(name, user)
+		logs = frappe.get_all(
+			"Notification Log",
+			filters={"document_name": name},
+			fields=["for_user", "type", "subject", "link"],
+			order_by="for_user asc",
+		)
+		self.assertEqual([log.for_user for log in logs], ["Administrator", viewer])
+		self.assertEqual((logs[1].type, logs[1].link), ("Share", get_url(f"/flow/s/{name}")))
+		self.assertIn("&lt;b&gt;Q3&lt;/b&gt;", logs[1].subject)
+
+	def test_a_chat_is_shared_only_with_someone_who_uses_flow(self):
+		name = self.create()
+		disabled = _ensure_user("api-share-disabled@example.com")
+		frappe.db.set_value("User", disabled, "enabled", 0)
+		desk = _desk_user("api-share-desk@example.com")
+		for user in ("api-share-nobody@example.com", "Guest", disabled, desk):
+			with self.subTest(user), self.assertRaises(frappe.ValidationError):
+				api.share_session(name, user)
+		# a filter in place of a user: newer Frappe refuses it by type, before our own check
+		with self.assertRaises((frappe.ValidationError, frappe.FrappeTypeError)):
+			api.share_session(name, ["like", "%"])
+		self.assertEqual(api.list_shares(name), [])
+		# a System Manager may use Flow without the Flow User role
+		manager = _ensure_manager()
+		self.assertEqual([row.name for row in api.share_session(name, manager)], [manager])
+
+	def test_people_to_share_with_are_active_flow_users_found_by_name_or_email(self):
+		found = _ensure_user("api-share-found@example.com")
+		frappe.db.set_value("User", found, "full_name", "Quentin Sharefound")
+		manager, desk = _ensure_manager(), _desk_user("api-share-desk@example.com")
+		self.assertEqual([row.name for row in api.find_users("Quentin")], [found])
+		self.assertEqual([row.name for row in api.find_users("api-share-found@")], [found])
+		self.assertEqual([row.name for row in api.find_users(manager)], [manager])
+		self.assertEqual(api.find_users(desk), [])
+		frappe.db.set_value("User", found, "enabled", 0)
+		self.assertEqual(api.find_users("Quentin"), [])
 
 	def test_list_sessions_shows_own_manual_sessions_newest_first(self):
 		first = self.create(title="First")

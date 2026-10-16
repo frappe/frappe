@@ -158,6 +158,7 @@ async function save() {
 function remove() {
 	dialog.danger({
 		title: `Delete this ${props.spec.singular}?`,
+		size: "lg",
 		message: `“${
 			doc.value[props.spec.titleField] || doc.value.name
 		}” will be permanently removed.`,

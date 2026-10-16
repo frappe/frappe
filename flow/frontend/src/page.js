@@ -16,6 +16,8 @@ export function createPage(boot, { refresh = () => {}, sync = () => {} } = {}) {
 		agent: defaultAgent(boot),
 		runs: {}, // session → Flow Run rows as the server last reported them
 		readOnly: {}, // session → true when the user may view it but not write to it
+		owner: {}, // session → the user who owns it, the only one who shares it
+		generalAccess: {}, // session → "Restricted", or "Everyone" when any Flow user may view
 		log: {}, // session → durable log rows, slimmed to what run mapping needs
 		settingsTab: "general", // the settings dialog opens on this tab
 	});
@@ -33,6 +35,8 @@ export function createPage(boot, { refresh = () => {}, sync = () => {} } = {}) {
 	function onSession(payload) {
 		state.runs[payload.name] = payload.runs ?? [];
 		state.readOnly[payload.name] = Boolean(payload.read_only);
+		state.owner[payload.name] = { name: payload.owner, full_name: payload.owner_name };
+		state.generalAccess[payload.name] = payload.general_access;
 	}
 
 	function onRows(sid, rows, { replace }) {

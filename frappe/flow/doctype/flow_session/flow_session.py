@@ -8,10 +8,12 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, Any
 
 import frappe
+import redis
 from frappe import _
 from frappe.model.document import Document
 
 from flow.daemon.client import DaemonClient, DaemonError
+from flow.daemon.lifecycle import _redis_url
 from flow.lib.session import (
 	ABANDONED,
 	GONE,
@@ -66,6 +68,17 @@ class FlowSession(Document):
 		frappe.db.delete("Flow Run", {"session": self.name})
 		_purge_attachment_chunks(self.name)
 
+	def validate_share(self, docshare):
+		"""Shared to view only: whoever writes to a session acts as its owner, and only they share it."""
+		if docshare.write or docshare.share:
+			frappe.throw(_("A chat can only be shared to view."), title=_("View Only"))
+		# Frappe's everyone reaches portal users too; General access keeps it to Flow users
+		if docshare.everyone and docshare.read:
+			frappe.throw(
+				_("To share a chat with everyone, use General access in its Share dialog."),
+				title=_("Not Allowed"),
+			)
+
 	def _validate_model_enabled(self):
 		if not self.model:
 			return
@@ -102,6 +115,14 @@ class FlowSession(Document):
 			frappe.db.delete("Flow Session Message", {"parent": ["in", batch]})
 			_delete_attachment_files(batch)
 			frappe.db.delete("Flow Session Attachment", {"parent": ["in", batch]})
+			frappe.db.delete("DocShare", {"share_doctype": "Flow Session", "share_name": ["in", batch]})
+			# what sharing leaves on a session: its Shared / Unshared comments and notifications
+			frappe.db.delete(
+				"Comment", {"reference_doctype": "Flow Session", "reference_name": ["in", batch]}
+			)
+			frappe.db.delete(
+				"Notification Log", {"document_type": "Flow Session", "document_name": ["in", batch]}
+			)
 			frappe.db.delete("Flow Session", {"name": ["in", batch]})
 			_purge_attachment_chunks(batch)
 
@@ -372,6 +393,30 @@ class FlowSession(Document):
 		if not name:
 			frappe.throw(_("This session has no paused run."), title=_("Nothing to Resume"))
 		return frappe.get_doc("Flow Run", name)
+
+
+def on_share_removed(share, method=None):
+	"""A view of a chat taken back: the realtime relay re-checks who follows it live."""
+	if share.share_doctype == "Flow Session":
+		recheck_live_access(share.share_name, share.user)  # no user for an everyone share
+
+
+def recheck_live_access(session: str, user: str | None = None) -> None:
+	"""Once saved, have the relay ask `user` again, or with no user everyone but the owner."""
+	notice = {
+		"session": session,
+		"user": user,
+		"owner": frappe.db.get_value("Flow Session", session, "owner"),
+	}
+	frappe.db.after_commit.add(lambda: _publish_access_notice(notice))
+
+
+def _publish_access_notice(notice: dict[str, Any]) -> None:
+	if not (url := _redis_url()):
+		return
+	# with Redis down the relay isn't relaying either
+	with suppress(redis.RedisError):
+		redis.Redis.from_url(url).publish(f"flow-access:{frappe.local.site}", json.dumps(notice))
 
 
 def _delete_server_session(name: str) -> None:

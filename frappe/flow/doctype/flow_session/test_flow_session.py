@@ -105,6 +105,19 @@ class TestClearOldLogs(IntegrationTestCase):
 
 	def test_old_session_and_linked_run_and_messages_are_purged(self):
 		old_session, old_run, old_file = self._session_with_run(age_days=100)
+		frappe.share.add_docshare("Flow Session", old_session, "Administrator")
+		shared = {"reference_doctype": "Flow Session", "reference_name": old_session}
+		self.assertTrue(frappe.db.exists("Comment", shared))
+		frappe.get_doc(
+			{
+				"doctype": "Notification Log",
+				"for_user": "Administrator",
+				"type": "Share",
+				"subject": "A chat was shared with you",
+				"document_type": "Flow Session",
+				"document_name": old_session,
+			}
+		).insert(ignore_permissions=True)
 
 		FlowSession.clear_old_logs(days=30)
 
@@ -112,6 +125,9 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Flow Run", old_run))
 		self.assertEqual(frappe.db.count("Flow Session Message", {"parent": old_session}), 0)
 		self.assertEqual(frappe.db.count("Flow Session Attachment", {"parent": old_session}), 0)
+		self.assertFalse(frappe.db.exists("DocShare", {"share_name": old_session}))
+		self.assertFalse(frappe.db.exists("Comment", shared))
+		self.assertFalse(frappe.db.exists("Notification Log", {"document_name": old_session}))
 		self.assertFalse(frappe.db.exists("File", old_file))
 		self.server_delete.assert_called_once_with(old_session)
 

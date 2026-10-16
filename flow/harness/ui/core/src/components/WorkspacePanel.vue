@@ -161,6 +161,7 @@ function requestClose(tab) {
 	if (!tab.dirty) return flow.closeFile(tab.path)
 	dialog.confirm({
 		title: "Discard changes?",
+		size: "lg",
 		message: `“${tab.name}” has unsaved changes.`,
 		actions: [
 			{ label: "Cancel", variant: "outline" },

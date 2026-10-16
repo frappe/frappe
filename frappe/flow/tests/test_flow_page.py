@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
 
 from flow.permissions import has_app_permission
 from flow.tests.test_ai_api import OTHER, _ensure_user
@@ -17,10 +18,13 @@ class TestFlowPage(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_a_guest_is_sent_to_login_and_back(self):
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		set_request(path="/flow/s/4uaiaqp7g3")
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.Redirect):
 			index.get_context(frappe._dict())
-		self.assertEqual(frappe.local.flags.redirect_location, "/login?redirect-to=/flow")
+		# back to the chat asked for, not just the page
+		self.assertEqual(frappe.local.flags.redirect_location, "/login?redirect-to=%2Fflow%2Fs%2F4uaiaqp7g3")
 
 	def test_the_page_carries_what_the_app_boots_from(self):
 		context = index.get_context(frappe._dict())

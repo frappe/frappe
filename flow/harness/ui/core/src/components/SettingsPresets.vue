@@ -225,6 +225,7 @@ function back() {
 	}
 	dialog.confirm({
 		title: "Discard changes?",
+		size: "lg",
 		message: "Your edits to this preset have not been saved.",
 		actions: [
 			{ label: "Keep editing", variant: "outline" },
@@ -237,6 +238,7 @@ function confirmDelete() {
 	const { id, name } = draft.value
 	dialog.confirm({
 		title: "Delete preset?",
+		size: "lg",
 		message: `“${name}” will be removed.`,
 		actions: [
 			{ label: "Cancel", variant: "outline" },

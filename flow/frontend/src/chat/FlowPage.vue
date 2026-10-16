@@ -6,6 +6,7 @@
 			<ChatHeader
 				:sidebar-open="sidebarOpen"
 				:workspace="false"
+				:actions="chatActions"
 				@open-sidebar="store.setSidebarOpen(true)"
 			/>
 			<MessageList>
@@ -44,7 +45,7 @@
 				v-else
 				class="absolute inset-x-0 bottom-0 px-5 pb-5 text-center text-xs text-ink-gray-5"
 			>
-				Only the owner of this chat can send messages.
+				{{ readOnlyNote }}
 			</p>
 		</main>
 		<WorkspacePanel>
@@ -56,6 +57,7 @@
 		<ToastProvider />
 		<FlowSettings />
 		<TranscriptDialog />
+		<ShareChat v-if="canShare" ref="share" />
 	</div>
 </template>
 
@@ -84,6 +86,7 @@ import AgentPalette from "./AgentPalette.vue";
 import AgentPicker from "./AgentPicker.vue";
 import FeedbackBar from "./FeedbackBar.vue";
 import SetupState from "./SetupState.vue";
+import ShareChat from "./ShareChat.vue";
 import { presentTool } from "./toolMeta.js";
 
 // the composer commands Flow serves, its own agent picker first; the rest need the
@@ -153,6 +156,25 @@ const placeholder = computed(() => {
 });
 // someone else's chat is view-only: its tools would run as its owner
 const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
+// only its owner shares a chat, once it has loaded and said who that is
+const canShare = computed(() => {
+	const owner = page.state.owner[store.state.sessionId]?.name;
+	return Boolean(owner) && owner === page.state.boot.user?.name;
+});
+// the owner's chat menu leads with Share
+const share = ref(null);
+const chatActions = computed(() =>
+	canShare.value
+		? [{ label: "Share", icon: "lucide-share-2", onClick: () => share.value.show() }]
+		: []
+);
+// a viewer learns whose chat it is
+const readOnlyNote = computed(() => {
+	const owner = page.state.owner[store.state.sessionId]?.full_name;
+	return owner
+		? `Only ${owner} can send messages in this chat.`
+		: "Only the owner of this chat can send messages.";
+});
 // no model or no agent: the empty state says so, and the composer waits
 const needsSetup = computed(
 	() => !page.state.boot.models?.length || !page.state.boot.agents?.length

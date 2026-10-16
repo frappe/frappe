@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils import cint, escape_html, get_fullname, get_url
 
 from flow.lib.session import new_session, sync_with_retry
 
@@ -250,6 +250,59 @@ def delete_session(session: str) -> dict[str, str]:
 
 
 @frappe.whitelist()
+def list_shares(session: str) -> list[dict[str, Any]]:
+	"""The people this chat is shared with."""
+	return _shares(_load_session(session, "share"))
+
+
+@frappe.whitelist(methods=["POST"])
+def share_session(session: str, user: str) -> list[dict[str, Any]]:
+	"""Let `user` view this chat, live, but not write to it; they are notified the first time."""
+	doc = _load_session(session, "share")
+	user = _parse_user(user)
+	if not _flow_users(user=user):
+		frappe.throw(_("A chat can be shared only with someone who uses Flow."), title=_("Invalid User"))
+	already_shared = frappe.share.get_share_name("Flow Session", doc.name, user, everyone=0)
+	frappe.share.add_docshare("Flow Session", doc.name, user)
+	if not already_shared:
+		_notify_share(doc, user)
+	return _shares(doc)
+
+
+@frappe.whitelist(methods=["POST"])
+def unshare_session(session: str, user: str) -> list[dict[str, Any]]:
+	"""Take back `user`'s view of this chat."""
+	doc = _load_session(session, "share")
+	frappe.share.set_docshare_permission("Flow Session", doc.name, _parse_user(user), "read", 0)
+	return _shares(doc)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_general_access(session: str, access: str) -> str:
+	"""Open this chat to view by every Flow user, or keep it to the people added."""
+	from flow.flow.doctype.flow_session.flow_session import recheck_live_access
+
+	doc = _load_session(session, "share")
+	if access not in frappe.get_meta("Flow Session").get_options("general_access").split("\n"):
+		frappe.throw(
+			_('General access must be "Restricted" (only the people added) or "Everyone" (every Flow user).'),
+			title=_("Invalid Access"),
+		)
+	if doc.general_access != access:
+		doc.db_set("general_access", access)
+		if access == "Restricted":
+			recheck_live_access(doc.name)
+	return access
+
+
+@frappe.whitelist()
+def find_users(query: str | None = None) -> list[dict[str, Any]]:
+	"""People a chat can be shared with: active Flow users, by name or email."""
+	frappe.has_permission("Flow Session", "create", throw=True)
+	return _flow_users(text=query.strip() if isinstance(query, str) else "")
+
+
+@frappe.whitelist()
 def sync_session(session: str) -> dict[str, Any]:
 	"""Record the flow server's log into this session after a terminal event, or when a
 	client reconnects; never called on a schedule."""
@@ -278,8 +331,8 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 
 	run = frappe.get_doc("Flow Run", run_name.strip())
 	frappe.has_permission("Flow Run", "read", run, throw=True)
-	if run.owner != frappe.session.user:
-		frappe.has_permission("Flow Run", "write", run, throw=True)
+	# whoever recorded the run, only someone who may write to its chat rates it
+	frappe.has_permission("Flow Session", "write", run.session, throw=True)
 	if run.status not in ("Completed", "Denied", "Failed"):
 		frappe.throw(
 			_("Feedback applies to finished runs only (this run is {0}).").format(run.status),
@@ -352,12 +405,76 @@ def _session_payload(doc: FlowSession) -> dict[str, Any]:
 		"agent": doc.agent,
 		"model": model,
 		"source": doc.source,
+		"owner": doc.owner,
+		"owner_name": get_fullname(doc.owner),
+		"general_access": doc.general_access,
 		"auto_approve": bool(doc.auto_approve),
 		"read_only": not frappe.has_permission("Flow Session", "write", doc),
 		"runs": frappe.get_all(
 			"Flow Run", filters={"session": doc.name}, fields=RUN_FIELDS, order_by="creation asc"
 		),
 	}
+
+
+def _shares(doc: FlowSession) -> list[dict[str, Any]]:
+	users = frappe.get_all(
+		"DocShare",
+		filters={"share_doctype": "Flow Session", "share_name": doc.name, "everyone": 0},
+		pluck="user",
+	)
+	if not users:
+		return []
+	return frappe.get_all(
+		"User",
+		filters={"name": ("in", users)},
+		fields=["name", "full_name", "user_image"],
+		order_by="full_name asc",
+	)
+
+
+def _flow_users(text: str = "", user: str | None = None) -> list[dict[str, Any]]:
+	"""People a chat can be shared with: enabled System Users whose role can start a chat."""
+	roles = [p.role for p in frappe.get_meta("Flow Session").permissions if p.create and not p.permlevel]
+	filters = [["enabled", "=", 1], ["user_type", "=", "System User"], ["Has Role", "role", "in", roles]]
+	if user:
+		filters.append(["name", "=", user])
+	like = f"%{_escape_like(text)}%"
+	return frappe.get_all(
+		"User",
+		filters=filters,
+		or_filters=[["name", "like", like], ["full_name", "like", like]] if text else None,
+		fields=["name", "full_name", "user_image"],
+		distinct=True,
+		order_by="full_name asc",
+		limit=20,
+	)
+
+
+def _notify_share(doc: FlowSession, user: str) -> None:
+	"""Notify `user` as Frappe's own shares do, but linking to the chat on the /flow page."""
+	from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+
+	# Frappe finds the recipient by email, which a user's name need not be (Administrator)
+	enqueue_create_notification(
+		frappe.db.get_value("User", user, "email"),
+		{
+			"type": "Share",
+			"document_type": "Flow Session",
+			"document_name": doc.name,
+			"subject": _("{0} shared the chat {1} with you").format(
+				frappe.bold(escape_html(get_fullname(frappe.session.user))),
+				frappe.bold(escape_html(doc.title or _("Untitled chat"))),
+			),
+			"from_user": frappe.session.user,
+			"link": get_url(f"/flow/s/{doc.name}"),
+		},
+	)
+
+
+def _parse_user(user: Any) -> str:
+	if not isinstance(user, str) or not user.strip():
+		frappe.throw(_("User is required."), title=_("Invalid User"))
+	return user.strip()
 
 
 def _escape_like(text: str) -> str:

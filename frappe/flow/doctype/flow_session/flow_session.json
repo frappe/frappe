@@ -10,6 +10,7 @@
   "model",
   "source",
   "auto_approve",
+  "general_access",
   "last_synced_seq",
   "section_break_transcript",
   "transcript_html",
@@ -62,6 +63,15 @@
    "read_only": 1
   },
   {
+   "default": "Restricted",
+   "description": "Who else may view this conversation: only the people it is shared with, or every Flow user. Set from its Share dialog.",
+   "fieldname": "general_access",
+   "fieldtype": "Select",
+   "label": "General Access",
+   "options": "Restricted\nEveryone",
+   "read_only": 1
+  },
+  {
    "default": "0",
    "description": "How far the flow server's log has been mirrored into this session.",
    "fieldname": "last_synced_seq",
@@ -107,7 +117,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-10-08 12:00:00",
+ "modified": "2026-10-16 20:41:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",
@@ -134,7 +144,12 @@
    "if_owner": 1,
    "read": 1,
    "role": "Flow User",
+   "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Flow User"
   }
  ],
  "row_format": "Dynamic",

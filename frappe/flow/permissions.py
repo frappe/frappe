@@ -4,11 +4,12 @@
 """Who may use Flow. Three checks, each answering one question:
 
 - Base access: Flow Users use Flow within their own records; System Managers administer its
-  setup. Deliberate Frappe shares may delegate an individual record.
+  setup. An owner may share a session, to view only.
 - Doctype permissions: which agents and models. User Permissions narrow them per user; checked
   when a session starts and on every turn.
 - Ownership: sessions, runs and personal memories are private to their owner, since a session's
-  tools run as them. System Managers also see Trigger sessions.
+  tools run as them. System Managers also see Trigger sessions, and an owner may open a session
+  to view by every Flow user.
 
 Triggers run as their run_as account or owner, which must be able to read the agent. The flow
 server's callbacks act as the session owner."""
@@ -34,17 +35,24 @@ def has_app_permission() -> bool:
 	return frappe.has_permission("Flow Session", "read")
 
 
-def has_session_permission(doc, user: str) -> bool:
-	"""Sessions and runs are private to their owner, except Trigger ones."""
-	return user in (doc.owner, "Administrator") or doc.source == "Trigger"
+def has_session_permission(doc, ptype: str, user: str) -> bool:
+	"""Allows the owner, anyone reading a chat open to everyone, and System Managers on Trigger chats."""
+	if user in (doc.owner, "Administrator"):
+		return True
+	if ptype == "read" and doc.get("general_access") == "Everyone":
+		return True
+	return doc.source == "Trigger" and "System Manager" in frappe.get_roles(user)
 
 
 def session_query_conditions(user: str | None = None, doctype: str | None = None) -> str:
-	"""The list side of has_session_permission."""
+	"""Limits lists to your own chats, plus Trigger chats for System Managers."""
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return ""
-	return f"(`tab{doctype}`.`owner` = {frappe.db.escape(user)} or `tab{doctype}`.`source` = 'Trigger')"
+	owned = f"`tab{doctype}`.`owner` = {frappe.db.escape(user)}"
+	if "System Manager" in frappe.get_roles(user):
+		return f"({owned} or `tab{doctype}`.`source` = 'Trigger')"
+	return f"({owned})"
 
 
 def has_memory_permission(doc, user: str) -> bool:
