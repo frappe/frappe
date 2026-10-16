@@ -1700,13 +1700,9 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 
 	try:
 		if url.startswith("/"):
-			path = None
-			for prefix in ("public", "private"):
-				candidate = frappe.get_site_path(prefix, url.lstrip("/"))
-				if os.path.exists(candidate):
-					path = candidate
-					break
-			if not path:
+			base = os.path.abspath(frappe.get_site_path("public"))
+			path = os.path.abspath(os.path.join(base, url.lstrip("/")))
+			if os.path.commonpath((base, path)) != base or not os.path.isfile(path):
 				return url
 			with open(path, "rb") as f:
 				content = f.read()
