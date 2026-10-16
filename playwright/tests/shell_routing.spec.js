@@ -368,6 +368,131 @@ test.describe("Desk URL shell segment", () => {
 		await expect_shell(page, "Build");
 	});
 
+<<<<<<< HEAD
+=======
+	test("goes back past a new document once it is saved", async ({ page, desk }) => {
+		await page.goto("/desk/build/todo");
+		await on_route(page, ["List", "ToDo", "List"]);
+		await page.evaluate(() =>
+			frappe.model.with_doctype("ToDo", () => {
+				const doc = frappe.model.get_new_doc("ToDo");
+				frappe.set_route("Form", "ToDo", doc.name);
+			})
+		);
+		await expect.poll(() => pathname(page)).toMatch(/^\/desk\/build\/todo\/new-todo-/);
+		await expect(page.locator("body")).toHaveAttribute("data-ajax-state", "complete");
+
+		await page.evaluate(() => cur_frm.set_value("description", "go back past me"));
+		await desk.save();
+		const saved = await page.evaluate(() => cur_frm.doc.name);
+		await expect.poll(() => pathname(page)).toBe(`/desk/build/todo/${saved}`);
+
+		await page.evaluate(() => frappe.set_route("List", "User"));
+		await on_route(page, ["List", "User", "List"]);
+
+		await page.goBack();
+		await on_route(page, ["Form", "ToDo", saved]);
+
+		await page.goBack();
+		await on_route(page, ["List", "ToDo", "List"]);
+		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
+	});
+
+	test("opens a system page in no shell", async ({ page }) => {
+		await page.goto("/desk/desktop");
+		await on_route(page, ["desktop"]);
+		expect(pathname(page)).toBe("/desk/desktop");
+	});
+
+	test("takes a shell off the front of a system page, and nothing else", async ({ page }) => {
+		await page.goto("/desk/build/desktop?x=1#y");
+		await expect.poll(() => pathname(page)).toBe("/desk/desktop");
+		expect(new URL(page.url()).search).toBe("?x=1");
+		expect(new URL(page.url()).hash).toBe("#y");
+		await expect.poll(() => current_shell(page)).toBe(null);
+	});
+
+	test("leaves the sidebar where it was across a system page", async ({ page }) => {
+		await page.goto("/desk/users/user");
+		await expect_shell(page, "Users");
+
+		await page.evaluate(() => frappe.set_route("desktop"));
+		await expect.poll(() => pathname(page)).toBe("/desk/desktop");
+		await expect.poll(() => current_module(page)).toBe("Users");
+
+		await page.evaluate(() => frappe.set_route("List", "ToDo"));
+		await expect.poll(() => pathname(page)).toBe("/desk/users/todo");
+
+		await page.goBack();
+		await expect.poll(() => pathname(page)).toBe("/desk/desktop");
+		await page.goBack();
+		await expect.poll(() => pathname(page)).toBe("/desk/users/user");
+		await expect_shell(page, "Users");
+	});
+
+	test("moves between system pages without ever naming a shell", async ({ page }) => {
+		await page.goto("/desk/users/user");
+		await expect_shell(page, "Users");
+
+		await page.evaluate(() => {
+			frappe.boot.page_info["backups"].system_page = 1;
+			frappe.set_route("desktop");
+		});
+		await expect.poll(() => pathname(page)).toBe("/desk/desktop");
+
+		await page.evaluate(() => frappe.set_route("backups"));
+		await expect.poll(() => pathname(page)).toBe("/desk/backups");
+		await expect.poll(() => current_shell(page)).toBe(null);
+		await expect.poll(() => current_module(page)).toBe("Users");
+	});
+
+	test("opens a shared page in the shell the URL names", async ({ page }) => {
+		await page.goto("/desk/users/print/User/Administrator");
+		await on_route(page, ["print", "User", "Administrator"]);
+		expect(pathname(page)).toBe("/desk/users/print/User/Administrator");
+		await expect_shell(page, "Users");
+	});
+
+	test("keeps a shared page in the shell on screen, even on a jump", async ({ page }) => {
+		await page.goto("/desk/users/user");
+		await expect_shell(page, "Users");
+
+		await page.evaluate(() => {
+			frappe.route_flags.jump = true;
+			frappe.set_route("print", "User", "Administrator");
+		});
+		await expect.poll(() => pathname(page)).toBe("/desk/users/print/User/Administrator");
+		await expect_shell(page, "Users");
+	});
+
+	test("keeps a shared page in the Private shell on a jump", async ({ page }) => {
+		await page.goto("/desk/private/todo");
+		await expect.poll(() => current_module(page)).toBe("Private");
+
+		await page.evaluate(() => {
+			frappe.route_flags.jump = true;
+			frappe.set_route("print", "User", "Administrator");
+		});
+		await expect.poll(() => pathname(page)).toBe("/desk/private/print/User/Administrator");
+		await expect.poll(() => current_module(page)).toBe("Private");
+	});
+
+	test("opens a shared page in its own module's shell when nothing names one", async ({
+		page,
+	}) => {
+		await page.goto("/desk/print/User/Administrator");
+		await on_route(page, ["print", "User", "Administrator"]);
+		const { shell, slug } = await page.evaluate(() => {
+			const shell = frappe.boot.canonical_shell.Page.print;
+			return { shell, slug: typeof shell === "string" && frappe.router.shell_slug(shell) };
+		});
+		expect(typeof shell, "print has a shell of its own").toBe("string");
+
+		await expect.poll(() => pathname(page)).toBe(`/desk/${slug}/print/User/Administrator`);
+		await expect_shell(page, shell);
+	});
+
+>>>>>>> e9d90fa (fix(router): go back past a new document after it is saved)
 	test("opens a report through a shell", async ({ page }) => {
 		await page.goto("/desk/build/query-report/Permitted%20Documents%20For%20User");
 		await expect
