@@ -20,7 +20,7 @@
 					:lineWrapping="true"
 					class="inline-expression"
 					:placeholder="page.page_title"
-					description="Shown in the browser tab. Use {{ }} to show dynamic data"
+					description="Defaults to the page title. Use {{ }} for dynamic data"
 					:completions="dynamicValueCompletions"
 					:overrideCompletions="true"
 				/>

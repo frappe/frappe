@@ -41,7 +41,7 @@
    "label": "Title"
   },
   {
-   "description": "Shown in the browser tab. Supports {{ }} expressions. Uses the title when empty.",
+   "description": "Defaults to the page title. Use {{ }} for dynamic data",
    "fieldname": "tab_title",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
@@ -153,7 +153,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-16 12:00:00.000000",
+ "modified": "2026-10-16 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page",
