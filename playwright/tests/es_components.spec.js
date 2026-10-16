@@ -671,19 +671,38 @@ test.describe("Espresso components", () => {
 		const onboarding = (page) => explorer_group(page, "employee onboarding");
 		const row = (group, label) =>
 			group.locator(".es-checklist__item", { hasText: containing(label) }).first();
+		const toggle = (row) => row.locator(".es-checklist__toggle");
 		const count = (group) => group.locator(".es-checklist__count").first();
 
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Checklist");
 		});
 
-		test("an action that finishes the work checks its row and the count", async ({ page }) => {
+		test("the first unfinished row opens first, and one row is open at a time", async ({
+			page,
+		}) => {
+			const group = onboarding(page);
+			const letter = row(group, "Appointment Letter");
+			const employee = row(group, "Create Employee");
+
+			await expect(toggle(letter)).toHaveAttribute("aria-expanded", "true");
+			await expect(toggle(employee)).toHaveAttribute("aria-expanded", "false");
+
+			await toggle(employee).click();
+			await expect(employee).toHaveAttribute("data-open", "");
+			await expect(letter).not.toHaveAttribute("data-open", "");
+		});
+
+		test("an action that finishes the open row checks it and opens the next", async ({
+			page,
+		}) => {
 			const group = onboarding(page);
 			await expect(count(group)).toHaveText("1 of 7 done");
 
 			await row(group, "Appointment Letter").getByRole("button", { name: "Send" }).click();
 			await expect(row(group, "Appointment Letter")).toHaveAttribute("data-status", "done");
 			await expect(count(group)).toHaveText("2 of 7 done");
+			await expect(row(group, "Create Employee")).toHaveAttribute("data-open", "");
 		});
 
 		test("a locked row says why and disables its actions until the caller unlocks it", async ({
@@ -698,21 +717,30 @@ test.describe("Espresso components", () => {
 				"Needs: Create Employee"
 			);
 			await expect(holiday_list.locator(".es-checklist__meta")).toHaveText("India 2026");
+			await toggle(holiday_list).click();
+			await expect(holiday_list.locator(".es-checklist__note")).toHaveText(
+				"Needs: Create Employee"
+			);
 			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeDisabled();
 
+			await toggle(row(group, "Create Employee")).click();
 			await row(group, "Create Employee").getByRole("button", { name: "Create" }).click();
 			await expect(holiday_list).not.toHaveAttribute("data-locked", "");
+			await expect(holiday_list).toHaveAttribute("data-open", "");
 			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeEnabled();
 		});
 
 		test("a skipped row offers no action, so skipping can't unlock it", async ({ page }) => {
 			const holiday_list = row(onboarding(page), "Assign Holiday List");
 
-			await holiday_list.locator(".es-checklist__menu").click();
-			await page.locator(".es-menu__item", { hasText: "Skip" }).click();
-
+			await toggle(holiday_list).click();
+			await holiday_list.getByRole("button", { name: "Skip" }).click();
 			await expect(holiday_list).toHaveAttribute("data-status", "skipped");
+			await expect(holiday_list.locator(".es-checklist__status")).toHaveText("Skipped");
+
+			await toggle(holiday_list).click();
 			await expect(holiday_list.getByRole("button", { name: "Assign" })).toHaveCount(0);
+			await expect(holiday_list.getByRole("button", { name: "Undo skip" })).toBeVisible();
 		});
 
 		test("a past due date is overdue only while the row is unfinished", async ({ page }) => {
@@ -722,23 +750,29 @@ test.describe("Espresso components", () => {
 			await expect(row(group, "Create User")).not.toHaveAttribute("data-overdue", "");
 		});
 
-		test("skipping from the row menu fills the bar, and the skip can be undone", async ({
+		test("skipping the open row fills the bar, and the skip can be undone", async ({
 			page,
 		}) => {
 			const group = explorer_group(page, "Basic");
 			const invite = row(group, "Invite users");
-			const menu_item = (label) => page.locator(".es-menu__item", { hasText: label });
 
-			await expect(invite.getByRole("button", { name: "Skip" })).toHaveCount(0);
-			await invite.locator(".es-checklist__menu").click();
-			await menu_item("Skip").click();
+			await expect(invite).toHaveAttribute("data-open", "");
+			await invite.getByRole("button", { name: "Skip" }).click();
 			await expect(invite).toHaveAttribute("data-status", "skipped");
 			await expect(count(group)).toHaveText("1 of 2 done, 1 skipped");
 
-			await invite.locator(".es-checklist__menu").click();
-			await menu_item("Undo skip").click();
+			await toggle(invite).click();
+			await invite.getByRole("button", { name: "Undo skip" }).click();
 			await expect(invite).toHaveAttribute("data-status", "pending");
 			await expect(count(group)).toHaveText("1 of 2 done");
+		});
+
+		test("a row with nothing to show doesn't open", async ({ page }) => {
+			const company = row(explorer_group(page, "Basic"), "Create company");
+
+			await toggle(company).click();
+			await expect(company).toHaveAttribute("data-empty", "");
+			await expect(company).not.toHaveAttribute("data-open", "");
 		});
 
 		test("owners and due dates are editable only when the caller can save them", async ({
@@ -764,6 +798,7 @@ test.describe("Espresso components", () => {
 			await page.locator(".es-menu__item", { hasText: "Stuck" }).click();
 			await expect(employee).toHaveAttribute("data-status", "stuck");
 			await expect(employee.locator(".es-checklist__status")).toHaveText("Stuck");
+			await expect(employee).not.toHaveAttribute("data-open", "");
 
 			const user = row(group, "Create User");
 			await expect(user.locator(".es-checklist__status")).toHaveText("");

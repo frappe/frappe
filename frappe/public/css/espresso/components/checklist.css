@@ -1,36 +1,51 @@
-/* Espresso Checklist: a card of items, each one row with its owner, due date and
- * actions, for work several people complete in any order (onboarding a new hire,
- * setting up a module).
+/* Espresso Checklist: a card of items for work several people complete in any order
+ * (onboarding a new hire, setting up a module), drawn like the workspace onboarding.
+ * Each item is a row with its owner and due date; one row at a time opens to show its
+ * description and actions.
  *
  * Markup contract:
  *
  *   <section class="es-checklist">   (data-collapsed when folded)
  *     <button type="button" class="es-checklist__head" aria-expanded="true">
- *       <span class="es-checklist__name">Onboarding</span>
- *       <span class="es-checklist__count">2 of 8 done</span>
+ *       <span class="es-checklist__heading">
+ *         <span class="es-checklist__name">Onboarding</span>
+ *         <span class="es-checklist__count">2 of 8 done</span>
+ *       </span>
  *       (chevron)
  *     </button>
  *     <div class="es-checklist__progress"><div class="es-progress">...</div></div>   (empty with nothing to count)
  *     <div class="es-checklist__collapse">
  *       <div class="es-checklist__items">
- *         <div class="es-checklist__item" data-status="pending|done|skipped" data-locked data-overdue>
- *           <span class="es-checklist__marker">(icon, a status menu button, or the lock)</span>
- *           <div class="es-checklist__text">
- *             <div class="es-checklist__title"><span class="es-checklist__label">Assign Leave Policy</span></div>
- *             <div class="es-checklist__meta">Standard Policy</div>
+ *         <div class="es-checklist__item" data-status="pending|in_progress|stuck|done|skipped"
+ *              data-open data-locked data-overdue data-empty>
+ *           <div class="es-checklist__row">
+ *             <span class="es-checklist__marker">(icon, a status menu button, or the lock)</span>
+ *             <button type="button" class="es-checklist__toggle" aria-expanded="false">
+ *               <span class="es-checklist__title"><span class="es-checklist__label">Assign Leave Policy</span></span>
+ *               <span class="es-checklist__meta">Standard Policy</span>
+ *             </button>
+ *             <div class="es-checklist__status">(badge for In Progress or Stuck, or "Skipped")</div>
+ *             <div class="es-checklist__owner"><button class="es-checklist__control">(avatar)</button></div>
+ *             <div class="es-checklist__due"><button class="es-checklist__control">12-10-2026</button></div>
  *           </div>
- *           <div class="es-checklist__status">(badge, only In Progress or Stuck)</div>
- *           <div class="es-checklist__owner"><button class="es-checklist__trigger">(avatar)</button></div>
- *           <div class="es-checklist__due"><button class="es-checklist__trigger">12-10-2026</button></div>
- *           <div class="es-checklist__actions">(buttons)</div>
+ *           <div class="es-checklist__drawer">   (inert unless open)
+ *             <div class="es-checklist__body">
+ *               <div class="es-checklist__content">
+ *                 <div class="es-checklist__description">...</div>
+ *                 <div class="es-checklist__note">(why the row is locked)</div>
+ *                 <div class="es-checklist__actions">(buttons, then Skip or Undo skip)</div>
+ *               </div>
+ *             </div>
+ *           </div>
  *         </div>
  *       </div>
  *     </div>
  *   </section>
  *
- * The card is outlined, so its subtle buttons keep their contrast, and open
- * unless it carries data-collapsed. A collapsed card keeps its head and progress bar;
- * only the items fold away.
+ * The card is gray and the open row lifts to the base surface, so the subtle buttons inside
+ * it keep their contrast. The card is open unless it carries data-collapsed; a collapsed card
+ * keeps its head and progress bar, only the items fold away. A row with nothing to show
+ * (data-empty) doesn't open.
  *
  * Markers: circle (not started), circle-dot-dashed (in progress), circle-alert
  * (stuck), circle-check (done), circle-dashed (skipped), lock (locked and not
@@ -41,9 +56,8 @@
 .es-checklist {
     width: 100%;
     padding: calc(var(--spacing) * 4) calc(var(--spacing) * 3);
-    border: 1px solid var(--outline-gray-2);
     border-radius: var(--radius-lg);
-    background-color: var(--surface-base);
+    background-color: var(--surface-gray-1);
     container-type: inline-size;
 }
 
@@ -54,14 +68,24 @@
 }
 
 .es-checklist__progress:not(:empty) {
-    margin-top: calc(var(--spacing) * 3);
+    margin-top: calc(var(--spacing) * 4);
+}
+
+/* The bar's own track is the card's colour, one shade up. */
+.es-checklist .es-progress__segment:not([data-filled]) {
+    background: var(--surface-gray-3);
 }
 
 .es-checklist .es-button[data-variant="ghost"]:hover {
+    background: var(--surface-gray-3);
+}
+
+.es-checklist__item[data-open] .es-button[data-variant="ghost"]:hover {
     background: var(--surface-gray-2);
 }
 
 .es-checklist__head,
+.es-checklist__toggle,
 .es-checklist__trigger {
     padding: 0;
     border: 0;
@@ -75,6 +99,7 @@
 }
 
 .es-checklist__head:focus-visible,
+.es-checklist__toggle:focus-visible,
 .es-checklist__trigger:focus-visible {
     outline: var(--focus-outline-default);
     outline-offset: 2px;
@@ -83,21 +108,26 @@
 
 .es-checklist__head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: calc(var(--spacing) * 2);
     width: 100%;
 }
 
-.es-checklist__name {
+.es-checklist__heading {
+    display: flex;
     flex: 1;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 1);
     min-width: 0;
+}
+
+.es-checklist__name {
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
     color: var(--ink-gray-9);
 }
 
 .es-checklist__count {
-    white-space: nowrap;
     font-size: var(--text-sm);
     color: var(--ink-gray-5);
 }
@@ -115,15 +145,20 @@
 }
 
 /* Grid rows animate from 0fr to 1fr, so content opens to its height without measuring it. */
-.es-checklist__collapse {
+.es-checklist__collapse,
+.es-checklist__drawer {
     display: grid;
-    grid-template-rows: 1fr;
     transition: grid-template-rows 200ms ease-out;
 }
 
-.es-checklist__collapse > * {
+.es-checklist__collapse > *,
+.es-checklist__drawer > * {
     min-height: 0;
     overflow: hidden;
+}
+
+.es-checklist__collapse {
+    grid-template-rows: 1fr;
 }
 
 .es-checklist[data-collapsed] > .es-checklist__collapse {
@@ -138,21 +173,41 @@
 
 /* A margin, not padding, so a folded card clips it to nothing. */
 .es-checklist__items > :first-child {
-    margin-top: calc(var(--spacing) * 3);
+    margin-top: calc(var(--spacing) * 4);
+}
+
+.es-checklist__item {
+    padding: calc(var(--spacing) * 2);
+    border-radius: var(--radius-md);
+    transition: padding-block 200ms ease-out, background-color 200ms ease-out;
+}
+
+.es-checklist__item:not([data-open], [data-empty]) .es-checklist__row {
+    cursor: pointer;
+}
+
+.es-checklist__item:not([data-open], [data-empty]):hover {
+    background-color: var(--surface-gray-2);
+}
+
+.es-checklist__item[data-open] {
+    padding-block: calc(var(--spacing) * 3);
+    background-color: var(--surface-base);
+}
+
+.es-checklist__item[data-empty] .es-checklist__toggle {
+    cursor: default;
 }
 
 /* Fixed columns, so the badges, owners and dates line up down the list. */
-.es-checklist__item {
+.es-checklist__row {
     display: grid;
     grid-template-columns:
-        auto minmax(0, 1fr) calc(var(--spacing) * 22) 28px calc(var(--spacing) * 24)
-        calc(108px + var(--spacing));
-    grid-template-areas: "marker text status owner due actions";
+        auto minmax(0, 1fr) calc(var(--spacing) * 22) 28px calc(var(--spacing) * 24);
+    grid-template-areas: "marker text status owner due";
     align-items: center;
     column-gap: calc(var(--spacing) * 3);
-    min-height: calc(28px + var(--spacing) * 4);
-    padding: calc(var(--spacing) * 2);
-    border-radius: var(--radius-md);
+    min-height: 28px;
 }
 
 .es-checklist__marker {
@@ -165,6 +220,10 @@
 .es-checklist__marker .icon,
 .es-checklist__owner .icon {
     margin: 0;
+}
+
+.es-checklist__item[data-open][data-status="pending"] .es-checklist__marker {
+    color: var(--ink-gray-8);
 }
 
 .es-checklist__lock {
@@ -185,7 +244,7 @@
     color: var(--ink-red-7);
 }
 
-.es-checklist__text {
+.es-checklist__toggle {
     grid-area: text;
     display: flex;
     flex-direction: column;
@@ -208,9 +267,17 @@
     color: var(--ink-gray-8);
 }
 
-.es-checklist__item:is([data-status="done"], [data-status="skipped"], [data-locked])
-    .es-checklist__label {
+.es-checklist__item:is([data-status="done"], [data-locked]) .es-checklist__label {
     color: var(--ink-gray-5);
+}
+
+.es-checklist__item[data-status="skipped"] .es-checklist__label {
+    color: var(--ink-gray-4);
+}
+
+.es-checklist__item[data-open] .es-checklist__label {
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-9);
 }
 
 .es-checklist__meta {
@@ -227,6 +294,11 @@
 
 .es-checklist__status {
     grid-area: status;
+}
+
+.es-checklist__skipped {
+    font-size: var(--text-p-sm);
+    color: var(--ink-gray-4);
 }
 
 .es-checklist__owner {
@@ -272,11 +344,45 @@
     color: var(--ink-red-7);
 }
 
-.es-checklist__actions {
-    grid-area: actions;
+.es-checklist__drawer {
+    grid-template-rows: 0fr;
+}
+
+.es-checklist__item[data-open] .es-checklist__drawer {
+    grid-template-rows: 1fr;
+}
+
+/* Padding sits inside the clipped body, so a closed drawer folds to nothing. It lines the
+ * content up with the label, past the marker; the bottom padding keeps focus rings inside the clip. */
+.es-checklist__content {
     display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 3);
+    padding-top: calc(var(--spacing) * 2);
+    padding-bottom: calc(var(--spacing) * 1);
+    padding-inline-start: calc(16px + var(--spacing) * 3);
+}
+
+.es-checklist__description,
+.es-checklist__note {
+    font-size: var(--text-p-sm);
+    color: var(--ink-gray-6);
+}
+
+.es-checklist__note {
+    color: var(--ink-gray-5);
+}
+
+.es-checklist__description:empty,
+.es-checklist__note:empty,
+.es-checklist__actions:empty {
+    display: none;
+}
+
+.es-checklist__actions {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-end;
     gap: calc(var(--spacing) * 2);
 }
 
@@ -285,85 +391,22 @@
     margin-bottom: 0;
 }
 
-/* Row click: the row is the button, a chevron stands in for the actions. */
-.es-checklist[data-row-click] .es-checklist__item {
-    grid-template-columns:
-        auto minmax(0, 1fr) calc(var(--spacing) * 22) 28px calc(var(--spacing) * 24)
-        calc(28px + 16px + var(--spacing));
-}
-
-.es-checklist__item[data-click] {
-    cursor: pointer;
-    transition: background-color 120ms ease-out;
-}
-
-.es-checklist__item[data-click]:hover {
-    background-color: var(--surface-gray-2);
-}
-
-.es-checklist__item[data-click]:hover .es-button[data-variant="ghost"]:hover {
-    background: var(--surface-gray-3);
-}
-
-.es-checklist__item[data-click]:focus-visible {
-    outline: var(--focus-outline-default);
-}
-
-.es-checklist__go {
-    display: flex;
-    color: var(--ink-gray-5);
-}
-
-.es-checklist__go .icon {
-    margin: 0;
-}
-
-.es-checklist__item[data-click]:is(:hover, :focus-visible) .es-checklist__go {
-    color: var(--ink-gray-8);
-}
-
-.es-checklist__item:not([data-click]) .es-checklist__go {
-    color: var(--ink-gray-3);
-}
-
-/* Narrow cards keep owner and date beside the title and put the buttons under them: two lines per item. */
+/* Narrow cards let the badge, owner and date take only the room they need. */
 @container (max-width: 560px) {
-    .es-checklist__items {
-        gap: calc(var(--spacing) * 2);
-    }
-
-    .es-checklist__item {
+    .es-checklist__row {
         grid-template-columns: auto minmax(0, 1fr) auto auto auto;
-        grid-template-areas:
-            "marker text status owner due"
-            ". text actions actions actions";
-        align-items: start;
-        row-gap: var(--spacing);
-    }
-
-    .es-checklist__marker,
-    .es-checklist__status,
-    .es-checklist__owner,
-    .es-checklist__due {
-        align-self: center;
-    }
-
-    .es-checklist__owner,
-    .es-checklist__due,
-    .es-checklist__actions {
-        justify-self: end;
-    }
-
-    .es-checklist[data-row-click] .es-checklist__item {
-        grid-template-columns: auto minmax(0, 1fr) auto 28px auto auto;
-        grid-template-areas: "marker text status owner due actions";
-        align-items: center;
         column-gap: calc(var(--spacing) * 2);
+    }
+
+    .es-checklist__content {
+        padding-inline-start: calc(16px + var(--spacing) * 2);
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .es-checklist__collapse,
+    .es-checklist__drawer,
+    .es-checklist__item,
     .es-checklist__head .es-checklist__chevron {
         transition: none;
     }

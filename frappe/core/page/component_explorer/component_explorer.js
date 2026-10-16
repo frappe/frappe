@@ -1819,7 +1819,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			stacked: true,
 			groups: [
 				{
-					title: __("Basic (click an action to finish the item)"),
+					title: __("Basic (open a row, then click its action to finish it)"),
 					items: [
 						{
 							__code: 'frappe.ui.checklist({\n  title: "Set up",\n  items: [\n    { id: "company", label: "Create company", done: true },\n    { id: "users", label: "Invite users", skippable: true, actions: [\n      { label: "Invite", onclick: (item, list) => list.update_item(item.id, { done: true }) },\n    ] },\n  ],\n})',
@@ -1866,20 +1866,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							on_status_change: () => null,
 							title: "Onboarding",
 							items: get_onboarding_checklist_items(),
-						},
-					],
-				},
-				{
-					title: __("Clickable rows (row_click)"),
-					items: [
-						{
-							__code: "frappe.ui.checklist({ title, items, row_click: true })  // the row runs its first action; a chevron replaces the buttons",
-							title: "Onboarding",
-							items: get_onboarding_checklist_items(),
-							row_click: true,
-							on_assign: () => null,
-							on_due_date_change: () => null,
-							on_status_change: () => null,
 						},
 					],
 				},
