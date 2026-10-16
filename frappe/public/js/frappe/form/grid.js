@@ -110,7 +110,6 @@ export default class Grid {
 						</div>
 					</div>
 				</div>
-				</div>
 				<div class="small form-clickable-section grid-footer">
 					<div class="flex justify-between">
 						<div class="grid-buttons">
@@ -141,6 +140,7 @@ export default class Grid {
 							})}
 						</div>
 					</div>
+				</div>
 				</div>
 			</div>
 		`;
