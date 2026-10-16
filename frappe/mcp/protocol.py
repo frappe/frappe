@@ -48,7 +48,7 @@ def server_instructions() -> str:
 		_("You are connected as {0} ({1}).").format(get_fullname(), frappe.session.user),
 		_("Installed apps:"),
 	]
-	for app in frappe.get_active_apps():
+	for app in frappe.get_installed_apps():
 		title = (frappe.get_hooks("app_title", app_name=app) or [app])[0]
 		description = (frappe.get_hooks("app_description", app_name=app) or [""])[0]
 		lines.append(f"- {title} ({app}): {description}" if description else f"- {title} ({app})")
