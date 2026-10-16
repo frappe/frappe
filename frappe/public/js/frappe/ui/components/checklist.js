@@ -5,7 +5,8 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} ChecklistAction
  * Button options for frappe.ui.button. `onclick` gets the item and the checklist.
- * Actions default to the subtle variant and take no icons, so every row's buttons look alike.
+ * The first action is solid with an arrow, the rest are subtle; icons of their own are dropped,
+ * so every row's buttons look alike.
  *
  * @typedef {Object} ChecklistItem
  * @property {string} id Unique across the whole checklist.
@@ -13,14 +14,14 @@ frappe.provide("frappe.ui");
  * @property {boolean} [done] The work is finished; the row is checked.
  * @property {boolean} [skipped] Set aside without doing it; counts toward progress but not as done.
  * @property {"in_progress"|"stuck"} [status] Where unfinished work stands, shown as a badge. Ignored once done or skipped.
- * @property {string} [description] Plain text shown as the label's tooltip.
+ * @property {string} [description] Plain text shown when the row is open.
  * @property {string} [value] Muted second line, e.g. a default or a linked record name.
  * @property {string} [assignee] User ID of the person who owns the item.
  * @property {string} [due_date] Date the item is due, as YYYY-MM-DD. Past and unfinished shows as overdue.
- * @property {ChecklistAction[]} [actions] Buttons at the end of the row.
- * @property {boolean} [skippable] Offers Skip, and Undo skip once skipped, in the row's ... menu.
+ * @property {ChecklistAction[]} [actions] Buttons in the open row.
+ * @property {boolean} [skippable] Offers Skip, and Undo skip once skipped, in the open row.
  * @property {boolean} [optional] Shows an Optional badge and leaves the item out of progress, unless every item is optional.
- * @property {string} [locked] Why the item can't be done yet. Shown on the lock icon's tooltip; the actions are disabled, Skip stays available.
+ * @property {string} [locked] Why the item can't be done yet. Shown on the lock icon's tooltip and in the open row; the actions are disabled, Skip stays available.
  *
  * @typedef {Object} ChecklistOpts
  * @property {string} title Translated text in the card's head.
@@ -30,7 +31,6 @@ frappe.provide("frappe.ui");
  * @property {(item:ChecklistItem, user:string|null)=>void|Promise} [on_assign] Makes the assignee editable; runs before the item changes, reject to keep the old one.
  * @property {(item:ChecklistItem, date:string|null)=>void|Promise} [on_due_date_change] Makes the due date editable, the same way.
  * @property {(item:ChecklistItem, status:string|null)=>void|Promise} [on_status_change] Makes an unfinished item's marker a menu to set it In Progress or Stuck, or clear that; finishing stays with the caller.
- * @property {boolean} [row_click] The whole row runs its first action and ends in a chevron, in place of the action buttons.
  * @property {string} [css_class] Extra classes on the root.
  */
 
@@ -50,10 +50,12 @@ const MARKER_ICONS = {
 };
 
 /**
- * A checklist card: a title, progress, and one row per item with its owner, due date and
- * actions. The card folds away to its head and progress. The caller owns completion: an
- * item is only checked through update_item({ done: true }), so a row is checked when its
- * record exists, not when someone ticks it.
+ * A checklist card, drawn like the workspace onboarding: a title, progress, and one row per
+ * item with its owner and due date. One row is open at a time and shows the item's description
+ * and actions; the first unfinished row opens first, and finishing the open row opens the next.
+ * The card folds away to its head and progress. The caller owns completion: an item is only
+ * checked through update_item({ done: true }), so a row is checked when its record exists, not
+ * when someone ticks it.
  * Styles are in espresso/components/checklist.css.
  *
  * @example
@@ -76,8 +78,10 @@ frappe.ui.Checklist = class Checklist {
 		this.el.className = ["es-checklist", opts.css_class].filter(Boolean).join(" ");
 		this.el.innerHTML = `
 			<button type="button" class="es-checklist__head">
-				<span class="es-checklist__name"></span>
-				<span class="es-checklist__count"></span>
+				<span class="es-checklist__heading">
+					<span class="es-checklist__name"></span>
+					<span class="es-checklist__count"></span>
+				</span>
 				${frappe.utils.icon("chevron-down", "sm", "", "", "es-checklist__chevron", true)}
 			</button>
 			<div class="es-checklist__progress"></div>
@@ -88,28 +92,27 @@ frappe.ui.Checklist = class Checklist {
 		this.head.addEventListener("click", () => this.set_expanded(!this.is_expanded()));
 		this.head.setAttribute("aria-expanded", "true");
 
-		this.el.toggleAttribute("data-row-click", Boolean(opts.row_click));
+		this.items = new Map();
+		this.rows = new Map();
+		this.open_id = null;
+		this.closed_by_user = false;
 
 		this.$el = $(this.el);
 		this.$el.data("es-checklist", this);
 		this.set_items(opts.items || []);
 	}
 
-	/** Replace all items and rebuild the rows. */
+	/** Replace all items. Rows are kept by id, so the open row stays open across a refresh. */
 	set_items(items) {
 		this.items = new Map(items.map((item) => [item.id, item]));
-		this.rows = new Map();
-		this.list.replaceChildren(...items.map((item) => this.make_row(item)));
+		this.rows = new Map(
+			items.map((item) => [item.id, this.rows.get(item.id) || this.make_row(item.id)])
+		);
+		this.list.replaceChildren(...this.rows.values());
 		this.make_progress();
 		this.update_head();
 		items.forEach((item) => this.update_row(item));
-	}
-
-	/** Switch row_click on or off and rebuild the rows. */
-	set_row_click(on) {
-		this.opts.row_click = Boolean(on);
-		this.el.toggleAttribute("data-row-click", this.opts.row_click);
-		this.set_items([...this.items.values()]);
+		this.sync_open();
 	}
 
 	/** Set an item In Progress or Stuck, or clear that with null. */
@@ -124,10 +127,24 @@ frappe.ui.Checklist = class Checklist {
 		Object.assign(item, changes);
 		this.update_row(item);
 		this.update_head();
+		this.sync_open();
 	}
 
 	get_item(item_id) {
 		return this.items.get(item_id);
+	}
+
+	/** Open one row and close the others; null closes them all. */
+	set_open(item_id) {
+		const item = this.items.get(item_id);
+		this.open_id = item && this.has_body(item) ? item_id : null;
+		this.open_was_finished = Boolean(item && this.is_finished(item));
+		this.closed_by_user = !this.open_id;
+		this.update_open();
+	}
+
+	get_open() {
+		return this.items.get(this.open_id) || null;
 	}
 
 	get_progress() {
@@ -150,8 +167,11 @@ frappe.ui.Checklist = class Checklist {
 		this.head.setAttribute("aria-expanded", String(expanded));
 	}
 
+	// Rebuilt only when the count changes, so the bar animates from one value to the next.
 	make_progress() {
 		const { total } = this.get_progress();
+		if (this.progress && this.progress_total === total) return;
+		this.progress_total = total;
 		this.progress = total
 			? new frappe.ui.Progress({ intervals: true, interval_count: total, size: "md" })
 			: null;
@@ -168,77 +188,102 @@ frappe.ui.Checklist = class Checklist {
 		this.progress?.set_value(total ? ((done + skipped) / total) * 100 : 0);
 	}
 
-	make_row(item) {
+	// The open row stays open until it finishes; then the next unfinished row opens. A row the
+	// user opened while finished stays open, and a user who closed every row keeps them closed.
+	sync_open() {
+		const open = this.items.get(this.open_id);
+		let next = open;
+		if (open && !this.open_was_finished && this.is_finished(open)) {
+			next = this.get_next(open);
+		} else if (!open && !this.closed_by_user) {
+			next = this.get_next();
+		}
+		this.open_id = next && this.has_body(next) ? next.id : null;
+		this.open_was_finished = Boolean(next && this.is_finished(next));
+		this.update_open();
+	}
+
+	get_next(after) {
+		const items = [...this.items.values()];
+		const start = after ? items.indexOf(after) + 1 : 0;
+		return [...items.slice(start), ...items.slice(0, start)].find(
+			(item) => !this.is_finished(item) && this.has_body(item)
+		);
+	}
+
+	update_open() {
+		for (const [id, row] of this.rows) {
+			const is_open = id === this.open_id;
+			row.toggleAttribute("data-open", is_open);
+			row.querySelector(".es-checklist__toggle").setAttribute(
+				"aria-expanded",
+				String(is_open)
+			);
+			row.querySelector(".es-checklist__drawer").inert = !is_open;
+		}
+	}
+
+	make_row(id) {
 		const row = document.createElement("div");
 		row.className = "es-checklist__item";
 		row.innerHTML = `
-			<span class="es-checklist__marker"></span>
-			<div class="es-checklist__text">
-				<div class="es-checklist__title"><span class="es-checklist__label"></span></div>
-				<div class="es-checklist__meta"></div>
+			<div class="es-checklist__row">
+				<span class="es-checklist__marker"></span>
+				<button type="button" class="es-checklist__toggle">
+					<span class="es-checklist__title"><span class="es-checklist__label"></span></span>
+					<span class="es-checklist__meta"></span>
+				</button>
+				<div class="es-checklist__status"></div>
+				<div class="es-checklist__owner"></div>
+				<div class="es-checklist__due"></div>
 			</div>
-			<div class="es-checklist__status"></div>
-			<div class="es-checklist__owner"></div>
-			<div class="es-checklist__due"></div>
-			<div class="es-checklist__actions"></div>`;
-		const label = row.querySelector(".es-checklist__label");
-		label.textContent = item.label;
-		if (item.description) label.title = item.description;
-		if (item.optional) {
-			label.insertAdjacentHTML(
-				"afterend",
-				frappe.ui.badge.html({ label: __("Optional"), size: "sm" })
-			);
-		}
-		if (this.opts.row_click) this.make_row_click(row, item);
-		this.rows.set(item, row);
+			<div class="es-checklist__drawer">
+				<div class="es-checklist__body">
+					<div class="es-checklist__content">
+						<div class="es-checklist__description"></div>
+						<div class="es-checklist__note"></div>
+						<div class="es-checklist__actions"></div>
+					</div>
+				</div>
+			</div>`;
+
+		// The whole head takes the click, not only the toggle inside its padding; the toggle
+		// keeps it reachable from the keyboard, and its click bubbles up to here.
+		const controls = ".es-checklist__marker, .es-checklist__owner, .es-checklist__due";
+		row.querySelector(".es-checklist__row").addEventListener("click", (e) => {
+			if (e.target.closest(controls) || row.hasAttribute("data-empty")) return;
+			this.set_open(this.open_id === id ? null : id);
+		});
 		return row;
 	}
 
-	// Clicks on the row's own controls (status, owner, date, menu) don't count as the row's.
-	make_row_click(row, item) {
-		const controls =
-			".es-checklist__marker, .es-checklist__owner, .es-checklist__due, .es-checklist__menu";
-		const run = () => row.hasAttribute("data-click") && item.actions[0].onclick?.(item, this);
-		row.addEventListener("click", (e) => !e.target.closest(controls) && run());
-		row.addEventListener("keydown", (e) => {
-			if (e.target === row && (e.key === "Enter" || e.key === " ")) {
-				e.preventDefault();
-				run();
-			}
-		});
-	}
-
-	update_row_click(item, row, locked) {
-		const action = item.actions?.[0];
-		const clickable = Boolean(action) && !locked && !item.skipped;
-		row.toggleAttribute("data-click", clickable);
-		if (clickable) {
-			row.tabIndex = 0;
-			row.setAttribute("aria-label", `${item.label}: ${action.label}`);
-		} else {
-			row.removeAttribute("tabindex");
-			row.removeAttribute("aria-label");
-		}
-	}
-
 	update_row(item) {
-		const row = this.rows.get(item);
+		const row = this.rows.get(item.id);
 		const reason = this.is_finished(item) ? null : item.locked;
 		row.setAttribute("data-status", this.get_state(item));
 		row.toggleAttribute("data-locked", Boolean(reason));
 		row.toggleAttribute("data-overdue", this.is_overdue(item));
+		row.toggleAttribute("data-empty", !this.has_body(item));
 		row.querySelector(".es-checklist__marker").replaceChildren(this.make_marker(item, reason));
-
+		row.querySelector(".es-checklist__title").replaceChildren(...this.make_title(item));
 		row.querySelector(".es-checklist__meta").textContent = item.value || "";
 		row.querySelector(".es-checklist__status").replaceChildren(this.make_status(item));
-
 		row.querySelector(".es-checklist__owner").replaceChildren(this.make_owner(item));
 		row.querySelector(".es-checklist__due").replaceChildren(this.make_due(item));
+
+		row.querySelector(".es-checklist__description").textContent = item.description || "";
+		row.querySelector(".es-checklist__note").textContent = reason || "";
 		row.querySelector(".es-checklist__actions").replaceChildren(
 			...this.make_actions(item, Boolean(reason))
 		);
-		if (this.opts.row_click) this.update_row_click(item, row, Boolean(reason));
+	}
+
+	make_title(item) {
+		const label = document.createElement("span");
+		label.className = "es-checklist__label";
+		label.textContent = item.label;
+		if (!item.optional) return [label];
+		return [label, frappe.ui.badge({ label: __("Optional"), size: "sm" })[0]];
 	}
 
 	make_marker(item, reason) {
@@ -279,6 +324,12 @@ frappe.ui.Checklist = class Checklist {
 	}
 
 	make_status(item) {
+		if (item.skipped && !item.done) {
+			const skipped = document.createElement("span");
+			skipped.className = "es-checklist__skipped";
+			skipped.textContent = __("Skipped");
+			return skipped;
+		}
 		const label = !this.is_finished(item) && STATUS_LABELS[item.status];
 		if (!label) return document.createTextNode("");
 		return frappe.ui.badge({
@@ -386,53 +437,33 @@ frappe.ui.Checklist = class Checklist {
 		});
 	}
 
+	// A skipped row offers only Undo skip, so skipping can't stand in for unlocking it.
 	make_actions(item, locked) {
-		const buttons = [];
-		if (item.skippable && !item.done) buttons.push(this.make_menu(item));
-		if (item.skipped) return buttons.map(($button) => $button[0]);
-		if (this.opts.row_click) {
-			if (item.actions?.length) buttons.push($(this.make_chevron(item.actions[0].label)));
-			return buttons.map(($button) => $button[0]);
+		if (item.skipped && !item.done) {
+			return item.skippable
+				? [this.make_button(__("Undo skip"), () => this.unskip(item))]
+				: [];
 		}
-		for (const { icon, icon_left, icon_right, ...action } of item.actions || []) {
-			buttons.push(
-				frappe.ui.button({
+		const buttons = (item.actions || []).map(
+			({ icon, icon_left, icon_right, ...action }, index) => {
+				const variant = action.variant || (index ? "subtle" : "solid");
+				return frappe.ui.button({
 					...action,
-					size: action.size || "sm",
-					variant: action.variant || "subtle",
+					variant,
+					icon_right: variant === "solid" ? "arrow-right" : undefined,
 					disabled: locked || action.disabled,
 					onclick: () => action.onclick?.(item, this),
-				})
-			);
+				})[0];
+			}
+		);
+		if (item.skippable && !item.done) {
+			buttons.push(this.make_button(__("Skip"), () => this.skip(item)));
 		}
-		return buttons.map(($button) => $button[0]);
+		return buttons;
 	}
 
-	make_chevron(label) {
-		const chevron = document.createElement("span");
-		chevron.className = "es-checklist__go";
-		chevron.innerHTML = frappe.utils.icon("chevron-right", "sm", "", "", "", true);
-		frappe.ui.tooltip(chevron, { text: label });
-		return chevron;
-	}
-
-	// Skip sits behind a click, so it isn't hit by accident; a skip can be undone.
-	make_menu(item) {
-		const $button = frappe.ui.button({
-			variant: "ghost",
-			icon: "ellipsis",
-			tooltip: __("More actions"),
-			css_class: "es-checklist__menu",
-		});
-		new frappe.ui.Dropdown({
-			trigger: $button,
-			align: "end",
-			options: () =>
-				item.skipped
-					? [{ label: __("Undo skip"), onclick: () => this.unskip(item) }]
-					: [{ label: __("Skip"), onclick: () => this.skip(item) }],
-		});
-		return $button;
+	make_button(label, onclick) {
+		return frappe.ui.button({ label, variant: "subtle", onclick })[0];
 	}
 
 	skip(item) {
@@ -444,6 +475,15 @@ frappe.ui.Checklist = class Checklist {
 	unskip(item) {
 		return Promise.resolve(this.opts.on_unskip?.(item, this)).then(() =>
 			this.update_item(item.id, { skipped: false })
+		);
+	}
+
+	has_body(item) {
+		return Boolean(
+			item.description ||
+				item.actions?.length ||
+				(item.skippable && !item.done) ||
+				(!this.is_finished(item) && item.locked)
 		);
 	}
 
