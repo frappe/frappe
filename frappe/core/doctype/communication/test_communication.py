@@ -281,6 +281,50 @@ class TestCommunication(FrappeTestCase):
 		self.assertEqual(comm_with_signature.content.count(signature), 1)
 		self.assertEqual(comm_without_signature.content.count(signature), 1)
 
+<<<<<<< HEAD
+=======
+	def test_make_validates_letterhead(self):
+		# Non-existent letterhead must be rejected before reaching the PDF renderer.
+		with self.assertRaises(frappe.exceptions.ValidationError):
+			make(letterhead="__nonexistent_lh__")
+
+		# Existing letterhead the current user cannot read must also be rejected.
+		lh = frappe.get_doc({"doctype": "Letter Head", "letter_head_name": "_Test LH Permission"}).insert(
+			ignore_permissions=True
+		)
+		try:
+			frappe.set_user("Guest")
+			with self.assertRaises(frappe.PermissionError):
+				make(letterhead=lh.name)
+		finally:
+			frappe.set_user("Administrator")
+			lh.delete()
+
+	def test_make_without_reference_requires_create_permission(self):
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "comm_make_perm@example.com",
+				"first_name": "Comm Make",
+				"user_type": "Website User",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(user.delete)
+
+		frappe.set_user(user.name)
+		self.addCleanup(frappe.set_user, "Administrator")
+		for args in ({}, {"doctype": "User"}, {"name": "Administrator"}):
+			with self.assertRaises(frappe.PermissionError):
+				make(
+					recipients="recipient@example.com",
+					content="test",
+					subject="test",
+					sender="spoofed@example.com",
+					send_email=1,
+					**args,
+				)
+
+>>>>>>> 14ff352 (fix(email): add fallback perm. check in absence of doc & name)
 	def test_mark_as_spam(self):
 		frappe.get_doc(
 			{
