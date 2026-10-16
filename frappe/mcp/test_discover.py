@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 import frappe
 from frappe.api import discovery
-from frappe.core.doctype.user.user import generate_keys
 from frappe.mcp.test_utils import McpTestCase
 from frappe.mcp.tools.discover import LAYOUT_FIELDTYPES, PERMISSION_TYPES
 
@@ -30,15 +29,10 @@ class TestDiscover(McpTestCase):
 
 	@contextmanager
 	def manager(self):
-		user = "mcp.manager@example.com"
-		if not frappe.db.exists("User", user):
-			frappe.get_doc(
-				doctype="User", email=user, first_name="MCP Manager", send_welcome_email=0
-			).insert()
+		user, authorization = self.create_user("MCP Manager")
 		frappe.get_doc("User", user).add_roles("System Manager")
-		keys = generate_keys(user)
 		original = self.authorization
-		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		self.authorization = authorization
 		try:
 			yield
 		finally:
@@ -219,4 +213,8 @@ class TestDiscover(McpTestCase):
 		result = self.result("search_doctypes", {"query": "%"})
 		names = [row["name"] for row in result["doctypes"]]
 		self.assertLessEqual(len(names), 50)
-		self.assertEqual(names, sorted(names))
+		# Database collation can sort mixed-case names differently from Python.
+		expected = frappe.get_all(
+			"DocType", filters={"name": ["in", names]}, pluck="name", order_by="name asc"
+		)
+		self.assertEqual(names, expected)

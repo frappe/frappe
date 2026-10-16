@@ -179,10 +179,18 @@ class TestCallMethod(McpTestCase):
 
 	def test_method_request_is_restored_after_error(self):
 		request = frappe._dict(method="POST")
-		with patch.object(frappe.local, "request", request, create=True):
+		missing = object()
+		original_request = getattr(frappe.local, "request", missing)
+		frappe.local.request = request
+		try:
 			with self.assertRaises(frappe.ValidationError), method_request(get_method):
 				self.assertEqual(request.method, "GET")
 				raise frappe.ValidationError("Failed GET-only call")
+		finally:
+			if original_request is missing:
+				del frappe.local.request
+			else:
+				frappe.local.request = original_request
 		self.assertEqual(request.method, "POST")
 
 	def test_server_script_response_and_dispatch(self):

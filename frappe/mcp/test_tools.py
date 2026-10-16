@@ -35,13 +35,15 @@ class TestToolSchema(UnitTestCase):
 		self.assertEqual(ExampleArguments(doctype="ToDo", args=args).args, args)
 
 	def test_definitions_follow_current_site_without_caching_identity(self):
+		original_site = frappe.local.site
 		for site in ("accounts.example.com", "support.example.com", "accounts.example.com"):
-			with self.subTest(site=site), patch.object(frappe.local, "site", site, create=True):
+			with self.subTest(site=site), patch.object(frappe.local, "site", site):
 				for tool in tools.registry():
 					definition = tool.definition()
 					self.assertTrue(definition["description"].startswith(f"Site: {site}. "))
 					self.assertEqual(definition["name"], tool.name)
 					self.assertIs(definition["inputSchema"], tool.input_schema)
+		self.assertEqual(frappe.local.site, original_site)
 
 
 class TestToolExecution(McpTestCase):
