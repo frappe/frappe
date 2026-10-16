@@ -123,8 +123,12 @@
 		}
 	}
 
+	&:not(.dock-owns-utilities) .dock-utilities {
+		display: none;
+	}
+
 	.dock-logo + .dock-utilities:empty + .dock-items,
-	body:not(.dock-pinned) & .dock-logo + .dock-utilities + .dock-items {
+	&:not(.dock-owns-utilities) .dock-logo + .dock-utilities + .dock-items {
 		margin-top: calc(var(--spacing) * -1);
 		padding-top: calc(var(--spacing) * 3);
 	}
@@ -143,10 +147,6 @@
 		flex-direction: column;
 		align-items: center;
 		gap: calc(var(--spacing) * 0.5);
-
-		body:not(.dock-pinned) & {
-			display: none;
-		}
 
 		&:not(:empty) {
 			padding-bottom: calc(var(--spacing) * 3);
