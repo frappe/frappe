@@ -1000,10 +1000,15 @@ frappe.ui.Sidebar = class Sidebar {
 	open_dock_entry(entry) {
 		if (!entry) return;
 
+		const route = this.dock_entry_route(entry);
+		if (route && !this.is_desk_route(route)) {
+			window.open(route, "_blank", "noopener");
+			return;
+		}
+
 		// Select the shell first, so the sidebar is right when the route lands.
 		if (entry.module) this.select_shell(entry.module);
 
-		const route = this.dock_entry_route(entry);
 		if (route) frappe.set_route(route);
 	}
 

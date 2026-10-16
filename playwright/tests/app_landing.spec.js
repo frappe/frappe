@@ -150,3 +150,70 @@ test.describe("The header's Apps menu on a touch screen", () => {
 		await expect(page).toHaveURL((url) => url.pathname === "/me");
 	});
 });
+
+test.describe("Opening a dock entry", () => {
+	test.beforeEach(async ({ page, desk }) => {
+		await open_desk(page, desk);
+	});
+
+	test("opens a web address in a new tab and stays on the desk", async ({ page }) => {
+		const result = await page.evaluate(() => {
+			const opened = [];
+			const original = window.open;
+			window.open = (url, target, features) => {
+				opened.push({ url, target, features });
+				return null;
+			};
+			const before = window.location.pathname;
+			frappe.app.sidebar.open_dock_entry({
+				link_type: "URL",
+				url: "https://example.com",
+			});
+			window.open = original;
+			return { opened, pathname: window.location.pathname, before };
+		});
+
+		expect(result.opened).toEqual([
+			{ url: "https://example.com", target: "_blank", features: "noopener" },
+		]);
+		expect(result.pathname).toBe(result.before);
+	});
+
+	test("opens a sidebar whose first item is a web address in a new tab", async ({ page }) => {
+		const result = await page.evaluate(() => {
+			const opened = [];
+			const original = window.open;
+			window.open = (url, target, features) => {
+				opened.push(url);
+				return null;
+			};
+			frappe.boot.module_sidebars["Outside"] = {
+				name: "Outside",
+				items: [{ type: "Link", link_type: "URL", url: "https://example.com" }],
+			};
+			const before = window.location.pathname;
+			frappe.app.sidebar.open_dock_entry({
+				link_type: "Sidebar",
+				link_to: "Outside",
+				module: "Outside",
+			});
+			window.open = original;
+			return { opened, pathname: window.location.pathname, before };
+		});
+
+		expect(result.opened).toEqual(["https://example.com"]);
+		expect(result.pathname).toBe(result.before);
+	});
+
+	test("still opens a desk sidebar entry inside the desk", async ({ page }) => {
+		await page.evaluate(() =>
+			frappe.app.sidebar.open_dock_entry({
+				link_type: "Sidebar",
+				link_to: "Email",
+				module: "Email",
+			})
+		);
+
+		await expect(page).toHaveURL((url) => url.pathname === EMAIL_LANDING);
+	});
+});
