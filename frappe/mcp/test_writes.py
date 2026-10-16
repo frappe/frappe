@@ -4,6 +4,7 @@
 from unittest.mock import Mock, patch
 
 import frappe
+from frappe import _
 from frappe.api import v2
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.mcp.test_utils import McpTestCase
@@ -163,7 +164,7 @@ class TestWriteDocument(McpTestCase):
 			original_on_update(doc)
 			frappe.db.after_commit.add(callback)
 			frappe.db.after_rollback.add(cleanup)
-			frappe.throw("Update hook failed")
+			frappe.throw(_("Update hook failed"))
 
 		with patch.object(ToDo, "on_update", on_update):
 			response = self.write(
@@ -236,7 +237,7 @@ class TestWriteDocument(McpTestCase):
 
 		def after_insert(doc):
 			frappe.db.after_commit.add(callback)
-			frappe.throw("Create hook failed")
+			frappe.throw(_("Create hook failed"))
 
 		with patch.object(ToDo, "after_insert", after_insert, create=True):
 			response = self.write(

@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 from pydantic import Field
 
 import frappe
+from frappe import _
 from frappe.mcp import protocol, tools
 from frappe.mcp.test_utils import McpTestCase
 from frappe.tests import UnitTestCase
@@ -208,7 +209,7 @@ class TestToolExecution(McpTestCase):
 	def test_failure_rolls_back_document_write(self):
 		def handler(**kwargs):
 			frappe.get_doc(doctype="ToDo", description="MCP failed tool fixture").insert()
-			frappe.throw("<b>Tool failed</b>")
+			frappe.throw(_("<b>Tool failed</b>"))
 
 		response = self.call({"doctype": "ToDo"}, handler)
 		self.assertTrue(response.json["result"]["isError"])
