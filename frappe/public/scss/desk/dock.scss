@@ -244,7 +244,7 @@ body.dock-pinned .dock {
 	.dock-items {
 		width: calc(100% + var(--spacing) * 5.5);
 		margin-inline: calc(var(--spacing) * -2.75);
-		padding-bottom: var(--spacing);
+		padding-block: var(--spacing);
 		min-height: 0;
 		overflow-y: auto;
 		scrollbar-width: none;
