@@ -112,6 +112,7 @@ class StudioApp(WebsiteGenerator):
 		frappe.db.commit()
 		context.csrf_token = csrf_token
 		context.no_cache = 1
+		context.site_name = frappe.local.site
 
 		context.app_name = self.app_name
 		context.app_route = self.route
