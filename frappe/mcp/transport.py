@@ -5,6 +5,7 @@
 import base64
 import binascii
 import json
+from dataclasses import dataclass
 from typing import Any
 
 import orjson
@@ -17,41 +18,67 @@ from frappe.mcp.protocol import McpError
 from frappe.permissions import SYSTEM_USER_ROLE
 
 
+@dataclass
+class RequestContext:
+	"""What `error_response` needs to answer in the same JSON-RPC envelope as the request."""
+
+	id: str | int | None = None
+	version: str = protocol.LEGACY_VERSION
+	method: str | None = None
+
+
 def handle_request(request: Request) -> Response:
-	request_id = None
-	version = protocol.LEGACY_VERSION
-	try:
-		if request.method != "POST":
-			raise McpError(protocol.INVALID_REQUEST, _("Only POST is supported"), status=405)
-		check_origin(request)
-		if frappe.session.user == "Guest":
-			raise McpError(protocol.INVALID_REQUEST, _("Authentication required"), status=401)
-		if SYSTEM_USER_ROLE not in frappe.get_roles():
-			raise McpError(protocol.INVALID_REQUEST, _("MCP is only available to desk users"), status=403)
-		if not request.is_json:
-			raise McpError(protocol.INVALID_REQUEST, _("Content-Type must be application/json"), status=415)
-		if not request.accept_mimetypes["application/json"]:
-			raise McpError(protocol.INVALID_REQUEST, _("Accept must allow application/json"), status=406)
+	"""Errors propagate to `frappe.app`, which rolls back and responds with `error_response`."""
+	context = frappe.local.mcp_request = RequestContext()
+	if request.method != "POST":
+		raise McpError(protocol.INVALID_REQUEST, _("Only POST is supported"), status=405)
+	check_origin(request)
+	if frappe.session.user == "Guest":
+		raise McpError(protocol.INVALID_REQUEST, _("Authentication required"), status=401)
+	if SYSTEM_USER_ROLE not in frappe.get_roles():
+		raise McpError(protocol.INVALID_REQUEST, _("MCP is only available to desk users"), status=403)
+	if not request.is_json:
+		raise McpError(protocol.INVALID_REQUEST, _("Content-Type must be application/json"), status=415)
+	if not request.accept_mimetypes["application/json"]:
+		raise McpError(protocol.INVALID_REQUEST, _("Accept must allow application/json"), status=406)
 
-		payload = parse_body(request)
-		request_id = payload.get("id")
-		params = payload.get("params", {})
-		version = request_version(request, params)
-		if version == protocol.LATEST_VERSION:
-			check_headers(request, payload, params)
-			check_metadata(params)
+	payload = parse_body(request)
+	context.id = payload.get("id")
+	params = payload.get("params", {})
+	context.version = request_version(request, params)
+	if context.version == protocol.LATEST_VERSION:
+		check_headers(request, payload, params)
+		check_metadata(params)
 
-		if "id" not in payload:
-			# Notifications never execute a tool and never receive a JSON-RPC response.
-			return Response(status=202)
+	if "id" not in payload:
+		# Notifications never execute a tool and never receive a JSON-RPC response.
+		return Response(status=202)
 
-		result = server.dispatch(payload["method"], params, version)
-		return json_response(protocol.result_envelope(request_id, result, version))
-	except McpError as error:
-		response = json_response(protocol.error_envelope(request_id, error, version), error.status)
-		if error.status == 405:
-			response.headers["Allow"] = "POST"
-		return response
+	context.method = payload["method"]
+	result = server.dispatch(context.method, params, context.version)
+	return json_response(protocol.result_envelope(context.id, result, context.version))
+
+
+def error_response(error: Exception) -> Response:
+	context: RequestContext = frappe.local.mcp_request
+	if not isinstance(error, McpError):
+		if context.method == "tools/call":
+			# A failed tool is a tool result, so the model can read the error and recover.
+			from frappe.mcp.tools import error_result
+
+			result = error_result(str(error) or type(error).__name__)
+			return json_response(protocol.result_envelope(context.id, result, context.version))
+
+		status = getattr(error, "http_status_code", 500)
+		message = str(error) if status < 500 and str(error) else _("Internal error")
+		error = McpError(protocol.INTERNAL_ERROR, message, status=status)
+
+	response = json_response(
+		protocol.error_envelope(context.id, error, context.version), error.http_status_code
+	)
+	if error.http_status_code == 405:
+		response.headers["Allow"] = "POST"
+	return response
 
 
 def parse_body(request: Request) -> dict[str, Any]:

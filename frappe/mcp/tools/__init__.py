@@ -137,14 +137,8 @@ def call(params: dict) -> dict:
 	except ValidationError as error:
 		return error_result(validation_message(error))
 
-	try:
-		with form_dict(arguments.model_dump()):
-			result = success_result(tool.handler(**frappe.form_dict))
-	except Exception as error:
-		# Tool errors are returned as results; roll back before the POST request can commit.
-		frappe.db.rollback()
-		result = error_result(str(error) or type(error).__name__)
-	return result
+	with form_dict(arguments.model_dump()):
+		return success_result(tool.handler(**frappe.form_dict))
 
 
 @contextmanager

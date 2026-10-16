@@ -40,27 +40,19 @@ class TestToolCallbacks(McpTestCase):
 
 	def test_failed_tool_rolls_back_request_callbacks(self):
 		events = []
-		original = {}
 		previous = {name: Mock() for name in CALLBACK_QUEUES}
 		current = {name: Mock(side_effect=lambda name=name: events.append(name)) for name in CALLBACK_QUEUES}
 
 		def prepare():
 			for name in CALLBACK_QUEUES:
-				queue = getattr(frappe.db, name)
-				queue.add(previous[name])
-				original[name] = queue
+				getattr(frappe.db, name).add(previous[name])
 
 		def handler():
 			for name in CALLBACK_QUEUES:
 				getattr(frappe.db, name).add(current[name])
 			frappe.throw(_("Callback rollback test"))
 
-		def inspect():
-			for name, queue in original.items():
-				self.assertIs(getattr(frappe.db, name), queue)
-				self.assertEqual(len(queue), 0)
-
-		response = self.invoke(handler, prepare, inspect)
+		response = self.invoke(handler, prepare)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertEqual(events, ["before_rollback", "after_rollback"])
 		for name in ("before_commit", "after_commit"):

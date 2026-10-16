@@ -112,6 +112,30 @@ class TestMcpTransport(McpTestCase):
 			],
 		)
 
+	def test_unexpected_error_uses_json_rpc_envelope(self):
+		with patch("frappe.mcp.server.server_configuration", side_effect=ZeroDivisionError("secret")):
+			response = self.request(
+				{
+					"jsonrpc": "2.0",
+					"id": 7,
+					"method": "initialize",
+					"params": {
+						"protocolVersion": protocol.LEGACY_VERSION,
+						"capabilities": {},
+						"clientInfo": {"name": "test", "version": "1"},
+					},
+				}
+			)
+		self.assertEqual(response.status_code, 500)
+		self.assertEqual(
+			response.json,
+			{
+				"jsonrpc": "2.0",
+				"id": 7,
+				"error": {"code": protocol.INTERNAL_ERROR, "message": "Internal error"},
+			},
+		)
+
 	def test_origin(self):
 		self.assertEqual(self.ping(headers={"Origin": "https://untrusted.example.com"}).status_code, 403)
 		self.assertEqual(self.ping(headers={"Origin": "http://localhost"}).status_code, 200)

@@ -21,6 +21,7 @@ PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
 METHOD_NOT_FOUND = -32601
 INVALID_PARAMS = -32602
+INTERNAL_ERROR = -32603
 HEADER_MISMATCH = -32020
 UNSUPPORTED_VERSION = -32022
 
@@ -31,7 +32,7 @@ class McpError(Exception):
 	def __init__(self, code: int, message: str, status: int = 400, data: dict | None = None):
 		super().__init__(message)
 		self.code = code
-		self.status = status
+		self.http_status_code = status
 		self.data = data
 
 
