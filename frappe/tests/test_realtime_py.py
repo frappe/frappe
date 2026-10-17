@@ -806,6 +806,21 @@ class TestDispatch(unittest.IsolatedAsyncioTestCase):
 		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ("x", "y"))
 		self.assertEqual(seen, [("x", "y")])
 
+	async def test_handler_result_answers_the_acknowledgement(self):
+		async def subscribe(socket: Socket) -> dict:
+			return {"subscribed": True}
+
+		self.reg.on("evt")(subscribe)
+		self.reg.on("evt")(lambda s: None)  # a later handler with nothing to say keeps the answer
+		self._session()
+		result = await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		self.assertEqual(result, {"subscribed": True})
+
+	async def test_sync_handler_result_answers_the_acknowledgement(self):
+		self.reg.on("evt")(lambda s: "pong")
+		self._session()
+		self.assertEqual(await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ()), "pong")
+
 
 class TestFrappeContext(unittest.IsolatedAsyncioTestCase):
 	def test_init_rebinds_a_fresh_local(self):
