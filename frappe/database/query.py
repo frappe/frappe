@@ -1078,11 +1078,7 @@ class Engine:
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 
-		if (
-			not meta.has_field(fieldname)
-			and fieldname not in frappe.model.default_fields
-			and fieldname not in frappe.model.child_table_fields
-		):
+		if not meta.has_field(fieldname) and fieldname not in meta.get_valid_columns():
 			frappe.throw(
 				_("Field not found: {0}").format(frappe.bold(f"{doctype}.{fieldname}")),
 				frappe.ValidationError,
