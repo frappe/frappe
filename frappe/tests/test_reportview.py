@@ -402,6 +402,23 @@ class TestReportview(IntegrationTestCase):
 		self.assertEqual(len(message), 1)
 		self.assertIn("You need the 'delete' permission", message[0])
 
+	def test_delete_bulk_keeps_other_permission_errors(self):
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+		with (
+			self.set_user(user.name),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch(
+				"frappe.delete_doc",
+				side_effect=lambda doctype, name: frappe.has_permission(
+					"User", "write", "Administrator", throw=True
+				),
+			),
+		):
+			delete_bulk("Auto Repeat", ["AUT-AR-00001"])
+
+		self.assertIn("No permission for", frappe.message_log[-1].message[0])
+
 	def test_delete_bulk_logs_unexpected_error(self):
 		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
 		with (
