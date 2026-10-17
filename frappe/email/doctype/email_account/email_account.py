@@ -133,6 +133,7 @@ class EmailAccount(Document):
 		use_starttls: DF.Check
 		use_tls: DF.Check
 		validate_ssl_certificate: DF.Check
+		validate_ssl_certificate_for_outgoing: DF.Check
 	# end: auto-generated types
 
 	DOCTYPE = "Email Account"
@@ -594,13 +595,19 @@ class EmailAccount(Document):
 				"conf_names": ("disable_mail_smtp_authentication",),
 				"default": 0,
 			},
+			"validate_ssl_certificate_for_outgoing": {
+				"conf_names": ("validate_ssl_certificate_for_outgoing",),
+				"default": 1,
+			},
 		}
 
 		account_details = {}
 		for doc_field_name, d in field_to_conf_name_map.items():
 			conf_names, default = d.get("conf_names") or [], d.get("default")
 			value = [frappe.conf.get(k) for k in conf_names if frappe.conf.get(k)]
-			account_details[doc_field_name] = (value and value[0]) or default
+			if doc_field_name == "validate_ssl_certificate_for_outgoing" and conf_names[0] in frappe.conf:
+				value = [frappe.conf.get(conf_names[0])]
+			account_details[doc_field_name] = value[0] if value else default
 
 		return account_details
 
@@ -617,6 +624,11 @@ class EmailAccount(Document):
 			"password": None if self.no_smtp_authentication else self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
+			"validate_ssl_certificate": (
+				frappe.db.get_value("Email Domain", self.domain, "validate_ssl_certificate_for_outgoing")
+				if self.get("domain")
+				else self.get("validate_ssl_certificate_for_outgoing")
+			),
 			"use_oauth": self.auth_method == "OAuth" and not self.no_smtp_authentication,
 			"access_token": None if self.no_smtp_authentication else self.get_access_token(),
 		}
