@@ -34,6 +34,10 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
+<<<<<<< HEAD
+=======
+from frappe.utils.background_jobs import get_queue, get_queue_args, get_running_jobs_in_queue
+>>>>>>> a0deefb (fix: RQ Job list fails to load after a queued function is renamed)
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit
@@ -720,6 +724,26 @@ class User(Document):
 
 		self.validate_email_type(new_name)
 
+<<<<<<< HEAD
+=======
+	def validate_no_pending_owner_sweep(self, *names):
+		queue = get_queue("long")
+		pending_names = {
+			job.kwargs["kwargs"].get(key)
+			for job in queue.jobs + get_running_jobs_in_queue(queue)
+			if get_queue_args(job).get("site") == frappe.local.site
+			and job.kwargs.get("method") == "frappe.core.doctype.user.user.rewrite_owner_fields"
+			for key in ("old_name", "new_name")
+		}
+		for name in names:
+			if name in pending_names:
+				throw(
+					_(
+						"A pending rename involving {0} is still being applied. Please try again later."
+					).format(frappe.bold(name))
+				)
+
+>>>>>>> a0deefb (fix: RQ Job list fails to load after a queued function is renamed)
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
 
