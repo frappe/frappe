@@ -127,6 +127,12 @@ def delete(*, kb: str | None = None, source: str | None = None, ids: list[int] |
 	_open_table().delete(" AND ".join(conditions))
 
 
+def rename_kb(old: str, new: str) -> None:
+	"""Move a renamed knowledge base's chunks to its new name."""
+	if table_exists():
+		_open_table().update(where=f"kb = {_quote(old)}", values={"kb": new})
+
+
 def search(
 	vector: list[float],
 	*,

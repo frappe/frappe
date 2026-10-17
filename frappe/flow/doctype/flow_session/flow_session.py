@@ -139,10 +139,10 @@ class FlowSession(Document):
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
+		# no agent name: the callback reads it from this session, which a rename keeps current
 		context = {
 			"site": frappe.local.site,
 			"user": frappe.session.user,
-			"agent": self.agent,
 			"session": self.name,
 		}
 		config = {

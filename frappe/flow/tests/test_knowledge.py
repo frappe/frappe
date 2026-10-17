@@ -641,6 +641,13 @@ class TestIngest(IntegrationTestCase):
 	def _lance_count(self):
 		return store._open_table().count_rows() if store.table_exists() else 0
 
+	def test_a_renamed_knowledge_base_keeps_its_chunks(self):
+		store.ensure_table_for_dimension(DIM)
+		store.add([{**row, "kb": self.kb.name} for row in _rows()])
+		frappe.rename_doc("Flow Knowledge Base", self.kb.name, "Ingest KB Renamed")
+		hits = store.search([1.0, 0.0, 0.0, 0.0], kbs=["Ingest KB Renamed"], limit=5)
+		self.assertEqual(sorted(hit["id"] for hit in hits), [1, 2, 3])
+
 	def test_text_source_ingests_to_both_stores(self):
 		source = self._make_source(content="Wifi keeps dropping on the office network every afternoon. " * 4)
 		self._ingest(source.name)

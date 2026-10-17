@@ -80,6 +80,11 @@ class FlowAgent(Document):
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
 		block_rename(self, old)
 
+	def after_rename(self, old: str, new: str, _merge: bool = False) -> None:
+		from flow.memory import store
+
+		store.rename_agent(old, new)
+
 	def validate(self):
 		self._validate_max_iterations()
 		self._validate_token_budget()

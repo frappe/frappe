@@ -61,6 +61,8 @@ class FlowSkill(Document):
 
 	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
 		block_rename(self, old)
+		if not merge:
+			self._validate_command(new)
 
 	def _validate_description(self):
 		"""Every bound skill's description rides in the agent's prompt, so keep it short."""
@@ -70,11 +72,11 @@ class FlowSkill(Document):
 				title=_("Description Too Long"),
 			)
 
-	def _validate_command(self):
+	def _validate_command(self, title: str | None = None):
 		"""A user-invocable skill answers to /skill:<command>, so its command must be typable and its own."""
 		if not self.user_invocable:
 			return
-		command = skill_command(self.title or "")
+		command = skill_command(title or self.title or "")
 		if not command:
 			frappe.throw(
 				_("A user-invocable skill needs a letter or digit in its title."), title=_("Invalid Title")

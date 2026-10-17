@@ -57,6 +57,25 @@ class TestFlowSkill(IntegrationTestCase):
 		):
 			frappe.get_doc(_skill(title="Pre_flight", user_invocable=1)).insert()
 
+	def test_a_rename_cannot_take_another_skills_command(self):
+		frappe.get_doc(_skill(title="Pre flight", user_invocable=1)).insert()
+		skill = frappe.get_doc(_skill(user_invocable=1)).insert()
+		with self.assertRaisesRegex(
+			frappe.ValidationError, "Pre flight already answers to /skill:pre-flight"
+		):
+			frappe.rename_doc("Flow Skill", skill.name, "Pre-flight")
+
+	def test_a_rename_moves_the_title_along(self):
+		skill = frappe.get_doc(_skill(user_invocable=1)).insert()
+		frappe.rename_doc("Flow Skill", skill.name, "Expense Review")
+		self.assertEqual(frappe.db.get_value("Flow Skill", "Expense Review", "title"), "Expense Review")
+
+	def test_a_user_invocable_skill_can_merge_into_another(self):
+		frappe.get_doc(_skill(title="Pre flight", user_invocable=1)).insert()
+		skill = frappe.get_doc(_skill(user_invocable=1)).insert()
+		frappe.rename_doc("Flow Skill", skill.name, "Pre flight", merge=True)
+		self.assertFalse(frappe.db.exists("Flow Skill", skill.name))
+
 	def test_a_user_invocable_skill_needs_a_typable_title(self):
 		frappe.get_doc(_skill(title="खर्च")).insert()
 		with self.assertRaisesRegex(frappe.ValidationError, "letter or digit"):

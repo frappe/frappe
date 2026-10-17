@@ -99,6 +99,12 @@ class TestFlowAgentMemory(MemoryCase):
 		with self.assertRaises(frappe.ValidationError):
 			frappe.get_doc(_memory(self.agent.name, content="x" * 501)).insert()
 
+	def test_a_renamed_agent_still_finds_its_memories(self):
+		doc = frappe.get_doc(_memory(self.agent.name)).insert()
+		frappe.rename_doc("Flow Agent", self.agent.name, "Memory Test Agent Renamed")
+		found = store.search("Widget", agent="Memory Test Agent Renamed", user=self.user)
+		self.assertEqual(found, [doc.name])
+
 
 class TestSaveMemory(MemoryCase):
 	def test_adds_agent_scope(self):

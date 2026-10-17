@@ -47,6 +47,13 @@ def remove(name: str) -> None:
 		frappe.log_error(title="Agent memory index cleanup failed")
 
 
+def rename_agent(old: str, new: str) -> None:
+	"""Move a renamed agent's memories to its new name."""
+	db = _connect()
+	if TABLE_NAME in db.list_tables().tables:
+		db.open_table(TABLE_NAME).update(where=f"agent = {_quote(old)}", values={"agent": new})
+
+
 def search(query: str, *, agent: str, user: str) -> list[str]:
 	"""Names of the memories relevant to `query`, best first, within `agent` and `user`'s scope."""
 	table = ensure_table()
