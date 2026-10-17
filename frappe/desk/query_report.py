@@ -127,6 +127,7 @@ def generate_report_result(
 	custom_columns=None,
 	is_tree=False,
 	parent_field=None,
+	with_total_row=True,
 ):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -166,7 +167,7 @@ def generate_report_result(
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
-	has_total_row = cint(report.add_total_row) and result and not skip_total_row
+	has_total_row = cint(report.add_total_row) and result and not skip_total_row and with_total_row
 
 	if has_total_row:
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
@@ -295,6 +296,7 @@ def _run(
 	parent_field: str | None = None,
 	are_default_filters: bool = True,
 	js_filters: str | list | None = None,
+	with_total_row: bool = True,
 ) -> dict:
 	if not user:
 		user = frappe.session.user
@@ -335,7 +337,15 @@ def _run(
 			result = get_prepared_report_result(report, filters, dn, user)
 			result["attachments"] = get_attachments("Prepared Report", dn)
 		else:
-			result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
+			result = generate_report_result(
+				report,
+				filters,
+				user,
+				custom_columns,
+				is_tree,
+				parent_field,
+				with_total_row=sbool(with_total_row),
+			)
 			add_data_to_monitor(report=report.reference_report or report.name)
 	except Exception:
 		frappe.log_error("Report execution failed for: {}".format(report_name))
