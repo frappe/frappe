@@ -88,6 +88,7 @@ const actions = computed(() =>
 	(props.spec.actions ?? []).filter((action) => !action.when || action.when(doc.value))
 );
 const multilinks = computed(() => props.spec.fields.filter((field) => field.type === "multilink"));
+const renameField = computed(() => props.spec.fields.find((field) => field.rename)?.name);
 
 function isLocked(field) {
 	return !!field.locked?.(doc.value);
@@ -127,10 +128,10 @@ function onKey(event) {
 onMounted(() => window.addEventListener("keydown", onKey));
 onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 
-function payload() {
-	const value = { ...doc.value, doctype: props.spec.doctype };
+function payload(source = doc.value) {
+	const value = { ...source, doctype: props.spec.doctype };
 	for (const field of multilinks.value)
-		value[field.name] = (doc.value[field.name] ?? []).map((name) => ({ [field.child]: name }));
+		value[field.name] = (source[field.name] ?? []).map((name) => ({ [field.child]: name }));
 	// a JSON column rejects "": an empty editor means no value at all
 	for (const field of props.spec.fields)
 		if (field.language === "json" && !value[field.name]) value[field.name] = null;
@@ -142,17 +143,49 @@ async function save() {
 	saving.value = true;
 	error.value = "";
 	try {
+		const from = doc.value.name;
+		const to = renameTo();
 		const method = isNew.value ? "frappe.client.insert" : "frappe.client.save";
-		const saved = await call(method, { doc: payload() });
+		const saved = to ? await rename(to) : await call(method, { doc: payload() });
 		adopt(saved);
+		if (to) page.renamed(props.spec.doctype, from, to);
 		page.changed(props.spec.doctype);
-		toast.success(method === "frappe.client.insert" ? "Created" : "Saved");
+		toast.success(to ? "Renamed" : method === "frappe.client.insert" ? "Created" : "Saved");
 		emit("saved", saved);
 	} catch (err) {
 		error.value = err.message;
 	} finally {
 		saving.value = false;
 	}
+}
+
+// a saved record is named after its rename field, so changing that field renames it
+function renameTo() {
+	const field = renameField.value;
+	if (isNew.value || !field) return null;
+	const to = (doc.value[field] ?? "").trim();
+	return to && to !== doc.value.name && to !== JSON.parse(original.value)[field] ? to : null;
+}
+
+// the other edits save under the current name first; Frappe's rename then moves every
+// link to the record and sets the field to the new name
+async function rename(to) {
+	const field = renameField.value;
+	const rest = { ...doc.value, [field]: JSON.parse(original.value)[field] };
+	if (JSON.stringify(rest) !== original.value) {
+		const saved = await call("frappe.client.save", { doc: payload(rest) });
+		adopt(saved);
+		// these edits stand even if the rename fails
+		page.changed(props.spec.doctype);
+		emit("saved", saved);
+		doc.value[field] = to;
+	}
+	await call("frappe.client.rename_doc", {
+		doctype: props.spec.doctype,
+		old_name: doc.value.name,
+		new_name: to,
+	});
+	return call("frappe.client.get", { doctype: props.spec.doctype, name: to });
 }
 
 function remove() {

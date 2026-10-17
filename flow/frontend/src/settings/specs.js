@@ -1,5 +1,6 @@
 // What each settings screen edits. A field's `when` hides it, `locked` disables it; both
 // mirror the doctype's own depends_on rules. `child` maps a multi-link to its child table.
+// `rename` marks the field a record is named after: changing it renames the record.
 const enabled = { name: "enabled", label: "Enabled", type: "check" };
 const system = (doc) => !!doc.is_system_generated;
 const saved = (doc) => !!doc.name;
@@ -63,7 +64,7 @@ export const SPECS = {
 		listFields: ["name", "title", "model_id"],
 		subtitle: (doc) => doc.model_id,
 		fields: [
-			{ name: "title", label: "Title", type: "text", required: true, locked: saved },
+			{ name: "title", label: "Title", type: "text", required: true, rename: true },
 			enabled,
 			{
 				name: "provider",
@@ -123,7 +124,14 @@ export const SPECS = {
 		listFields: ["name", "title", "model"],
 		subtitle: (doc) => doc.model,
 		fields: [
-			{ name: "title", label: "Title", type: "text", required: true, locked: saved },
+			{
+				name: "title",
+				label: "Title",
+				type: "text",
+				required: true,
+				rename: true,
+				locked: system,
+			},
 			enabled,
 			{
 				name: "description",
@@ -206,7 +214,14 @@ export const SPECS = {
 		listFields: ["name", "title", "description"],
 		subtitle: (doc) => doc.description,
 		fields: [
-			{ name: "title", label: "Title", type: "text", required: true, locked: saved },
+			{
+				name: "title",
+				label: "Title",
+				type: "text",
+				required: true,
+				rename: true,
+				locked: system,
+			},
 			enabled,
 			{
 				name: "is_global",
@@ -336,7 +351,7 @@ export const SPECS = {
 				? `${doc.agent} · ${doc.cron_expression}`
 				: `${doc.agent} · ${doc.target_doctype} ${doc.doc_event}`,
 		fields: [
-			{ name: "title", label: "Title", type: "text", required: true, locked: saved },
+			{ name: "title", label: "Title", type: "text", required: true, rename: true },
 			enabled,
 			{ name: "agent", label: "Agent", type: "link", link: "Flow Agent", required: true },
 			{
@@ -407,7 +422,14 @@ export const SPECS = {
 		listFields: ["name", "title", "description"],
 		subtitle: (doc) => doc.description,
 		fields: [
-			{ name: "title", label: "Title", type: "text", required: true, locked: saved },
+			{
+				name: "title",
+				label: "Title",
+				type: "text",
+				required: true,
+				rename: true,
+				locked: system,
+			},
 			enabled,
 			{
 				name: "description",

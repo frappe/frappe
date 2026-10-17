@@ -118,6 +118,7 @@ const props = defineProps({ boot: { type: Object, required: true } });
 const page = createPage(props.boot, {
 	refresh: () => store.refreshModels(),
 	sync: (sid) => client.syncSession(sid),
+	renamedModel: (from, to) => store.renamedModel(from, to),
 });
 const socket = connectSocket(props.boot);
 const client = new FrappeClient({

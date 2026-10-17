@@ -1018,6 +1018,13 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
+	// a model the host renamed stays the one a new chat starts with
+	function renamedModel(from, to) {
+		if (state.prefs.lastModel !== from) return
+		state.prefs.lastModel = to
+		savePrefs()
+	}
+
 	async function selectEffort(effort) {
 		const sid = state.sessionId
 		if (!sid) {
@@ -1509,6 +1516,7 @@ export function createFlowStore(client, options = {}) {
 		removeQuote,
 		clearQuotes,
 		selectModel,
+		renamedModel,
 		selectEffort,
 		setMode,
 		setCwd,

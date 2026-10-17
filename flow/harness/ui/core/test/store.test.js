@@ -2181,6 +2181,21 @@ test("a model or thinking level a running chat refuses doesn't become the defaul
 	flow.detach()
 })
 
+test("a model the host renamed stays the one a new chat starts with", (t) => {
+	const stored = []
+	const storage = globalThis.localStorage
+	globalThis.localStorage = { getItem: () => null, setItem: (key, value) => stored.push(value) }
+	t.after(() => (globalThis.localStorage = storage))
+	const flow = createFlowStore({})
+	flow.state.prefs.lastModel = "old/model"
+	flow.renamedModel("other/model", "x/y")
+	assert.equal(flow.state.prefs.lastModel, "old/model")
+	flow.renamedModel("old/model", "new/model")
+	assert.equal(flow.state.prefs.lastModel, "new/model")
+	assert.equal(JSON.parse(stored.at(-1)).lastModel, "new/model")
+	flow.detach()
+})
+
 test("a rewind that answers after a chat switch leaves the other chat's box alone", async () => {
 	let answer
 	const client = hostClient([])
