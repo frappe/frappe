@@ -14,6 +14,11 @@ import { inject } from "vue";
  * @property {(route: string) => void} [navigate]  route the host to one of its
  *           own pages
  * @property {string} [theme]  the host's live theme, added by `mountVueIsland`
+ * @property {(value: any, df: Object, doc?: Object) => string} [format]  a value
+ *           as the host prints a field of `df`'s type, as text
+ * @property {(value: number, df?: Object, doc?: Object) => string} [format_axis_number]
+ *           an axis tick, shortened, in `df`'s unit
+ * @property {boolean} [developer_mode]
  */
 
 /**

@@ -6,7 +6,9 @@
 import path from "node:path";
 
 /** Island name → entry file, relative to `apps/frappe`. */
-export const FRAMEWORK_ISLANDS = {};
+export const FRAMEWORK_ISLANDS = {
+	"frappe.chart": "frappe/public/js/frappe/ui/island/chart/chart.island.js",
+};
 
 /**
  * @param {string} frappeRoot  the `apps/frappe` checkout

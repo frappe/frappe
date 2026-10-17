@@ -69,6 +69,15 @@ repos:
                 frappe/public/js/lib/.*
             )$
 
+  - repo: local
+    hooks:
+      - id: chart-adapter-tests
+        name: Run the chart adapter tests
+        language: system
+        entry: node --test frappe/public/js/frappe/ui/island/chart/legacy_config.test.mjs
+        files: ^frappe/public/js/frappe/ui/island/chart/
+        pass_filenames: false
+
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.23.0
     hooks:
@@ -78,5 +87,5 @@ repos:
 
 ci:
     autoupdate_schedule: weekly
-    skip: []
+    skip: [chart-adapter-tests]
     submodules: false
