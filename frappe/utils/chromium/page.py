@@ -4,12 +4,37 @@ import urllib
 
 import frappe
 from frappe.core.doctype.file.utils import find_file_by_url
+from frappe.storage.blob import served_type
+from frappe.storage.driver import get_driver
+from frappe.storage.serve import find_readable_blob
 from frappe.utils.pdf import get_host_url
 
 """
 CDP commands documentation can be found here.
 https://chromedevtools.github.io/devtools-protocol/
 """
+
+
+def read_blob_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str] | None:
+	"""Return the base64 body and Content-Type of a ``files/`` or
+	``private/files/`` path whose bytes live in a blob the session user can
+	read, else None."""
+	if not clean_path.startswith(("files/", "private/files/")):
+		return None
+	if not (found := find_readable_blob("/" + clean_path, fid)):
+		return None
+	blob, filename = found
+	try:
+		with get_driver(blob.driver).read(blob.key, is_private=bool(blob.is_private)) as stream:
+			content = base64.b64encode(stream.read()).decode()
+	except FileNotFoundError:
+		return None
+	except Exception:
+		# any driver error (an S3 timeout) must fail only this request: raising
+		# here would stop the CDP message reader and with it the whole PDF
+		frappe.log_error(title="PDF Generator could not read a stored file")
+		return None
+	return content, served_type(filename, blob.mime_type)[0]
 
 
 class Page:
@@ -190,6 +215,20 @@ class Page:
 								return_future=True,
 							)
 							return
+					elif stored := read_blob_for_url(clean_path, query_params.get("fid", [None])[0]):
+						# not on disk: a blob on another driver, or a v1 file relocated into a blob
+						content, content_type = stored
+						self.session.send(
+							"Fetch.fulfillRequest",
+							{
+								"requestId": data["request_id"],
+								"responseCode": 200,
+								"responseHeaders": [{"name": "Content-Type", "value": content_type}],
+								"body": content,
+							},
+							return_future=True,
+						)
+						return
 					elif clean_path:
 						self.session.send(
 							"Fetch.failRequest",

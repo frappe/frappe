@@ -696,6 +696,7 @@ def validate_oauth(authorization_header):
 	        authorization_header (list of str): The 'Authorization' header containing the prefix and token
 	"""
 
+	from frappe.app import is_streaming_request
 	from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 	from frappe.integrations.oauth2 import get_oauth_server
 	from frappe.oauth import get_url_delimiter
@@ -711,7 +712,8 @@ def validate_oauth(authorization_header):
 	uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
 	http_method = req.method
 	headers = req.headers
-	body = req.get_data()
+	# a streaming route's body has no size cap; only its handler reads it
+	body = None if is_streaming_request(req) else req.get_data()
 	if req.content_type and "multipart/form-data" in req.content_type:
 		body = None
 
