@@ -381,6 +381,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.add_delete();
 		this.add_duplicate();
 		this.add_new();
+		this.add_web_form_request();
 		this.page.add_divider();
 		this.add_audit_trail();
 		this.add_jump_to_field();
@@ -427,6 +428,25 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+	}
+
+	add_web_form_request() {
+		if (
+			this.frm.is_new() ||
+			!this.frm.perm[0].write ||
+			!frappe.boot.web_form_request_forms[this.frm.doctype]
+		) {
+			return;
+		}
+
+		this.page.add_menu_item(
+			__("Request via Web Form"),
+			() =>
+				frappe.require("web_form_request.bundle.js", () =>
+					new frappe.ui.form.WebFormRequestDialog({ frm: this.frm }).show()
+				),
+			true
+		);
 	}
 
 	add_jump_to_field() {
@@ -743,9 +763,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		return this.get_docstatus() === 2 && this.frm.perm[0].amend && !this.read_only;
 	}
 	has_workflow() {
-		if (this._has_workflow === undefined)
-			this._has_workflow = frappe.model.has_workflow(this.frm.doctype);
-		return this._has_workflow;
+		return frappe.workflow.has_workflow(this.frm.doc);
 	}
 	get_docstatus() {
 		return cint(this.frm.doc.docstatus);
@@ -854,6 +872,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				frappe
 					.xcall("frappe.model.workflow.can_cancel_document", {
 						doctype: this.frm.doc.doctype,
+						docname: this.frm.doc.name,
 					})
 					.then((can_cancel) => {
 						if (can_cancel) {

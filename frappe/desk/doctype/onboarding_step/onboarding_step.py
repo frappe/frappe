@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cstr
 
 
 class OnboardingStep(Document):
@@ -18,7 +19,13 @@ class OnboardingStep(Document):
 		from frappe.types import DF
 
 		action: DF.Literal[
-			"Create Entry", "Update Settings", "Show Form Tour", "View Report", "Go to Page", "View Docs"
+			"Create Entry",
+			"Update Settings",
+			"Show Form Tour",
+			"View Report",
+			"Go to Page",
+			"View Docs",
+			"Complete Onboarding",
 		]
 		action_label: DF.Data | None
 		callback_message: DF.SmallText | None
@@ -30,6 +37,7 @@ class OnboardingStep(Document):
 		is_complete: DF.Check
 		is_single: DF.Check
 		is_skipped: DF.Check
+		module_onboarding: DF.Link | None
 		path: DF.Data | None
 		reference_document: DF.Link | None
 		reference_report: DF.Link | None
@@ -49,18 +57,153 @@ class OnboardingStep(Document):
 		doc.is_complete = 0
 		doc.is_skipped = 0
 
+	def is_done(self) -> bool:
+		"""Ticked off, skipped, or its work already done some other way."""
+		return bool(self.is_complete or self.is_skipped or self.is_work_done())
+
+	def is_work_done(self) -> bool | None:
+		"""Whether what the step asks for has been done, for the steps where that can be read.
+
+		`None` means there is nothing to read: opening a page, a report or a tour is the step itself.
+		A record counts whoever made it, so a Company from the setup wizard or Customers from an
+		import finish their steps without anyone opening the onboarding.
+		"""
+		if self.action == "Complete Onboarding":
+			return self.is_onboarding_done()
+
+		doctype = self.reference_document
+		if not doctype or not frappe.db.exists("DocType", doctype):
+			return None
+
+		# Every site has users nobody invited: Administrator, Guest and whoever ran the setup
+		# wizard. A user existing says nothing about the team being invited.
+		if doctype == "User":
+			return None
+
+		meta = frappe.get_meta(doctype)
+		if self.action == "Create Entry" and not meta.issingle:
+			filters = self.get_record_filters(meta)
+			if meta.is_submittable:
+				filters["docstatus"] = 1
+			return bool(frappe.get_all(doctype, filters=filters, limit=1, pluck="name"))
+
+		if self.action == "Update Settings" and self.validate_action and self.field and meta.issingle:
+			value = frappe.db.get_single_value(doctype, self.field)
+			if self.value_to_validate == "%":
+				return bool(value)
+			return cstr(value) == cstr(self.value_to_validate)
+
+		return None
+
+	def is_onboarding_done(self) -> bool | None:
+		"""Whether the onboarding this step leads to has its required steps done.
+
+		Read one level deep: a step there that leads to yet another onboarding counts only once it
+		is ticked off or skipped, so two onboardings that lead to each other cannot loop.
+		"""
+		if not self.module_onboarding or not frappe.db.exists("Module Onboarding", self.module_onboarding):
+			return None
+
+		onboarding = frappe.get_doc("Module Onboarding", self.module_onboarding)
+		if onboarding.is_complete:
+			return True
+
+		for row in onboarding.steps:
+			if row.is_optional:
+				continue
+			step = frappe.get_doc("Onboarding Step", row.step)
+			if step.action == "Complete Onboarding":
+				done = step.is_complete or step.is_skipped
+			else:
+				done = step.is_done()
+			if not done:
+				return False
+		return True
+
+	def get_record_filters(self, meta) -> dict:
+		"""The step's `route_options`, the defaults its new record opens with, as filters.
+
+		Two steps that create the same doctype differ only in these: "Add a raw material" and "Add
+		the product you make" both make an Item, in different item groups. Keys that are not fields
+		of the doctype are ignored, as are values that are not plain ones.
+		"""
+		options = frappe.parse_json(self.route_options) if self.route_options else None
+		if not isinstance(options, dict):
+			return {}
+
+		return {
+			key: value
+			for key, value in options.items()
+			if meta.has_field(key) and isinstance(value, str | int | float)
+		}
+
+	def throw_if_unfinished(self):
+		if self.is_work_done() is not False:
+			return
+
+		if self.action == "Complete Onboarding":
+			title = frappe.db.get_value("Module Onboarding", self.module_onboarding, "title")
+			frappe.throw(_("Finish {0} to finish this step.").format(_(title)))
+
+		doctype = _(self.reference_document)
+		if self.action == "Update Settings":
+			label = _(frappe.get_meta(self.reference_document).get_label(self.field))
+			frappe.throw(_("Set {0} in {1} to finish this step.").format(label, doctype))
+		elif frappe.get_meta(self.reference_document).is_submittable:
+			frappe.throw(_("Submit a {0} to finish this step.").format(doctype))
+		else:
+			frappe.throw(_("Create a {0} to finish this step.").format(doctype))
+
 
 @frappe.whitelist()
 def get_onboarding_steps(ob_steps: str | list):
-	steps = []
-	for s in frappe.parse_json(ob_steps):
-		doc = frappe.get_doc("Onboarding Step", s.get("step"))
-		step = doc.as_dict().copy()
-		step.label = _(doc.title)
-		if step.action == "Create Entry":
-			step.is_submittable = frappe.db.get_value(
-				"DocType", step.reference_document, "is_submittable", cache=True
-			)
-		steps.append(step)
+	"""Steps as the widget renders them, for someone an onboarding using each of them is for.
 
-	return steps
+	A step's status says whether its work is done anywhere on the site, records the caller may not
+	read included, which is what site-wide progress means. So it goes only to the people who see
+	the step in an onboarding, the same ones who may tick it off.
+	"""
+	from frappe.desk.doctype.module_onboarding.module_onboarding import can_update_step
+
+	steps = frappe.parse_json(ob_steps)
+	for step in steps:
+		if not can_update_step(step.get("step")):
+			frappe.throw(_("You are not allowed to see this onboarding step"), frappe.PermissionError)
+
+	return [get_step_details(s.get("step"), s.get("is_optional")) for s in steps]
+
+
+def get_step_details(name: str, is_optional: bool | int = 0) -> dict:
+	"""A step as the onboarding widget renders it, with its text translated.
+
+	`is_optional` belongs to the onboarding's row, not the step, since a shared step can be
+	optional in one onboarding and required in another."""
+	doc = frappe.get_doc("Onboarding Step", name)
+	step = doc.as_dict().copy()
+	step.is_optional = int(bool(is_optional))
+	step.label = _(doc.title)
+	step.title = _(doc.title)
+	step.description = _(doc.description) if doc.description else None
+	step.action_label = _(doc.action_label) if doc.action_label else None
+	step.is_complete = int(bool(doc.is_complete or doc.is_work_done()))
+	if step.action == "Create Entry":
+		step.is_submittable = frappe.db.get_value(
+			"DocType", step.reference_document, "is_submittable", cache=True
+		)
+		step.can_import = can_import(step.reference_document, step.is_submittable)
+	elif step.action == "Complete Onboarding":
+		# the widget opens this module and shows its icon
+		step.module = frappe.db.get_value("Module Onboarding", step.module_onboarding, "module")
+	return step
+
+
+def can_import(doctype: str, is_submittable: bool | int) -> bool:
+	"""Whether a step can offer to import its records instead of making one.
+
+	Masters like Customers or Items often arrive as a list; a transaction is made one at a time.
+	"""
+	return bool(
+		not is_submittable
+		and frappe.get_meta(doctype).allow_import
+		and frappe.has_permission(doctype, "import")
+	)

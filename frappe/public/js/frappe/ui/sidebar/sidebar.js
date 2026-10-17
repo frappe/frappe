@@ -155,66 +155,6 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 	}
 
-	remove_onboarding_wrapper() {
-		this.$onboarding.empty();
-		this.wrapper.find(".onboarding-sidebar").removeClass("hidden");
-
-		if (!this.sidebar_data?.module_onboarding) {
-			this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-		}
-	}
-
-	setup_onboarding() {
-		let me = this;
-		this.$onboarding = this.wrapper.find(".user-onboarding");
-
-		if (!this.sidebar_data || !this.sidebar_data.module_onboarding) {
-			this.remove_onboarding_wrapper();
-			return;
-		}
-
-		let module_name = this.sidebar_data.module_onboarding;
-
-		if (this?.onboarding_widget[module_name]) {
-			return;
-		}
-
-		this.remove_onboarding_wrapper();
-		if (module_name && !frappe.is_mobile()) {
-			if (
-				this?.onboarding_widget[module_name] &&
-				this.onboarding_widget[module_name].hide_panel
-			) {
-				return;
-			}
-
-			return frappe
-				.call({
-					method: "frappe.desk.desktop.get_onboarding_data",
-					args: {
-						module: module_name,
-					},
-					type: "GET",
-				})
-				.then((data) => {
-					if (data.message?.length > 0) {
-						let onboarding_data = data.message[0];
-						me.onboarding_widget = {};
-						me.onboarding_widget[module_name] = new frappe.ui.UserOnboarding({
-							title: onboarding_data.title,
-							steps: onboarding_data.items,
-							wrapper: me.$onboarding,
-							header_icon: me.sidebar_header.header_icon,
-						});
-					} else {
-						this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-					}
-				});
-		} else {
-			this.wrapper.find(".onboarding-sidebar").addClass("hidden");
-		}
-	}
-
 	nest_section_items() {
 		const me = this;
 		let currentSection = null;
@@ -236,10 +176,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.sidebar_items = updated_items;
 	}
 	setup(current_module) {
-		if (!this.onboarding_widget) {
-			this.onboarding_widget = {};
-		}
-
 		$(document).trigger("sidebar_setup", { sidebar: this });
 		this.current_module = current_module;
 
@@ -249,15 +185,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.make_sidebar();
 		this.add_sidebar_cards();
 		this.setup_promotional_banners();
-		this.setup_onboarding();
-
-		this.wrapper.find(".onboarding-sidebar").click(() => {
-			if (this.sidebar_data?.module_onboarding) {
-				delete this.onboarding_widget[this.sidebar_data.module_onboarding];
-			}
-
-			this.setup_onboarding();
-		});
 	}
 	add_card(card) {
 		if (this.cards && this.cards.find((i) => i.title === card.title)) return;
@@ -437,100 +364,104 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// The user menu, shared by the sidebar's user button and the dock's avatar.
 	create_user_menu({ parent, button, side = "top", align = "start" }) {
-		const me = this;
 		const $btn = button;
-		const $container = parent;
 
 		new frappe.ui.Dropdown({
-			trigger: $container,
+			trigger: parent,
 			side,
 			align,
-			options: [
-				{
-					group: "",
-					options: [
-						{
-							name: "my-space",
-							label: __("My Space"),
-							icon: "user",
-							href: "/desk/private",
-							condition: () => !!frappe.boot.desk_settings.show_my_space,
-						},
-						{
-							name: "settings",
-							label: __("Settings"),
-							icon: "settings",
-							onclick: function () {
-								// Not in the desk bundle, so it is loaded on click.
-								frappe
-									.require("user_settings_dialog.bundle.js")
-									.then(() => frappe.ui.show_user_settings("profile"))
-									.catch((e) => {
-										console.error(
-											"Sidebar: failed to load user_settings_dialog.bundle.js",
-											e
-										);
-										frappe.ui.toast({
-											message: __(
-												"Could not open Settings. Please refresh the page."
-											),
-											type: "error",
-										});
-									});
-							},
-						},
-						{
-							name: "workspace-selector",
-							label: __("Manage Dock"),
-							icon: "monitor",
-							// A module in no app has no dock to arrange.
-							condition: () => !!me.get_sidebar_app(),
-							onclick: function () {
-								// Not in the desk bundle, so it is loaded on click.
-								frappe
-									.require("arrangement_editor.bundle.js")
-									.then(() => new frappe.ui.DockManager())
-									.catch((e) => {
-										console.error(
-											"Sidebar: failed to load arrangement_editor.bundle.js",
-											e
-										);
-										frappe.ui.toast({
-											message: __(
-												"Could not open the dock manager. Please refresh the page."
-											),
-											type: "error",
-										});
-									});
-							},
-						},
-						{
-							name: "reload",
-							label: __("Reload"),
-							icon: "rotate-ccw",
-							onclick: function () {
-								frappe.ui.toolbar.clear_cache();
-							},
-						},
-					],
-				},
-				{
-					group: "",
-					options: [
-						{
-							name: "logout",
-							label: __("Logout"),
-							icon: "log-out",
-							onclick: function () {
-								frappe.app.logout();
-							},
-						},
-					],
-				},
-			],
+			options: this.user_menu_options(),
 			on_open: () => $btn.addClass("user-menu-active"),
 			on_close: () => $btn.removeClass("user-menu-active"),
 		});
+	}
+
+	// Also listed by the phone Profile page (desk/page/profile).
+	user_menu_options() {
+		const me = this;
+		return [
+			{
+				group: "",
+				options: [
+					{
+						name: "my-space",
+						label: __("My Space"),
+						icon: "user",
+						href: "/desk/private",
+						condition: () => !!frappe.boot.desk_settings.show_my_space,
+					},
+					{
+						name: "settings",
+						label: __("Settings"),
+						icon: "settings",
+						onclick: function () {
+							// Not in the desk bundle, so it is loaded on click.
+							frappe
+								.require("user_settings_dialog.bundle.js")
+								.then(() => frappe.ui.show_user_settings("profile"))
+								.catch((e) => {
+									console.error(
+										"Sidebar: failed to load user_settings_dialog.bundle.js",
+										e
+									);
+									frappe.ui.toast({
+										message: __(
+											"Could not open Settings. Please refresh the page."
+										),
+										type: "error",
+									});
+								});
+						},
+					},
+					{
+						name: "workspace-selector",
+						label: __("Manage Dock"),
+						icon: "monitor",
+						// A module in no app has no dock to arrange.
+						condition: () => !!me.get_sidebar_app(),
+						onclick: function () {
+							// Not in the desk bundle, so it is loaded on click.
+							frappe
+								.require("arrangement_editor.bundle.js")
+								.then(() => new frappe.ui.DockManager())
+								.catch((e) => {
+									console.error(
+										"Sidebar: failed to load arrangement_editor.bundle.js",
+										e
+									);
+									frappe.ui.toast({
+										message: __(
+											"Could not open the dock manager. Please refresh the page."
+										),
+										type: "error",
+									});
+								});
+						},
+					},
+					{
+						name: "reload",
+						label: __("Reload"),
+						icon: "rotate-ccw",
+						onclick: function () {
+							frappe.ui.toolbar.clear_cache();
+						},
+					},
+				],
+			},
+			{
+				group: "",
+				options: [
+					{
+						name: "logout",
+						label: __("Logout"),
+						icon: "log-out",
+						onclick: function () {
+							frappe.app.logout();
+						},
+					},
+				],
+			},
+		];
 	}
 
 	highlight_active_item() {
@@ -608,7 +539,8 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// A drawer starts shut; on a desktop the viewer's last choice is kept in this browser.
 	load_expanded_state() {
-		this.sidebar_expanded = !this.panel_can_close() && !this.saved_collapsed_state();
+		this.sidebar_expanded =
+			!this.panel_can_close() && !this.saved_collapsed_state() && !this.folded_for_page;
 	}
 
 	// Storage can be missing or refuse, and then the panel opens whole.
@@ -629,10 +561,9 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
+	// The items list, not a lookup inside the wrapper: the phone's navigation sheet borrows it.
 	empty() {
-		if (this.wrapper.find(".sidebar-items")[0]) {
-			this.wrapper.find(".sidebar-items").html("");
-		}
+		this.$items_container.html("");
 	}
 	make_sidebar() {
 		this.empty();
@@ -656,7 +587,7 @@ frappe.ui.Sidebar = class Sidebar {
 			let no_items_message = $(
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
-			this.wrapper.find(".sidebar-items").append(no_items_message);
+			this.$items_container.append(no_items_message);
 		}
 	}
 	// Search, notifications and background tasks, as rows in a band under the header.
@@ -725,7 +656,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	remove_item(item, index) {}
 
-	// Close the drawer on a click anywhere but the sidebar, the dock or the page's own toggle.
+	// Close the drawer on a click anywhere but the sidebar or the dock.
 	setup_click_away() {
 		$(document)
 			// Rebuilt on some navigations, so drop the old handler instead of stacking another.
@@ -735,7 +666,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// Panels mount beside the sidebar but still belong to it.
 				if (
 					$(e.target).closest(
-						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel, .sidebar-collapse-arrow"
+						".body-sidebar, .dock, .sidebar-panel, .sidebar-collapse-arrow"
 					).length
 				)
 					return;
@@ -783,12 +714,10 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!rail) {
 			this.wrapper.addClass("expanded");
 			this.wrapper.find(".avatar-name-email").show();
-			this.wrapper.find(".onboarding-sidebar span").show();
 			this.wrapper.find(".promotional-banner-title").show();
 		} else {
 			this.wrapper.removeClass("expanded");
 			this.wrapper.find(".avatar-name-email").hide();
-			this.wrapper.find(".onboarding-sidebar span").hide();
 			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
@@ -828,6 +757,23 @@ frappe.ui.Sidebar = class Sidebar {
 	open() {
 		this.sidebar_expanded = true;
 		this.save_collapsed_state(false);
+		this.apply_expanded_state();
+		this.highlight_active_item();
+	}
+
+	fold_for_page() {
+		if (this.folded_for_page) return;
+		this.folded_for_page = true;
+		if (!this.sidebar_expanded) return;
+		this.sidebar_expanded = false;
+		if (this.wrapper) this.apply_expanded_state();
+	}
+
+	unfold_after_leaving_page() {
+		if (!this.folded_for_page) return;
+		this.folded_for_page = false;
+		this.load_expanded_state();
+		if (!this.sidebar_expanded || !this.wrapper) return;
 		this.apply_expanded_state();
 		this.highlight_active_item();
 	}
@@ -887,6 +833,9 @@ frappe.ui.Sidebar = class Sidebar {
 	shell_can_show(shell, route, { listed_only = false } = {}) {
 		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
 
+		// A shared page counts as listed in every shell.
+		if (frappe.router.page_info_for(route)?.shared_page) return true;
+
 		const entity = this.entity_from_route(route);
 		if (!entity) return false;
 
@@ -901,6 +850,9 @@ frappe.ui.Sidebar = class Sidebar {
 	// The shell a URL for this route should name: the URL's own if it can show the route, then the
 	// one on screen, then the server's map.
 	shell_for_route(route) {
+		// A system page opens in no shell, so the sidebar on screen is left as it is.
+		if (frappe.router.page_info_for(route)?.system_page) return null;
+
 		// A private page's shell is its owner's, whatever module it is filed under.
 		if (route[0] === "Workspaces" && route[1] === "private") {
 			const name = route[2];
@@ -925,11 +877,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// A jump was not made from the shell on screen, so sharing an app is not enough to stay.
 		// Nor is a row in the Private shell, which is a shortcut and not where the entity belongs.
+		// A shared page belongs in every shell, Private included, so it stays there too.
 		const listed_only = frappe.router.is_jump;
-		const on_screen =
-			listed_only && this.current_module === frappe.ui.PRIVATE_SHELL
-				? null
-				: this.current_module;
+		const leaves_private =
+			listed_only &&
+			this.current_module === frappe.ui.PRIVATE_SHELL &&
+			!frappe.router.page_info_for(route)?.shared_page;
+		const on_screen = leaves_private ? null : this.current_module;
 		if (on_screen && this.shell_can_show(on_screen, route, { listed_only })) return on_screen;
 
 		return this.canonical_shell_for(route);
@@ -1048,7 +1002,6 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// Select the shell first, so the sidebar is right when the route lands.
 		if (entry.module) this.select_shell(entry.module);
-		this.open();
 
 		const route = this.dock_entry_route(entry);
 		if (route) frappe.set_route(route);
@@ -1059,16 +1012,25 @@ frappe.ui.Sidebar = class Sidebar {
 		return ["link_type", "link_to", "url"].map((f) => entry[f] || "").join("|");
 	}
 
-	// Where an app's icon leads: its declared route, else its first rail entry, else its first
-	// navigable module.
+	// An app's icon always leads into the app: an app with its own UI outside the desk opens that,
+	// and a desk app opens the first entry of the rail its user arranged that stays in the desk.
 	app_landing_route(app) {
 		if (!app) return null;
-		if (app.app_route) return app.app_route;
+		if (app.app_route && !this.is_desk_route(app.app_route)) return app.app_route;
 
-		const [entry] = this.collect_dock_entries(app);
-		if (entry) return this.dock_entry_route(entry);
+		for (const entry of this.collect_dock_entries(app)) {
+			if (entry.link_type === "URL") continue;
+			const route = this.dock_entry_route(entry);
+			if (route && this.is_desk_route(route)) return route;
+		}
 
-		return this.module_landing_route(this.first_navigable_module(app));
+		return app.app_route || this.module_landing_route(this.first_navigable_module(app));
+	}
+
+	// `/app` is the desk's old prefix, which still redirects to `/desk`.
+	is_desk_route(route) {
+		const [root] = route.replace(/^\//, "").split("/");
+		return ["desk", "app"].includes(root);
 	}
 
 	// One definition, so the icon and the button cannot disagree.
@@ -1132,7 +1094,9 @@ frappe.ui.Sidebar = class Sidebar {
 			canonical: this.canonical_shell_for(route),
 			resolved: this.shell_for_route(route),
 		};
-		info.reason = !info.resolved
+		info.reason = frappe.router.page_info_for(route)?.system_page
+			? "a system page opens in no shell"
+			: !info.resolved
 			? "the route names no entity, so nothing decides a shell"
 			: info.resolved === info.shell_in_url
 			? `the URL names "${info.shell_in_url}" and it can show this route`

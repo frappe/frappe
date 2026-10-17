@@ -188,7 +188,7 @@ def _make_request(
 	) -> dict:
 		res = await get_http_client().request(
 			method,
-			get_url(origin, path, config),
+			get_url(path, config),
 			params=params or {},
 			json=body,
 			headers=headers,

@@ -244,7 +244,11 @@ def get_permitted_fields(
 	)
 
 	if permission_type == "select":
-		return [*meta.default_fields, *permitted_fields]
+		select_fields = [*meta.default_fields, *permitted_fields]
+		# the User list needs this to show the status; at permlevel 0 it can already be filtered on
+		if doctype == "User" and meta.get_field("enabled").permlevel == 0:
+			select_fields.append("enabled")
+		return select_fields
 
 	valid_columns = set(valid_columns)
 	result = [

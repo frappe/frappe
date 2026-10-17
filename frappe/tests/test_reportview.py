@@ -4,8 +4,10 @@
 import json
 
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import (
 	_reorder_by_visible_names,
+	append_totals_row,
 	export_query,
 	extract_fieldnames,
 	get,
@@ -85,6 +87,19 @@ class TestReportview(IntegrationTestCase):
 		self.assertTrue(frappe.response["filename"].endswith(".csv"))
 		self.assertEqual(frappe.response["type"], "binary")
 
+	def test_append_totals_row_uses_min_and_max_for_min_and_max_aggregates(self):
+		fields = [
+			"`tabToDo`.`status`",
+			{"SUM": "`tabToDo`.`idx`", "as": "_aggregate_column"},
+			{"MIN": "`tabToDo`.`idx`", "as": "_aggregate_column_1"},
+			"max(`tabToDo`.`idx`) as _aggregate_column_2",
+		]
+		data = [("Open", 10, 3, 10), ("Closed", 20, 1, 20), ("Cancelled", None, None, None)]
+
+		totals = append_totals_row(data, fields)[-1]
+
+		self.assertEqual(totals, ["Total", 30, 1, 20])
+
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
@@ -111,6 +126,76 @@ class TestReportview(IntegrationTestCase):
 						self.assertEqual(int(row["Is Single"]), 1)
 						self.assertEqual(row["Module"], "Core")
 
+	def exported_rows(self):
+		from csv import reader
+		from io import StringIO
+
+		return list(reader(StringIO(frappe.response["filecontent"].decode("utf-8"))))
+
+	def make_exporter(self, if_owner=0):
+		"""A user whose only export permission on ToDo comes from a test role."""
+		from frappe.permissions import update_permission_property
+
+		update_permission_property("ToDo", "All", 0, "export", 1)
+		update_permission_property("ToDo", "All", 0, "if_owner", if_owner)
+		frappe.clear_cache(doctype="ToDo")
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		frappe.get_doc(doctype="Role", role_name="_Test Exporter").insert(ignore_if_duplicate=True)
+		return create_user("exporter@example.com", "_Test Exporter").name
+
+	def export_grouped_status(self, names):
+		frappe.local.form_dict = frappe._dict(
+			doctype="ToDo",
+			file_format_type="CSV",
+			fields=json.dumps(["status", {"COUNT": "name", "as": "count"}]),
+			filters=json.dumps([["name", "in", names]]),
+			group_by="status",
+			order_by="status asc",
+		)
+		export_query()
+
+	def test_export_has_only_the_requested_columns(self):
+		with self.set_user(self.make_exporter()):
+			self.assertTrue(frappe.permissions.can_export("ToDo"))
+			todo = self.make_todo("Plain export")
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo",
+				file_format_type="CSV",
+				fields=json.dumps(["name", "description"]),
+				filters=json.dumps([["name", "=", todo.name]]),
+			)
+			export_query()
+			self.assertEqual(len(self.exported_rows()[0]), 3)
+
+	def test_grouped_export_has_no_owner_column(self):
+		with self.set_user(self.make_exporter()):
+			todos = [self.make_todo(f"Grouped export {i}") for i in range(3)]
+			frappe.db.set_value("ToDo", todos[0].name, "status", "Closed")
+			self.export_grouped_status([todo.name for todo in todos])
+			header, *rows = self.exported_rows()
+			self.assertEqual(len(header), 3)
+			self.assertEqual({row[1]: int(row[2]) for row in rows}, {"Closed": 1, "Open": 2})
+
+	def test_owner_only_export_checks_rows_but_leaves_out_the_owner(self):
+		with self.set_user(self.make_exporter(if_owner=1)):
+			self.assertFalse(frappe.permissions.can_export("ToDo"))
+			todo = self.make_todo("Own export")
+			frappe.local.form_dict = frappe._dict(
+				doctype="ToDo",
+				file_format_type="CSV",
+				fields=json.dumps(["name", "description"]),
+				filters=json.dumps([["name", "=", todo.name]]),
+			)
+			export_query()
+			self.assertEqual(len(self.exported_rows()[0]), 3)
+
+			others = [self.make_todo(f"Own grouped export {i}") for i in range(2)]
+			frappe.db.set_value("ToDo", others[0].name, "status", "Closed")
+			self.export_grouped_status([todo.name, *(other.name for other in others)])
+			header, *rows = self.exported_rows()
+			self.assertEqual(len(header), 3)
+			self.assertEqual({row[1]: int(row[2]) for row in rows}, {"Closed": 1, "Open": 2})
+
 	def test_reorder_by_visible_names(self):
 		fields = ["`tabDocType`.`name`", "`tabDocType`.`module`"]
 		ret = [
@@ -127,6 +212,20 @@ class TestReportview(IntegrationTestCase):
 		ret_no_name = [("Core",), ("Website",)]
 		unchanged = _reorder_by_visible_names(ret_no_name, fields_without_name, "DocType", ["x"])
 		self.assertEqual(unchanged, ret_no_name)
+
+	def test_reorder_by_visible_names_keeps_duplicate_name_child_rows(self):
+		fields = ["`tabDocType`.`name`", "`tabDocField`.`fieldname`"]
+		ret = [
+			("DocType", "module"),
+			("DocType", "istable"),
+			("DocField", "label"),
+		]
+		visible_names = ["DocType", "DocType", "DocField"]
+		reordered = _reorder_by_visible_names(ret, fields, "DocType", visible_names)
+		self.assertEqual(
+			reordered,
+			[("DocType", "module"), ("DocType", "istable"), ("DocField", "label")],
+		)
 
 	def test_export_query_preserves_visible_names_order(self):
 		from csv import DictReader
@@ -147,6 +246,41 @@ class TestReportview(IntegrationTestCase):
 			rows = list(DictReader(buf))
 		names_in_export = [row["ID"] for row in rows if row.get("ID") in desired_order]
 		self.assertEqual(names_in_export, desired_order)
+
+	def test_export_query_keeps_distinct_child_rows(self):
+		from csv import reader
+		from io import StringIO
+
+		members = ["test_rv_a@example.com", "test_rv_b@example.com", "test_rv_c@example.com"]
+		for email in members:
+			create_user(email)
+		exporter = create_user("test_rv_export@example.com")
+
+		group = frappe.get_doc(
+			{
+				"doctype": "User Group",
+				"name": "Report Export Child Rows",
+				"user_group_members": [{"user": email} for email in members],
+			}
+		).insert()
+		self.addCleanup(group.delete)
+
+		with self.set_user(exporter.name):
+			frappe.local.form_dict = frappe._dict(
+				doctype="User Group",
+				file_format_type="CSV",
+				fields=["`tabUser Group`.`name`", "`tabUser Group Member`.`user`"],
+				filters={"name": group.name},
+				# client sends the parent name once per visible child row
+				visible_names=json.dumps([group.name] * len(members)),
+			)
+			export_query()
+
+		with StringIO(frappe.response["filecontent"].decode("utf-8")) as buf:
+			rows = list(reader(buf))[1:]
+
+		exported_members = [cell for row in rows for cell in row if cell in set(members)]
+		self.assertEqual(sorted(exported_members), sorted(members))
 
 	def test_extract_fieldname(self):
 		self.assertEqual(
@@ -333,3 +467,33 @@ class TestReportview(IntegrationTestCase):
 			allocated_to=frappe.session.user,
 			assigned_by=frappe.session.user,
 		).insert()
+
+	def test_get_with_multiple_group_by_and_aggregates(self):
+		user = create_user("test_reportview_group_by@example.com", "System Manager")
+		with self.set_user(user.name):
+			frappe.local.form_dict = frappe._dict(
+				doctype="User",
+				fields=[
+					"`tabUser`.`user_type`",
+					"`tabUser`.`enabled`",
+					{"COUNT": "`tabUser`.`name`", "as": "_aggregate_column"},
+					{"SUM": "`tabUser`.`simultaneous_sessions`", "as": "_aggregate_column_1"},
+				],
+				group_by="`tabUser`.`user_type`, `tabUser`.`enabled`",
+				order_by="_aggregate_column desc",
+			)
+			result = get()
+			expected = frappe.get_list(
+				"User",
+				fields=[
+					"user_type",
+					"enabled",
+					{"COUNT": "*", "as": "count"},
+					{"SUM": "simultaneous_sessions", "as": "total"},
+				],
+				group_by="user_type, enabled",
+				as_list=True,
+			)
+
+		self.assertEqual(result["keys"], ["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"])
+		self.assertEqual(sorted(map(tuple, result["values"])), sorted(map(tuple, expected)))

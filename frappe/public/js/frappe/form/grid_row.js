@@ -475,11 +475,11 @@ export default class GridRow {
 				},
 			],
 			secondary_action_label: __("Select All"),
-			secondary_action: () => this.select_all_columns(docfields),
+			secondary_action: () => d.fields_dict.fields.select_all(),
 		});
 
-		d.set_primary_action(__("Add"), () => {
-			let selected_fields = d.get_values().fields;
+		d.set_primary_action(__("Add"), (values) => {
+			let selected_fields = values.fields;
 			const existing_settings = {};
 			this.selected_columns_for_grid.forEach((col) => {
 				existing_settings[col.fieldname] = col;
@@ -510,17 +510,6 @@ export default class GridRow {
 		});
 
 		d.show();
-	}
-
-	select_all_columns(docfields) {
-		docfields.forEach((docfield) => {
-			if (docfield.checked) {
-				return;
-			}
-			$(`.checkbox.unit-checkbox input[type="checkbox"][data-unit="${docfield.value}"]`)
-				.prop("checked", true)
-				.trigger("change");
-		});
 	}
 
 	prepare_columns_for_dialog(selected_fields) {
@@ -1281,8 +1270,16 @@ export default class GridRow {
 							this.grid.set_focus_on_row();
 						}, 100);
 					} else {
-						this.grid.grid_rows[this.doc.idx].toggle_editable_row();
-						this.grid.set_focus_on_row(this.doc.idx);
+						const next_idx = this.doc.idx;
+						const next_row = this.grid.grid_rows[next_idx];
+						if (!next_row) {
+							return;
+						}
+
+						field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+							next_row.toggle_editable_row();
+							this.grid.set_focus_on_row(next_idx);
+						});
 						return false;
 					}
 				}
@@ -1307,7 +1304,20 @@ export default class GridRow {
 				if (is_first_column) {
 					const ri = this.grid.get_current_row(e.target);
 					if (ri == 0) return;
-					this.grid.grid_rows[ri - 1].toggle_editable_row(true);
+
+					const prev_row = this.grid.grid_rows[ri - 1];
+					if (!prev_row) {
+						return;
+					}
+
+					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+						prev_row.toggle_editable_row(true);
+						prev_row.row
+							.find('input[type="Text"],textarea,select')
+							.filter(":visible:last")
+							.focus();
+					});
+					return false;
 				}
 			}
 		});

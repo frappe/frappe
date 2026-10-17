@@ -217,6 +217,7 @@ class PostgresExceptionUtil:
 
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
+	MAX_COLUMN_LENGTH = 63
 	default_port = "5432"
 	_transaction_has_schema_changes = False
 

@@ -116,7 +116,9 @@ class ListFilter(Document):
 			valid_fields = _get_valid_filter_fields(self.reference_doctype)
 			if self.filters:
 				parsed_filters = frappe.parse_json(self.filters)
-				self.filters = json.dumps(_sanitize_filters(parsed_filters, valid_fields))
+				self.filters = json.dumps(
+					_sanitize_filters(parsed_filters, valid_fields, self.reference_doctype)
+				)
 			if self.columns:
 				parsed_columns = frappe.parse_json(self.columns)
 				self.columns = json.dumps(_sanitize_columns(parsed_columns, valid_fields))
@@ -213,11 +215,18 @@ def _get_valid_filter_fields(reference_doctype: str) -> set[str]:
 	return valid_fields
 
 
-def _sanitize_filters(filters, valid_fields: set[str]) -> list:
+def _sanitize_filters(filters, valid_fields: set[str], reference_doctype: str) -> list:
 	if not isinstance(filters, list):
 		return []
+	table_doctypes = {df.options for df in frappe.get_meta(reference_doctype).get_table_fields()}
 	return [
-		row for row in filters if isinstance(row, (list, tuple)) and len(row) > 1 and row[1] in valid_fields
+		row
+		for row in filters
+		if isinstance(row, (list, tuple))
+		and len(row) > 1
+		and (
+			row[1] in valid_fields or (row[0] in table_doctypes and frappe.get_meta(row[0]).has_field(row[1]))
+		)
 	]
 
 

@@ -567,12 +567,17 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 						r.image = doc.get(meta.image_field)
 					if meta.title_field:
 						r.title = doc.get(meta.title_field)
-					if doc.has_permission():
+					if frappe.has_permission(r.doctype, doc=doc):
 						sorted_results.append(r)
 				except Exception:
 					frappe.clear_messages()
 
 	return sorted_results
+
+
+WEB_SEARCH_MAX_SEGMENTS = 5
+WEB_SEARCH_MAX_LIMIT = 100
+WEB_SEARCH_MAX_TEXT_LENGTH = 1000
 
 
 @frappe.whitelist(allow_guest=True)  # nosemgrep
@@ -588,8 +593,12 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 
 	from frappe.query_builder.custom import build_fts5_prefix_query
 
+	limit = max(0, min(cint(limit), WEB_SEARCH_MAX_LIMIT))
+	start = max(0, cint(start))
+	text = (text or "")[:WEB_SEARCH_MAX_TEXT_LENGTH]
+
 	results = []
-	texts = text.split("&")
+	texts = list(dict.fromkeys(t for t in text.split("&") if t.strip()))[:WEB_SEARCH_MAX_SEGMENTS]
 	for search_text in texts:
 		common_query = """ SELECT `doctype`, `name`, `content`, `title`, `route`
 			FROM `__global_search`
@@ -639,7 +648,7 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 		r.relevance = words_match
 
 	results = sorted(results, key=lambda x: x.relevance, reverse=True)
-	return results
+	return results[:WEB_SEARCH_MAX_LIMIT]
 
 
 def get_distinct_words(text):

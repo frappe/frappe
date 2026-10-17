@@ -2505,6 +2505,39 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` IS NULL AND `tabDocType`.`parent`<>''",
 		)
 
+	def test_none_inside_in_list(self):
+		self.assertQueryEqual(
+			frappe.qb.get_query(
+				"ToDo", filters=[["status", "not in", ["Cancelled", None]]], db_query_compat=True
+			).get_sql(),
+			"SELECT `name` FROM `tabToDo` WHERE IFNULL(`status`,'') NOT IN ('Cancelled','')",
+		)
+
+		self.assertIn("IS NULL", frappe.qb.get_query("ToDo", filters=[["date", "in", [None]]]).get_sql())
+
+		with self.set_user("test2@example.com"):
+			todo = frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"description": "None in list",
+					"status": "Open",
+					"date": frappe.utils.today(),
+				}
+			).insert()
+			self.addCleanup(todo.delete)
+
+			for fieldname, operator, value, matches in (
+				("status", "not in", ["Cancelled", None], True),
+				("status", "in", ["Open", None], True),
+				("status", "in", [None], False),
+				("date", "not in", [None], True),
+			):
+				with self.subTest(fieldname=fieldname, operator=operator, value=value):
+					names = frappe.get_list(
+						"ToDo", filters=[["name", "=", todo.name], [fieldname, operator, value]], pluck="name"
+					)
+					self.assertEqual(bool(names), matches)
+
 	def test_field_alias_in_group_by(self):
 		query = frappe.qb.get_query(
 			"User",
@@ -3341,12 +3374,26 @@ class TestQuery(IntegrationTestCase):
 
 		query = frappe.qb.get_query("Doctype", offset=10).get_sql()
 		if frappe.db.db_type != "postgres":
-			self.assertIn(f"LIMIT {MAX_LIMIT} OFFSET 10", query)
+			no_limit = -1 if frappe.db.db_type == "sqlite" else MAX_LIMIT
+			self.assertIn(f"LIMIT {no_limit} OFFSET 10", query)
 			query = frappe.qb.get_query("Doctype", limit=10, offset=10).get_sql()
 			self.assertIn("LIMIT 10 OFFSET 10", query)
 		else:
 			self.assertNotIn("LIMIT", query)
 			self.assertIn("OFFSET 10", query)
+
+	def test_get_list_with_offset_and_no_limit(self):
+		with self.set_user("test2@example.com"):
+			for _ in range(12):
+				frappe.get_doc({"doctype": "ToDo", "description": "_Test offset without limit"}).insert()
+			query = {
+				"filters": {"description": "_Test offset without limit"},
+				"order_by": "name",
+				"pluck": "name",
+			}
+			names = frappe.get_list("ToDo", **query)
+			self.assertEqual(frappe.get_list("ToDo", offset=10, **query), names[10:])
+			self.assertEqual(len(names[10:]), 2)
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_build_filter_conditions_escapes_backslash_safely(self):

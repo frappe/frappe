@@ -78,7 +78,8 @@ class TestTypstGate(IntegrationTestCase):
 	def test_format_level_blockers(self):
 		self.assertIn("Custom HTML format", typst_blockers(self.pf(custom_format=1), layout_with()))
 		self.assertIn(
-			"Not a builder format", typst_blockers(self.pf(print_format_builder_beta=0), layout_with())
+			"Not made in the Print Format Editor",
+			typst_blockers(self.pf(print_format_builder_beta=0), layout_with()),
 		)
 		self.assertIn(
 			"Custom CSS in the Style box", typst_blockers(self.pf(css=".x { color: red }"), layout_with())

@@ -22,6 +22,7 @@ Copilot
 dafrose
 dankgarlic1
 dependabot[bot]
+FawazAlhafiz
 frappe-pr-bot
 gajjug004
 gavindsouza
@@ -29,6 +30,7 @@ g-sowani
 harshp4114
 HenningWendtland
 humedi
+jacob-salvi
 karm1000
 kaulith
 KerollesFathy
@@ -45,6 +47,7 @@ priyanshshah2442
 rameensh
 revant
 Rl0007
+rtdany10
 ruchiigadgil
 SaiFi0102
 shubhdoshi21

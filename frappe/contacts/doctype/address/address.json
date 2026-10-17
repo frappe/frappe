@@ -3,6 +3,7 @@
  "allow_import": 1,
  "allow_rename": 1,
  "creation": "2013-01-10 16:34:32",
+ "description": "A postal address of a customer, supplier, company or contact.",
  "doctype": "DocType",
  "document_type": "Setup",
  "documentation": "https://docs.frappe.io/erpnext/user/manual/en/address",
@@ -38,6 +39,7 @@
    "allow_in_quick_entry": 1,
    "fieldname": "address_title",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Address Title",
    "mandatory_depends_on": "eval:!doc.links?.length"
   },
@@ -60,6 +62,7 @@
   {
    "fieldname": "address_line2",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Address Line 2",
    "length": 240
   },
@@ -81,6 +84,7 @@
    "allow_in_quick_entry": 1,
    "fieldname": "state",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "State/Province"
   },
   {
@@ -97,6 +101,7 @@
    "allow_in_quick_entry": 1,
    "fieldname": "pincode",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Postal Code",
    "search_index": 1
   },
@@ -108,12 +113,14 @@
   {
    "fieldname": "email_id",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Email Address",
    "options": "Email"
   },
   {
    "fieldname": "phone",
    "fieldtype": "Data",
+   "in_import_template": 1,
    "label": "Phone",
    "options": "Phone"
   },
@@ -126,12 +133,14 @@
    "default": "0",
    "fieldname": "is_primary_address",
    "fieldtype": "Check",
+   "in_import_template": 1,
    "label": "Preferred Billing Address"
   },
   {
    "default": "0",
    "fieldname": "is_shipping_address",
    "fieldtype": "Check",
+   "in_import_template": 1,
    "label": "Preferred Shipping Address"
   },
   {
@@ -149,6 +158,7 @@
   {
    "fieldname": "links",
    "fieldtype": "Table",
+   "in_import_template": 1,
    "label": "Links",
    "options": "Dynamic Link"
   }

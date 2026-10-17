@@ -50,6 +50,7 @@
 				</Button>
 				<Button
 					tooltip="Clear All Filters"
+					aria-label="Clear All Filters"
 					class="relative rounded-l-none border-l focus-visible:z-10"
 					icon="lucide-x"
 					@click.stop="clearAll(close)"
@@ -104,6 +105,7 @@
 							class="flex"
 							variant="ghost"
 							icon="lucide-x"
+							aria-label="Remove filter"
 							@click="removeFilter(i)"
 						/>
 					</template>

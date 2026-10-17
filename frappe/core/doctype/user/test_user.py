@@ -14,6 +14,8 @@ import frappe.exceptions
 from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
+	bulk_add_roles,
+	bulk_remove_roles,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -22,15 +24,17 @@ from frappe.core.doctype.user.user import (
 	update_password,
 	verify_password,
 )
+from frappe.database import get_db
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, get_url, now_datetime
+from frappe.utils import add_to_date, get_url, now_datetime, sha256_hash
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -119,6 +123,58 @@ class TestUser(IntegrationTestCase):
 
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
+
+	def insert_user_as_manager(self, first_name, username=None):
+		if frappe.session.user == "Administrator":
+			manager = frappe.get_doc(
+				doctype="User",
+				email=f"{frappe.generate_hash()}@example.com",
+				first_name="Manager",
+				roles=[{"role": "System Manager"}],
+			).insert()
+			frappe.set_user(manager.name)
+
+		return frappe.get_doc(
+			doctype="User",
+			email=f"{frappe.generate_hash()}@example.com",
+			first_name=first_name,
+			username=username,
+		).insert()
+
+	def test_username_from_a_taken_first_name(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		first = self.insert_user_as_manager(first_name)
+		self.insert_user_as_manager("Decoy", username=f"{base}-\u00b2")
+		second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(first.username, base)
+		self.assertEqual(second.username, f"{base}-1")
+
+	def test_username_from_a_first_name_taken_with_accents(self):
+		suffix = frappe.generate_hash(length=8)
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}")
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}-1")
+		user = self.insert_user_as_manager(f"Jose{suffix}")
+
+		self.assertTrue(user.username)
+
+	def test_username_taken_while_the_user_is_saved(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		self.insert_user_as_manager(first_name)
+		other = self.insert_user_as_manager("Other")
+		validate_username = User.validate_username
+
+		def taken_meanwhile(user):
+			validate_username(user)
+			frappe.db.set_value("User", other.name, "username", user.username)
+
+		with patch.object(User, "validate_username", taken_meanwhile):
+			second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(second.username, f"{base}-2")
+		self.assertFalse([m for m in frappe.message_log if "unique" in str(m)])
 
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
@@ -673,16 +729,36 @@ class TestUser(IntegrationTestCase):
 		self.assertEqual(frappe.message_log[0].get("message"), _GENERIC_MSG)
 
 	def test_user_onload_modules(self):
+		"""The editor lists custom modules, and keeps a blocked module even after it is deleted"""
 		from frappe.desk.form.load import getdoc
-		from frappe.utils.modules import get_modules_from_all_apps
 
-		frappe.response.docs = []
-		getdoc("User", "Administrator")
-		doc = frappe.response.docs[0]
-		self.assertListEqual(
-			sorted(doc.get("__onload").get("all_modules", [])),
-			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
-		)
+		for name in ("_Test Site Module", "_Test Gone Module"):
+			frappe.get_doc({"doctype": "Module Def", "module_name": name, "custom": 1}).insert(
+				ignore_if_duplicate=True
+			)
+
+		with test_user(roles=["System Manager"]) as admin, test_user(roles=["_Test Role 2"]) as user:
+			user.append("block_modules", {"module": "_Test Gone Module"})
+			user.save()
+			frappe.delete_doc("Module Def", "_Test Gone Module", force=True)
+			self.assertFalse(frappe.db.exists("Module Def", "_Test Gone Module"))
+
+			with self.set_user(admin.name):
+				frappe.response.docs = []
+				getdoc("User", user.name)
+				all_modules = frappe.response.docs[0].get("__onload").get("all_modules")
+
+		self.assertIn("Core", all_modules)
+		self.assertIn("_Test Site Module", all_modules)
+		self.assertIn("_Test Gone Module", all_modules)
+
+	def test_user_onload_modules_hidden_from_normal_user(self):
+		from frappe.desk.form.load import getdoc
+
+		with test_user(roles=["_Test Role 2"]) as user, self.set_user(user.name):
+			frappe.response.docs = []
+			getdoc("User", user.name)
+			self.assertNotIn("all_modules", frappe.response.docs[0].get("__onload"))
 
 	def test_default_app(self):
 		from frappe.apps import get_default_path
@@ -711,6 +787,173 @@ class TestUser(IntegrationTestCase):
 			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
+
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		other = get_db(
+			socket=frappe.db.socket,
+			host=frappe.db.host,
+			user=frappe.db.user,
+			password=frappe.db.password,
+			port=frappe.db.port,
+			cur_db_name=frappe.db.cur_db_name,
+		)
+		self.addCleanup(other.close)
+
+		with test_user(roles=[], commit=True) as user:
+			key = self.reset_password(user)
+			hashed_key = sha256_hash(key)
+			# the second connection only sees committed rows
+			frappe.db.commit()  # nosemgrep
+
+			set_request(path="/random")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+
+			def competing_request(*args):
+				# a second request with the same key can neither take it nor wait for it
+				with patch.object(frappe.local, "db", other):
+					with self.assertRaises(frappe.QueryTimeoutError):
+						frappe.db.get_value(
+							"User", {"reset_password_key": hashed_key}, for_update=True, wait=False
+						)
+					frappe.db.rollback()
+
+				# clearing sessions commits mid-request; the key must already be gone by then
+				frappe.db.commit()  # nosemgrep
+				with patch.object(frappe.local, "db", other):
+					self.assertFalse(frappe.db.exists("User", {"reset_password_key": hashed_key}))
+					frappe.db.rollback()
+				return False
+
+			with patch.object(user_module, "is_password_reused", side_effect=competing_request) as probe:
+				self.assertEqual(update_password("Eastern_43A1W", key=key), "me")
+			probe.assert_called_once()
+			frappe.set_user("Administrator")
+
+	@contextmanager
+	def outgoing_email_account(self):
+		exists = frappe.db.exists
+
+		def exists_with_outgoing_account(doctype, *args, **kwargs):
+			if doctype == "Email Account":
+				return "Test Outgoing Account"
+			return exists(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "exists", side_effect=exists_with_outgoing_account):
+			yield
+
+	def test_second_save_of_new_user_does_not_send_password_changed_alert(self):
+		"""Social login inserts the user through add_roles and saves it again in the same request."""
+		frappe.set_user("Guest")
+		user: User = frappe.new_doc(
+			"User",
+			email="oauth-signup@example.com",
+			first_name="OAuth",
+			user_type="Website User",
+			new_password=frappe.generate_hash(),
+		)
+		user.flags.ignore_permissions = True
+		user.flags.no_welcome_mail = True
+		try:
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.add_roles("_Test Role")
+				user.save()
+
+			sendmail.assert_not_called()
+		finally:
+			frappe.set_user("Administrator")
+			user.delete(force=True, ignore_permissions=True)
+
+	def test_password_change_by_user_still_sends_password_changed_alert(self):
+		with test_user(roles=["_Test Role"]) as created:
+			frappe.set_user(created.name)
+			user: User = frappe.get_doc("User", created.name)
+			user.new_password = "Eastern_43A1W_changed"
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.save()
+
+			sendmail.assert_called_once()
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
+			frappe.set_user("Administrator")
+
+	def test_bulk_add_roles(self):
+		"""Roles are appended across the selection without disturbing existing ones."""
+		with (
+			test_user(roles=["_Test Role"]) as first,
+			test_user(roles=["Website Manager"]) as second,
+		):
+			bulk_add_roles([first.name, second.name], ["_Test Role 4", "_Test Role"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["_Test Role", "_Test Role 4"])
+			self.assertCountEqual(
+				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "_Test Role"]
+			)
+
+	def test_bulk_remove_roles(self):
+		"""Roles are stripped across the selection, leaving other roles intact."""
+		with (
+			test_user(roles=["_Test Role", "Website Manager"]) as first,
+			test_user(roles=["_Test Role"]) as second,
+		):
+			bulk_remove_roles([first.name, second.name], ["_Test Role", "_Test Role 4"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+			self.assertCountEqual([d.role for d in second.roles], [])
+
+			bulk_remove_roles([], ["Website Manager"])
+			bulk_remove_roles([first.name], [])
+
+			first.reload()
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+
+	def test_bulk_role_endpoints_enqueue_large_batches(self):
+		"""Over 20 users, each endpoint defers to its own background job."""
+		users = [f"bulk{i}@example.com" for i in range(21)]
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_add_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._assign_roles")
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_remove_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._unassign_roles")
+
+	def test_bulk_role_args_are_validated(self):
+		"""Parsed arguments must be lists of plain strings, within the batch cap."""
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([{"name": ["!=", ""]}], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles(["someone@example.com"], [{"role": ["!=", ""]}])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_remove_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+	def test_bulk_role_endpoints_require_write_permission(self):
+		with test_user(roles=["_Test Role 4"]) as actor, test_user(roles=["_Test Role 4"]) as target:
+			with self.set_user(actor.name):
+				with self.assertRaises(frappe.PermissionError):
+					bulk_add_roles([target.name], ["Website Manager"])
+
+				with self.assertRaises(frappe.PermissionError):
+					bulk_remove_roles([target.name], ["_Test Role 4"])
 
 
 class TestImpersonation(FrappeAPITestCase):

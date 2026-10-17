@@ -19,7 +19,7 @@ class TestEmailTemplate(IntegrationTestCase):
 			subject="Hello {{ name }}",
 			response="Hi {{ name }}",
 		).insert(set_name="_Test Text Email Template")
-		user = create_user("email_template_reader@example.com", "Blogger")
+		user = create_user("email_template_reader@example.com", "Desk User")
 
 		with self.set_user(user.name):
 			html = get_email_template(html_template.name, {"name": "test@example.com"})

@@ -147,6 +147,8 @@
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
 		margin-bottom: 2px;
+		-webkit-user-select: none;
+		user-select: none;
 
 		.sidebar-item-control {
 			.drop-icon {
@@ -183,6 +185,7 @@
 			cursor: pointer;
 			// `ml-2` from the glyph; `flex: 1` above is what pushes a suffix to the row's far end
 			margin-left: 8px;
+			padding-right: calc(var(--spacing) * 2);
 		}
 
 		// A group's heading is `text-base`, one step up from the rows it names. It is set here
@@ -229,7 +232,6 @@
 		margin: calc(var(--spacing) * 2) 0;
 	}
 
-	.onboarding-sidebar,
 	.promotional-banner {
 		text-decoration: none;
 		font-size: var(--text-sm);
@@ -356,9 +358,10 @@
 			.indent + .nested-container {
 				margin-left: 0;
 				border-left: none;
+				padding-left: 0;
 
-				.sidebar-item-container {
-					margin-left: 0;
+				.item-anchor {
+					padding-left: calc(var(--spacing) * 2);
 				}
 			}
 		}
@@ -598,12 +601,16 @@
 	}
 }
 
+// The rule runs down the middle of the group's icon (row padding plus half the 16px icon), and
+// the rows below it start their text where the group's own label starts.
 .indent + .nested-container {
-	margin-left: calc(var(--spacing) * 2 + 1px);
+	margin-left: calc(var(--spacing) * 4 - 1px);
 	border-left: 1px solid var(--outline-gray-1);
+	// Keeps a hovered or active row's fill off the rule; the anchor gives the gap back to the text.
+	padding-left: calc(var(--spacing) * 1.5);
 
-	.sidebar-item-container {
-		margin-left: var(--spacing);
+	.standard-sidebar-item .item-anchor {
+		padding-left: calc(var(--spacing) * 0.5);
 	}
 }
 
@@ -657,9 +664,6 @@
 	}
 }
 
-// The sidebar keeps everything it owns. The dock used to carry the header's menu, the user button,
-// search and notifications, and the sidebar's own copies were switched off to stop the pair saying
-// the same thing twice down one edge. That traded on the dock being the surface that is always
-// there. It is not -- it is a push at the edge away -- so a sidebar stripped to bare labels would be
-// a permanent surface missing its furniture for the sake of a hidden one, and nothing is taken off
-// it here. Nor does `dock-active` change where the sidebar starts: the dock floats over it.
+// The sidebar keeps its header menu and user button beside a dock. Search and notifications move
+// onto the dock (see dock.scss). `dock-active` does not change where the sidebar starts: the dock
+// floats over it.

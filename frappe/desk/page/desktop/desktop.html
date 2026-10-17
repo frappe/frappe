@@ -8,6 +8,7 @@
                 alt="{{ _("App Logo") |e }}"
             >
         </div>
+        <p class="desktop-navbar-title">{{ _("Desktop") }}</p>
         {% if (show_search_bar) %}
             <div class="search-widget-wrapper input-group search-bar">
                 <button id="search-widget-button" class="btn-reset search-widget-button"
@@ -58,4 +59,7 @@
                 {{ _("Save") }}
             </button>
     </div>
+    {% if desktop_layout is defined %}
+        <div class="hidden" id="desktop-layout">{{ desktop_layout |e }}</div>
+    {% endif %}
 </div>

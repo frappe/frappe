@@ -288,8 +288,11 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 				item.name = _(item.get("name", "Not Specified"))
 
 	if data:
+		empty_label = (
+			_("No {0}").format(_(group_by_field_field.label)) if group_by_field_field else _("Not Set")
+		)
 		return {
-			"labels": [item.name for item in data],
+			"labels": [item.name or empty_label for item in data],
 			"datasets": [{"name": _(chart.name), "values": [item["count"] for item in data]}],
 		}
 	return None
@@ -355,6 +358,7 @@ class DashboardChart(Document):
 		custom_options: DF.Code | None
 		document_type: DF.Link | None
 		dynamic_filters_json: DF.Code | None
+		empty_state_message: DF.SmallText | None
 		filters_json: DF.Code
 		from_date: DF.Date | None
 		group_by_based_on: DF.Literal[None]

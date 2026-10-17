@@ -32,7 +32,6 @@
 				:label="__('Cell padding')"
 				:model-value="table_cell_padding"
 				:base="7"
-				unit="px"
 				:placeholder="__('auto')"
 				allow-empty
 				@update:model-value="set_cell_padding"
@@ -40,7 +39,6 @@
 			<StepperRow
 				:label="__('Radius')"
 				:model-value="table_radius"
-				unit="px"
 				:placeholder="__('none')"
 				allow-empty
 				@update:model-value="set_table_radius"
@@ -50,7 +48,6 @@
 				:model-value="table_min_height"
 				:base="100"
 				:step="10"
-				unit="px"
 				:placeholder="__('auto')"
 				allow-empty
 				@update:model-value="(v) => set_field_prop('table_min_height', v)"
@@ -144,6 +141,7 @@
 									/>
 								</div>
 								<draggable
+									v-if="col.merged_fields?.length"
 									:list="col.merged_fields"
 									handle=".pfb-merge-drag"
 									:animation="150"
@@ -167,7 +165,7 @@
 											>
 											<select
 												v-if="!is_image_merge(mf)"
-												class="pfb-insp-select"
+												class="form-control form-control-sm pfb-insp-select"
 												style="width: 104px; flex: none"
 												v-model="mf.style"
 												:title="__('Text style')"
@@ -185,7 +183,6 @@
 													sm
 													:min="16"
 													:value="col.image_size || 40"
-													unit="px"
 													@decrement="adjust_image_size(col, -4)"
 													@increment="adjust_image_size(col, 4)"
 													@input="(v) => set_image_size(col, v)"
@@ -491,7 +488,7 @@ function set_image_size(col, value) {
 .pfb-col-add-row.top {
 	padding: 8px 14px;
 	border-top: none;
-	border-bottom: 1px solid var(--gray-100);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .pfb-col-editor .pfb-merge-drag {
@@ -511,13 +508,13 @@ function set_image_size(col, value) {
 }
 
 .pfb-merge-direction {
-	padding: 8px 14px 10px;
-	border-top: 1px solid var(--gray-100);
+	padding: 8px 16px 10px;
+	border-top: 1px solid var(--border-color);
 }
 
 .pfb-col-cond {
-	padding: 8px 14px 10px;
-	border-top: 1px solid var(--gray-100);
+	padding: 8px 16px 10px;
+	border-top: 1px solid var(--border-color);
 }
 
 .pfb-row-cond {

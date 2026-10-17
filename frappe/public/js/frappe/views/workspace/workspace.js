@@ -410,7 +410,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
 				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
-				// this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
+				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
@@ -1294,7 +1294,7 @@ frappe.views.Workspace = class Workspace {
 				callback: (r) => {
 					if (r.message) {
 						let message = __("Workspace {0} created", [new_page.title.bold()]);
-						if (!window.Cypress) {
+						if (!navigator.webdriver) {
 							frappe.show_alert({
 								message: message,
 								indicator: "green",
@@ -1315,13 +1315,9 @@ frappe.views.Workspace = class Workspace {
 						// because the rail lists the entries an app's `Dock` record
 						// names, and a new workspace reaches the shell through its module's
 						// sidebar instead.
-						//
-						// A private page shows in the Private shell, which is its home whatever
-						// module it was filed under. The module says where else it appears, and
-						// landing there instead would move you out of the shell you were in.
 						const module = new_page.public
 							? frappe.app.sidebar.module_for_workspace(new_page.name)
-							: frappe.ui.PRIVATE_SHELL;
+							: me.shell_for_private_page(new_page.name);
 						if (module) {
 							frappe.app.sidebar.setup(module);
 						}
@@ -1333,6 +1329,18 @@ frappe.views.Workspace = class Workspace {
 		});
 	}
 
+	// A private page is listed in Private and in its module's shell. It stays in the shell on
+	// screen when that is one of them.
+	shell_for_private_page(name) {
+		const sidebar = frappe.app.sidebar;
+		const shells = sidebar.get_modules_linking(name, "Workspace");
+		if (shells.includes(sidebar.current_module)) return sidebar.current_module;
+
+		return (
+			shells.find((shell) => shell !== frappe.ui.PRIVATE_SHELL) || frappe.ui.PRIVATE_SHELL
+		);
+	}
+
 	setup_pages(all_pages) {
 		all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
@@ -1340,6 +1348,8 @@ frappe.views.Workspace = class Workspace {
 		});
 
 		if (all_pages) {
+			// The router resolves `/desk/private/<title>` against this list.
+			frappe.boot.allowed_workspaces = all_pages;
 			frappe.workspaces = {};
 			frappe.workspace_list = [];
 			frappe.workspace_map = {};
@@ -1511,7 +1521,7 @@ frappe.views.Workspace = class Workspace {
 							page.is_layout_customized = 1;
 							me.discard = true;
 							me.reload();
-							if (window.Cypress) return;
+							if (navigator.webdriver) return;
 							frappe.show_alert({
 								message: __("Saved"),
 								indicator: "green",

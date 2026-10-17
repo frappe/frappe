@@ -11,6 +11,7 @@ from frappe.desk.query_report import (
 	build_xlsx_data,
 	export_query,
 	format_fields,
+	get_script,
 	run,
 )
 from frappe.tests import IntegrationTestCase
@@ -25,6 +26,63 @@ class TestQueryReport(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def test_user_facing_error(self):
+		from frappe.desk.query_report import get_user_facing_error
+
+		thrown = "Traceback (most recent call last):\n  File 'x.py', line 1\n{}"
+
+		# frappe.throw messages are written for the reader, flattened to plain text
+		self.assertEqual(
+			"Row 6: 1 / 0 divides by zero. Check the divisor first.",
+			get_user_facing_error(
+				thrown.format(
+					"frappe.exceptions.ValidationError: Row 6: <strong>1 / 0</strong>"
+					" divides by zero.<br>Check the divisor first."
+				)
+			),
+		)
+		# the same message once frappe has stripped its markup (worker stdin is a tty)
+		self.assertEqual(
+			"Please select a Company.",
+			get_user_facing_error(
+				thrown.format("frappe.exceptions.MandatoryError: Please select a Company.")
+			),
+		)
+		# an app defines its own exceptions, and those messages are written for the reader too
+		self.assertEqual(
+			"Accounts payable is frozen.",
+			get_user_facing_error(
+				thrown.format("erpnext.exceptions.PartyFrozen: Accounts payable is frozen.")
+			),
+		)
+		# the exception class is dropped whatever raised it
+		self.assertEqual(
+			"unsupported operand type(s) for /: 'int' and 'str'",
+			get_user_facing_error(
+				thrown.format("TypeError: unsupported operand type(s) for /: 'int' and 'str'")
+			),
+		)
+		# nothing to say when the exception carried no message
+		self.assertEqual("", get_user_facing_error(thrown.format("frappe.exceptions.ValidationError")))
+		self.assertEqual("", get_user_facing_error(None))
+		# errors stored as plain text, like a stalled report timing out, are kept whole
+		self.assertEqual("Report timed out.", get_user_facing_error("Report timed out."))
+		# no markup survives, so nothing reaches the page as HTML
+		self.assertEqual(
+			"alert(1)",
+			get_user_facing_error(thrown.format("frappe.exceptions.ValidationError: <b>alert(1)</b>")),
+		)
+		# escaped entities are read as text, so they have to be decoded back
+		self.assertEqual(
+			"unsupported operand type(s) for +: 'float' & 'str'",
+			get_user_facing_error(
+				thrown.format(
+					"frappe.exceptions.ValidationError: unsupported operand type(s)"
+					" for +: &apos;float&apos; &amp; &apos;str&apos;"
+				)
+			),
+		)
 
 	def test_save_report_accepts_native_columns_and_filters(self):
 		from frappe.desk.query_report import save_report
@@ -231,6 +289,28 @@ class TestQueryReport(IntegrationTestCase):
 		custom_report.delete()
 		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
 			run(report.name, filters)
+
+	def test_get_script_quotes_report_name(self):
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		user = create_user("test_report_script_reader@example.com", "Website Manager")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Today's ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"is_standard": "No",
+				"roles": [{"role": "Website Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		with self.set_user(user.name):
+			script = get_script(report.name)["script"]
+
+		self.assertEqual(script, f'frappe.query_reports["{report.name}"]={{}}')
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""

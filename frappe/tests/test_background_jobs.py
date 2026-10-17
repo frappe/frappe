@@ -9,14 +9,17 @@ from werkzeug.local import Local
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
+from frappe.core.doctype.rq_worker.rq_worker import RQWorker
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,
 	RQ_RESULTS_TTL,
+	FrappeBaseWorker,
 	create_job_id,
 	execute_job,
 	generate_qname,
+	get_queue,
 	get_queues_timeout,
 	get_redis_conn,
 )
@@ -59,6 +62,19 @@ class TestBackgroundJobs(IntegrationTestCase):
 		self.assertEqual(timeouts["long"], 1500)
 		self.assertLessEqual(builtin, set(timeouts))
 
+	def test_worker_reregisters_after_its_key_expires(self):
+		conn = get_redis_conn()
+		worker = FrappeBaseWorker([get_queue("short")], connection=conn)
+		worker.register_birth()
+		# What RQ leaves once the worker key has expired.
+		conn.delete(worker.key)
+		conn.hset(worker.key, "state", "idle")
+
+		# Short TTL so this worker does not show up in later worker checks.
+		worker.heartbeat(timeout=5)
+
+		self.assertIn(worker.name, [w.name for w in RQWorker.get_list()])
+
 	def test_enqueue_at_front(self):
 		kwargs = {
 			"method": "frappe.handler.ping",
@@ -74,6 +90,11 @@ class TestBackgroundJobs(IntegrationTestCase):
 
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
+
+	def test_enqueue_passes_retry_kwarg_to_method(self):
+		job = frappe.enqueue("frappe.tests.test_background_jobs.echo_retry", queue="short", retry=3)
+		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
+		self.assertIsNone(job.retries_left)
 
 	def test_job_translation_resolves_user_language(self):
 		real_get_cached_value = frappe.get_cached_value
@@ -235,6 +256,10 @@ class TestBackgroundJobs(IntegrationTestCase):
 			is_async=False,
 			retry=1,
 		)
+
+
+def echo_retry(retry=None):
+	return retry
 
 
 def fail_function():
