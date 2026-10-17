@@ -1039,7 +1039,11 @@ def delete_bulk(doctype, items, error_logs=None):
 			]
 			del frappe.message_log[message_count:]
 			if frappe.flags.error_message:
-				reasons.append(frappe.flags.error_message)
+				reasons.append(
+					_("You need the '{0}' permission on {1} {2} to perform this action.").format(
+						_("delete"), frappe.bold(_(doctype)), ""
+					)
+				)
 				frappe.flags.error_message = None
 			frappe.db.rollback()
 			link_error = e.__context__ if isinstance(e.__context__, frappe.LinkExistsError) else e
