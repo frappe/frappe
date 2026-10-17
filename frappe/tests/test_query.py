@@ -1814,6 +1814,20 @@ class TestQuery(IntegrationTestCase):
 			frappe.set_user("Administrator")
 			test_post.delete()
 
+	def test_filter_nonexistent_field_raises_validation_error(self):
+		"""Test that filtering on a nonexistent field raises ValidationError, not PermissionError."""
+		with self.assertRaises(frappe.ValidationError) as cm:
+			frappe.get_list("ToDo", filters={"totally_bogus_xyz": 1})
+		self.assertIn("Field not found", str(cm.exception))
+
+		with self.assertRaises(frappe.ValidationError) as cm:
+			frappe.qb.get_query(
+				"ToDo",
+				filters={"totally_bogus_xyz": 1},
+				ignore_permissions=False,
+			).run()
+		self.assertIn("Field not found", str(cm.exception))
+
 	def test_filter_linked_field_permission(self):
 		"""Test that filtering is only allowed on permitted linked fields."""
 		with setup_test_user(set_user=True) as user:
