@@ -485,6 +485,25 @@ class TestDaemonLifecycle(UnitTestCase):
 		stop.assert_not_called()
 		execve.assert_not_called()
 
+	def test_serve_records_the_ownership_its_manager_declares(self):
+		self.install_flow_bin()
+		with (
+			patch.dict(os.environ, {"FLOW_SERVER_MANAGER": "supervisor"}),
+			patch.object(lifecycle, "update_site_config") as update,
+			patch.object(lifecycle, "_redis_url", return_value=None),
+			patch.object(lifecycle, "_stop"),
+			patch.object(os, "chdir"),
+			patch.object(os, "umask"),
+			patch.object(os, "execve") as execve,
+		):
+			lifecycle.serve()
+		update.assert_called_once_with(
+			"flow_server_manager",
+			"supervisor",
+			site_config_path=str(lifecycle._sites_dir() / "common_site_config.json"),
+		)
+		execve.assert_called_once()
+
 	def install_flow_bin(self) -> None:
 		self.flow_bin.parent.mkdir(parents=True)
 		self.flow_bin.touch()

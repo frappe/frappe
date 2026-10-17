@@ -187,9 +187,20 @@ def start() -> None:
 
 
 def serve() -> None:
-	"""Run the daemon in the foreground, for supervisor. It replaces one Flow started itself."""
+	"""Run the daemon in the foreground, for supervisor. It replaces one Flow started itself.
+
+	A process manager that sets FLOW_SERVER_MANAGER, as Pilot does from pyproject.toml,
+	records the ownership for the whole bench, so no other process starts a daemon."""
 	if not supervised():
-		raise RuntimeError("set flow_server_manager to supervisor in common_site_config.json before serving")
+		if os.environ.get("FLOW_SERVER_MANAGER") != "supervisor":
+			raise RuntimeError(
+				"set flow_server_manager to supervisor in common_site_config.json before serving"
+			)
+		update_site_config(
+			"flow_server_manager",
+			"supervisor",
+			site_config_path=str(_sites_dir() / "common_site_config.json"),
+		)
 	runtime_dir().mkdir(parents=True, exist_ok=True)
 	with filelock(LOCK, is_global=True):
 		_stop()
