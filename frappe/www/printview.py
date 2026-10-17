@@ -252,7 +252,7 @@ def get_rendered_template(
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
 		if letter_head.custom_css:
 			letter_head.content += f"""
-			<style>
+			<style data-letter-head>
 				{letter_head.custom_css}
 			</style>
 			"""
