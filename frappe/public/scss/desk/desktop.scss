@@ -337,6 +337,8 @@ body {
 
 			.widget-body {
 				display: flex;
+				justify-content: center;
+				width: 100%;
 				max-height: 100%;
 				margin: auto;
 				margin-top: calc(-1 * var(--margin-md));

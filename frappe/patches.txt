@@ -287,6 +287,7 @@ frappe.patches.v16_0.hash_session_ids
 frappe.patches.v16_0.set_print_format_for_doctype
 frappe.patches.v16_0.unescape_currency_number_format
 frappe.patches.v17_0.switch_wkhtmltopdf_to_chrome
+frappe.patches.v17_0.keep_existing_sites_on_classic_charts
 
 
 [post_fixture_sync]
