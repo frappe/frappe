@@ -348,10 +348,10 @@ def close_inherited_fds() -> None:
 	streams, thus they stay. macOS kills a process that closes a guarded
 	descriptor, so the exec closes them instead.
 	"""
-	for fd in map(int, os.listdir("/dev/fd")):
-		if fd > 2:
+	for name in os.listdir("/dev/fd"):
+		if int(name) > 2:
 			with suppress(OSError):
-				os.set_inheritable(fd, False)
+				os.set_inheritable(int(name), False)
 
 
 class Runner:
