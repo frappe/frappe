@@ -167,8 +167,10 @@ export const ListFilterMenu = {
 		);
 	},
 
-	/** Pick active layout by matching URL filter signature; else Default Layout. */
-	restore_layout_from_route_signature({ refresh = true } = {}) {
+	/** Pick active layout by matching URL filter signature; else Default Layout.
+	 *  `has_route_filters` is passed only on list open; without it the current filters are matched.
+	 *  `shown_name` is what a cached list showed; while it is the saved layout, its filters stay. */
+	restore_layout_from_route_signature({ refresh = true, has_route_filters, shown_name } = {}) {
 		const finish = () => {
 			this._initial_layout_restored = true;
 			// the view switcher's trigger shows the active layout name
@@ -181,13 +183,24 @@ export const ListFilterMenu = {
 		}
 
 		const signature = this.get_route_signature();
+		const saved_name = this.get_saved_active_layout_name();
+		const saved_layout = saved_name ? this.find_layout_by_name(saved_name) : null;
+		const saved_signature = saved_layout
+			? this.get_layout_route_signature(saved_layout)
+			: this.get_route_signature_from_filters(this._default_layout_snapshot?.filters);
 
-		// No URL filters → last saved layout preference, else Default Layout.
-		if (!signature) {
-			const saved_name = this.get_saved_active_layout_name();
-			const saved_layout = saved_name ? this.find_layout_by_name(saved_name) : null;
+		// No URL filters, or they repeat the saved state → last saved layout, else Default Layout.
+		if (
+			!signature ||
+			has_route_filters === false ||
+			(has_route_filters && signature === saved_signature)
+		) {
 			if (saved_layout) {
 				this.set_active_layout(saved_layout);
+				if (saved_layout.name === shown_name) {
+					finish();
+					return Promise.resolve();
+				}
 				return this.apply_saved_layout(saved_layout, { refresh }).then(finish, finish);
 			}
 			this.set_active_default_layout();
