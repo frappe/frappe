@@ -1,6 +1,7 @@
 import json
 
-<<<<<<< HEAD
+from .utils import get_line_number
+
 EXCLUDE_SELECT_OPTIONS = [
 	"naming_series",
 	"number_format",
@@ -8,9 +9,6 @@ EXCLUDE_SELECT_OPTIONS = [
 	"currency_precision",
 	"minimum_password_score",
 ]
-=======
-from .utils import extract_messages_from_docfield, extract_messages_from_links, get_line_number
->>>>>>> 6c919fb (feat(gettext): add line numbers for strings from JSON files (#44603))
 
 
 def extract(fileobj, *args, **kwargs):
@@ -42,24 +40,34 @@ def extract(fileobj, *args, **kwargs):
 	fields = data.get("fields", [])
 	links = data.get("links", [])
 
-<<<<<<< HEAD
 	for field in fields:
 		fieldtype = field.get("fieldtype")
 		fieldname = field.get("fieldname")
 		label = field.get("label")
 
 		if label:
-			messages.append((label, f"Label of a {fieldtype} field in DocType '{doctype}'"))
+			messages.append(
+				(
+					get_line_number(text, "label", label),
+					label,
+					f"Label of a {fieldtype} field in DocType '{doctype}'",
+				)
+			)
 			_label = label
 		else:
 			_label = fieldname
 
 		if description := field.get("description"):
 			messages.append(
-				(description, f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
+				(
+					get_line_number(text, "description", description),
+					description,
+					f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
+				)
 			)
 
 		if message := field.get("options"):
+			lineno = get_line_number(text, "options", message)
 			if fieldtype == "Select":
 				if fieldname in EXCLUDE_SELECT_OPTIONS:
 					continue
@@ -71,6 +79,7 @@ def extract(fileobj, *args, **kwargs):
 
 				messages.extend(
 					(
+						lineno,
 						option,
 						f"Option for the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
 					)
@@ -78,26 +87,26 @@ def extract(fileobj, *args, **kwargs):
 				)
 			elif fieldtype == "HTML":
 				messages.append(
-					(message, f"Content of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
+					(lineno, message, f"Content of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
 				)
 
 	for link in links:
 		if group := link.get("group"):
-			messages.append((group, f"Group in {doctype}'s connections"))
+			messages.append(
+				(get_line_number(text, "group", group), group, f"Group in {doctype}'s connections")
+			)
 
 		if link_doctype := link.get("link_doctype"):
-			messages.append((link_doctype, f"Linked DocType in {doctype}'s connections"))
+			messages.append(
+				(
+					get_line_number(text, "link_doctype", link_doctype),
+					link_doctype,
+					f"Linked DocType in {doctype}'s connections",
+				)
+			)
 
 	# By using "pgettext" as the function name we can supply the doctype as context
-	yield from ((None, "_", message, [comment]) for message, comment in messages)
-=======
-	for field in data.get("fields", []):
-		messages.extend(extract_messages_from_docfield(doctype, field, text))
-
-	messages.extend(extract_messages_from_links(doctype, data.get("links", []), text))
-
 	yield from ((lineno, "_", message, [comment]) for lineno, message, comment in messages)
->>>>>>> 6c919fb (feat(gettext): add line numbers for strings from JSON files (#44603))
 
 	# Role names do not get context because they are used with multiple doctypes
 	yield from (

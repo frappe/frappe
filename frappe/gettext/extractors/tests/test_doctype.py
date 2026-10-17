@@ -2,10 +2,10 @@ from io import BytesIO
 
 import frappe
 from frappe.gettext.extractors.doctype import extract
-from frappe.tests import UnitTestCase
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestDocType(UnitTestCase):
+class TestDocType(FrappeTestCase):
 	def test_extract_line_numbers(self):
 		doctype_json = frappe.as_json(
 			{
