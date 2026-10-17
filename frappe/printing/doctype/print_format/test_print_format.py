@@ -99,6 +99,42 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		# no source -> block is skipped entirely
 		self.assertNotIn("print-image", self.render(df | {"image_url": ""}))
 
+	def test_signature_element(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.utils.print_format_generator import get_html
+
+		doctype = new_doctype(
+			fields=[{"fieldname": "sign", "fieldtype": "Signature", "label": "Sign"}],
+			permissions=[{"role": "All", "read": 1, "print": 1}],
+		).insert()
+		self.addCleanup(doctype.delete)
+		doc = frappe.get_doc({"doctype": doctype.name, "sign": "/files/sig.png"}).insert()
+
+		def render(df):
+			frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+			frappe.get_doc(
+				{
+					"doctype": "Print Format",
+					"name": self.FORMAT_NAME,
+					"doc_type": doctype.name,
+					"standard": "No",
+					"print_format_builder_beta": 1,
+					"format_data": frappe.as_json(
+						{"sections": [{"label": "", "columns": [{"label": "", "fields": [df]}]}]}
+					),
+				}
+			).insert()
+			self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+			with self.set_user("test@example.com"):
+				html = get_html(doctype.name, doc.name, self.FORMAT_NAME)
+			return re.search(r'<img[^>]*alt="Sign"[^>]*>', html).group(0)
+
+		df = {"fieldname": "sign", "fieldtype": "Signature", "label": "Sign"}
+		self.assertIn('style="max-width: 100%; max-height: 150px;"', render(df))
+		self.assertIn(
+			'style="max-width: 100%; max-height: 150px; width: 160px;"', render(df | {"width": "160px"})
+		)
+
 	def test_date_format_overrides_system_format(self):
 		from frappe.utils.data import format_time
 		from frappe.utils.print_format_generator import format_field_value
