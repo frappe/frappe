@@ -13,7 +13,7 @@ from uuid import uuid4
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
-from rq.exceptions import NoSuchJobError
+from rq.exceptions import DeserializationError, NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
 from rq.worker import DequeueStrategy
@@ -409,7 +409,9 @@ def get_jobs(site=None, queue=None, key="method"):
 		q = get_queue(_queue)
 		jobs = q.jobs + get_running_jobs_in_queue(q)
 		for job in jobs:
-			if job.kwargs.get("site"):
+			if not (queue_args := get_queue_args(job)):
+				continue
+			if queue_args.get("site"):
 				# if job belongs to current site, or if all jobs are requested
 				if (job.kwargs["site"] == site) or site is None:
 					add_to_dict(job)
@@ -450,6 +452,14 @@ def get_running_jobs_in_queue(queue):
 		if current_job:
 			jobs.append(current_job)
 	return jobs
+
+
+def get_queue_args(job: Job) -> dict:
+	"""Return the arguments `enqueue` stored on the job, or an empty dict when they no longer load (e.g. its method was renamed)."""
+	try:
+		return job.kwargs
+	except DeserializationError:
+		return {}
 
 
 def get_queue(qtype, is_async=True):
@@ -606,7 +616,7 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 	"""Ensures that number of failed jobs don't exceed specified limits."""
 	from frappe.utils import create_batch
 
-	conf = frappe.conf if frappe.conf else frappe.get_conf(site=job.kwargs.get("site"))
+	conf = frappe.conf if frappe.conf else frappe.get_conf(site=get_queue_args(job).get("site"))
 	limit = (conf.get("rq_failed_jobs_limit") or RQ_FAILED_JOBS_LIMIT) - 1
 
 	for queue in get_queues(connection=connection):

@@ -19,7 +19,7 @@ from frappe.utils import (
 	create_batch,
 	make_filter_dict,
 )
-from frappe.utils.background_jobs import get_queues, get_redis_conn
+from frappe.utils.background_jobs import get_queue_args, get_queues, get_redis_conn
 
 QUEUES = ["default", "long", "short"]
 JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "scheduled", "canceled"]
@@ -144,8 +144,9 @@ class RQJob(Document):
 
 def serialize_job(job: Job) -> frappe._dict:
 	modified = job.last_heartbeat or job.ended_at or job.started_at or job.created_at
-	job_kwargs = job.kwargs.get("kwargs", {})
-	job_name = job_kwargs.get("job_type") or str(job.kwargs.get("job_name"))
+	queue_args = get_queue_args(job)
+	job_kwargs = queue_args.get("kwargs", {})
+	job_name = job_kwargs.get("job_type") or str(queue_args.get("job_name", job.description))
 	if job_name == "frappe.utils.background_jobs.run_doc_method":
 		doctype = job_kwargs.get("doctype")
 		doc_method = job_kwargs.get("doc_method")
@@ -167,18 +168,18 @@ def serialize_job(job: Job) -> frappe._dict:
 		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else "",
 		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
 		exc_info=job.exc_info,
-		arguments=frappe.as_json(job.kwargs),
+		arguments=frappe.as_json(queue_args),
 		timeout=job.timeout,
 		creation=convert_utc_to_system_timezone(job.created_at),
 		modified=convert_utc_to_system_timezone(modified),
 		_comment_count=0,
-		owner=job.kwargs.get("user"),
-		modified_by=job.kwargs.get("user"),
+		owner=queue_args.get("user"),
+		modified_by=queue_args.get("user"),
 	)
 
 
 def for_current_site(job: Job) -> bool:
-	return job.kwargs.get("site") == frappe.local.site
+	return job.id.startswith(f"{frappe.local.site}::")
 
 
 def filter_current_site_jobs(job_ids: list[str]) -> list[str]:
