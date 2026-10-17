@@ -382,6 +382,85 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Accordion", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Accordion");
+		});
+
+		const trigger = (accordion, title) =>
+			accordion.locator(".es-accordion__trigger", { hasText: containing(title) }).first();
+
+		test("single mode opens one section at a time and renders its content on first open", async ({
+			page,
+		}) => {
+			const accordion = explorer_group(page, "Single (").locator(".es-accordion").first();
+			const first = trigger(accordion, "What is a fiscal year?");
+			const second = trigger(accordion, "Can I change it later?");
+
+			await expect(first).toHaveAttribute("aria-expanded", "true");
+			await expect(accordion.locator(".es-accordion__body").nth(1)).toBeEmpty();
+
+			await second.click();
+			await expect(second).toHaveAttribute("aria-expanded", "true");
+			await expect(first).toHaveAttribute("aria-expanded", "false");
+			await expect(accordion.locator(".es-accordion__body").nth(1)).toContainText(
+				"no transactions are posted"
+			);
+
+			await second.click();
+			await expect(second).toHaveAttribute("aria-expanded", "false");
+			await expect(trigger(accordion, "Archived")).toBeDisabled();
+		});
+
+		test("multiple mode keeps sections open independently; arrows move between headers", async ({
+			page,
+		}) => {
+			const accordion = explorer_group(page, "Multiple, with icons")
+				.locator(".es-accordion")
+				.first();
+			const contact = trigger(accordion, "Contact");
+			const salary = trigger(accordion, "Salary and bank");
+
+			await contact.click();
+			await salary.click();
+			await expect(contact).toHaveAttribute("aria-expanded", "true");
+			await expect(salary).toHaveAttribute("aria-expanded", "true");
+
+			await contact.focus();
+			await page.keyboard.press("ArrowDown");
+			await expect(salary).toBeFocused();
+			await page.keyboard.press("End");
+			await expect(trigger(accordion, "Emergency contact")).toBeFocused();
+			await page.keyboard.press("ArrowDown");
+			await expect(contact).toBeFocused();
+		});
+
+		test("collapsible: false keeps the open section open", async ({ page }) => {
+			const accordion = explorer_group(page, "Always one open")
+				.locator(".es-accordion")
+				.first();
+			const profile = trigger(accordion, "Profile");
+
+			await profile.click();
+			await expect(profile).toHaveAttribute("aria-expanded", "true");
+			await trigger(accordion, "Sessions").click();
+			await expect(profile).toHaveAttribute("aria-expanded", "false");
+		});
+
+		test("a section's form can update its header description", async ({ page }) => {
+			const accordion = explorer_group(page, "A form in a section")
+				.locator(".es-accordion")
+				.first();
+			const contact = trigger(accordion, "Contact");
+
+			await expect(contact.locator(".es-accordion__description")).toHaveText("Optional");
+			await contact.click();
+			await accordion.locator("input[data-fieldname='email']").fill("jane@example.com");
+			await accordion.locator("input[data-fieldname='email']").blur();
+			await expect(contact.locator(".es-accordion__description")).toHaveText("1 filled");
+		});
+	});
+
 	test.describe("Tab Buttons", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Tab Buttons");

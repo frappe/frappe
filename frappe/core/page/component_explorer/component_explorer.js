@@ -312,7 +312,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			stacked: true,
 			make: (opts) => {
 				const $surface = $(
-					`<div class="rounded-md border px-4 py-4 text-base text-ink-gray-6" style="border-style: dashed">${frappe.utils.escape_html(
+					`<div class="explorer-context-target rounded-md border px-4 py-4 text-base text-ink-gray-6" style="border-style: dashed">${frappe.utils.escape_html(
 						opts.__surface || __("Right-click here")
 					)}</div>`
 				);
@@ -985,6 +985,115 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 										sheet.close();
 									},
 								}),
+						},
+					],
+				},
+			],
+		},
+		Accordion: {
+			helper: "frappe.ui.accordion",
+			stacked: true,
+			groups: [
+				{
+					title: __("Single (opening one section closes the other)"),
+					items: [
+						{
+							items: [
+								{
+									title: "What is a fiscal year?",
+									content:
+										"The twelve months a company keeps its books for. A section's content function runs once, on first open.",
+									open: true,
+								},
+								{
+									title: "Can I change it later?",
+									content: "Yes, as long as no transactions are posted in it.",
+								},
+								{ title: "Archived", disabled: true },
+							],
+						},
+					],
+				},
+				{
+					title: __(
+						"Multiple, with icons and descriptions (arrows move between headers)"
+					),
+					items: [
+						{
+							type: "multiple",
+							items: [
+								{
+									title: "Contact",
+									description: "Email and mobile",
+									icon: "phone",
+									content: "Contact fields go here.",
+								},
+								{
+									title: "Salary and bank",
+									description: "CTC, mode and account",
+									icon: "landmark",
+									content: "Salary fields go here.",
+								},
+								{
+									title: "Emergency contact",
+									icon: "heart-pulse",
+									content: "Emergency contact fields go here.",
+								},
+							],
+							on_change: (i, open, item) =>
+								frappe.ui.toast({
+									message: `${item.title} ${open ? "opened" : "closed"}`,
+								}),
+						},
+					],
+				},
+				{
+					title: __("Always one open (collapsible: false)"),
+					items: [
+						{
+							collapsible: false,
+							items: [
+								{ title: "Profile", content: "Profile section", open: true },
+								{ title: "Sessions", content: "Sessions section" },
+							],
+						},
+					],
+				},
+				{
+					title: __("A form in a section, summarised in its description"),
+					items: [
+						{
+							__code: 'frappe.ui.accordion({\n  type: "multiple",\n  items: [{\n    title: "Contact",\n    description: "Optional",\n    icon: "phone",\n    content: (accordion) => {\n      const body = document.createElement("div");\n      const fields = new frappe.ui.FieldGroup({ body, fields: contact_fields(() =>\n        accordion.set_description(0, summary(fields.get_values(true)))\n      ) });\n      fields.make();\n      return body;\n    },\n  }],\n})',
+							type: "multiple",
+							items: [
+								{
+									title: "Contact",
+									description: "Optional",
+									icon: "phone",
+									content: (accordion) => {
+										const body = document.createElement("div");
+										const fields = new frappe.ui.FieldGroup({
+											body,
+											fields: ["Email", "Mobile"].map((label) => ({
+												fieldtype: "Data",
+												fieldname: frappe.scrub(label),
+												label,
+												change: () => {
+													const filled = Object.values(
+														fields.get_values(true)
+													).filter(Boolean).length;
+													accordion.set_description(
+														0,
+														filled ? `${filled} filled` : "Optional"
+													);
+												},
+											})),
+										});
+										fields.make();
+										return body;
+									},
+								},
+							],
 						},
 					],
 				},
