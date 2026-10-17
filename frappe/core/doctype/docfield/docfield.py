@@ -125,6 +125,7 @@ class DocField(Document):
 		set_only_once: DF.Check
 		show_dashboard: DF.Check
 		show_description_on_click: DF.Check
+		show_for_module: DF.Literal[None]
 		show_on_timeline: DF.Check
 		sort_options: DF.Check
 		sticky: DF.Check
