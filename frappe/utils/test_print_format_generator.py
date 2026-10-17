@@ -1605,3 +1605,64 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			),
 			{"repeat_header_footer": 1},
 		)
+
+	def test_standard_pdf_keeps_request_settings_and_password(self):
+		import io
+
+		from pypdf import PdfReader
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "settings handoff"}).insert()
+
+		self.addCleanup(lambda: frappe.form_dict.pop("settings", None))
+		frappe.form_dict.settings = json.dumps({"page_orientation": "Landscape"})
+		page = PdfReader(io.BytesIO(frappe.get_print("ToDo", todo.name, as_pdf=True))).pages[0]
+		self.assertGreater(float(page.mediabox.width), float(page.mediabox.height))
+
+		pdf = frappe.get_print("ToDo", todo.name, as_pdf=True, pdf_options={"password": "secret"})
+		self.assertTrue(PdfReader(io.BytesIO(pdf)).is_encrypted)
+
+	def test_standard_attachment_matches_the_pdf_button(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import attach_print
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "attachment"}).insert()
+
+		with patch("frappe.utils.print_utils._render_builder_pdf", return_value=b"%PDF-") as render:
+			attach_print("ToDo", todo.name, style="Modern", settings={"pdf_page_size": "A5"})
+
+		self.assertEqual(render.call_args.kwargs["style"], "Modern")
+		self.assertEqual(render.call_args.kwargs["settings"], {"pdf_page_size": "A5"})
+
+	def test_print_settings_override_rejects_invalid_values(self):
+		from frappe.www.printview import get_allowed_print_settings_override
+
+		todo = self._make_todo()
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo,
+				{
+					"pdf_page_size": "A5",
+					"page_orientation": "Landscape",
+					"print_font": "Open Sans",
+					"pdf_page_width": "210",
+				},
+			),
+			{
+				"pdf_page_size": "A5",
+				"page_orientation": "Landscape",
+				"print_font": "Open Sans",
+				"pdf_page_width": 210.0,
+			},
+		)
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo,
+				{"pdf_page_size": "A5; x", "page_orientation": "Sideways", "print_font": "Inter;}"},
+			),
+			{},
+		)

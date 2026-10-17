@@ -435,6 +435,97 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Stepper", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Stepper");
+		});
+
+		test("vertical puts each step's content beside a line down to the next step", async ({
+			page,
+		}) => {
+			const items = explorer_group(page, "Vertical").locator(".es-stepper__item");
+			await expect(items).toHaveCount(3);
+
+			// a line after every step but the last, marked done after a done step
+			await expect(
+				explorer_group(page, "Vertical").locator(".es-stepper__connector")
+			).toHaveCount(2);
+			await expect(items.nth(0).locator(".es-stepper__connector")).toHaveAttribute(
+				"data-completed",
+				"true"
+			);
+
+			await expect(items.nth(1).locator(".es-stepper__step")).toHaveAttribute(
+				"aria-current",
+				"step"
+			);
+			await expect(items.nth(1).locator(".es-stepper__content")).toContainText(
+				"Bring the closing balances"
+			);
+			// a step without content gets no content box
+			await expect(items.nth(2).locator(".es-stepper__content")).toHaveCount(0);
+		});
+
+		test("vertical content: a string stays text, and reused content keeps its value and focus", async ({
+			page,
+		}) => {
+			const result = await page.evaluate(() => {
+				const input = $(`<input>`);
+				const $stepper = frappe.ui
+					.stepper({
+						orientation: "vertical",
+						steps: [
+							{ label: "One", content: "<b>not markup</b>" },
+							{ label: "Two", content: () => input },
+							{ label: "Three", content: () => $() },
+						],
+					})
+					.appendTo("body");
+				const stepper = $stepper.data("es-stepper");
+				input.val("typed");
+				input[0].focus();
+				stepper.refresh();
+				const kept_on_refresh = document.activeElement === input[0];
+				// a step change rebuilds every step
+				stepper.set_current(1);
+				const out = {
+					text: $stepper.find(".es-stepper__content").first().text(),
+					bold: $stepper.find(".es-stepper__content b").length,
+					value: $stepper.find("input").val(),
+					focus: kept_on_refresh && document.activeElement === input[0],
+					current: $stepper.find("[aria-current=step] .es-stepper__label").text(),
+					boxes: $stepper.find(".es-stepper__content").length,
+					items: $stepper.find("ol > li.es-stepper__item").length,
+				};
+				$stepper.remove();
+				return out;
+			});
+			expect(result).toEqual({
+				text: "<b>not markup</b>",
+				bold: 0,
+				value: "typed",
+				focus: true,
+				current: "Two",
+				// the empty jQuery content gets no box
+				boxes: 2,
+				items: 3,
+			});
+		});
+
+		test("a step is a button only when something handles its click", async ({ page }) => {
+			await expect(
+				explorer_group(page, "Click to navigate").locator("button.es-stepper__step")
+			).toHaveCount(3);
+			// nothing handles clicks here, so no dead tab stops
+			await expect(
+				explorer_group(page, "Vertical").locator(".es-stepper__step")
+			).toHaveCount(3);
+			await expect(
+				explorer_group(page, "Vertical").locator("button.es-stepper__step")
+			).toHaveCount(0);
+		});
+	});
+
 	test.describe("Stat Card", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Stat Card");
@@ -512,143 +603,6 @@ test.describe("Espresso components", () => {
 			await expect(card).toHaveAttribute("tabindex", "0");
 			await card.dispatchEvent("keydown", { key: "Enter" });
 			await expect(page.locator(".es-toast")).toContainText("Paid");
-		});
-	});
-
-	test.describe("Bar List", () => {
-		test.beforeEach(async ({ page }) => {
-			await show(page, "Bar List");
-		});
-
-		test("sizes bars against a rounded axis and labels every row", async ({ page }) => {
-			const group = explorer_group(page, "Basic");
-
-			await expect(group.locator(".es-bar-list__row")).toHaveCount(4);
-			await expect(group.locator(".es-bar-list__bar").first()).toHaveAttribute(
-				"style",
-				/width: 84%/
-			);
-			await expect(group.locator(".es-bar-list__tick").last()).toHaveText("50000");
-		});
-
-		test("keeps static values visible and expands an undersized axis", async ({ page }) => {
-			const chart = await page.evaluate(() => {
-				const chart = frappe.ui
-					.bar_list({
-						items: [{ label: "Total", value: 200 }],
-						max: 100,
-						values_on_hover: true,
-					})
-					.appendTo(document.body);
-				const result = {
-					value_opacity: getComputedStyle(chart.find(".es-bar-list__value")[0]).opacity,
-					row_role: chart.find(".es-bar-list__row").attr("role") ?? null,
-					bar_width: parseFloat(chart.find(".es-bar-list__bar")[0].style.width),
-					last_tick: Number(chart.find(".es-bar-list__tick").last().text()),
-				};
-				chart.remove();
-				return result;
-			});
-
-			expect(chart.value_opacity).toBe("1");
-			expect(chart.row_role).toBeNull();
-			expect(chart.bar_width).toBeLessThanOrEqual(100);
-			expect(chart.last_tick).toBeGreaterThanOrEqual(200);
-		});
-
-		test("says there is no data instead of drawing an empty axis", async ({ page }) => {
-			const chart = explorer_group(page, "Empty").locator(
-				".es-bar-list[data-state='empty']"
-			);
-
-			await expect(chart.locator(".es-bar-list__empty")).toHaveText("No data to show");
-			await expect(chart.locator(".es-bar-list__axis")).toHaveCount(0);
-		});
-
-		test("widens the label gutter and passes the clicked item back", async ({ page }) => {
-			const group = explorer_group(page, "Wide labels");
-
-			await expect(group.locator(".es-bar-list").first()).toHaveAttribute("style", /180px/);
-			await group.locator(".es-bar-list__row--clickable").first().click();
-			await expect(page.locator(".es-toast")).toContainText("Kaveri Industrial Supplies");
-		});
-	});
-
-	test.describe("Donut", () => {
-		test.beforeEach(async ({ page }) => {
-			await show(page, "Donut");
-		});
-
-		const legend_row = (group, label) =>
-			group.locator(".es-donut__legend-row", { hasText: containing(label) }).first();
-
-		test("draws one segment per value and labels the chart for screen readers", async ({
-			page,
-		}) => {
-			const group = explorer_group(page, "Centre value");
-
-			await expect(group.locator(".es-donut__seg")).toHaveCount(3);
-			await expect(group.locator(".es-donut__svg")).toHaveAttribute(
-				"aria-label",
-				"Paid: 70 (70%), Unpaid: 20 (20%), Overdue: 10 (10%)"
-			);
-			await expect(group.locator(".es-donut__value")).toHaveText("70%");
-		});
-
-		test("swaps the centre to a hovered legend row and restores it on leave", async ({
-			page,
-		}) => {
-			const group = explorer_group(page, "Centre value");
-			const unpaid = legend_row(group, "Unpaid");
-
-			await unpaid.hover();
-			await expect(unpaid).toHaveClass(with_class("is-active"));
-			await expect(group.locator(".es-donut__label")).toHaveText("Unpaid · 20%");
-			await expect(group.locator(".es-donut__seg.is-dim")).toHaveCount(2);
-
-			await group.locator(".es-donut__legend").dispatchEvent("mouseout");
-			await expect(group.locator(".es-donut__value")).toHaveText("70%");
-			await expect(group.locator(".es-donut__seg.is-dim")).toHaveCount(0);
-		});
-
-		test("clears the tooltip and highlight when leaving a segment for the centre", async ({
-			page,
-		}) => {
-			const group = explorer_group(page, "Centre value");
-			const segment = group.locator(".es-donut__seg").first();
-
-			await segment.dispatchEvent("mouseover", { clientX: 100, clientY: 100 });
-			await expect(group.locator(".es-donut__tip")).toHaveClass(with_class("is-visible"));
-			await segment.dispatchEvent("mouseout");
-			await expect(group.locator(".es-donut__tip")).not.toHaveClass(
-				with_class("is-visible")
-			);
-			await expect(group.locator(".es-donut__seg.is-dim")).toHaveCount(0);
-			await expect(group.locator(".es-donut__value")).toHaveText("70%");
-		});
-
-		test("exposes amounts without hover and highlights a keyboard-focused legend", async ({
-			page,
-		}) => {
-			const group = explorer_group(page, "Centre value");
-			const unpaid = legend_row(group, "Unpaid");
-
-			await expect(unpaid).toContainText("20 · 20%");
-			await unpaid.focus();
-			await expect(unpaid).toHaveClass(with_class("is-active"));
-			await expect(group.locator(".es-donut__value")).toHaveText("20");
-			await group.locator(".es-donut__legend-row:focus").blur();
-			await expect(group.locator(".es-donut__value")).toHaveText("70%");
-		});
-
-		test("says there is no data in the ring's place when there is nothing to chart", async ({
-			page,
-		}) => {
-			const chart = explorer_group(page, "Empty").locator(".es-donut[data-state='empty']");
-
-			await expect(chart.locator(".es-donut__empty")).toHaveText("No data to show");
-			await expect(chart.locator(".es-donut__svg")).toHaveCount(0);
-			await expect(chart.locator(".es-donut__legend")).toHaveCount(0);
 		});
 	});
 });

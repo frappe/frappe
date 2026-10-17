@@ -342,6 +342,7 @@ class User(Document):
 		frappe.clear_cache(user=self.name)
 		now = frappe.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
+		self.__new_password = None
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact",
 			user=self,
@@ -404,6 +405,26 @@ class User(Document):
 		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
+
+			if frappe.session.user != self.name:
+				from frappe.desk.doctype.notification_log.notification_log import (
+					enqueue_create_notification,
+				)
+				from frappe.utils import get_fullname
+
+				enqueue_create_notification(
+					[self.name],
+					{
+						"type": "Alert",
+						"document_type": "User",
+						"document_name": self.name,
+						"from_user": frappe.session.user,
+						"subject": _("Your password was changed by {0}").format(
+							get_fullname(frappe.session.user)
+						),
+					},
+				)
+
 			outgoing_email_exists = frappe.db.exists(
 				"Email Account", {"default_outgoing": 1, "awaiting_password": 0}
 			)
@@ -611,7 +632,6 @@ class User(Document):
 			with_container=True,
 			wrapper=wrapper,
 			delayed=(not now) if now is not None else self.flags.delay_emails,
-			retry=3,
 			redact_message_after_send=True,
 		)
 
@@ -807,7 +827,8 @@ class User(Document):
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
-			self.username = frappe.scrub(self.first_name)
+			self.username = self.free_username(frappe.scrub(self.first_name))
+			self.flags.username_from_first_name = True
 
 		if not self.username:
 			return
@@ -821,6 +842,36 @@ class User(Document):
 				self.suggest_username()
 
 			self.username = ""
+
+	def free_username(self, base):
+		if not self.username_exists(base):
+			return base
+
+		prefix = f"{base}-"
+		pattern = prefix.replace("\\", "_") + "%"
+		taken = frappe.get_all("User", filters={"username": ("like", pattern)}, pluck="username")
+		numbers = (username.rpartition("-")[2] for username in taken)
+		return f"{prefix}{max((int(n) for n in numbers if n.isdecimal()), default=0) + 1}"
+
+	def db_insert(self, ignore_if_duplicate=False):
+		if not self.flags.username_from_first_name:
+			return super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
+
+		for attempt in range(5):
+			messages = len(frappe.message_log)
+			frappe.db.savepoint("user_username")
+			try:
+				super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
+			except frappe.UniqueValidationError as e:
+				if attempt == 4 or "username" not in str(e.args[-1]):
+					raise
+				frappe.db.rollback(save_point="user_username")
+				del frappe.message_log[messages:]
+				base, sep, number = self.username.rpartition("-")
+				self.username = f"{base}-{int(number) + 1}" if sep else f"{self.username}-1"
+			else:
+				frappe.db.release_savepoint("user_username")
+				return
 
 	def password_strength_test(self):
 		"""test password strength"""
@@ -1140,7 +1191,10 @@ def _get_user_for_update_password(key, old_password):
 	if key:
 		hashed_key = sha256_hash(key)
 		user = frappe.db.get_value(
-			"User", {"reset_password_key": hashed_key}, ["name", "last_reset_password_key_generated_on"]
+			"User",
+			{"reset_password_key": hashed_key},
+			["name", "last_reset_password_key_generated_on"],
+			for_update=True,
 		)
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
@@ -1153,6 +1207,9 @@ def _get_user_for_update_password(key, old_password):
 				> last_reset_password_key_generated_on + timedelta(seconds=reset_password_link_expiry)
 			):
 				result.message = _("The reset password link has been expired")
+			else:
+				# consume the key while the row is locked; clearing sessions later commits and releases it
+				frappe.db.set_value("User", result.user, "reset_password_key", "", update_modified=False)
 		else:
 			result.message = _("The reset password link has either been used before or is invalid")
 	elif old_password:

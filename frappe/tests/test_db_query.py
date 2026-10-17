@@ -669,6 +669,77 @@ class TestDBQuery(IntegrationTestCase):
 			with self.assertRaises(frappe.PermissionError):
 				frappe.get_list("Module Def", filters={"_comments": ("like", "%a%")})
 
+	def test_comment_count_keeps_distinct(self):
+		with setup_test_user(set_user=True):
+			commented = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
+			plain = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
+			commented.add_comment("Comment", "only on one")
+			args = dict(
+				filters={"name": ("in", [commented.name, plain.name])}, distinct=True, with_comment_count=1
+			)
+			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
+				rows = get_list("ToDo", fields=["description"], **args)
+				self.assertEqual(len(rows), 1)
+				self.assertNotIn("_comment_count", rows[0])
+				rows = get_list("ToDo", fields=["name"], **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				rows = get_list("ToDo", fields=["name as name"], **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				# the name under another alias, in either case, still maps rows to documents
+				rows = get_list("ToDo", fields=["name AS id"], **args)
+				self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				# postgres casts a qualified name, which must not hide its alias
+				rows = get_list("ToDo", fields=["`tabToDo`.`name` as id"], **args)
+				self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				# an alias is not the document's name, so it must not split rows or get a count
+				rows = get_list("ToDo", fields=["description as name"], **args)
+				self.assertEqual(len(rows), 1)
+				self.assertNotIn("_comment_count", rows[0])
+			# a hand-built name without a table is the main table's
+			rows = frappe.get_list("ToDo", fields=[frappe.qb.Field("name")], **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# expressions carry no table, and must not hide a selected name
+			rows = frappe.get_list("ToDo", fields=[{"IFNULL": ["description", "'x'"]}, "name"], **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# `*` carries the name, also when permissions leave it unexpanded
+			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
+				rows = get_list("ToDo", fields=["*"], ignore_permissions=True, **args)
+				self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+				self.assertNotIn("_comments", rows[0])
+			# child tables have no comment cache
+			rows = frappe.get_all("DocField", fields=["name"], distinct=True, with_comment_count=1, limit=1)
+			self.assertEqual(rows[0]._comment_count, 0)
+
+	def test_comment_count_skips_self_link_name(self):
+		with setup_test_user(set_user=True):
+			folder = frappe.get_doc(
+				doctype="File", file_name=frappe.generate_hash(length=8), is_folder=1
+			).insert()
+			for i in range(2):
+				frappe.get_doc(
+					doctype="File", file_name=f"comment count {i}.txt", content="x", folder=folder.name
+				).insert().add_comment("Comment", f"comment {i}")
+			for get_list in (frappe.get_list, lambda doctype, **kw: DatabaseQuery(doctype).execute(**kw)):
+				rows = get_list(
+					"File",
+					fields=["folder.name"],
+					filters={"folder": folder.name},
+					distinct=True,
+					with_comment_count=1,
+				)
+				# the linked folder's name is not the row's own name, so files must not split the row
+				self.assertEqual([tuple(row.values()) for row in rows], [(folder.name,)])
+			# same for a hand-built field on the folder join, which the engine aliases `tab_File_1`
+			folder_name = frappe.qb.DocType("File").as_("tab_File_1").name
+			rows = frappe.get_list(
+				"File",
+				fields=[folder_name],
+				filters={"folder.name": folder.name},
+				distinct=True,
+				with_comment_count=1,
+			)
+			self.assertEqual(rows, [{"name": folder.name}])
+
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, get_filters_cond, "DocType", dict(istable=1), [])

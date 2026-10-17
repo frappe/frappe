@@ -173,8 +173,21 @@
 	border-spacing: 0;
 	margin: 0;
 	width: 100%;
-	table-layout: fixed;
-	word-break: break-word;
+	overflow-wrap: break-word;
+}
+
+.print-format-doc {
+	container-type: inline-size;
+}
+
+@container (min-width: 160mm) {
+	.print-format-doc .child-table td:is([data-fieldtype="Currency"], [data-fieldtype="Float"], [data-fieldtype="Int"], [data-fieldtype="Percent"]) {
+		white-space: nowrap;
+	}
+}
+
+.print-format-doc .child-table td:is([data-fieldtype="Text"], [data-fieldtype="Small Text"], [data-fieldtype="Long Text"], [data-fieldtype="Text Editor"], [data-fieldtype="HTML Editor"], [data-fieldtype="Code"]) {
+	overflow-wrap: anywhere;
 }
 
 @media print {
@@ -410,7 +423,7 @@
 }
 
 .print-format-doc .child-table .cell-line {
-	word-break: break-word;
+	overflow-wrap: break-word;
 }
 
 .print-format-doc .child-table .cell-line--primary,
