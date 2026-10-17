@@ -76,3 +76,5 @@ class TestGoal(IntegrationTestCase):
 			aggregation="count",
 		)
 		self.assertEqual(float(data["data"]["datasets"][0]["values"][-1]), 1)
+		self.assertEqual(data["fieldtype"], "Text Editor")
+		self.assertIsNone(data["currency"])

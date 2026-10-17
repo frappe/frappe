@@ -1610,7 +1610,10 @@ Object.assign(frappe.utils, {
 		if (!custom_options.colors?.length) {
 			custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
 		}
+		return new frappe.Chart(wrapper, frappe.utils.get_chart_args(custom_options));
+	},
 
+	get_chart_args(custom_options = {}) {
 		let chart_args = {
 			type: "bar",
 			axisOptions: {
@@ -1629,7 +1632,7 @@ Object.assign(frappe.utils, {
 			}
 		}
 		frappe.utils.set_space_label_ratio(chart_args);
-		return new frappe.Chart(wrapper, chart_args);
+		return chart_args;
 	},
 
 	// Espresso's chart colours (CHART_PALETTE) as the current theme defines them: frappe-charts

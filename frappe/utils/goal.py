@@ -6,6 +6,7 @@ from contextlib import suppress
 import frappe
 from frappe import _
 from frappe.model import get_permitted_fields
+from frappe.model.meta import get_field_currency
 from frappe.query_builder.functions import DateFormat
 from frappe.query_builder.utils import DocType
 from frappe.utils.data import add_to_date, cstr, flt, now_datetime
@@ -152,8 +153,11 @@ def get_monthly_goal_graph_data(
 		dataset_values.insert(0, val)
 		values_formatted.insert(0, format_value(val, meta.get_field(goal_total_field), doc))
 
+	total_df = meta.get_field(goal_total_field)
 	return {
 		"title": title,
+		"fieldtype": total_df.fieldtype,
+		"currency": get_field_currency(total_df, doc),
 		"data": {
 			"datasets": [{"values": dataset_values, "formatted": values_formatted}],
 			"labels": month_labels,
