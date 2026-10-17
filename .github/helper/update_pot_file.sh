@@ -5,7 +5,7 @@ cd ~ || exit
 echo "Setting Up Bench..."
 
 pip install frappe-bench
-bench -v init frappe-bench --skip-assets --skip-redis-config-generation --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
+bench init frappe-bench --skip-assets --skip-redis-config-generation --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
 cd ./frappe-bench || exit
 
 echo "Generating POT file..."
