@@ -3,7 +3,7 @@
 		ref="comboboxRef"
 		v-model="model"
 		v-model:open="open"
-		class="group !gap-1"
+		class="group !gap-1 [&_[data-slot=input]:disabled]:text-ink-gray-4"
 		:label="label"
 		:description="description"
 		:error="error"
