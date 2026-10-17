@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 from typing import TYPE_CHECKING
 
 import frappe
@@ -11,6 +12,7 @@ from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefaultError
 from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
+from frappe.model import child_table_fields, default_fields
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
@@ -26,6 +28,8 @@ from frappe.website.website_generator import WebsiteGenerator
 
 if TYPE_CHECKING:
 	from frappe.website.doctype.web_form_request.web_form_request import WebFormRequest
+
+LAYOUT_FIELDTYPES = ("Section Break", "Column Break", "Page Break")
 
 
 class WebForm(WebsiteGenerator):
@@ -55,8 +59,9 @@ class WebForm(WebsiteGenerator):
 		button_label: DF.Data | None
 		client_script: DF.Code | None
 		condition_json: DF.JSON | None
+		created_new_doctype: DF.Check
 		custom_css: DF.Code | None
-		doc_type: DF.Link
+		doc_type: DF.Link | None
 		dynamic_filters_json: DF.JSON | None
 		hide_footer: DF.Check
 		hide_navbar: DF.Check
@@ -88,6 +93,13 @@ class WebForm(WebsiteGenerator):
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
+		if not self.doc_type or self.created_new_doctype:
+			self.set_missing_fieldnames()
+
+		# no DocType picked, so the form makes its own
+		if not self.doc_type:
+			self.create_new_doctype()
+
 		super().validate()
 
 		if not self.module:
@@ -112,6 +124,103 @@ class WebForm(WebsiteGenerator):
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
 
+	def create_new_doctype(self):
+		"""Create the target DocType from this Web Form's fields instead of
+		requiring the user to pick an existing DocType."""
+		doctype_name = f"webform-{self.name}"
+
+		if frappe.db.exists("DocType", doctype_name):
+			frappe.throw(_("DocType {0} already exists").format(doctype_name))
+
+		new_doctype = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": doctype_name,
+				"module": self.module or "Custom",
+				"custom": 1,
+				"fields": self.get_fields_for_new_doctype(),
+				"permissions": [
+					{
+						"role": "System Manager",
+						"read": 1,
+						"write": 1,
+						"create": 1,
+						"delete": 1,
+						"print": 1,
+						"email": 1,
+						"export": 1,
+						"report": 1,
+						"share": 1,
+					}
+				],
+			}
+		).insert()
+
+		self.doc_type = new_doctype.name
+		self.created_new_doctype = 1
+
+	def set_missing_fieldnames(self):
+		"""Name each field after its label. The form builder adds a field from a fieldtype,
+		so the field has no name until the first save."""
+		taken = {d.fieldname for d in self.web_form_fields if d.fieldname}
+		taken.update(default_fields, child_table_fields)
+
+		for d in self.web_form_fields:
+			if d.fieldname or d.fieldtype in LAYOUT_FIELDTYPES:
+				continue
+
+			base = re.sub(r"\W+", "_", cstr(d.label or d.fieldtype).lower()).strip("_")
+			fieldname, suffix = base, 1
+			while fieldname in taken:
+				suffix += 1
+				fieldname = f"{base}_{suffix}"
+
+			d.fieldname = fieldname
+			taken.add(fieldname)
+
+	def get_fields_for_new_doctype(self):
+		"""Map Web Form Field rows to DocField dicts for `create_new_doctype`."""
+		return [self.as_docfield(d) for d in self.web_form_fields]
+
+	def as_docfield(self, web_form_field):
+		"""Map a single Web Form Field row to a DocField dict."""
+		# a DocType calls a page a tab
+		fieldtype = web_form_field.fieldtype.replace("Page Break", "Tab Break")
+		return {
+			"fieldname": web_form_field.fieldname,
+			"label": web_form_field.label,
+			"fieldtype": fieldtype,
+			"options": web_form_field.options,
+			"reqd": web_form_field.reqd,
+			"default": web_form_field.default,
+			"description": web_form_field.description,
+		}
+
+	def sync_fields_to_doctype(self):
+		"""Add Web Form Field rows that don't exist yet on the target DocType,
+		so fields can keep being designed from the Web Form itself after the
+		DocType has already been created. Only applies to a DocType that this
+		very Web Form created on the fly - any other DocType (even a Custom
+		one picked manually) keeps the original strict behaviour."""
+		if not self.created_new_doctype:
+			return
+
+		if not self.doc_type or not frappe.db.exists("DocType", self.doc_type):
+			return
+
+		meta = frappe.get_meta(self.doc_type)
+		if not meta.custom:
+			return
+
+		missing_fields = [d for d in self.web_form_fields if d.fieldname and not meta.has_field(d.fieldname)]
+		if not missing_fields:
+			return
+
+		target_doctype = frappe.get_doc("DocType", self.doc_type)
+		for d in missing_fields:
+			target_doctype.append("fields", self.as_docfield(d))
+		target_doctype.save()
+
 	def validate_guest_key_link_fields(self):
 		if not is_guest_key_web_form(self):
 			return
@@ -128,8 +237,11 @@ class WebForm(WebsiteGenerator):
 				)
 
 	def validate_fields(self):
-		"""Validate all fields are present"""
+		"""Validate all fields are present, creating any missing ones on a
+		Custom target DocType instead of failing."""
 		from frappe.model import no_value_fields
+
+		self.sync_fields_to_doctype()
 
 		meta = frappe.get_meta(self.doc_type)
 		missing = [

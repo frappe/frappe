@@ -16,6 +16,7 @@
   "doc_type",
   "module",
   "is_standard",
+  "created_new_doctype",
   "section_break_1",
   "introduction_text",
   "form_builder_tab",
@@ -88,21 +89,6 @@
    "unique": 1
   },
   {
-   "fieldname": "doc_type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Select DocType",
-   "options": "DocType",
-   "reqd": 1
-  },
-  {
-   "fieldname": "module",
-   "fieldtype": "Link",
-   "label": "Module",
-   "options": "Module Def"
-  },
-  {
    "default": "0",
    "description": "If enabled, Frappe exports the form to the module folder.",
    "fieldname": "is_standard",
@@ -116,6 +102,31 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Published"
+  },
+  {
+   "fieldname": "doc_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Select DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval:doc.is_standard",
+   "options": "Module Def"
+  },
+  {
+   "default": "0",
+   "description": "Set automatically when this Web Form creates its DocType. Only such Web Forms may keep adding fields to the DocType later.",
+   "fieldname": "created_new_doctype",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Created New DocType",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "default": "0",
@@ -483,7 +494,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-10-12 12:00:00.000000",
+ "modified": "2026-10-13 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
