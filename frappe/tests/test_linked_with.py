@@ -1,5 +1,6 @@
 import random
 import string
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
@@ -20,6 +21,42 @@ def block_cancel_while_child2_submitted(doc, method=None):
 	"""Mimic a controller that wants referencing documents cancelled first."""
 	if frappe.db.exists("Child DocType2", {"child_doctype1": doc.name, "docstatus": 1}):
 		frappe.throw(frappe._("Cancel the referencing document first"))
+
+
+@contextmanager
+def linked_entry_target():
+	"""Yield a target that `Linked Entry` links directly and through its rows,
+	and a user who can read only the entries they own."""
+	target_link = {"fieldname": "target", "fieldtype": "Link", "options": "Linked Entry Target"}
+	new_doctype("Linked Entry Target", permissions=[{"role": "All", "read": 1}]).insert()
+	new_doctype("Linked Entry Row", fields=[target_link], istable=1).insert()
+	new_doctype(
+		"Linked Entry",
+		fields=[target_link, {"fieldname": "rows", "fieldtype": "Table", "options": "Linked Entry Row"}],
+		is_submittable=1,
+		permissions=[
+			{"role": "All", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "if_owner": 1}
+		],
+	).insert()
+	user = frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": f"linked-entry-{frappe.generate_hash(length=8)}@example.com",
+			"first_name": "Linked Entry",
+			"user_type": "System User",
+			"send_welcome_email": 0,
+		}
+	).insert(ignore_permissions=True)
+	try:
+		yield frappe.new_doc("Linked Entry Target").insert(), user.name
+	finally:
+		for doctype in ("Linked Entry", "Linked Entry Row", "Linked Entry Target"):
+			frappe.delete_doc("DocType", doctype)
+
+
+def make_linked_entry(target):
+	# two rows, so the join repeats the entry for DISTINCT to collapse
+	return frappe.new_doc("Linked Entry", target=target.name, rows=[{"target": target.name}] * 2).insert()
 
 
 class TestLinkedWith(IntegrationTestCase):
@@ -1100,3 +1137,74 @@ class TestLinkedWith(IntegrationTestCase):
 
 		second_doc.cancel()
 		linked_doc.reload().cancel()
+
+	def test_get_lists_the_newest_linked_docs_within_the_limit(self):
+		with linked_entry_target() as (target, user), self.set_user(user):
+			entries = [make_linked_entry(target) for _ in range(3)]
+			bounded = linked_with.get(target.doctype, target.name, limit=2, order_by="creation desc")
+			unbounded = linked_with.get(target.doctype, target.name)
+
+		self.assertEqual(
+			[doc.name for doc in bounded["Linked Entry"]["docs"]], [entries[2].name, entries[1].name]
+		)
+		self.assertCountEqual(
+			[doc.name for doc in unbounded["Linked Entry"]["docs"]], [entry.name for entry in entries]
+		)
+		self.assertEqual(bounded["Linked Entry"]["hidden_count"], 0)
+		self.assertEqual(unbounded["Linked Entry"]["hidden_count"], 0)
+
+	def test_get_rejects_ordering_by_another_tables_field(self):
+		with linked_entry_target() as (target, _user), self.assertRaises(frappe.ValidationError):
+			linked_with.get(target.doctype, target.name, order_by="`tabLinked Entry Row`.`target` asc")
+
+	def test_get_skips_filters_a_linked_doctype_cannot_apply(self):
+		with linked_entry_target() as (target, _user):
+			live = make_linked_entry(target)
+			make_linked_entry(target).submit().cancel()
+			filters = [
+				# Linked Entry has no status field, so this filter doesn't apply to it
+				["status", "!=", "Cancelled"],
+				["docstatus", "!=", 2],
+				["Linked Entry Target", "name", "=", "not this one"],
+			]
+			linked = linked_with.get(target.doctype, target.name, filters=filters)
+
+		self.assertEqual([doc.name for doc in linked["Linked Entry"]["docs"]], [live.name])
+
+	def test_get_filters_by_stored_columns_and_dict_entries(self):
+		with linked_entry_target() as (target, user):
+			with self.set_user(user):
+				assigned = make_linked_entry(target)
+				cancelled = make_linked_entry(target).submit().cancel()
+				make_linked_entry(target)
+			frappe.db.set_value("Linked Entry", assigned.name, "_assign", '["owner@example.com"]')
+
+			def names(filters):
+				with self.set_user(user):
+					linked = linked_with.get(target.doctype, target.name, filters=filters)
+				return {doc.name for doc in linked["Linked Entry"]["docs"]}
+
+			self.assertEqual(names([["_assign", "like", "%owner@example.com%"]]), {assigned.name})
+			self.assertNotIn(cancelled.name, names([{"docstatus": ["!=", 2]}]))
+			# each field of a dict is checked on its own
+			self.assertNotIn(cancelled.name, names([{"absent": "x", "docstatus": ["!=", 2]}]))
+			# a dict arrives as JSON over HTTP
+			self.assertNotIn(cancelled.name, names(frappe.as_json({"docstatus": ["!=", 2]})))
+
+	def test_get_filters_linked_docs_without_changing_hidden_count(self):
+		with linked_entry_target() as (target, user):
+			# owned by Administrator, so hidden from the user
+			make_linked_entry(target).submit().cancel()
+			with self.set_user(user):
+				live = make_linked_entry(target)
+				cancelled = make_linked_entry(target).submit().cancel()
+				filtered = linked_with.get(target.doctype, target.name, filters=[["docstatus", "!=", 2]])
+				unfiltered = linked_with.get(target.doctype, target.name)
+
+		self.assertEqual([doc.name for doc in filtered["Linked Entry"]["docs"]], [live.name])
+		self.assertCountEqual(
+			[doc.name for doc in unfiltered["Linked Entry"]["docs"]], [live.name, cancelled.name]
+		)
+		# filters must not tell the user anything about docs they can't read
+		self.assertEqual(filtered["Linked Entry"]["hidden_count"], 1)
+		self.assertEqual(unfiltered["Linked Entry"]["hidden_count"], 1)
