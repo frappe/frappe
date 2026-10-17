@@ -3,6 +3,7 @@
 
 import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
+import GridSelectionBar from "./grid_selection_bar";
 
 // Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
@@ -97,6 +98,7 @@ export default class Grid {
 				<span class="help"></span>
 				<p class="text-muted small grid-description"></p>
 				<div class="grid-custom-buttons"></div>
+				<div class="grid-selection-scope">
 				<div class="form-grid-container">
 					<div class="form-grid">
 						<div class="grid-heading-row"></div>
@@ -111,32 +113,6 @@ export default class Grid {
 				<div class="small form-clickable-section grid-footer">
 					<div class="flex justify-between">
 						<div class="grid-buttons">
-							${frappe.ui.button.html({
-								label: __("Delete"),
-								size: "sm",
-								theme: "red",
-								css_class: "grid-remove-rows hidden",
-								attrs: { "data-action": "delete_rows" },
-							})}
-							${frappe.ui.button.html({
-								label: __("Edit"),
-								size: "sm",
-								css_class: "grid-edit-rows hidden",
-								attrs: { "data-action": "bulk_edit_rows" },
-							})}
-							${frappe.ui.button.html({
-								label: __("Delete all"),
-								size: "sm",
-								theme: "red",
-								css_class: "grid-remove-all-rows hidden",
-								attrs: { "data-action": "delete_all_rows" },
-							})}
-							${frappe.ui.button.html({
-								label: __("Duplicate rows"),
-								size: "sm",
-								css_class: "grid-duplicate-rows hidden",
-								attrs: { "data-action": "duplicate_rows" },
-							})}
 							<!-- hack to allow firefox include this in tabs -->
 							${frappe.ui.button.html({
 								label: __("Add row"),
@@ -159,6 +135,7 @@ export default class Grid {
 							})}
 						</div>
 					</div>
+				</div>
 				</div>
 			</div>
 		`;
@@ -196,6 +173,7 @@ export default class Grid {
 		this.edit_rows_button = this.grid_buttons.find(".grid-edit-rows");
 		this.duplicate_rows_button = this.grid_buttons.find(".grid-duplicate-rows");
 		this.remove_all_rows_button = this.grid_buttons.find(".grid-remove-all-rows");
+		this.selection_bar = new GridSelectionBar(this);
 
 		this.setup_allow_bulk_edit();
 		this.setup_check();
@@ -406,22 +384,9 @@ export default class Grid {
 		}
 	}
 
-	delete_all_rows() {
-		const num_rows = this.data.length;
-		frappe.confirm(__("Are you sure you want to delete all {0} rows?", [num_rows]), () => {
-			this.frm.doc[this.df.fieldname] = [];
-			$(this.parent).find(".rows").empty();
-			this.grid_rows = [];
-			this.refresh();
-			this.frm &&
-				this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
-			this.frm && this.frm.dirty();
-			this.scroll_to_top();
-		});
-	}
-
 	scroll_to_top() {
-		frappe.utils.scroll_to(this.wrapper);
+		if (frappe.flags.disable_auto_scroll) return;
+		this.wrapper.get(0).scrollIntoView({ behavior: "smooth", block: "start" });
 	}
 
 	select_row(name) {
@@ -1674,6 +1639,14 @@ export default class Grid {
 				});
 				return false;
 			});
+	}
+
+	add_bulk_action(opts) {
+		this.selection_bar.add_action(opts);
+	}
+
+	toggle_bulk_action(name, show) {
+		this.selection_bar.toggle_action(name, show);
 	}
 
 	add_custom_button(label, click, position = "bottom") {

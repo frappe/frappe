@@ -34,6 +34,18 @@ test.describe("Grid Pagination", () => {
 		);
 	});
 
+	test("scrolls back to the top of the grid on page change", async ({ page }) => {
+		const table = get_table(page);
+		const heading = table.locator(".grid-heading-row");
+
+		await table.locator(".next-page").scrollIntoViewIfNeeded();
+		await expect(heading).not.toBeInViewport();
+		await table.locator(".next-page").click();
+
+		await expect(table.locator(".current-page-number")).toHaveValue("2");
+		await expect(heading).toBeInViewport();
+	});
+
 	test("adds and deletes rows and changes page", async ({ page }) => {
 		const table = get_table(page);
 		await table.getByRole("button", { name: "Add row", exact: true }).click();
@@ -43,7 +55,11 @@ test.describe("Grid Pagination", () => {
 		await expect(table.locator(".current-page-number")).toHaveValue("21");
 		await expect(table.locator(".total-page-number")).toContainText("21");
 		await table.locator(".grid-body .grid-row .grid-row-check").click();
-		await table.getByRole("button", { name: "Delete row", exact: true }).click();
+		await table
+			.locator(".grid-selection-bar")
+			.getByRole("button", { name: "Actions" })
+			.click();
+		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
 		await expect(table.locator(".grid-body .row-index").last()).toContainText("1000");
 		await expect(table.locator(".current-page-number")).toHaveValue("20");
 		await expect(table.locator(".total-page-number")).toContainText("20");
@@ -51,17 +67,19 @@ test.describe("Grid Pagination", () => {
 
 	test("deletes selected rows from every page", async ({ page }) => {
 		const table = get_table(page);
+		const bar = table.locator(".grid-selection-bar");
 		const rows = table.locator(".grid-body .grid-row");
 		await expect(rows.first()).toHaveAttribute("data-idx", "1");
 		const first_row = await rows.first().getAttribute("data-name");
 		await rows.first().locator(".grid-row-check").click();
-		await table.locator(".next-page").click();
+		await bar.getByRole("button", { name: "Next page" }).click();
 		await expect(rows.last()).toHaveAttribute("data-idx", "100");
 		const last_row = await rows.last().getAttribute("data-name");
 		await rows.last().locator(".grid-row-check").click();
-		await table.locator(".prev-page").click();
-		await expect(table.locator(".current-page-number")).toHaveValue("1");
-		await table.getByRole("button", { name: "Delete 2 rows", exact: true }).click();
+		await bar.getByRole("button", { name: "Previous page" }).click();
+		await expect(bar.locator(".grid-selection-page")).toHaveText("1 of 20");
+		await bar.getByRole("button", { name: "Actions" }).click();
+		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
 		await expect
 			.poll(() =>
 				page.evaluate(
