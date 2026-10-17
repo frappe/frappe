@@ -95,7 +95,11 @@ class FakeSio:
 		self.rooms: dict[str, set[str]] = {}
 		self.sessions: dict[str, Session] = {}
 		self.emits: list[dict] = []
+		self.handlers: dict[str, Callable] = {}
 		self.manager = self
+
+	def on(self, event: str, handler: Callable, namespace: str | None = None) -> None:
+		self.handlers[event] = handler
 
 	def is_connected(self, sid: str, namespace: str | None = None) -> bool:
 		return sid in self.sessions or sid in self.rooms
@@ -813,13 +817,15 @@ class TestDispatch(unittest.IsolatedAsyncioTestCase):
 		self.reg.on("evt")(subscribe)
 		self.reg.on("evt")(lambda s: None)  # a later handler with nothing to say keeps the answer
 		self._session()
-		result = await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
-		self.assertEqual(result, {"subscribed": True})
+		dispatch_mod.wire(self.sio, make_config())
+		# python-socketio sends what the bound event handler returns as the acknowledgement.
+		self.assertEqual(await self.sio.handlers["evt"]("/s1", "sid1"), {"subscribed": True})
 
 	async def test_sync_handler_result_answers_the_acknowledgement(self):
 		self.reg.on("evt")(lambda s: "pong")
 		self._session()
-		self.assertEqual(await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ()), "pong")
+		dispatch_mod.wire(self.sio, make_config())
+		self.assertEqual(await self.sio.handlers["evt"]("/s1", "sid1"), "pong")
 
 
 class TestFrappeContext(unittest.IsolatedAsyncioTestCase):
