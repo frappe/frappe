@@ -21,6 +21,10 @@
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
     },
+    "./EmailAccounts": {
+      "import": "./src/components/EmailAccounts/index.ts",
+      "types": "./src/components/EmailAccounts/index.ts"
+    },
     "./InviteUser": {
       "import": "./src/components/InviteUser/index.ts",
       "types": "./src/components/InviteUser/index.ts"
