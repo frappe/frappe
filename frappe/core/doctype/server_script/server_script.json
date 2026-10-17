@@ -18,6 +18,7 @@
   "column_break_3",
   "module",
   "disabled",
+  "script_source",
   "section_break_8",
   "script",
   "rate_limiting_section",
@@ -152,6 +153,13 @@
    "fieldtype": "Select",
    "label": "Queue",
    "options": "\ndefault\nshort\nlong"
+  },
+  {
+   "default": "Database",
+   "fieldname": "script_source",
+   "fieldtype": "Select",
+   "label": "Script Source",
+   "options": "Database\nFile"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -161,7 +169,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2026-08-04 18:13:18.243389",
+ "modified": "2026-10-08 10:43:00.509131",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

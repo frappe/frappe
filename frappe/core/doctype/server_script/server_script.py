@@ -1,8 +1,10 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import os
 from functools import partial
 from itertools import chain
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import frappe
@@ -12,6 +14,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import http_cache
 from frappe.utils.safe_exec import (
 	FrappeTransformer,
+	ServerScriptNotEnabled,
 	get_keys_for_autocomplete,
 	get_safe_globals,
 	is_safe_exec_enabled,
@@ -20,6 +23,8 @@ from frappe.utils.safe_exec import (
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
+
+_compiled_file_cache: dict[str, tuple[int, object]] = {}
 
 
 class ServerScript(Document):
@@ -83,6 +88,7 @@ class ServerScript(Document):
 		rate_limit_seconds: DF.Int
 		reference_doctype: DF.Link | None
 		script: DF.Code
+		script_source: DF.Literal["Database", "File"]
 		script_type: DF.Literal[
 			"DocType Event", "Scheduler Event", "Permission Query", "API", "Workflow Task"
 		]
@@ -91,9 +97,91 @@ class ServerScript(Document):
 	def validate(self):
 		frappe.only_for("Script Manager", True)
 		self.check_if_compilable_in_restricted_context()
+		if self.script_source == "File":
+			self.get_file_path()
 
 	def on_update(self):
 		self.sync_scheduled_job_type()
+		self.ensure_file_stub()
+
+	def get_file_path(self) -> str:
+		"""Where this script's body lives on disk when `script_source` is "File".
+
+		Flat by `name` only (the doctype's own primary key, already globally
+		unique) — trigger fields stay DB-resident and are never encoded into
+		the path, so retargeting a script's event/doctype never moves its file.
+		"""
+		if not self.name or Path(self.name).name != self.name or self.name in (".", ".."):
+			frappe.throw(
+				_("Server Script name {0} cannot be used as a file name").format(self.name),
+				frappe.ValidationError,
+			)
+		return frappe.get_site_path("server_scripts", f"{self.name}.py")
+
+	def ensure_file_stub(self):
+		"""Scaffold the backing file on first save. Never overwrites an existing
+		file — this is the only DB-to-filesystem write PoC code makes."""
+		if self.script_source != "File":
+			return
+		path = self.get_file_path()
+		if os.path.exists(path):
+			return
+		os.makedirs(os.path.dirname(path), exist_ok=True)
+		with open(path, "w") as f:
+			f.write(self.get_file_stub_content())
+
+	def get_compiled_file_code(self):
+		"""Compile the backing file, recompiling only when its mtime changes."""
+		path = self.get_file_path()
+		try:
+			mtime = os.stat(path).st_mtime_ns
+		except FileNotFoundError:
+			frappe.throw(
+				_("Server Script {0} is File-sourced but {1} does not exist").format(self.name, path),
+				frappe.DoesNotExistError,
+			)
+		cached = _compiled_file_cache.get(path)
+		if cached and cached[0] == mtime:
+			return cached[1]
+		with open(path) as f:
+			code = compile(f.read(), f"<server_script_file: {frappe.scrub(self.name)}>", "exec")
+		_compiled_file_cache[path] = (mtime, code)
+		return code
+
+	def run(self, _globals=None, _locals=None, *, restrict_commit_rollback=False):
+		"""Run the body from the DB (restricted) or from its file (raw exec)."""
+		if self.script_source == "Database":
+			return safe_exec(
+				self.script,
+				_globals,
+				_locals,
+				restrict_commit_rollback=restrict_commit_rollback,
+				script_filename=self.name,
+			)
+		if not is_safe_exec_enabled():
+			frappe.throw(_("Server Scripts are disabled."), ServerScriptNotEnabled)
+		exec_globals = get_safe_globals()
+		if _globals:
+			exec_globals.update(_globals)
+		if restrict_commit_rollback:
+			for name in ("commit", "rollback", "add_index"):
+				exec_globals.frappe.db.pop(name, None)
+		exec(self.get_compiled_file_code(), exec_globals, _locals)
+		return exec_globals, _locals
+
+	def get_file_stub_content(self) -> str:
+		trigger = {
+			"DocType Event": f"doctype_event={self.doctype_event}, reference_doctype={self.reference_doctype}",
+			"Scheduler Event": f"event_frequency={self.event_frequency}",
+			"API": f"api_method={self.api_method}",
+			"Permission Query": f"reference_doctype={self.reference_doctype}",
+			"Workflow Task": "workflow task",
+		}.get(self.script_type, "")
+		return (
+			f"# Server Script: {self.name}\n"
+			f"# script_type={self.script_type} {trigger}\n"
+			f"# Trigger metadata lives on the Server Script record in the DB; this file is the body only.\n\n"
+		)
 
 	def clear_cache(self):
 		frappe.client_cache.delete_value("server_script_map")
@@ -197,12 +285,7 @@ class ServerScript(Document):
 		Args:
 		        doc (Document): Executes script with for a certain document's events
 		"""
-		safe_exec(
-			self.script,
-			_locals={"doc": doc},
-			restrict_commit_rollback=True,
-			script_filename=self.name,
-		)
+		self.run(_locals={"doc": doc}, restrict_commit_rollback=True)
 
 	def execute_scheduled_method(self):
 		"""Specific to Scheduled Jobs via Server Scripts
@@ -213,7 +296,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event":
 			raise frappe.DoesNotExistError
 
-		safe_exec(self.script, script_filename=self.name)
+		self.run()
 
 	def get_permission_query_conditions(self, user: str, active_child_tables=None) -> list[str]:
 		"""Specific to Permission Query Server Scripts.
@@ -230,7 +313,7 @@ class ServerScript(Document):
 			"conditions": "",
 			"active_child_tables": active_child_tables or [],
 		}
-		safe_exec(self.script, None, locals, script_filename=self.name)
+		self.run(None, locals)
 		if locals["conditions"]:
 			return locals["conditions"]
 
@@ -241,11 +324,7 @@ class ServerScript(Document):
 		if self.script_type != "Workflow Task":
 			raise frappe.DoesNotExistError
 
-		safe_exec(
-			self.script,
-			_locals={"doc": doc},
-			script_filename=self.name,
-		)
+		self.run(_locals={"doc": doc})
 
 
 @frappe.whitelist()
@@ -281,7 +360,7 @@ def execute_api_server_script(script: ServerScript, *args, **kwargs):
 		raise frappe.PermissionError
 
 	# output can be stored in flags
-	_globals, _locals = safe_exec(script.script, script_filename=script.name)
+	_globals, _locals = script.run()
 
 	return _globals.frappe.flags
 
