@@ -77,6 +77,10 @@ frappe.ui.Dock = class Dock {
 			$("body").toggleClass("dock-pinned", pinned);
 			pinned ? this.open() : this.close();
 		}
+		this.$dock.toggleClass(
+			"dock-owns-utilities",
+			this.is_pinned || !this.sidebar.page_allows_sidebar()
+		);
 		// A collapsed sidebar hides beside a pinned dock and folds to its rail otherwise.
 		this.sidebar.refit_collapsed_sidebar();
 	}
@@ -100,6 +104,57 @@ frappe.ui.Dock = class Dock {
 		});
 	}
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+	// Search and notifications lead a pinned tray, and the sidebar drops its own rows for them
+	// (see dock.scss). A floating tray hides them and the sidebar keeps its rows. The classes are
+=======
+	// Search and notifications lead the tray when it owns them (see apply_pin). The classes are
+>>>>>>> a953879 (fix(dock): keep search and notifications on the dock when the page has no sidebar)
+	// what the search modal and the notifications panel already listen on.
+	render_utilities() {
+		if (frappe.session.user === "Guest") return;
+		const $utilities = this.$dock.find(".dock-utilities");
+
+		if (frappe.boot.desk_settings.search_bar) {
+			$utilities.append(
+				this.make_utility({
+					label: __("Search"),
+					icon: "search",
+					css_class: "navbar-modal-search-mobile",
+				})
+			);
+		}
+
+		if (frappe.boot.desk_settings.notifications) {
+			const unread = frappe.boot.notification_unread_count || 0;
+			const $bell = this.make_utility({
+				label: __("Notifications"),
+				icon: "bell",
+				css_class: "sidebar-notification",
+				badge: `<span class="notification-count dock-item-dot ${
+					unread > 0 ? "" : "hidden"
+				}" aria-live="polite"></span>`,
+			});
+			$bell.on("click", () => frappe.ui.sidebar_panels.toggle("notifications"));
+			$utilities.append($bell);
+		}
+	}
+
+	make_utility({ label, icon, css_class, badge = "" }) {
+		const $item =
+			$(`<button class="dock-item ${css_class}" aria-label="${frappe.utils.escape_html(
+				label
+			)}">
+			<span class="dock-item-icon">${frappe.utils.icon(icon, "sm")}</span>
+			${badge}
+		</button>`);
+		this.name_tile($item, label, this.utility_tooltips);
+		return $item;
+	}
+
+>>>>>>> cb24f18 (fix(dock): keep search and notifications in the sidebar while the dock floats)
 	// `any-hover`, not `hover`: a tablet with a trackpad reports touch as its primary input.
 	static pointer_can_reveal() {
 		return window.matchMedia("(any-hover: hover)").matches;
