@@ -6,7 +6,7 @@ through its own Pilot, and keeps the PKCE verifier and, after the callback, the 
 
 import secrets
 from typing import Literal
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 import jwt
 from oauthlib.oauth2 import WebApplicationClient
@@ -45,10 +45,18 @@ PROVIDERS: dict[Provider, dict] = {
 
 @frappe.whitelist(methods=["POST"])
 def initiate_mailbox_connect(
-	provider: Provider, redirect_to: str = DEFAULT_LANDING, target_doctype: str | None = None
+	provider: Provider,
+	redirect_to: str = DEFAULT_LANDING,
+	target_doctype: str | None = None,
+	email_account: str | None = None,
 ) -> str:
-	"""Start a mailbox Connect; returns the provider's sign-in link."""
-	frappe.has_permission("Email Account", "create", throw=True)
+	"""Start a mailbox Connect; returns the provider's sign-in link.
+
+	With `email_account`, signing in reconnects that mailbox instead of adding one."""
+	if email_account:
+		frappe.has_permission("Email Account", "write", doc=email_account, throw=True)
+	else:
+		frappe.has_permission("Email Account", "create", throw=True)
 	if not is_v2_site():
 		frappe.throw(
 			_("Sign in with {0} is only available on Frappe Cloud").format(PROVIDERS[provider]["label"])
@@ -75,10 +83,18 @@ def initiate_mailbox_connect(
 			"scopes": link["scopes"],
 			"redirect_to": redirect_to,
 			"target_doctype": target_doctype,
+			"email_account": email_account,
 		},
 		expires_in_sec=NOTE_TTL,
 	)
 	return link["authorize_url"]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_one_click_providers() -> list[Provider]:
+	"""The providers `initiate_mailbox_connect` signs in with on this site; none off Frappe Cloud."""
+	frappe.has_permission("Email Account", "read", throw=True)
+	return list(PROVIDERS) if is_v2_site() else []
 
 
 def relay(method: str, **data) -> dict:
@@ -117,27 +133,37 @@ def callback(
 	if not note or note["user"] != frappe.session.user:
 		return land(DEFAULT_LANDING, "expired")
 	frappe.cache.delete_value(f"pkce_verifier:{state}")
+	account_name = note.get("email_account")
+	account_email = account_name and frappe.db.get_value("Email Account", account_name, "email_id")
 
+	email = None
 	try:
-		result = connect(note, code, error, error_description)
+		result, email = connect(note, code, error, error_description, account_email)
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error("Email OAuth connect failed")
 		result = "failed"
 	frappe.db.commit()  # GET requests are rolled back otherwise; keeps the mailbox or the Error Log
-	land(note["redirect_to"], result)
+	land(note["redirect_to"], result, account_email if account_name else email)
 
 
-def connect(note: dict, code: str | None, error: str | None, error_description: str | None) -> str:
+def connect(
+	note: dict,
+	code: str | None,
+	error: str | None,
+	error_description: str | None,
+	account_email: str | None,
+) -> tuple[str, str | None]:
+	"""Return the result code, and the address signed in to once the provider has given it."""
 	if error:
 		if any(c in (error_description or "") for c in ("AADSTS65001", "AADSTS90094")):
-			return "admin_approval"
+			return "admin_approval", None
 		if error == "access_denied":
-			return "cancelled"
+			return "cancelled", None
 		if error == "not_team_member":  # from Central: this browser isn't logged in to the site's team
-			return "not_team_member"
+			return "not_team_member", None
 		frappe.log_error("Email OAuth sign-in failed", f"{error}: {error_description}")
-		return "failed"
+		return "failed", None
 
 	provider = note["provider"]
 	try:
@@ -151,15 +177,20 @@ def connect(note: dict, code: str | None, error: str | None, error_description: 
 	except frappe.ValidationError as e:
 		if str(e) != "invalid_grant":  # Central passes on the provider's error code as the message
 			raise
-		return "expired"
+		return "expired", None
 
 	# straight from the token endpoint over TLS, so no signature check (OIDC Core 3.1.3.7)
 	claims = jwt.decode(token["id_token"], options={"verify_signature": False})
 	email = claims.get("email") or claims["preferred_username"]
 	config = PROVIDERS[provider]
 	personal = "personal_tenant" in config and claims.get("tid") == config["personal_tenant"]
-	if frappe.db.exists("Email Account", {"email_id": email}):
-		return "already_connected"
+	if account_name := note.get("email_account"):
+		if not account_email:
+			return "failed", email
+		if account_email.casefold() != email.casefold():
+			return "wrong_mailbox", email
+	elif frappe.db.exists("Email Account", {"email_id": email}):
+		return "already_connected", email
 
 	app = frappe.get_doc(
 		{
@@ -171,53 +202,77 @@ def connect(note: dict, code: str | None, error: str | None, error_description: 
 			"scopes": [{"scope": scope} for scope in note["scopes"]],
 		}
 	).insert(ignore_permissions=True)
-	token_cache = frappe.get_doc(
+	frappe.get_doc(
 		{"doctype": "Token Cache", "connected_app": app.name, "user": frappe.session.user}
 	).update_data(token)  # commits
 
+	mail_settings = {
+		"auth_method": "OAuth",
+		"connected_app": app.name,
+		"connected_user": frappe.session.user,
+		"backend_app_flow": 0,
+		"use_imap": 1,
+		"use_ssl": 1,
+		"incoming_port": 993,
+		"use_tls": 1,
+		"use_ssl_for_outgoing": 0,
+		"smtp_port": 587,
+		"service": config["service"],
+		**(config["personal_servers"] if personal else config["servers"]),
+	}
 	try:
-		frappe.get_doc(
-			{
-				"doctype": "Email Account",
-				"email_account_name": email,
-				"email_id": email,
-				"auth_method": "OAuth",
-				"connected_app": app.name,
-				"connected_user": frappe.session.user,
-				"enable_incoming": 1,
-				"enable_outgoing": 1,
-				"use_imap": 1,
-				"use_ssl": 1,
-				"incoming_port": 993,
-				"use_tls": 1,
-				"smtp_port": 587,
-				"email_sync_option": "ALL",
-				"initial_sync_count": 100,
-				"create_contact": 1,
-				"track_email_status": 1,
-				"imap_folder": [{"folder_name": "INBOX", "append_to": note["target_doctype"]}],
-				"service": config["service"],
-				**(config["personal_servers"] if personal else config["servers"]),
-			}
-		).insert()
+		if account_name:
+			account = frappe.get_doc("Email Account", account_name).update(mail_settings)
+			if not account.imap_folder:
+				account.append("imap_folder", {"folder_name": "INBOX", "append_to": account.append_to})
+			account.save()
+		else:
+			frappe.get_doc(
+				{
+					"doctype": "Email Account",
+					"email_account_name": email,
+					"email_id": email,
+					"enable_incoming": 1,
+					"enable_outgoing": 1,
+					"email_sync_option": "ALL",
+					"initial_sync_count": 100,
+					"create_contact": 1,
+					"track_email_status": 1,
+					"imap_folder": [{"folder_name": "INBOX", "append_to": note["target_doctype"]}],
+					**mail_settings,
+				}
+			).insert()
 	except Exception as e:
 		frappe.db.rollback()
-		frappe.delete_doc("Token Cache", token_cache.name, ignore_permissions=True, force=True)
-		frappe.delete_doc("Connected App", app.name, ignore_permissions=True, force=True)
+		delete_relay_app(app.name)
 		frappe.log_error("Email OAuth connect failed")
 		message = str(e)
 		if "SmtpClientAuthentication" in message:
-			return "smtp_disabled_personal" if personal else "smtp_disabled"
+			return ("smtp_disabled_personal" if personal else "smtp_disabled"), email
 		if "authenticated but not connected" in message:
-			return "imap_disabled"
-		return "failed"
+			return "imap_disabled", email
+		return "failed", email
 
-	return "connected"
+	return ("reconnected" if account_name else "connected"), email
 
 
-def land(redirect_to: str, result: str) -> None:
-	url = sanitize_redirect(redirect_to)
-	redirect(f"{url}{'&' if '?' in url else '?'}email_oauth={result}")
+def delete_relay_app(connected_app: str | None) -> None:
+	"""Delete a Connected App this module made, with its tokens, once no Email Account links it;
+	a customer's own app is left alone."""
+	token_uri = connected_app and frappe.db.get_value("Connected App", connected_app, "token_uri")
+	if not (token_uri or "").startswith(FRAPPE_CLOUD_RELAY) or frappe.db.exists(
+		"Email Account", {"connected_app": connected_app}
+	):
+		return
+	for token_cache in frappe.get_all("Token Cache", {"connected_app": connected_app}, pluck="name"):
+		frappe.delete_doc("Token Cache", token_cache, ignore_permissions=True)
+	frappe.delete_doc("Connected App", connected_app, ignore_permissions=True)
+
+
+def land(redirect_to: str, result: str, mailbox: str | None = None) -> None:
+	url = urlparse(sanitize_redirect(redirect_to))
+	query = urlencode({"email_oauth": result} | ({"email_oauth_mailbox": mailbox} if mailbox else {}))
+	redirect(url._replace(query=f"{url.query}&{query}" if url.query else query).geturl())
 
 
 def redirect(location: str) -> None:

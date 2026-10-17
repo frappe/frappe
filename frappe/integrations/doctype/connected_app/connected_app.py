@@ -2,9 +2,10 @@
 # License: MIT. See LICENSE
 
 import os
+from datetime import datetime
 from urllib.parse import urlencode, urljoin
 
-from oauthlib.oauth2 import BackendApplicationClient
+from oauthlib.oauth2 import BackendApplicationClient, InvalidGrantError
 from requests_oauthlib import OAuth2Session
 
 import frappe
@@ -164,8 +165,18 @@ class ConnectedApp(Document):
 							token_url=self.token_uri,
 						)
 					token_cache.update_data(token)
-			except Exception:
+			except Exception as e:
 				self.log_error("Token Refresh Error")
+				# Central passes on the provider's error code as the message
+				if isinstance(e, InvalidGrantError) or str(e) == "invalid_grant":
+					# in a job, so neither the caller's rollback nor another worker's row lock gets in the way
+					frappe.enqueue(
+						"frappe.integrations.doctype.connected_app.connected_app.delete_token_cache",
+						job_id=f"delete_token_cache:{token_cache.name}",
+						deduplicate=True,
+						name=token_cache.name,
+						modified=token_cache.modified,
+					)
 				return None
 
 		return token_cache
@@ -235,6 +246,12 @@ def callback(code: str | None = None, state: str | None = None):
 
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = token_cache.get("success_uri") or connected_app.get_url()
+
+
+def delete_token_cache(name: str, modified: datetime) -> None:
+	# a reconnect may have saved a new token under the same name since
+	if frappe.db.get_value("Token Cache", {"name": name, "modified": modified}, for_update=True):
+		frappe.delete_doc("Token Cache", name, ignore_permissions=True)
 
 
 @frappe.whitelist()
