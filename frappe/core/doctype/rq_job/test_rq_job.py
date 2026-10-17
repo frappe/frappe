@@ -65,8 +65,6 @@ class TestRQJob(IntegrationTestCase):
 		rq_job = frappe.get_doc("RQ Job", job.id)
 		self.assertEqual(rq_job.job_name, "frappe.core.doctype.rq_job.test_rq_job.test_func")
 
-<<<<<<< HEAD
-=======
 	def test_renamed_func_obj_serialization(self):
 		job = frappe.enqueue(method=test_func, queue="short")
 		with patch.dict(globals()):
@@ -74,8 +72,6 @@ class TestRQJob(IntegrationTestCase):
 			rq_job = frappe.get_doc("RQ Job", job.id)
 		self.assertEqual(rq_job.job_name, job.description)
 
-	@requires_test_service(TestService.BACKGROUND_WORKER)
->>>>>>> a525ab3 (test: cover queued jobs whose function was renamed)
 	@timeout
 	def test_get_list_filtering(self):
 		# Check failed job clearning and filtering
