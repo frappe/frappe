@@ -310,8 +310,25 @@ class TestHybridRetrieval(MemoryCase):
 			}
 		).insert()
 		_settings(embedding_model=other.name)
+		self.embed.reset_mock()
 		self.block("Where do that customer's invoices go?")
-		self.assertEqual(self.embed.call_args_list[1].args[0], [ACME])
+		self.assertEqual(self.embed.call_args_list[0].args[0], [ACME])
+
+	def test_the_same_model_on_another_server_rebuilds_the_index(self):
+		save_memory(self.agent.name, content=ACME, scope="agent")
+		other = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Self-hosted Memory Model",
+				"model_id": self.model.model_id,
+				"base_url": "https://embed.example.com/v1",
+				"enabled": 1,
+			}
+		).insert()
+		_settings(embedding_model=other.name)
+		self.embed.reset_mock()
+		self.block("Where do that customer's invoices go?")
+		self.assertEqual(self.embed.call_args_list[0].args[0], [ACME])
 
 	def test_a_renamed_embedding_model_keeps_the_index(self):
 		save_memory(self.agent.name, content=ACME, scope="agent")
