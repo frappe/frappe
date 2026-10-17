@@ -15,8 +15,12 @@ class FakePubSub:
 	def __init__(self):
 		self.messages: asyncio.Queue = asyncio.Queue()
 		self.channels: set[str] = set()
+		self.fail_next = False
 
 	async def subscribe(self, *channels):
+		if self.fail_next:
+			self.fail_next = False
+			raise ConnectionError("redis is down")
 		for channel in channels:
 			self.channels.add(channel)
 			await self.messages.put({"type": "subscribe", "channel": channel})
@@ -76,6 +80,20 @@ class TestRealtimeRelay(UnitTestCase):
 			await asyncio.sleep(0.1)
 			relay.listener.cancel()
 			self.assertIn(("flow:event", {"seq": 1}, channel), socket.emits)
+
+		asyncio.run(run())
+
+	def test_a_retry_after_a_failed_subscribe_listens_for_access_changes(self):
+		async def run():
+			pubsub = FakePubSub()
+			pubsub.fail_next = True
+			relay = handlers.Relay()
+			with patch.object(handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
+				with self.assertRaises(ConnectionError):
+					await relay.subscribe(FakeSocket(allowed=True), "session-1")
+				self.assertTrue(await relay.subscribe(FakeSocket(allowed=True), "session-2"))
+			relay.listener.cancel()
+			self.assertIn("flow-access:s1", pubsub.channels)
 
 		asyncio.run(run())
 

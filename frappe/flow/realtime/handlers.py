@@ -45,8 +45,8 @@ class Relay:
 
 	def __init__(self) -> None:
 		self.subscriptions: dict[str, Subscription] = {}
-		self.site_channels: set[str] = set()
-		self.confirmations: dict[str, asyncio.Future] = {}
+		# channel -> resolved once Redis confirms its subscription
+		self.channel_ready: dict[str, asyncio.Future] = {}
 		self.pubsub = None
 		self.listener: asyncio.Task | None = None
 
@@ -96,6 +96,7 @@ class Relay:
 			return
 
 		del self.subscriptions[channel]
+		self.channel_ready.pop(channel, None)
 		try:
 			await self.pubsub.unsubscribe(channel)
 		except RedisError:
@@ -103,21 +104,30 @@ class Relay:
 
 	async def listen(self, channel: str, site: str) -> None:
 		"""Subscribe the session channel, and the site's resync and access channels on first use."""
-		channels = [channel]
-		for site_channel in (RESYNC_ALL, RESYNC_SITE + site, ACCESS_SITE + site):
-			if site_channel not in self.site_channels:
-				self.site_channels.add(site_channel)
-				channels.append(site_channel)
-
+		channels = [channel, RESYNC_ALL, RESYNC_SITE + site, ACCESS_SITE + site]
+		new = [name for name in channels if name not in self.channel_ready]
 		loop = asyncio.get_running_loop()
-		confirmations = [self.confirmations.setdefault(name, loop.create_future()) for name in channels]
-		if self.pubsub is None:
-			self.pubsub = redis_client().pubsub()
-		await self.pubsub.subscribe(*channels)
-		if self.listener is None:
-			self.listener = asyncio.create_task(self.run())
-		# The ack must not beat the Redis subscription, or a run started on it loses events.
-		await asyncio.wait_for(asyncio.gather(*confirmations), SUBSCRIBE_TIMEOUT)
+		for name in new:
+			self.channel_ready[name] = loop.create_future()
+		waits = [asyncio.shield(self.channel_ready[name]) for name in channels]
+
+		try:
+			if self.pubsub is None:
+				self.pubsub = redis_client().pubsub()
+			await self.pubsub.subscribe(*new)
+			if self.listener is None:
+				self.listener = asyncio.create_task(self.run())
+			# The ack must not beat the Redis subscriptions, or a run started on it loses events
+			# or the access changes that stop a stream.
+			await asyncio.wait_for(asyncio.gather(*waits), SUBSCRIBE_TIMEOUT)
+		except Exception as error:
+			# A retry subscribes these again, and a listen waiting on them fails with this one.
+			for name in new:
+				ready = self.channel_ready.pop(name)
+				if not ready.done():
+					ready.set_exception(error)
+					ready.exception()  # retrieved, so one no other listen awaits logs nothing
+			raise
 
 	async def run(self) -> None:
 		"""Read Redis until the process stops. redis-py reconnects and subscribes again by itself."""
@@ -143,9 +153,9 @@ class Relay:
 	async def handle(self, message: dict) -> None:
 		channel = message["channel"]
 		if message["type"] == "subscribe":
-			confirmation = self.confirmations.pop(channel, None)
-			if confirmation and not confirmation.done():
-				confirmation.set_result(True)
+			ready = self.channel_ready.get(channel)
+			if ready and not ready.done():
+				ready.set_result(True)
 			return
 		if message["type"] != "message":
 			return
