@@ -396,9 +396,11 @@ class TestReportview(IntegrationTestCase):
 	def test_delete_bulk_reports_missing_permission(self):
 		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
 		with self.set_user(user.name), patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
-			delete_bulk("User", ["Guest"])
+			delete_bulk("User", ["Guest", "Administrator"])
 
-		self.assertIn("You need the 'delete' permission", frappe.message_log[-1].message[0])
+		message = frappe.message_log[-1].message
+		self.assertEqual(len(message), 1)
+		self.assertIn("You need the 'delete' permission", message[0])
 
 	def test_delete_bulk_logs_unexpected_error(self):
 		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
