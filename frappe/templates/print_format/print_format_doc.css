@@ -247,7 +247,7 @@
 .print-format-doc .child-table .table td {
 	padding: 0.5em 0.6667em;
 	border: none !important;
-	background-color: var(--white) !important;
+	background-color: var(--pfb-cell-bg, var(--white)) !important;
 	vertical-align: top;
 }
 
