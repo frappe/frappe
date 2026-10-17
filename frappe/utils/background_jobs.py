@@ -584,7 +584,9 @@ def get_jobs(site=None, queue=None, key="method"):
 		q = get_queue(_queue)
 		jobs = q.jobs + get_running_jobs_in_queue(q)
 		for job in jobs:
-			if get_queue_args(job).get("site"):
+			if not (queue_args := get_queue_args(job)):
+				continue
+			if queue_args.get("site"):
 				# if job belongs to current site, or if all jobs are requested
 				if (job.kwargs["site"] == site) or site is None:
 					add_to_dict(job)
