@@ -595,13 +595,19 @@ class EmailAccount(Document):
 				"conf_names": ("disable_mail_smtp_authentication",),
 				"default": 0,
 			},
+			"validate_ssl_certificate_for_outgoing": {
+				"conf_names": ("validate_ssl_certificate_for_outgoing",),
+				"default": 1,
+			},
 		}
 
 		account_details = {}
 		for doc_field_name, d in field_to_conf_name_map.items():
 			conf_names, default = d.get("conf_names") or [], d.get("default")
 			value = [frappe.conf.get(k) for k in conf_names if frappe.conf.get(k)]
-			account_details[doc_field_name] = (value and value[0]) or default
+			if doc_field_name == "validate_ssl_certificate_for_outgoing" and conf_names[0] in frappe.conf:
+				value = [frappe.conf.get(conf_names[0])]
+			account_details[doc_field_name] = value[0] if value else default
 
 		return account_details
 

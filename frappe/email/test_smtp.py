@@ -112,6 +112,20 @@ class TestSMTP(IntegrationTestCase):
 
 
 class TestSMTPCertificateSettings(IntegrationTestCase):
+	def test_site_config_controls_outgoing_certificate_validation(self):
+		with patch.dict(frappe.conf, {"mail_server": "smtp.example.com"}, clear=True):
+			account = EmailAccount.find_from_config()
+			self.assertEqual(account.validate_ssl_certificate_for_outgoing, 1)
+
+		with patch.dict(
+			frappe.conf,
+			{"mail_server": "smtp.example.com", "validate_ssl_certificate_for_outgoing": 0},
+			clear=True,
+		):
+			account = EmailAccount.find_from_config()
+			self.assertEqual(account.validate_ssl_certificate_for_outgoing, 0)
+			self.assertEqual(account.sendmail_config()["validate_ssl_certificate"], 0)
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
