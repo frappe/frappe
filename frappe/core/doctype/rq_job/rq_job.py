@@ -167,13 +167,8 @@ def serialize_job(job: Job) -> frappe._dict:
 		started_at=convert_utc_to_system_timezone(job.started_at) if job.started_at else "",
 		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else "",
 		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
-<<<<<<< HEAD
 		exc_info=job.exc_info,
-		arguments=frappe.as_json(job.kwargs),
-=======
-		exc_info=exc_info,
 		arguments=frappe.as_json(queue_args),
->>>>>>> a0deefb (fix: RQ Job list fails to load after a queued function is renamed)
 		timeout=job.timeout,
 		creation=convert_utc_to_system_timezone(job.created_at),
 		modified=convert_utc_to_system_timezone(modified),
@@ -184,7 +179,7 @@ def serialize_job(job: Job) -> frappe._dict:
 
 
 def for_current_site(job: Job) -> bool:
-	return job.id.startswith(f"{frappe.local.site}||")
+	return job.id.startswith(f"{frappe.local.site}::")
 
 
 def filter_current_site_jobs(job_ids: list[str]) -> list[str]:

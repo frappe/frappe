@@ -3,11 +3,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from rq import Queue
-<<<<<<< HEAD
-=======
 from rq.job import Job
-from werkzeug.local import Local
->>>>>>> a525ab3 (test: cover queued jobs whose function was renamed)
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
@@ -18,12 +14,7 @@ from frappe.utils.background_jobs import (
 	create_job_id,
 	execute_job,
 	generate_qname,
-<<<<<<< HEAD
-=======
 	get_jobs,
-	get_queue,
-	get_queues_timeout,
->>>>>>> a525ab3 (test: cover queued jobs whose function was renamed)
 	get_redis_conn,
 )
 
@@ -64,44 +55,17 @@ class TestBackgroundJobs(FrappeTestCase):
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
 
-<<<<<<< HEAD
-=======
-	def test_enqueue_passes_retry_kwarg_to_method(self):
-		job = frappe.enqueue("frappe.tests.test_background_jobs.echo_retry", queue="short", retry=3)
-		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
-		self.assertIsNone(job.retries_left)
-
 	def test_get_jobs_skips_job_with_renamed_method(self):
-		job = frappe.enqueue(method=echo_retry, queue="short")
+		job = frappe.enqueue(method=fail_function, queue="short")
 		stale_job = Job.fetch(job.id, connection=get_redis_conn())
 		with (
 			patch.dict(globals()),
 			patch("frappe.utils.background_jobs.get_running_jobs_in_queue", return_value=[stale_job]),
 		):
-			del globals()["echo_retry"]
+			del globals()["fail_function"]
 			jobs = get_jobs(site=frappe.local.site, queue="short")
-		self.assertNotIn(echo_retry, jobs[frappe.local.site])
+		self.assertNotIn(fail_function, jobs[frappe.local.site])
 
-	def test_job_translation_resolves_user_language(self):
-		real_get_cached_value = frappe.get_cached_value
-
-		def user_language_de(doctype, name, fieldname=None, *args, **kwargs):
-			if doctype == "User" and fieldname == "language":
-				return "de"
-			return real_get_cached_value(doctype, name, fieldname, *args, **kwargs)
-
-		frappe.local.job = frappe._dict(user="Administrator")
-		self.addCleanup(delattr, frappe.local, "job")
-		original_lang = frappe.local.lang
-		self.addCleanup(setattr, frappe.local, "lang", original_lang)
-		frappe.local.lang = "en"
-
-		with patch("frappe.get_cached_value", side_effect=user_language_de):
-			frappe._("Home")
-
-		self.assertEqual(frappe.local.lang, "de")
-
->>>>>>> a525ab3 (test: cover queued jobs whose function was renamed)
 	def test_job_hooks(self):
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())
 		with (
