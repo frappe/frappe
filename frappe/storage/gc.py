@@ -10,6 +10,9 @@ commits. Stale upload sessions are swept through
 ``frappe.storage.upload.expire_stale_upload_sessions``.
 """
 
+from pypika.queries import QueryBuilder, Table
+from pypika.terms import Criterion, ExistsCriterion
+
 import frappe
 import frappe.storage
 from frappe.model.rename_doc import get_link_fields
@@ -38,8 +41,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 	try:
 		columns = blob_reference_columns()
 		_warn_unindexed_reference_columns(columns, logger)
-		predicate = orphan_predicate(columns=columns)
-		orphans = get_orphan_blobs(cutoff, batch_size, predicate=predicate)
+		orphans = get_orphan_blobs(cutoff, batch_size, columns=columns)
 	except Exception:
 		# An incomplete set of references must fail closed. Upload expiry is
 		# independent and remains useful even when blob collection cannot run.
@@ -50,7 +52,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 	while True:
 		deleted = 0
 		for blob in orphans:
-			if delete_blob(blob, cutoff, logger, stats, predicate=predicate):
+			if delete_blob(blob, cutoff, logger, stats, columns=columns):
 				deleted += 1
 		stats["blobs_deleted"] += deleted
 		if not frappe.flags.in_test:
@@ -58,7 +60,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 			frappe.db.commit()  # nosemgrep
 		if deleted == 0 or len(orphans) < batch_size:
 			break
-		orphans = get_orphan_blobs(cutoff, batch_size, predicate=predicate)
+		orphans = get_orphan_blobs(cutoff, batch_size, columns=columns)
 
 	stats["upload_sessions_expired"] = expire_upload_sessions(logger)
 
@@ -84,38 +86,24 @@ def blob_reference_columns() -> list[dict]:
 	return columns
 
 
-def orphan_predicate(blob_alias: str = "b", *, columns: list[dict] | None = None) -> str:
-	"""Return one NOT EXISTS probe per discovered File Blob Link column."""
-	return _orphan_predicate(
-		blob_reference_columns() if columns is None else columns,
-		blob_alias=blob_alias,
-	)
+def orphan_criterion(blob: Table, columns: list[dict]) -> Criterion:
+	"""Return one NOT EXISTS probe on ``blob`` per File Blob Link column."""
+	return Criterion.all(ExistsCriterion(reference_query(blob, column)).negate() for column in columns)
 
 
-def _orphan_predicate(columns: list[dict], blob_alias: str = "b") -> str:
-	predicates = []
-	blob = _quote_identifier(blob_alias)
-	for column in columns:
-		doctype = column["doctype"]
-		fieldname = column["fieldname"]
-		if column["issingle"]:
-			predicates.append(
-				"not exists ("
-				"select 1 from `tabSingles` ref "
-				f"where ref.`doctype` = {frappe.db.escape(doctype)} "
-				f"and ref.`field` = {frappe.db.escape(fieldname)} "
-				f"and ref.`value` = {blob}.`name`"
-				")"
-			)
-		else:
-			table = _quote_identifier(f"tab{doctype}")
-			field = _quote_identifier(fieldname)
-			predicates.append(f"not exists (select 1 from {table} ref where ref.{field} = {blob}.`name`)")
-	return "\n  and ".join(predicates) or "1 = 1"
-
-
-def _quote_identifier(value: str) -> str:
-	return f"`{value.replace('`', '``')}`"
+def reference_query(blob: Table, column: dict) -> QueryBuilder:
+	"""Select the rows of one Link column that reference ``blob``."""
+	if column["issingle"]:
+		ref = frappe.qb.DocType("Singles").as_("ref")
+		return (
+			frappe.qb.from_(ref)
+			.select(1)
+			.where(ref.doctype == column["doctype"])
+			.where(ref["field"] == column["fieldname"])
+			.where(ref.value == blob.name)
+		)
+	ref = frappe.qb.DocType(column["doctype"]).as_("ref")
+	return frappe.qb.from_(ref).select(1).where(ref[column["fieldname"]] == blob.name)
 
 
 def _warn_unindexed_reference_columns(columns: list[dict], logger) -> None:
@@ -134,23 +122,21 @@ def _warn_unindexed_reference_columns(columns: list[dict], logger) -> None:
 			)
 
 
-def get_orphan_blobs(cutoff, limit: int, *, predicate: str | None = None) -> list[dict]:
+def get_orphan_blobs(cutoff, limit: int, *, columns: list[dict] | None = None) -> list[dict]:
 	"""Blobs no discovered Link column references, untouched since ``cutoff``."""
-	predicate = orphan_predicate() if predicate is None else predicate
-	return frappe.db.sql(
-		f"""
-		select b.name, b.key, b.driver, b.is_private
-		from `tabFile Blob` b
-		where b.modified < %(cutoff)s
-		  and {predicate}
-		limit %(limit)s
-		""",
-		{"cutoff": cutoff, "limit": limit},
-		as_dict=True,
+	columns = blob_reference_columns() if columns is None else columns
+	blob = frappe.qb.DocType("File Blob").as_("blob")
+	return (
+		frappe.qb.from_(blob)
+		.select(blob.name, blob.key, blob.driver, blob.is_private)
+		.where(blob.modified < cutoff)
+		.where(orphan_criterion(blob, columns))
+		.limit(limit)
+		.run(as_dict=True)
 	)
 
 
-def delete_blob(blob, cutoff, logger, stats: dict, *, predicate: str | None = None) -> bool:
+def delete_blob(blob, cutoff, logger, stats: dict, *, columns: list[dict] | None = None) -> bool:
 	"""Delete one blob's bytes, then its row. Return True when the row is gone.
 
 	Re-verifies the orphan status under a row lock first, and re-reads
@@ -165,7 +151,7 @@ def delete_blob(blob, cutoff, logger, stats: dict, *, predicate: str | None = No
 	``get_orphan_blobs`` ran. Drivers treat a missing object as
 	a no-op delete. On a driver error the row is kept so the next run
 	retries."""
-	current = is_still_orphan(blob.name, cutoff, predicate=predicate)
+	current = is_still_orphan(blob.name, cutoff, columns=columns)
 	if not current:
 		return False
 
@@ -188,7 +174,7 @@ def delete_blob(blob, cutoff, logger, stats: dict, *, predicate: str | None = No
 		return False
 
 
-def is_still_orphan(blob_name: str, cutoff, *, predicate: str | None = None):
+def is_still_orphan(blob_name: str, cutoff, *, columns: list[dict] | None = None):
 	"""Lock the blob row; return its current fields if still unreferenced and stale.
 
 	Returns ``None`` when the row is gone, was touched since ``cutoff``, or is
@@ -201,17 +187,14 @@ def is_still_orphan(blob_name: str, cutoff, *, predicate: str | None = None):
 	)
 	if not row or get_datetime(row.modified) >= get_datetime(cutoff):
 		return None
-	predicate = orphan_predicate() if predicate is None else predicate
-	still_orphan = bool(
-		frappe.db.sql(
-			f"""
-			select b.name
-			from `tabFile Blob` b
-			where b.name = %(blob_name)s
-			  and {predicate}
-			""",
-			{"blob_name": blob_name},
-		)
+	columns = blob_reference_columns() if columns is None else columns
+	blob = frappe.qb.DocType("File Blob").as_("blob")
+	still_orphan = (
+		frappe.qb.from_(blob)
+		.select(blob.name)
+		.where(blob.name == blob_name)
+		.where(orphan_criterion(blob, columns))
+		.run()
 	)
 	return row if still_orphan else None
 

@@ -302,7 +302,7 @@ class TestCollectGarbage(IntegrationTestCase):
 			self.assertTrue(frappe.db.exists("File Blob", blob.name))
 			self.assertTrue(store.exists(blob.key))
 
-	def test_candidate_and_lock_recheck_receive_same_discovered_predicate(self):
+	def test_candidate_and_lock_recheck_receive_same_discovered_columns(self):
 		columns = self.reference_columns()
 		blob = frappe._dict(name="candidate", key="key", driver="memory", is_private=0)
 		with (
@@ -314,8 +314,8 @@ class TestCollectGarbage(IntegrationTestCase):
 		):
 			collect_garbage()
 
-		predicate = candidates.call_args.kwargs["predicate"]
-		self.assertEqual(delete.call_args.kwargs["predicate"], predicate)
+		self.assertEqual(candidates.call_args.kwargs["columns"], columns)
+		self.assertEqual(delete.call_args.kwargs["columns"], columns)
 
 	def test_warns_once_for_each_unindexed_reference_column(self):
 		logger = MagicMock()
