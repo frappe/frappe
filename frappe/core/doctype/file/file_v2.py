@@ -253,7 +253,12 @@ class FileV2(File):
 		return driver.get_path(blob.key, bool(blob.is_private))
 
 	def _delete_file_on_disk(self):
-		"""Never delete bytes synchronously; garbage collection owns them."""
+		"""Leave blob bytes to garbage collection; delete an unbackfilled legacy file
+		once no other row uses its URL, since collection never sees it."""
+		if self.get("blob"):
+			return
+		if not frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)}):
+			FileV1.delete_file_from_filesystem(self)  # compat shim: unbackfilled legacy row
 
 
 def create_file_from_blob(

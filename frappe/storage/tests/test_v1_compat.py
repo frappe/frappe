@@ -424,6 +424,35 @@ class TestV1LegacyDiskPaths(V1CompatTestCase):
 
 			self.assertRaises(frappe.ValidationError, doc.generate_content_hash)
 
+	def test_deleting_an_unbackfilled_file_under_v2_removes_it_from_disk(self):
+		with flag_off():
+			file = self.legacy_file(label="delete-unbackfilled")
+			path = file.get_full_path()
+		self.remove_later(path)
+
+		with flag_on():
+			frappe.get_doc("File", file.name).delete()
+
+		self.assertFalse(os.path.exists(path))
+
+	def test_deleting_an_unbackfilled_copy_keeps_bytes_a_blob_owns(self):
+		from frappe.storage import backfill
+
+		with flag_off():
+			first = self.legacy_file(label="delete-shared")
+			path = first.get_full_path()
+			copy = frappe.get_doc({"doctype": "File", "file_url": first.file_url}).insert()
+		self.remove_later(path)
+		self.delete_later("File", copy.name)
+
+		with flag_on():
+			backfill.run(filters={"name": first.name})
+			blob = frappe.db.get_value("File", first.name, "blob")
+			self.delete_later("File Blob", blob)
+			frappe.get_doc("File", copy.name).delete()
+
+		self.assertTrue(os.path.isfile(path))
+
 
 class TestV1PrivacyChange(V1CompatTestCase):
 	"""``handle_is_private_changed`` on disk-backed rows.
