@@ -86,6 +86,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		this.page_breaks = $(".page-break");
 		this.is_multi_step_form = !!this.page_breaks.length;
+		if (!this.is_multi_step_form) return;
+
+		// the stepper names each page, so its section skips the heading
+		let page_dfs = [...page_break_fields];
+		if (first?.fieldtype === "Page Break") page_dfs.push(this.fields[0]);
+		page_dfs.forEach((df) => this.fields_dict[df.fieldname]?.head?.addClass("hide"));
 	}
 
 	// a Page Break in row 1 names page 1 and opens no new page

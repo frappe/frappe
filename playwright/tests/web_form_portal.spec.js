@@ -212,7 +212,10 @@ test.describe("Web Form Pages", () => {
 		await expect(headings).toHaveText(["Extras"]);
 	});
 
-	test("Keeps the page name as a heading when there is no stepper", async ({ page, admin }) => {
+	test("Keeps the page name as a heading when the other pages are empty", async ({
+		page,
+		admin,
+	}) => {
 		const SINGLE_PAGE_ROUTE = "single-named-page-note";
 
 		await seed_web_form(
@@ -220,6 +223,7 @@ test.describe("Web Form Pages", () => {
 			[
 				{ fieldtype: "Page Break", label: "About You" },
 				{ fieldname: "title", fieldtype: "Data", label: "Title" },
+				{ fieldtype: "Page Break", label: "Empty" },
 			],
 			{
 				title: SINGLE_PAGE_ROUTE,
