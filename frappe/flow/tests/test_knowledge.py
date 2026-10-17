@@ -330,6 +330,25 @@ class TestKnowledgeSettings(IntegrationTestCase):
 			settings.save()
 		self.assertEqual(settings.embedding_dimension, 3072)
 
+	def test_renaming_the_model_keeps_it_while_chunks_exist(self):
+		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
+			self._save_settings(embedding_model=self.model.name)
+		self._make_chunk()
+		with patch("flow.knowledge.embedder.probe_dimension") as probe:
+			frappe.rename_doc("Flow Model", self.model.name, " Embed Model Renamed ")  # Frappe trims it
+		probe.assert_not_called()
+		settings = frappe.get_doc("Flow Knowledge Settings")
+		self.assertEqual(
+			(settings.embedding_model, settings.embedding_dimension), ("Embed Model Renamed", 1536)
+		)
+
+	def test_merging_the_model_into_another_is_still_a_model_change(self):
+		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
+			self._save_settings(embedding_model=self.model.name)
+		self._make_chunk()
+		with self.assertRaisesRegex(frappe.ValidationError, "Delete all knowledge sources"):
+			frappe.rename_doc("Flow Model", self.model.name, self.alt_model.name, merge=True)
+
 	def test_clear_model_resets_dimension(self):
 		with patch("flow.knowledge.embedder.probe_dimension", return_value=1536):
 			self._save_settings(embedding_model=self.model.name)
@@ -640,6 +659,19 @@ class TestIngest(IntegrationTestCase):
 
 	def _lance_count(self):
 		return store._open_table().count_rows() if store.table_exists() else 0
+
+	def test_a_renamed_knowledge_base_keeps_its_chunks(self):
+		store.ensure_table_for_dimension(DIM)
+		store.add([{**row, "kb": self.kb.name} for row in _rows()])
+		frappe.rename_doc("Flow Knowledge Base", self.kb.name, "Ingest KB Renamed")
+		hits = store.search([1.0, 0.0, 0.0, 0.0], kbs=["Ingest KB Renamed"], limit=5)
+		self.assertEqual(sorted(hit["id"] for hit in hits), [1, 2, 3])
+
+	def test_a_knowledge_base_is_not_renamed_while_a_source_processes(self):
+		source = self._make_source(content="Wifi keeps dropping every afternoon.")
+		source.db_set("status", "Processing")
+		with self.assertRaisesRegex(frappe.ValidationError, "still processing"):
+			frappe.rename_doc("Flow Knowledge Base", self.kb.name, "Ingest KB Renamed")
 
 	def test_text_source_ingests_to_both_stores(self):
 		source = self._make_source(content="Wifi keeps dropping on the office network every afternoon. " * 4)

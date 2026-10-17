@@ -21,11 +21,18 @@ const DocForm = await loadComponent("settings/DocForm.vue");
 const FieldControl = await loadComponent("settings/FieldControl.vue");
 const { SPECS, newDoc } = await import("../src/settings/specs.js");
 
+const changes = [];
+const renames = [];
 function mount(t, component, props) {
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(component, props);
-	app.provide("flowPage", { can: () => true, changed: () => {}, state: { boot: {} } });
+	app.provide("flowPage", {
+		can: () => true,
+		changed: (doctype) => changes.push(doctype),
+		renamed: (...args) => renames.push(args),
+		state: { boot: {} },
+	});
 	app.mount(el);
 	t.after(() => {
 		app.unmount();
@@ -345,6 +352,134 @@ test("the toast says Created for a new record and Saved for an existing one", as
 test("a new record leaves read-only fields out, so the server fills their defaults", () => {
 	assert.equal("source" in newDoc(SPECS.memories), false);
 	assert.equal("status" in newDoc(SPECS.knowledge_sources), false);
+});
+
+test("a title that names its record can change, except on records defined in code", () => {
+	for (const key of ["models", "agents", "skills", "triggers", "knowledge_bases"]) {
+		const title = SPECS[key].fields.find((field) => field.name === "title");
+		assert.equal(title.rename, true, key);
+		assert.ok(!title.locked?.({ name: "Helper" }), key);
+	}
+	for (const key of ["agents", "skills", "knowledge_bases"]) {
+		const title = SPECS[key].fields.find((field) => field.name === "title");
+		assert.ok(title.locked({ name: "Helper", is_system_generated: 1 }), key);
+	}
+});
+
+const agentSpec = {
+	doctype: "Flow Agent",
+	label: "Agents",
+	singular: "agent",
+	titleField: "title",
+	listFields: ["name", "title"],
+	fields: [
+		{ name: "title", label: "Title", type: "text", rename: true },
+		{ name: "description", label: "Description", type: "text" },
+	],
+};
+
+// opens the agent "Helper" (or a new one), types the edits and presses the button
+const saves = [];
+async function editAgent(t, name, edits, answers = {}) {
+	transport.calls.length = 0;
+	changes.length = 0;
+	renames.length = 0;
+	saves.length = 0;
+	toast.shown.length = 0;
+	Object.assign(transport.answers, {
+		"frappe.client.get": (args) => ({ name: args.name, title: args.name, description: "Old" }),
+		"frappe.client.insert": ({ doc }) => ({ ...doc, name: doc.title }),
+		"frappe.client.save": ({ doc }) => doc,
+		"frappe.client.rename_doc": ({ new_name }) => new_name,
+		...answers,
+	});
+	const el = mount(t, DocForm, { spec: agentSpec, name, onSaved: (doc) => saves.push(doc) });
+	await until(() => el.querySelector("input"));
+	for (const [label, value] of Object.entries(edits))
+		type(el.querySelector(`[data-control="${label}"]`), value);
+	await nextTick();
+	[...el.querySelectorAll("button")]
+		.find((b) => b.textContent.trim() === (name ? "Save" : "Create"))
+		.click();
+	return el;
+}
+const methods = () => transport.calls.map(([method]) => method);
+
+test("a changed title renames the record, which the form then shows", async (t) => {
+	const el = await editAgent(t, "Helper", { Title: " Support Helper " });
+	await until(() => toast.shown.length);
+	assert.deepEqual(methods(), [
+		"frappe.client.get",
+		"frappe.client.rename_doc",
+		"frappe.client.get",
+	]);
+	assert.deepEqual(transport.calls[1][1], {
+		doctype: "Flow Agent",
+		old_name: "Helper",
+		new_name: "Support Helper",
+	});
+	assert.equal(transport.calls[2][1].name, "Support Helper");
+	assert.deepEqual(renames, [["Flow Agent", "Helper", "Support Helper"]]);
+	assert.deepEqual(toast.shown, ["Renamed"]);
+	assert.equal(el.querySelector('[data-control="Title"] input').value, "Support Helper");
+});
+
+test("a rename saves the other edits first, under the current name", async (t) => {
+	await editAgent(t, "Helper", { Title: "Support Helper", Description: "New" });
+	await until(() => toast.shown.length);
+	assert.deepEqual(methods(), [
+		"frappe.client.get",
+		"frappe.client.save",
+		"frappe.client.rename_doc",
+		"frappe.client.get",
+	]);
+	const saved = transport.calls[1][1].doc;
+	assert.equal(saved.title, "Helper");
+	assert.equal(saved.description, "New");
+});
+
+test("a refused rename keeps the typed title and says why", async (t) => {
+	const el = await editAgent(
+		t,
+		"Helper",
+		{ Title: "Support" },
+		{
+			"frappe.client.rename_doc": () => {
+				throw new Error("Another Flow Agent with name Support exists");
+			},
+		}
+	);
+	await until(() => el.textContent.includes("Another Flow Agent with name Support exists"));
+	assert.equal(el.querySelector('[data-control="Title"] input').value, "Support");
+	assert.deepEqual(renames, []);
+	assert.deepEqual(toast.shown, []);
+});
+
+test("edits saved before a refused rename still reach the list and the page", async (t) => {
+	const el = await editAgent(
+		t,
+		"Helper",
+		{ Title: "Support", Description: "New" },
+		{
+			"frappe.client.rename_doc": () => {
+				throw new Error("Another Flow Agent with name Support exists");
+			},
+		}
+	);
+	await until(() => el.textContent.includes("Another Flow Agent with name Support exists"));
+	assert.deepEqual(changes, ["Flow Agent"]);
+	assert.deepEqual(
+		saves.map((doc) => [doc.name, doc.description]),
+		[["Helper", "New"]]
+	);
+	assert.equal(el.querySelector('[data-control="Title"] input').value, "Support");
+});
+
+test("a new record's title is only saved, not renamed", async (t) => {
+	await editAgent(t, null, { Title: "Helper" });
+	await until(() => toast.shown.length);
+	assert.deepEqual(methods(), ["frappe.client.insert"]);
+	assert.deepEqual(toast.shown, ["Created"]);
 });
 
 test("a settings list and an opened record show the spinner until they load", async (t) => {

@@ -47,6 +47,13 @@ def remove(name: str) -> None:
 		frappe.log_error(title="Agent memory index cleanup failed")
 
 
+def rename_agent(old: str, new: str) -> None:
+	"""Move a renamed agent's memories to its new name."""
+	db = _connect()
+	if TABLE_NAME in db.list_tables().tables:
+		db.open_table(TABLE_NAME).update(where=f"agent = {_quote(old)}", values={"agent": new})
+
+
 def search(query: str, *, agent: str, user: str) -> list[str]:
 	"""Names of the memories relevant to `query`, best first, within `agent` and `user`'s scope."""
 	table = ensure_table()
@@ -117,8 +124,13 @@ def _schema() -> pa.Schema:
 		pa.field("user", pa.string()),
 		pa.field("content", pa.string()),
 	]
-	model = settings.embedding_model if settings.embedding_model and settings.embedding_dimension else ""
-	if model:
+	model = ""
+	if settings.embedding_model and settings.embedding_dimension:
+		# by id and server, so a rename keeps the index
+		model_id, base_url = frappe.get_cached_value(
+			"Flow Model", settings.embedding_model, ["model_id", "base_url"]
+		)
+		model = f"{model_id} {base_url}" if base_url else model_id
 		fields.append(pa.field("vector", pa.list_(pa.float32(), int(settings.embedding_dimension))))
 	return pa.schema(fields, metadata={"embedding_model": model})
 

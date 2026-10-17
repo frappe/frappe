@@ -8,8 +8,11 @@ const BOOT_DOCTYPES = new Set(["Flow Model", "Flow Agent"]);
 // What the page keeps beside the chat store: the boot data, the agent a new chat starts
 // with, the settings tab to open, and each session's Flow Runs and run log (for per-turn
 // feedback). `refresh` re-fetches boot when a record it lists changes; `sync` re-reads a
-// session's runs.
-export function createPage(boot, { refresh = () => {}, sync = () => {} } = {}) {
+// session's runs; `renamedModel` passes a model's new name on to the chat store.
+export function createPage(
+	boot,
+	{ refresh = () => {}, sync = () => {}, renamedModel = () => {} } = {}
+) {
 	const runIndexes = new Map();
 	const state = reactive({
 		boot,
@@ -76,7 +79,13 @@ export function createPage(boot, { refresh = () => {}, sync = () => {} } = {}) {
 		if (BOOT_DOCTYPES.has(doctype)) refresh();
 	}
 
-	return { state, can, onBoot, onSession, onRows, runForTurn, updateRun, changed };
+	// a renamed agent or model stays the one a new chat starts with
+	function renamed(doctype, from, to) {
+		if (doctype === "Flow Agent" && state.agent === from) state.agent = to;
+		if (doctype === "Flow Model") renamedModel(from, to);
+	}
+
+	return { state, can, onBoot, onSession, onRows, runForTurn, updateRun, changed, renamed };
 }
 
 function defaultAgent(boot) {

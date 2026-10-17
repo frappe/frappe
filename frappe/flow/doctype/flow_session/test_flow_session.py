@@ -620,12 +620,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertEqual(config["cwd"], str(lifecycle.session_root()))
 		self.assertEqual(
 			config["user_context"],
-			{
-				"site": frappe.local.site,
-				"user": "Administrator",
-				"agent": self.agent.name,
-				"session": session.name,
-			},
+			{"site": frappe.local.site, "user": "Administrator", "session": session.name},
 		)
 		self.assertNotIn("callback_timeout", config)
 

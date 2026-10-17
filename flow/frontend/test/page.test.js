@@ -179,6 +179,20 @@ test("boot is refetched only when a record it lists is saved or deleted", async 
 	assert.equal(refreshes, 2);
 });
 
+test("a renamed agent or model stays the one a new chat starts with", async () => {
+	const { createPage } = await import("../src/page.js");
+	const models = [];
+	const page = createPage(boot, { renamedModel: (...args) => models.push(args) });
+	page.renamed("Flow Agent", "someone-else", "Other");
+	page.renamed("Flow Skill", "flow", "Other");
+	assert.equal(page.state.agent, "flow");
+	page.renamed("Flow Agent", "flow", "Support");
+	assert.equal(page.state.agent, "Support");
+	assert.deepEqual(models, []);
+	page.renamed("Flow Model", "GPT", "GPT Fast");
+	assert.deepEqual(models, [["GPT", "GPT Fast"]]);
+});
+
 test("without a model the normal page shows the setup state and a disabled composer", async (t) => {
 	const el = document.createElement("div");
 	document.body.append(el);

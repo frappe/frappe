@@ -99,6 +99,12 @@ class TestFlowAgentMemory(MemoryCase):
 		with self.assertRaises(frappe.ValidationError):
 			frappe.get_doc(_memory(self.agent.name, content="x" * 501)).insert()
 
+	def test_a_renamed_agent_still_finds_its_memories(self):
+		doc = frappe.get_doc(_memory(self.agent.name)).insert()
+		frappe.rename_doc("Flow Agent", self.agent.name, "Memory Test Agent Renamed")
+		found = store.search("Widget", agent="Memory Test Agent Renamed", user=self.user)
+		self.assertEqual(found, [doc.name])
+
 
 class TestSaveMemory(MemoryCase):
 	def test_adds_agent_scope(self):
@@ -304,5 +310,32 @@ class TestHybridRetrieval(MemoryCase):
 			}
 		).insert()
 		_settings(embedding_model=other.name)
+		self.embed.reset_mock()
 		self.block("Where do that customer's invoices go?")
-		self.assertEqual(self.embed.call_args_list[1].args[0], [ACME])
+		self.assertEqual(self.embed.call_args_list[0].args[0], [ACME])
+
+	def test_the_same_model_on_another_server_rebuilds_the_index(self):
+		save_memory(self.agent.name, content=ACME, scope="agent")
+		other = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Self-hosted Memory Model",
+				"model_id": self.model.model_id,
+				"base_url": "https://embed.example.com/v1",
+				"enabled": 1,
+			}
+		).insert()
+		_settings(embedding_model=other.name)
+		self.embed.reset_mock()
+		self.block("Where do that customer's invoices go?")
+		self.assertEqual(self.embed.call_args_list[0].args[0], [ACME])
+
+	def test_a_renamed_embedding_model_keeps_the_index(self):
+		save_memory(self.agent.name, content=ACME, scope="agent")
+		self.embed.reset_mock()
+		frappe.rename_doc("Flow Model", self.model.name, "Memory Test Model Renamed")
+		self.block("Where do that customer's invoices go?")
+		self.assertEqual(
+			[call.args[0] for call in self.embed.call_args_list],
+			[["Where do that customer's invoices go?"]],
+		)
