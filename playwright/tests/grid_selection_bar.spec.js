@@ -70,6 +70,37 @@ test.describe("Grid Selection Bar", () => {
 		await expect(get_bar(page)).toBeHidden();
 	});
 
+	test("duplicates selected rows", async ({ page }) => {
+		const table = get_table(page);
+
+		await table.locator('.grid-row[data-idx="1"] .grid-row-check').click();
+		await table.locator('.grid-row[data-idx="2"] .grid-row-check').click();
+		await get_bar(page).getByRole("button", { name: "Actions" }).click();
+		await page.locator('.es-menu [role="menuitem"]', { hasText: "Duplicate" }).click();
+
+		await expect.poll(() => page.evaluate(() => cur_frm.doc.phone_nos.length)).toBe(1002);
+	});
+
+	test("hides delete and duplicate when the table cannot delete or add rows", async ({
+		page,
+	}) => {
+		const table = get_table(page);
+		const menu_item = (label) =>
+			page.locator('.es-menu [role="menuitem"]', { hasText: label });
+
+		await page.waitForFunction(() => window.cur_frm?.get_field("phone_nos"));
+		await page.evaluate(() => {
+			cur_frm.set_df_property("phone_nos", "cannot_delete_rows", 1);
+			cur_frm.set_df_property("phone_nos", "cannot_add_rows", 1);
+			cur_frm.refresh_field("phone_nos");
+		});
+
+		await table.locator('.grid-row[data-idx="1"] .grid-row-check').click();
+		await get_bar(page).getByRole("button", { name: "Actions" }).click();
+		await expect(menu_item("Delete")).toHaveCount(0);
+		await expect(menu_item("Duplicate")).toHaveCount(0);
+	});
+
 	test("runs row remove events when every row is deleted", async ({ page }) => {
 		const table = page.locator('.frappe-control[data-fieldname="email_ids"]');
 
@@ -146,5 +177,25 @@ test.describe("Grid Selection Bar", () => {
 		await expect(
 			page.locator('.es-menu [role="menuitem"]', { hasText: "Verify numbers" })
 		).toHaveCount(0);
+	});
+});
+
+test.describe("Grid Selection Bar on web forms", () => {
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.create_webform_with_child_table_dropdown");
+	});
+
+	test("opens the actions menu", async ({ page, desk }) => {
+		const errors = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+
+		await desk.login("Administrator");
+		await page.goto("/test-grid-dropdown/new");
+		await page.locator(".grid-add-row").click();
+		await page.locator(".grid-body .grid-row .grid-row-check").first().click();
+		await page.locator(".grid-selection-actions button").first().click();
+
+		await expect(page.locator('.es-menu [role="menuitem"]').first()).toBeVisible();
+		expect(errors).toEqual([]);
 	});
 });
