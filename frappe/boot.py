@@ -31,6 +31,7 @@ from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
+from frappe.website.doctype.web_form_request.web_form_request import get_request_forms_by_doctype
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -129,6 +130,7 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	bootinfo.web_form_request_forms = get_request_forms_by_doctype()
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()

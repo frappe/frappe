@@ -207,6 +207,29 @@ class TestDashboardChart(IntegrationTestCase):
 
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
 
+	def test_group_by_chart_labels_empty_values(self):
+		user = "chart-empty-label@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(doctype="User", email=user, first_name="Chart", send_welcome_email=0).insert()
+
+		chart = {
+			"name": "Test Group By Empty Label",
+			"chart_type": "Group By",
+			"group_by_type": "Count",
+			"document_type": "ToDo",
+			"group_by_based_on": "role",
+			"filters_json": "[]",
+		}
+
+		with self.set_user(user):
+			for role in (None, None, "System Manager"):
+				frappe.get_doc(doctype="ToDo", description="test", role=role).insert()
+
+			result = get(chart=frappe.as_json(chart), no_cache=1)
+
+		counts = dict(zip(result["labels"], result["datasets"][0]["values"], strict=True))
+		self.assertEqual(counts, {"No Role": 2, "System Manager": 1})
+
 	def test_value_based_on_required_for_sum_and_average(self):
 		for chart_type in ("Sum", "Average"):
 			chart = frappe.get_doc(

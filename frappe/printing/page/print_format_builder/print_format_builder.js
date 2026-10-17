@@ -6,7 +6,7 @@ let leaving = null;
 frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("Print Format Builder"),
+		title: __("Print Format Editor"),
 		single_column: true,
 	});
 
@@ -84,9 +84,10 @@ function load_print_format_builder(wrapper) {
 		if (frappe.get_route()[1] !== route[1]) return;
 		if (frappe.get_doc("Print Format", route[1])?.__onload?.renders_from_file) {
 			frappe.msgprint(
-				__("{0} is rendered from an HTML file and cannot be edited in the builder.", [
-					route[1].bold(),
-				])
+				__(
+					"{0} is rendered from an HTML file and cannot be edited in the Print Format Editor.",
+					[route[1].bold()]
+				)
 			);
 			frappe.set_route("Form", "Print Format", route[1]);
 			return;

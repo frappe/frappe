@@ -342,6 +342,7 @@ class User(Document):
 		frappe.clear_cache(user=self.name)
 		now = frappe.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
+		self.__new_password = None
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact",
 			user=self,
@@ -412,6 +413,26 @@ class User(Document):
 				self.last_password_reset_date,
 				update_modified=False,
 			)
+
+			if frappe.session.user != self.name:
+				from frappe.desk.doctype.notification_log.notification_log import (
+					enqueue_create_notification,
+				)
+				from frappe.utils import get_fullname
+
+				enqueue_create_notification(
+					[self.name],
+					{
+						"type": "Alert",
+						"document_type": "User",
+						"document_name": self.name,
+						"from_user": frappe.session.user,
+						"subject": _("Your password was changed by {0}").format(
+							get_fullname(frappe.session.user)
+						),
+					},
+				)
+
 			outgoing_email_exists = frappe.db.exists(
 				"Email Account", {"default_outgoing": 1, "awaiting_password": 0}
 			)
@@ -619,7 +640,6 @@ class User(Document):
 			with_container=True,
 			wrapper=wrapper,
 			delayed=(not now) if now is not None else self.flags.delay_emails,
-			retry=3,
 			redact_message_after_send=True,
 		)
 
