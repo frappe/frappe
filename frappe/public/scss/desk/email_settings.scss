@@ -1,0 +1,144 @@
+.email-provider-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: var(--margin-sm);
+	padding-bottom: var(--padding-md);
+}
+
+.email-provider-card {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-sm);
+	padding: var(--padding-sm) var(--padding-md);
+	border: 1px solid var(--outline-gray-1);
+	border-radius: var(--radius-lg);
+	background-color: var(--surface-base);
+	text-align: left;
+
+	&:hover {
+		border-color: var(--outline-gray-3);
+		background-color: var(--surface-gray-1);
+	}
+}
+
+.email-provider-logo {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: var(--radius);
+	background-color: var(--surface-gray-2);
+	color: var(--ink-gray-7);
+
+	img {
+		width: 20px;
+		height: 20px;
+	}
+}
+
+.email-provider-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.email-provider-name {
+	color: var(--ink-gray-8);
+	font-weight: var(--font-weight-medium);
+}
+
+.email-provider-description,
+.email-test-server {
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+}
+
+.email-settings-tab-logo {
+	width: 16px;
+	height: 16px;
+}
+
+.email-settings-note {
+	padding: var(--padding-sm) var(--padding-md);
+	border-radius: var(--radius);
+	background-color: var(--surface-gray-1);
+	color: var(--ink-gray-7);
+}
+
+.email-settings-warning {
+	background-color: var(--surface-amber-1);
+	color: var(--ink-amber-8);
+}
+
+.email-settings-steps {
+	padding-left: var(--padding-lg);
+	color: var(--ink-gray-7);
+
+	li {
+		margin-bottom: var(--margin-xs);
+	}
+}
+
+.email-settings-steps,
+.email-settings-note,
+.email-test-help {
+	a {
+		text-decoration: underline;
+	}
+}
+
+.email-settings-copy {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-sm);
+}
+
+.email-settings-copy-value {
+	min-width: 0;
+	padding: var(--padding-xs) var(--padding-sm);
+	overflow-wrap: anywhere;
+	border-radius: var(--radius);
+	background-color: var(--surface-gray-2);
+	color: var(--ink-gray-8);
+}
+
+.email-test-row {
+	display: flex;
+	gap: var(--margin-sm);
+
+	& + & {
+		margin-top: var(--margin-md);
+	}
+}
+
+.email-test-icon {
+	flex-shrink: 0;
+
+	.icon {
+		margin: 0;
+	}
+}
+
+.email-test-ok {
+	color: var(--ink-green-7);
+}
+
+.email-test-failed {
+	color: var(--ink-red-7);
+}
+
+.email-test-label {
+	color: var(--ink-gray-8);
+	font-weight: var(--font-weight-medium);
+}
+
+.email-test-message {
+	color: var(--ink-gray-7);
+}
+
+.email-test-help,
+.email-test-server {
+	margin-top: var(--margin-xs);
+}
