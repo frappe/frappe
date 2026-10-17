@@ -244,6 +244,32 @@ test.describe("List View", () => {
 		expect(state.end).toBeGreaterThan(state.start);
 	});
 
+	test("shows each layout's own column width when switching layouts", async ({ page, desk }) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+
+		const widths = await page.evaluate(async () => {
+			const lf = cur_list.list_filter;
+			const apply = (width) =>
+				lf.apply_layout_state({
+					filters: [],
+					sort_by: cur_list.sort_by,
+					sort_order: cur_list.sort_order,
+					columns: lf
+						.get_current_columns_state()
+						.map((col) => (col.fieldname === "description" ? { ...col, width } : col)),
+				});
+
+			await apply(380);
+			const wide = cur_list.column_max_widths.description;
+			await apply(120);
+			return { wide, narrow: cur_list.column_max_widths.description };
+		});
+
+		expect(widths.wide).toBe(380);
+		expect(widths.narrow).toBe(120);
+	});
+
 	test("flips sort order icon and title", async ({ page, desk }) => {
 		await desk.go_to_list("ToDo");
 		await desk.clear_filters();

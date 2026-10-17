@@ -318,6 +318,7 @@ export const ListFilterMenu = {
 
 		const apply_columns = () => {
 			lv.column_max_widths = {};
+			lv._skip_width_capture = true;
 			if (columns?.length) {
 				columns.forEach((col) => {
 					if (col.width) {

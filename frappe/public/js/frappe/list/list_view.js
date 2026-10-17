@@ -1123,7 +1123,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		this.prune_checked_docnames();
-		this.capture_column_widths_from_dom();
+		if (this._skip_width_capture) {
+			this._skip_width_capture = false;
+		} else {
+			this.capture_column_widths_from_dom();
+		}
 
 		// clear rows
 		this.$result.find(".list-row-container").remove();
