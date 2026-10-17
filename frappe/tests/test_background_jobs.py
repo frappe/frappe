@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from rq import Queue
+from rq.job import Job
 from werkzeug.local import Local
 
 import frappe
@@ -14,6 +15,12 @@ from frappe.utils.background_jobs import (
 	create_job_id,
 	execute_job,
 	generate_qname,
+<<<<<<< HEAD
+=======
+	get_jobs,
+	get_queue,
+	get_queues_timeout,
+>>>>>>> a525ab3 (test: cover queued jobs whose function was renamed)
 	get_redis_conn,
 )
 
@@ -54,6 +61,25 @@ class TestBackgroundJobs(IntegrationTestCase):
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
 
+<<<<<<< HEAD
+=======
+	def test_enqueue_passes_retry_kwarg_to_method(self):
+		job = frappe.enqueue("frappe.tests.test_background_jobs.echo_retry", queue="short", retry=3)
+		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
+		self.assertIsNone(job.retries_left)
+
+	def test_get_jobs_skips_job_with_renamed_method(self):
+		job = frappe.enqueue(method=echo_retry, queue="short")
+		stale_job = Job.fetch(job.id, connection=get_redis_conn())
+		with (
+			patch.dict(globals()),
+			patch("frappe.utils.background_jobs.get_running_jobs_in_queue", return_value=[stale_job]),
+		):
+			del globals()["echo_retry"]
+			jobs = get_jobs(site=frappe.local.site, queue="short", key="job_name")
+		self.assertNotIn("frappe.tests.test_background_jobs.echo_retry", jobs[frappe.local.site])
+
+>>>>>>> a525ab3 (test: cover queued jobs whose function was renamed)
 	def test_job_translation_resolves_user_language(self):
 		real_get_cached_value = frappe.get_cached_value
 
