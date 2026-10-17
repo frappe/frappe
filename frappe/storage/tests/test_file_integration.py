@@ -295,6 +295,14 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.assertEqual(thumbnail.size, (300, 200))
 		self.assertEqual(frappe.db.get_value("File", file.name, "thumbnail_url"), thumbnail_url)
 
+	def test_attached_xlsx_is_read_from_another_driver(self):
+		from frappe.utils.xlsxutils import make_xlsx, read_xlsx_file_from_attached_file
+
+		rows = [["Account", "Parent"], [frappe.generate_hash(length=8), "Assets"]]
+		with storage_flag(), fake():
+			file = self.make_file(make_xlsx(rows, "Sheet1").getvalue(), "accounts.xlsx")
+			self.assertEqual(read_xlsx_file_from_attached_file(file_url=file.file_url), rows)
+
 	def test_standard_write_path_rejects_disguised_html(self):
 		# the sniff check runs on File.insert with content, not only in finish_upload
 		with storage_flag(), fake():
