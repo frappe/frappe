@@ -250,9 +250,10 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			chrome_options(page_number="Top Left", margin_top=0)["options"],
 		)
 
-	def test_render_pdf_passes_password_to_chrome(self):
-		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
-		generator path — the chrome pipeline encrypts from options['password']."""
+	def test_render_pdf_encrypts_after_chrome(self):
+		"""On the builder path, get_print and attach_print pass a password through to render_pdf.
+		Chrome renders without it, and run_after_print encrypts the bytes Chrome returned.
+		"""
 		from unittest.mock import patch
 
 		from frappe.utils.print_format_generator import PrintFormatGenerator
@@ -261,13 +262,25 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		todo = self._make_todo()
 		generator = PrintFormatGenerator(pf, todo)
 
-		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
-			generator.render_pdf(password="s3cret")
-		self.assertEqual(chrome_pdf.call_args.kwargs["options"]["password"], "s3cret")
+		with (
+			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf,
+			patch("frappe.utils.pdf.encrypt_pdf", return_value=b"%PDF-encrypted") as encrypt_pdf,
+		):
+			pdf = generator.render_pdf(password="s3cret")
 
-		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
-			generator.render_pdf()
 		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
+		encrypt_pdf.assert_called_once_with(b"%PDF-", "s3cret")
+		self.assertEqual(pdf, b"%PDF-encrypted")
+
+		with (
+			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf,
+			patch("frappe.utils.pdf.encrypt_pdf") as encrypt_pdf,
+		):
+			pdf = generator.render_pdf()
+
+		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
+		encrypt_pdf.assert_not_called()
+		self.assertEqual(pdf, b"%PDF-")
 
 	def test_permlevel_restricted_fields_are_dropped(self):
 		"""A layout may reference permlevel-restricted fields; readers without access
