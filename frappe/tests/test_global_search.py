@@ -219,6 +219,59 @@ class TestGlobalSearch(IntegrationTestCase):
 		)
 		self.assertTrue(results == [])
 
+<<<<<<< HEAD
+=======
+	def test_web_search_bounds(self):
+		from unittest.mock import patch
+
+		with patch.object(frappe.db, "multisql", return_value=[]) as m:
+			global_search.web_search("&".join(["a"] * 50), limit=10**6)
+			self.assertEqual(m.call_count, 1)
+			self.assertLessEqual(m.call_args.kwargs["values"]["limit"], 100)
+
+			m.reset_mock()
+			global_search.web_search("&".join(f"a{i}" for i in range(50)))
+			self.assertLessEqual(m.call_count, 5)
+
+			m.reset_mock()
+			global_search.web_search("a" * 10**5, start=-5)
+			values = m.call_args.kwargs["values"]
+			self.assertEqual(values["start"], 0)
+			self.assertLessEqual(len(m.call_args.args[0]["mariadb"]), 2000)
+
+		rows = [frappe._dict(title=f"t{i}") for i in range(500)]
+		with patch.object(frappe.db, "multisql", return_value=rows):
+			self.assertLessEqual(len(global_search.web_search("a&b&c")), 100)
+
+	@unittest.skipUnless(frappe.conf.db_type == "sqlite", "SQLite FTS5-specific behavior")
+	def test_web_search_uses_sqlite_fts5_safely(self):
+		global_search.sync_values(
+			[
+				(
+					"Static Web Page",
+					"public-docs",
+					'release "candidate" documentation',
+					1,
+					"Release candidate",
+					"/docs/release",
+				),
+				(
+					"Static Web Page",
+					"private-docs",
+					'release "candidate" internal notes',
+					0,
+					"Private release candidate",
+					"/internal/release",
+				),
+			]
+		)
+
+		for search_text in ("release cand", 'release "candidate"'):
+			with self.subTest(search_text=search_text):
+				results = global_search.web_search(search_text, scope="/docs")
+				self.assertEqual([result.name for result in results], ["public-docs"])
+
+>>>>>>> 29411c1 (fix(global_search): sanitize and bound web_search inputs)
 	def test_settings_validate_rejects_core_doctype_row(self):
 		core_dt = "File"
 		self.assertEqual(frappe.get_meta(core_dt).module, "Core")
