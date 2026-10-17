@@ -219,8 +219,8 @@ def select_tests(files_list):
 
 
 def is_docs(file):
-	"""Check if the file is documentation or image."""
-	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE")
+	"""Check if the file is documentation, image or the translation template (no runtime effect)."""
+	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE|/locale/main\.pot$")
 	return bool(regex.search(file))
 
 
