@@ -996,7 +996,8 @@ class User(Document):
 			indicator="orange",
 			primary_action={
 				"label": _("Add Roles"),
-				"client_action": "frappe.scroll_to_user_roles_field",
+				"client_action": "frappe.set_route",
+				"args": f"{self.get_url()}?scroll_to=roles_html",
 			},
 		)
 
