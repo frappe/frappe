@@ -22,6 +22,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		try:
 			client = frappe.get_cached_doc("OAuth Client", client_id)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			return False
 
 		if client.user_has_allowed_role():
@@ -123,6 +124,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		try:
 			client: OAuthClient = frappe.get_cached_doc("OAuth Client", client_name)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			return False
 
 		if client.token_endpoint_auth_method == "None":
@@ -174,6 +176,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		try:
 			client = frappe.get_cached_doc("OAuth Client", client_id)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			return False
 
 		if not client.is_public_client():
@@ -373,9 +376,14 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Refresh Token Grant
 		"""
 
-		otoken = frappe.get_doc(
+		if not refresh_token:
+			return False
+
+		otoken = frappe.db.get_value(
 			"OAuth Bearer Token",
 			{"refresh_token": get_oauth_token_hash(refresh_token), "status": "Active"},
+			("user", "client"),
+			as_dict=True,
 		)
 
 		if not otoken or not client or otoken.client != client.client_id:
@@ -451,6 +459,9 @@ class OAuthWebRequestValidator(RequestValidator):
 			id_token = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
 			if id_token.status == "Active":
 				return True
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			return False
 		except Exception:
 			return False
 
@@ -461,6 +472,9 @@ class OAuthWebRequestValidator(RequestValidator):
 			jwt = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
 			if jwt.status == "Active":
 				return True
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			return False
 		except Exception:
 			return False
 
@@ -564,6 +578,9 @@ class OAuthWebRequestValidator(RequestValidator):
 					if verified_payload:
 						return user.name == frappe.session.user
 
+			except frappe.DoesNotExistError:
+				frappe.clear_last_message()
+				return False
 			except Exception:
 				return False
 

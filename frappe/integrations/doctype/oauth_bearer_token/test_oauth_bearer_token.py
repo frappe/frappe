@@ -36,6 +36,15 @@ class TestOAuthBearerToken(IntegrationTestCase):
 		)
 		self.assertEqual(request.user, "Administrator")
 
+	def test_empty_refresh_token_is_rejected(self):
+		from frappe.oauth import OAuthWebRequestValidator
+
+		make_bearer_token(frappe.generate_hash(), None)
+		request = frappe._dict()
+
+		self.assertFalse(OAuthWebRequestValidator().validate_refresh_token("", None, request))
+		self.assertNotIn("user", request)
+
 	def test_refresh_token_rejects_missing_client(self):
 		from frappe.oauth import OAuthWebRequestValidator
 
@@ -147,7 +156,7 @@ class TestOAuthBearerToken(IntegrationTestCase):
 		self.assertIsNone(frappe.db.get_value("OAuth Bearer Token", empty_token.name, "refresh_token"))
 
 
-def make_bearer_token(access_token: str, refresh_token: str, client: str | None = None):
+def make_bearer_token(access_token: str, refresh_token: str | None, client: str | None = None):
 	return frappe.get_doc(
 		{
 			"doctype": "OAuth Bearer Token",
