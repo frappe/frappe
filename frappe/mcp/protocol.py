@@ -6,7 +6,6 @@ import re
 from typing import Any
 
 import frappe
-from frappe import _
 from frappe.utils import get_fullname, get_host_name
 
 LATEST_VERSION = "2026-07-28"
@@ -47,9 +46,9 @@ def default_server_name() -> str:
 
 def server_instructions() -> str:
 	lines = [
-		_("This is a Frappe Framework site at {0}.").format(get_host_name()),
-		_("You are connected as {0} ({1}).").format(get_fullname(), frappe.session.user),
-		_("Installed apps:"),
+		"This is a Frappe Framework site at {0}.".format(get_host_name()),
+		"You are connected as {0} ({1}).".format(get_fullname(), frappe.session.user),
+		"Installed apps:",
 	]
 	for app in frappe.get_installed_apps():
 		title = (frappe.get_hooks("app_title", app_name=app) or [app])[0]

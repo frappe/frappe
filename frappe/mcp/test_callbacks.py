@@ -4,7 +4,6 @@
 from unittest.mock import Mock, patch
 
 import frappe
-from frappe import _
 from frappe.mcp import tools
 from frappe.mcp.test_utils import McpTestCase
 
@@ -50,7 +49,7 @@ class TestToolCallbacks(McpTestCase):
 		def handler():
 			for name in CALLBACK_QUEUES:
 				getattr(frappe.db, name).add(current[name])
-			frappe.throw(_("Callback rollback test"))
+			frappe.throw("Callback rollback test")
 
 		response = self.invoke(handler, prepare)
 		self.assertTrue(response.json["result"]["isError"])
@@ -108,7 +107,7 @@ class TestToolCallbacks(McpTestCase):
 
 		def handler():
 			frappe.db.before_rollback.add(lambda: frappe.db.after_rollback.add(cleanup))
-			frappe.throw(_("Rollback cleanup test"))
+			frappe.throw("Rollback cleanup test")
 
 		response = self.invoke(handler)
 		self.assertTrue(response.json["result"]["isError"])
@@ -149,7 +148,7 @@ class TestToolCallbacks(McpTestCase):
 	def test_commit_during_rollback_cleanup_does_not_mask_tool_error(self):
 		def handler():
 			frappe.db.before_rollback.add(frappe.db.commit)
-			frappe.throw(_("Tool failed before cleanup"))
+			frappe.throw("Tool failed before cleanup")
 
 		response = self.invoke(handler)
 		self.assertTrue(response.json["result"]["isError"])
@@ -198,7 +197,7 @@ class TestToolCallbacks(McpTestCase):
 			names.append(doc.name)
 
 		def handler():
-			frappe.throw(_("Tool failed after earlier write"))
+			frappe.throw("Tool failed after earlier write")
 
 		try:
 			response = self.invoke(handler, prepare)

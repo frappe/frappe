@@ -4,7 +4,6 @@
 
 from typing import Any
 
-from frappe import _
 from frappe.mcp import protocol
 from frappe.mcp.protocol import INVALID_PARAMS, METHOD_NOT_FOUND, McpError
 
@@ -29,7 +28,7 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 			return {"tools": tools.definitions(), "ttlMs": 3600000, "cacheScope": "private"}
 		return tools.call(params)
 
-	raise McpError(METHOD_NOT_FOUND, _("Unknown MCP method: {0}").format(method), status=404)
+	raise McpError(METHOD_NOT_FOUND, "Unknown MCP method: {0}".format(method), status=404)
 
 
 def initialize(params: dict[str, Any]) -> dict:
@@ -38,7 +37,7 @@ def initialize(params: dict[str, Any]) -> dict:
 		or not isinstance(params.get("capabilities"), dict)
 		or not valid_identity(params.get("clientInfo"))
 	):
-		raise McpError(INVALID_PARAMS, _("initialize requires protocolVersion, capabilities and clientInfo"))
+		raise McpError(INVALID_PARAMS, "initialize requires protocolVersion, capabilities and clientInfo")
 
 	# Modern revisions cannot be negotiated through the legacy handshake.
 	return {

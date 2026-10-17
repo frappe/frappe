@@ -4,7 +4,6 @@
 from unittest.mock import Mock, patch
 
 import frappe
-from frappe import _
 from frappe.core.doctype.user.user import User
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.mcp.test_utils import McpTestCase
@@ -291,7 +290,7 @@ def failing_method(name: str):
 	doc.description = "Failed MCP method"
 	doc.save()
 	frappe.db.after_commit.add(commit_callback)
-	frappe.throw(_("Method failed"))
+	frappe.throw("Method failed")
 
 
 def commit_callback():
@@ -328,5 +327,5 @@ def transaction_method(name: str, operation: str = "commit", fail: bool = False)
 		doc.description = "Pending after transaction"
 		doc.save()
 		frappe.db.after_commit.add(commit_callback)
-		frappe.throw(_("Failure after transaction"))
+		frappe.throw("Failure after transaction")
 	return operation
