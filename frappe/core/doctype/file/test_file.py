@@ -1015,7 +1015,577 @@ class TestAttachment(FrappeTestCase):
 		self.assertTrue(exists)
 
 
+<<<<<<< HEAD
 class TestAttachmentsAccess(FrappeTestCase):
+=======
+		duplicate = frappe.copy_doc(doc).insert()
+
+		self.assertTrue(
+			frappe.db.exists(
+				"File",
+				{
+					"file_url": "https://example.com/spec.pdf",
+					"attached_to_doctype": self.test_doctype,
+					"attached_to_name": duplicate.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_no_file_created_for_non_file_attach_value(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test non file attach value")
+		doc.attachment = "not a file"
+		doc.insert()
+
+		self.assertFalse(
+			frappe.db.exists(
+				"File",
+				{
+					"attached_to_doctype": self.test_doctype,
+					"attached_to_name": doc.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_delete_file_referenced_in_attach_field(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete referenced file").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_referenced.txt",
+				"content": "Referenced Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+
+		self.assertRaises(frappe.LinkExistsError, remove_attach_with_fid, file.name)
+
+		doc.attachment = None
+		doc.save()
+		remove_attach_with_fid(file.name)
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_delete_file_referenced_in_child_table_attach_field(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete child referenced file").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_child_referenced.txt",
+				"content": "Child Referenced Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "row_attachment",
+			}
+		).save()
+		doc.append("items", {"row_attachment": file.file_url})
+		doc.save()
+
+		self.assertRaises(frappe.LinkExistsError, remove_attach_with_fid, file.name)
+
+		doc.items = []
+		doc.save()
+		remove_attach_with_fid(file.name)
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_direct_deletion_of_referenced_file_is_blocked(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test direct delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_direct_delete.txt",
+				"content": "Direct Delete Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+
+		self.assertRaises(frappe.LinkExistsError, frappe.delete_doc, "File", file.name)
+
+		frappe.delete_doc("File", file.name, force=True)
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_delete_file_sharing_url_with_another_file_is_allowed(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test shared url delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_shared_url.txt",
+				"content": "Shared Url Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		duplicate = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_shared_url_copy.txt",
+				"content": "Shared Url Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+
+		self.assertEqual(duplicate.file_url, file.file_url)
+
+		frappe.delete_doc("File", duplicate.name)
+		self.assertFalse(frappe.db.exists("File", duplicate.name))
+
+	def test_delete_file_referenced_on_submitted_document_is_allowed(self):
+		doc = frappe.get_doc(doctype=self.test_submittable_doctype, title="test submitted delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_submitted.txt",
+				"content": "Submitted Content",
+				"attached_to_doctype": self.test_submittable_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+		doc.submit()
+
+		frappe.delete_doc("File", file.name)
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+	def test_document_delete_cascades_referenced_attachment(self):
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test cascade delete").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_cascade.txt",
+				"content": "Cascade Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+			}
+		).save()
+		doc.attachment = file.file_url
+		doc.save()
+
+		doc.delete()
+		self.assertFalse(frappe.db.exists("File", file.name))
+
+
+class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
+	"""Test that attached_to_field and folder are copied when amending a document."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.test_doctype = "Test Amendable Attachment"
+		new_doctype(
+			cls.test_doctype,
+			is_submittable=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
+
+	def test_attached_to_field_and_folder_copied_on_amend(self):
+		# Create custom folder
+		custom_folder = frappe.get_doc(
+			{"doctype": "File", "file_name": "Test Amend Folder", "is_folder": 1, "folder": "Home"}
+		).insert()
+
+		# Create original document and attach file with attached_to_field and custom folder
+		doc = frappe.get_doc(doctype=self.test_doctype, title="Original").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "amend_test_attach.txt",
+				"content": "Test Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+				"folder": custom_folder.name,
+			}
+		).insert()
+
+		doc.attachment = file.file_url
+		doc.save()
+
+		# Submit and cancel
+		doc.submit()
+		doc.cancel()
+
+		# Amend document
+		amended_doc = frappe.copy_doc(doc)
+		amended_doc.docstatus = 0
+		amended_doc.amended_from = doc.name
+		amended_doc.save()
+
+		# Verify copied file has attached_to_field and folder from original
+		copied_files = frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": amended_doc.name,
+				"file_name": "amend_test_attach.txt",
+			},
+			fields=["name", "attached_to_field", "folder"],
+		)
+		self.assertEqual(len(copied_files), 1, "Exactly one file should be copied to amended doc")
+		self.assertEqual(copied_files[0].attached_to_field, "attachment")
+		self.assertEqual(copied_files[0].folder, custom_folder.name)
+
+
+class TestChildTableAttachments(IntegrationTestCase):
+	"""A file uploaded without doctype/docname (the SPA "upload
+	first" pattern), then set into an Attach/Attach Image field nested inside a
+	child table, must end up attached to the PARENT document -- same as a
+	top-level Attach field -- instead of staying permanently unattached and
+	private to only its uploader.
+	"""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.child_doctype = "Test Attachment Child"
+		new_doctype(
+			cls.child_doctype,
+			istable=1,
+			fields=[
+				{"label": "Image", "fieldname": "image", "fieldtype": "Attach Image"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+		cls.second_child_doctype = "Test Attachment Child 2"
+		new_doctype(
+			cls.second_child_doctype,
+			istable=1,
+			fields=[
+				{"label": "Image", "fieldname": "image", "fieldtype": "Attach Image"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+		cls.parent_doctype = "Test Attachment Parent"
+		new_doctype(
+			cls.parent_doctype,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Image", "fieldname": "parent_image", "fieldtype": "Attach Image"},
+				{
+					"label": "Cards",
+					"fieldname": "cards",
+					"fieldtype": "Table",
+					"options": cls.child_doctype,
+				},
+				{
+					"label": "Photos",
+					"fieldname": "photos",
+					"fieldtype": "Table",
+					"options": cls.second_child_doctype,
+				},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+				{"role": "All", "read": 1},
+			],
+		).insert(ignore_if_duplicate=True)
+
+		cls.collision_parent_doctype = "Test Attachment Parent Collision"
+		new_doctype(
+			cls.collision_parent_doctype,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Image", "fieldname": "image", "fieldtype": "Attach Image"},
+				{
+					"label": "Cards",
+					"fieldname": "cards",
+					"fieldtype": "Table",
+					"options": cls.child_doctype,
+				},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+				{"role": "All", "read": 1},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.parent_doctype)
+		frappe.delete_doc_if_exists("DocType", cls.collision_parent_doctype)
+		frappe.delete_doc_if_exists("DocType", cls.child_doctype)
+		frappe.delete_doc_if_exists("DocType", cls.second_child_doctype)
+		super().tearDownClass()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def make_unattached_file(self, content: bytes, is_private: int = 1):
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"child_attach_{frappe.generate_hash(length=8)}.png",
+				"content": content,
+				"is_private": is_private,
+			}
+		).insert(ignore_permissions=True)
+
+	def make_parent_doc(self, **kwargs):
+		return frappe.get_doc({"doctype": self.parent_doctype, "title": "Test", **kwargs}).insert(
+			ignore_permissions=True
+		)
+
+	def test_child_table_attach_field_is_linked_to_parent(self):
+		file = self.make_unattached_file(b"child-link-bytes")
+		self.assertIsNone(file.attached_to_doctype)
+
+		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
+
+		reloaded = frappe.get_doc("File", file.name)
+		self.assertEqual(reloaded.attached_to_doctype, self.parent_doctype)
+		self.assertEqual(reloaded.attached_to_name, doc.name)
+		self.assertEqual(reloaded.attached_to_field, "image")
+
+	def test_child_table_file_permission_follows_parent_permission(self):
+		file = self.make_unattached_file(b"child-perm-bytes")
+		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
+		reloaded = frappe.get_doc("File", file.name)
+
+		frappe.set_user("test4@example.com")
+		self.assertTrue(frappe.has_permission(self.parent_doctype, doc=doc, ptype="read"))
+		self.assertTrue(frappe.has_permission("File", doc=reloaded, ptype="read"))
+
+	def test_child_table_does_not_adopt_another_users_private_orphan(self):
+		frappe.set_user("test@example.com")
+		victim_file = self.make_unattached_file(b"victim-bytes", is_private=1)
+
+		frappe.set_user("test4@example.com")
+		self.make_parent_doc(cards=[{"image": victim_file.file_url}])
+
+		reloaded_victim = frappe.get_doc("File", victim_file.name)
+		self.assertIsNone(reloaded_victim.attached_to_doctype)
+		self.assertIsNone(reloaded_victim.attached_to_name)
+
+		self.assertFalse(frappe.has_permission("File", doc=reloaded_victim, ptype="read"))
+
+	def test_file_url_change_permission(self):
+		frappe.set_user("test@example.com")
+		file = self.make_unattached_file(b"url-change-bytes", is_private=1)
+
+		frappe.set_user("test4@example.com")
+		other = frappe.get_doc(
+			doctype="File", file_url="https://example.com/x.pdf", file_name="x.pdf", is_private=1
+		).insert()
+
+		other.file_url = file.file_url
+		self.assertRaises(frappe.PermissionError, other.save)
+
+	def test_batched_attach_does_not_duplicate_already_attached_files(self):
+		file = self.make_unattached_file(b"child-resave-bytes")
+		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
+
+		before_count = frappe.db.count("File", {"file_url": file.file_url})
+		doc.title = "Updated Title"
+		doc.save(ignore_permissions=True)
+		after_count = frappe.db.count("File", {"file_url": file.file_url})
+
+		self.assertEqual(before_count, after_count)
+		reloaded = frappe.get_doc("File", file.name)
+		self.assertEqual(reloaded.attached_to_name, doc.name)
+
+	def test_toggle_is_private_to_public_updates_child_row_not_parent_column(self):
+		file = self.make_unattached_file(b"child-toggle-bytes", is_private=1)
+		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
+
+		attached = frappe.get_doc("File", file.name)
+		old_url = attached.file_url
+
+		attached.is_private = 0
+		attached.save(ignore_permissions=True)
+
+		reloaded_doc = frappe.get_doc(self.parent_doctype, doc.name)
+		reloaded_file = frappe.get_doc("File", file.name)
+		self.assertNotEqual(reloaded_file.file_url, old_url)
+		self.assertEqual(reloaded_doc.cards[0].image, reloaded_file.file_url)
+
+	def test_toggle_public_to_is_private_updates_child_row_not_parent_column(self):
+		file = self.make_unattached_file(b"child-toggle-bytes-reverse", is_private=0)
+		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
+
+		attached = frappe.get_doc("File", file.name)
+		old_url = attached.file_url
+
+		attached.is_private = 1
+		attached.save(ignore_permissions=True)
+
+		reloaded_doc = frappe.get_doc(self.parent_doctype, doc.name)
+		reloaded_file = frappe.get_doc("File", file.name)
+		self.assertNotEqual(reloaded_file.file_url, old_url)
+		self.assertEqual(reloaded_doc.cards[0].image, reloaded_file.file_url)
+
+	def test_toggle_is_private_disambiguates_between_child_tables_sharing_a_fieldname(self):
+		cards_file = self.make_unattached_file(b"cards-image-bytes", is_private=1)
+		photos_file = self.make_unattached_file(b"photos-image-bytes", is_private=1)
+
+		doc = self.make_parent_doc(
+			cards=[{"image": cards_file.file_url}],
+			photos=[{"image": photos_file.file_url}],
+		)
+
+		cards_old_url = cards_file.file_url
+		photos_old_url = photos_file.file_url
+
+		attached_photos_file = frappe.get_doc("File", photos_file.name)
+		attached_photos_file.is_private = 0
+		attached_photos_file.save(ignore_permissions=True)
+
+		reloaded_doc = frappe.get_doc(self.parent_doctype, doc.name)
+		reloaded_photos_file = frappe.get_doc("File", photos_file.name)
+
+		# the toggled file's own row was updated to its new URL ...
+		self.assertNotEqual(reloaded_photos_file.file_url, photos_old_url)
+		self.assertEqual(reloaded_doc.photos[0].image, reloaded_photos_file.file_url)
+
+		# ... and the unrelated "cards" row -- same fieldname, different
+		# table, never toggled -- was left completely untouched.
+		self.assertEqual(reloaded_doc.cards[0].image, cards_old_url)
+		untouched_cards_file = frappe.get_doc("File", cards_file.name)
+		self.assertEqual(untouched_cards_file.file_url, cards_old_url)
+		self.assertEqual(untouched_cards_file.is_private, 1)
+
+	def test_toggle_is_private_fails_closed_when_two_rows_share_the_same_url(self):
+		# row A and row B, same table, both holding the identical file_url string -- but
+		# attached via two *separate* File records, since attached_to_field alone can't tell
+		# rows apart. Only file_a is toggled; row B's own File (file_b) never changes.
+		file_a = self.make_unattached_file(b"row-a-bytes", is_private=1)
+		doc = self.make_parent_doc(cards=[{"image": file_a.file_url}])
+		doc.append("cards", {"image": file_a.file_url})
+		doc.save(ignore_permissions=True)
+
+		shared_url = file_a.file_url
+		file_b = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"row_b_{frappe.generate_hash(length=6)}.png",
+				"file_url": shared_url,
+				"content_hash": file_a.content_hash,
+				"file_size": file_a.file_size,
+				"is_private": 1,
+				"attached_to_doctype": self.parent_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "image",
+			}
+		)
+		file_b.flags.copy_from_existing_file = True
+		file_b.insert(ignore_permissions=True)
+
+		attached_file_a = frappe.get_doc("File", file_a.name)
+		attached_file_a.is_private = 0
+		attached_file_a.save(ignore_permissions=True)
+
+		reloaded_file_a = frappe.get_doc("File", file_a.name)
+		self.assertNotEqual(reloaded_file_a.file_url, shared_url)
+
+		reloaded_doc = frappe.get_doc(self.parent_doctype, doc.name)
+		self.assertEqual(reloaded_doc.cards[0].image, shared_url)
+		self.assertEqual(reloaded_doc.cards[1].image, shared_url)
+
+		reloaded_file_b = frappe.get_doc("File", file_b.name)
+		self.assertEqual(reloaded_file_b.file_url, shared_url)
+		self.assertEqual(reloaded_file_b.is_private, 1)
+
+	def test_toggle_is_private_does_not_let_parent_field_capture_child_update(self):
+		file = self.make_unattached_file(b"collision-bytes", is_private=1)
+		old_url = file.file_url
+
+		doc = frappe.get_doc(
+			{
+				"doctype": self.collision_parent_doctype,
+				"title": "Collision Test",
+				"cards": [{"image": file.file_url}],
+			}
+		).insert(ignore_permissions=True)
+
+		attached = frappe.get_doc("File", file.name)
+		self.assertEqual(attached.attached_to_doctype, self.collision_parent_doctype)
+		self.assertEqual(attached.attached_to_field, "image")
+		self.assertIsNone(doc.image)
+
+		attached.is_private = 0
+		attached.save(ignore_permissions=True)
+
+		reloaded_doc = frappe.get_doc(self.collision_parent_doctype, doc.name)
+		reloaded_file = frappe.get_doc("File", file.name)
+
+		self.assertNotEqual(reloaded_file.file_url, old_url)
+		self.assertEqual(reloaded_doc.cards[0].image, reloaded_file.file_url)
+
+		self.assertIsNone(reloaded_doc.image)
+
+	def test_toggle_is_private_updates_both_parent_and_child_when_url_is_shared(self):
+		file = self.make_unattached_file(b"shared-bytes", is_private=1)
+		old_url = file.file_url
+
+		doc = frappe.get_doc(
+			{
+				"doctype": self.collision_parent_doctype,
+				"title": "Shared URL Test",
+				"image": file.file_url,
+				"cards": [{"image": file.file_url}],
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertEqual(doc.image, old_url)
+		self.assertEqual(doc.cards[0].image, old_url)
+
+		attached = frappe.get_doc("File", file.name)
+		attached.is_private = 0
+		attached.save(ignore_permissions=True)
+
+		reloaded_doc = frappe.get_doc(self.collision_parent_doctype, doc.name)
+		reloaded_file = frappe.get_doc("File", file.name)
+
+		self.assertNotEqual(reloaded_file.file_url, old_url)
+		self.assertEqual(reloaded_doc.image, reloaded_file.file_url)
+		self.assertEqual(reloaded_doc.cards[0].image, reloaded_file.file_url)
+
+	def test_top_level_attach_field_still_works(self):
+		file = self.make_unattached_file(b"parent-level-bytes")
+		doc = self.make_parent_doc(parent_image=file.file_url)
+
+		reloaded = frappe.get_doc("File", file.name)
+		self.assertEqual(reloaded.attached_to_doctype, self.parent_doctype)
+		self.assertEqual(reloaded.attached_to_name, doc.name)
+		self.assertEqual(reloaded.attached_to_field, "parent_image")
+
+		reloaded.is_private = 0
+		reloaded.save(ignore_permissions=True)
+
+		doc_reloaded = frappe.get_doc(self.parent_doctype, doc.name)
+		file_reloaded = frappe.get_doc("File", file.name)
+		self.assertEqual(doc_reloaded.parent_image, file_reloaded.file_url)
+
+
+class TestAttachmentsAccess(IntegrationTestCase):
+>>>>>>> 1f3b944 (fix(file): validate access when file_url changes)
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})
 
