@@ -667,6 +667,12 @@ class TestIngest(IntegrationTestCase):
 		hits = store.search([1.0, 0.0, 0.0, 0.0], kbs=["Ingest KB Renamed"], limit=5)
 		self.assertEqual(sorted(hit["id"] for hit in hits), [1, 2, 3])
 
+	def test_a_knowledge_base_is_not_renamed_while_a_source_processes(self):
+		source = self._make_source(content="Wifi keeps dropping every afternoon.")
+		source.db_set("status", "Processing")
+		with self.assertRaisesRegex(frappe.ValidationError, "still processing"):
+			frappe.rename_doc("Flow Knowledge Base", self.kb.name, "Ingest KB Renamed")
+
 	def test_text_source_ingests_to_both_stores(self):
 		source = self._make_source(content="Wifi keeps dropping on the office network every afternoon. " * 4)
 		self._ingest(source.name)
