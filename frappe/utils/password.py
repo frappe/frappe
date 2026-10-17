@@ -5,7 +5,6 @@ import unicodedata
 
 from cryptography.fernet import Fernet, InvalidToken
 from passlib.context import CryptContext
-from passlib.exc import PasswordSizeError
 from pypika.terms import Values
 
 import frappe
@@ -14,6 +13,7 @@ from frappe.query_builder import Table
 from frappe.utils import cstr, encode
 
 Auth = Table("__Auth")
+MAX_PASSWORD_SIZE = 512
 
 passlibctx = CryptContext(
 	schemes=[
@@ -26,6 +26,11 @@ passlibctx = CryptContext(
 def normalize_password(pwd):
 	"""Same text typed as NFC or NFD must hash the same (RFC 8265)."""
 	return unicodedata.normalize("NFC", pwd)
+
+
+def validate_password_size(pwd, label=None):
+	if len(pwd) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(label or _("Password")))
 
 
 def verify_password(pwd, hashed):
@@ -125,6 +130,8 @@ def is_password_reused(user, pwd, doctype="User", fieldname="password"):
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
+	validate_password_size(pwd)
+
 	result = (
 		frappe.qb.from_(Auth)
 		.select(Auth.name, Auth.password)
@@ -171,10 +178,9 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	:param fieldname: fieldname (in given doctype) (for encryption)
 	:param logout_all_session: delete all other session
 	"""
-	try:
-		hashPwd = passlibctx.hash(normalize_password(pwd))
-	except PasswordSizeError:
-		frappe.throw(_("Password size exceeded the maximum allowed size."))
+
+	validate_password_size(pwd)
+	hashPwd = passlibctx.hash(normalize_password(pwd))
 
 	query = frappe.qb.into(Auth).columns(
 		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted
