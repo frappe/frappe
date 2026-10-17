@@ -97,6 +97,24 @@ class TestRealtimeRelay(UnitTestCase):
 
 		asyncio.run(run())
 
+	def test_a_disconnect_during_a_failed_subscribe_leaves_no_channel_behind(self):
+		async def run():
+			pubsub = FakePubSub()
+			relay = handlers.Relay()
+			socket = FakeSocket(allowed=True)
+
+			async def disconnect_then_fail(*channels):
+				await relay.release(socket, "session-1")
+				raise ConnectionError("redis is down")
+
+			pubsub.subscribe = disconnect_then_fail
+			with patch.object(handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
+				with self.assertRaises(ConnectionError):
+					await relay.subscribe(socket, "session-1")
+			self.assertEqual(relay.channel_ready, {})
+
+		asyncio.run(run())
+
 	def test_a_socket_that_may_not_read_the_session_is_refused(self):
 		async def run():
 			relay = handlers.Relay()

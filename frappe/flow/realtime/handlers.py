@@ -105,16 +105,15 @@ class Relay:
 	async def listen(self, channel: str, site: str) -> None:
 		"""Subscribe the session channel, and the site's resync and access channels on first use."""
 		channels = [channel, RESYNC_ALL, RESYNC_SITE + site, ACCESS_SITE + site]
-		new = [name for name in channels if name not in self.channel_ready]
 		loop = asyncio.get_running_loop()
-		for name in new:
-			self.channel_ready[name] = loop.create_future()
+		created = {name: loop.create_future() for name in channels if name not in self.channel_ready}
+		self.channel_ready.update(created)
 		waits = [asyncio.shield(self.channel_ready[name]) for name in channels]
 
 		try:
 			if self.pubsub is None:
 				self.pubsub = redis_client().pubsub()
-			await self.pubsub.subscribe(*new)
+			await self.pubsub.subscribe(*created)
 			if self.listener is None:
 				self.listener = asyncio.create_task(self.run())
 			# The ack must not beat the Redis subscriptions, or a run started on it loses events
@@ -122,8 +121,10 @@ class Relay:
 			await asyncio.wait_for(asyncio.gather(*waits), SUBSCRIBE_TIMEOUT)
 		except Exception as error:
 			# A retry subscribes these again, and a listen waiting on them fails with this one.
-			for name in new:
-				ready = self.channel_ready.pop(name)
+			# A disconnect may have released the session channel already.
+			for name, ready in created.items():
+				if self.channel_ready.get(name) is ready:
+					del self.channel_ready[name]
 				if not ready.done():
 					ready.set_exception(error)
 					ready.exception()  # retrieved, so one no other listen awaits logs nothing
