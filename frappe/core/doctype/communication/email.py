@@ -83,6 +83,8 @@ def make(
 
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
+	else:
+		frappe.has_permission("Communication", ptype="create", throw=True)
 
 	return _make(
 		doctype=doctype,
