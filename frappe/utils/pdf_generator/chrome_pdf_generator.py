@@ -123,6 +123,8 @@ class ChromePDFGenerator:
 					# 0 will automatically select a random open port from the ephemeral port range.
 					"--remote-debugging-port=0",
 					"--disable-gpu",  # GPU is not available in production environment.
+					"--in-process-gpu",
+					"--enable-features=NetworkServiceInProcess2",
 					"--disable-field-trial-config",
 					"--disable-background-networking",
 					"--disable-background-timer-throttling",
