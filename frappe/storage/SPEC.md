@@ -285,9 +285,12 @@ egress.
   become absolute signed URLs with a long TTL (`storage_email_url_ttl`,
   default 30 days). v1 private URLs are left as they are. Today external
   recipients of private images get a login redirect.
-- PDF / print render: the renderer requests short-TTL signed URLs at
-  render time. This replaces the current special-cased direct disk
-  reads in the chromium path.
+- PDF / print render: the chromium renderer intercepts `/files/` and
+  `/private/files/` requests. It reads a file it finds on local disk, as
+  in v1. Otherwise it resolves the URL to its blob, including a relocated
+  v1 URL, and reads the bytes through the driver
+  (`frappe/utils/chromium/page.py`). A private file needs the same
+  session permission as the serve route; signatures play no part.
 
 ### Serving `/files/` and `/private/files/`
 
@@ -442,8 +445,9 @@ Each stage is independently shippable and revertible by the flag.
 1. Hashing: sha256 for new blobs, old MD5 rows untouched, backfill
    computes sha256 from disk. Approved.
 2. Embedded URLs: stable unsigned URLs in content, signing at egress
-   (email send, PDF render). See "Embedded URLs" above. Signed URL
-   default TTL 1 hour; email variant 30 days, site configurable.
+   (email send; PDF render reads the bytes through the driver instead).
+   See "Embedded URLs" above. Signed URL default TTL 1 hour; email
+   variant 30 days, site configurable.
 3. `attach_file` requires write permission. It already does.
 4. URLs reuse v1's prefixes: `/files/<blob>/<filename>` and
    `/private/files/<blob>/<filename>`. No new URL prefix, and code that

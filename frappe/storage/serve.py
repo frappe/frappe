@@ -41,7 +41,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.storage.blob import served_type
 from frappe.storage.driver import get_driver
-from frappe.storage.url import parse_blob_url, verify_signature
+from frappe.storage.url import PRIVATE_PREFIX, parse_blob_url, verify_signature
 from frappe.utils import cint
 
 if TYPE_CHECKING:
@@ -56,16 +56,9 @@ PUBLIC_NATIVE_URL_TTL = 3600
 
 def serve_public_file(path: str) -> Response:
 	"""Handle a ``GET /files/...`` request that nginx did not find on disk."""
-	if parsed := find_blob(path, is_private=False):
-		blob, filename = parsed
-	elif row := frappe.db.get_value(
-		"File", {"file_url": path, "is_private": 0, "blob": ("is", "set")}, ["blob", "file_name"]
-	):
-		blob, filename = frappe.get_doc("File Blob", row[0]), row[1] or os.path.basename(path)
-	else:
+	if not (parsed := find_public_blob(path)):
 		raise NotFound
-
-	return blob_response(blob, filename)
+	return blob_response(*parsed)
 
 
 def serve_private_file(path: str) -> Response:
@@ -115,6 +108,38 @@ def find_blob(path: str, *, is_private: bool) -> "tuple[FileBlob, str] | None":
 	if not frappe.db.exists("File Blob", {"name": blob_name, "is_private": cint(is_private)}):
 		return None
 	return frappe.get_doc("File Blob", blob_name), filename
+
+
+def find_public_blob(path: str) -> "tuple[FileBlob, str] | None":
+	"""Return ``(blob, filename)`` behind a ``/files/`` URL: a public blob, or
+	a v1 URL whose bytes moved into a blob."""
+	if parsed := find_blob(path, is_private=False):
+		return parsed
+	if row := frappe.db.get_value(
+		"File", {"file_url": path, "is_private": 0, "blob": ("is", "set")}, ["blob", "file_name"]
+	):
+		return frappe.get_doc("File Blob", row[0]), row[1] or os.path.basename(path)
+	return None
+
+
+def find_readable_blob(path: str, fid: str | None = None) -> "tuple[FileBlob, str] | None":
+	"""Return ``(blob, filename)`` behind a ``/files/`` or ``/private/files/``
+	URL when the session user may read it, else None.
+
+	Applies the serve routes' session rules, without signatures. For
+	server-side readers such as the PDF renderer."""
+	from frappe.core.doctype.file.utils import find_file_by_url
+
+	if not path.startswith(PRIVATE_PREFIX):
+		return find_public_blob(path)
+	if frappe.session.user == "Guest":
+		return None
+	if parsed := find_blob(path, is_private=True):
+		return parsed if has_file_permission(parsed[0].name) else None
+	file = find_file_by_url(path, name=fid)
+	if file and file.get("blob"):
+		return frappe.get_doc("File Blob", file.blob), file.file_name or os.path.basename(path)
+	return None
 
 
 def can_access(blob: "FileBlob", filename: str) -> bool:

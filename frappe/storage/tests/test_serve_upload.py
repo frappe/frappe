@@ -1,5 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+import base64
 import builtins
 import hashlib
 import io
@@ -970,6 +971,48 @@ class TestServeUpload(IntegrationTestCase):
 			frappe.set_user("Guest")
 			with self.assertRaises(Forbidden):
 				self.serve(v1_url)
+
+	def test_pdf_renderer_reads_blobs_that_are_not_on_disk(self):
+		from frappe.core.doctype.file.file_v2 import create_file_from_blob
+		from frappe.tests.test_chrome_pdf_interceptor import _fire_request, _make_page, _make_session
+
+		host = "https://example.frappe.test/"
+		with flag_on(), frappe.storage.fake():
+			public = put_blob(io.BytesIO(b"<svg>public</svg>"), filename="logo.svg")
+			private = put_blob(io.BytesIO(b"private png"), is_private=True, filename="sign.png")
+			create_file_from_blob(private, "sign.png", is_private=True)
+			moved = put_blob(io.BytesIO(b"moved jpg"), is_private=True, filename="photo.jpg")
+			moved_url = f"/private/files/storage-v2-moved-{frappe.generate_hash(length=10)}.jpg"
+			self.insert_file_row(moved_url, moved.name, file_name="photo.jpg", is_private=1)
+			urls = {
+				f"/files/{public.name}/logo.svg": (b"<svg>public</svg>", "image/svg+xml"),
+				f"/private/files/{private.name}/sign.png": (b"private png", "image/png"),
+				moved_url: (b"moved jpg", "image/jpeg"),
+			}
+
+			def render(url: str, user: str):
+				"""Fire one intercepted request as ``user``; return the CDP command and its params."""
+				captured = [None]
+				session = _make_session(captured)
+				frappe.set_user(user)
+				with patch("frappe.utils.chromium.page.get_host_url", return_value=host):
+					_make_page(session).intercept_request_for_local_resources()
+					_fire_request(captured[0], "req", host + url.lstrip("/"))
+				return session.send.call_args.args[:2]
+
+			for url, (content, content_type) in urls.items():
+				with self.subTest(url=url):
+					method, params = render(url, "Administrator")
+					self.assertEqual(method, "Fetch.fulfillRequest")
+					self.assertEqual(base64.b64decode(params["body"]), content)
+					self.assertIn({"name": "Content-Type", "value": content_type}, params["responseHeaders"])
+
+			self.assertEqual(render(f"/files/{public.name}/logo.svg", "Guest")[0], "Fetch.fulfillRequest")
+			for url in list(urls)[1:]:
+				with self.subTest(url=url, user="Guest"):
+					method, params = render(url, "Guest")
+					self.assertEqual(method, "Fetch.failRequest")
+					self.assertEqual(params["errorReason"], "AccessDenied")
 
 	def insert_file_row(self, file_url: str, blob_name: str, *, file_name: str, is_private: int):
 		"""A File row as relocation leaves it: a v1 URL linked to a blob."""
