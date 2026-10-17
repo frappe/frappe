@@ -124,8 +124,10 @@ def _schema() -> pa.Schema:
 		pa.field("user", pa.string()),
 		pa.field("content", pa.string()),
 	]
-	model = settings.embedding_model if settings.embedding_model and settings.embedding_dimension else ""
-	if model:
+	model = ""
+	if settings.embedding_model and settings.embedding_dimension:
+		# by id, so a rename keeps the index
+		model = frappe.get_cached_value("Flow Model", settings.embedding_model, "model_id")
 		fields.append(pa.field("vector", pa.list_(pa.float32(), int(settings.embedding_dimension))))
 	return pa.schema(fields, metadata={"embedding_model": model})
 

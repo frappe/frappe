@@ -312,3 +312,13 @@ class TestHybridRetrieval(MemoryCase):
 		_settings(embedding_model=other.name)
 		self.block("Where do that customer's invoices go?")
 		self.assertEqual(self.embed.call_args_list[1].args[0], [ACME])
+
+	def test_a_renamed_embedding_model_keeps_the_index(self):
+		save_memory(self.agent.name, content=ACME, scope="agent")
+		self.embed.reset_mock()
+		frappe.rename_doc("Flow Model", self.model.name, "Memory Test Model Renamed")
+		self.block("Where do that customer's invoices go?")
+		self.assertEqual(
+			[call.args[0] for call in self.embed.call_args_list],
+			[["Where do that customer's invoices go?"]],
+		)
