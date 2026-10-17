@@ -18,7 +18,15 @@ MAX_SHRINK = 0.5
 SCRIPT = re.compile(r"<script|\son[a-z]+\s*=", re.IGNORECASE)
 MULTI_PAGE_STYLE = "body, .row:has(> :only-child) { display: block !important; }"
 MEASURE_STYLE = "html, body, .print-format { height: auto !important; min-height: 0 !important; }"
+USER_SCRIPT = re.compile(r"<script(?![^>]*(data-frappe-print|/print\.bundle\.))", re.IGNORECASE)
 GRID = re.compile(r"display\W+(inline-)?grid\b", re.IGNORECASE)
+
+
+def plutoprint_can_render(html: str) -> bool:
+	if importlib.util.find_spec("plutoprint") is None:
+		return False
+	html = html or ""
+	return "data-barcode-value=" not in html and not USER_SCRIPT.search(html)
 
 
 def plutoprint_blockers(print_format=None) -> list[str]:

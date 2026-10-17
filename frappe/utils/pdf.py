@@ -92,12 +92,11 @@ def get_pdf(
 ):
 	"""Render `html` to PDF with Chromium or PlutoPrint."""
 	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
+	from frappe.utils.pdf_generator.pluto import PlutoBrowser, plutoprint_can_render
 
 	options = dict(options or {})
 	password = options.pop("password", None)
-	if pdf_generator == "PlutoPrint":
-		from frappe.utils.pdf_generator.pluto import PlutoBrowser
-
+	if pdf_generator == "PlutoPrint" and plutoprint_can_render(html):
 		pdf = PDFTransformer(PlutoBrowser(print_format, html, options)).transform_pdf(output=output)
 	else:
 		from frappe.utils.chromium import ChromiumManager
