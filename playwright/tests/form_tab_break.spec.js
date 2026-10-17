@@ -29,8 +29,10 @@ test.describe("Form Tab Break", () => {
 		await save_button.click();
 		await expect(page.locator("body")).not.toHaveAttribute("data-route", /\/new-/);
 
+		// connections sit in the sidebar on desktop instead of their own tab
+		await expect(page.locator('.form-connections-item[data-doctype="Contact"]')).toBeVisible();
 		await page.locator(".form-tabs > .nav-item").nth(0).click();
-		await expect(form.getByText("Profile", { exact: true })).toBeVisible();
+		await expect(form.getByText("Name", { exact: true })).toBeVisible();
 	});
 
 	test("Should stay on the active tab after the first save", async ({ page, desk }) => {
