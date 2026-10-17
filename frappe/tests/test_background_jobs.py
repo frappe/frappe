@@ -76,8 +76,8 @@ class TestBackgroundJobs(IntegrationTestCase):
 			patch("frappe.utils.background_jobs.get_running_jobs_in_queue", return_value=[stale_job]),
 		):
 			del globals()["echo_retry"]
-			jobs = get_jobs(site=frappe.local.site, queue="short", key="job_name")
-		self.assertNotIn("frappe.tests.test_background_jobs.echo_retry", jobs[frappe.local.site])
+			jobs = get_jobs(site=frappe.local.site, queue="short")
+		self.assertNotIn(echo_retry, jobs[frappe.local.site])
 
 >>>>>>> a525ab3 (test: cover queued jobs whose function was renamed)
 	def test_job_translation_resolves_user_language(self):
