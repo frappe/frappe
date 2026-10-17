@@ -4,9 +4,10 @@
 
 Deleting a File row never touches bytes synchronously; this daily job
 does. A blob is garbage when no Link field pointing to File Blob references
-it and it is older than ``MIN_AGE_HOURS``. That covers rolled-back writes
-and stale ``Pending`` blobs from aborted uploads. Stale upload sessions are
-swept through ``frappe.storage.upload.expire_stale_upload_sessions``.
+it and it is older than ``MIN_AGE_HOURS``. ``revive_blob`` bumps
+``modified`` on a blob being reused, so GC skips it until the new link
+commits. Stale upload sessions are swept through
+``frappe.storage.upload.expire_stale_upload_sessions``.
 """
 
 import frappe
@@ -158,9 +159,10 @@ def delete_blob(blob, cutoff, logger, stats: dict, *, predicate: str | None = No
 	the blob to a new location between ``get_orphan_blobs`` and this call.
 	Deleting bytes at the stale location would leave the blob's *current*
 	bytes behind with no row left to ever find them, once this deletes the
-	row. ``put_blob``'s dedup can revive a selected orphan concurrently (it
-	locks the row and bumps ``modified``), and a new File row may have
-	appeared since ``get_orphan_blobs`` ran. Drivers treat a missing object as
+	row. ``revive_blob`` (``put_blob`` dedup, ``File.revive_linked_blob``) can
+	revive a selected orphan concurrently (it locks the row and bumps
+	``modified``), and a new File row may have appeared since
+	``get_orphan_blobs`` ran. Drivers treat a missing object as
 	a no-op delete. On a driver error the row is kept so the next run
 	retries."""
 	current = is_still_orphan(blob.name, cutoff, predicate=predicate)

@@ -4,8 +4,8 @@
 
 Design (see ``frappe/storage/SPEC.md``):
 
-- A File row links to an immutable, content-addressed ``File Blob``;
-  ``put_blob`` owns dedup on ``(checksum, is_private, driver)``.
+- A File row links to an immutable ``File Blob``; ``put_blob`` owns the
+  best-effort dedup on ``(checksum, is_private, driver)``.
 - Every byte access goes through the storage driver.
 - ``file_url`` derives from the blob: ``/files/<blob>/<filename>`` or
   ``/private/files/<blob>/<filename>``. A public local blob sits on disk

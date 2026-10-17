@@ -10,6 +10,11 @@
 3. ``finish_upload``: spool the parts into a blob, verify the checksum,
    validate content, create the File row, drop the session.
 
+``create_blob_upload``, ``upload_blob_chunk`` and ``finish_upload_to_blob``
+run the same flow without a File row, for server code that authorizes the
+destination itself. They are not whitelisted. Each session records its
+``session_policy``, and a finish call rejects the other kind.
+
 Sessions live under ``sites/<site>/private/files/.uploads/`` as
 ``<upload_id>.meta`` (json) + ``<upload_id>.part`` (bytes). Stale
 sessions are swept by ``expire_stale_upload_sessions`` (called from GC).

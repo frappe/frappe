@@ -1,7 +1,7 @@
 # File Storage v2 for Frappe Framework
 
-Draft spec for review. Based on code analysis of frappe v17.0.0-dev
-(agents mapped the current module; refs are in that report).
+Design reference for `frappe/storage/`. "Today" means storage v1, the
+behavior with the flag off.
 
 ## Goal
 
@@ -47,13 +47,13 @@ HTTP                       signed URLs, serve route, direct upload
 
 | field | type | notes |
 |---|---|---|
-| `key` | Data | driver-scoped object key, unique |
+| `key` | Data | driver-scoped object key, indexed |
 | `checksum` | Data | sha256 hex, indexed |
 | `file_size` | Int, `length: 20` | bytes; a bigint, so a 5 TB object fits |
 | `mime_type` | Data | sniffed from content, not from filename |
 | `driver` | Data | driver name, e.g. `local`, `s3` |
 | `is_private` | Check | decides local dir and URL policy |
-| `status` | Select | `Pending` (upload in flight) / `Ready` |
+| `status` | Select | `Pending` / `Ready`; `put_blob` writes `Ready` |
 
 - No unique index on content. Dedup is a best-effort lookup on the
   `checksum` index, scoped by `is_private` and `driver`. Two concurrent
@@ -100,8 +100,8 @@ a privacy change gives the file a new URL, as in v1.
 - `file_url` stays, generated, for backward compatibility.
 - `attached_to_doctype/name/field` unchanged. The existing permission
   delegation (file permission = permission on the attached doc,
-  `file.py:976`) is kept as is. It is the best part of the current
-  module.
+  `has_permission` in `file.py`) is kept as is. It is the best part
+  of the current module.
 - N attachments of the same content = N `File` rows, one blob. Today
   this is N rows sharing a `file_url` string with no owner.
 
@@ -115,10 +115,10 @@ No flag branches inside the File class. Three files instead:
   retires.
 - `file_v2.py`: clean blob-native class.
 
-`File.resolve_controller()` picks V1 or V2 from the flag. A 12-line
-seam in `import_controller` calls it; the result is cached per site
-(one process serves many sites, so import-time switching is not
-possible). `override_doctype_class` subclasses still win via MRO
+`File.resolve_controller()` picks V1 or V2 from the flag.
+`import_controller` calls it through `_resolve_controller`; the result
+is cached per site (one process serves many sites, so import-time
+switching is not possible). `override_doctype_class` subclasses still win via MRO
 splicing. Cross-version shims keep both directions revertible: V2
 reads pre-backfill rows, V1 reads blob rows after a flag rollback.
 
@@ -131,30 +131,39 @@ from typing import IO
 
 class StorageDriver(ABC):
 	name: str
+	key_prefix: str = ""    # prepended to every new key
 
 	@abstractmethod
-	def write(self, key: str, stream: IO[bytes]) -> None: ...
+	def write(self, key: str, stream: IO[bytes], *, is_private: bool = False) -> None: ...
 
 	@abstractmethod
-	def read(self, key: str) -> IO[bytes]:
-		"""Return a readable stream. Never the full bytes."""
+	def read(self, key: str, *, is_private: bool = False) -> IO[bytes]:
+		"""Return a readable binary stream. Never the full bytes."""
 
 	@abstractmethod
-	def delete(self, key: str) -> None: ...
+	def delete(self, key: str, *, is_private: bool = False) -> None: ...
 
 	@abstractmethod
-	def exists(self, key: str) -> bool: ...
+	def exists(self, key: str, *, is_private: bool = False) -> bool: ...
 
-	def download_url(self, key: str, filename: str, expires_in: int) -> str | None:
+	def read_range(self, key, start, end, *, is_private=False) -> IO[bytes]:
+		"""Bytes start..end inclusive. The default reads the whole object."""
+
+	def download_url(self, key, filename, expires_in, *, is_private=False,
+			mime_type=None, as_attachment=False) -> str | None:
 		"""Native signed URL (e.g. S3 presigned GET).
 		None means: the framework serves the bytes itself."""
 		return None
 
-	def upload_target(self, key: str, size: int) -> dict | None:
+	def upload_target(self, key, size, *, is_private=False) -> dict | None:
 		"""Native direct-upload target (e.g. S3 presigned POST).
 		None means: client must use the framework upload endpoint."""
 		return None
 ```
+
+Keys carry no privacy, so every method takes `is_private` to pick the
+public or private namespace. A driver that returns a `download_url` must
+serve the type and disposition that `blob.served_type` gives.
 
 Registration through hooks, selection through site config:
 
@@ -168,8 +177,10 @@ storage_drivers = {"s3": "myapp.storage.s3.S3Driver"}
 "storage_driver_config": {"bucket": "...", "region": "..."}
 ```
 
-Core ships `local` (default) and `s3` (boto3, optional dependency).
-The local driver writes under `private/files/` and `public/files/`.
+Core ships `local` (default), `s3` (boto3, optional dependency) and
+`memory` (tests). The local driver writes under `private/files/` and
+`public/files/`. The S3 object key is `public/` or `private/` followed by
+the blob key.
 
 Site prefix: a driver shared by several sites, such as one S3 bucket,
 starts every new key with the site's folder. For S3 it is
@@ -189,26 +200,29 @@ hook cannot support a real backend.
 
 ```python
 # frappe/storage/blob.py
-def put_blob(stream: IO[bytes], *, is_private: bool) -> "FileBlob":
-	spool = spool_to_tempfile(stream)          # never full bytes in RAM
+def put_blob(stream, *, is_private=False, filename=None) -> "FileBlob":
+	driver = get_driver()
+	spool, size = spool_to_tempfile(stream)    # never full bytes in RAM
 	checksum = sha256_of(spool)
-	mime = sniff_mime(spool)                   # filetype lib, from bytes
+	mime_type = sniff_mime(spool)              # filetype lib, from bytes
 
 	existing = frappe.db.get_value(
 		"File Blob",
 		{"checksum": checksum, "is_private": is_private, "driver": driver.name},
 	)
-	if existing:
+	if existing and revive_blob(existing):     # lock it, bump modified
 		return frappe.get_doc("File Blob", existing)   # dedup, no write
 
 	blob = frappe.new_doc("File Blob")
+	blob.set_new_name()
 	blob.update({
-		"key": make_key(checksum), "checksum": checksum,
-		"file_size": spool.size, "mime_type": mime,
+		"key": make_key(driver, blob.name, filename), "checksum": checksum,
+		"file_size": size, "mime_type": mime_type,
 		"driver": driver.name, "is_private": is_private,
 		"status": "Ready",
 	})
-	driver.write(blob.key, spool)
+	frappe.db.after_rollback.add(delete_bytes_on_rollback(driver, blob.key, is_private))
+	driver.write(blob.key, spool, is_private=is_private)
 	blob.insert()
 	return blob
 ```
@@ -219,8 +233,12 @@ Notes:
 - The blob is immutable. "Optimize image" creates a new blob and
   repoints the `File` row. Today it rewrites bytes in place and
   silently changes the hash under every row that shares the URL.
-- On transaction rollback, a `Pending` blob with no `Ready` flip is
-  cleaned by GC. No custom rollback hooks on the write path.
+- On transaction rollback, the `File Blob` row rolls back and an
+  `after_rollback` callback deletes the bytes `put_blob` wrote.
+- `revive_blob` locks a reused blob and bumps its `modified`, so GC
+  keeps it until the new link commits. Dedup, `File.revive_linked_blob`
+  (a row linked to an existing blob) and v1's `share_stored_file` all
+  call it.
 
 ## HTTP layer
 
@@ -228,17 +246,20 @@ Notes:
 
 ```python
 # frappe/storage/url.py
-def signed_url(file: "File", expires_in: int = 3600) -> str:
-	blob = file.blob_doc
-	native = driver.download_url(blob.key, file.file_name, expires_in)
+def signed_url_for_blob(blob, filename, expires_in=3600, *, as_attachment=False) -> str:
+	native = driver.download_url(blob.key, filename, expires_in, ...)
 	if native:
 		return native                           # e.g. S3 presigned GET
 
-	expires = now_epoch() + expires_in
-	payload = f"{blob.name}:{file.file_name}:{expires}"
-	sig = hmac_sha256(site_secret(), payload)
-	return f"/private/files/{blob.name}/{quote(file.file_name)}?e={expires}&s={sig}"
+	expires = int(time.time()) + expires_in
+	payload = f"{blob.name}:{filename}:{expires}"
+	sig = hmac_sha256(get_signing_key(), payload)   # derived from encryption_key
+	return f"{prefix}{blob.name}/{quote(filename)}?e={expires}&s={sig}"
 ```
+
+`signed_url(file, expires_in)` calls it with the File's blob and
+`file_name`. `prefix` follows the blob's privacy. `&download=1` makes the
+file download instead of showing inline.
 
 - A valid signature grants access with **no session and no DB
   permission query**. That is the point: a private file becomes
@@ -259,9 +280,10 @@ egress.
   `/private/files/<blob>/<filename>` with no signature. Desk, portal, and
   web-form rendering authenticate it with the session cookie and the
   existing permission delegation, like v1 private files.
-- Email send: outgoing HTML is rewritten at send time. Private blob
-  URLs become signed URLs with a long TTL (default 30 days, site
-  configurable), or are inlined as `cid:` attachments. Today external
+- Email send: outgoing HTML and text parts are rewritten at send time
+  (`frappe/storage/email.py`). Private blob URLs the sender can download
+  become absolute signed URLs with a long TTL (`storage_email_url_ttl`,
+  default 30 days). v1 private URLs are left as they are. Today external
   recipients of private images get a login redirect.
 - PDF / print render: the renderer requests short-TTL signed URLs at
   render time. This replaces the current special-cased direct disk
@@ -280,22 +302,18 @@ nginx serves any file it finds on disk and passes the rest to Python
   is served from the blob. This keeps v1 URLs working after relocation
   moves their bytes, so stored content never needs rewriting.
 
-```python
-def serve_private_file(path):
-	blob, filename = find_blob(path, is_private=True) or legacy(path)
-	verify_signature_or_permission()
-	native = driver.download_url(blob.key, filename, 60)
-	if native:
-		return redirect(native)                 # cloud driver: 302
-	if request.headers.get("X-Use-X-Accel-Redirect"):
-		return x_accel(blob.local_path)         # local driver: nginx sends bytes
-	return send_file(driver.read(blob.key), conditional=True)  # Range support
-```
+`frappe/storage/serve.py` answers an authorized blob in this order: a
+302 to the driver's native URL (60 s TTL when private), X-Accel-Redirect
+when nginx asks for it, then `send_file` or a ranged driver stream. The
+filename in the URL is the download name. Redirect mode and proxy mode,
+like Rails. The X-Accel and Range handling mirror `send_private_file` in
+`response.py`.
 
-The filename in the URL is the download name. Redirect mode and proxy
-mode, like Rails. The X-Accel path and the
-`conditional=True` Range handling already exist in
-`response.py:325-356` and are reused.
+`stream_blob(blob, filename, *, as_attachment=False, environ=None,
+allow_native_redirect=False)` serves a blob the caller has already
+authorized, with no permission check or access log. It streams by
+default, because some clients (WebDAV) cannot follow a cross-host
+redirect; pass `allow_native_redirect=True` to allow the 302.
 
 ### Upload
 
@@ -304,27 +322,36 @@ size-check-after-write gap, and the missing resumability.
 
 ```python
 # 1. client asks for an upload session
-@frappe.whitelist(methods=["POST"])
-def create_upload(filename, size, doctype=None, docname=None):
-	check_attach_permission(doctype, docname)   # write perm, always
-	check_max_file_size(size)                   # before any byte lands
-	native = driver.upload_target(temp_key(), size)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def create_upload(filename, size, is_private=0, doctype=None, docname=None):
+	check_upload_permission(doctype, docname)   # upload_file's rules
+	check_restricted_mimetypes(filename)
+	check_declared_size(size)                   # before any byte lands
+	native = driver.upload_target(upload_key(upload_id), size, is_private=...)
 	if native:
-		return {"mode": "direct", **native}     # browser -> S3, workers untouched
-	return {"mode": "chunked", "upload_id": frappe.generate_hash(20)}
+		return {"mode": "direct", "upload_id": upload_id, **native}  # browser -> S3
+	return {"mode": "chunked", "upload_id": upload_id}
 
-# 2. chunked fallback: PUT /api/method/...upload_chunk?upload_id=&offset=
+# 2. chunked fallback: PUT /api/method/frappe.storage.upload.upload_chunk?upload_id=&offset=
 #    temp path is keyed by upload_id, not by client filename.
 #    Cumulative size is enforced per chunk. Sessions expire after 24h (GC).
 
-# 3. finish
-@frappe.whitelist(methods=["POST"])
-def finish_upload(upload_id, checksum, **attach_args):
-	blob = put_blob(open_upload(upload_id), is_private=...)
-	if checksum and blob.checksum != checksum:
-		frappe.throw(_("Checksum mismatch"))
-	return create_file_row(blob, **attach_args).as_dict()
+# 3. finish: put_blob, size and checksum checks, validate_upload,
+#    then create_file_from_blob
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def finish_upload(upload_id, checksum=None, file_name=None, doctype=None,
+		docname=None, fieldname=None, is_private=None): ...
 ```
+
+`create_blob_upload`, `upload_blob_chunk` and `finish_upload_to_blob`
+are the same flow without a File row, for server code that authorizes
+the destination itself (Drive). They are not whitelisted. Each session
+records a required `session_policy` (`file` or `blob`), and a finish
+call rejects a session of the other kind.
+
+`upload_chunk` is listed in the `streaming_request_paths` hook, so
+`init_request` does not buffer its body. The hook matches `/api/v1/...`
+and `/api/v2/...` mounts too.
 
 ### Validation
 
@@ -335,49 +362,47 @@ def sniff_mime(stream) -> str:
 
 def validate_upload(blob, claimed_filename):
 	ext_mime = mimetypes.guess_type(claimed_filename)[0]
-	if is_active_content(blob.mime_type) and blob.mime_type != ext_mime:
+	if blob.mime_type in ACTIVE_CONTENT_MIME_TYPES and blob.mime_type != ext_mime:
 		frappe.throw(_("File content does not match its extension"))
-	check_allowed_types(blob.mime_type)         # allowlist keys on sniffed MIME
+	if blob.mime_type == "application/pdf":
+		validate_pdf_content(blob)              # embedded JavaScript
 ```
+
+`sniff_mime` also detects SVG and HTML text that `filetype` misses.
+`served_type` decides the served Content-Type and whether a file must
+download, from the sniffed type and the extension.
 
 Today every check (extension allowlist, guest MIME list, PDF-JS scan,
 forced-download list) keys on `mimetypes.guess_type(filename)`.
 Renaming `evil.html` to `evil.png` defeats all of them. The `filetype`
 lib is already a dependency; it is just never cross-checked.
 
-Permission tightening under the flag: `frappe.client.attach_file`
-requires **write** permission on the target doc, matching
-`upload_file`. Today it only checks read.
+`frappe.client.attach_file` already requires **write** permission on
+the target doc, matching `upload_file`.
 
 ## Lifecycle
 
 Daily scheduled job:
 
-```python
-def collect_garbage():
-	orphans = frappe.db.sql("""
-		select b.name, b.key from `tabFile Blob` b
-		left join `tabFile` f on f.blob = b.name
-		where f.name is null
-		  and b.modified < %(cutoff)s
-	""", {"cutoff": add_days(now(), -1)}, as_dict=True)
-	for b in orphans:
-		driver.delete(b.key); frappe.delete_doc("File Blob", b.name)
-	expire_stale_upload_sessions()
-```
+`frappe.storage.gc.collect_garbage` deletes a blob when no Link field
+to `File Blob`, in any doctype, references it and its `modified` is
+more than 24 hours old. It re-checks each blob under a row lock before
+deleting the bytes, then the row. Then it calls
+`expire_stale_upload_sessions`.
 
 - Deleting a `File` row never touches bytes synchronously. GC does.
-  This removes the count-on-`content_hash` delete logic in
-  `file.py:608`, including its known public/private stale-file bug.
-- Also sweeps `Pending` blobs and dead `.temp` upload sessions. Today
-  aborted chunk uploads leave `.temp-*` files forever.
+  This removes, for v2 rows, the count-on-`content_hash` delete logic
+  in `FileV1._delete_file_on_disk`, including its known public/private
+  stale-file bug.
+- Also sweeps upload sessions untouched for 24 hours. Today aborted
+  chunk uploads leave `.temp-*` files forever.
 
 ## Tests
 
 ```python
 with frappe.storage.fake() as store:        # in-memory driver
-	file = attach_bytes(b"hello", "a.txt", doc)
-	assert store.exists(file.blob_doc.key)
+	blob = put_blob(io.BytesIO(b"hello"), is_private=True)
+	assert store.exists(blob.key, is_private=True)
 ```
 
 `fake()` swaps the driver registry for a `MemoryDriver` and restores it
@@ -386,14 +411,16 @@ Laravel's `Storage::fake()`.
 
 ## Backfill and compatibility
 
-- Patch (idempotent, batched): group existing `File` rows by
-  `(content_hash, is_private)`, create one `File Blob` per group
-  pointing at the existing path as its key, link the rows. sha256 is
-  computed from disk during backfill; unreadable files are logged and
-  skipped, not failed.
-- `file_url` keeps working for both generations. `get_full_path` and
-  `download_private_file` learn one extra branch: row has `blob` ->
-  resolve through the driver.
+- Backfill (`frappe.storage.backfill.run`, idempotent, batched): group
+  legacy `File` rows by `(path, is_private)`, create one `local`
+  `File Blob` per group with the existing path as its key, link the
+  rows. sha256 is computed from disk; unreadable files are logged and
+  skipped, not failed. The `backfill_file_blobs` patch runs it only when
+  the flag is on.
+- `file_url` keeps working for both generations. `download_private_file`
+  and `serve_public_file` serve a v1 URL from its blob when the row has
+  one, so `frappe.storage.relocate.relocate_blobs` can move the bytes to
+  another driver without changing `file_url`.
 - The legacy write path (`utils/file_manager.py`) is not ported. Under
   the flag it forwards to `put_blob`. The old `write_file` /
   `delete_file_data_content` hooks are ignored for v2 rows and
@@ -417,7 +444,7 @@ Each stage is independently shippable and revertible by the flag.
 2. Embedded URLs: stable unsigned URLs in content, signing at egress
    (email send, PDF render). See "Embedded URLs" above. Signed URL
    default TTL 1 hour; email variant 30 days, site configurable.
-3. `attach_file` requires write permission under the flag. Approved.
+3. `attach_file` requires write permission. It already does.
 4. URLs reuse v1's prefixes: `/files/<blob>/<filename>` and
    `/private/files/<blob>/<filename>`. No new URL prefix, and code that
    reads privacy from the prefix stays correct. Public local files are
@@ -426,4 +453,4 @@ Each stage is independently shippable and revertible by the flag.
 5. Site prefix: stored in each key, defaulting to a hash of the database
    name; deletes only under the site's own prefix. Approved.
 
-No open questions. The spec is ready for implementation planning.
+No open questions.

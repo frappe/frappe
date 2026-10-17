@@ -8,7 +8,7 @@ as v1. The stored URL uses the filename in the blob key, so nginx finds a
 public local blob on disk. A URL served by Python may carry any filename;
 it becomes the download name.
 
-A signed URL adds ``?e=<epoch>&s=<sig>`` to a private URL. A valid
+A signed URL adds ``?e=<epoch>&s=<sig>`` to a blob URL. A valid
 signature grants access with no session and no permission query. The
 signing key is derived from the site ``encryption_key``."""
 
