@@ -296,6 +296,8 @@ def create_file_from_blob(
 	# the caller supplied these bytes, like a fresh upload
 	file.flags.stored_blob = blob.name
 	for hook in frappe.get_hooks("after_file_upload"):
+		# hook paths come from installed apps' hooks.py, as in frappe.handler.upload_file
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 		file = frappe.call(hook, doc=file)
 	file.insert(ignore_permissions=ignore_permissions)
 	if not file.flags.attachment_record_created and not file.is_folder:

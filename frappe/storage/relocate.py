@@ -7,6 +7,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import frappe
+from frappe import _
 from frappe.storage.blob import key_basename, make_key
 from frappe.storage.driver import StorageDriver, get_driver
 from frappe.utils import cint
@@ -25,7 +26,7 @@ def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = Non
 	``after_commit`` callback once the row points at the copied object.
 	"""
 	if batch_size <= 0:
-		frappe.throw("batch_size must be greater than zero", frappe.ValidationError)
+		frappe.throw(_("batch_size must be greater than zero"), frappe.ValidationError)
 
 	stats = {"moved": 0, "bytes": 0, "skipped": 0, "errors": 0}
 	if not frappe.db.table_exists("File Blob"):
