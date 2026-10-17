@@ -3,6 +3,10 @@
 Design reference for `frappe/storage/`. "Today" means storage v1, the
 behavior with the flag off.
 
+> **Status: alpha.** Storage v2 is experimental. Its design will change as
+> Suite uses it, and it may be removed. Don't build on its APIs, URLs or
+> tables outside Suite yet.
+
 ## Goal
 
 Add a modern file storage module behind a per-site feature flag.

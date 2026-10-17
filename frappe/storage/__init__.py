@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 """File Storage v2 public API.
 
+Alpha: experimental, and may change or be removed as Suite evolves.
 Behind the ``storage_v2`` site config flag. See ``frappe/storage/driver.py``
 for the driver interface and registry.
 """
