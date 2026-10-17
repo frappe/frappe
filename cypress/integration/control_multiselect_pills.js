@@ -16,9 +16,7 @@ context("Control MultiSelectPills", () => {
 				},
 			],
 		});
-		cy.get(".control-input > .awesomplete > input[data-fieldname=multiselect_pills]").as(
-			"input"
-		);
+		cy.get(".awesomplete > input[data-fieldname=multiselect_pills]").as("input");
 		cy.get("@input").type("2", { delay: 100 });
 		cy.get("@input").parent().find("li").should("contain", "Option 2");
 		cy.get("@input").type("{enter}Option", { delay: 100 });
