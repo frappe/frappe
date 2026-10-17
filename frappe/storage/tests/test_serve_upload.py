@@ -1044,6 +1044,29 @@ class TestServeUpload(IntegrationTestCase):
 					self.assertEqual(method, "Fetch.failRequest")
 					self.assertEqual(params["errorReason"], "AccessDenied")
 
+	def test_pdf_renderer_fails_only_the_image_a_driver_cannot_read(self):
+		from frappe.tests.test_chrome_pdf_interceptor import _fire_request, _make_page, _make_session
+
+		class StorageUnavailable(Exception):
+			"""Not an OSError, like botocore's EndpointConnectionError."""
+
+		class UnreachableDriver(MemoryDriver):
+			def read(self, key, *, is_private=False):
+				raise StorageUnavailable("storage is unreachable")
+
+		host = "https://example.frappe.test/"
+		with flag_on(), use_driver(UnreachableDriver()):
+			blob = put_blob(io.BytesIO(b"<svg>unreachable</svg>"), filename="logo.svg")
+			captured = [None]
+			session = _make_session(captured)
+			with patch("frappe.utils.chromium.page.get_host_url", return_value=host):
+				_make_page(session).intercept_request_for_local_resources()
+				_fire_request(captured[0], "req", f"{host}files/{blob.name}/logo.svg")
+
+		method, params = session.send.call_args.args[:2]
+		self.assertEqual(method, "Fetch.failRequest")
+		self.assertEqual(params["requestId"], "req")
+
 	def insert_file_row(self, file_url: str, blob_name: str, *, file_name: str, is_private: int):
 		"""A File row as relocation leaves it: a v1 URL linked to a blob."""
 		file = frappe.new_doc("File")

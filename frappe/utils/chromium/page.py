@@ -29,6 +29,11 @@ def read_blob_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str
 			content = base64.b64encode(stream.read()).decode()
 	except FileNotFoundError:
 		return None
+	except Exception:
+		# any driver error (an S3 timeout) must fail only this request: raising
+		# here would stop the CDP message reader and with it the whole PDF
+		frappe.log_error(title="PDF Generator could not read a stored file")
+		return None
 	return content, served_type(filename, blob.mime_type)[0]
 
 
