@@ -33,6 +33,10 @@ frappe = ">=16.0.0-dev,<18.0.0"
 [deploy.dependencies.apt]
 packages = ["libgl1", "libglib2.0-0"]
 
+[tool.pilot.processes.server]
+frappe_command = ["flow-server", "serve"]
+env = { FLOW_SERVER_MANAGER = "supervisor" }
+
 [tool.ruff]
 line-length = 110
 target-version = "py314"
