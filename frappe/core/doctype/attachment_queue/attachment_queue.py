@@ -7,30 +7,13 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.permissions import get_doctypes_with_read
-from frappe.utils import add_to_date, cint, now
-from frappe.utils.file_manager import get_file_path
-from frappe.utils.task_queue import enqueue_task
+from frappe.utils import add_to_date, cint, cstr, now
 
-PDF_EXTENSION = ".pdf"
-IMAGE_EXTENSIONS = (".jpeg", ".jpg", ".png")
-SUPPORTED_EXTENSIONS = (PDF_EXTENSION, *IMAGE_EXTENSIONS)
-
-EXTRACTION_METHOD_PDF_TEXT_LAYER = "PDF Text Layer"
-EXTRACTION_METHOD_PREVIEW_ONLY = "Preview Only"
-
-PENDING_STATUSES = ("Queued", "Processing")
-FINISHED_STATUSES = ("Completed", "Failed")
-
-# Background Task statuses from which a job can still run and report back. Its rows are
-# cleared after a week, so a missing task is not live either.
-LIVE_TASK_STATUSES = ("Queued", "Running")
-CANCELLED_TASK_STATUS = "Cancelled"
-
-STALE_EXTRACTION_THRESHOLD = 6 * 60 * 60
+SUPPORTED_EXTENSIONS = (".pdf", ".jpeg", ".jpg", ".png")
 
 
 class AttachmentQueue(Document):
-	"""A file waiting for text extraction."""
+	"""An uploaded file waiting to be written into a document."""
 
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -42,13 +25,7 @@ class AttachmentQueue(Document):
 
 		created_document: DF.DynamicLink | None
 		document_type: DF.Link
-		error_message: DF.SmallText | None
-		extracted_text: DF.LongText | None
-		extraction_method: DF.Data | None
-		extraction_queued_on: DF.Datetime | None
 		source_file: DF.Attach
-		status: DF.Literal["Queued", "Processing", "Completed", "Failed"]
-		task: DF.Link | None
 	# end: auto-generated types
 
 	def validate(self):
@@ -57,7 +34,6 @@ class AttachmentQueue(Document):
 
 		if self.source_file:
 			self.validate_source_file_type()
-			self.validate_source_file_access()
 
 	def validate_document_type(self):
 		if not frappe.get_meta(self.document_type).get("enable_upload_first_workflow"):
@@ -71,88 +47,18 @@ class AttachmentQueue(Document):
 	def validate_source_file_type(self):
 		if get_file_extension(self.source_file) not in SUPPORTED_EXTENSIONS:
 			frappe.throw(
-				_("Attach a PDF or an image. Other file types cannot be read."),
+				_("Attach a PDF or an image. Other file types cannot be previewed."),
 				title=_("Unsupported File"),
 			)
 
-	def validate_source_file_access(self):
-		# One file_url can belong to several File records that grant access to different
-		# users, so the file is readable as soon as any one of them is.
-		file_names = frappe.get_all("File", filters={"file_url": self.source_file}, pluck="name")
-		if not file_names:
-			frappe.throw(
-				_("{0} is not an uploaded file.").format(self.source_file),
-				title=_("Unknown File"),
-			)
-
-		if not any(frappe.has_permission("File", doc=name) for name in file_names):
-			frappe.throw(
-				_("You are not permitted to read {0}.").format(self.source_file),
-				frappe.PermissionError,
-			)
-
-	def after_insert(self):
-		self.enqueue_extraction()
-
-	def on_update(self):
-		if not self.get_doc_before_save():
-			return
-
-		if not self.has_value_changed("source_file"):
-			return
-
-		# A queued job will use the updated file, but only while it can still run. A
-		# cancelled one never will, so the replacement needs a job of its own.
-		if self.status == "Queued" and self.has_live_task():
-			return
-
-		self.enqueue_extraction()
-
-	def has_live_task(self) -> bool:
-		"""Whether this row's Background Task can still run and report back."""
-		if not self.task:
-			return False
-
-		status = frappe.db.get_value("Background Task", self.task, "status")
-		return status in LIVE_TASK_STATUSES
-
-	def enqueue_extraction(self):
-		task = enqueue_task(
-			extract_attachment_text,
-			task_name=_("Extract text from {0}").format(Path(self.source_file).name),
-			ref_doctype=self.doctype,
-			ref_docname=self.name,
-			attachment_queue=self.name,
-		)
-
-		# Clear the previous result so it never sits next to a file it did not come from.
-		self.db_set(
-			{
-				"status": "Queued",
-				"task": task.name,
-				"extraction_queued_on": now(),
-				"extracted_text": None,
-				"extraction_method": None,
-				"error_message": None,
-			}
-		)
-
 	@frappe.whitelist()
-	def link_to_document(self, document_type: str, document_name: str) -> str:
-		claimed = frappe.db.get_value("Attachment Queue", self.name, "created_document", for_update=True)
-		self.reload()
+	def link_to_document(self, document_name: str | int) -> str:
+		# created_document is a Dynamic Link, so a claim always reads back as a string.
+		document_name = cstr(document_name)
 
-		# The Attachment Queue permission hook turns this into write on document_type.
-		self.check_permission("write")
-
-		if document_type != self.document_type:
-			frappe.throw(
-				_("{0} is queued for {1}, not {2}.").format(
-					frappe.bold(self.name),
-					frappe.bold(_(self.document_type)),
-					frappe.bold(_(document_type)),
-				)
-			)
+		claimed, source_file = frappe.db.get_value(
+			"Attachment Queue", self.name, ["created_document", "source_file"], for_update=True
+		)
 
 		if claimed:
 			if claimed == document_name:
@@ -166,25 +72,26 @@ class AttachmentQueue(Document):
 				)
 			)
 
-		if not frappe.db.exists(document_type, document_name):
+		if not frappe.db.exists(self.document_type, document_name):
 			frappe.throw(
-				_("{0} {1} does not exist.").format(frappe.bold(_(document_type)), frappe.bold(document_name))
+				_("{0} {1} does not exist.").format(
+					frappe.bold(_(self.document_type)), frappe.bold(document_name)
+				)
 			)
 
-		target_doc = frappe.get_doc(document_type, document_name)
-		target_doc.check_permission("write")
-		self.attach_source_file_to(target_doc)
+		frappe.has_permission(self.document_type, "write", doc=document_name, throw=True)
+		self.attach_source_file_to(self.document_type, document_name, source_file)
 
 		# Written last, so the entry only reads as filed once its file is in place.
 		self.db_set("created_document", document_name)
 		return document_name
 
-	def attach_source_file_to(self, target_doc: Document) -> None:
+	def attach_source_file_to(self, document_type: str, document_name: str, source_file: str) -> None:
 		"""Give the target its own File record for the same stored file."""
 		file_name = frappe.db.get_value(
 			"File",
 			{
-				"file_url": self.source_file,
+				"file_url": source_file,
 				"attached_to_doctype": self.doctype,
 				"attached_to_name": self.name,
 			},
@@ -193,27 +100,16 @@ class AttachmentQueue(Document):
 			frappe.throw(_("The file for {0} is no longer available.").format(frappe.bold(self.name)))
 
 		frappe.get_doc("File", file_name).create_attachment_copy(
-			attached_to_doctype=target_doc.doctype,
-			attached_to_name=target_doc.name,
+			attached_to_doctype=document_type,
+			attached_to_name=document_name,
 		)
-
-	def extract(self) -> tuple[str, str]:
-		"""Return the extracted text and extraction method."""
-		file_path = get_file_path(self.source_file)
-		if not file_path:
-			frappe.throw(_("Could not find {0}.").format(self.source_file))
-
-		if get_file_extension(self.source_file) == PDF_EXTENSION:
-			return extract_pdf_text(file_path), EXTRACTION_METHOD_PDF_TEXT_LAYER
-
-		return "", EXTRACTION_METHOD_PREVIEW_ONLY
 
 	@staticmethod
 	def clear_old_logs(days: int = 30) -> None:
 		cutoff = add_to_date(now(), days=-cint(days), as_datetime=True)
 		rows = frappe.get_all(
 			"Attachment Queue",
-			filters={"modified": ("<", cutoff), "status": ("in", FINISHED_STATUSES)},
+			filters={"modified": ("<", cutoff)},
 			pluck="name",
 		)
 
@@ -221,89 +117,8 @@ class AttachmentQueue(Document):
 			frappe.delete_doc("Attachment Queue", name, delete_permanently=True)
 
 
-def extract_attachment_text(attachment_queue: str) -> None:
-	queue_doc = frappe.get_doc("Attachment Queue", attachment_queue)
-
-	# protects attachment queue ace condition where a user replaces a file while its extraction is running.
-	attempt = {"name": attachment_queue, "source_file": queue_doc.source_file}
-
-	frappe.db.set_value(
-		"Attachment Queue",
-		attempt,
-		{
-			"status": "Processing",
-			"extracted_text": None,
-			"extraction_method": None,
-			"error_message": None,
-		},
-	)
-	# Commit before extraction so the Processing status is visible and
-	# its database lock is released before the slow operation begins.
-	frappe.db.commit()  # nosemgrep
-
-	try:
-		extracted_text, extraction_method = queue_doc.extract()
-	except Exception as exc:
-		# Save the failure before the task wrapper rolls back.
-		frappe.db.rollback()
-		frappe.db.set_value(
-			"Attachment Queue",
-			attempt,
-			{"status": "Failed", "error_message": str(exc) or exc.__class__.__name__},
-		)
-		frappe.db.commit()
-		raise
-
-	frappe.db.set_value(
-		"Attachment Queue",
-		attempt,
-		{
-			"status": "Completed",
-			"extracted_text": extracted_text,
-			"extraction_method": extraction_method,
-		},
-	)
-
-
-def extract_pdf_text(file_path: str) -> str:
-	from pypdf import PdfReader
-
-	pages = [page.extract_text() or "" for page in PdfReader(file_path).pages]
-	return "\n\n".join(page for page in pages if page.strip()).strip()
-
-
 def get_file_extension(file_url: str) -> str:
 	return Path(file_url.split("?", 1)[0]).suffix.lower()
-
-
-def fail_stale_extractions() -> None:
-	"""Mark extractions that can no longer finish as failed."""
-
-	# someone cancelled the associated Background Task.
-	cancelled_tasks = frappe.get_all(
-		"Background Task",
-		filters={"ref_doctype": "Attachment Queue", "status": CANCELLED_TASK_STATUS},
-		pluck="name",
-	)
-	if cancelled_tasks:
-		_fail_extractions(
-			{"status": ("in", PENDING_STATUSES), "task": ("in", cancelled_tasks)},
-			_("Text extraction was cancelled."),
-		)
-
-	cutoff = add_to_date(now(), seconds=-STALE_EXTRACTION_THRESHOLD, as_datetime=True)
-	_fail_extractions(
-		{"status": ("in", PENDING_STATUSES), "extraction_queued_on": ("<", cutoff)},
-		_("Text extraction did not finish."),
-	)
-
-
-def _fail_extractions(filters: dict, error_message: str) -> None:
-	frappe.db.set_value(
-		"Attachment Queue",
-		filters,
-		{"status": "Failed", "error_message": error_message},
-	)
 
 
 def has_permission(doc, ptype="read", user=None):

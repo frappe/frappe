@@ -7,16 +7,8 @@
  "field_order": [
   "source_file",
   "document_type",
-  "extraction_method",
-  "column_break_status",
-  "status",
-  "task",
-  "extraction_queued_on",
-  "created_document",
-  "extracted_text_section",
-  "extracted_text",
-  "error_section",
-  "error_message"
+  "column_break_document",
+  "created_document"
  ],
  "fields": [
   {
@@ -27,7 +19,7 @@
    "reqd": 1
   },
   {
-   "description": "The DocType this file is being read for.",
+   "description": "The DocType this file is being written into.",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -37,77 +29,21 @@
    "search_index": 1
   },
   {
-   "description": "How the text was read. Images and scanned PDFs are kept for preview and produce no text.",
-   "fieldname": "extraction_method",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Extraction Method",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_status",
+   "fieldname": "column_break_document",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "Queued",
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Status",
-   "options": "Queued\nProcessing\nCompleted\nFailed",
-   "read_only": 1,
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "task",
-   "fieldtype": "Link",
-   "label": "Background Task",
-   "options": "Background Task",
-   "read_only": 1
-  },
-  {
-   "fieldname": "extraction_queued_on",
-   "fieldtype": "Datetime",
-   "label": "Extraction Queued On",
-   "read_only": 1,
-   "search_index": 1
   },
   {
    "description": "The document this file was filed against.",
    "fieldname": "created_document",
    "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
    "label": "Created Document",
    "options": "document_type",
-   "read_only": 1
-  },
-  {
-   "fieldname": "extracted_text_section",
-   "fieldtype": "Section Break",
-   "label": "Extracted Text"
-  },
-  {
-   "fieldname": "extracted_text",
-   "fieldtype": "Long Text",
-   "label": "Extracted Text",
-   "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.status=='Failed'",
-   "fieldname": "error_section",
-   "fieldtype": "Section Break",
-   "label": "Error"
-  },
-  {
-   "fieldname": "error_message",
-   "fieldtype": "Small Text",
-   "label": "Error Message",
    "read_only": 1
   }
  ],
  "links": [],
- "modified": "2026-10-15 10:00:00.000000",
+ "modified": "2026-10-15 16:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Attachment Queue",
@@ -124,6 +60,13 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "All",
    "write": 1
   }
  ],

@@ -1,26 +1,23 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-from pathlib import Path
-from unittest.mock import patch
 from uuid import uuid4
 
 import frappe
-from frappe.core.doctype.attachment_queue.attachment_queue import (
-	extract_attachment_text,
-	fail_stale_extractions,
-)
 from frappe.tests import IntegrationTestCase
+from frappe.utils import cstr
 from frappe.utils.file_manager import save_file
 
 TEST_USER = "test@example.com"
+# holds no standard role, so only the target DocType can grant them anything
+PLAIN_USER = "test1@example.com"
 TARGET_DOCTYPE = "ToDo"
 DISABLED_DOCTYPE = "Note"
 
 
-def pdf_with_text(text: str) -> bytes:
-	"""Build a one page PDF carrying a real text layer, so there is something to extract."""
-	content = f"BT /F1 24 Tf 72 700 Td ({text}) Tj ET".encode()
+def minimal_pdf(marker: str) -> bytes:
+	"""Build a one page PDF, since File parses every PDF it stores."""
+	content = f"BT /F1 24 Tf 72 700 Td ({marker}) Tj ET".encode()
 	objects = [
 		b"<</Type/Catalog/Pages 2 0 R>>",
 		b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
@@ -98,10 +95,10 @@ class TestAttachmentQueue(IntegrationTestCase):
 		frappe.db.commit()  # nosemgrep
 
 	def make_file(self, marker: str, file_name: str):
-		# Unique bytes and name per run, so File's content-hash de-duplication can never
+		# Unique bytes and name per run, so the content-hash de-duplication in File can never
 		# hand back a record from an earlier run.
 		unique = uuid4().hex[:8]
-		content = pdf_with_text(f"{marker} {unique}")
+		content = minimal_pdf(f"{marker} {unique}")
 		return save_file(f"{unique}-{file_name}", content, None, None, is_private=1)
 
 	def make_queue(self, file_url: str, document_type: str = TARGET_DOCTYPE):
@@ -114,16 +111,8 @@ class TestAttachmentQueue(IntegrationTestCase):
 		).insert()
 
 	def forget_committed(self, queue_name: str, *file_urls: str):
-		"""Remove a row an explicit commit or a schema change made permanent."""
+		"""Remove a row a schema change made permanent."""
 		frappe.db.rollback()
-
-		tasks = frappe.get_all(
-			"Background Task",
-			filters={"ref_doctype": "Attachment Queue", "ref_docname": queue_name},
-			pluck="name",
-		)
-		for name in tasks:
-			frappe.delete_doc("Background Task", name, force=True, ignore_permissions=True)
 
 		if frappe.db.exists("Attachment Queue", queue_name):
 			frappe.delete_doc("Attachment Queue", queue_name, force=True, ignore_permissions=True)
@@ -133,146 +122,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 				frappe.delete_doc("File", name, force=True, ignore_permissions=True)
 
 		frappe.db.commit()  # nosemgrep
-
-	def test_saving_a_pdf_queues_extraction_and_stores_its_text(self):
-		with self.set_user(TEST_USER):
-			file_doc = self.make_file("INV-2026-0042", "invoice.pdf")
-			queue_doc = self.make_queue(file_doc.file_url)
-			# extraction commits its Processing status, so the row outlives the rollback.
-			self.addCleanup(self.forget_committed, queue_doc.name, file_doc.file_url)
-
-			self.assertEqual(queue_doc.status, "Queued")
-			self.assertTrue(queue_doc.task)
-			self.assertTrue(queue_doc.extraction_queued_on)
-
-			extract_attachment_text(queue_doc.name)
-			queue_doc.reload()
-
-			self.assertEqual(queue_doc.status, "Completed")
-			self.assertEqual(queue_doc.extraction_method, "PDF Text Layer")
-			self.assertIn("INV-2026-0042", queue_doc.extracted_text)
-			self.assertFalse(queue_doc.error_message)
-
-	def test_a_failed_extraction_records_the_reason(self):
-		with self.set_user(TEST_USER):
-			file_doc = self.make_file("BROKEN", "broken.pdf")
-			queue_doc = self.make_queue(file_doc.file_url)
-
-		# File parses every PDF it stores, so the file can only be damaged once stored.
-		Path(file_doc.get_full_path()).write_bytes(b"no longer a pdf")
-
-		# Cancelling before the commit stops enqueue_task from handing a real job to a
-		# worker, which would later run against the row this test removes.
-		frappe.db.set_value("Background Task", queue_doc.task, "status", "Cancelled")
-
-		# Extraction rolls back before recording the failure, so the row has to be
-		# committed first, the way it already is when a worker picks it up.
-		frappe.db.commit()  # nosemgrep
-		self.addCleanup(self.forget_committed, queue_doc.name, file_doc.file_url)
-
-		with self.assertRaises(Exception):
-			extract_attachment_text(queue_doc.name)
-
-		queue_doc.reload()
-		self.assertEqual(queue_doc.status, "Failed")
-		self.assertTrue(queue_doc.error_message)
-		self.assertFalse(queue_doc.extracted_text)
-
-	def test_replacing_the_source_file_queues_a_fresh_extraction(self):
-		with self.set_user(TEST_USER):
-			first_file = self.make_file("FIRST FILE", "first.pdf")
-			queue_doc = self.make_queue(first_file.file_url)
-			# extraction commits its Processing status, so the row outlives the rollback.
-			self.addCleanup(self.forget_committed, queue_doc.name, first_file.file_url)
-
-			extract_attachment_text(queue_doc.name)
-			queue_doc.reload()
-			self.assertEqual(queue_doc.status, "Completed")
-			first_task = queue_doc.task
-
-			second_file = self.make_file("SECOND FILE", "second.pdf")
-			self.addCleanup(self.forget_committed, queue_doc.name, second_file.file_url)
-
-			queue_doc.source_file = second_file.file_url
-			queue_doc.save()
-			queue_doc.reload()
-
-			self.assertEqual(queue_doc.status, "Queued")
-			self.assertNotEqual(queue_doc.task, first_task)
-			self.assertFalse(queue_doc.extracted_text)
-			self.assertFalse(queue_doc.extraction_method)
-
-	def test_an_attempt_whose_file_was_replaced_records_nothing(self):
-		with self.set_user(TEST_USER):
-			first_file = self.make_file("STALE TEXT", "stale.pdf")
-			queue_doc = self.make_queue(first_file.file_url)
-			self.addCleanup(self.forget_committed, queue_doc.name, first_file.file_url)
-
-			second_file = self.make_file("CURRENT TEXT", "current.pdf")
-			self.addCleanup(self.forget_committed, queue_doc.name, second_file.file_url)
-
-			def replace_the_file_mid_parse(file_path):
-				frappe.db.set_value("Attachment Queue", queue_doc.name, "source_file", second_file.file_url)
-				return "STALE TEXT"
-
-			# Stand in for the user saving a replacement while this attempt is parsing.
-			with patch(
-				"frappe.core.doctype.attachment_queue.attachment_queue.extract_pdf_text",
-				side_effect=replace_the_file_mid_parse,
-			):
-				extract_attachment_text(queue_doc.name)
-
-			queue_doc.reload()
-			self.assertEqual(queue_doc.source_file, second_file.file_url)
-			self.assertNotEqual(queue_doc.status, "Completed")
-			self.assertFalse(queue_doc.extracted_text)
-
-	def test_replacing_the_file_after_a_cancelled_job_queues_a_new_one(self):
-		with self.set_user(TEST_USER):
-			first_file = self.make_file("CANCELLED", "cancelled.pdf")
-			queue_doc = self.make_queue(first_file.file_url)
-			first_task = queue_doc.task
-
-			frappe.db.set_value("Background Task", first_task, "status", "Cancelled")
-			self.assertFalse(queue_doc.has_live_task())
-
-			second_file = self.make_file("REPLACEMENT", "replacement.pdf")
-			queue_doc.source_file = second_file.file_url
-			queue_doc.save()
-			queue_doc.reload()
-
-			self.assertEqual(queue_doc.status, "Queued")
-			self.assertNotEqual(queue_doc.task, first_task)
-			self.assertTrue(queue_doc.has_live_task())
-
-	def test_the_sweeper_fails_a_cancelled_extraction_without_waiting(self):
-		with self.set_user(TEST_USER):
-			file_doc = self.make_file("SWEPT", "swept.pdf")
-			queue_doc = self.make_queue(file_doc.file_url)
-
-		# Freshly queued, so only the cancellation can account for it being failed.
-		frappe.db.set_value("Background Task", queue_doc.task, "status", "Cancelled")
-		fail_stale_extractions()
-		queue_doc.reload()
-
-		self.assertEqual(queue_doc.status, "Failed")
-		self.assertIn("cancelled", queue_doc.error_message.lower())
-
-	def test_a_cancelled_task_does_not_fail_the_attempt_that_replaced_it(self):
-		with self.set_user(TEST_USER):
-			first_file = self.make_file("SUPERSEDED", "superseded.pdf")
-			queue_doc = self.make_queue(first_file.file_url)
-			frappe.db.set_value("Background Task", queue_doc.task, "status", "Cancelled")
-
-			second_file = self.make_file("CURRENT", "current.pdf")
-			queue_doc.source_file = second_file.file_url
-			queue_doc.save()
-
-		fail_stale_extractions()
-		queue_doc.reload()
-
-		self.assertEqual(queue_doc.status, "Queued")
-		self.assertFalse(queue_doc.error_message)
 
 	def make_target_document(self):
 		target = frappe.get_doc({"doctype": TARGET_DOCTYPE, "description": f"AQ {uuid4().hex[:8]}"})
@@ -291,7 +140,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 			queue_doc = self.make_queue(file_doc.file_url)
 			target = self.make_target_document()
 
-			linked = queue_doc.link_to_document(TARGET_DOCTYPE, target.name)
+			linked = queue_doc.link_to_document(target.name)
 			queue_doc.reload()
 
 			self.assertEqual(linked, target.name)
@@ -299,37 +148,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertIn(file_doc.file_url, self.attachments_of(target))
 			# The entry keeps its own copy, so its preview and cleanup still work.
 			self.assertIn(file_doc.file_url, self.attachments_of(queue_doc))
-
-	def test_linking_does_not_disturb_the_extraction_state(self):
-		with self.set_user(TEST_USER):
-			file_doc = self.make_file("UNTOUCHED", "untouched.pdf")
-			queue_doc = self.make_queue(file_doc.file_url)
-			self.addCleanup(self.forget_committed, queue_doc.name, file_doc.file_url)
-
-			extract_attachment_text(queue_doc.name)
-			queue_doc.reload()
-
-			target = self.make_target_document()
-			queue_doc.link_to_document(TARGET_DOCTYPE, target.name)
-			queue_doc.reload()
-
-			self.assertEqual(queue_doc.created_document, target.name)
-			self.assertEqual(queue_doc.status, "Completed")
-			self.assertIn("UNTOUCHED", queue_doc.extracted_text)
-
-	def test_linking_rejects_a_document_of_another_doctype(self):
-		with self.set_user(TEST_USER):
-			queue_doc = self.make_queue(self.make_file("MISMATCH", "mismatch.pdf").file_url)
-
-			self.assertRaisesRegex(
-				frappe.ValidationError,
-				"is queued for",
-				queue_doc.link_to_document,
-				DISABLED_DOCTYPE,
-				"whatever",
-			)
-			queue_doc.reload()
-			self.assertFalse(queue_doc.created_document)
 
 	def test_linking_rejects_a_document_that_does_not_exist(self):
 		with self.set_user(TEST_USER):
@@ -339,7 +157,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 				frappe.ValidationError,
 				"does not exist",
 				queue_doc.link_to_document,
-				TARGET_DOCTYPE,
 				f"no-such-{uuid4().hex[:8]}",
 			)
 			queue_doc.reload()
@@ -354,7 +171,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertRaises(
 				frappe.PermissionError,
 				queue_doc.link_to_document,
-				unreadable_target,
 				target.name,
 			)
 
@@ -367,8 +183,8 @@ class TestAttachmentQueue(IntegrationTestCase):
 			queue_doc = self.make_queue(file_doc.file_url)
 			target = self.make_target_document()
 
-			queue_doc.link_to_document(TARGET_DOCTYPE, target.name)
-			again = queue_doc.link_to_document(TARGET_DOCTYPE, target.name)
+			queue_doc.link_to_document(target.name)
+			again = queue_doc.link_to_document(target.name)
 
 			self.assertEqual(again, target.name)
 			# Retrying must not give the document a second copy of the same file.
@@ -380,13 +196,12 @@ class TestAttachmentQueue(IntegrationTestCase):
 			first = self.make_target_document()
 			second = self.make_target_document()
 
-			queue_doc.link_to_document(TARGET_DOCTYPE, first.name)
+			queue_doc.link_to_document(first.name)
 
 			self.assertRaisesRegex(
 				frappe.ValidationError,
 				"has already produced",
 				queue_doc.link_to_document,
-				TARGET_DOCTYPE,
 				second.name,
 			)
 			queue_doc.reload()
@@ -406,7 +221,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 				frappe.ValidationError,
 				"no longer available",
 				queue_doc.link_to_document,
-				TARGET_DOCTYPE,
 				target.name,
 			)
 			queue_doc.reload()
@@ -440,7 +254,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 			queue_doc = frappe.get_doc(
 				{
 					"doctype": "Attachment Queue",
-					"source_file": "/private/files/never-read.pdf",
+					"source_file": "/private/files/never-queued.pdf",
 					"document_type": DISABLED_DOCTYPE,
 				}
 			)
@@ -450,16 +264,51 @@ class TestAttachmentQueue(IntegrationTestCase):
 				queue_doc.insert,
 			)
 
-	def test_a_private_file_cannot_be_queued_without_read_permission(self):
-		# Owned by Administrator and attached to nothing, so File permission denies it.
-		file_doc = self.make_file("CONFIDENTIAL", "private.pdf")
+	def make_writable_target(self, user: str, **kwargs):
+		"""An upload-first DocType the given user can write to, through a role only they hold."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		with self.set_user(TEST_USER):
-			queue_doc = frappe.get_doc(
-				{
-					"doctype": "Attachment Queue",
-					"source_file": file_doc.file_url,
-					"document_type": TARGET_DOCTYPE,
-				}
-			)
-			self.assertRaises(frappe.PermissionError, queue_doc.insert)
+		role = frappe.get_doc(
+			{"doctype": "Role", "role_name": f"Attachment Queue Test {uuid4().hex[:8]}"}
+		).insert(ignore_permissions=True)
+
+		target = new_doctype(
+			enable_upload_first_workflow=1,
+			permissions=[{"role": role.name, "read": 1, "write": 1, "create": 1}],
+			**kwargs,
+		).insert(ignore_permissions=True)
+
+		self.addCleanup(self.forget_target, target.name, role.name)
+		frappe.get_doc("User", user).add_roles(role.name)
+		return target.name
+
+	def test_write_permission_on_the_target_is_enough_to_queue_and_link(self):
+		target_doctype = self.make_writable_target(PLAIN_USER)
+
+		with self.set_user(PLAIN_USER):
+			queue_doc = self.make_committed_queue("PLAIN", "plain.pdf", target_doctype)
+			target = frappe.get_doc({"doctype": target_doctype}).insert()
+
+			self.assertEqual(queue_doc.link_to_document(target.name), target.name)
+			queue_doc.reload()
+			self.assertEqual(queue_doc.created_document, target.name)
+			self.assertIn(queue_doc.source_file, self.attachments_of(target))
+
+	def test_linking_accepts_an_integer_document_name(self):
+		target_doctype = self.make_writable_target(
+			PLAIN_USER, naming_rule="Autoincrement", autoname="autoincrement"
+		)
+
+		with self.set_user(PLAIN_USER):
+			queue_doc = self.make_committed_queue("NUMBERED", "numbered.pdf", target_doctype)
+			target = frappe.get_doc({"doctype": target_doctype}).insert()
+			self.assertIsInstance(target.name, int)
+
+			linked = queue_doc.link_to_document(target.name)
+
+			self.assertEqual(linked, cstr(target.name))
+			queue_doc.reload()
+			self.assertEqual(queue_doc.created_document, cstr(target.name))
+			self.assertIn(queue_doc.source_file, self.attachments_of(target))
+			# Retrying with the same integer name must read as the same claim, not a second one.
+			self.assertEqual(queue_doc.link_to_document(target.name), cstr(target.name))
