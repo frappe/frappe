@@ -292,14 +292,6 @@ def remove_failed_jobs():
 				job and fail_registry.remove(job, delete_job=True)
 
 
-def get_all_queued_jobs():
-	jobs = []
-	for q in get_queues():
-		jobs.extend(q.get_jobs())
-
-	return [job for job in jobs if for_current_site(job)]
-
-
 @frappe.whitelist()
 def stop_job(job_id: str):
 	frappe.get_doc("RQ Job", job_id).stop_job()
