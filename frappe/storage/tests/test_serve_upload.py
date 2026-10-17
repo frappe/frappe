@@ -1494,8 +1494,11 @@ class TestUploadChunkRouting(FrappeAPITestCase):
 		self._sessions.append(upload_id)
 		return upload_id
 
-	def put_chunk(self, endpoint: str, upload_id: str, offset: int, data: bytes) -> TestResponse:
-		query = urlencode({"upload_id": upload_id, "offset": offset, "sid": self.sid})
+	def put_chunk(
+		self, endpoint: str, upload_id: str, offset: int, data: bytes, headers: dict | None = None
+	) -> TestResponse:
+		auth = {} if headers else {"sid": self.sid}
+		query = urlencode({"upload_id": upload_id, "offset": offset, **auth})
 		# storage_v2 must read as enabled inside the request's own thread: it
 		# calls frappe.init() fresh (frappe/app.py:init_request), which loads
 		# frappe.local.conf from frappe.config.get_site_config, not from the
@@ -1505,7 +1508,12 @@ class TestUploadChunkRouting(FrappeAPITestCase):
 			return make_request(
 				target=self.TEST_CLIENT.open,
 				args=(f"{endpoint}?{query}",),
-				kwargs={"method": "PUT", "data": data, "content_type": "application/octet-stream"},
+				kwargs={
+					"method": "PUT",
+					"data": data,
+					"content_type": "application/octet-stream",
+					"headers": headers,
+				},
 			)
 
 	def test_v2_route_receives_the_full_chunk_body(self):
@@ -1526,6 +1534,47 @@ class TestUploadChunkRouting(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
 		self.assertEqual(response.json["message"]["received"], 10)
+
+	def test_bearer_authenticated_chunk_receives_the_full_body(self):
+		# bearer auth runs before the handler and must leave the streaming body unread
+		from frappe.integrations.doctype.oauth_bearer_token.test_oauth_bearer_token import (
+			make_oauth_client,
+		)
+
+		user = "test1@example.com"
+		with flag_on():
+			frappe.set_user(user)
+			upload_id = create_upload("bearer-route.txt", 10)["upload_id"]
+			frappe.set_user("Administrator")
+		self._sessions.append(upload_id)
+
+		access_token = frappe.generate_hash()
+		client = make_oauth_client()
+		token = frappe.get_doc(
+			{
+				"doctype": "OAuth Bearer Token",
+				"client": client.name,
+				"user": user,
+				"access_token": access_token,
+				"expires_in": 3600,
+				"scopes": "all openid",
+				"status": "Active",
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.commit()
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "OAuth Client", client.name, force=1, ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "OAuth Bearer Token", token.name, force=1, ignore_permissions=True)
+
+		response = self.put_chunk(
+			"/api/v2/method/frappe.storage.upload.upload_chunk",
+			upload_id,
+			0,
+			b"abcdefghij",
+			headers={"Authorization": f"Bearer {access_token}"},
+		)
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
+		self.assertEqual(response.json["data"]["received"], 10)
 
 	def test_v2_route_bounds_the_chunk_at_the_declared_session_size(self):
 		# get_request_bytes(limit=meta["size"]) must be the read limit here,

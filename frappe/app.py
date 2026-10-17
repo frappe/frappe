@@ -215,6 +215,19 @@ def canonical_request_path(path: str) -> str:
 	return path
 
 
+def is_streaming_request(request: Request) -> bool:
+	"""True for a PUT to a ``streaming_request_paths`` route.
+
+	Its body has no size cap, so only the route's handler may read it."""
+	if request.method != "PUT":
+		return False
+	streaming_paths = {
+		path.rstrip("/") for path in frappe.get_hooks("streaming_request_paths") if path.rstrip("/")
+	}
+	canonical_path = canonical_request_path(request.path)
+	return any(canonical_path == path or canonical_path.startswith(f"{path}/") for path in streaming_paths)
+
+
 def init_request(request):
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(get_request_host(request))
 	try:
@@ -234,13 +247,8 @@ def init_request(request):
 		else:
 			raise frappe.SessionStopped("Session Stopped")
 
-	streaming_paths = {
-		path.rstrip("/") for path in frappe.get_hooks("streaming_request_paths") if path.rstrip("/")
-	}
 	canonical_path = canonical_request_path(request.path)
-	streaming_request = request.method == "PUT" and any(
-		canonical_path == path or canonical_path.startswith(f"{path}/") for path in streaming_paths
-	)
+	streaming_request = is_streaming_request(request)
 	if streaming_request:
 		request.max_content_length = None
 		args = {}
