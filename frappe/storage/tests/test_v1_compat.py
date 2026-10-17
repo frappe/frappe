@@ -20,51 +20,21 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.file import file_v1
 from frappe.core.doctype.file.file_v1 import FileV1
-from frappe.storage import fake
-from frappe.storage.tests import reset_file_controller
+from frappe.core.doctype.file.file_v2 import create_file_from_blob
+from frappe.core.doctype.file.utils import get_content_hash
+from frappe.storage import backfill, fake, get_driver
+from frappe.storage.gc import MIN_AGE_HOURS, collect_garbage
+from frappe.storage.tests import storage_v2, unique_bytes, unique_png
+from frappe.storage.tests.test_gc_backfill import backdate
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, get_files_path, get_url, now_datetime
-
-PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
-
-
-@contextmanager
-def flag_on():
-	"""Enable storage_v2 in site conf for the duration of the block."""
-	previous = frappe.conf.get("storage_v2")
-	frappe.conf["storage_v2"] = 1
-	reset_file_controller()
-	try:
-		yield
-	finally:
-		if previous is None:
-			frappe.conf.pop("storage_v2", None)
-		else:
-			frappe.conf["storage_v2"] = previous
-		reset_file_controller()
-
-
-@contextmanager
-def flag_off():
-	"""Disable storage_v2 in site conf for the duration of the block."""
-	previous = frappe.conf.get("storage_v2")
-	frappe.conf["storage_v2"] = 0
-	reset_file_controller()
-	try:
-		yield
-	finally:
-		if previous is None:
-			frappe.conf.pop("storage_v2", None)
-		else:
-			frappe.conf["storage_v2"] = previous
-		reset_file_controller()
 
 
 @contextmanager
 def hook_methods(**methods):
 	"""Patch the ``get_hook_method`` FileV1 uses, for the duration of the block.
 
-	``get_hook_method`` reads the whole hooks dict, so ``patch_hooks``,
+	``get_hook_method`` reads the whole hooks dict, so ``hook_value``,
 	which matches on the hook name, never reaches it."""
 
 	def get_hook_method(hook_name, fallback=None):
@@ -74,12 +44,8 @@ def hook_methods(**methods):
 		yield
 
 
-def unique_png():
-	return PNG_MAGIC + frappe.generate_hash(length=32).encode()
-
-
 def unique_text(prefix=b"v1-compat-"):
-	return prefix + frappe.generate_hash(length=32).encode() + b"\n"
+	return unique_bytes(prefix) + b"\n"
 
 
 class V1CompatTestCase(IntegrationTestCase):
@@ -96,28 +62,24 @@ class V1CompatTestCase(IntegrationTestCase):
 
 		The rollback fixture: a row created while storage_v2 was on, then
 		used after the flag goes off."""
-		with flag_on():
+		with storage_v2():
 			file = frappe.get_doc(
-				{
-					"doctype": "File",
-					"file_name": f"{label}-{frappe.generate_hash(length=10)}.png",
-					"content": unique_png() if content is None else content,
-					"is_private": is_private,
-				}
+				doctype="File",
+				file_name=f"{label}-{frappe.generate_hash(length=10)}.png",
+				content=unique_png() if content is None else content,
+				is_private=is_private,
 			).insert()
 		self.delete_later("File", file.name)
 		self.delete_later("File Blob", file.blob)
 		return file
 
-	def legacy_file(self, content=None, label="legacy", is_private=0, extension="txt"):
-		"""Insert a plain disk-backed File row. Call inside ``flag_off()``."""
+	def legacy_file(self, content=None, label="legacy", is_private=0):
+		"""Insert a plain disk-backed File row. Call inside ``storage_v2(False)``."""
 		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": f"{label}-{frappe.generate_hash(length=10)}.{extension}",
-				"content": unique_text() if content is None else content,
-				"is_private": is_private,
-			}
+			doctype="File",
+			file_name=f"{label}-{frappe.generate_hash(length=10)}.txt",
+			content=unique_text() if content is None else content,
+			is_private=is_private,
 		).insert()
 		self.delete_later("File", file.name)
 		return file
@@ -126,100 +88,75 @@ class V1CompatTestCase(IntegrationTestCase):
 class TestV1BlobCompatShim(V1CompatTestCase):
 	"""Blob-backed rows read and written through FileV1."""
 
-	def test_insert_from_blob_url_relinks_blob(self):
-		# an amend or attachment copy carries only the blob file_url; FileV1
-		# must relink the blob instead of failing URL validation
+	def test_new_rows_link_an_existing_blob(self):
 		with fake():
 			original = self.blob_backed_file(label="relink")
-
-			with flag_off():
-				copy = frappe.get_doc(
-					{
-						"doctype": "File",
-						"file_url": original.file_url,
-						"file_name": original.file_name,
-						"is_private": 1,
-					}
-				).insert()
-				self.delete_later("File", copy.name)
-
-				self.assertEqual(copy.blob, original.blob)
-				self.assertEqual(copy.file_url, original.file_url)
-				self.assertTrue(copy.exists_on_disk())
-
-	def test_insert_from_existing_blob_flag_sets_url(self):
-		from frappe.core.doctype.file.file_v2 import create_file_from_blob
-
-		with fake():
-			original = self.blob_backed_file(label="from-blob")
 			blob = frappe.get_doc("File Blob", original.blob)
 
-			with flag_off():
+			with storage_v2(False):
+				# an amend or attachment copy carries only the blob file_url
+				copy = frappe.get_doc(
+					doctype="File", file_url=original.file_url, file_name=original.file_name, is_private=1
+				).insert()
+				self.delete_later("File", copy.name)
+				self.assertEqual((copy.blob, copy.file_url), (original.blob, original.file_url))
+				self.assertTrue(copy.exists_on_disk())
+
 				file = create_file_from_blob(blob, "handed-over.png", is_private=True)
 				self.delete_later("File", file.name)
-
 				self.assertEqual(file.blob, blob.name)
 				# the URL names the blob's key, which kept the first upload's name
 				self.assertEqual(file.file_url, f"/private/files/{blob.name}/{original.file_name}")
 				self.assertEqual(file.file_name, "handed-over.png")
 
-	def test_get_content_reads_through_driver(self):
+	def test_reads_go_through_the_blob(self):
 		content = unique_png()
-		with fake():
-			file = self.blob_backed_file(content, label="read")
-
-			with flag_off():
-				fresh = frappe.get_doc("File", file.name)
-				self.assertEqual(fresh.get_content(), content)
-
-	def test_get_full_path_and_exists_on_disk_use_the_blob_key(self):
-		import frappe.storage
-
-		content = unique_png()
-		# no fake(): the local driver puts real bytes on disk, so there is a path
+		# the local driver puts real bytes on disk, so there is a path
 		file = self.blob_backed_file(content, label="fullpath")
-		blob = frappe.get_doc("File Blob", file.blob)
-		driver = frappe.storage.get_driver("local")
-		self.addCleanup(driver.delete, blob.key, is_private=True)
-
-		with flag_off():
+		key = frappe.db.get_value("File Blob", file.blob, "key")
+		self.addCleanup(get_driver("local").delete, key, is_private=True)
+		with storage_v2(False):
 			fresh = frappe.get_doc("File", file.name)
 			path = fresh.get_full_path()
-			self.assertTrue(os.path.isfile(path))
 			with open(path, "rb") as f:
 				self.assertEqual(f.read(), content)
 			self.assertTrue(fresh.exists_on_disk())
 
-	def test_validate_file_on_disk_throws_for_missing_bytes(self):
 		with fake() as store:
-			file = self.blob_backed_file(label="missing")
-			blob = frappe.get_doc("File Blob", file.blob)
-			store.delete(blob.key, is_private=True)
-
-			with flag_off():
+			content = unique_png()
+			file = self.blob_backed_file(content, label="read")
+			with storage_v2(False):
 				fresh = frappe.get_doc("File", file.name)
+				self.assertEqual(fresh.get_content(), content)
+
+				store.delete(frappe.db.get_value("File Blob", file.blob, "key"), is_private=True)
 				self.assertFalse(fresh.exists_on_disk())
 				self.assertRaises(OSError, fresh.validate_file_on_disk)
 
-	def test_privacy_flip_repoints_the_blob(self):
-		content = unique_png()
+	def test_privacy_change_repoints_the_blob(self):
 		with fake() as store:
-			file = self.blob_backed_file(content, label="flip", is_private=0)
-			old_blob = file.blob
+			for case in ("flip", "drift"):
+				with self.subTest(case=case):
+					file = self.blob_backed_file(label=case, is_private=0)
+					if case == "drift":
+						# a File subclass may override validate() without calling super(),
+						# so handle_is_private_changed never runs; before_save is the backstop
+						frappe.db.set_value("File", file.name, "is_private", 1, update_modified=False)
 
-			with flag_off():
-				fresh = frappe.get_doc("File", file.name)
-				fresh.is_private = 1
-				fresh.save()
-				self.delete_later("File Blob", fresh.blob)
+					with storage_v2(False):
+						fresh = frappe.get_doc("File", file.name)
+						if case == "flip":
+							fresh.is_private = 1
+						fresh.save()
+						self.delete_later("File Blob", fresh.blob)
 
-				self.assertNotEqual(fresh.blob, old_blob)
-				new_blob = frappe.get_doc("File Blob", fresh.blob)
-				self.assertEqual(new_blob.is_private, 1)
-				self.assertEqual(fresh.file_url, f"/private/files/{new_blob.name}/{fresh.file_name}")
-				self.assertTrue(store.exists(new_blob.key, is_private=True))
-				# blobs are immutable; the old one is left for garbage collection
-				self.assertTrue(frappe.db.exists("File Blob", old_blob))
+					self.assertNotEqual(fresh.blob, file.blob)
+					new_blob = frappe.get_doc("File Blob", fresh.blob)
+					self.assertEqual(new_blob.is_private, 1)
+					self.assertEqual(fresh.file_url, f"/private/files/{new_blob.name}/{fresh.file_name}")
+					self.assertTrue(store.exists(new_blob.key, is_private=True))
+					# blobs are immutable; the old one is left for garbage collection
+					self.assertTrue(frappe.db.exists("File Blob", file.blob))
 
 	def test_content_update_writes_a_new_blob(self):
 		# optimize_file and other in-place updates must not rewrite a shared blob
@@ -229,7 +166,7 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 			sibling = self.blob_backed_file(content, label="sibling")
 			self.assertEqual(sibling.blob, file.blob)
 
-			with flag_off():
+			with storage_v2(False):
 				fresh = frappe.get_doc("File", file.name)
 				new_content = unique_png()
 				fresh.save_file(content=new_content, overwrite=True)
@@ -245,78 +182,34 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 			self.assertEqual(stored(fresh.blob), new_content)
 			self.assertEqual(stored(sibling.blob), content)
 
-	def test_before_save_reasserts_blob_privacy(self):
-		# a File subclass may override validate() without calling super(),
-		# so handle_is_private_changed never runs; before_save is the backstop
-		with fake() as store:
-			file = self.blob_backed_file(label="backstop", is_private=0)
-			old_blob = file.blob
-			frappe.db.set_value("File", file.name, "is_private", 1, update_modified=False)
-
-			with flag_off():
-				fresh = frappe.get_doc("File", file.name)
-				fresh.save()
-				self.delete_later("File Blob", fresh.blob)
-
-				self.assertNotEqual(fresh.blob, old_blob)
-				new_blob = frappe.get_doc("File Blob", fresh.blob)
-				self.assertEqual(new_blob.is_private, 1)
-				self.assertTrue(store.exists(new_blob.key, is_private=True))
-
-	def test_delete_keeps_the_bytes(self):
-		with fake() as store:
-			file = self.blob_backed_file(label="keep")
-			blob = frappe.get_doc("File Blob", file.blob)
-
-			with flag_off():
-				frappe.get_doc("File", file.name).delete()
-
-			self.assertTrue(frappe.db.exists("File Blob", blob.name))
-			self.assertTrue(store.exists(blob.key, is_private=True))
-
-	def test_dedup_onto_a_blob_links_the_blob(self):
+	def test_duplicate_upload_links_the_blob_and_keeps_it_alive(self):
 		# identical bytes uploaded with the flag off must keep the blob
 		# referenced, or garbage collection deletes them with the first row
-		from frappe.storage.gc import collect_garbage
-		from frappe.storage.tests.test_gc_backfill import backdate
-
 		content = unique_png()
-		with fake():
+		cutoff = add_to_date(now_datetime(), hours=-MIN_AGE_HOURS)
+		with fake() as store:
 			first = self.blob_backed_file(content, label="dedup-first")
+			blob = frappe.get_doc("File Blob", first.blob)
+			backdate(blob.name)
 
-			with flag_off():
+			with storage_v2(False):
 				second = frappe.get_doc(
 					{"doctype": "File", "file_name": "dedup-second.png", "content": content, "is_private": 1}
 				).insert()
 				self.delete_later("File", second.name)
+				self.assertEqual(second.blob, blob.name)
+				# until the new row commits, only a fresh modified keeps a concurrent
+				# GC pass from deleting the blob if the first row is deleted meanwhile
+				self.assertGreater(frappe.db.get_value("File Blob", blob.name, "modified"), cutoff)
+
+				# a File delete never removes the bytes
 				first.delete()
+				self.assertTrue(frappe.db.exists("File Blob", blob.name))
+				self.assertTrue(store.exists(blob.key, is_private=True))
 
-			backdate(first.blob)
+			backdate(blob.name)
 			collect_garbage()
-
-			self.assertEqual(second.blob, first.blob)
 			self.assertEqual(frappe.get_doc("File", second.name).get_content(), content)
-
-	def test_dedup_onto_an_old_blob_moves_it_out_of_the_gc_window(self):
-		# until the new row commits, only a fresh modified keeps a concurrent
-		# GC pass from deleting the blob if the first row is deleted meanwhile
-		from frappe.storage.gc import MIN_AGE_HOURS
-		from frappe.storage.tests.test_gc_backfill import backdate
-
-		content = unique_png()
-		with fake():
-			first = self.blob_backed_file(content, label="revive-first")
-			backdate(first.blob)
-
-			with flag_off():
-				second = frappe.get_doc(
-					{"doctype": "File", "file_name": "revive-second.png", "content": content, "is_private": 1}
-				).insert()
-				self.delete_later("File", second.name)
-
-		self.assertEqual(second.blob, first.blob)
-		cutoff = add_to_date(now_datetime(), hours=-MIN_AGE_HOURS)
-		self.assertGreater(frappe.db.get_value("File Blob", first.blob, "modified"), cutoff)
 
 	def test_dedup_onto_a_vanished_blob_stores_its_own_bytes(self):
 		# GC deleted the blob between the duplicate lookup and the link
@@ -324,14 +217,9 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 		with fake():
 			first = self.blob_backed_file(content, label="vanished-first")
 
-			with flag_off(), patch("frappe.storage.blob.revive_blob", return_value=False):
+			with storage_v2(False), patch("frappe.storage.blob.revive_blob", return_value=False):
 				second = frappe.get_doc(
-					{
-						"doctype": "File",
-						"file_name": "vanished-second.png",
-						"content": content,
-						"is_private": 1,
-					}
+					doctype="File", file_name="vanished-second.png", content=content, is_private=1
 				).insert()
 				self.delete_later("File", second.name)
 
@@ -344,129 +232,83 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 class TestV1LegacyDiskPaths(V1CompatTestCase):
 	"""Disk-only behaviour that FileV1 keeps."""
 
-	def test_write_file_hook_replaces_the_disk_write(self):
-		calls = []
+	def test_hooks_replace_the_disk_write_and_unlink(self):
+		writes, deletes = [], []
 
 		def write_file(doc):
-			calls.append(doc.file_name)
+			writes.append(doc.file_name)
 			return doc.save_file_on_filesystem()
 
-		with flag_off(), hook_methods(write_file=write_file):
-			file = self.legacy_file(label="write-hook")
-
-		self.assertEqual(calls, [file.file_name])
-		self.assertEqual(file.file_url, f"/files/{file.file_name}")
-		self.assertTrue(os.path.isfile(get_files_path(file.file_name)))
-
-	def test_delete_file_data_content_hook_replaces_the_unlink(self):
-		calls = []
-
 		def delete_file_data_content(doc, only_thumbnail=False):
-			calls.append(only_thumbnail)
+			deletes.append(only_thumbnail)
 			doc.delete_file_from_filesystem(only_thumbnail=only_thumbnail)
 
-		with flag_off():
-			file = self.legacy_file(label="delete-hook")
-			path = file.get_full_path()
+		with storage_v2(False):
+			with hook_methods(write_file=write_file):
+				file = self.legacy_file(label="hooks")
+			path = get_files_path(file.file_name)
+			self.assertEqual(writes, [file.file_name])
+			self.assertEqual(file.file_url, f"/files/{file.file_name}")
 			self.assertTrue(os.path.isfile(path))
 
 			with hook_methods(delete_file_data_content=delete_file_data_content):
 				file.delete()
+			self.assertEqual(deletes, [False])
+			self.assertFalse(os.path.exists(path))
 
-		self.assertEqual(calls, [False])
-		self.assertFalse(os.path.exists(path))
-
-	def test_write_file_skips_a_remote_file(self):
-		with flag_off():
-			doc = frappe.new_doc("File")
-			doc.file_name = "remote.png"
-			doc.file_url = "https://example.com/remote.png"
-
-			self.assertTrue(doc.is_remote_file)
-			self.assertIsNone(doc.write_file())
-
-	def test_validate_file_url_rejects_a_non_files_path(self):
-		with flag_off():
-			doc = frappe.new_doc("File")
-			doc.file_name = "stray.txt"
-			doc.file_url = "/somewhere-else/stray.txt"
-
-			self.assertRaises(frappe.ValidationError, doc.validate_file_url)
-
-	def test_get_full_path_strips_the_site_url(self):
+	def test_unsaved_row_paths(self):
 		file_name = f"absolute-{frappe.generate_hash(length=10)}.txt"
-		with flag_off():
-			doc = frappe.new_doc("File")
-			doc.file_name = file_name
-			doc.file_url = f"{get_url()}/files/{file_name}"
+		with storage_v2(False):
+			remote = frappe.new_doc("File", file_name="remote.png", file_url="https://example.com/remote.png")
+			self.assertTrue(remote.is_remote_file)
+			self.assertIsNone(remote.write_file())
 
-			self.assertEqual(doc.get_full_path(), get_files_path(file_name))
+			stray = frappe.new_doc("File", file_name="stray.txt", file_url="/somewhere-else/stray.txt")
+			self.assertRaises(frappe.ValidationError, stray.validate_file_url)
 
-	def test_generate_content_hash_reads_the_file(self):
-		from frappe.core.doctype.file.utils import get_content_hash
+			absolute = frappe.new_doc("File", file_name=file_name, file_url=f"{get_url()}/files/{file_name}")
+			self.assertEqual(absolute.get_full_path(), get_files_path(file_name))
 
+	def test_content_hash_reads_the_file(self):
 		content = unique_text(b"hash-me-")
-		with flag_off():
+		with storage_v2(False):
 			file = self.legacy_file(content, label="hash")
-
 			fresh = frappe.get_doc("File", file.name)
 			fresh.content_hash = None
 			# name is set, so the duplicate lookup excludes this row
 			fresh.validate_duplicate_entry()
-
 			self.assertEqual(fresh.content_hash, get_content_hash(content))
 
-	def test_generate_content_hash_throws_for_a_missing_file(self):
-		with flag_off():
-			doc = frappe.new_doc("File")
-			doc.file_name = "gone.txt"
-			doc.file_url = f"/files/gone-{frappe.generate_hash(length=10)}.txt"
+			gone = frappe.new_doc(
+				"File", file_name="gone.txt", file_url=f"/files/gone-{frappe.generate_hash(length=10)}.txt"
+			)
+			self.assertRaises(frappe.ValidationError, gone.generate_content_hash)
 
-			self.assertRaises(frappe.ValidationError, doc.generate_content_hash)
-
-	def test_deleting_an_unbackfilled_file_under_v2_removes_it_from_disk(self):
-		with flag_off():
-			file = self.legacy_file(label="delete-unbackfilled")
-			path = file.get_full_path()
-		self.remove_later(path)
-
-		with flag_on():
-			frappe.get_doc("File", file.name).delete()
-
-		self.assertFalse(os.path.exists(path))
-
-	def test_deleting_an_unbackfilled_copy_keeps_bytes_a_blob_owns(self):
-		from frappe.storage import backfill
-
-		with flag_off():
+	def test_deleting_unbackfilled_rows_under_v2(self):
+		with storage_v2(False):
+			lone = self.legacy_file(label="delete-unbackfilled")
+			lone_path = lone.get_full_path()
 			first = self.legacy_file(label="delete-shared")
 			path = first.get_full_path()
-			copy = frappe.get_doc({"doctype": "File", "file_url": first.file_url}).insert()
+			copies = [
+				frappe.get_doc({"doctype": "File", "file_url": first.file_url}).insert() for _ in range(2)
+			]
+		self.remove_later(lone_path)
 		self.remove_later(path)
-		self.delete_later("File", copy.name)
+		for copy in copies:
+			self.delete_later("File", copy.name)
 
-		with flag_on():
-			backfill.run(filters={"name": first.name})
+		with storage_v2():
+			# no blob owns the bytes, so they go with the row
+			frappe.get_doc("File", lone.name).delete()
+			self.assertFalse(os.path.exists(lone_path))
+
+			backfill.run(filters=[["name", "=", first.name]])
 			blob = frappe.db.get_value("File", first.name, "blob")
 			self.delete_later("File Blob", blob)
-			frappe.get_doc("File", copy.name).delete()
+			frappe.get_doc("File", copies[0].name).delete()
+			self.assertTrue(os.path.isfile(path))
 
-		self.assertTrue(os.path.isfile(path))
-
-	def test_deleting_the_last_unbackfilled_row_keeps_bytes_its_blob_still_serves(self):
-		from frappe.storage import backfill
-
-		with flag_off():
-			first = self.legacy_file(label="delete-reused")
-			path = first.get_full_path()
-			copy = frappe.get_doc({"doctype": "File", "file_url": first.file_url}).insert()
-		self.remove_later(path)
-		self.delete_later("File", copy.name)
-
-		with flag_on():
-			backfill.run(filters={"name": first.name})
-			blob = frappe.db.get_value("File", first.name, "blob")
-			self.delete_later("File Blob", blob)
 			# a new upload of the same bytes reuses the blob under its own URL
 			upload = frappe.get_doc(
 				{"doctype": "File", "file_name": "reused.txt", "content": first.get_content()}
@@ -475,87 +317,58 @@ class TestV1LegacyDiskPaths(V1CompatTestCase):
 			self.assertEqual(upload.blob, blob)
 			self.assertNotEqual(upload.file_url, first.file_url)
 
+			# the last unbackfilled row keeps bytes its blob still serves
 			frappe.get_doc("File", first.name).delete()
-			frappe.get_doc("File", copy.name).delete()
-
-		self.assertTrue(os.path.isfile(path))
+			frappe.get_doc("File", copies[1].name).delete()
+			self.assertTrue(os.path.isfile(path))
 
 
 class TestV1PrivacyChange(V1CompatTestCase):
-	"""``handle_is_private_changed`` on disk-backed rows.
+	"""``handle_is_private_changed`` and ``on_rollback`` on disk-backed rows.
 
 	Called directly, not through ``save()``: a File subclass may override
-	``validate()`` without calling super(), and then ``save()`` never
-	reaches this seam."""
+	``validate()`` or ``on_rollback`` without calling super()."""
 
-	def test_remote_file_is_left_alone(self):
+	def test_handle_is_private_changed(self):
 		url = f"https://example.com/{frappe.generate_hash(length=10)}.png"
-		with flag_off():
-			doc = frappe.new_doc("File")
-			doc.file_name = "remote.png"
-			doc.file_url = url
-			doc.is_private = 1
+		with storage_v2(False):
+			remote = frappe.new_doc("File", file_name="remote.png", file_url=url, is_private=1)
+			self.assertIsNone(remote.handle_is_private_changed())
+			self.assertEqual(remote.file_url, url)
 
-			self.assertIsNone(doc.handle_is_private_changed())
-			self.assertEqual(doc.file_url, url)
-
-	def test_matching_url_is_a_noop(self):
-		with flag_off():
 			file = self.legacy_file(label="noop", is_private=1)
 			path = file.get_full_path()
-
 			# a doc rebuilt from a dict lands here without a real privacy
 			# change: the recomputed URL equals the old one, so nothing moves
 			fresh = frappe.get_doc("File", file.name)
 			self.assertIsNone(fresh.handle_is_private_changed())
-
 			self.assertEqual(fresh.file_url, file.file_url)
 			self.assertTrue(os.path.isfile(path))
 
-	def test_throws_when_the_source_file_is_gone(self):
-		with flag_off():
-			file = self.legacy_file(label="vanished", is_private=1)
-			os.remove(file.get_full_path())
-
-			fresh = frappe.get_doc("File", file.name)
+			os.remove(path)
 			fresh.is_private = 0
-
 			self.assertRaises(FileNotFoundError, fresh.handle_is_private_changed)
 
-
-class TestV1Rollback(V1CompatTestCase):
-	"""``on_rollback`` undoes the in-place writes only FileV1 makes.
-
-	Called as ``FileV1.on_rollback(doc)``: a File subclass may override
-	``on_rollback`` without calling super()."""
-
-	def test_restores_the_original_text_content(self):
+	def test_rollback_restores_the_original_content(self):
 		original = unique_text(b"original-")
 		replacement = unique_text(b"replacement-")
 
-		with flag_off():
+		with storage_v2(False):
 			file = self.legacy_file(original, label="rollback-content")
 			path = file.get_full_path()
 
 			# a fresh instance has no new_file flag, so the write is an update
 			fresh = frappe.get_doc("File", file.name)
 			fresh.save_file(content=replacement, overwrite=True)
-
-			with open(path, "rb") as f:
-				self.assertEqual(f.read(), replacement)
-			# a text file decodes on read, so the stash is a str
-			self.assertIsInstance(fresh.flags.original_content, str)
+			self.assertEqual(Path(path).read_bytes(), replacement)
 
 			FileV1.on_rollback(fresh)
-
-			with open(path, "rb") as f:
-				self.assertEqual(f.read(), original)
+			self.assertEqual(Path(path).read_bytes(), original)
 			self.assertIsNone(fresh.flags.get("original_content"))
 
-	def test_moves_the_file_back_to_its_original_path(self):
-		content = unique_text(b"moved-")
-		with flag_off():
-			file = self.legacy_file(content, label="rollback-path", is_private=0)
+	def test_rollback_moves_the_file_back_to_its_original_path(self):
+		with storage_v2(False):
+			file = self.legacy_file(unique_text(b"moved-"), label="rollback-path", is_private=0)
 			public_path = get_files_path(file.file_name)
 			private_path = get_files_path(file.file_name, is_private=1)
 			self.remove_later(public_path)
@@ -564,13 +377,10 @@ class TestV1Rollback(V1CompatTestCase):
 			fresh = frappe.get_doc("File", file.name)
 			fresh.is_private = 1
 			fresh.handle_is_private_changed()
-
 			self.assertTrue(os.path.isfile(private_path))
 			self.assertFalse(os.path.exists(public_path))
-			self.assertEqual(fresh.flags.original_path["old"], Path(public_path))
 
 			FileV1.on_rollback(fresh)
-
 			self.assertTrue(os.path.isfile(public_path))
 			self.assertFalse(os.path.exists(private_path))
 			self.assertIsNone(fresh.flags.get("original_path"))

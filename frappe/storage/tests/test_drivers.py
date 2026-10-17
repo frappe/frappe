@@ -25,26 +25,22 @@ class DriverContractTests:
 		self.key = frappe.generate_hash(length=10) + "/driver-test.txt"
 		self.content = b"storage-v2-driver-test-" + frappe.generate_hash(length=20).encode()
 
-	def test_write_read_roundtrip(self):
-		self.driver.write(self.key, io.BytesIO(self.content))
-		stream = self.driver.read(self.key)
-		try:
-			self.assertEqual(stream.read(), self.content)
-		finally:
-			stream.close()
-
-	def test_write_read_roundtrip_private(self):
-		self.driver.write(self.key, io.BytesIO(self.content), is_private=True)
-		stream = self.driver.read(self.key, is_private=True)
-		try:
-			self.assertEqual(stream.read(), self.content)
-		finally:
-			stream.close()
-
-	def test_exists(self):
+	def test_write_read_exists_delete(self):
 		self.assertFalse(self.driver.exists(self.key))
-		self.driver.write(self.key, io.BytesIO(self.content))
+		self.assertRaises(FileNotFoundError, self.driver.read, self.key)
+
+		# write must consume any readable, not only BytesIO
+		self.driver.write(self.key, io.BufferedReader(io.BytesIO(self.content)))
 		self.assertTrue(self.driver.exists(self.key))
+		with self.driver.read(self.key) as stream:
+			self.assertNotIsInstance(stream, bytes)
+			# incremental reads work
+			self.assertEqual(stream.read(4) + stream.read(), self.content)
+
+		self.driver.delete(self.key)
+		self.assertFalse(self.driver.exists(self.key))
+		# deleting a missing key must not raise
+		self.driver.delete(self.key)
 
 	def test_public_and_private_namespaces_are_separate(self):
 		self.driver.write(self.key, io.BytesIO(b"public bytes"))
@@ -55,52 +51,17 @@ class DriverContractTests:
 			self.assertEqual(public.read(), b"public bytes")
 			self.assertEqual(private.read(), b"private bytes")
 
-	def test_delete(self):
-		self.driver.write(self.key, io.BytesIO(self.content))
-		self.driver.delete(self.key)
-		self.assertFalse(self.driver.exists(self.key))
-		# deleting a missing key must not raise
-		self.driver.delete(self.key)
-
-	def test_delete_only_touches_one_namespace(self):
-		self.driver.write(self.key, io.BytesIO(self.content))
-		self.driver.write(self.key, io.BytesIO(self.content), is_private=True)
 		self.driver.delete(self.key, is_private=True)
 		self.assertTrue(self.driver.exists(self.key))
 		self.assertFalse(self.driver.exists(self.key, is_private=True))
-
-	def test_read_missing_key_raises(self):
-		self.assertRaises(FileNotFoundError, self.driver.read, self.key)
-
-	def test_read_returns_stream(self):
-		self.driver.write(self.key, io.BytesIO(self.content))
-		stream = self.driver.read(self.key)
-		try:
-			self.assertNotIsInstance(stream, bytes)
-			self.assertTrue(callable(stream.read))
-			# incremental reads work
-			head = stream.read(4)
-			rest = stream.read()
-			self.assertEqual(head + rest, self.content)
-		finally:
-			stream.close()
 
 	def test_read_range_returns_inclusive_slice(self):
 		self.driver.write(self.key, io.BytesIO(self.content), is_private=True)
 		with self.driver.read_range(self.key, 2, 8, is_private=True) as stream:
 			self.assertEqual(stream.read(), self.content[2:9])
-
-	def test_read_range_open_end_returns_tail(self):
-		self.driver.write(self.key, io.BytesIO(self.content))
-		with self.driver.read_range(self.key, 7, None) as stream:
+		# an open end returns the tail
+		with self.driver.read_range(self.key, 7, None, is_private=True) as stream:
 			self.assertEqual(stream.read(), self.content[7:])
-
-	def test_streamed_write(self):
-		# write must consume any readable, not only BytesIO
-		chunks = [b"chunk-one:", b"chunk-two:", b"chunk-three"]
-		self.driver.write(self.key, io.BufferedReader(io.BytesIO(b"".join(chunks))))
-		with self.driver.read(self.key) as stream:
-			self.assertEqual(stream.read(), b"".join(chunks))
 
 
 class TestMemoryDriverContract(DriverContractTests, IntegrationTestCase):
@@ -121,31 +82,21 @@ class TestLocalDriverContract(DriverContractTests, IntegrationTestCase):
 		)
 		return driver
 
-	def test_writes_stay_inside_tempdir(self):
-		self.driver.write(self.key, io.BytesIO(self.content))
-		path = self.driver.get_path(self.key)
-		self.assertTrue(path.startswith(os.path.realpath(self.tmpdir)))
-		self.assertTrue(os.path.isfile(path))
-
 	def test_files_sit_at_their_key_and_delete_removes_the_empty_folder(self):
 		self.driver.write(self.key, io.BytesIO(self.content))
-		path = os.path.join(self.tmpdir, "public", "files", *self.key.split("/"))
+		files_dir = os.path.join(self.tmpdir, "public", "files")
+		path = os.path.join(files_dir, *self.key.split("/"))
+		self.assertEqual(os.path.realpath(self.driver.get_path(self.key)), os.path.realpath(path))
 		with open(path, "rb") as file:
 			self.assertEqual(file.read(), self.content)
 
 		self.driver.delete(self.key)
 
 		self.assertFalse(os.path.exists(os.path.dirname(path)))
-		self.assertTrue(os.path.isdir(os.path.join(self.tmpdir, "public", "files")))
+		self.assertTrue(os.path.isdir(files_dir))
 
-	def test_path_traversal_keys_rejected(self):
-		bad_keys = (
-			"../../../etc/passwd",
-			"ab/../../../../etc/passwd",
-			"..",
-			"/etc/passwd",
-		)
-		for key in bad_keys:
+	def test_keys_outside_the_files_dir_are_rejected(self):
+		for key in ("../../../etc/passwd", "ab/../../../../etc/passwd", "..", "/etc/passwd"):
 			for operation in (
 				lambda k: self.driver.get_path(k),
 				lambda k: self.driver.exists(k),
@@ -155,8 +106,7 @@ class TestLocalDriverContract(DriverContractTests, IntegrationTestCase):
 			):
 				self.assertRaises(ValueError, operation, key)
 
-	def test_symlink_escape_rejected(self):
-		# a key resolving through a symlink out of the files dir must be rejected
+		# a key resolving through a symlink out of the files dir
 		files_dir = self.driver.get_files_dir()
 		os.makedirs(files_dir, exist_ok=True)
 		outside = tempfile.mkdtemp(prefix="frappe-storage-outside-")
@@ -170,26 +120,21 @@ class TestFake(IntegrationTestCase):
 		before_override = getattr(frappe.local, "storage_driver_override", None)
 		before = get_driver()
 
-		with fake() as store:
-			self.assertIsInstance(store, MemoryDriver)
-			self.assertIs(get_driver(), store)
-			self.assertIs(frappe.storage.get_driver(), store)
-
-		self.assertEqual(getattr(frappe.local, "storage_driver_override", None), before_override)
-		self.assertIs(get_driver(), before)
-
-	def test_fake_restores_on_exception(self):
-		before = get_driver()
-		with self.assertRaises(RuntimeError), fake():
-			raise RuntimeError("boom")
-		self.assertIs(get_driver(), before)
-
-	def test_nested_fakes_restore_in_order(self):
 		with fake() as outer:
+			self.assertIsInstance(outer, MemoryDriver)
+			self.assertIs(get_driver(), outer)
+			self.assertIs(frappe.storage.get_driver(), outer)
 			with fake() as inner:
 				self.assertIsNot(inner, outer)
 				self.assertIs(get_driver(), inner)
 			self.assertIs(get_driver(), outer)
+
+		self.assertEqual(getattr(frappe.local, "storage_driver_override", None), before_override)
+		self.assertIs(get_driver(), before)
+
+		with self.assertRaises(RuntimeError), fake():
+			raise RuntimeError("boom")
+		self.assertIs(get_driver(), before)
 
 	def test_fake_yields_isolated_store(self):
 		with fake() as store:

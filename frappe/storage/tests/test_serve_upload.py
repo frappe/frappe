@@ -8,7 +8,6 @@ import os
 import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import contextmanager
 from contextvars import copy_context
 from threading import Barrier
 from unittest.mock import patch
@@ -20,13 +19,21 @@ from werkzeug.test import TestResponse
 import frappe
 import frappe.storage
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
+from frappe.core.doctype.file.file_v2 import create_file_from_blob
 from frappe.storage.blob import put_blob
 from frappe.storage.local_driver import LocalDriver
 from frappe.storage.memory_driver import MemoryDriver
 from frappe.storage.serve import serve_private_file, serve_public_file, stream_blob
-from frappe.storage.tests import file_permissions_enforced, reset_file_controller
+from frappe.storage.tests import (
+	file_permissions_enforced,
+	hook_value,
+	storage_v2,
+	unique_bytes,
+	use_driver,
+)
 from frappe.storage.upload import (
 	BLOB_SESSION,
+	FILE_SESSION,
 	FINISHING_SUFFIX,
 	claim_session,
 	create_blob_upload,
@@ -38,55 +45,18 @@ from frappe.storage.upload import (
 	get_request_bytes,
 	get_session_paths,
 	get_uploads_dir,
-	load_session,
+	require_session_policy,
 	upload_blob_chunk,
 	upload_chunk,
 )
 from frappe.storage.url import make_signature
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase, make_request
+from frappe.tests.test_chrome_pdf_interceptor import _fire_request, _make_page, _make_session
 from frappe.utils import set_request
+from frappe.utils.logging import ensure_log_table, get_log_db
 
-
-@contextmanager
-def flag_on():
-	"""Enable storage_v2 in site conf for the duration of the block."""
-	previous = frappe.conf.get("storage_v2")
-	frappe.conf["storage_v2"] = 1
-	reset_file_controller()
-	try:
-		yield
-	finally:
-		if previous is None:
-			frappe.conf.pop("storage_v2", None)
-		else:
-			frappe.conf["storage_v2"] = previous
-		reset_file_controller()
-
-
-@contextmanager
-def flag_off():
-	"""Disable storage_v2 in site conf for the duration of the block."""
-	previous = frappe.conf.get("storage_v2")
-	frappe.conf.pop("storage_v2", None)
-	reset_file_controller()
-	try:
-		yield
-	finally:
-		if previous is not None:
-			frappe.conf["storage_v2"] = previous
-		reset_file_controller()
-
-
-@contextmanager
-def use_driver(driver):
-	"""Swap the active storage driver for a custom one, like fake()."""
-	previous = getattr(frappe.local, "storage_driver_override", None)
-	frappe.local.storage_driver_override = driver
-	try:
-		yield driver
-	finally:
-		frappe.local.storage_driver_override = previous
+PDF_HOST = "https://example.frappe.test/"
 
 
 class NativeUrlDriver(MemoryDriver):
@@ -124,6 +94,15 @@ class VanishingDirectDriver(DirectTargetDriver):
 		return True
 
 
+class StorageUnavailable(Exception):
+	"""Not an OSError, like botocore's EndpointConnectionError."""
+
+
+class UnreachableDriver(MemoryDriver):
+	def read(self, key, *, is_private=False):
+		raise StorageUnavailable("storage is unreachable")
+
+
 class UndeletableDirectDriver(DirectTargetDriver):
 	"""Driver whose delete always fails, like an unreachable bucket."""
 
@@ -136,10 +115,14 @@ def response_body(response) -> bytes:
 	return b"".join(response.response)
 
 
+def blob_of(result):
+	"""The File Blob behind a finish result, which is a File row or the blob itself."""
+	return frappe.get_doc("File Blob", result.blob) if result.doctype == "File" else result
+
+
 class TestServeUpload(IntegrationTestCase):
 	"""GET /files/ and /private/files/ serve routes and the three-step upload flow.
 
-	Uses fake() (MemoryDriver), so no blob bytes touch the site dirs.
 	Upload session files land in private/files/.uploads and are removed
 	in tearDown."""
 
@@ -150,7 +133,8 @@ class TestServeUpload(IntegrationTestCase):
 
 	def tearDown(self):
 		for upload_id in self._sessions:
-			delete_session(*get_session_paths(upload_id))
+			meta_path, part_path = get_session_paths(upload_id)
+			delete_session(meta_path, meta_path + FINISHING_SUFFIX, part_path)
 		frappe.local.form_dict = frappe._dict()
 		if hasattr(frappe.local, "request"):
 			del frappe.local.request
@@ -160,12 +144,9 @@ class TestServeUpload(IntegrationTestCase):
 
 	# ---- helpers ----
 
-	def serve(self, path: str, **query):
-		return self.serve_with_headers(path, {}, **query)
-
-	def serve_with_headers(self, path: str, headers: dict, **query):
+	def serve(self, path: str, headers: dict | None = None, **query):
 		"""Route ``path`` the way ``frappe.app.application`` does."""
-		set_request(method="GET", path=path, headers=headers)
+		set_request(method="GET", path=path, headers=headers or {})
 		frappe.local.form_dict = frappe._dict(query)
 		try:
 			if path.startswith("/private/files/"):
@@ -176,13 +157,8 @@ class TestServeUpload(IntegrationTestCase):
 			if hasattr(frappe.local, "request"):
 				del frappe.local.request
 
-	def backdate(self, *paths: str, hours: float = 25):
-		stamp = time.time() - hours * 3600
-		for path in paths:
-			os.utime(path, (stamp, stamp))
-
 	def send_chunk(self, upload_id: str, offset: int, data: bytes):
-		# upload_chunk is PUT-only, raw body: see test_chunk_upload_route_is_put_only
+		# upload_chunk takes a raw PUT body
 		set_request(method="PUT", path="/", data=data)
 		try:
 			return upload_chunk(upload_id, offset)
@@ -190,163 +166,465 @@ class TestServeUpload(IntegrationTestCase):
 			if hasattr(frappe.local, "request"):
 				del frappe.local.request
 
-	def open_session(self, filename: str, size: int, is_private=1, **target) -> str:
+	def open_session(self, filename: str, size: int, *, mode="chunked", is_private=1, **target) -> str:
 		result = create_upload(filename, size, is_private=is_private, **target)
-		self.assertEqual(result["mode"], "chunked")
-		upload_id = result["upload_id"]
-		self._sessions.append(upload_id)
-		return upload_id
+		self.assertEqual(result["mode"], mode)
+		self._sessions.append(result["upload_id"])
+		return result["upload_id"]
 
-	def open_blob_session(self, filename: str, size: int, is_private=True) -> str:
-		result = create_blob_upload(filename, size, is_private=is_private)
-		self.assertEqual(result["mode"], "chunked")
-		upload_id = result["upload_id"]
-		self._sessions.append(upload_id)
-		return upload_id
+	def open_blob_session(self, filename: str, size: int, *, mode="chunked") -> str:
+		result = create_blob_upload(filename, size)
+		self.assertEqual(result["mode"], mode)
+		self._sessions.append(result["upload_id"])
+		return result["upload_id"]
 
-	# ---- serve route ----
+	def session_kinds(self):
+		"""The public File flow and the trusted blob flow share every session rule."""
+		return (
+			("file", self.open_session, self.send_chunk, finish_upload),
+			("blob", self.open_blob_session, upload_blob_chunk, finish_upload_to_blob),
+		)
 
-	def test_signed_url_serves_private_blob_without_session(self):
-		with flag_on(), frappe.storage.fake():
-			blob = put_blob(io.BytesIO(b"private signed content"), is_private=True)
+	def session_files(self, upload_id: str) -> set[str]:
+		"""Which of the session's meta, claimed meta, and part files exist."""
+		meta_path, part_path = get_session_paths(upload_id)
+		paths = {"meta": meta_path, "claimed": meta_path + FINISHING_SUFFIX, "part": part_path}
+		return {name for name, path in paths.items() if os.path.exists(path)}
+
+	def backdate(self, *paths: str, hours: float = 25):
+		stamp = time.time() - hours * 3600
+		for path in paths:
+			os.utime(path, (stamp, stamp))
+
+	def temp_local_driver(self) -> TempLocalDriver:
+		root = tempfile.TemporaryDirectory()
+		self.addCleanup(root.cleanup)
+		return TempLocalDriver(root.name)
+
+	def insert_moved_file(self, file_name: str, *, is_private: int) -> tuple[str, bytes]:
+		"""A File row as relocation leaves it: a v1 URL linked to a blob. Return the URL and bytes."""
+		content = unique_bytes(b"moved v1 bytes ")
+		blob = put_blob(io.BytesIO(content), is_private=bool(is_private), filename=file_name)
+		folder = "/private/files" if is_private else "/files"
+		file_url = f"{folder}/storage-v2-moved-{frappe.generate_hash(length=10)}-{file_name}"
+		file = frappe.new_doc("File", file_name=file_name, file_url=file_url, blob=blob.name)
+		file.update({"name": frappe.generate_hash(length=10), "is_private": is_private, "is_folder": 0})
+		file.db_insert()
+		return file_url, content
+
+	def render_in_pdf(self, url: str, user: str = "Administrator"):
+		"""Fire one request through the PDF renderer's interceptor. Return the CDP command and params."""
+		captured = [None]
+		session = _make_session(captured)
+		frappe.set_user(user)
+		with patch("frappe.utils.chromium.page.get_host_url", return_value=PDF_HOST):
+			_make_page(session).intercept_request_for_local_resources()
+			_fire_request(captured[0], "req", PDF_HOST + url.lstrip("/"))
+		return session.send.call_args.args[:2]
+
+	# ---- serve routes ----
+
+	def test_private_route_needs_a_signature_or_file_permission(self):
+		ensure_log_table("Access Log")
+		with storage_v2(), frappe.storage.fake():
+			content = unique_bytes(b"private route ")
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="report.txt")
+			url = f"/private/files/{blob.name}/report.txt"
+			# a v1 URL whose bytes moved into a blob keeps its File row's permission
+			moved_url, moved_content = self.insert_moved_file("contract.pdf", is_private=1)
+
+			# no File row: nobody passes the permission check, not even Administrator.
+			# An unknown blob gets the same answer, so there is no existence oracle.
+			for path in (url, "/private/files/nosuchblob/report.txt"):
+				with self.subTest(path=path), self.assertRaises(Forbidden):
+					self.serve(path)
+
+			frappe.set_user("Guest")
 			expires = int(time.time()) + 60
-			sig = make_signature(blob.name, "a.txt", expires)
-
-			frappe.set_user("Guest")
-			response = self.serve(f"/private/files/{blob.name}/a.txt", e=str(expires), s=sig)
-
+			signature = make_signature(blob.name, "report.txt", expires)
+			response = self.serve(url, e=str(expires), s=signature)
 			self.assertEqual(response.status_code, 200)
-			self.assertEqual(response_body(response), b"private signed content")
-
-	def test_expired_or_tampered_signature_forbidden(self):
-		with flag_on(), frappe.storage.fake():
-			blob = put_blob(io.BytesIO(b"expiring content"), is_private=True)
-			frappe.set_user("Guest")
+			self.assertEqual(response_body(response), content)
 
 			expired = int(time.time()) - 1
-			sig = make_signature(blob.name, "a.txt", expired)
-			with self.assertRaises(Forbidden):
-				self.serve(f"/private/files/{blob.name}/a.txt", e=str(expired), s=sig)
+			tampered = signature[:-1] + ("0" if signature[-1] != "0" else "1")
+			for path, query in (
+				(url, {}),
+				(moved_url, {}),
+				(url, {"e": str(expired), "s": make_signature(blob.name, "report.txt", expired)}),
+				(url, {"e": str(expires), "s": tampered}),
+				# a signature for one filename must not open another
+				(f"/private/files/{blob.name}/other.txt", {"e": str(expires), "s": signature}),
+			):
+				with self.subTest(path=path, query=query), self.assertRaises(Forbidden):
+					self.serve(path, **query)
+
+			frappe.set_user("Administrator")
+			create_file_from_blob(blob, "report.txt", is_private=True)
+			self.assertEqual(response_body(self.serve(url)), content)
+			self.assertEqual(response_body(self.serve(moved_url)), moved_content)
+			# Access Log rows live in the site's SQLite log database
+			self.assertTrue(
+				get_log_db().exists(
+					"Access Log", {"reference_document": blob.name, "export_from": "File Blob"}
+				)
+			)
+
+	def test_public_route_serves_only_public_blobs(self):
+		with storage_v2(), frappe.storage.fake() as store:
+			content = unique_bytes(b"public bytes ")
+			public = put_blob(io.BytesIO(content))
+			private = put_blob(io.BytesIO(unique_bytes(b"private bytes ")), is_private=True)
+			gone = put_blob(io.BytesIO(unique_bytes(b"vanishing ")))
+			store.delete(gone.key, is_private=False)
+			moved_url, moved_content = self.insert_moved_file("logo.png", is_private=0)
+
+			frappe.set_user("Guest")
+			response = self.serve(f"/files/{public.name}/pub.txt")
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response_body(response), content)
+			self.assertEqual(response_body(self.serve(moved_url)), moved_content)
+
+			for path in (
+				"/files/",
+				"/files/some.txt",
+				"/files/nosuchblob/a.txt",
+				f"/files/{public.name}/a/b.txt",
+				f"/files/{gone.name}/gone.txt",
+				# a private blob is never served under /files/, not even its own URL
+				f"/files/{private.name}/file",
+			):
+				with self.subTest(path=path), self.assertRaises(NotFound):
+					self.serve(path)
+
+			frappe.set_user("Administrator")
+			with self.assertRaises(NotFound):
+				self.serve(f"/files/{private.name}/file")
+
+	def test_active_content_is_served_as_an_attachment(self):
+		# the URL filename is caller-chosen: an HTML blob requested as x.txt
+		# must not render inline on the site origin either
+		svg = b'<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+		html = b"<!DOCTYPE html><html><body>" + unique_bytes() + b"</body></html>"
+		with storage_v2(), frappe.storage.fake():
+			urls = [
+				f"/files/{put_blob(io.BytesIO(svg)).name}/image.svg",
+				f"/files/{put_blob(io.BytesIO(html)).name}/innocent.txt",
+			]
+			frappe.set_user("Guest")
+			for url in urls:
+				with self.subTest(url=url):
+					response = self.serve(url)
+					self.assertEqual(response.status_code, 200)
+					self.assertTrue(response.headers.get("Content-Disposition", "").startswith("attachment"))
+
+	def test_pdf_renderer_reads_blobs_that_are_not_on_disk_and_checks_access(self):
+		with storage_v2(), frappe.storage.fake():
+			public = put_blob(io.BytesIO(b"<svg>public</svg>"), filename="logo.svg")
+			private = put_blob(io.BytesIO(b"private png"), is_private=True, filename="sign.png")
+			create_file_from_blob(private, "sign.png", is_private=True)
+			moved_url, moved_content = self.insert_moved_file("photo.jpg", is_private=1)
+			urls = {
+				f"/files/{public.name}/logo.svg": (b"<svg>public</svg>", "image/svg+xml"),
+				f"/private/files/{private.name}/sign.png": (b"private png", "image/png"),
+				moved_url: (moved_content, "image/jpeg"),
+			}
+
+			for url, (content, content_type) in urls.items():
+				with self.subTest(url=url):
+					method, params = self.render_in_pdf(url)
+					self.assertEqual(method, "Fetch.fulfillRequest")
+					self.assertEqual(base64.b64decode(params["body"]), content)
+					self.assertIn({"name": "Content-Type", "value": content_type}, params["responseHeaders"])
+
+			self.assertEqual(
+				self.render_in_pdf(f"/files/{public.name}/logo.svg", "Guest")[0], "Fetch.fulfillRequest"
+			)
+			for url in list(urls)[1:]:
+				with self.subTest(url=url, user="Guest"):
+					method, params = self.render_in_pdf(url, "Guest")
+					self.assertEqual(method, "Fetch.failRequest")
+					self.assertEqual(params["errorReason"], "AccessDenied")
+
+		# a driver that cannot read fails only that one image
+		with storage_v2(), use_driver(UnreachableDriver()):
+			blob = put_blob(io.BytesIO(b"<svg>unreachable</svg>"), filename="logo.svg")
+			method, params = self.render_in_pdf(f"/files/{blob.name}/logo.svg")
+		self.assertEqual(method, "Fetch.failRequest")
+		self.assertEqual(params["requestId"], "req")
+
+	def test_native_url_driver_redirects(self):
+		with storage_v2(), use_driver(NativeUrlDriver()):
+			content = unique_bytes(b"native ")
+			public = put_blob(io.BytesIO(unique_bytes(b"native ")))
+			private = put_blob(io.BytesIO(content), is_private=True)
+
+			frappe.set_user("Guest")
+			response = self.serve(f"/files/{public.name}/n.txt")
+			self.assertEqual(response.status_code, 302)
+			self.assertEqual(
+				response.headers["Location"], f"https://cdn.example/{public.name}/file?name=n.txt&ttl=3600"
+			)
+			self.assertEqual(response.headers["Cache-Control"], "public, max-age=1800")
 
 			expires = int(time.time()) + 60
-			sig = make_signature(blob.name, "a.txt", expires)
-			tampered = sig[:-1] + ("0" if sig[-1] != "0" else "1")
-			with self.assertRaises(Forbidden):
-				self.serve(f"/private/files/{blob.name}/a.txt", e=str(expires), s=tampered)
+			signature = make_signature(private.name, "n.txt", expires)
+			response = self.serve(f"/private/files/{private.name}/n.txt", e=str(expires), s=signature)
+			self.assertEqual(response.status_code, 302)
+			self.assertEqual(
+				response.headers["Location"], f"https://cdn.example/{private.name}/file?name=n.txt&ttl=60"
+			)
+			self.assertNotIn("public", response.headers.get("Cache-Control") or "")
 
-			# signature for one filename must not open another
-			with self.assertRaises(Forbidden):
-				self.serve(f"/private/files/{blob.name}/b.txt", e=str(expires), s=sig)
+			# an already authorized stream redirects only when the caller opts in
+			set_request(method="GET", path="/dav/n.txt")
+			response = stream_blob(private, "n.txt")
+			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response_body(response), content)
+			response.close()
+			response = stream_blob(private, "n.txt", allow_native_redirect=True)
+			self.assertEqual(response.status_code, 302)
+			self.assertIn(private.key, response.headers["Location"])
 
-			# no signature at all: private blob, Guest session
-			with self.assertRaises(Forbidden):
-				self.serve(f"/private/files/{blob.name}/a.txt")
-
-	def test_public_blob_served_unsigned(self):
-		with flag_on(), frappe.storage.fake():
-			blob = put_blob(io.BytesIO(b"public content"), is_private=False)
+	def test_local_blobs_use_x_accel_or_disk_ranges(self):
+		svg = b'<svg xmlns="http://www.w3.org/2000/svg"><!--' + unique_bytes() + b"--></svg>"
+		accel = {"X-Use-X-Accel-Redirect": "1"}
+		with storage_v2(), use_driver(self.temp_local_driver()) as driver:
+			report = put_blob(
+				io.BytesIO(unique_bytes(b"accel private ")), is_private=True, filename="report.pdf"
+			)
+			logo = put_blob(io.BytesIO(svg), filename="logo.svg")
+			self.assertEqual(report.driver, "local")
+			expires = int(time.time()) + 60
+			signature = make_signature(report.name, "report.pdf", expires)
 
 			frappe.set_user("Guest")
-			response = self.serve(f"/files/{blob.name}/pub.txt")
+			response = self.serve(
+				f"/private/files/{report.name}/report.pdf", accel, e=str(expires), s=signature
+			)
+			private_path = frappe.local.conf.get("private_path", "private")
+			self.assertEqual(
+				response.headers["X-Accel-Redirect"],
+				f"/protected/{private_path}/files/{report.name}/report.pdf",
+			)
+			self.assertEqual(response.headers["Accept-Ranges"], "bytes")
+			self.assertEqual(response.headers["Content-Type"], "application/pdf")
+			self.assertIn("private", response.headers["Cache-Control"])
+			# a pdf is not active content: it stays inline
+			self.assertIsNone(response.headers.get("Content-Disposition"))
 
-			self.assertEqual(response.status_code, 200)
-			self.assertEqual(response_body(response), b"public content")
+			response = self.serve(f"/files/{logo.name}/logo.svg", accel)
+			self.assertEqual(response.headers["X-Accel-Redirect"], f"/files/{logo.name}/logo.svg")
+			self.assertEqual(response.headers["Content-Type"], "image/svg+xml")
+			self.assertEqual(response.headers["Content-Disposition"], "attachment; filename*=UTF-8''logo.svg")
 
-	def test_session_with_permission_serves(self):
-		from frappe.core.doctype.file.file_v2 import create_file_from_blob
+			# without X-Accel, ranges are read from disk
+			content = unique_bytes(b"range ") * 8
+			blob = put_blob(io.BytesIO(content), filename="data.bin")
+			gone = put_blob(io.BytesIO(unique_bytes(b"deleted from disk ")), filename="gone.bin")
+			os.remove(driver.get_path(gone.key, False))
+			response = self.serve(f"/files/{blob.name}/data.bin", {"Range": "bytes=5-14"})
+			self.assertEqual(response.status_code, 206)
+			self.assertEqual(response.headers["Content-Range"], f"bytes 5-14/{len(content)}")
+			self.assertEqual(response_body(response), content[5:15])
+			response.close()
 
-		with flag_on(), frappe.storage.fake():
-			blob = put_blob(io.BytesIO(b"attached content"), is_private=True)
-			file = create_file_from_blob(blob, "attached.txt", is_private=True)
-			self.assertEqual(file.blob, blob.name)
+			with self.assertRaises(NotFound):
+				self.serve(f"/files/{gone.name}/gone.bin")
 
-			# Administrator session, no signature: File-row permission applies
-			response = self.serve(f"/private/files/{blob.name}/attached.txt")
+	def test_stream_blob_answers_range_requests(self):
+		content = b"0123456789abcdefghijklmnopqrstuvwxyz"
+		cases = (
+			("bytes=5-14", 206, "bytes 5-14/36", content[5:15]),
+			("bytes=20-", 206, "bytes 20-35/36", content[20:]),
+			("bytes=100-200", 416, "bytes */36", b""),
+		)
+		with storage_v2(), frappe.storage.fake():
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="data.bin")
+			for range_header, status, content_range, body in cases:
+				with self.subTest(range=range_header):
+					set_request(method="GET", path="/dav/data.bin", headers={"Range": range_header})
+					response = stream_blob(blob, "data.bin")
+					self.assertEqual(response.status_code, status)
+					self.assertEqual(response.headers["Content-Range"], content_range)
+					self.assertEqual(response.headers["Accept-Ranges"], "bytes")
+					self.assertEqual(response_body(response), body)
+					response.close()
 
-			self.assertEqual(response.status_code, 200)
-			self.assertEqual(response_body(response), b"attached content")
-
-	def test_no_permission_forbidden(self):
-		with flag_on(), frappe.storage.fake():
-			# private blob with no File row: nobody passes is_downloadable()
-			blob = put_blob(io.BytesIO(b"unlinked content"), is_private=True)
-
-			with self.assertRaises(Forbidden):
-				self.serve(f"/private/files/{blob.name}/secret.txt")
-
-	def test_unknown_blob_forbidden_like_denied_access(self):
-		# same response as a permission failure: no blob-existence oracle
-		with flag_on(), frappe.storage.fake():
-			with self.assertRaises(Forbidden):
-				self.serve("/private/files/nosuchblob/a.txt")
-
-	def test_svg_forced_attachment(self):
-		svg = b'<svg xmlns="http://www.w3.org/2000/svg"></svg>'
-		with flag_on(), frappe.storage.fake():
-			blob = put_blob(io.BytesIO(svg), is_private=False)
-
+	def test_stream_blob_trusts_its_caller_and_honours_etags(self):
+		with storage_v2(), frappe.storage.fake() as store:
+			content = unique_bytes(b"already authorized ")
+			blob = put_blob(io.BytesIO(content), is_private=True, filename="private.bin")
 			frappe.set_user("Guest")
-			response = self.serve(f"/files/{blob.name}/image.svg")
 
+			set_request(method="GET", path="/dav/private.bin")
+			with (
+				patch("frappe.storage.serve.has_file_permission") as has_permission,
+				patch("frappe.storage.serve.make_access_log") as access_log,
+			):
+				response = stream_blob(blob, "private.bin")
 			self.assertEqual(response.status_code, 200)
-			disposition = response.headers.get("Content-Disposition") or ""
-			self.assertTrue(disposition.startswith("attachment"))
+			self.assertEqual(response_body(response), content)
+			has_permission.assert_not_called()
+			access_log.assert_not_called()
+			response.close()
 
-	def test_active_content_forced_attachment_regardless_of_filename(self):
-		# the URL filename is caller-chosen; an HTML blob requested as x.txt
-		# must not render inline on the site origin
-		html = b"<!DOCTYPE html><html><body>" + frappe.generate_hash(length=16).encode() + b"</body></html>"
-		with flag_on(), frappe.storage.fake():
-			blob = put_blob(io.BytesIO(html), is_private=False)
-			self.assertEqual(blob.mime_type, "text/html")
+			set_request(
+				method="GET", path="/dav/private.bin", headers={"If-None-Match": f'"{blob.checksum}"'}
+			)
+			with patch.object(store, "read") as read, patch.object(store, "read_range") as read_range:
+				response = stream_blob(blob, "private.bin")
+			self.assertEqual(response.status_code, 304)
+			self.assertEqual(response.headers["ETag"], f'"{blob.checksum}"')
+			read.assert_not_called()
+			read_range.assert_not_called()
 
-			frappe.set_user("Guest")
-			response = self.serve(f"/files/{blob.name}/innocent.txt")
+	# ---- upload sessions: entry points ----
 
-			self.assertEqual(response.status_code, 200)
-			disposition = response.headers.get("Content-Disposition") or ""
-			self.assertTrue(disposition.startswith("attachment"))
+	def test_upload_entry_points_refuse_bad_input(self):
+		with storage_v2(False):
+			with self.assertRaises(frappe.ValidationError):
+				create_upload("off.txt", 10)
+			with self.assertRaises(frappe.ValidationError):
+				self.send_chunk("doesnotmatter", 0, b"x")
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload("doesnotmatter")
 
-	# ---- upload sessions ----
-
-	def test_create_upload_rejects_oversize_before_bytes(self):
-		with flag_on(), frappe.storage.fake():
+		with storage_v2(), frappe.storage.fake():
 			with patch("frappe.core.api.file.get_max_file_size", return_value=1024):
 				with self.assertRaises(MaxFileSizeReachedError):
 					create_upload("big.bin", 2048)
+			for upload_id in ("", "../../etc/passwd", "abc.def", "abc/def"):
+				with self.subTest(upload_id=upload_id), self.assertRaises(frappe.ValidationError):
+					get_session_paths(upload_id)
+			with self.assertRaises(frappe.ValidationError):
+				self.send_chunk("../../etc/passwd", 0, b"x")
 
-	def test_chunked_roundtrip_creates_file_and_blob(self):
-		with flag_on(), frappe.storage.fake() as store:
-			content = b"0123456789" * 120
-			upload_id = self.open_session("hello.txt", len(content), is_private=1)
+	def test_trusted_sessions_stay_off_http(self):
+		for function in (create_blob_upload, upload_blob_chunk, finish_upload_to_blob):
+			self.assertNotIn(function, frappe.whitelisted)
+		with storage_v2(), frappe.storage.fake():
+			for bypass in (
+				{"session_policy": BLOB_SESSION},
+				{"check_permission": False},
+				{"restrict_mimetypes": False},
+			):
+				with self.subTest(bypass=bypass), self.assertRaises(TypeError):
+					create_upload("bypass.html", 4, **bypass)
 
+			blob_session = self.open_blob_session("private.bin", 4)
+			with self.assertRaises(frappe.ValidationError):
+				self.send_chunk(blob_session, 0, b"data")
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload(blob_session)
+			# rejection does not consume the session: the trusted path can finish it
+			upload_blob_chunk(blob_session, 0, b"data")
+			self.assertEqual(frappe.db.count("File", {"blob": finish_upload_to_blob(blob_session).name}), 0)
+
+			file_session = self.open_session("public.txt", 4)
+			with self.assertRaises(frappe.ValidationError):
+				upload_blob_chunk(file_session, 0, b"data")
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload_to_blob(file_session)
+
+			for policy in (FILE_SESSION, BLOB_SESSION):
+				with self.subTest(policy=policy), self.assertRaises(frappe.ValidationError):
+					require_session_policy({}, policy)
+
+	def test_chunk_route_streams_a_bounded_raw_put_body(self):
+		# a POST would run make_form_dict, which decodes the body as text and caps
+		# it at the generic upload size; only PUT on a streaming path skips that
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[upload_chunk], ("PUT",))
+		self.assertIn(
+			"/api/method/frappe.storage.upload.upload_chunk", frappe.get_hooks("streaming_request_paths")
+		)
+
+		# streaming paths lift the generic byte cap, so the read bounds itself
+		set_request(method="PUT", path="/", data=b"x" * (64 * 1024))
+		self.assertEqual(get_request_bytes(limit=4), b"xxxxx")
+
+		# form bodies are refused by Content-Type alone, before Werkzeug's form
+		# parser spools a body of any size
+		for mimetype, data in (
+			("multipart/form-data", {"file": (io.BytesIO(b"x" * (256 * 1024)), "huge.bin")}),
+			("application/x-www-form-urlencoded", {"a": "x" * (256 * 1024)}),
+		):
+			with self.subTest(mimetype=mimetype):
+				set_request(method="PUT", path="/", data=data)
+				frappe.local.request.max_content_length = None
+				raw_input = frappe.local.request.environ["wsgi.input"]
+				with self.assertRaises(frappe.ValidationError):
+					get_request_bytes(limit=4)
+				self.assertEqual(raw_input.tell(), 0)
+
+	# ---- upload sessions: flows ----
+
+	def test_chunked_upload_creates_one_file(self):
+		with storage_v2(), frappe.storage.fake() as store:
+			content = unique_bytes(b"chunked upload ") * 20
 			half = len(content) // 2
-			first = self.send_chunk(upload_id, 0, content[:half])
-			self.assertEqual(first["received"], half)
-			second = self.send_chunk(upload_id, half, content[half:])
-			self.assertEqual(second["received"], len(content))
+			upload_id = self.open_session("hello.txt", len(content))
+
+			# only an offset that leaves no hole is accepted
+			for offset in (5, -1):
+				with self.subTest(offset=offset), self.assertRaises(frappe.ValidationError):
+					self.send_chunk(upload_id, offset, b"x")
+			self.assertEqual(self.send_chunk(upload_id, 0, content[:half])["received"], half)
+			# retrying a received chunk is allowed, writing past the end is not
+			self.assertEqual(self.send_chunk(upload_id, 0, content[:half])["received"], half)
+			with self.assertRaises(frappe.ValidationError):
+				self.send_chunk(upload_id, half + 1, b"x")
+			self.assertEqual(self.send_chunk(upload_id, half, content[half:])["received"], len(content))
 
 			checksum = hashlib.sha256(content).hexdigest()
 			file = finish_upload(upload_id, checksum=checksum, file_name="hello.txt")
-
-			self.assertTrue(file.blob)
 			blob = frappe.get_doc("File Blob", file.blob)
-			self.assertEqual(blob.checksum, checksum)
-			self.assertEqual(blob.file_size, len(content))
+			self.assertEqual((blob.checksum, blob.file_size), (checksum, len(content)))
 			self.assertTrue(store.exists(blob.key, is_private=True))
+			self.assertEqual(self.session_files(upload_id), set())
 
-			meta_path, part_path = get_session_paths(upload_id)
-			self.assertFalse(os.path.exists(meta_path))
-			self.assertFalse(os.path.exists(part_path))
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload(upload_id, file_name="hello.txt")
+			self.assertEqual(frappe.db.count("File", {"blob": file.blob}), 1)
+
+	def test_trusted_upload_creates_a_blob_without_file_gates_or_hooks(self):
+		hook_calls = []
+
+		def adopt(*, doc):
+			hook_calls.append(doc)
+			return doc
+
+		first, second = b"first half ", unique_bytes(b"second half ")
+		with storage_v2(), frappe.storage.fake() as store, hook_value("after_file_upload", [adopt]):
+			# a Guest may open a trusted session for an .html name: the caller authorizes it
+			frappe.set_user("Guest")
+			upload_id = self.open_blob_session("trusted.html", len(first + second))
+			self.assertEqual(upload_blob_chunk(upload_id, 0, first)["received"], len(first))
+			# the next chunk appends to the part file instead of truncating it
+			self.assertEqual(
+				upload_blob_chunk(upload_id, len(first), second)["received"], len(first + second)
+			)
+			with open(get_session_paths(upload_id)[1], "rb") as f:
+				self.assertEqual(f.read(), first + second)
+
+			blob = finish_upload_to_blob(upload_id, checksum=hashlib.sha256(first + second).hexdigest())
+			self.assertEqual(blob.file_size, len(first + second))
+			self.assertTrue(store.exists(blob.key, is_private=True))
+			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
+			self.assertEqual(hook_calls, [])
+			self.assertEqual(self.session_files(upload_id), set())
+
+			with self.assertRaises(frappe.ValidationError):
+				finish_upload_to_blob(upload_id)
 
 	def test_ordinary_user_uploads_to_own_todo_and_only_they_read_it_privately(self):
 		uploader, stranger = "test1@example.com", "test2@example.com"
-		with flag_on(), frappe.storage.fake() as store, file_permissions_enforced():
+		with storage_v2(), frappe.storage.fake() as store, file_permissions_enforced():
 			files = {}
 			with self.set_user(uploader):
 				todo = frappe.get_doc(doctype="ToDo", description="storage v2 upload").insert()
 				for is_private in (0, 1):
-					content = b"ordinary user upload " + frappe.generate_hash(length=16).encode()
+					content = unique_bytes(b"ordinary user upload ")
 					upload_id = self.open_session(
 						"notes.txt", len(content), is_private=is_private, doctype="ToDo", docname=todo.name
 					)
@@ -369,320 +647,124 @@ class TestServeUpload(IntegrationTestCase):
 				with self.assertRaises(Forbidden):
 					self.serve(private_file.file_url)
 
-	def test_finish_upload_runs_file_adoption_hook_before_insert_and_saves_mutation(self):
-		content = b"file adoption hook " + frappe.generate_hash(length=16).encode()
-		adopted_name = f"adopted-{frappe.generate_hash(length=10)}.txt"
-		observed = []
-
-		def adopt(*, doc):
-			observed.append((doc.is_new(), bool(frappe.db.exists("File", {"blob": doc.blob}))))
-			doc.file_name = adopted_name
-			return doc
-
-		original_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "after_file_upload":
-				return [adopt]
-			return original_get_hooks(hook, *args, **kwargs)
-
-		with flag_on(), frappe.storage.fake(), patch.object(frappe, "get_hooks", side_effect=get_hooks):
-			upload_id = self.open_session("before-hook.txt", len(content))
-			self.send_chunk(upload_id, 0, content)
-			file = finish_upload(upload_id)
-
-		self.assertEqual(observed, [(True, False)])
-		self.assertEqual(file.file_name, adopted_name)
-		self.assertEqual(frappe.db.get_value("File", file.name, "file_name"), adopted_name)
-
-	def test_finish_upload_propagates_hook_failure_for_transaction_rollback(self):
-		content = b"failing file adoption hook " + frappe.generate_hash(length=16).encode()
-		file_name = f"failure-{frappe.generate_hash(length=10)}.txt"
-		marker = f"file-hook-{frappe.generate_hash(length=12)}"
-
-		def fail_after_writing(*, doc):
-			frappe.get_doc(doctype="ToDo", description=marker).insert()
-			raise RuntimeError("file adoption failed")
-
-		original_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "after_file_upload":
-				return [fail_after_writing]
-			return original_get_hooks(hook, *args, **kwargs)
-
-		frappe.db.savepoint("file_upload_hook_failure")
-		try:
-			with flag_on(), frappe.storage.fake(), patch.object(frappe, "get_hooks", side_effect=get_hooks):
-				upload_id = self.open_session(file_name, len(content))
-				self.send_chunk(upload_id, 0, content)
-				with self.assertRaisesRegex(RuntimeError, "file adoption failed"):
-					finish_upload(upload_id)
-				self.assertFalse(frappe.db.exists("File", {"file_name": file_name}))
-		finally:
-			frappe.db.rollback(save_point="file_upload_hook_failure")
-
-		self.assertFalse(frappe.db.exists("ToDo", {"description": marker}))
-
-	def test_legacy_upload_file_runs_file_adoption_hook_once(self):
-		from frappe.handler import upload_file
-
-		calls = []
-
-		def adopt(*, doc):
-			calls.append(doc)
-			return doc
-
-		original_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "after_file_upload":
-				return [adopt]
-			return original_get_hooks(hook, *args, **kwargs)
-
-		content = b"legacy upload " + frappe.generate_hash(length=16).encode()
-		with flag_on(), frappe.storage.fake(), patch.object(frappe, "get_hooks", side_effect=get_hooks):
-			set_request(
-				method="POST",
-				path="/api/method/upload_file",
-				data={"file": (io.BytesIO(content), "legacy.txt")},
-			)
-			file = upload_file()
-
-		self.assertEqual(len(calls), 1)
-		self.assertIs(calls[0], file)
-
-	def test_trusted_chunked_roundtrip_creates_blob_without_file(self):
-		hook_calls = []
-
-		def adopt(*, doc):
-			hook_calls.append(doc)
-			return doc
-
-		original_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "after_file_upload":
-				return [adopt]
-			return original_get_hooks(hook, *args, **kwargs)
-
-		with (
-			flag_on(),
-			frappe.storage.fake() as store,
-			patch.object(frappe, "get_hooks", side_effect=get_hooks),
-		):
-			content = b"trusted blob upload " + frappe.generate_hash(length=16).encode()
-			upload_id = self.open_blob_session("trusted.bin", len(content))
-
-			first = upload_blob_chunk(upload_id, 0, content[:8])
-			self.assertEqual(first["received"], 8)
-			meta, _meta_path, _part_path = load_session(upload_id)
-			self.assertEqual(meta["session_policy"], BLOB_SESSION)
-
-			second = upload_blob_chunk(upload_id, 8, content[8:])
-			self.assertEqual(second["received"], len(content))
-			blob = finish_upload_to_blob(
-				upload_id,
-				checksum=hashlib.sha256(content).hexdigest(),
-			)
-
-			self.assertEqual(blob.file_size, len(content))
-			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
-			self.assertEqual(hook_calls, [])
-			self.assertTrue(store.exists(blob.key, is_private=True))
-			meta_path, part_path = get_session_paths(upload_id)
-			self.assertFalse(os.path.exists(meta_path))
-			self.assertFalse(os.path.exists(part_path))
-
-	def test_public_endpoints_reject_blob_only_sessions(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_blob_session("private.bin", 4)
-
-			with self.assertRaises(frappe.ValidationError):
-				self.send_chunk(upload_id, 0, b"data")
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload(upload_id)
-
-			# Rejection does not consume the session; the trusted path can finish it.
-			upload_blob_chunk(upload_id, 0, b"data")
-			blob = finish_upload_to_blob(upload_id)
-			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
-
-	def test_trusted_endpoints_reject_file_sessions(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_session("public.txt", 4)
-
-			with self.assertRaises(frappe.ValidationError):
-				upload_blob_chunk(upload_id, 0, b"data")
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload_to_blob(upload_id)
-
-	def test_trusted_upload_interfaces_are_not_http_whitelisted(self):
-		self.assertNotIn(create_blob_upload, frappe.whitelisted)
-		self.assertNotIn(upload_blob_chunk, frappe.whitelisted)
-		self.assertNotIn(finish_upload_to_blob, frappe.whitelisted)
-
-	def test_public_upload_cannot_choose_or_waive_session_policy(self):
-		with flag_on(), frappe.storage.fake():
-			with self.assertRaises(TypeError):
-				create_upload("bypass.txt", 4, session_policy=BLOB_SESSION)
-			with self.assertRaises(TypeError):
-				create_upload("bypass.txt", 4, check_permission=False)
-			with self.assertRaises(TypeError):
-				create_upload("bypass.html", 4, restrict_mimetypes=False)
-
-	def test_session_without_a_policy_is_rejected(self):
-		from frappe.storage.upload import FILE_SESSION, require_session_policy
-
-		for expected in (FILE_SESSION, BLOB_SESSION):
-			with self.subTest(expected=expected), self.assertRaises(frappe.ValidationError):
-				require_session_policy({}, expected)
-
-	def test_cumulative_size_violation_kills_session(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_session("small.txt", 10)
-
-			with self.assertRaises(frappe.ValidationError):
-				self.send_chunk(upload_id, 0, b"x" * 20)
-
-			meta_path, part_path = get_session_paths(upload_id)
-			self.assertFalse(os.path.exists(meta_path))
-			self.assertFalse(os.path.exists(part_path))
-
-			# the session is gone; further chunks are rejected
-			with self.assertRaises(frappe.ValidationError):
-				self.send_chunk(upload_id, 0, b"x")
-
-	def test_trusted_cumulative_size_violation_kills_session(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_blob_session("small.bin", 3)
-
-			with self.assertRaises(frappe.ValidationError):
-				upload_blob_chunk(upload_id, 0, b"four")
-
-			meta_path, part_path = get_session_paths(upload_id)
-			self.assertFalse(os.path.exists(meta_path))
-			self.assertFalse(os.path.exists(part_path))
-
-	def test_trusted_empty_session_is_retryable(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_blob_session("empty.bin", 10)
-
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload_to_blob(upload_id)
-
-			meta_path, _part_path = get_session_paths(upload_id)
-			self.assertTrue(os.path.exists(meta_path))
-			upload_blob_chunk(upload_id, 0, b"data")
-			blob = finish_upload_to_blob(upload_id)
-			self.assertEqual(blob.file_size, 4)
-
-	def test_checksum_mismatch_throws(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"checksum mismatch content"
-			upload_id = self.open_session("sum.txt", len(content))
-			self.send_chunk(upload_id, 0, content)
-
-			self.assertRaises(
-				frappe.ValidationError,
-				finish_upload,
-				upload_id,
-				checksum="0" * 64,
-				file_name="sum.txt",
-			)
-
-	def test_trusted_checksum_failure_cleans_the_session(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"trusted checksum mismatch"
-			upload_id = self.open_blob_session("sum.txt", len(content))
-			upload_blob_chunk(upload_id, 0, content)
-
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload_to_blob(upload_id, checksum="0" * 64)
-
-			meta_path, part_path = get_session_paths(upload_id)
-			self.assertFalse(os.path.exists(meta_path))
-			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
-			self.assertFalse(os.path.exists(part_path))
-
-	def test_trusted_finish_keeps_content_validation(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"<html><script>bad()</script></html>"
-			upload_id = self.open_blob_session("disguised.png", len(content))
-			upload_blob_chunk(upload_id, 0, content)
-
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload_to_blob(upload_id)
-
-			meta_path, part_path = get_session_paths(upload_id)
-			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
-			self.assertFalse(os.path.exists(part_path))
-
-	def test_upload_session_bound_to_owner(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_session("owned.txt", 10)
-
-			frappe.set_user("Guest")
-			with self.assertRaises(frappe.PermissionError):
-				self.send_chunk(upload_id, 0, b"x")
-			with self.assertRaises(frappe.PermissionError):
-				finish_upload(upload_id, file_name="owned.txt")
-
-	def test_trusted_upload_session_bound_to_owner(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_blob_session("owned.bin", 10)
-
-			frappe.set_user("Guest")
-			with self.assertRaises(frappe.PermissionError):
-				upload_blob_chunk(upload_id, 0, b"x")
-			with self.assertRaises(frappe.PermissionError):
-				finish_upload_to_blob(upload_id)
-
-	def test_guest_chunks_stop_when_guest_uploads_are_turned_off(self):
-		"""Every guest is the same session user, so the owner check does not
-		gate them. The permission check has to run per chunk."""
-		with flag_on(), frappe.storage.fake():
-			with self.change_settings("System Settings", allow_guests_to_upload_files=1):
+	def test_guest_uploads_follow_system_settings(self):
+		settings = {
+			"allow_guests_to_upload_files": 1,
+			"allowed_doctypes_for_guest_uploads": "ToDo\n\nBlog Post\n",
+		}
+		todo = {"doctype": "ToDo", "docname": "new-todo-1"}
+		with storage_v2(), frappe.storage.fake():
+			with self.change_settings("System Settings", settings):
 				frappe.set_user("Guest")
-				upload_id = self.open_session("guest.txt", 10)
+				with self.assertRaises(frappe.PermissionError):
+					create_upload("ok.png", 10, doctype="Contact", docname="new-contact-1")
+				# guests keep upload_file's mimetype allowlist, at create and at finish
+				with self.assertRaises(frappe.ValidationError):
+					create_upload("evil.html", 10, **todo)
+				upload_id = self.open_session("ok.png", 10, **todo)
 				self.assertEqual(self.send_chunk(upload_id, 0, b"abc")["received"], 3)
+				with self.assertRaises(frappe.ValidationError):
+					finish_upload(upload_id, file_name="evil.html")
 
+			# every guest is the same session user, so the permission check runs per chunk
 			with self.assertRaises(frappe.PermissionError):
 				self.send_chunk(upload_id, 3, b"def")
 
-	def test_finish_upload_cannot_run_twice(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"only one file row"
-			upload_id = self.open_session("once.txt", len(content))
-			self.send_chunk(upload_id, 0, content)
+	def test_direct_upload_finishes_from_the_bucket_object(self):
+		with storage_v2(), use_driver(DirectTargetDriver()) as driver:
+			for kind, open_session, send_chunk, finish in self.session_kinds():
+				with self.subTest(kind=kind):
+					content = unique_bytes(b"direct upload bytes ")
+					upload_id = open_session("direct.bin", len(content), mode="direct")
+					with self.assertRaises(frappe.ValidationError):
+						send_chunk(upload_id, 0, b"x")
+					# finishing before the browser uploaded fails and keeps the session
+					with self.assertRaises(frappe.ValidationError):
+						finish(upload_id)
 
-			file = finish_upload(upload_id, file_name="once.txt")
-			self.addCleanup(
-				frappe.delete_doc, "File", file.name, force=1, ignore_permissions=True, ignore_missing=True
-			)
-			self.assertTrue(file.blob)
+					driver.write(f"uploads/{upload_id}", io.BytesIO(content), is_private=True)
+					blob = blob_of(finish(upload_id))
+					self.assertEqual(blob.checksum, hashlib.sha256(content).hexdigest())
+					self.assertTrue(driver.exists(blob.key, is_private=True))
+					self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 1 if kind == "file" else 0)
+					self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
 
+				with self.subTest(kind=kind, object="oversize"):
+					upload_id = open_session("oversize.bin", 3, mode="direct")
+					driver.write(f"uploads/{upload_id}", io.BytesIO(b"four"), is_private=True)
+					with self.assertRaises(frappe.ValidationError):
+						finish(upload_id)
+					self.assertEqual(self.session_files(upload_id), set())
+					self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
+
+	def test_direct_upload_object_that_vanishes_before_the_read_fails(self):
+		with storage_v2(), use_driver(VanishingDirectDriver()):
+			upload_id = self.open_session("gone.txt", 10, mode="direct")
+			# exists() passes the pre-flight check, read() then finds nothing
 			with self.assertRaises(frappe.ValidationError):
-				finish_upload(upload_id, file_name="once.txt")
-			self.assertEqual(frappe.db.count("File", {"blob": file.blob}), 1)
+				finish_upload(upload_id, file_name="gone.txt")
+			self.assertEqual(frappe.db.count("File", {"file_name": "gone.txt"}), 0)
 
-	def test_trusted_finish_cannot_run_twice(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"only one trusted finish"
-			upload_id = self.open_blob_session("once.bin", len(content))
-			upload_blob_chunk(upload_id, 0, content)
+	# ---- upload sessions: rules shared by both kinds ----
 
-			blob = finish_upload_to_blob(upload_id)
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload_to_blob(upload_id)
+	def test_session_rules_hold_for_both_kinds(self):
+		content = b"session rule bytes"
+		failing_finishes = (
+			(unique_bytes(b"checksum mismatch "), "sum.txt", "0" * 64),
+			(b"<html><script>bad()</script></html>", "disguised.png", None),
+		)
+		with storage_v2(), frappe.storage.fake():
+			for kind, open_session, send_chunk, finish in self.session_kinds():
+				with self.subTest(kind=kind, rule="bound to the owner"):
+					upload_id = open_session("owned.bin", 10)
+					with self.set_user("Guest"):
+						with self.assertRaises(frappe.PermissionError):
+							send_chunk(upload_id, 0, b"x")
+						with self.assertRaises(frappe.PermissionError):
+							finish(upload_id)
 
-			self.assertEqual(frappe.db.count("File Blob", {"name": blob.name}), 1)
-			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
+				with self.subTest(kind=kind, rule="an oversize chunk kills the session"):
+					upload_id = open_session("small.bin", 3)
+					with self.assertRaises(frappe.ValidationError):
+						send_chunk(upload_id, 0, b"four")
+					self.assertEqual(self.session_files(upload_id), set())
+					with self.assertRaises(frappe.ValidationError):
+						send_chunk(upload_id, 0, b"x")
+
+				for failing_content, filename, checksum in failing_finishes:
+					with self.subTest(kind=kind, rule="a failed finish drops the session", filename=filename):
+						upload_id = open_session(filename, len(failing_content))
+						send_chunk(upload_id, 0, failing_content)
+						with self.assertRaises(frappe.ValidationError):
+							finish(upload_id, checksum=checksum)
+						self.assertEqual(self.session_files(upload_id), set())
+
+				with self.subTest(kind=kind, rule="a finish without bytes is retryable"):
+					upload_id = open_session("empty.bin", len(content))
+					with self.assertRaisesRegex(frappe.ValidationError, "no data"):
+						finish(upload_id)
+					self.assertEqual(self.session_files(upload_id), {"meta", "part"})
+					send_chunk(upload_id, 0, content)
+					self.assertEqual(blob_of(finish(upload_id)).file_size, len(content))
+
+				# a finish that consumed the session deleted its part file; a chunk
+				# still in flight must not re-create it and report bytes nobody reads
+				with self.subTest(kind=kind, rule="a session without its part file refuses work"):
+					upload_id = open_session("missing.bin", len(content))
+					send_chunk(upload_id, 0, content)
+					delete_session(get_session_paths(upload_id)[1])
+					# the no-data check runs before the claim, so the session stays unclaimed
+					with self.assertRaisesRegex(frappe.ValidationError, "no data"):
+						finish(upload_id)
+					with self.assertRaisesRegex(frappe.ValidationError, "no data"):
+						send_chunk(upload_id, 0, content)
+					self.assertEqual(self.session_files(upload_id), {"meta"})
+
+	# ---- upload sessions: finish races ----
 
 	def test_concurrent_session_claim_has_a_single_winner(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_session("race.txt", 4)
-			meta_path, _part_path = get_session_paths(upload_id)
+		with storage_v2(), frappe.storage.fake():
+			meta_path, _part_path = get_session_paths(self.open_session("race.txt", 4))
 			barrier = Barrier(2)
 
 			def compete():
@@ -696,16 +778,13 @@ class TestServeUpload(IntegrationTestCase):
 				futures = [pool.submit(copy_context().run, compete) for _ in range(2)]
 				results = [future.result() for future in futures]
 
-			winners = [claimed for claimed in results if claimed]
-			self.assertEqual(len(winners), 1)
-			self.addCleanup(delete_session, winners[0])
+			self.assertEqual(len([claimed for claimed in results if claimed]), 1)
 
 	def test_finish_refuses_a_session_consumed_while_it_is_read(self):
-		"""The winner of a finish race deletes the session while the loser is
-		still reading its meta file. The loser has to see the stable session
-		error, not the raw OSError of the vanished file."""
+		"""The winner of a finish race deletes the session while the loser still
+		reads its meta file. The loser sees the session error, not an OSError."""
 		content = b"one winner only"
-		with flag_on(), frappe.storage.fake():
+		with storage_v2(), frappe.storage.fake():
 			upload_id = self.open_blob_session("race.bin", len(content))
 			upload_blob_chunk(upload_id, 0, content)
 			meta_path, part_path = get_session_paths(upload_id)
@@ -721,16 +800,13 @@ class TestServeUpload(IntegrationTestCase):
 				with self.assertRaisesRegex(frappe.ValidationError, "not found or expired"):
 					finish_upload_to_blob(upload_id)
 
-			# the loser claimed nothing and left no session artifact behind
-			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
-			self.assertFalse(os.path.exists(meta_path))
+			self.assertEqual(self.session_files(upload_id), set())
 
 	def test_finish_refuses_a_session_whose_part_vanishes_after_the_claim(self):
-		"""Claiming the session does not pin the part file. A concurrent chunk
-		write that overruns the declared size deletes it, so the finisher has to
-		see the stable session error, not the raw OSError of the vanished part."""
+		"""Claiming does not pin the part file: a concurrent oversize chunk deletes
+		it. The finisher sees the session error, not an OSError."""
 		content = b"claimed then robbed"
-		with flag_on(), frappe.storage.fake():
+		with storage_v2(), frappe.storage.fake():
 			upload_id = self.open_blob_session("robbed.bin", len(content))
 			upload_blob_chunk(upload_id, 0, content)
 			meta_path, part_path = get_session_paths(upload_id)
@@ -739,7 +815,6 @@ class TestServeUpload(IntegrationTestCase):
 			def rob_after_claim(src, dst, *args, **kwargs):
 				result = real_rename(src, dst, *args, **kwargs)
 				if src == meta_path:
-					# stands in for a concurrent oversize chunk write
 					delete_session(part_path)
 				return result
 
@@ -747,756 +822,122 @@ class TestServeUpload(IntegrationTestCase):
 				with self.assertRaisesRegex(frappe.ValidationError, "no data"):
 					finish_upload_to_blob(upload_id)
 
-			# the claim was still released, so nothing survives the failure
-			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
-			self.assertFalse(os.path.exists(part_path))
+			# the claim was still released
+			self.assertEqual(self.session_files(upload_id), set())
 
-	def test_finish_refuses_a_vanished_part_before_claiming_the_session(self):
-		"""The no-data check runs before the claim, so a session whose part file
-		is gone stays unclaimed and the client can retry it."""
-		content = b"bytes that go missing"
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_blob_session("missing.bin", len(content))
-			upload_blob_chunk(upload_id, 0, content)
-			meta_path, part_path = get_session_paths(upload_id)
-			delete_session(part_path)
+	# ---- upload sessions: file adoption hook ----
 
-			with self.assertRaisesRegex(frappe.ValidationError, "no data"):
-				finish_upload_to_blob(upload_id)
+	def test_both_upload_routes_run_the_file_adoption_hook_once(self):
+		from frappe.handler import upload_file
 
-			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
-			self.assertTrue(os.path.exists(meta_path))
+		adopted_name = f"adopted-{frappe.generate_hash(length=10)}.txt"
+		calls, observed = [], []
 
-	def test_chunk_write_refuses_a_session_whose_part_is_already_gone(self):
-		"""A finish that consumed the session deleted its part file. A chunk
-		still in flight has to refuse: re-creating the file would resurrect a
-		dead session and report bytes as received that no finish ever reads."""
-		content = b"written after the end"
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_blob_session("resurrected.bin", len(content))
-			_meta_path, part_path = get_session_paths(upload_id)
-			# stands in for the winner's delete_session in _finish_upload_to_blob
-			delete_session(part_path)
+		def adopt(*, doc):
+			calls.append(doc)
+			observed.append((doc.is_new(), bool(frappe.db.exists("File", {"blob": doc.blob}))))
+			doc.file_name = adopted_name
+			return doc
 
-			with self.assertRaisesRegex(frappe.ValidationError, "no data"):
-				upload_blob_chunk(upload_id, 0, content)
+		with storage_v2(), frappe.storage.fake(), hook_value("after_file_upload", [adopt]):
+			content = unique_bytes(b"file adoption hook ")
+			upload_id = self.open_session("before-hook.txt", len(content))
+			self.send_chunk(upload_id, 0, content)
+			file = finish_upload(upload_id)
+			self.assertEqual(observed, [(True, False)])
+			# the hook's mutation is saved
+			self.assertEqual(file.file_name, adopted_name)
+			self.assertEqual(frappe.db.get_value("File", file.name, "file_name"), adopted_name)
 
-			self.assertFalse(os.path.exists(part_path))
-
-	def test_chunk_write_resumes_without_truncating_earlier_bytes(self):
-		"""Opening the part file without an existence probe must still append
-		to an in-progress session rather than restart it."""
-		first, second = b"first half ", b"second half"
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_blob_session("resumed.bin", len(first) + len(second))
-			_meta_path, part_path = get_session_paths(upload_id)
-
-			self.assertEqual(upload_blob_chunk(upload_id, 0, first)["received"], len(first))
-			result = upload_blob_chunk(upload_id, len(first), second)
-
-			self.assertEqual(result["received"], len(first) + len(second))
-			with open(part_path, "rb") as f:
-				self.assertEqual(f.read(), first + second)
-
-	def test_guest_upload_restricted_to_legacy_mimetypes(self):
-		with flag_on(), frappe.storage.fake():
-			with self.change_settings("System Settings", {"allow_guests_to_upload_files": 1}):
-				frappe.set_user("Guest")
-				try:
-					with self.assertRaises(frappe.ValidationError):
-						create_upload("evil.html", 10)
-
-					upload_id = self.open_session("ok.png", 10)
-					self.send_chunk(upload_id, 0, b"x" * 10)
-					# the finish-time file_name override is gated too
-					with self.assertRaises(frappe.ValidationError):
-						finish_upload(upload_id, file_name="evil.html")
-				finally:
-					frappe.set_user("Administrator")
-
-	def test_trusted_create_skips_legacy_permission_and_filename_mime_gates(self):
-		content = b"trusted opaque content"
-		with flag_on(), frappe.storage.fake():
-			frappe.set_user("Guest")
-			try:
-				upload_id = self.open_blob_session("trusted.html", len(content))
-				upload_blob_chunk(upload_id, 0, content)
-				blob = finish_upload_to_blob(upload_id)
-				self.assertEqual(blob.file_size, len(content))
-				self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
-			finally:
-				frappe.set_user("Administrator")
-
-	def test_direct_upload_roundtrip(self):
-		content = b"direct upload bytes " + frappe.generate_hash(length=16).encode()
-
-		class DirectDriver(MemoryDriver):
-			def upload_target(self, key, size, *, is_private=False):
-				return {"mode": "direct", "url": "http://bucket.example/upload"}
-
-		with flag_on():
-			driver = DirectDriver()
-			previous = getattr(frappe.local, "storage_driver_override", None)
-			frappe.local.storage_driver_override = driver
-			try:
-				result = create_upload("direct.txt", len(content), is_private=1)
-				self.assertEqual(result["mode"], "direct")
-				upload_id = result["upload_id"]
-				self._sessions.append(upload_id)
-
-				# chunks are rejected for direct sessions
-				with self.assertRaises(frappe.ValidationError):
-					self.send_chunk(upload_id, 0, b"x")
-
-				# finishing before the browser uploaded fails, session survives
-				with self.assertRaises(frappe.ValidationError):
-					finish_upload(upload_id, file_name="direct.txt")
-
-				# simulate the browser PUT to the native target
-				driver.write(f"uploads/{upload_id}", io.BytesIO(content), is_private=True)
-
-				file = finish_upload(upload_id, file_name="direct.txt")
-				self.addCleanup(
-					frappe.delete_doc,
-					"File",
-					file.name,
-					force=1,
-					ignore_permissions=True,
-					ignore_missing=True,
-				)
-				blob = frappe.get_doc("File Blob", file.blob)
-				self.assertEqual(blob.checksum, hashlib.sha256(content).hexdigest())
-				self.assertTrue(driver.exists(blob.key, is_private=True))
-				# the temporary object is gone
-				self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
-			finally:
-				frappe.local.storage_driver_override = previous
-
-	def test_trusted_direct_upload_finishes_to_blob_and_deletes_temporary_object(self):
-		content = b"trusted direct bytes " + frappe.generate_hash(length=16).encode()
-		with flag_on(), use_driver(DirectTargetDriver()) as driver:
-			result = create_blob_upload("direct.bin", len(content))
-			self.assertEqual(result["mode"], "direct")
-			upload_id = result["upload_id"]
-			self._sessions.append(upload_id)
-			driver.write(f"uploads/{upload_id}", io.BytesIO(content), is_private=True)
-
-			blob = finish_upload_to_blob(upload_id)
-
-			self.assertEqual(blob.checksum, hashlib.sha256(content).hexdigest())
-			self.assertEqual(frappe.db.count("File", {"blob": blob.name}), 0)
-			self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
-
-	def test_trusted_direct_upload_enforces_declared_size(self):
-		with flag_on(), use_driver(DirectTargetDriver()) as driver:
-			result = create_blob_upload("oversize.bin", 3)
-			upload_id = result["upload_id"]
-			self._sessions.append(upload_id)
-			driver.write(f"uploads/{upload_id}", io.BytesIO(b"four"), is_private=True)
-
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload_to_blob(upload_id)
-
-			meta_path, _part_path = get_session_paths(upload_id)
-			self.assertFalse(os.path.exists(meta_path))
-			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
-			self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
-
-	def test_stale_session_expiry_removes_files(self):
-		with flag_on(), frappe.storage.fake():
-			stale_id = self.open_session("stale.txt", 10)
-			fresh_id = self.open_session("fresh.txt", 10)
-
-			stale_meta, stale_part = get_session_paths(stale_id)
-			backdated = time.time() - 25 * 3600
-			os.utime(stale_meta, (backdated, backdated))
-			os.utime(stale_part, (backdated, backdated))
-
-			removed = expire_stale_upload_sessions(max_age_hours=24)
-
-			self.assertGreaterEqual(removed, 1)
-			self.assertFalse(os.path.exists(stale_meta))
-			self.assertFalse(os.path.exists(stale_part))
-
-			fresh_meta, fresh_part = get_session_paths(fresh_id)
-			self.assertTrue(os.path.exists(fresh_meta))
-			self.assertTrue(os.path.exists(fresh_part))
-
-	# ---- serve route: response modes ----
-
-	def test_public_files_route_serves_only_public_blobs_and_moved_v1_files(self):
-		with flag_on(), frappe.storage.fake():
-			public = put_blob(io.BytesIO(b"public bytes " + frappe.generate_hash(length=16).encode()))
-			private = put_blob(
-				io.BytesIO(b"private bytes " + frappe.generate_hash(length=16).encode()), is_private=True
+			content = unique_bytes(b"legacy upload ")
+			set_request(
+				method="POST",
+				path="/api/method/upload_file",
+				data={"file": (io.BytesIO(content), "legacy.txt")},
 			)
-			# a v1 public URL whose bytes moved into a blob on another driver
-			moved_content = b"moved v1 bytes " + frappe.generate_hash(length=16).encode()
-			moved = put_blob(io.BytesIO(moved_content), filename="logo.png")
-			v1_url = f"/files/storage-v2-moved-{frappe.generate_hash(length=10)}.png"
-			self.insert_file_row(v1_url, moved.name, file_name="logo.png", is_private=0)
+			legacy_file = upload_file()
 
-			frappe.set_user("Guest")
-			response = self.serve(v1_url)
-			self.assertEqual(response.status_code, 200)
-			self.assertEqual(response_body(response), moved_content)
+		self.assertEqual(len(calls), 2)
+		self.assertIs(calls[0], file)
+		self.assertIs(calls[1], legacy_file)
 
-			for path in (
-				"/files/",
-				"/files/some.txt",
-				"/files/nosuchblob/a.txt",
-				f"/files/{public.name}/a/b.txt",
-				# a private blob is never served under /files/, not even its own URL
-				f"/files/{private.name}/file",
-			):
-				with self.subTest(path=path), self.assertRaises(NotFound):
-					self.serve(path)
+	def test_finish_upload_propagates_hook_failure_for_transaction_rollback(self):
+		file_name = f"failure-{frappe.generate_hash(length=10)}.txt"
+		marker = f"file-hook-{frappe.generate_hash(length=12)}"
 
-			frappe.set_user("Administrator")
-			with self.assertRaises(NotFound):
-				self.serve(f"/files/{private.name}/file")
+		def fail_after_writing(*, doc):
+			frappe.get_doc(doctype="ToDo", description=marker).insert()
+			raise RuntimeError("file adoption failed")
 
-	def test_private_files_route_needs_a_signature_or_permission(self):
-		from frappe.core.doctype.file.file_v2 import create_file_from_blob
-		from frappe.utils.logging import ensure_log_table, get_log_db
-
-		ensure_log_table("Access Log")
-		with flag_on(), frappe.storage.fake():
-			content = b"private route " + frappe.generate_hash(length=16).encode()
-			blob = put_blob(io.BytesIO(content), is_private=True, filename="report.txt")
-			url = f"/private/files/{blob.name}/report.txt"
-
-			# no File row: nobody passes the permission check, not even Administrator
-			with self.assertRaises(Forbidden):
-				self.serve(url)
-
-			create_file_from_blob(blob, "report.txt", is_private=True)
-			response = self.serve(url)
-			self.assertEqual(response_body(response), content)
-			# Access Log rows live in the site's SQLite log database
-			self.assertTrue(
-				get_log_db().exists(
-					"Access Log", {"reference_document": blob.name, "export_from": "File Blob"}
-				)
-			)
-
-			frappe.set_user("Guest")
-			with self.assertRaises(Forbidden):
-				self.serve(url)
-			expires = int(time.time()) + 60
-			response = self.serve(url, e=str(expires), s=make_signature(blob.name, "report.txt", expires))
-			self.assertEqual(response_body(response), content)
-
-	def test_private_v1_url_of_a_moved_file_is_served_from_its_blob(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"moved private " + frappe.generate_hash(length=16).encode()
-			blob = put_blob(io.BytesIO(content), is_private=True, filename="contract.pdf")
-			v1_url = f"/private/files/storage-v2-moved-{frappe.generate_hash(length=10)}.pdf"
-			self.insert_file_row(v1_url, blob.name, file_name="contract.pdf", is_private=1)
-
-			response = self.serve(v1_url)
-			self.assertEqual(response.status_code, 200)
-			self.assertEqual(response_body(response), content)
-
-			frappe.set_user("Guest")
-			with self.assertRaises(Forbidden):
-				self.serve(v1_url)
-
-	def test_pdf_renderer_reads_blobs_that_are_not_on_disk(self):
-		from frappe.core.doctype.file.file_v2 import create_file_from_blob
-		from frappe.tests.test_chrome_pdf_interceptor import _fire_request, _make_page, _make_session
-
-		host = "https://example.frappe.test/"
-		with flag_on(), frappe.storage.fake():
-			public = put_blob(io.BytesIO(b"<svg>public</svg>"), filename="logo.svg")
-			private = put_blob(io.BytesIO(b"private png"), is_private=True, filename="sign.png")
-			create_file_from_blob(private, "sign.png", is_private=True)
-			moved = put_blob(io.BytesIO(b"moved jpg"), is_private=True, filename="photo.jpg")
-			moved_url = f"/private/files/storage-v2-moved-{frappe.generate_hash(length=10)}.jpg"
-			self.insert_file_row(moved_url, moved.name, file_name="photo.jpg", is_private=1)
-			urls = {
-				f"/files/{public.name}/logo.svg": (b"<svg>public</svg>", "image/svg+xml"),
-				f"/private/files/{private.name}/sign.png": (b"private png", "image/png"),
-				moved_url: (b"moved jpg", "image/jpeg"),
-			}
-
-			def render(url: str, user: str):
-				"""Fire one intercepted request as ``user``; return the CDP command and its params."""
-				captured = [None]
-				session = _make_session(captured)
-				frappe.set_user(user)
-				with patch("frappe.utils.chromium.page.get_host_url", return_value=host):
-					_make_page(session).intercept_request_for_local_resources()
-					_fire_request(captured[0], "req", host + url.lstrip("/"))
-				return session.send.call_args.args[:2]
-
-			for url, (content, content_type) in urls.items():
-				with self.subTest(url=url):
-					method, params = render(url, "Administrator")
-					self.assertEqual(method, "Fetch.fulfillRequest")
-					self.assertEqual(base64.b64decode(params["body"]), content)
-					self.assertIn({"name": "Content-Type", "value": content_type}, params["responseHeaders"])
-
-			self.assertEqual(render(f"/files/{public.name}/logo.svg", "Guest")[0], "Fetch.fulfillRequest")
-			for url in list(urls)[1:]:
-				with self.subTest(url=url, user="Guest"):
-					method, params = render(url, "Guest")
-					self.assertEqual(method, "Fetch.failRequest")
-					self.assertEqual(params["errorReason"], "AccessDenied")
-
-	def test_pdf_renderer_fails_only_the_image_a_driver_cannot_read(self):
-		from frappe.tests.test_chrome_pdf_interceptor import _fire_request, _make_page, _make_session
-
-		class StorageUnavailable(Exception):
-			"""Not an OSError, like botocore's EndpointConnectionError."""
-
-		class UnreachableDriver(MemoryDriver):
-			def read(self, key, *, is_private=False):
-				raise StorageUnavailable("storage is unreachable")
-
-		host = "https://example.frappe.test/"
-		with flag_on(), use_driver(UnreachableDriver()):
-			blob = put_blob(io.BytesIO(b"<svg>unreachable</svg>"), filename="logo.svg")
-			captured = [None]
-			session = _make_session(captured)
-			with patch("frappe.utils.chromium.page.get_host_url", return_value=host):
-				_make_page(session).intercept_request_for_local_resources()
-				_fire_request(captured[0], "req", f"{host}files/{blob.name}/logo.svg")
-
-		method, params = session.send.call_args.args[:2]
-		self.assertEqual(method, "Fetch.failRequest")
-		self.assertEqual(params["requestId"], "req")
-
-	def insert_file_row(self, file_url: str, blob_name: str, *, file_name: str, is_private: int):
-		"""A File row as relocation leaves it: a v1 URL linked to a blob."""
-		file = frappe.new_doc("File")
-		file.name = frappe.generate_hash(length=10)
-		file.update(
-			{
-				"file_name": file_name,
-				"file_url": file_url,
-				"blob": blob_name,
-				"is_private": is_private,
-				"is_folder": 0,
-			}
-		)
-		file.db_insert()
-		return file
-
-	def test_driver_native_url_redirects(self):
-		with flag_on(), use_driver(NativeUrlDriver()):
-			public = put_blob(io.BytesIO(b"native " + frappe.generate_hash(length=16).encode()))
-			private = put_blob(
-				io.BytesIO(b"native " + frappe.generate_hash(length=16).encode()), is_private=True
-			)
-
-			frappe.set_user("Guest")
-			response = self.serve(f"/files/{public.name}/n.txt")
-
-			self.assertEqual(response.status_code, 302)
-			self.assertEqual(
-				response.headers["Location"], f"https://cdn.example/{public.name}/file?name=n.txt&ttl=3600"
-			)
-			self.assertEqual(response.headers["Cache-Control"], "public, max-age=1800")
-
-			expires = int(time.time()) + 60
-			sig = make_signature(private.name, "n.txt", expires)
-			response = self.serve(f"/private/files/{private.name}/n.txt", e=str(expires), s=sig)
-
-			self.assertEqual(response.status_code, 302)
-			self.assertEqual(
-				response.headers["Location"], f"https://cdn.example/{private.name}/file?name=n.txt&ttl=60"
-			)
-			self.assertNotIn("public", response.headers.get("Cache-Control") or "")
-
-	def test_authorized_stream_uses_native_url_only_when_enabled(self):
-		with flag_on(), use_driver(NativeUrlDriver()):
-			content = b"dav native " + frappe.generate_hash(length=16).encode()
-			blob = put_blob(io.BytesIO(content), is_private=True, filename="n.txt")
-			set_request(method="GET", path="/dav/n.txt")
-
-			response = stream_blob(blob, "n.txt")
-			self.assertEqual(response.status_code, 200)
-			self.assertEqual(response_body(response), content)
-			response.close()
-
-			response = stream_blob(blob, "n.txt", allow_native_redirect=True)
-
-			self.assertEqual(response.status_code, 302)
-			self.assertIn(blob.key, response.headers["Location"])
-
-	def test_missing_blob_bytes_are_not_found(self):
-		with flag_on(), frappe.storage.fake() as store:
-			blob = put_blob(io.BytesIO(b"vanishing " + frappe.generate_hash(length=16).encode()))
-			store.delete(blob.key, is_private=False)
-
-			with self.assertRaises(NotFound):
-				self.serve(f"/files/{blob.name}/gone.txt")
-
-	def test_x_accel_redirect_for_private_blob(self):
-		root = tempfile.TemporaryDirectory()
-		self.addCleanup(root.cleanup)
-		with flag_on(), use_driver(TempLocalDriver(root.name)):
-			blob = put_blob(
-				io.BytesIO(b"accel private " + frappe.generate_hash(length=16).encode()),
-				is_private=True,
-				filename="report.pdf",
-			)
-			self.assertEqual(blob.driver, "local")
-			expires = int(time.time()) + 60
-			sig = make_signature(blob.name, "report.pdf", expires)
-
-			frappe.set_user("Guest")
-			response = self.serve_with_headers(
-				f"/private/files/{blob.name}/report.pdf",
-				{"X-Use-X-Accel-Redirect": "1"},
-				e=str(expires),
-				s=sig,
-			)
-
-			private_path = frappe.local.conf.get("private_path", "private")
-			self.assertEqual(
-				response.headers["X-Accel-Redirect"],
-				f"/protected/{private_path}/files/{blob.name}/report.pdf",
-			)
-			self.assertEqual(response.headers["Accept-Ranges"], "bytes")
-			self.assertEqual(response.headers["Content-Type"], "application/pdf")
-			self.assertIn("private", response.headers["Cache-Control"])
-			# a pdf is not active content: it stays inline
-			self.assertIsNone(response.headers.get("Content-Disposition"))
-
-	def test_x_accel_redirect_for_public_blob_forces_attachment(self):
-		svg = (
-			b'<svg xmlns="http://www.w3.org/2000/svg"><!--' + frappe.generate_hash(16).encode() + b"--></svg>"
-		)
-		root = tempfile.TemporaryDirectory()
-		self.addCleanup(root.cleanup)
-		with flag_on(), use_driver(TempLocalDriver(root.name)):
-			blob = put_blob(io.BytesIO(svg), is_private=False, filename="logo.svg")
-
-			frappe.set_user("Guest")
-			response = self.serve_with_headers(
-				f"/files/{blob.name}/logo.svg", {"X-Use-X-Accel-Redirect": "1"}
-			)
-
-			self.assertEqual(response.headers["X-Accel-Redirect"], f"/files/{blob.name}/logo.svg")
-			self.assertEqual(response.headers["Content-Type"], "image/svg+xml")
-			self.assertEqual(
-				response.headers["Content-Disposition"],
-				"attachment; filename*=UTF-8''logo.svg",
-			)
-
-	def test_range_request_served_from_disk(self):
-		root = tempfile.TemporaryDirectory()
-		self.addCleanup(root.cleanup)
-		with flag_on(), use_driver(TempLocalDriver(root.name)):
-			content = (b"range " + frappe.generate_hash(length=16).encode()) * 8
-			blob = put_blob(io.BytesIO(content), is_private=False, filename="data.bin")
-
-			frappe.set_user("Guest")
-			response = self.serve_with_headers(f"/files/{blob.name}/data.bin", {"Range": "bytes=5-14"})
-
-			self.assertEqual(response.status_code, 206)
-			self.assertEqual(response.headers["Content-Range"], f"bytes 5-14/{len(content)}")
-			self.assertEqual(response_body(response), content[5:15])
-			response.close()
-
-	def test_range_request_served_from_non_local_driver(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"0123456789abcdefghijklmnopqrstuvwxyz"
-			blob = put_blob(io.BytesIO(content), is_private=True, filename="data.bin")
-			set_request(method="GET", path="/dav/data.bin", headers={"Range": "bytes=5-14"})
-
-			response = stream_blob(blob, "data.bin")
-
-			self.assertEqual(response.status_code, 206)
-			self.assertEqual(response.headers["Content-Range"], f"bytes 5-14/{len(content)}")
-			self.assertEqual(response.headers["Accept-Ranges"], "bytes")
-			self.assertEqual(response_body(response), content[5:15])
-			response.close()
-
-	def test_open_ended_range_returns_tail(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"0123456789abcdefghijklmnopqrstuvwxyz"
-			blob = put_blob(io.BytesIO(content), is_private=True, filename="data.bin")
-			set_request(method="GET", path="/dav/data.bin", headers={"Range": "bytes=20-"})
-
-			response = stream_blob(blob, "data.bin")
-
-			self.assertEqual(response.status_code, 206)
-			self.assertEqual(response.headers["Content-Range"], f"bytes 20-35/{len(content)}")
-			self.assertEqual(response_body(response), content[20:])
-			response.close()
-
-	def test_unsatisfiable_range_returns_416(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"short content"
-			blob = put_blob(io.BytesIO(content), is_private=True, filename="data.bin")
-			set_request(method="GET", path="/dav/data.bin", headers={"Range": "bytes=100-200"})
-
-			response = stream_blob(blob, "data.bin")
-
-			self.assertEqual(response.status_code, 416)
-			self.assertEqual(response.headers["Content-Range"], f"bytes */{len(content)}")
-			self.assertEqual(response_body(response), b"")
-
-	def test_matching_etag_returns_304_without_reading_driver(self):
-		with flag_on(), frappe.storage.fake() as store:
-			blob = put_blob(io.BytesIO(b"conditional content"), is_private=True, filename="data.bin")
-			set_request(method="GET", path="/dav/data.bin", headers={"If-None-Match": f'"{blob.checksum}"'})
-
-			with patch.object(store, "read") as read, patch.object(store, "read_range") as read_range:
-				response = stream_blob(blob, "data.bin")
-
-			self.assertEqual(response.status_code, 304)
-			self.assertEqual(response.headers["ETag"], f'"{blob.checksum}"')
-			read.assert_not_called()
-			read_range.assert_not_called()
-
-	def test_stream_blob_skips_permission_and_access_log(self):
-		with flag_on(), frappe.storage.fake():
-			content = b"already authorized"
-			blob = put_blob(io.BytesIO(content), is_private=True, filename="private.bin")
-			frappe.set_user("Guest")
-			set_request(method="GET", path="/dav/private.bin")
-
-			with (
-				patch("frappe.storage.serve.has_file_permission") as has_permission,
-				patch("frappe.storage.serve.make_access_log") as access_log,
-			):
-				response = stream_blob(blob, "private.bin")
-
-			self.assertEqual(response.status_code, 200)
-			self.assertEqual(response_body(response), content)
-			has_permission.assert_not_called()
-			access_log.assert_not_called()
-			response.close()
-
-	def test_local_blob_with_missing_file_is_not_found(self):
-		root = tempfile.TemporaryDirectory()
-		self.addCleanup(root.cleanup)
-		with flag_on(), use_driver(TempLocalDriver(root.name)) as driver:
-			content = b"deleted from disk " + frappe.generate_hash(length=16).encode()
-			blob = put_blob(io.BytesIO(content), is_private=False, filename="data.bin")
-			os.remove(driver.get_path(blob.key, False))
-
-			frappe.set_user("Guest")
-			with self.assertRaises(NotFound):
-				self.serve(f"/files/{blob.name}/data.bin")
-
-	# ---- upload sessions: guards ----
-
-	def test_upload_endpoints_need_the_flag(self):
-		with flag_off():
-			with self.assertRaises(frappe.ValidationError):
-				create_upload("off.txt", 10)
-			with self.assertRaises(frappe.ValidationError):
-				self.send_chunk("doesnotmatter", 0, b"x")
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload("doesnotmatter")
-
-	def test_invalid_upload_id_rejected(self):
-		with flag_on(), frappe.storage.fake():
-			for upload_id in ("", "../../etc/passwd", "abc.def", "abc/def"):
-				with self.assertRaises(frappe.ValidationError):
-					get_session_paths(upload_id)
-			with self.assertRaises(frappe.ValidationError):
-				self.send_chunk("../../etc/passwd", 0, b"x")
-
-	def test_chunk_offset_must_not_leave_a_hole(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_session("holes.txt", 10)
-
-			# nothing received yet: only offset 0 is valid
-			with self.assertRaises(frappe.ValidationError):
-				self.send_chunk(upload_id, 5, b"x")
-			with self.assertRaises(frappe.ValidationError):
-				self.send_chunk(upload_id, -1, b"x")
-
-			self.assertEqual(self.send_chunk(upload_id, 0, b"abc")["received"], 3)
-			# retrying an already received chunk is allowed
-			self.assertEqual(self.send_chunk(upload_id, 0, b"abc")["received"], 3)
-			# writing past the end of the part file is not
-			with self.assertRaises(frappe.ValidationError):
-				self.send_chunk(upload_id, 4, b"x")
-
-	def test_chunk_refuses_form_encoded_bodies_without_buffering_them(self):
-		# get_request_bytes must refuse by Content-Type alone, before Werkzeug's
-		# form parser ever reads the socket: touching request.form/request.files
-		# on a streaming request path (max_content_length lifted to None by
-		# frappe/app.py:init_request) would otherwise spool an attacker-chosen
-		# body of any size before the declared-size limit below is ever checked.
-		huge_part = b"x" * (256 * 1024)
-		cases = [
-			("multipart/form-data", {"file": (io.BytesIO(huge_part), "huge.bin")}),
-			("application/x-www-form-urlencoded", {"a": "x" * (256 * 1024)}),
-		]
-		for mimetype, data in cases:
-			with self.subTest(mimetype=mimetype):
-				set_request(method="PUT", path="/", data=data)
-				frappe.local.request.max_content_length = None
-				raw_input = frappe.local.request.environ["wsgi.input"]
-				try:
-					with self.assertRaises(frappe.ValidationError):
-						get_request_bytes(limit=4)
-					# never read: refused by the Content-Type header alone
-					self.assertEqual(raw_input.tell(), 0)
-				finally:
-					del frappe.local.request
-
-	def test_chunk_upload_route_is_put_only(self):
-		# POST was dropped: init_request (frappe/app.py) only lifts the
-		# make_form_dict/max_content_length treatment for a streaming request
-		# path on a PUT (frappe.hooks.streaming_request_paths). A POST here
-		# would still run make_form_dict first, which decodes the whole body
-		# as text before the handler ever sees it - corrupting or crashing on
-		# binary chunk data - and caps it at the generic upload size, not the
-		# session's declared size. PUT is also the only contract the spec
-		# documents for this route (frappe-file-storage-v2-spec.md: "PUT
-		# /api/method/...upload_chunk").
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[upload_chunk], ("PUT",))
-
-	def test_get_request_bytes_stops_reading_at_the_limit(self):
-		# streaming request paths lift the generic per-request byte cap
-		# (frappe/app.py:init_request), so get_request_bytes must bound its own
-		# read: a limit must never let the full body land in memory.
-		huge_body = b"x" * (64 * 1024)
-		set_request(method="PUT", path="/", data=huge_body)
+		content = unique_bytes(b"failing file adoption hook ")
+		frappe.db.savepoint("file_upload_hook_failure")
 		try:
-			data = get_request_bytes(limit=4)
+			with storage_v2(), frappe.storage.fake(), hook_value("after_file_upload", [fail_after_writing]):
+				upload_id = self.open_session(file_name, len(content))
+				self.send_chunk(upload_id, 0, content)
+				with self.assertRaisesRegex(RuntimeError, "file adoption failed"):
+					finish_upload(upload_id)
+				self.assertFalse(frappe.db.exists("File", {"file_name": file_name}))
 		finally:
-			del frappe.local.request
+			frappe.db.rollback(save_point="file_upload_hook_failure")
 
-		self.assertEqual(data, b"xxxxx")  # limit + 1 bytes, never the full 64 KiB body
-
-	def test_chunk_upload_route_is_a_registered_streaming_request_path(self):
-		# frappe.storage.upload.upload_chunk must skip make_form_dict's
-		# full-body buffering and the generic upload cap, or every chunk is
-		# double-buffered and capped far below a session's declared size.
-		self.assertIn(
-			"/api/method/frappe.storage.upload.upload_chunk",
-			frappe.get_hooks("streaming_request_paths"),
-		)
-
-	def test_finish_without_a_part_file_fails_and_keeps_the_session(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = self.open_session("nodata.txt", 10)
-			meta_path, part_path = get_session_paths(upload_id)
-			os.remove(part_path)
-
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload(upload_id, file_name="nodata.txt")
-
-			# the session was not claimed, so the client can still send bytes
-			self.assertTrue(os.path.exists(meta_path))
-			self.assertFalse(os.path.exists(meta_path + FINISHING_SUFFIX))
-
-	def test_direct_upload_object_that_vanishes_before_the_read_fails(self):
-		with flag_on(), use_driver(VanishingDirectDriver()):
-			result = create_upload("gone.txt", 10, is_private=1)
-			self.assertEqual(result["mode"], "direct")
-			upload_id = result["upload_id"]
-			self._sessions.append(upload_id)
-			meta_path, _part_path = get_session_paths(upload_id)
-			self.addCleanup(delete_session, meta_path + FINISHING_SUFFIX)
-
-			# exists() passes the pre-flight check, read() then finds nothing
-			with self.assertRaises(frappe.ValidationError):
-				finish_upload(upload_id, file_name="gone.txt")
-
-			self.assertEqual(frappe.db.count("File", {"file_name": "gone.txt"}), 0)
-
-	def test_guest_uploads_limited_to_allowed_doctypes(self):
-		with flag_on(), frappe.storage.fake():
-			with self.change_settings(
-				"System Settings",
-				{
-					"allow_guests_to_upload_files": 1,
-					"allowed_doctypes_for_guest_uploads": "ToDo\n\nBlog Post\n",
-				},
-			):
-				frappe.set_user("Guest")
-				with self.assertRaises(frappe.PermissionError):
-					create_upload("ok.png", 10, doctype="Contact", docname="new-contact-1")
-
-				result = create_upload("ok.png", 10, doctype="ToDo", docname="new-todo-1")
-				self._sessions.append(result["upload_id"])
-				self.assertEqual(result["mode"], "chunked")
+		self.assertFalse(frappe.db.exists("ToDo", {"description": marker}))
 
 	# ---- upload sessions: stale sweep ----
 
-	def test_expire_removes_a_session_with_an_unreadable_timestamp(self):
-		with flag_on(), frappe.storage.fake():
-			uploads_dir = get_uploads_dir()
-			broken = os.path.join(uploads_dir, f"{frappe.generate_hash(length=20)}.meta")
-			os.symlink(os.path.join(uploads_dir, "does-not-exist"), broken)
-			self.addCleanup(delete_session, broken)
+	def test_expire_removes_stale_and_unreadable_sessions_only(self):
+		with storage_v2(), frappe.storage.fake():
+			stale_id = self.open_session("stale.txt", 10)
+			fresh_id = self.open_session("fresh.txt", 10)
+			self.backdate(*get_session_paths(stale_id))
 
-			removed = expire_stale_upload_sessions(max_age_hours=24)
-
-			self.assertGreaterEqual(removed, 1)
-			self.assertFalse(os.path.lexists(broken))
-
-	def test_expire_tolerates_corrupt_session_meta(self):
-		with flag_on(), frappe.storage.fake():
-			upload_id = frappe.generate_hash(length=20)
-			self._sessions.append(upload_id)
-			meta_path, part_path = get_session_paths(upload_id)
+			corrupt_id = frappe.generate_hash(length=20)
+			self._sessions.append(corrupt_id)
+			meta_path, part_path = get_session_paths(corrupt_id)
 			# nosemgrep
 			with open(meta_path, "w") as f:
 				f.write("{ not json")
 			open(part_path, "wb").close()
 			self.backdate(meta_path, part_path)
 
-			removed = expire_stale_upload_sessions(max_age_hours=24)
+			# a meta file whose timestamp cannot be read
+			uploads_dir = get_uploads_dir()
+			broken = os.path.join(uploads_dir, f"{frappe.generate_hash(length=20)}.meta")
+			os.symlink(os.path.join(uploads_dir, "does-not-exist"), broken)
+			self.addCleanup(delete_session, broken)
 
-			self.assertGreaterEqual(removed, 1)
-			self.assertFalse(os.path.exists(meta_path))
-			self.assertFalse(os.path.exists(part_path))
+			self.assertGreaterEqual(expire_stale_upload_sessions(max_age_hours=24), 3)
+			self.assertEqual(self.session_files(stale_id), set())
+			self.assertEqual(self.session_files(corrupt_id), set())
+			self.assertFalse(os.path.lexists(broken))
+			self.assertEqual(self.session_files(fresh_id), {"meta", "part"})
 
-	def test_expire_deletes_the_stale_direct_upload_object(self):
-		with flag_on(), use_driver(DirectTargetDriver()) as driver:
-			result = create_upload("stale-direct.txt", 10, is_private=1)
-			upload_id = result["upload_id"]
-			self._sessions.append(upload_id)
+	def test_expire_deletes_stale_direct_upload_objects(self):
+		with storage_v2(), use_driver(DirectTargetDriver()) as driver:
+			upload_id = self.open_session("stale-direct.txt", 10, mode="direct")
 			driver.write(f"uploads/{upload_id}", io.BytesIO(b"x" * 10), is_private=True)
+			self.backdate(get_session_paths(upload_id)[0])
 
-			meta_path, _part_path = get_session_paths(upload_id)
-			self.backdate(meta_path)
-
-			removed = expire_stale_upload_sessions(max_age_hours=24)
-
-			self.assertGreaterEqual(removed, 1)
-			self.assertFalse(os.path.exists(meta_path))
+			self.assertGreaterEqual(expire_stale_upload_sessions(max_age_hours=24), 1)
+			self.assertEqual(self.session_files(upload_id), set())
 			self.assertFalse(driver.exists(f"uploads/{upload_id}", is_private=True))
 
-	def test_expire_survives_a_driver_delete_failure(self):
-		with flag_on(), use_driver(UndeletableDirectDriver()):
-			result = create_upload("unreachable.txt", 10, is_private=1)
-			upload_id = result["upload_id"]
-			self._sessions.append(upload_id)
+		# an unreachable bucket does not keep the local session alive
+		with storage_v2(), use_driver(UndeletableDirectDriver()):
+			upload_id = self.open_session("unreachable.txt", 10, mode="direct")
+			self.backdate(get_session_paths(upload_id)[0])
 
-			meta_path, _part_path = get_session_paths(upload_id)
-			self.backdate(meta_path)
-
-			# the bucket is unreachable; the local session still goes away
-			removed = expire_stale_upload_sessions(max_age_hours=24)
-
-			self.assertGreaterEqual(removed, 1)
-			self.assertFalse(os.path.exists(meta_path))
+			self.assertGreaterEqual(expire_stale_upload_sessions(max_age_hours=24), 1)
+			self.assertEqual(self.session_files(upload_id), set())
 
 
 class TestUploadChunkRouting(FrappeAPITestCase):
 	"""PUT .../upload_chunk through the real WSGI pipeline (frappe.app.application).
 
-	TestServeUpload.send_chunk calls upload_chunk() directly via set_request,
-	which never runs frappe.app.init_request. That hides exactly the bug this
-	guards against: init_request's streaming_request_paths match runs against
-	the routed request path, and /api/v2/method/... reaches upload_chunk
-	through a different Werkzeug Rule (frappe/api/v2.py) than the unversioned
-	form the hook declares (frappe/hooks.py). A path-matching regression here
-	does not raise - make_form_dict drains request.stream before upload_chunk
-	ever reads it, so the chunk write silently receives zero bytes.
+	init_request matches streaming_request_paths against the routed path, and
+	/api/v2/method/... reaches upload_chunk through a different Werkzeug Rule
+	than the form the hook declares. A path-matching regression does not raise:
+	make_form_dict drains the stream first, so the chunk silently gets zero bytes.
 	"""
 
 	def setUp(self):
@@ -1508,24 +949,21 @@ class TestUploadChunkRouting(FrappeAPITestCase):
 			delete_session(*get_session_paths(upload_id))
 		super().tearDown()
 
-	def open_session(self, filename: str, size: int) -> str:
-		with flag_on():
+	def open_session(self, filename: str, size: int, user: str = "Administrator") -> str:
+		with storage_v2():
+			frappe.set_user(user)
+			upload_id = create_upload(filename, size)["upload_id"]
 			frappe.set_user("Administrator")
-			result = create_upload(filename, size)
-		self.assertEqual(result["mode"], "chunked")
-		upload_id = result["upload_id"]
 		self._sessions.append(upload_id)
 		return upload_id
 
 	def put_chunk(
-		self, endpoint: str, upload_id: str, offset: int, data: bytes, headers: dict | None = None
+		self, endpoint: str, upload_id: str, data: bytes, headers: dict | None = None
 	) -> TestResponse:
 		auth = {} if headers else {"sid": self.sid}
-		query = urlencode({"upload_id": upload_id, "offset": offset, **auth})
-		# storage_v2 must read as enabled inside the request's own thread: it
-		# calls frappe.init() fresh (frappe/app.py:init_request), which loads
-		# frappe.local.conf from frappe.config.get_site_config, not from the
-		# flag_on() override this test set in its own thread's frappe.local.
+		query = urlencode({"upload_id": upload_id, "offset": 0, **auth})
+		# the request thread calls frappe.init() afresh, so the flag must come
+		# from get_site_config, not from this thread's storage_v2() override
 		configured = frappe._dict({**frappe.get_site_config(), "storage_v2": 1})
 		with patch("frappe.config.get_site_config", return_value=configured):
 			return make_request(
@@ -1539,24 +977,19 @@ class TestUploadChunkRouting(FrappeAPITestCase):
 				},
 			)
 
-	def test_v2_route_receives_the_full_chunk_body(self):
-		upload_id = self.open_session("v2-route.bin", 10)
-		response = self.put_chunk(
-			"/api/v2/method/frappe.storage.upload.upload_chunk", upload_id, 0, b"abcdefghij"
-		)
-		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
-		# frappe.api.v2.handle_rpc_call returns its value directly, so
-		# frappe.api.handle stores it under "data", not "message" (v1's key,
-		# used below - it goes through frappe.handler.handle() instead).
-		self.assertEqual(response.json["data"]["received"], 10)
+	def test_every_api_mount_receives_the_full_chunk_bounded_by_the_session_size(self):
+		v2 = "/api/v2/method/frappe.storage.upload.upload_chunk"
+		v1 = "/api/v1/method/frappe.storage.upload.upload_chunk"
+		# v2 returns the value under "data", v1 under "message"
+		for endpoint, key in ((v2, "data"), (v1, "message")):
+			with self.subTest(endpoint=endpoint):
+				response = self.put_chunk(endpoint, self.open_session("route.bin", 10), b"abcdefghij")
+				self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
+				self.assertEqual(response.json[key]["received"], 10)
 
-	def test_v1_route_receives_the_full_chunk_body(self):
-		upload_id = self.open_session("v1-route.bin", 10)
-		response = self.put_chunk(
-			"/api/v1/method/frappe.storage.upload.upload_chunk", upload_id, 0, b"abcdefghij"
-		)
-		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
-		self.assertEqual(response.json["message"]["received"], 10)
+		# the generic per-request cap is lifted, so the declared size must catch this
+		response = self.put_chunk(v2, self.open_session("cap.bin", 4), b"too-long-a-chunk")
+		self.assertEqual(response.status_code, 417, response.get_data(as_text=True))
 
 	def test_bearer_authenticated_chunk_receives_the_full_body(self):
 		# bearer auth runs before the handler and must leave the streaming body unread
@@ -1565,12 +998,7 @@ class TestUploadChunkRouting(FrappeAPITestCase):
 		)
 
 		user = "test1@example.com"
-		with flag_on():
-			frappe.set_user(user)
-			upload_id = create_upload("bearer-route.txt", 10)["upload_id"]
-			frappe.set_user("Administrator")
-		self._sessions.append(upload_id)
-
+		upload_id = self.open_session("bearer-route.txt", 10, user=user)
 		access_token = frappe.generate_hash()
 		client = make_oauth_client()
 		token = frappe.get_doc(
@@ -1593,20 +1021,8 @@ class TestUploadChunkRouting(FrappeAPITestCase):
 		response = self.put_chunk(
 			"/api/v2/method/frappe.storage.upload.upload_chunk",
 			upload_id,
-			0,
 			b"abcdefghij",
 			headers={"Authorization": f"Bearer {access_token}"},
 		)
 		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
 		self.assertEqual(response.json["data"]["received"], 10)
-
-	def test_v2_route_bounds_the_chunk_at_the_declared_session_size(self):
-		# get_request_bytes(limit=meta["size"]) must be the read limit here,
-		# not the generic per-request cap: init_request lifts that cap to None
-		# for a streaming path, so only the session's own declared size can
-		# still catch an oversized chunk.
-		upload_id = self.open_session("v2-cap.bin", 4)
-		response = self.put_chunk(
-			"/api/v2/method/frappe.storage.upload.upload_chunk", upload_id, 0, b"too-long-a-chunk"
-		)
-		self.assertEqual(response.status_code, 417, response.get_data(as_text=True))

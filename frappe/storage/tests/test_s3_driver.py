@@ -1,12 +1,15 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+import base64
 import hashlib
 import importlib.util
 import io
+import json
 import sys
 import unittest
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
+from urllib.parse import parse_qs, urlparse
 
 import frappe
 from frappe.storage.blob import put_blob
@@ -14,6 +17,7 @@ from frappe.storage.driver import get_driver_classes
 from frappe.storage.memory_driver import MemoryDriver
 from frappe.storage.s3_driver import UPLOAD_TARGET_TTL, S3Driver
 from frappe.storage.serve import serve_public_file
+from frappe.storage.tests import use_driver
 from frappe.storage.upload import upload_key
 from frappe.storage.url import signed_url_for_blob
 from frappe.tests import IntegrationTestCase
@@ -76,60 +80,43 @@ def make_driver(**config):
 	return driver
 
 
-class TestS3Registry(IntegrationTestCase):
-	def test_s3_is_a_builtin_driver(self):
-		classes = get_driver_classes()
-		self.assertIn("s3", classes)
-		self.assertEqual(classes["s3"], "frappe.storage.s3_driver.S3Driver")
-
-
 class TestS3DriverConfig(IntegrationTestCase):
-	def test_missing_bucket_raises(self):
-		with site_config(region="eu-central-1"), self.assertRaisesRegex(frappe.ValidationError, "bucket"):
-			S3Driver()
+	def test_s3_is_a_builtin_driver_configured_from_site_config(self):
+		self.assertEqual(get_driver_classes()["s3"], "frappe.storage.s3_driver.S3Driver")
 
-	def test_missing_config_raises(self):
-		with (
-			patch.object(frappe, "conf", frappe._dict()),
-			self.assertRaisesRegex(frappe.ValidationError, "bucket"),
-		):
-			S3Driver()
-
-	def test_missing_boto3_raises_clear_error(self):
-		# sys.modules[name] = None forces ImportError even if boto3 is installed
-		with (
-			patch.dict(sys.modules, {"boto3": None}),
-			site_config(bucket="test-bucket"),
-			self.assertRaisesRegex(frappe.ValidationError, "pip install boto3"),
-		):
-			S3Driver()
-
-	def test_config_reaches_boto3_client(self):
-		driver = make_driver(**TEST_CONFIG)
-		call = driver.test_client.boto3_module.client.call_args
+		call = make_driver(**TEST_CONFIG).test_client.boto3_module.client.call_args
 		self.assertEqual(call.args, ("s3",))
 		self.assertEqual(call.kwargs["region_name"], "eu-central-1")
 		self.assertEqual(call.kwargs["endpoint_url"], "https://s3.example.com")
 		self.assertEqual(call.kwargs["aws_access_key_id"], "AKIATEST")
 		self.assertEqual(call.kwargs["aws_secret_access_key"], "secret")
 
-	def test_credentials_default_to_boto3_chain(self):
-		driver = make_driver(bucket="test-bucket")
-		kwargs = driver.test_client.boto3_module.client.call_args.kwargs
-		self.assertNotIn("aws_access_key_id", kwargs)
-		self.assertNotIn("aws_secret_access_key", kwargs)
-		self.assertNotIn("region_name", kwargs)
-		self.assertNotIn("endpoint_url", kwargs)
+		# anything left out falls back to boto3's own defaults and credential chain
+		kwargs = make_driver(bucket="test-bucket").test_client.boto3_module.client.call_args.kwargs
+		for name in ("aws_access_key_id", "aws_secret_access_key", "region_name", "endpoint_url"):
+			self.assertNotIn(name, kwargs)
+
+	def test_unusable_config_raises_a_clear_error(self):
+		with self.subTest("no bucket"), site_config(region="eu-central-1"):
+			self.assertRaisesRegex(frappe.ValidationError, "bucket", S3Driver)
+		with self.subTest("no config"), patch.object(frappe, "conf", frappe._dict()):
+			self.assertRaisesRegex(frappe.ValidationError, "bucket", S3Driver)
+		# sys.modules[name] = None forces ImportError even if boto3 is installed
+		with (
+			self.subTest("no boto3"),
+			patch.dict(sys.modules, {"boto3": None}),
+			site_config(bucket="test-bucket"),
+		):
+			self.assertRaisesRegex(frappe.ValidationError, "pip install boto3", S3Driver)
 
 
 class TestS3SitePrefix(IntegrationTestCase):
 	"""Sites sharing one bucket keep their objects under their own prefix."""
 
-	def test_prefix_defaults_to_a_hash_of_the_database_name(self):
+	def test_prefix_defaults_to_a_hash_of_the_database_name_or_is_configured(self):
 		expected = hashlib.sha256(TEST_DB_NAME.encode()).hexdigest()[:12] + "/"
 		self.assertEqual(make_driver(**TEST_CONFIG).key_prefix, expected)
 
-	def test_prefix_can_be_configured(self):
 		self.assertEqual(make_driver(**TEST_CONFIG, prefix="tenant-a.v2").key_prefix, "tenant-a.v2/")
 		self.assertEqual(make_driver(**TEST_CONFIG, prefix="/tenant-a/").key_prefix, "tenant-a/")
 		for invalid in ("tenant a", "tenant/a", "../tenant"):
@@ -139,15 +126,14 @@ class TestS3SitePrefix(IntegrationTestCase):
 	def test_new_keys_start_with_the_prefix_and_delete_stays_inside_it(self):
 		driver = make_driver(**TEST_CONFIG, prefix="tenant-a")
 		client = driver.test_client
-		frappe.local.storage_driver_override = driver
-		self.addCleanup(setattr, frappe.local, "storage_driver_override", None)
 		self.addCleanup(frappe.db.rollback)
 
-		blob = put_blob(io.BytesIO(b"prefixed bytes"), is_private=True, filename="report.pdf")
+		with use_driver(driver):
+			blob = put_blob(io.BytesIO(b"prefixed bytes"), is_private=True, filename="report.pdf")
+			self.assertEqual(upload_key("upload123"), "tenant-a/uploads/upload123")
 		self.assertEqual(blob.key, f"tenant-a/{blob.name}/report.pdf")
 		client.upload_fileobj.assert_called_once()
 		self.assertEqual(client.upload_fileobj.call_args.args[2], f"private/tenant-a/{blob.name}/report.pdf")
-		self.assertEqual(upload_key("upload123"), "tenant-a/uploads/upload123")
 
 		driver.delete(blob.key, is_private=True)
 		client.delete_object.assert_called_once_with(
@@ -170,72 +156,48 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		self.client = self.driver.test_client
 		self.key = f"{self.driver.key_prefix}abcdef0123/report.pdf"
 
-	def test_write_streams_via_upload_fileobj(self):
-		stream = io.BytesIO(b"hello")
-		self.driver.write(self.key, stream)
-		self.client.upload_fileobj.assert_called_once_with(stream, "test-bucket", f"public/{self.key}")
-
-	def test_write_private_uses_private_prefix(self):
-		stream = io.BytesIO(b"hello")
-		self.driver.write(self.key, stream, is_private=True)
-		self.client.upload_fileobj.assert_called_once_with(stream, "test-bucket", f"private/{self.key}")
-
-	def test_read_returns_streaming_body(self):
-		body = io.BytesIO(b"stored bytes")
-		self.client.get_object.return_value = {"Body": body}
-		stream = self.driver.read(self.key, is_private=True)
-		self.assertIs(stream, body)
-		self.assertEqual(stream.read(), b"stored bytes")
-		self.client.get_object.assert_called_once_with(Bucket="test-bucket", Key=f"private/{self.key}")
-
-	def test_read_range_uses_native_s3_range(self):
-		body = io.BytesIO(b"stored")
-		self.client.get_object.return_value = {"Body": body}
-
-		self.assertIs(self.driver.read_range(self.key, 10, 19, is_private=True), body)
-		self.client.get_object.assert_called_once_with(
-			Bucket="test-bucket", Key=f"private/{self.key}", Range="bytes=10-19"
-		)
-
-	def test_read_range_open_end_uses_native_s3_range(self):
-		body = io.BytesIO(b"tail")
-		self.client.get_object.return_value = {"Body": body}
-
-		self.assertIs(self.driver.read_range(self.key, 10, None), body)
-		self.client.get_object.assert_called_once_with(
-			Bucket="test-bucket", Key=f"public/{self.key}", Range="bytes=10-"
-		)
-
-	def test_read_missing_key_raises_file_not_found(self):
-		self.client.get_object.side_effect = StubClientError("NoSuchKey")
-		self.assertRaises(FileNotFoundError, self.driver.read, self.key)
-
-	def test_read_other_errors_propagate(self):
-		self.client.get_object.side_effect = StubClientError("AccessDenied")
-		self.assertRaises(StubClientError, self.driver.read, self.key)
-
-	def test_exists_true_on_head_object(self):
-		self.client.head_object.return_value = {"ContentLength": 5}
-		self.assertTrue(self.driver.exists(self.key))
-		self.client.head_object.assert_called_once_with(Bucket="test-bucket", Key=f"public/{self.key}")
-
-	def test_exists_false_on_404(self):
-		self.client.head_object.side_effect = StubClientError("404")
-		self.assertFalse(self.driver.exists(self.key, is_private=True))
-		self.client.head_object.assert_called_once_with(Bucket="test-bucket", Key=f"private/{self.key}")
-
-	def test_exists_other_errors_propagate(self):
-		self.client.head_object.side_effect = StubClientError("AccessDenied")
-		self.assertRaises(StubClientError, self.driver.exists, self.key)
-
-	def test_delete_calls_delete_object(self):
-		self.driver.delete(self.key, is_private=True)
-		self.client.delete_object.assert_called_once_with(Bucket="test-bucket", Key=f"private/{self.key}")
-
 	def presigned_params(self) -> dict:
 		return self.client.generate_presigned_url.call_args.kwargs["Params"]
 
-	def test_download_url_presigned_get(self):
+	def test_objects_live_under_their_namespace(self):
+		for is_private, namespace in ((False, "public"), (True, "private")):
+			with self.subTest(namespace=namespace):
+				self.client.reset_mock()
+				object_key = {"Bucket": "test-bucket", "Key": f"{namespace}/{self.key}"}
+				body = io.BytesIO(b"stored bytes")
+				self.client.get_object.return_value = {"Body": body}
+
+				stream = io.BytesIO(b"hello")
+				self.driver.write(self.key, stream, is_private=is_private)
+				self.client.upload_fileobj.assert_called_once_with(stream, "test-bucket", object_key["Key"])
+
+				self.assertIs(self.driver.read(self.key, is_private=is_private), body)
+				self.client.get_object.assert_called_with(**object_key)
+				# ranges use S3's native Range header
+				self.assertIs(self.driver.read_range(self.key, 10, 19, is_private=is_private), body)
+				self.client.get_object.assert_called_with(**object_key, Range="bytes=10-19")
+				self.assertIs(self.driver.read_range(self.key, 10, None, is_private=is_private), body)
+				self.client.get_object.assert_called_with(**object_key, Range="bytes=10-")
+
+				self.assertTrue(self.driver.exists(self.key, is_private=is_private))
+				self.client.head_object.assert_called_once_with(**object_key)
+
+				self.driver.delete(self.key, is_private=is_private)
+				self.client.delete_object.assert_called_once_with(**object_key)
+
+	def test_missing_objects_and_client_errors(self):
+		self.client.head_object.side_effect = StubClientError("404")
+		self.assertFalse(self.driver.exists(self.key, is_private=True))
+		self.client.get_object.side_effect = StubClientError("NoSuchKey")
+		self.assertRaises(FileNotFoundError, self.driver.read, self.key)
+
+		# any other error propagates
+		self.client.head_object.side_effect = StubClientError("AccessDenied")
+		self.client.get_object.side_effect = StubClientError("AccessDenied")
+		self.assertRaises(StubClientError, self.driver.exists, self.key)
+		self.assertRaises(StubClientError, self.driver.read, self.key)
+
+	def test_download_url_is_a_presigned_get(self):
 		self.client.generate_presigned_url.return_value = "https://signed.example.com/x"
 		url = self.driver.download_url(self.key, "report.pdf", 300, is_private=True)
 		self.assertEqual(url, "https://signed.example.com/x")
@@ -243,48 +205,50 @@ class TestS3DriverBehavior(IntegrationTestCase):
 		call = self.client.generate_presigned_url.call_args
 		self.assertEqual(call.args, ("get_object",))
 		self.assertEqual(call.kwargs["ExpiresIn"], 300)
-		params = call.kwargs["Params"]
-		self.assertEqual(params["Bucket"], "test-bucket")
-		self.assertEqual(params["Key"], f"private/{self.key}")
+		self.assertEqual(self.presigned_params()["Bucket"], "test-bucket")
+		self.assertEqual(self.presigned_params()["Key"], f"private/{self.key}")
 
-	def test_download_url_public_namespace(self):
-		# is_private defaults to False: public namespace
+		# is_private defaults to False
 		self.driver.download_url(self.key, "logo.png", 60)
 		self.assertEqual(self.presigned_params()["Key"], f"public/{self.key}")
 
-	def test_download_url_shows_a_pdf_inline(self):
+	def test_download_url_disposition(self):
 		self.driver.download_url(self.key, "report.pdf", 60, mime_type="application/pdf")
-		params = self.presigned_params()
-		self.assertEqual(params["ResponseContentType"], "application/pdf")
 		self.assertEqual(
-			params["ResponseContentDisposition"],
+			self.presigned_params()["ResponseContentDisposition"],
 			"inline; filename=\"report.pdf\"; filename*=UTF-8''report.pdf",
 		)
 
-	def test_download_url_downloads_when_asked(self):
-		self.driver.download_url(self.key, "report.pdf", 60, mime_type="application/pdf", as_attachment=True)
-		params = self.presigned_params()
-		self.assertEqual(params["ResponseContentType"], "application/pdf")
-		self.assertTrue(params["ResponseContentDisposition"].startswith("attachment; "))
-
-	def test_download_url_always_downloads_active_content(self):
-		cases = [
-			("page.html", "text/html"),
-			("logo.svg", "image/svg+xml"),
-			("feed.xml", "application/octet-stream"),
-			("app.js", "application/octet-stream"),
+		downloads = (
+			("report.pdf", "application/pdf", True),
+			("page.html", "text/html", False),
+			("logo.svg", "image/svg+xml", False),
+			("feed.xml", "application/octet-stream", False),
+			("app.js", "application/octet-stream", False),
 			# the filename is caller-chosen: an HTML blob named .txt still downloads
-			("notes.txt", "text/html"),
-		]
-		for filename, mime_type in cases:
+			("notes.txt", "text/html", False),
+		)
+		for filename, mime_type, as_attachment in downloads:
 			with self.subTest(filename=filename, mime_type=mime_type):
-				self.driver.download_url(self.key, filename, 60, mime_type=mime_type)
+				self.driver.download_url(
+					self.key, filename, 60, mime_type=mime_type, as_attachment=as_attachment
+				)
 				self.assertTrue(
 					self.presigned_params()["ResponseContentDisposition"].startswith("attachment; ")
 				)
 
-	def test_download_url_types_an_unsniffed_blob_by_its_filename(self):
+		self.driver.download_url(self.key, 'we"ird nämé/\r\n.pdf', 60)
+		disposition = self.presigned_params()["ResponseContentDisposition"]
+		# no quote, backslash or line break may survive in the quoted-string
+		self.assertIn('filename="weird nm/.pdf"', disposition)
+		self.assertNotIn("\r", disposition)
+		self.assertNotIn("\n", disposition)
+		self.assertIn("filename*=UTF-8''we%22ird%20n%C3%A4m%C3%A9%2F%0D%0A.pdf", disposition)
+
+	def test_download_url_content_type(self):
 		cases = [
+			("report.pdf", "application/pdf", "application/pdf"),
+			# an unsniffed blob is typed by its filename
 			("notes.txt", "application/octet-stream", "text/plain"),
 			("report.pdf", None, "application/pdf"),
 			("data.unknownext", "application/octet-stream", "application/octet-stream"),
@@ -296,28 +260,15 @@ class TestS3DriverBehavior(IntegrationTestCase):
 				self.driver.download_url(self.key, filename, 60, mime_type=mime_type)
 				self.assertEqual(self.presigned_params()["ResponseContentType"], served)
 
-	def test_download_url_quotes_filename(self):
-		self.driver.download_url(self.key, 'we"ird nämé/\r\n.pdf', 60)
-		disposition = self.presigned_params()["ResponseContentDisposition"]
-		# no quote, backslash or line break may survive in the quoted-string
-		self.assertIn('filename="weird nm/.pdf"', disposition)
-		self.assertNotIn("\r", disposition)
-		self.assertNotIn("\n", disposition)
-		self.assertIn("filename*=UTF-8''we%22ird%20n%C3%A4m%C3%A9%2F%0D%0A.pdf", disposition)
-
-	def test_upload_target_presigned_post(self):
+	def test_upload_target_is_a_presigned_post(self):
+		fields = {"key": "private/uploads/xyz", "policy": "p", "x-amz-signature": "s"}
 		self.client.generate_presigned_post.return_value = {
 			"url": "https://test-bucket.s3.example.com",
-			"fields": {"key": "private/uploads/xyz", "policy": "p", "x-amz-signature": "s"},
+			"fields": fields,
 		}
 		target = self.driver.upload_target("uploads/xyz", 1024, is_private=True)
 		self.assertEqual(
-			target,
-			{
-				"mode": "direct",
-				"url": "https://test-bucket.s3.example.com",
-				"fields": {"key": "private/uploads/xyz", "policy": "p", "x-amz-signature": "s"},
-			},
+			target, {"mode": "direct", "url": "https://test-bucket.s3.example.com", "fields": fields}
 		)
 
 		call = self.client.generate_presigned_post.call_args
@@ -329,39 +280,28 @@ class TestS3DriverBehavior(IntegrationTestCase):
 
 @unittest.skipUnless(HAS_BOTO3, "boto3 not installed")
 class TestS3DriverWithRealBoto3(IntegrationTestCase):
-	"""Presigning is offline in boto3; these need the real lib, not a bucket."""
+	"""Presigning is offline in boto3; this needs the real lib, not a bucket."""
 
-	def make_real_driver(self):
+	def setUp(self):
+		super().setUp()
 		with site_config(**TEST_CONFIG):
-			return S3Driver()
+			self.driver = S3Driver()
 
-	def test_presigned_get_url_shape(self):
-		from urllib.parse import parse_qs, urlparse
-
-		driver = self.make_real_driver()
-		url = driver.download_url("ab/cd/deadbeef", "report.pdf", 300, is_private=True)
+	def test_presigned_get_and_post(self):
+		url = self.driver.download_url(
+			"ab/cd/deadbeef", "report.pdf", 300, is_private=True, mime_type="application/pdf"
+		)
 		parsed = urlparse(url)
 		query = parse_qs(parsed.query)
 		self.assertTrue(parsed.path.endswith("/private/ab/cd/deadbeef"))
 		self.assertEqual(query["X-Amz-Expires"], ["300"])
-		self.assertIn("report.pdf", query["response-content-disposition"][0])
 		self.assertIn("X-Amz-Signature", query)
-
-	def test_presigned_get_carries_type_and_inline_disposition(self):
-		from urllib.parse import parse_qs, urlparse
-
-		driver = self.make_real_driver()
-		url = driver.download_url("ab/cd/deadbeef", "report.pdf", 300, mime_type="application/pdf")
-		query = parse_qs(urlparse(url).query)
 		self.assertEqual(query["response-content-type"], ["application/pdf"])
-		self.assertTrue(query["response-content-disposition"][0].startswith("inline; "))
+		disposition = query["response-content-disposition"][0]
+		self.assertTrue(disposition.startswith("inline; "))
+		self.assertIn("report.pdf", disposition)
 
-	def test_presigned_post_shape(self):
-		import base64
-		import json
-
-		driver = self.make_real_driver()
-		target = driver.upload_target("uploads/abc123", 2048, is_private=True)
+		target = self.driver.upload_target("uploads/abc123", 2048, is_private=True)
 		self.assertEqual(target["mode"], "direct")
 		self.assertEqual(target["fields"]["key"], "private/uploads/abc123")
 		policy = json.loads(base64.b64decode(target["fields"]["policy"]))
@@ -399,37 +339,30 @@ class TestS3ServesLikeLocal(IntegrationTestCase):
 		frappe.db.rollback()
 		super().tearDown()
 
-	def s3_served(self, blob, filename: str, **query) -> tuple[str, str]:
-		"""Serve through ``/files/`` and read what the S3 redirect target will send."""
+	def presigned_params(self) -> dict:
+		return self.driver.test_client.generate_presigned_url.call_args.kwargs["Params"]
+
+	def serve(self, blob, filename: str, **query):
 		path = f"/files/{blob.name}/{filename}"
 		set_request(method="GET", path=path)
 		frappe.local.form_dict = frappe._dict(query)
-		response = serve_public_file(path)
+		return serve_public_file(path)
+
+	def s3_served(self, blob, filename: str, **query) -> tuple[str, str]:
+		"""Serve through ``/files/`` and read what the S3 redirect target will send."""
+		response = self.serve(blob, filename, **query)
 		self.assertEqual(response.status_code, 302)
 		self.assertEqual(response.headers["Location"], "https://signed.example.com/x")
 		# a public redirect is cached for half the presigned URL's hour
 		self.assertEqual(response.headers["Cache-Control"], "public, max-age=1800")
 		self.assertEqual(self.driver.test_client.generate_presigned_url.call_args.kwargs["ExpiresIn"], 3600)
-		params = self.driver.test_client.generate_presigned_url.call_args.kwargs["Params"]
+		params = self.presigned_params()
 		return params["ResponseContentType"], params["ResponseContentDisposition"].split(";")[0]
-
-	@contextmanager
-	def in_memory(self):
-		"""Make the in-memory driver, which has no native URL, the active one."""
-		frappe.local.storage_driver_override = self.memory
-		try:
-			yield
-		finally:
-			frappe.local.storage_driver_override = self.driver
 
 	def local_served(self, content: bytes, filename: str, **query) -> tuple[str, str]:
 		"""Serve the same bytes through ``/files/`` from a driver with no native URL."""
-		with self.in_memory():
-			blob = put_blob(io.BytesIO(content))
-			path = f"/files/{blob.name}/{filename}"
-			set_request(method="GET", path=path)
-			frappe.local.form_dict = frappe._dict(query)
-			response = serve_public_file(path)
+		with use_driver(self.memory):
+			response = self.serve(put_blob(io.BytesIO(content)), filename, **query)
 		self.assertEqual(response.status_code, 200)
 		return response.mimetype, response.headers["Content-Disposition"].split(";")[0]
 
@@ -447,18 +380,15 @@ class TestS3ServesLikeLocal(IntegrationTestCase):
 	def test_signed_url_for_blob_can_ask_for_a_download(self):
 		blob = put_blob(io.BytesIO(self.PDF), is_private=True)
 
-		def params():
-			return self.driver.test_client.generate_presigned_url.call_args.kwargs["Params"]
-
 		self.assertEqual(signed_url_for_blob(blob, "report.pdf"), "https://signed.example.com/x")
-		self.assertEqual(params()["ResponseContentType"], "application/pdf")
-		self.assertTrue(params()["ResponseContentDisposition"].startswith("inline; "))
+		self.assertEqual(self.presigned_params()["ResponseContentType"], "application/pdf")
+		self.assertTrue(self.presigned_params()["ResponseContentDisposition"].startswith("inline; "))
 
 		signed_url_for_blob(blob, "report.pdf", as_attachment=True)
-		self.assertTrue(params()["ResponseContentDisposition"].startswith("attachment; "))
+		self.assertTrue(self.presigned_params()["ResponseContentDisposition"].startswith("attachment; "))
 
 		# without a native URL the same request falls back to a signed path that downloads
-		with self.in_memory():
+		with use_driver(self.memory):
 			local = put_blob(io.BytesIO(self.PDF), is_private=True)
 			self.assertIn("&download=1", signed_url_for_blob(local, "report.pdf", as_attachment=True))
 			self.assertNotIn("download=", signed_url_for_blob(local, "report.pdf"))

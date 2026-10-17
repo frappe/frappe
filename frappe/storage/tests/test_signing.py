@@ -15,47 +15,49 @@ class TestSigning(IntegrationTestCase):
 	"""Sign/verify roundtrip and signed_url behavior.
 
 	Uses only the storage core: blobs come from put_blob under fake(),
-	and File rows are stand-in dicts (the File.blob field is owned by a
-	later stage)."""
+	and File rows are stand-in dicts."""
 
 	def tearDown(self):
 		frappe.db.rollback()
 		super().tearDown()
 
 	@staticmethod
-	def make_blob(content: bytes = b"signing test content", is_private: bool = True):
+	def make_blob(content: bytes = b"signing test content"):
 		with frappe.storage.fake():
-			return frappe.storage.put_blob(io.BytesIO(content), is_private=is_private)
+			return frappe.storage.put_blob(io.BytesIO(content), is_private=True)
 
-	def test_sign_verify_roundtrip(self):
+	def assertSignedPath(self, url: str, blob_name: str, quoted: str, filename: str):
+		self.assertTrue(url.startswith(f"/private/files/{blob_name}/{quoted}?"), url)
+		query = parse_qs(urlparse(url).query)
+		self.assertTrue(verify_signature(blob_name, filename, query["e"][0], query["s"][0]))
+
+	def test_signature_verifies_only_its_own_inputs(self):
 		expires = int(time.time()) + 60
 		sig = make_signature("blob-1", "a.txt", expires)
+		self.assertEqual(sig, make_signature("blob-1", "a.txt", expires))
 		self.assertTrue(verify_signature("blob-1", "a.txt", expires, sig))
 		# expires arrives as a query-string value in practice
 		self.assertTrue(verify_signature("blob-1", "a.txt", str(expires), sig))
 
-	def test_expired_token_rejected(self):
-		expires = int(time.time()) - 1
-		sig = make_signature("blob-1", "a.txt", expires)
-		self.assertFalse(verify_signature("blob-1", "a.txt", expires, sig))
-
-	def test_tampered_values_rejected(self):
-		expires = int(time.time()) + 60
-		sig = make_signature("blob-1", "a.txt", expires)
-
 		flipped = sig[:-1] + ("0" if sig[-1] != "0" else "1")
-		self.assertFalse(verify_signature("blob-1", "a.txt", expires, flipped))
-		# a different filename, blob or expiry must invalidate the signature
-		self.assertFalse(verify_signature("blob-1", "b.txt", expires, sig))
-		self.assertFalse(verify_signature("blob-2", "a.txt", expires, sig))
-		self.assertFalse(verify_signature("blob-1", "a.txt", expires + 1, sig))
-		# junk inputs must fail closed, not raise
-		self.assertFalse(verify_signature("blob-1", "a.txt", "not-a-number", sig))
-		self.assertFalse(verify_signature("blob-1", "a.txt", None, sig))
-		self.assertFalse(verify_signature("blob-1", "a.txt", expires, ""))
-		self.assertFalse(verify_signature("blob-1", "a.txt", expires, None))
+		past = int(time.time()) - 1
+		rejected = (
+			("blob-1", "a.txt", expires, flipped),
+			("blob-1", "b.txt", expires, sig),
+			("blob-2", "a.txt", expires, sig),
+			("blob-1", "a.txt", expires + 1, sig),
+			("blob-1", "a.txt", past, make_signature("blob-1", "a.txt", past)),
+			# junk inputs must fail closed, not raise
+			("blob-1", "a.txt", "not-a-number", sig),
+			("blob-1", "a.txt", None, sig),
+			("blob-1", "a.txt", expires, ""),
+			("blob-1", "a.txt", expires, None),
+		)
+		for args in rejected:
+			with self.subTest(args=args):
+				self.assertFalse(verify_signature(*args))
 
-	def test_ttl_respected(self):
+	def test_signed_url_expires_after_its_ttl(self):
 		blob = self.make_blob()
 		file = frappe._dict(blob=blob.name, file_name="a.txt")
 
@@ -66,10 +68,8 @@ class TestSigning(IntegrationTestCase):
 		query = parse_qs(urlparse(url).query)
 		expires = int(query["e"][0])
 		sig = query["s"][0]
-
 		self.assertGreaterEqual(expires, before + 120)
 		self.assertLessEqual(expires, after + 120)
-		self.assertTrue(verify_signature(blob.name, "a.txt", expires, sig))
 
 		# valid at the expiry second, rejected one second later
 		with patch("frappe.storage.url.time.time", return_value=float(expires)):
@@ -78,33 +78,20 @@ class TestSigning(IntegrationTestCase):
 			self.assertFalse(verify_signature(blob.name, "a.txt", expires, sig))
 
 	def test_signed_url_falls_back_to_a_signed_private_files_path(self):
-		# MemoryDriver.download_url returns None, so signed_url builds the path
-		blob = self.make_blob()
-		file = frappe._dict(blob=blob.name, file_name="hello world.txt")
-
-		url = signed_url(file)
-
-		self.assertTrue(url.startswith(f"/private/files/{blob.name}/hello%20world.txt?"))
-		query = parse_qs(urlparse(url).query)
-		self.assertTrue(verify_signature(blob.name, "hello world.txt", query["e"][0], query["s"][0]))
-
-	def test_signed_url_keeps_the_filename_in_one_path_segment(self):
+		# MemoryDriver.download_url returns None, so the URL is a signed path
 		blob = self.make_blob()
 
-		url = signed_url_for_blob(blob, "reports/q1 #final?.pdf")
-
-		self.assertTrue(url.startswith(f"/private/files/{blob.name}/reports_q1%20_final_.pdf?"))
-		query = parse_qs(urlparse(url).query)
-		self.assertTrue(verify_signature(blob.name, "reports_q1 _final_.pdf", query["e"][0], query["s"][0]))
-
-	def test_signed_url_for_blob_accepts_name_or_document(self):
-		blob = self.make_blob()
+		url = signed_url(frappe._dict(blob=blob.name, file_name="hello world.txt"))
+		self.assertSignedPath(url, blob.name, "hello%20world.txt", "hello world.txt")
 
 		for blob_arg in (blob.name, blob):
-			url = signed_url_for_blob(blob_arg, "node name.txt")
-			self.assertTrue(url.startswith(f"/private/files/{blob.name}/node%20name.txt?"))
-			query = parse_qs(urlparse(url).query)
-			self.assertTrue(verify_signature(blob.name, "node name.txt", query["e"][0], query["s"][0]))
+			with self.subTest(blob_arg=blob_arg):
+				url = signed_url_for_blob(blob_arg, "node name.txt")
+				self.assertSignedPath(url, blob.name, "node%20name.txt", "node name.txt")
+
+		# the filename stays in one path segment
+		url = signed_url_for_blob(blob, "reports/q1 #final?.pdf")
+		self.assertSignedPath(url, blob.name, "reports_q1%20_final_.pdf", "reports_q1 _final_.pdf")
 
 	def test_native_url_preferred(self):
 		blob = self.make_blob(b"native url content")
@@ -114,30 +101,16 @@ class TestSigning(IntegrationTestCase):
 		driver = frappe.storage.get_driver(blob.driver)
 		native = "https://storage.example.com/presigned/a.txt"
 
-		with patch.object(driver, "download_url", return_value=native) as mocked:
-			self.assertEqual(signed_url(file, expires_in=900), native)
+		for sign, filename, ttl in (
+			(lambda: signed_url(file, expires_in=900), "a.txt", 900),
+			(lambda: signed_url_for_blob(blob, "node.txt", expires_in=120), "node.txt", 120),
+		):
+			with self.subTest(filename=filename):
+				with patch.object(driver, "download_url", return_value=native) as mocked:
+					self.assertEqual(sign(), native)
+				mocked.assert_called_once_with(
+					blob.key, filename, ttl, is_private=True, mime_type=blob.mime_type, as_attachment=False
+				)
 
-		mocked.assert_called_once_with(
-			blob.key, "a.txt", 900, is_private=True, mime_type=blob.mime_type, as_attachment=False
-		)
 		# without a native URL the same file falls back to a signed path
 		self.assertTrue(signed_url(file).startswith(f"/private/files/{blob.name}/a.txt?"))
-
-	def test_signed_url_for_blob_prefers_native_url(self):
-		blob = self.make_blob(b"native blob url content")
-		driver = frappe.storage.get_driver(blob.driver)
-		native = "https://storage.example.com/presigned/node.txt"
-
-		with patch.object(driver, "download_url", return_value=native) as mocked:
-			self.assertEqual(signed_url_for_blob(blob, "node.txt", expires_in=120), native)
-
-		mocked.assert_called_once_with(
-			blob.key, "node.txt", 120, is_private=True, mime_type=blob.mime_type, as_attachment=False
-		)
-
-	def test_signature_is_stable_for_same_inputs(self):
-		expires = int(time.time()) + 60
-		self.assertEqual(
-			make_signature("blob-1", "a.txt", expires),
-			make_signature("blob-1", "a.txt", expires),
-		)

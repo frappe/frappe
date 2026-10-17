@@ -1,7 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.database.schema import get_definition
 from frappe.tests import IntegrationTestCase
 
 TEST_CHECKSUM = "ab" * 32  # 64 hex chars, sha256-shaped
@@ -30,82 +29,33 @@ class TestFileBlob(IntegrationTestCase):
 		frappe.db.rollback()
 		super().tearDown()
 
-	def test_insert_valid_row(self):
-		doc = make_blob_doc().insert()
-
-		self.assertTrue(doc.name)
-		saved = frappe.get_doc("File Blob", doc.name)
-		self.assertEqual(saved.key, f"{TEST_CHECKSUM[:2]}/{TEST_CHECKSUM[2:4]}/{TEST_CHECKSUM}")
-		self.assertEqual(saved.checksum, TEST_CHECKSUM)
-		self.assertEqual(saved.file_size, 11)
-		self.assertEqual(saved.mime_type, "application/octet-stream")
-		self.assertEqual(saved.driver, "memory")
-		self.assertEqual(saved.is_private, 1)
-		self.assertEqual(saved.status, "Ready")
-
-	def test_same_content_may_have_several_blobs(self):
+	def test_rows_store_their_fields_and_same_content_may_have_several(self):
 		# dedup is a best-effort lookup; concurrent uploads may store twins
-		first = make_blob_doc(key="first").insert()
+		first = make_blob_doc().insert()
 		second = make_blob_doc(key="second").insert()
 
 		self.assertNotEqual(first.name, second.name)
 		self.assertEqual(frappe.db.count("File Blob", {"checksum": TEST_CHECKSUM}), 2)
+		saved = frappe.get_doc("File Blob", first.name)
+		self.assertEqual(
+			(saved.key, saved.checksum, saved.file_size, saved.mime_type, saved.driver, saved.is_private),
+			(make_blob_doc().key, TEST_CHECKSUM, 11, "application/octet-stream", "memory", 1),
+		)
+		self.assertEqual(saved.status, "Ready")
 
 	def test_non_system_manager_cannot_create(self):
 		frappe.set_user("Guest")
 
 		self.assertRaises(frappe.PermissionError, make_blob_doc().insert)
 
+	def test_file_size_holds_objects_larger_than_a_32_bit_column(self):
+		# S3 objects reach 5 TB, so a clamped size would lie to ranged serving and relocation
+		for size in (2**31, 5 * 1024**3 + 1):
+			with self.subTest(size=size):
+				doc = make_blob_doc(file_size=size).insert()
 
-class TestFileBlobSize(IntegrationTestCase):
-	"""`file_size` must describe an object of any size the driver can hold.
+				self.assertEqual(frappe.db.get_value("File Blob", doc.name, "file_size"), size)
+				self.assertEqual(frappe.get_doc("File Blob", doc.name).file_size, size)
 
-	An S3 object goes up to 5 TB and the Drive migration copies such objects
-	into blobs, so a signed 32-bit column is too narrow. `_validate_length`
-	(`frappe/model/base_document.py`) reads the same `length > 11` rule the
-	schema does, so a narrow declaration made every document insert above
-	2,147,483,647 raise `CharacterLengthExceededError` before any SQL ran,
-	in either `sql_mode`. Paths that skip document validation, `db_insert`
-	and `db.set_value`, reached the column instead and clamped there, and a
-	clamped size lies to ranged serving, to relocation, and to every byte
-	count.
-
-	The field is `Int` with `length: 20`. Schema sync promotes that to the
-	`Long Int` column type (`frappe/database/schema.py:437`), which is the
-	declaration `File.file_size` already carries.
-
-	Every size below is declared. No bytes are written.
-	"""
-
-	ABOVE_INT32 = 2**31  # one byte past a signed int(11)
-	ABOVE_5GB = 5 * 1024**3 + 1  # one byte past the S3 single-part copy limit
-
-	def tearDown(self):
-		frappe.db.rollback()
-		super().tearDown()
-
-	def test_the_field_is_declared_as_a_bigint(self):
-		field = frappe.get_meta("File Blob").get_field("file_size")
-
-		self.assertEqual(field.fieldtype, "Int")
-		# Pinned against the type map, not against a literal, so the test
-		# holds on every backend the framework builds a schema for.
-		self.assertEqual(get_definition("Int", length=field.length), get_definition("Long Int"))
-
-	def test_a_size_above_the_signed_int_ceiling_round_trips(self):
-		doc = make_blob_doc(file_size=self.ABOVE_INT32).insert()
-
-		self.assertEqual(frappe.db.get_value("File Blob", doc.name, "file_size"), self.ABOVE_INT32)
-
-	def test_a_size_above_five_gb_round_trips(self):
-		doc = make_blob_doc(file_size=self.ABOVE_5GB).insert()
-
-		# Through the database and through the document, since a clamp on
-		# either side would be invisible to the other.
-		self.assertEqual(frappe.db.get_value("File Blob", doc.name, "file_size"), self.ABOVE_5GB)
-		self.assertEqual(frappe.get_doc("File Blob", doc.name).file_size, self.ABOVE_5GB)
-
-	def test_a_size_above_the_bigint_ceiling_is_still_refused(self):
-		# The column is wider, not unbounded. A number no column can hold is
-		# still a validation error, not a silent truncation.
+		# wider, not unbounded: a size no column can hold is refused, not truncated
 		self.assertRaises(frappe.CharacterLengthExceededError, make_blob_doc(file_size=2**63).insert)

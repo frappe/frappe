@@ -45,24 +45,20 @@ class NonClassResolver:
 
 
 class TestControllerResolution(IntegrationTestCase):
-	def test_class_without_resolve_controller_is_unchanged(self):
-		self.assertIs(_resolve_controller(Plain), Plain)
+	def test_resolve_controller_returns_the_class_itself_or_a_subclass(self):
+		for declared, resolved in ((Plain, Plain), (Declared, Concrete), (SelfResolver, SelfResolver)):
+			with self.subTest(declared=declared.__name__):
+				self.assertIs(_resolve_controller(declared), resolved)
 
-	def test_resolve_controller_returns_subclass(self):
-		self.assertIs(_resolve_controller(Declared), Concrete)
-
-	def test_resolve_controller_may_return_the_class_itself(self):
-		self.assertIs(_resolve_controller(SelfResolver), SelfResolver)
-
-	def test_foreign_class_is_rejected(self):
-		self.assertRaises(ImportError, _resolve_controller, BadResolver)
-
-	def test_non_class_result_is_rejected(self):
-		self.assertRaises(ImportError, _resolve_controller, NonClassResolver)
+		# a foreign class or a non-class result is rejected
+		for declared in (BadResolver, NonClassResolver):
+			with self.subTest(declared=declared.__name__):
+				self.assertRaises(ImportError, _resolve_controller, declared)
 
 	def test_import_controller_wires_resolution(self):
-		"""import_controller must call resolve_controller on the final class."""
 		from frappe.desk.doctype.todo.todo import ToDo
+
+		self.assertIs(import_controller("ToDo"), ToDo)
 
 		class SiteToDo(ToDo):
 			pass
@@ -72,8 +68,3 @@ class TestControllerResolution(IntegrationTestCase):
 			self.assertIs(import_controller("ToDo"), SiteToDo)
 		finally:
 			del ToDo.resolve_controller
-
-	def test_import_controller_unchanged_without_resolver(self):
-		from frappe.desk.doctype.todo.todo import ToDo
-
-		self.assertIs(import_controller("ToDo"), ToDo)

@@ -4,57 +4,31 @@ import hashlib
 import io
 import os
 import zipfile
-from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
 from frappe.client import attach_file
 from frappe.core.doctype.file.file_v2 import create_file_from_blob
-from frappe.storage import get_driver, put_blob
+from frappe.storage import backfill, get_driver, put_blob
 from frappe.storage.blob import validate_upload
+from frappe.storage.gc import MIN_AGE_HOURS
 from frappe.storage.memory_driver import fake
-from frappe.storage.tests import file_permissions_enforced, reset_file_controller
+from frappe.storage.tests import file_permissions_enforced, storage_v2, unique_bytes, unique_png
+from frappe.storage.tests.test_gc_backfill import backdate
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_to_date, get_files_path, now_datetime
 
-PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 WEAK_USER = "storage-v2-weak-user@example.com"
 
 
-@contextmanager
-def storage_flag(value=1):
-	"""Patch frappe.conf.storage_v2 for the duration of the block."""
-	previous = frappe.conf.get("storage_v2")
-	frappe.conf.storage_v2 = value
-	reset_file_controller()
-	try:
-		yield
-	finally:
-		if previous is None:
-			frappe.conf.pop("storage_v2", None)
-		else:
-			frappe.conf.storage_v2 = previous
-		reset_file_controller()
-
-
-def unique_png():
-	"""Unique PNG-sniffable bytes per call so dedup never collides across runs."""
-	return PNG_MAGIC + frappe.generate_hash(length=32).encode()
-
-
 def unique_html():
-	return b"<!DOCTYPE html><html><body>" + frappe.generate_hash(length=32).encode() + b"</body></html>"
+	return unique_bytes(b"<!DOCTYPE html><html><body>")
 
 
 class TestFileStorageIntegration(IntegrationTestCase):
 	def make_file(self, content, file_name="storage-v2.png", is_private=0, **kwargs):
 		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": file_name,
-				"content": content,
-				"is_private": is_private,
-				**kwargs,
-			}
+			doctype="File", file_name=file_name, content=content, is_private=is_private, **kwargs
 		).insert()
 		self.delete_later("File", file.name)
 		if file.get("blob"):
@@ -66,75 +40,181 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			frappe.delete_doc, doctype, name, force=1, ignore_permissions=True, ignore_missing=True
 		)
 
-	def test_upload_creates_blob_row_and_public_url(self):
-		content = unique_png()
-		with storage_flag(), fake() as store:
-			file = self.make_file(content, "photo.PNG", is_private=0)
+	def make_weak_user(self):
+		if not frappe.db.exists("User", WEAK_USER):
+			frappe.get_doc(
+				doctype="User", email=WEAK_USER, first_name="Storage Weak", send_welcome_email=0
+			).insert(ignore_permissions=True)
 
-			self.assertTrue(file.blob)
-			blob = frappe.get_doc("File Blob", file.blob)
-			self.assertEqual(blob.checksum, hashlib.sha256(content).hexdigest())
-			self.assertEqual(blob.status, "Ready")
-			self.assertEqual(blob.is_private, 0)
-			self.assertEqual(blob.key, f"{blob.name}/photo.PNG")
-			# the URL is the same on every driver
-			self.assertEqual(file.file_url, f"/files/{blob.name}/photo.PNG")
-			self.assertTrue(store.exists(blob.key, is_private=False))
+	def make_legacy_row(self, content):
+		"""Insert a private v1 File row with bytes on disk and no blob link."""
+		filename = f"storage-v2-legacy-{frappe.generate_hash(length=10)}.png"
+		path = get_files_path(filename, is_private=1)
+		with open(path, "wb") as f:
+			f.write(content)
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
 
-	def test_upload_creates_private_blob_url(self):
-		content = unique_png()
-		with storage_flag(), fake() as store:
-			file = self.make_file(content, "my photo.png", is_private=1)
+		doc = frappe.new_doc("File")
+		doc.update(
+			{"file_name": filename, "file_url": f"/private/files/{filename}", "is_private": 1, "is_folder": 0}
+		)
+		doc.name = frappe.generate_hash(length=10)
+		doc.owner = doc.modified_by = "Administrator"
+		doc.creation = doc.modified = now_datetime()
+		doc.db_insert()
+		self.delete_later("File", doc.name)
+		return doc.name, path
 
-			blob = frappe.get_doc("File Blob", file.blob)
-			self.assertEqual(blob.is_private, 1)
-			self.assertEqual(file.file_url, f"/private/files/{blob.name}/my photo.png")
-			self.assertTrue(store.exists(blob.key, is_private=True))
+	def test_upload_stores_a_blob_and_reads_it_back(self):
+		with storage_v2(), fake() as store:
+			for is_private, file_name, prefix in (
+				(0, "photo.PNG", "/files"),
+				(1, "my photo.png", "/private/files"),
+			):
+				with self.subTest(is_private=is_private):
+					content = unique_png()
+					file = self.make_file(content, file_name, is_private=is_private)
 
-	def test_two_files_share_one_blob(self):
-		content = unique_png()
-		with storage_flag(), fake():
-			first = self.make_file(content, "one.png")
-			second = self.make_file(content, "two.png")
+					blob = frappe.get_doc("File Blob", file.blob)
+					self.assertEqual(blob.checksum, hashlib.sha256(content).hexdigest())
+					self.assertEqual((blob.status, blob.is_private), ("Ready", is_private))
+					self.assertEqual(blob.key, f"{blob.name}/{file_name}")
+					# the URL is the same on every driver
+					self.assertEqual(file.file_url, f"{prefix}/{blob.name}/{file_name}")
+					self.assertTrue(store.exists(blob.key, is_private=bool(is_private)))
+					self.assertEqual(frappe.get_doc("File", file.name).get_content(), content)
 
-			self.assertNotEqual(first.name, second.name)
-			self.assertEqual(first.blob, second.blob)
-			self.assertEqual(
-				frappe.db.count(
-					"File Blob",
-					{"checksum": hashlib.sha256(content).hexdigest(), "is_private": 0},
-				),
-				1,
-			)
+					# the same bytes again share the blob and the first upload's URL
+					second = self.make_file(content, "two.png", is_private=is_private)
+					self.assertEqual((second.blob, second.file_url), (blob.name, file.file_url))
+					self.assertEqual(second.file_name, "two.png")
+					self.assertEqual(frappe.db.count("File Blob", {"checksum": blob.checksum}), 1)
 
-			# both rows use the first upload's URL, which names its key
-			self.assertEqual(first.file_url, f"/files/{first.blob}/one.png")
-			self.assertEqual(second.file_url, f"/files/{first.blob}/one.png")
-			self.assertEqual(second.file_name, "two.png")
+					# GC owns the bytes; a File delete never removes them synchronously
+					file.delete()
+					self.assertTrue(frappe.db.exists("File Blob", blob.name))
+					self.assertTrue(store.exists(blob.key, is_private=bool(is_private)))
 
-	def test_delete_file_keeps_bytes_and_blob(self):
-		content = unique_png()
-		with storage_flag(), fake() as store:
-			file = self.make_file(content, "kept.png", is_private=1)
-			blob = frappe.get_doc("File Blob", file.blob)
+			# text that is not utf-8 is decoded with the next candidate encoding
+			content = "café ".encode("windows-1250") + frappe.generate_hash(length=16).encode()
+			file = self.make_file(content, "latin.txt", is_private=1)
+			self.assertEqual(frappe.get_doc("File", file.name).get_content(), content.decode("windows-1250"))
 
-			file.delete()
+	def test_only_the_local_driver_has_a_disk_path(self):
+		with storage_v2():
+			for is_private in (0, 1):
+				with self.subTest(is_private=is_private):
+					content = unique_png()
+					file = self.make_file(content, "on disk.png", is_private=is_private)
+					key = frappe.db.get_value("File Blob", file.blob, "key")
+					self.addCleanup(get_driver("local").delete, key, is_private=bool(is_private))
 
-			# GC owns the bytes; a File delete never removes them synchronously
-			self.assertTrue(frappe.db.exists("File Blob", blob.name))
-			self.assertTrue(store.exists(blob.key, is_private=True))
+					# nginx serves the URL path from the site folder
+					site_path = frappe.get_site_path() if is_private else frappe.get_site_path("public")
+					path = file.get_full_path()
+					self.assertEqual(os.path.realpath(path), os.path.realpath(site_path + file.file_url))
+					with open(path, "rb") as f:
+						self.assertEqual(f.read(), content)
+					self.assertTrue(file.exists_on_disk())
 
-	def test_get_content_roundtrip(self):
-		content = unique_png()
-		with storage_flag(), fake():
-			file = self.make_file(content, "roundtrip.png", is_private=1)
+		with storage_v2(), fake() as store:
+			file = self.make_file(unique_png(), "in-memory.png", is_private=1)
+			self.assertRaises(frappe.ValidationError, file.get_full_path)
 
-			fresh = frappe.get_doc("File", file.name)
-			self.assertEqual(fresh.get_content(), content)
+			store.delete(frappe.db.get_value("File Blob", file.blob, "key"), is_private=True)
+			self.assertFalse(file.exists_on_disk())
+			self.assertRaises(OSError, file.validate_file_on_disk)
+
+	def test_privacy_change_repoints_the_blob(self):
+		with storage_v2(), fake() as store:
+			file = self.make_file(unique_png(), "unchanged.png", is_private=1)
+			blob_before = file.blob
+			# a doc rebuilt from a dict must not repoint its blob without a real change
+			file.handle_is_private_changed()
+			self.assertEqual(file.blob, blob_before)
+
+			for case in ("flip", "drift"):
+				with self.subTest(case=case):
+					file = self.make_file(unique_png(), "flip.png", is_private=0)
+					old_blob = frappe.get_doc("File Blob", file.blob)
+					if case == "flip":
+						file.is_private = 1
+					else:
+						# a subclass flipped is_private without validate(); before_save repoints
+						frappe.db.set_value("File", file.name, "is_private", 1, update_modified=False)
+						file = frappe.get_doc("File", file.name)
+					file.save()
+					self.delete_later("File Blob", file.blob)
+
+					self.assertNotEqual(file.blob, old_blob.name)
+					new_blob = frappe.get_doc("File Blob", file.blob)
+					self.assertEqual(new_blob.is_private, 1)
+					self.assertEqual(file.file_url, f"/private/files/{new_blob.name}/flip.png")
+					self.assertTrue(store.exists(new_blob.key, is_private=True))
+					# the old blob is left for GC
+					self.assertTrue(frappe.db.exists("File Blob", old_blob.name))
+					self.assertTrue(store.exists(old_blob.key, is_private=False))
+
+	def test_copied_row_adopts_the_blob_behind_its_url(self):
+		# amend rebuilds attachments from a bare file_url; the copy relinks the blob
+		# and refreshes its modified, so a concurrent GC pass cannot delete it
+		cutoff = add_to_date(now_datetime(), hours=-MIN_AGE_HOURS)
+		with storage_v2(), fake():
+			for is_private, fields in ((1, {"file_name": "amended.png", "is_private": 1}), (0, {})):
+				with self.subTest(is_private=is_private):
+					original = self.make_file(unique_png(), "amended.png", is_private=is_private)
+					backdate(original.blob)
+
+					copy = frappe.get_doc(
+						{"doctype": "File", "file_url": original.file_url, **fields}
+					).insert()
+					self.delete_later("File", copy.name)
+
+					self.assertEqual((copy.blob, copy.file_url), (original.blob, original.file_url))
+					self.assertGreater(frappe.db.get_value("File Blob", original.blob, "modified"), cutoff)
+
+	def test_disguised_html_is_rejected(self):
+		with storage_v2(), fake():
+			png_blob = put_blob(io.BytesIO(unique_png()), filename="ok.png")
+			self.delete_later("File Blob", png_blob.name)
+			validate_upload(png_blob, "ok.png")
+
+			html_blob = put_blob(io.BytesIO(unique_html()), filename="evil.png")
+			self.delete_later("File Blob", html_blob.name)
+			self.assertEqual(html_blob.mime_type, "text/html")
+			self.assertRaises(frappe.ValidationError, validate_upload, html_blob, "evil.png")
+			# the same bytes under an honest extension pass
+			validate_upload(html_blob, "page.html")
+
+			# the sniff check also runs on File.insert with content
+			self.assertRaises(frappe.ValidationError, self.make_file, unique_html(), "disguised.png")
+
+	def test_thumbnails_and_xlsx_read_from_another_driver(self):
+		from PIL import Image
+
+		from frappe.utils.xlsxutils import make_xlsx, read_xlsx_file_from_attached_file
+
+		buffer = io.BytesIO()
+		Image.new("RGB", (600, 400), "red").save(buffer, format="PNG")
+		rows = [["Account", "Parent"], [frappe.generate_hash(length=8), "Assets"]]
+		with storage_v2(), fake():
+			image = self.make_file(buffer.getvalue(), "remote photo.png")
+			thumbnail_url = image.make_thumbnail()
+
+			sheet = self.make_file(make_xlsx(rows, "Sheet1").getvalue(), "accounts.xlsx")
+			self.assertEqual(read_xlsx_file_from_attached_file(file_url=sheet.file_url), rows)
+
+		self.assertEqual(thumbnail_url, f"/files/{image.blob}/remote photo_small.png")
+		path = frappe.get_site_path("public", thumbnail_url.lstrip("/"))
+		self.addCleanup(os.rmdir, os.path.dirname(path))
+		self.addCleanup(os.remove, path)
+		with Image.open(path) as thumbnail:
+			self.assertEqual(thumbnail.size, (300, 200))
+		self.assertEqual(frappe.db.get_value("File", image.name, "thumbnail_url"), thumbnail_url)
 
 	def test_unzip_extracts_a_zip_from_any_storage(self):
 		# flag off: a v1 zip on local disk takes the same read path
-		for flag in (1, 0):
+		for enabled in (True, False):
 			# unique names: v1 renames a member whose path already holds other bytes
 			suffix = frappe.generate_hash(length=8)
 			members = {f"a-{suffix}.txt": b"alpha " + suffix.encode(), f"b-{suffix}.txt": b"beta"}
@@ -143,9 +223,9 @@ class TestFileStorageIntegration(IntegrationTestCase):
 				for name, data in members.items():
 					z.writestr(name, data)
 
-			with self.subTest(storage_v2=flag), storage_flag(flag), fake():
+			with self.subTest(storage_v2=enabled), storage_v2(enabled), fake():
 				zip_file = self.make_file(archive.getvalue(), "bundle.zip", is_private=1)
-				self.assertEqual(bool(zip_file.get("blob")), bool(flag))
+				self.assertEqual(bool(zip_file.get("blob")), enabled)
 				children = zip_file.unzip()
 				for child in children:
 					self.delete_later("File", child.name)
@@ -156,224 +236,81 @@ class TestFileStorageIntegration(IntegrationTestCase):
 				)
 				self.assertFalse(frappe.db.exists("File", zip_file.name))
 
-	def test_privacy_flip_repoints_blob(self):
-		content = unique_png()
-		with storage_flag(), fake() as store:
-			file = self.make_file(content, "flip.png", is_private=0)
-			old_blob_name = file.blob
-			old_key = frappe.db.get_value("File Blob", old_blob_name, "key")
-
-			file.is_private = 1
-			file.save()
-			self.delete_later("File Blob", file.blob)
-
-			self.assertNotEqual(file.blob, old_blob_name)
-			new_blob = frappe.get_doc("File Blob", file.blob)
-			self.assertEqual(new_blob.is_private, 1)
-			self.assertEqual(file.file_url, f"/private/files/{new_blob.name}/flip.png")
-			self.assertTrue(store.exists(new_blob.key, is_private=True))
-			# the old blob is left for GC
-			self.assertTrue(frappe.db.exists("File Blob", old_blob_name))
-			self.assertTrue(store.exists(old_key, is_private=False))
-
 	def test_create_file_from_blob(self):
-		content = unique_png()
-		with storage_flag(), fake():
-			blob = put_blob(io.BytesIO(content), is_private=True, filename="direct.png")
-			self.delete_later("File Blob", blob.name)
+		from frappe.model.base_document import get_controller
 
+		with storage_v2(), fake():
+			blob = put_blob(io.BytesIO(unique_png()), is_private=True, filename="direct.png")
+			self.delete_later("File Blob", blob.name)
 			todo = frappe.get_doc(doctype="ToDo", description="storage v2 blob attach target").insert()
 			self.delete_later("ToDo", todo.name)
 
-			file = create_file_from_blob(
-				blob,
-				"direct.png",
-				attached_to_doctype="ToDo",
-				attached_to_name=todo.name,
-				is_private=True,
-			)
-			self.delete_later("File", file.name)
-
-			self.assertEqual(file.blob, blob.name)
-			self.assertEqual(file.file_size, blob.file_size)
-			self.assertEqual(file.file_url, f"/private/files/{blob.name}/direct.png")
-			# attachment comment parity with the regular upload path
-			self.assertTrue(
-				frappe.get_all(
-					"Comment",
-					filters={
-						"reference_doctype": "ToDo",
-						"reference_name": todo.name,
-						"comment_type": "Attachment",
-					},
+			# a subclass that overrides after_insert still gets the attachment comment
+			with patch.object(get_controller("File"), "after_insert", lambda self: None):
+				file = create_file_from_blob(
+					blob,
+					"direct.png",
+					attached_to_doctype="ToDo",
+					attached_to_name=todo.name,
+					is_private=True,
 				)
+			self.delete_later("File", file.name)
+			self.assertEqual((file.blob, file.file_size), (blob.name, blob.file_size))
+			self.assertEqual(file.file_url, f"/private/files/{blob.name}/direct.png")
+			comment = {"reference_doctype": "ToDo", "reference_name": todo.name, "comment_type": "Attachment"}
+			self.assertTrue(frappe.db.exists("Comment", comment))
+
+			# a blob name works too; the URL names the blob's key
+			by_name = create_file_from_blob(blob.name, "by-name.png", is_private=True)
+			self.delete_later("File", by_name.name)
+			self.assertEqual((by_name.blob, by_name.file_url), (blob.name, file.file_url))
+
+			self.assertRaises(
+				frappe.ValidationError, create_file_from_blob, blob, "mismatch.png", is_private=False
 			)
 
-	def test_attach_file_requires_write_permission(self):
+			pending = frappe.get_doc(
+				doctype="File Blob",
+				key=f"pending/{frappe.generate_hash(length=16)}",
+				checksum=frappe.generate_hash(length=64),
+				driver="memory",
+				file_size=1,
+				is_private=1,
+				status="Pending",
+			).insert()
+			self.delete_later("File Blob", pending.name)
+			self.assertRaises(
+				frappe.ValidationError, create_file_from_blob, pending.name, "pending.png", is_private=True
+			)
+
+	def test_legacy_upload_apis_store_blobs(self):
+		from frappe.utils.file_manager import save_file
+
 		self.make_weak_user()
 		content = "storage v2 attach " + frappe.generate_hash(length=32)
-		with storage_flag(), fake():
+		with storage_v2(), fake() as store:
+			file = save_file(
+				f"fm-{frappe.generate_hash(length=8)}.png", unique_png(), None, None, is_private=1
+			)
+			self.delete_later("File", file.name)
+			self.delete_later("File Blob", file.blob)
+			key = frappe.db.get_value("File Blob", file.blob, "key")
+			self.assertTrue(store.exists(key, is_private=True))
+
+			attach = {"filedata": content, "doctype": "Language", "docname": "en", "is_private": 1}
 			with self.set_user(WEAK_USER):
 				# read on Language is granted to All; write is not
-				self.assertRaises(
-					frappe.PermissionError,
-					attach_file,
-					filename="denied.txt",
-					filedata=content,
-					doctype="Language",
-					docname="en",
-					is_private=1,
-				)
+				self.assertRaises(frappe.PermissionError, attach_file, filename="denied.txt", **attach)
 
-			# with write permission the same call succeeds
-			file = attach_file(
-				filename="allowed.txt",
-				filedata=content,
-				doctype="Language",
-				docname="en",
-				is_private=1,
-			)
+			file = attach_file(filename="allowed.txt", **attach)
 			self.delete_later("File", file.name)
 			self.delete_later("File Blob", file.blob)
 			self.assertTrue(file.blob)
 
-	def make_weak_user(self):
-		if not frappe.db.exists("User", WEAK_USER):
-			frappe.get_doc(
-				doctype="User",
-				email=WEAK_USER,
-				first_name="Storage Weak",
-				send_welcome_email=0,
-			).insert(ignore_permissions=True)
-
-	def test_validate_upload(self):
-		with storage_flag(), fake():
-			png_blob = put_blob(io.BytesIO(unique_png()), filename="ok.png")
-			self.delete_later("File Blob", png_blob.name)
-			# matching png passes
-			validate_upload(png_blob, "ok.png")
-
-			html_blob = put_blob(io.BytesIO(unique_html()), filename="evil.png")
-			self.delete_later("File Blob", html_blob.name)
-			self.assertEqual(html_blob.mime_type, "text/html")
-			# html bytes disguised as png are rejected
-			self.assertRaises(frappe.ValidationError, validate_upload, html_blob, "evil.png")
-			# the same bytes under an honest extension pass
-			validate_upload(html_blob, "page.html")
-
-	def test_get_full_path_local_driver(self):
-		content = unique_png()
-		with storage_flag():
-			file = self.make_file(content, "on-disk.png", is_private=1)
-			blob = frappe.get_doc("File Blob", file.blob)
-			driver = get_driver("local")
-			self.addCleanup(driver.delete, blob.key, is_private=True)
-
-			path = file.get_full_path()
-			self.assertTrue(os.path.isfile(path))
-			with open(path, "rb") as f:
-				self.assertEqual(f.read(), content)
-			self.assertTrue(file.exists_on_disk())
-
-	def test_get_full_path_raises_for_non_local_driver(self):
-		with storage_flag(), fake():
-			file = self.make_file(unique_png(), "in-memory.png")
-			self.assertRaises(frappe.ValidationError, file.get_full_path)
-
-	def test_thumbnail_of_an_image_on_another_driver(self):
-		from PIL import Image
-
-		buffer = io.BytesIO()
-		Image.new("RGB", (600, 400), "red").save(buffer, format="PNG")
-		with storage_flag(), fake():
-			file = self.make_file(buffer.getvalue(), "remote photo.png")
-			thumbnail_url = file.make_thumbnail()
-
-		self.assertEqual(thumbnail_url, f"/files/{file.blob}/remote photo_small.png")
-		path = frappe.get_site_path("public", thumbnail_url.lstrip("/"))
-		self.addCleanup(os.rmdir, os.path.dirname(path))
-		self.addCleanup(os.remove, path)
-		with Image.open(path) as thumbnail:
-			self.assertEqual(thumbnail.size, (300, 200))
-		self.assertEqual(frappe.db.get_value("File", file.name, "thumbnail_url"), thumbnail_url)
-
-	def test_attached_xlsx_is_read_from_another_driver(self):
-		from frappe.utils.xlsxutils import make_xlsx, read_xlsx_file_from_attached_file
-
-		rows = [["Account", "Parent"], [frappe.generate_hash(length=8), "Assets"]]
-		with storage_flag(), fake():
-			file = self.make_file(make_xlsx(rows, "Sheet1").getvalue(), "accounts.xlsx")
-			self.assertEqual(read_xlsx_file_from_attached_file(file_url=file.file_url), rows)
-
-	def test_standard_write_path_rejects_disguised_html(self):
-		# the sniff check runs on File.insert with content, not only in finish_upload
-		with storage_flag(), fake():
-			self.assertRaises(
-				frappe.ValidationError,
-				self.make_file,
-				unique_html(),
-				"disguised.png",
-			)
-
-	def test_public_local_upload_sits_on_disk_at_its_url(self):
-		content = unique_png()
-		with storage_flag():
-			file = self.make_file(content, "local public.png", is_private=0)
-			blob = frappe.get_doc("File Blob", file.blob)
-			driver = get_driver("local")
-			self.addCleanup(driver.delete, blob.key, is_private=False)
-
-			self.assertEqual(file.file_url, f"/files/{blob.name}/local public.png")
-			# nginx serves the URL path from the site's public folder
-			path = frappe.get_site_path("public", "files", blob.name, "local public.png")
-			self.assertEqual(
-				os.path.realpath(path), os.path.realpath(frappe.get_site_path("public") + file.file_url)
-			)
-			with open(path, "rb") as f:
-				self.assertEqual(f.read(), content)
-
-	def test_copied_row_adopts_blob_from_blob_url(self):
-		# amend of a submittable doc rebuilds attachments from bare file_url;
-		# a blob URL must relink the blob instead of writing the bytes again
-		content = unique_png()
-		with storage_flag(), fake():
-			original = self.make_file(content, "amended.png", is_private=1)
-
-			copy = frappe.get_doc(
-				{
-					"doctype": "File",
-					"file_url": original.file_url,
-					"file_name": original.file_name,
-					"is_private": 1,
-				}
-			).insert()
-			self.delete_later("File", copy.name)
-
-			self.assertEqual(copy.blob, original.blob)
-			self.assertEqual(copy.file_url, original.file_url)
-
-	def test_copied_row_moves_an_old_blob_out_of_the_gc_window(self):
-		# until the copy commits, only a fresh modified keeps a concurrent GC
-		# pass from deleting the blob if the original row is deleted meanwhile
-		from frappe.storage.gc import MIN_AGE_HOURS
-		from frappe.storage.tests.test_gc_backfill import backdate
-		from frappe.utils import add_to_date, now_datetime
-
-		with storage_flag(), fake():
-			original = self.make_file(unique_png(), "old-public.png")
-			backdate(original.blob)
-
-			copy = frappe.get_doc({"doctype": "File", "file_url": original.file_url}).insert()
-			self.delete_later("File", copy.name)
-
-		self.assertEqual(copy.blob, original.blob)
-		cutoff = add_to_date(now_datetime(), hours=-MIN_AGE_HOURS)
-		self.assertGreater(frappe.db.get_value("File Blob", original.blob, "modified"), cutoff)
-
-	def test_copied_private_url_needs_permission_on_the_blob(self):
-		# knowing a private blob URL must not grant access through a new row
+	def test_new_row_needs_permission_on_the_private_blob_it_links(self):
+		# knowing a private blob URL or name must not grant access through a new row
 		self.make_weak_user()
-		with storage_flag(), fake(), file_permissions_enforced():
+		with storage_v2(), fake(), file_permissions_enforced():
 			original = self.make_file(unique_png(), "secret.png", is_private=1)
 
 			def copy(file_url):
@@ -395,29 +332,10 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.delete_later("File", trusted.name)
 			self.assertEqual(trusted.blob, original.blob)
 
-	def test_relinking_a_row_to_a_private_blob_needs_permission_on_it(self):
-		# the blob link grants /private/files/<blob>/ access, so it is checked like file_url
-		with storage_flag(), fake(), file_permissions_enforced():
-			secret = self.make_file(unique_png(), "secret.png", is_private=1)
-			with self.set_user("test@example.com"):
-				own = self.make_file(unique_png(), "own.png", is_private=0)
-
-				# the user's own privacy flip writes a new blob, which is trusted
-				own.is_private = 1
-				own.save()
-				self.delete_later("File Blob", own.blob)
-				self.assertTrue(own.file_url.startswith(f"/private/files/{own.blob}/"))
-
-				own.blob = secret.blob
-				self.assertRaises(frappe.PermissionError, own.save)
-			self.assertNotEqual(frappe.db.get_value("File", own.name, "blob"), secret.blob)
-
-	def test_new_row_cannot_link_a_private_blob_the_user_cannot_open(self):
-		# the blob link grants /private/files/<blob>/, so a new row is checked
-		# before ingestion reads the linked bytes, under either storage version
-		for flag in (1, 0):
-			with self.subTest(storage_v2=flag), storage_flag(flag), fake(), file_permissions_enforced():
-				with storage_flag(1):
+		# a blob link is checked before ingestion reads the linked bytes, under either version
+		for enabled in (True, False):
+			with self.subTest(storage_v2=enabled), storage_v2(enabled), fake(), file_permissions_enforced():
+				with storage_v2():
 					secret = self.make_file(unique_png(), "secret.png", is_private=1)
 				rows = (
 					({"file_url": "/private/files/stolen.png"}, frappe.PermissionError),
@@ -432,12 +350,11 @@ class TestFileStorageIntegration(IntegrationTestCase):
 						self.assertRaises(error, row.insert)
 				self.assertEqual(frappe.db.count("File", {"blob": secret.blob}), 1)
 
-	def test_privacy_flip_cannot_read_an_unauthorized_blob(self):
-		with storage_flag(), fake(), file_permissions_enforced():
+	def test_existing_row_needs_permission_on_the_private_blob_it_links(self):
+		with storage_v2(), fake(), file_permissions_enforced():
 			secret = self.make_file(unique_png(), "secret.png", is_private=1)
 			with self.set_user("test@example.com"):
 				own = self.make_file(unique_png(), "own.png", is_private=0)
-				own_blob = own.blob
 				own.blob = secret.blob
 				own.is_private = 1
 				self.assertRaises(frappe.PermissionError, own.save)
@@ -446,6 +363,17 @@ class TestFileStorageIntegration(IntegrationTestCase):
 				own.reload()
 				own.blob = secret.blob
 				self.assertRaises(frappe.PermissionError, own.optimize_file)
+
+				# the user's own privacy flip writes a new blob, which is trusted
+				own.reload()
+				own.is_private = 1
+				own.save()
+				self.delete_later("File Blob", own.blob)
+				self.assertTrue(own.file_url.startswith(f"/private/files/{own.blob}/"))
+				own_blob = own.blob
+
+				own.blob = secret.blob
+				self.assertRaises(frappe.PermissionError, own.save)
 			self.assertEqual(frappe.db.get_value("File", own.name, "blob"), own_blob)
 			self.assertEqual(frappe.db.count("File", {"blob": secret.blob}), 1)
 
@@ -454,7 +382,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 
 		buffer = io.BytesIO()
 		Image.effect_noise((1200, 900), 100).convert("RGB").save(buffer, format="JPEG", quality=100)
-		with storage_flag(), fake():
+		with storage_v2(), fake():
 			user = frappe.get_doc("User", "test@example.com")
 			file = self.make_file(
 				buffer.getvalue(),
@@ -463,8 +391,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 				attached_to_name=user.name,
 				attached_to_field="user_image",
 			)
-			old_image = user.user_image
-			self.addCleanup(frappe.db.set_value, "User", user.name, "user_image", old_image)
+			self.addCleanup(frappe.db.set_value, "User", user.name, "user_image", user.user_image)
 			frappe.db.set_value("User", user.name, "user_image", file.file_url)
 			old_blob = file.blob
 
@@ -474,68 +401,49 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.assertNotEqual(file.blob, old_blob)
 			self.assertEqual(frappe.db.get_value("User", user.name, "user_image"), file.file_url)
 
-	def test_blob_row_rejects_parent_directory_in_file_url(self):
-		with storage_flag(), fake():
+	def test_blob_row_rejects_a_foreign_file_url(self):
+		with storage_v2(), fake():
 			file = self.make_file(unique_png(), "traversal.png", is_private=1)
+			cases = (
+				(f"/files/../../private/files/{file.blob}/traversal.png", file.validate_file_path),
+				("/somewhere/else.png", file.validate_file_url),
+			)
+			for file_url, validate in cases:
+				with self.subTest(file_url=file_url):
+					file.file_url = file_url
+					self.assertRaises(frappe.ValidationError, validate)
 
-			file.file_url = f"/files/../../private/files/{file.blob}/traversal.png"
-			self.assertRaises(frappe.ValidationError, file.validate_file_path)
-
-	def test_backfilled_row_saves_with_legacy_url(self):
-		import os
-
-		from frappe.storage import backfill
-		from frappe.utils import get_files_path, now_datetime
-
-		content = unique_png()
-		filename = f"storage-v2-bf-{frappe.generate_hash(length=10)}.png"
-		path = get_files_path(filename, is_private=1)
-		with open(path, "wb") as f:
-			f.write(content)
-		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
-
-		doc = frappe.new_doc("File")
-		doc.update(
-			{
-				"file_name": filename,
-				"file_url": f"/private/files/{filename}",
-				"is_private": 1,
-				"is_folder": 0,
-			}
-		)
-		doc.name = frappe.generate_hash(length=10)
-		doc.owner = doc.modified_by = "Administrator"
-		doc.creation = doc.modified = now_datetime()
-		doc.db_insert()
-		self.delete_later("File", doc.name)
-
-		with storage_flag():
-			backfill.run(filters={"name": doc.name})
-			linked = frappe.get_doc("File", doc.name)
-			self.delete_later("File Blob", linked.blob)
-			self.assertTrue(linked.blob)
-			self.assertEqual(linked.file_url, f"/private/files/{filename}")
-
-			# saving a backfilled row must not fail URL validation
-			linked.save()
-			self.assertEqual(linked.file_url, f"/private/files/{filename}")
-
-	def test_copied_row_adopts_the_blob_behind_a_relocated_v1_url(self):
-		# amend rebuilds attachments from the v1 file_url, whose disk file is gone
-		from frappe.storage import backfill
-
+	def test_legacy_row_through_backfill_and_relocation(self):
 		content = unique_png()
 		name, path = self.make_legacy_row(content)
 		file_url = frappe.db.get_value("File", name, "file_url")
-		with storage_flag(), fake() as store, file_permissions_enforced():
-			backfill.run(filters={"name": name})
-			blob = frappe.db.get_value("File", name, "blob")
+		with storage_v2(), fake() as store, file_permissions_enforced():
+			# blob still NULL: every seam delegates to FileV1 and reads the disk path
+			doc = frappe.get_doc("File", name)
+			self.assertFalse(doc.get("blob"))
+			self.assertIsNone(doc.validate_file_path())
+			self.assertIsNone(doc.validate_file_url())
+			self.assertIsNone(doc.validate_file_on_disk())
+			self.assertTrue(doc.exists_on_disk())
+			self.assertEqual(doc.get_full_path(), path)
+			self.assertEqual(doc.get_content(), content)
+
+			# a backfilled row keeps its legacy URL and still saves
+			backfill.run(filters=[["name", "=", name]])
+			linked = frappe.get_doc("File", name)
+			blob = linked.blob
 			self.delete_later("File Blob", blob)
-			# what relocation does: bytes move to another driver, the v1 file goes
+			self.assertTrue(blob)
+			self.assertEqual(linked.file_url, file_url)
+			linked.save()
+			self.assertEqual(linked.file_url, file_url)
+
+			# relocation: bytes move to another driver, the v1 file goes
 			store.write(f"{blob}/moved.png", io.BytesIO(content), is_private=True)
 			frappe.db.set_value("File Blob", blob, {"driver": store.name, "key": f"{blob}/moved.png"})
 			os.remove(path)
 
+			# amend rebuilds attachments from the v1 file_url
 			def copy():
 				return frappe.get_doc(
 					{"doctype": "File", "file_url": file_url, "file_name": "copy.png", "is_private": 1}
@@ -544,131 +452,26 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			with self.set_user("test@example.com"):
 				self.assertRaises(frappe.PermissionError, copy().insert)
 
-			for flag in (1, 0):
-				with self.subTest(storage_v2=flag), storage_flag(flag):
+			for enabled in (True, False):
+				with self.subTest(storage_v2=enabled), storage_v2(enabled):
 					copied = copy().insert()
 					self.delete_later("File", copied.name)
 					self.assertEqual((copied.blob, copied.file_url), (blob, file_url))
 					self.assertEqual(frappe.get_doc("File", copied.name).get_content(), content)
 
-	def test_file_manager_save_file_creates_blob(self):
-		from frappe.utils.file_manager import save_file
-
-		content = unique_png()
-		with storage_flag(), fake() as store:
-			file = save_file(f"fm-{frappe.generate_hash(length=8)}.png", content, None, None, is_private=1)
-			self.delete_later("File", file.name)
-			self.delete_later("File Blob", file.blob)
-
-			self.assertTrue(file.blob)
-			blob = frappe.get_doc("File Blob", file.blob)
-			self.assertTrue(store.exists(blob.key, is_private=True))
-
 	def test_flag_off_is_legacy(self):
 		content = unique_png()
-		with storage_flag(0):
+		with storage_v2(False):
 			file = self.make_file(content, "legacy.png", is_private=0)
 
 			self.assertFalse(file.get("blob"))
 			self.assertEqual(file.file_url, f"/files/{file.file_name}")
 			self.assertFalse(frappe.db.exists("File Blob", {"checksum": hashlib.sha256(content).hexdigest()}))
 
-	# --- storage seams and controller resolution ---
-
-	def test_base_file_class_has_no_storage_implementation(self):
-		"""Every storage seam on the base File class refuses to run."""
-		from frappe.core.doctype.file.file import File as BaseFile
-
-		doc = BaseFile({"doctype": "File", "file_name": "unresolved.txt"})
-		seams = (
-			"_ingest_new_content",
-			"_read_content",
-			"_open_stored_bytes",
-			"_store_content",
-			"get_full_path",
-			"exists_on_disk",
-			"validate_file_path",
-			"validate_file_url",
-			"validate_file_on_disk",
-			"handle_is_private_changed",
-			"_delete_file_on_disk",
-		)
-		for seam in seams:
-			with self.subTest(seam=seam):
-				with self.assertRaises(NotImplementedError) as caught:
-					getattr(doc, seam)()
-				self.assertIn("resolve_controller", str(caught.exception))
-
-		# the one seam with a real default: keeping nothing is valid
-		self.assertIsNone(doc._stash_original_content())
-
-	def test_resolve_controller_splices_app_override(self):
-		"""An app subclass of File keeps its methods on top of the storage class."""
-		from frappe.core.doctype.file.file import File as BaseFile
-		from frappe.core.doctype.file.file import _ResolvedFileMeta
-		from frappe.core.doctype.file.file_v1 import FileV1
-		from frappe.core.doctype.file.file_v2 import FileV2
-
-		class AppFile(BaseFile):
-			pass
-
-		with storage_flag(1):
-			self.assertIs(BaseFile.resolve_controller(), FileV2)
-			# a class that already is a storage class is returned untouched
-			self.assertIs(FileV2.resolve_controller(), FileV2)
-
-			spliced = AppFile.resolve_controller()
-			self.assertIsInstance(spliced, _ResolvedFileMeta)
-			self.assertEqual(spliced.__name__, "AppFile")
-			self.assertEqual(spliced.__mro__[:4], (spliced, AppFile, FileV2, BaseFile))
-
-		with storage_flag(0):
-			self.assertIs(BaseFile.resolve_controller(), FileV1)
-			self.assertIs(FileV1.resolve_controller(), FileV1)
-
-			spliced_v1 = AppFile.resolve_controller()
-			self.assertEqual(spliced_v1.__mro__[:4], (spliced_v1, AppFile, FileV1, BaseFile))
-
-	def test_resolved_file_class_is_picklable(self):
-		"""A runtime-spliced File class pickles as the site's File controller."""
-		import pickle
-
-		from frappe.core.doctype.file.file import File as BaseFile
-		from frappe.model.base_document import get_controller
-
-		class AppFile(BaseFile):
-			pass
-
-		with storage_flag():
-			spliced = AppFile.resolve_controller()
-
-			self.assertIs(pickle.loads(pickle.dumps(spliced)), get_controller("File"))
-
-			doc = spliced({"doctype": "File", "file_name": "picklable.txt"})
-			restored = pickle.loads(pickle.dumps(doc))
-			self.assertEqual(restored.file_name, "picklable.txt")
-			self.assertIs(type(restored), get_controller("File"))
-
-	def test_get_content_falls_back_to_next_encoding(self):
-		"""Text that is not utf-8 is decoded with the next candidate encoding."""
-		content = "café ".encode("windows-1250") + frappe.generate_hash(length=16).encode()
-		with storage_flag(), fake():
-			file = self.make_file(content, "latin.txt", is_private=1)
-
-			fresh = frappe.get_doc("File", file.name)
-			self.assertEqual(fresh.get_content(), content.decode("windows-1250"))
-
-	# --- FileV2 branches ---
-
 	def test_remote_file_stores_no_bytes(self):
-		with storage_flag(), fake() as store:
+		with storage_v2(), fake() as store:
 			file = frappe.get_doc(
-				{
-					"doctype": "File",
-					"file_name": "remote.png",
-					"file_url": "https://example.com/remote.png",
-					"is_private": 0,
-				}
+				doctype="File", file_name="remote.png", file_url="https://example.com/remote.png"
 			).insert()
 			self.delete_later("File", file.name)
 
@@ -681,173 +484,54 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.assertIsNone(file.handle_is_private_changed())
 			self.assertTrue(file.validate_file_on_disk())
 
-	def test_handle_is_private_changed_ignores_unchanged_privacy(self):
-		"""A doc rebuilt from a dict must not repoint its blob without a real change."""
-		with storage_flag(), fake():
-			file = self.make_file(unique_png(), "unchanged.png", is_private=1)
-			blob_before = file.blob
+	# --- storage seams and controller resolution ---
 
-			file.handle_is_private_changed()
+	def test_base_file_class_has_no_storage_implementation(self):
+		from frappe.core.doctype.file.file import File as BaseFile
 
-			self.assertEqual(file.blob, blob_before)
+		doc = BaseFile({"doctype": "File", "file_name": "unresolved.txt"})
+		seams = (
+			"_ingest_new_content _read_content _open_stored_bytes _store_content get_full_path exists_on_disk"
+			" validate_file_path validate_file_url validate_file_on_disk handle_is_private_changed"
+			" _delete_file_on_disk"
+		).split()
+		for seam in seams:
+			with self.subTest(seam=seam):
+				with self.assertRaises(NotImplementedError) as caught:
+					getattr(doc, seam)()
+				self.assertIn("resolve_controller", str(caught.exception))
 
-	def test_before_save_reasserts_blob_privacy(self):
-		"""A row whose privacy drifted from its blob is repointed on save."""
-		with storage_flag(), fake() as store:
-			file = self.make_file(unique_png(), "drifted.png", is_private=0)
-			old_blob = file.blob
+		# the one seam with a real default: keeping nothing is valid
+		self.assertIsNone(doc._stash_original_content())
 
-			# simulate a subclass that flipped is_private without going through
-			# validate(): the row is now private but the blob is still public
-			frappe.db.set_value("File", file.name, "is_private", 1, update_modified=False)
+	def test_resolve_controller_splices_app_override(self):
+		"""An app subclass of File keeps its methods on top of the storage class, and pickles."""
+		import pickle
 
-			doc = frappe.get_doc("File", file.name)
-			doc.save()
-			self.delete_later("File Blob", doc.blob)
-
-			self.assertNotEqual(doc.blob, old_blob)
-			new_blob = frappe.get_doc("File Blob", doc.blob)
-			self.assertEqual(new_blob.is_private, 1)
-			self.assertEqual(doc.file_url, f"/private/files/{new_blob.name}/drifted.png")
-			self.assertTrue(store.exists(new_blob.key, is_private=True))
-
-	def test_validate_file_url_rejects_unknown_prefix(self):
-		with storage_flag(), fake():
-			file = self.make_file(unique_png(), "prefix.png", is_private=1)
-
-			file.file_url = "/somewhere/else.png"
-			self.assertRaises(frappe.ValidationError, file.validate_file_url)
-
-	def test_validate_file_on_disk_throws_when_bytes_are_gone(self):
-		with storage_flag(), fake() as store:
-			file = self.make_file(unique_png(), "vanished.png", is_private=1)
-			blob = frappe.get_doc("File Blob", file.blob)
-
-			store.delete(blob.key, is_private=True)
-
-			self.assertFalse(file.exists_on_disk())
-			self.assertRaises(OSError, file.validate_file_on_disk)
-
-	def test_unbackfilled_legacy_row_reads_through_v1(self):
-		"""storage_v2 on, blob still NULL: reads fall back to the disk path."""
-		content = unique_png()
-		name, path = self.make_legacy_row(content)
-
-		with storage_flag():
-			doc = frappe.get_doc("File", name)
-			self.assertFalse(doc.get("blob"))
-
-			# compat shim: every seam delegates to FileV1 while blob is NULL
-			self.assertIsNone(doc.validate_file_path())
-			self.assertIsNone(doc.validate_file_url())
-			self.assertIsNone(doc.validate_file_on_disk())
-			self.assertTrue(doc.exists_on_disk())
-			self.assertEqual(doc.get_full_path(), path)
-			self.assertEqual(doc.get_content(), content)
-
-	def make_legacy_row(self, content, is_private=1):
-		"""Insert a v1 File row with bytes on disk and no blob link."""
-		from frappe.utils import get_files_path, now_datetime
-
-		filename = f"storage-v2-legacy-{frappe.generate_hash(length=10)}.png"
-		path = get_files_path(filename, is_private=is_private)
-		with open(path, "wb") as f:
-			f.write(content)
-		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
-
-		doc = frappe.new_doc("File")
-		doc.update(
-			{
-				"file_name": filename,
-				"file_url": f"/private/files/{filename}" if is_private else f"/files/{filename}",
-				"is_private": is_private,
-				"is_folder": 0,
-			}
-		)
-		doc.name = frappe.generate_hash(length=10)
-		doc.owner = doc.modified_by = "Administrator"
-		doc.creation = doc.modified = now_datetime()
-		doc.db_insert()
-		self.delete_later("File", doc.name)
-		return doc.name, path
-
-	def test_create_file_from_blob_accepts_a_blob_name(self):
-		with storage_flag(), fake():
-			blob = put_blob(io.BytesIO(unique_png()), is_private=True, filename="by-name.png")
-			self.delete_later("File Blob", blob.name)
-
-			file = create_file_from_blob(blob.name, "by-name.png", is_private=True)
-			self.delete_later("File", file.name)
-
-			self.assertEqual(file.blob, blob.name)
-			self.assertEqual(file.file_url, f"/private/files/{blob.name}/by-name.png")
-
-	def test_create_file_from_blob_rejects_pending_blob(self):
-		with storage_flag(), fake():
-			pending = frappe.get_doc(
-				{
-					"doctype": "File Blob",
-					"key": f"pending/{frappe.generate_hash(length=16)}",
-					"checksum": frappe.generate_hash(length=64),
-					"driver": "memory",
-					"file_size": 1,
-					"is_private": 1,
-					"status": "Pending",
-				}
-			).insert()
-			self.delete_later("File Blob", pending.name)
-
-			self.assertRaises(
-				frappe.ValidationError,
-				create_file_from_blob,
-				pending.name,
-				"pending.png",
-				is_private=True,
-			)
-
-	def test_create_file_from_blob_rejects_privacy_mismatch(self):
-		with storage_flag(), fake():
-			blob = put_blob(io.BytesIO(unique_png()), is_private=True, filename="mismatch.png")
-			self.delete_later("File Blob", blob.name)
-
-			self.assertRaises(
-				frappe.ValidationError,
-				create_file_from_blob,
-				blob,
-				"mismatch.png",
-				is_private=False,
-			)
-
-	def test_create_file_from_blob_adds_comment_without_after_insert(self):
-		"""A subclass that overrides after_insert still gets the attachment comment."""
-
+		from frappe.core.doctype.file.file import File as BaseFile
+		from frappe.core.doctype.file.file import _ResolvedFileMeta
+		from frappe.core.doctype.file.file_v1 import FileV1
+		from frappe.core.doctype.file.file_v2 import FileV2
 		from frappe.model.base_document import get_controller
 
-		with storage_flag(), fake():
-			blob = put_blob(io.BytesIO(unique_png()), is_private=True, filename="silent.png")
-			self.delete_later("File Blob", blob.name)
+		class AppFile(BaseFile):
+			pass
 
-			todo = frappe.get_doc(doctype="ToDo", description="storage v2 silent after_insert").insert()
-			self.delete_later("ToDo", todo.name)
+		for enabled, storage_class in ((True, FileV2), (False, FileV1)):
+			with self.subTest(storage_v2=enabled), storage_v2(enabled):
+				self.assertIs(BaseFile.resolve_controller(), storage_class)
+				# a class that already is a storage class is returned untouched
+				self.assertIs(storage_class.resolve_controller(), storage_class)
 
-			controller = get_controller("File")
-			with patch.object(controller, "after_insert", lambda self: None):
-				file = create_file_from_blob(
-					blob,
-					"silent.png",
-					attached_to_doctype="ToDo",
-					attached_to_name=todo.name,
-					is_private=True,
+				spliced = AppFile.resolve_controller()
+				self.assertIsInstance(spliced, _ResolvedFileMeta)
+				self.assertEqual(spliced.__name__, "AppFile")
+				self.assertEqual(spliced.__mro__[:4], (spliced, AppFile, storage_class, BaseFile))
+
+				# a runtime-spliced class pickles as the site's File controller
+				self.assertIs(pickle.loads(pickle.dumps(spliced)), get_controller("File"))
+				restored = pickle.loads(
+					pickle.dumps(spliced({"doctype": "File", "file_name": "picklable.txt"}))
 				)
-			self.delete_later("File", file.name)
-
-			self.assertTrue(
-				frappe.get_all(
-					"Comment",
-					filters={
-						"reference_doctype": "ToDo",
-						"reference_name": todo.name,
-						"comment_type": "Attachment",
-					},
-				)
-			)
+				self.assertEqual(restored.file_name, "picklable.txt")
+				self.assertIs(type(restored), get_controller("File"))

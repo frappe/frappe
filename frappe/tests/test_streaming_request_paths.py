@@ -1,16 +1,20 @@
 from unittest.mock import patch
 
-from werkzeug.test import TestResponse
-
 import frappe
+from frappe.storage.tests import hook_value
 from frappe.tests.test_api import FrappeAPITestCase, make_request
 from frappe.tests.utils import whitelist_for_tests
 
+METHOD = "frappe.tests.test_streaming_request_paths.inspect_request_body"
+ENDPOINT = f"/api/method/{METHOD}"
+
 
 @whitelist_for_tests(allow_guest=True)
-def inspect_request_body():
+def inspect_request_body(offset: int | None = None, payload: str | None = None):
 	request = frappe.request
 	state = {
+		"offset": offset,
+		"payload": payload,
 		"data_cached": hasattr(request, "_cached_data"),
 		"form_cached": "form" in request.__dict__,
 		"max_content_length": request.max_content_length,
@@ -19,233 +23,70 @@ def inspect_request_body():
 	return state
 
 
-@whitelist_for_tests(allow_guest=True)
-def inspect_streaming_query(offset: int):
-	request = frappe.request
-	return {
-		"offset": offset,
-		"data_cached": hasattr(request, "_cached_data"),
-		"form_cached": "form" in request.__dict__,
-		"body": request.stream.read().decode(),
-	}
-
-
-@whitelist_for_tests(allow_guest=True)
-def inspect_buffered_json(payload: str):
-	request = frappe.request
-	return {
-		"payload": payload,
-		"data_cached": hasattr(request, "_cached_data"),
-		"max_content_length": request.max_content_length,
-	}
-
-
 class TestStreamingRequestPaths(FrappeAPITestCase):
-	endpoint = "/api/method/frappe.tests.test_streaming_request_paths.inspect_request_body"
-
-	def test_matching_path_leaves_body_stream_unread(self):
-		configured = frappe._dict({**frappe.get_site_config(), "max_file_size": 8})
-		real_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "streaming_request_paths":
-				return [self.endpoint]
-			return real_get_hooks(hook, *args, **kwargs)
-
+	def request(self, path: str, streaming_paths: list[str], method="PUT", max_file_size=8, **kwargs):
+		"""Send one request under the given body cap and streaming paths."""
+		if "json" not in kwargs:
+			kwargs["content_type"] = "application/octet-stream"
+		configured = frappe._dict({**frappe.get_site_config(), "max_file_size": max_file_size})
 		with (
 			patch("frappe.config.get_site_config", return_value=configured),
-			patch.object(frappe, "get_hooks", side_effect=get_hooks),
+			hook_value("streaming_request_paths", streaming_paths),
 		):
-			response: TestResponse = make_request(
-				target=self.TEST_CLIENT.open,
-				args=(self.endpoint,),
-				kwargs={"method": "PUT", "data": b"stream", "content_type": "application/octet-stream"},
+			return make_request(
+				target=self.TEST_CLIENT.open, args=(path,), kwargs={"method": method, **kwargs}
 			)
 
+	def state(self, response) -> dict:
 		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
-		self.assertEqual(
-			response.json["message"],
-			{
-				"data_cached": False,
-				"form_cached": False,
-				"max_content_length": None,
-				"body": "stream",
-			},
-		)
+		# v2 returns the value under "data", v1 under "message"
+		return response.json.get("data") or response.json["message"]
 
-	def test_matching_rpc_keeps_query_arguments_without_buffering_body(self):
-		endpoint = "/api/method/frappe.tests.test_streaming_request_paths.inspect_streaming_query"
-		real_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "streaming_request_paths":
-				return [endpoint]
-			return real_get_hooks(hook, *args, **kwargs)
-
-		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
-			response: TestResponse = make_request(
-				target=self.TEST_CLIENT.open,
-				args=(f"{endpoint}?offset=17&_=cachebuster",),
-				kwargs={
-					"method": "PUT",
-					"data": b"stream",
-					"content_type": "application/octet-stream",
-				},
-			)
-
-		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
-		self.assertEqual(
-			response.json["message"],
-			{
-				"offset": 17,
-				"data_cached": False,
-				"form_cached": False,
-				"body": "stream",
-			},
-		)
-
-	def test_matching_post_keeps_json_body_parsing_and_cap(self):
-		endpoint = "/api/method/frappe.tests.test_streaming_request_paths.inspect_buffered_json"
-		configured = frappe._dict({**frappe.get_site_config(), "max_file_size": 1024})
-		real_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "streaming_request_paths":
-				return [endpoint]
-			return real_get_hooks(hook, *args, **kwargs)
-
-		with (
-			patch("frappe.config.get_site_config", return_value=configured),
-			patch.object(frappe, "get_hooks", side_effect=get_hooks),
-		):
-			response: TestResponse = make_request(
-				target=self.TEST_CLIENT.open,
-				args=(endpoint,),
-				kwargs={"method": "POST", "json": {"payload": "finish"}},
-			)
-
-		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
-		self.assertEqual(
-			response.json["message"],
-			{
-				"payload": "finish",
-				"data_cached": True,
-				"max_content_length": 1024,
-			},
-		)
-
-	def test_each_listed_api_mount_streams(self):
-		method = self.endpoint.removeprefix("/api/method/")
-		mounts = {"/api/method": "message", "/api/v1/method": "message", "/api/v2/method": "data"}
-		real_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "streaming_request_paths":
-				return [f"{mount}/{method}" for mount in mounts]
-			return real_get_hooks(hook, *args, **kwargs)
-
-		for mount, key in mounts.items():
-			with self.subTest(mount=mount), patch.object(frappe, "get_hooks", side_effect=get_hooks):
-				response: TestResponse = make_request(
-					target=self.TEST_CLIENT.open,
-					args=(f"{mount}/{method}",),
-					kwargs={"method": "PUT", "data": b"stream", "content_type": "application/octet-stream"},
+	def test_each_listed_api_mount_streams_the_body_past_the_cap(self):
+		mounts = ("/api/method", "/api/v1/method", "/api/v2/method")
+		listed = [f"{mount}/{METHOD}" for mount in mounts]
+		for mount in mounts:
+			with self.subTest(mount=mount):
+				# query arguments still reach the handler; the body stays unread
+				response = self.request(
+					f"{mount}/{METHOD}?offset=17&_=cachebuster", listed, data=b"123456789"
 				)
-				self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
-				# v2 returns the value under "data", v1 under "message"
+				state = self.state(response)
+				self.assertEqual(state["offset"], 17)
 				self.assertEqual(
-					response.json[key],
-					{
-						"data_cached": False,
-						"form_cached": False,
-						"max_content_length": None,
-						"body": "stream",
-					},
+					(state["data_cached"], state["form_cached"], state["max_content_length"], state["body"]),
+					(False, False, None, "123456789"),
 				)
 
-	def test_an_unlisted_api_mount_is_buffered(self):
-		v2_endpoint = f"/api/v2/method/{self.endpoint.removeprefix('/api/method/')}"
-		real_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "streaming_request_paths":
-				return [self.endpoint]
-			return real_get_hooks(hook, *args, **kwargs)
-
-		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
-			response: TestResponse = make_request(
-				target=self.TEST_CLIENT.open,
-				args=(v2_endpoint,),
-				kwargs={"method": "PUT", "data": b"buffer", "content_type": "application/octet-stream"},
-			)
-
-		self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
-		self.assertTrue(response.json["data"]["data_cached"])
-
-	def test_configured_prefix_does_not_match_a_sibling_route(self):
-		configured = frappe._dict({**frappe.get_site_config(), "max_file_size": 8})
-		real_get_hooks = frappe.get_hooks
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "streaming_request_paths":
-				return [self.endpoint.removesuffix("_request_body")]
-			return real_get_hooks(hook, *args, **kwargs)
-
-		with (
-			patch("frappe.config.get_site_config", return_value=configured),
-			patch.object(frappe, "get_hooks", side_effect=get_hooks),
+	def test_unlisted_paths_keep_buffering_and_the_cap(self):
+		for path, listed in (
+			# only the unversioned mount is listed
+			(f"/api/v2/method/{METHOD}", [ENDPOINT]),
+			# a listed prefix does not match a sibling route
+			(ENDPOINT, [ENDPOINT.removesuffix("_request_body")]),
+			(ENDPOINT, ["/elsewhere/"]),
 		):
-			response: TestResponse = make_request(
-				target=self.TEST_CLIENT.open,
-				args=(self.endpoint,),
-				kwargs={"method": "PUT", "data": b"buffer", "content_type": "application/octet-stream"},
-			)
+			with self.subTest(path=path, listed=listed):
+				state = self.state(self.request(path, listed, data=b"buffer"))
+				self.assertEqual(
+					(state["data_cached"], state["form_cached"], state["max_content_length"], state["body"]),
+					(True, True, 8, "buffer"),
+				)
+				self.assertEqual(self.request(path, listed, data=b"123456789").status_code, 413)
 
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(
-			response.json["message"],
-			{
-				"data_cached": True,
-				"form_cached": True,
-				"max_content_length": 8,
-				"body": "buffer",
-			},
+	def test_listed_post_keeps_json_parsing_and_the_cap(self):
+		response = self.request(
+			ENDPOINT, [ENDPOINT], method="POST", max_file_size=1024, json={"payload": "finish"}
 		)
-
-	def test_body_cap_still_applies_outside_streaming_paths(self):
-		configured = frappe._dict({**frappe.get_site_config(), "max_file_size": 8})
-		real_get_hooks = frappe.get_hooks
-		streaming_paths = ["/api/"]
-
-		def get_hooks(hook=None, *args, **kwargs):
-			if hook == "streaming_request_paths":
-				return streaming_paths
-			return real_get_hooks(hook, *args, **kwargs)
-
-		with (
-			patch("frappe.config.get_site_config", return_value=configured),
-			patch.object(frappe, "get_hooks", side_effect=get_hooks),
-		):
-			streamed: TestResponse = make_request(
-				target=self.TEST_CLIENT.open,
-				args=(self.endpoint,),
-				kwargs={"method": "PUT", "data": b"123456789", "content_type": "application/octet-stream"},
-			)
-			streaming_paths[:] = ["/elsewhere/"]
-			buffered: TestResponse = make_request(
-				target=self.TEST_CLIENT.open,
-				args=(self.endpoint,),
-				kwargs={"method": "PUT", "data": b"123456789", "content_type": "application/octet-stream"},
-			)
-
-		self.assertEqual(streamed.status_code, 200)
-		self.assertEqual(streamed.json["message"]["body"], "123456789")
-		self.assertEqual(buffered.status_code, 413)
+		state = self.state(response)
+		self.assertEqual(
+			(state["payload"], state["data_cached"], state["max_content_length"]), ("finish", True, 1024)
+		)
 
 	def test_upload_file_size_cap_applies_on_every_api_mount(self):
 		for path in ("/api/method/upload_file", "/api/v1/method/upload_file", "/api/v2/method/upload_file"):
 			with self.subTest(path=path), patch("frappe.core.api.file.get_max_file_size", return_value=8):
-				response: TestResponse = make_request(
+				response = make_request(
 					target=self.TEST_CLIENT.post,
 					args=(path,),
 					kwargs={"data": {"filedata": "x" * 64, "filename": "big.txt"}},
