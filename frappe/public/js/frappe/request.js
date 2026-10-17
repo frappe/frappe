@@ -431,7 +431,7 @@ frappe.request.handle_session_expiry = function (response) {
 	// the dialog and the redirect live on frappe.app, which only exists once
 	// start_app() has run on document ready. Requests fired from top level module
 	// code can land before that, so fall through to the regular handlers instead.
-	if (!frappe.app) return false;
+	if (!frappe.app || frappe.app.logged_out) return false;
 
 	if (!frappe.app.session_expired_dialog && !frappe.request.is_session_expired(response)) {
 		return false;
