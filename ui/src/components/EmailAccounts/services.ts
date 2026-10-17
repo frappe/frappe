@@ -1,0 +1,378 @@
+import { translate as __ } from "../../utils/translate";
+import LogoFrappeMail from "./logos/frappe-mail.svg";
+import LogoGmail from "./logos/gmail.png";
+import LogoOutlook from "./logos/outlook.png";
+import LogoSendgrid from "./logos/sendgrid.png";
+import LogoSparkpost from "./logos/sparkpost.webp";
+import LogoYahoo from "./logos/yahoo.png";
+import LogoYandex from "./logos/yandex.png";
+import type {
+  AccountForm,
+  AuthKind,
+  EmailAccount,
+  EmailAccountDoc,
+  EmailService,
+  FieldError,
+  OneClickProvider,
+} from "./types";
+
+const FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:";
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// getters, so the text is translated when it renders rather than at import, before the host
+// has loaded its translations
+export const services: EmailService[] = [
+  {
+    service: "GMail",
+    label: "Gmail",
+    logo: LogoGmail,
+    kind: "password",
+    get help() {
+      return __("Needs two-factor authentication and an app password.");
+    },
+    helpLink: "https://support.google.com/accounts/answer/185833",
+  },
+  {
+    service: "Outlook.com",
+    label: "Outlook",
+    logo: LogoOutlook,
+    kind: "password",
+    oneClick: "microsoft",
+    get help() {
+      return __("Needs two-factor authentication and an app password.");
+    },
+    helpLink:
+      "https://support.microsoft.com/en-us/account-billing/how-to-get-and-use-app-passwords-5896ed9b-4263-e681-128a-a6f2979a7944",
+  },
+  {
+    service: "Frappe Mail",
+    label: "Frappe Mail",
+    logo: LogoFrappeMail,
+    kind: "frappe-mail",
+    get help() {
+      return __("Needs the API key and secret of your Frappe Mail account.");
+    },
+    helpLink: "https://github.com/frappe/mail",
+  },
+  {
+    service: "Yahoo Mail",
+    label: "Yahoo",
+    logo: LogoYahoo,
+    kind: "password",
+    get help() {
+      return __("Needs two-factor authentication and an app password.");
+    },
+    helpLink: "https://help.yahoo.com/kb/SLN15241.html",
+  },
+  {
+    service: "Yandex.Mail",
+    label: "Yandex",
+    logo: LogoYandex,
+    kind: "password",
+    get help() {
+      return __("Needs two-factor authentication and an app password.");
+    },
+    helpLink: "https://yandex.com/support/id/authorization/app-passwords.html",
+  },
+  {
+    service: "Sendgrid",
+    label: "SendGrid",
+    logo: LogoSendgrid,
+    kind: "password",
+    outgoingOnly: true,
+  },
+  {
+    service: "SparkPost",
+    label: "SparkPost",
+    logo: LogoSparkpost,
+    kind: "password",
+    outgoingOnly: true,
+  },
+  {
+    service: "",
+    get label() {
+      return __("Custom email");
+    },
+    kind: "custom",
+  },
+];
+
+export function serviceOf(
+  account: Pick<EmailAccountDoc, "service">,
+): EmailService {
+  return (
+    services.find((s) => s.service === (account.service || "")) ??
+    services.at(-1)!
+  );
+}
+
+/** The address under an account's name, or its service when the name is the address. */
+export function subtitle(
+  account: Pick<EmailAccountDoc, "email_id" | "email_account_name" | "service">,
+): string {
+  return account.email_id === account.email_account_name
+    ? serviceOf(account).label
+    : account.email_id;
+}
+
+// Desk keeps the same table in email_account.js (frappe.email_defaults)
+const SERVERS: Record<string, Partial<EmailAccountDoc>> = {
+  GMail: {
+    email_server: "imap.gmail.com",
+    incoming_port: 993,
+    use_ssl: 1,
+    smtp_server: "smtp.gmail.com",
+    smtp_port: 587,
+    use_tls: 1,
+  },
+  "Outlook.com": {
+    email_server: "imap-mail.outlook.com",
+    use_ssl: 1,
+    smtp_server: "smtp-mail.outlook.com",
+    smtp_port: 587,
+    use_tls: 1,
+  },
+  "Yahoo Mail": {
+    email_server: "imap.mail.yahoo.com",
+    use_ssl: 1,
+    smtp_server: "smtp.mail.yahoo.com",
+    smtp_port: 587,
+    use_tls: 1,
+  },
+  "Yandex.Mail": {
+    email_server: "imap.yandex.com",
+    use_ssl: 1,
+    smtp_server: "smtp.yandex.com",
+    smtp_port: 587,
+    use_tls: 1,
+  },
+  Sendgrid: { smtp_server: "smtp.sendgrid.net", smtp_port: 587, use_tls: 1 },
+  SparkPost: {
+    smtp_server: "smtp.sparkpostmail.com",
+    smtp_port: 587,
+    use_tls: 1,
+  },
+};
+
+export function emptyForm(account?: Partial<EmailAccountDoc>): AccountForm {
+  return {
+    email_account_name: account?.email_account_name ?? "",
+    email_id: account?.email_id ?? "",
+    password: "",
+    frappe_mail_site: account?.frappe_mail_site ?? "",
+    api_key: account?.api_key ?? "",
+    api_secret: "",
+    domain: account?.domain ?? "",
+    email_server: account?.email_server ?? "",
+    incoming_port: account ? String(account.incoming_port || "") : "993",
+    smtp_server: account?.smtp_server ?? "",
+    smtp_port: account ? String(account.smtp_port || "") : "587",
+    use_ssl: account ? Boolean(account.use_ssl) : true,
+    use_starttls: Boolean(account?.use_starttls),
+    use_tls: account ? Boolean(account.use_tls) : true,
+    use_ssl_for_outgoing: Boolean(account?.use_ssl_for_outgoing),
+    enable_incoming: account ? Boolean(account.enable_incoming) : true,
+    enable_outgoing: account ? Boolean(account.enable_outgoing) : true,
+  };
+}
+
+const CUSTOM_SERVER_FIELDS = [
+  "domain",
+  "email_server",
+  "incoming_port",
+  "smtp_server",
+  "smtp_port",
+  "use_ssl",
+  "use_starttls",
+  "use_tls",
+  "use_ssl_for_outgoing",
+] as const;
+
+/** The fields of `form` that `service` stores, as Email Account values. */
+export function credentials(
+  service: EmailService,
+  form: AccountForm,
+): Record<string, unknown> {
+  const values: Record<string, unknown> = {
+    email_id: form.email_id,
+    enable_incoming: service.outgoingOnly ? 0 : Number(form.enable_incoming),
+    enable_outgoing: Number(form.enable_outgoing),
+  };
+  if (service.kind === "frappe-mail") {
+    values.frappe_mail_site = form.frappe_mail_site;
+    values.api_key = form.api_key;
+    if (form.api_secret) values.api_secret = form.api_secret;
+    return values;
+  }
+  if (form.password) values.password = form.password;
+  if (service.kind === "custom") {
+    for (const field of CUSTOM_SERVER_FIELDS) {
+      const value = form[field];
+      values[field] = typeof value === "boolean" ? Number(value) : value;
+    }
+  }
+  return values;
+}
+
+/** A new Email Account for `service`, ready for `frappe.client.insert`. */
+export function newAccount(
+  service: EmailService,
+  form: AccountForm,
+  appendTo: string,
+) {
+  const imap = service.kind !== "frappe-mail" && !service.outgoingOnly;
+  return {
+    doctype: "Email Account",
+    email_account_name: form.email_account_name,
+    service: service.service,
+    email_sync_option: "ALL",
+    initial_sync_count: 100,
+    create_contact: 1,
+    track_email_status: 1,
+    use_imap: Number(imap),
+    imap_folder: imap ? [{ folder_name: "INBOX", append_to: appendTo }] : [],
+    ...(service.kind === "frappe-mail" ||
+    (service.kind === "custom" && form.domain)
+      ? { append_to: appendTo }
+      : {}),
+    ...SERVERS[service.service],
+    ...credentials(service, form),
+  };
+}
+
+/** The first problem with `form`, and the field it is on. A blank secret is fine when editing. */
+export function validate(
+  service: EmailService,
+  form: AccountForm,
+  editing = false,
+  oauth = false,
+): FieldError | undefined {
+  if (!form.email_account_name.trim())
+    return {
+      field: "email_account_name",
+      message: __("Account name is required"),
+    };
+  if (!EMAIL.test(form.email_id))
+    return { field: "email_id", message: __("Enter a valid email address") };
+  if (oauth) return;
+  if (service.kind === "frappe-mail") {
+    if (!form.frappe_mail_site)
+      return {
+        field: "frappe_mail_site",
+        message: __("Frappe Mail site is required"),
+      };
+    if (!form.api_key)
+      return { field: "api_key", message: __("API key is required") };
+    if (!form.api_secret && !editing)
+      return { field: "api_secret", message: __("API secret is required") };
+    return;
+  }
+  if (service.kind === "custom" && !form.domain) {
+    if (
+      !form.email_server &&
+      !form.smtp_server &&
+      (form.enable_incoming || form.enable_outgoing)
+    )
+      return {
+        field: "domain",
+        message: __("Pick an email domain or enter the server settings"),
+      };
+    if (form.enable_incoming && !form.email_server)
+      return {
+        field: "email_server",
+        message: __("Incoming server is required"),
+      };
+    if (form.enable_outgoing && !form.smtp_server)
+      return {
+        field: "smtp_server",
+        message: __("Outgoing server is required"),
+      };
+  }
+  if (!form.password && !editing)
+    return { field: "password", message: __("Password is required") };
+}
+
+export function authKind(account: EmailAccountDoc): AuthKind {
+  if (account.service === "Frappe Mail") return "frappe-mail";
+  if (account.auth_method !== "OAuth") return "password";
+  return account.token_uri?.startsWith(FRAPPE_CLOUD_RELAY)
+    ? "oauth"
+    : "oauth-custom";
+}
+
+export function statusBadge(
+  account: Pick<EmailAccount, "status" | "enable_incoming" | "enable_outgoing">,
+): { label: string; theme: "amber" | "gray" | "blue" } {
+  if (account.status === "needs-reconnect")
+    return { label: __("Needs reconnect"), theme: "amber" };
+  if (!account.enable_incoming && !account.enable_outgoing)
+    return { label: __("Disabled"), theme: "gray" };
+  if (!account.enable_outgoing) return { label: __("Incoming only"), theme: "blue" };
+  if (!account.enable_incoming) return { label: __("Outgoing only"), theme: "blue" };
+  return { label: __("Incoming & outgoing"), theme: "blue" };
+}
+
+/** Text for a sign-in result; the code comes from the URL, so it is never shown as is. */
+export function oauthMessage(result: string): string {
+  const messages: Record<string, string> = {
+    cancelled: __("Sign-in was cancelled."),
+    admin_approval: __("Your Microsoft 365 admin must approve Frappe first."),
+    expired: __("Sign-in took too long. Please try again."),
+    smtp_disabled: __(
+      "SMTP AUTH is turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it.",
+    ),
+    smtp_disabled_personal: __(
+      "Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox.",
+    ),
+    imap_disabled: __(
+      "IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin.",
+    ),
+    already_connected: __("This mailbox is already connected."),
+    wrong_mailbox: __(
+      "You signed in to a different mailbox. Sign in to this account's mailbox.",
+    ),
+    not_team_member: __(
+      "Only members of this site's Frappe Cloud team can connect a mailbox. Log in to Frappe Cloud in this browser, then try again.",
+    ),
+  };
+  return messages[result] ?? __("Couldn't connect. Please try again.");
+}
+
+/** `address` if it looks like an email address, else null; it comes from the URL. */
+export function mailboxAddress(address?: string | null): string | null {
+  return address && address.length <= 254 && EMAIL.test(address)
+    ? address
+    : null;
+}
+
+export function errorText(e: unknown): string {
+  const { messages, message } = (e ?? {}) as {
+    messages?: unknown;
+    message?: string;
+  };
+  if (Array.isArray(messages) && messages.length) return messages.join(" ");
+  return message ?? "";
+}
+
+export function oneClick(
+  service: EmailService,
+  offered: OneClickProvider[],
+): OneClickProvider | undefined {
+  return service.oneClick && offered.includes(service.oneClick)
+    ? service.oneClick
+    : undefined;
+}
+
+export function reconnectable(
+  account: Pick<EmailAccount, "authKind" | "service">,
+  offered: OneClickProvider[],
+): boolean {
+  return (
+    (account.authKind === "oauth" || account.authKind === "oauth-custom") &&
+    Boolean(oneClick(serviceOf(account), offered))
+  );
+}
+
+export function deskUrl(name: string): string {
+  return `/desk/email-account/${encodeURIComponent(name)}`;
+}

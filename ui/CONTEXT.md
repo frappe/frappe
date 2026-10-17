@@ -106,3 +106,42 @@ and refetches."
 — "If I set a **Quick Filter** for Status, does the Status **Filter** update too?"
 — "Yes — a Quick Filter is a projection over Filters; they describe the same
 condition and stay in sync once the shared composable lands."
+
+# Email Accounts (shared @framework/ui)
+
+The settings panel for a site's mailboxes (`EmailAccounts/`), shared so any app can host it.
+
+## Language
+
+**Email Account**:
+A mailbox the site sends from or receives into, as Frappe's Email Account doctype stores it.
+_Avoid_: email config, email setup.
+
+**One-click sign-in**:
+Connecting a mailbox by signing in to its provider through Frappe Cloud
+(`email_oauth.initiate_mailbox_connect`), with no password or OAuth app to set up. Only on
+Frappe Cloud v2 sites (`email_oauth.get_one_click_providers`).
+_Avoid_: relay connect, OAuth connect (OAuth also covers an account's own app).
+
+**Auth kind**:
+How an account authenticates: **Password**, **Frappe Mail** (API key), **OAuth** (one-click
+sign-in, whose Connected App's token URI starts with `frappe-cloud-relay:`), or
+**OAuth: custom app** (a Connected App the site set up itself).
+
+**Account status**:
+An account's state, shown in the list's status badge. **Needs reconnect**: an OAuth account
+with no token left (Frappe drops the token when the provider rejects its refresh).
+Anything else is **Active**, and its badge says which way it works: **Incoming & outgoing**,
+**Incoming only**, **Outgoing only**, or **Disabled** when neither.
+
+**Reconnect**:
+Running one-click sign-in again for an existing **OAuth** account, from its edit screen or
+its Desk form, which moves it to a fresh token without creating a new account. A signed-out
+**OAuth: custom app** account whose provider the site offers one-click sign-in for is
+reconnected the same way, which moves it to one-click sign-in and leaves its own app in place.
+Anywhere else, it is authorized again in Desk.
+_Avoid_: re-authorize (Desk's name for a custom app's flow).
+
+**Default incoming / Default outgoing**:
+The one account replies come into and the one account mail is sent from, picked once for
+the whole list rather than on each account.
