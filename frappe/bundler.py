@@ -133,30 +133,51 @@ def watch(apps=None):
 	check_node_executable()
 	frappe_app_path = frappe.get_app_source_path("frappe")
 
-	# A second watcher, on its own tooling, beside esbuild rather than inside it.
-	# It lives exactly as long as the esbuild watcher below, which blocks.
-	page_islands = watch_page_islands()
+	# The island watchers, on their own tooling, beside esbuild rather than inside
+	# it. They live exactly as long as the esbuild watcher below, which blocks.
+	# Each installs the toolchain it lacks, so it is installed once, before both.
+	frappe.commands.popen(
+		island_build_command("install-toolchain.js"), cwd=frappe_app_path, env=get_node_env()
+	)
+	islands = [watch_islands(script) for script in ("build-framework.js", "build-pages.js")]
 	try:
 		frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 	finally:
-		if page_islands:
-			page_islands.terminate()
+		for process in islands:
+			if process:
+				process.terminate()
 
 
-def page_island_build_command(production: bool = False, watch: bool = False) -> str:
-	"""The framework page-island build, as a shell command.
+def island_build_command(script: str, production: bool = False, watch: bool = False) -> str:
+	"""A framework island build in `ui/vite/island/`, as a shell command.
 
 	It runs on framework's own toolchain, installed beside `ui/`, so it
-	needs neither an app frontend nor the bench's node_modules. A bench with no
-	Frappe UI page exits before it touches either.
+	needs neither an app frontend nor the bench's node_modules.
 	"""
-	script = os.path.join(frappe.get_app_source_path("frappe"), "ui", "vite", "island", "build-pages.js")
+	script = os.path.join(frappe.get_app_source_path("frappe"), "ui", "vite", "island", script)
 	command = f"node {shlex.quote(script)}"
 	if production:
 		command += " --production"
 	if watch:
 		command += " --watch"
 	return command
+
+
+def build_framework_islands(production: bool = False):
+	"""Build the islands desk draws by default, such as `frappe.chart`.
+
+	Raises on failure, so `bench build` fails: unlike a page island, desk draws
+	these without anyone opting in.
+	"""
+	frappe_app_path = frappe.get_app_source_path("frappe")
+	command = island_build_command("build-framework.js", production=production)
+
+	if frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env()):
+		toolchain = os.path.join(frappe_app_path, "island-toolchain")
+		raise click.ClickException(
+			f"The framework island build failed ({command}). Desk cannot draw its charts until this passes. "
+			f"If the island toolchain did not install, run: yarn install --cwd {toolchain}"
+		)
 
 
 def build_page_islands(built_apps: list[str] | None = None):
@@ -168,7 +189,7 @@ def build_page_islands(built_apps: list[str] | None = None):
 	"""
 	# The same reading `bench build` uses to pick its own mode.
 	development = frappe.local.conf.developer_mode or frappe._dev_server
-	command = page_island_build_command(production=not development)
+	command = island_build_command("build-pages.js", production=not development)
 
 	if frappe.commands.popen(command, cwd=frappe.get_app_source_path("frappe"), env=get_node_env()):
 		click.secho(
@@ -178,14 +199,14 @@ def build_page_islands(built_apps: list[str] | None = None):
 		)
 
 
-def watch_page_islands():
-	"""Start the page-island watcher, or `None` if it cannot start.
+def watch_islands(script: str):
+	"""Start the watcher of an island build, or `None` if it cannot start.
 
 	`frappe.commands.popen` waits, and this one has to run beside the esbuild
 	watcher, so it starts its own process. The environment is merged the same
 	way, or node is not on the PATH the build inherits.
 	"""
-	command = page_island_build_command(watch=True)
+	command = island_build_command(script, watch=True)
 
 	try:
 		return subprocess.Popen(
@@ -195,7 +216,7 @@ def watch_page_islands():
 			env=dict(os.environ, **get_node_env()),
 		)
 	except OSError as e:
-		click.secho(f"Could not watch page islands: {e}", fg="yellow")
+		click.secho(f"Could not watch islands ({script}): {e}", fg="yellow")
 		return None
 
 

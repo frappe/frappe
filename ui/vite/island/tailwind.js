@@ -25,12 +25,19 @@ const CONFIG_DIR = "node_modules/.island";
  * @returns {string} the config's path
  */
 export function writeIslandTailwindConfig(context, sources) {
-	const { root, app, tailwindPlugins = [] } = context;
+	const { root, app, paths, tailwindPlugins = [] } = context;
 	const dir = path.join(root, CONFIG_DIR);
-	const configPath = path.join(dir, `tailwind.${app}.config.mjs`);
+	// One per build, not per app: two builds of one app on one root, such as
+	// framework's page islands and its own, would scan each other's sources.
+	const configPath = path.join(
+		dir,
+		`tailwind.${app}.${path.basename(paths.distDir)}.config.mjs`
+	);
 	const pluginNames = tailwindPlugins.map((_, index) => `plugin${index}`);
 
 	fs.mkdirSync(dir, { recursive: true });
+	// the one config per app that builds wrote before
+	fs.rmSync(path.join(dir, `tailwind.${app}.config.mjs`), { force: true });
 	fs.writeFileSync(
 		configPath,
 		[
