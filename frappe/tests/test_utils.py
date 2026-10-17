@@ -69,6 +69,7 @@ from frappe.utils.data import (
 	format_duration,
 	get_datetime,
 	get_first_day_of_week,
+	get_image_thumbnail_uri,
 	get_time,
 	get_timedelta,
 	get_timespan_date_range,
@@ -735,6 +736,18 @@ class TestImage(IntegrationTestCase):
 		# Testing idempotency of strip_exif_data()
 		restripped_image_content = strip_exif_data(new_image_content, "image/jpeg")
 		self.assertEqual(restripped_image_content, new_image_content)
+
+	def test_image_thumbnail_does_not_read_outside_public_or_private(self):
+		sample = frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg")
+		secret = frappe.get_site_path("private", "files", "thumbnail_traversal_secret.jpg")
+		os.makedirs(os.path.dirname(secret), exist_ok=True)
+		with open(sample, "rb") as src, open(secret, "wb") as dst:
+			dst.write(src.read())
+		self.addCleanup(os.remove, secret)
+
+		frappe.local._print_thumbnail_cache = {}
+		url = "/../private/files/thumbnail_traversal_secret.jpg"
+		self.assertEqual(get_image_thumbnail_uri(url), url)
 
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
