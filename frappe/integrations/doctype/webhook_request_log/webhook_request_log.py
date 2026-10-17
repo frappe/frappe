@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _
+from frappe.integrations.doctype.webhook.webhook import enqueue_webhook_retry
 from frappe.model.document import Document
 
 
@@ -29,6 +31,23 @@ class WebhookRequestLog(Document):
 		user: DF.Link | None
 		webhook: DF.Link | None
 	# end: auto-generated types
+
+	@frappe.whitelist(methods=["POST"])
+	def retry(self):
+		# run_doc_method can build self from a copy the client sent; check the stored log
+		self.reload()
+		if self.status not in ("Failed", "Exhausted"):
+			frappe.throw(_("Only failed or exhausted requests can be retried"), title=_("Cannot Retry"))
+
+		webhook = frappe.get_lazy_doc("Webhook", self.webhook)
+		webhook.check_permission("write")
+		if not webhook.enabled:
+			frappe.throw(
+				_("Enable Webhook {0} to retry this request").format(self.webhook), title=_("Cannot Retry")
+			)
+
+		if not enqueue_webhook_retry(self.name, webhook.background_jobs_queue or "default"):
+			frappe.throw(_("A retry for this request is already queued"), title=_("Cannot Retry"))
 
 	@staticmethod
 	def clear_old_logs(days=30):
