@@ -34,6 +34,18 @@ test.describe("Grid Pagination", () => {
 		);
 	});
 
+	test("scrolls back to the top of the grid on page change", async ({ page }) => {
+		const table = get_table(page);
+		const heading = table.locator(".grid-heading-row");
+
+		await table.locator(".next-page").scrollIntoViewIfNeeded();
+		await expect(heading).not.toBeInViewport();
+		await table.locator(".next-page").click();
+
+		await expect(table.locator(".current-page-number")).toHaveValue("2");
+		await expect(heading).toBeInViewport();
+	});
+
 	test("adds and deletes rows and changes page", async ({ page }) => {
 		const table = get_table(page);
 		await table.getByRole("button", { name: "Add row", exact: true }).click();
