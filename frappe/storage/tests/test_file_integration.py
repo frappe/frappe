@@ -135,7 +135,9 @@ class TestFileStorageIntegration(IntegrationTestCase):
 	def test_unzip_extracts_a_zip_from_any_storage(self):
 		# flag off: a v1 zip on local disk takes the same read path
 		for flag in (1, 0):
-			members = {"a.txt": b"alpha " + frappe.generate_hash().encode(), "b.txt": b"beta"}
+			# unique names: v1 renames a member whose path already holds other bytes
+			suffix = frappe.generate_hash(length=8)
+			members = {f"a-{suffix}.txt": b"alpha " + suffix.encode(), f"b-{suffix}.txt": b"beta"}
 			archive = io.BytesIO()
 			with zipfile.ZipFile(archive, "w") as z:
 				for name, data in members.items():
