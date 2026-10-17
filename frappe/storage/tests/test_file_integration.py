@@ -278,6 +278,23 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			file = self.make_file(unique_png(), "in-memory.png")
 			self.assertRaises(frappe.ValidationError, file.get_full_path)
 
+	def test_thumbnail_of_an_image_on_another_driver(self):
+		from PIL import Image
+
+		buffer = io.BytesIO()
+		Image.new("RGB", (600, 400), "red").save(buffer, format="PNG")
+		with storage_flag(), fake():
+			file = self.make_file(buffer.getvalue(), "remote photo.png")
+			thumbnail_url = file.make_thumbnail()
+
+		self.assertEqual(thumbnail_url, f"/files/{file.blob}/remote photo_small.png")
+		path = frappe.get_site_path("public", thumbnail_url.lstrip("/"))
+		self.addCleanup(os.rmdir, os.path.dirname(path))
+		self.addCleanup(os.remove, path)
+		with Image.open(path) as thumbnail:
+			self.assertEqual(thumbnail.size, (300, 200))
+		self.assertEqual(frappe.db.get_value("File", file.name, "thumbnail_url"), thumbnail_url)
+
 	def test_standard_write_path_rejects_disguised_html(self):
 		# the sniff check runs on File.insert with content, not only in finish_upload
 		with storage_flag(), fake():

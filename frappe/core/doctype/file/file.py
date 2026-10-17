@@ -27,6 +27,7 @@ import mimetypes
 import os
 import re
 import zipfile
+from typing import TYPE_CHECKING
 from urllib.parse import quote, unquote
 
 import filetype
@@ -52,6 +53,9 @@ from .exceptions import (
 	MaxFileSizeReachedError,
 )
 from .utils import *
+
+if TYPE_CHECKING:
+	from PIL.ImageFile import ImageFile
 
 exclude_from_linked_with = True
 
@@ -542,7 +546,9 @@ class File(Document):
 			return
 
 		try:
-			if self.file_url.startswith(("/files", "/private/files")):
+			if self.get("blob"):
+				image, filename, extn = self.get_stored_image()
+			elif self.file_url.startswith(("/files", "/private/files")):
 				image, filename, extn = get_local_image(self.file_url)
 			else:
 				image, filename, extn = get_web_image(self.file_url)
@@ -559,6 +565,9 @@ class File(Document):
 		path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 		try:
+			if self.get("blob") and not self.is_private:
+				# a blob on another driver has no folder on this disk yet
+				os.makedirs(os.path.dirname(path), exist_ok=True)
 			image.save(path)
 			if set_as_thumbnail:
 				self.db_set("thumbnail_url", thumbnail_url)
@@ -568,6 +577,17 @@ class File(Document):
 			return
 
 		return thumbnail_url
+
+	def get_stored_image(self) -> tuple["ImageFile", str, str]:
+		"""Open a blob-backed image through its storage driver, like ``get_local_image``."""
+		from frappe.utils.image import Image
+
+		content = self._read_content()
+		image = Image.open(io.BytesIO(content))
+		filename, dot, extn = self.file_url.rpartition(".")
+		if not dot:
+			filename, extn = self.file_url, None
+		return image, filename, get_extension(filename, extn, content)
 
 	def validate_empty_folder(self):
 		"""Throw exception if folder is not empty"""
