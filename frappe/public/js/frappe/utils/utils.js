@@ -1782,23 +1782,18 @@ Object.assign(frappe.utils, {
 			return x_string;
 		}
 
+		const round = (result) =>
+			this.get_number_of_decimals(result) > max_no_of_decimals
+				? result.toFixed(max_no_of_decimals)
+				: result;
+
 		for (const map of number_system) {
 			if (x >= map.divisor) {
-				let result = number / map.divisor;
-				const no_of_decimals = this.get_number_of_decimals(result);
-				/*
-					If no_of_decimals is greater than max_no_of_decimals,
-					round the number to max_no_of_decimals
-				*/
-				result =
-					no_of_decimals > max_no_of_decimals
-						? result.toFixed(max_no_of_decimals)
-						: result;
-				return result + " " + map.symbol;
+				return round(number / map.divisor) + " " + map.symbol;
 			}
 		}
 
-		return number.toFixed(max_no_of_decimals);
+		return String(round(number));
 	},
 
 	get_number_of_decimals: function (number) {
