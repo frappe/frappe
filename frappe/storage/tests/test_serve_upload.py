@@ -1584,7 +1584,8 @@ class TestUploadChunkRouting(FrappeAPITestCase):
 				"status": "Active",
 			}
 		).insert(ignore_permissions=True)
-		frappe.db.commit()
+		# the request opens its own connection, so the token must be committed
+		frappe.db.commit()  # nosemgrep
 		self.addCleanup(frappe.db.commit)
 		self.addCleanup(frappe.delete_doc, "OAuth Client", client.name, force=1, ignore_permissions=True)
 		self.addCleanup(frappe.delete_doc, "OAuth Bearer Token", token.name, force=1, ignore_permissions=True)
