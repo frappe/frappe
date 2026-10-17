@@ -886,8 +886,8 @@ export default class ChartWidget extends Widget {
 					this.chart_settings.heatmap_year ||
 					this.chart_doc.heatmap_year
 			);
-			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
-			chart_args.data.end = new Date(`${heatmap_year + 1}-01-01`);
+			chart_args.data.start = new Date(heatmap_year, 0, 1);
+			chart_args.data.end = new Date(heatmap_year, 11, 31);
 		}
 		if (this.chart_doc.show_values_over_chart) chart_args.valuesOverPoints = true;
 		let set_options = (options) => {
