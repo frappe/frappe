@@ -283,7 +283,7 @@ class LoginManager:
 		ip_tracker = get_login_attempt_tracker(frappe.local.request_ip)
 		if not user:
 			ip_tracker and ip_tracker.add_failure_attempt()
-			self.fail("Invalid login credentials", user=_raw_user_name)
+			self.fail(_("Invalid login credentials"), user=_raw_user_name)
 
 		# Current login flow uses cached credentials for authentication while checking OTP.
 		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
@@ -294,11 +294,11 @@ class LoginManager:
 		if not user.is_authenticated:
 			user_tracker and user_tracker.add_failure_attempt()
 			ip_tracker and ip_tracker.add_failure_attempt()
-			self.fail("Invalid login credentials", user=user.name)
+			self.fail(_("Invalid login credentials"), user=user.name)
 		elif not (user.name == "Administrator" or user.enabled):
 			user_tracker and user_tracker.add_failure_attempt()
 			ip_tracker and ip_tracker.add_failure_attempt()
-			self.fail("User disabled or missing", user=user.name)
+			self.fail(_("User disabled or missing"), user=user.name)
 		else:
 			user_tracker and user_tracker.add_success_attempt()
 			ip_tracker and ip_tracker.add_success_attempt()
@@ -330,7 +330,7 @@ class LoginManager:
 			# return user in correct case
 			return check_password(user, pwd)
 		except frappe.AuthenticationError:
-			self.fail("Incorrect password", user=user)
+			self.fail(_("Incorrect password"), user=user)
 
 	def fail(self, message, user=None):
 		if not user:

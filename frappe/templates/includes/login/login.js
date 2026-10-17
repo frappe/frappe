@@ -65,7 +65,7 @@ login.bind_events = function () {
 			login.show_field_error("forgot_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
-		login.call(args, null, "/", "section.for-forgot .login-success-banner .es-alert__title");
+		login.call(args);
 		return false;
 	});
 
@@ -88,8 +88,8 @@ login.bind_events = function () {
 			login.show_field_error("login_with_email_link_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
-		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner .es-alert__title").then(() => {
-			$("section:visible .login-success-banner").removeClass("hidden");
+		login.call(args).then(() => {
+			login.show_success_banner({{ _("Please check your email.") | tojson }});
 			$("section:visible .resend-link").removeClass("hidden");
 			login.set_status({{ _("Sent") | tojson }});
 			$("section:visible .btn-login-with-email-link").prop("disabled", true);
@@ -210,7 +210,7 @@ login.signup = function () {
 
 
 // Login
-login.call = function (args, callback, url="/", error_msg=null) {
+login.call = function (args, callback, url="/") {
 	login.show_loading();
 
 	return frappe.call({
@@ -219,7 +219,7 @@ login.call = function (args, callback, url="/", error_msg=null) {
 		args: args,
 		callback: callback,
 		freeze: true,
-		error_msg: error_msg,
+		silent: true,
 		statusCode: login.login_handlers
 	});
 }
@@ -260,10 +260,12 @@ login.show_field_error = function (input_id, message) {
 };
 
 login.show_error_banner = function (message) {
+	$("section:visible .login-success-banner").addClass("hidden");
 	$("section:visible .login-error-banner").removeClass("hidden").find(".es-alert__title").text(message);
 };
 
 login.show_success_banner = function (message) {
+	$("section:visible .login-error-banner").addClass("hidden");
 	$("section:visible .login-success-banner").removeClass("hidden").find(".es-alert__title").text(message);
 };
 
@@ -292,24 +294,23 @@ login.set_invalid = function (message) {
 }
 
 login.login_handlers = (function () {
+	const get_server_message = function (data) {
+		return $.map(JSON.parse(data._server_messages || '[]'), function (v) {
+			try {
+				return JSON.parse(v).message;
+			} catch (e) {
+				return v;
+			}
+		}).join('<br>');
+	}
+
 	var get_error_handler = function (default_message) {
 		return function (xhr, data) {
 			if (xhr.responseJSON) {
 				data = xhr.responseJSON;
 			}
 
-			var message = default_message;
-			if (data._server_messages) {
-				message = ($.map(JSON.parse(data._server_messages || '[]'), function (v) {
-					// temp fix for messages sent as dict
-					try {
-						return JSON.parse(v).message;
-					} catch (e) {
-						return v;
-					}
-				}) || []).join('<br>') || default_message;
-			}
-
+			var message = get_server_message(data) || data.message || default_message;
 			login.set_invalid(message);
 			if (message !== default_message) {
 				login.reset_sections(false);
@@ -347,15 +348,13 @@ login.login_handlers = (function () {
 				// Always show the same message regardless of whether the account
 				// exists or not, to prevent username enumeration (CWE-204).
 				login.set_status({{ _("Sent") | tojson }}, 'green');
-				$("section:visible .login-success-banner").removeClass("hidden");
+				login.show_success_banner(get_server_message(data));
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.hide_loading();
-					$("section:visible .login-success-banner").addClass("hidden");
 					login.show_error_banner(data.message[1]);
 				} else {
 					login.set_status({{ _("Success") | tojson }}, 'green');
-					$("section:visible .login-error-banner").addClass("hidden");
 					login.show_success_banner(data.message[1]);
 				}
 			}
