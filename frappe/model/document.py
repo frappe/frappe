@@ -31,7 +31,7 @@ from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
 from frappe.types.filter import FilterSignature
-from frappe.utils import cint, compare, cstr, date_diff, file_lock, flt, get_table_name, now
+from frappe.utils import cint, compare, date_diff, file_lock, flt, get_table_name, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
@@ -1209,6 +1209,8 @@ class Document(BaseDocument):
 
 				if field.fieldtype in table_fields:
 					fail = not self.is_child_table_same(field.fieldname)
+				elif field.fieldtype == "Datetime" and value and original_value:
+					fail = get_datetime(value) != get_datetime(original_value)
 				elif field.fieldtype in ("Date", "Datetime", "Time"):
 					fail = str(value) != str(original_value)
 				else:
@@ -1404,7 +1406,9 @@ class Document(BaseDocument):
 			self.check_docstatus_transition(0)
 			return
 
-		if cstr(previous.modified) != cstr(self._original_modified):
+		previous_modified = get_datetime(previous.modified) if previous.modified else None
+		original_modified = get_datetime(self._original_modified) if self._original_modified else None
+		if previous_modified != original_modified:
 			frappe.msgprint(
 				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
