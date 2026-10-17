@@ -885,7 +885,7 @@ class TestConfig(unittest.TestCase):
 
 		with (
 			tempfile.TemporaryDirectory() as bench_path,
-			patch.object(frappe.local, "sites_path", None, create=True),
+			patch.object(frappe, "local", types.SimpleNamespace()),
 			patch.object(frappe, "get_common_site_config", return_value={}),
 		):
 			sites = os.path.join(bench_path, "sites")
