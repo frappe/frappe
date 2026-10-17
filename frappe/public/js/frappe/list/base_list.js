@@ -132,6 +132,14 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		if (!this.fields) this.fields = [];
+		if (!this.is_queryable_field(fieldname, doctype)) {
+			return;
+		}
+
+		this.fields.push([fieldname, doctype]);
+	}
+
+	is_queryable_field(fieldname, doctype) {
 		const is_valid_field =
 			frappe.model.std_fields_list.includes(fieldname) ||
 			frappe.meta.has_field(doctype, fieldname) ||
@@ -139,11 +147,7 @@ frappe.views.BaseList = class BaseList {
 
 		let is_virtual = this.meta.fields.find((df) => df.fieldname == fieldname)?.is_virtual;
 
-		if (!is_valid_field || is_virtual) {
-			return;
-		}
-
-		this.fields.push([fieldname, doctype]);
+		return is_valid_field && !is_virtual;
 	}
 
 	set_stats() {
