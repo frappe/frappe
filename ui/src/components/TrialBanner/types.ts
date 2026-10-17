@@ -14,5 +14,5 @@ export interface SiteInfo {
   base_url: string;
   /** Site the dashboard link points at. */
   site_name: string;
-  plan: { is_trial_plan: boolean };
+  plan?: { is_trial_plan: boolean };
 }

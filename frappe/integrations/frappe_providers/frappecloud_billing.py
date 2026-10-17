@@ -96,15 +96,15 @@ def current_site_info():
 	if cached_data:
 		return cached_data
 
-	res = {}
 	try:
 		request = post("press.saas.api.site.info")
 	except requests.RequestException:
 		return None
-	if request.status_code == 200:
-		res = request.json().get("message")
-		if not res or not isinstance(res, dict):
-			return None
+	if request.status_code != 200:
+		return None
+	res = request.json().get("message")
+	if not res or not isinstance(res, dict):
+		return None
 
 	site_info = {
 		**res,

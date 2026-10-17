@@ -54,11 +54,12 @@ createResource({
 	url: "frappe.integrations.frappe_providers.frappecloud_billing.current_site_info",
 	cache: "current_site_info_data",
 	auto: true,
-	onSuccess: (data: SiteInfo) => {
+	onSuccess: (data: SiteInfo | null) => {
+		if (!data) return;
 		trialEndDays.value = calculateTrialEndDays(data.trial_end_date);
 		baseEndpoint.value = data.base_url;
 		siteName.value = data.site_name;
-		showBanner.value = data.plan.is_trial_plan && trialEndDays.value > 0;
+		showBanner.value = Boolean(data.plan?.is_trial_plan) && trialEndDays.value > 0;
 	},
 });
 
