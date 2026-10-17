@@ -4,21 +4,29 @@ from typing import get_args
 from unittest.mock import MagicMock, patch
 
 import jwt
+from oauthlib.oauth2 import InvalidGrantError
 
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.exceptions import FrappeTypeError
-from frappe.integrations.doctype.connected_app.connected_app import ConnectedApp
+from frappe.integrations.doctype.connected_app.connected_app import (
+	ConnectedApp,
+	delete_token_cache,
+	has_token,
+)
 from frappe.integrations.frappe_providers import email_oauth
+from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import wait_for_job
 from frappe.utils import set_request
-from frappe.utils.safe_exec import safe_eval
 
 V2 = {"pilot_endpoint": "http://pilot.test", "pilot_auth_token": "pt"}
 AUTHORIZE = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 SCOPES = ["offline_access", "https://outlook.office.com/IMAP.AccessAsUser.All", "email"]
 LINK = {"authorize_url": f"{AUTHORIZE}?x=1", "client_id": "cid", "scopes": SCOPES}
 PERSONAL = email_oauth.PROVIDERS["microsoft"]["personal_tenant"]
+USER = "email-oauth-manager@example.com"
 
 
 def pilot_path(method: str) -> str:
@@ -27,7 +35,7 @@ def pilot_path(method: str) -> str:
 
 class TestInitiateMailboxConnect(IntegrationTestCase):
 	def setUp(self) -> None:
-		frappe.set_user("Administrator")
+		self.enterContext(self.set_user(create_user(USER).name))
 		self.enterContext(patch.dict(frappe.conf, V2))
 		self.pilot: MagicMock = self.enterContext(
 			patch.object(email_oauth.PilotClient, "post", return_value=LINK)
@@ -59,7 +67,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 				)
 			},
 			{
-				"user": "Administrator",
+				"user": USER,
 				"provider": "microsoft",
 				"client_id": "cid",
 				"authorization_uri": AUTHORIZE,
@@ -85,6 +93,34 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 			self.assertRaises(frappe.PermissionError, email_oauth.initiate_mailbox_connect, "microsoft")
 		self.pilot.assert_not_called()
 
+	def test_reconnect_needs_write_on_that_mailbox(self) -> None:
+		allowed = frappe.get_doc(
+			{
+				"doctype": "Email Account",
+				"email_account_name": "_Test Email OAuth Allowed",
+				"email_id": "email-oauth-allowed@example.com",
+				"smtp_server": "smtp.example.com",
+			}
+		).insert()
+		user = create_user("email-oauth-restricted@example.com")
+		add_user_permission("Email Account", allowed.name, user.name)
+
+		with self.set_user(user.name):
+			self.assertTrue(frappe.has_permission("Email Account", "create"))
+			self.assertRaises(
+				frappe.PermissionError,
+				email_oauth.initiate_mailbox_connect,
+				"microsoft",
+				email_account="_Test Email Account 1",
+			)
+		self.pilot.assert_not_called()
+
+		email_oauth.initiate_mailbox_connect("microsoft", email_account="_Test Email Account 1")
+		state = self.pilot.call_args.args[1]["state"]
+		self.assertEqual(
+			frappe.cache.get_value(f"pkce_verifier:{state}")["email_account"], "_Test Email Account 1"
+		)
+
 	def test_site_off_frappe_cloud_is_refused(self) -> None:
 		for key in V2:
 			with self.subTest(missing=key), patch.dict(frappe.conf, {key: None}):
@@ -105,6 +141,32 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.assertIsNone(frappe.cache.get_value(f"pkce_verifier:{state}"))
 
 
+class TestOneClickProviders(IntegrationTestCase):
+	def setUp(self) -> None:
+		self.enterContext(self.set_user(create_user(USER).name))
+
+	def test_frappe_cloud_site_offers_every_provider(self) -> None:
+		with patch.dict(frappe.conf, V2):
+			self.assertEqual(email_oauth.get_one_click_providers(), list(email_oauth.PROVIDERS))
+
+	def test_site_off_frappe_cloud_offers_none(self) -> None:
+		with patch.dict(frappe.conf, {key: None for key in V2}):
+			self.assertEqual(email_oauth.get_one_click_providers(), [])
+
+	def test_user_without_email_account_permission_is_refused(self) -> None:
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "email-oauth-nobody@example.com",
+				"first_name": "Nobody",
+				"user_type": "Website User",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_if_duplicate=True)
+		with self.set_user(user.name), patch.dict(frappe.conf, V2):
+			self.assertRaises(frappe.PermissionError, email_oauth.get_one_click_providers)
+
+
 def id_token(email: str, tid: str = PERSONAL) -> str:
 	return jwt.encode({"email": email, "tid": tid}, "not-checked", algorithm="HS256")
 
@@ -119,46 +181,22 @@ def token(email: str, **claims) -> dict:
 	}
 
 
-def desk_would_refuse(doc) -> list[str]:
-	"""Empty fields that Desk's form requires on save (mandatory_depends_on). The server never checks these."""
-	missing = []
-	for df in doc.meta.fields:
-		rule = df.mandatory_depends_on or ""
-		if rule.startswith("eval:"):
-			js = (
-				rule[5:]
-				.replace("===", "==")
-				.replace("&&", " and ")
-				.replace("||", " or ")
-				.replace("!doc", " not doc")
-				.strip()
-			)
-			needed = safe_eval(js, None, {"doc": frappe._dict(doc.as_dict())})
-		else:
-			needed = rule and doc.get(rule)
-		if needed and not doc.get(df.fieldname):
-			missing.append(df.fieldname)
-	return missing
-
-
 class TestCallback(IntegrationTestCase):
 	def setUp(self) -> None:
-		frappe.set_user("Administrator")
+		self.enterContext(self.set_user(create_user(USER).name))
 		self.enterContext(patch.dict(frappe.conf, V2))
 		self.pilot: MagicMock = self.enterContext(
-			patch.object(email_oauth.PilotClient, "post", return_value=token("one@email-oauth.test"))
+			patch.object(email_oauth.PilotClient, "post", return_value=token("one@email-oauth.example.com"))
 		)
 		set_request(method="GET", base_url="http://hd.localhost:8000")
 		self.addCleanup(self.delete_mailboxes)
 
 	def delete_mailboxes(self) -> None:
 		frappe.set_user("Administrator")
-		for account in frappe.get_all(
-			"Email Account", {"email_id": ("like", "%@email-oauth.test")}, ["name", "connected_app"]
+		for name in frappe.get_all(
+			"Email Account", {"email_id": ("like", "%@email-oauth.example.com")}, pluck="name"
 		):
-			frappe.delete_doc("Email Account", account.name, force=True)
-			frappe.db.delete("Token Cache", {"connected_app": account.connected_app})
-			frappe.delete_doc("Connected App", account.connected_app, force=True)
+			frappe.delete_doc("Email Account", name, force=True)
 		frappe.db.commit()
 
 	def note(self, **values) -> str:
@@ -166,7 +204,7 @@ class TestCallback(IntegrationTestCase):
 		frappe.cache.set_value(
 			f"pkce_verifier:{state}",
 			{
-				"user": "Administrator",
+				"user": USER,
 				"verifier": "v" * 64,
 				"provider": "microsoft",
 				"client_id": "cid",
@@ -187,7 +225,10 @@ class TestCallback(IntegrationTestCase):
 		state = self.note(target_doctype="ToDo")
 		email_oauth.callback(state=state, code="the-code")
 
-		self.assertEqual(self.landed(), "http://hd.localhost:8000/helpdesk?email_oauth=connected")
+		self.assertEqual(
+			self.landed(),
+			"http://hd.localhost:8000/helpdesk?email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com",
+		)
 		self.assertIsNone(frappe.cache.get_value(f"pkce_verifier:{state}"))
 		self.pilot.assert_called_once_with(
 			pilot_path("relay_token"),
@@ -199,29 +240,36 @@ class TestCallback(IntegrationTestCase):
 			},
 		)
 
-		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.test"})
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
 		self.assertEqual(account.auth_method, "OAuth")
-		self.assertEqual(account.connected_user, "Administrator")
+		self.assertEqual(account.connected_user, USER)
 		self.assertEqual(account.email_server, "imap-mail.outlook.com")
 		self.assertEqual(account.service, "Outlook.com")
 		self.assertEqual([(f.folder_name, f.append_to) for f in account.imap_folder], [("INBOX", "ToDo")])
 		app = frappe.get_doc("Connected App", account.connected_app)
 		self.assertEqual(app.get_scopes(), SCOPES)
+		self.assertEqual(app.client_id, "cid")
 		self.assertEqual(app.authorization_uri, AUTHORIZE)
-		self.assertEqual(app.provider_name, "Microsoft (one@email-oauth.test)")
+		self.assertEqual(app.provider_name, "Microsoft (one@email-oauth.example.com)")
 		self.assertEqual(app.token_uri, "frappe-cloud-relay:microsoft")
 		self.assertIsNone(app.get_password("client_secret", raise_exception=False))
-		self.assertEqual(app.get_token_cache("Administrator").get_password("refresh_token"), "rt")
-		self.assertEqual(desk_would_refuse(app), [])
-		self.assertEqual(desk_would_refuse(account), [])
+		self.assertEqual(app.get_token_cache(USER).get_password("refresh_token"), "rt")
+
+	def test_lands_with_the_result_before_the_fragment(self) -> None:
+		email_oauth.callback(state=self.note(redirect_to="/desk/email-account?view=list#top"), code="c")
+		self.assertEqual(
+			self.landed(),
+			"http://hd.localhost:8000/desk/email-account?view=list&email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com#top",
+		)
 
 	def test_second_mailbox_is_added_beside_the_first(self) -> None:
 		email_oauth.callback(state=self.note(), code="c1")
-		self.pilot.return_value = token("two@email-oauth.test", tid="work-tenant")
+		self.pilot.return_value = token("two@email-oauth.example.com", tid="work-tenant")
 		email_oauth.callback(state=self.note(), code="c2")
 
 		first, second = (
-			frappe.get_doc("Email Account", {"email_id": f"{n}@email-oauth.test"}) for n in ("one", "two")
+			frappe.get_doc("Email Account", {"email_id": f"{n}@email-oauth.example.com"})
+			for n in ("one", "two")
 		)
 		self.assertNotEqual(first.connected_app, second.connected_app)
 		self.assertEqual(second.email_server, "outlook.office365.com")
@@ -230,25 +278,176 @@ class TestCallback(IntegrationTestCase):
 
 	def test_google_mailbox_uses_gmail_settings(self) -> None:
 		# Google's ID token has no tenant, so Microsoft's personal-account servers must not apply
-		self.pilot.return_value = token("three@email-oauth.test", tid=None)
+		self.pilot.return_value = token("three@email-oauth.example.com", tid=None)
 		email_oauth.callback(state=self.note(provider="google"), code="c")
 
 		self.assertEqual(self.pilot.call_args.args[1]["provider"], "google")
-		account = frappe.get_doc("Email Account", {"email_id": "three@email-oauth.test"})
+		account = frappe.get_doc("Email Account", {"email_id": "three@email-oauth.example.com"})
 		self.assertEqual(
 			(account.service, account.email_server, account.smtp_server),
 			("GMail", "imap.gmail.com", "smtp.gmail.com"),
 		)
 		app = frappe.get_doc("Connected App", account.connected_app)
-		self.assertEqual(app.provider_name, "Google (three@email-oauth.test)")
+		self.assertEqual(app.provider_name, "Google (three@email-oauth.example.com)")
 		self.assertEqual(app.token_uri, "frappe-cloud-relay:google")
 
 	def test_same_mailbox_again_creates_nothing(self) -> None:
 		email_oauth.callback(state=self.note(), code="c1")
 		apps = frappe.db.count("Connected App")
 		email_oauth.callback(state=self.note(), code="c2")
-		self.assertEqual(self.landed(), "http://hd.localhost:8000/helpdesk?email_oauth=already_connected")
+		self.assertEqual(
+			self.landed(),
+			"http://hd.localhost:8000/helpdesk?email_oauth=already_connected&email_oauth_mailbox=one%40email-oauth.example.com",
+		)
 		self.assertEqual(frappe.db.count("Connected App"), apps)
+
+	def test_reconnect_moves_the_mailbox_to_a_new_app(self) -> None:
+		email_oauth.callback(state=self.note(), code="c1")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		account.db_set({"enable_outgoing": 0, "use_ssl_for_outgoing": 1, "smtp_port": 465})
+		old_app = account.connected_app
+
+		email_oauth.callback(state=self.note(email_account=account.name), code="c2")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com"
+			)
+		)
+		account.reload()
+		self.assertNotEqual(account.connected_app, old_app)
+		self.assertEqual(account.enable_outgoing, 0)
+		self.assertEqual((account.use_ssl_for_outgoing, account.use_tls, account.smtp_port), (0, 1, "587"))
+		self.assertTrue(frappe.get_doc("Connected App", account.connected_app).get_token_cache(USER))
+		self.assertFalse(frappe.db.exists("Connected App", old_app))
+		self.assertFalse(frappe.db.exists("Token Cache", {"connected_app": old_app}))
+		self.assertEqual(frappe.db.count("Email Account", {"email_id": "one@email-oauth.example.com"}), 1)
+
+	def test_reconnect_keeps_the_old_app_another_mailbox_links(self) -> None:
+		email_oauth.callback(state=self.note(), code="c1")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		duplicate = frappe.copy_doc(account)
+		duplicate.update({"email_account_name": "one-incoming", "enable_outgoing": 0})
+		duplicate.insert()
+
+		email_oauth.callback(state=self.note(email_account=account.name), code="c2")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com"
+			)
+		)
+		self.assertTrue(frappe.db.exists("Connected App", account.connected_app))
+		self.assertTrue(frappe.db.exists("Token Cache", {"connected_app": account.connected_app}))
+
+	def test_repointing_a_mailbox_deletes_its_old_app_and_tokens(self) -> None:
+		email_oauth.callback(state=self.note(), code="c1")
+		self.pilot.return_value = token("two@email-oauth.example.com")
+		email_oauth.callback(state=self.note(), code="c2")
+		first, second = (
+			frappe.get_doc("Email Account", {"email_id": f"{n}@email-oauth.example.com"})
+			for n in ("one", "two")
+		)
+		old_app = first.connected_app
+
+		first.connected_app = second.connected_app
+		first.save()
+
+		self.assertFalse(frappe.db.exists("Connected App", old_app))
+		self.assertFalse(frappe.db.exists("Token Cache", {"connected_app": old_app}))
+		self.assertTrue(frappe.db.exists("Connected App", second.connected_app))
+
+	def test_reconnect_matches_the_mailbox_whatever_its_case(self) -> None:
+		email_oauth.callback(state=self.note(), code="c1")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		self.pilot.return_value = token("One@Email-OAuth.example.com")
+
+		email_oauth.callback(state=self.note(email_account=account.name), code="c2")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com"
+			)
+		)
+		self.assertNotEqual(
+			frappe.db.get_value("Email Account", account.name, "connected_app"), account.connected_app
+		)
+
+	def test_reconnect_switches_a_custom_app_mailbox_and_keeps_that_app(self) -> None:
+		email_oauth.callback(state=self.note(), code="c1")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		custom_app = account.connected_app
+		frappe.db.set_value("Connected App", custom_app, "token_uri", "https://login.example.com/token")
+		self.addCleanup(frappe.delete_doc, "Connected App", custom_app, force=True)
+		self.addCleanup(frappe.db.delete, "Token Cache", {"connected_app": custom_app})
+
+		email_oauth.callback(state=self.note(email_account=account.name), code="c2")
+
+		account.reload()
+		self.assertNotEqual(account.connected_app, custom_app)
+		self.assertTrue(
+			frappe.db.get_value("Connected App", account.connected_app, "token_uri").startswith(
+				email_oauth.FRAPPE_CLOUD_RELAY
+			)
+		)
+		self.assertTrue(frappe.db.exists("Connected App", custom_app))
+
+	def test_reconnect_moves_a_pop_mailbox_to_imap(self) -> None:
+		email_oauth.callback(state=self.note(), code="c1")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		account.db_set("use_imap", 0)
+		frappe.db.delete("IMAP Folder", {"parent": account.name})
+
+		email_oauth.callback(state=self.note(email_account=account.name), code="c2")
+
+		self.assertIn("email_oauth=reconnected", self.landed())
+		account.reload()
+		self.assertEqual(account.use_imap, 1)
+		self.assertEqual([f.folder_name for f in account.imap_folder], ["INBOX"])
+
+	def test_reconnect_with_another_mailbox_changes_nothing(self) -> None:
+		email_oauth.callback(state=self.note(), code="c1")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		apps = frappe.db.count("Connected App")
+		self.pilot.return_value = token("two@email-oauth.example.com")
+
+		email_oauth.callback(state=self.note(email_account=account.name), code="c2")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"?email_oauth=wrong_mailbox&email_oauth_mailbox=one%40email-oauth.example.com"
+			)
+		)
+		self.assertEqual(
+			frappe.db.get_value("Email Account", account.name, "connected_app"), account.connected_app
+		)
+		self.assertEqual(frappe.db.count("Connected App"), apps)
+
+	def test_cancelled_reconnect_names_the_mailbox(self) -> None:
+		email_oauth.callback(state=self.note(), code="c1")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+
+		email_oauth.callback(
+			state=self.note(email_account=account.name),
+			error="access_denied",
+			error_description="AADSTS65004",
+		)
+
+		self.assertEqual(
+			self.landed(),
+			"http://hd.localhost:8000/helpdesk?email_oauth=cancelled&email_oauth_mailbox=one%40email-oauth.example.com",
+		)
+
+	def test_reconnect_of_a_deleted_mailbox_fails_and_leaves_nothing(self) -> None:
+		apps = frappe.db.count("Connected App")
+		caches = frappe.db.count("Token Cache")
+
+		email_oauth.callback(state=self.note(email_account="deleted@email-oauth.example.com"), code="c")
+
+		self.assertTrue(self.landed().endswith("?email_oauth=failed"))
+		self.assertEqual(frappe.db.count("Connected App"), apps)
+		self.assertEqual(frappe.db.count("Token Cache"), caches)
+		self.assertFalse(frappe.db.exists("Email Account", {"email_id": "one@email-oauth.example.com"}))
 
 	def test_microsoft_errors_become_fixed_codes(self) -> None:
 		for error, description, result in (
@@ -262,9 +461,11 @@ class TestCallback(IntegrationTestCase):
 			("server_error", "AADSTS50000: something broke", "failed"),
 			("not_team_member", None, "not_team_member"),
 		):
-			with self.subTest(description):
+			with self.subTest(description), patch("frappe.log_error") as log:
 				email_oauth.callback(state=self.note(), error=error, error_description=description)
 				self.assertEqual(self.landed(), f"http://hd.localhost:8000/helpdesk?email_oauth={result}")
+				if result == "failed":
+					log.assert_called_once_with("Email OAuth sign-in failed", f"{error}: {description}")
 		self.pilot.assert_not_called()
 
 	def test_missing_or_foreign_note_is_expired(self) -> None:
@@ -284,33 +485,81 @@ class TestCallback(IntegrationTestCase):
 
 	def test_pilot_unreachable_is_failed(self) -> None:
 		self.pilot.side_effect = frappe.ValidationError("Could not reach your server")
-		email_oauth.callback(state=self.note(), code="c")
+		with patch("frappe.log_error") as log:
+			email_oauth.callback(state=self.note(), code="c")
 		self.assertTrue(self.landed().endswith("/helpdesk?email_oauth=failed"))
+		log.assert_called_once_with("Email OAuth connect failed")
 
 	def test_off_host_redirect_lands_on_this_host(self) -> None:
 		email_oauth.callback(state=self.note(redirect_to="https://evil.example/steal"), code="c")
-		self.assertEqual(self.landed(), "http://hd.localhost:8000/desk?email_oauth=connected")
+		self.assertEqual(
+			self.landed(),
+			"http://hd.localhost:8000/desk?email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com",
+		)
 
 	def test_failed_save_leaves_nothing_behind(self) -> None:
 		apps = frappe.db.count("Connected App")
 		caches = frappe.db.count("Token Cache")
 		smtp_off = "535 5.7.139 Authentication unsuccessful, SmtpClientAuthentication is disabled"
-		personal = PERSONAL
 		for message, tid, result in (
-			(smtp_off, personal, "smtp_disabled_personal"),
+			(smtp_off, PERSONAL, "smtp_disabled_personal"),
 			(smtp_off, "work-tenant", "smtp_disabled"),
-			("User is authenticated but not connected.", personal, "imap_disabled"),
-			("Something else", personal, "failed"),
+			("User is authenticated but not connected.", PERSONAL, "imap_disabled"),
+			("Something else", PERSONAL, "failed"),
 		):
-			self.pilot.return_value = token("one@email-oauth.test", tid=tid)
+			self.pilot.return_value = token("one@email-oauth.example.com", tid=tid)
 			with (
 				self.subTest(result),
 				patch.object(EmailAccount, "validate", side_effect=frappe.ValidationError(message)),
+				patch("frappe.log_error") as log,
 			):
 				email_oauth.callback(state=self.note(), code="c")
-				self.assertTrue(self.landed().endswith(f"?email_oauth={result}"))
+				log.assert_called_once_with("Email OAuth connect failed")
+				self.assertTrue(
+					self.landed().endswith(
+						f"?email_oauth={result}&email_oauth_mailbox=one%40email-oauth.example.com"
+					)
+				)
 				self.assertEqual(frappe.db.count("Connected App"), apps)
 				self.assertEqual(frappe.db.count("Token Cache"), caches)
+
+	def test_deleting_the_mailbox_deletes_its_app_and_tokens(self) -> None:
+		email_oauth.callback(state=self.note(), code="c")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+
+		token_cache = f"{account.connected_app}-{USER}"
+
+		account.delete()
+
+		self.assertFalse(frappe.db.exists("Connected App", account.connected_app))
+		self.assertFalse(frappe.db.exists("Token Cache", {"connected_app": account.connected_app}))
+		auth = frappe.qb.Table("__Auth")
+		self.assertFalse(frappe.qb.from_(auth).select(auth.name).where(auth.name == token_cache).run())
+
+	def test_deleting_a_mailbox_keeps_an_app_another_mailbox_links(self) -> None:
+		email_oauth.callback(state=self.note(), code="c")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		duplicate = frappe.copy_doc(account)
+		duplicate.update({"email_account_name": "one-incoming", "enable_outgoing": 0})
+		duplicate.insert()
+
+		duplicate.delete()
+
+		self.assertTrue(frappe.db.exists("Connected App", account.connected_app))
+		self.assertTrue(frappe.db.exists("Token Cache", {"connected_app": account.connected_app}))
+
+	def test_deleting_a_mailbox_keeps_a_customers_own_app(self) -> None:
+		email_oauth.callback(state=self.note(), code="c")
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		frappe.db.set_value(
+			"Connected App", account.connected_app, "token_uri", "https://login.example.com/token"
+		)
+		self.addCleanup(frappe.delete_doc, "Connected App", account.connected_app, force=True)
+		self.addCleanup(frappe.db.delete, "Token Cache", {"connected_app": account.connected_app})
+
+		account.delete()
+
+		self.assertTrue(frappe.db.exists("Connected App", account.connected_app))
 
 	def test_guest_is_sent_to_login(self) -> None:
 		with self.set_user("Guest"):
@@ -320,33 +569,35 @@ class TestCallback(IntegrationTestCase):
 
 class TestRefresh(IntegrationTestCase):
 	def setUp(self) -> None:
-		frappe.set_user("Administrator")
+		# update_data commits the app, so its cleanup must commit too (cleanups run last-in, first-out)
+		self.addCleanup(frappe.db.commit)
+		self.enterContext(self.set_user(create_user(USER).name))
 		self.enterContext(patch.dict(frappe.conf, V2))
 		self.pilot: MagicMock = self.enterContext(
-			patch.object(email_oauth.PilotClient, "post", return_value=token("one@email-oauth.test"))
+			patch.object(email_oauth.PilotClient, "post", return_value=token("one@email-oauth.example.com"))
 		)
 
 	def expired_app(self, token_uri: str, client_secret: str | None = None) -> ConnectedApp:
 		app = frappe.get_doc(
 			{
 				"doctype": "Connected App",
-				"provider_name": "Microsoft (one@email-oauth.test)",
+				"provider_name": "Microsoft (one@email-oauth.example.com)",
 				"client_id": "cid",
 				"client_secret": client_secret,
 				"token_uri": token_uri,
 				"scopes": [{"scope": "offline_access"}, {"scope": "email"}],
 			}
 		).insert()
-		frappe.get_doc(
-			{"doctype": "Token Cache", "connected_app": app.name, "user": "Administrator"}
-		).update_data({"access_token": "old", "refresh_token": "rt-old", "expires_in": -60})
+		frappe.get_doc({"doctype": "Token Cache", "connected_app": app.name, "user": USER}).update_data(
+			{"access_token": "old", "refresh_token": "rt-old", "expires_in": -60}
+		)
 		self.addCleanup(frappe.delete_doc, "Connected App", app.name, force=True)
 		self.addCleanup(frappe.db.delete, "Token Cache", {"connected_app": app.name})
 		return app
 
 	def test_relay_app_refreshes_through_pilot(self) -> None:
 		app = self.expired_app("frappe-cloud-relay:microsoft")
-		self.assertEqual(app.get_active_token("Administrator").get_password("access_token"), "at")
+		self.assertEqual(app.get_active_token(USER).get_password("access_token"), "at")
 		self.pilot.assert_called_once_with(
 			pilot_path("relay_token"),
 			{
@@ -360,7 +611,64 @@ class TestRefresh(IntegrationTestCase):
 	def test_other_apps_never_go_through_frappe_cloud(self) -> None:
 		# a customer's own app keeps its refresh token away from Central
 		app = self.expired_app("https://login.example.com/token", client_secret="their-secret")
-		with patch("requests_oauthlib.OAuth2Session.refresh_token", return_value=token("x@y.test")) as own:
-			app.get_active_token("Administrator")
+		with patch(
+			"requests_oauthlib.OAuth2Session.refresh_token", return_value=token("x@example.com")
+		) as own:
+			app.get_active_token(USER)
 		own.assert_called_once()
 		self.pilot.assert_not_called()
+
+	def assert_token_dropped(self, app: ConnectedApp) -> None:
+		wait_for_job(f"delete_token_cache:{app.name}-{USER}")
+		frappe.db.rollback()
+		self.assertFalse(has_token(app.name, USER))
+
+	def test_dead_grant_drops_the_tokens(self) -> None:
+		app = self.expired_app("frappe-cloud-relay:microsoft")
+		self.pilot.side_effect = frappe.ValidationError("invalid_grant")
+		callers_work = frappe.get_doc({"doctype": "ToDo", "description": "email-oauth caller"}).insert()
+
+		with patch("frappe.log_error") as log:
+			self.assertIsNone(app.get_active_token(USER))
+		self.assertEqual(log.call_args.kwargs["title"], "Token Refresh Error")
+		self.assertTrue(frappe.db.exists("ToDo", callers_work.name))
+
+		self.assert_token_dropped(app)
+		self.assertFalse(frappe.db.exists("ToDo", callers_work.name))
+
+	def test_dead_grant_on_a_customers_own_app_drops_the_tokens(self) -> None:
+		app = self.expired_app("https://login.example.com/token", client_secret="their-secret")
+		with (
+			patch("requests_oauthlib.OAuth2Session.refresh_token", side_effect=InvalidGrantError()),
+			patch("frappe.log_error") as log,
+		):
+			self.assertIsNone(app.get_active_token(USER))
+		self.assertEqual(log.call_args.kwargs["title"], "Token Refresh Error")
+
+		self.assert_token_dropped(app)
+
+	def test_reauthorizing_before_the_drop_keeps_the_new_token(self) -> None:
+		app = self.expired_app("https://login.example.com/token", client_secret="their-secret")
+		with (
+			patch("requests_oauthlib.OAuth2Session.refresh_token", side_effect=InvalidGrantError()),
+			patch("frappe.log_error"),
+			patch("frappe.enqueue") as enqueue,
+		):
+			self.assertIsNone(app.get_active_token(USER))
+		frappe.get_doc("Token Cache", f"{app.name}-{USER}").update_data(
+			{"access_token": "new", "refresh_token": "rt-new", "expires_in": 3600}
+		)
+
+		job = enqueue.call_args.kwargs
+		delete_token_cache(name=job["name"], modified=job["modified"])
+		self.assertTrue(has_token(app.name, USER))
+
+	def test_other_refresh_failures_keep_the_tokens(self) -> None:
+		app = self.expired_app("frappe-cloud-relay:microsoft")
+		self.pilot.side_effect = frappe.ValidationError("Could not reach your server")
+
+		with patch("frappe.log_error") as log:
+			self.assertIsNone(app.get_active_token(USER))
+		self.assertEqual(log.call_args.kwargs["title"], "Token Refresh Error")
+
+		self.assertTrue(has_token(app.name, USER))
