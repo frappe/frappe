@@ -1336,6 +1336,7 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
 )
 @click.option("--user-for-audit", required=False, help="The user to mention in audit trail")
+@click.option("--dev", is_flag=True, help="Force the port in the URL, for a development server")
 @pass_context
 def browse(
 	context: CliCtxObj,
@@ -1344,14 +1345,14 @@ def browse(
 	print_sid: bool = False,
 	session_end: str | None = None,
 	user_for_audit: str | None = None,
+	dev: bool = False,
 ):
 	"""Opens the site on web browser"""
+	import webbrowser
+
 	from frappe.auth import CookieManager, LoginManager
 
-	site = get_site(context, raise_err=False) or site
-
-	if not site:
-		raise SiteNotSpecifiedError
+	site = site or get_site(context)
 
 	if site not in frappe.utils.get_sites():
 		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
@@ -1373,9 +1374,12 @@ def browse(
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = frappe.session.sid
-			login_path = f"/app?sid={sid}"
+			login_path = f"{frappe.local.response.home_page}?sid={sid}"
 		else:
-			click.echo("Please enable developer mode to login as a user")
+			click.echo(
+				"Only browsing as Administrator is supported outside development environments.", err=True
+			)
+			sys.exit(1)
 
 	if print_sid:
 		if not sid:
@@ -1384,12 +1388,12 @@ def browse(
 		click.echo(sid)
 		return
 
-	url = f"{frappe.utils.get_site_url(site)}{login_path}"
+	url = frappe.utils.get_url(login_path, allow_header_override=False, force_include_port=dev)
 
-	if user == "Administrator":
-		click.echo(f"Login URL: {url}")
+	click.echo(f"URL: {url}")
 
-	click.launch(url)
+	if not os.environ.get("SSH_CONNECTION"):
+		webbrowser.open(url)
 
 
 @click.command("start-recording")

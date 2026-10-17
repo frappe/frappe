@@ -229,11 +229,11 @@ class TestCommands(BaseTestCommands):
 	def test_browse_sid(self):
 		self.setup_test_site()
 
-		with patch("click.launch") as launch:
+		with patch("webbrowser.open") as launch:
 			with cli(frappe.commands.site.browse, ["--user", "Administrator", "--sid"]) as result:
 				self.assertEqual(result.exit_code, 0)
 				self.assertTrue(result.output.strip())
-				self.assertNotIn("Login URL", result.output)
+				self.assertNotIn("URL:", result.output)
 				launch.assert_not_called()
 
 	def test_execute(self):
