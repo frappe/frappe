@@ -242,22 +242,27 @@ def retry_failed_webhooks():
 
 	queues = {}
 	for log in due_logs:
-		job_id = f"webhook_retry::{log.name}"
-		if is_job_enqueued(job_id):
-			continue
-
 		if log.webhook not in queues:
 			queues[log.webhook] = (
 				frappe.db.get_value("Webhook", log.webhook, "background_jobs_queue") or "default"
 			)
 
-		frappe.enqueue(
-			"frappe.integrations.doctype.webhook.webhook.retry_webhook_delivery",
-			log_name=log.name,
-			job_id=job_id,
-			queue=queues[log.webhook],
-			now=frappe.in_test,
-		)
+		enqueue_webhook_retry(log.name, queues[log.webhook])
+
+
+def enqueue_webhook_retry(log_name: str, queue: str) -> bool:
+	job_id = f"webhook_retry::{log_name}"
+	if is_job_enqueued(job_id):
+		return False
+
+	frappe.enqueue(
+		"frappe.integrations.doctype.webhook.webhook.retry_webhook_delivery",
+		log_name=log_name,
+		job_id=job_id,
+		queue=queue,
+		now=frappe.in_test,
+	)
+	return True
 
 
 def retry_webhook_delivery(log_name: str):
