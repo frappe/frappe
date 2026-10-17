@@ -24,7 +24,7 @@
 			flex-wrap: wrap;
 			color: var(--text-light);
 
-			.icon {
+			.icon:not(.es-button .icon) {
 				stroke: var(--text-light);
 			}
 
@@ -34,15 +34,6 @@
 
 			a {
 				color: var(--text-light);
-			}
-		}
-
-		.modified-by,
-		.created-by {
-			.frappe-timestamp {
-				color: var(--text-light);
-				margin-top: 5px;
-				display: block;
 			}
 		}
 	}
@@ -382,24 +373,17 @@ body[data-route^="Form"] {
 		}
 	}
 
-	.form-sidebar {
-		.modified-by,
-		.created-by,
-		.pageview-count {
-			@include get_textstyle("sm", "regular");
-		}
-
-		.modified-by,
-		.pageview-count {
-			margin-bottom: var(--margin-md);
-		}
+	.form-sidebar .pageview-count {
+		@include get_textstyle("sm", "regular");
+		margin-top: var(--margin-md);
 	}
 
 	.overlay-sidebar {
 		@media (max-width: 992px) {
 			margin-top: 0 !important;
 			position: fixed;
-			background: var(--fg-color);
+			--form-sidebar-bg: var(--fg-color);
+			background: var(--form-sidebar-bg);
 			top: 0;
 			left: 0;
 			transform: translateX(-110%);
@@ -528,6 +512,7 @@ body[data-route^="Form"] {
 		.attachment-file-label {
 			display: block;
 			text-align: left;
+			text-decoration: none;
 		}
 
 		.attachment-icon {
@@ -542,21 +527,6 @@ body[data-route^="Form"] {
 
 	.form-tag {
 		max-width: 150px;
-
-		.pill-label {
-			min-width: 0;
-		}
-
-		// the remove ✕ — the only click target on the tag
-		.es-badge__affix {
-			cursor: pointer;
-			opacity: 0.7;
-
-			&:hover,
-			&:focus-visible {
-				opacity: 1;
-			}
-		}
 	}
 }
 
@@ -579,14 +549,6 @@ body[data-route^="Form"] {
 .form-tags,
 .form-shared {
 	padding: var(--padding-sm) var(--padding-md);
-}
-
-.form-attachments {
-	// to add gap between attachment section label and attachments
-	// without affecting empty state
-	.attachments-actions + .attachment-row {
-		margin-top: 8px;
-	}
 }
 
 body[data-route^="Form"] .attachment-preview {
@@ -733,7 +695,7 @@ body[data-route^="Form"] .attachment-preview {
 	// to add gap between tag section label and tags
 	// without affecting empty state
 	:not(.form-tag-row) + .form-tag-row {
-		margin-top: 8px;
+		margin-top: var(--spacing);
 	}
 }
 
@@ -741,7 +703,7 @@ body[data-route^="Form"] .attachment-preview {
 .form-shared {
 	.assignments,
 	.shares {
-		margin-top: 8px;
+		margin-top: var(--spacing);
 
 		.dialog-assignment-row {
 			display: flex;
@@ -845,4 +807,266 @@ body[data-route^="Form"] .attachment-preview {
 
 .shared-user {
 	margin-bottom: 10px;
+}
+
+// shared by the sidebar and the all-attachments dialog
+@mixin attachment-row-hover {
+	.data-pill {
+		border-radius: var(--radius);
+
+		&:hover,
+		&:focus-within {
+			background-color: var(--surface-gray-2);
+		}
+
+		cursor: pointer;
+
+		// sits 2px inside the row
+		.attachment-actions {
+			opacity: 0;
+			margin-inline-end: calc(var(--spacing) * -1);
+			border-radius: var(--radius-3);
+		}
+
+		&:hover .attachment-actions,
+		&:focus-within .attachment-actions,
+		.attachment-actions[aria-expanded="true"] {
+			opacity: 1;
+		}
+
+		@media (hover: none) {
+			.attachment-actions {
+				opacity: 1;
+			}
+		}
+	}
+}
+
+.form-sidebar {
+	--form-sidebar-bg: var(--bg-color);
+	display: flex;
+	flex-direction: column;
+	min-height: 100%;
+
+	.form-sidebar-actions {
+		display: flex;
+		gap: var(--spacing);
+		padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
+
+		// beats the generic section padding
+		&.border-bottom {
+			padding-bottom: calc(var(--spacing) * 2.5);
+		}
+
+		// the sections below bring their own top padding
+		&:not(.border-bottom) {
+			padding-bottom: 0;
+		}
+
+		.form-sidebar-action {
+			--bt-disabled-fg: var(--ink-gray-3);
+		}
+	}
+
+	.form-sidebar-sections {
+		padding-bottom: var(--padding-md);
+
+		.attachment-row a,
+		.assignments .assignee > span {
+			color: var(--ink-gray-6);
+		}
+
+		.form-tags.read-only .form-tag .es-tag__remove {
+			display: none;
+		}
+
+		// rows bleed into the padding, like the connections rows
+		.form-assignments .dialog-assignment-row,
+		.attachment-row {
+			margin: 0 calc(var(--spacing) * -1.5);
+			border-radius: var(--radius);
+
+			& + .dialog-assignment-row,
+			& + .attachment-row {
+				margin-top: calc(var(--spacing) * 0.5);
+			}
+		}
+
+		.attachments-actions + .attachment-row {
+			margin-top: var(--spacing);
+		}
+
+		.form-assignments .assignee {
+			display: flex;
+			align-items: center;
+			gap: var(--spacing);
+
+			> .es-avatar {
+				margin: 0;
+			}
+		}
+
+		// touch screens have no hover, so they keep the actions
+		.form-assignments .dialog-assignment-row {
+			.btn-group {
+				opacity: 0;
+			}
+
+			&:hover .btn-group,
+			&:focus-within .btn-group {
+				opacity: 1;
+			}
+
+			@media (hover: none) {
+				.btn-group {
+					opacity: 1;
+				}
+			}
+		}
+
+		.attachment-row {
+			@include attachment-row-hover;
+		}
+
+		> .sidebar-section {
+			padding-bottom: 0;
+		}
+	}
+
+	.form-sidebar-activity {
+		position: sticky;
+		bottom: 0;
+		z-index: 1;
+		margin-top: auto;
+		padding-bottom: var(--padding-md);
+		background-color: var(--form-sidebar-bg);
+
+		&::before {
+			content: "";
+			position: absolute;
+			inset-inline: 0;
+			bottom: 100%;
+			height: calc(var(--spacing) * 8);
+			background: linear-gradient(to bottom, transparent, var(--form-sidebar-bg));
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 150ms ease;
+		}
+
+		&.has-content-behind::before {
+			opacity: 1;
+		}
+	}
+
+	.form-sidebar-activity-users {
+		display: flex;
+		flex-direction: column;
+		gap: var(--margin-sm);
+		@include get_textstyle("sm", "regular");
+	}
+
+	.form-sidebar-activity-name {
+		align-self: flex-start;
+		max-width: 100%;
+		cursor: default;
+	}
+
+	.form-sidebar-view-activity {
+		align-self: flex-start;
+		margin-top: var(--spacing);
+	}
+}
+
+.es-hover-card.form-sidebar-user-card {
+	width: auto;
+	max-width: calc(var(--spacing) * 64);
+	padding-block: calc(var(--spacing) * 2);
+	padding-inline: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+}
+
+.form-sidebar .sidebar-meta-details {
+	.ellipsis:has(> .form-title-text),
+	.form-title-text > .ellipsis {
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
+}
+
+// the header button's icon or label lines up with the row actions below it
+.form-sidebar .form-sidebar-items > .es-button {
+	margin-inline-end: calc(var(--spacing) * -2.25);
+
+	&[data-icon-button] {
+		margin-inline-end: calc(var(--spacing) * -1.5);
+	}
+}
+
+.attachments-dialog {
+	// the search field has no label; don't keep room for one
+	.control-label:empty {
+		display: none;
+	}
+}
+
+.attachments-selection-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: calc(var(--spacing) * 7);
+	margin-bottom: var(--spacing);
+
+	.attachments-select-all {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--spacing) * 2);
+		margin: 0;
+		@include get_textstyle("sm", "regular");
+		color: var(--ink-gray-6);
+		cursor: pointer;
+
+		input {
+			margin: 0;
+		}
+	}
+}
+
+.attachments-dialog-list {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 0.5);
+	margin: 0 calc(var(--spacing) * -1.5);
+	max-height: 60vh;
+	overflow-y: auto;
+
+	.attachment-row {
+		margin: 0;
+		@include attachment-row-hover;
+
+		a {
+			color: var(--ink-gray-6);
+		}
+
+		.data-pill {
+			gap: calc(var(--spacing) * 2);
+
+			> div {
+				flex: 1;
+				min-width: 0;
+				gap: calc(var(--spacing) * 2);
+			}
+		}
+
+		.attachment-select {
+			flex-shrink: 0;
+			margin: 0;
+		}
+
+		.ellipsis-width {
+			max-width: none;
+		}
+	}
+
+	.attachments-dialog-empty {
+		padding: var(--padding-sm) calc(var(--spacing) * 1.5);
+	}
 }

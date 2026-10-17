@@ -23,6 +23,11 @@
 	background-color: var(--surface-elevation-1);
 }
 
+// sticky parts of the sidebar cover the tabs scrolling under them; the sidebar's own
+// surface is see-through in dark mode, so lay it over the dialog's
+$sidebar-opaque-bg: linear-gradient(var(--surface-sidebar), var(--surface-sidebar)),
+	var(--surface-elevation-1);
+
 .settings-dialog-sidebar {
 	display: flex;
 	flex-direction: column;
@@ -33,6 +38,26 @@
 	border-bottom-left-radius: var(--radius-lg);
 	overflow-y: auto;
 	background-color: var(--surface-sidebar);
+}
+
+.settings-dialog-sidebar-title {
+	padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3) calc(var(--spacing) * 2);
+	font-size: var(--text-lg);
+	font-weight: var(--weight-semibold);
+	line-height: 1.15;
+	color: var(--ink-gray-8);
+}
+
+// stays in view while the tabs scroll under it
+.settings-dialog-sidebar-footer {
+	position: sticky;
+	bottom: calc(var(--spacing) * -1);
+	margin-top: auto;
+	margin-bottom: calc(var(--spacing) * -1);
+	padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3) calc(var(--spacing) * 3);
+	background: $sidebar-opaque-bg;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
 }
 
 .settings-dialog-group-header {
@@ -49,7 +74,7 @@
 	font-weight: var(--weight-medium);
 	line-height: 1.15;
 	color: var(--text-muted);
-	background-color: var(--surface-sidebar);
+	background: $sidebar-opaque-bg;
 	cursor: default;
 }
 
@@ -118,6 +143,28 @@
 	margin-left: 0.5rem;
 }
 
+.settings-dialog-tab-count {
+	flex-shrink: 0;
+	margin-inline-start: calc(var(--spacing) * 2);
+	font-size: var(--text-sm);
+	line-height: 1.15;
+	color: var(--ink-gray-5);
+
+	&:empty {
+		display: none;
+	}
+}
+
+.settings-dialog-tab-item.muted {
+	.settings-dialog-tab-label {
+		color: var(--ink-gray-4);
+	}
+
+	.settings-dialog-tab-icon {
+		--icon-stroke: var(--ink-gray-4);
+	}
+}
+
 .settings-dialog-tab-label {
 	flex: 1;
 	min-width: 0;
@@ -172,6 +219,16 @@
 	font-size: var(--text-xl);
 	font-weight: var(--weight-semibold);
 	line-height: 1;
+
+	&.has-extras {
+		align-items: center;
+	}
+}
+
+.settings-dialog-panel-meta {
+	font-size: var(--text-base);
+	font-weight: var(--weight-regular);
+	color: var(--ink-gray-5);
 }
 
 .settings-dialog-panel-description {
@@ -313,7 +370,9 @@ table + .settings-dialog-section-heading {
 		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 	}
 
-	.settings-dialog-group-header {
+	.settings-dialog-group-header,
+	.settings-dialog-sidebar-title,
+	.settings-dialog-sidebar-footer {
 		display: none;
 	}
 
@@ -336,5 +395,30 @@ table + .settings-dialog-section-heading {
 
 	.settings-dialog-panel {
 		padding: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
+	}
+}
+
+.settings-dialog-compact {
+	// the gap below keeps the sticky group label off the active tab's shadow
+	.settings-dialog-group-header {
+		height: calc(var(--spacing) * 5.5);
+		margin: 0 0 calc(var(--spacing) * 0.5);
+		padding: 0 calc(var(--spacing) * 3);
+	}
+
+	.settings-dialog-tab-list {
+		gap: calc(var(--spacing) * 0.5);
+	}
+
+	.settings-dialog-tab-group {
+		padding-bottom: calc(var(--spacing) * 2);
+	}
+
+	.settings-dialog-tab-item {
+		height: calc(var(--spacing) * 7);
+	}
+
+	.settings-dialog-tab-item-content {
+		padding-block: 0;
 	}
 }

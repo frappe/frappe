@@ -4,8 +4,7 @@ frappe.ui.form.Attachments = class Attachments {
 	constructor(opts) {
 		$.extend(this, opts);
 
-		this.attachments_page_length = 10; // show n attachments initially
-		this.show_all_attachments = false;
+		this.attachments_page_length = 3; // show n attachments, then "N more"
 		this.attachment_preview_width_key = "form_attachment_preview_width";
 		this.max_csv_preview_size = 5 * 1024 * 1024;
 		this.attachment_preview_width = this.get_stored_preview_width();
@@ -65,6 +64,7 @@ frappe.ui.form.Attachments = class Attachments {
 		var attachments = this.get_attachments();
 		this.render_attachments(attachments);
 		this.setup_show_all_button(attachments);
+		if (this.all_dialog?.display) this.render_all_dialog_list();
 		this.notify_change();
 	}
 
@@ -73,22 +73,233 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	setup_show_all_button(attachments) {
-		// show button if there is more to show and user has not clicked on "Show All"
-		let is_slicable = attachments.length > this.attachments_page_length;
-		let show = !this.show_all_attachments && is_slicable;
-
 		let show_all_btn = this.parent.find(".show-all-btn");
-		if (!show) {
+		if (attachments.length <= this.attachments_page_length) {
 			show_all_btn.addClass("hidden");
 			return;
 		}
 
-		show_all_btn.removeClass("hidden");
-		show_all_btn.click(() => {
-			show_all_btn.addClass("hidden");
-			this.show_all_attachments = true;
-			this.refresh();
+		show_all_btn
+			.removeClass("hidden")
+			.find(".pill-label")
+			.text(__("{0} more", [attachments.length - this.attachments_page_length]));
+		show_all_btn.off("click").on("click", (e) => {
+			e.preventDefault();
+			this.show_all_dialog();
 		});
+	}
+
+	show_all_dialog() {
+		this.all_dialog = new frappe.ui.Dialog({
+			title: __("Attachments"),
+			size: "small",
+			fields: [
+				{
+					fieldtype: "Data",
+					fieldname: "search",
+					placeholder: __("Search attachments"),
+				},
+				{
+					fieldtype: "HTML",
+					fieldname: "selection_bar",
+				},
+				{
+					fieldtype: "HTML",
+					fieldname: "attachment_list",
+				},
+			],
+			primary_action_label: __("Attach a file"),
+			primary_action: () => {
+				this.all_dialog.hide();
+				this.new_attachment();
+			},
+		});
+
+		this.all_dialog.$wrapper.addClass("attachments-dialog");
+		const dialog = this.all_dialog;
+		dialog.onhide = () => dialog.$wrapper.remove();
+		this.all_dialog_list = $(this.all_dialog.get_field("attachment_list").wrapper)
+			.removeClass("frappe-control")
+			.addClass("attachments-dialog-list");
+		$(this.all_dialog.get_field("search").input).on("input", () =>
+			this.render_all_dialog_list()
+		);
+
+		this.selected_files = new Set();
+		this.can_select_files = this.can_delete_attachment();
+		if (this.can_select_files) this.make_selection_bar();
+		this.render_all_dialog_list();
+		this.all_dialog.show();
+	}
+
+	make_selection_bar() {
+		const $bar = $(this.all_dialog.get_field("selection_bar").wrapper)
+			.removeClass("frappe-control")
+			.addClass("attachments-selection-bar").html(`
+				<label class="attachments-select-all">
+					<input type="checkbox">
+					<span class="attachments-selection-label"></span>
+				</label>`);
+		this.$select_all = $bar.find("input").on("change", () => {
+			const select = this.$select_all.prop("checked");
+			this.visible_files.forEach((name) =>
+				select ? this.selected_files.add(name) : this.selected_files.delete(name)
+			);
+			this.update_selection();
+		});
+		this.$selection_label = $bar.find(".attachments-selection-label");
+		this.delete_selected_btn = frappe.ui
+			.button({
+				label: __("Delete"),
+				icon: "trash-2",
+				theme: "red",
+				variant: "subtle",
+				size: "sm",
+				css_class: "attachments-delete-selected",
+				onclick: () => this.delete_selected_attachments(),
+			})
+			.appendTo($bar);
+	}
+
+	update_selection() {
+		if (!this.can_select_files) return;
+		const count = this.selected_files.size;
+		const visible_selected = this.visible_files.filter((name) =>
+			this.selected_files.has(name)
+		).length;
+		this.$select_all
+			.prop(
+				"checked",
+				visible_selected > 0 && visible_selected === this.visible_files.length
+			)
+			.prop(
+				"indeterminate",
+				visible_selected > 0 && visible_selected < this.visible_files.length
+			)
+			.prop("disabled", !this.visible_files.length);
+		this.$selection_label.text(count ? __("{0} selected", [count]) : __("Select all"));
+		this.delete_selected_btn
+			.toggleClass("hidden", !count)
+			.find(".es-button__label")
+			.text(__("Delete {0}", [count]));
+		this.all_dialog_list.find(".attachment-select").each((i, el) => {
+			el.checked = this.selected_files.has(el.dataset.name);
+		});
+	}
+
+	delete_selected_attachments() {
+		const names = [...this.selected_files];
+		const files = this.get_attachments().filter((a) => names.includes(a.file_name));
+		const total = files.length;
+		frappe.confirm(
+			names.length === 1
+				? __("Delete {0}? This can't be undone.", [
+						frappe.utils.escape_html(names[0]).bold(),
+				  ])
+				: __("Delete {0} attachments? This can't be undone.", [names.length]),
+			() => {
+				const request = this.remove_attachments(files).then((result) => {
+					if (result.failed) throw result;
+					return result;
+				});
+				frappe.ui.toast.promise(request, {
+					loading:
+						total === 1
+							? __("Deleting 1 attachment...")
+							: __("Deleting {0} attachments...", [total]),
+					success: ({ removed }) =>
+						removed === 1
+							? __("1 attachment deleted")
+							: __("{0} attachments deleted", [removed]),
+					error: ({ removed }) =>
+						__("{0} of {1} attachments deleted", [removed || 0, total]),
+				});
+			}
+		);
+	}
+
+	// a few at a time, then one refresh for all of them; the first failure (whose error
+	// the server already showed) stops the rest
+	async remove_attachments(files) {
+		const queue = [...files];
+		const removed = [];
+		let failed = 0;
+		const worker = async () => {
+			while (queue.length) {
+				const file = queue.shift();
+				const { method, type, args } = this.get_remove_request(file.name);
+				try {
+					await frappe.xcall(method, args, type);
+					removed.push(file.name);
+				} catch (e) {
+					failed++;
+					queue.length = 0;
+				}
+			}
+		};
+		await Promise.all([1, 2, 3, 4].map(worker));
+		this.frm.get_docinfo().attachments = this.get_attachments().filter(
+			(a) => !removed.includes(a.name)
+		);
+		this.selected_files?.clear();
+		this.refresh();
+		this.frm.sidebar.reload_docinfo();
+		return { removed: removed.length, failed };
+	}
+
+	render_all_dialog_list() {
+		const txt = (this.all_dialog.get_value("search") || "").trim().toLowerCase();
+		const seen = new Set();
+		const attachments = this.get_attachments()
+			.slice()
+			.reverse()
+			.filter((a) => !seen.has(a.file_name) && seen.add(a.file_name))
+			.filter((a) => !txt || (a.file_name || "").toLowerCase().includes(txt));
+
+		this.all_dialog
+			.get_primary_btn()
+			.toggleClass("hidden", !this.frm.has_perm("write") || this.max_reached());
+		this.all_dialog_list.empty();
+		this.visible_files = attachments.map((a) => a.file_name);
+		attachments.forEach((attachment, index) => {
+			const $row = this.make_attachment_row(attachment);
+			if (this.can_select_files) {
+				$(`<input type="checkbox" class="attachment-select">`)
+					.attr({
+						"data-name": attachment.file_name,
+						"aria-label": __("Select {0}", [attachment.file_name]),
+					})
+					.on("click", (e) => {
+						e.stopPropagation();
+						const select = e.target.checked;
+						const from = e.shiftKey ? this.last_ticked_index ?? index : index;
+						const [start, end] = [Math.min(from, index), Math.max(from, index)];
+						this.visible_files
+							.slice(start, end + 1)
+							.forEach((name) =>
+								select
+									? this.selected_files.add(name)
+									: this.selected_files.delete(name)
+							);
+						this.last_ticked_index = index;
+						this.update_selection();
+					})
+					// outside the name's ellipsis box, which would clip its focus ring
+					.prependTo($row.find(".data-pill"));
+			}
+			this.all_dialog_list.append($row);
+		});
+		this.last_ticked_index = null;
+		const existing = new Set(this.get_attachments().map((a) => a.file_name));
+		this.selected_files?.forEach(
+			(name) => existing.has(name) || this.selected_files.delete(name)
+		);
+		this.update_selection();
+		if (!attachments.length) {
+			$(`<div class="text-muted text-sm attachments-dialog-empty"></div>`)
+				.text(txt ? __("No attachments match {0}", [txt]) : __("No attachments"))
+				.appendTo(this.all_dialog_list);
+		}
 	}
 
 	get_attachments() {
@@ -99,8 +310,7 @@ frappe.ui.form.Attachments = class Attachments {
 		var me = this;
 		let attachments_to_render = attachments;
 
-		let is_slicable = attachments.length > this.attachments_page_length;
-		if (!this.show_all_attachments && is_slicable) {
+		if (attachments.length > this.attachments_page_length) {
 			// render last n attachments as they are at the top
 			let start = attachments.length - this.attachments_page_length;
 			attachments_to_render = attachments.slice(start, attachments.length);
@@ -125,14 +335,15 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	add_attachment(attachment) {
+		this.make_attachment_row(attachment).insertAfter(this.add_attachment_wrapper);
+	}
+
+	make_attachment_row(attachment) {
 		var file_name = attachment.file_name;
 		var file_url = this.get_file_url(attachment);
-		var fileid = attachment.name;
 		if (!file_name) {
 			file_name = file_url;
 		}
-
-		var me = this;
 
 		let file_label = `
 			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
@@ -141,39 +352,120 @@ frappe.ui.form.Attachments = class Attachments {
 				<span>${frappe.utils.xss_sanitise(file_name)}</span>
 			</a>`;
 
-		let remove_action = null;
-		if (this.can_delete_attachment()) {
-			remove_action = function (target_id) {
-				frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
-					let target_attachment = me
-						.get_attachments()
-						.find((attachment) => attachment.name === target_id);
-					let to_be_removed = me
-						.get_attachments()
-						.filter(
-							(attachment) => attachment.file_name === target_attachment.file_name
-						);
-					to_be_removed.forEach((attachment) => me.remove_attachment(attachment.name));
-				});
-				return false;
-			};
-		}
+		const visibility = attachment.is_private ? __("Private") : __("Public");
+		const icon = `<span class="attachment-icon" title="${visibility}" aria-label="${visibility}">
+				${frappe.utils.icon(attachment.is_private ? "lock" : "globe", "sm ml-0")}
+			</span>`;
 
-		const icon = `<a href="/desk/file/${fileid}" class="attachment-icon">
-				${frappe.utils.icon(attachment.is_private ? "lock" : "lock-open", "sm ml-0")}
-			</a>`;
+		// a div rather than the data pill's button, so the menu button can sit inside it
+		let $attachment_row = $(`<div class="attachment-row">
+				<div class="data-pill">
+					<div class="flex align-center ellipsis">
+						${icon}
+						<span class="pill-label ellipsis">${file_label}</span>
+					</div>
+				</div>
+			</div>`);
 
-		let $attachment_row = $(`<div class="attachment-row"></div>`)
-			.append(frappe.get_data_pill(file_label, fileid, remove_action, icon))
-			.insertAfter(this.add_attachment_wrapper);
+		const menu = new frappe.ui.Dropdown({
+			button: {
+				icon: "ellipsis",
+				variant: "ghost",
+				size: "xs",
+				tooltip: __("Actions"),
+				css_class: "attachment-actions",
+			},
+			align: "end",
+			options: () => this.get_attachment_actions(attachment, file_url),
+		});
+		$attachment_row.find(".data-pill").append(menu.$trigger);
 
-		$attachment_row.find(".attachment-file-label").on("click", (event) => {
-			if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
+		$attachment_row.find(".data-pill").on("click", (event) => {
+			if ($(event.target).closest(".attachment-actions").length) return;
+			if (
+				$(event.target).closest("a").length &&
+				(event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
+			) {
 				return;
 			}
-
 			event.preventDefault();
+			this.all_dialog?.hide();
 			this.show_attachment_preview(attachment, file_url);
+		});
+		return $attachment_row;
+	}
+
+	get_attachment_actions(attachment, file_url) {
+		return [
+			{
+				label: __("Preview"),
+				icon: "eye",
+				onclick: () => {
+					this.all_dialog?.hide();
+					this.show_attachment_preview(attachment, file_url);
+				},
+			},
+			{
+				label: __("Open in new tab"),
+				icon: "arrow-up-right",
+				href: file_url,
+				target: "_blank",
+			},
+			{
+				label: attachment.is_private ? __("Make public") : __("Make private"),
+				icon: attachment.is_private ? "globe" : "lock",
+				condition: () => this.can_delete_attachment(),
+				onclick: () => this.toggle_attachment_privacy(attachment),
+			},
+			{
+				label: __("Delete"),
+				icon: "trash-2",
+				theme: "red",
+				condition: () => this.can_delete_attachment(),
+				onclick: () => this.delete_attachment(attachment),
+			},
+		];
+	}
+
+	toggle_attachment_privacy(attachment) {
+		const name = attachment.file_name;
+		const make_private = !attachment.is_private;
+		const request = frappe
+			.xcall("frappe.client.set_value", {
+				doctype: "File",
+				name: attachment.name,
+				fieldname: "is_private",
+				value: make_private ? 1 : 0,
+			})
+			.then((file) => {
+				Object.assign(attachment, {
+					is_private: file.is_private,
+					file_url: file.file_url,
+				});
+				// the server also points the document's Attach field at the moved file
+				if (file.attached_to_field) {
+					this.frm.reload_doc();
+				} else {
+					this.refresh();
+				}
+			});
+		return frappe.ui.toast.promise(request, {
+			loading: make_private
+				? __("Making {0} private...", [name])
+				: __("Making {0} public...", [name]),
+			success: make_private
+				? __("{0} is now private", [name])
+				: __("{0} is now public", [name]),
+			error: __("Could not change who can see {0}", [name]),
+		});
+	}
+
+	delete_attachment(attachment) {
+		frappe.confirm(__("Are you sure you want to delete the attachment?"), () => {
+			// files attached twice under one name go together
+			this.get_attachments()
+				.filter((a) => a.file_name === attachment.file_name)
+				.forEach((a) => this.remove_attachment(a.name));
 		});
 	}
 
@@ -227,6 +519,16 @@ frappe.ui.form.Attachments = class Attachments {
 						>
 							${frappe.utils.icon("arrow-up-right", "sm", "", "", "", true)}
 						</a>
+						${
+							attachment.name
+								? frappe.ui.button.html({
+										icon: "file-text",
+										variant: "ghost",
+										title: __("Open file record"),
+										css_class: "attachment-preview-file-record",
+								  })
+								: ""
+						}
 						${frappe.ui.button.html({
 							icon: "copy",
 							variant: "ghost",
@@ -250,6 +552,10 @@ frappe.ui.form.Attachments = class Attachments {
 
 		this.attachment_preview.find(".attachment-preview-close").on("click", () => {
 			this.hide_attachment_preview();
+		});
+
+		this.attachment_preview.find(".attachment-preview-file-record").on("click", () => {
+			frappe.set_route("Form", "File", attachment.name);
 		});
 
 		this.attachment_preview.find(".attachment-preview-copy-link").on("click", (event) => {
@@ -622,6 +928,14 @@ frappe.ui.form.Attachments = class Attachments {
 	remove_attachment_by_filename(filename, callback) {
 		this.remove_attachment(this.get_file_id_from_file_url(filename), callback);
 	}
+	get_remove_request(fileid) {
+		return {
+			method: "frappe.desk.form.utils.remove_attach",
+			type: "DELETE",
+			args: { fid: fileid, dt: this.frm.doctype, dn: this.frm.docname },
+		};
+	}
+
 	remove_attachment(fileid, callback) {
 		if (!fileid) {
 			if (callback) callback();
@@ -630,13 +944,7 @@ frappe.ui.form.Attachments = class Attachments {
 
 		var me = this;
 		return frappe.call({
-			method: "frappe.desk.form.utils.remove_attach",
-			type: "DELETE",
-			args: {
-				fid: fileid,
-				dt: me.frm.doctype,
-				dn: me.frm.docname,
-			},
+			...this.get_remove_request(fileid),
 			callback: function (r, rt) {
 				if (r.exc) {
 					if (!r._server_messages) frappe.msgprint(__("There were errors"));

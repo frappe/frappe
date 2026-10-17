@@ -302,6 +302,68 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Combobox", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Combobox");
+		});
+
+		test("opens into its search, filters, offers to create, and Enter picks the active row", async ({
+			page,
+		}) => {
+			const trigger = explorer_group(page, "Pick from a list").locator("button").first();
+			const input = page.locator(".es-combobox [role='combobox']");
+			const options = page.locator(".es-combobox [role='option']");
+
+			await trigger.click();
+			await expect(input).toBeFocused();
+			await expect(options).toHaveCount(4);
+
+			await input.fill("follow");
+			await expect(options).toHaveCount(2);
+			await expect(options.first()).toHaveText("Follow up");
+			await expect(options.last()).toHaveText('Create tag "follow"');
+
+			await input.press("ArrowDown");
+			await expect(input).toHaveAttribute("aria-activedescendant", /-1$/);
+			await input.press("Enter");
+			await expect(page.locator(".es-combobox[data-state='open']")).toHaveCount(0);
+			await expect(page.getByText("Created follow")).toBeVisible();
+		});
+
+		test("Enter right after typing picks what was typed, not a stale row", async ({
+			page,
+		}) => {
+			await explorer_group(page, "Pick from a list").locator("button").first().click();
+			const input = page.locator(".es-combobox [role='combobox']");
+			await expect(page.locator(".es-combobox [role='option']")).toHaveCount(4);
+			await input.pressSequentially("brand new");
+			await input.press("Enter");
+			await expect(page.getByText("Created brand new")).toBeVisible();
+		});
+
+		test("without allow_create, a miss shows the empty text", async ({ page }) => {
+			await explorer_group(page, "Pick only").locator("button").first().click();
+			await page.locator(".es-combobox [role='combobox']").fill("urgent");
+			await expect(page.locator(".es-combobox [role='option']")).toHaveCount(0);
+			await expect(page.locator(".es-combobox .es-menu__empty")).toHaveText("No results");
+		});
+	});
+
+	test.describe("Tag", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Tag");
+		});
+
+		test("a removable tag's ✕ is a labelled button", async ({ page }) => {
+			const tags = explorer_group(page, "Removable").locator(".es-tag");
+			await expect(tags).toHaveCount(3);
+			await expect(
+				tags.nth(1).getByRole("button", { name: "Remove Respond in 24h" })
+			).toBeVisible();
+			await expect(explorer_group(page, "Sizes").locator(".es-tag__remove")).toHaveCount(0);
+		});
+	});
+
 	test.describe("BottomSheet", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "BottomSheet");
