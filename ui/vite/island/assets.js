@@ -91,6 +91,11 @@ export function readAssetsJson(assetsJsonPath) {
  */
 export async function writeIslandAssets(paths, relMap) {
 	const ownPrefix = `${paths.urlPrefix}/`;
+	await fs.promises.mkdir(path.dirname(paths.assetsJsonPath), {
+		recursive: true,
+	});
+	// No await between the read and the write, which shrinks the window in which
+	// a second island build's write is lost.
 	const existing = readAssetsJson(paths.assetsJsonPath);
 
 	const kept = Object.fromEntries(
@@ -111,13 +116,7 @@ export async function writeIslandAssets(paths, relMap) {
 				".\nAn island name is one bench-wide namespace. Rename the entry."
 		);
 
-	await fs.promises.mkdir(path.dirname(paths.assetsJsonPath), {
-		recursive: true,
-	});
-	await fs.promises.writeFile(
-		paths.assetsJsonPath,
-		JSON.stringify({ ...kept, ...written }, null, 4)
-	);
+	fs.writeFileSync(paths.assetsJsonPath, JSON.stringify({ ...kept, ...written }, null, 4));
 	await invalidateAssetsCache(paths);
 	return written;
 }

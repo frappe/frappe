@@ -15,17 +15,13 @@
 // app's own code has outgrown this build and belongs in the app's frontend, as
 // a normal island.
 
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { benchPaths, findBenchRoot, loadFrappeBuildUtils, writeIslandAssets } from "./assets.js";
 import { buildIslands } from "./index.js";
-import { PAGE_ISLAND_SUBDIR, discoverPageIslands, pageIslandResolver } from "./pages.js";
+import { PAGE_ISLAND_SUBDIR, discoverPageIslands } from "./pages.js";
+import { TOOLCHAIN_ROOT as root, installToolchain, toolchainResolver } from "./toolchain.js";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, "../../../island-toolchain");
 const benchRoot = findBenchRoot(root);
 
 const utils = loadFrappeBuildUtils(benchRoot);
@@ -47,25 +43,7 @@ if (!Object.keys(entries).length) {
 	process.exit(0);
 }
 
-// The toolchain's dependencies are pinned in its own package.json and lockfile.
-// Nothing else installs them, so the first build on a bench does, or every
-// Frappe UI page would show its unbuilt state. They are all devDependencies, which
-// yarn skips under NODE_ENV=production unless told otherwise.
-if (!fs.existsSync(path.join(root, "node_modules"))) {
-	console.log(`[island] installing the page-island toolchain at ${root}`);
-	const install = spawnSync(
-		"yarn",
-		["install", "--frozen-lockfile", "--production=false", "--cwd", root],
-		{ stdio: "inherit" }
-	);
-	if (install.status !== 0) {
-		console.error(
-			`[island] could not install the page-island toolchain at ${root}.\n` +
-				`Run it once for this bench:\n\n    yarn install --cwd ${root}\n`
-		);
-		process.exit(1);
-	}
-}
+installToolchain();
 
 await buildIslands({
 	// The output belongs to framework, which runs the build, and not to any one
@@ -74,7 +52,7 @@ await buildIslands({
 	root,
 	subdir: PAGE_ISLAND_SUBDIR,
 	entries,
-	plugins: [pageIslandResolver(dirs)],
+	plugins: [toolchainResolver(dirs)],
 	production: process.argv.includes("--production"),
 	watch: process.argv.includes("--watch"),
 });
