@@ -26,10 +26,10 @@ from frappe.storage.url import PRIVATE_PREFIX, PUBLIC_PREFIX
 from frappe.utils import cint, get_files_path
 
 
-def run(batch_size: int = 500, filters: dict | None = None) -> dict:
+def run(batch_size: int = 500, filters: list | None = None) -> dict:
 	"""Backfill blobs for legacy File rows. Safe to re-run.
 
-	``filters`` narrows the File query (tests use it to stay off real
+	``filters`` (a list of filter conditions) narrows the File query (tests use it to stay off real
 	site rows). Returns ``{"linked": int, "blobs_created": int,
 	"skipped": [{"name", "file_url", "reason"}]}``."""
 	stats = {"linked": 0, "blobs_created": 0, "skipped": []}
@@ -57,14 +57,14 @@ def run(batch_size: int = 500, filters: dict | None = None) -> dict:
 	return stats
 
 
-def get_legacy_rows(limit: int, after_name: str, filters: dict | None) -> list[dict]:
+def get_legacy_rows(limit: int, after_name: str, filters: list | None) -> list[dict]:
 	"""Next batch of legacy rows, keyset-paginated by name."""
-	query_filters = {
-		"blob": ("is", "not set"),
-		"is_folder": 0,
-		"name": (">", after_name),
-	}
-	query_filters.update(filters or {})
+	query_filters = [
+		["blob", "is", "not set"],
+		["is_folder", "=", 0],
+		["name", ">", after_name],
+		*(filters or []),
+	]
 	return frappe.get_all(
 		"File",
 		filters=query_filters,
