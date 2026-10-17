@@ -1,21 +1,127 @@
-import { call, toast } from "frappe-ui";
-import type { DataImportStatus } from "./types";
+import { t } from "./translate";
+import type {
+  DataImportDoc,
+  DataImportPreview,
+  DataImportStatus,
+  DataImportWarning,
+  DocField,
+  DocType,
+} from "./types";
 
-export const getBadgeColor = (status: DataImportStatus) => {
-  const colorMap = {
-    Pending: "amber",
-    Success: "green",
-    "Partial Success": "amber",
-    Error: "red",
-    "Timed Out": "amber",
-  } as const;
-  return colorMap[status as DataImportStatus] || "gray";
-};
+export const METHODS = "frappe.core.doctype.data_import.data_import";
 
-export const fieldsToIgnore = [
+/** Desk's is_import_complete: the records are in, so the import can't be edited. */
+export const isImportComplete = (status: DataImportStatus) =>
+  status === "Success" || status === "Partial Success";
+
+const RETRYABLE_STATUSES: DataImportStatus[] = [
+  "Error",
+  "Partial Success",
+  "Timed Out",
+];
+
+export const canRetryImport = (status: DataImportStatus) =>
+  RETRYABLE_STATUSES.includes(status);
+
+export const isImportFinished = (status: DataImportStatus) =>
+  status === "Success" || canRetryImport(status);
+
+/** The warnings saved by a blocked import and the latest preview's, without repeats. */
+export function importWarnings(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined
+): DataImportWarning[] {
+  const saved = parseJson<DataImportWarning[]>(doc.template_warnings, []);
+  return dedupeWarnings(saved.concat(preview?.warnings ?? []));
+}
+
+/** Rows the file check warned about, saved or from the latest preview, in order. */
+export function errorRowNumbers(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined
+): number[] {
+  const rows = new Set<number>();
+  for (const warning of importWarnings(doc, preview)) {
+    if (warning.row) rows.add(Number(warning.row));
+  }
+  return [...rows].sort((a, b) => a - b);
+}
+
+/** A row's cells, from the first rows shown or from the warned rows past them. */
+export function previewRowCells(
+  preview: DataImportPreview | null | undefined,
+  row: number
+): unknown[] | undefined {
+  const { data = [], warning_rows = [] } = preview ?? {};
+  return [...data, ...warning_rows].find((cells) => Number(cells[0]) === row);
+}
+
+/** Adds the rows to `skipped_rows`, keeping their cells for the skipped rows export. */
+export function skipRows(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined,
+  rows: number[]
+) {
+  const skipped = new Set(
+    doc.skipped_rows.map((row) => Number(row.row_number))
+  );
+  for (const row of rows) {
+    if (skipped.has(row)) continue;
+    const cells = previewRowCells(preview, row);
+    doc.skipped_rows.push({
+      row_number: row,
+      row_data: JSON.stringify(cells ? cells.slice(1) : []),
+    });
+  }
+}
+
+/** Like Desk's cint, but keeps `fallback` for anything that isn't a number. */
+export const cint = (value: unknown, fallback = 0) =>
+  Number.isFinite(Number(value)) ? Math.trunc(Number(value)) : fallback;
+
+/** The server stores JSON in text fields, which can be empty or malformed. */
+export function parseJson<T>(value: string | null | undefined, fallback: T): T {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function escapeHtml(text: string) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Desk's open_url_post: a hidden form POST, so the browser downloads the file the server sends back. */
+export function postDownload(url: string, params: Record<string, unknown>) {
+  const form = document.createElement("form");
+  form.action = url;
+  form.method = "POST";
+  form.style.display = "none";
+  const values = { ...params };
+  const token = (globalThis as { csrf_token?: string }).csrf_token;
+  if (token && token !== "{{ csrf_token }}") values.csrf_token = token;
+  for (const [name, value] of Object.entries(values)) {
+    const field = document.createElement("textarea");
+    field.name = name;
+    field.value = typeof value === "string" ? value : JSON.stringify(value);
+    form.appendChild(field);
+  }
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
+}
+
+const NO_VALUE_FIELDTYPES = [
   "Section Break",
   "Column Break",
   "Tab Break",
+  "Attachment Gallery",
   "HTML",
   "Table",
   "Table MultiSelect",
@@ -24,39 +130,75 @@ export const fieldsToIgnore = [
   "Fold",
   "Heading",
 ];
+const TABLE_FIELDTYPES = ["Table", "Table MultiSelect"];
 
-export const getChildTableName = (
-  doctype: string,
-  parentDocType: string,
-  docs: any[],
-) => {
-  let childTableName = "";
-  let doctypeFields = docs.filter((doc: any) => {
-    return doc.name == parentDocType;
-  })[0].fields;
+export type PickerField = Partial<DocField> & { fieldname: string };
 
-  doctypeFields.forEach((field: any) => {
-    if (field.options == doctype) {
-      childTableName = field.fieldname;
-    }
+/** Desk's get_table_fields: the doctype's child tables, without virtual ones. */
+export const tableFields = (meta: DocType | null | undefined) =>
+  (meta?.fields ?? []).filter(
+    (df) => TABLE_FIELDTYPES.includes(df.fieldtype) && !df.is_virtual
+  );
+
+/** Desk's get_columns_for_picker for one doctype: an ID, then every field that holds a value. */
+export const pickerColumns = (
+  meta: DocType | null | undefined
+): PickerField[] => [
+  { label: t("ID"), fieldname: "name", fieldtype: "Data", reqd: 1 },
+  ...(meta?.fields ?? []).filter(
+    (df) =>
+      !NO_VALUE_FIELDTYPES.includes(df.fieldtype) &&
+      !["lft", "rgt"].includes(df.fieldname) &&
+      !df.is_virtual
+  ),
+];
+
+/** One warning per column and no exact repeats, rows first, then columns, then the rest. */
+function dedupeWarnings(list: DataImportWarning[]) {
+  return [
+    ...dedupeRowWarnings(list.filter((w) => w.row)),
+    ...longestPerColumn(list.filter((w) => !w.row && w.col)),
+    ...dedupeOtherWarnings(list.filter((w) => !w.row && !w.col)),
+  ];
+}
+
+function dedupeRowWarnings(list: DataImportWarning[]) {
+  const seen = new Set<string>();
+  return list.filter((warning) => {
+    const key = `${warning.row}|${warning.field?.fieldname}|${warning.message}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
-  return childTableName;
-};
+}
 
-export const getPreviewData = (
-  importName: string,
-  file: string | undefined,
-  sheet: string | undefined,
-) => {
-  return call(
-    "frappe.core.doctype.data_import.data_import.get_preview_from_template",
-    {
-      data_import: importName,
-      import_file: file,
-      google_sheets_url: sheet,
-    },
-  ).catch((error: any) => {
-    toast.error(error.messages?.[0] || error);
-    console.error("Error fetching preview data:", error);
-  });
-};
+/** The longer message usually lists the rows. */
+function longestPerColumn(list: DataImportWarning[]) {
+  const byColumn = new Map<number, DataImportWarning>();
+  for (const warning of list) {
+    const col = warning.col;
+    if (col === undefined) continue;
+    const previous = byColumn.get(col);
+    if (
+      !previous ||
+      (warning.message || "").length > (previous.message || "").length
+    )
+      byColumn.set(col, warning);
+  }
+  // Desk keeps columns in a plain object, so they come out in column order.
+  return [...byColumn.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([, warning]) => warning);
+}
+
+function dedupeOtherWarnings(list: DataImportWarning[]) {
+  const byKey = new Map<string, DataImportWarning>();
+  for (const warning of list) {
+    const key = `${warning.code || ""}|${warning.title || ""}|${
+      warning.message || ""
+    }`;
+    const existing = byKey.get(key);
+    if (!existing || (warning.type && !existing.type)) byKey.set(key, warning);
+  }
+  return [...byKey.values()];
+}
