@@ -207,6 +207,60 @@ test.describe("Report View group by button", () => {
 		await expect(popover).toBeHidden();
 	});
 
+	test("opens a saved view grouped by a field that cannot be queried", async ({
+		page,
+		api,
+		desk,
+	}) => {
+		const failed_requests = [];
+		page.on("response", (response) => {
+			if (response.url().includes("frappe.desk.reportview.get") && !response.ok()) {
+				failed_requests.push(response.url());
+			}
+		});
+		const open_with_saved_group_by = async (group_by) => {
+			// the open view saves its own settings on render, let it finish before replacing them
+			await desk.ready();
+			await api.call("frappe.model.utils.user_settings.save", {
+				doctype,
+				user_settings: JSON.stringify({
+					Report: {
+						group_by: { group_by, aggregates: [{ aggregate_function: "count" }] },
+					},
+				}),
+			});
+			await page.goto("/desk/report-group-by-label/view/report");
+			await expect(page.locator(".dt-row-0")).toBeVisible();
+		};
+		const comments = "`tabReport Group By Label`.`_comments`";
+		const category = "`tabReport Group By Label`.`category`";
+
+		try {
+			await open_with_saved_group_by([comments, category]);
+			expect(await page.evaluate(() => window.cur_list.group_by_control.group_by)).toBe(
+				category
+			);
+			await expect
+				.poll(() =>
+					page.evaluate(() => window.cur_list.data.map((row) => row.category).sort())
+				)
+				.toEqual(["A", "B"]);
+
+			await open_with_saved_group_by([comments]);
+			expect(
+				await page.evaluate(() => window.cur_list.group_by_control.group_by)
+			).toBeFalsy();
+
+			expect(failed_requests).toEqual([]);
+		} finally {
+			await desk.ready();
+			await api.call("frappe.model.utils.user_settings.save", {
+				doctype,
+				user_settings: JSON.stringify({ Report: {} }),
+			});
+		}
+	});
+
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
 		await page.evaluate(() => {
 			const amount = "`tabReport Group By Label`.`amount`";
