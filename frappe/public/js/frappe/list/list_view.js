@@ -1353,6 +1353,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				${__(subject_field.label)}
 			</span>
 		`;
+		const layout = this.list_filter?.get_active_layout();
+		const can_resize = layout
+			? this.list_filter.can_edit_layout(layout)
+			: frappe.user.has_role("System Manager");
 		let $columns = this.columns
 			.map((col) => {
 				let classes = [
@@ -1375,7 +1379,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 				const headerFieldname = col.type === "Status" ? "status_field" : col.df?.fieldname;
 				const resizeHandle =
-					headerFieldname && col.type !== "Tag"
+					can_resize && headerFieldname && col.type !== "Tag"
 						? `<div class="list-col-resize-handle"></div>`
 						: "";
 				return `<div class="${classes}" data-fieldname="${headerFieldname}">${html}${resizeHandle}</div>
