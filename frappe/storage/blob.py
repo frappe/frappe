@@ -226,12 +226,12 @@ def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | Non
 
 
 def revive_blob(blob_name: str) -> bool:
-	"""Lock a deduped blob and pull it out of the GC orphan window.
+	"""Lock an existing blob before linking it and pull it out of the GC orphan window.
 
-	Returns False when the row vanished between the dedup lookup and the
-	lock (a concurrent GC pass deleted it); the caller then stores the
-	content again. The ``modified`` bump keeps GC's cutoff away from a
-	blob that is being relinked in an uncommitted transaction."""
+	Returns False when the row vanished between the lookup and the lock
+	(a concurrent GC pass deleted it); the caller then stores the content
+	again or fails. The ``modified`` bump keeps GC's cutoff away from a
+	blob that is being linked in an uncommitted transaction."""
 	locked = frappe.db.get_value("File Blob", blob_name, "name", for_update=True)
 	if not locked:
 		return False

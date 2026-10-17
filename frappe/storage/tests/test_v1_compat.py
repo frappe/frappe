@@ -23,7 +23,7 @@ from frappe.core.doctype.file.file_v1 import FileV1
 from frappe.storage import fake
 from frappe.storage.tests import reset_file_controller
 from frappe.tests import IntegrationTestCase
-from frappe.utils import get_files_path, get_url
+from frappe.utils import add_to_date, get_files_path, get_url, now_datetime
 
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
@@ -295,6 +295,49 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 			collect_garbage()
 
 			self.assertEqual(second.blob, first.blob)
+			self.assertEqual(frappe.get_doc("File", second.name).get_content(), content)
+
+	def test_dedup_onto_an_old_blob_moves_it_out_of_the_gc_window(self):
+		# until the new row commits, only a fresh modified keeps a concurrent
+		# GC pass from deleting the blob if the first row is deleted meanwhile
+		from frappe.storage.gc import MIN_AGE_HOURS
+		from frappe.storage.tests.test_gc_backfill import backdate
+
+		content = unique_png()
+		with fake():
+			first = self.blob_backed_file(content, label="revive-first")
+			backdate(first.blob)
+
+			with flag_off():
+				second = frappe.get_doc(
+					{"doctype": "File", "file_name": "revive-second.png", "content": content, "is_private": 1}
+				).insert()
+				self.delete_later("File", second.name)
+
+		self.assertEqual(second.blob, first.blob)
+		cutoff = add_to_date(now_datetime(), hours=-MIN_AGE_HOURS)
+		self.assertGreater(frappe.db.get_value("File Blob", first.blob, "modified"), cutoff)
+
+	def test_dedup_onto_a_vanished_blob_stores_its_own_bytes(self):
+		# GC deleted the blob between the duplicate lookup and the link
+		content = unique_png()
+		with fake():
+			first = self.blob_backed_file(content, label="vanished-first")
+
+			with flag_off(), patch("frappe.storage.blob.revive_blob", return_value=False):
+				second = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": "vanished-second.png",
+						"content": content,
+						"is_private": 1,
+					}
+				).insert()
+				self.delete_later("File", second.name)
+
+			self.assertFalse(second.blob)
+			self.assertNotEqual(second.file_url, first.file_url)
+			self.assertTrue(second.file_url.startswith("/private/files/vanished-second"))
 			self.assertEqual(frappe.get_doc("File", second.name).get_content(), content)
 
 

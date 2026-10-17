@@ -309,6 +309,7 @@ class File(Document):
 		# here, not in validate(): a File subclass may skip super().validate()
 		if not self.is_new():
 			self.validate_blob_reference()
+		self.revive_linked_blob()
 
 	def validate_blob_reference(self):
 		"""Reject a ``blob`` link this row cannot hold.
@@ -321,6 +322,21 @@ class File(Document):
 			frappe.throw(_("A remote file cannot link a stored blob"))
 		if self.is_new() or self.has_value_changed("blob"):
 			self.validate_blob_access()
+
+	def revive_linked_blob(self):
+		"""Lock a newly linked existing blob so GC keeps it until this row commits.
+
+		Runs after ingestion, which may link an existing blob (dedup, a copied
+		row). A blob ``put_blob`` returned is already new or revived."""
+		if not self.get("blob") or self.blob == self.flags.stored_blob:
+			return
+		if not (self.is_new() or self.has_value_changed("blob")):
+			return
+
+		from frappe.storage.blob import revive_blob
+
+		if not revive_blob(self.blob):
+			frappe.throw(_("File Blob {0} no longer exists").format(self.blob), DoesNotExistError)
 
 	def validate_blob_access(self):
 		"""Reject repointing ``blob`` at a private blob the user cannot already download.
