@@ -312,6 +312,22 @@ class TestRelocateBlobs(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("File Blob", blob.name))
 		self.assertEqual(frappe.db.get_value("File", file_doc.name, "blob"), blob.name)
 
+	def test_copy_of_a_blob_deleted_during_the_copy_is_removed(self):
+		blob = self.insert_blob(b"gc-deleted-during-relocation", key=f"legacy/{self.prefix}/gone.txt")
+		canonical_key = f"{blob.name}/gone.txt"
+		real_write = self.target.write
+
+		def write_then_collect(key, stream, *, is_private=False):
+			real_write(key, stream, is_private=is_private)
+			frappe.db.delete("File Blob", {"name": blob.name})
+
+		with patch.object(self.target, "write", side_effect=write_then_collect) as write:
+			stats = self.run_relocation()
+
+		self.assertEqual(write.call_args.args[0], canonical_key)
+		self.assertEqual(stats, {"moved": 0, "bytes": 0, "skipped": 1, "errors": 0})
+		self.assertFalse(self.target.exists(canonical_key))
+
 	def test_rejects_nonpositive_batch_size(self):
 		for batch_size in (0, -1):
 			self.assertRaises(frappe.ValidationError, relocate.relocate_blobs, batch_size)

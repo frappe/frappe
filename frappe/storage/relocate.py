@@ -101,14 +101,16 @@ def relocate_blob(row, target: StorageDriver, stats: dict, logger) -> int | None
 	if not target.exists(target_key, is_private=is_private):
 		raise RuntimeError(f"copied object {target_key} is missing")
 
+	locked = lock_blob(row.name)
+	if not locked:
+		# GC deleted the row during the copy. The target key holds the blob
+		# name, so no other blob can own the copy.
+		target.delete(target_key, is_private=is_private)
+		return None
+
 	savepoint = f"relocate_{frappe.generate_hash(length=10)}"
 	frappe.db.savepoint(savepoint)
 	try:
-		locked = lock_blob(row.name)
-		if not locked:
-			frappe.db.release_savepoint(savepoint)
-			return None
-
 		if locked.driver == target.name and locked.key == target_key:
 			frappe.db.release_savepoint(savepoint)
 			return None
