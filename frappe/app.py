@@ -194,25 +194,7 @@ def run_after_request_hooks(request, response):
 		frappe.call(after_request_task, response=response, request=request)
 
 
-def canonical_request_path(path: str) -> str:
-	"""Strip a versioned ``/api/vN`` mount so hooks can match one canonical path.
-
-	``/api/method/x``, ``/api/v1/method/x`` and ``/api/v2/method/x`` all reach
-	the same whitelisted method (frappe.api.__init__: v1 rules are mounted at
-	both ``/api`` and ``/api/v1``), but only the first form is unversioned.
-	frappe.hooks.streaming_request_paths declares the unversioned form, so a
-	versioned request has to be normalised before matching it, or a hook
-	entry would silently miss every versioned mount.
-	"""
-	from frappe.api import ApiVersion
-
-	for version in ApiVersion:
-		prefix = f"/api/{version.value}"
-		if path == prefix:
-			return "/api"
-		if path.startswith(f"{prefix}/"):
-			return "/api" + path[len(prefix) :]
-	return path
+UPLOAD_FILE_PATHS = ("/api/method/upload_file", "/api/v1/method/upload_file", "/api/v2/method/upload_file")
 
 
 def is_streaming_request(request: Request) -> bool:
@@ -224,8 +206,7 @@ def is_streaming_request(request: Request) -> bool:
 	streaming_paths = {
 		path.rstrip("/") for path in frappe.get_hooks("streaming_request_paths") if path.rstrip("/")
 	}
-	canonical_path = canonical_request_path(request.path)
-	return any(canonical_path == path or canonical_path.startswith(f"{path}/") for path in streaming_paths)
+	return any(request.path == path or request.path.startswith(f"{path}/") for path in streaming_paths)
 
 
 def init_request(request):
@@ -247,7 +228,6 @@ def init_request(request):
 		else:
 			raise frappe.SessionStopped("Session Stopped")
 
-	canonical_path = canonical_request_path(request.path)
 	streaming_request = is_streaming_request(request)
 	if streaming_request:
 		request.max_content_length = None
@@ -256,7 +236,7 @@ def init_request(request):
 		frappe.local.form_dict = frappe._dict(args)
 		# Keep query handling consistent with make_form_dict without reading the body.
 		frappe.local.form_dict.pop("_", None)
-	elif canonical_path.startswith("/api/method/upload_file"):
+	elif request.path.startswith(UPLOAD_FILE_PATHS):
 		from frappe.core.api.file import get_max_file_size
 
 		request.max_content_length = get_max_file_size()

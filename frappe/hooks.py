@@ -512,12 +512,11 @@ after_request = [
 # .get_request_bytes), so double-buffering it here would only waste memory, and
 # the generic cap does not know that per-session size.
 #
-# Declare only the unversioned form: init_request (frappe/app.py:
-# canonical_request_path) strips a leading /api/v1 or /api/v2 mount before
-# matching, so this one entry also covers /api/v1/method/... and
-# /api/v2/method/... without enumerating every API version here.
+# Paths match as written, so list every API mount a route is reached on.
 streaming_request_paths = [
 	"/api/method/frappe.storage.upload.upload_chunk",
+	"/api/v1/method/frappe.storage.upload.upload_chunk",
+	"/api/v2/method/frappe.storage.upload.upload_chunk",
 ]
 
 # Background Job Hooks

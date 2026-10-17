@@ -350,8 +350,9 @@ records a required `session_policy` (`file` or `blob`), and a finish
 call rejects a session of the other kind.
 
 `upload_chunk` is listed in the `streaming_request_paths` hook, so
-`init_request` does not buffer its body. The hook matches `/api/v1/...`
-and `/api/v2/...` mounts too.
+`init_request` does not buffer its body. Paths match as written, so the
+hook lists the `/api/method/`, `/api/v1/method/` and `/api/v2/method/`
+forms.
 
 ### Validation
 
