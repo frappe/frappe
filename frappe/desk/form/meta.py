@@ -240,7 +240,15 @@ class FormMeta(Meta):
 				self.set("__form_grid_templates", templates)
 
 	def load_dashboard(self):
-		self.set("__dashboard", self.get_dashboard_data())
+		dashboard = self.get_dashboard_data()
+		linked = {item for group in dashboard.get("transactions") or [] for item in group.get("items") or []}
+		if linked:
+			dashboard["doctype_icons"] = dict(
+				frappe.get_all(
+					"DocType", filters={"name": ("in", list(linked))}, fields=["name", "icon"], as_list=True
+				)
+			)
+		self.set("__dashboard", dashboard)
 
 	def load_kanban_meta(self):
 		self.load_kanban_column_fields()

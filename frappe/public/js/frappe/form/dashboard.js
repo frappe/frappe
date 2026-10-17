@@ -182,6 +182,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	refresh() {
 		this.reset();
+		this._counts_promise = null;
 		if (this.frm.doc.__islocal || !frappe.boot.desk_settings.dashboard) {
 			return;
 		}
@@ -200,8 +201,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				// limited docstatus
 				return;
 			}
-			this.render_links();
-			show = true;
+			if (!this.show_connections_in_sidebar()) {
+				this.render_links();
+				show = true;
+			} else if ((this.data.reports || []).length) {
+				this.render_reports_only();
+				show = true;
+			}
 		}
 
 		this._fetched_counts = false;
@@ -222,6 +228,10 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	after_refresh() {
+		if (this.show_connections_in_sidebar()) {
+			this.frm.sidebar?.connections?.refresh();
+		}
+
 		// show / hide new buttons (if allowed)
 		this.links_area.body.find(".btn-new").each((i, el) => {
 			if (this.frm.can_create($(el).attr("data-doctype"))) {
@@ -238,11 +248,73 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		new IntersectionObserver((entries, observer) => {
 			entries.forEach((entry) => {
 				if (entry.intersectionRatio > 0) {
-					me.set_open_count();
+					me.load_counts();
 					observer.disconnect(); // only required for first load.
 				}
 			});
 		}).observe(element);
+	}
+
+	show_connections_in_sidebar() {
+		// only while the sidebar sits beside the form; below this width it is a slide-in
+		// panel (form_sidebar.scss .overlay-sidebar), so the links keep their tab
+		return Boolean(
+			this.frm.sidebar?.connections && !window.matchMedia("(max-width: 992px)").matches
+		);
+	}
+
+	has_connections() {
+		return Boolean(
+			!this.frm.is_new() &&
+				frappe.boot.desk_settings.dashboard &&
+				this.data?.transactions?.length &&
+				!(this.data.docstatus && this.frm.doc.docstatus !== this.data.docstatus)
+		);
+	}
+
+	load_counts() {
+		if (!this._counts_promise) {
+			// a failed request already shows its error; render without counts
+			this._counts_promise = Promise.resolve(this.set_open_count()).catch(() => {});
+		}
+		return this._counts_promise;
+	}
+
+	get_connections() {
+		// count is null when it is unknown (not fetched, timed out, a custom count method)
+		return (this.data?.transactions || []).flatMap((group) =>
+			group.items.map((doctype) => {
+				const found = this.link_counts?.[doctype];
+				return {
+					doctype,
+					group: group.label,
+					count: found ? found.count : null,
+					icon: this.data.doctype_icons?.[doctype],
+				};
+			})
+		);
+	}
+
+	get_link_fieldname(doctype) {
+		const group = (this.data.transactions || []).find((g) => g.items.includes(doctype));
+		return (
+			group?.fieldnames?.[doctype] ||
+			group?.fieldname ||
+			this.data.non_standard_fieldnames?.[doctype] ||
+			this.data.fieldname
+		);
+	}
+
+	get_link_filters(doctype) {
+		const found = this.link_counts?.[doctype];
+		if (found?.names?.length) {
+			return { name: ["in", found.names] };
+		}
+		if (found?.internal) {
+			return null;
+		}
+		const fieldname = this.get_link_fieldname(doctype);
+		return fieldname ? this.get_document_filter(doctype, fieldname) : null;
 	}
 
 	init_data() {
@@ -328,7 +400,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		$(frappe.render_template("form_links", this.data)).appendTo(transactions_area_body);
 
-		this.render_report_links();
+		if (!this.reports_rendered) this.render_report_links();
 
 		// bind links
 		transactions_area_body.find(".badge-link").on("click", function () {
@@ -348,6 +420,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 
 		this.data_rendered = true;
+	}
+
+	render_reports_only() {
+		this.links_area.show();
+		if (this.reports_rendered || this.data_rendered) return;
+		this.render_report_links();
+		this.reports_rendered = true;
 	}
 
 	render_report_links() {
@@ -437,7 +516,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 
 		let method = this.data.method || "frappe.desk.notifications.get_open_count";
-		frappe.call({
+		return frappe.call({
 			type: "GET",
 			method: method,
 			args: {
@@ -461,8 +540,16 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	update_badges(count) {
 		let me = this;
+		count = count || {};
 
 		this.internal_links_found = count.internal_links_found;
+		this.link_counts = {};
+		(count.internal_links_found || []).forEach((d) => {
+			this.link_counts[d.doctype] = { ...d, internal: true };
+		});
+		(count.external_links_found || []).forEach((d) => {
+			this.link_counts[d.doctype] = d;
+		});
 
 		$.each(count.internal_links_found, function (i, d) {
 			me.frm.dashboard.set_badge_count_for_internal_link(

@@ -44,12 +44,19 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 		this.body = this.$body;
 	}
 
-	set_header({ title, description, actions } = {}) {
+	set_header({ title, description, actions, meta } = {}) {
 		const $heading = this.$header.find(".settings-dialog-panel-heading").empty();
 		const $actions = this.$header.find(".settings-dialog-panel-actions").empty();
 
 		if (title) {
-			$('<div class="settings-dialog-panel-title"></div>').text(title).appendTo($heading);
+			const has_meta = meta != null && meta !== "";
+			const $title = $('<div class="settings-dialog-panel-title"></div>')
+				.toggleClass("has-extras", has_meta)
+				.appendTo($heading);
+			$("<span></span>").text(title).appendTo($title);
+			if (has_meta) {
+				$('<span class="settings-dialog-panel-meta"></span>').text(meta).appendTo($title);
+			}
 		}
 		if (description) {
 			$('<div class="settings-dialog-panel-description"></div>')
@@ -67,6 +74,7 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 		return frappe.ui.button({
 			label: action.label || "",
 			icon: action.icon,
+			icon_right: action.icon_right,
 			variant: action.variant,
 			// So a destructive action can look destructive. `theme: "red"` is the button's own
 			// way of saying that; without it a panel could only get there by hand-writing a
@@ -88,11 +96,11 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 		return this.fieldgroup;
 	}
 
-	set_view({ title, description, actions, fields, render } = {}) {
+	set_view({ title, description, actions, meta, fields, render } = {}) {
 		// Atomically swap the whole view: header (title/description/actions), then
 		// body (fields and/or custom render). Mounting actions + fields together
 		// guarantees an action's get_values() reads the form mounted alongside it.
-		this.set_header({ title, description, actions });
+		this.set_header({ title, description, actions, meta });
 
 		this.$body.empty();
 		this.fieldgroup = null;
@@ -137,6 +145,9 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
  *
  *   const d = new frappe.ui.SettingsDialog({
  *       title: __("Settings"),
+ *       // sidebar_title: optional heading above the tabs
+ *       // sidebar_footer: optional muted line pinned below them
+ *       // compact: true for a tighter tab sidebar (long lists of tabs)
  *       default_tab: "preferences",
  *       tabs: [
  *           {
@@ -147,9 +158,12 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
  *                       label: __("Preferences"),
  *                       icon: "sliders-vertical", // sprite name (resolved via icon util)
  *                       // icon_html: "<svg…>"    // alternative: raw, TRUSTED markup only
+ *                       // count: 3,              // optional, shown at the end of the item
+ *                       // muted: true,           // optional, dims an item with nothing in it
  *                       // Declarative header sugar (optional):
  *                       title: __("Preferences"),
  *                       description: __("Manage your preferences"),
+ *                       // meta: muted text after the title, e.g. a count
  *                       actions: [{ label: __("Save"), primary: true, click(panel) {} }],
  *                       render(panel) {
  *                           // build content into `panel.body`; call
@@ -185,6 +199,7 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this._panels = {};
 
 		this.$wrapper.addClass("settings-dialog-wrapper");
+		this.$wrapper.toggleClass("settings-dialog-compact", Boolean(this.compact));
 
 		// Drop the standard title bar; each panel owns its own header (banking design).
 		this.header.addClass("hide");
@@ -223,6 +238,12 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 	render_sidebar() {
 		this.$sidebar.empty();
 
+		if (this.sidebar_title) {
+			$('<div class="settings-dialog-sidebar-title"></div>')
+				.text(this.sidebar_title)
+				.appendTo(this.$sidebar);
+		}
+
 		this.tabs.forEach((group) => {
 			const $group = $('<div class="settings-dialog-tab-group"></div>').appendTo(
 				this.$sidebar
@@ -243,6 +264,12 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 				$nav.append(this.make_tab_item(item));
 			});
 		});
+
+		if (this.sidebar_footer) {
+			$('<div class="settings-dialog-sidebar-footer"></div>')
+				.text(this.sidebar_footer)
+				.appendTo(this.$sidebar);
+		}
 	}
 
 	make_tab_item(item) {
@@ -265,11 +292,14 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 				<span class="settings-dialog-tab-item-content">
 					${icon_html ? `<span class="settings-dialog-tab-icon">${icon_html}</span>` : ""}
 					<span class="settings-dialog-tab-label"></span>
+					<span class="settings-dialog-tab-count"></span>
 				</span>
 			</button>
 		`);
 
 		$item.find(".settings-dialog-tab-label").text(item.label || item.id);
+		$item.find(".settings-dialog-tab-count").text(item.count ?? "");
+		$item.toggleClass("muted", Boolean(item.muted));
 
 		$item.on("click", () => this.activate(item.id));
 		return $item;
