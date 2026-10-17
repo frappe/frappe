@@ -88,6 +88,31 @@ class TestCloseInheritedFds(unittest.TestCase):
 		""")
 		self.assertEqual(output, "False")
 
+	def test_the_systemd_socket_survives(self):
+		output = self._run("""
+			import os
+			import socket
+			from frappe.runner import close_inherited_fds, systemd_socket_fd
+
+			listener = socket.socket()
+			os.dup2(listener.fileno(), 3)
+			os.set_inheritable(3, True)  # as systemd passes it
+			os.environ.update(LISTEN_PID=str(os.getpid()), LISTEN_FDS="1")
+			close_inherited_fds()
+			print(systemd_socket_fd(), os.get_inheritable(3))
+		""")
+		self.assertEqual(output, "3 True")
+
+	def test_a_socket_for_another_process_is_ignored(self):
+		output = self._run("""
+			import os
+			from frappe.runner import systemd_socket_fd
+
+			os.environ.update(LISTEN_PID=str(os.getppid()), LISTEN_FDS="1")
+			print(systemd_socket_fd())
+		""")
+		self.assertEqual(output, "None")
+
 	def test_the_standard_streams_survive(self):
 		output = self._run("""
 			import os
