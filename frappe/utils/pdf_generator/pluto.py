@@ -16,7 +16,7 @@ POINTS_PER_PX = 0.75
 VIEWPORT_WIDTH = 800
 MAX_SHRINK = 0.5
 SCRIPT = re.compile(r"<script|\son[a-z]+\s*=", re.IGNORECASE)
-PAGE_STYLE = ".row:has(> :only-child) { display: block !important; }"
+MULTI_PAGE_STYLE = "body, .row:has(> :only-child) { display: block !important; }"
 MEASURE_STYLE = "html, body, .print-format { height: auto !important; min-height: 0 !important; }"
 GRID = re.compile(r"display\W+(inline-)?grid\b", re.IGNORECASE)
 
@@ -140,12 +140,12 @@ class PlutoPage:
 			for side in ("marginTop", "marginRight", "marginBottom", "marginLeft")
 		]
 		scale = options.get("scale") or 1
-		book = self._book(width / scale, height / scale, [margin / scale for margin in margins])
+		book = self._layout(width, height, margins, scale)
 		content_width = width - margins[1] - margins[3]
 		overflow = book.get_document_width() * POINTS_PER_PX * scale
 		if overflow > content_width + 1:
 			scale *= max(content_width / overflow, MAX_SHRINK)
-			book = self._book(width / scale, height / scale, [margin / scale for margin in margins])
+			book = self._layout(width, height, margins, scale)
 
 		pdf = self._write(book, width, height, scale)
 		return pdf if raw else PdfReader(BytesIO(pdf))
@@ -159,6 +159,13 @@ class PlutoPage:
 	def close(self):
 		self.html = ""
 
+	def _layout(self, width, height, margins, scale):
+		margins = [margin / scale for margin in margins]
+		book = self._book(width / scale, height / scale, margins)
+		if book.get_page_count() > 1:
+			book = self._book(width / scale, height / scale, margins, user_style=MULTI_PAGE_STYLE)
+		return book
+
 	def _book(self, width, height, margins=None, user_style=""):
 		import plutoprint
 
@@ -171,7 +178,7 @@ class PlutoPage:
 			plutoprint.PageSize(width, height), plutoprint.PageMargins(*margins), plutoprint.MEDIA_TYPE_PRINT
 		)
 		book.custom_resource_fetcher = self.fetcher
-		book.load_html(self.html + page_rule, user_style=PAGE_STYLE + user_style, base_url=get_host_url())
+		book.load_html(self.html + page_rule, user_style=user_style, base_url=get_host_url())
 		return book
 
 	def _write(self, book, width, height, scale):
