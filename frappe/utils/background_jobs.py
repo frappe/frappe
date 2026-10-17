@@ -12,8 +12,14 @@ from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
+<<<<<<< HEAD
 from rq import Callback, Queue, Worker
 from rq.exceptions import NoSuchJobError
+=======
+from rq import Callback, Queue, Retry, Worker
+from rq.defaults import DEFAULT_WORKER_TTL
+from rq.exceptions import DeserializationError, InvalidJobOperation, NoSuchJobError
+>>>>>>> a0deefb (fix: RQ Job list fails to load after a queued function is renamed)
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
 from rq.worker import DequeueStrategy
@@ -409,7 +415,7 @@ def get_jobs(site=None, queue=None, key="method"):
 		q = get_queue(_queue)
 		jobs = q.jobs + get_running_jobs_in_queue(q)
 		for job in jobs:
-			if job.kwargs.get("site"):
+			if get_queue_args(job).get("site"):
 				# if job belongs to current site, or if all jobs are requested
 				if (job.kwargs["site"] == site) or site is None:
 					add_to_dict(job)
@@ -452,8 +458,27 @@ def get_running_jobs_in_queue(queue):
 	return jobs
 
 
+<<<<<<< HEAD
 def get_queue(qtype, is_async=True):
 	"""Returns a Queue object tied to a redis connection"""
+=======
+def get_queue_args(job: Job) -> dict:
+	"""Return the arguments `enqueue` stored on the job, or an empty dict when they no longer load (e.g. its method was renamed)."""
+	try:
+		return job.kwargs
+	except DeserializationError:
+		return {}
+
+
+def get_queue(qtype: str, is_async: bool = True) -> Queue:
+	"""
+	Return a Queue object tied to a redis connection.
+
+	:param qtype: Queue type, should be either long, default or short
+	:param is_async: Whether the job should be executed asynchronously or in the same process
+	:return: Queue object
+	"""
+>>>>>>> a0deefb (fix: RQ Job list fails to load after a queued function is renamed)
 	validate_queue(qtype)
 	return Queue(generate_qname(qtype), connection=get_redis_conn(), is_async=is_async)
 
@@ -606,7 +631,7 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 	"""Ensures that number of failed jobs don't exceed specified limits."""
 	from frappe.utils import create_batch
 
-	conf = frappe.conf if frappe.conf else frappe.get_conf(site=job.kwargs.get("site"))
+	conf = frappe.conf if frappe.conf else frappe.get_conf(site=get_queue_args(job).get("site"))
 	limit = (conf.get("rq_failed_jobs_limit") or RQ_FAILED_JOBS_LIMIT) - 1
 
 	for queue in get_queues(connection=connection):
