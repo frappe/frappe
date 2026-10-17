@@ -36,7 +36,7 @@ function frappe_request(path, socket) {
 	if (socket.authorization_header) {
 		return partial_req.set("Authorization", socket.authorization_header);
 	} else if (socket.sid) {
-		return partial_req.query({ sid: socket.sid });
+		return partial_req.set("Cookie", `sid=${socket.sid}`);
 	}
 }
 
