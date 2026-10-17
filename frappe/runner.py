@@ -339,15 +339,19 @@ class ThreadedWorker(FrappeWorkerNoFork):
 
 
 def close_inherited_fds() -> None:
-	"""Close the descriptors of this generation, except the standard streams.
+	"""Mark the descriptors of this generation close-on-exec, except the standard streams.
 
 	An exec keeps every descriptor that does not have the close-on-exec flag, and
 	some libraries open a file without it: the import of ctypes leaves one on the
 	interpreter itself. The runner execs on each restart, so those descriptors add
 	up until the process reaches its limit. The supervisor owns the standard
-	streams, thus they stay.
+	streams, thus they stay. macOS kills a process that closes a guarded
+	descriptor, so the exec closes them instead.
 	"""
-	os.closerange(3, os.sysconf("SC_OPEN_MAX"))
+	for fd in map(int, os.listdir("/dev/fd")):
+		if fd > 2:
+			with suppress(OSError):
+				os.set_inheritable(fd, False)
 
 
 class Runner:
