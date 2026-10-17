@@ -56,10 +56,10 @@ HTTP                       signed URLs, serve route, direct upload
 | `status` | Select | `Pending` / `Ready`; `put_blob` writes `Ready` |
 
 - No unique index on content. Dedup is a best-effort lookup on the
-  `checksum` index, scoped by `is_private` and `driver`. Two concurrent
-  identical uploads may each get a blob, and relocation may move a blob
-  to a driver that already holds the same content. A rare duplicate copy
-  is accepted.
+  `checksum` index, scoped by `is_private` and `driver`. Duplicate blobs
+  are accepted: two concurrent identical uploads may each get a blob,
+  backfill gives each legacy path its own blob, and relocation may move
+  a blob to a driver that already holds the same content.
 - No `attached_to_*`, no folder, no filename. Those belong to `File`.
 - The blob has no refcount column. Reference count = count of `File`
   rows that link to it. Counting at GC time cannot drift.
@@ -417,7 +417,9 @@ Laravel's `Storage::fake()`.
 - Backfill (`frappe.storage.backfill.run`, idempotent, batched): group
   legacy `File` rows by `(path, is_private)`, create one `local`
   `File Blob` per group with the existing path as its key, link the
-  rows. sha256 is computed from disk; unreadable files are logged and
+  rows. Backfill does not dedup: two paths with identical bytes get two
+  blobs, so each disk file has one owner that GC or relocation can free.
+  sha256 is computed from disk; unreadable files are logged and
   skipped, not failed. The `backfill_file_blobs` patch runs it only when
   the flag is on.
 - `file_url` keeps working for both generations. `download_private_file`

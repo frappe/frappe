@@ -7,9 +7,10 @@ by ``(path, is_private)`` and creates one Ready ``local`` blob per
 group. Bytes are NOT moved: the blob key points at the legacy path,
 and ``file_url`` stays unchanged. Rows link to the blob through plain
 ``db.set_value`` (no doc events). Missing or unreadable disk files are
-logged and skipped. Idempotent: linked rows are not refetched and
-existing blobs are reused through the ``(checksum, is_private, driver)``
-dedup lookup.
+logged and skipped. Each path gets its own blob, even when two paths
+hold identical bytes, so every disk file has exactly one owner and GC
+or relocation can free it. Idempotent: linked rows are not refetched
+and a blob already keyed at a path is reused.
 
 Legacy keys: ``LocalDriver`` resolves keys relative to
 ``{public,private}/files/``, so a legacy blob's key is its path there,
@@ -87,8 +88,8 @@ def process_row(row, blob_cache: dict, stats: dict, logger) -> None:
 	# Cache by resolved path, never by the legacy content_hash: that hash
 	# is MD5 and may be stale, so two rows can share it while their bytes
 	# differ. Rows that share a path share bytes by definition. Distinct
-	# paths are hashed and still collapse onto one blob through the
-	# SHA-256 dedup lookup in find_or_create_blob.
+	# paths never share a blob, even with identical bytes: the blob owns
+	# its key, and a path no blob owns is never deleted.
 	group = (rel_path, is_private)
 	blob_name = blob_cache.get(group)
 	if not blob_name:
@@ -119,7 +120,13 @@ def locate(file_url: str) -> tuple[bool, str] | None:
 
 
 def find_or_create_blob(rel_path: str, is_private: bool, row, stats: dict, logger) -> str | None:
-	"""Reuse a blob by checksum or create one keyed at the legacy path."""
+	"""Reuse the blob keyed at the legacy path or create one there."""
+	existing = frappe.db.get_value(
+		"File Blob", {"key": rel_path, "is_private": cint(is_private), "driver": "local"}
+	)
+	if existing:
+		return existing
+
 	full_path = get_files_path(rel_path, is_private=is_private)
 	try:
 		# path comes from locate(), which rejects absolute paths and any '..' segment
@@ -131,13 +138,6 @@ def find_or_create_blob(rel_path: str, is_private: bool, row, stats: dict, logge
 	except OSError as e:
 		skip(row, f"cannot read {full_path}: {e}", stats, logger)
 		return None
-
-	existing = frappe.db.get_value(
-		"File Blob",
-		{"checksum": checksum, "is_private": cint(is_private), "driver": "local"},
-	)
-	if existing:
-		return existing
 
 	blob = frappe.new_doc("File Blob")
 	blob.update(

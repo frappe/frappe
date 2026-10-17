@@ -549,19 +549,26 @@ class TestBackfill(IntegrationTestCase):
 		with driver.read(blob.key) as stream:
 			self.assertEqual(stream.read(), content)
 
-	def test_identical_bytes_share_one_blob(self):
-		content = unique_content(b"backfill-dedup-")
-		content_hash = frappe.generate_hash(length=16)
-		first = self.make_legacy_file(content, content_hash=content_hash)
-		second = self.make_legacy_file(content, content_hash=content_hash)
+	def test_identical_bytes_at_two_paths_get_blobs_gc_can_free(self):
+		content = unique_content(b"backfill-twins-")
+		first = self.make_legacy_file(content)
+		second = self.make_legacy_file(content)
 
 		stats = backfill.run(filters=self.filters())
 
-		self.assertEqual(stats["blobs_created"], 1)
-		self.assertEqual(stats["linked"], 2)
-		first_blob = self.reload(first).blob
-		self.assertTrue(first_blob)
-		self.assertEqual(self.reload(second).blob, first_blob)
+		self.assertEqual(stats["blobs_created"], 2)
+		blobs = [frappe.get_doc("File Blob", self.reload(row).blob) for row in (first, second)]
+		self.assertEqual([blob.key for blob in blobs], [first.file_name, second.file_name])
+
+		frappe.db.delete("File", {"name": ("in", [first.name, second.name])})
+		gc_stats = {"blobs_deleted": 0, "bytes_delete_errors": 0, "upload_sessions_expired": 0}
+		cutoff = add_to_date(now_datetime(), hours=-gc.MIN_AGE_HOURS)
+		for blob in blobs:
+			backdate(blob.name)
+			self.assertTrue(gc.delete_blob(blob, cutoff, frappe.logger("storage"), gc_stats))
+
+		for row in (first, second):
+			self.assertFalse(os.path.exists(get_files_path(row.file_name)))
 
 	def test_rows_sharing_a_stale_content_hash_keep_their_own_bytes(self):
 		"""Legacy content_hash is MD5 and can be stale: never group on it."""
@@ -654,3 +661,14 @@ class TestBackfill(IntegrationTestCase):
 		self.assertEqual(stats["linked"], 2)
 		self.assertEqual(stats["blobs_created"], 1)
 		self.assertEqual(self.reload(twin).blob, self.reload(legacy).blob)
+
+	def test_rerun_links_a_new_row_to_the_blob_at_its_path(self):
+		legacy = self.make_legacy_file()
+		backfill.run(filters=self.filters())
+		late = self.insert_legacy_row(legacy.file_url)
+
+		stats = backfill.run(filters=self.filters())
+
+		self.assertEqual(stats["linked"], 1)
+		self.assertEqual(stats["blobs_created"], 0)
+		self.assertEqual(self.reload(late).blob, self.reload(legacy).blob)
