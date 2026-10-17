@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import hashlib
 import io
+import tempfile
 import warnings
 from contextlib import contextmanager
 from unittest.mock import patch
@@ -121,8 +122,28 @@ class TestPutBlob(IntegrationTestCase):
 		self.assertEqual(control.key, f"{control.name}/bellname.txt")
 		self.assertEqual(unnamed.key, f"{unnamed.name}/file")
 		self.assertEqual(dotted.key, f"{dotted.name}/file")
-		# a long name is cut to 200 characters and keeps its extension
+		# a long name is cut to 200 bytes and keeps its extension
 		self.assertEqual(key_filename("x" * 300 + ".tar.gz"), "x" * 197 + ".gz")
+
+	def test_long_unicode_filename_is_stored_on_local_disk(self):
+		# 90 CJK characters are 270 UTF-8 bytes, over a filesystem's 255-byte name limit
+		from frappe.storage.tests.test_serve_upload import TempLocalDriver
+
+		filename = "报" * 90 + ".txt"
+		content = unique_content()
+		with tempfile.TemporaryDirectory() as root:
+			driver = TempLocalDriver(root)
+			frappe.local.storage_driver_override = driver
+			try:
+				blob = self.put(content, filename=filename)
+			finally:
+				frappe.local.storage_driver_override = None
+
+			stored_name = blob.key.rsplit("/", 1)[1]
+			self.assertTrue(stored_name.startswith("报"))
+			self.assertTrue(stored_name.endswith(".txt"))
+			with driver.read(blob.key) as stream:
+				self.assertEqual(stream.read(), content)
 
 	def test_dedup_keeps_the_first_filename(self):
 		content = unique_content()

@@ -73,9 +73,10 @@ def served_type(filename: str, mime_type: str | None, *, as_attachment: bool = F
 	return mime_type, must_download
 
 
-# A key holds the blob name and filename, so a long legacy path or name
-# must still fit the File Blob ``key`` column.
-MAX_KEY_FILENAME_LENGTH = 200
+# In UTF-8 bytes: most filesystems allow 255 bytes per filename, and the
+# local driver writes ``<filename>.part`` first. The key column counts
+# characters, so a name within this limit also fits there.
+MAX_KEY_FILENAME_BYTES = 200
 
 
 def key_filename(filename: str | None) -> str:
@@ -87,12 +88,13 @@ def key_filename(filename: str | None) -> str:
 
 	name = "".join(char for char in (filename or "") if char.isprintable())
 	name = get_safe_file_name(name).strip().strip(".") or "file"
-	if len(name) <= MAX_KEY_FILENAME_LENGTH:
+	if len(name.encode()) <= MAX_KEY_FILENAME_BYTES:
 		return name
 	stem, extension = os.path.splitext(name)
-	if len(extension) > 20:
+	if len(extension.encode()) > 20:
 		extension = ""
-	return stem[: MAX_KEY_FILENAME_LENGTH - len(extension)] + extension
+	stem_budget = MAX_KEY_FILENAME_BYTES - len(extension.encode())
+	return stem.encode()[:stem_budget].decode(errors="ignore") + extension
 
 
 def make_key(driver: "StorageDriver", blob_name: str, filename: str | None) -> str:
