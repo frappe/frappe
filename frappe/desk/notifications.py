@@ -395,7 +395,6 @@ def get_external_links(doctype, name, links, fieldname=None):
 def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters):
 	"""A filter on a fieldname that several child tables share resolves to whichever of them
 	is scanned first, so match the link in any of them and let the client route by name."""
-<<<<<<< HEAD
 	try:
 		names = frappe.get_list(
 			doctype,
@@ -409,23 +408,8 @@ def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes,
 		)
 	except Exception as e:
 		if frappe.db.is_statement_timeout(e):
-			return {"doctype": doctype, "count": "?", "open_count": 0}
+			return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
 		raise
-=======
-	names = get_list_unless_timed_out(
-		frappe.get_list,
-		doctype,
-		filters=filters,
-		or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
-		limit=100,
-		distinct=True,
-		ignore_ifnull=True,
-		order_by=None,
-		pluck="name",
-	)
-	if names is None:
-		return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
->>>>>>> cbdac8f (fix: count connections per link field when a doctype is linked twice)
 
 	open_count = 0
 	if names and (open_count_filters := get_filters_for(doctype)):
