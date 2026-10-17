@@ -88,20 +88,27 @@ def get_pdf(
 	options: dict | None = None,
 	output: "PdfWriter" | None = None,
 	print_format: str | None = None,
+	pdf_generator: str = "chrome",
 ):
-	"""Render `html` to PDF with Chromium."""
-	from frappe.utils.chromium import ChromiumManager
-	from frappe.utils.pdf_generator.browser import Browser
+	"""Render `html` to PDF with Chromium or PlutoPrint."""
 	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 
 	options = dict(options or {})
 	password = options.pop("password", None)
-	generator, token = ChromiumManager.acquire()
-	try:
-		browser = Browser(generator, print_format, html, options)
-		pdf = PDFTransformer(browser).transform_pdf(output=output)
-	finally:
-		generator.release(token)
+	if pdf_generator == "PlutoPrint":
+		from frappe.utils.pdf_generator.pluto import PlutoBrowser
+
+		pdf = PDFTransformer(PlutoBrowser(print_format, html, options)).transform_pdf(output=output)
+	else:
+		from frappe.utils.chromium import ChromiumManager
+		from frappe.utils.pdf_generator.browser import Browser
+
+		generator, token = ChromiumManager.acquire()
+		try:
+			browser = Browser(generator, print_format, html, options)
+			pdf = PDFTransformer(browser).transform_pdf(output=output)
+		finally:
+			generator.release(token)
 
 	if output:
 		return pdf
@@ -126,6 +133,12 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 	if pdf_generator != "chrome":
 		return
 	return get_pdf(html, options, output, print_format=print_format)
+
+
+def get_plutoprint_pdf(print_format, html, options, output, pdf_generator=None):
+	if pdf_generator != "PlutoPrint":
+		return
+	return get_pdf(html, options, output, print_format=print_format, pdf_generator="PlutoPrint")
 
 
 def get_print_format_styles(soup: "BeautifulSoup") -> list["cssutils.css.Property"]:

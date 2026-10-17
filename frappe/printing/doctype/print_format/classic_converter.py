@@ -287,7 +287,7 @@ def convert_print_format(doc):
 	doc.print_format_builder_beta = 1
 	for fieldname, value in missing_numeric_defaults(doc).items():
 		doc.set(fieldname, value)
-	doc.pdf_generator = "chrome"
+	doc.pdf_generator = ""
 	if not doc.page_number or doc.page_number == "Hide":
 		doc.page_number = "Bottom Center"
 	return dropped
@@ -401,7 +401,7 @@ def get_default_print_format(doctype: str):
 	pf.doc_type = doctype
 	pf.standard = "Yes"
 	pf.print_format_builder_beta = 1
-	pf.pdf_generator = "chrome"
+	pf.pdf_generator = ""
 	pf.format_data = json.dumps(create_default_layout(frappe.get_meta(doctype)))
 	pf.flags.is_default_layout = True
 	return pf

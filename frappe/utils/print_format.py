@@ -253,7 +253,7 @@ def _download_multi_pdf(
 			pf_doc = _print_format_doc_or_none(format, print_doctype)
 			if not (
 				(pf_doc is None or uses_beta_renderer(pf_doc))
-				and resolve_pdf_generator(pf_doc) in ("chrome", "Typst")
+				and resolve_pdf_generator(pf_doc) in ("chrome", "PlutoPrint", "Typst")
 			):
 				return frappe.get_print(
 					print_doctype,
