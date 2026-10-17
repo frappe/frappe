@@ -8,8 +8,10 @@ frappe.listview_settings["Email Account"] = {
 		// set by the provider sign-in callback; Desk drops it from the URL itself
 		const code = frappe.route_options?.email_oauth;
 		if (code) {
+			const mailbox = frappe.route_options.email_oauth_mailbox;
 			delete frappe.route_options.email_oauth;
-			show_email_oauth_result(code);
+			delete frappe.route_options.email_oauth_mailbox;
+			show_email_oauth_result(code, mailbox);
 		}
 	},
 	add_fields: ["default_incoming", "default_outgoing", "enable_incoming", "enable_outgoing"],
@@ -34,7 +36,7 @@ frappe.listview_settings["Email Account"] = {
 	},
 };
 
-// providers the Frappe Cloud broker signs in with; add Google etc. here
+// providers the Frappe Cloud broker signs in with
 const EMAIL_OAUTH_PROVIDERS = ["Microsoft"];
 
 function add_email_account_dialog() {
@@ -79,9 +81,21 @@ function add_email_account_dialog() {
 	d.show();
 }
 
-function show_email_oauth_result(code) {
-	if (code === "connected") {
-		frappe.show_alert({ message: __("Mailbox connected."), indicator: "green" });
+function show_email_oauth_result(code, mailbox) {
+	if (code === "connected" || code === "reconnected") {
+		const named = mailbox?.length <= 254 && frappe.utils.validate_type(mailbox, "email");
+		const name = named && frappe.utils.escape_html(mailbox);
+		frappe.show_alert({
+			message:
+				code === "connected"
+					? named
+						? __("Connected {0}", [name])
+						: __("Mailbox connected")
+					: named
+					? __("Reconnected {0}", [name])
+					: __("Mailbox reconnected"),
+			indicator: "green",
+		});
 		return;
 	}
 	const messages = {
@@ -96,12 +110,15 @@ function show_email_oauth_result(code) {
 				"How to turn it on"
 			)}</a>`,
 		smtp_disabled_personal: __(
-			"Microsoft doesn't let this Outlook.com mailbox send email from other apps, and it can't be turned on in Outlook settings. Please use a Microsoft 365 work mailbox."
+			"Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox."
 		),
 		imap_disabled: __(
 			"IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin."
 		),
 		already_connected: __("This mailbox is already connected."),
+		wrong_mailbox: __(
+			"You signed in to a different mailbox. Sign in to this account's mailbox."
+		),
 		not_team_member: __(
 			"Only members of this site's Frappe Cloud team can connect a mailbox. Log in to Frappe Cloud in this browser, then try again."
 		),
