@@ -50,6 +50,7 @@ def main(
 	selected_categories: list[str] | None = None,
 	lightmode: bool = False,
 	test_service: "TestService | None" = None,
+	preserve_test_records: bool = False,
 ) -> None:
 	"""Main function to run tests"""
 	if lightmode:
@@ -86,7 +87,8 @@ def main(
 	from frappe.testing.environment import _cleanup_after_tests, _initialize_test_environment
 	from frappe.tests.utils.generators import _clear_test_log
 
-	_clear_test_log()
+	if not preserve_test_records:
+		_clear_test_log()
 
 	if debug and not debug_exceptions:
 		debug_exceptions = (Exception,)
@@ -125,6 +127,7 @@ def main(
 		"debug",
 		"selected_categories",
 		"test_service",
+		"preserve_test_records",
 	]:
 		param_value = locals()[param_name]
 		if param_value is not None:
