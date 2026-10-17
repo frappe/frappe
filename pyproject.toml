@@ -9,11 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
-<<<<<<< HEAD
-    "Babel~=2.13.1",
-=======
     "Babel~=2.18.0",
->>>>>>> 09207e2 (chore(deps): bump babel to 2.18.0 (#44596))
     "Click~=8.4.1",
     "filelock~=3.20.1",
     "filetype~=1.2.0",
