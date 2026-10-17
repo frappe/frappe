@@ -3,6 +3,7 @@
 import hashlib
 import io
 import os
+import zipfile
 from contextlib import contextmanager
 from unittest.mock import patch
 
@@ -144,6 +145,28 @@ class TestFileStorageIntegration(IntegrationTestCase):
 
 			fresh = frappe.get_doc("File", file.name)
 			self.assertEqual(fresh.get_content(), content)
+
+	def test_unzip_extracts_a_zip_from_any_storage(self):
+		# flag off: a v1 zip on local disk takes the same read path
+		for flag in (1, 0):
+			members = {"a.txt": b"alpha " + frappe.generate_hash().encode(), "b.txt": b"beta"}
+			archive = io.BytesIO()
+			with zipfile.ZipFile(archive, "w") as z:
+				for name, data in members.items():
+					z.writestr(name, data)
+
+			with self.subTest(storage_v2=flag), storage_flag(flag), fake():
+				zip_file = self.make_file(archive.getvalue(), "bundle.zip", is_private=1)
+				self.assertEqual(bool(zip_file.get("blob")), bool(flag))
+				children = zip_file.unzip()
+				for child in children:
+					self.delete_later("File", child.name)
+
+				self.assertEqual(
+					{child.file_name: frappe.get_doc("File", child.name).get_content() for child in children},
+					{name: data.decode() for name, data in members.items()},
+				)
+				self.assertFalse(frappe.db.exists("File", zip_file.name))
 
 	def test_privacy_flip_repoints_blob(self):
 		content = unique_png()
@@ -529,6 +552,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 		seams = (
 			"_ingest_new_content",
 			"_read_content",
+			"_open_stored_bytes",
 			"_store_content",
 			"get_full_path",
 			"exists_on_disk",

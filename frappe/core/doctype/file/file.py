@@ -669,12 +669,16 @@ class File(Document):
 
 		self.check_permission("read")
 
-		zip_path = self.get_full_path()
+		from frappe.storage.blob import spool_to_tempfile
+
 		max_extracted_size = get_max_extract_size()
 
 		files = []
 		total_extracted_size = 0
-		with zipfile.ZipFile(zip_path) as z:
+		# spooled because a driver stream (e.g. S3) is not seekable, which zipfile needs
+		with self._open_stored_bytes() as stream:
+			spool, _size = spool_to_tempfile(stream)
+		with spool, zipfile.ZipFile(spool) as z:
 			# skip directories, macos hidden directory & hidden files
 			members = [
 				file
@@ -938,6 +942,10 @@ class File(Document):
 
 	def _read_content(self) -> bytes:
 		"""Return the stored bytes."""
+		self._storage_not_resolved()
+
+	def _open_stored_bytes(self):
+		"""Return a readable binary stream of the stored bytes."""
 		self._storage_not_resolved()
 
 	def _store_content(self, ignore_existing_file_check=False, overwrite=False):
