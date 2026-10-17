@@ -157,7 +157,7 @@ class StorageDriver(ABC):
 
 	def upload_target(self, key, size, *, is_private=False) -> dict | None:
 		"""Native direct-upload target (e.g. S3 presigned POST).
-		None means: client must use the framework upload endpoint."""
+		None means: the client sends chunks through the upload session."""
 		return None
 ```
 
@@ -317,42 +317,33 @@ redirect; pass `allow_native_redirect=True` to allow the 302.
 
 ### Upload
 
-Three-step flow. Fixes the temp-file collision, the
-size-check-after-write gap, and the missing resumability.
+`frappe/storage/upload.py` holds upload sessions. It is a trusted
+Python API for server code that authorizes the destination itself, such
+as Drive. Nothing in it is whitelisted. Fixes the temp-file collision,
+the size-check-after-write gap, and the missing resumability.
 
 ```python
-# 1. client asks for an upload session
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-def create_upload(filename, size, is_private=0, doctype=None, docname=None):
-	check_upload_permission(doctype, docname)   # upload_file's rules
-	check_restricted_mimetypes(filename)
-	check_declared_size(size)                   # before any byte lands
-	native = driver.upload_target(upload_key(upload_id), size, is_private=...)
-	if native:
-		return {"mode": "direct", "upload_id": upload_id, **native}  # browser -> S3
-	return {"mode": "chunked", "upload_id": upload_id}
+# 1. open: size check before any byte lands; the session is bound to its owner
+create_blob_upload(filename, size, *, is_private=True)
+# -> {"mode": "direct", "upload_id", **driver.upload_target(...)}  browser -> bucket
+# -> {"mode": "chunked", "upload_id"}
 
-# 2. chunked fallback: PUT /api/method/frappe.storage.upload.upload_chunk?upload_id=&offset=
-#    temp path is keyed by upload_id, not by client filename.
-#    Cumulative size is enforced per chunk. Sessions expire after 24h (GC).
+# 2. chunked mode: write at an offset; a retried chunk is fine, a hole is not.
+#    Cumulative size is enforced per chunk; an oversize write drops the session.
+upload_blob_chunk(upload_id, offset, data)
 
-# 3. finish: put_blob, size and checksum checks, validate_upload,
-#    then create_file_from_blob
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-def finish_upload(upload_id, checksum=None, file_name=None, doctype=None,
-		docname=None, fieldname=None, is_private=None): ...
+# 3. finish: claim the session (one winner), put_blob, size and checksum
+#    checks, validate_upload. Creates no File row.
+finish_upload_to_blob(upload_id, *, checksum=None) -> FileBlob
 ```
 
-`create_blob_upload`, `upload_blob_chunk` and `finish_upload_to_blob`
-are the same flow without a File row, for server code that authorizes
-the destination itself (Drive). They are not whitelisted. Each session
-records a required `session_policy` (`file` or `blob`), and a finish
-call rejects a session of the other kind.
-
-`upload_chunk` is listed in the `streaming_request_paths` hook, so
-`init_request` does not buffer its body. Paths match as written, so the
-hook lists the `/api/method/`, `/api/v1/method/` and `/api/v2/method/`
-forms.
+Sessions live in `sites/<site>/private/files/.uploads/` as
+`<upload_id>.meta` (json) and `<upload_id>.part`, keyed by
+`upload_id`, not by client filename. A direct upload lands at
+`upload_key(upload_id)` and is deleted once its blob is stored. The
+caller exposes its own HTTP route; a route that reads a raw chunk body
+lists itself in the `streaming_request_paths` hook, so `init_request`
+does not buffer it. Paths match as written, so list every API mount.
 
 ### Validation
 

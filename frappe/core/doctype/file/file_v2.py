@@ -1,25 +1,9 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-"""Blob-native (storage v2) File implementation.
+"""Blob-native (storage v2) File implementation. See ``frappe/storage/SPEC.md``.
 
-Design (see ``frappe/storage/SPEC.md``):
-
-- A File row links to an immutable ``File Blob``; ``put_blob`` owns the
-  best-effort dedup on ``(checksum, is_private, driver)``.
-- Every byte access goes through the storage driver.
-- ``file_url`` derives from the blob: ``/files/<blob>/<filename>`` or
-  ``/private/files/<blob>/<filename>``. A public local blob sits on disk
-  at that path, so nginx serves it.
-- A privacy flip re-puts the bytes into the other namespace and repoints
-  the row; bytes are never moved or rewritten in place.
-- Deleting a File row never deletes bytes synchronously. Garbage
-  collection (``frappe.storage.gc``) owns the bytes of orphan blobs.
-
-Compat shim: a site can enable ``storage_v2`` while legacy rows are
-still unbackfilled (``blob`` is NULL). Those rows are read through
-``FileV1``'s disk path — reads only. The shim is deleted together with
-``file_v1.py`` once the backfill is mandatory.
-"""
+Compat shim: unbackfilled legacy rows (``blob`` is NULL) are read through
+``FileV1``'s disk path. The shim goes with ``file_v1.py``."""
 
 import io
 
@@ -50,14 +34,9 @@ class FileV2(File):
 			return
 
 		self.save_file(content=self.get_content())
-		self.flags.new_file = True
-		frappe.db.after_rollback.add(self.on_rollback)
 
 	def _store_content(self, ignore_existing_file_check=False, overwrite=False):
-		"""Write ``self._content`` through the active driver.
-
-		``put_blob`` dedups on content, so ``ignore_existing_file_check``
-		and ``overwrite`` have no meaning here."""
+		"""Write ``self._content`` through the active driver. ``put_blob`` dedups, so the arguments are unused."""
 		from frappe.storage.blob import validate_upload
 
 		if isinstance(self._content, str):
@@ -68,19 +47,13 @@ class FileV2(File):
 			is_private=bool(self.is_private),
 			filename=self.file_name,
 		)
-		# reject active content hidden under a mismatched extension on the
-		# standard write path too, not only in finish_upload
+		# reject active content hidden under a mismatched extension, as upload sessions do
 		validate_upload(blob, self.file_name)
 		self.blob = blob.name
 		self.flags.stored_blob = blob.name
 		self.file_size = blob.file_size
 		self.set_blob_file_url(blob)
 		return {"file_name": self.file_name, "file_url": self.file_url}
-
-	def on_rollback(self):
-		# Nothing to undo: blobs are immutable, and a blob whose File row
-		# was rolled back is an orphan that garbage collection sweeps.
-		self.flags.pop("new_file", None)
 
 	def before_save(self):
 		super().before_save()
@@ -89,17 +62,13 @@ class FileV2(File):
 	def enforce_blob_privacy(self):
 		"""Point a blob-backed File at a blob in its own privacy namespace.
 
-		A File subclass may override validate() without calling super()
-		for existing rows (Drive's override does), so this runs from
-		before_save."""
+		Runs from before_save: a File subclass may override validate() without super()."""
 		if self.is_folder or self.is_new() or not self.get("blob"):
 			return
 		blob_is_private = frappe.db.get_value("File Blob", self.blob, "is_private")
 		if blob_is_private is None or cint(blob_is_private) == cint(self.is_private):
 			return
-		old_file_url = self.file_url
 		self.flip_blob_privacy()
-		self.update_attached_to_field(old_file_url)
 
 	def handle_is_private_changed(self):
 		# enforce_blob_privacy repoints a blob-backed row in before_save,
@@ -113,17 +82,14 @@ class FileV2(File):
 		if self.name and cint(self.is_private) == cint(frappe.db.get_value("File", self.name, "is_private")):
 			return
 
-		old_file_url = self.file_url
 		self.flip_blob_privacy()
-		self.update_attached_to_field(old_file_url)
 
 	def flip_blob_privacy(self):
-		"""Re-put the bytes into the other privacy namespace and repoint.
+		"""Re-put the bytes into the other privacy namespace, repoint the row and its attachment field.
 
-		Blobs are immutable, so a privacy change never moves bytes in
-		place. The old blob is left for garbage collection. An unbackfilled
-		legacy row is adopted into blob storage by the same move; its old
-		disk file stays behind for other rows that share the URL."""
+		The old blob is left for GC. An unbackfilled legacy row is adopted into
+		blob storage; its disk file stays for other rows that share the URL."""
+		old_file_url = self.file_url
 		with self._open_stored_bytes() as stream:
 			new_blob = frappe.storage.put_blob(
 				stream,
@@ -133,16 +99,13 @@ class FileV2(File):
 		self.blob = new_blob.name
 		self.flags.stored_blob = new_blob.name
 		self.set_blob_file_url(new_blob)
+		self.update_attached_to_field(old_file_url)
 
 	def adopt_blob_from_file_url(self):
-		"""Set ``blob`` from the blob behind file_url.
+		"""Set ``blob`` from the blob behind file_url: a blob URL, or a relocated v1 URL.
 
-		Rows rebuilt from a bare file_url (amend of a submittable doc,
-		attachment copies) reference an existing blob; no bytes to write.
-		The URL is a blob URL, or a v1 URL whose bytes moved into a blob,
-		which keeps its v1 URL. A private blob is adopted only when the
-		user can already download it, so knowing a URL does not grant
-		access to the file."""
+		A private blob is adopted only when the user can already download it,
+		so knowing a URL does not grant access to the file."""
 		from frappe.storage.serve import has_file_permission
 		from frappe.storage.url import PRIVATE_PREFIX, parse_blob_url
 
@@ -253,8 +216,7 @@ class FileV2(File):
 		return driver.get_path(blob.key, bool(blob.is_private))
 
 	def _delete_file_on_disk(self):
-		"""Leave blob bytes to garbage collection; delete an unbackfilled legacy file
-		once no other row uses its URL, since collection never sees it."""
+		"""Leave blob bytes to GC; delete an unbackfilled legacy file once no row uses its URL."""
 		if self.get("blob"):
 			return
 		if frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)}):
@@ -268,54 +230,3 @@ class FileV2(File):
 			if frappe.db.exists("File Blob", {"driver": "local", "key": rel_path, "is_private": is_private}):
 				return
 		FileV1.delete_file_from_filesystem(self)  # compat shim: unbackfilled legacy row
-
-
-def create_file_from_blob(
-	blob,
-	file_name: str,
-	*,
-	attached_to_doctype: str | None = None,
-	attached_to_name: str | None = None,
-	attached_to_field: str | None = None,
-	is_private: bool = False,
-	ignore_permissions: bool = False,
-) -> "File":
-	"""Create a File row for an existing Ready blob without re-writing bytes.
-
-	``blob`` is a File Blob doc or name. The row goes through the normal
-	insert lifecycle (permissions, attachment limits, attachment comment),
-	but skips save_file: the bytes are already stored."""
-	if isinstance(blob, str):
-		blob = frappe.get_doc("File Blob", blob)
-
-	if blob.status != "Ready":
-		frappe.throw(_("Blob {0} is not ready").format(blob.name))
-
-	if cint(blob.is_private) != cint(is_private):
-		frappe.throw(_("Blob {0} privacy does not match the requested file privacy").format(blob.name))
-
-	file = frappe.new_doc("File")
-	file.update(
-		{
-			"file_name": file_name,
-			"is_private": cint(is_private),
-			"attached_to_doctype": attached_to_doctype,
-			"attached_to_name": attached_to_name,
-			"attached_to_field": attached_to_field,
-			"blob": blob.name,
-			"file_size": blob.file_size,
-		}
-	)
-	file.flags.from_existing_blob = True
-	# the caller supplied these bytes, like a fresh upload
-	file.flags.stored_blob = blob.name
-	for hook in frappe.get_hooks("after_file_upload"):
-		# hook paths come from installed apps' hooks.py, as in frappe.handler.upload_file
-		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
-		file = frappe.call(hook, doc=file)
-	file.insert(ignore_permissions=ignore_permissions)
-	if not file.flags.attachment_record_created and not file.is_folder:
-		# a File subclass may override after_insert() without calling
-		# super(); keep attachment-comment parity with the upload path
-		file.create_attachment_record()
-	return file

@@ -20,11 +20,9 @@ MISSING_KEY_CODES = ("404", "NoSuchKey", "NotFound")
 
 
 def get_site_prefix(config: dict) -> str:
-	"""The site's folder in the bucket: ``storage_driver_config.prefix``, or
-	12 hex characters of the SHA-256 of the database name.
+	"""The site's folder in the bucket: ``storage_driver_config.prefix``, else a hash of the database name.
 
-	A database name is set once and is unique on a server, and a hash keeps
-	it out of the presigned URLs users see."""
+	The hash keeps the database name out of the presigned URLs users see."""
 	prefix = (config.get("prefix") or "").strip("/")
 	if not prefix:
 		return hashlib.sha256(frappe.conf.db_name.encode()).hexdigest()[:12]
@@ -34,26 +32,10 @@ def get_site_prefix(config: dict) -> str:
 
 
 class S3Driver(StorageDriver):
-	"""Store blobs in an S3 (or S3-compatible) bucket.
+	"""Store blobs in an S3 (or S3-compatible) bucket, configured by ``storage_driver_config``.
 
-	``boto3`` is an optional dependency, imported lazily on instantiation.
-
-	Site config, under ``storage_driver_config``:
-
-	- ``bucket`` (required): bucket name.
-	- ``region``: AWS region name.
-	- ``endpoint_url``: for S3-compatible stores (MinIO, R2, ...).
-	- ``access_key_id`` / ``secret_access_key``: static credentials.
-	  When absent, the default boto3 credential chain applies.
-
-	- ``prefix``: the site's folder in the bucket. Defaults to a hash of
-	  the site's database name, so sites can share a bucket.
-
-	Object keys are the blob key under a ``private/`` or ``public/``
-	prefix, picked by the ``is_private`` kwarg. New blob keys start with
-	the site prefix, and the driver deletes only keys under it. A site
-	restored from another site's backup can still read the other site's
-	objects, but never deletes them."""
+	It deletes only keys under the site prefix, so a site restored from
+	another site's backup can read that site's objects but never deletes them."""
 
 	name = "s3"
 
@@ -141,14 +123,7 @@ class S3Driver(StorageDriver):
 		mime_type: str | None = None,
 		as_attachment: bool = False,
 	) -> str | None:
-		"""Presigned GET that serves the blob the way Frappe would.
-
-		S3 answers with the Content-Type and Content-Disposition the URL
-		carries, so a PDF shows in an ``<iframe>`` and active content still
-		downloads (``served_type`` decides both).
-
-		``is_private`` must be the blob's real privacy flag; it picks the
-		``private/`` or ``public/`` object prefix."""
+		"""Presigned GET that serves the blob's ``served_type`` Content-Type and disposition."""
 		content_type, must_download = served_type(filename, mime_type, as_attachment=as_attachment)
 		# the quoted-string fallback keeps printable ASCII only; filename*
 		# carries the real name, percent-encoded per RFC 5987
@@ -171,10 +146,7 @@ class S3Driver(StorageDriver):
 		)
 
 	def upload_target(self, key: str, size: int, *, is_private: bool = False) -> dict | None:
-		"""Presigned POST for direct browser-to-bucket upload.
-
-		The content-length-range condition pins the upload to the declared
-		size, so the size check done at session creation cannot be bypassed."""
+		"""Presigned POST for direct browser-to-bucket upload, pinned to the declared size."""
 		post = self.client.generate_presigned_post(
 			Bucket=self.bucket,
 			Key=self.object_key(key, is_private),

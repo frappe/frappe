@@ -118,7 +118,7 @@ class TestPutBlob(IntegrationTestCase):
 			self.assertEqual(self.put(unique_bytes(b"plain text ")).mime_type, "application/octet-stream")
 
 	def test_validate_upload_rejects_pdf_with_javascript(self):
-		# legacy File.check_content parity on the finish_upload path
+		# legacy File.check_content parity on the upload session finish path
 		with fake():
 			blob = self.put(unique_bytes(b"%PDF-1.4\n"))
 			self.assertEqual(blob.mime_type, "application/pdf")

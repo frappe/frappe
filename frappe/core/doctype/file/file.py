@@ -2,24 +2,8 @@
 # License: MIT. See LICENSE
 """Storage-agnostic ``File`` base class.
 
-``File`` owns everything that does not depend on where the bytes live:
-naming, the folder tree, attachment links and their validation,
-permissions, attachment comments and shared orchestration (content
-preparation, exif stripping, size checks, optimize/thumbnail flows).
-
-The byte handling lives in one of two concrete classes:
-
-- ``FileV1`` (``file_v1.py``): the legacy disk layout. Deleted when
-  storage v1 is removed.
-- ``FileV2`` (``file_v2.py``): blob-native storage through
-  ``frappe.storage``.
-
-``resolve_controller`` picks the concrete class per site, based on the
-``storage_v2`` site config flag. The result is cached by
-``frappe.get_controller``, so every ``frappe.get_doc("File", ...)``
-returns the right implementation and ``isinstance(doc, File)`` holds for
-both.
-"""
+Byte handling lives in ``FileV1`` (legacy disk layout) or ``FileV2`` (``frappe.storage``);
+``File.resolve_controller`` picks one per site from the ``storage_v2`` flag."""
 
 import copyreg
 import io
@@ -68,9 +52,7 @@ OLE_FILE_SIGNATURE = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 class _ResolvedFileMeta(type(Document)):
 	"""Metaclass of the spliced classes built by ``File.resolve_controller``.
 
-	A spliced class is created at runtime, so it has no importable home.
-	The ``copyreg`` registration below makes it pickle (document cache,
-	background jobs) as "the class this site resolves File to"."""
+	A spliced class has no importable home; ``copyreg`` pickles it as "this site's File class"."""
 
 
 def _restore_resolved_file_class(doctype):
@@ -117,13 +99,9 @@ class File(Document):
 
 	@classmethod
 	def resolve_controller(cls) -> type["File"]:
-		"""Pick the storage implementation for this site.
+		"""Pick the storage implementation for this site. ``get_controller`` caches the result.
 
-		Called once per site by ``import_controller``; ``get_controller``
-		caches the result. An app that replaces File through
-		``override_doctype_class`` keeps its class on top: the site's
-		storage implementation is spliced in under it, so the override's
-		method resolution order stays override -> storage -> File."""
+		An ``override_doctype_class`` override stays on top: its MRO is override -> storage -> File."""
 		import frappe.storage
 
 		from .file_v1 import FileV1
@@ -846,7 +824,6 @@ class File(Document):
 		return os.path.splitext(self.file_name)
 
 	def create_attachment_record(self):
-		self.flags.attachment_record_created = True
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
 		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
 		file_name = escape_html(self.file_name or self.file_url)

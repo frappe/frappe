@@ -16,15 +16,10 @@ BATCH_SIZE = 100
 
 
 def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = None) -> dict:
-	"""Move blobs to a driver's canonical ``<blob>/<filename>`` keys.
+	"""Move blobs to a driver's canonical ``<blob>/<filename>`` keys. Safe to re-run.
 
-	The configured storage driver is the default target. ``File.file_url``
-	never changes: a blob URL keeps its blob name and filename, and a v1 URL
-	of a backfilled blob is served from the blob wherever it now lives. Rows are scanned in
-	bounded, keyset-paginated batches, so a stopped run can safely be started
-	again. The blob name never changes. Source objects are deleted only from an
-	``after_commit`` callback once the row points at the copied object.
-	"""
+	The target defaults to the configured driver. ``File.file_url`` never changes.
+	A source object is deleted only after the commit that repoints its row."""
 	if batch_size <= 0:
 		frappe.throw(_("batch_size must be greater than zero"), frappe.ValidationError)
 
@@ -58,10 +53,9 @@ def relocate_blobs(batch_size: int = BATCH_SIZE, target_driver: str | None = Non
 			# before the failed commit are harmless and make the next run cheaper.
 			frappe.db.rollback()
 			stats["errors"] += len(moved_in_batch)
-			for blob_name, _size in moved_in_batch:
-				logger.warning(
-					f"storage relocation: could not commit move of blob {blob_name}", exc_info=True
-				)
+			logger.warning(
+				f"storage relocation: could not commit the move of {len(moved_in_batch)} blobs", exc_info=True
+			)
 		else:
 			stats["moved"] += len(moved_in_batch)
 			stats["bytes"] += sum(size for _blob_name, size in moved_in_batch)
@@ -130,16 +124,7 @@ def relocate_blob(row, target: StorageDriver, stats: dict, logger) -> int | None
 		frappe.db.rollback(save_point=savepoint)
 		raise
 
-	frappe.db.after_commit.add(
-		delete_source_after_commit(
-			source,
-			row.key,
-			is_private,
-			blob_name=row.name,
-			stats=stats,
-			logger=logger,
-		)
-	)
+	frappe.db.after_commit.add(delete_source_after_commit(source, row, stats, logger))
 	return int(row.file_size or 0)
 
 
@@ -154,31 +139,23 @@ def lock_blob(blob_name: str) -> dict | None:
 	)
 
 
-def delete_source_after_commit(
-	source: StorageDriver,
-	key: str,
-	is_private: bool,
-	*,
-	blob_name: str,
-	stats: dict,
-	logger,
-) -> Callable[[], None]:
-	"""Build a defensive commit callback for one old object."""
+def delete_source_after_commit(source: StorageDriver, row, stats: dict, logger) -> Callable[[], None]:
+	"""Build a commit callback that deletes a moved blob's old object."""
+	is_private = bool(row.is_private)
 
 	def delete_source() -> None:
 		try:
-			# A malformed or historical duplicate row may still own this object.
-			# Keep the shared bytes rather than deleting another blob's location.
+			# a historical duplicate row may still own this object; keep its bytes
 			if frappe.db.exists(
 				"File Blob",
-				{"driver": source.name, "key": key, "is_private": cint(is_private)},
+				{"driver": source.name, "key": row.key, "is_private": cint(is_private)},
 			):
 				return
-			source.delete(key, is_private=is_private)
+			source.delete(row.key, is_private=is_private)
 		except Exception:
 			stats["errors"] += 1
 			logger.warning(
-				f"storage relocation: could not delete source bytes of blob {blob_name} (key {key})",
+				f"storage relocation: could not delete source bytes of blob {row.name} (key {row.key})",
 				exc_info=True,
 			)
 

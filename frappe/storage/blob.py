@@ -58,11 +58,8 @@ _HTML_MARKERS = (b"<!doctype html", b"<html", b"<head", b"<body", b"<script", b"
 def served_type(filename: str, mime_type: str | None, *, as_attachment: bool = False) -> tuple[str, bool]:
 	"""Return the Content-Type to serve a blob with, and whether it must download.
 
-	Every byte path asks this: the Python stream, nginx, and a driver's
-	native signed URL. So a file shows inline or downloads the same way on
-	every driver. A blob stored as ``application/octet-stream`` takes the type
-	its filename suggests, because magic-number sniffing cannot recognise text
-	formats. Active content always downloads, whatever the caller asked."""
+	Every byte path asks this, so a file behaves the same on every driver.
+	``application/octet-stream`` takes the filename's type: sniffing cannot recognise text."""
 	mime_type = mime_type or "application/octet-stream"
 	if mime_type == "application/octet-stream":
 		mime_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
@@ -80,10 +77,7 @@ MAX_KEY_FILENAME_BYTES = 200
 
 
 def key_filename(filename: str | None) -> str:
-	"""Filename as it appears in a blob key and URL.
-
-	Path separators and URL delimiters are replaced, and a long name is cut
-	while its extension is kept."""
+	"""Filename as it appears in a blob key and URL: no path or URL delimiters, length-capped."""
 	from frappe.core.doctype.file.utils import get_safe_file_name
 
 	name = "".join(char for char in (filename or "") if char.isprintable())
@@ -98,10 +92,7 @@ def key_filename(filename: str | None) -> str:
 
 
 def make_key(driver: "StorageDriver", blob_name: str, filename: str | None) -> str:
-	"""Object key for a blob: ``[<site prefix>/]<blob>/<filename>``.
-
-	The local driver stores the file at this path under ``public/files`` or
-	``private/files``, so the file's URL and its path on disk match."""
+	"""Object key for a blob: ``[<site prefix>/]<blob>/<filename>``, also its local path under the files root."""
 	return f"{driver.key_prefix}{blob_name}/{key_filename(filename)}"
 
 
@@ -132,12 +123,7 @@ def sniff_mime(stream: IO[bytes]) -> str:
 
 
 def validate_upload(blob: "FileBlob", claimed_filename: str) -> None:
-	"""Reject active content hidden under a mismatched extension.
-
-	Raises frappe.ValidationError when the sniffed MIME type is active
-	content (html, svg, xhtml, pdf, javascript) and does not match the
-	MIME type implied by the claimed filename's extension. PDFs are also
-	scanned for embedded JavaScript, like the legacy ``check_content``."""
+	"""Reject active content hidden under a mismatched extension, and PDFs with JavaScript."""
 	if blob.mime_type not in ACTIVE_CONTENT_MIME_TYPES:
 		return
 	ext_mime = mimetypes.guess_type(claimed_filename or "")[0]
@@ -147,24 +133,15 @@ def validate_upload(blob: "FileBlob", claimed_filename: str) -> None:
 			frappe.ValidationError,
 		)
 	if blob.mime_type == "application/pdf":
-		validate_pdf_content(blob)
+		from frappe.utils.pdf import pdf_contains_js
 
-
-def validate_pdf_content(blob: "FileBlob") -> None:
-	"""Reject PDFs with embedded JavaScript (legacy ``File.check_content`` parity)."""
-	from frappe.utils.pdf import pdf_contains_js
-
-	driver = get_driver(blob.driver)
-	with driver.read(blob.key, is_private=bool(blob.is_private)) as f:
-		content = f.read()
-	if pdf_contains_js(content):
-		frappe.throw(_("This PDF cannot be uploaded as it contains unsafe content."))
+		with get_driver(blob.driver).read(blob.key, is_private=bool(blob.is_private)) as f:
+			if pdf_contains_js(f.read()):
+				frappe.throw(_("This PDF cannot be uploaded as it contains unsafe content."))
 
 
 def spool_to_tempfile(stream: IO[bytes]) -> tuple[IO[bytes], int]:
-	"""Copy stream into a spooled tempfile. Return (spool, size in bytes).
-
-	Never holds the full content in RAM past ``SPOOL_MAX_MEMORY``."""
+	"""Copy stream into a spooled tempfile. Return (spool, size in bytes)."""
 	spool = tempfile.SpooledTemporaryFile(max_size=SPOOL_MAX_MEMORY)
 	size = 0
 	while chunk := stream.read(CHUNK_SIZE):
@@ -176,23 +153,16 @@ def spool_to_tempfile(stream: IO[bytes]) -> tuple[IO[bytes], int]:
 
 def sha256_of(stream: IO[bytes]) -> str:
 	stream.seek(0)
-	digest = hashlib.sha256()
-	while chunk := stream.read(CHUNK_SIZE):
-		digest.update(chunk)
+	digest = hashlib.file_digest(stream, "sha256").hexdigest()
 	stream.seek(0)
-	return digest.hexdigest()
+	return digest
 
 
 def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | None = None) -> "FileBlob":
 	"""Store the stream through the active driver. Return its File Blob.
 
-	Deduplicates on ``(checksum, is_private, driver)`` as a best effort:
-	identical content usually returns the existing blob with no write,
-	keeping the existing blob's filename. Concurrent identical uploads may
-	each store their own blob; duplicates are allowed. Blobs are immutable.
-
-	The key is ``<blob>/<filename>`` (see ``make_key``), so a public local
-	blob sits on disk at its URL path and nginx serves it."""
+	Best-effort dedup on ``(checksum, is_private, driver)``: identical content
+	usually returns the existing blob, with its filename. Concurrent uploads may duplicate."""
 	driver = get_driver()
 	spool, size = spool_to_tempfile(stream)
 	with spool:
@@ -228,12 +198,9 @@ def put_blob(stream: IO[bytes], *, is_private: bool = False, filename: str | Non
 
 
 def revive_blob(blob_name: str) -> bool:
-	"""Lock an existing blob before linking it and pull it out of the GC orphan window.
+	"""Lock an existing blob before linking it. False when GC deleted it first.
 
-	Returns False when the row vanished between the lookup and the lock
-	(a concurrent GC pass deleted it); the caller then stores the content
-	again or fails. The ``modified`` bump keeps GC's cutoff away from a
-	blob that is being linked in an uncommitted transaction."""
+	The ``modified`` bump keeps GC away from a blob linked in an uncommitted transaction."""
 	locked = frappe.db.get_value("File Blob", blob_name, "name", for_update=True)
 	if not locked:
 		return False
@@ -244,9 +211,7 @@ def revive_blob(blob_name: str) -> bool:
 def delete_bytes_on_rollback(driver, key: str, is_private: bool):
 	"""after_rollback callback: remove bytes whose File Blob row was rolled back.
 
-	Without this, a rolled-back ``put_blob`` (failed validation, explicit
-	rollback) leaves bytes on disk that GC can never find, because GC only
-	sees File Blob rows."""
+	GC only sees File Blob rows, so it could never find these bytes."""
 
 	def callback():
 		if frappe.db.get_value(

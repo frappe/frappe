@@ -231,9 +231,7 @@ def init_request(request):
 	streaming_request = is_streaming_request(request)
 	if streaming_request:
 		request.max_content_length = None
-		args = {}
-		args.update(request.args or {})
-		frappe.local.form_dict = frappe._dict(args)
+		frappe.local.form_dict = frappe._dict(request.args)
 		# Keep query handling consistent with make_form_dict without reading the body.
 		frappe.local.form_dict.pop("_", None)
 	elif request.path.startswith(UPLOAD_FILE_PATHS):

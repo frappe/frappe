@@ -20,7 +20,6 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.file import file_v1
 from frappe.core.doctype.file.file_v1 import FileV1
-from frappe.core.doctype.file.file_v2 import create_file_from_blob
 from frappe.core.doctype.file.utils import get_content_hash
 from frappe.storage import backfill, fake, get_driver
 from frappe.storage.gc import MIN_AGE_HOURS, collect_garbage
@@ -91,7 +90,6 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 	def test_new_rows_link_an_existing_blob(self):
 		with fake():
 			original = self.blob_backed_file(label="relink")
-			blob = frappe.get_doc("File Blob", original.blob)
 
 			with storage_v2(False):
 				# an amend or attachment copy carries only the blob file_url
@@ -101,13 +99,6 @@ class TestV1BlobCompatShim(V1CompatTestCase):
 				self.delete_later("File", copy.name)
 				self.assertEqual((copy.blob, copy.file_url), (original.blob, original.file_url))
 				self.assertTrue(copy.exists_on_disk())
-
-				file = create_file_from_blob(blob, "handed-over.png", is_private=True)
-				self.delete_later("File", file.name)
-				self.assertEqual(file.blob, blob.name)
-				# the URL names the blob's key, which kept the first upload's name
-				self.assertEqual(file.file_url, f"/private/files/{blob.name}/{original.file_name}")
-				self.assertEqual(file.file_name, "handed-over.png")
 
 	def test_reads_go_through_the_blob(self):
 		content = unique_png()

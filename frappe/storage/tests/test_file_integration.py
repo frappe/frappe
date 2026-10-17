@@ -4,11 +4,9 @@ import hashlib
 import io
 import os
 import zipfile
-from unittest.mock import patch
 
 import frappe
 from frappe.client import attach_file
-from frappe.core.doctype.file.file_v2 import create_file_from_blob
 from frappe.storage import backfill, get_driver, put_blob
 from frappe.storage.blob import validate_upload
 from frappe.storage.gc import MIN_AGE_HOURS
@@ -235,53 +233,6 @@ class TestFileStorageIntegration(IntegrationTestCase):
 					{name: data.decode() for name, data in members.items()},
 				)
 				self.assertFalse(frappe.db.exists("File", zip_file.name))
-
-	def test_create_file_from_blob(self):
-		from frappe.model.base_document import get_controller
-
-		with storage_v2(), fake():
-			blob = put_blob(io.BytesIO(unique_png()), is_private=True, filename="direct.png")
-			self.delete_later("File Blob", blob.name)
-			todo = frappe.get_doc(doctype="ToDo", description="storage v2 blob attach target").insert()
-			self.delete_later("ToDo", todo.name)
-
-			# a subclass that overrides after_insert still gets the attachment comment
-			with patch.object(get_controller("File"), "after_insert", lambda self: None):
-				file = create_file_from_blob(
-					blob,
-					"direct.png",
-					attached_to_doctype="ToDo",
-					attached_to_name=todo.name,
-					is_private=True,
-				)
-			self.delete_later("File", file.name)
-			self.assertEqual((file.blob, file.file_size), (blob.name, blob.file_size))
-			self.assertEqual(file.file_url, f"/private/files/{blob.name}/direct.png")
-			comment = {"reference_doctype": "ToDo", "reference_name": todo.name, "comment_type": "Attachment"}
-			self.assertTrue(frappe.db.exists("Comment", comment))
-
-			# a blob name works too; the URL names the blob's key
-			by_name = create_file_from_blob(blob.name, "by-name.png", is_private=True)
-			self.delete_later("File", by_name.name)
-			self.assertEqual((by_name.blob, by_name.file_url), (blob.name, file.file_url))
-
-			self.assertRaises(
-				frappe.ValidationError, create_file_from_blob, blob, "mismatch.png", is_private=False
-			)
-
-			pending = frappe.get_doc(
-				doctype="File Blob",
-				key=f"pending/{frappe.generate_hash(length=16)}",
-				checksum=frappe.generate_hash(length=64),
-				driver="memory",
-				file_size=1,
-				is_private=1,
-				status="Pending",
-			).insert()
-			self.delete_later("File Blob", pending.name)
-			self.assertRaises(
-				frappe.ValidationError, create_file_from_blob, pending.name, "pending.png", is_private=True
-			)
 
 	def test_legacy_upload_apis_store_blobs(self):
 		from frappe.utils.file_manager import save_file

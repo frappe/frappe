@@ -507,17 +507,10 @@ after_request = [
 ]
 
 # Routes whose PUT body init_request must not buffer through make_form_dict or
-# cap at the generic upload size: frappe.storage.upload.upload_chunk reads and
-# bounds its own body against the session's declared size (frappe.storage.upload
-# .get_request_bytes), so double-buffering it here would only waste memory, and
-# the generic cap does not know that per-session size.
-#
-# Paths match as written, so list every API mount a route is reached on.
-streaming_request_paths = [
-	"/api/method/frappe.storage.upload.upload_chunk",
-	"/api/v1/method/frappe.storage.upload.upload_chunk",
-	"/api/v2/method/frappe.storage.upload.upload_chunk",
-]
+# cap at the generic upload size. The route reads request.stream itself and must
+# bound the body on its own. Paths match as written, so list every API mount a
+# route is reached on.
+streaming_request_paths = []
 
 # Background Job Hooks
 before_job = [

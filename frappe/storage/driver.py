@@ -20,11 +20,7 @@ DEFAULT_DRIVER = "local"
 class StorageDriver(ABC):
 	"""Read, write, delete and check bytes by key.
 
-	Every byte access in Storage v2 goes through a driver. Keys are
-	``<blob>/<filename>`` (see ``frappe.storage.blob.make_key``) and carry no
-	privacy information, so each method takes ``is_private`` to pick the
-	public or private namespace.
-	"""
+	Keys carry no privacy, so each method takes ``is_private`` to pick the namespace."""
 
 	name: str
 
@@ -46,12 +42,7 @@ class StorageDriver(ABC):
 	def exists(self, key: str, *, is_private: bool = False) -> bool: ...
 
 	def read_range(self, key: str, start: int, end: int | None, *, is_private: bool = False) -> IO[bytes]:
-		"""Return bytes from *start* through inclusive *end*.
-
-		Drivers with native ranged reads should override this. The default keeps
-		other drivers compatible by reading once and returning the requested
-		slice as a stream.
-		"""
+		"""Return bytes from *start* through inclusive *end*. The default reads the whole object."""
 		stream = self.read(key, is_private=is_private)
 		try:
 			content = stream.read()
@@ -69,27 +60,20 @@ class StorageDriver(ABC):
 		mime_type: str | None = None,
 		as_attachment: bool = False,
 	) -> str | None:
-		"""Native signed URL (e.g. S3 presigned GET).
+		"""Native signed URL (e.g. S3 presigned GET), else None and Frappe serves the bytes.
 
-		*mime_type* is the blob's stored type. A driver that returns a URL
-		must serve the type and disposition that
-		``frappe.storage.blob.served_type`` gives, so a file shows inline or
-		downloads the same way as when Frappe serves it.
-
-		None means: the framework serves the bytes itself."""
+		The URL must serve the type and disposition ``frappe.storage.blob.served_type`` gives."""
 		return None
 
 	def upload_target(self, key: str, size: int, *, is_private: bool = False) -> dict | None:
 		"""Native direct-upload target (e.g. S3 presigned POST).
 
-		None means: client must use the framework upload endpoint."""
+		None means: the client sends chunks through the upload session."""
 		return None
 
 
 def get_driver_classes() -> dict[str, str]:
-	"""Return the driver registry: name -> dotted class path.
-
-	Built-in drivers, overridable through the ``storage_drivers`` hook."""
+	"""Return the driver registry, name -> dotted class path, with ``storage_drivers`` hook overrides."""
 	drivers = dict(BUILTIN_DRIVERS)
 	hooked = frappe.get_hooks("storage_drivers") or {}
 	for name, path in hooked.items():
@@ -99,11 +83,9 @@ def get_driver_classes() -> dict[str, str]:
 
 
 def get_driver(name: str | None = None) -> StorageDriver:
-	"""Return a driver instance by name.
+	"""Return a driver instance by name, cached per request.
 
-	With no name, return the active driver for the site: the ``fake()``
-	override if set, else the ``storage_driver`` site config (default
-	``local``). Instances are cached per request/site context."""
+	With no name, the active driver: the ``fake()`` override, else the ``storage_driver`` site config."""
 	override = getattr(frappe.local, "storage_driver_override", None)
 	if override is not None and (name is None or name == override.name):
 		return override

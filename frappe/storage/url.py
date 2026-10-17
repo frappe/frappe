@@ -1,16 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-"""URLs of Storage v2 blobs.
+"""Blob URLs, ``/files/<blob>/<filename>`` or ``/private/files/<blob>/<filename>``, and their signatures.
 
-A blob's URL is ``/files/<blob>/<filename>`` when it is public and
-``/private/files/<blob>/<filename>`` when it is private, the same prefixes
-as v1. The stored URL uses the filename in the blob key, so nginx finds a
-public local blob on disk. A URL served by Python may carry any filename;
-it becomes the download name.
-
-A signed URL adds ``?e=<epoch>&s=<sig>`` to a blob URL. A valid
-signature grants access with no session and no permission query. The
-signing key is derived from the site ``encryption_key``."""
+See "Signed URLs" in ``frappe/storage/SPEC.md``."""
 
 import hashlib
 import hmac
@@ -43,10 +35,9 @@ def blob_url(blob: "FileBlob") -> str:
 
 
 def parse_blob_url(url: str) -> tuple[bool, str, str] | None:
-	"""Split a blob URL into ``(is_private, blob_name, filename)``.
+	"""Split a blob URL into ``(is_private, blob_name, filename)``, else None.
 
-	Returns None for any other URL, such as a v1 ``/files/logo.png``. Only
-	the shape is checked; the blob may not exist."""
+	Only the shape is checked; the blob may not exist."""
 	if url.startswith(PRIVATE_PREFIX):
 		is_private, path = True, url[len(PRIVATE_PREFIX) :]
 	elif url.startswith(PUBLIC_PREFIX):
@@ -86,18 +77,28 @@ def verify_signature(blob_name: str, filename: str, expires: str | int, signatur
 def signed_url_for_blob(
 	blob: "str | FileBlob", filename: str, expires_in: int = 3600, *, as_attachment: bool = False
 ) -> str:
-	"""Return an expiring URL for a blob and caller-chosen filename.
+	"""Return an expiring URL for a blob, preferring the driver's native URL.
 
-	The file shows inline where a browser can show it safely. Pass
-	``as_attachment`` to make it download instead.
-
-	Prefers the driver's native signed URL (e.g. S3 presigned GET) when the
-	driver returns one."""
+	The file shows inline where that is safe; ``as_attachment`` makes it download."""
 	if isinstance(blob, str):
 		blob = frappe.get_doc("File Blob", blob)
+	if native := native_download_url(blob, filename, expires_in, as_attachment=as_attachment):
+		return native
 
-	driver = get_driver(blob.driver)
-	native = driver.download_url(
+	# a "/" in the name would split the URL path
+	filename = key_filename(filename)
+	expires = int(time.time()) + expires_in
+	signature = make_signature(blob.name, filename, expires)
+	download = "&download=1" if as_attachment else ""
+	prefix = PRIVATE_PREFIX if blob.is_private else PUBLIC_PREFIX
+	return f"{prefix}{blob.name}/{quote(filename, safe='')}?e={expires}&s={signature}{download}"
+
+
+def native_download_url(
+	blob: "FileBlob", filename: str, expires_in: int, *, as_attachment: bool = False
+) -> str | None:
+	"""The driver's own signed URL for a blob (e.g. S3 presigned GET), else None."""
+	return get_driver(blob.driver).download_url(
 		blob.key,
 		filename,
 		expires_in,
@@ -105,30 +106,6 @@ def signed_url_for_blob(
 		mime_type=blob.mime_type,
 		as_attachment=as_attachment,
 	)
-	if native:
-		return native
-
-	# a "/" in the name would split the URL path
-	return signed_path(
-		blob.name,
-		key_filename(filename),
-		int(time.time()) + expires_in,
-		is_private=bool(blob.is_private),
-		as_attachment=as_attachment,
-	)
-
-
-def signed_path(
-	blob_name: str, filename: str, expires: int, *, is_private: bool, as_attachment: bool = False
-) -> str:
-	"""Site-relative blob URL signed until ``expires`` (epoch seconds).
-
-	``filename`` is the unquoted download name; it is signed as given and
-	quoted in the path."""
-	signature = make_signature(blob_name, filename, expires)
-	download = "&download=1" if as_attachment else ""
-	prefix = PRIVATE_PREFIX if is_private else PUBLIC_PREFIX
-	return f"{prefix}{blob_name}/{quote(filename, safe='')}?e={expires}&s={signature}{download}"
 
 
 def signed_url(file: "File", expires_in: int = 3600) -> str:

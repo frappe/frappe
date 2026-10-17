@@ -339,15 +339,8 @@ def send_private_file(path: str, filename: str | None = None) -> Response:
 	as_attachment = extension.lower() in FORCE_DOWNLOAD_EXTENSIONS
 
 	if frappe.local.request.headers.get("X-Use-X-Accel-Redirect"):
-		path = "/protected/" + path
-		response = Response()
-		response.headers["X-Accel-Redirect"] = quote(frappe.utils.encode(path))
-		response.headers["Cache-Control"] = "private,max-age=3600,stale-while-revalidate=86400"
-		response.headers["Accept-Ranges"] = "bytes"
-		response.headers["Content-Type"] = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-
-		if as_attachment:
-			response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(filename)}"
+		mime_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+		response = x_accel_response("/protected/" + path, filename, mime_type, as_attachment)
 
 	else:
 		filepath = frappe.utils.get_site_path(path)
@@ -361,6 +354,20 @@ def send_private_file(path: str, filename: str | None = None) -> Response:
 			as_attachment=as_attachment,
 			download_name=filename,
 		)
+
+	return response
+
+
+def x_accel_response(path: str, filename: str, mime_type: str, as_attachment: bool) -> Response:
+	"""Let nginx send the file at the nginx-internal ``path``."""
+	response = Response()
+	response.headers["X-Accel-Redirect"] = quote(frappe.utils.encode(path))
+	response.headers["Cache-Control"] = "private,max-age=3600,stale-while-revalidate=86400"
+	response.headers["Accept-Ranges"] = "bytes"
+	response.headers["Content-Type"] = mime_type
+
+	if as_attachment:
+		response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(filename)}"
 
 	return response
 

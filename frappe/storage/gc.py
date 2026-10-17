@@ -1,14 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-"""Garbage collection for Storage v2.
-
-Deleting a File row never touches bytes synchronously; this daily job
-does. A blob is garbage when no Link field pointing to File Blob references
-it and it is older than ``MIN_AGE_HOURS``. ``revive_blob`` bumps
-``modified`` on a blob being reused, so GC skips it until the new link
-commits. Stale upload sessions are swept through
-``frappe.storage.upload.expire_stale_upload_sessions``.
-"""
+"""Daily garbage collection of unreferenced blobs and stale upload sessions. See "Lifecycle" in SPEC.md."""
 
 from pypika.queries import QueryBuilder, Table
 from pypika.terms import Criterion, ExistsCriterion
@@ -24,13 +16,9 @@ MIN_AGE_HOURS = 24
 
 
 def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
-	"""Delete unreferenced File Blob rows older than 24h, and their bytes.
+	"""Delete unreferenced File Blob rows older than 24h, and their bytes. Return counts.
 
-	Batched and defensive: one bad blob is logged and skipped, never
-	aborting the sweep. Runs whether or not the ``storage_v2`` flag is on:
-	blobs created while the flag was on must still be collected after it
-	is turned off. Returns ``{"blobs_deleted": int, "bytes_delete_errors":
-	int, "upload_sessions_expired": int}``."""
+	Runs with the ``storage_v2`` flag off too: blobs created while it was on still need collecting."""
 	stats = {"blobs_deleted": 0, "bytes_delete_errors": 0, "upload_sessions_expired": 0}
 	if not frappe.db.table_exists("File Blob"):
 		return stats
@@ -41,7 +29,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 	try:
 		columns = blob_reference_columns()
 		_warn_unindexed_reference_columns(columns, logger)
-		orphans = get_orphan_blobs(cutoff, batch_size, columns=columns)
+		orphans = get_orphan_blobs(cutoff, batch_size, columns)
 	except Exception:
 		# An incomplete set of references must fail closed. Upload expiry is
 		# independent and remains useful even when blob collection cannot run.
@@ -60,7 +48,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 			frappe.db.commit()  # nosemgrep
 		if deleted == 0 or len(orphans) < batch_size:
 			break
-		orphans = get_orphan_blobs(cutoff, batch_size, columns=columns)
+		orphans = get_orphan_blobs(cutoff, batch_size, columns)
 
 	stats["upload_sessions_expired"] = expire_upload_sessions(logger)
 
@@ -75,15 +63,14 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 
 def blob_reference_columns() -> list[dict]:
 	"""Return every persisted Link column pointing to File Blob."""
-	columns = []
-	seen = set()
-	for field in get_link_fields("File Blob"):
-		key = (field["parent"], field["fieldname"])
-		if key in seen:
-			continue
-		seen.add(key)
-		columns.append({"doctype": key[0], "fieldname": key[1], "issingle": int(field.get("issingle") or 0)})
-	return columns
+	columns = {
+		(field["parent"], field["fieldname"]): int(field.get("issingle") or 0)
+		for field in get_link_fields("File Blob")
+	}
+	return [
+		{"doctype": doctype, "fieldname": fieldname, "issingle": issingle}
+		for (doctype, fieldname), issingle in columns.items()
+	]
 
 
 def orphan_criterion(blob: Table, columns: list[dict]) -> Criterion:
@@ -122,9 +109,8 @@ def _warn_unindexed_reference_columns(columns: list[dict], logger) -> None:
 			)
 
 
-def get_orphan_blobs(cutoff, limit: int, *, columns: list[dict] | None = None) -> list[dict]:
+def get_orphan_blobs(cutoff, limit: int, columns: list[dict]) -> list[dict]:
 	"""Blobs no discovered Link column references, untouched since ``cutoff``."""
-	columns = blob_reference_columns() if columns is None else columns
 	blob = frappe.qb.DocType("File Blob").as_("blob")
 	return (
 		frappe.qb.from_(blob)
@@ -139,18 +125,9 @@ def get_orphan_blobs(cutoff, limit: int, *, columns: list[dict] | None = None) -
 def delete_blob(blob, cutoff, logger, stats: dict, *, columns: list[dict] | None = None) -> bool:
 	"""Delete one blob's bytes, then its row. Return True when the row is gone.
 
-	Re-verifies the orphan status under a row lock first, and re-reads
-	``key``/``driver``/``is_private`` under that same lock rather than trusting
-	``blob``'s scan-time values: a concurrent ``relocate_blobs()`` run can move
-	the blob to a new location between ``get_orphan_blobs`` and this call.
-	Deleting bytes at the stale location would leave the blob's *current*
-	bytes behind with no row left to ever find them, once this deletes the
-	row. ``revive_blob`` (``put_blob`` dedup, ``File.revive_linked_blob``) can
-	revive a selected orphan concurrently (it locks the row and bumps
-	``modified``), and a new File row may have appeared since
-	``get_orphan_blobs`` ran. Drivers treat a missing object as
-	a no-op delete. On a driver error the row is kept so the next run
-	retries."""
+	Re-checks the blob under a row lock and deletes at its locked location: since
+	the scan, a reference may have appeared or relocation may have moved it.
+	On a driver error the row is kept, so the next run retries."""
 	current = is_still_orphan(blob.name, cutoff, columns=columns)
 	if not current:
 		return False
@@ -175,13 +152,7 @@ def delete_blob(blob, cutoff, logger, stats: dict, *, columns: list[dict] | None
 
 
 def is_still_orphan(blob_name: str, cutoff, *, columns: list[dict] | None = None):
-	"""Lock the blob row; return its current fields if still unreferenced and stale.
-
-	Returns ``None`` when the row is gone, was touched since ``cutoff``, or is
-	referenced again. Otherwise returns a ``_dict`` with the row's current
-	``key``, ``driver``, and ``is_private``, read under the same lock, so a
-	caller always deletes bytes at the blob's up-to-date location even when a
-	concurrent ``relocate_blobs()`` run moved it after the candidate scan."""
+	"""Lock the blob row; return its current location if still unreferenced and stale, else None."""
 	row = frappe.db.get_value(
 		"File Blob", blob_name, ["modified", "key", "driver", "is_private"], for_update=True, as_dict=True
 	)

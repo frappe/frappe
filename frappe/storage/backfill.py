@@ -1,22 +1,9 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-"""Backfill File Blob rows for legacy File rows.
+"""Backfill File Blob rows for legacy File rows. See "Backfill and compatibility" in SPEC.md.
 
-Groups legacy rows (no blob, non-folder, non-remote, local ``file_url``)
-by ``(path, is_private)`` and creates one Ready ``local`` blob per
-group. Bytes are NOT moved: the blob key points at the legacy path,
-and ``file_url`` stays unchanged. Rows link to the blob through plain
-``db.set_value`` (no doc events). Missing or unreadable disk files are
-logged and skipped. Each path gets its own blob, even when two paths
-hold identical bytes, so every disk file has exactly one owner and GC
-or relocation can free it. Idempotent: linked rows are not refetched
-and a blob already keyed at a path is reused.
-
-Legacy keys: ``LocalDriver`` resolves keys relative to
-``{public,private}/files/``, so a legacy blob's key is its path there,
-e.g. ``logo.png`` for ``public/files/logo.png``. The driver confines
-resolved paths to the files root, so these keys stay inside the site.
-"""
+One ``local`` blob per disk path, keyed at that path under the files root
+(``logo.png`` for ``public/files/logo.png``). Bytes and ``file_url`` stay put."""
 
 import os
 
@@ -27,11 +14,9 @@ from frappe.utils import cint, get_files_path
 
 
 def run(batch_size: int = 500, filters: list | None = None) -> dict:
-	"""Backfill blobs for legacy File rows. Safe to re-run.
+	"""Backfill blobs for legacy File rows. Safe to re-run. Return counts and skipped rows.
 
-	``filters`` (a list of filter conditions) narrows the File query (tests use it to stay off real
-	site rows). Returns ``{"linked": int, "blobs_created": int,
-	"skipped": [{"name", "file_url", "reason"}]}``."""
+	``filters`` narrows the File query."""
 	stats = {"linked": 0, "blobs_created": 0, "skipped": []}
 	logger = frappe.logger("storage")
 	blob_cache: dict[tuple, str] = {}
@@ -85,11 +70,8 @@ def process_row(row, blob_cache: dict, stats: dict, logger) -> None:
 		return
 	is_private, rel_path = located
 
-	# Cache by resolved path, never by the legacy content_hash: that hash
-	# is MD5 and may be stale, so two rows can share it while their bytes
-	# differ. Rows that share a path share bytes by definition. Distinct
-	# paths never share a blob, even with identical bytes: the blob owns
-	# its key, and a path no blob owns is never deleted.
+	# by path, never by the legacy content_hash: it may be stale. Distinct
+	# paths never share a blob, so each disk file has one owner to free it.
 	group = (rel_path, is_private)
 	blob_name = blob_cache.get(group)
 	if not blob_name:

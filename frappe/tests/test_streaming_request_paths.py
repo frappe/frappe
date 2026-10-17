@@ -18,6 +18,7 @@ def inspect_request_body(offset: int | None = None, payload: str | None = None):
 		"data_cached": hasattr(request, "_cached_data"),
 		"form_cached": "form" in request.__dict__,
 		"max_content_length": request.max_content_length,
+		"user": frappe.session.user,
 	}
 	state["body"] = request.stream.read().decode()
 	return state
@@ -82,6 +83,40 @@ class TestStreamingRequestPaths(FrappeAPITestCase):
 		self.assertEqual(
 			(state["payload"], state["data_cached"], state["max_content_length"]), ("finish", True, 1024)
 		)
+
+	def test_bearer_auth_leaves_the_streaming_body_unread(self):
+		from frappe.integrations.doctype.oauth_bearer_token.test_oauth_bearer_token import (
+			make_oauth_client,
+		)
+
+		user = "test1@example.com"
+		access_token = frappe.generate_hash()
+		client = make_oauth_client()
+		token = frappe.get_doc(
+			{
+				"doctype": "OAuth Bearer Token",
+				"client": client.name,
+				"user": user,
+				"access_token": access_token,
+				"expires_in": 3600,
+				"scopes": "all openid",
+				"status": "Active",
+			}
+		).insert(ignore_permissions=True)
+		# the request opens its own connection, so the token must be committed
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "OAuth Client", client.name, force=1, ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "OAuth Bearer Token", token.name, force=1, ignore_permissions=True)
+
+		response = self.request(
+			ENDPOINT,
+			[ENDPOINT],
+			data=b"123456789",
+			headers={"Authorization": f"Bearer {access_token}"},
+		)
+		state = self.state(response)
+		self.assertEqual((state["user"], state["data_cached"], state["body"]), (user, False, "123456789"))
 
 	def test_upload_file_size_cap_applies_on_every_api_mount(self):
 		for path in ("/api/method/upload_file", "/api/v1/method/upload_file", "/api/v2/method/upload_file"):

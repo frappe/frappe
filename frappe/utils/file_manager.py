@@ -155,39 +155,23 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 	import frappe.storage
 
 	if frappe.storage.enabled():
-		# Storage v2: route through File.save_file -> put_blob. The legacy
-		# write_file / delete_file_data_content hooks are ignored for v2 rows.
+		# Storage v2: File.save_file -> put_blob. The legacy write_file /
+		# delete_file_data_content hooks are ignored for v2 rows.
 		warn_deprecated_storage_hooks()
-		f = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": fname,
-				"content": content,
-				"attached_to_doctype": dt,
-				"attached_to_name": dn,
-				"attached_to_field": df,
-				"folder": folder,
-				"is_private": cint(is_private),
-			}
-		)
-		f.flags.ignore_permissions = True
-		try:
-			f.insert()
-		except frappe.DuplicateEntryError:
-			return frappe.get_doc("File", f.duplicate_entry)
-		return f
+		file_data = {"file_name": fname, "content": content, "is_private": cint(is_private)}
+	else:
+		file_size = check_max_file_size(content)
+		content_hash = get_content_hash(content)
+		content_type = mimetypes.guess_type(fname)[0]
+		fname = get_file_name(fname, content_hash[-6:])
+		file_data = get_file_data_from_hash(content_hash, is_private=is_private)
+		if not file_data:
+			call_hook_method("before_write_file", file_size=file_size)
 
-	file_size = check_max_file_size(content)
-	content_hash = get_content_hash(content)
-	content_type = mimetypes.guess_type(fname)[0]
-	fname = get_file_name(fname, content_hash[-6:])
-	file_data = get_file_data_from_hash(content_hash, is_private=is_private)
-	if not file_data:
-		call_hook_method("before_write_file", file_size=file_size)
-
-		write_file_method = get_hook_method("write_file", fallback=save_file_on_filesystem)
-		file_data = write_file_method(fname, content, content_type=content_type, is_private=is_private)
-		file_data = copy(file_data)
+			write_file_method = get_hook_method("write_file", fallback=save_file_on_filesystem)
+			file_data = write_file_method(fname, content, content_type=content_type, is_private=is_private)
+			file_data = copy(file_data)
+		file_data.update({"file_size": file_size, "content_hash": content_hash, "is_private": is_private})
 
 	file_data.update(
 		{
@@ -196,9 +180,6 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 			"attached_to_name": dn,
 			"attached_to_field": df,
 			"folder": folder,
-			"file_size": file_size,
-			"content_hash": content_hash,
-			"is_private": is_private,
 		}
 	)
 
