@@ -146,6 +146,8 @@ class PlutoPage:
 		if overflow > content_width + 1:
 			scale *= max(content_width / overflow, MAX_SHRINK)
 			book = self._layout(width, height, margins, scale)
+		if book.get_page_count() > 1:
+			book = self._layout(width, height, margins, scale, MULTI_PAGE_STYLE)
 
 		pdf = self._write(book, width, height, scale)
 		return pdf if raw else PdfReader(BytesIO(pdf))
@@ -159,12 +161,10 @@ class PlutoPage:
 	def close(self):
 		self.html = ""
 
-	def _layout(self, width, height, margins, scale):
-		margins = [margin / scale for margin in margins]
-		book = self._book(width / scale, height / scale, margins)
-		if book.get_page_count() > 1:
-			book = self._book(width / scale, height / scale, margins, user_style=MULTI_PAGE_STYLE)
-		return book
+	def _layout(self, width, height, margins, scale, user_style=""):
+		return self._book(
+			width / scale, height / scale, [margin / scale for margin in margins], user_style=user_style
+		)
 
 	def _book(self, width, height, margins=None, user_style=""):
 		import plutoprint
