@@ -1039,10 +1039,12 @@ def delete_bulk(doctype, items, error_logs=None):
 			]
 			del frappe.message_log[message_count:]
 			if frappe.flags.error_message:
+				delete_denied = _("You need the '{0}' permission on {1} {2} to perform this action.")
 				reasons.append(
-					_("You need the '{0}' permission on {1} {2} to perform this action.").format(
-						_("delete"), frappe.bold(_(doctype)), ""
-					)
+					delete_denied.format(_("delete"), frappe.bold(_(doctype)), "")
+					if frappe.flags.error_message
+					== delete_denied.format(_("delete"), frappe.bold(_(doctype)), d)
+					else frappe.flags.error_message
 				)
 				frappe.flags.error_message = None
 			frappe.db.rollback()
