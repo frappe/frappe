@@ -67,4 +67,4 @@ class DocumentNamingRule(Document):
 			return
 
 		prefix = parse_naming_series(self.prefix, doc=doc)
-		doc.name = prefix + getseries(prefix, self.prefix_digits)
+		doc.name = prefix + getseries(prefix, self.prefix_digits, doc.doctype)

@@ -123,6 +123,6 @@ def raise_series(prefix, current):
 	existing = (frappe.qb.from_(series).where(series.name == prefix).select("current")).run()
 
 	if not existing:
-		frappe.qb.into(series).insert(prefix, current).run()
+		frappe.qb.into(series).columns("name", "current").insert(prefix, current).run()
 	elif (existing[0][0] or 0) < current:
 		frappe.qb.update(series).set(series.current, current).where(series.name == prefix).run()
