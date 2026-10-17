@@ -96,6 +96,7 @@ class TestCloseInheritedFds(unittest.TestCase):
 
 			listener = socket.socket()
 			os.dup2(listener.fileno(), 3)
+			os.set_inheritable(3, True)  # as systemd passes it
 			os.environ.update(LISTEN_PID=str(os.getpid()), LISTEN_FDS="1")
 			close_inherited_fds()
 			print(systemd_socket_fd(), os.get_inheritable(3))
