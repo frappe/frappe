@@ -626,13 +626,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.last_chart_type = args.chart_type;
 
 		const get_df = (field) => this.columns_map[field].docfield;
+		const { fieldtype, options } = get_df(args.y_axes[0]);
 
 		this.$charts_wrapper.removeClass("hidden");
 
-		this.chart = new frappe.Chart(this.$charts_wrapper.find(".charts-inner-wrapper")[0], {
+		this.chart?.destroy();
+		this.chart = frappe.ui.chart(this.$charts_wrapper.find(".charts-inner-wrapper"), {
 			title: __("{0} Chart", [this.doctype]),
 			data: data,
 			type: args.chart_type,
+			fieldtype,
+			options,
 			truncateLegends: 1,
 			colors: ["#70E078", "light-blue", "orange", "red"],
 			axisOptions: {
@@ -661,7 +665,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.$charts_wrapper.removeClass("hidden");
 		const { x_axis, y_axes, chart_type } = this.chart_args;
 		this.build_chart_args(x_axis, y_axes, chart_type);
-		this.chart.update(this.chart_args);
+		const { labels, datasets } = this.chart_args;
+		this.chart.update({ labels, datasets });
 	}
 
 	chart_axes_valid(chart_args) {
@@ -670,6 +675,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	reset_chart_state() {
+		this.chart?.destroy();
 		this.chart = null;
 		this.chart_args = null;
 		this.$charts_wrapper.addClass("hidden");

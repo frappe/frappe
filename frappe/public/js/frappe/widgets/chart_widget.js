@@ -39,7 +39,6 @@ export default class ChartWidget extends Widget {
 	}
 
 	refresh() {
-		delete this.dashboard_chart;
 		this.set_body();
 		this.make_chart();
 	}
@@ -57,8 +56,8 @@ export default class ChartWidget extends Widget {
 	}
 
 	setup_container() {
-		// The island lives on a node inside the body, so it goes before the body does.
-		this.unmount_island();
+		// The chart lives on a node inside the body, so it goes before the body does.
+		this.destroy();
 		this.body.empty();
 
 		// `type` says how desk draws a chart. An app draws an island, so a
@@ -242,6 +241,10 @@ export default class ChartWidget extends Widget {
 
 	destroy() {
 		this.unmount_island();
+		this.dashboard_chart?.destroy();
+		delete this.dashboard_chart;
+		this.empty_sample?.destroy();
+		delete this.empty_sample;
 	}
 
 	render_time_series_filters() {
@@ -420,7 +423,6 @@ export default class ChartWidget extends Widget {
 				label: __("Refresh"),
 				action: "action-refresh",
 				handler: () => {
-					delete this.dashboard_chart;
 					this.make_chart();
 				},
 			},
@@ -436,7 +438,6 @@ export default class ChartWidget extends Widget {
 				action: "action-reset",
 				handler: () => {
 					this.reset_chart();
-					delete this.dashboard_chart;
 					this.make_chart();
 				},
 			},
@@ -726,18 +727,24 @@ export default class ChartWidget extends Widget {
 
 	async render() {
 		let setup_dashboard_chart = () => {
-			const chart_args = this.get_chart_args();
+			const chart_args = this.with_classic_palette(
+				frappe.utils.get_chart_args(this.get_chart_args())
+			);
 
 			const is_circular_chart = ["Pie", "Donut", "Percentage"].includes(this.chart_doc.type);
 
 			if (!this.dashboard_chart) {
-				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
+				this.dashboard_chart = frappe.ui.chart(this.chart_wrapper, chart_args);
 			} else if (is_circular_chart) {
+				this.dashboard_chart.destroy();
 				this.chart_wrapper.empty();
-				delete this.dashboard_chart;
-				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
+				this.dashboard_chart = frappe.ui.chart(this.chart_wrapper, chart_args);
 			} else {
 				this.dashboard_chart.update(this.data);
+			}
+
+			if (this.chart_doc.type == "Heatmap" && frappe.ui.chart.is_classic(chart_args)) {
+				this.render_heatmap_legend();
 			}
 		};
 
@@ -761,7 +768,6 @@ export default class ChartWidget extends Widget {
 			}
 
 			this.width == "Full" && this.summary && this.set_summary();
-			this.chart_doc.type == "Heatmap" && this.render_heatmap_legend();
 		}
 	}
 
@@ -779,13 +785,14 @@ export default class ChartWidget extends Widget {
 	// charts reads as a list of what is coming rather than "No data yet" over and over.
 	show_empty_state() {
 		const message = this.chart_doc.empty_state_message;
+		this.empty_sample?.destroy();
+		delete this.empty_sample;
 		// shown before the sample is drawn, which sizes itself to the space it is given
 		this.empty.empty().show();
 
-		if (this.chart_doc.type == "Line") {
-			const $sample = $(`<div class="chart-empty-sample" aria-hidden="true"></div>`);
-			$sample.appendTo(this.empty);
-			frappe.utils.make_chart($sample[0], {
+		const sample =
+			this.chart_doc.type == "Line" &&
+			frappe.utils.get_chart_args({
 				type: "line",
 				colors: this.get_chart_colors(),
 				height: this.height,
@@ -793,6 +800,12 @@ export default class ChartWidget extends Widget {
 				lineOptions: { regionFill: 1, hideDots: 1, spline: 1 },
 				data: EMPTY_SAMPLE_LINE,
 			});
+		// The new charts draw their axes in a shadow root, which the CSS that strips the sample
+		// to its line cannot reach.
+		if (sample && frappe.ui.chart.is_classic(sample)) {
+			const $sample = $(`<div class="chart-empty-sample" aria-hidden="true"></div>`);
+			$sample.appendTo(this.empty);
+			this.empty_sample = frappe.ui.chart($sample, this.with_classic_palette(sample));
 		}
 
 		this.empty.append(
@@ -851,10 +864,12 @@ export default class ChartWidget extends Widget {
 		}
 
 		if (this.chart_doc.currency) {
+			if (!this.counts_documents()) chart_args.currency = this.chart_doc.currency;
 			chart_args.tooltipOptions = {
 				formatTooltipY: (value) => format_currency(value, this.chart_doc.currency),
 			};
 		} else {
+			Object.assign(chart_args, { fieldtype, options });
 			chart_args.tooltipOptions = {
 				formatTooltipY: (value) =>
 					frappe.format(
@@ -871,8 +886,8 @@ export default class ChartWidget extends Widget {
 					this.chart_settings.heatmap_year ||
 					this.chart_doc.heatmap_year
 			);
-			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
-			chart_args.data.end = new Date(`${heatmap_year + 1}-01-01`);
+			chart_args.data.start = new Date(heatmap_year, 0, 1);
+			chart_args.data.end = new Date(heatmap_year, 11, 31);
 		}
 		if (this.chart_doc.show_values_over_chart) chart_args.valuesOverPoints = true;
 		let set_options = (options) => {
@@ -900,8 +915,23 @@ export default class ChartWidget extends Widget {
 		return chart_args;
 	}
 
+	// A count is never an amount, whatever currency the chart is set to.
+	counts_documents() {
+		const { chart_type, group_by_type } = this.chart_doc;
+		return chart_type == "Count" || (chart_type == "Group By" && group_by_type == "Count");
+	}
+
+	// frappe-charts reads colours as literal values, so a classic chart that names none takes
+	// Espresso's palette resolved. The new charts follow the theme on their own.
+	with_classic_palette(chart_args) {
+		if (chart_args.colors?.length || !frappe.ui.chart.is_classic(chart_args)) {
+			return chart_args;
+		}
+		return { ...chart_args, colors: frappe.utils.get_chart_palette() };
+	}
+
 	// One colour per series. A series without its own takes Espresso's colour for its place, and a
-	// chart that names none returns nothing, so make_chart gives it the whole palette.
+	// chart that names none returns nothing, so the chart's own palette applies.
 	get_chart_colors() {
 		let colors = [];
 		if (this.chart_doc.y_axis.length) {

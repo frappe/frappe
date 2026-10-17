@@ -2,9 +2,12 @@
 # License: MIT. See LICENSE
 import os
 import tempfile
+from contextlib import contextmanager
 from unittest.mock import patch
 
-from frappe.bundler import remove_stale_island_toolchain
+import click
+
+from frappe.bundler import build_framework_islands, build_page_islands, remove_stale_island_toolchain
 from frappe.tests import UnitTestCase
 
 
@@ -32,3 +35,27 @@ class TestRemoveStaleIslandToolchain(UnitTestCase):
 		with tempfile.TemporaryDirectory() as source:
 			with patch("frappe.get_app_source_path", return_value=source):
 				remove_stale_island_toolchain()
+
+
+@contextmanager
+def failing_island_builds():
+	"""A frappe source tree whose island build scripts fail."""
+	with tempfile.TemporaryDirectory() as source:
+		scripts = os.path.join(source, "ui", "vite", "island")
+		os.makedirs(scripts)
+		for script in ("build-framework.js", "build-pages.js"):
+			with open(os.path.join(scripts, script), "w") as f:
+				f.write("process.exit(1);\n")
+
+		with patch("frappe.get_app_source_path", return_value=source):
+			yield
+
+
+class TestIslandBuilds(UnitTestCase):
+	def test_failed_framework_island_build_fails_bench_build(self):
+		with failing_island_builds():
+			self.assertRaises(click.ClickException, build_framework_islands)
+
+	def test_failed_page_island_build_does_not_fail_bench_build(self):
+		with failing_island_builds():
+			build_page_islands()

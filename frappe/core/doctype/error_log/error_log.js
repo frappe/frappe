@@ -22,6 +22,7 @@ frappe.ui.form.on("Error Log", {
 
 function render_fingerprint_stats(frm) {
 	const wrapper = frm.get_field("fingerprint_stats").$wrapper;
+	frm.fingerprint_timeline?.destroy();
 	wrapper.empty().append(`<div class="text-muted">${__("Loading error stats...")}</div>`);
 
 	frappe.call({
@@ -42,7 +43,10 @@ function render_fingerprint_stats(frm) {
 				frappe.set_route("List", "Error Log", { fingerprint: frm.doc.fingerprint });
 			});
 
-			render_timeline_chart(wrapper.find(".fingerprint-timeline")[0], stats.timeline);
+			frm.fingerprint_timeline = render_timeline_chart(
+				wrapper.find(".fingerprint-timeline")[0],
+				stats.timeline
+			);
 		},
 	});
 }
@@ -109,7 +113,7 @@ function render_timeline_chart(container, timeline) {
 		values.push(counts[day] || 0);
 	}
 
-	new frappe.Chart(container, {
+	return frappe.ui.chart(container, {
 		type: "bar",
 		height: 160,
 		colors: ["#e24c4c"],

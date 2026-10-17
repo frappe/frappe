@@ -1610,7 +1610,10 @@ Object.assign(frappe.utils, {
 		if (!custom_options.colors?.length) {
 			custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
 		}
+		return new frappe.Chart(wrapper, frappe.utils.get_chart_args(custom_options));
+	},
 
+	get_chart_args(custom_options = {}) {
 		let chart_args = {
 			type: "bar",
 			axisOptions: {
@@ -1629,7 +1632,7 @@ Object.assign(frappe.utils, {
 			}
 		}
 		frappe.utils.set_space_label_ratio(chart_args);
-		return new frappe.Chart(wrapper, chart_args);
+		return chart_args;
 	},
 
 	// Espresso's chart colours (CHART_PALETTE) as the current theme defines them: frappe-charts
@@ -1779,23 +1782,18 @@ Object.assign(frappe.utils, {
 			return x_string;
 		}
 
+		const round = (result) =>
+			this.get_number_of_decimals(result) > max_no_of_decimals
+				? result.toFixed(max_no_of_decimals)
+				: result;
+
 		for (const map of number_system) {
 			if (x >= map.divisor) {
-				let result = number / map.divisor;
-				const no_of_decimals = this.get_number_of_decimals(result);
-				/*
-					If no_of_decimals is greater than max_no_of_decimals,
-					round the number to max_no_of_decimals
-				*/
-				result =
-					no_of_decimals > max_no_of_decimals
-						? result.toFixed(max_no_of_decimals)
-						: result;
-				return result + " " + map.symbol;
+				return round(number / map.divisor) + " " + map.symbol;
 			}
 		}
 
-		return number.toFixed(max_no_of_decimals);
+		return String(round(number));
 	},
 
 	get_number_of_decimals: function (number) {
