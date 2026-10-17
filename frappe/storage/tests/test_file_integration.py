@@ -350,6 +350,24 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.assertEqual(copy.blob, original.blob)
 			self.assertEqual(copy.file_url, original.file_url)
 
+	def test_copied_row_moves_an_old_blob_out_of_the_gc_window(self):
+		# until the copy commits, only a fresh modified keeps a concurrent GC
+		# pass from deleting the blob if the original row is deleted meanwhile
+		from frappe.storage.gc import MIN_AGE_HOURS
+		from frappe.storage.tests.test_gc_backfill import backdate
+		from frappe.utils import add_to_date, now_datetime
+
+		with storage_flag(), fake():
+			original = self.make_file(unique_png(), "old-public.png")
+			backdate(original.blob)
+
+			copy = frappe.get_doc({"doctype": "File", "file_url": original.file_url}).insert()
+			self.delete_later("File", copy.name)
+
+		self.assertEqual(copy.blob, original.blob)
+		cutoff = add_to_date(now_datetime(), hours=-MIN_AGE_HOURS)
+		self.assertGreater(frappe.db.get_value("File Blob", original.blob, "modified"), cutoff)
+
 	def test_copied_private_url_needs_permission_on_the_blob(self):
 		# knowing a private blob URL must not grant access through a new row
 		self.make_weak_user()
