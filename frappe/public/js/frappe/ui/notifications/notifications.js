@@ -355,10 +355,6 @@ class NotificationsView extends BaseNotificationsView {
 			</a>`);
 
 		item_html.on("click", () => {
-<<<<<<< HEAD
-=======
-			item_html.hasClass("unread") && this.mark_as_read(notification_log.name, item_html);
->>>>>>> 0ed5c35 (fix: notification read state resets on page reload)
 			this.notifications_icon.trigger("click");
 		});
 

@@ -164,7 +164,6 @@ def get():
 		bootinfo["metadata_version"] = reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
-	# outside the cached blob above; marking a notification read only writes the row
 	bootinfo.notification_unread_count = frappe.db.count(
 		"Notification Log", {"read": 0, "for_user": frappe.session.user}
 	)
