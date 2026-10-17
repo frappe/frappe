@@ -272,19 +272,16 @@ file download instead of showing inline.
 ### Embedded URLs (rich text, print formats, email)
 
 Stored content always holds a **stable, unsigned URL**. A signed URL is
-never stored, because content outlives any TTL. Signing happens at
-egress.
+never stored, because content outlives any TTL.
 
 - `<img src>` / Attach fields, public blob: `/files/<blob>/<filename>`.
 - `<img src>` / Attach fields, private blob:
   `/private/files/<blob>/<filename>` with no signature. Desk, portal, and
   web-form rendering authenticate it with the session cookie and the
   existing permission delegation, like v1 private files.
-- Email send: outgoing HTML and text parts are rewritten at send time
-  (`frappe/storage/email.py`). Private blob URLs the sender can download
-  become absolute signed URLs with a long TTL (`storage_email_url_ttl`,
-  default 30 days). v1 private URLs are left as they are. Today external
-  recipients of private images get a login redirect.
+- Email send: unchanged from v1. A private URL in an email needs a
+  login to open. Signed links are an explicit API (`signed_url`), not
+  something email adds.
 - PDF / print render: the chromium renderer intercepts `/files/` and
   `/private/files/` requests. It reads a file it finds on local disk, as
   in v1. Otherwise it resolves the URL to its blob, including a relocated
@@ -446,10 +443,9 @@ Each stage is independently shippable and revertible by the flag.
 
 1. Hashing: sha256 for new blobs, old MD5 rows untouched, backfill
    computes sha256 from disk. Approved.
-2. Embedded URLs: stable unsigned URLs in content, signing at egress
-   (email send; PDF render reads the bytes through the driver instead).
-   See "Embedded URLs" above. Signed URL default TTL 1 hour; email
-   variant 30 days, site configurable.
+2. Embedded URLs: stable unsigned URLs in content. Email does not sign
+   them; PDF render reads the bytes through the driver. See "Embedded
+   URLs" above. Signed URL default TTL 1 hour.
 3. `attach_file` requires write permission. It already does.
 4. URLs reuse v1's prefixes: `/files/<blob>/<filename>` and
    `/private/files/<blob>/<filename>`. No new URL prefix, and code that
