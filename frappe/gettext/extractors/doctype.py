@@ -1,5 +1,6 @@
 import json
 
+<<<<<<< HEAD
 EXCLUDE_SELECT_OPTIONS = [
 	"naming_series",
 	"number_format",
@@ -7,6 +8,9 @@ EXCLUDE_SELECT_OPTIONS = [
 	"currency_precision",
 	"minimum_password_score",
 ]
+=======
+from .utils import extract_messages_from_docfield, extract_messages_from_links, get_line_number
+>>>>>>> 6c919fb (feat(gettext): add line numbers for strings from JSON files (#44603))
 
 
 def extract(fileobj, *args, **kwargs):
@@ -15,23 +19,30 @@ def extract(fileobj, *args, **kwargs):
 	:param fileobj: the file-like object the messages should be extracted from
 	:rtype: `iterator`
 	"""
-	data = json.load(fileobj)
+	text = fileobj.read().decode()
+	data = json.loads(text)
 
 	if isinstance(data, list):
 		return
 
 	doctype = data.get("name")
 
-	yield None, "_", doctype, ["Name of a DocType"]
+	yield get_line_number(text, "name", doctype), "_", doctype, ["Name of a DocType"]
 
 	doctype_description = data.get("description")
 	if doctype_description:
-		yield None, "_", doctype_description, ["Description of a DocType"]
+		yield (
+			get_line_number(text, "description", doctype_description),
+			"_",
+			doctype_description,
+			["Description of a DocType"],
+		)
 
 	messages = []
 	fields = data.get("fields", [])
 	links = data.get("links", [])
 
+<<<<<<< HEAD
 	for field in fields:
 		fieldtype = field.get("fieldtype")
 		fieldname = field.get("fieldname")
@@ -79,10 +90,18 @@ def extract(fileobj, *args, **kwargs):
 
 	# By using "pgettext" as the function name we can supply the doctype as context
 	yield from ((None, "_", message, [comment]) for message, comment in messages)
+=======
+	for field in data.get("fields", []):
+		messages.extend(extract_messages_from_docfield(doctype, field, text))
+
+	messages.extend(extract_messages_from_links(doctype, data.get("links", []), text))
+
+	yield from ((lineno, "_", message, [comment]) for lineno, message, comment in messages)
+>>>>>>> 6c919fb (feat(gettext): add line numbers for strings from JSON files (#44603))
 
 	# Role names do not get context because they are used with multiple doctypes
 	yield from (
-		(None, "_", perm["role"], ["Name of a role"])
+		(get_line_number(text, "role", perm["role"]), "_", perm["role"], ["Name of a role"])
 		for perm in data.get("permissions", [])
 		if "role" in perm
 	)
