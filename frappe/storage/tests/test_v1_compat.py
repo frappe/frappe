@@ -453,6 +453,33 @@ class TestV1LegacyDiskPaths(V1CompatTestCase):
 
 		self.assertTrue(os.path.isfile(path))
 
+	def test_deleting_the_last_unbackfilled_row_keeps_bytes_its_blob_still_serves(self):
+		from frappe.storage import backfill
+
+		with flag_off():
+			first = self.legacy_file(label="delete-reused")
+			path = first.get_full_path()
+			copy = frappe.get_doc({"doctype": "File", "file_url": first.file_url}).insert()
+		self.remove_later(path)
+		self.delete_later("File", copy.name)
+
+		with flag_on():
+			backfill.run(filters={"name": first.name})
+			blob = frappe.db.get_value("File", first.name, "blob")
+			self.delete_later("File Blob", blob)
+			# a new upload of the same bytes reuses the blob under its own URL
+			upload = frappe.get_doc(
+				{"doctype": "File", "file_name": "reused.txt", "content": first.get_content()}
+			).insert()
+			self.delete_later("File", upload.name)
+			self.assertEqual(upload.blob, blob)
+			self.assertNotEqual(upload.file_url, first.file_url)
+
+			frappe.get_doc("File", first.name).delete()
+			frappe.get_doc("File", copy.name).delete()
+
+		self.assertTrue(os.path.isfile(path))
+
 
 class TestV1PrivacyChange(V1CompatTestCase):
 	"""``handle_is_private_changed`` on disk-backed rows.

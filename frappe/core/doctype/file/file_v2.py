@@ -257,8 +257,17 @@ class FileV2(File):
 		once no other row uses its URL, since collection never sees it."""
 		if self.get("blob"):
 			return
-		if not frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)}):
-			FileV1.delete_file_from_filesystem(self)  # compat shim: unbackfilled legacy row
+		if frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)}):
+			return
+
+		from frappe.storage.backfill import locate
+
+		if located := locate(self.file_url or ""):
+			is_private, rel_path = located
+			# a backfilled blob keeps its legacy path as key and may serve other rows
+			if frappe.db.exists("File Blob", {"driver": "local", "key": rel_path, "is_private": is_private}):
+				return
+		FileV1.delete_file_from_filesystem(self)  # compat shim: unbackfilled legacy row
 
 
 def create_file_from_blob(
