@@ -13,7 +13,7 @@ from frappe.core.doctype.file.file_v2 import create_file_from_blob
 from frappe.storage import get_driver, put_blob
 from frappe.storage.blob import validate_upload
 from frappe.storage.memory_driver import fake
-from frappe.storage.tests import reset_file_controller
+from frappe.storage.tests import file_permissions_enforced, reset_file_controller
 from frappe.tests import IntegrationTestCase
 
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -34,20 +34,6 @@ def storage_flag(value=1):
 		else:
 			frappe.conf.storage_v2 = previous
 		reset_file_controller()
-
-
-@contextmanager
-def file_permissions_enforced():
-	"""Undo an installed app's ``ignore_file_permissions`` hook."""
-	real_get_hooks = frappe.get_hooks
-
-	def get_hooks(hook=None, *args, **kwargs):
-		if hook == "ignore_file_permissions":
-			return []
-		return real_get_hooks(hook, *args, **kwargs)
-
-	with patch("frappe.get_hooks", side_effect=get_hooks):
-		yield
 
 
 def unique_png():

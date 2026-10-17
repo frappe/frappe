@@ -24,7 +24,7 @@ from frappe.storage.blob import put_blob
 from frappe.storage.local_driver import LocalDriver
 from frappe.storage.memory_driver import MemoryDriver
 from frappe.storage.serve import serve_private_file, serve_public_file, stream_blob
-from frappe.storage.tests import reset_file_controller
+from frappe.storage.tests import file_permissions_enforced, reset_file_controller
 from frappe.storage.upload import (
 	BLOB_SESSION,
 	FINISHING_SUFFIX,
@@ -190,8 +190,8 @@ class TestServeUpload(IntegrationTestCase):
 			if hasattr(frappe.local, "request"):
 				del frappe.local.request
 
-	def open_session(self, filename: str, size: int, is_private=1) -> str:
-		result = create_upload(filename, size, is_private=is_private)
+	def open_session(self, filename: str, size: int, is_private=1, **target) -> str:
+		result = create_upload(filename, size, is_private=is_private, **target)
 		self.assertEqual(result["mode"], "chunked")
 		upload_id = result["upload_id"]
 		self._sessions.append(upload_id)
@@ -338,6 +338,36 @@ class TestServeUpload(IntegrationTestCase):
 			meta_path, part_path = get_session_paths(upload_id)
 			self.assertFalse(os.path.exists(meta_path))
 			self.assertFalse(os.path.exists(part_path))
+
+	def test_ordinary_user_uploads_to_own_todo_and_only_they_read_it_privately(self):
+		uploader, stranger = "test1@example.com", "test2@example.com"
+		with flag_on(), frappe.storage.fake() as store, file_permissions_enforced():
+			files = {}
+			with self.set_user(uploader):
+				todo = frappe.get_doc(doctype="ToDo", description="storage v2 upload").insert()
+				for is_private in (0, 1):
+					content = b"ordinary user upload " + frappe.generate_hash(length=16).encode()
+					upload_id = self.open_session(
+						"notes.txt", len(content), is_private=is_private, doctype="ToDo", docname=todo.name
+					)
+					self.send_chunk(upload_id, 0, content)
+					file = finish_upload(upload_id, checksum=hashlib.sha256(content).hexdigest())
+					files[is_private] = (file, content)
+
+					self.assertEqual(file.owner, uploader)
+					self.assertEqual((file.attached_to_doctype, file.attached_to_name), ("ToDo", todo.name))
+					self.assertEqual(file.is_private, is_private)
+					blob_key = frappe.db.get_value("File Blob", file.blob, "key")
+					self.assertTrue(store.exists(blob_key, is_private=bool(is_private)))
+
+				private_file, private_content = files[1]
+				self.assertEqual(response_body(self.serve(private_file.file_url)), private_content)
+
+			with self.set_user(stranger):
+				public_file, public_content = files[0]
+				self.assertEqual(response_body(self.serve(public_file.file_url)), public_content)
+				with self.assertRaises(Forbidden):
+					self.serve(private_file.file_url)
 
 	def test_finish_upload_runs_file_adoption_hook_before_insert_and_saves_mutation(self):
 		content = b"file adoption hook " + frappe.generate_hash(length=16).encode()
