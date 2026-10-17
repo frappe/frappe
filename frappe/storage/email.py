@@ -23,11 +23,13 @@ from frappe.utils import get_url
 
 DEFAULT_EMAIL_URL_TTL = 30 * 24 * 60 * 60  # 30 days, in seconds
 
-# href/src attributes holding a relative or absolute private blob URL
+# href/src attributes holding a relative or absolute private blob URL. The
+# filename runs to the closing quote, so a stored URL with a space in its
+# filename (``/private/files/<blob>/my photo.png``) is still matched.
 BLOB_URL_PATTERN = re.compile(
 	r"""(?P<attr>href|src)\s*=\s*(?P<q>["'])"""
 	r"""(?P<prefix>https?://[^"'\s]*?)?"""
-	rf"""{re.escape(PRIVATE_PREFIX)}(?P<blob>{BLOB_NAME_PATTERN.pattern})/(?P<filename>[^/"'?#\s]+)"""
+	rf"""{re.escape(PRIVATE_PREFIX)}(?P<blob>{BLOB_NAME_PATTERN.pattern})/(?P<filename>(?:(?!(?P=q))[^/?#])+)"""
 	r"""(?P<query>\?[^"'\s]*)?"""
 	r"""(?P=q)""",
 	re.IGNORECASE,

@@ -217,6 +217,36 @@ class TestEmailRewrite(IntegrationTestCase):
 		self.assertEqual(filename, "invoice.pdf")
 		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
 
+	def test_stored_url_with_a_space_in_its_filename_is_signed(self):
+		# a File's stored URL keeps the filename's spaces: /private/files/<blob>/my photo.png
+		from frappe.email.email_body import get_formatted_html
+		from frappe.storage.url import blob_url
+
+		with frappe.storage.fake():
+			blob = frappe.storage.put_blob(
+				io.BytesIO(b"email rewrite photo with a space"), is_private=True, filename="my photo.png"
+			)
+		file = frappe.new_doc("File")
+		file.update({"file_name": "my photo.png", "blob": blob.name, "is_private": 1})
+		file.name = frappe.generate_hash(length=10)
+		file.owner = frappe.session.user
+		file.db_insert()
+		message = f'<p><img src="{blob_url(blob)}"></p>'
+
+		with storage_v2_enabled():
+			html = get_formatted_html(
+				"Test Subject",
+				message,
+				email_account=frappe._dict(name="Stub Email Account"),
+				raw_html=True,
+				add_css=False,
+			)
+
+		blob_name, filename, expires, signature = self.parse_signed(SIGNED_BLOB_URL.search(html).group("url"))
+		self.assertEqual(blob_name, blob.name)
+		self.assertEqual(filename, "my photo.png")
+		self.assertTrue(verify_signature(blob_name, filename, expires, signature))
+
 	def test_text_urls_signed(self):
 		"""Bare private blob URLs in a plain-text body are signed too."""
 		blob = self.make_blob()
