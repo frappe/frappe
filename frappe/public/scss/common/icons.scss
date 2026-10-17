@@ -40,8 +40,8 @@ use.like-icon {
 .liked {
 	.like-icon,
 	.like-icon use {
-		--icon-stroke: var(--invert-neutral);
-		fill: var(--invert-neutral);
+		--icon-stroke: var(--ink-gray-8);
+		fill: var(--ink-gray-8);
 	}
 }
 

@@ -42,38 +42,60 @@ test.describe("Dashboard links", () => {
 		await desk.login("Administrator");
 	});
 
-	test("Adding a new contact, checking for the counter on the dashboard and deleting the created contact", async ({
+	test("Shows linked documents in the sidebar and adds one from the connections dialog", async ({
 		page,
 		desk,
 	}) => {
-		const contact_link = page.locator('.page-container:visible [data-doctype="Contact"]');
+		const contact_item = page.locator('.form-connections-item[data-doctype="Contact"]');
+		const panel = page.locator(".settings-dialog-panel:visible");
+		const rows = panel.locator("tr[data-row-idx]");
 
 		await page.goto("/desk/contact");
 		await desk.clear_filters();
 
 		await page.goto(`/desk/user/${TEST_USER}`);
 
-		await desk.select_form_tab("Connections");
-		await expect(contact_link.filter({ hasText: "Contact" }).first()).toBeVisible();
+		// the sidebar lists the linked contact, the old tab is gone
+		await expect(contact_item).toContainText("Contact");
+		await expect(
+			page.locator(".form-tabs-list [data-toggle='tab']:visible")
+		).not.toContainText(["Connections"]);
 
-		await page.locator('.document-link-badge[data-doctype="Contact"]').click();
-		const add_contact = page.getByRole("button", { name: "Add Contact", exact: true });
-		await expect(add_contact).toBeVisible();
-		await add_contact.click();
-		await page
-			.locator('[data-doctype="Contact"][data-fieldname="first_name"]')
+		// the dialog opens on the clicked doctype
+		await contact_item.click();
+		await expect(
+			page.locator('.settings-dialog-tab-item.active[data-tab-id="Contact"]')
+		).toBeVisible();
+		await expect(rows.first()).toBeVisible();
+
+		// a new linked contact from the dialog
+		await panel.getByRole("button", { name: "New", exact: true }).click();
+		await desk
+			.get_open_dialog()
+			.locator('[data-fieldname="first_name"] input')
 			.pressSequentially("Admin");
 		const saved = page.waitForResponse((res) =>
 			res.url().includes("/api/method/frappe.client.save")
 		);
-		await page.getByRole("button", { name: "Save", exact: true }).click();
+		await desk.get_open_dialog().getByRole("button", { name: "Save", exact: true }).click();
 		expect((await saved).status()).toBe(200);
+
 		await page.goto(`/desk/user/${TEST_USER}`);
+		await expect(contact_item.locator(".form-connections-count")).toContainText("2");
 
-		await desk.select_form_tab("Connections");
-		await expect(page.locator('[data-doctype="Contact"] > .count:visible')).toContainText("2");
-		await contact_link.getByText("Contact").first().click();
+		// "Open in list view" routes with the link filter
+		await page.locator(".form-connections-all").first().click();
+		await page.locator('.settings-dialog-tab-item[data-tab-id="Contact"]').click();
+		await panel.getByRole("button", { name: "Open in list view" }).click();
+		await expect(page).toHaveURL(/\/contact/);
 
+		// a row opens the record
+		await page.goto(`/desk/user/${TEST_USER}`);
+		await contact_item.click();
+		await rows.first().click();
+		await expect(page).toHaveURL(/\/contact\/.+/);
+
+		// delete the new contact
 		await page.goto("/desk/contact");
 		await expect(desk.listview_row_items.nth(0)).toContainText("Admin");
 		await page.locator(".list-subject > .select-like > .list-row-checkbox").nth(0).click();
@@ -84,17 +106,56 @@ test.describe("Dashboard links", () => {
 		await page.getByRole("button", { name: "Delete", exact: true }).click();
 		expect((await deleted).status()).toBe(200);
 
-		await page.goto("/desk/user");
-		await page.locator(".list-row-col > .level-item > .ellipsis").nth(0).click();
-		await expect(contact_link.filter({ hasText: "Contact" }).first()).toBeAttached();
+		await page.goto(`/desk/user/${TEST_USER}`);
+		await expect(contact_item).toBeVisible();
+		await expect(contact_item.locator(".form-connections-count")).not.toContainText("2");
+	});
+
+	test("connections filter by a link field in a child table, and list nothing when the field is unknown", async ({
+		page,
+	}) => {
+		await page.goto(`/desk/${doctype_to_link_name.toLowerCase().replaceAll(" ", "-")}`);
+		const filters = await page.evaluate(async (doctype) => {
+			await frappe.model.with_doctype(doctype);
+			const dialog = Object.create(frappe.ui.form.ConnectionsDialog.prototype);
+			const with_link = (fieldname) => {
+				dialog.dashboard = {
+					get_link_filters: () => ({ [fieldname]: "Test Linking" }),
+					get_link_fieldname: () => fieldname,
+				};
+				const filters = dialog.get_filters(doctype);
+				return filters && dialog.get_list_filters(doctype, filters);
+			};
+			return { child: with_link("doctype_to_link"), unknown: with_link("no_such_field") };
+		}, "Doctype With Child Table");
+
+		expect(filters.child).toEqual([
+			["Child Table Doctype", "doctype_to_link", "=", "Test Linking"],
+		]);
+		expect(filters.unknown).toBeNull();
+	});
+
+	test("without counts, connections still list records instead of calling them empty", async ({
+		page,
+	}) => {
+		await page.route("**/frappe.desk.notifications.get_open_count**", (route) =>
+			route.fulfill({ status: 500, body: "{}" })
+		);
+		await page.goto(`/desk/user/${TEST_USER}`);
+		const contact_item = page.locator('.form-connections-item[data-doctype="Contact"]');
+		await expect(contact_item.locator(".form-connections-count")).toHaveText("");
+
+		await contact_item.click();
+		await expect(page.locator(".settings-dialog-panel:visible .connections-empty")).toHaveCount(0);
+		await expect(
+			page.locator(".settings-dialog-panel:visible tr[data-row-idx]").first()
+		).toBeVisible();
 	});
 
 	test("Report link in dashboard", async ({ page, desk }) => {
 		await page.goto(`/desk/user/${TEST_USER}`);
-		await desk.select_form_tab("Connections");
-		await expect(
-			page.locator('.document-link[data-doctype="Contact"]').getByText("Contact").first()
-		).toBeVisible();
+		await expect(page.locator('.form-connections-item[data-doctype="Contact"]')).toBeVisible();
+		// reports have no place in the sidebar, they stay in the dashboard tab
 		await page.evaluate(() => {
 			cur_frm.dashboard.data.reports = [
 				{
@@ -102,8 +163,9 @@ test.describe("Dashboard links", () => {
 					items: ["Website Analytics"],
 				},
 			];
-			cur_frm.dashboard.render_report_links();
+			cur_frm.refresh();
 		});
+		await desk.select_form_tab("Connections");
 		await page
 			.locator('.document-link[data-report="Website Analytics"]')
 			.getByText("Website Analytics")
@@ -120,7 +182,15 @@ test.describe("Dashboard links", () => {
 		await expect.poll(() => page.evaluate(() => cur_frm.doc.title)).toBe("Test Linking");
 		await page.getByRole("button", { name: "Save", exact: true }).click();
 
-		await page.locator('.btn-new[data-doctype="Doctype With Child Table"]').click();
+		// nothing is linked yet; the dialog is still reachable to make the first one
+		await page.locator(".form-connections-all").click();
+		await page
+			.locator('.settings-dialog-tab-item[data-tab-id="Doctype With Child Table"]')
+			.click();
+		await expect(page.locator(".connections-empty:visible")).toContainText(
+			"No Doctype With Child Table for Test Linking yet"
+		);
+		await page.locator(".connections-new:visible").click();
 		await expect(
 			page.locator(
 				'.frappe-control[data-fieldname="child_table"] .rows .data-row .col[data-fieldname="doctype_to_link"]'
@@ -139,7 +209,11 @@ test.describe("Dashboard links", () => {
 			.toBe("Test Parent Linking");
 		await page.getByRole("button", { name: "Save", exact: true }).click();
 
-		await page.locator(`.btn-new[data-doctype="${doctype_with_link_name}"]`).click();
+		await page.locator(".form-connections-all").click();
+		await page
+			.locator(`.settings-dialog-tab-item[data-tab-id="${doctype_with_link_name}"]`)
+			.click();
+		await page.locator(".connections-new:visible").click();
 
 		await expect
 			.poll(() =>
