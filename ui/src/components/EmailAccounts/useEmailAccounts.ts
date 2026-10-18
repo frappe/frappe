@@ -1,6 +1,6 @@
 import { reactive } from "vue";
 import { call, frappeRequest } from "frappe-ui";
-import { authKind, newAccount } from "./services";
+import { authKind, missingDefaults, newAccount } from "./services";
 import type {
   EmailAccount,
   EmailAccountDoc,
@@ -98,8 +98,17 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
     load,
 
     async create(service, form) {
+      const doc = newAccount(service, form, doctype);
       await call("frappe.client.insert", {
-        doc: newAccount(service, form, doctype),
+        doc: {
+          ...doc,
+          ...Object.fromEntries(
+            missingDefaults(controller.accounts, doc).map((kind) => [
+              `default_${kind}`,
+              1,
+            ]),
+          ),
+        },
       });
       await load();
     },
