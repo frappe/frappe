@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-10-17 17:34+0000\n"
-"PO-Revision-Date: 2026-10-17 17:34+0000\n"
+"POT-Creation-Date: 2026-10-18 09:35+0000\n"
+"PO-Revision-Date: 2026-10-18 09:35+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -5166,7 +5166,7 @@ msgstr ""
 #: frappe/core/doctype/communication/communication.js:39
 #: frappe/desk/doctype/todo/todo.js:23
 #: frappe/public/js/frappe/form/form_tour.js:17
-#: frappe/public/js/frappe/ui/messages.js:248
+#: frappe/public/js/frappe/ui/messages.js:255
 #: frappe/website/js/bootstrap-4.js:39
 msgid "Close"
 msgstr ""
@@ -8581,7 +8581,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/form_tour.js:16
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:344
-#: frappe/public/js/frappe/ui/messages.js:235
+#: frappe/public/js/frappe/ui/messages.js:242
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:17
 #: frappe/public/js/print_format_builder/HTMLEditor.vue:5
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
