@@ -60,10 +60,13 @@ function mount(t, component, props, flow) {
 const box = (left, top, right, bottom) => ({ left, top, right, bottom, width: right - left, height: bottom - top })
 function measure(t, boxes) {
 	const protos = { element: dom.window.Element.prototype, range: dom.window.Range.prototype }
-	const before = { element: protos.element.getBoundingClientRect, range: protos.range.getBoundingClientRect }
+	const before = { element: protos.element.getBoundingClientRect, range: protos.range.getBoundingClientRect, lines: protos.range.getClientRects }
 	for (const kind of ["element", "range"]) protos[kind].getBoundingClientRect = () => boxes[kind]
+	// a range's line boxes: its one box unless the test lists them
+	protos.range.getClientRects = () => boxes.lines ?? [boxes.range]
 	t.after(() => {
 		for (const kind of ["element", "range"]) protos[kind].getBoundingClientRect = before[kind]
+		protos.range.getClientRects = before.lines
 	})
 }
 
@@ -505,6 +508,21 @@ test("selecting text in the thread shows Add to chat, which quotes it for the co
 	assert.equal(pill().style.left, "200px")
 	assert.equal(pill().style.top, "200px")
 	assert.ok(pill().style.transform.includes("-100%"))
+	// over several lines the box spans the column: the pill stays over the first line…
+	boxes.range = box(0, 200, 800, 268)
+	boxes.lines = [box(100, 200, 160, 220), box(0, 224, 800, 244), box(0, 248, 240, 268)]
+	document.dispatchEvent(new window.Event("scroll"))
+	await nextTick()
+	assert.equal(pill().style.left, "130px")
+	assert.equal(pill().style.top, "200px")
+	// …or goes under the last one when there is no room above
+	boxes.range = box(0, 10, 800, 78)
+	boxes.lines = [box(100, 10, 160, 30), box(0, 34, 800, 54), box(0, 58, 240, 78)]
+	document.dispatchEvent(new window.Event("scroll"))
+	await nextTick()
+	assert.equal(pill().style.left, "120px")
+	assert.equal(pill().style.top, "78px")
+	delete boxes.lines
 
 	// scrolled out of view, the selection takes the pill with it; scrolled back, it returns
 	boxes.range = box(100, -40, 300, -20)
@@ -521,7 +539,7 @@ test("selecting text in the thread shows Add to chat, which quotes it for the co
 	boxes.range = box(100, -40, 300, 900)
 	document.dispatchEvent(new window.Event("scroll"))
 	await nextTick()
-	assert.equal(pill().style.top, "570px")
+	assert.equal(pill().style.top, "564px")
 
 	pill().click()
 	await nextTick()

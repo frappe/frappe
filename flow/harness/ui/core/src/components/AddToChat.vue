@@ -13,6 +13,7 @@
 			@mousedown.prevent
 			@click="add"
 		>
+			<FeatherIcon name="message-square" class="h-3.5 w-3.5 text-ink-gray-6" />
 			Add to chat
 		</button>
 	</div>
@@ -20,6 +21,7 @@
 
 <script setup>
 import { inject, onBeforeUnmount, onMounted, ref } from "vue"
+import FeatherIcon from "./FeatherIcon.vue"
 
 // Floating "Add to chat" pill over a text selection inside `within`: queues the
 // selected text as a quote for the composer.
@@ -41,8 +43,8 @@ function selected() {
 	return text ? { range, text } : null
 }
 
-// centered above the selection's visible part; under it when there is no room
-// above, and never past the layer's bottom (the composer sits there)
+// centered above the selection's first line; under its last line when there is
+// no room above, and never past the layer's bottom (the composer sits there)
 function place() {
 	const found = selected()
 	if (!found) return (pill.value = null)
@@ -51,11 +53,15 @@ function place() {
 	const top = Math.max(rect.top, box.top)
 	const bottom = Math.min(rect.bottom, box.bottom)
 	if (bottom <= top) return (pill.value = null) // scrolled out of view
-	const below = top - box.top < 40
+	// a multi-line selection's box spans the whole column; its line boxes don't
+	const lines = [...found.range.getClientRects()].filter((line) => line.width && line.height)
+	const first = lines[0] ?? rect
+	const below = first.top - box.top < 40
+	const anchor = below ? (lines.at(-1) ?? rect) : first
 	pill.value = {
 		text: found.text,
-		x: Math.min(Math.max(rect.left + rect.width / 2, box.left + 60), box.right - 60) - box.left,
-		y: (below ? Math.min(bottom, box.bottom - 30) : top) - box.top,
+		x: Math.min(Math.max(anchor.left + anchor.width / 2, box.left + 60), box.right - 60) - box.left,
+		y: (below ? Math.min(bottom, box.bottom - 36) : first.top) - box.top,
 		below,
 	}
 }
