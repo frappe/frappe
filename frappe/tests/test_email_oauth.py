@@ -197,7 +197,7 @@ class TestCallback(IntegrationTestCase):
 			"Email Account", {"email_id": ("like", "%@email-oauth.example.com")}, pluck="name"
 		):
 			frappe.delete_doc("Email Account", name, force=True)
-		frappe.db.commit()
+		frappe.db.commit()  # the callback commits the mailboxes it makes; # nosemgrep
 
 	def note(self, **values) -> str:
 		state = frappe.generate_hash()
