@@ -185,11 +185,10 @@ test.describe("Grid Selection Bar on web forms", () => {
 		await admin.call("frappe.tests.ui_test_helpers.create_webform_with_child_table_dropdown");
 	});
 
-	test("opens the actions menu", async ({ page, desk }) => {
+	test("opens the actions menu", async ({ page }) => {
 		const errors = [];
 		page.on("pageerror", (error) => errors.push(error.message));
 
-		await desk.login("Administrator");
 		await page.goto("/test-grid-dropdown/new");
 		await page.locator(".grid-add-row").click();
 		await page.locator(".grid-body .grid-row .grid-row-check").first().click();
