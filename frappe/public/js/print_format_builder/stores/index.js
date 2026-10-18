@@ -186,7 +186,7 @@ export function getStore(print_format_name) {
 				_print_format.classic_format_data = r.message.classic_format_data;
 				_print_format.print_format_builder = 0;
 				_print_format.print_format_builder_beta = 1;
-				_print_format.pdf_generator = "";
+				_print_format.pdf_generator = "chrome";
 				if (_print_format.page_number === "Hide") {
 					_print_format.page_number = "Bottom Center";
 				}
@@ -408,9 +408,9 @@ export function getStore(print_format_name) {
 			});
 			return;
 		}
-		print_format.value.pdf_generator = "";
+		print_format.value.pdf_generator = "chrome";
 		frappe.show_alert({
-			message: __("Switched back to the default renderer: {0}", [blockers.join(", ")]),
+			message: __("Switched back to Chromium: {0}", [blockers.join(", ")]),
 			indicator: "orange",
 		});
 	});

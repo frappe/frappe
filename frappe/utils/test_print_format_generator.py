@@ -73,7 +73,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		"""before_save should set print_format_builder_beta=1 for new non-custom formats."""
 		pf = self._make_print_format()
 		self.assertEqual(pf.print_format_builder_beta, 1)
-		self.assertEqual(pf.pdf_generator, "")
+		self.assertEqual(pf.pdf_generator, "PlutoPrint")
 
 	def test_new_custom_format_does_not_set_builder_beta(self):
 		"""before_save must NOT enable builder beta for custom HTML formats."""
@@ -379,7 +379,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		jinja.reload()
 		jinja.save()
-		self.assertEqual(jinja.pdf_generator, "")
+		self.assertEqual(jinja.pdf_generator, "chrome")
 
 	def test_standard_print_uses_print_settings_default(self):
 		from frappe.utils.print_utils import resolve_pdf_generator

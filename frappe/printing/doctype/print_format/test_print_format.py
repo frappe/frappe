@@ -647,7 +647,7 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(dropped, ["dropped_field", "another_dropped_field"])
 		self.assertEqual(doc.print_format_builder, 0)
 		self.assertEqual(doc.print_format_builder_beta, 1)
-		self.assertEqual(doc.pdf_generator, "")
+		self.assertEqual(doc.pdf_generator, "chrome")
 		self.assertEqual(doc.page_number, "Bottom Center")
 		self.assertEqual(frappe.parse_json(doc.classic_format_data), self.CLASSIC_FORMAT_DATA)
 		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)

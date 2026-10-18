@@ -71,7 +71,7 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		pdf_generator: DF.Literal["", "chrome", "PlutoPrint", "Typst"]
+		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -130,7 +130,7 @@ class PrintFormat(Document):
 		from frappe.utils.print_utils import get_pdf_generators
 
 		if self.pdf_generator not in get_pdf_generators():
-			self.pdf_generator = ""
+			self.pdf_generator = "chrome"
 
 		if (
 			self.standard == "Yes"
@@ -169,11 +169,16 @@ class PrintFormat(Document):
 	def validate_plutoprint_renderer(self):
 		from frappe.utils.pdf_generator.pluto import plutoprint_blockers
 
-		if self.pdf_generator == "PlutoPrint" and (blockers := plutoprint_blockers(self)):
-			frappe.throw(
-				_("This format cannot use the PlutoPrint renderer: {0}").format(", ".join(blockers)),
-				title=_("PlutoPrint renderer unavailable"),
-			)
+		if self.pdf_generator != "PlutoPrint" or not (blockers := plutoprint_blockers(self)):
+			return
+		if self.is_new():
+			self.pdf_generator = "chrome"
+			frappe.msgprint(_("PDF Generator set to Chromium: {0}").format(", ".join(blockers)), alert=True)
+			return
+		frappe.throw(
+			_("This format cannot use the PlutoPrint renderer: {0}").format(", ".join(blockers)),
+			title=_("PlutoPrint renderer unavailable"),
+		)
 
 	def validate_typst_renderer(self):
 		"""Refuse to save a Typst-flagged format that Typst cannot render — the

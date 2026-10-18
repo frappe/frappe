@@ -307,11 +307,11 @@
    "label": "Show Colon After Field Labels"
   },
   {
+   "default": "PlutoPrint",
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "\nchrome\nPlutoPrint\nTypst",
-   "description": "Leave empty to use the PDF Generator set in Print Settings."
+   "options": "chrome\nPlutoPrint\nTypst"
   },
   {
    "default": "DocType",

@@ -287,7 +287,7 @@ def convert_print_format(doc):
 	doc.print_format_builder_beta = 1
 	for fieldname, value in missing_numeric_defaults(doc).items():
 		doc.set(fieldname, value)
-	doc.pdf_generator = ""
+	doc.pdf_generator = "chrome"
 	if not doc.page_number or doc.page_number == "Hide":
 		doc.page_number = "Bottom Center"
 	return dropped

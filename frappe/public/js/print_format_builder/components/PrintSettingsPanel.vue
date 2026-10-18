@@ -105,9 +105,6 @@
 					:value="renderer"
 					@change="set_renderer($event.target.value)"
 				>
-					<option value="" :disabled="has_typst_block">
-						{{ __("Default") }}
-					</option>
 					<option value="chrome" :disabled="has_typst_block">
 						{{ __("Chromium") }}
 					</option>
@@ -169,7 +166,7 @@ let { typst_blockers, has_typst_block } = store;
 
 let google_fonts = ref([]);
 
-let renderer = computed(() => print_format.value?.pdf_generator || "");
+let renderer = computed(() => print_format.value?.pdf_generator || "PlutoPrint");
 let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
